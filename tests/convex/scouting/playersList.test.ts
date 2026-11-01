@@ -11,7 +11,7 @@ import {
 import { listOf } from "../../../convex/scouting/playersOrder";
 import { PL_SEASON_START_YEAR } from "../../../convex/football/football";
 import { refusals } from "../../../convex/shared/leagueAccess";
-import { SEASON_TOTALS_MOST } from "../../../convex/stats/seasonStats";
+import { SEASON_PLAYERS_MOST } from "../../../convex/stats/matchRecords";
 import { CLUB_PLAYERS_MOST } from "../../../convex/shared/players";
 import { COMMISSIONER, MANAGERS, actingAs, addManagers, adminCreatesLeague, teamName, type TestConvex } from "../../support/convex/leagues.harness";
 import { ARSENAL, CHELSEA, GONE, SAKA, insertClubs, insertDroppedPlayer, insertPlayers } from "../../support/convex/footballRows.harness";
@@ -223,13 +223,13 @@ describe("any stat, as a season total (spec/19, sortable by any stat)", () => {
     await expect(listAs(ANN, {}, { by: "stat", descending: true })).rejects.toThrow("with none shown");
   });
 
-  test(`more than ${SEASON_TOTALS_MOST} players with totals in a season throws, never a silent cut`, async () => {
+  test(`more than ${SEASON_PLAYERS_MOST} players with totals in a season throws, never a silent cut`, async () => {
     await t.run(async (ctx) => {
-      for (let code = 0; code < SEASON_TOTALS_MOST; code += 1) {
+      for (let code = 0; code < SEASON_PLAYERS_MOST; code += 1) {
         await ctx.db.insert("playerSeasonStats", { season: THIS_SEASON, playerCode: 50_000 + code, stats: {} });
       }
     });
-    await expect(listAs(ANN, {}, BY_NAME, "goals_scored")).rejects.toThrow(`More than ${SEASON_TOTALS_MOST} players have totals`);
+    await expect(listAs(ANN, {}, BY_NAME, "goals_scored")).rejects.toThrow(`More than ${SEASON_PLAYERS_MOST} players have totals`);
   });
 });
 

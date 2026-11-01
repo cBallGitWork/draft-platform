@@ -28,6 +28,8 @@ export const POSITION_NAMES: Record<Position, string> = {
   SS: "Second striker",
   ST: "Striker",
 };
+/** A sweeper's slot label, SW, by name: a slot's label but no player's position (spec/05). */
+export const sweeperName = "Sweeper";
 
 /** What a screen says when a change or a read failed for any reason but the server's refusal (src/shared/refusal.ts):
  *  `outcome` is what that left, such as "nothing changed". */
@@ -46,6 +48,8 @@ export const previousGameweekLabel = "Previous gameweek";
 export const nextGameweekLabel = "Next gameweek";
 export const previousGlyph = "◄";
 export const nextGlyph = "►";
+/** A panel's or a window's cross, decoration, as its button carries its label. */
+export const closeGlyph = "✕";
 /** A sortable table's heads (src/ui/ColumnHeads.tsx): beside the column sorted by, which way, as
  *  decoration, since the head says so to screen readers through aria-sort; and, for screen
  *  readers, what pressing a head does. */

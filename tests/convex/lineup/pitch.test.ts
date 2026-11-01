@@ -24,7 +24,8 @@ const SPEC_AREAS: Record<WholeAreaPosition, Area[]> = {
   GK: ["goalkeeper"],
   CB: ["defence"],
   FB: ["defence"],
-  CDM: ["defensiveMidfield"],
+  // "Every CDM can play CM" (Craig, 1 Nov 2026).
+  CDM: ["defensiveMidfield", "midfield"],
   CM: ["midfield"],
   WM: ["midfield"],
   CAM: ["attackingMidfield"],

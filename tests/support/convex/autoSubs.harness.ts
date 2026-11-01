@@ -13,6 +13,7 @@ export const KEEPER = 1;
 export const LEFT_BACK = 2;
 export const LEFT_CENTRE_BACK = 3;
 export const LEFT_MIDFIELDER = 6;
+export const LEFT_CENTRE_MIDFIELDER = 7;
 export const STRIKER = 10;
 export const OTHER_STRIKER = 11;
 export const [FIRST, SECOND, THIRD, FOURTH] = [0, 1, 2, 3].map((index) => FIRST_SUB + index);

@@ -6,12 +6,10 @@ import { isMatchComplete, isWhole, lockTime, statChanges, type PlayerMatchRecord
 import { statCorrectionWindowMs } from "../admin/platformSettings";
 import { matchStatsState, matchStatsSyncFields, playerMatchRecord } from "../schema";
 import { LATEST_RUNS } from "../shared/syncRuns";
-import { DAY_MS, HOUR_MS, MINUTE_MS } from "../shared/time";
-import { currentFixtures } from "../shared/fixtures";
-import { dueMatch, type DueMatch } from "../shared/dueMatches";
 import { emailIfFailed } from "../admin/feedFailureEmails";
 import { countedStats, moveSeasonTotals, type RecordChange } from "./seasonStats";
 import { repriceChanged } from "./seasonPointsQueue";
+import { rebuildTotalsIfNoneKept } from "./seasonRebuilds";
 
 // Issue #27: the stored side of match stats. `matchStatsSync.run` reads the feeds and hands each
 // match's records to `upsertMatch`; `lock` closes the window; each run is a row in matchStatsSyncs.
@@ -24,46 +22,6 @@ export const matchWrites = v.object({
   updated: v.number(),
   changed: v.array(v.number()),
   lateCorrections: v.number(),
-});
-
-/** Ninety minutes and a fifteen-minute half-time: no match reaches full time sooner after kickoff,
- *  so none is read before. */
-const EARLIEST_FULL_TIME_MS = 105 * MINUTE_MS;
-/** How long a locked match is still read, to catch a late correction for the feeds page, and how
- *  often: Claude's choice, not yet Craig's, and no late correction has been recorded to size it. */
-export const LATE_CORRECTION_WATCH_MS = DAY_MS;
-export const LATE_READ_EVERY_MS = HOUR_MS;
-/** Matches per run: a gameweek's worth, so a first run behind many keeps inside an action's time. */
-export const MATCHES_PER_RUN = 10;
-
-/** The held matches to read now: each past full time and not locked, or locked within the watch
- *  and not read for an hour. Those never tried come first, then the least lately tried, oldest
- *  kickoff first among equals, so a run's worth that fail, wait or stay provisional every run
- *  cannot keep a newer match from being read. */
-export const due = internalQuery({
-  args: { now: v.number() },
-  returns: v.array(dueMatch),
-  handler: async (ctx, { now }): Promise<DueMatch[]> => {
-    const found: (DueMatch & { kickoff: number; triedAt: number })[] = [];
-    // Only the current season's (#214): a fixture with no kickoff sorts before every time in the
-    // index, so it is read and passed over.
-    for (const { code, gameweek, kickoff } of await currentFixtures(ctx, now - EARLIEST_FULL_TIME_MS)) {
-      if (gameweek === null || kickoff === null) continue;
-      const status = await statusOf(ctx, code);
-      const lateWatched =
-        status?.lockedAt !== undefined &&
-        now - status.lockedAt < LATE_CORRECTION_WATCH_MS &&
-        now - status.lastReadAt >= LATE_READ_EVERY_MS;
-      if (status?.state !== "locked" || lateWatched) {
-        const triedAt = (await triedOf(ctx, code))?.triedAt ?? Number.NEGATIVE_INFINITY;
-        found.push({ fixtureCode: code, gameweek, kickoff, triedAt });
-      }
-    }
-    return found
-      .sort((a, b) => a.triedAt - b.triedAt || a.kickoff - b.kickoff)
-      .slice(0, MATCHES_PER_RUN)
-      .map(({ fixtureCode, gameweek }) => ({ fixtureCode, gameweek }));
-  },
 });
 
 /** One match's records as read at `readAt`, a match at full time. Before the lock each record is
@@ -128,12 +86,14 @@ export const lock = internalMutation({
   },
 });
 
-/** The run's row, and every match it tried marked tried then, whether it read, waited or failed. */
+/** The run's row, and every match it tried marked tried then, whether it read, waited or failed;
+ *  and the kickoff `due` said the next run reads the fixtures from, when it read. */
 export const record = internalMutation({
-  args: matchStatsSyncFields,
+  args: { ...matchStatsSyncFields, unseenFrom: v.optional(v.number()) },
   returns: v.null(),
-  handler: async (ctx, row) => {
+  handler: async (ctx, { unseenFrom, ...row }) => {
     await ctx.db.insert("matchStatsSyncs", row);
+    if (unseenFrom !== undefined) await storeUnseenFrom(ctx, unseenFrom);
     await emailIfFailed(ctx, "matchStats", row);
     if (!row.outcome.ok) return null;
     for (const fixtureCode of [...row.outcome.matches.map((match) => match.fixtureCode), ...row.outcome.waiting]) {
@@ -144,6 +104,14 @@ export const record = internalMutation({
     return null;
   },
 });
+
+/** Stores the kickoff to read the fixtures from, never moving it back: each run's is safe, since a
+ *  status row is never deleted, so the later of two runs' is too. */
+async function storeUnseenFrom(ctx: MutationCtx, kickoff: number) {
+  const held = await ctx.db.query("matchStatsUnseenFrom").unique();
+  if (held === null) await ctx.db.insert("matchStatsUnseenFrom", { kickoff });
+  else if (kickoff > held.kickoff) await ctx.db.patch("matchStatsUnseenFrom", held._id, { kickoff });
+}
 
 export const latest = internalQuery({
   args: {},
@@ -158,7 +126,7 @@ export function statusOf(ctx: QueryCtx, fixtureCode: number) {
     .unique();
 }
 
-function triedOf(ctx: QueryCtx, fixtureCode: number) {
+export function triedOf(ctx: QueryCtx, fixtureCode: number) {
   return ctx.db
     .query("matchStatsTries")
     .withIndex("by_fixtureCode", (q) => q.eq("fixtureCode", fixtureCode))
@@ -200,8 +168,11 @@ export async function writeRecords(
     }
     if (differs || row.state !== state) await ctx.db.replace("playerMatchStats", row._id, { ...record, state });
   }
+  // Before any totals move, as their rows would hide a deployment whose older records have none.
+  // Its rebuild sets every total afresh and then re-prices every season, so nobody is re-priced here.
+  const rebuilding = records.length > 0 && (await rebuildTotalsIfNoneKept(ctx, records[0].fixtureCode));
   await moveSeasonTotals(ctx, moved);
-  await repriceChanged(ctx, records, held);
+  if (!rebuilding) await repriceChanged(ctx, records, held);
   return { inserted, updated: changed.length - inserted, changed };
 }
 

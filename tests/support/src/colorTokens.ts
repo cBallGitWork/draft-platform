@@ -10,3 +10,8 @@ export function colorToken(name: string): string {
   if (value === undefined) throw new Error(`styles.css gives --color-${name} no #rrggbb`);
   return value;
 }
+
+/** Every `--color-<name>` styles.css defines, whatever its value (a hex, an rgb(), a var()). */
+export function colorTokenNames(): Set<string> {
+  return new Set([...stylesCss.matchAll(/^\s*--color-([a-z0-9-]+):/gm)].map((match) => match[1]));
+}

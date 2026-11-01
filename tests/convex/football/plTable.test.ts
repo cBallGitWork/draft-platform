@@ -1,14 +1,19 @@
 import { describe, expect, test } from "vitest";
-import { plTable, type PlResult, type PlTableRow } from "../../../convex/football/plTable";
+import { plTable, type PlMatch, type PlResult, type PlTableRow } from "../../../convex/football/plTable";
+import { COMPETITION_TIE_BREAKS, type CompetitionTieBreaking } from "../../../convex/football/tieBreaks";
 
 // The Premier League table (#50; spec/18): P W D L GF GA GD Pts from the results, every club in it,
-// and the Handbook's order: points (C.4), goal difference (C.5), goals scored (C.6), a shared
-// position (C.7), and, at the end of the season only, head-to-head points (C.17.1) then away goals
-// in the head-to-head matches (C.17.2).
+// and clubs level on points split by the competition's own tie-breaking, held as data (#899). The
+// Premier League's: goal difference (C.5), goals scored (C.6), a shared position (C.7), and, at the
+// end of the season only, head-to-head points (C.17.1) then away goals in the head-to-head matches
+// (C.17.2), skipped for clubs with a meeting never played.
 
 const [ARS, BOU, CHE, DER] = ["Arsenal", "Bournemouth", "Chelsea", "Derby"];
-const IN_SEASON = { seasonOver: false };
-const SEASON_OVER = { seasonOver: true };
+const PL = COMPETITION_TIE_BREAKS.premierLeague;
+const IN_SEASON = { competition: PL, seasonOver: false, unplayed: [] };
+const SEASON_OVER = { competition: PL, seasonOver: true, unplayed: [] };
+/** The season over, with these matches never played. */
+const overWithUnplayed = (...unplayed: PlMatch<string>[]) => ({ competition: PL, seasonOver: true, unplayed });
 
 /** A result as "home homeGoals-awayGoals away". */
 const result = (home: string, homeGoals: number, awayGoals: number, away: string): PlResult<string> => ({
@@ -69,6 +74,11 @@ describe("the Premier League table", () => {
     expect(placed(table)).toEqual([[1, DER], [2, ARS], [3, BOU], [4, CHE]]);
   });
 
+  test("at the end of the season, a meeting between them never played skips head-to-head: they share a position", () => {
+    const table = plTable([BOU, ARS, CHE, DER], levelAfterGoals, overWithUnplayed({ home: BOU, away: ARS }));
+    expect(placed(table)).toEqual([[1, DER], [2, BOU], [2, ARS], [4, CHE]]);
+  });
+
   test("C.17.2: level on head-to-head points, the most goals scored away in those matches first", () => {
     const drawnTwice = [result(ARS, 1, 1, BOU), result(BOU, 0, 0, ARS)];
 
@@ -81,7 +91,7 @@ describe("the Premier League table", () => {
     expect(placed(table)).toEqual([[1, ARS], [1, BOU]]);
   });
 
-  test("C.17.1 with three clubs level counts only the matches among the three", () => {
+  describe("three clubs level", () => {
     // Between themselves Arsenal take 4 points, Bournemouth 3, Chelsea 1; their games with Derby
     // bring each to 7 points, 3 scored and 1 conceded.
     const results = [
@@ -96,8 +106,46 @@ describe("the Premier League table", () => {
     ];
     const clubs = [CHE, BOU, ARS, DER];
 
-    expect(placed(plTable(clubs, results, IN_SEASON))).toEqual([[1, CHE], [1, BOU], [1, ARS], [4, DER]]);
-    expect(placed(plTable(clubs, results, SEASON_OVER))).toEqual([[1, ARS], [2, BOU], [3, CHE], [4, DER]]);
+    test("C.17.1 with three clubs level counts only the matches among the three", () => {
+      expect(placed(plTable(clubs, results, IN_SEASON))).toEqual([[1, CHE], [1, BOU], [1, ARS], [4, DER]]);
+      expect(placed(plTable(clubs, results, SEASON_OVER))).toEqual([[1, ARS], [2, BOU], [3, CHE], [4, DER]]);
+    });
+
+    test("one match among the three never played, all three stay level", () => {
+      expect(placed(plTable(clubs, results, overWithUnplayed({ home: BOU, away: ARS })))).toEqual([[1, CHE], [1, BOU], [1, ARS], [4, DER]]);
+    });
+
+    test("a match never played between one of them and a club not level doesn't hold the three back", () => {
+      expect(placed(plTable(clubs, results, overWithUnplayed({ home: ARS, away: DER })))).toEqual([[1, ARS], [2, BOU], [3, CHE], [4, DER]]);
+    });
+  });
+
+  test("the order is the competition's data: another competition's order sorts the same results differently", () => {
+    // Arsenal, Bournemouth and Derby on 3 points. By goal difference Arsenal (+3), Derby (+1),
+    // Bournemouth (0); by head-to-head points first, Bournemouth and Derby (3 each, from beating
+    // Arsenal and Bournemouth) ahead of Arsenal (0), then goal difference between those two.
+    const otherCompetition: CompetitionTieBreaking = { order: ["headToHeadPoints", "goalDifference"], headToHead: "seasonOver" };
+    const results = [result(ARS, 0, 1, BOU), result(ARS, 4, 0, CHE), result(DER, 1, 0, BOU)];
+    const clubs = [ARS, BOU, CHE, DER];
+
+    expect(placed(plTable(clubs, results, SEASON_OVER))).toEqual([[1, ARS], [2, DER], [3, BOU], [4, CHE]]);
+    expect(placed(plTable(clubs, results, { competition: otherCompetition, seasonOver: true, unplayed: [] }))).toEqual([[1, DER], [2, BOU], [3, ARS], [4, CHE]]);
+  });
+
+  test("when head-to-head applies is the competition's data: a competition with it all season splits the tie in the season", () => {
+    const allSeason: CompetitionTieBreaking = { ...PL, headToHead: "allSeason" };
+    const table = plTable([BOU, ARS, CHE, DER], levelAfterGoals, { competition: allSeason, seasonOver: false, unplayed: [] });
+    expect(placed(table)).toEqual([[1, DER], [2, ARS], [3, BOU], [4, CHE]]);
+  });
+
+  test("a head-to-head step skipped for a match never played, the competition's next step still applies", () => {
+    const headToHeadFirst: CompetitionTieBreaking = { order: ["headToHeadPoints", "goalDifference"], headToHead: "seasonOver" };
+    const table = plTable([BOU, ARS, CHE], [result(ARS, 2, 0, CHE), result(BOU, 1, 0, CHE)], {
+      competition: headToHeadFirst,
+      seasonOver: true,
+      unplayed: [{ home: ARS, away: BOU }],
+    });
+    expect(placed(table)).toEqual([[1, ARS], [2, BOU], [3, CHE]]);
   });
 
   test("a club listed twice throws", () => {
@@ -109,5 +157,10 @@ describe("the Premier League table", () => {
     expect(() => plTable([ARS], [result(ARS, 1, 0, ARS)], IN_SEASON)).toThrow(/Arsenal playing itself/);
     expect(() => plTable([ARS, BOU], [result(ARS, -1, 0, BOU)], IN_SEASON)).toThrow(/Arsenal v Bournemouth has -1 goals/);
     expect(() => plTable([ARS, BOU], [result(ARS, 1, 0.5, BOU)], IN_SEASON)).toThrow(/0.5 goals/);
+  });
+
+  test("an unplayed match naming a club not in the table, or one playing itself, throws", () => {
+    expect(() => plTable([ARS], [], overWithUnplayed({ home: ARS, away: BOU }))).toThrow(/Bournemouth, which isn't one of the clubs/);
+    expect(() => plTable([ARS], [], overWithUnplayed({ home: ARS, away: ARS }))).toThrow(/Arsenal playing itself/);
   });
 });

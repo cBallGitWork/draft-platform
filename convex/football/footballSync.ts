@@ -23,11 +23,11 @@ import {
   tableWrites,
 } from "../schema";
 import { BATCH_SIZE, LATEST_RUNS } from "../shared/syncRuns";
-import { recordPassedDeadlines } from "../gameweeks/deadlineRecorder";
+import { keepDroppedDeadlines, recordPassedDeadlines } from "../gameweeks/deadlineRecorder";
 import { emailIfFailed } from "../admin/feedFailureEmails";
 import { writeScores } from "./matchScores";
 import { repriceMatches } from "../stats/seasonPointsMoves";
-import { rebuildIfNoneKept } from "../stats/seasonPointsQueue";
+import { rebuildIfNoneKept } from "../stats/seasonRebuilds";
 
 // Issue #21: the real Premier League's clubs, players, fixtures and gameweeks, copied in from the
 // football layer, and each match's score (#49, matchScores.ts). crons.ts runs it on a schedule;
@@ -65,8 +65,10 @@ export const run = internalAction({
         // Clubs first, so a player or a fixture never names a club not yet held.
         clubs: await syncTable(ctx, "clubs", internal.football.footballSync.upsertClubs, football.clubs, ranAt),
         players: await syncTable(ctx, "players", internal.football.footballSync.upsertPlayers, football.players, ranAt),
-        fixtures: await syncTable(ctx, "fixtures", internal.football.footballSync.upsertFixtures, football.fixtures, ranAt),
+        // Gameweeks before fixtures, so a gameweek FPL stops sending keeps the deadline its matches
+        // give before any of them moves (#202, deadlineRecorder.ts's keepDroppedDeadlines).
         gameweeks: await syncTable(ctx, "gameweeks", internal.football.footballSync.upsertGameweeks, football.gameweeks, ranAt),
+        fixtures: await syncTable(ctx, "fixtures", internal.football.footballSync.upsertFixtures, football.fixtures, ranAt),
         scores: await writeScores(ctx, "fpl", ranAt, football.scores),
       };
     });
@@ -130,6 +132,8 @@ export const markDropped = internalMutation({
     const sent = new Set(sentKeys);
     const page = await unmarkedPage(ctx, table, paginationOpts);
     const dropped = page.page.filter((held) => !sent.has(keyOf(held)));
+    // A gameweek FPL stops sending keeps its last deadline (#202).
+    if (table === "gameweeks") await keepDroppedDeadlines(ctx, dropped.map(keyOf));
     await Promise.all(dropped.map((held) => ctx.db.patch(table, held._id, { droppedAt })));
     // On the fixtures table, its page holds fixtures.
     if (table === "fixtures") await repriceMatches(ctx, dropped as Doc<"fixtures">[]);

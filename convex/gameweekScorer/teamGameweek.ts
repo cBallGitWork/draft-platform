@@ -4,6 +4,7 @@ import { autoSubs, gameweekPlay, type AutoSubs, type GameweekPlay } from "../lin
 import { namedCodes } from "../lineup/lineup";
 import { lineupsInGameweek, type HeldLineup } from "../lineup/lineups";
 import { ALL_CELLS, playsCell, type Cell } from "../lineup/pitch";
+import { presetNameOf } from "../lineup/presets";
 import { positionsNow, type PositionsNow } from "../positions/playerPositions";
 import type { Position } from "../positions/positionTables";
 import type { StoredScoringSet } from "../scoring/scoringSetShape";
@@ -15,7 +16,7 @@ import { validateScoringSet } from "../scoring/scoringSet";
 import { scoreTeam, type PlayerMatch, type SlotPoints, type TeamPoints } from "../scoring/teamPoints";
 import { playerByCode } from "../shared/players";
 import { readOnce } from "../shared/readOnce";
-import { isWhole, MINUTES_STAT } from "../stats/matchRecords";
+import { MINUTES_STAT, statsIfWhole } from "../stats/matchRecords";
 import { heldMatches, isFinished, isMatchFinal, playsIn, type HeldMatch } from "./heldMatches";
 import { deadlineStarsIn } from "../stars/deadlineStars";
 import type { RoleStars } from "../stars/starsShape";
@@ -56,7 +57,7 @@ export async function leagueReads(
     leagueId: league._id,
     season,
     setIn: setIn ?? (await siteScoringByGameweek(ctx)),
-    player: playerReader(ctx, await positionsNow(ctx)),
+    player: playerReader(ctx, await positionsNow(ctx, league._id)),
   };
 }
 
@@ -116,6 +117,11 @@ export interface TeamInGameweek {
   /** It held no lineup in a gameweek begun before #637 gave every team one (lineups.ts), though
    *  its squad had players, so it scores 0 and a screen can say why. */
   noLineup: boolean;
+  /** The preset its lineup stands in, named as the league's presets in force in the gameweek name
+   *  it; null once its manager has edited the shape off every preset (presets.ts `presetNameOf`).
+   *  Read from the lineup as it locked, a slot left empty by a man gone from the squad included:
+   *  auto-subs aren't an edit. */
+  formation: string | null;
 }
 
 /** The team's gameweek: its lineup, auto-subs from who played, then scoreTeam. */
@@ -158,7 +164,8 @@ export async function teamInGameweek(reads: LeagueReads, inputs: GameweekInputs,
     })),
     benchCells: new Map(lineup.bench.map((code) => [code, benchCell(positions.get(code)!)])),
   });
-  return { team, autoSubs: subs, matchesOf, noLineup: held.noLineup };
+  const formation = presetNameOf([...held.starters, ...held.vacated], rules.presets);
+  return { team, autoSubs: subs, matchesOf, noLineup: held.noLineup, formation };
 }
 
 /** One of his matches as his slot scored it: its points by category, and whether his slot's points
@@ -211,7 +218,7 @@ export function inMatchOf(slot: SlotPoints, matches: readonly HeldMatch[]): InMa
     pointsByMatch(slot, matches).flatMap(({ match, points }) => {
       const record = match.records.get(slot.playerCode);
       if (record === undefined) return [];
-      return [[match.fixture.code, { stats: isWhole(record) ? record.stats : null, played: record.played === true, points }] as const];
+      return [[match.fixture.code, { stats: statsIfWhole(record), played: record.played === true, points }] as const];
     }),
   );
 }
@@ -224,7 +231,7 @@ const NOT_NAMED: Readonly<Record<string, number>> = {};
  *  one. Final once the match is locked, its corrections window shut. */
 function forPoints(match: HeldMatch, code: PlayerCode): PlayerMatch {
   const record = match.records.get(code);
-  const stats = record === undefined ? (isFinished(match) ? NOT_NAMED : null) : isWhole(record) ? record.stats : null;
+  const stats = record === undefined ? (isFinished(match) ? NOT_NAMED : null) : statsIfWhole(record);
   return { record: stats, final: isMatchFinal(match), override: match.overrides.get(code) };
 }
 

@@ -2,7 +2,10 @@
 (--body, or the file --body-file names) holds a local path or a closing word near an issue number
 anywhere but a bare "Closes #n" line. On gh pr create it also denies a body that lacks the
 template's headings; one with neither pr-reviewer's pasted signature nor an unticked "not run" line
-for it; and one with a ticked box that says "not run". A body the guard can't read is denied too.
+for it; one with a ticked box that says "not run"; and, where the branch changes a file that renders
+a screen with an approved picture (screen_routes.py), one without ui-verifier's signature and an
+"Approved vs built" section that says it "matches the approved picture" or numbers each difference
+(#947; approval_gate.py then holds the merge for Craig). A body the guard can't read is denied too.
 A title past TITLE_HARD characters is denied; one past TITLE_SOFT gets a note, not a denial
 (pr_title_note; Craig, 22 Oct 2026).
 Stdlib only, Python 3.9+.
@@ -14,6 +17,7 @@ import os
 import re
 
 from parsing import MARKED
+from screen_routes import screens_changed
 from where import options, runs_at
 
 PR_CALLS = (["pr", "create"], ["pr", "edit"])
@@ -33,6 +37,15 @@ LOCAL_PATHS = ("/Users/", "/private/tmp/")  # a Mac home folder, the session scr
 CLOSING = re.compile(r"(?i)\b(close[sd]?|fix(e[sd])?|resolve[sd]?)\b[^\n#]{0,40}#\d+")
 BARE_CLOSES = re.compile(r"^Closes #\d+\s*$")
 USE_A_FILE = "Write the body to a file and pass it with --body-file <file>."
+# ui-verifier's block for a screen with an approved picture (.claude/agents/ui-verifier.md, Output)
+APPROVED_VS_BUILT = "## Approved vs built"
+MATCHES = "matches the approved picture"
+VERIFIER_SIGNATURE = "*Verifier: ui-verifier ("  # starts the last line of ui-verifier's block
+VERIFIER_SIGNED = re.compile("^" + re.escape(VERIFIER_SIGNATURE), re.M)
+COMMENT = re.compile(r"<!--.*?-->", re.S)
+# the section ends at the next heading but its own, as ui-verifier's pasted block repeats it
+NEXT_HEADING = re.compile(r"^## (?!" + re.escape(APPROVED_VS_BUILT[3:]) + ")", re.M)
+DIFFERENCE = re.compile(r"^\s*\d+\.\s+\S.*$", re.M)  # "1. Columns: …"
 
 
 def pr_call(words):
@@ -94,6 +107,37 @@ def _read(path, cwd):
         raise ValueError(f"its --body-file can't be read ({error.strerror}: {path}).") from None
 
 
+def approved_vs_built(body):
+    """The body's Approved vs built section, its HTML comments taken out, or None if it has none."""
+    text = COMMENT.sub("", body)
+    start = text.find(APPROVED_VS_BUILT)
+    if start < 0:
+        return None
+    rest = text[start + len(APPROVED_VS_BUILT):]
+    end = NEXT_HEADING.search(rest)
+    return rest[: end.start()] if end else rest
+
+
+def differences(body):
+    """Each numbered difference the body's Approved vs built section lists."""
+    section = approved_vs_built(body) or ""
+    return [m.group(0).strip() for m in DIFFERENCE.finditer(section)]
+
+
+def screen_problem(body, screens):
+    """What a body for a branch that changes these screens ({route: files}) lacks, or None."""
+    if not screens:
+        return None
+    named = ", ".join(f"{route} ({', '.join(files[:3])}{', …' if len(files) > 3 else ''})"
+                      for route, files in screens.items())
+    section = approved_vs_built(body)
+    if not VERIFIER_SIGNED.search(body) or section is None or not (MATCHES in section or differences(body)):
+        return (f"This branch changes a screen with an approved picture: {named}. Run the ui-verifier agent "
+                f"and paste its block: a '{APPROVED_VS_BUILT}' section that says it '{MATCHES}' or numbers "
+                f"each difference (1. …), and its line starting '{VERIFIER_SIGNATURE}…'.")
+    return None
+
+
 def body_problem(body, creating):
     """What breaks the rules in this body, with the fix, or None."""
     if creating:
@@ -137,8 +181,14 @@ def pr_body_problem(cmds, cwd):
             return f"Can't check that pull request's body: {error}"
         if sub == "create" and not texts:
             return "gh pr create needs its body given, so the guard can check it. " + USE_A_FILE
+        screens = {}
+        if sub == "create":
+            try:
+                screens = screens_changed(here or cwd)
+            except ValueError as error:
+                return f"Can't tell whether this branch changes a screen with an approved picture: {error}."
         for text in texts:
-            problem = body_problem(text, sub == "create")
+            problem = body_problem(text, sub == "create") or screen_problem(text, screens)
             if problem:
                 return "Pull request body: " + problem
     return None

@@ -20,6 +20,7 @@ import { leagueIn, leagueRunBy, runs } from "../leagues/roles";
 import { SETTINGS_ROUTE } from "../leagueSettings/paths";
 import { SettingsPage } from "../leagueSettings/SettingsPage";
 import { MailPage, leaguesToWriteFrom } from "../mail/MailPage";
+import { mailSearchOf } from "../mail/paths";
 import { PatchNotesPage } from "../patches/PatchNotesPage";
 import { PATCH_NOTES_PATH } from "../patches/paths";
 import { PLAYER_CARD_ROUTE } from "../playerCard/paths";
@@ -62,9 +63,11 @@ const newLeagueRoute = createRoute({
 const mailRoute = createRoute({
   getParentRoute: () => leaguePagesRoute,
   path: MAIL_PATH,
+  validateSearch: mailSearchOf,
   component: function MailScreen() {
     const { mail, session, topBar } = mailRoute.useRouteContext();
-    return <MailPage mail={mail} unread={topBar.unreadMail} writableLeagues={leaguesToWriteFrom(session)} />;
+    const { letter } = mailRoute.useSearch();
+    return <MailPage mail={mail} unread={topBar.unreadMail} writableLeagues={leaguesToWriteFrom(session)} opened={letter} />;
   },
 });
 

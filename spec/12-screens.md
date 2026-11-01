@@ -25,6 +25,8 @@ The look's exact values are in [docs/design/plate.md](../docs/design/plate.md).
   1 Nov 2026).
 - Logged out, in the closed beta: a sign-in page only (the name, "invite only", an email box for
   the sign-in link). No league is visible without signing in.
+- Table stays in the top menu, though League home shows the table too (Craig, 1 Nov 2026: "yes
+  to all").
 - The screens: sign in, your leagues, league home, my team (squad and tactics pitch), matchup (live
   head-to-head; live matchday is folded in here), match (one real match, live: `spec/10`), table and
   fixtures (the draft league's), Premier League (`spec/18`), Scouting (`spec/19`: the players list,
@@ -49,9 +51,11 @@ homage, simple, in CM's blue, with a top menu. The canvas with every round is
   - the league's last five claims, drops and trades;
   - a weekly recap, written by AI from facts only once every match of the gameweek is final: top
     performers, letdowns and points left on the bench; Mail says when it is up (`spec/16`);
-  - Team of the Week: the best eleven from the league's lineups, in a legal formation, under the
-    site's scoring (`spec/14`);
-  - the commissioner's latest letter, pinned until a newer one.
+  - the commissioner's latest letter, pinned until a newer one;
+  - not Team of the Week: "ditch team of the week" (Craig, 1 Nov 2026).
+
+  League home's approved picture is in `docs/design/approved/home/` (Craig, 1 Nov 2026: "yes to
+  all").
 - **My team** shows the tactics pitch, the squad and Mail side by side.
   - The Tactics tab's squad list, beside the pitch as on FM's tactics screen: each row opens
     with the slot's position label (`spec/06`) in its area's colour, then the role's full name, the player,
@@ -61,7 +65,13 @@ homage, simple, in CM's blue, with a top menu. The canvas with every round is
 - My team's other tabs, after the Tactics tab (25 Oct 2026):
   - **Squad**: every player in the squad in one table, with his position, club, next fixture,
     season points and last gameweek's points. His season points are what his team got from him,
-    not every match his card shows (Craig, 29 Oct 2026).
+    not every match his card shows (Craig, 29 Oct 2026). Craig's "ok" to Claude's suggestions for
+    its approved picture (1 Nov 2026):
+    - Started, in his season panel: games he started for your team.
+    - Role points, in his season panel: the points his roles added or took away this season.
+    - Set his role, in his season panel: opens Tactics with him selected.
+    - The Schedule view: his next 6 fixtures.
+    - The Rules view: your squad against the league's limits.
   - **Fixtures**: the team's head-to-head fixtures and results for the season. A player's Premier
     League fixtures belong on the players screen.
   - **Transactions**: the team's claims, drops, trades and commissioner assignments, newest first,

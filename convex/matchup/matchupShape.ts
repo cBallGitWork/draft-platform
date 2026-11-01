@@ -76,6 +76,10 @@ const side = v.union(
     points: v.number(),
     provisional: v.boolean(),
     lineup: v.object({ starters: v.array(starter), bench: v.array(benchSlot) }),
+    /** The preset its lineup stands in, such as "4-4-2" (spec/10: a side's formation "is named by
+     *  its preset until its edited"); null once its manager has edited it off every preset, as
+     *  what such a shape is called waits on Craig (#878). */
+    formation: v.union(v.string(), v.null()),
   }),
   /** The league's average, which the odd team out plays in a league that gives it one. */
   v.object({ kind: v.literal(LEAGUE_AVERAGE), points: v.number(), provisional: v.boolean() }),

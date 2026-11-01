@@ -5,7 +5,7 @@ import { managerOf, refuse } from "../shared/leagueAccess";
 import { seasonRules, type SeasonRules } from "../rules/rulesHistory";
 import { heldSchedule } from "../gameweeks/leagueDeadlines";
 import { nextGameweek } from "../gameweeks/nextGameweek";
-import { passedDeadlineOf, passedDeadlinesOf } from "../gameweeks/passedDeadlines";
+import { fixedDeadlinesOf, passedDeadlineOf } from "../gameweeks/passedDeadlines";
 import { GAMEWEEKS } from "../gameweeks/usedGameweeks";
 import { squadAt, squadMovesSince, squadOf, type SquadMovesSince } from "../squads/squadPlace";
 import { playerByCode } from "../shared/players";
@@ -101,7 +101,7 @@ export async function lineupsInGameweek(
     }
     if (row === null) {
       const begun = deadline !== null;
-      const held = begun ? { starters: [], bench: squad } : await firstLineupOf(ctx, squad, await rulesInGameweek());
+      const held = begun ? { starters: [], bench: squad } : await firstLineupOf(ctx, leagueId, squad, await rulesInGameweek());
       lineups.set(teamId, { fromGameweek: null, noLineup: begun && squad.length > 0, ...held, ...NO_CHANGES });
       continue;
     }
@@ -113,14 +113,14 @@ export async function lineupsInGameweek(
 
 /** The squad's first lineup, picked afresh (firstLineup.ts), each starter on his best-star role:
  *  unstored, so display only. */
-async function firstLineupOf(ctx: QueryCtx, squad: readonly number[], rules: FirstLineupRules | null) {
+async function firstLineupOf(ctx: QueryCtx, leagueId: Id<"leagues">, squad: readonly number[], rules: FirstLineupRules | null) {
   const stars = await starsOfPlayers(ctx, squad);
-  return withDroppedRoles(firstLineup(squad, await heldPositionsOf(ctx, squad), rules), (playerCode) => stars.get(playerCode)!);
+  return withDroppedRoles(firstLineup(squad, await heldPositionsOf(ctx, leagueId, squad), rules), (playerCode) => stars.get(playerCode)!);
 }
 
-/** Each player's positions now (spec/06), for picking a first lineup. */
-async function heldPositionsOf(ctx: QueryCtx, playerCodes: readonly number[]): Promise<PlayerPositions> {
-  const positionsOfNow = await positionsNow(ctx);
+/** Each player's positions now in the league (spec/06), for picking a first lineup. */
+async function heldPositionsOf(ctx: QueryCtx, leagueId: Id<"leagues">, playerCodes: readonly number[]): Promise<PlayerPositions> {
+  const positionsOfNow = await positionsNow(ctx, leagueId);
   return new Map(await Promise.all(playerCodes.map(async (playerCode) => [playerCode, await positionsOfNow(playerCode)] as const)));
 }
 
@@ -138,7 +138,25 @@ async function squadCodes(ctx: QueryCtx, teamId: Id<"teams">): Promise<number[]>
  *  a save now is from. */
 export async function nextOpenGameweek(ctx: QueryCtx, leagueId: Id<"leagues">, season: SeasonRules, now: number): Promise<number> {
   const { gameweeks, matches } = await heldSchedule(ctx);
-  return nextGameweek(gameweeks, matches, (gameweek) => season.inGameweek(gameweek).deadline, await passedDeadlinesOf(ctx, leagueId), now);
+  return nextGameweek(gameweeks, matches, (gameweek) => season.inGameweek(gameweek).deadline, await fixedDeadlinesOf(ctx, leagueId), now);
+}
+
+/** The gameweek a save now goes to, or why there is none: a league made before rules were held
+ *  can't date one, and once every gameweek has begun the season is over. Each caller says what
+ *  either means for it. */
+export type SaveGameweek =
+  | { kind: "noRules" }
+  | { kind: "seasonOver" }
+  | { kind: "open"; season: SeasonRules; gameweek: number };
+
+/** The gameweek a save at `now` goes to (`nextOpenGameweek`), with the league's rules it was
+ *  dated by. */
+export async function saveGameweekOf(ctx: QueryCtx, leagueId: Id<"leagues">, now: number): Promise<SaveGameweek> {
+  const season = await seasonRules(ctx, leagueId);
+  if (season === null) return { kind: "noRules" };
+  const gameweek = await nextOpenGameweek(ctx, leagueId, season, now);
+  if (gameweek > GAMEWEEKS) return { kind: "seasonOver" };
+  return { kind: "open", season, gameweek };
 }
 
 /** Players' names by code, for the refusals. */
@@ -159,9 +177,10 @@ export const save = mutation({
   returns: v.number(),
   handler: async (ctx, { leagueId, lineup }) => {
     const { team } = await managerOf(ctx, leagueId);
-    const season = (await seasonRules(ctx, leagueId)) ?? refuse(lineupRefusals.noRules);
-    const fromGameweek = await nextOpenGameweek(ctx, leagueId, season, Date.now());
-    if (fromGameweek > GAMEWEEKS) refuse(lineupRefusals.seasonOver);
+    const next = await saveGameweekOf(ctx, leagueId, Date.now());
+    if (next.kind === "noRules") refuse(lineupRefusals.noRules);
+    if (next.kind === "seasonOver") refuse(lineupRefusals.seasonOver);
+    const { season, gameweek: fromGameweek } = next;
 
     const squad = await squadCodes(ctx, team._id);
     const named = namedCodes(lineup);
@@ -172,7 +191,7 @@ export const save = mutation({
     const leftOut = squad.filter((playerCode) => !named.includes(playerCode));
     if (leftOut.length > 0) refuse(lineupRefusals.leftOut(leftOut.map(nameOf)));
 
-    const positions = await heldPositionsOf(ctx, lineup.starters.map(({ playerCode }) => playerCode));
+    const positions = await heldPositionsOf(ctx, leagueId, lineup.starters.map(({ playerCode }) => playerCode));
     const { areaLimits } = season.inGameweek(fromGameweek);
     const problems = lineupProblems(lineup, positions, { areaLimits });
     if (problems.length > 0) refuse(problems.map((problem) => problemWords(problem, nameOf)).join(" "));
@@ -198,14 +217,13 @@ export const save = mutation({
  *  manager saved is left to `reconciled`. Nothing is written for a league with no rules, whose
  *  gameweeks can't be dated, or once the season is over. */
 export async function pickFirstLineupAgain(ctx: MutationCtx, leagueId: Id<"leagues">, teamId: Id<"teams">): Promise<void> {
-  const season = await seasonRules(ctx, leagueId);
-  if (season === null) return;
-  const fromGameweek = await nextOpenGameweek(ctx, leagueId, season, Date.now());
-  if (fromGameweek > GAMEWEEKS) return;
+  const next = await saveGameweekOf(ctx, leagueId, Date.now());
+  if (next.kind !== "open") return;
+  const { season, gameweek: fromGameweek } = next;
   const row = await rowInForce(ctx, leagueId, teamId, fromGameweek);
   if (row !== null && row.firstLineup !== true) return;
   const squad = await squadCodes(ctx, teamId);
-  const positions = await heldPositionsOf(ctx, squad);
+  const positions = await heldPositionsOf(ctx, leagueId, squad);
   const keptOnBench = row === null ? new Set<number>() : keptOnBenchOf(row, squad, positions);
   const stars = await starsOfPlayers(ctx, squad);
   const picked = withDroppedRoles(firstLineup(squad, positions, season.inGameweek(fromGameweek), keptOnBench), (playerCode) => stars.get(playerCode)!, row?.starters);

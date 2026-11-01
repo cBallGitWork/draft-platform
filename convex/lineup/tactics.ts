@@ -1,15 +1,14 @@
 import { v, type Infer } from "convex/values";
 import { query } from "../_generated/server";
-import { seasonRules } from "../rules/rulesHistory";
 import { leagueRulesShape } from "../rules/leagueRulesShape";
 import { deadlineOf, leagueDeadlines } from "../gameweeks/leagueDeadlines";
-import { GAMEWEEKS, shownDeadline } from "../gameweeks/usedGameweeks";
+import { shownDeadline } from "../gameweeks/usedGameweeks";
 import { clubByCode, playerByCode, unheldPlayerWords } from "../shared/players";
 import { positionsNow } from "../positions/playerPositions";
 import { position } from "../schema";
 import { managerOf } from "../shared/leagueAccess";
 import { squadOf } from "../squads/squadPlace";
-import { heldLineupShape, lineupInGameweek, nextOpenGameweek } from "./lineups";
+import { heldLineupShape, lineupInGameweek, saveGameweekOf } from "./lineups";
 import { starsOfPlayers } from "../stars/playerStars";
 import { roleStarsShape } from "../stars/starsShape";
 
@@ -64,12 +63,11 @@ export const ofMyTeam = query({
   returns: tacticsShape,
   handler: async (ctx, { leagueId, now }) => {
     const { team } = await managerOf(ctx, leagueId);
-    const season = await seasonRules(ctx, leagueId);
-    if (season === null) return { kind: "noRules" as const };
-    const gameweek = await nextOpenGameweek(ctx, leagueId, season, now);
-    if (gameweek > GAMEWEEKS) return { kind: "seasonOver" as const };
+    const next = await saveGameweekOf(ctx, leagueId, now);
+    if (next.kind !== "open") return { kind: next.kind };
+    const { season, gameweek } = next;
 
-    const positionsOfNow = await positionsNow(ctx);
+    const positionsOfNow = await positionsNow(ctx, leagueId);
     const members = await squadOf(ctx, team._id);
     const starsOf = await starsOfPlayers(
       ctx,

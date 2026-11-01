@@ -78,7 +78,7 @@ type Scored = { fixtureCode: number; points: CardPoints; provisional: boolean };
 async function scoredBy(league: ScoresLeague, teamId: Id<"teams">, men: readonly number[]): Promise<Map<number, Scored[]>> {
   const rows = await league.t.run(async (ctx) => {
     const held = (await ctx.db.get("leagues", league.leagueId))!;
-    const positionsOf = await positionsNow(ctx);
+    const positionsOf = await positionsNow(ctx, league.leagueId);
     const { of } = await scoredMatches(ctx, held, teamId);
     const each = [];
     for (const code of men) {

@@ -59,6 +59,11 @@ const leagueRows: { [Table in TableNames]?: LeagueRowsBatch<Table> } = {
       .query("passedDeadlines")
       .withIndex("by_leagueId_and_gameweek", (q) => q.eq("leagueId", leagueId))
       .take(ROWS_PER_RUN),
+  keptDeadlines: (ctx, leagueId) =>
+    ctx.db
+      .query("keptDeadlines")
+      .withIndex("by_leagueId_and_gameweek", (q) => q.eq("leagueId", leagueId))
+      .take(ROWS_PER_RUN),
   playedFixtures: (ctx, leagueId) =>
     ctx.db
       .query("playedFixtures")

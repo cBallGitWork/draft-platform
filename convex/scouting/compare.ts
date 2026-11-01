@@ -51,7 +51,7 @@ export const players = query({
     if (codes.length !== COMPARED_PLAYERS || new Set(codes).size !== COMPARED_PLAYERS) {
       throw new Error(`Compare ${COMPARED_PLAYERS} different players, not ${codes.join(", ")}`);
     }
-    const positionsOfNow = await positionsNow(ctx);
+    const positionsOfNow = await positionsNow(ctx, leagueId);
     const seasonPointsOf = await seasonPointsIn(ctx, leagueId, codes);
     return Promise.all(codes.map((code) => compared(ctx, leagueId, code, positionsOfNow, seasonPointsOf)));
   },

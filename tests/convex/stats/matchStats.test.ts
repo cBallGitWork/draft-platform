@@ -12,6 +12,7 @@ import {
   withBelloumiGoalRemoved,
   withFplBlocksEmpty,
   withHullEverton,
+  withHullEvertonLive,
   withPlReadEmpty,
 } from "../../support/convex/matchStats.harness";
 import type { RawPlFixture } from "../../../convex/football/premierLeague/premierLeague";
@@ -140,10 +141,7 @@ test("a record a feed stops sending after the lock is a gap, not a correction", 
 
 test("a match the Premier League does not yet call full time waits, and nothing is written", async () => {
   const t = await withHullEverton();
-  const payloads = recordedGw6();
-  payloads.pl.round.content.find((fixture) => fixture.id === MATCH.hullEverton.pl)!.status = "L";
-
-  const run = await syncAt(t, FULL_TIME_READ, payloads);
+  const run = await syncAt(t, FULL_TIME_READ, withHullEvertonLive(recordedGw6()));
 
   expect(run.outcome).toEqual({ ok: true, matches: [], waiting: [HULL_EVERTON], scores: HULL_EVERTON_SCORED });
   expect((await heldMatch(t)).records.size).toBe(0);

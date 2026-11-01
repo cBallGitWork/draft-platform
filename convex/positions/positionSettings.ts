@@ -1,7 +1,8 @@
 import { v } from "convex/values";
-import type { Doc } from "../_generated/dataModel";
+import type { Doc, Id } from "../_generated/dataModel";
 import { mutation, type MutationCtx, type QueryCtx } from "../_generated/server";
-import { fplDeadlines } from "../gameweeks/usedGameweeks";
+import { leagueDeadlinesIn, scheduledMatches } from "../gameweeks/leagueDeadlines";
+import { LEAGUES_STORED_MOST, takeAllOrThrow } from "../shared/cappedRead";
 import { adminOf, refuse } from "../shared/leagueAccess";
 import { FIRST_THRESHOLDS, type ChangeThresholds } from "./positionChanges";
 import { START_WINDOW, type ApproveMode, type PositionInputs } from "./positions";
@@ -49,12 +50,30 @@ export const setChangeThresholds = mutation({
 /** Everything `positionsOf` reads besides a player's own row. */
 export type HowPositionsCount = Pick<PositionInputs, "approveMode" | "thresholds" | "judgedBefore">;
 
-export async function howPositionsCount(ctx: QueryCtx): Promise<HowPositionsCount> {
+/** Whose deadlines a position change counts from (spec/06, When positions change): one league's
+ *  own, or, for what no one league owns (the admin's queue, each player's stars), every league's,
+ *  so a change shows there once it counts in any league. */
+export type PositionsFor = Id<"leagues"> | typeof EVERY_LEAGUE;
+export const EVERY_LEAGUE = "every league";
+
+/** Each request's answers, so a query asking for many teams or players works the cut-off out once
+ *  per league, not once per call: a request's ctx lives only as long as it does. */
+const answeredIn = new WeakMap<QueryCtx, Map<PositionsFor, Promise<HowPositionsCount>>>();
+
+export function howPositionsCount(ctx: QueryCtx, positionsFor: PositionsFor): Promise<HowPositionsCount> {
+  let answers = answeredIn.get(ctx);
+  if (answers === undefined) answeredIn.set(ctx, (answers = new Map()));
+  let answer = answers.get(positionsFor);
+  if (answer === undefined) answers.set(positionsFor, (answer = workedOut(ctx, positionsFor)));
+  return answer;
+}
+
+async function workedOut(ctx: QueryCtx, positionsFor: PositionsFor): Promise<HowPositionsCount> {
   const settings = await settingsRow(ctx);
   return {
     approveMode: settings?.approveMode ?? FIRST_APPROVE_MODE,
     thresholds: thresholdsOf(settings),
-    judgedBefore: await judgedBefore(ctx),
+    judgedBefore: await judgedBefore(ctx, positionsFor),
   };
 }
 
@@ -66,17 +85,29 @@ function thresholdsOf(settings: Doc<"positionSettings"> | null): ChangeThreshold
 }
 
 /** Positions change only between gameweeks (spec/06): the starts judged are those before the last
- *  FPL deadline the newest good positions sync ran after, so a sync within a gameweek moves nothing.
- *  The sync's time stands in for the clock, which a query can't read. Null, judging every start,
- *  before any sync or the season's first deadline (docs/positions.md, When positions change).
- *  FPL's deadline, not a league's, by Claude's choice: positions are the whole deployment's, not
- *  one league's, so the one cut-off every league shares is FPL's. A league's gameweek begins at
- *  its own deadline (#138). */
-async function judgedBefore(ctx: QueryCtx): Promise<number | null> {
+ *  of the league's own deadlines the newest good positions sync ran after, so a sync within a
+ *  gameweek moves nothing. Never FPL's deadline: "we never use fpl deadline, thats their game"
+ *  (Craig, 1 Nov 2026; #895), so a player's positions can differ between leagues until each has
+ *  passed its deadline. The sync's time stands in for the clock, which a query can't read. Null,
+ *  judging every start, before any sync or the league's first deadline (docs/positions.md, When
+ *  positions change). For every league, the latest any of them has passed. */
+async function judgedBefore(ctx: QueryCtx, positionsFor: PositionsFor): Promise<number | null> {
   const newestSync = await newestGoodSync(ctx);
   if (newestSync === null) return null;
-  const passed = [...(await fplDeadlines(ctx)).values()].filter((deadline) => deadline <= newestSync.ranAt);
+  const leagueIds = positionsFor === EVERY_LEAGUE ? await everyLeagueId(ctx) : [positionsFor];
+  const matches = await scheduledMatches(ctx);
+  const passed: number[] = [];
+  for (const leagueId of leagueIds) {
+    for (const deadline of (await leagueDeadlinesIn(ctx, leagueId, matches)).values()) {
+      if (deadline !== null && deadline <= newestSync.ranAt) passed.push(deadline);
+    }
+  }
   return passed.length === 0 ? null : Math.max(...passed);
+}
+
+async function everyLeagueId(ctx: QueryCtx): Promise<Id<"leagues">[]> {
+  const leagues = await takeAllOrThrow(ctx.db.query("leagues"), LEAGUES_STORED_MOST, `More than ${LEAGUES_STORED_MOST} leagues are held, so a position change could be judged at the wrong deadline`);
+  return leagues.map(({ _id }) => _id);
 }
 
 /** How many of the newest positions syncs are looked through for one that read its starts: the

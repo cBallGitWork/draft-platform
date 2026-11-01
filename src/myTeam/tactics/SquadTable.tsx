@@ -1,52 +1,65 @@
-import { Link } from "@tanstack/react-router";
-import type { DragEvent } from "react";
-import { ColumnHeads } from "../../ui/ColumnHeads";
-import { playerCardPath } from "../../playerCard/paths";
-import { roleIn, rolesOfSlot } from "../../../convex/lineup/roles";
+import type { DragEvent, ReactNode } from "react";
+import { roleIn, rolesOfSlot, slotLabel } from "../../../convex/lineup/roles";
+import { cellClassOf, ColumnHeads } from "../../ui/ColumnHeads";
+import { Placeholder } from "../../ui/Placeholder";
+import { PositionChip } from "../../ui/PositionChip";
+import type { SquadRow } from "../../../convex/squads/teamSquad";
+import { figureWords, noFigureWords } from "../words";
+import { NextMatches } from "../squad/SquadTable";
+import { noPointsWords, statusNotSettledLabel } from "../squad/words";
 import { markOf } from "./focusMarks";
-import { startersInOrder, type DraftLineup, type SquadMember, type Starter } from "./lineupDraft";
+import { benchBestRole, startersInOrder, type DraftLineup, type SquadMember, type Starter } from "./lineupDraft";
 import { startDrag, type Moving } from "./pitch/Pitch";
 import {
+  BEST_ROLE_HEAD,
   BENCH_TITLE,
-  downLabel,
-  downWords,
+  benchPlaceLong,
+  benchPlaceWords,
   emptyBenchWords,
-  moveLabel,
-  moveWords,
+  roleFitPlaceholder,
   roleLabel,
-  movingWords,
-  positionsWords,
   squadColumns,
   squadTableLabel,
   swapLabel,
-  swapWords,
   toBenchWords,
-  upLabel,
-  upWords,
 } from "./words";
 
-const COLUMNS = ["position", "player", "role", "move"] as const;
+type Column = keyof typeof squadColumns;
+const COLUMNS: readonly Column[] = ["position", "player", "next", "roleFit", "role", "season", "last"];
+/** A phone leaves out the role fit and next fixture, for room (plate.md, The phone: the squad table
+ *  keeps the player column and drops Role fit). */
+const DESK_ONLY: readonly Column[] = ["next", "roleFit"];
+const FIGURES: readonly Column[] = ["season", "last"];
+const cellClasses = (column: Column) => cellClassOf(!FIGURES.includes(column), DESK_ONLY.includes(column));
+/** The bench plate's first cell spans the columns before Role, where Best role heads the bench's. */
+const BEFORE_ROLE = COLUMNS.indexOf("role");
 
-/** The eleven back to front, then the bench in order under its own plate (plate.md, Marks). Each
- *  row's Move picks the player up, and a row drags onto the pitch; with a starter picked up, the
- *  bench's plate offers to take him. A player he can swap with is lit: his Move says Swap, and a
- *  drop on his row swaps them (spec/05, Moving players). A bench row's Up and Down set the bench
- *  order, and a player dropped on any other bench row takes its place (spec/05 Auto-subs). */
+/** Each squad player's row on the Squad tab's read (convex/squads/teamSquad.ts), by his code: his
+ *  next fixture and points; undefined while it loads. */
+export type SeasonOf = ReadonlyMap<number, SquadRow> | undefined;
+
+/** The Selection table (the approved Tactics picture; plate.md, Tables and panels): the eleven back
+ *  to front, each led by his slot's position chip, then the bench in order under its own plate,
+ *  each led by his place and his main position, with the role he'd play best there, muted. A tap on
+ *  a player opens his panel, where Move is (no action column); a row drags onto the pitch, and with
+ *  a starter picked up, the bench's plate offers to take him. A player he can swap with is lit, and
+ *  a tap or a drop on him swaps them (spec/05, Moving players); a player dropped on any other bench
+ *  row takes its place (spec/05 Auto-subs). */
 export function SquadTable({
-  leagueId,
   draft,
   squad,
+  season,
   moving,
   onBench,
   onBenchAt,
   onRole,
 }: {
-  leagueId: string;
   draft: DraftLineup;
   squad: ReadonlyMap<number, SquadMember>;
+  season: SeasonOf;
   moving: Moving;
   onBench(): void;
-  onBenchAt(playerCode: number, index: number, pressed?: "up" | "down"): void;
+  onBenchAt(playerCode: number, index: number): void;
   onRole(playerCode: number, role: string): void;
 }) {
   const { picked } = moving;
@@ -58,33 +71,29 @@ export function SquadTable({
     event.preventDefault();
     if (pickedStarts) onBench();
   };
-  const row = (playerCode: number, benchIndex: number | null, starter: Starter | null = null) => (
-    <SquadRow
-      key={playerCode}
-      leagueId={leagueId}
-      player={squad.get(playerCode)!}
-      bench={benchIndex === null ? null : { index: benchIndex, last: draft.bench.length - 1, onBenchAt }}
-      starter={starter}
-      onRole={onRole}
-      moving={moving}
-    />
+  const row = (playerCode: number, place: { starter: Starter } | { benchIndex: number }) => (
+    <SelectionRow key={playerCode} player={squad.get(playerCode)!} season={season?.get(playerCode) ?? (season === undefined ? undefined : null)} place={place} onBenchAt={onBenchAt} onRole={onRole} moving={moving} />
   );
   return (
     <table aria-label={squadTableLabel} className="w-full border-collapse">
-      <ColumnHeads columns={squadColumns} shown={COLUMNS} classOf={() => "px-2 text-left"} />
-      <tbody>{startersInOrder(draft).map((starter) => row(starter.playerCode, null, starter))}</tbody>
+      <ColumnHeads columns={squadColumns} shown={COLUMNS} classOf={cellClasses} />
+      <tbody>{startersInOrder(draft).map((starter) => row(starter.playerCode, { starter }))}</tbody>
       <tbody onDragOver={allowDrop} onDrop={drop}>
-        <tr>
-          <th scope="rowgroup" colSpan={COLUMNS.length} className="bg-plate px-2 text-left font-bold">
+        <tr className="bg-plate">
+          <th scope="rowgroup" colSpan={BEFORE_ROLE} className="px-2 text-left font-bold">
             <span className="flex flex-wrap items-center justify-between gap-2">
               {BENCH_TITLE}
               {pickedStarts && (
-                <button type="button" onClick={onBench} className="secondary-action">
+                <button type="button" onClick={onBench} className="secondary-action lg:min-h-0">
                   {toBenchWords(picked.name)}
                 </button>
               )}
             </span>
           </th>
+          <th scope="col" className={`${cellClasses("role")} font-bold`}>
+            {BEST_ROLE_HEAD}
+          </th>
+          <td colSpan={COLUMNS.length - BEFORE_ROLE - 1} />
         </tr>
         {draft.bench.length === 0 ? (
           <tr>
@@ -93,46 +102,38 @@ export function SquadTable({
             </td>
           </tr>
         ) : (
-          draft.bench.map((playerCode, index) => row(playerCode, index))
+          draft.bench.map((playerCode, benchIndex) => row(playerCode, { benchIndex }))
         )}
       </tbody>
     </table>
   );
 }
 
-/** A row's Move or Swap: a whole tap both ways on the phone, as "Move" or "Up" alone is narrower
- *  (plate.md, The phone; #865). */
-const ROW_ACTION = "min-h-tap min-w-tap font-semibold text-fact link-look lg:min-h-0 lg:min-w-0";
-
-/** Up and Down: a row's action that greys at either end of the bench. */
-const BENCH_ORDER_BUTTON = `${ROW_ACTION} disabled:text-muted disabled:no-underline`;
-
-/** A bench row's place in the bench order, the last place, and how to move a player to one. */
-type BenchPlace = { index: number; last: number; onBenchAt(playerCode: number, index: number, pressed?: "up" | "down"): void };
-
-function SquadRow({
-  leagueId,
+function SelectionRow({
   player,
-  bench,
-  starter,
+  season,
+  place,
+  onBenchAt,
   onRole,
   moving,
 }: {
-  leagueId: string;
   player: SquadMember;
-  bench: BenchPlace | null;
-  /** His slot and role, for a starter; null on the bench, where no one has a role. */
-  starter: Starter | null;
+  /** His row on the Squad tab's read: undefined while it loads, null where it has none (one the
+   *  football sync doesn't hold). */
+  season: SquadRow | null | undefined;
+  place: { starter: Starter } | { benchIndex: number };
+  onBenchAt(playerCode: number, index: number): void;
   onRole(playerCode: number, role: string): void;
   moving: Moving;
 }) {
-  const isPicked = moving.picked?.playerCode === player.playerCode;
-  const onBenchRow = bench !== null;
-  const picked = moving.picked;
+  const { picked } = moving;
+  const shown = moving.selected === player.playerCode || picked?.playerCode === player.playerCode;
+  const benchIndex = "benchIndex" in place ? place.benchIndex : null;
   const lit = moving.reach?.players.includes(player.playerCode) ?? false;
+  const swapsWith = lit && picked !== null;
   // A player dragged onto a lit row swaps with him; onto any other bench row, takes its place. The
   // bench's own drop (to the end) is for the rest of it.
-  const takesDrop = picked !== null && (lit || bench !== null);
+  const takesDrop = picked !== null && (lit || benchIndex !== null);
   const allowDrop = (event: DragEvent) => {
     if (takesDrop) event.preventDefault();
   };
@@ -141,7 +142,7 @@ function SquadRow({
     event.preventDefault();
     event.stopPropagation();
     if (lit) moving.onSwap(player.playerCode);
-    else bench?.onBenchAt(picked.playerCode, bench.index);
+    else if (benchIndex !== null) onBenchAt(picked.playerCode, benchIndex);
   };
   return (
     <tr
@@ -150,87 +151,83 @@ function SquadRow({
       onDragEnd={moving.onDragEnd}
       onDragOver={allowDrop}
       onDrop={drop}
-      aria-current={isPicked || undefined}
-      className={`border-t border-panel-rule aria-current:shadow-current-edge ${onBenchRow ? "text-muted" : ""}`}
+      aria-current={shown || undefined}
+      className="border-t border-panel-rule aria-current:bg-name-plate aria-current:shadow-current-edge lg:h-row"
     >
-      <td className="px-2">{positionsWords(player.positions)}</td>
-      <td className="px-2">
-        {/* One the football sync doesn't hold has no card to open: his name is the error (#323). */}
-        {player.unheld ? (
-          <span className="inline-flex min-h-tap max-w-error-name items-center font-semibold text-event lg:min-h-0 lg:max-w-none">{player.name}</span>
-        ) : (
-          <Link to={playerCardPath(leagueId, player.playerCode)} className="inline-flex min-h-tap min-w-tap items-center font-semibold lg:min-h-0 lg:min-w-0">
-            {player.name}
-          </Link>
-        )}{" "}
-        <span className="text-muted">{player.clubShortName}</span>
+      <td className={cellClasses("position")}>
+        <PositionCell player={player} place={place} />
       </td>
-      {/* The bench plays no role, so its buttons take the Role column's room too. */}
-      {starter !== null && (
-        <td className="px-2">
-          <select
-            aria-label={roleLabel(player.name)}
-            {...markOf("role", player.playerCode)}
-            value={roleIn(starter, starter.role).key}
-            onChange={(event) => onRole(player.playerCode, event.target.value)}
-            className="text-box w-full"
-          >
-            {rolesOfSlot(starter).map(({ key, name }) => (
-              <option key={key} value={key}>
-                {name}
-              </option>
-            ))}
-          </select>
-        </td>
-      )}
-      <td colSpan={starter === null ? 2 : 1} className="px-2">
-        {lit && picked !== null ? (
-          <button
-            type="button"
-            aria-label={swapLabel(picked.name, player.name)}
-            onClick={() => moving.onSwap(player.playerCode)}
-            className={ROW_ACTION}
-          >
-            {swapWords}
-          </button>
-        ) : (
-          <button
-            type="button"
-            {...(onBenchRow ? markOf("player", player.playerCode) : {})}
-            aria-pressed={isPicked}
-            aria-label={moveLabel(player.name)}
-            onClick={() => moving.onPick(player.playerCode)}
-            className={ROW_ACTION}
-          >
-            {isPicked ? movingWords : moveWords}
-          </button>
-        )}
-        {bench !== null && (
-          <>
-            {" "}
-            <button
-              type="button"
-              aria-label={upLabel(player.name)}
-              {...markOf("bench-up", player.playerCode)}
-              disabled={bench.index === 0}
-              onClick={() => bench.onBenchAt(player.playerCode, bench.index - 1, "up")}
-              className={BENCH_ORDER_BUTTON}
-            >
-              {upWords}
-            </button>{" "}
-            <button
-              type="button"
-              aria-label={downLabel(player.name)}
-              {...markOf("bench-down", player.playerCode)}
-              disabled={bench.index === bench.last}
-              onClick={() => bench.onBenchAt(player.playerCode, bench.index + 1, "down")}
-              className={BENCH_ORDER_BUTTON}
-            >
-              {downWords}
-            </button>
-          </>
-        )}
+      <th scope="row" className={`${cellClasses("player")} font-normal whitespace-nowrap`}>
+        <button
+          type="button"
+          {...(benchIndex !== null ? markOf("player", player.playerCode) : {})}
+          aria-pressed={swapsWith ? undefined : moving.selected === player.playerCode}
+          aria-label={swapsWith ? swapLabel(picked.name, player.name) : undefined}
+          onClick={() => (swapsWith ? moving.onSwap(player.playerCode) : moving.onSelect(player.playerCode))}
+          className={`inline-flex min-h-tap min-w-tap items-center text-lead font-semibold lg:min-h-0 lg:min-w-0 ${player.unheld ? "max-w-error-name text-event lg:max-w-none" : ""} ${swapsWith ? "outline-2 outline-dashed outline-pitch-line" : ""}`}
+        >
+          {player.name}
+        </button>
+        {/* A phone leaves out the club and the status, for the role's room (plate.md, The phone). */}
+        {player.clubShortName !== null && <span className="ml-1 text-muted max-sm:hidden">{player.clubShortName}</span>}
+        {/* As on the Squad tab: only a player FPL holds news on gets one, until its data is settled. */}
+        {season?.chanceOfPlaying != null && <Placeholder label={statusNotSettledLabel} className="ml-1 size-3 align-middle max-sm:hidden" />}
+      </th>
+      <td className={cellClasses("next")}>
+        {season != null && <NextMatches matches={season.nextFixtures.slice(0, 1)} />}
       </td>
+      <td className={cellClasses("roleFit")}>
+        <Placeholder label={roleFitPlaceholder} className="h-3 w-16 align-middle" />
+      </td>
+      <td className={cellClasses("role")}>
+        {"starter" in place ? <RolePicker player={player} starter={place.starter} onRole={onRole} /> : <span className="text-muted">{benchBestRole(player)?.role.name}</span>}
+      </td>
+      <PointsCell column="season" points={season?.seasonPoints} />
+      <PointsCell column="last" points={season?.lastGameweekPoints} />
     </tr>
+  );
+}
+
+/** A starter's slot chip; a bench player's place, then his main position's chip. */
+function PositionCell({ player, place }: { player: SquadMember; place: { starter: Starter } | { benchIndex: number } }) {
+  if ("starter" in place) return <PositionChip label={slotLabel(place.starter, place.starter.role)} />;
+  const main = player.positions[0];
+  return (
+    <span className="inline-flex items-center gap-2">
+      <abbr title={benchPlaceLong(place.benchIndex)} className="text-muted no-underline">
+        {benchPlaceWords(place.benchIndex)}
+      </abbr>
+      {main !== undefined && <PositionChip label={main} />}
+    </span>
+  );
+}
+
+/** A starter's role, one of his slot's (spec/05 Roles): the role card waits on #848. */
+function RolePicker({ player, starter, onRole }: { player: SquadMember; starter: Starter; onRole(playerCode: number, role: string): void }) {
+  return (
+    <select
+      aria-label={roleLabel(player.name)}
+      {...markOf("role", player.playerCode)}
+      value={roleIn(starter, starter.role).key}
+      onChange={(event) => onRole(player.playerCode, event.target.value)}
+      className="text-box w-full lg:min-h-0"
+    >
+      {rolesOfSlot(starter).map(({ key, name }) => (
+        <option key={key} value={key}>
+          {name}
+        </option>
+      ))}
+    </select>
+  );
+}
+
+function PointsCell({ column, points }: { column: Column; points: number | null | undefined }): ReactNode {
+  if (points === undefined) return <td className={cellClasses(column)} />;
+  return points === null ? (
+    <td title={noPointsWords} className={`${cellClasses(column)} text-muted`}>
+      {noFigureWords}
+    </td>
+  ) : (
+    <td className={`${cellClasses(column)} font-bold text-figure`}>{figureWords(points)}</td>
   );
 }

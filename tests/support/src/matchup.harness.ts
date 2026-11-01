@@ -97,6 +97,7 @@ export const teamSide = (
   points,
   provisional,
   lineup: { starters: starters.map((starter) => ({ role: roleOf(starter.area), ...starter })), bench: bench.map((slot) => ({ role: null, ...slot })) },
+  formation: null,
 });
 
 type Game = HeadToHead["game"];

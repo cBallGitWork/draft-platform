@@ -5,7 +5,8 @@ import { currentFixtures } from "../shared/fixtures";
 import { callerEmail } from "../shared/leagueAccess";
 import { clubOf, currentClubs, type Club } from "../shared/players";
 import { isPlaying, scoreOf } from "./matchScores";
-import { plTable, type PlResult } from "./plTable";
+import { plTable, type PlMatch, type PlResult } from "./plTable";
+import { COMPETITION_TIE_BREAKS } from "./tieBreaks";
 
 // The Premier League table for the section (#50; spec/18, The table: "P W D L GF GA GD Pts, worked
 // out from the results. Live during matches, provisional until they are final"). The results are
@@ -47,21 +48,28 @@ export const ofSeason = query({
       return club;
     };
     const results: PlResult<Club>[] = [];
+    const unplayed: PlMatch<Club>[] = [];
     let provisional = false;
-    let seasonOver = true;
     const fixtures = await currentFixtures(ctx);
     const scores = await Promise.all(fixtures.map(({ code }) => scoreOf(ctx, code)));
+    // The season is over once its last gameweek's matches are all at full time: a match never
+    // played then is one of `unplayed`, holding back head-to-head only for its two clubs (C.17).
+    const lastGameweek = Math.max(...fixtures.flatMap(({ gameweek }) => (gameweek === null ? [] : [gameweek])));
+    const seasonOver = fixtures.every(({ gameweek }, index) => gameweek !== lastGameweek || scores[index]?.state === "fullTime");
     for (const [index, { code, homeClubCode, awayClubCode }] of fixtures.entries()) {
       const score = scores[index];
-      if (score?.state !== "fullTime") seasonOver = false;
-      if (score === null || !COUNTED_STATES.has(score.state)) continue;
+      const match = { home: currentClubOf(homeClubCode, code), away: currentClubOf(awayClubCode, code) };
+      if (score === null || !COUNTED_STATES.has(score.state)) {
+        unplayed.push(match);
+        continue;
+      }
       // The score reads refuse a kicked-off match without both scores (scoreReads.ts), so one held
       // here is a bug, never a match to leave out.
       if (score.homeGoals === null || score.awayGoals === null) throw new Error(`Match ${code} is held at ${score.state} with no score`);
       if (isPlaying(score.state)) provisional = true;
-      results.push({ home: currentClubOf(homeClubCode, code), away: currentClubOf(awayClubCode, code), homeGoals: score.homeGoals, awayGoals: score.awayGoals });
+      results.push({ ...match, homeGoals: score.homeGoals, awayGoals: score.awayGoals });
     }
-    const rows = plTable(clubs, results, { seasonOver: seasonOver && results.length > 0 });
+    const rows = plTable(clubs, results, { competition: COMPETITION_TIE_BREAKS.premierLeague, seasonOver: seasonOver && results.length > 0, unplayed });
     return { rows, provisional };
   },
 });

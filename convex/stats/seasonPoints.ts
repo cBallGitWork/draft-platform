@@ -11,9 +11,9 @@ import { takeAllOrThrow } from "../shared/cappedRead";
 import { fixtureByCode, heldSeason } from "../shared/fixtures";
 import { groupedBy } from "../shared/groupedBy";
 import { readOnce } from "../shared/readOnce";
-import { isWhole } from "./matchRecords";
+import { isWhole, PLAYERS_PAGE, SEASON_PLAYERS_MOST, statsIfWhole } from "./matchRecords";
 import { isPlayedThisSeason, seasonRecords, type FixtureReader, type SeasonRecord } from "./seasonRecords";
-import { REBUILD_PAGE, SEASON_TOTALS_MOST, seasonOfFixture } from "./seasonStats";
+import { seasonOfFixture } from "./seasonStats";
 
 // Each player's season points on Scouting (#525; spec/19, The players list): the total his card
 // shows in the league, whoever held him: each match his card lists this season (seasonRecords.ts)
@@ -33,7 +33,7 @@ type SetIn = (gameweek: number) => StoredScoringSet;
 
 /** His base points in one match at `position`, or null while his whole record hasn't arrived. */
 const matchPointsAt = (record: Doc<"playerMatchStats">, set: StoredScoringSet, position: Position) =>
-  basePoints(isWhole(record) ? record.stats : null, set, [position])[0].total;
+  basePoints(statsIfWhole(record), set, [position])[0].total;
 
 /** His matches' base points added up at each position, by position: what each would give him at
  *  it. A match whose record isn't whole adds nothing, as it has no points yet. */
@@ -111,8 +111,8 @@ async function sumsIn(ctx: QueryCtx, season: number, only: readonly number[] | u
     only === undefined
       ? await takeAllOrThrow(
           ctx.db.query("playerSeasonPoints").withIndex("by_season_and_playerCode", (q) => q.eq("season", season)),
-          SEASON_TOTALS_MOST,
-          `More than ${SEASON_TOTALS_MOST} players have season points for the ${season} season, so they would be cut short`,
+          SEASON_PLAYERS_MOST,
+          `More than ${SEASON_PLAYERS_MOST} players have season points for the ${season} season, so they would be cut short`,
         )
       : (await Promise.all(only.map((code) => rowOf(ctx, season, code)))).filter((row) => row !== null);
   return new Map(rows.map((row) => [row.playerCode, row.points]));
@@ -151,7 +151,7 @@ async function heldOverride(ctx: QueryCtx, override: Doc<"pointsOverrides">, sea
   return { playerCode, points, pricedAt: (position: Position) => matchPointsAt(record, set, position) };
 }
 
-/** Sets these players' rows afresh, REBUILD_PAGE at most: queued by seasonPointsQueue.ts. */
+/** Sets these players' rows afresh, PLAYERS_PAGE at most: queued by seasonPointsQueue.ts. */
 export const refresh = internalMutation({
   args: { playerCodes: v.array(v.number()) },
   returns: v.null(),
@@ -163,13 +163,13 @@ export const refresh = internalMutation({
 
 /** Sets a page of players' rows, from `cursor` (null for the first), afresh from their records,
  *  then runs on to the next page until every player is done. Safe to run again: it sets, never
- *  adds. Started by itself on a deployment holding records but no row (seasonPointsQueue.ts's
- *  rebuildIfNoneKept), and by hand with seasonPointsMoves.ts's REBUILD_COMMAND. */
+ *  adds. Started by itself on a deployment holding records but no row, and after a season totals
+ *  rebuild (seasonRebuilds.ts), and by hand with its POINTS_REBUILD_COMMAND. */
 export const rebuild = internalMutation({
   args: { cursor: v.union(v.string(), v.null()) },
   returns: v.null(),
   handler: async (ctx, { cursor }) => {
-    const page = await ctx.db.query("players").paginate({ numItems: REBUILD_PAGE, cursor });
+    const page = await ctx.db.query("players").paginate({ numItems: PLAYERS_PAGE, cursor });
     await refreshSeasonPoints(ctx, page.page.map((player) => player.code));
     if (!page.isDone) await ctx.scheduler.runAfter(0, internal.stats.seasonPoints.rebuild, { cursor: page.continueCursor });
     return null;
