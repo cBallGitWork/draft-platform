@@ -1,7 +1,7 @@
 #!/bin/bash
 # settings.json's checks: each hook is wired to the event and matcher it guards, and its script is
-# there and executable, tidy_after_merge.py counts the time settings.json gives it, the Stop gates' timeouts sit over gate_on_stop.py's own, and package.json's
-# test deadline under that. A hook that isn't wired never runs, and nothing else would say so.
+# there and executable, tidy_after_merge.py counts the time settings.json gives it, the Stop
+# gates' timeouts sit over gate_on_stop.py's own, and package.json's test deadline under that. A hook that isn't wired never runs, and nothing else would say so.
 . "$(dirname "$0")/helpers.sh"
 
 wiring=(  # event|matcher|script, the matcher empty where the entry has none

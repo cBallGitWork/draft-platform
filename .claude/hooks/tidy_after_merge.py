@@ -96,7 +96,10 @@ def sweep(folder, done, deadline):
             lines.append(f"{len(leftovers) - n} earlier merged branch(es) wait for a later merge: the hook's time ran short.")
             break
         number, head = merged[branch]
-        lines.append(tidy(number, branch, head, folder))
+        try:
+            lines.append(tidy(number, branch, head, folder))
+        except ValueError as error:
+            lines.append(f"{NOT_SWEPT}: {error}.")
     return lines
 
 

@@ -158,7 +158,8 @@ git -C "$repo" worktree unlock "$tmp/wt-held"
 built listed && pr listed
 says "Earlier merged branches weren't tidied: gh pr list failed (HTTP 502)" tidy_after_merge.py "$(bash_in "$repo" "$merge")" GH_LIST_FAILS=1
 # out of time: it doesn't look, or it leaves the leftovers it can't finish for a later merge
-sweep_by() { # seconds: sweep's lines with a deadline that far off, each call taking at most 0.1s
+sweep_by() { # seconds: sweep's lines with a deadline that far off, each call counted as at most 0.1s
+  # (only the budget's figure: the calls themselves keep tidy_branch.py's own limit)
   (cd "$repo" && python3 -B -c 'import sys, time; sys.path.insert(0, sys.argv[1]); import tidy_after_merge as t
 t.RUN_TIMEOUT_SECONDS = 0.1; print(" ".join(t.sweep(".", set(), time.monotonic() + float(sys.argv[2]))))' "$hooks" "$1")
 }
@@ -171,6 +172,12 @@ out=$(GH_LIST_SLEEP=2 sweep_by 1.5)  # time to call gh pr list, none left once i
 [ "$out" = "2 earlier merged branch(es) wait for a later merge: the hook's time ran short." ] ||
   fail "tidy_after_merge.py: a sweep out of time gave: $out"
 has_branch held || fail "tidy_after_merge.py: a sweep out of time still tidied"
+# a leftover's tidy that fails partway (git worktree list) is said, and the sweep's other lines kept
+out=$(cd "$repo" && python3 -B -c 'import sys, time; sys.path.insert(0, sys.argv[1]); import tidy_after_merge as t
+def broken(*_): raise ValueError("git worktree list failed (x)")
+t.tidy = broken; print(" ".join(t.sweep(".", set(), time.monotonic() + t.HOOK_SECONDS)))' "$hooks")
+[ "$out" = "Earlier merged branches weren't tidied: git worktree list failed (x). Earlier merged branches weren't tidied: git worktree list failed (x)." ] ||
+  fail "tidy_after_merge.py: a leftover's failed tidy gave: $out"
 unset FAKE_MERGED
 
 # a worktree whose folder is already gone doesn't hold the branch for good
