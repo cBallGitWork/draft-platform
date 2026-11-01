@@ -11,7 +11,8 @@ where the two disagree, ask Craig.
 
 **Contents:** [Colour roles](#colour-roles-cm-material) · [Type](#type) · [Shape](#shape) ·
 [Marks](#marks) · [Controls](#controls) · [Never](#never) ·
-[The phone](#the-phone-to-draw-when-the-phone-design-is-grilled) · [Decided](#decided)
+[The phone](#the-phone-to-draw-when-the-phone-design-is-grilled) · [Decided](#decided) ·
+[Tables and panels](#tables-and-panels-craig-1-nov-2026)
 
 ## Colour roles (CM material)
 
