@@ -16,6 +16,13 @@ export type Feed = (typeof FEEDS)[number];
 export const feedValidator = v.union(...FEEDS.map((feed) => v.literal(feed)));
 export const sideFeedValidator = v.union(...SIDE_FEEDS.map((feed) => v.literal(feed)));
 
+/** What the admin's failure email can be about, each with its own once-a-day slot
+ *  (admin/feedFailureEmails.ts): a feed, or a league the football feed skipped for broken rules,
+ *  so a skip's email never hides a real football failure's that day (#980). */
+export const FAILURE_EMAIL_KINDS = [...FEEDS, "skippedLeague"] as const;
+export type FailureEmailKind = (typeof FAILURE_EMAIL_KINDS)[number];
+export const failureEmailKindValidator = v.union(...FAILURE_EMAIL_KINDS.map((kind) => v.literal(kind)));
+
 /** What the feeds page and the admin's failure email call each feed, and where its data comes
  *  from. The positions and side-read names are Craig's (31 Oct 2026, #522). */
 export const FEED_NAMES: Record<Feed, { name: string; source: string }> = {
@@ -70,3 +77,9 @@ export function lateAfterMs({ every, graceMs }: FeedSchedule): number {
   const everyMs = "hours" in every ? every.hours * HOUR_MS : every.minutes * MINUTE_MS;
   return everyMs + graceMs;
 }
+
+/** What the admin's failure email calls each kind: a feed's own name, or the skipped league's. */
+export const FAILURE_EMAIL_NAMES: Record<FailureEmailKind, { name: string; source: string }> = {
+  ...FEED_NAMES,
+  skippedLeague: { name: "A league's step in the football feed", source: "the league's saved rules" },
+};

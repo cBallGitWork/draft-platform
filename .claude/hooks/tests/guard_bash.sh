@@ -93,9 +93,8 @@ printf 'acmecorp\n' > "$tmp/.claude/private-words.txt"
 # word by an issue number elsewhere, a local path, a missing section, no pr-reviewer verdict or a
 # ticked "not run" box is refused, as is a body it can't read.
 # pr.md carries pr-reviewer's signature; pr-unsigned.md is the bare template, with no verdict at all.
-sed 's/^Closes #.*/Closes #12/' "$hooks/../../.github/pull_request_template.md" > "$tmp/pr-unsigned.md"
-awk '{ print } /^## Fresh-eyes review/ { print "*Reviewer: pr-reviewer (opus), 2026-10-22, abc..def*" }' \
-  "$tmp/pr-unsigned.md" > "$tmp/pr.md"
+template_body > "$tmp/pr-unsigned.md"
+signed < "$tmp/pr-unsigned.md" > "$tmp/pr.md"
 for b in 'Partly closes #31; the screen remains.' 'It does **not** close #87.' "doesn't fully close #87" \
   'see /Users/craigball/x' 'in /private/tmp/claude-501/x' 'Fixes #4' 'Closes #12  <!-- the template comment, left in -->'; do
   cp "$tmp/pr.md" "$tmp/pr-bad.md" && printf '%s\n' "$b" >> "$tmp/pr-bad.md"

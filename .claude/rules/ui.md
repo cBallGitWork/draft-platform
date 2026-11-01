@@ -10,7 +10,8 @@ paths:
 Read `docs/design/plate.md` before drawing anything: it is the look, and every value the built
 screens use is a token in `src/styles.css`; a screen needing a plate.md value with no token yet
 (the pitch, fixture difficulty) adds it there. Use the tokens (`bg-plate`, `text-figure`,
-`text-data`); a hex value or a stock Tailwind utility in a component is a finding. Tailwind's own
+`text-data`); a hex value or a stock Tailwind utility in a component is a finding, and the lint step
+fails an arbitrary colour or px value (`bg-[#…]`, `w-[13px]`: `eslint.config.js`). Tailwind's own
 palette, radii, shadows and type scale are switched off there, so a stock utility
 (`bg-slate-900`, `rounded-lg`) draws nothing.
 
@@ -29,6 +30,10 @@ A screen's approved picture binds its layout (`CLAUDE.md`, Decided; the index is
   still must not break: no sideways scroll, nothing clipped, every tap the tap size.
 - No folder for the screen: a fix keeps its layout as it is. A new layout waits for an approved
   picture, drawn through `/design` (`.claude/skills/design/SKILL.md`).
+- The pull request pastes ui-verifier's Approved vs built block, signed; `gh pr create` is refused
+  without it on a branch that changes a file the screen's route renders (`.claude/hooks/pr_body.py`).
+  With a difference listed, `gh pr merge` waits for Craig's `craig-approved` label, which only he
+  adds (`.claude/hooks/approval_gate.py`).
 - The README's interaction notes say what can be tapped and what happens. A control they don't
   name is a question for Craig, never an invented drop-down or button.
 - Data not held yet shows as its placeholder, in its real place and size (plate.md, Marks), never
