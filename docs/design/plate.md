@@ -51,7 +51,8 @@ lightness from easiest to hardest, so the order survives red-green colour blindn
 1 `#57e08a` ink `#04130a` · 2 `#93b83a` ink `#0c1a06` · 3 `#8a90a0` ink `#08090b` ·
 4 `#c9304f` ink `#ffffff` · 5 `#8c1236` ink `#ffffff`. Each cell carries `title` and `aria-label`
 ("Opponent BOU, home, difficulty 2 of 5, easy"; the words: very easy, easy, average, hard, very
-hard), a five-step legend sits above the table, and rows keep a 1px ground (`#111214`) gap.
+hard), with no legend (Craig, 1 Nov 2026: "remove difficulty key"), and rows keep a 1px ground
+(`#111214`) gap.
 
 The pairs meet WCAG 2.1 AA (`contrast()` in `convex/football/clubColours.ts`, 31 Oct 2026): muted on
 a panel 6.8:1 and muted straight on the page 5.6:1, both at the page's lightest with the grain counted (the worse case; 6.4:1 on the glow alone), white on the plate
@@ -92,7 +93,8 @@ name (the score).
 - **Shirts**: our own outline in the club's colours, the squad number on the chest.
 - **Stars**: SVG, filled in the figure colour, empty ones as outlines in muted grey, the set
   labelled "Role fit 4 of 5".
-- **A doubt**: an orange square with a bar, on the name plate and the squad row, labelled "Doubt".
+- **A doubt**: the orange knock chip of the status chips (Tables and panels), on the name plate and
+  after the name in a row, labelled "Doubt".
 - **Unread**: a 3px orange bar down the letter's left edge, and "Unread" for screen readers.
 - **The current one of a list**: a 3px bar down its left edge in the active tab's cyan, and
   `aria-current` for screen readers (the top bar's league list).
@@ -112,7 +114,7 @@ name (the score).
   role's, in metres (`convex/lineup/roles.ts`); `src/myTeam/tactics/pitch/RoleRuns.tsx` only draws it.
 - **Where a picked-up player can go** (spec/05, Moving players): a free cell he may move to is a
   2px dashed box in the pitch line's colour; a player he may swap with gets the same dashes round
-  his block, and in the squad table his Move reads Swap. A slot a preset asks to fill is quieter,
+  his block. A slot a preset asks to fill is quieter,
   1px dotted, so it never reads as a place to tap.
 - **The sweeper** (spec/05, The pitch): his cell drawn an eighth of a row deeper than the
   defence's line, and over the keeper's where the two meet on a phone.
