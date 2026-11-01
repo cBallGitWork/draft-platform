@@ -4,6 +4,7 @@ import { useSyncExternalStore } from "react";
 import { vi } from "vitest";
 import type { MyTeamSeam, SquadNumberChanges, TeamFixtures, TeamSquad, TeamTransactions } from "../../../src/myTeam/seam";
 import { idOf } from "../../../src/table/drawnTable";
+import type { LeagueTable } from "../../../src/table/seam";
 import { fakeTactics, type TacticsData } from "./tactics.harness";
 
 /** What the fake server holds: the team's fixtures, null for a league with no rules, its
@@ -16,6 +17,8 @@ export type MyTeamData = TacticsData & {
   fixtures?: TeamFixtures | null;
   transactions?: TeamTransactions;
   squad?: TeamSquad;
+  /** The league's table and fixtures, which the header band reads; null for a league with no rules. */
+  leagueTable?: LeagueTable | null;
   /** What setting a squad number answers: null once made, or the words why not. */
   numberAnswer?: string | null;
   loading?: boolean;
@@ -26,6 +29,7 @@ export function fakeMyTeam({
   transactions = { transactions: [], cut: false },
   squad = { teamName: "Team 1", lastGameweek: null, players: [], unheld: [] },
   numberAnswer = null,
+  leagueTable = null,
   loading = false,
   ...tactics
 }: MyTeamData = {}) {
@@ -48,5 +52,6 @@ export function fakeMyTeam({
       for (const listener of listeners) listener();
     },
     useSquadNumbers: () => numbers,
+    useLeagueTable: vi.fn<MyTeamSeam["useLeagueTable"]>(() => (loading ? undefined : leagueTable)),
   };
 }

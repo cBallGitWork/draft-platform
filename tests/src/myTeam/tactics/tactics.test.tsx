@@ -13,8 +13,6 @@ import {
   BENCH_TITLE,
   emptyBenchWords,
   joinedBenchWords,
-  locksWords,
-  noDeadlineWords,
   pitchLabel,
   seasonOverWords,
   squadTableLabel,
@@ -22,6 +20,8 @@ import {
   tacticsLoadingWords,
   tacticsNoRulesWords,
 } from "../../../../src/myTeam/tactics/words";
+import { deadlineHead, noDeadlineWords } from "../../../../src/myTeam/header/words";
+import { whenWords } from "../../../../src/shared/words";
 import { noTeamWords } from "../../../../src/myTeam/words";
 import { unheldNoticeWords, unheldPlayerWords } from "../../../../src/shared/words";
 import { commissioner, league, manager, openApp } from "../../../support/src/shell.harness";
@@ -88,13 +88,15 @@ describe("the deadline", () => {
     const minute = Date.now() - (Date.now() % MINUTE_MS);
     const deadline = minute + DAY_MS + 17 * HOUR_MS;
     openTacticsTab({ tactics: { ...SAVED, deadline } });
-    expect(await screen.findByText(locksWords(TACTICS_GAMEWEEK, deadline), { exact: false })).toBeTruthy();
+    // In My team's header band (src/myTeam/header/TeamHeader.tsx).
+    expect(await screen.findByText(deadlineHead(TACTICS_GAMEWEEK))).toBeTruthy();
+    expect(screen.getByText(whenWords(deadline), { exact: false })).toBeTruthy();
     expect(screen.getByText("in 1d 17h")).toBeTruthy();
   });
 
   it("says a gameweek with no kickoff time held has no deadline yet", async () => {
     openTacticsTab({ tactics: { ...SAVED, deadline: null } });
-    expect(await screen.findByText(noDeadlineWords(TACTICS_GAMEWEEK))).toBeTruthy();
+    expect(await screen.findByTitle(noDeadlineWords(TACTICS_GAMEWEEK))).toBeTruthy();
   });
 });
 

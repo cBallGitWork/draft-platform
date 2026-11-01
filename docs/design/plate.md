@@ -111,6 +111,8 @@ name (the score).
 - **The current one of a list**: a 3px bar down its left edge in the active tab's cyan, and
   `aria-current` for screen readers (the top bar's league list).
 - **The bench**: its own "Bench" plate in the table, below the eleven.
+- **Form**: a team's last five results, W, L or D, each a square chip in the figure colour with
+  the ground's ink (14.8:1), oldest first. Built once, `src/myTeam/header/FormChips.tsx`.
 - **A placeholder**: a cell for data not held yet (stars, fixture difficulty) keeps its place and
   size, drawn as a 1px muted (`--color-muted`) outline with nothing in it; its `title` and label say what
   will show there ("Role fit: not rated yet"). Never a made-up figure (Craig, 1 Nov 2026:
