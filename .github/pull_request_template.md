@@ -17,6 +17,7 @@ an email sent)? And the blast radius: which screen, league or job it can break. 
 
 - [ ] the tests at this feature's seam pass, and were run
 - [ ] shot at 390 and 1440, and looked at, if anything visible changed
+- [ ] approved vs built: for a screen with a picture in `docs/design/approved/`, ui-verifier's numbered differences are pasted below; none, or Craig said yes to them
 - [ ] `npm run build` and `npm run smoke` run, if a screen or the router changed
 - [ ] `/refactor` run on the branch (one run; it makes its two passes itself); a drift pass is due when the session-start note says `drift pass due` (`.claude/hooks/drift_due.py`), and past it `gh pr merge` is refused until the pass merges (`.claude/hooks/drift_gate.py`)
 - [ ] pr-reviewer run on the branch; its verdict is below
