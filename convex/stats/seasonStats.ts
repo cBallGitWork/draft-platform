@@ -5,7 +5,8 @@ import { internalMutation, type MutationCtx, type QueryCtx } from "../_generated
 import { seasonStartYear } from "../shared/time";
 import { takeAllOrThrow } from "../shared/cappedRead";
 import { fixtureByCode } from "../shared/fixtures";
-import { isWhole, PLAYER_RECORDS_MOST, type PlayerMatchRecord } from "./matchRecords";
+import { isWhole, type PlayerMatchRecord } from "./matchRecords";
+import { playerRecords } from "./seasonRecords";
 import { addStats, sumStats, type Stats } from "./statTotals";
 import { readOnce } from "../shared/readOnce";
 import { groupedBy } from "../shared/groupedBy";
@@ -113,11 +114,7 @@ function matchSeasons(ctx: QueryCtx): (fixtureCode: number) => Promise<number> {
 
 /** One player's totals, each season's set to his records in it added up. */
 async function rebuildPlayer(ctx: MutationCtx, playerCode: number, seasonOf: (fixtureCode: number) => Promise<number>): Promise<void> {
-  const records = await takeAllOrThrow(
-    ctx.db.query("playerMatchStats").withIndex("by_playerCode", (q) => q.eq("playerCode", playerCode)),
-    PLAYER_RECORDS_MOST,
-    `More than ${PLAYER_RECORDS_MOST} match records are held for player ${playerCode}, so his totals would be cut short`,
-  );
+  const records = await playerRecords(ctx, playerCode, "totals");
   const seasoned: { season: number; stats: Stats }[] = [];
   for (const record of records) seasoned.push({ season: await seasonOf(record.fixtureCode), stats: countedStats(record) });
   for (const [season, each] of groupedBy(seasoned, ({ season }) => season)) {
