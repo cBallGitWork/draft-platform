@@ -111,14 +111,11 @@ async function recordLeague(
   return { recorded, soonestToCome };
 }
 
-/** A league whose step threw: named in the log, and the admin emailed through the football feed's
- *  failure email, which holds it to once a day and to the day's email limit. */
+/** A league whose step threw: named in the log, and emailed to the admin as the comment above says. */
 async function skipBrokenLeague(ctx: MutationCtx, league: Doc<"leagues">, error: unknown, now: number): Promise<void> {
-  const reason = logFailure(`League ${league._id} (${league.name}) ${LEAGUE_SKIPPED}`, error);
-  await emailIfFailed(ctx, "football", {
-    ranAt: now,
-    outcome: { ok: false, error: `League ${league._id} (${league.name}) ${LEAGUE_SKIPPED}: ${reason}` },
-  });
+  const skipped = `League ${league._id} (${league.name}) ${LEAGUE_SKIPPED}`;
+  const reason = logFailure(skipped, error);
+  await emailIfFailed(ctx, "football", { ranAt: now, outcome: { ok: false, error: `${skipped}: ${reason}` } });
 }
 
 /** The alarm `recordPassedDeadlines` sets for the soonest deadline to come: it records again, and
