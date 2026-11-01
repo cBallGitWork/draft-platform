@@ -27,8 +27,9 @@ Feature 5 of [SPEC.md](../SPEC.md). Only Craig's answers: the first `/grill` and
   plain centre-back in the middle (Craig, 31 Oct 2026).
 - Free placement: drag a player into any free cell, Championship Manager style. Or pick a preset:
   4-4-2, 4-3-3, 4-2-3-1, 4-1-4-1, 4-4-1-1, 4-3-1-2, 3-5-2, 3-4-3, 3-4-1-2, 5-3-2, 5-4-1, 4-5-1,
-  4-2-2-2, 4-1-2-1-2, 4-3-2-1, 4-1-3-2, 4-2-4, 3-4-2-1, 3-1-4-2, 5-2-3, 5-3-1-1, all editable as
-  league rules. The last ten Craig added (28 Oct 2026): "no basics like 4-5-1".
+  4-2-2-2, 4-1-2-1-2, 4-3-2-1, 4-1-3-2, 4-2-4, 3-4-2-1, 3-1-4-2, 5-2-3, 5-3-1-1, 3-6-1, all editable
+  as league rules. Ten of them Craig added (28 Oct 2026): "no basics like 4-5-1"; 3-6-1 he added
+  (1 Nov 2026: "also add 3-6-1"), keeping free placement: "i want people to create formations".
 - Picking a preset reshapes the pitch and keeps the players: each starter moves to a slot of the
   new shape in his own area, if one is free, and anyone left over goes to the front of the bench.
   The shape's empty slots show where to drag (Craig, 26 Oct 2026; #14).
