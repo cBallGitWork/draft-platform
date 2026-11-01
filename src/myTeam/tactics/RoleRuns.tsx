@@ -1,7 +1,7 @@
-import { roleIn, slotLabel, SWEEPER } from "../../../convex/lineup/roles";
+import { roleIn } from "../../../convex/lineup/roles";
 import type { DraftLineup } from "./lineupDraft";
 import { PITCH_SIZE } from "./pitchMarkings";
-import { arrowheadOf, RUN_MARK, runPath, runShows, type PitchPoint } from "./runs";
+import { arrowheadOf, drawnDeeper, RUN_MARK, runPath, runShows, type PitchPoint } from "./runs";
 
 // Each starter's run on the pitch (spec/05 Runs; #846): a dashed arrow from his place, as old FM
 // drew them, read from his role (convex/lineup/roles.ts) and never drawn here. Under the players'
@@ -24,7 +24,7 @@ export function RoleRuns({ draft, tapped, switchedOn }: { draft: DraftLineup; ta
         const { run } = roleIn(starter, starter.role);
         const shows = runShows(starter.playerCode === tapped, switchedOn);
         if (run === null || shows === null) return null;
-        const path = runPath(run, starter, slotLabel(starter, starter.role) === SWEEPER);
+        const path = runPath(run, starter, drawnDeeper(starter, starter.role));
         return (
           <g key={starter.playerCode} {...{ [RUN_MARK]: starter.playerCode }} className={shows}>
             <polyline points={pointsOf(path)} {...RUN_LINE} />

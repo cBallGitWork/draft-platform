@@ -2,7 +2,9 @@ import { expect, test } from "vitest";
 import { FIRST_SCORING } from "../../../convex/scoring/firstScoring";
 import type { ScoringSet } from "../../../convex/scoring/scoringSet";
 import { thresholdSteps } from "../../../convex/stats/thresholdSteps";
-import { holdTypoRule, HULL_SCORER, liveRecords, scoresLeague } from "../../support/convex/gameweekScores.harness";
+import { HULL_SCORER, scoresLeague } from "../../support/convex/gameweekScores.harness";
+import { liveRecords } from "../../support/convex/gameweekScoresMatch.harness";
+import { holdTypoRule } from "../../support/convex/gameweekScoresFixes.harness";
 import { HULL_EVERTON, mergedHullEverton } from "../../support/convex/matchStats.harness";
 import { silenceConsoleError } from "../../support/convex/test.harness";
 

@@ -1,11 +1,11 @@
 import type { CSSProperties, DragEvent } from "react";
 import { AREAS, cellKey, LANES, sameCell, type Cell } from "../../../convex/lineup/pitch";
-import { roleIn, slotLabel, SWEEPER } from "../../../convex/lineup/roles";
+import { roleIn } from "../../../convex/lineup/roles";
 import { kitOf, type Ink } from "../../../convex/football/clubColours";
 import { markOf } from "./focusMarks";
 import { PitchLines } from "./PitchLines";
 import { RoleRuns } from "./RoleRuns";
-import { SWEEPER_DEPTH_SHARE } from "./runs";
+import { drawnDeeper, SWEEPER_DEPTH_SHARE } from "./runs";
 import { PITCH_ASPECT } from "./pitchMarkings";
 import { standingIn, type DraftLineup, type Reach, type SquadMember } from "./lineupDraft";
 import { emptySlotLabel, pitchLabel, playerOnPitchLabel, putHereLabel, swapLabel } from "./words";
@@ -81,7 +81,7 @@ export function Pitch({
         LANES.map((lane) => {
           const cell = { area, lane };
           const standing = standingIn(draft, cell);
-          const depth = standing !== undefined && slotLabel(cell, standing.role) === SWEEPER ? SWEEPER_DEPTH : "";
+          const depth = standing !== undefined && drawnDeeper(cell, standing.role) ? SWEEPER_DEPTH : "";
           const allowDrop = (event: DragEvent) => {
             if (opensTo(cell)) event.preventDefault();
           };
