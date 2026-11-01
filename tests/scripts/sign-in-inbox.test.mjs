@@ -48,6 +48,11 @@ test("an HTML body's link has its &amp; undone", () => {
   expect(linkIn(`<a href="${SITE}/?code=1&amp;invite=2">Sign in</a>`, SITE)).toBe(`${SITE}/?code=1&invite=2`);
 });
 
+test("the subject matches by its start, as each sign-in email's ends with when it was sent", () => {
+  const emails = [received("timed", { subject: `${SUBJECT}, Sunday 1 November at 14:32 GMT` })];
+  expect(newestMatch(emails, { to: TO, subject: SUBJECT, since: ASKED_AT })?.id).toBe("timed");
+});
+
 test("the newest email to the address with the subject counts; older than the ask, or another's, doesn't", () => {
   const emails = [
     received("old", { created_at: at(ASKED_AT - CLOCK_SKEW_MS - 1) }),

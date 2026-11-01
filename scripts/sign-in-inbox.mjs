@@ -27,13 +27,14 @@ export function linkIn(body, siteUrl) {
   return found.find((address) => URL.canParse(address) && new URL(address).origin === site) ?? null;
 }
 
-/** Of a list of received emails, the newest to `to` with `subject`, dated no earlier than
+/** Of a list of received emails, the newest to `to` whose subject starts with `subject` (each
+ *  sign-in email's ends with when it was sent), dated no earlier than
  *  `since` less the clock skew; null if none is. Convex Auth keeps only an email's newest link. */
 export function newestMatch(emails, { to, subject, since }) {
   const address = to.trim().toLowerCase();
   const matches = emails.filter(
     (email) =>
-      email.subject === subject &&
+      email.subject.startsWith(subject) &&
       (email.to ?? []).some((recipient) => recipient.toLowerCase().includes(address)) &&
       Date.parse(email.created_at) >= since - CLOCK_SKEW_MS,
   );
