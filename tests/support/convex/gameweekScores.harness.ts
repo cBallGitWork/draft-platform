@@ -15,6 +15,10 @@ import { inTenths } from "../../../convex/scoring/values";
 import type { PlayerMatchRecord } from "../../../convex/stats/matchRecords";
 import { FIRST_RULES } from "../../../convex/rules/firstRules";
 import { LEAGUE_AVERAGE } from "../../../convex/table/roundRobin";
+import { squadGameweek, workedOutGameweek } from "../../../convex/gameweekScorer/gameweekScores";
+import type { PlayerRows } from "../../../convex/gameweekScorer/squadInputs";
+import { leagueReads } from "../../../convex/gameweekScorer/teamGameweek";
+import { seasonRules } from "../../../convex/rules/rulesHistory";
 import { HOUR_MS, MINUTE_MS } from "../../../convex/shared/time";
 import { actingAs, addManagers, adminCreatesLeague, MANAGERS, type TestConvex } from "./leagues.harness";
 import { EVERTON, EVERTON_CLUB, GAMEWEEK, HULL, HULL_CITY, HULL_EVERTON } from "./matchStats.harness";
@@ -231,3 +235,24 @@ export const leavesAnnsSquad = ({ t, leagueId }: ScoresLeague, playerCode: numbe
       .unique())!;
     await ctx.db.delete("squadPlayers", owned._id);
   });
+
+/** Ann's gameweek slot by slot two ways: from reads the size of her squad, as a player's card and
+ *  the Squad tab read it (`squad`, #577), and from every match's, as the league's scorer does
+ *  (`every`). */
+export function annsSquadAndEvery({ t, leagueId, annsTeam }: ScoresLeague, gameweek = GAMEWEEK) {
+  return t.run(async (ctx) => {
+    const held = (await ctx.db.get("leagues", leagueId))!;
+    const reads = await leagueReads(ctx, held, (await seasonRules(ctx, leagueId))!);
+    const rowsOf = async (playerCode: number): Promise<PlayerRows> => {
+      const records = await ctx.db.query("playerMatchStats").withIndex("by_playerCode", (q) => q.eq("playerCode", playerCode)).collect();
+      const overrides = await ctx.db
+        .query("pointsOverrides")
+        .withIndex("by_leagueId_and_playerCode", (q) => q.eq("leagueId", leagueId).eq("playerCode", playerCode))
+        .collect();
+      return { records: new Map(records.map((row) => [row.fixtureCode, row])), overrides: new Map(overrides.map((row) => [row.fixtureCode, row.points])) };
+    };
+    const ofSquad = await squadGameweek(ctx, reads, gameweek, annsTeam, rowsOf);
+    const ofEvery = await workedOutGameweek(ctx, reads, gameweek, [annsTeam]);
+    return { squad: (await ofSquad.slotsOf(annsTeam)).team, every: (await ofEvery.slotsOf(annsTeam)).team };
+  });
+}

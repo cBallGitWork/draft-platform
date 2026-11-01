@@ -20,7 +20,8 @@ names the [plate.md](../../docs/design/plate.md) section it draws; the values ar
 - `Confirm.tsx`: a confirm whose yes is the danger action (Colour roles: danger action; Decided: Destructive confirms).
 - `GameweekStepper.tsx`: CM's `◄ GW ►` stepper (Colour roles: stepper).
 - `OwnerName.tsx`: a player's owner, or a muted "Free agent" (Colour roles: fact, muted).
-- `PositionCodes.tsx`: position chips, each named in full on hover (Tables and panels: Roles in full).
+- `PositionChip.tsx`: one position's coloured chip.
+- `PositionCodes.tsx`: position codes, each named in full on hover (Tables and panels: Roles in full).
 - `Placeholder.tsx`: data not held yet, a 1px muted outline in its place and size, its hover saying what will show (Marks: A placeholder).
 
 ## Utilities in controls.css
