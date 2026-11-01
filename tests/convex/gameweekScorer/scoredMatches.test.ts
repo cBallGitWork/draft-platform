@@ -174,7 +174,7 @@ test("the league's override of a sub's points counts on his card as in the table
   expect(cards.get(ON_IN_HIS_OWN_AREA)![0].points).toMatchObject({ scoredAs: "slot", total: OVERRIDDEN });
 });
 
-test("a team that never saved a lineup scores its men from its first (#637, #836): its keeper and fifth defender in their slots, its benched fifth midfielder not counted", async () => {
+test("a team that never saved a lineup scores its men from its first (#637, #836): its keeper and Grealish in their slots, its bench centre back not counted", async () => {
   const league = await annsLeague({ bobSaves: false });
   await fullTimeRecords(league);
   const [{ playerCode: evertonKeeper }] = EVERTON_STARTERS;
@@ -182,8 +182,8 @@ test("a team that never saved a lineup scores its men from its first (#637, #836
   const bobs = (await readTable(league))!.results.find((each) => each.gameweek === GAMEWEEK)!.teams.find((team) => team.teamId === league.bobsTeam)!;
   expect(bobs).toMatchObject({ points: BOBS_FIRST_POINTS, noLineup: false });
   expect((await cardOf(evertonKeeper)).matches[0].points.scoredAs).toBe("slot");
-  expect((await cardOf(EVERTON_BENCH_CENTRE_BACK)).matches[0].points.scoredAs).toBe("slot");
-  expect((await cardOf(GREALISH)).matches[0].points.scoredAs).toBe("notCounted");
+  expect((await cardOf(GREALISH)).matches[0].points.scoredAs).toBe("slot");
+  expect((await cardOf(EVERTON_BENCH_CENTRE_BACK)).matches[0].points.scoredAs).toBe("notCounted");
 });
 
 // A double gameweek (spec/03, Double gameweeks; spec/12, The player card): Hull play a second match

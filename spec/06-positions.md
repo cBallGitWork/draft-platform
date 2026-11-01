@@ -15,8 +15,10 @@ Feature 6 of [SPEC.md](../SPEC.md). Only Craig's answers: the first `/grill` and
 - Areas each position can play (`spec/05`): GK in goal; CB and FB in defence; WB in defence and
   the wide lanes of defensive midfield and midfield; CDM in defensive midfield and midfield
   ("every CDM can play CM", Craig, 1 Nov 2026, after Wieffer and Lavia could only go in defensive
-  midfield); CM and WM in midfield; CAM and W in attacking midfield; SS in attacking midfield and
-  attack; ST in attack.
+  midfield); CM in midfield; WM in midfield and the wide lanes of attacking midfield; CAM in
+  attacking midfield; W in attacking midfield and the wide lanes of midfield ("yes", Craig, 1 Nov
+  2026, #1025, asked whether a W can fill a 4-4-2's wide-midfield slots and a WM the wide
+  attacking-midfield ones); SS in attacking midfield and attack; ST in attack.
 - A player can have more than one position.
 - The same in every league. The admin corrects them; there is no per-league override.
 

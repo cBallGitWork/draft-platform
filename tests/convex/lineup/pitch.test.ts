@@ -16,7 +16,7 @@ import {
 import type { Placement } from "../../../convex/lineup/lineup";
 import { POSITIONS, type Position } from "../../../convex/positions/positionTables";
 
-type WholeAreaPosition = Exclude<Position, "WB">;
+type WholeAreaPosition = Exclude<Position, "WB" | "W" | "WM">;
 
 /** spec/06, The labels: the areas each position plays, every lane of them. The wing back, who
  *  plays only some lanes of two areas, has his own test below. */
@@ -27,9 +27,7 @@ const SPEC_AREAS: Record<WholeAreaPosition, Area[]> = {
   // "Every CDM can play CM" (Craig, 1 Nov 2026).
   CDM: ["defensiveMidfield", "midfield"],
   CM: ["midfield"],
-  WM: ["midfield"],
   CAM: ["attackingMidfield"],
-  W: ["attackingMidfield"],
   SS: ["attackingMidfield", "attack"],
   ST: ["attack"],
 };
@@ -41,12 +39,21 @@ function cellsPlayedBy(position: Position): string[] {
   );
 }
 
-const WHOLE_AREA_POSITIONS = POSITIONS.filter((position): position is WholeAreaPosition => position !== "WB");
+const WHOLE_AREA_POSITIONS = POSITIONS.filter((position): position is WholeAreaPosition => position !== "WB" && position !== "W" && position !== "WM");
 
 test.each(WHOLE_AREA_POSITIONS)("%s plays every cell of its areas and no other", (position) => {
   const expected = SPEC_AREAS[position].flatMap((area) => LANES.map((lane) => `${area} ${lane}`));
 
   expect(cellsPlayedBy(position)).toEqual(expected);
+});
+
+// "yes" (Craig, 1 Nov 2026; #1025): a W fills wide-midfield slots, a WM wide attacking-midfield ones.
+test("a winger plays attacking midfield and the wide lanes of midfield, and no other", () => {
+  expect(cellsPlayedBy("W")).toEqual(["midfield left", "midfield right", ...LANES.map((lane) => `attackingMidfield ${lane}`)]);
+});
+
+test("a wide midfielder plays midfield and the wide lanes of attacking midfield, and no other", () => {
+  expect(cellsPlayedBy("WM")).toEqual([...LANES.map((lane) => `midfield ${lane}`), "attackingMidfield left", "attackingMidfield right"]);
 });
 
 test("a wing back plays defence and the wide lanes of the two midfield rows, and no other", () => {

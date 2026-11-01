@@ -170,8 +170,9 @@ export function sameLineup(one: DraftLineup, other: DraftLineup): boolean {
  *  back to front, moves to a free cell of the shape he plays in his own area, the nearest lane to
  *  his own first. Anyone the shape has no room for there then takes the free cell he plays in the
  *  nearest area, the deeper on a tie; anyone left over goes to the front of the bench, in that
- *  order. Cells left empty are the shape's slots still to fill. One whose new slot doesn't offer
- *  his role starts on his best-star role there (Craig, 1 Nov 2026). */
+ *  order. Then each bench player, in bench order, takes the first free cell he plays, back to
+ *  front (Craig, 1 Nov 2026; #1025); cells still empty are the shape's slots to fill. One whose
+ *  new slot doesn't offer his role starts on his best-star role there (Craig, 1 Nov 2026). */
 export function reshaped(draft: DraftLineup, cells: readonly Cell[], { positionsOf }: Pick<MoveRules, "positionsOf">, ratingsOf: RatingsOf): DraftLineup {
   const free = [...cells];
   const starters: Starter[] = [];
@@ -206,7 +207,16 @@ export function reshaped(draft: DraftLineup, cells: readonly Cell[], { positions
     if (cell === undefined) leftOver.push(starter.playerCode);
     else moveInto(starter, cell);
   }
-  return { starters, bench: [...leftOver, ...draft.bench] };
+  const bench: number[] = [];
+  for (const playerCode of [...leftOver, ...draft.bench]) {
+    const cell = free.toSorted(byPitchOrder).find((each) => playsCell(positionsOf(playerCode), each));
+    if (cell === undefined) bench.push(playerCode);
+    else {
+      free.splice(free.indexOf(cell), 1);
+      starters.push(droppedInto(playerCode, cell, ratingsOf));
+    }
+  }
+  return { starters, bench };
 }
 
 /** The league's preset whose shape the eleven stand in now, cell for cell, if any: its key is the

@@ -35,7 +35,7 @@ test("a side its manager has edited off every preset has no formation name yet",
 test("a side that never saved is named by the preset its first lineup filled (#637, #836)", async () => {
   const game = await annsScoredGame(await scoresLeague({ bobSaves: false }), GAMEWEEK);
 
-  expect(game.opponent).toMatchObject({ formation: "5-4-1" });
+  expect(game.opponent).toMatchObject({ formation: "4-3-3" });
 });
 
 test("a slot left empty by a starter gone from the squad is still the preset's: the manager didn't edit it", async () => {
