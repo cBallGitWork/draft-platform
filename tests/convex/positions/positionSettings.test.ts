@@ -4,7 +4,8 @@
 import { describe, expect, test, vi } from "vitest";
 import { api } from "../../../convex/_generated/api";
 import type { Doc } from "../../../convex/_generated/dataModel";
-import { SYNCS_SEARCHED_MOST, thresholdRefusals } from "../../../convex/positions/positionSettings";
+import { EVERY_LEAGUE, SYNCS_SEARCHED_MOST, thresholdRefusals, type PositionsFor } from "../../../convex/positions/positionSettings";
+import { positionsNow } from "../../../convex/positions/playerPositions";
 import type { Start } from "../../../convex/positions/positions";
 import { DAY_MS } from "../../../convex/shared/time";
 import type { Position } from "../../../convex/positions/positionTables";
@@ -126,13 +127,17 @@ describe("the queue's position changes", () => {
 });
 
 describe("only between gameweeks", () => {
-  /** Gameweeks whose FPL deadlines fall on days 10 and 20. */
-  async function gameweeksAtDays10And20(t: TestConvex) {
-    await t.run(async (ctx) => {
-      await ctx.db.insert("gameweeks", { number: 1, deadline: 10 * DAY_MS });
-      await ctx.db.insert("gameweeks", { number: 2, deadline: 20 * DAY_MS });
+  /** A league whose own deadlines passed on `days`, gameweek 1 on the first. */
+  const leagueWithDeadlines = (t: TestConvex, ...days: number[]) =>
+    t.run(async (ctx) => {
+      const leagueId = await ctx.db.insert("leagues", { name: `League ${days.join("-")}`, maxTeams: 4, commissionerEmail: "commish@example.com" });
+      for (const [index, day] of days.entries()) {
+        await ctx.db.insert("passedDeadlines", { leagueId, gameweek: index + 1, deadline: day * DAY_MS, recordedAt: day * DAY_MS });
+      }
+      return leagueId;
     });
-  }
+  /** A league whose own deadlines fall on days 10 and 20. */
+  const gameweeksAtDays10And20 = (t: TestConvex) => leagueWithDeadlines(t, 10, 20);
   const READ = {
     ok: true as const,
     matchesRead: 1,
@@ -214,5 +219,25 @@ describe("only between gameweeks", () => {
     await failedSyncs(t, 3);
 
     expect((await queueOf(t)).removed).toEqual([{ ...BARNES, position: "CB" }]);
+  });
+
+  test("each league judges at its own deadline, never FPL's: a player's positions differ between leagues until both have passed theirs (#895)", async () => {
+    const t = freshConvex();
+    await holdPlayer(t, BARNES, acrossTheDeadline());
+    await t.run((ctx) => ctx.db.insert("gameweeks", { number: 1, deadline: 30 * DAY_MS }));
+    const early = await leagueWithDeadlines(t, 10);
+    const late = await leagueWithDeadlines(t, 5, 13);
+    const positionsIn = (league: PositionsFor) => t.run(async (ctx) => (await positionsNow(ctx, league))(BARNES.code));
+
+    await positionsSyncRanOnDay(t, 12);
+    expect(await positionsIn(early)).toEqual(["CB", "FB"]);
+    expect(await positionsIn(late)).toEqual(["CB", "FB"]);
+    expect(await queueOf(t)).toMatchObject({ flagged: [{ position: "CB", startsElsewhere: 4 }], removed: [] });
+
+    await positionsSyncRanOnDay(t, 14);
+    expect(await positionsIn(early)).toEqual(["CB", "FB"]);
+    expect(await positionsIn(late)).toEqual(["FB"]);
+    expect(await positionsIn(EVERY_LEAGUE)).toEqual(["FB"]);
+    expect(await queueOf(t)).toMatchObject({ removed: [{ position: "CB" }] });
   });
 });
