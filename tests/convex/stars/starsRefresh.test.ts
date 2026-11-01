@@ -3,6 +3,8 @@ import { internal } from "../../../convex/_generated/api";
 import { DEFAULT_ROLES } from "../../../convex/lineup/roles";
 import { FIRST_SCORING } from "../../../convex/scoring/firstScoring";
 import { HOUR_MS } from "../../../convex/shared/time";
+import { MATCH_RECORDS_MOST } from "../../../convex/gameweekScorer/heldMatches";
+import { REFRESH_COMMAND } from "../../../convex/stars/starsRefresh";
 import { PLAYERS_PAGE } from "../../../convex/stats/matchRecords";
 import { UNSURE } from "../../../convex/stars/starsShape";
 import { holdSiteScoring } from "../../support/convex/siteScoring.harness";
@@ -193,6 +195,23 @@ test("a player whose record can't be priced keeps the stars he had, said, and th
   expect((await starsRows(t)).get(STEADY.code)?.matches).toBe(before?.matches);
   expect((await starsRows(t)).get(BLANK.code)).toMatchObject({ matches: 4 });
   expect(logged).toHaveBeenCalledWith(expect.stringContaining(`Player ${STEADY.code}'s stars`));
+});
+
+test("a lock whose records can't be read is said, naming the repair, and leaves every row as it was", async () => {
+  const logged = silenceConsoleError();
+  const t = await rated();
+  const before = await starsRows(t);
+  const CROWDED = 504;
+  await t.run(async (ctx) => {
+    await insertMatch(ctx, CROWDED, MATCHES.length);
+    for (let index = 0; index <= MATCH_RECORDS_MOST; index += 1) await ctx.db.insert("playerMatchStats", lockedRecord(9000 + index, CROWDED, { minutes: 90 }));
+  });
+
+  await expect(t.mutation(internal.stars.starsRefresh.refreshMatch, { fixtureCode: CROWDED })).resolves.toBeNull();
+
+  expect(logged).toHaveBeenCalledWith(expect.stringContaining(`match ${CROWDED}'s players' stars weren't worked out again; run ${REFRESH_COMMAND}`));
+  expect(await pendingJobs(t, internal.stars.starsRefresh.rank)).toHaveLength(0);
+  expect(await starsRows(t)).toEqual(before);
 });
 
 test("a refresh of everyone stopped part-way loses no row", async () => {
