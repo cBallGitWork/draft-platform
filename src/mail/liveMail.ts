@@ -15,7 +15,7 @@ const useLetters: MailSeam["useLetters"] = () => {
  *  (convex/mail/mail.ts); any other failure is logged and said plainly. */
 export function useLiveMail(): { mail: MailSeam; unreadMail: number } {
   const { isAuthenticated } = useConvexAuth();
-  const unread = useQuery(api.mail.mail.unreadCount, isAuthenticated ? {} : "skip") ?? 0;
+  const unreadMail = useQuery(api.mail.mail.unreadCount, isAuthenticated ? {} : "skip") ?? 0;
   const open = useMutation(api.mail.mail.open);
   const write = useMutation(api.mail.mail.writeToLeague);
 
@@ -33,5 +33,5 @@ export function useLiveMail(): { mail: MailSeam; unreadMail: number } {
     }),
     [open, write],
   );
-  return { mail, unreadMail: unread };
+  return { mail, unreadMail };
 }

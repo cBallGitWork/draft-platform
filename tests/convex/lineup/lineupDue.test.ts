@@ -44,7 +44,7 @@ describe("whether his lineup is due", () => {
     expect(await isDue(ANN)).toBe(false);
   });
 
-  test("inside them, until he opens Tactics, whatever his lineup", async () => {
+  test("inside them, before he opens Tactics", async () => {
     clockTo(nextDeadline() - LINEUP_DUE_BEFORE_DEADLINE_MS);
     expect(await isDue(ANN)).toBe(true);
   });
