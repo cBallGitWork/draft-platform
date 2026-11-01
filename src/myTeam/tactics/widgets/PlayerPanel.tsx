@@ -3,7 +3,7 @@ import { useId } from "react";
 import type { Id } from "../../../../convex/_generated/dataModel";
 import { roleIn, rolesOfSlot, slotLabel } from "../../../../convex/lineup/roles";
 import { playerCardPath } from "../../../playerCard/paths";
-import { closeGlyph, nextGlyph } from "../../../shared/words";
+import { closeGlyph, nextGlyph, playerCardWords } from "../../../shared/words";
 import { Placeholder } from "../../../ui/Placeholder";
 import { PositionChip } from "../../../ui/PositionChip";
 import { figureWords, noFigureWords } from "../../words";
@@ -27,7 +27,6 @@ import {
   nextThreeHead,
   nowWords,
   playerCardLabel,
-  playerCardWords,
   playsHead,
   pointsHead,
   pointsPerActionHead,

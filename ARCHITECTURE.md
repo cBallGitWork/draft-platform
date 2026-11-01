@@ -297,8 +297,9 @@ The homes the folder pass set (29 Oct 2026), so new code has one place to go:
   epl-draft's, never shared.
 - `convex/table/` keeps its name, because the browser and the scheduler call its functions.
 - Sub-folders: past about 12 files, a job with its own files and name gets a sub-folder
-  (`src/frame/topBar/`, `src/myTeam/tactics/`, `src/scouting/shortlist/`, and the Tactics pitch's
-  drawing in `src/myTeam/tactics/pitch/`, 1 Nov 2026). A folder over 12 that is one job, or whose
+  (`src/frame/topBar/`, `src/myTeam/header/`, `src/myTeam/squad/`, `src/myTeam/tactics/`,
+  `src/scouting/shortlist/`, and inside Tactics the pitch's drawing in `pitch/`, the formation window
+  in `formationWindow/` and its panels in `widgets/`, 1 Nov 2026). A folder over 12 that is one job, or whose
   tests mirror its sources, stays flat.
 
 **The rules**, from how the folder pass left the code (29 Oct 2026, counts from `find src convex`):
