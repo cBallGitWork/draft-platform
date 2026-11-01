@@ -15,6 +15,15 @@ type Stats = Record<string, number>;
  *  seasons with room. More throws, never a silent cut. */
 export const PLAYER_RECORDS_MOST = 500;
 
+/** Players worked out in one transaction of a page-at-a-time run (season totals, season points,
+ *  stars): each reads his own records, up to a season's 38 and more across seasons, so 25 stays
+ *  well inside a mutation's reads. */
+export const PLAYERS_PAGE = 25;
+
+/** The most players one season's read takes (season totals, season points, stars): FPL lists about
+ *  800 a season, with room. More throws, never a silent cut. */
+export const SEASON_PLAYERS_MOST = 1500;
+
 /** A stat both feeds send, under each one's name. */
 type StatInBothFeeds = { fpl: string; pl: string; kept: "fpl" | "pl" };
 
@@ -126,6 +135,11 @@ function linesByPlayer(fixtureCode: number, lines: readonly (FplStatLine | PlSta
 /** His whole record has arrived: both feeds' parts, or enough to know he never came on. */
 export function isWhole(record: Pick<PlayerMatchRecord, "played" | "arrived">): boolean {
   return record.played === false || (record.arrived.fpl && record.arrived.pl);
+}
+
+/** His stats once his whole record has arrived (isWhole), or null until then: what scoring prices. */
+export function statsIfWhole(record: Pick<PlayerMatchRecord, "played" | "arrived" | "stats">): Stats | null {
+  return isWhole(record) ? record.stats : null;
 }
 
 /** A stat's value, or null (shown "—", spec/14) while his whole record has not arrived. Once it

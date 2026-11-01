@@ -4,7 +4,8 @@ import { DEFAULT_ROLES } from "../../../convex/lineup/roles";
 import { FIRST_SCORING } from "../../../convex/scoring/firstScoring";
 import { HOUR_MS } from "../../../convex/shared/time";
 import { MATCH_RECORDS_MOST } from "../../../convex/gameweekScorer/heldMatches";
-import { REFRESH_COMMAND, STARS_PAGE } from "../../../convex/stars/starsRefresh";
+import { REFRESH_COMMAND } from "../../../convex/stars/starsRefresh";
+import { PLAYERS_PAGE } from "../../../convex/stats/matchRecords";
 import { UNSURE } from "../../../convex/stars/starsShape";
 import { holdSiteScoring } from "../../support/convex/siteScoring.harness";
 import { freshConvex, pendingJobs, silenceConsoleError, type TestConvex } from "../../support/convex/test.harness";
@@ -134,9 +135,9 @@ test("matches are priced under today's scoring: a role's adjustment in force lif
   expect(await ratingOf(DEFAULT_ROLES.ST[1].key)).toBe(before);
 });
 
-test(`a refresh of everyone goes a page of ${STARS_PAGE} players at a time`, async () => {
+test(`a refresh of everyone goes a page of ${PLAYERS_PAGE} players at a time`, async () => {
   const t = freshConvex();
-  const many = Array.from({ length: STARS_PAGE + 1 }, (_, index) => ({ code: 3000 + index, name: `P${index}`, fullName: `P${index}`, clubCode: ARSENAL.code, positions: ["ST" as const] }));
+  const many = Array.from({ length: PLAYERS_PAGE + 1 }, (_, index) => ({ code: 3000 + index, name: `P${index}`, fullName: `P${index}`, clubCode: ARSENAL.code, positions: ["ST" as const] }));
   await t.run((ctx) => insertPlayers(ctx, many));
 
   await t.mutation(internal.stars.starsRefresh.refreshAll, { cursor: null });
@@ -215,7 +216,7 @@ test("a lock whose records can't be read is said, naming the repair, and leaves 
 
 test("a refresh of everyone stopped part-way loses no row", async () => {
   const t = freshConvex();
-  const many = Array.from({ length: STARS_PAGE + 1 }, (_, index) => ({ code: 3000 + index, name: `P${index}`, fullName: `P${index}`, clubCode: ARSENAL.code, positions: ["ST" as const] }));
+  const many = Array.from({ length: PLAYERS_PAGE + 1 }, (_, index) => ({ code: 3000 + index, name: `P${index}`, fullName: `P${index}`, clubCode: ARSENAL.code, positions: ["ST" as const] }));
   await holdStarsPlayers(t);
   await t.run((ctx) => insertPlayers(ctx, many));
   await refreshEveryone(t);

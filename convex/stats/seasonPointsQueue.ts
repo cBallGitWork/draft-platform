@@ -1,9 +1,9 @@
 import { internal } from "../_generated/api";
 import type { Doc } from "../_generated/dataModel";
 import type { MutationCtx } from "../_generated/server";
-import { statChanges, type PlayerMatchRecord } from "./matchRecords";
+import { PLAYERS_PAGE, statChanges, type PlayerMatchRecord } from "./matchRecords";
 import { heldSeason } from "../shared/fixtures";
-import { countedStats, REBUILD_PAGE } from "./seasonStats";
+import { countedStats } from "./seasonStats";
 
 // When season points are re-priced (#525, seasonPoints.ts): just after a record write changes what
 // a player counts, or a played match leaves the feed or moves gameweek (footballSync.ts). Each runs
@@ -26,13 +26,13 @@ export function repriceChanged(ctx: MutationCtx, records: readonly PlayerMatchRe
   );
 }
 
-/** Queues these players' re-pricing, REBUILD_PAGE a job so each stays well inside a mutation's
+/** Queues these players' re-pricing, PLAYERS_PAGE a job so each stays well inside a mutation's
  *  reads; or, while no row is kept though records are, the whole rebuild instead. */
 export async function queueRefresh(ctx: MutationCtx, playerCodes: Iterable<number>): Promise<void> {
   const codes = [...new Set(playerCodes)];
   if (codes.length === 0 || (await rebuildIfNoneKept(ctx))) return;
-  for (let start = 0; start < codes.length; start += REBUILD_PAGE) {
-    await ctx.scheduler.runAfter(0, internal.stats.seasonPoints.refresh, { playerCodes: codes.slice(start, start + REBUILD_PAGE) });
+  for (let start = 0; start < codes.length; start += PLAYERS_PAGE) {
+    await ctx.scheduler.runAfter(0, internal.stats.seasonPoints.refresh, { playerCodes: codes.slice(start, start + PLAYERS_PAGE) });
   }
 }
 

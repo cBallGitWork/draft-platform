@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, test, vi } from "vitest";
 import { internal } from "../../../convex/_generated/api";
 import { MATCH_RECORDS_MOST } from "../../../convex/gameweekScorer/heldMatches";
 import { inTenths } from "../../../convex/scoring/values";
-import { REBUILD_PAGE } from "../../../convex/stats/seasonStats";
+import { PLAYERS_PAGE } from "../../../convex/stats/matchRecords";
 import { REBUILD_COMMAND } from "../../../convex/stats/seasonPointsMoves";
 import { changesSeasonPoints, queueRefresh } from "../../../convex/stats/seasonPointsQueue";
 import { completeRecord } from "../../support/convex/footballRows.harness";
@@ -165,12 +165,12 @@ test("a live-only deployment, its records all waiting on a feed, starts no rebui
 test("a re-pricing of more players than a job takes is queued as several jobs", async () => {
   const { t } = league;
   await refresh(league);
-  const codes = Array.from({ length: REBUILD_PAGE + 1 }, (_, index) => 70_000 + index);
+  const codes = Array.from({ length: PLAYERS_PAGE + 1 }, (_, index) => 70_000 + index);
 
   await t.run((ctx) => queueRefresh(ctx, codes));
 
   const jobs = await pendingJobs(t, internal.stats.seasonPoints.refresh);
-  expect(jobs.map((job) => (job.args[0] as { playerCodes: number[] }).playerCodes)).toEqual([codes.slice(0, REBUILD_PAGE), codes.slice(REBUILD_PAGE)]);
+  expect(jobs.map((job) => (job.args[0] as { playerCodes: number[] }).playerCodes)).toEqual([codes.slice(0, PLAYERS_PAGE), codes.slice(PLAYERS_PAGE)]);
 });
 
 describe("a match move never stops the sync", () => {

@@ -3,7 +3,7 @@ import { internal } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
 import { MANAGERS, addManagers, adminCreatesLeague, type TestConvex } from "../../support/convex/leagues.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
-import { STARS_PAGE } from "../../../convex/stars/starsRefresh";
+import { PLAYERS_PAGE } from "../../../convex/stats/matchRecords";
 import { ARSENAL, insertPlayers } from "../../support/convex/footballRows.harness";
 import { BLANK, CAMEO, MATCHES, holdStarsPlayers, lockedRecord, refreshesRun, refreshEveryone, starsRows } from "../../support/convex/stars.harness";
 import { pendingJobs, ROWS_TO_THE_CAP } from "../../support/convex/test.harness";
@@ -62,8 +62,8 @@ test("gone but on a squad, a match locking keeps his row", async () => {
   expect((await starsRows(t)).get(CAMEO.code)).toMatchObject({ matches: MATCHES.length });
 });
 
-test(`more gone players than a page, ${STARS_PAGE + 1}, are worked through a page at a time, then everyone is ranked`, ROWS_TO_THE_CAP, async () => {
-  const many = Array.from({ length: STARS_PAGE + 1 }, (_, index) => ({ code: 5000 + index, name: `G${index}`, fullName: `G${index}`, clubCode: ARSENAL.code, positions: ["ST" as const] }));
+test(`more gone players than a page, ${PLAYERS_PAGE + 1}, are worked through a page at a time, then everyone is ranked`, ROWS_TO_THE_CAP, async () => {
+  const many = Array.from({ length: PLAYERS_PAGE + 1 }, (_, index) => ({ code: 5000 + index, name: `G${index}`, fullName: `G${index}`, clubCode: ARSENAL.code, positions: ["ST" as const] }));
   await t.run(async (ctx) => {
     await insertPlayers(ctx, many);
     for (const { code } of many) for (const fixtureCode of MATCHES) await ctx.db.insert("playerMatchStats", lockedRecord(code, fixtureCode, { minutes: 90 }));
