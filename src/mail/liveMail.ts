@@ -11,7 +11,7 @@ const useLetters: MailSeam["useLetters"] = () => {
 };
 
 /** The Mail seam filled in by Convex, and the top bar's unread count from it, which Continue goes
- *  to Mail by first (frame/topBar/liveTopBar.ts). A refusal comes back as the server's own words
+ *  to Mail by first (frame/topBar/liveTopBar.tsx). A refusal comes back as the server's own words
  *  (convex/mail/mail.ts); any other failure is logged and said plainly. */
 export function useLiveMail(): { mail: MailSeam; unreadMail: number } {
   const { isAuthenticated } = useConvexAuth();

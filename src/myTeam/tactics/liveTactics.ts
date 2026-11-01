@@ -1,6 +1,7 @@
 import { useMutation, useQuery } from "convex/react";
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { api } from "../../../convex/_generated/api";
+import type { Id } from "../../../convex/_generated/dataModel";
 import { answerOf } from "../../shared/refusal";
 import type { TacticsSeam } from "./seam";
 import { saveFailedWords } from "./words";
@@ -21,9 +22,12 @@ export const liveTactics: TacticsSeam = {
   },
   useTacticsOpened: (leagueId, gameweek) => {
     const opened = useMutation(api.lineup.lineupDue.openedTactics);
+    // Once a visit, for the league: a tab left open past a deadline hasn't been opened in the next
+    // gameweek ("until he opens Tactics that gameweek", spec/12).
+    const toldFor = useRef<Id<"leagues"> | null>(null);
     useEffect(() => {
-      // Again for each gameweek the tab shows, so one left open past a deadline counts for the next.
-      if (gameweek === null) return;
+      if (gameweek === null || toldFor.current === leagueId) return;
+      toldFor.current = leagueId;
       opened({ leagueId }).catch((error: unknown) => console.error("Telling the server Tactics was opened failed:", error));
     }, [opened, leagueId, gameweek]);
   },

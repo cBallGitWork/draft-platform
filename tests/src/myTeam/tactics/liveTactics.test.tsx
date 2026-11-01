@@ -48,14 +48,24 @@ test("a refusal comes back as the server's words; any other failure is said plai
   expect(logged).toHaveBeenCalledOnce();
 });
 
-test("the tab open in a gameweek tells lineup/lineupDue:openedTactics once, again for the next, and not with none", () => {
+test("opening the tab tells lineup/lineupDue:openedTactics once it shows a gameweek, and not with none", () => {
   const { rerender } = renderHook(({ gameweek }) => liveTactics.useTacticsOpened(A_LEAGUE_ID, gameweek), { initialProps: { gameweek: null as number | null } });
   expect(convex.openedTactics).not.toHaveBeenCalled();
   rerender({ gameweek: 9 });
   rerender({ gameweek: 9 });
   expect(convex.openedTactics).toHaveBeenCalledOnce();
   expect(convex.openedTactics).toHaveBeenCalledWith({ leagueId: A_LEAGUE_ID });
+});
+
+test("a deadline passing while the tab stays open tells nothing: only the gameweek the visit began in is opened", () => {
+  const { rerender } = renderHook(({ gameweek }) => liveTactics.useTacticsOpened(A_LEAGUE_ID, gameweek), { initialProps: { gameweek: 9 } });
   rerender({ gameweek: 10 });
+  expect(convex.openedTactics).toHaveBeenCalledOnce();
+});
+
+test("opening the tab again, a new visit, tells it again", () => {
+  renderHook(() => liveTactics.useTacticsOpened(A_LEAGUE_ID, 9)).unmount();
+  renderHook(() => liveTactics.useTacticsOpened(A_LEAGUE_ID, 10));
   expect(convex.openedTactics).toHaveBeenCalledTimes(2);
 });
 

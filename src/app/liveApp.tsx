@@ -157,14 +157,19 @@ function LiveShell({ linkCode }: { linkCode: string | null }) {
     if (isLoading || checkingLink || (isAuthenticated && account === undefined)) return null;
     return isAuthenticated && account ? { signedIn: true, ...account } : { signedIn: false };
   }, [isLoading, checkingLink, isAuthenticated, account]);
-  const topBar = useLiveTopBar(unreadMail, session?.signedIn ? session.currentLeagueId : null);
+  const { topBar, watch: lineupDueWatch } = useLiveTopBar(unreadMail, session?.signedIn ? session.currentLeagueId : null);
 
   if (!session) {
     return (
       <Loading className="p-2">{checkingLink ? waitingWords.checkingLink : waitingWords.connecting}</Loading>
     );
   }
-  return <ShellApp session={session} auth={auth} leagues={leagues} mail={mail} joining={joining} topBar={topBar} gameweeks={liveGameweeks} squads={squads} scoring={scoring} leagueSettings={leagueSettings} table={liveTable} scouting={liveScouting} playerCard={livePlayerCard} home={liveHome} myTeam={liveMyTeam} matchup={liveMatchup} premierLeague={livePremierLeague} admin={admin} feedback={feedback} patches={patches} />;
+  return (
+    <>
+      {lineupDueWatch}
+      <ShellApp session={session} auth={auth} leagues={leagues} mail={mail} joining={joining} topBar={topBar} gameweeks={liveGameweeks} squads={squads} scoring={scoring} leagueSettings={leagueSettings} table={liveTable} scouting={liveScouting} playerCard={livePlayerCard} home={liveHome} myTeam={liveMyTeam} matchup={liveMatchup} premierLeague={livePremierLeague} admin={admin} feedback={feedback} patches={patches} />
+    </>
+  );
 }
 
 /** The sign-in page saying what was wrong with a link, and, for one that led to a league's invite

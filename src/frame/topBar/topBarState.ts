@@ -4,7 +4,7 @@ import { menuWords } from "../words";
 
 // What the top bar tells a signed-in manager: Mail's unread count, and where Continue goes.
 // Mail (#26) feeds the count (src/mail/liveMail.ts) and the server says whether his lineup is due
-// (convex/lineup/lineupDue.ts, #526); liveTopBar.ts puts them together. Trades aren't built.
+// (convex/lineup/lineupDue.ts, #526); liveTopBar.tsx puts them together. Trades aren't built.
 
 export type NextStep = { path: string; reason: string };
 export type TopBarState = { unreadMail: number; next: NextStep | null };
