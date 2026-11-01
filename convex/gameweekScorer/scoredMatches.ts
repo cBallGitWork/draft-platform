@@ -8,7 +8,7 @@ import { seasonRules } from "../rules/rulesHistory";
 import { siteScoringByGameweek } from "../scoring/siteVersions";
 import { takeAllOrThrow } from "../shared/cappedRead";
 import { readOnce } from "../shared/readOnce";
-import { isWhole, PLAYER_RECORDS_MOST } from "../stats/matchRecords";
+import { isWhole, PLAYER_RECORDS_MOST, statsIfWhole } from "../stats/matchRecords";
 import { playerRecords, seasonRecordsOf, type SeasonRecord } from "../stats/seasonRecords";
 import { statusOf } from "../stats/matchStats";
 import { begunGameweeks, squadGameweek } from "./gameweekScores";
@@ -67,7 +67,7 @@ export async function scoredMatches(ctx: QueryCtx, league: Doc<"leagues">, teamI
         const team = teamGameweekOf === null ? null : await teamGameweekOf(held.gameweek);
         const fromTeam = team === null ? null : asScored(team, code, held.fixture.code);
         if (fromTeam?.counts) return { ...held, points: fromTeam.points, counted: fromTeam.counted, override, provisional: fromTeam.provisional };
-        const best = cardPoints(isWhole(held.record) ? held.record.stats : null, setIn(held.gameweek), positions);
+        const best = cardPoints(statsIfWhole(held.record), setIn(held.gameweek), positions);
         const points = { ...best, total: override?.points ?? best.total, ...(fromTeam === null ? {} : { scoredAs: "notCounted" as const }) };
         const provisional = fromTeam?.provisional ?? (!isWhole(held.record) || !isMatchFinal({ status: await statusOf(ctx, held.fixture.code) }));
         return { ...held, points, counted: false, override, provisional };
@@ -84,7 +84,7 @@ interface HeldRows {
 }
 
 async function heldRows(ctx: QueryCtx, leagueId: Id<"leagues">, playerCode: number): Promise<HeldRows> {
-  return { records: await playerRecords(ctx, playerCode), overrides: await overridesOf(ctx, leagueId, playerCode) };
+  return { records: await playerRecords(ctx, playerCode, "his season"), overrides: await overridesOf(ctx, leagueId, playerCode) };
 }
 
 /** The team's scoring in each gameweek the league has begun, read once a gameweek; null for a

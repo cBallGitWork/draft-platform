@@ -235,6 +235,12 @@ Tactics pitch are built with no package, and components, motion, forms and chart
 - Season totals: each player's stats for a season are a row in `playerSeasonStats`, kept in step as
   each match record is written, so Scouting sorts by any stat without reading a season of records
   (`convex/stats/seasonStats.ts`).
+- Stars (#11): each player's points per match under each role he is rated for, and his stars for
+  each, are a row in `playerRoleStars`, one a player with a counted match, so no read prices every
+  player under every role. A match's lock sets its players' rows afresh and ranks everyone again;
+  a version of the site's scoring taking effect does every player's. A player gone from the
+  Premier League keeps his row while a squad in any league holds him
+  (`convex/stars/starsRefresh.ts`).
 - Season points (#525): each player's base points this season, summed at every position, are a row
   in `playerSeasonPoints`, set afresh from his records just after a record write changes what one
   counts or a played match leaves the feed or moves gameweek, so Scouting lists every player's

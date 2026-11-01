@@ -15,7 +15,7 @@ import type { Cell } from "../lineup/pitch";
 import { basePoints, cellAt } from "../playerCard/cardPoints";
 import type { Position } from "../positions/positionTables";
 import type { ScoringSet } from "../scoring/scoringSet";
-import { isWhole } from "../stats/matchRecords";
+import { statsIfWhole } from "../stats/matchRecords";
 
 type PlayerCode = number;
 
@@ -48,7 +48,7 @@ export async function unownedPointsOf(
   const recordOf = new Map(records.map((record) => [record.playerCode, record]));
   return (playerCode, positions) => {
     const record = recordOf.get(playerCode);
-    const stats = record !== undefined && isWhole(record) ? record.stats : null;
+    const stats = record === undefined ? null : statsIfWhole(record);
     const { total, position } = basePoints(stats, set, positions)[0];
     const points = overrides.get(playerCode) ?? total;
     if (record === undefined || position === null) return { points, lines: null };

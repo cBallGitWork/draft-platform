@@ -15,12 +15,13 @@ export type SeasonRecord = { record: Doc<"playerMatchStats">; fixture: Doc<"fixt
  *  that reads each match once across many players. */
 export type FixtureReader = (code: number) => Promise<Doc<"fixtures"> | null>;
 
-/** His records, every season's. */
-export function playerRecords(ctx: QueryCtx, playerCode: number): Promise<Doc<"playerMatchStats">[]> {
+/** His records, every season's. More than PLAYER_RECORDS_MOST throws, its message ending in
+ *  `why`: what the caller would cut short. */
+export function playerRecords(ctx: QueryCtx, playerCode: number, why: string): Promise<Doc<"playerMatchStats">[]> {
   return takeAllOrThrow(
     ctx.db.query("playerMatchStats").withIndex("by_playerCode", (q) => q.eq("playerCode", playerCode)),
     PLAYER_RECORDS_MOST,
-    `More than ${PLAYER_RECORDS_MOST} match records are held for player ${playerCode}, so his season would be cut short`,
+    `More than ${PLAYER_RECORDS_MOST} match records are held for player ${playerCode}, so ${why} would be cut short`,
   );
 }
 
@@ -33,7 +34,7 @@ export const isPlayedThisSeason = (fixture: Doc<"fixtures">): fixture is Doc<"fi
  *  is this season's (isPlayedThisSeason). An unused substitute's match is left out, as one he
  *  wasn't named for is. */
 export async function seasonRecords(ctx: QueryCtx, playerCode: number, fixtureOf?: FixtureReader): Promise<SeasonRecord[]> {
-  return seasonRecordsOf(ctx, playerCode, await playerRecords(ctx, playerCode), fixtureOf);
+  return seasonRecordsOf(ctx, playerCode, await playerRecords(ctx, playerCode, "his season"), fixtureOf);
 }
 
 /** `seasonRecords` from his records already read. */
