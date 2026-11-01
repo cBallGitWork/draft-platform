@@ -82,7 +82,7 @@ export const ofMyTeam = query({
   returns: teamSquad,
   handler: async (ctx, { leagueId, now }) => {
     const { league, team } = await managerOf(ctx, leagueId);
-    const positionsOfNow = await positionsNow(ctx);
+    const positionsOfNow = await positionsNow(ctx, leagueId);
     const clubs = clubsByCode(ctx);
     const lastGameweek = (await begunGameweeks(ctx, league)).at(-1) ?? null;
     const price = await pricer(ctx, league, team._id);

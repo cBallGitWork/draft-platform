@@ -136,7 +136,7 @@ export const card = query({
     const { league } = await memberOf(ctx, leagueId);
     const player = await playerByCode(ctx, playerCode);
     if (player === null) return null;
-    const positions = await (await positionsNow(ctx))(playerCode);
+    const positions = await (await positionsNow(ctx, leagueId))(playerCode);
     const clubs = clubsByCode(ctx);
     return {
       code: player.code,

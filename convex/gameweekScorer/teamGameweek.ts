@@ -54,7 +54,7 @@ export async function leagueReads(
     leagueId: league._id,
     season,
     setIn: setIn ?? (await siteScoringByGameweek(ctx)),
-    player: playerReader(ctx, await positionsNow(ctx)),
+    player: playerReader(ctx, await positionsNow(ctx, league._id)),
   };
 }
 

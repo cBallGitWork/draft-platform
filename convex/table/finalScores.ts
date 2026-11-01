@@ -3,7 +3,7 @@ import { internal } from "../_generated/api";
 import type { Doc, Id } from "../_generated/dataModel";
 import { internalMutation, type MutationCtx } from "../_generated/server";
 import { seasonRules } from "../rules/rulesHistory";
-import { takeAllOrThrow } from "../shared/cappedRead";
+import { LEAGUES_STORED_MOST, takeAllOrThrow } from "../shared/cappedRead";
 import { teamsOf } from "../shared/leagueAccess";
 import { leagueScores } from "../gameweekScorer/gameweekScores";
 
@@ -19,10 +19,6 @@ import { leagueScores } from "../gameweekScorer/gameweekScores";
 // when it is stored), or a commissioner overrides a player's points for a match (spec/14, #32).
 // `rescore` is that path: it drops a gameweek's stored scores and stores them again from the
 // records; an override calls `rescoreGameweek` itself, in its own transaction.
-
-/** The most leagues one lock asks to store their scores; past it this throws, and the lock still
- *  stands (it is scheduled apart). The closed beta has a handful. */
-export const LEAGUES_STORED_MOST = 200;
 
 /** Asks every league to store its newly final gameweeks, each in its own transaction. */
 export const storeEveryLeague = internalMutation({
