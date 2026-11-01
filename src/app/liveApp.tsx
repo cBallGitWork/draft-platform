@@ -9,6 +9,7 @@ import { useLivePatches } from "../patches/livePatches";
 import { Loading } from "../ui/Panel";
 import { ReadFailed } from "../frame/ReadFailed";
 import { SignOut } from "../frame/topBar/SignOut";
+import { useLiveTopBar } from "../frame/topBar/liveTopBar";
 import type { AuthActions, Session } from "../signIn/seam";
 import { liveGameweeks } from "../gameweeks/liveGameweeks";
 import { liveHome } from "../home/liveHome";
@@ -114,7 +115,7 @@ function LiveShell({ linkCode }: { linkCode: string | null }) {
   const { signIn, signOut } = useAuthActions();
   const ask = useAction(api.signIn.signInLinks.ask);
   const leagues = useLiveLeagues();
-  const { mail, topBar } = useLiveMail();
+  const { mail, unreadMail } = useLiveMail();
   const joining = useLiveJoining();
   const admin = useLiveAdmin();
   const squads = useLiveSquads();
@@ -156,6 +157,7 @@ function LiveShell({ linkCode }: { linkCode: string | null }) {
     if (isLoading || checkingLink || (isAuthenticated && account === undefined)) return null;
     return isAuthenticated && account ? { signedIn: true, ...account } : { signedIn: false };
   }, [isLoading, checkingLink, isAuthenticated, account]);
+  const topBar = useLiveTopBar(unreadMail, session?.signedIn ? session.currentLeagueId : null);
 
   if (!session) {
     return (

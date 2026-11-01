@@ -74,7 +74,8 @@ export async function putOnTeam(
   let teamId: Id<"teams">;
   let teamName: string;
   if (vacated !== null) {
-    await ctx.db.patch("teams", vacated._id, { managerEmail: email });
+    // A new manager has opened nothing yet, so Continue leads him to Tactics afresh (lineup/lineupDue.ts).
+    await ctx.db.patch("teams", vacated._id, { managerEmail: email, tacticsOpenedInGameweek: undefined });
     ({ _id: teamId, name: teamName } = vacated);
   } else {
     // A new team redraws the round robin, so the gameweeks already begun are stored first (#137).

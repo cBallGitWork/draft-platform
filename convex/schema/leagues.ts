@@ -68,6 +68,9 @@ const teamFields = {
   name: v.string(),
   /** Absent while the team is vacated: a manager who leaves or is removed leaves it behind. */
   managerEmail: v.optional(v.string()),
+  /** The last gameweek its manager opened the Tactics tab in, so Continue stops leading him there
+   *  for that gameweek (spec/12; lineup/lineupDue.ts). Absent until he first opens it. */
+  tacticsOpenedInGameweek: v.optional(v.number()),
 };
 
 /** The league switcher (#76): the league each person used last, by email, one row each. */

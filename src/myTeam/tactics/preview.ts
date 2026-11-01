@@ -85,4 +85,5 @@ const changes = {
 export const previewTactics: TacticsSeam = {
   useTactics: () => useSyncExternalStore(subscribe, () => tactics),
   useLineupChanges: () => changes,
+  useTacticsOpened: () => {},
 };

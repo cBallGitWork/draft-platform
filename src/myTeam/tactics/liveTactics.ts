@@ -1,5 +1,5 @@
 import { useMutation, useQuery } from "convex/react";
-import { useMemo } from "react";
+import { useEffect, useMemo } from "react";
 import { api } from "../../../convex/_generated/api";
 import { answerOf } from "../../shared/refusal";
 import type { TacticsSeam } from "./seam";
@@ -18,5 +18,13 @@ export const liveTactics: TacticsSeam = {
       }),
       [save],
     );
+  },
+  useTacticsOpened: (leagueId, gameweek) => {
+    const opened = useMutation(api.lineup.lineupDue.openedTactics);
+    useEffect(() => {
+      // Again for each gameweek the tab shows, so one left open past a deadline counts for the next.
+      if (gameweek === null) return;
+      opened({ leagueId }).catch((error: unknown) => console.error("Telling the server Tactics was opened failed:", error));
+    }, [opened, leagueId, gameweek]);
   },
 };

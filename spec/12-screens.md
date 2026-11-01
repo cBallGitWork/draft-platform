@@ -18,7 +18,11 @@ The look's exact values are in [docs/design/plate.md](../docs/design/plate.md).
 - A Feedback link in the top bar sends the admin a message (`spec/15`, 25 Oct 2026).
 - A signed-in manager lands on **My team**. Mail shows an unread count in the menu.
 - **Continue**, the top bar's button, takes the manager to the next thing that needs him: an
-  unread letter, a lineup before the deadline, a trade offer, or "nothing to do".
+  unread letter, a lineup before the deadline, a trade offer, or "nothing to do". The lineup is
+  so he can adjust it: from 24 hours before each gameweek's deadline until the deadline, Continue
+  takes him to his Tactics tab, whether or not anything is wrong with his lineup, until he opens
+  Tactics that gameweek. A manager with no team in the league has no lineup step (Craig, 1 Nov
+  2026).
 - Logged out, in the closed beta: a sign-in page only (the name, "invite only", an email box for
   the sign-in link). No league is visible without signing in.
 - The screens: sign in, your leagues, league home, my team (squad and tactics pitch), matchup (live

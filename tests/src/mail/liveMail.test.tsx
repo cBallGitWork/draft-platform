@@ -1,6 +1,7 @@
-// Mail's live wiring, with Convex's hooks faked by name: the top bar's count and Continue from the
-// server's unread count, the letters asked for only by the hook Mail calls (#211), and what opening
-// and sending resolve with when the server refuses or can't be reached.
+// Mail's live wiring, with Convex's hooks faked by name: the top bar's count from the server's
+// unread count (Continue from it: frame/topBar/liveTopBar.test.tsx), the letters asked for only by
+// the hook Mail calls (#211), and what opening and sending resolve with when the server refuses or
+// can't be reached.
 
 import { renderHook } from "@testing-library/react";
 import { getFunctionName } from "convex/server";
@@ -9,7 +10,6 @@ import { beforeEach, expect, test, vi } from "vitest";
 import { silenceConsoleError } from "../../support/console.setup";
 import { api } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
-import { MAIL_PATH } from "../../../src/frame/menu";
 import { useLiveMail } from "../../../src/mail/liveMail";
 import { sendFailedWords } from "../../../src/mail/words";
 import { A_LEAGUE_ID } from "../../support/src/convexReact.harness";
@@ -55,15 +55,11 @@ const live = () => renderHook(useLiveMail).result.current;
 const lettersOnMail = () => renderHook(live().mail.useLetters).result.current;
 const letter = { leagueId: A_LEAGUE_ID, subject: "Hi", body: "Hello" };
 
-test("unread letters are the top bar's count, and Continue goes to Mail", () => {
+test("the unread count is the server's, and none while it loads", () => {
   convex.unread = 3;
-  expect(live().topBar).toEqual({ unreadMail: 3, next: { path: MAIL_PATH, reason: "3 unread" } });
-});
-
-test("with nothing unread, or the count still loading, there is no count and nothing to continue to", () => {
-  expect(live().topBar).toEqual({ unreadMail: 0, next: null });
+  expect(live().unreadMail).toBe(3);
   convex.unread = undefined;
-  expect(live().topBar).toEqual({ unreadMail: 0, next: null });
+  expect(live().unreadMail).toBe(0);
 });
 
 test("the shell asks only for the unread count, never the letters", () => {
