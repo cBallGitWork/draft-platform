@@ -185,6 +185,7 @@ import type * as squads_squadPlace from "../squads/squadPlace.js";
 import type * as squads_squads from "../squads/squads.js";
 import type * as squads_teamSquad from "../squads/teamSquad.js";
 import type * as squads_teamTransactions from "../squads/teamTransactions.js";
+import type * as stars_bestRole from "../stars/bestRole.js";
 import type * as stars_playerStars from "../stars/playerStars.js";
 import type * as stars_stars from "../stars/stars.js";
 import type * as stars_starsRefresh from "../stars/starsRefresh.js";
@@ -395,6 +396,7 @@ declare const fullApi: ApiFromModules<{
   "squads/squads": typeof squads_squads;
   "squads/teamSquad": typeof squads_teamSquad;
   "squads/teamTransactions": typeof squads_teamTransactions;
+  "stars/bestRole": typeof stars_bestRole;
   "stars/playerStars": typeof stars_playerStars;
   "stars/stars": typeof stars_stars;
   "stars/starsRefresh": typeof stars_starsRefresh;

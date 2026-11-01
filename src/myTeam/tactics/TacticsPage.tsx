@@ -8,7 +8,7 @@ import { useChange } from "../../shared/useChange";
 import { useMinute } from "../../shared/useMinute";
 import { unheldNoticeWords } from "../../shared/words";
 import { markedBy } from "./focusMarks";
-import { benched, benchedAt, movedTo, openingLineup, reachOf, reshaped, sameLineup, shownLineup, swapped, withRole, type DraftLineup, type MoveRules } from "./lineupDraft";
+import { benched, benchedAt, movedTo, openingLineup, reachOf, reshaped, sameLineup, shownLineup, swapped, withRole, type DraftLineup, type MoveRules, type RatingsOf } from "./lineupDraft";
 import { Pitch, PITCH_ROOM_STYLE, type Moving } from "./pitch/Pitch";
 import { SquadTable } from "./SquadTable";
 import { PresetPicker, RunsSwitch, UndoBar } from "./TacticsControls";
@@ -36,8 +36,9 @@ const PUT_BACK_KEY = ESCAPE_KEY;
 /** My team's Tactics tab (#14; spec/12, My team; spec/05): the pitch where the manager sets the
  *  lineup for the next gameweek not begun and each starter's role, the squad beside it with the
  *  bench in order, and the countdown to the deadline. Each move saves itself, and Undo walks back
- *  through every move since the tab was opened (spec/05, Moving players; #851). Stars (#11) and
- *  Mail down the side are not here yet. */
+ *  through every move since the tab was opened (spec/05, Moving players; #851). A player dropped
+ *  into a slot starts on his best-star role (#11); his stars aren't shown yet, nor is Mail down the
+ *  side. */
 export function TacticsPage({ league, seam }: { league: LeagueSummary; seam: MyTeamSeam }) {
   if (league.teamName === null) {
     return (
@@ -105,6 +106,8 @@ function LineupEditor({ league, tactics, seam }: { league: LeagueSummary; tactic
     () => ({ areaLimits: tactics.areaLimits, positionsOf: (playerCode: number) => squad.get(playerCode)?.positions ?? [] }),
     [tactics.areaLimits, squad],
   );
+  /** Each squad player's stars, which pick the role he starts on when dropped into a slot (#11). */
+  const ratingsOf: RatingsOf = (playerCode) => squad.get(playerCode)?.stars ?? [];
   const reach = useMemo(() => (picked === null ? null : reachOf(draft, picked.playerCode, rules)), [draft, picked, rules]);
 
   // After a move, the moved player keeps the focus, wherever he now stands.
@@ -179,10 +182,10 @@ function LineupEditor({ league, tactics, seam }: { league: LeagueSummary; tactic
     onPick: (playerCode) => setPickedCode((current) => (current === playerCode ? null : playerCode)),
     onGrab: setPickedCode,
     onPlace: (cell: Cell) => {
-      if (picked !== null) change(movedTo(draft, picked.playerCode, cell), picked.playerCode);
+      if (picked !== null) change(movedTo(draft, picked.playerCode, cell, ratingsOf), picked.playerCode);
     },
     onSwap: (playerCode) => {
-      if (picked !== null) change(swapped(draft, picked.playerCode, playerCode), picked.playerCode);
+      if (picked !== null) change(swapped(draft, picked.playerCode, playerCode, ratingsOf), picked.playerCode);
     },
     onDragEnd: () => setPickedCode(null),
   };
@@ -196,7 +199,7 @@ function LineupEditor({ league, tactics, seam }: { league: LeagueSummary; tactic
     const preset = tactics.presets.find((each) => each.name === name);
     if (preset === undefined) return;
     setShape(name);
-    edit(reshaped(draft, preset.cells));
+    edit(reshaped(draft, preset.cells, ratingsOf));
   };
   /** Up, down, or a drop on a bench row: the player at that place in the bench order. Up or Down
    *  keeps the focus on the button pressed. */
