@@ -23,7 +23,8 @@ merged src/app.ts
 silent setup_current.py '{}'  # only the app moved on: the setup is the same
 merged .claude/agents/ui-verifier.md .claude/skills/design/SKILL.md
 says "SETUP DIFFERS FROM origin/main: this session loaded agents ui-verifier; skills design as this checkout" setup_current.py '{}'
-says "restart after updating" setup_current.py '{}'
+says "origin/main has changed them since this branch left it, so restart after updating" setup_current.py '{}'
+says '"systemMessage": "SETUP DIFFERS' setup_current.py '{}'  # Craig sees it too
 merged .claude/hooks/guard.py CLAUDE.md .claude/agents/pr-reviewer.md
 says "agents pr-reviewer, ui-verifier; skills design; 2 other file(s) (.claude/hooks/guard.py, CLAUDE.md)" setup_current.py '{}'
 
@@ -31,7 +32,7 @@ says "agents pr-reviewer, ui-verifier; skills design; 2 other file(s) (.claude/h
 git -C "$repo" reset -q --hard origin/main
 silent setup_current.py '{}'
 echo mine >> "$repo/CLAUDE.md" && git -C "$repo" "${as_tester[@]}" commit -q -am "mine"
-says "1 other file(s) (CLAUDE.md)" setup_current.py '{}'
+says "1 other file(s) (CLAUDE.md) as this checkout has them: only this branch changes them" setup_current.py '{}'
 # an uncommitted change isn't what the session's branch holds, so it isn't counted
 git -C "$repo" reset -q --hard origin/main && echo edit >> "$repo/.claude/agents/pr-reviewer.md"
 silent setup_current.py '{}'

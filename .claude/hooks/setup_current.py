@@ -6,15 +6,17 @@ it opens in: a worktree cut before a fix merged runs the old reviewer, and a pul
 effect in a session started after it (the design-setup audit, 1 Nov 2026).
 
 `git diff --quiet HEAD origin/main -- .claude CLAUDE.md` decides. When it finds a difference it
-prints one line, which Claude Code hands Claude as context: the agents and skills that differ by
-name, how many other files, and "restart after updating". A branch that changes the setup itself
-gets the line too. It never fetches, so origin/main is as fresh as the last fetch. A git call
-that fails exits 1 with one line on stderr: Claude Code shows it, and the session goes ahead. It
-judges CLAUDE_PROJECT_DIR, else the folder it runs in. Stdlib only, Python 3.9+.
+prints one line, to Claude and to Craig: the agents and skills that differ by name, how many
+other files, and "restart after updating". A branch that changes the setup itself gets the line
+too, saying it is only the branch's own change. It never fetches, so origin/main is as fresh as
+the last fetch. A git call that fails exits 1 with one line on stderr: Claude Code shows it, and
+the session goes ahead. It judges CLAUDE_PROJECT_DIR, else the folder it runs in. Stdlib only,
+Python 3.9+.
 """
 
 from __future__ import annotations
 
+import json
 import os
 import subprocess
 import sys
@@ -51,26 +53,36 @@ def names(paths, prefix):
     return sorted({path[len(prefix):].split("/")[0].removesuffix(".md") for path in paths if path.startswith(prefix)})
 
 
-def summary(paths):
-    """The loud line for these differing paths."""
+def merged_since(folder):
+    """True if AGAINST changed the setup since this branch left it (so the checkout is behind),
+    False if only this branch changed it. Raises GitFailed."""
+    code, _ = git(folder, "diff", "--quiet", f"HEAD...{AGAINST}", "--", *SETUP)
+    return code == DIFFERS
+
+
+def summary(paths, behind):
+    """The loud line for these differing paths; behind says whether AGAINST moved on."""
     agents, skills = names(paths, AGENTS), names(paths, SKILLS)
     rest = [path for path in paths if not path.startswith((AGENTS, SKILLS))]
     parts = ([f"agents {', '.join(agents)}"] if agents else []) + ([f"skills {', '.join(skills)}"] if skills else [])
     parts += [f"{len(rest)} other file(s) ({', '.join(rest[:3])}{', …' if len(rest) > 3 else ''})"] if rest else []
-    return (f"SETUP DIFFERS FROM {AGAINST}: this session loaded {'; '.join(parts)} as this checkout has them, "
-            f"not as merged. If this branch didn't mean to change them, restart after updating.")
+    why = (f"{AGAINST} has changed them since this branch left it, so restart after updating"
+           if behind else "only this branch changes them; if it didn't mean to, restart after updating")
+    return f"SETUP DIFFERS FROM {AGAINST}: this session loaded {'; '.join(parts)} as this checkout has them: {why}."
 
 
 def main():
     folder = project_dir()
     try:
         paths = differing(folder)
+        line = summary(paths, merged_since(folder)) if paths else None
     except GitFailed as error:
         name = os.path.basename(sys.argv[0])
         print(f"{name}: {error}, so it can't say whether this session's setup is the merged one.", file=sys.stderr)
         return 1
-    if paths:
-        print(summary(paths))
+    if line:  # additionalContext reaches Claude; systemMessage shows it to Craig
+        print(json.dumps({"systemMessage": line,
+                          "hookSpecificOutput": {"hookEventName": "SessionStart", "additionalContext": line}}))
     return 0
 
 
