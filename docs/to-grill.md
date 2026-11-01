@@ -41,6 +41,25 @@ competition, not the design plate (`docs/design/plate.md`).
 - Rounds, legs and ties, against the double-gameweek rule (`spec/03`). Draft Fantasy's cups and
   US consolation brackets: `docs/research/draft-competitors.md`.
 
+**Formations, classics and team tactics**: the Tactics tab (`spec/05`). Craig, 1 Nov 2026:
+"formation presets that include sweeper/liberio too", "also formations with 2 at the back",
+"scoring itself not improtant right now".
+- Presets with a sweeper or libero (the defence's centre cell, `spec/05`), and presets with two at
+  the back. Which shapes; a two-at-the-back shape only fits a league whose defence minimum is two
+  or fewer.
+- Classics: "add the particular roles for each (newcastle keegan, both wide mids whip in
+  crossers, strikers going for hearders, cb and both cms attack)". Which classics. Whether the
+  default roles cover them: there is no attacking centre-back role yet (stopper, ball-playing).
+  Whether a manager can change a classic's roles once picked, and if so whether it's still that
+  classic.
+- Team tactics: "each formation needs a couple of team tactics, both attach and defence". Is
+  this the second release's team instructions (SPEC.md) brought forward? Picked and shown now,
+  scoring later? Does each formation get its own few, or do they share one list? One attacking
+  and one defensive tactic picked at once?
+- Placing players freely: "im also thinking allowing the manager to just custom pick postions is
+  a bad idea, or can we make it work?" `spec/05` allows any free cell today (built, #851). Keep
+  that, allow presets only, or allow moves only where the shape still matches a preset?
+
 **A split season or a redraft**: "a season is long" (Craig, 20 Oct 2026).
 - Whether a team can join at a split, in a league with splits (Craig, 22 Oct 2026; `spec/13`
   Joining).
