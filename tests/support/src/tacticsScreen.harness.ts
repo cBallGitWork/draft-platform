@@ -21,7 +21,6 @@ export const member = (playerCode: number, name: string, positions: Position[], 
   unheld: false,
   positions,
   number,
-  stars: [],
 });
 
 export const RAYA = member(1, "Raya", ["GK"]);

@@ -90,8 +90,7 @@ export const DEFAULT_ROLES: Record<SlotLabel, readonly Role[]> = {
 
 const SWEEPER_CELL_ROLES: readonly Role[] = [...DEFAULT_ROLES.CB, ...DEFAULT_ROLES.SW];
 
-/** The roles this slot offers, its first the one a player starts on when none has more stars
- *  (spec/05; stars/bestRole.ts). */
+/** The roles this slot offers, its first the one a player starts on until stars exist (spec/05). */
 export const rolesOfSlot = (cell: Cell): readonly Role[] =>
   sameCell(cell, SWEEPER_CELL) ? SWEEPER_CELL_ROLES : DEFAULT_ROLES[positionOfSlot(cell)];
 

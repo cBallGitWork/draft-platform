@@ -97,7 +97,7 @@ async function addVersion(
   await fileSiteLetter(ctx, (zone) => versionLetter(news, zone), by);
   // Stars price every match under today's scoring, so everyone is rated again once it takes effect
   // (stars/starsRefresh.ts, #11).
-  await ctx.scheduler.runAt(version.takesEffectAt, internal.stars.starsRefresh.refreshAll, { cursor: null, startedAt: null });
+  await ctx.scheduler.runAt(version.takesEffectAt, internal.stars.starsRefresh.refreshAll, { cursor: null });
   return { name, fromGameweek };
 }
 

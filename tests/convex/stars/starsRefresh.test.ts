@@ -6,7 +6,7 @@ import { HOUR_MS } from "../../../convex/shared/time";
 import { STARS_PAGE } from "../../../convex/stars/starsRefresh";
 import { UNSURE } from "../../../convex/stars/starsShape";
 import { holdSiteScoring } from "../../support/convex/siteScoring.harness";
-import { freshConvex, pendingJobs, type TestConvex } from "../../support/convex/test.harness";
+import { freshConvex, pendingJobs, silenceConsoleError, type TestConvex } from "../../support/convex/test.harness";
 import { ARSENAL, insertPlayers } from "../../support/convex/footballRows.harness";
 import {
   BLANK,
@@ -87,7 +87,6 @@ test("a later lock works out its own players again and ranks everyone: Blank's f
     await insertMatch(ctx, LATE, MATCHES.length);
     await ctx.db.insert("playerMatchStats", lockedRecord(BLANK.code, LATE, { minutes: 90, goals_scored: 5 }));
   });
-  const steadyBefore = (await starsRows(t)).get(STEADY.code)!;
 
   await t.mutation(internal.stars.starsRefresh.refreshMatch, { fixtureCode: LATE });
   await refreshesRun(t);
@@ -96,8 +95,6 @@ test("a later lock works out its own players again and ranks everyone: Blank's f
   expect((await starsRows(t)).get(BLANK.code)).toMatchObject({ matches: 4 });
   expect(await asOne(t, BLANK.code)).toBe(3.5);
   expect(await asOne(t, STEADY.code)).toBe(2.5);
-  // Steady's points per match weren't worked out again, only his stars.
-  expect((await starsRows(t)).get(STEADY.code)!.refreshedAt).toBe(steadyBefore.refreshedAt);
 });
 
 test("a player who has left the league drops out on the next refresh of everyone", async () => {
@@ -141,7 +138,7 @@ test(`a refresh of everyone goes a page of ${STARS_PAGE} players at a time`, asy
   const many = Array.from({ length: STARS_PAGE + 1 }, (_, index) => ({ code: 3000 + index, name: `P${index}`, fullName: `P${index}`, clubCode: ARSENAL.code, positions: ["ST" as const] }));
   await t.run((ctx) => insertPlayers(ctx, many));
 
-  await t.mutation(internal.stars.starsRefresh.refreshAll, { cursor: null, startedAt: null });
+  await t.mutation(internal.stars.starsRefresh.refreshAll, { cursor: null });
 
   expect(await pendingJobs(t, internal.stars.starsRefresh.refreshAll)).toHaveLength(1);
   expect(await pendingJobs(t, internal.stars.starsRefresh.rank)).toHaveLength(0);
@@ -159,4 +156,55 @@ test("a player who loses every position drops his row on the next refresh", asyn
   await refreshEveryone(t);
 
   expect((await starsRows(t)).has(STEADY.code)).toBe(false);
+});
+
+test("a match with records but no kickoff held is left out, said, and everyone else is still rated", async () => {
+  const logged = silenceConsoleError();
+  const t = freshConvex();
+  await holdStarsPlayers(t);
+  const UNDATED = 509;
+  await t.run(async (ctx) => {
+    await ctx.db.insert("fixtures", { code: UNDATED, gameweek: null, homeClubCode: ARSENAL.code, awayClubCode: ARSENAL.code, kickoff: null });
+    await ctx.db.insert("playerMatchStats", lockedRecord(SCORER.code, UNDATED, { minutes: 90 }));
+  });
+
+  await refreshEveryone(t);
+
+  expect((await starsRows(t)).get(SCORER.code)).toMatchObject({ matches: MATCHES.length });
+  expect(await asOne(t, SCORER.code)).toBe(5);
+  expect(await asOne(t, CAMEO.code)).toBe(1);
+  expect(logged).toHaveBeenCalledWith(expect.stringContaining(`match ${UNDATED}`));
+});
+
+test("a player whose record can't be priced keeps the stars he had, said, and the rest are rated again", async () => {
+  const logged = silenceConsoleError();
+  const t = await rated();
+  const before = (await starsRows(t)).get(STEADY.code);
+  const LATE = 504;
+  await t.run(async (ctx) => {
+    await insertMatch(ctx, LATE, MATCHES.length);
+    await ctx.db.insert("playerMatchStats", lockedRecord(STEADY.code, LATE, { minutes: 90, goals_scored: Number.POSITIVE_INFINITY }));
+    await ctx.db.insert("playerMatchStats", lockedRecord(BLANK.code, LATE, { minutes: 90, goals_scored: 5 }));
+  });
+
+  await t.mutation(internal.stars.starsRefresh.refreshMatch, { fixtureCode: LATE });
+  await refreshesRun(t);
+
+  expect((await starsRows(t)).get(STEADY.code)?.matches).toBe(before?.matches);
+  expect((await starsRows(t)).get(BLANK.code)).toMatchObject({ matches: 4 });
+  expect(logged).toHaveBeenCalledWith(expect.stringContaining(`Player ${STEADY.code}'s stars`));
+});
+
+test("a refresh of everyone stopped part-way loses no row", async () => {
+  const t = freshConvex();
+  const many = Array.from({ length: STARS_PAGE + 1 }, (_, index) => ({ code: 3000 + index, name: `P${index}`, fullName: `P${index}`, clubCode: ARSENAL.code, positions: ["ST" as const] }));
+  await holdStarsPlayers(t);
+  await t.run((ctx) => insertPlayers(ctx, many));
+  await refreshEveryone(t);
+  const before = await starsRows(t);
+
+  // One page, then the run stops: the next page and the ranking never come.
+  await t.mutation(internal.stars.starsRefresh.refreshAll, { cursor: null });
+
+  expect([...(await starsRows(t)).keys()].sort()).toEqual([...before.keys()].sort());
 });

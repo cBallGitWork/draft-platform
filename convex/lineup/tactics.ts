@@ -10,13 +10,11 @@ import { position } from "../schema";
 import { managerOf } from "../shared/leagueAccess";
 import { squadOf } from "../squads/squadPlace";
 import { heldLineupShape, lineupInGameweek, nextOpenGameweek } from "./lineups";
-import { starsOfPlayers } from "../stars/playerStars";
-import { roleStarsShape } from "../stars/starsShape";
 
 // My team's Tactics tab (#14; spec/05, The pitch): what the pitch is set from. The gameweek is the
 // one a save now is from (lineups.ts's `save`), so the screen edits the lineup that save replaces,
 // under that gameweek's area limits and presets, and counts down to its league deadline (the
-// recorded one once passed, #150), with each player's stars, which show the role he suits (#11).
+// recorded one once passed, #150). Stars, which show the role a player suits, aren't built (#11).
 
 /** One player in the squad, as the pitch shows him and judges where he may stand. */
 const squadMember = v.object({
@@ -33,9 +31,6 @@ const squadMember = v.object({
   positions: v.array(position),
   /** The squad number his manager gave him, on his shirt, or null until given (#13). */
   number: v.union(v.number(), v.null()),
-  /** His stars for each role in each area he plays (#11), which pick the role he starts on when
-   *  dropped into a slot. */
-  stars: v.array(roleStarsShape),
 });
 
 const tacticsShape = v.union(
@@ -70,13 +65,8 @@ export const ofMyTeam = query({
     if (gameweek > GAMEWEEKS) return { kind: "seasonOver" as const };
 
     const positionsOfNow = await positionsNow(ctx);
-    const members = await squadOf(ctx, team._id);
-    const starsOf = await starsOfPlayers(
-      ctx,
-      members.map(({ playerCode }) => playerCode),
-    );
     const squad = await Promise.all(
-      members.map(async ({ playerCode, number }) => {
+      (await squadOf(ctx, team._id)).map(async ({ playerCode, number }) => {
         const player = await playerByCode(ctx, playerCode);
         return {
           playerCode,
@@ -87,7 +77,6 @@ export const ofMyTeam = query({
           // His positions are read as for any other player: the lineup's check says where he may stand.
           positions: await positionsOfNow(playerCode),
           number: number ?? null,
-          stars: starsOf.get(playerCode)!,
         };
       }),
     );

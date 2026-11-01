@@ -3973,6 +3973,12 @@
               "type": "string"
             },
             "optional": true
+          },
+          "tacticsOpenedInGameweek": {
+            "fieldType": {
+              "type": "number"
+            },
+            "optional": true
           }
         }
       }
@@ -21132,12 +21138,6 @@
                   }
                 }
               }
-            },
-            "optional": false
-          },
-          "refreshedAt": {
-            "fieldType": {
-              "type": "number"
             },
             "optional": false
           }

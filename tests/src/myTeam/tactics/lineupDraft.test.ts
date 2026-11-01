@@ -19,9 +19,7 @@ import {
   swapped,
   withRole,
   type MoveRules,
-  type RatingsOf,
 } from "../../../../src/myTeam/tactics/lineupDraft";
-import type { RoleStars } from "../../../../convex/stars/starsShape";
 
 const KEEPER = { playerCode: 1, area: "goalkeeper", lane: "centre" } as const;
 const BACK = { playerCode: 2, area: "defence", lane: "left" } as const;
@@ -122,40 +120,6 @@ describe("a role (spec/05 Roles)", () => {
     const given = withRole(DRAFT, 2, "attackingFullBack");
     expect(reshaped(given, [KEEPER, { area: "defence", lane: "left" }]).starters[1]).toEqual({ ...BACK, role: "attackingFullBack" });
     expect(reshaped(given, [KEEPER, { area: "defence", lane: "centre" }]).starters[1]).toEqual({ playerCode: 2, area: "defence", lane: "centre" });
-  });
-});
-
-describe("the role a player dropped into a slot starts on: his most stars there (spec/05 Roles; #11)", () => {
-  const DEFENCE_STARS: RoleStars[] = [
-    { area: "defence", role: "defensiveFullBack", stars: 2 },
-    { area: "defence", role: "attackingFullBack", stars: 4 },
-    { area: "defence", role: "ballPlayingDefender", stars: 3.5 },
-  ];
-  const ratingsOf: RatingsOf = (playerCode) => (playerCode === 3 || playerCode === 2 ? DEFENCE_STARS : []);
-  const RIGHT_BACK = { area: "defence", lane: "right" } as const;
-  const CENTRE_BACK = { area: "defence", lane: "centre" } as const;
-
-  it("placed off the bench, or moved to a free cell", () => {
-    expect(placed(DRAFT, 3, RIGHT_BACK, ratingsOf).starters.at(-1)).toEqual({ playerCode: 3, ...RIGHT_BACK, role: "attackingFullBack" });
-    expect(movedTo(DRAFT, 3, CENTRE_BACK, ratingsOf).starters.at(-1)).toEqual({ playerCode: 3, ...CENTRE_BACK, role: "ballPlayingDefender" });
-  });
-
-  it("the slot's first, saved as none, on a tie or with no stars", () => {
-    const level: RatingsOf = () => [
-      { area: "defence", role: "defensiveFullBack", stars: 3 },
-      { area: "defence", role: "attackingFullBack", stars: 3 },
-    ];
-    expect(placed(DRAFT, 3, RIGHT_BACK, level).starters.at(-1)).toEqual({ playerCode: 3, ...RIGHT_BACK });
-    expect(placed(DRAFT, 4, RIGHT_BACK, ratingsOf).starters.at(-1)).toEqual({ playerCode: 4, ...RIGHT_BACK });
-  });
-
-  it("swapped: each on his best role in the other's slot", () => {
-    expect(swapped(DRAFT, 3, 2, ratingsOf).starters[1]).toEqual({ ...BACK, playerCode: 3, role: "attackingFullBack" });
-  });
-
-  it("moved by a preset: his role kept where offered, his old slot's first included; his best role where it isn't", () => {
-    expect(reshaped(DRAFT, [KEEPER, RIGHT_BACK], ratingsOf).starters[1]).toEqual({ playerCode: 2, ...RIGHT_BACK });
-    expect(reshaped(DRAFT, [KEEPER, CENTRE_BACK], ratingsOf).starters[1]).toEqual({ playerCode: 2, ...CENTRE_BACK, role: "ballPlayingDefender" });
   });
 });
 

@@ -174,10 +174,12 @@ From `/grill the Tactics pitch` (Craig, 31 Oct 2026).
   - He is ranked on his points per match played.
   - The players he is ranked against are everyone who can play that area with at least 3 counted
     matches; "?" and "—" players are left out.
+  - Early in a season, while few have played, the pool fills from last season's matches: "use past
+    data".
   - He has one rating per role per area, so a shadow striker at number 10 and up front are rated
     apart, and he is rated for every role in every area his positions play.
-  - His matches are priced under today's scoring, roles' adjustments included, so a patch re-rates
-    everyone when it takes effect.
+  - His matches are priced under today's scoring, so a patch re-rates everyone when it takes
+    effect.
   - Half a star is the lowest. The first cut points: five stars for the top 5%, then 4.5 from the
     85th percentile, 4 from the 75th, 3.5 from the 65th, 3 from the 55th, 2.5 from the 45th, 2 from
     the 35th, 1.5 from the 25th, 1 from the 15th, and half a star below that.

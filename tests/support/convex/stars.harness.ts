@@ -62,7 +62,7 @@ export const refreshesRun = (t: TestConvex) => t.finishAllScheduledFunctions(() 
 
 /** Every player's stars refreshed, page by page, and ranked. */
 export async function refreshEveryone(t: TestConvex): Promise<void> {
-  await t.mutation(internal.stars.starsRefresh.refreshAll, { cursor: null, startedAt: null });
+  await t.mutation(internal.stars.starsRefresh.refreshAll, { cursor: null });
   await refreshesRun(t);
 }
 

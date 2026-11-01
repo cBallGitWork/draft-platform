@@ -2,7 +2,7 @@
 // role ranks him against everyone else who can play its area, on his points per match under that
 // role over the last STARS_WINDOW matches he got on the pitch. Pure, so the refresh and the tests
 // rate alike; starsRefresh.ts stores what they give. Stars are a hint: they pick the role a player
-// starts on when he is dropped into a slot (bestRole.ts), and never price a match.
+// starts on when he is dropped into a slot (spec/05), and never price a match.
 
 import { areasOf, cellsOf, LANES, type Area, type Cell } from "../lineup/pitch";
 import { rolesOfSlot } from "../lineup/roles";

@@ -33,6 +33,9 @@ const GATES = {
   member: { signedOut: refusals.signedOut, outsider: refusals.notInLeague },
   /** Whoever manages a team in the league, for their own team. */
   manager: { signedOut: refusals.signedOut, outsider: refusals.runsNoTeam },
+  /** The same, but anyone else is answered with nothing rather than refused: the top bar asks it
+   *  on every page, and a frame read that throws takes the app down. */
+  managerOrNothing: { signedOut: ANSWERS_NOTHING, outsider: ANSWERS_NOTHING },
   /** The team's own manager, or the admin. */
   teamsManager: { signedOut: refusals.signedOut, outsider: refusals.notManager },
   /** The commissioner, the co-commissioner or the admin. */
@@ -91,6 +94,8 @@ const gates: Record<string, Gate> = {
   "leagues/teams:leave": "manager",
   "leagues/teams:removeManager": "runner",
   "leagues/teams:rename": "teamsManager",
+  "lineup/lineupDue:isDue": "managerOrNothing",
+  "lineup/lineupDue:openedTactics": "manager",
   "lineup/lineups:save": "manager",
   "lineup/tactics:ofMyTeam": "manager",
   "mail/mail:letters": "signedInOrNothing",
@@ -200,6 +205,8 @@ beforeEach(async () => {
       "leagues/leagueDeletion:undo": () => caller.mutation(api.leagues.leagueDeletion.undo, { leagueId: beingDeleted }),
       "leagues/leagues:create": () =>
         caller.mutation(api.leagues.leagues.create, { name: "Another league", maxTeams: 4, commissionerEmail: COMMISSIONER }),
+      // Its nothing is "not due", so false is read as nothing here alone.
+      "lineup/lineupDue:isDue": async () => (await caller.query(api.lineup.lineupDue.isDue, { leagueId, now })) || null,
       "lineup/tactics:ofMyTeam": () => caller.query(api.lineup.tactics.ofMyTeam, { leagueId, now }),
       "mail/mail:letters": () => caller.query(api.mail.mail.letters, {}),
       "mail/mail:open": () => caller.mutation(api.mail.mail.open, { letterId: annsLetter._id }),

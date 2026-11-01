@@ -1,6 +1,5 @@
 import { describe, expect, test } from "vitest";
-import { firstLineup, keptOnBenchOf, withDroppedRoles, type FirstLineup, type FirstLineupRules } from "../../../convex/lineup/firstLineup";
-import type { RoleStars } from "../../../convex/stars/starsShape";
+import { firstLineup, keptOnBenchOf, type FirstLineup, type FirstLineupRules } from "../../../convex/lineup/firstLineup";
 import { DEFAULT_PRESETS } from "../../../convex/lineup/presets";
 import type { Position } from "../../../convex/positions/positionTables";
 import { openLimits, presetNamed } from "../../support/convex/lineup.harness";
@@ -190,29 +189,5 @@ describe("a pick benched for having no positions stays there once he has some", 
     );
     expect(firstLineup(order, positions, RULES).starters).toHaveLength(11);
     expect(firstLineup(order, positions, RULES, new Set([5]))).toEqual(firstLineup(order, positions, NO_FALLBACK, new Set([5])));
-  });
-});
-
-describe("each pick goes onto the pitch on his best-star role (spec/05 Roles; #11)", () => {
-  const KEEPER = { playerCode: 1, area: "goalkeeper", lane: "centre" } as const;
-  const BACK = { playerCode: 2, area: "defence", lane: "left" } as const;
-  const SWEEPING: RoleStars[] = [{ area: "goalkeeper", role: "sweeperKeeper", stars: 4 }];
-  const ATTACKING: RoleStars[] = [{ area: "defence", role: "attackingFullBack", stars: 4 }];
-  const ratingsOf = (playerCode: number) => (playerCode === KEEPER.playerCode ? SWEEPING : ATTACKING);
-
-  test("placed anew, he is saved on his best role; on the slot's first, none is saved", () => {
-    expect(withDroppedRoles({ starters: [KEEPER, BACK], bench: [3] }, ratingsOf)).toEqual({
-      starters: [{ ...KEEPER, role: "sweeperKeeper" }, { ...BACK, role: "attackingFullBack" }],
-      bench: [3],
-    });
-    expect(withDroppedRoles({ starters: [KEEPER], bench: [] }, () => [])).toEqual({ starters: [KEEPER], bench: [] });
-  });
-
-  test("still in the cell he held, he keeps the role he had there; moved, he starts on his best role again", () => {
-    const held = [KEEPER, { ...BACK, role: "defensiveFullBack" }];
-    const picked = { starters: [KEEPER, BACK], bench: [] };
-    expect(withDroppedRoles(picked, ratingsOf, held).starters).toEqual([KEEPER, { ...BACK, role: "defensiveFullBack" }]);
-    const moved = { starters: [KEEPER, { ...BACK, lane: "right" as const }], bench: [] };
-    expect(withDroppedRoles(moved, ratingsOf, held).starters[1]).toEqual({ ...BACK, lane: "right", role: "attackingFullBack" });
   });
 });

@@ -126,7 +126,7 @@ describe("announcing a patch", () => {
     await patch(EDITED, TODAY + NOTICE);
 
     expect((await pendingJobs(t, internal.stars.starsRefresh.refreshAll)).map((job) => [job.scheduledTime, job.args[0]])).toEqual([
-      [TODAY + NOTICE, { cursor: null, startedAt: null }],
+      [TODAY + NOTICE, { cursor: null }],
     ]);
   });
 

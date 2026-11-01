@@ -12,17 +12,12 @@ import { COMMISSIONER, MANAGERS, actingAs, addManagers, adminCreatesLeague, type
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
 import { UNHELD } from "../../support/convex/footballRows.harness";
 import { BENCH_POSITION, FOUR_FOUR_TWO, holdSquad, nameOf, SQUAD, STARTER_POSITIONS } from "../../support/convex/lineupSquad.harness";
-import { ratedRoles } from "../../../convex/stars/stars";
-import { NO_DATA } from "../../../convex/stars/starsShape";
-import type { Position } from "../../../convex/positions/positionTables";
 
 // What My team's Tactics tab is set from (#14): the gameweek a save now is from, its league
 // deadline, the league's area limits and presets in it, the squad with each player's positions,
 // and the lineup held for it.
 
 const [ANN] = MANAGERS;
-/** A player with no counted match yet: "—" for every role his positions play (#11). */
-const noStarsYet = (positions: readonly Position[]) => ratedRoles(positions).map(({ area, role }) => ({ area, role, stars: NO_DATA }));
 const NEXT = 9;
 const CLUB = { code: 1, name: "Arsenal", shortName: "ARS" };
 
@@ -60,7 +55,7 @@ describe("the lineup to set", () => {
     });
     if (tactics.kind !== "open") throw new Error("expected an open gameweek");
     expect(tactics.squad).toEqual(
-      SQUAD.map((code) => ({ playerCode: code, name: nameOf(code), clubShortName: CLUB.shortName, clubCode: CLUB.code, unheld: false, positions: STARTER_POSITIONS.get(code) ?? [BENCH_POSITION], number: null, stars: noStarsYet(STARTER_POSITIONS.get(code) ?? [BENCH_POSITION]) })),
+      SQUAD.map((code) => ({ playerCode: code, name: nameOf(code), clubShortName: CLUB.shortName, clubCode: CLUB.code, unheld: false, positions: STARTER_POSITIONS.get(code) ?? [BENCH_POSITION], number: null })),
     );
   });
 
@@ -68,22 +63,8 @@ describe("the lineup to set", () => {
     await t.run((ctx) => ctx.db.insert("squadPlayers", { leagueId, teamId: annsTeam, playerCode: UNHELD }));
     const tactics = await tacticsOf(ANN);
     if (tactics.kind !== "open") throw new Error("expected an open gameweek");
-    expect(tactics.squad.at(-1)).toEqual({ playerCode: UNHELD, name: unheldPlayerWords(UNHELD), clubShortName: null, clubCode: null, unheld: true, positions: [], number: null, stars: [] });
+    expect(tactics.squad.at(-1)).toEqual({ playerCode: UNHELD, name: unheldPlayerWords(UNHELD), clubShortName: null, clubCode: null, unheld: true, positions: [], number: null });
     expect(tactics.squad).toHaveLength(SQUAD.length + 1);
-  });
-
-  test("sends each player's stars, which pick the role his first lineup puts him on (#11)", async () => {
-    const [keeper] = FOUR_FOUR_TWO.starters;
-    const ratings = [
-      { area: "goalkeeper" as const, role: "shotStopper", perMatch: 2, stars: 2 },
-      { area: "goalkeeper" as const, role: "sweeperKeeper", perMatch: 3, stars: 4.5 },
-    ];
-    await t.run((ctx) => ctx.db.insert("playerRoleStars", { playerCode: keeper.playerCode, matches: 3, ratings, refreshedAt: Date.now() }));
-
-    const tactics = await tacticsOf(ANN);
-    if (tactics.kind !== "open") throw new Error("expected an open gameweek");
-    expect(tactics.squad.find((member) => member.playerCode === keeper.playerCode)?.stars).toEqual(ratings.map(({ area, role, stars }) => ({ area, role, stars })));
-    expect(tactics.lineup.starters[0]).toEqual({ ...keeper, role: "sweeperKeeper" });
   });
 
   test("holds the lineup the manager saved", async () => {

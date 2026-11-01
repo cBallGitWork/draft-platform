@@ -5,11 +5,9 @@
 import type { Id } from "../../convex/_generated/dataModel";
 import type { LetterSummary } from "../../convex/mail/mail";
 import { HOUR_MS } from "../../convex/shared/time";
-import { MAIL_PATH } from "../frame/menu";
-import type { TopBarState } from "../frame/topBar/topBarState";
+import { nextStep, type TopBarState } from "../frame/topBar/topBarState";
 import { manager, previewSays, proLeague } from "../app/preview";
 import type { MailSeam } from "./seam";
-import { unreadCount } from "./words";
 
 const NEWEST = Date.parse("2026-10-20T14:02:00Z");
 const { commissionerEmail: commissioner } = proLeague;
@@ -55,4 +53,5 @@ export const previewMail: MailSeam = {
 };
 
 const unreadMail = previewLetters.filter((each) => !each.read).length;
-export const previewTopBar: TopBarState = { unreadMail, next: { path: MAIL_PATH, reason: unreadCount(unreadMail) } };
+// The preview's lineup locks more than a day off (myTeam/tactics/preview.ts), so it isn't due yet.
+export const previewTopBar: TopBarState = { unreadMail, next: nextStep({ unreadMail, lineupDue: false }) };
