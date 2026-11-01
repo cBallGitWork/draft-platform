@@ -12,7 +12,7 @@ import { fixtureByCode, heldSeason } from "../shared/fixtures";
 import { groupedBy } from "../shared/groupedBy";
 import { readOnce } from "../shared/readOnce";
 import { isWhole } from "./matchRecords";
-import { isPlayedThisSeason, seasonRecords, type SeasonRecord } from "./seasonRecords";
+import { isPlayedThisSeason, seasonRecords, type FixtureReader, type SeasonRecord } from "./seasonRecords";
 import { REBUILD_PAGE, SEASON_TOTALS_MOST, seasonOfFixture } from "./seasonStats";
 
 // Each player's season points on Scouting (#525; spec/19, The players list): the total his card
@@ -20,8 +20,8 @@ import { REBUILD_PAGE, SEASON_TOTALS_MOST, seasonOfFixture } from "./seasonStats
 // at his base points at his main position, under the site's set in force that gameweek, or the
 // league's override. Pricing every player's season on each list read would pass a query's limits
 // by mid-season, so the site-wide part is kept, a row a player and season summed at every
-// position, set afresh just after a record write changes what he counts (matchStats.ts's
-// writeRecords). Overrides are few, so they go in on each read. Last season's under the set as it
+// position, set afresh just after a record write or a match's move changes what he counts
+// (seasonPointsQueue.ts). Overrides are few, so they go in on each read. Last season's under the set as it
 // stands, for the summer, aren't kept yet.
 
 /** The most overrides one league holds across every season: a commissioner corrects a feed's
@@ -48,25 +48,26 @@ function pointsByPosition(matches: readonly SeasonRecord[], setIn: SetIn): Recor
   return sums;
 }
 
-/** Sets these players' rows afresh from their records this season, each match read once. A season
- *  with none of his records whole yet holds no row. */
+/** Sets these players' rows for the season of the matches held (heldSeason) afresh from their
+ *  records, each match read once: a row while any of his records there is whole, none before. Only
+ *  that season's row is read, so a match that left the feed or moved comes off at the next refresh,
+ *  and last season's rows are left as they were. */
 export async function refreshSeasonPoints(ctx: MutationCtx, playerCodes: Iterable<number>): Promise<void> {
   const codes = [...new Set(playerCodes)];
-  if (codes.length === 0) return;
+  const season = await heldSeason(ctx);
+  if (codes.length === 0 || season === null) return;
   const setIn = await siteScoringByGameweek(ctx);
   const fixtureOf = readOnce((code: number) => fixtureByCode(ctx, code));
   for (const playerCode of codes) {
-    const matches = await seasonRecords(ctx, playerCode, fixtureOf);
-    for (const [season, inSeason] of groupedBy(matches, ({ fixture }) => seasonOfFixture(fixture))) {
-      const row = await rowOf(ctx, season, playerCode);
-      if (!inSeason.some(({ record }) => isWhole(record))) {
-        if (row !== null) await ctx.db.delete("playerSeasonPoints", row._id);
-        continue;
-      }
-      const kept = { season, playerCode, points: pointsByPosition(inSeason, setIn) };
-      if (row === null) await ctx.db.insert("playerSeasonPoints", kept);
-      else await ctx.db.replace("playerSeasonPoints", row._id, kept);
+    const inSeason = (await seasonRecords(ctx, playerCode, fixtureOf)).filter(({ fixture }) => seasonOfFixture(fixture) === season);
+    const row = await rowOf(ctx, season, playerCode);
+    if (!inSeason.some(({ record }) => isWhole(record))) {
+      if (row !== null) await ctx.db.delete("playerSeasonPoints", row._id);
+      continue;
     }
+    const kept = { season, playerCode, points: pointsByPosition(inSeason, setIn) };
+    if (row === null) await ctx.db.insert("playerSeasonPoints", kept);
+    else await ctx.db.replace("playerSeasonPoints", row._id, kept);
   }
 }
 
@@ -131,14 +132,15 @@ async function overridesIn(ctx: QueryCtx, leagueId: Id<"leagues">, season: numbe
   const rows = only === undefined ? held : held.filter((row) => only.includes(row.playerCode));
   if (rows.length === 0) return new Map();
   const setIn = await siteScoringByGameweek(ctx);
-  const counted = (await Promise.all(rows.map((row) => heldOverride(ctx, row, season, setIn)))).filter((each) => each !== null);
+  const fixtureOf = readOnce((code: number) => fixtureByCode(ctx, code));
+  const counted = (await Promise.all(rows.map((row) => heldOverride(ctx, row, season, setIn, fixtureOf)))).filter((each) => each !== null);
   return groupedBy(counted, ({ playerCode }) => playerCode);
 }
 
 /** The override as it counts this season, or null for a match his card doesn't list this season. */
-async function heldOverride(ctx: QueryCtx, override: Doc<"pointsOverrides">, season: number, setIn: SetIn) {
+async function heldOverride(ctx: QueryCtx, override: Doc<"pointsOverrides">, season: number, setIn: SetIn, fixtureOf: FixtureReader) {
   const { fixtureCode, playerCode, points } = override;
-  const fixture = await fixtureByCode(ctx, fixtureCode);
+  const fixture = await fixtureOf(fixtureCode);
   if (fixture === null || !isPlayedThisSeason(fixture) || seasonOfFixture(fixture) !== season) return null;
   const record = await ctx.db
     .query("playerMatchStats")
@@ -149,7 +151,7 @@ async function heldOverride(ctx: QueryCtx, override: Doc<"pointsOverrides">, sea
   return { playerCode, points, pricedAt: (position: Position) => matchPointsAt(record, set, position) };
 }
 
-/** Sets these players' rows afresh: queued by each record write that changes what they count. */
+/** Sets these players' rows afresh, REBUILD_PAGE at most: queued by seasonPointsQueue.ts. */
 export const refresh = internalMutation({
   args: { playerCodes: v.array(v.number()) },
   returns: v.null(),
@@ -161,9 +163,8 @@ export const refresh = internalMutation({
 
 /** Sets a page of players' rows, from `cursor` (null for the first), afresh from their records,
  *  then runs on to the next page until every player is done. Safe to run again: it sets, never
- *  adds. Run once on each deployment holding records from before the rows were kept (#525), and
- *  again should a played match leave the feed or move gameweek, which no record write re-prices:
- *  `npx convex run stats/seasonPoints:rebuild '{"cursor":null}'`. */
+ *  adds. Started by itself on a deployment holding records but no row (seasonPointsQueue.ts's
+ *  rebuildIfNoneKept), and by hand with `npx convex run stats/seasonPoints:rebuild '{"cursor":null}'`. */
 export const rebuild = internalMutation({
   args: { cursor: v.union(v.string(), v.null()) },
   returns: v.null(),
