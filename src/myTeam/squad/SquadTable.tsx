@@ -34,8 +34,8 @@ type Stat = keyof SeasonStats;
 /** The Stats view's columns, left to right (the approved picture): Next 3 at the far right. */
 const STATS: readonly Stat[] = ["appearances", "minutes", "goals", "assists", "cleanSheets", "saves", "yellowCards", "redCards"];
 const COLUMNS: readonly Column[] = ["number", "positions", "player", "season", "last", ...STATS, "next"];
-/** Words on the left; every other column is figures, on the right. */
-const WORDS: readonly Column[] = ["positions", "player", "next"];
+/** Words on the left; every other column on the right, Next 3 too, as the picture has it. */
+const WORDS: readonly Column[] = ["positions", "player"];
 /** Saves are a keeper's: an outfield player's cell stays empty. */
 const KEEPER = "GK" satisfies Position;
 

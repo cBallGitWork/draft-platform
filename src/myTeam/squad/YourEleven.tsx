@@ -35,7 +35,7 @@ export function formationOf({ lineup: { starters }, presets }: Pick<OpenTactics,
 }
 
 /** `players` are the squad's rows by code, for each one's season points; `selected` is the player
- *  whose panel is open, outlined on the pitch. */
+ *  whose panel is open, his plate white as the Tactics pitch marks a player picked up. */
 export function YourEleven({ tactics, players, selected }: { tactics: Tactics | undefined; players: ReadonlyMap<number, Row>; selected: number | null }) {
   const open = tactics?.kind === "open" ? tactics : null;
   const formation = open === null ? null : formationOf(open);
@@ -74,12 +74,12 @@ function ElevenPitch({ tactics, players, selected }: { tactics: OpenTactics; pla
           return (
             <li key={cellKey(cell)} aria-label={elevenPlayerLabel(member.name, points)}
               aria-current={selected === starter.playerCode || undefined}
-              className="relative flex min-w-0 flex-col items-center justify-center aria-current:outline-2 aria-current:outline-fact"
+              className="group relative flex min-w-0 flex-col items-center justify-center"
             >
               <Shirt number={member.number} clubCode={member.clubCode} goalkeeper={area === "goalkeeper"} />
-              <span aria-hidden="true" className="flex max-w-full flex-col items-center bg-name-plate px-1">
+              <span aria-hidden="true" className="flex max-w-full flex-col items-center bg-name-plate px-1 group-aria-current:bg-fact group-aria-current:text-ground">
                 <span className="max-w-full truncate font-semibold">{member.name}</span>
-                <span className="font-bold text-figure">{points}</span>
+                <span className="font-bold text-figure group-aria-current:text-ground">{points}</span>
               </span>
             </li>
           );
