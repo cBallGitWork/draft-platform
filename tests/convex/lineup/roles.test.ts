@@ -2,7 +2,7 @@ import { describe, expect, test } from "vitest";
 import { lineupProblems, type Lineup } from "../../../convex/lineup/lineup";
 import { problemWords } from "../../../convex/lineup/lineupWords";
 import { AREAS, LANES, positionOfSlot } from "../../../convex/lineup/pitch";
-import { DEFAULT_ROLES, isRole, roleIn, roleName, rolesOfSlot, slotLabel, SWEEPER, SWEEPER_CELL } from "../../../convex/lineup/roles";
+import { DEFAULT_ROLES, isRole, roleIn, roleName, rolesOfSlot, slotLabel, SWEEPER, SWEEPER_CELL, type SlotLabel } from "../../../convex/lineup/roles";
 import { DRAFTED_ROLE_ADJUSTMENTS } from "../../../convex/scoring/draftedRoleAdjustments";
 import { FIRST_SCORING } from "../../../convex/scoring/firstScoring";
 import { scoreTeam } from "../../../convex/scoring/teamPoints";
@@ -142,17 +142,28 @@ describe("a role removed from the set (spec/05 Roles; #841; Craig, 31 Oct 2026)"
     expect(scored(REMOVED_ROLE).starters[0].role).toBe(first.key);
   });
 
-  // Every key ever shipped: a saved lineup may hold any of them, so none goes without the
-  // migration and its letters spec/05 says a cut brings. A new role's key is added here.
-  const SHIPPED_ROLE_KEYS = [
-    "shotStopper", "sweeperKeeper", "defensiveFullBack", "attackingFullBack", "stopper", "ballPlayingDefender", "sweeper", "libero",
-    "attackingWingBack", "holdingWingBack", "anchor", "deepPlaymaker", "wideMidfielder", "defensiveWinger", "boxToBox", "playmaker",
-    "ballWinner", "insideForward", "winger", "numberTen", "shadowStriker", "poacher", "targetMan", "pressingForward", "falseNine",
-  ];
+  // Every key ever shipped, by the position that offers it: a saved lineup may hold any of them in
+  // any of its slots, so none goes from a position without the migration and its letters spec/05
+  // says a cut brings, even one another position still offers. A new role's key is added here.
+  const SHIPPED_ROLE_KEYS: Record<SlotLabel, readonly string[]> = {
+    GK: ["shotStopper", "sweeperKeeper"],
+    FB: ["defensiveFullBack", "attackingFullBack"],
+    CB: ["stopper", "ballPlayingDefender"],
+    SW: ["sweeper", "libero"],
+    WB: ["attackingWingBack", "holdingWingBack"],
+    CDM: ["anchor", "deepPlaymaker"],
+    WM: ["wideMidfielder", "defensiveWinger"],
+    CM: ["boxToBox", "playmaker", "ballWinner"],
+    W: ["insideForward", "winger"],
+    CAM: ["numberTen", "shadowStriker"],
+    ST: ["poacher", "targetMan", "pressingForward", "shadowStriker", "falseNine"],
+  };
 
-  test("every key ever shipped is still in the set, and every key in it is pinned here", () => {
-    const held = new Set(Object.values(DEFAULT_ROLES).flatMap((roles) => roles.map(({ key }) => key)));
-    expect(held).toEqual(new Set(SHIPPED_ROLE_KEYS));
+  test("every key ever shipped is still offered by its position, and every key offered is pinned here", () => {
+    const asSets = (keysByPosition: Record<string, readonly string[]>) =>
+      Object.fromEntries(Object.entries(keysByPosition).map(([position, keys]) => [position, new Set(keys)]));
+    const offered = Object.fromEntries(Object.entries(DEFAULT_ROLES).map(([position, roles]) => [position, roles.map(({ key }) => key)]));
+    expect(asSets(offered)).toEqual(asSets(SHIPPED_ROLE_KEYS));
   });
 });
 
