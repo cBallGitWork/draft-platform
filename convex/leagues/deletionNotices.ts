@@ -2,7 +2,7 @@ import { v } from "convex/values";
 import { internal } from "../_generated/api";
 import { internalAction, internalMutation } from "../_generated/server";
 import { sendEmail } from "../outbound/email";
-import { startOfNextDay, takeTodaysEmail as takeOne } from "../outbound/emailLimit";
+import { takeTodaysEmail as takeOne, waitForTomorrow } from "../outbound/emailLimit";
 
 // The email each person with a part in a league gets once leagueDeletion.deleteForGood has removed
 // it (#320, spec/13, Deleting): "just delay the deletion email until its actually gone". Each
@@ -36,7 +36,7 @@ export const send = internalAction({
       if (!(await ctx.runMutation(internal.leagues.deletionNotices.takeTodaysEmail, {}))) {
         const waiting = emails.slice(index);
         console.log(waitingLog(waiting.length));
-        await ctx.scheduler.runAt(startOfNextDay(Date.now()), internal.leagues.deletionNotices.send, { leagueName, by, emails: waiting });
+        await waitForTomorrow(ctx.scheduler, internal.leagues.deletionNotices.send, { leagueName, by, emails: waiting });
         return null;
       }
       if (!(await sent(to, email))) await ctx.runMutation(internal.leagues.deletionNotices.recordUnemailed, { leagueName, by, email: to });

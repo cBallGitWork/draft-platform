@@ -1,3 +1,4 @@
+import type { OptionalRestArgs, SchedulableFunctionReference, Scheduler } from "convex/server";
 import type { MutationCtx, QueryCtx } from "../_generated/server";
 import { DAY_MS } from "../shared/time";
 
@@ -5,7 +6,8 @@ import { DAY_MS } from "../shared/time";
 // (signInLinks.ts), joining's (joinRequests.ts), the deletion notices (deletionNotices.ts) and the
 // admin's feed failure emails (admin/feedFailureEmails.ts).
 // Each is counted before it is sent, so two sends at once can't both take the day's last email;
-// one that then fails stays counted, as Resend may have counted it too.
+// one that then fails stays counted, as Resend may have counted it too. One that finds none left
+// waits for tomorrow (waitForTomorrow) or is dropped, as its caller decides.
 
 /** Resend's free plan (ARCHITECTURE.md, Services): every email the app sends counts. */
 export const EMAILS_PER_DAY = 100;
@@ -21,6 +23,13 @@ export function dayOf(time: number): string {
 /** The start of the UTC day after `time`'s, when Resend's daily limit starts again. */
 export function startOfNextDay(time: number): number {
   return Date.parse(dayOf(time)) + DAY_MS;
+}
+
+/** Runs `fn` with `args` again at the start of tomorrow, when the day's emails start again: for a
+ *  send that found none left today. The job is saved with `fn`'s path, so renaming `fn` is its own
+ *  pull request (docs/REFACTORING.md, Function paths). */
+export function waitForTomorrow<Fn extends SchedulableFunctionReference>(scheduler: Scheduler, fn: Fn, ...args: OptionalRestArgs<Fn>) {
+  return scheduler.runAt(startOfNextDay(Date.now()), fn, ...args);
 }
 
 function sentToday(ctx: QueryCtx) {
