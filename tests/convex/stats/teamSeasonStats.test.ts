@@ -8,21 +8,15 @@ import { addManagers } from "../../support/convex/leagues.harness";
 import {
   CAT,
   EVERTON_STARTERS,
-  fullTimeRecords,
   GAMEWEEK,
-  holdMovedIn,
   HULL_AFTER_SUB,
   HULL_KEEPER,
   HULL_STARTERS,
   HULL_SCORER,
-  liveRecords,
-  lockMatch,
-  lockMovedIn,
-  MOVED_IN,
   scoresLeague,
   type ScoresLeague,
-  storeLeague,
 } from "../../support/convex/gameweekScores.harness";
+import { fullTimeRecords, holdMovedIn, liveRecords, lockMatch, lockMovedIn, MOVED_IN, storeLeague } from "../../support/convex/gameweekScoresMatch.harness";
 import { BELLOUMI } from "../../support/convex/teamPoints.harness";
 
 // The stat race's totals (#800, spec/19 The stat race): each team's season stats, counting only its

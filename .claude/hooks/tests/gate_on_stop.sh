@@ -67,8 +67,10 @@ fails_loudly "cwd is int where str was expected" gate_on_stop.py '{"cwd":3}' DRA
 fails_loudly "stop_hook_active is str where bool was expected" gate_on_stop.py '{"stop_hook_active":"yes"}' DRAFT_GATE_CMD=false
 fails_loudly "hook_event_name is list where str was expected" gate_on_stop.py '{"hook_event_name":[]}' DRAFT_GATE_CMD=false
 # each is watched (verify tests or reads it), so a change there alone runs the gate
-for path in scripts/a.mjs tests/a.test.ts playwright.config.ts index.html docs/design/plate.md; do
-  repo=$tmp/gate-watch-${path%%[/.]*} && gate_repo "$repo"
+watch=0
+for path in scripts/a.mjs tests/a.test.ts playwright.config.ts playwright.live.config.ts index.html docs/design/plate.md \
+  vercel.json .github/workflows/a.yml .nvmrc SPEC.md spec/01-a.md; do
+  repo=$tmp/gate-watch-$((watch++)) && gate_repo "$repo"
   silent gate_on_stop.py "$(stop_in "$repo" Stop)" DRAFT_GATE_CMD=false
   mkdir -p "$repo/$(dirname "$path")" && touch "$repo/$path"
   blocks gate_on_stop.py "$(stop_in "$repo" Stop)" DRAFT_GATE_CMD=false

@@ -115,7 +115,9 @@ export function CategoryEditor({
   );
 }
 
-type Column = { head: string; cell: (key: PriceKey, row: string) => ReactNode };
+/** A column of the values table; `stacked`, a cell too wide to sit beside its name on the phone
+ *  (a row's bands), goes under it. */
+type Column = { head: string; cell: (key: PriceKey, row: string) => ReactNode; stacked?: boolean };
 
 /** A head of the values table: the head band as every data table's (ColumnHeads.tsx), lined up
  *  with the cells under it. */
@@ -123,20 +125,22 @@ const HEAD_CELL = "px-3 text-left";
 
 /** The rule's values, a row for everyone or for each area or position, with a column for each
  *  part it has: its points, its points limit's two ends, and its minutes. On the phone each row
- *  is a block, its boxes wrapping under its name, each with its column's name beside it. */
+ *  is a block, a box a line under its name, the column's name beside it so the boxes line up;
+ *  the head band keeps only the rows' column, and a rule for everyone, with one row, has none. */
 function ValuesTable({ rule, pricing, readOnly, onChange }: { rule: Rule; pricing: Pricing; readOnly: boolean; onChange: (rule: Rule) => void }) {
   const columns = columnsOf(rule, readOnly, onChange);
   const rowHead = pricing === "byPosition" ? columnWords.position : columnWords.area;
+  const forEveryone = pricing === "all";
   return (
     <div className="overflow-x-auto">
       <table className="w-full border-collapse max-lg:block">
-        <thead className="bg-head text-ground max-lg:hidden">
-          <tr>
-            <th scope="col" className={HEAD_CELL}>
-              {pricing === "all" ? "" : rowHead}
+        <thead className={`bg-head text-ground ${forEveryone ? "max-lg:hidden" : "max-lg:block"}`}>
+          <tr className="max-lg:block">
+            <th scope="col" className={`${HEAD_CELL} max-lg:block`}>
+              {forEveryone ? "" : rowHead}
             </th>
             {columns.map((column) => (
-              <th key={column.head} scope="col" className={HEAD_CELL}>
+              <th key={column.head} scope="col" className={`${HEAD_CELL} max-lg:hidden`}>
                 {column.head}
               </th>
             ))}
@@ -146,13 +150,13 @@ function ValuesTable({ rule, pricing, readOnly, onChange }: { rule: Rule; pricin
           {keysOf(pricing).map((key) => {
             const row = rowWords(key);
             return (
-              <tr key={key} className="border-b border-panel-rule align-top max-lg:flex max-lg:flex-wrap max-lg:py-1">
-                <th scope="row" className="px-3 py-1 text-left font-normal whitespace-nowrap max-lg:w-full max-lg:font-semibold">
+              <tr key={key} className="border-b border-panel-rule align-top max-lg:flex max-lg:flex-col max-lg:py-1">
+                <th scope="row" className="px-3 py-1 text-left font-normal whitespace-nowrap max-lg:font-semibold">
                   <span className="flex min-h-tap items-center">{row}</span>
                 </th>
                 {columns.map((column) => (
-                  <td key={column.head} className="px-3 py-1 max-lg:flex max-lg:flex-wrap max-lg:items-center max-lg:gap-2">
-                    <span aria-hidden className="text-soft lg:hidden">
+                  <td key={column.head} className={`px-3 py-1 max-lg:flex max-lg:items-start max-lg:gap-2 ${column.stacked ? "max-lg:flex-col" : ""}`}>
+                    <span aria-hidden className={`flex shrink-0 items-center text-soft lg:hidden ${column.stacked ? "" : "min-h-tap w-value-label"}`}>
                       {column.head}
                     </span>
                     {column.cell(key, row)}
@@ -180,7 +184,7 @@ function columnsOf(rule: Rule, readOnly: boolean, onChange: (rule: Rule) => void
               return <NumberBox label={boxLabel(columnWords[part], row)} value={each[part]} onChange={(number) => onChange(withValue(rule, key, { ...each, [part]: number }))} />;
             },
           }))
-        : [{ head: columnWords.bands, cell: (key, row) => <Bands row={row} bands={value(key) as Band[]} readOnly={readOnly} onChange={(bands) => onChange(withValue(rule, key, bands))} /> }];
+        : [{ head: columnWords.bands, stacked: true, cell: (key, row) => <Bands row={row} bands={value(key) as Band[]} readOnly={readOnly} onChange={(bands) => onChange(withValue(rule, key, bands))} /> }];
   const limit: Column[] =
     rule.limit === undefined
       ? []

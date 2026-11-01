@@ -37,6 +37,10 @@ export function scratchRepo(prefix) {
     },
     /** An empty commit with `trailer` in its body, where git reads trailers. */
     commitWithTrailer: (trailer) => git("commit", "-q", "--allow-empty", "-m", "why", "-m", trailer),
+    /** An empty commit with `trailer` in a paragraph above a blank line and a Co-Authored-By
+     *  line, where git doesn't read it as a trailer (#930). */
+    commitWithTrailerAboveBlankLine: (trailer) =>
+      git("commit", "-q", "--allow-empty", "-m", "why", "-m", trailer, "-m", "Co-Authored-By: t <t@t>"),
     /** What's committed so far becomes origin/main, and work goes on on a branch off it. */
     branchOffOriginMain() {
       git("update-ref", ORIGIN_MAIN, "HEAD");

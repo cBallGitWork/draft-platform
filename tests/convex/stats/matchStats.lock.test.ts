@@ -12,7 +12,7 @@ import {
   withPlReadEmpty,
 } from "../../support/convex/matchStats.harness";
 import { FULL_STATS, recordedGw6, type Gw6Payloads } from "../../support/recorded/gw6.payloads";
-import { elapse, freshConvex, silenceConsoleError, type TestConvex } from "../../support/convex/test.harness";
+import { elapse, freshConvex, pendingJobs, silenceConsoleError, type TestConvex } from "../../support/convex/test.harness";
 import { HOUR_MS, MINUTE_MS } from "../../../convex/shared/time";
 import { CURRENT_FIXTURES_MOST } from "../../../convex/shared/fixtures";
 
@@ -58,8 +58,7 @@ test("a complete match read again before its lock schedules no second lock", asy
   await elapse(t, 10 * MINUTE_MS);
   await syncAt(t, FULL_TIME_READ + 10 * MINUTE_MS, recordedGw6());
 
-  const scheduled = await t.run((ctx) => ctx.db.system.query("_scheduled_functions").collect());
-  expect(scheduled.filter((job) => job.state.kind === "pending")).toHaveLength(1);
+  expect(await pendingJobs(t)).toHaveLength(1);
 });
 
 // S07.2

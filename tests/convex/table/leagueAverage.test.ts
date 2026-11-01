@@ -2,17 +2,8 @@ import { expect, test } from "vitest";
 import { api } from "../../../convex/_generated/api";
 import { inTenths } from "../../../convex/scoring/values";
 import { actingAs } from "../../support/convex/leagues.harness";
-import {
-  CAT,
-  EVERTON_POINTS,
-  fullTimeRecords,
-  GAMEWEEK,
-  HULL_POINTS,
-  lockMatch,
-  matchupAs,
-  readTable,
-  scoresLeague,
-} from "../../support/convex/gameweekScores.harness";
+import { CAT, EVERTON_POINTS, GAMEWEEK, HULL_POINTS, matchupAs, readTable, scoresLeague } from "../../support/convex/gameweekScores.harness";
+import { fullTimeRecords, lockMatch } from "../../support/convex/gameweekScoresMatch.harness";
 
 // The league's average in a gameweek begun is over the teams in its stored fixtures (spec/09: "games
 // played in past are done"), so a team joining later leaves it as it was, alike on the matchup,

@@ -8,7 +8,6 @@ import { BELLOUMI } from "../../support/convex/teamPoints.harness";
 import {
   ANN,
   annsScoredGame,
-  fullTimeRecords,
   GAMEWEEK,
   holdHullAndEverton,
   HULL_KEEPER,
@@ -24,6 +23,7 @@ import {
   slotOf,
   type ScoresLeague,
 } from "../../support/convex/gameweekScores.harness";
+import { fullTimeRecords } from "../../support/convex/gameweekScoresMatch.harness";
 
 // A lineup naming a man the football sync no longer holds (#810): data gone wrong. He scores as if
 // he didn't play, so a starter's slot is filled from the bench as spec/05's Auto-subs say and a

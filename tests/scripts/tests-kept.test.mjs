@@ -6,10 +6,12 @@
 import { rmSync } from "node:fs";
 import { join } from "node:path";
 import { afterEach, beforeEach, describe, expect, test } from "vitest";
+import { TRAILER_PLACE } from "../../scripts/branchCheck.mjs";
 import { NAME_JOIN, removedTests, testNames, unexcused } from "../../scripts/tests-kept.mjs";
 import { scratchRepo } from "../support/scripts/gitRepo.harness.mjs";
+import { REPO_ROOT } from "../support/scripts/repoRoot.mjs";
 
-const SCRIPT = join(import.meta.dirname, "../../scripts/tests-kept.mjs");
+const SCRIPT = join(REPO_ROOT, "scripts/tests-kept.mjs");
 
 const named = (...titles) => titles.join(NAME_JOIN);
 
@@ -115,11 +117,12 @@ describe("the check in a repo", () => {
 
   const passes = () => expect(check()).toEqual({ status: 0, said: "" });
 
-  /** The check fails, listing `name` among the tests it refused. */
+  /** The check fails, listing `name` among the tests it refused; what it said. */
   function refuses(name) {
     const { status, said } = check();
     expect(status).toBe(1);
     expect(said).toContain(`  ${name}, in`);
+    return said;
   }
 
   // A repo of its own per test, on a branch off an origin/main holding a.test.ts (tests x and y)
@@ -184,6 +187,13 @@ describe("the check in a repo", () => {
     repo.git("add", "-A");
     repo.git("commit", "-q", "-m", "Test-removed: y: in the subject");
     refuses("y");
+  });
+
+  test("Test-removed above a blank line, not in the last paragraph, is refused, saying where it goes", () => {
+    repo.write(FILE_A, 'test("x", () => {});\n');
+    repo.commitAll("cut y");
+    repo.commitWithTrailerAboveBlankLine("Test-removed: y: the rule it checked went (#9)");
+    expect(refuses("y")).toContain(TRAILER_PLACE);
   });
 
   test("with no origin/main to compare with, it fails, saying to fetch", () => {

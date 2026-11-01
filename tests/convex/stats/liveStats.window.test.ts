@@ -14,6 +14,7 @@ import {
   withHullEverton,
   withPlReadEmpty,
 } from "../../support/convex/matchStats.harness";
+import { outcomesOf } from "../../support/convex/feeds.harness";
 import { FULL_STATS, recordedGw6 } from "../../support/recorded/gw6.payloads";
 import { refusedError, silenceConsoleError, type TestConvex } from "../../support/convex/test.harness";
 import { LINEUPS_OUT_BEFORE_KICKOFF_MS, MINUTE_MS } from "../../../convex/shared/time";
@@ -22,6 +23,8 @@ beforeEach(() => vi.useFakeTimers());
 
 const liveAt = (t: TestConvex, now: number) => t.query(internal.stats.liveStats.live, { now });
 const HULL_EVERTON_LIVE = [{ fixtureCode: HULL_EVERTON, gameweek: GAMEWEEK }];
+/** The live tick's two side feeds' rows (#522). */
+const sideOutcomes = async (t: TestConvex) => ({ teamStats: await outcomesOf(t, "teamStats"), thresholdSteps: await outcomesOf(t, "thresholdSteps") });
 
 test("a match is live from its kickoff until the window closes, and not a minute either side", async () => {
   const t = await withHullEverton();
@@ -80,6 +83,18 @@ test("a failed tick is recorded and logged, and the next one catches up", async 
 
   await tickAt(t, stageTime(31), stagedGw6(31));
   expect(await heldRecords(t)).toEqual(recordsIn(stagedGw6(31), "provisional"));
+});
+
+test("a tick that reads no match, its gameweek's reads failed, writes the side feeds no row, so they show late beside it", async () => {
+  silenceConsoleError();
+  const t = await withHullEverton();
+  await tickAt(t, stageTime(29), stagedGw6(29));
+  const before = await sideOutcomes(t);
+
+  const failed = await tickAt(t, stageTime(30), stagedGw6(30), fplLiveUrl(GAMEWEEK));
+
+  expect(failed.latest.outcome).toMatchObject({ matches: [{ fixtureCode: HULL_EVERTON, ok: false }] });
+  expect(await sideOutcomes(t)).toEqual(before);
 });
 
 test("a tick whose first read fails is recorded failed whole, and the next one catches up", async () => {

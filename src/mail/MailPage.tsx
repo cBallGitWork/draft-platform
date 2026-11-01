@@ -2,6 +2,7 @@ import { useState } from "react";
 import type { Id } from "../../convex/_generated/dataModel";
 import type { LetterSummary } from "../../convex/mail/mail";
 import { LETTERS_SHOWN } from "../../convex/mail/mailLimits";
+import { leagueOpens } from "../../convex/leagues/leagueOpens";
 import type { LeagueSummary } from "../../convex/leagues/myLeagues";
 import type { Session } from "../signIn/seam";
 import { DateBlock } from "./DateBlock";
@@ -20,10 +21,10 @@ import {
 } from "./words";
 
 /** The leagues a letter to the whole league can go from: those the person runs, or, for the
- *  admin, every league, but never one being deleted. The server checks again. */
+ *  admin, every league, but only one that opens (`leagueOpens`). The server checks again. */
 export function leaguesToWriteFrom(session: Session): readonly LeagueSummary[] {
   if (!session.signedIn) return [];
-  return session.leagues.filter((league) => !league.deletion && runs(league));
+  return session.leagues.filter((league) => leagueOpens(league) && runs(league));
 }
 
 /** Mail (spec/16): the person's letters, newest first, each opened in place, which marks it read;

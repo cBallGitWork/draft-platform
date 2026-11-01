@@ -7,7 +7,7 @@ import { cleanup, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
 import type { SettingsView } from "../../../src/leagueSettings/seam";
-import { blankGamesWords, gamesLabel, loadingWords, noRulesWords, oddTeamOutWords, redrawWords, savedWords, SETTINGS_TITLE } from "../../../src/leagueSettings/words";
+import { blankGamesWords, gamesHint, gamesLabel, loadingWords, noRulesWords, oddTeamOutWords, redrawWords, savedWords, SETTINGS_TITLE } from "../../../src/leagueSettings/words";
 import { LEAGUES_PATH } from "../../../src/leagues/paths";
 import { LEAGUES_TITLE } from "../../../src/leagues/words";
 import type { Revision } from "../../../src/rules/rulesDraft";
@@ -112,7 +112,7 @@ describe("editing them", () => {
     await screen.findByRole("alert");
     await setGames("2");
     expect(screen.queryByRole("alert")).toBeNull();
-    expect(descriptionOf(gamesBox())).toBe("");
+    expect(descriptionOf(gamesBox())).toBe(gamesHint);
 
     await setGames("");
     await save();
