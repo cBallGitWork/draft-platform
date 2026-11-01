@@ -6,6 +6,10 @@ argument-hint: "[the screen, by its route]"
 
 # Design one screen
 
+**Contents:** [1. Brief](#1-brief) · [2. References](#2-references) · [3. Draw at 1440](#3-draw-at-1440) ·
+[4. Render check](#4-render-check) · [5. The review panel](#5-the-review-panel) ·
+[6. Show Craig](#6-show-craig) · [7. Save the approved picture](#7-save-the-approved-picture)
+
 Craig, 1 Nov 2026: "on claude code we have multiple steps/rules/hooks etc for quality control, how
 do we do the same for ui design". This is that loop, for one screen. It ends in an approved picture
 in `docs/design/approved/<screen>/`, which then binds the screen's layout (`CLAUDE.md`, Decided).
