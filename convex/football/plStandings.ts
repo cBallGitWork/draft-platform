@@ -50,12 +50,14 @@ export const ofSeason = query({
     const results: PlResult<Club>[] = [];
     const unplayed: PlMatch<Club>[] = [];
     let provisional = false;
-    let seasonOver = true;
     const fixtures = await currentFixtures(ctx);
     const scores = await Promise.all(fixtures.map(({ code }) => scoreOf(ctx, code)));
+    // The season is over once its last gameweek's matches are all at full time: a match never
+    // played then is one of `unplayed`, holding back head-to-head only for its two clubs (C.17).
+    const lastGameweek = Math.max(...fixtures.flatMap(({ gameweek }) => (gameweek === null ? [] : [gameweek])));
+    const seasonOver = fixtures.every(({ gameweek }, index) => gameweek !== lastGameweek || scores[index]?.state === "fullTime");
     for (const [index, { code, homeClubCode, awayClubCode }] of fixtures.entries()) {
       const score = scores[index];
-      if (score?.state !== "fullTime") seasonOver = false;
       const match = { home: currentClubOf(homeClubCode, code), away: currentClubOf(awayClubCode, code) };
       if (score === null || !COUNTED_STATES.has(score.state)) {
         unplayed.push(match);

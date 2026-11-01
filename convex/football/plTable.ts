@@ -5,8 +5,8 @@
 // Clubs level on points are split by the competition's own tie-break order, which the caller
 // passes from its data (tieBreaks.ts), so the table holds no competition's order (#899). The
 // head-to-head steps apply when the competition's timing says (the Premier League's: once the
-// season is over), and only while every match between the clubs level at that step is played. Clubs level after the last step share a position, in the order the caller
-// lists them: the Premier League lists them alphabetically, a practice and not a rule.
+// season is over), and only while every match between the clubs level at that step is played.
+// Clubs level after the last step share a position, in the order the caller lists them: the Premier League lists them alphabetically, a practice and not a rule.
 
 import { HEAD_TO_HEAD_TIE_BREAKS, type CompetitionTieBreak, type CompetitionTieBreaking } from "./tieBreaks";
 
