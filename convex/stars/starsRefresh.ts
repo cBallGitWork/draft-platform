@@ -11,7 +11,7 @@ import { fixtureByCode } from "../shared/fixtures";
 import { playerByCode } from "../shared/players";
 import { readOnce } from "../shared/readOnce";
 import { sortedJson } from "../shared/sortedJson";
-import { PLAYER_RECORDS_MOST } from "../stats/matchRecords";
+import { playerRecords } from "../stats/seasonRecords";
 import { LEAGUES_STORED_MOST } from "../table/finalScores";
 import { starsRow } from "./playerStars";
 import { countedMatches, LEAST_MATCHES_RATED, perMatchUnder, ratedRoles, starsFor, type RatedRecord } from "./stars";
@@ -187,11 +187,7 @@ async function refreshPlayers(ctx: MutationCtx, playerCodes: readonly number[]):
     const row = await starsRow(ctx, playerCode);
     let fields: Omit<Doc<"playerRoleStars">, "_id" | "_creationTime"> | null;
     try {
-      const records = await takeAllOrThrow(
-        ctx.db.query("playerMatchStats").withIndex("by_playerCode", (q) => q.eq("playerCode", playerCode)),
-        PLAYER_RECORDS_MOST,
-        `More than ${PLAYER_RECORDS_MOST} match records are held for player ${playerCode}, so his stars would be cut short`,
-      );
+      const records = await playerRecords(ctx, playerCode, "stars");
       const dated: RatedRecord[] = [];
       for (const record of records) {
         const kickoff = await kickoffOf(record.fixtureCode);
