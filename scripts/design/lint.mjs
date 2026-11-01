@@ -6,11 +6,12 @@
 // Usage: node scripts/design/lint.mjs <board.dc.html | page.html>...
 
 import { readFileSync, rmSync, writeFileSync } from "node:fs";
-import { join } from "node:path";
+import { basename, join } from "node:path";
 import { pathToFileURL } from "node:url";
 import { expandBoard } from "./expand.mjs";
 
 const ROLE_CATALOGUE = "convex/lineup/roles.ts";
+const POSITION_LABELS = "convex/positions/positionTables.ts";
 const ROLES_BUNDLE_PREFIX = ".design-lint-roles-";
 
 const MIDDLE_DOT = "·";
@@ -69,23 +70,33 @@ export function lintPage(html, initials) {
   return [...problems];
 }
 
-/** The role catalogue's names and positions, bundled with esbuild (as scripts/release.mjs reads
- *  the schema), since Node can't import the TypeScript source's extensionless imports. */
-export async function roleCatalogue(cataloguePath = ROLE_CATALOGUE) {
+/** A TypeScript module's exports, bundled with esbuild (as scripts/release.mjs reads the schema),
+ *  since Node can't import the TypeScript source's extensionless imports. */
+async function exportsOf(modulePath) {
   const { build } = await import("esbuild");
-  const bundled = await build({ entryPoints: [cataloguePath], bundle: true, write: false, format: "esm", platform: "node" });
-  const file = join(process.cwd(), `${ROLES_BUNDLE_PREFIX}${process.pid}.mjs`);
+  const bundled = await build({ entryPoints: [modulePath], bundle: true, write: false, format: "esm", platform: "node" });
+  // Each module its own file: Node caches an import by its path.
+  const file = join(process.cwd(), `${ROLES_BUNDLE_PREFIX}${process.pid}-${basename(modulePath, ".ts")}.mjs`);
   writeFileSync(file, bundled.outputFiles[0].text);
   try {
-    const { DEFAULT_ROLES } = await import(pathToFileURL(file).href);
-    if (!DEFAULT_ROLES) throw new Error(`${cataloguePath} exports no DEFAULT_ROLES`);
-    return {
-      roleNames: Object.values(DEFAULT_ROLES).flatMap((roles) => roles.map(({ name }) => name)),
-      positions: Object.keys(DEFAULT_ROLES),
-    };
+    return await import(pathToFileURL(file).href);
   } finally {
     rmSync(file, { force: true });
   }
+}
+
+/** The role catalogue's names, and every label a board may show as a chip: the slot labels the
+ *  roles hang on, and spec/06's position labels (SS among them, though it is Shadow striker's
+ *  initials too). */
+export async function roleCatalogue(cataloguePath = ROLE_CATALOGUE, labelsPath = POSITION_LABELS) {
+  const { DEFAULT_ROLES } = await exportsOf(cataloguePath);
+  if (!DEFAULT_ROLES) throw new Error(`${cataloguePath} exports no DEFAULT_ROLES`);
+  const { POSITIONS } = await exportsOf(labelsPath);
+  if (!POSITIONS) throw new Error(`${labelsPath} exports no POSITIONS`);
+  return {
+    roleNames: Object.values(DEFAULT_ROLES).flatMap((roles) => roles.map(({ name }) => name)),
+    positions: [...new Set([...Object.keys(DEFAULT_ROLES), ...POSITIONS])],
+  };
 }
 
 /** A board is expanded first; a plain page is read as it is. */
