@@ -1,4 +1,5 @@
 import { v } from "convex/values";
+import { internal } from "../_generated/api";
 import type { Doc, Id } from "../_generated/dataModel";
 import { mutation, query, type MutationCtx } from "../_generated/server";
 import { siteScoringKind } from "../schema";
@@ -94,6 +95,9 @@ async function addVersion(
   const changes = scoringChanges(setOf(history.at(-1)), version.scoring);
   const news = { name, kind: version.kind, takesEffectAt: version.takesEffectAt, fromGameweek, changes };
   await fileSiteLetter(ctx, (zone) => versionLetter(news, zone), by);
+  // Stars price every match under today's scoring, so everyone is rated again once it takes effect
+  // (stars/starsRefresh.ts, #11).
+  await ctx.scheduler.runAt(version.takesEffectAt, internal.stars.starsRefresh.refreshAll, { cursor: null });
   return { name, fromGameweek };
 }
 

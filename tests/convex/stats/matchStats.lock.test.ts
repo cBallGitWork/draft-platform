@@ -35,6 +35,17 @@ test("a complete match locks an hour after full time, and not before", async () 
   expect((await heldMatch(t)).status).toMatchObject({ lockedAt: FULL_TIME_READ + HOUR_MS });
 });
 
+test("a match's lock asks for its players' stars to be worked out again (#11)", async () => {
+  const t = await withHullEverton();
+  await syncAt(t, FULL_TIME_READ, recordedGw6());
+  expect(await pendingJobs(t, internal.stars.starsRefresh.refreshMatch)).toHaveLength(0);
+
+  vi.advanceTimersByTime(HOUR_MS);
+  await t.finishInProgressScheduledFunctions();
+
+  expect((await pendingJobs(t, internal.stars.starsRefresh.refreshMatch)).map((job) => job.args[0])).toEqual([{ fixtureCode: HULL_EVERTON }]);
+});
+
 test("a match read every ten minutes still locks an hour after the first read found full time", async () => {
   const t = await withHullEverton();
   const readEvery = 10 * MINUTE_MS;

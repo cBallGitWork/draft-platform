@@ -121,6 +121,8 @@ export const lock = internalMutation({
     await ctx.scheduler.runAfter(0, internal.table.finalScores.storeEveryLeague, {});
     // And each team's season stats for the stat race (teamSeasonStats.ts, #800), the same way.
     await ctx.scheduler.runAfter(0, internal.stats.teamSeasonStats.storeEveryLeague, {});
+    // Its players' stars, now it counts (stars/starsRefresh.ts, #11).
+    await ctx.scheduler.runAfter(0, internal.stars.starsRefresh.refreshMatch, { fixtureCode });
     return null;
   },
 });
