@@ -5,7 +5,8 @@ Feature 5 of [SPEC.md](../SPEC.md). Only Craig's answers: the first `/grill` and
 (1 Nov 2026).
 
 **Contents:** [The pitch](#the-pitch) · [Moving players](#moving-players) ·
-[What the pitch shows](#what-the-pitch-shows) · [Runs](#runs) · [Roles](#roles) ·
+[What the pitch shows](#what-the-pitch-shows) · [Runs](#runs) ·
+[Team instructions](#team-instructions) · [Saved plans](#saved-plans) · [Roles](#roles) ·
 [The deadline](#the-deadline) · [Auto-subs](#auto-subs) ·
 [Captain and set pieces](#captain-and-set-pieces) · [Squad numbers](#squad-numbers)
 
@@ -25,14 +26,24 @@ Feature 5 of [SPEC.md](../SPEC.md). Only Craig's answers: the first `/grill` and
 - That centre cell offers the centre-back roles and the sweeper roles. It is a sweeper's cell,
   labelled SW and drawn deeper, only while its player is on a sweeper role, so a back three keeps a
   plain centre-back in the middle (Craig, 31 Oct 2026).
-- Presets only: the shape always comes from a preset, and no player moves into an empty cell.
-  "we dont allow users to move the individual pieces around, we have lots of formations already";
-  "i think i just dont like hacing 2 cbs and fb for exampel"; "to me, presets just sort all
-  this out" (Craig, 1 Nov 2026). Free placement, Championship Manager style, is dropped. The
-  presets: 4-4-2, 4-3-3, 4-2-3-1, 4-1-4-1, 4-4-1-1, 4-3-1-2, 3-5-2, 3-4-3, 3-4-1-2, 5-3-2, 5-4-1, 4-5-1,
-  4-2-2-2, 4-1-2-1-2, 4-3-2-1, 4-1-3-2, 4-2-4, 3-4-2-1, 3-1-4-2, 5-2-3, 5-3-1-1, 3-6-1, all editable
-  as league rules. Ten of them Craig added (28 Oct 2026): "no basics like 4-5-1"; 3-6-1 he added
-  (1 Nov 2026: "also add 3-6-1").
+- Presets only: the shape always comes from a preset or a classic, and no player moves into an
+  empty cell. "we dont allow users to move the individual pieces around, we have lots of
+  formations already"; "i think i just dont like hacing 2 cbs and fb for exampel"; "to me, presets
+  just sort all this out" (Craig, 1 Nov 2026). Free placement, Championship Manager style, is
+  dropped. The presets: 4-4-2, 4-3-3, 4-2-3-1, 4-1-4-1, 4-4-1-1, 4-3-1-2, 3-5-2, 3-4-3, 3-4-1-2,
+  5-3-2, 5-4-1, 4-5-1, 4-2-2-2, 4-1-2-1-2, 4-3-2-1, 4-1-3-2, 4-2-4, 3-4-2-1, 3-1-4-2, 5-2-3,
+  5-3-1-1, 3-6-1, all editable as league rules. Ten of them Craig added (28 Oct 2026): "no basics
+  like 4-5-1"; 3-6-1 he added (1 Nov 2026: "also add 3-6-1"). Then, from Craig on 1 Nov 2026
+  ("formation presets that include sweeper/liberio too", "also formations with 2 at the back"):
+  5-3-2 with a sweeper, 3-5-2 with a libero, 2-3-5 and 2-3-2-3.
+- Classics are famous sides' formations, each a league rule like a preset, which the ready-made
+  rules carry. A classic sets its shape, every slot's role and its team instructions, which
+  Claude drafts and Craig edits (Craig, 1 Nov 2026). They include Keegan's Newcastle
+  ("both wide mids whip in crossers, strikers going for hearders, cb and both cms attack"),
+  Barcelona's tiki-taka and Hungary in the 50s.
+- A manager can change a classic's roles or instructions, never its shape. Once he does, it
+  becomes custom (Craig, 1 Nov 2026: "when a change is made it becomes custom, and it can be
+  saved"; then "only preset formations ,but we can still save the strategy").
 - Picking a preset reshapes the pitch and keeps the players: each starter moves to a slot of the
   new shape in his own area, if one is free, and anyone left over goes to the front of the bench.
   (Craig, 26 Oct 2026; #14).
@@ -46,9 +57,6 @@ Feature 5 of [SPEC.md](../SPEC.md). Only Craig's answers: the first `/grill` and
 - Then the bench fills the new shape's empty slots: each bench player, in bench order, takes a
   free slot he plays ("yes", Craig, 1 Nov 2026, #1025, asked whether the bench fills the empty
   slots it plays, in bench order).
-- A manager can save his own presets: "no home away silly but saved presets good. They include
-  formation and roles. Players change too much to save" (Craig, 1 Nov 2026). A saved preset holds
-  the formation and each slot's role, never players.
 - The formation window keeps classic sides as ready-made formation-plus-roles, and the modern ones
   too: "4 yes and re write" (Craig, 1 Nov 2026, asked whether to keep the classic and modern
   formations). Their text is sample until Craig rewrites it.
@@ -83,7 +91,8 @@ From `/grill the Tactics pitch` (Craig, 31 Oct 2026), unless dated otherwise.
   There are no empty cells to move into: presets only (Craig, 1 Nov 2026).
 - Dropping a player on another swaps them, starter for starter or bench for starter. Each lands on
   the role he has the most stars for in his new slot (Roles).
-- The lineup saves itself after each valid move. There is no Save button.
+- The lineup saves itself after each valid move. A line by the deadline countdown says when it
+  last did ("Lineup saved 14:02"; Craig, 1 Nov 2026).
 - Undo goes back through every move since the manager opened the Tactics tab this visit. A save
   doesn't clear it: "save doesn't mean we leave the page" (Craig, 31 Oct 2026).
 - Quick Pick fills the current shape with the best eleven by stars.
@@ -122,6 +131,32 @@ From `/grill the Tactics pitch` (Craig, 31 Oct 2026).
   from FM's nearest role, marked rough, for Craig to refine.
 - The matchup's lineups show the runs too (`spec/10`).
 
+## Team instructions
+
+From Craig, 1 Nov 2026, brought into the mini beta from the second release.
+
+- Every preset and classic has its own team instructions, at least three, attacking and
+  defensive: "id say at least 3", "attack and defe, will need multiple per formation", as not
+  every one suits every shape. Claude drafts them, each with a
+  description held with it, and Craig edits them; they are league rules like the presets.
+- A manager picks one attacking and one defensive instruction at a time. Picking a new formation
+  preselects one of each from its list, and he can change either.
+- Each instruction adjusts scoring like a role, for the whole team: a two-at-the-back shape's can
+  make goals conceded cost more. The values come from backtesting; until then an instruction is
+  picked and shown and changes no points ("we will score it with backtesting anyways").
+
+## Saved plans
+
+From Craig, 1 Nov 2026.
+
+- A plan is a formation, every slot's role and both team instructions, saved by name with the
+  Tactics tab's Save plan button: "a saved plan is the formation and tactics". A custom
+  formation can be saved as one.
+- A plan never holds players: "Players change too much to save" (Craig, 1 Nov 2026).
+- A manager keeps up to 5. Loading a plan reshapes the pitch keeping the players, as picking a
+  preset does. A move after loading changes only this week's lineup; the plan changes only when
+  he saves it again (Craig, 1 Nov 2026).
+
 ## Roles
 
 - Every slot has a role, the goalkeeper's included, chosen from the default set's list for the
@@ -156,20 +191,30 @@ From `/grill the Tactics pitch` (Craig, 31 Oct 2026).
   which of his starters changed role, from what to what (for example "Saka: shadow striker → poacher").
 - The default set starts as this list, made long before roles are built: every area and lane gets
   as many roles as fit, for Craig to cut much later (21 Oct 2026):
-  - goalkeeper: shot-stopper, sweeper keeper
-  - full-back: defensive, attacking
-  - wing-back: attacking, holding
-  - centre-back: stopper, ball-playing
+  - goalkeeper: shot-stopper, sweeper keeper, distributor
+  - full-back: defensive, attacking, inverted, no-nonsense
+  - wing-back: attacking, holding, complete, inverted
+  - centre-back: stopper, ball-playing, attacking, no-nonsense, wide centre-back (the outer two
+    of a back three)
   - sweeper, offered in the defence row's centre cell beside the centre-back roles: sweeper
     (stays behind the line), libero (steps out with the ball), added by Craig (31 Oct 2026)
-  - defensive midfield: anchor, deep playmaker
-  - centre midfield: box-to-box, playmaker, ball-winner
-  - wide midfield: winger, defensive winger
-  - attacking midfield, centre: number 10, shadow striker
-  - attacking midfield, wide: inside forward, winger
-  - attack: poacher, target man, pressing forward, shadow striker, false 9
-- Roles stack with the second release's team instructions: a pressing forward under a high press
-  earns both adjustments, and a sweeper keeper suits a high defensive line.
+  - defensive midfield: anchor, deep playmaker, ball-winner, half-back (drops between the
+    centre-backs), regista
+  - centre midfield: box-to-box, playmaker, ball-winner, mezzala, carrilero, roaming playmaker
+  - wide midfield: winger, defensive winger, wide playmaker, wide midfielder
+  - attacking midfield, centre: number 10, shadow striker, trequartista, enganche
+  - attacking midfield, wide: inside forward, winger, inverted winger, wide target man
+  - attack: poacher, target man, pressing forward, shadow striker, false 9, advanced forward,
+    complete forward, deep-lying forward
+  - free role, in any attacking midfield or attack slot, one per team (Craig, 1 Nov 2026)
+
+  Craig widened the list on 1 Nov 2026: "also expand the roles for each position too". The
+  attacking centre-back is for Keegan's Newcastle.
+- Each role says what it rewards and what it costs, as categories without values ("not a value,
+  just what that role should reward/give minus too"; Craig, 1 Nov 2026). The values come from
+  backtesting.
+- Roles stack with team instructions: a pressing forward under a high press earns both
+  adjustments, and a sweeper keeper suits a high defensive line.
 - A player dropped into a slot starts on the role he has the most stars for; until stars are
   built, on the slot's first role. The manager can change his slot and his role; the pitch shows
   each starter's role under his name (26 Oct 2026). He changes the role on the role card, opened
