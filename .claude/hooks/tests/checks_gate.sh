@@ -67,3 +67,12 @@ FAKE_OPEN_PRS='[]' says "no single open pull request has the branch feat/x" guar
 says "no single open pull request has the branch feat/y" guard_bash.py "$(merge 'gh pr merge feat/y')"  # another branch's pull request isn't it
 check deny guard_github.py "$(merge_tool '{"owner":"o","repo":"r"}')"
 says "Can't tell which pull request this merges" guard_github.py "$(merge_tool '{"owner":"o","pullNumber":5}')"
+
+# more checks than one read returns is a denial, as a failing one could sit past the first page
+FAKE_RUN_COUNT=101 says "more checks than one read of 100 returns" guard_github.py "$(merge_tool)"
+# -Rowner/repo names the repo as -R owner/repo does: the gate reads that repo's pull request
+FAKE_API_FAIL=repos/o/r check deny guard_bash.py "$(merge 'gh pr merge -Ro/r 5 --squash')"
+FAKE_API_FAIL=repos/o/r check allow guard_bash.py "$(merge 'gh pr merge 5 --squash')"  # the folder's own repo
+# --auto would wait for pending checks, but a merge goes only once they have passed
+FAKE_CHECK_RUNS='[{"name":"smoke","status":"queued","conclusion":null}]' \
+  check deny guard_bash.py "$(merge 'gh pr merge 5 --squash --auto')"

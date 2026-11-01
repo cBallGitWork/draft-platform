@@ -59,8 +59,8 @@ if [ "$1" = api ]; then
   runs=${FAKE_CHECK_RUNS:-'[{"name":"verify","status":"completed","conclusion":"success"}]'}
   open_prs=${FAKE_OPEN_PRS:-'[{"number":5,"head":{"ref":"feat/x"}}]'}
   case "$2" in
-    *check-runs*) echo "{\"check_runs\":$runs}";;
-    */status) echo "{\"statuses\":${FAKE_STATUSES:-[]}}";;
+    *check-runs*) echo "{\"total_count\":${FAKE_RUN_COUNT:-$(echo "$runs" | grep -o '"name"' | wc -l)},\"check_runs\":$runs}";;
+    */status*) statuses=${FAKE_STATUSES:-[]}; echo "{\"total_count\":$(echo "$statuses" | grep -o '"context"' | wc -l),\"statuses\":$statuses}";;
     */compare/*) echo "{\"behind_by\":${FAKE_BEHIND:-0}}";;
     *"pulls?"*) echo "$open_prs";;
     */pulls/*) echo '{"head":{"sha":"abc"},"base":{"ref":"main"}}';;
