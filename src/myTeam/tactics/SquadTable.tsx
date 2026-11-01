@@ -5,7 +5,7 @@ import { playerCardPath } from "../../playerCard/paths";
 import { roleIn, rolesOfSlot } from "../../../convex/lineup/roles";
 import { markOf } from "./focusMarks";
 import { startersInOrder, type DraftLineup, type SquadMember, type Starter } from "./lineupDraft";
-import { startDrag, type Moving } from "./Pitch";
+import { startDrag, type Moving } from "./pitch/Pitch";
 import {
   BENCH_TITLE,
   downLabel,

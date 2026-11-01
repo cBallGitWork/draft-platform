@@ -1,14 +1,14 @@
 import type { CSSProperties, DragEvent } from "react";
-import { AREAS, cellKey, LANES, sameCell, type Cell } from "../../../convex/lineup/pitch";
-import { roleIn } from "../../../convex/lineup/roles";
-import { kitOf, type Ink } from "../../../convex/football/clubColours";
-import { markOf } from "./focusMarks";
+import { AREAS, cellKey, LANES, sameCell, type Cell } from "../../../../convex/lineup/pitch";
+import { roleIn } from "../../../../convex/lineup/roles";
+import { kitOf, type Ink } from "../../../../convex/football/clubColours";
+import { markOf } from "../focusMarks";
 import { PitchLines } from "./PitchLines";
 import { RoleRuns } from "./RoleRuns";
 import { drawnDeeper, SWEEPER_DEPTH_SHARE } from "./runs";
 import { PITCH_ASPECT } from "./pitchMarkings";
-import { standingIn, type DraftLineup, type Reach, type SquadMember } from "./lineupDraft";
-import { emptySlotLabel, pitchLabel, playerOnPitchLabel, putHereLabel, swapLabel } from "./words";
+import { standingIn, type DraftLineup, type Reach, type SquadMember } from "../lineupDraft";
+import { emptySlotLabel, pitchLabel, playerOnPitchLabel, putHereLabel, swapLabel } from "../words";
 
 // The Tactics tab's pitch (#14; spec/05, The pitch): six areas by five lanes, attack at the top, CM
 // style. A player is moved by picking him up (a click, a tap or Enter on him) and then choosing one

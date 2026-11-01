@@ -7,12 +7,12 @@
 import { screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
-import { ALL_CELLS } from "../../../../convex/lineup/pitch";
-import { roleIn, rolesOfSlot, SWEEPER_CELL } from "../../../../convex/lineup/roles";
-import { drawnDeeper, placeOf, RUN_MARGIN, RUN_MARK, runPath, runShows, SWEEPER_DEPTH_SHARE } from "../../../../src/myTeam/tactics/runs";
-import { LANE_WIDTH, PITCH_SIZE, ROW_LENGTH } from "../../../../src/myTeam/tactics/pitchMarkings";
-import { runsWords } from "../../../../src/myTeam/tactics/words";
-import { blockOf, HAVERTZ, openedPitch, pitch, RICE, SALIBA, SAVED, STARTERS } from "../../../support/src/tacticsScreen.harness";
+import { ALL_CELLS } from "../../../../../convex/lineup/pitch";
+import { roleIn, rolesOfSlot, SWEEPER_CELL } from "../../../../../convex/lineup/roles";
+import { drawnDeeper, placeOf, RUN_MARGIN, RUN_MARK, runPath, runShows, SWEEPER_DEPTH_SHARE } from "../../../../../src/myTeam/tactics/pitch/runs";
+import { LANE_WIDTH, PITCH_SIZE, ROW_LENGTH } from "../../../../../src/myTeam/tactics/pitch/pitchMarkings";
+import { runsWords } from "../../../../../src/myTeam/tactics/words";
+import { blockOf, HAVERTZ, openedPitch, pitch, RICE, SALIBA, SAVED, STARTERS } from "../../../../support/src/tacticsScreen.harness";
 
 /** The players whose runs are drawn, by code, each with the utility hiding it where it doesn't show. */
 const drawnRuns = () =>
