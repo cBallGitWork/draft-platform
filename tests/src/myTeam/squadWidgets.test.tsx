@@ -179,6 +179,17 @@ describe("Your eleven", () => {
     expect(within(bench).getByText("S1")).toBeTruthy();
   });
 
+  it("marks a player FPL holds a doubt about with the status chip's placeholder, on the pitch and the bench", async () => {
+    const doubtful = [{ ...SAKA, chanceOfPlaying: 75 }, { ...PALMER, chanceOfPlaying: 0 }, RAYA];
+    openSquad({ squad: squadOf(doubtful), tactics: lineup });
+    const pitch = await screen.findByRole("list", { name: elevenPitchLabel });
+    const marked = (scope: HTMLElement, name: string, points: string) =>
+      within(within(scope).getByRole("listitem", { name: elevenPlayerLabel(name, points) })).queryByRole("img", { name: statusNotSettledLabel });
+    expect(marked(pitch, "Saka", "42")).toBeTruthy();
+    expect(marked(pitch, "Raya", "42")).toBeNull();
+    expect(marked(screen.getByRole("list", { name: elevenBenchLabel }), "Palmer", "—")).toBeTruthy();
+  });
+
   it("names the formation when the eleven stand in one of the league's presets", async () => {
     const preset = { name: "1-0-0-0-0-1", cells: [WINGER, KEEPER] };
     openSquad({ squad: squadOf(players), tactics: { ...lineup, presets: [preset] } });

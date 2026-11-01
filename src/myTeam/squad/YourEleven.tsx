@@ -6,6 +6,7 @@ import { PitchLines } from "../tactics/pitch/PitchLines";
 import { CELL_GRID, Shirt } from "../tactics/pitch/Pitch";
 import { PITCH_ASPECT } from "../tactics/pitch/pitchMarkings";
 import type { OpenTactics, Tactics } from "../tactics/seam";
+import { Placeholder } from "../../ui/Placeholder";
 import type { Row } from "./SquadTable";
 import {
   benchShort,
@@ -18,6 +19,7 @@ import {
   noFigureWords,
   noLineupWords,
   setLineupWords,
+  statusNotSettledLabel,
   YOUR_ELEVEN_TITLE,
 } from "./words";
 
@@ -35,7 +37,7 @@ export function formationOf({ lineup: { starters }, presets }: Pick<OpenTactics,
 }
 
 /** `players` are the squad's rows by code, for each one's season points; `selected` is the player
- *  whose panel is open, his plate white as the Tactics pitch marks a player picked up. */
+ *  whose panel is open, his tile outlined in white. */
 export function YourEleven({ tactics, players, selected }: { tactics: Tactics | undefined; players: ReadonlyMap<number, Row>; selected: number | null }) {
   const open = tactics?.kind === "open" ? tactics : null;
   const formation = open === null ? null : formationOf(open);
@@ -72,14 +74,21 @@ function ElevenPitch({ tactics, players, selected }: { tactics: OpenTactics; pla
           if (starter === undefined || member === undefined) return <li key={cellKey(cell)} aria-hidden="true" />;
           const points = pointsOf(players, starter.playerCode);
           return (
-            <li key={cellKey(cell)} aria-label={elevenPlayerLabel(member.name, points)}
+            <li
+              key={cellKey(cell)}
+              aria-label={elevenPlayerLabel(member.name, points)}
               aria-current={selected === starter.playerCode || undefined}
-              className="group relative flex min-w-0 flex-col items-center justify-center"
+              className="group flex min-w-0 items-center justify-center"
             >
-              <Shirt number={member.number} clubCode={member.clubCode} goalkeeper={area === "goalkeeper"} />
-              <span aria-hidden="true" className="flex max-w-full flex-col items-center bg-name-plate px-1 group-aria-current:bg-fact group-aria-current:text-ground">
-                <span className="max-w-full truncate font-semibold">{member.name}</span>
-                <span className="font-bold text-figure group-aria-current:text-ground">{points}</span>
+              {/* His tile: the shirt over the name plate, outlined in white while his panel is open
+                  (the approved picture), his status mark at its corner. */}
+              <span className="relative flex max-w-full flex-col items-center p-0.5 group-aria-current:outline-2 group-aria-current:outline-solid group-aria-current:outline-fact">
+                <Shirt number={member.number} clubCode={member.clubCode} goalkeeper={area === "goalkeeper"} />
+                <span aria-hidden="true" className="flex max-w-full flex-col items-center bg-name-plate px-1">
+                  <span className="max-w-full truncate font-semibold">{member.name}</span>
+                  <span className="font-bold text-figure">{points}</span>
+                </span>
+                <StatusMark player={players.get(starter.playerCode)} className="absolute top-0 right-0" />
               </span>
             </li>
           );
@@ -99,8 +108,11 @@ function ElevenBench({ tactics, players }: { tactics: OpenTactics; players: Read
         const points = pointsOf(players, code);
         return (
           <li key={code} aria-label={elevenPlayerLabel(name, points)} className="min-w-0 bg-name-plate px-1">
-            <span aria-hidden="true" className="block text-muted">
-              {benchShort(index + 1)}
+            <span className="flex items-center justify-between">
+              <span aria-hidden="true" className="text-muted">
+                {benchShort(index + 1)}
+              </span>
+              <StatusMark player={players.get(code)} />
             </span>
             <span aria-hidden="true" className="block truncate font-semibold">
               {name}
@@ -113,6 +125,12 @@ function ElevenBench({ tactics, players }: { tactics: OpenTactics; players: Read
       })}
     </ol>
   );
+}
+
+/** The status chip's placeholder for a player FPL holds a doubt about, as his row has it. */
+function StatusMark({ player, className = "" }: { player: Row | undefined; className?: string }) {
+  if (player === undefined || player.chanceOfPlaying === null) return null;
+  return <Placeholder label={statusNotSettledLabel} className={`size-3 bg-name-plate ${className}`} />;
 }
 
 /** His season points as the table shows them, "—" while none is priced. */
