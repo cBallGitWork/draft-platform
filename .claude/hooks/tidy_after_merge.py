@@ -32,10 +32,10 @@ from tidy_branch import RUN_TIMEOUT_SECONDS, TIDY_CALLS, inside, run, tidy, work
 
 STARTED = time.monotonic()  # the hook's time runs from here
 MERGED = "MERGED"
-# the hook's timeout in settings.json. Before the sweep, a merge takes at most 1 + TIDY_CALLS calls
-# and the main checkout's move four, each up to RUN_TIMEOUT_SECONDS: 165 s, so the sweep looks only
-# while it has time left for gh pr list and one leftover, and starts a leftover only while its
-# worst case fits
+# the hook's timeout in settings.json. Before the sweep, each merge takes at most 1 + TIDY_CALLS
+# calls and the main checkout's move four, each up to RUN_TIMEOUT_SECONDS (165 s for one merge), so
+# the sweep looks only while it has time left for its two lists and one leftover, and starts a
+# leftover only while its worst case fits
 HOOK_SECONDS = 180
 # how many merged pull requests, newest first, the sweep matches worktrees against: some three
 # nights of merges at the overnight pace (64 in a night, 22 Oct 2026); gh lists 200 in about a second
@@ -80,7 +80,7 @@ def sweep(folder, done, deadline):
     """Tidies each unlocked worktree, other than the main checkout and the folder the merge ran in,
     whose branch a merged pull request had and isn't in done (tidied already), while time is left
     before the deadline; the lines saying what happened."""
-    if not has_time(1 + TIDY_CALLS, deadline):  # gh pr list, then one leftover
+    if not has_time(2 + TIDY_CALLS, deadline):  # gh pr list, git worktree list, then one leftover
         return [f"{NOT_SWEPT}: the hook's time ran short before it could look."]
     try:
         merged = merged_heads(folder)

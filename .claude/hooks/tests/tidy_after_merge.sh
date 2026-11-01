@@ -162,9 +162,11 @@ sweep_by() { # seconds: sweep's lines with a deadline that far off, each call ta
   (cd "$repo" && python3 -B -c 'import sys, time; sys.path.insert(0, sys.argv[1]); import tidy_after_merge as t
 t.RUN_TIMEOUT_SECONDS = 0.1; print(" ".join(t.sweep(".", set(), time.monotonic() + float(sys.argv[2]))))' "$hooks" "$1")
 }
-out=$(sweep_by 0)
-[ "$out" = "Earlier merged branches weren't tidied: the hook's time ran short before it could look." ] ||
-  fail "tidy_after_merge.py: a sweep with no time left gave: $out"
+for seconds in 0 1.15; do  # none left, or time for 11 calls when its two lists and a leftover take 12
+  out=$(sweep_by "$seconds")
+  [ "$out" = "Earlier merged branches weren't tidied: the hook's time ran short before it could look." ] ||
+    fail "tidy_after_merge.py: a sweep with ${seconds}s left gave: $out"
+done
 out=$(GH_LIST_SLEEP=2 sweep_by 1.5)  # time to call gh pr list, none left once it answers
 [ "$out" = "2 earlier merged branch(es) wait for a later merge: the hook's time ran short." ] ||
   fail "tidy_after_merge.py: a sweep out of time gave: $out"
