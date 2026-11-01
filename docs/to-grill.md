@@ -134,6 +134,27 @@ Continue taking a manager to Tactics before the deadline so he can adjust his li
 - Where it shows: the pitch's starters, the bench, the squad list, or all of them.
 - Whether its levels (75%, 50%, 25%, out) each look different, and what a phone shows.
 
+**Team tactic per formation**: "each formation unlocks a team tactic too/penalty (so if you
+somehow 2 at the back, clean sheet points change etc) / 4-3-3 allows front 3 pressing" (Craig,
+1 Nov 2026). SPEC.md's second release has team instructions; the approved Tactics picture holds
+their places as placeholders (`docs/design/approved/team/`).
+- Which team tactic each formation unlocks, and which penalty each shape carries.
+- How big the penalties are, against roles' 0.25 points a match (`spec/05`, Roles).
+- One team tactic at a time, or several.
+- Whether it waits for the second release, with team instructions.
+
+**Formation descriptions**: the formation window shows each formation's and each classic side's
+description, and the Guide would too.
+- Where a formation's description lives: held with the formation, shown in the formation window
+  and the Guide.
+- Craig's own words for each: the classics' text is sample until he rewrites it (`spec/05`, The
+  pitch), and the modern sides are still to list.
+
+**Saved alternative looks**: "gantry is intriguing, save that for now" (Craig, 1 Nov 2026). The
+gantry look, drawn while the Tactics pictures were made, waits for the look pass that follows the
+structure pass (`docs/design/approved/README.md`).
+- Which screens it would suit, when the look pass comes.
+
 ## Suggested, not yet picked
 
 | What | Why |
@@ -146,7 +167,6 @@ Continue taking a manager to Tactics before the deadline so he can adjust his li
 | Going on holiday | CM's holiday: the manager switches the auto team on himself until a gameweek he names (`spec/09` lets him switch it on; the end date is the new part) |
 | Match rating and Man of the Match | CM's Av R and MoM: a 1–10 rating from his points against his area; MoM the top scorer in each head-to-head |
 | Stars and a dropped player's role, the gaps (`spec/05` Roles) | Found in review of stars part 2 (#11, 1 Nov 2026). (1) spec/05 still says "until stars are built, on the slot's first role"; stars are now built. (2) When the first lineup is picked again as the squad changes, a player still in the same cell keeps the role he had, and isn't re-picked by stars. That is Claude's reading, not an answer. (3) A player with stars for one of the slot's roles and "?" for another starts on the rated one, also unstated |
-| Saved tactics | FM's: a few formations kept to switch between, say one for a double gameweek |
 | Gameweeks to come after a team joins at a split | Once begun, a gameweek's fixtures are fixed (`spec/13`). Open: how the gameweeks still to come are drawn when a team joins at a split (`convex/table/playedFixtures.ts`, `scheduleAround`); goes with the split season above |
 | One player on several teams | Not now; maybe later (Craig, 20 Oct 2026). A draft is normally one owner per league; some leagues do one per division. The draft, waivers, trades and "owned in the league" all assume one owner |
 
