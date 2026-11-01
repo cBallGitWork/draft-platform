@@ -3,6 +3,7 @@ import { internal } from "../../../convex/_generated/api";
 import { MATCH_RECORDS_MOST } from "../../../convex/gameweekScorer/heldMatches";
 import { inTenths } from "../../../convex/scoring/values";
 import { REBUILD_PAGE } from "../../../convex/stats/seasonStats";
+import { REBUILD_COMMAND } from "../../../convex/stats/seasonPointsMoves";
 import { changesSeasonPoints, queueRefresh } from "../../../convex/stats/seasonPointsQueue";
 import { completeRecord } from "../../support/convex/footballRows.harness";
 import { pendingJobs, silenceConsoleError } from "../../support/convex/test.harness";
@@ -175,7 +176,7 @@ test("a re-pricing of more players than a job takes is queued as several jobs", 
 describe("a match move never stops the sync", () => {
   beforeEach(() => refresh(league));
 
-  test(`a match holding more than ${MATCH_RECORDS_MOST} records is logged and left; the sync still commits`, async () => {
+  test(`a match holding more than ${MATCH_RECORDS_MOST} records: the sync still commits, and its job logs the repair and queues nothing`, async () => {
     const { t } = league;
     const logged = silenceConsoleError();
     await t.run(async (ctx) => {
@@ -183,10 +184,14 @@ describe("a match move never stops the sync", () => {
     });
 
     await t.mutation(internal.football.footballSync.upsertFixtures, { rows: [{ ...GW2, gameweek: null }] });
-
     expect(await t.run(async (ctx) => (await ctx.db.query("fixtures").withIndex("by_code", (q) => q.eq("code", GW2.code)).unique())!.gameweek)).toBeNull();
-    expect(logged).toHaveBeenCalledWith(expect.stringContaining(`match ${GW2.code}'s players' season points weren't re-priced`));
-    expect(await pendingJobs(t, internal.stats.seasonPoints.refresh)).toHaveLength(0);
+    expect(await pendingJobs(t, internal.stats.seasonPointsMoves.repriceMatch)).toHaveLength(1);
+
+    await runQueued();
+
+    expect(logged).toHaveBeenCalledWith(expect.stringContaining(`match ${GW2.code}'s players' season points weren't re-priced; run ${REBUILD_COMMAND}`));
+    // Nobody was re-priced, so the match left still counts until a rebuild.
+    expect(await sakaPoints()).toBe(inTenths(at(SAKA_GW1, "W") + at(SAKA_GW2, "W")));
   });
 
   test("dropping last season's matches at the rollover re-prices nobody", async () => {
@@ -204,6 +209,7 @@ describe("a match move never stops the sync", () => {
       paginationOpts: { cursor: null, numItems: 10 },
     });
 
+    expect(await pendingJobs(t, internal.stats.seasonPointsMoves.repriceMatch)).toHaveLength(0);
     expect(await pendingJobs(t, internal.stats.seasonPoints.refresh)).toHaveLength(0);
   });
 });
