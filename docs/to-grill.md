@@ -151,6 +151,13 @@ description, and the Guide would too.
 - Craig's own words for each: the classics' text is sample until he rewrites it (`spec/05`, The
   pitch), and the modern sides are still to list.
 
+**Where the support striker sits**: `spec/06` has SS, and "Where SS sits is to grill: just behind
+the forward, or as a forward (Craig: "maybe its forward?")". On the formation window Craig added
+"maybe am becomes a ss (like a the 4-4-1-1)" (1 Nov 2026).
+- Does the slot behind the striker in a 4-4-1-1 (and the other classics with one) read SS, not
+  CAM?
+- Does SS stay in both attacking midfield and attack (`spec/06`, Areas each position can play)?
+
 **Saved alternative looks**: "gantry is intriguing, save that for now" (Craig, 1 Nov 2026). The
 gantry look, drawn while the Tactics pictures were made, waits until Craig goes back over the look
 once the pages' structure is designed (`docs/design/approved/README.md`: "once we design all the
@@ -165,7 +172,8 @@ places these; none says yet what it holds or does, and each is a placeholder unt
 **Home's tabs, Overview | News | Calendar**.
 - What News holds beyond Overview's News panel: every claim, drop, trade and the commissioner's
   letters, or more.
-- What Calendar holds: the league's gameweeks and deadlines, the draft, breaks, waivers' runs.
+- What Calendar holds: the league's gameweeks and deadlines, the draft, breaks (Break weeks,
+  below) and waivers' runs (Run the league, below).
 
 **The deadline strip**: the row of boxes under Home's tabs (GW9 locks, Your lineup, Claims close,
 Table).

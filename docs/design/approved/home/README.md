@@ -6,7 +6,8 @@ Route: `/home`, the Overview tab, checked on `/home?preview=manager`, and on
 ## The pictures
 
 - `1440.png`: the main board in a gameweek before its deadline, Overview open (Home E). Its
-  layout binds.
+  layout binds: where each panel sits. What a placeholder panel holds (below) binds only once its
+  grill settles it.
 
 The plan for later, each grilled when its feature is built. These show where each state's panels
 go; they don't bind until that grill settles what they hold:
