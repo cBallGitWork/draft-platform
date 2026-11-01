@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, test, vi } from "vitest";
 import { api } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
 import { FPL_DEADLINE_RULE } from "../../../convex/gameweeks/deadline";
+import { GAMEWEEKS } from "../../../convex/gameweeks/usedGameweeks";
 import { LINEUP_DUE_BEFORE_DEADLINE_MS } from "../../../convex/lineup/lineupLimits";
 import { refusals } from "../../../convex/shared/leagueAccess";
 import { MINUTE_MS, WEEK_MS } from "../../../convex/shared/time";
@@ -107,6 +108,12 @@ describe("opening Tactics", () => {
 
   test("keeps no gameweek but the next open one", async () => {
     await opensTactics(ANN, NEXT + 1);
+    expect(await openedIn()).toBeNull();
+  });
+
+  test("keeps nothing once the season is over", async () => {
+    clockTo(nextDeadline() + (GAMEWEEKS - NEXT) * WEEK_MS);
+    await opensTactics(ANN, GAMEWEEKS + 1);
     expect(await openedIn()).toBeNull();
   });
 
