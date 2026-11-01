@@ -11,7 +11,8 @@ where the two disagree, ask Craig.
 
 **Contents:** [Colour roles](#colour-roles-cm-material) · [Type](#type) · [Shape](#shape) ·
 [Marks](#marks) · [Controls](#controls) · [Never](#never) ·
-[The phone](#the-phone-to-draw-when-the-phone-design-is-grilled) · [Decided](#decided)
+[The phone](#the-phone-to-draw-when-the-phone-design-is-grilled) · [Decided](#decided) ·
+[Tables and panels](#tables-and-panels-craig-1-nov-2026)
 
 ## Colour roles (CM material)
 
@@ -50,7 +51,8 @@ lightness from easiest to hardest, so the order survives red-green colour blindn
 1 `#57e08a` ink `#04130a` · 2 `#93b83a` ink `#0c1a06` · 3 `#8a90a0` ink `#08090b` ·
 4 `#c9304f` ink `#ffffff` · 5 `#8c1236` ink `#ffffff`. Each cell carries `title` and `aria-label`
 ("Opponent BOU, home, difficulty 2 of 5, easy"; the words: very easy, easy, average, hard, very
-hard), a five-step legend sits above the table, and rows keep a 1px ground (`#111214`) gap.
+hard), with no legend (Craig, 1 Nov 2026: "remove difficulty key"), and rows keep a 1px ground
+(`#111214`) gap.
 
 The pairs meet WCAG 2.1 AA (`contrast()` in `convex/football/clubColours.ts`, 31 Oct 2026): muted on
 a panel 6.8:1 and muted straight on the page 5.6:1, both at the page's lightest with the grain counted (the worse case; 6.4:1 on the glow alone), white on the plate
@@ -91,7 +93,8 @@ name (the score).
 - **Shirts**: our own outline in the club's colours, the squad number on the chest.
 - **Stars**: SVG, filled in the figure colour, empty ones as outlines in muted grey, the set
   labelled "Role fit 4 of 5".
-- **A doubt**: an orange square with a bar, on the name plate and the squad row, labelled "Doubt".
+- **A doubt**: the orange knock chip of the status chips (Tables and panels), on the name plate and
+  after the name in a row, labelled "Doubt".
 - **Unread**: a 3px orange bar down the letter's left edge, and "Unread" for screen readers.
 - **The current one of a list**: a 3px bar down its left edge in the active tab's cyan, and
   `aria-current` for screen readers (the top bar's league list).
@@ -111,7 +114,7 @@ name (the score).
   role's, in metres (`convex/lineup/roles.ts`); `src/myTeam/tactics/pitch/RoleRuns.tsx` only draws it.
 - **Where a picked-up player can go** (spec/05, Moving players): a free cell he may move to is a
   2px dashed box in the pitch line's colour; a player he may swap with gets the same dashes round
-  his block, and in the squad table his Move reads Swap. A slot a preset asks to fill is quieter,
+  his block. A slot a preset asks to fill is quieter,
   1px dotted, so it never reads as a place to tap.
 - **The sweeper** (spec/05, The pitch): his cell drawn an eighth of a row deeper than the
   defence's line, and over the keeper's where the two meet on a phone.
@@ -197,3 +200,31 @@ bar above the pitch; the pitch's player blocks narrow to a fifth of its width. T
 - **Destructive confirms** (Craig, 31 Oct 2026): the yes on a confirm that deletes or removes is
   orange-edged, never Continue's white (#403): orange is the event colour, and a delete needs you to decide. It is the danger action (Colour roles), built once
   in `src/ui/Confirm.tsx`.
+
+### Tables and panels (Craig, 1 Nov 2026)
+
+Craig's corrections to the Tactics and Squad boards, 1 Nov 2026. They hold on every screen.
+
+- **Roles in full, never initials.** No SHS, DFB, IF or N10 anywhere: "the initials for different
+  roles......theres no standard....nobody knows what they are". A position chip (GK, CB, CDM, W,
+  ST) is fine. `scripts/design/lint.mjs` fails a board that draws a role's initials.
+- **No colour keys or legends**, for fixture difficulty, the pitch's lines or anything else:
+  "remove difficulty key, thats 'people arent stupid' / same for lines too". The colours carry it;
+  the labels for screen readers stay.
+- **No action column in a table.** "wtf is the move column". What can be done to a player (move
+  him, swap him) sits in the selected player's panel.
+- **A table's columns run Pos, then Player with his club, far left**, and his opponent beside him:
+  "names being in the middle, prob should be far left"; "position tab to left of player";
+  "opponent too far away from player".
+- **Wide or growing detail goes in the right-hand panel, never the table**: points per action, a
+  stat breakdown. "points per action row takes up so much, and that can get bigger with more
+  stats....thats what the column on the right is for".
+- **A right-hand column of titled widgets**, as FM and Fantrax do: "like fm, the use of a secondary
+  column/widget design is the play here i think". Each widget is a panel with its title plate;
+  selecting a player puts his panel at the top of the column.
+- **Status chips after the name**, CM style, square and solid (Never 2): a red cross injured, a
+  yellow card one booking from a ban, a red card suspended, an orange knock. "could you a chip
+  after the name (i like a CM like red/yellow cross/card for suspension etc)".
+- **No position group rows** (Goalkeepers, Defenders) where the position chips already group the
+  table: "the coloured chips do that work, removes clutter".
+- **A formation preset says what it does**, beside its name: "presets should describe what it does".
