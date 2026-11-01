@@ -6,7 +6,8 @@
 # folder the merge ran in stays, and says why; nothing else is touched. Earlier leftovers whose pull
 # requests merged go on a later merge, while the hook's time lasts. Then the
 # main checkout follows origin/main when detached and behind it, but not on a branch, on a commit
-# of its own, mid-bisect, when origin can't be fetched, or over a changed file it would overwrite.
+# of its own, mid-bisect, when origin can't be fetched, or over a changed file it would overwrite;
+# a builder's worktree on its branch stays on it.
 . "$(dirname "$0")/helpers.sh"
 
 repo=$tmp/tidy && git init -q -b main "$repo"
@@ -283,3 +284,12 @@ stayed || fail "tidy_after_merge.py: moved a main checkout on a branch"
 git -C "$home" checkout -q --detach && git -C "$home" worktree add -q --detach "$tmp/home-wt"
 says "moved 1 commit(s) on to origin/main" tidy_after_merge.py "$(bash_in "$tmp/home-wt" "$merge")"
 at_origin || fail "tidy_after_merge.py: a merge in a worktree didn't move the main checkout"
+
+# a builder's worktree mid-task stays on its branch while the merge moves the main checkout (#938:
+# what detached one was its reviewer's git checkout of origin/main, which guard_bash.py refuses)
+git -C "$home" worktree add -q -b feat/builder "$tmp/home-builder"
+git -C "$tmp/home-builder" "${as_tester[@]}" commit -q --allow-empty -m "the builder's first commit" && landed hook.py
+says "moved 1 commit(s) on to origin/main" tidy_after_merge.py "$(bash_in "$home" "$merge")"
+at_origin || fail "tidy_after_merge.py: a merge beside a builder's worktree didn't move the main checkout"
+[ "$(git -C "$tmp/home-builder" branch --show-current)" = feat/builder ] ||
+  fail "tidy_after_merge.py: a merge moved a builder's worktree off its branch"
