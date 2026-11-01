@@ -23,8 +23,9 @@ import sys
 
 from drift_due import GitFailed
 from hook_payload import project_dir
+from main_writes import REMOTE_MAIN
+from tidy_branch import failure_line
 
-AGAINST = "origin/main"
 SETUP = (".claude", "CLAUDE.md")  # what Claude Code loads at a session's start
 AGENTS, SKILLS = ".claude/agents/", ".claude/skills/"
 DIFFERS = 1  # git diff --quiet's exit when the trees differ
@@ -34,17 +35,16 @@ def git(folder, *args):
     """(exit code, stdout) of a git call; GitFailed past DIFFERS."""
     proc = subprocess.run(["git", "-C", folder, *args], capture_output=True, text=True)
     if proc.returncode > DIFFERS:
-        said = proc.stderr.strip().splitlines() or [f"exit {proc.returncode}"]
-        raise GitFailed(f"git {' '.join(args)} failed in {folder} ({said[0]})")
+        raise GitFailed(f"git {' '.join(args)} failed in {folder} ({failure_line(proc)})")
     return proc.returncode, proc.stdout
 
 
 def differing(folder):
-    """The setup files that differ between HEAD and AGAINST, [] when none do. Raises GitFailed."""
-    code, _ = git(folder, "diff", "--quiet", "HEAD", AGAINST, "--", *SETUP)
+    """The setup files that differ between HEAD and REMOTE_MAIN, [] when none do. Raises GitFailed."""
+    code, _ = git(folder, "diff", "--quiet", "HEAD", REMOTE_MAIN, "--", *SETUP)
     if code != DIFFERS:
         return []
-    _, out = git(folder, "diff", "--name-only", "HEAD", AGAINST, "--", *SETUP)
+    _, out = git(folder, "diff", "--name-only", "HEAD", REMOTE_MAIN, "--", *SETUP)
     return out.split()
 
 
@@ -54,21 +54,21 @@ def names(paths, prefix):
 
 
 def merged_since(folder):
-    """True if AGAINST changed the setup since this branch left it (so the checkout is behind),
+    """True if REMOTE_MAIN changed the setup since this branch left it (so the checkout is behind),
     False if only this branch changed it. Raises GitFailed."""
-    code, _ = git(folder, "diff", "--quiet", f"HEAD...{AGAINST}", "--", *SETUP)
+    code, _ = git(folder, "diff", "--quiet", f"HEAD...{REMOTE_MAIN}", "--", *SETUP)
     return code == DIFFERS
 
 
 def summary(paths, behind):
-    """The loud line for these differing paths; behind says whether AGAINST moved on."""
+    """The loud line for these differing paths; behind says whether REMOTE_MAIN moved on."""
     agents, skills = names(paths, AGENTS), names(paths, SKILLS)
     rest = [path for path in paths if not path.startswith((AGENTS, SKILLS))]
     parts = ([f"agents {', '.join(agents)}"] if agents else []) + ([f"skills {', '.join(skills)}"] if skills else [])
     parts += [f"{len(rest)} other file(s) ({', '.join(rest[:3])}{', …' if len(rest) > 3 else ''})"] if rest else []
-    why = (f"{AGAINST} has changed them since this branch left it, so restart after updating"
+    why = (f"{REMOTE_MAIN} has changed them since this branch left it, so restart after updating"
            if behind else "only this branch changes them; if it didn't mean to, restart after updating")
-    return f"SETUP DIFFERS FROM {AGAINST}: this session loaded {'; '.join(parts)} as this checkout has them: {why}."
+    return f"SETUP DIFFERS FROM {REMOTE_MAIN}: this session loaded {'; '.join(parts)} as this checkout has them: {why}."
 
 
 def main():

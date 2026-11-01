@@ -48,6 +48,9 @@ silent() { # hook payload [env...]: the hook exits 0 and prints nothing
   out=$(printf '%s' "$payload" | env "$@" "$hooks/$hook"); code=$?
   if [ "$code" -ne 0 ] || [ -n "$out" ]; then fail "$hook: expected silence, got $code: $out: $payload $*"; fi
 }
+stand_in_gh() { # the stand-in's bash script on stdin: it runs as gh, first on PATH, for the gh calls a hook makes
+  mkdir -p "$tmp/bin" && { echo '#!/bin/bash'; cat; } > "$tmp/bin/gh" && chmod +x "$tmp/bin/gh" && export PATH="$tmp/bin:$PATH"
+}
 bash_cmd() { "$jq" -nc --arg c "$1" '{tool_name:"Bash",tool_input:{command:$c}}'; }
 bash_in() { "$jq" -nc --arg c "$2" --arg d "$1" '{tool_name:"Bash",tool_input:{command:$c},cwd:$d}'; }  # dir command
 gh_call() { "$jq" -nc --arg t "mcp__github__$1" --argjson i "$2" '{tool_name:$t,tool_input:$i}'; }  # tool input-json

@@ -92,12 +92,10 @@ git -C "$repo" update-ref refs/remotes/origin/main main
 
 # the merge: a stand-in gh pr view gives $FAKE_BODY's file and $FAKE_LABELS, or fails when
 # FAKE_BODY is unset (one commit on main, so the drift gate lets every merge through)
-mkdir "$tmp/bin" && cat > "$tmp/bin/gh" <<'EOF'
-#!/bin/bash
+stand_in_gh <<'EOF'
 [ -n "${FAKE_BODY:-}" ] || { echo "no pull requests found" >&2; exit 1; }
 /usr/bin/jq -nc --rawfile b "$FAKE_BODY" --argjson l "${FAKE_LABELS:-[]}" '{body:$b,labels:$l}'
 EOF
-chmod +x "$tmp/bin/gh" && export PATH="$tmp/bin:$PATH"
 git -C "$repo" switch -q main
 merge="gh pr merge 5 --squash"
 export FAKE_BODY=$repo/pr-differs.md

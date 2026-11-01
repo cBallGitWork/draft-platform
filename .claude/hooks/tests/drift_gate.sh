@@ -11,13 +11,11 @@ commits() { # n [message]: n empty commits on main
 }
 # a stand-in gh: gh pr view prints $FAKE_TITLE as JSON, or fails when it is unset; asked for the
 # body and labels (approval_gate.py), it gives a body with no differences listed
-mkdir "$tmp/bin" && cat > "$tmp/bin/gh" <<'EOF'
-#!/bin/bash
+stand_in_gh <<'EOF'
 [ "${*: -1}" = body,labels ] && { echo '{"body":"","labels":[]}'; exit 0; }
 [ -n "${FAKE_TITLE:-}" ] || { echo "no pull requests found" >&2; exit 1; }
 printf '{"title":"%s"}\n' "$FAKE_TITLE"
 EOF
-chmod +x "$tmp/bin/gh" && export PATH="$tmp/bin:$PATH"
 merge=(gh pr merge 5 --squash --delete-branch)
 
 commits 1 "refactor: drift pass 1: x (#1)" && commits 9
