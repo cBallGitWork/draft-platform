@@ -64,5 +64,6 @@ done
 says "Can't read pull request #5's checks" guard_github.py "$(merge_tool)"
 unset FAKE_API_FAIL
 FAKE_OPEN_PRS='[]' says "no single open pull request has the branch feat/x" guard_bash.py "$(merge 'gh pr merge feat/x')"
+says "no single open pull request has the branch feat/y" guard_bash.py "$(merge 'gh pr merge feat/y')"  # another branch's pull request isn't it
 check deny guard_github.py "$(merge_tool '{"owner":"o","repo":"r"}')"
 says "Can't tell which pull request this merges" guard_github.py "$(merge_tool '{"owner":"o","pullNumber":5}')"

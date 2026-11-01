@@ -57,7 +57,7 @@ stand_in_api() { # every stand-in's answer to gh api's reads of a pull request (
 if [ "$1" = api ]; then
   case "$2" in *"${FAKE_API_FAIL:-//}"*) echo "HTTP 404: Not Found" >&2; exit 1;; esac
   runs=${FAKE_CHECK_RUNS:-'[{"name":"verify","status":"completed","conclusion":"success"}]'}
-  open_prs=${FAKE_OPEN_PRS:-'[{"number":5}]'}
+  open_prs=${FAKE_OPEN_PRS:-'[{"number":5,"head":{"ref":"feat/x"}}]'}
   case "$2" in
     *check-runs*) echo "{\"check_runs\":$runs}";;
     */status) echo "{\"statuses\":${FAKE_STATUSES:-[]}}";;

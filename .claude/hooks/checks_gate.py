@@ -17,7 +17,7 @@ from __future__ import annotations
 import json
 import re
 
-from drift_gate import merge_args, view_args
+from drift_gate import REPO_OPTS, merge_args, view_args
 from tidy_branch import call
 from where import current_branch
 
@@ -26,6 +26,7 @@ PR_URL = re.compile(r"github\.com/([^/\s]+/[^/\s]+)/pull/(\d+)")
 PASSED_RUNS = {"success", "skipped", "neutral"}
 UPDATE = ("Update the branch with main (git merge origin/main, then push), wait for its checks, "
           "then merge.")
+WHICH_PR = "Can't tell which pull request this merges, to read its checks"
 
 
 class Unread(Exception):
@@ -51,7 +52,7 @@ def _target(args, folder):
     i = 0
     while i < len(rest):
         opt, _, value = rest[i].partition("=")
-        if opt in {"-R", "--repo"}:
+        if opt in REPO_OPTS:
             repo = value or (rest[i + 1] if i + 1 < len(rest) else repo)
             i += 1 if value else 2
             continue
@@ -65,11 +66,11 @@ def _target(args, folder):
         return found.group(1), int(found.group(2))
     if ref.lstrip("#").isdigit():
         return repo, int(ref.lstrip("#"))
-    owner = repo.split("/")[0]
-    open_prs = _api(folder, f"repos/{repo}/pulls?state=open&head={owner}:{ref}")
-    if not isinstance(open_prs, list) or len(open_prs) != 1:
+    open_prs = _api(folder, f"repos/{repo}/pulls?state=open&per_page=100")
+    numbers = [pr["number"] for pr in open_prs if pr["head"]["ref"] == ref] if isinstance(open_prs, list) else []
+    if len(numbers) != 1:
         raise Unread(f"no single open pull request has the branch {ref}")
-    return repo, open_prs[0]["number"]
+    return repo, numbers[0]
 
 
 def _failing(folder, repo, sha):
@@ -113,7 +114,7 @@ def checks_problem(cmds):
         try:
             repo, number = _target(args, here)
         except (Unread, KeyError, TypeError) as error:
-            return f"Can't tell which pull request this merges, to read its checks: {error}."
+            return f"{WHICH_PR}: {error}."
         problem = pr_problem(repo, number, here)
         if problem:
             return problem
@@ -129,5 +130,5 @@ def mcp_checks_problem(tool, tool_input, folder):
         repo = f"{tool_input['owner']}/{tool_input['repo']}"
         number = int(tool_input["pullNumber"])
     except (KeyError, TypeError, ValueError) as error:
-        return f"Can't tell which pull request this merges, to read its checks: {error}."
+        return f"{WHICH_PR}: {error}."
     return pr_problem(repo, number, folder)
