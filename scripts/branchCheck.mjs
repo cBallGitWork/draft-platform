@@ -6,6 +6,11 @@ import { execFileSync } from "node:child_process";
 
 export const BASE = "origin/main";
 
+/** Where a refusal says its trailer goes: git reads trailers only from a commit message's last
+ *  paragraph, so one above a blank line, such as one above Co-Authored-By, goes unread (#930). */
+export const TRAILER_PLACE =
+  "in the commit message's last paragraph, with any other trailers such as Co-Authored-By and no blank line between";
+
 /** A check's `fail` and `git`, each saying the check's `name` on a failure, which ends the run. */
 export function branchCheck(name) {
   function fail(message) {

@@ -6,23 +6,24 @@ import { HULL_EVERTON } from "../../support/convex/matchStats.harness";
 import {
   CAT,
   EVERTON_POINTS,
-  fullTimeRecords,
   GAMEWEEK,
-  holdMovedIn,
-  holdTypoRule,
   HULL_POINTS,
   HULL_SCORER,
-  TYPO_STAT,
+  readTable,
+  scoresLeague,
+  type ScoresLeague,
+} from "../../support/convex/gameweekScores.harness";
+import {
+  fullTimeRecords,
+  holdMovedIn,
   lockMatch,
   lockMovedIn,
   MOVED_IN,
-  readTable,
-  scoresLeague,
   storeLeague,
   writeOverAnns,
   WRITTEN_OVER,
-  type ScoresLeague,
-} from "../../support/convex/gameweekScores.harness";
+} from "../../support/convex/gameweekScoresMatch.harness";
+import { holdTypoRule, TYPO_STAT } from "../../support/convex/gameweekScoresFixes.harness";
 
 // Storing a gameweek's scores once final (#418): every match in it locked, each team's points are
 // stored and read from then on, so the table never scores the whole season on each read. A gameweek

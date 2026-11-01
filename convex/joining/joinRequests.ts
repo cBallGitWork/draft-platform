@@ -11,6 +11,7 @@ import { callerEmail, getLeague, refuse, runnerOf, signedInEmail, teamOf } from 
 import { recordEvent } from "../mail/letters";
 import { delivery } from "../schema";
 import { putOnTeam } from "../leagues/teams";
+import { leagueOpens } from "../leagues/leagueOpens";
 
 // Join requests (#73; spec/13 Joining, spec/15 Joining a league): a person who opens the invite
 // link asks to join. They have at most one request waiting in a league; its runners approve it,
@@ -43,7 +44,7 @@ export const joinPage = query({
   handler: async (ctx, { token }) => {
     const link = await linkWithToken(ctx, token);
     const league = link && (await ctx.db.get("leagues", link.leagueId));
-    if (!league || league.deletion) return null;
+    if (!league || !leagueOpens(league)) return null;
     const email = await signedInEmail(ctx);
     if (email === null) return { leagueName: league.name, standing: "mayAsk" as const };
     const team = await teamOf(ctx, league._id, email);

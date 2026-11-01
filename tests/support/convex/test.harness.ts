@@ -4,6 +4,7 @@
 // on these.
 
 import { convexTest, type TestConvex as TestConvexOf } from "convex-test";
+import { getFunctionName, type FunctionReference } from "convex/server";
 import { ConvexError } from "convex/values";
 import { expect, vi } from "vitest";
 import schema from "../../../convex/schema";
@@ -56,6 +57,15 @@ export async function clockRunsTo(t: TestConvex, time: number): Promise<void> {
 export async function elapse(t: TestConvex, ms: number): Promise<void> {
   vi.advanceTimersByTime(ms);
   await t.finishInProgressScheduledFunctions();
+}
+
+/** The scheduled functions still waiting to run, in the order they were scheduled; only those of
+ *  `fn` when it is given. */
+export async function pendingJobs(t: TestConvex, fn?: FunctionReference<"mutation" | "action", "internal" | "public">) {
+  const name = fn && getFunctionName(fn);
+  return (await t.run((ctx) => ctx.db.system.query("_scheduled_functions").collect())).filter(
+    (job) => job.state.kind === "pending" && (name === undefined || job.name === name),
+  );
 }
 
 /** What a faked feed answers a URL it refuses, unless the test names another status. */
