@@ -36,8 +36,9 @@ const PUT_BACK_KEY = ESCAPE_KEY;
 /** My team's Tactics tab (#14; spec/12, My team; spec/05): the pitch where the manager sets the
  *  lineup for the next gameweek not begun and each starter's role, the squad beside it with the
  *  bench in order, and the countdown to the deadline. Each move saves itself, and Undo walks back
- *  through every move since the tab was opened (spec/05, Moving players; #851). Stars (#11) and
- *  Mail down the side are not here yet. */
+ *  through every move since the tab was opened (spec/05, Moving players; #851). A player dropped
+ *  into a slot starts on his best-star role (#11); his stars aren't shown yet, nor is Mail down the
+ *  side. */
 export function TacticsPage({ league, seam }: { league: LeagueSummary; seam: MyTeamSeam }) {
   if (league.teamName === null) {
     return (

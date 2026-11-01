@@ -86,6 +86,29 @@ describe("a team's first lineup, stored as its squad is made (#637)", () => {
     expect(await annsRows()).toMatchObject([{ fromGameweek: NEXT, firstLineup: true }]);
   });
 
+  test("each pick goes on in his best-star role, saved, and keeps it as the squad changes (#11)", async () => {
+    const [keeper] = FOUR_FOUR_TWO.starters;
+    const keeperStars = (sweeperKeeper: number) =>
+      t.run(async (ctx) => {
+        const ratings = [
+          { area: "goalkeeper" as const, role: "shotStopper", perMatch: 2, stars: 3 },
+          { area: "goalkeeper" as const, role: "sweeperKeeper", perMatch: 2, stars: sweeperKeeper },
+        ];
+        const row = await ctx.db.query("playerRoleStars").withIndex("by_playerCode", (q) => q.eq("playerCode", keeper.playerCode)).unique();
+        if (row === null) await ctx.db.insert("playerRoleStars", { playerCode: keeper.playerCode, matches: 3, ratings, refreshedAt: Date.now() });
+        else await ctx.db.patch("playerRoleStars", row._id, { ratings });
+      });
+    await keeperStars(5);
+    const by = await buildAnnsSquad();
+    const keeperIn = async () => (await annsRows())[0].starters.find((starter) => starter.playerCode === keeper.playerCode);
+    expect(await keeperIn()).toEqual({ ...keeper, role: "sweeperKeeper" });
+
+    // His stars change, then the squad does: still in his cell, he keeps the role he went on in.
+    await keeperStars(1);
+    await by.assign(FREE_AGENT, annsTeam);
+    expect(await keeperIn()).toEqual({ ...keeper, role: "sweeperKeeper" });
+  });
+
   test("a starter released from it is replaced by the first on the bench who plays his slot", async () => {
     const by = await buildAnnsSquad();
     const [keeper, ...outfield] = FOUR_FOUR_TWO.starters;

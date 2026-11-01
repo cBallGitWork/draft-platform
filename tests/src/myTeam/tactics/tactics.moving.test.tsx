@@ -25,6 +25,8 @@ import {
   RAYA,
   RICE,
   SALIBA,
+  SAVED,
+  SQUAD,
   STARTERS,
   WHITE,
   at,
@@ -37,6 +39,7 @@ import {
   targets,
   type Member,
 } from "../../../support/src/tacticsScreen.harness";
+import { openTactics } from "../../../support/src/tactics.harness";
 
 describe("moving a player", () => {
   it("picked up from the bench, is offered only the free cells he plays, and put in one", async () => {
@@ -62,6 +65,15 @@ describe("moving a player", () => {
     expect(targets()).toEqual([]);
     expect(screen.getByText(pickHintWords)).toBeTruthy();
     expect(screen.getByText(startingWords(STARTERS.length + 1))).toBeTruthy();
+  });
+
+  it("put in a free cell, starts on the role he has the most stars for there (#11)", async () => {
+    const starred: Member = { ...WHITE, stars: [{ area: "defence", role: "attackingFullBack", stars: 4 }] };
+    openTacticsTab({ tactics: openTactics({ ...SAVED, squad: SQUAD.map((each) => (each === WHITE ? starred : each)) }) });
+    await userEvent.click(await screen.findByRole("button", { name: moveLabel(WHITE.name) }));
+    await userEvent.click(screen.getByRole("button", { name: putHereLabel(WHITE.name, "defence", "right") }));
+
+    expect((screen.getByRole("combobox", { name: roleLabel(WHITE.name) }) as HTMLSelectElement).value).toBe("attackingFullBack");
   });
 
   it("moves a starter to another free cell in his area, picked up by a tap on him", async () => {
