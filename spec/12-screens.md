@@ -125,4 +125,5 @@ Managers are around the world, so every time a person reads tells it in their ow
 on a screen, in Mail's letters, and in what the site writes to them. Their zone is taken from
 their browser automatically each time the app opens, so it follows a manager who travels, and
 there is nothing to set. Until a person's zone is known, a time is told in London's, with the
-zone named (Craig, 26 Oct 2026; #442).
+zone named (Craig, 26 Oct 2026; #442). Old letters too: a letter's times are told in the reader's
+zone now, not the one it was filed in (Craig, 1 Nov 2026: "users time zone"; #912).

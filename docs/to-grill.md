@@ -106,6 +106,21 @@ liverpools team, and it goes red and white"; then "put on to do list").
   back.
 - Premier League clubs' colours come from the admin's club colours (`spec/15`).
 
+**Overriding any player's or team's score, in any gameweek**: "should be for indovoduals players
+or a team score in any gameweek, fantrax has this, i can override any player score or any team
+score from any week," (Craig, 1 Nov 2026; #903). Today `spec/14` has one player's points for one
+match, overridden by the commissioner.
+- Who can override a team's score: the admin, the commissioner, the co-commissioner.
+- A team's override: its gameweek total, or one head-to-head's score; does it move the table, and
+  does a later re-score or stat correction leave it standing?
+- "Any week": a gameweek already final included, against a final gameweek's saved total
+  (`spec/07`) and patches never touching a played gameweek (`spec/14`)?
+- A player's override in a match that hasn't locked yet: allowed, or only once it locks (as built,
+  #439)? Overriding him twice replaces the first; is there an undo?
+- A player the football data has lost (#812): can he still be overridden?
+- Where the form lives: the player card only (as built), or the matchup and the team too.
+- Fantrax's Commissioner fixes (Smaller pages, below) may be part of this.
+
 **Who's doubtful, on Tactics**: "obv we need that for tactics too" (Craig, 1 Nov 2026, on
 Continue taking a manager to Tactics before the deadline so he can adjust his lineup).
 - What marks a doubtful or out player: FPL's chance of playing (held per player), its reason

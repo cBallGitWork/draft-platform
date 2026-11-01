@@ -17,6 +17,8 @@ and head-to-head fixtures are a different screen (`spec/12`, "table and fixtures
 - P W D L GF GA GD Pts, worked out from the results.
 - Each club's mark before its name (`spec/12`, Club colours; 31 Oct 2026).
 - Live during matches, provisional until they are final.
+- A club's points deduction: the admin overrides its total points (Craig, 1 Nov 2026: "you hard
+  override the total points"; #898).
 
 ## After the mini beta
 
