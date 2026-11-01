@@ -91,6 +91,21 @@ the site works (Craig, 31 Oct 2026).
   (`spec/12`). What the card adds beyond it: a strip of every match's lines, not only those that
   move a head-to-head; a score box, and where; a live screen of its own, or league home is enough.
 
+**Team colours on the page** (Craig, 1 Nov 2026: "i notice on fm that they plates change colour
+depeding on team… go on my draft team and ive got primary colour of purple, or go to see
+liverpools team, and it goes red and white"; then "put on to do list").
+- Which surfaces take a team's colours: the page's team header and a stripe only, or the title
+  plates too. Today `spec/12` says the player card's title plate stays the plate's colour, and
+  plate.md's contrast figures are all measured on indigo.
+- The meaning colours (yellow figures, cyan readings, orange events, the difficulty fills) never
+  sit on a team colour? Text on one is white or black by contrast, falling back to indigo below
+  4.5:1?
+- A matchup shows two teams: a split header, and what happens when their colours are close.
+- Managers' own team colours: who picks them (the manager, the commissioner), when (with crests,
+  SPEC.md *Later*), and stored on the team. Once managers have picked, it can't simply be taken
+  back.
+- Premier League clubs' colours come from the admin's club colours (`spec/15`).
+
 **Who's doubtful, on Tactics**: "obv we need that for tactics too" (Craig, 1 Nov 2026, on
 Continue taking a manager to Tactics before the deadline so he can adjust his lineup).
 - What marks a doubtful or out player: FPL's chance of playing (held per player), its reason
@@ -104,6 +119,7 @@ Continue taking a manager to Tactics before the deadline so he can adjust his li
 |---|---|
 | History | Past seasons, champions, league records; where awards live after Mail files them |
 | The manager's profile | A record across every league on the platform |
+| Where fixture difficulty comes from | The screens show it (plate.md, Fixture difficulty) but nothing holds it. FPL's fixtures feed carries a difficulty per side (`team_h_difficulty`, `team_a_difficulty` in `tests/support/recorded/fpl-fixtures.json`), which no table stores today; using it, or our own measure, is Craig's call, as FPL is a feed, never the rulebook. Until then its cells are placeholders |
 | What each category counts | Every manager can read the scoring on Player scoring (`spec/14`); a glossary there of what each category counts |
 | Your account | Display name, email preferences, your leagues; leaving a league; deleting the account |
 | Going on holiday | CM's holiday: the manager switches the auto team on himself until a gameweek he names (`spec/09` lets him switch it on; the end date is the new part) |
