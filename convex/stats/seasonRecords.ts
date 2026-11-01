@@ -15,12 +15,12 @@ export type SeasonRecord = { record: Doc<"playerMatchStats">; fixture: Doc<"fixt
  *  that reads each match once across many players. */
 export type FixtureReader = (code: number) => Promise<Doc<"fixtures"> | null>;
 
-/** His records, every season's. */
-export function playerRecords(ctx: QueryCtx, playerCode: number): Promise<Doc<"playerMatchStats">[]> {
+/** His records, every season's. `cutShort` names what reading only some of them would cut short. */
+export function playerRecords(ctx: QueryCtx, playerCode: number, cutShort = "season"): Promise<Doc<"playerMatchStats">[]> {
   return takeAllOrThrow(
     ctx.db.query("playerMatchStats").withIndex("by_playerCode", (q) => q.eq("playerCode", playerCode)),
     PLAYER_RECORDS_MOST,
-    `More than ${PLAYER_RECORDS_MOST} match records are held for player ${playerCode}, so his season would be cut short`,
+    `More than ${PLAYER_RECORDS_MOST} match records are held for player ${playerCode}, so his ${cutShort} would be cut short`,
   );
 }
 

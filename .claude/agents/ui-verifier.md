@@ -73,7 +73,8 @@ Differences in the made-up figures themselves don't count. No difference is a fi
   at rest, except a bare link inside running text, which keeps a 1px white one; none yet) and the
   focus outline; the role
   under a pitch name in role text (`#caced4`) on its near-black name plate; a role's run 2px dashed white with a solid
-  arrowhead, under the names. plate.md's colour
+  arrowhead, under the names; a placeholder a 1px muted outline with nothing in it, not a stray
+  border. plate.md's colour
   table and its Marks are the whole list.
 - Archivo Narrow for data; the heavy wide Archivo only on page titles and team names; figures in
   tabular numerals.
