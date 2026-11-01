@@ -15,7 +15,7 @@ import { validateScoringSet } from "../scoring/scoringSet";
 import { scoreTeam, type PlayerMatch, type SlotPoints, type TeamPoints } from "../scoring/teamPoints";
 import { playerByCode } from "../shared/players";
 import { readOnce } from "../shared/readOnce";
-import { isWhole, MINUTES_STAT } from "../stats/matchRecords";
+import { MINUTES_STAT, statsIfWhole } from "../stats/matchRecords";
 import { heldMatches, isFinished, isMatchFinal, playsIn, type HeldMatch } from "./heldMatches";
 
 // One team's points in one gameweek (#29; spec/05, Auto-subs; spec/07): its lineup, auto-subs from
@@ -205,7 +205,7 @@ export function inMatchOf(slot: SlotPoints, matches: readonly HeldMatch[]): InMa
     pointsByMatch(slot, matches).flatMap(({ match, points }) => {
       const record = match.records.get(slot.playerCode);
       if (record === undefined) return [];
-      return [[match.fixture.code, { stats: isWhole(record) ? record.stats : null, played: record.played === true, points }] as const];
+      return [[match.fixture.code, { stats: statsIfWhole(record), played: record.played === true, points }] as const];
     }),
   );
 }
@@ -218,7 +218,7 @@ const NOT_NAMED: Readonly<Record<string, number>> = {};
  *  one. Final once the match is locked, its corrections window shut. */
 function forPoints(match: HeldMatch, code: PlayerCode): PlayerMatch {
   const record = match.records.get(code);
-  const stats = record === undefined ? (isFinished(match) ? NOT_NAMED : null) : isWhole(record) ? record.stats : null;
+  const stats = record === undefined ? (isFinished(match) ? NOT_NAMED : null) : statsIfWhole(record);
   return { record: stats, final: isMatchFinal(match), override: match.overrides.get(code) };
 }
 

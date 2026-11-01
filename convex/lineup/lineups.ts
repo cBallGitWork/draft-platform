@@ -141,6 +141,24 @@ export async function nextOpenGameweek(ctx: QueryCtx, leagueId: Id<"leagues">, s
   return nextGameweek(gameweeks, matches, (gameweek) => season.inGameweek(gameweek).deadline, await passedDeadlinesOf(ctx, leagueId), now);
 }
 
+/** The gameweek a save now goes to, or why there is none: a league made before rules were held
+ *  can't date one, and once every gameweek has begun the season is over. Each caller says what
+ *  either means for it. */
+export type SaveGameweek =
+  | { kind: "noRules" }
+  | { kind: "seasonOver" }
+  | { kind: "open"; season: SeasonRules; gameweek: number };
+
+/** The gameweek a save at `now` goes to (`nextOpenGameweek`), with the league's rules it was
+ *  dated by. */
+export async function saveGameweekOf(ctx: QueryCtx, leagueId: Id<"leagues">, now: number): Promise<SaveGameweek> {
+  const season = await seasonRules(ctx, leagueId);
+  if (season === null) return { kind: "noRules" };
+  const gameweek = await nextOpenGameweek(ctx, leagueId, season, now);
+  if (gameweek > GAMEWEEKS) return { kind: "seasonOver" };
+  return { kind: "open", season, gameweek };
+}
+
 /** Players' names by code, for the refusals. */
 async function namesOf(ctx: QueryCtx, playerCodes: Iterable<number>): Promise<Map<number, string>> {
   const names = new Map<number, string>();
@@ -159,9 +177,10 @@ export const save = mutation({
   returns: v.number(),
   handler: async (ctx, { leagueId, lineup }) => {
     const { team } = await managerOf(ctx, leagueId);
-    const season = (await seasonRules(ctx, leagueId)) ?? refuse(lineupRefusals.noRules);
-    const fromGameweek = await nextOpenGameweek(ctx, leagueId, season, Date.now());
-    if (fromGameweek > GAMEWEEKS) refuse(lineupRefusals.seasonOver);
+    const next = await saveGameweekOf(ctx, leagueId, Date.now());
+    if (next.kind === "noRules") refuse(lineupRefusals.noRules);
+    if (next.kind === "seasonOver") refuse(lineupRefusals.seasonOver);
+    const { season, gameweek: fromGameweek } = next;
 
     const squad = await squadCodes(ctx, team._id);
     const named = namedCodes(lineup);
@@ -198,10 +217,9 @@ export const save = mutation({
  *  manager saved is left to `reconciled`. Nothing is written for a league with no rules, whose
  *  gameweeks can't be dated, or once the season is over. */
 export async function pickFirstLineupAgain(ctx: MutationCtx, leagueId: Id<"leagues">, teamId: Id<"teams">): Promise<void> {
-  const season = await seasonRules(ctx, leagueId);
-  if (season === null) return;
-  const fromGameweek = await nextOpenGameweek(ctx, leagueId, season, Date.now());
-  if (fromGameweek > GAMEWEEKS) return;
+  const next = await saveGameweekOf(ctx, leagueId, Date.now());
+  if (next.kind !== "open") return;
+  const { season, gameweek: fromGameweek } = next;
   const row = await rowInForce(ctx, leagueId, teamId, fromGameweek);
   if (row !== null && row.firstLineup !== true) return;
   const squad = await squadCodes(ctx, teamId);

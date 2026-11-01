@@ -2,7 +2,7 @@ import { beforeEach, expect, test, vi } from "vitest";
 import { internal } from "../../../convex/_generated/api";
 import type { Position } from "../../../convex/positions/positionTables";
 import { ratedRoles, STARS_WINDOW } from "../../../convex/stars/stars";
-import { STARS_PAGE } from "../../../convex/stars/starsRefresh";
+import { PLAYERS_PAGE } from "../../../convex/stats/matchRecords";
 import { ARSENAL, CHELSEA, insertClubs, insertPlayers } from "../../support/convex/footballRows.harness";
 import { insertMatch, lockedRecord, refreshesRun, starsRows } from "../../support/convex/stars.harness";
 import { freshConvex, ROWS_TO_THE_CAP } from "../../support/convex/test.harness";
@@ -20,7 +20,7 @@ const EVERY_OUTFIELD_AREA: Position[] = ["WB", "SS"];
 const MATCH_PLAYERS = 40;
 
 test(
-  `a match's ${MATCH_PLAYERS} players, each with ${STARS_WINDOW} matches and every outfield role, are refreshed in full pages of ${STARS_PAGE} and on a lock`,
+  `a match's ${MATCH_PLAYERS} players, each with ${STARS_WINDOW} matches and every outfield role, are refreshed in full pages of ${PLAYERS_PAGE} and on a lock`,
   ROWS_TO_THE_CAP,
   async () => {
     const t = freshConvex();
