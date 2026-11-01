@@ -34,8 +34,7 @@ Feature 5 of [SPEC.md](../SPEC.md). Only Craig's answers: the first `/grill` and
   The shape's empty slots show where to drag (Craig, 26 Oct 2026; #14).
 - A manager can save his own presets: "no home away silly but saved presets good. They include
   formation and roles. Players change too much to save" (Craig, 1 Nov 2026). A saved preset holds
-  the formation and each slot's role, never players. Applying one reshapes the pitch as above and
-  puts each slot on its role. They come from FM's saved tactics, a to-grill row this settles.
+  the formation and each slot's role, never players.
 - The formation window keeps classic sides as ready-made formation-plus-roles, and the modern ones
   too: "4 yes and re write" (Craig, 1 Nov 2026, asked whether to keep the classic and modern
   formations). Their text is sample until Craig rewrites it.
@@ -217,8 +216,7 @@ From `/grill the Tactics pitch` (Craig, 31 Oct 2026).
 
 - A starter whose match ends with him on 0 minutes is replaced straight away, provisional like
   live points, final when the gameweek ends.
-- Every squad player not in the eleven is on the bench, in the manager's order. There are no
-  reserves: "ditch reserves. Just make bench bigger for bigger squads" (Craig, 1 Nov 2026).
+- Every squad player not in the eleven is on the bench; there are no reserves: "ditch reserves. Just make bench bigger for bigger squads" (Craig, 1 Nov 2026).
 - The manager sets the bench order with up and down on each bench player, or by dragging him
   along the bench (Craig, 26 Oct 2026; #14).
 - The first player in the manager's bench order who can play the empty slot's area takes that

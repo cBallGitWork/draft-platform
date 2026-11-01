@@ -50,7 +50,8 @@ opponent, last gameweek, form, the table). Its organisation, never its colours.
 - Right, the picked one's preview: its pitch with each slot's role, and its lines.
 - Use this applies the pick; Cancel and the cross close the window with nothing changed.
 - A preset or a classic applies its formation and all eleven roles. A plain formation keeps each
-  starter's role where his new slot offers it, as the Formation keys do.
+  starter's role where his new slot offers it, as the Formation keys do; a starter whose new slot
+  doesn't offer his role starts on his best-star role there (`spec/05`, Roles).
 - The players stay: each moves to a slot of the new shape in his own area, and anyone left without
   a slot goes to the front of the bench (`spec/05`, The pitch).
 
@@ -67,6 +68,7 @@ Each shows in its place and size until its data comes.
 | Role fit stars, the panel's stars and "Last 5 in role" | stars on screen (#11); scouts decide whose a manager sees (#375) | #11, #375 |
 | The Next column and fixture chips' colours | where fixture difficulty comes from | to-grill: Where fixture difficulty comes from |
 | The status chips after a name, and Lineup check's lines (doubt, booking, injured, suspended) | which FPL statuses each chip reads, and a count of bookings | to-grill: Status chips' data; to-grill: Who's doubtful, on Tactics |
+| The formation window's group counts (Back 3 5, Back 4 12, Back 5 4, Classics 6) | the league's presets and the classics listed; the picture's counts are sample | `spec/05`, The pitch |
 | The formation window's Modern row ("to come") | the modern sides to list | to-grill: Formation descriptions |
 
 The issues that build the rest of the screen: #845 (the pitch's chips), #847 (the squad list),

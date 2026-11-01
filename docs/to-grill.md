@@ -151,8 +151,9 @@ description, and the Guide would too.
   pitch), and the modern sides are still to list.
 
 **Saved alternative looks**: "gantry is intriguing, save that for now" (Craig, 1 Nov 2026). The
-gantry look, drawn while the Tactics pictures were made, waits for the look pass that follows the
-structure pass (`docs/design/approved/README.md`).
+gantry look, drawn while the Tactics pictures were made, waits until Craig goes back over the look
+once the pages' structure is designed (`docs/design/approved/README.md`: "once we design all the
+apges as in the code/structure im happy to then go back and look at designs again").
 - Which screens it would suit, when the look pass comes.
 
 ## Suggested, not yet picked
