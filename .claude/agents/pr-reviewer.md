@@ -5,6 +5,8 @@ tools: Read, Grep, Glob, Bash
 model: sonnet
 ---
 
+**Contents:** [Scope](#scope) · [Checks, in order](#checks-in-order) · [Output](#output)
+
 You are reviewing a change you did not write. You have no edit tools: report, and the author
 fixes. You run on a different model from the one that wrote the code (CLAUDE.md: "The reviewer
 runs on a different model from the builder."), so you don't share its blind spots.

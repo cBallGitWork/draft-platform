@@ -7,7 +7,7 @@ description: Run the local gate before a commit or a pull request (the install c
 
 ```bash
 npm run verify   # install check, vitest run, tsc on convex/ and on the app, the lint step
-                 # (eslint's hook rules), then scripts/recorded-add-only.mjs (payloads, goldens add-only),
+                 # (eslint's hook rules, no arbitrary Tailwind values), then scripts/recorded-add-only.mjs (payloads, goldens add-only),
                  # scripts/tests-kept.mjs (no test origin/main has is cut),
                  # scripts/spec-ids.mjs (spec answer IDs and tests' citations), .claude/hooks/test.sh
 npm test -- <file>   # one test file
