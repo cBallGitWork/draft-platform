@@ -4,7 +4,7 @@ import { internalAction, type MutationCtx } from "../_generated/server";
 import { failureOf, type RunOutcome } from "./feedState";
 import { sendEmail } from "../outbound/email";
 import { takeTodaysEmail } from "../outbound/emailLimit";
-import { FEED_NAMES, feedValidator, type Feed } from "../shared/feedSchedule";
+import { FAILURE_EMAIL_NAMES, failureEmailKindValidator, type FailureEmailKind } from "../shared/feedSchedule";
 import { momentIn } from "../shared/moments";
 import { PRODUCT_NAME } from "../shared/product";
 import { DAY_MS } from "../shared/time";
@@ -24,8 +24,8 @@ export function emailsNow(lastEmailedAt: number | null, failedAt: number): boole
 }
 
 /** Wording for Craig to change in the pull request. */
-function failureEmail(feed: Feed, ranAt: number, error: string, zone: string | undefined) {
-  const { name, source } = FEED_NAMES[feed];
+function failureEmail(feed: FailureEmailKind, ranAt: number, error: string, zone: string | undefined) {
+  const { name, source } = FAILURE_EMAIL_NAMES[feed];
   return {
     subject: `${PRODUCT_NAME}: ${name} failed`,
     text: [
@@ -33,13 +33,13 @@ function failureEmail(feed: Feed, ranAt: number, error: string, zone: string | u
       "",
       error,
       "",
-      "The feeds page shows how it stands now. Another failure of this feed won't email you for a day.",
+      "The feeds page shows how it stands now. Another failure like this won't email you for a day.",
     ].join("\n"),
   };
 }
 
-/** Emails the admin, at most once a day for each feed, if this run of `feed` failed. */
-export async function emailIfFailed(ctx: MutationCtx, feed: Feed, { ranAt, outcome }: { ranAt: number; outcome: RunOutcome }) {
+/** Emails the admin, at most once a day for each kind, if this run of `feed` failed. */
+export async function emailIfFailed(ctx: MutationCtx, feed: FailureEmailKind, { ranAt, outcome }: { ranAt: number; outcome: RunOutcome }) {
   const error = failureOf(outcome);
   if (error === null) return;
   const emailed = await ctx.db
@@ -57,7 +57,7 @@ export async function emailIfFailed(ctx: MutationCtx, feed: Feed, { ranAt, outco
 }
 
 export const send = internalAction({
-  args: { feed: feedValidator, ranAt: v.number(), error: v.string() },
+  args: { feed: failureEmailKindValidator, ranAt: v.number(), error: v.string() },
   returns: v.null(),
   handler: async (ctx, { feed, ranAt, error }) => {
     try {

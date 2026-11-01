@@ -3769,6 +3769,10 @@
                 {
                   "type": "literal",
                   "value": "thresholdSteps"
+                },
+                {
+                  "type": "literal",
+                  "value": "skippedLeague"
                 }
               ]
             },
