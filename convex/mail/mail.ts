@@ -4,7 +4,8 @@ import { callerEmail, refuse, runnerOf, signedInEmail } from "../shared/leagueAc
 import { PRODUCT_NAME } from "../shared/product";
 import { typedText } from "../shared/typedText";
 import { fileLetter, wholeLeague } from "./letters";
-import { BODY_MAX, LETTERS_SHOWN, SUBJECT_MAX } from "./mailLimits";
+import type { Doc } from "../_generated/dataModel";
+import { BODY_MAX, LATEST_LETTERS, LETTERS_SHOWN, SUBJECT_MAX } from "./mailLimits";
 
 // A manager's Mail (#26, spec/16): their letters, newest first, each unread until they open it,
 // and the commissioner's one-way letter to the whole league.
@@ -45,16 +46,32 @@ export const letters = query({
   handler: async (ctx) => {
     const email = await signedInEmail(ctx);
     if (email === null) return [];
+    return (await listedLetters(ctx, email)).map(summaryOf);
+  },
+});
+
+/** A letter as the screens list it. */
+const summaryOf = (row: Doc<"letters">): LetterSummary => ({
+  letterId: row._id,
+  leagueName: row.leagueName ?? PRODUCT_NAME,
+  at: row.at,
+  from: row.from ?? null,
+  subject: row.subject,
+  body: row.body,
+  read: row.readAt !== undefined,
+});
+
+/** The signed-in person's newest LATEST_LETTERS letters, and how many of `letters`' are unread:
+ *  what a screen's Mail widget shows (My team's Squad tab) without holding every letter open
+ *  (#211). Null when signed out. */
+export const latest = query({
+  args: {},
+  returns: v.union(v.object({ letters: v.array(letterSummary), unread: v.number() }), v.null()),
+  handler: async (ctx) => {
+    const email = await signedInEmail(ctx);
+    if (email === null) return null;
     const rows = await listedLetters(ctx, email);
-    return rows.map((row) => ({
-      letterId: row._id,
-      leagueName: row.leagueName ?? PRODUCT_NAME,
-      at: row.at,
-      from: row.from ?? null,
-      subject: row.subject,
-      body: row.body,
-      read: row.readAt !== undefined,
-    }));
+    return { letters: rows.slice(0, LATEST_LETTERS).map(summaryOf), unread: rows.filter((row) => row.readAt === undefined).length };
   },
 });
 

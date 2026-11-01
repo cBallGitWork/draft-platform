@@ -75,6 +75,11 @@ export async function seasonTotals(ctx: QueryCtx, season: number): Promise<Map<n
   return new Map(rows.map((row) => [row.playerCode, row.stats]));
 }
 
+/** One player's totals for `season`: nothing counted while he has no row. */
+export async function playerSeasonTotals(ctx: QueryCtx, season: number, playerCode: number): Promise<Stats> {
+  return (await totalsRow(ctx, season, playerCode))?.stats ?? {};
+}
+
 /** The newest season any player has totals in, or null with none held. A season's first row is
  *  made with its first counted record, so until the new season's first match this is the last one:
  *  Scouting shows last season's totals through the summer (#647). A row is kept when a correction

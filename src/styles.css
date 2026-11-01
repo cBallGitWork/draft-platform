@@ -70,8 +70,13 @@
   --spacing-number-box: 72px;
   /* A box for a bigger whole number: a league's most teams, an admin threshold */
   --spacing-wide-number-box: 96px;
-  /* A squad number's box on the Squad tab: room for "99" (#13) */
-  --spacing-squad-number: 48px;
+  /* A squad number's box in the Squad tab's season panel: room for "99" and its list's arrow (#13) */
+  --spacing-squad-number: 72px;
+  /* The Squad tab on the desk (its approved picture): the table grows from its basis, and the
+     right-hand column of widgets beside it from its own; with less room than both, the widgets
+     wrap under the table */
+  --flex-basis-squad-table: 640px;
+  --flex-basis-widgets: 300px;
   /* A tick box's well (plate.md, Controls) */
   --spacing-tick: 22px;
   --spacing-vidiprinter: 480px; /* the matchup's commentary, scrolled past it */

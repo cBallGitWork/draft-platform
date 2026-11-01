@@ -45,6 +45,22 @@ describe("the letters", () => {
     expect(rows[2]).not.toContain("Unread");
   });
 
+  it("one the address names opens with the page, marked read if it was unread (a screen's Mail widget links there)", async () => {
+    const app = openApp(`${MAIL_PATH}?letter=letter-2`, manager, { topBar: twoUnread, letters });
+    await screen.findByRole("list");
+    expect(shown("The text of letter 2.")).toBe(true);
+    expect(shown("The text of letter 3.")).toBe(false);
+    expect(app.mail.open).toHaveBeenCalledTimes(1);
+    expect(app.mail.open).toHaveBeenCalledWith("letter-2");
+  });
+
+  it("one the address names that is already read is opened without asking anything", async () => {
+    const app = openApp(`${MAIL_PATH}?letter=letter-1`, manager, { topBar: twoUnread, letters });
+    await screen.findByRole("list");
+    expect(shown("The text of letter 1.")).toBe(true);
+    expect(app.mail.open).not.toHaveBeenCalled();
+  });
+
   it("opening an unread one shows its text and marks it read; opening a read one asks nothing", async () => {
     const app = openApp(MAIL_PATH, manager, { topBar: twoUnread, letters });
     await screen.findByRole("list");

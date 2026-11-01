@@ -2,13 +2,11 @@ import { v } from "convex/values";
 import { mutation } from "../_generated/server";
 import { managerOf, refuse } from "../shared/leagueAccess";
 import { placeOf } from "./squadPlace";
+import { HIGHEST_NUMBER, LOWEST_NUMBER } from "./squadNumberRange";
 
 // Squad numbers (#13, spec/05 Squad numbers; Craig, 26 Oct 2026): a manager gives his own players
 // numbers on My team's Squad tab, any from 1 to 99, two of them alike if he likes. The number is
 // held on the player's squad row, so a move or a release ends it (squads.ts).
-
-const LOWEST_NUMBER = 1;
-const HIGHEST_NUMBER = 99;
 
 export const squadNumberRefusals = {
   notInSquad: "That player isn't in your squad.",

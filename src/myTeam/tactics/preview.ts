@@ -50,6 +50,8 @@ const squad = PLAYERS.map(([playerCode, name, clubShortName, positions]) => ({
   // No stars in the preview: each player dropped starts on the slot's first role.
   stars: [],
 }));
+/** The squad, for the Squad tab's preview (../preview.ts), so both tabs show the same players. */
+export const previewSquad = squad;
 const positionsOf = new Map(squad.map(({ playerCode, positions }) => [playerCode, positions]));
 const nameOf = (playerCode: number) => squad.find((member) => member.playerCode === playerCode)!.name;
 

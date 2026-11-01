@@ -181,6 +181,7 @@ import type * as signIn_signInLinks from "../signIn/signInLinks.js";
 import type * as signIn_signInReplies from "../signIn/signInReplies.js";
 import type * as signIn_timeZone from "../signIn/timeZone.js";
 import type * as squads_areaMinimums from "../squads/areaMinimums.js";
+import type * as squads_squadNumberRange from "../squads/squadNumberRange.js";
 import type * as squads_squadNumbers from "../squads/squadNumbers.js";
 import type * as squads_squadPlace from "../squads/squadPlace.js";
 import type * as squads_squads from "../squads/squads.js";
@@ -399,6 +400,7 @@ declare const fullApi: ApiFromModules<{
   "signIn/signInReplies": typeof signIn_signInReplies;
   "signIn/timeZone": typeof signIn_timeZone;
   "squads/areaMinimums": typeof squads_areaMinimums;
+  "squads/squadNumberRange": typeof squads_squadNumberRange;
   "squads/squadNumbers": typeof squads_squadNumbers;
   "squads/squadPlace": typeof squads_squadPlace;
   "squads/squads": typeof squads_squads;
