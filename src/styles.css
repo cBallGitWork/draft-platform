@@ -82,10 +82,10 @@
   --spacing-vidiprinter: 480px; /* the matchup's commentary, scrolled past it */
   --spacing-tick-mark: 14px; /* the tick drawn in it */
   /* The Tactics tab: the squad beside the pitch on the desk; the pitch's width on the desk, the
-     approved Tactics picture's (a phone's is the screen's width, its rows checked by
-     tests/smoke/smoke.spec.ts); a player's shirt */
+     approved Tactics picture's 340px and the room a player's block needs, so each stays in his
+     cell (a phone's is the screen's width; both checked by tests/smoke/smoke.spec.ts); a shirt */
   --flex-basis-squad: 320px;
-  --spacing-pitch-desk: 340px;
+  --spacing-pitch-desk: 360px;
   --spacing-shirt: 32px;
   /* The Tactics tab's right-hand column of widgets on the desk (plate.md, Tables and panels), and a
      position chip's least width, so GK and CDM line up down the Selection table */

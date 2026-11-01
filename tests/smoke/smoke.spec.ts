@@ -136,9 +136,9 @@ test.describe("dev server, signed out of Convex", { tag: "@dev" }, () => {
         expect(box.height, "its length, against the window's height").toBeLessThanOrEqual(viewport.height);
         if (viewport === PHONE) expect(box.width, "the phone's pitch fills the panel").toBeGreaterThan(viewport.width - PHONE_GUTTERS);
         else {
-          // On the desk it is the approved Tactics picture's width, beside the Selection table.
+          // On the desk it stands beside the Selection table at its own width (the approved picture).
           const width = parseFloat(await page.evaluate(() => getComputedStyle(document.documentElement).getPropertyValue("--spacing-pitch-desk")));
-          expect(box.width, "the desk's pitch is the picture's width").toBeCloseTo(width, 0);
+          expect(box.width, "the desk's pitch width").toBeCloseTo(width, 0);
         }
       });
 

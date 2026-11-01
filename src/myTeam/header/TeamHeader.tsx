@@ -107,7 +107,7 @@ export function OpponentLink({ game, teamId }: { game: TeamGame; teamId: Standin
   const name = againstWords(game.against);
   if (game.against.kind === "bye") return <span className="text-muted">{name}</span>;
   return (
-    <Link {...matchupLink(teamId, game.gameweek)} className="display-face">
+    <Link {...matchupLink(teamId, game.gameweek)} className="inline-flex min-h-tap items-center gap-1 display-face lg:min-h-0">
       {name} <span aria-hidden="true">{nextGlyph}</span>
     </Link>
   );
