@@ -22,6 +22,9 @@ import { adminEmail, normaliseEmail } from "./allowedEmails";
 /** The provider's id, which the browser names to sign in this way. */
 export const TEST_ACCOUNT_PROVIDER = "test-account";
 
+/** What Convex Auth's retrieveAccount throws for an account not made yet. */
+const NO_ACCOUNT_YET = "InvalidAccountId";
+
 /** The test account's email and secret, or null while either is unset: the path is off. */
 function testAccount(): { email: string; secret: string } | null {
   const email = process.env[TEST_ACCOUNT_EMAIL_SETTING];
@@ -50,7 +53,11 @@ export const TestAccount = ConvexCredentials<DataModel>({
     // Both checks always run, so a wrong email takes as long as a wrong secret.
     const rightSecret = await sameSecret(secret, account.secret);
     if (normaliseEmail(email) !== account.email || !rightSecret) return null;
-    const existing = await retrieveAccount(ctx, { provider: TEST_ACCOUNT_PROVIDER, account: { id: account.email } }).catch(() => null);
+    // Convex Auth throws this one message when the account isn't made yet; anything else is real.
+    const existing = await retrieveAccount(ctx, { provider: TEST_ACCOUNT_PROVIDER, account: { id: account.email } }).catch((error: unknown) => {
+      if (error instanceof Error && error.message === NO_ACCOUNT_YET) return null;
+      throw error;
+    });
     if (existing) return { userId: existing.user._id };
     const { user } = await createAccount(ctx, {
       provider: TEST_ACCOUNT_PROVIDER,
