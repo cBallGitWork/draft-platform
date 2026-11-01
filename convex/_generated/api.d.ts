@@ -76,6 +76,8 @@ import type * as lineup_autoSubs from "../lineup/autoSubs.js";
 import type * as lineup_firstLineup from "../lineup/firstLineup.js";
 import type * as lineup_firstLineupBackfill from "../lineup/firstLineupBackfill.js";
 import type * as lineup_lineup from "../lineup/lineup.js";
+import type * as lineup_lineupDue from "../lineup/lineupDue.js";
+import type * as lineup_lineupLimits from "../lineup/lineupLimits.js";
 import type * as lineup_lineupWords from "../lineup/lineupWords.js";
 import type * as lineup_lineups from "../lineup/lineups.js";
 import type * as lineup_pitch from "../lineup/pitch.js";
@@ -279,6 +281,8 @@ declare const fullApi: ApiFromModules<{
   "lineup/firstLineup": typeof lineup_firstLineup;
   "lineup/firstLineupBackfill": typeof lineup_firstLineupBackfill;
   "lineup/lineup": typeof lineup_lineup;
+  "lineup/lineupDue": typeof lineup_lineupDue;
+  "lineup/lineupLimits": typeof lineup_lineupLimits;
   "lineup/lineupWords": typeof lineup_lineupWords;
   "lineup/lineups": typeof lineup_lineups;
   "lineup/pitch": typeof lineup_pitch;

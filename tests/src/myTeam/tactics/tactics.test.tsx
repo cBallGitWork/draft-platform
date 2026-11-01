@@ -67,6 +67,19 @@ describe("reaching it", () => {
     const app = openTacticsTab({}, commissioner);
     expect(await screen.findByText(noTeamWords)).toBeTruthy();
     expect(app.myTeam.useTactics).not.toHaveBeenCalled();
+    expect(app.myTeam.useTacticsOpened).not.toHaveBeenCalled();
+  });
+
+  it("tells the server it is open in the gameweek it shows, so Continue moves on (spec/12)", async () => {
+    const app = openTacticsTab();
+    await screen.findByRole("group", { name: pitchLabel });
+    expect(app.myTeam.useTacticsOpened).toHaveBeenLastCalledWith(league.leagueId, TACTICS_GAMEWEEK);
+  });
+
+  it("tells it of no gameweek while there is none to set", async () => {
+    const app = openTacticsTab({ tactics: { kind: "seasonOver" } });
+    await screen.findByText(seasonOverWords);
+    expect(app.myTeam.useTacticsOpened).toHaveBeenLastCalledWith(league.leagueId, null);
   });
 });
 

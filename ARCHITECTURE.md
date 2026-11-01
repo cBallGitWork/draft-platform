@@ -201,7 +201,9 @@ Tactics pitch are built with no package, and components, motion, forms and chart
   lineup's included: that one (`firstLineup: true`) is picked again on each squad change until the
   manager saves (`convex/lineup/lineups.ts`). A league's deadline for a gameweek is kept once it passes, in
   `passedDeadlines` (#150, `convex/gameweeks/deadlineRecorder.ts`), so it stays put if the first
-  match is then postponed.
+  match is then postponed. The gameweek a manager last opened Tactics in is `tacticsOpenedInGameweek`
+  on his team's row, so Continue stops leading him there on every device (#526,
+  `convex/lineup/lineupDue.ts`); a new manager of a vacated team starts without it.
 - Leagues (#24): `leagues`, `teams` and `leagueEvents`, people known by their email, so one can be
   named before they have an account; joining's rows are `invites`, `inviteLinks` and
   `joinRequests` (#73).

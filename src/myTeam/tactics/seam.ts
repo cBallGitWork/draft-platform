@@ -20,4 +20,8 @@ export type TacticsSeam = {
   useTactics(leagueId: Id<"leagues">, now: number): Tactics | undefined;
   /** The changes to it (a hook). */
   useLineupChanges(): LineupChanges;
+  /** Tells the server the manager opened the tab, once a visit, when it first shows a `gameweek`
+   *  (null until then), so Continue stops leading him here for it (spec/12; a hook). A gameweek
+   *  that changes while the tab stays open tells nothing. */
+  useTacticsOpened(leagueId: Id<"leagues">, gameweek: number | null): void;
 };

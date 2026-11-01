@@ -41,7 +41,9 @@ vi.mock("convex/react", async () => {
           if (convex.unreadFails) throw convex.unreadFails;
           return 0;
         }),
-        // What the leagues page and the patch banner read: no ended invite, no patch waiting.
+        // What the top bar, the leagues page and the patch banner read: no lineup due, no ended
+        // invite, no patch waiting.
+        "lineup/lineupDue:isDue": unlessSkipped(() => false),
         "joining/endedInvite:mine": unlessSkipped(() => null),
         "scoring/patchNotes:banner": unlessSkipped(() => null),
       },

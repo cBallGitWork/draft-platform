@@ -55,6 +55,7 @@ export function fakeTactics({ tactics = openTactics(), saveAnswer = TACTICS_GAME
       letGo = null;
     },
     useLineupChanges: vi.fn<TacticsSeam["useLineupChanges"]>(() => changes),
+    useTacticsOpened: vi.fn<TacticsSeam["useTacticsOpened"]>(),
     lineupChanges: changes,
   };
 }
