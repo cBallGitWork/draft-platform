@@ -154,8 +154,9 @@ description, and the Guide would too.
 **Where the support striker sits**: `spec/06` has SS, and "Where SS sits is to grill: just behind
 the forward, or as a forward (Craig: "maybe its forward?")". On the formation window Craig added
 "maybe am becomes a ss (like a the 4-4-1-1)" (1 Nov 2026).
-- Does the slot behind the striker in a 4-4-1-1 (and the other classics with one) read SS, not
-  CAM?
+- Does the slot behind the striker in a 4-4-1-1 (and the other classics with one) always read SS,
+  not CAM? "no not always, different roles" (Craig, 1 Nov 2026): it depends on the role played
+  there, so what decides the label is still open.
 - Does SS stay in both attacking midfield and attack (`spec/06`, Areas each position can play)?
 
 **Saved alternative looks**: "gantry is intriguing, save that for now" (Craig, 1 Nov 2026). The
@@ -218,8 +219,7 @@ when its feature is built (`docs/design/approved/home/`).
 
 **Break weeks**: "when its international break, we lock everything and give the league a break"
 (Craig, 1 Nov 2026; https://trello.com/c/YD6AFJW2).
-- It reopens `spec/13`, Gameweeks: an unticked gameweek scores nothing, but "Waivers, free agency
-  and trades carry on through it". Does a break lock claims and trades too, as the picture has it?
+- Claims, waivers and trades lock too: settled in `spec/13`, Gameweeks (Craig, 1 Nov 2026: "yes").
 - Every international break, or the commissioner's pick, as gameweeks are ticked now.
 - What Home and Mail say during one (the break picture).
 
