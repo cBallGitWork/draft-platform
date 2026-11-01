@@ -50,3 +50,6 @@ silent() { # hook payload [env...]: the hook exits 0 and prints nothing
 }
 bash_cmd() { "$jq" -nc --arg c "$1" '{tool_name:"Bash",tool_input:{command:$c}}'; }
 bash_in() { "$jq" -nc --arg c "$2" --arg d "$1" '{tool_name:"Bash",tool_input:{command:$c},cwd:$d}'; }  # dir command
+gh_call() { "$jq" -nc --arg t "mcp__github__$1" --argjson i "$2" '{tool_name:$t,tool_input:$i}'; }  # tool input-json
+template_body() { sed 's/^Closes #.*/Closes #12/' "$hooks/../../.github/pull_request_template.md"; }  # the whole template, unsigned
+signed() { awk '{ print } /^## Fresh-eyes review/ { print "*Reviewer: pr-reviewer (opus), 2026-10-22, abc..def*" }'; }  # stdin, signed by pr-reviewer

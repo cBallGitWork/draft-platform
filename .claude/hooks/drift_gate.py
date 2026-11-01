@@ -49,10 +49,11 @@ def view_args(args):
     return out
 
 
-def title_of(args, folder):
-    """The pull request's title; raises ValueError saying why it can't be read."""
+def pr_view(args, folder, fields):
+    """gh pr view's JSON object for the pull request these gh pr merge args name, holding these
+    fields (a list); raises ValueError saying why it can't be read. approval_gate.py reads it too."""
     try:
-        proc = subprocess.run(["gh", "pr", "view", *view_args(args), "--json", "title"],
+        proc = subprocess.run(["gh", "pr", "view", *view_args(args), "--json", ",".join(fields)],
                               cwd=folder, capture_output=True, text=True)
     except OSError as error:
         raise ValueError(f"gh couldn't run ({error})") from error
@@ -60,9 +61,18 @@ def title_of(args, folder):
         said = proc.stderr.strip().splitlines() or [f"exit {proc.returncode}"]
         raise ValueError(f"gh pr view failed ({said[0]})")
     try:
-        return json.loads(proc.stdout)["title"]
-    except (ValueError, KeyError, TypeError) as error:
-        raise ValueError(f"gh pr view gave no title ({error})") from error
+        found = json.loads(proc.stdout)
+        missing = [field for field in fields if field not in found]
+    except (ValueError, TypeError) as error:
+        raise ValueError(f"gh pr view gave no {', '.join(fields)} ({error})") from error
+    if missing:
+        raise ValueError(f"gh pr view gave no {', '.join(missing)}")
+    return found
+
+
+def title_of(args, folder):
+    """The pull request's title; raises ValueError saying why it can't be read."""
+    return pr_view(args, folder, ["title"])["title"]
 
 
 def merge_problem(cmds):

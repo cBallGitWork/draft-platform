@@ -4,7 +4,9 @@
 Denies staging everything, force pushes, pushing to main, a gh api write to main (main_writes.py),
 committing or pushing while on main, publishing a word on Craig's private list (private_words.py),
 a pull request body that breaks the template's rules or a title far too long (pr_body.py), a gh pr
-merge once a drift pass is due unless it is one (drift_gate.py), and a read-only agent's git
+merge once a drift pass is due unless it is one (drift_gate.py), a gh pr merge of a screen whose
+differences from its approved picture wait for Craig, or adding his craig-approved label
+(approval_gate.py), and a read-only agent's git
 command that changes a checkout of this repo (read_only.py). Every command the line runs is
 checked, those it passes to sh -c, eval, $(…), a heredoc, here-string or pipe into a shell (or a
 group around one), find -exec or ssh included, whatever its redirections (commands.py; where.py
@@ -21,6 +23,7 @@ import json
 import re
 import sys
 
+from approval_gate import approval_problem, label_problem
 from commands import XARGS, Unbalanced, Unreadable, UnreadableStdin, commands, runs_unknown, short_flags
 from drift_gate import merge_problem
 from hook_payload import project_dir
@@ -168,7 +171,8 @@ def decide(cmd, cwd, agent_type=None):
     except UnreadableStdin:
         return UNREADABLE_STDIN
     problem = private_word_problem(cmd, cmds, cwd) or pr_body_problem(cmds, cwd) or gh_api_problem(cmds)
-    problem = problem or merge_problem(cmds) or read_only_problem(cmds, cwd, agent_type)
+    problem = problem or label_problem(cmds) or merge_problem(cmds) or approval_problem(cmds)
+    problem = problem or read_only_problem(cmds, cwd, agent_type)
     if problem:
         return problem
     switched, switched_to_main = False, False

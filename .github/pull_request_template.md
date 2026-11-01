@@ -18,12 +18,16 @@ an email sent)? And the blast radius: which screen, league or job it can break. 
 - [ ] the tests at this feature's seam pass, and were run
 - [ ] shot at 1440 and looked at, and at 390 checked for sideways scroll and clipping, if anything visible changed
 - [ ] a new or changed picture in `docs/design/approved/`: drawn through `/design`, the review panel's findings and Craig's yes quoted below
-- [ ] approved vs built: for a screen with a picture in `docs/design/approved/`, ui-verifier's numbered differences are pasted below; none, or Craig said yes to them
+- [ ] approved vs built: for a screen with a picture in `docs/design/approved/`, ui-verifier's block is pasted under Approved vs built; none, or Craig added the `craig-approved` label
 - [ ] `npm run build` and `npm run smoke` run, if a screen or the router changed
 - [ ] `/refactor` run on the branch (one run; it makes its two passes itself); a drift pass is due when the session-start note says `drift pass due` (`.claude/hooks/drift_due.py`), and past it `gh pr merge` is refused until the pass merges (`.claude/hooks/drift_gate.py`)
 - [ ] pr-reviewer run on the branch; its verdict is below
 - [ ] docs updated in this branch, not a follow-up
 - [ ] staged by named path
+
+## Approved vs built
+
+<!-- For a branch that changes a screen with a picture in docs/design/approved/: paste ui-verifier's block, "matches the approved picture" or every difference numbered, ending in its "*Verifier: ui-verifier (" line. With a difference listed, gh pr merge waits for Craig's craig-approved label (.claude/hooks/approval_gate.py). Otherwise: none. -->
 
 ## Fresh-eyes review
 
