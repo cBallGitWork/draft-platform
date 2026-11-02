@@ -1,0 +1,28 @@
+# Approves a pull request labelled `lane:auto` so it can merge without Craig (docs/PLAN.md, "Removing the bottleneck").
+# The `main` ruleset needs one approval; this bot supplies it. The bot is not a Code Owner, so a pull request that
+# touches an outcome path in .github/CODEOWNERS still waits for Craig. Checks still gate the merge: the approval
+# does not merge anything, and `lane:craig` on the same pull request withholds it.
+# Needs the repo setting "Allow GitHub Actions to create and approve pull requests".
+name: lane-auto
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, labeled, unlabeled]
+
+permissions:
+  pull-requests: write
+
+jobs:
+  approve:
+    if: >-
+      contains(github.event.pull_request.labels.*.name, 'lane:auto')
+      && !contains(github.event.pull_request.labels.*.name, 'lane:craig')
+      && !github.event.pull_request.draft
+      && github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - run: gh pr review "$PR" --approve --repo "$GITHUB_REPOSITORY" --body "Approved by the lane:auto rule. The checks decide the merge."
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR: ${{ github.event.pull_request.number }}
