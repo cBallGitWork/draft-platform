@@ -24,12 +24,12 @@ import sys
 import time
 
 from commands import commands
-from pull_request import merge_args, view_args
 from follow_main import MAIN_MOVE_CALLS, NOT_MOVED, follow_main
 from hook_payload import BadPayload, field, project_dir, read_payload, report
 from parsing import Unbalanced, Unreadable
-from stdin_reading import UnreadableStdin
+from pull_request import merge_args, view_args
 from run_command import RUN_TIMEOUT_SECONDS, run
+from stdin_reading import UnreadableStdin
 from tidy_branch import TIDY_CALLS, inside, tidy, worktrees
 
 STARTED = time.monotonic()  # the hook's time runs from here

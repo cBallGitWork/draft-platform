@@ -1,6 +1,6 @@
 """Running a command for a hook and saying why it failed: one call's time limit, its exit code and
-output, and a failure's first line. Every hook that runs git, gh or lsof uses these, so a slow or
-hung call costs the same everywhere (#1013). Stdlib only, Python 3.9+.
+output, and a failure's first line, shared by the hooks that run git, gh or lsof for a verdict
+(#1013). Stdlib only, Python 3.9+.
 """
 
 from __future__ import annotations
