@@ -49,7 +49,8 @@ export async function fileLetter(
 
 /** Files `letter` from the site, in no league's name, to everyone with a part in any league, one
  *  copy each however many leagues they are in. The copy to `by`, who did what it reports, is filed
- *  read. */
+ *  read. Past LEAGUES_READ_MOST leagues it throws, and the change it reports with it, never
+ *  reaching only some. */
 export async function fileSiteLetter(ctx: MutationCtx, letter: Written, by: string): Promise<void> {
   const leagues = await takeAllOrThrow(
     ctx.db.query("leagues"),
