@@ -56,7 +56,8 @@ somepoint").
   gameweek is beyond that, and how it maps to FPL's rounds.
 
 **Makeshift positions, after the rest is built** (Craig, 24-25 Oct 2026; SPEC.md, Later). For now
-a player fills only his own areas, and only a keeper plays in goal, both ways (`spec/05`).
+a player fills only his own areas, but for a preset switch's last empty slots, filled out of
+position with no penalty yet (Craig, 2 Nov 2026), and only a keeper plays in goal, both ways (`spec/05`).
 - What it must stop: "we want to stop people just playing players in good teams at the back to get
   easy clean sheets", but not "oh he didnt play cb so no points"; "i like the fun idea of putting
   someobdy as a make shift striker".

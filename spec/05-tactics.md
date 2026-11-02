@@ -65,6 +65,12 @@ Feature 5 of [SPEC.md](../SPEC.md). Only Craig's answers: the first `/grill` and
 - For now that is the hard rule: a player fills only slots in the areas his positions play (Craig,
   25 Oct 2026: "for now im happy to just do hard rules on poisitons while we build the rest").
   Makeshift play comes later (SPEC.md, Later).
+- The one exception, for now, is a preset switch: it is never refused. "that means a user cant use
+  a formation, there should be a way (we talked about the game not getting in the way, out of
+  position players just get punished)" (Craig, 1 Nov 2026, #1025); "least friction possible"
+  (2 Nov 2026). Until makeshift play is grilled, after the bench has filled the slots it plays,
+  "the empty slots are filled from the bench with players out of position, with no penalty yet"
+  (Craig, 2 Nov 2026, choosing that over leaving them empty with a note).
 - Only a keeper plays in goal, and a keeper plays only in goal, always: "only keeper goes keeper"
   (25 Oct 2026).
 - Each area's minimum and maximum are league rules. There are no defaults yet: leagues get a lot
