@@ -1,6 +1,7 @@
 # Builds one issue into one pull request when Craig puts the `build` label on it (docs/PLAN.md, "The pipeline").
 # It opens the pull request and stops: CI runs on it, and merging follows the repo's rules, never this job.
-# Bills to ANTHROPIC_API_KEY (a GitHub secret), so the spend cap in Anthropic's console is the limit.
+# Bills to Craig's Claude subscription when the CLAUDE_CODE_OAUTH_TOKEN secret is set (made with `claude setup-token`);
+# otherwise to ANTHROPIC_API_KEY, so the spend cap in Anthropic's console is the limit.
 name: claude-build
 
 on:
@@ -34,8 +35,10 @@ jobs:
       - run: npm ci
       - uses: anthropics/claude-code-action@v1
         with:
-          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
-          claude_args: --max-turns 60
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          anthropic_api_key: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN == '' && secrets.ANTHROPIC_API_KEY || '' }}
+          # the agent runs headless, so every tool it needs is named here or it is denied
+          claude_args: --max-turns 60 --allowedTools "Read,Write,Edit,Glob,Grep,Bash(git:*),Bash(gh:*),Bash(npm:*),Bash(npx:*),Bash(node:*),Bash(ls:*),Bash(cat:*),Bash(mkdir:*)"
           prompt: |
             Build GitHub issue #${{ github.event.issue.number }} in this repository: read it with `gh issue view`.
             Read CLAUDE.md first and follow it: one branch, one pull request, named paths staged, never a commit on main.

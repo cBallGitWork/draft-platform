@@ -74,7 +74,7 @@ How it runs on its own:
 
 Autonomous merging starts only after Code Owners review is switched on in the `main` ruleset and the dry run has passed, so the guard exists before the thing it guards.
 
-The Claude Code GitHub Action does the build, opening pull requests through the Claude GitHub App so CI runs on them. Each run has a turn limit, a 30-minute timeout and a shared concurrency group, and bills to an Anthropic API key with a monthly cap rather than Craig's subscription. Merges go to staging first; production is a manual promote, with a backup before every production deploy. A red check goes back to Claude, never to Craig.
+The Claude Code GitHub Action does the build, opening pull requests through the Claude GitHub App so CI runs on them. Each run has a turn limit, a 30-minute timeout and a shared concurrency group, and bills to Craig's Claude subscription (a token from `claude setup-token`), falling back to an Anthropic API key with a monthly cap when the token is not set. Merges go to staging first; production is a manual promote, with a backup before every production deploy. A red check goes back to Claude, never to Craig.
 
 ## The beta: a working product
 
