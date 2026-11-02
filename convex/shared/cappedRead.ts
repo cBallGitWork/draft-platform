@@ -13,6 +13,9 @@ export async function takeShown<Row>(query: { take(n: number): Promise<Row[]> },
   return { rows: rows.slice(0, most), more: rows.length > most };
 }
 
-/** The most leagues one read across every league takes (a lock storing scores, a positions
- *  cut-off); past it this throws. The closed beta has a handful. */
-export const LEAGUES_STORED_MOST = 200;
+/** The most leagues one read across every league takes: a lock storing scores, a positions
+ *  cut-off, recording deadlines, a letter from the site, the first-lineup backfill, a stars
+ *  refresh. Past it the read throws, failing closed rather than leave a league out; by then the
+ *  work wants splitting across transactions (#214). The closed beta has a handful; the figure is
+ *  Claude's sizing, not yet Craig's. */
+export const LEAGUES_READ_MOST = 200;

@@ -2,7 +2,7 @@ import { v } from "convex/values";
 import type { Doc, Id } from "../_generated/dataModel";
 import { mutation, type MutationCtx, type QueryCtx } from "../_generated/server";
 import { leagueDeadlinesIn, scheduledMatches } from "../gameweeks/leagueDeadlines";
-import { LEAGUES_STORED_MOST, takeAllOrThrow } from "../shared/cappedRead";
+import { LEAGUES_READ_MOST, takeAllOrThrow } from "../shared/cappedRead";
 import { adminOf, refuse } from "../shared/leagueAccess";
 import { FIRST_THRESHOLDS, type ChangeThresholds } from "./positionChanges";
 import { START_WINDOW, type ApproveMode, type PositionInputs } from "./positions";
@@ -106,7 +106,7 @@ async function judgedBefore(ctx: QueryCtx, positionsFor: PositionsFor): Promise<
 }
 
 async function everyLeagueId(ctx: QueryCtx): Promise<Id<"leagues">[]> {
-  const leagues = await takeAllOrThrow(ctx.db.query("leagues"), LEAGUES_STORED_MOST, `More than ${LEAGUES_STORED_MOST} leagues are held, so a position change could be judged at the wrong deadline`);
+  const leagues = await takeAllOrThrow(ctx.db.query("leagues"), LEAGUES_READ_MOST, `More than ${LEAGUES_READ_MOST} leagues are held, so a position change could be judged at the wrong deadline`);
   return leagues.map(({ _id }) => _id);
 }
 

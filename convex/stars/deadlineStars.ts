@@ -4,12 +4,11 @@ import type { Doc, Id } from "../_generated/dataModel";
 import { internalMutation, type QueryCtx } from "../_generated/server";
 import { heldFixtures } from "../gameweekScorer/heldMatches";
 import { lineupsInGameweek } from "../lineup/lineups";
-import { takeAllOrThrow } from "../shared/cappedRead";
+import { LEAGUES_READ_MOST, takeAllOrThrow } from "../shared/cappedRead";
 import { logFailure } from "../shared/errors";
 import { teamsOf } from "../shared/leagueAccess";
 import { MOST_TEAMS } from "../leagues/leagueLimits";
 import { statusOf } from "../stats/matchStats";
-import { LEAGUES_RECORDED_MOST } from "../gameweeks/deadlineRecorder";
 import { starsOfPlayers } from "./playerStars";
 import type { RoleStars } from "./starsShape";
 
@@ -61,7 +60,7 @@ export const keepMissing = internalMutation({
   args: {},
   returns: v.null(),
   handler: async (ctx) => {
-    const leagues = await takeAllOrThrow(ctx.db.query("leagues"), LEAGUES_RECORDED_MOST, `More than ${LEAGUES_RECORDED_MOST} leagues are held, so some would keep no stars`);
+    const leagues = await takeAllOrThrow(ctx.db.query("leagues"), LEAGUES_READ_MOST, `More than ${LEAGUES_READ_MOST} leagues are held, so some would keep no stars`);
     for (const league of leagues) {
       const latest = await ctx.db
         .query("passedDeadlines")
