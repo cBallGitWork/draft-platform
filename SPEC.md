@@ -119,7 +119,6 @@ One file per feature in [spec/](spec/); this page is the index. A feature's stat
 - A sleep timer that pauses the pick clock overnight: the commissioner pauses and resumes by hand (spec/04).
 - Trading draft picks while the draft is running: they can be traded before it starts (spec/04).
 - A ranking per scoring system or per league, or one made by a commissioner: the draft's ranking is the admin's, one for the platform (spec/04).
-- Holding up the draft when no ranking is loaded: last season's points stand in (spec/04).
 - A cap on how often or how long the commissioner can pause the draft (spec/04).
 - The paper and player intel from the companion. It is a new product, not a companion app.
 - Chat. Managers talk elsewhere.

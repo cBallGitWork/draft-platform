@@ -35,9 +35,9 @@ Feature 4 of [SPEC.md](../SPEC.md). Only Craig's answers.
 - Auto-pick is a pick made for a manager by the draft, not by him (Craig, 2 Nov 2026).
 - It takes the best player left in his queue; when the queue is out, the best in the admin's
   ranking. It skips anyone greyed out or on his do-not-draft list.
-- A league setting says how many timeouts a manager gets before he goes on auto-pick, or "never":
-  then the clock runs for every pick. After his last timeout, his remaining picks are made at
-  once. He can take control back himself.
+- A league setting says how many timeouts a manager gets before he goes on auto-pick, 2 unless
+  the league changes it, or "never": then the clock runs for every pick (Craig, 2 Nov 2026). He can
+  take control back himself.
 - A team with no manager is on auto-pick from the start. Before the draft starts, the commissioner
   can mark such a team "I'll pick for this one", and then picks for it himself.
 
@@ -46,14 +46,12 @@ Feature 4 of [SPEC.md](../SPEC.md). Only Craig's answers.
 - Before the draft, each manager ranks players into his queue; his Scouting shortlist feeds
   it (`spec/19`). The queue is also his auto-pick list. It needn't be complete.
 - He also keeps a do-not-draft list, which auto-pick never takes from.
-- A manager's queue and do-not-draft list are private to him. Everyone sees the board and the
-  results.
+- A manager's queue and do-not-draft list are private to him (Craig, 2 Nov 2026).
 - The admin's ranking is a file the admin uploads, a list of players with a rank number, from
   research the admin does himself. It is one ranking for the whole platform. Last season's points
   won't do alone, since players join the league each season (Craig, 2 Nov 2026).
 - With no ranking uploaded, auto-pick falls back to last season's points under the site's scoring
-  (`spec/14`), newcomers last by name. The draft is not held up, and the admin's screen warns that
-  no ranking is loaded.
+  (`spec/14`), newcomers last by name (Craig, 2 Nov 2026).
 
 ## The commissioner
 
