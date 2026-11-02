@@ -17,6 +17,7 @@ Adopted by Craig 2 Nov 2026. Where this plan and `CLAUDE.md` disagree, `CLAUDE.m
 - [Beta-ready checks](#beta-ready-checks)
 - [Craig's setup list](#craigs-setup-list)
 - [Decisions for Craig](#decisions-for-craig)
+- [Costs to watch](#costs-to-watch)
 - [Moving off the Mac](#moving-off-the-mac)
 - [Checked against the guide videos](#checked-against-the-guide-videos)
 - [What stays with Craig](#what-stays-with-craig)
@@ -35,7 +36,7 @@ Each problem from the two reviews has one fix, one tool where a tool helps, and 
 
 | Problem | Fix | Tool | Craig stops |
 | --- | --- | --- | --- |
-| Live data comes from FPL's and the Premier League's unofficial feeds (`convex/football/football.ts`) | Check the terms now. Price a licensed feed. The swap is wider than `footballSync.ts`: the live and match-stats readers change too, and players need a mapping from the new feed's ids to FPL's `code` | Sportmonks, API-Football or Opta, priced side by side | Nothing: this decision is his |
+| Live data comes from FPL's and the Premier League's unofficial feeds (`convex/football/football.ts`) | The terms check and a licensed feed's price wait until outsiders are due to join; the beta runs on the feeds as they are (Craig, 2 Nov 2026). The swap is wider than `footballSync.ts`: the live and match-stats readers change too, and players need a mapping from the new feed's ids to FPL's `code` | Sportmonks, API-Football or Opta, priced side by side | Nothing: this decision is his |
 | No monitoring: a dead scheduled job or a stuck pick clock goes unseen | Every error reported with its league; every scheduled job in `convex/crons.ts` sends a heartbeat | Sentry, Healthchecks.io | Finding out about breakages from players |
 | Process eats the effort: 24 hooks, about 7,700 lines of scripts, 43 chores to 62 features | Retire the gates GitHub can do itself (see Hooks to keep and retire); keep the ones that stop real mistakes | GitHub branch protection, merge queue, CODEOWNERS | Babysitting gates |
 | Built screens lag their approved pictures; Home is far behind | Rebuild Home early, then each screen as its picture lands | Argos for side-by-side diffs | Reading the numbered differences table on every screen PR |
@@ -63,7 +64,15 @@ What this changes:
 
 ## The pipeline
 
-An issue becomes merged code without Craig unless it lands in the needs-Craig lane.
+An issue becomes merged code without Craig unless it lands in the needs-Craig lane. Nothing waits for Craig to start a build or to merge one in the runs-alone lane (Craig, 2 Nov 2026).
+
+How it runs on its own:
+1. **Triage.** Every new issue gets a lane label from a rule: an issue whose files fall under `.github/CODEOWNERS`, or that the lane table puts under "Needs Craig", is `lane:craig`; every other issue is `lane:auto`.
+2. **Build.** A nightly schedule (and a button for any time) takes the oldest `lane:auto` issues that have no open pull request, up to 3 a night, and builds each in its own pull request. Craig's `build` label still starts one by hand.
+3. **Merge.** A runs-alone pull request turns on auto-merge itself and merges when `verify`, `smoke` and the visual diff are green and the branch holds all of `main`. A pull request that touches a code-owner path cannot merge without Craig's review, so the lane label is not the only guard.
+4. **Digest.** What merged, what failed and what waits on Craig goes in one daily message.
+
+Autonomous merging starts only after Code Owners review is switched on in the `main` ruleset and the dry run has passed, so the guard exists before the thing it guards.
 
 The Claude Code GitHub Action does the build, opening pull requests through the Claude GitHub App so CI runs on them. Each run has a turn limit, a 30-minute timeout and a shared concurrency group, and bills to an Anthropic API key with a monthly cap rather than Craig's subscription. Merges go to staging first; production is a manual promote, with a backup before every production deploy. A red check goes back to Claude, never to Craig.
 
@@ -76,7 +85,7 @@ The beta is a complete season loop for real leagues: sign up, draft live, set a 
 | Sign-in, creating a league, invite links and joining (finishing `joinByInvites`) | Stars and role depth beyond what is built |
 | **The draft room**: lobby with date, countdown and who's here; live snake draft, pick clock, queue, auto-pick (spec 04) | Team instructions and saved plans |
 | Commissioner draft controls: pause, undo, pick for a team | Captain and set pieces (spec 17) |
-| "You're on the clock" emails, on a paid Resend tier | Player news (spec 21) |
+| "You're on the clock" emails, on Resend's free tier for the beta (paid before outsiders join) | Player news (spec 21) |
 | Squads and lineups, with the preset formations | Salary cap |
 | Live scoring, matchups and the league table | The phone design |
 | Free agency and waivers (spec 08) | Storybook, PostHog session replay, Chromatic |
@@ -91,7 +100,7 @@ Trades are in the beta (Craig, 2 Nov 2026), though the spec had them after it an
 The aim is to keep several builds moving at once, overnight as well as by day, with each one waiting on less.
 
 - **Parallel builders.** Run 3 to 4 Claude Code builds at once, each on one issue in its own feature folder. The draft back end, the draft screen, the UI components and waivers can move side by side.
-- **Overnight builds.** Issues labelled before bed are built by the GitHub Action overnight, so pull requests are waiting in the morning.
+- **Overnight builds.** The nightly schedule builds the runs-alone issues with no labelling by hand, so merged work is waiting in the morning (see The pipeline).
 - **Keep the full test suite on every PR.** It takes about 25 seconds (`vitest.config.ts`, 31 Oct). Running only affected tests is unsafe here, because the Convex test harness loads every function at once.
 - **One review round.** A second `pr-reviewer` round only for outcome-changing work.
 - **Shorter spec reads.** Turn the `SPEC.md` status column into short bullets, so each session reads less before it starts.
@@ -106,9 +115,9 @@ About seven weeks to a beta with a live draft and trades, or five without trades
   - Branch protection: required checks, up to date, CODEOWNERS on outcome paths, auto-merge.
   - Staging and production Convex projects; production promote needs approval; a backup before each deploy.
   - Sentry and heartbeats on every scheduled job.
-  - Claude GitHub App and the build workflow, then one dry run on a throwaway issue.
+  - Claude GitHub App and the build workflow, then one dry run on a throwaway issue; then Code Owners review on in the ruleset, then the nightly schedule, triage and auto-merge.
   - Screenshots moved to the Playwright container, with new baselines, then Argos.
-  - Hooks retired. Draft grill answered; the draft room's picture drawn. Craig checks the feed's terms.
+  - Hooks retired. Draft grill answered; the draft room's picture drawn.
 2. **Weeks 2 and 3: the draft room.**
   - Tables, the pick mutation, the clock, auto-pick, pause and undo (see Draft room design).
   - The lobby, the draft screen on the new grid and components, and pick emails.
@@ -120,16 +129,18 @@ About seven weeks to a beta with a live draft and trades, or five without trades
 5. **Week 7: the beta.**
   - The full loop rehearsed on the bot league until every Beta-ready check passes.
   - Craig's setup run in `docs/setup.md`; his league keeps this season and drafts at its next split or new season.
-6. **Before anyone outside your league joins:** the feed settled and the admins table in place.
+6. **Before anyone outside your league joins:** the feed's terms checked and a licensed feed chosen if needed, the admins table in place, and Resend on a paid tier.
 7. **Before going wide:** per-league splitting of the 4 jobs that read across leagues, and a 500-league seeded test.
 
 ## Built for hundreds of users
+
+**Beta scale (Craig, 2 Nov 2026): one or two leagues.** The rows below are the size to grow into, not the beta's. For the beta, defer the paid Resend tier, Convex Pro, the 500-league test and per-league job splitting; keep staging, Sentry, the heartbeats, the feed's terms and a privacy notice before any outsider signs up.
 
 Hundreds of users means roughly 20 to 50 leagues: small for Convex. The risks at that size are email, sign-up, access and environments, not raw scale.
 
 | Area | Today | What breaks | Foundation |
 | --- | --- | --- | --- |
-| Email | Resend free tier: 100 emails a day; sign-in by emailed link | Sign-ins, pick alerts and trade letters exceed it | Paid Resend tier before the beta; sessions that last weeks; league events in one daily email |
+| Email | Resend free tier: 100 emails a day; sign-in by emailed link | Sign-ins, pick alerts and trade letters exceed it | Free tier is enough for one or two leagues; paid Resend before outsiders join; sessions that last weeks; league events in one daily email |
 | Sign-up | An allowed-email list kept from the command line | Craig adds every user by hand | Finish invite-link joining (`joinByInvites` in `convex/auth.ts`) so commissioners bring their own managers |
 | Admin | One email in an environment variable, every power everywhere | Strangers' leagues open to one account | Admins table, audit rows, decided read limits |
 | Environments | Per-developer dev deployments and production; no staging; free-plan backups only on schema changes (2 kept, 7 days) | A bad release hits every league mid-gameweek | Staging plus production; Convex Pro for preview deployments and scheduled backups |
@@ -183,7 +194,7 @@ The beta starts when all eight pass, not on a date.
 - [ ] Two full gameweeks on the bot league match the fixed scoring totals.
 - [ ] Waivers and free agency run one full cycle with the right Mail letters.
 - [ ] No beta screen shows a placeholder box; each matches its picture or sits behind a flag.
-- [ ] The feed's terms confirmed in writing, a backup restored once, and league access passing role tests.
+- [ ] A backup restored once, and league access passing role tests. (The feed's terms are confirmed in writing before outsiders join, not before the beta.)
 
 ## Craig's setup list
 
@@ -193,7 +204,7 @@ These need Craig's accounts, so no build can do them:
 - [x] Install the Claude GitHub App on `cBallGitWork`.
 - [ ] Convex deploy keys for preview and production, added to Vercel and GitHub; decide on Convex Pro.
 - [ ] Sentry, Healthchecks.io and Argos accounts, with their keys added as secrets.
-- [ ] The release-check secrets in `docs/setup.md`, and the paid Resend tier.
+- [ ] The release-check secrets in `docs/setup.md`. The paid Resend tier waits until outsiders join (Craig, 2 Nov 2026).
 - [ ] Spending alerts on Convex, Vercel, Resend and Anthropic.
 - [x] Push access to the repo for this work.
 
@@ -201,8 +212,12 @@ These need Craig's accounts, so no build can do them:
 
 1. **Re-draft or new league?** Your league is mid-season with assigned squads. Your league keeps this season. It first uses the draft room at its next split or when the next season starts, the natural points for a re-draft. The beta does not wait on it.
 2. **Trades in the beta, or straight after?** Kept in by your call; cutting them brings the beta forward about two weeks.
-3. **Licensed feed:** which provider, once the terms check is back.
+3. **Licensed feed:** which provider, once the terms check is back. Not needed for the beta.
 4. **Convex Pro:** needed for preview deployments and scheduled backups.
+
+## Costs to watch
+
+Vercel's bill was $47 in the month to 2 Nov 2026, on the Pro plan. The new site is static and costs next to nothing; the money was the older companion app (`epl-draft`), where `AutoRefresh.tsx` calls `router.refresh()` on a timer on every open page, nearly every page re-renders every 30 seconds, and portraits go through Vercel's image optimizer. Craig is dealing with that in the companion's repo.
 
 ## Moving off the Mac
 
