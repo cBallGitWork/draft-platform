@@ -3,7 +3,9 @@
 Bash (guard_bash.py), or the GitHub tool's merge_pull_request (guard_github.py), the route a cloud
 session takes. Every gate reads GitHub's REST API (gh api), which a cloud session reaches where gh
 pr view's GraphQL can't (403), so each gate judges both routes alike (#1045). What it can't read
-raises Unread, which each gate turns into a denial, never a silent pass. Stdlib only, Python 3.9+.
+raises Unread, which each gate turns into a denial, never a silent pass. Which pull request a
+gh pr merge names is worked out before any gate judges it, so one it can't name is refused even
+below the drift trigger, as the checks gate would refuse it anyway. Stdlib only, Python 3.9+.
 """
 
 from __future__ import annotations

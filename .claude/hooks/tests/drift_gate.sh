@@ -40,3 +40,5 @@ FAKE_API_FAIL=pulls/5 says "can't read this pull request's title" guard_github.p
 # a folder where the count can't be read is refused, never let through
 nomain=$tmp/gate-nomain && git init -q -b trunk "$nomain"
 says "Can't count the merges since the last drift pass" guard_bash.py "$(bash_in "$nomain" "${merge[*]}")"
+says "Can't count the merges since the last drift pass" guard_github.py \
+  "$("$jq" -nc --arg d "$nomain" '{tool_name:"mcp__github__merge_pull_request",tool_input:{owner:"o",repo:"r",pullNumber:5},cwd:$d}')"
