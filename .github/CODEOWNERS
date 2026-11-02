@@ -1,0 +1,25 @@
+# Paths that change a league's outcome, or the rules the builds follow, need Craig's review (docs/PLAN.md, "Removing the bottleneck").
+# GitHub enforces this once the `main` ruleset turns on "Require review from Code Owners".
+
+# scoring, the league's rules, saved league data, the lineup and the stars that pick auto-subs
+/convex/scoring/        @cBallGitWork
+/convex/gameweekScorer/ @cBallGitWork
+/convex/rules/          @cBallGitWork
+/convex/schema/         @cBallGitWork
+/convex/schema.ts       @cBallGitWork
+/convex/squads/         @cBallGitWork
+/convex/lineup/         @cBallGitWork
+/convex/leagues/        @cBallGitWork
+/convex/stars/          @cBallGitWork
+
+# the draft room, until the beta (docs/PLAN.md, "Needs Craig")
+/convex/draft/          @cBallGitWork
+/src/draft/             @cBallGitWork
+
+# the rules the builds follow, and the pipeline itself
+/CLAUDE.md              @cBallGitWork
+/SPEC.md                @cBallGitWork
+/spec/                  @cBallGitWork
+/ARCHITECTURE.md        @cBallGitWork
+/.claude/               @cBallGitWork
+/.github/               @cBallGitWork
