@@ -1,7 +1,8 @@
 # Builds one issue into one pull request when Craig puts the `build` label on it (docs/PLAN.md, "The pipeline").
 # It opens the pull request and stops: CI runs on it, and merging follows the repo's rules, never this job.
-# Bills to Craig's Claude subscription when the CLAUDE_CODE_OAUTH_TOKEN secret is set (made with `claude setup-token`);
-# otherwise to ANTHROPIC_API_KEY, so the spend cap in Anthropic's console is the limit.
+# Bills to Craig's Claude subscription first (the CLAUDE_CODE_OAUTH_TOKEN secret, made with `claude setup-token`).
+# When that step fails (no credits left, an expired token) or the secret is not set, it runs once more on
+# ANTHROPIC_API_KEY, so the spend cap in Anthropic's console is the limit.
 name: claude-build
 
 on:
@@ -24,6 +25,20 @@ jobs:
     if: github.event.label.name == 'build' && github.event.sender.login == github.repository_owner
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    env:
+      HAS_SUBSCRIPTION: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN != '' }}  # a step's `if` cannot read secrets, so this carries it
+      # the agent runs headless, so every tool it needs is named here or it is denied; the deny list is a speed bump,
+      # and the real guard is the ruleset (required checks, up to date) plus Code Owners review
+      CLAUDE_ARGS: >-
+        --max-turns 60
+        --allowedTools "Read,Write,Edit,Glob,Grep,Bash(git add:*),Bash(git commit:*),Bash(git checkout:*),Bash(git switch:*),Bash(git push:*),Bash(git status:*),Bash(git diff:*),Bash(git log:*),Bash(gh issue view:*),Bash(gh issue comment:*),Bash(gh pr create:*),Bash(gh pr view:*),Bash(gh pr comment:*),Bash(npm:*),Bash(npx:*),Bash(node:*),Bash(ls:*),Bash(cat:*),Bash(mkdir:*)"
+        --disallowedTools "Bash(gh pr merge:*),Bash(gh api:*),Bash(git push --force:*),Edit(.github/**),Write(.github/**),Edit(.claude/**),Write(.claude/**),Edit(CLAUDE.md),Write(CLAUDE.md)"
+      BUILD_PROMPT: |
+        Build GitHub issue #${{ github.event.issue.number }} in this repository: read it with `gh issue view`.
+        Read CLAUDE.md first and follow it: one branch, one pull request, named paths staged, never a commit on main.
+        Build only what the issue and the spec files it names say; where the spec is silent, stop and comment on the issue with your question instead of guessing.
+        Run `npm run verify` before you push. Open the pull request with the repo's template filled in honestly.
+        Never merge it, and never touch .github/, .claude/ or CLAUDE.md.
     steps:
       - uses: actions/checkout@v4
         with:
@@ -33,19 +48,23 @@ jobs:
           node-version-file: .nvmrc
           cache: npm
       - run: npm ci
-      - uses: anthropics/claude-code-action@v1
+      - id: subscription
+        if: env.HAS_SUBSCRIPTION == 'true'
+        continue-on-error: true
+        uses: anthropics/claude-code-action@v1
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
-          anthropic_api_key: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN == '' && secrets.ANTHROPIC_API_KEY || '' }}
-          # the agent runs headless, so every tool it needs is named here or it is denied; the deny list is a speed bump,
-          # and the real guard is the ruleset (required checks, up to date) plus Code Owners review
-          claude_args: >-
-            --max-turns 60
-            --allowedTools "Read,Write,Edit,Glob,Grep,Bash(git add:*),Bash(git commit:*),Bash(git checkout:*),Bash(git switch:*),Bash(git push:*),Bash(git status:*),Bash(git diff:*),Bash(git log:*),Bash(gh issue view:*),Bash(gh issue comment:*),Bash(gh pr create:*),Bash(gh pr view:*),Bash(gh pr comment:*),Bash(npm:*),Bash(npx:*),Bash(node:*),Bash(ls:*),Bash(cat:*),Bash(mkdir:*)"
-            --disallowedTools "Bash(gh pr merge:*),Bash(gh api:*),Bash(git push --force:*),Edit(.github/**),Write(.github/**),Edit(.claude/**),Write(.claude/**),Edit(CLAUDE.md),Write(CLAUDE.md)"
-          prompt: |
-            Build GitHub issue #${{ github.event.issue.number }} in this repository: read it with `gh issue view`.
-            Read CLAUDE.md first and follow it: one branch, one pull request, named paths staged, never a commit on main.
-            Build only what the issue and the spec files it names say; where the spec is silent, stop and comment on the issue with your question instead of guessing.
-            Run `npm run verify` before you push. Open the pull request with the repo's template filled in honestly.
-            Never merge it, and never touch .github/, .claude/ or CLAUDE.md.
+          claude_args: ${{ env.CLAUDE_ARGS }}
+          prompt: ${{ env.BUILD_PROMPT }}
+      - id: fall_back
+        if: steps.subscription.outcome != 'success'  # failed, or skipped because no token is set
+        run: |
+          echo "::warning::The subscription step did not succeed (${{ steps.subscription.outcome }}); building on the API key."
+          git checkout -f main && git clean -fd  # start the second run from a clean tree
+      - id: api_key
+        if: steps.subscription.outcome != 'success'
+        uses: anthropics/claude-code-action@v1
+        with:
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          claude_args: ${{ env.CLAUDE_ARGS }}
+          prompt: ${{ env.BUILD_PROMPT }}
