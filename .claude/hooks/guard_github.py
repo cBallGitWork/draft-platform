@@ -3,9 +3,11 @@
 in place of gh, so guard_bash.py never sees them: denies a call naming a word on Craig's private
 list (private_words.py) in any text it sends, a write whose branch or ref is main
 (main_writes.py), one that puts Craig's craig-approved label on a pull request
-(approval_gate.py), and a merge whose checks haven't passed on all of main (checks_gate.py). Every tool is checked but the reads (READS), which publish nothing, so a
-write tool added or renamed is checked rather than missed. With no list to check against, a write gets a
-note, never a denial, as guard_bash.py gives. A payload it can't read is denied: allowing it would
+(approval_gate.py), and a merge that the drift pass, Craig's yes or its checks hold back
+(drift_gate.py, approval_gate.py, checks_gate.py), as guard_bash.py refuses gh pr merge. Every
+tool is checked but the reads (READS), which publish nothing, so a write tool added or renamed is
+checked rather than missed. With no list to check against, a write gets a note, never a denial,
+as guard_bash.py gives. A payload it can't read is denied: allowing it would
 check nothing. Stdlib only, Python 3.9+.
 """
 
@@ -14,8 +16,9 @@ from __future__ import annotations
 import json
 import sys
 
-from approval_gate import mcp_label_problem
+from approval_gate import mcp_approval_problem, mcp_label_problem
 from checks_gate import mcp_checks_problem
+from drift_gate import mcp_merge_problem
 from hook_payload import project_dir
 from main_writes import mcp_problem
 from private_words import NO_LIST, has_list, text_problem
@@ -51,7 +54,9 @@ def decide(payload):
         return None, None
     tool_input = payload.get("tool_input") or {}
     refused = mcp_problem(tool_input) or mcp_label_problem(tool_input)
-    refused = refused or mcp_checks_problem(tool, tool_input, project_dir(payload.get("cwd") or ""))
+    folder = project_dir(payload.get("cwd") or "")
+    for gate in (mcp_merge_problem, mcp_approval_problem, mcp_checks_problem):  # guard_bash.py's order
+        refused = refused or gate(tool, tool_input, folder)
     if refused:
         return refused, None
     if not has_list():

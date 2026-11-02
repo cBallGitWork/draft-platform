@@ -90,22 +90,24 @@ git -C "$repo" update-ref -d refs/remotes/origin/main
 says "Can't tell whether this branch changes a screen" guard_bash.py "$(bash_in "$repo" "$(create pr-matches.md)")"
 git -C "$repo" update-ref refs/remotes/origin/main main
 
-# the merge: a stand-in gh pr view gives $FAKE_BODY's file and $FAKE_LABELS, or fails when
-# FAKE_BODY is unset (one commit on main, so the drift gate lets every merge through)
+# the merge: the stand-in gh api gives $FAKE_BODY's file and $FAKE_LABELS (one commit on main, so
+# the drift gate lets every merge through); the GitHub tool's merge waits the same way
 stand_in_gh <<'EOF'
-[ -n "${FAKE_BODY:-}" ] || { echo "no pull requests found" >&2; exit 1; }
-/usr/bin/jq -nc --rawfile b "$FAKE_BODY" --argjson l "${FAKE_LABELS:-[]}" '{body:$b,labels:$l}'
+echo "stand-in gh: no answer for $*" >&2; exit 1
 EOF
+tool=$("$jq" -nc --arg d "$repo" '{tool_name:"mcp__github__merge_pull_request",tool_input:{owner:"o",repo:"r",pullNumber:5},cwd:$d}')
 git -C "$repo" switch -q main
 merge="gh pr merge 5 --squash"
 export FAKE_BODY=$repo/pr-differs.md
 check deny guard_bash.py "$(bash_in "$repo" "$merge")"
 says "lists 2 difference(s) from the approved picture (1. Density" guard_bash.py "$(bash_in "$repo" "$merge")"
+says "lists 2 difference(s) from the approved picture (1. Density" guard_github.py "$tool"
 export FAKE_LABELS='[{"name":"bug"}]'
 check deny guard_bash.py "$(bash_in "$repo" "$merge")"
 FAKE_BODY=$repo/pr-pasted.md check deny guard_bash.py "$(bash_in "$repo" "$merge")"
 export FAKE_LABELS='[{"name":"bug"},{"name":"craig-approved"}]'
 check allow guard_bash.py "$(bash_in "$repo" "$merge")"  # Craig said yes
+check allow guard_github.py "$tool"
 unset FAKE_LABELS
 for body in pr-matches.md pr.md; do  # nothing to wait for
   export FAKE_BODY=$repo/$body
@@ -117,7 +119,8 @@ printf '%s\n' '## Approved vs built' '<!--' '1. an example in a comment' '-->' '
 export FAKE_BODY=$repo/pr-elsewhere.md
 check allow guard_bash.py "$(bash_in "$repo" "$merge")"
 unset FAKE_BODY
-says "Can't read this pull request's body and labels" guard_bash.py "$(bash_in "$repo" "$merge")"
+FAKE_API_FAIL=pulls/5 says "Can't read this pull request's body and labels" guard_bash.py "$(bash_in "$repo" "$merge")"
+FAKE_API_FAIL=pulls/5 says "Can't read this pull request's body and labels" guard_github.py "$tool"
 
 # only Craig adds the label
 for c in 'gh pr edit 5 --add-label craig-approved' 'gh pr edit 5 --add-label bug,craig-approved' \
