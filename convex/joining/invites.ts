@@ -127,17 +127,17 @@ export const recordDelivery = internalMutation({
   },
 });
 
-/** The invite's email, carrying its sign-in link `url` (signInEmail.ts). */
+/** The invite's email, carrying its sign-in link `url`, sent at `sentAt` (signInEmail.ts). */
 export const emailWords = internalQuery({
-  args: { inviteId: v.string(), url: v.string() },
+  args: { inviteId: v.string(), url: v.string(), sentAt: v.number() },
   returns: v.object({ subject: v.string(), text: v.string() }),
-  handler: async (ctx, { inviteId, url }) => {
+  handler: async (ctx, { inviteId, url, sentAt }) => {
     const id = ctx.db.normalizeId("invites", inviteId);
     const invite = id && (await ctx.db.get("invites", id));
     if (!invite) throw new Error(`Invite ${inviteId} doesn't exist, so its email can't say what it's for`);
     const league = await ctx.db.get("leagues", invite.leagueId);
     if (!league) throw new Error(`Invite ${inviteId} is to league ${invite.leagueId}, which doesn't exist`);
-    return inviteEmail(url, { leagueName: league.name, invitedBy: invite.invitedBy, teamName: await teamNameOf(ctx, invite) });
+    return inviteEmail(url, { leagueName: league.name, invitedBy: invite.invitedBy, teamName: await teamNameOf(ctx, invite) }, sentAt);
   },
 });
 

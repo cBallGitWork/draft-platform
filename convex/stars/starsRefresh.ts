@@ -6,7 +6,7 @@ import { matchRecordsOf } from "../gameweekScorer/heldMatches";
 import { positionsNow } from "../positions/playerPositions";
 import { EVERY_LEAGUE } from "../positions/positionSettings";
 import { siteScoringAt } from "../scoring/siteVersions";
-import { LEAGUES_STORED_MOST, takeAllOrThrow } from "../shared/cappedRead";
+import { LEAGUES_READ_MOST, takeAllOrThrow } from "../shared/cappedRead";
 import { logFailure } from "../shared/errors";
 import { fixtureByCode } from "../shared/fixtures";
 import { playerByCode } from "../shared/players";
@@ -169,7 +169,7 @@ function starsKeeper(ctx: QueryCtx): (playerCode: number) => Promise<boolean> {
   let leagues: Promise<Doc<"leagues">[]> | undefined;
   return async (playerCode) => {
     if (!(await isGone(ctx, playerCode))) return true;
-    leagues ??= takeAllOrThrow(ctx.db.query("leagues"), LEAGUES_STORED_MOST, `More than ${LEAGUES_STORED_MOST} leagues are held, so a squad holding a player could be missed`);
+    leagues ??= takeAllOrThrow(ctx.db.query("leagues"), LEAGUES_READ_MOST, `More than ${LEAGUES_READ_MOST} leagues are held, so a squad holding a player could be missed`);
     return isOnASquad(ctx, await leagues, playerCode);
   };
 }

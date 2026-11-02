@@ -1,7 +1,7 @@
 import { v } from "convex/values";
 import type { Id } from "../_generated/dataModel";
 import { internalMutation, type QueryCtx } from "../_generated/server";
-import { takeAllOrThrow } from "../shared/cappedRead";
+import { LEAGUES_READ_MOST, takeAllOrThrow } from "../shared/cappedRead";
 import { teamsOf } from "../shared/leagueAccess";
 import { squadOf } from "../squads/squadPlace";
 import { pickFirstLineupAgain } from "./lineups";
@@ -15,12 +15,6 @@ import { pickFirstLineupAgain } from "./lineups";
 // holds nobody in the gameweek just begun and scores 0 there, and gets its lineup from the next.
 //   npx convex run lineup/firstLineupBackfill:giveTeamsTheirFirstLineup
 //   npx convex run --prod lineup/firstLineupBackfill:giveTeamsTheirFirstLineup
-
-/** The most leagues one run reads, all in one transaction: Claude's sizing for the closed beta,
- *  which has a handful, each team reading its lineup rows, squad and positions. Well short of it
- *  Convex's own read limit may stop the run, which then writes nothing and says so. Past it this
- *  throws, rather than leave some teams without a lineup. */
-const LEAGUES_BACKFILLED_MOST = 200;
 
 /** Whether the team has any lineup row, from any gameweek. */
 async function hasLineupRow(ctx: QueryCtx, leagueId: Id<"leagues">, teamId: Id<"teams">): Promise<boolean> {
@@ -38,8 +32,8 @@ export const giveTeamsTheirFirstLineup = internalMutation({
   handler: async (ctx) => {
     const leagues = await takeAllOrThrow(
       ctx.db.query("leagues"),
-      LEAGUES_BACKFILLED_MOST,
-      `More than ${LEAGUES_BACKFILLED_MOST} leagues are held, so some teams would be left without a lineup`,
+      LEAGUES_READ_MOST,
+      `More than ${LEAGUES_READ_MOST} leagues are held, so some teams would be left without a lineup`,
     );
     const teamsGiven: Id<"teams">[] = [];
     for (const league of leagues) {

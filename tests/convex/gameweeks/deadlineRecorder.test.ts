@@ -1,7 +1,7 @@
 import { describe, expect, test, vi } from "vitest";
 import { internal } from "../../../convex/_generated/api";
 import { gameweekRefusals } from "../../../convex/gameweeks/leagueGameweeks";
-import { LEAGUES_RECORDED_MOST } from "../../../convex/gameweeks/deadlineRecorder";
+import { LEAGUES_READ_MOST } from "../../../convex/shared/cappedRead";
 import { FIRST_RULES } from "../../../convex/rules/firstRules";
 import { HOUR_MS, MINUTE_MS } from "../../../convex/shared/time";
 import { adminCreatesLeague, COMMISSIONER } from "../../support/convex/leagues.harness";
@@ -122,20 +122,20 @@ describe("a postponed first match", () => {
   });
 });
 
-describe(`more than ${LEAGUES_RECORDED_MOST} leagues`, () => {
+describe(`more than ${LEAGUES_READ_MOST} leagues`, () => {
   /** `count` more leagues, written straight in, with no rules. */
   const holdLeagues = (count: number) =>
     t.run(async (ctx) => {
       for (let index = 0; index < count; index += 1) await ctx.db.insert("leagues", { name: `League ${index}`, maxTeams: 4, commissionerEmail: COMMISSIONER });
     });
 
-  test(`with ${LEAGUES_RECORDED_MOST} held the recording runs; one more fails it loudly rather than skip a league`, async () => {
-    await holdLeagues(LEAGUES_RECORDED_MOST - 1);
+  test(`with ${LEAGUES_READ_MOST} held the recording runs; one more fails it loudly rather than skip a league`, async () => {
+    await holdLeagues(LEAGUES_READ_MOST - 1);
     vi.setSystemTime(deadlineBefore(OPENER));
     await recordPassed();
     expect((await passedRows()).some((row) => row.leagueId === leagueId && row.gameweek === GAMEWEEK)).toBe(true);
 
     await holdLeagues(1);
-    await expect(recordPassed()).rejects.toThrow(`More than ${LEAGUES_RECORDED_MOST} leagues are held`);
+    await expect(recordPassed()).rejects.toThrow(`More than ${LEAGUES_READ_MOST} leagues are held`);
   });
 });

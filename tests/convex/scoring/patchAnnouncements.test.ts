@@ -1,7 +1,7 @@
 import { describe, expect, test, vi } from "vitest";
 import { api } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
-import { LEAGUES_WRITTEN_TO_MOST } from "../../../convex/mail/letters";
+import { LEAGUES_READ_MOST } from "../../../convex/shared/cappedRead";
 import { patchBannerRefusals } from "../../../convex/scoring/patchNotes";
 import { siteScoringRefusals } from "../../../convex/scoring/siteScoring";
 import { momentIn } from "../../../convex/shared/moments";
@@ -119,15 +119,15 @@ describe("the letter", () => {
     expect(await everyLetter()).toEqual(before);
   });
 
-  test(`past ${LEAGUES_WRITTEN_TO_MOST} leagues it throws, and the patch with it, never reaching only some`, async () => {
+  test(`past ${LEAGUES_READ_MOST} leagues it throws, and the patch with it, never reaching only some`, async () => {
     await holdGameweeks(t, { next: 9 });
     await t.run(async (ctx) => {
-      for (let league = 0; league <= LEAGUES_WRITTEN_TO_MOST; league += 1) {
+      for (let league = 0; league <= LEAGUES_READ_MOST; league += 1) {
         await ctx.db.insert("leagues", { name: `League ${league}`, maxTeams: 4, commissionerEmail: COMMISSIONER });
       }
     });
 
-    await expect(fixAs(ADMIN, EDITED)).rejects.toThrow(`More than ${LEAGUES_WRITTEN_TO_MOST} leagues`);
+    await expect(fixAs(ADMIN, EDITED)).rejects.toThrow(`More than ${LEAGUES_READ_MOST} leagues`);
     expect(await everyLetter()).toEqual([]);
     expect(await notesAs(ADMIN)).toEqual([]);
   });
