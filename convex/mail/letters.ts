@@ -1,7 +1,7 @@
 import type { Infer } from "convex/values";
 import type { Doc, Id } from "../_generated/dataModel";
 import type { MutationCtx, QueryCtx } from "../_generated/server";
-import { takeAllOrThrow } from "../shared/cappedRead";
+import { LEAGUES_READ_MOST, takeAllOrThrow } from "../shared/cappedRead";
 import { isAdmin, teamsOf } from "../shared/leagueAccess";
 import { zoneOf } from "../signIn/timeZone";
 import { adminByline, eventLetter } from "./letterWords";
@@ -47,19 +47,15 @@ export async function fileLetter(
   }
 }
 
-/** The most leagues a letter from the site reads, in one transaction: the closed beta has a
- *  handful. Past it the letter throws, and the change it reports with it, never a silent cut
- *  (#214). Claude's choice, not yet Craig's. */
-export const LEAGUES_WRITTEN_TO_MOST = 200;
-
 /** Files `letter` from the site, in no league's name, to everyone with a part in any league, one
  *  copy each however many leagues they are in. The copy to `by`, who did what it reports, is filed
- *  read. */
+ *  read. Past LEAGUES_READ_MOST leagues it throws, and the change it reports with it, never
+ *  reaching only some. */
 export async function fileSiteLetter(ctx: MutationCtx, letter: Written, by: string): Promise<void> {
   const leagues = await takeAllOrThrow(
     ctx.db.query("leagues"),
-    LEAGUES_WRITTEN_TO_MOST,
-    `More than ${LEAGUES_WRITTEN_TO_MOST} leagues are held, so a letter from the site can't reach everyone in them`,
+    LEAGUES_READ_MOST,
+    `More than ${LEAGUES_READ_MOST} leagues are held, so a letter from the site can't reach everyone in them`,
   );
   const everyone = new Set((await Promise.all(leagues.map((league) => wholeLeague(ctx, league)))).flat());
   const at = Date.now();
