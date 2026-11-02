@@ -74,6 +74,18 @@ has_branch updated && fail "tidy_after_merge.py: a branch behind its updated pul
 [ "$(git -C "$repo" for-each-ref --format='%(refname)')" = "$refs_before" ] || fail "tidy_after_merge.py: the fetch left refs behind"
 [ -e "$repo/.git/FETCH_HEAD" ] && fail "tidy_after_merge.py: the fetch wrote FETCH_HEAD"
 
+# the longest way through, a head to fetch and a worktree removed with the branch, starts TIDY_CALLS
+# processes, the count the hook's time budget is figured from (#942): a call added without it fails here
+built counted && git -C "$repo" push -q origin counted
+git -C "$github" fetch -q origin counted && git -C "$github" switch -q counted
+git -C "$github" "${as_tester[@]}" merge -q --no-ff --no-edit "$moved"
+git -C "$github" push -q -f origin "HEAD:$pull_head" && counted_head=$(git -C "$github" rev-parse HEAD)
+made=$(calls_made tidy_branch 'm.tidy(7, "counted", args[0], args[1])' "$counted_head" "$repo")
+max=$(cd "$hooks" && python3 -c 'import tidy_branch; print(tidy_branch.TIDY_CALLS)')
+printf '%s\n' "$made" | grep -q "its local branch counted and any worktree it was in were removed" ||
+  fail "tidy_branch.py's count: it didn't take the longest way: $made"
+[ "$(head -n 1 <<<"$made")" = "$max" ] || fail "tidy_branch.py: its longest way starts $(head -n 1 <<<"$made") processes, TIDY_CALLS says $max"
+
 # a head gh names that the fetch didn't bring keeps the branch, and says so
 absent_head=0123456789abcdef0123456789abcdef01234567  # a commit no repo here holds
 built unknown && pr unknown MERGED "$absent_head"
