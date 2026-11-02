@@ -51,8 +51,9 @@ silent() { # hook payload [env...]: the hook exits 0 and prints nothing
 stand_in_gh() { # the stand-in's bash script on stdin: it runs as gh, first on PATH, for the gh calls a hook makes
   mkdir -p "$tmp/bin" && { echo '#!/bin/bash'; stand_in_api; cat; } > "$tmp/bin/gh" && chmod +x "$tmp/bin/gh" && export PATH="$tmp/bin:$PATH"
 }
-stand_in_api() { # every stand-in's answer to gh api's reads of a pull request (checks_gate.py): green and
-  # up to date with main unless a FAKE_ variable says otherwise; FAKE_API_FAIL names a path part that fails
+stand_in_api() { # every stand-in's answer to gh api's reads of a pull request (pull_request.py): green, up
+  # to date with main, titled $FAKE_TITLE, its body $FAKE_BODY's file and labels $FAKE_LABELS, unless a
+  # FAKE_ variable says otherwise; FAKE_API_FAIL names a path part that fails
   cat <<'EOF'
 if [ "$1" = api ]; then
   case "$2" in *"${FAKE_API_FAIL:-//}"*) echo "HTTP 404: Not Found" >&2; exit 1;; esac
@@ -63,12 +64,28 @@ if [ "$1" = api ]; then
     */status*) statuses=${FAKE_STATUSES:-[]}; echo "{\"total_count\":$(echo "$statuses" | grep -o '"context"' | wc -l),\"statuses\":$statuses}";;
     */compare/*) echo "{\"behind_by\":${FAKE_BEHIND:-0}}";;
     *"pulls?"*) echo "$open_prs";;
-    */pulls/*) echo '{"head":{"sha":"abc"},"base":{"ref":"main"}}';;
+    */pulls/*) /usr/bin/jq -nc --arg t "${FAKE_TITLE:-feat: x}" --rawfile b "${FAKE_BODY:-/dev/null}" \
+      --argjson l "${FAKE_LABELS:-[]}" '{title:$t,body:$b,labels:$l,head:{sha:"abc"},base:{ref:"main"}}';;
     *) echo "stand-in gh: no answer for $2" >&2; exit 1;;
   esac
   exit 0
 fi
 EOF
+}
+calls_made() { # module call [arg...]: runs the Python call (m is the hook module, args its args) in
+  # the hooks folder, counting every process it starts; prints the count, then the call's result
+  (cd "$hooks" && python3 - "$@" <<'PY'
+import importlib, subprocess, sys
+real, made = subprocess.run, [0]
+def counting(*args, **kwargs):
+    made[0] += 1
+    return real(*args, **kwargs)
+subprocess.run = counting
+result = eval(sys.argv[2], {"m": importlib.import_module(sys.argv[1]), "args": sys.argv[3:]})
+print(made[0])
+print(result)
+PY
+  )
 }
 bash_cmd() { "$jq" -nc --arg c "$1" '{tool_name:"Bash",tool_input:{command:$c}}'; }
 bash_in() { "$jq" -nc --arg c "$2" --arg d "$1" '{tool_name:"Bash",tool_input:{command:$c},cwd:$d}'; }  # dir command

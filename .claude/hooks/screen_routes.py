@@ -16,7 +16,7 @@ import os
 import re
 
 from main_writes import MAIN, REMOTE, REMOTE_MAIN
-from tidy_branch import run
+from run_command import run
 
 APPROVED = os.path.join("docs", "design", "approved")
 ROUTE_LINE = re.compile(r"^Route:\s*`([^`]+)`", re.M)

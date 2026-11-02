@@ -10,7 +10,7 @@ import { GAMEWEEK_MATCHES_MOST } from "../../../convex/shared/fixtures";
 import { PLAYER_RECORDS_MOST } from "../../../convex/stats/matchRecords";
 import { LEAGUE_OVERRIDES_MOST } from "../../../convex/stats/seasonPoints";
 import { thresholdStepsOf, THRESHOLD_STEPS_MOST } from "../../../convex/stats/thresholdSteps";
-import { LEAGUES_STORED_MOST } from "../../../convex/shared/cappedRead";
+import { LEAGUES_READ_MOST } from "../../../convex/shared/cappedRead";
 import { leagueScores } from "../../../convex/gameweekScorer/gameweekScores";
 import { heldFixtures, MATCH_OVERRIDES_MOST, MATCH_RECORDS_MOST } from "../../../convex/gameweekScorer/heldMatches";
 import { FINAL_SCORES_MOST } from "../../../convex/gameweekScorer/storedScores";
@@ -147,14 +147,14 @@ test(`a league's stored final scores: ${FINAL_SCORES_MOST} are read, one more th
   );
 });
 
-test(`the leagues a lock asks to store their scores: ${LEAGUES_STORED_MOST} are asked, one more throws`, ROWS_TO_THE_CAP, async () => {
+test(`the leagues a lock asks to store their scores: ${LEAGUES_READ_MOST} are asked, one more throws`, ROWS_TO_THE_CAP, async () => {
   const { _id, _creationTime, ...leagueFields }: Doc<"leagues"> = (await league.t.run((ctx) => ctx.db.get("leagues", league.leagueId)))!;
   await readsToTheCapThenThrows(
-    LEAGUES_STORED_MOST,
+    LEAGUES_READ_MOST,
     // Each a copy of scoresLeague's, its teams and squads left out: only the count is read here.
     holdRows(async (ctx) => (await ctx.db.query("leagues").collect()).length, (ctx) => ctx.db.insert("leagues", leagueFields)),
     () => league.t.mutation(internal.table.finalScores.storeEveryLeague, {}),
-    `More than ${LEAGUES_STORED_MOST} leagues are held, so some would have their final scores unstored`,
+    `More than ${LEAGUES_READ_MOST} leagues are held, so some would have their final scores unstored`,
   );
 });
 

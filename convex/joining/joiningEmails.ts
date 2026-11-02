@@ -1,6 +1,7 @@
 import { INVITE_DAYS, aNewTeamWords } from "./joiningShared";
 import { PRODUCT_NAME } from "../shared/product";
 import { SITE_URL_SETTING } from "../outbound/deploymentSettings";
+import { momentIn } from "../shared/moments";
 
 // Joining's emails (#73), in words for Craig to change in the pull request: an invite, which
 // carries a sign-in link, and the one telling a person their join request was approved.
@@ -8,9 +9,12 @@ import { SITE_URL_SETTING } from "../outbound/deploymentSettings";
 /** What an invite's email says of it. */
 export type InviteFacts = { leagueName: string; invitedBy: string; teamName: string | null };
 
-export function inviteEmail(url: string, { leagueName, invitedBy, teamName }: InviteFacts) {
+/** The subject ends with `sentAt`, as a sign-in email's does (signInEmail.ts), so Gmail never folds
+ *  a resent invite into the conversation of the first (#973). The sender passes the time in: the
+ *  query that builds these words can't read the clock. */
+export function inviteEmail(url: string, { leagueName, invitedBy, teamName }: InviteFacts, sentAt: number) {
   return {
-    subject: `You're invited to ${leagueName} on ${PRODUCT_NAME}`,
+    subject: `You're invited to ${leagueName} on ${PRODUCT_NAME}, ${momentIn(sentAt, undefined)}`,
     text: [
       `${invitedBy} has invited you to run ${teamName ?? aNewTeamWords} in ${leagueName} on ${PRODUCT_NAME}.`,
       "This link signs you in, and you're in the league:",

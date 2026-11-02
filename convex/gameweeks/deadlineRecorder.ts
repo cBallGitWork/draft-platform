@@ -5,7 +5,7 @@ import { internalMutation, type MutationCtx } from "../_generated/server";
 import type { Doc } from "../_generated/dataModel";
 import { emailIfFailed } from "../admin/feedFailureEmails";
 import { logFailure } from "../shared/errors";
-import { takeAllOrThrow } from "../shared/cappedRead";
+import { LEAGUES_READ_MOST, takeAllOrThrow } from "../shared/cappedRead";
 import { isLocked, type ScheduledMatch } from "./deadline";
 import { recordGameweekStarts } from "./gameweekStarts";
 import { fixedDeadlinesOf, passedDeadlinesOf } from "./passedDeadlines";
@@ -44,12 +44,6 @@ import { storeBegunFixtures } from "../table/playedFixtures";
 // An alarm whose recording throws fails closed as the sync's does, in Convex's logs, and the next
 // sync sets the alarm again.
 
-/** The most leagues one recording reads, all in the fixtures mutation's one transaction: the closed
- *  beta has a handful, and each league reads its rules, deadlines and fixtures. Past it this throws,
- *  failing closed as above, rather than leave a league's deadlines unrecorded; by then the
- *  recording wants splitting across transactions (#214). */
-export const LEAGUES_RECORDED_MOST = 200;
-
 /** What the log and the admin's email say after a skipped league's name, before why. */
 export const LEAGUE_SKIPPED = "was skipped by the football feed, and the other leagues carried on, as its rules can't be read or applied";
 
@@ -63,8 +57,8 @@ export async function recordPassedDeadlines(ctx: MutationCtx): Promise<number> {
   await recordGameweekStarts(ctx, matches, now);
   const leagues = await takeAllOrThrow(
     ctx.db.query("leagues"),
-    LEAGUES_RECORDED_MOST,
-    `More than ${LEAGUES_RECORDED_MOST} leagues are held, so some would have their deadlines unrecorded`,
+    LEAGUES_READ_MOST,
+    `More than ${LEAGUES_READ_MOST} leagues are held, so some would have their deadlines unrecorded`,
   );
   let recorded = 0;
   let soonestToCome: number | null = null;
@@ -95,8 +89,8 @@ export async function keepDroppedDeadlines(ctx: MutationCtx, gameweeks: readonly
   const matches = await scheduledMatches(ctx);
   const leagues = await takeAllOrThrow(
     ctx.db.query("leagues"),
-    LEAGUES_RECORDED_MOST,
-    `More than ${LEAGUES_RECORDED_MOST} leagues are held, so some would lose the deadlines of gameweeks FPL stopped sending`,
+    LEAGUES_READ_MOST,
+    `More than ${LEAGUES_READ_MOST} leagues are held, so some would lose the deadlines of gameweeks FPL stopped sending`,
   );
   let kept = 0;
   for (const league of leagues) {

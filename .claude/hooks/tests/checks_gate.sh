@@ -9,11 +9,10 @@
 repo=$tmp/app && git init -q -b main "$repo" && git -C "$repo" "${as_tester[@]}" commit -q --allow-empty -m start
 git -C "$repo" update-ref refs/remotes/origin/main HEAD
 stand_in_gh <<'EOF'
-[ "$1 $2" = "pr view" ] && { echo '{"body":"","labels":[]}'; exit 0; }
 echo "stand-in gh: no answer for $*" >&2; exit 1
 EOF
 merge() { bash_in "$repo" "$1"; }
-merge_tool() { gh_call merge_pull_request "${1:-$pr_five}"; }  # [tool input]
+merge_tool() { "$jq" -nc --argjson i "${1:-$pr_five}" --arg d "$repo" '{tool_name:"mcp__github__merge_pull_request",tool_input:$i,cwd:$d}'; }  # [tool input]
 pr_five='{"owner":"o","repo":"r","pullNumber":5}'
 
 # green and up to date: every form of naming the pull request merges
