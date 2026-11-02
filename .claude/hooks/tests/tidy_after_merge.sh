@@ -156,7 +156,7 @@ built listed && pr listed
 says "Earlier merged branches weren't tidied: gh pr list failed (HTTP 502)" tidy_after_merge.py "$(bash_in "$repo" "$merge")" GH_LIST_FAILS=1
 # out of time: it doesn't look, or it leaves the leftovers it can't finish for a later merge
 sweep_by() { # seconds: sweep's lines with a deadline that far off, each call counted as at most 0.1s
-  # (only the budget's figure: the calls themselves keep tidy_branch.py's own limit)
+  # (only the budget's figure: the calls themselves keep run_command.py's own limit)
   (cd "$repo" && python3 -B -c 'import sys, time; sys.path.insert(0, sys.argv[1]); import tidy_after_merge as t
 t.RUN_TIMEOUT_SECONDS = 0.1; print(" ".join(t.sweep(".", set(), time.monotonic() + float(sys.argv[2]))))' "$hooks" "$1")
 }

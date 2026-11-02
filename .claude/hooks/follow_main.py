@@ -13,7 +13,8 @@ import os
 import subprocess
 
 from main_writes import MAIN, REMOTE, REMOTE_MAIN
-from tidy_branch import RUN_TIMEOUT_SECONDS, failure_line, run, worktrees
+from run_command import RUN_TIMEOUT_SECONDS, failure_line, run
+from tidy_branch import worktrees
 
 NOT_MOVED = "MAIN CHECKOUT NOT MOVED:"  # starts each line saying it stays behind
 BLOCKING_FILE = "\t"  # git checkout's refusal lists each file in its way on a line of its own, tab first

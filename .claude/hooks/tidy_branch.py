@@ -20,11 +20,10 @@ import subprocess
 import time
 
 from main_writes import REMOTE
+from run_command import RUN_TIMEOUT_SECONDS, call, failure_line, run
 
 BRANCH_REF = "refs/heads/"
 PULL_HEAD = "pull/{number}/head"  # GitHub's ref for a pull request's head commit
-# each git, gh or lsof call's limit: the hook's time is counted in these (tidy_after_merge.py)
-RUN_TIMEOUT_SECONDS = 11
 # the most calls tidy() makes: rev-parse, fetch, merge-base, worktree prune, worktree list, lsof,
 # rev-parse, status, worktree remove, branch -D
 TIDY_CALLS = 10
@@ -43,30 +42,6 @@ CWD_LINE = "n"
 RECENT_MINUTES = 30
 GIT_STATE = ("index", "HEAD", os.path.join("logs", "HEAD"))
 LOCKED = "locked"  # git worktree list --porcelain's line for a locked worktree
-
-
-def failure_line(done):
-    """A failed command's first stderr line, or its exit code when it said nothing."""
-    said = done.stderr.strip().splitlines() or [f"exit {done.returncode}"]
-    return said[0]
-
-
-def call(folder, *args):
-    """(exit code, output) for a command run in folder; output is stderr's first line when it fails,
-    and the code is None when the command couldn't run or ran out of time."""
-    try:
-        done = subprocess.run(list(args), cwd=folder, capture_output=True, text=True, timeout=RUN_TIMEOUT_SECONDS)
-    except (OSError, subprocess.SubprocessError) as error:
-        return None, str(error)
-    if done.returncode == 0:
-        return 0, done.stdout
-    return done.returncode, failure_line(done)
-
-
-def run(folder, *args):
-    """(ok, output) for a command run in folder; output is stderr's first line when it fails."""
-    code, out = call(folder, *args)
-    return code == 0, out
 
 
 def why_not_in_head(number, tip, head, folder):
