@@ -56,8 +56,13 @@ jobs:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           claude_args: ${{ env.CLAUDE_ARGS }}
           prompt: ${{ env.BUILD_PROMPT }}
-      - id: api_key
+      - id: fall_back
         if: steps.subscription.outcome != 'success'  # failed, or skipped because no token is set
+        run: |
+          echo "::warning::The subscription step did not succeed (${{ steps.subscription.outcome }}); building on the API key."
+          git checkout -f main && git clean -fd  # start the second run from a clean tree
+      - id: api_key
+        if: steps.subscription.outcome != 'success'
         uses: anthropics/claude-code-action@v1
         with:
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
