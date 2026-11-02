@@ -1,0 +1,44 @@
+# Builds one issue into one pull request when Craig puts the `build` label on it (docs/PLAN.md, "The pipeline").
+# It opens the pull request and stops: CI runs on it, and merging follows the repo's rules, never this job.
+# Bills to ANTHROPIC_API_KEY (a GitHub secret), so the spend cap in Anthropic's console is the limit.
+name: claude-build
+
+on:
+  issues:
+    types: [labeled]
+
+permissions:
+  contents: write
+  pull-requests: write
+  issues: write
+  id-token: write
+
+concurrency:  # one build at a time, so two never fight over the same files; a waiting build is not cancelled
+  group: claude-build
+  cancel-in-progress: false
+
+jobs:
+  build:
+    # only Craig's label starts a build, and only the `build` label
+    if: github.event.label.name == 'build' && github.event.sender.login == github.repository_owner
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - uses: anthropics/claude-code-action@v1
+        with:
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          claude_args: --max-turns 60
+          prompt: |
+            Build GitHub issue #${{ github.event.issue.number }} in this repository: read it with `gh issue view`.
+            Read CLAUDE.md first and follow it: one branch, one pull request, named paths staged, never a commit on main.
+            Build only what the issue and the spec files it names say; where the spec is silent, stop and comment on the issue with your question instead of guessing.
+            Run `npm run verify` before you push. Open the pull request with the repo's template filled in honestly.
+            Never merge it, and never touch .github/, .claude/ or CLAUDE.md.
