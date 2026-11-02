@@ -7,7 +7,7 @@ from __future__ import annotations
 
 import subprocess
 
-# each git, gh or lsof call's limit: a hook's time is counted in these (tidy_after_merge.py)
+# each git, gh or lsof call's limit: a hook's time is counted in these
 RUN_TIMEOUT_SECONDS = 11
 
 
