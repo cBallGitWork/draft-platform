@@ -23,9 +23,8 @@ import { EVENT_STATS, isWhole, MINUTES_STAT, type PlayerMatchRecord } from "./ma
 // what the step is worth, is each matchup's to work out on read (matchup/vidiprinter.ts), under
 // the site's set in force that gameweek, so the step is stored for every man, owned or not; and so
 // is every move of a stat some role in that set adjusts, as whether his role moves it is the
-// matchup's to work out too (#868). A read
-// at full time stores none: its records are the sync's (matchStats.ts), and the live reads have
-// shown the match by then.
+// matchup's to work out too (#868). A read at full time stores none: its records are the sync's
+// (matchStats.ts), and the live reads have shown the match by then.
 
 type PlayerCode = number;
 
@@ -46,7 +45,7 @@ export interface ThresholdStep {
  *  action of a stat they adjust (#868): Claude's draft (draftedRoleAdjustments.ts) adjusts about
  *  300 actions a match, measured from the recorded team stats (Hull v Everton and another: long
  *  balls, clearances, blocks, interceptions, aerials, tackles, shots, dispossessions, saves,
- *  crosses, big chances), so about 550, and 700 for a busy one. More throws, never a silent cut:
+ *  crosses, big chances: 299 and 301), so about 550. More throws, never a silent cut:
  *  the matchup then says its commentary can't be read, and logs why, while its scores still show.
  *  Claude's choice. */
 export const THRESHOLD_STEPS_MOST = 1000;
