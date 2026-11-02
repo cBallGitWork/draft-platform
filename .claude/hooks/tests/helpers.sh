@@ -72,6 +72,21 @@ if [ "$1" = api ]; then
 fi
 EOF
 }
+calls_made() { # module call [arg...]: runs the Python call (m is the hook module, args its args) in
+  # the hooks folder, counting every process it starts; prints the count, then the call's result
+  (cd "$hooks" && python3 - "$@" <<'PY'
+import importlib, subprocess, sys
+real, made = subprocess.run, [0]
+def counting(*args, **kwargs):
+    made[0] += 1
+    return real(*args, **kwargs)
+subprocess.run = counting
+result = eval(sys.argv[2], {"m": importlib.import_module(sys.argv[1]), "args": sys.argv[3:]})
+print(made[0])
+print(result)
+PY
+  )
+}
 bash_cmd() { "$jq" -nc --arg c "$1" '{tool_name:"Bash",tool_input:{command:$c}}'; }
 bash_in() { "$jq" -nc --arg c "$2" --arg d "$1" '{tool_name:"Bash",tool_input:{command:$c},cwd:$d}'; }  # dir command
 gh_call() { "$jq" -nc --arg t "mcp__github__$1" --argjson i "$2" '{tool_name:$t,tool_input:$i}'; }  # tool input-json

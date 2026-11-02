@@ -41,6 +41,14 @@ git -C "$home" symbolic-ref -q HEAD && fail "tidy_after_merge.py: the moved main
 # already at origin/main: nothing new to say
 silent tidy_after_merge.py "$(bash_in "$home" "$merge")"
 
+# the longest way through, detached and behind and moved, starts MAIN_MOVE_CALLS processes, the count
+# tidy_after_merge.py's time budget is figured from (#942): a call added without it fails here
+landed hook.py
+made=$(calls_made follow_main 'm.follow_main(args[0])' "$home")
+max=$(cd "$hooks" && python3 -c 'import follow_main; print(follow_main.MAIN_MOVE_CALLS)')
+printf '%s\n' "$made" | grep -q "moved 1 commit(s) on to origin/main" || fail "follow_main.py's count: it didn't take the longest way: $made"
+[ "$(head -n 1 <<<"$made")" = "$max" ] || fail "follow_main.py: its longest way starts $(head -n 1 <<<"$made") processes, MAIN_MOVE_CALLS says $max"
+
 # a changed file the move would overwrite: git refuses, it stays, and says so loudly, to Craig too,
 # naming the file in the way
 landed .gitignore && before=$(git -C "$home" rev-parse HEAD)
