@@ -24,7 +24,7 @@ import sys
 from drift_due import GitFailed
 from hook_payload import project_dir
 from main_writes import REMOTE_MAIN
-from tidy_branch import failure_line
+from run_command import failure_line
 
 SETUP = (".claude", "CLAUDE.md")  # what Claude Code loads at a session's start
 AGENTS, SKILLS = ".claude/agents/", ".claude/skills/"

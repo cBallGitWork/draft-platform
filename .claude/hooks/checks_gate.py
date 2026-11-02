@@ -10,7 +10,7 @@ pull_request.py. A pull request, its checks or its distance from main it can't r
 denial, never a silent pass, and so is a head with more checks than one read returns. gh pr
 merge --auto waits on checks itself but is refused here too while any is pending: a merge goes
 once they have passed.
-Up to six gh calls of at most 11s each (tidy_branch.py) sit inside the guards' 60s in
+Up to six gh calls of at most 11s each (run_command.py) sit inside the guards' 60s in
 settings.json, as a hook that times out allows. Like drift_gate.py it stops the usual routes only:
 the web button doesn't pass through it. Stdlib only, Python 3.9+.
 """

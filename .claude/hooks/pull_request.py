@@ -14,7 +14,7 @@ import functools
 import json
 import re
 
-from tidy_branch import call
+from run_command import call
 from where import current_branch, runs_at
 
 MERGE_CALL = ["pr", "merge"]
