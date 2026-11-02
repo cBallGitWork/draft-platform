@@ -331,10 +331,10 @@ The homes the folder pass set (29 Oct 2026), so new code has one place to go:
 Craig's picks from the guide videos (16 Oct 2026; [docs/research/guide-videos.md](docs/research/guide-videos.md)),
 meant to land with the first code; the ones still open are tracked in issues, linked below:
 
-- [x] **Stop gate**: a session can't finish while the tests fail. `.claude/hooks/gate_on_stop.py`
-      runs on Stop and SubagentStop; while the watched paths have uncommitted changes it runs
-      `npm run verify`, and on a failure blocks the stop once. A `/verify` skill runs the local
-      gate and reports the count (epl-draft's; [what it runs](.claude/skills/verify/SKILL.md)).
+- [x] **Verify gate**: retired as a Stop hook on 2 Nov 2026 (`docs/PLAN.md`); CI runs
+      `npm run verify` on every pull request and the `main` ruleset requires it. A `/verify` skill
+      runs the local gate and reports the count (epl-draft's;
+      [what it runs](.claude/skills/verify/SKILL.md)).
 - [x] **Line ceiling**: a note when a file passes 250 and 300 lines (epl-draft's
       `.claude/hooks/line_ceiling.sh`, landed as `line_ceiling.py`).
 - [x] **UI rules by path**: `docs/design/plate.md`'s "Never" list in `.claude/rules/` so it loads

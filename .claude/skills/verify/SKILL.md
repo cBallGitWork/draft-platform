@@ -13,8 +13,8 @@ npm run verify   # install check, vitest run, tsc on convex/ and on the app, the
 npm test -- <file>   # one test file
 ```
 
-`npm run verify` is the local gate, and the Stop hook runs the same script, so a session can't
-end on a failure it didn't mention.
+`npm run verify` is the local gate, and CI runs the same script on every pull request, which the
+`main` ruleset requires, so a failure you didn't catch here stops the merge.
 
 CI also runs `npm run build` and `npm run smoke`. Smoke needs Google Chrome locally (the Smoke
 tests row in [ARCHITECTURE.md](../../../ARCHITECTURE.md#libraries-claudes)).
@@ -24,8 +24,7 @@ tests row in [ARCHITECTURE.md](../../../ARCHITECTURE.md#libraries-claudes)).
 
 Never run bare `npx vitest`: `npm test` wraps vitest in `scripts/with-deadline.mjs`, which kills
 the run at its deadline (`package.json`'s `test` script), so a test that loops forever fails
-instead of hanging the session. That deadline sits under the Stop hook's own
-(`GATE_TIMEOUT_SECONDS`, `.claude/hooks/gate_on_stop.py`). On a 4-core cloud box vitest alone took
+instead of hanging the session. On a 4-core cloud box vitest alone took
 108-134s (27 Oct 2026, #467), about the Bash tool's default timeout, so give the tool call a
 timeout over the deadline or run it in the background.
 

@@ -183,6 +183,8 @@ Keep the hooks that stop real mistakes; retire the gates GitHub or a schedule no
 
 The matching lines in `CLAUDE.md` and `docs/REFACTORING.md` go with them.
 
+First wave retired (2 Nov 2026): `checks_gate.py`, `follow_main.py`, `gate_on_stop.py`, `tidy_after_merge.py` and `tidy_branch.py`, once the ruleset, CI and branch auto-delete were on and working.
+
 ## Beta-ready checks
 
 The beta starts when all eight pass, not on a date.
