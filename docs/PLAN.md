@@ -17,6 +17,7 @@ Adopted by Craig 2 Nov 2026. Where this plan and `CLAUDE.md` disagree, `CLAUDE.m
 - [Beta-ready checks](#beta-ready-checks)
 - [Craig's setup list](#craigs-setup-list)
 - [Decisions for Craig](#decisions-for-craig)
+- [Costs to watch](#costs-to-watch)
 - [Moving off the Mac](#moving-off-the-mac)
 - [Checked against the guide videos](#checked-against-the-guide-videos)
 - [What stays with Craig](#what-stays-with-craig)
@@ -35,7 +36,7 @@ Each problem from the two reviews has one fix, one tool where a tool helps, and 
 
 | Problem | Fix | Tool | Craig stops |
 | --- | --- | --- | --- |
-| Live data comes from FPL's and the Premier League's unofficial feeds (`convex/football/football.ts`) | Check the terms now. Price a licensed feed. The swap is wider than `footballSync.ts`: the live and match-stats readers change too, and players need a mapping from the new feed's ids to FPL's `code` | Sportmonks, API-Football or Opta, priced side by side | Nothing: this decision is his |
+| Live data comes from FPL's and the Premier League's unofficial feeds (`convex/football/football.ts`) | The terms check and a licensed feed's price wait until outsiders are due to join; the beta runs on the feeds as they are (Craig, 2 Nov 2026). The swap is wider than `footballSync.ts`: the live and match-stats readers change too, and players need a mapping from the new feed's ids to FPL's `code` | Sportmonks, API-Football or Opta, priced side by side | Nothing: this decision is his |
 | No monitoring: a dead scheduled job or a stuck pick clock goes unseen | Every error reported with its league; every scheduled job in `convex/crons.ts` sends a heartbeat | Sentry, Healthchecks.io | Finding out about breakages from players |
 | Process eats the effort: 24 hooks, about 7,700 lines of scripts, 43 chores to 62 features | Retire the gates GitHub can do itself (see Hooks to keep and retire); keep the ones that stop real mistakes | GitHub branch protection, merge queue, CODEOWNERS | Babysitting gates |
 | Built screens lag their approved pictures; Home is far behind | Rebuild Home early, then each screen as its picture lands | Argos for side-by-side diffs | Reading the numbered differences table on every screen PR |
@@ -116,7 +117,7 @@ About seven weeks to a beta with a live draft and trades, or five without trades
   - Sentry and heartbeats on every scheduled job.
   - Claude GitHub App and the build workflow, then one dry run on a throwaway issue; then Code Owners review on in the ruleset, then the nightly schedule, triage and auto-merge.
   - Screenshots moved to the Playwright container, with new baselines, then Argos.
-  - Hooks retired. Draft grill answered; the draft room's picture drawn. Craig checks the feed's terms.
+  - Hooks retired. Draft grill answered; the draft room's picture drawn.
 2. **Weeks 2 and 3: the draft room.**
   - Tables, the pick mutation, the clock, auto-pick, pause and undo (see Draft room design).
   - The lobby, the draft screen on the new grid and components, and pick emails.
@@ -128,7 +129,7 @@ About seven weeks to a beta with a live draft and trades, or five without trades
 5. **Week 7: the beta.**
   - The full loop rehearsed on the bot league until every Beta-ready check passes.
   - Craig's setup run in `docs/setup.md`; his league keeps this season and drafts at its next split or new season.
-6. **Before anyone outside your league joins:** the feed settled and the admins table in place.
+6. **Before anyone outside your league joins:** the feed's terms checked and a licensed feed chosen if needed, the admins table in place, and Resend on a paid tier.
 7. **Before going wide:** per-league splitting of the 4 jobs that read across leagues, and a 500-league seeded test.
 
 ## Built for hundreds of users
@@ -193,7 +194,7 @@ The beta starts when all eight pass, not on a date.
 - [ ] Two full gameweeks on the bot league match the fixed scoring totals.
 - [ ] Waivers and free agency run one full cycle with the right Mail letters.
 - [ ] No beta screen shows a placeholder box; each matches its picture or sits behind a flag.
-- [ ] The feed's terms confirmed in writing, a backup restored once, and league access passing role tests.
+- [ ] A backup restored once, and league access passing role tests. (The feed's terms are confirmed in writing before outsiders join, not before the beta.)
 
 ## Craig's setup list
 
@@ -211,8 +212,12 @@ These need Craig's accounts, so no build can do them:
 
 1. **Re-draft or new league?** Your league is mid-season with assigned squads. Your league keeps this season. It first uses the draft room at its next split or when the next season starts, the natural points for a re-draft. The beta does not wait on it.
 2. **Trades in the beta, or straight after?** Kept in by your call; cutting them brings the beta forward about two weeks.
-3. **Licensed feed:** which provider, once the terms check is back.
+3. **Licensed feed:** which provider, once the terms check is back. Not needed for the beta.
 4. **Convex Pro:** needed for preview deployments and scheduled backups.
+
+## Costs to watch
+
+Vercel's bill was $47 in the month to 2 Nov 2026, on the Pro plan. The new site is static and costs next to nothing; the money was the older companion app (`epl-draft`), where `AutoRefresh.tsx` calls `router.refresh()` on a timer on every open page, nearly every page re-renders every 30 seconds, and portraits go through Vercel's image optimizer. Craig is dealing with that in the companion's repo.
 
 ## Moving off the Mac
 
