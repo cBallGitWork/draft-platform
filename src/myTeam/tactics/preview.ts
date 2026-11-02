@@ -3,7 +3,7 @@
 // server's own check (lineup.ts) and said in its words, so a refusal shows as it would live.
 
 import { useSyncExternalStore } from "react";
-import { lineupProblems } from "../../../convex/lineup/lineup";
+import { saveProblems } from "../../../convex/lineup/lineup";
 import { problemWords } from "../../../convex/lineup/lineupWords";
 import { CLUB_COLOURS } from "../../../convex/football/clubColours";
 import type { Cell } from "../../../convex/lineup/pitch";
@@ -78,7 +78,7 @@ const subscribe = (listener: () => void) => {
 
 const changes = {
   save: async (_leagueId: unknown, lineup: DraftLineup) => {
-    const problems = lineupProblems(lineup, positionsOf, { areaLimits: FIRST_RULES.areaLimits });
+    const problems = saveProblems(lineup, positionsOf, { areaLimits: FIRST_RULES.areaLimits });
     if (problems.length > 0) return problems.map((problem) => problemWords(problem, nameOf)).join(" ");
     tactics = tacticsWith(lineup);
     for (const listener of listeners) listener();

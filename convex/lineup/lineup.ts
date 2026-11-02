@@ -5,7 +5,7 @@
 // When positions change): the deadline, rollover and auto team must not take that outsideHisAreas
 // as illegal. It is reported alone, so a caller can set it aside; the rule is #23's to keep.
 
-import { AREAS, cellKey, LANES, playsCell, type Area, type Cell, type Lane } from "./pitch";
+import { AREAS, cellKey, fillsOutOfPosition, LANES, playsCell, type Area, type Cell, type Lane } from "./pitch";
 import { isRole, offersRole } from "./roles";
 import type { Position } from "../positions/positionTables";
 
@@ -118,6 +118,16 @@ export function lineupProblems(lineup: Lineup, positions: PlayerPositions, rules
     if (starterCount < minimum) problems.push({ kind: "belowMinimum", area, starterCount, minimum });
   }
   return problems;
+}
+
+/** The reasons a manager's save is refused: every problem but an outfield player standing out of
+ *  position in an outfield cell, which a preset switch the squad can't fill leaves for now
+ *  (spec/05; Craig, 2 Nov 2026, #1025), so that lineup and every move after it saves. A keeper
+ *  out of goal, or an outfield player in it, is still refused. */
+export function saveProblems(lineup: Lineup, positions: PlayerPositions, rules: LineupRules): LineupProblem[] {
+  return lineupProblems(lineup, positions, rules).filter(
+    (problem) => problem.kind !== "outsideHisAreas" || !fillsOutOfPosition(problem.positions, problem),
+  );
 }
 
 /** A lineup read against the squad (spec/05, The deadline and Auto-subs): the server's for a saved

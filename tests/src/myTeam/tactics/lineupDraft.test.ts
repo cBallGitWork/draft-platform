@@ -2,7 +2,7 @@
 // player picked up can go under the area limits (#851), and when two lineups stand the same.
 
 import { describe, expect, it } from "vitest";
-import { ALL_CELLS, AREAS, type Cell } from "../../../../convex/lineup/pitch";
+import { ALL_CELLS, AREAS } from "../../../../convex/lineup/pitch";
 import type { Position } from "../../../../convex/positions/positionTables";
 import {
   benched,
@@ -22,12 +22,7 @@ import {
   type RatingsOf,
 } from "../../../../src/myTeam/tactics/lineupDraft";
 import type { RoleStars } from "../../../../convex/stars/starsShape";
-
-const KEEPER = { playerCode: 1, area: "goalkeeper", lane: "centre" } as const;
-const BACK = { playerCode: 2, area: "defence", lane: "left" } as const;
-const DRAFT = { starters: [KEEPER, BACK], bench: [3, 4] };
-/** No stars: everyone dropped starts on the slot's first role. */
-const NO_STARS: RatingsOf = () => [];
+import { BACK, DRAFT, KEEPER, NO_STARS, PLAYS } from "../../../support/src/lineupDraft.harness";
 
 describe("a move", () => {
   it("off the bench into a free cell makes him a starter", () => {
@@ -82,88 +77,6 @@ describe("the lineup shown", () => {
 
   it("is the held lineup while there is no edit", () => {
     expect(shownLineup(null, OPENING, [1, 3, 4, 9])).toBe(OPENING);
-  });
-});
-
-/** Who plays where in the preset tests: a keeper, two defenders, a striker, a wide midfielder, three
- *  holding midfielders, one also a full back and one also a number ten. */
-const PRESET_POSITIONS: Record<number, Position[]> = {
-  1: ["GK"], 2: ["CB"], 5: ["ST"], 6: ["WM"], 7: ["FB"], 8: ["CDM"], 9: ["FB", "CDM"], 10: ["CDM", "CAM"],
-};
-const PLAYS = { positionsOf: (playerCode: number) => PRESET_POSITIONS[playerCode] ?? [] };
-
-describe("a preset picked (spec/05; Craig, 26 Oct 2026)", () => {
-  const cell = (area: Cell["area"], lane: Cell["lane"]) => ({ area, lane });
-  const FOUR_BACK = [cell("goalkeeper", "centre"), cell("defence", "left"), cell("defence", "leftCentre"), cell("defence", "rightCentre"), cell("defence", "right")];
-
-  it("moves each starter to a free cell of the shape in his own area, the nearest lane first", () => {
-    const draft = { starters: [KEEPER, { playerCode: 2, area: "defence", lane: "centre" } as const], bench: [3] };
-    expect(reshaped(draft, FOUR_BACK, PLAYS, NO_STARS)).toEqual({
-      starters: [KEEPER, { playerCode: 2, area: "defence", lane: "leftCentre" }],
-      bench: [3],
-    });
-  });
-
-  it("puts anyone the shape has no room for at the front of the bench, back to front", () => {
-    const draft = {
-      starters: [KEEPER, { playerCode: 5, area: "attack", lane: "centre" } as const, { playerCode: 6, area: "midfield", lane: "left" } as const],
-      bench: [3],
-    };
-    expect(reshaped(draft, FOUR_BACK, PLAYS, NO_STARS)).toEqual({ starters: [KEEPER], bench: [6, 5, 3] });
-  });
-
-  it("two starters in an area take its cells in turn, never the same one", () => {
-    const draft = { starters: [{ playerCode: 2, area: "defence", lane: "left" } as const, { playerCode: 7, area: "defence", lane: "leftCentre" } as const], bench: [] };
-    const result = reshaped(draft, [cell("defence", "left"), cell("defence", "right")], PLAYS, NO_STARS);
-    expect(result.starters).toEqual([{ playerCode: 2, area: "defence", lane: "left" }, { playerCode: 7, area: "defence", lane: "right" }]);
-  });
-
-  it("moves a starter with no room in his area to the nearest one he plays: 4-4-2's midfield into 4-2-3-1's holding pair (Craig, 1 Nov 2026)", () => {
-    const draft = { starters: [KEEPER, { playerCode: 8, area: "midfield", lane: "leftCentre" } as const], bench: [3] };
-    expect(reshaped(draft, [KEEPER, cell("defensiveMidfield", "leftCentre"), cell("defensiveMidfield", "rightCentre")], PLAYS, NO_STARS)).toEqual({
-      starters: [KEEPER, { playerCode: 8, area: "defensiveMidfield", lane: "leftCentre" }],
-      bench: [3],
-    });
-  });
-
-  it("takes the deeper of two areas as near as each other", () => {
-    const draft = { starters: [{ playerCode: 10, area: "midfield", lane: "centre" } as const], bench: [] };
-    expect(reshaped(draft, [cell("defensiveMidfield", "centre"), cell("attackingMidfield", "centre")], PLAYS, NO_STARS).starters).toEqual([
-      { playerCode: 10, area: "defensiveMidfield", lane: "centre" },
-    ]);
-  });
-
-  it("fills everyone's own area first, so a player moved across never takes the cell its own player needed", () => {
-    const draft = { starters: [{ playerCode: 9, area: "defence", lane: "left" } as const, { playerCode: 8, area: "defensiveMidfield", lane: "centre" } as const], bench: [] };
-    expect(reshaped(draft, [cell("defensiveMidfield", "centre")], PLAYS, NO_STARS)).toEqual({
-      starters: [{ playerCode: 8, area: "defensiveMidfield", lane: "centre" }],
-      bench: [9],
-    });
-  });
-
-  it("never puts a starter in a cell of his own area he doesn't play", () => {
-    const wingBack = { positionsOf: () => ["WB"] as Position[] };
-    const draft = { starters: [{ playerCode: 4, area: "midfield", lane: "left" } as const], bench: [] };
-    expect(reshaped(draft, [cell("midfield", "centre")], wingBack, NO_STARS)).toEqual({ starters: [], bench: [4] });
-  });
-});
-
-describe("a preset picked fills its empty slots from the bench (Craig, 1 Nov 2026; #1025)", () => {
-  const cell = (area: Cell["area"], lane: Cell["lane"]) => ({ area, lane });
-
-  it("takes bench players who play an empty slot, in bench order, and leaves the rest on the bench", () => {
-    const draft = { starters: [KEEPER], bench: [3, 5, 2, 7] };
-    const shape = [KEEPER, cell("defence", "left"), cell("attack", "centre")];
-    expect(reshaped(draft, shape, PLAYS, NO_STARS)).toEqual({
-      starters: [KEEPER, { playerCode: 5, area: "attack", lane: "centre" }, { playerCode: 2, area: "defence", lane: "left" }],
-      bench: [3, 7],
-    });
-  });
-
-  it("puts a winger benched by a 4-4-2 back in its wide midfield", () => {
-    const winger = { positionsOf: () => ["W"] as Position[] };
-    const draft = { starters: [{ playerCode: 11, area: "attackingMidfield", lane: "left" } as const], bench: [] };
-    expect(reshaped(draft, [cell("midfield", "left")], winger, NO_STARS).starters).toEqual([{ playerCode: 11, area: "midfield", lane: "left" }]);
   });
 });
 

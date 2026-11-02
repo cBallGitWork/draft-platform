@@ -1,5 +1,5 @@
 import { describe, expect, test } from "vitest";
-import { lineupProblems, namedCodes, type Lineup, type Placement } from "../../../convex/lineup/lineup";
+import { lineupProblems, namedCodes, saveProblems, type Lineup, type Placement } from "../../../convex/lineup/lineup";
 import { FIRST_SUB, filledLineup, openLimits, presetNamed, withPositions } from "../../support/convex/lineup.harness";
 import type { Area, Lane } from "../../../convex/lineup/pitch";
 
@@ -88,6 +88,20 @@ describe("where a player may stand", () => {
 
     expect(lineupProblems(fourFourTwo, lostMidfield, exactlyFourInMidfield)).toEqual([
       { kind: "outsideHisAreas", playerCode: LEFT_MIDFIELDER, area: "midfield", lane: "left", positions: ["ST"] },
+    ]);
+  });
+
+  test("a save sets aside an outfield player out of position, as a preset switch the squad can't fill leaves him, never one crossing the goal line (Craig, 2 Nov 2026; #1025)", () => {
+    const strikerAtBack = withPositions(positions, LEFT_BACK, ["ST"]);
+    expect(saveProblems(fourFourTwo, strikerAtBack, openLimits())).toEqual([]);
+
+    const strikerInGoal = withPositions(positions, KEEPER, ["ST"]);
+    expect(saveProblems(fourFourTwo, strikerInGoal, openLimits())).toEqual([
+      { kind: "outsideHisAreas", playerCode: KEEPER, area: "goalkeeper", lane: "centre", positions: ["ST"] },
+    ]);
+    const keeperUpFront = withPositions(positions, STRIKER, ["GK"]);
+    expect(saveProblems(fourFourTwo, keeperUpFront, openLimits())).toEqual([
+      { kind: "outsideHisAreas", playerCode: STRIKER, area: "attack", lane: "leftCentre", positions: ["GK"] },
     ]);
   });
 

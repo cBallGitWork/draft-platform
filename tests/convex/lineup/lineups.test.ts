@@ -138,6 +138,18 @@ describe("a saved lineup", () => {
     vi.advanceTimersByTime((GAMEWEEKS - NEXT + 1) * WEEK_MS);
     await expectRefused((await as(ANN)).save(FOUR_FOUR_TWO), lineupRefusals.seasonOver);
   });
+
+  test("an outfield player out of position saves, as a preset switch the squad can't fill leaves him (Craig, 2 Nov 2026; #1025)", async () => {
+    const back = FOUR_FOUR_TWO.starters[1];
+    const striker = FOUR_FOUR_TWO.starters.at(-1)!;
+    const swap = (starter: Lineup["starters"][number]) =>
+      starter === back ? { ...back, area: striker.area, lane: striker.lane } : starter === striker ? { ...striker, area: back.area, lane: back.lane } : starter;
+    const outOfPosition = { ...FOUR_FOUR_TWO, starters: FOUR_FOUR_TWO.starters.map(swap) };
+    const ann = await as(ANN);
+
+    expect(await ann.save(outOfPosition)).toBe(NEXT);
+    expect(await ann.mine(NEXT)).toEqual(saved(outOfPosition, NEXT));
+  });
 });
 
 test("a team that has never saved a lineup holds its first, picked from its squad (spec/05, #637)", async () => {
@@ -226,6 +238,17 @@ describe("a lineup refused, with the reason", () => {
       `${nameOf(keeper.playerCode)} plays GK, so he can't stand in the left cell in Attack. ` +
         `${nameOf(firstBack.playerCode)} and ${nameOf(rest[0].playerCode)} share the left-centre cell in Defence: one player a cell. ` +
         "The league starts at least 1 in Goalkeeper; this lineup starts 0 there.",
+    );
+    expect(await lineupRows()).toEqual([]);
+  });
+
+  test("a keeper out of goal, or an outfield player in it, even though an outfield player may stand out of position (#1025)", async () => {
+    const [keeper, firstBack, ...rest] = FOUR_FOUR_TWO.starters;
+    const lineup = { ...FOUR_FOUR_TWO, starters: [{ ...keeper, area: firstBack.area, lane: firstBack.lane }, { ...firstBack, area: keeper.area, lane: keeper.lane }, ...rest] };
+    await expectRefused(
+      (await as(ANN)).save(lineup),
+      `${nameOf(keeper.playerCode)} plays GK, so he can't stand in the left cell in Defence. ` +
+        `${nameOf(firstBack.playerCode)} plays CB, so he can't stand in the centre cell in Goalkeeper.`,
     );
     expect(await lineupRows()).toEqual([]);
   });

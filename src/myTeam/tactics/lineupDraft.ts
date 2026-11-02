@@ -2,10 +2,11 @@
 // which cell, and the bench in order. Pure, so the screen only says what was asked. Whether it may
 // stand is the server's (convex/lineup/lineup.ts), told as each move saves; here a player is only
 // ever offered a cell he plays (spec/05: "a player fills only slots in the areas his positions
-// play") and a move that keeps the league's area limits (spec/05, Moving players: "Anything that
-// would break the area limits stays unlit").
+// play"), but for a preset switch's last empty slots (`reshaped`), and a move that keeps the
+// league's area limits (spec/05, Moving players: "Anything that would break the area limits stays
+// unlit").
 
-import { ALL_CELLS, AREAS, byPitchOrder, cellKey, LANES, playsCell, positionOfSlot, sameCell, type Cell } from "../../../convex/lineup/pitch";
+import { ALL_CELLS, AREAS, byPitchOrder, cellKey, fillsOutOfPosition, LANES, playsCell, positionOfSlot, sameCell, type Cell } from "../../../convex/lineup/pitch";
 import { namedCodes, reconciled, STARTER_COUNT, type LineupRules } from "../../../convex/lineup/lineup";
 import type { Position } from "../../../convex/positions/positionTables";
 import type { OpenTactics } from "../../../convex/lineup/tactics";
@@ -171,8 +172,10 @@ export function sameLineup(one: DraftLineup, other: DraftLineup): boolean {
  *  his own first. Anyone the shape has no room for there then takes the free cell he plays in the
  *  nearest area, the deeper on a tie; anyone left over goes to the front of the bench, in that
  *  order. Then each bench player, in bench order, takes the first free cell he plays, back to
- *  front (Craig, 1 Nov 2026; #1025); cells still empty are the shape's slots to fill. One whose
- *  new slot doesn't offer his role starts on his best-star role there (Craig, 1 Nov 2026). */
+ *  front (Craig, 1 Nov 2026; #1025). Cells still empty are filled the same way by outfield players
+ *  out of position, never in goal and never by a keeper (Craig, 2 Nov 2026; #1025), so a cell stays
+ *  empty only for want of a player who may stand there. One whose new slot doesn't offer his role
+ *  starts on his best-star role there (Craig, 1 Nov 2026). */
 export function reshaped(draft: DraftLineup, cells: readonly Cell[], { positionsOf }: Pick<MoveRules, "positionsOf">, ratingsOf: RatingsOf): DraftLineup {
   const free = [...cells];
   const starters: Starter[] = [];
@@ -207,15 +210,24 @@ export function reshaped(draft: DraftLineup, cells: readonly Cell[], { positions
     if (cell === undefined) leftOver.push(starter.playerCode);
     else moveInto(starter, cell);
   }
-  const bench: number[] = [];
-  for (const playerCode of [...leftOver, ...draft.bench]) {
-    const cell = free.toSorted(byPitchOrder).find((each) => playsCell(positionsOf(playerCode), each));
-    if (cell === undefined) bench.push(playerCode);
-    else {
-      free.splice(free.indexOf(cell), 1);
-      starters.push(droppedInto(playerCode, cell, ratingsOf));
+  /** Each player in turn, in bench order, takes the first free cell he may stand in, back to front;
+   *  the rest stay on the bench in that order. */
+  const benchFills = (playerCodes: readonly number[], mayStandIn: (playerCode: number, cell: Cell) => boolean) => {
+    const stillOut: number[] = [];
+    for (const playerCode of playerCodes) {
+      const cell = free.toSorted(byPitchOrder).find((each) => mayStandIn(playerCode, each));
+      if (cell === undefined) stillOut.push(playerCode);
+      else {
+        free.splice(free.indexOf(cell), 1);
+        starters.push(droppedInto(playerCode, cell, ratingsOf));
+      }
     }
-  }
+    return stillOut;
+  };
+  const playsIt = benchFills([...leftOver, ...draft.bench], (playerCode, cell) => playsCell(positionsOf(playerCode), cell));
+  // A switch is never refused: what the bench plays can't fill, it fills out of position, for now
+  // with no penalty (Craig, 2 Nov 2026; #1025).
+  const bench = benchFills(playsIt, (playerCode, cell) => fillsOutOfPosition(positionsOf(playerCode), cell));
   return { starters, bench };
 }
 

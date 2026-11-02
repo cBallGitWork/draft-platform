@@ -98,6 +98,14 @@ export function areasOf(positions: readonly Position[]): Area[] {
   return AREAS.filter((area) => positions.some((position) => PLAYABLE_CELLS[position].some((cell) => cell.area === area)));
 }
 
+/** Whether a player may stand in this cell out of position, as a preset switch's last empty slots
+ *  are filled for now (spec/05; Craig, 2 Nov 2026, #1025): an outfield player in an outfield
+ *  cell. A keeper plays only in goal and only a keeper plays there, always, and a player with no
+ *  positions yet can't start at all. */
+export function fillsOutOfPosition(positions: readonly Position[], { area }: Cell): boolean {
+  return positions.length > 0 && !positions.includes("GK") && area !== "goalkeeper";
+}
+
 /** Whether a player with these positions may stand in this cell. Any one of them is enough, and
  *  one still unconfirmed counts the same (spec/06, New signings). */
 export function playsCell(positions: readonly Position[], cell: Cell): boolean {

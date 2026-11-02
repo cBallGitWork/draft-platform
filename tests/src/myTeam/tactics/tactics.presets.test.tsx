@@ -16,7 +16,7 @@ import {
   savedWords,
 } from "../../../../src/myTeam/tactics/words";
 import { league } from "../../../support/src/shell.harness";
-import { TACTICS_GAMEWEEK } from "../../../support/src/tactics.harness";
+import { openTactics, TACTICS_GAMEWEEK } from "../../../support/src/tactics.harness";
 import {
   ARRIZABALAGA,
   HAVERTZ,
@@ -24,9 +24,11 @@ import {
   RICE,
   SALIBA,
   SAVED,
+  SQUAD,
   STARTERS,
   WHITE,
   blockOf,
+  member,
   openedPitch,
   pickFormation,
   pickUp,
@@ -85,6 +87,16 @@ describe("a preset (spec/05; Craig, 26 Oct 2026)", () => {
     await pickFormation("4-2-3-1");
     expect(blockOf(RICE, { area: "defensiveMidfield", lane: "leftCentre" })).toBeTruthy();
     expect(squadRows()[squadRows().indexOf(BENCH_TITLE) + 1]).not.toContain(RICE.name);
+  });
+
+  it("fills a slot no one on the bench plays with a bench player out of position, and saves it (Craig, 2 Nov 2026; #1025)", async () => {
+    const JESUS = member(7, "Jesus", ["ST"]);
+    const app = await openedPitch({ tactics: openTactics({ squad: [...SQUAD, JESUS], lineup: { ...SAVED.lineup, bench: [...SAVED.lineup.bench, JESUS.playerCode] } }) });
+    // A 4-2-3-1's lone striker is Havertz's; White takes its left back, and Jesus, a striker, the
+    // first slot still empty, back to front. The keeper on the bench never leaves goal.
+    await pickFormation("4-2-3-1");
+    expect(blockOf(JESUS, { area: "defence", lane: "rightCentre" })).toBeTruthy();
+    expect(app.myTeam.lineupChanges.save).toHaveBeenCalledWith(league.leagueId, expect.objectContaining({ bench: [ARRIZABALAGA.playerCode] }));
   });
 
   it("saves itself as it stands, and Undo puts the shape away too", async () => {

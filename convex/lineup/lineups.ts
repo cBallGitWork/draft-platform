@@ -11,7 +11,7 @@ import { squadAt, squadMovesSince, squadOf, type SquadMovesSince } from "../squa
 import { playerByCode } from "../shared/players";
 import { positionsNow } from "../positions/playerPositions";
 import { placementShape } from "../schema";
-import { lineupProblems, namedCodes, reconciled, type PlayerPositions } from "./lineup";
+import { namedCodes, reconciled, saveProblems, type PlayerPositions } from "./lineup";
 import { firstLineup, keptOnBenchOf, withDroppedRoles, type FirstLineupRules } from "./firstLineup";
 import { starsOfPlayers } from "../stars/playerStars";
 import type { Area, Lane } from "./pitch";
@@ -193,10 +193,10 @@ export const save = mutation({
 
     const positions = await heldPositionsOf(ctx, leagueId, lineup.starters.map(({ playerCode }) => playerCode));
     const { areaLimits } = season.inGameweek(fromGameweek);
-    const problems = lineupProblems(lineup, positions, { areaLimits });
+    const problems = saveProblems(lineup, positions, { areaLimits });
     if (problems.length > 0) refuse(problems.map((problem) => problemWords(problem, nameOf)).join(" "));
 
-    // lineupProblems refused any cell not on the pitch, so every starter's is one, and any role
+    // saveProblems refused any cell not on the pitch, so every starter's is one, and any role
     // another slot offers; a role removed from the set is saved as the one he plays (#841).
     const starters = lineup.starters.map(({ role, ...starter }) => {
       const cell = { area: starter.area as Area, lane: starter.lane as Lane };
