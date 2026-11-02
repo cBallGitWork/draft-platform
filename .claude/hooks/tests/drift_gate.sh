@@ -1,7 +1,8 @@
 #!/bin/bash
 # drift_gate.py's checks, through guard_bash.py: gh pr merge is refused at 10 or more merges since
-# the last drift pass unless the pull request's title (a stand-in gh pr view) starts
-# "refactor: drift pass"; a count or title it can't read is refused too.
+# the last drift pass unless the pull request's title (the stand-in gh api's $FAKE_TITLE) starts
+# "refactor: drift pass"; a count or title it can't read is refused too; the GitHub tool's merge
+# waits the same way.
 . "$(dirname "$0")/helpers.sh"
 
 repo=$tmp/gate && git init -q -b main "$repo"
@@ -9,13 +10,10 @@ commits() { # n [message]: n empty commits on main
   local i
   for ((i = 0; i < $1; i++)); do git -C "$repo" "${as_tester[@]}" commit -q --allow-empty -m "${2:-fix: x}"; done
 }
-# a stand-in gh: gh pr view prints $FAKE_TITLE as JSON, or fails when it is unset; asked for the
-# body and labels (approval_gate.py), it gives a body with no differences listed
 stand_in_gh <<'EOF'
-[ "${*: -1}" = body,labels ] && { echo '{"body":"","labels":[]}'; exit 0; }
-[ -n "${FAKE_TITLE:-}" ] || { echo "no pull requests found" >&2; exit 1; }
-printf '{"title":"%s"}\n' "$FAKE_TITLE"
+echo "stand-in gh: no answer for $*" >&2; exit 1
 EOF
+tool=$("$jq" -nc --arg d "$repo" '{tool_name:"mcp__github__merge_pull_request",tool_input:{owner:"o",repo:"r",pullNumber:5},cwd:$d}')
 merge=(gh pr merge 5 --squash --delete-branch)
 
 commits 1 "refactor: drift pass 1: x (#1)" && commits 9
@@ -27,14 +25,20 @@ check deny guard_bash.py "$(bash_in "$repo" 'gh pr merge --repo o/r 5 --squash')
 check deny guard_bash.py "$(bash_in "$repo" "git status && ${merge[*]}")"
 says "Run the drift pass first" guard_bash.py "$(bash_in "$repo" "${merge[*]}")"
 says "10 merged since" guard_bash.py "$(bash_in "$repo" "${merge[*]}")"
+check deny guard_github.py "$tool"
+says "Run the drift pass first" guard_github.py "$tool"
 check allow guard_bash.py "$(bash_in "$repo" 'gh pr view 5')"  # only a merge waits
 export FAKE_TITLE="refactor: drift pass 2: y"
 check allow guard_bash.py "$(bash_in "$repo" "${merge[*]}")"  # the pass itself may merge
+check allow guard_github.py "$tool"
 export FAKE_TITLE="docs: before the refactor: drift pass"
 check deny guard_bash.py "$(bash_in "$repo" "${merge[*]}")"  # the title starts with it, not mentions it
 unset FAKE_TITLE
-says "can't read this pull request's title" guard_bash.py "$(bash_in "$repo" "${merge[*]}")"
+FAKE_API_FAIL=pulls/5 says "can't read this pull request's title" guard_bash.py "$(bash_in "$repo" "${merge[*]}")"
+FAKE_API_FAIL=pulls/5 says "can't read this pull request's title" guard_github.py "$tool"
 
 # a folder where the count can't be read is refused, never let through
 nomain=$tmp/gate-nomain && git init -q -b trunk "$nomain"
 says "Can't count the merges since the last drift pass" guard_bash.py "$(bash_in "$nomain" "${merge[*]}")"
+says "Can't count the merges since the last drift pass" guard_github.py \
+  "$("$jq" -nc --arg d "$nomain" '{tool_name:"mcp__github__merge_pull_request",tool_input:{owner:"o",repo:"r",pullNumber:5},cwd:$d}')"

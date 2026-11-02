@@ -24,7 +24,7 @@ import sys
 import time
 
 from commands import commands
-from drift_gate import merge_args, view_args
+from pull_request import merge_args, view_args
 from follow_main import MAIN_MOVE_CALLS, NOT_MOVED, follow_main
 from hook_payload import BadPayload, field, project_dir, read_payload, report
 from parsing import Unbalanced, Unreadable
