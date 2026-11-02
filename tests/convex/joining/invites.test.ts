@@ -56,10 +56,11 @@ const inviteRow = async (inviteId: Id<"invites">) => (await invitesPage(t, leagu
 
 describe("an invite", () => {
   test("to a new team is emailed with a sign-in link, and opening it makes them its manager with no approval", async () => {
+    vi.setSystemTime(Date.UTC(2026, 10, 1, 14, 32));
     const inviteId = await invite(t, leagueId, ANN);
 
     const email = lastEmailTo(sent, ANN);
-    expect(email.subject.startsWith("You're invited to Tim Hortons Pro League on Draft Manager, ")).toBe(true);
+    expect(email.subject).toBe("You're invited to Tim Hortons Pro League on Draft Manager, Sunday 1 November at 14:32 GMT");
     expect(email.text).toContain(`${COMMISSIONER} has invited you to run a new team in ${LEAGUE_NAME}`);
     expect(email.text).toContain(`${SITE_URL}${invitedPath(inviteId)}?code=`);
     expect(await openLastLinkTo(t, sent, ANN)).not.toBeNull();

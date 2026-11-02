@@ -9,9 +9,10 @@ import { momentIn } from "../shared/moments";
 /** What an invite's email says of it. */
 export type InviteFacts = { leagueName: string; invitedBy: string; teamName: string | null };
 
-/** The subject ends with when it was sent, as a sign-in email's does (signInEmail.ts), so Gmail never
- *  folds a resent invite into the conversation of the first (#973). */
-export function inviteEmail(url: string, { leagueName, invitedBy, teamName }: InviteFacts, sentAt = Date.now()) {
+/** The subject ends with `sentAt`, as a sign-in email's does (signInEmail.ts), so Gmail never folds
+ *  a resent invite into the conversation of the first (#973). The sender passes the time in: the
+ *  query that builds these words can't read the clock. */
+export function inviteEmail(url: string, { leagueName, invitedBy, teamName }: InviteFacts, sentAt: number) {
   return {
     subject: `You're invited to ${leagueName} on ${PRODUCT_NAME}, ${momentIn(sentAt, undefined)}`,
     text: [

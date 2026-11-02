@@ -15,7 +15,7 @@ test("a sign-in link lasts an hour, and every place that tells a person so says 
   vi.stubEnv("SITE_URL", "https://example.com");
   const url = "https://example.com/sign-in?code=1";
   expect(signInEmail(url).text).toContain(AN_HOUR);
-  expect(inviteEmail(url, { leagueName: "A league", invitedBy: "Craig", teamName: null }).text).toContain(AN_HOUR);
+  expect(inviteEmail(url, { leagueName: "A league", invitedBy: "Craig", teamName: null }, Date.now()).text).toContain(AN_HOUR);
   expect(replyWords.checkYourEmail).toContain(AN_HOUR);
 });
 
