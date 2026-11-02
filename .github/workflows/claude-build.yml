@@ -37,8 +37,12 @@ jobs:
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           anthropic_api_key: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN == '' && secrets.ANTHROPIC_API_KEY || '' }}
-          # the agent runs headless, so every tool it needs is named here or it is denied
-          claude_args: --max-turns 60 --allowedTools "Read,Write,Edit,Glob,Grep,Bash(git:*),Bash(gh:*),Bash(npm:*),Bash(npx:*),Bash(node:*),Bash(ls:*),Bash(cat:*),Bash(mkdir:*)"
+          # the agent runs headless, so every tool it needs is named here or it is denied; the deny list is a speed bump,
+          # and the real guard is the ruleset (required checks, up to date) plus Code Owners review
+          claude_args: >-
+            --max-turns 60
+            --allowedTools "Read,Write,Edit,Glob,Grep,Bash(git add:*),Bash(git commit:*),Bash(git checkout:*),Bash(git switch:*),Bash(git push:*),Bash(git status:*),Bash(git diff:*),Bash(git log:*),Bash(gh issue view:*),Bash(gh issue comment:*),Bash(gh pr create:*),Bash(gh pr view:*),Bash(gh pr comment:*),Bash(npm:*),Bash(npx:*),Bash(node:*),Bash(ls:*),Bash(cat:*),Bash(mkdir:*)"
+            --disallowedTools "Bash(gh pr merge:*),Bash(gh api:*),Bash(git push --force:*),Edit(.github/**),Write(.github/**),Edit(.claude/**),Write(.claude/**),Edit(CLAUDE.md),Write(CLAUDE.md)"
           prompt: |
             Build GitHub issue #${{ github.event.issue.number }} in this repository: read it with `gh issue view`.
             Read CLAUDE.md first and follow it: one branch, one pull request, named paths staged, never a commit on main.
