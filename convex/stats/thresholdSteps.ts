@@ -21,7 +21,9 @@ import { EVENT_STATS, isWhole, MINUTES_STAT, type PlayerMatchRecord } from "./ma
 // taken away by the goal that ends it; and goals conceded. A goal, an assist, a card or an own goal
 // has its own line, priced there (EVENT_STATS), so never a step. Which slot he stands in, and so
 // what the step is worth, is each matchup's to work out on read (matchup/vidiprinter.ts), under
-// the site's set in force that gameweek, so the step is stored for every man, owned or not. A read
+// the site's set in force that gameweek, so the step is stored for every man, owned or not; and so
+// is every move of a stat some role in that set adjusts, as whether his role moves it is the
+// matchup's to work out too (#868). A read
 // at full time stores none: its records are the sync's (matchStats.ts), and the live reads have
 // shown the match by then.
 
@@ -40,8 +42,13 @@ export interface ThresholdStep {
  *  of about 32 men who play makes at most 1 for his minutes (past 60), about 3 for a clean sheet
  *  (added, taken away, and back if VAR rules the goal out), 1 for each 2 goals conceded each way,
  *  1 for his defensive contribution and 1 for each 3 saves or each penalty; about 8 a man with a
- *  few goals, so about 250 a match. More throws, never a silent cut: the matchup then says its
- *  commentary can't be read, and logs why, while its scores still show. Claude's choice. */
+ *  few goals, so about 250 a match. A set with role adjustments adds at most 1 a read for each
+ *  action of a stat they adjust (#868): Claude's draft (draftedRoleAdjustments.ts) adjusts about
+ *  300 actions a match, measured from the recorded team stats (Hull v Everton and another: long
+ *  balls, clearances, blocks, interceptions, aerials, tackles, shots, dispossessions, saves,
+ *  crosses, big chances), so about 550, and 700 for a busy one. More throws, never a silent cut:
+ *  the matchup then says its commentary can't be read, and logs why, while its scores still show.
+ *  Claude's choice. */
 export const THRESHOLD_STEPS_MOST = 1000;
 
 /** The stats a goal, an assist, a card or an own goal moves: their own lines price them
@@ -64,25 +71,38 @@ function statPoints(rules: readonly ScoringRule[], cell: Cell, actions: number, 
   return rules.reduce((total, rule) => total + rulePointsIn(rule, cell, counted(rule.stat, actions), minutes), 0);
 }
 
-/** Each stat whose points from `before` to `after` change, up or down, at some cell: one step a
- *  stat, however many rules price it. His minutes are judged as each read shows them, so a clean
- *  sheet he now has the minutes for is a step though its count stayed 1. A step whose count stayed
- *  put while his minutes fell (a feed's correction) isn't stored: priced on read, it would show
- *  the wrong way round. */
+/** Each stat whose points from `before` to `after` change, up or down, at some cell or in some
+ *  role: one step a stat, however many rules price it. A role's adjustment is flat per action with
+ *  no minimum minutes (scoring.ts), so any move in the count of a stat some role in the set adjusts
+ *  is a step, though no rule prices it or its rule's minimum minutes aren't yet met (#868). His
+ *  minutes are judged as each read shows them, so a clean sheet he now has the minutes for is a
+ *  step though its count stayed 1. A step whose count stayed put while his minutes fell (a feed's
+ *  correction) isn't stored: priced on read, it would show the wrong way round. */
 export function thresholdSteps(before: MatchStats, after: MatchStats, set: ScoringSet): ThresholdStep[] {
   const was = withOwnStats(before, set);
   const now = withOwnStats(after, set);
   const minutesWere = statIn(was, MINUTES_STAT);
   const minutesNow = statIn(now, MINUTES_STAT);
+  const byStat = rulesByStat(set);
+  const roleAdjusted = roleAdjustedStats(set);
   const steps: ThresholdStep[] = [];
-  for (const [stat, rules] of rulesByStat(set)) {
+  for (const stat of new Set([...byStat.keys(), ...roleAdjusted])) {
     if (ON_THEIR_OWN_LINES.has(stat)) continue;
+    const rules = byStat.get(stat) ?? [];
     const from = statIn(was, stat);
     const to = statIn(now, stat);
     if (from === to && minutesNow < minutesWere) continue;
-    if (ALL_CELLS.some((cell) => statPoints(rules, cell, from, minutesWere) !== statPoints(rules, cell, to, minutesNow))) steps.push({ stat, from, to });
+    const roleMoves = from !== to && roleAdjusted.has(stat);
+    if (roleMoves || ALL_CELLS.some((cell) => statPoints(rules, cell, from, minutesWere) !== statPoints(rules, cell, to, minutesNow))) {
+      steps.push({ stat, from, to });
+    }
   }
   return steps;
+}
+
+/** Every stat some role in the set adjusts. */
+function roleAdjustedStats(set: ScoringSet): Set<string> {
+  return new Set((set.roleAdjustments ?? []).flatMap(({ adjustments }) => adjustments.map(({ stat }) => stat)));
 }
 
 /** What a stored step is worth at `cell` under the rules for its stat, before any role: what its

@@ -198,6 +198,16 @@ test("a step carries his role's adjustment for its stat, as his slot's points do
   expect(line?.points).toBe("+3");
 });
 
+test("a step on a stat no rule prices shows his role's adjustment alone, and nothing for a man whose role doesn't adjust it (#868)", () => {
+  const roles = { ...FIRST_SCORING, roleAdjustments: [{ role: "attackingFullBack", adjustments: [{ stat: "accurate_cross", points: 1 }] }] } as ScoringSet;
+  const steps = [murillo("accurate_cross", 1, 2, 30)];
+  expect(murillosLines(steps, roles)).toEqual([]);
+  const players = new Map(PLAYERS);
+  players.set(CODE.murillo, { ...PLAYERS.get(CODE.murillo)!, role: "attackingFullBack" });
+  const lines = vidiprinter([{ ...MATCH, steps }], players, roles).filter((each) => each.text.includes("Murillo:"));
+  expect(lines.map(({ text, points }) => `${text} | ${points}`)).toEqual(["~30' Murillo: 2 accurate cross | +1"]);
+});
+
 test("a falling step and the same count sent again each show; only a step the same as the last shown is left out", () => {
   const chance = (from: number, to: number): StoredStep => ({ ...STEPS[1], from, to });
   const steps = [chance(1, 2), chance(2, 1), chance(1, 2), chance(1, 2)];

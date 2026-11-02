@@ -71,6 +71,30 @@ test("an own stat is stepped by its own total", () => {
   expect(thresholdSteps({ tackles: 2 }, { tackles: 2, clearances: 2 }, set)).toEqual([{ stat: "defending", from: 2, to: 3 }]);
 });
 
+// A role's adjustment moves his points on a stat no rule prices, or before a rule's minimum
+// minutes (#868; spec/10: every point movement gets a line).
+const WITH_ROLES: ScoringSet = {
+  ...SET,
+  roleAdjustments: [
+    { role: "attackingFullBack", adjustments: [{ stat: "accurate_cross", points: 1 }, { stat: "clean_sheets", points: -1 }] },
+    { role: "poacher", adjustments: [{ stat: "goals_scored", points: 1 }] },
+  ],
+};
+
+test("a stat some role in the set adjusts is a step each time its count moves, though no rule prices it", () => {
+  expect(thresholdSteps({ minutes: 30, accurate_cross: 1 }, { minutes: 31, accurate_cross: 2 }, WITH_ROLES)).toEqual([{ stat: "accurate_cross", from: 1, to: 2 }]);
+  expect(thresholdSteps({ minutes: 30, accurate_cross: 2 }, { minutes: 31, accurate_cross: 1 }, WITH_ROLES)).toEqual([{ stat: "accurate_cross", from: 2, to: 1 }]);
+  // Its count unmoved: nothing for a role to price.
+  expect(thresholdSteps({ minutes: 30, accurate_cross: 2 }, { minutes: 31, accurate_cross: 2 }, WITH_ROLES)).toEqual([]);
+  // A set that adjusts no role for it: no step, as before.
+  expect(thresholdSteps({ minutes: 30, accurate_cross: 1 }, { minutes: 31, accurate_cross: 2 }, SET)).toEqual([]);
+});
+
+test("a role-adjusted stat is a step before its rule's minimum minutes; a goal still never is", () => {
+  expect(thresholdSteps({ minutes: 30, clean_sheets: 0 }, { minutes: 31, clean_sheets: 1 }, WITH_ROLES)).toEqual([{ stat: "clean_sheets", from: 0, to: 1 }]);
+  expect(thresholdSteps({ minutes: 30 }, { minutes: 31, goals_scored: 1 }, WITH_ROLES)).toEqual([]);
+});
+
 test("each live read stores the steps its records show over the last, with the clock then", async () => {
   const league = await scoresLeague();
   const records = mergedHullEverton();
