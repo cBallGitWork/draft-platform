@@ -28,3 +28,14 @@ test("two sign-in emails a minute apart have different subjects, so Gmail doesn'
   expect(next.startsWith(SIGN_IN_SUBJECT_START)).toBe(true);
   expect(next).not.toBe(first);
 });
+
+test("an invite resent a minute later has a different subject, so Gmail doesn't fold it into the first (#973)", () => {
+  vi.stubEnv("SITE_URL", "https://example.com");
+  const url = "https://example.com/sign-in?code=1";
+  const facts = { leagueName: "A league", invitedBy: "Craig", teamName: null };
+  const sentAt = Date.UTC(2026, 10, 1, 14, 32);
+  const first = inviteEmail(url, facts, sentAt).subject;
+  const next = inviteEmail(url, facts, sentAt + MINUTE_MS).subject;
+  expect(first).toBe("You're invited to A league on Draft Manager, Sunday 1 November at 14:32 GMT");
+  expect(next).not.toBe(first);
+});
