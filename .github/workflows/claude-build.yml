@@ -1,4 +1,5 @@
-# Builds one issue into one pull request when Craig puts the `build` label on it (docs/PLAN.md, "The pipeline").
+# Builds one issue into one pull request when Craig puts the `build` label on it, or when nightly-build.yml starts it
+# for a `lane:auto` issue (docs/PLAN.md, "The pipeline").
 # It opens the pull request and stops: CI runs on it, and merging follows the repo's rules, never this job.
 # Bills to Craig's Claude subscription first (the CLAUDE_CODE_OAUTH_TOKEN secret, made with `claude setup-token`).
 # When that step fails (no credits left, an expired token) or the secret is not set, it runs once more on
@@ -8,6 +9,11 @@ name: claude-build
 on:
   issues:
     types: [labeled]
+  workflow_dispatch:  # nightly-build.yml and the Actions button start it here
+    inputs:
+      issue:
+        description: Issue number to build
+        required: true
 
 permissions:
   contents: write
@@ -21,8 +27,10 @@ concurrency:  # one build at a time, so two never fight over the same files; a w
 
 jobs:
   build:
-    # only Craig's label starts a build, and only the `build` label
-    if: github.event.label.name == 'build' && github.event.sender.login == github.repository_owner
+    # a build starts from Craig's `build` label, or from a dispatch (the nightly job, or Craig's button)
+    if: >-
+      github.event_name == 'workflow_dispatch'
+      || (github.event.label.name == 'build' && github.event.sender.login == github.repository_owner)
     runs-on: ubuntu-latest
     timeout-minutes: 30
     env:
@@ -34,10 +42,11 @@ jobs:
         --allowedTools "Read,Write,Edit,Glob,Grep,Bash(git add:*),Bash(git commit:*),Bash(git checkout:*),Bash(git switch:*),Bash(git push:*),Bash(git status:*),Bash(git diff:*),Bash(git log:*),Bash(gh issue view:*),Bash(gh issue comment:*),Bash(gh pr create:*),Bash(gh pr view:*),Bash(gh pr comment:*),Bash(npm:*),Bash(npx:*),Bash(node:*),Bash(ls:*),Bash(cat:*),Bash(mkdir:*)"
         --disallowedTools "Bash(gh pr merge:*),Bash(gh api:*),Bash(git push --force:*),Edit(.github/**),Write(.github/**),Edit(.claude/**),Write(.claude/**),Edit(CLAUDE.md),Write(CLAUDE.md)"
       BUILD_PROMPT: |
-        Build GitHub issue #${{ github.event.issue.number }} in this repository: read it with `gh issue view`.
+        Build GitHub issue #${{ inputs.issue || github.event.issue.number }} in this repository: read it with `gh issue view`.
         Read CLAUDE.md first and follow it: one branch, one pull request, named paths staged, never a commit on main.
         Build only what the issue and the spec files it names say; where the spec is silent, stop and comment on the issue with your question instead of guessing.
         Run `npm run verify` before you push. Open the pull request with the repo's template filled in honestly.
+        Open the pull request with `--label lane:auto`, unless the issue carries the `lane:craig` label: the label is what lets the lane-auto bot give the one approval the ruleset needs, and a pull request on an outcome path still waits for Craig through Code Owners.
         Never merge it, and never touch .github/, .claude/ or CLAUDE.md.
     steps:
       - uses: actions/checkout@v4

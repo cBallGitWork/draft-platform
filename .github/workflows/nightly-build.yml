@@ -1,0 +1,39 @@
+# Starts the nightly builds (docs/PLAN.md, "The pipeline", step 2): the oldest `lane:auto` issues with no open
+# pull request, up to BUILDS_PER_NIGHT, each handed to claude-build.yml. That workflow runs one build at a time,
+# so the three wait their turn. Run it by hand from the Actions tab for a build any time.
+# It dispatches rather than labelling `build`: a label added with the default token starts no workflow.
+name: nightly-build
+
+on:
+  schedule:
+    - cron: "0 2 * * *"  # 02:00 UTC, while Craig sleeps
+  workflow_dispatch:
+
+permissions:
+  actions: write
+  issues: read
+  pull-requests: read
+
+env:
+  BUILDS_PER_NIGHT: 3
+  GH_TOKEN: ${{ github.token }}
+
+jobs:
+  pick:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Dispatch a build per ready issue
+        run: |
+          # issues with an open pull request that names them ("#N" in the body or title), so none is built twice
+          taken=$(gh pr list --repo "$GITHUB_REPOSITORY" --state open --limit 200 --json title,body \
+            --jq '.[] | (.title + " " + (.body // "")) | scan("#[0-9]+")' | tr -d '#' | sort -u)
+          gh issue list --repo "$GITHUB_REPOSITORY" --state open --label lane:auto --limit 200 \
+            --json number,labels --jq '.[] | select(all(.labels[]; .name != "lane:craig")) | .number' | sort -n |
+            while read -r n; do
+              grep -qx "$n" <<<"$taken" || echo "$n"
+            done | head -n "$BUILDS_PER_NIGHT" |
+            while read -r n; do
+              echo "Building issue #$n"
+              gh workflow run claude-build.yml --repo "$GITHUB_REPOSITORY" -f issue="$n"
+            done
