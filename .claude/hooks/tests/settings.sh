@@ -9,6 +9,7 @@ wiring=(  # event|matcher|script, the matcher empty where the entry has none
   'PreToolUse|Bash|guard_bash.py'
   'PreToolUse|mcp__github__.*|guard_github.py'
   'PostToolUse|Write|Edit|line_ceiling.py'
+  'UserPromptSubmit||context_size.py'
 )
 
 unwired() { # settings-file: a loud line for each row it doesn't wire, so silence means all are
