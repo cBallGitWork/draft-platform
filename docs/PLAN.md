@@ -69,7 +69,7 @@ An issue becomes merged code without Craig unless it lands in the needs-Craig la
 How it runs on its own:
 1. **Triage.** Every new issue gets a lane label from a rule: an issue whose files fall under `.github/CODEOWNERS`, or that the lane table puts under "Needs Craig", is `lane:craig`; every other issue is `lane:auto`.
 2. **Build.** A nightly schedule (and a button for any time) takes the oldest `lane:auto` issues that have no open pull request, up to 3 a night, and builds each in its own pull request. Craig's `build` label still starts one by hand.
-3. **Merge.** A runs-alone pull request turns on auto-merge itself and merges when `verify`, `smoke` and the visual diff are green and the branch holds all of `main`. A pull request that touches a code-owner path cannot merge without Craig's review, so the lane label is not the only guard.
+3. **Merge.** A runs-alone pull request turns on auto-merge itself and merges when `verify`, `smoke` and the visual diff are green. The branch need not hold all of `main`: the run on `main` after each merge catches two pull requests that clash (Craig, 3 Nov 2026). A pull request that touches a code-owner path cannot merge without Craig's review, so the lane label is not the only guard.
 4. **Digest.** What merged, what failed and what waits on Craig goes in one daily message.
 
 Autonomous merging starts only after Code Owners review is switched on in the `main` ruleset and the dry run has passed, so the guard exists before the thing it guards.
