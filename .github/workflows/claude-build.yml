@@ -21,8 +21,8 @@ permissions:
   issues: write
   id-token: write
 
-concurrency:  # one build at a time, so two never fight over the same files; a waiting build is not cancelled
-  group: claude-build
+concurrency:  # one build per issue, so a manual run and the nightly run never build it twice; different issues build side by side, none dropped
+  group: claude-build-${{ inputs.issue || github.event.issue.number }}
   cancel-in-progress: false
 
 jobs:
@@ -49,6 +49,8 @@ jobs:
         Open the pull request with `--label lane:auto`, unless the issue carries the `lane:craig` label: the label is what lets the lane-auto bot give the one approval the ruleset needs, and a pull request on an outcome path still waits for Craig through Code Owners.
         Never merge it, and never touch .github/, .claude/ or CLAUDE.md.
     steps:
+      - name: Refuse an issue number that is not a number
+        run: '[[ "${{ inputs.issue || github.event.issue.number }}" =~ ^[0-9]+$ ]]'
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
