@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """UserPromptSubmit hook: says when a session's context has grown big, since every turn re-reads all
-of it and that, not the answers, was nearly all of a week's Opus spend (3 Nov 2026: 5.7 billion
-tokens read from cache over the week, sessions of 1,000+ turns peaking at 500-860k tokens each).
+of it and that, not the answers, was nearly all of a week's Opus spend (3 Nov 2026, summed from the
+usage lines of this project's transcripts in ~/.claude/projects: 5.5 billion tokens read from cache
+by Opus against 27 million written, sessions of 1,000+ turns peaking at 500-860k tokens each).
 
 It reads the newest assistant turn's usage from the payload's transcript_path (only the file's
 tail) and adds it up: input, cache-read and cache-creation tokens are the context that turn read.
