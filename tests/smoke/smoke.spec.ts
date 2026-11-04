@@ -2,7 +2,6 @@
 // error or uncaught page error it didn't expect, so a boot crash can't pass.
 
 import { expect, test as base, type ConsoleMessage, type Page } from "@playwright/test";
-import { LANES } from "../../convex/lineup/pitch";
 import { DEFAULT_PRESETS } from "../../convex/lineup/presets";
 import { ADMIN_FEEDBACK_PATH, ADMIN_FEEDS_PATH, ADMIN_PATH } from "../../src/admin/paths";
 import { miniBeta } from "../../src/app/preview";
@@ -12,7 +11,7 @@ import { ERROR_PAGE_TITLE, mainMenuLabel } from "../../src/frame/words";
 import { PITCH_ASPECT } from "../../src/myTeam/tactics/pitch/pitchMarkings";
 import { markedBy } from "../../src/myTeam/tactics/focusMarks";
 import { RUN_MARK } from "../../src/myTeam/tactics/pitch/runs";
-import { allFormationsWords, moveLabel, pitchLabel, putHereLabel, runsWords, squadTableLabel } from "../../src/myTeam/tactics/words";
+import { allFormationsWords, pitchLabel, runsWords } from "../../src/myTeam/tactics/words";
 import { applyWords } from "../../src/myTeam/tactics/formationWindow/words";
 import { SIGN_IN_PATH } from "../../src/signIn/paths";
 import { signInWords } from "../../src/signIn/words";
@@ -148,13 +147,9 @@ test.describe("dev server, signed out of Convex", { tag: "@dev" }, () => {
           await pickFormation(page, name);
           await expectPlayersApart(page, viewport === PHONE, name);
         }
-        // Five abreast, the widest a row gets: 5-3-2's back five, the bench centre-back in its gap,
-        // picked up from his panel.
+        // Five abreast, the widest a row gets: 5-3-2's back five, the bench centre-back brought on
+        // into its gap by the preset itself (presets only, #1022; the bench fills the shape, #1025).
         await pickFormation(page, "5-3-2");
-        await page.getByRole("table", { name: squadTableLabel }).getByRole("button", { name: OFF_THE_BENCH, exact: true }).click();
-        await page.getByRole("button", { name: moveLabel(OFF_THE_BENCH), exact: true }).click();
-        const gaps = LANES.map((lane) => page.getByRole("button", { name: putHereLabel(OFF_THE_BENCH, "defence", lane) }));
-        for (const gap of gaps) if ((await gap.count()) > 0) await gap.click();
         await expect(page.getByRole("group", { name: pitchLabel }).getByRole("button", { name: new RegExp(`^${OFF_THE_BENCH},`) })).toHaveCount(1);
         await expectPlayersApart(page, viewport === PHONE, "5-3-2, five at the back");
       });
