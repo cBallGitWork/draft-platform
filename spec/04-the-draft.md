@@ -57,6 +57,9 @@ Feature 4 of [SPEC.md](../SPEC.md). Only Craig's answers.
 - The draft can't start until every squad is empty (Craig, 4 Nov 2026, on #1090: "ok").
 - The rounds are taken from the squad limit in force when the draft starts, never a change still
   waiting for next gameweek (Craig, 4 Nov 2026, on #1090, "rec": Claude's recommendation).
+- "Picks follow the squad rules the draft started under" (Craig, 4 Nov 2026, on #1090).
+- "The commissioner's assign, move and release are refused while the draft is live" (Craig, 4 Nov
+  2026, on #1090).
 - Each pick runs on a clock the league sets, from seconds (live) to hours (a slow draft over
   days), and the clock can pause.
 - The pick clock runs from "shortest 15 seconds longest 24 hours", and a new league's is 90 seconds
