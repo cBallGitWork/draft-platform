@@ -62,11 +62,28 @@ Feature 4 of [SPEC.md](../SPEC.md). Only Craig's answers.
 - With no ranking uploaded, auto-pick falls back to last season's points under the site's scoring
   (`spec/14`), newcomers last by name (Craig, 2 Nov 2026).
 
+## The draft room
+
+- A manager can undo his own pick for 10 seconds after making it, in case of a mistake (Craig,
+  4 Nov 2026: "give players a 10s window to undo their pick incase of a mistake").
+  The next manager's clock waits until those 10 seconds are up (Craig, 4 Nov 2026, "Yes, clock
+  waits").
+- Its player list is Scouting's players list (`spec/19`). It opens on a short overview, with a way
+  into the other stats: "dont overblow it, maybe a easy to see view first, and section to allow
+  user to deepdive, dont want it overwhelming on launch" (Craig, 4 Nov 2026). It shows no upcoming
+  fixtures (Craig, 4 Nov 2026).
+- A player a team can't pick stays in his place in the list, greyed out (Craig, 4 Nov 2026, "yes"
+  to Claude's recommendation).
+- The board shows six rounds at a time, with the whole board a button away (Craig, 4 Nov 2026,
+  "ok" to Claude's recommendation).
+
 ## The commissioner
 
 - The commissioner can pause the draft, undo a pick, and pick for a manager.
 - Pausing and resuming are by hand; a pause keeps the time left on the clock.
 - While the draft is paused, he can change the pick time; the new time applies when it resumes.
+- The commissioner's undo is a plain button, with no confirm (Craig, 4 Nov 2026, "ok" to Claude's
+  recommendation).
 - Undo takes back the last pick only, and can be repeated to go back further. The pick put back
   gets a full clock at the league's pick time, the new one if he has changed it (Craig, 4 Nov 2026:
   "Full clock, but if admin changes the time per pick it resets to that too").
