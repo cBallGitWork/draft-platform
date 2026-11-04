@@ -38,11 +38,20 @@ class Unread(Exception):
 
 
 def merge_args(words):
-    """The args after gh pr merge, if this simple command runs it, else None."""
+    """The args after gh pr merge, if this simple command runs it, else None. A -R/--repo given
+    before pr merge (gh -R o/r pr merge 5) is skipped over and kept, first, in the args."""
     i = runs_at(words, "gh")
-    if i is None or words[i + 1 : i + 3] != MERGE_CALL:
+    if i is None:
         return None
-    return words[i + 3 :]
+    i, before = i + 1, []
+    while i < len(words) and (words[i].startswith("-R") or words[i].partition("=")[0] in REPO_OPTS):
+        joined = "=" in words[i] or (words[i].startswith("-R") and len(words[i]) > 2)  # --repo=o/r, -Ro/r
+        step = 1 if joined else 2
+        before += words[i : i + step]
+        i += step
+    if words[i : i + 2] != MERGE_CALL:
+        return None
+    return before + words[i + 2 :]
 
 
 def view_args(args):
