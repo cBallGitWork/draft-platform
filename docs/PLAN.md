@@ -112,7 +112,7 @@ The aim is to keep several builds moving at once, overnight as well as by day, w
 About seven weeks to a beta with a live draft and trades, or five without trades. Streams run side by side from week 1.
 
 1. **Week 1: the safety net and the pipeline.** In this order:
-  - Branch protection: required checks, up to date, CODEOWNERS on outcome paths, auto-merge.
+  - Branch protection: required checks (a branch need not be up to date with main; the nightly CI run on main catches clashes), CODEOWNERS on outcome paths, auto-merge.
   - Staging and production Convex projects; production promote needs approval; a backup before each deploy.
   - Sentry and heartbeats on every scheduled job.
   - Claude GitHub App and the build workflow, then one dry run on a throwaway issue; then Code Owners review on in the ruleset, then the nightly schedule, triage and auto-merge.
