@@ -2,7 +2,7 @@ import * as Sentry from "@sentry/react";
 import type { ReactNode } from "react";
 import type { RootOptions } from "react-dom/client";
 import { ReadFailed } from "../frame/ReadFailed";
-import { LINK_CODE_PARAM } from "./liveApp";
+import { LINK_CODE_PARAM } from "../signIn/paths";
 
 // Error reports to Sentry (docs/PLAN.md, "No monitoring"). Off unless the build has a DSN, so dev
 // and tests send nothing; Craig sets the DSN in Vercel. Errors only: no tracing, no replays.
@@ -29,12 +29,21 @@ export const NO_PERSONAL_DATA = { userInfo: false, cookies: false, httpHeaders: 
 
 type BuildEnv = Record<string, string | boolean | undefined>;
 
+/** What the console says when a report couldn't be scrubbed, so it was never sent. */
+export const UNSCRUBBED_LOG = "An error report couldn't be cleaned of personal data, so it wasn't sent:";
+
 /** A report with nothing personal left in it: no user, no email address, no sign-in code. It's a
- *  private beta of friends; their names and emails stay out of a third party's logs. */
-export function scrubbed<Event extends object>(event: Event): Event {
+ *  private beta of friends; their names and emails stay out of a third party's logs. A report that
+ *  can't be read as text is dropped (null), and the console says so. */
+export function scrubbed<Event extends object>(event: Event): Event | null {
   const { user: _user, ...rest } = event as Event & { user?: unknown };
-  const text = JSON.stringify(rest).replace(EMAIL, REMOVED).replace(LINK_CODE, `$1${REMOVED}`);
-  return JSON.parse(text) as Event;
+  try {
+    const text = JSON.stringify(rest).replace(EMAIL, REMOVED).replace(LINK_CODE, `$1${REMOVED}`);
+    return JSON.parse(text) as Event;
+  } catch (error) {
+    console.warn(UNSCRUBBED_LOG, error);
+    return null;
+  }
 }
 
 /** Starts Sentry when the build has a DSN, and says whether it did. */

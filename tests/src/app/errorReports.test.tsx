@@ -11,6 +11,7 @@ import {
   REMOVED,
   ReportedApp,
   SENTRY_DSN_ENV,
+  UNSCRUBBED_LOG,
   VERCEL_ENV_ENV,
   reportingRootOptions,
   scrubbed,
@@ -51,8 +52,16 @@ test("a report loses its user, every email address and a sign-in link's code", (
   };
   const sent = scrubbed(event);
   expect(sent).not.toHaveProperty("user");
-  expect(sent.message).toBe(`${REMOVED} isn't allowed`);
-  expect(sent.breadcrumbs[0]?.data.from).toBe(`/?code=${REMOVED}&x=1`);
+  expect(sent?.message).toBe(`${REMOVED} isn't allowed`);
+  expect(sent?.breadcrumbs[0]?.data.from).toBe(`/?code=${REMOVED}&x=1`);
+});
+
+test("a report that can't be read as text is dropped, and the console says so", () => {
+  const warned = vi.spyOn(console, "warn").mockImplementation(() => {});
+  const looped: { self?: unknown } = {};
+  looped.self = looped;
+  expect(scrubbed(looped)).toBeNull();
+  expect(warned).toHaveBeenCalledWith(UNSCRUBBED_LOG, expect.any(TypeError));
 });
 
 test("anything the inner boundaries miss shows the failed-read screen, and Retry draws the app again", async () => {
