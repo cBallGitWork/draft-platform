@@ -39,8 +39,8 @@ its own reason, never a cleanup:
 
 ## With every pull request
 
-`/refactor` (`.claude/skills/refactor/`), before `pr-reviewer` runs: a six-point checklist, twice,
-over the branch's own diff, then the checks. The checklist lives in the skill, not here. The pull
+`/refactor` (`.claude/skills/refactor/`), before `pr-reviewer` runs: a four-point checklist, once,
+over the branch's own diff, covering what `pr-reviewer` doesn't. The checklist lives in the skill, not here. The pull
 request template has a box for it.
 
 ## The drift pass
