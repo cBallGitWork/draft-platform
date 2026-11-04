@@ -96,12 +96,17 @@ jobs:
             start_over "the subscription step wrote no execution file, so Claude never ran"; exit 0
           fi
           summary=$(jq -c --arg auth "$AUTH_ERROR" '
-            [ (if type == "array" then .[] else . end) | select(.type? == "result") ] | last
-            | if . == null then {result: false}
+            [ (if type == "array" then .[] else . end) ] as $all
+            | [ $all[] | select(.type? == "result") ] | last
+            | if . == null then {result: false, started: ([$all[] | select(.type? == "assistant")] | length > 0)}
               else {result: true, turns: (.num_turns // 0), models: ((.modelUsage // {}) | length),
                     auth: ((.is_error // false) and ((.result // "") | tostring | test($auth; "i"))), subtype: (.subtype // "")} end' "$file")
           echo "subscription result: $summary"
-          if [ "$(jq -r '.result' <<<"$summary")" != true ]; then
+          if [ "$(jq -r '.result' <<<"$summary")" != true ] && [ "$(jq -r '.started' <<<"$summary")" = true ]; then
+            # killed part-way (a crash, the timeout): it may have pushed a branch, so it is not built twice
+            echo "fall_back=false" >> "$GITHUB_OUTPUT"
+            echo "::error::The subscription build started and stopped with no result, so it is not run again on the API key."
+          elif [ "$(jq -r '.result' <<<"$summary")" != true ]; then
             start_over "the subscription run ended with no result"
           elif [ "$(jq -r '.turns' <<<"$summary")" = 0 ]; then
             start_over "the subscription run took no turns"
