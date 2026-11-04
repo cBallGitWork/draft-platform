@@ -29,5 +29,5 @@ Our league moves to it from Fantrax; the companion app lives in `cBallGitWork/ep
 - Where a spec file is silent, ask Craig: never build on a guessed rule, and never offer a rule only the code holds as a grill recommendation.
 - Before a pull request opens, run the `pr-reviewer` agent on the branch and paste its verdict into the template. A merge or restack after the review that changes behaviour gets a second `pr-reviewer` round. A docs-only PR that only quotes Craig's answers may skip `pr-reviewer`, and says so in its Checks.
 - A pull request that changes a screen with an approved picture shows approved and built side by side, every difference numbered (the `ui-verifier` agent). With none it merges like any other; with any, it waits for Craig's yes, the `craig-approved` label only he adds (`.claude/hooks/approval_gate.py` refuses the merge without it). Pictures are drawn and approved only in a session Craig is watching.
-- A doc over 100 lines opens with a contents list.
+- A doc over 100 lines opens with a contents list (`scripts/contents-lists.mjs`, in `npm run verify`, enforces it).
 - Add a rule here only after Claude gets something wrong, and add a hook rather than a rule where possible. `/retro` before clearing the chat finds those moments; `/wait-what` re-says a reply that didn't land.
