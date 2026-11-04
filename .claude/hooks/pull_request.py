@@ -5,7 +5,9 @@ session takes. Every gate reads GitHub's REST API (gh api), which a cloud sessio
 pr view's GraphQL can't (403), so each gate judges both routes alike (#1045). What it can't read
 raises Unread, which each gate turns into a denial, never a silent pass. Which pull request a
 gh pr merge names is worked out before any gate judges it, so one it can't name is refused even
-below the drift trigger. Stdlib only, Python 3.9+.
+below the drift trigger, and one with --admin is refused before any gate: the gh token is Craig's, and
+an admin merge bypasses the main ruleset's review rule, as #1066 and #1067 did. Stdlib only,
+Python 3.9+.
 """
 
 from __future__ import annotations
@@ -25,6 +27,10 @@ MERGE_VALUE_OPTS = {"-b", "--body", "-F", "--body-file", "-t", "--subject", "-A"
 PLACEHOLDER = "{owner}/{repo}"  # gh api fills it from the folder's remote
 PR_URL = re.compile(r"github\.com/([^/\s]+/[^/\s]+)/pull/(\d+)")
 WHICH_PR = "Can't tell which pull request this merges"
+ADMIN_OPT = "--admin"
+ADMIN_BYPASS = ("gh pr merge --admin bypasses the main ruleset's checks and review, and the admin bypass "
+                "is Craig's, used by him in GitHub. Merge without --admin once the pull request is "
+                "mergeable, or ask Craig to merge it.")
 
 
 class Unread(Exception):
@@ -64,6 +70,18 @@ def api(folder, path):
         return json.loads(out)
     except ValueError as error:
         raise Unread(f"gh api {path} gave no JSON ({error})") from error
+
+
+def uses_admin(args):
+    """True if these gh pr merge args pass --admin (anywhere, or as --admin=value), other than as
+    the value of an option such as --body."""
+    i = 0
+    while i < len(args):
+        arg = args[i]
+        if arg.partition("=")[0] == ADMIN_OPT:
+            return True
+        i += 2 if arg in MERGE_VALUE_OPTS else 1
+    return False
 
 
 def _target(args, folder):
@@ -115,6 +133,8 @@ def merges_problem(cmds, judge):
         args = merge_args(words)
         if args is None:
             continue
+        if uses_admin(args):
+            return ADMIN_BYPASS
         try:
             repo, number = _target(args, here)
         except (Unread, KeyError, TypeError) as error:
