@@ -43,7 +43,9 @@ def context_tokens(transcript):
             entry = json.loads(line)
         except json.JSONDecodeError:
             continue  # the first line of a tail is cut mid-way
-        message = entry.get("message") if isinstance(entry, dict) else None
+        if not isinstance(entry, dict):
+            continue  # a line that is JSON but not an object holds no turn
+        message = entry.get("message")
         usage = message.get("usage") if isinstance(message, dict) else None
         if entry.get("type") == "assistant" and isinstance(usage, dict):
             return sum(int(usage.get(name) or 0) for name in USAGE_FIELDS)

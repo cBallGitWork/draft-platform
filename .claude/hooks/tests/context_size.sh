@@ -1,7 +1,7 @@
 #!/bin/bash
 # context_size.py's checks: it says nothing under the first step, says the note once at each step a
 # session's newest assistant turn reaches (input + cache-read + cache-creation tokens), never twice
-# for the same step, and says nothing where the transcript is missing; a payload that isn't JSON
+# for the same step, and says nothing where the transcript is missing or its lines aren't objects; a payload that isn't JSON
 # is one line on stderr.
 . "$(dirname "$0")/helpers.sh"
 
@@ -23,5 +23,9 @@ says "about 520k tokens" context_size.py "$(payload "$session" "$tmp/t.jsonl")"
 transcript "$tmp/t.jsonl" 900000
 silent context_size.py "$(payload "$session" "$tmp/t.jsonl")"  # past the last step, already said
 silent context_size.py "$(payload "$session-other" "$tmp/missing.jsonl")"
+printf '%s\n' '[1,2]' '"text"' 7 > "$tmp/odd.jsonl"  # JSON lines that aren't objects hold no turn
+silent context_size.py "$(payload "$session-odd" "$tmp/odd.jsonl")"
+transcript "$tmp/t.jsonl" 320000; echo '[]' >> "$tmp/t.jsonl"  # nor do they hide the turn before them
+says "about 320k tokens" context_size.py "$(payload "$session-tail" "$tmp/t.jsonl")"
 silent context_size.py '{}'
 fails_loudly "the hook payload isn't JSON" context_size.py 'nope'
