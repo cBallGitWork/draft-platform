@@ -10,13 +10,13 @@ import { managerOf, refuse, refusals, teamIn } from "../shared/leagueAccess";
 import { heldPlayerByCode, playerByCode } from "../shared/players";
 import { placeOf, squadOf } from "../squads/squadPlace";
 import { squadRefusals } from "../squads/squads";
-import { draftOf, picksMadeIn } from "./draftRow";
+import { draftOf, picksMadeIn, type StartedDraft } from "./draftRow";
 import { rulesInForceAt } from "./draftStart";
 import { legalPlayers, type DraftPlayer } from "./legalPlayers";
 import { pickOnTheClock } from "./snakeOrder";
 
 // Making a pick (spec/04, The picks; #1090). The manager whose team is on the clock picks a player
-// it may legally take (legalPlayers.ts, under the league's rules in force now), and he joins its
+// it may legally take (legalPlayers.ts, under the squad rules the draft started under), and he joins its
 // squad as a commissioner's assignment does: his squad row, the `playerAssigned` event and its
 // Mail letter, and the team's first lineup picked again. The turn moves on by the snake
 // (snakeOrder.ts), and once the last pick is made the draft is over (draftStart.ts `ofLeague`).
@@ -54,10 +54,13 @@ async function pickable(ctx: QueryCtx, leagueId: Id<"leagues">, playerCode: numb
   return player;
 }
 
-/** The squad rules the draft picks under: the league's in force now. A started draft always has
- *  them, as it can't start without a squad size limit. */
-async function squadRulesOf(ctx: QueryCtx, leagueId: Id<"leagues">): Promise<LeagueRules["squad"]> {
-  const rules = await rulesInForceAt(ctx, leagueId, Date.now());
+/** The squad rules the draft picks under: those it started under, never a change made since (Craig,
+ *  4 Nov 2026, on #1090: "Picks follow the squad rules the draft started under"). A draft started
+ *  before #1090 kept none, so its are the league's in force when it started; it always has them, as
+ *  it can't start without a squad size limit. */
+async function squadRulesOf(ctx: QueryCtx, leagueId: Id<"leagues">, started: StartedDraft): Promise<LeagueRules["squad"]> {
+  if (started.squad !== undefined) return started.squad;
+  const rules = await rulesInForceAt(ctx, leagueId, started.at);
   if (rules === null) throw new Error(`League ${leagueId}'s draft has started, but the league has no rules`);
   return rules.squad;
 }
@@ -78,7 +81,7 @@ export const makePick = mutation({
     const positionsOf = await positionsNow(ctx, leagueId);
     const squad = await draftSquadOf(ctx, team._id, positionsOf);
     // Each team picks once a round, so this round's pick is its (round)th: rounds - round + 1 are left.
-    const legal = legalPlayers(squad, started.rounds - turn.round + 1, await squadRulesOf(ctx, leagueId));
+    const legal = legalPlayers(squad, started.rounds - turn.round + 1, await squadRulesOf(ctx, leagueId, started));
     if (!legal({ clubCode: player.clubCode, areas: areasOf(await positionsOf(playerCode)) })) refuse(pickRefusals.breaksSquadRules(player.name));
     await ctx.db.insert("draftPicks", { leagueId, pick: turn.pick, teamId: team._id, playerCode, at: Date.now() });
     await ctx.db.insert("squadPlayers", { leagueId, teamId: team._id, playerCode });

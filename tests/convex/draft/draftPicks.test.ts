@@ -149,6 +149,54 @@ describe("a pick is refused", () => {
   });
 });
 
+test("picks follow the squad rules the draft started under, not a change made since", async () => {
+  await start();
+  await setSquadRules({ maxPerClub: 1 });
+  for (const [email, code] of [[ANN, A1], [BOB, A2], [CAT, A3], [CAT, A4]] as const) await pick(email, code);
+
+  expect((await squadsNow())[2]).toEqual({ teamId: teams[2], players: [{ code: A3, gone: false }, { code: A4, gone: false }] });
+});
+
+test("a draft started before its squad rules were kept picks under the league's in force when it started", async () => {
+  await start();
+  await setSquadRules({ maxPerClub: 1 });
+  await t.run(async (ctx) => {
+    const draft = (await ctx.db.query("drafts").withIndex("by_leagueId", (q) => q.eq("leagueId", leagueId)).unique())!;
+    const { squad: _squad, ...started } = draft.started!;
+    await ctx.db.patch("drafts", draft._id, { started });
+  });
+  for (const [email, code] of [[ANN, A1], [BOB, A2], [CAT, A3]] as const) await pick(email, code);
+
+  await expectRefused(pick(CAT, A4), pickRefusals.breaksSquadRules("Player 104"));
+});
+
+describe("the commissioner's assign, move and release", () => {
+  const commissioner = () => as(COMMISSIONER);
+  const assign = async (playerCode: number, teamId: Id<"teams">) => (await commissioner()).mutation(api.squads.squads.assign, { leagueId, playerCode, teamId });
+  const move = async (playerCode: number, teamId: Id<"teams">) => (await commissioner()).mutation(api.squads.squads.move, { leagueId, playerCode, teamId });
+  const release = async (playerCode: number) => (await commissioner()).mutation(api.squads.squads.release, { leagueId, playerCode });
+
+  test("are refused while the draft is live, and nothing is written", async () => {
+    await start();
+    await pick(ANN, A1);
+
+    await expectRefused(assign(A2, teams[1]), squadRefusals.draftLive);
+    await expectRefused(move(A1, teams[1]), squadRefusals.draftLive);
+    await expectRefused(release(A1), squadRefusals.draftLive);
+    expect((await squadsNow()).flatMap(({ players }) => players)).toEqual([{ code: A1, gone: false }]);
+  });
+
+  test("work again once the draft is over", async () => {
+    await start();
+    for (const [email, code] of [[ANN, A1], [BOB, A2], [CAT, A3], [CAT, A4], [BOB, A5], [ANN, A6]] as const) await pick(email, code);
+
+    await release(A1);
+    await move(A2, teams[0]);
+    await assign(A1, teams[1]);
+    expect((await squadsNow()).map(({ players }) => players.map(({ code }) => code).sort())).toEqual([[A2, A6], [A1, A5], [A3, A4]]);
+  });
+});
+
 test("a drafted player who leaves the Premier League keeps his place, shown gone", async () => {
   await start();
   await pick(ANN, A1);

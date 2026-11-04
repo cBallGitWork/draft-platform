@@ -51,17 +51,19 @@ async function anyoneHeld(ctx: QueryCtx, leagueId: Id<"leagues">): Promise<boole
 }
 
 /** Why the league's draft can't start now, or be given a date; otherwise what it starts with: its
- *  teams and rounds. */
+ *  teams, its rounds and the squad rules its picks follow, the league's in force now (Craig, 4 Nov
+ *  2026, on #1090: "Picks follow the squad rules the draft started under"). */
 async function startable(
   ctx: MutationCtx,
   leagueId: Id<"leagues">,
-): Promise<{ refusal: string } | { refusal: null; teams: Doc<"teams">[]; rounds: number }> {
+): Promise<{ refusal: string } | { refusal: null; teams: Doc<"teams">[]; rounds: number; squad: LeagueRules["squad"] }> {
   const teams = await teamsOf(ctx, leagueId);
   if (teams.length < DRAFT_FEWEST_TEAMS) return { refusal: draftStartRefusals.tooFewTeams };
-  const rounds = roundsOf(await rulesInForceAt(ctx, leagueId, Date.now()));
-  if (rounds === null) return { refusal: draftStartRefusals.noSquadSize };
+  const rules = await rulesInForceAt(ctx, leagueId, Date.now());
+  const rounds = roundsOf(rules);
+  if (rules === null || rounds === null) return { refusal: draftStartRefusals.noSquadSize };
   if (await anyoneHeld(ctx, leagueId)) return { refusal: draftStartRefusals.squadsNotEmpty };
-  return { refusal: null, teams, rounds };
+  return { refusal: null, teams, rounds, squad: rules.squad };
 }
 
 /** Writes the draft's date and its scheduled start, or neither for null, cancelling any start
@@ -80,7 +82,7 @@ async function begin(ctx: MutationCtx, league: Doc<"leagues">, draft: Doc<"draft
   if (draft?.started !== undefined) return draftStartRefusals.started;
   const can = await startable(ctx, league._id);
   if (can.refusal !== null) return can.refusal;
-  const started = { at: Date.now(), teamIds: draftOrderOf(can.teams, league.draftOrder).map((team) => team._id), rounds: can.rounds };
+  const started = { at: Date.now(), teamIds: draftOrderOf(can.teams, league.draftOrder).map((team) => team._id), rounds: can.rounds, squad: can.squad };
   if (draft === null) await ctx.db.insert("drafts", { leagueId: league._id, started });
   else await ctx.db.patch("drafts", draft._id, { started, startsAt: undefined, startJob: undefined });
   return null;
