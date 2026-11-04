@@ -1,5 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import { AREAS, cellKey, LANES, sameCell } from "../../../convex/lineup/pitch";
+import { presetNameOf } from "../../../convex/lineup/presets";
 import { MY_TEAM_PATH } from "../../frame/menu";
 import { Panel, PanelNote } from "../../ui/Panel";
 import { PitchLines } from "../tactics/pitch/PitchLines";
@@ -30,10 +31,10 @@ import {
 /** Top to bottom as the pitch is drawn: attack first, as on the Tactics tab. */
 const ROWS_DRAWN = AREAS.toReversed();
 
-/** The preset the eleven stand in, if their cells are exactly one of the league's presets'. */
-export function formationOf({ lineup: { starters }, presets }: Pick<OpenTactics, "lineup" | "presets">): string | null {
-  const preset = presets.find(({ cells }) => cells.length === starters.length && cells.every((cell) => starters.some((starter) => sameCell(starter, cell))));
-  return preset?.name ?? null;
+/** The preset the eleven stand in, read as the matchup reads it (presets.ts `presetNameOf`; #1019):
+ *  the starters' cells and any slot left empty by a man gone from the squad. */
+export function formationOf({ lineup: { starters, vacated }, presets }: Pick<OpenTactics, "lineup" | "presets">): string | null {
+  return presetNameOf([...starters, ...vacated], presets);
 }
 
 /** `players` are the squad's rows by code, for each one's season points; `selected` is the player

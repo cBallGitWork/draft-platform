@@ -197,6 +197,15 @@ describe("Your eleven", () => {
     expect(within(eleven).getByText(/^1-0-0-0-0-1, /)).toBeTruthy();
   });
 
+  it("still names it with a starter gone from the squad, his slot left empty, as the matchup does (#1019)", async () => {
+    const preset = { name: "1-0-0-0-0-1", cells: [WINGER, KEEPER] };
+    const keeperGone = tacticsWith([SAKA, PALMER], [[SAKA, WINGER]]);
+    const tactics = { ...keeperGone, presets: [preset], lineup: { ...keeperGone.lineup, vacated: [{ playerCode: RAYA.code, ...KEEPER }] } };
+    openSquad({ squad: squadOf([SAKA, PALMER]), tactics });
+    const eleven = await screen.findByRole("region", { name: YOUR_ELEVEN_TITLE });
+    expect(within(eleven).getByText(/^1-0-0-0-0-1, /)).toBeTruthy();
+  });
+
   it("Set lineup opens the Tactics tab", async () => {
     const app = openSquad({ squad: squadOf(players), tactics: lineup });
     await userEvent.click(await screen.findByRole("link", { name: new RegExp(setLineupWords) }));
