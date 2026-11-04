@@ -41,7 +41,7 @@ test("the first scoring set gives FPL's points less bonus and less its defensive
     const position = positionOf.get(code ?? -1);
     if (line === undefined || position === undefined) throw new Error(`no recorded line for FPL player ${element.id}`);
     const { total } = scoreMatch(line.stats, FIRST_SCORING, centreOf(AREA_OF_POSITION[position]));
-    const dropped = element.stats.bonus + fplDefensivePoints(position, element.stats.defensive_contribution ?? 0);
+    const dropped = element.stats.bonus + fplDefensivePoints(position, element.stats.defensive_contribution);
     expect({ code, total }).toEqual({ code, total: element.stats.total_points - dropped });
   }
 });
