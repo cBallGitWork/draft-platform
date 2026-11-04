@@ -10,6 +10,7 @@ import { internal } from "../_generated/api";
 import type { Doc } from "../_generated/dataModel";
 import { internalAction, internalMutation, internalQuery, type ActionCtx, type MutationCtx } from "../_generated/server";
 import { outcomeOf } from "../shared/errors";
+import { withHeartbeat } from "../heartbeats/heartbeat";
 import { fixtureByCode } from "../shared/fixtures";
 import { findClubByCode, playerByCode } from "../shared/players";
 import { readFpl } from "./fpl/fpl";
@@ -54,27 +55,28 @@ export const SYNC_FAILED_LOG = "football sync failed";
 export const run = internalAction({
   args: { trigger: syncTrigger },
   returns: v.null(),
-  handler: async (ctx, { trigger }) => {
-    const ranAt = Date.now();
-    const outcome: Infer<typeof footballSyncFields.outcome> = await outcomeOf(SYNC_FAILED_LOG, async () => {
-      // The seam: swap `readFpl` for another feed's reader that returns the same `Football`.
-      // It throws on a failed fetch or a changed payload, so only a whole list reaches `syncTable`.
-      const football = await readFpl();
-      return {
-        ok: true as const,
-        // Clubs first, so a player or a fixture never names a club not yet held.
-        clubs: await syncTable(ctx, "clubs", internal.football.footballSync.upsertClubs, football.clubs, ranAt),
-        players: await syncTable(ctx, "players", internal.football.footballSync.upsertPlayers, football.players, ranAt),
-        // Gameweeks before fixtures, so a gameweek FPL stops sending keeps the deadline its matches
-        // give before any of them moves (#202, deadlineRecorder.ts's keepDroppedDeadlines).
-        gameweeks: await syncTable(ctx, "gameweeks", internal.football.footballSync.upsertGameweeks, football.gameweeks, ranAt),
-        fixtures: await syncTable(ctx, "fixtures", internal.football.footballSync.upsertFixtures, football.fixtures, ranAt),
-        scores: await writeScores(ctx, "fpl", ranAt, football.scores),
-      };
-    });
-    await ctx.runMutation(internal.football.footballSync.record, { trigger, ranAt, outcome });
-    return null;
-  },
+  handler: async (ctx, { trigger }) =>
+    withHeartbeat(trigger === "cron" ? "footballSync" : null, async () => {
+      const ranAt = Date.now();
+      const outcome: Infer<typeof footballSyncFields.outcome> = await outcomeOf(SYNC_FAILED_LOG, async () => {
+        // The seam: swap `readFpl` for another feed's reader that returns the same `Football`.
+        // It throws on a failed fetch or a changed payload, so only a whole list reaches `syncTable`.
+        const football = await readFpl();
+        return {
+          ok: true as const,
+          // Clubs first, so a player or a fixture never names a club not yet held.
+          clubs: await syncTable(ctx, "clubs", internal.football.footballSync.upsertClubs, football.clubs, ranAt),
+          players: await syncTable(ctx, "players", internal.football.footballSync.upsertPlayers, football.players, ranAt),
+          // Gameweeks before fixtures, so a gameweek FPL stops sending keeps the deadline its matches
+          // give before any of them moves (#202, deadlineRecorder.ts's keepDroppedDeadlines).
+          gameweeks: await syncTable(ctx, "gameweeks", internal.football.footballSync.upsertGameweeks, football.gameweeks, ranAt),
+          fixtures: await syncTable(ctx, "fixtures", internal.football.footballSync.upsertFixtures, football.fixtures, ranAt),
+          scores: await writeScores(ctx, "fpl", ranAt, football.scores),
+        };
+      });
+      await ctx.runMutation(internal.football.footballSync.record, { trigger, ranAt, outcome });
+      return null;
+    }),
 });
 
 export const upsertClubs = internalMutation({
