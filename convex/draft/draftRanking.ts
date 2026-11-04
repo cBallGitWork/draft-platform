@@ -1,5 +1,4 @@
-import { v } from "convex/values";
-import type { Infer } from "convex/values";
+import { v, type Infer } from "convex/values";
 import { mutation, query, type QueryCtx } from "../_generated/server";
 import { rankedPlayer } from "../schema";
 import { adminOf, refuse } from "../shared/leagueAccess";

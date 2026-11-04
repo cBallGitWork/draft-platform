@@ -25,38 +25,40 @@ const WHOLE = /^\d+$/;
 const isHeader = (fields: string[]) => fields.length === 2 && fields[0].toLowerCase() === "code" && fields[1].toLowerCase() === "rank";
 
 /** The file's lines, each read or its problem, numbered from 1 as a spreadsheet numbers them. Blank
- *  lines are passed over, and a first line naming the columns is the header. */
+ *  lines, and a spreadsheet's empty rows (a lone comma), are passed over, and a first line naming
+ *  the columns is the header. */
 export function readRankingFile(text: string): { ranked: RankedLine[]; problems: RankingProblem[] } {
   const ranked: RankedLine[] = [];
   const problems: RankingProblem[] = [];
   const lineOfCode = new Map<number, number>();
   const lineOfRank = new Map<number, number>();
-  let seenAny = false;
-  text.split(/\r?\n/).forEach((raw, index) => {
-    const line = index + 1;
-    if (raw.trim() === "") return;
-    const fields = raw.split(",").map((field) => field.trim());
-    const first = !seenAny;
-    seenAny = true;
-    if (first && isHeader(fields)) return;
+  const filled = text
+    .split(/\r?\n/)
+    .map((raw, index) => ({ line: index + 1, fields: raw.split(",").map((field) => field.trim()) }))
+    .filter(({ fields }) => fields.join("") !== "");
+  if (filled.length > 0 && isHeader(filled[0].fields)) filled.shift();
+  for (const { line, fields } of filled) {
     const problem = (words: string) => problems.push({ line, words });
-    if (fields.length !== 2) return problem(rankingProblems.notTwoColumns);
+    if (fields.length !== 2) {
+      problem(rankingProblems.notTwoColumns);
+      continue;
+    }
     const [codeText, rankText] = fields;
     const codeOk = WHOLE.test(codeText);
     const rankOk = WHOLE.test(rankText) && Number(rankText) >= 1;
     if (!codeOk) problem(rankingProblems.badCode(codeText));
     if (!rankOk) problem(rankingProblems.badRank(rankText));
-    if (!codeOk || !rankOk) return;
+    if (!codeOk || !rankOk) continue;
     const code = Number(codeText);
     const rank = Number(rankText);
     const codeLine = lineOfCode.get(code);
     const rankLine = lineOfRank.get(rank);
     if (codeLine !== undefined) problem(rankingProblems.sameCode(code, codeLine));
     if (rankLine !== undefined) problem(rankingProblems.sameRank(rank, rankLine));
-    if (codeLine !== undefined || rankLine !== undefined) return;
+    if (codeLine !== undefined || rankLine !== undefined) continue;
     lineOfCode.set(code, line);
     lineOfRank.set(rank, line);
     ranked.push({ line, code, rank });
-  });
+  }
   return { ranked, problems };
 }

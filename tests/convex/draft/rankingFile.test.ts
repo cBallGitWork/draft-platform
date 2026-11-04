@@ -15,12 +15,12 @@ describe("a good file", () => {
     });
   });
 
-  test("a first line naming the columns is the header, and blank lines and spaces are passed over", () => {
-    const { ranked, problems } = readRankingFile("Code,Rank\r\n 1001 , 1 \r\n\r\n1002,2\r\n");
+  test("a first line naming the columns is the header, and blank lines, empty rows and spaces are passed over", () => {
+    const { ranked, problems } = readRankingFile("\nCode,Rank\r\n 1001 , 1 \r\n,\r\n1002,2\r\n");
     expect(problems).toEqual([]);
     expect(ranked.map(({ line, code }) => [line, code])).toEqual([
-      [2, 1001],
-      [4, 1002],
+      [3, 1001],
+      [5, 1002],
     ]);
   });
 
