@@ -2,6 +2,10 @@
 
 Feature 4 of [SPEC.md](../SPEC.md). Only Craig's answers.
 
+**Contents:** [Starting it](#starting-it) · [The picks](#the-picks) · [Auto-pick](#auto-pick) ·
+[The queue and the ranking](#the-queue-and-the-ranking) · [The draft room](#the-draft-room) ·
+[The commissioner](#the-commissioner) · [After the draft](#after-the-draft)
+
 ## Starting it
 
 - Held in the app. It starts on a date the commissioner sets, or when the commissioner
@@ -14,6 +18,11 @@ Feature 4 of [SPEC.md](../SPEC.md). Only Craig's answers.
 - Draft order is a league setting: random, set by the commissioner, or last season's finish. A
   random order is drawn before the draft starts, so managers have time to plan (Craig,
   2 Nov 2026).
+- Last season's finish isn't offered: "i dont think we implment this, a comish can easily set the
+  order in 30s" (Craig, 4 Nov 2026, on #1087).
+- A new league's order is the order its teams joined: "order by who joined league date/time". The
+  commissioner can reorder it, and "any time a new team coems in, straight to the bottom" (Craig,
+  4 Nov 2026, on #1087).
 
 ## The picks
 
@@ -26,6 +35,8 @@ Feature 4 of [SPEC.md](../SPEC.md). Only Craig's answers.
   So every finished squad is legal.
 - Each pick runs on a clock the league sets, from seconds (live) to hours (a slow draft over
   days), and the clock can pause.
+- The pick clock runs from "shortest 15 seconds longest 24 hours", and a new league's is 90 seconds
+  (Craig, 4 Nov 2026, on #1087).
 - Picks in the current draft can be traded in every league, before the draft starts only (Craig,
   2 Nov 2026).
 - A drafted player who leaves the Premier League brings his team nothing in return (Craig,
@@ -45,6 +56,7 @@ Feature 4 of [SPEC.md](../SPEC.md). Only Craig's answers.
 - A league setting says how many timeouts a manager gets before he goes on auto-pick, 2 unless
   the league changes it, or "never": then the clock runs for every pick (Craig, 2 Nov 2026). He can
   take control back himself.
+- A league sets from "1 fewest, 15 most" timeouts, so 0 isn't one (Craig, 4 Nov 2026, on #1087).
 - When his clock runs out, the pick is made for him even if he is online, and it counts as one of
   his timeouts (Craig, 4 Nov 2026, "yes" to Claude's recommendation).
 - A team with no manager is on auto-pick from the start. Before the draft starts, the commissioner

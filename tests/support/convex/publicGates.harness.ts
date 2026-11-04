@@ -50,6 +50,8 @@ export const gates: Record<string, Gate> = {
   "admin/feeds:feeds": "admin",
   "auth:isAuthenticated": "open",
   "auth:signOut": "open",
+  "draft/draftOrder:setTeamOrder": "runner",
+  "draft/draftOrder:teamOrder": "runner",
   "feedback/feedback:list": "admin",
   "feedback/feedback:send": "signedIn",
   "football/matchScores:ofGameweek": "signedIn",

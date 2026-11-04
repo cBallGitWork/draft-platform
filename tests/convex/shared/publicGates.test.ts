@@ -52,6 +52,7 @@ beforeEach(async () => {
       "admin/feeds:feeds": () => caller.query(api.admin.feeds.feeds, { now }),
       "auth:isAuthenticated": () => caller.query(api.auth.isAuthenticated, {}),
       "auth:signOut": () => caller.action(api.auth.signOut, {}),
+      "draft/draftOrder:teamOrder": () => caller.query(api.draft.draftOrder.teamOrder, { leagueId }),
       "feedback/feedback:list": () => caller.query(api.feedback.feedback.list, {}),
       "feedback/feedback:send": () => caller.mutation(api.feedback.feedback.send, { message: "Love it" }),
       "football/matchScores:ofGameweek": () => caller.query(api.football.matchScores.ofGameweek, { gameweek: SOME_CODE }),

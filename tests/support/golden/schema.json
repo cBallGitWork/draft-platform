@@ -4000,6 +4000,16 @@
               }
             },
             "optional": true
+          },
+          "draftOrder": {
+            "fieldType": {
+              "type": "array",
+              "value": {
+                "type": "id",
+                "tableName": "teams"
+              }
+            },
+            "optional": true
           }
         }
       }
@@ -5947,6 +5957,66 @@
                     }
                   },
                   "optional": false
+                },
+                "draft": {
+                  "fieldType": {
+                    "type": "object",
+                    "value": {
+                      "order": {
+                        "fieldType": {
+                          "type": "union",
+                          "value": [
+                            {
+                              "type": "literal",
+                              "value": "commissioner"
+                            },
+                            {
+                              "type": "literal",
+                              "value": "random"
+                            }
+                          ]
+                        },
+                        "optional": false
+                      },
+                      "pickSeconds": {
+                        "fieldType": {
+                          "type": "number"
+                        },
+                        "optional": false
+                      },
+                      "timeoutsBeforeAutoPick": {
+                        "fieldType": {
+                          "type": "union",
+                          "value": [
+                            {
+                              "type": "number"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "optional": false
+                      },
+                      "undrafted": {
+                        "fieldType": {
+                          "type": "union",
+                          "value": [
+                            {
+                              "type": "literal",
+                              "value": "waivers"
+                            },
+                            {
+                              "type": "literal",
+                              "value": "freeAgents"
+                            }
+                          ]
+                        },
+                        "optional": false
+                      }
+                    }
+                  },
+                  "optional": true
                 },
                 "scoring": {
                   "fieldType": {
@@ -9964,6 +10034,66 @@
                     }
                   },
                   "optional": false
+                },
+                "draft": {
+                  "fieldType": {
+                    "type": "object",
+                    "value": {
+                      "order": {
+                        "fieldType": {
+                          "type": "union",
+                          "value": [
+                            {
+                              "type": "literal",
+                              "value": "commissioner"
+                            },
+                            {
+                              "type": "literal",
+                              "value": "random"
+                            }
+                          ]
+                        },
+                        "optional": false
+                      },
+                      "pickSeconds": {
+                        "fieldType": {
+                          "type": "number"
+                        },
+                        "optional": false
+                      },
+                      "timeoutsBeforeAutoPick": {
+                        "fieldType": {
+                          "type": "union",
+                          "value": [
+                            {
+                              "type": "number"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "optional": false
+                      },
+                      "undrafted": {
+                        "fieldType": {
+                          "type": "union",
+                          "value": [
+                            {
+                              "type": "literal",
+                              "value": "waivers"
+                            },
+                            {
+                              "type": "literal",
+                              "value": "freeAgents"
+                            }
+                          ]
+                        },
+                        "optional": false
+                      }
+                    }
+                  },
+                  "optional": true
                 },
                 "scoring": {
                   "fieldType": {
