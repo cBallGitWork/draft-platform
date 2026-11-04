@@ -53,4 +53,4 @@ not reworked over borderline duplication: say it in one line and move on.
 
 A change that touches scoring also replays the recorded match and compares every point, as
 `docs/REFACTORING.md`'s *Proving nothing changed* says. The checks themselves (`npm run verify`)
-run in the commit reminder and in CI, so this skill doesn't run them.
+are CI's required `verify` check, so this skill doesn't run them.
