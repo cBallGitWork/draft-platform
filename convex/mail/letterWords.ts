@@ -148,6 +148,7 @@ const RULES_PART_WORDS: Record<keyof LeagueRules | "scoring", string> = {
   oddTeamOut: "odd team out",
   gamesPerGameweek: "games a gameweek",
   waivers: "waivers",
+  draft: "draft settings",
   scoring: "scoring",
 };
 

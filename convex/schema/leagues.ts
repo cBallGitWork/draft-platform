@@ -59,6 +59,9 @@ const leagueFields = {
    *  (spec/16), pinned on league home until a newer one (spec/12); absent before the first. Its
    *  copies are in `letters`, one a person, so this saves finding the newest among them. */
   pinnedLetter: v.optional(pinnedLetter),
+  /** The draft order its commissioner set (spec/04; #1087, convex/draft/draftOrder.ts), first
+   *  pick first. Absent until he first moves a team: the teams then draft in the order they joined. */
+  draftOrder: v.optional(v.array(v.id("teams"))),
 };
 
 const teamFields = {

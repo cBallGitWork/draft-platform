@@ -36,6 +36,7 @@ const FIRST: LeagueSettings = {
   squadMaximum: HELD_FIRST_RULES.squad.size!.maximum,
   minimumByArea: null,
   maxPerClub: null,
+  draft: { order: "commissioner", pickSeconds: 90, timeoutsBeforeAutoPick: 2, undrafted: "waivers" },
 };
 /** The fixtures in one round of the four-team leagues the table tests make. */
 const FIXTURES_A_ROUND = 2;
@@ -213,5 +214,79 @@ describe("the squad's make-up (#341)", () => {
       for (const row of await ctx.db.query("leagueRules").collect()) await ctx.db.delete("leagueRules", row._id);
     });
     await expectRefused(change(FIRST, COMMISSIONER, null), rulesRefusals.noRules);
+  });
+});
+
+describe("the draft (#1087)", () => {
+  const DRAFT = FIRST.draft;
+
+  test("a new league starts on the commissioner's order, a 90-second clock, auto-pick after 2 timeouts and waivers (Craig, 4 Nov 2026)", async () => {
+    expect((await read())?.part.draft).toEqual({ order: "commissioner", pickSeconds: 90, timeoutsBeforeAutoPick: 2, undrafted: "waivers" });
+  });
+
+  test("saves each draft setting from the next gameweek, with a letter, and reads it back", async () => {
+    const draft = { order: "random", pickSeconds: 8 * 60 * 60, timeoutsBeforeAutoPick: null, undrafted: "freeAgents" } as const;
+    await change({ ...FIRST, draft });
+
+    expect((await inGameweek(NEXT)).draft).toEqual(draft);
+    expect((await inGameweek(NEXT - 1)).draft).toEqual(DRAFT);
+    expect((await eventsIn(t, leagueId)).at(-1)).toMatchObject({ kind: "rulesChanged", changed: ["draft"] });
+    expect((await read())?.part.draft).toEqual(draft);
+  });
+
+  test.each([
+    ["15 seconds, the shortest", { pickSeconds: 15 }],
+    ["24 hours, the longest", { pickSeconds: 86_400 }],
+    ["1 timeout, the fewest", { timeoutsBeforeAutoPick: 1 }],
+    ["15 timeouts, the most", { timeoutsBeforeAutoPick: 15 }],
+  ])("saves a pick clock or timeouts at the edge: %s", async (_, setting) => {
+    await change({ ...FIRST, draft: { ...DRAFT, ...setting } });
+
+    expect((await inGameweek(NEXT)).draft).toEqual({ ...DRAFT, ...setting });
+  });
+
+  test.each([
+    ["a pick clock under 15 seconds", { pickSeconds: 14 }, "The pick clock's seconds must be a whole number from 15 to 86400, not 14."],
+    ["a pick clock over 24 hours", { pickSeconds: 86_401 }, "The pick clock's seconds must be a whole number from 15 to 86400, not 86401."],
+    ["a fractional pick clock", { pickSeconds: 90.5 }, "The pick clock's seconds must be a whole number from 15 to 86400, not 90.5."],
+    ["0 timeouts", { timeoutsBeforeAutoPick: 0 }, "The timeouts before auto-pick must be a whole number from 1 to 15, not 0."],
+    ["16 timeouts", { timeoutsBeforeAutoPick: 16 }, "The timeouts before auto-pick must be a whole number from 1 to 15, not 16."],
+    ["a fractional count of timeouts", { timeoutsBeforeAutoPick: 2.5 }, "The timeouts before auto-pick must be a whole number from 1 to 15, not 2.5."],
+  ])("refuses %s with the reason, and saves nothing", async (_, setting, reason) => {
+    await expectRefused(change({ ...FIRST, draft: { ...DRAFT, ...setting } }), reason);
+    expect(await inGameweek(NEXT)).toEqual(HELD_FIRST_RULES);
+  });
+
+  test("is refused to a manager", async () => {
+    await addManagers(t, leagueId, [MANAGERS[0]]);
+    await expectRefused(change({ ...FIRST, draft: { ...DRAFT, pickSeconds: 60 } }, MANAGERS[0]), refusals.notRunner);
+  });
+
+  describe("on rules saved before the draft was a rule", () => {
+    beforeEach(() =>
+      t.run(async (ctx) => {
+        for (const row of await ctx.db.query("leagueRules").collect()) {
+          const { draft: _draft, ...older } = row.rules;
+          await ctx.db.patch("leagueRules", row._id, { rules: older });
+        }
+      }),
+    );
+
+    test("reads the first rules' draft settings", async () => {
+      expect((await read())?.part.draft).toEqual(DRAFT);
+    });
+
+    test("a change to another setting writes no draft settings and names none in its letter", async () => {
+      await change({ ...FIRST, gamesPerGameweek: 2 });
+
+      expect((await inGameweek(NEXT)).draft).toBeUndefined();
+      expect((await eventsIn(t, leagueId)).at(-1)).toMatchObject({ kind: "rulesChanged", changed: ["gamesPerGameweek"] });
+    });
+
+    test("a change to the draft writes it", async () => {
+      await change({ ...FIRST, draft: { ...DRAFT, pickSeconds: 30 } });
+
+      expect((await inGameweek(NEXT)).draft).toEqual({ ...DRAFT, pickSeconds: 30 });
+    });
   });
 });

@@ -1,4 +1,5 @@
 import { v, type Infer } from "convex/values";
+import { DRAFT_ORDERS, UNDRAFTED_GO_TO } from "../draft/draftRules";
 import { byArea, cellShape } from "../lineup/pitchShape";
 import { scoringSetShape } from "../scoring/scoringSetShape";
 import { DOUBLE_GAMEWEEK_RULES } from "../scoring/values";
@@ -23,6 +24,20 @@ const weekday = v.union(...WEEKDAYS.map((day) => v.literal(day)));
 
 /** roundRobin.ts's OddTeamOut. */
 export const oddTeamOutShape = v.union(...ODD_TEAM_OUTS.map((name) => v.literal(name)));
+
+/** The draft's rules (spec/04; #1087): its limits are ../draft/draftLimits.ts's. */
+export const draftRulesShape = v.object({
+  /** ../draft/draftRules.ts's DraftOrder. */
+  order: v.union(...DRAFT_ORDERS.map((name) => v.literal(name))),
+  /** Each pick's clock, in whole seconds. */
+  pickSeconds: v.number(),
+  /** How many timeouts a manager gets before he goes on auto-pick; null: never, and the clock
+   *  runs for every pick. */
+  timeoutsBeforeAutoPick: v.union(v.number(), v.null()),
+  /** ../draft/draftRules.ts's UndraftedGoTo. */
+  undrafted: v.union(...UNDRAFTED_GO_TO.map((name) => v.literal(name))),
+});
+export type DraftRules = Infer<typeof draftRulesShape>;
 
 export const leagueRulesShape = v.object({
   format: v.union(v.literal("headToHead"), v.literal("totalPoints")),
@@ -56,6 +71,9 @@ export const leagueRulesShape = v.object({
     runs: v.array(v.object({ day: weekday, hour: v.number(), minute: v.number() })),
     order: v.union(v.literal("reverseStandings"), v.literal("rotating")),
   }),
+  /** How the draft runs (spec/04; #1087). Absent, as `oddTeamOut` is, only from rules saved before
+   *  #1087, which play the first rules' (firstRules.ts, `draftRulesOf`). */
+  draft: v.optional(draftRulesShape),
 });
 
 export type LeagueRules = Infer<typeof leagueRulesShape>;

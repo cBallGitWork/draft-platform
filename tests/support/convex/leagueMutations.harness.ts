@@ -27,21 +27,24 @@ export type Callers = { admin: Caller; ann: Caller; commissioner: Caller };
 export type RowsToChange = Awaited<ReturnType<typeof rowsToChange>>;
 
 /** Gives a league from `leagueWithPeople` an invite to CAT and DAN's request to join, and reads
- *  what else `changesTo` names: ANN's team and the rules' revision. */
+ *  what else `changesTo` names: ANN's team, the rules' revision and its teams. */
 export async function rowsToChange(t: TestConvex, leagueId: Id<"leagues">) {
-  const [annsTeam] = await teamsIn(t, leagueId);
+  const teams = await teamsIn(t, leagueId);
+  const [annsTeam] = teams;
   if (annsTeam.managerEmail !== ANN) throw new Error(`the league's first team isn't ${ANN}'s: rowsToChange needs a league from leagueWithPeople`);
   const inviteId = await invite(t, leagueId, CAT);
   const requestId = await askToJoin(t, leagueId, await makeLink(t, leagueId), DAN);
   const revision = await rulesRevision(t, leagueId);
-  return { leagueId, annsTeam, inviteId, requestId, revision };
+  /** Its teams in reverse: a draft order its commissioner could set. */
+  const reversedTeamIds = teams.map((team) => team._id).reverse();
+  return { leagueId, annsTeam, inviteId, requestId, revision, reversedTeamIds };
 }
 
 /** A call of each public mutation given a league that would change it, by whoever might be let
  *  in to make it, keyed by its name in `mutationsGivenALeague`. */
 export function changesTo(
   { admin, ann, commissioner }: Callers,
-  { leagueId, annsTeam, inviteId, requestId, revision }: RowsToChange,
+  { leagueId, annsTeam, inviteId, requestId, revision, reversedTeamIds }: RowsToChange,
 ): Record<string, () => Promise<unknown>> {
   return {
     "leagues/leagues:setMaxTeams": () => admin.mutation(api.leagues.leagues.setMaxTeams, { leagueId, maxTeams: 6 }),
@@ -63,6 +66,7 @@ export function changesTo(
     "rules/leagueRules:change": () => admin.mutation(api.rules.leagueRules.change, { leagueId, rules: structuredClone(FIRST_RULES), revision }),
     "rules/leagueSettings:changeSettings": () =>
       admin.mutation(api.rules.leagueSettings.changeSettings, { leagueId, settings: { ...leagueSettingsOf(FIRST_RULES), oddTeamOut: "bye", gamesPerGameweek: 2 }, revision }),
+    "draft/draftOrder:setTeamOrder": () => admin.mutation(api.draft.draftOrder.setTeamOrder, { leagueId, teamIds: reversedTeamIds }),
     "lineup/lineups:save": () => ann.mutation(api.lineup.lineups.save, { leagueId, lineup: { starters: [], bench: [] } }),
     "lineup/lineupDue:openedTactics": () => ann.mutation(api.lineup.lineupDue.openedTactics, { leagueId, gameweek: 1 }),
     "leagues/lastLeague:switchTo": () => commissioner.mutation(api.leagues.lastLeague.switchTo, { leagueId }),
