@@ -54,7 +54,7 @@ Most of Craig's stops can become a batch he clears in one sitting, or a default 
 | --- | --- | --- |
 | Runs alone | Fixes, refactors, tests, dependency updates, docs, back-end work on rules already in the spec, screens built to an approved picture with no visual difference | Merges itself when CI and the visual diff are green. Craig sees it in a daily digest |
 | Default unless vetoed | Grill answers where Claude has a strong recommendation; small look calls; work behind a flag. At most 5 a week, nothing a user sees, each easy to undo and logged in `docs/decisions.md` | Claude writes each question and its default into the weekly decisions doc. Silence for 48 hours lets the default stand |
-| Needs Craig | Anything that changes a league's outcome (scoring, draft order, auto-pick ranking, waiver order, saved league data), new features, new screen pictures, the feed, going live, money. Draft-room changes stay here until the beta | Batched into one weekly session of about an hour. Enforced by CODEOWNERS on the outcome paths, plus fixed-result tests that fail if outcomes change |
+| Needs Craig | The one-way doors (scoring, the shape of saved data), the pipeline's own guards, new screen pictures, the feed, going live, money. Spec'd features, the draft room included, build and merge without him (Craig, 4 Nov 2026: "speeding up") | Batched into one weekly session of about an hour. Enforced by CODEOWNERS on scoring, the schema, `.claude/` and `.github/`, plus fixed-result tests that fail if outcomes change |
 
 What this changes:
 
