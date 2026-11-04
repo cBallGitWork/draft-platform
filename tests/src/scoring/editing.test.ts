@@ -3,6 +3,7 @@
 
 import { describe, expect, it } from "vitest";
 import { FIRST_SCORING } from "../../../convex/scoring/firstScoring";
+import { LIMITED_BANDS } from "../../support/src/scoring.harness";
 import { validateScoringSet } from "../../../convex/scoring/scoringSet";
 import {
   firstBlankRule,
@@ -20,7 +21,7 @@ import {
 
 const ruleFor = (stat: string) => structuredClone(FIRST_SCORING.rules.find((rule) => rule.stat === stat)!);
 const GOALS = ruleFor("goals_scored");
-const DEFENSIVE = ruleFor("defensive_contribution");
+const DEFENSIVE = structuredClone(LIMITED_BANDS);
 const ASSISTS = ruleFor("assists");
 const isSound = (rule: Rule) => validateScoringSet({ rules: [rule], wholePointsOnly: false });
 
