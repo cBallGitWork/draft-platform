@@ -10,7 +10,7 @@ const BASE = "https://hc-ping.com/ping-key";
 
 /** A fetch that answers every ping with `status`, recording each URL. */
 function pings(status = 200) {
-  const fetch = vi.fn(async (_url: string) => new Response(null, { status }));
+  const fetch = vi.fn(async (_url: string, _init?: RequestInit) => new Response(null, { status }));
   vi.stubGlobal("fetch", fetch);
   return fetch;
 }
@@ -50,6 +50,24 @@ test("a ping Healthchecks refuses is logged and never fails the job", async () =
   const logged = silenceConsoleError();
   await expect(withHeartbeat("footballSync", async () => null)).resolves.toBeNull();
   expect(logged).toHaveBeenCalledWith(PING_FAILED_LOG, "footballSync", 503);
+});
+
+/** The pings among everything a job fetched. */
+const pinged = (fetch: ReturnType<typeof pings>) => fetch.mock.calls.map(([url]) => url).filter((url) => url.startsWith(BASE));
+
+test("each sync pings its check when the cron runs it, and not when it's run by hand", async () => {
+  vi.stubEnv(PING_URL_ENV, BASE);
+  const fetch = pings();
+  const t = freshConvex();
+  // The football sync's read of an empty faked feed fails, and is logged.
+  silenceConsoleError();
+  await t.action(internal.football.footballSync.run, { trigger: "manual" });
+  await t.action(internal.stats.matchStatsSync.run, { trigger: "manual" });
+  expect(pinged(fetch)).toEqual([]);
+  await t.action(internal.football.footballSync.run, { trigger: "cron" });
+  await t.action(internal.stats.matchStatsSync.run, { trigger: "cron" });
+  await t.action(internal.stats.liveStatsSync.tick, {});
+  expect(pinged(fetch)).toEqual([`${BASE}/football-sync`, `${BASE}/late-stats`, `${BASE}/live-stats-tick`]);
 });
 
 test("the daily clean-up pings once its last run log is pruned", async () => {
