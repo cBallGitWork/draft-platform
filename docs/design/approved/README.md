@@ -45,3 +45,5 @@ Named after its route: `team` for `/team`, `team-squad` for `/team/squad`.
 - [`leagues`](leagues/README.md): Your leagues, and the page for someone in none (1 Nov 2026).
 - [`leagues-new`](leagues-new/README.md): Create a league, the admin's (1 Nov 2026).
 - [`join`](join/README.md): Join, a league's invite link (1 Nov 2026).
+- [`draft-room`](draft-room/README.md): The draft room, live, before the start and a slow draft
+  (4 Nov 2026).

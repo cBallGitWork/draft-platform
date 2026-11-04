@@ -1,0 +1,242 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Draft room, slow draft</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo+Narrow:wght@400;600;700&family=Archivo:wdth,wght@125,800&display=swap">
+<style>
+body{margin:0;background:#1b1916}
+a{color:#ffffff;text-decoration:none}a:hover{text-decoration:underline;text-decoration-color:#6bfdfa}
+button{font-family:inherit;border-radius:0;cursor:pointer}
+button:focus-visible,a:focus-visible,input:focus-visible{outline:2px solid #6bfdfa;outline-offset:2px}
+.disp{font-family:'Archivo','Archivo Narrow',sans-serif;font-weight:800;font-stretch:125%}
+.sq td{height:28px;padding:0 6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sq th{height:24px;padding:0 6px;text-align:left;font-weight:600;color:#111214;background:#b9bcc4;white-space:nowrap}
+.chip{display:inline-block;min-width:30px;padding:0 3px;box-sizing:border-box;text-align:center;font-size:11px;line-height:18px;font-weight:700}
+.plate{height:32px;background:#2a1f86;box-shadow:inset 0 2px 0 #6a5fe0,inset 0 -2px 0 #110a4a;display:flex;align-items:center;justify-content:space-between;padding:0 12px}
+.plate h2{margin:0;font-size:15px;line-height:20px;font-weight:700}
+.sec{height:32px;padding:0 12px;background:#2a1f86;color:#ffffff;border:1px solid #caced4;font-size:13px;display:inline-flex;align-items:center;gap:6px}
+@media (hover: hover){.sec:hover{background:#3529a8;border-color:#ffffff}}
+.act{height:36px;padding:0 16px;background:#ffffff;color:#111214;border:0;box-shadow:inset 0 2px 0 #ffffff,inset 0 -2px 0 #b9bcc4;font-size:15px;font-weight:600}
+.cell{height:44px;box-sizing:border-box;padding:3px 6px;border-right:1px solid #111214;border-bottom:1px solid #111214;display:flex;flex-direction:column;justify-content:center;overflow:hidden}
+</style>
+</helmet>
+<div style="min-height: 1240px; background-color: #1b1916; background-image: radial-gradient(ellipse 90% 60% at 50% 0%, rgba(70, 96, 84, 0.22), rgba(70, 96, 84, 0) 70%); font-family: 'Archivo Narrow', 'Arial Narrow', sans-serif; font-size: 13px; line-height: 20px; color: #ffffff; font-variant-numeric: tabular-nums">
+
+<header style="background: #173a94; box-shadow: inset 0 2px 0 #4a6cc8, inset 0 -2px 0 #001a5e; display: flex; align-items: stretch; min-height: 44px; padding: 0 16px">
+  <div class="disp" style="display: flex; align-items: center; font-size: 15px; padding-right: 16px">Draft Manager</div>
+  <button style="display: flex; align-items: center; gap: 8px; background: none; border: 0; border-left: 1px solid #001a5e; border-right: 1px solid #001a5e; color: #ffffff; font-size: 13px; padding: 0 12px">
+    <span style="color: #caced4">League:</span><span style="font-weight: 600">Tim Hortons Pro League</span>
+    <svg width="10" height="6" viewBox="0 0 10 6" aria-hidden="true"><path d="M0 0 L10 0 L5 6 Z" fill="#ffffff"></path></svg>
+  </button>
+  <nav aria-label="Main" style="display: flex; align-items: stretch">
+    <a href="#" style="display: flex; align-items: center; padding: 0 12px; color: #caced4; border-right: 1px solid #001a5e; font-size: 15px">Home</a>
+    <a href="#" style="display: flex; align-items: center; padding: 0 12px; color: #caced4; border-right: 1px solid #001a5e; font-size: 15px">My team</a>
+    <a href="#" aria-current="page" style="display: flex; align-items: center; padding: 0 12px; font-weight: 600; border-right: 1px solid #001a5e; font-size: 15px; box-shadow: inset 0 -3px 0 #6bfdfa">Draft</a>
+    <a href="#" style="display: flex; align-items: center; padding: 0 12px; color: #caced4; border-right: 1px solid #001a5e; font-size: 15px">Scouting</a>
+    <a href="#" style="display: flex; align-items: center; padding: 0 12px; color: #caced4; border-right: 1px solid #001a5e; font-size: 15px">Premier League</a>
+    <a href="#" style="display: flex; align-items: center; gap: 6px; padding: 0 12px; color: #caced4; border-right: 1px solid #001a5e; font-size: 15px">Mail <span style="background: #ff9b3d; color: #111214; font-size: 13px; font-weight: 700; padding: 0 5px; line-height: 18px">1</span></a>
+  </nav>
+  <div style="margin-left: auto; display: flex; align-items: center; gap: 12px">
+    <button style="height: 32px; padding: 0 16px; background: #ff9b3d; color: #111214; border: 0; font-size: 15px; font-weight: 600">Continue</button>
+    <button style="background: none; border: 0; color: #ffffff; font-size: 13px">Sign out</button>
+  </div>
+</header>
+
+<main style="max-width: 1440px; margin: 0 auto; padding: 8px 16px 16px; box-sizing: border-box; display: flex; flex-direction: column; gap: 8px">
+
+  <div style="background: #2a1f86; box-shadow: inset 0 2px 0 #6a5fe0, inset 0 -2px 0 #110a4a; display: flex; align-items: stretch; padding: 0 0 0 16px; min-height: 60px">
+    <h1 class="disp" style="margin: 0; font-size: 26px; line-height: 32px; align-self: center">Draft</h1>
+    <span style="align-self: center; margin-left: 12px; font-size: 15px; font-weight: 600; color: {{statusInk}}">{{status}}</span>
+    <div style="margin-left: auto; display: flex; align-items: stretch">
+      <sc-for list="{{ tiles }}" as="t" hint-placeholder-count="5">
+        <div role="{{t.role}}" style="display: flex; flex-direction: column; justify-content: center; padding: 4px 16px; border-left: 1px solid #110a4a; box-shadow: {{t.edge}}">
+          <span style="color: #caced4">{{t.label}}</span>
+          <span class="{{t.cls}}" style="font-size: {{t.size}}; line-height: {{t.lh}}; font-weight: {{t.weight}}; color: {{t.ink}}">{{t.value}}<span style="color: #6bfdfa; font-weight: 600">{{t.extra}}</span></span>
+        </div>
+      </sc-for>
+    </div>
+  </div>
+
+  <section aria-labelledby="b-h" style="background: rgba(40, 34, 29, 0.9)">
+    <div class="plate">
+      <h2 id="b-h">Board</h2>
+      <span style="display: flex; align-items: center; gap: 12px; color: #caced4">{{boardNote}}<button class="sec" style="height: 28px">Whole board</button></span>
+    </div>
+    <div role="grid" aria-label="Draft board: one column a team, one row a round" style="display: grid; grid-template-columns: 52px repeat(10, minmax(0, 1fr))">
+      <div class="cell" style="height: 28px; background: #b9bcc4; color: #111214; font-weight: 600">Rd</div>
+      <sc-for list="{{ teams }}" as="t" hint-placeholder-count="10">
+        <div class="cell" style="height: 28px; background: {{t.headBg}}; color: #111214; font-weight: 600; white-space: nowrap; text-overflow: ellipsis">{{t.name}}</div>
+      </sc-for>
+      <sc-for list="{{ board }}" as="c" hint-placeholder-count="66">
+        <div class="cell" title="{{c.title}}" style="background: {{c.bg}}; box-shadow: {{c.edge}}">
+          <span style="display: flex; align-items: center; gap: 4px; white-space: nowrap"><sc-if value="{{ c.hasChip }}" hint-placeholder-val="{{ true }}"><span class="chip" style="min-width: 26px; line-height: 16px; background: {{c.chipBg}}; color: {{c.chipInk}}">{{c.pos}}</span></sc-if><span style="font-weight: {{c.weight}}; color: {{c.ink}}; overflow: hidden; text-overflow: ellipsis">{{c.name}}</span></span>
+          <span style="color: #a1a5ab; font-size: 12px; line-height: 16px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">{{c.sub}}</span>
+        </div>
+      </sc-for>
+    </div>
+  </section>
+
+  <div style="display: flex; gap: 8px; align-items: flex-start">
+    <section aria-labelledby="p-h" style="flex: 1 1 auto; min-width: 0; background: rgba(40, 34, 29, 0.9)">
+      <div class="plate">
+        <span style="display: flex; align-items: center; gap: 12px"><h2 id="p-h">Players</h2>
+          <span role="radiogroup" aria-label="Position" style="display: flex">
+            <sc-for list="{{ filters }}" as="f" hint-placeholder-count="7"><button role="radio" aria-checked="{{f.on}}" style="height: 28px; min-width: 40px; padding: 0 8px; border: 0; border-right: 1px solid #110a4a; font-size: 13px; background: {{f.bg}}; color: {{f.ink}}; font-weight: {{f.weight}}; box-shadow: {{f.bevel}}">{{f.name}}</button></sc-for>
+          </span>
+          <label style="display: flex; align-items: center; gap: 6px; color: #caced4">Find<input type="search" value="" placeholder="Player or club" style="height: 26px; width: 160px; box-sizing: border-box; background: #050608; border: 1px solid #caced4; color: #ffffff; font-family: inherit; font-size: 13px; padding: 0 6px"></label>
+        </span>
+        <span style="display: flex; align-items: center; gap: 12px; color: #caced4">{{left}}<button class="sec" style="height: 28px" aria-haspopup="dialog">Stats: Overview<svg width="9" height="6" viewBox="0 0 10 6" aria-hidden="true"><path d="M0 0 L10 0 L5 6 Z" fill="#ffffff"></path></svg></button></span>
+      </div>
+      <table class="sq" aria-label="Players left to draft" style="width: 100%; border-collapse: collapse; table-layout: fixed">
+        <colgroup><col style="width: 60px"><col><col style="width: 56px"><col style="width: 76px"><col style="width: 52px"><col style="width: 52px"><col style="width: 52px"><col style="width: 52px"></colgroup>
+        <thead><tr>
+          <th>Pos</th><th>Player</th><th style="text-align: right" title="The site's ranking, sorted by" aria-sort="ascending">Rank <svg width="8" height="6" viewBox="0 0 10 6" aria-hidden="true"><path d="M0 6 L10 6 L5 0 Z" fill="#111214"></path></svg></th><th style="text-align: right" title="Last season's points under the site's scoring">Pts 25/26</th><th style="text-align: right">MP</th><th style="text-align: right">G</th><th style="text-align: right">A</th><th style="text-align: right">CS</th>
+        </tr></thead>
+        <tbody>
+          <sc-for list="{{ players }}" as="p" hint-placeholder-count="20">
+            <tr aria-selected="{{p.selected}}" aria-disabled="{{p.blocked}}" aria-label="{{p.aria}}" title="{{p.why}}" style="border-bottom: 1px solid #111214; background: {{p.rowBg}}">
+              <td style="opacity: {{p.fade}}; box-shadow: {{p.rowEdge}}"><span style="display: flex; gap: 2px"><sc-for list="{{ p.chips }}" as="c" hint-placeholder-count="1"><span class="chip" style="background: {{c.bg}}; color: {{c.ink}}">{{c.pos}}</span></sc-for></span></td>
+              <td><a href="#" style="font-size: 15px; font-weight: 600; color: {{p.ink}}">{{p.name}}</a> <span style="color: #a1a5ab">{{p.club}}</span><sc-if value="{{ p.isDoubt }}" hint-placeholder-val="{{ false }}"><span role="img" aria-label="Doubt" title="Doubt" style="display: inline-flex; vertical-align: -1px; margin-left: 6px; width: 11px; height: 11px; background: #ff9b3d; align-items: center; justify-content: center"><span style="width: 2px; height: 7px; background: #111214"></span></span></sc-if><sc-if value="{{ p.isInjured }}" hint-placeholder-val="{{ false }}"><svg role="img" aria-label="Injured, out" width="12" height="12" viewBox="0 0 12 12" style="vertical-align: -1px; margin-left: 6px"><rect x="0" y="0" width="12" height="12" fill="#ffffff"></rect><path d="M4.5 1.5 H7.5 V4.5 H10.5 V7.5 H7.5 V10.5 H4.5 V7.5 H1.5 V4.5 H4.5 Z" fill="#d4203a"></path></svg></sc-if><sc-if value="{{ p.isBlocked }}" hint-placeholder-val="{{ false }}"><span style="margin-left: 8px; color: #a1a5ab">Club full</span></sc-if><sc-if value="{{ p.isQueued }}" hint-placeholder-val="{{ false }}"><span style="margin-left: 8px; color: #caced4">Queue {{p.q}}</span></sc-if></td>
+              <td style="text-align: right; color: {{p.ink}}">{{p.rank}}</td><td style="text-align: right; color: {{p.figInk}}; font-weight: 700">{{p.pts}}</td><td style="text-align: right; color: {{p.ink}}">{{p.mp}}</td><td style="text-align: right; color: {{p.ink}}">{{p.g}}</td><td style="text-align: right; color: {{p.ink}}">{{p.a}}</td><td style="text-align: right; color: {{p.ink}}">{{p.cs}}</td>
+            </tr>
+          </sc-for>
+        </tbody>
+      </table>
+    </section>
+
+    <div style="flex: 0 0 400px; display: flex; flex-direction: column; gap: 8px">
+      <aside aria-labelledby="sel-h" style="background: rgba(40, 34, 29, 0.9)">
+        <div class="plate" style="padding-right: 0">
+          <span style="display: flex; align-items: baseline; gap: 8px"><h2 id="sel-h">B. Fernandes</h2><span style="color: #caced4">MUN</span></span>
+          <button aria-label="Close" style="width: 32px; height: 32px; background: none; border: 0; display: flex; align-items: center; justify-content: center"><svg width="12" height="12" viewBox="0 0 14 14" aria-hidden="true"><path d="M1 1 L13 13 M13 1 L1 13" stroke="#ffffff" stroke-width="2"></path></svg></button>
+        </div>
+        <sc-if value="{{ canDraft }}" hint-placeholder-val="{{ true }}">
+        <div style="padding: 12px 12px 0">
+          <button class="act" style="width: 100%; height: 72px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; box-shadow: inset 0 3px 0 #ffffff, inset 0 -3px 0 #b9bcc4"><span style="font-size: 24px; line-height: 28px; font-weight: 700">Draft B. Fernandes</span><span style="font-size: 13px; line-height: 18px; font-weight: 600; color: #34363c">{{draftLine}}</span></button>
+        </div>
+        </sc-if>
+        <dl style="margin: 0; display: grid; grid-template-columns: 96px minmax(0, 1fr); row-gap: 6px; column-gap: 8px; padding: 10px 12px">
+          <dt style="color: #a1a5ab">Plays</dt><dd style="margin: 0"><span class="chip" style="background: #9a3db8; color: #ffffff">CAM</span></dd>
+          <dt style="color: #a1a5ab">Rank</dt><dd style="margin: 0"><span style="color: #ffe600; font-weight: 700">31</span> <span style="color: #a1a5ab">on the site's ranking</span></dd>
+          <dt style="color: #a1a5ab">Pts 25/26</dt><dd style="margin: 0"><span style="color: #ffe600; font-weight: 700; font-size: 15px">164</span> <span style="color: #a1a5ab">in 36 games</span></dd>
+          <dt style="color: #a1a5ab">Your squad</dt><dd style="margin: 0">{{squadLine}}</dd>
+        </dl>
+        <div style="display: flex; gap: 8px; align-items: center; padding: 8px 12px 12px; border-top: 1px solid #111214">
+          <button class="sec">Add to queue</button>
+          <button class="sec">Do not draft</button>
+          <a href="#" style="margin-left: auto; display: flex; align-items: center; gap: 6px">Player card<svg width="6" height="10" viewBox="0 0 6 10" aria-hidden="true"><path d="M0 0 L6 5 L0 10 Z" fill="#ffffff"></path></svg></a>
+        </div>
+      </aside>
+
+      <section aria-labelledby="q-h" style="background: rgba(40, 34, 29, 0.9)">
+        <div class="plate"><h2 id="q-h">Your queue</h2><span style="color: #caced4">6, only you see it</span></div>
+        <ol style="margin: 0; padding: 0; list-style: none">
+          <sc-for list="{{ queue }}" as="q" hint-placeholder-count="6">
+            <li style="height: 28px; display: flex; align-items: center; gap: 6px; padding: 0 8px 0 4px; border-bottom: 1px solid #111214">
+              <span aria-hidden="true" title="Drag to reorder" style="width: 12px; color: #a1a5ab; letter-spacing: -1px; cursor: grab">⋮⋮</span>
+              <span style="width: 16px; text-align: right; color: #a1a5ab">{{q.n}}</span>
+              <span class="chip" style="background: {{q.bg}}; color: {{q.ink}}">{{q.pos}}</span>
+              <span style="font-weight: 600">{{q.name}}</span><span style="color: #a1a5ab">{{q.club}}</span>
+              <button aria-label="Take {{q.name}} off your queue" style="margin-left: auto; width: 28px; height: 28px; background: none; border: 0; display: flex; align-items: center; justify-content: center"><svg width="9" height="9" viewBox="0 0 14 14" aria-hidden="true"><path d="M1 1 L13 13 M13 1 L1 13" stroke="#a1a5ab" stroke-width="2"></path></svg></button>
+            </li>
+          </sc-for>
+        </ol>
+        <div style="padding: 6px 12px; border-bottom: 1px solid #111214"><a href="#" style="display: flex; align-items: center; gap: 6px">Add from your Scouting shortlist<svg width="6" height="10" viewBox="0 0 6 10" aria-hidden="true"><path d="M0 0 L6 5 L0 10 Z" fill="#ffffff"></path></svg></a></div>
+        <div style="height: 28px; display: flex; align-items: center; justify-content: space-between; padding: 0 12px; background: #050608; color: #caced4; font-weight: 600; border-top: 1px solid #34363c">Do not draft<span style="font-weight: 400">2, auto-pick skips them</span></div>
+        <sc-for list="{{ dnd }}" as="d" hint-placeholder-count="2">
+          <div style="height: 28px; display: flex; align-items: center; gap: 6px; padding: 0 8px 0 42px; border-bottom: 1px solid #111214; color: #a1a5ab">
+            <span class="chip" style="background: {{d.bg}}; color: {{d.ink}}">{{d.pos}}</span><span>{{d.name}} {{d.club}}</span>
+            <button aria-label="Take {{d.name}} off do not draft" style="margin-left: auto; width: 28px; height: 28px; background: none; border: 0; display: flex; align-items: center; justify-content: center"><svg width="9" height="9" viewBox="0 0 14 14" aria-hidden="true"><path d="M1 1 L13 13 M13 1 L1 13" stroke="#a1a5ab" stroke-width="2"></path></svg></button>
+          </div>
+        </sc-for>
+      </section>
+
+      <section aria-labelledby="ap-h" style="background: rgba(40, 34, 29, 0.9)">
+        <div class="plate"><h2 id="ap-h">Auto-pick</h2><span style="color: #caced4">you pick</span></div>
+        <div style="padding: 8px 12px 12px; display: flex; flex-direction: column; gap: 8px">
+          <span>Timeouts <span style="color: #ffe600; font-weight: 700">{{timeouts}}</span> of 2. At 2 you go on auto-pick, from your queue first, then the site's ranking.</span>
+          <span><button class="sec">Turn auto-pick on</button></span>
+        </div>
+      </section>
+
+      <section aria-labelledby="c-h" style="background: rgba(40, 34, 29, 0.9)">
+        <div class="plate"><h2 id="c-h">Commissioner</h2><span style="color: #caced4">only you see this</span></div>
+        <div style="padding: 8px 12px 12px; display: flex; flex-direction: column; gap: 8px">
+          <span style="display: flex; flex-wrap: wrap; gap: 8px"><sc-for list="{{ comActions }}" as="a" hint-placeholder-count="2"><button class="sec">{{a}}</button></sc-for></span>
+          <sc-for list="{{ comLines }}" as="l" hint-placeholder-count="2"><span style="color: #a1a5ab">{{l}}</span></sc-for>
+          <label style="display: flex; align-items: center; gap: 8px; color: #a1a5ab">Pick time<input value="{{pickTime}}" style="width: 64px; height: 28px; box-sizing: border-box; background: #050608; border: 1px solid {{timeRim}}; color: {{timeInk}}; font-family: inherit; font-size: 13px; padding: 0 6px">{{timeNote}}</label>
+        </div>
+      </section>
+    </div>
+  </div>
+</main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"state":{"editor":"enum","options":["live","before","slow"],"default":"slow"},"$preview":{"width":1440,"height":1240}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const LINE = { GK: ['#e3cf98', '#111214'], CB: ['#2f6bd8', '#ffffff'], FB: ['#2f6bd8', '#ffffff'], CDM: ['#4e6b45', '#ffffff'], CM: ['#41c3ae', '#111214'], CAM: ['#9a3db8', '#ffffff'], W: ['#9a3db8', '#ffffff'], ST: ['#f28c8c', '#111214'] };
+    const chip = (pos) => ({ pos, bg: LINE[pos][0], ink: LINE[pos][1] });
+    const TEAMS = ['Kroos Control', 'Rovers XI', 'Bale Out', 'Pep Talk', 'Klopp Shop', 'Havertz Rent', 'Expected Toulouse', 'Saka Potatoes', 'Show Me Your Moyes', 'Dirty Dozen'];
+    const ME = 7;
+    const teams = TEAMS.map((name, i) => ({ name: i === ME ? name + ', you' : name, headBg: i === ME ? '#e6e8ec' : '#b9bcc4' }));
+    // picks 1 to 32, in pick order
+    const PICKS = [['Haaland','MCI','ST'],['Salah','LIV','W'],['Palmer','CHE','CAM'],['Isak','LIV','ST'],['Saka','ARS','W'],['Watkins','AVL','ST'],['Wood','NFO','ST'],['Mbeumo','MUN','W'],['Semenyo','BOU','W'],['Gabriel','ARS','CB'],
+      ['Wirtz','LIV','CAM'],['Eze','ARS','CAM'],['Rice','ARS','CDM'],['Sánchez','CHE','GK'],['Raya','ARS','GK'],['Gvardiol','MCI','CB'],['Van Dijk','LIV','CB'],['Kluivert','BOU','CAM'],['Cunha','MUN','W'],['Pedro Porro','TOT','FB'],
+      ['Caicedo','CHE','CDM'],['Ekitiké','LIV','ST'],['Foden','MCI','CAM'],['Muñoz','CRY','FB'],['João Pedro','CHE','ST'],['Pickford','EVE','GK'],['Mateta','CRY','ST'],['Saliba','ARS','CB'],['Rogers','AVL','W'],['Bowen','WHU','W'],
+      ['Sarr','CRY','W'],['Gordon','NEW','W']];
+    const owner = (pick) => { const r = Math.floor((pick - 1) / 10), k = (pick - 1) % 10; return r % 2 === 0 ? k : 9 - k; };
+    const STATE = this.props.state ?? 'slow';
+    const BEFORE = STATE === 'before';
+    const CURRENT = BEFORE ? 0 : 33;
+    const CLOCK = STATE === 'slow' ? '5h 12m' : '0:48';
+    const VIA = { 47: ['Rovers XI', 'Expected Toulouse'] }; // a traded pick: owner now, team it came from
+    const board = [];
+    for (let r = 0; r < 6; r++) {
+      board.push({ hasChip: false, name: String(r + 1), sub: r % 2 ? '◄' : '►', bg: '#b9bcc4', edge: 'none', ink: '#111214', weight: 700, title: 'Round ' + (r + 1) });
+      const row = [];
+      for (let k = 0; k < 10; k++) {
+        const pick = r * 10 + k + 1; const t = owner(pick); const label = (r + 1) + '.' + String(k + 1).padStart(2, '0');
+        const mine = t === ME;
+        let c;
+        if (pick < CURRENT) { const [n, club, pos] = PICKS[pick - 1]; c = { hasChip: true, pos, chipBg: LINE[pos][0], chipInk: LINE[pos][1], name: n, sub: club + ', ' + label, ink: '#ffffff', weight: 600, title: label + ': ' + TEAMS[t] + ' took ' + n }; }
+        else if (pick === CURRENT) c = { hasChip: false, name: 'On the clock', sub: label + ', ' + CLOCK, ink: '#6bfdfa', weight: 700, title: label + ': on the clock' };
+        else c = VIA[pick] ? { hasChip: false, name: VIA[pick][0], sub: 'via ' + VIA[pick][1], ink: '#ffffff', weight: 600, title: label + ': Rovers XI own it, traded from ' + VIA[pick][1] } : { hasChip: false, name: '', sub: label, ink: '#caced4', weight: 400, title: label };
+        c.bg = pick === CURRENT ? '#050608' : mine ? 'rgba(255,255,255,0.06)' : 'transparent';
+        c.edge = pick === CURRENT ? 'inset 0 0 0 2px #6bfdfa' : 'none';
+        row[t] = c;
+      }
+      row.forEach((c) => board.push(c));
+    }
+    const DIFF = [null, ['#57e08a', '#04130a', 'very easy'], ['#93b83a', '#0c1a06', 'easy'], ['#8a90a0', '#08090b', 'average'], ['#c9304f', '#ffffff', 'hard'], ['#8c1236', '#ffffff', 'very hard']];
+    const FIX = { CRY: 'CHE A 3,NFO H 3,AVL A 3', LEE: 'EVE H 2,ARS A 4,NEW H 3', MUN: 'ARS H 4,FUL A 2,BUR H 1', ARS: 'MUN A 3,LEE H 2,LIV A 4', NEW: 'AVL A 3,LIV H 4,LEE A 2', BHA: 'FUL H 2,EVE A 2,MCI H 4', TOT: 'BUR H 1,MCI A 5,BOU H 2', CHE: 'CRY H 2,WHU A 2,FUL H 2', AVL: 'NEW H 3,BRE A 2,CRY H 3', BOU: 'LIV A 4,WOL H 1,TOT A 3', FUL: 'BHA A 3,MUN H 3,CHE A 4', MCI: 'WOL A 2,TOT H 3,BHA A 3', LIV: 'BOU H 2,NEW A 4,ARS H 4', BRE: 'NFO A 3,AVL H 3,SUN A 2', WHU: 'SUN A 2,CHE H 4,NFO A 3', EVE: 'LEE A 2,BHA H 3,WOL A 2' };
+    const next3 = (club) => FIX[club].split(',').map((f, i) => { const [opp, side, d] = f.split(' '); return { opp: opp + ' (' + side + ')', label: 'GW' + (i + 1) + ': opponent ' + opp + ', ' + (side === 'H' ? 'home' : 'away') + ', difficulty ' + d + ' of 5, ' + DIFF[d][2], bg: DIFF[d][0], ink: DIFF[d][1] }; });
+    const QUEUE = ['B. Fernandes', 'Mitoma', 'Kudus', 'Tonali'];
+    const AV = [[29,'Ødegaard','ARS','CAM',148,30,6,10,0],[30,'Kudus','TOT','W',151,33,8,6,0],[31,'B. Fernandes','MUN','CAM',164,36,8,11,0],[32,'Timber','ARS','FB',139,34,3,4,15],[33,'Mitoma','BHA','W',137,30,8,5,0],[34,'Tonali','NEW','CDM',132,37,5,6,0],[35,'Schär','NEW','CB',131,35,2,3,12],[36,'Senesi','BOU','CB',128,37,1,4,11],[37,'Iwobi','FUL','W',126,38,5,7,0],[38,'Martinelli','ARS','W',125,33,7,5,0],[39,'Thiago','BRE','ST',124,35,13,2,0],[40,'Pope','NEW','GK',123,32,0,0,13],[41,'Bruno G.','NEW','CDM',121,36,4,6,0],[42,'Paquetá','WHU','CAM',119,31,5,5,0],[43,'Neto','CHE','W',118,34,5,8,0],[44,'Hall','NEW','FB',117,33,1,6,12],[45,'Ndiaye','EVE','W',116,35,9,3,0],[46,'Andersen','FUL','CB',114,37,1,2,10],[47,'Calafiori','ARS','FB',112,29,3,3,13],[48,'Rodon','LEE','CB',96,23,1,1,8],[49,'Lacroix','CRY','CB',111,36,1,1,10],[50,'Wan-Bissaka','WHU','FB',109,35,0,4,7],[51,'Mykolenko','EVE','FB',107,34,0,3,11],[52,'Hein','BRE','GK',105,30,0,0,9],[53,'Ward-Prowse','WHU','CM',104,33,3,6,0],[54,'Wissa','BRE','ST',103,30,10,2,0]];
+    const players = AV.filter((p) => FIX[p[2]]).map(([rank, name, club, pos, pts, mp, g, a, cs]) => {
+      const blocked = !BEFORE && club === 'ARS'; const sel = name === 'B. Fernandes'; const q = QUEUE.indexOf(name);
+      return { rank, name, club, chips: [chip(pos)], pts, mp, g, a, cs, next3: next3(club), isBlocked: blocked, short: blocked ? '2 from ARS, the most allowed' : '', why: blocked ? "Can't pick: you have 2 from ARS, the league's maximum" : '', blocked: blocked ? 'true' : 'false', aria: name + (blocked ? ', unavailable: your club limit for ' + club : ''), fade: blocked ? 0.5 : 1, ink: blocked ? '#a1a5ab' : '#ffffff', figInk: blocked ? '#a1a5ab' : '#ffe600', isDoubt: name === 'Senesi' || name === 'Pope', isInjured: name === 'Neto', isQueued: q >= 0, q: q + 1, selected: sel ? 'true' : 'false', rowBg: sel ? '#050608' : 'transparent', rowEdge: sel ? 'inset 3px 0 0 #6bfdfa' : 'none' };
+    });
+    const FILTERS = ['All', 'GK', 'CB', 'FB', 'CDM', 'CM', 'CAM', 'W', 'ST'];
+    const filters = FILTERS.map((name, i) => ({ name, on: i === 0 ? 'true' : 'false', bg: 'transparent', ink: i === 0 ? '#ffffff' : '#caced4', weight: i === 0 ? 600 : 400, bevel: i === 0 ? 'inset 0 -3px 0 #6bfdfa' : 'none' }));
+    const queue = [['B. Fernandes','MUN','CAM'],['Mitoma','BHA','W'],['Kudus','TOT','W'],['Tonali','NEW','CDM'],['Pope','NEW','GK'],['Senesi','BOU','CB']].map(([name, club, pos], i) => Object.assign({ n: i + 1, name, club }, chip(pos)));
+    const dnd = [['Rodon','LEE','CB'],['Paquetá','WHU','CAM']].map(([name, club, pos]) => Object.assign({ name, club }, chip(pos)));
+    const T = (label, value, o) => Object.assign({ label, value, extra: '', role: 'group', edge: 'none', cls: '', size: '15px', lh: '20px', weight: 400, ink: '#ffffff' }, o || {});
+    const big = { size: '26px', lh: '30px', weight: 700, ink: '#6bfdfa', role: 'timer' };
+    const S = {
+      live: { status: 'Live', tiles: [T('Pick 33 of 200', 'Round 4, pick 3', { weight: 600 }), T('On the clock', 'Saka Potatoes, you', { cls: 'disp', edge: 'inset 0 -3px 0 #ff9b3d' }), T('Clock, 90s a pick', '0:48', big), T('Next', 'Expected Toulouse, then Havertz Rent'), T('Your next after this', 'Round 5, pick 8 ', { extra: 'in 15 picks' })], draftLine: 'Pick 4.03, 0:48 left', comActions: ['Pause the draft', 'Undo last pick', 'Pick for Saka Potatoes'], comLines: ['Last pick: Show Me Your Moyes took Gordon NEW, 4.02'], pickTime: '90s', timeNote: 'change it while paused' },
+      slow: { status: 'Live', tiles: [T('Pick 33 of 200', 'Round 4, pick 3', { weight: 600 }), T('On the clock', 'Saka Potatoes, you', { cls: 'disp', edge: 'inset 0 -3px 0 #ff9b3d' }), T('Clock, 8h a pick', '5h 12m', big), T('Next', 'Expected Toulouse, then Havertz Rent'), T('Your next after this', 'Round 5, pick 8 ', { extra: 'in about 5 days' })], draftLine: 'Pick 4.03, 5h 12m left', comActions: ['Pause the draft', 'Undo last pick', 'Pick for Saka Potatoes'], comLines: ['Last pick: Show Me Your Moyes took Gordon NEW, 4.02, at 09:14'], pickTime: '8h', timeNote: 'change it while paused' },
+      before: { status: 'Not started', tiles: [T('Draft order', 'Random, drawn Mon 3 Aug', { weight: 600 }), T('You pick', '8th, then 13th'), T('Clock', '90s a pick'), T('Starts Sat 15 Aug 19:00', 'in 4d 6h', big)], draftLine: '', comActions: ['Start the draft now', 'Change the start', "I'll pick for Dirty Dozen"], comLines: ['Dirty Dozen has no manager, so it is on auto-pick unless you pick for it'], pickTime: '90s', timeNote: '' }
+    }[STATE];
+    return Object.assign({ teams, board, players, filters, queue, dnd, statusInk: BEFORE ? '#caced4' : '#ffffff', boardNote: BEFORE ? 'The order, rounds 1 to 6 of 20' : 'Rounds 1 to 6 of 20', left: BEFORE ? '440 players' : '412 left', canDraft: !BEFORE, squadLine: BEFORE ? 'No players yet' : 'CAM 0, MUN 1 of 2', timeouts: BEFORE ? 0 : 1, timeRim: BEFORE ? '#caced4' : '#a1a5ab', timeInk: BEFORE ? '#ffffff' : '#a1a5ab' }, S);
+  }
+}
+</script>
+</body>
+</html>
