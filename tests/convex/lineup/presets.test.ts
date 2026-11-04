@@ -175,6 +175,38 @@ const DRAWN: Record<string, string[]> = {
     "XXXXX",
     "..X..",
   ],
+  "5(SW)-3-2": [
+    ".X.X.",
+    ".....",
+    ".XXX.",
+    ".....",
+    "XXXXX",
+    "..X..",
+  ],
+  "3(L)-5-2": [
+    ".X.X.",
+    ".....",
+    ".XXX.",
+    "X...X",
+    ".XXX.",
+    "..X..",
+  ],
+  "2-3-5": [
+    "XXXXX",
+    ".....",
+    ".XXX.",
+    ".....",
+    ".X.X.",
+    "..X..",
+  ],
+  "2-3-2-3": [
+    ".XXX.",
+    ".X.X.",
+    ".XXX.",
+    ".....",
+    ".X.X.",
+    "..X..",
+  ],
 };
 
 const drawn = (preset: Preset): string[] =>
@@ -183,11 +215,12 @@ const drawn = (preset: Preset): string[] =>
   );
 
 describe("the default presets", () => {
-  test("are spec/05's twenty-one, in its order", () => {
+  test("are spec/05's, in its order", () => {
     expect(DEFAULT_PRESETS.map((preset) => preset.name)).toEqual([
       "4-4-2", "4-3-3", "4-2-3-1", "4-1-4-1", "4-4-1-1", "4-3-1-2",
       "3-5-2", "3-4-3", "3-4-1-2", "5-3-2", "5-4-1",
       "4-5-1", "4-2-2-2", "4-1-2-1-2", "4-3-2-1", "4-1-3-2", "4-2-4", "3-4-2-1", "3-1-4-2", "5-2-3", "5-3-1-1",
+      "5(SW)-3-2", "3(L)-5-2", "2-3-5", "2-3-2-3",
     ]);
   });
 
@@ -199,7 +232,8 @@ describe("the default presets", () => {
 
   test.each(DEFAULT_PRESETS)("$name stands one keeper, its name's defenders and eleven in all", (preset) => {
     const inArea = (area: Area) => preset.cells.filter((cell) => cell.area === area).length;
-    const defenders = Number(preset.name.split("-")[0]);
+    // 5(SW)-3-2 and 3(L)-5-2 count their defenders first too.
+    const defenders = Number(preset.name.split("-")[0].replace(/\(.*\)/, ""));
 
     expect([preset.cells.length, inArea("goalkeeper"), inArea("defence")]).toEqual([STARTER_COUNT, 1, defenders]);
   });
