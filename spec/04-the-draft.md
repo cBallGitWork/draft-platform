@@ -23,10 +23,29 @@ Feature 4 of [SPEC.md](../SPEC.md). Only Craig's answers.
 - A new league's order is the order its teams joined: "order by who joined league date/time". The
   commissioner can reorder it, and "any time a new team coems in, straight to the bottom" (Craig,
   4 Nov 2026, on #1087).
+- Draft order is no longer a setting: "Drop it" (Craig, 4 Nov 2026, on #1089). Nothing is drawn on
+  its own: "need lfexbility, drandom draw could be done offiline, and comish sets it up, could be a
+  random button, order could be preset offline before the teams are signed up". The commissioner
+  puts the teams in order himself, which covers a draw done offline, or presses "Draw at random",
+  which orders the teams there then; either as often as he likes until the draft starts, and
+  before every team has signed up. If he does neither, the draft runs in the order the teams
+  joined. A team that joins after the order is set goes to the bottom, and only his button or his
+  own edit changes it: "Yes, all of that" (Craig, 4 Nov 2026, on #1089).
+- The draft starts with at least 2 teams, in a league with a squad size limit (Craig, 4 Nov 2026,
+  on #1089).
+- A start date can be cleared, which goes back to waiting for the commissioner to press start; it
+  must be in the future; and no team can join once the draft has started (Craig, 4 Nov 2026, on
+  #1089). A date can't be set until the league has 2 teams: "no date until 2 teams, stops people
+  making mock/dummy leagues which is common". If fewer than 2 remain when the date comes, the draft
+  doesn't start then and waits, as with no date (Craig, 4 Nov 2026, on #1089, "yes" to Claude's
+  recommendation).
+- Next season's draft for keeper and dynasty leagues waits until keeping has its own grill (Craig,
+  4 Nov 2026, on #1089).
 
 ## The picks
 
-- Snake only. The number of rounds is the league's maximum squad size.
+- Snake only. The number of rounds is the league's maximum squad size. A league needs a squad size
+  limit before its draft can start (Craig, 4 Nov 2026, on #1089).
 - A pick that would break the squad's rules is greyed out and can't be made (Craig, 2 Nov 2026):
   - a player whose club the team is already at the league's maximum for;
   - a player whose pick would leave too few picks to reach an area's minimum: with 2 picks left and
