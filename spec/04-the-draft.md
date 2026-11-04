@@ -66,6 +66,8 @@ Feature 4 of [SPEC.md](../SPEC.md). Only Craig's answers.
 
 - A manager can undo his own pick for 10 seconds after making it, in case of a mistake (Craig,
   4 Nov 2026: "give players a 10s window to undo their pick incase of a mistake").
+  The next manager's clock waits until those 10 seconds are up (Craig, 4 Nov 2026, "Yes, clock
+  waits").
 - Its player list is Scouting's players list (`spec/19`). It opens on a short overview, with a way
   into the other stats: "dont overblow it, maybe a easy to see view first, and section to allow
   user to deepdive, dont want it overwhelming on launch" (Craig, 4 Nov 2026). It shows no upcoming
