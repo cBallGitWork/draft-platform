@@ -42,7 +42,8 @@ jobs:
       ISSUE: ${{ inputs.issue || github.event.issue.number }}
       HAS_SUBSCRIPTION: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN != '' }}  # a step's `if` cannot read secrets, so this carries it
       # the agent runs headless, so every tool it needs is named here or it is denied; the deny list is a speed bump,
-      # and the real guard is the ruleset's required checks plus Code Owners review.
+      # and the real guard is the ruleset's required checks, Code Owners review, and lane-auto.yml's refusal to approve a
+      # pull request this job opens that touches .github/ or .claude/.
       # Opus builds (CLAUDE.md, "Decided").
       CLAUDE_ARGS: >-
         --model claude-opus-5-5

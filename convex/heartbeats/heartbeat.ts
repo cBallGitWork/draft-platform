@@ -17,6 +17,9 @@ export const PING_TIMEOUT_MS = 10_000;
 /** What the log says, before the error, when a ping didn't reach Healthchecks. */
 export const PING_FAILED_LOG = "Healthchecks ping failed";
 
+/** The trigger a sync's run carries when its cron starts it (crons.ts); a run by hand pings nothing. */
+export const CRON_TRIGGER = "cron" as const;
+
 /** Each timed job's check in Healthchecks, by its slug: the check Craig makes for it there. */
 export const CHECK_SLUGS = {
   footballSync: "football-sync",
@@ -47,7 +50,9 @@ async function ping(check: Check, failed: boolean): Promise<void> {
 }
 
 /** For a job that is an action: runs `work`, then pings `check`, or its failure, with the error
- *  thrown on, if `work` threw. A null check (a run by hand, not the cron) only runs `work`. */
+ *  thrown on, if `work` threw. A feed's failed read that `work` catches itself (outcomeOf) is no
+ *  throw, so it pings as finished: that failure is on the run row. A null check (a run by hand,
+ *  not the cron) only runs `work`. */
 export async function withHeartbeat<Result>(check: Check | null, work: () => Promise<Result>): Promise<Result> {
   if (check === null) return work();
   let result: Result;
