@@ -72,7 +72,7 @@ jobs:
 
             Then do exactly one of:
             - Open rules: post one comment that starts with the line `## Open rules`. Under it, a numbered list. Each item has a bold short name, the question in plain words with a concrete example, `Rec:` your recommended answer, and `Alt:` one alternative. Then run `gh issue edit ${{ env.ISSUE }} --add-label rules:open`, and then, as its own command, `gh issue edit ${{ env.ISSUE }} --remove-label rules:clear` (that one fails harmlessly when the label isn't there).
-            - Nothing left to ask: post one comment, `## Open rules` then `None: this issue can build.`, and run `gh issue edit ${{ env.ISSUE }} --add-label rules:clear`, and then, as its own command, `gh issue edit ${{ env.ISSUE }} --remove-label rules:open` (it fails harmlessly when the label isn't there).
+            - Nothing left to ask: post one comment, `## Open rules` then `None: this issue can build.`, then a `## Build map` section so the builder needn't search: the files to change or add, the existing file and test to copy the pattern from, and the test command for that seam (`npx vitest run <paths>`). Paths only, one line each, from the code you read. Then run `gh issue edit ${{ env.ISSUE }} --add-label rules:clear`, and then, as its own command, `gh issue edit ${{ env.ISSUE }} --remove-label rules:open` (it fails harmlessly when the label isn't there).
 
             Plain UK English, short sentences, no jargon. Never edit files, never touch a pull request, never remove any other label.
       # no silent errors (docs/PHILOSOPHY.md): a run that set neither label stopped part-way, so it goes red
