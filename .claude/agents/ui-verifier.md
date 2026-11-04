@@ -1,6 +1,6 @@
 ---
 name: ui-verifier
-description: Looks at the app. Use after any change to a screen, a token, the stylesheet or a route: it starts the app, shoots each screen the change reaches at 390 and 1440 wide, and reads every image against docs/design/plate.md. Complements pr-reviewer, which reads the diff and never sees the screen. Read-only. Adapted from epl-draft's ui-verifier (19 Oct 2026).
+description: Looks at the app. Use after any change to a screen, a token, the stylesheet or a route: it starts the app, shoots each screen the change reaches at 1440 wide (390 too only when asked), and reads every image against docs/design/plate.md. Complements pr-reviewer, which reads the diff and never sees the screen. Read-only. Adapted from epl-draft's ui-verifier (19 Oct 2026).
 tools: Read, Grep, Glob, Bash
 model: sonnet
 ---
@@ -33,16 +33,18 @@ server you didn't start, and never 5173: another worktree's app may be on it, an
 would be passed off as this branch's. If the port is taken, say so and stop. Stop the server
 when you are done.
 
-**2. Shoot both widths, every route the change could reach.**
+**2. Shoot 1440, every route the change could reach.**
 
 ```bash
-node scripts/shoot.mjs <route> <name>    # .shots/<name>-390.png and -1440.png (gitignored)
+node scripts/shoot.mjs <route> <name>            # .shots/<name>-1440.png (gitignored)
+node scripts/shoot.mjs <route> <name> --phone    # and .shots/<name>-390.png
 ```
 
 It uses the Mac's Chrome, and prints for each width where the page landed and whether it scrolls
 sideways, and at 390 every tap under the tap size (`--spacing-tap`; plate.md, The phone):
-measured, not eyeballed. 390×844 is the phone and 1440 the desk; they fail differently, so one is
-never enough.
+measured, not eyeballed. The phone waits until Craig asks (CLAUDE.md, Decided), so shoot 390
+(`--phone`) only when your caller asks for it. The smoke run in CI still loads each built screen
+at 390 and fails on sideways scroll or a tap under the tap size (`tests/smoke/smoke.spec.ts`).
 
 - **A visitor** sees only the sign-in page: shoot `/`.
 - **A manager**: add `?preview=manager` (`src/app/preview.ts`): the signed-in frame with made-up
@@ -54,18 +56,17 @@ never enough.
 
 **2b. A screen with an approved picture.** If a folder in `docs/design/approved/` has a README whose
 `Route:` line names a route you shot, open its `1440.png` and its README, and compare it with your
-1440 shot; where the folder has a `390.png`, compare that with your 390 shot too. Pictures are
-desktop first (Craig, 1 Nov 2026: "focus on desktop for now, mobile can wait"), so a folder
-without `390.png` is no finding: the 390 shot is still read under step 3, for sideways scroll,
-clipping and small taps. List every difference, numbered, under Structure
-(what sits where), Columns (which, in what order), Density (row height, gaps), Type, Colour and
-Missing (a placeholder or control the picture has and the build doesn't, or the other way round).
+1440 shot; where the folder has a `390.png` and you were asked for the phone, compare that with
+your 390 shot too. Pictures are desktop first (Craig, 1 Nov 2026: "focus on desktop for now,
+mobile can wait"), so a folder without `390.png` is no finding. List every difference,
+numbered, under Structure (what sits where), Columns (which, in what order), Density (row
+height, gaps), Type, Colour and Missing (a placeholder or control the picture has and the build doesn't, or the other way round).
 Differences in the made-up figures themselves don't count. No difference is a finding too: say
 "matches the approved picture".
 
 **3. Read every PNG.** Then say, per image, what is in it, against `docs/design/plate.md`:
 
-- Overflow, clipping, a page that scrolls sideways at 390.
+- Overflow, clipping, a page that scrolls sideways.
 - Colour roles: each colour on screen plays the role plate.md gives it, in its Colour roles table,
   its Marks, its Controls and its Tables and panels. Read them there, and each token's value in
   `src/styles.css`; they are the whole list.
@@ -90,7 +91,7 @@ One row per image, then a verdict.
 ```
 route               | width | what is in the image                                       | verdict
 --------------------+-------+------------------------------------------------------------+--------
-/                   | 390   | name plate, "Invite only", Sign in panel, email box, white button | LOOKS RIGHT
+/                   | 1440  | name plate, "Invite only", Sign in panel, email box, white button | LOOKS RIGHT
 /?preview=manager   | 1440  | Continue drawn yellow; plate.md says white                  | REGRESSION
 ```
 

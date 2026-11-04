@@ -1,6 +1,6 @@
 ---
 name: refactor
-description: The refactor check every pull request gets before pr-reviewer runs. Runs a six-point checklist twice over the branch's diff, code and docs alike, reports every finding, then verifies. Use before opening a pull request, or when Craig asks for a refactor pass or "one more pass".
+description: The refactor check every pull request gets before pr-reviewer runs. Runs a four-point checklist once over the branch's diff, code and docs alike, covering what pr-reviewer doesn't, and reports every finding. Use before opening a pull request, or when Craig asks for a refactor pass or "one more pass".
 allowed-tools: Bash(git diff:*), Bash(git status:*)
 ---
 
@@ -23,39 +23,34 @@ file the task already touches. In scoring, the draft or saved data, a fix that c
 function's arguments or result (handing it the league's rules, say) is reported, never made
 here: it needs its own pull request (`docs/REFACTORING.md`, *What is never a refactor*).
 
-## The checklist, twice
+## The checklist, one pass
+
+pr-reviewer runs next and checks what is written twice, dead code, a new file's home, an older
+twin for a new helper or fixture, and league rules as constants (its checks 3 and 8). This
+checklist covers what it doesn't.
 
 1. **Improve:** is this the clearest way to say it?
 2. **Find bugs:** a test that can't fail; a test name promising what its body doesn't check; a
    test double joining downstream of the logic it should protect (delete the fix, run the test:
-   if it still passes, it pins the wrong thing); a silent catch; a league rule hardcoded; a test
-   that silences console.error by hand where silenceConsoleError() would assert it.
+   if it still passes, it pins the wrong thing); a silent catch; a test that silences
+   console.error by hand where silenceConsoleError() would assert it.
 3. **Naming:** every variable, function, file and test says what it is: `daysUntilExpiration`,
    not `d` (`PHILOSOPHY.md`); a function needing a comment to explain it is renamed. The
    glossary's words (`SPEC.md`): a *team*, not a *player*, for a manager's side. A test is named
    for its action and its outcome, and checks what its name says.
-4. **Debloat:** comments that restate the code, the same explanation in two places, anything not
-   carrying its weight. A first draft usually cuts to a third or a half.
-5. **Rule of 2/3:** a value (a number, a string, a path, a URL) written twice is lifted (Craig's
-   rule, 16 Oct 2026); logic written three times is lifted, unless it's only similar
-   (`PHILOSOPHY.md`: "the same pattern 3 times"). Two copies of logic stay. An abstraction with
-   one use goes. Code copied from epl-draft stays copied.
-6. **Right home, nothing hardcoded:** no bare number or string that means something in a
-   function body; each goes to its shared file, one home for each kind of thing. FPL's fixed
-   rules are constants; a league's rules are data, never a constant (in scoring, reported: see
-   above); the feeds' endpoints sit behind the football layer's one seam (`ARCHITECTURE.md`).
-   Setup a test repeats goes in a shared helper, not the test body. For each new export or test
-   fixture, name the search run for an older home (across the codebase, `tests/support/`
-   included) and what it found.
+4. **Lean, nothing hardcoded:** comments that restate the code, anything not carrying its weight
+   (a first draft usually cuts to a third or a half). A value (a number, a string, a path, a URL)
+   written twice is lifted (Craig's rule, 16 Oct 2026); logic written three times is lifted,
+   unless it's only similar (`PHILOSOPHY.md`: "the same pattern 3 times"); two copies of logic
+   stay; an abstraction with one use goes; code copied from epl-draft stays copied. No bare
+   number or string that means something in a function body. The feeds' endpoints sit behind
+   the football layer's one seam (`ARCHITECTURE.md`). Setup a test repeats goes in a shared
+   helper, not the test body.
 
-Report every finding from each pass with its file and line, including the ones you chose not to
-act on. A pass that finds nothing is a valid result; never invent changes to look busy. A green
-pull request is not reworked over borderline duplication: say it in one line and move on.
+Report every finding with its file and line, including the ones you chose not to act on. A pass
+that finds nothing is a valid result; never invent changes to look busy. A green pull request is
+not reworked over borderline duplication: say it in one line and move on.
 
-## Verify
-
-`/verify` (`npm run verify`: the install check, the tests, the type check, the lint step, the
-recorded-payload check, the tests-kept check, the spec-ID check and the hook checks; CI also runs
-the build and the smoke test). A change that touches scoring also replays the recorded match and
-compares every point, as `docs/REFACTORING.md`'s *Proving nothing changed* says. If a step fails,
-fix it and rerun from the first.
+A change that touches scoring also replays the recorded match and compares every point, as
+`docs/REFACTORING.md`'s *Proving nothing changed* says. The checks themselves (`npm run verify`)
+are CI's required `verify` check, so this skill doesn't run them.
