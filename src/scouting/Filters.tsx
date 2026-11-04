@@ -1,5 +1,5 @@
 import { POSITIONS, type Position } from "../../convex/positions/positionTables";
-import { STAT_CATALOGUE, type CatalogueStat } from "../../convex/scoring/statCatalogue";
+import { STAT_CATALOGUE, type CatalogueStat } from "../../convex/scoring/statCatalogueList";
 import { PANEL_BODY } from "../ui/Panel";
 import { Choice } from "../ui/Choice";
 import { POSITION_NAMES } from "../shared/words";

@@ -4,7 +4,7 @@
 import { screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
-import { STAT_CATALOGUE } from "../../../convex/scoring/statCatalogue";
+import { STAT_CATALOGUE } from "../../../convex/scoring/statCatalogueList";
 import { columns, noStatWords, statLabel } from "../../../src/scouting/words";
 import { columnHeadIn, sortLabelOf } from "../../support/src/columnHeads";
 import { HELD, lastAsk, namesShown, openScouting, PALMER, RICE, table } from "../../support/src/scoutingScreen.harness";

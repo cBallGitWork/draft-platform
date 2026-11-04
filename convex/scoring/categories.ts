@@ -2,7 +2,7 @@
 // lists, what a refusal names, and what a patch's letter says changed.
 
 import type { OwnStat } from "./ownStats";
-import { STAT_CATALOGUE } from "./statCatalogue";
+import { STAT_CATALOGUE } from "./statCatalogueList";
 
 const CATALOGUE_NAMES: ReadonlyMap<string, string> = new Map(STAT_CATALOGUE.map(({ stat, name }) => [stat, name]));
 

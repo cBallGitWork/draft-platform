@@ -3,7 +3,7 @@
 import { screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
-import { STAT_CATALOGUE } from "../../../convex/scoring/statCatalogue";
+import { STAT_CATALOGUE } from "../../../convex/scoring/statCatalogueList";
 import {
   clearComparisonWords,
   clubLabel,

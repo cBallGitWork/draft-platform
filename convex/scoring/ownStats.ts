@@ -2,7 +2,8 @@
 // and how one is worked out from a player's record before the site's scoring set scores it.
 
 import type { ScoringSet } from "./scoringSet";
-import { CATALOGUE_STATS, STAT_CATALOGUE } from "./statCatalogue";
+import { CATALOGUE_STATS } from "./statCatalogue";
+import { STAT_CATALOGUE } from "./statCatalogueList";
 import { isObject, requireNumber, showValue, statIn, UnsoundScoring, type MatchStats } from "./values";
 
 /** What an own stat is rounded to before it counts: a millionth, far finer than any weight, so
