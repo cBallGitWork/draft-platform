@@ -53,11 +53,11 @@ export const undoWords = "Undo";
 export const savedWords = (gameweek: number) => `Saved. It stands from ${gameweekWords(gameweek).toLowerCase()}.`;
 export const saveFailedWords = failedWords("the lineup wasn't saved");
 /** Why a drop was refused, said in the line under the toolbar (spec/05, The pitch; Craig, 4 Nov
- *  2026): presets only, so a shape changes only by a formation. `nameOf` names a squad player. */
+ *  2026): presets only, so the formation changes only by picking one. `nameOf` names a squad player. */
 export function refusalWords(refusal: MoveRefusal, nameOf: (playerCode: number) => string): string {
   switch (refusal.kind) {
     case "emptyCell":
-      return "Nobody moves into an empty cell: pick a formation to change the shape.";
+      return "Nobody moves into an empty cell: pick a formation instead.";
     case "offThePitch":
       return "A starter leaves the pitch only by swapping with a bench player.";
     case "goal":
