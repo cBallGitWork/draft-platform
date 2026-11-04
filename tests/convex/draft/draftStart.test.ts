@@ -5,7 +5,7 @@ import { draftOrderRefusals } from "../../../convex/draft/draftOrder";
 import { draftStartRefusals } from "../../../convex/draft/draftStart";
 import { refusals } from "../../../convex/shared/leagueAccess";
 import { DAY_MS, HOUR_MS } from "../../../convex/shared/time";
-import { HELD_FIRST_RULES } from "../../support/convex/leagueRules.harness";
+import { changeRules, HELD_FIRST_RULES, holdGameweeks, rulesWith } from "../../support/convex/leagueRules.harness";
 import { expectRefused } from "../../support/convex/test.harness";
 import { actingAs, addManager, addManagers, adminCreatesLeague, COMMISSIONER, MANAGERS, OUTSIDER, type TestConvex } from "../../support/convex/leagues.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
@@ -92,6 +92,7 @@ describe("pressing start", () => {
         { teamId: teams[1], name: "Team 2" },
         { teamId: teams[2], name: "Team 3" },
       ],
+      picksMade: 0,
       onTheClock: { pick: 1, round: 1, teamId: teams[0], name: "Team 1" },
     });
   });
@@ -125,6 +126,21 @@ describe("pressing start", () => {
   test("is refused in a league with no squad size limit", async () => {
     await dropSquadSize();
     await expectRefused(start(), draftStartRefusals.noSquadSize);
+  });
+
+  test("is refused while any squad holds a player", async () => {
+    await t.run((ctx) => ctx.db.insert("squadPlayers", { leagueId, teamId: teams[1], playerCode: 1001 }));
+    await expectRefused(start(), draftStartRefusals.squadsNotEmpty);
+    await expectRefused(setStart(Date.now() + DAY_MS), draftStartRefusals.squadsNotEmpty);
+    expect(await status()).toBe("waiting");
+  });
+
+  test("takes its rounds from the squad maximum in force, not a change waiting for the next gameweek", async () => {
+    await holdGameweeks(t, { next: 5 });
+    await changeRules(t, leagueId, rulesWith({ squad: { ...HELD_FIRST_RULES.squad, size: { minimum: 11, maximum: ROUNDS - 1 } } }));
+    await start();
+
+    expect(await read()).toMatchObject({ status: "live", rounds: ROUNDS });
   });
 
   test("is refused to a manager", async () => {

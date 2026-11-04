@@ -28,4 +28,13 @@ export const draftTables = {
     /** Present once it has started. */
     started: v.optional(startedDraft),
   }).index("by_leagueId", ["leagueId"]),
+  /** A pick made in a league's draft (spec/04, The picks; #1090): its number, from 1, the team that
+   *  made it and the player it took. ../draft/draftPicks.ts writes it, with his squad row. */
+  draftPicks: defineTable({
+    leagueId: v.id("leagues"),
+    pick: v.number(),
+    teamId: v.id("teams"),
+    playerCode: v.number(),
+    at: v.number(),
+  }).index("by_leagueId_and_pick", ["leagueId", "pick"]),
 };
