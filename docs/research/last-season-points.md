@@ -6,21 +6,20 @@ deployment and ai-carling-premiership's files. The spec line it serves (`spec/04
 > With no ranking uploaded, auto-pick falls back to last season's points under the site's scoring
 > (`spec/14`), newcomers last by name (Craig, 2 Nov 2026).
 
-**Contents:** Craig's call · What was checked · The options · Recommendation · Newcomers · Size
+**Contents:** Craig's answers · What was checked · The options · Recommendation · Newcomers · Size
 and scale · Gaps · Build issues
 
-## Craig's call
+## Craig's answers (4 Nov 2026)
 
-**Copy last season (2025/26) into the site now, from your ai-carling-premiership data, and count a
-newcomer as anyone with no Premier League minutes last season. Yes or no?**
+1. **"Yes, copy it"**: 2025/26 goes into the site from ai-carling-premiership, as the first
+   season of #842's past-matches table.
+2. A newcomer is a player **"Not in last season's data"**: only a player missing from 2025/26
+   altogether. One who is in it but played no minutes (an unused substitute, injured all season)
+   ranks with 0 points, above every newcomer.
 
-For example: Bukayo Saka is ranked by his 2025/26 matches scored under the site's rules as they
-stand; a player signed from Serie A in the summer, or one who sat on the bench all season, goes
-to the bottom of the list, A to Z. A player who came on once and got booked (0 points) still
-ranks above every newcomer, because he has points to rank by.
-
-It adds a table of past matches to the live site (saved data, so a one-way door), the same table
-#842 plans for the rule balance lab, starting with one season instead of five.
+For example: Saka ranks by his 2025/26 matches under the site's rules as they stand; a reserve
+keeper who sat on the bench all season ranks on 0; a summer signing from Serie A goes to the
+bottom, A to Z.
 
 ## What was checked
 
@@ -78,11 +77,12 @@ re-priced when a patch changes it.
 
 ## Newcomers
 
-Part of Craig's call: a player in this season's FPL list (by `code`) with no Premier League
-minutes in 2025/26: promoted clubs' players, summer signings from abroad, academy players, and
-anyone who never came on. They rank after every player with points; a player who played but
-scored 0 or less still ranks by his points, above every newcomer. Claude's calls: newcomers go A
-to Z by the name the site shows him by, and players level on points go A to Z the same way.
+Craig's answer 2: a player in this season's FPL list (by `code`) who is not in ai-carling's
+2025/26 Premier League rows at all. Those rows name 707 players, every one with an FPL `code`:
+the 537 who played and 170 more who were only ever an unused substitute, left out, injured,
+suspended or ineligible (`play_status`). So the copy keeps every one of the 707, the 170 with no
+matches, and they rank on 0. Newcomers rank after everyone in the data. Claude's calls: newcomers
+go A to Z by the name the site shows him by, and players level on points go A to Z the same way.
 
 ## Size and scale
 
@@ -95,9 +95,11 @@ to Z by the name the site shows him by, and players level on points go A to Z th
 
 ## Gaps
 
-- 267 rows lack FPL's defensive contribution. The copy stops and names them, never reading them
-  as 0. How to fill them (from FPL's own points for that match, or from another feed's tackles,
-  clearances and blocks) is a question for Craig when #1113 is built, not settled here.
+- 267 played rows lack FPL's defensive contribution. Craig, 4 Nov 2026: "Work it out": each is
+  rebuilt from FPL's own points for that match (the total, minus the bonus, minus every other
+  stat's points at his FPL position). The remainder is FPL's 0 or 2, so those rows keep whether he
+  reached FPL's threshold, not a count. His 2025/26 FPL position comes from ai-carling's copy of
+  FPL's player list of 1 Mar 2026 (`data/raw/fpl/wayback_bootstrap/`).
 - Settled: among played Premier League rows there is one `fpl_fixture_id` per match (380) and no
   player twice in a match or at one kickoff. The 465 ids counted over every row come from bench
   and unavailable rows. Ids are per season and never persisted (CLAUDE.md), so a row is kept by
@@ -106,7 +108,7 @@ to Z by the name the site shows him by, and players level on points go A to Z th
 
 ## Build issues
 
-Both wait on Craig's yes (lane:craig):
+Both on lane:auto after Craig's answers:
 
 - #1113: copy 2025/26 from ai-carling into a past-matches table, checked row by row against FPL's
   own points.
