@@ -7,13 +7,14 @@ import type { DrawRules, OddTeamOut } from "../table/roundRobin";
 // The first rules a deployment gives a new league (#25), used once: the first league created
 // copies them into the admin's default rules row (`defaultLeagueRules`), and every league after
 // copies that row, which the admin edits (leagueRules.ts says how). Once that row exists, nothing
-// reads this file but `drawRulesOf`, for rules saved before the odd team out and games a gameweek
-// were among them. The scoring is not a league's rule but the site's (spec/14, Who owns it):
-// ../scoring/firstScoring.ts holds the first set.
+// reads this file but `drawRulesOf` and `draftRulesOf`, for rules saved before the odd team out,
+// games a gameweek and the draft were among them. The scoring is not a league's rule but the
+// site's (spec/14, Who owns it): ../scoring/firstScoring.ts holds the first set.
 //
 // Only the presets, the deadline, the double-gameweek rule, the odd team out, games a gameweek and
-// the draft's rules are the spec's own or Craig's (spec/05, spec/03, spec/09, spec/04). The rest is a guess marked where it stands,
-// against docs/research/fantrax-options.md's live values where it has them.
+// the draft's rules are the spec's own or Craig's (spec/05, spec/03, spec/09, spec/04). The rest
+// is a guess marked where it stands, against docs/research/fantrax-options.md's live values where
+// it has them.
 
 function everyArea<Value>(value: Value): Record<Area, Value> {
   return Object.fromEntries(AREAS.map((area) => [area, value])) as Record<Area, Value>;

@@ -74,7 +74,7 @@ export const moveDownLabel = (team: string) => `Move ${team} down`;
 export const unmovedOutcome = "the draft order didn't change";
 export const teamOrderFailedWords = failedWords(unmovedOutcome);
 
-export const savedWords =(gameweek: number) => `Saved. The new settings apply from ${gameweekWords(gameweek)}, and the league has a letter saying so.`;
+export const savedWords = (gameweek: number) => `Saved. The new settings apply from ${gameweekWords(gameweek)}, and the league has a letter saying so.`;
 
 /** What a failed save leaves, live or in the preview. */
 export const unsavedOutcome = "the settings didn't change";

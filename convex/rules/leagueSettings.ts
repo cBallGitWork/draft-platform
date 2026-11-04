@@ -35,8 +35,8 @@ export const changeSettings = mutation({
 });
 
 /** The rules with these settings. A draw setting, or the draft's, is written only if it differs
- *  from what the league plays by, so rules saved before it was a rule don't read as changing it. Refused if the
- *  settings would add or take away the squad size limit. */
+ *  from what the league plays by, so rules saved before it was a rule don't read as changing it.
+ *  Refused if the settings would add or take away the squad size limit. */
 function withLeagueSettings(rules: LeagueRules, settings: LeagueSettings): LeagueRules {
   const playedBy = drawRulesOf(rules);
   const { size } = rules.squad;
