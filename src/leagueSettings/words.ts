@@ -9,7 +9,7 @@ import { STARTER_COUNT } from "../../convex/lineup/lineup";
 import type { Area } from "../../convex/lineup/pitch";
 import type { OddTeamOut } from "../../convex/table/roundRobin";
 import { AREA_WORDS, failedWords, gameweekWords } from "../shared/words";
-import type { PickClockUnit } from "./pickClock";
+import { inUnit, type PickClockUnit } from "./pickClock";
 
 export const SETTINGS_TITLE = "League settings";
 export const loadingWords = "Loading the league settings…";
@@ -47,7 +47,7 @@ export const randomOrderHint = "A random order is drawn before the draft starts,
 export const pickClockLabel = "Time for each pick";
 export const pickClockUnitLabel = "Time for each pick, in";
 export const pickClockUnitWords: Record<PickClockUnit, string> = { seconds: "Seconds", minutes: "Minutes", hours: "Hours" };
-export const pickClockHint = `From ${PICK_SECONDS_FEWEST} seconds to ${PICK_SECONDS_MOST / 3600} hours.`;
+export const pickClockHint = `From ${PICK_SECONDS_FEWEST} seconds to ${inUnit(PICK_SECONDS_MOST, "hours")} hours.`;
 export const blankPickClockWords = `${pickClockLabel} has no number. Fill it in, then save.`;
 export const autoPickWords = "Auto-pick after timeouts";
 export const timeoutsLabel = "Timeouts before auto-pick";
@@ -70,7 +70,9 @@ export const moveDownWords = "Down";
 /** Each move button, for screen readers: "Move Team 3 up". */
 export const moveUpLabel = (team: string) => `Move ${team} up`;
 export const moveDownLabel = (team: string) => `Move ${team} down`;
-export const teamOrderFailedWords = failedWords("the draft order didn't change");
+/** What a failed move leaves, live or in the preview. */
+export const unmovedOutcome = "the draft order didn't change";
+export const teamOrderFailedWords = failedWords(unmovedOutcome);
 
 export const savedWords =(gameweek: number) => `Saved. The new settings apply from ${gameweekWords(gameweek)}, and the league has a letter saying so.`;
 

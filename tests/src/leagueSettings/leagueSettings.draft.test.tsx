@@ -10,14 +10,17 @@ import {
   autoPickWords,
   blankPickClockWords,
   blankTimeoutsWords,
+  draftOrderWords,
   moveDownLabel,
   moveUpLabel,
   neverAutoPickWords,
   pickClockLabel,
+  pickClockUnitWords,
   randomOrderHint,
   savedWords,
   teamOrderTitle,
   timeoutsLabel,
+  undraftedWords,
 } from "../../../src/leagueSettings/words";
 import { REVISION, TEAMS_IN_ORDER } from "../../support/src/leagueSettings.harness";
 import { box, fill, FIRST_SETTINGS, openedSettings, save, savedSettings } from "../../support/src/leagueSettingsScreen.harness";
@@ -34,21 +37,21 @@ describe("the draft settings (#1087)", () => {
   it("opens on the league's: the commissioner's order, 90 seconds a pick, auto-pick after 2 timeouts, and waivers", async () => {
     await openedSettings();
 
-    expect(radio("Set by the commissioner").checked).toBe(true);
+    expect(radio(draftOrderWords.commissioner).checked).toBe(true);
     expect(box(pickClockLabel).value).toBe("90");
-    expect(radio("Seconds").checked).toBe(true);
+    expect(radio(pickClockUnitWords.seconds).checked).toBe(true);
     expect(autoPickTick().checked).toBe(true);
     expect(box(timeoutsLabel).value).toBe("2");
-    expect(radio("Waivers").checked).toBe(true);
+    expect(radio(undraftedWords.waivers).checked).toBe(true);
   });
 
   it("saves each one changed with the rest of the settings", async () => {
     const app = await openedSettings();
-    await userEvent.click(radio("Random"));
+    await userEvent.click(radio(draftOrderWords.random));
     await fill(pickClockLabel, "8");
-    await userEvent.click(radio("Hours"));
+    await userEvent.click(radio(pickClockUnitWords.hours));
     await userEvent.click(autoPickTick());
-    await userEvent.click(radio("Free agents"));
+    await userEvent.click(radio(undraftedWords.freeAgents));
     await save();
 
     expect(savedSettings(app).draft).toEqual({ order: "random", pickSeconds: 8 * 3600, timeoutsBeforeAutoPick: null, undrafted: "freeAgents" });
@@ -65,9 +68,9 @@ describe("the draft settings (#1087)", () => {
   it("shows a clock in the largest unit it is a whole number of, and saves one typed in minutes in seconds", async () => {
     const app = await openedSettings(withDraft({ pickSeconds: 2 * 3600 }));
     expect(box(pickClockLabel).value).toBe("2");
-    expect(radio("Hours").checked).toBe(true);
+    expect(radio(pickClockUnitWords.hours).checked).toBe(true);
 
-    await userEvent.click(radio("Minutes"));
+    await userEvent.click(radio(pickClockUnitWords.minutes));
     await fill(pickClockLabel, "1.5");
     await save();
 
@@ -139,7 +142,7 @@ describe("the commissioner's draft order (#1087)", () => {
 
   it("goes when the order chosen is random, before it is saved", async () => {
     await openedSettings();
-    await userEvent.click(radio("Random"));
+    await userEvent.click(radio(draftOrderWords.random));
 
     expect(orderPanel()).toBeNull();
   });

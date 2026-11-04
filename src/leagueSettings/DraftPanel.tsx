@@ -26,6 +26,9 @@ import {
 
 const PICK_CLOCK_HINT_ID = "settings-pick-clock-hint";
 const TIMEOUTS_HINT_ID = "settings-timeouts-hint";
+const DRAFT_ORDER_CHOICE = "draft-order";
+const UNDRAFTED_CHOICE = "undrafted";
+const PICK_CLOCK_UNIT_CHOICE = "pick-clock-unit";
 
 type Draft = LeagueSettings["draft"];
 
@@ -35,7 +38,7 @@ export function DraftPanel({ draft, edit }: { draft: Draft; edit: (draft: Draft)
   return (
     <Panel title={draftTitle}>
       <div className={PANEL_BODY}>
-        <Choice label={draftOrderLabel} name="draft-order" options={DRAFT_ORDERS} words={draftOrderWords} chosen={draft.order} onChoose={(order) => edit({ ...draft, order })} />
+        <Choice label={draftOrderLabel} name={DRAFT_ORDER_CHOICE} options={DRAFT_ORDERS} words={draftOrderWords} chosen={draft.order} onChoose={(order) => edit({ ...draft, order })} />
         {draft.order === "random" && <p className="text-muted">{randomOrderHint}</p>}
         <PickClock seconds={draft.pickSeconds} onChange={(pickSeconds) => edit({ ...draft, pickSeconds })} />
         <TickBox checked={draft.timeoutsBeforeAutoPick !== null} onChange={(on) => edit({ ...draft, timeoutsBeforeAutoPick: on ? NaN : null })}>
@@ -56,7 +59,7 @@ export function DraftPanel({ draft, edit }: { draft: Draft; edit: (draft: Draft)
             </p>
           </>
         )}
-        <Choice label={undraftedLabel} name="undrafted" options={UNDRAFTED_GO_TO} words={undraftedWords} chosen={draft.undrafted} onChoose={(undrafted) => edit({ ...draft, undrafted })} />
+        <Choice label={undraftedLabel} name={UNDRAFTED_CHOICE} options={UNDRAFTED_GO_TO} words={undraftedWords} chosen={draft.undrafted} onChoose={(undrafted) => edit({ ...draft, undrafted })} />
         <p className="text-muted">{undraftedHint}</p>
       </div>
     </Panel>
@@ -87,7 +90,7 @@ function PickClock({ seconds, onChange }: { seconds: number; onChange: (seconds:
         <Choice
           label={pickClockUnitLabel}
           labelShown={false}
-          name="pick-clock-unit"
+          name={PICK_CLOCK_UNIT_CHOICE}
           options={PICK_CLOCK_UNITS}
           words={pickClockUnitWords}
           chosen={unit}

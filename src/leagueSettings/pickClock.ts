@@ -13,6 +13,9 @@ export const unitFor = (seconds: number): PickClockUnit => PICK_CLOCK_UNITS.find
 /** `seconds` in `unit`: 90 seconds is 1.5 minutes. NaN, a box left without a number, stays NaN. */
 export const inUnit = (seconds: number, unit: PickClockUnit) => seconds / SECONDS_IN[unit];
 
+/** How finely a clock typed in a unit is kept in seconds: to a millionth. */
+const ROUNDED_TO = 1e6;
+
 /** So many of `unit` in seconds, rounded off past a millionth so 0.1 hours is 360 seconds, never
  *  360.00000000000006. NaN stays NaN. */
-export const toSeconds = (amount: number, unit: PickClockUnit) => Math.round(amount * SECONDS_IN[unit] * 1e6) / 1e6;
+export const toSeconds = (amount: number, unit: PickClockUnit) => Math.round(amount * SECONDS_IN[unit] * ROUNDED_TO) / ROUNDED_TO;
