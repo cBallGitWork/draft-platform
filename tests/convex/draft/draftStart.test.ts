@@ -5,6 +5,7 @@ import { draftOrderRefusals } from "../../../convex/draft/draftOrder";
 import { draftStartRefusals } from "../../../convex/draft/draftStart";
 import { refusals } from "../../../convex/shared/leagueAccess";
 import { DAY_MS, HOUR_MS } from "../../../convex/shared/time";
+import { SAKA } from "../../support/convex/footballRows.harness";
 import { changeRules, HELD_FIRST_RULES, holdGameweeks, rulesWith } from "../../support/convex/leagueRules.harness";
 import { expectRefused } from "../../support/convex/test.harness";
 import { actingAs, addManager, addManagers, adminCreatesLeague, COMMISSIONER, MANAGERS, OUTSIDER, type TestConvex } from "../../support/convex/leagues.harness";
@@ -129,7 +130,7 @@ describe("pressing start", () => {
   });
 
   test("is refused while any squad holds a player", async () => {
-    await t.run((ctx) => ctx.db.insert("squadPlayers", { leagueId, teamId: teams[1], playerCode: 1001 }));
+    await t.run((ctx) => ctx.db.insert("squadPlayers", { leagueId, teamId: teams[1], playerCode: SAKA.code }));
     await expectRefused(start(), draftStartRefusals.squadsNotEmpty);
     await expectRefused(setStart(Date.now() + DAY_MS), draftStartRefusals.squadsNotEmpty);
     expect(await status()).toBe("waiting");

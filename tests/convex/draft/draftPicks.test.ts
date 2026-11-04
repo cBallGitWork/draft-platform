@@ -5,7 +5,7 @@ import { pickRefusals } from "../../../convex/draft/draftPicks";
 import type { LeagueRules } from "../../../convex/rules/leagueRulesShape";
 import { squadRefusals } from "../../../convex/squads/squads";
 import { refusals } from "../../../convex/shared/leagueAccess";
-import { ARSENAL, CHELSEA, GONE, insertClubs, insertDroppedPlayer, insertPlayers, type HeldPlayer } from "../../support/convex/footballRows.harness";
+import { ARSENAL, CHELSEA, GONE, insertClubs, insertDroppedPlayer, insertPlayers, UNHELD, type HeldPlayer } from "../../support/convex/footballRows.harness";
 import { NO_AREA_MINIMUMS } from "../../support/convex/leagueRules.harness";
 import { expectRefused } from "../../support/convex/test.harness";
 import { actingAs, addManagers, adminCreatesLeague, COMMISSIONER, eventsIn, MANAGERS, type TestConvex } from "../../support/convex/leagues.harness";
@@ -20,7 +20,7 @@ let t: TestConvex;
 let leagueId: Id<"leagues">;
 let teams: Id<"teams">[];
 
-/** An outfielder at Arsenal, one at Chelsea, a goalkeeper at Chelsea, and so on: code, club, position. */
+/** A player named for his code, at `club` in `position`: a central midfielder at Arsenal unless said. */
 const player = (code: number, club = ARSENAL, position: HeldPlayer["positions"][number] = "CM"): HeldPlayer => ({
   code,
   name: `Player ${code}`,
@@ -126,7 +126,7 @@ describe("a pick is refused", () => {
   test("for a player who has left the Premier League, or none at all", async () => {
     await start();
     await expectRefused(pick(ANN, GONE.code), squadRefusals.playerGone(GONE.name));
-    await expectRefused(pick(ANN, 9999), refusals.noPlayer);
+    await expectRefused(pick(ANN, UNHELD), refusals.noPlayer);
   });
 
   test("past the league's most players from one club", async () => {
