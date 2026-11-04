@@ -44,10 +44,14 @@ export const pickRefusals = {
  *  before #1090 kept none, so its are the league's in force when it started; it always has them, as
  *  it can't start without a squad size limit. */
 async function squadRulesOf(ctx: QueryCtx, leagueId: Id<"leagues">, started: StartedDraft): Promise<LeagueRules["squad"]> {
-  if (started.squad !== undefined) return started.squad;
-  const rules = await rulesInForceAt(ctx, leagueId, started.at);
+  return started.squad ?? (await startedRulesAt(ctx, leagueId, started.at)).squad;
+}
+
+/** The league's rules in force at `at`, which a started draft always has: it can't start without. */
+async function startedRulesAt(ctx: QueryCtx, leagueId: Id<"leagues">, at: number): Promise<LeagueRules> {
+  const rules = await rulesInForceAt(ctx, leagueId, at);
   if (rules === null) throw new Error(`League ${leagueId}'s draft has started, but the league has no rules`);
-  return rules.squad;
+  return rules;
 }
 
 type Turn = NonNullable<ReturnType<typeof pickOnTheClock<Id<"teams">>>>;
@@ -79,9 +83,7 @@ async function pickable(ctx: QueryCtx, leagueId: Id<"leagues">, playerCode: numb
 
 /** The league's pick time now, in seconds: a change the commissioner makes reaches the next clock. */
 async function pickSecondsNow(ctx: QueryCtx, leagueId: Id<"leagues">): Promise<number> {
-  const rules = await rulesInForceAt(ctx, leagueId, Date.now());
-  if (rules === null) throw new Error(`League ${leagueId}'s draft has started, but the league has no rules`);
-  return draftRulesOf(rules).pickSeconds;
+  return draftRulesOf(await startedRulesAt(ctx, leagueId, Date.now())).pickSeconds;
 }
 
 /** `player` joins the squad of `team`, on the clock, as its pick, filed as `by`'s, and the next
