@@ -16,6 +16,8 @@ import type * as admin_runLogs from "../admin/runLogs.js";
 import type * as admin_sideRuns from "../admin/sideRuns.js";
 import type * as auth from "../auth.js";
 import type * as crons from "../crons.js";
+import type * as draft_legalPlayers from "../draft/legalPlayers.js";
+import type * as draft_snakeOrder from "../draft/snakeOrder.js";
 import type * as feedback_feedback from "../feedback/feedback.js";
 import type * as feedback_feedbackLimits from "../feedback/feedbackLimits.js";
 import type * as football_clubColours from "../football/clubColours.js";
@@ -238,6 +240,8 @@ declare const fullApi: ApiFromModules<{
   "admin/sideRuns": typeof admin_sideRuns;
   auth: typeof auth;
   crons: typeof crons;
+  "draft/legalPlayers": typeof draft_legalPlayers;
+  "draft/snakeOrder": typeof draft_snakeOrder;
   "feedback/feedback": typeof feedback_feedback;
   "feedback/feedbackLimits": typeof feedback_feedbackLimits;
   "football/clubColours": typeof football_clubColours;
