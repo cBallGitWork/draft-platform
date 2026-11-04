@@ -6,6 +6,9 @@ Feature 4 of [SPEC.md](../SPEC.md). Only Craig's answers.
 
 - Held in the app. It starts on a date the commissioner sets, or when the commissioner
   presses start. Most leagues draft online, not in one room (Craig, 20 Oct 2026).
+- With no date set, the draft waits for the commissioner to press start. The draft room is in the
+  menu from the moment the league is set up, so managers can rank their queue before it starts
+  (Craig, 4 Nov 2026, "yes" to Claude's recommendation).
 - The draft runs with the teams that exist, even when the league has fewer than its maximum
   (Craig, 2 Nov 2026).
 - Draft order is a league setting: random, set by the commissioner, or last season's finish. A
@@ -27,6 +30,10 @@ Feature 4 of [SPEC.md](../SPEC.md). Only Craig's answers.
   2 Nov 2026).
 - A drafted player who leaves the Premier League brings his team nothing in return (Craig,
   20 Oct 2026). He keeps his place in the squad, shown as not available, like an FPL red flag.
+- A traded pick shows on the board under the team that owns it now, marked "via" the team it came
+  from (Craig, 4 Nov 2026, "yes" to Claude's recommendation).
+- Until waivers are built, players nobody drafts go to free agents (Craig, 4 Nov 2026, "yes" to
+  Claude's recommendation).
 - Players nobody drafts go to waivers or straight to free agents: a league setting, waivers by
   default (Craig, 2 Nov 2026).
 
@@ -38,6 +45,8 @@ Feature 4 of [SPEC.md](../SPEC.md). Only Craig's answers.
 - A league setting says how many timeouts a manager gets before he goes on auto-pick, 2 unless
   the league changes it, or "never": then the clock runs for every pick (Craig, 2 Nov 2026). He can
   take control back himself.
+- When his clock runs out, the pick is made for him even if he is online, and it counts as one of
+  his timeouts (Craig, 4 Nov 2026, "yes" to Claude's recommendation).
 - A team with no manager is on auto-pick from the start. Before the draft starts, the commissioner
   can mark such a team "I'll pick for this one", and then picks for it himself.
 
@@ -58,7 +67,8 @@ Feature 4 of [SPEC.md](../SPEC.md). Only Craig's answers.
 - The commissioner can pause the draft, undo a pick, and pick for a manager.
 - Pausing and resuming are by hand; a pause keeps the time left on the clock.
 - While the draft is paused, he can change the pick time; the new time applies when it resumes.
-- Undo takes back the last pick only, and can be repeated to go back further.
+- Undo takes back the last pick only, and can be repeated to go back further. The pick put back
+  gets the time that was left on its clock (Craig, 4 Nov 2026, "yes" to Claude's recommendation).
 - There is no cap on how often or how long he can pause (Craig, 2 Nov 2026).
 
 ## After the draft
