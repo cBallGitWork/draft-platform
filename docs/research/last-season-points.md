@@ -95,11 +95,9 @@ go A to Z by the name the site shows him by, and players level on points go A to
 
 ## Gaps
 
-- 267 played rows lack FPL's defensive contribution. Craig, 4 Nov 2026: "Work it out": each is
-  rebuilt from FPL's own points for that match (the total, minus the bonus, minus every other
-  stat's points at his FPL position). The remainder is FPL's 0 or 2, so those rows keep whether he
-  reached FPL's threshold, not a count. His 2025/26 FPL position comes from ai-carling's copy of
-  FPL's player list of 1 Mar 2026 (`data/raw/fpl/wayback_bootstrap/`).
+- 267 played rows lack FPL's defensive contribution. Craig, 4 Nov 2026: "we arent using the
+  combined stat, we have no need to", "Drop it from scoring": the first set stops scoring it
+  (PR #1121), so those rows load as they are.
 - Settled: among played Premier League rows there is one `fpl_fixture_id` per match (380) and no
   player twice in a match or at one kickoff. The 465 ids counted over every row come from bench
   and unavailable rows. Ids are per season and never persisted (CLAUDE.md), so a row is kept by
