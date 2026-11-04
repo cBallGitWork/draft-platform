@@ -54,9 +54,11 @@ jobs:
       - uses: anthropics/claude-code-action@c0949c50a78c1ec8ce2647db36629b870e715d0c  # v1.0.268
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          # medium effort is Craig's level (4 Nov 2026), set here as the runner never reads his Mac's settings.
           # Sonnet reads; Opus builds (CLAUDE.md: the reviewer runs on a different model from the builder)
           claude_args: >-
             --model claude-sonnet-5-5
+            --effort medium
             --max-turns 40
             --allowedTools "Read,Glob,Grep,Bash(gh issue view:*),Bash(gh issue list:*),Bash(gh issue comment:*),Bash(gh issue edit:*),Bash(gh pr view:*),Bash(git log:*),Bash(git show:*),Bash(ls:*)"
             --disallowedTools "Edit,Write,Bash(gh pr merge:*),Bash(gh api:*),Bash(git push:*)"
