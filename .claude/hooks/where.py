@@ -10,7 +10,7 @@ read its stdin (sh -c sh, eval sh, bash /dev/stdin), a function defined before t
 what a variable holds (in a double-quoted sh -c "…" string too: the shell fills it in before sh
 reads it), the arguments xargs adds to git commit or push from a program's output, and the paths
 find puts in for {}.
-Stdlib only, Python 3.9+.
+It also holds main's names, which the hooks share. Stdlib only, Python 3.9+.
 """
 
 from __future__ import annotations
@@ -20,6 +20,9 @@ import re
 import subprocess
 from collections import namedtuple
 
+MAIN = "main"
+REMOTE = "origin"  # GitHub's copy of the repo
+REMOTE_MAIN = f"{REMOTE}/{MAIN}"  # GitHub's main, as fresh as the last fetch
 GIT_VALUE_OPTS = {"-C", "-c", "--git-dir", "--work-tree", "--namespace"}
 SEPARATORS = {";", "&", "&&", "|", "||", "(", ")", "\n"}
 ENDS_A_CHAIN = {";", "\n", "&", "||"}  # after these, a cd that hung on an earlier && may not have run

@@ -69,7 +69,7 @@ An issue becomes merged code without Craig unless it lands in the needs-Craig la
 How it runs on its own:
 1. **Triage.** Every new issue gets a lane label from a rule: an issue whose files fall under `.github/CODEOWNERS`, or that the lane table puts under "Needs Craig", is `lane:craig`; every other issue is `lane:auto`.
 2. **Build.** A nightly schedule (and a button for any time) takes the oldest `lane:auto` issues that have no open pull request, up to 3 a night, and builds each in its own pull request. Craig's `build` label still starts one by hand.
-3. **Merge.** A runs-alone pull request turns on auto-merge itself and merges when `verify`, `smoke` and the visual diff are green and the branch holds all of `main`. A pull request that touches a code-owner path cannot merge without Craig's review, so the lane label is not the only guard.
+3. **Merge.** A runs-alone pull request turns on auto-merge itself and merges when `verify`, `smoke` and the visual diff are green. The branch need not hold all of `main`: the nightly CI run on `main` catches two pull requests that clash, and a red one opens the `nightly-ci` issue (Craig, 3 and 4 Nov 2026). A pull request that touches a code-owner path cannot merge without Craig's review, so the lane label is not the only guard.
 4. **Digest.** What merged, what failed and what waits on Craig goes in one daily message.
 
 Autonomous merging starts only after Code Owners review is switched on in the `main` ruleset and the dry run has passed, so the guard exists before the thing it guards.
@@ -112,7 +112,7 @@ The aim is to keep several builds moving at once, overnight as well as by day, w
 About seven weeks to a beta with a live draft and trades, or five without trades. Streams run side by side from week 1.
 
 1. **Week 1: the safety net and the pipeline.** In this order:
-  - Branch protection: required checks, up to date, CODEOWNERS on outcome paths, auto-merge.
+  - Branch protection: required checks (a branch need not be up to date with main; the nightly CI run on main catches clashes), CODEOWNERS on outcome paths, auto-merge.
   - Staging and production Convex projects; production promote needs approval; a backup before each deploy.
   - Sentry and heartbeats on every scheduled job.
   - Claude GitHub App and the build workflow, then one dry run on a throwaway issue; then Code Owners review on in the ruleset, then the nightly schedule, triage and auto-merge.
@@ -175,7 +175,7 @@ Keep the hooks that stop real mistakes; retire the gates GitHub or a schedule no
 | Keep | Retire, and what replaces it |
 | --- | --- |
 | `guard_bash.py`, cut to no commits on main and no stage-everything | `drift_due.py`, `drift_gate.py`: a scheduled drift pass |
-| `guard_github.py`, `main_writes.py`, `read_only.py` | `checks_gate.py`, `follow_main.py`: GitHub's up-to-date rule and merge queue |
+| `guard_github.py`, `read_only.py` | `checks_gate.py`, `follow_main.py`: GitHub's up-to-date rule and merge queue; `main_writes.py`: the ruleset refuses pushes to main (4 Nov 2026) |
 | `private_words.py`, `line_ceiling.py` | `approval_gate.py`: CODEOWNERS |
 | The shared helpers and `test.sh` | `gate_on_stop.py`: CI |
 | `pr_body.py`, `pull_request.py`, `screen_routes.py`, only if the cloud builds use them | `tidy_after_merge.py`, `tidy_branch.py`: GitHub deletes merged branches |

@@ -15,8 +15,8 @@ import glob
 import os
 import re
 
-from main_writes import MAIN, REMOTE, REMOTE_MAIN
 from run_command import run
+from where import MAIN, REMOTE, REMOTE_MAIN
 
 APPROVED = os.path.join("docs", "design", "approved")
 ROUTE_LINE = re.compile(r"^Route:\s*`([^`]+)`", re.M)
