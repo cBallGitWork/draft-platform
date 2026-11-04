@@ -3,6 +3,7 @@ import { internal } from "../_generated/api";
 import { internalAction, type ActionCtx } from "../_generated/server";
 import { codesByOpta, fixtureCodeIn, namedMen } from "../football/feedIds";
 import { logFailure, outcomeOf } from "../shared/errors";
+import { withHeartbeat } from "../heartbeats/heartbeat";
 import { readFplPayloads } from "../football/fpl/fpl";
 import { fplStatLines, readFplLive, type FplStatLine } from "../football/fpl/fplLive";
 import { matchRecords } from "./matchRecords";
@@ -39,23 +40,24 @@ interface GameweekReads {
 export const run = internalAction({
   args: { trigger: syncTrigger },
   returns: v.null(),
-  handler: async (ctx, { trigger }) => {
-    const ranAt = Date.now();
-    let teamStats: SideMatchOutcome[] = [];
-    let unseenFrom: number | undefined;
-    const outcome: Outcome = await outcomeOf("match stats sync failed", async () => {
-      const due = await ctx.runQuery(internal.stats.matchStatsDue.due, { now: ranAt });
-      unseenFrom = due.unseenFrom;
-      if (due.matches.length === 0) return { ok: true as const, matches: [], waiting: [] };
-      const { sides, ...read } = await syncDue(ctx, due.matches, ranAt, "wait");
-      teamStats = sides.teamStats;
-      return { ok: true as const, ...read };
-    });
-    await ctx.runMutation(internal.stats.matchStats.record, { trigger, ranAt, outcome, unseenFrom });
-    // Only its full-time reads read team stats, and the feed owes none between matches.
-    await recordSideMatches(ctx, ranAt, { teamStats }, false);
-    return null;
-  },
+  handler: async (ctx, { trigger }) =>
+    withHeartbeat(trigger === "cron" ? "lateStats" : null, async () => {
+      const ranAt = Date.now();
+      let teamStats: SideMatchOutcome[] = [];
+      let unseenFrom: number | undefined;
+      const outcome: Outcome = await outcomeOf("match stats sync failed", async () => {
+        const due = await ctx.runQuery(internal.stats.matchStatsDue.due, { now: ranAt });
+        unseenFrom = due.unseenFrom;
+        if (due.matches.length === 0) return { ok: true as const, matches: [], waiting: [] };
+        const { sides, ...read } = await syncDue(ctx, due.matches, ranAt, "wait");
+        teamStats = sides.teamStats;
+        return { ok: true as const, ...read };
+      });
+      await ctx.runMutation(internal.stats.matchStats.record, { trigger, ranAt, outcome, unseenFrom });
+      // Only its full-time reads read team stats, and the feed owes none between matches.
+      await recordSideMatches(ctx, ranAt, { teamStats }, false);
+      return null;
+    }),
 });
 
 /** What a read does with a match the Premier League does not yet call full time: the sync leaves
