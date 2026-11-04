@@ -17,4 +17,5 @@ export const previewLeagueSettings: LeagueSettingsSeam = {
   save: previewSays(unsavedOutcome),
   useTeamOrder: () => teamOrder,
   saveTeamOrder: previewSays(unmovedOutcome),
+  drawTeamOrder: previewSays(unmovedOutcome),
 };

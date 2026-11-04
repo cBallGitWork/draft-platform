@@ -11,7 +11,7 @@ import { CHANGES_FROM } from "./scoring.harness";
 /** The rules row the fake server's settings are from. */
 export const REVISION = "rules-1" as Revision;
 
-/** Three teams, in the order they joined: the commissioner's draft order unless a test says. */
+/** Three teams, in the order they joined: the draft order unless a test says. */
 export const TEAMS_IN_ORDER: TeamInOrder[] = ["Saka Potatoes", "Kroos Control", "Pique Blinders"].map((name, index) => ({
   teamId: `team-${index + 1}` as Id<"teams">,
   name,
@@ -33,5 +33,6 @@ export function fakeLeagueSettings({
     save: vi.fn<LeagueSettingsSeam["save"]>(async () => CHANGES_FROM),
     useTeamOrder: vi.fn<LeagueSettingsSeam["useTeamOrder"]>(() => teamOrder),
     saveTeamOrder: vi.fn<LeagueSettingsSeam["saveTeamOrder"]>(async () => null),
+    drawTeamOrder: vi.fn<LeagueSettingsSeam["drawTeamOrder"]>(async () => null),
   };
 }

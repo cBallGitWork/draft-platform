@@ -133,8 +133,9 @@ export function roundOrder(roundCount: number, gamesEach: readonly number[], see
   return gamesEach.map((games, index) => order.slice(starts[index], starts[index] + games));
 }
 
-/** A Fisher-Yates shuffle, by `random`. */
-function shuffle<Item>(items: Item[], random: () => number): Item[] {
+/** A Fisher-Yates shuffle of `items` in place, by `random`; the draft order's draw uses it too
+ *  (../draft/draftOrder.ts). */
+export function shuffle<Item>(items: Item[], random: () => number): Item[] {
   for (let index = items.length - 1; index > 0; index -= 1) {
     const other = Math.floor(random() * (index + 1));
     [items[index], items[other]] = [items[other], items[index]];

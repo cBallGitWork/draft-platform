@@ -5962,22 +5962,6 @@
                   "fieldType": {
                     "type": "object",
                     "value": {
-                      "order": {
-                        "fieldType": {
-                          "type": "union",
-                          "value": [
-                            {
-                              "type": "literal",
-                              "value": "commissioner"
-                            },
-                            {
-                              "type": "literal",
-                              "value": "random"
-                            }
-                          ]
-                        },
-                        "optional": false
-                      },
                       "pickSeconds": {
                         "fieldType": {
                           "type": "number"
@@ -6013,6 +5997,22 @@
                           ]
                         },
                         "optional": false
+                      },
+                      "order": {
+                        "fieldType": {
+                          "type": "union",
+                          "value": [
+                            {
+                              "type": "literal",
+                              "value": "commissioner"
+                            },
+                            {
+                              "type": "literal",
+                              "value": "random"
+                            }
+                          ]
+                        },
+                        "optional": true
                       }
                     }
                   },
@@ -10039,22 +10039,6 @@
                   "fieldType": {
                     "type": "object",
                     "value": {
-                      "order": {
-                        "fieldType": {
-                          "type": "union",
-                          "value": [
-                            {
-                              "type": "literal",
-                              "value": "commissioner"
-                            },
-                            {
-                              "type": "literal",
-                              "value": "random"
-                            }
-                          ]
-                        },
-                        "optional": false
-                      },
                       "pickSeconds": {
                         "fieldType": {
                           "type": "number"
@@ -10090,6 +10074,22 @@
                           ]
                         },
                         "optional": false
+                      },
+                      "order": {
+                        "fieldType": {
+                          "type": "union",
+                          "value": [
+                            {
+                              "type": "literal",
+                              "value": "commissioner"
+                            },
+                            {
+                              "type": "literal",
+                              "value": "random"
+                            }
+                          ]
+                        },
+                        "optional": true
                       }
                     }
                   },
@@ -21568,6 +21568,77 @@
               "type": "number"
             },
             "optional": false
+          }
+        }
+      }
+    },
+    {
+      "tableName": "drafts",
+      "indexes": [
+        {
+          "indexDescriptor": "by_leagueId",
+          "fields": [
+            "leagueId"
+          ]
+        }
+      ],
+      "stagedDbIndexes": [],
+      "searchIndexes": [],
+      "stagedSearchIndexes": [],
+      "vectorIndexes": [],
+      "stagedVectorIndexes": [],
+      "documentType": {
+        "type": "object",
+        "value": {
+          "leagueId": {
+            "fieldType": {
+              "type": "id",
+              "tableName": "leagues"
+            },
+            "optional": false
+          },
+          "startsAt": {
+            "fieldType": {
+              "type": "number"
+            },
+            "optional": true
+          },
+          "startJob": {
+            "fieldType": {
+              "type": "id",
+              "tableName": "_scheduled_functions"
+            },
+            "optional": true
+          },
+          "started": {
+            "fieldType": {
+              "type": "object",
+              "value": {
+                "at": {
+                  "fieldType": {
+                    "type": "number"
+                  },
+                  "optional": false
+                },
+                "teamIds": {
+                  "fieldType": {
+                    "type": "array",
+                    "value": {
+                      "type": "id",
+                      "tableName": "teams"
+                    }
+                  },
+                  "optional": false
+                },
+                "rounds": {
+                  "fieldType": {
+                    "type": "number"
+                  },
+                  "optional": false
+                }
+              }
+            },
+            "optional": true
           }
         }
       }

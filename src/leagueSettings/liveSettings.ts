@@ -16,13 +16,15 @@ const useTeamOrder: LeagueSettingsSeam["useTeamOrder"] = (leagueId) => useQuery(
 export function useLiveLeagueSettings(): LeagueSettingsSeam {
   const changeSettings = useMutation(api.rules.leagueSettings.changeSettings);
   const setTeamOrder = useMutation(api.draft.draftOrder.setTeamOrder);
+  const drawTeamOrder = useMutation(api.draft.draftOrder.drawTeamOrder);
   return useMemo(
     () => ({
       useSettings,
       save: (leagueId, settings, revision) => answerOf(() => changeSettings({ leagueId, settings, revision }), "Saving the league settings", saveFailedWords),
       useTeamOrder,
       saveTeamOrder: (leagueId, teamIds) => refusalOf(() => setTeamOrder({ leagueId, teamIds }), "Saving the draft order", teamOrderFailedWords),
+      drawTeamOrder: (leagueId) => refusalOf(() => drawTeamOrder({ leagueId }), "Drawing the draft order", teamOrderFailedWords),
     }),
-    [changeSettings, setTeamOrder],
+    [changeSettings, setTeamOrder, drawTeamOrder],
   );
 }

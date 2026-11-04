@@ -8,6 +8,7 @@ import type { Id } from "../../../convex/_generated/dataModel";
 import { tablesKeyedToLeague } from "../../../convex/leagues/leagueDeletion";
 import { FIRST_RULES } from "../../../convex/rules/firstRules";
 import { leagueSettingsOf } from "../../../convex/rules/leagueSettingsPart";
+import { DAY_MS } from "../../../convex/shared/time";
 import { askToJoin, invite, makeLink } from "./joining.harness";
 import { ANN, CAT, DAN } from "./leagueDeletion.harness";
 import { rulesRevision } from "./leagueRules.harness";
@@ -67,6 +68,9 @@ export function changesTo(
     "rules/leagueSettings:changeSettings": () =>
       admin.mutation(api.rules.leagueSettings.changeSettings, { leagueId, settings: { ...leagueSettingsOf(FIRST_RULES), oddTeamOut: "bye", gamesPerGameweek: 2 }, revision }),
     "draft/draftOrder:setTeamOrder": () => admin.mutation(api.draft.draftOrder.setTeamOrder, { leagueId, teamIds: reversedTeamIds }),
+    "draft/draftOrder:drawTeamOrder": () => admin.mutation(api.draft.draftOrder.drawTeamOrder, { leagueId }),
+    "draft/draftStart:setStart": () => admin.mutation(api.draft.draftStart.setStart, { leagueId, startsAt: Date.now() + DAY_MS }),
+    "draft/draftStart:start": () => admin.mutation(api.draft.draftStart.start, { leagueId }),
     "lineup/lineups:save": () => ann.mutation(api.lineup.lineups.save, { leagueId, lineup: { starters: [], bench: [] } }),
     "lineup/lineupDue:openedTactics": () => ann.mutation(api.lineup.lineupDue.openedTactics, { leagueId, gameweek: 1 }),
     "leagues/lastLeague:switchTo": () => commissioner.mutation(api.leagues.lastLeague.switchTo, { leagueId }),

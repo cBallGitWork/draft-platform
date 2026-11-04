@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { DRAFT_ORDERS, UNDRAFTED_GO_TO } from "../../convex/draft/draftRules";
+import { UNDRAFTED_GO_TO } from "../../convex/draft/draftRules";
 import type { LeagueSettings } from "../../convex/rules/leagueSettingsPart";
 import { Choice } from "../ui/Choice";
 import { PANEL_BODY, Panel } from "../ui/Panel";
@@ -8,15 +8,12 @@ import { NumberRow } from "./NumberRow";
 import { inUnit, PICK_CLOCK_UNITS, toSeconds, unitFor, type PickClockUnit } from "./pickClock";
 import {
   autoPickWords,
-  draftOrderLabel,
-  draftOrderWords,
   draftTitle,
   neverAutoPickWords,
   pickClockHint,
   pickClockLabel,
   pickClockUnitLabel,
   pickClockUnitWords,
-  randomOrderHint,
   timeoutsHint,
   timeoutsLabel,
   undraftedHint,
@@ -26,20 +23,17 @@ import {
 
 const PICK_CLOCK_HINT_ID = "settings-pick-clock-hint";
 const TIMEOUTS_HINT_ID = "settings-timeouts-hint";
-const DRAFT_ORDER_CHOICE = "draft-order";
 const UNDRAFTED_CHOICE = "undrafted";
 const PICK_CLOCK_UNIT_CHOICE = "pick-clock-unit";
 
 type Draft = LeagueSettings["draft"];
 
-/** How the draft runs (spec/04; #1087): the draft order, the pick clock, the timeouts before
- *  auto-pick, or never, and where the players nobody drafts go. */
+/** How the draft runs (spec/04; #1087): the pick clock, the timeouts before auto-pick, or never,
+ *  and where the players nobody drafts go. The draft order is TeamOrderPanel's. */
 export function DraftPanel({ draft, edit }: { draft: Draft; edit: (draft: Draft) => void }) {
   return (
     <Panel title={draftTitle}>
       <div className={PANEL_BODY}>
-        <Choice label={draftOrderLabel} name={DRAFT_ORDER_CHOICE} options={DRAFT_ORDERS} words={draftOrderWords} chosen={draft.order} onChoose={(order) => edit({ ...draft, order })} />
-        {draft.order === "random" && <p className="text-muted">{randomOrderHint}</p>}
         <PickClock seconds={draft.pickSeconds} onChange={(pickSeconds) => edit({ ...draft, pickSeconds })} />
         <TickBox checked={draft.timeoutsBeforeAutoPick !== null} onChange={(on) => edit({ ...draft, timeoutsBeforeAutoPick: on ? NaN : null })}>
           {autoPickWords}

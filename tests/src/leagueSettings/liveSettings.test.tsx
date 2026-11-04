@@ -15,11 +15,15 @@ import { silenceConsoleError } from "../../support/console.setup";
 import { REVISION as revision } from "../../support/src/leagueSettings.harness";
 import { A_LEAGUE_ID } from "../../support/src/convexReact.harness";
 
-const convex = vi.hoisted(() => ({ settings: vi.fn(), changeSettings: vi.fn(), teamOrder: vi.fn(), setTeamOrder: vi.fn() }));
+const convex = vi.hoisted(() => ({ settings: vi.fn(), changeSettings: vi.fn(), teamOrder: vi.fn(), setTeamOrder: vi.fn(), drawTeamOrder: vi.fn() }));
 vi.mock("convex/react", async () =>
   (await import("../../support/src/convexReact.harness")).fakeConvexReact({
     queries: { "rules/leagueSettings:settings": convex.settings, "draft/draftOrder:teamOrder": convex.teamOrder },
-    mutations: { "rules/leagueSettings:changeSettings": convex.changeSettings, "draft/draftOrder:setTeamOrder": convex.setTeamOrder },
+    mutations: {
+      "rules/leagueSettings:changeSettings": convex.changeSettings,
+      "draft/draftOrder:setTeamOrder": convex.setTeamOrder,
+      "draft/draftOrder:drawTeamOrder": convex.drawTeamOrder,
+    },
   }),
 );
 
@@ -78,4 +82,19 @@ test("saving the draft order calls draft/draftOrder:setTeamOrder, and resolves w
   const logged = silenceConsoleError();
   expect(await seam().saveTeamOrder(A_LEAGUE_ID, teamIds)).toBe(teamOrderFailedWords);
   expect(logged).toHaveBeenCalledWith("Saving the draft order failed:", failure);
+});
+
+test("drawing the draft order calls draft/draftOrder:drawTeamOrder, and resolves with null, the server's refusal, or the failure said plainly", async () => {
+  convex.drawTeamOrder.mockResolvedValueOnce(null);
+  expect(await seam().drawTeamOrder(A_LEAGUE_ID)).toBeNull();
+  expect(convex.drawTeamOrder).toHaveBeenCalledExactlyOnceWith({ leagueId: A_LEAGUE_ID });
+
+  convex.drawTeamOrder.mockRejectedValueOnce(new ConvexError(draftOrderRefusals.started));
+  expect(await seam().drawTeamOrder(A_LEAGUE_ID)).toBe(draftOrderRefusals.started);
+
+  const failure = new Error("offline");
+  convex.drawTeamOrder.mockRejectedValueOnce(failure);
+  const logged = silenceConsoleError();
+  expect(await seam().drawTeamOrder(A_LEAGUE_ID)).toBe(teamOrderFailedWords);
+  expect(logged).toHaveBeenCalledWith("Drawing the draft order failed:", failure);
 });

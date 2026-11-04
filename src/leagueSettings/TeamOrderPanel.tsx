@@ -2,11 +2,12 @@ import type { Id } from "../../convex/_generated/dataModel";
 import { useChange } from "../shared/useChange";
 import { Loading, PANEL_BODY, Panel, Problem } from "../ui/Panel";
 import type { LeagueSettingsSeam, TeamInOrder } from "./seam";
-import { moveDownLabel, moveDownWords, moveUpLabel, moveUpWords, noTeamsWords, teamOrderHint, teamOrderLoadingWords, teamOrderTitle } from "./words";
+import { drawOrderWords, moveDownLabel, moveDownWords, moveUpLabel, moveUpWords, noTeamsWords, teamOrderHint, teamOrderLoadingWords, teamOrderTitle } from "./words";
 
-/** The commissioner's draft order (spec/04; Craig, 4 Nov 2026, on #1087), shown while the draft
- *  order is his: the teams first pick first, each moved up or down a place at a time. A move saves
- *  at once, apart from the settings' Save, as the order is the league's teams, not its rules. */
+/** The draft order (spec/04; Craig, 4 Nov 2026, on #1087 and #1089): the teams first pick first,
+ *  each moved up or down a place at a time, or all drawn at random, as often as the commissioner
+ *  likes until the draft starts. A move or a draw saves at once, apart from the settings' Save, as
+ *  the order is the league's teams, not its rules. */
 export function TeamOrderPanel({ leagueId, seam }: { leagueId: Id<"leagues">; seam: LeagueSettingsSeam }) {
   const teams = seam.useTeamOrder(leagueId);
   const saving = useChange();
@@ -24,6 +25,11 @@ export function TeamOrderPanel({ leagueId, seam }: { leagueId: Id<"leagues">; se
         <div className={PANEL_BODY}>
           <p className="text-muted">{teamOrderHint}</p>
           {teams.length === 0 ? <p>{noTeamsWords}</p> : <TeamList teams={teams} busy={saving.busy} move={move} />}
+          {teams.length > 1 && (
+            <button type="button" disabled={saving.busy} onClick={() => void saving.run(() => seam.drawTeamOrder(leagueId))} className="secondary-action self-start">
+              {drawOrderWords}
+            </button>
+          )}
           <Problem problem={saving.problem} />
         </div>
       )}

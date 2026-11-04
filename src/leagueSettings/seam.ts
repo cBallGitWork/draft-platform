@@ -19,7 +19,10 @@ export type LeagueSettingsSeam = {
   /** Saves the commissioner's draft order: resolves with null once saved, or the words saying why
    *  not. It never rejects. */
   saveTeamOrder(leagueId: Id<"leagues">, teamIds: Id<"teams">[]): Change;
+  /** Draws the draft order at random from the league's teams now and saves it: resolves with null
+   *  once saved, or the words saying why not. It never rejects. */
+  drawTeamOrder(leagueId: Id<"leagues">): Change;
 };
 
-/** A team in the commissioner's draft order (convex/draft/draftOrder.ts). */
+/** A team in the draft order (convex/draft/draftOrder.ts). */
 export type TeamInOrder = { teamId: Id<"teams">; name: string };

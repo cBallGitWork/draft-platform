@@ -13,6 +13,7 @@ import { askForLink } from "../signIn/signInLinks";
 import { signInReply } from "../signIn/signInReplies";
 import { checkCanJoin, putOnTeam } from "../leagues/teams";
 import { hasEnded, liveInvitesTo } from "./liveInvites";
+import { draftHasStarted } from "../draft/draftRow";
 
 // Emailed invites (#73, spec/13 Joining): an invite names a vacated team or a new one, carries a
 // sign-in link, and the person joins on signing in, with no approval, while it lasts (an invite's lifetime).
@@ -34,14 +35,15 @@ async function inviteToRun(ctx: QueryCtx, inviteId: Id<"invites">) {
 }
 
 /** For the league's commissioners and the admin: refuses someone already managing a team in it, a
- *  full league or a team not vacated, and a second live invite to the same email. */
+ *  new team once the draft has started, a full league or a team not vacated, and a second live
+ *  invite to the same email. */
 export const send = mutation({
   args: { leagueId: v.id("leagues"), email: v.string(), teamId: v.optional(v.id("teams")) },
   returns: v.id("invites"),
   handler: async (ctx, args) => {
     const { email: by, league } = await runnerOf(ctx, args.leagueId);
     const email = namedEmail(args.email);
-    const teamName = checkCanJoin(await teamsOf(ctx, league._id), league, email, args.teamId)?.name ?? null;
+    const teamName = checkCanJoin(await teamsOf(ctx, league._id), league, email, args.teamId, await draftHasStarted(ctx, league._id))?.name ?? null;
     const now = Date.now();
     if ((await liveInvitesTo(ctx, email, now)).some((invite) => invite.leagueId === league._id)) {
       refuse(joiningRefusals.alreadyInvited(email));
