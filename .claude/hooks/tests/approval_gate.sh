@@ -54,6 +54,7 @@ filled() { # name lines...: pr.md with these lines under its Approved vs built h
 filled pr-matches.md '/team: matches the approved picture' "$verifier"
 filled pr-differs.md '1. Density: rows 20px, the picture 28px' '2. Columns: Form missing' "$verifier"
 filled pr-unsigned.md '/team: matches the approved picture'
+filled pr-unchanged.md '/team: unchanged from main' "$verifier"
 filled pr-says-nothing.md 'looked fine' "$verifier"
 filled pr-pasted.md '## Approved vs built' '1. Columns: Form missing' "$verifier"  # the block, heading and all
 create() { echo "gh pr create --title x --body-file $1"; }
@@ -69,6 +70,7 @@ for body in pr.md pr-unsigned.md pr-says-nothing.md; do
 done
 says "changes a screen with an approved picture: /team (src/team/Table.tsx)" guard_bash.py "$(bash_in "$repo" "$(create pr.md)")"
 check allow guard_bash.py "$(bash_in "$repo" "$(create pr-matches.md)")"
+check allow guard_bash.py "$(bash_in "$repo" "$(create pr-unchanged.md)")"  # shot identical to main's
 check allow guard_bash.py "$(bash_in "$repo" "$(create pr-differs.md)")"  # opens; the merge waits
 check allow guard_bash.py "$(bash_in "$repo" "$(create pr-pasted.md)")"
 check allow guard_bash.py "$(bash_in "$repo" 'gh pr edit 3 --body-file pr.md')"  # create only

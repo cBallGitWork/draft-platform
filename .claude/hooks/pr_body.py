@@ -40,6 +40,9 @@ USE_A_FILE = "Write the body to a file and pass it with --body-file <file>."
 # ui-verifier's block for a screen with an approved picture (.claude/agents/ui-verifier.md, Output)
 APPROVED_VS_BUILT = "## Approved vs built"
 MATCHES = "matches the approved picture"
+# ui-verifier shot the screen on main too and the two 1440 PNGs are identical: an import reached it, nothing it draws
+# changed, so the differences main already has aren't this branch's (Craig, 4 Nov 2026, on #1128)
+UNCHANGED = "unchanged from main"
 VERIFIER_SIGNATURE = "*Verifier: ui-verifier ("  # starts the last line of ui-verifier's block
 VERIFIER_SIGNED = re.compile("^" + re.escape(VERIFIER_SIGNATURE), re.M)
 COMMENT = re.compile(r"<!--.*?-->", re.S)
@@ -131,9 +134,9 @@ def screen_problem(body, screens):
     named = ", ".join(f"{route} ({', '.join(files[:3])}{', …' if len(files) > 3 else ''})"
                       for route, files in screens.items())
     section = approved_vs_built(body)
-    if not VERIFIER_SIGNED.search(body) or section is None or not (MATCHES in section or differences(body)):
+    if not VERIFIER_SIGNED.search(body) or section is None or not (MATCHES in section or UNCHANGED in section or differences(body)):
         return (f"This branch changes a screen with an approved picture: {named}. Run the ui-verifier agent "
-                f"and paste its block: a '{APPROVED_VS_BUILT}' section that says it '{MATCHES}' or numbers "
+                f"and paste its block: a '{APPROVED_VS_BUILT}' section that says it '{MATCHES}', or '{UNCHANGED}', or numbers "
                 f"each difference (1. …), and its line starting '{VERIFIER_SIGNATURE}…'.")
     return None
 
