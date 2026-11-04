@@ -16,7 +16,8 @@ newcomer as anyone with no Premier League minutes last season. Yes or no?**
 
 For example: Bukayo Saka is ranked by his 2025/26 matches scored under the site's rules as they
 stand; a player signed from Serie A in the summer, or one who sat on the bench all season, goes
-to the bottom of the list, A to Z.
+to the bottom of the list, A to Z. A player who came on once and got booked (0 points) still
+ranks above every newcomer, because he has points to rank by.
 
 It adds a table of past matches to the live site (saved data, so a one-way door), the same table
 #842 plans for the rule balance lab, starting with one season instead of five.
@@ -59,7 +60,7 @@ It adds a table of past matches to the live site (saved data, so a one-way door)
 | | Where 2025/26 comes from | Cost | Right numbers? |
 |---|---|---|---|
 | **A** | ai-carling's file, copied once by a script on Craig's Mac (#842's route, one season) | One script, one table, about 5 MB | Yes for every stat the site prices today, checkable against FPL's own points. A future Opta-only category (say, key passes) takes its nearest column. |
-| **B** | The Premier League feed, replayed through our own reader | About 13,700 calls to an unofficial feed, once; a run that must be resumable | Opta's exact stats for every catalogue category. FPL's own counts (its defensive contribution, its assists) only as Opta's nearest. Works only while the feed keeps 2025/26 online. |
+| **B** | The Premier League feed, replayed through our own reader | About 13,700 calls (380 matches × about 36 men on the two team sheets) to an unofficial feed, once; a run that must be resumable | Opta's exact stats for every catalogue category. FPL's own counts (its defensive contribution, its assists) only as Opta's nearest. Works only while the feed keeps 2025/26 online. |
 | **C** | FPL's `history_past` season totals | About 800 calls | No. The rules are per match (2 for 60 minutes, a clean sheet only after 60, defensive contribution per match, -1 per two conceded), so totals can't be scored. |
 | **D** | Nothing: fall back to this season's points so far until next summer | None | Changes the spec: early in a season it ranks on a handful of matches. |
 
@@ -77,28 +78,30 @@ re-priced when a patch changes it.
 
 ## Newcomers
 
-A player in this season's FPL list (by `code`) with no Premier League minutes in 2025/26: promoted
-clubs' players, summer signings from abroad, academy players, and anyone who never came on. They
-rank after every player with points, A to Z by the name the site shows him by (Claude's call). A
-player who played but scored 0 or less still ranks by his points, above every newcomer.
+Part of Craig's call: a player in this season's FPL list (by `code`) with no Premier League
+minutes in 2025/26: promoted clubs' players, summer signings from abroad, academy players, and
+anyone who never came on. They rank after every player with points; a player who played but
+scored 0 or less still ranks by his points, above every newcomer. Claude's calls: newcomers go A
+to Z by the name the site shows him by, and players level on points go A to Z the same way.
 
 ## Size and scale
 
 - 2025/26 at the first set's stats: 11,492 rows of about 430 bytes, **about 5 MB**. With all 120
   numeric columns, as the lab may want, about 25 MB a season, about 125 MB for #842's five.
 - For comparison, one of our own match records on dev is about 1.8 KB.
-- The points rows: one per player, about 700.
-- Re-pricing after a patch: about 540 players, 22 pages of 25, the job #956 already sizes.
+- The points rows: one per player in this season's list, about 700, newcomers included.
+- Re-pricing after a patch: the 537 who played, 22 pages of 25, the job #956 already sizes.
 - None of it grows with teams or leagues: it is per player, so 80 teams cost the same as 8.
 
 ## Gaps
 
-- 267 rows lack FPL's defensive contribution. The copy should take them from FPL's own points for
-  that match (points minus bonus minus everything else), or stop and say which rows; never read
-  them as 0.
-- The parquet holds 465 distinct `fpl_fixture_id`s for 380 matches. Ids are per season and never
-  persisted (CLAUDE.md), so a row is kept by player `code`, season and kickoff, but the extra ids
-  are unexplained.
+- 267 rows lack FPL's defensive contribution. The copy stops and names them, never reading them
+  as 0. How to fill them (from FPL's own points for that match, or from another feed's tackles,
+  clearances and blocks) is a question for Craig when #1113 is built, not settled here.
+- Settled: among played Premier League rows there is one `fpl_fixture_id` per match (380) and no
+  player twice in a match or at one kickoff. The 465 ids counted over every row come from bench
+  and unavailable rows. Ids are per season and never persisted (CLAUDE.md), so a row is kept by
+  player `code`, season and kickoff.
 - Prod's records weren't read (read-only from here).
 
 ## Build issues
