@@ -28,12 +28,15 @@ import { useLiveSquads } from "../squads/liveSquads";
 import { liveTable } from "../table/liveTable";
 import { answerOf } from "../shared/refusal";
 import { ShellApp } from "./ShellApp";
-import { LINK_CODE_PARAM, SIGN_IN_PATH } from "../signIn/paths";
+import { SIGN_IN_PATH } from "../signIn/paths";
 import { askFailedWords, replyWords, waitingWords, type LinkProblem } from "../signIn/words";
 import { NO_CONVEX_URL } from "../shared/words";
 
 // The app signed in for real: Convex Auth's session (convex/auth.ts), the email links asked for
 // through signIn/signInLinks:ask, and a link's code redeemed when the app is opened from one.
+
+/** The search param a sign-in link carries its code in (Convex Auth's). */
+export const LINK_CODE_PARAM = "code";
 
 /** The code a sign-in link opened the app with, taken out of the address so a reload or a
  *  bookmark can't carry it. */

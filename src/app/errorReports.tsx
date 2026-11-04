@@ -2,7 +2,7 @@ import * as Sentry from "@sentry/react";
 import type { ReactNode } from "react";
 import type { RootOptions } from "react-dom/client";
 import { ReadFailed } from "../frame/ReadFailed";
-import { LINK_CODE_PARAM } from "../signIn/paths";
+import { LINK_CODE_PARAM } from "./liveApp";
 
 // Error reports to Sentry (docs/PLAN.md, "No monitoring"). Off unless the build has a DSN, so dev
 // and tests send nothing; Craig sets the DSN in Vercel. Errors only: no tracing, no replays.
