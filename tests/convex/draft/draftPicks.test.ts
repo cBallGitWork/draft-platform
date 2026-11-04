@@ -46,7 +46,7 @@ const setSquadRules = (squad: Partial<LeagueRules["squad"]>) =>
 
 const as = (email: string) => actingAs(t, email);
 const pick = async (email: string, playerCode: number) => (await as(email)).mutation(api.draft.draftPicks.makePick, { leagueId, playerCode });
-const read = async () => (await as(COMMISSIONER)).query(api.draft.draftStart.ofLeague, { leagueId });
+const read = async () => (await as(COMMISSIONER)).query(api.draft.draftStart.ofLeague, { leagueId, now: Date.now() });
 const start = async () => (await as(COMMISSIONER)).mutation(api.draft.draftStart.start, { leagueId });
 const squadsNow = async () =>
   (await (await as(COMMISSIONER)).query(api.squads.squads.squads, { leagueId })).map(({ teamId, players }) => ({ teamId, players: players.map(({ code, gone }) => ({ code, gone })) }));

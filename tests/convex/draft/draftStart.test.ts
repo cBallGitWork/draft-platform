@@ -29,7 +29,7 @@ beforeEach(async () => {
 const ROUNDS = HELD_FIRST_RULES.squad.size!.maximum;
 
 const as = (email = COMMISSIONER) => actingAs(t, email);
-const read = async (email = COMMISSIONER) => (await as(email)).query(api.draft.draftStart.ofLeague, { leagueId });
+const read = async (email = COMMISSIONER) => (await as(email)).query(api.draft.draftStart.ofLeague, { leagueId, now: Date.now() });
 const start = async (email = COMMISSIONER) => (await as(email)).mutation(api.draft.draftStart.start, { leagueId });
 const setStart = async (startsAt: number | null) => (await as()).mutation(api.draft.draftStart.setStart, { leagueId, startsAt });
 const draw = async () => (await as()).mutation(api.draft.draftOrder.drawTeamOrder, { leagueId });
@@ -136,9 +136,10 @@ describe("pressing start", () => {
     expect(await status()).toBe("waiting");
   });
 
-  test("takes its rounds from the squad maximum in force, not a change waiting for the next gameweek", async () => {
+  test("takes its rounds from the squad maximum in force, not a change waiting for the next gameweek, as the waiting draft shows them", async () => {
     await holdGameweeks(t, { next: 5 });
-    await changeRules(t, leagueId, rulesWith({ squad: { ...HELD_FIRST_RULES.squad, size: { minimum: 11, maximum: ROUNDS - 1 } } }));
+    expect(await changeRules(t, leagueId, rulesWith({ squad: { ...HELD_FIRST_RULES.squad, size: { minimum: 11, maximum: ROUNDS - 1 } } }))).toBe(5);
+    expect(await read()).toMatchObject({ status: "waiting", rounds: ROUNDS });
     await start();
 
     expect(await read()).toMatchObject({ status: "live", rounds: ROUNDS });

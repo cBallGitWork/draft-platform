@@ -11,7 +11,7 @@ import { heldPlayerByCode, playerByCode } from "../shared/players";
 import { placeOf, squadOf } from "../squads/squadPlace";
 import { squadRefusals } from "../squads/squads";
 import { draftOf, picksMadeIn } from "./draftRow";
-import { rulesInForceNow } from "./draftStart";
+import { rulesInForceAt } from "./draftStart";
 import { legalPlayers, type DraftPlayer } from "./legalPlayers";
 import { pickOnTheClock } from "./snakeOrder";
 
@@ -57,7 +57,7 @@ async function pickable(ctx: QueryCtx, leagueId: Id<"leagues">, playerCode: numb
 /** The squad rules the draft picks under: the league's in force now. A started draft always has
  *  them, as it can't start without a squad size limit. */
 async function squadRulesOf(ctx: QueryCtx, leagueId: Id<"leagues">): Promise<LeagueRules["squad"]> {
-  const rules = await rulesInForceNow(ctx, leagueId);
+  const rules = await rulesInForceAt(ctx, leagueId, Date.now());
   if (rules === null) throw new Error(`League ${leagueId}'s draft has started, but the league has no rules`);
   return rules.squad;
 }

@@ -3,7 +3,7 @@ import { internal } from "../_generated/api";
 import type { Doc, Id } from "../_generated/dataModel";
 import { internalMutation, mutation, query, type MutationCtx, type QueryCtx } from "../_generated/server";
 import { nextOpenGameweek } from "../lineup/lineups";
-import { historyOf, inForce, latestRules, seasonRules } from "../rules/rulesHistory";
+import { historyOf, inForce, seasonRules } from "../rules/rulesHistory";
 import type { LeagueRules } from "../rules/leagueRulesShape";
 import { memberOf, refuse, runnerOf, teamsOf } from "../shared/leagueAccess";
 import { DRAFT_FEWEST_TEAMS } from "./draftLimits";
@@ -34,13 +34,14 @@ export const draftStartRefusals = {
  *  limit, or no rules (a league made before #25). */
 const roundsOf =(rules: LeagueRules | null): number | null => rules?.squad.size?.maximum ?? null;
 
-/** The league's rules in force now: those of the gameweek under way, or before the league's first
- *  gameweek begins, that gameweek's; a change waiting for a later gameweek isn't among them (Craig,
- *  4 Nov 2026, on #1090). Null for a league made before #25. What the draft starts and picks under. */
-export async function rulesInForceNow(ctx: QueryCtx, leagueId: Id<"leagues">): Promise<LeagueRules | null> {
+/** The league's rules in force at `now`: those of the gameweek under way, or before the league's
+ *  first gameweek begins, that gameweek's; a change waiting for a later gameweek isn't among them
+ *  (Craig, 4 Nov 2026, on #1090). Null for a league made before #25. What the draft starts and
+ *  picks under. */
+export async function rulesInForceAt(ctx: QueryCtx, leagueId: Id<"leagues">, now: number): Promise<LeagueRules | null> {
   const [history, season] = await Promise.all([historyOf(ctx, leagueId), seasonRules(ctx, leagueId)]);
   if (season === null || history.length === 0) return null;
-  const underWay = (await nextOpenGameweek(ctx, leagueId, season, Date.now())) - 1;
+  const underWay = (await nextOpenGameweek(ctx, leagueId, season, now)) - 1;
   return inForce(history, Math.max(underWay, history[0].fromGameweek))!.rules;
 }
 
@@ -57,7 +58,7 @@ async function startable(
 ): Promise<{ refusal: string } | { refusal: null; teams: Doc<"teams">[]; rounds: number }> {
   const teams = await teamsOf(ctx, leagueId);
   if (teams.length < DRAFT_FEWEST_TEAMS) return { refusal: draftStartRefusals.tooFewTeams };
-  const rounds = roundsOf(await rulesInForceNow(ctx, leagueId));
+  const rounds = roundsOf(await rulesInForceAt(ctx, leagueId, Date.now()));
   if (rounds === null) return { refusal: draftStartRefusals.noSquadSize };
   if (await anyoneHeld(ctx, leagueId)) return { refusal: draftStartRefusals.squadsNotEmpty };
   return { refusal: null, teams, rounds };
@@ -144,19 +145,21 @@ const onTheClock = v.object({ pick: v.number(), round: v.number(), teamId: v.id(
 /** The league's draft as everyone in the league reads it: waiting, with its date (null: until the
  *  commissioner presses start), its rounds (null: the league has no squad size limit) and the
  *  draft order now; live, with when it started, its rounds, its order, fixed at the start, how many
- *  picks are made and the pick on the clock; or over, once every pick is made (draftPicks.ts). */
+ *  picks are made and the pick on the clock; or over, once every pick is made (draftPicks.ts).
+ *  A waiting draft's rounds are those it would start with at `now`, the screen's, moved on each
+ *  minute, as a query must not read the clock (convex/admin/feeds.ts says why). */
 export const ofLeague = query({
-  args: { leagueId: v.id("leagues") },
+  args: { leagueId: v.id("leagues"), now: v.number() },
   returns: v.union(
     v.object({ status: v.literal("waiting"), startsAt: v.union(v.number(), v.null()), rounds: v.union(v.number(), v.null()), order: v.array(teamInOrder) }),
     v.object({ status: v.literal("live"), startedAt: v.number(), rounds: v.number(), order: v.array(teamInOrder), picksMade: v.number(), onTheClock }),
     v.object({ status: v.literal("over"), startedAt: v.number(), rounds: v.number(), order: v.array(teamInOrder), picksMade: v.number() }),
   ),
-  handler: async (ctx, { leagueId }) => {
+  handler: async (ctx, { leagueId, now }) => {
     const { league } = await memberOf(ctx, leagueId);
     const [draft, teams] = await Promise.all([draftOf(ctx, leagueId), teamsOf(ctx, leagueId)]);
     if (draft?.started === undefined) {
-      const rounds = roundsOf(await latestRules(ctx, leagueId));
+      const rounds = roundsOf(await rulesInForceAt(ctx, leagueId, now));
       return { status: "waiting" as const, startsAt: draft?.startsAt ?? null, rounds, order: teamOrderOf(teams, league) };
     }
     const { at, teamIds, rounds } = draft.started;
