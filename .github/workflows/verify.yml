@@ -1,20 +1,24 @@
 # The local gate (`npm run verify`) split into jobs that run side by side, then `npm run build` and `npm run smoke`;
 # what it catches and why here: ARCHITECTURE.md, Services.
 # A pull request that changes only docs (docs/, spec/, .claude/, *.md) runs the cheap checks and skips the
-# unit tests, build and smoke; every push to main runs all of it. The job named `verify` is the one result the
-# ruleset requires (with `smoke`): it fails when any job it waits on failed, and a skipped job is not a failure.
+# unit tests, build and smoke. A merge to main runs nothing: a nightly run on main (and a manual one, from the
+# Actions tab) runs all of it, the safety net for two merges that pass alone but clash together. A failed nightly
+# run goes red on main's last commit and opens (or comments on) the `nightly-ci` issue. The job named `verify` is
+# the one result the ruleset requires (with `smoke`): it fails when any job it waits on failed, and a skipped job
+# is not a failure.
 name: verify
 
 on:
   pull_request:
     branches: [main]
-  push:
-    branches: [main]
+  schedule:
+    - cron: '30 3 * * *'  # 03:30 UTC, once a day
+  workflow_dispatch:
 
 permissions:
   contents: read
 
-concurrency:  # a newer push to a pull request cancels its older run; every push to main gets its own run, so each merged commit is checked
+concurrency:  # a newer push to a pull request cancels its older run; a nightly or manual run on main gets its own
   group: verify-${{ github.event_name == 'pull_request' && github.ref || github.sha }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
@@ -52,7 +56,7 @@ jobs:
           [ -n "$version" ] || { echo "::error::package-lock.json names no @playwright/test version, so smoke has no container image"; exit 1; }
           echo "version=$version" >> "$GITHUB_OUTPUT"
 
-  # the quick failures first: types and lint stop a run before the slow jobs spend their minutes
+  # the quick failures first: types and lint stop a run before the unit tests and build spend their minutes
   lint:
     runs-on: ubuntu-latest
     timeout-minutes: 10
@@ -124,9 +128,9 @@ jobs:
   # `npm run smoke`: the dev server and the production bundle loaded in Chromium, with no Convex
   # deployment (playwright.config.ts); its report and traces are kept when it fails.
   # Playwright's image has Chromium and its OS packages baked in, so no run installs from apt,
-  # which failed about one run in four (#372).
+  # which failed about one run in four (#372). It waits only for `changes` (its container tag), not for lint.
   smoke:
-    needs: [changes, lint]
+    needs: changes
     if: needs.changes.outputs.code == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 10
@@ -163,3 +167,27 @@ jobs:
           case " $RESULTS " in
             *" failure "*|*" cancelled "*) echo "::error::a job did not pass"; exit 1 ;;
           esac
+
+  # a failed nightly run says so in an issue, beside the red mark on main, so nobody has to open the Actions tab
+  nightly-alert:
+    if: failure() && github.event_name == 'schedule'
+    needs: verify
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    permissions:
+      issues: write
+    steps:
+      - env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          ALERT_LABEL: nightly-ci
+        run: |
+          body="The nightly CI run on main failed: $RUN_URL"
+          gh label create "$ALERT_LABEL" --color B60205 --description "the nightly CI run on main failed" --force
+          open=$(gh issue list --label "$ALERT_LABEL" --state open --json number --jq '.[0].number // empty')
+          if [ -n "$open" ]; then
+            gh issue comment "$open" --body "$body"
+          else
+            gh issue create --title "Nightly CI failed on main" --label "$ALERT_LABEL" --body "$body"
+          fi
