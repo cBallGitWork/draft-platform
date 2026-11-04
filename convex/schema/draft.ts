@@ -36,6 +36,12 @@ export const draftTables = {
     startJob: v.optional(v.id("_scheduled_functions")),
     /** Present once it has started. */
     started: v.optional(startedDraft),
+    /** The pick on the clock (spec/04, The picks; #1091): its number, when its clock starts, 10
+     *  seconds after the pick before it, and when it runs out, and the scheduled job that makes the
+     *  pick for its team then, or as its clock starts for a team with no manager. Absent before the
+     *  draft starts and once it is over, and from a draft started before #1091 until its next pick.
+     *  ../draft/draftClock.ts writes it. */
+    clock: v.optional(v.object({ pick: v.number(), startsAt: v.number(), endsAt: v.number(), job: v.id("_scheduled_functions") })),
   }).index("by_leagueId", ["leagueId"]),
   /** A team's draft queue and do-not-draft list (spec/04, The queue and the ranking; #1092), one row
    *  at most, made the first time its manager adds to either: a team with none has both empty. They
