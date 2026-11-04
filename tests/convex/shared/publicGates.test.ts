@@ -52,6 +52,7 @@ beforeEach(async () => {
       "admin/feeds:feeds": () => caller.query(api.admin.feeds.feeds, { now }),
       "auth:isAuthenticated": () => caller.query(api.auth.isAuthenticated, {}),
       "auth:signOut": () => caller.action(api.auth.signOut, {}),
+      "draft/draftLists:mine": () => caller.query(api.draft.draftLists.mine, { leagueId }),
       "draft/draftOrder:teamOrder": () => caller.query(api.draft.draftOrder.teamOrder, { leagueId }),
       "draft/draftRanking:upload": () => caller.mutation(api.draft.draftRanking.upload, { file: "1001,1" }),
       "draft/draftRanking:view": () => caller.query(api.draft.draftRanking.view, {}),
