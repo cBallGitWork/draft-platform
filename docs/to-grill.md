@@ -258,7 +258,6 @@ be tabs on screens `spec/12` already lists rather than pages of their own.
 | Stat corrections | What moved after a match, and why (the window is `spec/07`'s) |
 | Waiver order and the can't-drop list, on show | Makes the waiver rules visible. Waiver priority "can be in its section, or a sub header" (Craig, 1 Nov 2026), so not on Home's deadline strip |
 | Who owned whom | A player's owners, gameweek by gameweek: for history and for his card |
-| Mock draft | Practice before the real one |
 | Commissioner fixes | Block one team from trading or claiming; adjust the standings |
 | Polls | A league vote on a rule change. Check it isn't the chat that's out of scope |
 | Help | How the game works, for a new manager |
