@@ -67,8 +67,17 @@ jobs:
 
             Ask only real rule questions: what a manager or commissioner sees or can do, what happens in an edge case. Skip implementation choices a builder makes alone. At most 5, the weakest dropped. Remember drafts can happen mid-season and players come and go.
 
+            Your own earlier "## Open rules" comments on this issue are out of date the moment Craig answers: never treat one as a reason to stop. Every run ends with a new comment and a label.
+
             Then do exactly one of:
             - Open rules: post one comment that starts with the line `## Open rules`. Under it, a numbered list. Each item has a bold short name, the question in plain words with a concrete example, `Rec:` your recommended answer, and `Alt:` one alternative. Then run `gh issue edit ${{ env.ISSUE }} --add-label rules:open`, and then, as its own command, `gh issue edit ${{ env.ISSUE }} --remove-label rules:clear` (that one fails harmlessly when the label isn't there).
             - Nothing left to ask: post one comment, `## Open rules` then `None: this issue can build.`, and run `gh issue edit ${{ env.ISSUE }} --add-label rules:clear`, and then, as its own command, `gh issue edit ${{ env.ISSUE }} --remove-label rules:open` (it fails harmlessly when the label isn't there).
 
             Plain UK English, short sentences, no jargon. Never edit files, never touch a pull request, never remove any other label.
+      # no silent errors (docs/PHILOSOPHY.md): a run that set neither label stopped part-way, so it goes red
+      - name: Fail unless the issue was labelled
+        run: |
+          labels=$(gh issue view "$ISSUE" --repo "$GITHUB_REPOSITORY" --json labels --jq '.labels[].name')
+          if ! grep -qxE 'rules:(open|clear)' <<<"$labels"; then
+            echo "::error::The Analyst finished without labelling #$ISSUE rules:open or rules:clear."; exit 1
+          fi
