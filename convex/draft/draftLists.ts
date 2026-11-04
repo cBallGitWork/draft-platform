@@ -103,7 +103,8 @@ export const move = mutation({
       const player = (await playerByCode(ctx, playerCode)) ?? refuse(refusals.noPlayer);
       return refuse(draftListRefusals.notQueued(player.name));
     }
-    if (!Number.isInteger(place) || place < 1 || place > lists.queue.length) refuse(draftListRefusals.noPlace(lists.queue.length));
+    const count = lists.queue.length;
+    if (!Number.isInteger(place) || place < 1 || place > count) refuse(draftListRefusals.noPlace(count));
     const rest = lists.queue.filter((code) => code !== playerCode);
     await ctx.db.patch("draftLists", lists._id, { queue: [...rest.slice(0, place - 1), playerCode, ...rest.slice(place - 1)] });
     return null;

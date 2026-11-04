@@ -267,6 +267,9 @@ Tactics pitch are built with no package, and components, motion, forms and chart
 - The shortlist (#374): each team's own list of players for the season, a row each in
   `shortlistPlayers` by FPL's `code`, read and changed only by its manager
   (`convex/scouting/shortlist.ts`).
+- The draft queue and do-not-draft list (#1092): each team's, one row in `draftLists` holding both
+  as lists of FPL's `code`, the queue in its order, read and changed only by its manager
+  (`convex/draft/draftLists.ts`).
 - Feedback (#357): each message to the admin is a row in `feedback`, kept for him to read on his
   dashboard (`convex/feedback/feedback.ts`).
 - Each person's time zone, as their browser last named it, is a row in `timeZones` by email, so
@@ -298,7 +301,8 @@ The homes the folder pass set (29 Oct 2026), so new code has one place to go:
   `convex/draft/`: the draft (spec/04): the snake order, and which players a pick may take (#1088);
   the draft settings' limits and kinds, and the commissioner's draft order (#1087); the admin's
   ranking, its file read and checked and the one row it is stored as (#1093); the draft's row,
-  its start date, start and read, and the order drawn at random (#1089).
+  its start date, start and read, and the order drawn at random (#1089); each team's queue and
+  do-not-draft list (#1092).
 - The feed adapters: `convex/football/fpl/` and `convex/football/premierLeague/`, copies of
   epl-draft's, never shared.
 - `convex/table/` keeps its name, because the browser and the scheduler call its functions.
