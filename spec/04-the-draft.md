@@ -68,7 +68,8 @@ Feature 4 of [SPEC.md](../SPEC.md). Only Craig's answers.
 - Pausing and resuming are by hand; a pause keeps the time left on the clock.
 - While the draft is paused, he can change the pick time; the new time applies when it resumes.
 - Undo takes back the last pick only, and can be repeated to go back further. The pick put back
-  gets the time that was left on its clock (Craig, 4 Nov 2026, "yes" to Claude's recommendation).
+  gets a full clock at the league's pick time, the new one if he has changed it (Craig, 4 Nov 2026:
+  "Full clock, but if admin changes the time per pick it resets to that too").
 - There is no cap on how often or how long he can pause (Craig, 2 Nov 2026).
 
 ## After the draft
