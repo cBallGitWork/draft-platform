@@ -89,6 +89,7 @@ jobs:
       - run: node scripts/recorded-add-only.mjs
       - run: node scripts/tests-kept.mjs
       - run: node scripts/spec-ids.mjs
+      - run: node scripts/contents-lists.mjs
       - run: .claude/hooks/test.sh
 
   # `npm test`, split across runners: vitest's own shards, so every test file runs in exactly one of them
