@@ -25,11 +25,31 @@ permissions:
   id-token: write
 
 jobs:
-  build:
-    # a build starts from Craig's `build` label, or from a dispatch (the nightly job, or Craig's button)
+  # the Analyst (analyst.yml) found rules Craig hasn't answered: a build now would stop on the same questions
+  rules:
     if: >-
       github.event_name == 'workflow_dispatch'
       || (github.event.label.name == 'build' && github.event.sender.login == github.repository_owner)
+    runs-on: ubuntu-latest
+    outputs:
+      open: ${{ steps.check.outputs.open }}
+    steps:
+      - id: check
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          ISSUE: ${{ inputs.issue || github.event.issue.number }}
+        run: |
+          [[ "$ISSUE" =~ ^[0-9]+$ ]]
+          if gh issue view "$ISSUE" --json labels --jq '.labels[].name' | grep -qx 'rules:open'; then
+            echo "open=true" >> "$GITHUB_OUTPUT"
+            echo "::notice::#$ISSUE has open rules (rules:open): no build until Craig answers them and the Analyst clears it."
+          fi
+  build:
+    needs: rules
+    # a build starts from Craig's `build` label, or from a dispatch (the nightly job, or Craig's button), once the
+    # Analyst has no open rules on the issue
+    if: needs.rules.outputs.open != 'true'
     # one build per issue, so a manual run and the nightly run never build it twice; different issues build side by
     # side. At job level, so a run for any other label (skipped by the `if` above) never joins the group and never
     # replaces a build waiting in it.
