@@ -36,6 +36,14 @@ Feature 5 of [SPEC.md](../SPEC.md). Only Craig's answers: the first `/grill` and
   like 4-5-1"; 3-6-1 he added (1 Nov 2026: "also add 3-6-1"). Then, from Craig on 1 Nov 2026
   ("formation presets that include sweeper/liberio too", "also formations with 2 at the back"):
   5-3-2 with a sweeper, 3-5-2 with a libero, 2-3-5 and 2-3-2-3.
+- A preset can set the starting role of the defence's centre cell; that is what makes the sweeper
+  and libero presets their own. The sweeper one is named 5(SW)-3-2: "Maybe add a (SW) after the
+  5"; the libero one, 3(L)-5-2, by the same pattern (Craig, 4 Nov 2026). 2-3-5 has two centre-backs,
+  three central midfielders and all five attack lanes; 2-3-2-3 has the same back two and middle
+  three, two central attacking midfielders and three central forwards (Craig, 4 Nov 2026: "yes").
+- A starter leaves the pitch only by swapping with a bench player, so the eleven stay eleven. A
+  refused move says why in the line under the toolbar where "Lineup saved" shows (Craig,
+  4 Nov 2026, "yes" to Claude's recommendation).
 - Classics are famous sides' formations, each a league rule like a preset, which the ready-made
   rules carry. A classic sets its shape, every slot's role and its team instructions, which
   Claude drafts and Craig edits (Craig, 1 Nov 2026). They include Keegan's Newcastle
