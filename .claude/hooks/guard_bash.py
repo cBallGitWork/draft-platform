@@ -1,13 +1,12 @@
 #!/usr/bin/env python3
 """PreToolUse guard for Bash: the CLAUDE.md "Working" rules, as machinery.
 
-Denies staging everything, force pushes, pushing to main, a gh api write to main (main_writes.py),
-committing or pushing while on main, publishing a word on Craig's private list (private_words.py),
-a pull request body that breaks the template's rules or a title far too long (pr_body.py), a gh pr
-merge once a drift pass is due unless it is one (drift_gate.py), a gh pr merge of a screen whose
+Denies staging everything, force pushes, committing while on main (a local commit GitHub can't
+see: a push or write to main GitHub's main ruleset refuses itself), publishing a word on Craig's
+private list (private_words.py), a pull request body that breaks the template's rules or a title
+far too long (pr_body.py), a gh pr merge once a drift pass is due unless it is one (drift_gate.py), a gh pr merge of a screen whose
 differences from its approved picture wait for Craig, or adding his craig-approved label
-(approval_gate.py), a gh pr merge whose checks haven't passed on all of main (checks_gate.py),
-and a read-only agent's git command that changes a checkout of this repo (read_only.py). Every command the line runs is
+(approval_gate.py), and a read-only agent's git command that changes a checkout of this repo (read_only.py). Every command the line runs is
 checked, those it passes to sh -c, eval, $(…), a heredoc, here-string or pipe into a shell (or a
 group around one), find -exec or ssh included, whatever its redirections (commands.py; where.py
 lists what it can't see), each in the folder it runs in (the shell's cwd, any cd before it, its
@@ -24,15 +23,13 @@ import re
 import sys
 
 from approval_gate import approval_problem, label_problem
-from checks_gate import checks_problem
 from commands import XARGS, Unbalanced, Unreadable, UnreadableStdin, commands, runs_unknown, short_flags
 from drift_gate import merge_problem
 from hook_payload import project_dir
-from main_writes import MAIN, MAIN_REFS, REMOTE_MAIN, gh_api_problem
 from pr_body import pr_body_problem, pr_title_note
 from private_words import list_missing_note, private_word_problem
 from read_only import agent_type_note, read_only_problem
-from where import current_branch, git_call, git_dir, options, previous_branch, runners
+from where import MAIN, REMOTE_MAIN, current_branch, git_call, git_dir, options, previous_branch, runners
 
 COMMIT_VALUE_SHORT = set("mFCct")  # in `-am msg` everything after m is the value
 MAIN_NAMES = {MAIN, REMOTE_MAIN}  # git switch main, git checkout origin/main
@@ -40,6 +37,8 @@ CREATES_BRANCH = {"-c", "-C", "-b", "-B", "--create", "--force-create", "--orpha
 ATTACHED_CREATE = re.compile(r"^-[a-zA-Z]*?([cCbB])(.*)$")  # -cmain, -qb main
 PREVIOUS = re.compile(r"^(-|@\{-(\d+)\})$")  # git switch -, git checkout @{-2}
 PUSH_VALUE_OPTS = {"-o", "--push-option", "--repo", "--receive-pack", "--exec"}
+FORCE_OPTS = {"--mirror", "-f"}  # and every --force…, but for NOT_FORCE
+NOT_FORCE = {"--force-if-includes"}  # alone it forces nothing: it only tightens --force-with-lease
 UNREADABLE = ("Can't read a string that runs as commands (sh -c, eval, env -S, $(…), backticks, or a "
               "heredoc or pipe into a shell): its quotes or brackets don't balance. Run the commands "
               "plainly, not inside a string.")
@@ -58,7 +57,7 @@ UNKNOWN_FOLDER = ("Can't tell which folder that runs in (a cd that may not take 
 CUT_A_BRANCH = ("Cut a branch first: git switch -c <type>/<thing> origin/main. "
                 "Prefixes: feat/ fix/ refactor/ docs/ chore/.")
 ON_MAIN = "You are on main. " + CUT_A_BRANCH
-SWITCHED_TO_MAIN = ("That switches to main before it commits or pushes (a git switch - counts as main "
+SWITCHED_TO_MAIN = ("That switches to main before it commits (a git switch - counts as main "
                     "where the guard can't tell which branch it goes back to). " + CUT_A_BRANCH)
 
 
@@ -139,26 +138,13 @@ def push_parts(args):
     return opts, operands if repo_given else operands[1:]
 
 
-def push_problem(args):
+def force_pushes(args):
+    """True if this push forces: --force or its kin, -f, --mirror, or a +refspec. Main itself
+    needs no check here: GitHub's main ruleset refuses any push to it."""
     opts, refs = push_parts(args)
-    for opt, _ in opts:
-        if opt.startswith("--force") or opt in {"--mirror", "-f"}:
-            return "force"
-    for ref in refs:
-        if ref.startswith("+"):
-            return "force"
-        if ref.split(":")[-1] in MAIN_REFS:
-            return "main"
-    return None
-
-
-def deletes_only(args):
-    """True if this push only deletes remote branches (--delete x, or :x), so it pushes nothing
-    from the branch it runs on. Deleting main is refused before this, as a push to main."""
-    opts, refs = push_parts(args)
-    deleting = any(opt in {"--delete", "-d"} for opt, _ in opts) or all(r.startswith(":") for r in refs)
-    names = {ref.lstrip(":") for ref in refs}
-    return bool(refs) and deleting and not names & {"HEAD", "@"}
+    if any((opt.startswith("--force") or opt in FORCE_OPTS) and opt not in NOT_FORCE for opt, _ in opts):
+        return True
+    return any(ref.startswith("+") for ref in refs)
 
 
 def decide(cmd, cwd, agent_type=None):
@@ -171,9 +157,8 @@ def decide(cmd, cwd, agent_type=None):
         return UNREADABLE
     except UnreadableStdin:
         return UNREADABLE_STDIN
-    problem = private_word_problem(cmd, cmds, cwd) or pr_body_problem(cmds, cwd) or gh_api_problem(cmds)
+    problem = private_word_problem(cmd, cmds, cwd) or pr_body_problem(cmds, cwd)
     problem = problem or label_problem(cmds) or merge_problem(cmds) or approval_problem(cmds)
-    problem = problem or checks_problem(cmds)
     problem = problem or read_only_problem(cmds, cwd, agent_type)
     if problem:
         return problem
@@ -195,17 +180,11 @@ def decide(cmd, cwd, agent_type=None):
             return "xargs adds the paths stdin holds, so the guard can't tell what that stages. " + STAGE_NAMED
         if sub == "commit" and commits_all(args):
             return "git commit -a stages every tracked change. Stage named paths with git add, then commit."
-        if sub == "push":
-            problem = push_problem(args)
-            if problem == "force":
-                return "No force pushes. If a branch has diverged, say so and let Craig decide."
-            if problem == "main":
-                return "That pushes to main. Changes reach main only through a squash-merged PR."
-        if sub in {"commit", "push"}:
+        if sub == "push" and force_pushes(args):
+            return "No force pushes. If a branch has diverged, say so and let Craig decide."
+        if sub == "commit":
             if folder is None:
                 return UNKNOWN_FOLDER
-            if sub == "push" and deletes_only(args):
-                continue
             if switched_to_main:
                 return SWITCHED_TO_MAIN
             branch = current_branch(folder)

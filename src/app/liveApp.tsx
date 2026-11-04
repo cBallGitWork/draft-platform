@@ -36,7 +36,7 @@ import { NO_CONVEX_URL } from "../shared/words";
 // through signIn/signInLinks:ask, and a link's code redeemed when the app is opened from one.
 
 /** The search param a sign-in link carries its code in (Convex Auth's). */
-const LINK_CODE_PARAM = "code";
+export const LINK_CODE_PARAM = "code";
 
 /** The code a sign-in link opened the app with, taken out of the address so a reload or a
  *  bookmark can't carry it. */

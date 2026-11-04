@@ -15,7 +15,7 @@ fails an arbitrary colour or px value (`bg-[#…]`, `w-[13px]`: `eslint.config.j
 palette, radii, shadows and type scale are switched off there, so a stock utility
 (`bg-slate-900`, `rounded-lg`) draws nothing.
 
-After any change a manager can see, run the `ui-verifier` agent: it shoots 390 and 1440 and looks.
+After any change a manager can see, run the `ui-verifier` agent: it shoots 1440 (390 only when Craig asks for the phone) and looks.
 
 ## Approved pictures
 

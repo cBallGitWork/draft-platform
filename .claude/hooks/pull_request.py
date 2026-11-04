@@ -1,11 +1,13 @@
 """Which pull request a merge names, and GitHub's record of it, for the merge gates
-(drift_gate.py, approval_gate.py, checks_gate.py). A merge comes two ways: gh pr merge through
+(drift_gate.py, approval_gate.py). A merge comes two ways: gh pr merge through
 Bash (guard_bash.py), or the GitHub tool's merge_pull_request (guard_github.py), the route a cloud
 session takes. Every gate reads GitHub's REST API (gh api), which a cloud session reaches where gh
 pr view's GraphQL can't (403), so each gate judges both routes alike (#1045). What it can't read
 raises Unread, which each gate turns into a denial, never a silent pass. Which pull request a
 gh pr merge names is worked out before any gate judges it, so one it can't name is refused even
-below the drift trigger, as the checks gate would refuse it anyway. Stdlib only, Python 3.9+.
+below the drift trigger, and one with --admin is refused before any gate: the gh token is Craig's, and
+an admin merge bypasses the main ruleset's review rule, as #1066 and #1067 did. Stdlib only,
+Python 3.9+.
 """
 
 from __future__ import annotations
@@ -25,6 +27,10 @@ MERGE_VALUE_OPTS = {"-b", "--body", "-F", "--body-file", "-t", "--subject", "-A"
 PLACEHOLDER = "{owner}/{repo}"  # gh api fills it from the folder's remote
 PR_URL = re.compile(r"github\.com/([^/\s]+/[^/\s]+)/pull/(\d+)")
 WHICH_PR = "Can't tell which pull request this merges"
+ADMIN_OPT = "--admin"
+ADMIN_BYPASS = ("gh pr merge --admin bypasses the main ruleset's checks and review, and the admin bypass "
+                "is Craig's, used by him in GitHub. Merge without --admin once the pull request is "
+                "mergeable, or ask Craig to merge it.")
 
 
 class Unread(Exception):
@@ -32,11 +38,20 @@ class Unread(Exception):
 
 
 def merge_args(words):
-    """The args after gh pr merge, if this simple command runs it, else None."""
+    """The args after gh pr merge, if this simple command runs it, else None. A -R/--repo given
+    before pr merge (gh -R o/r pr merge 5) is skipped over and kept, first, in the args."""
     i = runs_at(words, "gh")
-    if i is None or words[i + 1 : i + 3] != MERGE_CALL:
+    if i is None:
         return None
-    return words[i + 3 :]
+    i, before = i + 1, []
+    while i < len(words) and (words[i].startswith("-R") or words[i].partition("=")[0] in REPO_OPTS):
+        joined = "=" in words[i] or (words[i].startswith("-R") and len(words[i]) > 2)  # --repo=o/r, -Ro/r
+        step = 1 if joined else 2
+        before += words[i : i + step]
+        i += step
+    if words[i : i + 2] != MERGE_CALL:
+        return None
+    return before + words[i + 2 :]
 
 
 def view_args(args):
@@ -64,6 +79,18 @@ def api(folder, path):
         return json.loads(out)
     except ValueError as error:
         raise Unread(f"gh api {path} gave no JSON ({error})") from error
+
+
+def uses_admin(args):
+    """True if these gh pr merge args pass --admin (anywhere, or as --admin=value), other than as
+    the value of an option such as --body."""
+    i = 0
+    while i < len(args):
+        arg = args[i]
+        if arg.partition("=")[0] == ADMIN_OPT:
+            return True
+        i += 2 if arg in MERGE_VALUE_OPTS else 1
+    return False
 
 
 def _target(args, folder):
@@ -115,6 +142,8 @@ def merges_problem(cmds, judge):
         args = merge_args(words)
         if args is None:
             continue
+        if uses_admin(args):
+            return ADMIN_BYPASS
         try:
             repo, number = _target(args, here)
         except (Unread, KeyError, TypeError) as error:

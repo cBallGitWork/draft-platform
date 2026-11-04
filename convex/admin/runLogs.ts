@@ -2,6 +2,7 @@ import { v } from "convex/values";
 import { internal } from "../_generated/api";
 import { internalMutation } from "../_generated/server";
 import { failureOf, type RunOutcome } from "./feedState";
+import { scheduleHeartbeat } from "../heartbeats/heartbeat";
 import { FEED_RUN_TABLES, feedValidator, type Feed } from "../shared/feedSchedule";
 import { BATCH_SIZE, FAILURE_KEPT_MS, LATEST_RUNS, SUCCESS_KEPT_MS } from "../shared/syncRuns";
 
@@ -91,6 +92,8 @@ export const prune = internalMutation({
       await ctx.scheduler.runAfter(0, internal.admin.runLogs.prune, { feed: next, startedAt });
     } else {
       await ctx.scheduler.runAfter(0, internal.signIn.signInLinks.pruneSignInAsks, {});
+      // The run logs are done: the daily clean-up's heartbeat.
+      await scheduleHeartbeat(ctx, "pruneRunLogs");
     }
     return null;
   },

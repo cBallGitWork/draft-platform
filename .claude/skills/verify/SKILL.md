@@ -1,6 +1,6 @@
 ---
 name: verify
-description: Run the local gate before a commit or a pull request (the install check, tests, typecheck, the lint step, the recorded-payload check, the tests-kept check, the spec-ID check, the hook checks) and report the count; CI also runs the build and the smoke suite. Use before any commit, before /refactor and pr-reviewer, and whenever Craig asks whether it passes. Adapted from epl-draft's verify (17 Oct 2026).
+description: Run the local gate before a commit or a pull request (the install check, tests, typecheck, the lint step, the recorded-payload check, the tests-kept check, the spec-ID check, the contents-list check, the hook checks) and report the count; CI also runs the build and the smoke suite. Use before any commit, before /refactor and pr-reviewer, and whenever Craig asks whether it passes. Adapted from epl-draft's verify (17 Oct 2026).
 ---
 
 # Verify
@@ -9,12 +9,14 @@ description: Run the local gate before a commit or a pull request (the install c
 npm run verify   # install check, vitest run, tsc on convex/ and on the app, the lint step
                  # (eslint's hook rules, no arbitrary Tailwind values), then scripts/recorded-add-only.mjs (payloads, goldens add-only),
                  # scripts/tests-kept.mjs (no test origin/main has is cut),
-                 # scripts/spec-ids.mjs (spec answer IDs and tests' citations), .claude/hooks/test.sh
+                 # scripts/spec-ids.mjs (spec answer IDs and tests' citations),
+                 # scripts/contents-lists.mjs (a doc over 100 lines opens with a contents list),
+                 # .claude/hooks/test.sh
 npm test -- <file>   # one test file
 ```
 
-`npm run verify` is the local gate, and the Stop hook runs the same script, so a session can't
-end on a failure it didn't mention.
+`npm run verify` is the local gate, and CI runs the same script on every pull request, which the
+`main` ruleset requires, so a failure you didn't catch here stops the merge.
 
 CI also runs `npm run build` and `npm run smoke`. Smoke needs Google Chrome locally (the Smoke
 tests row in [ARCHITECTURE.md](../../../ARCHITECTURE.md#libraries-claudes)).
@@ -24,8 +26,7 @@ tests row in [ARCHITECTURE.md](../../../ARCHITECTURE.md#libraries-claudes)).
 
 Never run bare `npx vitest`: `npm test` wraps vitest in `scripts/with-deadline.mjs`, which kills
 the run at its deadline (`package.json`'s `test` script), so a test that loops forever fails
-instead of hanging the session. That deadline sits under the Stop hook's own
-(`GATE_TIMEOUT_SECONDS`, `.claude/hooks/gate_on_stop.py`). On a 4-core cloud box vitest alone took
+instead of hanging the session. On a 4-core cloud box vitest alone took
 108-134s (27 Oct 2026, #467), about the Bash tool's default timeout, so give the tool call a
 timeout over the deadline or run it in the background.
 
@@ -49,6 +50,7 @@ lint       clean / <n> problems (<which files>)
 recorded   add-only / FAILED (<which file>)
 tests kept none cut / FAILED (<which tests>)
 spec IDs   <n> answers, uncited: <ids or none> / FAILED (<which>)
+contents   every long doc has one / FAILED (<which docs>)
 hooks      all checks pass / <n> FAIL
 build      passed / FAILED / not run (CI runs it)
 smoke      <n> passed / FAILED (<which>) / not run (CI runs it)
