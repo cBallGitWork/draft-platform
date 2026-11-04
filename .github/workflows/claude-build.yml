@@ -151,12 +151,12 @@ jobs:
           git config user.name "claude-build" && git config user.email "claude-build@users.noreply.github.com"
           if [ "$current" != HEAD ] && [ -n "$(gh pr list --head "$current" --state open --json number --jq '.[].number')" ]; then
             if [[ "$current" == wip/issue-"$ISSUE"-* ]]; then  # a carried-on draft: keep what it wrote since its last push
-              git add -A -- . ':!node_modules' ':!test-results' ':!.shots' ':!dist' ':!coverage'
+              git add -A  # .gitignore keeps out node_modules, dist, .shots, test-results and coverage; naming them here made git add exit 1
               git diff --cached --quiet || { git commit -q -m "wip: unfinished build of #$ISSUE"; git push -q origin "HEAD:refs/heads/$current"; }
             fi
             echo "The build's pull request is open."; exit 0
           fi
-          git add -A -- . ':!node_modules' ':!test-results' ':!.shots' ':!dist' ':!coverage'
+          git add -A  # .gitignore keeps out node_modules, dist, .shots, test-results and coverage; naming them here made git add exit 1
           git diff --cached --quiet || git commit -q -m "wip: unfinished build of #$ISSUE"
           if [ -z "$(git log --oneline origin/main..HEAD)" ]; then echo "Nothing written past main: no draft."; exit 0; fi
           branch="wip/issue-$ISSUE-$GITHUB_RUN_ID"  # the name the next build looks for; one per run, so none collide
