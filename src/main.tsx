@@ -6,11 +6,18 @@ import "./styles.css";
 
 import { StrictMode, type ReactNode } from "react";
 import { createRoot } from "react-dom/client";
+import { ReportedApp, reportingRootOptions, startErrorReports } from "./app/errorReports";
 import { LiveApp, takeLinkCode } from "./app/liveApp";
 
+const reporting = startErrorReports();
 const root = document.getElementById("root");
 if (!root) throw new Error("index.html has no #root element to mount the app in");
-const mount = (app: ReactNode) => createRoot(root).render(<StrictMode>{app}</StrictMode>);
+const mount = (app: ReactNode) =>
+  createRoot(root, reportingRootOptions(reporting)).render(
+    <StrictMode>
+      <ReportedApp>{app}</ReportedApp>
+    </StrictMode>,
+  );
 const liveAppElement = () => <LiveApp linkCode={takeLinkCode()} />;
 
 // The preview's made-up data loads only on the dev server: `vite build` folds
