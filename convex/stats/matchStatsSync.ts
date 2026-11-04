@@ -3,7 +3,7 @@ import { internal } from "../_generated/api";
 import { internalAction, type ActionCtx } from "../_generated/server";
 import { codesByOpta, fixtureCodeIn, namedMen } from "../football/feedIds";
 import { logFailure, outcomeOf } from "../shared/errors";
-import { withHeartbeat } from "../heartbeats/heartbeat";
+import { CRON_TRIGGER, withHeartbeat } from "../heartbeats/heartbeat";
 import { readFplPayloads } from "../football/fpl/fpl";
 import { fplStatLines, readFplLive, type FplStatLine } from "../football/fpl/fplLive";
 import { matchRecords } from "./matchRecords";
@@ -41,7 +41,7 @@ export const run = internalAction({
   args: { trigger: syncTrigger },
   returns: v.null(),
   handler: async (ctx, { trigger }) =>
-    withHeartbeat(trigger === "cron" ? "lateStats" : null, async () => {
+    withHeartbeat(trigger === CRON_TRIGGER ? "lateStats" : null, async () => {
       const ranAt = Date.now();
       let teamStats: SideMatchOutcome[] = [];
       let unseenFrom: number | undefined;
