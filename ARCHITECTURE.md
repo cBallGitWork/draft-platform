@@ -230,7 +230,9 @@ Tactics pitch are built with no package, and components, motion, forms and chart
   the app opens it on any device they sign in on (#76).
 - Squads (#122): a `squadPlayers` row (league, team, FPL `code`) for each player on a team, one
   team per player per league (index `by_leagueId_and_playerCode`). Assigning, moving and
-  releasing a player are filed as `leagueEvents` for Mail.
+  releasing a player are filed as `leagueEvents` for Mail, and so is a draft pick, as an
+  assignment; each pick is also a `draftPicks` row (league, pick number, team, `code`), and the
+  draft's row keeps the squad rules its picks follow (#1090).
 - Fixtures and the table (#129, #131, #137): a gameweek's fixtures are stored in
   `playedFixtures` once it begins, at the league's own deadline, and read from there ever after;
   the gameweeks still to come are drawn on every read, seeded by the league's id. The football

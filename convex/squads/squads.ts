@@ -23,8 +23,8 @@ import { pickFirstLineupAgain } from "../lineup/lineups";
 // holds him (spec/19). The league's squad limits warn, never block. All three are refused while the
 // league's draft is live, when its picks alone change squads (../draft/draftPicks.ts).
 //
-// Each change to a squad files its league event in the same transaction, and nothing else writes
-// squadPlayers, so the events say what every squad was at any moment (squadPlace.ts `squadAt`,
+// Each change to a squad files its league event in the same transaction, and nothing but these and
+// a draft pick (../draft/draftPicks.ts, filed as `playerAssigned`) writes squadPlayers, so the events say what every squad was at any moment (squadPlace.ts `squadAt`,
 // #415). A new way to change a squad must file one of squadPlace.ts's SQUAD_MOVES too, or join
 // them, and pick each team's first lineup again (lineups.ts `pickFirstLineupAgain`), so a team
 // always has a lineup (#637).
