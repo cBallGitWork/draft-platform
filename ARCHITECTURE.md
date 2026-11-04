@@ -296,7 +296,8 @@ The homes the folder pass set (29 Oct 2026), so new code has one place to go:
   deadline's kept copy that picks an auto-sub's role.
   `convex/gameweekScorer/`: the gameweek scorer.
   `convex/draft/`: the draft (spec/04): the snake order, and which players a pick may take (#1088);
-  the draft settings' limits and kinds, and the commissioner's draft order (#1087).
+  the draft settings' limits and kinds, and the commissioner's draft order (#1087); the admin's
+  ranking, its file read and checked and the one row it is stored as (#1093).
 - The feed adapters: `convex/football/fpl/` and `convex/football/premierLeague/`, copies of
   epl-draft's, never shared.
 - `convex/table/` keeps its name, because the browser and the scheduler call its functions.

@@ -52,6 +52,8 @@ export const gates: Record<string, Gate> = {
   "auth:signOut": "open",
   "draft/draftOrder:setTeamOrder": "runner",
   "draft/draftOrder:teamOrder": "runner",
+  "draft/draftRanking:upload": "admin",
+  "draft/draftRanking:view": "admin",
   "feedback/feedback:list": "admin",
   "feedback/feedback:send": "signedIn",
   "football/matchScores:ofGameweek": "signedIn",
