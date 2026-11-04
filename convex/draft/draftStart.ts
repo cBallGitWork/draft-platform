@@ -28,7 +28,7 @@ export const draftStartRefusals = {
 
 /** The draft's rounds under these rules: the squad's most players, or null with no squad size
  *  limit, or no rules (a league made before #25). */
-const roundsOf =(rules: LeagueRules | null): number | null => rules?.squad.size?.maximum ?? null;
+const roundsOf = (rules: LeagueRules | null): number | null => rules?.squad.size?.maximum ?? null;
 
 /** Why the league's draft can't start now, or be given a date; otherwise what it starts with: its
  *  teams and rounds. */

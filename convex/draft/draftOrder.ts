@@ -2,7 +2,7 @@ import { v } from "convex/values";
 import type { Doc, Id } from "../_generated/dataModel";
 import { mutation, query, type MutationCtx } from "../_generated/server";
 import { refuse, runnerOf, teamsOf } from "../shared/leagueAccess";
-import { shuffle } from "../table/roundRobin";
+import { shuffle } from "../shared/shuffle";
 import { draftHasStarted } from "./draftRow";
 
 // The draft order (spec/04, Starting it; #1087, #1089). It starts as the order the teams joined
