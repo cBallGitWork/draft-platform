@@ -1,4 +1,4 @@
-"""Reads a hook's payload, for gate_on_stop.py, line_ceiling.py and tidy_after_merge.py: the JSON
+"""Reads a hook's payload, for line_ceiling.py: the JSON
 object Claude Code writes on stdin. Anything else (nothing, text that isn't JSON, a JSON list or
 string) raises BadPayload saying what came, and the hook exits 1 with it on stderr: Claude Code
 shows that, where a payload read as {} would have checked nothing and said nothing. guard_bash.py
@@ -48,6 +48,6 @@ def project_dir(cwd=""):
 
 def report(error, consequence):
     """Says on stderr, in one line, why the hook running couldn't do its job (an unreadable payload,
-    or whatever kept gate_on_stop.py's gate from running); returns the exit code for it."""
+    or whatever kept the hook from running); returns the exit code for it."""
     print(f"{os.path.basename(sys.argv[0])}: {error}, so {consequence}.", file=sys.stderr)
     return 1
