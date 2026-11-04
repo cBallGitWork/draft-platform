@@ -61,7 +61,7 @@ test("any other failure is logged and said plainly", async () => {
 });
 
 test("the commissioner's draft order is read from draft/draftOrder:teamOrder", () => {
-  const order = [{ teamId: "team-1", name: "Saka Potatoes" }];
+  const order = { teams: [{ teamId: "team-1", name: "Saka Potatoes" }], started: false };
   convex.teamOrder.mockReturnValue(order);
 
   expect(renderHook(() => useLiveLeagueSettings().useTeamOrder(A_LEAGUE_ID)).result.current).toBe(order);

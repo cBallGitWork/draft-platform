@@ -36,13 +36,14 @@ export function draftOrderOf<Team extends { _id: Id<"teams"> }>(teams: readonly 
 export const teamOrderOf = (teams: Doc<"teams">[], league: Doc<"leagues">) =>
   draftOrderOf(teams, league.draftOrder).map(({ _id, name }) => ({ teamId: _id, name }));
 
-/** The draft order as League settings shows it, first pick first. For whoever runs the league. */
+/** The draft order as League settings shows it, first pick first, and whether the draft has
+ *  started, which fixes it. For whoever runs the league. */
 export const teamOrder = query({
   args: { leagueId: v.id("leagues") },
-  returns: v.array(teamInOrder),
+  returns: v.object({ teams: v.array(teamInOrder), started: v.boolean() }),
   handler: async (ctx, { leagueId }) => {
     const { league } = await runnerOf(ctx, leagueId);
-    return teamOrderOf(await teamsOf(ctx, leagueId), league);
+    return { teams: teamOrderOf(await teamsOf(ctx, leagueId), league), started: await draftHasStarted(ctx, leagueId) };
   },
 });
 

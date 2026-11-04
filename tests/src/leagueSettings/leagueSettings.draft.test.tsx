@@ -10,6 +10,7 @@ import {
   autoPickWords,
   blankPickClockWords,
   blankTimeoutsWords,
+  draftStartedWords,
   drawOrderWords,
   moveDownLabel,
   moveUpLabel,
@@ -145,6 +146,15 @@ describe("the commissioner's draft order (#1087)", () => {
     await userEvent.click(screen.getByRole("button", { name: drawOrderWords }));
 
     expect((await within(orderPanel()!).findByRole("alert")).textContent).toBe(draftOrderRefusals.started);
+  });
+
+  it("once the draft has started, shows the order fixed, with no moves and no draw", async () => {
+    await openedSettings({ draftStarted: true });
+    const rows = within(orderPanel()!).getAllByRole("listitem");
+
+    expect(rows.map((row) => row.textContent)).toEqual([`1${saka.name}`, `2${kroos.name}`, `3${pique.name}`]);
+    expect(within(orderPanel()!).getByText(draftStartedWords)).toBeTruthy();
+    expect(within(orderPanel()!).queryByRole("button")).toBeNull();
   });
 
   it("offers no draw with one team or none", async () => {

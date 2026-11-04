@@ -112,7 +112,7 @@ export const startOnDate = internalMutation({
     const league = await ctx.db.get("leagues", leagueId);
     const refusal = league === null || league.deletion !== undefined ? "the league is being deleted" : await begin(ctx, league, draft);
     if (refusal !== null) {
-      console.info(`League ${leagueId}'s draft didn't start at its date, and waits for its commissioner: ${refusal}`);
+      console.warn(`League ${leagueId}'s draft didn't start at its date, and waits for its commissioner: ${refusal}`);
       await ctx.db.patch("drafts", draft._id, { startsAt: undefined, startJob: undefined });
     }
     return null;

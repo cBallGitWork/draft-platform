@@ -61,6 +61,7 @@ export const undraftedHint = "Until waivers are built, they go to free agents.";
 export const teamOrderTitle = "Draft order";
 export const teamOrderHint = "Teams start in the order they joined, and a team that joins later goes to the bottom. A move or a draw saves at once.";
 export const drawOrderWords = "Draw at random";
+export const draftStartedWords = "The draft has started, so this order is fixed.";
 export const teamOrderLoadingWords = "Loading the draft order…";
 export const noTeamsWords = "No teams have joined yet.";
 export const moveUpWords = "Up";

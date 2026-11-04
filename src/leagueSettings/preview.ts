@@ -10,7 +10,7 @@ import type { LeagueSettingsSeam } from "./seam";
 import { unmovedOutcome, unsavedOutcome } from "./words";
 
 const view = { part: leagueSettingsOf(FIRST_RULES), revision: PREVIEW_REVISION, changesFrom: PREVIEW_CHANGES_FROM };
-const teamOrder = previewTeams.map((name) => ({ teamId: previewIdOf(name), name }));
+const teamOrder = { teams: previewTeams.map((name) => ({ teamId: previewIdOf(name), name })), started: false };
 
 export const previewLeagueSettings: LeagueSettingsSeam = {
   useSettings: () => view,
