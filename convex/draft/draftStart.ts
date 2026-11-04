@@ -32,7 +32,7 @@ export const draftStartRefusals = {
 
 /** The draft's rounds under these rules: the squad's most players, or null with no squad size
  *  limit, or no rules (a league made before #25). */
-const roundsOf =(rules: LeagueRules | null): number | null => rules?.squad.size?.maximum ?? null;
+const roundsOf = (rules: LeagueRules | null): number | null => rules?.squad.size?.maximum ?? null;
 
 /** The league's rules in force at `now`: those of the gameweek under way, or before the league's
  *  first gameweek begins, that gameweek's; a change waiting for a later gameweek isn't among them
