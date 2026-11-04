@@ -74,6 +74,7 @@ export async function aRowInEveryTable(t: TestConvex, leagueId: Id<"leagues">): 
     await ctx.db.insert("letters", { to: ANN, leagueId, at: 0, subject: WORDS, body: WORDS });
     await ctx.db.insert("drafts", { leagueId, started: { at: 0, teamIds: [teamId], rounds: 1 } });
     await ctx.db.insert("draftLists", { leagueId, teamId, queue: [playerCode], doNotDraft: [] });
+    await ctx.db.insert("draftPicks", { leagueId, pick: 1, teamId, playerCode, at: 0 });
   });
 }
 

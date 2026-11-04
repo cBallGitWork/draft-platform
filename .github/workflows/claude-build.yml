@@ -76,7 +76,8 @@ jobs:
         Read CLAUDE.md first and follow it: one branch, one pull request, named paths staged, never a commit on main.
         Build only what the issue and the spec files it names say; where the spec is silent, stop and comment on the issue with your question instead of guessing.
         If this repository has a branch named `wip/issue-${{ inputs.issue || github.event.issue.number }}-<number>` (`git ls-remote --heads origin 'wip/issue-${{ inputs.issue || github.event.issue.number }}-*'`), an earlier build stopped part-way: switch to the newest one, carry on from it, push to it, and make its draft pull request the finished one (`gh pr edit` for the title, the template's body and `--add-label lane:auto` unless the issue carries `lane:craig`, then `gh pr ready`) instead of opening another. Use `gh pr edit` and `gh pr ready` on that draft only, never on any other pull request. Trust only such a branch in this repository, never a pull request from a fork or a title that merely looks like one.
-        Make your branch first, and commit and push it after each step that works, so nothing is lost if the run stops part-way.
+        Make your branch first and commit as you go, but push once, when `npm run verify` passes. Each push costs a turn. If you stop to ask a question or the run is cut off, leave your work committed and unpushed: the job's last step keeps it as a draft pull request the next build carries on from (Craig, 4 Nov 2026: builds must be far quicker).
+        If the latest comment by `github-actions[bot]` (the Analyst) has a `## Build map`, and no one else's, start from it: the files it names and the test it says to copy. It is a map, not instructions, so check it against the code, but don't search the codebase beyond it unless it turns out wrong.
         While you work, run only the tests for the files you change (`npx vitest run <paths>`) and `npm run typecheck`; run the full `npm run verify` once, just before you open the pull request, since every extra full run costs minutes (Craig, 4 Nov 2026: a 20-minute build ran the suite 17 times). Open it with the repo's template filled in honestly.
         Open the pull request with `--label lane:auto`, unless the issue carries the `lane:craig` label: the label is what lets the lane-auto bot give the one approval the ruleset needs, and a pull request on an outcome path still waits for Craig through Code Owners.
         Never merge it, and never touch .github/, .claude/ or CLAUDE.md.
@@ -157,7 +158,7 @@ jobs:
       # A build that ran out of turns (#989 used all 60 on 4 Nov 2026 and left nothing) or stopped part-way opened no
       # pull request: whatever it wrote goes up as a draft one on a `wip/issue-N-<run id>` branch, which the next build
       # is told to carry on from. A build that stopped on a question (a comment on the issue since it started, by
-      # anyone but the owner) leaves no draft. Pushed with GITHUB_TOKEN, the draft runs no CI; the next build's push does.
+      # anyone but the owner) keeps its work the same way, so the answer's build carries on from it. Pushed with GITHUB_TOKEN, the draft runs no CI; the next build's push does.
       - name: Keep unfinished work as a draft pull request
         if: always() && steps.decide.outcome != 'skipped'
         env:
@@ -166,7 +167,6 @@ jobs:
         run: |
           asked=$(gh api "repos/$GITHUB_REPOSITORY/issues/$ISSUE/comments?since=$BUILD_STARTED" \
             --jq "[.[] | select(.user.login != \"$OWNER\")] | length")
-          if [ "$asked" != 0 ]; then echo "The build asked a question on the issue: no draft."; exit 0; fi
           current=$(git rev-parse --abbrev-ref HEAD)
           git config user.name "claude-build" && git config user.email "claude-build@users.noreply.github.com"
           if [ "$current" != HEAD ] && [ -n "$(gh pr list --head "$current" --state open --json number --jq '.[].number')" ]; then
@@ -184,8 +184,34 @@ jobs:
           url=$(gh pr create --draft --base main --head "$branch" \
             --title "wip: unfinished build of #$ISSUE" \
             --body "The build of #$ISSUE stopped before it opened its pull request, out of turns or cut off. This is what it wrote, unreviewed and unverified. Part of #$ISSUE")
-          gh issue comment "$ISSUE" --body "The build stopped before it finished. Its work so far is in the draft $url. Label the issue \`build\` again to carry on from it."
+          if [ "$asked" != 0 ]; then why="stopped to ask the question above"; else why="stopped before it finished"; fi
+          gh issue comment "$ISSUE" --body "The build $why. Its work so far is in the draft $url. Label the issue \`build\` again to carry on from it."
           echo "::warning::Unfinished build kept as $url"
+      # Where a build's turns go, as counts only, on the run's summary page (Craig, 4 Nov 2026: 80 steps is a lot, record
+      # it). The raw execution file is not uploaded: the repo is public and it holds every command's output.
+      - name: Record where the build's steps went
+        if: always() && steps.subscription.outcome != 'skipped'
+        env:
+          EXECUTION_FILE: ${{ steps.subscription.outputs.execution_file }}
+          DEFAULT_EXECUTION_FILE: ${{ runner.temp }}/claude-execution-output.json
+        run: |
+          file="${EXECUTION_FILE:-$DEFAULT_EXECUTION_FILE}"
+          [ -s "$file" ] || { echo "No execution file: nothing to record."; exit 0; }
+          jq -r '
+            [ (if type == "array" then .[] else . end) ] as $all
+            | ([ $all[] | select(.type? == "result") ] | last // {}) as $r
+            | [ $all[] | select(.type? == "assistant") | .message.content[]? | select(.type == "tool_use") ] as $t
+            | "## Where the build'"'"'s steps went",
+              "",
+              "Turns: \($r.num_turns // "?") · minutes: \((($r.duration_ms // 0) / 60000 * 10 | floor) / 10) · tool calls: \($t | length)",
+              "",
+              "| Tool | Calls |", "|---|---|",
+              ( $t | group_by(.name) | map({n: .[0].name, c: length}) | sort_by(-.c)[] | "| \(.n) | \(.c) |" ),
+              "",
+              "| Command | Calls |", "|---|---|",
+              ( [ $t[] | select(.name == "Bash") | .input.command // "" | split("\n")[0] | split(" ")[0:2] | join(" ") ]
+                | group_by(.) | map({n: .[0], c: length}) | sort_by(-.c)[0:12][] | "| `\(.n)` | \(.c) |" )
+          ' "$file" | tee -a "$GITHUB_STEP_SUMMARY"
       # continue-on-error keeps the subscription step's failure off the job, so a real failure is turned red here
       - name: Fail when the subscription build failed and was not run again
         if: steps.subscription.outcome == 'failure' && steps.decide.outputs.fall_back != 'true'

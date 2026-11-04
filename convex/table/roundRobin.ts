@@ -9,6 +9,8 @@
 // in past are done"; #266).
 // Pure: no I/O.
 
+import { shuffle } from "../shared/shuffle";
+
 /** With an odd number of teams, what the team left over plays each gameweek: no one, or the
  *  league's average score that gameweek (spec/09). A league's rule (spec/03), stored as data. */
 export const ODD_TEAM_OUTS = ["bye", "leagueAverage"] as const;
@@ -131,16 +133,6 @@ export function roundOrder(roundCount: number, gamesEach: readonly number[], see
     order.push(...opening, ...shuffled.filter((round) => !opening.includes(round)));
   }
   return gamesEach.map((games, index) => order.slice(starts[index], starts[index] + games));
-}
-
-/** A Fisher-Yates shuffle of `items` in place, by `random`; the draft order's draw uses it too
- *  (../draft/draftOrder.ts). */
-export function shuffle<Item>(items: Item[], random: () => number): Item[] {
-  for (let index = items.length - 1; index > 0; index -= 1) {
-    const other = Math.floor(random() * (index + 1));
-    [items[index], items[other]] = [items[other], items[index]];
-  }
-  return items;
 }
 
 /** FNV-1a's 32-bit offset basis and prime, mulberry32's step, and how many 32-bit numbers there are. */

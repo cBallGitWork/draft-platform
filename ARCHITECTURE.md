@@ -230,7 +230,9 @@ Tactics pitch are built with no package, and components, motion, forms and chart
   the app opens it on any device they sign in on (#76).
 - Squads (#122): a `squadPlayers` row (league, team, FPL `code`) for each player on a team, one
   team per player per league (index `by_leagueId_and_playerCode`). Assigning, moving and
-  releasing a player are filed as `leagueEvents` for Mail.
+  releasing a player are filed as `leagueEvents` for Mail, and so is a draft pick, as an
+  assignment; each pick is also a `draftPicks` row (league, pick number, team, `code`), and the
+  draft's row keeps the squad rules its picks follow (#1090).
 - Fixtures and the table (#129, #131, #137): a gameweek's fixtures are stored in
   `playedFixtures` once it begins, at the league's own deadline, and read from there ever after;
   the gameweeks still to come are drawn on every read, seeded by the league's id. The football
@@ -301,8 +303,8 @@ The homes the folder pass set (29 Oct 2026), so new code has one place to go:
   `convex/draft/`: the draft (spec/04): the snake order, and which players a pick may take (#1088);
   the draft settings' limits and kinds, and the commissioner's draft order (#1087); the admin's
   ranking, its file read and checked and the one row it is stored as (#1093); the draft's row,
-  its start date, start and read, and the order drawn at random (#1089); each team's queue and
-  do-not-draft list (#1092).
+  its start date, start and read, and the order drawn at random (#1089); a manager's pick (#1090); and
+  each team's queue and do-not-draft list (#1092).
 - The feed adapters: `convex/football/fpl/` and `convex/football/premierLeague/`, copies of
   epl-draft's, never shared.
 - `convex/table/` keeps its name, because the browser and the scheduler call its functions.
