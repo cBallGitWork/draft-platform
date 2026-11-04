@@ -73,6 +73,15 @@ Feature 4 of [SPEC.md](../SPEC.md). Only Craig's answers.
   won't do alone, since players join the league each season (Craig, 2 Nov 2026).
 - With no ranking uploaded, auto-pick falls back to last season's points under the site's scoring
   (`spec/14`), newcomers last by name (Craig, 2 Nov 2026).
+- The ranking file is a CSV of `code,rank`, `code` the player's FPL code. No two players share a
+  rank; gaps are fine (1, 2, 5); a player left out falls back to last season's points; a bad row
+  refuses the whole file, with every bad row listed and the old ranking kept (Craig, 4 Nov 2026,
+  on #1093, "your suggestions 1 to 5 stand").
+- "remember that new plahyers will be added/removed and drafts can take place mid season" (Craig,
+  4 Nov 2026, on #1093). So a code for a player no longer in the game is skipped and listed as
+  skipped, not a bad row; a player added after the upload falls back like any unranked player; and
+  nothing assumes the draft is in pre-season.
+- The ranking's admin panel comes later: "Server now, panel later" (Craig, 4 Nov 2026, on #1093).
 
 ## The draft room
 
