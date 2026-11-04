@@ -1,12 +1,9 @@
-# Only the one-way doors need Craig's review (Craig, 4 Nov 2026:
-# "speeding up"). Everything else merges on green CI and one pr-reviewer round.
-# GitHub enforces this through the `main` ruleset's "Require review from Code Owners".
-
-# one-way doors: how points are worked out, and the shape of saved data
-/convex/scoring/        @cBallGitWork
-/convex/gameweekScorer/ @cBallGitWork
-/convex/schema/         @cBallGitWork
-/convex/schema.ts       @cBallGitWork
+# Nothing needs Craig's review while no real league exists (Craig, 4 Nov 2026: "we've actually gone backwards
+# today", on yet another draft build waiting for his merge). Scoring and the schema were one-way doors here. Until a
+# league is real, nothing saved belongs to anyone and re-scoring is fine, so every pull request merges on green CI
+# and one pr-reviewer round. #1123 puts them back before the first real league's draft:
+#   /convex/scoring/  /convex/gameweekScorer/  /convex/schema/  /convex/schema.ts
+# GitHub enforces this file through the `main` ruleset's "Require review from Code Owners".
 
 # The pipeline's guards (.claude/, .github/) are not here: lane-auto.yml withholds its approval from a pull request
 # that touches them unless Craig's account opened it, so the nightly builder can't loosen its own checks, and a
