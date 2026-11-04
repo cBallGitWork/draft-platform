@@ -21,7 +21,6 @@ import {
   squadColumns,
   squadTableLabel,
   swapLabel,
-  toBenchWords,
 } from "./words";
 
 type Column = keyof typeof squadColumns;
@@ -41,16 +40,15 @@ export type SeasonOf = ReadonlyMap<number, SquadRow> | undefined;
 /** The Selection table (the approved Tactics picture; plate.md, Tables and panels): the eleven back
  *  to front, each led by his slot's position chip, then the bench in order under its own plate,
  *  each led by his place and his main position, with the role he'd play best there, muted. A tap on
- *  a player opens his panel, where Move is (no action column); a row drags onto the pitch, and with
- *  a starter picked up, the bench's plate offers to take him. A player he can swap with is lit, and
- *  a tap or a drop on him swaps them (spec/05, Moving players); a player dropped on any other bench
- *  row takes its place (spec/05 Auto-subs). */
+ *  a player opens his panel, where Move is (no action column); a row drags onto the pitch. A player
+ *  he can swap with is lit, and a tap or a drop on him swaps them (spec/05, Moving players); a bench
+ *  player dropped on another bench row takes its place (spec/05 Auto-subs). A starter leaves the
+ *  pitch only by a swap (Craig, 4 Nov 2026), so any other drop of one is refused, saying why. */
 export function SquadTable({
   draft,
   squad,
   season,
   moving,
-  onBench,
   onBenchAt,
   onRole,
 }: {
@@ -58,7 +56,6 @@ export function SquadTable({
   squad: ReadonlyMap<number, SquadMember>;
   season: SeasonOf;
   moving: Moving;
-  onBench(): void;
   onBenchAt(playerCode: number, index: number): void;
   onRole(playerCode: number, role: string): void;
 }) {
@@ -69,10 +66,10 @@ export function SquadTable({
   };
   const drop = (event: DragEvent) => {
     event.preventDefault();
-    if (pickedStarts) onBench();
+    if (pickedStarts) moving.onDrop("bench");
   };
   const row = (playerCode: number, place: { starter: Starter } | { benchIndex: number }) => (
-    <SelectionRow key={playerCode} player={squad.get(playerCode)!} season={season?.get(playerCode) ?? (season === undefined ? undefined : null)} place={place} onBenchAt={onBenchAt} onRole={onRole} moving={moving} />
+    <SelectionRow key={playerCode} player={squad.get(playerCode)!} season={season?.get(playerCode) ?? (season === undefined ? undefined : null)} place={place} onBenchAt={onBenchAt} onRole={onRole} moving={moving} pickedOnBench={picked !== null && !pickedStarts} />
   );
   return (
     <table aria-label={squadTableLabel} className="w-full border-collapse">
@@ -81,14 +78,7 @@ export function SquadTable({
       <tbody onDragOver={allowDrop} onDrop={drop}>
         <tr className="bg-plate">
           <th scope="rowgroup" colSpan={BEFORE_ROLE} className="px-2 text-left font-bold">
-            <span className="flex flex-wrap items-center justify-between gap-2">
-              {BENCH_TITLE}
-              {pickedStarts && (
-                <button type="button" onClick={onBench} className="secondary-action lg:min-h-0">
-                  {toBenchWords(picked.name)}
-                </button>
-              )}
-            </span>
+            {BENCH_TITLE}
           </th>
           <th scope="col" className={`${cellClasses("role")} font-bold`}>
             {BEST_ROLE_HEAD}
@@ -116,6 +106,7 @@ function SelectionRow({
   onBenchAt,
   onRole,
   moving,
+  pickedOnBench,
 }: {
   player: SquadMember;
   /** His row on the Squad tab's read: undefined while it loads, null where it has none (one the
@@ -125,15 +116,17 @@ function SelectionRow({
   onBenchAt(playerCode: number, index: number): void;
   onRole(playerCode: number, role: string): void;
   moving: Moving;
+  /** Whether the player picked up is on the bench. */
+  pickedOnBench: boolean;
 }) {
   const { picked } = moving;
   const shown = moving.selected === player.playerCode || picked?.playerCode === player.playerCode;
   const benchIndex = "benchIndex" in place ? place.benchIndex : null;
   const lit = moving.reach?.players.includes(player.playerCode) ?? false;
   const swapsWith = lit && picked !== null;
-  // A player dragged onto a lit row swaps with him; onto any other bench row, takes its place. The
-  // bench's own drop (to the end) is for the rest of it.
-  const takesDrop = picked !== null && (lit || benchIndex !== null);
+  // A bench player dragged onto another bench row takes its place; any other drop on another row
+  // swaps the two where they may, or is refused, saying why (#1022).
+  const takesDrop = picked !== null && picked.playerCode !== player.playerCode;
   const allowDrop = (event: DragEvent) => {
     if (takesDrop) event.preventDefault();
   };
@@ -141,8 +134,8 @@ function SelectionRow({
     if (!takesDrop) return;
     event.preventDefault();
     event.stopPropagation();
-    if (lit) moving.onSwap(player.playerCode);
-    else if (benchIndex !== null) onBenchAt(picked.playerCode, benchIndex);
+    if (pickedOnBench && benchIndex !== null) onBenchAt(picked.playerCode, benchIndex);
+    else moving.onDrop({ playerCode: player.playerCode });
   };
   return (
     <tr

@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { STARTER_COUNT } from "../../../convex/lineup/lineup";
-import type { Cell } from "../../../convex/lineup/pitch";
 import type { LeagueSummary } from "../../../convex/leagues/myLeagues";
 import { ESCAPE_KEY, KEY_DOWN } from "../../shared/browserEvents";
 import { Loading, Notice, PageSection, Panel, PanelNote } from "../../ui/Panel";
@@ -9,7 +8,7 @@ import { unheldNoticeWords } from "../../shared/words";
 import { TeamPage } from "../header/TeamHeader";
 import { markedBy } from "./focusMarks";
 import { FormationWindow } from "./formationWindow/FormationWindow";
-import { benched, benchedAt, movedTo, openingLineup, placeOf, presetInUse, reachOf, reshaped, swapped, withRole, type DraftLineup, type MoveRules, type RatingsOf } from "./lineupDraft";
+import { benchedAt, dropOutcome, openingLineup, placeOf, presetInUse, reachOf, reshaped, swapped, withRole, type DraftLineup, type MoveRules, type RatingsOf } from "./lineupDraft";
 import { Pitch, PITCH_ROOM_STYLE, type Moving } from "./pitch/Pitch";
 import { SquadTable } from "./SquadTable";
 import { useLineupEdits } from "./useLineupEdits";
@@ -24,6 +23,7 @@ import {
   onTheBenchWords,
   pickHintWords,
   pitchTitle,
+  refusalWords,
   seasonOverWords,
   SELECTION_TITLE,
   startingWords,
@@ -136,16 +136,17 @@ function LineupEditor({ league, teamName, tactics, seam }: { league: LeagueSumma
     },
     onPick: (playerCode) => setPickedCode((current) => (current === playerCode ? null : playerCode)),
     onGrab: setPickedCode,
-    onPlace: (cell: Cell) => {
-      if (picked !== null) change(movedTo(draft, picked.playerCode, cell, ratingsOf), picked.playerCode);
-    },
     onSwap: (playerCode) => {
       if (picked !== null) change(swapped(draft, picked.playerCode, playerCode, ratingsOf), picked.playerCode);
     },
+    // A refused drop says why in the line under the toolbar (spec/05; Craig, 4 Nov 2026).
+    onDrop: (target) => {
+      if (picked === null) return;
+      const outcome = dropOutcome(draft, picked.playerCode, target, rules);
+      if ("swapWith" in outcome) change(swapped(draft, picked.playerCode, outcome.swapWith, ratingsOf), picked.playerCode);
+      else edits.refuse(refusalWords(outcome.refusal, (playerCode) => squad.get(playerCode)!.name));
+    },
     onDragEnd: () => setPickedCode(null),
-  };
-  const toBench = () => {
-    if (picked !== null) change(benched(draft, picked.playerCode), picked.playerCode);
   };
   /** A starter given another role his slot offers; the picker keeps the focus. */
   const toRole = (playerCode: number, role: string) => change(withRole(draft, playerCode, role), playerCode, [markedBy("role", playerCode)]);
@@ -221,7 +222,7 @@ function LineupEditor({ league, teamName, tactics, seam }: { league: LeagueSumma
           }
           className="min-w-0 grow basis-squad"
         >
-          <SquadTable draft={draft} squad={squad} season={season} moving={moving} onBench={toBench} onBenchAt={toBenchAt} onRole={toRole} />
+          <SquadTable draft={draft} squad={squad} season={season} moving={moving} onBenchAt={toBenchAt} onRole={toRole} />
         </Panel>
         <div className="flex min-w-0 grow basis-widgets flex-col gap-2 lg:grow-0">
           {selected !== undefined && selectedPlace !== null && (
