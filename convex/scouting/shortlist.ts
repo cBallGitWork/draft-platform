@@ -25,17 +25,18 @@ export const shortlistRefusals = {
   full: `A shortlist holds at most ${SHORTLIST_MOST} players. Take one off first.`,
 };
 
-export const shortlistedPlayer = v.object({
+/** A player on a manager's own list: the shortlist, or the draft queue or do-not-draft list. */
+export const listedPlayer = v.object({
   code: v.number(),
   name: v.string(),
   fullName: v.string(),
   club: clubRecord,
   /** The team in this league that owns him, or null for a free agent. */
   ownerTeamName: v.union(v.string(), v.null()),
-  /** The feed no longer sends him: he has left the Premier League since he was shortlisted. */
+  /** The feed no longer sends him: he has left the Premier League since he was listed. */
   gone: v.boolean(),
 });
-export type ShortlistedPlayer = Infer<typeof shortlistedPlayer>;
+export type ShortlistedPlayer = Infer<typeof listedPlayer>;
 
 /** The caller's team in the league, or the refusal that they run none. Unlike `managerOf`, a
  *  stranger is told they aren't in the league (memberOf), and only a member who runs no team (its
@@ -85,7 +86,7 @@ export async function listedPlayers(ctx: QueryCtx, leagueId: Id<"leagues">, code
  *  commissioner or the admin only), who has none. */
 export const mine = query({
   args: { leagueId: v.id("leagues") },
-  returns: v.union(v.array(shortlistedPlayer), v.null()),
+  returns: v.union(v.array(listedPlayer), v.null()),
   handler: async (ctx, { leagueId }) => {
     const { team } = await memberOf(ctx, leagueId);
     if (!team) return null;

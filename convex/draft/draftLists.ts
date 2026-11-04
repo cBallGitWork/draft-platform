@@ -1,7 +1,7 @@
 import { v } from "convex/values";
 import type { Doc, Id } from "../_generated/dataModel";
 import { mutation, query, type QueryCtx } from "../_generated/server";
-import { listedPlayers, ownTeam, shortlistedPlayer } from "../scouting/shortlist";
+import { listedPlayer, listedPlayers, ownTeam } from "../scouting/shortlist";
 import { memberOf, refuse, refusals } from "../shared/leagueAccess";
 import { playerByCode } from "../shared/players";
 import { DRAFT_LIST_MOST } from "./draftLimits";
@@ -40,7 +40,7 @@ function listsOf(ctx: QueryCtx, teamId: Id<"teams">): Promise<Doc<"draftLists"> 
  *  the league who runs no team (a commissioner or the admin only), who has neither. */
 export const mine = query({
   args: { leagueId: v.id("leagues") },
-  returns: v.union(v.object({ queue: v.array(shortlistedPlayer), doNotDraft: v.array(shortlistedPlayer) }), v.null()),
+  returns: v.union(v.object({ queue: v.array(listedPlayer), doNotDraft: v.array(listedPlayer) }), v.null()),
   handler: async (ctx, { leagueId }) => {
     const { team } = await memberOf(ctx, leagueId);
     if (!team) return null;
