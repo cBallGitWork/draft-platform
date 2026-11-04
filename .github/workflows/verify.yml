@@ -1,11 +1,11 @@
-# The local gate (`npm run verify`) split into jobs that run side by side, then `npm run build` and `npm run smoke`;
-# what it catches and why here: ARCHITECTURE.md, Services.
-# A pull request that changes only docs (docs/, spec/, .claude/, *.md) runs the cheap checks and skips the
-# unit tests, build and smoke. A merge to main runs nothing: a nightly run on main (and a manual one, from the
-# Actions tab) runs all of it, the safety net for two merges that pass alone but clash together. A failed nightly
-# run goes red on main's last commit and opens (or comments on) the `nightly-ci` issue. The job named `verify` is
-# the one result the ruleset requires (with `smoke`): it fails when any job it waits on failed, and a skipped job
-# is not a failure.
+# The local gate (`npm run verify`) as one job, then `npm run build`, beside `npm run smoke`; what it catches and
+# why here: ARCHITECTURE.md, Services. One job, one npm ci (Craig, 4 Nov 2026, after the tech-lead review: four
+# jobs each ran their own npm ci).
+# A pull request that changes only docs (docs/, spec/, .claude/, *.md) or the agents' prompt workflows runs the cheap
+# checks and skips the unit tests, build and smoke. A merge to main runs nothing: a nightly run on main (and a manual
+# one, from the Actions tab) runs all of it, the safety net for two merges that pass alone but clash together. A
+# failed nightly run goes red on main's last commit and opens (or comments on) the `nightly-ci` issue. The jobs
+# named `verify` and `smoke` are the results the ruleset requires; a skipped smoke is not a failure.
 name: verify
 
 on:
@@ -23,10 +23,12 @@ concurrency:  # a newer push to a pull request cancels its older run; a nightly 
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 env:
-  UNIT_SHARDS: 3  # keep in step with the `shard` matrix below
+  # code = any changed file outside docs/, spec/, .claude/, markdown and the agents' prompt workflows, which no
+  # test, build or smoke run exercises (Craig, 4 Nov 2026: stop running CI all the time)
+  NOT_CODE: '^(docs/|spec/|\.claude/)|\.md$|^\.github/workflows/(claude-build|nightly-build|review|drift-pass)\.yml$'
 
 jobs:
-  # what changed, and smoke's container tag
+  # what changed, and smoke's container tag; no npm ci
   changes:
     runs-on: ubuntu-latest
     timeout-minutes: 5
@@ -43,9 +45,7 @@ jobs:
             echo "code=true" >> "$GITHUB_OUTPUT"
             exit 0
           fi
-          # code = any changed file outside docs/, spec/, .claude/, markdown and the agents' prompt workflows, which no
-          # test, build or smoke run exercises (Craig, 4 Nov 2026: stop running CI all the time)
-          if git diff --no-renames --name-only "origin/$GITHUB_BASE_REF...HEAD" | grep -qvE '^(docs/|spec/|\.claude/)|\.md$|^\.github/workflows/(claude-build|analyst|nightly-build)\.yml$'; then
+          if git diff --no-renames --name-only "origin/$GITHUB_BASE_REF...HEAD" | grep -qvE "$NOT_CODE"; then
             echo "code=true" >> "$GITHUB_OUTPUT"
           else
             echo "code=false" >> "$GITHUB_OUTPUT"
@@ -57,25 +57,11 @@ jobs:
           [ -n "$version" ] || { echo "::error::package-lock.json names no @playwright/test version, so smoke has no container image"; exit 1; }
           echo "version=$version" >> "$GITHUB_OUTPUT"
 
-  # the quick failures first: types and lint stop a run before the unit tests and build spend their minutes
-  lint:
+  # `npm run verify`'s steps and `npm run build`, quick failures first. It works out for itself whether code changed,
+  # so a failed `changes` job can't skip it: a required job that is skipped would count as passed.
+  verify:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version-file: .nvmrc
-          cache: npm
-      - run: npm ci
-      - run: npm run typecheck
-      - run: npm run lint
-
-  # the checks that read git history and the hooks; they run beside the slow jobs, not in front of them
-  checks:
-    needs: lint
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
         with:
@@ -84,56 +70,38 @@ jobs:
         with:
           node-version-file: .nvmrc
           cache: npm
+      - id: diff
+        run: |
+          if [ "$GITHUB_EVENT_NAME" != "pull_request" ] \
+            || git diff --no-renames --name-only "origin/$GITHUB_BASE_REF...HEAD" | grep -qvE "$NOT_CODE"; then
+            echo "code=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "code=false" >> "$GITHUB_OUTPUT"
+          fi
       # the hook checks run on the runner's own bash, python3, git and /usr/bin/jq: say which
       - run: bash --version | head -1 && python3 --version && git --version && /usr/bin/jq --version
       - run: npm ci
+      - run: npm run typecheck
+      - run: npm run lint
       - run: node scripts/recorded-add-only.mjs
       - run: node scripts/tests-kept.mjs
       - run: node scripts/spec-ids.mjs
       - run: node scripts/contents-lists.mjs
       - run: .claude/hooks/test.sh
-
-  # `npm test`, split across runners: vitest's own shards, so every test file runs in exactly one of them
-  unit:
-    needs: [changes, lint]
-    if: needs.changes.outputs.code == 'true'
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    strategy:
-      fail-fast: false
-      matrix:
-        shard: [1, 2, 3]
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version-file: .nvmrc
-          cache: npm
-      - run: npm ci
-      - run: npm test -- --shard=${{ matrix.shard }}/${{ env.UNIT_SHARDS }}
-
-  # the production bundle builds and holds no preview data; the unit tests never run vite build
-  build:
-    needs: [changes, lint]
-    if: needs.changes.outputs.code == 'true'
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version-file: .nvmrc
-          cache: npm
-      - run: npm ci
-      - run: npm run build
+      - if: steps.diff.outputs.code == 'true'
+        run: npm test
+      # the production bundle builds and holds no preview data; the unit tests never run vite build
+      - if: steps.diff.outputs.code == 'true'
+        run: npm run build
 
   # `npm run smoke`: the dev server and the production bundle loaded in Chromium, with no Convex
   # deployment (playwright.config.ts); its report and traces are kept when it fails.
   # Playwright's image has Chromium and its OS packages baked in, so no run installs from apt,
-  # which failed about one run in four (#372). It waits only for `changes` (its container tag), not for lint.
+  # which failed about one run in four (#372). It runs when `changes` failed too, so it goes red rather than
+  # being skipped (a skipped required job counts as passed).
   smoke:
     needs: changes
-    if: needs.changes.outputs.code == 'true'
+    if: ${{ !cancelled() && needs.changes.outputs.code != 'false' }}
     runs-on: ubuntu-latest
     timeout-minutes: 10
     container:
@@ -155,25 +123,12 @@ jobs:
             test-results/
           retention-days: 7
 
-  # the result the ruleset requires: it runs whatever happened above, and a skipped job is fine
-  verify:
-    if: always()
-    needs: [changes, lint, checks, unit, build, smoke]
-    runs-on: ubuntu-latest
-    timeout-minutes: 2
-    steps:
-      - env:
-          RESULTS: ${{ join(needs.*.result, ' ') }}
-        run: |
-          echo "job results: $RESULTS"
-          case " $RESULTS " in
-            *" failure "*|*" cancelled "*) echo "::error::a job did not pass"; exit 1 ;;
-          esac
-
   # a failed nightly run says so in an issue, beside the red mark on main, so nobody has to open the Actions tab
   nightly-alert:
-    if: failure() && github.event_name == 'schedule'
-    needs: verify
+    if: >-
+      always() && github.event_name == 'schedule'
+      && (needs.verify.result != 'success' || (needs.smoke.result != 'success' && needs.smoke.result != 'skipped'))
+    needs: [verify, smoke]
     runs-on: ubuntu-latest
     timeout-minutes: 2
     permissions:

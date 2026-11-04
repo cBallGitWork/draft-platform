@@ -1,6 +1,6 @@
 ---
 name: refactor
-description: The refactor check every pull request gets before pr-reviewer runs. Runs a four-point checklist once over the branch's diff, code and docs alike, covering what pr-reviewer doesn't, and reports every finding. Use before opening a pull request, or when Craig asks for a refactor pass or "one more pass".
+description: The refactor checklist the weekly drift pass runs. Runs a four-point checklist once over the branch's diff or a given range, code and docs alike, covering what pr-reviewer doesn't, and reports every finding. Use in a drift pass, or when Craig asks for a refactor pass or "one more pass".
 allowed-tools: Bash(git diff:*), Bash(git status:*)
 ---
 

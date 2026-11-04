@@ -43,8 +43,8 @@ printf '.x {}\n' > "$repo/src/ui/controls.css"
 git init -q -b main "$repo" && git -C "$repo" add docs src && git -C "$repo" "${as_tester[@]}" commit -q -m start
 git -C "$repo" update-ref refs/remotes/origin/main HEAD
 
-# the bodies: the whole template signed by pr-reviewer, then ui-verifier's block three ways
-template_body | signed > "$repo/pr.md"
+# the bodies: the whole template with an empty Approved vs built section, then ui-verifier's block several ways
+{ template_body; printf '\n## Approved vs built\n'; } > "$repo/pr.md"
 verifier="*Verifier: ui-verifier (sonnet), 2026-11-01, abc..def*"
 filled() { # name lines...: pr.md with these lines under its Approved vs built heading
   local name=$1; shift
@@ -92,8 +92,8 @@ git -C "$repo" update-ref -d refs/remotes/origin/main
 says "Can't tell whether this branch changes a screen" guard_bash.py "$(bash_in "$repo" "$(create pr-matches.md)")"
 git -C "$repo" update-ref refs/remotes/origin/main main
 
-# the merge: the stand-in gh api gives $FAKE_BODY's file and $FAKE_LABELS (one commit on main, so
-# the drift gate lets every merge through); the GitHub tool's merge waits the same way
+# the merge: the stand-in gh api gives $FAKE_BODY's file and $FAKE_LABELS; the GitHub tool's merge
+# waits the same way
 stand_in_gh <<'EOF'
 echo "stand-in gh: no answer for $*" >&2; exit 1
 EOF

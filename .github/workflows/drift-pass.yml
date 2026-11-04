@@ -1,0 +1,70 @@
+# The weekly drift pass (docs/REFACTORING.md, "The drift pass"). Craig, 4 Nov 2026: "once a week but make it a
+# bigger job", never a merge gate. Each week it opens (or reopens) the one drift-pass issue, labelled `build`, with
+# the range of merges since the last pass, and hands it to claude-build.yml, which builds it like any issue: the
+# /refactor checklist over the week's merges, and SPEC.md's status rows and ARCHITECTURE.md brought up to what merged.
+# It dispatches rather than relying on the `build` label: a label added with the default token starts no workflow.
+name: drift-pass
+
+on:
+  schedule:
+    - cron: "0 1 * * 1"  # Mondays 01:00 UTC, before the nightly builds
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: write
+  issues: write
+  pull-requests: read
+
+env:
+  GH_TOKEN: ${{ github.token }}
+  GH_REPO: ${{ github.repository }}
+  DRIFT_LABEL: drift-pass  # finds the one issue, open or closed
+  TITLE: "Weekly drift pass"
+  PASS_MARK: "^refactor: drift pass"  # how a drift pass's pull request title starts (docs/REFACTORING.md, Record)
+
+jobs:
+  open:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262  # v4.4.0
+        with:
+          fetch-depth: 0  # the range runs back to the last drift pass
+      - name: Open or reopen the drift-pass issue and start its build
+        run: |
+          last=$(git log -1 --format=%h --grep="$PASS_MARK" origin/main)
+          range="${last:+$last..}origin/main"
+          count=$(git rev-list --count "$range")
+          if [ "$count" = 0 ]; then echo "Nothing merged since the last drift pass ($last)."; exit 0; fi
+          if [ -n "$(gh pr list --state open --search "\"refactor: drift pass\" in:title" --json number --jq '.[].number')" ]; then
+            echo "::notice::A drift pass's pull request is still open: no new pass this week."; exit 0
+          fi
+          merges=$(git log --format='- %s' "$range" | head -60)
+          body=$(cat <<EOF
+          The weekly drift pass (Craig, 4 Nov 2026: "once a week but make it a bigger job"). Range: \`${last:-the start}..main\`, $count merged.
+
+          Do, over that range (docs/REFACTORING.md, "The drift pass"):
+          1. The /refactor checklist (.claude/skills/refactor/SKILL.md) across the range: \`git diff --stat ${last:+$last..}origin/main\`.
+          2. For each new home the range adds (a helper, read, hook, words, test fixture), search the whole codebase for an older twin.
+          3. SPEC.md's status rows brought up to what merged in the range.
+          4. ARCHITECTURE.md brought up to what merged in the range.
+
+          Fixes go on a \`refactor/\` branch; the pull request title starts \`refactor: drift pass\`. Record the \`Self-review:\` line in a commit message (docs/REFACTORING.md, Record). Never change scoring, the draft or saved data here (docs/REFACTORING.md, "What is never a refactor").
+
+          Merged since the last pass:
+          $merges
+          EOF
+          )
+          gh label create "$DRIFT_LABEL" --color 5319E7 --description 'The weekly drift pass' --force
+          gh label create build --color 1D76DB --description 'Build this issue' --force
+          issue=$(gh issue list --state all --label "$DRIFT_LABEL" --limit 1 --json number --jq '.[0].number // empty')
+          if [ -z "$issue" ]; then
+            url=$(gh issue create --title "$TITLE" --label "$DRIFT_LABEL" --label build --body "$body")
+            issue=${url##*/}
+          else
+            gh issue reopen "$issue" 2>/dev/null || true  # already open is fine
+            gh issue edit "$issue" --title "$TITLE" --body "$body" --add-label build
+          fi
+          gh workflow run claude-build.yml -f issue="$issue"
+          echo "::notice::Drift pass #$issue started over $range ($count merged)."

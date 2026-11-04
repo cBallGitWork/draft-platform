@@ -90,12 +90,10 @@ silent guard_bash.py "$(bash_cmd 'git commit -m "clean"')"
 unset DRAFT_PRIVATE_WORDS_LIST
 printf 'acmecorp\n' > "$tmp/.claude/private-words.txt"
 
-# a pull request's body: the whole template with a bare Closes line and a verdict passes; a closing
-# word by an issue number elsewhere, a local path, a missing section, no pr-reviewer verdict or a
-# ticked "not run" box is refused, as is a body it can't read.
-# pr.md carries pr-reviewer's signature; pr-unsigned.md is the bare template, with no verdict at all.
-template_body > "$tmp/pr-unsigned.md"
-signed < "$tmp/pr-unsigned.md" > "$tmp/pr.md"
+# a pull request's body: the whole template, filled in, passes; a closing word by an issue number
+# anywhere but a bare Closes line, a local path, no "## What" or no "Part of #n" / "Closes #n" line is
+# refused, as is a body it can't read. No pr-reviewer verdict is asked for: review.yml posts it.
+template_body > "$tmp/pr.md"
 for b in 'Partly closes #31; the screen remains.' 'It does **not** close #87.' "doesn't fully close #87" \
   'see /Users/craigball/x' 'in /private/tmp/claude-501/x' 'Fixes #4' 'Closes #12  <!-- the template comment, left in -->'; do
   cp "$tmp/pr.md" "$tmp/pr-bad.md" && printf '%s\n' "$b" >> "$tmp/pr-bad.md"
@@ -105,25 +103,23 @@ done
 check allow guard_bash.py "$(bash_in "$tmp" 'gh pr create --title x --body-file pr.md')"
 check allow guard_bash.py "$(bash_in "$tmp" 'gh pr create --title x -F pr.md')"
 check allow guard_bash.py "$(bash_in "$tmp" "gh pr create --title x --body $(printf %q "$(cat "$tmp/pr.md")")")"
+check allow guard_bash.py "$(bash_in "$tmp" 'gh pr create --title x --body "## What
+It mends a fixed bug.
+
+Closes #31"')"
 check allow guard_bash.py "$(bash_in "$tmp" 'gh pr edit 3 --body "Part of #31; refs #87. It mends a fixed bug."')"
 check allow guard_bash.py "$(bash_in "$tmp" 'gh pr edit 3 --title "new title"')"  # no body, nothing to check
-grep -v '^## Merge danger' "$tmp/pr.md" > "$tmp/pr-no-danger.md"
-grep -v '^## Fresh-eyes review' "$tmp/pr.md" > "$tmp/pr-no-review.md"
-grep -v '^## Checks' "$tmp/pr.md" > "$tmp/pr-no-checks.md"
-grep -v '^## Left for later' "$tmp/pr.md" > "$tmp/pr-no-later.md"
-cp "$tmp/pr.md" "$tmp/pr-ticked.md" && printf '%s\n' '- [x] pr-reviewer: not run — out of time' >> "$tmp/pr-ticked.md"
-cp "$tmp/pr-unsigned.md" "$tmp/pr-not-run.md" && printf '%s\n' '- [ ] pr-reviewer: not run — out of time' >> "$tmp/pr-not-run.md"
-for c in 'gh pr create --title x --body-file pr-no-danger.md' 'gh pr create --title x --body-file=pr-no-review.md' \
-  'gh pr create --title x --body-file pr-no-checks.md' 'gh pr create --title x --body-file pr-no-later.md' \
-  'gh pr create --title x --body-file pr-unsigned.md' 'gh pr create --title x --body-file pr-ticked.md' \
+grep -v '^## What' "$tmp/pr.md" > "$tmp/pr-no-what.md"
+grep -v '^Part of #' "$tmp/pr.md" > "$tmp/pr-no-issue.md"
+for c in 'gh pr create --title x --body-file pr-no-what.md' 'gh pr create --title x --body-file=pr-no-issue.md' \
   'gh pr create --title x --body "## What"' 'gh pr create --title x --fill' 'gh pr create --title x --body-file nope.md' \
   'gh pr create --title x --body-file - < pr.md' 'gh pr create --title x --body "$(cat pr.md)"' \
   'gh pr edit 3 -b "Closes #3 and #4"' 'env gh pr edit 3 --body "partly fixes #3"'; do
   check deny guard_bash.py "$(bash_in "$tmp" "$c")"
 done
-check allow guard_bash.py "$(bash_in "$tmp" 'gh pr edit 3 --body-file pr-no-danger.md')"  # create only
-check allow guard_bash.py "$(bash_in "$tmp" 'gh pr create --title x --body-file pr-not-run.md')"  # said, not ticked
-check allow guard_bash.py "$(bash_in "$tmp" 'gh pr edit 3 --body-file pr-unsigned.md')"  # create only
+says 'The body names no issue' guard_bash.py "$(bash_in "$tmp" 'gh pr create --title x --body-file pr-no-issue.md')"
+check allow guard_bash.py "$(bash_in "$tmp" 'gh pr edit 3 --body-file pr-no-what.md')"  # create only
+check allow guard_bash.py "$(bash_in "$tmp" 'gh pr edit 3 --body-file pr-no-issue.md')"  # create only
 
 # a pull request's title: a soft limit of 100 characters (a note, not a denial), denied past 120
 t100=$(printf 'x%.0s' {1..100}) t101=$(printf 'x%.0s' {1..101}) t120=$(printf 'x%.0s' {1..120})
