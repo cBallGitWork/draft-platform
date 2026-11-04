@@ -10,7 +10,7 @@ import { internal } from "../_generated/api";
 import type { Doc } from "../_generated/dataModel";
 import { internalAction, internalMutation, internalQuery, type ActionCtx, type MutationCtx } from "../_generated/server";
 import { outcomeOf } from "../shared/errors";
-import { withHeartbeat } from "../heartbeats/heartbeat";
+import { CRON_TRIGGER, withHeartbeat } from "../heartbeats/heartbeat";
 import { fixtureByCode } from "../shared/fixtures";
 import { findClubByCode, playerByCode } from "../shared/players";
 import { readFpl } from "./fpl/fpl";
@@ -56,7 +56,7 @@ export const run = internalAction({
   args: { trigger: syncTrigger },
   returns: v.null(),
   handler: async (ctx, { trigger }) =>
-    withHeartbeat(trigger === "cron" ? "footballSync" : null, async () => {
+    withHeartbeat(trigger === CRON_TRIGGER ? "footballSync" : null, async () => {
       const ranAt = Date.now();
       const outcome: Infer<typeof footballSyncFields.outcome> = await outcomeOf(SYNC_FAILED_LOG, async () => {
         // The seam: swap `readFpl` for another feed's reader that returns the same `Football`.
