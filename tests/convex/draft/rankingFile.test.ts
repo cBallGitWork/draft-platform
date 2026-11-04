@@ -44,7 +44,7 @@ describe("bad lines, each reported with its number", () => {
     ]);
   });
 
-  test.each(["0", "-1", "1.5", "first", ""])("a rank of %j", (rank) => {
+  test.each(["0", "-1", "1.5", "first", "", "99999999999999999999"])("a rank of %j", (rank) => {
     expect(readRankingFile(`1001,${rank}`).problems).toEqual([{ line: 1, words: rankingProblems.badRank(rank) }]);
   });
 

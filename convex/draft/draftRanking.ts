@@ -16,8 +16,8 @@ import { rankingProblems, readRankingFile, type RankingProblem } from "./ranking
 // The admin dashboard's panel for it is a follow-up, waiting on an approved picture (Craig,
 // 4 Nov 2026, on #1093: "Server now, panel later").
 
-/** The most lines a file may rank: the game's players, about 800 a season with those who come and
- *  go, with room. Each line reads its player, and Convex caps the reads one mutation makes, so a
+/** The most lines a file may rank: well above the players in the game in a season, those who come
+ *  and go among them. Each line reads its player, and Convex caps the reads one mutation makes, so a
  *  longer file is refused whole, never cut. */
 export const RANKING_LINES_MOST = 2000;
 

@@ -19,7 +19,8 @@ export const rankingProblems = {
   unknownCode: (code: number) => `has code ${code}, and no player has that code.`,
 };
 
-const WHOLE = /^\d+$/;
+/** Digits a number holds exactly: past 2^53 two different ranks could read as the same. */
+const isWhole = (text: string) => /^\d+$/.test(text) && Number.isSafeInteger(Number(text));
 
 /** A line naming the columns, which a spreadsheet writes first. */
 const isHeader = (fields: string[]) => fields.length === 2 && fields[0].toLowerCase() === "code" && fields[1].toLowerCase() === "rank";
@@ -44,8 +45,8 @@ export function readRankingFile(text: string): { ranked: RankedLine[]; problems:
       continue;
     }
     const [codeText, rankText] = fields;
-    const codeOk = WHOLE.test(codeText);
-    const rankOk = WHOLE.test(rankText) && Number(rankText) >= 1;
+    const codeOk = isWhole(codeText);
+    const rankOk = isWhole(rankText) && Number(rankText) >= 1;
     if (!codeOk) problem(rankingProblems.badCode(codeText));
     if (!rankOk) problem(rankingProblems.badRank(rankText));
     if (!codeOk || !rankOk) continue;
