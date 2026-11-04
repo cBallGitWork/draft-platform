@@ -1,6 +1,6 @@
-// League settings' draft (#1087): the draft order, the pick clock, the timeouts before auto-pick and
-// where undrafted players go, saved with the rest; and the commissioner's draft order, saved a move
-// at a time.
+// League settings' draft (#1087): the pick clock, the timeouts before auto-pick and where undrafted
+// players go, saved with the rest; and the draft order, saved a move or a random draw at a time,
+// with no switch between random and the commissioner's (Craig, 4 Nov 2026, on #1089: "Drop it").
 
 import { screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
@@ -10,13 +10,13 @@ import {
   autoPickWords,
   blankPickClockWords,
   blankTimeoutsWords,
-  draftOrderWords,
+  draftStartedWords,
+  drawOrderWords,
   moveDownLabel,
   moveUpLabel,
   neverAutoPickWords,
   pickClockLabel,
   pickClockUnitWords,
-  randomOrderHint,
   savedWords,
   teamOrderTitle,
   timeoutsLabel,
@@ -34,10 +34,10 @@ const withDraft = (draft: Partial<typeof FIRST_SETTINGS.draft>) => ({
 });
 
 describe("the draft settings (#1087)", () => {
-  it("opens on the league's: the commissioner's order, 90 seconds a pick, auto-pick after 2 timeouts, and waivers", async () => {
+  it("opens on the league's: 90 seconds a pick, auto-pick after 2 timeouts, and waivers, with no draft order switch", async () => {
     await openedSettings();
 
-    expect(radio(draftOrderWords.commissioner).checked).toBe(true);
+    expect(screen.queryByRole("radio", { name: "Random" })).toBeNull();
     expect(box(pickClockLabel).value).toBe("90");
     expect(radio(pickClockUnitWords.seconds).checked).toBe(true);
     expect(autoPickTick().checked).toBe(true);
@@ -47,22 +47,14 @@ describe("the draft settings (#1087)", () => {
 
   it("saves each one changed with the rest of the settings", async () => {
     const app = await openedSettings();
-    await userEvent.click(radio(draftOrderWords.random));
     await fill(pickClockLabel, "8");
     await userEvent.click(radio(pickClockUnitWords.hours));
     await userEvent.click(autoPickTick());
     await userEvent.click(radio(undraftedWords.freeAgents));
     await save();
 
-    expect(savedSettings(app).draft).toEqual({ order: "random", pickSeconds: 8 * 3600, timeoutsBeforeAutoPick: null, undrafted: "freeAgents" });
+    expect(savedSettings(app).draft).toEqual({ pickSeconds: 8 * 3600, timeoutsBeforeAutoPick: null, undrafted: "freeAgents" });
     await waitFor(() => expect(screen.getByRole("status").textContent).toBe(savedWords(CHANGES_FROM)));
-  });
-
-  it("says a random order is drawn before the draft starts, and offers no order to set", async () => {
-    await openedSettings(withDraft({ order: "random" }));
-
-    expect(screen.getByText(randomOrderHint)).toBeTruthy();
-    expect(orderPanel()).toBeNull();
   });
 
   it("shows a clock in the largest unit it is a whole number of, and saves one typed in minutes in seconds", async () => {
@@ -140,10 +132,34 @@ describe("the commissioner's draft order (#1087)", () => {
     expect((await within(orderPanel()!).findByRole("alert")).textContent).toBe(draftOrderRefusals.teamsChanged);
   });
 
-  it("goes when the order chosen is random, before it is saved", async () => {
-    await openedSettings();
-    await userEvent.click(radio(draftOrderWords.random));
+  it("draws the order at random at once, without the settings' Save", async () => {
+    const app = await openedSettings();
+    await userEvent.click(within(orderPanel()!).getByRole("button", { name: drawOrderWords }));
 
-    expect(orderPanel()).toBeNull();
+    expect(app.leagueSettings.drawTeamOrder).toHaveBeenCalledOnce();
+    expect(app.leagueSettings.save).not.toHaveBeenCalled();
+  });
+
+  it("shows the server's refusal of a draw once the draft has started", async () => {
+    const app = await openedSettings();
+    app.leagueSettings.drawTeamOrder.mockResolvedValueOnce(draftOrderRefusals.started);
+    await userEvent.click(screen.getByRole("button", { name: drawOrderWords }));
+
+    expect((await within(orderPanel()!).findByRole("alert")).textContent).toBe(draftOrderRefusals.started);
+  });
+
+  it("once the draft has started, shows the order fixed, with no moves and no draw", async () => {
+    await openedSettings({ draftStarted: true });
+    const rows = within(orderPanel()!).getAllByRole("listitem");
+
+    expect(rows.map((row) => row.textContent)).toEqual([`1${saka.name}`, `2${kroos.name}`, `3${pique.name}`]);
+    expect(within(orderPanel()!).getByText(draftStartedWords)).toBeTruthy();
+    expect(within(orderPanel()!).queryByRole("button")).toBeNull();
+  });
+
+  it("offers no draw with one team or none", async () => {
+    await openedSettings({ teamOrder: [saka] });
+
+    expect(screen.queryByRole("button", { name: drawOrderWords })).toBeNull();
   });
 });

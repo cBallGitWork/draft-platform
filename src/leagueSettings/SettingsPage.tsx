@@ -103,7 +103,7 @@ function Editor({ league, seam, view }: { league: LeagueSummary; seam: LeagueSet
         <DraftPanel draft={draft.draft} edit={(draftRules) => edit({ ...draft, draft: draftRules })} />
         <SaveBar draft={rulesDraft} savedWords={savedWords} />
       </BoxRefusalContext>
-      {draft.draft.order === "commissioner" && <TeamOrderPanel leagueId={league.leagueId} seam={seam} />}
+      <TeamOrderPanel leagueId={league.leagueId} seam={seam} />
     </div>
   );
 }

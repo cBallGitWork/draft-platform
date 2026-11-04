@@ -16,7 +16,7 @@ import { gameweekTables } from "./schema/gameweeks";
 import { playedFixtureTables } from "./schema/table";
 import { lineupTables } from "./schema/lineup";
 import { starsTables } from "./schema/stars";
-import { draftRankingTables } from "./schema/draft";
+import { draftRankingTables, draftTables } from "./schema/draft";
 
 // The database, one group of tables a feature, each in its own file in convex/schema/ with the
 // shapes it is made of. Everything the features read from the schema is re-exported here.
@@ -59,4 +59,5 @@ export default defineSchema({
   ...lineupTables,
   ...starsTables,
   ...draftRankingTables,
+  ...draftTables,
 });

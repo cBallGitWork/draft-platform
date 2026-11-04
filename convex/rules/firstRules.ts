@@ -26,10 +26,9 @@ const FIRST_ODD_TEAM_OUT: OddTeamOut = "leagueAverage";
 /** Craig's: one head-to-head game a gameweek, unless a league chooses more (spec/09). */
 const FIRST_GAMES_PER_GAMEWEEK = 1;
 
-/** Craig's (4 Nov 2026, on #1087; spec/04): the commissioner's order, which starts as the order
- *  the teams joined in; a 90-second pick clock; auto-pick after 2 timeouts; undrafted players to
- *  waivers. */
-const FIRST_DRAFT_RULES: DraftRules = { order: "commissioner", pickSeconds: 90, timeoutsBeforeAutoPick: 2, undrafted: "waivers" };
+/** Craig's (4 Nov 2026, on #1087; spec/04): a 90-second pick clock; auto-pick after 2 timeouts;
+ *  undrafted players to waivers. */
+const FIRST_DRAFT_RULES: DraftRules = { pickSeconds: 90, timeoutsBeforeAutoPick: 2, undrafted: "waivers" };
 
 /** How the league's draft runs: the first rules' for rules saved before #1087 made it a rule. */
 export const draftRulesOf = (rules: LeagueRules): DraftRules => rules.draft ?? FIRST_DRAFT_RULES;

@@ -119,6 +119,12 @@ const leagueRows: { [Table in TableNames]?: LeagueRowsBatch<Table> } = {
       .query("letters")
       .withIndex("by_leagueId", (q) => q.eq("leagueId", leagueId))
       .take(ROWS_PER_RUN),
+  // Its scheduled start, if any, finds no row and does nothing (draft/draftStart.ts).
+  drafts: (ctx, leagueId) =>
+    ctx.db
+      .query("drafts")
+      .withIndex("by_leagueId", (q) => q.eq("leagueId", leagueId))
+      .take(ROWS_PER_RUN),
 };
 
 export const tablesKeyedToLeague = Object.keys(leagueRows);

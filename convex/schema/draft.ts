@@ -10,3 +10,22 @@ export const draftRankingTables = {
    *  it whole. Its players are best first; a player not in it is unranked. */
   draftRanking: defineTable({ players: v.array(rankedPlayer), uploadedAt: v.number() }),
 };
+
+/** A started draft: when it started, its teams in the draft order then, first pick first, and its
+ *  rounds, the league's squad maximum then (spec/04, Starting it and The picks). */
+const startedDraft =v.object({ at: v.number(), teamIds: v.array(v.id("teams")), rounds: v.number() });
+
+export const draftTables = {
+  /** A league's draft (spec/04, Starting it; #1089), one row at most, made the first time its
+   *  commissioner sets a start or starts it: a league with none waits for him to press start.
+   *  ../draft/draftStart.ts writes it. */
+  drafts: defineTable({
+    leagueId: v.id("leagues"),
+    /** When it starts, the commissioner's date; absent while it waits for him to press start. */
+    startsAt: v.optional(v.number()),
+    /** The scheduled start at `startsAt`, which a new date, a cleared one or pressing start cancels. */
+    startJob: v.optional(v.id("_scheduled_functions")),
+    /** Present once it has started. */
+    started: v.optional(startedDraft),
+  }).index("by_leagueId", ["leagueId"]),
+};

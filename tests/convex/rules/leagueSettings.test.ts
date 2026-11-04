@@ -36,7 +36,7 @@ const FIRST: LeagueSettings = {
   squadMaximum: HELD_FIRST_RULES.squad.size!.maximum,
   minimumByArea: null,
   maxPerClub: null,
-  draft: { order: "commissioner", pickSeconds: 90, timeoutsBeforeAutoPick: 2, undrafted: "waivers" },
+  draft: { pickSeconds: 90, timeoutsBeforeAutoPick: 2, undrafted: "waivers" },
 };
 /** The fixtures in one round of the four-team leagues the table tests make. */
 const FIXTURES_A_ROUND = 2;
@@ -220,12 +220,12 @@ describe("the squad's make-up (#341)", () => {
 describe("the draft (#1087)", () => {
   const DRAFT = FIRST.draft;
 
-  test("a new league starts on the commissioner's order, a 90-second clock, auto-pick after 2 timeouts and waivers (Craig, 4 Nov 2026)", async () => {
-    expect((await read())?.part.draft).toEqual({ order: "commissioner", pickSeconds: 90, timeoutsBeforeAutoPick: 2, undrafted: "waivers" });
+  test("a new league starts on a 90-second clock, auto-pick after 2 timeouts and waivers (Craig, 4 Nov 2026)", async () => {
+    expect((await read())?.part.draft).toEqual({ pickSeconds: 90, timeoutsBeforeAutoPick: 2, undrafted: "waivers" });
   });
 
   test("saves each draft setting from the next gameweek, with a letter, and reads it back", async () => {
-    const draft = { order: "random", pickSeconds: 8 * 60 * 60, timeoutsBeforeAutoPick: null, undrafted: "freeAgents" } as const;
+    const draft = { pickSeconds: 8 * 60 * 60, timeoutsBeforeAutoPick: null, undrafted: "freeAgents" } as const;
     await change({ ...FIRST, draft });
 
     expect((await inGameweek(NEXT)).draft).toEqual(draft);

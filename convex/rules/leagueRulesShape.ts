@@ -1,5 +1,5 @@
 import { v, type Infer } from "convex/values";
-import { DRAFT_ORDERS, UNDRAFTED_GO_TO } from "../draft/draftRules";
+import { UNDRAFTED_GO_TO } from "../draft/draftRules";
 import { byArea, cellShape } from "../lineup/pitchShape";
 import { scoringSetShape } from "../scoring/scoringSetShape";
 import { DOUBLE_GAMEWEEK_RULES } from "../scoring/values";
@@ -27,8 +27,6 @@ export const oddTeamOutShape = v.union(...ODD_TEAM_OUTS.map((name) => v.literal(
 
 /** The draft's rules (spec/04; #1087): its limits are ../draft/draftLimits.ts's. */
 export const draftRulesShape = v.object({
-  /** ../draft/draftRules.ts's DraftOrder. */
-  order: v.union(...DRAFT_ORDERS.map((name) => v.literal(name))),
   /** Each pick's clock, in whole seconds. */
   pickSeconds: v.number(),
   /** How many timeouts a manager gets before he goes on auto-pick; null: never, and the clock
@@ -78,11 +76,24 @@ export const leagueRulesShape = v.object({
 
 export type LeagueRules = Infer<typeof leagueRulesShape>;
 
-/** A league's rules as rows hold them: rows saved before #354 also carry the scoring set the
- *  league then had, which nothing reads (`heldRules` drops it), optional so they need no migration. */
-export const storedLeagueRulesShape = v.object({ ...leagueRulesShape.fields, scoring: v.optional(scoringSetShape) });
+/** The draft's rules as rows hold them: rows saved between #1087 and #1089 also carry how the draft
+ *  order was set, a switch Craig dropped ("Drop it", 4 Nov 2026, on #1089), which nothing reads
+ *  (`heldRules` drops it), optional so they need no migration. */
+const storedDraftRulesShape = v.object({ ...draftRulesShape.fields, order: v.optional(v.union(v.literal("commissioner"), v.literal("random"))) });
 
-/** A rules row's rules without the scoring a row saved before #354 carries. */
-export function heldRules({ scoring: _scoring, ...rules }: Infer<typeof storedLeagueRulesShape>): LeagueRules {
-  return rules;
+/** A league's rules as rows hold them: rows saved before #354 also carry the scoring set the
+ *  league then had, which nothing reads (`heldRules` drops it), optional so they need no migration;
+ *  and the draft's, its dropped order (`storedDraftRulesShape`). */
+export const storedLeagueRulesShape = v.object({
+  ...leagueRulesShape.fields,
+  draft: v.optional(storedDraftRulesShape),
+  scoring: v.optional(scoringSetShape),
+});
+
+/** A rules row's rules without the scoring a row saved before #354 carries, or the draft order a
+ *  row saved before #1089 does. */
+export function heldRules({ scoring: _scoring, draft, ...rules }: Infer<typeof storedLeagueRulesShape>): LeagueRules {
+  if (draft === undefined) return rules;
+  const { order: _order, ...held } = draft;
+  return { ...rules, draft: held };
 }

@@ -20,7 +20,8 @@ beforeEach(async () => {
   teams = await addManagers(t, leagueId, MANAGERS.slice(0, 3));
 });
 
-const read = async (email = COMMISSIONER) => (await actingAs(t, email)).query(api.draft.draftOrder.teamOrder, { leagueId });
+const readWhole = async (email = COMMISSIONER) => (await actingAs(t, email)).query(api.draft.draftOrder.teamOrder, { leagueId });
+const read = async (email = COMMISSIONER) => (await readWhole(email)).teams;
 const order = async () => (await read()).map(({ teamId }) => teamId);
 const set = async (teamIds: Id<"teams">[], email = COMMISSIONER) =>
   (await actingAs(t, email)).mutation(api.draft.draftOrder.setTeamOrder, { leagueId, teamIds });
@@ -58,6 +59,12 @@ describe("the commissioner's draft order", () => {
 
   test("refuses an order naming a team twice", async () => {
     await expectRefused(set([teams[0], teams[0], teams[1]]), draftOrderRefusals.teamsChanged);
+  });
+
+  test("says whether the draft has started, which fixes it", async () => {
+    expect((await readWhole()).started).toBe(false);
+    await (await actingAs(t, COMMISSIONER)).mutation(api.draft.draftStart.start, { leagueId });
+    expect((await readWhole()).started).toBe(true);
   });
 
   test("is read and set only by whoever runs the league", async () => {
