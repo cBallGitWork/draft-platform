@@ -1,12 +1,13 @@
 # Sourced first by each suite here: what its checks share, and a throwaway folder ($tmp, removed
-# when the suite ends) that its hooks take for the project and for HOME, never this repo or the real
-# home folder, so no suite reads ~/.claude/private-words.txt. A suite exits 1 if any check failed.
+# when the suite ends) that its hooks take for the project, for HOME and for TMPDIR, never this repo,
+# the real home folder or the real temp folder, so no suite reads ~/.claude/private-words.txt or
+# leaves state behind. A suite exits 1 if any check failed.
 set -uo pipefail
 
 hooks="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"  # the hooks under test
 fails=0
 tmp=$(mktemp -d) || exit 1  # never empty: git -C "" would act on the checkout it runs from
-export CLAUDE_PROJECT_DIR="$tmp" HOME="$tmp"
+export CLAUDE_PROJECT_DIR="$tmp" HOME="$tmp" TMPDIR="$tmp"  # TMPDIR too: hooks keep state there
 as_tester=(-c user.name=t -c user.email=t@t)  # who a test repo's commits are by
 jq=/usr/bin/jq  # the system's own, as on CI's runner
 

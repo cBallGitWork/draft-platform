@@ -16,13 +16,14 @@
     "smoke": "playwright test",
     "test-account": "node --env-file-if-exists=.env.local node_modules/@playwright/test/cli.js test -c playwright.live.config.ts testAccount",
     "coverage": "node scripts/with-deadline.mjs 600 vitest run --coverage --testTimeout=30000",
-    "verify": "npm ls --depth=0 >/dev/null 2>&1 || { echo 'node_modules is behind package-lock.json: run npm ci'; exit 1; } && npm test && npm run typecheck && npm run lint && node scripts/recorded-add-only.mjs && node scripts/tests-kept.mjs && node scripts/spec-ids.mjs && .claude/hooks/test.sh"
+    "verify": "npm ls --depth=0 >/dev/null 2>&1 || { echo 'node_modules is behind package-lock.json: run npm ci'; exit 1; } && npm test && npm run typecheck && npm run lint && node scripts/recorded-add-only.mjs && node scripts/tests-kept.mjs && node scripts/spec-ids.mjs && node scripts/contents-lists.mjs && .claude/hooks/test.sh"
   },
   "dependencies": {
     "@auth/core": "^0.41.3",
     "@convex-dev/auth": "^0.0.96",
     "@fontsource-variable/archivo": "^5.3.0",
     "@fontsource/archivo-narrow": "^5.3.0",
+    "@sentry/react": "^11.8.0",
     "@tanstack/react-router": "^1.170.45",
     "convex": "^1.47.0",
     "react": "^19.3.1",

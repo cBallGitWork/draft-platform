@@ -15,7 +15,7 @@ yes. Craig comments there until he says it's right.
 
 Desktop first (Craig, 1 Nov 2026: "focus on desktop for now, mobile can wait"): a picture is the
 desk's, 1440 wide. The phone's is drawn when Craig asks for it. A built screen still must not break
-at 390: the `ui-verifier` agent shoots it there and checks for sideways scroll and clipping.
+at 390: the smoke run loads each built screen there and fails on sideways scroll or a small tap.
 
 ## A screen's folder
 

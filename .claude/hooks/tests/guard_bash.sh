@@ -11,8 +11,7 @@ deny_cmds=(
   'git commit -am "x"' 'git commit -a -m "x"' 'git commit --all -m x'
   'git push --force' 'git push -f origin x' 'git push -fu origin x' 'git push --force-with-lease'
   'git push origin +x' 'git -c x=y push -f' 'git push --mirror'
-  'git push origin main' 'git push origin HEAD:main' 'git push origin refs/heads/main'
-  'git push origin HEAD:refs/heads/main' 'git push origin "main"'
+  'git push --force-with-lease --force-if-includes' 'git push --force --force-if-includes'
   'git checkout main && git commit -m x'
 )
 allow_cmds=(
@@ -23,6 +22,8 @@ allow_cmds=(
   $'git commit -F - <<\'EOF\'\nwe never git add -A; it isn\'t safe\nEOF'
   'git push -u origin chore/x' 'git push origin chore/main-menu' 'git push origin feat/main'
   'git push origin main:x' 'git switch -c chore/y origin/main && git commit -m x'
+  'git push --force-if-includes origin chore/x'  # alone it forces nothing
+  'git push origin main' 'git push origin HEAD:refs/heads/main'  # GitHub's main ruleset refuses these itself
   'git status' 'ls -a' 'echo "git add -A"'
 )
 for c in "${deny_cmds[@]}"; do check deny guard_bash.py "$(bash_cmd "$c")"; done
@@ -141,7 +142,7 @@ silent guard_bash.py "$(bash_in "$tmp" "echo --title $t121")"  # not a pull requ
 git -C "$tmp" switch -q -c main
 check deny guard_bash.py "$(bash_cmd 'git commit -m "x"')"
 check deny guard_bash.py "$(bash_cmd 'git -C . commit -m x')"
-check deny guard_bash.py "$(bash_cmd 'git push')"
+check allow guard_bash.py "$(bash_cmd 'git push')"  # pushes main: GitHub's ruleset refuses it, not the guard
 check allow guard_bash.py "$(bash_cmd 'git status')"
 check allow guard_bash.py "$(bash_cmd 'git switch -c chore/y origin/main && git status')"
 
@@ -183,7 +184,7 @@ for c in 'env git commit -m x' 'command git commit -m x' 'exec git commit -m x' 
 done
 check allow guard_bash.py "$(bash_in "$tmp/sub" 'env git commit -m x')"
 # separators with no space between them, and shell syntax in front, still split commands (on main)
-for c in '(cd sub); git commit -m x' 'true;(git commit -m x)' '(true);git push origin HEAD' '(true);git add -A' \
+for c in '(cd sub); git commit -m x' 'true;(git commit -m x)' '(true);git push -f origin x' '(true);git add -A' \
   '{ git commit -m x; }' 'if true; then git commit -m x; fi' 'while true; do git commit -m x; done' \
   '! git commit -m x' 'time git commit -m x' 'nohup git commit -m x'; do
   check deny guard_bash.py "$(bash_cmd "$c")"
@@ -217,29 +218,20 @@ check deny guard_bash.py "$(bash_in "$tmp/back-main" 'git checkout @{-1} && git 
 check allow guard_bash.py "$(bash_in "$tmp/back-feat" 'git switch - && git commit -m x')"
 check deny guard_bash.py "$(bash_in "$tmp/back-feat" 'git switch feat/a && git switch - && git commit -m x')"  # unsure
 . "$(dirname "$0")/guard_bash_reading.sh"  # what it reads inside a command, on this main and sub
-# deleting a remote branch from main pushes nothing from it; deleting main is still refused
+# deleting a remote branch is a push like any other; deleting main GitHub's ruleset refuses itself
 check allow guard_bash.py "$(bash_cmd 'git push origin --delete feat/old')"
 check allow guard_bash.py "$(bash_cmd 'git push origin :feat/old')"
-check allow guard_bash.py "$(bash_cmd 'git push origin -d feat/old')"
-check allow guard_bash.py "$(bash_cmd 'git push --repo origin :feat/old')"
-for c in 'git push origin --delete main' 'git push origin :main' 'git push origin --delete HEAD' \
-  'git push origin :feat/old feat/new'; do
-  check deny guard_bash.py "$(bash_cmd "$c")"
-done
-plain=$(mktemp -d) || exit 1  # not a checkout: git can't say which branch it's on, so a push there is refused
-check deny guard_bash.py "$(bash_in "$plain" 'git push origin x')"
-check deny guard_bash.py "$(bash_in "$plain" 'git commit -m x')"  # and a commit (its staged lines can't be read)
+plain=$(mktemp -d) || exit 1  # not a checkout: git can't say which branch it's on, so a commit there is refused
+check deny guard_bash.py "$(bash_in "$plain" 'git commit -m x')"
 rm -rf "$plain"
 check deny guard_bash.py "$(bash_in "$tmp/sub" "env -C $tmp git commit -m x")"  # env -C moves it
 git -C "$tmp" init -q -b chore/d "$tmp/det"  # a detached HEAD has no branch, and isn't main
 git -C "$tmp/det" "${as_tester[@]}" commit -q --allow-empty -m x && git -C "$tmp/det" switch -q --detach
 check allow guard_bash.py "$(bash_in "$tmp/det" 'git commit -m x')"
 # a push option's value isn't the remote, and --repo names it: what's pushed is read right
-for c in 'git push --repo=origin main' 'git push --repo=origin +x' 'git push --repo=origin --delete main'; do
-  check deny guard_bash.py "$(bash_in "$tmp/sub" "$c")"
-done
-for o in '-o ci.skip' '--push-option ci.skip' '--push-option=ci.skip' '--receive-pack x' '--exec x'; do
-  check allow guard_bash.py "$(bash_cmd "git push $o origin :feat/old")"  # from main: deletes only
+check deny guard_bash.py "$(bash_in "$tmp/sub" 'git push --repo=origin +x')"
+for o in '-o +x' '--push-option +x' '--push-option=+x' '--receive-pack +x' '--exec +x'; do
+  check allow guard_bash.py "$(bash_cmd "git push $o origin chore/x")"  # +x is the option's value, no refspec
 done
 for payload in 'not json' '' '[]'; do  # a payload it can't read is denied, never let through unchecked
   check deny guard_bash.py "$payload"
