@@ -1,5 +1,6 @@
 import { v, type Infer } from "convex/values";
-import type { Doc } from "../_generated/dataModel";
+import type { Doc, Id } from "../_generated/dataModel";
+import { draftIsLive } from "../draft/draftRow";
 import { mutation, query, type QueryCtx } from "../_generated/server";
 import { memberOf, refuse, refusals, runnerOf, teamIn, teamsOf } from "../shared/leagueAccess";
 import { recordEvent } from "../mail/letters";
@@ -19,10 +20,11 @@ import { pickFirstLineupAgain } from "../lineup/lineups";
 // Assigning players (#31, spec/15): the league's commissioners and the admin put any player on any
 // team, one at a time, move him between teams, or release him to free agency. Each files a Mail
 // letter (spec/15: nothing changes quietly), and a release also tells each manager whose shortlist
-// holds him (spec/19). The league's squad limits warn, never block.
+// holds him (spec/19). The league's squad limits warn, never block. All three are refused while the
+// league's draft is live, when its picks alone change squads (../draft/draftPicks.ts).
 //
-// Each change to a squad files its league event in the same transaction, and nothing else writes
-// squadPlayers, so the events say what every squad was at any moment (squadPlace.ts `squadAt`,
+// Each change to a squad files its league event in the same transaction, and nothing but these and
+// a draft pick (../draft/draftPicks.ts, filed as `playerAssigned`) writes squadPlayers, so the events say what every squad was at any moment (squadPlace.ts `squadAt`,
 // #415). A new way to change a squad must file one of squadPlace.ts's SQUAD_MOVES too, or join
 // them, and pick each team's first lineup again (lineups.ts `pickFirstLineupAgain`), so a team
 // always has a lineup (#637).
@@ -34,7 +36,17 @@ export const squadRefusals = {
   freeAgent: (name: string) => `${name} isn't on a team in this league.`,
   alreadyThere: (name: string, teamName: string) => `${name} is already on ${teamName}.`,
   squadFull: `A team holds at most ${MOST_IN_SQUAD} players.`,
+  draftLive: "Squads can't be changed while the draft is live.",
 };
+
+/** The commissioner, or the admin, of the league: refused while its draft is live, when squads
+ *  change only by its picks (Craig, 4 Nov 2026, on #1090: "The commissioner's assign, move and
+ *  release are refused while the draft is live"). */
+async function squadChangerOf(ctx: QueryCtx, leagueId: Id<"leagues">) {
+  const runner = await runnerOf(ctx, leagueId);
+  if (await draftIsLive(ctx, leagueId)) refuse(squadRefusals.draftLive);
+  return runner;
+}
 
 /** The player with `code`, or the refusal that there is none. */
 async function heldPlayer(ctx: QueryCtx, code: number): Promise<Doc<"players">> {
@@ -54,7 +66,7 @@ export const assign = mutation({
   args: placement,
   returns: v.null(),
   handler: async (ctx, { leagueId, playerCode, teamId }) => {
-    const { email: by } = await runnerOf(ctx, leagueId);
+    const { email: by } = await squadChangerOf(ctx, leagueId);
     const player = await heldPlayer(ctx, playerCode);
     if (player.droppedAt !== undefined) refuse(squadRefusals.playerGone(player.name));
     const team = await teamIn(ctx, leagueId, teamId);
@@ -73,7 +85,7 @@ export const move = mutation({
   args: placement,
   returns: v.null(),
   handler: async (ctx, { leagueId, playerCode, teamId }) => {
-    const { email: by } = await runnerOf(ctx, leagueId);
+    const { email: by } = await squadChangerOf(ctx, leagueId);
     const player = await heldPlayer(ctx, playerCode);
     const team = await teamIn(ctx, leagueId, teamId);
     const place = (await placeOf(ctx, leagueId, playerCode)) ?? refuse(squadRefusals.freeAgent(player.name));
@@ -102,7 +114,7 @@ export const release = mutation({
   args: { leagueId: v.id("leagues"), playerCode: v.number() },
   returns: v.null(),
   handler: async (ctx, { leagueId, playerCode }) => {
-    const { email: by, league } = await runnerOf(ctx, leagueId);
+    const { email: by, league } = await squadChangerOf(ctx, leagueId);
     const player = await heldPlayer(ctx, playerCode);
     const place = (await placeOf(ctx, leagueId, playerCode)) ?? refuse(squadRefusals.freeAgent(player.name));
     const team = await teamIn(ctx, leagueId, place.teamId);

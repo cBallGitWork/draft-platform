@@ -1,5 +1,6 @@
 import { defineTable } from "convex/server";
 import { v } from "convex/values";
+import { leagueRulesShape } from "../rules/leagueRulesShape";
 
 /** A player in the admin's ranking: his FPL code, and his rank, 1 the best. */
 export const rankedPlayer = v.object({ code: v.number(), rank: v.number() });
@@ -11,9 +12,17 @@ export const draftRankingTables = {
   draftRanking: defineTable({ players: v.array(rankedPlayer), uploadedAt: v.number() }),
 };
 
-/** A started draft: when it started, its teams in the draft order then, first pick first, and its
- *  rounds, the league's squad maximum then (spec/04, Starting it and The picks). */
-const startedDraft = v.object({ at: v.number(), teamIds: v.array(v.id("teams")), rounds: v.number() });
+/** A started draft: when it started, its teams in the draft order then, first pick first, its
+ *  rounds, the league's squad maximum then, and the squad rules every pick is checked against, the
+ *  league's then (spec/04, Starting it and The picks; Craig, 4 Nov 2026, on #1090). `squad` is
+ *  absent only from drafts started before #1090, whose picks read the rules in force at `at`
+ *  (../draft/draftPicks.ts): optional, so those rows need no migration. */
+const startedDraft = v.object({
+  at: v.number(),
+  teamIds: v.array(v.id("teams")),
+  rounds: v.number(),
+  squad: v.optional(leagueRulesShape.fields.squad),
+});
 
 export const draftTables = {
   /** A league's draft (spec/04, Starting it; #1089), one row at most, made the first time its
@@ -28,4 +37,13 @@ export const draftTables = {
     /** Present once it has started. */
     started: v.optional(startedDraft),
   }).index("by_leagueId", ["leagueId"]),
+  /** A pick made in a league's draft (spec/04, The picks; #1090): its number, from 1, the team that
+   *  made it and the player it took. ../draft/draftPicks.ts writes it, with his squad row. */
+  draftPicks: defineTable({
+    leagueId: v.id("leagues"),
+    pick: v.number(),
+    teamId: v.id("teams"),
+    playerCode: v.number(),
+    at: v.number(),
+  }).index("by_leagueId_and_pick", ["leagueId", "pick"]),
 };

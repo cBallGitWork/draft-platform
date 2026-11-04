@@ -52,6 +52,14 @@ Feature 4 of [SPEC.md](../SPEC.md). Only Craig's answers.
     2 goalkeepers still needed, every outfielder is greyed out.
 
   So every finished squad is legal.
+- A team left with no legal pick is an error, not the end of that team's draft: greying out always
+  leaves a legal pick (Craig, 4 Nov 2026, on #1090: "ok").
+- The draft can't start until every squad is empty (Craig, 4 Nov 2026, on #1090: "ok").
+- The rounds are taken from the squad limit in force when the draft starts, never a change still
+  waiting for next gameweek (Craig, 4 Nov 2026, on #1090, "rec": Claude's recommendation).
+- "Picks follow the squad rules the draft started under" (Craig, 4 Nov 2026, on #1090).
+- "The commissioner's assign, move and release are refused while the draft is live" (Craig, 4 Nov
+  2026, on #1090).
 - Each pick runs on a clock the league sets, from seconds (live) to hours (a slow draft over
   days), and the clock can pause.
 - The pick clock runs from "shortest 15 seconds longest 24 hours", and a new league's is 90 seconds
@@ -108,6 +116,9 @@ Feature 4 of [SPEC.md](../SPEC.md). Only Craig's answers.
   4 Nov 2026: "give players a 10s window to undo their pick incase of a mistake").
   The next manager's clock waits until those 10 seconds are up (Craig, 4 Nov 2026, "Yes, clock
   waits").
+- The 10-second undo is only for a pick the manager made himself, not an auto-pick or a
+  commissioner's pick, and the draft ends after the last pick's 10 seconds (Craig, 4 Nov 2026, on
+  #1090: "ok").
 - Its player list is Scouting's players list (`spec/19`). It opens on a short overview, with a way
   into the other stats: "dont overblow it, maybe a easy to see view first, and section to allow
   user to deepdive, dont want it overwhelming on launch" (Craig, 4 Nov 2026). It shows no upcoming

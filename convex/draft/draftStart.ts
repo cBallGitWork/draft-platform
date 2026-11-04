@@ -1,13 +1,14 @@
 import { v } from "convex/values";
 import { internal } from "../_generated/api";
 import type { Doc, Id } from "../_generated/dataModel";
-import { internalMutation, mutation, query, type MutationCtx } from "../_generated/server";
-import { latestRules } from "../rules/rulesHistory";
+import { internalMutation, mutation, query, type MutationCtx, type QueryCtx } from "../_generated/server";
+import { nextOpenGameweek } from "../lineup/lineups";
+import { historyOf, inForce, seasonRules } from "../rules/rulesHistory";
 import type { LeagueRules } from "../rules/leagueRulesShape";
 import { memberOf, refuse, runnerOf, teamsOf } from "../shared/leagueAccess";
 import { DRAFT_FEWEST_TEAMS } from "./draftLimits";
 import { draftOrderOf, teamInOrder, teamOrderOf } from "./draftOrder";
-import { draftOf } from "./draftRow";
+import { draftOf, picksMadeIn } from "./draftRow";
 import { pickOnTheClock } from "./snakeOrder";
 
 // Starting the draft (spec/04, Starting it; #1089). It starts on a date the commissioner sets or
@@ -16,7 +17,9 @@ import { pickOnTheClock } from "./snakeOrder";
 // its rounds are the squad's most players; a date can't be set without them either, and must be in
 // the future. A date that comes when the league can't start stays waiting, as an unset date does
 // (Craig, 4 Nov 2026, on #1089). Starting fixes the order: the draft order then (draftOrder.ts),
-// and no team can join after (../leagues/teams.ts).
+// and no team can join after (../leagues/teams.ts). It waits until every squad is empty, and its
+// rounds are the squad maximum in force when it starts, never a change still waiting for a later
+// gameweek (Craig, 4 Nov 2026, on #1090).
 
 /** Why the draft's start is refused, in the words the commissioner is shown. */
 export const draftStartRefusals = {
@@ -24,23 +27,43 @@ export const draftStartRefusals = {
   tooFewTeams: `The draft needs at least ${DRAFT_FEWEST_TEAMS} teams in the league.`,
   noSquadSize: "The draft's rounds are the squad's most players, and this league's squads have no size limit.",
   notAhead: "The start has to be in the future.",
+  squadsNotEmpty: "The draft can't start until every squad is empty.",
 };
 
 /** The draft's rounds under these rules: the squad's most players, or null with no squad size
  *  limit, or no rules (a league made before #25). */
 const roundsOf = (rules: LeagueRules | null): number | null => rules?.squad.size?.maximum ?? null;
 
+/** The league's rules in force at `now`: those of the gameweek under way, or before the league's
+ *  first gameweek begins, that gameweek's; a change waiting for a later gameweek isn't among them
+ *  (Craig, 4 Nov 2026, on #1090). Null for a league made before #25. What the draft starts and
+ *  picks under. */
+export async function rulesInForceAt(ctx: QueryCtx, leagueId: Id<"leagues">, now: number): Promise<LeagueRules | null> {
+  const [history, season] = await Promise.all([historyOf(ctx, leagueId), seasonRules(ctx, leagueId)]);
+  if (season === null || history.length === 0) return null;
+  const underWay = (await nextOpenGameweek(ctx, leagueId, season, now)) - 1;
+  return inForce(history, Math.max(underWay, history[0].fromGameweek))!.rules;
+}
+
+/** Whether any team in the league holds a player. */
+async function anyoneHeld(ctx: QueryCtx, leagueId: Id<"leagues">): Promise<boolean> {
+  return (await ctx.db.query("squadPlayers").withIndex("by_leagueId_and_playerCode", (q) => q.eq("leagueId", leagueId)).first()) !== null;
+}
+
 /** Why the league's draft can't start now, or be given a date; otherwise what it starts with: its
- *  teams and rounds. */
+ *  teams, its rounds and the squad rules its picks follow, the league's in force now (Craig, 4 Nov
+ *  2026, on #1090: "Picks follow the squad rules the draft started under"). */
 async function startable(
   ctx: MutationCtx,
   leagueId: Id<"leagues">,
-): Promise<{ refusal: string } | { refusal: null; teams: Doc<"teams">[]; rounds: number }> {
+): Promise<{ refusal: string } | { refusal: null; teams: Doc<"teams">[]; rounds: number; squad: LeagueRules["squad"] }> {
   const teams = await teamsOf(ctx, leagueId);
   if (teams.length < DRAFT_FEWEST_TEAMS) return { refusal: draftStartRefusals.tooFewTeams };
-  const rounds = roundsOf(await latestRules(ctx, leagueId));
-  if (rounds === null) return { refusal: draftStartRefusals.noSquadSize };
-  return { refusal: null, teams, rounds };
+  const rules = await rulesInForceAt(ctx, leagueId, Date.now());
+  const rounds = roundsOf(rules);
+  if (rules === null || rounds === null) return { refusal: draftStartRefusals.noSquadSize };
+  if (await anyoneHeld(ctx, leagueId)) return { refusal: draftStartRefusals.squadsNotEmpty };
+  return { refusal: null, teams, rounds, squad: rules.squad };
 }
 
 /** Writes the draft's date and its scheduled start, or neither for null, cancelling any start
@@ -59,7 +82,7 @@ async function begin(ctx: MutationCtx, league: Doc<"leagues">, draft: Doc<"draft
   if (draft?.started !== undefined) return draftStartRefusals.started;
   const can = await startable(ctx, league._id);
   if (can.refusal !== null) return can.refusal;
-  const started = { at: Date.now(), teamIds: draftOrderOf(can.teams, league.draftOrder).map((team) => team._id), rounds: can.rounds };
+  const started = { at: Date.now(), teamIds: draftOrderOf(can.teams, league.draftOrder).map((team) => team._id), rounds: can.rounds, squad: can.squad };
   if (draft === null) await ctx.db.insert("drafts", { leagueId: league._id, started });
   else await ctx.db.patch("drafts", draft._id, { started, startsAt: undefined, startJob: undefined });
   return null;
@@ -123,20 +146,22 @@ const onTheClock = v.object({ pick: v.number(), round: v.number(), teamId: v.id(
 
 /** The league's draft as everyone in the league reads it: waiting, with its date (null: until the
  *  commissioner presses start), its rounds (null: the league has no squad size limit) and the
- *  draft order now; or live, with when it started, its rounds, its order, fixed at the start, and
- *  the pick on the clock. Picks aren't made yet (spec/04, The picks, is a later slice), so that is
- *  the first. */
+ *  draft order now; live, with when it started, its rounds, its order, fixed at the start, how many
+ *  picks are made and the pick on the clock; or over, once every pick is made (draftPicks.ts).
+ *  A waiting draft's rounds are those it would start with at `now`, the screen's, moved on each
+ *  minute, as a query must not read the clock (convex/admin/feeds.ts says why). */
 export const ofLeague = query({
-  args: { leagueId: v.id("leagues") },
+  args: { leagueId: v.id("leagues"), now: v.number() },
   returns: v.union(
     v.object({ status: v.literal("waiting"), startsAt: v.union(v.number(), v.null()), rounds: v.union(v.number(), v.null()), order: v.array(teamInOrder) }),
-    v.object({ status: v.literal("live"), startedAt: v.number(), rounds: v.number(), order: v.array(teamInOrder), onTheClock: v.union(onTheClock, v.null()) }),
+    v.object({ status: v.literal("live"), startedAt: v.number(), rounds: v.number(), order: v.array(teamInOrder), picksMade: v.number(), onTheClock }),
+    v.object({ status: v.literal("over"), startedAt: v.number(), rounds: v.number(), order: v.array(teamInOrder), picksMade: v.number() }),
   ),
-  handler: async (ctx, { leagueId }) => {
+  handler: async (ctx, { leagueId, now }) => {
     const { league } = await memberOf(ctx, leagueId);
     const [draft, teams] = await Promise.all([draftOf(ctx, leagueId), teamsOf(ctx, leagueId)]);
     if (draft?.started === undefined) {
-      const rounds = roundsOf(await latestRules(ctx, leagueId));
+      const rounds = roundsOf(await rulesInForceAt(ctx, leagueId, now));
       return { status: "waiting" as const, startsAt: draft?.startsAt ?? null, rounds, order: teamOrderOf(teams, league) };
     }
     const { at, teamIds, rounds } = draft.started;
@@ -146,13 +171,10 @@ export const ofLeague = query({
       if (name === undefined) throw new Error(`League ${leagueId}'s draft names team ${teamId}, which isn't in the league`);
       return { teamId, name };
     });
-    const turn = pickOnTheClock(order, rounds, 0);
-    return {
-      status: "live" as const,
-      startedAt: at,
-      rounds,
-      order,
-      onTheClock: turn === null ? null : { pick: turn.pick, round: turn.round, ...turn.team },
-    };
+    const picksMade = await picksMadeIn(ctx, leagueId);
+    const turn = pickOnTheClock(order, rounds, picksMade);
+    const started = { startedAt: at, rounds, order, picksMade };
+    if (turn === null) return { status: "over" as const, ...started };
+    return { status: "live" as const, ...started, onTheClock: { pick: turn.pick, round: turn.round, ...turn.team } };
   },
 });
