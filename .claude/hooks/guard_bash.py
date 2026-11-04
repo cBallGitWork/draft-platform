@@ -3,8 +3,8 @@
 
 Denies staging everything, force pushes, committing while on main (a local commit GitHub can't
 see: a push or write to main GitHub's main ruleset refuses itself), publishing a word on Craig's
-private list (private_words.py), a pull request body that breaks the template's rules or a title far too long (pr_body.py), a gh pr
-merge once a drift pass is due unless it is one (drift_gate.py), a gh pr merge of a screen whose
+private list (private_words.py), a pull request body that breaks the template's rules or a title
+far too long (pr_body.py), a gh pr merge once a drift pass is due unless it is one (drift_gate.py), a gh pr merge of a screen whose
 differences from its approved picture wait for Craig, or adding his craig-approved label
 (approval_gate.py), and a read-only agent's git command that changes a checkout of this repo (read_only.py). Every command the line runs is
 checked, those it passes to sh -c, eval, $(…), a heredoc, here-string or pipe into a shell (or a
