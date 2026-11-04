@@ -20,8 +20,8 @@ import subprocess
 import sys
 
 from hook_payload import project_dir
-from main_writes import MAIN, REMOTE_MAIN
 from run_command import failure_line
+from where import MAIN, REMOTE_MAIN
 
 DUE_AFTER = 10  # docs/REFACTORING.md's "10 merged pull requests since the last drift pass"
 MAINS = (REMOTE_MAIN, MAIN)  # the first that exists is counted
