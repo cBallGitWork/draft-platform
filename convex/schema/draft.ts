@@ -13,7 +13,7 @@ export const draftRankingTables = {
 
 /** A started draft: when it started, its teams in the draft order then, first pick first, and its
  *  rounds, the league's squad maximum then (spec/04, Starting it and The picks). */
-const startedDraft =v.object({ at: v.number(), teamIds: v.array(v.id("teams")), rounds: v.number() });
+const startedDraft = v.object({ at: v.number(), teamIds: v.array(v.id("teams")), rounds: v.number() });
 
 export const draftTables = {
   /** A league's draft (spec/04, Starting it; #1089), one row at most, made the first time its
