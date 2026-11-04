@@ -14,7 +14,7 @@ import { ownerOf } from "../squads/squadPlace";
 // Scouting. It is the team's, and private to it: only its manager reads or changes it, so no other
 // team, nor the commissioner, can tell who is on it. When a shortlisted player is released, Mail
 // tells each manager whose shortlist holds him (spec/16). Not built yet: the letter when one clears
-// waivers (waivers aren't built, spec/08) and feeding the draft queue (the draft room, spec/04).
+// waivers (waivers aren't built, spec/08) and feeding the draft queue (#1137).
 
 /** The most players one shortlist holds: room to follow a fifth of the Premier League. A bound for
  *  reading it, as MOST_IN_SQUAD is a squad's. Claude's choice, not yet Craig's. */
@@ -25,7 +25,7 @@ export const shortlistRefusals = {
   full: `A shortlist holds at most ${SHORTLIST_MOST} players. Take one off first.`,
 };
 
-const shortlistedPlayer = v.object({
+export const shortlistedPlayer = v.object({
   code: v.number(),
   name: v.string(),
   fullName: v.string(),
@@ -40,7 +40,7 @@ export type ShortlistedPlayer = Infer<typeof shortlistedPlayer>;
 /** The caller's team in the league, or the refusal that they run none. Unlike `managerOf`, a
  *  stranger is told they aren't in the league (memberOf), and only a member who runs no team (its
  *  commissioner, say) is told they run none: the refusals the shortlist has always given. */
-async function ownTeam(ctx: QueryCtx, leagueId: Id<"leagues">): Promise<Doc<"teams">> {
+export async function ownTeam(ctx: QueryCtx, leagueId: Id<"leagues">): Promise<Doc<"teams">> {
   return (await memberOf(ctx, leagueId)).team ?? refuse(refusals.runsNoTeam);
 }
 
@@ -59,6 +59,28 @@ function entryOf(ctx: QueryCtx, teamId: Id<"teams">, playerCode: number) {
     .unique();
 }
 
+/** Each player, by FPL code, as a manager's own list shows him: his club, who in the league owns
+ *  him, and whether he has left the Premier League. The shortlist's, and the draft queue's and
+ *  do-not-draft list's (../draft/draftLists.ts). */
+export async function listedPlayers(ctx: QueryCtx, leagueId: Id<"leagues">, codes: readonly number[]): Promise<ShortlistedPlayer[]> {
+  const owner = await ownerOf(ctx, leagueId);
+  return Promise.all(
+    codes.map(async (playerCode) => {
+      // Players are never deleted (shared/players.ts), and only a held one is ever listed.
+      const player = await heldPlayerByCode(ctx, playerCode, `Listed player ${playerCode} isn't held`);
+      const club = await clubByCode(ctx, player.clubCode);
+      return {
+        code: player.code,
+        name: player.name,
+        fullName: player.fullName,
+        club: clubOf(club),
+        ownerTeamName: (await owner(playerCode))?.name ?? null,
+        gone: player.droppedAt !== undefined,
+      };
+    }),
+  );
+}
+
 /** The caller's shortlist in the league, by name, or null for someone in it who runs no team (a
  *  commissioner or the admin only), who has none. */
 export const mine = query({
@@ -67,23 +89,8 @@ export const mine = query({
   handler: async (ctx, { leagueId }) => {
     const { team } = await memberOf(ctx, leagueId);
     if (!team) return null;
-    const owner = await ownerOf(ctx, leagueId);
-    const players = await Promise.all(
-      (await shortlistOf(ctx, team._id)).map(async ({ playerCode }) => {
-        // Players are never deleted (shared/players.ts), and only a held one is ever shortlisted.
-        const player = await heldPlayerByCode(ctx, playerCode, `Shortlisted player ${playerCode} isn't held`);
-        const club = await clubByCode(ctx, player.clubCode);
-        return {
-          code: player.code,
-          name: player.name,
-          fullName: player.fullName,
-          club: clubOf(club),
-          ownerTeamName: (await owner(playerCode))?.name ?? null,
-          gone: player.droppedAt !== undefined,
-        };
-      }),
-    );
-    return players.sort((one, other) => one.name.localeCompare(other.name));
+    const codes = (await shortlistOf(ctx, team._id)).map(({ playerCode }) => playerCode);
+    return (await listedPlayers(ctx, leagueId, codes)).sort((one, other) => one.name.localeCompare(other.name));
   },
 });
 

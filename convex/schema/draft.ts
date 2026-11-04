@@ -28,4 +28,17 @@ export const draftTables = {
     /** Present once it has started. */
     started: v.optional(startedDraft),
   }).index("by_leagueId", ["leagueId"]),
+  /** A team's draft queue and do-not-draft list (spec/04, The queue and the ranking; #1092), one row
+   *  at most, made the first time its manager adds to either: a team with none has both empty. They
+   *  are the team's, not one draft's (Craig, 4 Nov 2026). ../draft/draftLists.ts writes it. */
+  draftLists: defineTable({
+    leagueId: v.id("leagues"),
+    teamId: v.id("teams"),
+    /** The queue, by FPL code, first choice first. */
+    queue: v.array(v.number()),
+    /** The do-not-draft list, by FPL code, in the order they were added. */
+    doNotDraft: v.array(v.number()),
+  })
+    .index("by_teamId", ["teamId"])
+    .index("by_leagueId", ["leagueId"]),
 };

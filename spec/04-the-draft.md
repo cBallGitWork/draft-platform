@@ -87,6 +87,11 @@ Feature 4 of [SPEC.md](../SPEC.md). Only Craig's answers.
   it (`spec/19`). The queue is also his auto-pick list. It needn't be complete.
 - He also keeps a do-not-draft list, which auto-pick never takes from.
 - A manager's queue and do-not-draft list are private to him (Craig, 2 Nov 2026).
+- The queue and do-not-draft list are the team's, not one draft's: "teams" (Craig, 4 Nov 2026, on
+  #1092). No player is on both: adding him to one takes him off the other ("ok"). Each holds at
+  most 250 players: "250 limit for bigger drafts".
+- A manager can change his queue and do-not-draft list between picks once the draft has started. A
+  drafted player stays listed but is skipped (Craig, 4 Nov 2026, on #1092).
 - The admin's ranking is a file the admin uploads, a list of players with a rank number, from
   research the admin does himself. It is one ranking for the whole platform. Last season's points
   won't do alone, since players join the league each season (Craig, 2 Nov 2026).
