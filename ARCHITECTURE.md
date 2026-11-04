@@ -338,8 +338,8 @@ meant to land with the first code; the ones still open are tracked in issues, li
 - [x] **Line ceiling**: a note when a file passes 250 and 300 lines (epl-draft's
       `.claude/hooks/line_ceiling.sh`, landed as `line_ceiling.py`).
 - [x] **UI rules by path**: `docs/design/plate.md`'s "Never" list in `.claude/rules/` so it loads
-      only when screen files are touched, and a UI verifier agent that shoots a screen at 390 and
-      1440 and looks (epl-draft's `ui-verifier`). Landed as `.claude/rules/ui.md` and
+      only when screen files are touched, and a UI verifier agent that shoots a screen at 1440
+      (390 when asked) and looks (epl-draft's `ui-verifier`). Landed as `.claude/rules/ui.md` and
       `.claude/agents/ui-verifier.md` (#19).
 - [x] **MCPs**: Convex and Playwright, with the Convex test above.
 - [ ] **The reviewer in CI** (#162): a workflow that runs when a pull request opens, is marked
