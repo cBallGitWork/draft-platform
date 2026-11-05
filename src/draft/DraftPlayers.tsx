@@ -11,7 +11,7 @@ import { cellClassOf, ColumnHeads, type ColumnWords } from "../ui/ColumnHeads";
 import { Loading, Panel, PanelNote } from "../ui/Panel";
 import { PositionChip } from "../ui/PositionChip";
 import type { DraftSeam, GreyedPlayer } from "./seam";
-import { leftWords, loadingPlayersWords, notLegalWords, PLAYERS_TITLE, selectLabel } from "./words";
+import { leftWords, loadingPlayersWords, notLegalWords, PLAYERS_TITLE, selectLabel, takenWords } from "./words";
 
 // The draft room's players list (spec/04, The draft room; #1099): Scouting's list and filters
 // (spec/19). Players already drafted drop out of it, and Scouting's owner filter shows them (Craig,
@@ -88,6 +88,11 @@ const headsOf = (stat: CatalogueStat | null): Record<Column, ColumnWords> => ({
   stat: stat === null ? { short: statLabel, long: statLabel } : { short: stat.shortCode, long: stat.name },
 });
 
+/** Why the reader's team can't take a player: the team that already has him, or the squad rule his
+ *  pick would break; null when it can. */
+export const whyNotWords = (player: ListedPlayer, whyNot: GreyedPlayer["reason"] | undefined): string | null =>
+  player.ownerTeamName !== null ? takenWords(player.ownerTeamName) : whyNot === undefined ? null : notLegalWords[whyNot];
+
 /** A player's row: greyed out, with why, when the reader's team can't take him; a drafted player
  *  (shown by the owner filter) by the team that has him. */
 function PlayerRow({
@@ -103,8 +108,8 @@ function PlayerRow({
   current: boolean;
   select: (player: ListedPlayer) => void;
 }) {
-  const greyed = whyNot !== undefined || player.ownerTeamName !== null;
-  const note = player.ownerTeamName ?? (whyNot === undefined ? null : notLegalWords[whyNot]);
+  const note = whyNotWords(player, whyNot);
+  const greyed = note !== null;
   return (
     <tr aria-current={current || undefined} className={`border-t border-panel-rule aria-current:bg-name-plate aria-current:shadow-current-edge lg:h-row ${greyed ? "text-muted" : ""}`}>
       {shown.map((column) => {

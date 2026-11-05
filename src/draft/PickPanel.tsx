@@ -7,19 +7,18 @@ import { useChange } from "../shared/useChange";
 import { PANEL_BODY, Panel, Problem } from "../ui/Panel";
 import { PositionCodes } from "../ui/PositionCodes";
 import { ClockLeft, type OnTheClock } from "./ClockLeft";
+import { whyNotWords } from "./DraftPlayers";
 import type { DraftChanges, GreyedPlayer } from "./seam";
 import {
   closePanelLabel,
   draftPlayerWords,
   leftSuffixWords,
-  notLegalWords,
   notStartedPickWords,
   notYourPickWords,
   pausedPickWords,
   pickLeftWords,
   playerCardWords,
   playsHead,
-  takenWords,
 } from "./words";
 
 // The selected player's panel on the draft room (the approved picture's right column, on top;
@@ -48,7 +47,7 @@ export function PickPanel({
   close: () => void;
 }) {
   const change = useChange();
-  const blocked = player.ownerTeamName !== null ? takenWords(player.ownerTeamName) : whyNot === undefined ? null : notLegalWords[whyNot];
+  const blocked = whyNotWords(player, whyNot);
   const canPick = turn.kind === "yours" && blocked === null && !change.busy;
   return (
     <Panel
