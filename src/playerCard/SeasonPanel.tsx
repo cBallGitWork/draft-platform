@@ -90,8 +90,8 @@ function UnderRow({ tone, label, children }: { tone: string; label?: string; chi
 function RoleLine({ role }: { role: NonNullable<PlayedMatch["role"]> }) {
   return (
     <UnderRow tone="text-soft" label={roleLineLabel(role.name)}>
-      {role.name} <span className="text-figure">{adjustmentWords(role.points)}</span>
-      {role.lines.length > 0 && <span className="text-muted"> ({roleMadeOfWords(role.lines)})</span>}
+      {role.name}: <span className="text-figure">{adjustmentWords(role.points)}</span>
+      {role.sides.length > 0 && <span className="text-muted"> ({roleMadeOfWords(role.sides)})</span>}
     </UnderRow>
   );
 }

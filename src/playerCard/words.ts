@@ -100,7 +100,9 @@ export const overrideFailedWords = "The override couldn't be saved. Try again.";
 
 /** A role's adjustment, signed: "+2", "−1", "0". */
 export const adjustmentWords = signedWords;
-/** What made his role's adjustment, under it: "Accurate cross 2, Clean sheets 1". */
-export const roleMadeOfWords = (lines: readonly { name: string; actions: number }[]) => lines.map(({ name, actions }) => `${name} ${actions}`).join(", ");
+/** What made his role's points, each side that moved him with its stats (Craig, 5 Nov 2026): "+2:
+ *  1 goal in box, 1 shot on target in box; −1: 1 big chance missed". */
+export const roleMadeOfWords = (sides: readonly { points: number; lines: readonly { name: string; actions: number }[] }[]) =>
+  sides.map(({ points, lines }) => `${signedWords(points)}: ${lines.map(({ name, actions }) => `${actions} ${name.toLowerCase()}`).join(", ")}`).join("; ");
 /** The role line's name for screen readers: "Role adjustment, Attacking full-back". */
 export const roleLineLabel = (name: string) => `Role adjustment, ${name}`;

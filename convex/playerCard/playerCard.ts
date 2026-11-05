@@ -86,14 +86,15 @@ const playedMatch = v.object({
   /** The version of the site's scoring set his points were scored under (26_27.1), null for the
    *  first set (spec/14, On screen). */
   version: v.union(v.string(), v.null()),
-  /** His role's adjustment, when his team started him and the set adjusts that role (spec/05:
-   *  "Attacking full-back: +2, two key passes"): its name, its points, each stat he made. Shown
-   *  beside his base points, never in them. */
+  /** His role's points, when his team started him and the set scores that role (spec/05; Craig, 5
+   *  Nov 2026: "Poacher: +1 (+2: 1 goal in box, 1 shot on target in box; −1: 1 big chance
+   *  missed)"): its name, its net, and each side that moved him with each of its stats he made.
+   *  Shown beside his base points, never in them. */
   role: v.optional(
     v.object({
       name: v.string(),
       points: v.number(),
-      lines: v.array(v.object({ stat: v.string(), name: v.string(), actions: v.number(), points: v.number() })),
+      sides: v.array(v.object({ points: v.number(), lines: v.array(v.object({ stat: v.string(), name: v.string(), actions: v.number() })) })),
     }),
   ),
   /** The league's override of his points in the match (#32), or null with none. */
@@ -185,7 +186,13 @@ async function seasonMatches(ctx: QueryCtx, league: Doc<"leagues">, player: Doc<
       const roleLine =
         role === undefined
           ? {}
-          : { role: { name: roleName(role.role), points: role.points, lines: role.lines.map((line) => ({ ...line, name: named(line.stat) })) } };
+          : {
+              role: {
+                name: roleName(role.role),
+                points: role.points,
+                sides: role.sides.map(({ points, lines }) => ({ points, lines: lines.map((line) => ({ ...line, name: named(line.stat) })) })),
+              },
+            };
       return {
         ...(await asMatch(fixture, clubs)),
         minutes: statValue(record, MINUTES_STAT),
