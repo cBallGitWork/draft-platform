@@ -5,7 +5,7 @@ import { ClubShort } from "../premierLeague/ClubName";
 import type { ListedPlayer } from "../scouting/seam";
 import { useChange } from "../shared/useChange";
 import { PANEL_BODY, Panel, Problem } from "../ui/Panel";
-import { PositionCodes } from "../ui/PositionCodes";
+import { PositionChip } from "../ui/PositionChip";
 import { ClockLeft, type OnTheClock } from "./ClockLeft";
 import { whyNotWords } from "./DraftPlayers";
 import type { DraftChanges, GreyedPlayer } from "./seam";
@@ -85,8 +85,10 @@ export function PickPanel({
         <Problem problem={change.problem} />
         <dl className="grid grid-cols-facts gap-x-3 gap-y-1">
           <dt className="text-soft">{playsHead}</dt>
-          <dd>
-            <PositionCodes positions={player.positions} />
+          <dd className="flex gap-1">
+            {player.positions.map((position) => (
+              <PositionChip key={position} label={position} />
+            ))}
           </dd>
         </dl>
         <Link to={playerCardPath(leagueId, player.code)} className="inline-flex min-h-tap items-center self-end font-semibold">

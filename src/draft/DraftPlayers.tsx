@@ -135,7 +135,7 @@ function PlayerRow({
             );
           case "seasonPoints":
             return (
-              <td key={column} className={`${className} ${greyed ? "" : "font-bold text-figure"}`}>
+              <td key={column} className={`${className} ${greyed || player.seasonPoints === null ? "text-muted" : "font-bold text-figure"}`}>
                 {player.seasonPoints === null ? noFigureWords : figureWords(player.seasonPoints)}
               </td>
             );
