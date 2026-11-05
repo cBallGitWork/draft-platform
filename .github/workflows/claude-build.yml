@@ -148,9 +148,9 @@ jobs:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           allowed_bots: ${{ env.BUILD_STARTER_BOTS }}
           # A run from a branch (`gh workflow run claude-build.yml --ref <branch>`, how a pipeline change is tested
-          # before it merges) uses the job's own token: the action's app token is refused for any workflow file that
-          # differs from main's, and the action then skips without building. Its pull request runs no CI, which a test
-          # run doesn't need. On main the app token is kept, so a build's pull request runs CI.
+          # before it merges) runs as the pipeline's own account (BUILD_TOKEN, CBHelper180): the action's app token is
+          # refused for any workflow file that differs from main's, and the action then skips without building. Its
+          # pull request runs CI and lane-auto can approve it. On main the app token is kept.
           github_token: ${{ github.ref != 'refs/heads/main' && (secrets.BUILD_TOKEN || github.token) || '' }}
           claude_args: ${{ env.CLAUDE_ARGS }}
           prompt: ${{ env.BUILD_PROMPT }}
