@@ -108,6 +108,8 @@ export function eventLetter(event: LeagueEvent, who: string, zone: string | unde
           ? `${who} dropped ${event.playerName} from ${event.teamName}. He is on waivers for at least 24 hours.`
           : `${who} dropped ${event.playerName} from ${event.teamName}. Picked up since the last deadline, he is a free agent again, not on waivers.`,
       };
+    case "playerClaimed":
+      return { subject: `${event.teamName} claimed ${event.playerName}`, body: claimedBody(event, who) };
     case "rulesChanged":
       return {
         subject: `The league's rules change from gameweek ${event.fromGameweek}`,
@@ -131,6 +133,32 @@ function overriddenBody(event: Extract<LeagueEvent, { kind: "pointsOverridden" }
       ? "No team's total moved: no lineup counted him."
       : teams.map((team) => `${team.teamName} now have ${figureWords(team.to)} in gameweek ${gameweek}, not ${figureWords(team.from)}.`).join("\n");
   return `${who} overrode ${playerName}'s points in ${matchName}, gameweek ${gameweek}: ${change}. Why: ${reason}\n\n${totals}`;
+}
+
+/** "Lions claimed Saka off waivers, ann@example.com's claim. Rice went for him, onto waivers for
+ *  at least 24 hours." */
+function claimedBody({ playerName, teamName, dropped }: Extract<LeagueEvent, { kind: "playerClaimed" }>, who: string): string {
+  const claimed = `${teamName} claimed ${playerName} off waivers, ${who}'s claim.`;
+  if (dropped === null) return claimed;
+  const where = dropped.toWaivers
+    ? "onto waivers for at least 24 hours"
+    : "a free agent again, not on waivers: he was picked up since the last deadline";
+  return `${claimed} ${dropped.playerName} went for him, ${where}.`;
+}
+
+/** Why a waiver claim failed (spec/08): another team was ahead, the player he named to drop was
+ *  already gone, or the squad's limits. */
+export const CLAIM_FAILURES = ["ahead", "dropGone", "limits"] as const;
+export type ClaimFailure = (typeof CLAIM_FAILURES)[number];
+
+/** To a manager alone when his claim fails at a waiver run (spec/08, spec/16), saying why. */
+export function claimFailedLetter({ playerName, dropName, why }: { playerName: string; dropName: string | null; why: ClaimFailure }): Words {
+  const because = {
+    ahead: `Another team was ahead of you in the waiver order for ${playerName}.`,
+    dropGone: `${dropName ?? "The player you named to drop"} was no longer in your squad to drop.`,
+    limits: `${playerName} would have broken your squad's limits.`,
+  }[why];
+  return { subject: `Your claim for ${playerName} failed`, body: `${because} Your claim is gone; nobody joined or left your squad for it.` };
 }
 
 /** The letter to a manager whose shortlist holds a player just released to free agency (spec/16,

@@ -183,6 +183,23 @@ export const squads = query({
   },
 });
 
+/** The league's squad limits a squad of these players would break (spec/03, Squad make-up), as
+ *  `squads` reads them: what a waiver claim is checked against (#1198). */
+export async function limitsBroken(
+  ctx: QueryCtx,
+  leagueId: Id<"leagues">,
+  playerCodes: readonly number[],
+  squad: LeagueRules["squad"] | null,
+): Promise<SquadWarning[]> {
+  if (squad === null) return [];
+  const positionsOfNow = await positionsNow(ctx, leagueId);
+  const shortNameOf = readOnce(async (clubCode: number) => (await clubByCode(ctx, clubCode)).shortName);
+  const players = (await Promise.all(playerCodes.map((code) => playerByCode(ctx, code)))).filter((player) => player !== null);
+  const clubs = await Promise.all(players.map(async ({ clubCode }) => ({ clubShortName: await shortNameOf(clubCode) })));
+  const playersAreas = squad.minimumByArea ? await Promise.all(playerCodes.map(async (code) => areasOf(await positionsOfNow(code)))) : [];
+  return squadWarnings(playerCodes.length, clubs, playersAreas, squad);
+}
+
 /** The league's squad limits a squad of `playerCount` players breaks (spec/03, Squad make-up),
  *  given the clubs of those the football sync holds and each player's areas (areaMinimums.ts says
  *  how they fill the minimums). */

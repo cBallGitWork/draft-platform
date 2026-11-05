@@ -252,8 +252,12 @@ import type * as table_sentTables from "../table/sentTables.js";
 import type * as table_standings from "../table/standings.js";
 import type * as table_teamFixtures from "../table/teamFixtures.js";
 import type * as table_teamGames from "../table/teamGames.js";
+import type * as waivers_waiverClaims from "../waivers/waiverClaims.js";
 import type * as waivers_waiverLock from "../waivers/waiverLock.js";
+import type * as waivers_waiverOrder from "../waivers/waiverOrder.js";
 import type * as waivers_waiverPlayers from "../waivers/waiverPlayers.js";
+import type * as waivers_waiverRun from "../waivers/waiverRun.js";
+import type * as waivers_waiverTimes from "../waivers/waiverTimes.js";
 import type * as waivers_waivers from "../waivers/waivers.js";
 
 import type {
@@ -507,8 +511,12 @@ declare const fullApi: ApiFromModules<{
   "table/standings": typeof table_standings;
   "table/teamFixtures": typeof table_teamFixtures;
   "table/teamGames": typeof table_teamGames;
+  "waivers/waiverClaims": typeof waivers_waiverClaims;
   "waivers/waiverLock": typeof waivers_waiverLock;
+  "waivers/waiverOrder": typeof waivers_waiverOrder;
   "waivers/waiverPlayers": typeof waivers_waiverPlayers;
+  "waivers/waiverRun": typeof waivers_waiverRun;
+  "waivers/waiverTimes": typeof waivers_waiverTimes;
   "waivers/waivers": typeof waivers_waivers;
 }>;
 

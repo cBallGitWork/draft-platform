@@ -3,6 +3,8 @@ import type { MutationCtx, QueryCtx } from "../_generated/server";
 import { draftIsLive } from "../draft/draftRow";
 import { LEAGUES_READ_MOST, takeAllOrThrow } from "../shared/cappedRead";
 import { DAY_MS } from "../shared/time";
+import type { LeagueDeadlines } from "../gameweeks/deadline";
+import { deadlinePassedSince } from "./waiverLock";
 
 // Who is on waivers in a league (#1197, spec/08 Waivers and free agency): a row in waiverPlayers
 // (../schema/waivers.ts) each, only while no team holds him. A drop puts him there for at least 24
@@ -27,6 +29,21 @@ export async function putOnWaivers(ctx: MutationCtx, leagueId: Id<"leagues">, pl
   const held = await waiverRowOf(ctx, leagueId, playerCode);
   if (held === null) await ctx.db.insert("waiverPlayers", { leagueId, playerCode, claimableFrom });
   else await ctx.db.patch("waiverPlayers", held._id, { claimableFrom });
+}
+
+/** Takes the player out of his squad for his manager's drop, by itself or for a claim: onto
+ *  waivers for WAIVER_MS, unless the churn rule sends him straight back to the free agents, picked
+ *  up as one with no deadline passed since (spec/08). Whether he went on waivers. */
+export async function dropFromSquad(
+  ctx: MutationCtx,
+  place: Doc<"squadPlayers">,
+  deadlines: LeagueDeadlines,
+  now: number,
+): Promise<boolean> {
+  const churned = place.pickedUpAt !== undefined && !deadlinePassedSince(deadlines, place.pickedUpAt, now);
+  await ctx.db.delete("squadPlayers", place._id);
+  if (!churned) await putOnWaivers(ctx, place.leagueId, place.playerCode, now + WAIVER_MS);
+  return !churned;
 }
 
 /** Takes the player off the league's waivers as he joins a team, so a row is only ever for a

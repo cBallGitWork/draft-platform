@@ -8,8 +8,8 @@ import { managerOf, memberOf, refuse, refusals, teamIn } from "../shared/leagueA
 import { playerByCode } from "../shared/players";
 import { placeOf } from "../squads/squadPlace";
 import { squadRefusals } from "../squads/squads";
-import { deadlinePassedSince, inWaiverLock } from "./waiverLock";
-import { putOnWaivers, WAIVER_MS, waiverRowOf } from "./waiverPlayers";
+import { inWaiverLock } from "./waiverLock";
+import { dropFromSquad, waiverRowOf } from "./waiverPlayers";
 
 // A manager's drop, and a player's waiver state (#1197, spec/08 Waivers and free agency). A drop
 // is a release by the manager: the player leaves the squad, the league is told in Mail, and the
@@ -39,16 +39,14 @@ export const drop = mutation({
     const player = (await playerByCode(ctx, playerCode)) ?? refuse(refusals.noPlayer);
     const place = await placeOf(ctx, leagueId, playerCode);
     if (place === null || place.teamId !== team._id) refuse(dropRefusals.notYours(player.name));
-    const churned = place.pickedUpAt !== undefined && !deadlinePassedSince(deadlines, place.pickedUpAt, now);
-    await ctx.db.delete("squadPlayers", place._id);
-    if (!churned) await putOnWaivers(ctx, leagueId, playerCode, now + WAIVER_MS);
+    const toWaivers = await dropFromSquad(ctx, place, deadlines, now);
     await recordEvent(ctx, leagueId, email, {
       kind: "playerDropped",
       playerCode,
       playerName: player.name,
       teamId: team._id,
       teamName: team.name,
-      toWaivers: !churned,
+      toWaivers,
     });
     await pickFirstLineupAgain(ctx, leagueId, team._id);
     return null;
