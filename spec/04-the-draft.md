@@ -148,6 +148,14 @@ Feature 4 of [SPEC.md](../SPEC.md). Only Craig's answers.
   "ok" to Claude's recommendation).
 - No pick, the manager's or an auto-pick, files a Mail letter: "we dont need mail for that and each
   pick" (Craig, 4 Nov 2026, on #1091).
+- A letter is a Mail inbox item (`spec/16`), not an email. Craig chose "Up next + draft over"
+  (4 Nov 2026, on #1102):
+  - "The next manager gets "you're up next". There is no pick-made letter to every manager for
+    every pick."
+  - "Every manager gets one letter when the draft ends."
+  - "The commissioner's pause, undo and pick-for each send a letter to the whole league. Resume
+    sends none."
+  - "When a start date comes and the draft can't start, the commissioner gets a letter."
 
 ## The commissioner
 

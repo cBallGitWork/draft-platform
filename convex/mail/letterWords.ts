@@ -135,6 +135,34 @@ export function shortlistedReleasedLetter(playerName: string, teamName: string, 
   };
 }
 
+/** The draft's letters (spec/04, Mail; #1102). "You're up next" to the manager whose pick's clock
+ *  starts, its deadline told in `zone`, the reader's; it is also the email when the clock is long. */
+export function upNextLetter({ round, pick, teamName, endsAt }: { round: number; pick: number; teamName: string; endsAt: number }, zone: string | undefined): Words {
+  return {
+    subject: "You're up next in the draft",
+    body: `${teamName} is on the clock: round ${round}, pick ${pick}. Make your pick by ${momentIn(endsAt, zone)}, or the draft picks for you.`,
+  };
+}
+
+/** To the whole league once the last pick is made. */
+export function draftOverLetter(picks: number): Words {
+  return { subject: "The draft is over", body: `All ${picks} picks are made, and every squad is drafted.` };
+}
+
+/** To the whole league when the commissioner, `who`, pauses the draft. Resuming files none. */
+export function draftPausedLetter(who: string): Words {
+  return { subject: "The draft is paused", body: `${who} paused the draft. No pick is made until it resumes.` };
+}
+
+/** To the commissioner when the draft's start date, `startsAt`, comes and it can't start, for
+ *  `refusal` (draftStart.ts `draftStartRefusals`). */
+export function draftNotStartedLetter(startsAt: number, refusal: string, zone: string | undefined): Words {
+  return {
+    subject: "The draft didn't start",
+    body: `The draft was set to start on ${momentIn(startsAt, zone)}, but couldn't. ${refusal} It waits for you to press start or set a new date.`,
+  };
+}
+
 /** Each part of a league's rules as a letter names it, and the scoring, which letters filed before
  *  it became the site's (#354) name. */
 const RULES_PART_WORDS: Record<keyof LeagueRules | "scoring", string> = {
