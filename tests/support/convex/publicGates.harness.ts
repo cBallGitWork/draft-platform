@@ -59,6 +59,8 @@ export const gates: Record<string, Gate> = {
   "draft/draftOrder:drawTeamOrder": "runner",
   "draft/draftOrder:setTeamOrder": "runner",
   "draft/draftOrder:teamOrder": "runner",
+  "draft/draftPause:pause": "runner",
+  "draft/draftPause:resume": "runner",
   "draft/draftPicks:makePick": "manager",
   "draft/draftRanking:upload": "admin",
   "draft/draftRanking:view": "admin",
