@@ -3,13 +3,12 @@
 // does without loading the scorer.
 
 import type { Cell } from "../lineup/pitch";
-import { rolesOfSlot, type Role } from "../lineup/roles";
+import { rolesOfSlot, type Formation, type Role } from "../lineup/roles";
 import type { RoleStars } from "./starsShape";
 
-/** The role a player has the most stars for in this slot: a tie, or no stars for any of its roles
- *  ("?" or "—"), goes to the slot's first (Craig, 1 Nov 2026). */
-export function bestRoleIn(cell: Cell, ratings: readonly RoleStars[]): Role {
-  const roles = rolesOfSlot(cell);
+/** The role among these, the roles of this slot, a player has the most stars for: a tie, or no
+ *  stars for any of them ("?" or "—"), goes to the first (Craig, 1 Nov 2026). */
+export function bestRoleIn(cell: Cell, roles: readonly Role[], ratings: readonly RoleStars[]): Role {
   let best = roles[0];
   let bestStars = -Infinity;
   for (const role of roles) {
@@ -19,16 +18,19 @@ export function bestRoleIn(cell: Cell, ratings: readonly RoleStars[]): Role {
   return best;
 }
 
-/** The role a player dropped into this slot is saved on: his best-star role's key, or undefined for
- *  the slot's first, which a starter with none given plays (roles.ts's roleIn). Saved when he is
- *  dropped, never worked out when his points are, so a change of stars never changes his points. */
-export function droppedRole(cell: Cell, ratings: readonly RoleStars[]): string | undefined {
-  const best = bestRoleIn(cell, ratings);
-  return best === rolesOfSlot(cell)[0] ? undefined : best.key;
+/** The role a player dropped into this slot of this formation (the cells the eleven stand in once
+ *  he is there) is saved on: his best-star role's key, or undefined for the slot's first, which a
+ *  starter with none given plays (roles.ts's roleIn). Saved when he is dropped, never worked out
+ *  when his points are, so a change of stars never changes his points. */
+export function droppedRole(cell: Cell, formation: Formation, ratings: readonly RoleStars[]): string | undefined {
+  const roles = rolesOfSlot(cell, formation);
+  const best = bestRoleIn(cell, roles, ratings);
+  return best === roles[0] ? undefined : best.key;
 }
 
-/** The starter he is, dropped into this slot: its cell, and the role droppedRole saves, if any. */
-export function droppedStarter(playerCode: number, { area, lane }: Cell, ratings: readonly RoleStars[]): Cell & { playerCode: number; role?: string } {
-  const role = droppedRole({ area, lane }, ratings);
+/** The starter he is, dropped into this slot of this formation: its cell, and the role droppedRole
+ *  saves, if any. */
+export function droppedStarter(playerCode: number, { area, lane }: Cell, formation: Formation, ratings: readonly RoleStars[]): Cell & { playerCode: number; role?: string } {
+  const role = droppedRole({ area, lane }, formation, ratings);
   return { playerCode, area, lane, ...(role !== undefined && { role }) };
 }

@@ -28,8 +28,6 @@ export const POSITION_NAMES: Record<Position, string> = {
   SS: "Second striker",
   ST: "Striker",
 };
-/** A sweeper's slot label, SW, by name: a slot's label but no player's position (spec/05). */
-export const sweeperName = "Sweeper";
 
 /** What a screen says when a change or a read failed for any reason but the server's refusal (src/shared/refusal.ts):
  *  `outcome` is what that left, such as "nothing changed". */

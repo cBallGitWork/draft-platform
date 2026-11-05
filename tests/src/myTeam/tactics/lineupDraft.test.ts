@@ -151,24 +151,24 @@ describe("a preset picked fills its empty slots from the bench (Craig, 1 Nov 202
 
 describe("a role (spec/05 Roles)", () => {
   it("given, is the starter's until he moves; the same lineup with another role isn't the same", () => {
-    const given = withRole(DRAFT, 2, "attackingFullBack");
-    expect(given.starters[1]).toEqual({ ...BACK, role: "attackingFullBack" });
+    const given = withRole(DRAFT, 2, "defensiveFullBack");
+    expect(given.starters[1]).toEqual({ ...BACK, role: "defensiveFullBack" });
     expect(sameLineup(given, DRAFT)).toBe(false);
     const other = { playerCode: 7, area: "defence", lane: "centre" } as const;
     expect(swapped({ ...given, starters: [...given.starters, other] }, 2, 7, NO_STARS).starters.at(-1)).toEqual({ playerCode: 2, area: "defence", lane: "centre" });
   });
 
   it("kept by a preset that puts him in a slot offering it, dropped where it isn't offered", () => {
-    const given = withRole(DRAFT, 2, "attackingFullBack");
-    expect(reshaped(given, [KEEPER, { area: "defence", lane: "left" }], PLAYS, NO_STARS).starters[1]).toEqual({ ...BACK, role: "attackingFullBack" });
+    const given = withRole(DRAFT, 2, "defensiveFullBack");
+    expect(reshaped(given, [KEEPER, { area: "defence", lane: "left" }], PLAYS, NO_STARS).starters[1]).toEqual({ ...BACK, role: "defensiveFullBack" });
     expect(reshaped(given, [KEEPER, { area: "defence", lane: "centre" }], PLAYS, NO_STARS).starters[1]).toEqual({ playerCode: 2, area: "defence", lane: "centre" });
   });
 });
 
 describe("the role a player dropped into a slot starts on: his most stars there (spec/05 Roles; #11)", () => {
   const DEFENCE_STARS: RoleStars[] = [
-    { area: "defence", role: "defensiveFullBack", stars: 2 },
-    { area: "defence", role: "attackingFullBack", stars: 4 },
+    { area: "defence", role: "overlappingFullBack", stars: 2 },
+    { area: "defence", role: "defensiveFullBack", stars: 4 },
     { area: "defence", role: "ballPlayingDefender", stars: 3.5 },
   ];
   const ratingsOf: RatingsOf = (playerCode) => (playerCode === 3 || playerCode === 2 ? DEFENCE_STARS : []);
@@ -177,21 +177,21 @@ describe("the role a player dropped into a slot starts on: his most stars there 
 
   it("swapped off the bench, at full back or in the centre", () => {
     const centre = { starters: [KEEPER, { playerCode: 2, ...CENTRE_BACK }], bench: [3, 4] };
-    expect(swapped(DRAFT, 3, 2, ratingsOf).starters[1]).toEqual({ ...BACK, playerCode: 3, role: "attackingFullBack" });
+    expect(swapped(DRAFT, 3, 2, ratingsOf).starters[1]).toEqual({ ...BACK, playerCode: 3, role: "defensiveFullBack" });
     expect(swapped(centre, 3, 2, ratingsOf).starters[1]).toEqual({ playerCode: 3, ...CENTRE_BACK, role: "ballPlayingDefender" });
   });
 
   it("the slot's first, saved as none, on a tie or with no stars", () => {
     const level: RatingsOf = () => [
+      { area: "defence", role: "overlappingFullBack", stars: 3 },
       { area: "defence", role: "defensiveFullBack", stars: 3 },
-      { area: "defence", role: "attackingFullBack", stars: 3 },
     ];
     expect(swapped(DRAFT, 3, 2, level).starters[1]).toEqual({ ...BACK, playerCode: 3 });
     expect(swapped(DRAFT, 4, 2, ratingsOf).starters[1]).toEqual({ ...BACK, playerCode: 4 });
   });
 
   it("swapped: each on his best role in the other's slot", () => {
-    expect(swapped(DRAFT, 3, 2, ratingsOf).starters[1]).toEqual({ ...BACK, playerCode: 3, role: "attackingFullBack" });
+    expect(swapped(DRAFT, 3, 2, ratingsOf).starters[1]).toEqual({ ...BACK, playerCode: 3, role: "defensiveFullBack" });
   });
 
   it("moved by a preset: his role kept where offered, his old slot's first included; his best role where it isn't", () => {
@@ -202,7 +202,7 @@ describe("the role a player dropped into a slot starts on: his most stars there 
 
 describe("a swap (spec/05, Moving players; #851)", () => {
   const MIDFIELDER = { playerCode: 5, area: "midfield", lane: "centre" } as const;
-  const WITH_ROLES = { starters: [{ ...BACK, role: "attackingFullBack" }, { ...MIDFIELDER, role: "boxToBox" }], bench: [3, 4] };
+  const WITH_ROLES = { starters: [{ ...BACK, role: "defensiveFullBack" }, { ...MIDFIELDER, role: "boxToBox" }], bench: [3, 4] };
 
   it("of two starters puts each in the other's cell, on its first role", () => {
     expect(swapped(WITH_ROLES, 2, 5, NO_STARS)).toEqual({

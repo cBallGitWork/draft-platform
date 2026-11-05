@@ -165,7 +165,8 @@ function firstLegalSub(
   for (const playerCode of available) {
     const playerPositions = positionsOf(positions, playerCode);
     for (const cell of freeCells.filter((free) => playsCell(playerPositions, free))) {
-      const tried = legalSubstitution(lineup, absentee, droppedStarter(playerCode, cell, ratingsOf(playerCode)), "hisOwnArea", positions, rules);
+      const formation = [...lineup.starters.filter((starter) => starter !== absentee).map(cellOf), cell];
+      const tried = legalSubstitution(lineup, absentee, droppedStarter(playerCode, cell, formation, ratingsOf(playerCode)), "hisOwnArea", positions, rules);
       if (tried) return tried;
     }
   }
@@ -239,9 +240,11 @@ function shortfall(problem: LineupProblem): number {
 
 /** A lineup that may stand, minus a starter outside his areas: one who lost a position after he
  *  was placed stays in his slot for the gameweek (spec/06), and lineup.ts reports it alone so a
- *  caller can set it aside. A sub is only ever put where he plays. */
+ *  caller can set it aside. A sub is only ever put where he plays. A sweeper or libero left with
+ *  fewer than three centre-backs by a sub elsewhere keeps his role (roles.ts's roleIn): which roles
+ *  a formation offers is the manager's pick, never a reason to refuse a sub. */
 function standingProblems(lineup: Lineup, positions: PlayerPositions, rules: LineupRules) {
-  return lineupProblems(lineup, positions, rules).filter((problem) => problem.kind !== "outsideHisAreas");
+  return lineupProblems(lineup, positions, rules).filter((problem) => problem.kind !== "outsideHisAreas" && problem.kind !== "noBackThree");
 }
 
 /** A starter's cell, once standingProblems has refused any cell that doesn't exist. */

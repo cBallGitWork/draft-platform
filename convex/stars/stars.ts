@@ -5,7 +5,7 @@
 // starts on when he is dropped into a slot (spec/05), and never price a match.
 
 import { areasOf, cellsOf, LANES, type Area, type Cell } from "../lineup/pitch";
-import { rolesOfSlot } from "../lineup/roles";
+import { everyRoleOf } from "../lineup/roles";
 import type { Position } from "../positions/positionTables";
 import { scoreMatch } from "../scoring/scoring";
 import type { ScoringSet } from "../scoring/scoringSet";
@@ -52,7 +52,7 @@ export function ratedRoles(positions: readonly Position[]): RatedRole[] {
   const rated: RatedRole[] = [];
   for (const area of areasOf(positions)) {
     for (const cell of cellsOf(area, LANES)) {
-      for (const { key } of rolesOfSlot(cell)) {
+      for (const { key } of everyRoleOf(cell)) {
         if (!rated.some((each) => each.area === area && each.role === key)) rated.push({ area, role: key, cell });
       }
     }

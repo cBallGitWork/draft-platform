@@ -130,6 +130,10 @@
   /* a formation tile's height, two a row, as drawn */
   --spacing-tile: 96px;
 
+  /* a two-line role under a player on the phone's pitch: a shirt, his name and two lines this
+     close fit one row of the 390 pitch, where the text's own 20px overran it */
+  --leading-pitch-role: 16px;
+
   --text-data: 13px;
   --text-data--line-height: 20px;
   --text-lead: 15px; /* a player's name, and the menu */

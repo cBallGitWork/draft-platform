@@ -1,92 +1,157 @@
 import { describe, expect, test } from "vitest";
 import { lineupProblems, type Lineup } from "../../../convex/lineup/lineup";
 import { problemWords } from "../../../convex/lineup/lineupWords";
-import { AREAS, LANES, positionOfSlot } from "../../../convex/lineup/pitch";
-import { DEFAULT_ROLES, isRole, roleIn, roleName, rolesOfSlot, slotLabel, SWEEPER, SWEEPER_CELL, type SlotLabel } from "../../../convex/lineup/roles";
+import { AREAS, LANES, positionOfSlot, type SlotPosition } from "../../../convex/lineup/pitch";
+import { centreBacksIn, DEFAULT_ROLES, everyRoleOf, isRole, offersRole, roleIn, roleName, rolesOfSlot } from "../../../convex/lineup/roles";
 import { DRAFTED_ROLE_ADJUSTMENTS } from "../../../convex/scoring/draftedRoleAdjustments";
 import { FIRST_SCORING } from "../../../convex/scoring/firstScoring";
 import { scoreTeam } from "../../../convex/scoring/teamPoints";
 import { FIRST, STRIKER, STRIKERS_CELL, plays, subbed, withBench } from "../../support/convex/autoSubs.harness";
 import { filledLineup, openLimits, presetNamed, REMOVED_ROLE } from "../../support/convex/lineup.harness";
 
-// Roles (#10, spec/05 Roles; Craig, 26 Oct 2026): a slot offers the default set's list for the
-// position it stands for, a starter plays the one he was given or the slot's first, and a sub
-// into the empty slot takes its role too.
+// Roles (#10, #989, spec/05 Roles; Craig, 26 Oct and 4-5 Nov 2026): a slot offers the default set's
+// list for the position it stands for, sweeper and libero only to centre-backs of a back three or
+// more, a starter plays the one he was given or the slot's first, and a sub into the empty slot
+// takes its role too.
+
+const BACK_FOUR = presetNamed("4-4-2").cells;
+const BACK_THREE = presetNamed("3-5-2").cells;
+const BACK_TWO = presetNamed("2-3-5").cells;
+const names = (roles: readonly { name: string }[]) => roles.map(({ name }) => name);
+
+describe("the default set (spec/05 Roles, as merged 5 Nov 2026)", () => {
+  // spec/05's list, position by position, in its order.
+  const SPEC_LIST: Record<SlotPosition, readonly string[]> = {
+    GK: ["Shot-stopper", "Sweeper keeper", "Distributor", "Commanding keeper"],
+    FB: ["Overlapping full-back", "Underlapping full-back", "Inverted full-back", "Playmaking full-back", "Defensive full-back"],
+    WB: ["Attacking wing-back", "Holding wing-back", "Complete wing-back", "Inverted wing-back", "Goalscoring wing-back"],
+    CB: ["Stopper", "Ball-playing centre-back", "No-nonsense centre-back", "Attacking centre-back", "Sweeper", "Libero"],
+    CDM: ["Metronome", "Quarterback", "Half-back", "Engine", "Tower", "Destroyer"],
+    CM: ["Box-to-box", "Ball-winner", "Attacking 8", "Engine", "Late runner"],
+    WM: ["Wide workhorse", "Defensive winger", "Wide playmaker", "Crosser", "Touchline winger"],
+    CAM: ["Number 10", "Shadow striker", "Maverick", "Carrier", "Pressing 10"],
+    W: ["Touchline winger", "Dribbler", "Inside forward", "Wide playmaker", "Wide forward", "Pressing winger", "Tracking winger"],
+    ST: ["Poacher", "Target man", "In-behind striker", "Pressing forward", "Shadow striker", "False 9"],
+  };
+
+  test("each position holds spec/05's roles in its order, the four keeper roles among them", () => {
+    expect(Object.fromEntries(Object.entries(DEFAULT_ROLES).map(([position, roles]) => [position, names(roles)]))).toEqual(SPEC_LIST);
+  });
+
+  test("there is no free role (Craig, 5 Nov 2026: \"we ditched free role\")", () => {
+    expect(Object.values(DEFAULT_ROLES).flat().some(({ name }) => /free role/i.test(name))).toBe(false);
+  });
+
+  test("the cut roles are gone, and a saved lineup holding one plays the slot's first", () => {
+    for (const cut of ["attackingFullBack", "anchor", "deepPlaymaker", "playmaker"]) expect(isRole(cut), cut).toBe(false);
+    const leftBack = { area: "defence", lane: "left" } as const;
+    expect(roleIn(leftBack, "attackingFullBack").name).toBe("Overlapping full-back");
+  });
+
+  const everyRole = Object.values(DEFAULT_ROLES).flat();
+
+  test("every role holds a code of at most three, its own, shown on the pitch", () => {
+    for (const { key, code } of everyRole) expect(code, key).toMatch(/^[A-Z0-9]{1,3}$/);
+    expect(new Set(everyRole.map(({ code }) => code)).size).toBe(new Set(everyRole.map(({ key }) => key)).size);
+  });
+
+  test("every role holds a description and what it rewards and costs, as categories without values", () => {
+    for (const { key, description, rewards, costs } of everyRole) {
+      expect(description.length, key).toBeGreaterThan(0);
+      expect(rewards.length, key).toBeGreaterThan(0);
+      expect(costs.length, key).toBeGreaterThan(0);
+      for (const category of [...rewards, ...costs]) expect(category, key).not.toMatch(/\d/);
+    }
+  });
+
+  test("each key means one role wherever it is offered, and two roles of one name are told apart by position", () => {
+    const byKey = new Map<string, string>();
+    for (const { key, name } of everyRole) {
+      expect(byKey.get(key) ?? name).toBe(name);
+      byKey.set(key, name);
+    }
+    expect(roleName("engine")).toBe("Engine (defensive midfield)");
+    expect(roleName("midfieldEngine")).toBe("Engine (centre midfield)");
+    expect(roleName("poacher")).toBe("Poacher");
+  });
+});
 
 describe("what a slot offers", () => {
   test("the position the slot stands for: a full-back's roles out wide in defence, a wing-back's in defensive midfield's", () => {
-    expect(rolesOfSlot({ area: "defence", lane: "left" }).map(({ name }) => name)).toEqual(["Defensive full-back", "Attacking full-back"]);
-    expect(rolesOfSlot({ area: "defence", lane: "leftCentre" }).map(({ name }) => name)).toEqual(["Stopper", "Ball-playing defender"]);
-    expect(rolesOfSlot({ area: "defensiveMidfield", lane: "right" }).map(({ name }) => name)).toEqual(["Attacking wing-back", "Holding wing-back"]);
+    expect(names(rolesOfSlot({ area: "defence", lane: "left" }, BACK_FOUR))).toEqual(names(DEFAULT_ROLES.FB));
+    expect(names(rolesOfSlot({ area: "defensiveMidfield", lane: "right" }, BACK_FOUR))).toEqual(names(DEFAULT_ROLES.WB));
     // Wide midfield offers no wing-back role (Craig, 26 Oct 2026).
-    expect(rolesOfSlot({ area: "midfield", lane: "left" }).map(({ name }) => name)).toEqual(["Winger", "Defensive winger"]);
-    expect(rolesOfSlot({ area: "attack", lane: "right" })).toHaveLength(5);
+    expect(names(rolesOfSlot({ area: "midfield", lane: "left" }, BACK_FOUR))).toEqual(names(DEFAULT_ROLES.WM));
+    expect(rolesOfSlot({ area: "attack", lane: "right" }, BACK_FOUR)).toHaveLength(6);
   });
 
-  test("every cell of the pitch offers at least one, and each key means one role wherever it is offered", () => {
-    const byKey = new Map<string, string>();
+  test("every cell of the pitch offers at least one, and with a back three, every role its position holds", () => {
     for (const area of AREAS) {
       for (const lane of LANES) {
-        const roles = rolesOfSlot({ area, lane });
-        expect(roles.length).toBeGreaterThan(0);
-        expect(roles).toEqual(expect.arrayContaining([...DEFAULT_ROLES[positionOfSlot({ area, lane })]]));
-        for (const { key, name } of roles) {
-          expect(byKey.get(key) ?? name).toBe(name);
-          byKey.set(key, name);
-        }
+        const cell = { area, lane };
+        expect(rolesOfSlot(cell, BACK_FOUR).length).toBeGreaterThan(0);
+        expect(rolesOfSlot(cell, BACK_THREE)).toEqual(DEFAULT_ROLES[positionOfSlot(cell)]);
+        expect(everyRoleOf(cell)).toEqual(DEFAULT_ROLES[positionOfSlot(cell)]);
       }
     }
   });
 
   test("a starter plays the role he was given, or the slot's first until he is given one", () => {
     const cell = { area: "defence", lane: "left" } as const;
-    expect(roleIn(cell, "attackingFullBack").name).toBe("Attacking full-back");
-    expect(roleIn(cell, undefined).name).toBe("Defensive full-back");
+    expect(roleIn(cell, "invertedFullBack").name).toBe("Inverted full-back");
+    expect(roleIn(cell, undefined).name).toBe("Overlapping full-back");
   });
 });
 
-describe("the sweeper (spec/05 The pitch; #844; Craig, 31 Oct 2026)", () => {
-  const centre = SWEEPER_CELL;
+describe("sweeper and libero (spec/05 The pitch; Craig, 4 Nov 2026)", () => {
+  const centreBackCells = (formation: typeof BACK_FOUR) => formation.filter((cell) => positionOfSlot(cell) === "CB");
 
-  test("the defence's centre cell offers the centre-back's roles, then sweeper and libero", () => {
-    expect(rolesOfSlot(centre).map(({ name }) => name)).toEqual(["Stopper", "Ball-playing defender", "Sweeper", "Libero"]);
-    expect(rolesOfSlot({ area: "defence", lane: "rightCentre" }).map(({ key }) => key)).not.toContain("sweeper");
+  test("with three or more centre-backs, every one of them is offered both", () => {
+    expect(centreBacksIn(BACK_THREE)).toBe(3);
+    for (const cell of centreBackCells(BACK_THREE)) {
+      expect(offersRole(cell, "sweeper", BACK_THREE), cell.lane).toBe(true);
+      expect(offersRole(cell, "libero", BACK_THREE), cell.lane).toBe(true);
+    }
   });
 
-  test("its label is SW only on a sweeper's role, CB on a centre-back's or none given", () => {
-    expect(slotLabel(centre, "sweeper")).toBe(SWEEPER);
-    expect(slotLabel(centre, "libero")).toBe(SWEEPER);
-    expect(slotLabel(centre, "stopper")).toBe("CB");
-    expect(slotLabel(centre, "ballPlayingDefender")).toBe("CB");
-    expect(slotLabel(centre, undefined)).toBe("CB");
-    // A sweeper's key held where it isn't offered falls to the slot's first role.
-    expect(slotLabel({ area: "defence", lane: "leftCentre" }, "sweeper")).toBe("CB");
+  test("with two centre-backs, neither is offered, in a back four or a back two", () => {
+    for (const formation of [BACK_FOUR, BACK_TWO]) {
+      expect(centreBacksIn(formation)).toBe(2);
+      for (const cell of centreBackCells(formation)) {
+        expect(names(rolesOfSlot(cell, formation))).toEqual(["Stopper", "Ball-playing centre-back", "No-nonsense centre-back", "Attacking centre-back"]);
+      }
+    }
   });
 
-  test("the saved role keys stand: the centre-back's keep theirs and the sweeper's are new", () => {
-    expect(DEFAULT_ROLES.CB.map(({ key }) => key)).toEqual(["stopper", "ballPlayingDefender"]);
-    expect(DEFAULT_ROLES.SW.map(({ key }) => key)).toEqual(["sweeper", "libero"]);
-    expect(roleName("sweeper")).toBe("Sweeper");
-    expect(roleName("sweeperKeeper")).toBe("Sweeper keeper");
+  test("a full-back is never offered them, whatever the back line", () => {
+    expect(offersRole({ area: "defence", lane: "left" }, "sweeper", presetNamed("5-3-2").cells)).toBe(false);
   });
 
-  test("a back-three preset keeps a centre-back in the middle", () => {
+  test("a back three keeps a centre-back on the stopper first", () => {
     const { lineup } = filledLineup(presetNamed("3-5-2"));
-    const middle = lineup.starters.find((starter) => starter.area === centre.area && starter.lane === centre.lane);
-    expect(middle).toBeDefined();
-    expect(roleIn(centre, middle!.role).key).toBe("stopper");
-    expect(slotLabel(centre, middle!.role)).toBe("CB");
+    const middle = lineup.starters.find((starter) => starter.area === "defence" && starter.lane === "centre")!;
+    expect(roleIn({ area: "defence", lane: "centre" }, middle.role).key).toBe("stopper");
   });
 
-  test("a lineup with a sweeper in the centre cell stands; out of it, it is refused", () => {
-    const { lineup, positions } = filledLineup(presetNamed("3-5-2"));
-    const onRole = (cell: { area: string; lane: string }, role: string): Lineup => ({
-      ...lineup,
-      starters: lineup.starters.map((starter) => (starter.area === cell.area && starter.lane === cell.lane ? { ...starter, role } : starter)),
-    });
-    expect(lineupProblems(onRole(centre, "libero"), positions, openLimits())).toEqual([]);
-    const left = { area: "defence", lane: "leftCentre" } as const;
-    expect(lineupProblems(onRole(left, "sweeper"), positions, openLimits())).toMatchObject([{ kind: "roleNotOffered", role: "sweeper" }]);
+  test("a back three may play as many as the manager likes; a back four's sweeper is refused, said in words", () => {
+    const centreLanes: readonly string[] = ["leftCentre", "centre", "rightCentre"];
+    const onRoles = (preset: string, role: string): ReturnType<typeof filledLineup> => {
+      const filled = filledLineup(presetNamed(preset));
+      const starters = filled.lineup.starters.map((starter) => (starter.area === "defence" && centreLanes.includes(starter.lane) ? { ...starter, role } : starter));
+      return { ...filled, lineup: { ...filled.lineup, starters } };
+    };
+    for (const role of ["sweeper", "libero"]) {
+      const three = onRoles("3-5-2", role);
+      expect(lineupProblems(three.lineup, three.positions, openLimits())).toEqual([]);
+    }
+    const four = onRoles("4-4-2", "libero");
+    const problems = lineupProblems(four.lineup, four.positions, openLimits());
+    const [first, second] = four.lineup.starters.filter((starter) => starter.role === "libero");
+    expect(problems).toEqual([
+      { kind: "noBackThree", playerCode: first.playerCode, role: "libero", centreBacks: 2 },
+      { kind: "noBackThree", playerCode: second.playerCode, role: "libero", centreBacks: 2 },
+    ]);
+    expect(problemWords(problems[0], (code) => `Player ${code}`)).toBe(`Player ${first.playerCode} can play Libero only with 3 or more centre-backs; this lineup has 2.`);
   });
 });
 
@@ -100,7 +165,7 @@ describe("a lineup refused for a role its slot doesn't offer", () => {
 
   test("one his slot offers stands", () => {
     expect(leftBack).toMatchObject({ area: "defence", lane: "left" });
-    expect(lineupProblems(withRole("attackingFullBack"), positions, openLimits())).toEqual([]);
+    expect(lineupProblems(withRole("underlappingFullBack"), positions, openLimits())).toEqual([]);
   });
 
   test("one it doesn't is a problem, said in words", () => {
@@ -126,9 +191,8 @@ describe("a role removed from the set (spec/05 Roles; #841; Craig, 31 Oct 2026)"
   });
 
   test("is played as the slot's first, on the pitch as in scoring", () => {
-    const first = rolesOfSlot(cell)[0];
+    const first = everyRoleOf(cell)[0];
     expect(roleIn(cell, REMOVED_ROLE)).toBe(first);
-    expect(slotLabel(cell, REMOVED_ROLE)).toBe(slotLabel(cell, first.key));
     const scored = (role: string) =>
       scoreTeam({
         lineup: { starters: [{ ...leftBack, role }], bench: [] },
@@ -142,28 +206,25 @@ describe("a role removed from the set (spec/05 Roles; #841; Craig, 31 Oct 2026)"
     expect(scored(REMOVED_ROLE).starters[0].role).toBe(first.key);
   });
 
-  // Every key ever shipped, by the position that offers it: a saved lineup may hold any of them in
-  // any of its slots, so none goes from a position without the migration and its letters spec/05
-  // says a cut brings, even one another position still offers. A new role's key is added here.
-  const SHIPPED_ROLE_KEYS: Record<SlotLabel, readonly string[]> = {
-    GK: ["shotStopper", "sweeperKeeper"],
-    FB: ["defensiveFullBack", "attackingFullBack"],
-    CB: ["stopper", "ballPlayingDefender"],
-    SW: ["sweeper", "libero"],
-    WB: ["attackingWingBack", "holdingWingBack"],
-    CDM: ["anchor", "deepPlaymaker"],
-    WM: ["wideMidfielder", "defensiveWinger"],
-    CM: ["boxToBox", "playmaker", "ballWinner"],
-    W: ["insideForward", "winger"],
-    CAM: ["numberTen", "shadowStriker"],
-    ST: ["poacher", "targetMan", "pressingForward", "shadowStriker", "falseNine"],
+  // Every key offered, by the position that offers it: a saved lineup may hold any of them, so a key
+  // goes only on Craig's say (#989 cut four with no real lineups yet: "we are still building"). A
+  // new role's key is added here.
+  const OFFERED_ROLE_KEYS: Record<SlotPosition, readonly string[]> = {
+    GK: ["shotStopper", "sweeperKeeper", "distributor", "commandingKeeper"],
+    FB: ["overlappingFullBack", "underlappingFullBack", "invertedFullBack", "playmakingFullBack", "defensiveFullBack"],
+    CB: ["stopper", "ballPlayingDefender", "noNonsenseCentreBack", "attackingCentreBack", "sweeper", "libero"],
+    WB: ["attackingWingBack", "holdingWingBack", "completeWingBack", "invertedWingBack", "goalscoringWingBack"],
+    CDM: ["metronome", "quarterback", "halfBack", "engine", "tower", "destroyer"],
+    WM: ["wideMidfielder", "defensiveWinger", "wideMidfieldPlaymaker", "crosser", "wideMidfieldWinger"],
+    CM: ["boxToBox", "ballWinner", "attackingEight", "midfieldEngine", "lateRunner"],
+    W: ["winger", "dribbler", "insideForward", "widePlaymaker", "wideForward", "pressingWinger", "trackingWinger"],
+    CAM: ["numberTen", "attackingMidfieldShadowStriker", "maverick", "carrier", "pressingTen"],
+    ST: ["poacher", "targetMan", "inBehindStriker", "pressingForward", "shadowStriker", "falseNine"],
   };
 
-  test("every key ever shipped is still offered by its position, and every key offered is pinned here", () => {
-    const asSets = (keysByPosition: Record<string, readonly string[]>) =>
-      Object.fromEntries(Object.entries(keysByPosition).map(([position, keys]) => [position, new Set(keys)]));
+  test("every key offered is pinned here, so none goes unnoticed", () => {
     const offered = Object.fromEntries(Object.entries(DEFAULT_ROLES).map(([position, roles]) => [position, roles.map(({ key }) => key)]));
-    expect(asSets(offered)).toEqual(asSets(SHIPPED_ROLE_KEYS));
+    expect(offered).toEqual(OFFERED_ROLE_KEYS);
   });
 });
 
@@ -189,9 +250,25 @@ describe("each role's run (spec/05 Runs; #846; Craig, 31 Oct 2026)", () => {
 
   test("the roles that hold their place have none, and the moving ones go where FM's nearest would", () => {
     const holding = everyRole.filter(({ run }) => run === null).map(({ key }) => key);
-    expect(holding).toEqual(["shotStopper", "defensiveFullBack", "ballPlayingDefender", "holdingWingBack", "anchor", "deepPlaymaker", "targetMan"]);
+    expect(holding).toEqual([
+      "shotStopper",
+      "distributor",
+      "commandingKeeper",
+      "playmakingFullBack",
+      "defensiveFullBack",
+      "ballPlayingDefender",
+      "noNonsenseCentreBack",
+      "holdingWingBack",
+      "metronome",
+      "quarterback",
+      "tower",
+      "destroyer",
+      "maverick",
+      "targetMan",
+    ]);
     const endOf = (key: string) => everyRole.find((each) => each.key === key)!.run!.path.at(-1)!;
-    expect(endOf("attackingFullBack").forward).toBeGreaterThan(0);
+    expect(endOf("overlappingFullBack").forward).toBeGreaterThan(0);
+    expect(endOf("halfBack").forward).toBeLessThan(0);
     expect(endOf("falseNine").forward).toBeLessThan(0);
     expect(endOf("insideForward").across).toBeGreaterThan(0);
   });

@@ -3,7 +3,7 @@ import { FIRST_SCORING } from "../../../convex/scoring/firstScoring";
 import { fullTimeRecords, lockMatch } from "../../support/convex/gameweekScoresMatch.harness";
 import { holdSiteScoring } from "../../support/convex/siteScoring.harness";
 import { DAY_MS } from "../../../convex/shared/time";
-import { namedRole, roleIn, rolesOfSlot } from "../../../convex/lineup/roles";
+import { everyRoleOf, namedRole, roleIn } from "../../../convex/lineup/roles";
 import {
   annsScoredGame,
   annsSquadAndEvery,
@@ -31,7 +31,7 @@ import { BELLOUMI, PHILLIPS } from "../../support/convex/teamPoints.harness";
 test("a sub into the empty slot plays its role, and a bench player not on plays none", async () => {
   const league = await scoresLeague();
   const keepersSlot = HULL_STARTERS.find((starter) => starter.playerCode === PHILLIPS)!;
-  const [first, given] = rolesOfSlot(keepersSlot);
+  const [first, given] = everyRoleOf(keepersSlot);
   await giveAnnsStarterRole(league, PHILLIPS, given.key);
   // Full time: Phillips didn't play, so Hull's keeper comes on for him.
   await fullTimeRecords(league);
@@ -71,12 +71,12 @@ async function belloumiOnInMidfield(league: ScoresLeague) {
   await playsOnlyCentreMidfield(league, HULL_BENCH_STRIKER);
 }
 
-/** A playmaker earns a point a goal and a ball-winner loses one, so Belloumi's goal scores apart
+/** An attacking 8 earns a point a goal and a ball-winner loses one, so Belloumi's goal scores apart
  *  under each. In force from before the gameweek. */
 const ROLES_PRICED_APART = {
   ...FIRST_SCORING,
   roleAdjustments: [
-    { role: "playmaker", adjustments: [{ stat: "goals_scored", points: 1 }] },
+    { role: "attackingEight", adjustments: [{ stat: "goals_scored", points: 1 }] },
     { role: "ballWinner", adjustments: [{ stat: "goals_scored", points: -1 }] },
   ],
 };
@@ -86,18 +86,18 @@ test("a sub coming on in his own area plays his best-star role at the deadline: 
   const { t, leagueId, annsTeam } = league;
   await t.run(async (ctx) => {
     await holdSiteScoring(ctx, { scoring: ROLES_PRICED_APART, kind: "patch", season: 2026, number: 1, at: Date.now() - 365 * DAY_MS });
-    // At the deadline he was a 4-star playmaker and a 2-star ball-winner.
+    // At the deadline he was a 4-star attacking 8 and a 2-star ball-winner.
     await ctx.db.insert("deadlineStars", {
       leagueId,
       gameweek: GAMEWEEK,
       teamId: annsTeam,
-      bench: [{ playerCode: BELLOUMI, stars: [{ area: "midfield", role: "ballWinner", stars: 2 }, { area: "midfield", role: "playmaker", stars: 4 }] }],
+      bench: [{ playerCode: BELLOUMI, stars: [{ area: "midfield", role: "ballWinner", stars: 2 }, { area: "midfield", role: "attackingEight", stars: 4 }] }],
     });
   });
   await belloumiOnInMidfield(league);
   await fullTimeRecords(league);
   const provisional = slotOf((await annsScoredGame(league, GAMEWEEK)).team, BELLOUMI);
-  expect(provisional).toMatchObject({ area: "midfield", autoSub: { kind: "on" }, role: { key: "playmaker" } });
+  expect(provisional).toMatchObject({ area: "midfield", autoSub: { kind: "on" }, role: { key: "attackingEight" } });
 
   // After the deadline his stars say ball-winner.
   await t.run((ctx) =>
@@ -106,7 +106,7 @@ test("a sub coming on in his own area plays his best-star role at the deadline: 
   await lockMatch(league);
   const final = slotOf((await annsScoredGame(league, GAMEWEEK)).team, BELLOUMI);
 
-  expect(final).toMatchObject({ role: { key: "playmaker" }, points: provisional.points, provisional: false });
+  expect(final).toMatchObject({ role: { key: "attackingEight" }, points: provisional.points, provisional: false });
 });
 
 test("a player's card and the Squad tab, reading one team, give a sub the same kept-star role as the league's scorer", async () => {

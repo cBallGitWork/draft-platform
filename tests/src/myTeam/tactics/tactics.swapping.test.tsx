@@ -28,7 +28,6 @@ import {
   pickUp,
   pitch,
   rowOf,
-  squadRows,
   swap,
   type Member,
 } from "../../../support/src/tacticsScreen.harness";
@@ -127,12 +126,12 @@ describe("a back five's centre-backs (Craig, 1 Nov 2026: \"make sure we allow th
     expect(blockOf(GABRIEL, back("centre"))).toBeTruthy();
   });
 
-  it("the one moved into the middle can take a sweeper role, and his slot reads SW", async () => {
+  it("the one moved into the middle can take a sweeper role, a centre-back role in a back three or more", async () => {
     await openedPitch({ tactics: FIVE });
     await swap(SALIBA, GABRIEL);
     const picker = screen.getByRole<HTMLSelectElement>("combobox", { name: roleLabel(SALIBA.name) });
     expect(Array.from(picker.options).map((option) => option.value)).toEqual(expect.arrayContaining(["sweeper", "libero"]));
     await userEvent.selectOptions(picker, "sweeper");
-    expect(squadRows().find((row) => row?.includes(SALIBA.name))).toMatch(/^SW/);
+    expect(picker.value).toBe("sweeper");
   });
 });
