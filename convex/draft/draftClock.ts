@@ -16,8 +16,9 @@ import { pickOnTheClock } from "./snakeOrder";
 /** How long after a pick the next pick's clock starts (Craig, 4 Nov 2026: "Yes, clock waits"). */
 export const PICK_GAP_MS = 10 * SECOND_MS;
 
-/** The pick a clock was started for: its number and round, its team, and when its clock runs out. */
-export type Clocked = { pick: number; round: number; team: Doc<"teams">; endsAt: number };
+/** The pick a clock was started for: its number and round, its team, and when its clock starts and
+ *  runs out. */
+export type Clocked = { pick: number; round: number; team: Doc<"teams">; startsAt: number; endsAt: number };
 
 /** Puts the pick after the league's first `picksMade` on the clock, from `startsAt` for
  *  `pickSeconds`, scheduling the pick the draft makes for its team, and returns it; once every pick
@@ -37,5 +38,5 @@ export async function startClock(ctx: MutationCtx, leagueId: Id<"leagues">, pick
   const firesAt = team.managerEmail === undefined ? startsAt : endsAt;
   const job = await ctx.scheduler.runAt(firesAt, internal.draft.draftPicks.autoPick, { leagueId, pick: turn.pick });
   await ctx.db.patch("drafts", draft._id, { clock: { pick: turn.pick, startsAt, endsAt, job } });
-  return { pick: turn.pick, round: turn.round, team, endsAt };
+  return { pick: turn.pick, round: turn.round, team, startsAt, endsAt };
 }

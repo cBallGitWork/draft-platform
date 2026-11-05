@@ -7,7 +7,6 @@ import { draftRulesOf } from "../rules/firstRules";
 import { historyOf, inForce, seasonRules } from "../rules/rulesHistory";
 import type { LeagueRules } from "../rules/leagueRulesShape";
 import { memberOf, refuse, runnerOf, teamsOf } from "../shared/leagueAccess";
-import { SECOND_MS } from "../shared/time";
 import { startClock } from "./draftClock";
 import { tellNotStarted, tellUpNext } from "./draftLetters";
 import { DRAFT_FEWEST_TEAMS } from "./draftLimits";
@@ -90,7 +89,7 @@ async function begin(ctx: MutationCtx, league: Doc<"leagues">, draft: Doc<"draft
   if (draft === null) await ctx.db.insert("drafts", { leagueId: league._id, started });
   else await ctx.db.patch("drafts", draft._id, { started, startsAt: undefined, startJob: undefined });
   const first = await startClock(ctx, league._id, 0, started.at, can.pickSeconds);
-  if (first !== null) await tellUpNext(ctx, league, first, can.pickSeconds * SECOND_MS);
+  if (first !== null) await tellUpNext(ctx, league, first);
   return null;
 }
 

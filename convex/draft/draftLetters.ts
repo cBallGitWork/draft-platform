@@ -24,13 +24,13 @@ import type { Clocked } from "./draftClock";
  *  "over 10 minutes"). */
 export const UP_NEXT_EMAIL_OVER_MS = 10 * MINUTE_MS;
 
-/** Tells the manager of the team on `clocked`'s clock, which runs `pickMs`, that he is up next. */
-export async function tellUpNext(ctx: MutationCtx, league: Doc<"leagues">, clocked: Clocked, pickMs: number): Promise<void> {
+/** Tells the manager of the team on `clocked`'s clock that he is up next. */
+export async function tellUpNext(ctx: MutationCtx, league: Doc<"leagues">, clocked: Clocked): Promise<void> {
   const to = clocked.team.managerEmail;
   if (to === undefined) return;
   const news = { round: clocked.round, pick: clocked.pick, teamName: clocked.team.name, endsAt: clocked.endsAt };
   await fileLetter(ctx, league, [to], (zone) => upNextLetter(news, zone));
-  if (pickMs <= UP_NEXT_EMAIL_OVER_MS) return;
+  if (clocked.endsAt - clocked.startsAt <= UP_NEXT_EMAIL_OVER_MS) return;
   if (!(await takeTodaysEmail(ctx))) {
     console.warn(`${to} wasn't emailed that they're up next in ${league.name}'s draft: the day's emails are all gone`);
     return;

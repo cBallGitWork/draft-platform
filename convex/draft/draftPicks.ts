@@ -11,7 +11,6 @@ import { managerOf, refuse, refusals, teamIn } from "../shared/leagueAccess";
 import { currentClubs, currentPlayersAt, heldPlayerByCode, playerByCode } from "../shared/players";
 import { placeOf, squadOf } from "../squads/squadPlace";
 import { squadRefusals } from "../squads/squads";
-import { SECOND_MS } from "../shared/time";
 import { PICK_GAP_MS, startClock } from "./draftClock";
 import { tellDraftOver, tellUpNext } from "./draftLetters";
 import { draftOf, picksMadeIn, type StartedDraft } from "./draftRow";
@@ -100,10 +99,9 @@ async function placePick(ctx: MutationCtx, league: Doc<"leagues">, turn: Turn, t
   await ctx.db.insert("squadPlayers", { leagueId, teamId: team._id, playerCode: player.code });
   await fileEvent(ctx, leagueId, by, { kind: "playerAssigned", playerCode: player.code, playerName: player.name, teamId: team._id, teamName: team.name });
   await pickFirstLineupAgain(ctx, leagueId, team._id);
-  const pickSeconds = await pickSecondsNow(ctx, leagueId);
-  const next = await startClock(ctx, leagueId, turn.pick, now + PICK_GAP_MS, pickSeconds);
+  const next = await startClock(ctx, leagueId, turn.pick, now + PICK_GAP_MS, await pickSecondsNow(ctx, leagueId));
   if (next === null) await tellDraftOver(ctx, league, turn.pick);
-  else await tellUpNext(ctx, league, next, pickSeconds * SECOND_MS);
+  else await tellUpNext(ctx, league, next);
 }
 
 /** The manager of the team on the clock picks a player, who joins its squad, and the turn moves on.
