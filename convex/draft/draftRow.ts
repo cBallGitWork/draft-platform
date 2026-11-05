@@ -15,14 +15,18 @@ export function draftOf(ctx: QueryCtx, leagueId: Id<"leagues">): Promise<Doc<"dr
     .unique();
 }
 
-/** How many picks the league's draft has made (draftPicks.ts): its last pick's number, or 0. */
-export async function picksMadeIn(ctx: QueryCtx, leagueId: Id<"leagues">): Promise<number> {
-  const last = await ctx.db
+/** The league's draft's last pick, or null while none is made. */
+export function lastPickIn(ctx: QueryCtx, leagueId: Id<"leagues">): Promise<Doc<"draftPicks"> | null> {
+  return ctx.db
     .query("draftPicks")
     .withIndex("by_leagueId_and_pick", (q) => q.eq("leagueId", leagueId))
     .order("desc")
     .first();
-  return last?.pick ?? 0;
+}
+
+/** How many picks the league's draft has made (draftPicks.ts): its last pick's number, or 0. */
+export async function picksMadeIn(ctx: QueryCtx, leagueId: Id<"leagues">): Promise<number> {
+  return (await lastPickIn(ctx, leagueId))?.pick ?? 0;
 }
 
 /** Whether the league's draft has started. */

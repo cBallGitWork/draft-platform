@@ -1,6 +1,5 @@
 import { v } from "convex/values";
-import type { Doc, Id } from "../_generated/dataModel";
-import { mutation, type QueryCtx } from "../_generated/server";
+import { mutation } from "../_generated/server";
 import { pickFirstLineupAgain } from "../lineup/lineups";
 import { fileEvent } from "../mail/letters";
 import { draftRulesOf } from "../rules/firstRules";
@@ -14,7 +13,7 @@ import { tellUndone, tellUpNext } from "./draftLetters";
 import { pauseRefusals } from "./draftPause";
 import { pickSecondsNow } from "./draftPicks";
 import { draftIsPaused, pickTimeRefusals } from "./draftPickTime";
-import { draftHasStarted, draftIsLive, draftOf } from "./draftRow";
+import { draftHasStarted, draftIsLive, draftOf, lastPickIn } from "./draftRow";
 import { afterUndoneTimeout } from "./draftTimeouts";
 
 // The commissioner running the draft (spec/04, The commissioner and Auto-pick; #1095), besides
@@ -39,15 +38,6 @@ export const commissionerRefusals = {
   draftStarted: "The draft has started, so who picks for a team can no longer be changed.",
   hasManager: (teamName: string) => `${teamName} has a manager, who picks for it.`,
 };
-
-/** The league's last pick, or null while none is made. */
-function lastPickIn(ctx: QueryCtx, leagueId: Id<"leagues">): Promise<Doc<"draftPicks"> | null> {
-  return ctx.db
-    .query("draftPicks")
-    .withIndex("by_leagueId_and_pick", (q) => q.eq("leagueId", leagueId))
-    .order("desc")
-    .first();
-}
 
 /** The commissioner undoes the last pick: its player leaves the squad, free to pick again, and its
  *  team is back on the clock. Refused to anyone who doesn't run the league, before the draft
