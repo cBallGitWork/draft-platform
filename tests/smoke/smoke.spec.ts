@@ -230,16 +230,16 @@ test.describe("dev server, signed out of Convex", { tag: "@dev" }, () => {
       });
     }
 
-    // The formation window fits a 1440 by 900 window, Cancel and Use this inside it, in its
-    // longest group too (the approved formation window; #1159).
+    // The formation window, opened, is on screen whole in a 1440 by 900 window, Cancel and Use this
+    // inside it, in its longest group too (the approved formation window; #1159).
     test("the formation window, on its longest group, fits the window with Cancel and Use this inside it", async ({ page }) => {
       await page.goto(`${MY_TEAM_PATH}?preview=manager`);
       await page.getByRole("button", { name: allFormationsWords }).click();
       await page.getByRole("button", { name: /^Back 4/ }).click();
       const window = page.getByRole("region", { name: WINDOW_TITLE });
-      await window.scrollIntoViewIfNeeded();
       const box = (await window.boundingBox())!;
-      expect(box.height, "the window's height").toBeLessThanOrEqual(DESK.height);
+      expect(box.y, "the window's top, on screen").toBeGreaterThanOrEqual(0);
+      expect(box.y + box.height, "the window's foot, on screen").toBeLessThanOrEqual(DESK.height);
       for (const name of [cancelWords, applyWords]) {
         const button = (await window.getByRole("button", { name, exact: true }).boundingBox())!;
         expect(button.y + button.height, `${name} inside the window`).toBeLessThanOrEqual(box.y + box.height);

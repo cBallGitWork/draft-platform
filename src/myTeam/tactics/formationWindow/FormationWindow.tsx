@@ -1,4 +1,4 @@
-import { useId, useState, type ReactNode } from "react";
+import { useEffect, useId, useRef, useState, type ReactNode } from "react";
 import { closeGlyph } from "../../../shared/words";
 import { Placeholder } from "../../../ui/Placeholder";
 import type { DraftLineup, MoveRules, RatingsOf } from "../lineupDraft";
@@ -60,6 +60,11 @@ export function FormationWindow({
   onClose(): void;
 }) {
   const titleId = useId();
+  // Opened under the toolbar, it scrolls into view whole, Cancel and Use this with it.
+  const section = useRef<HTMLElement>(null);
+  useEffect(() => {
+    section.current?.scrollIntoView({ block: "nearest" });
+  }, []);
   const groups = backGroups(presets);
   const opening = groups.find(({ shapes }) => shapes.some(({ name }) => name === inUse)) ?? groups[0];
   const [group, setGroup] = useState<GroupKey>(opening?.back ?? "presets");
@@ -74,7 +79,7 @@ export function FormationWindow({
     if (grouped.length > 0 && !grouped.some(({ name }) => name === picked)) setPicked(grouped[0].name);
   };
   return (
-    <section aria-labelledby={titleId} className="flex flex-col bg-panel lg:h-formation-window">
+    <section ref={section}aria-labelledby={titleId} className="flex flex-col bg-panel lg:h-formation-window">
       <div className="flex items-center gap-3 bg-plate py-1 pl-4 shadow-bevel-plate">
         <h2 id={titleId} className="text-lead font-bold">
           {WINDOW_TITLE}
