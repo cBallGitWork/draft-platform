@@ -9,6 +9,7 @@ import { AREA_WORDS } from "../../../src/shared/words";
 import { addBandWords, addCategoryLabel, addCategoryWords, addWords, bandFromWords, bandRowWords, byAreaWords, byPositionWords, columnWords, everyoneWords, limitWords, minutesWords, POSITION_WORDS, removeCategoryWords, shapeWords } from "../../../src/scoring/words";
 import { discardWords } from "../../../src/rules/words";
 import { box, choose, openScoring, retype, save, savedRule, savedSet } from "../../support/src/scoringScreen.harness";
+import { VIEW_WITH_LIMITED_BANDS } from "../../support/src/scoring.harness";
 
 describe("behind the tick boxes", () => {
   it("prices a rule by area, each area starting from the one value", async () => {
@@ -78,7 +79,7 @@ describe("behind the tick boxes", () => {
   });
 
   it("shows a rule saved with a limit and minutes with both ticked", async () => {
-    openScoring();
+    openScoring({ view: structuredClone(VIEW_WITH_LIMITED_BANDS) });
     await choose("Defensive contribution");
 
     expect((screen.getByRole("checkbox", { name: limitWords }) as HTMLInputElement).checked).toBe(true);
