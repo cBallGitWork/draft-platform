@@ -150,6 +150,8 @@
   --shadow-current-edge: inset 3px 0 0 var(--color-derived);
   /* the alert strip's orange edge */
   --shadow-event-edge: inset 3px 0 0 var(--color-event);
+  /* the draft room's "On the clock" when it is the reader's turn: it needs him (approved draft-room) */
+  --shadow-event-under: inset 0 -3px 0 var(--color-event);
 }
 
 @layer base {

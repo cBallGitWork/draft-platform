@@ -4,6 +4,7 @@ import { Component, useEffect, useMemo, useRef, useState, type ReactNode } from 
 import { api } from "../../convex/_generated/api";
 import { browserZone } from "../../convex/shared/moments";
 import { useLiveAdmin } from "../admin/liveAdmin";
+import { liveDraft } from "../draft/liveDraft";
 import { useLiveFeedback } from "../feedback/liveFeedback";
 import { useLivePatches } from "../patches/livePatches";
 import { Loading } from "../ui/Panel";
@@ -167,7 +168,7 @@ function LiveShell({ linkCode }: { linkCode: string | null }) {
   return (
     <>
       {lineupDueWatch}
-      <ShellApp session={session} auth={auth} leagues={leagues} mail={mail} joining={joining} topBar={topBar} gameweeks={liveGameweeks} squads={squads} scoring={scoring} leagueSettings={leagueSettings} table={liveTable} scouting={liveScouting} playerCard={livePlayerCard} home={liveHome} myTeam={liveMyTeam} matchup={liveMatchup} premierLeague={livePremierLeague} admin={admin} feedback={feedback} patches={patches} />
+      <ShellApp session={session} auth={auth} leagues={leagues} mail={mail} joining={joining} topBar={topBar} gameweeks={liveGameweeks} squads={squads} scoring={scoring} leagueSettings={leagueSettings} table={liveTable} scouting={liveScouting} playerCard={livePlayerCard} home={liveHome} myTeam={liveMyTeam} matchup={liveMatchup} premierLeague={livePremierLeague} admin={admin} feedback={feedback} patches={patches} draft={liveDraft} />
     </>
   );
 }

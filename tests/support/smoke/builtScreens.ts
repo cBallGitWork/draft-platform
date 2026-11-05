@@ -6,7 +6,9 @@ import { ADMIN_FEEDBACK_PATH, ADMIN_FEEDS_PATH, ADMIN_PATH } from "../../../src/
 import { ADMIN_TITLE } from "../../../src/admin/words";
 import { FEEDBACK_PATH } from "../../../src/feedback/paths";
 import { FEEDBACK_TITLE } from "../../../src/feedback/words";
+import { DRAFT_TITLE, stateWords } from "../../../src/draft/words";
 import {
+  DRAFT_PATH,
   HOME_PATH,
   MAIL_PATH,
   MATCHUP_PATH,
@@ -56,6 +58,8 @@ const [cardPlayer] = previewPlayers;
  *  ask with, one asked, one switched off. */
 export const BUILT_SCREENS: readonly BuiltScreen[] = [
   ["manager", HOME_PATH, HOME_TITLE],
+  // The draft room's title carries the draft's state: the preview's is live (src/draft/preview.ts).
+  ["manager", DRAFT_PATH, `${DRAFT_TITLE} ${stateWords.live}`],
   // Tactics and Squad are titled with the manager's team in the league he's in (the header band).
   ["manager", MY_TEAM_PATH, String(proLeague.teamName)],
   ["manager", MY_TEAM_SQUAD_PATH, String(proLeague.teamName)],

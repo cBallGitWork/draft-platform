@@ -3,7 +3,7 @@ import type { ReactNode } from "react";
 import type { AuthActions } from "../signIn/seam";
 import { FeedbackLink } from "../feedback/FeedbackPage";
 import { Continue } from "./topBar/Continue";
-import { MAIL_PATH, sectionAt, sections } from "./menu";
+import { MAIL_PATH, sectionAt, sectionsWith } from "./menu";
 import { MainMenu, MenuTab } from "./topBar/MenuTab";
 import { TOP_BAR, TOP_BAR_ROW } from "../ui/Panel";
 import { ProductName } from "./topBar/ProductName";
@@ -17,17 +17,20 @@ export const sectionTabClasses =
   "data-[status=active]:text-fact data-[status=active]:shadow-subtab-active";
 
 /** The signed-in frame: the top menu with the league it is in, Feedback, Continue and Sign out, the
- *  active section's tabs under it, and the page, under the banner, if one shows. */
+ *  active section's tabs under it, and the page, under the banner, if one shows. The menu holds the
+ *  draft room while `draftInMenu`. */
 export function AppFrame({
   topBar,
   onSignOut,
   leagueSwitcher,
   banner,
+  draftInMenu,
 }: {
   topBar: TopBarState;
   onSignOut: AuthActions["signOut"];
   leagueSwitcher: ReactNode;
   banner: ReactNode;
+  draftInMenu: boolean;
 }) {
   const pathname = useRouterState({ select: (state) => state.location.pathname });
   const tabs = sectionAt(pathname)?.tabs ?? [];
@@ -39,7 +42,7 @@ export function AppFrame({
           <ProductName />
           {leagueSwitcher}
           <MainMenu>
-            {sections.map((section) => (
+            {sectionsWith(draftInMenu).map((section) => (
               <MenuTab
                 key={section.path}
                 path={section.path}
