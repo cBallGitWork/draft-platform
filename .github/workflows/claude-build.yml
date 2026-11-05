@@ -52,6 +52,10 @@ jobs:
     env:
       ISSUE: ${{ inputs.issue || github.event.issue.number }}
       HAS_SUBSCRIPTION: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN != '' }}  # a step's `if` cannot read secrets, so this carries it
+      # nightly-build.yml dispatches each build with the job's token, so the build's actor is the github-actions bot, and
+      # claude-code-action refuses any bot not named here (the 5 Nov 2026 nightly: #989, #990 and #991 all failed with
+      # "Workflow initiated by non-human actor: github-actions").
+      BUILD_STARTER_BOTS: github-actions
       # the agent runs headless, so every tool it needs is named here or it is denied; the deny list is a speed bump,
       # and the real guard is the ruleset's required checks, Code Owners review, and lane-auto.yml's refusal to approve a
       # pull request this job opens that touches .github/ or .claude/.
@@ -121,6 +125,7 @@ jobs:
         uses: anthropics/claude-code-action@c0949c50a78c1ec8ce2647db36629b870e715d0c  # v1.0.268
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          allowed_bots: ${{ env.BUILD_STARTER_BOTS }}
           # A run from a branch (`gh workflow run claude-build.yml --ref <branch>`, how a pipeline change is tested
           # before it merges) uses the job's own token: the action's app token is refused for any workflow file that
           # differs from main's, and the action then skips without building. Its pull request runs no CI, which a test
@@ -180,6 +185,7 @@ jobs:
         uses: anthropics/claude-code-action@c0949c50a78c1ec8ce2647db36629b870e715d0c  # v1.0.268
         with:
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          allowed_bots: ${{ env.BUILD_STARTER_BOTS }}
           github_token: ${{ github.ref != 'refs/heads/main' && github.token || '' }}  # as the subscription step
           claude_args: ${{ env.CLAUDE_ARGS }}
           prompt: ${{ env.BUILD_PROMPT }}
