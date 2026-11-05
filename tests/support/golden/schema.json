@@ -21741,6 +21741,39 @@
               }
             },
             "optional": true
+          },
+          "clock": {
+            "fieldType": {
+              "type": "object",
+              "value": {
+                "pick": {
+                  "fieldType": {
+                    "type": "number"
+                  },
+                  "optional": false
+                },
+                "startsAt": {
+                  "fieldType": {
+                    "type": "number"
+                  },
+                  "optional": false
+                },
+                "endsAt": {
+                  "fieldType": {
+                    "type": "number"
+                  },
+                  "optional": false
+                },
+                "job": {
+                  "fieldType": {
+                    "type": "id",
+                    "tableName": "_scheduled_functions"
+                  },
+                  "optional": false
+                }
+              }
+            },
+            "optional": true
           }
         }
       }
