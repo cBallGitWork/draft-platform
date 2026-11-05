@@ -33,7 +33,7 @@ export async function startClock(ctx: MutationCtx, leagueId: Id<"leagues">, pick
   const team = await ctx.db.get("teams", turn.team);
   if (team === null) throw new Error(`League ${leagueId}'s draft names team ${turn.team}, which doesn't exist`);
   const endsAt = startsAt + pickSeconds * SECOND_MS;
-  const firesAt = team.managerEmail === undefined || picksAtOnce(draft.timeouts, team._id) ? startsAt : endsAt;
+  const firesAt = picksAtOnce(draft.timeouts, team) ? startsAt : endsAt;
   const job = await ctx.scheduler.runAt(firesAt, internal.draft.draftPicks.autoPick, { leagueId, pick: turn.pick });
   await ctx.db.patch("drafts", draft._id, { clock: { pick: turn.pick, startsAt, endsAt, job } });
 }

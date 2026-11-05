@@ -1,4 +1,5 @@
 import { v } from "convex/values";
+import { internal } from "../_generated/api";
 import type { Doc, Id } from "../_generated/dataModel";
 import { internalMutation, mutation, type MutationCtx, type QueryCtx } from "../_generated/server";
 import { areasOf } from "../lineup/pitch";
@@ -11,10 +12,14 @@ import { managerOf, refuse, refusals, teamIn } from "../shared/leagueAccess";
 import { currentClubs, currentPlayersAt, heldPlayerByCode, playerByCode } from "../shared/players";
 import { placeOf, squadOf } from "../squads/squadPlace";
 import { squadRefusals } from "../squads/squads";
+import { autoPickOrder } from "./autoPickOrder";
 import { PICK_GAP_MS, startClock } from "./draftClock";
+import { listsOf } from "./draftLists";
+import { draftRanking } from "./draftRanking";
 import { draftOf, picksMadeIn, type StartedDraft } from "./draftRow";
 import { rulesInForceAt } from "./draftStart";
-import { afterTimeout } from "./draftTimeouts";
+import { afterTakeBack, afterTimeout, isOnAutoPick, picksAtOnce } from "./draftTimeouts";
+import { lastSeasonPoints } from "./lastSeasonPoints";
 import { legalPlayers, type DraftPlayer } from "./legalPlayers";
 import { pickOnTheClock } from "./snakeOrder";
 
@@ -27,8 +32,8 @@ import { pickOnTheClock } from "./snakeOrder";
 // last pick is made the draft is over (draftStart.ts `ofLeague`). When a clock runs out, or at once
 // for a team with no manager, the draft picks for the team (`autoPick`; #1091).
 // Greying out always leaves a legal pick, so a team with none is an error, not the end of its draft
-// (Craig, 4 Nov 2026, on #1090). Not built yet: auto-pick's queue and ranking, the commissioner's
-// picks and undo, and the manager's 10-second undo, which will also keep the draft open for the
+// (Craig, 4 Nov 2026, on #1090). Auto-pick takes by the team's queue, the admin's ranking and last
+// season's points (autoPickOrder.ts; #1094). Not built yet: the commissioner's picks and undo, and the manager's 10-second undo, which will also keep the draft open for the
 // 10 seconds after its last pick (Craig, 4 Nov 2026, on #1090): until then it is over at the last pick.
 
 /** Why a pick is refused, in the words the manager is shown. */
@@ -39,6 +44,7 @@ export const pickRefusals = {
   notYourTurn: (teamName: string) => `It isn't your pick: ${teamName} is on the clock.`,
   taken: (name: string, teamName: string) => `${name} is already on ${teamName}.`,
   breaksSquadRules: (name: string) => `${name} would leave your squad unable to meet the league's squad rules.`,
+  notOnAutoPick: "You aren't on auto-pick.",
 };
 
 /** The squad rules the draft picks under: those it started under, never a change made since (Craig,
@@ -123,14 +129,23 @@ export const makePick = mutation({
   },
 });
 
-/** The first player the team on the clock may legally take, by FPL code, among those still in the
- *  Premier League no team in the league holds. The stub auto-pick takes him until auto-pick's queue
- *  and ranking are built. None is an error: greying out always leaves a legal pick (#1090). */
-async function firstLegalPlayer(ctx: QueryCtx, leagueId: Id<"leagues">, started: StartedDraft, turn: Turn): Promise<Doc<"players">> {
+/** The player auto-pick takes for the team on the clock: the first in its order (autoPickOrder.ts)
+ *  still in the Premier League, held by no team in the league, whom the team may legally take. None
+ *  is an error: greying out always leaves a legal pick (#1090). */
+async function autoPickFor(ctx: QueryCtx, leagueId: Id<"leagues">, started: StartedDraft, turn: Turn): Promise<Doc<"players">> {
   const legal = await legalForTurn(ctx, leagueId, started, turn);
-  const players = (await Promise.all((await currentClubs(ctx)).map(({ code }) => currentPlayersAt(ctx, code)))).flat().sort((one, other) => one.code - other.code);
-  for (const player of players) {
-    if ((await placeOf(ctx, leagueId, player.code)) === null && (await legal(player))) return player;
+  const players = (await Promise.all((await currentClubs(ctx)).map(({ code }) => currentPlayersAt(ctx, code)))).flat();
+  const lists = await listsOf(ctx, turn.team);
+  const order = autoPickOrder(
+    players,
+    { queue: lists?.queue ?? [], doNotDraft: lists?.doNotDraft ?? [] },
+    (await draftRanking(ctx))?.players.map(({ code }) => code) ?? [],
+    await lastSeasonPoints(ctx),
+  );
+  const byCode = new Map(players.map((player) => [player.code, player]));
+  for (const code of order) {
+    const player = byCode.get(code)!;
+    if ((await placeOf(ctx, leagueId, code)) === null && (await legal(player))) return player;
   }
   throw new Error(`League ${leagueId}'s pick ${turn.pick} has no legal player left for team ${turn.team}`);
 }
@@ -139,7 +154,8 @@ async function firstLegalPlayer(ctx: QueryCtx, leagueId: Id<"leagues">, started:
  *  online (Craig, 4 Nov 2026, on #1091), or as its clock starts for a team with no manager. The
  *  pick is filed as its manager's, or the commissioner's for a team with none. For a team with a
  *  manager it is one of its timeouts, against the league's limit now (draftTimeouts.ts). Does nothing once
- *  `pick` is no longer on the clock: its team picked, or the league is gone. */
+ *  `pick` is no longer on the clock: its team picked, or the league is gone. Scheduled at once for a
+ *  team that has since gained a manager or taken control back, it waits for the clock's end. */
 export const autoPick = internalMutation({
   args: { leagueId: v.id("leagues"), pick: v.number() },
   returns: v.null(),
@@ -150,12 +166,34 @@ export const autoPick = internalMutation({
     const turn = pickOnTheClock(started.teamIds, started.rounds, await picksMadeIn(ctx, leagueId));
     if (turn?.pick !== pick) return null;
     const team = await teamIn(ctx, leagueId, turn.team);
-    const player = await firstLegalPlayer(ctx, leagueId, started, turn);
+    if (!picksAtOnce(draft.timeouts, team) && Date.now() < draft.clock.endsAt) {
+      // Scheduled at once, but since then a manager took the team over or took control back: his
+      // clock runs out first.
+      const job = await ctx.scheduler.runAt(draft.clock.endsAt, internal.draft.draftPicks.autoPick, { leagueId, pick });
+      await ctx.db.patch("drafts", draft._id, { clock: { ...draft.clock, job } });
+      return null;
+    }
+    const player = await autoPickFor(ctx, leagueId, started, turn);
     if (team.managerEmail !== undefined) {
       const limit = (await draftRulesNow(ctx, leagueId)).timeoutsBeforeAutoPick;
       await ctx.db.patch("drafts", draft._id, { timeouts: afterTimeout(draft.timeouts, team._id, limit) });
     }
     await placePick(ctx, leagueId, turn, team, player, team.managerEmail ?? league.commissionerEmail);
+    return null;
+  },
+});
+
+/** A manager on auto-pick takes control back (spec/04, Auto-pick; #1094): his team is off it and
+ *  his timeout count is 0 again. A pick of his already on the clock then runs to the clock's end,
+ *  not made at once (`autoPick`). Refused to anyone not on auto-pick. */
+export const takeControlBack = mutation({
+  args: { leagueId: v.id("leagues") },
+  returns: v.null(),
+  handler: async (ctx, { leagueId }) => {
+    const { team } = await managerOf(ctx, leagueId);
+    const draft = await draftOf(ctx, leagueId);
+    if (draft === null || !isOnAutoPick(draft.timeouts, team._id)) refuse(pickRefusals.notOnAutoPick);
+    await ctx.db.patch("drafts", draft._id, { timeouts: afterTakeBack(draft.timeouts, team._id) });
     return null;
   },
 });
