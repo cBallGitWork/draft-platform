@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""SessionStart note, beside drift_due.py: says loudly when this checkout's setup (.claude/ and
+"""SessionStart note: says loudly when this checkout's setup (.claude/ and
 CLAUDE.md) differs from origin/main, so a session can see whether the agents, skills, hooks and
 rules it loaded are the merged ones. Claude Code reads them once, at the start, from the checkout
 it opens in: a worktree cut before a fix merged runs the old reviewer, and a pulled fix only takes
@@ -21,7 +21,6 @@ import os
 import subprocess
 import sys
 
-from drift_due import GitFailed
 from hook_payload import project_dir
 from run_command import failure_line
 from where import REMOTE_MAIN
@@ -29,6 +28,10 @@ from where import REMOTE_MAIN
 SETUP = (".claude", "CLAUDE.md")  # what Claude Code loads at a session's start
 AGENTS, SKILLS = ".claude/agents/", ".claude/skills/"
 DIFFERS = 1  # git diff --quiet's exit when the trees differ
+
+
+class GitFailed(Exception):
+    """A git call failed; the message says which and why."""
 
 
 def git(folder, *args):

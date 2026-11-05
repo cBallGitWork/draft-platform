@@ -43,8 +43,8 @@ printf '.x {}\n' > "$repo/src/ui/controls.css"
 git init -q -b main "$repo" && git -C "$repo" add docs src && git -C "$repo" "${as_tester[@]}" commit -q -m start
 git -C "$repo" update-ref refs/remotes/origin/main HEAD
 
-# the bodies: the whole template signed by pr-reviewer, then ui-verifier's block three ways
-template_body | signed > "$repo/pr.md"
+# the bodies: the whole template with an empty Approved vs built section, then ui-verifier's block several ways
+{ template_body; printf '\n## Approved vs built\n'; } > "$repo/pr.md"
 verifier="*Verifier: ui-verifier (sonnet), 2026-11-01, abc..def*"
 filled() { # name lines...: pr.md with these lines under its Approved vs built heading
   local name=$1; shift
@@ -54,6 +54,7 @@ filled() { # name lines...: pr.md with these lines under its Approved vs built h
 filled pr-matches.md '/team: matches the approved picture' "$verifier"
 filled pr-differs.md '1. Density: rows 20px, the picture 28px' '2. Columns: Form missing' "$verifier"
 filled pr-unsigned.md '/team: matches the approved picture'
+filled pr-unchanged.md '/team: unchanged from main' "$verifier"
 filled pr-says-nothing.md 'looked fine' "$verifier"
 filled pr-pasted.md '## Approved vs built' '1. Columns: Form missing' "$verifier"  # the block, heading and all
 create() { echo "gh pr create --title x --body-file $1"; }
@@ -69,6 +70,7 @@ for body in pr.md pr-unsigned.md pr-says-nothing.md; do
 done
 says "changes a screen with an approved picture: /team (src/team/Table.tsx)" guard_bash.py "$(bash_in "$repo" "$(create pr.md)")"
 check allow guard_bash.py "$(bash_in "$repo" "$(create pr-matches.md)")"
+check allow guard_bash.py "$(bash_in "$repo" "$(create pr-unchanged.md)")"  # shot identical to main's
 check allow guard_bash.py "$(bash_in "$repo" "$(create pr-differs.md)")"  # opens; the merge waits
 check allow guard_bash.py "$(bash_in "$repo" "$(create pr-pasted.md)")"
 check allow guard_bash.py "$(bash_in "$repo" 'gh pr edit 3 --body-file pr.md')"  # create only
@@ -90,8 +92,8 @@ git -C "$repo" update-ref -d refs/remotes/origin/main
 says "Can't tell whether this branch changes a screen" guard_bash.py "$(bash_in "$repo" "$(create pr-matches.md)")"
 git -C "$repo" update-ref refs/remotes/origin/main main
 
-# the merge: the stand-in gh api gives $FAKE_BODY's file and $FAKE_LABELS (one commit on main, so
-# the drift gate lets every merge through); the GitHub tool's merge waits the same way
+# the merge: the stand-in gh api gives $FAKE_BODY's file and $FAKE_LABELS; the GitHub tool's merge
+# waits the same way
 stand_in_gh <<'EOF'
 echo "stand-in gh: no answer for $*" >&2; exit 1
 EOF

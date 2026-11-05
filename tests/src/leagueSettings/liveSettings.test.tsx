@@ -8,16 +8,22 @@ import { expect, test, vi } from "vitest";
 import { FIRST_RULES } from "../../../convex/rules/firstRules";
 import { leagueSettingsOf, type LeagueSettings } from "../../../convex/rules/leagueSettingsPart";
 import { useLiveLeagueSettings } from "../../../src/leagueSettings/liveSettings";
-import { saveFailedWords } from "../../../src/leagueSettings/words";
+import { saveFailedWords, teamOrderFailedWords } from "../../../src/leagueSettings/words";
+import type { Id } from "../../../convex/_generated/dataModel";
+import { draftOrderRefusals } from "../../../convex/draft/draftOrder";
 import { silenceConsoleError } from "../../support/console.setup";
 import { REVISION as revision } from "../../support/src/leagueSettings.harness";
 import { A_LEAGUE_ID } from "../../support/src/convexReact.harness";
 
-const convex = vi.hoisted(() => ({ settings: vi.fn(), changeSettings: vi.fn() }));
+const convex = vi.hoisted(() => ({ settings: vi.fn(), changeSettings: vi.fn(), teamOrder: vi.fn(), setTeamOrder: vi.fn(), drawTeamOrder: vi.fn() }));
 vi.mock("convex/react", async () =>
   (await import("../../support/src/convexReact.harness")).fakeConvexReact({
-    queries: { "rules/leagueSettings:settings": convex.settings },
-    mutations: { "rules/leagueSettings:changeSettings": convex.changeSettings },
+    queries: { "rules/leagueSettings:settings": convex.settings, "draft/draftOrder:teamOrder": convex.teamOrder },
+    mutations: {
+      "rules/leagueSettings:changeSettings": convex.changeSettings,
+      "draft/draftOrder:setTeamOrder": convex.setTeamOrder,
+      "draft/draftOrder:drawTeamOrder": convex.drawTeamOrder,
+    },
   }),
 );
 
@@ -52,4 +58,43 @@ test("any other failure is logged and said plainly", async () => {
 
   expect(await seam().save(A_LEAGUE_ID, settings, revision)).toBe(saveFailedWords);
   expect(logged).toHaveBeenCalledWith("Saving the league settings failed:", failure);
+});
+
+test("the commissioner's draft order is read from draft/draftOrder:teamOrder", () => {
+  const order = { teams: [{ teamId: "team-1", name: "Saka Potatoes" }], started: false };
+  convex.teamOrder.mockReturnValue(order);
+
+  expect(renderHook(() => useLiveLeagueSettings().useTeamOrder(A_LEAGUE_ID)).result.current).toBe(order);
+  expect(convex.teamOrder).toHaveBeenLastCalledWith({ leagueId: A_LEAGUE_ID });
+});
+
+test("saving the draft order calls draft/draftOrder:setTeamOrder, and resolves with null, the server's refusal, or the failure said plainly", async () => {
+  const teamIds = ["team-2", "team-1"] as Id<"teams">[];
+  convex.setTeamOrder.mockResolvedValueOnce(null);
+  expect(await seam().saveTeamOrder(A_LEAGUE_ID, teamIds)).toBeNull();
+  expect(convex.setTeamOrder).toHaveBeenCalledExactlyOnceWith({ leagueId: A_LEAGUE_ID, teamIds });
+
+  convex.setTeamOrder.mockRejectedValueOnce(new ConvexError(draftOrderRefusals.teamsChanged));
+  expect(await seam().saveTeamOrder(A_LEAGUE_ID, teamIds)).toBe(draftOrderRefusals.teamsChanged);
+
+  const failure = new Error("offline");
+  convex.setTeamOrder.mockRejectedValueOnce(failure);
+  const logged = silenceConsoleError();
+  expect(await seam().saveTeamOrder(A_LEAGUE_ID, teamIds)).toBe(teamOrderFailedWords);
+  expect(logged).toHaveBeenCalledWith("Saving the draft order failed:", failure);
+});
+
+test("drawing the draft order calls draft/draftOrder:drawTeamOrder, and resolves with null, the server's refusal, or the failure said plainly", async () => {
+  convex.drawTeamOrder.mockResolvedValueOnce(null);
+  expect(await seam().drawTeamOrder(A_LEAGUE_ID)).toBeNull();
+  expect(convex.drawTeamOrder).toHaveBeenCalledExactlyOnceWith({ leagueId: A_LEAGUE_ID });
+
+  convex.drawTeamOrder.mockRejectedValueOnce(new ConvexError(draftOrderRefusals.started));
+  expect(await seam().drawTeamOrder(A_LEAGUE_ID)).toBe(draftOrderRefusals.started);
+
+  const failure = new Error("offline");
+  convex.drawTeamOrder.mockRejectedValueOnce(failure);
+  const logged = silenceConsoleError();
+  expect(await seam().drawTeamOrder(A_LEAGUE_ID)).toBe(teamOrderFailedWords);
+  expect(logged).toHaveBeenCalledWith("Drawing the draft order failed:", failure);
 });

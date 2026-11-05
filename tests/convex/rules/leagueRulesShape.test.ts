@@ -2,7 +2,7 @@ import { expect, expectTypeOf, test } from "vitest";
 import type { DeadlineRule } from "../../../convex/gameweeks/deadline";
 import { FIRST_RULES } from "../../../convex/rules/firstRules";
 import { lineupProblems, type LineupRules } from "../../../convex/lineup/lineup";
-import type { LeagueRules } from "../../../convex/rules/leagueRulesShape";
+import { heldRules, type LeagueRules } from "../../../convex/rules/leagueRulesShape";
 import type { StoredScoringSet } from "../../../convex/scoring/scoringSetShape";
 import { FIRST_SCORING } from "../../../convex/scoring/firstScoring";
 import { DEFAULT_PRESETS, type Preset } from "../../../convex/lineup/presets";
@@ -68,6 +68,18 @@ test("the stored by-area and by-position shapes key exactly the six areas and te
   type PerAction = Extract<StoredScoringSet["rules"][number], { shape: "perAction" }>;
   expectTypeOf<PerAction["values"]>().toEqualTypeOf<PricedByHand<number>>();
   expectTypeOf<PerAction["minMinutes"]>().toEqualTypeOf<PricedByHand<number> | undefined>();
+});
+
+test("rules saved with the draft order's dropped switch (#1087 to #1089) are held without it", () => {
+  const draft = FIRST_RULES.draft!;
+  expect(heldRules({ ...FIRST_RULES, draft: { ...draft, order: "random" } })).toEqual(FIRST_RULES);
+  const { draft: _draft, ...withoutDraft } = FIRST_RULES;
+  expect(heldRules(withoutDraft)).toEqual(withoutDraft);
+});
+
+test("rules saved with a preset's dropped centre role (#988 to #1159) are held without it", () => {
+  const [first, ...rest] = FIRST_RULES.presets;
+  expect(heldRules({ ...FIRST_RULES, presets: [{ ...first, centreRole: "sweeper" }, ...rest] })).toEqual(FIRST_RULES);
 });
 
 test("the first rules' presets are the ones every league starts with", () => {

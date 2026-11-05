@@ -19,13 +19,12 @@ Feature 5 of [SPEC.md](../SPEC.md). Only Craig's answers: the first `/grill` and
 - A wing-back plays in a wide lane of the defensive midfield or midfield row. There is no
   wing-back row. He is a defender, standing further forward than a full-back would; on the pitch
   a defensive midfielder and a wing-back stand in the same row (Craig, 26 Oct 2026).
-- A sweeper plays the centre cell of the defence row, drawn a little deeper than the line, as a
-  wing-back is a defender drawn further forward. There is no sweeper row, so the six areas, their
-  limits and the presets stand. Any player who plays centre-back can play sweeper: "we need a
-  sweeper position, it's a real role, esp with classic formations" (Craig, 31 Oct 2026).
-- That centre cell offers the centre-back roles and the sweeper roles. It is a sweeper's cell,
-  labelled SW and drawn deeper, only while its player is on a sweeper role, so a back three keeps a
-  plain centre-back in the middle (Craig, 31 Oct 2026).
+- Sweeper and libero are centre-back roles, offered to every centre-back whenever the formation
+  has three or more centre-backs, on as many of them as the manager likes. There is no sweeper
+  cell, no SW label and no drawing him deeper: "we could only allow it when theres 3 cbs,
+  indivoduals cells is just getting in the way"; "no limits" (Craig, 4 Nov 2026). It replaces the
+  sweeper's cell of 31 Oct 2026, and the role stays: "it's a real role, esp with classic
+  formations".
 - Presets only: the shape always comes from a preset or a classic, and no player moves into an
   empty cell. "we dont allow users to move the individual pieces around, we have lots of
   formations already"; "i think i just dont like hacing 2 cbs and fb for exampel"; "to me, presets
@@ -34,13 +33,13 @@ Feature 5 of [SPEC.md](../SPEC.md). Only Craig's answers: the first `/grill` and
   5-3-2, 5-4-1, 4-5-1, 4-2-2-2, 4-1-2-1-2, 4-3-2-1, 4-1-3-2, 4-2-4, 3-4-2-1, 3-1-4-2, 5-2-3,
   5-3-1-1, 3-6-1, all editable as league rules. Ten of them Craig added (28 Oct 2026): "no basics
   like 4-5-1"; 3-6-1 he added (1 Nov 2026: "also add 3-6-1"). Then, from Craig on 1 Nov 2026
-  ("formation presets that include sweeper/liberio too", "also formations with 2 at the back"):
-  5-3-2 with a sweeper, 3-5-2 with a libero, 2-3-5 and 2-3-2-3.
-- A preset can set the starting role of the defence's centre cell; that is what makes the sweeper
-  and libero presets their own. The sweeper one is named 5(SW)-3-2: "Maybe add a (SW) after the
-  5"; the libero one, 3(L)-5-2, by the same pattern (Craig, 4 Nov 2026). 2-3-5 has two centre-backs,
-  three central midfielders and all five attack lanes; 2-3-2-3 has the same back two and middle
-  three, two central attacking midfielders and three central forwards (Craig, 4 Nov 2026: "yes").
+  ("also formations with 2 at the back"): 2-3-5 and 2-3-2-3.
+- There are no sweeper or libero presets, and a preset sets no player's role: sweeper and libero
+  are centre-back roles only (above). "we made sweeper a role and liberio, ditched sweeper
+  formations" (Craig, 5 Nov 2026), dropping the 5(SW)-3-2 and 3(L)-5-2 of 4 Nov 2026.
+- 2-3-5 has two centre-backs, three central midfielders and all five attack lanes; 2-3-2-3 has the
+  same back two and middle three, two central attacking midfielders and three central forwards
+  (Craig, 4 Nov 2026: "yes").
 - A starter leaves the pitch only by swapping with a bench player, so the eleven stay eleven. A
   refused move says why in the line under the toolbar where "Lineup saved" shows (Craig,
   4 Nov 2026, "yes" to Claude's recommendation).
@@ -117,7 +116,7 @@ From `/grill the Tactics pitch` (Craig, 31 Oct 2026).
 - A role's code is at most three letters, one per role, held with the role. The pitch shows the
   code at every width; the squad list and the role card show the full name.
 - Each slot shows its position label, which names the position, never its side: `spec/06`'s
-  labels, plus SW for the sweeper. "We don't need side specific, that's the game getting in the
+  labels. "We don't need side specific, that's the game getting in the
   way."
 - The team's next head-to-head opponent shows on the Tactics tab.
 - Everything settled here is built on the desk first, then cut from the real page: "show ALL
@@ -141,17 +140,49 @@ From `/grill the Tactics pitch` (Craig, 31 Oct 2026).
 
 ## Team instructions
 
-From Craig, 1 Nov 2026, brought into the mini beta from the second release.
+From Craig, 1 Nov 2026, brought into the mini beta from the second release; the list, the shapes
+and how they score from Craig, 4 Nov 2026.
 
-- Every preset and classic has its own team instructions, at least three, attacking and
-  defensive: "id say at least 3", "attack and defe, will need multiple per formation", as not
-  every one suits every shape. Claude drafts them, each with a
-  description held with it, and Craig edits them; they are league rules like the presets.
-- A manager picks one attacking and one defensive instruction at a time. Picking a new formation
-  preselects one of each from its list, and he can change either.
-- Each instruction adjusts scoring like a role, for the whole team: a two-at-the-back shape's can
-  make goals conceded cost more. The values come from backtesting; until then an instruction is
-  picked and shown and changes no points ("we will score it with backtesting anyways").
+- A manager picks one attacking and one defensive instruction at a time. Craig was open to one in
+  all ("no i can agree if we think its better") and kept one of each, so a team says how it
+  attacks and how it defends.
+- The default set, each a league rule like the presets, with a description held with it; Claude
+  drafts them and Craig edits them. "more straigh froward tactics with charcter too, like boot ito
+  the big man"; "we still need pressing/high line/clear it/pass out from the back":
+
+  | | instruction | rewards | costs | needs |
+  |---|---|---|---|---|
+  | attacking | Play out from the back | the keeper's and defenders' passing | errors leading to a shot or goal | any shape |
+  | | Boot it to the big man | headed goals, forwards' aerials won | the back line's failed long balls | one up top, no wingers |
+  | | Get it wide | crosses | failed crosses | wide players or wing-backs on both flanks |
+  | | Shoot on sight | goals and shots on target from outside the box | long shots off target or blocked | any shape |
+  | | Gung-ho | goals and assists | goals conceded | two at the back |
+  | defensive | Press high | possession won high and in midfield | fouls | three or more in midfield or attack |
+  | | Hold a high line | defenders' offsides won and interceptions | goals conceded | a back three or four |
+  | | Clear it | defenders' clearances and blocks | defenders losing the ball | any shape |
+  | | Get stuck in | tackles and duels won | cards and fouls | any shape |
+  | | Keep it tight early | a clean sheet at half-time | goals let in before half-time | any shape |
+  | | Park the bus | the keeper's and defenders' clean sheets | goals and assists | five at the back |
+
+- A formation offers every instruction its shape allows, so the shape decides the list: "we have
+  to block it from certain formations". Each formation has a default attacking and a default
+  defensive instruction.
+- Changing formation keeps an instruction the new shape allows. One it blocks switches to the new
+  formation's default for that side, and the line under the toolbar says so ("Park the bus needs 5
+  at the back: switched to Keep it tight early"): "if you change formation, yuour invlaid tactic
+  auto gets changed to a vlaid one". Loading a plan or picking a classic sets both instructions
+  itself.
+- An instruction is scored player by player, on each player's own club's real match, for every
+  starter and every bench player who comes on. A clean sheet or a goal conceded is his club's
+  while he was on the pitch, as in base scoring. It shows as its own line under his role's line on
+  the matchup breakdown ("Park the bus: clean sheet +1").
+- Like a role, it is whole points by thresholds, and the values come from backtesting. The first
+  values are Claude's backtest of 26/27 gameweeks 1 to 9, in
+  [roles-first-values.md](../docs/roles-first-values.md); Craig edits them by patch.
+- Two at the back changes base scoring for its keeper and defenders whatever instruction is
+  picked: a clean sheet is worth 3, and every goal conceded costs 1. "2 at the back wont have many
+  and punsih goals conceded ... clean sheets is 3, every goal conceded -1" (Craig, 4 Nov 2026). It
+  is held with the formation as a league rule, never in the code.
 
 ## Saved plans
 
@@ -177,50 +208,71 @@ From Craig, 1 Nov 2026.
                    midfield, wide                                 midfield, wide
   MIDFIELD         wide midfield   centre midfield                wide midfield
   DEF. MIDFIELD    wing-back       defensive midfield             wing-back
-  DEFENCE          full-back       centre-back; sweeper (centre)  full-back
+  DEFENCE          full-back       centre-back (sweeper, libero)  full-back
   GOALKEEPER                       goalkeeper
   ```
 
   A role adjusts scoring one category at a time: an attacking role might reward key passes more,
   a defensive one defensive actions.
-- The effect is flat points per action (for example +1 per key pass, −1 per clean sheet): the
-  working assumption, which Craig will edit. Claude drafts the first numbers; Craig edits them
-  later, by patch (26 Oct 2026).
-- Every role gives something and takes something. Each is checked against last season's
-  real stats: for an average player in its area it comes out within 0.25 points a match of the
-  base scoring, so a role helps only the player it suits. Roles are built before the check
-  can run, as last season's stats aren't recorded yet; the check comes once they are (26 Oct
-  2026).
+- Whole points by thresholds, never per action or in decimals: "lets not do a decimals, not 1 per,
+  lets use thresholds lie 1 for every 2/3 etc" (Craig, 4 Nov 2026). A role has a bonus and a cost.
+  The bonus is a mix of its stats ("aerial + someting else *0.5 + something else") and earns +1 at
+  each of up to three bars; the cost is one bad action and takes 1 at each of up to three bars. A
+  role never costs for a good action (4 Nov 2026).
+- So a role moves a player by at most 3 points a match either way: ±3, chosen over ±2 (Craig,
+  5 Nov 2026). At ±2 more than a third of starts sat on the ceiling, so a good fit and a great fit
+  scored the same.
+- Roles lift the slots that score less, as defcon does in FPL: "roles/tactics are essentially a
+  dynamic defcon for each positon and role". Every slot has a target role bonus a start: half its
+  gap in base points to strikers, plus 0.5 for every slot, as "i do want players to get points"
+  and "goals/assists still should be the mainf actor" (Craig, 4 Nov 2026):
+
+  | slot | ST | AM / W | WM | GK | WB / CM | FB / DM | CB |
+  |---|---|---|---|---|---|---|---|
+  | target role bonus a start | +0.5 | +0.6 | +0.8 | +0.9 | +1.0 | +1.1 | +1.2 |
+
+  Every role in a slot aims at its slot's target, so picking the role that suits the player is
+  the skill. The check: over the slot's real starts, each role's average lands within 0.25 points
+  a match of its target. It replaces the check against base scoring of 26 Oct 2026.
+- Claude drafts the first values and Craig edits them by patch (26 Oct 2026). The first values,
+  fitted to 26/27 gameweeks 1 to 9, are in [roles-first-values.md](../docs/roles-first-values.md).
 - Roles' scoring adjustments are the site's, changed by patch (`spec/14`, 25 Oct 2026); the
   ready-made rules carry a default set.
 - A patch changes a role's scoring but doesn't remove a role (Craig, 31 Oct 2026). If a role ever
   goes, each starter holding it moves to the role he would get dropped into that slot, when the
   change takes effect, and never has his lineup refused; the patch's letter tells each manager
   which of his starters changed role, from what to what (for example "Saka: shadow striker → poacher").
-- The default set starts as this list, made long before roles are built: every area and lane gets
-  as many roles as fit, for Craig to cut much later (21 Oct 2026):
-  - goalkeeper: shot-stopper, sweeper keeper, distributor
-  - full-back: defensive, attacking, inverted, no-nonsense
-  - wing-back: attacking, holding, complete, inverted
-  - centre-back: stopper, ball-playing, attacking, no-nonsense, wide centre-back (the outer two
-    of a back three)
-  - sweeper, offered in the defence row's centre cell beside the centre-back roles: sweeper
-    (stays behind the line), libero (steps out with the ball), added by Craig (31 Oct 2026)
-  - defensive midfield: anchor, deep playmaker, ball-winner, half-back (drops between the
-    centre-backs), regista
-  - centre midfield: box-to-box, playmaker, ball-winner, mezzala, carrilero, roaming playmaker
-  - wide midfield: winger, defensive winger, wide playmaker, wide midfielder
-  - attacking midfield, centre: number 10, shadow striker, trequartista, enganche
-  - attacking midfield, wide: inside forward, winger, inverted winger, wide target man
-  - attack: poacher, target man, pressing forward, shadow striker, false 9, advanced forward,
-    complete forward, deep-lying forward
-  - free role, in any attacking midfield or attack slot, one per team (Craig, 1 Nov 2026)
+- The default set, drafted slot by slot with Craig on 4 and 5 Nov 2026 from FM's and real
+  football's roles; it replaces the first list of 21 Oct 2026:
+  - goalkeeper: shot-stopper, sweeper keeper, distributor, commanding keeper (added 5 Nov 2026).
+    The shot-stopper earns for saves, so a busy keeper at a weaker club earns most (Craig, 5 Nov
+    2026)
+  - full-back: overlapping, underlapping, inverted, playmaking, defensive
+  - wing-back: attacking, holding, complete, inverted, goalscoring ("munoz needs to be there,
+    alonso back in the day")
+  - centre-back: stopper, ball-playing, no-nonsense, attacking, and with three or more
+    centre-backs sweeper (stays behind the line) and libero (steps out with the ball)
+  - defensive midfield: metronome, quarterback, half-back (drops between the centre-backs),
+    engine, tower (wins everything in the air), destroyer (gets stuck in, duels)
+  - centre midfield: box-to-box, ball-winner, attacking 8, engine, late runner
+  - wide midfield: wide workhorse, defensive winger, wide playmaker, crosser, touchline winger
+  - attacking midfield, centre: number 10, shadow striker, maverick, carrier, pressing 10
+  - attacking midfield, wide: touchline winger, dribbler, inside forward, wide playmaker, wide
+    forward, pressing winger, tracking winger
+  - attack: poacher, target man, in-behind striker, pressing forward, shadow striker, false 9
+  - free role, in any attacking midfield or attack slot, one per team (Craig, 1 Nov 2026); it
+    has no scoring of its own ("nah jus tleave it", 4 Nov 2026)
 
-  Craig widened the list on 1 Nov 2026: "also expand the roles for each position too". The
-  attacking centre-back is for Keegan's Newcastle.
+  The rest of the first list went as the slots were drafted. Craig cut the complete forward,
+  deep-lying forward, enganche, tempo-setter and inside midfielder by name ("english wont know
+  Trequartista and Enganche"); others were renamed, as the advanced forward became the in-behind
+  striker, the classic winger the touchline winger and the wide midfielder the wide workhorse.
+  The attacking centre-back is for Keegan's Newcastle.
 - Each role says what it rewards and what it costs, as categories without values ("not a value,
   just what that role should reward/give minus too"; Craig, 1 Nov 2026). The values come from
   backtesting.
+- Roles and team instructions add up, with no cap on the two together beyond the role's own ±3
+  (Craig, 5 Nov 2026).
 - Roles stack with team instructions: a pressing forward under a high press earns both
   adjustments, and a sweeper keeper suits a high defensive line.
 - A player dropped into a slot starts on the role he has the most stars for; until stars are

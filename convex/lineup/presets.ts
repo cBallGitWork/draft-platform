@@ -29,6 +29,7 @@ const WIDE_PAIR = row("attackingMidfield", "left", "right");
 const INSIDE_PAIR = row("attackingMidfield", "leftCentre", "rightCentre");
 // A winger (W) plays attacking midfield (spec/06), so a front three's wide men stand there.
 const FRONT_THREE = [...WIDE_PAIR, ...LONE_STRIKER];
+const BACK_TWO = row("defence", "leftCentre", "rightCentre");
 
 /** Each preset gets cells of its own: a league edits its copy (spec/03), and a cell shared with
  *  another preset would change that one too. */
@@ -68,6 +69,10 @@ export const DEFAULT_PRESETS: readonly Preset[] = [
   preset("5-3-1-1", BACK_FIVE, CENTRAL_THREE, NUMBER_TEN, LONE_STRIKER),
   // 3-5-2 with a ten behind the striker (Craig, 1 Nov 2026: "also add 3-6-1"; placed 5 Nov 2026).
   preset("3-6-1", BACK_THREE, row("defensiveMidfield", "left", "right"), CENTRAL_THREE, NUMBER_TEN, LONE_STRIKER),
+  // Two at the back, as Craig asked (1 Nov 2026) and placed (4 Nov 2026). Sweeper and libero are
+  // centre-back roles, never presets (Craig, 5 Nov 2026).
+  preset("2-3-5", BACK_TWO, CENTRAL_THREE, row("attack", ...LANES)),
+  preset("2-3-2-3", BACK_TWO, CENTRAL_THREE, INSIDE_PAIR, row("attack", "leftCentre", "centre", "rightCentre")),
 ];
 
 /** The name of the preset a side stands in: the first of `presets` whose cells are exactly these,

@@ -60,7 +60,7 @@ vi.mock("convex/react", async () => {
             ["positions/playerPositions:removePosition", "positions/positionSettings:setApproveMode", "positions/positionSettings:setChangeThresholds"],
             ["squads/squads:assign", "squads/squads:move", "squads/squads:release"],
             ["scoring/siteScoring:fix"],
-            ["rules/leagueSettings:changeSettings"],
+            ["rules/leagueSettings:changeSettings", "draft/draftOrder:setTeamOrder", "draft/draftOrder:drawTeamOrder"],
             ["feedback/feedback:send"],
             ["scoring/patchNotes:dismissBanner"],
           ]

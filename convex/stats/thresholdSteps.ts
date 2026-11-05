@@ -40,7 +40,7 @@ export interface ThresholdStep {
 /** The most steps one match holds. Under the first set, by count of its rules, not measured: each
  *  of about 32 men who play makes at most 1 for his minutes (past 60), about 3 for a clean sheet
  *  (added, taken away, and back if VAR rules the goal out), 1 for each 2 goals conceded each way,
- *  1 for his defensive contribution and 1 for each 3 saves or each penalty; about 8 a man with a
+ *  and 1 for each 3 saves or each penalty; about 8 a man with a
  *  few goals, so about 250 a match. A set with role adjustments adds at most 1 a read for each
  *  action of a stat they adjust (#868): Claude's draft (draftedRoleAdjustments.ts) adjusts about
  *  300 actions a match, measured from the recorded team stats (Hull v Everton and another: long

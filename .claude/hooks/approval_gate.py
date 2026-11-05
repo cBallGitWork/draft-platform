@@ -5,7 +5,7 @@ numbered; "with any, it waits for Craig's yes". pr_body.py makes such a body car
 merge_pull_request) while that section numbers a difference,
 unless the pull request has the label CRAIG_APPROVED, which only Craig adds: a gh command or GitHub
 tool call of Claude's that adds it is refused too (in any case: GitHub's label names ignore it). A
-body or labels it can't read is a denial, never a silent pass. Like drift_gate.py it stops the
+body or labels it can't read is a denial, never a silent pass. It stops the
 usual route only: a merge through gh api or the web button, a label named by a shell variable, and
 a body edited after it opened (gh pr edit, which pr_body.py doesn't screen-check) get past it.
 Stdlib only, Python 3.9+.

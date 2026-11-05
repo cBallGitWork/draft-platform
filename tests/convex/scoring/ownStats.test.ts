@@ -9,7 +9,7 @@ import { scoreMatch } from "../../../convex/scoring/scoring";
 import type { MatchStats } from "../../../convex/scoring/values";
 import { centreOf, TACKLES_AND_CLEARANCES } from "../../support/convex/scoring.example";
 import { validateScoringSet, type OwnStat, type ScoringSet } from "../../../convex/scoring/scoringSet";
-import { STAT_CATALOGUE } from "../../../convex/scoring/statCatalogue";
+import { STAT_CATALOGUE } from "../../../convex/scoring/statCatalogueList";
 
 // The site's own stats (#112, spec/14 Own stats): catalogue stats added up with weights, scored
 // like any category, whole actions only under whole points only; and the placeholder catalogue.
@@ -114,5 +114,11 @@ describe("the catalogue, placeholders for now (spec/14)", () => {
     for (const notAStat of ["formation_place", "played"]) held.delete(notAStat);
     expect([...held].filter((stat) => !keys.has(stat))).toEqual([]);
     for (const points of ["bonus", "bps", "total_points", "in_dreamteam"]) expect(keys).not.toContain(points);
+  });
+
+  test("it holds the stats the live feed sent in 26/27 that the recorded match lacks, so a role can score them", () => {
+    const keys = new Set(STAT_CATALOGUE.map((entry) => entry.stat));
+    const seenLive = ["big_chance_missed", "big_chance_scored", "att_hd_goal", "att_hd_target", "shot_fastbreak", "goal_fastbreak", "accurate_through_ball", "att_one_on_one", "error_lead_to_goal", "penalty_won"];
+    expect(seenLive.filter((stat) => !keys.has(stat))).toEqual([]);
   });
 });

@@ -44,8 +44,6 @@ Feature 14 of [SPEC.md](../SPEC.md). Only Craig's answers, from `/grill scoring 
 
   SS will have its own price, so a support striker can score differently (Craig, 22 Oct 2026);
   how a slot becomes SS is to grill (`spec/06`).
-- A sweeper's slot (SW, `spec/05`) is priced as CB: "for now it's just the same as CB, I'll think
-  of other points system for it" (Craig, 31 Oct 2026).
 - Three kinds of rule:
   - per action (+3 per assist);
   - per number of actions (+1 per 3 saves);
@@ -102,8 +100,9 @@ change is good".
 - The admin's tool, run on a patch draft before it is announced, when he presses a button (Claude's
   call), not on every save.
 - A what-if only: it saves nothing, and locked gameweeks keep their scores.
-- On past seasons: each role's average against base scoring, flagging any outside `spec/05`'s
-  0.25 points a match, and the biggest movers among players.
+- On past seasons: each role's average against its slot's target role bonus (`spec/05`), flagging
+  any more than 0.25 points a match off it; each team instruction's average for a whole XI; and the
+  biggest movers among players.
 - On this season's real lineups: the head-to-heads that would have flipped and the table moves,
   for each league ("the lab backtests just to make sure a change is good").
 - Its numbers go in the patch notes.
@@ -119,6 +118,8 @@ change is good".
   Oct 2026; it replaces starting from the Tim Hortons Pro League's values). Craig changes it in the
   rules editor, by patch. FPL has only GK, DEF, MID and FWD, so all three midfield areas take MID's
   values, and every position takes its area's.
+- It doesn't score FPL's defensive contribution: "we arent using the combined stat, we have no need
+  to", "Drop it from scoring" (Craig, 4 Nov 2026). The stat stays in the catalogue.
 - It carries the starting list of roles (`spec/05`). The platform's real sets are designed later.
 
 ## The rules editor

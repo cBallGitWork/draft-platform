@@ -1,4 +1,5 @@
 import { v, type Infer } from "convex/values";
+import { UNDRAFTED_GO_TO } from "../draft/draftRules";
 import { byArea, cellShape } from "../lineup/pitchShape";
 import { scoringSetShape } from "../scoring/scoringSetShape";
 import { DOUBLE_GAMEWEEK_RULES } from "../scoring/values";
@@ -18,11 +19,28 @@ const limit = v.object({ minimum: v.number(), maximum: v.number() });
 /** presets.ts's Preset. */
 const preset = v.object({ name: v.string(), cells: v.array(cellShape) });
 
+/** A preset as rows hold it: one saved between #988 and #1159 may also carry the role its
+ *  defence's centre started on, dropped with the sweeper and libero presets (Craig, 5 Nov 2026),
+ *  which nothing reads (`heldRules` drops it), optional so those rows need no migration. */
+const storedPreset = v.object({ ...preset.fields, centreRole: v.optional(v.string()) });
+
 const WEEKDAYS = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"] as const;
 const weekday = v.union(...WEEKDAYS.map((day) => v.literal(day)));
 
 /** roundRobin.ts's OddTeamOut. */
 export const oddTeamOutShape = v.union(...ODD_TEAM_OUTS.map((name) => v.literal(name)));
+
+/** The draft's rules (spec/04; #1087): its limits are ../draft/draftLimits.ts's. */
+export const draftRulesShape = v.object({
+  /** Each pick's clock, in whole seconds. */
+  pickSeconds: v.number(),
+  /** How many timeouts a manager gets before he goes on auto-pick; null: never, and the clock
+   *  runs for every pick. */
+  timeoutsBeforeAutoPick: v.union(v.number(), v.null()),
+  /** ../draft/draftRules.ts's UndraftedGoTo. */
+  undrafted: v.union(...UNDRAFTED_GO_TO.map((name) => v.literal(name))),
+});
+export type DraftRules = Infer<typeof draftRulesShape>;
 
 export const leagueRulesShape = v.object({
   format: v.union(v.literal("headToHead"), v.literal("totalPoints")),
@@ -56,15 +74,34 @@ export const leagueRulesShape = v.object({
     runs: v.array(v.object({ day: weekday, hour: v.number(), minute: v.number() })),
     order: v.union(v.literal("reverseStandings"), v.literal("rotating")),
   }),
+  /** How the draft runs (spec/04; #1087). Absent, as `oddTeamOut` is, only from rules saved before
+   *  #1087, which play the first rules' (firstRules.ts, `draftRulesOf`). */
+  draft: v.optional(draftRulesShape),
 });
 
 export type LeagueRules = Infer<typeof leagueRulesShape>;
 
-/** A league's rules as rows hold them: rows saved before #354 also carry the scoring set the
- *  league then had, which nothing reads (`heldRules` drops it), optional so they need no migration. */
-export const storedLeagueRulesShape = v.object({ ...leagueRulesShape.fields, scoring: v.optional(scoringSetShape) });
+/** The draft's rules as rows hold them: rows saved between #1087 and #1089 also carry how the draft
+ *  order was set, a switch Craig dropped ("Drop it", 4 Nov 2026, on #1089), which nothing reads
+ *  (`heldRules` drops it), optional so they need no migration. */
+const storedDraftRulesShape = v.object({ ...draftRulesShape.fields, order: v.optional(v.union(v.literal("commissioner"), v.literal("random"))) });
 
-/** A rules row's rules without the scoring a row saved before #354 carries. */
-export function heldRules({ scoring: _scoring, ...rules }: Infer<typeof storedLeagueRulesShape>): LeagueRules {
-  return rules;
+/** A league's rules as rows hold them: rows saved before #354 also carry the scoring set the
+ *  league then had, which nothing reads (`heldRules` drops it), optional so they need no migration;
+ *  the draft's, its dropped order (`storedDraftRulesShape`); and the presets', their dropped centre
+ *  role (`storedPreset`). */
+export const storedLeagueRulesShape = v.object({
+  ...leagueRulesShape.fields,
+  presets: v.array(storedPreset),
+  draft: v.optional(storedDraftRulesShape),
+  scoring: v.optional(scoringSetShape),
+});
+
+/** A rules row's rules without the scoring a row saved before #354 carries, the draft order a row
+ *  saved before #1089 does, or the presets' centre role one saved after #988 may. */
+export function heldRules({ scoring: _scoring, draft, presets: stored, ...rest }: Infer<typeof storedLeagueRulesShape>): LeagueRules {
+  const rules = { ...rest, presets: stored.map(({ centreRole: _centreRole, ...preset }) => preset) };
+  if (draft === undefined) return rules;
+  const { order: _order, ...held } = draft;
+  return { ...rules, draft: held };
 }

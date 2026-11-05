@@ -100,7 +100,6 @@ describe("what it opens on", () => {
       "SavesBy area",
       "Penalties saved5",
       "Penalties missed−2",
-      "Defensive contributionBy area",
       "Yellow cards−1",
       "Red cards−3",
       "Own goals−2",

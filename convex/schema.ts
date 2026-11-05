@@ -16,6 +16,8 @@ import { gameweekTables } from "./schema/gameweeks";
 import { playedFixtureTables } from "./schema/table";
 import { lineupTables } from "./schema/lineup";
 import { starsTables } from "./schema/stars";
+import { draftRankingTables, draftTables } from "./schema/draft";
+import { pastSeasonTables } from "./schema/pastSeasons";
 
 // The database, one group of tables a feature, each in its own file in convex/schema/ with the
 // shapes it is made of. Everything the features read from the schema is re-exported here.
@@ -28,6 +30,8 @@ export { leagueDeletion, pinnedLetter, leagueEvent } from "./schema/leagues";
 export { delivery } from "./schema/joining";
 export { siteScoringKind } from "./schema/scoring";
 export { placementShape } from "./schema/lineup";
+export { rankedPlayer } from "./schema/draft";
+export { pastSeasonRow } from "./schema/pastSeasons";
 
 export default defineSchema({
   ...authTables,
@@ -56,4 +60,7 @@ export default defineSchema({
   ...playedFixtureTables,
   ...lineupTables,
   ...starsTables,
+  ...draftRankingTables,
+  ...draftTables,
+  ...pastSeasonTables,
 });

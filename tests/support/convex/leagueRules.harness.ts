@@ -37,6 +37,19 @@ export const rulesRevision = (t: TestConvex, leagueId: Id<"leagues">) =>
 export const changeRules = async (t: TestConvex, leagueId: Id<"leagues">, rules: LeagueRules, by = COMMISSIONER) =>
   (await actingAs(t, by)).mutation(api.rules.leagueRules.change, { leagueId, rules, revision: await rulesRevision(t, leagueId) });
 
+/** Every rules row of the league changed by `change`, so the rules in force are, at once: for the
+ *  draft's tests, whose rules a save would only change from a later gameweek. */
+export const changeEveryRules = (t: TestConvex, leagueId: Id<"leagues">, change: (rules: LeagueRules) => LeagueRules) =>
+  t.run(async (ctx) => {
+    for (const row of await ctx.db.query("leagueRules").withIndex("by_leagueId_and_fromGameweek", (q) => q.eq("leagueId", leagueId)).collect()) {
+      await ctx.db.patch("leagueRules", row._id, { rules: change(row.rules) });
+    }
+  });
+
+/** The league's pick clock set to `pickSeconds` at once (changeEveryRules). */
+export const setPickSeconds = (t: TestConvex, leagueId: Id<"leagues">, pickSeconds: number) =>
+  changeEveryRules(t, leagueId, (rules) => ({ ...rules, draft: { ...HELD_FIRST_RULES.draft!, pickSeconds } }));
+
 /** Rewrites the league's rules rows as rules saved before #33 and #130 made the odd team out and
  *  games a gameweek rules: without them. */
 export const savedBeforeTheyWereRules = (t: TestConvex, leagueId: Id<"leagues">) =>

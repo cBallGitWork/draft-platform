@@ -124,11 +124,21 @@
   /* The formation window's groups, its tiles and the picked one's preview (the approved formation
      window) */
   --grid-template-columns-formation-window: 12.5rem minmax(0, 1fr) 32.5rem;
+  /* its height on the desk: under the page's menu and toolbar, Cancel and Use this inside a
+     1440 by 900 window, as drawn; its tiles scroll within it when a group runs longer */
+  --spacing-formation-window: 760px;
+  /* a formation tile's height, two a row, as drawn */
+  --spacing-tile: 96px;
 
   --text-data: 13px;
   --text-data--line-height: 20px;
   --text-lead: 15px; /* a player's name, and the menu */
   --text-lead--line-height: 20px;
+  /* the formation window's tile names, and its preview's title (the approved formation window) */
+  --text-tile: 14px;
+  --text-tile--line-height: 20px;
+  --text-heading: 20px;
+  --text-heading--line-height: 24px;
   --text-title: 26px;
   --text-title--line-height: 32px;
 

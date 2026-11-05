@@ -1,5 +1,5 @@
 # Starts the nightly builds (docs/PLAN.md, "The pipeline", step 2): the oldest `lane:auto` issues with no open
-# pull request, up to BUILDS_PER_NIGHT, each handed to claude-build.yml, which builds each issue in its own run. Run it by hand from the Actions tab for a build any time.
+# pull request and no unanswered rules (`rules:open`: Craig's answer restarts those), up to BUILDS_PER_NIGHT, each handed to claude-build.yml, which builds each issue in its own run. Run it by hand from the Actions tab for a build any time.
 # It dispatches rather than labelling `build`: a label added with the default token starts no workflow.
 name: nightly-build
 
@@ -28,7 +28,7 @@ jobs:
           taken=$(gh pr list --repo "$GITHUB_REPOSITORY" --state open --limit 200 --json title,body \
             --jq '.[] | (.title + " " + (.body // "")) | scan("#[0-9]+")' | tr -d '#' | sort -u)
           ready=$(gh issue list --repo "$GITHUB_REPOSITORY" --state open --label lane:auto --limit 200 \
-            --json number,labels --jq '.[] | select(all(.labels[]; .name != "lane:craig")) | .number' | sort -n)
+            --json number,labels --jq '.[] | select(all(.labels[]; .name != "lane:craig" and .name != "rules:open")) | .number' | sort -n)
           picked=0
           for n in $ready; do
             [ "$picked" -ge "$BUILDS_PER_NIGHT" ] && break

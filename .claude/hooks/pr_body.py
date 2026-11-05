@@ -1,11 +1,12 @@
 """The pull-request body check, for guard_bash.py: denies a gh pr create or gh pr edit whose body
 (--body, or the file --body-file names) holds a local path or a closing word near an issue number
 anywhere but a bare "Closes #n" line. On gh pr create it also denies a body that lacks the
-template's headings; one with neither pr-reviewer's pasted signature nor an unticked "not run" line
-for it; one with a ticked box that says "not run"; and, where the branch changes a file that renders
+template's "## What" or its "Part of #n" / "Closes #n" line, and, where the branch changes a file that renders
 a screen with an approved picture (screen_routes.py), one without ui-verifier's signature and an
 "Approved vs built" section that says it "matches the approved picture" or numbers each difference
 (#947; approval_gate.py then holds the merge for Craig). A body the guard can't read is denied too.
+pr-reviewer's verdict is no longer asked for here: review.yml posts it as a comment on every pull request
+(Craig, 4 Nov 2026: the builder only builds, and the review is a job of its own).
 A title past TITLE_HARD characters is denied; one past TITLE_SOFT gets a note, not a denial
 (pr_title_note; Craig, 22 Oct 2026).
 Stdlib only, Python 3.9+.
@@ -25,12 +26,8 @@ BODY_OPTS = {"-b", "--body"}
 BODY_FILE_OPTS = {"-F", "--body-file"}
 TITLE_OPTS = {"-t", "--title"}
 TITLE_SOFT, TITLE_HARD = 100, 120  # characters
-REQUIRED = ("## Merge danger", "## Checks", "## Fresh-eyes review", "## Left for later")  # the template
-SIGNATURE = "*Reviewer: pr-reviewer ("  # starts the last line of pr-reviewer's block
-NOT_RUN_LINE = "- [ ] pr-reviewer: not run"
-SIGNED = re.compile("^" + re.escape(SIGNATURE), re.M)
-NOT_RUN = re.compile("^" + re.escape(NOT_RUN_LINE), re.M)
-TICKED_NOT_RUN = re.compile(r"^- \[[xX]\] .*not run", re.M)
+REQUIRED = ("## What",)  # the template's headings
+ISSUE_LINE = re.compile(r"^(Part of|Closes) #\d+", re.M)  # the template's last line, filled in
 LOCAL_PATHS = ("/Users/", "/private/tmp/")  # a Mac home folder, the session scratchpad
 # One line at a time, by design: "Closes" at a line's end with "#12" starting the next, and
 # "Closes https://…/issues/5", both get through. A known limit, not a promise.
@@ -40,6 +37,9 @@ USE_A_FILE = "Write the body to a file and pass it with --body-file <file>."
 # ui-verifier's block for a screen with an approved picture (.claude/agents/ui-verifier.md, Output)
 APPROVED_VS_BUILT = "## Approved vs built"
 MATCHES = "matches the approved picture"
+# ui-verifier shot the screen on main too and the two 1440 PNGs are identical: an import reached it, nothing it draws
+# changed, so the differences main already has aren't this branch's (Craig, 4 Nov 2026, on #1128)
+UNCHANGED = "unchanged from main"
 VERIFIER_SIGNATURE = "*Verifier: ui-verifier ("  # starts the last line of ui-verifier's block
 VERIFIER_SIGNED = re.compile("^" + re.escape(VERIFIER_SIGNATURE), re.M)
 COMMENT = re.compile(r"<!--.*?-->", re.S)
@@ -131,9 +131,9 @@ def screen_problem(body, screens):
     named = ", ".join(f"{route} ({', '.join(files[:3])}{', …' if len(files) > 3 else ''})"
                       for route, files in screens.items())
     section = approved_vs_built(body)
-    if not VERIFIER_SIGNED.search(body) or section is None or not (MATCHES in section or differences(body)):
+    if not VERIFIER_SIGNED.search(body) or section is None or not (MATCHES in section or UNCHANGED in section or differences(body)):
         return (f"This branch changes a screen with an approved picture: {named}. Run the ui-verifier agent "
-                f"and paste its block: a '{APPROVED_VS_BUILT}' section that says it '{MATCHES}' or numbers "
+                f"and paste its block: a '{APPROVED_VS_BUILT}' section that says it '{MATCHES}', or '{UNCHANGED}', or numbers "
                 f"each difference (1. …), and its line starting '{VERIFIER_SIGNATURE}…'.")
     return None
 
@@ -145,13 +145,8 @@ def body_problem(body, creating):
         if missing:
             return (f"The body lacks {', '.join(missing)}. Fill in the whole template "
                     "(.github/pull_request_template.md).")
-        ticked = TICKED_NOT_RUN.search(body)
-        if ticked:
-            return (f"A ticked box says a step was not run ({ticked.group(0).strip()!r}). "
-                    "Untick it and say why: '- [ ] <step>: not run — <why>'.")
-        if not SIGNED.search(body) and not NOT_RUN.search(body):
-            return ("The body has no pr-reviewer verdict. Paste its block under Fresh-eyes review "
-                    f"(it ends '{SIGNATURE}…'), or write '{NOT_RUN_LINE} — <why>'.")
+        if not ISSUE_LINE.search(body):
+            return "The body names no issue. Add a line 'Part of #n', or 'Closes #n' for an issue this PR finishes."
     local = next((path for path in LOCAL_PATHS if path in body), None)
     if local:
         return f"The body names a local path ({local}…). Name the file by its path in the repo."
