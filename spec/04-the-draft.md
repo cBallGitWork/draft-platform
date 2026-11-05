@@ -154,6 +154,8 @@ Feature 4 of [SPEC.md](../SPEC.md). Only Craig's answers.
 - The commissioner can pause the draft, undo a pick, and pick for a manager.
 - Pausing and resuming are by hand; a pause keeps the time left on the clock.
 - While the draft is paused, he can change the pick time; the new time applies when it resumes.
+  The pick on the clock restarts on the full new time (Craig, 4 Nov 2026, on #1135: "90s with 30s
+  left, changed to 60s: it resumes on 60s").
 - The commissioner's undo is a plain button, with no confirm (Craig, 4 Nov 2026, "ok" to Claude's
   recommendation).
 - Undo takes back the last pick only, and can be repeated to go back further. The pick put back

@@ -34,6 +34,7 @@ import { pickOnTheClock } from "./snakeOrder";
 export const pickRefusals = {
   notStarted: "The draft hasn't started.",
   over: "The draft is over.",
+  paused: "The draft is paused.",
   notYourTurn: (teamName: string) => `It isn't your pick: ${teamName} is on the clock.`,
   taken: (name: string, teamName: string) => `${name} is already on ${teamName}.`,
   breaksSquadRules: (name: string) => `${name} would leave your squad unable to meet the league's squad rules.`,
@@ -82,7 +83,7 @@ async function pickable(ctx: QueryCtx, leagueId: Id<"leagues">, playerCode: numb
 }
 
 /** The league's pick time now, in seconds: a change the commissioner makes reaches the next clock. */
-async function pickSecondsNow(ctx: QueryCtx, leagueId: Id<"leagues">): Promise<number> {
+export async function pickSecondsNow(ctx: QueryCtx, leagueId: Id<"leagues">): Promise<number> {
   return draftRulesOf(await startedRulesAt(ctx, leagueId, Date.now())).pickSeconds;
 }
 
@@ -98,7 +99,7 @@ async function placePick(ctx: MutationCtx, leagueId: Id<"leagues">, turn: Turn, 
 }
 
 /** The manager of the team on the clock picks a player, who joins its squad, and the turn moves on.
- *  Refused before the draft starts and once it is over, to anyone but the manager on the clock, and
+ *  Refused before the draft starts, once it is over and while it is paused (draftPause.ts), to anyone but the manager on the clock, and
  *  for a player who isn't there to take or would break the team's squad rules. */
 export const makePick = mutation({
   args: { leagueId: v.id("leagues"), playerCode: v.number() },
@@ -108,10 +109,11 @@ export const makePick = mutation({
     const draft = await draftOf(ctx, leagueId);
     const started = draft?.started ?? refuse(pickRefusals.notStarted);
     const turn = pickOnTheClock(started.teamIds, started.rounds, await picksMadeIn(ctx, leagueId)) ?? refuse(pickRefusals.over);
+    if (draft?.clock?.paused !== undefined) refuse(pickRefusals.paused);
     if (turn.team !== team._id) refuse(pickRefusals.notYourTurn((await teamIn(ctx, leagueId, turn.team)).name));
     const player = await pickable(ctx, leagueId, playerCode);
     if (!(await (await legalForTurn(ctx, leagueId, started, turn))(player))) refuse(pickRefusals.breaksSquadRules(player.name));
-    if (draft?.clock !== undefined) await ctx.scheduler.cancel(draft.clock.job);
+    if (draft?.clock?.job !== undefined) await ctx.scheduler.cancel(draft.clock.job);
     await placePick(ctx, leagueId, turn, team, player, email);
     return null;
   },
@@ -139,7 +141,7 @@ export const autoPick = internalMutation({
   handler: async (ctx, { leagueId, pick }) => {
     const [league, draft] = await Promise.all([ctx.db.get("leagues", leagueId), draftOf(ctx, leagueId)]);
     const started = draft?.started;
-    if (league === null || started === undefined || draft?.clock?.pick !== pick) return null;
+    if (league === null || started === undefined || draft?.clock?.pick !== pick || draft.clock.paused !== undefined) return null;
     const turn = pickOnTheClock(started.teamIds, started.rounds, await picksMadeIn(ctx, leagueId));
     if (turn?.pick !== pick) return null;
     const team = await teamIn(ctx, leagueId, turn.team);
