@@ -82,6 +82,10 @@ const teamFields = {
    *  starts (spec/04, Auto-pick; #1095): the draft doesn't pick for it at once, its clock runs, and
    *  he picks for it. A manager joining the team takes it off. ../draft/draftCommissioner.ts writes it. */
   commissionerPicks: v.optional(v.literal(true)),
+  /** The auto team, switched on by a person (spec/09, The auto team; ../lineup/autoTeam.ts): who
+   *  switched it on, and the gameweek it ends after, if its manager named one. Absent while off. A
+   *  team with no manager is on it whatever this holds, and handing it on clears this. */
+  autoTeam: v.optional(v.object({ by: v.string(), endsAfter: v.optional(v.number()) })),
 };
 
 /** The league switcher (#76): the league each person used last, by email, one row each. */
@@ -138,6 +142,15 @@ export const leagueEvent = v.union(
     gameweek: v.number(),
     swapped: v.array(v.union(v.string(), v.null())),
     games: v.array(v.object({ team: v.union(v.string(), v.null()), opponent: v.union(v.string(), v.null()) })),
+  }),
+  /** A person switched a team's auto team on or off (spec/09, The auto team; #1207): `endsAfter`
+   *  the gameweek its manager named it ends after, null when he named none or it went off. */
+  v.object({
+    kind: v.literal("autoTeamSwitched"),
+    teamId: v.id("teams"),
+    teamName: v.string(),
+    on: v.boolean(),
+    endsAfter: v.union(v.number(), v.null()),
   }),
 );
 

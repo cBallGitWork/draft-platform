@@ -4,6 +4,7 @@ import { andListWords, momentIn } from "../shared/moments";
 import { figureWords } from "../shared/numberWords";
 import type { LeagueRules } from "../rules/leagueRulesShape";
 import { NOTHING_SCORES_DIFFERENTLY } from "../scoring/patchChanges";
+import { autoTeamSwitchedWords } from "../lineup/autoTeamWords";
 import type { leagueEvent, siteScoringKind } from "../schema";
 
 // What the letters Mail files about a league's events say (spec/15: nothing changes quietly), in
@@ -119,6 +120,8 @@ export function eventLetter(event: LeagueEvent, who: string, zone: string | unde
       return { subject: `${event.playerName}'s points in ${event.matchName} were overridden`, body: overriddenBody(event, who) };
     case "fixturesSwapped":
       return { subject: `Gameweek ${event.gameweek}'s fixtures were changed`, body: swappedBody(event, who) };
+    case "autoTeamSwitched":
+      return autoTeamSwitchedWords(event, who);
   }
 }
 
