@@ -1,0 +1,61 @@
+import type { Doc, Id } from "../_generated/dataModel";
+import type { MutationCtx, QueryCtx } from "../_generated/server";
+import { picksMadeIn } from "../draft/draftRow";
+import { pickOnTheClock } from "../draft/snakeOrder";
+import { LEAGUES_READ_MOST, takeAllOrThrow } from "../shared/cappedRead";
+import { DAY_MS } from "../shared/time";
+
+// Who is on waivers in a league (#1197, spec/08 Waivers and free agency): a row in waiverPlayers
+// (../schema/waivers.ts) each, only while no team holds him. A drop puts him there for at least 24
+// hours; a player new to the Premier League once the league's draft is over, and those nobody
+// drafted when the league's draft setting says waivers (spec/04), go there for the next run.
+
+/** How long a dropped player is on waivers before a run can take him (spec/08: "at least 24
+ *  hours"). Craig's answer, so a constant: no league setting holds it. */
+export const WAIVER_MS = DAY_MS;
+
+/** The player's waiver row in the league, or null while he isn't on waivers. */
+export function waiverRowOf(ctx: QueryCtx, leagueId: Id<"leagues">, playerCode: number): Promise<Doc<"waiverPlayers"> | null> {
+  return ctx.db
+    .query("waiverPlayers")
+    .withIndex("by_leagueId_and_playerCode", (q) => q.eq("leagueId", leagueId).eq("playerCode", playerCode))
+    .unique();
+}
+
+/** Puts the player on the league's waivers, a run taking him from `claimableFrom`, in place of
+ *  any time he had there. */
+export async function putOnWaivers(ctx: MutationCtx, leagueId: Id<"leagues">, playerCode: number, claimableFrom: number): Promise<void> {
+  const held = await waiverRowOf(ctx, leagueId, playerCode);
+  if (held === null) await ctx.db.insert("waiverPlayers", { leagueId, playerCode, claimableFrom });
+  else await ctx.db.patch("waiverPlayers", held._id, { claimableFrom });
+}
+
+/** Takes the player off the league's waivers as he joins a team, so a row is only ever for a
+ *  player no team holds. */
+export async function offWaivers(ctx: MutationCtx, leagueId: Id<"leagues">, playerCode: number): Promise<void> {
+  const held = await waiverRowOf(ctx, leagueId, playerCode);
+  if (held !== null) await ctx.db.delete("waiverPlayers", held._id);
+}
+
+/** The leagues whose draft is over: started, with no pick left on the clock. */
+async function leaguesDrafted(ctx: QueryCtx): Promise<Id<"leagues">[]> {
+  const drafts = await takeAllOrThrow(
+    ctx.db.query("drafts"),
+    LEAGUES_READ_MOST,
+    `More than ${LEAGUES_READ_MOST} drafts are held, so a new Premier League player can't be put on waivers in every league`,
+  );
+  const over = await Promise.all(
+    drafts.map(async ({ leagueId, started }) => started !== undefined && pickOnTheClock(started.teamIds, started.rounds, await picksMadeIn(ctx, leagueId)) === null),
+  );
+  return drafts.filter((_, index) => over[index]).map(({ leagueId }) => leagueId);
+}
+
+/** Puts players new to the Premier League on waivers for the next run in every league whose
+ *  draft is over (spec/08: "A player new to the Premier League mid-season goes on waivers for the
+ *  next run"). A league still to draft, or drafting, takes them in its draft. */
+export async function putNewPlayersOnWaivers(ctx: MutationCtx, playerCodes: readonly number[], now: number): Promise<void> {
+  if (playerCodes.length === 0) return;
+  for (const leagueId of await leaguesDrafted(ctx)) {
+    for (const playerCode of playerCodes) await putOnWaivers(ctx, leagueId, playerCode, now);
+  }
+}

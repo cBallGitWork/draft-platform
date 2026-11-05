@@ -16,6 +16,7 @@ import { areasShort } from "./areaMinimums";
 import { readOnce } from "../shared/readOnce";
 import { heldOrNot, ownerOf, placeOf, squadOf, unheldCodes } from "./squadPlace";
 import { pickFirstLineupAgain } from "../lineup/lineups";
+import { offWaivers } from "../waivers/waiverPlayers";
 
 // Assigning players (#31, spec/15): the league's commissioners and the admin put any player on any
 // team, one at a time, move him between teams, or release him to free agency. Each files a Mail
@@ -24,7 +25,8 @@ import { pickFirstLineupAgain } from "../lineup/lineups";
 // league's draft is live, when its picks alone change squads (../draft/draftPicks.ts).
 //
 // Each change to a squad files its league event in the same transaction, and nothing but these and
-// a draft pick (../draft/draftPicks.ts, filed as `playerAssigned`) writes squadPlayers, so the events say what every squad was at any moment (squadPlace.ts `squadAt`,
+// a draft pick (../draft/draftPicks.ts, filed as `playerAssigned`) and a manager's drop
+// (../waivers/waivers.ts, `playerDropped`) writes squadPlayers, so the events say what every squad was at any moment (squadPlace.ts `squadAt`,
 // #415). A new way to change a squad must file one of squadPlace.ts's SQUAD_MOVES too, or join
 // them, and pick each team's first lineup again (lineups.ts `pickFirstLineupAgain`), so a team
 // always has a lineup (#637).
@@ -74,6 +76,7 @@ export const assign = mutation({
     if (place !== null) refuse(squadRefusals.alreadyOwned(player.name, (await teamIn(ctx, leagueId, place.teamId)).name));
     await roomOn(ctx, team);
     await ctx.db.insert("squadPlayers", { leagueId, teamId, playerCode });
+    await offWaivers(ctx, leagueId, playerCode);
     await recordEvent(ctx, leagueId, by, { kind: "playerAssigned", playerCode, playerName: player.name, teamId, teamName: team.name });
     await pickFirstLineupAgain(ctx, leagueId, teamId);
     return null;

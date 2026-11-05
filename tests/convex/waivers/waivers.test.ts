@@ -1,0 +1,142 @@
+import { beforeEach, describe, expect, test } from "vitest";
+import { api, internal } from "../../../convex/_generated/api";
+import type { Id } from "../../../convex/_generated/dataModel";
+import { DAY_MS } from "../../../convex/shared/time";
+import { dropRefusals } from "../../../convex/waivers/waivers";
+import { WAIVER_MS } from "../../../convex/waivers/waiverPlayers";
+import { holdGameweeks } from "../../support/convex/leagueRules.harness";
+import { actingAs, addManagers, adminCreatesLeague, eventsIn, MANAGERS, type TestConvex } from "../../support/convex/leagues.harness";
+import { holdPlayers, holdSquad, nameOf, passNextDeadline, SQUAD } from "../../support/convex/lineupSquad.harness";
+import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
+import { expectRefused } from "../../support/convex/test.harness";
+
+// A manager's drop and a player's waiver state (#1197, spec/08 Waivers and free agency): a drop
+// goes on waivers for at least 24 hours; a free agent picked up and dropped before the next
+// deadline goes straight back to the free agents; no drop from the deadline until the gameweek's
+// last match is over; a player new to the Premier League once the draft is over goes on waivers,
+// as do those nobody drafts when the league says so; each drop files a Mail letter.
+
+const [ANN, BOB] = MANAGERS;
+/** The gameweek holdGameweeks kicks off next: gameweek 4, a day ago, is the latest begun. */
+const NEXT = 5;
+const DROPPED = SQUAD[SQUAD.length - 1];
+const FREE_AGENT = 9001;
+
+let t: TestConvex;
+let leagueId: Id<"leagues">;
+let annsTeam: Id<"teams">;
+let bobsTeam: Id<"teams">;
+
+/** The gameweek's one match (holdGameweeks gives each gameweek one, coded by its number) at `state`. */
+const matchIs = (gameweek: number, state: "live" | "fullTime") =>
+  t.run(async (ctx) => {
+    const held = await ctx.db.query("matchScores").withIndex("by_fixtureCode", (q) => q.eq("fixtureCode", gameweek)).unique();
+    if (held !== null) await ctx.db.delete("matchScores", held._id);
+    await ctx.db.insert("matchScores", { fixtureCode: gameweek, state, homeGoals: 1, awayGoals: 0, minutes: 90, clockLabel: null, feed: "fpl", readAt: Date.now() });
+  });
+
+const drop = async (email: string, playerCode: number) => (await actingAs(t, email)).mutation(api.waivers.waivers.drop, { leagueId, playerCode });
+const stateOf = async (playerCode: number) => (await actingAs(t, BOB)).query(api.waivers.waivers.stateOf, { leagueId, playerCode });
+const lastEvent = async () => (await eventsIn(t, leagueId)).at(-1);
+const lettersTo = (email: string) =>
+  t.run(async (ctx) => (await ctx.db.query("letters").withIndex("by_to_and_at", (q) => q.eq("to", email)).collect()).map(({ subject, body }) => ({ subject, body })));
+
+beforeEach(async () => {
+  t = await signInDeployment();
+  fakeResend();
+  leagueId = await adminCreatesLeague(t);
+  [annsTeam, bobsTeam] = await addManagers(t, leagueId, [ANN, BOB]);
+  await holdGameweeks(t, { next: NEXT });
+  await matchIs(NEXT - 1, "fullTime");
+  await holdSquad(t, leagueId, annsTeam);
+});
+
+describe("a drop", () => {
+  test("puts the player on waivers for 24 hours, out of the squad, and tells the league in Mail", async () => {
+    const at = Date.now();
+    await drop(ANN, DROPPED);
+
+    expect(await stateOf(DROPPED)).toEqual({ kind: "onWaivers", claimableFrom: at + WAIVER_MS });
+    expect(WAIVER_MS).toBe(DAY_MS);
+    expect(await lastEvent()).toMatchObject({ kind: "playerDropped", playerCode: DROPPED, teamId: annsTeam, toWaivers: true, by: ANN });
+    expect(await lettersTo(BOB)).toContainEqual({
+      subject: `Team 1 dropped ${nameOf(DROPPED)}`,
+      body: `${ANN} dropped ${nameOf(DROPPED)} from Team 1. He is on waivers for at least 24 hours.`,
+    });
+    const squad = await t.run((ctx) => ctx.db.query("squadPlayers").withIndex("by_teamId", (q) => q.eq("teamId", annsTeam)).collect());
+    expect(squad.map(({ playerCode }) => playerCode)).not.toContain(DROPPED);
+  });
+
+  test("is refused for a player in another team's squad, or in none", async () => {
+    await expectRefused(drop(BOB, DROPPED), dropRefusals.notYours(nameOf(DROPPED)));
+    await holdPlayers(t, [FREE_AGENT]);
+    await expectRefused(drop(ANN, FREE_AGENT), dropRefusals.notYours(nameOf(FREE_AGENT)));
+  });
+});
+
+describe("the churn rule", () => {
+  /** FREE_AGENT on Bob's team as a free agent pickup makes him, now. */
+  const pickedUp = async () => {
+    await holdPlayers(t, [FREE_AGENT]);
+    await t.run((ctx) => ctx.db.insert("squadPlayers", { leagueId, teamId: bobsTeam, playerCode: FREE_AGENT, pickedUpAt: Date.now() }));
+  };
+
+  test("a free agent picked up and dropped before the next deadline goes straight back to the free agents", async () => {
+    await pickedUp();
+    await drop(BOB, FREE_AGENT);
+
+    expect(await stateOf(FREE_AGENT)).toEqual({ kind: "freeAgent" });
+    expect(await lastEvent()).toMatchObject({ kind: "playerDropped", playerCode: FREE_AGENT, toWaivers: false });
+  });
+
+  test("once he has been in the squad for a deadline, a drop sends him to waivers", async () => {
+    await pickedUp();
+    await passNextDeadline(t);
+    await matchIs(NEXT, "fullTime");
+    await drop(BOB, FREE_AGENT);
+
+    expect(await stateOf(FREE_AGENT)).toEqual({ kind: "onWaivers", claimableFrom: Date.now() + WAIVER_MS });
+  });
+});
+
+describe("the lock", () => {
+  test("refuses a drop from the deadline until the gameweek's last match is over", async () => {
+    await passNextDeadline(t);
+    await expectRefused(drop(ANN, DROPPED), dropRefusals.locked, "before the match");
+    await matchIs(NEXT, "live");
+    await expectRefused(drop(ANN, DROPPED), dropRefusals.locked, "during it");
+
+    await matchIs(NEXT, "fullTime");
+    await drop(ANN, DROPPED);
+    expect((await stateOf(DROPPED)).kind).toBe("onWaivers");
+  });
+});
+
+describe("players no team holds", () => {
+  test("a player who never joined a team is a free agent; one on a team says which", async () => {
+    await holdPlayers(t, [FREE_AGENT]);
+    expect(await stateOf(FREE_AGENT)).toEqual({ kind: "freeAgent" });
+    expect(await stateOf(DROPPED)).toEqual({ kind: "owned", teamId: annsTeam, teamName: "Team 1" });
+  });
+
+  test("a player new to the Premier League once the draft is over goes on waivers for the next run", async () => {
+    // A finished draft: started with no rounds, so no pick is left on the clock.
+    await t.run((ctx) => ctx.db.insert("drafts", { leagueId, started: { at: Date.now(), teamIds: [annsTeam, bobsTeam], rounds: 0 } }));
+    const otherLeague = await adminCreatesLeague(t, 4, "Still to draft");
+    await t.mutation(internal.football.footballSync.upsertPlayers, { rows: [{ code: FREE_AGENT, name: "New", fullName: "New Man", clubCode: 1 }] });
+
+    expect(await stateOf(FREE_AGENT)).toEqual({ kind: "onWaivers", claimableFrom: Date.now() });
+    const elsewhere = await t.run((ctx) =>
+      ctx.db.query("waiverPlayers").withIndex("by_leagueId_and_playerCode", (q) => q.eq("leagueId", otherLeague).eq("playerCode", FREE_AGENT)).unique(),
+    );
+    expect(elsewhere).toBeNull();
+  });
+
+  test("a dropped player assigned to a team again is off waivers", async () => {
+    await drop(ANN, DROPPED);
+    await (await actingAs(t, "commish@example.com")).mutation(api.squads.squads.assign, { leagueId, playerCode: DROPPED, teamId: bobsTeam });
+    await (await actingAs(t, "commish@example.com")).mutation(api.squads.squads.release, { leagueId, playerCode: DROPPED });
+
+    expect(await stateOf(DROPPED)).toEqual({ kind: "freeAgent" });
+  });
+});
