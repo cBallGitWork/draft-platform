@@ -179,6 +179,7 @@ Keep the hooks that stop real mistakes; retire the gates GitHub or a schedule no
 | `guard_bash.py`, cut to no commits on main and no stage-everything | `drift_due.py`, `drift_gate.py`: the weekly drift pass (`drift-pass.yml`), retired 4 Nov 2026 |
 | `guard_github.py`, `read_only.py` | `checks_gate.py`, `follow_main.py`: GitHub's up-to-date rule and merge queue; `main_writes.py`: the ruleset refuses pushes to main (4 Nov 2026) |
 | `private_words.py`, `line_ceiling.py` | `approval_gate.py`: CODEOWNERS |
+| `guard_ask.py`: a question to Craig that one of his standing answers settles (merges, alpha data, the phone, small look details, fixes) is denied with the answer (5 Nov 2026: 7 of 18 questions in an hour were these) |  |
 | The shared helpers and `test.sh` | `gate_on_stop.py`: CI |
 | `pr_body.py`, `pull_request.py`, `screen_routes.py`, only if the cloud builds use them | `tidy_after_merge.py`, `tidy_branch.py`: GitHub deletes merged branches |
 |  | `setup_current.py`: only applies on the Mac |
