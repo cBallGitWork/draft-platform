@@ -28,7 +28,6 @@ import {
   pickUp,
   pitch,
   rowOf,
-  squadRows,
   swap,
   type Member,
 } from "../../../support/src/tacticsScreen.harness";

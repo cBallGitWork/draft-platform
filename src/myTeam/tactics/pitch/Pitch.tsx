@@ -132,8 +132,9 @@ function PlayerBlock({ player, cell, role, lit, moving }: { player: SquadMember;
     >
       <Shirt number={player.number} clubCode={player.clubCode} goalkeeper={cell.area === "goalkeeper"} />
       <span className={`max-w-full truncate px-1 text-lead font-semibold ${plate}`}>{player.name}</span>
-      {/* Up to two lines, so "Defensive full-back" and "Defensive winger" stay apart on a phone. */}
-      <span className={`line-clamp-2 max-w-full px-1 text-center ${isPicked ? plate : "bg-name-plate text-soft"}`}>{role}</span>
+      {/* Up to two lines, so "Defensive full-back" and "Defensive winger" stay apart on a phone,
+          set closer there so a two-line role still fits his row (--leading-pitch-role). */}
+      <span className={`line-clamp-2 max-w-full px-1 text-center max-lg:leading-pitch-role ${isPicked ? plate : "bg-name-plate text-soft"}`}>{role}</span>
     </button>
   );
 }
