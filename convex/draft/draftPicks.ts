@@ -55,7 +55,7 @@ export const pickRefusals = {
  *  4 Nov 2026, on #1090: "Picks follow the squad rules the draft started under"). A draft started
  *  before #1090 kept none, so its are the league's in force when it started; it always has them, as
  *  it can't start without a squad size limit. */
-async function squadRulesOf(ctx: QueryCtx, leagueId: Id<"leagues">, started: StartedDraft): Promise<LeagueRules["squad"]> {
+export async function squadRulesOf(ctx: QueryCtx, leagueId: Id<"leagues">, started: StartedDraft): Promise<LeagueRules["squad"]> {
   return started.squad ?? (await startedRulesAt(ctx, leagueId, started.at)).squad;
 }
 

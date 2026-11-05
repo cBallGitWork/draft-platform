@@ -97,3 +97,37 @@ describe("the players a team can't take", () => {
     await expectRefused(greyedOut(OUTSIDER), refusals.notInLeague);
   });
 });
+
+describe("the draft room's figures", () => {
+  const figuresOf = async (email: string) => (await as(email)).query(api.draft.draftPlayers.figures, { leagueId, now: Date.now() });
+  const byCodeOf = <Figure extends { code: number }>(figures: { players: Figure[] }) => new Map(figures.players.map((each) => [each.code, each]));
+
+  test("rank the admin's ranking first, then last season's points, newcomers last, with each one's overview", async () => {
+    await t.run(async (ctx) => {
+      await ctx.db.insert("draftRanking", { players: [{ code: CHELSEA_KEEPER.code, rank: 1 }], uploadedAt: Date.now() });
+      await ctx.db.insert("pastSeasonPoints", { season: 2025, playerCode: ARSENAL_MID.code, points: { CM: 120 } });
+      await ctx.db.insert("pastSeasonPoints", { season: 2025, playerCode: CHELSEA_MID.code, points: { CM: 150 } });
+      await ctx.db.insert("pastSeasonPoints", { season: 2025, playerCode: CHELSEA_KEEPER.code, points: { GK: 90 } });
+      await ctx.db.insert("playerSeasonStats", { season: 2025, playerCode: ARSENAL_MID.code, stats: { appearances: 30, goals_scored: 4, assists: 6 } });
+    });
+    const figures = await figuresOf(ANN);
+    const of = byCodeOf(figures);
+    expect([CHELSEA_KEEPER, CHELSEA_MID, ARSENAL_MID, ARSENAL_STRIKER].map(({ code }) => of.get(code)?.rank)).toEqual([1, 2, 3, 4]);
+    expect(of.get(CHELSEA_MID.code)?.lastSeasonPoints).toBe(150);
+    expect(of.get(ARSENAL_STRIKER.code)?.lastSeasonPoints).toBeNull();
+    expect(of.get(ARSENAL_MID.code)?.overview).toEqual({ appearances: 30, goals: 4, assists: 6, cleanSheets: 0 });
+    expect(figures).toMatchObject({ lastSeason: 2025, statsSeason: 2025 });
+  });
+
+  test("give the club maximum the draft picks by: the league's before the start, the one it started under after", async () => {
+    await setSquadRules({ maxPerClub: 1 });
+    expect((await figuresOf(ANN)).maxPerClub).toBe(1);
+    await start();
+    await setSquadRules({ maxPerClub: 2 });
+    expect((await figuresOf(ANN)).maxPerClub).toBe(1);
+  });
+
+  test("are refused to anyone outside the league", async () => {
+    await expectRefused(figuresOf(OUTSIDER), refusals.notInLeague);
+  });
+});

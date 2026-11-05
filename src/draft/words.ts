@@ -87,6 +87,31 @@ export const notLegalWords = {
 } as const;
 export const selectLabel = (name: string) => `Show ${name}`;
 export const closePanelLabel = "Close";
+/** The players list's title bar (the approved picture): the position tabs, Find and the stats. */
+export const positionTabsLabel = "Position";
+export const everyPositionTabWords = "All";
+export const findLabel = "Find";
+export const findPlaceholder = "Player or club";
+export const statsLabel = "Stats:";
+/** The stats the list opens on (spec/04, The draft room: "a easy to see view first"). */
+export const overviewWords = "Overview";
+/** A season by the years it spans: 2025's is "25/26". */
+export const seasonShortWords = (startYear: number) => `${String(startYear % 100).padStart(2, "0")}/${String((startYear + 1) % 100).padStart(2, "0")}`;
+/** The list's own columns besides Scouting's Pos and Player: a short head, and what it stands for. */
+export const draftColumns = {
+  rank: { short: "Rank", long: "Place on the site's ranking" },
+  appearances: { short: "MP", long: "Matches played" },
+  goals: { short: "G", long: "Goals" },
+  assists: { short: "A", long: "Assists" },
+  cleanSheets: { short: "CS", long: "Clean sheets" },
+} as const;
+/** Last season's points' head, named by the season they are from; with none priced, "last season". */
+export const lastSeasonPointsColumn = (season: number | null) =>
+  season === null
+    ? { short: "Pts last season", long: "Points last season under the site's scoring" }
+    : { short: `Pts ${seasonShortWords(season)}`, long: `Points in ${seasonShortWords(season)} under the site's scoring` };
+/** A row's mark for a player in the reader's queue, by his place in it. */
+export const queueMarkWords = (place: number) => `Queue ${place}`;
 
 /** The selected player's panel. */
 export const draftPlayerWords = (name: string) => `Draft ${name}`;
@@ -98,6 +123,17 @@ export const pausedPickWords = "The draft is paused";
 export const notStartedPickWords = "The draft hasn't started";
 export const takenWords = (teamName: string) => `On ${teamName}`;
 export const playsHead = "Plays";
+export const rankHead = "Rank";
+export const onTheRankingWords = " on the site's ranking";
+/** After last season's points: "in 36 games". */
+export const inGamesWords = (games: number) => (games === 1 ? " in 1 game" : ` in ${games} games`);
+/** A player not in last season's data (Craig, 4 Nov 2026). */
+export const newcomerWords = "Not in last season's data";
+export const yourSquadHead = "Your squad";
+/** How many of his position and of his club the reader's squad holds: "CAM 0, MUN 1 of 2", the club
+ *  maximum left off where the league sets none. */
+export const yourSquadWords = (position: string, atPosition: number, club: string, atClub: number, maxPerClub: number | null) =>
+  `${position} ${atPosition}, ${club} ${atClub}${maxPerClub === null ? "" : ` of ${maxPerClub}`}`;
 export const playerCardWords = "Player card";
 export const pickFailedWords = "The pick couldn't be made. Try again.";
 

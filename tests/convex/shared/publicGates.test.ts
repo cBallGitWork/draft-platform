@@ -56,6 +56,7 @@ beforeEach(async () => {
       "draft/draftBoard:ofLeague": () => caller.query(api.draft.draftBoard.ofLeague, { leagueId, now }),
       "draft/draftLists:mine": () => caller.query(api.draft.draftLists.mine, { leagueId }),
       "draft/draftOrder:teamOrder": () => caller.query(api.draft.draftOrder.teamOrder, { leagueId }),
+      "draft/draftPlayers:figures": () => caller.query(api.draft.draftPlayers.figures, { leagueId, now }),
       "draft/draftPlayers:greyedOut": () => caller.query(api.draft.draftPlayers.greyedOut, { leagueId }),
       "draft/draftRanking:upload": () => caller.mutation(api.draft.draftRanking.upload, { file: "1001,1" }),
       "draft/draftRanking:view": () => caller.query(api.draft.draftRanking.view, {}),

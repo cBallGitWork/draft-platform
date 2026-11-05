@@ -85,25 +85,40 @@ export function Filters({
             ))}
           </select>
         </span>
-        <span className="flex items-center gap-2">
-          <label htmlFor={STAT_ID} className="text-soft">
-            {statLabel}
-          </label>
-          <select
-            id={STAT_ID}
-            value={stat?.stat ?? EVERY}
-            onChange={(event) => show(STAT_BY_KEY.get(event.target.value) ?? null)}
-            className="text-box"
-          >
-            <option value={EVERY}>{noStatWords}</option>
-            {STAT_CATALOGUE.map((each) => (
-              <option key={each.stat} value={each.stat}>
-                {each.name}
-              </option>
-            ))}
-          </select>
-        </span>
+        <StatBox id={STAT_ID} label={statLabel} noneWords={noStatWords} stat={stat} show={show} />
       </div>
     </div>
+  );
+}
+
+/** Scouting's stat box (spec/19): every stat of the catalogue, or none (`noneWords`), the one
+ *  chosen shown beside the list; the draft room's list picks its stats with it too. */
+export function StatBox({
+  id,
+  label,
+  noneWords,
+  stat,
+  show,
+}: {
+  id: string;
+  label: string;
+  noneWords: string;
+  stat: CatalogueStat | null;
+  show: (chosen: CatalogueStat | null) => void;
+}) {
+  return (
+    <span className="flex items-center gap-2">
+      <label htmlFor={id} className="text-soft">
+        {label}
+      </label>
+      <select id={id} value={stat?.stat ?? EVERY} onChange={(event) => show(STAT_BY_KEY.get(event.target.value) ?? null)} className="text-box">
+        <option value={EVERY}>{noneWords}</option>
+        {STAT_CATALOGUE.map((each) => (
+          <option key={each.stat} value={each.stat}>
+            {each.name}
+          </option>
+        ))}
+      </select>
+    </span>
   );
 }

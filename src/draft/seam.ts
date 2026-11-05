@@ -5,14 +5,18 @@ import type { FunctionReturnType } from "convex/server";
 import type { api } from "../../convex/_generated/api";
 import type { Id } from "../../convex/_generated/dataModel";
 import type { BoardPick, DraftBoard } from "../../convex/draft/draftBoard";
-import type { GreyedPlayer } from "../../convex/draft/draftPlayers";
+import type { GreyedPlayer, RoomFigure, RoomFigures } from "../../convex/draft/draftPlayers";
 import type { ScoutingSeam } from "../scouting/seam";
 import type { Change } from "../shared/refusal";
 
-export type { BoardPick, DraftBoard, GreyedPlayer };
+export type { BoardPick, DraftBoard, GreyedPlayer, RoomFigure, RoomFigures };
 
 /** The league's draft: waiting, live or over (draft/draftStart:ofLeague). */
 export type DraftState = FunctionReturnType<typeof api.draft.draftStart.ofLeague>;
+
+/** The reader's queue, first choice first, and do-not-draft list; null for someone who runs no
+ *  team (draft/draftLists:mine). */
+export type DraftLists = FunctionReturnType<typeof api.draft.draftLists.mine>;
 
 /** The picks a manager makes on the draft room. */
 export type DraftChanges = {
@@ -32,6 +36,11 @@ export type DraftSeam = Pick<ScoutingSeam, "usePlayersList"> & {
   /** The players the reader's team can't take as its next pick, and why, live (a hook): undefined
    *  while they load. */
   useGreyedOut(leagueId: Id<"leagues">): readonly GreyedPlayer[] | undefined;
+  /** Every player's place on the site's ranking, last season's points and the overview's stats,
+   *  and the club maximum, at the minute `now`, live (a hook): undefined while they load. */
+  useFigures(leagueId: Id<"leagues">, now: number): RoomFigures | undefined;
+  /** The reader's queue and do-not-draft list, live (a hook): undefined while they load. */
+  useLists(leagueId: Id<"leagues">): DraftLists | undefined;
   /** The changes the room makes (a hook). */
   useDraftChanges(): DraftChanges;
 };

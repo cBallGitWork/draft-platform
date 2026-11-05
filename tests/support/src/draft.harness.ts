@@ -3,7 +3,7 @@
 import { vi } from "vitest";
 import type { Id } from "../../../convex/_generated/dataModel";
 import type { ListedPlayer } from "../../../convex/scouting/playersList";
-import type { DraftBoard, DraftChanges, DraftSeam, DraftState, GreyedPlayer } from "../../../src/draft/seam";
+import type { DraftBoard, DraftChanges, DraftSeam, DraftState, GreyedPlayer, RoomFigures } from "../../../src/draft/seam";
 import { fakeScouting } from "./scouting.harness";
 
 /** Three teams in the draft order, Team 2 the reader's. */
@@ -26,10 +26,26 @@ export type DraftData = {
   loading?: boolean;
   players?: readonly ListedPlayer[];
   greyed?: readonly GreyedPlayer[];
+  figures?: RoomFigures;
+  /** The reader's queue, by code, first choice first. */
+  queue?: readonly number[];
   pickAnswer?: string | null;
 };
 
-export function fakeDraft({ draft = waitingDraft, board = emptyBoard, inMenu = false, loading = false, players = [], greyed = [], pickAnswer = null }: DraftData = {}) {
+/** No player ranked, priced or counted, and no club maximum. */
+export const noFigures: RoomFigures = { players: [], lastSeason: null, statsSeason: null, maxPerClub: null };
+
+export function fakeDraft({
+  draft = waitingDraft,
+  board = emptyBoard,
+  inMenu = false,
+  loading = false,
+  players = [],
+  greyed = [],
+  figures = noFigures,
+  queue = [],
+  pickAnswer = null,
+}: DraftData = {}) {
   const changes: DraftChanges = { makePick: vi.fn<DraftChanges["makePick"]>(() => Promise.resolve(pickAnswer)) };
   return {
     useDraft: vi.fn<DraftSeam["useDraft"]>(() => (loading ? undefined : draft)),
@@ -37,6 +53,11 @@ export function fakeDraft({ draft = waitingDraft, board = emptyBoard, inMenu = f
     useInMenu: vi.fn<DraftSeam["useInMenu"]>(() => inMenu),
     usePlayersList: fakeScouting({ players }).usePlayersList,
     useGreyedOut: vi.fn<DraftSeam["useGreyedOut"]>(() => greyed),
+    useFigures: vi.fn<DraftSeam["useFigures"]>(() => figures),
+    useLists: vi.fn<DraftSeam["useLists"]>(() => ({
+      queue: queue.map((code) => ({ ...players.find((each) => each.code === code)!, gone: false })),
+      doNotDraft: [],
+    })),
     useDraftChanges: () => changes,
     changes,
   };
