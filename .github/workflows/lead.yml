@@ -180,7 +180,9 @@ jobs:
           # labels it stale, or clear if work is left. Only code PRs (`feat/`, `fix/`, a builder's `wip/`) count: a grill's docs PR names
           # the issues it files, which are not built yet (#1201 turned #1197 into a sweep: #1203)
           merged_refs=$(gh pr list --state merged --search "merged:>=$(date -u -d '14 days ago' +%F)" --limit 200 --json title,body,headRefName \
-                          --jq '.[] | select(.headRefName | test("^(feat|fix|wip)/")) | (.title + " " + (.body // "")) | scan("#([0-9]+)") | .[0]' | sort -u)
+                          --jq '.[] | select(.headRefName | test("^(feat|fix|wip)/"))
+                                | ((.title | scan("\\(#([0-9]+)\\)")), ((.body // "") | scan("(?m)^\\s*-?\\s*(?:Closes|Fixes|Resolves|Part of|Part [0-9]+ of) #([0-9]+)"))) | .[0]' | sort -u)
+          # only the issue a PR closes or is part of, from its title or that line: #1205 named #1199 in passing
           ready=$(for row in $ready; do n=${row%%:*}; if [ "${row#*:}" = build ] && grep -qx "$n" <<<"$merged_refs"; then echo "$n:sweep"; else echo "$row"; fi; done)
           for row in $ready; do
             [ "$slots" -gt 0 ] || break
