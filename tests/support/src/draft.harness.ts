@@ -2,7 +2,9 @@
 
 import { vi } from "vitest";
 import type { Id } from "../../../convex/_generated/dataModel";
-import type { DraftBoard, DraftSeam, DraftState } from "../../../src/draft/seam";
+import type { ListedPlayer } from "../../../convex/scouting/playersList";
+import type { DraftBoard, DraftChanges, DraftSeam, DraftState, GreyedPlayer } from "../../../src/draft/seam";
+import { fakeScouting } from "./scouting.harness";
 
 /** Three teams in the draft order, Team 2 the reader's. */
 export const draftOrder = ["Team 1", "Team 2", "Team 3"].map((name, index) => ({ teamId: `team-${index + 1}` as Id<"teams">, name }));
@@ -15,13 +17,27 @@ export const waitingDraft: DraftState = { status: "waiting", startsAt: null, rou
 export const emptyBoard: DraftBoard = { picks: [], yourTeamId: YOUR_TEAM, pickSeconds: 90 };
 
 /** What the fake server holds: the draft, its board and whether the room is in the menu (not, unless
- *  a test says, so the other screens' menus stay as they are), or nothing yet while it loads. */
-export type DraftData = { draft?: DraftState; board?: DraftBoard; inMenu?: boolean; loading?: boolean };
+ *  a test says, so the other screens' menus stay as they are), or nothing yet while it loads; the
+ *  players list's players, those the reader's team can't take, and what a pick answers. */
+export type DraftData = {
+  draft?: DraftState;
+  board?: DraftBoard;
+  inMenu?: boolean;
+  loading?: boolean;
+  players?: readonly ListedPlayer[];
+  greyed?: readonly GreyedPlayer[];
+  pickAnswer?: string | null;
+};
 
-export function fakeDraft({ draft = waitingDraft, board = emptyBoard, inMenu = false, loading = false }: DraftData = {}) {
+export function fakeDraft({ draft = waitingDraft, board = emptyBoard, inMenu = false, loading = false, players = [], greyed = [], pickAnswer = null }: DraftData = {}) {
+  const changes: DraftChanges = { makePick: vi.fn<DraftChanges["makePick"]>(() => Promise.resolve(pickAnswer)) };
   return {
     useDraft: vi.fn<DraftSeam["useDraft"]>(() => (loading ? undefined : draft)),
     useBoard: vi.fn<DraftSeam["useBoard"]>(() => (loading ? undefined : board)),
     useInMenu: vi.fn<DraftSeam["useInMenu"]>(() => inMenu),
+    usePlayersList: fakeScouting({ players }).usePlayersList,
+    useGreyedOut: vi.fn<DraftSeam["useGreyedOut"]>(() => greyed),
+    useDraftChanges: () => changes,
+    changes,
   };
 }

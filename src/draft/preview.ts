@@ -6,7 +6,8 @@ import type { Id } from "../../convex/_generated/dataModel";
 import { snakeOrder } from "../../convex/draft/snakeOrder";
 import type { Position } from "../../convex/positions/positionTables";
 import { DAY_MS, HOUR_MS, SECOND_MS } from "../../convex/shared/time";
-import type { BoardPick, DraftSeam, DraftState } from "./seam";
+import { previewScouting } from "../scouting/preview";
+import type { BoardPick, DraftChanges, DraftSeam, DraftState, GreyedPlayer } from "./seam";
 
 const NAMES = ["Kroos Control", "Rovers XI", "Bale Out", "Pep Talk", "Klopp Shop", "Havertz Rent", "Xhaka Laka", "Saka Potatoes", "Show Me Your Moyes", "Dirty Dozen"];
 const order = NAMES.map((name, index) => ({ teamId: `preview-draft-team-${index + 1}` as Id<"teams">, name }));
@@ -48,8 +49,19 @@ const before: DraftState = { status: "waiting", startsAt: startedAt + 4 * DAY_MS
 /** Whether `?draft=before` asks for the draft before its start. */
 const isBefore = () => new URLSearchParams(window.location.search).get("draft") === "before";
 
+const GREYED: readonly GreyedPlayer[] = [
+  { code: 2, reason: "clubFull" },
+  { code: 3, reason: "clubFull" },
+];
+/** The preview's pick is made at once, and changes nothing. */
+const PREVIEW_CHANGES: DraftChanges = { makePick: () => Promise.resolve(null) };
+
 export const previewDraft: DraftSeam = {
   useDraft: () => (isBefore() ? before : draft),
   useBoard: () => ({ picks: isBefore() ? [] : picks, yourTeamId: YOURS, pickSeconds: 90 }),
   useInMenu: () => true,
+  // Scouting's preview players; Saka Potatoes is at its Arsenal maximum, so Rice and Raya are greyed.
+  usePlayersList: previewScouting.usePlayersList,
+  useGreyedOut: () => (isBefore() ? [] : GREYED),
+  useDraftChanges: () => PREVIEW_CHANGES,
 };

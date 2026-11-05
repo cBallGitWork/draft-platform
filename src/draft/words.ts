@@ -75,4 +75,30 @@ export const onTheClockSlotWords = (slot: string) => `${slot}, `;
 export const pickedWords = (clubShortName: string, slot: string) => `${clubShortName}, ${slot}`;
 /** A pick whose player the football data no longer holds (#323). */
 export const lostPlayerWords = "Player missing from the football data";
+/** The players list (spec/04, The draft room; #1099): Scouting's, each player the reader's team
+ *  can't take greyed out in his place, with why. */
+export const PLAYERS_TITLE = "Players";
+export const loadingPlayersWords = "Loading the players…";
+export const leftWords =(count: number) => `${count} left`;
+export const notLegalWords = {
+  squadFull: "Squad full",
+  clubFull: "Club full",
+  areasShort: "Squad needs other positions",
+} as const;
+export const selectLabel = (name: string) => `Show ${name}`;
+export const closePanelLabel = "Close";
+
+/** The selected player's panel. */
+export const draftPlayerWords = (name: string) => `Draft ${name}`;
+/** Under the Draft button while the reader is on the clock: "Pick 4.03, 0:48 left". */
+export const pickLeftWords = (slot: string) => `Pick ${slot}, `;
+export const leftSuffixWords = " left";
+export const notYourPickWords = "Not your pick";
+export const pausedPickWords = "The draft is paused";
+export const notStartedPickWords = "The draft hasn't started";
+export const takenWords = (teamName: string) => `On ${teamName}`;
+export const playsHead = "Plays";
+export const playerCardWords = "Player card";
+export const pickFailedWords = "The pick couldn't be made. Try again.";
+
 export const noRoundsWords = "The draft's rounds are its squads' most players, and this league's squads have no size limit yet.";
