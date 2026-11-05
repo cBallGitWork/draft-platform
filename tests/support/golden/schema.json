@@ -21962,6 +21962,115 @@
           }
         }
       }
+    },
+    {
+      "tableName": "pastPlayerMatchStats",
+      "indexes": [
+        {
+          "indexDescriptor": "by_season_and_playerCode",
+          "fields": [
+            "season",
+            "playerCode"
+          ]
+        }
+      ],
+      "stagedDbIndexes": [],
+      "searchIndexes": [],
+      "stagedSearchIndexes": [],
+      "vectorIndexes": [],
+      "stagedVectorIndexes": [],
+      "documentType": {
+        "type": "object",
+        "value": {
+          "season": {
+            "fieldType": {
+              "type": "number"
+            },
+            "optional": false
+          },
+          "playerCode": {
+            "fieldType": {
+              "type": "number"
+            },
+            "optional": false
+          },
+          "fplPosition": {
+            "fieldType": {
+              "type": "union",
+              "value": [
+                {
+                  "type": "literal",
+                  "value": 1
+                },
+                {
+                  "type": "literal",
+                  "value": 2
+                },
+                {
+                  "type": "literal",
+                  "value": 3
+                },
+                {
+                  "type": "literal",
+                  "value": 4
+                }
+              ]
+            },
+            "optional": false
+          },
+          "match": {
+            "fieldType": {
+              "type": "union",
+              "value": [
+                {
+                  "type": "object",
+                  "value": {
+                    "kickoff": {
+                      "fieldType": {
+                        "type": "number"
+                      },
+                      "optional": false
+                    },
+                    "startingPosition": {
+                      "fieldType": {
+                        "type": "union",
+                        "value": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      "optional": false
+                    },
+                    "stats": {
+                      "fieldType": {
+                        "type": "record",
+                        "keys": {
+                          "type": "string"
+                        },
+                        "values": {
+                          "fieldType": {
+                            "type": "number"
+                          },
+                          "optional": false
+                        }
+                      },
+                      "optional": false
+                    }
+                  }
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "optional": false
+          }
+        }
+      }
     }
   ],
   "schemaValidation": true
