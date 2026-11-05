@@ -4,6 +4,7 @@
 import { DEFAULT_PRESETS, type Preset } from "./presets";
 import { byPitchOrder, cellKey, playsCell, sameCell, type Cell } from "./pitch";
 import { lineupProblems, type LineupRules, type PlayerPositions } from "./lineup";
+import { isRole, offersRole } from "./roles";
 import { droppedStarter } from "../stars/bestRole";
 import type { RoleStars } from "../stars/starsShape";
 
@@ -52,11 +53,14 @@ export function firstLineup(
 
 /** Each starter on the role he was dropped in on (spec/05 Roles; Craig, 1 Nov 2026: each pick going
  *  onto the pitch is a drop): one still in the cell `held` has him in keeps the role he had there;
- *  anyone placed anew starts on his best-star role (stars/bestRole.ts). */
+ *  anyone placed anew, or whose role the new shape no longer offers (a sweeper with two centre-backs
+ *  left), starts on his best-star role (stars/bestRole.ts). */
 export function withDroppedRoles(picked: FirstLineup, ratingsOf: (playerCode: number) => readonly RoleStars[], held: readonly FirstStarter[] = []): FirstLineup {
+  const formation = picked.starters;
   const starters = picked.starters.map((starter) => {
     const before = held.find((each) => each.playerCode === starter.playerCode && sameCell(each, starter));
-    return before ?? droppedStarter(starter.playerCode, starter, ratingsOf(starter.playerCode));
+    if (before !== undefined && (before.role === undefined || offersRole(before, before.role, formation) || !isRole(before.role))) return before;
+    return droppedStarter(starter.playerCode, starter, formation, ratingsOf(starter.playerCode));
   });
   return { starters, bench: picked.bench };
 }

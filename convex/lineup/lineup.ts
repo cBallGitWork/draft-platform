@@ -6,7 +6,7 @@
 // as illegal. It is reported alone, so a caller can set it aside; the rule is #23's to keep.
 
 import { AREAS, cellKey, LANES, playsCell, type Area, type Cell, type Lane } from "./pitch";
-import { isRole, offersRole } from "./roles";
+import { BACK_THREE, centreBacksIn, everyRoleOf, isRole, needsBackThree } from "./roles";
 import type { Position } from "../positions/positionTables";
 
 /** A football side's eleven: the product's rule, not a league's. */
@@ -59,7 +59,9 @@ export type LineupProblem =
   | { kind: "outsideHisAreas"; playerCode: PlayerCode; area: Area; lane: Lane; positions: readonly Position[] }
   | { kind: "aboveMaximum"; area: Area; starterCount: number; maximum: number }
   | { kind: "belowMinimum"; area: Area; starterCount: number; minimum: number }
-  | { kind: "roleNotOffered"; playerCode: PlayerCode; area: Area; lane: Lane; role: string };
+  | { kind: "roleNotOffered"; playerCode: PlayerCode; area: Area; lane: Lane; role: string }
+  /** A sweeper or libero with fewer than three centre-backs (spec/05 The pitch). */
+  | { kind: "noBackThree"; playerCode: PlayerCode; role: string; centreBacks: number };
 
 const isArea = (area: string): area is Area => (AREAS as readonly string[]).includes(area);
 const isLane = (lane: string): lane is Lane => (LANES as readonly string[]).includes(lane);
@@ -83,6 +85,7 @@ export function lineupProblems(lineup: Lineup, positions: PlayerPositions, rules
     named.add(playerCode);
   }
 
+  const centreBacks = centreBacksIn(lineup.starters.flatMap(({ area, lane }) => (isArea(area) && isLane(lane) ? [{ area, lane }] : [])));
   const standing = new Map<string, CellStanding>();
   for (const { playerCode, area, lane, role } of lineup.starters) {
     if (!isArea(area) || !isLane(lane)) {
@@ -91,8 +94,10 @@ export function lineupProblems(lineup: Lineup, positions: PlayerPositions, rules
     }
     // A role no slot offers was removed from the set: he plays the slot's first and is never
     // refused for it (spec/05 Roles; #841). One another slot offers is the manager's mistake.
-    if (role !== undefined && isRole(role) && !offersRole({ area, lane }, role)) {
+    if (role !== undefined && isRole(role) && !everyRoleOf({ area, lane }).some(({ key }) => key === role)) {
       problems.push({ kind: "roleNotOffered", playerCode, area, lane, role });
+    } else if (role !== undefined && needsBackThree(role) && centreBacks < BACK_THREE) {
+      problems.push({ kind: "noBackThree", playerCode, role, centreBacks });
     }
     const key = cellKey({ area, lane });
     const cell = standing.get(key) ?? { area, lane, playerCodes: [] };

@@ -4,6 +4,7 @@
 
 import type { ReactNode } from "react";
 import { previewAdmin } from "../admin/preview";
+import { previewDraft } from "../draft/preview";
 import { previewFeedback } from "../feedback/preview";
 import { previewGameweeks } from "../gameweeks/preview";
 import { previewHome } from "../home/preview";
@@ -48,6 +49,7 @@ export function previewApp(): ReactNode | null {
       admin={previewAdmin}
       feedback={previewFeedback}
       patches={previewPatches}
+      draft={previewDraft}
     />
   );
 }

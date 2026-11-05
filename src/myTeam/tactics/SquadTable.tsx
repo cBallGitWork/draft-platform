@@ -1,5 +1,6 @@
 import type { DragEvent, ReactNode } from "react";
-import { roleIn, rolesOfSlot, slotLabel } from "../../../convex/lineup/roles";
+import { positionOfSlot } from "../../../convex/lineup/pitch";
+import { roleIn, rolesOfSlot, type Formation } from "../../../convex/lineup/roles";
 import { cellClassOf, ColumnHeads } from "../../ui/ColumnHeads";
 import { Placeholder } from "../../ui/Placeholder";
 import { PositionChip } from "../../ui/PositionChip";
@@ -37,6 +38,9 @@ const BEFORE_ROLE = COLUMNS.indexOf("role");
  *  next fixture and points; undefined while it loads. */
 export type SeasonOf = ReadonlyMap<number, SquadRow> | undefined;
 
+/** A starter's row: him, and the cells the eleven stand in, which pick the roles his slot offers. */
+type StarterPlace = { starter: Starter; formation: Formation };
+
 /** The Selection table (the approved Tactics picture; plate.md, Tables and panels): the eleven back
  *  to front, each led by his slot's position chip, then the bench in order under its own plate,
  *  each led by his place and his main position, with the role he'd play best there, muted. A tap on
@@ -68,13 +72,13 @@ export function SquadTable({
     event.preventDefault();
     if (pickedStarts) moving.onDrop("bench");
   };
-  const row = (playerCode: number, place: { starter: Starter } | { benchIndex: number }) => (
+  const row = (playerCode: number, place: StarterPlace | { benchIndex: number }) => (
     <SelectionRow key={playerCode} player={squad.get(playerCode)!} season={season?.get(playerCode) ?? (season === undefined ? undefined : null)} place={place} onBenchAt={onBenchAt} onRole={onRole} moving={moving} pickedOnBench={picked !== null && !pickedStarts} />
   );
   return (
     <table aria-label={squadTableLabel} className="w-full border-collapse">
       <ColumnHeads columns={squadColumns} shown={COLUMNS} classOf={cellClasses} />
-      <tbody>{startersInOrder(draft).map((starter) => row(starter.playerCode, { starter }))}</tbody>
+      <tbody>{startersInOrder(draft).map((starter) => row(starter.playerCode, { starter, formation: draft.starters }))}</tbody>
       <tbody onDragOver={allowDrop} onDrop={drop}>
         <tr className="bg-plate">
           <th scope="rowgroup" colSpan={BEFORE_ROLE} className="px-2 text-left font-bold">
@@ -112,7 +116,7 @@ function SelectionRow({
   /** His row on the Squad tab's read: undefined while it loads, null where it has none (one the
    *  football sync doesn't hold). */
   season: SquadRow | null | undefined;
-  place: { starter: Starter } | { benchIndex: number };
+  place: StarterPlace | { benchIndex: number };
   onBenchAt(playerCode: number, index: number): void;
   onRole(playerCode: number, role: string): void;
   moving: Moving;
@@ -173,7 +177,7 @@ function SelectionRow({
         <Placeholder label={roleFitPlaceholder} className="h-3 w-16 align-middle" />
       </td>
       <td className={cellClasses("role")}>
-        {"starter" in place ? <RolePicker player={player} starter={place.starter} onRole={onRole} /> : <span className="text-muted">{benchBestRole(player)?.role.name}</span>}
+        {"starter" in place ? <RolePicker player={player} starter={place.starter} formation={place.formation} onRole={onRole} /> : <span className="text-muted">{benchBestRole(player)?.role.name}</span>}
       </td>
       <PointsCell column="season" points={season?.seasonPoints} />
       <PointsCell column="last" points={season?.lastGameweekPoints} />
@@ -183,7 +187,7 @@ function SelectionRow({
 
 /** A starter's slot chip; a bench player's place, then his main position's chip. */
 function PositionCell({ player, place }: { player: SquadMember; place: { starter: Starter } | { benchIndex: number } }) {
-  if ("starter" in place) return <PositionChip label={slotLabel(place.starter, place.starter.role)} />;
+  if ("starter" in place) return <PositionChip label={positionOfSlot(place.starter)} />;
   const main = player.positions[0];
   return (
     <span className="inline-flex items-center gap-2">
@@ -195,8 +199,9 @@ function PositionCell({ player, place }: { player: SquadMember; place: { starter
   );
 }
 
-/** A starter's role, one of his slot's (spec/05 Roles): the role card waits on #848. */
-function RolePicker({ player, starter, onRole }: { player: SquadMember; starter: Starter; onRole(playerCode: number, role: string): void }) {
+/** A starter's role, one of those his slot offers in the eleven's formation (spec/05 Roles): the
+ *  role card waits on #848. */
+function RolePicker({ player, starter, formation, onRole }: StarterPlace & { player: SquadMember; onRole(playerCode: number, role: string): void }) {
   return (
     <select
       aria-label={roleLabel(player.name)}
@@ -205,7 +210,7 @@ function RolePicker({ player, starter, onRole }: { player: SquadMember; starter:
       onChange={(event) => onRole(player.playerCode, event.target.value)}
       className="text-box w-full lg:min-h-0"
     >
-      {rolesOfSlot(starter).map(({ key, name }) => (
+      {rolesOfSlot(starter, formation).map(({ key, name }) => (
         <option key={key} value={key}>
           {name}
         </option>

@@ -22,7 +22,7 @@ const USUAL_POSITION: Record<Area, Position> = {
 };
 
 /** A role key no slot offers, as one removed from the set would be (#841). */
-export const REMOVED_ROLE = "invertedFullBack";
+export const REMOVED_ROLE = "attackingFullBack";
 
 /** The first on the bench, whose code follows no starter's. */
 export const FIRST_SUB = 101;

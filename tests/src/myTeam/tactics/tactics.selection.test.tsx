@@ -50,7 +50,7 @@ describe("the Selection table", () => {
   it("heads the bench's Role column Best role, each bench player's best role muted", async () => {
     await openedPitch();
     expect(within(screen.getByRole("table", { name: squadTableLabel })).getByText(BEST_ROLE_HEAD)).toBeTruthy();
-    expect(within(rowOf(WHITE)).getByText("Defensive full-back").className).toContain("text-muted");
+    expect(within(rowOf(WHITE)).getByText("Overlapping full-back").className).toContain("text-muted");
   });
 
   it("draws each row's role fit as a placeholder: stars aren't on screen yet (#11, #375)", async () => {
@@ -61,8 +61,10 @@ describe("the Selection table", () => {
 
 describe("the bench's best role", () => {
   it("is his best-star role at his main position's slot, the slot's first with no stars", () => {
-    expect(benchBestRole({ positions: ["FB", "WB"], stars: [] })?.role.name).toBe("Defensive full-back");
-    expect(benchBestRole({ positions: ["FB"], stars: [{ area: "defence", role: "attackingFullBack", stars: 4 }] })?.role.name).toBe("Attacking full-back");
+    expect(benchBestRole({ positions: ["FB", "WB"], stars: [] })?.role.name).toBe("Overlapping full-back");
+    expect(benchBestRole({ positions: ["FB"], stars: [{ area: "defence", role: "defensiveFullBack", stars: 4 }] })?.role.name).toBe("Defensive full-back");
+    // He stands in no formation, so a centre-back's best may be a back three's sweeper.
+    expect(benchBestRole({ positions: ["CB"], stars: [{ area: "defence", role: "sweeper", stars: 4 }] })?.role.name).toBe("Sweeper");
   });
 
   it("skips a support striker, who has no slot of his own, for his next position", () => {
@@ -74,7 +76,7 @@ describe("the bench's best role", () => {
 describe("where a player stands, for his panel", () => {
   it("is his slot, his place on the bench, or nowhere", () => {
     const draft = { starters: STARTERS, bench: [ARRIZABALAGA.playerCode, WHITE.playerCode] };
-    expect(placeOf(draft, RAYA.playerCode)).toEqual({ starter: STARTERS[0] });
+    expect(placeOf(draft, RAYA.playerCode)).toEqual({ starter: STARTERS[0], formation: STARTERS });
     expect(placeOf(draft, WHITE.playerCode)).toEqual({ benchIndex: 1, benchLast: 1 });
     expect(placeOf(draft, 99)).toBeNull();
   });

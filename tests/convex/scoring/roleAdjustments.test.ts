@@ -12,16 +12,16 @@ import { scoreTeam } from "../../../convex/scoring/teamPoints";
 // a role's adjustment is added on top"; Craig, 26 Oct 2026: base points and a role adjustment).
 
 const FULL_BACK = { area: "defence", lane: "left" } as const;
-const SET: ScoringSet = { ...FIRST_SCORING, roleAdjustments: [{ role: "attackingFullBack", adjustments: [{ stat: "accurate_cross", points: 1 }, { stat: "clean_sheets", points: -1 }] }] };
+const SET: ScoringSet = { ...FIRST_SCORING, roleAdjustments: [{ role: "defensiveFullBack", adjustments: [{ stat: "accurate_cross", points: 1 }, { stat: "clean_sheets", points: -1 }] }] };
 const RECORD = { minutes: 90, accurate_cross: 2, clean_sheets: 1 };
 
 describe("a starter's role adjustment", () => {
   test("is added to his base points: two crosses +2, a clean sheet −1", () => {
     const base = scoreMatch(RECORD, SET, FULL_BACK);
-    const adjusted = scoreMatch(RECORD, SET, FULL_BACK, "attackingFullBack");
+    const adjusted = scoreMatch(RECORD, SET, FULL_BACK, "defensiveFullBack");
     expect(adjusted.total).toBe(base.total! + 1);
     expect(adjusted.role).toEqual({
-      role: "attackingFullBack",
+      role: "defensiveFullBack",
       points: 1,
       lines: [
         { stat: "accurate_cross", actions: 2, points: 2 },
@@ -32,22 +32,22 @@ describe("a starter's role adjustment", () => {
   });
 
   test("adjusts nothing for a role the set doesn't name, or for no role", () => {
-    expect(scoreMatch(RECORD, SET, FULL_BACK, "defensiveFullBack")).toEqual(scoreMatch(RECORD, SET, FULL_BACK));
-    expect(scoreMatch(RECORD, FIRST_SCORING, FULL_BACK, "attackingFullBack")).toEqual(scoreMatch(RECORD, FIRST_SCORING, FULL_BACK));
+    expect(scoreMatch(RECORD, SET, FULL_BACK, "overlappingFullBack")).toEqual(scoreMatch(RECORD, SET, FULL_BACK));
+    expect(scoreMatch(RECORD, FIRST_SCORING, FULL_BACK, "defensiveFullBack")).toEqual(scoreMatch(RECORD, FIRST_SCORING, FULL_BACK));
   });
 
   test("lists only the stats he made", () => {
-    expect(scoreMatch({ minutes: 90, accurate_cross: 1 }, SET, FULL_BACK, "attackingFullBack").role?.lines).toEqual([{ stat: "accurate_cross", actions: 1, points: 1 }]);
+    expect(scoreMatch({ minutes: 90, accurate_cross: 1 }, SET, FULL_BACK, "defensiveFullBack").role?.lines).toEqual([{ stat: "accurate_cross", actions: 1, points: 1 }]);
   });
 
   test("counts in a team's total, a starter with no role given playing the slot's first", () => {
-    const defensiveFirst: ScoringSet = { ...SET, roleAdjustments: [{ role: "defensiveFullBack", adjustments: [{ stat: "accurate_cross", points: 5 }] }] };
+    const defensiveFirst: ScoringSet = { ...SET, roleAdjustments: [{ role: "overlappingFullBack", adjustments: [{ stat: "accurate_cross", points: 5 }] }] };
     const lineup = { starters: [{ playerCode: 1, ...FULL_BACK }], bench: [] };
     const matches = new Map([[1, [{ record: RECORD, final: true }]]]);
     const team = scoreTeam({ lineup, matches, set: defensiveFirst, doubleGameweekRule: "bothMatches", substitutions: [], benchCells: new Map() });
     expect(team.total).toBe(scoreMatch(RECORD, FIRST_SCORING, FULL_BACK).total! + 10);
     // The slot says the role it was priced in, so the commentary can price his lines in it too.
-    expect(team.starters[0].role).toBe("defensiveFullBack");
+    expect(team.starters[0].role).toBe("overlappingFullBack");
   });
 });
 
@@ -75,23 +75,23 @@ describe("a set's role adjustments are checked", () => {
 
 test("a patch that adjusts a role says so in its notes", () => {
   const stored = structuredClone(SET) as StoredScoringSet;
-  expect(scoringChanges(FIRST_SCORING, stored)).toEqual(["Attacking full-back: now +1 per Accurate cross, −1 per Clean sheets"]);
-  expect(scoringChanges(stored, FIRST_SCORING)).toEqual(["Attacking full-back: no longer adjusted"]);
+  expect(scoringChanges(FIRST_SCORING, stored)).toEqual(["Defensive full-back: now +1 per Accurate cross, −1 per Clean sheets"]);
+  expect(scoringChanges(stored, FIRST_SCORING)).toEqual(["Defensive full-back: no longer adjusted"]);
 });
 
 describe("a role adjustment, at the edges", () => {
   test("a record not yet arrived scores null, with no role line", () => {
-    const pending = scoreMatch(null, SET, FULL_BACK, "attackingFullBack");
+    const pending = scoreMatch(null, SET, FULL_BACK, "defensiveFullBack");
     expect(pending.total).toBeNull();
     expect(pending.role).toBeUndefined();
   });
 
   test("a fraction is kept in tenths: 0.1 a cross, three crosses, 0.3", () => {
-    const tenth: ScoringSet = { ...FIRST_SCORING, roleAdjustments: [{ role: "attackingFullBack", adjustments: [{ stat: "accurate_cross", points: 0.1 }] }] };
-    expect(scoreMatch({ minutes: 90, accurate_cross: 3 }, tenth, FULL_BACK, "attackingFullBack").role?.points).toBe(0.3);
+    const tenth: ScoringSet = { ...FIRST_SCORING, roleAdjustments: [{ role: "defensiveFullBack", adjustments: [{ stat: "accurate_cross", points: 0.1 }] }] };
+    expect(scoreMatch({ minutes: 90, accurate_cross: 3 }, tenth, FULL_BACK, "defensiveFullBack").role?.points).toBe(0.3);
   });
 
-  const lineup = { starters: [{ playerCode: 1, ...FULL_BACK, role: "attackingFullBack" }], bench: [2] };
+  const lineup = { starters: [{ playerCode: 1, ...FULL_BACK, role: "defensiveFullBack" }], bench: [2] };
   const team = (override?: number, substitutions: { off: number; on: number; cell: typeof FULL_BACK; role?: string }[] = []) =>
     scoreTeam({
       lineup,
@@ -112,20 +112,20 @@ describe("a role adjustment, at the edges", () => {
   });
 
   test("a sub into the empty slot plays the role he's given there", () => {
-    const subbed = team(undefined, [{ off: 1, on: 2, cell: FULL_BACK, role: "attackingFullBack" }]);
-    expect(subbed.bench[0].matches[0].role?.role).toBe("attackingFullBack");
-    expect(subbed.bench[0].role).toBe("attackingFullBack");
+    const subbed = team(undefined, [{ off: 1, on: 2, cell: FULL_BACK, role: "defensiveFullBack" }]);
+    expect(subbed.bench[0].matches[0].role?.role).toBe("defensiveFullBack");
+    expect(subbed.bench[0].role).toBe("defensiveFullBack");
   });
 });
 
 test("two roles of one name are told apart in patch notes by their position", () => {
   const both = structuredClone({ ...FIRST_SCORING, roleAdjustments: [
-    { role: "wideMidfielder", adjustments: [{ stat: "accurate_cross", points: 1 }] },
+    { role: "wideMidfieldWinger", adjustments: [{ stat: "accurate_cross", points: 1 }] },
     { role: "winger", adjustments: [{ stat: "accurate_cross", points: 1 }] },
   ] }) as StoredScoringSet;
   expect(scoringChanges(FIRST_SCORING, both)).toEqual([
-    "Winger (wide midfield): now +1 per Accurate cross",
-    "Winger (attacking midfield, wide): now +1 per Accurate cross",
+    "Touchline winger (wide midfield): now +1 per Accurate cross",
+    "Touchline winger (attacking midfield, wide): now +1 per Accurate cross",
   ]);
 });
 

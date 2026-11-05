@@ -108,7 +108,7 @@ describe("roles (spec/05 Roles; #10; Craig, 26 Oct 2026)", () => {
 
   it("each starter has a picker of his slot's roles, on its first until he is given one; the bench has none", async () => {
     await openedPitch();
-    expect(Array.from(picker(SALIBA).options).map((option) => option.text)).toEqual(["Stopper", "Ball-playing defender"]);
+    expect(Array.from(picker(SALIBA).options).map((option) => option.text)).toEqual(["Stopper", "Ball-playing centre-back", "No-nonsense centre-back", "Attacking centre-back"]);
     expect(picker(SALIBA).value).toBe("stopper");
     expect(screen.queryByRole("combobox", { name: roleLabel(WHITE.name) })).toBeNull();
   });
@@ -116,7 +116,7 @@ describe("roles (spec/05 Roles; #10; Craig, 26 Oct 2026)", () => {
   it("the pitch shows the role under his name", async () => {
     await openedPitch();
     await userEvent.selectOptions(picker(SALIBA), "ballPlayingDefender");
-    expect(within(blockOf(SALIBA, SALIBAS_CELL)).getByText("Ball-playing defender")).toBeTruthy();
+    expect(within(blockOf(SALIBA, SALIBAS_CELL)).getByText("Ball-playing centre-back")).toBeTruthy();
     expect(document.activeElement).toBe(picker(SALIBA));
   });
 
@@ -133,6 +133,6 @@ describe("roles (spec/05 Roles; #10; Craig, 26 Oct 2026)", () => {
     await pickFormation("4-4-2");
     await userEvent.selectOptions(picker(SALIBA), "ballPlayingDefender");
     await swap(SALIBA, WHITE);
-    expect(picker(SALIBA).value).toBe(rolesOfSlot({ area: "defence", lane: "left" })[0].key);
+    expect(picker(SALIBA).value).toBe(rolesOfSlot({ area: "defence", lane: "left" }, [])[0].key);
   });
 });

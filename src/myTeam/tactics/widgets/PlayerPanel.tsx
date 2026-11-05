@@ -1,7 +1,8 @@
 import { Link } from "@tanstack/react-router";
 import { useId } from "react";
 import type { Id } from "../../../../convex/_generated/dataModel";
-import { roleIn, rolesOfSlot, slotLabel } from "../../../../convex/lineup/roles";
+import { positionOfSlot } from "../../../../convex/lineup/pitch";
+import { everyRoleOf, roleIn, rolesOfSlot } from "../../../../convex/lineup/roles";
 import { playerCardPath } from "../../../playerCard/paths";
 import { closeGlyph, nextGlyph, playerCardWords } from "../../../shared/words";
 import { Placeholder } from "../../../ui/Placeholder";
@@ -77,10 +78,12 @@ export function PlayerPanel({
   const isPicked = moving.picked?.playerCode === player.playerCode;
   const starter = "starter" in place ? place.starter : null;
   const slot = starter === null ? (benchBestRole(player)?.cell ?? null) : starter;
-  const label = slot === null ? null : slotLabel(slot, starter?.role);
+  const label = slot === null ? null : positionOfSlot(slot);
+  // A bench player stands in no formation, so his main position's every role shows.
+  const roles = slot === null ? [] : "starter" in place ? rolesOfSlot(slot, place.formation) : everyRoleOf(slot);
   const playing = starter === null ? null : roleIn(starter, starter.role).key;
   const row = season?.get(player.playerCode);
-  const where = "starter" in place ? startingWhereWords(player.clubShortName, slotLabel(place.starter, place.starter.role)) : benchWhereWords(player.clubShortName, place.benchIndex);
+  const where = "starter" in place ? startingWhereWords(player.clubShortName, positionOfSlot(place.starter)) : benchWhereWords(player.clubShortName, place.benchIndex);
   return (
     <section aria-labelledby={titleId} className="bg-panel">
       <div className="flex items-center gap-2 bg-plate py-1 pl-3 shadow-bevel-plate">
@@ -105,7 +108,7 @@ export function PlayerPanel({
             <span>{pointsPerActionHead}</span>
           </div>
           <ul>
-            {rolesOfSlot(slot).map((role) => (
+            {roles.map((role) => (
               <li key={role.key} aria-current={role.key === playing || undefined} className="flex flex-col gap-1 border-b border-panel-rule px-3 py-2 aria-current:bg-name-plate aria-current:shadow-current-edge">
                 <span className="flex items-center gap-2">
                   <span className="text-lead font-semibold">{role.name}</span>

@@ -9,7 +9,7 @@ const NUMBER_TEN_SLOT = { area: "attackingMidfield", lane: "leftCentre" } as con
 /** At the deadline the sub was a 4-star shadow striker and a 2-star number 10. */
 const SHADOW_AT_DEADLINE: DeadlineRatings = () => [
   { area: "attackingMidfield", role: "numberTen", stars: 2 },
-  { area: "attackingMidfield", role: "shadowStriker", stars: 4 },
+  { area: "attackingMidfield", role: "attackingMidfieldShadowStriker", stars: 4 },
 ];
 
 const starterOn = (result: ReturnType<typeof subbed>, playerCode: number) => result.lineup.starters.find((starter) => starter.playerCode === playerCode);
@@ -19,7 +19,7 @@ describe("a sub who comes on in his own area", () => {
     const { lineup, positions } = withBench(["CAM"]);
     const result = subbed(lineup, positions, plays(lineup, [STRIKER]), undefined, SHADOW_AT_DEADLINE);
 
-    expect(starterOn(result, FIRST)).toEqual({ playerCode: FIRST, ...NUMBER_TEN_SLOT, role: "shadowStriker" });
+    expect(starterOn(result, FIRST)).toEqual({ playerCode: FIRST, ...NUMBER_TEN_SLOT, role: "attackingMidfieldShadowStriker" });
   });
 
   test("with no stars kept at the deadline, a gameweek locked before they were, plays the slot's first role", () => {

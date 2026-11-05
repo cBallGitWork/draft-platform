@@ -260,10 +260,9 @@ From Craig, 1 Nov 2026.
   - attacking midfield, wide: touchline winger, dribbler, inside forward, wide playmaker, wide
     forward, pressing winger, tracking winger
   - attack: poacher, target man, in-behind striker, pressing forward, shadow striker, false 9
-  - free role, in any attacking midfield or attack slot, one per team (Craig, 1 Nov 2026); it
-    has no scoring of its own ("nah jus tleave it", 4 Nov 2026)
 
-  The rest of the first list went as the slots were drafted. Craig cut the complete forward,
+  There is no free role: "we ditched free role" (Craig, 5 Nov 2026), dropping the one per team of
+  1 Nov 2026. The rest of the first list went as the slots were drafted. Craig cut the complete forward,
   deep-lying forward, enganche, tempo-setter and inside midfielder by name ("english wont know
   Trequartista and Enganche"); others were renamed, as the advanced forward became the in-behind
   striker, the classic winger the touchline winger and the wide midfielder the wide workhorse.

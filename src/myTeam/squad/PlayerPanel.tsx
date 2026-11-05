@@ -1,7 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import type { ReactNode } from "react";
 import type { Id } from "../../../convex/_generated/dataModel";
-import { slotLabel } from "../../../convex/lineup/roles";
+import { positionOfSlot } from "../../../convex/lineup/pitch";
 import { playerCardPath } from "../../playerCard/paths";
 import { useChange } from "../../shared/useChange";
 import { Panel, Problem } from "../../ui/Panel";
@@ -145,7 +145,7 @@ function GameweekPlace({ tactics, code }: { tactics: Tactics | undefined; code: 
   const { starters, bench } = tactics.lineup;
   const starter = starters.find((each) => each.playerCode === code);
   const benchIndex = bench.indexOf(code);
-  const where = starter !== undefined ? startingInWords(slotLabel(starter, starter.role), starter.lane) : benchIndex >= 0 ? benchPlaceWords(benchIndex + 1) : null;
+  const where = starter !== undefined ? startingInWords(positionOfSlot(starter), starter.lane) : benchIndex >= 0 ? benchPlaceWords(benchIndex + 1) : null;
   if (where === null) return null;
   return (
     <>

@@ -1,5 +1,8 @@
 import { Navigate, Outlet, createRootRouteWithContext, createRoute, redirect, type ErrorComponentProps } from "@tanstack/react-router";
+import type { ComponentProps } from "react";
+import type { Id } from "../../convex/_generated/dataModel";
 import type { AdminSeam } from "../admin/seam";
+import type { DraftSeam } from "../draft/seam";
 import type { AuthActions, Session } from "../signIn/seam";
 import { AppFrame } from "../frame/AppFrame";
 import { ErrorScreen } from "../frame/ErrorScreen";
@@ -36,7 +39,7 @@ import type { TableSeam } from "../table/seam";
 // sign-in, and the two frames the app's pages hang from, leaguePages.tsx's and frame.tsx's.
 
 // A seam is a top-level useLive* hook holding root state (mail, joining, squads, scoring, league
-// settings, admin, leagues, feedback, patches) or a constant object of hooks (gameweeks, table, scouting, player card, home, my team, matchup, Premier League). Each new one needs a
+// settings, admin, leagues, feedback, patches) or a constant object of hooks (gameweeks, table, scouting, player card, home, my team, matchup, Premier League, draft). Each new one needs a
 // preview (previewApp.tsx), a live value (liveApp.tsx) and a fake (shell.harness.tsx), and the
 // typechecker flags any that's missing.
 export type ShellContext = {
@@ -60,6 +63,7 @@ export type ShellContext = {
   admin: AdminSeam;
   feedback: FeedbackSeam;
   patches: PatchesSeam;
+  draft: DraftSeam;
 };
 
 /** Where the app opens: the guards below send each visitor on from here. */
@@ -77,9 +81,19 @@ export const rootRoute = createRootRouteWithContext<ShellContext>()({
 });
 
 /** The app's frame for someone in a league: the menu, the top bar and the league switcher. */
-function LeagueFrame({ context: { session, topBar, auth, leagues, patches } }: { context: ShellContext }) {
+function LeagueFrame({ context: { session, topBar, auth, leagues, patches, draft } }: { context: ShellContext }) {
   const leagueSwitcher = <LeagueSwitcher session={session} switchLeague={leagues.switchLeague} leaveLeague={leagues.leaveLeague} />;
-  return <AppFrame topBar={topBar} onSignOut={auth.signOut} leagueSwitcher={leagueSwitcher} banner={<PatchBanner seam={patches} />} />;
+  const banner = <PatchBanner seam={patches} />;
+  if (!(session.signedIn && session.currentLeagueId !== null)) {
+    return <AppFrame topBar={topBar} onSignOut={auth.signOut} leagueSwitcher={leagueSwitcher} banner={banner} draftInMenu={false} />;
+  }
+  return <DraftMenuFrame leagueId={session.currentLeagueId} draft={draft} topBar={topBar} onSignOut={auth.signOut} leagueSwitcher={leagueSwitcher} banner={banner} />;
+}
+
+/** The frame in a league, its menu holding the draft room while the league says it is there; not
+ *  while that answer loads. */
+function DraftMenuFrame({ leagueId, draft, ...frame }: { leagueId: Id<"leagues">; draft: DraftSeam } & Omit<ComponentProps<typeof AppFrame>, "draftInMenu">) {
+  return <AppFrame {...frame} draftInMenu={draft.useInMenu(leagueId) === true} />;
 }
 
 /** What a frame shows when drawing the frame itself threw, such as the league switcher finding the

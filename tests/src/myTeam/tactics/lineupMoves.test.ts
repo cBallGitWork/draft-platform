@@ -4,7 +4,7 @@
 
 import { describe, expect, it } from "vitest";
 import { AREAS, type Cell } from "../../../../convex/lineup/pitch";
-import { rolesOfSlot, slotLabel, SWEEPER, SWEEPER_CELL } from "../../../../convex/lineup/roles";
+import { rolesOfSlot } from "../../../../convex/lineup/roles";
 import type { Position } from "../../../../convex/positions/positionTables";
 import { canSwap, dropOutcome, reachOf, swapped, withRole, type MoveRules, type RatingsOf } from "../../../../src/myTeam/tactics/lineupDraft";
 
@@ -87,7 +87,7 @@ describe("a back five's centre-backs (Craig, 1 Nov 2026: \"make sure we allow th
   const CENTRE_BACKS = [LEFT_CB, MIDDLE_CB, RIGHT_CB];
   const cellOf = (starter: Cell) => ({ area: starter.area, lane: starter.lane });
 
-  it("any one swaps with any other, into and out of the middle (sweeper) cell, each landing in the other's cell", () => {
+  it("any one swaps with any other, into and out of the middle cell, each landing in the other's cell", () => {
     for (const one of CENTRE_BACKS) {
       for (const other of CENTRE_BACKS.filter((each) => each !== one)) {
         expect(canSwap(FIVE, one.playerCode, other.playerCode, RULES)).toBe(true);
@@ -102,23 +102,22 @@ describe("a back five's centre-backs (Craig, 1 Nov 2026: \"make sure we allow th
   it("each lights the other two, and a centre-back on the bench lights all three", () => {
     expect(reachOf(FIVE, 22, RULES).players).toEqual(expect.arrayContaining([23, 24]));
     expect(reachOf(FIVE, 26, RULES).players).toEqual(expect.arrayContaining([22, 23, 24]));
-    expect(dropOutcome(FIVE, 26, { cell: SWEEPER_CELL }, RULES)).toEqual({ swapWith: 23 });
+    expect(dropOutcome(FIVE, 26, { cell: cellOf(MIDDLE_CB) }, RULES)).toEqual({ swapWith: 23 });
   });
 
-  it("the one moved into the middle can take a sweeper role, and his slot reads SW", () => {
-    const after = swapped(FIVE, 22, 23, NO_STARS);
-    const middle = after.starters.find((starter) => starter.playerCode === 22)!;
-    expect(cellOf(middle)).toEqual(SWEEPER_CELL);
-    expect(rolesOfSlot(middle).map(({ key }) => key)).toEqual(expect.arrayContaining(["sweeper", "libero"]));
-    const sweeping = withRole(after, 22, "sweeper").starters.find((starter) => starter.playerCode === 22)!;
-    expect(slotLabel(sweeping, sweeping.role)).toBe(SWEEPER);
+  it("any of the three centre-backs can take a sweeper or libero role, not only the middle one (spec/05, 5 Nov 2026)", () => {
+    for (const centreBack of CENTRE_BACKS) {
+      expect(rolesOfSlot(cellOf(centreBack), FIVE.starters).map(({ key }) => key)).toEqual(expect.arrayContaining(["sweeper", "libero"]));
+    }
+    const sweeping = withRole(FIVE, 22, "sweeper").starters.find((starter) => starter.playerCode === 22)!;
+    expect(sweeping.role).toBe("sweeper");
   });
 
-  it("a sweeper swapped out of the middle leaves the role behind: the one moved in starts on the centre-back's", () => {
+  it("a sweeper swapped to another centre-back cell starts there afresh, on his best-star role (none here, so the slot's first)", () => {
     const sweeping = withRole(FIVE, 23, "sweeper");
     const after = swapped(sweeping, 23, 24, NO_STARS);
-    const middle = after.starters.find((starter) => starter.playerCode === 24)!;
-    expect(cellOf(middle)).toEqual(SWEEPER_CELL);
-    expect(slotLabel(middle, middle.role)).toBe("CB");
+    const moved = after.starters.find((starter) => starter.playerCode === 23)!;
+    expect(cellOf(moved)).toEqual(cellOf(RIGHT_CB));
+    expect(moved.role).toBeUndefined();
   });
 });

@@ -69,7 +69,7 @@ test("two matches show “?”, and one who never came on holds no row", async (
 test("a centre-back is rated for every defence role, against the defence alone", async () => {
   const t = await rated();
   const stars = await starsOf(t, STOPPER.code);
-  expect([...stars.keys()]).toEqual([...DEFAULT_ROLES.FB, ...DEFAULT_ROLES.CB, ...DEFAULT_ROLES.SW].map((role) => `defence/${role.key}`));
+  expect([...stars.keys()]).toEqual([...DEFAULT_ROLES.FB, ...DEFAULT_ROLES.CB].map((role) => `defence/${role.key}`));
   expect(new Set(stars.values())).toEqual(new Set([5]));
 });
 
