@@ -55,7 +55,7 @@ export const drop = mutation({
 
 const waiverState = v.union(
   v.object({ kind: v.literal("owned"), teamId: v.id("teams"), teamName: v.string() }),
-  /** On waivers: a run may take him from `claimableFrom` on (the run itself is #1198's). */
+  /** On waivers: a run may take him from `claimableFrom` on (waiverRun.ts). */
   v.object({ kind: v.literal("onWaivers"), claimableFrom: v.number() }),
   v.object({ kind: v.literal("freeAgent") }),
 );

@@ -14,11 +14,10 @@ import type { LeagueRules } from "../rules/leagueRulesShape";
 import { latestRules, seasonRules } from "../rules/rulesHistory";
 import { LEAGUES_READ_MOST, takeAllOrThrow } from "../shared/cappedRead";
 import { teamIn } from "../shared/leagueAccess";
-import { playerByCode } from "../shared/players";
 import { MINUTE_MS } from "../shared/time";
 import { placeOf, squadOf } from "../squads/squadPlace";
 import { limitsBroken, type SquadWarning } from "../squads/squads";
-import { leagueClaims } from "./waiverClaims";
+import { claimedName, leagueClaims } from "./waiverClaims";
 import { inWaiverLock, latestBegun } from "./waiverLock";
 import { waiverOrderOf, waiverOrderRow, winnersNow, withWinnersLast, wonBy } from "./waiverOrder";
 import { dropFromSquad } from "./waiverPlayers";
@@ -90,18 +89,11 @@ async function tryClaim(ctx: MutationCtx, run: Run, claim: Doc<"waiverClaims">):
   return { won: true, toWaivers };
 }
 
-/** A player's name, which a claim's player always has: one is put in only for a player held. */
-async function nameOf(ctx: MutationCtx, playerCode: number): Promise<string> {
-  const player = await playerByCode(ctx, playerCode);
-  if (player === null) throw new Error(`A waiver claim names player ${playerCode}, whom the football sync doesn't hold`);
-  return player.name;
-}
-
 /** Files what a tried claim did: the drop and the claim as squad moves, the league's letter for
  *  one that won, and its manager's alone for one that failed. */
 async function report(ctx: MutationCtx, league: Doc<"leagues">, claim: Doc<"waiverClaims">, tried: Tried): Promise<void> {
-  const playerName = await nameOf(ctx, claim.playerCode);
-  const dropName = claim.dropCode === null ? null : await nameOf(ctx, claim.dropCode);
+  const playerName = await claimedName(ctx, claim.playerCode);
+  const dropName = claim.dropCode === null ? null : await claimedName(ctx, claim.dropCode);
   if (!tried.won) {
     await fileLetter(ctx, league, [claim.by], claimFailedLetter({ playerName, dropName, why: tried.why }));
     return;

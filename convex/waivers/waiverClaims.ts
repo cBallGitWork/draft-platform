@@ -49,6 +49,14 @@ export function leagueClaims(ctx: QueryCtx, leagueId: Id<"leagues">): Promise<Do
   );
 }
 
+/** The name of a player a claim names, to claim or to drop: one is put in only for players the
+ *  football sync holds, and it never deletes one. */
+export async function claimedName(ctx: QueryCtx, playerCode: number): Promise<string> {
+  const player = await playerByCode(ctx, playerCode);
+  if (player === null) throw new Error(`A waiver claim names player ${playerCode}, whom the football sync doesn't hold`);
+  return player.name;
+}
+
 /** The manager claims a player on waivers, last of his claims, naming who he drops if it succeeds,
  *  if anyone. Its id. */
 export const putIn = mutation({
@@ -125,12 +133,7 @@ export const pending = query({
     const { email, league, team } = await memberOf(ctx, leagueId);
     const teams = await teamsOf(ctx, leagueId);
     const shown = powersIn(league, email).runs ? teams : teams.filter(({ _id }) => _id === team?._id);
-    const named = async (playerCode: number) => {
-      const player = await playerByCode(ctx, playerCode);
-      // A claim is put in only for a player the football sync holds, and it never deletes one.
-      if (player === null) throw new Error(`A claim in league ${leagueId} names player ${playerCode}, whom the football sync doesn't hold`);
-      return { playerCode, playerName: player.name };
-    };
+    const named = async (playerCode: number) => ({ playerCode, playerName: await claimedName(ctx, playerCode) });
     const claims = await Promise.all(
       shown.map(async ({ _id, name }) =>
         Promise.all(
