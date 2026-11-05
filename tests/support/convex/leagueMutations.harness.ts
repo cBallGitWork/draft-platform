@@ -87,6 +87,8 @@ export function changesTo(
     "draft/draftLists:add": () => ann.mutation(api.draft.draftLists.add, { leagueId, playerCode: 1, list: "queue" }),
     "draft/draftLists:remove": () => ann.mutation(api.draft.draftLists.remove, { leagueId, playerCode: 1, list: "queue" }),
     "draft/draftLists:move": () => ann.mutation(api.draft.draftLists.move, { leagueId, playerCode: 1, place: 1 }),
+    "draft/draftLists:addFromShortlist": () => ann.mutation(api.draft.draftLists.addFromShortlist, { leagueId, playerCode: 1 }),
+    "draft/draftLists:addShortlist": () => ann.mutation(api.draft.draftLists.addShortlist, { leagueId }),
   };
 }
 

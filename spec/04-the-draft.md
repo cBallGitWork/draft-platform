@@ -108,6 +108,12 @@ Feature 4 of [SPEC.md](../SPEC.md). Only Craig's answers.
   most 250 players: "250 limit for bigger drafts".
 - A manager can change his queue and do-not-draft list between picks once the draft has started. A
   drafted player stays listed but is skipped (Craig, 4 Nov 2026, on #1092).
+- The shortlist feeds the queue both ways: a shortlisted player added one at a time, and an "add my
+  whole shortlist" button that adds them to the bottom of the queue in name order. Shortlisted
+  players already in the queue keep their place; any on the do-not-draft list move off it. The
+  button adds as many as fit under 250 and tells the manager how many were left out. Neither puts
+  an already-drafted player in the queue; adding one by hand says he's already taken (Craig, 4 Nov
+  2026, on #1137).
 - The admin's ranking is a file the admin uploads, a list of players with a rank number, from
   research the admin does himself. It is one ranking for the whole platform. Last season's points
   won't do alone, since players join the league each season (Craig, 2 Nov 2026).
