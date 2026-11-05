@@ -2,7 +2,7 @@ import type { Doc, Id } from "../_generated/dataModel";
 import type { MutationCtx, QueryCtx } from "../_generated/server";
 import { isLocked, type LeagueDeadlines } from "../gameweeks/deadline";
 import { deadlineOf } from "../gameweeks/leagueDeadlines";
-import { GAMEWEEKS, usedGameweeksOf } from "../gameweeks/usedGameweeks";
+import { GAMEWEEKS, isGameweekScored, scoredGameweeksOf } from "../gameweeks/usedGameweeks";
 import { drawRulesOf } from "../rules/firstRules";
 import type { SeasonRules } from "../rules/rulesHistory";
 import { teamsOf } from "../shared/leagueAccess";
@@ -28,6 +28,10 @@ import { drawFixtures, type GameweekFixtures } from "./roundRobin";
 // from a gameweek not yet begun (leagueRules.ts), and the draw deals each gameweek by the rules in
 // force in it (#266). Nor can a ticked or unticked gameweek: only one not yet begun can be, and
 // each gameweek's draw hangs only on those before it (roundRobin.ts's roundOrder).
+//
+// A gameweek before the league's scoring start has no head-to-head (spec/04, After the draft;
+// scoringStart.ts), so the round robin starts at the start. One that began before the start was
+// set, or before a draft running late moved it on, may be stored with fixtures: they are never read.
 
 type TeamsGameweek = GameweekFixtures<Id<"teams">>;
 export type Schedule = TeamsGameweek[];
@@ -82,9 +86,9 @@ async function scheduleAround(
 ): Promise<Schedule> {
   const teamIds = (await teamsOf(ctx, league._id)).map((team) => team._id);
   const drawRulesIn = (gameweek: number) => drawRulesOf(rules.inGameweek(gameweek));
-  const gameweeks = usedGameweeksOf(league).filter((gameweek) => !without.has(gameweek));
+  const gameweeks = scoredGameweeksOf(league).filter((gameweek) => !without.has(gameweek));
   const drawn = drawFixtures(teamIds, gameweeks, drawRulesIn, league._id);
-  const begun = [...stored.values()].filter((gameweek) => !hasNoHeadToHead(gameweek));
+  const begun = [...stored.values()].filter((each) => !hasNoHeadToHead(each) && isGameweekScored(league, each.gameweek));
   const toCome = drawn.filter(({ gameweek }) => !stored.has(gameweek));
   return [...begun, ...toCome].sort((one, other) => one.gameweek - other.gameweek);
 }
@@ -105,7 +109,7 @@ export async function storeBegunFixtures(
   if (rules === null) return;
   const stored = await storedFixturesOf(ctx, league._id);
   const deadlineIn = deadlineOf(deadlines);
-  const toStore = usedGameweeksOf(league).flatMap((gameweek) => {
+  const toStore = scoredGameweeksOf(league).flatMap((gameweek) => {
     const deadline = deadlineIn(gameweek);
     return !stored.has(gameweek) && deadline !== null && isLocked(deadline, now) ? [{ gameweek, deadline }] : [];
   });

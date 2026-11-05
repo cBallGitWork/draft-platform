@@ -3969,6 +3969,12 @@
             },
             "optional": true
           },
+          "scoringStart": {
+            "fieldType": {
+              "type": "number"
+            },
+            "optional": true
+          },
           "pinnedLetter": {
             "fieldType": {
               "type": "object",

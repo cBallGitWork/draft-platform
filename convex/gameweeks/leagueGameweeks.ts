@@ -5,13 +5,15 @@ import { refuse, runnerOf } from "../shared/leagueAccess";
 import { recordEvent } from "../mail/letters";
 import { latestRules } from "../rules/rulesHistory";
 import { deadlineOf, leagueDeadlines } from "./leagueDeadlines";
+import { startAfterUntick } from "./scoringStart";
 import { isGameweek, isGameweekUsed, noSuchGameweek, SEASON_GAMEWEEKS, shownDeadline, unusedAfter } from "./usedGameweeks";
 
 // The commissioner ticks the gameweeks the league plays, all 38 by default (#74; spec/13,
 // Gameweeks). A gameweek has begun once the league's own deadline for it has passed, under the
 // deadline rule in force in it (leagueDeadlines.ts's `leagueDeadlines`; #138), and from then on it
 // can't be ticked or unticked; before gameweek 1 begins, every one can be. FPL's deadline plays no
-// part (deadline.ts's `leagueDeadline` says why).
+// part (deadline.ts's `leagueDeadline` says why). Unticking the league's scoring start moves it to
+// the next ticked gameweek (scoringStart.ts).
 
 /** Why a change to the league's gameweeks was refused, as the commissioner is told it. */
 export const gameweekRefusals = {
@@ -57,7 +59,8 @@ export const setUsed = mutation({
     if (deadline === null) refuse(gameweekRefusals.noDeadline(gameweek));
     if (isLocked(deadline, Date.now())) refuse(gameweekRefusals.begun(gameweek));
     if (isGameweekUsed(league, gameweek) === used) return null;
-    await ctx.db.patch("leagues", leagueId, { unusedGameweeks: unusedAfter(league, gameweek, used) });
+    const scoringStart = used ? league.scoringStart : startAfterUntick(league, gameweek);
+    await ctx.db.patch("leagues", leagueId, { unusedGameweeks: unusedAfter(league, gameweek, used), scoringStart });
     await recordEvent(ctx, leagueId, email, { kind: "gameweekUsed", gameweek, used });
     return null;
   },
