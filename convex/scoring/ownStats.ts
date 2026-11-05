@@ -24,8 +24,8 @@ const FIELD_WORDS = { name: "name", shortCode: "short code" } as const;
 
 /** Own stats are made of catalogue stats only, never another own stat (spec/14), and each has a
  *  key in the namespace the feeds can't produce (`OWN_STAT_PREFIX`), so a catalogue stat added
- *  later never collides with one saved before (#136), and a name and a short code no other own stat has. That no name or
- *  short code is a catalogue stat's is checked on saving only (`checkOwnStatsAgainstCatalogue`),
+ *  later never collides with one saved before (#136), and a name and a short code no other own
+ *  stat has. That no name or short code is a catalogue stat's is checked on saving only (`checkOwnStatsAgainstCatalogue`),
  *  as scoring runs this, and a catalogue stat renamed later mustn't stop the scoring (#212). */
 export function validateOwnStats(ownStats: unknown): void {
   if (!Array.isArray(ownStats)) throw new UnsoundScoring("a scoring set's own stats must be a list");
