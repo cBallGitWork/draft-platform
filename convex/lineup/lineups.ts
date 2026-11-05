@@ -31,7 +31,7 @@ import { lineupRefusals, problemWords, unknownPlayerWords } from "./lineupWords"
 // edit". Until its manager saves one, its row is its first lineup (firstLineup.ts), marked so and
 // picked again from the squad each time the squad changes, so a squad built one player at a time
 // ends on the whole 4-4-2, or the first preset it fills. Once the manager saves, or the draft ends
-// (`saveFirstLineups`; #1040), it is saved, and the squad changes it only as `reconciled` says.
+// (`saveFirstLineup`; #1040), it is saved, and the squad changes it only as `reconciled` says.
 
 /** A lineup as a manager's browser sends it: lineup.ts's Lineup, its cells still unchecked. */
 const sentLineup = v.object({
@@ -219,7 +219,7 @@ export async function pickFirstLineupAgain(ctx: MutationCtx, leagueId: Id<"leagu
 /** When the draft ends (#1040): the team's first lineup, as its picks left it, becomes its saved
  *  lineup, so no later squad change, nor a change to how a first lineup is picked, picks it
  *  again. Returns whether it held a first lineup to save. */
-export async function saveFirstLineups(ctx: MutationCtx, leagueId: Id<"leagues">, teamId: Id<"teams">): Promise<boolean> {
+export async function saveFirstLineup(ctx: MutationCtx, leagueId: Id<"leagues">, teamId: Id<"teams">): Promise<boolean> {
   const rows = await ctx.db
     .query("lineups")
     .withIndex("by_leagueId_and_teamId_and_fromGameweek", (q) => q.eq("leagueId", leagueId).eq("teamId", teamId))

@@ -186,7 +186,7 @@ test("anyone in the league sees another team's matchup once the gameweek has beg
   expect(read?.kind === "headToHead" && read.game.kind === "scored" && lineupOf(read.game.opponent).starters).toHaveLength(EVERTON_STARTERS.length);
 });
 
-test("a side that never saved a lineup shows its first and scores from it (#637, #836)", async () => {
+test("a side on the lineup it got after the draft shows it and scores from it (#637, #836, #1040)", async () => {
   const league = await scoresLeague({ bobSaves: false });
   await fullTimeRecords(league);
   await lockMatch(league);

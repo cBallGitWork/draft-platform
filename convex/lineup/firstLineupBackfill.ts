@@ -6,7 +6,7 @@ import { FINAL_SCORES_MOST } from "../gameweekScorer/storedScores";
 import { LEAGUES_READ_MOST, takeAllOrThrow } from "../shared/cappedRead";
 import { teamsOf } from "../shared/leagueAccess";
 import { squadOf } from "../squads/squadPlace";
-import { pickFirstLineupAgain, saveFirstLineups } from "./lineups";
+import { pickFirstLineupAgain, saveFirstLineup } from "./lineups";
 
 // The one-off migration for #637 and #1040: every team with players gets a saved lineup, as the
 // draft's end now gives it one (draftPicks.ts), and no score moves.
@@ -14,7 +14,7 @@ import { pickFirstLineupAgain, saveFirstLineups } from "./lineups";
 //   its first lineup (lineups.ts `pickFirstLineupAgain`) from the next gameweek not yet begun,
 //   which is the lineup it scores there today. A gameweek begun stays as it was scored (spec/09:
 //   games played in the past are done): such a team holds its squad on the bench there.
-// - Its first lineup is then saved (lineups.ts `saveFirstLineups`), as it stands, unless its
+// - Its first lineup is then saved (lineups.ts `saveFirstLineup`), as it stands, unless its
 //   league's draft is still to come or under way, whose end saves it.
 // - A final score marked as held by no lineup loses the mark; its points, 0, stay.
 // A team with nobody in its squad is left alone, and running it again does nothing. Run it once
@@ -61,7 +61,7 @@ export const saveTeamsTheirLineup = internalMutation({
           // Nothing is written for a league with no rules or once the season is over.
           if (await hasLineupRow(ctx, league._id, team._id)) teamsGiven.push(team._id);
         }
-        if (!keepFirst && (await saveFirstLineups(ctx, league._id, team._id))) teamsSaved.push(team._id);
+        if (!keepFirst && (await saveFirstLineup(ctx, league._id, team._id))) teamsSaved.push(team._id);
       }
       const finals = await takeAllOrThrow(
         ctx.db.query("finalScores").withIndex("by_leagueId_and_gameweek", (q) => q.eq("leagueId", league._id)),

@@ -3,7 +3,7 @@ import { internal } from "../_generated/api";
 import type { Doc, Id } from "../_generated/dataModel";
 import { internalMutation, mutation, type MutationCtx, type QueryCtx } from "../_generated/server";
 import { areasOf } from "../lineup/pitch";
-import { pickFirstLineupAgain, saveFirstLineups } from "../lineup/lineups";
+import { pickFirstLineupAgain, saveFirstLineup } from "../lineup/lineups";
 import { fileEvent } from "../mail/letters";
 import { positionsNow } from "../positions/playerPositions";
 import { draftRulesOf } from "../rules/firstRules";
@@ -109,7 +109,7 @@ type Placed = { timeout?: Doc<"draftPicks">["timeout"]; pausedAt?: number };
 
 /** `player` joins the squad of `team`, on the clock, as its pick, filed as `by`'s, and the next
  *  pick's clock starts PICK_GAP_MS from now, its manager told he is up next; after the last pick,
- *  each team's lineup is saved as its picks left it (lineups.ts `saveFirstLineups`; #1040) and
+ *  each team's lineup is saved as its picks left it (lineups.ts `saveFirstLineup`; #1040) and
  *  the whole league is told the draft is over (draftLetters.ts). */
 async function placePick(ctx: MutationCtx, league: Doc<"leagues">, turn: Turn, team: Doc<"teams">, player: Doc<"players">, by: string, { timeout, pausedAt }: Placed = {}): Promise<void> {
   const leagueId = league._id;
@@ -120,7 +120,7 @@ async function placePick(ctx: MutationCtx, league: Doc<"leagues">, turn: Turn, t
   await pickFirstLineupAgain(ctx, leagueId, team._id);
   const next = await startClock(ctx, leagueId, turn.pick, now + PICK_GAP_MS, await pickSecondsNow(ctx, leagueId), { pausedAt });
   if (next === null) {
-    for (const drafted of await teamsOf(ctx, leagueId)) await saveFirstLineups(ctx, leagueId, drafted._id);
+    for (const drafted of await teamsOf(ctx, leagueId)) await saveFirstLineup(ctx, leagueId, drafted._id);
     await tellDraftOver(ctx, league, turn.pick);
   } else await tellUpNext(ctx, league, next);
 }
