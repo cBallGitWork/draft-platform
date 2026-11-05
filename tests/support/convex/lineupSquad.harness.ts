@@ -6,6 +6,7 @@ import { api } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
 import { FPL_DEADLINE_RULE } from "../../../convex/gameweeks/deadline";
 import { recordPassedDeadlines } from "../../../convex/gameweeks/deadlineRecorder";
+import { pickFirstLineupAgain } from "../../../convex/lineup/lineups";
 import type { Position } from "../../../convex/positions/positionTables";
 import { MINUTE_MS } from "../../../convex/shared/time";
 import { KICKS_OFF_IN } from "./leagueRules.harness";
@@ -33,12 +34,20 @@ export const holdPlayers = (t: TestConvex, codes: readonly number[]) =>
 
 /**
  * `codes` (SQUAD unless given) held on the team, written straight into the tables, never through
- * squads.assign, so no first lineup is stored: as squads were before #637.
+ * squads.assign, then its first lineup stored as a squad change stores it (lineups.ts
+ * `pickFirstLineupAgain`). With `withoutLineup`, none is: as squads were before #637.
  */
-export const holdSquad = async (t: TestConvex, leagueId: Id<"leagues">, teamId: Id<"teams">, codes: readonly number[] = SQUAD) => {
+export const holdSquad = async (
+  t: TestConvex,
+  leagueId: Id<"leagues">,
+  teamId: Id<"teams">,
+  codes: readonly number[] = SQUAD,
+  { withoutLineup = false } = {},
+) => {
   await holdPlayers(t, codes);
   await t.run(async (ctx) => {
     for (const playerCode of codes) await ctx.db.insert("squadPlayers", { leagueId, teamId, playerCode });
+    if (!withoutLineup) await pickFirstLineupAgain(ctx, leagueId, teamId);
   });
 };
 

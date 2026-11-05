@@ -22,10 +22,6 @@ export { provisionalWords } from "../shared/words";
 export const unscoredWords = (gameweek: number, reason: string) =>
   `${gameweekWords(gameweek)} can't be scored, so it counts for nothing in the table: ${reason}.`;
 
-/** The teams on 0 in a gameweek begun before #637 gave every team a lineup, for holding none. */
-export const noLineupWords = (teamNames: readonly string[]) =>
-  `${andListWords(teamNames)} never saved a lineup, so ${teamNames.length === 1 ? "it scores" : "they score"} 0.`;
-
 /** The table's columns: a short head, and what it stands for. */
 export const columns = {
   position: { short: "Pos", long: "Position" },

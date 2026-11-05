@@ -27,7 +27,7 @@ const scores = new Map(
   ]),
 );
 /** How the preview league is scored: My team's preview shows the same scores. */
-export const previewScored = { ...previewSeason, scores, provisional: previewTeams, noLineup: ["Team 2"] } satisfies Drawn;
+export const previewScored = { ...previewSeason, scores, provisional: previewTeams } satisfies Drawn;
 const table = leagueTableOf(previewTeams, previewScored);
 
 export const previewTable: TableSeam = { useLeagueTable: () => table };

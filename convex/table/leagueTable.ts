@@ -39,7 +39,6 @@ const teamResult = v.object({
   teamName: v.string(),
   points: v.number(),
   provisional: v.boolean(),
-  noLineup: v.boolean(),
 });
 
 const gameweekFixtures = v.object({

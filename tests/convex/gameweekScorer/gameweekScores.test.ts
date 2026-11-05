@@ -50,8 +50,8 @@ test("a gameweek replayed from the recorded match gives each team its points, th
   const { read, ann, bob } = await gameweek6(league);
   expect(sideTotal(RECORDS, HULL_AFTER_SUB)).toBe(HULL_POINTS);
   expect(sideTotal(RECORDS, EVERTON_STARTERS)).toBe(EVERTON_POINTS);
-  expect(ann).toEqual({ teamId: league.annsTeam, points: HULL_POINTS, provisional: false, noLineup: false });
-  expect(bob).toEqual({ teamId: league.bobsTeam, points: EVERTON_POINTS, provisional: false, noLineup: false });
+  expect(ann).toEqual({ teamId: league.annsTeam, points: HULL_POINTS, provisional: false });
+  expect(bob).toEqual({ teamId: league.bobsTeam, points: EVERTON_POINTS, provisional: false });
   expect(read.unscored).toEqual([]);
 
   const fixtures = read.gameweeks.find((each) => each.gameweek === GAMEWEEK)!.fixtures;
@@ -99,12 +99,12 @@ test("live points move as the records arrive, provisional until the match locks,
   expect(final.bob).toMatchObject({ points: EVERTON_POINTS, provisional: false });
 });
 
-test("a team that never saved a lineup scores its first (#637)", async () => {
+test("a team on the lineup it got after the draft scores it (#637, #1040)", async () => {
   const league = await scoresLeague({ bobSaves: false });
   await fullTimeRecords(league);
   await lockMatch(league);
   const { read, bob } = await gameweek6(league);
-  expect(bob).toEqual({ teamId: league.bobsTeam, points: BOBS_FIRST_POINTS, provisional: false, noLineup: false });
+  expect(bob).toEqual({ teamId: league.bobsTeam, points: BOBS_FIRST_POINTS, provisional: false });
   // 36 beats Hull's 26.
   expect(read.table[0]).toMatchObject({ teamName: "Team 2", won: 1, points: 3 });
 });
