@@ -91,7 +91,6 @@ export const DEFAULT_ROLES: Record<SlotPosition, readonly Role[]> = {
     role("playmakingFullBack", "Playmaking full-back", "PFB", "Holds his position and plays the long, early ball forward.", ["Long passes into their half", "Accurate long balls", "Big chances created"], ["Failed long balls"]),
     role("defensiveFullBack", "Defensive full-back", "DFB", "Stays back and defends first.", ["Tackles won", "Interceptions", "Clearances"], ["Dribbled past"]),
   ],
-  // A stopper steps out of the line to meet his man.
   CB: [
     role("stopper", "Stopper", "STP", "Steps out of the line to meet his man and win the ball.", ["Tackles won", "Aerials won", "Interceptions"], ["Dribbled past"], rough([9, 0])),
     role("ballPlayingDefender", "Ball-playing centre-back", "BPD", "Brings the ball out from the back and passes it forward.", ["Long passes into their half", "Forward passes", "Accurate long balls"], ["Failed long balls"]),
@@ -106,7 +105,6 @@ export const DEFAULT_ROLES: Record<SlotPosition, readonly Role[]> = {
     role("invertedWingBack", "Inverted wing-back", "IWB", "Comes inside into midfield with the ball and keeps it moving.", ["Accurate passes", "Final third passes", "Take-ons won"], ["Fouls"], rough([9, 14])),
     role("goalscoringWingBack", "Goalscoring wing-back", "GWB", "Arrives in the box from the flank to shoot and score.", ["Shots on target", "Touches in their box", "Box entries", "Goals"], ["Big chances missed"], rough([26.5, 10])),
   ],
-  // A half-back drops between the centre-backs.
   CDM: [
     role("metronome", "Metronome", "MET", "Sits in front of the defence and keeps the ball moving, short and simple.", ["Accurate passes", "Forward passes"], ["Misplaced passes"]),
     role("quarterback", "Quarterback", "QB", "Sits deep and switches the play with long passes.", ["Long passes into their half", "Accurate long balls", "Accurate chipped passes"], ["Failed long balls"]),
@@ -115,7 +113,6 @@ export const DEFAULT_ROLES: Record<SlotPosition, readonly Role[]> = {
     role("tower", "Tower", "TWR", "Wins everything in the air in front of the defence.", ["Aerials won", "Headed clearances", "Headed passes"], ["Aerials lost"]),
     role("destroyer", "Destroyer", "DES", "Gets stuck in, tackling and winning duels to break up their play.", ["Tackles won", "Duels won"], ["Fouls"]),
   ],
-  // A wide workhorse runs up and down his flank; a defensive winger tracks back.
   WM: [
     role("wideMidfielder", "Wide workhorse", "WW", "Runs up and down his flank all game, helping at both ends.", ["Recoveries", "Passes into the final third", "Tackles"], ["Fouls"], rough([9, 0], [-9, 0])),
     role("defensiveWinger", "Defensive winger", "DW", "Tracks back to help his full-back before he thinks of attacking.", ["Tackles", "Interceptions", "Blocks"], ["Dribbled past"], rough([-9, 0])),
@@ -130,7 +127,6 @@ export const DEFAULT_ROLES: Record<SlotPosition, readonly Role[]> = {
     role("midfieldEngine", "Engine", "EN", "Covers every blade of grass, winning it back and giving it simply.", ["Recoveries", "Interceptions", "Accurate passes"], ["Dribbled past"], rough([9, 0], [-9, 0])),
     role("lateRunner", "Late runner", "LR", "Arrives late in the box, unmarked, to finish.", ["Shots on target", "Box entries", "Goals"], ["Big chances missed"], rough([35, 8])),
   ],
-  // A touchline winger goes down the line, then in to cross; an inside forward cuts in on the diagonal.
   W: [
     role("winger", "Touchline winger", "TW", "Goes down the line to the byline, then in to cross.", ["Accurate crosses", "Take-ons won", "Chances created"], ["Dispossessed"], rough([18, 0], [20, 6])),
     role("dribbler", "Dribbler", "DRB", "Takes his man on, again and again.", ["Take-ons won", "Progressive carries", "Fouled in the final third"], ["Dispossessed"], rough([14, 8])),
@@ -147,8 +143,6 @@ export const DEFAULT_ROLES: Record<SlotPosition, readonly Role[]> = {
     role("carrier", "Carrier", "CAR", "Picks it up and runs at them.", ["Take-ons won", "Progressive carries", "Fouled in the final third"], ["Dispossessed"], rough([18, 6])),
     role("pressingTen", "Pressing 10", "P10", "Leads the press from behind the striker.", ["Possession won in the attacking third", "Tackles won", "Recoveries"], ["Fouls"], rough([9, 0])),
   ],
-  // A poacher runs in behind off the last man's shoulder, a pressing forward harries across the
-  // back line, a false 9 drops deep; a target man holds the ball up where he stands.
   ST: [
     role("poacher", "Poacher", "PCH", "Lives in the box, waiting for the chance to finish.", ["Goals in the box", "Shots on target in the box"], ["Big chances missed"], rough([6, 8])),
     role("targetMan", "Target man", "TM", "Wins it in the air and holds it up for others.", ["Aerials won", "Accurate flick-ons", "Accurate layoffs"], ["Aerials lost"]),
