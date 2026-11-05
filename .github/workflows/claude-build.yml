@@ -115,12 +115,17 @@ jobs:
           else
             echo "go=true" >> "$GITHUB_OUTPUT"
           fi
-      - name: Make the label the rules check sets
+      # the rules check's three labels, made here so the agent never finds one missing (a 5 Nov 2026 test build found
+      # an issue stale, couldn't add `lead:stale`, and left it `rules:clear`, to be built again)
+      - name: Make the labels the rules check sets
         if: steps.gate.outputs.go == 'true'
         env:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
-        run: gh label create 'rules:open' --color D93F0B --description 'Rules Craig must answer before this issue builds' --force
+        run: |
+          gh label create 'rules:open' --color D93F0B --description 'Rules Craig must answer before this issue builds' --force
+          gh label create 'rules:clear' --color 0E8A16 --description 'The rules sweep found every rule settled' --force
+          gh label create 'lead:stale' --color BFBFBF --description 'The rules sweep found it already built or out of date' --force
       - name: Note when the build started  # the draft step tells a question asked since then from an unfinished build
         if: steps.gate.outputs.go == 'true'
         run: echo "BUILD_STARTED=$(date -u +%Y-%m-%dT%H:%M:%SZ)" >> "$GITHUB_ENV"
@@ -228,8 +233,9 @@ jobs:
       # anyone but the owner) keeps its work the same way, so the answer's build carries on from it. Pushed with GITHUB_TOKEN, the draft runs no CI; the next build's push does.
       # claude-code-action revokes its app token when it ends, and git still holds it, so this step points git at the
       # job's own token before it pushes (run 41929232870 failed `git push` with "Invalid username or token").
+      # A rules-only run writes nothing, so it keeps no draft.
       - name: Keep unfinished work as a draft pull request
-        if: always() && steps.decide.outcome != 'skipped'
+        if: always() && steps.decide.outcome != 'skipped' && env.MODE != 'rules-only'
         env:
           GH_TOKEN: ${{ github.token }}
           OWNER: ${{ github.repository_owner }}
@@ -251,7 +257,9 @@ jobs:
           fi
           git add -A  # .gitignore keeps out node_modules, dist, .shots, test-results and coverage; naming them here made git add exit 1
           git diff --cached --quiet || git commit -q -m "wip: unfinished build of #$ISSUE"
-          if [ -z "$(git log --oneline origin/main..HEAD)" ]; then echo "Nothing written past main: no draft."; exit 0; fi
+          # past the commit the run started from, not main: a run from a branch starts ahead of main, and its draft held
+          # only that branch's pipeline commits (#1174, #1178, #1186)
+          if [ -z "$(git log --oneline "$GITHUB_SHA..HEAD")" ]; then echo "Nothing written past where the run started: no draft."; exit 0; fi
           branch="wip/issue-$ISSUE-$GITHUB_RUN_ID"  # the name the next build looks for; one per run, so none collide
           git push -q origin "HEAD:refs/heads/$branch"
           # The draft is opened as the Claude app, as the builder's own pull requests are: one opened with the job's
