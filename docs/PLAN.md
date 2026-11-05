@@ -180,6 +180,7 @@ Keep the hooks that stop real mistakes; retire the gates GitHub or a schedule no
 | `guard_github.py`, `read_only.py` | `checks_gate.py`, `follow_main.py`: GitHub's up-to-date rule and merge queue; `main_writes.py`: the ruleset refuses pushes to main (4 Nov 2026) |
 | `private_words.py`, `line_ceiling.py` | `approval_gate.py`: CODEOWNERS |
 | `guard_ask.py`: a question to Craig that one of his standing answers settles (merges, alpha data, the phone, small look details, fixes) is denied with the answer (5 Nov 2026: 7 of 18 questions in an hour were these) |  |
+| `guard_mode.py` with `last_prompt.py`: talk is talk; filing, starting or shipping work and editing the spec wait for a message of Craig's that says to (5 Nov 2026: theory-crafting on scoring became a build). `guard_sessions.py`: one session per project, none messages another. `guard_ask.py` also asks a question once a week at most, five to a batch |  |
 | The shared helpers and `test.sh` | `gate_on_stop.py`: CI |
 | `pr_body.py`, `pull_request.py`, `screen_routes.py`, only if the cloud builds use them | `tidy_after_merge.py`, `tidy_branch.py`: GitHub deletes merged branches |
 |  | `setup_current.py`: only applies on the Mac |
