@@ -98,6 +98,8 @@ async function addVersion(
   // Stars price every match under today's scoring, so everyone is rated again once it takes effect
   // (stars/starsRefresh.ts, #11).
   await ctx.scheduler.runAt(version.takesEffectAt, internal.stars.starsRefresh.refreshAll, { cursor: null });
+  // Last season's points are priced under the set as it stands too (spec/19; pastSeasonPoints.ts).
+  await ctx.scheduler.runAt(version.takesEffectAt, internal.pastSeasons.pastSeasonPoints.reprice, { cursor: null });
   return { name, fromGameweek };
 }
 

@@ -6,6 +6,7 @@ import { AREA_WORDS, LANE_WORDS } from "../../../convex/lineup/pitchWords";
 import { menuWords } from "../../frame/words";
 import { failedWords, gameweekWords, listSeparator } from "../../shared/words";
 import { gameweekShort } from "../header/words";
+import type { MoveRefusal } from "./lineupDraft";
 
 export const TACTICS_TITLE = menuWords.tactics;
 export const BENCH_TITLE = "Bench";
@@ -21,7 +22,6 @@ export const pitchTitle = (formation: string | null) => (formation === null ? "P
 /** The pitch, named for screen readers, and its cells. */
 export const pitchLabel = "The pitch, attack at the top";
 const cellWords = (area: Area, lane: Lane) => `${AREA_WORDS[area]}, ${LANE_WORDS[lane]}`;
-export const putHereLabel = (name: string, area: Area, lane: Lane) => `Put ${name} in ${cellWords(area, lane)}`;
 /** A player the one picked up can swap with, lit on the pitch and in the squad (spec/05, Moving players). */
 export const swapLabel = (name: string, other: string) => `Swap ${name} with ${other}`;
 export const playerOnPitchLabel = (name: string, positions: readonly string[], area: Area, lane: Lane) =>
@@ -52,6 +52,22 @@ export const quickPickPlaceholder = "Quick Pick: fills the formation with the be
 export const undoWords = "Undo";
 export const savedWords = (gameweek: number) => `Saved. It stands from ${gameweekWords(gameweek).toLowerCase()}.`;
 export const saveFailedWords = failedWords("the lineup wasn't saved");
+/** Why a drop was refused, said in the line under the toolbar (spec/05, The pitch; Craig, 4 Nov
+ *  2026): presets only, so the formation changes only by picking one. `nameOf` names a squad player. */
+export function refusalWords(refusal: MoveRefusal, nameOf: (playerCode: number) => string): string {
+  switch (refusal.kind) {
+    case "emptyCell":
+      return "Nobody moves into an empty cell: pick a formation instead.";
+    case "offThePitch":
+      return "A starter leaves the pitch only by swapping with a bench player.";
+    case "goal":
+      return "Only a keeper plays in goal, and a keeper plays only in goal.";
+    case "doesNotPlay":
+      return `${nameOf(refusal.playerCode)} doesn't play ${cellWords(refusal.cell.area, refusal.cell.lane).toLowerCase()}.`;
+    case "areaLimits":
+      return "That breaks the league's area limits.";
+  }
+}
 
 /** The Selection table beside the pitch: the eleven, then the bench in order. */
 export const SELECTION_TITLE = "Selection";
@@ -75,7 +91,6 @@ export const benchPlaceLong = (index: number) => `Substitute ${index + 1}`;
 /** A starter's role picker, for screen readers (spec/05 Roles). */
 export const roleLabel = (name: string) => `${name}'s role`;
 export const emptyBenchWords = "Nobody on the bench.";
-export const toBenchWords = (name: string) => `Put ${name} on the bench`;
 /** Data not held yet, in its place (plate.md, Marks: a placeholder). */
 export const roleFitPlaceholder = "Role fit: not shown yet; it waits on stars on screen (#11) and scouts (#375)";
 

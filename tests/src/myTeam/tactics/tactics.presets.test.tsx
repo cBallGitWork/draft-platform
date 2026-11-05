@@ -12,9 +12,9 @@ import {
   presetLabel,
   emptySlotLabel,
   roleLabel,
-  putHereLabel,
   savedWords,
 } from "../../../../src/myTeam/tactics/words";
+import { rolesOfSlot } from "../../../../convex/lineup/roles";
 import { league } from "../../../support/src/shell.harness";
 import { TACTICS_GAMEWEEK } from "../../../support/src/tactics.harness";
 import {
@@ -29,9 +29,9 @@ import {
   blockOf,
   openedPitch,
   pickFormation,
-  pickUp,
   pitch,
   squadRows,
+  swap,
   undo,
   type Member,
 } from "../../../support/src/tacticsScreen.harness";
@@ -63,13 +63,16 @@ describe("a preset (spec/05; Craig, 26 Oct 2026)", () => {
   it("can be picked again after moves, to snap back to it", async () => {
     await openedPitch();
     await pickFormation("4-4-2");
-    await pickUp(SALIBA);
-    await userEvent.click(screen.getByRole("button", { name: putHereLabel(SALIBA.name, "defence", "centre") }));
+    await swap(SALIBA, WHITE);
+    await pickFormation("5-4-1");
+    expect(blockOf(HAVERTZ, { area: "attack", lane: "centre" })).toBeTruthy();
     await pickFormation("4-4-2");
-    expect(blockOf(SALIBA, { area: "defence", lane: "leftCentre" })).toBeTruthy();
+    expect(blockOf(HAVERTZ, { area: "attack", lane: "leftCentre" })).toBeTruthy();
+    // A swap keeps the shape, so each stays where it put him.
+    expect(blockOf(SALIBA, { area: "defence", lane: "left" })).toBeTruthy();
   });
 
-  it("marks the shape's empty slots, to show where to drag, while the lineup can't stand and isn't saved", async () => {
+  it("marks the shape's empty slots while the lineup can't stand and isn't saved", async () => {
     await openedPitch({ tactics: SAVED, saveAnswer: "A lineup starts 11 players; this one starts 5." });
     await pickFormation("4-4-2");
     const slots = within(pitch()).getAllByRole("img", { name: /^Empty slot/ }).map((slot) => slot.getAttribute("aria-label"));
@@ -126,9 +129,10 @@ describe("roles (spec/05 Roles; #10; Craig, 26 Oct 2026)", () => {
 
   it("a starter moved to another slot starts on its first role", async () => {
     await openedPitch();
+    // A 4-4-2 brings White off the bench to its left back, so the two can swap.
+    await pickFormation("4-4-2");
     await userEvent.selectOptions(picker(SALIBA), "ballPlayingDefender");
-    await pickUp(SALIBA);
-    await userEvent.click(screen.getByRole("button", { name: putHereLabel(SALIBA.name, "defence", "centre") }));
-    expect(picker(SALIBA).value).toBe("stopper");
+    await swap(SALIBA, WHITE);
+    expect(picker(SALIBA).value).toBe(rolesOfSlot({ area: "defence", lane: "left" })[0].key);
   });
 });

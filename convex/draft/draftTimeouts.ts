@@ -27,13 +27,26 @@ export function afterTakeBack(timeouts: Timeouts | undefined, teamId: Id<"teams"
   return (timeouts ?? []).map((team) => (team.teamId === teamId ? { teamId, count: 0 } : team));
 }
 
+/** The draft's timeouts once the commissioner undoes a pick the draft made when `teamId`'s clock ran
+ *  out: that timeout off its count, and the team off auto-pick if that timeout `putOnAutoPick`
+ *  (Craig, 4 Nov 2026: "yes"). A count its manager has since set to 0 by taking control back stays 0. */
+export function afterUndoneTimeout(timeouts: Timeouts | undefined, teamId: Id<"teams">, putOnAutoPick: boolean): Timeouts {
+  return (timeouts ?? []).map((team) => {
+    if (team.teamId !== teamId) return team;
+    const { autoPick, count } = team;
+    const kept = putOnAutoPick ? undefined : autoPick;
+    return { teamId, count: Math.max(0, count - 1), ...(kept !== undefined && { autoPick: kept }) };
+  });
+}
+
 /** Whether `teamId` is on auto-pick: its timeouts reached the league's limit. */
 export function isOnAutoPick(timeouts: Timeouts | undefined, teamId: Id<"teams">): boolean {
   return timeouts?.some((team) => team.teamId === teamId && team.autoPick !== undefined) ?? false;
 }
 
-/** Whether the draft picks for `team` as its clock starts: it has no manager, or it is on auto-pick
- *  past its first pick there. */
+/** Whether the draft picks for `team` as its clock starts: it has no manager and the commissioner
+ *  hasn't said "I'll pick for this one" (#1095), or it is on auto-pick past its first pick there. */
 export function picksAtOnce(timeouts: Timeouts | undefined, team: Doc<"teams">): boolean {
-  return team.managerEmail === undefined || (timeouts?.some(({ teamId, autoPick }) => teamId === team._id && autoPick === "atOnce") ?? false);
+  if (team.managerEmail === undefined) return team.commissionerPicks !== true;
+  return timeouts?.some(({ teamId, autoPick }) => teamId === team._id && autoPick === "atOnce") ?? false;
 }

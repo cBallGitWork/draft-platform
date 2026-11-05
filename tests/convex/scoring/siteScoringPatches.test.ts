@@ -130,6 +130,14 @@ describe("announcing a patch", () => {
     ]);
   });
 
+  test("re-prices last season the moment it takes effect, as it is priced under the set as it stands (#1114)", async () => {
+    await patch(EDITED, TODAY + NOTICE);
+
+    expect((await pendingJobs(t, internal.pastSeasons.pastSeasonPoints.reprice)).map((job) => [job.scheduledTime, job.args[0]])).toEqual([
+      [TODAY + NOTICE, { cursor: null }],
+    ]);
+  });
+
   test("a deadline at a gameweek's first kickoff reaches that gameweek", async () => {
     await holdGameweeks(t, { next: 9 });
 

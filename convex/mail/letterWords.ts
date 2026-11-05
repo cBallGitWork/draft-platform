@@ -154,6 +154,22 @@ export function draftPausedLetter(who: string): Words {
   return { subject: "The draft is paused", body: `${who} paused the draft. No pick is made until it resumes.` };
 }
 
+/** A pick as the commissioner's letters name it: its number, the player and his team. */
+export type PickNews = { pick: number; playerName: string; teamName: string };
+
+/** To the whole league when the commissioner, `who`, makes a team's pick for it (#1095). */
+export function draftPickedForLetter(who: string, { pick, playerName, teamName }: PickNews): Words {
+  return { subject: `${playerName} was picked for ${teamName}`, body: `${who} made pick ${pick} for ${teamName}: ${playerName}.` };
+}
+
+/** To the whole league when the commissioner, `who`, undoes a pick (#1095). */
+export function draftUndoneLetter(who: string, { pick, playerName, teamName }: PickNews): Words {
+  return {
+    subject: `Pick ${pick} was undone`,
+    body: `${who} undid pick ${pick}, ${playerName} to ${teamName}. ${playerName} can be picked again, and ${teamName} is back on the clock.`,
+  };
+}
+
 /** To the commissioner when the draft's start date, `startsAt`, comes and it can't start, for
  *  `refusal` (draftStart.ts `draftStartRefusals`). */
 export function draftNotStartedLetter(startsAt: number, refusal: string, zone: string | undefined): Words {

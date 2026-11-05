@@ -25,4 +25,13 @@ export const pastSeasonRow = v.object({
 
 export const pastSeasonTables = {
   pastPlayerMatchStats: defineTable(pastSeasonRow).index("by_season_and_playerCode", ["season", "playerCode"]),
+  /** Each player's points in a past season under the site's set as it stands (#1114; spec/19, and
+   *  spec/04's fallback ranking): a row a player in that season's data, one who played none on no
+   *  points. `points` holds his matches' sum at each position (positionTables.ts's POSITIONS), as
+   *  playerSeasonPoints does, so it is read at his main position now. Set afresh by the paged
+   *  re-price in pastSeasons/pastSeasonPoints.ts, after the copy and whenever the set changes. */
+  pastSeasonPoints: defineTable({ season: v.number(), playerCode: v.number(), points: v.record(v.string(), v.number()) }).index(
+    "by_season_and_playerCode",
+    ["season", "playerCode"],
+  ),
 };

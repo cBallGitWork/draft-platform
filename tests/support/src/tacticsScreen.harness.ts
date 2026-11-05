@@ -1,13 +1,14 @@
 // The Tactics tab's screen tests' shared setup (#14): a small Arsenal squad, four starting and two
 // on the bench, and the ways to find the pitch, its players and targets, and the squad's rows.
 
-import { screen, within } from "@testing-library/react";
+import { fireEvent, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import type { Cell } from "../../../convex/lineup/pitch";
+import { LANES, type Cell } from "../../../convex/lineup/pitch";
+import { ROWS_DRAWN } from "../../../src/myTeam/tactics/pitch/Pitch";
 import type { Position } from "../../../convex/positions/positionTables";
 import { MY_TEAM_PATH } from "../../../src/frame/menu";
 import type { OpenTactics } from "../../../src/myTeam/tactics/seam";
-import { allFormationsWords, BENCH_TITLE, moveLabel, pitchLabel, playerOnPitchLabel, squadTableLabel, undoWords } from "../../../src/myTeam/tactics/words";
+import { allFormationsWords, BENCH_TITLE, moveLabel, pitchLabel, playerOnPitchLabel, squadTableLabel, swapLabel, undoWords } from "../../../src/myTeam/tactics/words";
 import { applyWords } from "../../../src/myTeam/tactics/formationWindow/words";
 import { ARSENAL } from "../convex/footballRows.harness";
 import type { MyTeamData } from "./myTeam.harness";
@@ -92,9 +93,27 @@ export async function pickFormation(name: string) {
   throw new Error(`No formation called ${name}`);
 }
 export const blockOf = (player: Member, cell: Cell) => within(pitch()).getByRole("button", { name: playerOnPitchLabel(player.name, player.positions, cell.area, cell.lane) });
-export const targets = () => within(pitch()).queryAllByRole("button", { name: /^Put / }).map((target) => target.getAttribute("aria-label"));
-/** Every target lit on the pitch for the player picked up: the free cells and the players to swap with. */
+/** Every player lit on the pitch for the player picked up, to swap with: there are no empty cells
+ *  to move into (presets only; #1022). */
 export const swaps = () => within(pitch()).queryAllByRole("button", { name: /^Swap / }).map((target) => target.getAttribute("aria-label"));
+/** Every player lit for the player picked up, on the pitch and in the Selection table. */
+export const allSwaps = () => screen.queryAllByRole("button", { name: /^Swap / }).map((target) => target.getAttribute("aria-label"));
+/** The player picked up and swapped with a lit one, by a tap on him wherever he is lit. */
+export async function swap(player: Member, other: Member) {
+  await pickUp(player);
+  await userEvent.click(screen.getAllByRole("button", { name: swapLabel(player.name, other.name) })[0]);
+}
+/** The pitch's cell, empty or not, as a drop lands on it: the pitch's cells are its only child
+ *  divs, drawn attack first, left to right. */
+export const cellOn = (cell: Cell) => pitch().querySelectorAll(":scope > div")[ROWS_DRAWN.indexOf(cell.area) * LANES.length + LANES.indexOf(cell.lane)];
+/** Each a stand-in for a drag's data, which some browsers need to start a drag. */
+const DATA_TRANSFER = { setData: () => undefined, effectAllowed: "" };
+/** A player's block or row dragged and dropped on `onto`, as a manager's mouse would. */
+export function drag(from: Element, onto: Element) {
+  fireEvent.dragStart(from, { dataTransfer: DATA_TRANSFER });
+  fireEvent.dragOver(onto, { dataTransfer: DATA_TRANSFER });
+  fireEvent.drop(onto, { dataTransfer: DATA_TRANSFER });
+}
 export const undo = () => screen.getByRole("button", { name: undoWords }) as HTMLButtonElement;
 /** The tab opened on the lineup held, once its pitch is up. */
 export async function openedPitch(myTeam?: MyTeamData) {

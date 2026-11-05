@@ -41,7 +41,9 @@ export const draftTables = {
      *  pick for its team then, or as its clock starts for a team with no manager. Absent before the
      *  draft starts and once it is over, and from a draft started before #1091 until its next pick.
      *  ../draft/draftClock.ts writes it. While the commissioner has the draft paused (#1135), `paused`
-     *  holds when he paused it and the league's pick time then, and the job is cancelled, so absent. */
+     *  holds when he paused it and the league's pick time then, and the job is cancelled, so absent.
+     *  `fullClock` marks a pick the commissioner's undo put back (#1095): the draft picks for its team
+     *  only when its clock runs out, even for a team it would pick for at once (Craig, 5 Nov 2026). */
     clock: v.optional(
       v.object({
         pick: v.number(),
@@ -49,8 +51,13 @@ export const draftTables = {
         endsAt: v.number(),
         job: v.optional(v.id("_scheduled_functions")),
         paused: v.optional(v.object({ at: v.number(), pickSeconds: v.number() })),
+        fullClock: v.optional(v.literal(true)),
       }),
     ),
+    /** The pick time the commissioner set while the draft was paused (#1095), in seconds, which this
+     *  draft runs on at once, not waiting for the league's rules change to reach a gameweek (Craig,
+     *  5 Nov 2026). Absent until he sets one. ../draft/draftPickTime.ts writes it. */
+    pickSeconds: v.optional(v.number()),
     /** Each team whose clock has run out (spec/04, Auto-pick; #1136): its timeouts across the whole
      *  draft, and, once they reach the league's limit, `autoPick`: "fullClock" while its first pick
      *  on auto-pick still waits its full clock, then "atOnce". Absent until a clock runs out on a
@@ -79,12 +86,15 @@ export const draftTables = {
     .index("by_teamId", ["teamId"])
     .index("by_leagueId", ["leagueId"]),
   /** A pick made in a league's draft (spec/04, The picks; #1090): its number, from 1, the team that
-   *  made it and the player it took. ../draft/draftPicks.ts writes it, with his squad row. */
+   *  made it and the player it took. ../draft/draftPicks.ts writes it, with his squad row. `timeout`
+   *  marks a pick the draft made when a managed team's clock ran out, and whether that timeout put
+   *  the team on auto-pick, so the commissioner's undo (#1095) can take the timeout back off. */
   draftPicks: defineTable({
     leagueId: v.id("leagues"),
     pick: v.number(),
     teamId: v.id("teams"),
     playerCode: v.number(),
     at: v.number(),
+    timeout: v.optional(v.object({ putOnAutoPick: v.boolean() })),
   }).index("by_leagueId_and_pick", ["leagueId", "pick"]),
 };

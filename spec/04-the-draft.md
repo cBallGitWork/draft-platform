@@ -181,6 +181,21 @@ Feature 4 of [SPEC.md](../SPEC.md). Only Craig's answers.
 - There is no cap on how often or how long he can pause (Craig, 2 Nov 2026).
 - A pause during a manager's 10-second undo window freezes the window too (Craig, 4 Nov 2026, on
   #1091: "ok").
+- Undo after the draft has ended is not allowed: "no". Undoing an auto-pick that came from a
+  timeout takes that timeout off his count, and takes him off auto-pick if that timeout put him on
+  it: "yes". A team the commissioner picks for, whose clock he misses, is auto-picked with no
+  timeout counted; picking for a manager is never that manager's timeout: "ok comishes can undo so
+  no worried" (Craig, 4 Nov 2026, on #1095).
+- "comish can also make any pick for any team (incase a manger hops on a flight or something)":
+  whenever a team is on the clock, managed or not, the commissioner can make its pick, filed as
+  his (Craig, 5 Nov 2026, on #1095).
+- Undo and pick-for both work while paused; the draft stays paused and the next clock starts on
+  resume. The pick an undo puts back gets its full clock, starting at once, and auto-pick waits
+  until it runs out, even for a team that would be picked for at once. The draft room has its own
+  pick-time box, used only while paused, which changes this draft's time at once and League
+  settings' pick time too; League settings' pick time can't be changed while the draft is running
+  unpaused. The commissioner can mark and unmark "I'll pick for this one" until the start; a
+  manager joining the team takes the mark off (Craig, 5 Nov 2026, on #1095, "all recommendations").
 
 ## After the draft
 
