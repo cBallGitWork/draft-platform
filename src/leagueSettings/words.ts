@@ -27,7 +27,9 @@ export const blankGamesWords = "Games a gameweek has no number. Fill it in, then
 export const squadTitle = "Squad";
 export const squadMaximumLabel = "Most players in a squad";
 export const squadMaximumHint = `A whole number, ${STARTER_COUNT} to ${MOST_IN_SQUAD}, a Premier League squad, and no fewer than the league's least squad size.`;
-export const noSquadSizeWords = "This league's squads have no size limit.";
+/** Why the draft can't start without a squad size limit (Craig, 5 Nov 2026, on #1088: "Can't start
+ *  without a max"). */
+export const noSquadSizeWords = "This league's squads have no size limit, so its draft can't start: the draft's rounds are the squads' most players.";
 export const blankSquadMaximumWords = `${squadMaximumLabel} has no number. Fill it in, then save.`;
 export const areaMinimumsLabel = "Fewest players in each area";
 /** One area's box, for screen readers: "Fewest in Defence". */

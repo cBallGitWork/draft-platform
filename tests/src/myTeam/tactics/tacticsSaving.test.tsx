@@ -1,12 +1,13 @@
-// My team's Tactics tab, saving (#14; #851): each move saves itself, with no button, from the
-// gameweek the server names; its refusal in its words, the move kept; Undo back through every move
+// My team's Tactics tab, saving (#14; #851): each move saves itself, with no button, the line
+// saying when it landed (#987); its refusal in its words, the move kept; Undo back through every move
 // since the tab was opened, across saves; an edit kept sound when the squad changes under it; a
 // refusal that clears once the lineup it was about is changed; and an answer that lands after a
 // later move, which says nothing.
 
 import { act, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
+import { HOUR_MS } from "../../../../convex/shared/time";
 import { saveFailedWords, savedWords, startingWords } from "../../../../src/myTeam/tactics/words";
 import { league } from "../../../support/src/shell.harness";
 import { TACTICS_GAMEWEEK, openTactics } from "../../../support/src/tactics.harness";
@@ -15,6 +16,7 @@ import {
   RAYA,
   SALIBA,
   SAVED,
+  SAVED_LINE,
   SQUAD,
   STARTERS,
   WHITE,
@@ -58,16 +60,18 @@ describe("saving", () => {
       starters: [at(ARRIZABALAGA, { area: "goalkeeper", lane: "centre" }), ...STARTERS.slice(1)],
       bench: [RAYA.playerCode, WHITE.playerCode],
     });
-    const saved = await screen.findByText(savedWords(TACTICS_GAMEWEEK));
+    const saved = await screen.findByText(SAVED_LINE);
     // The live region was in the page, empty, before the save, so the words are announced.
     expect(saved.getAttribute("role")).toBe("status");
     expect(statusesBefore).toContain(saved);
   });
 
-  it("names the gameweek the server saved it from: the one after, if the deadline passed on the way", async () => {
-    await openedPitch({ tactics: SAVED, saveAnswer: TACTICS_GAMEWEEK + 1 });
+  it("says when the save landed, by the manager's own clock: \"Lineup saved 14:02\" (spec/05, Moving players)", async () => {
+    await openedPitch({ tactics: SAVED });
+    const before = Date.now();
     await whiteForSaliba();
-    expect(await screen.findByText(savedWords(TACTICS_GAMEWEEK + 1))).toBeTruthy();
+    const line = (await screen.findByText(SAVED_LINE)).textContent;
+    expect([savedWords(before), savedWords(Date.now())]).toContain(line);
   });
 
   it("shows the server's refusal in its words, keeping the move", async () => {
@@ -103,36 +107,41 @@ describe("saving", () => {
 
   describe("an answer that lands after a later move (#642)", () => {
     /** White swapped in for Saliba, the server holding back its `answer`; Saliba then swapped
-     *  back in if `moveAfter`, and the first answer let go. */
-    async function answerLands(answer: number | string, moveAfter: boolean) {
+     *  back in if the later move has its own `laterAnswer`, and the first answer let go. */
+    async function answerLands(answer: number | string, laterAnswer: number | string | null) {
       const app = openTacticsTab({ tactics: SAVED, saveAnswer: answer, saveHeld: true });
       await whiteForSaliba();
-      if (moveAfter) {
+      if (laterAnswer !== null) {
         // The later move's own save answers at once, so only the first is still waiting.
-        app.myTeam.lineupChanges.save.mockResolvedValueOnce(TACTICS_GAMEWEEK + 1);
+        app.myTeam.lineupChanges.save.mockResolvedValueOnce(laterAnswer);
         await swap(SALIBA, WHITE);
       }
+      // The first answer lands two hours on, so a line it left would say another time.
+      const now = Date.now();
+      const later = vi.spyOn(Date, "now").mockReturnValue(now + 2 * HOUR_MS);
       await act(async () => app.myTeam.letSaveGo());
+      later.mockRestore();
     }
 
     it("says nothing of a refusal of the lineup sent before", async () => {
-      await answerLands(REFUSAL, true);
+      await answerLands(REFUSAL, TACTICS_GAMEWEEK);
       expect(screen.queryByRole("alert")).toBeNull();
     });
 
-    it("says nothing of the lineup sent before being saved", async () => {
-      await answerLands(TACTICS_GAMEWEEK, true);
-      expect(screen.queryByText(savedWords(TACTICS_GAMEWEEK))).toBeNull();
+    it("says nothing of the lineup sent before being saved: the line keeps the later save's time", async () => {
+      const before = Date.now();
+      await answerLands(TACTICS_GAMEWEEK, TACTICS_GAMEWEEK);
+      expect([savedWords(before), savedWords(Date.now())]).toContain(screen.getByText(SAVED_LINE).textContent);
     });
 
     it("still says a refusal that lands with nothing moved since", async () => {
-      await answerLands(REFUSAL, false);
+      await answerLands(REFUSAL, null);
       expect(screen.getByRole("alert").textContent).toBe(REFUSAL);
     });
 
     it("still says a save that lands with nothing moved since", async () => {
-      await answerLands(TACTICS_GAMEWEEK, false);
-      expect(screen.getByText(savedWords(TACTICS_GAMEWEEK))).toBeTruthy();
+      await answerLands(TACTICS_GAMEWEEK, null);
+      expect(screen.getByText(SAVED_LINE)).toBeTruthy();
     });
   });
 });
@@ -146,7 +155,7 @@ describe("Undo (spec/05, Moving players)", () => {
   it("walks back three moves, one at a time, across their saves, saving each lineup it goes back to", async () => {
     const app = await openedPitch();
     await whiteForSaliba();
-    await screen.findByText(savedWords(TACTICS_GAMEWEEK));
+    await screen.findByText(SAVED_LINE);
     await swap(ARRIZABALAGA, RAYA);
     await swap(SALIBA, WHITE);
     const { calls } = app.myTeam.lineupChanges.save.mock;

@@ -8,7 +8,7 @@ import { squadOf } from "../squads/squadPlace";
 import { newestSeasonWithTotals, seasonTotals } from "../stats/seasonStats";
 import type { Stats } from "../stats/statTotals";
 import { autoPickOrder } from "./autoPickOrder";
-import { squadRulesOf, whyNotLegalFor } from "./draftPicks";
+import { squadRulesOf, undraftedIn, whyNotLegalFor } from "./draftPicks";
 import { draftRanking } from "./draftRanking";
 import { draftOf, picksMadeIn } from "./draftRow";
 import { rulesInForceAt } from "./draftStart";
@@ -24,7 +24,7 @@ import { pickOnTheClock } from "./snakeOrder";
 // - each player's place on the site's ranking, last season's points and the overview's stats, as
 //   the approved draft room picture's columns have them.
 
-const notLegal = v.union(v.literal("squadFull"), v.literal("clubFull"), v.literal("areasShort"));
+const notLegal = v.union(v.literal("squadFull"), v.literal("clubFull"), v.literal("areasShort"), v.literal("noFinish"));
 
 const greyedPlayer = v.object({ code: v.number(), reason: notLegal });
 export type GreyedPlayer = Infer<typeof greyedPlayer>;
@@ -48,7 +48,7 @@ export const greyedOut = query({
     if (pickOnTheClock(started.teamIds, started.rounds, await picksMadeIn(ctx, leagueId)) === null) return [];
     // Squads are empty when the draft starts (spec/04, The picks), so each player in it is a pick made.
     const picksLeft = started.rounds - (await squadOf(ctx, team._id)).length;
-    const why = await whyNotLegalFor(ctx, leagueId, started, team._id, picksLeft);
+    const why = await whyNotLegalFor(ctx, leagueId, started, team._id, picksLeft, await undraftedIn(ctx, leagueId));
     const players = await everyPlayerNow(ctx);
     const greyed = await Promise.all(players.map(async (player) => ({ code: player.code, reason: await why(player) })));
     return greyed.flatMap(({ code, reason }) => (reason === null ? [] : [{ code, reason }]));

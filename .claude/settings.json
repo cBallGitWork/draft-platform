@@ -36,6 +36,16 @@
             "timeout": 60
           }
         ]
+      },
+      {
+        "matcher": "AskUserQuestion|mcp__ccd_turn__wrap_up",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/guard_ask.py",
+            "timeout": 10
+          }
+        ]
       }
     ],
     "PostToolUse": [

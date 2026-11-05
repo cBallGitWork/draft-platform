@@ -52,6 +52,12 @@ Feature 4 of [SPEC.md](../SPEC.md). Only Craig's answers.
     2 goalkeepers still needed, every outfielder is greyed out.
 
   So every finished squad is legal.
+- The players still undrafted count too. A player whose pick would leave no legal finish from the
+  undrafted players is greyed out: with one keeper still needed, and every undrafted keeper at a
+  club the pick would put the team at its maximum for, that pick is greyed out. If no legal finish
+  exists at all, the squad-only checks apply: "Yes, grey those out" (Craig, 5 Nov 2026, on #1088).
+- With no maximum squad size the draft can't start; the start is refused and League settings says
+  why: "Can't start without a max" (Craig, 5 Nov 2026, on #1088).
 - A team left with no legal pick is an error, not the end of that team's draft: greying out always
   leaves a legal pick (Craig, 4 Nov 2026, on #1090: "ok").
 - The draft can't start until every squad is empty (Craig, 4 Nov 2026, on #1090: "ok").

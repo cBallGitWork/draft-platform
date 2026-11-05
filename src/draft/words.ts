@@ -84,6 +84,8 @@ export const notLegalWords = {
   squadFull: "Squad full",
   clubFull: "Club full",
   areasShort: "Squad needs other positions",
+  /** Picking him would leave no legal squad from the players still undrafted (#1088). */
+  noFinish: "Leaves no legal squad",
 } as const;
 export const selectLabel = (name: string) => `Show ${name}`;
 export const closePanelLabel = "Close";

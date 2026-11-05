@@ -3,12 +3,12 @@ import { internal } from "../_generated/api";
 import type { Doc, Id } from "../_generated/dataModel";
 import { internalMutation, mutation, type MutationCtx, type QueryCtx } from "../_generated/server";
 import { areasOf } from "../lineup/pitch";
-import { pickFirstLineupAgain } from "../lineup/lineups";
+import { pickFirstLineupAgain, saveFirstLineup } from "../lineup/lineups";
 import { fileEvent } from "../mail/letters";
 import { positionsNow } from "../positions/playerPositions";
 import { draftRulesOf } from "../rules/firstRules";
 import type { LeagueRules } from "../rules/leagueRulesShape";
-import { managerOf, refuse, refusals, runnerOf, teamIn } from "../shared/leagueAccess";
+import { managerOf, refuse, refusals, runnerOf, teamIn, teamsOf } from "../shared/leagueAccess";
 import { currentClubs, currentPlayersAt, heldPlayerByCode, playerByCode } from "../shared/players";
 import { placeOf, squadOf } from "../squads/squadPlace";
 import { squadRefusals } from "../squads/squads";
@@ -25,7 +25,8 @@ import { whyNotLegal, type DraftPlayer, type NotLegal } from "./legalPlayers";
 import { pickOnTheClock } from "./snakeOrder";
 
 // Making a pick (spec/04, The picks; #1090). The manager whose team is on the clock picks a player
-// it may legally take (legalPlayers.ts, under the squad rules the draft started under), and he joins its
+// it may legally take (legalPlayers.ts, under the squad rules the draft started under, leaving a
+// legal finish from the players still undrafted), and he joins its
 // squad as a commissioner's assignment does: his squad row, the `playerAssigned` event, and the
 // team's first lineup picked again; but with no Mail letter, for any pick (Craig, 4 Nov 2026, on
 // #1091: "we dont need mail for that and each pick"). The turn moves on by the snake
@@ -68,31 +69,46 @@ async function startedRulesAt(ctx: QueryCtx, leagueId: Id<"leagues">, at: number
 
 type Turn = NonNullable<ReturnType<typeof pickOnTheClock<Id<"teams">>>>;
 
+/** The players still undrafted in the league: in the Premier League now and held by no team. */
+export async function undraftedIn(ctx: QueryCtx, leagueId: Id<"leagues">): Promise<Doc<"players">[]> {
+  const players = (await Promise.all((await currentClubs(ctx)).map(({ code }) => currentPlayersAt(ctx, code)))).flat();
+  const places = await Promise.all(players.map(({ code }) => placeOf(ctx, leagueId, code)));
+  return players.filter((_, index) => places[index] === null);
+}
+
 /** Why `teamId` may not take a player as its next pick, under the squad rules the draft started
- *  under, with `picksLeft` picks still to make counting this one; null when it may. */
+ *  under, with `picksLeft` picks still to make counting this one and a legal finish from the
+ *  `undrafted`; null when it may. The pick and the draft room's greyed-out list both ask it. */
 export async function whyNotLegalFor(
   ctx: QueryCtx,
   leagueId: Id<"leagues">,
   started: StartedDraft,
   teamId: Id<"teams">,
   picksLeft: number,
+  undrafted: readonly Doc<"players">[],
 ): Promise<(player: Doc<"players">) => Promise<NotLegal | null>> {
   const positionsOf = await positionsNow(ctx, leagueId);
-  const squad: DraftPlayer[] = await Promise.all(
-    (await squadOf(ctx, teamId)).map(async ({ playerCode }) => ({
-      clubCode: (await heldPlayerByCode(ctx, playerCode, `Player ${playerCode}, drafted by team ${teamId}, isn't in the football data`)).clubCode,
-      areas: areasOf(await positionsOf(playerCode)),
-    })),
+  const asDraftPlayer = async ({ clubCode, code }: Doc<"players">): Promise<DraftPlayer> => ({ clubCode, areas: areasOf(await positionsOf(code)) });
+  const squad = await Promise.all(
+    (await squadOf(ctx, teamId)).map(async ({ playerCode }) =>
+      asDraftPlayer(await heldPlayerByCode(ctx, playerCode, `Player ${playerCode}, drafted by team ${teamId}, isn't in the football data`)),
+    ),
   );
-  const why = whyNotLegal(squad, picksLeft, await squadRulesOf(ctx, leagueId, started));
-  return async (player) => why({ clubCode: player.clubCode, areas: areasOf(await positionsOf(player.code)) });
+  const why = whyNotLegal(squad, picksLeft, await squadRulesOf(ctx, leagueId, started), await Promise.all(undrafted.map(asDraftPlayer)));
+  return async (player) => why(await asDraftPlayer(player));
 }
 
 /** Whether the team on the clock may legally take a player, under the squad rules the draft started
- *  under, with the picks it has left counting this one. */
-async function legalForTurn(ctx: QueryCtx, leagueId: Id<"leagues">, started: StartedDraft, turn: Turn): Promise<(player: Doc<"players">) => Promise<boolean>> {
+ *  under, with the picks it has left counting this one and a legal finish from the `undrafted`. */
+async function legalForTurn(
+  ctx: QueryCtx,
+  leagueId: Id<"leagues">,
+  started: StartedDraft,
+  turn: Turn,
+  undrafted: readonly Doc<"players">[],
+): Promise<(player: Doc<"players">) => Promise<boolean>> {
   // Each team picks once a round, so this round's pick is its (round)th: rounds - round + 1 are left.
-  const why = await whyNotLegalFor(ctx, leagueId, started, turn.team, started.rounds - turn.round + 1);
+  const why = await whyNotLegalFor(ctx, leagueId, started, turn.team, started.rounds - turn.round + 1, undrafted);
   return async (player) => (await why(player)) === null;
 }
 
@@ -122,6 +138,7 @@ type Placed = { timeout?: Doc<"draftPicks">["timeout"]; pausedAt?: number };
 
 /** `player` joins the squad of `team`, on the clock, as its pick, filed as `by`'s, and the next
  *  pick's clock starts PICK_GAP_MS from now, its manager told he is up next; after the last pick,
+ *  each team's lineup is saved as its picks left it (lineups.ts `saveFirstLineup`; #1040) and
  *  the whole league is told the draft is over (draftLetters.ts). */
 async function placePick(ctx: MutationCtx, league: Doc<"leagues">, turn: Turn, team: Doc<"teams">, player: Doc<"players">, by: string, { timeout, pausedAt }: Placed = {}): Promise<void> {
   const leagueId = league._id;
@@ -131,8 +148,10 @@ async function placePick(ctx: MutationCtx, league: Doc<"leagues">, turn: Turn, t
   await fileEvent(ctx, leagueId, by, { kind: "playerAssigned", playerCode: player.code, playerName: player.name, teamId: team._id, teamName: team.name });
   await pickFirstLineupAgain(ctx, leagueId, team._id);
   const next = await startClock(ctx, leagueId, turn.pick, now + PICK_GAP_MS, await pickSecondsNow(ctx, leagueId), { pausedAt });
-  if (next === null) await tellDraftOver(ctx, league, turn.pick);
-  else await tellUpNext(ctx, league, next);
+  if (next === null) {
+    for (const drafted of await teamsOf(ctx, leagueId)) await saveFirstLineup(ctx, leagueId, drafted._id);
+    await tellDraftOver(ctx, league, turn.pick);
+  } else await tellUpNext(ctx, league, next);
 }
 
 /** The manager of the team on the clock picks a player, who joins its squad, and the turn moves on.
@@ -166,7 +185,7 @@ async function liveTurn(ctx: QueryCtx, leagueId: Id<"leagues">): Promise<{ draft
  *  the team's squad rules. */
 async function legalPick(ctx: QueryCtx, leagueId: Id<"leagues">, started: StartedDraft, turn: Turn, playerCode: number): Promise<Doc<"players">> {
   const player = await pickable(ctx, leagueId, playerCode);
-  if (!(await (await legalForTurn(ctx, leagueId, started, turn))(player))) refuse(pickRefusals.breaksSquadRules(player.name));
+  if (!(await (await legalForTurn(ctx, leagueId, started, turn, await undraftedIn(ctx, leagueId)))(player))) refuse(pickRefusals.breaksSquadRules(player.name));
   return player;
 }
 
@@ -195,8 +214,8 @@ export const pickFor = mutation({
  *  still in the Premier League, held by no team in the league, whom the team may legally take. None
  *  is an error: greying out always leaves a legal pick (#1090). */
 async function autoPickFor(ctx: QueryCtx, leagueId: Id<"leagues">, started: StartedDraft, turn: Turn): Promise<Doc<"players">> {
-  const legal = await legalForTurn(ctx, leagueId, started, turn);
-  const players = (await Promise.all((await currentClubs(ctx)).map(({ code }) => currentPlayersAt(ctx, code)))).flat();
+  const players = await undraftedIn(ctx, leagueId);
+  const legal = await legalForTurn(ctx, leagueId, started, turn, players);
   const lists = await listsOf(ctx, turn.team);
   const order = autoPickOrder(
     players,
@@ -207,7 +226,7 @@ async function autoPickFor(ctx: QueryCtx, leagueId: Id<"leagues">, started: Star
   const byCode = new Map(players.map((player) => [player.code, player]));
   for (const code of order) {
     const player = byCode.get(code)!;
-    if ((await placeOf(ctx, leagueId, code)) === null && (await legal(player))) return player;
+    if (await legal(player)) return player;
   }
   throw new Error(`League ${leagueId}'s pick ${turn.pick} has no legal player left for team ${turn.team}`);
 }

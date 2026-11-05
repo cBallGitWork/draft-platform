@@ -28,8 +28,8 @@ import {
 import { fullTimeRecords, lockMatch, storeLeague, writeOverAnns, WRITTEN_OVER } from "../../support/convex/gameweekScoresMatch.harness";
 
 // The gameweek scorer (#625; spec/07), called on a seeded league with no screen: each team's
-// points, saved once the gameweek is final and worked out until then; a team that has never saved
-// a lineup on 0; the teams worked out final, for finalScores to store; the league's average; and
+// points, saved once the gameweek is final and worked out until then; a team with nobody in its
+// squad on 0; the teams worked out final, for finalScores to store; the league's average; and
 // one gameweek team by team, slot by slot, as the matchup and an override read it (#626); and one
 // team from reads the size of its squad, as a player's card and the Squad tab read it (#627).
 
@@ -45,13 +45,13 @@ async function scored({ t, leagueId }: ScoresLeague, teamIds: readonly Id<"teams
   return { scores: new Map(scores), toStore };
 }
 
-test("a team that has never saved a lineup scores its first (#637), and a gameweek not yet final has nothing to store", async () => {
+test("a team on the lineup it got after the draft scores it (#637, #1040), and a gameweek not yet final has nothing to store", async () => {
   const league = await scoresLeague({ bobSaves: false });
   await fullTimeRecords(league);
 
   const { scores, toStore } = await scored(league, [league.annsTeam, league.bobsTeam]);
-  expect(scores.get(league.annsTeam)).toEqual({ points: HULL_POINTS, provisional: true, noLineup: false });
-  expect(scores.get(league.bobsTeam)).toEqual({ points: BOBS_FIRST_POINTS, provisional: true, noLineup: false });
+  expect(scores.get(league.annsTeam)).toEqual({ points: HULL_POINTS, provisional: true });
+  expect(scores.get(league.bobsTeam)).toEqual({ points: BOBS_FIRST_POINTS, provisional: true });
   expect(toStore).toBeNull();
 });
 
@@ -61,8 +61,8 @@ test("once final, every team worked out is to be stored, with the matches it was
   await lockMatch(league);
 
   const { scores, toStore } = await scored(league, [league.annsTeam, league.bobsTeam]);
-  expect(scores.get(league.annsTeam)).toEqual({ points: HULL_POINTS, provisional: false, noLineup: false });
-  expect(scores.get(league.bobsTeam)).toEqual({ points: EVERTON_POINTS, provisional: false, noLineup: false });
+  expect(scores.get(league.annsTeam)).toEqual({ points: HULL_POINTS, provisional: false });
+  expect(scores.get(league.bobsTeam)).toEqual({ points: EVERTON_POINTS, provisional: false });
   expect(toStore).toEqual({ teamIds: [league.annsTeam, league.bobsTeam], fixtureCodes: [HULL_EVERTON], replace: true });
 });
 
@@ -74,7 +74,7 @@ test("a final gameweek gives its saved total, even where working it out again wo
   await writeOverAnns(league);
 
   const { scores, toStore } = await scored(league, [league.annsTeam, league.bobsTeam]);
-  expect(scores.get(league.annsTeam)).toEqual({ points: WRITTEN_OVER, provisional: false, noLineup: false });
+  expect(scores.get(league.annsTeam)).toEqual({ points: WRITTEN_OVER, provisional: false });
   expect(toStore).toBeNull();
 });
 
@@ -86,7 +86,7 @@ test("a team added since the gameweek was stored is worked out alone, on 0 with 
   const [catsTeam] = await addManagers(league.t, league.leagueId, [CAT]);
 
   const { scores, toStore } = await scored(league, [league.annsTeam, league.bobsTeam, catsTeam]);
-  expect(scores.get(catsTeam)).toEqual({ points: 0, provisional: false, noLineup: false });
+  expect(scores.get(catsTeam)).toEqual({ points: 0, provisional: false });
   expect(toStore).toEqual({ teamIds: [catsTeam], fixtureCodes: [HULL_EVERTON], replace: false });
 });
 
@@ -128,7 +128,7 @@ test("as the table has it, a final gameweek's saved total stands, while its slot
   await writeOverAnns(league);
 
   const { points, slotsTotal } = await teamByTeam(league, league.annsTeam, true);
-  expect(points).toEqual({ points: WRITTEN_OVER, provisional: false, noLineup: false });
+  expect(points).toEqual({ points: WRITTEN_OVER, provisional: false });
   expect(slotsTotal).toBe(HULL_POINTS);
 });
 
@@ -140,17 +140,17 @@ test("worked out now, a saved total is set aside, as an override's before and af
   await writeOverAnns(league);
 
   const { points, slotsTotal } = await teamByTeam(league, league.annsTeam, false);
-  expect(points).toEqual({ points: HULL_POINTS, provisional: false, noLineup: false });
+  expect(points).toEqual({ points: HULL_POINTS, provisional: false });
   expect(slotsTotal).toBe(HULL_POINTS);
 });
 
-test("team by team, a team that has never saved a lineup scores its first, slot by slot (#637)", async () => {
+test("team by team, a team on the lineup it got after the draft scores it, slot by slot (#637, #1040)", async () => {
   const league = await scoresLeague({ bobSaves: false });
   await fullTimeRecords(league);
 
   for (const asTable of [true, false]) {
     const { points, slotsTotal } = await teamByTeam(league, league.bobsTeam, asTable);
-    expect(points).toEqual({ points: BOBS_FIRST_POINTS, provisional: true, noLineup: false });
+    expect(points).toEqual({ points: BOBS_FIRST_POINTS, provisional: true });
     expect(slotsTotal).toBe(BOBS_FIRST_POINTS);
   }
 });

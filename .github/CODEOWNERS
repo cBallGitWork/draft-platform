@@ -1,7 +1,9 @@
 # Nothing needs Craig's review while no real league exists (Craig, 4 Nov 2026: "we've actually gone backwards
 # today", on yet another draft build waiting for his merge). Scoring and the schema were one-way doors here. Until a
 # league is real, nothing saved belongs to anyone and re-scoring is fine, so every pull request merges on green CI
-# and one pr-reviewer round. #1123 puts them back before the first real league's draft:
+# and one pr-reviewer round. Craig said it again on 5 Nov 2026, of scoring and schema pull requests merging on green:
+# "Yes, until real leagues". The paths come back when the beta holds a real league; #1123 puts them back before the
+# first real league's draft:
 #   /convex/scoring/  /convex/gameweekScorer/  /convex/schema/  /convex/schema.ts
 # GitHub enforces this file through the `main` ruleset's "Require review from Code Owners".
 

@@ -24,9 +24,8 @@ export type Drawn = Partial<DrawRules> & {
   scores?: GameweekScores<string>;
   /** The league's tie-breaks, in its order: a new league's by default, as the server's would be. */
   tieBreaks?: readonly TieBreak[];
-  /** The teams whose scores are still provisional, and those that saved no lineup. */
+  /** The teams whose scores are still provisional. */
   provisional?: readonly string[];
-  noLineup?: readonly string[];
   unscored?: LeagueTable["unscored"];
 };
 
@@ -43,13 +42,13 @@ const DRAW_DEFAULTS = { oddTeamOut: "leagueAverage", gamesPerGameweek: 1, seed: 
  *  gameweek scored, those unscored and the deadlines. */
 function inputsOf(teamNames: string[], drawn: Drawn) {
   const { oddTeamOut, gamesPerGameweek, seed, gameweeks } = { ...DRAW_DEFAULTS, ...drawn };
-  const { format = "headToHead", deadlineOf = () => null, scores = new Map(), provisional = [], noLineup = [], unscored = [] } = drawn;
+  const { format = "headToHead", deadlineOf = () => null, scores = new Map(), provisional = [], unscored = [] } = drawn;
   const teamIds = teamNames.map(idOf);
   const schedule = format === "headToHead" ? drawFixtures(teamIds, gameweeks, () => ({ oddTeamOut, gamesPerGameweek }), seed) : [];
   const results: Results = new Map(
     [...scores].map(([gameweek, scored]) => [
       gameweek,
-      new Map([...scored].map(([team, points]) => [idOf(team), { points, provisional: provisional.includes(team), noLineup: noLineup.includes(team) }])),
+      new Map([...scored].map(([team, points]) => [idOf(team), { points, provisional: provisional.includes(team) }])),
     ]),
   );
   return { format, teamIds, schedule, results, unscored, deadlineOf, named };

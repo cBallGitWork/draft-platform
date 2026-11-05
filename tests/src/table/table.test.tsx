@@ -22,7 +22,6 @@ import {
   gameweekWords,
   leagueAverageWords,
   loadingWords,
-  noLineupWords,
   noResultsWords,
   noRulesWords,
   provisionalWords,
@@ -147,9 +146,9 @@ describe("the fixtures", () => {
     expect(fixtureLines(3)).toEqual(fixtures.map(({ team, opponent }) => `${team}v${opponent ?? leagueAverageWords}`));
   });
 
-  it("show each scored fixture's score, the league's average's too, and name a team on 0 for saving no lineup", async () => {
+  it("show each scored fixture's score, the league's average's too", async () => {
     const scores = new Map([[1, new Map([["Ann's", 20], ["Bob's", 0], ["Cat's", 41.5], ["Dan's", 33], ["Eve's", 18]])]]);
-    const drawn = leagueTableOf(FIVE, { scores, noLineup: ["Bob's"], deadlineOf: () => Date.now() - HOUR_MS, gameweeks: [1] });
+    const drawn = leagueTableOf(FIVE, { scores, deadlineOf: () => Date.now() - HOUR_MS, gameweeks: [1] });
     openTable({ leagueTable: drawn });
     expect(await screen.findByRole("heading", { level: 3, name: gameweekWords(1) })).toBeTruthy();
     expect(fixtureLines(1)).toEqual(
@@ -157,7 +156,6 @@ describe("the fixtures", () => {
     );
     const average = drawn.gameweeks[0].fixtures.find((fixture) => fixture.opponent === null)!;
     expect(average.points!.opponent).toBe(22.5);
-    expect(screen.getByText(noLineupWords(["Bob's"]))).toBeTruthy();
   });
 
   it("step through only the gameweeks the league plays, no further than its first or last", async () => {

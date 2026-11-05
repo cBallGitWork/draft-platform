@@ -156,3 +156,25 @@ for row in '/team|src/myTeam/tactics/TacticsPage.tsx' '/team/squad|src/myTeam/Sq
   done
 done
 if traced /team | grep -qx src/myTeam/SquadPage.tsx; then fail "screen_routes.py: /team traces to the Squad tab's page"; fi
+
+# the same gate as look-gate.yml's look-approved check: approval_gate.py run on the event GitHub
+# hands the job exits 1 while a numbered difference lacks craig-approved, 0 once Craig adds it or
+# when nothing differs, and 1 on an event it can't read (never a silent pass)
+gate_on() { # expected-exit body-file labels-json: approval_gate.py on an event holding them
+  local want=$1 body=$2 labels=$3 got
+  $jq -n --rawfile body "$body" --argjson labels "$labels" '{pull_request: {body: $body, labels: $labels}}' > "$tmp/event.json"
+  GITHUB_EVENT_PATH=$tmp/event.json python3 "$hooks/approval_gate.py" > /dev/null 2>&1; got=$?
+  [ "$got" -eq "$want" ] || fail "approval_gate.py as the check: expected exit $want, got $got: $body $labels"
+}
+gate_on 1 "$repo/pr-differs.md" '[{"name":"bug"}]'
+gate_on 1 "$repo/pr-pasted.md" '[]'
+gate_on 0 "$repo/pr-differs.md" '[{"name":"Craig-Approved"}]'
+gate_on 0 "$repo/pr-matches.md" '[]'
+gate_on 0 "$repo/pr.md" '[]'
+printf 'not json' > "$tmp/event.json"
+if GITHUB_EVENT_PATH=$tmp/event.json python3 "$hooks/approval_gate.py" > /dev/null 2>&1; then
+  fail "approval_gate.py as the check: passed an event it can't read"
+fi
+if env -u GITHUB_EVENT_PATH python3 "$hooks/approval_gate.py" > /dev/null 2>&1; then
+  fail "approval_gate.py as the check: passed with no event"
+fi

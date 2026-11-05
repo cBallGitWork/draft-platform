@@ -1,0 +1,170 @@
+# The lead: keeps the builders busy all day, so no session has to start, watch or restart a build
+# (Craig, 5 Nov 2026: "we created a dev team but it still feels like im a solo worker"). Every 30 minutes it fills
+# up to MAX_IN_FLIGHT claude-build.yml runs, in this order:
+#   1. A fix round. A ready builder pull request (opened by the build bot, not a session) whose `verify` failed, or
+#      whose review says "look at these first", gets one claude-build run in mode `fix` on its branch, and the label
+#      FIXED_LABEL so it never gets a second (one review round). After that it waits on the PM dashboard.
+#   2. A resume. An unfinished build's draft (`wip/issue-N-*`) gets one more build of N, which carries on from it,
+#      and the label RESUMED_LABEL, unless N waits on Craig's rules (`rules:open`: his answer restarts it).
+#   3. A new build. Ready issues, oldest first: `lane:auto` (a grill's issues) or `rules:clear` (the sweep found
+#      every rule settled), with no `rules:open`, `lane:craig` or STALE_LABEL, and no open pull request naming them
+#      (`Part of #N` or `Closes #N`). The drift-pass and nightly-ci issues have their own jobs.
+# Two builds never run at once on issues naming the same spec/NN file, so builders work in different folders
+# (CLAUDE.md). A build in flight is read from its run name (claude-build.yml's run-name, "<mode> #N").
+# At 01:30 UTC it also sweeps, as the team's analyst: the next SWEEP_SIZE candidates get claude-build in mode
+# `rules-only`. A candidate is any other open issue whose body names a spec/NN file and whose title isn't one of
+# NOT_BUILDS (Craig's calls, the UI and reskin jobs that need /design with him, tidy-ups: parked behind features
+# since 1 Nov 2026). Its open rules land on the issue, labelled `rules:open`, before the 7am PM dashboard batches
+# them, so no daytime build stops to ask; a settled one gets `rules:clear` and is built; one already built or out
+# of date gets STALE_LABEL and a comment saying why, for the dashboard to close in one go. Nothing is built that
+# the sweep or a grill hasn't checked, since many old issues are done or out of date (5 Nov 2026: #8, #14).
+# A run by hand with `dry_run` says what it would start and label and starts nothing: how a change here is tested
+# from its branch (CLAUDE.md). Builds are dispatched on the lead's own ref, so a branch's lead runs that branch's
+# claude-build.yml. It replaces nightly-build.yml (5 Nov 2026). It dispatches rather than labelling `build`: a
+# label added with the default token starts no workflow.
+name: lead
+
+on:
+  schedule:
+    - cron: "*/30 * * * *"
+    - cron: "30 1 * * *"  # the rules sweep, before the 02:00 builds and the 7am dashboard
+  workflow_dispatch:
+    inputs:
+      sweep:
+        description: Run the rules sweep too
+        type: boolean
+        default: false
+      dry_run:
+        description: Say what it would start and label, and start nothing (how a change to this file is tested)
+        type: boolean
+        default: false
+
+permissions:
+  actions: write  # dispatch claude-build.yml
+  issues: write  # the lead's labels, on issues and pull requests
+  pull-requests: read
+  contents: read
+
+concurrency:
+  group: lead
+  cancel-in-progress: false
+
+env:
+  GH_TOKEN: ${{ github.token }}
+  GH_REPO: ${{ github.repository }}
+  MAX_IN_FLIGHT: 4
+  SWEEP_SIZE: 10
+  FIXED_LABEL: "lead:fixed"
+  RESUMED_LABEL: "lead:resumed"
+  CLEAR_LABEL: "rules:clear"
+  STALE_LABEL: "lead:stale"
+  NOT_BUILDS: "^(Craig's call|UI [0-9]+:|Reskin|refactor|chore|docs)"
+  OWN_JOBS: "drift-pass|nightly-ci"  # issues other workflows build or open
+  SWEEP: ${{ github.event.schedule == '30 1 * * *' || inputs.sweep == true }}
+  DRY_RUN: ${{ inputs.dry_run == true }}
+
+jobs:
+  lead:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Make the lead's labels
+        run: |
+          gh label create "$FIXED_LABEL" --color 5319E7 --description "The lead gave this pull request its one fix round" --force
+          gh label create "$RESUMED_LABEL" --color 5319E7 --description "The lead resumed this unfinished build once" --force
+          gh label create "$CLEAR_LABEL" --color 0E8A16 --description "The rules sweep found every rule settled" --force
+          gh label create "$STALE_LABEL" --color BFBFBF --description "The rules sweep found it already built or out of date" --force
+      - name: Fill the builders
+        run: |
+          set -euo pipefail
+          # builds run from the lead's own ref, so a branch's lead dispatches that branch's claude-build.yml
+          dispatch() { # issue mode [pr]
+            echo "Dispatching claude-build: $2 #$1${3:+ on pull request #$3}"
+            [ "$DRY_RUN" = true ] || gh workflow run claude-build.yml --ref "$GITHUB_REF_NAME" -f issue="$1" -f mode="$2" -f pr="${3:-}"
+          }
+          spec_files() { # issue: the spec/NN files its body names
+            gh issue view "$1" --json body --jq '.body // ""' | grep -oE 'spec/[0-9]+' | sort -u || true
+          }
+
+          # builds in flight, and the issues they hold (run-name "<mode> #N")
+          running=$( { gh run list --workflow claude-build.yml --status in_progress --limit 50 --json displayTitle --jq '.[].displayTitle'
+                       gh run list --workflow claude-build.yml --status queued --limit 50 --json displayTitle --jq '.[].displayTitle'; } \
+                     | grep -E '^(build|fix|rules-only) #[0-9]+$' || true)
+          busy_issues=$(grep -oE '[0-9]+$' <<<"$running" | sort -u || true)
+          in_flight=$(grep -cE '^(build|fix) #' <<<"$running" || true)
+          busy_specs=$(for n in $busy_issues; do spec_files "$n"; done | sort -u)
+          slots=$((MAX_IN_FLIGHT - in_flight))
+          echo "In flight: $in_flight build(s) (${busy_issues//$'\n'/ }); free: $slots"
+          take() { # issue: true if it can start now; holds its spec files
+            local n=$1 files
+            grep -qx "$n" <<<"$busy_issues" && return 1
+            files=$(spec_files "$n")
+            if [ -n "$files" ] && [ -n "$busy_specs" ] && grep -qxF -f <(printf '%s\n' "$files") <<<"$busy_specs"; then
+              echo "#$n waits: a build in flight works in the same spec file ($(tr "\n" " " <<<"$files"))"; return 1
+            fi
+            busy_issues=$(printf '%s\n%s\n' "$busy_issues" "$n"); busy_specs=$(printf '%s\n%s\n' "$busy_specs" "$files")
+          }
+
+          prs=$(gh pr list --state open --limit 200 --json number,isDraft,headRefName,author,body,labels,statusCheckRollup)
+          linked() { jq -r '.[] | (.body // "") | scan("(?m)^(?:Part of|Closes) #([0-9]+)") | .[0]' <<<"$prs" | sort -u; }
+          taken=$(linked)
+
+          # 1. one fix round for a red or flagged builder pull request
+          label() { echo "Labelling #$1 $2"; [ "$DRY_RUN" = true ] || gh api "repos/$GH_REPO/issues/$1/labels" -f "labels[]=$2" > /dev/null; }  # a pull request too
+          for row in $(jq -r --arg fixed "$FIXED_LABEL" '
+              .[] | select((.isDraft | not) and .author.is_bot == true)
+              | select(all(.labels[]?; .name != $fixed))
+              | "\(.number):\(any(.statusCheckRollup[]?; .name == "verify" and .conclusion == "FAILURE")):\((.body // "") | ([scan("(?m)^(?:Part of|Closes) #([0-9]+)")] | first // [""]) | .[0])"' <<<"$prs"); do
+            [ "$slots" -gt 0 ] || break
+            IFS=: read -r pr red n <<<"$row"
+            [ -n "$n" ] || continue
+            if [ "$red" != true ]; then
+              gh pr view "$pr" --json comments --jq '.comments[].body' | grep -q 'look at these first' || continue
+            fi
+            take "$n" || continue
+            dispatch "$n" fix "$pr"; label "$pr" "$FIXED_LABEL"; slots=$((slots - 1))
+          done
+
+          # 2. resume an unfinished build once
+          for row in $(jq -r --arg resumed "$RESUMED_LABEL" '
+              .[] | select(.isDraft) | select(.headRefName | test("^wip/issue-[0-9]+-"))
+              | select(all(.labels[]?; .name != $resumed))
+              | "\(.number):\(.headRefName | capture("^wip/issue-(?<n>[0-9]+)-").n)"' <<<"$prs"); do
+            [ "$slots" -gt 0 ] || break
+            pr=${row%%:*} n=${row#*:}
+            gh issue view "$n" --json labels --jq '.labels[].name' | grep -qx 'rules:open' && continue
+            take "$n" || continue
+            dispatch "$n" build; label "$pr" "$RESUMED_LABEL"; slots=$((slots - 1))
+          done
+
+          # 3. new builds, oldest ready issue first
+          # each open issue with what it is: `build` (lane:auto, or the sweep found it settled), `sweep` (a candidate
+          # the sweep hasn't checked), or nothing
+          ready=$(gh issue list --state open --limit 300 --json number,title,body,labels --jq '
+              .[] | select(all(.labels[]?; .name != "lane:craig" and .name != "rules:open" and .name != env.STALE_LABEL))
+              | select(((.title + " " + ([.labels[]?.name] | join(" "))) | test(env.OWN_JOBS)) | not)
+              | if any(.labels[]?; .name == "lane:auto" or .name == env.CLEAR_LABEL) then "\(.number):build"
+                elif ((.body // "") | test("spec/[0-9]+")) and ((.title | test(env.NOT_BUILDS; "i")) | not) then "\(.number):sweep"
+                else empty end' | sort -t: -k1,1n)
+          for row in $ready; do
+            [ "$slots" -gt 0 ] || break
+            n=${row%%:*}
+            [ "${row#*:}" = build ] || continue
+            grep -qx "$n" <<<"$taken" && continue
+            take "$n" || continue
+            dispatch "$n" build; slots=$((slots - 1))
+          done
+
+          # the overnight rules sweep
+          if [ "$SWEEP" = true ]; then
+            swept=0
+            for row in $ready; do
+              [ "$swept" -lt "$SWEEP_SIZE" ] || break
+              n=${row%%:*}
+              [ "${row#*:}" = sweep ] || continue
+              grep -qx "$n" <<<"$taken" && continue
+              grep -qx "$n" <<<"$busy_issues" && continue
+              dispatch "$n" rules-only; swept=$((swept + 1))
+            done
+            echo "Swept $swept issue(s) for open rules."
+          fi
