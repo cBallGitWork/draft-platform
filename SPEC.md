@@ -232,6 +232,7 @@ are Craig's (1 Nov 2026: "Add all eight"; #950).
 | football | the game itself | soccer |
 | table | a league's teams, or the Premier League's clubs, ranked by points | standings |
 | waivers | the claims on a dropped player, made in the league's waiver order before he is a free agent | waiver wire |
+| the window | from the first waiver run after a gameweek to the next deadline, when players are free agents (spec/08) | week, break, transfer window (the real one opens in January) |
 | play-offs | the games after the season that settle the places a league plays them for | playoffs |
 | kit | the shirts, shorts and socks a club or team wears | uniform |
 | boots | what a player wears on his feet | cleats |
