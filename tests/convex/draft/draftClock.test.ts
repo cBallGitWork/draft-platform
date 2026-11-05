@@ -11,7 +11,7 @@ import { fakeResend, signInDeployment } from "../../support/convex/signIn.harnes
 
 // The pick clock (spec/04, The picks; #1091): each pick runs on the league's pick time, the first
 // from the start and each after 10 seconds from the pick before; when a clock runs out the draft
-// picks for the team (the stub: the first legal player by code), and a team with no manager is
+// picks for the team (with nothing listed or ranked, newcomers A to Z: autoPick.test.ts), and a team with no manager is
 // picked for at once. No pick files a Mail letter.
 
 let t: TestConvex;

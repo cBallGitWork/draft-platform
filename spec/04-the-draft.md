@@ -96,6 +96,15 @@ Feature 4 of [SPEC.md](../SPEC.md). Only Craig's answers.
   next team's clock starts after the 10-second gap (Craig, 4 Nov 2026, on #1091).
 - After a timed-out pick, the next clock waits the usual 10 seconds, as after every other pick
   (Craig, 4 Nov 2026, on #1091).
+- Players the ranking leaves out come after every ranked player, ordered by last season's points,
+  then newcomers by name ("rec"). A manager who takes control back has his timeout count reset to
+  0 ("ok"). A new manager taking over an empty team mid-draft starts off auto-pick ("ok") (Craig,
+  4 Nov 2026, on #1094).
+- If every legal player is on the do-not-draft list, auto-pick ignores the list for that pick only
+  and takes the best legal player by the usual order. Players level on last season's points go A
+  to Z by the name the site shows (Palmer before Saka) (Craig, 5 Nov 2026, on #1094).
+- Until last season's points are priced (#1114), the fallback reads dummy staging data: "just make
+  a dummy csv for this, its just staging data currently" (Craig, 5 Nov 2026, on #1094).
 
 ## The queue and the ranking
 
