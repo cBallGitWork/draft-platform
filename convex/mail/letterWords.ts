@@ -101,6 +101,13 @@ export function eventLetter(event: LeagueEvent, who: string, zone: string | unde
         subject: `${event.playerName} was released`,
         body: `${who} released ${event.playerName} from ${event.teamName} to free agency.`,
       };
+    case "playerDropped":
+      return {
+        subject: `${event.teamName} dropped ${event.playerName}`,
+        body: event.toWaivers
+          ? `${who} dropped ${event.playerName} from ${event.teamName}. He is on waivers for at least 24 hours.`
+          : `${who} dropped ${event.playerName} from ${event.teamName}. Picked up since the last deadline, he is a free agent again, not on waivers.`,
+      };
     case "rulesChanged":
       return {
         subject: `The league's rules change from gameweek ${event.fromGameweek}`,
