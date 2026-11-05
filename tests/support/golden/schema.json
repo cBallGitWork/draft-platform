@@ -21806,6 +21806,46 @@
               }
             },
             "optional": true
+          },
+          "timeouts": {
+            "fieldType": {
+              "type": "array",
+              "value": {
+                "type": "object",
+                "value": {
+                  "teamId": {
+                    "fieldType": {
+                      "type": "id",
+                      "tableName": "teams"
+                    },
+                    "optional": false
+                  },
+                  "count": {
+                    "fieldType": {
+                      "type": "number"
+                    },
+                    "optional": false
+                  },
+                  "autoPick": {
+                    "fieldType": {
+                      "type": "union",
+                      "value": [
+                        {
+                          "type": "literal",
+                          "value": "fullClock"
+                        },
+                        {
+                          "type": "literal",
+                          "value": "atOnce"
+                        }
+                      ]
+                    },
+                    "optional": true
+                  }
+                }
+              }
+            },
+            "optional": true
           }
         }
       }

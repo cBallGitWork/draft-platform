@@ -27,6 +27,7 @@ import type * as draft_draftRanking from "../draft/draftRanking.js";
 import type * as draft_draftRow from "../draft/draftRow.js";
 import type * as draft_draftRules from "../draft/draftRules.js";
 import type * as draft_draftStart from "../draft/draftStart.js";
+import type * as draft_draftTimeouts from "../draft/draftTimeouts.js";
 import type * as draft_legalPlayers from "../draft/legalPlayers.js";
 import type * as draft_rankingFile from "../draft/rankingFile.js";
 import type * as draft_snakeOrder from "../draft/snakeOrder.js";
@@ -266,6 +267,7 @@ declare const fullApi: ApiFromModules<{
   "draft/draftRow": typeof draft_draftRow;
   "draft/draftRules": typeof draft_draftRules;
   "draft/draftStart": typeof draft_draftStart;
+  "draft/draftTimeouts": typeof draft_draftTimeouts;
   "draft/legalPlayers": typeof draft_legalPlayers;
   "draft/rankingFile": typeof draft_rankingFile;
   "draft/snakeOrder": typeof draft_snakeOrder;

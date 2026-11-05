@@ -15,6 +15,7 @@ import { PICK_GAP_MS, startClock } from "./draftClock";
 import { tellDraftOver, tellUpNext } from "./draftLetters";
 import { draftOf, picksMadeIn, type StartedDraft } from "./draftRow";
 import { rulesInForceAt } from "./draftStart";
+import { afterTimeout } from "./draftTimeouts";
 import { legalPlayers, type DraftPlayer } from "./legalPlayers";
 import { pickOnTheClock } from "./snakeOrder";
 
@@ -84,9 +85,12 @@ async function pickable(ctx: QueryCtx, leagueId: Id<"leagues">, playerCode: numb
   return player;
 }
 
-/** The league's pick time now, in seconds: a change the commissioner makes reaches the next clock. */
+/** The league's draft rules now: a change the commissioner makes reaches the next clock. */
+const draftRulesNow = async (ctx: QueryCtx, leagueId: Id<"leagues">) => draftRulesOf(await startedRulesAt(ctx, leagueId, Date.now()));
+
+/** The league's pick time now, in seconds. */
 export async function pickSecondsNow(ctx: QueryCtx, leagueId: Id<"leagues">): Promise<number> {
-  return draftRulesOf(await startedRulesAt(ctx, leagueId, Date.now())).pickSeconds;
+  return (await draftRulesNow(ctx, leagueId)).pickSeconds;
 }
 
 /** `player` joins the squad of `team`, on the clock, as its pick, filed as `by`'s, and the next
@@ -139,7 +143,8 @@ async function firstLegalPlayer(ctx: QueryCtx, leagueId: Id<"leagues">, started:
 
 /** The draft picks for the team on the clock: when its clock runs out, whether or not its manager is
  *  online (Craig, 4 Nov 2026, on #1091), or as its clock starts for a team with no manager. The
- *  pick is filed as its manager's, or the commissioner's for a team with none. Does nothing once
+ *  pick is filed as its manager's, or the commissioner's for a team with none. For a team with a
+ *  manager it is one of its timeouts, against the league's limit now (draftTimeouts.ts). Does nothing once
  *  `pick` is no longer on the clock: its team picked, or the league is gone. */
 export const autoPick = internalMutation({
   args: { leagueId: v.id("leagues"), pick: v.number() },
@@ -152,6 +157,10 @@ export const autoPick = internalMutation({
     if (turn?.pick !== pick) return null;
     const team = await teamIn(ctx, leagueId, turn.team);
     const player = await firstLegalPlayer(ctx, leagueId, started, turn);
+    if (team.managerEmail !== undefined) {
+      const limit = (await draftRulesNow(ctx, leagueId)).timeoutsBeforeAutoPick;
+      await ctx.db.patch("drafts", draft._id, { timeouts: afterTimeout(draft.timeouts, team._id, limit) });
+    }
     await placePick(ctx, league, turn, team, player, team.managerEmail ?? league.commissionerEmail);
     return null;
   },
