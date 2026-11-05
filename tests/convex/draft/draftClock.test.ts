@@ -5,7 +5,7 @@ import { PICK_GAP_MS } from "../../../convex/draft/draftClock";
 import type { LeagueRules } from "../../../convex/rules/leagueRulesShape";
 import { SECOND_MS } from "../../../convex/shared/time";
 import { ARSENAL, CHELSEA, insertClubs, insertPlayers, type HeldPlayer } from "../../support/convex/footballRows.harness";
-import { HELD_FIRST_RULES } from "../../support/convex/leagueRules.harness";
+import { changeEveryRules, HELD_FIRST_RULES, setPickSeconds as setPickSecondsOf } from "../../support/convex/leagueRules.harness";
 import { actingAs, addManagers, adminCreatesLeague, COMMISSIONER, eventsIn, MANAGERS, type TestConvex } from "../../support/convex/leagues.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
 
@@ -26,16 +26,9 @@ const [C1] = CHELSEA_MIDS.map(({ code }) => code);
 const PICK_MS = HELD_FIRST_RULES.draft!.pickSeconds * SECOND_MS;
 const [ANN, BOB] = MANAGERS;
 
-/** Every rules row of the league changed by `change`: the rules in force. */
-const changeEveryRules = (change: (rules: LeagueRules) => LeagueRules) =>
-  t.run(async (ctx) => {
-    for (const row of await ctx.db.query("leagueRules").withIndex("by_leagueId_and_fromGameweek", (q) => q.eq("leagueId", leagueId)).collect()) {
-      await ctx.db.patch("leagueRules", row._id, { rules: change(row.rules) });
-    }
-  });
 const setSquadRules = (squad: Partial<LeagueRules["squad"]>) =>
-  changeEveryRules((rules) => ({ ...rules, squad: { size: { minimum: 1, maximum: 2 }, minimumByArea: null, maxPerClub: null, ...squad } }));
-const setPickSeconds = (pickSeconds: number) => changeEveryRules((rules) => ({ ...rules, draft: { ...HELD_FIRST_RULES.draft!, pickSeconds } }));
+  changeEveryRules(t, leagueId, (rules) => ({ ...rules, squad: { size: { minimum: 1, maximum: 2 }, minimumByArea: null, maxPerClub: null, ...squad } }));
+const setPickSeconds = (pickSeconds: number) => setPickSecondsOf(t, leagueId, pickSeconds);
 
 const as = (email: string) => actingAs(t, email);
 const read = async () => (await as(COMMISSIONER)).query(api.draft.draftStart.ofLeague, { leagueId, now: Date.now() });

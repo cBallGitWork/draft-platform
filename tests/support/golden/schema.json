@@ -21769,7 +21769,27 @@
                     "type": "id",
                     "tableName": "_scheduled_functions"
                   },
-                  "optional": false
+                  "optional": true
+                },
+                "paused": {
+                  "fieldType": {
+                    "type": "object",
+                    "value": {
+                      "at": {
+                        "fieldType": {
+                          "type": "number"
+                        },
+                        "optional": false
+                      },
+                      "pickSeconds": {
+                        "fieldType": {
+                          "type": "number"
+                        },
+                        "optional": false
+                      }
+                    }
+                  },
+                  "optional": true
                 }
               }
             },

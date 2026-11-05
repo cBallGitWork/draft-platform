@@ -147,7 +147,9 @@ export const startOnDate = internalMutation({
 
 const onTheClock = v.object({ pick: v.number(), round: v.number(), teamId: v.id("teams"), name: v.string() });
 /** When the clock of the pick on the clock starts and runs out (draftClock.ts). */
-const pickClock = v.object({ startsAt: v.number(), endsAt: v.number() });
+/** A pick's clock: when it starts and runs out, and, while the draft is paused (draftPause.ts),
+ *  when it was paused, its time left counted from then. */
+const pickClock = v.object({ startsAt: v.number(), endsAt: v.number(), pausedAt: v.optional(v.number()) });
 
 /** The league's draft as everyone in the league reads it: waiting, with its date (null: until the
  *  commissioner presses start), its rounds (null: the league has no squad size limit) and the
@@ -181,7 +183,7 @@ export const ofLeague = query({
     const turn = pickOnTheClock(order, rounds, picksMade);
     const started = { startedAt: at, rounds, order, picksMade };
     if (turn === null) return { status: "over" as const, ...started };
-    const clock = draft.clock === undefined ? null : { startsAt: draft.clock.startsAt, endsAt: draft.clock.endsAt };
+    const clock = draft.clock === undefined ? null : { startsAt: draft.clock.startsAt, endsAt: draft.clock.endsAt, pausedAt: draft.clock.paused?.at };
     return { status: "live" as const, ...started, onTheClock: { pick: turn.pick, round: turn.round, ...turn.team }, clock };
   },
 });
