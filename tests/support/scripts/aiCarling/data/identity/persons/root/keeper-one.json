@@ -1,5 +1,5 @@
 {
-  "person_root_id": "keeper-one",
+  "root_id": "keeper-one",
   "source_mappings": {
     "fpl_code": 100001
   }
