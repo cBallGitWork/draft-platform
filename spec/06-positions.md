@@ -5,7 +5,7 @@ Feature 6 of [SPEC.md](../SPEC.md). Only Craig's answers: the first `/grill` and
 
 **Contents:** [The labels](#the-labels) · [From real starts](#from-real-starts) ·
 [The admin oversees them](#the-admin-oversees-them) · [New signings](#new-signings) ·
-[When positions change](#when-positions-change)
+[When positions change](#when-positions-change) · [Availability](#availability)
 
 ## The labels
 
@@ -68,3 +68,15 @@ Feature 6 of [SPEC.md](../SPEC.md). Only Craig's answers: the first `/grill` and
   2026; #895).
 - Losing a position never makes a squad illegal. The player stays in his slot for the gameweek
   and the manager is warned.
+
+## Availability
+
+From `/grill the auto team and fixture edits` (5 Nov 2026).
+
+- Every player has an availability of our own: out, doubtful or available. The auto team reads only
+  that (`spec/09`): "we will need our own system for that, since that doesnt scale with leagues
+  outside of prem".
+- For the Premier League it is filled from FPL's flags: injured, suspended or unavailable is out, a
+  doubt is doubtful. Reading FPL first is fine for trialling ("if needed we can use fpl for
+  trialling first"); another competition's feed fills it later, through the same football layer.
+- It comes from the feed, and the admin can set it by hand over the feed (`spec/15`).
