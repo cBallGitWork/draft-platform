@@ -59,7 +59,6 @@ export const nextHead = "Next";
 export const nextWords = (names: readonly string[]) => names.join(", then ");
 export const yourNextHead = (onTheClock: boolean) => (onTheClock ? "Your next after this" : "Your next pick");
 export const inPicksWords = (picks: number) => (picks === 1 ? "in 1 pick" : `in ${picks} picks`);
-export const lastPickWords = "Last pick";
 
 /** The board. */
 export const BOARD_TITLE = "Board";

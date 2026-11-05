@@ -3,6 +3,7 @@
 // left of 90.
 
 import type { Id } from "../../convex/_generated/dataModel";
+import { snakeOrder } from "../../convex/draft/snakeOrder";
 import type { Position } from "../../convex/positions/positionTables";
 import { SECOND_MS } from "../../convex/shared/time";
 import type { BoardPick, DraftSeam, DraftState } from "./seam";
@@ -23,16 +24,10 @@ const TAKEN: readonly [string, string, Position][] = [
   ["Sarr", "CRY", "W"], ["Gordon", "NEW", "W"],
 ];
 
-/** The team making pick `pick`, by the snake. */
-const teamAt = (pick: number) => {
-  const round = Math.floor((pick - 1) / order.length);
-  const inRound = (pick - 1) % order.length;
-  return order[round % 2 === 0 ? inRound : order.length - 1 - inRound].teamId;
-};
-
+const snake = snakeOrder(order, ROUNDS);
 const picks: BoardPick[] = TAKEN.map(([name, clubShortName, position], index) => ({
   pick: index + 1,
-  teamId: teamAt(index + 1),
+  teamId: snake[index].teamId,
   player: { code: 9000 + index, name, clubShortName, position },
 }));
 
