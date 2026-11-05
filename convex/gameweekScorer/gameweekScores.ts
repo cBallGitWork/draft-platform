@@ -39,9 +39,6 @@ export interface TeamGameweekTotal {
   points: number;
   /** While a record that counts hasn't arrived, or a match it counts isn't locked (spec/07). */
   provisional: boolean;
-  /** It held no lineup in a gameweek begun before #637 gave every team one (spec/07), so scored
-   *  0 (teamGameweek.ts's TeamInGameweek). */
-  noLineup: boolean;
 }
 
 /** A gameweek left out of the table, and why. */
@@ -137,7 +134,7 @@ export async function gameweekScorer(ctx: QueryCtx, league: Doc<"leagues">, seas
 
 /** A team's points from its gameweek worked out. */
 function totalOf(scored: TeamInGameweek): TeamGameweekTotal {
-  return { points: scored.team.total, provisional: scored.team.provisional, noLineup: scored.noLineup };
+  return { points: scored.team.total, provisional: scored.team.provisional };
 }
 
 /** One gameweek of the league, team by team: for a screen that shows its slots (the matchup, #34,

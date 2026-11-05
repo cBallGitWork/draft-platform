@@ -54,7 +54,6 @@ const teamOf = (email: string): Id<"teams"> => {
 };
 const saved = (lineup: Lineup, fromGameweek: number | null) => ({
   fromGameweek,
-  noLineup: false,
   starters: lineup.starters,
   bench: lineup.bench,
   leftSquad: [],
@@ -72,6 +71,7 @@ describe("a team's first lineup, stored as its squad is made (#637)", () => {
       for (const row of await ctx.db.query("squadPlayers").withIndex("by_teamId", (q) => q.eq("teamId", annsTeam)).collect()) {
         await ctx.db.delete("squadPlayers", row._id);
       }
+      for (const row of await ctx.db.query("lineups").collect()) if (row.teamId === annsTeam) await ctx.db.delete("lineups", row._id);
     });
     const by = await squadMoves(t, leagueId, COMMISSIONER);
     for (const playerCode of SQUAD) await by.assign(playerCode, annsTeam);
@@ -152,12 +152,16 @@ describe("a team's first lineup, stored as its squad is made (#637)", () => {
     expect(await annsRows()).toMatchObject([{ fromGameweek: NEXT, firstLineup: true }, { fromGameweek: NEXT + 1, firstLineup: true }]);
   });
 
-  test("a squad with nobody placed yet, for want of positions, holds an empty first lineup, not one marked as none", async () => {
+  test("a squad with nobody placed yet, for want of positions, holds an empty first lineup, stored like any other", async () => {
     await t.run(async (ctx) => {
       const row = await ctx.db.query("playerPositions").withIndex("by_code", (q) => q.eq("code", BOBS)).unique();
       await ctx.db.patch("playerPositions", row!._id, { set: [] });
     });
-    expect(await (await as(BOB)).mine(NEXT)).toEqual(saved({ starters: [], bench: [BOBS] }, null));
+    const by = await squadMoves(t, leagueId, COMMISSIONER);
+    await by.release(BOBS);
+    await by.assign(BOBS, bobsTeam);
+    expect(await (await as(BOB)).mine(NEXT)).toEqual(saved({ starters: [], bench: [BOBS] }, NEXT));
+    expect((await lineupRows()).filter((row) => row.teamId === bobsTeam)).toMatchObject([{ fromGameweek: NEXT, firstLineup: true }]);
   });
 
   test("a pick benched for having no positions stays on the bench once he has some and the squad changes again (#836)", async () => {
@@ -179,8 +183,11 @@ describe("a team's first lineup, stored as its squad is made (#637)", () => {
     );
   });
 
-  test("a begun gameweek with no row in force, from before #637, keeps its squad on the bench as it was scored, marked so", async () => {
+  test("a begun gameweek with no row in force, from before #637, keeps its squad on the bench as it was scored (#1040)", async () => {
+    await t.run(async (ctx) => {
+      for (const row of await ctx.db.query("lineups").collect()) if (row.teamId === annsTeam) await ctx.db.delete("lineups", row._id);
+    });
     await passNextDeadline(t);
-    expect(await lineupOf(NEXT)).toEqual({ ...saved({ starters: [], bench: SQUAD }, null), noLineup: true });
+    expect(await lineupOf(NEXT)).toEqual(saved({ starters: [], bench: SQUAD }, null));
   });
 });

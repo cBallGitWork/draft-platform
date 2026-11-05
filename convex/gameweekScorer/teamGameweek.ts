@@ -114,9 +114,6 @@ export interface TeamInGameweek {
   autoSubs: AutoSubs;
   /** Each player's matches in the gameweek: his club's, and any other he has a record in. */
   matchesOf: Map<PlayerCode, HeldMatch[]>;
-  /** It held no lineup in a gameweek begun before #637 gave every team one (lineups.ts), though
-   *  its squad had players, so it scores 0 and a screen can say why. */
-  noLineup: boolean;
   /** The preset its lineup stands in, named as the league's presets in force in the gameweek name
    *  it; null once its manager has edited the shape off every preset (presets.ts `presetNameOf`).
    *  Read from the lineup as it locked, a slot left empty by a man gone from the squad included:
@@ -165,7 +162,7 @@ export async function teamInGameweek(reads: LeagueReads, inputs: GameweekInputs,
     benchCells: new Map(lineup.bench.map((code) => [code, benchCell(positions.get(code)!)])),
   });
   const formation = presetNameOf([...held.starters, ...held.vacated], rules.presets);
-  return { team, autoSubs: subs, matchesOf, noLineup: held.noLineup, formation };
+  return { team, autoSubs: subs, matchesOf, formation };
 }
 
 /** One of his matches as his slot scored it: its points by category, and whether his slot's points

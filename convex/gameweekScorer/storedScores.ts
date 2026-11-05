@@ -37,7 +37,7 @@ export async function storedFinalScores(ctx: QueryCtx, leagueId: Id<"leagues">):
 function storedGameweekOf([first, ...rest]: Doc<"finalScores">[]): StoredGameweek {
   const agree = rest.every((row) => sameCodes(row.fixtureCodes, first.fixtureCodes));
   const scores = new Map<TeamId, TeamGameweekTotal>(
-    agree ? [first, ...rest].map(({ teamId, points, noLineup }) => [teamId, { points, provisional: false, noLineup: noLineup ?? false }]) : [],
+    agree ? [first, ...rest].map(({ teamId, points }) => [teamId, { points, provisional: false }]) : [],
   );
   return { fixtureCodes: first.fixtureCodes, scores };
 }

@@ -3,6 +3,7 @@ import { api } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
 import { FPL_DEADLINE_RULE } from "../../../convex/gameweeks/deadline";
 import { GAMEWEEKS } from "../../../convex/gameweeks/usedGameweeks";
+import { pickFirstLineupAgain } from "../../../convex/lineup/lineups";
 import { refusals } from "../../../convex/shared/leagueAccess";
 import { unheldPlayerWords } from "../../../convex/shared/players";
 import { MINUTE_MS, WEEK_MS } from "../../../convex/shared/time";
@@ -55,8 +56,8 @@ describe("the lineup to set", () => {
       deadline,
       areaLimits: HELD_FIRST_RULES.areaLimits,
       presets: HELD_FIRST_RULES.presets,
-      // Never saved: its first lineup, picked from the squad (spec/05, #637).
-      lineup: { fromGameweek: null, starters: FOUR_FOUR_TWO.starters, bench: FOUR_FOUR_TWO.bench },
+      // The lineup it got with its squad: its first, picked from the squad (spec/05, #637, #1040).
+      lineup: { fromGameweek: NEXT, starters: FOUR_FOUR_TWO.starters, bench: FOUR_FOUR_TWO.bench },
     });
     if (tactics.kind !== "open") throw new Error("expected an open gameweek");
     expect(tactics.squad).toEqual(
@@ -78,7 +79,12 @@ describe("the lineup to set", () => {
       { area: "goalkeeper" as const, role: "shotStopper", perMatch: 2, stars: 2 },
       { area: "goalkeeper" as const, role: "sweeperKeeper", perMatch: 3, stars: 4.5 },
     ];
-    await t.run((ctx) => ctx.db.insert("playerRoleStars", { playerCode: keeper.playerCode, matches: 3, ratings }));
+    // His stars held before his squad's first lineup is picked.
+    await t.run(async (ctx) => {
+      await ctx.db.insert("playerRoleStars", { playerCode: keeper.playerCode, matches: 3, ratings });
+      for (const row of await ctx.db.query("lineups").collect()) await ctx.db.delete("lineups", row._id);
+      await pickFirstLineupAgain(ctx, leagueId, annsTeam);
+    });
 
     const tactics = await tacticsOf(ANN);
     if (tactics.kind !== "open") throw new Error("expected an open gameweek");
