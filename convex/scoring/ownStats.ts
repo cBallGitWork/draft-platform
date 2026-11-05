@@ -2,7 +2,7 @@
 // and how one is worked out from a player's record before the site's scoring set scores it.
 
 import type { ScoringSet } from "./scoringSet";
-import { CATALOGUE_STATS } from "./statCatalogue";
+import { CATALOGUE_STATS, OWN_STAT_PREFIX } from "./statCatalogue";
 import { STAT_CATALOGUE } from "./statCatalogueList";
 import { isObject, requireNumber, showValue, statIn, UnsoundScoring, type MatchStats } from "./values";
 
@@ -23,7 +23,8 @@ export interface OwnStat {
 const FIELD_WORDS = { name: "name", shortCode: "short code" } as const;
 
 /** Own stats are made of catalogue stats only, never another own stat (spec/14), and each has a
- *  key no catalogue stat has, and a name and a short code no other own stat has. That no name or
+ *  key in the namespace the feeds can't produce (`OWN_STAT_PREFIX`), so a catalogue stat added
+ *  later never collides with one saved before (#136), and a name and a short code no other own stat has. That no name or
  *  short code is a catalogue stat's is checked on saving only (`checkOwnStatsAgainstCatalogue`),
  *  as scoring runs this, and a catalogue stat renamed later mustn't stop the scoring (#212). */
 export function validateOwnStats(ownStats: unknown): void {
@@ -32,9 +33,9 @@ export function validateOwnStats(ownStats: unknown): void {
   const names = new Set<string>();
   const codes = new Set<string>();
   ownStats.forEach((own: unknown, index) => {
-    if (!isObject(own) || typeof own.stat !== "string" || own.stat === "") throw new UnsoundScoring(`own stat ${index + 1} has no key`);
+    if (!isObject(own) || typeof own.stat !== "string" || [OWN_STAT_PREFIX, ""].includes(own.stat)) throw new UnsoundScoring(`own stat ${index + 1} has no key`);
     const named = `the own stat ${own.stat}`;
-    if (CATALOGUE_STATS.has(own.stat)) throw new UnsoundScoring(`${named} has a catalogue stat's key`);
+    if (!own.stat.startsWith(OWN_STAT_PREFIX)) throw new UnsoundScoring(`${named} has a key that doesn't start with ${showValue(OWN_STAT_PREFIX)}`);
     if (keys.has(own.stat)) throw new UnsoundScoring(`${named} is made twice`);
     keys.add(own.stat);
     for (const [field, seen] of [["name", names], ["shortCode", codes]] as const) {
