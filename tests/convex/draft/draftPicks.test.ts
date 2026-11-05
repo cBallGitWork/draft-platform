@@ -147,6 +147,15 @@ describe("a pick is refused", () => {
     await pick(ANN, K3);
     expect(await read()).toMatchObject({ status: "over" });
   });
+
+  test("when it would leave no legal finish from the players still undrafted", async () => {
+    // Every keeper left plays for Chelsea: Ann at Chelsea's maximum could never pick one.
+    await setSquadRules({ maxPerClub: 1, minimumByArea: { ...NO_AREA_MINIMUMS, goalkeeper: 1 } });
+    await start();
+
+    await expectRefused(pick(ANN, CHELSEA_MID.code), pickRefusals.breaksSquadRules("Player 201"));
+    await pick(ANN, A1);
+  });
 });
 
 test("picks follow the squad rules the draft started under, not a change made since", async () => {
