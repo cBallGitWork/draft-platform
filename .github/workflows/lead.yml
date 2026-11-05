@@ -46,7 +46,7 @@ on:
 permissions:
   actions: write  # dispatch claude-build.yml
   issues: write  # the lead's labels, on issues and pull requests
-  pull-requests: read
+  pull-requests: write  # labelling a pull request (FIXED_LABEL, RESUMED_LABEL) needs it: issues: write alone got 403 on 5 Nov 2026
   contents: read
 
 concurrency:
