@@ -80,10 +80,11 @@ export function DraftBoard({
           <tbody>
             {shown.map((round) => (
               <tr key={round} className="border-t border-panel-rule">
-                <th scope="row" className="px-2 py-1 text-left align-top font-semibold">
+                <th scope="row" className="px-2 py-0.5 text-left align-top font-semibold">
                   {round}
                   <span aria-label={roundWayLabel(runsLeftToRight(round))} role="img" className="block text-muted">
-                    {runsLeftToRight(round) ? "▶" : "◀"}
+                    {/* The text-presentation selector keeps the arrows from drawing as bright emoji. */}
+                    {runsLeftToRight(round) ? "▶︎" : "◀︎"}
                   </span>
                 </th>
                 {order.map(({ teamId }, column) => {
@@ -109,7 +110,7 @@ export function DraftBoard({
 
 /** One pick's cell: the player taken, the pick on the clock with its time left, or the slot to come. */
 function BoardCell({ slot, made, onTheClock, yours }: { slot: string; made: BoardPick | undefined; onTheClock: OnTheClock | null; yours: boolean }) {
-  const className = `h-tap border-l border-panel-rule px-2 py-1 align-top ${yours ? "bg-panel-edge" : ""}`;
+  const className = `h-tap border-l border-panel-rule px-2 py-0.5 align-top ${yours ? "bg-panel-edge" : ""}`;
   if (onTheClock !== null) {
     return (
       <td aria-current="true" className={`${className} outline-2 -outline-offset-2 outline-derived outline-solid`}>
