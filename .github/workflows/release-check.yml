@@ -1,6 +1,7 @@
 # The after-release check (spec/20, Every release): after each production deployment, opens the
 # live site and signs in for real (tests/live/signIn.live.spec.ts). A failure, the hour's sign-in link
-# limit included (#908), turns the run red, and GitHub emails Craig.
+# limit included (#908), turns the run red, and GitHub emails Craig. A release within the hour of the last
+# sign-in skips it, saying so, so the link limit alone never turns a release red (5 Nov 2026).
 # Until the live site exists its two secrets aren't set, and it skips, saying so.
 # Secrets (repository settings, Secrets and variables, Actions):
 #   RELEASE_CHECK_EMAIL       an address Resend receives for the account (<anything>@<id>.resend.app),
@@ -23,6 +24,7 @@ on:
 
 permissions:
   contents: read
+  actions: read  # the last hour's sign-in jobs, so one release an hour signs in
 
 env:
   # The deployed commit, so the check reads the words that site shows; main's on a run by hand.
@@ -47,9 +49,27 @@ jobs:
         env:
           RELEASE_CHECK_EMAIL: ${{ secrets.RELEASE_CHECK_EMAIL }}
           RELEASE_CHECK_RESEND_KEY: ${{ secrets.RELEASE_CHECK_RESEND_KEY }}
+          GH_TOKEN: ${{ github.token }}
+          SIGN_IN_GAP_MINUTES: 60
         run: |
           if [ -n "$RELEASE_CHECK_EMAIL" ] && [ -n "$RELEASE_CHECK_RESEND_KEY" ]; then
             echo "ready=true" >> "$GITHUB_OUTPUT"
+            # At most one sign-in an hour after a release: the live site sends the check's address a few links an
+            # hour, and on 5 Nov 2026 four of seven deploys went red on that limit alone. A sign-in job that ran (pass
+            # or fail) in the last SIGN_IN_GAP_MINUTES has asked for a link, so this release skips, saying so. By hand
+            # it always signs in.
+            if [ "$GITHUB_EVENT_NAME" = repository_dispatch ]; then
+              since=$(date -u -d "-$SIGN_IN_GAP_MINUTES minutes" +%Y-%m-%dT%H:%M:%SZ)
+              last=$(gh api "repos/$GITHUB_REPOSITORY/actions/workflows/release-check.yml/runs?per_page=15&created=>=$since" \
+                --jq ".workflow_runs[] | select(.id != $GITHUB_RUN_ID) | .id" | while read -r id; do
+                  gh api "repos/$GITHUB_REPOSITORY/actions/runs/$id/jobs" \
+                    --jq '.jobs[] | select(.name == "sign-in" and .conclusion != "skipped" and .started_at != null) | .started_at'
+                done | sort | tail -n 1)
+              if [ -n "$last" ]; then
+                echo "::notice::Skipped: the live site was signed in to at $last, under $SIGN_IN_GAP_MINUTES minutes ago, and the hour's sign-in link limit would turn this red."
+                echo "ready=false" >> "$GITHUB_OUTPUT"
+              fi
+            fi
           else
             echo "::notice::Skipped: RELEASE_CHECK_EMAIL or RELEASE_CHECK_RESEND_KEY isn't set, so there's no live site to sign in to yet."
             echo "ready=false" >> "$GITHUB_OUTPUT"

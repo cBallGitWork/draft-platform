@@ -1,8 +1,9 @@
 # Approves every pull request from this repository so it can merge without Craig (docs/PLAN.md, "Removing the
 # bottleneck"); no `lane:auto` label is needed (Craig, 4 Nov 2026: green builder pull requests merge on their own,
 # with no label and nobody running the merge).
-# The `main` ruleset needs one approval; this bot supplies it. The bot is not a Code Owner, so a pull request that
-# touches an outcome path in .github/CODEOWNERS still waits for Craig. Nor does it approve a pull request by anyone
+# The `main` ruleset needs one approval; this bot supplies it. The bot is not a Code Owner, so once
+# .github/CODEOWNERS lists its outcome paths again (when the beta holds a real league; until then it lists none,
+# Craig, 5 Nov 2026: "Yes, until real leagues"), a pull request touching them waits for Craig. Nor does it approve a pull request by anyone
 # but the repo's owner that touches .claude/ or .github/, the pipeline's own guards, so the nightly builder (the
 # Claude GitHub App) can't loosen the checks that judge it; a session Craig works in opens its pull requests as him,
 # so those merge on green (Craig, 4 Nov 2026). Checks still gate the merge: the approval

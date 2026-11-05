@@ -90,6 +90,24 @@ describe("a full draft", () => {
     await expectRefused(pick(ANN, CHELSEA_MID.code), pickRefusals.over);
   });
 
+  test("saves each team's lineup as its picks left it once the last pick is made, so a later squad change only joins the bench (#1040)", async () => {
+    const lineupRows = () => t.run((ctx) => ctx.db.query("lineups").collect());
+    await start();
+    const picks = [[ANN, A1], [BOB, A2], [CAT, A3], [CAT, A4], [BOB, A5]] as const;
+    for (const [email, code] of picks) await pick(email, code);
+    // Until the end, each team's lineup is still its first, picked again with each pick.
+    expect((await lineupRows()).map(({ teamId, firstLineup }) => ({ teamId, firstLineup }))).toEqual(teams.map((teamId) => ({ teamId, firstLineup: true })));
+    await pick(ANN, A6);
+
+    const saved = await lineupRows();
+    expect(saved.map(({ teamId, firstLineup }) => ({ teamId, firstLineup }))).toEqual(teams.map((teamId) => ({ teamId, firstLineup: undefined })));
+    const anns = saved.find((row) => row.teamId === teams[0])!;
+    expect([...anns.starters.map(({ playerCode }) => playerCode), ...anns.bench].sort()).toEqual([A1, A6]);
+    // A player assigned since joins the end of the bench: the saved lineup isn't picked again.
+    await (await as(COMMISSIONER)).mutation(api.squads.squads.assign, { leagueId, playerCode: CHELSEA_MID.code, teamId: teams[0] });
+    expect((await lineupRows()).find((row) => row.teamId === teams[0])).toEqual(anns);
+  });
+
   test("files each pick as the player joining the team, by its manager", async () => {
     await start();
     await pick(ANN, A1);
@@ -146,6 +164,15 @@ describe("a pick is refused", () => {
     await expectRefused(pick(ANN, A6), pickRefusals.breaksSquadRules("Player 106"));
     await pick(ANN, K3);
     expect(await read()).toMatchObject({ status: "over" });
+  });
+
+  test("when it would leave no legal finish from the players still undrafted", async () => {
+    // Every keeper left plays for Chelsea: Ann at Chelsea's maximum could never pick one.
+    await setSquadRules({ maxPerClub: 1, minimumByArea: { ...NO_AREA_MINIMUMS, goalkeeper: 1 } });
+    await start();
+
+    await expectRefused(pick(ANN, CHELSEA_MID.code), pickRefusals.breaksSquadRules("Player 201"));
+    await pick(ANN, A1);
   });
 });
 

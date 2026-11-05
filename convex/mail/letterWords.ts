@@ -101,6 +101,15 @@ export function eventLetter(event: LeagueEvent, who: string, zone: string | unde
         subject: `${event.playerName} was released`,
         body: `${who} released ${event.playerName} from ${event.teamName} to free agency.`,
       };
+    case "playerDropped":
+      return {
+        subject: `${event.teamName} dropped ${event.playerName}`,
+        body: event.toWaivers
+          ? `${who} dropped ${event.playerName} from ${event.teamName}. He is on waivers for at least 24 hours.`
+          : `${who} dropped ${event.playerName} from ${event.teamName}. Picked up since the last deadline, he is a free agent again, not on waivers.`,
+      };
+    case "playerClaimed":
+      return { subject: `${event.teamName} claimed ${event.playerName}`, body: claimedBody(event, who) };
     case "rulesChanged":
       return {
         subject: `The league's rules change from gameweek ${event.fromGameweek}`,
@@ -108,7 +117,21 @@ export function eventLetter(event: LeagueEvent, who: string, zone: string | unde
       };
     case "pointsOverridden":
       return { subject: `${event.playerName}'s points in ${event.matchName} were overridden`, body: overriddenBody(event, who) };
+    case "fixturesSwapped":
+      return { subject: `Gameweek ${event.gameweek}'s fixtures were changed`, body: swappedBody(event, who) };
   }
+}
+
+/** The league's average, as a letter about the fixtures names it. */
+export const leagueAverageWords = "the league's average";
+const sideWords = (name: string | null) => name ?? leagueAverageWords;
+
+/** "Ann swapped Lions and Tigers in gameweek 6. The two games are now Tigers v Wolves and Lions v
+ *  Bears; every other game is as drawn." */
+function swappedBody(event: Extract<LeagueEvent, { kind: "fixturesSwapped" }>, who: string): string {
+  const [one, other] = event.swapped.map(sideWords);
+  const games = event.games.map((game) => matchWords(sideWords(game.team), sideWords(game.opponent)));
+  return `${who} swapped ${one} and ${other} in gameweek ${event.gameweek}. The two games are now ${andListWords(games)}; every other game is as drawn.`;
 }
 
 /** A match as a letter names it: "Arsenal v Chelsea". */
@@ -124,6 +147,32 @@ function overriddenBody(event: Extract<LeagueEvent, { kind: "pointsOverridden" }
       ? "No team's total moved: no lineup counted him."
       : teams.map((team) => `${team.teamName} now have ${figureWords(team.to)} in gameweek ${gameweek}, not ${figureWords(team.from)}.`).join("\n");
   return `${who} overrode ${playerName}'s points in ${matchName}, gameweek ${gameweek}: ${change}. Why: ${reason}\n\n${totals}`;
+}
+
+/** "Lions claimed Saka off waivers, ann@example.com's claim. Rice went for him, onto waivers for
+ *  at least 24 hours." */
+function claimedBody({ playerName, teamName, dropped }: Extract<LeagueEvent, { kind: "playerClaimed" }>, who: string): string {
+  const claimed = `${teamName} claimed ${playerName} off waivers, ${who}'s claim.`;
+  if (dropped === null) return claimed;
+  const where = dropped.toWaivers
+    ? "onto waivers for at least 24 hours"
+    : "a free agent again, not on waivers: he was picked up since the last deadline";
+  return `${claimed} ${dropped.playerName} went for him, ${where}.`;
+}
+
+/** Why a waiver claim failed (spec/08): another team was ahead, the player he named to drop was
+ *  already gone, or the squad's limits. */
+export const CLAIM_FAILURES = ["ahead", "dropGone", "limits"] as const;
+export type ClaimFailure = (typeof CLAIM_FAILURES)[number];
+
+/** To a manager alone when his claim fails at a waiver run (spec/08, spec/16), saying why. */
+export function claimFailedLetter({ playerName, dropName, why }: { playerName: string; dropName: string | null; why: ClaimFailure }): Words {
+  const because = {
+    ahead: `Another team was ahead of you in the waiver order for ${playerName}.`,
+    dropGone: `${dropName ?? "The player you named to drop"} was no longer in your squad to drop.`,
+    limits: `${playerName} would have broken your squad's limits.`,
+  }[why];
+  return { subject: `Your claim for ${playerName} failed`, body: `${because} Your claim is gone; nobody joined or left your squad for it.` };
 }
 
 /** The letter to a manager whose shortlist holds a player just released to free agency (spec/16,
@@ -147,6 +196,15 @@ export function upNextLetter({ round, pick, teamName, endsAt }: { round: number;
 /** To the whole league once the last pick is made. */
 export function draftOverLetter(picks: number): Words {
   return { subject: "The draft is over", body: `All ${picks} picks are made, and every squad is drafted.` };
+}
+
+/** To the commissioner when the draft ends after the deadline of the gameweek scoring was to start
+ *  in, `from`, so it starts in `to` (spec/04, After the draft; #1097). */
+export function scoringStartMovedLetter({ from, to }: { from: number; to: number }): Words {
+  return {
+    subject: `Scoring starts in gameweek ${to}`,
+    body: `The draft ended after gameweek ${from}'s deadline, so scoring starts in gameweek ${to}, not ${from}. Squads and lineups count from gameweek ${to}'s deadline.`,
+  };
 }
 
 /** To the whole league when the commissioner, `who`, pauses the draft. Resuming files none. */

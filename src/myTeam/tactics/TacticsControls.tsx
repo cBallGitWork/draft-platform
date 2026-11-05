@@ -38,7 +38,7 @@ export function keyedPresets(presets: OpenTactics["presets"], inUse: string | nu
   return inUse === null || first.includes(inUse) ? first : [...first, inUse];
 }
 
-/** The toolbar, with the line the last save left under it: its gameweek, or the refusal in the
+/** The toolbar, with the line the last save left under it: when it landed, or the refusal in the
  *  server's words, read where the move was made, even on a phone. Data and features not held yet
  *  (Team tactic, saved presets, Quick Pick) show as placeholders in their places (plate.md, Marks). */
 export function TacticsToolbar({
@@ -49,7 +49,7 @@ export function TacticsToolbar({
   onAllFormations,
   canUndo,
   onUndo,
-  savedFrom,
+  savedAt,
   problem,
 }: {
   presets: OpenTactics["presets"];
@@ -59,7 +59,7 @@ export function TacticsToolbar({
   onAllFormations: () => void;
   canUndo: boolean;
   onUndo: () => void;
-  savedFrom: number | null;
+  savedAt: number | null;
   problem: string | null;
 }) {
   const keyed = keyedPresets(presets, inUse);
@@ -86,7 +86,7 @@ export function TacticsToolbar({
           <Placeholder label={quickPickPlaceholder} className="h-11 w-24" />
         </span>
       </div>
-      <Status words={savedFrom === null ? null : savedWords(savedFrom)} className="px-3 pb-2" />
+      <Status words={savedAt === null ? null : savedWords(savedAt)} className="px-3 pb-2" />
       <Problem problem={problem} />
     </div>
   );

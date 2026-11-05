@@ -4,7 +4,7 @@
 import { fireEvent, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { LANES, type Cell } from "../../../convex/lineup/pitch";
-import { ROWS_DRAWN } from "../../../src/myTeam/tactics/pitch/Pitch";
+import { ROWS_DRAWN } from "../../../src/myTeam/tactics/pitch/rowLayout";
 import type { Position } from "../../../convex/positions/positionTables";
 import { MY_TEAM_PATH } from "../../../src/frame/menu";
 import type { OpenTactics } from "../../../src/myTeam/tactics/seam";
@@ -45,7 +45,7 @@ export const STARTERS = [
 ];
 export const SAVED = openTactics({
   squad: SQUAD,
-  lineup: { fromGameweek: TACTICS_GAMEWEEK, noLineup: false, starters: STARTERS, bench: [ARRIZABALAGA.playerCode, WHITE.playerCode], leftSquad: [], joinedBench: [], vacated: [] },
+  lineup: { fromGameweek: TACTICS_GAMEWEEK, starters: STARTERS, bench: [ARRIZABALAGA.playerCode, WHITE.playerCode], leftSquad: [], joinedBench: [], vacated: [] },
 });
 
 export const openTacticsTab = (myTeam: MyTeamData = { tactics: SAVED }, session = manager) => openApp(MY_TEAM_PATH, session, { myTeam });
@@ -115,6 +115,8 @@ export function drag(from: Element, onto: Element) {
   fireEvent.drop(onto, { dataTransfer: DATA_TRANSFER });
 }
 export const undo = () => screen.getByRole("button", { name: undoWords }) as HTMLButtonElement;
+/** The line a save leaves, "Lineup saved 14:02", at whatever minute it landed. */
+export const SAVED_LINE = /^Lineup saved \d{2}:\d{2}$/;
 /** The tab opened on the lineup held, once its pitch is up. */
 export async function openedPitch(myTeam?: MyTeamData) {
   const app = openTacticsTab(myTeam);

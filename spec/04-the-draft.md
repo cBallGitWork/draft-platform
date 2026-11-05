@@ -52,6 +52,12 @@ Feature 4 of [SPEC.md](../SPEC.md). Only Craig's answers.
     2 goalkeepers still needed, every outfielder is greyed out.
 
   So every finished squad is legal.
+- The players still undrafted count too. A player whose pick would leave no legal finish from the
+  undrafted players is greyed out: with one keeper still needed, and every undrafted keeper at a
+  club the pick would put the team at its maximum for, that pick is greyed out. If no legal finish
+  exists at all, the squad-only checks apply: "Yes, grey those out" (Craig, 5 Nov 2026, on #1088).
+- With no maximum squad size the draft can't start; the start is refused and League settings says
+  why: "Can't start without a max" (Craig, 5 Nov 2026, on #1088).
 - A team left with no legal pick is an error, not the end of that team's draft: greying out always
   leaves a legal pick (Craig, 4 Nov 2026, on #1090: "ok").
 - The draft can't start until every squad is empty (Craig, 4 Nov 2026, on #1090: "ok").
@@ -201,6 +207,23 @@ Feature 4 of [SPEC.md](../SPEC.md). Only Craig's answers.
 
 - The draft room leaves the menu once the draft is over, and its record lives in results: "no the
   room goes off the meny, results can be somehwere else for record" (Craig, 4 Nov 2026, on #1098).
+- A mid-season draft ending during a gameweek: squads and lineups count from the next deadline,
+  "yes, but the league decides when a league starts by choosing the gameweek" (Craig, 4 Nov 2026,
+  on #1097). The league rule "scoring starts in gameweek N" is set by the commissioner, defaulting
+  to the next gameweek after the draft ends; squads and lineups count from that gameweek's
+  deadline: "Yes, add the rule" (Craig, 5 Nov 2026, on #1097).
+- Craig's answers on that rule (5 Nov 2026, on #1097, every recommendation picked):
+  - Gameweeks before N score nothing and have no head-to-head; the round robin starts at N; free
+    agency and trades stay open: "No scores, market open".
+  - It can be set any time until N's deadline, to any gameweek not begun; once N's deadline passes
+    it's fixed: "Any time until its deadline".
+  - A draft still running at N's deadline: scoring starts at the next gameweek after the draft
+    ends, and the commissioner gets a Mail letter saying so: "Start moves to GW 9".
+  - League settings offers only ticked gameweeks; unticking N moves the start to the next ticked
+    one: "Only ticked gameweeks".
+  - A league with no start set scores every ticked gameweek, as before, so no score moves; the
+    rule applies once a league sets it, or when a draft ends after it ships: "No start = every
+    ticked GW".
 
 - In keeper and dynasty leagues, next season's draft is every player who was not kept, in the
   league's draft order.

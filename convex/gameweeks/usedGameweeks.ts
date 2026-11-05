@@ -1,8 +1,9 @@
 // Which gameweeks a league plays (#74; spec/13, Gameweeks): every one of FPL's season unless its
 // commissioner unticked it. An unticked gameweek scores nothing and has no head-to-head: the
-// fixtures (#33) skip it via `usedGameweeksOf`, and scoring's `begunGameweeks`
-// (convex/gameweekScorer/gameweekScores.ts) applies `isGameweekUsed`, so it is never scored; waivers, free
-// agency and trades carry on through it. Its only imports are a type, which compiles away, and
+// fixtures (#33) skip it via `scoredGameweeksOf`, and scoring's `begunGameweeks`
+// (convex/gameweekScorer/gameweekScores.ts) applies `isGameweekScored`, so it is never scored; waivers, free
+// agency and trades carry on through it. A gameweek before the league's scoring start
+// (scoringStart.ts; spec/04, After the draft) is the same: those two leave it out too. Its only imports are a type, which compiles away, and
 // Convex's validators, which the screens already load, so the screens can read it too.
 
 import { v } from "convex/values";
@@ -19,8 +20,9 @@ export const shownDeadline = v.union(v.number(), v.null());
 export const SEASON_GAMEWEEKS: readonly number[] = Array.from({ length: GAMEWEEKS }, (_, index) => FIRST_GAMEWEEK + index);
 
 /** What of a league this reads: the gameweeks its commissioner unticked, stored as the league's
- *  `unusedGameweeks`. Absent while it plays them all. */
-export type WithUnusedGameweeks = { unusedGameweeks?: readonly number[] };
+ *  `unusedGameweeks`, absent while it plays them all; and the gameweek its scoring starts in,
+ *  `scoringStart`, absent while it scores every ticked gameweek. */
+export type WithUnusedGameweeks = { unusedGameweeks?: readonly number[]; scoringStart?: number };
 
 /** Whether this is one of the season's gameweeks, and what to say when it isn't. */
 export const isGameweek = (gameweek: number) => Number.isInteger(gameweek) && gameweek >= FIRST_GAMEWEEK && gameweek <= GAMEWEEKS;
@@ -35,6 +37,14 @@ export function isGameweekUsed(league: WithUnusedGameweeks, gameweek: number): b
 
 /** The gameweeks the league plays, in order. */
 export const usedGameweeksOf = (league: WithUnusedGameweeks) => SEASON_GAMEWEEKS.filter((gameweek) => isGameweekUsed(league, gameweek));
+
+/** Whether the league scores this gameweek and plays its head-to-head: it is ticked, and not before
+ *  the league's scoring start. Throws as `isGameweekUsed` does. */
+export const isGameweekScored = (league: WithUnusedGameweeks, gameweek: number) =>
+  isGameweekUsed(league, gameweek) && gameweek >= (league.scoringStart ?? FIRST_GAMEWEEK);
+
+/** The gameweeks the league scores, in order. */
+export const scoredGameweeksOf = (league: WithUnusedGameweeks) => SEASON_GAMEWEEKS.filter((gameweek) => isGameweekScored(league, gameweek));
 
 /** The league's unticked gameweeks, in order, once this one is ticked (`used`) or unticked. */
 export function unusedAfter(league: WithUnusedGameweeks, gameweek: number, used: boolean): number[] {

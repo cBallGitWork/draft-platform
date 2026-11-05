@@ -1,7 +1,7 @@
 import type { Doc, Id } from "../_generated/dataModel";
 import type { QueryCtx } from "../_generated/server";
 import { passedDeadlinesOf } from "../gameweeks/passedDeadlines";
-import { isGameweekUsed } from "../gameweeks/usedGameweeks";
+import { isGameweekScored } from "../gameweeks/usedGameweeks";
 import type { StoredScoringSet } from "../scoring/scoringSetShape";
 import type { SeasonRules } from "../rules/rulesHistory";
 import { logFailure } from "../shared/errors";
@@ -39,9 +39,6 @@ export interface TeamGameweekTotal {
   points: number;
   /** While a record that counts hasn't arrived, or a match it counts isn't locked (spec/07). */
   provisional: boolean;
-  /** It held no lineup in a gameweek begun before #637 gave every team one (spec/07), so scored
-   *  0 (teamGameweek.ts's TeamInGameweek). */
-  noLineup: boolean;
 }
 
 /** A gameweek left out of the table, and why. */
@@ -70,12 +67,12 @@ interface LeagueScores {
   finalUnstored: FinalUnstored[];
 }
 
-/** The gameweeks the league plays that have begun since it was made, by its recorded deadlines:
- *  the gameweeks it scores. */
+/** The gameweeks the league plays that have begun since it was made, by its recorded deadlines,
+ *  from its scoring start on: the gameweeks it scores. */
 export async function begunGameweeks(ctx: QueryCtx, league: Doc<"leagues">): Promise<number[]> {
   const passed = await passedDeadlinesOf(ctx, league._id);
   return [...passed]
-    .filter(([gameweek, deadline]) => deadline >= league._creationTime && isGameweekUsed(league, gameweek))
+    .filter(([gameweek, deadline]) => deadline >= league._creationTime && isGameweekScored(league, gameweek))
     .map(([gameweek]) => gameweek)
     .sort((one, other) => one - other);
 }
@@ -137,7 +134,7 @@ export async function gameweekScorer(ctx: QueryCtx, league: Doc<"leagues">, seas
 
 /** A team's points from its gameweek worked out. */
 function totalOf(scored: TeamInGameweek): TeamGameweekTotal {
-  return { points: scored.team.total, provisional: scored.team.provisional, noLineup: scored.noLineup };
+  return { points: scored.team.total, provisional: scored.team.provisional };
 }
 
 /** One gameweek of the league, team by team: for a screen that shows its slots (the matchup, #34,

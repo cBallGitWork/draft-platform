@@ -28,7 +28,8 @@ export function useLineupEdits({
   const [undoable, setUndoable] = useState<readonly DraftLineup[]>([]);
   // The preset last picked, whose empty slots the pitch marks; none until one is.
   const [shape, setShape] = useState<string>("");
-  const [savedFrom, setSavedFrom] = useState<number | null>(null);
+  // When the last save landed, by the manager's own clock: the line under the toolbar says it.
+  const [savedAt, setSavedAt] = useState<number | null>(null);
   // The lineup the save last sent. A save sent after it forgets it, so the answer that lands after
   // one, about a lineup no longer on the pitch, says nothing (#642).
   const sent = useRef<DraftLineup | null>(null);
@@ -38,22 +39,18 @@ export function useLineupEdits({
   const [refused, setRefused] = useState<string | null>(null);
   const draft = useMemo(() => shownLineup(edited, opening, squadCodes), [edited, opening, squadCodes]);
 
-  // The gameweek is the server's: a save sent just after the deadline is from the one after. A
-  // lineup that can't stand yet, ten starting say, is refused in the server's words and kept.
+  // A lineup that can't stand yet, ten starting say, is refused in the server's words and kept.
   const save = async (lineup: DraftLineup) => {
     sent.current = lineup;
     const movedSince = () => sent.current !== lineup;
-    let from: number | null = null;
     const made = await run(async () => {
       const answer = await changes.save(leagueId, lineup);
       // run says a refusal itself, so one of a lineup moved since is withheld here; a save, below.
-      if (typeof answer === "string") return movedSince() ? null : answer;
-      from = answer;
-      return null;
+      return typeof answer === "string" && !movedSince() ? answer : null;
     });
     if (movedSince()) return;
-    // A refusal leaves no saved line; a save says its gameweek.
-    setSavedFrom(made ? from : null);
+    // A refusal leaves no saved line; a save says when it landed ("Lineup saved 14:02"; spec/05).
+    setSavedAt(made ? Date.now() : null);
     // Saved, the lineup stands as it is: the shape's slots are no longer asked for.
     if (made) setShape("");
   };
@@ -62,7 +59,7 @@ export function useLineupEdits({
   const show = (next: DraftLineup) => {
     setEdited(next);
     onShown();
-    setSavedFrom(null);
+    setSavedAt(null);
     setRefused(null);
     clear();
     void save(next);
@@ -70,7 +67,7 @@ export function useLineupEdits({
   /** A drop refused, in words: the lineup stays as it is, and the line under the toolbar says why. */
   const refuse = (words: string) => {
     onShown();
-    setSavedFrom(null);
+    setSavedAt(null);
     clear();
     setRefused(words);
   };
@@ -92,5 +89,5 @@ export function useLineupEdits({
     setShape(name);
     edit(next);
   };
-  return { draft, edit, undo, reshape, refuse, canUndo: undoable.length > 0, savedFrom, problem: refused ?? problem, shape };
+  return { draft, edit, undo, reshape, refuse, canUndo: undoable.length > 0, savedAt, problem: refused ?? problem, shape };
 }

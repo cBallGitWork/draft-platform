@@ -60,8 +60,14 @@ export const FIRST_RULES: LeagueRules = {
   tieBreaks: ["pointsFor"],
   oddTeamOut: FIRST_ODD_TEAM_OUT,
   gamesPerGameweek: FIRST_GAMES_PER_GAMEWEEK,
-  // guess: the doc's live 23-hour minimum waiver period has no rule here: spec/03
-  // sets only when waivers run and the order.
-  waivers: { runs: [{ day: "tuesday", hour: 23, minute: 0 }], order: "reverseStandings" },
+  // Craig's (spec/03, spec/08; 5 Nov 2026): Wednesday and Thursday at 18:00 UK time, "for now",
+  // and reverse table order. The 24 hours on waivers is a constant (../waivers/waiverPlayers.ts).
+  waivers: {
+    runs: [
+      { day: "wednesday", hour: 18, minute: 0 },
+      { day: "thursday", hour: 18, minute: 0 },
+    ],
+    order: "reverseStandings",
+  },
   draft: { ...FIRST_DRAFT_RULES },
 };

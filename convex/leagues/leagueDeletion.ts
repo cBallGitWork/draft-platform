@@ -69,6 +69,11 @@ const leagueRows: { [Table in TableNames]?: LeagueRowsBatch<Table> } = {
       .query("playedFixtures")
       .withIndex("by_leagueId_and_gameweek", (q) => q.eq("leagueId", leagueId))
       .take(ROWS_PER_RUN),
+  fixtureEdits: (ctx, leagueId) =>
+    ctx.db
+      .query("fixtureEdits")
+      .withIndex("by_leagueId_and_gameweek", (q) => q.eq("leagueId", leagueId))
+      .take(ROWS_PER_RUN),
   finalScores: (ctx, leagueId) =>
     ctx.db
       .query("finalScores")
@@ -88,6 +93,21 @@ const leagueRows: { [Table in TableNames]?: LeagueRowsBatch<Table> } = {
     ctx.db
       .query("squadPlayers")
       .withIndex("by_leagueId_and_playerCode", (q) => q.eq("leagueId", leagueId))
+      .take(ROWS_PER_RUN),
+  waiverPlayers: (ctx, leagueId) =>
+    ctx.db
+      .query("waiverPlayers")
+      .withIndex("by_leagueId_and_playerCode", (q) => q.eq("leagueId", leagueId))
+      .take(ROWS_PER_RUN),
+  waiverClaims: (ctx, leagueId) =>
+    ctx.db
+      .query("waiverClaims")
+      .withIndex("by_leagueId_and_teamId_and_rank", (q) => q.eq("leagueId", leagueId))
+      .take(ROWS_PER_RUN),
+  waiverOrders: (ctx, leagueId) =>
+    ctx.db
+      .query("waiverOrders")
+      .withIndex("by_leagueId", (q) => q.eq("leagueId", leagueId))
       .take(ROWS_PER_RUN),
   shortlistPlayers: (ctx, leagueId) =>
     ctx.db

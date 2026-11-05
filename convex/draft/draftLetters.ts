@@ -8,9 +8,11 @@ import {
   draftPausedLetter,
   draftPickedForLetter,
   draftUndoneLetter,
+  scoringStartMovedLetter,
   upNextLetter,
   type PickNews,
 } from "../mail/letterWords";
+import type { MovedStart } from "../gameweeks/scoringStart";
 import { bylineOf, fileLetter, wholeLeague } from "../mail/letters";
 import { sendEmail } from "../outbound/email";
 import { takeTodaysEmail } from "../outbound/emailLimit";
@@ -22,7 +24,8 @@ import type { Clocked } from "./draftClock";
 // manager whose pick's clock starts gets "you're up next", with no letter to everyone for every
 // pick; the whole league gets one letter when the draft ends, and one when the commissioner pauses
 // it, none when he resumes; and the commissioner gets one when a start date comes and the draft
-// can't start. The commissioner's undo and his pick for a team each send the whole league one too
+// can't start, and when the draft ends after the deadline of the gameweek scoring was to start in,
+// so the start moves on (#1097). The commissioner's undo and his pick for a team each send the whole league one too
 // (#1095). A team with no manager has no one to tell. "You're up next" also goes
 // by email when the clock is over 10 minutes (spec/11): in a live draft managers are on the draft
 // page. It counts against the day's emails (emailLimit.ts); with none left it isn't sent, as a
@@ -50,6 +53,11 @@ export async function tellUpNext(ctx: MutationCtx, league: Doc<"leagues">, clock
 /** Tells the whole league the draft is over, after its `picks` picks. */
 export async function tellDraftOver(ctx: MutationCtx, league: Doc<"leagues">, picks: number): Promise<void> {
   await fileLetter(ctx, league, await wholeLeague(ctx, league), draftOverLetter(picks));
+}
+
+/** Tells the commissioner the draft's end moved the league's scoring start (scoringStart.ts). */
+export async function tellScoringStartMoved(ctx: MutationCtx, league: Doc<"leagues">, moved: MovedStart): Promise<void> {
+  await fileLetter(ctx, league, [league.commissionerEmail], scoringStartMovedLetter(moved));
 }
 
 /** Tells the whole league `by`, the commissioner, paused the draft. */

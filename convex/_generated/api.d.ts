@@ -15,6 +15,7 @@ import type * as admin_platformSettings from "../admin/platformSettings.js";
 import type * as admin_runLogs from "../admin/runLogs.js";
 import type * as admin_sideRuns from "../admin/sideRuns.js";
 import type * as auth from "../auth.js";
+import type * as availability_availability from "../availability/availability.js";
 import type * as crons from "../crons.js";
 import type * as draft_autoPickOrder from "../draft/autoPickOrder.js";
 import type * as draft_draftBoard from "../draft/draftBoard.js";
@@ -72,6 +73,7 @@ import type * as gameweeks_leagueDeadlines from "../gameweeks/leagueDeadlines.js
 import type * as gameweeks_leagueGameweeks from "../gameweeks/leagueGameweeks.js";
 import type * as gameweeks_nextGameweek from "../gameweeks/nextGameweek.js";
 import type * as gameweeks_passedDeadlines from "../gameweeks/passedDeadlines.js";
+import type * as gameweeks_scoringStart from "../gameweeks/scoringStart.js";
 import type * as gameweeks_usedGameweeks from "../gameweeks/usedGameweeks.js";
 import type * as heartbeats_heartbeat from "../heartbeats/heartbeat.js";
 import type * as home_glance from "../home/glance.js";
@@ -144,6 +146,7 @@ import type * as rules_leagueSettings from "../rules/leagueSettings.js";
 import type * as rules_leagueSettingsPart from "../rules/leagueSettingsPart.js";
 import type * as rules_rulesHistory from "../rules/rulesHistory.js";
 import type * as rules_squadMaximums from "../rules/squadMaximums.js";
+import type * as schema_availability from "../schema/availability.js";
 import type * as schema_draft from "../schema/draft.js";
 import type * as schema_feeds from "../schema/feeds.js";
 import type * as schema_football from "../schema/football.js";
@@ -163,6 +166,7 @@ import type * as schema_signIn from "../schema/signIn.js";
 import type * as schema_squads from "../schema/squads.js";
 import type * as schema_stars from "../schema/stars.js";
 import type * as schema_table from "../schema/table.js";
+import type * as schema_waivers from "../schema/waivers.js";
 import type * as scoring_categories from "../scoring/categories.js";
 import type * as scoring_draftedRoleAdjustments from "../scoring/draftedRoleAdjustments.js";
 import type * as scoring_firstScoring from "../scoring/firstScoring.js";
@@ -241,6 +245,7 @@ import type * as stats_teamSeasonStats from "../stats/teamSeasonStats.js";
 import type * as stats_teamSeasonTotals from "../stats/teamSeasonTotals.js";
 import type * as stats_thresholdSteps from "../stats/thresholdSteps.js";
 import type * as table_finalScores from "../table/finalScores.js";
+import type * as table_fixtureEdits from "../table/fixtureEdits.js";
 import type * as table_leagueTable from "../table/leagueTable.js";
 import type * as table_overrideLimits from "../table/overrideLimits.js";
 import type * as table_playedFixtures from "../table/playedFixtures.js";
@@ -250,6 +255,13 @@ import type * as table_sentTables from "../table/sentTables.js";
 import type * as table_standings from "../table/standings.js";
 import type * as table_teamFixtures from "../table/teamFixtures.js";
 import type * as table_teamGames from "../table/teamGames.js";
+import type * as waivers_waiverClaims from "../waivers/waiverClaims.js";
+import type * as waivers_waiverLock from "../waivers/waiverLock.js";
+import type * as waivers_waiverOrder from "../waivers/waiverOrder.js";
+import type * as waivers_waiverPlayers from "../waivers/waiverPlayers.js";
+import type * as waivers_waiverRun from "../waivers/waiverRun.js";
+import type * as waivers_waiverTimes from "../waivers/waiverTimes.js";
+import type * as waivers_waivers from "../waivers/waivers.js";
 
 import type {
   ApiFromModules,
@@ -265,6 +277,7 @@ declare const fullApi: ApiFromModules<{
   "admin/runLogs": typeof admin_runLogs;
   "admin/sideRuns": typeof admin_sideRuns;
   auth: typeof auth;
+  "availability/availability": typeof availability_availability;
   crons: typeof crons;
   "draft/autoPickOrder": typeof draft_autoPickOrder;
   "draft/draftBoard": typeof draft_draftBoard;
@@ -322,6 +335,7 @@ declare const fullApi: ApiFromModules<{
   "gameweeks/leagueGameweeks": typeof gameweeks_leagueGameweeks;
   "gameweeks/nextGameweek": typeof gameweeks_nextGameweek;
   "gameweeks/passedDeadlines": typeof gameweeks_passedDeadlines;
+  "gameweeks/scoringStart": typeof gameweeks_scoringStart;
   "gameweeks/usedGameweeks": typeof gameweeks_usedGameweeks;
   "heartbeats/heartbeat": typeof heartbeats_heartbeat;
   "home/glance": typeof home_glance;
@@ -394,6 +408,7 @@ declare const fullApi: ApiFromModules<{
   "rules/leagueSettingsPart": typeof rules_leagueSettingsPart;
   "rules/rulesHistory": typeof rules_rulesHistory;
   "rules/squadMaximums": typeof rules_squadMaximums;
+  "schema/availability": typeof schema_availability;
   "schema/draft": typeof schema_draft;
   "schema/feeds": typeof schema_feeds;
   "schema/football": typeof schema_football;
@@ -413,6 +428,7 @@ declare const fullApi: ApiFromModules<{
   "schema/squads": typeof schema_squads;
   "schema/stars": typeof schema_stars;
   "schema/table": typeof schema_table;
+  "schema/waivers": typeof schema_waivers;
   "scoring/categories": typeof scoring_categories;
   "scoring/draftedRoleAdjustments": typeof scoring_draftedRoleAdjustments;
   "scoring/firstScoring": typeof scoring_firstScoring;
@@ -491,6 +507,7 @@ declare const fullApi: ApiFromModules<{
   "stats/teamSeasonTotals": typeof stats_teamSeasonTotals;
   "stats/thresholdSteps": typeof stats_thresholdSteps;
   "table/finalScores": typeof table_finalScores;
+  "table/fixtureEdits": typeof table_fixtureEdits;
   "table/leagueTable": typeof table_leagueTable;
   "table/overrideLimits": typeof table_overrideLimits;
   "table/playedFixtures": typeof table_playedFixtures;
@@ -500,6 +517,13 @@ declare const fullApi: ApiFromModules<{
   "table/standings": typeof table_standings;
   "table/teamFixtures": typeof table_teamFixtures;
   "table/teamGames": typeof table_teamGames;
+  "waivers/waiverClaims": typeof waivers_waiverClaims;
+  "waivers/waiverLock": typeof waivers_waiverLock;
+  "waivers/waiverOrder": typeof waivers_waiverOrder;
+  "waivers/waiverPlayers": typeof waivers_waiverPlayers;
+  "waivers/waiverRun": typeof waivers_waiverRun;
+  "waivers/waiverTimes": typeof waivers_waiverTimes;
+  "waivers/waivers": typeof waivers_waivers;
 }>;
 
 /**

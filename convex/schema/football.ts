@@ -13,6 +13,10 @@ export const clubRecord = v.object({
   shortName: v.string(),
 });
 
+/** Whether a player can play, as the platform holds it (spec/06, Availability): the feed's, or the
+ *  admin's over it (`convex/availability/`). The auto team reads only this (spec/09). */
+export const availability = v.union(v.literal("out"), v.literal("doubtful"), v.literal("available"));
+
 export const playerRecord = v.object({
   code: v.number(),
   /** FPL's short display name, e.g. "Saka". */
@@ -24,6 +28,8 @@ export const playerRecord = v.object({
   /** FPL's chance he plays in the next round, in percent, null while it has no doubt about him
    *  (#381); absent on rows from before it. */
   chanceOfPlaying: v.optional(v.union(v.number(), v.null())),
+  /** Whether the feed says he can play (spec/06, Availability); absent on rows from before it. */
+  availability: v.optional(availability),
 });
 
 export const fixtureRecord = v.object({

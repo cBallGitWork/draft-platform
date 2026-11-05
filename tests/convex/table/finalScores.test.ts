@@ -30,8 +30,7 @@ import { holdTypoRule, TYPO_STAT } from "../../support/convex/gameweekScoresFixe
 // not yet final is still worked out live; `rescore` stores one again.
 
 const finalRows = ({ t }: ScoresLeague) => t.run((ctx) => ctx.db.query("finalScores").collect());
-/** Each stored row's team and points, in team order, and whether it is marked as never having
- *  saved a lineup, which no row has been since #637. */
+/** Each stored row's team and points, in team order, and its no-lineup mark, never written since #1040. */
 const stored = async (league: ScoresLeague) =>
   (await finalRows(league)).map(({ gameweek, teamId, points, noLineup }) => ({ gameweek, teamId, points, noLineup }));
 /** Ann's points in gameweek 6 as the table reads them. */
@@ -54,7 +53,7 @@ test("once the match locks, each team's points are stored, and the table reads t
   expect(await storeLeague(league)).toEqual([]);
 });
 
-test("a team that held no lineup in a gameweek begun before #637 scores 0 there, stored marked so the table says why", async () => {
+test("a team that held no lineup in a gameweek begun before #637 still scores 0 there, its squad on the bench, stored unmarked (#1040)", async () => {
   const league = await scoresLeague();
   // Bob's squad was made before teams held a first lineup: no row is in force.
   await league.t.run(async (ctx) => {
@@ -64,9 +63,9 @@ test("a team that held no lineup in a gameweek begun before #637 scores 0 there,
   await fullTimeRecords(league);
   await lockMatch(league);
   await storeLeague(league);
-  expect((await stored(league))[1]).toEqual({ gameweek: GAMEWEEK, teamId: league.bobsTeam, points: 0, noLineup: true });
+  expect((await stored(league))[1]).toEqual({ gameweek: GAMEWEEK, teamId: league.bobsTeam, points: 0, noLineup: undefined });
   const bob = (await readTable(league))!.results.find((each) => each.gameweek === GAMEWEEK)!.teams.find((team) => team.teamId === league.bobsTeam);
-  expect(bob).toMatchObject({ points: 0, provisional: false, noLineup: true });
+  expect(bob).toEqual({ teamId: league.bobsTeam, teamName: expect.any(String), points: 0, provisional: false });
 });
 
 test("a starter released after the deadline is in the stored score: it freezes the squad at the deadline (#415)", async () => {
