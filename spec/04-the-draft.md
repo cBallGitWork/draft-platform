@@ -199,5 +199,8 @@ Feature 4 of [SPEC.md](../SPEC.md). Only Craig's answers.
 
 ## After the draft
 
+- The draft room leaves the menu once the draft is over, and its record lives in results: "no the
+  room goes off the meny, results can be somehwere else for record" (Craig, 4 Nov 2026, on #1098).
+
 - In keeper and dynasty leagues, next season's draft is every player who was not kept, in the
   league's draft order.

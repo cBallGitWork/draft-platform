@@ -27,6 +27,7 @@ import { fakePlayerCard } from "./playerCard.harness";
 import { fakeScoring } from "./scoring.harness";
 import { fakeSquads } from "./squads.harness";
 import { fakeScouting } from "./scouting.harness";
+import { fakeDraft } from "./draft.harness";
 import { fakeHome } from "./home.harness";
 import { fakePremierLeague } from "./premierLeague.harness";
 import { fakeTable } from "./table.harness";
@@ -157,6 +158,7 @@ const FAKES = {
   admin: fakeAdmin,
   feedback: fakeFeedback,
   patches: fakePatches,
+  draft: fakeDraft,
 };
 type Faked = typeof FAKES;
 type FakedSeams = { [K in keyof Faked]: ReturnType<Faked[K]> };

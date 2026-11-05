@@ -68,6 +68,7 @@ flowchart TD
 
   subgraph FR["League frame: signed in and in a league"]
     HOME["Home<br/>/home<br/>manager"]
+    DRAFT["Draft room<br/>/draft<br/>manager, commissioner"]
     TEAM["My team, tab Tactics<br/>/team<br/>manager"]
     TSQ["Squad<br/>/team/squad<br/>manager"]
     TFX["Fixtures<br/>/team/fixtures<br/>manager"]
@@ -86,6 +87,7 @@ flowchart TD
 
   MENU(["League frame: top menu and top bar"])
   MENU -- "Home" --> HOME
+  MENU -- "Draft room (until the draft is over)" --> DRAFT
   MENU -- "My team" --> TEAM
   MENU -- "Matchup" --> MATCHUP
   MENU -- "Table" --> TABLE
@@ -111,10 +113,9 @@ flowchart TD
   CARD -.->|"its code isn't a number"| SCOUTING
 
   subgraph PLAN["Named in the spec, no route yet"]
-    DRAFT["Draft room<br/>spec/12 The frame, spec/04<br/>manager, commissioner"]
     CLUBS["Club pages<br/>spec/18:22<br/>after the mini beta"]
   end
-  class DRAFT,CLUBS planned
+  class CLUBS planned
   MATCHUP -- "a player's status" --> MATCH
   PL -- "a fixture's score or v" --> MATCH
   MATCH -.->|"its code isn't a number"| PL
@@ -148,6 +149,7 @@ Features table (feature 12), the one home for screen status.
 | Table and fixtures | `/table` | src/table/TablePage.tsx | spec/12, spec/09 | built |
 | Scouting | `/scouting` | src/scouting/ScoutingPage.tsx | spec/19 The players list, The shortlist | built |
 | League home | `/home` | src/home/HomePage.tsx | spec/12 League home | built |
+| Draft room | `/draft` | src/draft/DraftPage.tsx | spec/04, spec/12 The frame | built |
 | My team (Tactics) | `/team` | src/myTeam/tactics/TacticsPage.tsx | spec/12 The frame, spec/12 My team's tabs, spec/05 | built |
 | Squad | `/team/squad` | src/myTeam/SquadPage.tsx | spec/12 My team's tabs | built |
 | Fixtures | `/team/fixtures` | src/myTeam/FixturesPage.tsx | spec/12 My team's tabs | built |
@@ -157,7 +159,6 @@ Features table (feature 12), the one home for screen status.
 | Premier League | `/premier-league` | src/premierLeague/PremierLeaguePage.tsx | spec/18 | built |
 | Match | `/premier-league/match/$fixtureCode` | src/premierLeague/MatchPage.tsx | spec/10 The match page | built |
 | Player card | `/leagues/$leagueId/players/$playerCode` | src/playerCard/PlayerCardPage.tsx | spec/12 The player card, spec/05, spec/14, spec/19 | built |
-| Draft room | none | none | spec/12 The frame, spec/04 | no route |
 | Club pages | none | none | spec/18:22 | no route |
 
 ## Gaps

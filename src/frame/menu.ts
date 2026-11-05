@@ -4,6 +4,7 @@
 // My team's tabs are R3·1's; a section gets tabs when its screen is grilled, and until then has no
 // second row.
 
+import { DRAFT_TITLE } from "../draft/words";
 import { MAIL_TITLE } from "../mail/words";
 import { menuWords } from "./words";
 
@@ -41,6 +42,15 @@ export const sections: readonly Section[] = [
   { label: menuWords.premierLeague, path: PREMIER_LEAGUE_PATH, tabs: [] },
   { label: MAIL_TITLE, path: MAIL_PATH, tabs: [] },
 ];
+
+/** The draft room (spec/04, The draft room): in the menu after My team, as the approved picture
+ *  has it, from the moment the league is set up until the draft is over (Craig, 4 Nov 2026). */
+export const DRAFT_PATH = "/draft";
+const draftSection: Section = { label: DRAFT_TITLE, path: DRAFT_PATH, tabs: [] };
+
+/** The menu's sections, with the draft room's while it is in the menu. */
+export const sectionsWith = (draftInMenu: boolean): readonly Section[] =>
+  draftInMenu ? [sections[0], sections[1], draftSection, ...sections.slice(2)] : sections;
 
 export function sectionAt(pathname: string): Section | undefined {
   return sections.find((section) => pathname === section.path || pathname.startsWith(`${section.path}/`));
