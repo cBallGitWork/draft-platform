@@ -77,6 +77,7 @@ env:
   BOARD_LABEL: "lead:board"
   NEXT_LABEL: "next"  # Craig's "build this first", from the PM dashboard
   NEXT_UP: 15  # how many of the queue the board lists
+  STOPPED_HOURS: 24  # how long a build that stopped without a pull request waits before it is tried again
   DRY_RUN: ${{ inputs.dry_run == true }}
 
 jobs:
@@ -184,6 +185,13 @@ jobs:
                                 | ((.title | scan("\\(#([0-9]+)\\)")), ((.body // "") | scan("(?m)^\\s*-?\\s*(?:Closes|Fixes|Resolves|Part of|Part [0-9]+ of) #([0-9]+)"))) | .[0]' | sort -u)
           # only the issue a PR closes or is part of, from its title or that line: #1205 named #1199 in passing
           ready=$(for row in $ready; do n=${row%%:*}; if [ "${row#*:}" = build ] && grep -qx "$n" <<<"$merged_refs"; then echo "$n:sweep"; else echo "$row"; fi; done)
+          # a build that ended in the last STOPPED_HOURS with no pull request stopped on purpose (blocked by another
+          # issue, or already done), and says why on the issue: built again it stops again, and since a build's end
+          # starts the lead that is a loop (5 Nov 2026: #1096 waits on #383). It waits on the board instead.
+          stopped=$(gh run list --workflow claude-build.yml --event workflow_dispatch --status completed --limit 100 \
+                      --created ">=$(date -u -d "$STOPPED_HOURS hours ago" +%FT%TZ)" --json displayTitle \
+                      --jq '.[].displayTitle | select(startswith("build #")) | ltrimstr("build #")' | sort -u)
+          ready=$(for row in $ready; do n=${row%%:*}; if [ "${row#*:}" = build ] && grep -qx "$n" <<<"$stopped" && ! grep -qx "$n" <<<"$taken"; then echo "$n:stopped"; else echo "$row"; fi; done)
           for row in $ready; do
             [ "$slots" -gt 0 ] || break
             n=${row%%:*}
@@ -214,7 +222,7 @@ jobs:
           # counted in the loop, not with head: under pipefail, head closing the pipe fails the step (5 Nov 2026, dry run)
           next_up=$(k=0; for row in $ready; do [ "$k" -lt "$NEXT_UP" ] || break; n=${row%%:*}; [ "${row#*:}" = build ] || continue; grep -qx "$n" <<<"$taken" && continue; grep -qx "$n" <<<"$busy_issues" && continue; line "$n"; k=$((k + 1)); done)
           unchecked=$(k=0; for row in $ready; do [ "$k" -lt "$NEXT_UP" ] || break; [ "${row#*:}" = sweep ] || continue; line "${row%%:*}"; k=$((k + 1)); done)
-          blocked=$(for row in $ready; do n=${row%%:*}; case ${row#*:} in rules) echo "- #$n $(title_of "$n"): your answers (the dashboard has the questions)";; craig) echo "- #$n $(title_of "$n"): you";; esac; done)
+          blocked=$(for row in $ready; do n=${row%%:*}; case ${row#*:} in rules) echo "- #$n $(title_of "$n"): your answers (the dashboard has the questions)";; craig) echo "- #$n $(title_of "$n"): you";; stopped) echo "- #$n $(title_of "$n"): its build stopped (the issue's last comment says why); tried again after ${STOPPED_HOURS}h";; esac; done)
           today=$(date -u +%Y-%m-%d)
           merged=$(gh pr list --state merged --search "merged:>=$today" --limit 100 --json number,title --jq '.[] | "- #\(.number) \(.title)"')
           red=$(jq -r '.[] | select(.isDraft | not) | select(any(.statusCheckRollup[]?; .conclusion == "FAILURE")) | "- #\(.number) \(.headRefName)"' <<<"$prs")
