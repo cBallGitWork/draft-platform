@@ -74,6 +74,10 @@ const teamFields = {
   /** The last gameweek its manager opened the Tactics tab in, so Continue stops leading him there
    *  for that gameweek (spec/12; lineup/lineupDue.ts). Absent until he first opens it. */
   tacticsOpenedInGameweek: v.optional(v.number()),
+  /** The commissioner's "I'll pick for this one" on a team with no manager, set before the draft
+   *  starts (spec/04, Auto-pick; #1095): the draft doesn't pick for it at once, its clock runs, and
+   *  he picks for it. A manager joining the team takes it off. ../draft/draftCommissioner.ts writes it. */
+  commissionerPicks: v.optional(v.literal(true)),
 };
 
 /** The league switcher (#76): the league each person used last, by email, one row each. */

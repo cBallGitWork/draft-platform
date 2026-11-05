@@ -75,6 +75,11 @@ export function changesTo(
     "draft/draftPause:resume": () => admin.mutation(api.draft.draftPause.resume, { leagueId }),
     "draft/draftPicks:makePick": () => ann.mutation(api.draft.draftPicks.makePick, { leagueId, playerCode: 1 }),
     "draft/draftPicks:takeControlBack": () => ann.mutation(api.draft.draftPicks.takeControlBack, { leagueId }),
+    "draft/draftPicks:pickFor": () => admin.mutation(api.draft.draftPicks.pickFor, { leagueId, playerCode: 1 }),
+    "draft/draftCommissioner:undoPick": () => admin.mutation(api.draft.draftCommissioner.undoPick, { leagueId }),
+    "draft/draftCommissioner:setPickTime": () => admin.mutation(api.draft.draftCommissioner.setPickTime, { leagueId, pickSeconds: 60 }),
+    "draft/draftCommissioner:markForCommissioner": () =>
+      admin.mutation(api.draft.draftCommissioner.markForCommissioner, { leagueId, teamId: annsTeam._id, marked: true }),
     "lineup/lineups:save": () => ann.mutation(api.lineup.lineups.save, { leagueId, lineup: { starters: [], bench: [] } }),
     "lineup/lineupDue:openedTactics": () => ann.mutation(api.lineup.lineupDue.openedTactics, { leagueId, gameweek: 1 }),
     "leagues/lastLeague:switchTo": () => commissioner.mutation(api.leagues.lastLeague.switchTo, { leagueId }),

@@ -8,13 +8,13 @@ import { fileEvent } from "../mail/letters";
 import { positionsNow } from "../positions/playerPositions";
 import { draftRulesOf } from "../rules/firstRules";
 import type { LeagueRules } from "../rules/leagueRulesShape";
-import { managerOf, refuse, refusals, teamIn } from "../shared/leagueAccess";
+import { managerOf, refuse, refusals, runnerOf, teamIn } from "../shared/leagueAccess";
 import { currentClubs, currentPlayersAt, heldPlayerByCode, playerByCode } from "../shared/players";
 import { placeOf, squadOf } from "../squads/squadPlace";
 import { squadRefusals } from "../squads/squads";
 import { autoPickOrder } from "./autoPickOrder";
 import { PICK_GAP_MS, startClock } from "./draftClock";
-import { tellDraftOver, tellUpNext } from "./draftLetters";
+import { tellDraftOver, tellPickedFor, tellUpNext } from "./draftLetters";
 import { listsOf } from "./draftLists";
 import { draftRanking } from "./draftRanking";
 import { draftOf, picksMadeIn, type StartedDraft } from "./draftRow";
@@ -35,9 +35,10 @@ import { pickOnTheClock } from "./snakeOrder";
 // for a team with no manager, the draft picks for the team (`autoPick`; #1091).
 // Greying out always leaves a legal pick, so a team with none is an error, not the end of its draft
 // (Craig, 4 Nov 2026, on #1090). Auto-pick takes by the team's queue, the admin's ranking and last
-// season's points (autoPickOrder.ts; #1094). Not built yet: the commissioner's picks and undo, and
-// the manager's 10-second undo, which will also keep the draft open for the 10 seconds after its
-// last pick (Craig, 4 Nov 2026, on #1090): until then it is over at the last pick.
+// season's points (autoPickOrder.ts; #1094). The commissioner can make the pick for any team on the
+// clock (`pickFor`) and undo the last pick (draftCommissioner.ts; #1095). Not built yet: the
+// manager's 10-second undo, which will also keep the draft open for the 10 seconds after its last
+// pick (Craig, 4 Nov 2026, on #1090): until then it is over at the last pick.
 
 /** Why a pick is refused, in the words the manager is shown. */
 export const pickRefusals = {
@@ -95,22 +96,28 @@ async function pickable(ctx: QueryCtx, leagueId: Id<"leagues">, playerCode: numb
 /** The league's draft rules now: a change the commissioner makes reaches the next clock. */
 const draftRulesNow = async (ctx: QueryCtx, leagueId: Id<"leagues">) => draftRulesOf(await startedRulesAt(ctx, leagueId, Date.now()));
 
-/** The league's pick time now, in seconds. */
+/** The draft's pick time now, in seconds: the one the commissioner set while it was paused, which
+ *  reaches it at once (draftCommissioner.ts; #1095), or else the league's in force now. */
 export async function pickSecondsNow(ctx: QueryCtx, leagueId: Id<"leagues">): Promise<number> {
-  return (await draftRulesNow(ctx, leagueId)).pickSeconds;
+  return (await draftOf(ctx, leagueId))?.pickSeconds ?? (await draftRulesNow(ctx, leagueId)).pickSeconds;
 }
+
+/** How a pick was made, besides who by: `timeout` for one the draft made when a managed team's
+ *  clock ran out, and `pausedAt` for one the commissioner made while the draft was paused, whose
+ *  next clock waits for him to resume. */
+type Placed = { timeout?: Doc<"draftPicks">["timeout"]; pausedAt?: number };
 
 /** `player` joins the squad of `team`, on the clock, as its pick, filed as `by`'s, and the next
  *  pick's clock starts PICK_GAP_MS from now, its manager told he is up next; after the last pick,
  *  the whole league is told the draft is over (draftLetters.ts). */
-async function placePick(ctx: MutationCtx, league: Doc<"leagues">, turn: Turn, team: Doc<"teams">, player: Doc<"players">, by: string): Promise<void> {
+async function placePick(ctx: MutationCtx, league: Doc<"leagues">, turn: Turn, team: Doc<"teams">, player: Doc<"players">, by: string, { timeout, pausedAt }: Placed = {}): Promise<void> {
   const leagueId = league._id;
   const now = Date.now();
-  await ctx.db.insert("draftPicks", { leagueId, pick: turn.pick, teamId: team._id, playerCode: player.code, at: now });
+  await ctx.db.insert("draftPicks", { leagueId, pick: turn.pick, teamId: team._id, playerCode: player.code, at: now, ...(timeout && { timeout }) });
   await ctx.db.insert("squadPlayers", { leagueId, teamId: team._id, playerCode: player.code });
   await fileEvent(ctx, leagueId, by, { kind: "playerAssigned", playerCode: player.code, playerName: player.name, teamId: team._id, teamName: team.name });
   await pickFirstLineupAgain(ctx, leagueId, team._id);
-  const next = await startClock(ctx, leagueId, turn.pick, now + PICK_GAP_MS, await pickSecondsNow(ctx, leagueId));
+  const next = await startClock(ctx, leagueId, turn.pick, now + PICK_GAP_MS, await pickSecondsNow(ctx, leagueId), { pausedAt });
   if (next === null) await tellDraftOver(ctx, league, turn.pick);
   else await tellUpNext(ctx, league, next);
 }
@@ -123,15 +130,50 @@ export const makePick = mutation({
   returns: v.null(),
   handler: async (ctx, { leagueId, playerCode }) => {
     const { email, league, team } = await managerOf(ctx, leagueId);
-    const draft = await draftOf(ctx, leagueId);
-    const started = draft?.started ?? refuse(pickRefusals.notStarted);
-    const turn = pickOnTheClock(started.teamIds, started.rounds, await picksMadeIn(ctx, leagueId)) ?? refuse(pickRefusals.over);
-    if (draft?.clock?.paused !== undefined) refuse(pickRefusals.paused);
+    const { draft, started, turn } = await liveTurn(ctx, leagueId);
+    if (draft.clock?.paused !== undefined) refuse(pickRefusals.paused);
     if (turn.team !== team._id) refuse(pickRefusals.notYourTurn((await teamIn(ctx, leagueId, turn.team)).name));
-    const player = await pickable(ctx, leagueId, playerCode);
-    if (!(await (await legalForTurn(ctx, leagueId, started, turn))(player))) refuse(pickRefusals.breaksSquadRules(player.name));
-    if (draft?.clock?.job !== undefined) await ctx.scheduler.cancel(draft.clock.job);
+    const player = await legalPick(ctx, leagueId, started, turn, playerCode);
+    if (draft.clock?.job !== undefined) await ctx.scheduler.cancel(draft.clock.job);
     await placePick(ctx, league, turn, team, player, email);
+    return null;
+  },
+});
+
+/** The league's started draft and the pick on its clock, or the refusal: it hasn't started, or it
+ *  is over. */
+async function liveTurn(ctx: QueryCtx, leagueId: Id<"leagues">): Promise<{ draft: Doc<"drafts">; started: StartedDraft; turn: Turn }> {
+  const draft = (await draftOf(ctx, leagueId)) ?? refuse(pickRefusals.notStarted);
+  const started = draft.started ?? refuse(pickRefusals.notStarted);
+  const turn = pickOnTheClock(started.teamIds, started.rounds, await picksMadeIn(ctx, leagueId)) ?? refuse(pickRefusals.over);
+  return { draft, started, turn };
+}
+
+/** The player the team on the clock picks, or the refusal: he isn't there to take, or would break
+ *  the team's squad rules. */
+async function legalPick(ctx: QueryCtx, leagueId: Id<"leagues">, started: StartedDraft, turn: Turn, playerCode: number): Promise<Doc<"players">> {
+  const player = await pickable(ctx, leagueId, playerCode);
+  if (!(await (await legalForTurn(ctx, leagueId, started, turn))(player))) refuse(pickRefusals.breaksSquadRules(player.name));
+  return player;
+}
+
+/** The commissioner makes the pick for the team on the clock, any team, with a manager or none, "incase
+ *  a manger hops on a flight or something" (Craig, 5 Nov 2026; #1095). It is filed as his, never
+ *  counts as that team's timeout, and the whole league is told (draftLetters.ts). While the draft is
+ *  paused it stays paused, and the next pick's clock starts when he resumes (Craig, 5 Nov 2026).
+ *  Refused to anyone who doesn't run the league, before the draft starts, once it is over, and for a
+ *  player who isn't there to take or would break the team's squad rules. */
+export const pickFor = mutation({
+  args: { leagueId: v.id("leagues"), playerCode: v.number() },
+  returns: v.null(),
+  handler: async (ctx, { leagueId, playerCode }) => {
+    const { email, league } = await runnerOf(ctx, leagueId);
+    const { draft, started, turn } = await liveTurn(ctx, leagueId);
+    const team = await teamIn(ctx, leagueId, turn.team);
+    const player = await legalPick(ctx, leagueId, started, turn, playerCode);
+    if (draft.clock?.job !== undefined) await ctx.scheduler.cancel(draft.clock.job);
+    await placePick(ctx, league, turn, team, player, email, { pausedAt: draft.clock?.paused === undefined ? undefined : Date.now() });
+    await tellPickedFor(ctx, league, email, { pick: turn.pick, playerName: player.name, teamName: team.name });
     return null;
   },
 });
@@ -173,19 +215,22 @@ export const autoPick = internalMutation({
     const turn = pickOnTheClock(started.teamIds, started.rounds, await picksMadeIn(ctx, leagueId));
     if (turn?.pick !== pick) return null;
     const team = await teamIn(ctx, leagueId, turn.team);
-    if (!picksAtOnce(draft.timeouts, team) && Date.now() < draft.clock.endsAt) {
-      // Scheduled at once, but since then a manager took the team over or took control back: his
-      // clock runs out first.
+    if ((!picksAtOnce(draft.timeouts, team) || draft.clock.fullClock) && Date.now() < draft.clock.endsAt) {
+      // Scheduled at once, but since then a manager took the team over or took control back, or the
+      // commissioner's undo put this pick back on its full clock: the clock runs out first.
       const job = await ctx.scheduler.runAt(draft.clock.endsAt, internal.draft.draftPicks.autoPick, { leagueId, pick });
       await ctx.db.patch("drafts", draft._id, { clock: { ...draft.clock, job } });
       return null;
     }
     const player = await autoPickFor(ctx, leagueId, started, turn);
+    let timeout: Placed["timeout"];
     if (team.managerEmail !== undefined) {
       const limit = (await draftRulesNow(ctx, leagueId)).timeoutsBeforeAutoPick;
-      await ctx.db.patch("drafts", draft._id, { timeouts: afterTimeout(draft.timeouts, team._id, limit) });
+      const timeouts = afterTimeout(draft.timeouts, team._id, limit);
+      timeout = { putOnAutoPick: !isOnAutoPick(draft.timeouts, team._id) && isOnAutoPick(timeouts, team._id) };
+      await ctx.db.patch("drafts", draft._id, { timeouts });
     }
-    await placePick(ctx, league, turn, team, player, team.managerEmail ?? league.commissionerEmail);
+    await placePick(ctx, league, turn, team, player, team.managerEmail ?? league.commissionerEmail, { timeout });
     return null;
   },
 });
