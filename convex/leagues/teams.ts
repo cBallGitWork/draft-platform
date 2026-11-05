@@ -22,6 +22,7 @@ import { leagueDeadlines } from "../gameweeks/leagueDeadlines";
 import { storeBegunFixtures } from "../table/playedFixtures";
 import { TEAM_NAME_MAX } from "./leagueLimits";
 import { cancelLiveInvites } from "../joining/liveInvites";
+import { draftHasStarted } from "../draft/draftRow";
 
 // A league's teams and their managers (#24, spec/13, Teams and Leaving). Each change files an
 // event for Mail (#26). One manager runs one team; a team whose manager goes stays, vacated.
@@ -40,14 +41,17 @@ function startingName(teams: Doc<"teams">[], number: number): string {
   return teamNumbered(free);
 }
 
-/** Whether this email may join the league (spec/13, Teams), given its `teams`: the vacated team
- *  `vacatedTeamId` it would take, or null for a new team; otherwise a refusal. putOnTeam and an
- *  invite (invites.ts) both check here, so they refuse alike. */
+/** Whether this email may join the league (spec/13, Teams), given its `teams` and whether its
+ *  draft has started: the vacated team `vacatedTeamId` it would take, or null for a new team;
+ *  otherwise a refusal. No new team joins once the draft has started (spec/04, Starting it; Craig,
+ *  4 Nov 2026, on #1089), though a vacated team can still be taken. putOnTeam and an invite
+ *  (invites.ts) both check here, so they refuse alike. */
 export function checkCanJoin(
   teams: Doc<"teams">[],
   league: Doc<"leagues">,
   email: string,
   vacatedTeamId: Id<"teams"> | undefined,
+  draftStarted: boolean,
 ): Doc<"teams"> | null {
   if (teams.some((team) => team.managerEmail === email)) refuse(refusals.alreadyManager(email));
   if (vacatedTeamId !== undefined) {
@@ -55,6 +59,7 @@ export function checkCanJoin(
     if (vacated.managerEmail !== undefined) refuse(refusals.notVacated);
     return vacated;
   }
+  if (draftStarted) refuse(refusals.draftStarted);
   if (teams.length >= league.maxTeams) refuse(refusals.full(league.maxTeams));
   return null;
 }
@@ -69,7 +74,7 @@ export async function putOnTeam(
   vacatedTeamId: Id<"teams"> | undefined,
 ): Promise<{ teamId: Id<"teams">; teamName: string }> {
   const teams = await teamsOf(ctx, league._id);
-  const vacated = checkCanJoin(teams, league, email, vacatedTeamId);
+  const vacated = checkCanJoin(teams, league, email, vacatedTeamId, await draftHasStarted(ctx, league._id));
 
   let teamId: Id<"teams">;
   let teamName: string;

@@ -1,11 +1,13 @@
-# Approves a pull request labelled `lane:auto` so it can merge without Craig (docs/PLAN.md, "Removing the bottleneck").
+# Approves every pull request from this repository so it can merge without Craig (docs/PLAN.md, "Removing the
+# bottleneck"); no `lane:auto` label is needed (Craig, 4 Nov 2026: green builder pull requests merge on their own,
+# with no label and nobody running the merge).
 # The `main` ruleset needs one approval; this bot supplies it. The bot is not a Code Owner, so a pull request that
 # touches an outcome path in .github/CODEOWNERS still waits for Craig. Nor does it approve a pull request by anyone
 # but the repo's owner that touches .claude/ or .github/, the pipeline's own guards, so the nightly builder (the
 # Claude GitHub App) can't loosen the checks that judge it; a session Craig works in opens its pull requests as him,
 # so those merge on green (Craig, 4 Nov 2026). Checks still gate the merge: the approval
-# does not merge anything, and `lane:craig` on the same pull request withholds it; adding `lane:craig` or removing
-# `lane:auto` later takes a given approval back (the withdraw job).
+# does not merge anything, and `lane:craig` on the same pull request withholds it; adding `lane:craig` later takes a
+# given approval back (the withdraw job).
 # Needs the repo setting "Allow GitHub Actions to create and approve pull requests".
 name: lane-auto
 
@@ -22,8 +24,7 @@ permissions:
 jobs:
   approve:
     if: >-
-      contains(github.event.pull_request.labels.*.name, 'lane:auto')
-      && !contains(github.event.pull_request.labels.*.name, 'lane:craig')
+      !contains(github.event.pull_request.labels.*.name, 'lane:craig')
       && !github.event.pull_request.draft
       && github.event.pull_request.head.repo.full_name == github.repository
     runs-on: ubuntu-latest
@@ -53,15 +54,14 @@ jobs:
               exit 0
             fi
           fi
-          gh pr review "$PR" --approve --repo "$GITHUB_REPOSITORY" --body "Approved by the lane:auto rule. The checks decide the merge."
+          gh pr review "$PR" --approve --repo "$GITHUB_REPOSITORY" --body "Approved by the lane-auto rule. The checks decide the merge."
 
-  # Takes the approval back when `lane:auto` comes off or `lane:craig` goes on: the ruleset does not dismiss a stale
+  # Takes the approval back when `lane:craig` goes on: the ruleset does not dismiss a stale
   # approval on push (`dismiss_stale_reviews_on_push` is off), so nothing else would, and the pull request could
   # merge on an approval its labels no longer give.
   withdraw:
     if: >-
-      (github.event.action == 'unlabeled' && github.event.label.name == 'lane:auto')
-      || (github.event.action == 'labeled' && github.event.label.name == 'lane:craig')
+      github.event.action == 'labeled' && github.event.label.name == 'lane:craig'
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
@@ -73,7 +73,7 @@ jobs:
         run: |
           ids=$(gh api --paginate "repos/$GITHUB_REPOSITORY/pulls/$PR/reviews" \
             --jq ".[] | select(.user.login == \"$BOT\" and .state == \"APPROVED\") | .id")
-          [ -n "$ids" ] || { echo "No lane:auto approval to take back on #$PR."; exit 0; }
+          [ -n "$ids" ] || { echo "No lane-auto approval to take back on #$PR."; exit 0; }
           for id in $ids; do
             gh api -X PUT "repos/$GITHUB_REPOSITORY/pulls/$PR/reviews/$id/dismissals" \
               -f event=DISMISS -f message="Approval withdrawn: $LABEL_CHANGE. This pull request now waits for Craig."

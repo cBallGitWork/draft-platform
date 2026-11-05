@@ -64,6 +64,13 @@ height, gaps), Type, Colour and Missing (a placeholder or control the picture ha
 Differences in the made-up figures themselves don't count. No difference is a finding too: say
 "matches the approved picture".
 
+First, though, check whether this branch changed the screen at all. A branch often reaches a screen
+only through an import (a shared words file), and nothing it draws changes. Shoot the route on main
+too, from a worktree of `origin/main` on its own port, and compare the two 1440 PNGs byte for byte
+(`cmp`). If they are identical, write "<route>: unchanged from main" and list no differences: the
+ones main already has aren't this branch's, and listing them holds its merge for Craig's label
+(Craig, 4 Nov 2026, on #1128). If they differ at all, compare with the picture as above.
+
 **3. Read every PNG.** Then say, per image, what is in it, against `docs/design/plate.md`:
 
 - Overflow, clipping, a page that scrolls sideways.

@@ -35,6 +35,7 @@ export const refusals = {
   maxOutOfRange: `A league holds ${FEWEST_TEAMS} to ${MOST_TEAMS} teams.`,
   belowTeams: (teams: number) => `The league already has ${teams} teams: the maximum can't go below that.`,
   full: (maxTeams: number) => `The league is full: it has all ${maxTeams} of its teams.`,
+  draftStarted: "The league's draft has started, so no new team can join.",
   notVacated: "That team already has a manager.",
   noManager: "That team has no manager.",
   notEmail: (typed: string) => `"${typed}" isn't an email address.`,

@@ -9,9 +9,11 @@ import { useRulesDraft } from "../rules/rulesDraft";
 import { SaveBar } from "../rules/SaveBar";
 import { BoxRefusalContext } from "../rules/blank";
 import { TickBox } from "../ui/TickBox";
-import { NumberBox } from "../rules/NumberBox";
 import { AREA_WORDS } from "../shared/words";
+import { DraftPanel } from "./DraftPanel";
+import { NumberRow } from "./NumberRow";
 import type { LeagueSettingsSeam, SettingsView } from "./seam";
+import { TeamOrderPanel } from "./TeamOrderPanel";
 import {
   areaMinimumLabel,
   areaMinimumsHint,
@@ -19,7 +21,9 @@ import {
   blankAreaMinimumWords,
   blankClubMaximumWords,
   blankGamesWords,
+  blankPickClockWords,
   blankSquadMaximumWords,
+  blankTimeoutsWords,
   clubMaximumHint,
   clubMaximumLabel,
   clubMaximumWords,
@@ -49,7 +53,8 @@ const ODD_TEAM_OUT_CHOICE = "odd-team-out";
 
 /** League settings (Craig, 22 Oct 2026), for a league's commissioners and the admin: the rules
  *  that build the league, apart from players' points, saved from the next gameweek with a letter
- *  to the league: the round robin's two (spec/09) and the squad's make-up (spec/03; #341). */
+ *  to the league: the round robin's two (spec/09), the squad's make-up (spec/03; #341) and how
+ *  the draft runs (spec/04; #1087), with the commissioner's draft order, which saves at once. */
 export function SettingsPage({ league, seam }: { league: LeagueSummary; seam: LeagueSettingsSeam }) {
   const view = seam.useSettings(league.leagueId);
   return (
@@ -95,8 +100,10 @@ function Editor({ league, seam, view }: { league: LeagueSummary; seam: LeagueSet
           </div>
         </Panel>
         <SquadPanel draft={draft} edit={edit} />
+        <DraftPanel draft={draft.draft} edit={(draftRules) => edit({ ...draft, draft: draftRules })} />
         <SaveBar draft={rulesDraft} savedWords={savedWords} />
       </BoxRefusalContext>
+      <TeamOrderPanel leagueId={league.leagueId} seam={seam} />
     </div>
   );
 }
@@ -153,20 +160,6 @@ function SquadPanel({ draft, edit }: { draft: LeagueSettings; edit: (settings: L
   );
 }
 
-/** A number's box beside its words (`shown`, its label unless given), named by `label` for screen
- *  readers and described by the hint `hintId` names. A box emptied hands up NaN: a setting left
- *  without a number, which `blankRefusal` stops before the server sees it. */
-function NumberRow({ label, shown = label, hintId, value, onChange }: { label: string; shown?: string; hintId: string; value: number; onChange: (value: number) => void }) {
-  return (
-    <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
-      <span aria-hidden className="text-soft">
-        {shown}
-      </span>
-      <NumberBox label={label} hintId={hintId} value={value} onChange={onChange} />
-    </div>
-  );
-}
-
 /** An area with no minimum shows as 0, and minimums all 0 are saved as none, as the rules hold
  *  them (null), so putting each back to 0 leaves nothing changed. */
 const NO_MINIMUM = 0;
@@ -186,5 +179,7 @@ function blankRefusal(settings: LeagueSettings): string | null {
   const blankArea = AREAS.find((area) => Number.isNaN(settings.minimumByArea?.[area]));
   if (blankArea !== undefined) return blankAreaMinimumWords(blankArea);
   if (Number.isNaN(settings.maxPerClub)) return blankClubMaximumWords;
+  if (Number.isNaN(settings.draft.pickSeconds)) return blankPickClockWords;
+  if (Number.isNaN(settings.draft.timeoutsBeforeAutoPick)) return blankTimeoutsWords;
   return null;
 }

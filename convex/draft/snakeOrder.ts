@@ -8,3 +8,12 @@ export function snakeOrder<Team>(teams: readonly Team[], rounds: number): Team[]
   const reversed = [...teams].reverse();
   return Array.from({ length: rounds }, (_, round) => (round % 2 === 0 ? teams : reversed)).flat();
 }
+
+/** The pick on the clock once `picksMade` picks are made: its number and round, from 1, and the
+ *  team making it; null once every pick is made. */
+export function pickOnTheClock<Team>(teams: readonly Team[], rounds: number, picksMade: number): { pick: number; round: number; team: Team } | null {
+  const picks = snakeOrder(teams, rounds);
+  if (picksMade < 0 || picksMade >= picks.length) return null;
+  const team = picks[picksMade];
+  return { pick: picksMade + 1, round: Math.floor(picksMade / teams.length) + 1, team };
+}

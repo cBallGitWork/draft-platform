@@ -1,5 +1,5 @@
 import { describe, expect, test } from "vitest";
-import { snakeOrder } from "../../../convex/draft/snakeOrder";
+import { pickOnTheClock, snakeOrder } from "../../../convex/draft/snakeOrder";
 
 // The order of a draft's picks (spec/04, The picks; #1088): snake only, each round the other way
 // from the one before.
@@ -33,5 +33,20 @@ describe("the snake order", () => {
   test("one round is the draft order once; no rounds, no picks", () => {
     expect(snakeOrder(["A", "B", "C"], 1)).toEqual(["A", "B", "C"]);
     expect(snakeOrder(["A", "B", "C"], 0)).toEqual([]);
+  });
+});
+
+describe("the pick on the clock (#1089)", () => {
+  test("is the first team's first pick before any is made", () => {
+    expect(pickOnTheClock(["A", "B", "C"], 2, 0)).toEqual({ pick: 1, round: 1, team: "A" });
+  });
+
+  test("turns at the end of a round: the last team picks again, in round 2", () => {
+    expect(pickOnTheClock(["A", "B", "C"], 2, 3)).toEqual({ pick: 4, round: 2, team: "C" });
+    expect(pickOnTheClock(["A", "B", "C"], 2, 5)).toEqual({ pick: 6, round: 2, team: "A" });
+  });
+
+  test("is none once every pick is made", () => {
+    expect(pickOnTheClock(["A", "B", "C"], 2, 6)).toBeNull();
   });
 });

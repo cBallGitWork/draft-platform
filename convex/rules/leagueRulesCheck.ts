@@ -1,7 +1,8 @@
 import { STARTER_COUNT, type AreaLimit } from "../lineup/lineup";
 import { AREAS, sameCell, type Area } from "../lineup/pitch";
 import { offersRole, SWEEPER_CELL } from "../lineup/roles";
-import type { LeagueRules } from "./leagueRulesShape";
+import type { DraftRules, LeagueRules } from "./leagueRulesShape";
+import { PICK_SECONDS_FEWEST, PICK_SECONDS_MOST, TIMEOUTS_FEWEST, TIMEOUTS_MOST } from "../draft/draftLimits";
 import { MOST_IN_SQUAD } from "../leagues/leagueLimits";
 import { roundsInARoundRobin } from "../table/roundRobin";
 
@@ -26,6 +27,21 @@ export function checkLeagueRules(rules: LeagueRules, maxTeams?: number): void {
     if (maxTeams !== undefined) checkGamesFor(rules.gamesPerGameweek, maxTeams);
   }
   checkWaivers(rules.waivers);
+  if (rules.draft !== undefined) checkDraft(rules.draft);
+}
+
+/** The pick clock and timeouts within Craig's limits (../draft/draftLimits.ts). */
+function checkDraft({ pickSeconds, timeoutsBeforeAutoPick }: DraftRules): void {
+  checkWholeNumberWithin(pickSeconds, "The pick clock's seconds", PICK_SECONDS_FEWEST, PICK_SECONDS_MOST);
+  if (timeoutsBeforeAutoPick !== null) {
+    checkWholeNumberWithin(timeoutsBeforeAutoPick, "The timeouts before auto-pick", TIMEOUTS_FEWEST, TIMEOUTS_MOST);
+  }
+}
+
+function checkWholeNumberWithin(value: number, what: string, least: number, most: number): void {
+  if (!Number.isInteger(value) || value < least || value > most) {
+    throw new UnsoundRules(`${what} must be a whole number from ${least} to ${most}, not ${value}.`);
+  }
 }
 
 export const gamesWords = (games: number) => (games === 1 ? "1 game" : `${games} games`);

@@ -1,6 +1,6 @@
 ---
 name: pr-reviewer
-description: Fresh-eyes review of a branch before its pull request opens. Judges the change by what it does for a manager, then checks it against SPEC.md, ARCHITECTURE.md, CLAUDE.md and, for anything on screen, docs/design/plate.md, and re-derives every number it adds. Read-only.
+description: Fresh-eyes review of a branch or its pull request (review.yml runs it on every pull request). Judges the change by what it does for a manager, then checks it against SPEC.md, ARCHITECTURE.md, CLAUDE.md and, for anything on screen, docs/design/plate.md, and re-derives every number it adds. Read-only.
 tools: Read, Grep, Glob, Bash
 model: sonnet
 ---
@@ -91,7 +91,7 @@ Then check the description's claims against what you found.
     A guide, not a gate: a larger change that can't be cut is CRAIG'S CALL, with the reason.
 
 Do not invent rules. Where the repo's docs are silent, say so and mark it CRAIG'S CALL. Each
-CRAIG'S CALL goes in the pull request template's '## Left for later' section, listed with '#n' or
+CRAIG'S CALL goes in a 'Left for later' list at the end of your review comment, listed with '#n' or
 'to-grill: <row>'. Never write anywhere in the repo.
 
 ## Output

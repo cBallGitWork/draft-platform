@@ -1,23 +1,30 @@
 import { useMutation, useQuery } from "convex/react";
 import { useMemo } from "react";
 import { api } from "../../convex/_generated/api";
-import { answerOf } from "../shared/refusal";
+import { answerOf, refusalOf } from "../shared/refusal";
 import { useMinute } from "../shared/useMinute";
 import type { LeagueSettingsSeam } from "./seam";
-import { saveFailedWords } from "./words";
+import { saveFailedWords, teamOrderFailedWords } from "./words";
 
 /** Asked again each minute, so the gameweek a change takes effect from moves on at a deadline. */
 const useSettings: LeagueSettingsSeam["useSettings"] = (leagueId) => useQuery(api.rules.leagueSettings.settings, { leagueId, now: useMinute() });
 
+const useTeamOrder: LeagueSettingsSeam["useTeamOrder"] = (leagueId) => useQuery(api.draft.draftOrder.teamOrder, { leagueId });
+
 /** League settings' seam filled in by Convex. A refusal comes back as the server's own words
- *  (convex/rules/); any other failure is logged and said plainly. */
+ *  (convex/rules/, convex/draft/); any other failure is logged and said plainly. */
 export function useLiveLeagueSettings(): LeagueSettingsSeam {
   const changeSettings = useMutation(api.rules.leagueSettings.changeSettings);
+  const setTeamOrder = useMutation(api.draft.draftOrder.setTeamOrder);
+  const drawTeamOrder = useMutation(api.draft.draftOrder.drawTeamOrder);
   return useMemo(
     () => ({
       useSettings,
       save: (leagueId, settings, revision) => answerOf(() => changeSettings({ leagueId, settings, revision }), "Saving the league settings", saveFailedWords),
+      useTeamOrder,
+      saveTeamOrder: (leagueId, teamIds) => refusalOf(() => setTeamOrder({ leagueId, teamIds }), "Saving the draft order", teamOrderFailedWords),
+      drawTeamOrder: (leagueId) => refusalOf(() => drawTeamOrder({ leagueId }), "Drawing the draft order", teamOrderFailedWords),
     }),
-    [changeSettings],
+    [changeSettings, setTeamOrder, drawTeamOrder],
   );
 }

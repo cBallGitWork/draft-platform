@@ -1,11 +1,10 @@
 """Which pull request a merge names, and GitHub's record of it, for the merge gates
-(drift_gate.py, approval_gate.py). A merge comes two ways: gh pr merge through
+(approval_gate.py). A merge comes two ways: gh pr merge through
 Bash (guard_bash.py), or the GitHub tool's merge_pull_request (guard_github.py), the route a cloud
 session takes. Every gate reads GitHub's REST API (gh api), which a cloud session reaches where gh
 pr view's GraphQL can't (403), so each gate judges both routes alike (#1045). What it can't read
 raises Unread, which each gate turns into a denial, never a silent pass. Which pull request a
-gh pr merge names is worked out before any gate judges it, so one it can't name is refused even
-below the drift trigger, and one with --admin is refused before any gate: the gh token is Craig's, and
+gh pr merge names is worked out before any gate judges it, so one it can't name is refused, and one with --admin is refused before any gate: the gh token is Craig's, and
 an admin merge bypasses the main ruleset's review rule, as #1066 and #1067 did. Stdlib only,
 Python 3.9+.
 """

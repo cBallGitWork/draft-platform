@@ -39,20 +39,22 @@ its own reason, never a cleanup:
 
 ## With every pull request
 
-`/refactor` (`.claude/skills/refactor/`), before `pr-reviewer` runs: a four-point checklist, once,
-over the branch's own diff, covering what `pr-reviewer` doesn't. The checklist lives in the
-skill, not here. The pull request template has a box for it.
+A build gives its own diff one quick pass before its final verify: code written twice, names that
+don't match their neighbours, a helper or fixture that already exists elsewhere, fixed in place
+(Craig, 4 Nov 2026: "a little refactor is always good"; the prompt is in `claude-build.yml`).
+No skill and no subagent: the full `/refactor` (`.claude/skills/refactor/`) runs in the weekly
+drift pass, or in a session when Craig asks. `pr-reviewer` reviews every pull request as its own
+job (`.github/workflows/review.yml`), posting its verdict as a comment that never blocks the merge.
 
 ## The drift pass
 
 Each pull request is reviewed on its own diff, so nothing looks across them: duplication creeps
 back, names drift, docs desync. The drift pass is a scheduled step back.
 
-**When**, whichever comes first:
-- 10 merged pull requests since the last drift pass (the session-start hook
-  `.claude/hooks/drift_due.py` runs *Record*'s count and says `drift pass due` when it is; past
-  it, `.claude/hooks/drift_gate.py` refuses every merge, by `gh pr merge` or the GitHub tool, but
-  the drift pass's own);
+**When:** once a week, and a bigger job than a per-merge tidy (Craig, 4 Nov 2026: "once a week
+but make it a bigger job"). It is never a merge gate. `.github/workflows/drift-pass.yml` runs on
+Monday mornings: it opens (or reopens) the one issue labelled `drift-pass` and `build`, with
+*Record*'s range and the merges in it, and starts its build (`claude-build.yml`). Also:
 - before the mini beta, and before the draft goes live;
 - a file passes 300 lines (the line-ceiling hook will say when, `ARCHITECTURE.md`).
 
@@ -60,15 +62,16 @@ back, names drift, docs desync. The drift pass is a scheduled step back.
 the current branch unless given a range: give it the one from the last drift pass to `main`, as
 *Record* finds it); for each new home the range adds (a helper, read, hook, words, test
 fixture), a search of the whole codebase for an older one, since a copy older than the range is
-outside its diff; whether each thing lives in the right place; and whether ui-verifier's
-colour-role bullet still matches plate.md. (`tests/src/designNever.test.ts` holds
+outside its diff; whether each thing lives in the right place; whether ui-verifier's
+colour-role bullet still matches plate.md; and SPEC.md's status rows and ARCHITECTURE.md brought up
+to what merged in the range (builds no longer edit them per slice). (`tests/src/designNever.test.ts` holds
 `.claude/rules/ui.md`'s Never list equal to plate.md's `## Never`.)
 
 The drift pass is a task of its own, so fixing older files there keeps `CLAUDE.md`'s rule that
 tidying stays inside the files a task touches.
 
-**How:** fresh eyes, never the author's own: `pr-reviewer` or `/code-review`, each given the range.
-Fixes go in on a `refactor/` branch, and its pull request title starts `refactor: drift pass`.
+**How:** the build works the checklist over the range; `review.yml` gives its pull request fresh
+eyes, as every other. Fixes go in on a `refactor/` branch, and its pull request title starts `refactor: drift pass`.
 
 **Record**, in a commit message on the drift pass's branch. The repo's squash merge keeps every
 commit's message, so the line reaches `main`:
@@ -143,11 +146,11 @@ numbers, not "looks fine".
 
 ## Toolkit
 
-- `/refactor` (`.claude/skills/`): the check every pull request gets.
+- `/refactor` (`.claude/skills/`): the checklist the weekly drift pass runs.
 - `/deepen` (`.claude/skills/`): the architecture pass.
 - `/simplify` and `/code-review` are Claude Code's own skills.
 - `/simplify`: reuse and simplification cleanups, applied. The driver for mode 1.
 - `/code-review`: a correctness pass; run it after an untangle.
-- `pr-reviewer` (`.claude/agents/`): the fresh-eyes reviewer for every pull request and the drift
-  pass.
+- `pr-reviewer` (`.claude/agents/`): the fresh-eyes reviewer for every pull request, the drift
+  pass's included, run by `.github/workflows/review.yml`.
 - Vitest and `convex-test`: the regression gate.
