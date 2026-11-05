@@ -159,9 +159,12 @@ export const gates: Record<string, Gate> = {
   "squads/teamTransactions:ofMyTeam": "manager",
   "stars/playerStars:ofPlayer": "member",
   "stars/playerStars:ofPlayers": "member",
+  "table/fixtureEdits:swap": "runner",
   "table/leagueTable:ofLeague": "member",
   "table/pointsOverrides:override": "runner",
   "table/teamFixtures:ofMyTeam": "manager",
+  "waivers/waivers:drop": "manager",
+  "waivers/waivers:stateOf": "member",
 };
 
 /** The public functions this sweep doesn't call, each with why. */

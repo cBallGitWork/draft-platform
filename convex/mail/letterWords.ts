@@ -101,6 +101,13 @@ export function eventLetter(event: LeagueEvent, who: string, zone: string | unde
         subject: `${event.playerName} was released`,
         body: `${who} released ${event.playerName} from ${event.teamName} to free agency.`,
       };
+    case "playerDropped":
+      return {
+        subject: `${event.teamName} dropped ${event.playerName}`,
+        body: event.toWaivers
+          ? `${who} dropped ${event.playerName} from ${event.teamName}. He is on waivers for at least 24 hours.`
+          : `${who} dropped ${event.playerName} from ${event.teamName}. Picked up since the last deadline, he is a free agent again, not on waivers.`,
+      };
     case "rulesChanged":
       return {
         subject: `The league's rules change from gameweek ${event.fromGameweek}`,
@@ -108,7 +115,21 @@ export function eventLetter(event: LeagueEvent, who: string, zone: string | unde
       };
     case "pointsOverridden":
       return { subject: `${event.playerName}'s points in ${event.matchName} were overridden`, body: overriddenBody(event, who) };
+    case "fixturesSwapped":
+      return { subject: `Gameweek ${event.gameweek}'s fixtures were changed`, body: swappedBody(event, who) };
   }
+}
+
+/** The league's average, as a letter about the fixtures names it. */
+export const leagueAverageWords = "the league's average";
+const sideWords = (name: string | null) => name ?? leagueAverageWords;
+
+/** "Ann swapped Lions and Tigers in gameweek 6. The two games are now Tigers v Wolves and Lions v
+ *  Bears; every other game is as drawn." */
+function swappedBody(event: Extract<LeagueEvent, { kind: "fixturesSwapped" }>, who: string): string {
+  const [one, other] = event.swapped.map(sideWords);
+  const games = event.games.map((game) => matchWords(sideWords(game.team), sideWords(game.opponent)));
+  return `${who} swapped ${one} and ${other} in gameweek ${event.gameweek}. The two games are now ${andListWords(games)}; every other game is as drawn.`;
 }
 
 /** A match as a letter names it: "Arsenal v Chelsea". */

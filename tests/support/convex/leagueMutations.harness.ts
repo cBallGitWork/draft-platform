@@ -88,7 +88,15 @@ export function changesTo(
     "squads/squads:assign": () => admin.mutation(api.squads.squads.assign, { leagueId, playerCode: 1, teamId: annsTeam._id }),
     "squads/squads:move": () => admin.mutation(api.squads.squads.move, { leagueId, playerCode: 1, teamId: annsTeam._id }),
     "squads/squads:release": () => admin.mutation(api.squads.squads.release, { leagueId, playerCode: 1 }),
+    "waivers/waivers:drop": () => ann.mutation(api.waivers.waivers.drop, { leagueId, playerCode: 1 }),
     "squads/squadNumbers:set": () => ann.mutation(api.squads.squadNumbers.set, { leagueId, playerCode: 1, number: 7 }),
+    "table/fixtureEdits:swap": () =>
+      admin.mutation(api.table.fixtureEdits.swap, {
+        leagueId,
+        gameweek: 1,
+        one: { moves: annsTeam._id, against: "leagueAverage" },
+        other: { moves: "leagueAverage", against: annsTeam._id },
+      }),
     "table/pointsOverrides:override": () =>
       admin.mutation(api.table.pointsOverrides.override, { leagueId, fixtureCode: 1, playerCode: 1, points: 10, reason: "A goal the feed gave someone else" }),
     "scouting/shortlist:add": () => ann.mutation(api.scouting.shortlist.add, { leagueId, playerCode: 1 }),

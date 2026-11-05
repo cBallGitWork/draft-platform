@@ -166,6 +166,7 @@ import type * as schema_signIn from "../schema/signIn.js";
 import type * as schema_squads from "../schema/squads.js";
 import type * as schema_stars from "../schema/stars.js";
 import type * as schema_table from "../schema/table.js";
+import type * as schema_waivers from "../schema/waivers.js";
 import type * as scoring_categories from "../scoring/categories.js";
 import type * as scoring_draftedRoleAdjustments from "../scoring/draftedRoleAdjustments.js";
 import type * as scoring_firstScoring from "../scoring/firstScoring.js";
@@ -244,6 +245,7 @@ import type * as stats_teamSeasonStats from "../stats/teamSeasonStats.js";
 import type * as stats_teamSeasonTotals from "../stats/teamSeasonTotals.js";
 import type * as stats_thresholdSteps from "../stats/thresholdSteps.js";
 import type * as table_finalScores from "../table/finalScores.js";
+import type * as table_fixtureEdits from "../table/fixtureEdits.js";
 import type * as table_leagueTable from "../table/leagueTable.js";
 import type * as table_overrideLimits from "../table/overrideLimits.js";
 import type * as table_playedFixtures from "../table/playedFixtures.js";
@@ -253,6 +255,9 @@ import type * as table_sentTables from "../table/sentTables.js";
 import type * as table_standings from "../table/standings.js";
 import type * as table_teamFixtures from "../table/teamFixtures.js";
 import type * as table_teamGames from "../table/teamGames.js";
+import type * as waivers_waiverLock from "../waivers/waiverLock.js";
+import type * as waivers_waiverPlayers from "../waivers/waiverPlayers.js";
+import type * as waivers_waivers from "../waivers/waivers.js";
 
 import type {
   ApiFromModules,
@@ -419,6 +424,7 @@ declare const fullApi: ApiFromModules<{
   "schema/squads": typeof schema_squads;
   "schema/stars": typeof schema_stars;
   "schema/table": typeof schema_table;
+  "schema/waivers": typeof schema_waivers;
   "scoring/categories": typeof scoring_categories;
   "scoring/draftedRoleAdjustments": typeof scoring_draftedRoleAdjustments;
   "scoring/firstScoring": typeof scoring_firstScoring;
@@ -497,6 +503,7 @@ declare const fullApi: ApiFromModules<{
   "stats/teamSeasonTotals": typeof stats_teamSeasonTotals;
   "stats/thresholdSteps": typeof stats_thresholdSteps;
   "table/finalScores": typeof table_finalScores;
+  "table/fixtureEdits": typeof table_fixtureEdits;
   "table/leagueTable": typeof table_leagueTable;
   "table/overrideLimits": typeof table_overrideLimits;
   "table/playedFixtures": typeof table_playedFixtures;
@@ -506,6 +513,9 @@ declare const fullApi: ApiFromModules<{
   "table/standings": typeof table_standings;
   "table/teamFixtures": typeof table_teamFixtures;
   "table/teamGames": typeof table_teamGames;
+  "waivers/waiverLock": typeof waivers_waiverLock;
+  "waivers/waiverPlayers": typeof waivers_waiverPlayers;
+  "waivers/waivers": typeof waivers_waivers;
 }>;
 
 /**

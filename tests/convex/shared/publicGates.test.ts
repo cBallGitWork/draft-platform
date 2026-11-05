@@ -129,6 +129,7 @@ beforeEach(async () => {
       "stars/playerStars:ofPlayers": () => caller.query(api.stars.playerStars.ofPlayers, { leagueId, playerCodes: [SOME_CODE] }),
       "table/leagueTable:ofLeague": () => caller.query(api.table.leagueTable.ofLeague, { leagueId }),
       "table/teamFixtures:ofMyTeam": () => caller.query(api.table.teamFixtures.ofMyTeam, { leagueId }),
+      "waivers/waivers:stateOf": () => caller.query(api.waivers.waivers.stateOf, { leagueId, playerCode: SOME_CODE }),
     };
   };
 });

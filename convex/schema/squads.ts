@@ -12,6 +12,9 @@ export const squadEvents = [
   v.object({ kind: v.literal("playerAssigned"), ...playerOnTeam }),
   v.object({ kind: v.literal("playerMoved"), ...playerOnTeam, fromTeamId: v.id("teams"), fromTeamName: v.string() }),
   v.object({ kind: v.literal("playerReleased"), ...playerOnTeam }),
+  /** His manager dropped him (spec/08, #1197): onto waivers, or straight back to the free agents
+   *  under the churn rule. */
+  v.object({ kind: v.literal("playerDropped"), ...playerOnTeam, toWaivers: v.boolean() }),
 ] as const;
 
 export const squadTables = {
@@ -22,6 +25,10 @@ export const squadTables = {
     /** The number his manager gave him (#13, spec/05 Squad numbers): absent until given, and gone
      *  when he moves, so he starts afresh on another team. */
     number: v.optional(v.number()),
+    /** When his manager picked him up as a free agent (#1199): until a deadline has passed since,
+     *  a drop sends him straight back to the free agents (spec/08, the churn rule). Absent for any
+     *  other way of joining. */
+    pickedUpAt: v.optional(v.number()),
   })
     .index("by_leagueId_and_playerCode", ["leagueId", "playerCode"])
     .index("by_teamId", ["teamId"]),

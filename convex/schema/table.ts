@@ -2,6 +2,13 @@ import { defineTable } from "convex/server";
 import { v } from "convex/values";
 import { LEAGUE_AVERAGE } from "../table/roundRobin";
 
+/** A gameweek's head-to-head fixtures, and the teams left over with a bye. */
+const gameweekGames = {
+  fixtures: v.array(v.object({ team: v.id("teams"), opponent: v.union(v.id("teams"), v.literal(LEAGUE_AVERAGE)) })),
+  /** The teams left over with a bye, in a league whose odd team out has one. */
+  byes: v.array(v.id("teams")),
+};
+
 // A league's head-to-head fixtures in each gameweek it has begun, stored once the gameweek begins
 // and read from here ever after (#137); none in one begun with no head-to-head, such as before the
 // league was made (#282). One row a league and gameweek, written only by
@@ -10,10 +17,20 @@ export const playedFixtureTables = {
   playedFixtures: defineTable({
     leagueId: v.id("leagues"),
     gameweek: v.number(),
-    fixtures: v.array(v.object({ team: v.id("teams"), opponent: v.union(v.id("teams"), v.literal(LEAGUE_AVERAGE)) })),
-    /** The teams left over with a bye, in a league whose odd team out has one. */
-    byes: v.array(v.id("teams")),
+    ...gameweekGames,
     storedAt: v.number(),
+  }).index("by_leagueId_and_gameweek", ["leagueId", "gameweek"]),
+  /** A commissioner's edit of a gameweek not yet begun (spec/09, Fixture edits; #1208): its
+   *  fixtures as edited, held while the gameweek still draws as `drawn`, the draw the edits were
+   *  made on. A change that redraws it (spec/13: a rule, a team, a gameweek ticked) replaces them.
+   *  Once it begins it is stored as edited (playedFixtures.ts). One row a league and gameweek,
+   *  written only by convex/table/fixtureEdits.ts. */
+  fixtureEdits: defineTable({
+    leagueId: v.id("leagues"),
+    gameweek: v.number(),
+    ...gameweekGames,
+    drawn: v.object(gameweekGames),
+    editedAt: v.number(),
   }).index("by_leagueId_and_gameweek", ["leagueId", "gameweek"]),
   /** Each team's points in a gameweek once they are final: every match in it locked, so no
    *  correction can change them (spec/07). One row a league, gameweek and team, written only by

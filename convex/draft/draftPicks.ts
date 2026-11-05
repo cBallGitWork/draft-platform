@@ -24,6 +24,7 @@ import { afterTakeBack, afterTimeout, isOnAutoPick, picksAtOnce } from "./draftT
 import { lastSeasonPoints } from "./lastSeasonPoints";
 import { legalPlayers, type DraftPlayer } from "./legalPlayers";
 import { pickOnTheClock } from "./snakeOrder";
+import { offWaivers, putOnWaivers } from "../waivers/waiverPlayers";
 
 // Making a pick (spec/04, The picks; #1090). The manager whose team is on the clock picks a player
 // it may legally take (legalPlayers.ts, under the squad rules the draft started under, leaving a
@@ -125,18 +126,23 @@ type Placed = { timeout?: Doc<"draftPicks">["timeout"]; pausedAt?: number };
 /** `player` joins the squad of `team`, on the clock, as its pick, filed as `by`'s, and the next
  *  pick's clock starts PICK_GAP_MS from now, its manager told he is up next; after the last pick,
  *  each team's lineup is saved as its picks left it (lineups.ts `saveFirstLineup`; #1040), the
- *  league's scoring start is set (scoringStart.ts `startAfterDraft`; #1097) and the whole league
+ *  league's scoring start is set (scoringStart.ts `startAfterDraft`; #1097), the players nobody
+ *  drafted go on waivers for the next run if its draft setting says so (#1197), and the whole league
  *  is told the draft is over (draftLetters.ts), the commissioner too when the start moved. */
 async function placePick(ctx: MutationCtx, league: Doc<"leagues">, turn: Turn, team: Doc<"teams">, player: Doc<"players">, by: string, { timeout, pausedAt }: Placed = {}): Promise<void> {
   const leagueId = league._id;
   const now = Date.now();
   await ctx.db.insert("draftPicks", { leagueId, pick: turn.pick, teamId: team._id, playerCode: player.code, at: now, ...(timeout && { timeout }) });
   await ctx.db.insert("squadPlayers", { leagueId, teamId: team._id, playerCode: player.code });
+  await offWaivers(ctx, leagueId, player.code);
   await fileEvent(ctx, leagueId, by, { kind: "playerAssigned", playerCode: player.code, playerName: player.name, teamId: team._id, teamName: team.name });
   await pickFirstLineupAgain(ctx, leagueId, team._id);
   const next = await startClock(ctx, leagueId, turn.pick, now + PICK_GAP_MS, await pickSecondsNow(ctx, leagueId), { pausedAt });
   if (next === null) {
     for (const drafted of await teamsOf(ctx, leagueId)) await saveFirstLineup(ctx, leagueId, drafted._id);
+    if ((await draftRulesNow(ctx, leagueId)).undrafted === "waivers") {
+      for (const { code } of await undraftedIn(ctx, leagueId)) await putOnWaivers(ctx, leagueId, code, now);
+    }
     const moved = await startAfterDraft(ctx, league, now);
     await tellDraftOver(ctx, league, turn.pick);
     if (moved !== null) await tellScoringStartMoved(ctx, league, moved);
