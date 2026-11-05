@@ -149,6 +149,15 @@ export function draftOverLetter(picks: number): Words {
   return { subject: "The draft is over", body: `All ${picks} picks are made, and every squad is drafted.` };
 }
 
+/** To the commissioner when the draft ends after the deadline of the gameweek scoring was to start
+ *  in, `from`, so it starts in `to` (spec/04, After the draft; #1097). */
+export function scoringStartMovedLetter({ from, to }: { from: number; to: number }): Words {
+  return {
+    subject: `Scoring starts in gameweek ${to}`,
+    body: `The draft ended after gameweek ${from}'s deadline, so scoring starts in gameweek ${to}, not ${from}. Squads and lineups count from gameweek ${to}'s deadline.`,
+  };
+}
+
 /** To the whole league when the commissioner, `who`, pauses the draft. Resuming files none. */
 export function draftPausedLetter(who: string): Words {
   return { subject: "The draft is paused", body: `${who} paused the draft. No pick is made until it resumes.` };

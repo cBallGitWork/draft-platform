@@ -8,7 +8,7 @@ import { dayOf, EMAILS_PER_DAY } from "../../../convex/outbound/emailLimit";
 import { momentIn } from "../../../convex/shared/moments";
 import { DAY_MS, SECOND_MS } from "../../../convex/shared/time";
 import { ARSENAL, insertClubs, insertPlayers, type HeldPlayer } from "../../support/convex/footballRows.harness";
-import { changeEveryRules, HELD_FIRST_RULES, setPickSeconds as setPickSecondsOf } from "../../support/convex/leagueRules.harness";
+import { changeEveryRules, HELD_FIRST_RULES, holdGameweeks, setPickSeconds as setPickSecondsOf } from "../../support/convex/leagueRules.harness";
 import { actingAs, addManagers, adminCreatesLeague, COMMISSIONER, MANAGERS, type TestConvex } from "../../support/convex/leagues.harness";
 import { fakeResend, signInDeployment, type SentEmail } from "../../support/convex/signIn.harness";
 
@@ -163,6 +163,27 @@ describe("the draft over", () => {
 
     const over = { subject: "The draft is over", body: "All 4 picks are made, and every squad is drafted.", read: false };
     expect(await lettersSince(before)).toEqual([COMMISSIONER, ANN, BOB].map((to) => ({ to, ...over })));
+  });
+
+  test("ending after the deadline of the gameweek scoring was to start in tells the commissioner it starts in the next (#1097)", async () => {
+    // Gameweek 1 has begun and gameweek 2 hasn't.
+    await holdGameweeks(t, { next: 2, kicksOffIn: DAY_MS });
+    await t.run((ctx) => ctx.db.patch("leagues", leagueId, { scoringStart: 1 }));
+    await start();
+    for (const [manager, code] of [[ANN, A1], [BOB, A2], [BOB, A3]] as const) {
+      await pick(manager, code);
+      await pass(PICK_GAP_MS);
+    }
+    const before = (await letters()).length;
+    await pick(ANN, A4);
+
+    expect((await lettersSince(before)).filter(({ to }) => to === COMMISSIONER).map(({ subject, body }) => ({ subject, body }))).toEqual([
+      { subject: "The draft is over", body: "All 4 picks are made, and every squad is drafted." },
+      {
+        subject: "Scoring starts in gameweek 2",
+        body: "The draft ended after gameweek 1's deadline, so scoring starts in gameweek 2, not 1. Squads and lineups count from gameweek 2's deadline.",
+      },
+    ]);
   });
 });
 

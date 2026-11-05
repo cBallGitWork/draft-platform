@@ -14,7 +14,8 @@ import { placeOf, squadOf } from "../squads/squadPlace";
 import { squadRefusals } from "../squads/squads";
 import { autoPickOrder } from "./autoPickOrder";
 import { PICK_GAP_MS, startClock } from "./draftClock";
-import { tellDraftOver, tellPickedFor, tellUpNext } from "./draftLetters";
+import { tellDraftOver, tellPickedFor, tellScoringStartMoved, tellUpNext } from "./draftLetters";
+import { startAfterDraft } from "../gameweeks/scoringStart";
 import { listsOf } from "./draftLists";
 import { draftRanking } from "./draftRanking";
 import { draftOf, picksMadeIn, type StartedDraft } from "./draftRow";
@@ -123,8 +124,9 @@ type Placed = { timeout?: Doc<"draftPicks">["timeout"]; pausedAt?: number };
 
 /** `player` joins the squad of `team`, on the clock, as its pick, filed as `by`'s, and the next
  *  pick's clock starts PICK_GAP_MS from now, its manager told he is up next; after the last pick,
- *  each team's lineup is saved as its picks left it (lineups.ts `saveFirstLineup`; #1040) and
- *  the whole league is told the draft is over (draftLetters.ts). */
+ *  each team's lineup is saved as its picks left it (lineups.ts `saveFirstLineup`; #1040), the
+ *  league's scoring start is set (scoringStart.ts `startAfterDraft`; #1097) and the whole league
+ *  is told the draft is over (draftLetters.ts), the commissioner too when the start moved. */
 async function placePick(ctx: MutationCtx, league: Doc<"leagues">, turn: Turn, team: Doc<"teams">, player: Doc<"players">, by: string, { timeout, pausedAt }: Placed = {}): Promise<void> {
   const leagueId = league._id;
   const now = Date.now();
@@ -135,7 +137,9 @@ async function placePick(ctx: MutationCtx, league: Doc<"leagues">, turn: Turn, t
   const next = await startClock(ctx, leagueId, turn.pick, now + PICK_GAP_MS, await pickSecondsNow(ctx, leagueId), { pausedAt });
   if (next === null) {
     for (const drafted of await teamsOf(ctx, leagueId)) await saveFirstLineup(ctx, leagueId, drafted._id);
+    const moved = await startAfterDraft(ctx, league, now);
     await tellDraftOver(ctx, league, turn.pick);
+    if (moved !== null) await tellScoringStartMoved(ctx, league, moved);
   } else await tellUpNext(ctx, league, next);
 }
 
