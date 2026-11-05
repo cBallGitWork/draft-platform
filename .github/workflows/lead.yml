@@ -14,7 +14,7 @@
 # Every pass it rewrites the `Today` issue (label `lead:board`): next up in build order, in flight, blocked and on
 # what, merged today, red. It is the board the PM dashboard shows and the day's one report to Craig (5 Nov 2026:
 # "i never know whats next for us to build"). An issue Craig labels `next` (the dashboard does it for him) goes to
-# the front of the queue. At 01:30 UTC it also sweeps, as the team's analyst: the next SWEEP_SIZE candidates get claude-build in mode
+# the front of the queue. At 01:37 UTC it also sweeps, as the team's analyst: the next SWEEP_SIZE candidates get claude-build in mode
 # `rules-only`. A candidate is any other open issue whose body names a spec/NN file and whose title isn't one of
 # NOT_BUILDS (Craig's calls, the UI and reskin jobs that need /design with him, tidy-ups: parked behind features
 # since 1 Nov 2026). Its open rules land on the issue, labelled `rules:open`, before the 7am PM dashboard batches
@@ -29,8 +29,9 @@ name: lead
 
 on:
   schedule:
-    - cron: "*/30 * * * *"
-    - cron: "30 1 * * *"  # the rules sweep, before the 02:00 builds and the 7am dashboard
+    # off the hour and half hour, GitHub's busiest minutes: on 5 Nov 2026 no :00 or :30 pass fired for over an hour
+    - cron: "7,37 * * * *"
+    - cron: "37 1 * * *"  # the rules sweep, before the 02:00 builds and the 7am dashboard
   workflow_dispatch:
     inputs:
       sweep:
@@ -63,7 +64,7 @@ env:
   STALE_LABEL: "lead:stale"
   NOT_BUILDS: "^(Craig's call|UI [0-9]+:|Reskin|refactor|chore|docs)"
   OWN_JOBS: "drift-pass|nightly-ci"  # issues other workflows build or open
-  SWEEP: ${{ github.event.schedule == '30 1 * * *' || inputs.sweep == true }}
+  SWEEP: ${{ github.event.schedule == '37 1 * * *' || inputs.sweep == true }}
   BOARD_TITLE: "Today"  # the one issue the lead rewrites every pass: the board the PM dashboard shows
   BOARD_LABEL: "lead:board"
   NEXT_LABEL: "next"  # Craig's "build this first", from the PM dashboard
@@ -200,7 +201,7 @@ jobs:
           merged=$(gh pr list --state merged --search "merged:>=$today" --limit 100 --json number,title --jq '.[] | "- #\(.number) \(.title)"')
           red=$(jq -r '.[] | select(.isDraft | not) | select(any(.statusCheckRollup[]?; .conclusion == "FAILURE")) | "- #\(.number) \(.headRefName)"' <<<"$prs")
           looks=$(jq -r '.[] | select(.isDraft | not) | select(any(.statusCheckRollup[]?; .name == "look-approved" and .conclusion == "FAILURE")) | "- #\(.number): the look, your craig-approved label"' <<<"$prs")
-          body=$(printf '## %s, %s UTC\n\n**Next up** (build order; label an issue `next` to put it first)\n%s\n\n**In flight**\n%s\n\n**Blocked, and on what**\n%s\n%s\n\n**Not yet checked for open rules** (the 01:30 sweep)\n%s\n\n**Merged today**\n%s\n\n**Red**\n%s\n\n*Written by the lead; it rewrites this every half hour.*\n' \
+          body=$(printf '## %s, %s UTC\n\n**Next up** (build order; label an issue `next` to put it first)\n%s\n\n**In flight**\n%s\n\n**Blocked, and on what**\n%s\n%s\n\n**Not yet checked for open rules** (the 01:37 sweep)\n%s\n\n**Merged today**\n%s\n\n**Red**\n%s\n\n*Written by the lead; it rewrites this every half hour.*\n' \
             "$today" "$(date -u +%H:%M)" "${next_up:-- nothing ready: answer the blocked ones, or file an issue}" "${running:-- nothing}" "${blocked:-- nothing}" "${looks:-}" "${unchecked:-- none}" "${merged:-- nothing}" "${red:-- nothing}")
           board=$(gh issue list --state open --label "$BOARD_LABEL" --limit 1 --json number --jq '.[0].number // empty')
           if [ "$DRY_RUN" = true ]; then echo "$body"
