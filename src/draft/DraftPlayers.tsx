@@ -16,7 +16,6 @@ import {
   keptPlayers,
   OPENING_SORT,
   OVERVIEW_COLUMNS,
-  positionsPlayed,
   sortedPlayers,
   withFigures,
   type RoomPlayer,
@@ -99,16 +98,16 @@ export function DraftPlayers({
   const players = list && figures && sortedPlayers(keptPlayers(withFigures(list.players, figures.players), position, find), sort);
   const titleBar = (
     <span className="ml-3 flex grow flex-wrap items-center gap-x-3">
-      <PositionTabs positions={positionsPlayed(list?.players ?? [])} chosen={position} choose={setPosition} />
+      <PositionTabs chosen={position} choose={setPosition} />
       <span className="flex items-center gap-2">
         <label htmlFor={FIND_ID} className="text-soft">
           {findLabel}
         </label>
-        <input id={FIND_ID} type="search" value={find} placeholder={findPlaceholder} onChange={(event) => setFind(event.target.value)} className="text-box" />
+        <input id={FIND_ID} type="search" value={find} placeholder={findPlaceholder} onChange={(event) => setFind(event.target.value)} className="text-box lg:min-h-bar-control" />
       </span>
       <span className="ml-auto flex items-center gap-3">
         {list && <span className="text-soft">{leftWords(list.players.length)}</span>}
-        <StatBox id={STATS_ID} label={statsLabel} noneWords={overviewWords} stat={stat} show={show} />
+        <StatBox id={STATS_ID} label={statsLabel} noneWords={overviewWords} stat={stat} show={show} look="button" />
       </span>
     </span>
   );
@@ -125,6 +124,7 @@ export function DraftPlayers({
             shown={shown}
             classOf={cellClasses}
             sort={{ ...sort, sortable, sortBy }}
+            deskRow
           />
           <tbody>
             {players.map((player) => (

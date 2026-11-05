@@ -3,7 +3,7 @@
 // (convex/draft/draftPlayers.ts `figures`), kept by the position tab and Find, and sorted by the
 // column head pressed, opening on the site's ranking. Pure, so the tests and the screen share it.
 
-import { POSITIONS, type Position } from "../../convex/positions/positionTables";
+import type { Position } from "../../convex/positions/positionTables";
 import type { OverviewStat } from "../../convex/draft/draftPlayers";
 import type { ListedPlayer } from "../scouting/seam";
 import type { RoomFigure } from "./seam";
@@ -39,10 +39,6 @@ export function withFigures(players: readonly ListedPlayer[], figures: readonly 
   const byCode = new Map(figures.map((figure) => [figure.code, figure]));
   return players.map((player) => ({ ...player, figure: byCode.get(player.code) ?? null }));
 }
-
-/** The positions any of these players plays, in POSITIONS' order: the list's tabs after All. */
-export const positionsPlayed = (players: readonly ListedPlayer[]): Position[] =>
-  POSITIONS.filter((position) => players.some((player) => player.positions.includes(position)));
 
 /** Words folded for Find: lower case with accents dropped, so "joao" finds João Pedro. */
 const folded = (words: string) => words.normalize("NFD").replace(/\p{Diacritic}/gu, "").toLowerCase();

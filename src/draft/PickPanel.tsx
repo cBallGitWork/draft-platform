@@ -1,9 +1,11 @@
 import { Link } from "@tanstack/react-router";
+import { useId } from "react";
 import type { Id } from "../../convex/_generated/dataModel";
 import { playerCardPath } from "../playerCard/paths";
 import { ClubShort } from "../premierLeague/ClubName";
 import type { ListedPlayer } from "../scouting/seam";
 import { figureWords } from "../scouting/words";
+import { closeGlyph } from "../shared/words";
 import { useChange } from "../shared/useChange";
 import { PANEL_BODY, Panel, Problem } from "../ui/Panel";
 import { PositionChip } from "../ui/PositionChip";
@@ -69,6 +71,7 @@ export function PickPanel({
   close: () => void;
 }) {
   const change = useChange();
+  const lineId = useId();
   const blocked = whyNotWords(player, whyNot);
   const canPick = turn.kind === "yours" && blocked === null && !change.busy;
   const main = player.positions[0];
@@ -83,31 +86,35 @@ export function PickPanel({
       title={title}
       aside={
         <button type="button" aria-label={closePanelLabel} onClick={close} className="min-h-tap min-w-tap text-title leading-none">
-          ×
+          {closeGlyph}
         </button>
       }
     >
       <div className={PANEL_BODY}>
+        {/* The pick's line sits inside the button, under his name, as drawn; the button is named
+            by his name alone and described by the line. */}
         <button
           type="button"
+          aria-label={draftPlayerWords(player.name)}
+          aria-describedby={lineId}
           disabled={!canPick}
           onClick={() => void change.run(() => changes.makePick(leagueId, player.code)).then((made) => made && close())}
-          className="action text-title display-face"
+          className="action flex-col justify-center py-3"
         >
-          {draftPlayerWords(player.name)}
+          <span className="text-title font-bold">{draftPlayerWords(player.name)}</span>
+          <span id={lineId} className="font-normal">
+            {blocked ??
+              (turn.kind === "yours" ? (
+                <>
+                  {pickLeftWords(turn.slot)}
+                  <ClockLeft onTheClock={turn.onTheClock} />
+                  {leftSuffixWords}
+                </>
+              ) : (
+                NOT_NOW_WORDS[turn.kind]
+              ))}
+          </span>
         </button>
-        <p className="text-center text-soft">
-          {blocked ??
-            (turn.kind === "yours" ? (
-              <>
-                {pickLeftWords(turn.slot)}
-                <ClockLeft onTheClock={turn.onTheClock} />
-                {leftSuffixWords}
-              </>
-            ) : (
-              NOT_NOW_WORDS[turn.kind]
-            ))}
-        </p>
         <Problem problem={change.problem} />
         <dl className="grid grid-cols-facts gap-x-3 gap-y-1">
           <dt className="text-soft">{playsHead}</dt>

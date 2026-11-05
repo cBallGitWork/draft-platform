@@ -8,6 +8,7 @@ import { screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
 import type { RoomFigure } from "../../../convex/draft/draftPlayers";
+import { POSITIONS } from "../../../convex/positions/positionTables";
 import type { ListedPlayer } from "../../../convex/scouting/playersList";
 import { STAT_CATALOGUE } from "../../../convex/scoring/statCatalogueList";
 import { MINUTE_MS, SECOND_MS } from "../../../convex/shared/time";
@@ -137,10 +138,10 @@ describe("the players list", () => {
     expect(await rowNames()).toEqual([PALMER.name, SAKA.name, RICE.name]);
   });
 
-  it("keeps only the position tab's players, All again showing everyone", async () => {
+  it("keeps only the position tab's players, every position a tab in its fixed order, All again showing everyone", async () => {
     openDraft({ draft: liveDraft(true), figures: FIGURES });
     const tabs = within(await list()).getByRole("group", { name: positionTabsLabel });
-    expect(within(tabs).getAllByRole("button").map((each) => each.textContent)).toEqual([everyPositionTabWords, "CDM", "CAM", "W"]);
+    expect(within(tabs).getAllByRole("button").map((each) => each.textContent)).toEqual([everyPositionTabWords, ...POSITIONS]);
     await userEvent.click(within(tabs).getByRole("button", { name: "CAM" }));
     expect(await rowNames()).toEqual([PALMER.name]);
     await userEvent.click(within(tabs).getByRole("button", { name: everyPositionTabWords }));
@@ -211,11 +212,19 @@ describe("the Draft button", () => {
     expect(screen.getAllByText(notLegalWords.areasShort).length).toBeGreaterThan(0);
   });
 
+  it("holds the pick and the time left under his name, as its description", async () => {
+    openDraft({ draft: liveDraft(true) });
+    await open(SAKA.name);
+    const button = draftButton(SAKA.name);
+    expect(button.textContent).toMatch(/Pick 1\.02, 0:4\d left$/);
+    expect(document.getElementById(button.getAttribute("aria-describedby")!)?.closest("button")).toBe(button);
+  });
+
   it("can't be pressed out of turn", async () => {
     openDraft({ draft: liveDraft(false) });
     await open(SAKA.name);
     expect(draftButton(SAKA.name)).toHaveProperty("disabled", true);
-    expect(screen.getByText(notYourPickWords)).toBeTruthy();
+    expect(within(draftButton(SAKA.name)).getByText(notYourPickWords)).toBeTruthy();
   });
 
   it("can't be pressed while the draft is paused", async () => {

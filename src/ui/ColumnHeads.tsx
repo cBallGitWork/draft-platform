@@ -35,12 +35,16 @@ export function ColumnHeads<Column extends string, Sortable extends Column = Col
   classOf,
   unseen = [],
   sort,
+  deskRow = false,
 }: {
   columns: Record<Column, ColumnWords>;
   shown?: readonly Column[];
   classOf: (column: Column) => string;
   unseen?: readonly NoInfer<Column>[];
   sort?: ColumnSort<Column, Sortable>;
+  /** Draws the head row a table row's height on the desk, where a screen's approved picture does
+   *  (the draft room's players list), its sort buttons keeping the tap size on a phone. */
+  deskRow?: boolean;
 }) {
   return (
     <thead className="bg-head text-ground">
@@ -67,7 +71,7 @@ export function ColumnHeads<Column extends string, Sortable extends Column = Col
                 short
               ) : (
                 // The tap size wide, its word kept to its column's side over the figures (#817).
-                <button type="button" aria-label={sortByLabel(name)} onClick={press} className="min-h-tap min-w-tap font-bold text-align-inherit">
+                <button type="button" aria-label={sortByLabel(name)} onClick={press} className={`min-h-tap min-w-tap font-bold text-align-inherit${deskRow ? " lg:min-h-row lg:min-w-0" : ""}`}>
                   {short}
                   {sorted && <span aria-hidden="true"> {sort.descending ? descendingGlyph : ascendingGlyph}</span>}
                 </button>
