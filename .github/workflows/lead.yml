@@ -32,6 +32,14 @@ on:
     # off the hour and half hour, GitHub's busiest minutes: on 5 Nov 2026 no :00 or :30 pass fired for over an hour
     - cron: "7,37 * * * *"
     - cron: "37 1 * * *"  # the rules sweep, before the 02:00 builds and the 7am dashboard
+  # GitHub's schedule is not to be relied on: on 5 Nov 2026 no scheduled run of any workflow fired after 11:21 UTC
+  # and the lead had never run on it. So the lead also passes when a build ends (a slot is free) and when an issue
+  # gets a label that makes it buildable; the job's `if` drops the rest
+  workflow_run:
+    workflows: [claude-build]
+    types: [completed]
+  issues:
+    types: [labeled]
   workflow_dispatch:
     inputs:
       sweep:
@@ -46,7 +54,7 @@ on:
 permissions:
   actions: write  # dispatch claude-build.yml
   issues: write  # the lead's labels, on issues and pull requests
-  pull-requests: read
+  pull-requests: write  # labelling a pull request (FIXED_LABEL, RESUMED_LABEL) needs it: issues: write alone got 403 on 5 Nov 2026
   contents: read
 
 concurrency:
@@ -73,6 +81,10 @@ env:
 
 jobs:
   lead:
+    # a build that was skipped (an issue comment that starts nothing) frees no slot; only the build labels matter
+    if: >-
+      (github.event_name != 'workflow_run' || github.event.workflow_run.conclusion != 'skipped')
+      && (github.event_name != 'issues' || contains(fromJSON('["next","lane:auto","rules:clear"]'), github.event.label.name))
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -158,13 +170,19 @@ jobs:
               | if any(.labels[]?; .name == "rules:open") then "\($prio):\(.number):rules"
                 elif any(.labels[]?; .name == "lane:craig") then "\($prio):\(.number):craig"
                 elif any(.labels[]?; .name == "lane:auto" or .name == env.CLEAR_LABEL) then "\($prio):\(.number):build"
+                # a `next` label from Craig is a go-ahead even with no spec file named (#917, a bug, sat `next` with nothing to
+                # start it: #1203); the build still stops on any open rule
+                elif any(.labels[]?; .name == env.NEXT_LABEL) and ((.title | test(env.NOT_BUILDS; "i")) | not) then "\($prio):\(.number):build"
                 elif ((.body // "") | test("spec/[0-9]+")) and ((.title | test(env.NOT_BUILDS; "i")) | not) then "\($prio):\(.number):sweep"
                 else empty end' <<<"$issues" | sort -t: -k1,1n -k2,2n | cut -d: -f2-)
           # an issue a pull request merged in the last fortnight names is likely built but never closed (5 Nov 2026:
           # #1022, #1095, #1102, #1114 all sat in the queue after merging), so it is swept, not built: the sweep
-          # labels it stale, or clear if work is left
-          merged_refs=$(gh pr list --state merged --search "merged:>=$(date -u -d '14 days ago' +%F)" --limit 200 --json title,body \
-                          --jq '.[] | (.title + " " + (.body // "")) | scan("#([0-9]+)") | .[0]' | sort -u)
+          # labels it stale, or clear if work is left. Only code PRs (`feat/`, `fix/`, a builder's `wip/`) count: a grill's docs PR names
+          # the issues it files, which are not built yet (#1201 turned #1197 into a sweep: #1203)
+          merged_refs=$(gh pr list --state merged --search "merged:>=$(date -u -d '14 days ago' +%F)" --limit 200 --json title,body,headRefName \
+                          --jq '.[] | select(.headRefName | test("^(feat|fix|wip)/"))
+                                | ((.title | scan("\\(#([0-9]+)\\)")), ((.body // "") | scan("(?m)^\\s*-?\\s*(?:Closes|Fixes|Resolves|Part of|Part [0-9]+ of) #([0-9]+)"))) | .[0]' | sort -u)
+          # only the issue a PR closes or is part of, from its title or that line: #1205 named #1199 in passing
           ready=$(for row in $ready; do n=${row%%:*}; if [ "${row#*:}" = build ] && grep -qx "$n" <<<"$merged_refs"; then echo "$n:sweep"; else echo "$row"; fi; done)
           for row in $ready; do
             [ "$slots" -gt 0 ] || break
