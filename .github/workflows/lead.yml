@@ -6,19 +6,22 @@
 #      FIXED_LABEL so it never gets a second (one review round). After that it waits on the PM dashboard.
 #   2. A resume. An unfinished build's draft (`wip/issue-N-*`) gets one more build of N, which carries on from it,
 #      and the label RESUMED_LABEL, unless N waits on Craig's rules (`rules:open`: his answer restarts it).
-#   3. A new build. Ready issues, oldest first. An issue is ready when it has no `rules:open` or `lane:craig`, no
-#      open pull request names it (`Part of #N` or `Closes #N`), and it is `lane:auto`, or its body names a spec/NN
-#      file and its title isn't one of NOT_BUILDS (Craig's calls, the UI and reskin jobs that need /design with him,
-#      tidy-ups: parked behind features since 1 Nov 2026). The drift-pass and nightly-ci issues have their own jobs.
+#   3. A new build. Ready issues, oldest first: `lane:auto` (a grill's issues) or `rules:clear` (the sweep found
+#      every rule settled), with no `rules:open`, `lane:craig` or STALE_LABEL, and no open pull request naming them
+#      (`Part of #N` or `Closes #N`). The drift-pass and nightly-ci issues have their own jobs.
 # Two builds never run at once on issues naming the same spec/NN file, so builders work in different folders
 # (CLAUDE.md). A build in flight is read from its run name (claude-build.yml's run-name, "<mode> #N").
-# At 01:30 UTC it also sweeps: the next SWEEP_SIZE ready issues not yet checked get claude-build in mode
-# `rules-only`, so their open rules are on the issues, labelled `rules:open`, before the 7am PM dashboard batches
-# them, and no daytime build stops to ask. An issue the sweep found settled gets `rules:clear` and isn't swept again.
+# At 01:30 UTC it also sweeps, as the team's analyst: the next SWEEP_SIZE candidates get claude-build in mode
+# `rules-only`. A candidate is any other open issue whose body names a spec/NN file and whose title isn't one of
+# NOT_BUILDS (Craig's calls, the UI and reskin jobs that need /design with him, tidy-ups: parked behind features
+# since 1 Nov 2026). Its open rules land on the issue, labelled `rules:open`, before the 7am PM dashboard batches
+# them, so no daytime build stops to ask; a settled one gets `rules:clear` and is built; one already built or out
+# of date gets STALE_LABEL and a comment saying why, for the dashboard to close in one go. Nothing is built that
+# the sweep or a grill hasn't checked, since many old issues are done or out of date (5 Nov 2026: #8, #14).
 # A run by hand with `dry_run` says what it would start and label and starts nothing: how a change here is tested
 # from its branch (CLAUDE.md). Builds are dispatched on the lead's own ref, so a branch's lead runs that branch's
-# claude-build.yml. It replaces nightly-build.yml (5 Nov 2026). It dispatches rather than labelling `build`: a label added with the
-# default token starts no workflow.
+# claude-build.yml. It replaces nightly-build.yml (5 Nov 2026). It dispatches rather than labelling `build`: a
+# label added with the default token starts no workflow.
 name: lead
 
 on:
@@ -54,6 +57,7 @@ env:
   FIXED_LABEL: "lead:fixed"
   RESUMED_LABEL: "lead:resumed"
   CLEAR_LABEL: "rules:clear"
+  STALE_LABEL: "lead:stale"
   NOT_BUILDS: "^(Craig's call|UI [0-9]+:|Reskin|refactor|chore|docs)"
   OWN_JOBS: "drift-pass|nightly-ci"  # issues other workflows build or open
   SWEEP: ${{ github.event.schedule == '30 1 * * *' || inputs.sweep == true }}
@@ -69,6 +73,7 @@ jobs:
           gh label create "$FIXED_LABEL" --color 5319E7 --description "The lead gave this pull request its one fix round" --force
           gh label create "$RESUMED_LABEL" --color 5319E7 --description "The lead resumed this unfinished build once" --force
           gh label create "$CLEAR_LABEL" --color 0E8A16 --description "The rules sweep found every rule settled" --force
+          gh label create "$STALE_LABEL" --color BFBFBF --description "The rules sweep found it already built or out of date" --force
       - name: Fill the builders
         run: |
           set -euo pipefail
@@ -95,7 +100,7 @@ jobs:
             grep -qx "$n" <<<"$busy_issues" && return 1
             files=$(spec_files "$n")
             if [ -n "$files" ] && [ -n "$busy_specs" ] && grep -qxF -f <(printf '%s\n' "$files") <<<"$busy_specs"; then
-              echo "#$n waits: a build in flight works in the same spec file ($files)"; return 1
+              echo "#$n waits: a build in flight works in the same spec file ($(tr "\n" " " <<<"$files"))"; return 1
             fi
             busy_issues=$(printf '%s\n%s\n' "$busy_issues" "$n"); busy_specs=$(printf '%s\n%s\n' "$busy_specs" "$files")
           }
@@ -133,15 +138,18 @@ jobs:
           done
 
           # 3. new builds, oldest ready issue first
+          # each open issue with what it is: `build` (lane:auto, or the sweep found it settled), `sweep` (a candidate
+          # the sweep hasn't checked), or nothing
           ready=$(gh issue list --state open --limit 300 --json number,title,body,labels --jq '
-              .[] | select(all(.labels[]?; .name != "lane:craig" and .name != "rules:open"))
+              .[] | select(all(.labels[]?; .name != "lane:craig" and .name != "rules:open" and .name != env.STALE_LABEL))
               | select(((.title + " " + ([.labels[]?.name] | join(" "))) | test(env.OWN_JOBS)) | not)
-              | select(any(.labels[]?; .name == "lane:auto")
-                       or (((.body // "") | test("spec/[0-9]+")) and ((.title | test(env.NOT_BUILDS; "i")) | not)))
-              | "\(.number):\(any(.labels[]?; .name == env.CLEAR_LABEL))"' | sort -t: -k1,1n)
+              | if any(.labels[]?; .name == "lane:auto" or .name == env.CLEAR_LABEL) then "\(.number):build"
+                elif ((.body // "") | test("spec/[0-9]+")) and ((.title | test(env.NOT_BUILDS; "i")) | not) then "\(.number):sweep"
+                else empty end' | sort -t: -k1,1n)
           for row in $ready; do
             [ "$slots" -gt 0 ] || break
             n=${row%%:*}
+            [ "${row#*:}" = build ] || continue
             grep -qx "$n" <<<"$taken" && continue
             take "$n" || continue
             dispatch "$n" build; slots=$((slots - 1))
@@ -152,8 +160,8 @@ jobs:
             swept=0
             for row in $ready; do
               [ "$swept" -lt "$SWEEP_SIZE" ] || break
-              n=${row%%:*} clear=${row#*:}
-              [ "$clear" = false ] || continue
+              n=${row%%:*}
+              [ "${row#*:}" = sweep ] || continue
               grep -qx "$n" <<<"$taken" && continue
               grep -qx "$n" <<<"$busy_issues" && continue
               dispatch "$n" rules-only; swept=$((swept + 1))
