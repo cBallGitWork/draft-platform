@@ -57,6 +57,7 @@ beforeEach(async () => {
       "draft/draftBoard:inMenu": () => caller.query(api.draft.draftBoard.inMenu, { leagueId }),
       "draft/draftBoard:ofLeague": () => caller.query(api.draft.draftBoard.ofLeague, { leagueId, now }),
       "draft/draftLists:mine": () => caller.query(api.draft.draftLists.mine, { leagueId }),
+      "draft/draftCommissioner:panel": () => caller.query(api.draft.draftCommissioner.panel, { leagueId, now }),
       "draft/draftOrder:teamOrder": () => caller.query(api.draft.draftOrder.teamOrder, { leagueId }),
       "draft/draftRanking:upload": () => caller.mutation(api.draft.draftRanking.upload, { file: "1001,1" }),
       "draft/draftRanking:view": () => caller.query(api.draft.draftRanking.view, {}),
