@@ -8,7 +8,7 @@ import { gameweekFixtures } from "../shared/fixtures";
 // gameweek until every match the feed still sends in it is at full time.
 
 /** The latest gameweek the league has begun by `now`, or null before its first deadline. */
-function latestBegun(deadlines: LeagueDeadlines, now: number): number | null {
+export function latestBegun(deadlines: LeagueDeadlines, now: number): number | null {
   const begun = [...deadlines].flatMap(([gameweek, deadline]) => (isLocked(deadline, now) ? [gameweek] : []));
   return begun.length === 0 ? null : Math.max(...begun);
 }

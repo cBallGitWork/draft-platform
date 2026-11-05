@@ -95,6 +95,7 @@ function takenOut(event: LeagueEvent): string[] {
     case "playerMoved":
     case "playerReleased":
     case "playerDropped":
+    case "playerClaimed":
     case "pointsOverridden":
     case "fixturesSwapped":
       return [];
@@ -106,13 +107,14 @@ export function bylineOf(email: string): string {
   return isAdmin(email) ? adminByline : email;
 }
 
-/** Files the letter reporting a league's event to the whole league, as it is after the event. */
-async function fileEventLetter(ctx: MutationCtx, leagueId: Id<"leagues">, by: string, event: LeagueEvent): Promise<void> {
+/** Files the letter reporting a league's event to the whole league, as it is after the event: read
+ *  for `by` unless `unread`, as a waiver run's are, which `by` didn't watch happen. */
+async function fileEventLetter(ctx: MutationCtx, leagueId: Id<"leagues">, by: string, event: LeagueEvent, unread: boolean): Promise<void> {
   const league = await ctx.db.get("leagues", leagueId);
   if (!league) throw new Error(`League ${leagueId} doesn't exist, so its ${event.kind} letter can't be filed`);
   const to = [...(await wholeLeague(ctx, league)), ...takenOut(event)];
   const who = bylineOf(by);
-  await fileLetter(ctx, league, to, (zone) => eventLetter(event, who, zone), by);
+  await fileLetter(ctx, league, to, (zone) => eventLetter(event, who, zone), unread ? undefined : by);
 }
 
 /** Files what happened, with no Mail letter: a draft pick, which Mail doesn't report (Craig, 4 Nov
@@ -121,13 +123,15 @@ export async function fileEvent(ctx: MutationCtx, leagueId: Id<"leagues">, by: s
   await ctx.db.insert("leagueEvents", { leagueId, at: Date.now(), by, event });
 }
 
-/** Files what happened, and the Mail letter reporting it (#26). */
+/** Files what happened, and the Mail letter reporting it (#26): the copy to `by` filed read, unless
+ *  `unread`. */
 export async function recordEvent(
   ctx: MutationCtx,
   leagueId: Id<"leagues">,
   by: string,
   event: Infer<typeof leagueEvent>,
+  { unread = false } = {},
 ): Promise<void> {
   await fileEvent(ctx, leagueId, by, event);
-  await fileEventLetter(ctx, leagueId, by, event);
+  await fileEventLetter(ctx, leagueId, by, event, unread);
 }

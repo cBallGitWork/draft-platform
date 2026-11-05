@@ -12,7 +12,7 @@ import {
   PITCH_ASPECT,
   PITCH_SIZE,
 } from "../../../../../src/myTeam/tactics/pitch/pitchMarkings";
-import { openedPitch, pitch } from "../../../../support/src/tacticsScreen.harness";
+import { openedPitch, pitch, STARTERS } from "../../../../support/src/tacticsScreen.harness";
 
 /** The drawing behind the cells: its box is the pitch in metres. */
 const drawing = () => pitch().querySelector("svg")!;
@@ -56,12 +56,15 @@ describe("the pitch as drawn", () => {
     expect(goalAreas[0]).toEqual({ x: (68 - 18.32) / 2, y: 0, width: 18.32, height: 5.5 });
   });
 
-  it("draws the centre circle 9.15m round the centre spot, and a stripe to each of the six rows", async () => {
+  it("draws the centre circle 9.15m round the centre spot, and a stripe to each row a player stands in, the rows sharing the length", async () => {
     await openedPitch();
     const circle = Array.from(drawing().querySelectorAll("circle")).find((each) => Number(each.getAttribute("r")) === CIRCLE_RADIUS)!;
     expect([circle.getAttribute("cx"), circle.getAttribute("cy")]).toEqual(["34", "52.5"]);
     const stripes = rects().filter(({ width }) => width === 68);
-    expect(stripes).toHaveLength(6);
-    expect(stripes.map(({ height }) => height)).toEqual(Array(6).fill(105 / 6));
+    // The eleven stand in four rows (keeper, defence, midfield, attack): the two empty ones close up.
+    const usedRows = new Set(STARTERS.map(({ area }) => area)).size;
+    expect(stripes).toHaveLength(usedRows);
+    expect(stripes.map(({ height }) => height)).toEqual(Array(usedRows).fill(105 / usedRows));
+    expect(pitch().style.gridTemplateRows.split(" minmax").filter((row) => row.includes(" 0fr"))).toHaveLength(6 - usedRows);
   });
 });
