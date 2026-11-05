@@ -74,12 +74,12 @@ describe("moving a player", () => {
   });
 
   it("put in a free cell, starts on the role he has the most stars for there (#11)", async () => {
-    const starred: Member = { ...WHITE, stars: [{ area: "defence", role: "attackingFullBack", stars: 4 }] };
+    const starred: Member = { ...WHITE, stars: [{ area: "defence", role: "defensiveFullBack", stars: 4 }] };
     openTacticsTab({ tactics: openTactics({ ...SAVED, squad: SQUAD.map((each) => (each === WHITE ? starred : each)) }) });
     await pickUp(WHITE);
     await userEvent.click(screen.getByRole("button", { name: putHereLabel(WHITE.name, "defence", "right") }));
 
-    expect((screen.getByRole("combobox", { name: roleLabel(WHITE.name) }) as HTMLSelectElement).value).toBe("attackingFullBack");
+    expect((screen.getByRole("combobox", { name: roleLabel(WHITE.name) }) as HTMLSelectElement).value).toBe("defensiveFullBack");
   });
 
   it("moves a starter to another free cell in his area, picked up by Move in the panel a tap on him opens", async () => {
@@ -287,7 +287,7 @@ describe("the selected player's panel (the approved Tactics picture)", () => {
     await openedPitch();
     await openPanel(SALIBA);
     const roles = within(screen.getByRole("region", { name: SALIBA.name })).getAllByRole("listitem");
-    expect(roles.map((role) => role.textContent)).toEqual(["Stoppernow", "Ball-playing defender"]);
+    expect(roles.map((role) => role.textContent)).toEqual(["Stoppernow", "Ball-playing centre-back", "No-nonsense centre-back", "Attacking centre-back"]);
     expect(roles[0].getAttribute("aria-current")).toBe("true");
   });
 

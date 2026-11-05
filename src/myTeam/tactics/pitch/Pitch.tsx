@@ -5,7 +5,6 @@ import { kitOf, type Ink } from "../../../../convex/football/clubColours";
 import { markOf } from "../focusMarks";
 import { PitchLines } from "./PitchLines";
 import { RoleRuns } from "./RoleRuns";
-import { drawnDeeper, SWEEPER_DEPTH_SHARE } from "./runs";
 import { PITCH_ASPECT } from "./pitchMarkings";
 import { standingIn, type DraftLineup, type Reach, type SquadMember } from "../lineupDraft";
 import { emptySlotLabel, pitchLabel, playerOnPitchLabel, putHereLabel, swapLabel } from "../words";
@@ -19,11 +18,8 @@ import { emptySlotLabel, pitchLabel, playerOnPitchLabel, putHereLabel, swapLabel
 export const ROWS_DRAWN = AREAS.toReversed();
 
 /** On the row that holds the pitch, with the CSS `pitch-room`: the pitch's shape, width over
- *  length, which the CSS sizes the pitch and its panel by, and how much deeper a sweeper is drawn. */
-export const PITCH_ROOM_STYLE = { "--pitch-aspect": PITCH_ASPECT, "--sweeper-depth": SWEEPER_DEPTH_SHARE } as CSSProperties;
-
-/** The CSS utility that draws a sweeper's cell a little deeper than the line (pitch.css). */
-export const SWEEPER_DEPTH = "pitch-sweeper";
+ *  length, which the CSS sizes the pitch and its panel by. */
+export const PITCH_ROOM_STYLE = { "--pitch-aspect": PITCH_ASPECT } as CSSProperties;
 
 /** The pitch's cells: each area's row an equal share of its length, so the lines stand where they
  *  would on a real pitch, and each lane an equal share of its width. Its shape is the CSS `pitch`'s;
@@ -86,7 +82,6 @@ export function Pitch({
         LANES.map((lane) => {
           const cell = { area, lane };
           const standing = standingIn(draft, cell);
-          const depth = standing !== undefined && drawnDeeper(cell, standing.role) ? SWEEPER_DEPTH : "";
           const allowDrop = (event: DragEvent) => {
             if (opensTo(cell)) event.preventDefault();
           };
@@ -95,7 +90,7 @@ export function Pitch({
             if (opensTo(cell)) moving.onPlace(cell);
           };
           return (
-            <div key={cellKey(cell)} onDragOver={allowDrop} onDrop={drop} className={`relative flex min-h-0 min-w-0 items-center justify-center p-0.5 ${depth}`}>
+            <div key={cellKey(cell)} onDragOver={allowDrop} onDrop={drop} className="relative flex min-h-0 min-w-0 items-center justify-center p-0.5">
               {standing !== undefined ? (
                 <PlayerBlock player={squad.get(standing.playerCode)!} cell={cell} role={roleIn(cell, standing.role).name} lit={opensTo(cell)} moving={moving} />
               ) : picked !== null && opensTo(cell) ? (

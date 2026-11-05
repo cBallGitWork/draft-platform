@@ -3,7 +3,7 @@
 // pitch's own metres (./pitchMarkings.ts), attack at the top, for ./RoleRuns.tsx to draw.
 
 import { AREAS, LANES, type Cell } from "../../../../convex/lineup/pitch";
-import { slotLabel, SWEEPER, type Run } from "../../../../convex/lineup/roles";
+import type { Run } from "../../../../convex/lineup/roles";
 import { LANE_WIDTH, PITCH_SIZE, ROW_LENGTH } from "./pitchMarkings";
 
 /** A point on the drawn pitch, in metres from its top-left corner. */
@@ -12,26 +12,20 @@ export interface PitchPoint {
   y: number;
 }
 
-/** How much of a row deeper a sweeper's cell is drawn than the line (spec/05 The pitch): the one
- *  home of it, which the CSS `pitch-sweeper` reads through `--sweeper-depth` (./Pitch.tsx). */
-export const SWEEPER_DEPTH_SHARE = 0.125;
-
 /** How far inside the goal lines and touchlines a run stops, in metres, so its arrowhead shows
  *  whole: a rough run from a slot further up than its role's usual one (a shadow striker up front)
  *  would otherwise run off the pitch. */
 export const RUN_MARGIN = 3;
 
-/** Whether a player in `cell` with `role` is drawn a little deeper than the line: a sweeper is. */
-export const drawnDeeper = (cell: Cell, role: string | undefined) => slotLabel(cell, role) === SWEEPER;
-
 const MIDDLE_LANE = (LANES.length - 1) / 2;
 
-/** The middle of a cell on the drawn pitch, a sweeper's a little deeper (`deeper`). */
-export function placeOf({ area, lane }: Cell, deeper = false): PitchPoint {
+/** The middle of a cell on the drawn pitch. A sweeper stands in the line like any centre-back: there
+ *  is no drawing him deeper (spec/05 The pitch; Craig, 4 Nov 2026). */
+export function placeOf({ area, lane }: Cell): PitchPoint {
   const rowFromTop = AREAS.length - 1 - AREAS.indexOf(area);
   return {
     x: (LANES.indexOf(lane) + 0.5) * LANE_WIDTH,
-    y: (rowFromTop + 0.5 + (deeper ? SWEEPER_DEPTH_SHARE : 0)) * ROW_LENGTH,
+    y: (rowFromTop + 0.5) * ROW_LENGTH,
   };
 }
 
@@ -39,8 +33,8 @@ const within = (value: number, size: number) => Math.min(size - RUN_MARGIN, Math
 
 /** The run's path on the drawn pitch: his place, then each of its points. Across is toward the
  *  middle, so a run from the right is turned the other way; the centre lane's goes to his right. */
-export function runPath(run: Run, cell: Cell, deeper = false): PitchPoint[] {
-  const place = placeOf(cell, deeper);
+export function runPath(run: Run, cell: Cell): PitchPoint[] {
+  const place = placeOf(cell);
   const inward = LANES.indexOf(cell.lane) > MIDDLE_LANE ? -1 : 1;
   return [
     place,

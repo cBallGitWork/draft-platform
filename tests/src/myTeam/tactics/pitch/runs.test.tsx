@@ -8,8 +8,8 @@ import { screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
 import { ALL_CELLS } from "../../../../../convex/lineup/pitch";
-import { roleIn, rolesOfSlot, SWEEPER_CELL } from "../../../../../convex/lineup/roles";
-import { drawnDeeper, placeOf, RUN_MARGIN, RUN_MARK, runPath, runShows, SWEEPER_DEPTH_SHARE } from "../../../../../src/myTeam/tactics/pitch/runs";
+import { everyRoleOf, roleIn } from "../../../../../convex/lineup/roles";
+import { placeOf, RUN_MARGIN, RUN_MARK, runPath, runShows } from "../../../../../src/myTeam/tactics/pitch/runs";
 import { LANE_WIDTH, PITCH_SIZE, ROW_LENGTH } from "../../../../../src/myTeam/tactics/pitch/pitchMarkings";
 import { runsWords } from "../../../../../src/myTeam/tactics/words";
 import { blockOf, HAVERTZ, openedPitch, pitch, RICE, SALIBA, SAVED, STARTERS } from "../../../../support/src/tacticsScreen.harness";
@@ -87,11 +87,9 @@ describe("where a run goes, in the pitch's metres", () => {
     expect(end.y).toBe(RUN_MARGIN);
   });
 
-  it("starts a sweeper's from where his cell is drawn, a little deeper than the line", () => {
-    const line = placeOf(SWEEPER_CELL);
-    const sweeper = runPath(roleIn(SWEEPER_CELL, "sweeper").run!, SWEEPER_CELL, true)[0];
-    expect(sweeper.x).toBe(line.x);
-    expect(sweeper.y - line.y).toBeCloseTo(SWEEPER_DEPTH_SHARE * ROW_LENGTH);
+  it("starts a sweeper's from his place in the line, as any centre-back's", () => {
+    const centreBack = { area: "defence", lane: "centre" } as const;
+    expect(runPath(roleIn(centreBack, "sweeper").run!, centreBack)[0]).toEqual(placeOf(centreBack));
   });
 
   it("puts a place in the middle of its cell: the keeper's in the bottom row, the attack's in the top", () => {
@@ -103,9 +101,9 @@ describe("where a run goes, in the pitch's metres", () => {
     /** How far from where two rows meet a run may end, in metres, and still show between their players. */
     const BETWEEN_ROWS = 1;
     for (const cell of ALL_CELLS) {
-      for (const { key, run } of rolesOfSlot(cell)) {
+      for (const { key, run } of everyRoleOf(cell)) {
         if (run === null || run.path.some(({ across }) => across !== 0)) continue;
-        const end = runPath(run, cell, drawnDeeper(cell, key)).at(-1)!;
+        const end = runPath(run, cell).at(-1)!;
         const fromRowsMeeting = Math.abs(end.y - Math.round(end.y / ROW_LENGTH) * ROW_LENGTH);
         expect(fromRowsMeeting, `${key} from ${cell.area} ${cell.lane}`).toBeLessThanOrEqual(BETWEEN_ROWS);
       }

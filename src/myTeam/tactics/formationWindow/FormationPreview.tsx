@@ -1,5 +1,5 @@
-import { sameCell } from "../../../../convex/lineup/pitch";
-import { roleIn, rolesOfSlot, slotLabel } from "../../../../convex/lineup/roles";
+import { positionOfSlot, sameCell } from "../../../../convex/lineup/pitch";
+import { roleIn } from "../../../../convex/lineup/roles";
 import { Placeholder } from "../../../ui/Placeholder";
 import { PositionChip } from "../../../ui/PositionChip";
 import { reshaped, standingIn, type DraftLineup, type MoveRules, type RatingsOf } from "../lineupDraft";
@@ -47,8 +47,8 @@ export function FormationPreview({ shape, draft, rules, ratingsOf }: { shape: Sh
               <span key={`${cell.area}-${cell.lane}`} className="flex min-w-0 flex-col items-center justify-center">
                 {inShape && (
                   <>
-                    <PositionChip label={slotLabel(cell, standing?.role)} />
-                    <span className="line-clamp-2 w-full bg-name-plate text-center">{standing === undefined ? rolesOfSlot(cell)[0].name : roleIn(cell, standing.role).name}</span>
+                    <PositionChip label={positionOfSlot(cell)} />
+                    <span className="line-clamp-2 w-full bg-name-plate text-center">{roleIn(cell, standing?.role).name}</span>
                   </>
                 )}
               </span>

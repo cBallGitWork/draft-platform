@@ -5,6 +5,7 @@ import { GAMEWEEKS } from "../gameweeks/usedGameweeks";
 import { andListWords } from "../shared/moments";
 import { STARTER_COUNT, type LineupProblem } from "./lineup";
 import { AREA_WORDS, LANE_WORDS } from "./pitchWords";
+import { BACK_THREE, roleName } from "./roles";
 
 /** A player's name, by his code. */
 export type NameOf = (playerCode: number) => string;
@@ -44,5 +45,7 @@ export function problemWords(problem: LineupProblem, nameOf: NameOf): string {
       return `The ${LANE_WORDS[problem.lane]} cell in ${AREA_WORDS[problem.area]} doesn't offer the role "${problem.role}" ${nameOf(problem.playerCode)} was given.`;
     case "belowMinimum":
       return `The league starts at least ${problem.minimum} in ${AREA_WORDS[problem.area]}; this lineup starts ${problem.starterCount} there.`;
+    case "noBackThree":
+      return `${nameOf(problem.playerCode)} can play ${roleName(problem.role)} only with ${BACK_THREE} or more centre-backs; this lineup has ${problem.centreBacks}.`;
   }
 }

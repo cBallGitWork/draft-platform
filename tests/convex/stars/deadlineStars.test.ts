@@ -15,7 +15,7 @@ import { pendingJobs, silenceConsoleError } from "../../support/convex/test.harn
 const [ANN] = MANAGERS;
 const NEXT = 9;
 const [FIRST_ON] = FOUR_FOUR_TWO.bench;
-const RATED = { area: "midfield" as const, role: "playmaker", stars: 4 as Stars };
+const RATED = { area: "midfield" as const, role: "attackingEight", stars: 4 as Stars };
 const UNSURE_RATING = { area: "midfield" as const, role: "boxToBox", stars: UNSURE as Stars };
 
 let t: TestConvex;

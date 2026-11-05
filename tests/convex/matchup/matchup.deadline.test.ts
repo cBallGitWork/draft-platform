@@ -1,5 +1,5 @@
 import { expect, test } from "vitest";
-import { namedRole, roleIn, rolesOfSlot } from "../../../convex/lineup/roles";
+import { everyRoleOf, namedRole, roleIn } from "../../../convex/lineup/roles";
 import {
   annsScoredGame,
   BOBS_TEAM,
@@ -32,7 +32,7 @@ test.each([
 test("once the deadline has passed each starter on both sides carries his role: the one he was given, else his slot's first", async () => {
   const league = await scoresLeague();
   const scorer = HULL_STARTERS.find((starter) => starter.playerCode === HULL_SCORER)!;
-  const [first, given] = rolesOfSlot(scorer);
+  const [first, given] = everyRoleOf(scorer);
   await giveAnnsStarterRole(league, HULL_SCORER, given.key);
 
   const game = await annsScoredGame(league, GAMEWEEK);

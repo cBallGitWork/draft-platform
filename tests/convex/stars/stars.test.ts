@@ -80,7 +80,7 @@ describe("the roles a player is rated for", () => {
 
   test("every role in every area his positions play: a centre-back's are the whole defence's", () => {
     expect(new Set(ratedRoles(["CB"]).map((rated) => rated.area))).toEqual(new Set(["defence"]));
-    expect(keysIn(["CB"], "defence")).toEqual([...DEFAULT_ROLES.FB, ...DEFAULT_ROLES.CB, ...DEFAULT_ROLES.SW].map((role) => role.key));
+    expect(keysIn(["CB"], "defence")).toEqual([...DEFAULT_ROLES.FB, ...DEFAULT_ROLES.CB].map((role) => role.key));
   });
 
   test("a wing-back is rated in defence and both midfield rows", () => {
@@ -89,8 +89,12 @@ describe("the roles a player is rated for", () => {
   });
 
   test("a shadow striker is rated apart at number 10 and up front, each priced in its own area", () => {
-    const shadow = ratedRoles(["SS"]).filter((rated) => rated.role === "shadowStriker");
-    expect(shadow.map((rated) => rated.area)).toEqual(["attackingMidfield", "attack"]);
+    // Two roles of one name, each with its own key, as each scores for its own stats (#989).
+    const shadow = ratedRoles(["SS"]).filter((rated) => ["attackingMidfieldShadowStriker", "shadowStriker"].includes(rated.role));
+    expect(shadow.map((rated) => [rated.area, rated.role])).toEqual([
+      ["attackingMidfield", "attackingMidfieldShadowStriker"],
+      ["attack", "shadowStriker"],
+    ]);
     expect(shadow.map((rated) => rated.cell)).toEqual([
       { area: "attackingMidfield", lane: "leftCentre" },
       { area: "attack", lane: "left" },

@@ -1,10 +1,11 @@
-// The roles a slot offers (spec/05 Roles; #10; Craig, 26 Oct 2026): the default set's list for
-// the position the slot stands for (pitch.ts's positionOfSlot), and in the defence's centre cell
-// the sweeper's roles too (spec/05 The pitch; #844; Craig, 31 Oct 2026). Each role's adjustment
-// comes with the site's scoring (spec/14), not here; this is who may be asked to play what, and
-// each role's run (spec/05 Runs; #846; Craig, 31 Oct 2026).
+// The roles a slot offers (spec/05 Roles; #10, #989): the default set's list for the position the
+// slot stands for (pitch.ts's positionOfSlot), drafted slot by slot with Craig on 4 and 5 Nov 2026.
+// Sweeper and libero are centre-back roles offered only while the formation has three or more
+// centre-backs (Craig, 4 Nov 2026). Each role's adjustment comes with the site's scoring (spec/14),
+// not here; this is who may be asked to play what, what each role is for, and each role's run
+// (spec/05 Runs; #846; Craig, 31 Oct 2026).
 
-import { positionOfSlot, sameCell, type Cell, type SlotPosition } from "./pitch";
+import { positionOfSlot, type Cell, type SlotPosition } from "./pitch";
 
 /** A point of a run, in metres from the player's place: forward toward the goal he attacks (back
  *  is negative), and across toward the middle of the pitch (out wide is negative; in the centre
@@ -26,74 +27,155 @@ export interface Run {
 export interface Role {
   /** Saved with a lineup, so never renamed: a new name is a new role. */
   key: string;
-  /** As managers say it, such as "Attacking full-back". */
+  /** As managers say it, such as "Overlapping full-back". */
   name: string;
+  /** What the pitch shows at every width: at most three characters, one per role (spec/05 What
+   *  the pitch shows). */
+  code: string;
+  /** What he does on the role, for the role card (spec/05 Roles: "Each role's description is held
+   *  with the role"). */
+  description: string;
+  /** The categories it scores more for, and the bad actions it scores less for, without values
+   *  (spec/05 Roles; Craig, 1 Nov 2026): the values are the site's scoring, by patch (spec/14), first
+   *  drafted in docs/roles-first-values.md. */
+  rewards: readonly string[];
+  costs: readonly string[];
   /** His run, or null for a role that holds its place (spec/05 Runs). Held here with the role, so
    *  it changes with the role set, and the pitch only draws what it reads. */
   run: Run | null;
 }
 
-const role = (key: string, name: string, run: Run | null = null): Role => ({ key, name, run });
+const role = (key: string, name: string, code: string, description: string, rewards: readonly string[], costs: readonly string[], run: Run | null = null): Role => ({
+  key,
+  name,
+  code,
+  description,
+  rewards,
+  costs,
+  run,
+});
 
-/** A rough first run (spec/05 Runs) through these points, each [forward, across] in metres. */
+/** A rough first run (spec/05 Runs) through these points, each [forward, across] in metres. A run
+ *  straight up or down the pitch ends just past where the rows meet (9 m, 26.5 m from his place: a
+ *  row is 17.5 m), so its arrowhead shows between two rows' players, not under one. */
 const rough = (...points: [forward: number, across: number][]): Run => ({
   path: points.map(([forward, across]) => ({ forward, across })),
   rough: true,
 });
 
-/** Into the box from behind the striker. */
-const SHADOW_STRIKER = role("shadowStriker", "Shadow striker", rough([18, 8]));
+/** The roles only a back of three or more centre-backs offers, last in the centre-back's list so a
+ *  back three keeps its first (spec/05 The pitch; Craig, 4 Nov 2026). A sweeper sweeps across behind
+ *  the line; a libero steps out of it with the ball. */
+const BACK_THREE_ROLES: readonly Role[] = [
+  role("sweeper", "Sweeper", "SW", "Stays behind the line and sweeps up whatever gets past it.", ["Interceptions", "Recoveries", "Clearances off the line"], ["Errors leading to a shot or goal"], rough([-4, 14])),
+  role("libero", "Libero", "LIB", "Steps out of the back line with the ball and carries it into midfield.", ["Progressive carries", "Accurate passes", "Final third entries"], ["Heavy touches"], rough([26.5, 0])),
+];
 
-/** The sweeper's label. Only a slot's label, never a SlotPosition: no rule prices it, as spec/14
- *  prices a sweeper's slot as CB. */
-export const SWEEPER = "SW";
+/** How many centre-backs a formation needs before its centre-backs are offered sweeper and libero. */
+export const BACK_THREE = 3;
 
-/** What a slot is labelled on the pitch: its position, or SW for a sweeper (spec/05 What the pitch
- *  shows). */
-export type SlotLabel = SlotPosition | typeof SWEEPER;
-
-/** The one cell a sweeper plays: there is no sweeper row (spec/05 The pitch). */
-export const SWEEPER_CELL: Cell = { area: "defence", lane: "centre" };
-
-/** spec/05's default set, made long before roles were built, for Craig to cut much later. */
-export const DEFAULT_ROLES: Record<SlotLabel, readonly Role[]> = {
-  // Each run is a rough one from FM's nearest role (spec/05 Runs), said beside it where it isn't
-  // plain. A run straight up or down the pitch ends just past where the rows meet (9 m, 26.5 m
-  // from his place: a row is 17.5 m), so its arrowhead shows between two rows' players, not under one.
-  GK: [role("shotStopper", "Shot-stopper"), role("sweeperKeeper", "Sweeper keeper", rough([9, 0]))],
-  FB: [role("defensiveFullBack", "Defensive full-back"), role("attackingFullBack", "Attacking full-back", rough([26.5, 0]))],
+/** spec/05's default set, by the position each slot stands for: each slot's first is the one a
+ *  player starts on until stars are built (spec/05 Roles). Each run is a rough one from FM's
+ *  nearest role (spec/05 Runs). */
+export const DEFAULT_ROLES: Record<SlotPosition, readonly Role[]> = {
+  GK: [
+    role("shotStopper", "Shot-stopper", "SHS", "Stays on his line and keeps the shots out, so a busy keeper at a weaker club earns most.", ["Saves", "Big-chance saves", "Penalty saves"], ["Goals let in from outside the box"]),
+    role("sweeperKeeper", "Sweeper keeper", "SK", "Comes off his line to sweep up balls played in behind his defence.", ["Sweeps off his line", "Smothers", "Clearances", "Progressive carries"], ["Errors leading to a shot or goal"], rough([9, 0])),
+    role("distributor", "Distributor", "DIS", "Starts the attacks, passing and throwing it out long and short.", ["Passes into their half", "Forward passes", "Accurate throws"], ["Failed launches"]),
+    role("commandingKeeper", "Commanding keeper", "CK", "Rules his box, coming for crosses and claiming everything in the air.", ["Crosses claimed", "Punches", "Aerials won", "Diving catches"], ["Crosses dropped", "Goals let in inside the box"]),
+  ],
+  FB: [
+    role("overlappingFullBack", "Overlapping full-back", "OFB", "Bombs on round the outside of his winger to cross.", ["Accurate crosses", "Crosses attempted", "Take-ons won"], ["Dispossessed"], rough([26.5, 0])),
+    role("underlappingFullBack", "Underlapping full-back", "UFB", "Runs inside his winger, into the channel and the box.", ["Box entries", "Progressive carries", "Final third entries"], ["Heavy touches", "Offsides"], rough([20, 10])),
+    role("invertedFullBack", "Inverted full-back", "IFB", "Steps into midfield when his side has the ball and keeps it moving.", ["Accurate passes", "Final third passes"], ["Misplaced passes"], rough([9, 14])),
+    role("playmakingFullBack", "Playmaking full-back", "PFB", "Holds his position and plays the long, early ball forward.", ["Long passes into their half", "Accurate long balls", "Big chances created"], ["Failed long balls"]),
+    role("defensiveFullBack", "Defensive full-back", "DFB", "Stays back and defends first.", ["Tackles won", "Interceptions", "Clearances"], ["Dribbled past"]),
+  ],
   // A stopper steps out of the line to meet his man.
-  CB: [role("stopper", "Stopper", rough([9, 0])), role("ballPlayingDefender", "Ball-playing defender")],
-  // Offered in SWEEPER_CELL after the centre-back's, so a back three keeps a CB in the middle. A
-  // sweeper sweeps across behind the line; a libero steps out of it with the ball, from his place
-  // drawn a little deeper.
-  SW: [role("sweeper", "Sweeper", rough([-4, 14])), role("libero", "Libero", rough([28.5, 0]))],
-  WB: [role("attackingWingBack", "Attacking wing-back", rough([26.5, 0])), role("holdingWingBack", "Holding wing-back")],
-  CDM: [role("anchor", "Anchor"), role("deepPlaymaker", "Deep playmaker")],
-  // FM's winger, to the byline; a defensive winger tracks back.
-  WM: [role("wideMidfielder", "Winger", rough([26.5, 0])), role("defensiveWinger", "Defensive winger", rough([-9, 0]))],
-  // FM's box-to-box, advanced playmaker and ball-winning midfielder.
-  CM: [role("boxToBox", "Box-to-box", rough([30, 6])), role("playmaker", "Playmaker", rough([26.5, 0])), role("ballWinner", "Ball-winner", rough([9, 0]))],
-  // An inside forward cuts in on the diagonal; a winger goes down the line, then in to cross.
-  W: [role("insideForward", "Inside forward", rough([14, 16])), role("winger", "Winger", rough([18, 0], [20, 6]))],
-  CAM: [role("numberTen", "Number 10", rough([9, 0])), SHADOW_STRIKER],
+  CB: [
+    role("stopper", "Stopper", "STP", "Steps out of the line to meet his man and win the ball.", ["Tackles won", "Aerials won", "Interceptions"], ["Dribbled past"], rough([9, 0])),
+    role("ballPlayingDefender", "Ball-playing centre-back", "BPD", "Brings the ball out from the back and passes it forward.", ["Long passes into their half", "Forward passes", "Accurate long balls"], ["Failed long balls"]),
+    role("noNonsenseCentreBack", "No-nonsense centre-back", "NNC", "Heads it, kicks it and blocks it: the danger cleared, never played out.", ["Clearances", "Headed clearances", "Blocks"], ["Errors leading to a shot or goal"]),
+    role("attackingCentreBack", "Attacking centre-back", "ACB", "Carries it forward and gets into the box, as Keegan's Newcastle played.", ["Headed shots", "Box entries", "Progressive carries"], ["Dispossessed"], rough([26.5, 0])),
+    ...BACK_THREE_ROLES,
+  ],
+  WB: [
+    role("attackingWingBack", "Attacking wing-back", "AWB", "Gets forward down the flank to cross and create.", ["Accurate crosses", "Box entries", "Chances created"], ["Dispossessed"], rough([26.5, 0])),
+    role("holdingWingBack", "Holding wing-back", "HWB", "Holds his flank and defends it, getting forward only when it's safe.", ["Tackles won", "Interceptions", "Recoveries"], ["Dribbled past"]),
+    role("completeWingBack", "Complete wing-back", "CWB", "Covers the whole flank: carries it up, crosses, and gets back.", ["Progressive carries", "Accurate crosses", "Recoveries"], ["Heavy touches"], rough([26.5, 0])),
+    role("invertedWingBack", "Inverted wing-back", "IWB", "Comes inside into midfield with the ball and keeps it moving.", ["Accurate passes", "Final third passes", "Take-ons won"], ["Fouls"], rough([9, 14])),
+    role("goalscoringWingBack", "Goalscoring wing-back", "GWB", "Arrives in the box from the flank to shoot and score.", ["Shots on target", "Touches in their box", "Box entries", "Goals"], ["Big chances missed"], rough([26.5, 10])),
+  ],
+  // A half-back drops between the centre-backs.
+  CDM: [
+    role("metronome", "Metronome", "MET", "Sits in front of the defence and keeps the ball moving, short and simple.", ["Accurate passes", "Forward passes"], ["Misplaced passes"]),
+    role("quarterback", "Quarterback", "QB", "Sits deep and switches the play with long passes.", ["Long passes into their half", "Accurate long balls", "Accurate chipped passes"], ["Failed long balls"]),
+    role("halfBack", "Half-back", "HB", "Drops between the centre-backs to make a back three.", ["Clearances", "Aerials won", "Possession won in his own third"], ["Errors leading to a shot or goal"], rough([-9, 0])),
+    role("engine", "Engine", "ENG", "Covers every blade of grass, winning it back and giving it simply.", ["Recoveries", "Interceptions", "Accurate passes"], ["Dribbled past"], rough([9, 0])),
+    role("tower", "Tower", "TWR", "Wins everything in the air in front of the defence.", ["Aerials won", "Headed clearances", "Headed passes"], ["Aerials lost"]),
+    role("destroyer", "Destroyer", "DES", "Gets stuck in, tackling and winning duels to break up their play.", ["Tackles won", "Duels won"], ["Fouls"]),
+  ],
+  // A wide workhorse runs up and down his flank; a defensive winger tracks back.
+  WM: [
+    role("wideMidfielder", "Wide workhorse", "WW", "Runs up and down his flank all game, helping at both ends.", ["Recoveries", "Passes into the final third", "Tackles"], ["Fouls"], rough([9, 0], [-9, 0])),
+    role("defensiveWinger", "Defensive winger", "DW", "Tracks back to help his full-back before he thinks of attacking.", ["Tackles", "Interceptions", "Blocks"], ["Dribbled past"], rough([-9, 0])),
+    role("wideMidfieldPlaymaker", "Wide playmaker", "WMP", "Drifts inside from the flank to pick the pass.", ["Accurate long balls", "Key passes"], ["Failed long balls"], rough([9, 10])),
+    role("crosser", "Crosser", "CR", "Gets the ball wide and puts it into the box.", ["Accurate crosses", "Crosses attempted", "Big chances created"], ["Failed crosses"], rough([26.5, 0])),
+    role("wideMidfieldWinger", "Touchline winger", "TLW", "Hugs the touchline and takes his man on.", ["Take-ons won", "Times fouled", "Accurate crosses"], ["Dispossessed"], rough([26.5, 0])),
+  ],
+  CM: [
+    role("boxToBox", "Box-to-box", "BTB", "Gets up to the box to shoot and back to win the ball.", ["Box entries", "Recoveries", "Tackles won", "Shots on target"], ["Heavy touches"], rough([30, 6])),
+    role("ballWinner", "Ball-winner", "BW", "Hunts the ball in midfield and wins it back.", ["Tackles won", "Interceptions", "Possession won in midfield"], ["Fouls"], rough([9, 0])),
+    role("attackingEight", "Attacking 8", "A8", "Carries it forward from midfield and gets into the box.", ["Progressive carries", "Box entries", "Take-ons won"], ["Dispossessed"], rough([26.5, 4])),
+    role("midfieldEngine", "Engine", "EN", "Covers every blade of grass, winning it back and giving it simply.", ["Recoveries", "Interceptions", "Accurate passes"], ["Dribbled past"], rough([9, 0], [-9, 0])),
+    role("lateRunner", "Late runner", "LR", "Arrives late in the box, unmarked, to finish.", ["Shots on target", "Box entries", "Goals"], ["Big chances missed"], rough([35, 8])),
+  ],
+  // A touchline winger goes down the line, then in to cross; an inside forward cuts in on the diagonal.
+  W: [
+    role("winger", "Touchline winger", "TW", "Goes down the line to the byline, then in to cross.", ["Accurate crosses", "Take-ons won", "Chances created"], ["Dispossessed"], rough([18, 0], [20, 6])),
+    role("dribbler", "Dribbler", "DRB", "Takes his man on, again and again.", ["Take-ons won", "Progressive carries", "Fouled in the final third"], ["Dispossessed"], rough([14, 8])),
+    role("insideForward", "Inside forward", "IF", "Cuts in on the diagonal to shoot.", ["Shots on target", "Shots in the box", "Goals"], ["Big chances missed"], rough([14, 16])),
+    role("widePlaymaker", "Wide playmaker", "WP", "Drifts inside from the flank to create.", ["Shots created", "Through balls", "Final third passes"], ["Possession lost"], rough([4, 12])),
+    role("wideForward", "Wide forward", "WF", "Plays off the striker, running in behind on the break.", ["Counter-attack shots", "Open-play box entries", "Fouled in the final third"], ["Offsides"], rough([18, 10])),
+    role("pressingWinger", "Pressing winger", "PW", "Presses their full-back high up the pitch to win it back.", ["Possession won in the attacking third", "Tackles won"], ["Fouls"], rough([6, 4])),
+    role("trackingWinger", "Tracking winger", "TRW", "Tracks their full-back all the way back.", ["Tackles won", "Interceptions", "Possession won in midfield and his own third"], ["Fouls", "Dribbled past"], rough([-9, 0])),
+  ],
+  CAM: [
+    role("numberTen", "Number 10", "N10", "Plays between the lines and makes the chances.", ["Chances created", "Big chances created", "Through balls"], ["Shots off target"], rough([9, 0])),
+    role("attackingMidfieldShadowStriker", "Shadow striker", "SSA", "Runs into the box from behind the striker to shoot.", ["Box entries", "Shots on target", "Shots from outside the box"], ["Offsides"], rough([18, 8])),
+    role("maverick", "Maverick", "MAV", "Tries the pass or the shot nobody else would.", ["Through balls tried", "Accurate long balls", "Accurate chipped passes", "Shots on target"], ["Heavy touches"]),
+    role("carrier", "Carrier", "CAR", "Picks it up and runs at them.", ["Take-ons won", "Progressive carries", "Fouled in the final third"], ["Dispossessed"], rough([18, 6])),
+    role("pressingTen", "Pressing 10", "P10", "Leads the press from behind the striker.", ["Possession won in the attacking third", "Tackles won", "Recoveries"], ["Fouls"], rough([9, 0])),
+  ],
   // A poacher runs in behind off the last man's shoulder, a pressing forward harries across the
   // back line, a false 9 drops deep; a target man holds the ball up where he stands.
   ST: [
-    role("poacher", "Poacher", rough([6, 8])),
-    role("targetMan", "Target man"),
-    role("pressingForward", "Pressing forward", rough([4, -10], [6, 10])),
-    SHADOW_STRIKER,
-    role("falseNine", "False 9", rough([-9, 0])),
+    role("poacher", "Poacher", "PCH", "Lives in the box, waiting for the chance to finish.", ["Goals in the box", "Shots on target in the box"], ["Big chances missed"], rough([6, 8])),
+    role("targetMan", "Target man", "TM", "Wins it in the air and holds it up for others.", ["Aerials won", "Accurate flick-ons", "Accurate layoffs"], ["Aerials lost"]),
+    role("inBehindStriker", "In-behind striker", "IBS", "Runs in behind their back line and carries it at goal.", ["Counter-attack shots", "Progressive carries", "Open-play box entries", "Fouled in the final third"], ["Offsides"], rough([14, 4])),
+    role("pressingForward", "Pressing forward", "PF", "Harries their back line to win it high up.", ["Possession won in the attacking third", "Possession won in midfield", "Tackles won"], ["Fouls"], rough([4, -10], [6, 10])),
+    role("shadowStriker", "Shadow striker", "SS", "Plays off the main striker and gets into the box around him.", ["Final third entries", "Box entries", "Shots from outside the box"], ["Heavy touches", "Offsides"], rough([18, 8])),
+    role("falseNine", "False 9", "F9", "Drops deep from up front to make the chances.", ["Through balls", "Shots created", "Progressive carries", "Big chances created"], ["Dispossessed"], rough([-9, 0])),
   ],
 };
 
-const SWEEPER_CELL_ROLES: readonly Role[] = [...DEFAULT_ROLES.CB, ...DEFAULT_ROLES.SW];
+/** The cells a lineup's starters stand in: what a slot offers depends on it (sweeper and libero). */
+export type Formation = readonly Cell[];
 
-/** The roles this slot offers, its first the one a player starts on when none has more stars
- *  (spec/05; stars/bestRole.ts). */
-export const rolesOfSlot = (cell: Cell): readonly Role[] =>
-  sameCell(cell, SWEEPER_CELL) ? SWEEPER_CELL_ROLES : DEFAULT_ROLES[positionOfSlot(cell)];
+/** How many of the formation's slots are centre-backs'. */
+export const centreBacksIn = (formation: Formation): number => formation.filter((cell) => positionOfSlot(cell) === "CB").length;
+
+/** Every role the slot's position holds, whatever the formation: the roles a player is rated for,
+ *  and those a bench player, standing in no formation, is shown. */
+export const everyRoleOf = (cell: Cell): readonly Role[] => DEFAULT_ROLES[positionOfSlot(cell)];
+
+/** Whether only a back of three or more centre-backs offers the role: sweeper and libero. */
+export const needsBackThree = (key: string): boolean => BACK_THREE_ROLES.some((each) => each.key === key);
+
+/** The roles this slot offers in this formation, its first the one a player starts on when none
+ *  has more stars (spec/05; stars/bestRole.ts). */
+export const rolesOfSlot = (cell: Cell, formation: Formation): readonly Role[] =>
+  centreBacksIn(formation) >= BACK_THREE ? everyRoleOf(cell) : everyRoleOf(cell).filter((each) => !needsBackThree(each.key));
 
 /** A role where its run isn't drawn, as the matchup sends it (matchupShape.ts's role): its key and
  *  name. */
@@ -103,30 +185,22 @@ export const namedRole = ({ key, name }: Role): Pick<Role, "key" | "name"> => ({
 const ROLE_KEYS: ReadonlySet<string> = new Set(Object.values(DEFAULT_ROLES).flatMap((roles) => roles.map(({ key }) => key)));
 
 /** Whether any slot offers the role with this key: false for one the default set no longer holds,
- *  which a starter saved on it plays as `roleIn` says (spec/05 Roles; #841). A partial cut, a key
- *  gone from one position but offered by another, isn't caught here but by roles.test.ts's pinned
- *  keys, so it can't land without the migration. */
+ *  which a starter saved on it plays as `roleIn` says (spec/05 Roles; #841). */
 export const isRole = (key: string): boolean => ROLE_KEYS.has(key);
 
-/** Whether this slot offers the role with this key. */
-export const offersRole = (cell: Cell, key: string): boolean => rolesOfSlot(cell).some((role) => role.key === key);
+/** Whether this slot offers the role with this key in this formation. */
+export const offersRole = (cell: Cell, key: string, formation: Formation): boolean => rolesOfSlot(cell, formation).some((each) => each.key === key);
 
-/** The role a starter plays: the one he was given, or the slot's first. */
-export const roleIn = (cell: Cell, given: string | undefined): Role =>
-  rolesOfSlot(cell).find(({ key }) => key === given) ?? rolesOfSlot(cell)[0];
+/** The role a starter plays: the one he was given, if his slot's position holds it, or the slot's
+ *  first. Whether the formation offers it is checked when the lineup is saved (lineup.ts), never
+ *  here, so an auto-sub that leaves two centre-backs changes no other starter's role. */
+export const roleIn = (cell: Cell, given: string | undefined): Role => everyRoleOf(cell).find(({ key }) => key === given) ?? everyRoleOf(cell)[0];
 
-/** The slot's label from its cell and the role its starter was given: SW only while he plays a
- *  sweeper's role, its position otherwise. Only the pitch's drawing reads it; scoring prices the
- *  slot by its position alone (spec/14). */
-export const slotLabel = (cell: Cell, given: string | undefined): SlotLabel =>
-  DEFAULT_ROLES.SW.includes(roleIn(cell, given)) ? SWEEPER : positionOfSlot(cell);
-
-/** Each slot label as spec/05's list names it, to tell apart two roles of one name. */
-const POSITION_WORDS: Record<SlotLabel, string> = {
+/** Each slot position as spec/05's list names it, to tell apart two roles of one name. */
+const POSITION_WORDS: Record<SlotPosition, string> = {
   GK: "goalkeeper",
   FB: "full-back",
   CB: "centre-back",
-  SW: "sweeper",
   WB: "wing-back",
   CDM: "defensive midfield",
   WM: "wide midfield",
@@ -137,9 +211,9 @@ const POSITION_WORDS: Record<SlotLabel, string> = {
 };
 
 /** A role's name as managers say it, by its key, with its position where another role shares the
- *  name ("Winger (wide midfield)"); the key itself for one no slot offers. */
+ *  name ("Engine (centre midfield)"); the key itself for one no slot offers. */
 export function roleName(key: string): string {
-  const entries = Object.entries(DEFAULT_ROLES) as [SlotLabel, readonly Role[]][];
+  const entries = Object.entries(DEFAULT_ROLES) as [SlotPosition, readonly Role[]][];
   const found = entries.flatMap(([position, roles]) => roles.filter((each) => each.key === key).map((each) => ({ position, ...each })))[0];
   if (found === undefined) return key;
   const shared = entries.some(([, roles]) => roles.some((each) => each.name === found.name && each.key !== key));
