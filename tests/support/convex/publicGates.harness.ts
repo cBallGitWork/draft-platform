@@ -157,6 +157,7 @@ export const gates: Record<string, Gate> = {
   "squads/teamTransactions:ofMyTeam": "manager",
   "stars/playerStars:ofPlayer": "member",
   "stars/playerStars:ofPlayers": "member",
+  "table/fixtureEdits:swap": "runner",
   "table/leagueTable:ofLeague": "member",
   "table/pointsOverrides:override": "runner",
   "table/teamFixtures:ofMyTeam": "manager",
