@@ -4069,6 +4069,13 @@
               "type": "number"
             },
             "optional": true
+          },
+          "commissionerPicks": {
+            "fieldType": {
+              "type": "literal",
+              "value": true
+            },
+            "optional": true
           }
         }
       }
@@ -21802,8 +21809,21 @@
                     }
                   },
                   "optional": true
+                },
+                "fullClock": {
+                  "fieldType": {
+                    "type": "literal",
+                    "value": true
+                  },
+                  "optional": true
                 }
               }
+            },
+            "optional": true
+          },
+          "pickSeconds": {
+            "fieldType": {
+              "type": "number"
             },
             "optional": true
           },
@@ -21959,6 +21979,20 @@
               "type": "number"
             },
             "optional": false
+          },
+          "timeout": {
+            "fieldType": {
+              "type": "object",
+              "value": {
+                "putOnAutoPick": {
+                  "fieldType": {
+                    "type": "boolean"
+                  },
+                  "optional": false
+                }
+              }
+            },
+            "optional": true
           }
         }
       }
