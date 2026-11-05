@@ -35,6 +35,9 @@ its own reason, never a cleanup:
   one the scheduler or the client calls is not a refactor: give it its own PR that keeps a thin
   re-export at the old path until the jobs queued under it have run, or drains and reschedules
   them. Crons are exempt, because the push re-registers them.
+- **The round robin's draw.** The table draws every league's fixtures again from its seed on every
+  read, so a change to `convex/table/roundRobin.ts` or `convex/shared/shuffle.ts` that moves one
+  fixture deals every live league's season again, however evenly it still deals.
 - **Building ahead.** "While I'm in here" pulling toward an unbuilt feature: stop and file it.
 
 ## With every pull request
@@ -131,6 +134,10 @@ heading's exact text, so renaming it means changing the skill's `sed` line too.
   `tests/convex/endToEnd/miniBetaGameweek.test.ts`, which checks gameweek 6's team points against
   points worked out man by man, passes. A refactor/ branch that changes either golden is not a
   refactor.
+- The draw: `tests/convex/table/roundRobinGolden.test.ts` pins the exact fixtures four seeds deal
+  (an even league, an odd one with byes, an odd one against the league's average, two games a
+  gameweek) and the first numbers `seededRandom("x")` gives. A refactor/ branch that changes them
+  is not a refactor.
 - The Convex schema is unchanged: `tests/convex/schema.contract.test.ts` passes without `-u`; a
   refactor/ branch that changes `tests/support/golden/schema.json` is not a refactor.
 - A test that still passes with the fix deleted pins the wrong thing: delete it, run it, see.
