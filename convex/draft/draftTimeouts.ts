@@ -20,8 +20,13 @@ export function afterTimeout(timeouts: Timeouts | undefined, teamId: Id<"teams">
   const before = timeouts?.find((team) => team.teamId === teamId);
   const count = (before?.count ?? 0) + 1;
   const autoPick: Timeouts[number]["autoPick"] = before?.autoPick !== undefined ? "atOnce" : limit !== null && count >= limit ? "fullClock" : undefined;
-  const after: Timeouts[number] = { teamId, count, ...(autoPick !== undefined && { autoPick }) };
-  return before === undefined ? [...(timeouts ?? []), after] : (timeouts ?? []).map((team) => (team === before ? after : team));
+  return withTeam(timeouts, { teamId, count, ...(autoPick !== undefined && { autoPick }) });
+}
+
+/** The draft's timeouts with `after` in place of its team's row, or added for a team with none. */
+function withTeam(timeouts: Timeouts | undefined, after: Timeouts[number]): Timeouts {
+  const all = timeouts ?? [];
+  return all.some(({ teamId }) => teamId === after.teamId) ? all.map((team) => (team.teamId === after.teamId ? after : team)) : [...all, after];
 }
 
 /** The draft's timeouts once `teamId`'s manager takes control back from auto-pick: off it, and his
@@ -45,9 +50,7 @@ export function afterUndoneTimeout(timeouts: Timeouts | undefined, teamId: Id<"t
 /** The draft's timeouts once `teamId`'s manager turns auto-pick on himself: "chosen", its count as
  *  it was (Craig, 5 Nov 2026, on #1100). */
 export function afterChoosing(timeouts: Timeouts | undefined, teamId: Id<"teams">): Timeouts {
-  const before = timeouts?.find((team) => team.teamId === teamId);
-  const after: Timeouts[number] = { teamId, count: before?.count ?? 0, autoPick: "chosen" };
-  return before === undefined ? [...(timeouts ?? []), after] : (timeouts ?? []).map((team) => (team === before ? after : team));
+  return withTeam(timeouts, { teamId, count: timeouts?.find((team) => team.teamId === teamId)?.count ?? 0, autoPick: "chosen" });
 }
 
 /** Whether `teamId`'s manager turned auto-pick on himself, so its picks count no timeout. */
