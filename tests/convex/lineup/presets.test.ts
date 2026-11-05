@@ -55,6 +55,14 @@ const DRAWN: Record<string, string[]> = {
     "XX.XX",
     "..X..",
   ],
+  "3-6-1": [
+    "..X..",
+    "..X..",
+    ".XXX.",
+    "X...X",
+    ".XXX.",
+    "..X..",
+  ],
   "3-5-2": [
     ".X.X.",
     ".....",
@@ -183,11 +191,12 @@ const drawn = (preset: Preset): string[] =>
   );
 
 describe("the default presets", () => {
-  test("are spec/05's twenty-one, in its order", () => {
+  test("are spec/05's, in its order", () => {
     expect(DEFAULT_PRESETS.map((preset) => preset.name)).toEqual([
       "4-4-2", "4-3-3", "4-2-3-1", "4-1-4-1", "4-4-1-1", "4-3-1-2",
       "3-5-2", "3-4-3", "3-4-1-2", "5-3-2", "5-4-1",
       "4-5-1", "4-2-2-2", "4-1-2-1-2", "4-3-2-1", "4-1-3-2", "4-2-4", "3-4-2-1", "3-1-4-2", "5-2-3", "5-3-1-1",
+      "3-6-1",
     ]);
   });
 

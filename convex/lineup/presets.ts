@@ -1,4 +1,4 @@
-// The twenty-one presets every league starts with (spec/05, The pitch; #8). A league's presets are
+// The presets every league starts with (spec/05, The pitch; #8). A league's presets are
 // its own rules, which it can edit (spec/03), so this is only the set it is given: nothing checks
 // a lineup against it. A league's copy is held with its rules (#25, leagueRules.ts).
 
@@ -66,6 +66,8 @@ export const DEFAULT_PRESETS: readonly Preset[] = [
   preset("3-1-4-2", BACK_THREE, ANCHOR, FLAT_FOUR, STRIKE_PAIR),
   preset("5-2-3", BACK_FIVE, CENTRAL_PAIR, FRONT_THREE),
   preset("5-3-1-1", BACK_FIVE, CENTRAL_THREE, NUMBER_TEN, LONE_STRIKER),
+  // 3-5-2 with a ten behind the striker (Craig, 1 Nov 2026: "also add 3-6-1"; placed 5 Nov 2026).
+  preset("3-6-1", BACK_THREE, row("defensiveMidfield", "left", "right"), CENTRAL_THREE, NUMBER_TEN, LONE_STRIKER),
 ];
 
 /** The name of the preset a side stands in: the first of `presets` whose cells are exactly these,
