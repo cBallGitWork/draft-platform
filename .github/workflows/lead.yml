@@ -186,8 +186,9 @@ jobs:
           # build/what we can do"); the PM dashboard copies it onto his page
           title_of() { jq -r --argjson n "$1" '.[] | select(.number == $n) | .title' <<<"$issues"; }
           line() { echo "- #$1 $(title_of "$1")"; }
-          next_up=$(for row in $ready; do n=${row%%:*}; [ "${row#*:}" = build ] || continue; grep -qx "$n" <<<"$taken" && continue; grep -qx "$n" <<<"$busy_issues" && continue; line "$n"; done | head -n "$NEXT_UP")
-          unchecked=$(for row in $ready; do [ "${row#*:}" = sweep ] && line "${row%%:*}"; done | head -n "$NEXT_UP")
+          # counted in the loop, not with head: under pipefail, head closing the pipe fails the step (5 Nov 2026, dry run)
+          next_up=$(k=0; for row in $ready; do [ "$k" -lt "$NEXT_UP" ] || break; n=${row%%:*}; [ "${row#*:}" = build ] || continue; grep -qx "$n" <<<"$taken" && continue; grep -qx "$n" <<<"$busy_issues" && continue; line "$n"; k=$((k + 1)); done)
+          unchecked=$(k=0; for row in $ready; do [ "$k" -lt "$NEXT_UP" ] || break; [ "${row#*:}" = sweep ] || continue; line "${row%%:*}"; k=$((k + 1)); done)
           blocked=$(for row in $ready; do n=${row%%:*}; case ${row#*:} in rules) echo "- #$n $(title_of "$n"): your answers (the dashboard has the questions)";; craig) echo "- #$n $(title_of "$n"): you";; esac; done)
           today=$(date -u +%Y-%m-%d)
           merged=$(gh pr list --state merged --search "merged:>=$today" --limit 100 --json number,title --jq '.[] | "- #\(.number) \(.title)"')
