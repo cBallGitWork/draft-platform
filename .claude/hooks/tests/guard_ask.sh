@@ -43,3 +43,13 @@ for ((i = 0; i < ${#bad_payloads[@]}; i += 2)); do
   fails_loudly "${bad_payloads[i + 1]}" guard_ask.py "${bad_payloads[i]}"
 done
 fails_loudly "questions is str" guard_ask.py '{"tool_name":"AskUserQuestion","tool_input":{"questions":"x"}}'
+
+# at most five questions in one batch
+six='{"tool_name":"AskUserQuestion","tool_input":{"questions":[{"header":"A","question":"Which day does the draft open?"},{"header":"B","question":"How many rounds with no maximum?"},{"header":"C","question":"Who picks for a team that left?"},{"header":"D","question":"Does a cameo count?"},{"header":"E","question":"What goes in the subtitle?"},{"header":"F","question":"Which crest set?"}]}}'
+check deny guard_ask.py "$six"
+says "at most 5 in one batch" guard_ask.py "$six"
+# a question is asked once: the same words again within a week are refused, a new question isn't
+check allow guard_ask.py "$(ask "Draft order (#1130): where does the Draw at random button sit?")"
+check deny guard_ask.py "$(ask "Draft order (#1130): where does the Draw at random button sit?")"
+says "Already asked" guard_ask.py "$(ask "draft order (#1130): where does the draw at random button sit")"  # words, not case or marks
+check allow guard_ask.py "$(ask "Draft order (#1130): can the commissioner redraw it?")"

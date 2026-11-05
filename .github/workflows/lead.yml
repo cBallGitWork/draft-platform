@@ -11,7 +11,8 @@
 #      (`Part of #N` or `Closes #N`). The drift-pass and nightly-ci issues have their own jobs.
 # Two builds never run at once on issues naming the same spec/NN file, so builders work in different folders
 # (CLAUDE.md). A build in flight is read from its run name (claude-build.yml's run-name, "<mode> #N").
-# At 01:30 UTC it also sweeps, as the team's analyst: the next SWEEP_SIZE candidates get claude-build in mode
+# At 18:00 UTC it writes the evening note, the day's one report to Craig, on the open `lead:note` issue (merged
+# today, red, waiting on him, in flight). At 01:30 UTC it also sweeps, as the team's analyst: the next SWEEP_SIZE candidates get claude-build in mode
 # `rules-only`. A candidate is any other open issue whose body names a spec/NN file and whose title isn't one of
 # NOT_BUILDS (Craig's calls, the UI and reskin jobs that need /design with him, tidy-ups: parked behind features
 # since 1 Nov 2026). Its open rules land on the issue, labelled `rules:open`, before the 7am PM dashboard batches
@@ -28,10 +29,15 @@ on:
   schedule:
     - cron: "*/30 * * * *"
     - cron: "30 1 * * *"  # the rules sweep, before the 02:00 builds and the 7am dashboard
+    - cron: "0 18 * * *"  # the evening note: the day's one report to Craig
   workflow_dispatch:
     inputs:
       sweep:
         description: Run the rules sweep too
+        type: boolean
+        default: false
+      note:
+        description: Write the evening note too
         type: boolean
         default: false
       dry_run:
@@ -61,6 +67,9 @@ env:
   NOT_BUILDS: "^(Craig's call|UI [0-9]+:|Reskin|refactor|chore|docs)"
   OWN_JOBS: "drift-pass|nightly-ci"  # issues other workflows build or open
   SWEEP: ${{ github.event.schedule == '30 1 * * *' || inputs.sweep == true }}
+  NOTE: ${{ github.event.schedule == '0 18 * * *' || inputs.note == true }}
+  NOTE_TITLE: "Today"  # the one issue the evening note rewrites
+  NOTE_LABEL: "lead:note"
   DRY_RUN: ${{ inputs.dry_run == true }}
 
 jobs:
@@ -167,4 +176,22 @@ jobs:
               dispatch "$n" rules-only; swept=$((swept + 1))
             done
             echo "Swept $swept issue(s) for open rules."
+          fi
+
+          # the evening note: one report a day, on the Today issue, never in chat (Craig, 5 Nov 2026: "i build a dev
+          # team to take on the world but im a bottleneck still"); the PM dashboard shows it
+          if [ "$NOTE" = true ]; then
+            today=$(date -u +%Y-%m-%d)
+            merged=$(gh pr list --state merged --search "merged:>=$today" --limit 100 --json number,title --jq '.[] | "- #\(.number) \(.title)"')
+            red=$(jq -r '.[] | select(.isDraft | not) | select(any(.statusCheckRollup[]?; .conclusion == "FAILURE")) | "- #\(.number) \(.headRefName)"' <<<"$prs")
+            waiting=$(jq -r '.[] | select(.isDraft | not) | select(any(.statusCheckRollup[]?; .name == "look-approved" and .conclusion == "FAILURE")) | "- #\(.number): the look (craig-approved)"' <<<"$prs")
+            rules=$(gh issue list --state open --label rules:open --limit 50 --json number,title --jq '.[] | "- #\(.number) \(.title)"')
+            body=$(printf '## %s\n\n**Merged today**\n%s\n\n**Red**\n%s\n\n**Waiting on Craig**\n%s\n%s\n\n**In flight**\n%s\n\n*Written by the lead at %s UTC.*\n' \
+              "$today" "${merged:-- nothing}" "${red:-- nothing}" "${waiting:-}" "${rules:-- nothing}" "${running:-- nothing}" "$(date -u +%H:%M)")
+            note=$(gh issue list --state open --label "$NOTE_LABEL" --limit 1 --json number --jq '.[0].number // empty')
+            if [ "$DRY_RUN" = true ]; then echo "$body"
+            elif [ -n "$note" ]; then gh issue edit "$note" --title "$NOTE_TITLE $today" --body "$body" > /dev/null
+            else gh label create "$NOTE_LABEL" --color 1D76DB --description "The lead's evening note" --force
+                 gh issue create --title "$NOTE_TITLE $today" --label "$NOTE_LABEL" --body "$body" > /dev/null; fi
+            echo "Evening note written."
           fi

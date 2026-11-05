@@ -102,8 +102,8 @@ git -C "$repo" switch -q main
 merge="gh pr merge 5 --squash"
 export FAKE_BODY=$repo/pr-differs.md
 check deny guard_bash.py "$(bash_in "$repo" "$merge")"
-says "lists 2 difference(s) from the approved picture (1. Density" guard_bash.py "$(bash_in "$repo" "$merge")"
-says "lists 2 difference(s) from the approved picture (1. Density" guard_github.py "$tool"
+says "lists 1 layout difference(s) from the approved picture (2. Columns" guard_bash.py "$(bash_in "$repo" "$merge")"
+says "lists 1 layout difference(s) from the approved picture (2. Columns" guard_github.py "$tool"
 export FAKE_LABELS='[{"name":"bug"}]'
 check deny guard_bash.py "$(bash_in "$repo" "$merge")"
 FAKE_BODY=$repo/pr-pasted.md check deny guard_bash.py "$(bash_in "$repo" "$merge")"
@@ -171,6 +171,15 @@ gate_on 1 "$repo/pr-pasted.md" '[]'
 gate_on 0 "$repo/pr-differs.md" '[{"name":"Craig-Approved"}]'
 gate_on 0 "$repo/pr-matches.md" '[]'
 gate_on 0 "$repo/pr.md" '[]'
+# only a layout difference waits (Craig, 5 Nov 2026: "Yes, layout only"): density, type and colour
+# go through in any case; structure, columns, missing, and a difference naming no kind, still wait
+printf '%s\n' '## Approved vs built' '/team:' '1. Density: rows 20px, the picture 28px' '2. type: page title 18px' \
+  '3. Colour: the tag cyan, the picture teal' "$verifier" > "$repo/pr-details.md"
+gate_on 0 "$repo/pr-details.md" '[]'
+for line in '1. Structure: the queue panel sits left' '1. Missing: no Draft button' '1. the board is wider'; do
+  printf '%s\n' '## Approved vs built' '/team:' '1. Density: gaps 4px' "${line/1./2.}" "$verifier" > "$repo/pr-layout.md"
+  gate_on 1 "$repo/pr-layout.md" '[]'
+done
 printf 'not json' > "$tmp/event.json"
 if GITHUB_EVENT_PATH=$tmp/event.json python3 "$hooks/approval_gate.py" > /dev/null 2>&1; then
   fail "approval_gate.py as the check: passed an event it can't read"

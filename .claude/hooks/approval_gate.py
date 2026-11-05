@@ -1,8 +1,9 @@
 """The approved-picture merge gate, for guard_bash.py and guard_github.py (#947). CLAUDE.md: a pull
 request that changes a screen with an approved picture shows approved and built, every difference
-numbered; "with any, it waits for Craig's yes". pr_body.py makes such a body carry ui-verifier's
+numbered; with a layout one (any kind but a look detail, pr_body.py's DETAIL_KINDS: Craig, 5 Nov 2026,
+"Yes, layout only"), it waits for Craig's yes. pr_body.py makes such a body carry ui-verifier's
 "Approved vs built" section; this refuses a merge (gh pr merge, or the GitHub tool's
-merge_pull_request) while that section numbers a difference,
+merge_pull_request) while that section numbers a layout difference,
 unless the pull request has the label CRAIG_APPROVED, which only Craig adds: a gh command or GitHub
 tool call of Claude's that adds it is refused too (in any case: GitHub's label names ignore it). A
 body or labels it can't read is a denial, never a silent pass. It stops the
@@ -22,7 +23,7 @@ import os
 import sys
 
 from pull_request import Unread, merges_problem, pull, tool_merge_problem
-from pr_body import differences
+from pr_body import layout_differences
 from where import options, runs_at
 
 CRAIG_APPROVED = "craig-approved"  # the label: Craig's yes to the differences listed
@@ -74,7 +75,7 @@ def mcp_label_problem(tool_input):
 
 
 def pr_problem(repo, number, folder):
-    """A deny reason if pull request number's Approved vs built section numbers a difference and it
+    """A deny reason if pull request number's Approved vs built section numbers a layout difference and it
     lacks the CRAIG_APPROVED label, else None."""
     try:
         pr = pull(repo, number, folder)
@@ -89,16 +90,16 @@ def _unread(error):
 
 
 def waits_problem(pr):
-    """A deny reason if GitHub's record of a pull request (its body and labels) numbers a difference
+    """A deny reason if GitHub's record of a pull request (its body and labels) numbers a layout difference
     in its Approved vs built section and lacks the CRAIG_APPROVED label, else None."""
     try:
-        listed = differences(pr["body"] or "")
+        listed = layout_differences(pr["body"] or "")
         labels = {(label.get("name") or "").lower() for label in pr["labels"] or []}
     except (KeyError, TypeError, AttributeError) as error:
         return _unread(error)
     if listed and CRAIG_APPROVED not in labels:
         return (f"This pull request waits for Craig: its Approved vs built section lists {len(listed)} "
-                f"difference(s) from the approved picture ({listed[0]}"
+                f"layout difference(s) from the approved picture ({listed[0]}"
                 f"{' …' if len(listed) > 1 else ''}). It merges once Craig adds the {CRAIG_APPROVED} "
                 "label, or once the build matches and the section says so.")
     return None
@@ -106,7 +107,7 @@ def waits_problem(pr):
 
 def approval_problem(cmds):
     """A deny reason if any of cmds (each (words, folder)) merges a pull request whose Approved vs
-    built section numbers a difference and that lacks the CRAIG_APPROVED label, else None."""
+    built section numbers a layout difference and that lacks the CRAIG_APPROVED label, else None."""
     return merges_problem(cmds, pr_problem)
 
 
