@@ -30,6 +30,8 @@ GH_GATED = {("issue", "create"), ("issue", "edit"), ("pr", "create"), ("pr", "re
 GITHUB_TOOL = "mcp__github__"
 GITHUB_READS = ("get_", "list_", "search_", "issue_read", "pull_request_read", "actions_get", "actions_list")
 SPEC_PATHS = ("SPEC.md", "spec/", "/spec/", "/SPEC.md")
+DEFAULT_BRANCH = "main"
+DRY_RUN_INPUT = "dry_run=true"
 TALK = ("Craig's latest message didn't say to build, file or ship ({what}); it reads as talk, and talk stays "
         "talk (Craig, 5 Nov 2026: theory-crafting on scoring became a build and \"destroyed the project flow\"). "
         "Keep it as ideas in chat, or ask him in one line whether to build it.")
@@ -39,11 +41,22 @@ def go_said(prompt):
     return bool(GO_WORDS.search(prompt) or SLASH_COMMAND.match(prompt))
 
 
+def pipeline_test(words):
+    """A workflow run that tests a pipeline change rather than starts work: a dry run, or a run from a branch
+    (CLAUDE.md: a pipeline change is tested by a real run from its branch first). CTO review, 5 Nov 2026: the
+    guard refused three such test runs that Craig had asked for."""
+    if DRY_RUN_INPUT in words:
+        return True
+    return any(word == "--ref" and i + 1 < len(words) and words[i + 1] != DEFAULT_BRANCH for i, word in enumerate(words))
+
+
 def gated_bash(command):
     """What this command does that is gated, or None."""
     words = command.split()
     for i, word in enumerate(words):
         if word == "gh" and tuple(words[i + 1:i + 3]) in GH_GATED:
+            if words[i + 1:i + 3] == ["workflow", "run"] and pipeline_test(words[i + 3:]):
+                continue
             return f"gh {' '.join(words[i + 1:i + 3])}"
     return None
 
