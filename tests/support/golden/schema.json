@@ -825,6 +825,26 @@
             },
             "optional": true
           },
+          "availability": {
+            "fieldType": {
+              "type": "union",
+              "value": [
+                {
+                  "type": "literal",
+                  "value": "out"
+                },
+                {
+                  "type": "literal",
+                  "value": "doubtful"
+                },
+                {
+                  "type": "literal",
+                  "value": "available"
+                }
+              ]
+            },
+            "optional": true
+          },
           "droppedAt": {
             "fieldType": {
               "type": "number"
@@ -22486,6 +22506,53 @@
                 },
                 "optional": false
               }
+            },
+            "optional": false
+          }
+        }
+      }
+    },
+    {
+      "tableName": "availabilitySettings",
+      "indexes": [
+        {
+          "indexDescriptor": "by_code",
+          "fields": [
+            "code"
+          ]
+        }
+      ],
+      "stagedDbIndexes": [],
+      "searchIndexes": [],
+      "stagedSearchIndexes": [],
+      "vectorIndexes": [],
+      "stagedVectorIndexes": [],
+      "documentType": {
+        "type": "object",
+        "value": {
+          "code": {
+            "fieldType": {
+              "type": "number"
+            },
+            "optional": false
+          },
+          "availability": {
+            "fieldType": {
+              "type": "union",
+              "value": [
+                {
+                  "type": "literal",
+                  "value": "out"
+                },
+                {
+                  "type": "literal",
+                  "value": "doubtful"
+                },
+                {
+                  "type": "literal",
+                  "value": "available"
+                }
+              ]
             },
             "optional": false
           }
