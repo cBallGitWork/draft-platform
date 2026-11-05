@@ -17,6 +17,7 @@ import { zoneOf } from "../signIn/timeZone";
 import { checkSquadMaximums, squadMaximumBandShape, squadMaximumFor, STARTING_SQUAD_MAXIMUMS, withSquadMaximum, type SquadMaximumBand } from "./squadMaximums";
 import { historyOf, inForce, latestRules, RULES_CHANGES_MOST, type RulesRow } from "./rulesHistory";
 import { heldSchedule } from "../gameweeks/leagueDeadlines";
+import { pickTimeChanging } from "../draft/draftPickTime";
 
 // A league's rules, held as data (spec/03; #25): a new league copies the admin's default rules, and
 // its commissioner changes them from the next gameweek, so a past gameweek keeps the rules it had.
@@ -191,6 +192,8 @@ async function changeRules(ctx: MutationCtx, leagueId: Id<"leagues">, email: str
   const changed = changedParts(latestRow?.rules, rules);
   if (latestRow !== undefined && changed.length === 0) return latestRow.fromGameweek;
   if (history.length >= RULES_CHANGES_MOST) refuse(rulesRefusals.tooManyChanges);
+  const pickSeconds = draftRulesOf(rules).pickSeconds;
+  if (latestRow !== undefined && draftRulesOf(latestRow.rules).pickSeconds !== pickSeconds) await pickTimeChanging(ctx, leagueId, pickSeconds);
   // A second change before the same deadline is a newer row from the same gameweek: it wins.
   await ctx.db.insert("leagueRules", { leagueId, fromGameweek, rules });
   await recordEvent(ctx, leagueId, email, { kind: "rulesChanged", fromGameweek, changed });

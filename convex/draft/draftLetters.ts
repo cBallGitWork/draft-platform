@@ -2,7 +2,15 @@ import { v } from "convex/values";
 import { internal } from "../_generated/api";
 import type { Doc } from "../_generated/dataModel";
 import { internalAction, type MutationCtx } from "../_generated/server";
-import { draftNotStartedLetter, draftOverLetter, draftPausedLetter, upNextLetter } from "../mail/letterWords";
+import {
+  draftNotStartedLetter,
+  draftOverLetter,
+  draftPausedLetter,
+  draftPickedForLetter,
+  draftUndoneLetter,
+  upNextLetter,
+  type PickNews,
+} from "../mail/letterWords";
 import { bylineOf, fileLetter, wholeLeague } from "../mail/letters";
 import { sendEmail } from "../outbound/email";
 import { takeTodaysEmail } from "../outbound/emailLimit";
@@ -14,11 +22,11 @@ import type { Clocked } from "./draftClock";
 // manager whose pick's clock starts gets "you're up next", with no letter to everyone for every
 // pick; the whole league gets one letter when the draft ends, and one when the commissioner pauses
 // it, none when he resumes; and the commissioner gets one when a start date comes and the draft
-// can't start. A team with no manager has no one to tell. "You're up next" also goes
+// can't start. The commissioner's undo and his pick for a team each send the whole league one too
+// (#1095). A team with no manager has no one to tell. "You're up next" also goes
 // by email when the clock is over 10 minutes (spec/11): in a live draft managers are on the draft
 // page. It counts against the day's emails (emailLimit.ts); with none left it isn't sent, as a
-// clock can't wait for tomorrow, and that is logged. The letter for the commissioner's undo and his
-// pick for a manager come with them (#1095).
+// clock can't wait for tomorrow, and that is logged.
 
 /** How long a pick's clock must be, at the least, for "you're up next" to go by email too (spec/11:
  *  "over 10 minutes"). */
@@ -47,6 +55,16 @@ export async function tellDraftOver(ctx: MutationCtx, league: Doc<"leagues">, pi
 /** Tells the whole league `by`, the commissioner, paused the draft. */
 export async function tellPaused(ctx: MutationCtx, league: Doc<"leagues">, by: string): Promise<void> {
   await fileLetter(ctx, league, await wholeLeague(ctx, league), draftPausedLetter(bylineOf(by)), by);
+}
+
+/** Tells the whole league `by`, the commissioner, made a team's pick for it. */
+export async function tellPickedFor(ctx: MutationCtx, league: Doc<"leagues">, by: string, news: PickNews): Promise<void> {
+  await fileLetter(ctx, league, await wholeLeague(ctx, league), draftPickedForLetter(bylineOf(by), news), by);
+}
+
+/** Tells the whole league `by`, the commissioner, undid a pick. */
+export async function tellUndone(ctx: MutationCtx, league: Doc<"leagues">, by: string, news: PickNews): Promise<void> {
+  await fileLetter(ctx, league, await wholeLeague(ctx, league), draftUndoneLetter(bylineOf(by), news), by);
 }
 
 /** Tells the commissioner the draft didn't start at its date, `startsAt`, for `refusal`. */

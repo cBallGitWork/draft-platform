@@ -68,10 +68,12 @@ export const resume = mutation({
     const pickSeconds = await pickSecondsNow(ctx, leagueId);
     const moved = now - clock.paused.at;
     const startsAt = clock.startsAt + moved;
+    // A pick the commissioner's undo put back still runs its full clock (draftCommissioner.ts).
+    const how = { fullClock: clock.fullClock };
     if (pickSeconds === clock.paused.pickSeconds) {
-      await startClock(ctx, leagueId, clock.pick - 1, startsAt, (clock.endsAt - clock.startsAt) / SECOND_MS);
+      await startClock(ctx, leagueId, clock.pick - 1, startsAt, (clock.endsAt - clock.startsAt) / SECOND_MS, how);
     } else {
-      await startClock(ctx, leagueId, clock.pick - 1, Math.max(startsAt, now), pickSeconds);
+      await startClock(ctx, leagueId, clock.pick - 1, Math.max(startsAt, now), pickSeconds, how);
     }
     return null;
   },
