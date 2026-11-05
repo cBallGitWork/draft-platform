@@ -3,6 +3,7 @@ import type { Id } from "../_generated/dataModel";
 import type { MutationCtx } from "../_generated/server";
 import { SECOND_MS } from "../shared/time";
 import { draftOf } from "./draftRow";
+import { picksAtOnce } from "./draftTimeouts";
 import { pickOnTheClock } from "./snakeOrder";
 
 // The pick clock (spec/04, The picks; #1091). Each pick runs on the league's pick time. The first
@@ -10,8 +11,9 @@ import { pickOnTheClock } from "./snakeOrder";
 // (Craig, 4 Nov 2026, on #1091), the window a manager will have to undo his own pick. When a clock
 // runs out, the draft picks for the team (draftPicks.ts `autoPick`), whether or not its manager is
 // online. A team with no manager is picked for at once, as its clock starts (Craig, 4 Nov 2026, on
-// #1091). The commissioner can pause and resume it (draftPause.ts; #1135). Not built yet: the
-// commissioner's "I'll pick for this one" and the timeout count (#1136).
+// #1091), and so is a team on auto-pick past its first pick there (draftTimeouts.ts; #1136). The
+// commissioner can pause and resume it (draftPause.ts; #1135). Not built yet: the commissioner's
+// "I'll pick for this one".
 
 /** How long after a pick the next pick's clock starts (Craig, 4 Nov 2026: "Yes, clock waits"). */
 export const PICK_GAP_MS = 10 * SECOND_MS;
@@ -31,7 +33,7 @@ export async function startClock(ctx: MutationCtx, leagueId: Id<"leagues">, pick
   const team = await ctx.db.get("teams", turn.team);
   if (team === null) throw new Error(`League ${leagueId}'s draft names team ${turn.team}, which doesn't exist`);
   const endsAt = startsAt + pickSeconds * SECOND_MS;
-  const firesAt = team.managerEmail === undefined ? startsAt : endsAt;
+  const firesAt = team.managerEmail === undefined || picksAtOnce(draft.timeouts, team._id) ? startsAt : endsAt;
   const job = await ctx.scheduler.runAt(firesAt, internal.draft.draftPicks.autoPick, { leagueId, pick: turn.pick });
   await ctx.db.patch("drafts", draft._id, { clock: { pick: turn.pick, startsAt, endsAt, job } });
 }
