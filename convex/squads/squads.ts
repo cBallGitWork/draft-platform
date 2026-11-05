@@ -26,8 +26,9 @@ import { offWaivers } from "../waivers/waiverPlayers";
 //
 // Each change to a squad files its league event in the same transaction, and nothing but these and
 // a draft pick (../draft/draftPicks.ts, filed as `playerAssigned`), a manager's drop
-// (../waivers/waivers.ts, `playerDropped`) and a waiver run's claim (../waivers/waiverRun.ts,
-// `playerClaimed` and `playerDropped`) writes squadPlayers, so the events say what every squad was
+// (../waivers/waivers.ts, `playerDropped`), a waiver run's claim (../waivers/waiverRun.ts,
+// `playerClaimed` and `playerDropped`) and a free agent pickup (../waivers/freeAgents.ts,
+// `playerPickedUp` and `playerDropped`) writes squadPlayers, so the events say what every squad was
 // at any moment (squadPlace.ts `squadAt`, #415). A new way to change a squad must file one of squadPlace.ts's SQUAD_MOVES too, or join
 // them, and pick each team's first lineup again (lineups.ts `pickFirstLineupAgain`), so a team
 // always has a lineup (#637).
