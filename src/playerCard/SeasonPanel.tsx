@@ -85,7 +85,7 @@ function UnderRow({ tone, label, children }: { tone: string; label?: string; chi
 }
 
 /** Under a match his team started him in, what his role did to his points (spec/05 Roles):
- *  "Attacking full-back +2", and what made it, apart from his base points and never in them. Not
+ *  "Poacher: +1", and what made it, each side apart, away from his base points and never in them. Not
  *  shown under an override, the match's whole score. */
 function RoleLine({ role }: { role: NonNullable<PlayedMatch["role"]> }) {
   return (

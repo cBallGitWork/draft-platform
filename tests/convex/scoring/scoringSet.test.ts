@@ -136,8 +136,10 @@ test("inTenths never gives -0: not for a sum just under 0, nor for 0 times -1 (#
 describe("every reason a set is unsound is an UnsoundScoring, so saving refuses it and a bug is never a reason", () => {
   const tackles = (rule: object = {}) => ({ shape: "perAction", stat: "tackles", values: { all: 1 }, ...rule });
   const minutesAll = (all: unknown) => setOf({ shape: "bands", stat: "minutes", stack: false, values: { all } });
-  const roles = (roleAdjustments: unknown) => ({ ...setOf(), roleAdjustments });
-  const anchor = (adjustments: unknown) => ({ role: "anchor", adjustments });
+  const roles = (roles: unknown) => ({ ...setOf(), roles });
+  const side = (parts: unknown, bars: unknown = [1]) => ({ parts, bars });
+  const tackling = side([{ stat: "tackles", weight: 1 }]);
+  const anchor = (bonus: unknown, cost: unknown = tackling) => ({ role: "anchor", bonus, cost });
   const own = (ownStats: unknown) => ({ ...setOf(), ownStats });
   const ownWith = (change: object) => own([{ ...TACKLES_AND_CLEARANCES, ...change }]);
   const T_C = TACKLES_AND_CLEARANCES.stat;
@@ -146,15 +148,18 @@ describe("every reason a set is unsound is an UnsoundScoring, so saving refuses 
   const SWEEP: readonly (readonly [unknown, string])[] = [
     [{}, "a scoring set must be a list of rules"],
     [{ rules: [] }, "a scoring set must say whether its points are whole only, true or false, not undefined"],
-    [roles({}), "a scoring set's role adjustments must be a list"],
-    [roles([{ role: "" }]), "a role adjustment names no role"],
-    [roles([anchor([]), anchor([])]), 'the role "anchor" is adjusted twice'],
-    [roles([{ role: "anchor" }]), 'the role "anchor" has no list of adjustments'],
+    [roles({}), "a scoring set's roles must be a list"],
+    [roles([{ role: "" }]), "a role's scoring names no role"],
+    [roles([anchor(tackling), anchor(tackling)]), 'the role "anchor" is scored twice'],
+    [roles([{ role: "anchor" }]), `the role "anchor"'s bonus adds up no stats`],
     [
-      roles([anchor([{ stat: "goals_scroed", points: 1 }])]),
-      `the role "anchor" adjusts "goals_scroed", which is neither a catalogue stat nor one of the set's own stats`,
+      roles([anchor(side([{ stat: "goals_scroed", weight: 1 }]))]),
+      `the role "anchor"'s bonus adds "goals_scroed", which is neither a catalogue stat nor one of the set's own stats`,
     ],
-    [roles([anchor([{ stat: "tackles", points: 1 }, { stat: "tackles", points: 1 }])]), 'the role "anchor" adjusts Tackles twice'],
+    [roles([anchor(side([{ stat: "tackles", weight: 1 }, { stat: "tackles", weight: 1 }]))]), `the role "anchor"'s bonus adds Tackles twice`],
+    [roles([anchor(tackling, side([{ stat: "tackles", weight: -1 }]))]), `the role "anchor"'s cost weighs Tackles at -1, not above 0`],
+    [roles([anchor(side([{ stat: "tackles", weight: 1 }], [1, 2, 3, 4]))]), `the role "anchor"'s bonus must have 1 to 3 bars`],
+    [roles([anchor(side([{ stat: "tackles", weight: 1 }], [2, 1]))]), `the role "anchor"'s bonus has a bar at 1, not above 2`],
     [setOf(null), "rule 1 of the scoring set is not a rule"],
     [setOf(tackles({ stat: "" })), "rule 1 of the scoring set names no stat"],
     [setOf(tackles({ stat: "goals_scroed" })), `rule 1 of the scoring set scores "goals_scroed", which is neither a catalogue stat nor one of the set's own stats`],
