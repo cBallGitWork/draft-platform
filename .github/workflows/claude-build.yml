@@ -148,10 +148,10 @@ jobs:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           allowed_bots: ${{ env.BUILD_STARTER_BOTS }}
           # A run from a branch (`gh workflow run claude-build.yml --ref <branch>`, how a pipeline change is tested
-          # before it merges) uses the job's own token: the action's app token is refused for any workflow file that
-          # differs from main's, and the action then skips without building. Its pull request runs no CI, which a test
-          # run doesn't need. On main the app token is kept, so a build's pull request runs CI.
-          github_token: ${{ github.ref != 'refs/heads/main' && github.token || '' }}
+          # before it merges) runs as the pipeline's own account (BUILD_TOKEN, CBHelper180): the action's app token is
+          # refused for any workflow file that differs from main's, and the action then skips without building. Its
+          # pull request runs CI and lane-auto can approve it. On main the app token is kept.
+          github_token: ${{ github.ref != 'refs/heads/main' && (secrets.BUILD_TOKEN || github.token) || '' }}
           claude_args: ${{ env.CLAUDE_ARGS }}
           prompt: ${{ env.BUILD_PROMPT }}
       # Whether the subscription build ever started, read from the action's execution file (the run's messages).
@@ -207,7 +207,7 @@ jobs:
         with:
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
           allowed_bots: ${{ env.BUILD_STARTER_BOTS }}
-          github_token: ${{ github.ref != 'refs/heads/main' && github.token || '' }}  # as the subscription step
+          github_token: ${{ github.ref != 'refs/heads/main' && (secrets.BUILD_TOKEN || github.token) || '' }}  # as the subscription step
           claude_args: ${{ env.CLAUDE_ARGS }}
           prompt: ${{ env.BUILD_PROMPT }}
       # The step, not the agent, turns on auto-merge for the pull request the build opened (Craig, 4 Nov 2026: green
@@ -230,17 +230,17 @@ jobs:
       # A build that ran out of turns (#989 used all 60 on 4 Nov 2026 and left nothing) or stopped part-way opened no
       # pull request: whatever it wrote goes up as a draft one on a `wip/issue-N-<run id>` branch, which the next build
       # is told to carry on from. A build that stopped on a question (a comment on the issue since it started, by
-      # anyone but the owner) keeps its work the same way, so the answer's build carries on from it. Pushed with GITHUB_TOKEN, the draft runs no CI; the next build's push does.
-      # claude-code-action revokes its app token when it ends, and git still holds it, so this step points git at the
-      # job's own token before it pushes (run 41929232870 failed `git push` with "Invalid username or token").
+      # anyone but the owner) keeps its work the same way, so the answer's build carries on from it.
+      # It is pushed and opened as the pipeline's own account (BUILD_TOKEN, CBHelper180, 5 Nov 2026): a push with
+      # GITHUB_TOKEN runs no CI, and a pull request the github-actions bot opens can't be approved by lane-auto.yml,
+      # which approves as that bot. claude-code-action revokes its app token when it ends, and git still holds it, so
+      # git is pointed at this token before the push (run 41929232870 failed `git push` with "Invalid username or token").
       # A rules-only run writes nothing, so it keeps no draft.
       - name: Keep unfinished work as a draft pull request
         if: always() && steps.decide.outcome != 'skipped' && env.MODE != 'rules-only'
         env:
-          GH_TOKEN: ${{ github.token }}
+          GH_TOKEN: ${{ secrets.BUILD_TOKEN || github.token }}
           OWNER: ${{ github.repository_owner }}
-          APP_TOKEN_AUDIENCE: claude-code-github-action  # claude-code-action's src/github/token.ts, at the SHA pinned above
-          APP_TOKEN_EXCHANGE: https://api.anthropic.com/api/github/github-app-token-exchange
         run: |
           asked=$(gh api "repos/$GITHUB_REPOSITORY/issues/$ISSUE/comments?since=$BUILD_STARTED" \
             --jq "[.[] | select(.user.login != \"$OWNER\")] | length")
@@ -262,25 +262,9 @@ jobs:
           if [ -z "$(git log --oneline "$GITHUB_SHA..HEAD")" ]; then echo "Nothing written past where the run started: no draft."; exit 0; fi
           branch="wip/issue-$ISSUE-$GITHUB_RUN_ID"  # the name the next build looks for; one per run, so none collide
           git push -q origin "HEAD:refs/heads/$branch"
-          # The draft is opened as the Claude app, as the builder's own pull requests are: one opened with the job's
-          # token is the github-actions bot's, and lane-auto.yml, approving with that same token, is refused "Can not
-          # approve your own pull request" once a later build finishes it. The app token comes from the exchange
-          # claude-code-action uses (an OIDC token for audience APP_TOKEN_AUDIENCE, posted to APP_TOKEN_EXCHANGE) and is
-          # revoked after. The exchange refuses a workflow that differs from main's, so a test build from a branch
-          # opens its draft with the job's token, as before (scripts/reopen-test-build.mjs still covers those).
-          app_token=""
-          if [ -n "${ACTIONS_ID_TOKEN_REQUEST_URL:-}" ]; then
-            oidc=$(curl -sfS -H "Authorization: bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" \
-              "$ACTIONS_ID_TOKEN_REQUEST_URL&audience=$APP_TOKEN_AUDIENCE" | jq -r '.value // empty') || oidc=""
-            [ -z "$oidc" ] || app_token=$(curl -sfS -X POST -H "Authorization: Bearer $oidc" "$APP_TOKEN_EXCHANGE" \
-              | jq -r '.token // .app_token // empty') || app_token=""
-          fi
-          [ -n "$app_token" ] || echo "::notice::No Claude app token (a run from a branch, or the exchange refused): the draft is opened with the job's token."
-          url=$(GH_TOKEN="${app_token:-$GH_TOKEN}" gh pr create --draft --base main --head "$branch" \
+          url=$(gh pr create --draft --base main --head "$branch" \
             --title "wip: unfinished build of #$ISSUE" \
             --body "The build of #$ISSUE stopped before it opened its pull request, out of turns or cut off. This is what it wrote, unreviewed and unverified. Part of #$ISSUE")
-          [ -z "$app_token" ] || curl -sfS -o /dev/null -X DELETE -H "Authorization: Bearer $app_token" \
-            "${GITHUB_API_URL:-https://api.github.com}/installation/token" || true
           if [ "$asked" != 0 ]; then why="stopped to ask the question above"; else why="stopped before it finished"; fi
           gh issue comment "$ISSUE" --body "The build $why. Its work so far is in the draft $url. lead.yml carries on from it once; label the issue \`build\` to carry on by hand."
           echo "::warning::Unfinished build kept as $url"
