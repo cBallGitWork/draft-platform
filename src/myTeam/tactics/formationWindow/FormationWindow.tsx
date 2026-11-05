@@ -1,36 +1,30 @@
-import { useId, useState, type ReactNode } from "react";
-import { LANES, positionOfSlot, sameCell, type Cell } from "../../../../convex/lineup/pitch";
-import { roleIn, rolesOfSlot, slotLabel } from "../../../../convex/lineup/roles";
+import { useEffect, useId, useRef, useState, type ReactNode } from "react";
 import { closeGlyph } from "../../../shared/words";
 import { Placeholder } from "../../../ui/Placeholder";
-import { chipFillOf, PositionChip } from "../../../ui/PositionChip";
-import { reshaped, standingIn, type DraftLineup, type MoveRules, type RatingsOf } from "../lineupDraft";
-import { CELL_GRID, ROWS_DRAWN } from "../pitch/Pitch";
+import type { DraftLineup, MoveRules, RatingsOf } from "../lineupDraft";
 import { backGroups, type Shape } from "./formationGroups";
+import { FormationPreview } from "./FormationPreview";
+import { FormationTile } from "./FormationTile";
 import {
   applyWords,
-  appliesHead,
-  appliesWords,
   backGroupWords,
   cancelWords,
   CLASSICS,
   classicsLine,
   classicsPlaceholder,
   closeWindowLabel,
-  costsHead,
-  costsPlaceholder,
   FORMATIONS_HEAD,
   groupsLabel,
   inUseNowWords,
-  inUseWords,
   MODERN,
   modernPlaceholder,
   presetsPlaceholder,
-  previewLabel,
+  sampleNamesWords,
+  samplePointsWords,
+  savePresetLine,
+  savePresetName,
   savePresetPlaceholder,
   toComeWords,
-  unlocksHead,
-  unlocksPlaceholder,
   WINDOW_TITLE,
   YOUR_PRESETS,
   yourPresetsLine,
@@ -38,17 +32,15 @@ import {
 
 // The formation window (the approved formation window, opened by the Tactics tab's All
 // formations): the groups on the left, the group's tiles in the middle, the picked one's preview on
-// the right, and Use this or Cancel. Opened in place under the toolbar, as a disclosure: a modal
-// window waits on the dialog component ARCHITECTURE.md names (Components: shadcn/ui on Base UI).
-// Saved presets, the classics and the modern sides wait on data not held yet, so each shows as its
-// placeholder (plate.md, Marks).
+// the right, and Use this or Cancel. Opened in place under the toolbar, as a disclosure (Craig,
+// 2 Nov 2026, #1024: "Keep both as built"), its height on the desk fixed so Cancel and Use this sit
+// inside a 1440 by 900 window, a long group's tiles scrolling within it. Saved presets, the
+// classics and the modern sides wait on data not held yet, so each shows as its placeholder
+// (plate.md, Marks).
 
 /** The window's groups: the manager's presets, the league's formations by back line, the classics
  *  and the modern sides. */
 type GroupKey = "presets" | number | "classics" | "modern";
-
-/** Each cell of the pitch as it is drawn, attack first, for a formation's thumbnail and preview. */
-const cellsDrawn = (each: (cell: Cell) => ReactNode) => ROWS_DRAWN.flatMap((area) => LANES.map((lane) => each({ area, lane })));
 
 export function FormationWindow({
   presets,
@@ -68,12 +60,18 @@ export function FormationWindow({
   onClose(): void;
 }) {
   const titleId = useId();
+  // Opened under the toolbar, it scrolls into view whole, Cancel and Use this with it.
+  const section = useRef<HTMLElement>(null);
+  useEffect(() => {
+    section.current?.scrollIntoView({ block: "nearest" });
+  }, []);
   const groups = backGroups(presets);
   const opening = groups.find(({ shapes }) => shapes.some(({ name }) => name === inUse)) ?? groups[0];
   const [group, setGroup] = useState<GroupKey>(opening?.back ?? "presets");
   const [picked, setPicked] = useState<string | null>(inUse ?? opening?.shapes[0]?.name ?? null);
   const shapes = groups.find(({ back }) => back === group)?.shapes ?? [];
   const shape = presets.find(({ name }) => name === picked) ?? null;
+  const usable = shape !== null && typeof group === "number";
   /** A group opened; a back line's first formation picked, unless the one picked is in it. */
   const open = (key: GroupKey) => {
     setGroup(key);
@@ -81,7 +79,7 @@ export function FormationWindow({
     if (grouped.length > 0 && !grouped.some(({ name }) => name === picked)) setPicked(grouped[0].name);
   };
   return (
-    <section aria-labelledby={titleId} className="bg-panel">
+    <section ref={section}aria-labelledby={titleId} className="flex flex-col bg-panel lg:h-formation-window">
       <div className="flex items-center gap-3 bg-plate py-1 pl-4 shadow-bevel-plate">
         <h2 id={titleId} className="text-lead font-bold">
           {WINDOW_TITLE}
@@ -95,7 +93,7 @@ export function FormationWindow({
           <span aria-hidden="true">{closeGlyph}</span>
         </button>
       </div>
-      <div className="grid gap-2 p-2 lg:grid-cols-formation-window">
+      <div className="grid min-h-0 flex-1 gap-2 p-2 lg:grid-cols-formation-window">
         <nav aria-label={groupsLabel} className="flex flex-col">
           <GroupButton current={group === "presets"} onClick={() => open("presets")} name={YOUR_PRESETS} />
           <span className="px-3 pt-2 font-semibold text-muted">{FORMATIONS_HEAD}</span>
@@ -105,36 +103,38 @@ export function FormationWindow({
           <GroupButton current={group === "classics"} onClick={() => open("classics")} name={CLASSICS} />
           <GroupButton current={group === "modern"} onClick={() => open("modern")} name={MODERN} count={toComeWords} />
         </nav>
-        <div className="flex min-w-0 flex-col">
+        <div className="flex min-h-0 min-w-0 flex-col">
           {group === "presets" ? (
-            <GroupPlaceholders line={yourPresetsLine} head={YOUR_PRESETS} labels={[presetsPlaceholder, savePresetPlaceholder]} />
+            <Group head={YOUR_PRESETS} line={yourPresetsLine} mark={sampleNamesWords}>
+              <Placeholder label={presetsPlaceholder} className="h-tile" />
+              <Placeholder label={savePresetPlaceholder} className="h-tile p-2">
+                <span className="block text-tile font-semibold">{savePresetName}</span>
+                <span className="block text-soft">{savePresetLine}</span>
+              </Placeholder>
+            </Group>
           ) : group === "classics" ? (
-            <GroupPlaceholders line={classicsLine} head={CLASSICS} labels={[classicsPlaceholder]} />
+            <Group head={CLASSICS} line={classicsLine} mark={samplePointsWords}>
+              <Placeholder label={classicsPlaceholder} className="h-tile" />
+            </Group>
           ) : group === "modern" ? (
-            <GroupPlaceholders head={MODERN} labels={[modernPlaceholder]} />
+            <Group head={MODERN}>
+              <Placeholder label={modernPlaceholder} className="h-tile" />
+            </Group>
           ) : (
-            <>
-              <h3 className="border-b border-panel-rule px-3 py-1 text-lead font-bold">{backGroupWords(group)}</h3>
-              <div role="radiogroup" aria-label={backGroupWords(group)} className="grid grid-cols-2 gap-1 p-1">
-                {shapes.map((each) => (
-                  <ShapeTile key={each.name} shape={each} checked={each.name === picked} inUse={each.name === inUse} onPick={() => setPicked(each.name)} />
-                ))}
-              </div>
-            </>
+            <Group head={backGroupWords(group)} picking>
+              {shapes.map((each) => (
+                <FormationTile key={each.name} shape={each} checked={each.name === picked} inUse={each.name === inUse} onPick={() => setPicked(each.name)} />
+              ))}
+            </Group>
           )}
         </div>
         <div className="flex min-w-0 flex-col">
-          {shape !== null && typeof group === "number" && <Preview shape={shape} draft={draft} rules={rules} ratingsOf={ratingsOf} />}
+          {usable && <FormationPreview shape={shape} draft={draft} rules={rules} ratingsOf={ratingsOf} />}
           <div className="mt-auto flex justify-end gap-2 border-t border-panel-rule p-2">
             <button type="button" onClick={onClose} className="secondary-action">
               {cancelWords}
             </button>
-            <button
-              type="button"
-              disabled={shape === null || typeof group !== "number"}
-              onClick={() => shape !== null && onUse(shape.name)}
-              className={shape === null || typeof group !== "number" ? "action-idle" : "action"}
-            >
+            <button type="button" disabled={!usable} onClick={() => usable && onUse(shape.name)} className={usable ? "action" : "action-idle"}>
               {applyWords}
             </button>
           </div>
@@ -158,85 +158,23 @@ function GroupButton({ name, count, current, indented = false, onClick }: { name
   );
 }
 
-/** A group whose tiles wait on data not held yet: its head, and a placeholder per tile. */
-function GroupPlaceholders({ head, line, labels }: { head: string; line?: string; labels: readonly string[] }) {
+/** A group's heading, its title, its line and its mark saying what in it is sample, over its tiles,
+ *  two a row; `picking` makes them the radio group a formation is picked from. */
+function Group({ head, line, mark, picking = false, children }: { head: string; line?: string; mark?: string; picking?: boolean; children: ReactNode }) {
   return (
     <>
-      <h3 className="border-b border-panel-rule px-3 py-1">
-        <span className="text-lead font-bold">{head}</span> {line !== undefined && <span className="text-muted">{line}</span>}
+      <h3 className="flex items-baseline gap-2 border-b border-panel-rule px-3 py-1">
+        <span className="text-lead font-bold">{head}</span>
+        {line !== undefined && <span className="text-soft">{line}</span>}
+        {mark !== undefined && <span className="ml-auto border border-dashed border-soft px-1">{mark}</span>}
       </h3>
-      <div className="grid grid-cols-2 gap-1 p-1">
-        {labels.map((label) => (
-          <Placeholder key={label} label={label} className="h-24" />
-        ))}
+      <div
+        role={picking ? "radiogroup" : undefined}
+        aria-label={picking ? head : undefined}
+        className="grid min-h-0 grid-cols-2 content-start gap-1 overflow-y-auto p-1"
+      >
+        {children}
       </div>
     </>
-  );
-}
-
-/** A formation's tile: its thumbnail, a dot in each slot's chip colour, and its name. */
-function ShapeTile({ shape, checked, inUse, onPick }: { shape: Shape; checked: boolean; inUse: boolean; onPick(): void }) {
-  return (
-    <button
-      type="button"
-      role="radio"
-      aria-label={shape.name}
-      aria-checked={checked}
-      onClick={onPick}
-      className="grid grid-cols-dated-row items-start gap-3 p-2 text-left shadow-bevel-panel aria-checked:bg-plate aria-checked:outline-2 aria-checked:outline-derived"
-    >
-      <span aria-hidden="true" style={CELL_GRID} className="grid h-18 w-12 border border-pitch-line bg-pitch-stripe">
-        {cellsDrawn((cell) => (
-          <span key={`${cell.area}-${cell.lane}`} className="flex items-center justify-center">
-            {shape.cells.some((each) => sameCell(each, cell)) && <span className={`size-1.5 ${chipFillOf(positionOfSlot(cell))}`} />}
-          </span>
-        ))}
-      </span>
-      <span className="flex flex-col">
-        <span className="text-lead font-bold">{shape.name}</span>
-        {inUse && <span className="text-derived">{inUseWords}</span>}
-      </span>
-    </button>
-  );
-}
-
-/** The picked formation on a pitch, each slot's chip over the role it would play once used: the
- *  lineup reshaped to it, as Use this would leave it (spec/05, The pitch), with what it does. */
-function Preview({ shape, draft, rules, ratingsOf }: { shape: Shape; draft: DraftLineup; rules: Pick<MoveRules, "positionsOf">; ratingsOf: RatingsOf }) {
-  const after = reshaped(draft, shape.cells, rules, ratingsOf);
-  return (
-    <div className="flex flex-col">
-      <h3 className="bg-plate px-3 py-1 text-lead font-bold shadow-bevel-plate">{shape.name}</h3>
-      <div className="flex flex-wrap gap-3 p-3">
-        <div role="img" aria-label={previewLabel(shape.name)} style={CELL_GRID} className="grid h-96 w-64 shrink-0 border-2 border-pitch-line bg-pitch-stripe">
-          {cellsDrawn((cell) => {
-            const inShape = shape.cells.some((each) => sameCell(each, cell));
-            const standing = standingIn(after, cell);
-            return (
-              <span key={`${cell.area}-${cell.lane}`} className="flex min-w-0 flex-col items-center justify-center">
-                {inShape && (
-                  <>
-                    <PositionChip label={slotLabel(cell, standing?.role)} />
-                    <span className="line-clamp-2 w-full bg-name-plate text-center">{standing === undefined ? rolesOfSlot(cell)[0].name : roleIn(cell, standing.role).name}</span>
-                  </>
-                )}
-              </span>
-            );
-          })}
-        </div>
-        <dl className="grid min-w-0 flex-1 grid-cols-facts content-start gap-x-3 gap-y-2">
-          <dt className="text-muted">{appliesHead}</dt>
-          <dd>{appliesWords(shape.name)}</dd>
-          <dt className="text-muted">{unlocksHead}</dt>
-          <dd>
-            <Placeholder label={unlocksPlaceholder} className="h-10 w-full" />
-          </dd>
-          <dt className="text-muted">{costsHead}</dt>
-          <dd>
-            <Placeholder label={costsPlaceholder} className="h-5 w-full" />
-          </dd>
-        </dl>
-      </div>
-    </div>
   );
 }
