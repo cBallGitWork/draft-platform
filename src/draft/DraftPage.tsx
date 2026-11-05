@@ -9,6 +9,7 @@ import { Loading, PageSection } from "../ui/Panel";
 import { Placeholder } from "../ui/Placeholder";
 import { picksOf, pickInRoundOf, roundOf } from "./board";
 import { ClockLeft, type OnTheClock } from "./ClockLeft";
+import { CommissionerPanel } from "./CommissionerPanel";
 import { DraftBoard } from "./DraftBoard";
 import type { DraftBoard as Board, DraftSeam, DraftState } from "./seam";
 import {
@@ -38,8 +39,9 @@ import {
 
 // The draft room (spec/04, The draft room; #1098), built to the approved pictures
 // (docs/design/approved/draft-room/): its header, the draft's state and where it stands, and the
-// board. Read-only in this slice: the players list, the selected player's panel, the queue,
-// auto-pick and the commissioner's panel are their own slices (#1099, #1100, #1101).
+// board, and for whoever runs the league, the commissioner's panel (CommissionerPanel.tsx; #1101).
+// The players list, the selected player's panel, the queue and auto-pick are their own slices
+// (#1099, #1100).
 
 type Live = Extract<DraftState, { status: "live" }>;
 type Waiting = Extract<DraftState, { status: "waiting" }>;
@@ -76,6 +78,14 @@ export function DraftPage({ league, seam }: { league: LeagueSummary; seam: Draft
     // Full width, unlike PAGE_STACK: the approved picture runs the board across the page.
     <PageSection title={title} aside={facts} className="flex flex-col gap-2">
       <DraftBoard draft={draft} picks={board.picks} yourTeamId={board.yourTeamId} onTheClock={onTheClock} />
+      {league.powers.runs && draft.status !== "over" && (
+        // The picture's right-hand column, beside the players list to come (#1099).
+        <div className="flex justify-end">
+          <div className="flex grow basis-draft-widgets flex-col gap-2 lg:grow-0">
+            <CommissionerPanel leagueId={league.leagueId} seam={seam} draft={draft} board={board} now={now} />
+          </div>
+        </div>
+      )}
     </PageSection>
   );
 }

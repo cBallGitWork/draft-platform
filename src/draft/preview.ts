@@ -6,7 +6,7 @@ import type { Id } from "../../convex/_generated/dataModel";
 import { snakeOrder } from "../../convex/draft/snakeOrder";
 import type { Position } from "../../convex/positions/positionTables";
 import { DAY_MS, HOUR_MS, SECOND_MS } from "../../convex/shared/time";
-import type { BoardPick, DraftSeam, DraftState } from "./seam";
+import type { BoardPick, CommissionerChanges, DraftSeam, DraftState } from "./seam";
 
 const NAMES = ["Kroos Control", "Rovers XI", "Bale Out", "Pep Talk", "Klopp Shop", "Havertz Rent", "Xhaka Laka", "Saka Potatoes", "Show Me Your Moyes", "Dirty Dozen"];
 const order = NAMES.map((name, index) => ({ teamId: `preview-draft-team-${index + 1}` as Id<"teams">, name }));
@@ -48,8 +48,15 @@ const before: DraftState = { status: "waiting", startsAt: startedAt + 4 * DAY_MS
 /** Whether `?draft=before` asks for the draft before its start. */
 const isBefore = () => new URLSearchParams(window.location.search).get("draft") === "before";
 
+/** The preview changes nothing, and says nothing went wrong. */
+const done = () => Promise.resolve(null);
+const COMMISSIONER_CHANGES: CommissionerChanges = { start: done, pause: done, resume: done, undo: done, setPickTime: done, markForCommissioner: done };
+
 export const previewDraft: DraftSeam = {
   useDraft: () => (isBefore() ? before : draft),
   useBoard: () => ({ picks: isBefore() ? [] : picks, yourTeamId: YOURS, pickSeconds: 90 }),
   useInMenu: () => true,
+  // The commissioner panel, for the preview's commissioner session: Dirty Dozen has no manager.
+  useCommissioner: () => ({ pickSeconds: 90, unmanaged: [{ teamId: order[9].teamId, name: NAMES[9], marked: false }] }),
+  useCommissionerChanges: () => COMMISSIONER_CHANGES,
 };
