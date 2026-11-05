@@ -41,9 +41,16 @@ export function autoPickOrder(
   };
   queue.forEach(place);
   rankedCodes.forEach(place);
-  [...players].sort((one, other) => byPoints(one, other, points)).forEach(({ code }) => place(code));
+  fallbackRanking(players, points).forEach(place);
   const shunned = new Set(doNotDraft);
   return [...ordered.filter((code) => !shunned.has(code)), ...ordered.filter((code) => shunned.has(code))];
+}
+
+/** The ranking auto-pick falls back on, by FPL code: `players` by last season's points
+ *  (lastSeasonPoints.ts), high to low, level players A to Z by name, then newcomers, missing from
+ *  `points`, A to Z. */
+export function fallbackRanking(players: readonly AutoPickPlayer[], points: ReadonlyMap<number, number>): number[] {
+  return [...players].sort((one, other) => byPoints(one, other, points)).map(({ code }) => code);
 }
 
 /** Last season's points high to low, level players A to Z by name, newcomers after all, A to Z. */
