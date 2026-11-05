@@ -35,7 +35,13 @@ async function toTheMomentBeforeItGoes() {
 
 /** Each row kept for someone who wasn't told, without when it was kept. */
 const unemailedRows = async () =>
-  (await t.run((ctx) => ctx.db.query("unemailedDeletions").collect())).map(({ leagueName, by, email, reason }) => ({ leagueName, by, email, reason }));
+  (await t.run((ctx) => ctx.db.query("unemailedDeletions").collect())).map(({ leagueName, by, email, reason, sendError }) => ({
+    leagueName,
+    by,
+    email,
+    reason,
+    sendError,
+  }));
 
 describe("while a deletion can be undone", () => {
   test("deleting a league emails nobody, up to the moment before it goes", async () => {
@@ -138,16 +144,17 @@ describe("past the day's emails (spec/13, #837)", () => {
 });
 
 describe("someone the email service refuses", () => {
-  test("when the email service refuses it, is kept as not sent, and the failure logged", async () => {
+  test("when the email service refuses it, is kept as not sent with what it said, and the failure logged", async () => {
     await deletes(t, COMMISSIONER, leagueId);
     fakeResend(500);
     const logged = silenceConsoleError();
     await goneForGood();
 
-    expect((await unemailedRows()).map(({ email, reason }) => ({ email, reason }))).toEqual([
-      { email: CO_COMMISSIONER, reason: "notSent" },
-      { email: ANN, reason: "notSent" },
-      { email: BOB, reason: "notSent" },
+    const refused = "Resend refused the email (500): refused";
+    expect((await unemailedRows()).map(({ email, reason, sendError }) => ({ email, reason, sendError }))).toEqual([
+      { email: CO_COMMISSIONER, reason: "notSent", sendError: refused },
+      { email: ANN, reason: "notSent", sendError: refused },
+      { email: BOB, reason: "notSent", sendError: refused },
     ]);
     expect(logged).toHaveBeenCalledTimes(3);
     expect(logged).toHaveBeenCalledWith(notEmailedLog(ANN), new Error("Resend refused the email (500): refused"));

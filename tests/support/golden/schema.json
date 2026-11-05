@@ -5099,6 +5099,12 @@
             },
             "optional": false
           },
+          "sendError": {
+            "fieldType": {
+              "type": "string"
+            },
+            "optional": true
+          },
           "at": {
             "fieldType": {
               "type": "number"
@@ -5363,6 +5369,12 @@
                   "value": "notSent"
                 }
               ]
+            },
+            "optional": true
+          },
+          "approvedEmailError": {
+            "fieldType": {
+              "type": "string"
             },
             "optional": true
           }

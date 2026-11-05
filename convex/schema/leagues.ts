@@ -31,6 +31,9 @@ const unemailedDeletionFields = {
   by: v.string(),
   email: v.string(),
   reason: unemailedReason,
+  /** What the email service said when it refused it (#215), as signInAsks keeps; absent in rows
+   *  kept before then. */
+  sendError: v.optional(v.string()),
   at: v.number(),
 };
 

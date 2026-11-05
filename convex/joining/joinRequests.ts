@@ -3,6 +3,7 @@ import { internal } from "../_generated/api";
 import type { Id } from "../_generated/dataModel";
 import { internalAction, internalMutation, mutation, query, type QueryCtx } from "../_generated/server";
 import { sendEmail } from "../outbound/email";
+import { logFailure } from "../shared/errors";
 import { takeTodaysEmail, waitForTomorrow } from "../outbound/emailLimit";
 import { linkWithToken } from "./inviteLink";
 import { joiningRefusals } from "./joining";
@@ -116,8 +117,8 @@ export const sendApprovedEmail = internalAction({
       await sendEmail(to.email, approvedEmail({ leagueName: to.leagueName, teamName: args.teamName }));
       await ctx.runMutation(internal.joining.joinRequests.recordApprovedEmail, { requestId: args.requestId, delivery: "sent" });
     } catch (error) {
-      console.error(`The email telling ${to.email} they're in ${to.leagueName} wasn't sent:`, error);
-      await ctx.runMutation(internal.joining.joinRequests.recordApprovedEmail, { requestId: args.requestId, delivery: "notSent" });
+      const sendError = logFailure(`The email telling ${to.email} they're in ${to.leagueName} wasn't sent`, error);
+      await ctx.runMutation(internal.joining.joinRequests.recordApprovedEmail, { requestId: args.requestId, delivery: "notSent", sendError });
     }
     return null;
   },
@@ -139,11 +140,12 @@ export const takeEmailFor = internalMutation({
   },
 });
 
+/** Where the approved person's email stands, with what the email service said when it refused it. */
 export const recordApprovedEmail = internalMutation({
-  args: { requestId: v.id("joinRequests"), delivery },
+  args: { requestId: v.id("joinRequests"), delivery, sendError: v.optional(v.string()) },
   returns: v.null(),
-  handler: async (ctx, { requestId, delivery }) => {
-    await ctx.db.patch("joinRequests", requestId, { approvedEmail: delivery });
+  handler: async (ctx, { requestId, delivery, sendError }) => {
+    await ctx.db.patch("joinRequests", requestId, { approvedEmail: delivery, approvedEmailError: sendError });
     return null;
   },
 });
