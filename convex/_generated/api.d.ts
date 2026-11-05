@@ -138,6 +138,7 @@ import type * as positions_playerPositions from "../positions/playerPositions.js
 import type * as positions_positionChanges from "../positions/positionChanges.js";
 import type * as positions_positionSettings from "../positions/positionSettings.js";
 import type * as positions_positionTables from "../positions/positionTables.js";
+import type * as positions_positionWarnings from "../positions/positionWarnings.js";
 import type * as positions_positions from "../positions/positions.js";
 import type * as positions_positionsSync from "../positions/positionsSync.js";
 import type * as rules_firstRules from "../rules/firstRules.js";
@@ -402,6 +403,7 @@ declare const fullApi: ApiFromModules<{
   "positions/positionChanges": typeof positions_positionChanges;
   "positions/positionSettings": typeof positions_positionSettings;
   "positions/positionTables": typeof positions_positionTables;
+  "positions/positionWarnings": typeof positions_positionWarnings;
   "positions/positions": typeof positions_positions;
   "positions/positionsSync": typeof positions_positionsSync;
   "rules/firstRules": typeof rules_firstRules;
