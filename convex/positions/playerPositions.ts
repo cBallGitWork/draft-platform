@@ -6,6 +6,7 @@ import { currentClubs, currentPlayersAt, playersNamed } from "../shared/players"
 import { EVERY_LEAGUE, howPositionsCount, type HowPositionsCount, type PositionsFor } from "./positionSettings";
 import { positionsFromStarts, positionsOf, type WorkedOutPositions } from "./positions";
 import type { Position } from "./positionTables";
+import { warnEveryLeague, warnOfAdminRemoval } from "./positionWarnings";
 import { approveMode, changeThresholds, position } from "../schema";
 
 // Each player's positions (#22): his row holds what the feeds gave (his starts, his label) and the
@@ -40,7 +41,7 @@ export const ofPlayer = query({
   returns: playerPositions,
   handler: async (ctx, { code }): Promise<WorkedOutPositions> => {
     await adminOf(ctx);
-    return positionsFrom((await findRow(ctx, code)) ?? EMPTY_ROW, await howPositionsCount(ctx, EVERY_LEAGUE));
+    return workedOutNow(ctx, code, await howPositionsCount(ctx, EVERY_LEAGUE));
   },
 });
 
@@ -61,6 +62,7 @@ export const approvePlayer = mutation({
   handler: async (ctx, { code }) => {
     await adminOf(ctx);
     await approve(ctx, await heldRow(ctx, code));
+    await warnEveryLeague(ctx);
     return null;
   },
 });
@@ -74,6 +76,7 @@ export const approveClub = mutation({
     await adminOf(ctx);
     const players = await currentPlayersAt(ctx, clubCode);
     for (const player of players) await approve(ctx, await heldRow(ctx, player.code));
+    await warnEveryLeague(ctx);
     return players.length;
   },
 });
@@ -97,7 +100,9 @@ export const removePosition = mutation({
   handler: async (ctx, { code, position: taken }) => {
     await adminOf(ctx);
     const row = await heldRow(ctx, code);
+    await warnOfAdminRemoval(ctx, code, taken);
     await ctx.db.patch("playerPositions", row._id, { set: withoutOne(row.set, taken), removed: withOne(row.removed, taken) });
+    await warnEveryLeague(ctx);
     return null;
   },
 });
@@ -185,7 +190,7 @@ export const find = query({
         name: player.name,
         fullName: player.fullName,
         clubCode: player.clubCode,
-        positions: positionsFrom((await findRow(ctx, player.code)) ?? EMPTY_ROW, how).positions,
+        positions: (await workedOutNow(ctx, player.code, how)).positions,
       })),
     );
   },
@@ -203,7 +208,12 @@ export async function positionsNow(ctx: QueryCtx, positionsFor: PositionsFor): P
 }
 
 async function currentPositions(ctx: QueryCtx, code: number, how: HowPositionsCount): Promise<Position[]> {
-  return positionsFrom((await findRow(ctx, code)) ?? EMPTY_ROW, how).positions.map(({ position }) => position);
+  return (await workedOutNow(ctx, code, how)).positions.map(({ position }) => position);
+}
+
+/** Everything `positionsOf` works out for him now, flags and removals with his positions. */
+export async function workedOutNow(ctx: QueryCtx, code: number, how: HowPositionsCount): Promise<WorkedOutPositions> {
+  return positionsFrom((await findRow(ctx, code)) ?? EMPTY_ROW, how);
 }
 
 /** His row, made empty if he has none yet. */

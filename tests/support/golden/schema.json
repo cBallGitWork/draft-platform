@@ -1866,6 +1866,108 @@
       }
     },
     {
+      "tableName": "positionWarnings",
+      "indexes": [
+        {
+          "indexDescriptor": "by_teamId",
+          "fields": [
+            "teamId"
+          ]
+        }
+      ],
+      "stagedDbIndexes": [],
+      "searchIndexes": [],
+      "stagedSearchIndexes": [],
+      "vectorIndexes": [],
+      "stagedVectorIndexes": [],
+      "documentType": {
+        "type": "object",
+        "value": {
+          "teamId": {
+            "fieldType": {
+              "type": "id",
+              "tableName": "teams"
+            },
+            "optional": false
+          },
+          "playerCode": {
+            "fieldType": {
+              "type": "number"
+            },
+            "optional": false
+          },
+          "position": {
+            "fieldType": {
+              "type": "union",
+              "value": [
+                {
+                  "type": "literal",
+                  "value": "GK"
+                },
+                {
+                  "type": "literal",
+                  "value": "CB"
+                },
+                {
+                  "type": "literal",
+                  "value": "FB"
+                },
+                {
+                  "type": "literal",
+                  "value": "WB"
+                },
+                {
+                  "type": "literal",
+                  "value": "CDM"
+                },
+                {
+                  "type": "literal",
+                  "value": "CM"
+                },
+                {
+                  "type": "literal",
+                  "value": "WM"
+                },
+                {
+                  "type": "literal",
+                  "value": "CAM"
+                },
+                {
+                  "type": "literal",
+                  "value": "W"
+                },
+                {
+                  "type": "literal",
+                  "value": "SS"
+                },
+                {
+                  "type": "literal",
+                  "value": "ST"
+                }
+              ]
+            },
+            "optional": false
+          },
+          "step": {
+            "fieldType": {
+              "type": "union",
+              "value": [
+                {
+                  "type": "literal",
+                  "value": "flagged"
+                },
+                {
+                  "type": "literal",
+                  "value": "lost"
+                }
+              ]
+            },
+            "optional": false
+          }
+        }
+      }
+    },
+    {
       "tableName": "squadPlayers",
       "indexes": [
         {
