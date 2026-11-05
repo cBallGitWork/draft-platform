@@ -62,7 +62,6 @@ const teamOf = (email: string): Id<"teams"> => {
 };
 const saved = (lineup: Lineup, fromGameweek: number | null) => ({
   fromGameweek,
-  noLineup: false,
   starters: lineup.starters,
   bench: lineup.bench,
   leftSquad: [],
@@ -71,7 +70,8 @@ const saved = (lineup: Lineup, fromGameweek: number | null) => ({
 });
 /** The lineup with its bench reversed: another lineup of the same squad. */
 const REVERSED_BENCH: Lineup = { ...FOUR_FOUR_TWO, bench: FOUR_FOUR_TWO.bench.toReversed() };
-const lineupRows = () => t.run((ctx) => ctx.db.query("lineups").collect());
+/** Ann's team's lineup rows. */
+const lineupRows = () => t.run(async (ctx) => (await ctx.db.query("lineups").collect()).filter((row) => row.teamId === annsTeam));
 
 describe("a saved lineup", () => {
   test("is saved from the next gameweek not begun and rolls over to every one after it", async () => {
@@ -80,8 +80,8 @@ describe("a saved lineup", () => {
 
     expect(await ann.mine(NEXT)).toEqual(saved(FOUR_FOUR_TWO, NEXT));
     expect(await ann.mine(NEXT + 3)).toEqual(saved(FOUR_FOUR_TWO, NEXT));
-    // Before it, no row is in force: the team holds the first lineup picked from its squad.
-    expect(await ann.mine(NEXT - 1)).toEqual(saved(FOUR_FOUR_TWO, null));
+    // Before it, no row is in force: the team holds its squad on the bench.
+    expect(await ann.mine(NEXT - 1)).toEqual(saved({ starters: [], bench: SQUAD }, null));
   });
 
   test("keeps each starter's role as given, and refuses one his slot doesn't offer (#10)", async () => {
@@ -140,10 +140,10 @@ describe("a saved lineup", () => {
   });
 });
 
-test("a team that has never saved a lineup holds its first, picked from its squad (spec/05, #637)", async () => {
-  expect(await (await as(ANN)).mine(NEXT)).toEqual(saved(FOUR_FOUR_TWO, null));
+test("a team holds the lineup it got with its squad, its first, picked from its squad (spec/05, #637, #1040)", async () => {
+  expect(await (await as(ANN)).mine(NEXT)).toEqual(saved(FOUR_FOUR_TWO, NEXT));
   // Bob's one player, a centre midfielder, stands in the 4-4-2's first midfield slot.
-  expect(await (await as(BOB)).mine(NEXT)).toEqual(saved({ starters: [{ playerCode: BOBS, area: "midfield", lane: "left" }], bench: [] }, null));
+  expect(await (await as(BOB)).mine(NEXT)).toEqual(saved({ starters: [{ playerCode: BOBS, area: "midfield", lane: "left" }], bench: [] }, NEXT));
 });
 
 describe("read against the squad as it is now", () => {
@@ -161,7 +161,6 @@ describe("read against the squad as it is now", () => {
 
     expect(await (await as(ANN)).mine(NEXT)).toEqual({
       fromGameweek: NEXT,
-      noLineup: false,
       starters: FOUR_FOUR_TWO.starters.filter(({ playerCode }) => playerCode !== goneStarter),
       bench: [...FOUR_FOUR_TWO.bench.filter((playerCode) => playerCode !== goneSub), newcomer],
       leftSquad: [goneStarter, goneSub],
@@ -202,8 +201,11 @@ describe("who may save and read", () => {
   });
 
   test("saves only to the caller's own team", async () => {
-    await (await as(ANN)).save(FOUR_FOUR_TWO);
-    expect((await lineupRows()).map((row) => row.teamId)).toEqual([annsTeam]);
+    const bobsRows = () => t.run(async (ctx) => (await ctx.db.query("lineups").collect()).filter((row) => row.teamId === bobsTeam));
+    const bobsBefore = await bobsRows();
+    await (await as(ANN)).save(REVERSED_BENCH);
+    expect(await bobsRows()).toEqual(bobsBefore);
+    expect(await (await as(ANN)).mine(NEXT)).toEqual(saved(REVERSED_BENCH, NEXT));
   });
 });
 
@@ -219,6 +221,7 @@ describe("a lineup refused, with the reason", () => {
   });
 
   test("two players in one cell, and a player outside his areas, every reason given", async () => {
+    const before = await lineupRows();
     const [keeper, firstBack, ...rest] = FOUR_FOUR_TWO.starters;
     const lineup = { ...FOUR_FOUR_TWO, starters: [{ ...keeper, area: "attack", lane: "left" }, { ...firstBack, lane: "leftCentre" }, ...rest] };
     await expectRefused(
@@ -227,7 +230,7 @@ describe("a lineup refused, with the reason", () => {
         `${nameOf(firstBack.playerCode)} and ${nameOf(rest[0].playerCode)} share the left-centre cell in Defence: one player a cell. ` +
         "The league starts at least 1 in Goalkeeper; this lineup starts 0 there.",
     );
-    expect(await lineupRows()).toEqual([]);
+    expect(await lineupRows()).toEqual(before);
   });
 
   test("under the area limits in force in the gameweek it is saved for", async () => {

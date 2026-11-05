@@ -6,7 +6,7 @@ import { holdGameweeks } from "../../support/convex/leagueRules.harness";
 import { COMMISSIONER, MANAGERS, actingAs, addManagers, adminCreatesLeague, type TestConvex } from "../../support/convex/leagues.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
 import { FIRST_SUB } from "../../support/convex/lineup.harness";
-import { FOUR_FOUR_TWO, holdPlayers, holdSquad, nameOf, passNextDeadline, squadMoves, STARTERS } from "../../support/convex/lineupSquad.harness";
+import { FOUR_FOUR_TWO, holdPlayers, holdSquad, nameOf, passNextDeadline, SQUAD, squadMoves, STARTERS } from "../../support/convex/lineupSquad.harness";
 import { lineupInGameweek, lineupsInGameweek } from "../../../convex/lineup/lineups";
 import { SQUAD_MOVES_READ_MOST } from "../../../convex/squads/squadPlace";
 
@@ -31,8 +31,9 @@ beforeEach(async () => {
   await holdGameweeks(t, { next: NEXT });
   leagueId = await adminCreatesLeague(t);
   [annsTeam, bobsTeam] = await addManagers(t, leagueId, [ANN, BOB]);
-  await holdSquad(t, leagueId, annsTeam);
-  await holdSquad(t, leagueId, bobsTeam, [BOBS]);
+  // Each test writes the lineups it reads.
+  await holdSquad(t, leagueId, annsTeam, SQUAD, { withoutLineup: true });
+  await holdSquad(t, leagueId, bobsTeam, [BOBS], { withoutLineup: true });
   await holdPlayers(t, [FREE_AGENT]);
 });
 
@@ -54,7 +55,6 @@ const teamOf = (email: string): Id<"teams"> => {
 };
 const saved = (lineup: Lineup, fromGameweek: number | null) => ({
   fromGameweek,
-  noLineup: false,
   starters: lineup.starters,
   bench: lineup.bench,
   leftSquad: [],
@@ -83,7 +83,6 @@ describe("a begun gameweek keeps the squad as it stood at its deadline (#415)", 
     expect(await lineupOf(bobsTeam, NEXT)).toEqual(saved({ starters: [], bench: [BOBS] }, NEXT));
     expect(await lineupOf(annsTeam, NEXT + 1)).toEqual({
       fromGameweek: NEXT,
-      noLineup: false,
       starters: FOUR_FOUR_TWO.starters.filter(({ playerCode }) => playerCode !== released && playerCode !== moved),
       bench: [...FOUR_FOUR_TWO.bench, FREE_AGENT],
       leftSquad: [released, moved],
