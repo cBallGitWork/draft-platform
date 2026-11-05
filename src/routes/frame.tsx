@@ -110,7 +110,7 @@ const matchRoute = createRoute({
   },
 });
 
-const builtRoutes = [landingRoute, homeRoute, tableRoute, scoutingRoute, draftRoute,myTeamTacticsRoute, myTeamSquadRoute, myTeamFixturesRoute, myTeamTransactionsRoute, matchupRoute, premierLeagueRoute, matchRoute];
+const builtRoutes = [landingRoute, homeRoute, tableRoute, scoutingRoute, draftRoute, myTeamTacticsRoute, myTeamSquadRoute, myTeamFixturesRoute, myTeamTransactionsRoute, matchupRoute, premierLeagueRoute, matchRoute];
 
 /** Every address with its own screen: each route above, and Mail, whose route is with the league
  *  pages (leaguePages.tsx). Any other menu page gets a placeholder. */
