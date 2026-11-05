@@ -194,7 +194,8 @@ export async function limitsBroken(
   if (squad === null) return [];
   const positionsOfNow = await positionsNow(ctx, leagueId);
   const shortNameOf = readOnce(async (clubCode: number) => (await clubByCode(ctx, clubCode)).shortName);
-  const players = (await Promise.all(playerCodes.map((code) => playerByCode(ctx, code)))).filter((player) => player !== null);
+  // Clubs are read only for a league with a club maximum, and positions for one with area minimums.
+  const players = squad.maxPerClub === null ? [] : (await Promise.all(playerCodes.map((code) => playerByCode(ctx, code)))).filter((player) => player !== null);
   const clubs = await Promise.all(players.map(async ({ clubCode }) => ({ clubShortName: await shortNameOf(clubCode) })));
   const playersAreas = squad.minimumByArea ? await Promise.all(playerCodes.map(async (code) => areasOf(await positionsOfNow(code)))) : [];
   return squadWarnings(playerCodes.length, clubs, playersAreas, squad);
