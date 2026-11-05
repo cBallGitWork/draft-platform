@@ -23,8 +23,8 @@ import { captured } from "./live-setup/tools.mjs";
 export const SEASONS = {
   2025: {
     log: "data/match_logs/player_match_log/season=25-26/player_match_log.parquet",
-    // 2025/26's FPL list on 1 Mar 2026 (#1113): each player's position that season, by code.
-    players: "data/raw/fpl/wayback_bootstrap/bootstrap_20260301120023.json",
+    // 2025/26's FPL list on 1 Jun 2026, its last before the reset: each player's position that season, by code. It names all 707; 1 Mar's lacked 22 who joined later, and no one changes position across the season's lists.
+    players: "data/raw/fpl/wayback_bootstrap/bootstrap_20260601000016.json",
     counts: { matches: 380, playedRows: 11492, played: 537, named: 707 },
   },
 };

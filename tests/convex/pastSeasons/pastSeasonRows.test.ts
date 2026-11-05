@@ -101,9 +101,9 @@ describe("a past season's rows", () => {
       if (fpl === null) {
         // Without it, FPL's 2 for a defensive contribution may or may not be in his points.
         const plain = (row.fpl_total_points as number) - (row.fpl_bonus as number);
-        expect([plain, plain - DEFENSIVE_CONTRIBUTION_POINTS], `${String(row.person_root_id)} at ${String(row.kickoff_time)}`).toContain(points);
+        expect([plain, plain - DEFENSIVE_CONTRIBUTION_POINTS], `${String(row.person_root_id)} at ${String(row.kickoff_utc)}`).toContain(points);
       } else {
-        expect(points, `${String(row.person_root_id)} at ${String(row.kickoff_time)}`).toBe(fpl);
+        expect(points, `${String(row.person_root_id)} at ${String(row.kickoff_utc)}`).toBe(fpl);
       }
     }
   });
@@ -127,7 +127,7 @@ describe("the copy stops, naming him, rather than guess", () => {
   });
 
   test("a kickoff that isn't a time", () => {
-    expect(() => pastSeasonRows(SAMPLE_SEASON, [{ ...playedRow, kickoff_time: "soon" }], codes, positions)).toThrow("keeper-one's kickoff_time is soon");
+    expect(() => pastSeasonRows(SAMPLE_SEASON, [{ ...playedRow, kickoff_utc: "soon" }], codes, positions)).toThrow("keeper-one's kickoff_utc is soon");
   });
 
   test("a stat that isn't a number", () => {
@@ -135,7 +135,7 @@ describe("the copy stops, naming him, rather than guess", () => {
   });
 
   test("one person with two FPL codes", () => {
-    const twice = [...SAMPLE_PERSONS, { name: "keeper-one-again.json", json: { person_root_id: "keeper-one", source_mappings: { fpl_code: 999 } } }];
+    const twice = [...SAMPLE_PERSONS, { name: "keeper-one-again.json", json: { root_id: "keeper-one", source_mappings: { fpl_code: 999 } } }];
     expect(() => fplCodesByRoot(twice)).toThrow("Person keeper-one has two FPL codes, 100001 and 999");
   });
 
@@ -145,6 +145,6 @@ describe("the copy stops, naming him, rather than guess", () => {
 });
 
 test("a kickoff the log gives with no zone is read as UTC", () => {
-  const row = { ...SAMPLE_LOG.find((each) => each.person_root_id === "keeper-one")!, kickoff_time: "2025-08-15T19:00:00" };
+  const row = { ...SAMPLE_LOG.find((each) => each.person_root_id === "keeper-one")!, kickoff_utc: "2025-08-15T19:00:00" };
   expect(pastSeasonRows(SAMPLE_SEASON, [row], codes, positions)[0].match?.kickoff).toBe(KICKOFF_A);
 });

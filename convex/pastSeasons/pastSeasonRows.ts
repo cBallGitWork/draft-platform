@@ -29,7 +29,7 @@ export const STAT_COLUMNS: Readonly<Record<string, string>> = {
 
 /** When the match kicked off. The column's name is read from the log's own FPL columns, not yet
  *  checked against the file: a missing one stops the read, naming it. */
-export const KICKOFF_COLUMN = "kickoff_time";
+export const KICKOFF_COLUMN = "kickoff_utc";
 
 /** Every column the copy reads. FPL's fixture id is read only to count the season's matches, and
  *  never kept; FPL's own points are read only by the re-score test. */
@@ -87,9 +87,8 @@ export interface PersonFile {
 
 const isRecord = (value: unknown): value is Record<string, unknown> => typeof value === "object" && value !== null && !Array.isArray(value);
 
-/** Each person's FPL `code` by his person root id: the file's name without `.json`, and its own
- *  `person_root_id` or `id` where it has one. A person with no FPL code is left out; one id naming
- *  two codes throws. */
+/** Each person's FPL `code` by his person root id, the file's `root_id` (the log's `person_root_id`).
+ *  A person with no FPL code is left out; a file with no `root_id`, or one id naming two codes, throws. */
 export function fplCodesByRoot(files: readonly PersonFile[]): Map<string, number> {
   const codes = new Map<string, number>();
   for (const { name, json } of files) {
@@ -99,12 +98,11 @@ export function fplCodesByRoot(files: readonly PersonFile[]): Map<string, number
     if (raw === undefined || raw === null) continue;
     const code = Number(raw);
     if (!Number.isInteger(code)) throw new Error(`Person file ${name} has FPL code ${String(raw)}, which is not a whole number`);
-    const ids = [name.replace(/\.json$/, ""), json.person_root_id, json.id].filter((id): id is string => typeof id === "string");
-    for (const id of ids) {
-      const known = codes.get(id);
-      if (known !== undefined && known !== code) throw new Error(`Person ${id} has two FPL codes, ${known} and ${code}`);
-      codes.set(id, code);
-    }
+    const id = json.root_id;
+    if (typeof id !== "string") throw new Error(`Person file ${name} has no root_id`);
+    const known = codes.get(id);
+    if (known !== undefined && known !== code) throw new Error(`Person ${id} has two FPL codes, ${known} and ${code}`);
+    codes.set(id, code);
   }
   return codes;
 }

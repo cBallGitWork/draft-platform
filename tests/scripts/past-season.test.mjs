@@ -53,7 +53,7 @@ test("the log is read by ai-carling's own Python, the columns the copy keeps and
   expect(python.command).toBe(join(FROM, PYTHON));
   expect(python.args.slice(0, 3)).toEqual(["-I", "-c", READ_LOG]);
   expect(python.args[3]).toBe(join(FROM, SAMPLE[2025].log));
-  expect(python.args[4].split(",")).toContain("kickoff_time");
+  expect(python.args[4].split(",")).toContain("kickoff_utc");
 });
 
 test("the season's old rows are cleared page by page, then its rows added, on dev", async () => {
