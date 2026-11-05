@@ -6,7 +6,15 @@ import { DEFAULT_PRESETS, presetNameOf, type Preset } from "../../../convex/line
 
 const named = (name: string) => DEFAULT_PRESETS.find((preset) => preset.name === name)!;
 
-test.each(DEFAULT_PRESETS)("$name's own cells are named $name", (preset) => {
+/** Each preset but the ones an earlier preset stands in cell for cell, 5(SW)-3-2 and 3(L)-5-2: which
+ *  name such a side gets is Craig's to settle (asked on #988), so cells alone still name it. */
+const ownShapes = DEFAULT_PRESETS.filter((preset, index) => !DEFAULT_PRESETS.slice(0, index).some((earlier) => presetNameOf(preset.cells, [earlier]) !== null));
+
+test("only 5(SW)-3-2 and 3(L)-5-2 stand in an earlier preset's cells", () => {
+  expect(DEFAULT_PRESETS.filter((preset) => !ownShapes.includes(preset)).map(({ name }) => name)).toEqual(["5(SW)-3-2", "3(L)-5-2"]);
+});
+
+test.each(ownShapes)("$name's own cells are named $name", (preset) => {
   expect(presetNameOf(preset.cells, DEFAULT_PRESETS)).toBe(preset.name);
 });
 

@@ -17,7 +17,13 @@ import { TIE_BREAKS } from "../table/standings";
 const limit = v.object({ minimum: v.number(), maximum: v.number() });
 
 /** presets.ts's Preset. */
-const preset = v.object({ name: v.string(), cells: v.array(cellShape) });
+const preset = v.object({
+  name: v.string(),
+  cells: v.array(cellShape),
+  /** Absent from a preset that sets no role, and from every preset saved before #988, so those rows
+   *  need no migration (ARCHITECTURE.md's Data, "Changing a saved shape"). */
+  centreRole: v.optional(v.string()),
+});
 
 const WEEKDAYS = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"] as const;
 const weekday = v.union(...WEEKDAYS.map((day) => v.literal(day)));

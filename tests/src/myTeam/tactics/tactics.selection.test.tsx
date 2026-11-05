@@ -107,10 +107,11 @@ describe("the Formation keys", () => {
 describe("the formation window", () => {
   it("groups the league's presets by their back line", () => {
     const groups = backGroups(FIRST_RULES.presets);
-    expect(groups.map(({ back }) => back)).toEqual([3, 4, 5]);
+    expect(groups.map(({ back }) => back)).toEqual([2, 3, 4, 5]);
     expect(groups.flatMap(({ shapes }) => shapes).length).toBe(FIRST_RULES.presets.length);
+    expect(groups[0].shapes.map(({ name }) => name)).toEqual(["2-3-5", "2-3-2-3"]);
     // 3-5-2's wing-backs stand in a midfield row: a back three.
-    expect(groups[0].shapes.map(({ name }) => name)).toContain("3-5-2");
+    expect(groups[1].shapes.map(({ name }) => name)).toContain("3-5-2");
   });
 
   it("previews the picked formation with each slot's role, and Cancel changes nothing", async () => {

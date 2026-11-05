@@ -77,7 +77,7 @@ test("rules saved with the draft order's dropped switch (#1087 to #1089) are hel
   expect(heldRules(withoutDraft)).toEqual(withoutDraft);
 });
 
-test("the first rules' presets are the twenty-one every league starts with", () => {
+test("the first rules' presets are the ones every league starts with, each centre role kept", () => {
   expect(FIRST_RULES.presets).toEqual(DEFAULT_PRESETS);
 });
 

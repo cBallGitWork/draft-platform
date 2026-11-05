@@ -5794,6 +5794,12 @@
                             }
                           },
                           "optional": false
+                        },
+                        "centreRole": {
+                          "fieldType": {
+                            "type": "string"
+                          },
+                          "optional": true
                         }
                       }
                     }
@@ -9871,6 +9877,12 @@
                             }
                           },
                           "optional": false
+                        },
+                        "centreRole": {
+                          "fieldType": {
+                            "type": "string"
+                          },
+                          "optional": true
                         }
                       }
                     }

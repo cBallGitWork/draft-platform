@@ -52,7 +52,7 @@ export const FIRST_RULES: LeagueRules = {
   },
   // guess: spec/05 sets no defaults. One goalkeeper, and room for every preset.
   areaLimits: { ...everyArea({ minimum: 0, maximum: 10 }), goalkeeper: { minimum: 1, maximum: 1 } },
-  presets: DEFAULT_PRESETS.map(({ name, cells }) => ({ name, cells: cells.map((cell) => ({ ...cell })) })),
+  presets: DEFAULT_PRESETS.map(({ cells, ...rest }) => ({ ...rest, cells: cells.map((cell) => ({ ...cell })) })),
   deadline: { ...FPL_DEADLINE_RULE },
   doubleGameweek: "bothMatches",
   // guess: the doc's live tie-breaks, "none; highest seed", are a matchup's and a playoff's, not

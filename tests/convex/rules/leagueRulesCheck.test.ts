@@ -12,6 +12,7 @@ import { MOST_IN_SQUAD } from "../../../convex/leagues/leagueLimits";
 // in some later gameweek.
 
 const [firstPreset] = FIRST_RULES.presets;
+const sweeperPreset = FIRST_RULES.presets.find(({ name }) => name === "5(SW)-3-2")!;
 const limits = FIRST_RULES.areaLimits;
 const FRIDAY_9_05 = { day: "friday", hour: 9, minute: 5 } as const;
 
@@ -104,6 +105,16 @@ describe.each<[string, Partial<LeagueRules>, string]>([
     "a preset with two players in one cell",
     { presets: [{ ...firstPreset, cells: [...firstPreset.cells.slice(0, 10), firstPreset.cells[1]] }] },
     "The preset 4-4-2 puts two players in defence left.",
+  ],
+  [
+    "a preset setting a centre role with no one in the defence's centre",
+    { presets: [{ ...firstPreset, centreRole: "sweeper" }] },
+    "The preset 4-4-2 sets a role for the centre of its defence, where it puts no one.",
+  ],
+  [
+    "a preset starting the defence's centre on a role that cell doesn't offer",
+    { presets: [{ ...sweeperPreset, centreRole: "poacher" }] },
+    "The preset 5(SW)-3-2 starts the centre of its defence on poacher, a role that cell doesn't offer.",
   ],
   [
     "a preset the league's own area limits forbid",
