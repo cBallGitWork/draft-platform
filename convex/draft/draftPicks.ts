@@ -21,7 +21,7 @@ import { draftOf, picksMadeIn, type StartedDraft } from "./draftRow";
 import { rulesInForceAt } from "./draftStart";
 import { afterTakeBack, afterTimeout, isOnAutoPick, picksAtOnce } from "./draftTimeouts";
 import { lastSeasonPoints } from "./lastSeasonPoints";
-import { legalPlayers, type DraftPlayer } from "./legalPlayers";
+import { whyNotLegal, type DraftPlayer, type NotLegal } from "./legalPlayers";
 import { pickOnTheClock } from "./snakeOrder";
 
 // Making a pick (spec/04, The picks; #1090). The manager whose team is on the clock picks a player
@@ -68,19 +68,32 @@ async function startedRulesAt(ctx: QueryCtx, leagueId: Id<"leagues">, at: number
 
 type Turn = NonNullable<ReturnType<typeof pickOnTheClock<Id<"teams">>>>;
 
-/** Whether the team on the clock may legally take a player, under the squad rules the draft started
- *  under, with the picks it has left counting this one. */
-async function legalForTurn(ctx: QueryCtx, leagueId: Id<"leagues">, started: StartedDraft, turn: Turn): Promise<(player: Doc<"players">) => Promise<boolean>> {
+/** Why `teamId` may not take a player as its next pick, under the squad rules the draft started
+ *  under, with `picksLeft` picks still to make counting this one; null when it may. */
+export async function whyNotLegalFor(
+  ctx: QueryCtx,
+  leagueId: Id<"leagues">,
+  started: StartedDraft,
+  teamId: Id<"teams">,
+  picksLeft: number,
+): Promise<(player: Doc<"players">) => Promise<NotLegal | null>> {
   const positionsOf = await positionsNow(ctx, leagueId);
   const squad: DraftPlayer[] = await Promise.all(
-    (await squadOf(ctx, turn.team)).map(async ({ playerCode }) => ({
-      clubCode: (await heldPlayerByCode(ctx, playerCode, `Player ${playerCode}, drafted by team ${turn.team}, isn't in the football data`)).clubCode,
+    (await squadOf(ctx, teamId)).map(async ({ playerCode }) => ({
+      clubCode: (await heldPlayerByCode(ctx, playerCode, `Player ${playerCode}, drafted by team ${teamId}, isn't in the football data`)).clubCode,
       areas: areasOf(await positionsOf(playerCode)),
     })),
   );
+  const why = whyNotLegal(squad, picksLeft, await squadRulesOf(ctx, leagueId, started));
+  return async (player) => why({ clubCode: player.clubCode, areas: areasOf(await positionsOf(player.code)) });
+}
+
+/** Whether the team on the clock may legally take a player, under the squad rules the draft started
+ *  under, with the picks it has left counting this one. */
+async function legalForTurn(ctx: QueryCtx, leagueId: Id<"leagues">, started: StartedDraft, turn: Turn): Promise<(player: Doc<"players">) => Promise<boolean>> {
   // Each team picks once a round, so this round's pick is its (round)th: rounds - round + 1 are left.
-  const legal = legalPlayers(squad, started.rounds - turn.round + 1, await squadRulesOf(ctx, leagueId, started));
-  return async (player) => legal({ clubCode: player.clubCode, areas: areasOf(await positionsOf(player.code)) });
+  const why = await whyNotLegalFor(ctx, leagueId, started, turn.team, started.rounds - turn.round + 1);
+  return async (player) => (await why(player)) === null;
 }
 
 /** The player the manager picks, or the refusal: there is no such player, he has left the Premier

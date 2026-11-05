@@ -25,16 +25,27 @@ function placesShort(squad: readonly DraftPlayer[], minimumByArea: LeagueRules["
   ).reduce((total, { players, minimum }) => total + minimum - players, 0);
 }
 
-/** Whether the team holding `squad`, with `picksLeft` picks still to make counting this one, may
- *  pick a player, under the league's squad rules. */
-export function legalPlayers(
+/** Why a team may not pick a player: its squad has no picks left, it is at the league's maximum
+ *  for his club, or his pick would leave too few picks to reach an area's minimum. */
+export type NotLegal = "squadFull" | "clubFull" | "areasShort";
+
+/** Why the team holding `squad`, with `picksLeft` picks still to make counting this one, may not
+ *  pick a player under the league's squad rules, or null when it may. */
+export function whyNotLegal(
   squad: readonly DraftPlayer[],
   picksLeft: number,
   { minimumByArea, maxPerClub }: LeagueRules["squad"],
-): (player: DraftPlayer) => boolean {
+): (player: DraftPlayer) => NotLegal | null {
   return (player) => {
-    if (picksLeft < 1) return false;
-    if (maxPerClub !== null && squad.filter(({ clubCode }) => clubCode === player.clubCode).length >= maxPerClub) return false;
-    return placesShort([...squad, player], minimumByArea) <= picksLeft - 1;
+    if (picksLeft < 1) return "squadFull";
+    if (maxPerClub !== null && squad.filter(({ clubCode }) => clubCode === player.clubCode).length >= maxPerClub) return "clubFull";
+    return placesShort([...squad, player], minimumByArea) <= picksLeft - 1 ? null : "areasShort";
   };
+}
+
+/** Whether the team holding `squad`, with `picksLeft` picks still to make counting this one, may
+ *  pick a player, under the league's squad rules. */
+export function legalPlayers(squad: readonly DraftPlayer[], picksLeft: number, rules: LeagueRules["squad"]): (player: DraftPlayer) => boolean {
+  const why = whyNotLegal(squad, picksLeft, rules);
+  return (player) => why(player) === null;
 }
