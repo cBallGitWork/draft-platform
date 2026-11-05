@@ -6,13 +6,13 @@ import { markOf } from "../focusMarks";
 import { PitchLines } from "./PitchLines";
 import { RoleRuns } from "./RoleRuns";
 import { PITCH_ASPECT } from "./pitchMarkings";
-import { standingIn, type DraftLineup, type Reach, type SquadMember } from "../lineupDraft";
-import { emptySlotLabel, pitchLabel, playerOnPitchLabel, putHereLabel, swapLabel } from "../words";
+import { standingIn, type DraftLineup, type DropTarget, type Reach, type SquadMember } from "../lineupDraft";
+import { emptySlotLabel, pitchLabel, playerOnPitchLabel, swapLabel } from "../words";
 
 // The Tactics tab's pitch (#14; spec/05, The pitch): six areas by five lanes, attack at the top, CM
-// style. A player is moved by picking him up (a click, a tap or Enter on him) and then choosing one
-// of the cells that light up, free or holding a player to swap with, or by dragging him there; both
-// reach the same `onPlace`.
+// style. Presets only (Craig, 1 Nov 2026; #1022): a player is moved by picking him up (Move, in his
+// panel) and then tapping a lit player to swap with, or by dragging him onto one; a drop anywhere
+// else is refused, and the page says why.
 
 /** Top to bottom as the pitch is drawn: attack first. */
 export const ROWS_DRAWN = AREAS.toReversed();
@@ -42,10 +42,11 @@ export type Moving = {
   onPick(playerCode: number): void;
   /** A drag starting: picks him up, whoever was. */
   onGrab(playerCode: number): void;
-  /** Into the cell if it is free, swapped with its player if not. */
-  onPlace(cell: Cell): void;
-  /** Swapped with the player, on the pitch or the bench. */
+  /** Swapped with the player, on the pitch or the bench: a lit one tapped. */
   onSwap(playerCode: number): void;
+  /** The player picked up dropped on a cell of the pitch, on a player in the Selection table, or on
+   *  the bench's plate: swapped where he may be, the refusal said where not. */
+  onDrop(target: DropTarget): void;
   onDragEnd(): void;
 };
 
@@ -56,8 +57,8 @@ export function startDrag(event: DragEvent, playerCode: number, moving: Moving) 
   moving.onGrab(playerCode);
 }
 
-/** `slots` are the cells of the preset last picked, if any: those still empty are marked, to show
- *  where to drag (spec/05). `runsShown` is the desk's switch for the roles' runs (spec/05 Runs). */
+/** `slots` are the cells of the preset last picked, if any: those still empty are marked, the
+ *  shape's slots nobody fills (spec/05). `runsShown` is the desk's switch for the roles' runs (spec/05 Runs). */
 export function Pitch({
   draft,
   squad,
@@ -73,7 +74,7 @@ export function Pitch({
 }) {
   const { picked, reach } = moving;
   const isSlot = (cell: Cell) => slots.some((slot) => sameCell(slot, cell));
-  const opensTo = (cell: Cell) => reach !== null && reach.cells.some((each) => sameCell(each, cell));
+  const swapsWith = (playerCode: number) => reach !== null && reach.players.includes(playerCode);
   return (
     <div role="group" aria-label={pitchLabel} style={CELL_GRID} className="pitch relative mx-auto grid">
       <PitchLines />
@@ -82,26 +83,21 @@ export function Pitch({
         LANES.map((lane) => {
           const cell = { area, lane };
           const standing = standingIn(draft, cell);
+          // Any cell takes the drop of the player picked up, so a refused one can say why (#1022);
+          // his own cell is no move.
+          const takesDrop = picked !== null && standing?.playerCode !== picked.playerCode;
           const allowDrop = (event: DragEvent) => {
-            if (opensTo(cell)) event.preventDefault();
+            if (takesDrop) event.preventDefault();
           };
           const drop = (event: DragEvent) => {
             event.preventDefault();
-            if (opensTo(cell)) moving.onPlace(cell);
+            if (takesDrop) moving.onDrop({ cell });
           };
           return (
             <div key={cellKey(cell)} onDragOver={allowDrop} onDrop={drop} className="relative flex min-h-0 min-w-0 items-center justify-center p-0.5">
               {standing !== undefined ? (
-                <PlayerBlock player={squad.get(standing.playerCode)!} cell={cell} role={roleIn(cell, standing.role).name} lit={opensTo(cell)} moving={moving} />
-              ) : picked !== null && opensTo(cell) ? (
-                <button
-                  type="button"
-                  aria-label={putHereLabel(picked.name, area, lane)}
-                  onClick={() => moving.onPlace(cell)}
-                  className="h-full w-full border-2 border-dashed border-pitch-line"
-                />
+                <PlayerBlock player={squad.get(standing.playerCode)!} cell={cell} role={roleIn(cell, standing.role).name} lit={swapsWith(standing.playerCode)} moving={moving} />
               ) : (
-                // Quieter than a put-here target (bold dashes), so a slot to fill never reads as a place to tap.
                 isSlot(cell) && <div role="img" aria-label={emptySlotLabel(area, lane)} className="h-full w-full border border-dotted border-pitch-line" />
               )}
             </div>
@@ -115,7 +111,7 @@ export function Pitch({
 /** A player on the pitch: his shirt over his name plate, the role he plays under his name (spec/05
  *  Roles; his positions are in his name for screen readers). A tap opens his panel, and his block
  *  is ringed while it is open; picked up, the plate turns white; one the player picked up can swap
- *  with is lit, dashed like a free cell, and a tap swaps them. */
+ *  with is lit, dashed, and a tap swaps them. */
 function PlayerBlock({ player, cell, role, lit, moving }: { player: SquadMember; cell: Cell; role: string; lit: boolean; moving: Moving }) {
   const { picked } = moving;
   const isPicked = picked?.playerCode === player.playerCode;
@@ -129,7 +125,7 @@ function PlayerBlock({ player, cell, role, lit, moving }: { player: SquadMember;
       {...markOf("player", player.playerCode)}
       aria-pressed={isSelected}
       aria-label={swapsWith ? swapLabel(picked.name, player.name) : playerOnPitchLabel(player.name, player.positions, cell.area, cell.lane)}
-      onClick={() => (swapsWith ? moving.onPlace(cell) : moving.onSelect(player.playerCode))}
+      onClick={() => (swapsWith ? moving.onSwap(player.playerCode) : moving.onSelect(player.playerCode))}
       onDragStart={(event) => startDrag(event, player.playerCode, moving)}
       onDragEnd={moving.onDragEnd}
       className={`flex w-full min-w-0 cursor-grab flex-col items-center ${swapsWith ? "outline-2 outline-dashed outline-pitch-line" : isSelected ? "outline-2 outline-pitch-line" : ""}`}

@@ -67,6 +67,8 @@ export const DEFAULT_PRESETS: readonly Preset[] = [
   preset("3-1-4-2", BACK_THREE, ANCHOR, FLAT_FOUR, STRIKE_PAIR),
   preset("5-2-3", BACK_FIVE, CENTRAL_PAIR, FRONT_THREE),
   preset("5-3-1-1", BACK_FIVE, CENTRAL_THREE, NUMBER_TEN, LONE_STRIKER),
+  // 3-5-2 with a ten behind the striker (Craig, 1 Nov 2026: "also add 3-6-1"; placed 5 Nov 2026).
+  preset("3-6-1", BACK_THREE, row("defensiveMidfield", "left", "right"), CENTRAL_THREE, NUMBER_TEN, LONE_STRIKER),
   // Two at the back, as Craig asked (1 Nov 2026) and placed (4 Nov 2026). Sweeper and libero are
   // centre-back roles, never presets (Craig, 5 Nov 2026).
   preset("2-3-5", BACK_TWO, CENTRAL_THREE, row("attack", ...LANES)),

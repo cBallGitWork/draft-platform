@@ -13,7 +13,7 @@ import { DRAFT_LIST_MOST } from "./draftLimits";
 // and private to it, as the shortlist is: only its manager reads or changes them, so no other team,
 // nor the commissioner, can tell who is on them. No player is on both: adding him to one takes him
 // off the other. They can be changed at any time, between picks once the draft has started too,
-// and a drafted player stays listed (Craig, 4 Nov 2026); auto-pick, which skips him, isn't built.
+// and a drafted player stays listed (Craig, 4 Nov 2026); auto-pick skips him (draftPicks.ts; #1094).
 // The shortlist feeds the queue, a player at a time or the whole of it (#1137). Not built yet:
 // emptying them when a draft ends (no draft ends yet).
 
@@ -32,7 +32,8 @@ export const draftListRefusals = {
 
 const otherList = (list: DraftList): DraftList => (list === "queue" ? "doNotDraft" : "queue");
 
-function listsOf(ctx: QueryCtx, teamId: Id<"teams">): Promise<Doc<"draftLists"> | null> {
+/** The team's queue and do-not-draft list, or null while its manager has added to neither. */
+export function listsOf(ctx: QueryCtx, teamId: Id<"teams">): Promise<Doc<"draftLists"> | null> {
   return ctx.db
     .query("draftLists")
     .withIndex("by_teamId", (q) => q.eq("teamId", teamId))

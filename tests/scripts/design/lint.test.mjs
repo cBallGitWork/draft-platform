@@ -44,7 +44,7 @@ test("SS is spec/06's support striker label, so a board may show it though it is
 
 test("the real catalogue reads both modules: a slot label and SS both come back as chips", async () => {
   const { roleNames, positions } = await roleCatalogue();
-  expect(positions).toEqual(expect.arrayContaining(["CAM", "SW", "SS"]));
+  expect(positions).toEqual(expect.arrayContaining(["CAM", "SS"]));
   expect(roleInitials(roleNames, positions).has("SS")).toBe(false);
 });
 

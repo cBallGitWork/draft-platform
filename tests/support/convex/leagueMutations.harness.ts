@@ -74,6 +74,7 @@ export function changesTo(
     "draft/draftPause:pause": () => admin.mutation(api.draft.draftPause.pause, { leagueId }),
     "draft/draftPause:resume": () => admin.mutation(api.draft.draftPause.resume, { leagueId }),
     "draft/draftPicks:makePick": () => ann.mutation(api.draft.draftPicks.makePick, { leagueId, playerCode: 1 }),
+    "draft/draftPicks:takeControlBack": () => ann.mutation(api.draft.draftPicks.takeControlBack, { leagueId }),
     "lineup/lineups:save": () => ann.mutation(api.lineup.lineups.save, { leagueId, lineup: { starters: [], bench: [] } }),
     "lineup/lineupDue:openedTactics": () => ann.mutation(api.lineup.lineupDue.openedTactics, { leagueId, gameweek: 1 }),
     "leagues/lastLeague:switchTo": () => commissioner.mutation(api.leagues.lastLeague.switchTo, { leagueId }),

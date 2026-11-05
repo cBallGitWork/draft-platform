@@ -33,6 +33,9 @@ export function useLineupEdits({
   // one, about a lineup no longer on the pitch, says nothing (#642).
   const sent = useRef<DraftLineup | null>(null);
   const { problem, run, clear } = useChange();
+  // Why the last drop was refused, said where a save's line is (spec/05; Craig, 4 Nov 2026), until
+  // the next move.
+  const [refused, setRefused] = useState<string | null>(null);
   const draft = useMemo(() => shownLineup(edited, opening, squadCodes), [edited, opening, squadCodes]);
 
   // The gameweek is the server's: a save sent just after the deadline is from the one after. A
@@ -60,8 +63,16 @@ export function useLineupEdits({
     setEdited(next);
     onShown();
     setSavedFrom(null);
+    setRefused(null);
     clear();
     void save(next);
+  };
+  /** A drop refused, in words: the lineup stays as it is, and the line under the toolbar says why. */
+  const refuse = (words: string) => {
+    onShown();
+    setSavedFrom(null);
+    clear();
+    setRefused(words);
   };
   /** Any move that changes the lineup, which Undo can take back. */
   const edit = (next: DraftLineup) => {
@@ -81,5 +92,5 @@ export function useLineupEdits({
     setShape(name);
     edit(next);
   };
-  return { draft, edit, undo, reshape, canUndo: undoable.length > 0, savedFrom, problem, shape };
+  return { draft, edit, undo, reshape, refuse, canUndo: undoable.length > 0, savedFrom, problem: refused ?? problem, shape };
 }
