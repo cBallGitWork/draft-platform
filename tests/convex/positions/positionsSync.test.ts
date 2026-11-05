@@ -9,11 +9,20 @@ import {
   plFixturesUrl,
   plFixtureUrl,
 } from "../../../convex/football/football";
-import { REFUSED_MATCH, asAdmin, heldPositions, reported, syncPositionsWith } from "../../support/convex/positionsSync.harness";
+import {
+  FIRST_COPY,
+  REFUSED_MATCH,
+  asAdmin,
+  heldPositions,
+  heldStarts,
+  pastTheCap,
+  reported,
+  syncPositionsWith,
+} from "../../support/convex/positionsSync.harness";
 import { MATCHES_PER_RUN, SYNC_FAILED_LOG } from "../../../convex/positions/positionsSync";
 import type { RawPlSquadPlayer } from "../../../convex/football/premierLeague/premierLeague";
 import { NEWCASTLE, PLAYER, recordedPositions, SHEET, UNPLAYED_MATCH } from "../../support/recorded/positions.payloads";
-import { freshConvex, refusedError, silenceConsoleError, type TestConvex } from "../../support/convex/test.harness";
+import { freshConvex, pendingJobs, refusedError, silenceConsoleError } from "../../support/convex/test.harness";
 
 /** The line a run logs when its read of url is refused. */
 function reportedFailure(url: string): string {
@@ -22,13 +31,6 @@ function reportedFailure(url: string): string {
 
 function manIn(men: RawPlSquadPlayer[], code: number): RawPlSquadPlayer {
   return men.find((man) => man.altIds?.opta === `p${code}`)!;
-}
-
-function heldStarts(t: TestConvex, code: number) {
-  return t.run(async (ctx) => {
-    const row = await ctx.db.query("playerPositions").withIndex("by_code", (q) => q.eq("code", code)).unique();
-    return row?.starts ?? [];
-  });
 }
 
 test("a run files every played match's starts and this season's labels, and reports what it could not place", async () => {
@@ -212,27 +214,14 @@ test("a failed read mid-run fails the run, and leaves the matches read before it
 
 test(`one run reads at most ${MATCHES_PER_RUN} matches' sheets, oldest first, and says how many are left`, async () => {
   const t = freshConvex();
-  const payloads = recordedPositions();
-  const [template] = payloads.sheets;
-  // Copies of one match, each its own fixture, the first the newest.
-  const firstCopy = 900_000;
-  const copies = Array.from({ length: MATCHES_PER_RUN + 2 }, (_, index) => ({
-    ...structuredClone(template),
-    id: firstCopy + index,
-    altIds: { opta: `g${firstCopy + index}` },
-    kickoff: { millis: template.kickoff!.millis - index },
-  }));
-  payloads.sheets = copies;
-  payloads.fixtureLists = { [PL_LAST_COMP_SEASON]: copies, [PL_COMP_SEASON]: [] };
-  // FPL listing Thiaw alone, so each copy files his one start, not a whole match's: filing every
-  // starter of 152 matches took over the default five seconds on a loaded machine.
-  payloads.fplElements = payloads.fplElements.filter((element) => element.code === PLAYER.thiaw);
 
-  const { outcome } = await syncPositionsWith(t, payloads);
+  const { outcome } = await syncPositionsWith(t, pastTheCap());
 
   expect(outcome).toMatchObject({ ok: true, matchesRead: MATCHES_PER_RUN, matchesLeft: 2 });
   const filed = (await heldStarts(t, PLAYER.thiaw)).map((start) => start.fixtureCode);
-  expect(filed).toContain(firstCopy + 2);
-  expect(filed).not.toContain(firstCopy); // the newest two wait for the next run
-  expect(filed).not.toContain(firstCopy + 1);
+  expect(filed).toContain(FIRST_COPY + 2);
+  expect(filed).not.toContain(FIRST_COPY); // the newest two wait for the next run
+  expect(filed).not.toContain(FIRST_COPY + 1);
+  // Run by hand, it stays one run.
+  expect(await pendingJobs(t, internal.positions.positionsSync.run)).toEqual([]);
 }, 30_000);

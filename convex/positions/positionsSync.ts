@@ -13,17 +13,40 @@ import { PL_FULL_TIME, readPlFixture, readPlFixtures, readPlSquad, type RawPlFix
 import { positionsSyncFields, startRecord, syncTrigger } from "../schema";
 import { BATCH_SIZE, LATEST_RUNS } from "../shared/syncRuns";
 import { emailIfFailed } from "../admin/feedFailureEmails";
+import { CRON_TRIGGER } from "../heartbeats/heartbeat";
+import { londonHour } from "../shared/moments";
 
 // Issue #22: each player's starts, from the Premier League's team sheets for last season and this
 // (spec/06: his last 38 starts count, across both), and his label, from this season's squads or
 // else the sheets (docs/positions.md), and his club number from the squads (#13, `clubNumbers`).
 // A match's sheets are read once; the squads every run, so a changed label or number arrives. From the CLI:
 // `npx convex run positions/positionsSync:run '{"trigger":"manual"}'`, then `positions/positionsSync:latest`.
-// Nothing schedules it yet: spec/06 names no cadence.
+// crons.ts runs it daily at 06:00 UK time (#1194), and a cron's run with matches left carries on
+// at once; one run by hand stays one run.
 
 /** Matches whose sheets one run reads, one at a time: two seasons' first 450 take three runs, each
  *  well inside an action's ten minutes. */
 export const MATCHES_PER_RUN = 150;
+
+/** The UK hour the daily run starts (Craig, 5 Nov 2026, #1194): early, so a weekend's starts count
+ *  before the next deadline. */
+export const DAILY_RUN_UK_HOUR = 6;
+
+/** The UTC hours crons.ts fires `daily` at: 06:00 UK is one of them in winter and the other in summer. */
+export const DAILY_RUN_UTC_HOURS = [DAILY_RUN_UK_HOUR - 1, DAILY_RUN_UK_HOUR] as const;
+
+/** The cron's: starts a run when it is `DAILY_RUN_UK_HOUR` in the UK, and does nothing the hour the
+ *  clocks put it at the other. */
+export const daily = internalMutation({
+  args: {},
+  returns: v.null(),
+  handler: async (ctx) => {
+    if (londonHour(Date.now()) === DAILY_RUN_UK_HOUR) {
+      await ctx.scheduler.runAfter(0, internal.positions.positionsSync.run, { trigger: CRON_TRIGGER });
+    }
+    return null;
+  },
+});
 
 type Synced = Omit<Extract<Infer<typeof positionsSyncFields.outcome>, { ok: true }>, "ok">;
 const matchStarts = v.array(v.object({ playerCode: v.number(), start: startRecord }));
@@ -45,6 +68,10 @@ export const run = internalAction({
       return { ok: true as const, ...synced };
     });
     await ctx.runMutation(internal.positions.positionsSync.record, { trigger, ranAt, outcome });
+    // A run that filed nothing new (every match it read refused) would only read the same again.
+    if (trigger === CRON_TRIGGER && outcome.ok && outcome.matchesLeft > 0 && outcome.matchesRead > outcome.matchesRefused.length) {
+      await ctx.scheduler.runAfter(0, internal.positions.positionsSync.run, { trigger });
+    }
     return null;
   },
 });
