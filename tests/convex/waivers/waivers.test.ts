@@ -5,8 +5,8 @@ import { DAY_MS } from "../../../convex/shared/time";
 import { dropRefusals } from "../../../convex/waivers/waivers";
 import { WAIVER_MS } from "../../../convex/waivers/waiverPlayers";
 import { holdGameweeks } from "../../support/convex/leagueRules.harness";
-import { actingAs, addManagers, adminCreatesLeague, eventsIn, MANAGERS, type TestConvex } from "../../support/convex/leagues.harness";
-import { holdPlayers, holdSquad, nameOf, passNextDeadline, SQUAD } from "../../support/convex/lineupSquad.harness";
+import { actingAs, addManagers, adminCreatesLeague, COMMISSIONER, eventsIn, MANAGERS, type TestConvex } from "../../support/convex/leagues.harness";
+import { holdPlayers, holdSquad, nameOf, passNextDeadline, SQUAD, squadMoves } from "../../support/convex/lineupSquad.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
 import { expectRefused } from "../../support/convex/test.harness";
 
@@ -134,8 +134,9 @@ describe("players no team holds", () => {
 
   test("a dropped player assigned to a team again is off waivers", async () => {
     await drop(ANN, DROPPED);
-    await (await actingAs(t, "commish@example.com")).mutation(api.squads.squads.assign, { leagueId, playerCode: DROPPED, teamId: bobsTeam });
-    await (await actingAs(t, "commish@example.com")).mutation(api.squads.squads.release, { leagueId, playerCode: DROPPED });
+    const commissioner = await squadMoves(t, leagueId, COMMISSIONER);
+    await commissioner.assign(DROPPED, bobsTeam);
+    await commissioner.release(DROPPED);
 
     expect(await stateOf(DROPPED)).toEqual({ kind: "freeAgent" });
   });
