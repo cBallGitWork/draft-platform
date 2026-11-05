@@ -11,8 +11,10 @@
 #      (`Part of #N` or `Closes #N`). The drift-pass and nightly-ci issues have their own jobs.
 # Two builds never run at once on issues naming the same spec/NN file, so builders work in different folders
 # (CLAUDE.md). A build in flight is read from its run name (claude-build.yml's run-name, "<mode> #N").
-# At 18:00 UTC it writes the evening note, the day's one report to Craig, on the open `lead:note` issue (merged
-# today, red, waiting on him, in flight). At 01:30 UTC it also sweeps, as the team's analyst: the next SWEEP_SIZE candidates get claude-build in mode
+# Every pass it rewrites the `Today` issue (label `lead:board`): next up in build order, in flight, blocked and on
+# what, merged today, red. It is the board the PM dashboard shows and the day's one report to Craig (5 Nov 2026:
+# "i never know whats next for us to build"). An issue Craig labels `next` (the dashboard does it for him) goes to
+# the front of the queue. At 01:30 UTC it also sweeps, as the team's analyst: the next SWEEP_SIZE candidates get claude-build in mode
 # `rules-only`. A candidate is any other open issue whose body names a spec/NN file and whose title isn't one of
 # NOT_BUILDS (Craig's calls, the UI and reskin jobs that need /design with him, tidy-ups: parked behind features
 # since 1 Nov 2026). Its open rules land on the issue, labelled `rules:open`, before the 7am PM dashboard batches
@@ -29,15 +31,10 @@ on:
   schedule:
     - cron: "*/30 * * * *"
     - cron: "30 1 * * *"  # the rules sweep, before the 02:00 builds and the 7am dashboard
-    - cron: "0 18 * * *"  # the evening note: the day's one report to Craig
   workflow_dispatch:
     inputs:
       sweep:
         description: Run the rules sweep too
-        type: boolean
-        default: false
-      note:
-        description: Write the evening note too
         type: boolean
         default: false
       dry_run:
@@ -67,9 +64,10 @@ env:
   NOT_BUILDS: "^(Craig's call|UI [0-9]+:|Reskin|refactor|chore|docs)"
   OWN_JOBS: "drift-pass|nightly-ci"  # issues other workflows build or open
   SWEEP: ${{ github.event.schedule == '30 1 * * *' || inputs.sweep == true }}
-  NOTE: ${{ github.event.schedule == '0 18 * * *' || inputs.note == true }}
-  NOTE_TITLE: "Today"  # the one issue the evening note rewrites
-  NOTE_LABEL: "lead:note"
+  BOARD_TITLE: "Today"  # the one issue the lead rewrites every pass: the board the PM dashboard shows
+  BOARD_LABEL: "lead:board"
+  NEXT_LABEL: "next"  # Craig's "build this first", from the PM dashboard
+  NEXT_UP: 15  # how many of the queue the board lists
   DRY_RUN: ${{ inputs.dry_run == true }}
 
 jobs:
@@ -83,6 +81,8 @@ jobs:
           gh label create "$RESUMED_LABEL" --color 5319E7 --description "The lead resumed this unfinished build once" --force
           gh label create "$CLEAR_LABEL" --color 0E8A16 --description "The rules sweep found every rule settled" --force
           gh label create "$STALE_LABEL" --color BFBFBF --description "The rules sweep found it already built or out of date" --force
+          gh label create "$NEXT_LABEL" --color B60205 --description "Craig: build this first" --force
+          gh label create "$BOARD_LABEL" --color 1D76DB --description "The lead's board, rewritten every pass" --force
       - name: Fill the builders
         run: |
           set -euo pipefail
@@ -146,15 +146,25 @@ jobs:
             dispatch "$n" build; label "$pr" "$RESUMED_LABEL"; slots=$((slots - 1))
           done
 
-          # 3. new builds, oldest ready issue first
+          # 3. new builds: Craig's `next` first, then the oldest ready issue
           # each open issue with what it is: `build` (lane:auto, or the sweep found it settled), `sweep` (a candidate
-          # the sweep hasn't checked), or nothing
-          ready=$(gh issue list --state open --limit 300 --json number,title,body,labels --jq '
-              .[] | select(all(.labels[]?; .name != "lane:craig" and .name != "rules:open" and .name != env.STALE_LABEL))
-              | select(((.title + " " + ([.labels[]?.name] | join(" "))) | test(env.OWN_JOBS)) | not)
-              | if any(.labels[]?; .name == "lane:auto" or .name == env.CLEAR_LABEL) then "\(.number):build"
-                elif ((.body // "") | test("spec/[0-9]+")) and ((.title | test(env.NOT_BUILDS; "i")) | not) then "\(.number):sweep"
-                else empty end' | sort -t: -k1,1n)
+          # the sweep hasn't checked), `rules` (waits on Craig's answers), `craig` (lane:craig), or nothing
+          issues=$(gh issue list --state open --limit 300 --json number,title,body,labels)
+          ready=$(jq -r '
+              .[] | select(((.title + " " + ([.labels[]?.name] | join(" "))) | test(env.OWN_JOBS)) | not)
+              | select(all(.labels[]?; .name != env.STALE_LABEL))
+              | (if any(.labels[]?; .name == env.NEXT_LABEL) then "0" else "1" end) as $prio
+              | if any(.labels[]?; .name == "rules:open") then "\($prio):\(.number):rules"
+                elif any(.labels[]?; .name == "lane:craig") then "\($prio):\(.number):craig"
+                elif any(.labels[]?; .name == "lane:auto" or .name == env.CLEAR_LABEL) then "\($prio):\(.number):build"
+                elif ((.body // "") | test("spec/[0-9]+")) and ((.title | test(env.NOT_BUILDS; "i")) | not) then "\($prio):\(.number):sweep"
+                else empty end' <<<"$issues" | sort -t: -k1,1n -k2,2n | cut -d: -f2-)
+          # an issue a pull request merged in the last fortnight names is likely built but never closed (5 Nov 2026:
+          # #1022, #1095, #1102, #1114 all sat in the queue after merging), so it is swept, not built: the sweep
+          # labels it stale, or clear if work is left
+          merged_refs=$(gh pr list --state merged --search "merged:>=$(date -u -d '14 days ago' +%F)" --limit 200 --json title,body \
+                          --jq '.[] | (.title + " " + (.body // "")) | scan("#([0-9]+)") | .[0]' | sort -u)
+          ready=$(for row in $ready; do n=${row%%:*}; if [ "${row#*:}" = build ] && grep -qx "$n" <<<"$merged_refs"; then echo "$n:sweep"; else echo "$row"; fi; done)
           for row in $ready; do
             [ "$slots" -gt 0 ] || break
             n=${row%%:*}
@@ -178,20 +188,22 @@ jobs:
             echo "Swept $swept issue(s) for open rules."
           fi
 
-          # the evening note: one report a day, on the Today issue, never in chat (Craig, 5 Nov 2026: "i build a dev
-          # team to take on the world but im a bottleneck still"); the PM dashboard shows it
-          if [ "$NOTE" = true ]; then
-            today=$(date -u +%Y-%m-%d)
-            merged=$(gh pr list --state merged --search "merged:>=$today" --limit 100 --json number,title --jq '.[] | "- #\(.number) \(.title)"')
-            red=$(jq -r '.[] | select(.isDraft | not) | select(any(.statusCheckRollup[]?; .conclusion == "FAILURE")) | "- #\(.number) \(.headRefName)"' <<<"$prs")
-            waiting=$(jq -r '.[] | select(.isDraft | not) | select(any(.statusCheckRollup[]?; .name == "look-approved" and .conclusion == "FAILURE")) | "- #\(.number): the look (craig-approved)"' <<<"$prs")
-            rules=$(gh issue list --state open --label rules:open --limit 50 --json number,title --jq '.[] | "- #\(.number) \(.title)"')
-            body=$(printf '## %s\n\n**Merged today**\n%s\n\n**Red**\n%s\n\n**Waiting on Craig**\n%s\n%s\n\n**In flight**\n%s\n\n*Written by the lead at %s UTC.*\n' \
-              "$today" "${merged:-- nothing}" "${red:-- nothing}" "${waiting:-}" "${rules:-- nothing}" "${running:-- nothing}" "$(date -u +%H:%M)")
-            note=$(gh issue list --state open --label "$NOTE_LABEL" --limit 1 --json number --jq '.[0].number // empty')
-            if [ "$DRY_RUN" = true ]; then echo "$body"
-            elif [ -n "$note" ]; then gh issue edit "$note" --title "$NOTE_TITLE $today" --body "$body" > /dev/null
-            else gh label create "$NOTE_LABEL" --color 1D76DB --description "The lead's evening note" --force
-                 gh issue create --title "$NOTE_TITLE $today" --label "$NOTE_LABEL" --body "$body" > /dev/null; fi
-            echo "Evening note written."
-          fi
+          # the board: the Today issue, rewritten every pass (Craig, 5 Nov 2026: "i never know whats next for us to
+          # build/what we can do"); the PM dashboard copies it onto his page
+          title_of() { jq -r --argjson n "$1" '.[] | select(.number == $n) | .title' <<<"$issues"; }
+          line() { echo "- #$1 $(title_of "$1")"; }
+          # counted in the loop, not with head: under pipefail, head closing the pipe fails the step (5 Nov 2026, dry run)
+          next_up=$(k=0; for row in $ready; do [ "$k" -lt "$NEXT_UP" ] || break; n=${row%%:*}; [ "${row#*:}" = build ] || continue; grep -qx "$n" <<<"$taken" && continue; grep -qx "$n" <<<"$busy_issues" && continue; line "$n"; k=$((k + 1)); done)
+          unchecked=$(k=0; for row in $ready; do [ "$k" -lt "$NEXT_UP" ] || break; [ "${row#*:}" = sweep ] || continue; line "${row%%:*}"; k=$((k + 1)); done)
+          blocked=$(for row in $ready; do n=${row%%:*}; case ${row#*:} in rules) echo "- #$n $(title_of "$n"): your answers (the dashboard has the questions)";; craig) echo "- #$n $(title_of "$n"): you";; esac; done)
+          today=$(date -u +%Y-%m-%d)
+          merged=$(gh pr list --state merged --search "merged:>=$today" --limit 100 --json number,title --jq '.[] | "- #\(.number) \(.title)"')
+          red=$(jq -r '.[] | select(.isDraft | not) | select(any(.statusCheckRollup[]?; .conclusion == "FAILURE")) | "- #\(.number) \(.headRefName)"' <<<"$prs")
+          looks=$(jq -r '.[] | select(.isDraft | not) | select(any(.statusCheckRollup[]?; .name == "look-approved" and .conclusion == "FAILURE")) | "- #\(.number): the look, your craig-approved label"' <<<"$prs")
+          body=$(printf '## %s, %s UTC\n\n**Next up** (build order; label an issue `next` to put it first)\n%s\n\n**In flight**\n%s\n\n**Blocked, and on what**\n%s\n%s\n\n**Not yet checked for open rules** (the 01:30 sweep)\n%s\n\n**Merged today**\n%s\n\n**Red**\n%s\n\n*Written by the lead; it rewrites this every half hour.*\n' \
+            "$today" "$(date -u +%H:%M)" "${next_up:-- nothing ready: answer the blocked ones, or file an issue}" "${running:-- nothing}" "${blocked:-- nothing}" "${looks:-}" "${unchecked:-- none}" "${merged:-- nothing}" "${red:-- nothing}")
+          board=$(gh issue list --state open --label "$BOARD_LABEL" --limit 1 --json number --jq '.[0].number // empty')
+          if [ "$DRY_RUN" = true ]; then echo "$body"
+          elif [ -n "$board" ]; then gh issue edit "$board" --title "$BOARD_TITLE" --body "$body" > /dev/null
+          else gh issue create --title "$BOARD_TITLE" --label "$BOARD_LABEL" --body "$body" > /dev/null; fi
+          echo "Board written."
