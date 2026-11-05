@@ -33,8 +33,9 @@ import { pickOnTheClock } from "./snakeOrder";
 // for a team with no manager, the draft picks for the team (`autoPick`; #1091).
 // Greying out always leaves a legal pick, so a team with none is an error, not the end of its draft
 // (Craig, 4 Nov 2026, on #1090). Auto-pick takes by the team's queue, the admin's ranking and last
-// season's points (autoPickOrder.ts; #1094). Not built yet: the commissioner's picks and undo, and the manager's 10-second undo, which will also keep the draft open for the
-// 10 seconds after its last pick (Craig, 4 Nov 2026, on #1090): until then it is over at the last pick.
+// season's points (autoPickOrder.ts; #1094). Not built yet: the commissioner's picks and undo, and
+// the manager's 10-second undo, which will also keep the draft open for the 10 seconds after its
+// last pick (Craig, 4 Nov 2026, on #1090): until then it is over at the last pick.
 
 /** Why a pick is refused, in the words the manager is shown. */
 export const pickRefusals = {
