@@ -34,8 +34,9 @@ Among them:
   own, 90 minutes before (see [5. Tactics](05-tactics.md)).
 - Each area's minimum and maximum on the pitch, and the formation presets.
 - Double gameweeks: both matches count (the default), or best match.
-- Waivers: when they run, set by the league; can be more than once a week. The waiver order:
-  reverse table order, or rotating (reset weekly).
+- Waivers: when they run, set by the league; can be more than once a week, Wednesday and Thursday
+  at 18:00 UK time by default. The waiver order: reverse table order (the default), or rotating
+  (reset weekly) (`spec/08`).
 - The draft clock (see [4. The draft](04-the-draft.md)).
 - Roles (see [5. Tactics](05-tactics.md)); their scoring adjustments are the site's (`spec/14`).
 - Trade review: none, a commissioner veto, or a league vote (see [8. Between gameweeks](08-between-gameweeks.md)).
