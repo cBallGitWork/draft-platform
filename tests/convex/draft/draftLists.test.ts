@@ -1,54 +1,26 @@
 import { beforeEach, describe, expect, test } from "vitest";
-import { api } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
 import { DRAFT_LIST_MOST } from "../../../convex/draft/draftLimits";
 import { draftListRefusals } from "../../../convex/draft/draftLists";
 import { refusals } from "../../../convex/shared/leagueAccess";
-import { ADMIN, COMMISSIONER, MANAGERS, actingAs, addManagers, adminCreatesLeague, type TestConvex } from "../../support/convex/leagues.harness";
-import { ARSENAL, CHELSEA, GONE, insertClubs, insertDroppedPlayer } from "../../support/convex/footballRows.harness";
-import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
+import { ANN, BOB, NO_SUCH_PLAYER, ODEGAARD, PALMER, SAKA, listsAs, listsLeague, manyPlayers, namesOn as namesIn, playerLeaves } from "../../support/convex/draftLists.harness";
+import { ARSENAL, CHELSEA, GONE } from "../../support/convex/footballRows.harness";
+import { ADMIN, COMMISSIONER, MANAGERS, addManagers, adminCreatesLeague, type TestConvex } from "../../support/convex/leagues.harness";
 import { expectRefused } from "../../support/convex/test.harness";
 
 // A manager's draft queue and do-not-draft list (#1092, spec/04 The queue and the ranking): the
 // team's, private to it, no player on both, 250 each, and changeable between picks once the draft
-// has started, a drafted player staying listed.
-
-const [ANN, BOB] = MANAGERS;
-const SAKA = { code: 1001, name: "Saka", fullName: "Bukayo Saka", clubCode: ARSENAL.code };
-const PALMER = { code: 1002, name: "Palmer", fullName: "Cole Palmer", clubCode: CHELSEA.code };
-const ODEGAARD = { code: 1003, name: "Ødegaard", fullName: "Martin Ødegaard", clubCode: ARSENAL.code };
-const NO_SUCH_PLAYER = 9999;
+// has started, a drafted player staying listed. The shortlist feeding the queue: shortlistQueue.test.ts.
 
 let t: TestConvex;
 let leagueId: Id<"leagues">;
 let teams: Id<"teams">[];
 beforeEach(async () => {
-  t = await signInDeployment();
-  fakeResend();
-  leagueId = await adminCreatesLeague(t, 4);
-  teams = await addManagers(t, leagueId, [ANN, BOB]);
-  await t.run(async (ctx) => {
-    await insertClubs(ctx, [ARSENAL, CHELSEA]);
-    for (const player of [SAKA, PALMER, ODEGAARD]) await ctx.db.insert("players", player);
-    await insertDroppedPlayer(ctx, GONE, Date.now());
-  });
+  ({ t, leagueId, teams } = await listsLeague());
 });
 
-const as = async (email: string, league = leagueId) => {
-  const person = await actingAs(t, email);
-  return {
-    queue: (playerCode: number) => person.mutation(api.draft.draftLists.add, { leagueId: league, playerCode, list: "queue" }),
-    rule: (playerCode: number) => person.mutation(api.draft.draftLists.add, { leagueId: league, playerCode, list: "doNotDraft" }),
-    unqueue: (playerCode: number) => person.mutation(api.draft.draftLists.remove, { leagueId: league, playerCode, list: "queue" }),
-    unrule: (playerCode: number) => person.mutation(api.draft.draftLists.remove, { leagueId: league, playerCode, list: "doNotDraft" }),
-    move: (playerCode: number, place: number) => person.mutation(api.draft.draftLists.move, { leagueId: league, playerCode, place }),
-    mine: () => person.query(api.draft.draftLists.mine, { leagueId: league }),
-  };
-};
-const namesOn = async (email: string, league = leagueId) => {
-  const lists = await (await as(email, league)).mine();
-  return lists && { queue: lists.queue.map(({ name }) => name), doNotDraft: lists.doNotDraft.map(({ name }) => name) };
-};
+const as = (email: string, league = leagueId) => listsAs(t, league, email);
+const namesOn = (email: string, league = leagueId) => namesIn(t, league, email);
 
 describe("a manager's own queue", () => {
   test("starts empty, as does his do-not-draft list", async () => {
@@ -146,22 +118,13 @@ describe("both lists", () => {
 
   test("a player who leaves the Premier League after he was added stays, marked gone", async () => {
     await (await as(ANN)).queue(SAKA.code);
-    await t.run(async (ctx) => {
-      const saka = await ctx.db
-        .query("players")
-        .withIndex("by_code", (q) => q.eq("code", SAKA.code))
-        .unique();
-      await ctx.db.patch("players", saka!._id, { droppedAt: Date.now() });
-    });
+    await playerLeaves(t, SAKA.code);
     expect((await (await as(ANN)).mine())?.queue[0]).toMatchObject({ name: "Saka", gone: true });
   });
 
   test.each(["queue", "doNotDraft"] as const)(`the %s holds at most ${DRAFT_LIST_MOST}, the other list apart`, async (list) => {
-    const codes = Array.from({ length: DRAFT_LIST_MOST }, (_, index) => index + 1);
-    await t.run(async (ctx) => {
-      for (const code of codes) await ctx.db.insert("players", { code, name: `Player ${code}`, fullName: `Player ${code}`, clubCode: ARSENAL.code });
-      await ctx.db.insert("draftLists", { leagueId, teamId: teams[0], queue: [], doNotDraft: [], [list]: codes });
-    });
+    const codes = await manyPlayers(t, DRAFT_LIST_MOST);
+    await t.run((ctx) => ctx.db.insert("draftLists", { leagueId, teamId: teams[0], queue: [], doNotDraft: [], [list]: codes }));
     const ann = await as(ANN);
     const add = list === "queue" ? ann.queue : ann.rule;
     await expectRefused(add(SAKA.code), draftListRefusals.full(list));

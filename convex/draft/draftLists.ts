@@ -1,9 +1,10 @@
 import { v } from "convex/values";
 import type { Doc, Id } from "../_generated/dataModel";
-import { mutation, query, type QueryCtx } from "../_generated/server";
-import { listedPlayer, listedPlayers, ownTeam } from "../scouting/shortlist";
-import { memberOf, refuse, refusals } from "../shared/leagueAccess";
-import { playerByCode } from "../shared/players";
+import { mutation, query, type MutationCtx, type QueryCtx } from "../_generated/server";
+import { listedPlayer, listedPlayers, ownTeam, shortlistOf } from "../scouting/shortlist";
+import { memberOf, refuse, refusals, teamIn } from "../shared/leagueAccess";
+import { heldPlayerByCode, playerByCode } from "../shared/players";
+import { placeOf } from "../squads/squadPlace";
 import { DRAFT_LIST_MOST } from "./draftLimits";
 
 // A manager's draft queue and do-not-draft list (spec/04, The queue and the ranking; #1092). The
@@ -13,8 +14,8 @@ import { DRAFT_LIST_MOST } from "./draftLimits";
 // nor the commissioner, can tell who is on them. No player is on both: adding him to one takes him
 // off the other. They can be changed at any time, between picks once the draft has started too,
 // and a drafted player stays listed (Craig, 4 Nov 2026); auto-pick, which skips him, isn't built.
-// Not built yet: emptying them when a draft ends (no draft ends yet), and the shortlist feeding
-// the queue (#1137).
+// The shortlist feeds the queue, a player at a time or the whole of it (#1137). Not built yet:
+// emptying them when a draft ends (no draft ends yet).
 
 const draftList = v.union(v.literal("queue"), v.literal("doNotDraft"));
 type DraftList = "queue" | "doNotDraft";
@@ -25,6 +26,8 @@ export const draftListRefusals = {
     `${list === "queue" ? "A draft queue" : "A do-not-draft list"} holds at most ${DRAFT_LIST_MOST} players. Take one off first.`,
   notQueued: (name: string) => `${name} isn't in your queue.`,
   noPlace: (count: number) => `Your queue has ${count} players, so that place isn't in it.`,
+  notShortlisted: (name: string) => `${name} isn't on your shortlist.`,
+  taken: (name: string, teamName: string) => `${name} is already taken, by ${teamName}, so he can't go in your queue.`,
 };
 
 const otherList = (list: DraftList): DraftList => (list === "queue" ? "doNotDraft" : "queue");
@@ -65,16 +68,78 @@ export const add = mutation({
     const team = await ownTeam(ctx, leagueId);
     const player = (await playerByCode(ctx, playerCode)) ?? refuse(refusals.noPlayer);
     if (player.droppedAt !== undefined) refuse(draftListRefusals.playerGone(player.name));
-    const lists = await listsOf(ctx, team._id);
-    const held = { queue: lists?.queue ?? [], doNotDraft: lists?.doNotDraft ?? [] };
-    if (held[list].includes(playerCode)) return null;
-    if (held[list].length >= DRAFT_LIST_MOST) refuse(draftListRefusals.full(list));
-    held[list] = [...held[list], playerCode];
-    const other = otherList(list);
-    held[other] = held[other].filter((code) => code !== playerCode);
-    if (lists) await ctx.db.patch("draftLists", lists._id, held);
-    else await ctx.db.insert("draftLists", { leagueId, teamId: team._id, ...held });
+    await putOn(ctx, team, list, [playerCode]);
     return null;
+  },
+});
+
+/** Puts `codes` at the bottom of the team's `list`, in their order, taking each off the other list;
+ *  one already on `list` keeps his place. Refuses the lot if they would take it past
+ *  DRAFT_LIST_MOST. */
+async function putOn(ctx: MutationCtx, team: Doc<"teams">, list: DraftList, codes: readonly number[]): Promise<void> {
+  const lists = await listsOf(ctx, team._id);
+  const held = { queue: lists?.queue ?? [], doNotDraft: lists?.doNotDraft ?? [] };
+  const adding = codes.filter((code) => !held[list].includes(code));
+  if (adding.length === 0) return;
+  if (held[list].length + adding.length > DRAFT_LIST_MOST) refuse(draftListRefusals.full(list));
+  held[list] = [...held[list], ...adding];
+  const other = otherList(list);
+  held[other] = held[other].filter((code) => !adding.includes(code));
+  if (lists) await ctx.db.patch("draftLists", lists._id, held);
+  else await ctx.db.insert("draftLists", { leagueId: team.leagueId, teamId: team._id, ...held });
+}
+
+/** The caller's own shortlisted players a draft could still take: still in the Premier League and
+ *  on no team in the league (Craig, 4 Nov 2026, on #1137: an already-drafted player never goes in
+ *  the queue). By name, as the shortlist shows them. */
+async function shortlistedToQueue(ctx: QueryCtx, team: Doc<"teams">): Promise<Doc<"players">[]> {
+  const players = await Promise.all(
+    (await shortlistOf(ctx, team._id)).map(async ({ playerCode }) =>
+      (await placeOf(ctx, team.leagueId, playerCode)) === null
+        ? [await heldPlayerByCode(ctx, playerCode, `Shortlisted player ${playerCode} isn't held`)]
+        : [],
+    ),
+  );
+  return players
+    .flat()
+    .filter((player) => player.droppedAt === undefined)
+    .sort((one, another) => one.name.localeCompare(another.name));
+}
+
+/** Puts one player from the caller's own shortlist at the bottom of his queue, taking him off the
+ *  do-not-draft list; one already queued keeps his place. Refused for a player not shortlisted, gone
+ *  from the Premier League, or already on a team (Craig, 4 Nov 2026, on #1137). */
+export const addFromShortlist = mutation({
+  args: playerInLeague,
+  returns: v.null(),
+  handler: async (ctx, { leagueId, playerCode }) => {
+    const team = await ownTeam(ctx, leagueId);
+    const player = (await playerByCode(ctx, playerCode)) ?? refuse(refusals.noPlayer);
+    if (!(await shortlistOf(ctx, team._id)).some((entry) => entry.playerCode === playerCode)) {
+      refuse(draftListRefusals.notShortlisted(player.name));
+    }
+    if (player.droppedAt !== undefined) refuse(draftListRefusals.playerGone(player.name));
+    const place = await placeOf(ctx, leagueId, playerCode);
+    if (place !== null) refuse(draftListRefusals.taken(player.name, (await teamIn(ctx, leagueId, place.teamId)).name));
+    await putOn(ctx, team, "queue", [playerCode]);
+    return null;
+  },
+});
+
+/** "Add my whole shortlist": puts the caller's shortlisted players a draft could still take at the
+ *  bottom of his queue, in name order, taking them off the do-not-draft list; those already queued
+ *  keep their place. As many as fit under DRAFT_LIST_MOST go in, and the rest, by name, are left
+ *  out (Craig, 4 Nov 2026, on #1137). Returns how many went in and how many were left out. */
+export const addShortlist = mutation({
+  args: { leagueId: v.id("leagues") },
+  returns: v.object({ added: v.number(), leftOut: v.number() }),
+  handler: async (ctx, { leagueId }) => {
+    const team = await ownTeam(ctx, leagueId);
+    const queued = new Set((await listsOf(ctx, team._id))?.queue ?? []);
+    const adding = (await shortlistedToQueue(ctx, team)).map(({ code }) => code).filter((code) => !queued.has(code));
+    const fitting = adding.slice(0, Math.max(0, DRAFT_LIST_MOST - queued.size));
+    await putOn(ctx, team, "queue", fitting);
+    return { added: fitting.length, leftOut: adding.length - fitting.length };
   },
 });
 

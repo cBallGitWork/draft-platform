@@ -51,6 +51,8 @@ export const gates: Record<string, Gate> = {
   "auth:isAuthenticated": "open",
   "auth:signOut": "open",
   "draft/draftLists:add": "member",
+  "draft/draftLists:addFromShortlist": "member",
+  "draft/draftLists:addShortlist": "member",
   "draft/draftLists:mine": "member",
   "draft/draftLists:move": "member",
   "draft/draftLists:remove": "member",
