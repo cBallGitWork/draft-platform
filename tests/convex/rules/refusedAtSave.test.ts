@@ -93,14 +93,14 @@ test("a squad maximum of 26 is refused naming 25, and nothing is saved; 25 is sa
 
 test("an own stat named as a catalogue stat is, case aside, is refused from the rules editor (#212)", async () => {
   const scoring: StoredScoringSet = {
-    rules: [{ shape: "perAction", stat: "own_assists", values: { all: 3 } }],
+    rules: [{ shape: "perAction", stat: "league:assists", values: { all: 3 } }],
     wholePointsOnly: false,
-    ownStats: [{ stat: "own_assists", name: "assists", shortCode: "OA", parts: [{ stat: "assists", weight: 1 }] }],
+    ownStats: [{ stat: "league:assists", name: "assists", shortCode: "OA", parts: [{ stat: "assists", weight: 1 }] }],
   };
 
   await expectRefused(
     (await actingAs(t, ADMIN)).mutation(api.scoring.siteScoring.fix, { scoring, revision: null }),
-    'The scoring set can\'t be saved: the own stat own_assists has the name "assists", which the catalogue\'s Assists has.',
+    'The scoring set can\'t be saved: the own stat league:assists has the name "assists", which the catalogue\'s Assists has.',
   );
 });
 
