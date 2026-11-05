@@ -15,7 +15,7 @@ test("every recorded club, player, match and gameweek is mapped", () => {
   expect(football.gameweeks.map((gameweek) => gameweek.number)).toEqual([1, 7, 8]);
 });
 
-test("a player is his season-stable code, his names, his club's code and FPL's news on him, with no per-season id", () => {
+test("a player is his season-stable code, his names, his club's code and FPL's news and flag on him, with no per-season id", () => {
   // In this payload his per-season id is 411 and Manchester City's is 15: neither is carried.
   expect(football.players.find((player) => player.code === HAALAND)).toEqual({
     code: HAALAND,
@@ -24,6 +24,7 @@ test("a player is his season-stable code, his names, his club's code and FPL's n
     clubCode: CLUB_CODE.manCity,
     news: "Unspecified injury - 75% chance of playing",
     chanceOfPlaying: 75,
+    availability: "doubtful",
   });
 });
 

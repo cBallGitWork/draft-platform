@@ -49,6 +49,8 @@ export const GATE_REFUSALS = new Set<string>(
 export const gates: Record<string, Gate> = {
   "admin/feeds:feeds": "admin",
   "auth:isAuthenticated": "open",
+  "availability/availability:ofPlayer": "admin",
+  "availability/availability:set": "admin",
   "auth:signOut": "open",
   "draft/draftBoard:inMenu": "member",
   "draft/draftBoard:ofLeague": "member",

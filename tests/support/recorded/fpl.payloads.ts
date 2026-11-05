@@ -25,15 +25,17 @@ export const RECORDED_COUNT = { clubs: 20, players: 7, fixtures: 3, gameweeks: 3
 export const CLUB_CODE = { arsenal: 3, coventry: 9, manCity: 43 } as const;
 
 /** Season-stable codes of players the tests name. */
-export const PLAYER_CODE = { haaland: 223094, raya: 154561, saka: 223340 } as const;
+export const PLAYER_CODE = { haaland: 223094, raya: 154561, saka: 223340, saliba: 462424, sessegnon: 184349, jesus: 205651 } as const;
 
 /** Season-stable codes of matches the tests name. */
 export const FIXTURE_CODE = { arsenalVCoventry: 2645195 } as const;
 
-/** Players from a recording cut to `RawBootstrap`'s fields before it typed FPL's news (#381), with
- *  the news of a player FPL has no doubt about. */
-export function withNoNews(elements: Omit<RawBootstrap["elements"][number], "news" | "chance_of_playing_next_round">[]): RawBootstrap["elements"] {
-  return elements.map((element) => ({ ...element, news: "", chance_of_playing_next_round: null }));
+/** Players from a recording cut to `RawBootstrap`'s fields before it typed FPL's news (#381) and
+ *  flag (#1206), with the news and flag of a player FPL has no doubt about. */
+export function withNoNews(
+  elements: Omit<RawBootstrap["elements"][number], "news" | "chance_of_playing_next_round" | "status">[],
+): RawBootstrap["elements"] {
+  return elements.map((element) => ({ ...element, news: "", chance_of_playing_next_round: null, status: "a" }));
 }
 
 /** A fresh copy of the first recording, safe to change for one test. */
