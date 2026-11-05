@@ -47,7 +47,7 @@ function liveDraft(paused = false): Extract<DraftState, { status: "live" }> {
 const oneTaken = { ...emptyBoard, picks: [{ pick: 1, teamId: draftOrder[0].teamId, player: { code: 1, name: "Saka", clubShortName: "ARS", position: "W" as const } }] };
 
 describe("who sees it", () => {
-  it("is shown to the commissioner and the co-commissioner, never to a manager", async () => {
+  it("is shown to the commissioner", async () => {
     openAs(commissioner);
     expect(await panel()).toBeTruthy();
   });
@@ -79,7 +79,7 @@ describe("before the start", () => {
     expect(app.draft.changes.start).toHaveBeenCalledWith(league.leagueId);
   });
 
-  it("offers I'll pick for each team with no manager, and Stop picking for one he has taken on", async () => {
+  it("offers I'll pick for each team with no manager, saying it is on auto-pick until then", async () => {
     const app = openAs(commissioner);
     expect(within(await panel()).getByText(unmanagedWords("Team 3"))).toBeTruthy();
     await userEvent.click(await button(pickForTeamWords("Team 3")));

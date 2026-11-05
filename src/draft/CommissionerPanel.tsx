@@ -1,5 +1,6 @@
 import { useId, useState, type FormEvent } from "react";
 import type { Id } from "../../convex/_generated/dataModel";
+import { toSeconds, type PickClockUnit } from "../leagueSettings/pickClock";
 import type { Change } from "../shared/refusal";
 import { useChange } from "../shared/useChange";
 import { Loading, PANEL_BODY, Panel, Problem } from "../ui/Panel";
@@ -117,12 +118,12 @@ function LastPick({ draft, board }: { draft: Live; board: DraftBoard }) {
   return <p className="text-soft">{lastPickWords(team, player, slotWords(roundOf(last.pick, teams), pickInRoundOf(last.pick, teams)))}</p>;
 }
 
-const UNITS: Record<string, number> = { "": 1, s: 1, m: 60, h: 3600 };
+const UNITS: Record<string, PickClockUnit> = { "": "seconds", s: "seconds", m: "minutes", h: "hours" };
 
-/** A typed pick time in seconds, "90s", "2m", "8h" or a bare 90; null for anything else. */
+/** A typed pick time in whole seconds, "90s", "2m", "8h" or a bare 90; null for anything else. */
 function secondsFrom(typed: string): number | null {
   const found = /^\s*(\d+(?:\.\d+)?)\s*([smh]?)\s*$/i.exec(typed);
-  return found === null ? null : Math.round(Number(found[1]) * UNITS[found[2].toLowerCase()]);
+  return found === null ? null : Math.round(toSeconds(Number(found[1]), UNITS[found[2].toLowerCase()]));
 }
 
 /** The pick time's box: typed as "90s", "2m" or "8h" and saved on Enter or on leaving it, where
