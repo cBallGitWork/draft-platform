@@ -26,8 +26,11 @@ export type ScoutingData = {
 const NO_SEASON = { matches: 0, stats: {} };
 
 export function fakeScouting({ clubs = [], players = [], totals = {}, seasons = {}, loading = false, comparing = false, shortlist }: ScoutingData = {}) {
+  const addToQueue = vi.fn<ReturnType<ScoutingSeam["useAddToQueue"]>>(async () => shortlist?.refusal ?? null);
   return {
     ...fakeShortlist(shortlist),
+    useAddToQueue: () => addToQueue,
+    addToQueue,
     usePlayersList: vi.fn<ScoutingSeam["usePlayersList"]>((_leagueId, filters, sort, stat) =>
       loading
         ? undefined

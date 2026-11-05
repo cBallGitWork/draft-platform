@@ -5,6 +5,7 @@ import type { FunctionReturnType } from "convex/server";
 import type { api } from "../../convex/_generated/api";
 import type { Id } from "../../convex/_generated/dataModel";
 import type { BoardPick, DraftBoard } from "../../convex/draft/draftBoard";
+import type { Change } from "../shared/refusal";
 
 export type { BoardPick, DraftBoard };
 
@@ -19,4 +20,26 @@ export type DraftSeam = {
   useBoard(leagueId: Id<"leagues">, now: number): DraftBoard | undefined;
   /** Whether the draft room is in the menu, live (a hook): undefined while it loads. */
   useInMenu(leagueId: Id<"leagues">): boolean | undefined;
+  /** The reader's own queue and do-not-draft list, live (a hook): undefined while they load, null
+   *  for someone who runs no team. */
+  useLists(leagueId: Id<"leagues">): DraftLists | null | undefined;
+  /** The changes the room's queue, do-not-draft and auto-pick panels make (a hook). */
+  useListChanges(): DraftListChanges;
+};
+
+/** The reader's queue, first choice first, and do-not-draft list (draft/draftLists:mine). */
+export type DraftLists = NonNullable<FunctionReturnType<typeof api.draft.draftLists.mine>>;
+export type DraftList = "queue" | "doNotDraft";
+
+/** What adding the whole shortlist did (draft/draftLists:addShortlist). */
+export type ShortlistAdded = FunctionReturnType<typeof api.draft.draftLists.addShortlist>;
+
+export type DraftListChanges = {
+  remove(leagueId: Id<"leagues">, playerCode: number, list: DraftList): Change;
+  /** Moves a queued player to `place`, 1 the top. */
+  move(leagueId: Id<"leagues">, playerCode: number, place: number): Change;
+  /** "Add my whole shortlist": what it added, or the words saying why not. */
+  addShortlist(leagueId: Id<"leagues">): Promise<ShortlistAdded | string>;
+  turnOnAutoPick(leagueId: Id<"leagues">): Change;
+  takeControlBack(leagueId: Id<"leagues">): Change;
 };

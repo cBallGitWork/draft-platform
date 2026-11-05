@@ -6,6 +6,7 @@ import type { Id } from "../../convex/_generated/dataModel";
 import { snakeOrder } from "../../convex/draft/snakeOrder";
 import type { Position } from "../../convex/positions/positionTables";
 import { DAY_MS, HOUR_MS, SECOND_MS } from "../../convex/shared/time";
+import { previewLists, usePreviewAutoPick } from "./previewLists";
 import type { BoardPick, DraftSeam, DraftState } from "./seam";
 
 const NAMES = ["Kroos Control", "Rovers XI", "Bale Out", "Pep Talk", "Klopp Shop", "Havertz Rent", "Xhaka Laka", "Saka Potatoes", "Show Me Your Moyes", "Dirty Dozen"];
@@ -28,6 +29,7 @@ const snake = snakeOrder(order, ROUNDS);
 const picks: BoardPick[] = TAKEN.map(([name, clubShortName, position], index) => ({
   pick: index + 1,
   teamId: snake[index].teamId,
+  auto: false,
   player: { code: 9000 + index, name, clubShortName, position },
 }));
 
@@ -50,6 +52,7 @@ const isBefore = () => new URLSearchParams(window.location.search).get("draft") 
 
 export const previewDraft: DraftSeam = {
   useDraft: () => (isBefore() ? before : draft),
-  useBoard: () => ({ picks: isBefore() ? [] : picks, yourTeamId: YOURS, pickSeconds: 90 }),
+  useBoard: () => ({ picks: isBefore() ? [] : picks, yourTeamId: YOURS, pickSeconds: 90, yourAutoPick: usePreviewAutoPick() }),
   useInMenu: () => true,
+  ...previewLists,
 };

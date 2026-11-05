@@ -120,6 +120,9 @@
   --grid-template-columns-dated-row: auto minmax(0, 1fr);
   --grid-template-columns-home: minmax(0, 2fr) minmax(0, 3fr) minmax(0, 2fr);
   --grid-template-columns-card: 2fr 3fr;
+  /* The draft room under its board: the players list, and the right-hand column of widgets beside
+     it, the approved picture's 400px (#1100) */
+  --grid-template-columns-draft-room: minmax(0, 1fr) 25rem;
   --grid-template-columns-facts: auto 1fr;
   /* The formation window's groups, its tiles and the picked one's preview (the approved formation
      window) */
