@@ -27,7 +27,7 @@ concurrency:  # a newer push to a pull request cancels its older run; a nightly 
 env:
   # code = any changed file outside docs/, spec/, .claude/, markdown and the agents' prompt workflows, which no
   # test, build or smoke run exercises (Craig, 4 Nov 2026: stop running CI all the time)
-  NOT_CODE: '^(docs/|spec/|\.claude/)|\.md$|^\.github/workflows/(claude-build|nightly-build|review|drift-pass)\.yml$'
+  NOT_CODE: '^(docs/|spec/|\.claude/)|\.md$|^\.github/workflows/(claude-build|lead|review|drift-pass)\.yml$'
   # what the browser loads, so what smoke exercises
   SMOKE_PATHS: '^(src/|public/|index\.html$|vite\.config|package(-lock)?\.json$)'
   UNIT_SHARDS: 3  # keep in step with the `shard` matrix below
