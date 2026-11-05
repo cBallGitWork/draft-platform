@@ -1,0 +1,28 @@
+{
+  "elements": [
+    {
+      "code": 100001,
+      "element_type": 1
+    },
+    {
+      "code": 100002,
+      "element_type": 2
+    },
+    {
+      "code": 100003,
+      "element_type": 3
+    },
+    {
+      "code": 100004,
+      "element_type": 4
+    },
+    {
+      "code": 100005,
+      "element_type": 3
+    },
+    {
+      "code": 100006,
+      "element_type": 4
+    }
+  ]
+}
