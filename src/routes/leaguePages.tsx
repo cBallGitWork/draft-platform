@@ -67,7 +67,15 @@ const mailRoute = createRoute({
   component: function MailScreen() {
     const { mail, session, topBar } = mailRoute.useRouteContext();
     const { letter } = mailRoute.useSearch();
-    return <MailPage mail={mail} unread={topBar.unreadMail} writableLeagues={leaguesToWriteFrom(session)} opened={letter} />;
+    return (
+      <MailPage
+        mail={mail}
+        unread={topBar.unreadMail}
+        writableLeagues={leaguesToWriteFrom(session)}
+        leaguesCut={session.signedIn && session.leaguesCut === true}
+        opened={letter}
+      />
+    );
   },
 });
 

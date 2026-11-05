@@ -5,7 +5,7 @@ import { PANEL_BODY, Panel, Problem, Status } from "../ui/Panel";
 import { useChange } from "../shared/useChange";
 import { useChoiceAmong } from "../shared/useChoiceAmong";
 import type { MailSeam } from "./seam";
-import { WRITE_TITLE, sendToWords, sentWords, writeHint, writeLabels } from "./words";
+import { WRITE_TITLE, leaguesCutFromWords, sendToWords, sentWords, writeHint, writeLabels } from "./words";
 
 const LEAGUE_CHOICE_ID = "letter-league";
 const SUBJECT_ID = "letter-subject";
@@ -16,8 +16,17 @@ const HINT_ID = "letter-hint";
 /** How many lines the letter's box shows before it scrolls. */
 const LETTER_ROWS = 6;
 
-/** spec/16: the commissioner's one-way letter to the whole league, from a league they run. */
-export function WriteToLeague({ leagues, writeToLeague }: { leagues: readonly LeagueSummary[]; writeToLeague: MailSeam["writeToLeague"] }) {
+/** spec/16: the commissioner's one-way letter to the whole league, from a league they run. `cut`:
+ *  the person's leagues stop short, so one they run may be missing from `leagues` (#297). */
+export function WriteToLeague({
+  leagues,
+  cut,
+  writeToLeague,
+}: {
+  leagues: readonly LeagueSummary[];
+  cut: boolean;
+  writeToLeague: MailSeam["writeToLeague"];
+}) {
   // The first league is passed as the start, so the default doesn't follow whichever comes first later.
   const [leagueId, setLeagueId] = useChoiceAmong(
     leagues.map((each) => each.leagueId),
@@ -47,6 +56,7 @@ export function WriteToLeague({ leagues, writeToLeague }: { leagues: readonly Le
         <p id={HINT_ID} className="text-muted">
           {writeHint}
         </p>
+        {cut && <p className="text-muted">{leaguesCutFromWords}</p>}
         {leagues.length > 1 && (
           <>
             <label htmlFor={LEAGUE_CHOICE_ID} className="font-semibold">
