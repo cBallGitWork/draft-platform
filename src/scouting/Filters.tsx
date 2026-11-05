@@ -99,7 +99,7 @@ const STAT_BOX_LOOKS = {
   button: {
     frame: "secondary-action relative gap-1 px-2 lg:min-h-bar-control",
     label: "",
-    select: "appearance-none bg-transparent pr-3 font-semibold text-fact field-sizing-content",
+    select: "min-h-tap appearance-none self-stretch bg-transparent pr-3 font-semibold text-fact field-sizing-content lg:min-h-0",
   },
 } as const;
 

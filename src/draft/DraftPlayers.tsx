@@ -118,28 +118,30 @@ export function DraftPlayers({
       ) : players.length === 0 ? (
         <PanelNote>{noneMatchWords}</PanelNote>
       ) : (
-        <table className="w-full border-collapse">
-          <ColumnHeads<Column, RoomSortColumn>
-            columns={headsOf(stat, figures?.lastSeason ?? null)}
-            shown={shown}
-            classOf={cellClasses}
-            sort={{ ...sort, sortable, sortBy }}
-            deskRow
-          />
-          <tbody>
-            {players.map((player) => (
-              <PlayerRow
-                key={player.code}
-                player={player}
-                shown={shown}
-                whyNot={whyNot.get(player.code)}
-                queuePlace={queuePlace.get(player.code)}
-                current={selected?.code === player.code}
-                select={select}
-              />
-            ))}
-          </tbody>
-        </table>
+        <div className="overflow-x-auto">
+          <table className="w-full border-collapse">
+            <ColumnHeads<Column, RoomSortColumn>
+              columns={headsOf(stat, figures?.lastSeason ?? null)}
+              shown={shown}
+              classOf={cellClasses}
+              sort={{ ...sort, sortable, sortBy }}
+              deskRow
+            />
+            <tbody>
+              {players.map((player) => (
+                <PlayerRow
+                  key={player.code}
+                  player={player}
+                  shown={shown}
+                  whyNot={whyNot.get(player.code)}
+                  queuePlace={queuePlace.get(player.code)}
+                  current={selected?.code === player.code}
+                  select={select}
+                />
+              ))}
+            </tbody>
+          </table>
+        </div>
       )}
     </Panel>
   );
