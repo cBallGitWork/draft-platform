@@ -4108,6 +4108,26 @@
               "value": true
             },
             "optional": true
+          },
+          "autoTeam": {
+            "fieldType": {
+              "type": "object",
+              "value": {
+                "by": {
+                  "fieldType": {
+                    "type": "string"
+                  },
+                  "optional": false
+                },
+                "endsAfter": {
+                  "fieldType": {
+                    "type": "number"
+                  },
+                  "optional": true
+                }
+              }
+            },
+            "optional": true
           }
         }
       }
@@ -5167,6 +5187,51 @@
                             }
                           }
                         }
+                      },
+                      "optional": false
+                    }
+                  }
+                },
+                {
+                  "type": "object",
+                  "value": {
+                    "kind": {
+                      "fieldType": {
+                        "type": "literal",
+                        "value": "autoTeamSwitched"
+                      },
+                      "optional": false
+                    },
+                    "teamId": {
+                      "fieldType": {
+                        "type": "id",
+                        "tableName": "teams"
+                      },
+                      "optional": false
+                    },
+                    "teamName": {
+                      "fieldType": {
+                        "type": "string"
+                      },
+                      "optional": false
+                    },
+                    "on": {
+                      "fieldType": {
+                        "type": "boolean"
+                      },
+                      "optional": false
+                    },
+                    "endsAfter": {
+                      "fieldType": {
+                        "type": "union",
+                        "value": [
+                          {
+                            "type": "number"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
                       },
                       "optional": false
                     }
