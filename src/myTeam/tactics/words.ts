@@ -4,7 +4,7 @@ import { andListWords } from "../../../convex/shared/moments";
 import type { Area, Lane } from "../../../convex/lineup/pitch";
 import { AREA_WORDS, LANE_WORDS } from "../../../convex/lineup/pitchWords";
 import { menuWords } from "../../frame/words";
-import { failedWords, gameweekWords, listSeparator } from "../../shared/words";
+import { failedWords, listSeparator, timeOfDayWords } from "../../shared/words";
 import { gameweekShort } from "../header/words";
 import type { MoveRefusal } from "./lineupDraft";
 
@@ -50,7 +50,8 @@ export const quickPickPlaceholder = "Quick Pick: fills the formation with the be
 
 /** Back one move, through every move since the tab was opened (spec/05, Moving players). */
 export const undoWords = "Undo";
-export const savedWords = (gameweek: number) => `Saved. It stands from ${gameweekWords(gameweek).toLowerCase()}.`;
+/** When the lineup last saved, by the viewer's own clock (spec/05, Moving players). */
+export const savedWords = (at: number) => `Lineup saved ${timeOfDayWords(at)}`;
 export const saveFailedWords = failedWords("the lineup wasn't saved");
 /** Why a drop was refused, said in the line under the toolbar (spec/05, The pitch; Craig, 4 Nov
  *  2026): presets only, so the formation changes only by picking one. `nameOf` names a squad player. */

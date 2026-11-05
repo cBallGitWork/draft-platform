@@ -178,7 +178,7 @@ function LineupEditor({ league, teamName, tactics, seam }: { league: LeagueSumma
         onAllFormations={() => setWindowOpen((open) => !open)}
         canUndo={edits.canUndo}
         onUndo={edits.undo}
-        savedFrom={edits.savedFrom}
+        savedAt={edits.savedAt}
         problem={edits.problem}
       />
       {joined.length > 0 && <Notice>{joinedBenchWords(joined.map((code) => squad.get(code)!.name))}</Notice>}

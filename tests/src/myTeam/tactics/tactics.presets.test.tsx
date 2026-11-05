@@ -12,11 +12,9 @@ import {
   presetLabel,
   emptySlotLabel,
   roleLabel,
-  savedWords,
 } from "../../../../src/myTeam/tactics/words";
 import { rolesOfSlot } from "../../../../convex/lineup/roles";
 import { league } from "../../../support/src/shell.harness";
-import { TACTICS_GAMEWEEK } from "../../../support/src/tactics.harness";
 import {
   ARRIZABALAGA,
   HAVERTZ,
@@ -24,6 +22,7 @@ import {
   RICE,
   SALIBA,
   SAVED,
+  SAVED_LINE,
   STARTERS,
   WHITE,
   blockOf,
@@ -94,7 +93,7 @@ describe("a preset (spec/05; Craig, 26 Oct 2026)", () => {
     const app = await openedPitch();
     await pickFormation("4-4-2");
     expect(app.myTeam.lineupChanges.save).toHaveBeenCalledWith(league.leagueId, expect.objectContaining({ bench: [ARRIZABALAGA.playerCode] }));
-    await screen.findByText(savedWords(TACTICS_GAMEWEEK));
+    await screen.findByText(SAVED_LINE);
     expect(within(pitch()).queryAllByRole("img", { name: /^Empty slot/ })).toEqual([]);
     await pickFormation("5-4-1");
     await userEvent.click(undo());

@@ -115,6 +115,8 @@ export function drag(from: Element, onto: Element) {
   fireEvent.drop(onto, { dataTransfer: DATA_TRANSFER });
 }
 export const undo = () => screen.getByRole("button", { name: undoWords }) as HTMLButtonElement;
+/** The line a save leaves, "Lineup saved 14:02", at whatever minute it landed. */
+export const SAVED_LINE = /^Lineup saved \d{2}:\d{2}$/;
 /** The tab opened on the lineup held, once its pitch is up. */
 export async function openedPitch(myTeam?: MyTeamData) {
   const app = openTacticsTab(myTeam);
