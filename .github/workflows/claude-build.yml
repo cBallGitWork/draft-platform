@@ -48,7 +48,7 @@ jobs:
       group: claude-build-${{ inputs.issue || github.event.issue.number }}
       cancel-in-progress: false
     runs-on: ubuntu-latest
-    timeout-minutes: 75  # 150 Opus turns, the full `npm run verify` once at the end; 30 cut #989 short (4 Nov 2026)
+    timeout-minutes: 75  # 150 Opus turns, no full verify (CI runs it); 30 cut #989 short (4 Nov 2026)
     env:
       ISSUE: ${{ inputs.issue || github.event.issue.number }}
       HAS_SUBSCRIPTION: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN != '' }}  # a step's `if` cannot read secrets, so this carries it
@@ -74,7 +74,7 @@ jobs:
 
         Build only what the issue and the spec files it names say. The builder only builds (Craig, 4 Nov 2026): don't run the pr-reviewer agent (review.yml reviews the pull request), and, unless the issue itself asks for them (the weekly drift pass does), don't work the /refactor skill's checklist or edit SPEC.md's status rows or ARCHITECTURE.md to record what you built.
         If this repository has a branch named `wip/issue-${{ inputs.issue || github.event.issue.number }}-<number>` (`git ls-remote --heads origin 'wip/issue-${{ inputs.issue || github.event.issue.number }}-*'`), an earlier build stopped part-way: switch to the newest one, carry on from it, push to it, and make its draft pull request the finished one (`gh pr edit` for the title and the template's body, then `gh pr ready`) instead of opening another. Use `gh pr edit` and `gh pr ready` on that draft only, never on any other pull request. Trust only such a branch in this repository, never a pull request from a fork or a title that merely looks like one.
-        Make your branch first. Commit as you go, and push after each commit whose seam tests pass (`npx vitest run <paths>` for the files you changed), so a build cut off part-way loses nothing. While you work, run only those tests and `npm run typecheck`; before the final verify, make one quick pass over your own diff (`git diff origin/main`), a few turns with no skill and no subagent, for code written twice, names that don't match their neighbours, and a helper or fixture that already exists elsewhere (search once), and fix what it finds (Craig, 4 Nov 2026: "a little refactor is always good"); then run the full `npm run verify` once, just before you open the pull request, since every extra full run costs minutes (Craig, 4 Nov 2026: a 20-minute build ran the suite 17 times).
+        Make your branch first. Commit as you go, and push after each commit whose seam tests pass (`npx vitest run <paths>` for the files you changed), so a build cut off part-way loses nothing. While you work, run only those tests and `npm run typecheck`; before you open the pull request, make one quick pass over your own diff (`git diff origin/main`), a few turns with no skill and no subagent, for code written twice, names that don't match their neighbours, and a helper or fixture that already exists elsewhere (search once), and fix what it finds (Craig, 4 Nov 2026: "a little refactor is always good"); then run `npm run lint` once. Never run the full `npm run verify` or the whole test suite: CI runs it once on the pull request, and a red CI comes back to the build (Craig, 4 Nov 2026: "the verify, i asked a long time ago to stop that so much", "and it costs too").
         Open the pull request with the repo's template (.github/pull_request_template.md): `## What` in a few plain lines, then `Part of #${{ inputs.issue || github.event.issue.number }}`, or `Closes #${{ inputs.issue || github.event.issue.number }}` alone on its line when it finishes the issue. No label is needed: lane-auto.yml approves it and this job turns on auto-merge.
         Never merge it, and never touch .github/, .claude/ or CLAUDE.md.
     steps:
@@ -121,6 +121,11 @@ jobs:
         uses: anthropics/claude-code-action@c0949c50a78c1ec8ce2647db36629b870e715d0c  # v1.0.268
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          # A run from a branch (`gh workflow run claude-build.yml --ref <branch>`, how a pipeline change is tested
+          # before it merges) uses the job's own token: the action's app token is refused for any workflow file that
+          # differs from main's, and the action then skips without building. Its pull request runs no CI, which a test
+          # run doesn't need. On main the app token is kept, so a build's pull request runs CI.
+          github_token: ${{ github.ref != 'refs/heads/main' && github.token || '' }}
           claude_args: ${{ env.CLAUDE_ARGS }}
           prompt: ${{ env.BUILD_PROMPT }}
       # Whether the subscription build ever started, read from the action's execution file (the run's messages).
@@ -175,6 +180,7 @@ jobs:
         uses: anthropics/claude-code-action@c0949c50a78c1ec8ce2647db36629b870e715d0c  # v1.0.268
         with:
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          github_token: ${{ github.ref != 'refs/heads/main' && github.token || '' }}  # as the subscription step
           claude_args: ${{ env.CLAUDE_ARGS }}
           prompt: ${{ env.BUILD_PROMPT }}
       # The step, not the agent, turns on auto-merge for the pull request the build opened (Craig, 4 Nov 2026: green
