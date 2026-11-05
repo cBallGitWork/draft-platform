@@ -88,6 +88,14 @@ Feature 4 of [SPEC.md](../SPEC.md). Only Craig's answers.
   his timeouts (Craig, 4 Nov 2026, "yes" to Claude's recommendation).
 - A team with no manager is on auto-pick from the start. Before the draft starts, the commissioner
   can mark such a team "I'll pick for this one", and then picks for it himself.
+- Timeouts count across the whole draft, not only in a row (Craig, 4 Nov 2026, on #1091: "ok").
+- A manager on auto-pick gets his full clock for his first auto-pick: "run for the first time incase
+  they forgot to switch off". After that his pick is made at once, and the next team's clock waits
+  10 seconds (Craig, 4 Nov 2026, on #1091).
+- A team with no manager, which the commissioner hasn't taken on, is auto-picked at once, and the
+  next team's clock starts after the 10-second gap (Craig, 4 Nov 2026, on #1091).
+- After a timed-out pick, the next clock waits the usual 10 seconds, as after every other pick
+  (Craig, 4 Nov 2026, on #1091).
 
 ## The queue and the ranking
 
@@ -138,6 +146,8 @@ Feature 4 of [SPEC.md](../SPEC.md). Only Craig's answers.
   to Claude's recommendation).
 - The board shows six rounds at a time, with the whole board a button away (Craig, 4 Nov 2026,
   "ok" to Claude's recommendation).
+- No pick, the manager's or an auto-pick, files a Mail letter: "we dont need mail for that and each
+  pick" (Craig, 4 Nov 2026, on #1091).
 
 ## The commissioner
 
@@ -150,6 +160,8 @@ Feature 4 of [SPEC.md](../SPEC.md). Only Craig's answers.
   gets a full clock at the league's pick time, the new one if he has changed it (Craig, 4 Nov 2026:
   "Full clock, but if admin changes the time per pick it resets to that too").
 - There is no cap on how often or how long he can pause (Craig, 2 Nov 2026).
+- A pause during a manager's 10-second undo window freezes the window too (Craig, 4 Nov 2026, on
+  #1091: "ok").
 
 ## After the draft
 

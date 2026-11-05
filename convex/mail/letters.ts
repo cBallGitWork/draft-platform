@@ -113,6 +113,12 @@ async function fileEventLetter(ctx: MutationCtx, leagueId: Id<"leagues">, by: st
   await fileLetter(ctx, league, to, (zone) => eventLetter(event, who, zone), by);
 }
 
+/** Files what happened, with no Mail letter: a draft pick, which Mail doesn't report (Craig, 4 Nov
+ *  2026, on #1091: "we dont need mail for that and each pick"). */
+export async function fileEvent(ctx: MutationCtx, leagueId: Id<"leagues">, by: string, event: Infer<typeof leagueEvent>): Promise<void> {
+  await ctx.db.insert("leagueEvents", { leagueId, at: Date.now(), by, event });
+}
+
 /** Files what happened, and the Mail letter reporting it (#26). */
 export async function recordEvent(
   ctx: MutationCtx,
@@ -120,6 +126,6 @@ export async function recordEvent(
   by: string,
   event: Infer<typeof leagueEvent>,
 ): Promise<void> {
-  await ctx.db.insert("leagueEvents", { leagueId, at: Date.now(), by, event });
+  await fileEvent(ctx, leagueId, by, event);
   await fileEventLetter(ctx, leagueId, by, event);
 }

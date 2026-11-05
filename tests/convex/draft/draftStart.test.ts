@@ -4,7 +4,7 @@ import type { Id } from "../../../convex/_generated/dataModel";
 import { draftOrderRefusals } from "../../../convex/draft/draftOrder";
 import { draftStartRefusals } from "../../../convex/draft/draftStart";
 import { refusals } from "../../../convex/shared/leagueAccess";
-import { DAY_MS, HOUR_MS } from "../../../convex/shared/time";
+import { DAY_MS, HOUR_MS, MINUTE_MS, SECOND_MS } from "../../../convex/shared/time";
 import { SAKA } from "../../support/convex/footballRows.harness";
 import { changeRules, HELD_FIRST_RULES, holdGameweeks, rulesWith } from "../../support/convex/leagueRules.harness";
 import { expectRefused } from "../../support/convex/test.harness";
@@ -95,6 +95,7 @@ describe("pressing start", () => {
       ],
       picksMade: 0,
       onTheClock: { pick: 1, round: 1, teamId: teams[0], name: "Team 1" },
+      clock: { startsAt: now, endsAt: now + HELD_FIRST_RULES.draft!.pickSeconds * SECOND_MS },
     });
   });
 
@@ -151,10 +152,11 @@ describe("pressing start", () => {
   });
 
   test("cancels a date set, which then starts nothing", async () => {
-    await setStart(Date.now() + DAY_MS);
+    // Within the first pick's clock, so only the cancelled start could change anything.
+    await setStart(Date.now() + MINUTE_MS);
     await start();
     const started = await read();
-    await pass(2 * DAY_MS);
+    await pass(MINUTE_MS);
 
     expect(await read()).toEqual(started);
   });
