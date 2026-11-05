@@ -11,7 +11,7 @@ import { fakeResend, signInDeployment } from "../../support/convex/signIn.harnes
 
 // The pick clock (spec/04, The picks; #1091): each pick runs on the league's pick time, the first
 // from the start and each after 10 seconds from the pick before; when a clock runs out the draft
-// picks for the team (the stub: the first legal player by code), and a team with no manager is
+// picks for the team (with nothing listed or ranked, newcomers A to Z: autoPick.test.ts), and a team with no manager is
 // picked for at once. No pick files a Mail letter.
 
 let t: TestConvex;
@@ -36,6 +36,7 @@ const start = async () => (await as(COMMISSIONER)).mutation(api.draft.draftStart
 const pick = async (email: string, playerCode: number) => (await as(email)).mutation(api.draft.draftPicks.makePick, { leagueId, playerCode });
 const picks = () => t.run(async (ctx) => (await ctx.db.query("draftPicks").collect()).map(({ pick, teamId, playerCode, at }) => ({ pick, teamId, playerCode, at })));
 const letterCount = () => t.run(async (ctx) => (await ctx.db.query("letters").collect()).length);
+const newLetterSubjects = (after: number) => t.run(async (ctx) => (await ctx.db.query("letters").collect()).slice(after).map(({ subject }) => subject));
 /** The clock moves on `ms`, and every pick scheduled by then is made. */
 async function pass(ms: number) {
   vi.advanceTimersByTime(ms);
@@ -144,13 +145,13 @@ describe("the draft's pick", () => {
 });
 
 describe("Mail", () => {
-  test("gets no letter for any pick, the manager's or the draft's", async () => {
+  test("gets no letter for any pick, the manager's or the draft's: only the next manager's up-next (draftLetters.test.ts)", async () => {
     await start();
     const before = await letterCount();
     await pick(ANN, A1);
     await pass(PICK_GAP_MS + PICK_MS);
 
     expect((await picks()).map(({ playerCode }) => playerCode)).toEqual([A1, A2]);
-    expect(await letterCount()).toBe(before);
+    expect(await newLetterSubjects(before)).toEqual(["You're up next in the draft", "You're up next in the draft"]);
   });
 });

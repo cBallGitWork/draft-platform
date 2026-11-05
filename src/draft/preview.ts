@@ -8,7 +8,7 @@ import type { Position } from "../../convex/positions/positionTables";
 import { DAY_MS, HOUR_MS, SECOND_MS } from "../../convex/shared/time";
 import type { BoardPick, DraftSeam, DraftState } from "./seam";
 
-const NAMES = ["Kroos Control", "Rovers XI", "Bale Out", "Pep Talk", "Klopp Shop", "Havertz Rent", "Expected Toulouse", "Saka Potatoes", "Show Me Your Moyes", "Dirty Dozen"];
+const NAMES = ["Kroos Control", "Rovers XI", "Bale Out", "Pep Talk", "Klopp Shop", "Havertz Rent", "Xhaka Laka", "Saka Potatoes", "Show Me Your Moyes", "Dirty Dozen"];
 const order = NAMES.map((name, index) => ({ teamId: `preview-draft-team-${index + 1}` as Id<"teams">, name }));
 const YOURS = order[7].teamId;
 const ROUNDS = 20;

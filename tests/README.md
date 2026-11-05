@@ -42,7 +42,9 @@ Nothing in it is a test. Each kind of file:
   for the screens' (`shell.harness.tsx` opens the app at an address with its actions faked), and
   `scripts/` for the scripts' (`liveSetup.harness.mjs` fakes Convex, Vercel and Resend for the
   live-setup command, and `gitRepo.harness.mjs` is a scratch git repo with an origin/main for the
-  checks that compare with it).
+  checks that compare with it). `scripts/aiCarling/` is a hand-made sample of ai-carling-premiership's
+  files, laid out as that repository lays them out, for the past-season copy
+  (`scripts/past-season.mjs`; `convex/pastSeason.harness.ts` reads it for the Convex tests).
 - **`smoke/builtScreens.ts`**, the screens the smoke run opens on the phone, which
   `tests/src/smokeScreens.test.ts` checks against every route the router has.
 - **`recorded/*.json`**, real feed payloads, recorded once and cut down. A **`*.payloads.ts`**

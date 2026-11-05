@@ -51,6 +51,19 @@ export const draftTables = {
         paused: v.optional(v.object({ at: v.number(), pickSeconds: v.number() })),
       }),
     ),
+    /** Each team whose clock has run out (spec/04, Auto-pick; #1136): its timeouts across the whole
+     *  draft, and, once they reach the league's limit, `autoPick`: "fullClock" while its first pick
+     *  on auto-pick still waits its full clock, then "atOnce". Absent until a clock runs out on a
+     *  team with a manager. ../draft/draftTimeouts.ts writes it. */
+    timeouts: v.optional(
+      v.array(
+        v.object({
+          teamId: v.id("teams"),
+          count: v.number(),
+          autoPick: v.optional(v.union(v.literal("fullClock"), v.literal("atOnce"))),
+        }),
+      ),
+    ),
   }).index("by_leagueId", ["leagueId"]),
   /** A team's draft queue and do-not-draft list (spec/04, The queue and the ranking; #1092), one row
    *  at most, made the first time its manager adds to either: a team with none has both empty. They

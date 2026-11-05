@@ -8,6 +8,7 @@ import { historyOf, inForce, seasonRules } from "../rules/rulesHistory";
 import type { LeagueRules } from "../rules/leagueRulesShape";
 import { memberOf, refuse, runnerOf, teamsOf } from "../shared/leagueAccess";
 import { startClock } from "./draftClock";
+import { tellNotStarted, tellUpNext } from "./draftLetters";
 import { DRAFT_FEWEST_TEAMS } from "./draftLimits";
 import { draftOrderOf, teamInOrder, teamOrderOf } from "./draftOrder";
 import { draftOf, picksMadeIn } from "./draftRow";
@@ -87,7 +88,8 @@ async function begin(ctx: MutationCtx, league: Doc<"leagues">, draft: Doc<"draft
   const started = { at: Date.now(), teamIds: draftOrderOf(can.teams, league.draftOrder).map((team) => team._id), rounds: can.rounds, squad: can.squad };
   if (draft === null) await ctx.db.insert("drafts", { leagueId: league._id, started });
   else await ctx.db.patch("drafts", draft._id, { started, startsAt: undefined, startJob: undefined });
-  await startClock(ctx, league._id, 0, started.at, can.pickSeconds);
+  const first = await startClock(ctx, league._id, 0, started.at, can.pickSeconds);
+  if (first !== null) await tellUpNext(ctx, league, first);
   return null;
 }
 
@@ -128,7 +130,8 @@ export const start = mutation({
 
 /** The start scheduled at the commissioner's date. A league that can't start then, or is being
  *  deleted, stays waiting with its date cleared, as if none had been set (Craig, 4 Nov 2026, on
- *  #1089); a league deleted for good has no draft row left. */
+ *  #1089); a league deleted for good has no draft row left. The commissioner of a league that
+ *  can't start gets a letter saying why (Craig, 4 Nov 2026, on #1102). */
 export const startOnDate = internalMutation({
   args: { leagueId: v.id("leagues") },
   returns: v.null(),
@@ -136,14 +139,23 @@ export const startOnDate = internalMutation({
     const draft = await draftOf(ctx, leagueId);
     if (draft === null || draft.started !== undefined) return null;
     const league = await ctx.db.get("leagues", leagueId);
-    const refusal = league === null || league.deletion !== undefined ? "the league is being deleted" : await begin(ctx, league, draft);
-    if (refusal !== null) {
-      console.warn(`League ${leagueId}'s draft didn't start at its date, and waits for its commissioner: ${refusal}`);
-      await ctx.db.patch("drafts", draft._id, { startsAt: undefined, startJob: undefined });
+    if (league === null || league.deletion !== undefined) {
+      await waitWithNoDate(ctx, draft, "the league is being deleted");
+      return null;
     }
+    const refusal = await begin(ctx, league, draft);
+    if (refusal === null) return null;
+    await waitWithNoDate(ctx, draft, refusal);
+    await tellNotStarted(ctx, league, draft.startsAt ?? Date.now(), refusal);
     return null;
   },
 });
+
+/** The draft, which didn't start at its date for `refusal`, clears it and waits for its commissioner. */
+async function waitWithNoDate(ctx: MutationCtx, draft: Doc<"drafts">, refusal: string): Promise<void> {
+  console.warn(`League ${draft.leagueId}'s draft didn't start at its date, and waits for its commissioner: ${refusal}`);
+  await ctx.db.patch("drafts", draft._id, { startsAt: undefined, startJob: undefined });
+}
 
 const onTheClock = v.object({ pick: v.number(), round: v.number(), teamId: v.id("teams"), name: v.string() });
 /** When the clock of the pick on the clock starts and runs out (draftClock.ts). */

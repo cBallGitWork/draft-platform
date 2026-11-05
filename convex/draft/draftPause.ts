@@ -4,6 +4,7 @@ import { mutation, type QueryCtx } from "../_generated/server";
 import { refuse, runnerOf } from "../shared/leagueAccess";
 import { SECOND_MS } from "../shared/time";
 import { startClock } from "./draftClock";
+import { tellPaused } from "./draftLetters";
 import { pickRefusals, pickSecondsNow } from "./draftPicks";
 import { draftOf, draftIsLive } from "./draftRow";
 
@@ -13,7 +14,8 @@ import { draftOf, draftIsLive } from "./draftRow";
 // 2026, on #1091: "ok"): no pick is made, by a manager or the draft, until he resumes. If the
 // league's pick time has changed while it was paused, the pick on the clock restarts on the full
 // new time when it resumes (Craig, 4 Nov 2026, on #1135: "90s with 30s left, changed to 60s: it
-// resumes on 60s").
+// resumes on 60s"). A pause sends the whole league a letter, a resume none (Craig, 4 Nov 2026, on
+// #1102; draftLetters.ts).
 
 /** Why a pause or a resume is refused, in the words the commissioner is shown. */
 export const pauseRefusals = {
@@ -40,12 +42,13 @@ export const pause = mutation({
   args: { leagueId: v.id("leagues") },
   returns: v.null(),
   handler: async (ctx, { leagueId }) => {
-    await runnerOf(ctx, leagueId);
+    const { email, league } = await runnerOf(ctx, leagueId);
     const { draft, clock } = await liveClock(ctx, leagueId);
     if (clock.paused !== undefined) refuse(pauseRefusals.alreadyPaused);
     if (clock.job !== undefined) await ctx.scheduler.cancel(clock.job);
     const paused = { at: Date.now(), pickSeconds: await pickSecondsNow(ctx, leagueId) };
     await ctx.db.patch("drafts", draft._id, { clock: { ...clock, job: undefined, paused } });
+    await tellPaused(ctx, league, email);
     return null;
   },
 });

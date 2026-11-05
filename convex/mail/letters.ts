@@ -26,13 +26,13 @@ export async function wholeLeague(ctx: QueryCtx, league: Doc<"leagues">): Promis
 }
 
 /** Files `letter` in the league's name to each of `to`, once each. The copy to `by`, who wrote it
- *  or did what it reports, is filed read: they know. */
+ *  or did what it reports, is filed read: they know. With no `by`, every copy is unread. */
 export async function fileLetter(
   ctx: MutationCtx,
   league: Doc<"leagues">,
   to: readonly string[],
   letter: Written,
-  by: string,
+  by?: string,
 ): Promise<void> {
   const at = Date.now();
   for (const email of new Set(to)) {
