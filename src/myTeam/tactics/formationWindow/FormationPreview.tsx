@@ -3,7 +3,7 @@ import { roleIn } from "../../../../convex/lineup/roles";
 import { Placeholder } from "../../../ui/Placeholder";
 import { PositionChip } from "../../../ui/PositionChip";
 import { reshaped, standingIn, type DraftLineup, type MoveRules, type RatingsOf } from "../lineupDraft";
-import { CELL_GRID } from "../pitch/Pitch";
+import { cellGridOf, rowLayoutOf } from "../pitch/rowLayout";
 import type { Shape } from "./formationGroups";
 import { cellsDrawn } from "./FormationTile";
 import {
@@ -39,7 +39,7 @@ export function FormationPreview({ shape, draft, rules, ratingsOf }: { shape: Sh
     <div className="flex flex-col">
       <h3 className="bg-plate px-3 py-1 text-heading font-bold shadow-bevel-plate">{shape.name}</h3>
       <div className="flex flex-wrap gap-3 p-3">
-        <div role="img" aria-label={previewLabel(shape.name)} style={CELL_GRID} className="grid h-96 w-64 shrink-0 border-2 border-pitch-line bg-pitch-stripe">
+        <div role="img" aria-label={previewLabel(shape.name)} style={cellGridOf(rowLayoutOf(shape.cells))} className="grid h-96 w-64 shrink-0 border-2 border-pitch-line bg-pitch-stripe">
           {cellsDrawn((cell) => {
             const inShape = shape.cells.some((each) => sameCell(each, cell));
             const standing = standingIn(after, cell);

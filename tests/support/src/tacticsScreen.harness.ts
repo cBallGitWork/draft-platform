@@ -4,7 +4,7 @@
 import { fireEvent, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { LANES, type Cell } from "../../../convex/lineup/pitch";
-import { ROWS_DRAWN } from "../../../src/myTeam/tactics/pitch/Pitch";
+import { ROWS_DRAWN } from "../../../src/myTeam/tactics/pitch/rowLayout";
 import type { Position } from "../../../convex/positions/positionTables";
 import { MY_TEAM_PATH } from "../../../src/frame/menu";
 import type { OpenTactics } from "../../../src/myTeam/tactics/seam";
