@@ -32,7 +32,8 @@ export interface RawPlSquadPlayer {
   id: number;
   name: { display: string };
   altIds?: RawPlAltIds;
-  info?: { positionInfo?: string };
+  /** `shirtNum` is his squad number, on a squad list's man who has one. */
+  info?: { positionInfo?: string; shirtNum?: number };
 }
 
 /** `/teams/{id}/compseasons/{season}/staff`: a club's registered squad. */

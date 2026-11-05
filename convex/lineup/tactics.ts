@@ -8,6 +8,7 @@ import { positionsNow } from "../positions/playerPositions";
 import { position } from "../schema";
 import { managerOf } from "../shared/leagueAccess";
 import { squadOf } from "../squads/squadPlace";
+import { shirtNumber } from "../squads/squadNumbers";
 import { heldLineupShape, lineupInGameweek, saveGameweekOf } from "./lineups";
 import { starsOfPlayers } from "../stars/playerStars";
 import { roleStarsShape } from "../stars/starsShape";
@@ -74,7 +75,8 @@ export const ofMyTeam = query({
       members.map(({ playerCode }) => playerCode),
     );
     const squad = await Promise.all(
-      members.map(async ({ playerCode, number }) => {
+      members.map(async (member) => {
+        const { playerCode } = member;
         const player = await playerByCode(ctx, playerCode);
         return {
           playerCode,
@@ -84,7 +86,7 @@ export const ofMyTeam = query({
           unheld: player === null,
           // His positions are read as for any other player: the lineup's check says where he may stand.
           positions: await positionsOfNow(playerCode),
-          number: number ?? null,
+          number: await shirtNumber(ctx, member),
           stars: starsOf.get(playerCode)!,
         };
       }),

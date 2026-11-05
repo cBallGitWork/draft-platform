@@ -13,6 +13,7 @@ import { EVENT_STATS, MINUTES_STAT } from "../stats/matchRecords";
 import { newestSeasonWithTotals, playerSeasonTotals } from "../stats/seasonStats";
 import type { Stats } from "../stats/statTotals";
 import { heldOrNot, squadOf, unheldCodes } from "./squadPlace";
+import { shirtNumber } from "./squadNumbers";
 import { latestRules } from "../rules/rulesHistory";
 
 // My team's Squad tab (#364; spec/12, My team's tabs: "every player in the squad in one table,
@@ -150,10 +151,10 @@ export const ofMyTeam = query({
     const price = await pricer(ctx, league, team._id);
     const { held, unheld } = await heldOrNot(ctx, await squadOf(ctx, team._id));
     const players = await Promise.all(
-      held.map(async ({ row: { number }, player }) => {
+      held.map(async ({ row, player }) => {
         const positions = await positionsOfNow(player.code);
         const stats = season === null ? null : squadStats(await playerSeasonTotals(ctx, season, player.code));
-        return { player, number: number ?? null, positions, club: await clubs(player.clubCode), matches: await price(player.code, positions), stats };
+        return { player, number: await shirtNumber(ctx, row), positions, club: await clubs(player.clubCode), matches: await price(player.code, positions), stats };
       }),
     );
     const next = await nextFixturesOf(ctx, new Set(players.map(({ player }) => player.clubCode)), now, clubs);

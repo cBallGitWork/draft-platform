@@ -59,6 +59,8 @@ export const positionsSyncFields = {
       unmatchedPlayers: v.number(),
       labelsReceived: v.number(),
       labelsChanged: v.number(),
+      /** Club numbers new, changed or gone this run (#13, `clubNumbers`); absent on runs before it. */
+      clubNumbersChanged: v.optional(v.number()),
       /** What the tables in positionTables.ts do not know: each needs a row before it counts. */
       unknownFormations: v.array(v.string()),
       unknownLabels: v.array(v.string()),
