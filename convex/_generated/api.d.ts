@@ -18,6 +18,7 @@ import type * as auth from "../auth.js";
 import type * as availability_availability from "../availability/availability.js";
 import type * as crons from "../crons.js";
 import type * as draft_autoPickOrder from "../draft/autoPickOrder.js";
+import type * as draft_autoPickSwitch from "../draft/autoPickSwitch.js";
 import type * as draft_draftBoard from "../draft/draftBoard.js";
 import type * as draft_draftClock from "../draft/draftClock.js";
 import type * as draft_draftCommissioner from "../draft/draftCommissioner.js";
@@ -280,6 +281,7 @@ declare const fullApi: ApiFromModules<{
   "availability/availability": typeof availability_availability;
   crons: typeof crons;
   "draft/autoPickOrder": typeof draft_autoPickOrder;
+  "draft/autoPickSwitch": typeof draft_autoPickSwitch;
   "draft/draftBoard": typeof draft_draftBoard;
   "draft/draftClock": typeof draft_draftClock;
   "draft/draftCommissioner": typeof draft_draftCommissioner;
