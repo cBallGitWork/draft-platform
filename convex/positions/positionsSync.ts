@@ -225,7 +225,7 @@ function matchStartsOf(sheet: RawPlFixture, codeByOpta: ReadonlyMap<string, numb
 /** Each man's label, the latest noted winning; a man FPL does not list is noted as unmatched. */
 function noteLabels(men: RawPlSquadPlayer[], codeByOpta: ReadonlyMap<string, number>, found: Found): void {
   for (const man of men) {
-    const code = man.altIds === undefined ? undefined : codeByOpta.get(man.altIds.opta);
+    const code = codeOf(man, codeByOpta);
     const label = man.info?.positionInfo;
     if (code === undefined) found.unmatched.add(man.id);
     else if (label !== undefined) found.labels.set(code, label);
@@ -236,9 +236,14 @@ function noteLabels(men: RawPlSquadPlayer[], codeByOpta: ReadonlyMap<string, num
  *  list is noted as unmatched by noteLabels. */
 function noteClubNumbers(men: RawPlSquadPlayer[], codeByOpta: ReadonlyMap<string, number>, numbers: Map<number, number | null>): void {
   for (const man of men) {
-    const code = man.altIds === undefined ? undefined : codeByOpta.get(man.altIds.opta);
+    const code = codeOf(man, codeByOpta);
     if (code !== undefined) numbers.set(code, man.info?.shirtNum ?? null);
   }
+}
+
+/** His FPL code, or undefined for a man FPL does not list. */
+function codeOf(man: RawPlSquadPlayer, codeByOpta: ReadonlyMap<string, number>): number | undefined {
+  return man.altIds === undefined ? undefined : codeByOpta.get(man.altIds.opta);
 }
 
 function kickoffOf(fixture: RawPlFixture): number {

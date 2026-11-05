@@ -75,7 +75,7 @@ const squadRow = v.object({
   club: clubRecord,
   /** Left the Premier League: he stays on the team until released. */
   gone: v.boolean(),
-  /** The squad number his manager gave him, or null until given (#13). */
+  /** His shirt's number (#13): his manager's, else his club's, else null (squadNumbers.ts). */
   number: v.union(v.number(), v.null()),
   /** His club's next matches after `now`, soonest first, at most NEXT_MATCHES_SHOWN: none while
    *  it has none with a kickoff time. */

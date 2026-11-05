@@ -31,7 +31,7 @@ const squadMember = v.object({
   /** The football sync doesn't hold him: data gone wrong, kept so it shows (#323). */
   unheld: v.boolean(),
   positions: v.array(position),
-  /** The squad number his manager gave him, on his shirt, or null until given (#13). */
+  /** His shirt's number (#13): his manager's, else his club's, else null (squadNumbers.ts). */
   number: v.union(v.number(), v.null()),
   /** His stars for each role in each area he plays (#11), which pick the role he starts on when
    *  dropped into a slot. */
