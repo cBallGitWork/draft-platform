@@ -7,6 +7,43 @@ Feature 8 of [SPEC.md](../SPEC.md). Only Craig's answers.
   keeper and dynasty leagues.
 - Trade review is a league setting: none, a commissioner veto, or a league vote.
 
+## Waivers and free agency
+
+From `/grill waivers and free agency` (5 Nov 2026). The words stay waivers, claim, drop and free
+agent: "keep waivers since its known for draft" (Craig asked; yes).
+
+- A dropped player goes on waivers for at least 24 hours before a run can take him.
+- A manager with a full squad names who he drops with his claim; that player goes only if the claim
+  succeeds.
+- A manager puts in as many claims as he likes, ranked: if his first fails, his next is tried.
+- The waiver order is reverse table order by default, or rotating (`spec/03`). Under either, a team
+  that wins a claim goes to the back for the rest of that run; rotating goes back to the start each
+  week.
+- Before there is a table, the order is the reverse of the draft order.
+- Waivers run Wednesday and Thursday at 18:00 UK time, every new league's default "for now"; the
+  commissioner can change it (`spec/03`).
+- Both runs work alike: every player whose 24 hours are up is claimed in order. A drop on Tuesday
+  at 10:00 makes Wednesday's run; one after 18:00 on Tuesday makes Thursday's.
+- From the deadline until the gameweek's last match is over, there are no claims, drops or free
+  agent pickups. A run that falls in that time is skipped.
+- A player nobody claims at a run is a free agent straight after it, first come first served, until
+  the deadline.
+- Picking up a free agent with a full squad names who goes, and both happen at once: "think of it
+  like a trade with the waiver bin" (being dropped).
+- Churning is stopped: a free agent picked up and dropped before the next deadline goes straight
+  back to being a free agent, never onto waivers, so nobody holds players away from the league.
+  Once he has been in the squad for a deadline, a drop sends him to waivers like anyone else.
+  Dropping is never restricted: "he can drop him anytime he wants".
+- A player new to the Premier League mid-season goes on waivers for the next run, as players nobody
+  drafts do by default (`spec/04`).
+- A claim that would break the squad's limits is refused at the run.
+- A manager sees only his own pending claims; the commissioner sees everyone's. The league sees the
+  results in Mail (`spec/16`).
+- A failed claim's Mail letter says why: another team was ahead, his drop was already gone, or the
+  squad's limits.
+- The commissioner can run waivers early.
+- No claim limits per season, week or team ("no limit"), and no can't-drop list.
+
 ## Trades
 
 From `/grill trades` (25 Oct 2026).
