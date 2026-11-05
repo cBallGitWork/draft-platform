@@ -8,10 +8,18 @@ tool call of Claude's that adds it is refused too (in any case: GitHub's label n
 body or labels it can't read is a denial, never a silent pass. It stops the
 usual route only: a merge through gh api or the web button, a label named by a shell variable, and
 a body edited after it opened (gh pr edit, which pr_body.py doesn't screen-check) get past it.
+Run as a script, it is the same gate as a GitHub check, look-gate.yml's `look-approved`, which the
+`main` ruleset requires, so a merge by auto-merge, the web button or gh api waits too: it reads the
+pull request's body and labels from the event GitHub hands the job, and exits 1 saying why while
+the merge waits (Craig, 5 Nov 2026: "Yes, make it a check").
 Stdlib only, Python 3.9+.
 """
 
 from __future__ import annotations
+
+import json
+import os
+import sys
 
 from pull_request import Unread, merges_problem, pull, tool_merge_problem
 from pr_body import differences
@@ -70,11 +78,24 @@ def pr_problem(repo, number, folder):
     lacks the CRAIG_APPROVED label, else None."""
     try:
         pr = pull(repo, number, folder)
+    except Unread as error:
+        return _unread(error)
+    return waits_problem(pr)
+
+
+def _unread(error):
+    return (f"Can't read this pull request's body and labels, to see whether it waits for Craig's "
+            f"yes to a screen's differences from its approved picture: {error}.")
+
+
+def waits_problem(pr):
+    """A deny reason if GitHub's record of a pull request (its body and labels) numbers a difference
+    in its Approved vs built section and lacks the CRAIG_APPROVED label, else None."""
+    try:
         listed = differences(pr["body"] or "")
         labels = {(label.get("name") or "").lower() for label in pr["labels"] or []}
-    except (Unread, KeyError, TypeError, AttributeError) as error:
-        return (f"Can't read this pull request's body and labels, to see whether it waits for Craig's "
-                f"yes to a screen's differences from its approved picture: {error}.")
+    except (KeyError, TypeError, AttributeError) as error:
+        return _unread(error)
     if listed and CRAIG_APPROVED not in labels:
         return (f"This pull request waits for Craig: its Approved vs built section lists {len(listed)} "
                 f"difference(s) from the approved picture ({listed[0]}"
@@ -92,3 +113,24 @@ def approval_problem(cmds):
 def mcp_approval_problem(tool, tool_input, folder):
     """The same, for the GitHub tool's merge_pull_request."""
     return tool_merge_problem(tool, tool_input, folder, pr_problem)
+
+
+def main():
+    """The check: the pull request in the event at GITHUB_EVENT_PATH; exit 1 while it waits, or
+    when the event can't be read."""
+    try:
+        with open(os.environ["GITHUB_EVENT_PATH"], encoding="utf-8") as event:
+            pr = json.load(event)["pull_request"]
+    except (KeyError, OSError, ValueError, TypeError) as error:
+        print(_unread(error), file=sys.stderr)
+        return 1
+    problem = waits_problem(pr)
+    if problem:
+        print(problem, file=sys.stderr)
+        return 1
+    print("No difference from an approved picture waits for Craig.")
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())
