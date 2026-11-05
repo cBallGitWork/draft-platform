@@ -33,7 +33,7 @@ export const previewLabel = (name: string) => `${name}: each slot's position and
 
 /** Data not held yet, in its place (plate.md, Marks: a placeholder). */
 export const presetsPlaceholder = "Your saved presets show here once saving them is built: each a formation and every slot's role";
-export const savePresetPlaceholder = "Save preset…: saves the formation and roles in use now, once saving presets is built";
+export const savePresetPlaceholder = `${savePresetName}: saves the formation and roles in use now, once saving presets is built`;
 export const subtitlePlaceholder = (name: string) => `${name}'s line shows here once Craig writes it`;
 export const descriptionPlaceholder = (name: string) => `What ${name} does shows here once Craig writes it`;
 export const gainsPlaceholder = "What this formation gains shows here once Craig writes it";
