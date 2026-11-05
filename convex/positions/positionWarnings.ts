@@ -1,5 +1,6 @@
+import { v } from "convex/values";
 import type { Doc } from "../_generated/dataModel";
-import type { MutationCtx } from "../_generated/server";
+import { internalMutation, type MutationCtx } from "../_generated/server";
 import { saveGameweekOf } from "../lineup/lineups";
 import { adminByline } from "../mail/letterWords";
 import { fileLetter } from "../mail/letters";
@@ -10,6 +11,7 @@ import { placeOf, squadOf } from "../squads/squadPlace";
 import { workedOutNow } from "./playerPositions";
 import { howPositionsCount } from "./positionSettings";
 import type { Position } from "./positionTables";
+import { position as positionArg } from "../schema";
 
 // Warning a manager when one of his players is losing a position (#23; spec/06, When positions
 // change: "the manager is warned first, then the position goes"). Craig's answers on #23 (5 Nov
@@ -64,6 +66,29 @@ export async function warnEveryLeague(ctx: MutationCtx): Promise<void> {
   for (const league of await everyLeague(ctx)) await warnLeague(ctx, league);
 }
 
+// The admin's mutations in playerPositions.ts and positionSettings.ts run these two through
+// `internal`, never by import: this file reads both, so importing it back would be a cycle.
+
+/** `warnEveryLeague`, for the admin's mutations to run inside their own. */
+export const warnEveryLeagueNow = internalMutation({
+  args: {},
+  returns: v.null(),
+  handler: async (ctx) => {
+    await warnEveryLeague(ctx);
+    return null;
+  },
+});
+
+/** `warnOfAdminRemoval`, for `removePosition` to run before it saves the removal. */
+export const warnOfAdminRemovalNow = internalMutation({
+  args: { code: v.number(), position: positionArg },
+  returns: v.null(),
+  handler: async (ctx, { code, position }) => {
+    await warnOfAdminRemoval(ctx, code, position);
+    return null;
+  },
+});
+
 /** Each team's players flagged or lost at a position, as the league's own deadlines judge them,
  *  and not yet told to his manager, are told now; a step that no longer stands, or a player gone
  *  from the team, is forgotten, so it is told again if it comes back. A league with no gameweek
@@ -90,8 +115,9 @@ async function warnLeague(ctx: MutationCtx, league: Doc<"leagues">): Promise<voi
         const { position, step } = change;
         standing.add(key(playerCode, position, step));
         if (told.some((each) => key(each.playerCode, each.position, each.step) === key(playerCode, position, step))) continue;
-        await ctx.db.insert("positionWarnings", { teamId: team._id, playerCode, position, step });
+        // Kept only once a letter goes out, so a manager who arrives later is still told.
         if (team.managerEmail === undefined) continue;
+        await ctx.db.insert("positionWarnings", { teamId: team._id, playerCode, position, step });
         const news = { playerName: await nameOf(ctx, playerCode), fromGameweek: next.gameweek, removeAfter: how.thresholds.removeAfter };
         await fileLetter(ctx, league, [team.managerEmail], positionLetter({ ...news, ...change }));
       }

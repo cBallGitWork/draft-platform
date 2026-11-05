@@ -141,6 +141,17 @@ describe("a run elsewhere", () => {
     expect(await lettersTo(BOB)).toEqual([{ ...flagged(3), leagueId: otherLeague }]);
   });
 
+  test("a manager who takes over a team with no manager is told what already stands", async () => {
+    const managerless = await t.run((ctx) => ctx.db.insert("teams", { leagueId, number: 2, name: "Vacated" }));
+    await barnesOn(managerless, movedToFullBack(3));
+    await syncRecorded();
+    await t.run((ctx) => ctx.db.patch("teams", managerless, { managerEmail: BOB }));
+
+    await syncRecorded();
+
+    expect(await lettersTo(BOB)).toEqual([{ ...flagged(3), leagueId }]);
+  });
+
   test("a new owner is told what his player's last owner was", async () => {
     const bobsTeam = await addManager(t, leagueId, BOB);
     await barnesOn(annsTeam, movedToFullBack(3));

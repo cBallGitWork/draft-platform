@@ -6,7 +6,7 @@ import { currentClubs, currentPlayersAt, playersNamed } from "../shared/players"
 import { EVERY_LEAGUE, howPositionsCount, type HowPositionsCount, type PositionsFor } from "./positionSettings";
 import { positionsFromStarts, positionsOf, type WorkedOutPositions } from "./positions";
 import type { Position } from "./positionTables";
-import { warnEveryLeague, warnOfAdminRemoval } from "./positionWarnings";
+import { internal } from "../_generated/api";
 import { approveMode, changeThresholds, position } from "../schema";
 
 // Each player's positions (#22): his row holds what the feeds gave (his starts, his label) and the
@@ -62,7 +62,7 @@ export const approvePlayer = mutation({
   handler: async (ctx, { code }) => {
     await adminOf(ctx);
     await approve(ctx, await heldRow(ctx, code));
-    await warnEveryLeague(ctx);
+    await ctx.runMutation(internal.positions.positionWarnings.warnEveryLeagueNow, {});
     return null;
   },
 });
@@ -76,7 +76,7 @@ export const approveClub = mutation({
     await adminOf(ctx);
     const players = await currentPlayersAt(ctx, clubCode);
     for (const player of players) await approve(ctx, await heldRow(ctx, player.code));
-    await warnEveryLeague(ctx);
+    await ctx.runMutation(internal.positions.positionWarnings.warnEveryLeagueNow, {});
     return players.length;
   },
 });
@@ -100,9 +100,9 @@ export const removePosition = mutation({
   handler: async (ctx, { code, position: taken }) => {
     await adminOf(ctx);
     const row = await heldRow(ctx, code);
-    await warnOfAdminRemoval(ctx, code, taken);
+    await ctx.runMutation(internal.positions.positionWarnings.warnOfAdminRemovalNow, { code, position: taken });
     await ctx.db.patch("playerPositions", row._id, { set: withoutOne(row.set, taken), removed: withOne(row.removed, taken) });
-    await warnEveryLeague(ctx);
+    await ctx.runMutation(internal.positions.positionWarnings.warnEveryLeagueNow, {});
     return null;
   },
 });
