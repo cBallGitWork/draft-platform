@@ -96,6 +96,7 @@ function takenOut(event: LeagueEvent): string[] {
     case "playerReleased":
     case "playerDropped":
     case "pointsOverridden":
+    case "fixturesSwapped":
       return [];
   }
 }

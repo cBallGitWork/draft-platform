@@ -5006,6 +5006,80 @@
                       "optional": false
                     }
                   }
+                },
+                {
+                  "type": "object",
+                  "value": {
+                    "kind": {
+                      "fieldType": {
+                        "type": "literal",
+                        "value": "fixturesSwapped"
+                      },
+                      "optional": false
+                    },
+                    "gameweek": {
+                      "fieldType": {
+                        "type": "number"
+                      },
+                      "optional": false
+                    },
+                    "swapped": {
+                      "fieldType": {
+                        "type": "array",
+                        "value": {
+                          "type": "union",
+                          "value": [
+                            {
+                              "type": "string"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        }
+                      },
+                      "optional": false
+                    },
+                    "games": {
+                      "fieldType": {
+                        "type": "array",
+                        "value": {
+                          "type": "object",
+                          "value": {
+                            "team": {
+                              "fieldType": {
+                                "type": "union",
+                                "value": [
+                                  {
+                                    "type": "string"
+                                  },
+                                  {
+                                    "type": "null"
+                                  }
+                                ]
+                              },
+                              "optional": false
+                            },
+                            "opponent": {
+                              "fieldType": {
+                                "type": "union",
+                                "value": [
+                                  {
+                                    "type": "string"
+                                  },
+                                  {
+                                    "type": "null"
+                                  }
+                                ]
+                              },
+                              "optional": false
+                            }
+                          }
+                        }
+                      },
+                      "optional": false
+                    }
+                  }
                 }
               ]
             },
@@ -21070,6 +21144,143 @@
             "optional": false
           },
           "storedAt": {
+            "fieldType": {
+              "type": "number"
+            },
+            "optional": false
+          }
+        }
+      }
+    },
+    {
+      "tableName": "fixtureEdits",
+      "indexes": [
+        {
+          "indexDescriptor": "by_leagueId_and_gameweek",
+          "fields": [
+            "leagueId",
+            "gameweek"
+          ]
+        }
+      ],
+      "stagedDbIndexes": [],
+      "searchIndexes": [],
+      "stagedSearchIndexes": [],
+      "vectorIndexes": [],
+      "stagedVectorIndexes": [],
+      "documentType": {
+        "type": "object",
+        "value": {
+          "leagueId": {
+            "fieldType": {
+              "type": "id",
+              "tableName": "leagues"
+            },
+            "optional": false
+          },
+          "gameweek": {
+            "fieldType": {
+              "type": "number"
+            },
+            "optional": false
+          },
+          "fixtures": {
+            "fieldType": {
+              "type": "array",
+              "value": {
+                "type": "object",
+                "value": {
+                  "team": {
+                    "fieldType": {
+                      "type": "id",
+                      "tableName": "teams"
+                    },
+                    "optional": false
+                  },
+                  "opponent": {
+                    "fieldType": {
+                      "type": "union",
+                      "value": [
+                        {
+                          "type": "id",
+                          "tableName": "teams"
+                        },
+                        {
+                          "type": "literal",
+                          "value": "leagueAverage"
+                        }
+                      ]
+                    },
+                    "optional": false
+                  }
+                }
+              }
+            },
+            "optional": false
+          },
+          "byes": {
+            "fieldType": {
+              "type": "array",
+              "value": {
+                "type": "id",
+                "tableName": "teams"
+              }
+            },
+            "optional": false
+          },
+          "drawn": {
+            "fieldType": {
+              "type": "object",
+              "value": {
+                "fixtures": {
+                  "fieldType": {
+                    "type": "array",
+                    "value": {
+                      "type": "object",
+                      "value": {
+                        "team": {
+                          "fieldType": {
+                            "type": "id",
+                            "tableName": "teams"
+                          },
+                          "optional": false
+                        },
+                        "opponent": {
+                          "fieldType": {
+                            "type": "union",
+                            "value": [
+                              {
+                                "type": "id",
+                                "tableName": "teams"
+                              },
+                              {
+                                "type": "literal",
+                                "value": "leagueAverage"
+                              }
+                            ]
+                          },
+                          "optional": false
+                        }
+                      }
+                    }
+                  },
+                  "optional": false
+                },
+                "byes": {
+                  "fieldType": {
+                    "type": "array",
+                    "value": {
+                      "type": "id",
+                      "tableName": "teams"
+                    }
+                  },
+                  "optional": false
+                }
+              }
+            },
+            "optional": false
+          },
+          "editedAt": {
             "fieldType": {
               "type": "number"
             },

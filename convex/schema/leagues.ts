@@ -130,6 +130,15 @@ export const leagueEvent = v.union(
     reason: v.string(),
     teams: v.array(v.object({ teamName: v.string(), from: v.number(), to: v.number() })),
   }),
+  /** A commissioner's fixture edit (spec/09, Fixture edits; #1208): `swapped` the two sides moved
+   *  between two games in the gameweek, and `games` those two games after, each side by name and
+   *  the league's average as null. */
+  v.object({
+    kind: v.literal("fixturesSwapped"),
+    gameweek: v.number(),
+    swapped: v.array(v.union(v.string(), v.null())),
+    games: v.array(v.object({ team: v.union(v.string(), v.null()), opponent: v.union(v.string(), v.null()) })),
+  }),
 );
 
 const leagueEventFields = {
