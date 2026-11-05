@@ -1,10 +1,11 @@
 import { Link } from "@tanstack/react-router";
-import { AREAS, cellKey, LANES, sameCell } from "../../../convex/lineup/pitch";
+import { cellKey, LANES, sameCell } from "../../../convex/lineup/pitch";
 import { presetNameOf } from "../../../convex/lineup/presets";
 import { MY_TEAM_PATH } from "../../frame/menu";
 import { Panel, PanelNote } from "../../ui/Panel";
 import { PitchLines } from "../tactics/pitch/PitchLines";
-import { CELL_GRID, Shirt } from "../tactics/pitch/Pitch";
+import { Shirt } from "../tactics/pitch/Pitch";
+import { cellGridOf, ROWS_DRAWN, rowLayoutOf } from "../tactics/pitch/rowLayout";
 import { PITCH_ASPECT } from "../tactics/pitch/pitchMarkings";
 import type { OpenTactics, Tactics } from "../tactics/seam";
 import { Placeholder } from "../../ui/Placeholder";
@@ -27,9 +28,6 @@ import {
 // The Squad tab's Your eleven (its approved picture): the lineup being set for the next gameweek,
 // read-only, each player with his season points, the bench in order under it, and Set lineup to the
 // Tactics tab, where it is set.
-
-/** Top to bottom as the pitch is drawn: attack first, as on the Tactics tab. */
-const ROWS_DRAWN = AREAS.toReversed();
 
 /** The preset the eleven stand in, read as the matchup reads it (presets.ts `presetNameOf`; #1019):
  *  the starters' cells and any slot left empty by a man gone from the squad. */
@@ -63,10 +61,12 @@ export function YourEleven({ tactics, players, selected }: { tactics: Tactics | 
 
 function ElevenPitch({ tactics, players, selected }: { tactics: OpenTactics; players: ReadonlyMap<number, Row>; selected: number | null }) {
   const members = new Map(tactics.squad.map((member) => [member.playerCode, member]));
+  // The rows the eleven stand in, a slot left by a man gone from the squad's too, share the length.
+  const rows = rowLayoutOf([...tactics.lineup.starters, ...tactics.lineup.vacated]);
   return (
     <div style={{ aspectRatio: PITCH_ASPECT }} className="relative w-full border-2 border-pitch-line">
-      <PitchLines />
-      <ul aria-label={elevenPitchLabel} style={CELL_GRID} className="absolute inset-0 grid">
+      <PitchLines rows={rows} />
+      <ul aria-label={elevenPitchLabel} style={cellGridOf(rows)} className="absolute inset-0 grid">
       {ROWS_DRAWN.flatMap((area) =>
         LANES.map((lane) => {
           const cell = { area, lane };

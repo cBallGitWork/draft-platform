@@ -1,33 +1,28 @@
 import type { CSSProperties, DragEvent } from "react";
-import { AREAS, cellKey, LANES, sameCell, type Cell } from "../../../../convex/lineup/pitch";
+import { cellKey, LANES, sameCell, type Cell } from "../../../../convex/lineup/pitch";
 import { roleIn } from "../../../../convex/lineup/roles";
 import { kitOf, type Ink } from "../../../../convex/football/clubColours";
 import { markOf } from "../focusMarks";
 import { PitchLines } from "./PitchLines";
 import { RoleRuns } from "./RoleRuns";
 import { PITCH_ASPECT } from "./pitchMarkings";
+import { cellGridOf, EVEN_ROWS, ROWS_DRAWN, rowLayoutOf } from "./rowLayout";
 import { standingIn, type DraftLineup, type DropTarget, type Reach, type SquadMember } from "../lineupDraft";
 import { emptySlotLabel, pitchLabel, playerOnPitchLabel, swapLabel } from "../words";
 
 // The Tactics tab's pitch (#14; spec/05, The pitch): six areas by five lanes, attack at the top, CM
-// style. Presets only (Craig, 1 Nov 2026; #1022): a player is moved by picking him up (Move, in his
+// style, the rows nobody stands in closed up (./rowLayout.ts). Presets only (Craig, 1 Nov 2026; #1022): a player is moved by picking him up (Move, in his
 // panel) and then tapping a lit player to swap with, or by dragging him onto one; a drop anywhere
 // else is refused, and the page says why.
-
-/** Top to bottom as the pitch is drawn: attack first. */
-export const ROWS_DRAWN = AREAS.toReversed();
 
 /** On the row that holds the pitch, with the CSS `pitch-room`: the pitch's shape, width over
  *  length, which the CSS sizes the pitch and its panel by. */
 export const PITCH_ROOM_STYLE = { "--pitch-aspect": PITCH_ASPECT } as CSSProperties;
 
-/** The pitch's cells: each area's row an equal share of its length, so the lines stand where they
- *  would on a real pitch, and each lane an equal share of its width. Its shape is the CSS `pitch`'s;
- *  the formation window's thumbnails and preview, and the Squad tab's eleven, draw on it too. */
-export const CELL_GRID: CSSProperties = {
-  gridTemplateRows: `repeat(${ROWS_DRAWN.length}, minmax(0, 1fr))`,
-  gridTemplateColumns: `repeat(${LANES.length}, minmax(0, 1fr))`,
-};
+/** The pitch's cells with every row an equal share of its length, as the formation window's
+ *  thumbnails draw them; a pitch with players on it shares its length among the rows they stand in
+ *  (./rowLayout.ts). Its shape is the CSS `pitch`'s. */
+export const CELL_GRID: CSSProperties = cellGridOf(EVEN_ROWS);
 
 /** Who is picked up and how to move him: the page holds it, as the squad beside picks up too. */
 export type Moving = {
@@ -75,10 +70,11 @@ export function Pitch({
   const { picked, reach } = moving;
   const isSlot = (cell: Cell) => slots.some((slot) => sameCell(slot, cell));
   const swapsWith = (playerCode: number) => reach !== null && reach.players.includes(playerCode);
+  const rows = rowLayoutOf([...draft.starters, ...slots]);
   return (
-    <div role="group" aria-label={pitchLabel} style={CELL_GRID} className="pitch relative mx-auto grid">
-      <PitchLines />
-      <RoleRuns draft={draft} tapped={picked?.playerCode ?? moving.selected} switchedOn={runsShown} />
+    <div role="group" aria-label={pitchLabel} style={cellGridOf(rows)} className="pitch relative mx-auto grid">
+      <PitchLines rows={rows} />
+      <RoleRuns draft={draft} rows={rows} tapped={picked?.playerCode ?? moving.selected} switchedOn={runsShown} />
       {ROWS_DRAWN.flatMap((area) =>
         LANES.map((lane) => {
           const cell = { area, lane };
