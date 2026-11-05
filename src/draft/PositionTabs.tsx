@@ -8,7 +8,7 @@ import { everyPositionTabWords, positionTabsLabel } from "./words";
 // white with the cyan underline. The bar's height on the desk, the tap size on a phone.
 
 const TAB =
-  "min-h-tap border-l border-plate-rule px-3 font-semibold text-soft first:border-l-0 hover:text-fact " +
+  "min-h-tap border-l border-plate-rule px-3 font-semibold text-soft first:border-l-0 hover:text-fact lg:px-2 " +
   "aria-pressed:text-fact aria-pressed:shadow-subtab-active lg:min-h-bar-control";
 
 /** The tabs, `chosen` pressed (null for All). */
@@ -26,7 +26,7 @@ export function PositionTabs({ chosen, choose }: { chosen: Position | null; choo
     </button>
   );
   return (
-    <span role="group" aria-label={positionTabsLabel} className="flex flex-wrap">
+    <span role="group" aria-label={positionTabsLabel} className="flex flex-wrap lg:flex-nowrap">
       {tab(null)}
       {POSITIONS.map(tab)}
     </span>

@@ -97,13 +97,13 @@ export function DraftPlayers({
   const queuePlace = new Map(queue.map((code, index) => [code, index + 1]));
   const players = list && figures && sortedPlayers(keptPlayers(withFigures(list.players, figures.players), position, find), sort);
   const titleBar = (
-    <span className="ml-3 flex grow flex-wrap items-center gap-x-3">
+    <span className="ml-3 flex grow flex-wrap items-center gap-x-3 lg:flex-nowrap">
       <PositionTabs chosen={position} choose={setPosition} />
       <span className="flex items-center gap-2">
         <label htmlFor={FIND_ID} className="text-soft">
           {findLabel}
         </label>
-        <input id={FIND_ID} type="search" value={find} placeholder={findPlaceholder} onChange={(event) => setFind(event.target.value)} className="text-box lg:min-h-bar-control" />
+        <input id={FIND_ID} type="search" value={find} placeholder={findPlaceholder} onChange={(event) => setFind(event.target.value)} className="text-box w-full lg:min-h-bar-control lg:w-40" />
       </span>
       <span className="ml-auto flex items-center gap-3">
         {list && <span className="text-soft">{leftWords(list.players.length)}</span>}
