@@ -5,7 +5,7 @@ import type { Change } from "../shared/refusal";
 import { useChange } from "../shared/useChange";
 import { Loading, PANEL_BODY, Panel, Problem } from "../ui/Panel";
 import { pickInRoundOf, roundOf } from "./board";
-import type { CommissionerView, DraftBoard, DraftSeam, DraftState } from "./seam";
+import type { DraftBoard, DraftSeam, DraftState } from "./seam";
 import {
   badPickTimeWords,
   COMMISSIONER_TITLE,
@@ -60,8 +60,17 @@ export function CommissionerPanel({ leagueId, seam, draft, board, now }: { leagu
               <Action disabled={changing.busy} onClick={() => run(() => changes.start(leagueId))}>
                 {startNowWords}
               </Action>
+              {view.unmanaged.map(({ teamId, name, marked }) => (
+                <Action key={teamId} disabled={changing.busy} onClick={() => run(() => changes.markForCommissioner(leagueId, teamId, !marked))}>
+                  {marked ? stopPickingForWords(name) : pickForTeamWords(name)}
+                </Action>
+              ))}
             </div>
-            <Unmanaged teams={view.unmanaged} busy={changing.busy} mark={(teamId, marked) => run(() => changes.markForCommissioner(leagueId, teamId, marked))} />
+            {view.unmanaged.map(({ teamId, name, marked }) => (
+              <p key={teamId} className="text-soft">
+                {marked ? youPickForWords(name) : unmanagedWords(name)}
+              </p>
+            ))}
           </>
         ) : (
           <>
@@ -94,18 +103,6 @@ function Action({ disabled, onClick, children }: { disabled: boolean; onClick: (
       {children}
     </button>
   );
-}
-
-/** Each team with no manager: on auto-pick unless he picks for it, and his button to say so or stop. */
-function Unmanaged({ teams, busy, mark }: { teams: CommissionerView["unmanaged"]; busy: boolean; mark: (teamId: Id<"teams">, marked: boolean) => void }) {
-  return teams.map(({ teamId, name, marked }) => (
-    <div key={teamId} className="flex flex-col items-start gap-1">
-      <Action disabled={busy} onClick={() => mark(teamId, !marked)}>
-        {marked ? stopPickingForWords(name) : pickForTeamWords(name)}
-      </Action>
-      <p className="text-soft">{marked ? youPickForWords(name) : unmanagedWords(name)}</p>
-    </div>
-  ));
 }
 
 /** Who made the last pick, whom they took, and its slot: "Last pick: Show Me Your Moyes took Gordon NEW, 4.02". */
