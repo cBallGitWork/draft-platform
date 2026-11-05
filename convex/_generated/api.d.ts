@@ -16,6 +16,7 @@ import type * as admin_runLogs from "../admin/runLogs.js";
 import type * as admin_sideRuns from "../admin/sideRuns.js";
 import type * as auth from "../auth.js";
 import type * as crons from "../crons.js";
+import type * as draft_draftBoard from "../draft/draftBoard.js";
 import type * as draft_draftClock from "../draft/draftClock.js";
 import type * as draft_draftLimits from "../draft/draftLimits.js";
 import type * as draft_draftLists from "../draft/draftLists.js";
@@ -254,6 +255,7 @@ declare const fullApi: ApiFromModules<{
   "admin/sideRuns": typeof admin_sideRuns;
   auth: typeof auth;
   crons: typeof crons;
+  "draft/draftBoard": typeof draft_draftBoard;
   "draft/draftClock": typeof draft_draftClock;
   "draft/draftLimits": typeof draft_draftLimits;
   "draft/draftLists": typeof draft_draftLists;
