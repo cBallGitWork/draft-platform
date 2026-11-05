@@ -68,7 +68,7 @@ An issue becomes merged code without Craig unless it lands in the needs-Craig la
 
 How it runs on its own:
 1. **Triage.** Every new issue gets a lane label from a rule: an issue whose files fall under `.github/CODEOWNERS`, or that the lane table puts under "Needs Craig", is `lane:craig`; every other issue is `lane:auto`.
-2. **Build.** A nightly schedule (and a button for any time) takes the oldest `lane:auto` issues that have no open pull request, up to 3 a night, and builds each in its own pull request. Craig's `build` label still starts one by hand.
+2. **Build.** The lead (`lead.yml`, every 30 minutes, 5 Nov 2026) keeps up to 4 builds running all day. It gives a red or flagged builder pull request one fix round, resumes an unfinished build once, then starts the oldest ready issues, and never runs two builds in the same spec file at once. At 01:30 UTC it sweeps the next 10 ready issues for open rules, so Craig answers them in one morning batch and daytime builds don't stop to ask. Craig's `build` label still starts one by hand.
 3. **Merge.** A build's pull request has auto-merge turned on by the build's workflow (a step, not the agent) and merges when `verify`, `smoke` and the visual diff are green. The branch need not hold all of `main`: the nightly CI run on `main` catches two pull requests that clash, and a red one opens the `nightly-ci` issue (Craig, 3 and 4 Nov 2026). A pull request that touches a code-owner path cannot merge without Craig's review, so the lane label is not the only guard.
 4. **Digest.** What merged, what failed and what waits on Craig goes in one daily message.
 
