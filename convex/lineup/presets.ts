@@ -9,10 +9,6 @@ export interface Preset {
   name: string;
   /** One cell per starter, back to front. */
   cells: readonly Cell[];
-  /** The role the defence's centre cell (roles.ts's SWEEPER_CELL) starts on, by its key; absent
-   *  for a preset that sets none. It is what makes 5(SW)-3-2 and 3(L)-5-2 their own presets
-   *  (spec/05; Craig, 4 Nov 2026). */
-  centreRole?: string;
 }
 
 const row = (area: Area, ...lanes: Lane[]): Cell[] => cellsOf(area, lanes);
@@ -41,9 +37,6 @@ const preset = (name: string, ...areas: Cell[][]): Preset => ({
   name,
   cells: [...KEEPER, ...areas.flat()].map((cell) => ({ ...cell })),
 });
-
-/** A preset whose defence's centre cell starts on this role, by roles.ts's key. */
-const withCentreRole = (centreRole: string, name: string, ...areas: Cell[][]): Preset => ({ ...preset(name, ...areas), centreRole });
 
 /** In spec/05's order. */
 export const DEFAULT_PRESETS: readonly Preset[] = [
@@ -74,10 +67,8 @@ export const DEFAULT_PRESETS: readonly Preset[] = [
   preset("3-1-4-2", BACK_THREE, ANCHOR, FLAT_FOUR, STRIKE_PAIR),
   preset("5-2-3", BACK_FIVE, CENTRAL_PAIR, FRONT_THREE),
   preset("5-3-1-1", BACK_FIVE, CENTRAL_THREE, NUMBER_TEN, LONE_STRIKER),
-  // The four Craig asked for (1 Nov 2026), named and placed by him (4 Nov 2026): the 5-3-2 and
-  // the 3-5-2 with their centre on a sweeper's roles, then two at the back.
-  withCentreRole("sweeper", "5(SW)-3-2", BACK_FIVE, CENTRAL_THREE, STRIKE_PAIR),
-  withCentreRole("libero", "3(L)-5-2", BACK_THREE, row("defensiveMidfield", "left", "right"), CENTRAL_THREE, STRIKE_PAIR),
+  // Two at the back, as Craig asked (1 Nov 2026) and placed (4 Nov 2026). Sweeper and libero are
+  // centre-back roles, never presets (Craig, 5 Nov 2026).
   preset("2-3-5", BACK_TWO, CENTRAL_THREE, row("attack", ...LANES)),
   preset("2-3-2-3", BACK_TWO, CENTRAL_THREE, INSIDE_PAIR, row("attack", "leftCentre", "centre", "rightCentre")),
 ];
