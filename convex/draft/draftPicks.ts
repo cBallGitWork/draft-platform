@@ -147,7 +147,7 @@ async function autoPickFor(ctx: QueryCtx, leagueId: Id<"leagues">, started: Star
     players,
     { queue: lists?.queue ?? [], doNotDraft: lists?.doNotDraft ?? [] },
     (await draftRanking(ctx))?.players.map(({ code }) => code) ?? [],
-    await lastSeasonPoints(ctx),
+    await lastSeasonPoints(ctx, await positionsNow(ctx, leagueId)),
   );
   const byCode = new Map(players.map((player) => [player.code, player]));
   for (const code of order) {

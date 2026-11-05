@@ -123,6 +123,7 @@ import type * as outbound_resend from "../outbound/resend.js";
 import type * as outbound_sender from "../outbound/sender.js";
 import type * as pastSeasons_pastSeasonLimits from "../pastSeasons/pastSeasonLimits.js";
 import type * as pastSeasons_pastSeasonLoad from "../pastSeasons/pastSeasonLoad.js";
+import type * as pastSeasons_pastSeasonPoints from "../pastSeasons/pastSeasonPoints.js";
 import type * as pastSeasons_pastSeasonRows from "../pastSeasons/pastSeasonRows.js";
 import type * as playerCard_cardPoints from "../playerCard/cardPoints.js";
 import type * as playerCard_playerCard from "../playerCard/playerCard.js";
@@ -369,6 +370,7 @@ declare const fullApi: ApiFromModules<{
   "outbound/sender": typeof outbound_sender;
   "pastSeasons/pastSeasonLimits": typeof pastSeasons_pastSeasonLimits;
   "pastSeasons/pastSeasonLoad": typeof pastSeasons_pastSeasonLoad;
+  "pastSeasons/pastSeasonPoints": typeof pastSeasons_pastSeasonPoints;
   "pastSeasons/pastSeasonRows": typeof pastSeasons_pastSeasonRows;
   "playerCard/cardPoints": typeof playerCard_cardPoints;
   "playerCard/playerCard": typeof playerCard_playerCard;

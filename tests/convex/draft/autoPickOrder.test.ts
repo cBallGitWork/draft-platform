@@ -1,5 +1,5 @@
 import { describe, expect, test } from "vitest";
-import { autoPickOrder, type AutoPickPlayer } from "../../../convex/draft/autoPickOrder";
+import { autoPickOrder, fallbackRanking, type AutoPickPlayer } from "../../../convex/draft/autoPickOrder";
 
 // Whom auto-pick tries first (spec/04, Auto-pick; #1094): the queue, then the admin's ranking,
 // then last season's points with level players and newcomers A to Z, the do-not-draft list last.
@@ -47,5 +47,18 @@ describe("auto-pick's order", () => {
 
   test("leaves out listed and ranked codes for players who aren't there to take", () => {
     expect(autoPickOrder([PALMER], { queue: [77], doNotDraft: [] }, [78], POINTS)).toEqual([PALMER.code]);
+  });
+});
+
+describe("the fallback ranking (#1114)", () => {
+  test("goes by points high to low, players level on points A to Z", () => {
+    expect(fallbackRanking([SAKA, PALMER, HAALAND], POINTS)).toEqual([HAALAND.code, PALMER.code, SAKA.code]);
+  });
+
+  test("puts a 0 or negative player, and one in the data who never played (on 0), above every newcomer, newcomers A to Z", () => {
+    const benched = { code: 6, name: "Zabarnyi" };
+    const points = new Map([...POINTS, [benched.code, 0]]);
+    const newcomers = [{ code: 9, name: "Ugarte" }, { code: 8, name: "Bowen" }];
+    expect(fallbackRanking([...newcomers, ZUBIMENDI, benched], points)).toEqual([benched.code, ZUBIMENDI.code, 8, 9]);
   });
 });
