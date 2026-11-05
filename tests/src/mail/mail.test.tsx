@@ -12,7 +12,7 @@ import { mainMenuLabel } from "../../../src/frame/words";
 import { LEAGUES_PATH } from "../../../src/leagues/paths";
 import { LEAGUES_TITLE } from "../../../src/leagues/words";
 import { adminSeeing, beingDeleted, commissioned, deleterOf, league, manager, managerIn, newcomer, openApp, withNoPart } from "../../support/src/shell.harness";
-import { MAIL_TITLE, WRITE_TITLE, loadingWords, unreadFigure, noLettersWords, onlyLatestWords, sendToWords, sentWords, writeHint, writeLabels } from "../../../src/mail/words";
+import { MAIL_TITLE, WRITE_TITLE, leaguesCutFromWords, loadingWords, unreadFigure, noLettersWords, onlyLatestWords, sendToWords, sentWords, writeHint, writeLabels } from "../../../src/mail/words";
 import { descriptionOf } from "../../support/src/describedBy";
 
 // Noon UTC, so a letter's day is the same in London, where vitest.config.ts pins every test's zone.
@@ -170,6 +170,17 @@ describe("writing to the league", () => {
     openApp(MAIL_PATH, commissioner, { topBar: twoUnread, letters });
     const panel = await screen.findByRole("region", { name: WRITE_TITLE });
     expect(within(panel).getByRole("heading", { level: 2, name: WRITE_TITLE })).toBeTruthy();
+  });
+
+  it("says a league they run may be missing when their leagues stop short (#297), and not otherwise", async () => {
+    openApp(MAIL_PATH, { ...commissioner, leaguesCut: true }, { topBar: twoUnread, letters });
+    const panel = await screen.findByRole("region", { name: WRITE_TITLE });
+    expect(within(panel).getByText(leaguesCutFromWords)).toBeTruthy();
+    cleanup();
+
+    openApp(MAIL_PATH, commissioner, { topBar: twoUnread, letters });
+    await screen.findByRole("region", { name: WRITE_TITLE });
+    expect(screen.queryByText(leaguesCutFromWords)).toBeNull();
   });
 
   it("describes the letter's box by the hint, for screen readers", async () => {
