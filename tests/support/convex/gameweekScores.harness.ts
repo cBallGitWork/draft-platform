@@ -200,8 +200,8 @@ export function sideTotal(records: readonly PlayerMatchRecord[], counting: reado
 /** Hull's points once the match is over, their keeper on for Phillips, and Everton's: each the sum
  *  of its eleven's FPL lines in golden/hull-everton.scores.json, area by area. Pinned as well as
  *  worked out player by player (gameweekScores.test.ts), so a change in how a match scores shows. */
-export const HULL_POINTS = 26;
-export const EVERTON_POINTS = 38;
+export const HULL_POINTS = 24;
+export const EVERTON_POINTS = 32;
 /** Everton's fifth midfielder, listed fifth of them: the 4-4-2 and the 5-4-1 have room for four. */
 export const GREALISH = 114283;
 /** Everton's centre back on the bench, the fifth defender his squad holds. */
@@ -209,7 +209,7 @@ export const EVERTON_BENCH_CENTRE_BACK = 512462;
 /** Bob's points on his first lineup (#637, #836): his squad holds no second striker, so a 4-4-2
  *  leaves a slot empty, and the first preset it fills is the 4-3-3 (presets.ts's order), its wide
  *  men in the wide attacking-midfield slots a WM plays too (Craig, 1 Nov 2026; #1025). That is
- *  Everton's eleven, Grealish among them, and the bench centre back stays on the bench: Everton's 38
+ *  Everton's eleven, Grealish among them, and the bench centre back stays on the bench: Everton's 32
  *  (golden/hull-everton.scores.json); no auto-sub, as every starter played. */
 export const BOBS_FIRST_POINTS = EVERTON_POINTS;
 

@@ -71,6 +71,8 @@ export function changesTo(
     "draft/draftOrder:drawTeamOrder": () => admin.mutation(api.draft.draftOrder.drawTeamOrder, { leagueId }),
     "draft/draftStart:setStart": () => admin.mutation(api.draft.draftStart.setStart, { leagueId, startsAt: Date.now() + DAY_MS }),
     "draft/draftStart:start": () => admin.mutation(api.draft.draftStart.start, { leagueId }),
+    "draft/draftPause:pause": () => admin.mutation(api.draft.draftPause.pause, { leagueId }),
+    "draft/draftPause:resume": () => admin.mutation(api.draft.draftPause.resume, { leagueId }),
     "draft/draftPicks:makePick": () => ann.mutation(api.draft.draftPicks.makePick, { leagueId, playerCode: 1 }),
     "lineup/lineups:save": () => ann.mutation(api.lineup.lineups.save, { leagueId, lineup: { starters: [], bench: [] } }),
     "lineup/lineupDue:openedTactics": () => ann.mutation(api.lineup.lineupDue.openedTactics, { leagueId, gameweek: 1 }),
@@ -87,6 +89,8 @@ export function changesTo(
     "draft/draftLists:add": () => ann.mutation(api.draft.draftLists.add, { leagueId, playerCode: 1, list: "queue" }),
     "draft/draftLists:remove": () => ann.mutation(api.draft.draftLists.remove, { leagueId, playerCode: 1, list: "queue" }),
     "draft/draftLists:move": () => ann.mutation(api.draft.draftLists.move, { leagueId, playerCode: 1, place: 1 }),
+    "draft/draftLists:addFromShortlist": () => ann.mutation(api.draft.draftLists.addFromShortlist, { leagueId, playerCode: 1 }),
+    "draft/draftLists:addShortlist": () => ann.mutation(api.draft.draftLists.addShortlist, { leagueId }),
   };
 }
 

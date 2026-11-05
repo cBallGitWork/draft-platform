@@ -1,6 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import type { Id } from "../../convex/_generated/dataModel";
-import type { CatalogueStat } from "../../convex/scoring/statCatalogue";
+import type { CatalogueStat } from "../../convex/scoring/statCatalogueList";
 import { playerCardPath } from "../playerCard/paths";
 import { TickBox } from "../ui/TickBox";
 import { PositionCodes } from "../ui/PositionCodes";

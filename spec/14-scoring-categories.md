@@ -119,6 +119,8 @@ change is good".
   Oct 2026; it replaces starting from the Tim Hortons Pro League's values). Craig changes it in the
   rules editor, by patch. FPL has only GK, DEF, MID and FWD, so all three midfield areas take MID's
   values, and every position takes its area's.
+- It doesn't score FPL's defensive contribution: "we arent using the combined stat, we have no need
+  to", "Drop it from scoring" (Craig, 4 Nov 2026). The stat stays in the catalogue.
 - It carries the starting list of roles (`spec/05`). The platform's real sets are designed later.
 
 ## The rules editor

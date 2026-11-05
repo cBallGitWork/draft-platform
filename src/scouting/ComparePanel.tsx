@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import { COMPARED_PLAYERS } from "../../convex/scouting/comparedPlayers";
-import { STAT_CATALOGUE } from "../../convex/scoring/statCatalogue";
+import { STAT_CATALOGUE } from "../../convex/scoring/statCatalogueList";
 import { Loading, Panel, PanelNote } from "../ui/Panel";
 import { PositionCodes } from "../ui/PositionCodes";
 import { OwnerName } from "../ui/OwnerName";

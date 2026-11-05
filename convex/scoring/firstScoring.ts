@@ -7,7 +7,8 @@ import type { StoredScoringSet } from "./scoringSetShape";
 // stopped being each league's.
 //
 // FPL's own scoring for 2025/26 without bonus points, Craig's choice to start from and tune
-// (spec/14, 21 Oct 2026), keyed on FPL's stat names as #27 stores them. FPL scores a player by his
+// (spec/14, 21 Oct 2026), and without its defensive contribution (Craig, 4 Nov 2026: "Drop it from
+// scoring"), keyed on FPL's stat names as #27 stores them. FPL scores a player by his
 // position and this by the area he starts in, so all three midfield areas take FPL's midfielder
 // values. It adjusts no role (spec/05): adjustments arrive by patch (draftedRoleAdjustments.ts).
 
@@ -42,15 +43,6 @@ export const FIRST_SCORING: StoredScoringSet = {
     { shape: "perCount", stat: "saves", values: { byArea: fplPositions(SAVES, NO_SAVES, NO_SAVES, NO_SAVES) } },
     { shape: "perAction", stat: "penalties_saved", values: { all: 5 } },
     { shape: "perAction", stat: "penalties_missed", values: { all: -2 } },
-    // 2 for 10 defensive contributions as a defender, 12 as a midfielder or forward; none for a
-    // keeper, and never more than 2.
-    {
-      shape: "bands",
-      stat: "defensive_contribution",
-      stack: false,
-      values: { byArea: fplPositions([], [{ atLeast: 10, points: 2 }], [{ atLeast: 12, points: 2 }], [{ atLeast: 12, points: 2 }]) },
-      limit: { all: { max: 2, min: null } },
-    },
     { shape: "perAction", stat: "yellow_cards", values: { all: -1 } },
     { shape: "perAction", stat: "red_cards", values: { all: -3 } },
     { shape: "perAction", stat: "own_goals", values: { all: -2 } },

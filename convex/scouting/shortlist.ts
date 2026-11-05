@@ -13,8 +13,9 @@ import { ownerOf } from "../squads/squadPlace";
 // The shortlist (spec/19, The shortlist; #374): a manager's own list of players for the season, in
 // Scouting. It is the team's, and private to it: only its manager reads or changes it, so no other
 // team, nor the commissioner, can tell who is on it. When a shortlisted player is released, Mail
-// tells each manager whose shortlist holds him (spec/16). Not built yet: the letter when one clears
-// waivers (waivers aren't built, spec/08) and feeding the draft queue (#1137).
+// tells each manager whose shortlist holds him (spec/16). It feeds the draft queue
+// (../draft/draftLists.ts; #1137). Not built yet: the letter when one clears waivers (waivers
+// aren't built, spec/08).
 
 /** The most players one shortlist holds: room to follow a fifth of the Premier League. A bound for
  *  reading it, as MOST_IN_SQUAD is a squad's. Claude's choice, not yet Craig's. */
@@ -45,7 +46,9 @@ export async function ownTeam(ctx: QueryCtx, leagueId: Id<"leagues">): Promise<D
   return (await memberOf(ctx, leagueId)).team ?? refuse(refusals.runsNoTeam);
 }
 
-function shortlistOf(ctx: QueryCtx, teamId: Id<"teams">) {
+/** The team's shortlist rows, at most SHORTLIST_MOST; the draft queue it feeds reads it too
+ *  (../draft/draftLists.ts). */
+export function shortlistOf(ctx: QueryCtx, teamId: Id<"teams">) {
   return takeAllOrThrow(
     ctx.db.query("shortlistPlayers").withIndex("by_teamId_and_playerCode", (q) => q.eq("teamId", teamId)),
     SHORTLIST_MOST,

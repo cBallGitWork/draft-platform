@@ -10,8 +10,8 @@ import { pickOnTheClock } from "./snakeOrder";
 // (Craig, 4 Nov 2026, on #1091), the window a manager will have to undo his own pick. When a clock
 // runs out, the draft picks for the team (draftPicks.ts `autoPick`), whether or not its manager is
 // online. A team with no manager is picked for at once, as its clock starts (Craig, 4 Nov 2026, on
-// #1091). Not built yet: the commissioner's "I'll pick for this one", pausing (#1135) and the
-// timeout count (#1136).
+// #1091). The commissioner can pause and resume it (draftPause.ts; #1135). Not built yet: the
+// commissioner's "I'll pick for this one" and the timeout count (#1136).
 
 /** How long after a pick the next pick's clock starts (Craig, 4 Nov 2026: "Yes, clock waits"). */
 export const PICK_GAP_MS = 10 * SECOND_MS;

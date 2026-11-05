@@ -1,7 +1,7 @@
 import { useState } from "react";
 import type { LeagueSummary } from "../../convex/leagues/myLeagues";
 import { COMPARED_PLAYERS } from "../../convex/scouting/comparedPlayers";
-import type { CatalogueStat } from "../../convex/scoring/statCatalogue";
+import type { CatalogueStat } from "../../convex/scoring/statCatalogueList";
 import { Loading, PAGE_STACK, PageSection, Panel, PanelNote } from "../ui/Panel";
 import { useLastLoaded } from "../shared/useLastLoaded";
 import { ComparePanel, type PickedPlayer } from "./ComparePanel";
