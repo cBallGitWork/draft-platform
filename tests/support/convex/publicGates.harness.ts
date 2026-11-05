@@ -161,6 +161,7 @@ export const gates: Record<string, Gate> = {
   "table/leagueTable:ofLeague": "member",
   "table/pointsOverrides:override": "runner",
   "table/teamFixtures:ofMyTeam": "manager",
+  "waivers/freeAgents:pickUp": "manager",
   "waivers/waiverClaims:pending": "member",
   "waivers/waiverClaims:putIn": "manager",
   "waivers/waiverClaims:rank": "manager",

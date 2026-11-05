@@ -7,6 +7,9 @@ import { v } from "convex/values";
 /** A player as a squad letter names him, and the team concerned. */
 const playerOnTeam = { playerCode: v.number(), playerName: v.string(), teamId: v.id("teams"), teamName: v.string() };
 
+/** Who went for a player joining a team, if anyone: onto waivers, or back to the free agents. */
+const droppedFor = v.union(v.object({ playerCode: v.number(), playerName: v.string(), toWaivers: v.boolean() }), v.null());
+
 /** What assigning players files for Mail. */
 export const squadEvents = [
   v.object({ kind: v.literal("playerAssigned"), ...playerOnTeam }),
@@ -17,11 +20,10 @@ export const squadEvents = [
   v.object({ kind: v.literal("playerDropped"), ...playerOnTeam, toWaivers: v.boolean() }),
   /** A waiver run gave him to the team for its claim (spec/08, #1198), and who went for him, if
    *  anyone: that drop is filed as its own `playerDropped` too, with no letter of its own. */
-  v.object({
-    kind: v.literal("playerClaimed"),
-    ...playerOnTeam,
-    dropped: v.union(v.object({ playerCode: v.number(), playerName: v.string(), toWaivers: v.boolean() }), v.null()),
-  }),
+  v.object({ kind: v.literal("playerClaimed"), ...playerOnTeam, dropped: droppedFor }),
+  /** His manager picked him up as a free agent (spec/08, #1199), and who went for him, if anyone:
+   *  that drop is filed as its own `playerDropped` too, with no letter of its own. */
+  v.object({ kind: v.literal("playerPickedUp"), ...playerOnTeam, dropped: droppedFor }),
 ] as const;
 
 export const squadTables = {
