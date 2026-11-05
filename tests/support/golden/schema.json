@@ -1262,6 +1262,39 @@
       }
     },
     {
+      "tableName": "clubNumbers",
+      "indexes": [
+        {
+          "indexDescriptor": "by_code",
+          "fields": [
+            "code"
+          ]
+        }
+      ],
+      "stagedDbIndexes": [],
+      "searchIndexes": [],
+      "stagedSearchIndexes": [],
+      "vectorIndexes": [],
+      "stagedVectorIndexes": [],
+      "documentType": {
+        "type": "object",
+        "value": {
+          "code": {
+            "fieldType": {
+              "type": "number"
+            },
+            "optional": false
+          },
+          "number": {
+            "fieldType": {
+              "type": "number"
+            },
+            "optional": false
+          }
+        }
+      }
+    },
+    {
       "tableName": "matchScores",
       "indexes": [
         {
@@ -1819,6 +1852,12 @@
                         "type": "number"
                       },
                       "optional": false
+                    },
+                    "clubNumbersChanged": {
+                      "fieldType": {
+                        "type": "number"
+                      },
+                      "optional": true
                     },
                     "unknownFormations": {
                       "fieldType": {
