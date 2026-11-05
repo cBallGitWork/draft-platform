@@ -2,7 +2,7 @@ import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 import { expect, test } from "vitest";
 import { PAST_ROWS_ADDED_MOST } from "../../convex/pastSeasons/pastSeasonLimits.ts";
-import { PYTHON, READ_LOG, SEASONS, loadPastSeason } from "../../scripts/past-season.mjs";
+import { PYTHON, READ_LOG, REPRICE, SEASONS, loadPastSeason } from "../../scripts/past-season.mjs";
 import { REPO_ROOT } from "../support/scripts/repoRoot.mjs";
 
 // The copy run on the sample in tests/support/scripts/aiCarling/ (laid out as ai-carling is), with
@@ -35,6 +35,7 @@ async function fakeTools({ clearing = 0, page = 1000 } = {}) {
       left -= deleted;
       return { code: 0, stdout: JSON.stringify({ deleted, more: left > 0 }), stderr: "" };
     }
+    if (fn === "reprice") return { code: 0, stdout: "null", stderr: "" };
     return { code: 0, stdout: String(body.rows.length), stderr: "" };
   };
   return { exec, calls };
@@ -56,7 +57,7 @@ test("the log is read by ai-carling's own Python, the columns the copy keeps and
   expect(python.args[4].split(",")).toContain("kickoff_utc");
 });
 
-test("the season's old rows are cleared page by page, then its rows added, on dev", async () => {
+test("the season's old rows are cleared page by page, then its rows added and last season re-priced, on dev", async () => {
   const { exec, calls } = await fakeTools({ clearing: 2500 });
   expect(await run(exec)).toEqual({ counts: SAMPLE[2025].counts, cleared: 2500, added: 9 });
   const convexCalls = calls.filter((call) => call.command === CONVEX).map((call) => call.args);
@@ -65,7 +66,9 @@ test("the season's old rows are cleared page by page, then its rows added, on de
     "pastSeasons/pastSeasonLoad:clearSeason",
     "pastSeasons/pastSeasonLoad:clearSeason",
     "pastSeasons/pastSeasonLoad:addRows",
+    REPRICE,
   ]);
+  expect(JSON.parse(convexCalls.at(-1)[2])).toEqual({ cursor: null });
   expect(convexCalls.every((args) => !args.includes("--prod"))).toBe(true);
 });
 

@@ -9,7 +9,9 @@
 // adds no parquet reader. Before anything is written the season's sizes are checked against the
 // counts it was planned on (docs/research/last-season-points.md), and every row's player must have
 // an FPL code and a position: any miss stops the run, naming it. The season's old rows are cleared
-// first, so a second run replaces the first.
+// first, so a second run replaces the first. Then last season's points are re-priced under the
+// site's set as it stands (#1114; convex/pastSeasons/pastSeasonPoints.ts), a job that pages on by
+// itself.
 
 import { readdir, readFile } from "node:fs/promises";
 import { join } from "node:path";
@@ -50,6 +52,8 @@ json.dump([{key: clean(value) for key, value in row.items()} for row in rows], s
 `;
 
 const LOAD = "pastSeasons/pastSeasonLoad";
+/** The job that prices last season under today's set, started once the rows are in. */
+export const REPRICE = "pastSeasons/pastSeasonPoints:reprice";
 
 /** Runs a command, resolving with its stdout, or throwing with what it said when it fails. */
 async function run(exec, command, args, cwd) {
@@ -105,9 +109,10 @@ export async function loadPastSeason({ season, from, prod = false, cwd = process
   }
   let added = 0;
   for (const batch of batches(rows, PAST_ROWS_ADDED_MOST)) added += await call("addRows", { rows: batch });
+  await run(exec, convex, ["run", REPRICE, JSON.stringify({ cursor: null }), ...target], cwd);
   print(
     `${season}: ${counts.matches} matches, ${counts.playedRows} played rows, ${counts.played} who played and ${counts.named} named; ` +
-      `${cleared} old rows cleared and ${added} added to ${prod ? "the live deployment" : "dev"}`,
+      `${cleared} old rows cleared and ${added} added to ${prod ? "the live deployment" : "dev"}, last season's points re-priced`,
   );
   return { counts, cleared, added };
 }

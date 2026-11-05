@@ -12,7 +12,7 @@ import { fakeResend, signInDeployment } from "../../support/convex/signIn.harnes
 
 // Auto-pick (spec/04, Auto-pick and The queue and the ranking; #1094): when a clock runs out the
 // draft takes the best legal player left in the team's queue, then the admin's ranking, then by
-// last season's points (the dummy staging file: 118748 on 231, 223340 on 224, 209244 on 210),
+// last season's points (priced rows, #1114: TOP on 231, SECOND on 224, THIRD on 210, at CM),
 // newcomers last by name; never from the do-not-draft list unless it holds every legal player. A
 // manager can take control back; a team with no manager is auto-picked from the start.
 
@@ -70,6 +70,12 @@ beforeEach(async () => {
   await t.run(async (ctx) => {
     await insertClubs(ctx, [ARSENAL, CHELSEA]);
     await insertPlayers(ctx, PLAYERS);
+    for (const [playerCode, points] of [
+      [TOP, 231],
+      [SECOND, 224],
+      [THIRD, 210],
+    ])
+      await ctx.db.insert("pastSeasonPoints", { season: 2025, playerCode, points: { CM: points } });
   });
   await setRules({});
 });
