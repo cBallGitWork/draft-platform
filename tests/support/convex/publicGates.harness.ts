@@ -49,6 +49,8 @@ export const GATE_REFUSALS = new Set<string>(
 export const gates: Record<string, Gate> = {
   "admin/feeds:feeds": "admin",
   "auth:isAuthenticated": "open",
+  "availability/availability:ofPlayer": "admin",
+  "availability/availability:set": "admin",
   "auth:signOut": "open",
   "draft/draftBoard:inMenu": "member",
   "draft/draftBoard:ofLeague": "member",
@@ -83,6 +85,7 @@ export const gates: Record<string, Gate> = {
   "football/plStandings:ofSeason": "signedIn",
   "gameweeks/leagueGameweeks:ofLeague": "runner",
   "gameweeks/leagueGameweeks:setUsed": "runner",
+  "gameweeks/scoringStart:setScoringStart": "runner",
   "home/leagueHome:ofLeague": "member",
   "joining/endedInvite:mine": "signedInOrNothing",
   "joining/inviteLink:make": "runner",
@@ -158,9 +161,16 @@ export const gates: Record<string, Gate> = {
   "squads/teamTransactions:ofMyTeam": "manager",
   "stars/playerStars:ofPlayer": "member",
   "stars/playerStars:ofPlayers": "member",
+  "table/fixtureEdits:swap": "runner",
   "table/leagueTable:ofLeague": "member",
   "table/pointsOverrides:override": "runner",
   "table/teamFixtures:ofMyTeam": "manager",
+  "waivers/waiverClaims:pending": "member",
+  "waivers/waiverClaims:putIn": "manager",
+  "waivers/waiverClaims:rank": "manager",
+  "waivers/waiverClaims:withdraw": "manager",
+  "waivers/waivers:drop": "manager",
+  "waivers/waivers:stateOf": "member",
 };
 
 /** The public functions this sweep doesn't call, each with why. */

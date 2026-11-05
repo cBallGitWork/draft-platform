@@ -1,5 +1,5 @@
 # The approved-picture gate as a GitHub check (CLAUDE.md: a pull request whose Approved vs built section numbers a
-# difference waits for the `craig-approved` label only Craig adds). approval_gate.py holds the rule; the hooks stop
+# layout difference, not just a look detail, waits for the `craig-approved` label only Craig adds). approval_gate.py holds the rule; the hooks stop
 # only Claude's own gh merges, so a build's auto-merge went past it. The `main` ruleset requires `look-approved`, so
 # no merge route skips it (Craig, 5 Nov 2026: "Yes, make it a check"). It runs again when the body is edited or a
 # label goes on or off, so Craig's label turns it green without a push.

@@ -63,10 +63,14 @@ export async function aRowInEveryTable(t: TestConvex, leagueId: Id<"leagues">): 
     await ctx.db.insert("keptDeadlines", { leagueId, gameweek, deadline: 0, keptAt: 0 });
     await ctx.db.insert("playedFixtures", { leagueId, gameweek, fixtures: [], byes: [teamId], storedAt: 0 });
     await ctx.db.insert("finalScores", { leagueId, gameweek, teamId, points: 0, noLineup: true, fixtureCodes: [], storedAt: 0 });
+    await ctx.db.insert("fixtureEdits", { leagueId, gameweek, fixtures: [], byes: [teamId], drawn: { fixtures: [], byes: [teamId] }, editedAt: 0 });
     await ctx.db.insert("pointsOverrides", { leagueId, gameweek, fixtureCode: A_FIXTURE, playerCode, points: 0, reason: WORDS, by: ADMIN, at: 0 });
     await ctx.db.insert("lastLeagues", { email: ANN, leagueId });
     await ctx.db.insert("squadPlayers", { leagueId, teamId, playerCode });
     await ctx.db.insert("shortlistPlayers", { leagueId, teamId, playerCode });
+    await ctx.db.insert("waiverPlayers", { leagueId, playerCode: playerCode + 1, claimableFrom: 0 });
+    await ctx.db.insert("waiverClaims", { leagueId, teamId, playerCode: playerCode + 1, dropCode: playerCode, rank: 0, by: ANN });
+    await ctx.db.insert("waiverOrders", { leagueId, winners: [teamId], gameweek: null, ranAt: 0 });
     await ctx.db.insert("lineups", { leagueId, teamId, fromGameweek: gameweek, starters: [], bench: [] });
     await ctx.db.insert("teamGameweekStats", { leagueId, gameweek, teamId, fixtureCodes: [A_FIXTURE], stats: { goals_scored: 1 } });
     await ctx.db.insert("teamSeasonStats", { leagueId, teamId, stats: { goals_scored: 1 } });

@@ -55,6 +55,10 @@ const leagueFields = {
   /** The gameweeks its commissioner unticked, in order (#74, convex/gameweeks/usedGameweeks.ts). Absent while
    *  it plays all 38, the default, so a league needs no write to have it. */
   unusedGameweeks: v.optional(v.array(v.number())),
+  /** The gameweek its scoring starts in (spec/04, After the draft; convex/gameweeks/scoringStart.ts):
+   *  those before it score nothing and have no head-to-head. Absent while it scores every ticked
+   *  gameweek, as every league did before the rule. */
+  scoringStart: v.optional(v.number()),
   /** The latest letter its commissioner, co-commissioner or the admin wrote to the whole league
    *  (spec/16), pinned on league home until a newer one (spec/12); absent before the first. Its
    *  copies are in `letters`, one a person, so this saves finding the newest among them. */
@@ -125,6 +129,15 @@ export const leagueEvent = v.union(
     to: v.number(),
     reason: v.string(),
     teams: v.array(v.object({ teamName: v.string(), from: v.number(), to: v.number() })),
+  }),
+  /** A commissioner's fixture edit (spec/09, Fixture edits; #1208): `swapped` the two sides moved
+   *  between two games in the gameweek, and `games` those two games after, each side by name and
+   *  the league's average as null. */
+  v.object({
+    kind: v.literal("fixturesSwapped"),
+    gameweek: v.number(),
+    swapped: v.array(v.union(v.string(), v.null())),
+    games: v.array(v.object({ team: v.union(v.string(), v.null()), opponent: v.union(v.string(), v.null()) })),
   }),
 );
 

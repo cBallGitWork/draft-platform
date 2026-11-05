@@ -6,6 +6,10 @@ each league's **commissioner**.
 
 ## The admin (Craig)
 
+- The admin always has the option to do whatever is needed, rather than being locked out:
+  "always give an admin the option to do whatever, better than being locked out, fantrax does
+  this well" (Craig, 5 Nov 2026). A rule a grill settles comes with the admin's override unless
+  Craig says otherwise.
 - Creates each league and names its commissioner (`spec/01`), and keeps an override on every
   league.
 - Approves, sets and corrects positions on one admin dashboard (`spec/06`): new signings, support

@@ -1,5 +1,5 @@
 import { describe, expect, test } from "vitest";
-import { GAMEWEEKS, isGameweekUsed, noSuchGameweek, unusedAfter, usedGameweeksOf } from "../../../convex/gameweeks/usedGameweeks";
+import { GAMEWEEKS, isGameweekScored, isGameweekUsed, noSuchGameweek, scoredGameweeksOf, unusedAfter, usedGameweeksOf } from "../../../convex/gameweeks/usedGameweeks";
 
 // The helper scoring (#29) and the fixtures (#33) read: whether a league plays a gameweek (#74).
 
@@ -24,6 +24,18 @@ describe("usedGameweeksOf", () => {
     const withBreak = usedGameweeksOf({ unusedGameweeks: [17, 18] });
     expect(withBreak.slice(14, 18)).toEqual([15, 16, 19, 20]);
     expect(withBreak).toHaveLength(GAMEWEEKS - 2);
+  });
+});
+
+describe("isGameweekScored and scoredGameweeksOf", () => {
+  test("a league with no scoring start scores every gameweek it plays", () => {
+    expect(scoredGameweeksOf({ unusedGameweeks: [17] })).toEqual(usedGameweeksOf({ unusedGameweeks: [17] }));
+  });
+
+  test("a league scores none before its scoring start, nor one it unticked after", () => {
+    const league = { unusedGameweeks: [9], scoringStart: 8 };
+    expect([7, 8, 9, 10].map((gameweek) => isGameweekScored(league, gameweek))).toEqual([false, true, false, true]);
+    expect(scoredGameweeksOf(league).slice(0, 3)).toEqual([8, 10, 11]);
   });
 });
 

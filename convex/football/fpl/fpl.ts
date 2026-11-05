@@ -1,11 +1,15 @@
 // FPL's public API, mapped onto the football layer's seam (`Football`, in football.ts). The raw
 // shapes and the mapping are copied from epl-draft's packages/core/src/football/fpl/ (raw.ts,
 // map.ts and client.ts, 19 Oct 2026), not shared, and cut to the fields #21 holds, each
-// player's news (#381) and each match's score (#49). One change: FPL names a club by its
+// player's news (#381) and flag (#1206) and each match's score (#49). One change: FPL names a club by its
 // per-season id, and this hands on the club's season-stable code instead.
 
 import { FPL_BOOTSTRAP_URL, FPL_FIXTURES_URL, getJson, getShaped, type Football } from "../football";
 import { fplScoreRead, readEach } from "../scoreReads";
+import type { Infer } from "convex/values";
+import type { availability } from "../../schema";
+
+type Availability = Infer<typeof availability>;
 
 // The shapes FPL's public API returns: data we do not control. Only the fields read below are typed.
 
@@ -30,6 +34,9 @@ interface RawElement {
   news: string;
   /** The chance he plays in the next round, in percent; null while FPL has no doubt about him. */
   chance_of_playing_next_round: number | null;
+  /** FPL's flag: `a` available, `d` doubtful, `i` injured, `s` suspended, `u` unavailable (left the
+   *  club, on loan), `n` not available (ineligible, as against his parent club). */
+  status: string;
   /** `"p"` + `code`: the Premier League's `altIds.opta` for him, the join between the two feeds. */
   opta_code: string | null;
 }
@@ -112,6 +119,7 @@ export function mapFpl(bootstrap: RawBootstrap, fixtures: RawFixture[]): Footbal
         clubCode: clubCode(element.team),
         news: element.news,
         chanceOfPlaying: element.chance_of_playing_next_round,
+        availability: availabilityOf(element),
       })),
       (player) => player.code,
     ),
@@ -134,6 +142,24 @@ export function mapFpl(bootstrap: RawBootstrap, fixtures: RawFixture[]): Footbal
     // After `fixtures`, so a list sending a match twice is refused before its scores are read.
     scores: readEach(fixtures, (fixture) => fixture.code, fplScoreRead),
   };
+}
+
+/** Our availability from FPL's flag (spec/06, Availability): injured, suspended or unavailable is
+ *  out, a doubt is doubtful. FPL shows its `n` with the same red flag as `u`, so it is out too. */
+const AVAILABILITY_OF_FPL_STATUS: Record<string, Availability> = {
+  a: "available",
+  d: "doubtful",
+  i: "out",
+  s: "out",
+  u: "out",
+  n: "out",
+};
+
+/** A flag FPL has never sent is a changed payload, so it throws rather than guess. */
+function availabilityOf(element: RawElement): Availability {
+  const found = AVAILABILITY_OF_FPL_STATUS[element.status];
+  if (found === undefined) throw new Error(`FPL sent player ${element.code} with status ${JSON.stringify(element.status)}, which it has never sent`);
+  return found;
 }
 
 /** `rows`, unless the list is empty or sends a key twice: a changed payload, so it throws. The

@@ -46,6 +46,11 @@ COMMENT = re.compile(r"<!--.*?-->", re.S)
 # the section ends at the next heading but its own, as ui-verifier's pasted block repeats it
 NEXT_HEADING = re.compile(r"^## (?!" + re.escape(APPROVED_VS_BUILT[3:]) + ")", re.M)
 DIFFERENCE = re.compile(r"^\s*\d+\.\s+\S.*$", re.M)  # "1. Columns: …"
+# ui-verifier's kinds (.claude/agents/ui-verifier.md, step 2b) that are a look detail, not the layout: only a
+# difference of another kind (Structure, Columns, Missing, or none named) waits for Craig's label (Craig, 5 Nov
+# 2026: "Yes, layout only")
+DETAIL_KINDS = ("Density", "Type", "Colour")
+DETAIL = re.compile(r"^\s*\d+\.\s+(" + "|".join(DETAIL_KINDS) + r")\s*:", re.I)
 
 
 def pr_call(words):
@@ -122,6 +127,11 @@ def differences(body):
     """Each numbered difference the body's Approved vs built section lists."""
     section = approved_vs_built(body) or ""
     return [m.group(0).strip() for m in DIFFERENCE.finditer(section)]
+
+
+def layout_differences(body):
+    """The numbered differences that change the layout: every one but a look detail (DETAIL_KINDS)."""
+    return [d for d in differences(body) if not DETAIL.match(d)]
 
 
 def screen_problem(body, screens):

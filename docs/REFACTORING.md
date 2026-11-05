@@ -44,7 +44,7 @@ don't match their neighbours, a helper or fixture that already exists elsewhere,
 (Craig, 4 Nov 2026: "a little refactor is always good"; the prompt is in `claude-build.yml`).
 No skill and no subagent: the full `/refactor` (`.claude/skills/refactor/`) runs in the weekly
 drift pass, or in a session when Craig asks. `pr-reviewer` reviews every pull request as its own
-job (`.github/workflows/review.yml`), posting its verdict as a comment that never blocks the merge.
+job (`.github/workflows/review.yml`), posting its verdict as a comment; the merge waits for it to land (`review-landed`, `.github/workflows/review-gate.yml`).
 
 ## The drift pass
 

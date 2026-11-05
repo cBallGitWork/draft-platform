@@ -2,7 +2,8 @@ import type { ReactNode } from "react";
 import { LANES, positionOfSlot, sameCell, type Cell } from "../../../../convex/lineup/pitch";
 import { Placeholder } from "../../../ui/Placeholder";
 import { chipFillOf } from "../../../ui/PositionChip";
-import { CELL_GRID, ROWS_DRAWN } from "../pitch/Pitch";
+import { CELL_GRID } from "../pitch/Pitch";
+import { ROWS_DRAWN } from "../pitch/rowLayout";
 import type { Shape } from "./formationGroups";
 import { descriptionPlaceholder, inUseWords, subtitlePlaceholder } from "./words";
 

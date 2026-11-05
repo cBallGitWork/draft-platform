@@ -13,16 +13,23 @@ would stop every question to Craig. Stdlib only, Python 3.9+.
 
 from __future__ import annotations
 
+import hashlib
 import json
 import re
 import sys
+import tempfile
+import time
 from collections import namedtuple
+from pathlib import Path
 
 from hook_payload import BadPayload, field, read_payload, report
 
 ASK_TOOL = "AskUserQuestion"
 WRAP_UP_TOOL = "mcp__ccd_turn__wrap_up"
 WRAP_UP_ASK = "ask"
+MOST_PER_BATCH = 5  # questions in one AskUserQuestion: Craig answers one short batch, not a quiz
+ASKED_DIR = Path(tempfile.gettempdir()) / "draft-asked"  # each question asked, by its hash, across sessions
+ASK_ONCE_DAYS = 7  # a question asked within this many days isn't asked again (#1150 was asked four times)
 
 # words that ask Craig's leave rather than his view
 LEAVE = re.compile(
@@ -81,14 +88,43 @@ def settled(text):
     return None
 
 
+def normal(text):
+    return " ".join(re.sub(r"[^a-z0-9 ]", " ", text.lower()).split())
+
+
+def asked_before(text):
+    """True if this question (its words, not its header) was asked within ASK_ONCE_DAYS; records it otherwise."""
+    mark = ASKED_DIR / hashlib.sha256(normal(text).encode()).hexdigest()[:24]
+    try:
+        if time.time() - mark.stat().st_mtime < ASK_ONCE_DAYS * 86400:
+            return True
+    except OSError:
+        pass
+    try:
+        ASKED_DIR.mkdir(exist_ok=True)
+        mark.touch()
+    except OSError:
+        pass
+    return False
+
+
 def decide(payload):
-    """The deny reason for a call holding settled questions, or None."""
+    """The deny reason for a call holding settled questions, too many, or a repeat; or None."""
     tool = field(payload, "tool_name", str, "")
+    asked = questions(tool, field(payload, "tool_input", dict, {}))
+    if tool == ASK_TOOL and len(asked) > MOST_PER_BATCH:
+        return (f"That's {len(asked)} questions; Craig answers at most {MOST_PER_BATCH} in one batch. Ask the "
+                f"{MOST_PER_BATCH} that block the most work now, and file the rest on their issues for the PM dashboard.")
     found = []
-    for text in questions(tool, field(payload, "tool_input", dict, {})):
+    for text in asked:
         kind = settled(text)
         if kind:
             found.append(Settled(text, kind))
+    if not found and tool == ASK_TOOL:
+        repeats = [t for t in asked if asked_before(t.split(" ", 1)[-1] if " " in t else t)]
+        if repeats:
+            return (f"Already asked in the last {ASK_ONCE_DAYS} days: \"{repeats[0][:120]}\". Read the answer on its "
+                    "issue or the PM dashboard (file-answers-before-asking), and ask only what's new.")
     if not found:
         return None
     lines = [f"- \"{s.question[:120]}\" is {s.kind.name}: {s.kind.answer}" for s in found]

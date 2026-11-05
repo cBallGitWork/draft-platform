@@ -35,9 +35,13 @@ export async function ownerOf(ctx: QueryCtx, leagueId: Id<"leagues">): Promise<(
   };
 }
 
-/** The league events that change a squad. Today a commissioner assigns, moves and releases players
- *  (#31); waiver claims and trades join them when built. */
-export const SQUAD_MOVES = ["playerAssigned", "playerMoved", "playerReleased"] as const;
+/** The league events that change a squad. A commissioner assigns, moves and releases players
+ *  (#31), a manager drops them (#1197), and a waiver run gives them for a claim (#1198); trades
+ *  join them when built. */
+export const SQUAD_MOVES = ["playerAssigned", "playerMoved", "playerReleased", "playerDropped", "playerClaimed"] as const;
+
+/** Whether the move took a player off his team for no other: a release or a drop. */
+const isLeaving = (kind: (typeof SQUAD_MOVES)[number]) => kind === "playerReleased" || kind === "playerDropped";
 
 /** The most squad moves of each kind `squadAt` reads after a moment: Claude's sizing, well above a
  *  season's moves in one league. Past it this throws rather than return a wrong squad. */
@@ -106,12 +110,12 @@ export async function squadAt(ctx: QueryCtx, teamId: Id<"teams">, movesSince: Sq
     if (!isSquadMove(event)) throw new Error(`League event ${_id} is a ${event.kind}, not a squad move`);
     const { playerCode } = event;
     const held = stayed.includes(playerCode) || leftSince.includes(playerCode);
-    if (event.kind !== "playerReleased" && event.teamId === teamId) {
+    if (!isLeaving(event.kind) && event.teamId === teamId) {
       if (!held) throw new Error(`League event ${_id} put player ${playerCode} on team ${teamId}, but he isn't in its squad after it`);
       stayed = stayed.filter((code) => code !== playerCode);
       leftSince = leftSince.filter((code) => code !== playerCode);
     }
-    const leftHere = event.kind === "playerReleased" ? event.teamId === teamId : event.kind === "playerMoved" && event.fromTeamId === teamId;
+    const leftHere = isLeaving(event.kind) ? event.teamId === teamId : event.kind === "playerMoved" && event.fromTeamId === teamId;
     if (leftHere) {
       if (held) throw new Error(`League event ${_id} took player ${playerCode} off team ${teamId}, but he is in its squad after it`);
       leftSince = [playerCode, ...leftSince];

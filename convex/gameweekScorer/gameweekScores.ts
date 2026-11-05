@@ -1,7 +1,7 @@
 import type { Doc, Id } from "../_generated/dataModel";
 import type { QueryCtx } from "../_generated/server";
 import { passedDeadlinesOf } from "../gameweeks/passedDeadlines";
-import { isGameweekUsed } from "../gameweeks/usedGameweeks";
+import { isGameweekScored } from "../gameweeks/usedGameweeks";
 import type { StoredScoringSet } from "../scoring/scoringSetShape";
 import type { SeasonRules } from "../rules/rulesHistory";
 import { logFailure } from "../shared/errors";
@@ -67,12 +67,12 @@ interface LeagueScores {
   finalUnstored: FinalUnstored[];
 }
 
-/** The gameweeks the league plays that have begun since it was made, by its recorded deadlines:
- *  the gameweeks it scores. */
+/** The gameweeks the league plays that have begun since it was made, by its recorded deadlines,
+ *  from its scoring start on: the gameweeks it scores. */
 export async function begunGameweeks(ctx: QueryCtx, league: Doc<"leagues">): Promise<number[]> {
   const passed = await passedDeadlinesOf(ctx, league._id);
   return [...passed]
-    .filter(([gameweek, deadline]) => deadline >= league._creationTime && isGameweekUsed(league, gameweek))
+    .filter(([gameweek, deadline]) => deadline >= league._creationTime && isGameweekScored(league, gameweek))
     .map(([gameweek]) => gameweek)
     .sort((one, other) => one - other);
 }
