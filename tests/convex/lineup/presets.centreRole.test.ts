@@ -1,26 +1,11 @@
 import { expect, test } from "vitest";
-import { lineupProblems } from "../../../convex/lineup/lineup";
-import { sameCell } from "../../../convex/lineup/pitch";
 import { DEFAULT_PRESETS } from "../../../convex/lineup/presets";
-import { SWEEPER_CELL } from "../../../convex/lineup/roles";
-import { filledLineup, openLimits } from "../../support/convex/lineup.harness";
 
-// A preset can set the starting role of the defence's centre cell: that is what makes 5(SW)-3-2
-// and 3(L)-5-2 their own presets (spec/05, The pitch; Craig, 4 Nov 2026; #988).
+// Sweeper and libero are centre-back roles only: the 5(SW)-3-2 and 3(L)-5-2 presets, and a
+// preset's starting role for the defence's centre, are dropped (spec/05, The pitch; Craig,
+// 5 Nov 2026: "we made sweeper a role and liberio, ditched sweeper formations"; #1159).
 
-const presetsWithCentreRole = DEFAULT_PRESETS.filter(({ centreRole }) => centreRole !== undefined);
-
-test("5(SW)-3-2 starts its defence's centre on the sweeper role, 3(L)-5-2 on the libero, and no other sets one", () => {
-  expect(presetsWithCentreRole.map(({ name, centreRole }) => [name, centreRole])).toEqual([
-    ["5(SW)-3-2", "sweeper"],
-    ["3(L)-5-2", "libero"],
-  ]);
-});
-
-test.each(presetsWithCentreRole)("$name is legal under open limits with its centre on its role", (preset) => {
-  const { lineup, positions } = filledLineup(preset);
-  const starters = lineup.starters.map((starter) => (sameCell(starter, SWEEPER_CELL) ? { ...starter, role: preset.centreRole } : starter));
-
-  expect(starters.filter(({ role }) => role !== undefined)).toHaveLength(1);
-  expect(lineupProblems({ ...lineup, starters }, positions, openLimits())).toEqual([]);
+test("no default preset is a sweeper or libero formation, and none sets a role", () => {
+  expect(DEFAULT_PRESETS.map(({ name }) => name).filter((name) => name.includes("("))).toEqual([]);
+  expect(DEFAULT_PRESETS.every((preset) => Object.keys(preset).sort().join() === "cells,name")).toBe(true);
 });

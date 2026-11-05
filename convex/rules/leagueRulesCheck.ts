@@ -1,6 +1,5 @@
 import { STARTER_COUNT, type AreaLimit } from "../lineup/lineup";
-import { AREAS, sameCell, type Area } from "../lineup/pitch";
-import { offersRole, SWEEPER_CELL } from "../lineup/roles";
+import { AREAS, type Area } from "../lineup/pitch";
 import type { DraftRules, LeagueRules } from "./leagueRulesShape";
 import { PICK_SECONDS_FEWEST, PICK_SECONDS_MOST, TIMEOUTS_FEWEST, TIMEOUTS_MOST } from "../draft/draftLimits";
 import { MOST_IN_SQUAD } from "../leagues/leagueLimits";
@@ -117,16 +116,8 @@ function checkPresets(presets: LeagueRules["presets"], limits: Record<Area, Area
     presets.map((preset) => preset.name.trim()),
     (name) => `Two presets are called "${name}".`,
   );
-  for (const { name, cells, centreRole } of presets) {
+  for (const { name, cells } of presets) {
     if (name.trim() === "") throw new UnsoundRules("A preset needs a name.");
-    if (centreRole !== undefined) {
-      if (!cells.some((cell) => sameCell(cell, SWEEPER_CELL))) {
-        throw new UnsoundRules(`The preset ${name} sets a role for the centre of its defence, where it puts no one.`);
-      }
-      if (!offersRole(SWEEPER_CELL, centreRole)) {
-        throw new UnsoundRules(`The preset ${name} starts the centre of its defence on ${centreRole}, a role that cell doesn't offer.`);
-      }
-    }
     if (cells.length !== STARTER_COUNT) {
       throw new UnsoundRules(`The preset ${name} places ${cells.length} players, not the ${STARTER_COUNT} who start.`);
     }

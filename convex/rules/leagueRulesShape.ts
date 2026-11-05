@@ -17,13 +17,12 @@ import { TIE_BREAKS } from "../table/standings";
 const limit = v.object({ minimum: v.number(), maximum: v.number() });
 
 /** presets.ts's Preset. */
-const preset = v.object({
-  name: v.string(),
-  cells: v.array(cellShape),
-  /** Absent from a preset that sets no role, and from every preset saved before #988, so those rows
-   *  need no migration (ARCHITECTURE.md's Data, "Changing a saved shape"). */
-  centreRole: v.optional(v.string()),
-});
+const preset = v.object({ name: v.string(), cells: v.array(cellShape) });
+
+/** A preset as rows hold it: one saved between #988 and #1159 may also carry the role its
+ *  defence's centre started on, dropped with the sweeper and libero presets (Craig, 5 Nov 2026),
+ *  which nothing reads (`heldRules` drops it), optional so those rows need no migration. */
+const storedPreset = v.object({ ...preset.fields, centreRole: v.optional(v.string()) });
 
 const WEEKDAYS = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"] as const;
 const weekday = v.union(...WEEKDAYS.map((day) => v.literal(day)));
@@ -89,16 +88,19 @@ const storedDraftRulesShape = v.object({ ...draftRulesShape.fields, order: v.opt
 
 /** A league's rules as rows hold them: rows saved before #354 also carry the scoring set the
  *  league then had, which nothing reads (`heldRules` drops it), optional so they need no migration;
- *  and the draft's, its dropped order (`storedDraftRulesShape`). */
+ *  the draft's, its dropped order (`storedDraftRulesShape`); and the presets', their dropped centre
+ *  role (`storedPreset`). */
 export const storedLeagueRulesShape = v.object({
   ...leagueRulesShape.fields,
+  presets: v.array(storedPreset),
   draft: v.optional(storedDraftRulesShape),
   scoring: v.optional(scoringSetShape),
 });
 
-/** A rules row's rules without the scoring a row saved before #354 carries, or the draft order a
- *  row saved before #1089 does. */
-export function heldRules({ scoring: _scoring, draft, ...rules }: Infer<typeof storedLeagueRulesShape>): LeagueRules {
+/** A rules row's rules without the scoring a row saved before #354 carries, the draft order a row
+ *  saved before #1089 does, or the presets' centre role one saved after #988 may. */
+export function heldRules({ scoring: _scoring, draft, presets: stored, ...rest }: Infer<typeof storedLeagueRulesShape>): LeagueRules {
+  const rules = { ...rest, presets: stored.map(({ centreRole: _centreRole, ...preset }) => preset) };
   if (draft === undefined) return rules;
   const { order: _order, ...held } = draft;
   return { ...rules, draft: held };

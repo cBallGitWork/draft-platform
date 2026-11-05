@@ -14,6 +14,7 @@ import { placeOf, squadOf } from "../squads/squadPlace";
 import { squadRefusals } from "../squads/squads";
 import { autoPickOrder } from "./autoPickOrder";
 import { PICK_GAP_MS, startClock } from "./draftClock";
+import { tellDraftOver, tellUpNext } from "./draftLetters";
 import { listsOf } from "./draftLists";
 import { draftRanking } from "./draftRanking";
 import { draftOf, picksMadeIn, type StartedDraft } from "./draftRow";
@@ -28,8 +29,9 @@ import { pickOnTheClock } from "./snakeOrder";
 // squad as a commissioner's assignment does: his squad row, the `playerAssigned` event, and the
 // team's first lineup picked again; but with no Mail letter, for any pick (Craig, 4 Nov 2026, on
 // #1091: "we dont need mail for that and each pick"). The turn moves on by the snake
-// (snakeOrder.ts), the next pick's clock starting 10 seconds later (draftClock.ts), and once the
-// last pick is made the draft is over (draftStart.ts `ofLeague`). When a clock runs out, or at once
+// (snakeOrder.ts), the next pick's clock starting 10 seconds later (draftClock.ts), its manager
+// told he is up next, and once the last pick is made the draft is over (draftStart.ts `ofLeague`),
+// which the whole league is told (draftLetters.ts; #1102). When a clock runs out, or at once
 // for a team with no manager, the draft picks for the team (`autoPick`; #1091).
 // Greying out always leaves a legal pick, so a team with none is an error, not the end of its draft
 // (Craig, 4 Nov 2026, on #1090). Auto-pick takes by the team's queue, the admin's ranking and last
@@ -99,14 +101,18 @@ export async function pickSecondsNow(ctx: QueryCtx, leagueId: Id<"leagues">): Pr
 }
 
 /** `player` joins the squad of `team`, on the clock, as its pick, filed as `by`'s, and the next
- *  pick's clock starts PICK_GAP_MS from now. */
-async function placePick(ctx: MutationCtx, leagueId: Id<"leagues">, turn: Turn, team: Doc<"teams">, player: Doc<"players">, by: string): Promise<void> {
+ *  pick's clock starts PICK_GAP_MS from now, its manager told he is up next; after the last pick,
+ *  the whole league is told the draft is over (draftLetters.ts). */
+async function placePick(ctx: MutationCtx, league: Doc<"leagues">, turn: Turn, team: Doc<"teams">, player: Doc<"players">, by: string): Promise<void> {
+  const leagueId = league._id;
   const now = Date.now();
   await ctx.db.insert("draftPicks", { leagueId, pick: turn.pick, teamId: team._id, playerCode: player.code, at: now });
   await ctx.db.insert("squadPlayers", { leagueId, teamId: team._id, playerCode: player.code });
   await fileEvent(ctx, leagueId, by, { kind: "playerAssigned", playerCode: player.code, playerName: player.name, teamId: team._id, teamName: team.name });
   await pickFirstLineupAgain(ctx, leagueId, team._id);
-  await startClock(ctx, leagueId, turn.pick, now + PICK_GAP_MS, await pickSecondsNow(ctx, leagueId));
+  const next = await startClock(ctx, leagueId, turn.pick, now + PICK_GAP_MS, await pickSecondsNow(ctx, leagueId));
+  if (next === null) await tellDraftOver(ctx, league, turn.pick);
+  else await tellUpNext(ctx, league, next);
 }
 
 /** The manager of the team on the clock picks a player, who joins its squad, and the turn moves on.
@@ -116,7 +122,7 @@ export const makePick = mutation({
   args: { leagueId: v.id("leagues"), playerCode: v.number() },
   returns: v.null(),
   handler: async (ctx, { leagueId, playerCode }) => {
-    const { email, team } = await managerOf(ctx, leagueId);
+    const { email, league, team } = await managerOf(ctx, leagueId);
     const draft = await draftOf(ctx, leagueId);
     const started = draft?.started ?? refuse(pickRefusals.notStarted);
     const turn = pickOnTheClock(started.teamIds, started.rounds, await picksMadeIn(ctx, leagueId)) ?? refuse(pickRefusals.over);
@@ -125,7 +131,7 @@ export const makePick = mutation({
     const player = await pickable(ctx, leagueId, playerCode);
     if (!(await (await legalForTurn(ctx, leagueId, started, turn))(player))) refuse(pickRefusals.breaksSquadRules(player.name));
     if (draft?.clock?.job !== undefined) await ctx.scheduler.cancel(draft.clock.job);
-    await placePick(ctx, leagueId, turn, team, player, email);
+    await placePick(ctx, league, turn, team, player, email);
     return null;
   },
 });
@@ -179,7 +185,7 @@ export const autoPick = internalMutation({
       const limit = (await draftRulesNow(ctx, leagueId)).timeoutsBeforeAutoPick;
       await ctx.db.patch("drafts", draft._id, { timeouts: afterTimeout(draft.timeouts, team._id, limit) });
     }
-    await placePick(ctx, leagueId, turn, team, player, team.managerEmail ?? league.commissionerEmail);
+    await placePick(ctx, league, turn, team, player, team.managerEmail ?? league.commissionerEmail);
     return null;
   },
 });

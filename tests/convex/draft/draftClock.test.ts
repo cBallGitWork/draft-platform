@@ -36,6 +36,7 @@ const start = async () => (await as(COMMISSIONER)).mutation(api.draft.draftStart
 const pick = async (email: string, playerCode: number) => (await as(email)).mutation(api.draft.draftPicks.makePick, { leagueId, playerCode });
 const picks = () => t.run(async (ctx) => (await ctx.db.query("draftPicks").collect()).map(({ pick, teamId, playerCode, at }) => ({ pick, teamId, playerCode, at })));
 const letterCount = () => t.run(async (ctx) => (await ctx.db.query("letters").collect()).length);
+const newLetterSubjects = (after: number) => t.run(async (ctx) => (await ctx.db.query("letters").collect()).slice(after).map(({ subject }) => subject));
 /** The clock moves on `ms`, and every pick scheduled by then is made. */
 async function pass(ms: number) {
   vi.advanceTimersByTime(ms);
@@ -144,13 +145,13 @@ describe("the draft's pick", () => {
 });
 
 describe("Mail", () => {
-  test("gets no letter for any pick, the manager's or the draft's", async () => {
+  test("gets no letter for any pick, the manager's or the draft's: only the next manager's up-next (draftLetters.test.ts)", async () => {
     await start();
     const before = await letterCount();
     await pick(ANN, A1);
     await pass(PICK_GAP_MS + PICK_MS);
 
     expect((await picks()).map(({ playerCode }) => playerCode)).toEqual([A1, A2]);
-    expect(await letterCount()).toBe(before);
+    expect(await newLetterSubjects(before)).toEqual(["You're up next in the draft", "You're up next in the draft"]);
   });
 });
