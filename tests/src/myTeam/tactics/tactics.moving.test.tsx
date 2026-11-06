@@ -228,7 +228,8 @@ describe("the selected player's panel (the approved Tactics picture)", () => {
     await openedPitch();
     await openPanel(SALIBA);
     const roles = within(screen.getByRole("region", { name: SALIBA.name })).getAllByRole("listitem");
-    expect(roles.map((role) => role.textContent)).toEqual(["Stoppernow", "Ball-playing centre-back", "No-nonsense centre-back", "Attacking centre-back"]);
+    // Each with his stars for it: none here, so "—".
+    expect(roles.map((role) => role.textContent)).toEqual(["Stoppernow—", "Ball-playing centre-back—", "No-nonsense centre-back—", "Attacking centre-back—"]);
     expect(roles[0].getAttribute("aria-current")).toBe("true");
   });
 
