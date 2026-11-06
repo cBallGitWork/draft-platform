@@ -7,6 +7,10 @@
 // head-to-head steps apply when the competition's timing says (the Premier League's: once the
 // season is over), and only while every match between the clubs level at that step is played.
 // Clubs level after the last step share a position, in the order the caller lists them: the Premier League lists them alphabetically, a practice and not a rule.
+//
+// A club given a points deduction has its total set by the admin (spec/18, The table: "you hard
+// override the total points", Craig, 1 Nov 2026; #898): the caller passes it, and it stands in
+// place of the points the club's results earn, the club placed by it.
 
 import { HEAD_TO_HEAD_TIE_BREAKS, type CompetitionTieBreak, type CompetitionTieBreaking } from "./tieBreaks";
 
@@ -29,6 +33,9 @@ export type PlTieBreaking<Club> = {
   unplayed: readonly PlMatch<Club>[];
 };
 
+/** The admin's total points for a club, in place of what its results earn (#898). */
+export type PlPointsOverrides<Club> = ReadonlyMap<Club, number>;
+
 export type PlTableRow<Club> = {
   club: Club;
   /** 1 at the top; clubs the order can't split share one, and the next club's skips past them
@@ -46,19 +53,21 @@ export type PlTableRow<Club> = {
 
 type Row<Club> = Omit<PlTableRow<Club>, "position">;
 
-/** The table: every club in `clubs`, a club with no results on nothing. A club listed twice, a
- *  match naming a club not in `clubs`, a club playing itself, or goals that aren't a whole number
- *  from 0 throws: each is the caller's bug. */
+/** The table: every club in `clubs`, a club with no results on nothing, a club in `overrides` on
+ *  the admin's total. A club listed twice, a match or an override naming a club not in `clubs`, a
+ *  club playing itself, goals that aren't a whole number from 0, or an override that isn't a whole
+ *  number throws: each is the caller's bug. */
 export function plTable<Club>(
   clubs: readonly Club[],
   results: readonly PlResult<Club>[],
   { competition, seasonOver, unplayed }: PlTieBreaking<Club>,
+  overrides: PlPointsOverrides<Club> = new Map(),
 ): PlTableRow<Club>[] {
   const rows = new Map(clubs.map((club) => [club, emptyRow(club)]));
   if (rows.size !== clubs.length) throw new Error(`A club is listed twice in ${clubs.map(String).join(", ")}`);
   const rowOf = (club: Club) => {
     const row = rows.get(club);
-    if (row === undefined) throw new Error(`A match names ${String(club)}, which isn't one of the clubs`);
+    if (row === undefined) throw new Error(`A match or a set total names ${String(club)}, which isn't one of the clubs`);
     return row;
   };
   for (const result of results) {
@@ -70,6 +79,10 @@ export function plTable<Club>(
     throwIfPlayingItself(match);
     rowOf(match.home);
     rowOf(match.away);
+  }
+  for (const [club, points] of overrides) {
+    if (!Number.isInteger(points)) throw new Error(`${String(club)}'s points are set to ${points}, not a whole number`);
+    rowOf(club).points = points;
   }
   const levelGroups = groupedBy([...rows.values()], (row) => row.points).flatMap((level) =>
     brokenTies(level, competition.order, {
