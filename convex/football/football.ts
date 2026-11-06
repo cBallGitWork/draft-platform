@@ -14,6 +14,9 @@ export interface Football {
   players: Infer<typeof playerRecord>[];
   fixtures: Infer<typeof fixtureRecord>[];
   gameweeks: Infer<typeof gameweekRecord>[];
+  /** The feed sent no fixtures between seasons, so `fixtures` is empty and no held match may be
+   *  marked as dropped for it (#66). */
+  betweenSeasons: boolean;
   /** Each match's score and clock, or why the feed's read gives none. */
   scores: ScoreReads;
 }

@@ -38,7 +38,7 @@ describe("from the recorded 2026/27 season", () => {
   test("FPL's rule gives FPL's own deadline for every gameweek", () => {
     expect(season.gameweeks).toHaveLength(GAMEWEEKS);
 
-    expect(deadlinesUnder(FPL_DEADLINE_RULE)).toEqual(season.gameweeks);
+    expect(deadlinesUnder(FPL_DEADLINE_RULE)).toEqual(season.gameweeks.map(({ number, deadline }) => ({ number, deadline })));
   });
 
   test("a league with its own rule gets its own deadline for every gameweek, not FPL's", () => {
