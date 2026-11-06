@@ -162,6 +162,8 @@ function matchupAt(minute: number, gameweek: number): Matchup {
     gameweeks: [...previewSeason.gameweeks],
     gameweek,
     deadline: previewSeason.deadlineOf(gameweek),
+    gameNumber: 1,
+    games: [{ kind: "team", teamName: OPPONENT }],
     game: {
       kind: "scored",
       team: sideAt(MINE, SAKA_POTATOES, minute),

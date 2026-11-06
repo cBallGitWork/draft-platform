@@ -126,6 +126,11 @@ export const matchup = v.union(
     /** Null while the team plays no head-to-head gameweek at all (fewer than two teams, say). */
     gameweek: v.union(v.number(), v.null()),
     deadline: shownDeadline,
+    /** Which of the team's games in the gameweek this is, from 1, as drawn (#521). */
+    gameNumber: v.number(),
+    /** Each of the team's games in the gameweek, as drawn, for the switch between them in a league
+     *  playing more than one a gameweek: who each is against, or a bye. Empty with no gameweek. */
+    games: v.array(v.union(opponent, v.object({ kind: v.literal(BYE) }))),
     game,
   }),
 );
