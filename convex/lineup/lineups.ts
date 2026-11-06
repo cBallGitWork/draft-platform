@@ -1,5 +1,5 @@
 import { v, type Infer } from "convex/values";
-import type { Id } from "../_generated/dataModel";
+import type { Doc, Id } from "../_generated/dataModel";
 import { mutation, type MutationCtx, type QueryCtx } from "../_generated/server";
 import { managerOf, refuse } from "../shared/leagueAccess";
 import { seasonRules, type SeasonRules } from "../rules/rulesHistory";
@@ -104,7 +104,7 @@ export async function lineupsInGameweek(
 }
 
 /** Each player's positions now in the league (spec/06), for picking a first lineup. */
-async function heldPositionsOf(ctx: QueryCtx, leagueId: Id<"leagues">, playerCodes: readonly number[]): Promise<PlayerPositions> {
+export async function heldPositionsOf(ctx: QueryCtx, leagueId: Id<"leagues">, playerCodes: readonly number[]): Promise<PlayerPositions> {
   const positionsOfNow = await positionsNow(ctx, leagueId);
   return new Map(await Promise.all(playerCodes.map(async (playerCode) => [playerCode, await positionsOfNow(playerCode)] as const)));
 }
@@ -214,6 +214,20 @@ export async function pickFirstLineupAgain(ctx: MutationCtx, leagueId: Id<"leagu
   const picked = withDroppedRoles(firstLineup(squad, positions, season.inGameweek(fromGameweek), keptOnBench), (playerCode) => stars.get(playerCode)!, row?.starters);
   if (row?.fromGameweek === fromGameweek) await ctx.db.patch("lineups", row._id, picked);
   else await ctx.db.insert("lineups", { leagueId, teamId, fromGameweek, ...picked, firstLineup: true });
+}
+
+/** The auto team's lineup for a gameweek begun (autoTeam.ts; spec/09): a saved row from it, which
+ *  rolls over as the manager's would, replacing one from that gameweek if there is one. */
+export async function storeAutoTeamLineup(
+  ctx: MutationCtx,
+  leagueId: Id<"leagues">,
+  teamId: Id<"teams">,
+  fromGameweek: number,
+  lineup: Pick<Doc<"lineups">, "starters" | "bench">,
+): Promise<void> {
+  const existing = await rowInForce(ctx, leagueId, teamId, fromGameweek);
+  if (existing?.fromGameweek === fromGameweek) await ctx.db.patch("lineups", existing._id, { ...lineup, firstLineup: undefined });
+  else await ctx.db.insert("lineups", { leagueId, teamId, fromGameweek, ...lineup });
 }
 
 /** When the draft ends (#1040): the team's first lineup, as its picks left it, becomes its saved

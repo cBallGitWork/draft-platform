@@ -243,7 +243,7 @@ function shortfall(problem: LineupProblem): number {
  *  caller can set it aside. A sub is only ever put where he plays. A sweeper or libero left with
  *  fewer than three centre-backs by a sub elsewhere keeps his role (roles.ts's roleIn): which roles
  *  a formation offers is the manager's pick, never a reason to refuse a sub. */
-function standingProblems(lineup: Lineup, positions: PlayerPositions, rules: LineupRules) {
+export function standingProblems(lineup: Lineup, positions: PlayerPositions, rules: LineupRules) {
   return lineupProblems(lineup, positions, rules).filter((problem) => problem.kind !== "outsideHisAreas" && problem.kind !== "noBackThree");
 }
 

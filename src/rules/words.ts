@@ -15,3 +15,8 @@ export const appliesFromWords = "Changes apply from";
 export const saveWords = "Save changes";
 export const discardWords = "Discard changes";
 export const unchangedWords = "Nothing changed yet.";
+/** A save went through: "Saved. The new settings apply from Gameweek 9", then anything else the
+ *  save did (Craig, 1 Nov 2026, on #351: "Word them alike"). */
+export const savedFromWords = (applies: string, gameweek: number, also = "") => `Saved. ${applies} from ${gameweekWords(gameweek)}${also}.`;
+/** A box left empty stops the save: "Squad has no number. Fill it in, or put 0, then save." */
+export const noNumberWords = (box: string, orElse?: string) => `${box} has no number. Fill it in${orElse === undefined ? "" : `, or ${orElse}`}, then save.`;
