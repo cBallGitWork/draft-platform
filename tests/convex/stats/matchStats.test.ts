@@ -1,9 +1,12 @@
 import { beforeEach, expect, test, vi } from "vitest";
 import { internal } from "../../../convex/_generated/api";
-import { FPL_BOOTSTRAP_URL, fplLiveUrl, plPlayerStatsUrl } from "../../../convex/football/football";
+import { FPL_BOOTSTRAP_URL, fplLiveUrl, plCompSeasonsUrl, plPlayerStatsUrl } from "../../../convex/football/football";
+import { plSeasonMissing } from "../../../convex/football/premierLeague/plSeasons";
+import { FPL_SEASON, plSeasonList } from "../../support/recorded/plSeasons.payloads";
 import { statValue } from "../../../convex/stats/matchRecords";
 import {
   FULL_TIME_READ,
+  fakeFeeds,
   GAMEWEEK,
   HULL_EVERTON,
   heldMatch,
@@ -201,6 +204,22 @@ test("a gameweek's refused read fails each of its matches, and a refused FPL rea
 
   expect(gameweek.outcome).toMatchObject({ ok: true, matches: [{ ok: false, error: refusedError(fplLiveUrl(GAMEWEEK)) }] });
   expect(whole.outcome).toEqual({ ok: false, error: refusedError(FPL_BOOTSTRAP_URL) });
+});
+
+test("a season the Premier League doesn't list, or a refused list, fails each due match with the reason, not the run", async () => {
+  silenceConsoleError();
+  const t = await withHullEverton();
+  const missing = plSeasonMissing(FPL_SEASON, FPL_SEASON);
+
+  vi.setSystemTime(FULL_TIME_READ);
+  vi.stubGlobal("fetch", fakeFeeds(recordedGw6(), undefined, plSeasonList().slice(1)));
+  await t.action(internal.stats.matchStatsSync.run, { trigger: "manual" });
+  const [unlisted] = await t.query(internal.stats.matchStats.latest, {});
+  const refused = await syncAt(t, FULL_TIME_READ, recordedGw6(), plCompSeasonsUrl());
+
+  expect(unlisted.outcome).toEqual({ ok: true, matches: [{ fixtureCode: HULL_EVERTON, ok: false, error: missing }], waiting: [], scores: NONE_SCORED });
+  expect(refused.outcome).toMatchObject({ ok: true, matches: [{ fixtureCode: HULL_EVERTON, ok: false, error: refusedError(plCompSeasonsUrl()) }] });
+  expect((await heldMatch(t)).records.size).toBe(0);
 });
 
 test("a named man FPL does not list is reported on the run row, and has no record", async () => {

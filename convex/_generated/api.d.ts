@@ -58,6 +58,7 @@ import type * as football_plStandings from "../football/plStandings.js";
 import type * as football_plTable from "../football/plTable.js";
 import type * as football_premierLeague_plCommentary from "../football/premierLeague/plCommentary.js";
 import type * as football_premierLeague_plMatch from "../football/premierLeague/plMatch.js";
+import type * as football_premierLeague_plSeasons from "../football/premierLeague/plSeasons.js";
 import type * as football_premierLeague_plTeamStats from "../football/premierLeague/plTeamStats.js";
 import type * as football_premierLeague_premierLeague from "../football/premierLeague/premierLeague.js";
 import type * as football_scoreReads from "../football/scoreReads.js";
@@ -329,6 +330,7 @@ declare const fullApi: ApiFromModules<{
   "football/plTable": typeof football_plTable;
   "football/premierLeague/plCommentary": typeof football_premierLeague_plCommentary;
   "football/premierLeague/plMatch": typeof football_premierLeague_plMatch;
+  "football/premierLeague/plSeasons": typeof football_premierLeague_plSeasons;
   "football/premierLeague/plTeamStats": typeof football_premierLeague_plTeamStats;
   "football/premierLeague/premierLeague": typeof football_premierLeague_premierLeague;
   "football/scoreReads": typeof football_scoreReads;

@@ -18,6 +18,7 @@ import {
 import { fplStatLines } from "../../../convex/football/fpl/fplLive";
 import { matchRecords } from "../../../convex/stats/matchRecords";
 import { matchSlots, plStatLines } from "../../../convex/football/premierLeague/plMatch";
+import type { RawPlCompSeason } from "../../../convex/football/premierLeague/plSeasons";
 import { FULL_STATS, hullEvertonReads, MATCH, recordedGw6, type Gw6Payloads } from "../recorded/gw6.payloads";
 import { recordedCommentary, recordedTeamStats } from "../recorded/commentary.payloads";
 import { PL_THIS_SEASON, plSeasonsBody } from "../recorded/plSeasons.payloads";
@@ -49,13 +50,14 @@ export const HULL_EVERTON_TEAM_STATS = {
 };
 
 /** Every feed's read for gameweek 6 as recorded, and Hull v Everton's commentary (#43) and team
- *  stats (#45) at full time, which the live tick reads; a URL containing `refuse` answers `REFUSED_STATUS`. */
-export function fakeFeeds(payloads: Gw6Payloads, refuse?: string) {
+ *  stats (#45) at full time, which the live tick reads; a URL containing `refuse` answers `REFUSED_STATUS`.
+ *  `seasons` is the Premier League's list of seasons, the recorded one unless given. */
+export function fakeFeeds(payloads: Gw6Payloads, refuse?: string, seasons?: RawPlCompSeason[]) {
   const bodies = new Map<string, unknown>([
     [FPL_BOOTSTRAP_URL, payloads.fpl.bootstrap],
     [FPL_FIXTURES_URL, payloads.fpl.fixtures],
     [fplLiveUrl(GAMEWEEK), payloads.fpl.live],
-    plSeasonsBody(),
+    plSeasonsBody(seasons),
     [plFixturesUrl(PL_THIS_SEASON, GAMEWEEK), payloads.pl.round],
     ...payloads.pl.fixtures.map((fixture) => [plFixtureUrl(fixture.id), fixture] as const),
     ...payloads.pl.playerStats.map((read) => [plPlayerStatsUrl(read.player, read.fixture), read.payload] as const),
