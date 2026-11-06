@@ -22,7 +22,7 @@ import { seasonOfFixture } from "./seasonStats";
 // by mid-season, so the site-wide part is kept, a row a player and season summed at every
 // position, set afresh just after a record write or a match's move changes what he counts
 // (seasonPointsQueue.ts). Overrides are few, so they go in on each read. Last season's under the set as it
-// stands, for the summer, aren't kept yet.
+// stands, shown before the first match, are scouting/shownSeasonPoints.ts's (#956).
 
 /** The most overrides one league holds across every season: a commissioner corrects a feed's
  *  mistake a handful of times a season, so this is decades of them. More throws, never a silent
@@ -76,6 +76,11 @@ function rowOf(ctx: QueryCtx, season: number, playerCode: number) {
     .query("playerSeasonPoints")
     .withIndex("by_season_and_playerCode", (q) => q.eq("season", season).eq("playerCode", playerCode))
     .unique();
+}
+
+/** Whether any player has points in `season`: from its first priced match on. */
+export async function seasonPriced(ctx: QueryCtx, season: number): Promise<boolean> {
+  return (await ctx.db.query("playerSeasonPoints").withIndex("by_season_and_playerCode", (q) => q.eq("season", season)).first()) !== null;
 }
 
 /** A player's season points, by his code and his positions now. */

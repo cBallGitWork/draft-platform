@@ -17,6 +17,8 @@ export type ScoutingData = {
   players?: readonly ListedPlayer[];
   totals?: Record<number, Stats>;
   seasons?: Record<number, Pick<ComparedPlayer, "matches" | "stats">>;
+  /** The season the points are from while they are last season's; null (the default) for this season's. */
+  pointsSeason?: number | null;
   loading?: boolean;
   comparing?: boolean;
   shortlist?: ShortlistData;
@@ -25,7 +27,7 @@ export type ScoutingData = {
 /** A player with no season held: no matches yet. */
 const NO_SEASON = { matches: 0, stats: {} };
 
-export function fakeScouting({ clubs = [], players = [], totals = {}, seasons = {}, loading = false, comparing = false, shortlist }: ScoutingData = {}) {
+export function fakeScouting({ clubs = [], players = [], totals = {}, seasons = {}, pointsSeason = null, loading = false, comparing = false, shortlist }: ScoutingData = {}) {
   const addToQueue = vi.fn<ReturnType<ScoutingSeam["useAddToQueue"]>>(async () => shortlist?.refusal ?? null);
   return {
     ...fakeShortlist(shortlist),
@@ -34,7 +36,7 @@ export function fakeScouting({ clubs = [], players = [], totals = {}, seasons = 
     usePlayersList: vi.fn<ScoutingSeam["usePlayersList"]>((_leagueId, filters, sort, stat) =>
       loading
         ? undefined
-        : { clubs, players: listOf(players.map((player) => ({ ...player, stat: shownStat(totals[player.code], stat) })), filters, sort) },
+        : { clubs, players: listOf(players.map((player) => ({ ...player, stat: shownStat(totals[player.code], stat) })), filters, sort), pointsSeason },
     ),
     useComparison: vi.fn<ScoutingSeam["useComparison"]>((_leagueId, codes) =>
       codes === null || comparing

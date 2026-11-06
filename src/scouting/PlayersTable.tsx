@@ -10,7 +10,17 @@ import { ClubShort } from "../premierLeague/ClubName";
 import type { PickedPlayer } from "./ComparePanel";
 import { statFigure } from "./figures";
 import type { ListedPlayer, PlayersSort, SortColumn } from "./seam";
-import { columns, compareLabel, figureWords, noFigureWords, noPointsYetWords, noRoleFitYetWords, statLabel } from "./words";
+import {
+  columns,
+  compareLabel,
+  figureWords,
+  noFigureWords,
+  noPointsYetWords,
+  noRoleFitYetWords,
+  notLastSeasonWords,
+  seasonPointsColumn,
+  statLabel,
+} from "./words";
 
 /** The list's columns: the fixed ones, and "stat" for the shown stat's season total. */
 type Column = keyof typeof columns | "stat";
@@ -26,10 +36,12 @@ const FIGURES: readonly Column[] = ["seasonPoints", "roleFit", "stat"];
 const cellClasses = (column: Column) =>
   cellClassOf(!FIGURES.includes(column), DESK_ONLY.includes(column));
 
-/** The players list itself: a head per column, sortable where it can be, and a row per player. */
+/** The players list itself: a head per column, sortable where it can be, and a row per player. The
+ *  points' head names the season they are from while they are last season's (`pointsSeason`). */
 export function PlayersTable({
   leagueId,
   players,
+  pointsSeason,
   stat,
   sort,
   sortBy,
@@ -38,6 +50,7 @@ export function PlayersTable({
 }: {
   leagueId: Id<"leagues">;
   players: readonly ListedPlayer[];
+  pointsSeason: number | null;
   stat: CatalogueStat | null;
   sort: PlayersSort;
   sortBy: (by: SortColumn) => void;
@@ -48,7 +61,7 @@ export function PlayersTable({
   return (
     <table className="w-full border-collapse">
       <ColumnHeads
-        columns={{ ...columns, stat: statHead(stat) }}
+        columns={{ ...columns, seasonPoints: seasonPointsColumn(pointsSeason), stat: statHead(stat) }}
         shown={shown}
         classOf={cellClasses}
         sort={{ ...sort, sortable: SORTABLE, sortBy }}
@@ -61,6 +74,7 @@ export function PlayersTable({
                 key={column}
                 column={column}
                 player={player}
+                pointsSeason={pointsSeason}
                 leagueId={leagueId}
                 ticked={picked.some((each) => each.code === player.code)}
                 pick={pick}
@@ -82,12 +96,14 @@ const statHead = (stat: CatalogueStat | null): ColumnWords =>
 function PlayerCell({
   column,
   player,
+  pointsSeason,
   leagueId,
   ticked,
   pick,
 }: {
   column: Column;
   player: ListedPlayer;
+  pointsSeason: number | null;
   leagueId: Id<"leagues">;
   ticked: boolean;
   pick: (player: ListedPlayer, ticked: boolean) => void;
@@ -130,7 +146,7 @@ function PlayerCell({
       );
     case "seasonPoints":
       return player.seasonPoints === null ? (
-        <td title={noPointsYetWords} className={`${className} text-muted`}>
+        <td title={pointsSeason === null ? noPointsYetWords : notLastSeasonWords} className={`${className} text-muted`}>
           {noFigureWords}
         </td>
       ) : (

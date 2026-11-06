@@ -1,5 +1,6 @@
 // What Scouting says, in one place for Craig to change in the pull request.
 
+import { lastSeasonPointsColumn } from "../draft/words";
 import { STAT_WORD } from "../shared/words";
 import type { Availability } from "./seam";
 
@@ -43,9 +44,15 @@ export const columns = {
   roleFit: { short: "Fit", long: "Role fit" },
 } as const;
 
-/** Why a figure isn't there yet: Scouting doesn't read season points yet, and role fit waits on
- *  role stars and scouts (spec/19, Role stars). */
-export const noPointsYetWords = "No points yet: Scouting doesn't show season points yet.";
+/** The points' head: "Pts" for this season's, named by the season while they are last season's,
+ *  before the new season's first match (spec/19; Craig, 6 Nov 2026, on #956: "Pts 25/26"). */
+export const seasonPointsColumn = (lastSeason: number | null) =>
+  lastSeason === null ? columns.seasonPoints : lastSeasonPointsColumn(lastSeason);
+
+/** Why a figure isn't there yet: none of his matches is priced, or, before the first match, he
+ *  wasn't in last season's data; and role fit waits on role stars and scouts (spec/19, Role stars). */
+export const noPointsYetWords = "No points yet: none of his matches is scored.";
+export const notLastSeasonWords = "No points: he isn't in last season's data.";
 export const noRoleFitYetWords = "No role fit yet: it waits on stars and scouts.";
 
 /** Two players side by side (spec/19, The players list). */

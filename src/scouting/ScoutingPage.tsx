@@ -41,7 +41,7 @@ export function ScoutingPage({ league, seam }: { league: LeagueSummary; seam: Sc
   };
   return (
     <PageSection title={SCOUTING_TITLE} className={PAGE_STACK}>
-      {picked.length > 0 && <ComparePanel picked={picked} comparison={comparison} clear={() => setPicked([])} />}
+      {picked.length > 0 && <ComparePanel picked={picked} comparison={comparison} pointsSeason={list?.pointsSeason ?? null} clear={() => setPicked([])} />}
       <ShortlistPanel leagueId={league.leagueId} seam={seam} />
       <Panel title={PLAYERS_TITLE}>
         <Filters filters={filters} clubs={list?.clubs} filterBy={filterBy} stat={stat} show={show} />
@@ -52,7 +52,7 @@ export function ScoutingPage({ league, seam }: { league: LeagueSummary; seam: Sc
         ) : (
           <>
             <PanelNote edge="b">{countWords(list.players.length)}</PanelNote>
-            <PlayersTable leagueId={league.leagueId} players={list.players} stat={stat} sort={sort} sortBy={sortBy} picked={picked} pick={pick} />
+            <PlayersTable leagueId={league.leagueId} players={list.players} pointsSeason={list.pointsSeason} stat={stat} sort={sort} sortBy={sortBy} picked={picked} pick={pick} />
           </>
         )}
       </Panel>
