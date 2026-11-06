@@ -9,6 +9,7 @@
 #   3. A new build. Ready issues, oldest first: `lane:auto` (a grill's issues) or `rules:clear` (the sweep found
 #      every rule settled), with no `rules:open`, `lane:craig` or STALE_LABEL, and no open pull request naming them
 #      (`Part of #N` or `Closes #N`). The drift-pass and nightly-ci issues have their own jobs.
+# Before those, it brings every ready pull request with auto-merge on that is behind main up to date (no Claude run).
 # Two builds never run at once on issues naming the same spec/NN file, so builders work in different folders
 # (CLAUDE.md). A build in flight is read from its run name (claude-build.yml's run-name, "<mode> #N").
 # Every pass it rewrites the `Today` issue (label `lead:board`): next up in build order, in flight, blocked and on
@@ -102,6 +103,24 @@ jobs:
           gh label create "$NEXT_LABEL" --color B60205 --description "Craig: build this first" --force
           gh label create "$BOARD_LABEL" --color 1D76DB --description "The lead's board, rewritten every pass" --force
           gh label create "$STUCK_LABEL" --color D93F0B --description "Its pull request stayed red after its fix round; take off to build again" --force
+      # A green pull request behind main never merges on its own: the `main` ruleset wants a head holding all of main,
+      # and auto-merge never updates the branch (6 Nov 2026: green builder pull requests sat 16 to 30 commits behind
+      # overnight). So every pass brings each ready pull request with auto-merge on that is BEHIND up to date, with
+      # no Claude run. It pushes as the pipeline's own account (BUILD_TOKEN, CBHelper180): a push with GITHUB_TOKEN
+      # runs no CI, and the merge waits on CI. One that conflicts is the fix round's, below.
+      - name: Bring pull requests behind main up to date
+        env:
+          GH_TOKEN: ${{ secrets.BUILD_TOKEN || github.token }}
+        run: |
+          set -euo pipefail
+          behind=$(gh pr list --state open --limit 200 --json number,isDraft,autoMergeRequest,mergeStateStatus \
+                     --jq '.[] | select((.isDraft | not) and .autoMergeRequest != null and .mergeStateStatus == "BEHIND") | .number')
+          [ -n "$behind" ] || { echo "No pull request with auto-merge on is behind main."; exit 0; }
+          for pr in $behind; do
+            echo "Updating #$pr: behind main, with auto-merge on"
+            [ "$DRY_RUN" = true ] && continue
+            gh pr update-branch "$pr" || echo "::warning::Couldn't update #$pr from main: it waits for the next pass."
+          done
       - name: Fill the builders
         run: |
           set -euo pipefail
