@@ -1,6 +1,6 @@
 // A player's card (#381, spec/12 The player card): its own page with Back, opened from a player's
 // name on Scouting and the squads page, by anyone in the league; who he is and who owns him, FPL's
-// news, last season's line (not held yet) and his club's next fixtures. This season's matches are
+// news, last season's line and his club's next fixtures. This season's matches are
 // season.test.tsx's. Of its actions only the shortlist is built (#374, its own tests in
 // tests/src/scouting/shortlist/shortlist.test.tsx).
 
@@ -23,6 +23,7 @@ import {
   NEXT_FIXTURES_TITLE,
   noNewsWords,
   noSuchPlayerWords,
+  notInLastSeasonWords,
   PLAYER_TITLE,
   SEASON_TITLE,
 } from "../../../src/playerCard/words";
@@ -123,8 +124,24 @@ describe("the card", () => {
     expect(await screen.findByText(goneWords)).toBeTruthy();
   });
 
-  it("last season's line says it isn't held yet", async () => {
+  it("last season's line holds his appearances, minutes and points at the position the switch picks (Craig, 6 Nov 2026)", async () => {
     openCard();
+    const lastSeason = within(await screen.findByRole("region", { name: LAST_SEASON_TITLE }));
+    expect(lastSeason.getByText("25/26: 34 apps, 2810 min, 212 pts")).toBeTruthy();
+
+    await userEvent.click(within(screen.getByRole("region", { name: SEASON_TITLE })).getByRole("radio", { name: "W" }));
+    expect(lastSeason.getByText("25/26: 34 apps, 2810 min, 198 pts")).toBeTruthy();
+  });
+
+  it("a player not in last season's data is not in the Premier League last season", async () => {
+    const newcomer = { ...SAKA, lastSeason: { season: 2025, played: null } };
+    openCard(newcomer, { cards: [newcomer] });
+    expect(within(await screen.findByRole("region", { name: LAST_SEASON_TITLE })).getByText(notInLastSeasonWords)).toBeTruthy();
+  });
+
+  it("last season's line says it isn't held while no past season is", async () => {
+    const unheld = { ...SAKA, lastSeason: null };
+    openCard(unheld, { cards: [unheld] });
     expect(within(await screen.findByRole("region", { name: LAST_SEASON_TITLE })).getByText(lastSeasonNotHeldWords)).toBeTruthy();
   });
 

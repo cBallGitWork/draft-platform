@@ -113,6 +113,7 @@ const card = (code: number, name: string, gone = false): PlayerCard => ({
   news: null,
   chanceOfPlaying: null,
   matches: [],
+  lastSeason: null,
   nextFixtures: [],
 });
 
