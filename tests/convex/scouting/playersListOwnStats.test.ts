@@ -22,6 +22,7 @@ const PALMER = { code: 1004, name: "Palmer", fullName: "Cole Palmer", clubCode: 
 const INVOLVEMENTS = { stat: `${OWN_STAT_PREFIX}involvements`, name: "Involvements", shortCode: "INV" };
 const HALF_XG = { stat: `${OWN_STAT_PREFIX}half_xg`, name: "Half xG", shortCode: "HXG" };
 const MOST_FIRST: PlayersSort = { by: "stat", descending: true };
+const BY_NAME: PlayersSort = { by: "name", descending: false };
 
 let t: TestConvex;
 let leagueId: Id<"leagues">;
@@ -39,11 +40,12 @@ beforeEach(async () => {
   });
 });
 
-const listAs = async (stat: string | null = null, sort: PlayersSort = MOST_FIRST) =>
+/** The list as Ann reads it, by `stat` the most first, or by name with none shown. */
+const listAs = async (stat: string | null = null) =>
   (await actingAs(t, ANN)).query(api.scouting.playersList.list, {
     leagueId,
     filters: { availability: "all", position: null, clubCode: null },
-    sort: stat === null ? { by: "name", descending: false } : sort,
+    sort: stat === null ? BY_NAME : MOST_FIRST,
     stat,
   });
 
