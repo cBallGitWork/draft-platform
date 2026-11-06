@@ -50,7 +50,7 @@ describe("who may read it", () => {
 });
 
 describe("the glance", () => {
-  test("before any gameweek has begun, it shows the first's head-to-heads, the same as the table's fixtures, unscored", async () => {
+  test("before any gameweek has begun, it shows the first's head-to-heads, the same as the table's fixtures", async () => {
     await addManagers(t, leagueId, [ANN, BOB, CAT]);
     const home = (await read())!;
     const fixtures = (await (await actingAs(t, ANN)).query(api.table.leagueTable.ofLeague, { leagueId }))!.gameweeks[0];

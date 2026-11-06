@@ -1,14 +1,12 @@
 import { v, type Infer } from "convex/values";
 import type { Doc, Id } from "../_generated/dataModel";
 import { query, type QueryCtx } from "../_generated/server";
-import { isPlaying, scoreOf } from "../football/matchScores";
+import { isPlaying } from "../football/matchScores";
 import { deadlineOf, leagueDeadlines } from "../gameweeks/leagueDeadlines";
 import { thisGameweekOf } from "../gameweeks/nextGameweek";
 import { seasonRules, type SeasonRules } from "../rules/rulesHistory";
 import { logFailure } from "../shared/errors";
 import { memberOf, teamIn, teamsOf } from "../shared/leagueAccess";
-import { playerByCode, unheldPlayerWords } from "../shared/players";
-import { readOnce } from "../shared/readOnce";
 import { begunGameweeks, tableGameweek, type GameweekTeams } from "../gameweekScorer/gameweekScores";
 import { scheduleOf } from "../table/playedFixtures";
 import { isFinished, type HeldMatch } from "../gameweekScorer/heldMatches";
@@ -19,7 +17,7 @@ import { averageScore, BYE, gamesOf, type Against } from "../table/teamGames";
 import type { SlotPoints } from "../scoring/teamPoints";
 import { namedRole, roleIn, type Role } from "../lineup/roles";
 import { game, matchup, type MatchupCommentary, type MatchupBenchSlot, type MatchupSide, type MatchupSlot, type MatchupStarter, type SlotStatus } from "./matchupShape";
-import { readCommentary } from "./readCommentary";
+import { commentaryReads, readCommentary, type CommentaryReads } from "./readCommentary";
 
 // One head-to-head in one gameweek (#34; spec/10, The matchup, as a live match; spec/14, On
 // screen): both lineups slot by slot, each player's points and whether his match is yet to come,
@@ -37,7 +35,6 @@ import { readCommentary } from "./readCommentary";
 // priced for them (vidiprinter.ts, #44).
 
 type TeamId = Id<"teams">;
-type PlayerCode = number;
 type Game = Infer<typeof game>;
 type Opponent = Exclude<Against<TeamId>, { kind: typeof BYE }>;
 
@@ -112,9 +109,11 @@ async function gameOf(
  *  up to it; and a gameweek whose slots can't be worked out is unscored here even while the table
  *  shows its stored totals. */
 class SideScorer {
-  /** His name; for one the football sync doesn't hold, the error saying so (#810, #323). */
-  private readonly name = readOnce((playerCode: PlayerCode) => playerByCode(this.ctx, playerCode).then((player) => player?.name ?? unheldPlayerWords(playerCode)));
-  private readonly score = readOnce((fixtureCode: number) => scoreOf(this.ctx, fixtureCode));
+  /** Each man's name, for one the football sync doesn't hold the words saying so (#810, #323), and
+   *  each match's score, read once. */
+  private readonly reads: CommentaryReads;
+  private readonly name: CommentaryReads["name"];
+  private readonly score: CommentaryReads["score"];
 
   constructor(
     private readonly ctx: QueryCtx,
@@ -122,7 +121,11 @@ class SideScorer {
     /** The teams the league's average is over: the gameweek's own (standings.ts's teamsInGameweek). */
     private readonly averaged: readonly TeamId[],
     private readonly gameweek: number,
-  ) {}
+  ) {
+    this.reads = commentaryReads(ctx);
+    this.name = this.reads.name;
+    this.score = this.reads.score;
+  }
 
   async team(teamId: TeamId, teamName: string): Promise<MatchupSide> {
     const scored = await this.inGameweek.slotsOf(teamId);
@@ -152,7 +155,7 @@ class SideScorer {
    *  is logged and says why, while the scores still show. Delayed as at `now` (`delayedAt`). */
   async commentary(teamIds: readonly TeamId[], failure: string, now: number): Promise<MatchupCommentary> {
     try {
-      const read = await readCommentary(this.ctx, this.inGameweek, teamIds, now, { name: this.name, score: this.score }, { countingOnly: false });
+      const read = await readCommentary(this.ctx, this.inGameweek, teamIds, now, this.reads, { countingOnly: false });
       return { kind: "read", ...read };
     } catch (error) {
       return { kind: "unread", reason: logFailure(failure, error) };

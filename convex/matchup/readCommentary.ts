@@ -1,6 +1,9 @@
 import type { Doc, Id } from "../_generated/dataModel";
 import type { QueryCtx } from "../_generated/server";
 import { delayedAt, heldOf } from "../football/matchCommentary";
+import { scoreOf } from "../football/matchScores";
+import { playerByCode, unheldPlayerWords } from "../shared/players";
+import { readOnce } from "../shared/readOnce";
 import type { GameweekTeams } from "../gameweekScorer/gameweekScores";
 import type { HeldMatch } from "../gameweekScorer/heldMatches";
 import { inMatchOf } from "../gameweekScorer/teamGameweek";
@@ -18,6 +21,14 @@ export interface CommentaryReads {
   /** His name, or the words for one the football sync doesn't hold. */
   name(playerCode: PlayerCode): Promise<string>;
   score(fixtureCode: number): Promise<Doc<"matchScores"> | null>;
+}
+
+/** Each man's name and each match's score, each read once however many lines ask. */
+export function commentaryReads(ctx: QueryCtx): CommentaryReads {
+  return {
+    name: readOnce((playerCode: PlayerCode) => playerByCode(ctx, playerCode).then((player) => player?.name ?? unheldPlayerWords(playerCode))),
+    score: readOnce((fixtureCode: number) => scoreOf(ctx, fixtureCode)),
+  };
 }
 
 export interface CommentaryOf {

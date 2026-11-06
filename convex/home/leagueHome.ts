@@ -2,7 +2,6 @@ import { v, type Infer } from "convex/values";
 import type { Doc, Id } from "../_generated/dataModel";
 import { query, type QueryCtx } from "../_generated/server";
 import { matchdayMargins } from "../admin/platformSettings";
-import { scoreOf } from "../football/matchScores";
 import { begunGameweeks, tableGameweek } from "../gameweekScorer/gameweekScores";
 import { leagueReads } from "../gameweekScorer/teamGameweek";
 import { seasonRules, type SeasonRules } from "../rules/rulesHistory";
@@ -13,15 +12,13 @@ import { GAMEWEEK_MATCHES_MOST } from "../shared/fixtures";
 import { DAY_MS } from "../shared/time";
 import { LIVE_WINDOW_MS } from "../stats/liveStats";
 import { commentary, type MatchupCommentary } from "../matchup/matchupShape";
-import { readCommentary } from "../matchup/readCommentary";
+import { commentaryReads, readCommentary } from "../matchup/readCommentary";
 import { leagueRulesShape } from "../rules/leagueRulesShape";
 import { pinnedLetter } from "../schema";
 import { isSquadMove, newestFirst, SQUAD_MOVES } from "../squads/squadPlace";
 import { statusOf } from "../stats/matchStats";
 import { logFailure } from "../shared/errors";
 import { memberOf } from "../shared/leagueAccess";
-import { playerByCode, unheldPlayerWords } from "../shared/players";
-import { readOnce } from "../shared/readOnce";
 import { scoredFixture, standingsOf } from "../table/leagueTable";
 import { scoredFixtures } from "../table/sentTables";
 import { formOf, RESULTS } from "../table/standings";
@@ -194,11 +191,7 @@ async function vidiprinterOf(
   if (!(await begunGameweeks(ctx, league)).includes(gameweek)) return { kind: "read", lines: [], delayed: false };
   try {
     const inGameweek = await tableGameweek(ctx, await leagueReads(ctx, league, season), gameweek, teamIds);
-    const reads = {
-      name: readOnce((playerCode: number) => playerByCode(ctx, playerCode).then((player) => player?.name ?? unheldPlayerWords(playerCode))),
-      score: readOnce((fixtureCode: number) => scoreOf(ctx, fixtureCode)),
-    };
-    const { lines, delayed } = await readCommentary(ctx, inGameweek, teamIds, now, reads, { countingOnly: true, fixtureCodes });
+    const { lines, delayed } = await readCommentary(ctx, inGameweek, teamIds, now, commentaryReads(ctx), { countingOnly: true, fixtureCodes });
     return { kind: "read", lines: lines.filter((line) => line.points !== null), delayed };
   } catch (error) {
     return { kind: "unread", reason: logFailure(`League ${league._id} (${league.name}) can't read gameweek ${gameweek}'s Vidiprinter`, error) };
