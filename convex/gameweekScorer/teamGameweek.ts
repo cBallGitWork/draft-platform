@@ -176,7 +176,7 @@ export interface ScoredInMatch {
 
 /** Each of his matches as his slot scored it. scoreTeam scores a man's matches in the order
  *  matchesOf holds them, so this is the one place that pairs a match with its points. */
-function scoredByMatch(slot: SlotPoints, matches: readonly HeldMatch[]): ScoredInMatch[] {
+export function scoredByMatch(slot: SlotPoints, matches: readonly HeldMatch[]): ScoredInMatch[] {
   return matches.map((match, index) => ({ match, points: slot.matches[index], counted: slot.matchesCounted[index] }));
 }
 

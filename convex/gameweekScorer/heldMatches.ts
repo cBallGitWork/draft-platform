@@ -69,7 +69,15 @@ export async function overridesIn(ctx: QueryCtx, leagueId: Id<"leagues">, fixtur
   return new Map(rows.map((row) => [row.playerCode, row.points]));
 }
 
-export const playsIn = (fixture: Doc<"fixtures">, clubCode: number) => fixture.homeClubCode === clubCode || fixture.awayClubCode === clubCode;
+/** The league's override of one man's points in one match, with its reason, or null with none. */
+export function overrideOf(ctx: QueryCtx, leagueId: Id<"leagues">, fixtureCode: number, playerCode: PlayerCode): Promise<Doc<"pointsOverrides"> | null> {
+  return ctx.db
+    .query("pointsOverrides")
+    .withIndex("by_leagueId_and_fixtureCode_and_playerCode", (q) => q.eq("leagueId", leagueId).eq("fixtureCode", fixtureCode).eq("playerCode", playerCode))
+    .unique();
+}
+
+export const playsIn =(fixture: Doc<"fixtures">, clubCode: number) => fixture.homeClubCode === clubCode || fixture.awayClubCode === clubCode;
 
 /** A match read at full time has a state; one still live has none (liveStats.ts). */
 export const isFinished = (match: HeldMatch) => match.status !== null;
