@@ -17,6 +17,7 @@ import {
   noFigureWords,
   noStatsYetWords,
   pickOneMoreWords,
+  seasonPointsColumn,
 } from "../../../src/scouting/words";
 import { expectColumnHeads, expectUnseenHead } from "../../support/src/columnHeads";
 import type { ScoutingData } from "../../support/src/scouting.harness";
@@ -50,6 +51,14 @@ describe("comparing two players", () => {
     await screen.findByRole("table");
     expect(screen.queryByRole("region", { name: COMPARE_TITLE })).toBeNull();
     expect(app.scouting.useComparison.mock.lastCall![1]).toBeNull();
+  });
+
+  it("before the new season's first match, names the points row by last season, as the list does (#956)", async () => {
+    openToCompare({ pointsSeason: 2025 });
+    await tick("Saka");
+    await tick("Palmer");
+    expect(cellsOf(seasonPointsColumn(2025).short)).toEqual([noFigureWords, noFigureWords]);
+    expect(seasonPointsColumn(2025).short).toBe("Pts 25/26");
   });
 
   it("one ticked asks for one more", async () => {

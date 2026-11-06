@@ -51,7 +51,7 @@ test("a league's override doesn't count in last season's points: every league se
   await league.t.run(async (ctx) => {
     await ctx.db.insert("pointsOverrides", {
       leagueId: league.leagueId,
-      gameweek: GW1.gameweek,
+      gameweek: GW1.gameweek!,
       fixtureCode: GW1.code,
       playerCode: RICE.code,
       points: 20,
