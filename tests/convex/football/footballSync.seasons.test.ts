@@ -29,6 +29,12 @@ async function gameweeks(t: TestConvex) {
     .sort((a, b) => (a.season ?? 0) - (b.season ?? 0) || a.number - b.number);
 }
 
+/** Strips each held gameweek's season, as rows written before #66 have none. */
+const unlabelGameweeks = (t: TestConvex) =>
+  t.run(async (ctx) => {
+    for (const row of await ctx.db.query("gameweeks").collect()) await ctx.db.replace("gameweeks", row._id, { number: row.number, deadline: row.deadline });
+  });
+
 beforeEach(() => {
   vi.useFakeTimers({ toFake: ["Date"] });
   vi.setSystemTime(THIS_SEASON_SYNC);
@@ -67,9 +73,7 @@ test("the season's schedule reads only the newest season's gameweeks once last s
 test("a gameweek row from before #66, with no season, is labelled by its season's sync rather than held twice", async () => {
   const t = freshConvex();
   await syncWith(t, recordedFpl());
-  await t.run(async (ctx) => {
-    for (const row of await ctx.db.query("gameweeks").collect()) await ctx.db.replace("gameweeks", row._id, { number: row.number, deadline: row.deadline });
-  });
+  await unlabelGameweeks(t);
 
   const outcome = await syncWith(t, recordedFpl());
 
@@ -82,9 +86,7 @@ test("a gameweek row from before #66, with no season, is labelled by its season'
 test("a gameweek row from before #66 is never taken for next season's: it stays, and the new season's are new rows", async () => {
   const t = freshConvex();
   await syncWith(t, recordedFpl());
-  await t.run(async (ctx) => {
-    for (const row of await ctx.db.query("gameweeks").collect()) await ctx.db.replace("gameweeks", row._id, { number: row.number, deadline: row.deadline });
-  });
+  await unlabelGameweeks(t);
 
   vi.setSystemTime(NEXT_SEASON_SYNC);
   await syncWith(t, nextSeasonFpl());
