@@ -40,7 +40,7 @@ import { unownedPointsOf, type UnownedPricer } from "./unownedPoints";
 type PlayerCode = number;
 
 /** A man the match names: from his record, or before any, from the sheets, not yet played. */
-type NamedMan = Pick<Doc<"playerMatchStats">, "playerCode" | "started" | "played">;
+type NamedMan = Pick<Doc<"playerMatchStats">, "playerCode" | "started" | "played" | "clubCode">;
 
 const side = v.union(v.literal("home"), v.literal("away"));
 
@@ -49,7 +49,7 @@ const matchMan = v.object({
   name: v.string(),
   /** His main position, null while he has none. */
   position: v.union(position, v.null()),
-  /** The club he is at now, by the match's sides; null once he has left both. */
+  /** The club he played the match for, by the match's sides (#502); null when it is neither. */
   side: v.union(side, v.null()),
   started: v.boolean(),
   /** False for an unused substitute; null while no feed has sent a substitute's minutes. */
@@ -188,9 +188,9 @@ async function priced(ctx: QueryCtx, league: Doc<"leagues">, fixture: Doc<"fixtu
 }
 
 /** Each man the match names, with his club's side, his owner and his points, in the page's order;
- *  and the men in no lineup, as the commentary prices them. His side is by the club he is at now,
- *  as neither a record nor the sheets hold a club: a man since moved between the two shows under
- *  his new one (#502). */
+ *  and the men in no lineup, as the commentary prices them. His side is by the club his record
+ *  holds, the one he played the match for (#502); by his club now before kickoff, as the sheets
+ *  hold none, and for a record written before records kept one. */
 async function menOf(
   ctx: QueryCtx,
   leagueId: Id<"leagues">,
@@ -203,7 +203,7 @@ async function menOf(
   const positionsOfNow = await positionsNow(ctx, leagueId);
   const unowned = new Map<PlayerCode, VidiprinterPlayer>();
   const men = await Promise.all(
-    named.map(async ({ playerCode, started, played }) => {
+    named.map(async ({ playerCode, started, played, clubCode }) => {
       const player = await heldPlayer(ctx, fixture.code, playerCode);
       const positions = await positionsOfNow(playerCode);
       const owned = owners.has(playerCode);
@@ -214,7 +214,7 @@ async function menOf(
         playerCode,
         name: player.name,
         position: positions[0] ?? null,
-        side: player.clubCode === fixture.homeClubCode ? ("home" as const) : player.clubCode === fixture.awayClubCode ? ("away" as const) : null,
+        side: sideOf(fixture, clubCode ?? player.clubCode),
         started,
         played,
         ownerTeamName: owners.get(playerCode)?.name ?? null,
@@ -224,6 +224,12 @@ async function menOf(
     }),
   );
   return { men: men.toSorted(bySheetOrder), unowned };
+}
+
+/** The side of the match the club plays on; null for a club playing in neither. */
+function sideOf({ homeClubCode, awayClubCode }: Doc<"fixtures">, clubCode: number): "home" | "away" | null {
+  if (clubCode === homeClubCode) return "home";
+  return clubCode === awayClubCode ? "away" : null;
 }
 
 /** A man the match names. A record or a sheet's man is kept only for a man FPL lists, so one the

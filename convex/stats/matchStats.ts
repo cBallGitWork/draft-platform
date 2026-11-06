@@ -10,6 +10,7 @@ import { emailIfFailed } from "../admin/feedFailureEmails";
 import { countedStats, moveSeasonTotals, type RecordChange } from "./seasonStats";
 import { repriceChanged } from "./seasonPointsQueue";
 import { rebuildTotalsIfNoneKept } from "./seasonRebuilds";
+import { playerByCode } from "../shared/players";
 
 // Issue #27: the stored side of match stats. `matchStatsSync.run` reads the feeds and hands each
 // match's records to `upsertMatch`; `lock` closes the window; each run is a row in matchStatsSyncs.
@@ -155,7 +156,7 @@ export async function writeRecords(
   for (const record of records) {
     const row = held.get(record.playerCode);
     if (row === undefined) {
-      await ctx.db.insert("playerMatchStats", { ...record, state });
+      await ctx.db.insert("playerMatchStats", { ...record, state, ...(await clubThatDay(ctx, record.playerCode)) });
       inserted += 1;
       changed.push(record.playerCode);
       moved.push({ playerCode: record.playerCode, fixtureCode: record.fixtureCode, before: undefined, after: countedStats(record) });
@@ -166,7 +167,7 @@ export async function writeRecords(
       changed.push(record.playerCode);
       moved.push({ playerCode: record.playerCode, fixtureCode: record.fixtureCode, before: countedStats(row), after: countedStats(record) });
     }
-    if (differs || row.state !== state) await ctx.db.replace("playerMatchStats", row._id, { ...record, state });
+    if (differs || row.state !== state) await ctx.db.replace("playerMatchStats", row._id, { ...record, state, clubCode: row.clubCode });
   }
   // Before any totals move, as their rows would hide a deployment whose older records have none.
   // Its rebuild sets every total afresh and then re-prices every season, so nobody is re-priced here.
@@ -174,6 +175,13 @@ export async function writeRecords(
   await moveSeasonTotals(ctx, moved);
   if (!rebuilding) await repriceChanged(ctx, records, held);
   return { inserted, updated: changed.length - inserted, changed };
+}
+
+/** His club now, as his record is first written while the match is played or just after: the club
+ *  he played it for (#502). None for a man the football sync doesn't hold. */
+async function clubThatDay(ctx: QueryCtx, playerCode: number): Promise<{ clubCode?: number }> {
+  const player = await playerByCode(ctx, playerCode);
+  return player === null ? {} : { clubCode: player.clubCode };
 }
 
 /** A row for each whole record that differs from the locked one, unless the last row for him
