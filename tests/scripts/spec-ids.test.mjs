@@ -1,6 +1,5 @@
-import { execFileSync } from "node:child_process";
 import { expect, test } from "vitest";
-import { checkBranch, checkIds } from "../../scripts/spec-ids.mjs";
+import { checkBranch, checkIds, repoFiles } from "../../scripts/spec-ids.mjs";
 import { REPO_ROOT } from "../support/scripts/repoRoot.mjs";
 
 // Made-up spec files and tests; the real run skips this file, so these IDs are never citations.
@@ -30,9 +29,13 @@ test("a test or a caption mentioning an ID no answer has, or one withdrawn, fail
   ]);
 });
 
+// The IDs only: the comparison with origin/main needs its history, which the unit job's shallow
+// checkout lacks; verify's checks job runs the whole script.
 test("the repo's own spec and tests pass", () => {
-  const output = execFileSync(process.execPath, ["scripts/spec-ids.mjs"], { cwd: REPO_ROOT, encoding: "utf8" });
-  expect(output).toMatch(/^spec IDs: \d+ answers have IDs; uncited by any test: /);
+  const { specs, tests } = repoFiles(REPO_ROOT);
+  const { answers, problems } = checkIds(specs, tests);
+  expect(problems).toEqual([]);
+  expect(answers).toBeGreaterThan(0);
 });
 
 // The branch against origin/main (Craig, 6 Nov 2026, on #454).

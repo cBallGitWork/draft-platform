@@ -32,9 +32,9 @@ approved its rows (6 Nov 2026, #454).
 
 ### Examples
 
-Craig's answers above, worked through by Claude and approved by Craig (6 Nov 2026). Each table names the answer
-it shows, and a test runs every row (`tests/convex/stats/matchStats.examples.test.ts`): change a number here and
-the test fails until the code agrees. The lock times take the window from `S07.2` itself.
+Craig's answers above, worked through by Claude and approved by Craig (6 Nov 2026). Each table
+names the answer it shows, and a test runs every row (`tests/convex/stats/matchStats.examples.test.ts`):
+change a number here and the test fails until the code agrees. The lock times take the window from `S07.2` itself.
 
 **When a match locks** (`S07.2`):
 

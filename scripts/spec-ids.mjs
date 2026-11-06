@@ -137,13 +137,18 @@ function onBase() {
   return { specs, tests: paths("tests/").map((path) => [path, ""]) };
 }
 
-if (process.argv[1] !== undefined && import.meta.url === pathToFileURL(process.argv[1]).href) {
-  const root = process.cwd();
+/** The repo's spec files and tests under `root`, as `checkIds` and `checkBranch` take them. */
+export function repoFiles(root) {
   const specs = filesUnder(root, "spec", (path) => SPEC_FILE.test(path.slice("spec/".length))).map(([path, text]) => [
     relative("spec", path),
     text,
   ]);
   const tests = filesUnder(root, "tests", (path) => TEST_FILE.test(path) && path !== OWN_TEST);
+  return { specs, tests };
+}
+
+if (process.argv[1] !== undefined && import.meta.url === pathToFileURL(process.argv[1]).href) {
+  const { specs, tests } = repoFiles(process.cwd());
   const { answers, problems, uncited } = checkIds(specs, tests);
   const branch = checkBranch(onBase(), { specs, tests });
   const failures = [...problems, ...branch.problems];
