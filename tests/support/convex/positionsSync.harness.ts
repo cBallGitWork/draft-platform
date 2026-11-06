@@ -7,7 +7,9 @@ import { expect, vi } from "vitest";
 import { api, internal } from "../../../convex/_generated/api";
 import type { Doc } from "../../../convex/_generated/dataModel";
 import { DAY_MS } from "../../../convex/shared/time";
-import { FPL_BOOTSTRAP_URL, plFixturesUrl, plFixtureUrl, plSquadUrl } from "../../../convex/football/football";
+import { FPL_BOOTSTRAP_URL, PL_COMP_SEASON, PL_LAST_COMP_SEASON, plFixturesUrl, plFixtureUrl, plSquadUrl } from "../../../convex/football/football";
+import type { RawPlFixture } from "../../../convex/football/premierLeague/premierLeague";
+import { MATCHES_PER_RUN } from "../../../convex/positions/positionsSync";
 import { ADMIN, actingAs } from "./leagues.harness";
 import { BRENTFORD_CODE, NEWCASTLE, PLAYER, recordedPositions, SHEET, type PositionsPayloads } from "../recorded/positions.payloads";
 import { fakeFetch, freshConvex, silenceConsoleError, type TestConvex } from "./test.harness";
@@ -33,15 +35,21 @@ function fakeFeeds(payloads: PositionsPayloads, refuse?: string) {
 }
 
 /** One sync against `payloads`, run at `at` when given (the feeds are faked first, at the real
- *  time): the outcome it recorded, and the URLs it asked for. */
-export async function syncPositionsWith(t: TestConvex, payloads: PositionsPayloads, refuse?: string, at?: number) {
+ *  time), by hand unless `trigger` says the cron: the outcome it recorded, and the URLs it asked for. */
+export async function syncPositionsWith(
+  t: TestConvex,
+  payloads: PositionsPayloads,
+  refuse?: string,
+  at?: number,
+  trigger: "manual" | "cron" = "manual",
+) {
   const fetch = fakeFeeds(payloads, refuse);
   vi.stubGlobal("fetch", fetch);
   if (at !== undefined) {
     vi.useFakeTimers({ toFake: ["Date"] });
     vi.setSystemTime(at);
   }
-  await t.action(internal.positions.positionsSync.run, { trigger: "manual" });
+  await t.action(internal.positions.positionsSync.run, { trigger });
   const [latest] = await t.query(internal.positions.positionsSync.latest, {});
   return { outcome: latest.outcome, urls: fetch.mock.calls.map(([url]) => url) };
 }
@@ -84,6 +92,36 @@ export async function synced(): Promise<TestConvex> {
     await ctx.db.insert("players", { code: PLAYER.kelleher, name: "Kelleher", fullName: "Caoimhín Kelleher", clubCode: BRENTFORD_CODE });
   });
   return t;
+}
+
+/** A player's filed starts, newest first. */
+export function heldStarts(t: TestConvex, code: number) {
+  return t.run(async (ctx) => {
+    const row = await ctx.db.query("playerPositions").withIndex("by_code", (q) => q.eq("code", code)).unique();
+    return row?.starts ?? [];
+  });
+}
+
+/** The first of `pastTheCap`'s copies, the newest. */
+export const FIRST_COPY = 900_000;
+
+/** Two more played matches than one run reads: copies of one match, `template` or else the first
+ *  recorded, each its own fixture, newest first. */
+export function pastTheCap(template?: RawPlFixture): PositionsPayloads {
+  const payloads = recordedPositions();
+  const sheet = template ?? payloads.sheets[0];
+  const copies = Array.from({ length: MATCHES_PER_RUN + 2 }, (_, index) => ({
+    ...structuredClone(sheet),
+    id: FIRST_COPY + index,
+    altIds: { opta: `g${FIRST_COPY + index}` },
+    kickoff: { millis: sheet.kickoff!.millis - index },
+  }));
+  payloads.sheets = copies;
+  payloads.fixtureLists = { [PL_LAST_COMP_SEASON]: copies, [PL_COMP_SEASON]: [] };
+  // FPL listing Thiaw alone, so each copy files his one start, not a whole match's: filing every
+  // starter of 152 matches took over the default five seconds on a loaded machine.
+  payloads.fplElements = payloads.fplElements.filter((element) => element.code === PLAYER.thiaw);
+  return payloads;
 }
 
 /** A positions sync that read its starts, as its run records it. */

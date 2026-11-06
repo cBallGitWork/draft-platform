@@ -85,6 +85,12 @@
      wrap under the table */
   --flex-basis-squad-table: 640px;
   --flex-basis-widgets: 300px;
+  /* The draft room's right-hand column beside the players list, as its approved picture draws it:
+     there whether or not a player is picked, so the list keeps its width */
+  --flex-basis-draft-widgets: 400px;
+  /* A control in a panel's title bar on the desk, as the approved draft room picture draws its
+     players list's tabs, Find and stats; a phone keeps the 44px tap size */
+  --spacing-bar-control: 26px;
   /* A tick box's well (plate.md, Controls) */
   --spacing-tick: 22px;
   --spacing-vidiprinter: 480px; /* the matchup's commentary, scrolled past it */
@@ -120,9 +126,6 @@
   --grid-template-columns-dated-row: auto minmax(0, 1fr);
   --grid-template-columns-home: minmax(0, 2fr) minmax(0, 3fr) minmax(0, 2fr);
   --grid-template-columns-card: 2fr 3fr;
-  /* The draft room under its board: the players list, and the right-hand column of widgets beside
-     it, the approved picture's 400px (#1100) */
-  --grid-template-columns-draft-room: minmax(0, 1fr) 25rem;
   --grid-template-columns-facts: auto 1fr;
   /* The formation window's groups, its tiles and the picked one's preview (the approved formation
      window) */

@@ -1,6 +1,7 @@
 // Every public function's gate (SEC-6), the table tests/convex/shared/publicGates.test.ts sweeps:
 // who each lets in, and what a signed-out caller and a signed-in outsider get behind each gate.
 
+import { autoTeamRefusals } from "../../../convex/lineup/autoTeamWords";
 import { mailRefusals } from "../../../convex/mail/mail";
 import { refusals } from "../../../convex/shared/leagueAccess";
 
@@ -25,6 +26,8 @@ export const GATES = {
   managerOrNothing: { signedOut: ANSWERS_NOTHING, outsider: ANSWERS_NOTHING },
   /** The team's own manager, or the admin. */
   teamsManager: { signedOut: refusals.signedOut, outsider: refusals.notManager },
+  /** The team's own manager, the commissioner, the co-commissioner or the admin. */
+  teamsManagerOrRunner: { signedOut: refusals.signedOut, outsider: autoTeamRefusals.notYours },
   /** The commissioner, the co-commissioner or the admin. */
   runner: { signedOut: refusals.signedOut, outsider: refusals.notRunner },
   /** The same, but anyone else is answered with nothing rather than refused. */
@@ -72,6 +75,8 @@ export const gates: Record<string, Gate> = {
   "draft/draftPause:resume": "runner",
   "draft/draftPicks:makePick": "manager",
   "draft/draftPicks:pickFor": "runner",
+  "draft/draftPlayers:figures": "member",
+  "draft/draftPlayers:greyedOut": "member",
   "draft/draftRanking:upload": "admin",
   "draft/draftRanking:view": "admin",
   "draft/draftStart:ofLeague": "member",
@@ -111,6 +116,7 @@ export const gates: Record<string, Gate> = {
   "leagues/teams:rename": "teamsManager",
   "lineup/lineupDue:isDue": "managerOrNothing",
   "lineup/lineupDue:openedTactics": "manager",
+  "lineup/autoTeam:set": "teamsManagerOrRunner",
   "lineup/lineups:save": "manager",
   "lineup/tactics:ofMyTeam": "manager",
   "mail/mail:latest": "signedInOrNothing",
@@ -164,6 +170,7 @@ export const gates: Record<string, Gate> = {
   "table/leagueTable:ofLeague": "member",
   "table/pointsOverrides:override": "runner",
   "table/teamFixtures:ofMyTeam": "manager",
+  "waivers/freeAgents:pickUp": "manager",
   "waivers/waiverClaims:pending": "member",
   "waivers/waiverClaims:putIn": "manager",
   "waivers/waiverClaims:rank": "manager",

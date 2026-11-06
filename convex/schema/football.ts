@@ -139,6 +139,10 @@ export const footballTables = {
     .index("by_gameweek_and_droppedAt", ["gameweek", "droppedAt"]),
   gameweeks: defineTable(gameweekRecord.extend({ droppedAt })).index("by_number", ["number"]).index("by_droppedAt", ["droppedAt"]),
   footballSyncs: defineTable(footballSyncFields),
+  /** Each player's number at his club, by FPL's `code`, from the Premier League's squad lists, which
+   *  the positions sync reads (#13): the shirt he wears until his manager gives him one (spec/05,
+   *  Squad numbers). No row while no squad list gives him a number. */
+  clubNumbers: defineTable({ code: v.number(), number: v.number() }).index("by_code", ["code"]),
   /** Each match's newest score, which feed gave it and when that read was made. */
   matchScores: defineTable(scoreRead.extend({ feed: scoreFeed, readAt: v.number() })).index("by_fixtureCode", ["fixtureCode"]),
 };

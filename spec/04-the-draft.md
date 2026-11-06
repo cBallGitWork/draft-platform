@@ -159,6 +159,8 @@ Feature 4 of [SPEC.md](../SPEC.md). Only Craig's answers.
   fixtures (Craig, 4 Nov 2026).
 - A player a team can't pick stays in his place in the list, greyed out (Craig, 4 Nov 2026, "yes"
   to Claude's recommendation).
+- Players already drafted drop out of the list, and Scouting's owner filter shows them (Craig,
+  4 Nov 2026, on #1099: "rec yes").
 - The board shows six rounds at a time, with the whole board a button away (Craig, 4 Nov 2026,
   "ok" to Claude's recommendation).
 - No pick, the manager's or an auto-pick, files a Mail letter: "we dont need mail for that and each

@@ -6,6 +6,6 @@ import type { PremierLeagueSeam } from "./seam";
 export const livePremierLeague: PremierLeagueSeam = {
   useFirstKickoffs: () => useQuery(api.football.plGameweeks.firstKickoffs, {}),
   useGameweekMatches: (gameweek) => useQuery(api.football.matchScores.ofGameweek, { gameweek }),
-  useMatch: (leagueId, fixtureCode) => useQuery(api.match.matchPage.ofMatch, { leagueId, fixtureCode }),
+  useMatch: (leagueId, now, fixtureCode) => useQuery(api.match.matchPage.ofMatch, { leagueId, now, fixtureCode }),
   useStandings: () => useQuery(api.football.plStandings.ofSeason, {}),
 };

@@ -5,7 +5,7 @@ import { InviteLinkPanel } from "./InviteLinkPanel";
 import { RequestsPanel } from "./RequestsPanel";
 import { TeamsPanel } from "./TeamsPanel";
 import type { InvitesPageData, JoiningSeam } from "./seam";
-import { INVITES_TITLE, loadingWords, notYoursWords, waitingStrip } from "./words";
+import { INVITES_TITLE, invitesCutWords, loadingWords, notYoursWords, requestsCutWords, waitingStrip } from "./words";
 
 /** An invite past the day's emails, not yet taken up. */
 const waitsForTomorrow = (invite: InvitesPageData["invites"][number]) =>
@@ -32,6 +32,8 @@ export function InvitesPage({ leagueId, joining }: { leagueId: string; joining: 
           </p>
         )}
         {waiting > 0 && <Notice>{waitingStrip(waiting)}</Notice>}
+        {page?.invitesCut && <Notice>{invitesCutWords}</Notice>}
+        {page?.requestsCut && <Notice>{requestsCutWords}</Notice>}
       </PageSection>
       {page && (
         <div className={PANEL_COLUMNS}>

@@ -8,10 +8,9 @@ import { useMinute } from "../shared/useMinute";
 import { Loading, PageSection } from "../ui/Panel";
 import { Placeholder } from "../ui/Placeholder";
 import { picksOf, pickInRoundOf, roundOf } from "./board";
-import { AutoPickPanel } from "./AutoPickPanel";
 import { ClockLeft, type OnTheClock } from "./ClockLeft";
-import { QueuePanel } from "./QueuePanel";
 import { DraftBoard } from "./DraftBoard";
+import { PickRoom } from "./PickRoom";
 import type { DraftBoard as Board, DraftSeam, DraftState } from "./seam";
 import {
   aPickWords,
@@ -39,10 +38,10 @@ import {
 } from "./words";
 
 // The draft room (spec/04, The draft room; #1098), built to the approved pictures
-// (docs/design/approved/draft-room/): its header, the draft's state and where it stands, the board,
-// and in the right-hand column the manager's queue, do-not-draft list and auto-pick (#1100). The
-// players list, the selected player's panel and the commissioner's panel are their own slices
-// (#1099, #1101).
+// (docs/design/approved/draft-room/): its header, the draft's state and where it stands, and the
+// board; under it the players list and the right-hand column: the selected player's panel, where
+// the reader picks, then his queue, do-not-draft list and auto-pick (PickRoom.tsx; #1099, #1100).
+// The commissioner's panel is its own slice (#1101).
 
 type Live = Extract<DraftState, { status: "live" }>;
 type Waiting = Extract<DraftState, { status: "waiting" }>;
@@ -79,15 +78,7 @@ export function DraftPage({ league, seam }: { league: LeagueSummary; seam: Draft
     // Full width, unlike PAGE_STACK: the approved picture runs the board across the page.
     <PageSection title={title} aside={facts} className="flex flex-col gap-2">
       <DraftBoard draft={draft} picks={board.picks} yourTeamId={board.yourTeamId} onTheClock={onTheClock} />
-      {draft.status !== "over" && (
-        // The approved picture's players list fills the first column (#1099); the widgets stand in the second.
-        <div className="grid items-start gap-2 lg:grid-cols-draft-room">
-          <div className="flex flex-col gap-2 lg:col-start-2">
-            <QueuePanel leagueId={league.leagueId} seam={seam} />
-            <AutoPickPanel leagueId={league.leagueId} board={board} teams={draft.order.length} seam={seam} />
-          </div>
-        </div>
-      )}
+      <PickRoom leagueId={league.leagueId} seam={seam} draft={draft} board={board} onTheClock={onTheClock} now={now} />
     </PageSection>
   );
 }

@@ -50,6 +50,8 @@ export function transactionWords({ kind, otherTeamName }: Pick<TeamTransactions[
       return "Dropped";
     case "claimed":
       return "Claimed off waivers";
+    case "pickedUp":
+      return "Picked up as a free agent";
   }
 }
 export const noTransactionsWords = "No transactions yet.";
