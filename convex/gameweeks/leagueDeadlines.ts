@@ -28,6 +28,7 @@ export async function heldSchedule(ctx: QueryCtx) {
   );
   return { gameweeks: seasonRows.map(({ number }) => ({ number })), matches: await scheduledMatches(ctx) };
 }
+
 /** The season's matches as held, less those the football layer no longer sends: all of
  *  `heldSchedule` a deadline reads. */
 export async function scheduledMatches(ctx: QueryCtx): Promise<ScheduledMatch[]> {

@@ -951,8 +951,9 @@
       "tableName": "gameweeks",
       "indexes": [
         {
-          "indexDescriptor": "by_number",
+          "indexDescriptor": "by_season_and_number",
           "fields": [
+            "season",
             "number"
           ]
         },
@@ -971,6 +972,12 @@
       "documentType": {
         "type": "object",
         "value": {
+          "season": {
+            "fieldType": {
+              "type": "number"
+            },
+            "optional": true
+          },
           "number": {
             "fieldType": {
               "type": "number"
@@ -1190,6 +1197,13 @@
                         }
                       },
                       "optional": false
+                    },
+                    "betweenSeasons": {
+                      "fieldType": {
+                        "type": "literal",
+                        "value": true
+                      },
+                      "optional": true
                     },
                     "scores": {
                       "fieldType": {
