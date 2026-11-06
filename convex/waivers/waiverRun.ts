@@ -50,14 +50,19 @@ export const WAIVER_PLAYERS_READ_MOST = 2000;
  *  more over the squad's or a club's maximum, or fewer filling an area's minimum. A claim never
  *  shrinks a squad, so being under its minimum size is never the claim's doing. Pure. */
 export function breaksLimits(before: readonly SquadWarning[], after: readonly SquadWarning[]): boolean {
+  return newlyBroken(before, after).some((warning) => warning.kind !== "underMinimum");
+}
+
+/** The limits the squad after a change breaks that the squad before didn't, or breaks further:
+ *  more over a maximum, or fewer filling a minimum. A trade's warnings (../trades/tradeReview.ts). Pure. */
+export function newlyBroken(before: readonly SquadWarning[], after: readonly SquadWarning[]): SquadWarning[] {
   const keyOf = (warning: SquadWarning) =>
     warning.kind === "overClubMaximum" ? `club ${warning.clubShortName}` : warning.kind === "underAreaMinimum" ? `area ${warning.area}` : warning.kind;
   const was = new Map(before.map((warning) => [keyOf(warning), warning.players]));
-  return after.some((warning) => {
-    if (warning.kind === "underMinimum") return false;
+  return after.filter((warning) => {
     const players = was.get(keyOf(warning));
     if (players === undefined) return true;
-    return warning.kind === "underAreaMinimum" ? warning.players < players : warning.players > players;
+    return warning.kind === "underAreaMinimum" || warning.kind === "underMinimum" ? warning.players < players : warning.players > players;
   });
 }
 

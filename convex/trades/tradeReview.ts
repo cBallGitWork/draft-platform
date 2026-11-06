@@ -11,7 +11,8 @@ import { latestRules } from "../rules/rulesHistory";
 import { managerOf, memberOf, refuse, teamsOf } from "../shared/leagueAccess";
 import { DAY_MS } from "../shared/time";
 import { placeOf, squadOf } from "../squads/squadPlace";
-import { limitsBroken, type SquadWarning } from "../squads/squads";
+import { limitsBroken } from "../squads/squads";
+import { newlyBroken } from "../waivers/waiverRun";
 import { closeOffersHolding, leagueOf, managersOf, tradedName, tradeWordsOf } from "./tradeClose";
 import { onAutoTeam } from "./tradeShut";
 
@@ -48,16 +49,18 @@ export async function squadsAfter(ctx: QueryCtx, offer: Pick<Doc<"tradeOffers">,
   ];
 }
 
-/** The league's squad limits each team's squad would break once the trade is made, which warn but
- *  don't stop it (spec/08, as an assignment's, spec/15). Refused past the platform's most in a squad. */
+/** The league's squad limits each team's squad would be pushed past once the trade is made, broken
+ *  newly or further, which warn but don't stop it (spec/08, as an assignment's, spec/15). Refused
+ *  past the platform's most in a squad. */
 export async function tradeWarnings(ctx: QueryCtx, leagueId: Id<"leagues">, offer: Parameters<typeof squadsAfter>[1]) {
   const squad = (await latestRules(ctx, leagueId))?.squad ?? null;
   return Promise.all(
     (await squadsAfter(ctx, offer)).map(async ({ teamId, codes }) => {
       if (codes.length > MOST_IN_SQUAD) refuse(reviewRefusals.squadFull);
       const team = await ctx.db.get("teams", teamId);
-      const warnings: SquadWarning[] = await limitsBroken(ctx, leagueId, codes, squad);
-      return { teamId, teamName: team?.name ?? "", warnings };
+      const now = (await squadOf(ctx, teamId)).map((row) => row.playerCode);
+      const [before, after] = await Promise.all([limitsBroken(ctx, leagueId, now, squad), limitsBroken(ctx, leagueId, codes, squad)]);
+      return { teamId, teamName: team?.name ?? "", warnings: newlyBroken(before, after) };
     }),
   );
 }
