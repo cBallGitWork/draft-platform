@@ -26,14 +26,14 @@ he goes) and target man. Each has no run, as before.
 | Role | Run | Why |
 | --- | --- | --- |
 | Sweeper keeper | 9 up | To the edge of his box behind a high line (Ederson, Alisson). |
-| Overlapping full-back | 22 up, then 50 up and 3 wider | Round the outside of his winger to the byline (Trent at his widest, Robertson). |
+| Overlapping full-back | 22 up, then 60 up and 3 wider, past his winger | Round the outside of his winger to the byline (Trent at his widest, Robertson). |
 | Underlapping full-back | 24 up, then 44 up and 14 in | Inside his winger into the channel and the box's edge (Porro, Lewis). |
 | Inverted full-back | 12 up and 16 in | Beside the holding midfielder when his side has the ball (Zinchenko, Cancelo). |
 | Stopper | 9 up | Out of the line into midfield to meet his man before he turns. |
 | Attacking centre-back | 34 up, then 60 up and 3 across | Through midfield into their box, as Keegan's Newcastle played. |
 | Sweeper | 6 back and 4 across, then 5 back and 16 across | A few yards behind the line, sweeping across it. |
 | Libero | 18 up, then 32 up | Steps out with the ball and carries it into midfield (Beckenbauer, Stones stepping up). |
-| Attacking wing-back | 40 up and 2 wider | Up the flank to the edge of their box to cross. |
+| Attacking wing-back | 44 up and 2 wider | Up the flank to the edge of their box to cross. |
 | Complete wing-back | 44 up and 2 wider, then 10 back of his place | The whole flank: up to their box, then back past where he started. |
 | Inverted wing-back | 10 up and 16 in | Inside into central midfield with the ball. |
 | Goalscoring wing-back | 24 up, then 46 up and 18 in | Up the flank, then a diagonal into the box (Muñoz, Alonso). |
@@ -55,17 +55,18 @@ he goes) and target man. Each has no run, as before.
 | Wide playmaker (attacking midfield) | 2 back and 14 in | Into the pocket between their midfield and defence (Silva, Mahrez). |
 | Wide forward | 12 up and 4 in, then 20 up and 12 in | In behind their full-back toward goal (Son). |
 | Pressing winger | 8 up and 4 in, then 12 up and 12 in | Curves onto their centre-back, cutting off the pass to their full-back. |
-| Tracking winger | 48 back | With their full-back all the way into his own third (Park Ji-sung, Milner). |
+| Tracking winger | 44 back | With their full-back all the way into his own third (Park Ji-sung, Milner). |
 | Number 10 | 4 up and 10 across | Into the pocket between their lines. |
-| Shadow striker (attacking midfield) | 10 up, then 18 up and 6 across | Past the striker into the box (Lampard, Müller). |
+| Shadow striker (attacking midfield) | 10 up, then 18 up and 10 across | Past the striker into the box (Lampard, Müller). |
 | Carrier | 15 up and 3 across | Straight at them through the middle to the box's edge. |
 | Pressing 10 | 6 up and 6 across, then 12 up the other way | Onto their holding midfielder, then their centre-back. |
-| Poacher | 4 up and 6 across | The near post (Inzaghi, Defoe). |
-| In-behind striker | 3 up and 6 across, then 5 up the other way | Across their line and in behind it (Vardy, Werner). |
+| Poacher | 5 up and 10 across | The near post (Inzaghi, Defoe). |
+| In-behind striker | 3 up and 8 across, then 6 up and 8 the other way | Across their line and in behind it (Vardy, Werner). |
 | Pressing forward | 5 up and 10 across, then over to 10 the other side | From one centre-back to the other (Firmino). |
-| Shadow striker (attack) | 8 back, then 2 up and 8 across | Off the main striker, then into the box around him. |
+| Shadow striker (attack) | 8 back, then 2 up and 10 across | Off the main striker, then into the box around him. |
 | False 9 | 16 back | Into the number 10's space (Firmino, Messi at Barcelona). |
 
-A run straight up or down the pitch ends where two rows meet (9 m or 26.5 m from his place), so
-its arrowhead shows between two rows' players, not under one. A run that would leave the pitch is
+Runs draw under the players' blocks, so each one ends clear of where a block usually stands: a
+run straight up or down the pitch ends where two rows meet (9 m or 26.5 m from his place), and a
+short one goes at least 10 m across, past his own shirt. A run that would leave the pitch is
 cut 3 m inside it (`src/myTeam/tactics/pitch/runs.ts`).

@@ -41,7 +41,7 @@ describe("each role's run (spec/05 Runs; #846, #962; Craig, 31 Oct 2026)", () =>
   });
 
   test("an overlapping full-back goes round the outside to their third, an inverted one inside", () => {
-    expect(endOf("overlappingFullBack")).toEqual({ forward: 50, across: -3 });
+    expect(endOf("overlappingFullBack")).toEqual({ forward: 60, across: -3 });
     expect(endOf("invertedFullBack").across).toBeGreaterThan(endOf("invertedFullBack").forward);
   });
 
