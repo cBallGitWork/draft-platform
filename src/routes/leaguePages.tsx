@@ -1,5 +1,5 @@
 import type { ComponentType } from "react";
-import { createRoute, redirect } from "@tanstack/react-router";
+import { createRoute, redirect, useParams } from "@tanstack/react-router";
 import type { LeagueSummary } from "../../convex/leagues/myLeagues";
 import { AdminPage } from "../admin/AdminPage";
 import { FeedbackTab } from "../admin/FeedbackTab";
@@ -96,7 +96,9 @@ function runnersPage<Seam extends keyof RunnerSeams, Path extends `${string}/$le
     beforeLoad: runnersOnly,
     component: function RunnersPage() {
       const context = route.useRouteContext();
-      const league = leagueRunBy(context.session, route.useParams().leagueId);
+      // Read loosely: the registered router can't look up a generic Path, and every Path has $leagueId.
+      const { leagueId } = useParams({ strict: false });
+      const league = leagueId === undefined ? undefined : leagueRunBy(context.session, leagueId);
       return league ? <Page league={league} seam={context[seam]} /> : null;
     },
   });
