@@ -4,6 +4,7 @@
 import { screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
+import { checkOwnStatsAgainstCatalogue } from "../../../convex/scoring/ownStats";
 import {
   addCategoryLabel,
   addCategoryWords,
@@ -88,6 +89,26 @@ describe("making an own stat", () => {
 
     expect((await screen.findByRole("alert")).textContent).toBe(reason);
     expect(within(await categories()).queryByRole("button", { name: /^Tackles \+ clearances/ })).toBeNull();
+  });
+
+  it("shows the server's refusal, on saving, of one named as a catalogue stat is", async () => {
+    const app = openScoring();
+    // The server's own check (#212): the form lets the name through, the save refuses it.
+    app.scoring.save.mockImplementationOnce(async (scoring) => {
+      try {
+        checkOwnStatsAgainstCatalogue(scoring.ownStats ?? []);
+      } catch (error) {
+        return `The scoring set can't be saved: ${(error as Error).message}.`;
+      }
+      throw new Error("the server took an own stat named as a catalogue stat is");
+    });
+    await startMaking("tackles", "OWN");
+    await userEvent.click(screen.getByRole("button", { name: makeWords }));
+    await save();
+
+    expect((await screen.findByRole("alert")).textContent).toBe(
+      'The scoring set can\'t be saved: the own stat league:tackles has the name "tackles", which the catalogue\'s Tackles has.',
+    );
   });
 
   it("refuses a weight left without a number", async () => {
