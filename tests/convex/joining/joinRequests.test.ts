@@ -17,7 +17,7 @@ import { refusals } from "../../../convex/shared/leagueAccess";
 import { deletes } from "../../support/convex/leagueDeletion.harness";
 import { COMMISSIONER, LEAGUE_NAME, MANAGERS, actingAs, addManagers, adminCreatesLeague, eventsIn, teamsIn, type TestConvex } from "../../support/convex/leagues.harness";
 import { fakeResend, signInDeployment, spendTodaysEmails, type SentEmail } from "../../support/convex/signIn.harness";
-import { expectRefused } from "../../support/convex/test.harness";
+import { expectRefused, silenceConsoleError } from "../../support/convex/test.harness";
 
 // Join requests and the commissioner's page of them (#73 stories 3 and 4; spec/13 Joining,
 // spec/15 Joining a league).
@@ -102,6 +102,18 @@ describe("a join request", () => {
 
     await (await asCommissioner(t)).mutation(api.joining.joinRequests.refuseRequest, { requestId });
     await expectRefused((await asCommissioner(t)).mutation(api.joining.joinRequests.approve, { requestId }), joiningRefusals.requestDecided);
+  });
+
+  test("approved, an email the email service refuses is kept as not sent with what it said", async () => {
+    const requestId = await askToJoin(t, leagueId, token, ANN);
+    fakeResend(500);
+    const logged = silenceConsoleError();
+    await (await asCommissioner(t)).mutation(api.joining.joinRequests.approve, { requestId });
+    await t.finishAllScheduledFunctions(vi.runAllTimers);
+
+    const request = await t.run((ctx) => ctx.db.get("joinRequests", requestId));
+    expect(request).toMatchObject({ approvedEmail: "notSent", approvedEmailError: "Resend refused the email (500): refused" });
+    expect(logged).toHaveBeenCalledWith(expect.stringContaining(`The email telling ${ANN} they're in ${LEAGUE_NAME} wasn't sent`));
   });
 
   test("approved past the day's emails, its email waits for tomorrow and goes then", async () => {
