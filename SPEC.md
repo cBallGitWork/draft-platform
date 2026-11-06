@@ -165,7 +165,7 @@ are Craig's (1 Nov 2026: "Add all eight"; #950).
 |---|---|---|
 | team | a fantasy side: a manager's draft team | |
 | base points | what a player earns from the site's scoring set for what he did, as in FPL: so many for a goal, an assist, a clean sheet | |
-| role adjustment | the points a starter's role adds or takes on top of his base points, per action (+1 a key pass, −1 a clean sheet) | role bonus, multiplier, pays, paid |
+| role adjustment | the points a starter's role adds or takes on top of his base points, in whole points by bars: +1 at each of up to three bars of the role's bonus stats, −1 at each of up to three bars of its one bad action, ±3 at most a match ([05](spec/05-tactics.md#roles)) | role bonus, multiplier, pays, paid |
 | earns, loses | what a player does with points | pays, is paid |
 | run | where a starter's role goes as if in a real match, drawn as a dashed arrow on the pitch; it never changes points | lean |
 | chip | the coloured label under a shirt on the pitch, or at the start of a squad list row | plate, badge |

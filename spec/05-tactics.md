@@ -223,10 +223,10 @@ From Craig, 1 Nov 2026.
   5 Nov 2026). At ±2 more than a third of starts sat on the ceiling, so a good fit and a great fit
   scored the same.
 - The bars count per match, whatever his minutes: a cameo's count as a full match's (Craig, 5 Nov
-  2026: "Yes: bars count per match, whatever his minutes").
+  2026: "Yes: bars count per match, whatever his minutes"). `S05.1`
 - The player card's line for a role gives the net and each side that moved him: "Poacher: +1 (+2:
   1 goal in box, 1 shot on target in box; −1: 1 big chance missed)" (Craig, 5 Nov 2026: "One line
-  with the net and each side").
+  with the net and each side"). `S05.2`
 - Roles lift the slots that score less, as defcon does in FPL: "roles/tactics are essentially a
   dynamic defcon for each positon and role". Every slot has a target role bonus a start: half its
   gap in base points to strikers, plus 0.5 for every slot, as "i do want players to get points"
@@ -251,7 +251,7 @@ From Craig, 1 Nov 2026.
   fitted to 26/27 gameweeks 1 to 9, are in [roles-first-values.md](../docs/roles-first-values.md).
   They went into the site's set as its starting rules, taking effect from the next gameweek that
   hadn't begun, with no letter; later changes go by patch (Craig, 5 Nov 2026: "put
-  roles-first-values.md into the site's set now as the starting rules").
+  roles-first-values.md into the site's set now as the starting rules"). `S05.3`
 - Roles' scoring adjustments are the site's, changed by patch (`spec/14`, 25 Oct 2026); the
   ready-made rules carry a default set.
 - A patch changes a role's scoring but doesn't remove a role (Craig, 31 Oct 2026). If a role ever

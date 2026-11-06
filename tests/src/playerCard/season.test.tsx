@@ -100,7 +100,7 @@ describe("this season", () => {
   });
 
   it("a match his team started him in shows his base points, and his role's points apart, each side with what made it (#10)", async () => {
-    // Craig, 5 Nov 2026: "Poacher: +1 (+2: 1 goal in box, 1 shot on target in box; −1: 1 big chance missed)".
+    // S05.2. Craig, 5 Nov 2026: "Poacher: +1 (+2: 1 goal in box, 1 shot on target in box; −1: 1 big chance missed)".
     const role = {
       name: "Poacher",
       points: 1,

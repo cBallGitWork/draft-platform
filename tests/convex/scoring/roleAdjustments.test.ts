@@ -56,6 +56,7 @@ describe("a starter's role", () => {
     expect(scoreMatch({ minutes: 90, big_chance_missed: 50 }, SET, STRIKER, "poacher").role?.points).toBe(-ROLE_BARS_MOST);
   });
 
+  // S05.1
   test("counts for a cameo as for 90 minutes: 4 minutes and a big chance missed is −1", () => {
     expect(scoreMatch({ minutes: 4, big_chance_missed: 1 }, SET, STRIKER, "poacher").role?.points).toBe(-1);
   });

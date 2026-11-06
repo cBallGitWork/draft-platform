@@ -13,6 +13,7 @@ useSiteScoringDeployment();
 const addFirstRoles = () => t.mutation(internal.scoring.firstRolesVersion.addFirstRoles, {});
 const letters = () => t.run(async (ctx) => (await ctx.db.query("letters").collect()).length);
 
+// S05.3
 test("they score from the next gameweek not begun, the gameweeks before keeping their set, with no letter", async () => {
   await holdGameweeks(t, { next: 9 });
 
