@@ -4,7 +4,8 @@
 // reaches the screen as is.
 
 import { SLOT_POSITIONS, type SlotPosition } from "../../convex/lineup/pitch";
-import { failedWords, figureWords, gameweekWords, POSITION_NAMES } from "../shared/words";
+import { noNumberWords, savedFromWords } from "../rules/words";
+import { failedWords, figureWords, POSITION_NAMES } from "../shared/words";
 import type { PerCount, Pricing, Shape } from "./editing";
 
 export const SCORING_TITLE = "Player scoring";
@@ -75,8 +76,9 @@ export const POSITION_WORDS = Object.fromEntries(
 
 /** The bottom bar. */
 export const wholePointsWords = "Whole points only";
-export const savedWords = (gameweek: number) => `Saved. The new scoring applies to every league from ${gameweekWords(gameweek)}.`;
-export const blankBoxWords = (category: string) => `${category} has a box without a number. Fill it in, then save.`;
+export const savedWords = (gameweek: number) => savedFromWords("The new scoring applies to every league", gameweek);
+/** Worded as League settings words an empty box (#351). */
+export const blankBoxWords = (category: string) => noNumberWords(`A box in ${category}`);
 
 /** What a failed save leaves, live or in the preview. */
 export const unsavedOutcome = "the scoring didn't change";
