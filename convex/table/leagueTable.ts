@@ -21,6 +21,9 @@ import { shownDeadline } from "../gameweeks/usedGameweeks";
 export const fixture = v.object({
   /** The team's own, for a link to its matchup (#34). */
   teamId: v.id("teams"),
+  /** Which of the team's games in the gameweek it is, from 1 (teamGames.ts's gameNumbersOf), so
+   *  the link opens this game's matchup where a team plays two a gameweek (#913). */
+  game: v.number(),
   team: v.string(),
   /** The opponent's name, or null for the league's average. */
   opponent: v.union(v.string(), v.null()),

@@ -90,6 +90,34 @@ describe("the games", () => {
     expect(new Set(games.map(({ gameweek }) => gameweek)).size).toBe(GAMEWEEKS);
   });
 
+  test("with two games a gameweek, each game's number opens its own matchup, the table's fixtures numbering them alike (#913)", async () => {
+    await addManagers(t, leagueId, [ANN, BOB, CAT, DAN]);
+    await changeRulesTo({ gamesPerGameweek: 2 });
+    const mine = (await read())!;
+    const firstGameweek = mine.games[0].gameweek;
+    const games = mine.games.filter(({ gameweek }) => gameweek === firstGameweek);
+    expect(games.map(({ game }) => game)).toEqual([1, 2]);
+
+    const matchupOf = async (game?: number) => (await actingAs(t, ANN)).query(api.matchup.matchup.ofTeam, { leagueId, now: Date.now(), gameweek: firstGameweek, game });
+    const opponentIn = async (game?: number) => {
+      const read = await matchupOf(game);
+      return read?.kind === "headToHead" && read.game.kind === "notBegun" && read.game.opponent.kind === "team" ? read.game.opponent.teamName : null;
+    };
+    expect(await opponentIn(1)).toBe(opponentOf(games[0]));
+    expect(await opponentIn(2)).toBe(opponentOf(games[1]));
+    expect(await opponentIn()).toBe(opponentOf(games[0]));
+    expect(await matchupOf(3)).toMatchObject({ game: { kind: "none" } });
+
+    // Each of the table's fixtures carries the number its team side's own game against that opponent has.
+    const { fixtures } = (await readTable())!.gameweeks.find(({ gameweek }) => gameweek === firstGameweek)!;
+    const everyones = await Promise.all([ANN, BOB, CAT, DAN].map(async (email) => (await read(email))!));
+    expect(fixtures).toHaveLength(4);
+    for (const { teamId, game, opponent } of fixtures) {
+      const own = everyones.find((each) => each.teamId === teamId)!.games.filter(({ gameweek }) => gameweek === firstGameweek);
+      expect(own.find((each) => opponentOf(each) === opponent)?.game).toBe(game);
+    }
+  });
+
   test("a league made mid-season has none in the gameweeks begun before it existed (#282)", async () => {
     const played = 5;
     const kicksOffIn = 2 * HOUR_MS;

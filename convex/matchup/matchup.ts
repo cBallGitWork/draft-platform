@@ -46,11 +46,13 @@ type Opponent = Exclude<Against<TeamId>, { kind: typeof BYE }>;
 
 /** One team's head-to-head in a gameweek, or null for a league made before rules were held (#25).
  *  The team is the caller's own unless one is named; the gameweek is the latest begun, or before
- *  any, the first, unless one is named. `now` is the screen's: a query may not read the clock. */
+ *  any, the first, unless one is named; the game is the team's first that gameweek unless one is
+ *  named, its number from 1 as teamGames.ts's gamesOf numbers them, so each of two games' links
+ *  opens its own (spec/10; #913). `now` is the screen's: a query may not read the clock. */
 export const ofTeam = query({
-  args: { leagueId: v.id("leagues"), now: v.number(), teamId: v.optional(v.id("teams")), gameweek: v.optional(v.number()) },
+  args: { leagueId: v.id("leagues"), now: v.number(), teamId: v.optional(v.id("teams")), gameweek: v.optional(v.number()), game: v.optional(v.number()) },
   returns: v.union(matchup, v.null()),
-  handler: async (ctx, { leagueId, now, teamId, gameweek: asked }) => {
+  handler: async (ctx, { leagueId, now, teamId, gameweek: asked, game: askedGame = 1 }) => {
     const { league, team: own } = await memberOf(ctx, leagueId);
     const season = await seasonRules(ctx, leagueId);
     if (season === null) return null;
@@ -64,7 +66,7 @@ export const ofTeam = query({
     const gameweek = asked ?? thisGameweekOf(games, deadlineIn, now)?.gameweek ?? null;
     const heading = { kind: "headToHead" as const, teamId: team._id, teamName: team.name, gameweeks: [...new Set(games.map((each) => each.gameweek))] };
     if (gameweek === null) return { ...heading, gameweek, deadline: null, game: { kind: "none" as const } };
-    const against = games.find((each) => each.gameweek === gameweek)?.against;
+    const against = games.find((each) => each.gameweek === gameweek && each.game === askedGame)?.against;
     const drawn = schedule.find((each) => each.gameweek === gameweek);
     return { ...heading, gameweek, deadline: deadlineIn(gameweek), game: await gameOf(ctx, league, season, team, drawn, against, now) };
   },

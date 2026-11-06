@@ -99,10 +99,10 @@ function HeadToHeads({ home: { format, thisGameweek } }: { home: LeagueHome }) {
   return (
     <Panel title={title}>
       <ul aria-label={headToHeadsLabel(title)}>
-        {thisGameweek.fixtures.map(({ teamId, team, opponent }) => (
+        {thisGameweek.fixtures.map(({ teamId, game, team, opponent }) => (
           <li key={`${team} v ${opponent ?? leagueAverageWords}`} className="grid grid-cols-sides items-center gap-2 border-b border-panel-rule px-3 py-1 text-lead">
             <span className="text-right font-semibold">{team}</span>
-            <MatchupLink teamId={teamId} team={team} opponent={opponent} gameweek={thisGameweek.gameweek} points={null} />
+            <MatchupLink teamId={teamId} team={team} opponent={opponent} gameweek={thisGameweek.gameweek} game={game} points={null} />
             {opponent === null ? <span className="text-derived">{leagueAverageWords}</span> : <span className="font-semibold">{opponent}</span>}
           </li>
         ))}

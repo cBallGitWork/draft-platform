@@ -8,6 +8,7 @@ import { SEASON_GAMEWEEKS } from "../../convex/gameweeks/usedGameweeks";
 import { DAY_MS, HOUR_MS, WEEK_MS } from "../../convex/shared/time";
 import { drawFixtures, namedFixture } from "../../convex/table/roundRobin";
 import { formOf, headToHeadTable } from "../../convex/table/standings";
+import { gameNumberAt } from "../../convex/table/teamGames";
 import { previewIdOf } from "../table/preview";
 import type { HomeSeam, LeagueHome } from "./seam";
 
@@ -28,7 +29,7 @@ const home: LeagueHome = {
   format: "headToHead",
   thisGameweek: {
     gameweek: current.gameweek,
-    fixtures: current.fixtures.map((each) => ({ teamId: previewIdOf(each.team), ...namedFixture(each, (team) => team) })),
+    fixtures: current.fixtures.map((each, index) => ({ teamId: previewIdOf(each.team), game: gameNumberAt(current.fixtures, index), ...namedFixture(each, (team) => team) })),
     byes: current.byes,
   },
   table: shownRows(

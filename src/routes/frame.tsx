@@ -66,15 +66,16 @@ const myTeamFixturesRoute = leaguePage(MY_TEAM_FIXTURES_PATH, "myTeam", Fixtures
 const myTeamTransactionsRoute = leaguePage(MY_TEAM_TRANSACTIONS_PATH, "myTeam", TransactionsPage); // #366
 
 // The matchup (#34), for anyone in the league: a team's head-to-head in a gameweek, the manager's
-// own in the latest begun unless the address names another.
+// own in the latest begun unless the address names another, and its first game there unless it
+// names another (#913).
 const matchupRoute = createRoute({
   getParentRoute: () => frameRoute,
   path: MATCHUP_PATH,
   validateSearch: matchupSearchOf,
   component: function MatchupScreen() {
     const { session, matchup } = matchupRoute.useRouteContext();
-    const { team, gameweek } = matchupRoute.useSearch();
-    return <CurrentLeague session={session} page={(league) => <MatchupPage league={league} seam={matchup} asked={{ teamId: team, gameweek }} />} />;
+    const { team, gameweek, game } = matchupRoute.useSearch();
+    return <CurrentLeague session={session} page={(league) => <MatchupPage league={league} seam={matchup} asked={{ teamId: team, gameweek, game }} />} />;
   },
 });
 
