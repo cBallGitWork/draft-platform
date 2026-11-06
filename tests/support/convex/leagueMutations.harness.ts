@@ -92,6 +92,7 @@ export function changesTo(
     "squads/squads:move": () => admin.mutation(api.squads.squads.move, { leagueId, playerCode: 1, teamId: annsTeam._id }),
     "squads/squads:release": () => admin.mutation(api.squads.squads.release, { leagueId, playerCode: 1 }),
     "waivers/waivers:drop": () => ann.mutation(api.waivers.waivers.drop, { leagueId, playerCode: 1 }),
+    "waivers/freeAgents:pickUp": () => ann.mutation(api.waivers.freeAgents.pickUp, { leagueId, playerCode: 1, dropCode: null }),
     "waivers/waiverClaims:putIn": () => ann.mutation(api.waivers.waiverClaims.putIn, { leagueId, playerCode: 1, dropCode: null }),
     "waivers/waiverClaims:withdraw": () => ann.mutation(api.waivers.waiverClaims.withdraw, { leagueId, claimId }),
     "waivers/waiverClaims:rank": () => ann.mutation(api.waivers.waiverClaims.rank, { leagueId, claimIds: [claimId] }),
