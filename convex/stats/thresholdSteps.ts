@@ -37,16 +37,18 @@ export interface ThresholdStep {
   to: number;
 }
 
-/** The most steps one match holds. Under the first set, by count of its rules, not measured: each
- *  of about 32 men who play makes at most 1 for his minutes (past 60), about 3 for a clean sheet
- *  (added, taken away, and back if VAR rules the goal out), 1 for each 2 goals conceded each way,
- *  and 1 for each 3 saves or each penalty; about 8 a man with a
- *  few goals, so about 250 a match. A set with role adjustments adds at most 1 a read for each
- *  action of a stat they adjust (#868): Claude's draft (draftedRoleAdjustments.ts) adjusts about
- *  300 actions a match, measured from the recorded team stats (Hull v Everton and another: long
- *  balls, clearances, blocks, interceptions, aerials, tackles, shots, dispossessions, saves,
- *  crosses, big chances: 299 and 301), so about 550. More throws, never a silent cut:
- *  the matchup then says its commentary can't be read, and logs why, while its scores still show.
+/** The most steps one match holds. Under the first set, by count of its rules: each of about 32
+ *  men who play makes at most 1 for his minutes (past 60), about 3 for a clean sheet (added, taken
+ *  away, and back if VAR rules the goal out), 1 for each 2 goals conceded each way, and 1 for each
+ *  3 saves or each penalty; about 8 a man with a few goals, so about 250 a match. A set with role
+ *  adjustments adds at most 1 a read for each action of a stat they adjust (#868). Measured over
+ *  the recorded team stats, at most one step an action (thresholdSteps.test.ts, #871): about 260
+ *  under the first set; about 3,550 with the roles' first values (draftedRoleAdjustments.ts), as
+ *  they adjust every accurate, forward and misplaced pass and every possession lost, so past this;
+ *  about 11,970 with every catalogue stat priced per action. Not raised to meet them: a matchup
+ *  reads every match its men play in one query, so ten matches at the roles' figure would reach
+ *  Convex's own read limit and stop its scores too. More throws, never a silent cut: the matchup
+ *  then says its commentary can't be read, and logs why, while its scores still show.
  *  Claude's choice. */
 export const THRESHOLD_STEPS_MOST = 1000;
 
