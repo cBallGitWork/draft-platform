@@ -27,9 +27,11 @@ export function inviteEmail(url: string, { leagueName, invitedBy, teamName }: In
   };
 }
 
-export function approvedEmail({ leagueName, teamName }: { leagueName: string; teamName: string }) {
+/** Its subject ends with `sentAt` too, as an invite's does, so a second approval into the same
+ *  league never folds into the first (#1052). */
+export function approvedEmail({ leagueName, teamName }: { leagueName: string; teamName: string }, sentAt: number) {
   return {
-    subject: `You're in ${leagueName} on ${PRODUCT_NAME}`,
+    subject: `You're in ${leagueName} on ${PRODUCT_NAME}, ${momentIn(sentAt, undefined)}`,
     text: [
       `The commissioner approved your request to join ${leagueName}: you run ${teamName}.`,
       "",
