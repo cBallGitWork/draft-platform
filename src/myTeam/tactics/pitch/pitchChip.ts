@@ -2,6 +2,11 @@
 // the pitch draws from it and tests can poke it. His slot's position picks the area's colour, the
 // role he plays gives its code and his stars for it, and his club's matches in the gameweek being
 // picked are his opponents: two in a double gameweek, none in a blank one.
+//
+// The opponents are the Squad tab's next NEXT_MATCHES_SHOWN matches (teamSquad.ts) kept to this
+// gameweek, so they hold only while it is the next one to be picked, as the Tactics tab's open
+// gameweek always is. One gap is left: a club with two matches of the gameweek under way still to
+// play and a double next would show one of the two.
 
 import { positionOfSlot, type Cell, type SlotPosition } from "../../../../convex/lineup/pitch";
 import { roleIn } from "../../../../convex/lineup/roles";
