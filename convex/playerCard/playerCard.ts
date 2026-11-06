@@ -189,7 +189,7 @@ const asMatch = async (fixture: Doc<"fixtures">, clubs: Clubs) => ({
  *  card prices, by category. His role's line, the league's override and whether his points may
  *  still move come from his team's scoring (scoredMatches.ts); the points his team got are the
  *  Squad tab's, not the card's. */
-async function seasonMatches(ctx: QueryCtx, league: Doc<"leagues">, player: Doc<"players">, positions: readonly Position[], clubs: Clubs): Promise<PlayedMatch[]> {
+export async function seasonMatches(ctx: QueryCtx, league: Doc<"leagues">, player: Doc<"players">, positions: readonly Position[], clubs: Clubs): Promise<PlayedMatch[]> {
   const owner = await placeOf(ctx, league._id, player.code);
   const { of } = await scoredMatches(ctx, league, owner?.teamId ?? null);
   // Read beside scoredMatches' own, for the version's name: the same versions, so the same set.
@@ -244,7 +244,7 @@ async function lastSeasonLine(ctx: QueryCtx, playerCode: number, positions: read
 }
 
 /** His club's next matches after `now`, soonest first. A match with no kickoff time is left out. */
-async function nextFixtures(ctx: QueryCtx, clubCode: number, now: number, clubs: Clubs) {
+export async function nextFixtures(ctx: QueryCtx, clubCode: number, now: number, clubs: Clubs) {
   const next = [];
   const ahead = ctx.db.query("fixtures").withIndex("by_droppedAt_and_kickoff", (q) => q.eq("droppedAt", undefined).gt("kickoff", now));
   for await (const fixture of ahead) {
