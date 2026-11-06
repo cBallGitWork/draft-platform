@@ -122,7 +122,13 @@ export const downLabel = (name: string) => `Move ${name} down the bench`;
 export const playerCardLabel = (name: string) => `${name}'s player card`;
 
 /** The left column's widget under the pitch, and the right column's. */
+/** The mark after a player's name while one of his positions is at stake (#23; Craig, 6 Nov 2026),
+ *  read on hover and by screen readers. */
+export const flaggedMarkLabel = (position: string, startsElsewhere: number) => `Flagged at ${position}: ${startsElsewhere} starts in a row elsewhere`;
+export const outOfPositionMarkLabel = (position: string) => `Out of position: no longer plays ${position}`;
 export const LINEUP_CHECK_TITLE = "Lineup check";
+/** A line of the lineup check for each starter out of position (#23; Craig, 6 Nov 2026). */
+export const outOfPositionLineWords = (position: string) => `: out of position at ${position}`;
 export const lineupCheckPlaceholder = "Lineup check: who is doubtful, booked, injured or suspended shows here once the status chips' data is settled";
 export const TEAM_TACTIC_TITLE = teamTacticWords;
 export const opponentTitle = (gameweek: number) => `${gameweekShort(gameweek)} opponent`;
