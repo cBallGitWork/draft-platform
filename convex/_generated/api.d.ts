@@ -193,6 +193,7 @@ import type * as scouting_comparedPlayers from "../scouting/comparedPlayers.js";
 import type * as scouting_playersList from "../scouting/playersList.js";
 import type * as scouting_playersOrder from "../scouting/playersOrder.js";
 import type * as scouting_shortlist from "../scouting/shortlist.js";
+import type * as scouting_shortlistWords from "../scouting/shortlistWords.js";
 import type * as scouting_statRace from "../scouting/statRace.js";
 import type * as shared_cappedRead from "../shared/cappedRead.js";
 import type * as shared_dueMatches from "../shared/dueMatches.js";
@@ -459,6 +460,7 @@ declare const fullApi: ApiFromModules<{
   "scouting/playersList": typeof scouting_playersList;
   "scouting/playersOrder": typeof scouting_playersOrder;
   "scouting/shortlist": typeof scouting_shortlist;
+  "scouting/shortlistWords": typeof scouting_shortlistWords;
   "scouting/statRace": typeof scouting_statRace;
   "shared/cappedRead": typeof shared_cappedRead;
   "shared/dueMatches": typeof shared_dueMatches;
