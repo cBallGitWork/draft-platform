@@ -2,12 +2,15 @@ import type { Infer } from "convex/values";
 import { expect, test } from "vitest";
 import type { Id } from "../../../convex/_generated/dataModel";
 import { eventLetter } from "../../../convex/mail/letterWords";
+import { tellIn } from "../../../convex/mail/letterMoments";
 import type { leagueEvent } from "../../../convex/schema";
 
 // The letters for the league events joining, gameweeks, deletion and rules file (#73, #74, #75,
 // #25): each says who did what, and the facts the event carries.
 
 const WHO = "commish@example.com";
+/** Times told in London's zone, as for a reader whose own isn't known. */
+const LONDON = tellIn(undefined);
 const TEAM = "team-1" as Id<"teams">;
 const ANN = "ann@example.com";
 const IN_JANUARY = Date.parse("2027-01-15T12:00:00Z");
@@ -51,7 +54,7 @@ const LETTERS: [Infer<typeof leagueEvent>, string, string][] = [
 ];
 
 test.each(LETTERS)("the %o letter names it and who did it", (event, subject, inBody) => {
-  const letter = eventLetter(event, WHO, undefined);
+  const letter = eventLetter(event, WHO, LONDON);
   expect(letter.subject).toBe(subject);
   expect(letter.body).toContain(inBody);
   if (event.kind !== "joinedByInvite") expect(letter.body).toContain(WHO);
@@ -72,7 +75,7 @@ test("an override letter writes points below 0 with the true minus, never a hyph
       teams: [{ teamName: "Lions", from: 3, to: -0.5 }],
     },
     WHO,
-    undefined,
+    LONDON,
   );
   expect(letter.body).toContain("gameweek 6: 2 to −1.");
   expect(letter.body).toContain("Lions now have −0.5 in gameweek 6, not 3.");

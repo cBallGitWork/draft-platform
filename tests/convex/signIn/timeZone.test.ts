@@ -73,15 +73,25 @@ describe("Mail's letters", () => {
     await records(COMMISSIONER, SYDNEY);
     await deletes(t, ADMIN, leagueId);
     const deletesAt = (await leagueRow(t, leagueId))!.deletion!.deletesAt;
-    const deletionLetterTo = (email: string) =>
-      t.run(async (ctx) =>
-        (await ctx.db.query("letters").withIndex("by_to_and_at", (q) => q.eq("to", email)).collect()).find((letter) =>
-          letter.body.includes("deleted the league"),
-        ),
-      );
 
     expect((await deletionLetterTo(COMMISSIONER))?.body).toContain(momentIn(deletesAt, SYDNEY));
     expect((await deletionLetterTo(ADMIN))?.body).toContain(momentIn(deletesAt, LONDON_ZONE));
     expect(momentIn(deletesAt, SYDNEY)).not.toBe(momentIn(deletesAt, LONDON_ZONE));
   });
+
+  test("a letter filed before its reader travelled tells its times in the zone they are in now (#912)", async () => {
+    const leagueId: Id<"leagues"> = await leagueWithPeople(t);
+    await records(COMMISSIONER, SYDNEY);
+    await deletes(t, ADMIN, leagueId);
+    const deletesAt = (await leagueRow(t, leagueId))!.deletion!.deletesAt;
+    await records(COMMISSIONER, NEW_YORK);
+
+    const body = (await deletionLetterTo(COMMISSIONER))?.body;
+    expect(body).toContain(momentIn(deletesAt, NEW_YORK));
+    expect(body).not.toContain(momentIn(deletesAt, SYDNEY));
+  });
 });
+
+/** The letter saying the league is being deleted, as `email` reads it in Mail. */
+const deletionLetterTo = async (email: string) =>
+  (await (await actingAs(t, email)).query(api.mail.mail.letters, {})).find((letter) => letter.body.includes("deleted the league"));

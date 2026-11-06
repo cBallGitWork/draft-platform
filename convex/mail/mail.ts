@@ -3,7 +3,9 @@ import { mutation, query, type QueryCtx } from "../_generated/server";
 import { callerEmail, refuse, runnerOf, signedInEmail } from "../shared/leagueAccess";
 import { PRODUCT_NAME } from "../shared/product";
 import { typedText } from "../shared/typedText";
+import { zoneOf } from "../signIn/timeZone";
 import { fileLetter, wholeLeague } from "./letters";
+import { letterAsRead } from "./letterMoments";
 import type { Doc } from "../_generated/dataModel";
 import { BODY_MAX, LATEST_LETTERS, LETTERS_SHOWN, SUBJECT_MAX } from "./mailLimits";
 
@@ -46,18 +48,18 @@ export const letters = query({
   handler: async (ctx) => {
     const email = await signedInEmail(ctx);
     if (email === null) return [];
-    return (await listedLetters(ctx, email)).map(summaryOf);
+    const zone = await zoneOf(ctx, email);
+    return (await listedLetters(ctx, email)).map((row) => summaryOf(row, zone));
   },
 });
 
-/** A letter as the screens list it. */
-const summaryOf = (row: Doc<"letters">): LetterSummary => ({
+/** A letter as the screens list it, its times told in `zone`, the reader's as they read it (#912). */
+const summaryOf = (row: Doc<"letters">, zone: string | undefined): LetterSummary => ({
   letterId: row._id,
   leagueName: row.leagueName ?? PRODUCT_NAME,
   at: row.at,
   from: row.from ?? null,
-  subject: row.subject,
-  body: row.body,
+  ...letterAsRead(row, zone),
   read: row.readAt !== undefined,
 });
 
@@ -71,7 +73,8 @@ export const latest = query({
     const email = await signedInEmail(ctx);
     if (email === null) return null;
     const rows = await listedLetters(ctx, email);
-    return { letters: rows.slice(0, LATEST_LETTERS).map(summaryOf), unread: rows.filter((row) => row.readAt === undefined).length };
+    const zone = await zoneOf(ctx, email);
+    return { letters: rows.slice(0, LATEST_LETTERS).map((row) => summaryOf(row, zone)), unread: rows.filter((row) => row.readAt === undefined).length };
   },
 });
 
