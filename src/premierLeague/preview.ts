@@ -109,6 +109,6 @@ export const previewPremierLeague: PremierLeagueSeam = {
   useFirstKickoffs: () => firstKickoffs,
   useGameweekMatches: (gameweek) => matches.get(gameweek) ?? [],
   // Every fixture opens the one recorded match (matchPreview.ts): one to come, as before kickoff.
-  useMatch: (_leagueId, fixtureCode) => upcoming.get(fixtureCode) ?? previewMatch,
+  useMatch: (_leagueId, _now, fixtureCode) => upcoming.get(fixtureCode) ?? previewMatch,
   useStandings: () => standings,
 };

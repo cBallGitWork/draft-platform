@@ -46,7 +46,7 @@ describe("reaching it", () => {
 
     expect(await screen.findByRole("heading", { level: 1, name: MATCH_TITLE })).toBeTruthy();
     expect(app.path()).toBe(matchPath(FIXTURE));
-    expect(app.premierLeague.useMatch).toHaveBeenLastCalledWith(league.leagueId, FIXTURE);
+    expect(app.premierLeague.useMatch).toHaveBeenLastCalledWith(league.leagueId, expect.any(Number), FIXTURE);
     // Under the Premier League section, whose tab stays lit.
     expect(screen.getByRole("link", { name: "Premier League" }).getAttribute("data-status")).toBe("active");
   });
@@ -66,7 +66,7 @@ describe("reaching it", () => {
 
     expect(await screen.findByRole("heading", { level: 1, name: MATCH_TITLE })).toBeTruthy();
     expect(app.path()).toBe(matchPath(FIXTURE));
-    expect(app.premierLeague.useMatch).toHaveBeenLastCalledWith(league.leagueId, FIXTURE);
+    expect(app.premierLeague.useMatch).toHaveBeenLastCalledWith(league.leagueId, expect.any(Number), FIXTURE);
   });
 
   it("a man whose club has no match has no match to open", async () => {

@@ -21,6 +21,9 @@ import { DEADLINE, ELEVENS, footballSyncAt, leagueWorld, liveTickAt, miniBetaLea
 /** One line per row, so a diff of the golden names exactly what moved. */
 const rowsJson = (rows: object[]) => `[\n${rows.map((row) => `    ${JSON.stringify(row)}`).join(",\n")}\n  ]`;
 
+/** A whole gameweek replayed: 2.5s alone, past vitest's 5s default on a busy CI shard (#1204). */
+const REPLAY_TIMEOUT_MS = 30_000;
+
 test("recorded gameweek 6, every fielded player's points and every head-to-head result, scores as the golden file", async () => {
   const beforeKickoff = () => leagueWorld(recordedGw6(), { beforeKickoff: true });
   const { t, leagueId } = await miniBetaLeague(beforeKickoff());
@@ -46,4 +49,4 @@ test("recorded gameweek 6, every fielded player's points and every head-to-head 
 
   const golden = `{\n  "gameweek": ${GAMEWEEK},\n  "headToHeads": ${rowsJson(results)},\n  "players": ${rowsJson(players)}\n}\n`;
   await expect(golden).toMatchFileSnapshot("../../support/golden/gameweek6.scores.json");
-});
+}, REPLAY_TIMEOUT_MS);

@@ -1,7 +1,7 @@
 import { v, type Infer } from "convex/values";
 import type { Doc, Id } from "../_generated/dataModel";
 import { query, type QueryCtx } from "../_generated/server";
-import { heldOf } from "../football/matchCommentary";
+import { delayedAt, heldOf } from "../football/matchCommentary";
 import { isPlaying, scoreOf } from "../football/matchScores";
 import { deadlineOf, leagueDeadlines } from "../gameweeks/leagueDeadlines";
 import { thisGameweekOf } from "../gameweeks/nextGameweek";
@@ -65,7 +65,7 @@ export const ofTeam = query({
     if (gameweek === null) return { ...heading, gameweek, deadline: null, game: { kind: "none" as const } };
     const against = games.find((each) => each.gameweek === gameweek)?.against;
     const drawn = schedule.find((each) => each.gameweek === gameweek);
-    return { ...heading, gameweek, deadline: deadlineIn(gameweek), game: await gameOf(ctx, league, season, team, drawn, against) };
+    return { ...heading, gameweek, deadline: deadlineIn(gameweek), game: await gameOf(ctx, league, season, team, drawn, against, now) };
   },
 });
 
@@ -77,6 +77,7 @@ async function gameOf(
   team: Doc<"teams">,
   drawn: GameweekFixtures<TeamId> | undefined,
   against: Against<TeamId> | undefined,
+  now: number,
 ): Promise<Game> {
   // A game is one of the gameweek's fixtures or byes, so there is one only where it is drawn.
   if (against === undefined || drawn === undefined) return { kind: "none" };
@@ -99,7 +100,7 @@ async function gameOf(
       kind: "scored",
       team: await scorer.team(team._id, team.name),
       opponent: await scorer.opponent(against, nameOf),
-      commentary: await scorer.commentary(sides, `League ${league._id} (${league.name}) can't read ${team.name}'s commentary in gameweek ${gameweek}`),
+      commentary: await scorer.commentary(sides, `League ${league._id} (${league.name}) can't read ${team.name}'s commentary in gameweek ${gameweek}`, now),
     };
   } catch (error) {
     const reason = logFailure(`League ${league._id} (${league.name}) can't score ${team.name}'s matchup in gameweek ${gameweek}`, error);
@@ -150,8 +151,8 @@ class SideScorer {
   }
 
   /** The commentary of every match the sides' men play in, priced for them. One that can't be read
-   *  is logged and says why, while the scores still show. */
-  async commentary(teamIds: readonly TeamId[], failure: string): Promise<MatchupCommentary> {
+   *  is logged and says why, while the scores still show. Delayed as at `now` (`delayedAt`). */
+  async commentary(teamIds: readonly TeamId[], failure: string, now: number): Promise<MatchupCommentary> {
     try {
       const players = new Map<PlayerCode, VidiprinterPlayer>();
       const matches = new Map<number, HeldMatch>();
@@ -164,12 +165,17 @@ class SideScorer {
         }
       }
       const held = await Promise.all(
-        [...matches.values()].map(async ({ fixture }) => ({ fixture, row: await heldOf(this.ctx, fixture.code), steps: await thresholdStepsOf(this.ctx, fixture.code) })),
+        [...matches.values()].map(async ({ fixture }) => ({
+          fixture,
+          row: await heldOf(this.ctx, fixture.code),
+          score: await this.score(fixture.code),
+          steps: await thresholdStepsOf(this.ctx, fixture.code),
+        })),
       );
       const read: VidiprinterMatch[] = held.flatMap(({ fixture, row, steps }) =>
         row === null ? [] : [{ fixtureCode: fixture.code, kickoff: fixture.kickoff, lines: row.lines, steps }],
       );
-      return { kind: "read", lines: vidiprinter(read, players, this.inGameweek.set), delayed: held.some(({ row }) => row !== null && row.delayed !== null) };
+      return { kind: "read", lines: vidiprinter(read, players, this.inGameweek.set), delayed: held.some(({ row, score }) => row !== null && delayedAt(row, score, now)) };
     } catch (error) {
       return { kind: "unread", reason: logFailure(failure, error) };
     }
