@@ -9,20 +9,20 @@ import type { Position } from "../positions/positionTables";
 import { clubRecord, position } from "../schema";
 import { categoryName } from "../scoring/categories";
 import { bandShape } from "../scoring/scoringSetShape";
-import { siteVersionByGameweek } from "../scoring/siteVersions";
+import { siteScoringAt, siteVersionByGameweek } from "../scoring/siteVersions";
 import { memberOf } from "../shared/leagueAccess";
 import { clubsByCode, playerByCode, type Clubs } from "../shared/players";
 import { ownerOf, placeOf } from "../squads/squadPlace";
 import { MINUTES_STAT, statsIfWhole, statValue } from "../stats/matchRecords";
 import { playsIn } from "../gameweekScorer/heldMatches";
 import { scoredMatches } from "../gameweekScorer/scoredMatches";
+import { lastSeasonCopied, pastRowsOf } from "../pastSeasons/pastSeasonPoints";
 import { basePoints, cardPositions } from "./cardPoints";
 
 // A player's card (spec/12, The player card; #381), for anyone in the league: who he is and who
 // owns him here, FPL's news on him, this season's matches at his base points, at each position he
 // has (Craig, 31 Oct 2026), with his role's line where his team started him (scoredMatches.ts), and
-// his club's next fixtures. Last season's matches aren't held, so the card has no totals for it
-// yet.
+// last season's one line, and his club's next fixtures.
 
 /** How many of his club's next matches the card shows: "the next few" (spec/12). Claude's choice,
  *  not yet Craig's. */
@@ -103,6 +103,25 @@ const playedMatch = v.object({
 });
 export type PlayedMatch = Infer<typeof playedMatch>;
 
+/** Last season's one line (spec/12): his Premier League matches for any club, totalled, priced
+ *  under the site's scoring as it stands (Craig, 6 Nov 2026). */
+const lastSeason = v.object({
+  /** The season, by the year it starts. */
+  season: v.number(),
+  /** Null when that season's data doesn't hold him: he wasn't in the Premier League. */
+  played: v.union(
+    v.null(),
+    v.object({
+      appearances: v.number(),
+      minutes: v.number(),
+      /** His base points added up at each of the card's positions, in the order of each match's
+       *  points, so the card's switch prices both alike (Craig, 6 Nov 2026). */
+      points: v.array(v.number()),
+    }),
+  ),
+});
+export type LastSeason = Infer<typeof lastSeason>;
+
 const playerCard = v.object({
   code: v.number(),
   name: v.string(),
@@ -122,6 +141,8 @@ const playerCard = v.object({
   chanceOfPlaying: v.union(v.number(), v.null()),
   /** This season's matches he was in, newest first. */
   matches: v.array(playedMatch),
+  /** Last season's line, or null while no past season is held. */
+  lastSeason: v.union(lastSeason, v.null()),
   /** His club's next matches, soonest first, at most NEXT_FIXTURES_SHOWN. */
   nextFixtures: v.array(match),
 });
@@ -150,6 +171,7 @@ export const card = query({
       news: player.news || null,
       chanceOfPlaying: player.chanceOfPlaying ?? null,
       matches: await seasonMatches(ctx, league, player, positions, clubs),
+      lastSeason: await lastSeasonLine(ctx, playerCode, positions, now),
       nextFixtures: await nextFixtures(ctx, player.clubCode, now, clubs),
     };
   },
@@ -198,6 +220,27 @@ async function seasonMatches(ctx: QueryCtx, league: Doc<"leagues">, player: Doc<
     }),
   );
   return played.sort((one, other) => (other.kickoff ?? 0) - (one.kickoff ?? 0));
+}
+
+/** Last season's line: the newest past season copied, his matches in it totalled, each priced as
+ *  this season's are (basePoints) under the site's set in force at `now`; null while none is
+ *  copied. A player the season names who played none is on 0 across the line. */
+async function lastSeasonLine(ctx: QueryCtx, playerCode: number, positions: readonly Position[], now: number): Promise<LastSeason | null> {
+  const season = await lastSeasonCopied(ctx);
+  if (season === null) return null;
+  const rows = await pastRowsOf(ctx, season, playerCode);
+  if (rows.length === 0) return { season, played: null };
+  const set = await siteScoringAt(ctx, now);
+  const points = basePoints({}, set, positions).map(() => 0);
+  let appearances = 0;
+  let minutes = 0;
+  for (const { match } of rows) {
+    if (match === null) continue;
+    appearances += 1;
+    minutes += match.stats[MINUTES_STAT] ?? 0;
+    basePoints(match.stats, set, positions).forEach(({ total }, index) => (points[index] += total ?? 0));
+  }
+  return { season, played: { appearances, minutes, points } };
 }
 
 /** His club's next matches after `now`, soonest first. A match with no kickoff time is left out. */

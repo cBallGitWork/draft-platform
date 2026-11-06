@@ -57,6 +57,7 @@ const SAKA: PlayerCard = {
   news: null,
   chanceOfPlaying: null,
   matches: [MATCH, EARLIER],
+  lastSeason: null,
   nextFixtures: [],
 };
 const REASON = "The feed gave his goal to Rice";

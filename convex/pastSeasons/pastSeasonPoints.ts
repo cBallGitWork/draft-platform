@@ -35,7 +35,7 @@ export function pastPointsByPosition(matches: readonly PastMatch[], set: StoredS
 }
 
 /** The newest past season copied, or null with none. */
-async function lastSeasonCopied(ctx: QueryCtx): Promise<number | null> {
+export async function lastSeasonCopied(ctx: QueryCtx): Promise<number | null> {
   return (await ctx.db.query("pastPlayerMatchStats").withIndex("by_season_and_playerCode").order("desc").first())?.season ?? null;
 }
 
@@ -46,14 +46,20 @@ function rowOf(ctx: QueryCtx, season: number, playerCode: number) {
     .unique();
 }
 
-/** Sets his row for `season` afresh from his copied matches under `set`: none while he isn't in
- *  that season's data. */
-async function repricePlayer(ctx: MutationCtx, season: number, playerCode: number, set: StoredScoringSet): Promise<void> {
-  const copied = await takeAllOrThrow(
+/** His copied rows in `season`, for every club he played for: none while he isn't in that
+ *  season's data. */
+export function pastRowsOf(ctx: QueryCtx, season: number, playerCode: number) {
+  return takeAllOrThrow(
     ctx.db.query("pastPlayerMatchStats").withIndex("by_season_and_playerCode", (q) => q.eq("season", season).eq("playerCode", playerCode)),
     PAST_PLAYER_ROWS_MOST,
     `Player ${playerCode} has more than ${PAST_PLAYER_ROWS_MOST} rows in the ${season} season, so his points would be cut short`,
   );
+}
+
+/** Sets his row for `season` afresh from his copied matches under `set`: none while he isn't in
+ *  that season's data. */
+async function repricePlayer(ctx: MutationCtx, season: number, playerCode: number, set: StoredScoringSet): Promise<void> {
+  const copied = await pastRowsOf(ctx, season, playerCode);
   const row = await rowOf(ctx, season, playerCode);
   if (copied.length === 0) {
     if (row !== null) await ctx.db.delete("pastSeasonPoints", row._id);
