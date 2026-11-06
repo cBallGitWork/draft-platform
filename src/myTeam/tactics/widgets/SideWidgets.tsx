@@ -18,8 +18,9 @@ import { LINEUP_CHECK_TITLE, lineupCheckPlaceholder, opponentTitle, outOfPositio
 export function LineupCheck({ draft, squad, onSelect }: { draft: DraftLineup; squad: ReadonlyMap<number, SquadMember>; onSelect(playerCode: number): void }) {
   const outOfPosition = startersInOrder(draft).flatMap((starter) => {
     const player = squad.get(starter.playerCode);
-    const mark = player === undefined ? undefined : positionMarksOf(player, starter).find(({ kind }) => kind === "outOfPosition");
-    return player === undefined || mark === undefined ? [] : [{ player, position: mark.position }];
+    // Out of position comes first of his marks.
+    const mark = player === undefined ? undefined : positionMarksOf(player, starter)[0];
+    return player !== undefined && mark?.kind === "outOfPosition" ? [{ player, position: mark.position }] : [];
   });
   return (
     <Panel title={LINEUP_CHECK_TITLE}>
