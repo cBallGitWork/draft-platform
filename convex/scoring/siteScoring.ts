@@ -81,14 +81,15 @@ function checkRevision(latest: Doc<"siteScoring"> | undefined, revision: Id<"sit
 }
 
 /** Adds a version taking effect at `takesEffectAt`, numbered next in its season, and files the
- *  letter telling every manager what it changes (spec/14: a patch is announced by a Mail letter, and
- *  a fix is announced as a fix, so it gets one too; #356). Returns its name and the first gameweek
- *  it reaches. */
-async function addVersion(
+ *  letter from `by` telling every manager what it changes (spec/14: a patch is announced by a Mail
+ *  letter, and a fix is announced as a fix, so it gets one too; #356). `by` is null for the one
+ *  version with no letter, the roles' first values (Craig, 5 Nov 2026; firstRolesVersion.ts).
+ *  Returns its name and the first gameweek it reaches. */
+export async function addVersion(
   ctx: MutationCtx,
   history: readonly Doc<"siteScoring">[],
   version: Pick<Doc<"siteScoring">, "scoring" | "kind" | "takesEffectAt">,
-  by: string,
+  by: string | null,
 ): Promise<{ id: Id<"siteScoring">; name: string; fromGameweek: number }> {
   if (history.length >= SITE_SCORING_VERSIONS_MOST) refuse(siteScoringRefusals.tooManyVersions);
   const season = seasonStartYear(version.takesEffectAt);
@@ -98,7 +99,7 @@ async function addVersion(
   const fromGameweek = await firstGameweekFrom(ctx, version.takesEffectAt);
   const changes = scoringChanges(setOf(history.at(-1)), version.scoring);
   const news = { name, kind: version.kind, takesEffectAt: version.takesEffectAt, fromGameweek, changes };
-  await fileSiteLetter(ctx, (zone) => versionLetter(news, zone), by);
+  if (by !== null) await fileSiteLetter(ctx, (zone) => versionLetter(news, zone), by);
   // Stars price every match under today's scoring, so everyone is rated again once it takes effect
   // (stars/starsRefresh.ts, #11).
   await ctx.scheduler.runAt(version.takesEffectAt, internal.stars.starsRefresh.refreshAll, { cursor: null });

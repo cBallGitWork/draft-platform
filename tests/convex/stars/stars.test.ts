@@ -3,6 +3,7 @@ import { DEFAULT_ROLES } from "../../../convex/lineup/roles";
 import { FIRST_SCORING } from "../../../convex/scoring/firstScoring";
 import { scoreMatch } from "../../../convex/scoring/scoring";
 import type { ScoringSet } from "../../../convex/scoring/scoringSet";
+import { pricedRole } from "../../support/convex/scoring.example";
 import {
   countedMatches,
   LEAST_MATCHES_RATED,
@@ -138,7 +139,7 @@ describe("the matches he is rated on", () => {
 
 describe("his points per match under a role", () => {
   const STRIKER = { area: "attack", lane: "centre" } as const;
-  const POACHING: ScoringSet = { ...FIRST_SCORING, roleAdjustments: [{ role: "poacher", adjustments: [{ stat: "goals_scored", points: 1 }] }] };
+  const POACHING: ScoringSet = { ...FIRST_SCORING, roles: [pricedRole("poacher", "goals_scored", 1)] };
   const MATCHES = [
     { minutes: 90, goals_scored: 2 },
     { minutes: 20, goals_scored: 0 },

@@ -210,7 +210,14 @@ function LineupEditor({ league, teamName, tactics, seam }: { league: LeagueSumma
               <Pitch draft={draft} squad={squad} moving={moving} slots={tactics.presets.find(({ name }) => name === edits.shape)?.cells ?? []} runsShown={runsShown} />
             </div>
           </Panel>
-          <LineupCheck />
+          <LineupCheck
+            draft={draft}
+            squad={squad}
+            onSelect={(playerCode) => {
+              setPickedCode(null);
+              setSelectedCode(playerCode);
+            }}
+          />
         </div>
         <Panel
           title={SELECTION_TITLE}

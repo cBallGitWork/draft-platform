@@ -72,6 +72,7 @@ const memberOf = ({ code, name, club, positions, number }: Row): SquadMember => 
   clubCode: club.code,
   unheld: false,
   positions,
+  flagged: [],
   number,
   stars: [],
 });

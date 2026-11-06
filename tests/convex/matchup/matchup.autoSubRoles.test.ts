@@ -1,6 +1,7 @@
 import { expect, test } from "vitest";
 import { FIRST_SCORING } from "../../../convex/scoring/firstScoring";
 import { fullTimeRecords, lockMatch } from "../../support/convex/gameweekScoresMatch.harness";
+import { pricedRole } from "../../support/convex/scoring.example";
 import { holdSiteScoring } from "../../support/convex/siteScoring.harness";
 import { DAY_MS } from "../../../convex/shared/time";
 import { everyRoleOf, namedRole, roleIn } from "../../../convex/lineup/roles";
@@ -75,10 +76,7 @@ async function belloumiOnInMidfield(league: ScoresLeague) {
  *  under each. In force from before the gameweek. */
 const ROLES_PRICED_APART = {
   ...FIRST_SCORING,
-  roleAdjustments: [
-    { role: "attackingEight", adjustments: [{ stat: "goals_scored", points: 1 }] },
-    { role: "ballWinner", adjustments: [{ stat: "goals_scored", points: -1 }] },
-  ],
+  roles: [pricedRole("attackingEight", "goals_scored", 1), pricedRole("ballWinner", "goals_scored", -1)],
 };
 
 test("a sub coming on in his own area plays his best-star role at the deadline: stars moving after never move his role or points, provisional or final", async () => {
