@@ -1,14 +1,10 @@
 import { v, type Infer } from "convex/values";
 import type { Doc } from "../_generated/dataModel";
 import { query, type QueryCtx } from "../_generated/server";
-import { SLOT_POSITIONS } from "../lineup/pitch";
-import { areaShape } from "../lineup/pitchShape";
-import { roleName } from "../lineup/roles";
 import { positionsNow } from "../positions/playerPositions";
 import type { Position } from "../positions/positionTables";
 import { clubRecord, position } from "../schema";
-import { categoryName } from "../scoring/categories";
-import { bandShape } from "../scoring/scoringSetShape";
+import { namedCategories, namedCategoriesOf, roleLine, roleLineOf, slotPosition } from "../scoring/breakdownShape";
 import { siteScoringAt, siteVersionByGameweek } from "../scoring/siteVersions";
 import { memberOf } from "../shared/leagueAccess";
 import { clubsByCode, playerByCode, type Clubs } from "../shared/players";
@@ -28,34 +24,12 @@ import { basePoints, cardPositions } from "./cardPoints";
  *  not yet Craig's. */
 export const NEXT_FIXTURES_SHOWN = 5;
 
-const slotPosition = v.union(...SLOT_POSITIONS.map((each) => v.literal(each)));
-
 const match = v.object({
   fixtureCode: v.number(),
   gameweek: v.union(v.number(), v.null()),
   kickoff: v.union(v.number(), v.null()),
   home: clubRecord,
   away: clubRecord,
-});
-
-/** scoring.ts's CategoryWhy: what a category's points are made of (spec/14, On screen). */
-const categoryWhy = v.object({
-  actions: v.number(),
-  value: v.union(
-    v.object({ shape: v.literal("perAction"), points: v.number() }),
-    v.object({ shape: v.literal("perCount"), every: v.number(), points: v.number() }),
-    v.object({ shape: v.literal("bands"), earned: v.array(bandShape) }),
-  ),
-  pricedBy: v.union(
-    v.object({ by: v.literal("all") }),
-    v.object({ by: v.literal("area"), area: areaShape }),
-    v.object({ by: v.literal("position"), position: slotPosition }),
-  ),
-  cut: v.union(
-    v.null(),
-    v.object({ by: v.literal("minutes"), atLeast: v.number() }),
-    v.object({ by: v.union(v.literal("max"), v.literal("min"), v.literal("atMax"), v.literal("atMin")), limit: v.number() }),
-  ),
 });
 
 /** His base points in a match at one position: the site's scoring set for what he did, with no
@@ -68,12 +42,7 @@ const pricedPoints = v.object({
   total: v.union(v.number(), v.null()),
   /** Each of the set's categories, by full name, in its order: its points and why, or null points
    *  while his whole record hasn't arrived. */
-  categories: v.array(
-    v.union(
-      v.object({ stat: v.string(), name: v.string(), points: v.null() }),
-      v.object({ stat: v.string(), name: v.string(), points: v.number(), why: categoryWhy }),
-    ),
-  ),
+  categories: namedCategories,
 });
 
 const playedMatch = v.object({
@@ -90,13 +59,7 @@ const playedMatch = v.object({
    *  Nov 2026: "Poacher: +1 (+2: 1 goal in box, 1 shot on target in box; −1: 1 big chance
    *  missed)"): its name, its net, and each side that moved him with each of its stats he made.
    *  Shown beside his base points, never in them. */
-  role: v.optional(
-    v.object({
-      name: v.string(),
-      points: v.number(),
-      sides: v.array(v.object({ points: v.number(), lines: v.array(v.object({ stat: v.string(), name: v.string(), actions: v.number() })) })),
-    }),
-  ),
+  role: v.optional(roleLine),
   /** The league's override of his points in the match (#32), or null with none. */
   override: v.union(v.object({ points: v.number(), reason: v.string() }), v.null()),
   /** His points may still move: the match isn't final, or, from his team's lineup, auto-subs aren't. */
@@ -199,28 +162,17 @@ export async function seasonMatches(ctx: QueryCtx, league: Doc<"leagues">, playe
   const played = await Promise.all(
     scored.map(async ({ record, fixture, gameweek, points: { role }, override, provisional }) => {
       const { set, name: version } = versionIn(gameweek);
-      const named = (stat: string) => categoryName(stat, set.ownStats);
       const points = basePoints(statsIfWhole(record), set, positions).map(({ position, total, categories }) => ({
         position,
         total,
-        categories: categories.map((each) => ({ ...each, name: named(each.stat) })),
+        categories: namedCategoriesOf(categories, set.ownStats),
       }));
-      const roleLine =
-        role === undefined
-          ? {}
-          : {
-              role: {
-                name: roleName(role.role),
-                points: role.points,
-                sides: role.sides.map(({ points, lines }) => ({ points, lines: lines.map((line) => ({ ...line, name: named(line.stat) })) })),
-              },
-            };
       return {
         ...(await asMatch(fixture, clubs)),
         minutes: statValue(record, MINUTES_STAT),
         points,
         version,
-        ...roleLine,
+        ...(role === undefined ? {} : { role: roleLineOf(role, set.ownStats) }),
         override: override === null ? null : { points: override.points, reason: override.reason },
         provisional,
       };

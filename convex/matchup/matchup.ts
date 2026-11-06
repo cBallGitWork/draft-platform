@@ -12,15 +12,17 @@ import { playerByCode, unheldPlayerWords } from "../shared/players";
 import { readOnce } from "../shared/readOnce";
 import { begunGameweeks, tableGameweek, type GameweekTeams } from "../gameweekScorer/gameweekScores";
 import { scheduleOf } from "../table/playedFixtures";
-import { isFinished, type HeldMatch } from "../gameweekScorer/heldMatches";
-import { inMatchOf, leagueReads, type TeamInGameweek } from "../gameweekScorer/teamGameweek";
+import { isFinished, overrideOf, type HeldMatch } from "../gameweekScorer/heldMatches";
+import { inMatchOf, leagueReads, scoredByMatch, type TeamInGameweek } from "../gameweekScorer/teamGameweek";
 import { LEAGUE_AVERAGE, type GameweekFixtures } from "../table/roundRobin";
 import { teamsInGameweek } from "../table/standings";
 import { averageScore, BYE, gamesOf, type Against } from "../table/teamGames";
 import type { SlotPoints } from "../scoring/teamPoints";
+import { namedCategoriesOf, roleLineOf } from "../scoring/breakdownShape";
+import { siteVersionByGameweek } from "../scoring/siteVersions";
 import { namedRole, roleIn, type Role } from "../lineup/roles";
 import { thresholdStepsOf } from "../stats/thresholdSteps";
-import { game, matchup, type MatchupCommentary, type MatchupBenchSlot, type MatchupSide, type MatchupSlot, type MatchupStarter, type SlotStatus } from "./matchupShape";
+import { game, matchup, type MatchBreakdown, type MatchupCommentary, type MatchupBenchSlot, type MatchupSide, type MatchupSlot, type MatchupStarter, type SlotStatus } from "./matchupShape";
 import { vidiprinter, type VidiprinterMatch, type VidiprinterPlayer } from "./vidiprinter";
 
 // One head-to-head in one gameweek (#34; spec/10, The matchup, as a live match; spec/14, On
@@ -93,14 +95,16 @@ async function gameOf(
   if (!(await begunGameweeks(ctx, league)).includes(gameweek)) return { kind: "notBegun", opponent };
   try {
     const teamIds = teams.map((each) => each._id);
-    const inGameweek = await tableGameweek(ctx, await leagueReads(ctx, league, season), gameweek, teamIds);
-    const scorer = new SideScorer(ctx, inGameweek, teamsInGameweek(drawn), gameweek);
+    const versionIn = await siteVersionByGameweek(ctx);
+    const inGameweek = await tableGameweek(ctx, await leagueReads(ctx, league, season, (each) => versionIn(each).set), gameweek, teamIds);
+    const scorer = new SideScorer(ctx, league._id, inGameweek, teamsInGameweek(drawn), gameweek);
     const sides = against.kind === "team" ? [team._id, against.team] : [team._id];
     return {
       kind: "scored",
       team: await scorer.team(team._id, team.name),
       opponent: await scorer.opponent(against, nameOf),
       commentary: await scorer.commentary(sides, `League ${league._id} (${league.name}) can't read ${team.name}'s commentary in gameweek ${gameweek}`, now),
+      version: versionIn(gameweek).name,
     };
   } catch (error) {
     const reason = logFailure(`League ${league._id} (${league.name}) can't score ${team.name}'s matchup in gameweek ${gameweek}`, error);
@@ -120,6 +124,7 @@ class SideScorer {
 
   constructor(
     private readonly ctx: QueryCtx,
+    private readonly leagueId: Id<"leagues">,
     private readonly inGameweek: GameweekTeams,
     /** The teams the league's average is over: the gameweek's own (standings.ts's teamsInGameweek). */
     private readonly averaged: readonly TeamId[],
@@ -213,7 +218,30 @@ class SideScorer {
       provisional,
       status: await this.status(matchesOf.get(playerCode) ?? []),
       autoSub,
+      breakdown: await this.breakdown(slotPoints, matchesOf.get(playerCode) ?? []),
     };
+  }
+
+  /** Each of his matches as his slot scored it, kickoff first: its categories, his role's line and
+   *  the league's override, from the scorer's own points, so they add up to his. */
+  private async breakdown(slotPoints: SlotPoints, matches: readonly HeldMatch[]): Promise<MatchBreakdown[]> {
+    const { playerCode } = slotPoints;
+    const { ownStats } = this.inGameweek.set;
+    const scored = scoredByMatch(slotPoints, matches).toSorted((one, other) => byKickoffOrder(one.match.fixture, other.match.fixture));
+    return Promise.all(
+      scored.map(async ({ match: { fixture, overrides }, points: { total, categories, role }, counted }) => {
+        const overridden = overrides.has(playerCode) ? await overrideOf(this.ctx, this.leagueId, fixture.code, playerCode) : null;
+        return {
+          fixtureCode: fixture.code,
+          kickoff: fixture.kickoff,
+          points: total,
+          counted,
+          categories: namedCategoriesOf(categories, ownStats),
+          ...(role === undefined ? {} : { role: roleLineOf(role, ownStats) }),
+          override: overridden === null ? null : { points: overridden.points, reason: overridden.reason },
+        };
+      }),
+    );
   }
 
   /** On while any of his matches is; over once all are (at full time, though his points stay
@@ -241,6 +269,11 @@ function pricedRole({ playerCode, cell, role }: SlotPoints): Pick<Role, "key" | 
   return namedRole(roleIn(cell, role));
 }
 
+type KicksOff = { kickoff: number | null };
+
+/** Two matches in kickoff order, any with no time yet last. */
+const byKickoffOrder = (one: KicksOff, other: KicksOff) =>
+  (one.kickoff === null ? 1 : 0) - (other.kickoff === null ? 1 : 0) || (one.kickoff ?? 0) - (other.kickoff ?? 0);
+
 /** Matches by kickoff, any with no time yet last. */
-const byKickoff = <Fixture extends { kickoff: number | null }>(fixtures: readonly Fixture[]): Fixture[] =>
-  fixtures.toSorted((one, other) => (one.kickoff === null ? 1 : 0) - (other.kickoff === null ? 1 : 0) || (one.kickoff ?? 0) - (other.kickoff ?? 0));
+const byKickoff = <Fixture extends KicksOff>(fixtures: readonly Fixture[]): Fixture[] => fixtures.toSorted(byKickoffOrder);

@@ -75,6 +75,7 @@ export const slot = (name: string, rest: Partial<Slot> = {}): Slot => ({
   provisional: true,
   status: { kind: "yetToPlay", fixtureCode: SLOT_MATCH, kickoff: null },
   autoSub: null,
+  breakdown: [],
   ...rest,
 });
 
@@ -107,9 +108,9 @@ type Scored = Extract<Game, { kind: "scored" }>;
 const NO_COMMENTARY: MatchupCommentary = { kind: "read", lines: [], delayed: false };
 
 /** Team 1's matchup in `gameweek`, of the gameweeks it plays, holding `game`; a scored one with no
- *  commentary unless it gives some. */
+ *  commentary, scored under the first set, unless it gives some. */
 export const headToHead = (
-  game: Exclude<Game, Scored> | (Omit<Scored, "commentary"> & { commentary?: MatchupCommentary }),
+  game: Exclude<Game, Scored> | (Omit<Scored, "commentary" | "version"> & Partial<Pick<Scored, "commentary" | "version">>),
   { gameweek = 6, gameweeks = [5, 6, 7], deadline = null as number | null } = {},
 ): HeadToHead => ({
   kind: "headToHead",
@@ -118,5 +119,5 @@ export const headToHead = (
   gameweeks,
   gameweek,
   deadline,
-  game: game.kind === "scored" ? { commentary: NO_COMMENTARY, ...game } : game,
+  game: game.kind === "scored" ? { commentary: NO_COMMENTARY, version: null, ...game } : game,
 });
