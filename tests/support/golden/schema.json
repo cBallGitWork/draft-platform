@@ -2404,8 +2404,17 @@
         "value": {
           "name": {
             "fieldType": {
-              "type": "literal",
-              "value": "statCorrectionWindowMinutes"
+              "type": "union",
+              "value": [
+                {
+                  "type": "literal",
+                  "value": "statCorrectionWindowMinutes"
+                },
+                {
+                  "type": "literal",
+                  "value": "scoutsPerTeam"
+                }
+              ]
             },
             "optional": false
           },
@@ -22975,6 +22984,133 @@
           "madeAt": {
             "fieldType": {
               "type": "number"
+            },
+            "optional": true
+          }
+        }
+      }
+    },
+    {
+      "tableName": "scouts",
+      "indexes": [
+        {
+          "indexDescriptor": "by_leagueId",
+          "fields": [
+            "leagueId"
+          ]
+        },
+        {
+          "indexDescriptor": "by_teamId_and_state",
+          "fields": [
+            "teamId",
+            "state"
+          ]
+        },
+        {
+          "indexDescriptor": "by_teamId_and_sentAt",
+          "fields": [
+            "teamId",
+            "sentAt"
+          ]
+        },
+        {
+          "indexDescriptor": "by_teamId_and_playerCode_and_sentAt",
+          "fields": [
+            "teamId",
+            "playerCode",
+            "sentAt"
+          ]
+        }
+      ],
+      "stagedDbIndexes": [],
+      "searchIndexes": [],
+      "stagedSearchIndexes": [],
+      "vectorIndexes": [],
+      "stagedVectorIndexes": [],
+      "documentType": {
+        "type": "object",
+        "value": {
+          "leagueId": {
+            "fieldType": {
+              "type": "id",
+              "tableName": "leagues"
+            },
+            "optional": false
+          },
+          "teamId": {
+            "fieldType": {
+              "type": "id",
+              "tableName": "teams"
+            },
+            "optional": false
+          },
+          "playerCode": {
+            "fieldType": {
+              "type": "number"
+            },
+            "optional": false
+          },
+          "sentAt": {
+            "fieldType": {
+              "type": "number"
+            },
+            "optional": false
+          },
+          "dueAt": {
+            "fieldType": {
+              "type": "number"
+            },
+            "optional": false
+          },
+          "state": {
+            "fieldType": {
+              "type": "union",
+              "value": [
+                {
+                  "type": "literal",
+                  "value": "out"
+                },
+                {
+                  "type": "literal",
+                  "value": "reported"
+                },
+                {
+                  "type": "literal",
+                  "value": "playerLeft"
+                }
+              ]
+            },
+            "optional": false
+          },
+          "report": {
+            "fieldType": {
+              "type": "object",
+              "value": {
+                "text": {
+                  "fieldType": {
+                    "type": "string"
+                  },
+                  "optional": false
+                },
+                "writtenAt": {
+                  "fieldType": {
+                    "type": "number"
+                  },
+                  "optional": false
+                }
+              }
+            },
+            "optional": true
+          },
+          "failedTries": {
+            "fieldType": {
+              "type": "number"
+            },
+            "optional": true
+          },
+          "lastFailure": {
+            "fieldType": {
+              "type": "string"
             },
             "optional": true
           }

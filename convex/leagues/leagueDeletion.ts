@@ -109,6 +109,11 @@ const leagueRows: { [Table in TableNames]?: LeagueRowsBatch<Table> } = {
       .query("waiverOrders")
       .withIndex("by_leagueId", (q) => q.eq("leagueId", leagueId))
       .take(ROWS_PER_RUN),
+  scouts: (ctx, leagueId) =>
+    ctx.db
+      .query("scouts")
+      .withIndex("by_leagueId", (q) => q.eq("leagueId", leagueId))
+      .take(ROWS_PER_RUN),
   shortlistPlayers: (ctx, leagueId) =>
     ctx.db
       .query("shortlistPlayers")
