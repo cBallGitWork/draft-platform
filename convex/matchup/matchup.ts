@@ -1,7 +1,6 @@
 import { v, type Infer } from "convex/values";
 import type { Doc, Id } from "../_generated/dataModel";
 import { query, type QueryCtx } from "../_generated/server";
-import { delayedAt, heldOf } from "../football/matchCommentary";
 import { isPlaying, scoreOf } from "../football/matchScores";
 import { deadlineOf, leagueDeadlines } from "../gameweeks/leagueDeadlines";
 import { thisGameweekOf } from "../gameweeks/nextGameweek";
@@ -13,15 +12,14 @@ import { readOnce } from "../shared/readOnce";
 import { begunGameweeks, tableGameweek, type GameweekTeams } from "../gameweekScorer/gameweekScores";
 import { scheduleOf } from "../table/playedFixtures";
 import { isFinished, type HeldMatch } from "../gameweekScorer/heldMatches";
-import { inMatchOf, leagueReads, type TeamInGameweek } from "../gameweekScorer/teamGameweek";
+import { leagueReads, type TeamInGameweek } from "../gameweekScorer/teamGameweek";
 import { LEAGUE_AVERAGE, type GameweekFixtures } from "../table/roundRobin";
 import { teamsInGameweek } from "../table/standings";
 import { averageScore, BYE, gamesOf, type Against } from "../table/teamGames";
 import type { SlotPoints } from "../scoring/teamPoints";
 import { namedRole, roleIn, type Role } from "../lineup/roles";
-import { thresholdStepsOf } from "../stats/thresholdSteps";
 import { game, matchup, type MatchupCommentary, type MatchupBenchSlot, type MatchupSide, type MatchupSlot, type MatchupStarter, type SlotStatus } from "./matchupShape";
-import { vidiprinter, type VidiprinterMatch, type VidiprinterPlayer } from "./vidiprinter";
+import { readCommentary } from "./readCommentary";
 
 // One head-to-head in one gameweek (#34; spec/10, The matchup, as a live match; spec/14, On
 // screen): both lineups slot by slot, each player's points and whether his match is yet to come,
@@ -154,28 +152,8 @@ class SideScorer {
    *  is logged and says why, while the scores still show. Delayed as at `now` (`delayedAt`). */
   async commentary(teamIds: readonly TeamId[], failure: string, now: number): Promise<MatchupCommentary> {
     try {
-      const players = new Map<PlayerCode, VidiprinterPlayer>();
-      const matches = new Map<number, HeldMatch>();
-      for (const teamId of teamIds) {
-        const scored = await this.inGameweek.slotsOf(teamId);
-        for (const slot of [...scored.team.starters, ...scored.team.bench]) {
-          const his = scored.matchesOf.get(slot.playerCode) ?? [];
-          for (const match of his) matches.set(match.fixture.code, match);
-          players.set(slot.playerCode, { name: await this.name(slot.playerCode), cell: slot.cell, role: slot.role, inLineup: true, inMatch: inMatchOf(slot, his) });
-        }
-      }
-      const held = await Promise.all(
-        [...matches.values()].map(async ({ fixture }) => ({
-          fixture,
-          row: await heldOf(this.ctx, fixture.code),
-          score: await this.score(fixture.code),
-          steps: await thresholdStepsOf(this.ctx, fixture.code),
-        })),
-      );
-      const read: VidiprinterMatch[] = held.flatMap(({ fixture, row, steps }) =>
-        row === null ? [] : [{ fixtureCode: fixture.code, kickoff: fixture.kickoff, lines: row.lines, steps }],
-      );
-      return { kind: "read", lines: vidiprinter(read, players, this.inGameweek.set), delayed: held.some(({ row, score }) => row !== null && delayedAt(row, score, now)) };
+      const read = await readCommentary(this.ctx, this.inGameweek, teamIds, now, { name: this.name, score: this.score }, { countingOnly: false });
+      return { kind: "read", ...read };
     } catch (error) {
       return { kind: "unread", reason: logFailure(failure, error) };
     }
