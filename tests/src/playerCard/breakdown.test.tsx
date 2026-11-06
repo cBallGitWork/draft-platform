@@ -49,6 +49,14 @@ describe("each line says why", () => {
     expect(await linesOf(cardWith([category("own_goals", "Own goals", -4, floor)]))).toContain("Own goals −4 (3 at −2 each, held to at least −4)");
   });
 
+  it("landing exactly on a limit says he reached it, though it cost him nothing (#863)", async () => {
+    const atMost: Why = { ...perAction(2, 1), cut: { by: "atMax", limit: 2 } };
+    const atLeast: Why = { ...perAction(2, -2), cut: { by: "atMin", limit: -4 } };
+    const lines = await linesOf(cardWith([category("won_tackle", "Tackles won", 2, atMost), category("own_goals", "Own goals", -4, atLeast)]));
+    expect(lines).toContain("Tackles won 2 (2 at 1 each, reaching its limit of at most 2)");
+    expect(lines).toContain("Own goals −4 (2 at −2 each, reaching its limit of at least −4)");
+  });
+
   it("a minutes rule that took his points away shows its line at 0, though it earned nothing", async () => {
     const short: Why = { ...inDefence(perAction(1, 4)), cut: { by: "minutes", atLeast: 60 } };
     expect(await linesOf(cardWith([category("clean_sheets", "Clean sheets", 0, short)]))).toContain("Clean sheets 0 (1 at 4 each for Defence, but none under 60 minutes)");

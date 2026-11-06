@@ -43,7 +43,8 @@ export const breakdownLabel = (gameweek: number | null) => (gameweek === null ? 
 export const nothingEarnedWords = "No category earned him points.";
 /** Why a category's points are what they are (spec/14, On screen), in brackets after them: "(1 at
  *  5 each for Midfield)", "(4, 1 for every 3)", "(14, 2 for 10+ and 2 for 12+, held to at most 2)",
- *  "(1 at 4 each for Defence, but none under 60 minutes)". */
+ *  "(1 at 4 each for Defence, but none under 60 minutes)", "(2 at 1 each, reaching its limit of at
+ *  most 2)": the last cost him nothing (#863). */
 export const whyWords = ({ actions, value, pricedBy, cut }: CategoryWhy) => `(${valueWords(value, actions)}${pricedByWords(pricedBy)}${cutWords(cut)})`;
 const valueWords = (value: SlotValue, actions: number) => {
   switch (value.shape) {
@@ -74,6 +75,10 @@ const cutWords = (cut: Cut | null) => {
       return `, held to at most ${figureWords(cut.limit)}`;
     case "min":
       return `, held to at least ${figureWords(cut.limit)}`;
+    case "atMax":
+      return `, reaching its limit of at most ${figureWords(cut.limit)}`;
+    case "atMin":
+      return `, reaching its limit of at least ${figureWords(cut.limit)}`;
   }
 };
 /** The breakdown's last line: the version of the site's scoring the match was scored under. */

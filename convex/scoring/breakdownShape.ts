@@ -29,7 +29,7 @@ const categoryWhy = v.object({
   cut: v.union(
     v.null(),
     v.object({ by: v.literal("minutes"), atLeast: v.number() }),
-    v.object({ by: v.union(v.literal("max"), v.literal("min")), limit: v.number() }),
+    v.object({ by: v.union(v.literal("max"), v.literal("min"), v.literal("atMax"), v.literal("atMin")), limit: v.number() }),
   ),
 });
 
