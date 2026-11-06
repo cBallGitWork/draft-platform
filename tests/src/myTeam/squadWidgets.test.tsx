@@ -36,6 +36,7 @@ import {
 } from "../../../src/myTeam/squad/words";
 import { everyRoleOf } from "../../../convex/lineup/roles";
 import { starsLabel } from "../../../src/ui/StarRating";
+import { ROLE_FIT_SUBJECT } from "../../../src/myTeam/tactics/words";
 import { league } from "../../support/src/shell.harness";
 import { openSquad, PALMER, RAYA, SAKA, squadOf, tacticsWith } from "../../support/src/squadTab.harness";
 
@@ -148,7 +149,7 @@ describe("his season panel", () => {
     const panel = panelOf("Saka");
 
     expect(within(panel).getByText(winger.name)).toBeTruthy();
-    expect(within(panel).getByRole("img", { name: starsLabel(winger.name, 4.5) })).toBeTruthy();
+    expect(within(panel).getByRole("img", { name: starsLabel(ROLE_FIT_SUBJECT, 4.5) })).toBeTruthy();
     expect(within(panel).queryByRole("img", { name: bestRoleNotRatedLabel })).toBeNull();
   });
 

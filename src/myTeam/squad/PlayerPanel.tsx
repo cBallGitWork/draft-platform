@@ -10,6 +10,7 @@ import type { SquadNumberChanges } from "../seam";
 import { StarRating } from "../../ui/StarRating";
 import { starsIn } from "../../../convex/stars/bestRole";
 import { benchBestRole } from "../tactics/lineupDraft";
+import { ROLE_FIT_SUBJECT } from "../tactics/words";
 import type { Tactics } from "../tactics/seam";
 import { SquadNumberBox } from "./SquadNumberBox";
 import { NextMatches, PositionList, type Row } from "./SquadTable";
@@ -151,7 +152,7 @@ function BestRole({ tactics, code }: { tactics: Tactics | undefined; code: numbe
   return (
     <span className="flex items-center gap-2">
       {best.role.name}
-      <StarRating stars={starsIn(best.cell, best.role.key, member.stars)} subject={best.role.name} />
+      <StarRating stars={starsIn(best.cell, best.role.key, member.stars)} subject={ROLE_FIT_SUBJECT} />
     </span>
   );
 }
