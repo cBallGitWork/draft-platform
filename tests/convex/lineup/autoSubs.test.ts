@@ -183,6 +183,7 @@ describe("a keeper", () => {
     ]);
   });
 
+  // S05.5
   test("never comes on for an outfield player, even with room in goal", () => {
     const { lineup, positions } = withBench(["GK"]);
     const roomForTwo = openLimits({ goalkeeper: { minimum: 1, maximum: 2 } });
@@ -226,6 +227,7 @@ describe("a double gameweek", () => {
   const toCome = { finished: false, minutes: 0, postponed: false };
   const postponed = { finished: false, minutes: 0, postponed: true };
 
+  // S05.4
   test("a postponed match counts as one he didn't play, so he is subbed straight away (#900)", () => {
     expect(gameweekPlay([postponed])).toBe("didNotPlay");
     const { lineup, positions } = withBench(["ST"]);

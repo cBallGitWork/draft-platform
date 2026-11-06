@@ -36,6 +36,7 @@ test(`a match's records: ${MATCH_RECORDS_MOST} are read, one more throws saying 
   await expect(read()).rejects.toThrow(`Match ${FIXTURE} holds more than ${MATCH_RECORDS_MOST} records, so its men would be cut short`);
 });
 
+// S05.4
 test("a match with no kickoff time is postponed, one rearranged with a kickoff in the gameweek isn't (#900)", () => {
   const match = (kickoff: number | null) => ({ fixture: { kickoff } as Doc<"fixtures"> });
   expect(isPostponed(match(null))).toBe(true);

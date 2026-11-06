@@ -369,9 +369,9 @@ From Craig, 1 Nov 2026.
   happen, so a player in an absondeoned match would get auto subbed" (Craig, 1 Nov 2026; #904).
 - A postponed match counts as never played, so its players are auto-subbed, unless it is
   rearranged into the same gameweek: "postponed match should mean an auto subbed if the match is
-  not rearranged to be in the gameweek" (Craig, 1 Nov 2026; #900).
+  not rearranged to be in the gameweek" (Craig, 1 Nov 2026; #900). `S05.4`
 - A goalkeeper is replaced only by a goalkeeper, and never comes on for an outfield player, even
-  where the league's limits allow two in goal: "dont allow 2 in goal" (Craig, 1 Nov 2026; #900).
+  where the league's limits allow two in goal: "dont allow 2 in goal" (Craig, 1 Nov 2026; #900). `S05.5`
 - In a double gameweek, a starter who plays in either match is not subbed.
 - Auto-subs are always on, and there is no limit on them, ever.
 
