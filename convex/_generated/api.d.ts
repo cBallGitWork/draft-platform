@@ -147,6 +147,7 @@ import type * as positions_positions from "../positions/positions.js";
 import type * as positions_positionsSync from "../positions/positionsSync.js";
 import type * as rules_drawRulesBackfill from "../rules/drawRulesBackfill.js";
 import type * as rules_firstRules from "../rules/firstRules.js";
+import type * as rules_formatLock from "../rules/formatLock.js";
 import type * as rules_leagueRules from "../rules/leagueRules.js";
 import type * as rules_leagueRulesCheck from "../rules/leagueRulesCheck.js";
 import type * as rules_leagueRulesShape from "../rules/leagueRulesShape.js";
@@ -419,6 +420,7 @@ declare const fullApi: ApiFromModules<{
   "positions/positionsSync": typeof positions_positionsSync;
   "rules/drawRulesBackfill": typeof rules_drawRulesBackfill;
   "rules/firstRules": typeof rules_firstRules;
+  "rules/formatLock": typeof rules_formatLock;
   "rules/leagueRules": typeof rules_leagueRules;
   "rules/leagueRulesCheck": typeof rules_leagueRulesCheck;
   "rules/leagueRulesShape": typeof rules_leagueRulesShape;
