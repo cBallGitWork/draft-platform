@@ -3,6 +3,8 @@
 
 import type { ListedPlayer } from "../../convex/scouting/playersList";
 import { listOf, shownStat } from "../../convex/scouting/playersOrder";
+import { withOwnStats } from "../../convex/scoring/ownStats";
+import { OWN_STAT_PREFIX } from "../../convex/scoring/statCatalogue";
 import type { Stats } from "../../convex/stats/statTotals";
 import { listedFromScouting, queueInPreview, setPreviewShortlisted } from "../draft/previewLists";
 import { previewShortlistOf } from "./shortlist/preview";
@@ -43,6 +45,12 @@ const previewTotals: Record<number, Stats> = {
   6: { goals_scored: 7, assists: 4, minutes: 800, expected_goals: 6.12 },
   7: { goals_scored: 1, clean_sheets: 4, minutes: 810, expected_goals: 0.65 },
 };
+/** The site's set in the preview, for its one own stat: goals and assists added up (#910). */
+const PREVIEW_SET = {
+  rules: [],
+  wholePointsOnly: false,
+  ownStats: [{ stat: `${OWN_STAT_PREFIX}goal_involvements`, name: "Goal involvements", shortCode: "GI", parts: [{ stat: "goals_scored", weight: 1 }, { stat: "assists", weight: 1 }] }],
+};
 /** Matches this season, the same for everyone in the preview. */
 const PREVIEW_MATCHES = 9;
 
@@ -64,8 +72,9 @@ export const previewScouting: ScoutingSeam = {
     codes?.map((code) => ({ ...previewPlayers.find((each) => each.code === code)!, matches: PREVIEW_MATCHES, stats: previewTotals[code] ?? {} })),
   usePlayersList: (_leagueId, filters, sort, stat) => ({
     clubs: [ARSENAL, CHELSEA, LIVERPOOL],
+    ownStats: PREVIEW_SET.ownStats.map(({ stat, name, shortCode }) => ({ stat, name, shortCode })),
     players: listOf(
-      previewPlayers.map((player) => ({ ...player, stat: shownStat(previewTotals[player.code], stat) })),
+      previewPlayers.map((player) => ({ ...player, stat: shownStat(withOwnStats(previewTotals[player.code] ?? {}, PREVIEW_SET), stat) })),
       filters,
       sort,
     ),
