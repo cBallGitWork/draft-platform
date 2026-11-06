@@ -135,6 +135,7 @@ import type * as pastSeasons_pastSeasonLimits from "../pastSeasons/pastSeasonLim
 import type * as pastSeasons_pastSeasonLoad from "../pastSeasons/pastSeasonLoad.js";
 import type * as pastSeasons_pastSeasonPoints from "../pastSeasons/pastSeasonPoints.js";
 import type * as pastSeasons_pastSeasonRows from "../pastSeasons/pastSeasonRows.js";
+import type * as pastSeasons_pastStatColumns from "../pastSeasons/pastStatColumns.js";
 import type * as playerCard_cardPoints from "../playerCard/cardPoints.js";
 import type * as playerCard_playerCard from "../playerCard/playerCard.js";
 import type * as positions_playerPositions from "../positions/playerPositions.js";
@@ -406,6 +407,7 @@ declare const fullApi: ApiFromModules<{
   "pastSeasons/pastSeasonLoad": typeof pastSeasons_pastSeasonLoad;
   "pastSeasons/pastSeasonPoints": typeof pastSeasons_pastSeasonPoints;
   "pastSeasons/pastSeasonRows": typeof pastSeasons_pastSeasonRows;
+  "pastSeasons/pastStatColumns": typeof pastSeasons_pastStatColumns;
   "playerCard/cardPoints": typeof playerCard_cardPoints;
   "playerCard/playerCard": typeof playerCard_playerCard;
   "positions/playerPositions": typeof positions_playerPositions;
