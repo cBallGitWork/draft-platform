@@ -178,15 +178,6 @@ export function claimFailedLetter({ playerName, dropName, why }: { playerName: s
   return { subject: `Your claim for ${playerName} failed`, body: `${because} Your claim is gone; nobody joined or left your squad for it.` };
 }
 
-/** The letter to a manager whose shortlist holds a player just released to free agency (spec/16,
- *  spec/19 The shortlist), released by `who`. */
-export function shortlistedReleasedLetter(playerName: string, teamName: string, who: string): Words {
-  return {
-    subject: `${playerName}, on your shortlist, was released`,
-    body: `${who} released ${playerName} from ${teamName}. He is a free agent, and on your shortlist.`,
-  };
-}
-
 /** The draft's letters (spec/04, Mail; #1102). "You're up next" to the manager whose pick's clock
  *  starts, its deadline told in `zone`, the reader's; it is also the email when the clock is long. */
 export function upNextLetter({ round, pick, teamName, endsAt }: { round: number; pick: number; teamName: string; endsAt: number }, zone: string | undefined): Words {
