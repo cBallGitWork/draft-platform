@@ -16,7 +16,8 @@ import { BATCH_SIZE, FAILURE_KEPT_MS, LATEST_RUNS, SUCCESS_KEPT_MS } from "../sh
 //   one, the first one kept for its age, or one among the newest `LATEST_RUNS`.
 // A batch of rows a run, oldest first by `_creationTime`, handing on to the next as
 // leagueDeletion.deleteForGood does. Once the last feed is done it hands on to the sign-in asks'
-// prune (signInLinks.ts), so spec/20's daily clean-up stays one timed job.
+// prune (signInLinks.ts) and the not-emailed deletions' (deletionNotices.ts), so spec/20's daily
+// clean-up stays one timed job.
 
 /** The order the run logs are pruned in: the live tick's first, as they have by far the most rows. */
 export const PRUNE_ORDER = [
@@ -92,6 +93,7 @@ export const prune = internalMutation({
       await ctx.scheduler.runAfter(0, internal.admin.runLogs.prune, { feed: next, startedAt });
     } else {
       await ctx.scheduler.runAfter(0, internal.signIn.signInLinks.pruneSignInAsks, {});
+      await ctx.scheduler.runAfter(0, internal.leagues.deletionNotices.pruneUnemailed, {});
       // The run logs are done: the daily clean-up's heartbeat.
       await scheduleHeartbeat(ctx, "pruneRunLogs");
     }

@@ -5474,7 +5474,14 @@
     },
     {
       "tableName": "unemailedDeletions",
-      "indexes": [],
+      "indexes": [
+        {
+          "indexDescriptor": "by_at",
+          "fields": [
+            "at"
+          ]
+        }
+      ],
       "stagedDbIndexes": [],
       "searchIndexes": [],
       "stagedSearchIndexes": [],
