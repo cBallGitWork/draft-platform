@@ -29,6 +29,7 @@ import { emailIfFailed } from "../admin/feedFailureEmails";
 import { writeScores } from "./matchScores";
 import { repriceMatches } from "../stats/seasonPointsMoves";
 import { rebuildIfNoneKept } from "../stats/seasonRebuilds";
+import { putNewPlayersOnWaivers } from "../waivers/waiverPlayers";
 
 // Issue #21: the real Premier League's clubs, players, fixtures and gameweeks, copied in from the
 // football layer, and each match's score (#49, matchScores.ts). crons.ts runs it on a schedule;
@@ -89,8 +90,17 @@ export const upsertClubs = internalMutation({
 export const upsertPlayers = internalMutation({
   args: { rows: v.array(playerRecord) },
   returns: upserted,
-  handler: (ctx, { rows }): Promise<Upserted> =>
-    upsertEach(ctx, "players", rows, (row) => playerByCode(ctx, row.code)),
+  handler: async (ctx, { rows }): Promise<Upserted> => {
+    const newcomers: number[] = [];
+    const upserted = await upsertEach(ctx, "players", rows, async (row) => {
+      const held = await playerByCode(ctx, row.code);
+      if (held === null) newcomers.push(row.code);
+      return held;
+    });
+    // In the same transaction as his row, so no league sees him as a free agent first (#1197).
+    await putNewPlayersOnWaivers(ctx, newcomers, Date.now());
+    return upserted;
+  },
 });
 
 export const upsertFixtures = internalMutation({

@@ -38,14 +38,16 @@ export async function rowsToChange(t: TestConvex, leagueId: Id<"leagues">) {
   const revision = await rulesRevision(t, leagueId);
   /** Its teams in reverse: a draft order its commissioner could set. */
   const reversedTeamIds = teams.map((team) => team._id).reverse();
-  return { leagueId, annsTeam, inviteId, requestId, revision, reversedTeamIds };
+  /** A pending waiver claim of ANN's, written straight in. */
+  const claimId = await t.run((ctx) => ctx.db.insert("waiverClaims", { leagueId, teamId: annsTeam._id, playerCode: 1, dropCode: null, rank: 0, by: ANN }));
+  return { leagueId, annsTeam, inviteId, requestId, revision, reversedTeamIds, claimId };
 }
 
 /** A call of each public mutation given a league that would change it, by whoever might be let
  *  in to make it, keyed by its name in `mutationsGivenALeague`. */
 export function changesTo(
   { admin, ann, commissioner }: Callers,
-  { leagueId, annsTeam, inviteId, requestId, revision, reversedTeamIds }: RowsToChange,
+  { leagueId, annsTeam, inviteId, requestId, revision, reversedTeamIds, claimId }: RowsToChange,
 ): Record<string, () => Promise<unknown>> {
   return {
     "leagues/leagues:setMaxTeams": () => admin.mutation(api.leagues.leagues.setMaxTeams, { leagueId, maxTeams: 6 }),
@@ -81,6 +83,7 @@ export function changesTo(
     "draft/draftCommissioner:setPickTime": () => admin.mutation(api.draft.draftCommissioner.setPickTime, { leagueId, pickSeconds: 60 }),
     "draft/draftCommissioner:markForCommissioner": () =>
       admin.mutation(api.draft.draftCommissioner.markForCommissioner, { leagueId, teamId: annsTeam._id, marked: true }),
+    "lineup/autoTeam:set": () => ann.mutation(api.lineup.autoTeam.set, { leagueId, teamId: annsTeam._id, on: true }),
     "lineup/lineups:save": () => ann.mutation(api.lineup.lineups.save, { leagueId, lineup: { starters: [], bench: [] } }),
     "lineup/lineupDue:openedTactics": () => ann.mutation(api.lineup.lineupDue.openedTactics, { leagueId, gameweek: 1 }),
     "leagues/lastLeague:switchTo": () => commissioner.mutation(api.leagues.lastLeague.switchTo, { leagueId }),
@@ -88,7 +91,19 @@ export function changesTo(
     "squads/squads:assign": () => admin.mutation(api.squads.squads.assign, { leagueId, playerCode: 1, teamId: annsTeam._id }),
     "squads/squads:move": () => admin.mutation(api.squads.squads.move, { leagueId, playerCode: 1, teamId: annsTeam._id }),
     "squads/squads:release": () => admin.mutation(api.squads.squads.release, { leagueId, playerCode: 1 }),
+    "waivers/waivers:drop": () => ann.mutation(api.waivers.waivers.drop, { leagueId, playerCode: 1 }),
+    "waivers/freeAgents:pickUp": () => ann.mutation(api.waivers.freeAgents.pickUp, { leagueId, playerCode: 1, dropCode: null }),
+    "waivers/waiverClaims:putIn": () => ann.mutation(api.waivers.waiverClaims.putIn, { leagueId, playerCode: 1, dropCode: null }),
+    "waivers/waiverClaims:withdraw": () => ann.mutation(api.waivers.waiverClaims.withdraw, { leagueId, claimId }),
+    "waivers/waiverClaims:rank": () => ann.mutation(api.waivers.waiverClaims.rank, { leagueId, claimIds: [claimId] }),
     "squads/squadNumbers:set": () => ann.mutation(api.squads.squadNumbers.set, { leagueId, playerCode: 1, number: 7 }),
+    "table/fixtureEdits:swap": () =>
+      admin.mutation(api.table.fixtureEdits.swap, {
+        leagueId,
+        gameweek: 1,
+        one: { moves: annsTeam._id, against: "leagueAverage" },
+        other: { moves: "leagueAverage", against: annsTeam._id },
+      }),
     "table/pointsOverrides:override": () =>
       admin.mutation(api.table.pointsOverrides.override, { leagueId, fixtureCode: 1, playerCode: 1, points: 10, reason: "A goal the feed gave someone else" }),
     "scouting/shortlist:add": () => ann.mutation(api.scouting.shortlist.add, { leagueId, playerCode: 1 }),

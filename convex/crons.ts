@@ -2,9 +2,11 @@ import { cronJobs } from "convex/server";
 import { internal } from "./_generated/api";
 import { CRON_TRIGGER } from "./heartbeats/heartbeat";
 import { FEED_SCHEDULES } from "./shared/feedSchedule";
+import { DAILY_RUN_UTC_HOURS } from "./positions/positionsSync";
 import { PRUNE_EVERY } from "./shared/syncRuns";
+import { WAIVER_CHECK_EVERY } from "./waivers/waiverRun";
 
-// The four timed jobs, the same on the live site and on development (spec/20, "Timed jobs").
+// The six timed jobs, the same on the live site and on development (spec/20, "Timed jobs").
 const crons = cronJobs();
 /** A sync's argument when its cron starts it, so its run row says so. */
 const BY_CRON = { trigger: CRON_TRIGGER } as const;
@@ -19,6 +21,12 @@ crons.interval("live stats tick", FEED_SCHEDULES.liveStats.every, internal.stats
 // Late stats (#27): each match past full time and not yet locked, so one still unsettled when the
 // live tick's window ends is still read, corrected and locked (spec/07).
 crons.interval("late stats", FEED_SCHEDULES.matchStats.every, internal.stats.matchStatsSync.run, BY_CRON);
+
+// Waiver runs (#1198, spec/08): each league's at its own run times, UK time (waiverRun.ts).
+crons.interval("waiver runs", WAIVER_CHECK_EVERY, internal.waivers.waiverRun.runDue, {});
+
+// The positions sync (#1194, spec/06): daily at 06:00 UK time, whatever the clocks (positionsSync.ts).
+crons.cron("positions sync", `0 ${DAILY_RUN_UTC_HOURS.join(",")} * * *`, internal.positions.positionsSync.daily, {});
 
 // Clearing old run logs (#146, admin/runLogs.ts), then old sign-in asks (signInLinks.ts).
 crons.interval("prune run logs", PRUNE_EVERY, internal.admin.runLogs.prune, {});

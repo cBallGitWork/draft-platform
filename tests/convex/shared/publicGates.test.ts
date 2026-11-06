@@ -51,6 +51,8 @@ beforeEach(async () => {
       ...changesTo({ admin: caller, ann: caller, commissioner: caller }, rows),
       "admin/feeds:feeds": () => caller.query(api.admin.feeds.feeds, { now }),
       "auth:isAuthenticated": () => caller.query(api.auth.isAuthenticated, {}),
+      "availability/availability:ofPlayer": () => caller.query(api.availability.availability.ofPlayer, { code: SOME_CODE }),
+      "availability/availability:set": () => caller.mutation(api.availability.availability.set, { code: SOME_CODE, availability: null }),
       "auth:signOut": () => caller.action(api.auth.signOut, {}),
       "draft/draftBoard:inMenu": () => caller.query(api.draft.draftBoard.inMenu, { leagueId }),
       "draft/draftBoard:ofLeague": () => caller.query(api.draft.draftBoard.ofLeague, { leagueId, now }),
@@ -127,6 +129,8 @@ beforeEach(async () => {
       "stars/playerStars:ofPlayers": () => caller.query(api.stars.playerStars.ofPlayers, { leagueId, playerCodes: [SOME_CODE] }),
       "table/leagueTable:ofLeague": () => caller.query(api.table.leagueTable.ofLeague, { leagueId }),
       "table/teamFixtures:ofMyTeam": () => caller.query(api.table.teamFixtures.ofMyTeam, { leagueId }),
+      "waivers/waiverClaims:pending": () => caller.query(api.waivers.waiverClaims.pending, { leagueId }),
+      "waivers/waivers:stateOf": () => caller.query(api.waivers.waivers.stateOf, { leagueId, playerCode: SOME_CODE }),
     };
   };
 });

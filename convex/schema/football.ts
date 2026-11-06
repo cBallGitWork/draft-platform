@@ -13,6 +13,10 @@ export const clubRecord = v.object({
   shortName: v.string(),
 });
 
+/** Whether a player can play, as the platform holds it (spec/06, Availability): the feed's, or the
+ *  admin's over it (`convex/availability/`). The auto team reads only this (spec/09). */
+export const availability = v.union(v.literal("out"), v.literal("doubtful"), v.literal("available"));
+
 export const playerRecord = v.object({
   code: v.number(),
   /** FPL's short display name, e.g. "Saka". */
@@ -24,6 +28,8 @@ export const playerRecord = v.object({
   /** FPL's chance he plays in the next round, in percent, null while it has no doubt about him
    *  (#381); absent on rows from before it. */
   chanceOfPlaying: v.optional(v.union(v.number(), v.null())),
+  /** Whether the feed says he can play (spec/06, Availability); absent on rows from before it. */
+  availability: v.optional(availability),
 });
 
 export const fixtureRecord = v.object({
@@ -133,6 +139,10 @@ export const footballTables = {
     .index("by_gameweek_and_droppedAt", ["gameweek", "droppedAt"]),
   gameweeks: defineTable(gameweekRecord.extend({ droppedAt })).index("by_number", ["number"]).index("by_droppedAt", ["droppedAt"]),
   footballSyncs: defineTable(footballSyncFields),
+  /** Each player's number at his club, by FPL's `code`, from the Premier League's squad lists, which
+   *  the positions sync reads (#13): the shirt he wears until his manager gives him one (spec/05,
+   *  Squad numbers). No row while no squad list gives him a number. */
+  clubNumbers: defineTable({ code: v.number(), number: v.number() }).index("by_code", ["code"]),
   /** Each match's newest score, which feed gave it and when that read was made. */
   matchScores: defineTable(scoreRead.extend({ feed: scoreFeed, readAt: v.number() })).index("by_fixtureCode", ["fixtureCode"]),
 };

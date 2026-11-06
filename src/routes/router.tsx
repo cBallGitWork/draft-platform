@@ -21,9 +21,14 @@ const routeTree = rootRoute.addChildren([
   frameRoute.addChildren(frameChildren),
 ]);
 
-// Not registered for typed links yet. Every built screen has its own route; only the menu pages not
-// built yet (Trades) are still made in a loop (routes/frame.tsx). Registering is its own change,
-// since it may turn up type errors in links across many files.
 export function createShellRouter(context: ShellContext, history?: RouterHistory) {
   return createRouter({ routeTree, context, history, defaultErrorComponent: ErrorScreen });
+}
+
+// Registered, so a link's `to`, `params` and `search` are checked against the routes when the code
+// is built: a link to a page renamed or moved fails the typecheck rather than reaching a manager.
+declare module "@tanstack/react-router" {
+  interface Register {
+    router: ReturnType<typeof createShellRouter>;
+  }
 }

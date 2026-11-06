@@ -16,18 +16,31 @@ agent: "keep waivers since its known for draft" (Craig asked; yes).
 - A manager with a full squad names who he drops with his claim; that player goes only if the claim
   succeeds.
 - A manager puts in as many claims as he likes, ranked: if his first fails, his next is tried.
-- The waiver order is reverse table order by default, or rotating (`spec/03`). Under either, a team
-  that wins a claim goes to the back for the rest of that run; rotating goes back to the start each
-  week.
-- Before there is a table, the order is the reverse of the draft order.
+- The waiver order is reverse table order by default, or rotating (`spec/03`); corrected on 5 Nov
+  2026, the same day:
+  - Reverse table order is worked out again when a gameweek ends, the bottom of the table first. A
+    team that wins a claim goes to the bottom until the next gameweek ends: "the table order resets
+    only fully only when a gameweek ends".
+  - Rotating: whoever last won a claim goes to the bottom, and it never resets: "rolling means
+    whoever last made a waiver is at the bottom, that doesnt reset. you dont want to give the last
+    pick in draft first waiver every week".
+  - There is always a table ("theres always a table"), everyone on 0 at the start. Teams level in it
+    go by its own tie-breaks, then by the reverse of the draft order, which is also rotating's
+    starting order.
 - Waivers run Wednesday and Thursday at 18:00 UK time, every new league's default "for now"; the
   commissioner can change it (`spec/03`).
 - Both runs work alike: every player whose 24 hours are up is claimed in order. A drop on Tuesday
   at 10:00 makes Wednesday's run; one after 18:00 on Tuesday makes Thursday's.
+- The window: from the first waiver run after a gameweek to the next deadline, when players are free
+  agents ("i like the Window"). Before it opens, from the gameweek's last match to that run, managers
+  drop players and put in claims, but nothing moves and there are no free agents: "theres a period
+  where you cant make a waiver yet". For example, a Saturday to Monday gameweek: locked Saturday
+  11:00 to Monday 22:00, claims and drops until Wednesday 18:00, then the window until the next
+  deadline.
 - From the deadline until the gameweek's last match is over, there are no claims, drops or free
   agent pickups. A run that falls in that time is skipped.
-- A player nobody claims at a run is a free agent straight after it, first come first served, until
-  the deadline.
+- A player nobody claims at a run is a free agent straight after it, first come first served, through
+  the window.
 - Picking up a free agent with a full squad names who goes, and both happen at once: "think of it
   like a trade with the waiver bin" (being dropped).
 - Churning is stopped: a free agent picked up and dropped before the next deadline goes straight
@@ -37,11 +50,11 @@ agent: "keep waivers since its known for draft" (Craig asked; yes).
 - A player new to the Premier League mid-season goes on waivers for the next run, as players nobody
   drafts do by default (`spec/04`).
 - A claim that would break the squad's limits is refused at the run.
-- A manager sees only his own pending claims; the commissioner sees everyone's. The league sees the
-  results in Mail (`spec/16`).
+- A manager sees only his own pending claims; the commissioner sees everyone's. The league gets a
+  Mail letter for each claim that succeeds, who came in and who went; a failed claim's letter goes
+  only to its manager (`spec/16`).
 - A failed claim's Mail letter says why: another team was ahead, his drop was already gone, or the
   squad's limits.
-- The commissioner can run waivers early.
 - No claim limits per season, week or team ("no limit"), and no can't-drop list.
 
 ## Trades

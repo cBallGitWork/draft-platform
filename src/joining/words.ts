@@ -4,7 +4,7 @@
 
 import type { EndedInvite } from "../../convex/joining/endedInvite";
 import type { Delivery } from "../../convex/joining/joining";
-import { INVITE_DAYS, aNewTeamWords } from "../../convex/joining/joiningShared";
+import { INVITE_DAYS, ROWS_SHOWN, aNewTeamWords } from "../../convex/joining/joiningShared";
 import { LOCALE } from "../../convex/shared/moments";
 import { unsentLinkWords } from "../leagues/words";
 
@@ -49,6 +49,10 @@ export function endedInviteWords({ leagueName, ended, reason }: EndedInvite): st
 /** The strip telling the commissioner that invites wait for tomorrow (spec/13). */
 export const waitingStrip = (waiting: number) =>
   `${waiting === 1 ? "1 invite waits" : `${waiting} invites wait`} for tomorrow: ${dayIsSpent}. They go by themselves.`;
+
+/** The strips saying the page lists only the newest ROWS_SHOWN of each (#410). */
+export const invitesCutWords = `More live invites exist than this page lists (it shows the newest ${ROWS_SHOWN}), so older ones are missing from it.`;
+export const requestsCutWords = `More join requests wait than this page lists (it shows the newest ${ROWS_SHOWN}), so older ones are missing from it.`;
 
 export const loadingWords = "Loading…";
 export const notYoursWords = "You don't run this league, or it doesn't exist.";

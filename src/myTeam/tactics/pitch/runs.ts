@@ -5,6 +5,7 @@
 import { AREAS, LANES, type Cell } from "../../../../convex/lineup/pitch";
 import type { Run } from "../../../../convex/lineup/roles";
 import { LANE_WIDTH, PITCH_SIZE, ROW_LENGTH } from "./pitchMarkings";
+import { EVEN_ROWS, fitDepth, type RowLayout } from "./rowLayout";
 
 /** A point on the drawn pitch, in metres from its top-left corner. */
 export interface PitchPoint {
@@ -19,28 +20,30 @@ export const RUN_MARGIN = 3;
 
 const MIDDLE_LANE = (LANES.length - 1) / 2;
 
-/** The middle of a cell on the drawn pitch. A sweeper stands in the line like any centre-back: there
- *  is no drawing him deeper (spec/05 The pitch; Craig, 4 Nov 2026). */
-export function placeOf({ area, lane }: Cell): PitchPoint {
+/** The middle of a cell on the drawn pitch, its rows laid out by `rows`. A sweeper stands in the
+ *  line like any centre-back: there is no drawing him deeper (spec/05 The pitch; Craig, 4 Nov 2026). */
+export function placeOf({ area, lane }: Cell, rows: RowLayout = EVEN_ROWS): PitchPoint {
   const rowFromTop = AREAS.length - 1 - AREAS.indexOf(area);
   return {
     x: (LANES.indexOf(lane) + 0.5) * LANE_WIDTH,
-    y: (rowFromTop + 0.5) * ROW_LENGTH,
+    y: fitDepth(rows, (rowFromTop + 0.5) * ROW_LENGTH),
   };
 }
 
 const within = (value: number, size: number) => Math.min(size - RUN_MARGIN, Math.max(RUN_MARGIN, value));
 
 /** The run's path on the drawn pitch: his place, then each of its points. Across is toward the
- *  middle, so a run from the right is turned the other way; the centre lane's goes to his right. */
-export function runPath(run: Run, cell: Cell): PitchPoint[] {
+ *  middle, so a run from the right is turned the other way; the centre lane's goes to his right.
+ *  Forward is measured on the even pitch, then fitted to `rows`, so a run ends between the same two
+ *  rows however many are closed up. */
+export function runPath(run: Run, cell: Cell, rows: RowLayout = EVEN_ROWS): PitchPoint[] {
   const place = placeOf(cell);
   const inward = LANES.indexOf(cell.lane) > MIDDLE_LANE ? -1 : 1;
   return [
-    place,
+    placeOf(cell, rows),
     ...run.path.map(({ forward, across }) => ({
       x: within(place.x + inward * across, PITCH_SIZE.width),
-      y: within(place.y - forward, PITCH_SIZE.length),
+      y: within(fitDepth(rows, place.y - forward), PITCH_SIZE.length),
     })),
   ];
 }

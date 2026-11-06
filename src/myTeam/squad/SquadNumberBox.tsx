@@ -12,14 +12,16 @@ const NUMBERS_LIST_ID = "squad-numbers";
 
 /** His number, in his season panel (#13): typed, or picked from the box's list of 1 to 99. It is
  *  sent when the box is left or Enter is pressed, and goes back to the one held if refused. An
- *  empty box takes his number away. What isn't a number from 1 to 99 is sent as typed, and the
+ *  empty box takes his number away, and his club's comes back. What isn't a number from 1 to 99 is sent as typed, and the
  *  server's refusal says why (squadNumbers.ts). */
 export function SquadNumberBox({ player, change, save }: { player: Row; change: Changing; save: (number: number | null) => ReturnType<SquadNumberChanges["set"]> }) {
   const held = player.number === null ? "" : String(player.number);
   const [typed, setTyped] = useState(held);
   // A number changed on another screen shows here at once: the box keeps the last one held and
   // takes the new one while it renders, as rules/NumberBox.tsx does.
-  const [lastHeld, setLastHeld] = useState(held);
+  // Null after an emptied box is sent, so the box takes whatever is held then: his club's number
+  // where his club gives him one (#13), even one his manager's number matched.
+  const [lastHeld, setLastHeld] = useState<string | null>(held);
   if (lastHeld !== held) {
     setLastHeld(held);
     setTyped(held);
@@ -36,10 +38,12 @@ export function SquadNumberBox({ player, change, save }: { player: Row; change: 
     setSending(true);
     const made = await change.run(() => save(number));
     setSending(false);
-    // Made, the box shows what was sent ("07" as the 7 it was taken as, an emptied box empty);
-    // refused, the one held comes back (it hasn't changed, so the sync above won't bring it).
-    if (made) setTyped(number === null ? "" : String(number));
-    else setTyped(held);
+    // Made, the box shows what was sent ("07" as the 7 it was taken as), and an emptied box what
+    // his shirt now wears; refused, the one held comes back (it hasn't changed, so the sync above
+    // won't bring it).
+    if (!made) setTyped(held);
+    else if (number === null) setLastHeld(null);
+    else setTyped(String(number));
   };
   return (
     <>

@@ -16,6 +16,7 @@ import { areasShort } from "./areaMinimums";
 import { readOnce } from "../shared/readOnce";
 import { heldOrNot, ownerOf, placeOf, squadOf, unheldCodes } from "./squadPlace";
 import { pickFirstLineupAgain } from "../lineup/lineups";
+import { offWaivers } from "../waivers/waiverPlayers";
 
 // Assigning players (#31, spec/15): the league's commissioners and the admin put any player on any
 // team, one at a time, move him between teams, or release him to free agency. Each files a Mail
@@ -24,8 +25,11 @@ import { pickFirstLineupAgain } from "../lineup/lineups";
 // league's draft is live, when its picks alone change squads (../draft/draftPicks.ts).
 //
 // Each change to a squad files its league event in the same transaction, and nothing but these and
-// a draft pick (../draft/draftPicks.ts, filed as `playerAssigned`) writes squadPlayers, so the events say what every squad was at any moment (squadPlace.ts `squadAt`,
-// #415). A new way to change a squad must file one of squadPlace.ts's SQUAD_MOVES too, or join
+// a draft pick (../draft/draftPicks.ts, filed as `playerAssigned`), a manager's drop
+// (../waivers/waivers.ts, `playerDropped`), a waiver run's claim (../waivers/waiverRun.ts,
+// `playerClaimed` and `playerDropped`) and a free agent pickup (../waivers/freeAgents.ts,
+// `playerPickedUp` and `playerDropped`) writes squadPlayers, so the events say what every squad was
+// at any moment (squadPlace.ts `squadAt`, #415). A new way to change a squad must file one of squadPlace.ts's SQUAD_MOVES too, or join
 // them, and pick each team's first lineup again (lineups.ts `pickFirstLineupAgain`), so a team
 // always has a lineup (#637).
 
@@ -74,6 +78,7 @@ export const assign = mutation({
     if (place !== null) refuse(squadRefusals.alreadyOwned(player.name, (await teamIn(ctx, leagueId, place.teamId)).name));
     await roomOn(ctx, team);
     await ctx.db.insert("squadPlayers", { leagueId, teamId, playerCode });
+    await offWaivers(ctx, leagueId, playerCode);
     await recordEvent(ctx, leagueId, by, { kind: "playerAssigned", playerCode, playerName: player.name, teamId, teamName: team.name });
     await pickFirstLineupAgain(ctx, leagueId, teamId);
     return null;
@@ -120,7 +125,7 @@ export const release = mutation({
     const team = await teamIn(ctx, leagueId, place.teamId);
     await ctx.db.delete("squadPlayers", place._id);
     await recordEvent(ctx, leagueId, by, { kind: "playerReleased", playerCode, playerName: player.name, teamId: team._id, teamName: team.name });
-    await tellShortlisters(ctx, league, player, team, by);
+    await tellShortlisters(ctx, league, player, team, by, { released: true });
     await pickFirstLineupAgain(ctx, leagueId, team._id);
     return null;
   },
@@ -179,6 +184,24 @@ export const squads = query({
     );
   },
 });
+
+/** The league's squad limits a squad of these players would break (spec/03, Squad make-up), as
+ *  `squads` reads them: what a waiver claim is checked against (#1198). */
+export async function limitsBroken(
+  ctx: QueryCtx,
+  leagueId: Id<"leagues">,
+  playerCodes: readonly number[],
+  squad: LeagueRules["squad"] | null,
+): Promise<SquadWarning[]> {
+  if (squad === null) return [];
+  const positionsOfNow = await positionsNow(ctx, leagueId);
+  const shortNameOf = readOnce(async (clubCode: number) => (await clubByCode(ctx, clubCode)).shortName);
+  // Clubs are read only for a league with a club maximum, and positions for one with area minimums.
+  const players = squad.maxPerClub === null ? [] : (await Promise.all(playerCodes.map((code) => playerByCode(ctx, code)))).filter((player) => player !== null);
+  const clubs = await Promise.all(players.map(async ({ clubCode }) => ({ clubShortName: await shortNameOf(clubCode) })));
+  const playersAreas = squad.minimumByArea ? await Promise.all(playerCodes.map(async (code) => areasOf(await positionsOfNow(code)))) : [];
+  return squadWarnings(playerCodes.length, clubs, playersAreas, squad);
+}
 
 /** The league's squad limits a squad of `playerCount` players breaks (spec/03, Squad make-up),
  *  given the clubs of those the football sync holds and each player's areas (areaMinimums.ts says

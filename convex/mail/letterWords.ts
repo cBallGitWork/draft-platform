@@ -4,7 +4,9 @@ import { andListWords, momentIn } from "../shared/moments";
 import { figureWords } from "../shared/numberWords";
 import type { LeagueRules } from "../rules/leagueRulesShape";
 import { NOTHING_SCORES_DIFFERENTLY } from "../scoring/patchChanges";
+import { autoTeamSwitchedWords } from "../lineup/autoTeamWords";
 import type { leagueEvent, siteScoringKind } from "../schema";
+import { claimedBody, pickedUpBody } from "./waiverLetterWords";
 
 // What the letters Mail files about a league's events say (spec/15: nothing changes quietly), in
 // one place for Craig to change. Each names who did it: an email, or `adminByline`.
@@ -101,6 +103,17 @@ export function eventLetter(event: LeagueEvent, who: string, zone: string | unde
         subject: `${event.playerName} was released`,
         body: `${who} released ${event.playerName} from ${event.teamName} to free agency.`,
       };
+    case "playerDropped":
+      return {
+        subject: `${event.teamName} dropped ${event.playerName}`,
+        body: event.toWaivers
+          ? `${who} dropped ${event.playerName} from ${event.teamName}. He is on waivers for at least 24 hours.`
+          : `${who} dropped ${event.playerName} from ${event.teamName}. Picked up since the last deadline, he is a free agent again, not on waivers.`,
+      };
+    case "playerClaimed":
+      return { subject: `${event.teamName} claimed ${event.playerName}`, body: claimedBody(event, who) };
+    case "playerPickedUp":
+      return { subject: `${event.teamName} picked up ${event.playerName}`, body: pickedUpBody(event, who) };
     case "rulesChanged":
       return {
         subject: `The league's rules change from gameweek ${event.fromGameweek}`,
@@ -108,7 +121,23 @@ export function eventLetter(event: LeagueEvent, who: string, zone: string | unde
       };
     case "pointsOverridden":
       return { subject: `${event.playerName}'s points in ${event.matchName} were overridden`, body: overriddenBody(event, who) };
+    case "fixturesSwapped":
+      return { subject: `Gameweek ${event.gameweek}'s fixtures were changed`, body: swappedBody(event, who) };
+    case "autoTeamSwitched":
+      return autoTeamSwitchedWords(event, who);
   }
+}
+
+/** The league's average, as a letter about the fixtures names it. */
+export const leagueAverageWords = "the league's average";
+const sideWords = (name: string | null) => name ?? leagueAverageWords;
+
+/** "Ann swapped Lions and Tigers in gameweek 6. The two games are now Tigers v Wolves and Lions v
+ *  Bears; every other game is as drawn." */
+function swappedBody(event: Extract<LeagueEvent, { kind: "fixturesSwapped" }>, who: string): string {
+  const [one, other] = event.swapped.map(sideWords);
+  const games = event.games.map((game) => matchWords(sideWords(game.team), sideWords(game.opponent)));
+  return `${who} swapped ${one} and ${other} in gameweek ${event.gameweek}. The two games are now ${andListWords(games)}; every other game is as drawn.`;
 }
 
 /** A match as a letter names it: "Arsenal v Chelsea". */
@@ -124,15 +153,6 @@ function overriddenBody(event: Extract<LeagueEvent, { kind: "pointsOverridden" }
       ? "No team's total moved: no lineup counted him."
       : teams.map((team) => `${team.teamName} now have ${figureWords(team.to)} in gameweek ${gameweek}, not ${figureWords(team.from)}.`).join("\n");
   return `${who} overrode ${playerName}'s points in ${matchName}, gameweek ${gameweek}: ${change}. Why: ${reason}\n\n${totals}`;
-}
-
-/** The letter to a manager whose shortlist holds a player just released to free agency (spec/16,
- *  spec/19 The shortlist), released by `who`. */
-export function shortlistedReleasedLetter(playerName: string, teamName: string, who: string): Words {
-  return {
-    subject: `${playerName}, on your shortlist, was released`,
-    body: `${who} released ${playerName} from ${teamName}. He is a free agent, and on your shortlist.`,
-  };
 }
 
 /** The draft's letters (spec/04, Mail; #1102). "You're up next" to the manager whose pick's clock

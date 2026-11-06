@@ -5,7 +5,7 @@ Feature 6 of [SPEC.md](../SPEC.md). Only Craig's answers: the first `/grill` and
 
 **Contents:** [The labels](#the-labels) · [From real starts](#from-real-starts) ·
 [The admin oversees them](#the-admin-oversees-them) · [New signings](#new-signings) ·
-[When positions change](#when-positions-change)
+[When positions change](#when-positions-change) · [Availability](#availability)
 
 ## The labels
 
@@ -28,6 +28,8 @@ Feature 6 of [SPEC.md](../SPEC.md). Only Craig's answers: the first `/grill` and
   data), not from a scraped site.
 - A player gets a position after 3 starts there, counted over his last 38 starts, last season's
   and this. Coming on as a substitute gives no position.
+- The starts are read once a day, early morning UK time (06:00); a run with matches still to read
+  carries on straight away rather than waiting a day (Craig, 5 Nov 2026, #1194).
 - Claude builds the table from a formation's places to labels from the recorded team sheets: in a
   4-2-3-1 the two deepest midfielders are CDM; in a 4-3-3 the three are CM. Craig checks the
   result on a list of last season's regulars before it is used.
@@ -68,3 +70,15 @@ Feature 6 of [SPEC.md](../SPEC.md). Only Craig's answers: the first `/grill` and
   2026; #895).
 - Losing a position never makes a squad illegal. The player stays in his slot for the gameweek
   and the manager is warned.
+
+## Availability
+
+From `/grill the auto team and fixture edits` (5 Nov 2026).
+
+- Every player has an availability of our own: out, doubtful or available. The auto team reads only
+  that (`spec/09`): "we will need our own system for that, since that doesnt scale with leagues
+  outside of prem".
+- For the Premier League it is filled from FPL's flags: injured, suspended or unavailable is out, a
+  doubt is doubtful. Reading FPL first is fine for trialling ("if needed we can use fpl for
+  trialling first"); another competition's feed fills it later, through the same football layer.
+- It comes from the feed, and the admin can set it by hand over the feed (`spec/15`).

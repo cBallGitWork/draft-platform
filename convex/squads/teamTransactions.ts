@@ -7,15 +7,26 @@ import { managerOf } from "../shared/leagueAccess";
 import { isSquadMove, newestFirst, SQUAD_MOVES } from "./squadPlace";
 
 // My team's Transactions tab (#366; spec/12, My team's tabs: "the team's claims, drops, trades and
-// commissioner assignments, newest first, from the same events Mail files"). Claims, drops and
-// trades come with spec/08, so for now it is the commissioner's assignments, moves and releases
-// (#31) that touch the team.
+// commissioner assignments, newest first, from the same events Mail files"). Trades come with
+// spec/08, so for now it is the commissioner's assignments, moves and releases (#31), the
+// manager's drops (#1197) and free agent pickups (#1199), and the claims a waiver run gives the
+// team (#1198).
 
 /** How many of the league's latest squad moves of each kind are read for the team's: each kind's
  *  read is league-wide, and a query's reads are bounded. Older ones are left out, and `cut` says so. */
 export const TRANSACTIONS_READ_OF_EACH_KIND = 1000;
 
-const transactionKind = v.union(v.literal("assigned"), v.literal("movedIn"), v.literal("movedOut"), v.literal("released"));
+const transactionKind = v.union(
+  v.literal("assigned"),
+  v.literal("movedIn"),
+  v.literal("movedOut"),
+  v.literal("released"),
+  v.literal("dropped"),
+  v.literal("claimed"),
+  v.literal("pickedUp"),
+);
+
+const kindOf = { playerAssigned: "assigned", playerReleased: "released", playerDropped: "dropped", playerClaimed: "claimed", playerPickedUp: "pickedUp" } as const;
 
 const transaction = v.object({
   at: v.number(),
@@ -46,7 +57,7 @@ function transactionOf({ at, by, event }: Doc<"leagueEvents">, teamId: Id<"teams
     return null;
   }
   if (event.teamId !== teamId) return null;
-  return { ...done, kind: event.kind === "playerAssigned" ? "assigned" : "released", otherTeamName: null };
+  return { ...done, kind: kindOf[event.kind], otherTeamName: null };
 }
 
 /** The caller's team's transactions in the league, newest first. Refused for anyone who runs no

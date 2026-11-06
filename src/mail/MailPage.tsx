@@ -34,11 +34,14 @@ export function MailPage({
   mail,
   unread,
   writableLeagues,
+  leaguesCut,
   opened,
 }: {
   mail: MailSeam;
   unread: number;
   writableLeagues: readonly LeagueSummary[];
+  /** The person's leagues stop short, so `writableLeagues` may miss one they run (#297). */
+  leaguesCut: boolean;
   opened?: Id<"letters">;
 }) {
   return (
@@ -46,7 +49,7 @@ export function MailPage({
       <PageSection title={MAIL_TITLE} aside={<span>{unreadCount(unread)}</span>} className="min-w-0 max-w-3xl grow-2 basis-letters bg-panel">
         <Letters mail={mail} opened={opened ?? null} />
       </PageSection>
-      {writableLeagues.length > 0 && <WriteToLeague leagues={writableLeagues} writeToLeague={mail.writeToLeague} />}
+      {writableLeagues.length > 0 && <WriteToLeague leagues={writableLeagues} cut={leaguesCut} writeToLeague={mail.writeToLeague} />}
     </div>
   );
 }
