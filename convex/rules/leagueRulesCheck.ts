@@ -1,6 +1,7 @@
 import { STARTER_COUNT, type AreaLimit } from "../lineup/lineup";
 import { AREAS, type Area } from "../lineup/pitch";
-import type { DraftRules, LeagueRules } from "./leagueRulesShape";
+import type { DraftRules, LeagueRules, TradeRules } from "./leagueRulesShape";
+import { FIRST_GAMEWEEK, GAMEWEEKS } from "../gameweeks/usedGameweeks";
 import { PICK_SECONDS_FEWEST, PICK_SECONDS_MOST, TIMEOUTS_FEWEST, TIMEOUTS_MOST } from "../draft/draftLimits";
 import { MOST_IN_SQUAD } from "../leagues/leagueLimits";
 import { roundsInARoundRobin } from "../table/roundRobin";
@@ -27,6 +28,12 @@ export function checkLeagueRules(rules: LeagueRules, maxTeams?: number): void {
   }
   checkWaivers(rules.waivers);
   if (rules.draft !== undefined) checkDraft(rules.draft);
+  if (rules.trades !== undefined) checkTrades(rules.trades);
+}
+
+/** A trade deadline, if any, is a gameweek of the season. */
+function checkTrades({ deadline }: TradeRules): void {
+  if (deadline !== null) checkWholeNumberWithin(deadline, "The trade deadline's gameweek", FIRST_GAMEWEEK, GAMEWEEKS);
 }
 
 /** The pick clock and timeouts within Craig's limits (../draft/draftLimits.ts). */

@@ -9,6 +9,7 @@ import { playerByCode } from "../shared/players";
 import { tellShortlisters } from "../scouting/shortlist";
 import { placeOf } from "../squads/squadPlace";
 import { squadRefusals } from "../squads/squads";
+import { closeOffersHolding, reviewHolding } from "../trades/tradeClose";
 import { inWaiverLock } from "./waiverLock";
 import { dropFromSquad, waiverRowOf } from "./waiverPlayers";
 
@@ -25,6 +26,8 @@ export const dropRefusals = {
   draftLive: squadRefusals.draftLive,
   locked: "Players can't be dropped from the deadline until the gameweek's last match is over.",
   notYours: (name: string) => `${name} isn't in your squad.`,
+  /** spec/08 (Craig, 6 Nov 2026, on #383): a player in a trade under review is held. */
+  held: (name: string) => `${name} is in a trade under review, so he can't be dropped until it finishes.`,
 };
 
 /** The manager drops a player from his own squad, onto waivers or, under the churn rule, back to
@@ -41,7 +44,9 @@ export const drop = mutation({
     const player = (await playerByCode(ctx, playerCode)) ?? refuse(refusals.noPlayer);
     const place = await placeOf(ctx, leagueId, playerCode);
     if (place === null || place.teamId !== team._id) refuse(dropRefusals.notYours(player.name));
+    if ((await reviewHolding(ctx, leagueId, playerCode)) !== null) refuse(dropRefusals.held(player.name));
     const toWaivers = await dropFromSquad(ctx, place, deadlines, now);
+    await closeOffersHolding(ctx, leagueId, team._id, [playerCode]);
     await recordEvent(ctx, leagueId, email, {
       kind: "playerDropped",
       playerCode,

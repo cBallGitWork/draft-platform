@@ -6497,6 +6497,48 @@
                   },
                   "optional": true
                 },
+                "trades": {
+                  "fieldType": {
+                    "type": "object",
+                    "value": {
+                      "review": {
+                        "fieldType": {
+                          "type": "union",
+                          "value": [
+                            {
+                              "type": "literal",
+                              "value": "none"
+                            },
+                            {
+                              "type": "literal",
+                              "value": "veto"
+                            },
+                            {
+                              "type": "literal",
+                              "value": "vote"
+                            }
+                          ]
+                        },
+                        "optional": false
+                      },
+                      "deadline": {
+                        "fieldType": {
+                          "type": "union",
+                          "value": [
+                            {
+                              "type": "number"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "optional": false
+                      }
+                    }
+                  },
+                  "optional": true
+                },
                 "scoring": {
                   "fieldType": {
                     "type": "object",
@@ -10632,6 +10674,48 @@
                           ]
                         },
                         "optional": true
+                      }
+                    }
+                  },
+                  "optional": true
+                },
+                "trades": {
+                  "fieldType": {
+                    "type": "object",
+                    "value": {
+                      "review": {
+                        "fieldType": {
+                          "type": "union",
+                          "value": [
+                            {
+                              "type": "literal",
+                              "value": "none"
+                            },
+                            {
+                              "type": "literal",
+                              "value": "veto"
+                            },
+                            {
+                              "type": "literal",
+                              "value": "vote"
+                            }
+                          ]
+                        },
+                        "optional": false
+                      },
+                      "deadline": {
+                        "fieldType": {
+                          "type": "union",
+                          "value": [
+                            {
+                              "type": "number"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "optional": false
                       }
                     }
                   },
@@ -23339,6 +23423,164 @@
           "lastFailure": {
             "fieldType": {
               "type": "string"
+            },
+            "optional": true
+          }
+        }
+      }
+    },
+    {
+      "tableName": "tradeOffers",
+      "indexes": [
+        {
+          "indexDescriptor": "by_leagueId",
+          "fields": [
+            "leagueId"
+          ]
+        },
+        {
+          "indexDescriptor": "by_madeAt",
+          "fields": [
+            "madeAt"
+          ]
+        }
+      ],
+      "stagedDbIndexes": [],
+      "searchIndexes": [],
+      "stagedSearchIndexes": [],
+      "vectorIndexes": [],
+      "stagedVectorIndexes": [],
+      "documentType": {
+        "type": "object",
+        "value": {
+          "leagueId": {
+            "fieldType": {
+              "type": "id",
+              "tableName": "leagues"
+            },
+            "optional": false
+          },
+          "fromTeamId": {
+            "fieldType": {
+              "type": "id",
+              "tableName": "teams"
+            },
+            "optional": false
+          },
+          "toTeamId": {
+            "fieldType": {
+              "type": "id",
+              "tableName": "teams"
+            },
+            "optional": false
+          },
+          "gives": {
+            "fieldType": {
+              "type": "array",
+              "value": {
+                "type": "number"
+              }
+            },
+            "optional": false
+          },
+          "gets": {
+            "fieldType": {
+              "type": "array",
+              "value": {
+                "type": "number"
+              }
+            },
+            "optional": false
+          },
+          "note": {
+            "fieldType": {
+              "type": "string"
+            },
+            "optional": true
+          },
+          "by": {
+            "fieldType": {
+              "type": "string"
+            },
+            "optional": false
+          },
+          "madeAt": {
+            "fieldType": {
+              "type": "number"
+            },
+            "optional": false
+          },
+          "review": {
+            "fieldType": {
+              "type": "object",
+              "value": {
+                "acceptedBy": {
+                  "fieldType": {
+                    "type": "string"
+                  },
+                  "optional": false
+                },
+                "endsAt": {
+                  "fieldType": {
+                    "type": "number"
+                  },
+                  "optional": false
+                },
+                "scheduledId": {
+                  "fieldType": {
+                    "type": "id",
+                    "tableName": "_scheduled_functions"
+                  },
+                  "optional": false
+                },
+                "reviewer": {
+                  "fieldType": {
+                    "type": "union",
+                    "value": [
+                      {
+                        "type": "object",
+                        "value": {
+                          "kind": {
+                            "fieldType": {
+                              "type": "literal",
+                              "value": "veto"
+                            },
+                            "optional": false
+                          },
+                          "by": {
+                            "fieldType": {
+                              "type": "string"
+                            },
+                            "optional": false
+                          }
+                        }
+                      },
+                      {
+                        "type": "object",
+                        "value": {
+                          "kind": {
+                            "fieldType": {
+                              "type": "literal",
+                              "value": "vote"
+                            },
+                            "optional": false
+                          },
+                          "against": {
+                            "fieldType": {
+                              "type": "array",
+                              "value": {
+                                "type": "string"
+                              }
+                            },
+                            "optional": false
+                          }
+                        }
+                      }
+                    ]
+                  },
+                  "optional": false
+                }
+              }
             },
             "optional": true
           }

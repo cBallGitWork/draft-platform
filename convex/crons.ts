@@ -4,9 +4,10 @@ import { CRON_TRIGGER } from "./heartbeats/heartbeat";
 import { FEED_SCHEDULES } from "./shared/feedSchedule";
 import { DAILY_RUN_UTC_HOURS } from "./positions/positionsSync";
 import { PRUNE_EVERY } from "./shared/syncRuns";
+import { OFFER_CHECK_EVERY } from "./trades/tradeClose";
 import { WAIVER_CHECK_EVERY } from "./waivers/waiverRun";
 
-// The six timed jobs, the same on the live site and on development (spec/20, "Timed jobs").
+// The seven timed jobs, the same on the live site and on development (spec/20, "Timed jobs").
 const crons = cronJobs();
 /** A sync's argument when its cron starts it, so its run row says so. */
 const BY_CRON = { trigger: CRON_TRIGGER } as const;
@@ -24,6 +25,10 @@ crons.interval("late stats", FEED_SCHEDULES.matchStats.every, internal.stats.mat
 
 // Waiver runs (#1198, spec/08): each league's at its own run times, UK time (waiverRun.ts).
 crons.interval("waiver runs", WAIVER_CHECK_EVERY, internal.waivers.waiverRun.runDue, {});
+
+// Trade offers (#383, spec/08): each open offer closes at the next deadline, when the trade
+// deadline passes or a break starts (tradeClose.ts).
+crons.interval("trade offers", OFFER_CHECK_EVERY, internal.trades.tradeClose.closeDue, {});
 
 // The positions sync (#1194, spec/06): daily at 06:00 UK time, whatever the clocks (positionsSync.ts).
 crons.cron("positions sync", `0 ${DAILY_RUN_UTC_HOURS.join(",")} * * *`, internal.positions.positionsSync.daily, {});
