@@ -132,7 +132,8 @@ function sidePoints(record: MatchStats, { parts, bars }: RoleSide, side: RoleSid
 }
 
 /** A rule's points for the slot, with its value there and what cut them: nothing below its
- *  minimum minutes, else held to its points limit, or marked as reaching it exactly. Points too large to be a number throw. */
+ *  minimum minutes, else held to its points limit, or marked as reaching it exactly. Points too
+ *  large to be a number throw. */
 function ruleScore(rule: ScoringRule, slot: Slot, actions: number, minutes: number): { points: number; value: SlotValue; cut: Cut | null } {
   const price: Price = (priced) => priceFor(priced, slot.area, slot.position);
   const value = valueAt(rule, price, actions);
