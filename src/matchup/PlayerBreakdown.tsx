@@ -54,8 +54,8 @@ function MatchLines({ match, version }: { match: MatchBreakdown; version: string
   const { points, counted, override } = match;
   return (
     <section className={`border-b border-panel-rule px-3 py-2 ${counted ? "" : "text-muted"}`}>
-      <p className="flex items-baseline justify-between gap-2">
-        <Link to={matchPath(match.fixtureCode)} className="inline-flex min-h-tap items-center font-semibold text-inherit lg:min-h-0">
+      <p className="flex items-center justify-between gap-2">
+        <Link to={matchPath(match.fixtureCode)} className="flex min-h-tap shrink-0 items-center font-semibold text-inherit lg:min-h-0">
           {breakdownMatchWords(match.kickoff)}
         </Link>
         <span className={counted && points !== null ? "font-bold text-figure" : ""} title={points === null ? notArrivedWords : undefined}>

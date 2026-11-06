@@ -77,7 +77,7 @@ export function overrideOf(ctx: QueryCtx, leagueId: Id<"leagues">, fixtureCode: 
     .unique();
 }
 
-export const playsIn =(fixture: Doc<"fixtures">, clubCode: number) => fixture.homeClubCode === clubCode || fixture.awayClubCode === clubCode;
+export const playsIn = (fixture: Doc<"fixtures">, clubCode: number) => fixture.homeClubCode === clubCode || fixture.awayClubCode === clubCode;
 
 /** A match read at full time has a state; one still live has none (liveStats.ts). */
 export const isFinished = (match: HeldMatch) => match.status !== null;
