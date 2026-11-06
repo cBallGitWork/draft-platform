@@ -20,8 +20,9 @@ export const unsureGlyph = "?";
 export const unsureLabel = (subject: string) => `${subject}: we aren't sure yet, he has played fewer than 3 matches`;
 export const noDataLabel = (subject: string) => `${subject}: no matches yet`;
 
-/** `subject` names what the stars rate ("Role fit", "Anchor"), for the label and the hover. */
-export function StarRating({ stars, subject }: { stars: Stars; subject: string }) {
+/** `subject` names what the stars rate ("Role fit", "Anchor"), for the label and the hover; `size`
+ *  the set's height and width, a table's by default. */
+export function StarRating({ stars, subject, size = "h-star w-stars" }: { stars: Stars; subject: string; size?: string }) {
   const clipId = useId();
   if (stars === UNSURE || stars === NO_DATA) {
     const label = stars === UNSURE ? unsureLabel(subject) : noDataLabel(subject);
@@ -33,7 +34,7 @@ export function StarRating({ stars, subject }: { stars: Stars; subject: string }
   }
   const label = starsLabel(subject, stars);
   return (
-    <svg role="img" aria-label={label} viewBox={`0 0 ${MOST_STARS * STAR_SIZE} ${STAR_SIZE}`} className="inline-block h-star w-stars shrink-0 align-middle">
+    <svg role="img" aria-label={label} viewBox={`0 0 ${MOST_STARS * STAR_SIZE} ${STAR_SIZE}`} className={`inline-block shrink-0 align-middle ${size}`}>
       <title>{label}</title>
       <clipPath id={clipId}>
         <rect width={stars * STAR_SIZE} height={STAR_SIZE} />

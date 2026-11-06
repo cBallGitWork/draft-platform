@@ -101,6 +101,11 @@
   --flex-basis-squad: 320px;
   --spacing-pitch-desk: 360px;
   --spacing-shirt: 32px;
+  /* a starter's shirt on the pitch, a little bigger than a list's (spec/05 What the pitch shows),
+     and his stars on his chip under it, five in a lane's width beside the role's code */
+  --spacing-pitch-shirt: 36px;
+  --spacing-pitch-star: 8px;
+  --spacing-pitch-stars: 40px;
   /* a position chip's least width, so GK and CDM line up down the Tactics Selection table */
   --spacing-chip: 30px;
   /* a form chip's least width: one letter, W, L or D (plate.md, Marks: form) */
@@ -140,9 +145,10 @@
   /* a formation tile's height, two a row, as drawn */
   --spacing-tile: 96px;
 
-  /* a two-line role under a player on the phone's pitch: a shirt, his name and two lines this
-     close fit one row of the 390 pitch, where the text's own 20px overran it */
-  --leading-pitch-role: 16px;
+  /* a starter's chip lines on the pitch (the role's code and stars, his opponents): his shirt, his
+     name and these fit one row of the desk's pitch in a six-row shape, where the text's own 20px
+     overran it */
+  --leading-pitch-chip: 14px;
 
   --text-data: 13px;
   --text-data--line-height: 20px;

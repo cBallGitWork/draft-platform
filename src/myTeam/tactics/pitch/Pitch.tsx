@@ -1,8 +1,12 @@
 import type { CSSProperties, DragEvent } from "react";
 import { cellKey, LANES, sameCell, type Cell } from "../../../../convex/lineup/pitch";
-import { roleIn } from "../../../../convex/lineup/roles";
 import { kitOf, type Ink } from "../../../../convex/football/clubColours";
+import { chipColoursOf } from "../../../ui/PositionChip";
+import { StarRating } from "../../../ui/StarRating";
+import { NextMatches } from "../../squad/SquadTable";
 import { markOf } from "../focusMarks";
+import type { SeasonOf } from "../SquadTable";
+import { pitchChipOf, type PitchChip } from "./pitchChip";
 import { PitchLines } from "./PitchLines";
 import { RoleRuns } from "./RoleRuns";
 import { PITCH_ASPECT } from "./pitchMarkings";
@@ -53,19 +57,25 @@ export function startDrag(event: DragEvent, playerCode: number, moving: Moving) 
 }
 
 /** `slots` are the cells of the preset last picked, if any: those still empty are marked, the
- *  shape's slots nobody fills (spec/05). `runsShown` is the desk's switch for the roles' runs (spec/05 Runs). */
+ *  shape's slots nobody fills (spec/05). `runsShown` is the desk's switch for the roles' runs (spec/05 Runs).
+ *  `season` is each player's row on the Squad tab's read, his club's matches among it, and
+ *  `gameweek` the one being picked for: the opponents on his chip. */
 export function Pitch({
   draft,
   squad,
   moving,
   slots,
   runsShown,
+  season,
+  gameweek,
 }: {
   draft: DraftLineup;
   squad: ReadonlyMap<number, SquadMember>;
   moving: Moving;
   slots: readonly Cell[];
   runsShown: boolean;
+  season: SeasonOf;
+  gameweek: number;
 }) {
   const { picked, reach } = moving;
   const isSlot = (cell: Cell) => slots.some((slot) => sameCell(slot, cell));
@@ -79,6 +89,7 @@ export function Pitch({
         LANES.map((lane) => {
           const cell = { area, lane };
           const standing = standingIn(draft, cell);
+          const player = standing && squad.get(standing.playerCode)!;
           // Any cell takes the drop of the player picked up, so a refused one can say why (#1022);
           // his own cell is no move.
           const takesDrop = picked !== null && standing?.playerCode !== picked.playerCode;
@@ -91,8 +102,14 @@ export function Pitch({
           };
           return (
             <div key={cellKey(cell)} onDragOver={allowDrop} onDrop={drop} className="relative flex min-h-0 min-w-0 items-center justify-center p-0.5">
-              {standing !== undefined ? (
-                <PlayerBlock player={squad.get(standing.playerCode)!} cell={cell} role={roleIn(cell, standing.role).name} lit={swapsWith(standing.playerCode)} moving={moving} />
+              {standing !== undefined && player !== undefined ? (
+                <PlayerBlock
+                  player={player}
+                  cell={cell}
+                  chip={pitchChipOf({ cell, role: standing.role, player, season: season && (season.get(standing.playerCode) ?? null), gameweek })}
+                  lit={swapsWith(standing.playerCode)}
+                  moving={moving}
+                />
               ) : (
                 isSlot(cell) && <div role="img" aria-label={emptySlotLabel(area, lane)} className="h-full w-full border border-dotted border-pitch-line" />
               )}
@@ -104,11 +121,13 @@ export function Pitch({
   );
 }
 
-/** A player on the pitch: his shirt over his name plate, the role he plays under his name (spec/05
- *  Roles; his positions are in his name for screen readers). A tap opens his panel, and his block
+/** A player on the pitch (spec/05 What the pitch shows): his shirt, then his chip: the role's code
+ *  in his area's colour with his stars for it, his name plate, and his opponents this gameweek,
+ *  each outlined until fixture difficulty fills it (Craig, 6 Nov 2026: "Build now, colour later").
+ *  His positions are in his name for screen readers. A tap opens his panel, and his block
  *  is ringed while it is open; picked up, the plate turns white; one the player picked up can swap
  *  with is lit, dashed, and a tap swaps them. */
-function PlayerBlock({ player, cell, role, lit, moving }: { player: SquadMember; cell: Cell; role: string; lit: boolean; moving: Moving }) {
+function PlayerBlock({ player, cell, chip, lit, moving }: { player: SquadMember; cell: Cell; chip: PitchChip; lit: boolean; moving: Moving }) {
   const { picked } = moving;
   const isPicked = picked?.playerCode === player.playerCode;
   const isSelected = moving.selected === player.playerCode;
@@ -126,12 +145,30 @@ function PlayerBlock({ player, cell, role, lit, moving }: { player: SquadMember;
       onDragEnd={moving.onDragEnd}
       className={`flex w-full min-w-0 cursor-grab flex-col items-center ${swapsWith ? "outline-2 outline-dashed outline-pitch-line" : isSelected ? "outline-2 outline-pitch-line" : ""}`}
     >
-      <Shirt number={player.number} clubCode={player.clubCode} goalkeeper={cell.area === "goalkeeper"} />
+      <Shirt number={player.number} clubCode={player.clubCode} goalkeeper={cell.area === "goalkeeper"} size="size-pitch-shirt" />
+      <RoleChip chip={chip} />
       <span className={`max-w-full truncate px-1 text-lead font-semibold ${plate}`}>{player.name}</span>
-      {/* Up to two lines, so "Defensive full-back" and "Defensive winger" stay apart on a phone,
-          set closer there so a two-line role still fits his row (--leading-pitch-role). */}
-      <span className={`line-clamp-2 max-w-full px-1 text-center max-lg:leading-pitch-role ${isPicked ? plate : "bg-name-plate text-soft"}`}>{role}</span>
+      {chip.opponents !== undefined && chip.opponents.length > 0 && (
+        <span className="max-w-full bg-name-plate leading-pitch-chip">
+          <NextMatches matches={chip.opponents} stacked />
+        </span>
+      )}
     </button>
+  );
+}
+
+/** The role's code on his area's colour, its name on hover, then his stars for it on the plate. */
+function RoleChip({ chip }: { chip: PitchChip }) {
+  const { fill, ink } = chipColoursOf(chip.position);
+  return (
+    <span className="flex max-w-full items-center leading-pitch-chip">
+      <abbr title={chip.roleName} className={`px-1 font-bold no-underline ${fill} ${ink}`}>
+        {chip.code}
+      </abbr>
+      <span className="flex items-center self-stretch bg-name-plate px-0.5">
+        <StarRating stars={chip.stars} subject={chip.roleName} size="h-pitch-star w-pitch-stars" />
+      </span>
+    </span>
   );
 }
 
@@ -141,14 +178,15 @@ const INK_CLASSES: Record<Ink, string> = { dark: "fill-ground stroke-ground", li
 
 /** Our own shirt outline in his club's colours (plate.md, Marks; a keeper in its second colour),
  *  with his squad number on it once his manager gives him one (#13). The colour is only a look:
- *  his name says who he is, so screen readers skip the shirt. */
-export function Shirt({ number, clubCode, goalkeeper }: { number: number | null; clubCode: number | null; goalkeeper: boolean }) {
+ *  his name says who he is, so screen readers skip the shirt. `size` is a list's, or the pitch's
+ *  bigger one. */
+export function Shirt({ number, clubCode, goalkeeper, size = "size-shirt" }: { number: number | null; clubCode: number | null; goalkeeper: boolean; size?: string }) {
   const kit = kitOf(clubCode, goalkeeper);
   return (
-    <svg viewBox="0 0 40 40" aria-hidden="true" className={`size-shirt shrink-0 ${INK_CLASSES[kit.ink]}`}>
+    <svg viewBox="0 0 40 40" aria-hidden="true" className={`shrink-0 ${size} ${INK_CLASSES[kit.ink]}`}>
       <path style={{ fill: kit.shirt }} d="M13 4 L7 7 L2 13 L7 18 L10 16 L10 37 L30 37 L30 16 L33 18 L38 13 L33 7 L27 4 Q20 10 13 4 Z" />
       {number !== null && (
-        // In the shirt's own units, as the shirt is drawn 40 wide and shown smaller (size-shirt).
+        // In the shirt's own units, as the shirt is drawn 40 wide and shown smaller.
         <text x="20" y="29" textAnchor="middle" fontSize="14" className="stroke-none font-bold">
           {number}
         </text>

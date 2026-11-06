@@ -201,8 +201,9 @@ function PointsCell({ className, points }: { className: string; points: number |
 }
 
 /** His club's next matches, each a cell whose fill waits for fixture difficulty (the README's
- *  placeholders), so it is the placeholder's outline round the match. */
-export function NextMatches({ matches }: { matches: Row["nextFixtures"] }) {
+ *  placeholders), so it is the placeholder's outline round the match; `stacked`, one under another
+ *  (a double gameweek on the pitch, where two side by side don't fit a lane). */
+export function NextMatches({ matches, stacked = false }: { matches: Readonly<Row["nextFixtures"]>; stacked?: boolean }) {
   if (matches.length === 0) {
     return (
       <span title={noNextFixtureWords} className="text-muted">
@@ -211,7 +212,7 @@ export function NextMatches({ matches }: { matches: Row["nextFixtures"] }) {
     );
   }
   return (
-    <span className="flex gap-px">
+    <span className={`flex gap-px ${stacked ? "flex-col" : ""}`}>
       {matches.map((match) => {
         const short = nextFixtureShort(match.opponent.shortName, match.home);
         const long = `${nextFixtureLong(match.opponent.name, match.home, whenWords(match.kickoff))}, ${difficultyNotRatedWords}`;
