@@ -1,8 +1,7 @@
 import { v, type Infer } from "convex/values";
 import { playingState } from "../football/matchScores";
 import { shownDeadline } from "../gameweeks/usedGameweeks";
-import { SLOT_POSITIONS } from "../lineup/pitch";
-import { areaShape, laneShape } from "../lineup/pitchShape";
+import { areaShape, laneShape, slotPosition } from "../lineup/pitchShape";
 import { scoreRead } from "../schema";
 import { LEAGUE_AVERAGE } from "../table/roundRobin";
 import { BYE } from "../table/teamGames";
@@ -63,7 +62,7 @@ const role = v.object({ key: v.string(), name: v.string() });
 /** The slot a man plays his role in (spec/10, The matchup, as a live match: "his slot's position
  *  label and his role's run, as on the Tactics pitch"): its lane, which with his `area` is the cell
  *  his run is drawn from (roleIn's run), and its position label (pitch.ts's positionOfSlot). */
-const place = v.object({ lane: laneShape, label: v.union(...SLOT_POSITIONS.map((label) => v.literal(label))) });
+const place = v.object({ lane: laneShape, label: slotPosition });
 export type MatchupPlace = Infer<typeof place>;
 
 /** A starter: a slot, his role (the one he was given, or the slot's first) and where he plays it. */
