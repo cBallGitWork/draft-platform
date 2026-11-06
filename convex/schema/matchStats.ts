@@ -36,7 +36,12 @@ const matchStatsStatusFields = {
 export const lateStatChange = v.object({ stat: v.string(), locked: v.number(), sent: v.number() });
 
 /** The platform's own settings, the admin's to change (spec/15). A league's rules are never here. */
-export const platformSettingName = v.union(v.literal("statCorrectionWindowMinutes"), v.literal("matchdayHoursBefore"), v.literal("matchdayHoursAfter"));
+export const platformSettingName = v.union(
+  v.literal("statCorrectionWindowMinutes"),
+  v.literal("scoutsPerTeam"),
+  v.literal("matchdayHoursBefore"),
+  v.literal("matchdayHoursAfter"),
+);
 
 /** What one sync did with one match. */
 export const matchSyncOutcome = v.union(

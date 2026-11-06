@@ -12,6 +12,9 @@ export const SITE_URL_SETTING = "SITE_URL";
  *  @convex-dev/auth's Resend provider), so fixed by the library. */
 export const RESEND_KEY_SETTING = "AUTH_RESEND_KEY";
 
+/** Anthropic's API key, for what the app has Claude write: a scout's report (spec/19). */
+export const ANTHROPIC_KEY_SETTING = "ANTHROPIC_API_KEY";
+
 /** The sender's address: the live site's is set by `npm run setup:live` (docs/setup.md). */
 export const EMAIL_FROM_SETTING = "EMAIL_FROM";
 

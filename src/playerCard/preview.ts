@@ -24,7 +24,7 @@ const PREVIEW_OVERRIDE = { points: 9, reason: "The feed gave his assist to Odega
 
 /** A made-up role line, for the preview alone. */
 const PREVIEW_ROLE_PLAYER = "Palmer";
-const PREVIEW_ROLE = { name: "Number 10", points: 1, lines: [{ stat: "big_chance_created", name: categoryName("big_chance_created"), actions: 1, points: 1 }] };
+const PREVIEW_ROLE = { name: "Number 10", points: 1, sides: [{ points: 1, lines: [{ stat: "big_chance_created", name: categoryName("big_chance_created"), actions: 1 }] }] };
 
 function matchesOf(player: (typeof previewPlayers)[number]): PlayedMatch[] {
   return RECORDS.map((record, index) => {

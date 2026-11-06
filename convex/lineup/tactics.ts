@@ -4,7 +4,8 @@ import { leagueRulesShape } from "../rules/leagueRulesShape";
 import { deadlineOf, leagueDeadlines } from "../gameweeks/leagueDeadlines";
 import { shownDeadline } from "../gameweeks/usedGameweeks";
 import { clubByCode, playerByCode, unheldPlayerWords } from "../shared/players";
-import { positionsNow } from "../positions/playerPositions";
+import { workedOutNow } from "../positions/playerPositions";
+import { howPositionsCount } from "../positions/positionSettings";
 import { position } from "../schema";
 import { managerOf } from "../shared/leagueAccess";
 import { squadOf } from "../squads/squadPlace";
@@ -31,6 +32,9 @@ const squadMember = v.object({
   /** The football sync doesn't hold him: data gone wrong, kept so it shows (#323). */
   unheld: v.boolean(),
   positions: v.array(position),
+  /** His positions flagged by a run of starts elsewhere (#23; spec/06, When positions change), each
+   *  with how many in a row: the mark after his name says which is at stake. */
+  flagged: v.array(v.object({ position, startsElsewhere: v.number() })),
   /** His shirt's number (#13): his manager's, else his club's, else null (squadNumbers.ts). */
   number: v.union(v.number(), v.null()),
   /** His stars for each role in each area he plays (#11), which pick the role he starts on when
@@ -68,7 +72,7 @@ export const ofMyTeam = query({
     if (next.kind !== "open") return { kind: next.kind };
     const { season, gameweek } = next;
 
-    const positionsOfNow = await positionsNow(ctx, leagueId);
+    const how = await howPositionsCount(ctx, leagueId);
     const members = await squadOf(ctx, team._id);
     const starsOf = await starsOfPlayers(
       ctx,
@@ -78,14 +82,16 @@ export const ofMyTeam = query({
       members.map(async (member) => {
         const { playerCode } = member;
         const player = await playerByCode(ctx, playerCode);
+        // His positions are read as for any other player: the lineup's check says where he may stand.
+        const { positions } = await workedOutNow(ctx, playerCode, how);
         return {
           playerCode,
           name: player === null ? unheldPlayerWords(playerCode) : player.name,
           clubShortName: player === null ? null : (await clubByCode(ctx, player.clubCode)).shortName,
           clubCode: player?.clubCode ?? null,
           unheld: player === null,
-          // His positions are read as for any other player: the lineup's check says where he may stand.
-          positions: await positionsOfNow(playerCode),
+          positions: positions.map(({ position }) => position),
+          flagged: positions.flatMap(({ position, flaggedElsewhere }) => (flaggedElsewhere === null ? [] : [{ position, startsElsewhere: flaggedElsewhere }])),
           number: await shirtNumber(ctx, member),
           stars: starsOf.get(playerCode)!,
         };
