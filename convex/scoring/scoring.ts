@@ -34,8 +34,10 @@ export type SlotValue =
 export type PricedBy = { by: "all" } | { by: "area"; area: Area } | { by: "position"; position: SlotPosition };
 
 /** What changed his points from the value's: he played fewer minutes than the rule needs, so it
- *  gave nothing; or its points limit held them to its most or its least. */
-export type Cut = { by: "minutes"; atLeast: number } | { by: "max" | "min"; limit: number };
+ *  gave nothing; or its points limit held them to its most or its least. Or, though it changed
+ *  nothing, his points landed exactly on its most or its least, so the line says he reached it
+ *  (spec/14, On screen; Craig, 1 Nov 2026, #863). */
+export type Cut = { by: "minutes"; atLeast: number } | { by: "max" | "min" | "atMax" | "atMin"; limit: number };
 
 /** A player's match: each rule's category in the set's order, and their total, null with them. */
 export interface MatchPoints {
@@ -130,7 +132,7 @@ function sidePoints(record: MatchStats, { parts, bars }: RoleSide, side: RoleSid
 }
 
 /** A rule's points for the slot, with its value there and what cut them: nothing below its
- *  minimum minutes, else held to its points limit. Points too large to be a number throw. */
+ *  minimum minutes, else held to its points limit, or marked as reaching it exactly. Points too large to be a number throw. */
 function ruleScore(rule: ScoringRule, slot: Slot, actions: number, minutes: number): { points: number; value: SlotValue; cut: Cut | null } {
   const price: Price = (priced) => priceFor(priced, slot.area, slot.position);
   const value = valueAt(rule, price, actions);
@@ -145,6 +147,9 @@ function ruleScore(rule: ScoringRule, slot: Slot, actions: number, minutes: numb
     const { max, min } = price(rule.limit);
     if (max !== null && points > max) [points, cut] = [max, { by: "max", limit: max }];
     if (min !== null && points < min) [points, cut] = [min, { by: "min", limit: min }];
+    // Landing on a limit of 0 with nothing earned isn't reaching it: no line for every man without the stat.
+    if (cut === null && points !== 0 && points === max) cut = { by: "atMax", limit: max };
+    if (cut === null && points !== 0 && points === min) cut = { by: "atMin", limit: min };
   }
   if (!Number.isFinite(points)) throw new Error(`the ${rule.stat} rule gives ${points} points as ${slot.position}`);
   return { points: inTenths(points), value, cut };
