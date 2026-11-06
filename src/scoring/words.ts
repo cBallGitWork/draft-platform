@@ -4,7 +4,8 @@
 // reaches the screen as is.
 
 import { SLOT_POSITIONS, type SlotPosition } from "../../convex/lineup/pitch";
-import { failedWords, figureWords, gameweekWords, POSITION_NAMES } from "../shared/words";
+import { noNumberWords, savedFromWords } from "../rules/words";
+import { failedWords, figureWords, POSITION_NAMES } from "../shared/words";
 import type { PerCount, Pricing, Shape } from "./editing";
 
 export const SCORING_TITLE = "Player scoring";
@@ -27,8 +28,28 @@ export const pointsWords = figureWords;
 export const addCategoryWords = "Add a category";
 export const addCategoryLabel = "Category to add";
 export const addWords = "Add";
-export const allScoredWords = "Every stat in the catalogue already has a category.";
+export const allScoredWords = "Every stat already has a category.";
 export const removeCategoryWords = "Remove this category";
+
+/** Making an own stat (spec/14, Own stats): catalogue stats added up, each with a weight. */
+export const makeOwnStatWords = "Make a stat of your own";
+export const ownStatNameLabel = "Name";
+export const ownStatShortCodeLabel = "Short code";
+/** Each part's boxes, for screen readers: "Stat 2", "Weight of stat 2". */
+export const partStatLabel = (part: number) => `Stat ${part}`;
+export const partWeightLabel = (part: number) => `Weight of stat ${part}`;
+export const removePartLabel = (part: number) => `Remove stat ${part}`;
+export const removePartWords = "×";
+export const addPartWords = "Add a stat";
+export const makeWords = "Make it";
+export const cancelWords = "Cancel";
+/** Why an own stat as typed can't be made yet. */
+export const ownStatProblemWords = {
+  name: "Give it a name.",
+  shortCode: "Give it a short code.",
+  parts: "Add at least one stat.",
+  weight: "Each stat needs a weight.",
+} as const;
 
 export const shapeLabel = "Points";
 export const shapeWords: Record<Shape, string> = { perAction: "Per action", perCount: "Per number", bands: "Bands" };
@@ -75,8 +96,9 @@ export const POSITION_WORDS = Object.fromEntries(
 
 /** The bottom bar. */
 export const wholePointsWords = "Whole points only";
-export const savedWords = (gameweek: number) => `Saved. The new scoring applies to every league from ${gameweekWords(gameweek)}.`;
-export const blankBoxWords = (category: string) => `${category} has a box without a number. Fill it in, then save.`;
+export const savedWords = (gameweek: number) => savedFromWords("The new scoring applies to every league", gameweek);
+/** Worded as League settings words an empty box (#351). */
+export const blankBoxWords = (category: string) => noNumberWords(`A box in ${category}`);
 
 /** What a failed save leaves, live or in the preview. */
 export const unsavedOutcome = "the scoring didn't change";

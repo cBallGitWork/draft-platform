@@ -5,7 +5,8 @@
 import { AREAS, LANES, positionOfSlot, SLOT_POSITIONS, type Area, type SlotPosition } from "../../convex/lineup/pitch";
 import type { StoredScoringSet } from "../../convex/scoring/scoringSetShape";
 import { priceFor, type Priced } from "../../convex/scoring/priced";
-import type { Band, PointsLimit } from "../../convex/scoring/scoringSet";
+import type { Band, OwnStat, PointsLimit } from "../../convex/scoring/scoringSet";
+import { OWN_STAT_PREFIX } from "../../convex/scoring/statCatalogue";
 import { holdsBlank } from "../rules/blank";
 
 export type Scoring = StoredScoringSet;
@@ -177,6 +178,27 @@ export function nextBand(bands: readonly Band[]): Band {
 
 /** A new category's rule: per action, worth nothing until the commissioner sets it. */
 export const newRule = (stat: string): Rule => ({ shape: "perAction", stat, values: { all: NEW_POINTS } });
+
+/** An own stat as the admin makes it: its key is the editor's to give (`withOwnStat`). */
+export type OwnStatMade = Omit<OwnStat, "stat">;
+
+/** A key for an own stat named this, in the namespace the feeds can't produce, that no own stat in
+ *  the set has: "Tackles + clearances" is `league:tackles_clearances`, then `_2`. */
+function ownStatKey(name: string, taken: readonly OwnStat[]): string {
+  const base = `${OWN_STAT_PREFIX}${name.toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/^_|_$/g, "") || "own"}`;
+  const keys = new Set(taken.map((own) => own.stat));
+  let key = base;
+  for (let next = 2; keys.has(key); next += 1) key = `${base}_${next}`;
+  return key;
+}
+
+/** The set with an own stat made (spec/14, Own stats), and a category scoring it, last, worth
+ *  nothing until the admin sets it. The server checks it is sound when the set is saved. */
+export function withOwnStat(scoring: Scoring, made: OwnStatMade): Scoring {
+  const ownStats = scoring.ownStats ?? [];
+  const stat = ownStatKey(made.name, ownStats);
+  return { ...scoring, ownStats: [...ownStats, { stat, ...made, parts: [...made.parts] }], rules: [...scoring.rules, newRule(stat)] };
+}
 
 /** The index of the first rule holding a box left without a number, or -1: the server would
  *  refuse it as data of the wrong shape, never with a reason the commissioner can act on. */

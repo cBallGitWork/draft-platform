@@ -5,6 +5,7 @@ import { expect, test, vi } from "vitest";
 import { api } from "../../../convex/_generated/api";
 import { lateAfterMs, FEED_SCHEDULES, FEEDS } from "../../../convex/shared/feedSchedule";
 import { RUNS_READ } from "../../../convex/admin/feeds";
+import { ALWAYS_OWED, judgeFeed } from "../../../convex/admin/feedState";
 import { refusals } from "../../../convex/shared/leagueAccess";
 import { HOUR_MS, LINEUPS_OUT_BEFORE_KICKOFF_MS, MINUTE_MS } from "../../../convex/shared/time";
 import { ADMIN, COMMISSIONER, actingAs } from "../../support/convex/leagues.harness";
@@ -16,6 +17,7 @@ import { expectRefused, freshConvex } from "../../support/convex/test.harness";
 const FOOTBALL_LATE_AFTER = lateAfterMs(FEED_SCHEDULES.football);
 const LIVE_LATE_AFTER = lateAfterMs(FEED_SCHEDULES.liveStats);
 const MATCH_STATS_LATE_AFTER = lateAfterMs(FEED_SCHEDULES.matchStats);
+const POSITIONS_LATE_AFTER = lateAfterMs(FEED_SCHEDULES.positions);
 
 test("the page is the admin's alone", async () => {
   const t = freshConvex();
@@ -73,12 +75,19 @@ test("a run whose every match failed is a failure, though the run itself finishe
   expect(await feedAt(t, "matchStats", T0)).toMatchObject({ state: "failing", lastSuccessAt: null, lastError: { error: "gameweek 8's reads failed" } });
 });
 
-test("a feed no cron runs is not scheduled, never late, however old its last success", async () => {
+// Every feed has a cron now (the positions sync since #1194), so this is judged on its own.
+test("a feed no cron runs is not scheduled, never late, however old its last success", () => {
+  const long = T0 + 30 * 24 * HOUR_MS;
+  expect(judgeFeed({ lastRun: { ranAt: T0, failure: null }, lastSuccessAt: T0 }, null, ALWAYS_OWED, long)).toBe("notScheduled");
+});
+
+// Daily at 06:00 UK (#1194): across a clock change two runs are 25 hours apart, still on time.
+test("the positions sync is late once a day and its grace pass with no success, and fine up to then", async () => {
   const t = freshConvex();
   await recordRun(t, "positions", T0);
 
-  const long = T0 + 30 * 24 * HOUR_MS;
-  expect(await feedAt(t, "positions", long)).toMatchObject({ state: "notScheduled", lastSuccessAt: T0 });
+  expect(await feedAt(t, "positions", T0 + 25 * HOUR_MS)).toMatchObject({ state: "fine", lastSuccessAt: T0 });
+  expect(await feedAt(t, "positions", T0 + POSITIONS_LATE_AFTER + 1)).toMatchObject({ state: "late", lastSuccessAt: T0 });
 });
 
 // A late-stats run with no match due still records a success, so a quiet week is never late.

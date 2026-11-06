@@ -22,9 +22,9 @@ export type PremierLeagueSeam = {
   useFirstKickoffs(): FirstKickoff[] | undefined;
   /** One gameweek's matches with their scores, live (a hook): undefined while they load. */
   useGameweekMatches(gameweek: number): GameweekMatch[] | undefined;
-  /** One match as the league sees it (match/matchPage:ofMatch), live (a hook): undefined while it
-   *  loads, null while no match with its code is held. */
-  useMatch(leagueId: Id<"leagues">, fixtureCode: number): MatchPageData | null | undefined;
+  /** One match as the league sees it at `now`, the screen's minute (match/matchPage:ofMatch), live
+   *  (a hook): undefined while it loads, null while no match with its code is held. */
+  useMatch(leagueId: Id<"leagues">, now: number, fixtureCode: number): MatchPageData | null | undefined;
   /** The table, live (a hook): undefined while it loads. */
   useStandings(): PlStandings | undefined;
 };

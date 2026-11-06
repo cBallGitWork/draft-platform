@@ -83,6 +83,7 @@ export function changesTo(
     "draft/draftCommissioner:setPickTime": () => admin.mutation(api.draft.draftCommissioner.setPickTime, { leagueId, pickSeconds: 60 }),
     "draft/draftCommissioner:markForCommissioner": () =>
       admin.mutation(api.draft.draftCommissioner.markForCommissioner, { leagueId, teamId: annsTeam._id, marked: true }),
+    "lineup/autoTeam:set": () => ann.mutation(api.lineup.autoTeam.set, { leagueId, teamId: annsTeam._id, on: true }),
     "lineup/lineups:save": () => ann.mutation(api.lineup.lineups.save, { leagueId, lineup: { starters: [], bench: [] } }),
     "lineup/lineupDue:openedTactics": () => ann.mutation(api.lineup.lineupDue.openedTactics, { leagueId, gameweek: 1 }),
     "leagues/lastLeague:switchTo": () => commissioner.mutation(api.leagues.lastLeague.switchTo, { leagueId }),
@@ -91,6 +92,7 @@ export function changesTo(
     "squads/squads:move": () => admin.mutation(api.squads.squads.move, { leagueId, playerCode: 1, teamId: annsTeam._id }),
     "squads/squads:release": () => admin.mutation(api.squads.squads.release, { leagueId, playerCode: 1 }),
     "waivers/waivers:drop": () => ann.mutation(api.waivers.waivers.drop, { leagueId, playerCode: 1 }),
+    "waivers/freeAgents:pickUp": () => ann.mutation(api.waivers.freeAgents.pickUp, { leagueId, playerCode: 1, dropCode: null }),
     "waivers/waiverClaims:putIn": () => ann.mutation(api.waivers.waiverClaims.putIn, { leagueId, playerCode: 1, dropCode: null }),
     "waivers/waiverClaims:withdraw": () => ann.mutation(api.waivers.waiverClaims.withdraw, { leagueId, claimId }),
     "waivers/waiverClaims:rank": () => ann.mutation(api.waivers.waiverClaims.rank, { leagueId, claimIds: [claimId] }),

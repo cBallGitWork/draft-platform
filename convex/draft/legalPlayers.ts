@@ -130,21 +130,28 @@ function canFinish(squad: readonly DraftPlayer[], picks: number, left: readonly 
   return maxFlow(sink + 1, edges, source, sink) === places;
 }
 
-/** Whether the team holding `squad`, with `picksLeft` picks still to make counting this one, may
- *  pick a player, under the league's squad rules and from the players still `undrafted`. */
-export function legalPlayers(
+/** Why a team may not pick a player: its squad has no picks left, it is at the league's maximum
+ *  for his club, his pick would leave too few picks to reach an area's minimum, or it would leave
+ *  no legal finish from the players still undrafted. The draft room's list says which. */
+export type NotLegal = "squadFull" | "clubFull" | "areasShort" | "noFinish";
+
+/** Why the team holding `squad`, with `picksLeft` picks still to make counting this one, may not
+ *  pick a player, under the league's squad rules and from the players still `undrafted`; null when
+ *  it may. */
+export function whyNotLegal(
   squad: readonly DraftPlayer[],
   picksLeft: number,
   rules: SquadRules,
   undrafted: readonly DraftPlayer[],
-): (player: DraftPlayer) => boolean {
+): (player: DraftPlayer) => NotLegal | null {
   const { minimumByArea, maxPerClub } = rules;
-  /** The checks on the team's squad alone. */
-  const bySquad = (player: DraftPlayer): boolean => {
-    if (picksLeft < 1) return false;
-    if (maxPerClub !== null && squad.filter(({ clubCode }) => clubCode === player.clubCode).length >= maxPerClub) return false;
-    return placesShort([...squad, player], minimumByArea) <= picksLeft - 1;
+  /** Why the checks on the team's squad alone refuse him, or null when they don't. */
+  const whyBySquad = (player: DraftPlayer): NotLegal | null => {
+    if (picksLeft < 1) return "squadFull";
+    if (maxPerClub !== null && squad.filter(({ clubCode }) => clubCode === player.clubCode).length >= maxPerClub) return "clubFull";
+    return placesShort([...squad, player], minimumByArea) <= picksLeft - 1 ? null : "areasShort";
   };
+  const bySquad = (player: DraftPlayer) => whyBySquad(player) === null;
 
   const left = alikeOf(undrafted);
   const finishing = new Map<string, boolean>();
@@ -162,9 +169,22 @@ export function legalPlayers(
   let anyFinish: boolean | undefined;
 
   return (player) => {
-    if (!bySquad(player)) return false;
-    if (finishes(player)) return true;
+    const bySquadAlone = whyBySquad(player);
+    if (bySquadAlone !== null) return bySquadAlone;
+    if (finishes(player)) return null;
     anyFinish ??= [...left.values()].some((group) => bySquad(group.player) && finishes(group.player));
-    return !anyFinish;
+    return anyFinish ? "noFinish" : null;
   };
+}
+
+/** Whether the team holding `squad`, with `picksLeft` picks still to make counting this one, may
+ *  pick a player, under the league's squad rules and from the players still `undrafted`. */
+export function legalPlayers(
+  squad: readonly DraftPlayer[],
+  picksLeft: number,
+  rules: SquadRules,
+  undrafted: readonly DraftPlayer[],
+): (player: DraftPlayer) => boolean {
+  const why = whyNotLegal(squad, picksLeft, rules, undrafted);
+  return (player) => why(player) === null;
 }

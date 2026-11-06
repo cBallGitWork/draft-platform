@@ -9,6 +9,13 @@ export const LOCALE = "en-GB";
 /** The Premier League's own zone: a moment's zone while the reader's isn't known; the tests run in it too. */
 export const LONDON_ZONE = "Europe/London";
 
+const LONDON_HOUR = new Intl.DateTimeFormat(LOCALE, { timeZone: LONDON_ZONE, hour: "numeric", hourCycle: "h23" });
+
+/** The hour it is in the UK at `at`, 0 to 23, whatever the clocks. */
+export function londonHour(at: number): number {
+  return Number(LONDON_HOUR.format(at));
+}
+
 /** "A", "A and B", "A, B and C": no comma before the last "and". Written out rather than through
  *  Intl.ListFormat, so it reads the same whatever locale data a runtime holds. */
 export function andListWords(items: readonly string[]): string {

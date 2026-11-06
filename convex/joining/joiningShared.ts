@@ -8,6 +8,10 @@ import { DAY_MS } from "../shared/time";
 export const INVITE_DAYS = 7;
 export const INVITE_LIFETIME_MS = INVITE_DAYS * DAY_MS;
 
+/** The most live invites, and the most waiting join requests, the commissioner's page lists, newest
+ *  first: the closed beta's leagues are small. Past it the page says some are missing (#410). */
+export const ROWS_SHOWN = 50;
+
 /** A league's invite link is `/join/<token>`; its sign-in link comes back to it (spec/02). */
 export const JOIN_PATH = "/join";
 export const joinPath = (token: string) => `${JOIN_PATH}/${token}`;

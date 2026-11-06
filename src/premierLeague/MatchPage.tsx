@@ -3,6 +3,7 @@ import { ColumnHeads } from "../ui/ColumnHeads";
 import { Loading, Notice, PAGE_STACK, PageSection, Panel, PanelNote } from "../ui/Panel";
 import { Vidiprinter } from "../matchup/Vidiprinter";
 import { OwnerName } from "../ui/OwnerName";
+import { useMinute } from "../shared/useMinute";
 import { PositionCode } from "../ui/PositionCodes";
 import type { MatchMan, MatchPageData, PremierLeagueSeam } from "./seam";
 import {
@@ -43,7 +44,7 @@ import {
  *  stats, and the match's commentary, newest first. Opened from the Premier League's fixtures (spec/18) and from a
  *  player's status on the matchup. */
 export function MatchPage({ league, seam, fixtureCode }: { league: LeagueSummary; seam: PremierLeagueSeam; fixtureCode: number }) {
-  const match = seam.useMatch(league.leagueId, fixtureCode);
+  const match = seam.useMatch(league.leagueId, useMinute(), fixtureCode);
   return (
     <PageSection title={MATCH_TITLE} className={PAGE_STACK}>
       {match === undefined ? (

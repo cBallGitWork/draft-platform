@@ -24,7 +24,6 @@ export const letterFields = {
 export const mailTables = {
   letters: defineTable(letterFields)
     .index("by_to_and_at", ["to", "at"])
-    .index("by_to_and_readAt", ["to", "readAt"])
     .index("by_leagueId", ["leagueId"]),
 };
 

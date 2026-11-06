@@ -36,9 +36,9 @@ export async function ownerOf(ctx: QueryCtx, leagueId: Id<"leagues">): Promise<(
 }
 
 /** The league events that change a squad. A commissioner assigns, moves and releases players
- *  (#31), a manager drops them (#1197), and a waiver run gives them for a claim (#1198); trades
- *  join them when built. */
-export const SQUAD_MOVES = ["playerAssigned", "playerMoved", "playerReleased", "playerDropped", "playerClaimed"] as const;
+ *  (#31), a manager drops them (#1197) and picks up free agents (#1199), and a waiver run gives
+ *  them for a claim (#1198); trades join them when built. */
+export const SQUAD_MOVES = ["playerAssigned", "playerMoved", "playerReleased", "playerDropped", "playerClaimed", "playerPickedUp"] as const;
 
 /** Whether the move took a player off his team for no other: a release or a drop. */
 const isLeaving = (kind: (typeof SQUAD_MOVES)[number]) => kind === "playerReleased" || kind === "playerDropped";

@@ -45,7 +45,7 @@ describe("#112 Done: tackles + 0.5 × clearances", () => {
 
 test("a negative weight takes away: shots − shots on target is shots off target", () => {
   const offTarget: OwnStat = {
-    stat: "own_off_target",
+    stat: "league:off_target",
     name: "Off target",
     shortCode: "OFF",
     parts: [
@@ -53,27 +53,29 @@ test("a negative weight takes away: shots − shots on target is shots off targe
       { stat: "ontarget_scoring_att", weight: -1 },
     ],
   };
-  expect(withOwnStats({ total_scoring_att: 5, ontarget_scoring_att: 2 }, setWith([offTarget]))).toMatchObject({ own_off_target: 3 });
+  expect(withOwnStats({ total_scoring_att: 5, ontarget_scoring_att: 2 }, setWith([offTarget]))).toMatchObject({ "league:off_target": 3 });
 });
 
 test("under whole points only, a negative own stat rounds down too: -0.5 counts -1", () => {
-  const lostBall: OwnStat = { stat: "own_lost", name: "Lost", shortCode: "LOST", parts: [{ stat: "dispossessed", weight: -0.5 }] };
-  expect(withOwnStats({ dispossessed: 1 }, setWith([lostBall], true))).toMatchObject({ own_lost: -1 });
+  const lostBall: OwnStat = { stat: "league:lost", name: "Lost", shortCode: "LOST", parts: [{ stat: "dispossessed", weight: -0.5 }] };
+  expect(withOwnStats({ dispossessed: 1 }, setWith([lostBall], true))).toMatchObject({ "league:lost": -1 });
 });
 
 test("weights of tenths that add to a whole count the whole, never one under it", () => {
-  const tenth: OwnStat = { stat: "own_tenth", name: "Tenth", shortCode: "TEN", parts: [{ stat: "touches", weight: 0.1 }] };
-  expect(withOwnStats({ touches: 30 }, setWith([tenth], true))).toMatchObject({ own_tenth: 3 });
+  const tenth: OwnStat = { stat: "league:tenth", name: "Tenth", shortCode: "TEN", parts: [{ stat: "touches", weight: 0.1 }] };
+  expect(withOwnStats({ touches: 30 }, setWith([tenth], true))).toMatchObject({ "league:tenth": 3 });
 });
 
 describe("refused, with the reason", () => {
   const own = (change: Partial<OwnStat>): OwnStat => ({ ...TACKLES_AND_CLEARANCES, ...change });
   test.each([
-    ["built from another own stat", [TACKLES_AND_CLEARANCES, own({ stat: "own_more", name: "More", shortCode: "M", parts: [{ stat: TACKLES_AND_CLEARANCES.stat, weight: 1 }] })], "the own stat own_more adds \"own_tackles_and_clearances\", which isn't a catalogue stat"],
+    ["built from another own stat", [TACKLES_AND_CLEARANCES, own({ stat: "league:more", name: "More", shortCode: "M", parts: [{ stat: TACKLES_AND_CLEARANCES.stat, weight: 1 }] })], "the own stat league:more adds \"league:tackles_and_clearances\", which isn't a catalogue stat"],
     ["built from a stat not in the catalogue", [own({ parts: [{ stat: "made_up", weight: 1 }] })], "adds \"made_up\", which isn't a catalogue stat"],
-    ["with a catalogue stat's key", [own({ stat: "won_tackle" })], "the own stat won_tackle has a catalogue stat's key"],
-    ["made twice", [TACKLES_AND_CLEARANCES, TACKLES_AND_CLEARANCES], "the own stat own_tackles_and_clearances is made twice"],
-    ["two with one short code", [TACKLES_AND_CLEARANCES, own({ stat: "own_other", name: "Other" })], 'has the short code "T+C", which another own stat has'],
+    ["with a catalogue stat's key", [own({ stat: "won_tackle" })], 'the own stat won_tackle has a key that doesn\'t start with "league:"'],
+    ["with a key outside the reserved namespace", [own({ stat: "own_tackles" })], 'the own stat own_tackles has a key that doesn\'t start with "league:"'],
+    ["with the namespace alone as its key", [own({ stat: "league:" })], "own stat 1 has no key"],
+    ["made twice", [TACKLES_AND_CLEARANCES, TACKLES_AND_CLEARANCES], "the own stat league:tackles_and_clearances is made twice"],
+    ["two with one short code", [TACKLES_AND_CLEARANCES, own({ stat: "league:other", name: "Other" })], 'has the short code "T+C", which another own stat has'],
     ["adding up nothing", [own({ parts: [] })], "adds up no stats"],
     ["a weight of text", [own({ parts: [{ stat: "won_tackle", weight: "1" as unknown as number }] })], 'weighs won_tackle at "1", not a number'],
     ["no name", [own({ name: " " })], "has no name"],
@@ -85,6 +87,12 @@ describe("refused, with the reason", () => {
 test("an own stat named as a catalogue stat now is, saved before, still scores: only a save refuses it (#212)", () => {
   const clash = { ...TACKLES_AND_CLEARANCES, name: "Won tackle", shortCode: "WT" };
   expect(scoreMatch(coyle, setWith([clash]), centreOf("defence")).total).toBe(1.5);
+});
+
+test("a feed stat named as an own stat is, once in the record, never takes its place (#136)", () => {
+  const tacklesWon: OwnStat = { stat: "league:tackles_won", name: "Tackles won", shortCode: "TW+", parts: [{ stat: "won_tackle", weight: 2 }] };
+  const set = { ...setWith([tacklesWon]), rules: [{ shape: "perAction" as const, stat: tacklesWon.stat, values: { all: 1 } }] };
+  expect(scoreMatch({ ...coyle, tackles_won: 5 }, set, centreOf("defence")).total).toBe(2);
 });
 
 test("a refusal names an own stat's rule by its own name, as the rules editor shows it", () => {
@@ -99,6 +107,10 @@ describe("the catalogue, placeholders for now (spec/14)", () => {
     expect(new Set(keys).size).toBe(keys.length);
     expect(new Set(codes).size).toBe(codes.length);
     expect(STAT_CATALOGUE.every((entry) => entry.name.trim() && entry.shortCode.trim())).toBe(true);
+  });
+
+  test("no key holds a colon: that namespace is the own stats' (#136)", () => {
+    expect(STAT_CATALOGUE.map((entry) => entry.stat).filter((stat) => stat.includes(":"))).toEqual([]);
   });
 
   test("it holds every stat the recorded match's merged records hold, and never FPL's points", () => {
