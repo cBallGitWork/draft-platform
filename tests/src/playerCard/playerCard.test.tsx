@@ -107,6 +107,12 @@ describe("the card", () => {
     expect(facts.queryByText(chanceWords(75))).toBeNull();
   });
 
+  it("keeps its title plate the plate's colour, never his club's (spec/12, Club colours)", async () => {
+    openCard();
+    await screen.findByRole("region", { name: PLAYER_TITLE });
+    expect(document.body.querySelectorAll('[style*="background"]')).toHaveLength(0);
+  });
+
   it("a chance of playing with no news stands alone", async () => {
     openCard(SAKA, { cards: [{ ...SAKA, news: null }] });
     expect(within(await screen.findByRole("region", { name: PLAYER_TITLE })).getByText(chanceWords(75))).toBeTruthy();
