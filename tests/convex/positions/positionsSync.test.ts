@@ -51,6 +51,8 @@ test("a run files every played match's starts and this season's labels, and repo
     // Every man FPL lists that a squad or a sheet names, each new to the table.
     labelsReceived: 121,
     labelsChanged: 121,
+    // The recorded squads were cut to each man's label, so none carries his number.
+    clubNumbersChanged: 0,
     unknownFormations: [],
     unknownLabels: [],
   });
@@ -112,6 +114,24 @@ test("a label the table does not know is reported, and gives no position", async
   expect(outcome).toMatchObject({ ok: true, unknownLabels: ["Libero"] });
   expect(logged).toHaveBeenCalledWith(reported({ unknownLabels: ["Libero"] }));
   expect(await heldPositions(t, PLAYER.steur)).toEqual({});
+});
+
+test("each squad man's number is his club number (#13), and a run with it unchanged changes nothing", async () => {
+  const t = freshConvex();
+  const logged = silenceConsoleError();
+  const payloads = recordedPositions();
+  manIn(payloads.squads[NEWCASTLE.pl].players, PLAYER.hall).info!.shirtNum = 3;
+  manIn(payloads.squads[NEWCASTLE.pl].players, PLAYER.steur).info!.shirtNum = 41;
+  const clubNumbers = () => t.run(async (ctx) => (await ctx.db.query("clubNumbers").collect()).map(({ code, number }) => [code, number]));
+
+  expect((await syncPositionsWith(t, payloads)).outcome).toMatchObject({ ok: true, clubNumbersChanged: 2 });
+  expect(await clubNumbers()).toEqual(expect.arrayContaining([[PLAYER.hall, 3], [PLAYER.steur, 41]]));
+  expect(await clubNumbers()).toHaveLength(2);
+
+  delete manIn(payloads.squads[NEWCASTLE.pl].players, PLAYER.steur).info!.shirtNum;
+  expect((await syncPositionsWith(t, payloads)).outcome).toMatchObject({ ok: true, clubNumbersChanged: 1 });
+  expect(await clubNumbers()).toEqual([[PLAYER.hall, 3]]);
+  expect(logged).toHaveBeenCalledWith(reported());
 });
 
 test("a squad's label wins over a sheet's, and a man no squad lists keeps his newest sheet's", async () => {

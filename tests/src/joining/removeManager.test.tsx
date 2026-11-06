@@ -24,7 +24,9 @@ const page: InvitesPageData = {
   hasRoom: true,
   linkToken: null,
   invites: [],
+  invitesCut: false,
   requests: [],
+  requestsCut: false,
 };
 
 const openPage = () => openApp(invitesPath(league.leagueId), commissioner, { joining: { invitesPage: page } });

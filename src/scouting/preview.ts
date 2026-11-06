@@ -4,6 +4,7 @@
 import type { ListedPlayer } from "../../convex/scouting/playersList";
 import { listOf, shownStat } from "../../convex/scouting/playersOrder";
 import type { Stats } from "../../convex/stats/statTotals";
+import { listedFromScouting, queueInPreview, setPreviewShortlisted } from "../draft/previewLists";
 import { previewShortlistOf } from "./shortlist/preview";
 import type { ScoutingSeam } from "./seam";
 
@@ -45,11 +46,20 @@ const previewTotals: Record<number, Stats> = {
 /** Matches this season, the same for everyone in the preview. */
 const PREVIEW_MATCHES = 9;
 
-/** Rice and Salah are on the preview manager's shortlist to begin with. */
-export const previewShortlist = previewShortlistOf(previewPlayers, [2, 6]);
+/** Rice and Salah are on the preview manager's shortlist to begin with, and feed his draft queue. */
+const SHORTLISTED = [2, 6];
+export const previewShortlist = previewShortlistOf(previewPlayers, SHORTLISTED);
+setPreviewShortlisted(previewPlayers.filter(({ code }) => SHORTLISTED.includes(code)));
+
+/** "Add to queue" on a shortlisted player: into the preview's draft queue (../draft/previewLists.ts). */
+const addToQueue = async (_leagueId: unknown, playerCode: number) => {
+  queueInPreview([listedFromScouting(previewPlayers.find(({ code }) => code === playerCode)!)]);
+  return null;
+};
 
 export const previewScouting: ScoutingSeam = {
   ...previewShortlist,
+  useAddToQueue: () => addToQueue,
   useComparison: (_leagueId, codes) =>
     codes?.map((code) => ({ ...previewPlayers.find((each) => each.code === code)!, matches: PREVIEW_MATCHES, stats: previewTotals[code] ?? {} })),
   usePlayersList: (_leagueId, filters, sort, stat) => ({

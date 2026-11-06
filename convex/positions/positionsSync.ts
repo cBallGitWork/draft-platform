@@ -19,8 +19,8 @@ import { londonHour } from "../shared/moments";
 
 // Issue #22: each player's starts, from the Premier League's team sheets for last season and this
 // (spec/06: his last 38 starts count, across both), and his label, from this season's squads or
-// else the sheets (docs/positions.md). A match's sheets are read once;
-// the squads every run, so a changed label arrives. From the CLI:
+// else the sheets (docs/positions.md), and his club number from the squads (#13, `clubNumbers`).
+// A match's sheets are read once; the squads every run, so a changed label or number arrives. From the CLI:
 // `npx convex run positions/positionsSync:run '{"trigger":"manual"}'`, then `positions/positionsSync:latest`.
 // crons.ts runs it daily at 06:00 UK time (#1194), and a cron's run with matches left carries on
 // at once; one run by hand stays one run.
@@ -108,6 +108,25 @@ export const recordStarts = internalMutation({
   },
 });
 
+/** Each player's club number as this season's squads give it, null where his squad gives him
+ *  none, which takes away the one held (spec/05, Squad numbers). Returns how many changed. */
+export const recordClubNumbers = internalMutation({
+  args: { numbers: v.array(v.object({ code: v.number(), number: v.union(v.number(), v.null()) })) },
+  returns: v.number(),
+  handler: async (ctx, { numbers }): Promise<number> => {
+    let changed = 0;
+    for (const { code, number } of numbers) {
+      const held = await ctx.db.query("clubNumbers").withIndex("by_code", (q) => q.eq("code", code)).unique();
+      if ((held?.number ?? null) === number) continue;
+      if (held === null) await ctx.db.insert("clubNumbers", { code, number: number! });
+      else if (number === null) await ctx.db.delete("clubNumbers", held._id);
+      else await ctx.db.patch("clubNumbers", held._id, { number });
+      changed += 1;
+    }
+    return changed;
+  },
+});
+
 /** Each player's label, as the run found it. Returns how many changed. */
 export const recordLabels = internalMutation({
   args: { labels: v.array(v.object({ code: v.number(), plLabel: v.string() })) },
@@ -172,11 +191,21 @@ async function syncPositions(ctx: ActionCtx): Promise<Synced> {
   }
   // After the sheets, so a squad's label, this season's, wins over a sheet's.
   const clubs = new Set(thisSeason.flatMap((fixture) => (fixture.teams ?? []).map((side) => side.team.id)));
-  for (const club of clubs) noteLabels((await readPlSquad(club)).players, codeByOpta, found);
+  const clubNumbers = new Map<number, number | null>();
+  for (const club of clubs) {
+    const { players } = await readPlSquad(club);
+    noteLabels(players, codeByOpta, found);
+    noteClubNumbers(players, codeByOpta, clubNumbers);
+  }
   const rows = [...found.labels].map(([code, plLabel]) => ({ code, plLabel }));
   let labelsChanged = 0;
   for (let start = 0; start < rows.length; start += BATCH_SIZE) {
     labelsChanged += await ctx.runMutation(internal.positions.positionsSync.recordLabels, { labels: rows.slice(start, start + BATCH_SIZE) });
+  }
+  const numbers = [...clubNumbers].map(([code, number]) => ({ code, number }));
+  let clubNumbersChanged = 0;
+  for (let start = 0; start < numbers.length; start += BATCH_SIZE) {
+    clubNumbersChanged += await ctx.runMutation(internal.positions.positionsSync.recordClubNumbers, { numbers: numbers.slice(start, start + BATCH_SIZE) });
   }
   return {
     matchesRead: Math.min(toRead.length, MATCHES_PER_RUN),
@@ -186,6 +215,7 @@ async function syncPositions(ctx: ActionCtx): Promise<Synced> {
     unmatchedPlayers: found.unmatched.size,
     labelsReceived: rows.length,
     labelsChanged,
+    clubNumbersChanged,
     unknownFormations: [...found.unknownFormations].sort(),
     unknownLabels: [...new Set(rows.map((row) => row.plLabel))].filter((label) => labelPositions(label) === null).sort(),
   };
@@ -225,11 +255,25 @@ function matchStartsOf(sheet: RawPlFixture, codeByOpta: ReadonlyMap<string, numb
 /** Each man's label, the latest noted winning; a man FPL does not list is noted as unmatched. */
 function noteLabels(men: RawPlSquadPlayer[], codeByOpta: ReadonlyMap<string, number>, found: Found): void {
   for (const man of men) {
-    const code = man.altIds === undefined ? undefined : codeByOpta.get(man.altIds.opta);
+    const code = codeOf(man, codeByOpta);
     const label = man.info?.positionInfo;
     if (code === undefined) found.unmatched.add(man.id);
     else if (label !== undefined) found.labels.set(code, label);
   }
+}
+
+/** Each squad man FPL lists, by his FPL code, with his squad number or null; one FPL does not
+ *  list is noted as unmatched by noteLabels. */
+function noteClubNumbers(men: RawPlSquadPlayer[], codeByOpta: ReadonlyMap<string, number>, numbers: Map<number, number | null>): void {
+  for (const man of men) {
+    const code = codeOf(man, codeByOpta);
+    if (code !== undefined) numbers.set(code, man.info?.shirtNum ?? null);
+  }
+}
+
+/** His FPL code, or undefined for a man FPL does not list. */
+function codeOf(man: RawPlSquadPlayer, codeByOpta: ReadonlyMap<string, number>): number | undefined {
+  return man.altIds === undefined ? undefined : codeByOpta.get(man.altIds.opta);
 }
 
 function kickoffOf(fixture: RawPlFixture): number {

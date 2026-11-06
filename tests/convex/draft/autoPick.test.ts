@@ -50,7 +50,7 @@ const setRules = (squad: Partial<LeagueRules["squad"]>, timeouts = 2) =>
 const as = (email: string) => actingAs(t, email);
 const start = async () => (await as(COMMISSIONER)).mutation(api.draft.draftStart.start, { leagueId });
 const pick = async (email: string, playerCode: number) => (await as(email)).mutation(api.draft.draftPicks.makePick, { leagueId, playerCode });
-const takeBack = async (email: string) => (await as(email)).mutation(api.draft.draftPicks.takeControlBack, { leagueId });
+const takeBack = async (email: string) => (await as(email)).mutation(api.draft.autoPickSwitch.takeControlBack, { leagueId });
 const picked = () => t.run(async (ctx) => (await ctx.db.query("draftPicks").collect()).map(({ playerCode }) => playerCode));
 const timeouts = () => t.run(async (ctx) => (await ctx.db.query("drafts").unique())?.timeouts);
 const lists = (team: Id<"teams">, queue: number[], doNotDraft: number[] = []) => t.run((ctx) => ctx.db.insert("draftLists", { leagueId, teamId: team, queue, doNotDraft }));
@@ -189,6 +189,84 @@ describe("taking control back", () => {
     await expect(takeBack(ANN)).rejects.toThrow(pickRefusals.notOnAutoPick);
     await pass(PICK_MS);
     await expect(takeBack(ANN)).rejects.toThrow(pickRefusals.notOnAutoPick);
+  });
+});
+
+describe("turning auto-pick on himself", () => {
+  const turnOn = async (email: string) => (await as(email)).mutation(api.draft.autoPickSwitch.turnOn, { leagueId });
+  const board = async (email: string) => (await as(email)).query(api.draft.draftBoard.ofLeague, { leagueId, now: Date.now() });
+
+  test("before the draft starts: his first pick is made at once, and his count stays 0", async () => {
+    await lists(teams[0], [ZOLA]);
+    await turnOn(ANN);
+    await start();
+    await pass(0);
+
+    expect(await picked()).toEqual([ZOLA]);
+    expect(await timeouts()).toEqual([{ teamId: teams[0], count: 0, autoPick: "chosen" }]);
+  });
+
+  test("with his pick on the clock: that pick and every later one are made at once, his timeout count as it was", async () => {
+    await setRules({ size: { minimum: 1, maximum: 4 } }, 2);
+    await start();
+    await pass(PICK_MS);
+    await pick(BOB, ZOLA);
+    await pick(BOB, ABBOTT);
+    await pass(PICK_GAP_MS + SECOND_MS);
+    expect(await picked()).toHaveLength(3);
+
+    await turnOn(ANN);
+    await pass(0);
+    expect(await picked()).toHaveLength(4);
+    await pass(PICK_GAP_MS);
+    expect(await picked()).toHaveLength(5);
+    await pick(BOB, 102);
+    await pick(BOB, 103);
+    await pass(PICK_GAP_MS);
+    expect(await picked()).toHaveLength(8);
+    expect(await timeouts()).toEqual([{ teamId: teams[0], count: 1, autoPick: "chosen" }]);
+  });
+
+  test("in the 10 seconds before his clock starts: his pick waits for it, then is made at once", async () => {
+    await start();
+    await pick(ANN, TOP);
+    await pick(BOB, SECOND);
+    await pick(BOB, THIRD);
+    await turnOn(ANN);
+    await pass(PICK_GAP_MS - 1);
+    expect(await picked()).toHaveLength(3);
+    await pass(1);
+    expect(await picked()).toHaveLength(4);
+  });
+
+  test("taking control back gives his clock back", async () => {
+    await turnOn(ANN);
+    await takeBack(ANN);
+    await start();
+    await pass(PICK_MS - 1);
+    expect(await picked()).toEqual([]);
+  });
+
+  test("is refused to a manager already on auto-pick, and once the draft is over", async () => {
+    await turnOn(ANN);
+    await expect(turnOn(ANN)).rejects.toThrow(pickRefusals.onAutoPick);
+    await setRules({ size: { minimum: 1, maximum: 1 } });
+    await start();
+    await pass(0);
+    await pick(BOB, SECOND);
+    await expect(turnOn(BOB)).rejects.toThrow(pickRefusals.over);
+  });
+
+  test("the board marks every pick the draft made 'auto' for the whole league, and tells him he is on it", async () => {
+    await setRules({}, 1);
+    await start();
+    await pass(PICK_MS);
+    await pick(BOB, ZOLA);
+
+    expect((await board(BOB)).picks.map(({ auto }) => auto)).toEqual([true, false]);
+    expect((await board(ANN)).yourAutoPick).toEqual({ on: true, timeouts: 1, limit: 1 });
+    expect((await board(BOB)).yourAutoPick).toEqual({ on: false, timeouts: 0, limit: 1 });
+    expect((await board(COMMISSIONER)).yourAutoPick).toBeNull();
   });
 });
 

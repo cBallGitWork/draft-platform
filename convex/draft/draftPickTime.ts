@@ -13,7 +13,7 @@ import { draftIsLive, draftOf } from "./draftRow";
 /** Why a change of pick time is refused, in the words the commissioner is shown. */
 export const pickTimeRefusals = {
   running: "The pick time can't be changed while the draft is running. Pause it first.",
-  notPaused: "The draft room's pick time can be changed only while the draft is paused.",
+  notPaused: "The draft room's pick time can be changed only while the draft is paused, or before it starts.",
 };
 
 /** Whether the league's draft is live and paused. */
