@@ -2187,6 +2187,12 @@
               ]
             },
             "optional": false
+          },
+          "clubCode": {
+            "fieldType": {
+              "type": "number"
+            },
+            "optional": true
           }
         }
       }
