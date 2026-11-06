@@ -207,7 +207,7 @@ function LineupEditor({ league, teamName, tactics, seam }: { league: LeagueSumma
               {picked === null ? pickHintWords : movingHintWords(picked.name, picked.positions)}
             </p>
             <div className="p-2">
-              <Pitch draft={draft} squad={squad} moving={moving} slots={tactics.presets.find(({ name }) => name === edits.shape)?.cells ?? []} runsShown={runsShown} />
+              <Pitch draft={draft} squad={squad} moving={moving} slots={tactics.presets.find(({ name }) => name === edits.shape)?.cells ?? []} runsShown={runsShown} season={season} gameweek={tactics.gameweek} />
             </div>
           </Panel>
           <LineupCheck
