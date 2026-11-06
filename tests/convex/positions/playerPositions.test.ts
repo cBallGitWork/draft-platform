@@ -3,7 +3,7 @@ import { api } from "../../../convex/_generated/api";
 import { refusals } from "../../../convex/shared/leagueAccess";
 import { ADMIN, actingAs } from "../../support/convex/leagues.harness";
 import { ARSENAL, insertClubs } from "../../support/convex/footballRows.harness";
-import { PL_LAST_COMP_SEASON } from "../../../convex/football/football";
+import { PL_LAST_SEASON } from "../../support/recorded/plSeasons.payloads";
 import { asAdmin, heldPositions, newcastleMen, reported, synced, syncPositionsWith } from "../../support/convex/positionsSync.harness";
 import { BRENTFORD_CODE, NEWCASTLE, PLAYER, recordedPositions, SHEET } from "../../support/recorded/positions.payloads";
 import { expectRefused, freshConvex, silenceConsoleError } from "../../support/convex/test.harness";
@@ -64,7 +64,7 @@ test("the admin's corrections survive a recount: SS he marks stays, and a positi
   const payloads = recordedPositions();
   const lateNov = payloads.sheets.find((sheet) => sheet.id === SHEET.newcastleLateNov)!;
   payloads.sheets = payloads.sheets.filter((sheet) => sheet !== lateNov);
-  payloads.fixtureLists[PL_LAST_COMP_SEASON] = payloads.fixtureLists[PL_LAST_COMP_SEASON].filter((fixture) => fixture.id !== lateNov.id);
+  payloads.fixtureLists[PL_LAST_SEASON] = payloads.fixtureLists[PL_LAST_SEASON].filter((fixture) => fixture.id !== lateNov.id);
   await syncPositionsWith(t, payloads);
   await (await asAdmin(t)).mutation(api.positions.playerPositions.approvePlayer, { code: PLAYER.woltemade });
   await (await asAdmin(t)).mutation(api.positions.playerPositions.setPosition, { code: PLAYER.woltemade, position: "SS" });

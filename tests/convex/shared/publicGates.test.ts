@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, test, vi } from "vitest";
 import { ConvexError } from "convex/values";
 import { api } from "../../../convex/_generated/api";
-import { PL_SEASON_START_YEAR } from "../../../convex/football/football";
+import { FPL_SEASON } from "../../support/recorded/plSeasons.payloads";
 import { FIRST_SCORING } from "../../../convex/scoring/firstScoring";
 import { LONDON_ZONE } from "../../../convex/shared/moments";
 import { ANN, deletes, leagueWithPeople } from "../../support/convex/leagueDeletion.harness";
@@ -43,7 +43,7 @@ beforeEach(async () => {
   const beingDeleted = await leagueWithPeople(t, "A league being deleted");
   await deletes(t, COMMISSIONER, beingDeleted);
   // Dismissing a banner needs a version of the site's scoring.
-  const versionId = await t.run((ctx) => holdSiteScoring(ctx, { scoring: FIRST_SCORING, kind: "patch", season: PL_SEASON_START_YEAR, number: 1, at: Date.now() }));
+  const versionId = await t.run((ctx) => holdSiteScoring(ctx, { scoring: FIRST_SCORING, kind: "patch", season: FPL_SEASON, number: 1, at: Date.now() }));
 
   calls = (caller) => {
     const now = Date.now();
