@@ -73,8 +73,8 @@ const matchupRoute = createRoute({
   validateSearch: matchupSearchOf,
   component: function MatchupScreen() {
     const { session, matchup } = matchupRoute.useRouteContext();
-    const { team, gameweek } = matchupRoute.useSearch();
-    return <CurrentLeague session={session} page={(league) => <MatchupPage league={league} seam={matchup} asked={{ teamId: team, gameweek }} />} />;
+    const { team, gameweek, game } = matchupRoute.useSearch();
+    return <CurrentLeague session={session} page={(league) => <MatchupPage league={league} seam={matchup} asked={{ teamId: team, gameweek, game }} />} />;
   },
 });
 
