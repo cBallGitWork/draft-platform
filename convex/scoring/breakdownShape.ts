@@ -1,4 +1,4 @@
-import { v } from "convex/values";
+import { v, type Infer } from "convex/values";
 import { SLOT_POSITIONS } from "../lineup/pitch";
 import { areaShape } from "../lineup/pitchShape";
 import { roleName } from "../lineup/roles";
@@ -41,6 +41,7 @@ export const namedCategories = v.array(
     v.object({ stat: v.string(), name: v.string(), points: v.number(), why: categoryWhy }),
   ),
 );
+export type NamedCategories = Infer<typeof namedCategories>;
 
 /** His role's points (spec/05; Craig, 5 Nov 2026: "Poacher: +1 (+2: 1 goal in box, 1 shot on target
  *  in box; −1: 1 big chance missed)"): its name, its net, and each side that moved him with each of
@@ -50,6 +51,7 @@ export const roleLine = v.object({
   points: v.number(),
   sides: v.array(v.object({ points: v.number(), lines: v.array(v.object({ stat: v.string(), name: v.string(), actions: v.number() })) })),
 });
+export type RoleLine = Infer<typeof roleLine>;
 
 /** The categories, each named as the set names its stat. */
 export function namedCategoriesOf(categories: readonly CategoryPoints[], ownStats: readonly OwnStat[] | undefined) {
