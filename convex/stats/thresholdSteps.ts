@@ -99,9 +99,9 @@ export function thresholdSteps(before: MatchStats, after: MatchStats, set: Scori
   return steps;
 }
 
-/** Every stat some role in the set adjusts. */
+/** Every stat some role in the set scores, on either side. */
 function roleAdjustedStats(set: ScoringSet): Set<string> {
-  return new Set((set.roleAdjustments ?? []).flatMap(({ adjustments }) => adjustments.map(({ stat }) => stat)));
+  return new Set((set.roles ?? []).flatMap(({ bonus, cost }) => [...bonus.parts, ...cost.parts].map(({ stat }) => stat)));
 }
 
 /** What a stored step is worth at `cell` under the rules for its stat, before any role: what its

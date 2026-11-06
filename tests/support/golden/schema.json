@@ -9956,7 +9956,7 @@
                         },
                         "optional": true
                       },
-                      "roleAdjustments": {
+                      "roles": {
                         "fieldType": {
                           "type": "array",
                           "value": {
@@ -9968,24 +9968,81 @@
                                 },
                                 "optional": false
                               },
-                              "adjustments": {
+                              "bonus": {
                                 "fieldType": {
-                                  "type": "array",
+                                  "type": "object",
                                   "value": {
-                                    "type": "object",
-                                    "value": {
-                                      "stat": {
-                                        "fieldType": {
-                                          "type": "string"
-                                        },
-                                        "optional": false
+                                    "parts": {
+                                      "fieldType": {
+                                        "type": "array",
+                                        "value": {
+                                          "type": "object",
+                                          "value": {
+                                            "stat": {
+                                              "fieldType": {
+                                                "type": "string"
+                                              },
+                                              "optional": false
+                                            },
+                                            "weight": {
+                                              "fieldType": {
+                                                "type": "number"
+                                              },
+                                              "optional": false
+                                            }
+                                          }
+                                        }
                                       },
-                                      "points": {
-                                        "fieldType": {
+                                      "optional": false
+                                    },
+                                    "bars": {
+                                      "fieldType": {
+                                        "type": "array",
+                                        "value": {
                                           "type": "number"
-                                        },
-                                        "optional": false
-                                      }
+                                        }
+                                      },
+                                      "optional": false
+                                    }
+                                  }
+                                },
+                                "optional": false
+                              },
+                              "cost": {
+                                "fieldType": {
+                                  "type": "object",
+                                  "value": {
+                                    "parts": {
+                                      "fieldType": {
+                                        "type": "array",
+                                        "value": {
+                                          "type": "object",
+                                          "value": {
+                                            "stat": {
+                                              "fieldType": {
+                                                "type": "string"
+                                              },
+                                              "optional": false
+                                            },
+                                            "weight": {
+                                              "fieldType": {
+                                                "type": "number"
+                                              },
+                                              "optional": false
+                                            }
+                                          }
+                                        }
+                                      },
+                                      "optional": false
+                                    },
+                                    "bars": {
+                                      "fieldType": {
+                                        "type": "array",
+                                        "value": {
+                                          "type": "number"
+                                        }
+                                      },
+                                      "optional": false
                                     }
                                   }
                                 },
@@ -14039,7 +14096,7 @@
                         },
                         "optional": true
                       },
-                      "roleAdjustments": {
+                      "roles": {
                         "fieldType": {
                           "type": "array",
                           "value": {
@@ -14051,24 +14108,81 @@
                                 },
                                 "optional": false
                               },
-                              "adjustments": {
+                              "bonus": {
                                 "fieldType": {
-                                  "type": "array",
+                                  "type": "object",
                                   "value": {
-                                    "type": "object",
-                                    "value": {
-                                      "stat": {
-                                        "fieldType": {
-                                          "type": "string"
-                                        },
-                                        "optional": false
+                                    "parts": {
+                                      "fieldType": {
+                                        "type": "array",
+                                        "value": {
+                                          "type": "object",
+                                          "value": {
+                                            "stat": {
+                                              "fieldType": {
+                                                "type": "string"
+                                              },
+                                              "optional": false
+                                            },
+                                            "weight": {
+                                              "fieldType": {
+                                                "type": "number"
+                                              },
+                                              "optional": false
+                                            }
+                                          }
+                                        }
                                       },
-                                      "points": {
-                                        "fieldType": {
+                                      "optional": false
+                                    },
+                                    "bars": {
+                                      "fieldType": {
+                                        "type": "array",
+                                        "value": {
                                           "type": "number"
-                                        },
-                                        "optional": false
-                                      }
+                                        }
+                                      },
+                                      "optional": false
+                                    }
+                                  }
+                                },
+                                "optional": false
+                              },
+                              "cost": {
+                                "fieldType": {
+                                  "type": "object",
+                                  "value": {
+                                    "parts": {
+                                      "fieldType": {
+                                        "type": "array",
+                                        "value": {
+                                          "type": "object",
+                                          "value": {
+                                            "stat": {
+                                              "fieldType": {
+                                                "type": "string"
+                                              },
+                                              "optional": false
+                                            },
+                                            "weight": {
+                                              "fieldType": {
+                                                "type": "number"
+                                              },
+                                              "optional": false
+                                            }
+                                          }
+                                        }
+                                      },
+                                      "optional": false
+                                    },
+                                    "bars": {
+                                      "fieldType": {
+                                        "type": "array",
+                                        "value": {
+                                          "type": "number"
+                                        }
+                                      },
+                                      "optional": false
                                     }
                                   }
                                 },
@@ -17567,7 +17681,7 @@
                   },
                   "optional": true
                 },
-                "roleAdjustments": {
+                "roles": {
                   "fieldType": {
                     "type": "array",
                     "value": {
@@ -17579,24 +17693,81 @@
                           },
                           "optional": false
                         },
-                        "adjustments": {
+                        "bonus": {
                           "fieldType": {
-                            "type": "array",
+                            "type": "object",
                             "value": {
-                              "type": "object",
-                              "value": {
-                                "stat": {
-                                  "fieldType": {
-                                    "type": "string"
-                                  },
-                                  "optional": false
+                              "parts": {
+                                "fieldType": {
+                                  "type": "array",
+                                  "value": {
+                                    "type": "object",
+                                    "value": {
+                                      "stat": {
+                                        "fieldType": {
+                                          "type": "string"
+                                        },
+                                        "optional": false
+                                      },
+                                      "weight": {
+                                        "fieldType": {
+                                          "type": "number"
+                                        },
+                                        "optional": false
+                                      }
+                                    }
+                                  }
                                 },
-                                "points": {
-                                  "fieldType": {
+                                "optional": false
+                              },
+                              "bars": {
+                                "fieldType": {
+                                  "type": "array",
+                                  "value": {
                                     "type": "number"
-                                  },
-                                  "optional": false
-                                }
+                                  }
+                                },
+                                "optional": false
+                              }
+                            }
+                          },
+                          "optional": false
+                        },
+                        "cost": {
+                          "fieldType": {
+                            "type": "object",
+                            "value": {
+                              "parts": {
+                                "fieldType": {
+                                  "type": "array",
+                                  "value": {
+                                    "type": "object",
+                                    "value": {
+                                      "stat": {
+                                        "fieldType": {
+                                          "type": "string"
+                                        },
+                                        "optional": false
+                                      },
+                                      "weight": {
+                                        "fieldType": {
+                                          "type": "number"
+                                        },
+                                        "optional": false
+                                      }
+                                    }
+                                  }
+                                },
+                                "optional": false
+                              },
+                              "bars": {
+                                "fieldType": {
+                                  "type": "array",
+                                  "value": {
+                                    "type": "number"
+                                  }
+                                },
+                                "optional": false
                               }
                             }
                           },
@@ -21124,7 +21295,7 @@
                   },
                   "optional": true
                 },
-                "roleAdjustments": {
+                "roles": {
                   "fieldType": {
                     "type": "array",
                     "value": {
@@ -21136,24 +21307,81 @@
                           },
                           "optional": false
                         },
-                        "adjustments": {
+                        "bonus": {
                           "fieldType": {
-                            "type": "array",
+                            "type": "object",
                             "value": {
-                              "type": "object",
-                              "value": {
-                                "stat": {
-                                  "fieldType": {
-                                    "type": "string"
-                                  },
-                                  "optional": false
+                              "parts": {
+                                "fieldType": {
+                                  "type": "array",
+                                  "value": {
+                                    "type": "object",
+                                    "value": {
+                                      "stat": {
+                                        "fieldType": {
+                                          "type": "string"
+                                        },
+                                        "optional": false
+                                      },
+                                      "weight": {
+                                        "fieldType": {
+                                          "type": "number"
+                                        },
+                                        "optional": false
+                                      }
+                                    }
+                                  }
                                 },
-                                "points": {
-                                  "fieldType": {
+                                "optional": false
+                              },
+                              "bars": {
+                                "fieldType": {
+                                  "type": "array",
+                                  "value": {
                                     "type": "number"
-                                  },
-                                  "optional": false
-                                }
+                                  }
+                                },
+                                "optional": false
+                              }
+                            }
+                          },
+                          "optional": false
+                        },
+                        "cost": {
+                          "fieldType": {
+                            "type": "object",
+                            "value": {
+                              "parts": {
+                                "fieldType": {
+                                  "type": "array",
+                                  "value": {
+                                    "type": "object",
+                                    "value": {
+                                      "stat": {
+                                        "fieldType": {
+                                          "type": "string"
+                                        },
+                                        "optional": false
+                                      },
+                                      "weight": {
+                                        "fieldType": {
+                                          "type": "number"
+                                        },
+                                        "optional": false
+                                      }
+                                    }
+                                  }
+                                },
+                                "optional": false
+                              },
+                              "bars": {
+                                "fieldType": {
+                                  "type": "array",
+                                  "value": {
+                                    "type": "number"
+                                  }
+                                },
+                                "optional": false
                               }
                             }
                           },

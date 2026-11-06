@@ -182,6 +182,7 @@ import type * as schema_waivers from "../schema/waivers.js";
 import type * as scoring_carryFix from "../scoring/carryFix.js";
 import type * as scoring_categories from "../scoring/categories.js";
 import type * as scoring_draftedRoleAdjustments from "../scoring/draftedRoleAdjustments.js";
+import type * as scoring_firstRolesVersion from "../scoring/firstRolesVersion.js";
 import type * as scoring_firstScoring from "../scoring/firstScoring.js";
 import type * as scoring_ownStats from "../scoring/ownStats.js";
 import type * as scoring_patchChanges from "../scoring/patchChanges.js";
@@ -462,6 +463,7 @@ declare const fullApi: ApiFromModules<{
   "scoring/carryFix": typeof scoring_carryFix;
   "scoring/categories": typeof scoring_categories;
   "scoring/draftedRoleAdjustments": typeof scoring_draftedRoleAdjustments;
+  "scoring/firstRolesVersion": typeof scoring_firstRolesVersion;
   "scoring/firstScoring": typeof scoring_firstScoring;
   "scoring/ownStats": typeof scoring_ownStats;
   "scoring/patchChanges": typeof scoring_patchChanges;

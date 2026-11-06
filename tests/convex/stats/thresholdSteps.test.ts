@@ -1,6 +1,7 @@
 import { expect, test } from "vitest";
 import { FIRST_SCORING } from "../../../convex/scoring/firstScoring";
 import type { ScoringSet } from "../../../convex/scoring/scoringSet";
+import { pricedRole } from "../../support/convex/scoring.example";
 import { thresholdSteps } from "../../../convex/stats/thresholdSteps";
 import { HULL_SCORER, scoresLeague } from "../../support/convex/gameweekScores.harness";
 import { liveRecords } from "../../support/convex/gameweekScoresMatch.harness";
@@ -75,9 +76,9 @@ test("an own stat is stepped by its own total", () => {
 // minutes (#868; spec/10: every point movement gets a line).
 const WITH_ROLES: ScoringSet = {
   ...SET,
-  roleAdjustments: [
-    { role: "attackingFullBack", adjustments: [{ stat: "accurate_cross", points: 1 }, { stat: "clean_sheets", points: -1 }] },
-    { role: "poacher", adjustments: [{ stat: "goals_scored", points: 1 }] },
+  roles: [
+    { ...pricedRole("attackingFullBack", "accurate_cross", 1), cost: { parts: [{ stat: "clean_sheets", weight: 1 }], bars: [1] } },
+    pricedRole("poacher", "goals_scored", 1),
   ],
 };
 

@@ -222,6 +222,11 @@ From Craig, 1 Nov 2026.
 - So a role moves a player by at most 3 points a match either way: ±3, chosen over ±2 (Craig,
   5 Nov 2026). At ±2 more than a third of starts sat on the ceiling, so a good fit and a great fit
   scored the same.
+- The bars count per match, whatever his minutes: a cameo's count as a full match's (Craig, 5 Nov
+  2026: "Yes: bars count per match, whatever his minutes"). `S05.1`
+- The player card's line for a role gives the net and each side that moved him: "Poacher: +1 (+2:
+  1 goal in box, 1 shot on target in box; −1: 1 big chance missed)" (Craig, 5 Nov 2026: "One line
+  with the net and each side"). `S05.2`
 - Roles lift the slots that score less, as defcon does in FPL: "roles/tactics are essentially a
   dynamic defcon for each positon and role". Every slot has a target role bonus a start: half its
   gap in base points to strikers, plus 0.5 for every slot, as "i do want players to get points"
@@ -233,9 +238,20 @@ From Craig, 1 Nov 2026.
 
   Every role in a slot aims at its slot's target, so picking the role that suits the player is
   the skill. The check: over the slot's real starts, each role's average lands within 0.25 points
-  a match of its target. It replaces the check against base scoring of 26 Oct 2026.
+  a match of its target. It replaces the check against base scoring of 26 Oct 2026. The check is a
+  backtest over past seasons' real stats, never this season's gameweeks, so the other seasons'
+  data comes first: "argh again your making it sound like "this project is live now so we test
+  it" we try get other seasons data first to create the intiial backtest" (Craig, 5 Nov 2026).
+  The past seasons are copied on Craig's Mac, plus small files the backtest reads ("You copy them
+  on your Mac, plus small files"); a role stat a past season lacks takes its nearest past stat, or
+  the role is marked not tested ("Nearest past stat, else "not tested""); a past start counts in
+  the slot he started that match in ("Where he started that match"); and the scoring ships before
+  the backtest ("Scoring first"; all Craig, 5 Nov 2026).
 - Claude drafts the first values and Craig edits them by patch (26 Oct 2026). The first values,
   fitted to 26/27 gameweeks 1 to 9, are in [roles-first-values.md](../docs/roles-first-values.md).
+  They went into the site's set as its starting rules, taking effect from the next gameweek that
+  hadn't begun, with no letter; later changes go by patch (Craig, 5 Nov 2026: "put
+  roles-first-values.md into the site's set now as the starting rules"). `S05.3`
 - Roles' scoring adjustments are the site's, changed by patch (`spec/14`, 25 Oct 2026); the
   ready-made rules carry a default set.
 - A patch changes a role's scoring but doesn't remove a role (Craig, 31 Oct 2026). If a role ever
