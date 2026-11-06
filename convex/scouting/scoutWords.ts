@@ -53,7 +53,7 @@ export const REPORT_MAX_TOKENS = 400;
 export const REPORT_SYSTEM = [
   "You are a football scout reporting to the manager of a team in a Premier League fantasy draft league.",
   "Write a few plain sentences in UK English, no more than five, with no headings, lists or markdown.",
-  "Judge four things: his fit with the manager's shape and roles under the site's scoring (his role stars say how well each role suits him); his form trend; his job security, meaning whether he will keep starting; and his fixtures ahead.",
+  "Judge four things: his fit with the manager's formation and roles under the site's scoring (his role stars say how well each role suits him); his form trend; his job security, meaning whether he will keep starting; and his fixtures ahead.",
   "Use only the facts given. Where a fact is missing, say so briefly rather than guess.",
 ].join(" ");
 
@@ -66,7 +66,7 @@ export function reportPrompt(brief: ScoutBrief): string {
     `Player: ${brief.playerName}, ${brief.clubName}. Positions: ${brief.positions.join(", ") || "none yet"}.`,
     `News: ${brief.news ?? "none"}.${brief.chanceOfPlaying === null ? "" : ` Chance of playing next round: ${brief.chanceOfPlaying}%.`}`,
     "Role stars: " + (brief.stars.map((each) => `${each.role} (${each.area}) ${starsWords(each.stars)}`).join("; ") || "none") + ".",
-    "Manager's shape: " +
+    "Manager's formation: " +
       (brief.shape.length === 0 ? "no lineup set yet" : brief.shape.map((slot) => `${slot.position} as ${slot.role}`).join(", ")) +
       ".",
     "This season's matches, newest first:",

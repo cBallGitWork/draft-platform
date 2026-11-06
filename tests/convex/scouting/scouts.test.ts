@@ -112,7 +112,7 @@ describe("the report", () => {
     const prompt = asked!.messages[0]!.content;
     expect(prompt).toContain("Player: Scorer");
     expect(prompt).toContain("Role stars:");
-    expect(prompt).toContain("Manager's shape:");
+    expect(prompt).toContain("Manager's formation:");
     expect(prompt).toContain("This season's matches");
     expect(prompt).toContain("Fixtures ahead:");
     expect(await ann.mine()).toEqual({

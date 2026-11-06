@@ -15,7 +15,7 @@ export const RESEND_KEY_SETTING = "AUTH_RESEND_KEY";
 /** Anthropic's API key, for what the app has Claude write: a scout's report (spec/19). */
 export const ANTHROPIC_KEY_SETTING = "ANTHROPIC_API_KEY";
 
-/** The sender's address:the live site's is set by `npm run setup:live` (docs/setup.md). */
+/** The sender's address: the live site's is set by `npm run setup:live` (docs/setup.md). */
 export const EMAIL_FROM_SETTING = "EMAIL_FROM";
 
 /** The one test account's email (spec/02): the only one that signs in with a secret, not a link. */
