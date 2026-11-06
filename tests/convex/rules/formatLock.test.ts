@@ -3,7 +3,7 @@ import { api } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
 import { formatLocked } from "../../../convex/rules/formatLock";
 import { HOUR_MS } from "../../../convex/shared/time";
-import { changeRules, HELD_FIRST_RULES, holdGameweeks, rulesInGameweek, rulesWith, TOTAL_POINTS } from "../../support/convex/leagueRules.harness";
+import { changeRules, HELD_FIRST_RULES, holdGameweeks, rulesInGameweek, TOTAL_POINTS } from "../../support/convex/leagueRules.harness";
 import { expectRefused } from "../../support/convex/test.harness";
 import { actingAs, adminCreatesLeague, COMMISSIONER, type TestConvex } from "../../support/convex/leagues.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
@@ -67,6 +67,6 @@ describe("a format change", () => {
     await t.run((ctx) => ctx.db.patch("leagues", leagueId, { scoringStart: 3 }));
     gameweekOneBegins();
 
-    expect(await change(leagueId, rulesWith({ format: "totalPoints" }))).toBe(2);
+    expect(await change(leagueId)).toBe(2);
   });
 });
