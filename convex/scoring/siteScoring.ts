@@ -1,5 +1,4 @@
 import { v } from "convex/values";
-import { internal } from "../_generated/api";
 import type { Doc, Id } from "../_generated/dataModel";
 import { mutation, query, type MutationCtx } from "../_generated/server";
 import { siteScoringKind } from "../schema";
@@ -12,6 +11,7 @@ import { DAY_MS, seasonStartYear } from "../shared/time";
 import { fileSiteLetter } from "../mail/letters";
 import { versionLetter, withdrawnLetter } from "../mail/letterWords";
 import { carryFix } from "./carryFix";
+import { repriceAt } from "./patchKickoffs";
 import { scoringChanges } from "./patchChanges";
 import { checkOwnStatsAgainstCatalogue } from "./ownStats";
 import { validateScoringSet } from "./scoringSet";
@@ -88,7 +88,7 @@ function checkRevision(latest: Doc<"siteScoring"> | undefined, revision: Id<"sit
 export async function addVersion(
   ctx: MutationCtx,
   history: readonly Doc<"siteScoring">[],
-  version: Pick<Doc<"siteScoring">, "scoring" | "kind" | "takesEffectAt">,
+  version: Pick<Doc<"siteScoring">, "scoring" | "kind" | "takesEffectAt" | "gameweek">,
   by: string | null,
 ): Promise<{ id: Id<"siteScoring">; name: string; fromGameweek: number }> {
   if (history.length >= SITE_SCORING_VERSIONS_MOST) refuse(siteScoringRefusals.tooManyVersions);
@@ -100,11 +100,7 @@ export async function addVersion(
   const changes = scoringChanges(setOf(history.at(-1)), version.scoring);
   const news = { name, kind: version.kind, takesEffectAt: version.takesEffectAt, fromGameweek, changes };
   if (by !== null) await fileSiteLetter(ctx, (zone) => versionLetter(news, zone), by);
-  // Stars price every match under today's scoring, so everyone is rated again once it takes effect
-  // (stars/starsRefresh.ts, #11).
-  await ctx.scheduler.runAt(version.takesEffectAt, internal.stars.starsRefresh.refreshAll, { cursor: null });
-  // Last season's points are priced under the set as it stands too (spec/19; pastSeasonPoints.ts).
-  await ctx.scheduler.runAt(version.takesEffectAt, internal.pastSeasons.pastSeasonPoints.reprice, { cursor: null });
+  await repriceAt(ctx, version.takesEffectAt);
   return { id, name, fromGameweek };
 }
 
@@ -204,7 +200,9 @@ export const announce = mutation({
     const earliest = Date.now() + PATCH_NOTICE_MS;
     if (takesEffectAt < earliest) refuse(siteScoringRefusals.tooSoon(earliest, zone));
     if (latest !== undefined && takesEffectAt < latest.takesEffectAt) refuse(siteScoringRefusals.beforeWaiting(versionName(latest), latest.takesEffectAt, zone));
-    const added = await addVersion(ctx, history, { scoring: draft.scoring, kind: "patch", takesEffectAt }, admin);
+    // Announced from a gameweek, it follows that gameweek's first kickoff if it moves later (patchKickoffs.ts).
+    const gameweek = (await patchGameweeks(ctx, Date.now(), PATCH_NOTICE_MS)).find((offered) => offered.takesEffectAt === takesEffectAt)?.gameweek;
+    const added = await addVersion(ctx, history, { scoring: draft.scoring, kind: "patch", takesEffectAt, gameweek }, admin);
     await ctx.db.delete("siteScoringDraft", draft._id);
     return { name: added.name, fromGameweek: added.fromGameweek };
   },

@@ -21,6 +21,10 @@ export const siteScoringTables = {
     number: v.number(),
     announcedAt: v.number(),
     takesEffectAt: v.number(),
+    /** A patch announced from a gameweek: that gameweek, whose first kickoff `takesEffectAt`
+     *  follows if it moves later before the patch lands (Craig, 1 Nov 2026, on #901;
+     *  patchKickoffs.ts). None for a fix, or a patch announced at a moment no gameweek starts at. */
+    gameweek: v.optional(v.number()),
   }).index("by_takesEffectAt", ["takesEffectAt"]),
   /** One row at most: the admin's patch saved as a draft, which changes nothing until announced,
    *  and the version it was made from (null for the first set). */

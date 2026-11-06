@@ -17828,6 +17828,12 @@
               "type": "number"
             },
             "optional": false
+          },
+          "gameweek": {
+            "fieldType": {
+              "type": "number"
+            },
+            "optional": true
           }
         }
       }
