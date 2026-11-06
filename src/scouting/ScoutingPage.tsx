@@ -44,7 +44,7 @@ export function ScoutingPage({ league, seam }: { league: LeagueSummary; seam: Sc
       {picked.length > 0 && <ComparePanel picked={picked} comparison={comparison} pointsSeason={list?.pointsSeason ?? null} clear={() => setPicked([])} />}
       <ShortlistPanel leagueId={league.leagueId} seam={seam} />
       <Panel title={PLAYERS_TITLE}>
-        <Filters filters={filters} clubs={list?.clubs} filterBy={filterBy} stat={stat} show={show} />
+        <Filters filters={filters} clubs={list?.clubs} ownStats={list?.ownStats} filterBy={filterBy} stat={stat} show={show} />
         {list === undefined ? (
           <Loading className="px-3 py-2">{loadingWords}</Loading>
         ) : list.players.length === 0 ? (

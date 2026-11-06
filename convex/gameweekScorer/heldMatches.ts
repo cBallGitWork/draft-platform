@@ -73,5 +73,7 @@ export const playsIn = (fixture: Doc<"fixtures">, clubCode: number) => fixture.h
 
 /** A match read at full time has a state; one still live has none (liveStats.ts). */
 export const isFinished = (match: HeldMatch) => match.status !== null;
+/** Postponed and not rearranged into its gameweek: a match with no kickoff time (scoreReads.ts). */
+export const isPostponed = (match: Pick<HeldMatch, "fixture">) => match.fixture.kickoff === null;
 /** Its corrections window shut: nothing changes its points after (spec/07). */
 export const isMatchFinal = (match: Pick<HeldMatch, "status">) => match.status?.state === "locked";
