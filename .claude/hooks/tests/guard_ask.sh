@@ -53,3 +53,8 @@ check allow guard_ask.py "$(ask "Draft order (#1130): where does the Draw at ran
 check deny guard_ask.py "$(ask "Draft order (#1130): where does the Draw at random button sit?")"
 says "Already asked" guard_ask.py "$(ask "draft order (#1130): where does the draw at random button sit")"  # words, not case or marks
 check allow guard_ask.py "$(ask "Draft order (#1130): can the commissioner redraw it?")"
+# one call's hooks can run twice: the same call is never a repeat of itself, another call still is
+asked_by() { "$jq" -nc --arg q "$1" --arg id "$2" '{tool_name:"AskUserQuestion",tool_use_id:$id,tool_input:{questions:[{header:"H",question:$q,options:[]}]}}'; }
+check allow guard_ask.py "$(asked_by "Lineup check (#23): does it list each out-of-position starter?" toolu_1)"
+check allow guard_ask.py "$(asked_by "Lineup check (#23): does it list each out-of-position starter?" toolu_1)"
+check deny guard_ask.py "$(asked_by "Lineup check (#23): does it list each out-of-position starter?" toolu_2)"
