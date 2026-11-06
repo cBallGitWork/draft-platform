@@ -1,7 +1,7 @@
 import { Fragment } from "react";
 import type { Position } from "../../../convex/positions/positionTables";
 import type { SeasonStats } from "../../../convex/squads/teamSquad";
-import { ClubShort } from "../../premierLeague/ClubName";
+import { ClubMark, ClubShort } from "../../premierLeague/ClubName";
 import { cellClassOf, ColumnHeads } from "../../ui/ColumnHeads";
 import { Placeholder } from "../../ui/Placeholder";
 import { PositionCode } from "../../ui/PositionCodes";
@@ -136,6 +136,7 @@ function SquadCell({ column, player, starts, marks, isSelected, onSelect }: { co
             {!starts && <span className="sr-only">, {benchWords}</span>}
           </button>{" "}
           <span className="text-muted">
+            <ClubMark code={player.club.code} />
             <ClubShort club={player.club} />
           </span>
           {player.chanceOfPlaying !== null && (

@@ -4,6 +4,7 @@
 import { screen, within } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import { PREMIER_LEAGUE_PATH } from "../../../src/frame/menu";
+import { crestUrl } from "../../../src/premierLeague/ClubName";
 import type { PlStandings } from "../../../src/premierLeague/seam";
 import { loadingTableWords, noClubsWords, provisionalWords, TABLE_TITLE, tableColumns } from "../../../src/premierLeague/words";
 import { expectColumnHeads } from "../../support/src/columnHeads";
@@ -26,8 +27,11 @@ const standings: PlStandings = {
 /** Each body row's cells, the club by its full name (the desk's). */
 async function tableLines() {
   const rows = within(await panel()).getAllByRole("row").slice(1);
-  return rows.map((row) => [...row.children].map((cell, index) => (index === 1 ? cell.firstElementChild!.textContent : cell.textContent)));
+  return rows.map((row) => [...row.children].map((cell, index) => (index === 1 ? cell.querySelector(".sm\\:inline")!.textContent : cell.textContent)));
 }
+
+/** The club mark heading a row, before the club's name: its crest by the club's code. */
+const markOf = (row: HTMLElement) => row.querySelector<HTMLImageElement>("[data-club-mark]");
 
 describe("the Premier League table", () => {
   it("says so while it loads", async () => {
@@ -55,6 +59,15 @@ describe("the Premier League table", () => {
       ["3", "Spurs", "2", "0", "1", "1", "2", "3", "\u22121", "1"],
       ["3", "Nottingham Forest", "2", "0", "1", "1", "2", "3", "\u22121", "1"],
     ]);
+  });
+
+  it("puts each club's crest before its name, fetched by the club's code", async () => {
+    openSection({ standings });
+    const clubs = within(await panel()).getAllByRole("rowheader");
+    expect(clubs.map((club) => markOf(club)?.getAttribute("src"))).toEqual(
+      [ARSENAL, CHELSEA, SPURS, FOREST].map(({ code }) => crestUrl(code)),
+    );
+    expect(clubs[0].firstElementChild).toBe(markOf(clubs[0]));
   });
 
   it("leaves goals for and against off a phone, and names a club by its three letters there", async () => {

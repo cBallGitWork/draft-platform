@@ -2,6 +2,7 @@ import { useCanGoBack, useRouter } from "@tanstack/react-router";
 import type { ReactNode } from "react";
 import type { LeagueSummary } from "../../convex/leagues/myLeagues";
 import { PositionCodes } from "../ui/PositionCodes";
+import { ClubMark } from "../premierLeague/ClubName";
 import { OwnerName } from "../ui/OwnerName";
 import { SCOUTING_PATH } from "../frame/menu";
 import { Loading, PAGE_STACK, PageSection, Panel, PANEL_BODY, PanelNote } from "../ui/Panel";
@@ -103,7 +104,10 @@ function Facts({ card, children }: { card: PlayerCard; children: ReactNode }) {
     <Panel title={PLAYER_TITLE}>
       <dl className={`${PANEL_BODY} grid grid-cols-facts gap-x-3`}>
         <dt className="text-soft">{clubLabel}</dt>
-        <dd>{card.club.name}</dd>
+        <dd>
+          <ClubMark code={card.club.code} />
+          {card.club.name}
+        </dd>
         <dt className="text-soft">{positionsLabel}</dt>
         <dd>{card.positions.length === 0 ? <span className="text-muted">{noPositionsWords}</span> : <PositionCodes positions={card.positions} />}</dd>
         <dt className="text-soft">{ownerLabel}</dt>

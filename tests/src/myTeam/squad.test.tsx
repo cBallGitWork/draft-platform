@@ -32,7 +32,8 @@ import {
   whenWords,
 } from "../../../src/myTeam/squad/words";
 import { unheldNoticeWords, unheldPlayerWords } from "../../../src/shared/words";
-import { UNHELD } from "../../support/convex/footballRows.harness";
+import { crestUrl } from "../../../src/premierLeague/ClubName";
+import { ARSENAL, UNHELD } from "../../support/convex/footballRows.harness";
 import { columnHeadIn, expectColumnHeads } from "../../support/src/columnHeads";
 import { commissioner, league, manager, openApp } from "../../support/src/shell.harness";
 import { cells, KICKOFF, openSquad, PALMER, RAYA, rows, SAKA, squadOf, tacticsWith } from "../../support/src/squadTab.harness";
@@ -160,6 +161,14 @@ describe("the rows", () => {
     const matches = within(rows()[0]).getAllByTitle(new RegExp(difficultyNotRatedWords));
     expect(matches.map((match) => match.textContent)).toEqual([`CHE ${homeWords}`, `CHE ${awayWords}`, `CHE ${awayWords}`]);
     expect(matches.every((match) => match.className.includes("border-muted"))).toBe(true);
+  });
+
+  it("put his club's crest before his club's code, and none in a next-match cell (spec/12, Club colours)", async () => {
+    openSquad({ squad: squadOf([SAKA]) });
+    await screen.findByRole("table");
+    const [row] = rows();
+    expect(within(row).getByTitle("Arsenal").previousElementSibling!.getAttribute("src")).toBe(crestUrl(ARSENAL.code));
+    expect(row.querySelectorAll("[data-club-mark]")).toHaveLength(1);
   });
 
   it("mark a player FPL holds a doubt about with the status chip's placeholder, and nobody else", async () => {

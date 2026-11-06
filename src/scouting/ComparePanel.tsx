@@ -4,7 +4,7 @@ import { STAT_CATALOGUE } from "../../convex/scoring/statCatalogueList";
 import { Loading, Panel, PanelNote } from "../ui/Panel";
 import { PositionCodes } from "../ui/PositionCodes";
 import { OwnerName } from "../ui/OwnerName";
-import { ClubShort } from "../premierLeague/ClubName";
+import { ClubMark, ClubShort } from "../premierLeague/ClubName";
 import { ColumnHeads } from "../ui/ColumnHeads";
 import { statFigure } from "./figures";
 import type { ComparedPlayer, Comparison } from "./seam";
@@ -50,7 +50,13 @@ export function ComparePanel({ picked, comparison, clear }: { picked: readonly P
 type Row = { label: string; title?: string; cell: (player: ComparedPlayer) => ReactNode };
 
 const FIXED_ROWS: readonly Row[] = [
-  { label: columns.club.long, cell: (player) => <ClubShort club={player.club} /> },
+  { label: columns.club.long, cell: (player) => (
+      <>
+        <ClubMark code={player.club.code} />
+        <ClubShort club={player.club} />
+      </>
+    ),
+  },
   { label: columns.positions.long, cell: (player) => <PositionCodes positions={player.positions} /> },
   { label: columns.owner.short, title: columns.owner.long, cell: (player) => <OwnerName teamName={player.ownerTeamName} /> },
   {
