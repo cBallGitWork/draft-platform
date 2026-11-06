@@ -4,7 +4,8 @@
 // reaches the screen as is.
 
 import { SLOT_POSITIONS, type SlotPosition } from "../../convex/lineup/pitch";
-import { noNumberWords, savedFromWords } from "../rules/words";
+import { screenMoment } from "../../convex/shared/moments";
+import { gameweekWords, noNumberWords, savedFromWords } from "../rules/words";
 import { failedWords, figureWords, POSITION_NAMES } from "../shared/words";
 import type { PerCount, Pricing, Shape } from "./editing";
 
@@ -103,3 +104,39 @@ export const blankBoxWords = (category: string) => noNumberWords(`A box in ${cat
 /** What a failed save leaves, live or in the preview. */
 export const unsavedOutcome = "the scoring didn't change";
 export const saveFailedWords = failedWords(unsavedOutcome);
+
+/** The admin's patches (spec/14, Changes and corrections; Craig, 6 Nov 2026, on #368): the editor's
+ *  two tabs, the live set saved as a fix and the draft patch, announced from a gameweek. */
+export const editorTabsLabel = "Which scoring you edit";
+export const liveTabWords = "Live";
+export const draftTabWords = "Draft patch";
+export const saveDraftWords = "Save draft";
+export const draftSavedWords = "Draft saved. It changes nothing until announced.";
+export const announceGameweekLabel = "Takes effect from";
+/** "Gameweek 13, Sat 21 Nov, 12:30". */
+export const patchGameweekWords = (gameweek: number, takesEffectAt: number) => `${gameweekWords(gameweek)}, ${screenMoment(takesEffectAt)}`;
+export const announceWords = "Announce";
+export const announcedWords = (name: string, gameweek: number) => `Announced. Patch ${name} applies to every league from ${gameweekWords(gameweek)}.`;
+export const saveDraftFirstWords = "Save the draft to announce it.";
+/** The server offers only gameweeks a patch's week of notice reaches (convex/scoring/siteVersions.ts). */
+export const noPatchGameweekWords = "No gameweek is far enough off for a patch's notice.";
+export const draftFailedWords = failedWords("the draft wasn't saved");
+export const announceFailedWords = failedWords("the patch wasn't announced");
+
+/** The versions list. */
+export const versionsTitle = "Versions";
+export const versionColumns = {
+  name: { short: "Version", long: "Version" },
+  kind: { short: "Kind", long: "Patch or fix" },
+  announcedAt: { short: "Announced", long: "Announced on" },
+  fromGameweek: { short: "From", long: "Takes effect from" },
+  notes: { short: "Notes", long: "Patch notes" },
+} as const;
+export const comingWords = "Coming";
+export const noVersionsYetWords = "No versions yet: every league plays the first scoring set.";
+export const notesLinkWords = "Notes";
+export const withdrawWords = "Withdraw";
+export const withdrawQuestion = (name: string) => `Withdraw patch ${name}? It goes back to the draft, its banner goes, and every manager gets a letter saying so.`;
+export const withdrawYesWords = "Withdraw it";
+export const withdrawNoWords = "Keep it";
+export const withdrawFailedWords = failedWords("the patch wasn't withdrawn");
