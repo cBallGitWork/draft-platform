@@ -24,10 +24,10 @@ const wholeOf = (value: unknown) => (typeof value === "number" && Number.isInteg
  *  numbers, and a game at least 1. */
 export function matchupSearchOf(search: Record<string, unknown>): MatchupSearch {
   const { team, gameweek, game } = search;
-  const shownGame = wholeOf(game);
+  const gameNumber = wholeOf(game);
   return {
     team: typeof team === "string" && team !== "" ? (team as Id<"teams">) : undefined,
     gameweek: wholeOf(gameweek),
-    game: shownGame !== undefined && shownGame >= 1 ? shownGame : undefined,
+    game: gameNumber !== undefined && gameNumber >= 1 ? gameNumber : undefined,
   };
 }
