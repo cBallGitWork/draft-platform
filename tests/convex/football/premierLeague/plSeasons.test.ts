@@ -8,7 +8,7 @@ import {
   readPlSeasons,
 } from "../../../../convex/football/premierLeague/plSeasons";
 import { fakeFetch } from "../../../support/convex/test.harness";
-import { FPL_SEASON, PL_LAST_SEASON, PL_THIS_SEASON, plSeasonList, plSeasonsBody } from "../../../support/recorded/plSeasons.payloads";
+import { FPL_SEASON, PL_LAST_SEASON, PL_THIS_SEASON, plSeasonList } from "../../../support/recorded/plSeasons.payloads";
 
 test.each([
   ["English Premier League Season 2026/2027", 2026],
@@ -63,8 +63,7 @@ test.each([
 });
 
 test("the list's URL asks for every season in one page", () => {
-  const [url] = plSeasonsBody();
-  expect(url).toBe("https://footballapi.pulselive.com/football/competitions/1/compseasons?pageSize=100");
+  expect(plCompSeasonsUrl()).toBe("https://footballapi.pulselive.com/football/competitions/1/compseasons?pageSize=100");
 });
 
 test("FPL is on the season its first gameweek's deadline falls in, in any order, whatever today is", () => {
