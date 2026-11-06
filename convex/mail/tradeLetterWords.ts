@@ -99,7 +99,7 @@ export function reviewLetter(trade: TradeWords, review: ReviewWords, endsAt: num
 /** To the whole league when a trade goes through: the usual trade letter (spec/16), naming each
  *  team whose squad it pushes past the league's limits (spec/08: warned, as an assignment is). */
 export function tradeMadeLetter(trade: TradeWords, overLimits: readonly string[]): Words {
-  const warned = overLimits.length === 0 ? "" : ` ${andListWords(overLimits)} now break the league's squad limits.`;
+  const warned = overLimits.length === 0 ? "" : ` ${andListWords(overLimits)} now ${overLimits.length === 1 ? "breaks" : "break"} the league's squad limits.`;
   return {
     subject: `${trade.fromTeamName} and ${trade.toTeamName} traded`,
     body: `${nobody(trade.gives)} to ${trade.toTeamName}; ${nobody(trade.gets)} to ${trade.fromTeamName}.${warned}`,
