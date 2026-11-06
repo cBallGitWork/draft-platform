@@ -18,6 +18,7 @@ import { teamIn } from "../shared/leagueAccess";
 import { MINUTE_MS } from "../shared/time";
 import { placeOf, squadOf } from "../squads/squadPlace";
 import { limitsBroken, type SquadWarning } from "../squads/squads";
+import { closeOffersHolding, reviewHolding } from "../trades/tradeClose";
 import { claimedName, leagueClaims } from "./waiverClaims";
 import { inWaiverLock, latestBegun } from "./waiverLock";
 import { waiverOrderOf, waiverOrderRow, winnersNow, withWinnersLast, wonBy } from "./waiverOrder";
@@ -29,7 +30,8 @@ import { latestRunAt } from "./waiverTimes";
 // (waiverOrder.ts): the team at the top has its first claim still standing tried; one that
 // succeeds sends the team to the bottom for the rest of the run and after, and one that fails is
 // gone, its manager told why, and the team's next is tried. A claim fails if another team got the
-// player first, if the player he named to drop is no longer his, or if it would break the squad's
+// player first, if the player he named to drop is no longer his or is held in a trade under review
+// (../trades/, Craig, 6 Nov 2026), or if it would break the squad's
 // limits. A player nobody claims is a free agent straight after, and each manager whose shortlist
 // holds him is told (../scouting/shortlist.ts). A run that falls from the deadline
 // until the gameweek's last match is over, or while the draft is live, is skipped. One internal
@@ -96,6 +98,7 @@ async function tryClaim(ctx: MutationCtx, run: Run, claim: Doc<"waiverClaims">):
   if (onWaivers === undefined) return { won: false, why: "ahead" };
   const drop = claim.dropCode === null ? null : await placeOf(ctx, league._id, claim.dropCode);
   if (claim.dropCode !== null && drop?.teamId !== claim.teamId) return { won: false, why: "dropGone" };
+  if (claim.dropCode !== null && (await reviewHolding(ctx, league._id, claim.dropCode)) !== null) return { won: false, why: "dropHeld" };
   if (await joiningBreaksLimits(ctx, league._id, claim.teamId, claim.playerCode, claim.dropCode, squadRules)) return { won: false, why: "limits" };
 
   claimable.delete(claim.playerCode);
@@ -122,6 +125,7 @@ async function report(ctx: MutationCtx, league: Doc<"leagues">, claim: Doc<"waiv
       : { playerCode: claim.dropCode, playerName: dropName, toWaivers: tried.toWaivers };
   if (dropped !== null) {
     await fileEvent(ctx, league._id, claim.by, { kind: "playerDropped", ...dropped, ...onTeam });
+    await closeOffersHolding(ctx, league._id, team._id, [dropped.playerCode]);
     const player = { code: dropped.playerCode, name: dropped.playerName };
     await tellShortlisters(ctx, league, player, team, claim.by, { released: false, toWaivers: dropped.toWaivers }, { unread: true });
   }

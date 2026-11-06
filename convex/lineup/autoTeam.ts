@@ -8,6 +8,7 @@ import { seasonRules } from "../rules/rulesHistory";
 import { logFailure } from "../shared/errors";
 import { callerEmail, getLeague, powersIn, refuse, teamIn, teamsOf } from "../shared/leagueAccess";
 import { starsOfPlayers } from "../stars/playerStars";
+import { closeOffersOfTeam } from "../trades/tradeClose";
 import type { RoleStars } from "../stars/starsShape";
 import { autoSubs, standingProblems, type GameweekPlay } from "./autoSubs";
 import { firstLineup, withDroppedRoles, type FirstLineup, type FirstLineupRules } from "./firstLineup";
@@ -145,6 +146,8 @@ export const set = mutation({
       if (team.autoTeam !== undefined) refuse(autoTeamRefusals.alreadyOn);
       if (endsAfter !== undefined) await checkEndsAfter(ctx, leagueId, endsAfter, isManager);
       await ctx.db.patch("teams", teamId, { autoTeam: { by: email, ...(endsAfter === undefined ? {} : { endsAfter }) } });
+      // spec/08: its open trade offers close; a trade already in review finishes it.
+      await closeOffersOfTeam(ctx, team);
     }
     await recordEvent(ctx, leagueId, email, { kind: "autoTeamSwitched", teamId, teamName: team.name, on, endsAfter: on ? (endsAfter ?? null) : null });
     return null;

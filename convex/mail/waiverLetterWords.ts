@@ -29,8 +29,8 @@ function withDropped(joined: string, dropped: Extract<LeagueEvent, { kind: "play
 }
 
 /** Why a waiver claim failed (spec/08): another team was ahead, the player he named to drop was
- *  already gone, or the squad's limits. */
-export const CLAIM_FAILURES = ["ahead", "dropGone", "limits"] as const;
+ *  already gone or held in a trade under review (#383), or the squad's limits. */
+export const CLAIM_FAILURES = ["ahead", "dropGone", "dropHeld", "limits"] as const;
 export type ClaimFailure = (typeof CLAIM_FAILURES)[number];
 
 /** To a manager alone when his claim fails at a waiver run (spec/08, spec/16), saying why. */
@@ -38,6 +38,7 @@ export function claimFailedLetter({ playerName, dropName, why }: { playerName: s
   const because = {
     ahead: `Another team was ahead of you in the waiver order for ${playerName}.`,
     dropGone: `${dropName ?? "The player you named to drop"} was no longer in your squad to drop.`,
+    dropHeld: `${dropName ?? "The player you named to drop"} is in a trade under review, so he couldn't be dropped.`,
     limits: `${playerName} would have broken your squad's limits.`,
   }[why];
   return { subject: `Your claim for ${playerName} failed`, body: `${because} Your claim is gone; nobody joined or left your squad for it.` };
