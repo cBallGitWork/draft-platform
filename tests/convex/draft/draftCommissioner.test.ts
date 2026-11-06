@@ -223,6 +223,16 @@ describe("the pick time", () => {
     await expect(changeRules(t, leagueId, rulesWith({ draft }))).rejects.toThrow(pickTimeRefusals.running);
   });
 
+  test("is refused once the draft is over", async () => {
+    await start();
+    for (const [email, code] of [[ANN, P1], [BOB, P2], [BOB, P3], [ANN, MIDS[3].code], [ANN, MIDS[4].code], [BOB, MIDS[5].code]] as const) {
+      await pick(email, code);
+      await pass(PICK_GAP_MS);
+    }
+    expect(await read()).toMatchObject({ status: "over" });
+    await expect(setPickTime(60)).rejects.toThrow(commissionerRefusals.over);
+  });
+
   test("is refused outside the league's limits, and to anyone who doesn't run the league", async () => {
     await elevenRounds();
     await start();

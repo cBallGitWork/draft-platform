@@ -1,11 +1,11 @@
-import { v } from "convex/values";
-import { mutation } from "../_generated/server";
+import { v, type Infer } from "convex/values";
+import { mutation, query } from "../_generated/server";
 import { pickFirstLineupAgain } from "../lineup/lineups";
 import { fileEvent } from "../mail/letters";
 import { draftRulesOf } from "../rules/firstRules";
 import { changeLatest } from "../rules/leagueRules";
 import { historyOf } from "../rules/rulesHistory";
-import { refuse, runnerOf, teamIn } from "../shared/leagueAccess";
+import { refuse, runnerOf, teamIn, teamsOf } from "../shared/leagueAccess";
 import { heldPlayerByCode } from "../shared/players";
 import { placeOf } from "../squads/squadPlace";
 import { startClock } from "./draftClock";
@@ -14,6 +14,7 @@ import { pauseRefusals } from "./draftPause";
 import { pickSecondsNow } from "./draftPicks";
 import { draftIsPaused, pickTimeRefusals } from "./draftPickTime";
 import { draftHasStarted, draftIsLive, draftOf, lastPickIn } from "./draftRow";
+import { rulesInForceAt } from "./draftStart";
 import { afterUndoneTimeout } from "./draftTimeouts";
 
 // The commissioner running the draft (spec/04, The commissioner and Auto-pick; #1095), besides
@@ -25,7 +26,8 @@ import { afterUndoneTimeout } from "./draftTimeouts";
 //   it there. While paused the draft stays paused, the clock starting when he resumes. Once the
 //   draft is over there is no undo, and the whole league is told of each (Craig, 4-5 Nov 2026).
 // - While the draft is paused he changes its pick time, which reaches the draft at once and
-//   League settings too (draftPickTime.ts).
+//   League settings too (draftPickTime.ts). Before the start the draft room's box changes League
+//   settings' pick time, as changing it there does (Craig, 5 Nov 2026, on #1101).
 // - Before the draft starts he says "I'll pick for this one" for a team with no manager, and takes
 //   it back as often as he likes: its clock then runs, and when it runs out the draft picks for it,
 //   with no timeout counted. A manager joining the team takes it off (../leagues/teams.ts).
@@ -76,20 +78,23 @@ export const undoPick = mutation({
 });
 
 /** The commissioner, while the draft is paused, changes its pick time to `pickSeconds`: the draft
- *  runs on it from when he resumes, and League settings' pick time changes too. Refused to anyone
- *  who doesn't run the league, while the draft isn't live and paused, and for a time outside the
- *  league's limits (15 seconds to 24 hours). */
+ *  runs on it from when he resumes, and League settings' pick time changes too. Before the start
+ *  it is League settings' pick time alone, as if changed there (Craig, 5 Nov 2026, on #1101).
+ *  Refused to anyone who doesn't run the league, while the draft runs unpaused, once it is over,
+ *  and for a time outside the league's limits (15 seconds to 24 hours). */
 export const setPickTime = mutation({
   args: { leagueId: v.id("leagues"), pickSeconds: v.number() },
   returns: v.null(),
   handler: async (ctx, { leagueId, pickSeconds }) => {
     await runnerOf(ctx, leagueId);
-    if (!(await draftIsPaused(ctx, leagueId))) refuse(pickTimeRefusals.notPaused);
+    const live = await draftIsLive(ctx, leagueId);
+    if (live && !(await draftIsPaused(ctx, leagueId))) refuse(pickTimeRefusals.notPaused);
+    if (!live && (await draftHasStarted(ctx, leagueId))) refuse(commissionerRefusals.over);
     const revision = (await historyOf(ctx, leagueId)).at(-1)?._id ?? null;
     await changeLatest(ctx, leagueId, revision, (rules) => ({ ...rules, draft: { ...draftRulesOf(rules), pickSeconds } }));
     // League settings may already hold this time, waiting for a gameweek: the draft takes it anyway.
     const draft = await draftOf(ctx, leagueId);
-    if (draft !== null) await ctx.db.patch("drafts", draft._id, { pickSeconds });
+    if (live && draft !== null) await ctx.db.patch("drafts", draft._id, { pickSeconds });
     return null;
   },
 });
@@ -107,5 +112,35 @@ export const markForCommissioner = mutation({
     if (team.managerEmail !== undefined) refuse(commissionerRefusals.hasManager(team.name));
     await ctx.db.patch("teams", teamId, { commissionerPicks: marked ? true : undefined });
     return null;
+  },
+});
+
+const commissionerView = v.object({
+  /** The pick time the room's box shows, in seconds: once the draft has started, the draft's own;
+   *  before the start, League settings' latest, a change waiting for a gameweek among it; null for
+   *  a league with no rules (before #25). */
+  pickSeconds: v.union(v.number(), v.null()),
+  /** The teams with no manager, by name, each with whether the commissioner picks for it. */
+  unmanaged: v.array(v.object({ teamId: v.id("teams"), name: v.string(), marked: v.boolean() })),
+});
+export type CommissionerView = Infer<typeof commissionerView>;
+
+/** What the draft room's commissioner panel reads (#1101), for whoever runs the league: the pick
+ *  time its box shows and the teams with no manager. `now` is the screen's minute, as a query must
+ *  not read the clock. */
+export const panel = query({
+  args: { leagueId: v.id("leagues"), now: v.number() },
+  returns: commissionerView,
+  handler: async (ctx, { leagueId, now }) => {
+    await runnerOf(ctx, leagueId);
+    const [draft, teams, history] = await Promise.all([draftOf(ctx, leagueId), teamsOf(ctx, leagueId), historyOf(ctx, leagueId)]);
+    const started = draft?.started !== undefined;
+    const rules = started ? await rulesInForceAt(ctx, leagueId, now) : (history.at(-1)?.rules ?? null);
+    const pickSeconds = (started ? draft.pickSeconds : undefined) ?? (rules === null ? null : draftRulesOf(rules).pickSeconds);
+    const unmanaged = teams
+      .filter((team) => team.managerEmail === undefined)
+      .map((team) => ({ teamId: team._id, name: team.name, marked: team.commissionerPicks === true }))
+      .sort((a, b) => a.name.localeCompare(b.name));
+    return { pickSeconds, unmanaged };
   },
 });
