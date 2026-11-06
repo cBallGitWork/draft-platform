@@ -8,7 +8,7 @@ import type { Position } from "../../convex/positions/positionTables";
 import { DAY_MS, HOUR_MS, SECOND_MS } from "../../convex/shared/time";
 import { previewScouting } from "../scouting/preview";
 import { previewLists, usePreviewAutoPick } from "./previewLists";
-import type { BoardPick, DraftChanges, DraftSeam, DraftState, GreyedPlayer, RoomFigures } from "./seam";
+import type { BoardPick, CommissionerChanges, DraftChanges, DraftSeam, DraftState, GreyedPlayer, RoomFigures } from "./seam";
 
 const NAMES = ["Kroos Control", "Rovers XI", "Bale Out", "Pep Talk", "Klopp Shop", "Havertz Rent", "Xhaka Laka", "Saka Potatoes", "Show Me Your Moyes", "Dirty Dozen"];
 const order = NAMES.map((name, index) => ({ teamId: `preview-draft-team-${index + 1}` as Id<"teams">, name }));
@@ -51,12 +51,16 @@ const before: DraftState = { status: "waiting", startsAt: startedAt + 4 * DAY_MS
 /** Whether `?draft=before` asks for the draft before its start. */
 const isBefore = () => new URLSearchParams(window.location.search).get("draft") === "before";
 
+/** The preview changes nothing, and says nothing went wrong. */
+const done = () => Promise.resolve(null);
+const COMMISSIONER_CHANGES: CommissionerChanges = { start: done, pause: done, resume: done, undo: done, setPickTime: done, markForCommissioner: done };
+
 const GREYED: readonly GreyedPlayer[] = [
   { code: 2, reason: "clubFull" },
   { code: 3, reason: "clubFull" },
 ];
 /** The preview's pick is made at once, and changes nothing. */
-const PREVIEW_CHANGES: DraftChanges = { makePick: () => Promise.resolve(null) };
+const PREVIEW_CHANGES: DraftChanges = { makePick: done };
 
 /** Scouting's preview players' figures, by code: rank, 25/26's points, and MP, G, A and CS. */
 const FIGURES: readonly [number, number, number | null, number, number, number, number][] = [
@@ -90,4 +94,7 @@ export const previewDraft: DraftSeam = {
   useFigures: () => figures,
   useDraftChanges: () => PREVIEW_CHANGES,
   ...previewLists,
+  // The commissioner panel, for the preview's commissioner session: Dirty Dozen has no manager.
+  useCommissioner: () => ({ pickSeconds: 90, unmanaged: [{ teamId: order[9].teamId, name: NAMES[9], marked: false }] }),
+  useCommissionerChanges: () => COMMISSIONER_CHANGES,
 };

@@ -9,6 +9,7 @@ import { Loading, PageSection } from "../ui/Panel";
 import { Placeholder } from "../ui/Placeholder";
 import { picksOf, pickInRoundOf, roundOf } from "./board";
 import { ClockLeft, type OnTheClock } from "./ClockLeft";
+import { CommissionerPanel } from "./CommissionerPanel";
 import { DraftBoard } from "./DraftBoard";
 import { PickRoom } from "./PickRoom";
 import type { DraftBoard as Board, DraftSeam, DraftState } from "./seam";
@@ -39,9 +40,10 @@ import {
 
 // The draft room (spec/04, The draft room; #1098), built to the approved pictures
 // (docs/design/approved/draft-room/): its header, the draft's state and where it stands, and the
-// board; under it the players list and the right-hand column: the selected player's panel, where
-// the reader picks, then his queue, do-not-draft list and auto-pick (PickRoom.tsx; #1099, #1100).
-// The commissioner's panel is its own slice (#1101).
+// board; under it the players list and beside it the right-hand column: the selected player's panel,
+// where the reader picks, then his queue, do-not-draft list and auto-pick (PickRoom.tsx; #1099,
+// #1100), and for whoever runs the league, the commissioner's panel at its foot
+// (CommissionerPanel.tsx; #1101).
 
 type Live = Extract<DraftState, { status: "live" }>;
 type Waiting = Extract<DraftState, { status: "waiting" }>;
@@ -78,7 +80,11 @@ export function DraftPage({ league, seam }: { league: LeagueSummary; seam: Draft
     // Full width, unlike PAGE_STACK: the approved picture runs the board across the page.
     <PageSection title={title} aside={facts} className="flex flex-col gap-2">
       <DraftBoard draft={draft} picks={board.picks} yourTeamId={board.yourTeamId} onTheClock={onTheClock} />
-      <PickRoom leagueId={league.leagueId} seam={seam} draft={draft} board={board} onTheClock={onTheClock} now={now} />
+      <PickRoom leagueId={league.leagueId} seam={seam} draft={draft} board={board} onTheClock={onTheClock} now={now}>
+        {league.powers.runs && draft.status !== "over" && (
+          <CommissionerPanel leagueId={league.leagueId} seam={seam} draft={draft} board={board} now={now} />
+        )}
+      </PickRoom>
     </PageSection>
   );
 }

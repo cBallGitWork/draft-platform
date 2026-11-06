@@ -60,6 +60,7 @@ export const gates: Record<string, Gate> = {
   "draft/draftBoard:inMenu": "member",
   "draft/draftBoard:ofLeague": "member",
   "draft/draftCommissioner:markForCommissioner": "runner",
+  "draft/draftCommissioner:panel": "runner",
   "draft/draftCommissioner:setPickTime": "runner",
   "draft/draftCommissioner:undoPick": "runner",
   "draft/draftLists:add": "member",

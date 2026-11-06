@@ -184,3 +184,20 @@ export const playerCardWords = "Player card";
 export const pickFailedWords = "The pick couldn't be made. Try again.";
 
 export const noRoundsWords = "The draft's rounds are its squads' most players, and this league's squads have no size limit yet.";
+
+/** The commissioner's panel (spec/04, The commissioner; #1101), which only whoever runs the league
+ *  sees. */
+export const COMMISSIONER_TITLE = "Commissioner";
+export const onlyYouWords = "only you see this";
+export const startNowWords = "Start the draft now";
+export const pauseWords = "Pause the draft";
+export const resumeWords = "Resume the draft";
+export const undoLastWords = "Undo last pick";
+export const pickForTeamWords = (team: string) => `I'll pick for ${team}`;
+export const stopPickingForWords = (team: string) => `Stop picking for ${team}`;
+export const unmanagedWords = (team: string) => `${team} has no manager, so it is on auto-pick unless you pick for it`;
+export const youPickForWords = (team: string) => `You pick for ${team}: its clock runs, and if it runs out the draft picks for it`;
+export const lastPickWords = (team: string, player: string, slot: string) => `Last pick: ${team} took ${player}, ${slot}`;
+export const pickTimeLabel = "Pick time";
+export const whilePausedWords = "change it while paused";
+export const badPickTimeWords = "Type the pick time in seconds, minutes or hours: 90s, 2m or 8h.";

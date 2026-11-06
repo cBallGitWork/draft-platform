@@ -3,12 +3,12 @@ import { useMemo } from "react";
 import { api } from "../../convex/_generated/api";
 import { liveScouting } from "../scouting/liveScouting";
 import { answerOf, refusalOf } from "../shared/refusal";
-import type { DraftChanges, DraftListChanges, DraftSeam } from "./seam";
+import { changeFailedWords as commissionerFailedWords } from "../shared/words";
+import type { CommissionerChanges, DraftChanges, DraftListChanges, DraftSeam } from "./seam";
 import { listChangeFailedWords, pickFailedWords } from "./words";
 
 /** The draft room seam filled in by Convex. A refusal comes back as the server's own words
- *  (convex/draft/draftPicks.ts, draftLists.ts, autoPickSwitch.ts); any other failure is logged and
- *  said plainly. */
+ *  (convex/draft/); any other failure is logged and said plainly. */
 export const liveDraft: DraftSeam = {
   usePlayersList: liveScouting.usePlayersList,
   useDraft: (leagueId, now) => useQuery(api.draft.draftStart.ofLeague, { leagueId, now }),
@@ -39,6 +39,26 @@ export const liveDraft: DraftSeam = {
         takeControlBack: (leagueId) => refusalOf(() => takeControlBack({ leagueId }), "Taking control back from auto-pick", listChangeFailedWords),
       }),
       [remove, move, addShortlist, turnOn, takeControlBack],
+    );
+  },
+  useCommissioner: (leagueId, now) => useQuery(api.draft.draftCommissioner.panel, { leagueId, now }),
+  useCommissionerChanges: function useCommissionerChanges() {
+    const start = useMutation(api.draft.draftStart.start);
+    const pause = useMutation(api.draft.draftPause.pause);
+    const resume = useMutation(api.draft.draftPause.resume);
+    const undo = useMutation(api.draft.draftCommissioner.undoPick);
+    const setPickTime = useMutation(api.draft.draftCommissioner.setPickTime);
+    const mark = useMutation(api.draft.draftCommissioner.markForCommissioner);
+    return useMemo<CommissionerChanges>(
+      () => ({
+        start: (leagueId) => refusalOf(() => start({ leagueId }), "Starting the draft", commissionerFailedWords),
+        pause: (leagueId) => refusalOf(() => pause({ leagueId }), "Pausing the draft", commissionerFailedWords),
+        resume: (leagueId) => refusalOf(() => resume({ leagueId }), "Resuming the draft", commissionerFailedWords),
+        undo: (leagueId) => refusalOf(() => undo({ leagueId }), "Undoing the last pick", commissionerFailedWords),
+        setPickTime: (leagueId, pickSeconds) => refusalOf(() => setPickTime({ leagueId, pickSeconds }), "Setting the pick time", commissionerFailedWords),
+        markForCommissioner: (leagueId, teamId, marked) => refusalOf(() => mark({ leagueId, teamId, marked }), "Marking a team to pick for", commissionerFailedWords),
+      }),
+      [start, pause, resume, undo, setPickTime, mark],
     );
   },
 };

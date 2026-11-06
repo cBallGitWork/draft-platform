@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { type ReactNode, useMemo, useState } from "react";
 import type { Id } from "../../convex/_generated/dataModel";
 import type { ListedPlayer } from "../scouting/seam";
 import { AutoPickPanel } from "./AutoPickPanel";
@@ -13,8 +13,8 @@ import { slotWords } from "./words";
 // Under the board (the approved draft room picture; #1099): the players list, and beside it the
 // right-hand column, the selected player's panel on top, where the reader makes his pick while he
 // is on the clock, then his queue, do-not-draft list and auto-pick until the draft is over (#1100).
-// The column keeps its width with no player selected, so the list doesn't move; its commissioner
-// widget is #1101's.
+// The column keeps its width with no player selected, so the list doesn't move; the commissioner's
+// panel, passed in as `children`, sits at its foot (#1101).
 
 /** Where the reader's pick stands in the draft. */
 function yourTurn(draft: DraftState, board: DraftBoard, onTheClock: OnTheClock | null): YourTurn {
@@ -42,6 +42,7 @@ export function PickRoom({
   board,
   onTheClock,
   now,
+  children,
 }: {
   leagueId: Id<"leagues">;
   seam: DraftSeam;
@@ -49,6 +50,8 @@ export function PickRoom({
   board: DraftBoard;
   onTheClock: OnTheClock | null;
   now: number;
+  /** The column's foot: the commissioner's panel, for whoever runs the league. */
+  children?: ReactNode;
 }) {
   const greyed = seam.useGreyedOut(leagueId);
   const figures = seam.useFigures(leagueId, now);
@@ -91,6 +94,7 @@ export function PickRoom({
             <AutoPickPanel leagueId={leagueId} board={board} teams={draft.order.length} seam={seam} />
           </>
         )}
+        {children}
       </div>
     </div>
   );
