@@ -42,6 +42,15 @@ export const draftRulesShape = v.object({
 });
 export type DraftRules = Infer<typeof draftRulesShape>;
 
+/** How the league's trades run (spec/03, spec/08; #383). */
+export const tradeRulesShape = v.object({
+  /** Who reviews an accepted trade: nobody, the commissioner (a veto) or the other managers (a vote). */
+  review: v.union(v.literal("none"), v.literal("veto"), v.literal("vote")),
+  /** The gameweek after whose last match no trades are made; null: no trade deadline. */
+  deadline: v.union(v.number(), v.null()),
+});
+export type TradeRules = Infer<typeof tradeRulesShape>;
+
 export const leagueRulesShape = v.object({
   format: v.union(v.literal("headToHead"), v.literal("totalPoints")),
   squad: v.object({
@@ -78,6 +87,9 @@ export const leagueRulesShape = v.object({
   /** How the draft runs (spec/04; #1087). Absent, as `oddTeamOut` is, only from rules saved before
    *  #1087, which play the first rules' (firstRules.ts, `draftRulesOf`). */
   draft: v.optional(draftRulesShape),
+  /** How trades run (spec/08; #383). Absent, as `draft` is, only from rules saved before #383,
+   *  which play the first rules' (firstRules.ts, `tradeRulesOf`). */
+  trades: v.optional(tradeRulesShape),
 });
 
 export type LeagueRules = Infer<typeof leagueRulesShape>;
