@@ -9,22 +9,27 @@ const TICK_STROKE_WIDTH = 2.5;
 /** A tick box (plate.md, Controls): a real checkbox drawn as a sunken well, on a 44px row that
  *  toggles it anywhere. The label is white when ticked, soft when not. One that can't be changed
  *  doesn't answer the pointer, and its tick and rim are muted. With `labelHidden` the label is
- *  only read out, for a box whose row already says what it is (a gameweek's tick). */
+ *  only read out, for a box whose row already says what it is (a gameweek's tick). With `inTableRow`
+ *  the 44px is the phone's only, so a tick in a table keeps the desk's row height. */
 export function TickBox({
   checked,
   onChange,
   disabled = false,
   labelHidden = false,
+  inTableRow = false,
   children,
 }: {
   checked: boolean;
   onChange: (checked: boolean) => void;
   disabled?: boolean;
   labelHidden?: boolean;
+  inTableRow?: boolean;
   children: ReactNode;
 }) {
   return (
-    <label className="group flex min-h-tap min-w-tap cursor-pointer items-center gap-3 text-soft has-checked:text-fact has-disabled:cursor-default">
+    <label
+      className={`group flex min-h-tap min-w-tap cursor-pointer items-center gap-3 text-soft has-checked:text-fact has-disabled:cursor-default ${inTableRow ? "lg:min-h-0 lg:min-w-0" : ""}`}
+    >
       <span className="grid shrink-0 place-items-center *:col-start-1 *:row-start-1">
         <input
           type="checkbox"
