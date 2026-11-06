@@ -1,5 +1,5 @@
 import { expect, test } from "vitest";
-import { ANN, ANNS_TEAM, BOBS_TEAM, DEADLINE, GAMEWEEK, matchupAs, scoresLeague, type ScoresLeague } from "../../support/convex/gameweekScores.harness";
+import { ANN, ANNS_TEAM, BOBS_TEAM, GAMEWEEK, matchupAs, scoresLeague, type ScoresLeague } from "../../support/convex/gameweekScores.harness";
 
 // A league playing two head-to-heads a gameweek (#521; Craig, 6 Nov 2026): the matchup shows one
 // game at a time, the first as drawn unless the address names another, with every game of the
@@ -23,7 +23,6 @@ async function twoGamesLeague(): Promise<ScoresLeague> {
         { team: annsTeam, opponent: bobsTeam },
         { team: catsTeam!, opponent: annsTeam },
       ],
-      storedAt: DEADLINE,
     });
   });
   return league;
