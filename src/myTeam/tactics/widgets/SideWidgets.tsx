@@ -5,17 +5,37 @@ import { formHead, placeWords, pointsShort, tableHead } from "../../header/words
 import { OpponentLink } from "../../header/TeamHeader";
 import { gameIn, standingOf } from "../../header/teamStanding";
 import type { LeagueTable } from "../../../table/seam";
-import { LINEUP_CHECK_TITLE, lineupCheckPlaceholder, opponentTitle, TEAM_TACTIC_TITLE, teamTacticPlaceholder } from "../words";
+import { startersInOrder, type DraftLineup, type SquadMember } from "../lineupDraft";
+import { positionMarksOf } from "../positionMarks";
+import { LINEUP_CHECK_TITLE, lineupCheckPlaceholder, opponentTitle, outOfPositionLineWords, TEAM_TACTIC_TITLE, teamTacticPlaceholder } from "../words";
 
 // The Tactics tab's widgets, each a panel with its title plate (plate.md, Tables and panels): the
 // lineup check under the pitch, and the team tactic and the gameweek's opponent down the right.
 
-/** Who to look at before the deadline: waits on the status chips' data (to-grill: Status chips'
- *  data; Who's doubtful, on Tactics), so a placeholder in its place and size. */
-export function LineupCheck() {
+/** Who to look at before the deadline: a line for each starter out of position, his name selecting
+ *  him (#23; Craig, 6 Nov 2026), in the pitch's order; above what waits on the status chips' data
+ *  (to-grill: Status chips' data; Who's doubtful, on Tactics), a placeholder in its place and size. */
+export function LineupCheck({ draft, squad, onSelect }: { draft: DraftLineup; squad: ReadonlyMap<number, SquadMember>; onSelect(playerCode: number): void }) {
+  const outOfPosition = startersInOrder(draft).flatMap((starter) => {
+    const player = squad.get(starter.playerCode);
+    const mark = player === undefined ? undefined : positionMarksOf(player, starter).find(({ kind }) => kind === "outOfPosition");
+    return player === undefined || mark === undefined ? [] : [{ player, position: mark.position }];
+  });
   return (
     <Panel title={LINEUP_CHECK_TITLE}>
-      <div className="p-3">
+      <div className="flex flex-col gap-2 p-3">
+        {outOfPosition.length > 0 && (
+          <ul>
+            {outOfPosition.map(({ player, position }) => (
+              <li key={player.playerCode}>
+                <button type="button" onClick={() => onSelect(player.playerCode)} className="min-h-tap font-semibold text-event lg:min-h-0">
+                  {player.name}
+                </button>
+                {outOfPositionLineWords(position)}
+              </li>
+            ))}
+          </ul>
+        )}
         <Placeholder label={lineupCheckPlaceholder} className="h-24 w-full" />
       </div>
     </Panel>

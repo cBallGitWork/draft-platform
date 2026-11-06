@@ -60,6 +60,7 @@ const squad = PLAYERS.map(([playerCode, name, clubShortName, positions]) => ({
   clubCode: clubCodeOf(clubShortName),
   unheld: false,
   positions,
+  flagged: [],
   number: playerCode === 15 ? null : playerCode,
   stars: previewStars(playerCode, positions),
 }));

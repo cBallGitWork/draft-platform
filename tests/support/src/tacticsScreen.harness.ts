@@ -23,6 +23,7 @@ export const member = (playerCode: number, name: string, positions: Position[], 
   clubCode: ARSENAL.code,
   unheld: false,
   positions,
+  flagged: [],
   number,
   stars: [],
 });

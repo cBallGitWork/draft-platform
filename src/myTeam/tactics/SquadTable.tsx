@@ -11,6 +11,7 @@ import { figureWords, noFigureWords } from "../words";
 import { NextMatches } from "../squad/SquadTable";
 import { noPointsWords, statusNotSettledLabel } from "../squad/words";
 import { markOf } from "./focusMarks";
+import { PositionMarks, positionMarksOf } from "./positionMarks";
 import { benchBestRole, startersInOrder, type DraftLineup, type SquadMember, type Starter } from "./lineupDraft";
 import { startDrag, type Moving } from "./pitch/Pitch";
 import {
@@ -171,6 +172,7 @@ function SelectionRow({
         {player.clubShortName !== null && <span className="ml-1 text-muted max-sm:hidden">{player.clubShortName}</span>}
         {/* As on the Squad tab: only a player FPL holds news on gets one, until its data is settled. */}
         {season?.chanceOfPlaying != null && <Placeholder label={statusNotSettledLabel} className="ml-1 size-3 align-middle max-sm:hidden" />}
+        <PositionMarks marks={positionMarksOf(player, "starter" in place ? place.starter : null)} />
       </th>
       <td className={cellClasses("next")}>
         {season != null && <NextMatches matches={season.nextFixtures.slice(0, 1)} />}

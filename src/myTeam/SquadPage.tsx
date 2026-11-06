@@ -7,6 +7,7 @@ import { Loading, Notice, PageSection, PanelNote } from "../ui/Panel";
 import { Placeholder } from "../ui/Placeholder";
 import type { MyTeamSeam, TeamSquad } from "./seam";
 import { TeamPage } from "./header/TeamHeader";
+import { positionMarksOf, type PositionMark } from "./tactics/positionMarks";
 import type { Tactics } from "./tactics/seam";
 import { MailWidget } from "./squad/MailWidget";
 import { PlayerPanel } from "./squad/PlayerPanel";
@@ -84,6 +85,14 @@ function SquadBody({ league, seam }: { league: LeagueSummary; seam: MyTeamSeam }
   );
 }
 
+/** Each player's position marks, as Tactics shows them (Craig, 6 Nov 2026, on #23): flagged, and
+ *  out of position in the lineup the next save is for. None while no lineup is open to set. */
+function marksByCode(tactics: Tactics | undefined): ReadonlyMap<number, readonly PositionMark[]> {
+  if (tactics?.kind !== "open") return new Map();
+  const cellOf = new Map(tactics.lineup.starters.map((starter) => [starter.playerCode, starter]));
+  return new Map(tactics.squad.map((member) => [member.playerCode, positionMarksOf(member, cellOf.get(member.playerCode) ?? null)]));
+}
+
 /** The table's panel: its plate holds the title, the view picker and how full the squad is. Only
  *  the Stats view is built; Schedule (his next 6 fixtures) and Rules (the squad against the
  *  league's limits) are answered (README) but not built. */
@@ -92,6 +101,7 @@ function SquadPanel({ squad, tactics, selected, onSelect }: { squad: TeamSquad; 
   const titleId = useId();
   const starting = useMemo(() => (tactics?.kind === "open" ? new Set(tactics.lineup.starters.map(({ playerCode }) => playerCode)) : null), [tactics]);
   const rows = useMemo(() => squadOrder(squad.players, starting ?? new Set()), [squad.players, starting]);
+  const marks = useMemo(() => marksByCode(tactics), [tactics]);
   return (
     <section aria-labelledby={titleId} className="bg-panel">
       <div className="flex flex-wrap items-center justify-between gap-x-3 bg-plate pl-3 shadow-bevel-plate">
@@ -111,6 +121,7 @@ function SquadPanel({ squad, tactics, selected, onSelect }: { squad: TeamSquad; 
           unheld={squad.unheld}
           lastGameweek={squad.lastGameweek}
           starting={starting}
+          marks={marks}
           selected={selected}
           onSelect={onSelect}
         />
