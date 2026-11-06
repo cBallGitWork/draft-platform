@@ -38,7 +38,7 @@ export const reviewRefusals = {
 };
 
 /** Each team's squad as it would be once the trade is made, by code. */
-export async function squadsAfter(ctx: QueryCtx, offer: Pick<Doc<"tradeOffers">, "fromTeamId" | "toTeamId" | "gives" | "gets">) {
+async function squadsAfter(ctx: QueryCtx, offer: Pick<Doc<"tradeOffers">, "fromTeamId" | "toTeamId" | "gives" | "gets">) {
   const after = async (teamId: Id<"teams">, out: readonly number[], into: readonly number[]) => [
     ...(await squadOf(ctx, teamId)).map((row) => row.playerCode).filter((code) => !out.includes(code)),
     ...into,

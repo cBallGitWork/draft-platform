@@ -110,7 +110,7 @@ export async function reviewHolding(ctx: QueryCtx, leagueId: Id<"leagues">, play
 
 /** Why an open offer should be closed at `now`, if it should: the deadline has passed since it was
  *  made, the trade deadline has passed, a break has started, or a team in it is on the auto team. */
-export async function closingReason(
+async function closingReason(
   ctx: QueryCtx,
   offer: Doc<"tradeOffers">,
   shut: TradesShut,
