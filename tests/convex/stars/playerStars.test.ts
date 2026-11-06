@@ -43,24 +43,25 @@ const ofPlayer = async (playerCode: number, email = ANN) =>
 const ofPlayers = async (playerCodes: number[]) =>
   (await actingAs(t, ANN)).query(api.stars.playerStars.ofPlayers, { leagueId, playerCodes, now: Date.now() });
 
-describe("a player shown", () => {
-  beforeEach(() => inAnnsSquad(SCORER.code, NEWCOMER.code, UNUSED.code, STEADY.code));
+// Each shown test's players are in Ann's squad, so shown to her.
 
-  test("a player's stars for each role in each area he plays", async () => {
-    expect(await ofPlayer(SCORER.code)).toEqual(everyStrikerRole(5));
-    expect(await ofPlayer(NEWCOMER.code)).toEqual(everyStrikerRole(UNSURE));
-  });
+test("a player's stars for each role in each area he plays", async () => {
+  await inAnnsSquad(SCORER.code, NEWCOMER.code);
+  expect(await ofPlayer(SCORER.code)).toEqual(everyStrikerRole(5));
+  expect(await ofPlayer(NEWCOMER.code)).toEqual(everyStrikerRole(UNSURE));
+});
 
-  test("one with no counted match shows “—” for every role his positions play", async () => {
-    expect(await ofPlayer(UNUSED.code)).toEqual(everyStrikerRole(NO_DATA));
-  });
+test("one with no counted match shows “—” for every role his positions play", async () => {
+  await inAnnsSquad(UNUSED.code);
+  expect(await ofPlayer(UNUSED.code)).toEqual(everyStrikerRole(NO_DATA));
+});
 
-  test("many players at once, in the order asked", async () => {
-    expect(await ofPlayers([STEADY.code, SCORER.code])).toEqual([
-      { playerCode: STEADY.code, stars: everyStrikerRole(3.5) },
-      { playerCode: SCORER.code, stars: everyStrikerRole(5) },
-    ]);
-  });
+test("many players at once, in the order asked", async () => {
+  await inAnnsSquad(STEADY.code, SCORER.code);
+  expect(await ofPlayers([STEADY.code, SCORER.code])).toEqual([
+    { playerCode: STEADY.code, stars: everyStrikerRole(3.5) },
+    { playerCode: SCORER.code, stars: everyStrikerRole(5) },
+  ]);
 });
 
 test(`more than ${STARS_READ_MOST} at once is refused, never cut short`, async () => {
@@ -70,7 +71,7 @@ test(`more than ${STARS_READ_MOST} at once is refused, never cut short`, async (
 
 describe("who is shown whose stars (spec/19, Role stars)", () => {
   test("hidden for a player neither in his squad nor scouted, another team's or a free agent", async () => {
-    await t.run((ctx) => ctx.db.insert("squadPlayers", { leagueId, teamId: annsTeam, playerCode: STEADY.code }));
+    await inAnnsSquad(STEADY.code);
     expect(await ofPlayer(SCORER.code)).toBeNull();
     expect(await ofPlayers([SCORER.code, STEADY.code])).toEqual([
       { playerCode: SCORER.code, stars: null },
