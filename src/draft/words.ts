@@ -1,7 +1,9 @@
 // What the draft room says (spec/04, The draft room; the approved draft room pictures,
 // docs/design/approved/draft-room/), in one place for Craig to change in the pull request.
 
+import { DRAFT_LIST_MOST } from "../../convex/draft/draftLimits";
 import { DAY_MS, HOUR_MS, MINUTE_MS, SECOND_MS } from "../../convex/shared/time";
+import { failedWords } from "../shared/words";
 
 /** The page's title, its menu tab's too, and the state beside it. */
 export const DRAFT_TITLE = "Draft";
@@ -72,9 +74,51 @@ export const roundWayLabel = (leftToRight: boolean) => (leftToRight ? "runs left
 export const slotWords = (round: number, pickInRound: number) => `${round}.${String(pickInRound).padStart(2, "0")}`;
 /** Before the time it has left: "4.03, 0:48". */
 export const onTheClockSlotWords = (slot: string) => `${slot}, `;
-export const pickedWords = (clubShortName: string, slot: string) => `${clubShortName}, ${slot}`;
+/** A pick made: "MCI, 1.01", and "MCI, 1.01, auto" for one auto-pick made, which the whole league
+ *  sees (Craig, 5 Nov 2026, on #1100). */
+export const pickedWords = (clubShortName: string, slot: string, auto: boolean) => `${clubShortName}, ${slot}${auto ? `, ${autoWords}` : ""}`;
+export const autoWords = "auto";
 /** A pick whose player the football data no longer holds (#323). */
 export const lostPlayerWords = "Player missing from the football data";
+/** The queue and do-not-draft panels (spec/04, The queue and the ranking; #1100). */
+export const QUEUE_TITLE = "Your queue";
+export const queueAside = (count: number) => `${count}, only you see it`;
+export const loadingListsWords = "Loading your queue…";
+export const emptyQueueWords = "No one in your queue.";
+export const fromShortlistWords = "Add from your Scouting shortlist";
+export const addWholeShortlistWords = "Add my whole shortlist";
+/** What "Add my whole shortlist" did, as the queue's limit left it (Craig, 4 Nov 2026, on #1137). */
+export function shortlistAddedWords(added: number, leftOut: number): string {
+  const put = `${added === 1 ? "1 player" : `${added} players`} added to your queue.`;
+  return leftOut === 0 ? put : `${put} ${leftOut} left out: a queue holds at most ${DRAFT_LIST_MOST}.`;
+}
+export const DO_NOT_DRAFT_TITLE = "Do not draft";
+export const doNotDraftAside = (count: number) => `${count}, auto-pick skips them`;
+/** The lists, for screen readers. */
+export const queueListLabel = "Your queue, first choice first";
+export const doNotDraftListLabel = "Your do-not-draft list";
+/** On a row's cross, for screen readers: whom it takes off which list. */
+export const takeOffLabel = (name: string, list: "queue" | "doNotDraft") =>
+  list === "queue" ? `Take ${name} off your queue` : `Take ${name} off your do-not-draft list`;
+/** On a queued row's handle, for screen readers: it drags, or moves a place with the arrow keys. */
+export const moveLabel = (name: string, place: number) => `Move ${name}, ${ordinal(place)} in your queue: drag, or press the up or down arrow`;
+export const listChangeFailedWords = failedWords("your draft lists didn't change");
+
+/** The auto-pick panel (spec/04, Auto-pick; #1100). */
+export const AUTO_PICK_TITLE = "Auto-pick";
+export const autoPickAside = (on: boolean) => (on ? "on auto-pick" : "you pick");
+export const timeoutsHead = "Timeouts";
+/** After "Timeouts 1 of 2": what the limit does, or that the league has none. */
+export const timeoutsWords = (limit: number | null) =>
+  limit === null ? "Your league never puts you on auto-pick." : `At ${limit} you go on auto-pick, from your queue first, then the site's ranking.`;
+/** While on it: his last pick, if the draft made it (Craig, 5 Nov 2026, on #1100). */
+export const onAutoPickWords = (lastAutoSlot: string | null) =>
+  lastAutoSlot === null
+    ? "On auto-pick: your picks are made for you at once, from your queue first, then the site's ranking."
+    : `On auto-pick: your last pick, ${lastAutoSlot}, was made for you`;
+export const turnOnAutoPickWords = "Turn auto-pick on";
+export const takeControlBackWords = "Take control back";
+
 /** The players list (spec/04, The draft room; #1099): Scouting's, each player the reader's team
  *  can't take greyed out in his place, with why. */
 export const PLAYERS_TITLE = "Players";

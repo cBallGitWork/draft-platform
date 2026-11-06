@@ -131,7 +131,7 @@ function BoardCell({ slot, made, onTheClock, yours }: { slot: string; made: Boar
         {position !== null && <PositionChip label={position} />}
         {name}
       </span>
-      <span className="block text-soft">{pickedWords(clubShortName, slot)}</span>
+      <span className="block text-soft">{pickedWords(clubShortName, slot, made.auto)}</span>
     </td>
   );
 }

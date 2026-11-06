@@ -1,18 +1,20 @@
 import { type ReactNode, useMemo, useState } from "react";
 import type { Id } from "../../convex/_generated/dataModel";
 import type { ListedPlayer } from "../scouting/seam";
+import { AutoPickPanel } from "./AutoPickPanel";
 import { pickInRoundOf } from "./board";
 import type { OnTheClock } from "./ClockLeft";
 import { DraftPlayers, type WhyNot } from "./DraftPlayers";
 import { PickPanel, type YourSquad, type YourTurn } from "./PickPanel";
+import { QueuePanel } from "./QueuePanel";
 import type { DraftBoard, DraftSeam, DraftState, RoomFigures } from "./seam";
 import { slotWords } from "./words";
 
 // Under the board (the approved draft room picture; #1099): the players list, and beside it the
 // right-hand column, the selected player's panel on top, where the reader makes his pick while he
-// is on the clock. The column keeps its width with no player selected, so the list doesn't move;
-// the commissioner's panel, passed in as `children`, sits at its foot (#1101); its queue and
-// auto-pick widgets are #1100's.
+// is on the clock, then his queue, do-not-draft list and auto-pick until the draft is over (#1100).
+// The column keeps its width with no player selected, so the list doesn't move; the commissioner's
+// panel, passed in as `children`, sits at its foot (#1101).
 
 /** Where the reader's pick stands in the draft. */
 function yourTurn(draft: DraftState, board: DraftBoard, onTheClock: OnTheClock | null): YourTurn {
@@ -85,6 +87,12 @@ export function PickRoom({
             changes={changes}
             close={() => setSelected(null)}
           />
+        )}
+        {draft.status !== "over" && (
+          <>
+            <QueuePanel leagueId={leagueId} seam={seam} />
+            <AutoPickPanel leagueId={leagueId} board={board} teams={draft.order.length} seam={seam} />
+          </>
         )}
         {children}
       </div>

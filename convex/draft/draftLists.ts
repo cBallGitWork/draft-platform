@@ -1,6 +1,8 @@
-import { v } from "convex/values";
+import { v, type Infer } from "convex/values";
 import type { Doc, Id } from "../_generated/dataModel";
 import { mutation, query, type MutationCtx, type QueryCtx } from "../_generated/server";
+import { positionsNow } from "../positions/playerPositions";
+import { position } from "../schema/positions";
 import { listedPlayer, listedPlayers, ownTeam, shortlistOf } from "../scouting/shortlist";
 import { memberOf, refuse, refusals, teamIn } from "../shared/leagueAccess";
 import { heldPlayerByCode, playerByCode } from "../shared/players";
@@ -40,18 +42,26 @@ export function listsOf(ctx: QueryCtx, teamId: Id<"teams">): Promise<Doc<"draftL
     .unique();
 }
 
+/** A player on the queue or do-not-draft list: as the shortlist lists him, with his first position
+ *  now, for the draft room's chip (#1100), null for none. */
+const draftListed = v.object({ ...listedPlayer.fields, position: v.union(position, v.null()) });
+export type DraftListed = Infer<typeof draftListed>;
+
 /** The caller's queue, first choice first, and do-not-draft list, by name; or null for someone in
  *  the league who runs no team (a commissioner or the admin only), who has neither. */
 export const mine = query({
   args: { leagueId: v.id("leagues") },
-  returns: v.union(v.object({ queue: v.array(listedPlayer), doNotDraft: v.array(listedPlayer) }), v.null()),
+  returns: v.union(v.object({ queue: v.array(draftListed), doNotDraft: v.array(draftListed) }), v.null()),
   handler: async (ctx, { leagueId }) => {
     const { team } = await memberOf(ctx, leagueId);
     if (!team) return null;
     const lists = await listsOf(ctx, team._id);
-    const doNotDraft = await listedPlayers(ctx, leagueId, lists?.doNotDraft ?? []);
+    const positionsOf = await positionsNow(ctx, leagueId);
+    const withPositions = async (codes: readonly number[]) =>
+      Promise.all((await listedPlayers(ctx, leagueId, codes)).map(async (player) => ({ ...player, position: (await positionsOf(player.code))[0] ?? null })));
+    const doNotDraft = await withPositions(lists?.doNotDraft ?? []);
     return {
-      queue: await listedPlayers(ctx, leagueId, lists?.queue ?? []),
+      queue: await withPositions(lists?.queue ?? []),
       doNotDraft: doNotDraft.sort((one, another) => one.name.localeCompare(another.name)),
     };
   },

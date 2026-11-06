@@ -8,6 +8,9 @@ import type { Doc, Id } from "../_generated/dataModel";
 // clock, "incase they forgot to switch off", and each after is made at once (Craig, 4 Nov 2026, on
 // #1091). A team with no manager is picked for at once anyway, so its picks aren't timeouts. Its
 // manager can take control back himself, which sets his count to 0 (Craig, 4 Nov 2026: "ok"; #1094).
+// He can also turn auto-pick on himself, before the draft or during it: then it is "chosen", every
+// pick of his is made at once, the one on the clock too, and his count stays as it is (Craig, 5 Nov
+// 2026, on #1100).
 
 type Timeouts = NonNullable<Doc<"drafts">["timeouts"]>;
 
@@ -17,8 +20,13 @@ export function afterTimeout(timeouts: Timeouts | undefined, teamId: Id<"teams">
   const before = timeouts?.find((team) => team.teamId === teamId);
   const count = (before?.count ?? 0) + 1;
   const autoPick: Timeouts[number]["autoPick"] = before?.autoPick !== undefined ? "atOnce" : limit !== null && count >= limit ? "fullClock" : undefined;
-  const after: Timeouts[number] = { teamId, count, ...(autoPick !== undefined && { autoPick }) };
-  return before === undefined ? [...(timeouts ?? []), after] : (timeouts ?? []).map((team) => (team === before ? after : team));
+  return withTeam(timeouts, { teamId, count, ...(autoPick !== undefined && { autoPick }) });
+}
+
+/** The draft's timeouts with `after` in place of its team's row, or added for a team with none. */
+function withTeam(timeouts: Timeouts | undefined, after: Timeouts[number]): Timeouts {
+  const all = timeouts ?? [];
+  return all.some(({ teamId }) => teamId === after.teamId) ? all.map((team) => (team.teamId === after.teamId ? after : team)) : [...all, after];
 }
 
 /** The draft's timeouts once `teamId`'s manager takes control back from auto-pick: off it, and his
@@ -39,14 +47,25 @@ export function afterUndoneTimeout(timeouts: Timeouts | undefined, teamId: Id<"t
   });
 }
 
-/** Whether `teamId` is on auto-pick: its timeouts reached the league's limit. */
+/** The draft's timeouts once `teamId`'s manager turns auto-pick on himself: "chosen", its count as
+ *  it was (Craig, 5 Nov 2026, on #1100). */
+export function afterChoosing(timeouts: Timeouts | undefined, teamId: Id<"teams">): Timeouts {
+  return withTeam(timeouts, { teamId, count: timeouts?.find((team) => team.teamId === teamId)?.count ?? 0, autoPick: "chosen" });
+}
+
+/** Whether `teamId`'s manager turned auto-pick on himself, so its picks count no timeout. */
+export function choseAutoPick(timeouts: Timeouts | undefined, teamId: Id<"teams">): boolean {
+  return timeouts?.some((team) => team.teamId === teamId && team.autoPick === "chosen") ?? false;
+}
+
+/** Whether `teamId` is on auto-pick: its timeouts reached the league's limit, or its manager chose it. */
 export function isOnAutoPick(timeouts: Timeouts | undefined, teamId: Id<"teams">): boolean {
   return timeouts?.some((team) => team.teamId === teamId && team.autoPick !== undefined) ?? false;
 }
 
 /** Whether the draft picks for `team` as its clock starts: it has no manager and the commissioner
- *  hasn't said "I'll pick for this one" (#1095), or it is on auto-pick past its first pick there. */
+ *  hasn't said "I'll pick for this one" (#1095), or it is on auto-pick past its first pick there or by its manager's choice. */
 export function picksAtOnce(timeouts: Timeouts | undefined, team: Doc<"teams">): boolean {
   if (team.managerEmail === undefined) return team.commissionerPicks !== true;
-  return timeouts?.some(({ teamId, autoPick }) => teamId === team._id && autoPick === "atOnce") ?? false;
+  return timeouts?.some(({ teamId, autoPick }) => teamId === team._id && (autoPick === "atOnce" || autoPick === "chosen")) ?? false;
 }

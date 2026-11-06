@@ -44,7 +44,7 @@ function liveDraft(paused = false): Extract<DraftState, { status: "live" }> {
     clock: { startsAt: now - 42 * SECOND_MS, endsAt: now + 48 * SECOND_MS, pausedAt: paused ? now : undefined },
   };
 }
-const oneTaken = { ...emptyBoard, picks: [{ pick: 1, teamId: draftOrder[0].teamId, player: { code: 1, name: "Saka", clubShortName: "ARS", position: "W" as const } }] };
+const oneTaken = { ...emptyBoard, picks: [{ pick: 1, teamId: draftOrder[0].teamId, auto: false, player: { code: 1, name: "Saka", clubShortName: "ARS", position: "W" as const } }] };
 
 describe("who sees it", () => {
   it("is shown to the commissioner", async () => {

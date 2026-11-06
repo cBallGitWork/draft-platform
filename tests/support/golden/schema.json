@@ -22451,6 +22451,10 @@
                         {
                           "type": "literal",
                           "value": "atOnce"
+                        },
+                        {
+                          "type": "literal",
+                          "value": "chosen"
                         }
                       ]
                     },
@@ -22585,6 +22589,13 @@
                   "optional": false
                 }
               }
+            },
+            "optional": true
+          },
+          "auto": {
+            "fieldType": {
+              "type": "literal",
+              "value": true
             },
             "optional": true
           }

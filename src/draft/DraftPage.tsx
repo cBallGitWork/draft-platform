@@ -41,9 +41,9 @@ import {
 // The draft room (spec/04, The draft room; #1098), built to the approved pictures
 // (docs/design/approved/draft-room/): its header, the draft's state and where it stands, and the
 // board; under it the players list and beside it the right-hand column: the selected player's panel,
-// where the reader picks (PickRoom.tsx; #1099), and for whoever runs the league, the commissioner's
-// panel at its foot (CommissionerPanel.tsx; #1101). The queue and auto-pick are their own slice
-// (#1100).
+// where the reader picks, then his queue, do-not-draft list and auto-pick (PickRoom.tsx; #1099,
+// #1100), and for whoever runs the league, the commissioner's panel at its foot
+// (CommissionerPanel.tsx; #1101).
 
 type Live = Extract<DraftState, { status: "live" }>;
 type Waiting = Extract<DraftState, { status: "waiting" }>;

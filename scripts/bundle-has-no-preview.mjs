@@ -25,6 +25,7 @@ const NEEDLES = {
   "src/app/preview.ts": "preview-pro-league",
   "src/admin/preview.ts": "Nick Woltemade",
   "src/draft/preview.ts": "preview-draft-team-",
+  "src/draft/previewLists.ts": "Marcos Senesi",
   "src/feedback/preview.ts": "preview-feedback-",
   "src/gameweeks/preview.ts": "no gameweek was changed",
   "src/joining/preview.ts": "dan@example.com",

@@ -2,10 +2,10 @@ import { useMutation, useQuery } from "convex/react";
 import { useMemo } from "react";
 import { api } from "../../convex/_generated/api";
 import { liveScouting } from "../scouting/liveScouting";
-import { refusalOf } from "../shared/refusal";
+import { answerOf, refusalOf } from "../shared/refusal";
 import { changeFailedWords as commissionerFailedWords } from "../shared/words";
-import type { CommissionerChanges, DraftChanges, DraftSeam } from "./seam";
-import { pickFailedWords } from "./words";
+import type { CommissionerChanges, DraftChanges, DraftListChanges, DraftSeam } from "./seam";
+import { listChangeFailedWords, pickFailedWords } from "./words";
 
 /** The draft room seam filled in by Convex. A refusal comes back as the server's own words
  *  (convex/draft/); any other failure is logged and said plainly. */
@@ -22,6 +22,23 @@ export const liveDraft: DraftSeam = {
     return useMemo<DraftChanges>(
       () => ({ makePick: (leagueId, playerCode) => refusalOf(() => makePick({ leagueId, playerCode }), "Making a draft pick", pickFailedWords) }),
       [makePick],
+    );
+  },
+  useListChanges: () => {
+    const remove = useMutation(api.draft.draftLists.remove);
+    const move = useMutation(api.draft.draftLists.move);
+    const addShortlist = useMutation(api.draft.draftLists.addShortlist);
+    const turnOn = useMutation(api.draft.autoPickSwitch.turnOn);
+    const takeControlBack = useMutation(api.draft.autoPickSwitch.takeControlBack);
+    return useMemo<DraftListChanges>(
+      () => ({
+        remove: (leagueId, playerCode, list) => refusalOf(() => remove({ leagueId, playerCode, list }), "Taking a player off a draft list", listChangeFailedWords),
+        move: (leagueId, playerCode, place) => refusalOf(() => move({ leagueId, playerCode, place }), "Moving a player in the draft queue", listChangeFailedWords),
+        addShortlist: (leagueId) => answerOf(() => addShortlist({ leagueId }), "Adding the shortlist to the draft queue", listChangeFailedWords),
+        turnOnAutoPick: (leagueId) => refusalOf(() => turnOn({ leagueId }), "Turning auto-pick on", listChangeFailedWords),
+        takeControlBack: (leagueId) => refusalOf(() => takeControlBack({ leagueId }), "Taking control back from auto-pick", listChangeFailedWords),
+      }),
+      [remove, move, addShortlist, turnOn, takeControlBack],
     );
   },
   useCommissioner: (leagueId, now) => useQuery(api.draft.draftCommissioner.panel, { leagueId, now }),

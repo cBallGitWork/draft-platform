@@ -7,6 +7,7 @@ import { memberOf } from "../shared/leagueAccess";
 import { clubsByCode, playerByCode } from "../shared/players";
 import { draftIsLive, draftOf } from "./draftRow";
 import { rulesInForceAt } from "./draftStart";
+import { isOnAutoPick } from "./draftTimeouts";
 
 // The draft room's reads (spec/04, The draft room; #1098), beside the draft's own (draftStart.ts
 // `ofLeague`): the picks made, for the board, and whether the room is in the menu. The room is in
@@ -14,12 +15,14 @@ import { rulesInForceAt } from "./draftStart";
 // is over: "no the room goes off the meny, results can be somehwere else for record" (Craig, 4 Nov
 // 2026, on #1098).
 
-/** A pick on the board: its number, the team that made it, and the player it took, with his club's
- *  short name and his first position now; `player` is null for one the football data no longer
- *  holds (#323). */
+/** A pick on the board: its number, the team that made it, whether the draft made it (auto-pick,
+ *  marked "auto" for the whole league; Craig, 5 Nov 2026, on #1100), and the player it took, with
+ *  his club's short name and his first position now; `player` is null for one the football data no
+ *  longer holds (#323). */
 const boardPick = v.object({
   pick: v.number(),
   teamId: v.id("teams"),
+  auto: v.boolean(),
   player: v.union(v.object({ code: v.number(), name: v.string(), clubShortName: v.string(), position: v.union(position, v.null()) }), v.null()),
 });
 export type BoardPick = Infer<typeof boardPick>;
@@ -30,6 +33,10 @@ const draftBoard = v.object({
   yourTeamId: v.union(v.id("teams"), v.null()),
   /** The league's pick time at `now`, in seconds: null for a league with no rules (before #25). */
   pickSeconds: v.union(v.number(), v.null()),
+  /** The caller's own team's auto-pick (#1100): whether it is on it, its timeouts so far, and how
+   *  many put it on auto-pick (null: never, or a league with no rules); null for a caller who runs
+   *  no team. */
+  yourAutoPick: v.union(v.object({ on: v.boolean(), timeouts: v.number(), limit: v.union(v.number(), v.null()) }), v.null()),
 });
 export type DraftBoard = Infer<typeof draftBoard>;
 
@@ -47,15 +54,24 @@ export const ofLeague = query({
     const positionsOf = await positionsNow(ctx, leagueId);
     const clubs = clubsByCode(ctx);
     const picks = await Promise.all(
-      rows.map(async ({ pick, teamId, playerCode }) => {
+      rows.map(async ({ pick, teamId, playerCode, auto, timeout }) => {
+        // A pick made before #1100 has no `auto`, and only its `timeout` says the draft made it.
+        const made = { pick, teamId, auto: auto === true || timeout !== undefined };
         const player = await playerByCode(ctx, playerCode);
-        if (player === null) return { pick, teamId, player: null };
+        if (player === null) return { ...made, player: null };
         const [club, positions] = await Promise.all([clubs(player.clubCode), positionsOf(player.code)]);
-        return { pick, teamId, player: { code: player.code, name: player.name, clubShortName: club.shortName, position: positions[0] ?? null } };
+        return { ...made, player: { code: player.code, name: player.name, clubShortName: club.shortName, position: positions[0] ?? null } };
       }),
     );
     const rules = await rulesInForceAt(ctx, leagueId, now);
-    return { picks, yourTeamId: team?._id ?? null, pickSeconds: rules === null ? null : draftRulesOf(rules).pickSeconds };
+    const draftRules = rules === null ? null : draftRulesOf(rules);
+    let yourAutoPick: DraftBoard["yourAutoPick"] = null;
+    if (team) {
+      const timeouts = (await draftOf(ctx, leagueId))?.timeouts;
+      const count = timeouts?.find(({ teamId }) => teamId === team._id)?.count ?? 0;
+      yourAutoPick = { on: isOnAutoPick(timeouts, team._id), timeouts: count, limit: draftRules?.timeoutsBeforeAutoPick ?? null };
+    }
+    return { picks, yourTeamId: team?._id ?? null, pickSeconds: draftRules?.pickSeconds ?? null, yourAutoPick };
   },
 });
 

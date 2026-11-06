@@ -37,6 +37,7 @@ const boardRows = async () => within(await board()).getAllByRole("row").slice(1)
 const pickOf = (pick: number, teamIndex: number, name: string): BoardPick => ({
   pick,
   teamId: draftOrder[teamIndex].teamId,
+  auto: false,
   player: { code: pick, name, clubShortName: "ARS", position: "W" },
 });
 

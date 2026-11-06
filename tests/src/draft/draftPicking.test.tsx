@@ -177,7 +177,7 @@ describe("the players list", () => {
 
 describe("the selected player's panel", () => {
   it("gives his place on the ranking, last season's points in his games, and what the reader's squad holds", async () => {
-    const board = { ...emptyBoard, picks: [{ pick: 1, teamId: YOUR_TEAM, player: { code: 99, name: "Raya", clubShortName: "ARS", position: "GK" as const } }] };
+    const board = { ...emptyBoard, picks: [{ pick: 1, teamId: YOUR_TEAM, auto: false, player: { code: 99, name: "Raya", clubShortName: "ARS", position: "GK" as const } }] };
     openDraft({ draft: liveDraft(true), board, figures: FIGURES });
     await open(SAKA.name);
     const panel = screen.getByRole("region", { name: `${SAKA.name}${ARSENAL.shortName}` });

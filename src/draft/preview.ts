@@ -6,8 +6,9 @@ import type { Id } from "../../convex/_generated/dataModel";
 import { snakeOrder } from "../../convex/draft/snakeOrder";
 import type { Position } from "../../convex/positions/positionTables";
 import { DAY_MS, HOUR_MS, SECOND_MS } from "../../convex/shared/time";
-import { previewPlayers, previewScouting } from "../scouting/preview";
-import type { BoardPick, CommissionerChanges, DraftChanges, DraftLists, DraftSeam, DraftState, GreyedPlayer, RoomFigures } from "./seam";
+import { previewScouting } from "../scouting/preview";
+import { previewLists, usePreviewAutoPick } from "./previewLists";
+import type { BoardPick, CommissionerChanges, DraftChanges, DraftSeam, DraftState, GreyedPlayer, RoomFigures } from "./seam";
 
 const NAMES = ["Kroos Control", "Rovers XI", "Bale Out", "Pep Talk", "Klopp Shop", "Havertz Rent", "Xhaka Laka", "Saka Potatoes", "Show Me Your Moyes", "Dirty Dozen"];
 const order = NAMES.map((name, index) => ({ teamId: `preview-draft-team-${index + 1}` as Id<"teams">, name }));
@@ -29,6 +30,7 @@ const snake = snakeOrder(order, ROUNDS);
 const picks: BoardPick[] = TAKEN.map(([name, clubShortName, position], index) => ({
   pick: index + 1,
   teamId: snake[index].teamId,
+  auto: false,
   player: { code: 9000 + index, name, clubShortName, position },
 }));
 
@@ -82,20 +84,16 @@ const figures: RoomFigures = {
   maxPerClub: 2,
 };
 
-/** Salah then Rice in the reader's queue, as listed. */
-const listed = (code: number) => ({ ...previewPlayers.find((each) => each.code === code)!, gone: false });
-const LISTS: DraftLists = { queue: [listed(6), listed(2)], doNotDraft: [listed(7)] };
-
 export const previewDraft: DraftSeam = {
   useDraft: () => (isBefore() ? before : draft),
-  useBoard: () => ({ picks: isBefore() ? [] : picks, yourTeamId: YOURS, pickSeconds: 90 }),
+  useBoard: () => ({ picks: isBefore() ? [] : picks, yourTeamId: YOURS, pickSeconds: 90, yourAutoPick: usePreviewAutoPick() }),
   useInMenu: () => true,
   // Scouting's preview players; Saka Potatoes is at its Arsenal maximum, so Rice and Raya are greyed.
   usePlayersList: previewScouting.usePlayersList,
   useGreyedOut: () => (isBefore() ? [] : GREYED),
   useFigures: () => figures,
-  useLists: () => LISTS,
   useDraftChanges: () => PREVIEW_CHANGES,
+  ...previewLists,
   // The commissioner panel, for the preview's commissioner session: Dirty Dozen has no manager.
   useCommissioner: () => ({ pickSeconds: 90, unmanaged: [{ teamId: order[9].teamId, name: NAMES[9], marked: false }] }),
   useCommissionerChanges: () => COMMISSIONER_CHANGES,

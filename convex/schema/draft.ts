@@ -60,14 +60,15 @@ export const draftTables = {
     pickSeconds: v.optional(v.number()),
     /** Each team whose clock has run out (spec/04, Auto-pick; #1136): its timeouts across the whole
      *  draft, and, once they reach the league's limit, `autoPick`: "fullClock" while its first pick
-     *  on auto-pick still waits its full clock, then "atOnce". Absent until a clock runs out on a
-     *  team with a manager. ../draft/draftTimeouts.ts writes it. */
+     *  on auto-pick still waits its full clock, then "atOnce"; or "chosen" once its manager turns
+     *  auto-pick on himself (#1100), its count as it was. Absent until a clock runs out on a team
+     *  with a manager, or a manager chooses auto-pick. ../draft/draftTimeouts.ts writes it. */
     timeouts: v.optional(
       v.array(
         v.object({
           teamId: v.id("teams"),
           count: v.number(),
-          autoPick: v.optional(v.union(v.literal("fullClock"), v.literal("atOnce"))),
+          autoPick: v.optional(v.union(v.literal("fullClock"), v.literal("atOnce"), v.literal("chosen"))),
         }),
       ),
     ),
@@ -88,7 +89,9 @@ export const draftTables = {
   /** A pick made in a league's draft (spec/04, The picks; #1090): its number, from 1, the team that
    *  made it and the player it took. ../draft/draftPicks.ts writes it, with his squad row. `timeout`
    *  marks a pick the draft made when a managed team's clock ran out, and whether that timeout put
-   *  the team on auto-pick, so the commissioner's undo (#1095) can take the timeout back off. */
+   *  the team on auto-pick, so the commissioner's undo (#1095) can take the timeout back off. `auto`
+   *  marks every pick the draft made for a team (#1100), which the board shows; picks made before
+   *  #1100 lack it, and there `timeout` alone marks one. */
   draftPicks: defineTable({
     leagueId: v.id("leagues"),
     pick: v.number(),
@@ -96,5 +99,6 @@ export const draftTables = {
     playerCode: v.number(),
     at: v.number(),
     timeout: v.optional(v.object({ putOnAutoPick: v.boolean() })),
+    auto: v.optional(v.literal(true)),
   }).index("by_leagueId_and_pick", ["leagueId", "pick"]),
 };

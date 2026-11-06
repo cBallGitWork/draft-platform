@@ -15,10 +15,6 @@ export type { BoardPick, CommissionerView, DraftBoard, GreyedPlayer, RoomFigure,
 /** The league's draft: waiting, live or over (draft/draftStart:ofLeague). */
 export type DraftState = FunctionReturnType<typeof api.draft.draftStart.ofLeague>;
 
-/** The reader's queue, first choice first, and do-not-draft list; null for someone who runs no
- *  team (draft/draftLists:mine). */
-export type DraftLists = FunctionReturnType<typeof api.draft.draftLists.mine>;
-
 /** The picks a manager makes on the draft room. */
 export type DraftChanges = {
   /** His team, on the clock, takes the player with this code. */
@@ -40,15 +36,35 @@ export type DraftSeam = Pick<ScoutingSeam, "usePlayersList"> & {
   /** Every player's place on the site's ranking, last season's points and the overview's stats,
    *  and the club maximum, at the minute `now`, live (a hook): undefined while they load. */
   useFigures(leagueId: Id<"leagues">, now: number): RoomFigures | undefined;
-  /** The reader's queue and do-not-draft list, live (a hook): undefined while they load. */
-  useLists(leagueId: Id<"leagues">): DraftLists | undefined;
   /** The changes the room makes (a hook). */
   useDraftChanges(): DraftChanges;
+  /** The reader's own queue and do-not-draft list, live (a hook): undefined while they load, null
+   *  for someone who runs no team. */
+  useLists(leagueId: Id<"leagues">): DraftLists | null | undefined;
+  /** The changes the room's queue, do-not-draft and auto-pick panels make (a hook). */
+  useListChanges(): DraftListChanges;
   /** For whoever runs the league only: the commissioner panel's pick time and the teams with no
    *  manager at the minute `now`, live (a hook): undefined while they load. */
   useCommissioner(leagueId: Id<"leagues">, now: number): CommissionerView | undefined;
   /** The commissioner's changes to the draft (a hook). */
   useCommissionerChanges(): CommissionerChanges;
+};
+
+/** The reader's queue, first choice first, and do-not-draft list (draft/draftLists:mine). */
+export type DraftLists = NonNullable<FunctionReturnType<typeof api.draft.draftLists.mine>>;
+export type DraftList = "queue" | "doNotDraft";
+
+/** What adding the whole shortlist did (draft/draftLists:addShortlist). */
+export type ShortlistAdded = FunctionReturnType<typeof api.draft.draftLists.addShortlist>;
+
+export type DraftListChanges = {
+  remove(leagueId: Id<"leagues">, playerCode: number, list: DraftList): Change;
+  /** Moves a queued player to `place`, 1 the top. */
+  move(leagueId: Id<"leagues">, playerCode: number, place: number): Change;
+  /** "Add my whole shortlist": what it added, or the words saying why not. */
+  addShortlist(leagueId: Id<"leagues">): Promise<ShortlistAdded | string>;
+  turnOnAutoPick(leagueId: Id<"leagues">): Change;
+  takeControlBack(leagueId: Id<"leagues">): Change;
 };
 
 /** The commissioner's changes to the league's draft (spec/04, Starting it and The commissioner;
