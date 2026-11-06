@@ -148,6 +148,7 @@ export const gates: Record<string, Gate> = {
   "scoring/siteScoring:fix": "admin",
   "scoring/siteScoring:saveDraft": "admin",
   "scoring/siteScoring:view": "signedIn",
+  "scoring/siteScoring:withdraw": "admin",
   "scouting/compare:players": "member",
   "scouting/playersList:list": "member",
   "scouting/shortlist:add": "member",

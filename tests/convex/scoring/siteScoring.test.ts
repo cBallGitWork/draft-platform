@@ -44,7 +44,16 @@ describe("reading it", () => {
   test("before any version, every gameweek plays the first set, and a fix would reach the next not kicked off", async () => {
     await holdGameweeks(t, { next: 9 });
 
-    expect(await viewAs(ADMIN)).toEqual({ part: FIRST_SCORING, revision: null, changesFrom: 9, canEdit: true, versions: [], draft: null });
+    expect(await viewAs(ADMIN)).toEqual({
+      part: FIRST_SCORING,
+      revision: null,
+      changesFrom: 9,
+      canEdit: true,
+      versions: [],
+      draft: null,
+      // From 10, 7 days away (siteScoringDraftPatch.test.ts).
+      patchGameweeks: expect.arrayContaining([{ gameweek: 10, takesEffectAt: kickoffOf(10) }]),
+    });
     for (const gameweek of SEASON_GAMEWEEKS) expect(await inGameweek(gameweek)).toEqual(FIRST_SCORING);
   });
 
