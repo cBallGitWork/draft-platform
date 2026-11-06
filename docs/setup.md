@@ -68,6 +68,10 @@ removing a manager still can be:
 The admin alone names a team's manager directly, the same way with the admin's `_id`:
 `npx convex run leagues/teams:addManager '{"leagueId":"…","email":"someone@example.com"}' --identity '{"subject":"<admin's _id>|cli"}'`
 (add `"teamId"` to hand them a vacated team).
+A Premier League club's points deduction has no screen yet either: the admin sets the club's total
+points this season, by FPL's club `code`, the same way, and `"points":null` goes back to its
+results' total:
+`npx convex run football/plPointsOverrides:set '{"clubCode":11,"points":4}' --identity '{"subject":"<admin's _id>|cli"}'`.
 
 To see the screens without signing in, add `?preview=` to the address: `manager` (in two leagues),
 `commissioner` (running them), `newcomer` (in none), `admin` (seeing every league) or `visitor`

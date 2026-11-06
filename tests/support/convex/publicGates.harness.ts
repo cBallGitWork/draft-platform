@@ -87,6 +87,7 @@ export const gates: Record<string, Gate> = {
   "feedback/feedback:send": "signedIn",
   "football/matchScores:ofGameweek": "signedIn",
   "football/plGameweeks:firstKickoffs": "signedIn",
+  "football/plPointsOverrides:set": "admin",
   "football/plStandings:ofSeason": "signedIn",
   "gameweeks/leagueGameweeks:ofLeague": "runner",
   "gameweeks/leagueGameweeks:setUsed": "runner",

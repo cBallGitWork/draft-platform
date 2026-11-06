@@ -1,10 +1,11 @@
 import { v, type Infer } from "convex/values";
 import { query } from "../_generated/server";
 import { clubRecord, matchState } from "../schema";
-import { currentFixtures } from "../shared/fixtures";
+import { currentFixtures, heldSeason } from "../shared/fixtures";
 import { callerEmail } from "../shared/leagueAccess";
 import { clubOf, currentClubs, type Club } from "../shared/players";
 import { isPlaying, scoreOf } from "./matchScores";
+import { seasonPointsOverrides } from "./plPointsOverrides";
 import { plTable, type PlMatch, type PlResult } from "./plTable";
 import { COMPETITION_TIE_BREAKS } from "./tieBreaks";
 
@@ -69,7 +70,15 @@ export const ofSeason = query({
       if (isPlaying(score.state)) provisional = true;
       results.push({ ...match, homeGoals: score.homeGoals, awayGoals: score.awayGoals });
     }
-    const rows = plTable(clubs, results, { competition: COMPETITION_TIE_BREAKS.premierLeague, seasonOver: seasonOver && results.length > 0, unplayed });
+    // A club's total the admin set, for a points deduction (#898).
+    const season = await heldSeason(ctx);
+    const overrides = new Map<Club, number>();
+    for (const [clubCode, points] of season === null ? [] : await seasonPointsOverrides(ctx, season)) {
+      const club = byCode.get(clubCode);
+      if (club === undefined) throw new Error(`Club ${clubCode} has a total set, but isn't a current club`);
+      overrides.set(club, points);
+    }
+    const rows = plTable(clubs, results, { competition: COMPETITION_TIE_BREAKS.premierLeague, seasonOver: seasonOver && results.length > 0, unplayed }, overrides);
     return { rows, provisional };
   },
 });
