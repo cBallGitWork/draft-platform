@@ -9,8 +9,9 @@ import { playerByCode } from "../shared/players";
 import { byGameweek, dueMatch, type DueMatch } from "../shared/dueMatches";
 import { LINEUPS_OUT_BEFORE_KICKOFF_MS } from "../shared/time";
 import { codesByOpta, fixtureCodeIn } from "./feedIds";
-import type { readFplPayloads } from "./fpl/fpl";
+import { fplSeason, type readFplPayloads } from "./fpl/fpl";
 import { matchSlots } from "./premierLeague/plMatch";
+import { readPlSeasons } from "./premierLeague/plSeasons";
 import { readPlFixture, readPlFixtures } from "./premierLeague/premierLeague";
 
 // Each match's team sheets before kickoff (#45; spec/10, The match page), read by the live tick
@@ -62,11 +63,13 @@ async function readTeamSheets(ctx: ActionCtx, now: number, fpl: typeof readFplPa
   try {
     const due = await ctx.runQuery(internal.football.matchTeamSheets.due, { now });
     if (due.length === 0) return null;
-    const codeByOpta = codesByOpta((await fpl()).bootstrap.elements);
+    const { bootstrap } = await fpl();
+    const codeByOpta = codesByOpta(bootstrap.elements);
+    const seasons = await readPlSeasons(fplSeason(bootstrap));
     for (const [gameweek, codes] of byGameweek(due)) {
       let listed: Map<number | null, number>;
       try {
-        listed = new Map((await readPlFixtures(gameweek)).map((each) => [fixtureCodeIn(each), each.id]));
+        listed = new Map((await readPlFixtures(seasons.current, gameweek)).map((each) => [fixtureCodeIn(each), each.id]));
       } catch (error: unknown) {
         const message = logFailure(`gameweek ${gameweek}'s team sheets failed`, error);
         matches.push(...codes.map((fixtureCode) => ({ fixtureCode, ok: false as const, error: message })));

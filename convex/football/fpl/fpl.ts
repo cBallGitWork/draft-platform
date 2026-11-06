@@ -8,6 +8,7 @@ import { FPL_BOOTSTRAP_URL, FPL_FIXTURES_URL, getJson, getShaped, type Football 
 import { fplScoreRead, readEach } from "../scoreReads";
 import type { Infer } from "convex/values";
 import type { availability } from "../../schema";
+import { seasonStartYear } from "../../shared/time";
 
 type Availability = Infer<typeof availability>;
 
@@ -92,6 +93,16 @@ export async function readFpl(): Promise<Football> {
  *  League (`codesByOpta` in feedIds.ts). */
 export async function readFplBootstrap(): Promise<RawBootstrap> {
   return getShaped<RawBootstrap>(FPL_BOOTSTRAP_URL, "list of players", (body) => Array.isArray(body.elements));
+}
+
+/** The year the season FPL is on starts, 2026 for 2026/27: the season its first gameweek's deadline
+ *  falls in. The Premier League's reads follow it (#300). A bootstrap with no gameweeks throws:
+ *  nothing then says which season to read. */
+export function fplSeason(bootstrap: Pick<RawBootstrap, "events">): number {
+  if (!Array.isArray(bootstrap.events) || bootstrap.events.length === 0) {
+    throw new Error(`${FPL_BOOTSTRAP_URL} lists no gameweeks, so the season FPL is on is unknown`);
+  }
+  return seasonStartYear(Math.min(...bootstrap.events.map((event) => epochMs(event.deadline_time))));
 }
 
 /** How many players FPL lists: #7's check that Convex can read FPL (`feeds.ts`). */

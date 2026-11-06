@@ -20,6 +20,7 @@ import { matchRecords } from "../../../convex/stats/matchRecords";
 import { matchSlots, plStatLines } from "../../../convex/football/premierLeague/plMatch";
 import { FULL_STATS, hullEvertonReads, MATCH, recordedGw6, type Gw6Payloads } from "../recorded/gw6.payloads";
 import { recordedCommentary, recordedTeamStats } from "../recorded/commentary.payloads";
+import { PL_THIS_SEASON, plSeasonsBody } from "../recorded/plSeasons.payloads";
 import type { syncTrigger } from "../../../convex/schema";
 import { fakeFetch, freshConvex, type TestConvex } from "./test.harness";
 import { HOUR_MS } from "../../../convex/shared/time";
@@ -54,7 +55,8 @@ export function fakeFeeds(payloads: Gw6Payloads, refuse?: string) {
     [FPL_BOOTSTRAP_URL, payloads.fpl.bootstrap],
     [FPL_FIXTURES_URL, payloads.fpl.fixtures],
     [fplLiveUrl(GAMEWEEK), payloads.fpl.live],
-    [plFixturesUrl(GAMEWEEK), payloads.pl.round],
+    plSeasonsBody(),
+    [plFixturesUrl(PL_THIS_SEASON, GAMEWEEK), payloads.pl.round],
     ...payloads.pl.fixtures.map((fixture) => [plFixtureUrl(fixture.id), fixture] as const),
     ...payloads.pl.playerStats.map((read) => [plPlayerStatsUrl(read.player, read.fixture), read.payload] as const),
     [plCommentaryUrl(MATCH.hullEverton.pl), recordedCommentary(MATCH.hullEverton.pl)],

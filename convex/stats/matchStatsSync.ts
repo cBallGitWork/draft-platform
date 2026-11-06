@@ -4,7 +4,8 @@ import { internalAction, type ActionCtx } from "../_generated/server";
 import { codesByOpta, fixtureCodeIn, namedMen } from "../football/feedIds";
 import { logFailure, outcomeOf } from "../shared/errors";
 import { CRON_TRIGGER, withHeartbeat } from "../heartbeats/heartbeat";
-import { readFplPayloads } from "../football/fpl/fpl";
+import { fplSeason, readFplPayloads } from "../football/fpl/fpl";
+import { readPlSeasons } from "../football/premierLeague/plSeasons";
 import { fplStatLines, readFplLive, type FplStatLine } from "../football/fpl/fplLive";
 import { matchRecords } from "./matchRecords";
 import type { matchWrites } from "./matchStats";
@@ -76,6 +77,7 @@ export async function syncDue(
 ) {
   const { bootstrap, fixtures } = await fpl();
   const codeByOpta = codesByOpta(bootstrap.elements);
+  const seasons = await readPlSeasons(fplSeason(bootstrap));
   // The live tick reads each match's commentary too (#43), after its points and apart from them.
   const commentary = beforeFullTime === "live" ? commentaryContext(bootstrap, codeByOpta) : null;
   const matches: MatchOutcome[] = [];
@@ -85,7 +87,7 @@ export async function syncDue(
   for (const [gameweek, codes] of byGameweek(due)) {
     let reads: GameweekReads;
     try {
-      const [live, round] = await Promise.all([readFplLive(gameweek), readPlFixtures(gameweek)]);
+      const [live, round] = await Promise.all([readFplLive(gameweek), readPlFixtures(seasons.current, gameweek)]);
       const fplLines = fplStatLines(live, bootstrap.elements, fixtures);
       const listed = new Map(round.map((each) => [fixtureCodeIn(each), each]));
       const scored = dueScores(listed, codes);

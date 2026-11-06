@@ -1,10 +1,10 @@
 import { v, type Infer } from "convex/values";
 import { internal } from "../_generated/api";
 import { internalAction, internalMutation, internalQuery, type ActionCtx } from "../_generated/server";
-import { PL_COMP_SEASON, PL_LAST_COMP_SEASON } from "../football/football";
 import { errorMessage, outcomeOf } from "../shared/errors";
 import { codesByOpta, namedMen } from "../football/feedIds";
-import { readFplBootstrap } from "../football/fpl/fpl";
+import { fplSeason, readFplBootstrap } from "../football/fpl/fpl";
+import { readPlSeasons } from "../football/premierLeague/plSeasons";
 import { heldRow } from "./playerPositions";
 import { warnEveryLeague } from "./positionWarnings";
 import { matchSlots, requireFixtureCode, type MatchSlot } from "../football/premierLeague/plMatch";
@@ -171,11 +171,10 @@ function withStart(starts: Start[], start: Start): Start[] {
 /** Reads the sheets of up to `MATCHES_PER_RUN` played matches not yet read, oldest first, then this
  *  season's squads. A failed read throws, and the matches filed before it stay filed. */
 async function syncPositions(ctx: ActionCtx): Promise<Synced> {
-  const codeByOpta = codesByOpta((await readFplBootstrap()).elements);
-  const [lastSeason, thisSeason] = await Promise.all([
-    readPlFixtures(undefined, PL_LAST_COMP_SEASON),
-    readPlFixtures(undefined, PL_COMP_SEASON),
-  ]);
+  const bootstrap = await readFplBootstrap();
+  const codeByOpta = codesByOpta(bootstrap.elements);
+  const seasons = await readPlSeasons(fplSeason(bootstrap));
+  const [lastSeason, thisSeason] = await Promise.all([readPlFixtures(seasons.last), readPlFixtures(seasons.current)]);
   const played = [...lastSeason, ...thisSeason].filter((fixture) => fixture.status === PL_FULL_TIME);
   const unread = new Set<number>(
     await ctx.runQuery(internal.positions.positionsSync.unreadMatches, { fixtureCodes: played.map(requireFixtureCode) }),
@@ -193,7 +192,7 @@ async function syncPositions(ctx: ActionCtx): Promise<Synced> {
   const clubs = new Set(thisSeason.flatMap((fixture) => (fixture.teams ?? []).map((side) => side.team.id)));
   const clubNumbers = new Map<number, number | null>();
   for (const club of clubs) {
-    const { players } = await readPlSquad(club);
+    const { players } = await readPlSquad(club, seasons.current);
     noteLabels(players, codeByOpta, found);
     noteClubNumbers(players, codeByOpta, clubNumbers);
   }
