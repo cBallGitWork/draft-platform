@@ -14,10 +14,10 @@ type RoleSide = RoleScoring["bonus"];
 
 /** The page's counts the feed only sends as a total and the accurate ones: the total less them. */
 export const FIRST_ROLE_OWN_STATS: readonly OwnStat[] = [
-  failed("failed_long_balls", "Failed long balls", "FLB", "total_long_balls", "accurate_long_balls"),
-  failed("failed_crosses", "Failed crosses", "FCR", "total_cross", "accurate_cross"),
-  failed("misplaced_passes", "Misplaced passes", "MPS", "total_pass", "accurate_pass"),
-  failed("failed_launches", "Failed launches", "FLA", "total_launches", "accurate_launches"),
+  failed("league:failed_long_balls", "Failed long balls", "FLB", "total_long_balls", "accurate_long_balls"),
+  failed("league:failed_crosses", "Failed crosses", "FCR", "total_cross", "accurate_cross"),
+  failed("league:misplaced_passes", "Misplaced passes", "MPS", "total_pass", "accurate_pass"),
+  failed("league:failed_launches", "Failed launches", "FLA", "total_launches", "accurate_launches"),
 ];
 
 function failed(stat: string, name: string, shortCode: string, total: string, accurate: string): OwnStat {
@@ -105,11 +105,11 @@ export const FIRST_ROLES: readonly RoleScoring[] = [
     side([1, 2, 3], ["fouls", 1]),
   ),
   role("defensiveWinger", side([2, 3, 4], ["total_tackle", 1], ["interception", 1], ["outfielder_block", 1]), side([2, 3, 4], ["challenge_lost", 1])),
-  role("wideMidfieldPlaymaker", side([2, 3, 4], ["accurate_long_balls", 1], ["total_att_assist", 1]), side([4, 5, 6], ["failed_long_balls", 1])),
+  role("wideMidfieldPlaymaker", side([2, 3, 4], ["accurate_long_balls", 1], ["total_att_assist", 1]), side([4, 5, 6], ["league:failed_long_balls", 1])),
   role(
     "crosser",
     side([2, 3, 4], ["accurate_cross", 1], ["total_cross", 0.5], ["big_chance_created", 1]),
-    side([7, 10, 13], ["failed_crosses", 1]),
+    side([7, 10, 13], ["league:failed_crosses", 1]),
   ),
   role("wideMidfieldWinger", side([1, 2, 3], ["won_contest", 1], ["was_fouled", 1], ["accurate_cross", 0.5]), side([1, 2, 3], ["dispossessed", 1])),
   // Keepers.
@@ -126,7 +126,7 @@ export const FIRST_ROLES: readonly RoleScoring[] = [
   role(
     "distributor",
     side([8, 10, 12], ["long_pass_own_to_opp_success", 1], ["fwd_pass", 0.5], ["accurate_keeper_throws", 0.5]),
-    side([11, 13, 15], ["failed_launches", 1]),
+    side([11, 13, 15], ["league:failed_launches", 1]),
   ),
   role(
     "commandingKeeper",
@@ -176,11 +176,11 @@ export const FIRST_ROLES: readonly RoleScoring[] = [
     side([5, 6, 7], ["pen_area_entries", 1], ["progressive_carries", 1], ["final_third_entries", 1]),
     side([1, 3, 5], ["unsuccessful_touch", 1], ["total_offside", 1]),
   ),
-  role("invertedFullBack", side([6, 7, 8], ["accurate_pass", 0.1], ["successful_final_third_passes", 0.5]), side([11, 12, 13], ["misplaced_passes", 1])),
+  role("invertedFullBack", side([6, 7, 8], ["accurate_pass", 0.1], ["successful_final_third_passes", 0.5]), side([11, 12, 13], ["league:misplaced_passes", 1])),
   role(
     "playmakingFullBack",
     side([2, 3, 4], ["long_pass_own_to_opp_success", 1], ["accurate_long_balls", 1], ["big_chance_created", 2]),
-    side([2, 3, 4], ["failed_long_balls", 1]),
+    side([2, 3, 4], ["league:failed_long_balls", 1]),
   ),
   role(
     "defensiveFullBack",
@@ -188,11 +188,11 @@ export const FIRST_ROLES: readonly RoleScoring[] = [
     side([3, 4, 5], ["challenge_lost", 1]),
   ),
   // Defensive midfield.
-  role("metronome", side([7, 8, 9], ["accurate_pass", 0.1], ["fwd_pass", 0.2]), side([8, 9, 10], ["misplaced_passes", 1])),
+  role("metronome", side([7, 8, 9], ["accurate_pass", 0.1], ["fwd_pass", 0.2]), side([8, 9, 10], ["league:misplaced_passes", 1])),
   role(
     "quarterback",
     side([8, 9, 10], ["long_pass_own_to_opp_success", 1], ["accurate_long_balls", 1], ["accurate_chipped_pass", 1]),
-    side([6, 7, 8], ["failed_long_balls", 1]),
+    side([6, 7, 8], ["league:failed_long_balls", 1]),
   ),
   role(
     "halfBack",
@@ -207,7 +207,7 @@ export const FIRST_ROLES: readonly RoleScoring[] = [
   role(
     "ballPlayingDefender",
     side([10, 11, 12], ["long_pass_own_to_opp_success", 1], ["fwd_pass", 0.2], ["accurate_long_balls", 1]),
-    side([7, 8, 9], ["failed_long_balls", 1]),
+    side([7, 8, 9], ["league:failed_long_balls", 1]),
   ),
   role(
     "noNonsenseCentreBack",

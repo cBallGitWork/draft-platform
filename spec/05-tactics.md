@@ -242,6 +242,11 @@ From Craig, 1 Nov 2026.
   backtest over past seasons' real stats, never this season's gameweeks, so the other seasons'
   data comes first: "argh again your making it sound like "this project is live now so we test
   it" we try get other seasons data first to create the intiial backtest" (Craig, 5 Nov 2026).
+  The past seasons are copied on Craig's Mac, plus small files the backtest reads ("You copy them
+  on your Mac, plus small files"); a role stat a past season lacks takes its nearest past stat, or
+  the role is marked not tested ("Nearest past stat, else "not tested""); a past start counts in
+  the slot he started that match in ("Where he started that match"); and the scoring ships before
+  the backtest ("Scoring first"; all Craig, 5 Nov 2026).
 - Claude drafts the first values and Craig edits them by patch (26 Oct 2026). The first values,
   fitted to 26/27 gameweeks 1 to 9, are in [roles-first-values.md](../docs/roles-first-values.md).
   They went into the site's set as its starting rules, taking effect from the next gameweek that

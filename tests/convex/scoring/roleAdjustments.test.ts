@@ -126,7 +126,7 @@ describe("the first values (docs/roles-first-values.md)", () => {
       points: 0,
       sides: [
         { side: "bonus", points: 1, lines: [{ stat: "accurate_long_balls", actions: 2 }] },
-        { side: "cost", points: -1, lines: [{ stat: "failed_long_balls", actions: 4 }] },
+        { side: "cost", points: -1, lines: [{ stat: "league:failed_long_balls", actions: 4 }] },
       ],
     });
   });
