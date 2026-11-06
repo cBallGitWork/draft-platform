@@ -42,7 +42,7 @@ type Scored = Extract<HeadToHead["game"], { kind: "scored" }>;
 export function MatchupPage({ league, seam, asked }: { league: LeagueSummary; seam: MatchupSeam; asked: MatchupAsked }) {
   // The minute is in the query's arguments, and a live matchup mustn't blank every minute; another
   // matchup asked for loads afresh.
-  const matchup = useLastLoaded(seam.useMatchup(league.leagueId, useMinute(), asked), `${asked.teamId}/${asked.gameweek}`);
+  const matchup = useLastLoaded(seam.useMatchup(league.leagueId, useMinute(), asked), `${asked.teamId}/${asked.gameweek}/${asked.game}`);
   return (
     <PageSection title={MATCHUP_TITLE} className={PAGE_STACK}>
       {matchup === undefined ? (

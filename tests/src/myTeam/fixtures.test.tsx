@@ -42,7 +42,7 @@ const rows = () =>
 const cells = (row: HTMLElement) => Array.from((row as HTMLTableRowElement).cells, (cell) => cell.textContent);
 
 type Game = TeamFixtures["games"][number];
-const game = (gameweek: number, against: Game["against"], deadline: number | null = null, score: Game["score"] = null): Game => ({ gameweek, deadline, against, score });
+const game = (gameweek: number, against: Game["against"], deadline: number | null = null, score: Game["score"] = null, number = 1): Game => ({ gameweek, game: number, deadline, against, score });
 const fixturesOf = (games: TeamFixtures["games"], unscored: TeamFixtures["unscored"] = []): TeamFixtures => ({ teamId: MY_TEAM_ID, teamName: "Team 1", format: "headToHead", games, unscored });
 
 describe("reaching it", () => {

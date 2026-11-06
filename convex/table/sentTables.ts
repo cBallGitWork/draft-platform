@@ -6,7 +6,7 @@ import type { LeagueTable } from "./leagueTable";
 import { namedFixture, type GameweekFixtures } from "./roundRobin";
 import { headToHeadTable, teamsInGameweek, totalPointsTable, type GameweekScores, type TableRow, type TieBreak } from "./standings";
 import type { TeamFixtures } from "./teamFixtures";
-import { BYE, gameScore, gamesOf } from "./teamGames";
+import { BYE, gameNumberAt, gameScore, gamesOf } from "./teamGames";
 
 // What the table's queries send, worked out from what they read: the league's table and fixtures
 // (leagueTable.ts's ofLeague) and one team's games (teamFixtures.ts's ofMyTeam). Pure, with no
@@ -60,10 +60,11 @@ export function leagueTableFrom({
     gameweeks: schedule.map((drawn) => ({
       gameweek: drawn.gameweek,
       deadline: deadlineOf(drawn.gameweek),
-      fixtures: drawn.fixtures.map((each) => {
+      fixtures: drawn.fixtures.map((each, index) => {
         const scored = results.get(drawn.gameweek);
         const score = scored === undefined ? null : gameScore(teamsInGameweek(drawn), scored, drawn.gameweek, each.team, each.opponent);
-        return { teamId: each.team, ...namedFixture(each, named), points: score === null ? null : { team: score.team, opponent: score.opponent } };
+        const points = score === null ? null : { team: score.team, opponent: score.opponent };
+        return { teamId: each.team, game: gameNumberAt(drawn.fixtures, index), ...namedFixture(each, named), points };
       }),
       byes: drawn.byes.map(named),
     })),
@@ -101,11 +102,12 @@ export function teamFixturesFrom({
     teamId: team.id,
     teamName: team.name,
     format,
-    games: games.map(({ gameweek, against }) => {
+    games: games.map(({ gameweek, game, against }) => {
       const scored = results.get(gameweek);
       const opponent = against.kind === "team" ? against.team : against.kind;
       return {
         gameweek,
+        game,
         deadline: deadlineOf(gameweek),
         against: against.kind === "team" ? { kind: "team" as const, teamName: named(against.team) } : against,
         score: scored === undefined || opponent === BYE ? null : gameScore(teamsInGameweek(drawnIn.get(gameweek)!), scored, gameweek, team.id, opponent),

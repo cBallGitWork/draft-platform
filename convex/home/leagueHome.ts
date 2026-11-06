@@ -11,6 +11,7 @@ import { memberOf } from "../shared/leagueAccess";
 import { namedFixture } from "../table/roundRobin";
 import { fixture, standingsOf } from "../table/leagueTable";
 import { formOf, RESULTS } from "../table/standings";
+import { gameNumberAt } from "../table/teamGames";
 import { shownRows, TICKER_MOST } from "./glance";
 
 // League home (spec/12, League home; #387), its first slice: the glance (this gameweek's
@@ -101,7 +102,7 @@ export const ofLeague = query({
       thisGameweek: current
         ? {
             gameweek: current.gameweek,
-            fixtures: current.fixtures.map((each) => ({ teamId: each.team, ...namedFixture(each, named) })),
+            fixtures: current.fixtures.map((each, index) => ({ teamId: each.team, game: gameNumberAt(current.fixtures, index), ...namedFixture(each, named) })),
             byes: current.byes.map(named),
           }
         : null,

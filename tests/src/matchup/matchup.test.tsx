@@ -111,10 +111,18 @@ describe("reaching it", () => {
     expect(app.matchup.useMatchup).toHaveBeenLastCalledWith(league.leagueId, expect.any(Number), { teamId: "team-Cat's" as Id<"teams">, gameweek: 4 });
   });
 
-  it("drops a gameweek in the address that isn't a whole number", async () => {
-    const app = openMatchup({}, `${MATCHUP_PATH}?gameweek=6.5`);
+  it("with two games a gameweek, each game's link opens its own matchup (#913)", async () => {
+    const twoGames = { gameweek: 4, fixtures: [homeFixture("Cat's", "Ann's"), homeFixture("Cat's", "Bob's", 2)], byes: [] };
+    const app = openApp(HOME_PATH, manager, { home: { leagueHome: { ...quietHome, thisGameweek: twoGames } } });
+    await userEvent.click(await screen.findByRole("link", { name: matchupLinkLabel("Cat's", "Bob's", 4) }));
     await screen.findByRole("heading", { level: 1, name: MATCHUP_TITLE });
-    expect(app.matchup.useMatchup).toHaveBeenCalledWith(league.leagueId, expect.any(Number), { teamId: undefined, gameweek: undefined });
+    expect(app.matchup.useMatchup).toHaveBeenLastCalledWith(league.leagueId, expect.any(Number), { teamId: "team-Cat's" as Id<"teams">, gameweek: 4, game: 2 });
+  });
+
+  it("drops a gameweek or game in the address that isn't a whole number, and a game below 1", async () => {
+    const app = openMatchup({}, `${MATCHUP_PATH}?gameweek=6.5&game=0`);
+    await screen.findByRole("heading", { level: 1, name: MATCHUP_TITLE });
+    expect(app.matchup.useMatchup).toHaveBeenCalledWith(league.leagueId, expect.any(Number), { teamId: undefined, gameweek: undefined, game: undefined });
   });
 });
 
