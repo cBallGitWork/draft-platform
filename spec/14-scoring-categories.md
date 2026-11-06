@@ -84,6 +84,9 @@ Feature 14 of [SPEC.md](../SPEC.md). Only Craig's answers, from `/grill scoring 
   least 7 days after it is announced ("week notice for updates"). Patches can land mid-season.
 - Gameweeks already played keep the version in force in them, and a re-score never applies a later
   patch: past gameweeks are "locked in as a relic" (25 Oct 2026).
+- When the first kickoff of a waiting patch's gameweek moves later, the patch's start moves with
+  it ("yes"), and a gameweek with no kickoff time yet plays the rules already in force ("old but
+  gameweeks always have a time") (Craig, 1 Nov 2026, on #901).
 - A mistake in a value can be fixed at once, without the week's notice, announced as a fix; it
   still never touches a gameweek already played.
 - A patch is announced by a Mail letter to every manager (`spec/16`), and by a site banner from the

@@ -37,6 +37,8 @@ export async function followKickoffs(ctx: MutationCtx, now: number): Promise<num
     if (row.gameweek === undefined || row.takesEffectAt <= now || begun.has(row.gameweek)) continue;
     const kickoff = kickoffs.get(row.gameweek);
     if (kickoff === undefined || kickoff <= row.takesEffectAt || seasonStartYear(kickoff) !== row.season) continue;
+    // Left where it is: no kickoff for the gameweek (its fixtures dropped), the kickoff isn't later,
+    // or it falls in another season (a stale gameweek number). The cap below keeps versions in order.
     const takesEffectAt = Math.min(kickoff, history[index + 1]?.takesEffectAt ?? kickoff);
     if (takesEffectAt <= row.takesEffectAt) continue;
     await ctx.db.patch("siteScoring", row._id, { takesEffectAt });
