@@ -7,6 +7,8 @@ import { livePremierLeague } from "../../../src/premierLeague/livePremierLeague"
 import { ARSENAL, CHELSEA, plMatch } from "../../support/src/premierLeague.harness";
 import { A_LEAGUE_ID } from "../../support/src/convexReact.harness";
 
+const NOW = Date.parse("2026-10-27T16:00:00Z");
+
 const convex = vi.hoisted(() => ({ firstKickoffs: vi.fn(), ofGameweek: vi.fn(), ofSeason: vi.fn(), ofMatch: vi.fn() }));
 vi.mock("convex/react", async () =>
   (await import("../../support/src/convexReact.harness")).fakeConvexReact({
@@ -33,11 +35,11 @@ test("it asks football/matchScores:ofGameweek with the gameweek, and hands on wh
   expect(convex.ofGameweek).toHaveBeenCalledWith({ gameweek: 9 });
 });
 
-test("it asks match/matchPage:ofMatch with the league and the fixture code, and hands on what comes back", () => {
+test("it asks match/matchPage:ofMatch with the league, the screen's minute and the fixture code, and hands on what comes back", () => {
   const page = { fixtureCode: 7 };
   convex.ofMatch.mockReturnValue(page);
-  expect(renderHook(() => livePremierLeague.useMatch(A_LEAGUE_ID, 7)).result.current).toBe(page);
-  expect(convex.ofMatch).toHaveBeenCalledWith({ leagueId: A_LEAGUE_ID, fixtureCode: 7 });
+  expect(renderHook(() => livePremierLeague.useMatch(A_LEAGUE_ID, NOW, 7)).result.current).toBe(page);
+  expect(convex.ofMatch).toHaveBeenCalledWith({ leagueId: A_LEAGUE_ID, now: NOW, fixtureCode: 7 });
 });
 
 test("each is undefined while loading", () => {
@@ -46,7 +48,7 @@ test("each is undefined while loading", () => {
   expect(renderHook(() => livePremierLeague.useFirstKickoffs()).result.current).toBeUndefined();
   expect(renderHook(() => livePremierLeague.useGameweekMatches(9)).result.current).toBeUndefined();
   convex.ofMatch.mockReturnValue(undefined);
-  expect(renderHook(() => livePremierLeague.useMatch(A_LEAGUE_ID, 7)).result.current).toBeUndefined();
+  expect(renderHook(() => livePremierLeague.useMatch(A_LEAGUE_ID, NOW, 7)).result.current).toBeUndefined();
 });
 
 test("it asks football/plStandings:ofSeason with nothing, and hands on the table", () => {

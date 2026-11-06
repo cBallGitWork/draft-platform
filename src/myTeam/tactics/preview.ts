@@ -6,7 +6,9 @@ import { useSyncExternalStore } from "react";
 import { lineupProblems } from "../../../convex/lineup/lineup";
 import { problemWords } from "../../../convex/lineup/lineupWords";
 import { CLUB_COLOURS } from "../../../convex/football/clubColours";
-import type { Cell } from "../../../convex/lineup/pitch";
+import { areasOf, cellsOf, LANES, type Cell } from "../../../convex/lineup/pitch";
+import { everyRoleOf } from "../../../convex/lineup/roles";
+import { NO_DATA, UNSURE, type RoleStars } from "../../../convex/stars/starsShape";
 import type { Position } from "../../../convex/positions/positionTables";
 import { FIRST_RULES } from "../../../convex/rules/firstRules";
 import { DAY_MS, HOUR_MS } from "../../../convex/shared/time";
@@ -38,6 +40,18 @@ const PLAYERS: readonly [number, string, string, Position[], Cell | null][] = [
   [15, "Watkins", "AVL", ["ST"], null],
 ];
 
+/** Made-up stars, as the preview's points are: a half-star step from his code and the role's place,
+ *  for every role in every area he plays (as convex/stars/stars.ts's ratedRoles). Murillo has no
+ *  match yet ("—") and Watkins too few to be sure ("?"). */
+function previewStars(playerCode: number, positions: readonly Position[]): RoleStars[] {
+  const roles = areasOf(positions).flatMap((area) => [...new Set(cellsOf(area, LANES).flatMap((cell) => everyRoleOf(cell).map(({ key }) => key)))].map((role) => ({ area, role })));
+  return roles.map(({ area, role }, index) => ({
+    area,
+    role,
+    stars: playerCode === 13 ? NO_DATA : playerCode === 15 ? UNSURE : 0.5 + ((playerCode * 7 + index * 3) % 10) / 2,
+  }));
+}
+
 // Squad numbers are made up too: each player wears his code, the last one none yet (#13).
 const squad = PLAYERS.map(([playerCode, name, clubShortName, positions]) => ({
   playerCode,
@@ -47,8 +61,7 @@ const squad = PLAYERS.map(([playerCode, name, clubShortName, positions]) => ({
   unheld: false,
   positions,
   number: playerCode === 15 ? null : playerCode,
-  // No stars in the preview: each player dropped starts on the slot's first role.
-  stars: [],
+  stars: previewStars(playerCode, positions),
 }));
 /** The squad, for the Squad tab's preview (../preview.ts), so both tabs show the same players. */
 export const previewSquad = squad;

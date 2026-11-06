@@ -8,6 +8,7 @@ import {
   premierLeagueRows,
   seasonCounts,
   statsIn,
+  withoutFplCode,
   type FplPosition,
   type LogRow,
 } from "../../../convex/pastSeasons/pastSeasonRows";
@@ -106,6 +107,26 @@ describe("a past season's rows", () => {
         expect(points, `${String(row.person_root_id)} at ${String(row.kickoff_utc)}`).toBe(fpl);
       }
     }
+  });
+});
+
+describe("a player with no FPL code is skipped, the rest of the season kept (Craig, 6 Nov 2026, on #842)", () => {
+  const keeper = SAMPLE_LOG.filter((row) => row.person_root_id === "keeper-one");
+  const unmatched = keeper.map((row) => ({ ...row, person_root_id: "no-fpl-seven" }));
+
+  test("his rows are left out and he is named, with the matches he played", () => {
+    const { kept, skipped } = withoutFplCode([...SAMPLE_LOG, ...unmatched], codes);
+    expect(kept).toEqual(premierLeagueRows(SAMPLE_LOG));
+    expect(skipped).toEqual([{ root: "no-fpl-seven", rows: unmatched.length, played: unmatched.filter(playedIn).length }]);
+  });
+
+  test("everyone else is still found by his FPL code", () => {
+    const { kept } = withoutFplCode([...SAMPLE_LOG, ...unmatched], codes);
+    expect(pastSeasonRows(SAMPLE_SEASON, kept, codes, positions)).toEqual(sampleRows());
+  });
+
+  test("a season where everyone has a code skips no one", () => {
+    expect(withoutFplCode(SAMPLE_LOG, codes).skipped).toEqual([]);
   });
 });
 

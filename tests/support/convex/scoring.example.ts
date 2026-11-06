@@ -88,7 +88,7 @@ export function pricedRole(role: string, stat: string, points: number): NonNulla
 
 /** One of the site's own stats (spec/14, Own stats): tackles won + 0.5 × clearances. */
 export const TACKLES_AND_CLEARANCES: OwnStat = {
-  stat: "own_tackles_and_clearances",
+  stat: "league:tackles_and_clearances",
   name: "Tackles and clearances",
   shortCode: "T+C",
   parts: [

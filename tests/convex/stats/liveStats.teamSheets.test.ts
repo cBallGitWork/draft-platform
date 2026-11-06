@@ -1,6 +1,7 @@
 import { beforeEach, expect, test, vi } from "vitest";
 import { internal } from "../../../convex/_generated/api";
-import { FPL_BOOTSTRAP_URL, FPL_FIXTURES_URL, plFixturesUrl, plFixtureUrl } from "../../../convex/football/football";
+import { FPL_BOOTSTRAP_URL, FPL_FIXTURES_URL, plCompSeasonsUrl, plFixturesUrl, plFixtureUrl } from "../../../convex/football/football";
+import { PL_THIS_SEASON } from "../../support/recorded/plSeasons.payloads";
 import { codesByOpta } from "../../../convex/football/feedIds";
 import { matchSlots } from "../../../convex/football/premierLeague/plMatch";
 import { PL_UPCOMING } from "../../../convex/football/premierLeague/premierLeague";
@@ -79,7 +80,7 @@ test("a tick within the hour reads only the match's sheets and keeps both sides'
   const { fetch, latest } = await tickAt(t, SHEETS_OPEN + MINUTE_MS, payloads);
 
   expect(fetch.mock.calls.map(([url]) => url).toSorted()).toEqual(
-    [FPL_BOOTSTRAP_URL, FPL_FIXTURES_URL, plFixturesUrl(GAMEWEEK), plFixtureUrl(MATCH.hullEverton.pl)].toSorted(),
+    [FPL_BOOTSTRAP_URL, FPL_FIXTURES_URL, plCompSeasonsUrl(), plFixturesUrl(PL_THIS_SEASON, GAMEWEEK), plFixtureUrl(MATCH.hullEverton.pl)].toSorted(),
   );
   const men = sheetMen(payloads, MATCH.hullEverton.pl);
   expect(men.filter((man) => man.started)).toHaveLength(BOTH_ELEVENS);
@@ -152,7 +153,7 @@ test("sheets that will not read are logged and on the sheets' row, and the held 
 test("a gameweek whose list will not read fails each of its matches on the sheets' row", async () => {
   silenceConsoleError();
   const t = await withHullEvertonMen();
-  const url = plFixturesUrl(GAMEWEEK);
+  const url = plFixturesUrl(PL_THIS_SEASON, GAMEWEEK);
 
   await tickAt(t, SHEETS_OPEN, beforeKickoff(), url);
 

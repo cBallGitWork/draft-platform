@@ -26,7 +26,9 @@ const invitesPage: InvitesPageData = {
     { inviteId: id("invite-3"), email: "cat@example.com", teamName: null, delivery: "sent", expiresAt: now - DAY_MS, joinedTeamName: null, couldNotJoin: null },
     { inviteId: id("invite-4"), email: "dan@example.com", teamName: null, delivery: "sent", expiresAt: now + 5 * DAY_MS, joinedTeamName: "Team 1", couldNotJoin: null },
   ],
+  invitesCut: false,
   requests: [{ requestId: id("request-1"), email: "a.very.long.address.for.the.phone@example.com", askedAt: now - DAY_MS }],
+  requestsCut: false,
 };
 
 const nothingChanged = previewSays("nothing changed");

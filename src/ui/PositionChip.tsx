@@ -31,11 +31,16 @@ const CHIP_COLOURS: Record<Position, { fill: string; ink: string }> = {
 /** A chip's fill alone, for a mark in its colour with no code on it (a formation's thumbnail). */
 export const chipFillOf = (label: Position) => CHIP_COLOURS[label].fill;
 
-/** One position's chip, named in full on hover and for screen readers. */
-export function PositionChip({ label }: { label: Position }) {
+/** A chip greyed out with its row, such as a player a draft pick can't take (the approved draft
+ *  room picture). */
+const DIMMED = "opacity-50";
+
+/** One position's chip, named in full on hover and for screen readers; `dimmed` greys it out with
+ *  its row. */
+export function PositionChip({ label, dimmed = false }: { label: Position; dimmed?: boolean }) {
   const { fill, ink } = CHIP_COLOURS[label];
   return (
-    <abbr title={POSITION_NAMES[label]} className={`inline-block min-w-chip px-1 text-center font-bold no-underline ${fill} ${ink}`}>
+    <abbr title={POSITION_NAMES[label]} className={`inline-block min-w-chip px-1 text-center font-bold no-underline ${fill} ${ink}${dimmed ? ` ${DIMMED}` : ""}`}>
       {label}
     </abbr>
   );

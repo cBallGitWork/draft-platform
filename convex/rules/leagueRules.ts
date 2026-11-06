@@ -12,6 +12,7 @@ import { sortedJson } from "../shared/sortedJson";
 import { nextGameweek } from "../gameweeks/nextGameweek";
 import { fixedDeadlinesOf } from "../gameweeks/passedDeadlines";
 import { FIRST_GAMEWEEK } from "../gameweeks/usedGameweeks";
+import { refuseFormatChange } from "./formatLock";
 import { momentIn } from "../shared/moments";
 import { zoneOf } from "../signIn/timeZone";
 import { checkSquadMaximums, squadMaximumBandShape, squadMaximumFor, STARTING_SQUAD_MAXIMUMS, withSquadMaximum, type SquadMaximumBand } from "./squadMaximums";
@@ -182,13 +183,15 @@ async function takesEffectFrom(
 /** Saves `rules` as the league's from the gameweek they can take effect, and files the letter
  *  saying what changed and from when. The same rules again change nothing and file nothing.
  *  Returns that gameweek. Refused, with the reason, if someone saved the rules since `loaded` was
- *  the latest, or if unsound. */
+ *  the latest, if unsound, or if it changes the format once the season has begun. */
 async function changeRules(ctx: MutationCtx, leagueId: Id<"leagues">, email: string, rules: LeagueRules, loaded: Revision): Promise<number> {
   const history = await historyOf(ctx, leagueId);
   const latestRow = history.at(-1);
   await refuseStale(ctx, leagueId, email, latestRow, loaded);
-  refuseUnsound(rules, (await getLeague(ctx, leagueId)).maxTeams);
+  const league = await getLeague(ctx, leagueId);
+  refuseUnsound(rules, league.maxTeams);
   const fromGameweek = await takesEffectFrom(ctx, leagueId, history, rules, Date.now());
+  if (latestRow !== undefined) await refuseFormatChange(ctx, league, latestRow.rules, rules, fromGameweek);
   const changed = changedParts(latestRow?.rules, rules);
   if (latestRow !== undefined && changed.length === 0) return latestRow.fromGameweek;
   if (history.length >= RULES_CHANGES_MOST) refuse(rulesRefusals.tooManyChanges);

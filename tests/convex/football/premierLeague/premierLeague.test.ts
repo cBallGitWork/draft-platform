@@ -2,9 +2,6 @@ import { expect, test, vi } from "vitest";
 import {
   FPL_BOOTSTRAP_URL,
   fplLiveUrl,
-  PL_LAST_COMP_SEASON,
-  PL_SEASON_IDS_STALE,
-  PL_SEASON_IDS_STALE_FROM,
   plCommentaryUrl,
   plFixturesUrl,
   plFixtureUrl,
@@ -31,6 +28,7 @@ import {
 } from "../../../support/recorded/commentary.payloads";
 import { LIVE_MATCH, recordedLiveTeamStats } from "../../../support/recorded/live.payloads";
 import { fakeFetch } from "../../../support/convex/test.harness";
+import { PL_LAST_SEASON, PL_THIS_SEASON } from "../../../support/recorded/plSeasons.payloads";
 
 /** Stubs fetch to answer each URL with its body in `bodies`, as `fakeFetch` does; records the URLs. */
 function fakeFeed(bodies: Record<string, unknown>) {
@@ -43,40 +41,22 @@ function fakeFeed(bodies: Record<string, unknown>) {
 const FORBIDDEN_STATUS = 403;
 
 test.each([undefined, 6])("the fixture list always asks for altIds, the join to FPL (gameweek %s)", (gameweek) => {
-  expect(new URL(plFixturesUrl(gameweek)).searchParams.get("altIds")).toBe("true");
+  expect(new URL(plFixturesUrl(PL_THIS_SEASON, gameweek)).searchParams.get("altIds")).toBe("true");
 });
 
 test("one gameweek's fixture list asks for that gameweek of this season's Premier League", () => {
-  const query = new URL(plFixturesUrl(6)).searchParams;
+  const query = new URL(plFixturesUrl(PL_THIS_SEASON, 6)).searchParams;
   expect(["comps", "compSeasons", "gameweekNumbers"].map((key) => query.get(key))).toEqual(["1", "841", "6"]);
-  expect(new URL(plFixturesUrl()).searchParams.has("gameweekNumbers")).toBe(false);
+  expect(new URL(plFixturesUrl(PL_THIS_SEASON)).searchParams.has("gameweekNumbers")).toBe(false);
 });
 
 test("a named season's fixture list asks for that season, with altIds", () => {
-  const query = new URL(plFixturesUrl(undefined, PL_LAST_COMP_SEASON)).searchParams;
+  const query = new URL(plFixturesUrl(PL_LAST_SEASON)).searchParams;
   expect(["compSeasons", "altIds"].map((key) => query.get(key))).toEqual(["777", "true"]);
 });
 
-test("the season ids go out of date on 1 July after the season they name (#201)", () => {
-  expect(PL_SEASON_IDS_STALE_FROM).toBe(Date.parse("2027-07-01T00:00:00Z"));
-  expect(PL_SEASON_IDS_STALE).toContain("are for 2026/27, which has ended");
-  expect(PL_SEASON_IDS_STALE).toContain("https://footballapi.pulselive.com/football/competitions/1/compseasons");
-});
-
-test("from then, every read naming a season throws, saying what to update; up to then, none does (#201)", () => {
-  const namingASeason = [() => plFixturesUrl(), () => plFixturesUrl(6), () => plFixturesUrl(undefined, PL_LAST_COMP_SEASON), () => plSquadUrl(1)];
-  vi.useFakeTimers({ toFake: ["Date"] });
-
-  vi.setSystemTime(PL_SEASON_IDS_STALE_FROM - 1);
-  for (const url of namingASeason) expect(url).not.toThrow();
-
-  vi.setSystemTime(PL_SEASON_IDS_STALE_FROM);
-  for (const url of namingASeason) expect(url).toThrow(PL_SEASON_IDS_STALE);
-  expect(plFixtureUrl(128978)).toBe("https://footballapi.pulselive.com/football/fixtures/128978");
-});
-
 test("a squad read asks for altIds, the join to FPL, as well as every kind of player", () => {
-  const query = new URL(plSquadUrl(23)).searchParams;
+  const query = new URL(plSquadUrl(23, PL_THIS_SEASON)).searchParams;
   expect(["type", "altIds"].map((key) => query.get(key))).toEqual(["all", "true"]);
 });
 
@@ -96,10 +76,10 @@ test("each read asks the URL it names and hands back all that came", async () =>
   const squad = { players: [{ id: 13486, name: { display: "Lewie Coyle" }, info: { positionInfo: "Right Full Back" } }] };
   const bootstrap = { elements: [{ id: 1, code: 193278 }] };
   const fetch = fakeFeed({
-    [plFixturesUrl(undefined, PL_LAST_COMP_SEASON)]: lastSeason,
-    [plSquadUrl(41)]: squad,
+    [plFixturesUrl(PL_LAST_SEASON)]: lastSeason,
+    [plSquadUrl(41, PL_THIS_SEASON)]: squad,
     [FPL_BOOTSTRAP_URL]: bootstrap,
-    [plFixturesUrl(6)]: list,
+    [plFixturesUrl(PL_THIS_SEASON, 6)]: list,
     [plFixtureUrl(128978)]: fixture,
     [plPlayerStatsUrl(13486, 128978)]: stats,
     [fplLiveUrl(6)]: live,
@@ -107,23 +87,23 @@ test("each read asks the URL it names and hands back all that came", async () =>
     [plTeamStatsUrl(128984)]: teamStats,
   });
 
-  expect(await readPlFixtures(6)).toEqual(list.content);
+  expect(await readPlFixtures(PL_THIS_SEASON, 6)).toEqual(list.content);
   expect(await readPlFixture(128978)).toEqual(fixture);
   expect(await readPlPlayerStats(13486, 128978)).toEqual(stats);
   expect(await readFplLive(6)).toEqual(live);
   expect(await readPlCommentary(128978)).toEqual(commentary.events.content);
   expect(await readPlTeamStats(128984)).toEqual(teamStats);
-  expect(await readPlFixtures(undefined, PL_LAST_COMP_SEASON)).toEqual(lastSeason.content);
-  expect(await readPlSquad(41)).toEqual(squad);
+  expect(await readPlFixtures(PL_LAST_SEASON)).toEqual(lastSeason.content);
+  expect(await readPlSquad(41, PL_THIS_SEASON)).toEqual(squad);
   expect(await readFplBootstrap()).toEqual(bootstrap);
   expect(fetch.mock.calls.map(([url]) => url)).toEqual([
-    plFixturesUrl(6),
+    plFixturesUrl(PL_THIS_SEASON, 6),
     "https://footballapi.pulselive.com/football/fixtures/128978",
     "https://footballapi.pulselive.com/football/stats/player/13486?fixtures=128978",
     "https://fantasy.premierleague.com/api/event/6/live/",
     "https://footballapi.pulselive.com/football/fixtures/128978/textstream/EN?pageSize=200&sort=desc",
     "https://footballapi.pulselive.com/football/stats/match/128984",
-    plFixturesUrl(undefined, PL_LAST_COMP_SEASON),
+    plFixturesUrl(PL_LAST_SEASON),
     "https://footballapi.pulselive.com/football/teams/41/compseasons/841/staff?type=all&altIds=true",
     "https://fantasy.premierleague.com/api/bootstrap-static/",
   ]);
@@ -165,23 +145,23 @@ test("a commentary longer than one read holds throws rather than lose its oldest
 });
 
 const URL_OF = {
-  list: plFixturesUrl(6),
+  list: plFixturesUrl(PL_THIS_SEASON, 6),
   fixture: plFixtureUrl(128978),
   stats: plPlayerStatsUrl(13486, 128978),
   live: fplLiveUrl(6),
   commentary: plCommentaryUrl(128978),
   teamStats: plTeamStatsUrl(128984),
-  squad: plSquadUrl(41),
+  squad: plSquadUrl(41, PL_THIS_SEASON),
   bootstrap: FPL_BOOTSTRAP_URL,
 };
 const READ_OF = {
-  list: () => readPlFixtures(6),
+  list: () => readPlFixtures(PL_THIS_SEASON, 6),
   fixture: () => readPlFixture(128978),
   stats: () => readPlPlayerStats(13486, 128978),
   live: () => readFplLive(6),
   commentary: () => readPlCommentary(128978),
   teamStats: () => readPlTeamStats(128984),
-  squad: () => readPlSquad(41),
+  squad: () => readPlSquad(41, PL_THIS_SEASON),
   bootstrap: () => readFplBootstrap(),
 };
 
@@ -210,13 +190,13 @@ test.each([
 });
 
 test.each([
-  ["the fixture list", () => readPlFixtures(6), plFixturesUrl(6)],
+  ["the fixture list", () => readPlFixtures(PL_THIS_SEASON, 6), plFixturesUrl(PL_THIS_SEASON, 6)],
   ["a fixture", () => readPlFixture(128978), plFixtureUrl(128978)],
   ["a player's stats", () => readPlPlayerStats(13486, 128978), plPlayerStatsUrl(13486, 128978)],
   ["FPL's live stats", () => readFplLive(6), fplLiveUrl(6)],
   ["a match's commentary", () => readPlCommentary(128978), plCommentaryUrl(128978)],
   ["a match's team stats", () => readPlTeamStats(128984), plTeamStatsUrl(128984)],
-  ["a club's squad", () => readPlSquad(41), plSquadUrl(41)],
+  ["a club's squad", () => readPlSquad(41, PL_THIS_SEASON), plSquadUrl(41, PL_THIS_SEASON)],
   ["FPL's bootstrap", () => readFplBootstrap(), FPL_BOOTSTRAP_URL],
 ] as const)("a refused read of %s throws with its URL and status", async (_what, read, url) => {
   vi.stubGlobal("fetch", fakeFetch(new Map(), () => true, FORBIDDEN_STATUS));

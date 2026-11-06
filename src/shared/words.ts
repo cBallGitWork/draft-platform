@@ -48,6 +48,8 @@ export const previousGlyph = "◄";
 export const nextGlyph = "►";
 /** A panel's or a window's cross, decoration, as its button carries its label. */
 export const closeGlyph = "✕";
+/** A control drawn as a button that opens a list of choices, decoration, as its label says it. */
+export const menuGlyph = "▾";
 /** The link from a player's panel to his card (Squad and Tactics). */
 export const playerCardWords = "Player card";
 /** A sortable table's heads (src/ui/ColumnHeads.tsx): beside the column sorted by, which way, as

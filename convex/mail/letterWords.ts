@@ -4,7 +4,9 @@ import { andListWords, momentIn } from "../shared/moments";
 import { figureWords } from "../shared/numberWords";
 import type { LeagueRules } from "../rules/leagueRulesShape";
 import { NOTHING_SCORES_DIFFERENTLY } from "../scoring/patchChanges";
+import { autoTeamSwitchedWords } from "../lineup/autoTeamWords";
 import type { leagueEvent, siteScoringKind } from "../schema";
+import { claimedBody, pickedUpBody } from "./waiverLetterWords";
 
 // What the letters Mail files about a league's events say (spec/15: nothing changes quietly), in
 // one place for Craig to change. Each names who did it: an email, or `adminByline`.
@@ -110,6 +112,8 @@ export function eventLetter(event: LeagueEvent, who: string, zone: string | unde
       };
     case "playerClaimed":
       return { subject: `${event.teamName} claimed ${event.playerName}`, body: claimedBody(event, who) };
+    case "playerPickedUp":
+      return { subject: `${event.teamName} picked up ${event.playerName}`, body: pickedUpBody(event, who) };
     case "rulesChanged":
       return {
         subject: `The league's rules change from gameweek ${event.fromGameweek}`,
@@ -119,6 +123,8 @@ export function eventLetter(event: LeagueEvent, who: string, zone: string | unde
       return { subject: `${event.playerName}'s points in ${event.matchName} were overridden`, body: overriddenBody(event, who) };
     case "fixturesSwapped":
       return { subject: `Gameweek ${event.gameweek}'s fixtures were changed`, body: swappedBody(event, who) };
+    case "autoTeamSwitched":
+      return autoTeamSwitchedWords(event, who);
   }
 }
 
@@ -147,41 +153,6 @@ function overriddenBody(event: Extract<LeagueEvent, { kind: "pointsOverridden" }
       ? "No team's total moved: no lineup counted him."
       : teams.map((team) => `${team.teamName} now have ${figureWords(team.to)} in gameweek ${gameweek}, not ${figureWords(team.from)}.`).join("\n");
   return `${who} overrode ${playerName}'s points in ${matchName}, gameweek ${gameweek}: ${change}. Why: ${reason}\n\n${totals}`;
-}
-
-/** "Lions claimed Saka off waivers, ann@example.com's claim. Rice went for him, onto waivers for
- *  at least 24 hours." */
-function claimedBody({ playerName, teamName, dropped }: Extract<LeagueEvent, { kind: "playerClaimed" }>, who: string): string {
-  const claimed = `${teamName} claimed ${playerName} off waivers, ${who}'s claim.`;
-  if (dropped === null) return claimed;
-  const where = dropped.toWaivers
-    ? "onto waivers for at least 24 hours"
-    : "a free agent again, not on waivers: he was picked up since the last deadline";
-  return `${claimed} ${dropped.playerName} went for him, ${where}.`;
-}
-
-/** Why a waiver claim failed (spec/08): another team was ahead, the player he named to drop was
- *  already gone, or the squad's limits. */
-export const CLAIM_FAILURES = ["ahead", "dropGone", "limits"] as const;
-export type ClaimFailure = (typeof CLAIM_FAILURES)[number];
-
-/** To a manager alone when his claim fails at a waiver run (spec/08, spec/16), saying why. */
-export function claimFailedLetter({ playerName, dropName, why }: { playerName: string; dropName: string | null; why: ClaimFailure }): Words {
-  const because = {
-    ahead: `Another team was ahead of you in the waiver order for ${playerName}.`,
-    dropGone: `${dropName ?? "The player you named to drop"} was no longer in your squad to drop.`,
-    limits: `${playerName} would have broken your squad's limits.`,
-  }[why];
-  return { subject: `Your claim for ${playerName} failed`, body: `${because} Your claim is gone; nobody joined or left your squad for it.` };
-}
-
-/** The letter to a manager whose shortlist holds a player just released to free agency (spec/16,
- *  spec/19 The shortlist), released by `who`. */
-export function shortlistedReleasedLetter(playerName: string, teamName: string, who: string): Words {
-  return {
-    subject: `${playerName}, on your shortlist, was released`,
-    body: `${who} released ${playerName} from ${teamName}. He is a free agent, and on your shortlist.`,
-  };
 }
 
 /** The draft's letters (spec/04, Mail; #1102). "You're up next" to the manager whose pick's clock
@@ -290,5 +261,14 @@ export function versionLetter({ name, kind, takesEffectAt, fromGameweek, changes
   return {
     subject: `Scoring fix ${name}`,
     body: `${adminByline} fixed a mistake in the scoring every league plays on: version ${name}, in force from gameweek ${fromGameweek}. ${kept}\n\n${what}`,
+  };
+}
+
+/** The letter saying a patch to the site's scoring was withdrawn before it took effect (Craig, 6 Nov
+ *  2026, on #368: "every manager gets a Mail letter saying so"), its moment told in `zone`. */
+export function withdrawnLetter({ name, takesEffectAt }: { name: string; takesEffectAt: number }, zone: string | undefined): Words {
+  return {
+    subject: `Scoring patch ${name} withdrawn`,
+    body: `${adminByline} withdrew patch ${name}, which was to take effect on ${momentIn(takesEffectAt, zone)}. The scoring stays as it is.`,
   };
 }

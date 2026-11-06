@@ -4,6 +4,8 @@ import { roleIn, rolesOfSlot, type Formation } from "../../../convex/lineup/role
 import { cellClassOf, ColumnHeads } from "../../ui/ColumnHeads";
 import { Placeholder } from "../../ui/Placeholder";
 import { PositionChip } from "../../ui/PositionChip";
+import { StarRating } from "../../ui/StarRating";
+import { starsIn } from "../../../convex/stars/bestRole";
 import type { SquadRow } from "../../../convex/squads/teamSquad";
 import { figureWords, noFigureWords } from "../words";
 import { NextMatches } from "../squad/SquadTable";
@@ -17,7 +19,7 @@ import {
   benchPlaceLong,
   benchPlaceWords,
   emptyBenchWords,
-  roleFitPlaceholder,
+  ROLE_FIT_SUBJECT,
   roleLabel,
   squadColumns,
   squadTableLabel,
@@ -174,7 +176,7 @@ function SelectionRow({
         {season != null && <NextMatches matches={season.nextFixtures.slice(0, 1)} />}
       </td>
       <td className={cellClasses("roleFit")}>
-        <Placeholder label={roleFitPlaceholder} className="h-3 w-16 align-middle" />
+        <RoleFit player={player} place={place} />
       </td>
       <td className={cellClasses("role")}>
         {"starter" in place ? <RolePicker player={player} starter={place.starter} formation={place.formation} onRole={onRole} /> : <span className="text-muted">{benchBestRole(player)?.role.name}</span>}
@@ -183,6 +185,14 @@ function SelectionRow({
       <PointsCell column="last" points={season?.lastGameweekPoints} />
     </tr>
   );
+}
+
+/** His stars for the role he plays in his slot; on the bench, for his best role at his main
+ *  position's slot, the role the Best role column names (spec/05 Roles; the approved Tactics
+ *  picture). Nothing for a bench player with no position that has a slot. */
+function RoleFit({ player, place }: { player: SquadMember; place: StarterPlace | { benchIndex: number } }) {
+  const rated = "starter" in place ? { cell: place.starter, role: roleIn(place.starter, place.starter.role) } : benchBestRole(player);
+  return rated === undefined ? null : <StarRating stars={starsIn(rated.cell, rated.role.key, player.stars)} subject={ROLE_FIT_SUBJECT} />;
 }
 
 /** A starter's slot chip; a bench player's place, then his main position's chip. */

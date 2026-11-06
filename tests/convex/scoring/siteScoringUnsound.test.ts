@@ -54,10 +54,10 @@ describe.each<[StoredScoringSet, string]>([
   [setOf(tackles({ minMinutes: { all: -1 } })), "the Tackles rule's minimum minutes is -1; it can't be less than 0"],
   [setOf(tackles({ values: { all: 0.25 } })), "the Tackles rule is worth 0.25; points are kept in tenths"],
   [ownWith({ stat: "" }), "own stat 1 has no key"],
-  [ownWith({ stat: "tackles" }), "the own stat tackles has a catalogue stat's key"],
+  [ownWith({ stat: "tackles" }), `the own stat tackles has a key that doesn't start with "league:"`],
   [ownWith({}, {}), `the own stat ${T_C} is made twice`],
   [ownWith({ name: " " }), `the own stat ${T_C} has no name`],
-  [ownWith({}, { stat: "own_other" }), 'the own stat own_other has the name "Tackles and clearances", which another own stat has'],
+  [ownWith({}, { stat: "league:other" }), 'the own stat league:other has the name "Tackles and clearances", which another own stat has'],
   [ownWith({ parts: [] }), `the own stat ${T_C} adds up no stats`],
   [ownWith({ parts: [{ stat: "goals_scroed", weight: 1 }] }), `the own stat ${T_C} adds "goals_scroed", which isn't a catalogue stat`],
 ])("unsound set %#", (scoring, reason) => {

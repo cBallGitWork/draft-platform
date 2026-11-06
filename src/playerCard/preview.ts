@@ -53,6 +53,24 @@ function matchesOf(player: (typeof previewPlayers)[number]): PlayedMatch[] {
   });
 }
 
+/** Last season, in the preview: 34 matches like his best one here at each of his positions, but for
+ *  one player, who wasn't in the Premier League. */
+const PREVIEW_LAST_SEASON = 2025;
+const PREVIEW_APPEARANCES = 34;
+const PREVIEW_NEWCOMER = "Van Dijk";
+function lastSeasonOf(player: (typeof previewPlayers)[number]): PlayerCard["lastSeason"] {
+  if (player.name === PREVIEW_NEWCOMER) return { season: PREVIEW_LAST_SEASON, played: null };
+  const match = RECORDS[1]!;
+  return {
+    season: PREVIEW_LAST_SEASON,
+    played: {
+      appearances: PREVIEW_APPEARANCES,
+      minutes: PREVIEW_APPEARANCES * (match.minutes ?? 0),
+      points: basePoints(match, FIRST_SCORING, player.positions).map(({ total }) => PREVIEW_APPEARANCES * (total ?? 0)),
+    },
+  };
+}
+
 function cardOf(player: (typeof previewPlayers)[number]): PlayerCard {
   const injured = player.name === "Saka";
   return {
@@ -67,6 +85,7 @@ function cardOf(player: (typeof previewPlayers)[number]): PlayerCard {
     news: injured ? "Hamstring injury - 75% chance of playing" : null,
     chanceOfPlaying: injured ? 75 : null,
     matches: matchesOf(player),
+    lastSeason: lastSeasonOf(player),
     nextFixtures: [1, 2, 3, 4, 5].map((weeksOn) => ({
       fixtureCode: player.code * 100 + 50 + weeksOn,
       gameweek: 9 + weeksOn,

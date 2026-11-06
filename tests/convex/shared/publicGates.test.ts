@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, test, vi } from "vitest";
 import { ConvexError } from "convex/values";
 import { api } from "../../../convex/_generated/api";
-import { PL_SEASON_START_YEAR } from "../../../convex/football/football";
+import { FPL_SEASON } from "../../support/recorded/plSeasons.payloads";
 import { FIRST_SCORING } from "../../../convex/scoring/firstScoring";
 import { LONDON_ZONE } from "../../../convex/shared/moments";
 import { ANN, deletes, leagueWithPeople } from "../../support/convex/leagueDeletion.harness";
@@ -43,7 +43,7 @@ beforeEach(async () => {
   const beingDeleted = await leagueWithPeople(t, "A league being deleted");
   await deletes(t, COMMISSIONER, beingDeleted);
   // Dismissing a banner needs a version of the site's scoring.
-  const versionId = await t.run((ctx) => holdSiteScoring(ctx, { scoring: FIRST_SCORING, kind: "patch", season: PL_SEASON_START_YEAR, number: 1, at: Date.now() }));
+  const versionId = await t.run((ctx) => holdSiteScoring(ctx, { scoring: FIRST_SCORING, kind: "patch", season: FPL_SEASON, number: 1, at: Date.now() }));
 
   calls = (caller) => {
     const now = Date.now();
@@ -57,7 +57,10 @@ beforeEach(async () => {
       "draft/draftBoard:inMenu": () => caller.query(api.draft.draftBoard.inMenu, { leagueId }),
       "draft/draftBoard:ofLeague": () => caller.query(api.draft.draftBoard.ofLeague, { leagueId, now }),
       "draft/draftLists:mine": () => caller.query(api.draft.draftLists.mine, { leagueId }),
+      "draft/draftCommissioner:panel": () => caller.query(api.draft.draftCommissioner.panel, { leagueId, now }),
       "draft/draftOrder:teamOrder": () => caller.query(api.draft.draftOrder.teamOrder, { leagueId }),
+      "draft/draftPlayers:figures": () => caller.query(api.draft.draftPlayers.figures, { leagueId, now }),
+      "draft/draftPlayers:greyedOut": () => caller.query(api.draft.draftPlayers.greyedOut, { leagueId }),
       "draft/draftRanking:upload": () => caller.mutation(api.draft.draftRanking.upload, { file: "1001,1" }),
       "draft/draftRanking:view": () => caller.query(api.draft.draftRanking.view, {}),
       "draft/draftStart:ofLeague": () => caller.query(api.draft.draftStart.ofLeague, { leagueId, now: Date.now() }),
@@ -83,7 +86,7 @@ beforeEach(async () => {
       "mail/mail:letters": () => caller.query(api.mail.mail.letters, {}),
       "mail/mail:open": () => caller.mutation(api.mail.mail.open, { letterId: annsLetter._id }),
       "mail/mail:unreadCount": () => caller.query(api.mail.mail.unreadCount, {}),
-      "match/matchPage:ofMatch": () => caller.query(api.match.matchPage.ofMatch, { leagueId, fixtureCode: SOME_CODE }),
+      "match/matchPage:ofMatch": () => caller.query(api.match.matchPage.ofMatch, { leagueId, now, fixtureCode: SOME_CODE }),
       "matchup/matchup:ofTeam": () => caller.query(api.matchup.matchup.ofTeam, { leagueId, now }),
       "playerCard/playerCard:card": () => caller.query(api.playerCard.playerCard.card, { leagueId, playerCode: SOME_CODE, now }),
       "positions/playerPositions:approveClub": () => caller.mutation(api.positions.playerPositions.approveClub, { clubCode: SOME_CODE }),
@@ -108,6 +111,7 @@ beforeEach(async () => {
       "scoring/siteScoring:saveDraft": () =>
         caller.mutation(api.scoring.siteScoring.saveDraft, { scoring: FIRST_SCORING, revision: null, draftSavedAt: null }),
       "scoring/siteScoring:view": () => caller.query(api.scoring.siteScoring.view, { now }),
+      "scoring/siteScoring:withdraw": () => caller.mutation(api.scoring.siteScoring.withdraw, { versionId }),
       "scouting/compare:players": () => caller.query(api.scouting.compare.players, { leagueId, codes: [SOME_CODE] }),
       "scouting/playersList:list": () =>
         caller.query(api.scouting.playersList.list, {

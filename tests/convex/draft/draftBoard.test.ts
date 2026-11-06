@@ -40,7 +40,7 @@ beforeEach(async () => {
 
 describe("the board", () => {
   test("holds no picks before the draft, with the caller's team and the league's pick time", async () => {
-    expect(await board(ANN)).toEqual({ picks: [], yourTeamId: teams[0], pickSeconds: 90 });
+    expect(await board(ANN)).toEqual({ picks: [], yourTeamId: teams[0], pickSeconds: 90, yourAutoPick: { on: false, timeouts: 0, limit: 2 } });
     expect(await board(COMMISSIONER)).toMatchObject({ yourTeamId: null });
   });
 
@@ -50,8 +50,8 @@ describe("the board", () => {
     await pick(BOB, PALMER.code);
 
     expect((await board(BOB)).picks).toEqual([
-      { pick: 1, teamId: teams[0], player: { code: SAKA.code, name: "Saka", clubShortName: "ARS", position: "W" } },
-      { pick: 2, teamId: teams[1], player: { code: PALMER.code, name: "Palmer", clubShortName: "CHE", position: "CAM" } },
+      { pick: 1, teamId: teams[0], auto: false, player: { code: SAKA.code, name: "Saka", clubShortName: "ARS", position: "W" } },
+      { pick: 2, teamId: teams[1], auto: false, player: { code: PALMER.code, name: "Palmer", clubShortName: "CHE", position: "CAM" } },
     ]);
   });
 

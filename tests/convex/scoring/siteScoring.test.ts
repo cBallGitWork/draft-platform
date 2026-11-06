@@ -44,7 +44,16 @@ describe("reading it", () => {
   test("before any version, every gameweek plays the first set, and a fix would reach the next not kicked off", async () => {
     await holdGameweeks(t, { next: 9 });
 
-    expect(await viewAs(ADMIN)).toEqual({ part: FIRST_SCORING, revision: null, changesFrom: 9, canEdit: true, versions: [], draft: null });
+    expect(await viewAs(ADMIN)).toEqual({
+      part: FIRST_SCORING,
+      revision: null,
+      changesFrom: 9,
+      canEdit: true,
+      versions: [],
+      draft: null,
+      // From 10, 7 days away (siteScoringDraftPatch.test.ts).
+      patchGameweeks: expect.arrayContaining([{ gameweek: 10, takesEffectAt: kickoffOf(10) }]),
+    });
     for (const gameweek of SEASON_GAMEWEEKS) expect(await inGameweek(gameweek)).toEqual(FIRST_SCORING);
   });
 
@@ -194,9 +203,9 @@ const ONE_PER_3 = { every: 3, points: 1 };
 
 /** A scoring set of one own stat, tackles won, named as `change` says. */
 const scoringWithOwn = (change: Partial<{ name: string; shortCode: string }>): StoredScoringSet => ({
-  rules: [{ shape: "perAction", stat: "own_tackles", values: { all: 1 } }],
+  rules: [{ shape: "perAction", stat: "league:tackles", values: { all: 1 } }],
   wholePointsOnly: false,
-  ownStats: [{ stat: "own_tackles", name: "Tackles won", shortCode: "TW+", parts: [{ stat: "won_tackle", weight: 1 }], ...change }],
+  ownStats: [{ stat: "league:tackles", name: "Tackles won", shortCode: "TW+", parts: [{ stat: "won_tackle", weight: 1 }], ...change }],
 });
 
 // Moved here from the league rules' check when the scoring became the site's (#354).
@@ -219,12 +228,12 @@ describe.each<[string, StoredScoringSet, string]>([
   [
     "an own stat named as a catalogue stat is, case and spaces aside",
     scoringWithOwn({ name: " won  TACKLE" }),
-    'The scoring set can\'t be saved: the own stat own_tackles has the name " won  TACKLE", which the catalogue\'s Won tackle has.',
+    'The scoring set can\'t be saved: the own stat league:tackles has the name " won  TACKLE", which the catalogue\'s Won tackle has.',
   ],
   [
     "an own stat with a catalogue stat's short code, case and spaces aside",
     scoringWithOwn({ shortCode: "a s" }),
-    'The scoring set can\'t be saved: the own stat own_tackles has the short code "a s", which the catalogue\'s Assists has.',
+    'The scoring set can\'t be saved: the own stat league:tackles has the short code "a s", which the catalogue\'s Assists has.',
   ],
 ])("%s", (_name, scoring, reason) => {
   test("is refused with the reason, as a fix or a draft, and nothing is saved", async () => {

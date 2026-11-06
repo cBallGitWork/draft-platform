@@ -81,7 +81,13 @@ export async function putOnTeam(
   if (vacated !== null) {
     // A new manager has opened nothing yet, so Continue leads him to Tactics afresh (lineup/lineupDue.ts),
     // and he picks for himself: the commissioner's "I'll pick for this one" comes off (Craig, 5 Nov 2026; #1095).
-    await ctx.db.patch("teams", vacated._id, { managerEmail: email, tacticsOpenedInGameweek: undefined, commissionerPicks: undefined });
+    // Handing the team on switches its auto team off (spec/09, The auto team; #1207).
+    await ctx.db.patch("teams", vacated._id, {
+      managerEmail: email,
+      tacticsOpenedInGameweek: undefined,
+      commissionerPicks: undefined,
+      autoTeam: undefined,
+    });
     ({ _id: teamId, name: teamName } = vacated);
   } else {
     // A new team redraws the round robin, so the gameweeks already begun are stored first (#137).

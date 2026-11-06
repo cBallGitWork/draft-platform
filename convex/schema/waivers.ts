@@ -37,5 +37,8 @@ export const waiverTables = {
     gameweek: v.union(v.number(), v.null()),
     /** The scheduled moment of the league's last run, made or skipped, so each runs once. */
     ranAt: v.number(),
+    /** The scheduled moment of the league's last run made, never skipped: free agents are picked up
+     *  only once one is made after the latest begun gameweek's deadline (#1199, the window). */
+    madeAt: v.optional(v.number()),
   }).index("by_leagueId", ["leagueId"]),
 };

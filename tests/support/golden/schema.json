@@ -1262,6 +1262,39 @@
       }
     },
     {
+      "tableName": "clubNumbers",
+      "indexes": [
+        {
+          "indexDescriptor": "by_code",
+          "fields": [
+            "code"
+          ]
+        }
+      ],
+      "stagedDbIndexes": [],
+      "searchIndexes": [],
+      "stagedSearchIndexes": [],
+      "vectorIndexes": [],
+      "stagedVectorIndexes": [],
+      "documentType": {
+        "type": "object",
+        "value": {
+          "code": {
+            "fieldType": {
+              "type": "number"
+            },
+            "optional": false
+          },
+          "number": {
+            "fieldType": {
+              "type": "number"
+            },
+            "optional": false
+          }
+        }
+      }
+    },
+    {
       "tableName": "matchScores",
       "indexes": [
         {
@@ -1820,6 +1853,12 @@
                       },
                       "optional": false
                     },
+                    "clubNumbersChanged": {
+                      "fieldType": {
+                        "type": "number"
+                      },
+                      "optional": true
+                    },
                     "unknownFormations": {
                       "fieldType": {
                         "type": "array",
@@ -1857,6 +1896,108 @@
                       "optional": false
                     }
                   }
+                }
+              ]
+            },
+            "optional": false
+          }
+        }
+      }
+    },
+    {
+      "tableName": "positionWarnings",
+      "indexes": [
+        {
+          "indexDescriptor": "by_teamId",
+          "fields": [
+            "teamId"
+          ]
+        }
+      ],
+      "stagedDbIndexes": [],
+      "searchIndexes": [],
+      "stagedSearchIndexes": [],
+      "vectorIndexes": [],
+      "stagedVectorIndexes": [],
+      "documentType": {
+        "type": "object",
+        "value": {
+          "teamId": {
+            "fieldType": {
+              "type": "id",
+              "tableName": "teams"
+            },
+            "optional": false
+          },
+          "playerCode": {
+            "fieldType": {
+              "type": "number"
+            },
+            "optional": false
+          },
+          "position": {
+            "fieldType": {
+              "type": "union",
+              "value": [
+                {
+                  "type": "literal",
+                  "value": "GK"
+                },
+                {
+                  "type": "literal",
+                  "value": "CB"
+                },
+                {
+                  "type": "literal",
+                  "value": "FB"
+                },
+                {
+                  "type": "literal",
+                  "value": "WB"
+                },
+                {
+                  "type": "literal",
+                  "value": "CDM"
+                },
+                {
+                  "type": "literal",
+                  "value": "CM"
+                },
+                {
+                  "type": "literal",
+                  "value": "WM"
+                },
+                {
+                  "type": "literal",
+                  "value": "CAM"
+                },
+                {
+                  "type": "literal",
+                  "value": "W"
+                },
+                {
+                  "type": "literal",
+                  "value": "SS"
+                },
+                {
+                  "type": "literal",
+                  "value": "ST"
+                }
+              ]
+            },
+            "optional": false
+          },
+          "step": {
+            "fieldType": {
+              "type": "union",
+              "value": [
+                {
+                  "type": "literal",
+                  "value": "flagged"
+                },
+                {
+                  "type": "literal",
+                  "value": "lost"
                 }
               ]
             },
@@ -3948,39 +4089,6 @@
                     "tableName": "_scheduled_functions"
                   },
                   "optional": false
-                },
-                "unemailed": {
-                  "fieldType": {
-                    "type": "array",
-                    "value": {
-                      "type": "object",
-                      "value": {
-                        "email": {
-                          "fieldType": {
-                            "type": "string"
-                          },
-                          "optional": false
-                        },
-                        "reason": {
-                          "fieldType": {
-                            "type": "union",
-                            "value": [
-                              {
-                                "type": "literal",
-                                "value": "paused"
-                              },
-                              {
-                                "type": "literal",
-                                "value": "notSent"
-                              }
-                            ]
-                          },
-                          "optional": false
-                        }
-                      }
-                    }
-                  },
-                  "optional": true
                 }
               }
             },
@@ -4106,6 +4214,26 @@
             "fieldType": {
               "type": "literal",
               "value": true
+            },
+            "optional": true
+          },
+          "autoTeam": {
+            "fieldType": {
+              "type": "object",
+              "value": {
+                "by": {
+                  "fieldType": {
+                    "type": "string"
+                  },
+                  "optional": false
+                },
+                "endsAfter": {
+                  "fieldType": {
+                    "type": "number"
+                  },
+                  "optional": true
+                }
+              }
             },
             "optional": true
           }
@@ -5007,6 +5135,77 @@
                     "kind": {
                       "fieldType": {
                         "type": "literal",
+                        "value": "playerPickedUp"
+                      },
+                      "optional": false
+                    },
+                    "playerCode": {
+                      "fieldType": {
+                        "type": "number"
+                      },
+                      "optional": false
+                    },
+                    "playerName": {
+                      "fieldType": {
+                        "type": "string"
+                      },
+                      "optional": false
+                    },
+                    "teamId": {
+                      "fieldType": {
+                        "type": "id",
+                        "tableName": "teams"
+                      },
+                      "optional": false
+                    },
+                    "teamName": {
+                      "fieldType": {
+                        "type": "string"
+                      },
+                      "optional": false
+                    },
+                    "dropped": {
+                      "fieldType": {
+                        "type": "union",
+                        "value": [
+                          {
+                            "type": "object",
+                            "value": {
+                              "playerCode": {
+                                "fieldType": {
+                                  "type": "number"
+                                },
+                                "optional": false
+                              },
+                              "playerName": {
+                                "fieldType": {
+                                  "type": "string"
+                                },
+                                "optional": false
+                              },
+                              "toWaivers": {
+                                "fieldType": {
+                                  "type": "boolean"
+                                },
+                                "optional": false
+                              }
+                            }
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      "optional": false
+                    }
+                  }
+                },
+                {
+                  "type": "object",
+                  "value": {
+                    "kind": {
+                      "fieldType": {
+                        "type": "literal",
                         "value": "pointsOverridden"
                       },
                       "optional": false
@@ -5167,6 +5366,51 @@
                             }
                           }
                         }
+                      },
+                      "optional": false
+                    }
+                  }
+                },
+                {
+                  "type": "object",
+                  "value": {
+                    "kind": {
+                      "fieldType": {
+                        "type": "literal",
+                        "value": "autoTeamSwitched"
+                      },
+                      "optional": false
+                    },
+                    "teamId": {
+                      "fieldType": {
+                        "type": "id",
+                        "tableName": "teams"
+                      },
+                      "optional": false
+                    },
+                    "teamName": {
+                      "fieldType": {
+                        "type": "string"
+                      },
+                      "optional": false
+                    },
+                    "on": {
+                      "fieldType": {
+                        "type": "boolean"
+                      },
+                      "optional": false
+                    },
+                    "endsAfter": {
+                      "fieldType": {
+                        "type": "union",
+                        "value": [
+                          {
+                            "type": "number"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
                       },
                       "optional": false
                     }
@@ -5542,13 +5786,6 @@
           "fields": [
             "to",
             "at"
-          ]
-        },
-        {
-          "indexDescriptor": "by_to_and_readAt",
-          "fields": [
-            "to",
-            "readAt"
           ]
         },
         {
@@ -22442,6 +22679,10 @@
                         {
                           "type": "literal",
                           "value": "atOnce"
+                        },
+                        {
+                          "type": "literal",
+                          "value": "chosen"
                         }
                       ]
                     },
@@ -22576,6 +22817,13 @@
                   "optional": false
                 }
               }
+            },
+            "optional": true
+          },
+          "auto": {
+            "fieldType": {
+              "type": "literal",
+              "value": true
             },
             "optional": true
           }
@@ -22951,6 +23199,12 @@
               "type": "number"
             },
             "optional": false
+          },
+          "madeAt": {
+            "fieldType": {
+              "type": "number"
+            },
+            "optional": true
           }
         }
       }

@@ -34,13 +34,21 @@ const cellClasses = (column: Column) => cellClassOf(!FIGURES.includes(column));
 /** The switch's radio group's name. */
 const PRICED_AT_CHOICE = "card-priced-at";
 
-/** This season's matches at his base points, each with its points by category under it (spec/12;
- *  Craig, 31 Oct 2026), at the position the switch picks: a key for each position he has, opening
- *  on the first, and no switch with fewer than two. */
-export function Season({ card }: { card: PlayerCard }) {
+/** The card's switch (spec/12; Craig, 31 Oct 2026): which of his positions every figure on it is
+ *  priced at, this season's and last season's alike (Craig, 6 Nov 2026), opening on the first.
+ *  `shown` is its place in each match's points, which come in pricedAt's order; with no position
+ *  priced, the one at his best. */
+export function usePricedAt(card: PlayerCard) {
   const [chosen, choose] = useChoiceAmong(card.pricedAt);
-  // Each match's points come in pricedAt's order; with no position priced, the one at his best.
   const shown = chosen === undefined ? 0 : card.pricedAt.indexOf(chosen);
+  return { chosen, choose, shown };
+}
+export type PricedAt = ReturnType<typeof usePricedAt>;
+
+/** This season's matches at his base points, each with its points by category under it (spec/12;
+ *  Craig, 31 Oct 2026), at the position the switch picks: a key for each position he has, and no
+ *  switch with fewer than two. */
+export function Season({ card, pricedAt: { chosen, choose, shown } }: { card: PlayerCard; pricedAt: PricedAt }) {
   return (
     <Panel title={SEASON_TITLE}>
       {card.matches.length === 0 ? (

@@ -2,6 +2,7 @@
 // in convex/mail/mail.ts (`mailRefusals`), and reaches the screen as is. What the letters about a
 // league's events say is in convex/mail/letterWords.ts.
 
+import { LEAGUES_SHOWN } from "../../convex/leagues/leagueLimits";
 import { LETTERS_SHOWN, UNREAD_COUNTED } from "../../convex/mail/mailLimits";
 import { LOCALE } from "../../convex/shared/moments";
 import { failedWords, timeOfDayWords } from "../shared/words";
@@ -30,6 +31,8 @@ export const WRITE_TITLE = "Write to the league";
 export const writeHint = "No one can reply: there is no chat.";
 export const writeLabels = { league: "League", subject: "Subject", body: "Letter" } as const;
 export const sendToWords = (leagueName: string) => `Send to ${leagueName}`;
+/** When the person's leagues stop short (#297), so one they run may be missing from the letter's. */
+export const leaguesCutFromWords = `Only the first ${LEAGUES_SHOWN} of your leagues can be written from here.`;
 export const sentWords = (leagueName: string) => `Sent to everyone in ${leagueName}.`;
 /** When sending failed before the server could say why: the connection, or the server itself. */
 export const sendFailedWords = failedWords("the letter wasn't sent");

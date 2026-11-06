@@ -12,6 +12,7 @@ import {
   makeLink,
 } from "../../support/convex/joining.harness";
 import { joiningRefusals } from "../../../convex/joining/joining";
+import { ROWS_SHOWN } from "../../../convex/joining/joiningShared";
 import { refusals } from "../../../convex/shared/leagueAccess";
 import { deletes } from "../../support/convex/leagueDeletion.harness";
 import { COMMISSIONER, LEAGUE_NAME, MANAGERS, actingAs, addManagers, adminCreatesLeague, eventsIn, teamsIn, type TestConvex } from "../../support/convex/leagues.harness";
@@ -57,6 +58,7 @@ describe("a join request", () => {
   });
 
   test("approved to a new team makes them its manager, files it for Mail, and emails them", async () => {
+    vi.setSystemTime(Date.UTC(2026, 10, 1, 14, 32));
     const requestId = await askToJoin(t, leagueId, token, ANN);
     await (await asCommissioner(t)).mutation(api.joining.joinRequests.approve, { requestId });
     await t.finishAllScheduledFunctions(vi.runAllTimers);
@@ -64,7 +66,7 @@ describe("a join request", () => {
     const [team] = await teamsIn(t, leagueId);
     expect(team).toMatchObject({ name: "Team 1", managerEmail: ANN });
     expect((await eventsIn(t, leagueId)).at(-1)).toEqual({ by: COMMISSIONER, kind: "joinRequestApproved", email: ANN, teamId: team._id, teamName: "Team 1" });
-    expect(lastEmailTo(sent, ANN)).toMatchObject({ subject: `You're in ${LEAGUE_NAME} on Draft Manager` });
+    expect(lastEmailTo(sent, ANN)).toMatchObject({ subject: `You're in ${LEAGUE_NAME} on Draft Manager, Sunday 1 November at 14:32 GMT` });
     expect(lastEmailTo(sent, ANN).text).toContain("you run Team 1");
     expect(await joinPageFor(ANN)).toEqual({ leagueName: LEAGUE_NAME, standing: "inLeague", teamName: "Team 1" });
     expect(await waitingRequests()).toEqual([]);
@@ -129,8 +131,26 @@ describe("the commissioner's page", () => {
       hasRoom: true,
       linkToken: token,
       invites: [],
+      invitesCut: false,
       requests: [{ email: CAT }],
+      requestsCut: false,
     });
+  });
+
+  test("says when more requests wait than it lists, and not at exactly the most it lists (#410)", async () => {
+    const addWaiting = (count: number, from: number) =>
+      t.run(async (ctx) => {
+        for (let n = from; n < from + count; n++) await ctx.db.insert("joinRequests", { leagueId, email: `asker${n}@example.com` });
+      });
+
+    await addWaiting(ROWS_SHOWN, 0);
+    expect((await invitesPage(t, leagueId))?.requestsCut).toBe(false);
+
+    await addWaiting(1, ROWS_SHOWN);
+    const page = await invitesPage(t, leagueId);
+    expect(page?.requestsCut).toBe(true);
+    expect(page?.requests).toHaveLength(ROWS_SHOWN);
+    expect(page?.requests[0]?.email).toBe(`asker${ROWS_SHOWN}@example.com`);
   });
 
   test("is shown to no one but the league's runners", async () => {

@@ -85,6 +85,12 @@
      wrap under the table */
   --flex-basis-squad-table: 640px;
   --flex-basis-widgets: 300px;
+  /* The draft room's right-hand column beside the players list, as its approved picture draws it:
+     there whether or not a player is picked, so the list keeps its width */
+  --flex-basis-draft-widgets: 400px;
+  /* A control in a panel's title bar on the desk, as the approved draft room picture draws its
+     players list's tabs, Find and stats; a phone keeps the 44px tap size */
+  --spacing-bar-control: 26px;
   /* A tick box's well (plate.md, Controls) */
   --spacing-tick: 22px;
   --spacing-vidiprinter: 480px; /* the matchup's commentary, scrolled past it */
@@ -99,6 +105,10 @@
   --spacing-chip: 30px;
   /* a form chip's least width: one letter, W, L or D (plate.md, Marks: form) */
   --spacing-chip-tight: 18px;
+  /* a player's stars for a role, five side by side, each 13px, as the approved Tactics picture's
+     Role fit (plate.md, Marks: Stars) */
+  --spacing-star: 13px;
+  --spacing-stars: 65px;
   /* The widest a lost player's error words run in the Tactics squad list on a phone, wrapping
      after, so they leave the Role column its room (#323) */
   --spacing-error-name: 104px;

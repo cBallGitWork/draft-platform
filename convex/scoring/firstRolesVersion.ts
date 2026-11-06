@@ -34,6 +34,7 @@ export const addFirstRoles = internalMutation({
     const scoring = { ...set, ownStats: [...(set.ownStats ?? []), ...FIRST_ROLE_OWN_STATS.filter(({ stat }) => !held.has(stat))], roles: [...FIRST_ROLES] };
     validateScoringSet(scoring);
     checkOwnStatsAgainstCatalogue(scoring.ownStats);
-    return addVersion(ctx, history, { scoring, kind: "fix", takesEffectAt: now }, null);
+    const { name, fromGameweek } = await addVersion(ctx, history, { scoring, kind: "fix", takesEffectAt: now }, null);
+    return { name, fromGameweek };
   },
 });

@@ -1,6 +1,7 @@
 // What the player card says, in one place for Craig to change in the pull request.
 
 import type { CategoryWhy, Cut, PricedBy, SlotValue } from "../../convex/scoring/scoring";
+import { seasonShortWords } from "../draft/words";
 import { AREA_WORDS, figureWords, gameweekWords, signedWords, versusWords } from "../shared/words";
 
 export { figureWords, freeAgentWords, noFigureWords } from "../shared/words";
@@ -78,9 +79,12 @@ const cutWords = (cut: Cut | null) => {
 /** The breakdown's last line: the version of the site's scoring the match was scored under. */
 export const scoredUnderWords = (version: string | null) => `Scored under ${version === null ? "the first scoring set" : `version ${version}`}`;
 
-/** Last season's one line (spec/12): not held yet. */
+/** Last season's one line (spec/12; Craig, 6 Nov 2026): "25/26: 34 apps, 2810 min, 212 pts". */
 export const LAST_SEASON_TITLE = "Last season";
-export const lastSeasonNotHeldWords = "Only this season is held.";
+export const lastSeasonWords = (season: number, { appearances, minutes, points }: { appearances: number; minutes: number; points: number }) =>
+  `${seasonShortWords(season)}: ${figureWords(appearances)} apps, ${figureWords(minutes)} min, ${figureWords(points)} pts`;
+export const notInLastSeasonWords = "Not in the Premier League last season.";
+export const lastSeasonNotHeldWords = "Last season isn't held yet.";
 
 /** His club's next fixtures. */
 export const NEXT_FIXTURES_TITLE = "Next fixtures";

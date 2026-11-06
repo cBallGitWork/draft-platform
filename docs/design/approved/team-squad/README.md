@@ -41,7 +41,7 @@ Each shows in its place and size until its data comes.
 |---|---|---|
 | Next 3's colours | where fixture difficulty comes from | to-grill: Where fixture difficulty comes from |
 | The status chips after a name, and the panel's Doubt line | which FPL statuses each chip reads, and a count of bookings | to-grill: Status chips' data |
-| The panel's Best role stars | stars on screen (#11); scouts decide whose a manager sees (#375) | #11, #375 |
+| The panel's Best role, with no lineup open to set (the season over) | its stars come with the lineup being set; built otherwise (#11) | #11 |
 | The panel's Started and Role points (empty boxes) | their build: what each counts is answered below | answered 1 Nov 2026 |
 | The Schedule and Rules views | their build: what each holds is answered below | answered 1 Nov 2026 |
 | Set his role | Tactics opening with a player selected from the address | answered 1 Nov 2026 |

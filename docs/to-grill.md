@@ -218,6 +218,12 @@ when its feature is built (`docs/design/approved/home/`).
 (Craig, 1 Nov 2026: "yes to all").
 - Does it switch the current league too (`spec/13`, Several leagues)?
 
+**A commissioner changing the rules mid-gameweek**: parked for its own talk (Craig, 6 Nov 2026,
+on #454). Rules can change many times a season (`spec/03`); when a change takes effect isn't said.
+- Can a commissioner change the league's rules after a gameweek's deadline, with games under way,
+  such as clean-sheet points on a Saturday at 16:00? Does the change wait for the next gameweek?
+- Can a manager contest a change, and who settles it?
+
 ## Suggested, not yet picked
 
 | What | Why |

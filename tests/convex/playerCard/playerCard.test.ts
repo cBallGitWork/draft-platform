@@ -230,3 +230,37 @@ test("a code the football sync doesn't hold has no card", async () => {
 test("someone not in the league is refused", async () => {
   await expectRefused(cardAs(OUTSIDER, SAKA.code), refusals.notInLeague);
 });
+
+/** Last season as the copy holds it (pastSeasonRows.ts), whatever clubs he played for: Forward's
+ *  two matches, and Support named in the season's data with no match. */
+const PAST_SEASON = 2025;
+async function holdLastSeason() {
+  await t.run(async (ctx) => {
+    const past = (playerCode: number, match: { kickoff: number; stats: Record<string, number> } | null) =>
+      ctx.db.insert("pastPlayerMatchStats", { season: PAST_SEASON, playerCode, fplPosition: 4, match: match && { ...match, startingPosition: "ST" } });
+    await past(FORWARD.code, { kickoff: 1, stats: GOAL_AND_ASSIST });
+    await past(FORWARD.code, { kickoff: 2, stats: { minutes: 30 } });
+    await past(SUPPORT.code, null);
+  });
+}
+
+test("while no past season is held, the card has no last season", async () => {
+  expect((await cardAs(ANN, FORWARD.code))!.lastSeason).toBeNull();
+});
+
+test("last season's line totals every match he played, at each of the card's positions, under the site's set as it stands", async () => {
+  await holdLastSeason();
+  // A goal and an assist in 90 minutes, 11 as a winger and 9 up front, then 1 for 30 minutes.
+  expect((await cardAs(ANN, FORWARD.code))!.lastSeason).toEqual({ season: PAST_SEASON, played: { appearances: 2, minutes: 120, points: [12, 10] } });
+
+  // A later version makes a goal worth 10: the line is priced under it at once.
+  const goalsAtTen = { ...EXAMPLE_SET, rules: EXAMPLE_SET.rules.map((rule) => (rule.stat === "goals_scored" ? { ...rule, values: { all: 10 } } : rule)) };
+  await t.run((ctx) => holdSiteScoring(ctx, { scoring: structuredClone(goalsAtTen) as StoredScoringSet, kind: "patch", season: 2026, number: 1, at: NOW - DAY_MS }));
+  expect((await cardAs(ANN, FORWARD.code))!.lastSeason!.played!.points).toEqual([17, 16]);
+});
+
+test("one named in last season's data who played no match is on 0; one not in it wasn't in the Premier League", async () => {
+  await holdLastSeason();
+  expect((await cardAs(ANN, SUPPORT.code))!.lastSeason).toEqual({ season: PAST_SEASON, played: { appearances: 0, minutes: 0, points: [0] } });
+  expect((await cardAs(ANN, SAKA.code))!.lastSeason).toEqual({ season: PAST_SEASON, played: null });
+});
