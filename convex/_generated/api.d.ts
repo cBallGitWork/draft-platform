@@ -174,6 +174,7 @@ import type * as schema_squads from "../schema/squads.js";
 import type * as schema_stars from "../schema/stars.js";
 import type * as schema_table from "../schema/table.js";
 import type * as schema_waivers from "../schema/waivers.js";
+import type * as scoring_carryFix from "../scoring/carryFix.js";
 import type * as scoring_categories from "../scoring/categories.js";
 import type * as scoring_draftedRoleAdjustments from "../scoring/draftedRoleAdjustments.js";
 import type * as scoring_firstScoring from "../scoring/firstScoring.js";
@@ -445,6 +446,7 @@ declare const fullApi: ApiFromModules<{
   "schema/stars": typeof schema_stars;
   "schema/table": typeof schema_table;
   "schema/waivers": typeof schema_waivers;
+  "scoring/carryFix": typeof scoring_carryFix;
   "scoring/categories": typeof scoring_categories;
   "scoring/draftedRoleAdjustments": typeof scoring_draftedRoleAdjustments;
   "scoring/firstScoring": typeof scoring_firstScoring;
