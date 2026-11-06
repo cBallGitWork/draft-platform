@@ -50,7 +50,9 @@ export function ComparePanel({ picked, comparison, clear }: { picked: readonly P
 type Row = { label: string; title?: string; cell: (player: ComparedPlayer) => ReactNode };
 
 const FIXED_ROWS: readonly Row[] = [
-  { label: columns.club.long, cell: (player) => (
+  {
+    label: columns.club.long,
+    cell: (player) => (
       <>
         <ClubMark code={player.club.code} />
         <ClubShort club={player.club} />
