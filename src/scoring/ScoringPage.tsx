@@ -2,6 +2,7 @@ import { useState } from "react";
 import type { LeagueSummary } from "../../convex/leagues/myLeagues";
 import { categoryName } from "../../convex/scoring/categories";
 import type { Priced } from "../../convex/scoring/priced";
+import type { OwnStat } from "../../convex/scoring/scoringSet";
 import { STAT_CATALOGUE } from "../../convex/scoring/statCatalogueList";
 import { Loading, PAGE_STACK, PageSection, Panel, PanelNote } from "../ui/Panel";
 import { LeagueHeading } from "../leagues/LeagueLinks";
@@ -12,7 +13,8 @@ import { BoxRefusalContext } from "../rules/blank";
 import { TickBox } from "../ui/TickBox";
 import { useChoiceAmong } from "../shared/useChoiceAmong";
 import { CategoryEditor } from "./CategoryEditor";
-import { firstBlankRule, newRule, rulePricing, valueAt, type PerCount, type Rule, type Scoring } from "./editing";
+import { firstBlankRule, newRule, rulePricing, valueAt, withOwnStat, type OwnStatMade, type PerCount, type Rule, type Scoring } from "./editing";
+import { OwnStatMaker } from "./OwnStatMaker";
 import type { ScoringSeam, ScoringView } from "./seam";
 import {
   addCategoryLabel,
@@ -74,6 +76,10 @@ function Editor({ seam, view }: { seam: ScoringSeam; view: ScoringView }) {
     edit({ ...draft, rules: [...draft.rules, newRule(stat)] });
     choose(draft.rules.length);
   }
+  function make(made: OwnStatMade) {
+    edit(withOwnStat(draft, made));
+    choose(draft.rules.length);
+  }
 
   return (
     <div ref={rulesDraft.area} className="flex flex-col gap-2 lg:flex-row lg:items-start">
@@ -93,7 +99,12 @@ function Editor({ seam, view }: { seam: ScoringSeam; view: ScoringView }) {
             </li>
           ))}
         </ul>
-        {!readOnly && <AddCategory ruled={draft.rules.map((each) => each.stat)} onAdd={add} />}
+        {!readOnly && (
+          <>
+            <AddCategory ruled={draft.rules.map((each) => each.stat)} ownStats={draft.ownStats ?? []} onAdd={add} />
+            <OwnStatMaker onMake={make} />
+          </>
+        )}
       </Panel>
       <div className="flex min-w-0 grow flex-col gap-2">
         {rule && (
@@ -135,10 +146,11 @@ function Summary({ rule }: { rule: Rule }) {
   return <span className="text-figure">{words}</span>;
 }
 
-/** "Add a category": any catalogue stat the set doesn't score yet, by name. */
-function AddCategory({ ruled, onAdd }: { ruled: readonly string[]; onAdd: (stat: string) => void }) {
+/** "Add a category": any catalogue stat, or own stat, the set doesn't score yet, by name. An own
+ *  stat whose category was removed stays in the set, so it is offered here again. */
+function AddCategory({ ruled, ownStats, onAdd }: { ruled: readonly string[]; ownStats: readonly OwnStat[]; onAdd: (stat: string) => void }) {
   const [open, setOpen] = useState(false);
-  const choices = STAT_CATALOGUE.filter((entry) => !ruled.includes(entry.stat)).toSorted((one, other) => one.name.localeCompare(other.name));
+  const choices = [...STAT_CATALOGUE, ...ownStats].filter((entry) => !ruled.includes(entry.stat)).toSorted((one, other) => one.name.localeCompare(other.name));
   const [stat, pick] = useChoiceAmong(choices.map((entry) => entry.stat));
   if (!open) {
     return (

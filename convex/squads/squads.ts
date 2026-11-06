@@ -125,7 +125,7 @@ export const release = mutation({
     const team = await teamIn(ctx, leagueId, place.teamId);
     await ctx.db.delete("squadPlayers", place._id);
     await recordEvent(ctx, leagueId, by, { kind: "playerReleased", playerCode, playerName: player.name, teamId: team._id, teamName: team.name });
-    await tellShortlisters(ctx, league, player, team, by);
+    await tellShortlisters(ctx, league, player, team, by, { released: true });
     await pickFirstLineupAgain(ctx, leagueId, team._id);
     return null;
   },

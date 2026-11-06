@@ -17,7 +17,7 @@ const GOALS_BY_AREA: Rule = {
 };
 const MINUTES: Rule = { shape: "bands", stat: "minutes", stack: false, values: { all: [{ atLeast: 1, points: 1 }, { atLeast: 60, points: 2 }] } };
 const TACKLES_PLUS: NonNullable<StoredScoringSet["ownStats"]>[number] = {
-  stat: "own_tackles_plus",
+  stat: "league:tackles_plus",
   name: "Tackles plus",
   shortCode: "TP",
   parts: [

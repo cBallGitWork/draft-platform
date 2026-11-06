@@ -13,6 +13,7 @@ import { fileEvent, fileLetter, recordEvent } from "../mail/letters";
 import type { LeagueRules } from "../rules/leagueRulesShape";
 import { latestRules, seasonRules } from "../rules/rulesHistory";
 import { LEAGUES_READ_MOST, takeAllOrThrow } from "../shared/cappedRead";
+import { tellShortlisters, tellShortlistersCleared } from "../scouting/shortlist";
 import { teamIn } from "../shared/leagueAccess";
 import { MINUTE_MS } from "../shared/time";
 import { placeOf, squadOf } from "../squads/squadPlace";
@@ -29,7 +30,8 @@ import { latestRunAt } from "./waiverTimes";
 // succeeds sends the team to the bottom for the rest of the run and after, and one that fails is
 // gone, its manager told why, and the team's next is tried. A claim fails if another team got the
 // player first, if the player he named to drop is no longer his, or if it would break the squad's
-// limits. A player nobody claims is a free agent straight after. A run that falls from the deadline
+// limits. A player nobody claims is a free agent straight after, and each manager whose shortlist
+// holds him is told (../scouting/shortlist.ts). A run that falls from the deadline
 // until the gameweek's last match is over, or while the draft is live, is skipped. One internal
 // function, `run`, makes a run, for the cron here and for any later caller.
 
@@ -118,7 +120,11 @@ async function report(ctx: MutationCtx, league: Doc<"leagues">, claim: Doc<"waiv
     claim.dropCode === null || dropName === null || tried.toWaivers === null
       ? null
       : { playerCode: claim.dropCode, playerName: dropName, toWaivers: tried.toWaivers };
-  if (dropped !== null) await fileEvent(ctx, league._id, claim.by, { kind: "playerDropped", ...dropped, ...onTeam });
+  if (dropped !== null) {
+    await fileEvent(ctx, league._id, claim.by, { kind: "playerDropped", ...dropped, ...onTeam });
+    const player = { code: dropped.playerCode, name: dropped.playerName };
+    await tellShortlisters(ctx, league, player, team, claim.by, { released: false, toWaivers: dropped.toWaivers }, { unread: true });
+  }
   await recordEvent(ctx, league._id, claim.by, { kind: "playerClaimed", playerCode: claim.playerCode, playerName, ...onTeam, dropped }, { unread: true });
   await pickFirstLineupAgain(ctx, league._id, team._id);
 }
@@ -182,6 +188,7 @@ async function runWaivers(ctx: MutationCtx, leagueId: Id<"leagues">, at: number)
     if (!order.includes(teamId)) for (const claim of queue) await ctx.db.delete("waiverClaims", claim._id);
   }
   for (const row of run.claimable.values()) await ctx.db.delete("waiverPlayers", row._id);
+  await tellShortlistersCleared(ctx, league, [...run.claimable.keys()]);
   await save(at);
 }
 

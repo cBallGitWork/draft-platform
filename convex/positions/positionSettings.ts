@@ -7,6 +7,7 @@ import { adminOf, refuse } from "../shared/leagueAccess";
 import { FIRST_THRESHOLDS, type ChangeThresholds } from "./positionChanges";
 import { START_WINDOW, type ApproveMode, type PositionInputs } from "./positions";
 import { approveMode, changeThresholds } from "../schema";
+import { internal } from "../_generated/api";
 
 // How positions from starts count and change, platform-wide (spec/06): the admin's settings, his
 // alone to change, and the gameweek boundary changes are judged at.
@@ -28,6 +29,7 @@ export const setApproveMode = mutation({
   handler: async (ctx, { approveMode: mode }) => {
     await adminOf(ctx);
     await saveSettings(ctx, { approveMode: mode });
+    await ctx.runMutation(internal.positions.positionWarnings.warnEveryLeagueNow, {});
     return null;
   },
 });
@@ -43,6 +45,7 @@ export const setChangeThresholds = mutation({
     if (!Number.isInteger(removeAfter) || removeAfter <= flagAfter) refuse(thresholdRefusals.removeAfter);
     if (removeAfter > START_WINDOW) refuse(thresholdRefusals.pastWindow);
     await saveSettings(ctx, { flagAfter, removeAfter });
+    await ctx.runMutation(internal.positions.positionWarnings.warnEveryLeagueNow, {});
     return null;
   },
 });

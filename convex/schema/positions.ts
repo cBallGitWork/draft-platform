@@ -67,10 +67,21 @@ export const positionsSyncFields = {
   ),
 };
 
+/** A warning Mail has sent a team's manager about one of his players' positions (#23; spec/06, When
+ *  positions change): flagged, then lost to a run elsewhere. Kept while it stands, so each step is
+ *  told once; gone once it no longer does, or he has left the team, so it can be told again. */
+const positionWarningFields = {
+  teamId: v.id("teams"),
+  playerCode: v.number(),
+  position,
+  step: v.union(v.literal("flagged"), v.literal("lost")),
+};
+
 export const positionsTables = {
   playerPositions: defineTable(playerPositionFields).index("by_code", ["code"]),
   /** Each match whose sheets the positions sync has filed, so none is filed twice. */
   positionSheets: defineTable({ fixtureCode: v.number() }).index("by_fixtureCode", ["fixtureCode"]),
   positionSettings: defineTable(positionSettingsFields),
   positionsSyncs: defineTable(positionsSyncFields),
+  positionWarnings: defineTable(positionWarningFields).index("by_teamId", ["teamId"]),
 };

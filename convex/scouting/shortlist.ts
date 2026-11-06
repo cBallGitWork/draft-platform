@@ -3,7 +3,7 @@ import type { Doc, Id } from "../_generated/dataModel";
 import { mutation, query, type MutationCtx, type QueryCtx } from "../_generated/server";
 import { MOST_TEAMS } from "../leagues/leagueLimits";
 import { bylineOf, fileLetter } from "../mail/letters";
-import { shortlistedReleasedLetter } from "../mail/letterWords";
+import { shortlistedClearedLetter, shortlistedDroppedLetter, shortlistedReleasedLetter } from "./shortlistWords";
 import { clubRecord } from "../schema";
 import { takeAllOrThrow } from "../shared/cappedRead";
 import { memberOf, refuse, refusals, teamsOf } from "../shared/leagueAccess";
@@ -12,10 +12,9 @@ import { ownerOf } from "../squads/squadPlace";
 
 // The shortlist (spec/19, The shortlist; #374): a manager's own list of players for the season, in
 // Scouting. It is the team's, and private to it: only its manager reads or changes it, so no other
-// team, nor the commissioner, can tell who is on it. When a shortlisted player is released, Mail
-// tells each manager whose shortlist holds him (spec/16). It feeds the draft queue
-// (../draft/draftLists.ts; #1137). Not built yet: the letter when one clears waivers (waivers
-// aren't built, spec/08).
+// team, nor the commissioner, can tell who is on it. When a shortlisted player is released, dropped
+// or clears waivers, Mail tells each manager whose shortlist holds him (spec/16). It feeds the
+// draft queue (../draft/draftLists.ts; #1137).
 
 /** The most players one shortlist holds: room to follow a fifth of the Premier League. A bound for
  *  reading it, as MOST_IN_SQUAD is a squad's. Claude's choice, not yet Craig's. */
@@ -128,22 +127,55 @@ export const remove = mutation({
   },
 });
 
-/** Files the letter that `player` was released from `from` by `by` to each manager whose shortlist
- *  holds him; a team with no manager has no one to tell. */
+/** The shortlist rows' managers, by email, each with the codes of his rows' players; a team with
+ *  no manager has no one to tell. */
+async function managersHolding(ctx: QueryCtx, leagueId: Id<"leagues">, entries: readonly Doc<"shortlistPlayers">[]): Promise<Map<string, number[]>> {
+  const managers = new Map((await teamsOf(ctx, leagueId)).map((team) => [team._id, team.managerEmail]));
+  const held = new Map<string, number[]>();
+  for (const { teamId, playerCode } of entries) {
+    const email = managers.get(teamId);
+    if (email !== undefined) held.set(email, [...(held.get(email) ?? []), playerCode]);
+  }
+  return held;
+}
+
+/** Files the letter that `player` left `from`, released or dropped by `by`, to each manager whose
+ *  shortlist holds him: the copy to `by` filed read, unless `unread`, as a waiver run's are. */
 export async function tellShortlisters(
   ctx: MutationCtx,
   league: Doc<"leagues">,
-  player: Doc<"players">,
-  from: Doc<"teams">,
+  player: { code: number; name: string },
+  from: { name: string },
   by: string,
+  how: { released: true } | { released: false; toWaivers: boolean },
+  { unread = false } = {},
 ): Promise<void> {
+  const who = bylineOf(by);
+  const letter = how.released
+    ? shortlistedReleasedLetter(player.name, from.name, who)
+    : shortlistedDroppedLetter({ playerName: player.name, teamName: from.name, toWaivers: how.toWaivers }, who);
   const entries = await takeAllOrThrow(
     ctx.db.query("shortlistPlayers").withIndex("by_leagueId_and_playerCode", (q) => q.eq("leagueId", league._id).eq("playerCode", player.code)),
     MOST_TEAMS,
     `More than ${MOST_TEAMS} shortlists in league ${league._id} hold player ${player.code}, one a team at most`,
   );
-  const shortlisting = new Set(entries.map((entry) => entry.teamId));
-  const to = (await teamsOf(ctx, league._id)).filter((team) => shortlisting.has(team._id)).map((team) => team.managerEmail);
-  const letter = shortlistedReleasedLetter(player.name, from.name, bylineOf(by));
-  await fileLetter(ctx, league, to.filter((email) => email !== undefined), letter, by);
+  await fileLetter(ctx, league, [...(await managersHolding(ctx, league._id, entries)).keys()], letter, unread ? undefined : by);
+}
+
+/** Files, after a waiver run, one letter to each manager whose shortlist holds players nobody
+ *  claimed at it (`codes`), naming them: each is a free agent now (spec/08). */
+export async function tellShortlistersCleared(ctx: MutationCtx, league: Doc<"leagues">, codes: readonly number[]): Promise<void> {
+  if (codes.length === 0) return;
+  const cleared = new Set(codes);
+  const entries = await takeAllOrThrow(
+    ctx.db.query("shortlistPlayers").withIndex("by_leagueId_and_playerCode", (q) => q.eq("leagueId", league._id)),
+    MOST_TEAMS * SHORTLIST_MOST,
+    `More than ${MOST_TEAMS * SHORTLIST_MOST} players are on league ${league._id}'s shortlists, ${SHORTLIST_MOST} a team at most`,
+  );
+  const shortlisted = entries.filter(({ playerCode }) => cleared.has(playerCode));
+  for (const [email, held] of await managersHolding(ctx, league._id, shortlisted)) {
+    const players = await Promise.all(held.map((code) => heldPlayerByCode(ctx, code, `Shortlisted player ${code}, cleared from waivers, isn't held`)));
+    const names = players.map(({ name }) => name).sort((one, other) => one.localeCompare(other));
+    await fileLetter(ctx, league, [email], shortlistedClearedLetter(names));
+  }
 }

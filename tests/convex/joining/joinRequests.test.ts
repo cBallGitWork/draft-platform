@@ -12,6 +12,7 @@ import {
   makeLink,
 } from "../../support/convex/joining.harness";
 import { joiningRefusals } from "../../../convex/joining/joining";
+import { ROWS_SHOWN } from "../../../convex/joining/joiningShared";
 import { refusals } from "../../../convex/shared/leagueAccess";
 import { deletes } from "../../support/convex/leagueDeletion.harness";
 import { COMMISSIONER, LEAGUE_NAME, MANAGERS, actingAs, addManagers, adminCreatesLeague, eventsIn, teamsIn, type TestConvex } from "../../support/convex/leagues.harness";
@@ -129,8 +130,26 @@ describe("the commissioner's page", () => {
       hasRoom: true,
       linkToken: token,
       invites: [],
+      invitesCut: false,
       requests: [{ email: CAT }],
+      requestsCut: false,
     });
+  });
+
+  test("says when more requests wait than it lists, and not at exactly the most it lists (#410)", async () => {
+    const addWaiting = (count: number, from: number) =>
+      t.run(async (ctx) => {
+        for (let n = from; n < from + count; n++) await ctx.db.insert("joinRequests", { leagueId, email: `asker${n}@example.com` });
+      });
+
+    await addWaiting(ROWS_SHOWN, 0);
+    expect((await invitesPage(t, leagueId))?.requestsCut).toBe(false);
+
+    await addWaiting(1, ROWS_SHOWN);
+    const page = await invitesPage(t, leagueId);
+    expect(page?.requestsCut).toBe(true);
+    expect(page?.requests).toHaveLength(ROWS_SHOWN);
+    expect(page?.requests[0]?.email).toBe(`asker${ROWS_SHOWN}@example.com`);
   });
 
   test("is shown to no one but the league's runners", async () => {

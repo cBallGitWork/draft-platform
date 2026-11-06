@@ -4,6 +4,7 @@ import { andListWords, momentIn } from "../shared/moments";
 import { figureWords } from "../shared/numberWords";
 import type { LeagueRules } from "../rules/leagueRulesShape";
 import { NOTHING_SCORES_DIFFERENTLY } from "../scoring/patchChanges";
+import { autoTeamSwitchedWords } from "../lineup/autoTeamWords";
 import type { leagueEvent, siteScoringKind } from "../schema";
 import { claimedBody, pickedUpBody } from "./waiverLetterWords";
 
@@ -122,6 +123,8 @@ export function eventLetter(event: LeagueEvent, who: string, zone: string | unde
       return { subject: `${event.playerName}'s points in ${event.matchName} were overridden`, body: overriddenBody(event, who) };
     case "fixturesSwapped":
       return { subject: `Gameweek ${event.gameweek}'s fixtures were changed`, body: swappedBody(event, who) };
+    case "autoTeamSwitched":
+      return autoTeamSwitchedWords(event, who);
   }
 }
 
@@ -150,15 +153,6 @@ function overriddenBody(event: Extract<LeagueEvent, { kind: "pointsOverridden" }
       ? "No team's total moved: no lineup counted him."
       : teams.map((team) => `${team.teamName} now have ${figureWords(team.to)} in gameweek ${gameweek}, not ${figureWords(team.from)}.`).join("\n");
   return `${who} overrode ${playerName}'s points in ${matchName}, gameweek ${gameweek}: ${change}. Why: ${reason}\n\n${totals}`;
-}
-
-/** The letter to a manager whose shortlist holds a player just released to free agency (spec/16,
- *  spec/19 The shortlist), released by `who`. */
-export function shortlistedReleasedLetter(playerName: string, teamName: string, who: string): Words {
-  return {
-    subject: `${playerName}, on your shortlist, was released`,
-    body: `${who} released ${playerName} from ${teamName}. He is a free agent, and on your shortlist.`,
-  };
 }
 
 /** The draft's letters (spec/04, Mail; #1102). "You're up next" to the manager whose pick's clock

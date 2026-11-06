@@ -133,8 +133,10 @@ async function recordLeague(
     }
     if (passed.has(gameweek)) continue;
     await ctx.db.insert("passedDeadlines", { leagueId: league._id, gameweek, deadline, recordedAt: now });
-    // Its teams' benches kept with their stars, which pick an auto-sub's role (#11), in a
-    // transaction of their own, so a failure there never holds a kickoff back.
+    // Its teams on the auto team have their lineups set (spec/09; #1207), then its teams' benches
+    // kept with their stars, which pick an auto-sub's role (#11): each in a transaction of its
+    // own, so a failure there never holds a kickoff back.
+    await ctx.scheduler.runAfter(0, internal.lineup.autoTeam.atDeadline, { leagueId: league._id, gameweek });
     await ctx.scheduler.runAfter(0, internal.stars.deadlineStars.storeLeague, { leagueId: league._id, gameweek });
     recorded += 1;
   }
