@@ -1,7 +1,8 @@
 import { v, type Infer } from "convex/values";
 import { playingState } from "../football/matchScores";
 import { shownDeadline } from "../gameweeks/usedGameweeks";
-import { areaShape } from "../lineup/pitchShape";
+import { SLOT_POSITIONS } from "../lineup/pitch";
+import { areaShape, laneShape } from "../lineup/pitchShape";
 import { scoreRead } from "../schema";
 import { LEAGUE_AVERAGE } from "../table/roundRobin";
 import { BYE } from "../table/teamGames";
@@ -59,13 +60,21 @@ export type MatchupSlot = Infer<typeof slot>;
  *  named as the Tactics pitch names it. */
 const role = v.object({ key: v.string(), name: v.string() });
 
-/** A starter: a slot, and his role: the one he was given, or the slot's first. */
-const starter = slot.extend({ role });
+/** The slot a man plays his role in (spec/10, The matchup, as a live match: "his slot's position
+ *  label and his role's run, as on the Tactics pitch"): its lane, which with his `area` is the cell
+ *  his run is drawn from (roleIn's run), and its position label (pitch.ts's positionOfSlot). */
+const place = v.object({ lane: laneShape, label: v.union(...SLOT_POSITIONS.map((label) => v.literal(label))) });
+export type MatchupPlace = Infer<typeof place>;
+
+/** A starter: a slot, his role (the one he was given, or the slot's first) and where he plays it. */
+const starter = slot.extend({ role, place });
 export type MatchupStarter = Infer<typeof starter>;
 
-/** A bench player: a slot, and once he has come on the role he plays (spec/05 Auto-subs): the
- *  empty slot's, or in his own area his best-star one at the deadline (#11). Null until then. */
-const benchSlot = slot.extend({ role: v.union(role, v.null()) });
+/** A bench player: a slot, and once he has come on the role he plays (spec/05 Auto-subs), the
+ *  empty slot's or in his own area his best-star one at the deadline (#11), and the slot he came on
+ *  in, whose label and run are then his, not the man's he replaced (Craig, 6 Nov 2026; #850). Both
+ *  null until then. */
+const benchSlot = slot.extend({ role: v.union(role, v.null()), place: v.union(place, v.null()) });
 export type MatchupBenchSlot = Infer<typeof benchSlot>;
 
 const side = v.union(
