@@ -7,6 +7,9 @@ import { useChange } from "../../shared/useChange";
 import { Panel, Problem } from "../../ui/Panel";
 import { Placeholder } from "../../ui/Placeholder";
 import type { SquadNumberChanges } from "../seam";
+import { StarRating } from "../../ui/StarRating";
+import { starsIn } from "../../../convex/stars/bestRole";
+import { benchBestRole } from "../tactics/lineupDraft";
 import type { Tactics } from "../tactics/seam";
 import { SquadNumberBox } from "./SquadNumberBox";
 import { NextMatches, PositionList, type Row } from "./SquadTable";
@@ -104,7 +107,7 @@ export function PlayerPanel({
           <PositionList positions={player.positions} />
         </Fact>
         <Fact term={panelRows.bestRole}>
-          <Placeholder label={bestRoleNotRatedLabel} className={ROW_PLACEHOLDER} />
+          <BestRole tactics={tactics} code={player.code} />
         </Fact>
         <Fact term={panelRows.next}>
           <NextMatches matches={player.nextFixtures} />
@@ -136,6 +139,21 @@ function Fact({ term, children }: { term: string; children: ReactNode }) {
 
 function Figure({ points }: { points: number | null }) {
   return points === null ? <span className="text-muted">{noFigureWords}</span> : <span className="font-bold text-figure">{figureWords(points)}</span>;
+}
+
+/** The role he has the most stars for at his main position's slot, with his stars for it, as the
+ *  Tactics bench's Best role (spec/05 Roles). His stars come with the lineup being set, so with
+ *  none open to set (the season over) it stays the placeholder. */
+function BestRole({ tactics, code }: { tactics: Tactics | undefined; code: number }) {
+  const member = tactics?.kind === "open" ? tactics.squad.find((each) => each.playerCode === code) : undefined;
+  const best = member === undefined ? undefined : benchBestRole(member);
+  if (member === undefined || best === undefined) return <Placeholder label={bestRoleNotRatedLabel} className={ROW_PLACEHOLDER} />;
+  return (
+    <span className="flex items-center gap-2">
+      {best.role.name}
+      <StarRating stars={starsIn(best.cell, best.role.key, member.stars)} subject={best.role.name} />
+    </span>
+  );
 }
 
 /** Where he stands in the gameweek being set: his slot, or his place on the bench. Nothing while

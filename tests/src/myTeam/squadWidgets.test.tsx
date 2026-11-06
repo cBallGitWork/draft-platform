@@ -34,6 +34,8 @@ import {
   viewNotBuiltLabel,
   YOUR_ELEVEN_TITLE,
 } from "../../../src/myTeam/squad/words";
+import { everyRoleOf } from "../../../convex/lineup/roles";
+import { starsLabel } from "../../../src/ui/StarRating";
 import { league } from "../../support/src/shell.harness";
 import { openSquad, PALMER, RAYA, SAKA, squadOf, tacticsWith } from "../../support/src/squadTab.harness";
 
@@ -135,6 +137,19 @@ describe("his season panel", () => {
     // FPL's news is held, so it shows beside the chip that waits.
     expect(within(panel).getByText("Knock - 75% chance of playing")).toBeTruthy();
     expect(within(panel).queryByRole("button", { name: /role/i })).toBeNull();
+  });
+
+  it("names his best role at his main position, with his stars for it (#11)", async () => {
+    const winger = everyRoleOf(WINGER)[1];
+    const starred = { ...lineup, squad: lineup.squad.map((each) => (each.playerCode === SAKA.code ? { ...each, stars: [{ area: WINGER.area, role: winger.key, stars: 4.5 }] } : each)) };
+    openSquad({ squad: squadOf(players), tactics: starred });
+    await screen.findByRole("table");
+    await openPanel("Saka");
+    const panel = panelOf("Saka");
+
+    expect(within(panel).getByText(winger.name)).toBeTruthy();
+    expect(within(panel).getByRole("img", { name: starsLabel(winger.name, 4.5) })).toBeTruthy();
+    expect(within(panel).queryByRole("img", { name: bestRoleNotRatedLabel })).toBeNull();
   });
 
   it("shows FPL's news without a chip when FPL holds no doubt, as his row does", async () => {
