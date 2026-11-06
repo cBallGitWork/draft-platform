@@ -103,6 +103,13 @@ name (the score).
 ## Marks
 
 - **Shirts**: our own outline in the club's colours, the squad number on the chest.
+- **A club's mark** (spec/12, Club colours; #840): the club's real crest from the Premier League's
+  image server by its `code`, `--spacing-club-mark` square, 4px before its code or name where that
+  stands alone (Squad, Scouting, the player card, the Premier League table), never in a
+  fixture-difficulty cell. A crest that won't load is drawn: the square split down the middle, the
+  club's first colour left and its second right. Built once, `src/premierLeague/ClubName.tsx`.
+- **A match's scoreboard** (spec/10): each club's crest and name on its first colour, inked
+  `--color-ground` or `--color-fact`, whichever reads better on it.
 - **Stars**: SVG, filled in the figure colour, empty ones as outlines in muted grey, the set
   labelled "Role fit 4 of 5".
 - **A doubt**: the orange knock chip of the status chips (Tables and panels), on the name plate and

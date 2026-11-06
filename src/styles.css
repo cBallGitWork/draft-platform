@@ -101,6 +101,8 @@
   --flex-basis-squad: 320px;
   --spacing-pitch-desk: 360px;
   --spacing-shirt: 32px;
+  /* a club's mark before its code or name: its crest, or its two colours (plate.md, Marks) */
+  --spacing-club-mark: 16px;
   /* a position chip's least width, so GK and CDM line up down the Tactics Selection table */
   --spacing-chip: 30px;
   /* a form chip's least width: one letter, W, L or D (plate.md, Marks: form) */

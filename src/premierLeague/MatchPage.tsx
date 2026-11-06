@@ -1,4 +1,6 @@
 import type { LeagueSummary } from "../../convex/leagues/myLeagues";
+import { coloursOf, inkOn, type Ink } from "../../convex/football/clubColours";
+import { ClubMark } from "./ClubName";
 import { ColumnHeads } from "../ui/ColumnHeads";
 import { Loading, Notice, PAGE_STACK, PageSection, Panel, PanelNote } from "../ui/Panel";
 import { Vidiprinter } from "../matchup/Vidiprinter";
@@ -85,15 +87,30 @@ function Scoreboard({ match: { home, away, score, kickoff, gameweek } }: { match
   return (
     <section aria-label={SCORE_LABEL} className="bg-panel shadow-bevel-panel">
       <p className="grid grid-cols-sides items-baseline gap-3 px-3 pt-2 text-lead font-bold sm:text-title">
-        <span className="display-face text-right">{home.name}</span>
+        <ScoreboardSide club={home} className="justify-self-end" />
         {goals === null ? <span className="text-muted">{versusWords}</span> : <span className="whitespace-nowrap text-figure">{goals}</span>}
-        <span className="display-face">{away.name}</span>
+        <ScoreboardSide club={away} className="justify-self-start" />
       </p>
       <p aria-live="polite" className="px-3 pb-2 text-center">
         <MatchState score={score} kickoff={kickoff} />
         {gameweek !== null && <span className="text-muted">{inGameweekWords(gameweek)}</span>}
       </p>
     </section>
+  );
+}
+
+/** The ink a club's name takes on its colour: styles.css's two, as the shirts' numbers take them. */
+const SIDE_INKS: Record<Ink, string> = { dark: "text-ground", light: "text-fact" };
+
+/** One side of the scoreboard: the club's crest and name on its first colour (spec/10, The match
+ *  page; spec/12, Club colours), inked in whichever of the two inks reads on it. */
+function ScoreboardSide({ club, className }: { club: Club; className: string }) {
+  const { primary } = coloursOf(club.code);
+  return (
+    <span data-club-side={club.shortName} className={`display-face inline-flex items-center px-2 ${SIDE_INKS[inkOn(primary)]} ${className}`} style={{ backgroundColor: primary }}>
+      <ClubMark code={club.code} />
+      {club.name}
+    </span>
   );
 }
 
