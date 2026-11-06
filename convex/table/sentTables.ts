@@ -6,7 +6,7 @@ import type { LeagueTable } from "./leagueTable";
 import { namedFixture, type GameweekFixtures } from "./roundRobin";
 import { headToHeadTable, teamsInGameweek, totalPointsTable, type GameweekScores, type TableRow, type TieBreak } from "./standings";
 import type { TeamFixtures } from "./teamFixtures";
-import { BYE, gameNumberAt,gameScore, gamesOf } from "./teamGames";
+import { BYE, gameNumberAt, gameScore, gamesOf } from "./teamGames";
 
 // What the table's queries send, worked out from what they read: the league's table and fixtures
 // (leagueTable.ts's ofLeague) and one team's games (teamFixtures.ts's ofMyTeam). Pure, with no
