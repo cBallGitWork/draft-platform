@@ -8,7 +8,7 @@ import { expectRefused } from "../../support/convex/test.harness";
 import { actingAs, adminCreatesLeague, COMMISSIONER, type TestConvex } from "../../support/convex/leagues.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
 
-// The format is locked once the league's first gameweek has begun (Craig, 6 Nov 2026; #275): one
+// The format is locked once the league's first gameweek has begun (S03.1; Craig, 6 Nov 2026; #275): one
 // table with one meaning all season. Before then it changes like any other rule.
 
 let t: TestConvex;
