@@ -6,13 +6,15 @@ import { pickFirstLineupAgain } from "../lineup/lineups";
 import { recordEvent } from "../mail/letters";
 import { managerOf, memberOf, refuse, refusals, teamIn } from "../shared/leagueAccess";
 import { playerByCode } from "../shared/players";
+import { tellShortlisters } from "../scouting/shortlist";
 import { placeOf } from "../squads/squadPlace";
 import { squadRefusals } from "../squads/squads";
 import { inWaiverLock } from "./waiverLock";
 import { dropFromSquad, waiverRowOf } from "./waiverPlayers";
 
 // A manager's drop, and a player's waiver state (#1197, spec/08 Waivers and free agency). A drop
-// is a release by the manager: the player leaves the squad, the league is told in Mail, and the
+// is a release by the manager: the player leaves the squad, the league is told in Mail, as is each
+// manager whose shortlist holds him (../scouting/shortlist.ts), and the
 // team's first lineup is picked again, as the commissioner's release does (../squads/squads.ts).
 // He goes on waivers for at least 24 hours, unless the churn rule sends him straight back to the
 // free agents: picked up as one and dropped before a deadline has passed. Dropping is never
@@ -31,7 +33,7 @@ export const drop = mutation({
   args: { leagueId: v.id("leagues"), playerCode: v.number() },
   returns: v.null(),
   handler: async (ctx, { leagueId, playerCode }) => {
-    const { email, team } = await managerOf(ctx, leagueId);
+    const { email, league, team } = await managerOf(ctx, leagueId);
     if (await draftIsLive(ctx, leagueId)) refuse(dropRefusals.draftLive);
     const now = Date.now();
     const deadlines = await leagueDeadlines(ctx, leagueId);
@@ -48,6 +50,7 @@ export const drop = mutation({
       teamName: team.name,
       toWaivers,
     });
+    await tellShortlisters(ctx, league, player, team, email, { released: false, toWaivers });
     await pickFirstLineupAgain(ctx, leagueId, team._id);
     return null;
   },

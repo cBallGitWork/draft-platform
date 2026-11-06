@@ -90,6 +90,13 @@ longer counts, nor is it proposed.
   What no one league owns (the admin's queue, each player's stars) uses `EVERY_LEAGUE`: the latest
   deadline any league has passed, reading every league's (5-6 for ~80 teams).
 - Nothing is refused for it: losing a position never makes a squad illegal (spec/06).
+- The manager is warned (#23, Craig's answers of 5 Nov 2026): `positionWarnings.ts` files a Mail
+  letter to whoever owns him in each league when a position is flagged and again when it is lost,
+  each naming the position and the gameweek it counts from (the next a lineup can be saved for).
+  It runs after every good positions sync and every admin change to positions or how they count;
+  `positionWarnings` keeps which steps each team was told, so each is told once, and forgets one
+  that no longer stands. The admin removing a position by hand sends the same letter to each owner
+  who held it. Nobody is moved: he stays where he stands until his manager moves him.
 
 ## Held, and read
 

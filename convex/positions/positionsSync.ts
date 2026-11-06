@@ -6,6 +6,7 @@ import { errorMessage, outcomeOf } from "../shared/errors";
 import { codesByOpta, namedMen } from "../football/feedIds";
 import { readFplBootstrap } from "../football/fpl/fpl";
 import { heldRow } from "./playerPositions";
+import { warnEveryLeague } from "./positionWarnings";
 import { matchSlots, requireFixtureCode, type MatchSlot } from "../football/premierLeague/plMatch";
 import { START_WINDOW, type Start } from "./positions";
 import { labelPositions, placePosition } from "./positionTables";
@@ -148,6 +149,8 @@ export const record = internalMutation({
   handler: async (ctx, row) => {
     await ctx.db.insert("positionsSyncs", row);
     await emailIfFailed(ctx, "positions", row);
+    // A good sync after a league's deadline moves where its starts are judged: warn of what changed.
+    if (row.outcome.ok) await warnEveryLeague(ctx);
     return null;
   },
 });
