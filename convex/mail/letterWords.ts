@@ -263,3 +263,12 @@ export function versionLetter({ name, kind, takesEffectAt, fromGameweek, changes
     body: `${adminByline} fixed a mistake in the scoring every league plays on: version ${name}, in force from gameweek ${fromGameweek}. ${kept}\n\n${what}`,
   };
 }
+
+/** The letter saying a patch to the site's scoring was withdrawn before it took effect (Craig, 6 Nov
+ *  2026, on #368: "every manager gets a Mail letter saying so"), its moment told in `zone`. */
+export function withdrawnLetter({ name, takesEffectAt }: { name: string; takesEffectAt: number }, zone: string | undefined): Words {
+  return {
+    subject: `Scoring patch ${name} withdrawn`,
+    body: `${adminByline} withdrew patch ${name}, which was to take effect on ${momentIn(takesEffectAt, zone)}. The scoring stays as it is.`,
+  };
+}

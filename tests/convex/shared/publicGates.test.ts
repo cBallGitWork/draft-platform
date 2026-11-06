@@ -111,6 +111,7 @@ beforeEach(async () => {
       "scoring/siteScoring:saveDraft": () =>
         caller.mutation(api.scoring.siteScoring.saveDraft, { scoring: FIRST_SCORING, revision: null, draftSavedAt: null }),
       "scoring/siteScoring:view": () => caller.query(api.scoring.siteScoring.view, { now }),
+      "scoring/siteScoring:withdraw": () => caller.mutation(api.scoring.siteScoring.withdraw, { versionId }),
       "scouting/compare:players": () => caller.query(api.scouting.compare.players, { leagueId, codes: [SOME_CODE] }),
       "scouting/playersList:list": () =>
         caller.query(api.scouting.playersList.list, {
