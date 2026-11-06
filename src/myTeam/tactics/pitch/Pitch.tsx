@@ -89,6 +89,7 @@ export function Pitch({
         LANES.map((lane) => {
           const cell = { area, lane };
           const standing = standingIn(draft, cell);
+          const player = standing && squad.get(standing.playerCode)!;
           // Any cell takes the drop of the player picked up, so a refused one can say why (#1022);
           // his own cell is no move.
           const takesDrop = picked !== null && standing?.playerCode !== picked.playerCode;
@@ -101,11 +102,11 @@ export function Pitch({
           };
           return (
             <div key={cellKey(cell)} onDragOver={allowDrop} onDrop={drop} className="relative flex min-h-0 min-w-0 items-center justify-center p-0.5">
-              {standing !== undefined ? (
+              {standing !== undefined && player !== undefined ? (
                 <PlayerBlock
-                  player={squad.get(standing.playerCode)!}
+                  player={player}
                   cell={cell}
-                  chip={pitchChipOf({ cell, role: standing.role, player: squad.get(standing.playerCode)!, season: season && (season.get(standing.playerCode) ?? null), gameweek })}
+                  chip={pitchChipOf({ cell, role: standing.role, player, season: season && (season.get(standing.playerCode) ?? null), gameweek })}
                   lit={swapsWith(standing.playerCode)}
                   moving={moving}
                 />
