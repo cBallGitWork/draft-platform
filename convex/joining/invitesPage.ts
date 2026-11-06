@@ -3,13 +3,11 @@ import { query } from "../_generated/server";
 import { linkOf } from "./inviteLink";
 import { runnerOf, teamsOf } from "../shared/leagueAccess";
 import { delivery } from "../schema";
+import { takeShown } from "../shared/cappedRead";
+import { ROWS_SHOWN } from "./joiningShared";
 
 // The page where a league's runners invite people and answer join requests (#73, spec/13
 // Joining). No wall clock here: the screen tells an expired invite by its `expiresAt`.
-
-/** The most invites and waiting requests the page lists, newest first: the closed beta's leagues
- *  are small. */
-export const ROWS_SHOWN = 50;
 
 const invitesPageData = v.union(
   v.null(),
@@ -37,8 +35,12 @@ const invitesPageData = v.union(
         couldNotJoin: v.union(v.string(), v.null()),
       }),
     ),
-    /** The join requests waiting for an answer. */
+    /** Whether more live invites exist than `invites` holds (ROWS_SHOWN). */
+    invitesCut: v.boolean(),
+    /** The join requests waiting for an answer, the newest ROWS_SHOWN. */
     requests: v.array(v.object({ requestId: v.id("joinRequests"), email: v.string(), askedAt: v.number() })),
+    /** Whether more waiting requests exist than `requests` holds. */
+    requestsCut: v.boolean(),
   }),
 );
 export type InvitesPageData = NonNullable<Infer<typeof invitesPageData>>;
@@ -61,16 +63,20 @@ export const page = query({
 
     const teams = await teamsOf(ctx, leagueId);
     const teamName = new Map(teams.map((team) => [team._id, team.name]));
-    const invites = await ctx.db
-      .query("invites")
-      .withIndex("by_leagueId_and_cancelledAt", (q) => q.eq("leagueId", leagueId).eq("cancelledAt", undefined))
-      .order("desc")
-      .take(ROWS_SHOWN);
-    const requests = await ctx.db
-      .query("joinRequests")
-      .withIndex("by_leagueId_and_decision", (q) => q.eq("leagueId", leagueId).eq("decision", undefined))
-      .order("desc")
-      .take(ROWS_SHOWN);
+    const { rows: invites, more: invitesCut } = await takeShown(
+      ctx.db
+        .query("invites")
+        .withIndex("by_leagueId_and_cancelledAt", (q) => q.eq("leagueId", leagueId).eq("cancelledAt", undefined))
+        .order("desc"),
+      ROWS_SHOWN,
+    );
+    const { rows: requests, more: requestsCut } = await takeShown(
+      ctx.db
+        .query("joinRequests")
+        .withIndex("by_leagueId_and_decision", (q) => q.eq("leagueId", leagueId).eq("decision", undefined))
+        .order("desc"),
+      ROWS_SHOWN,
+    );
 
     return {
       leagueId,
@@ -87,7 +93,9 @@ export const page = query({
         joinedTeamName: invite.joined?.teamName ?? null,
         couldNotJoin: invite.couldNotJoin ?? null,
       })),
+      invitesCut,
       requests: requests.map((request) => ({ requestId: request._id, email: request.email, askedAt: request._creationTime })),
+      requestsCut,
     };
   },
 });

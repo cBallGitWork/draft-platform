@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, test, vi } from "vitest";
 import { api, internal } from "../../../convex/_generated/api";
-import { claimFailedLetter } from "../../../convex/mail/letterWords";
+import { claimFailedLetter } from "../../../convex/mail/waiverLetterWords";
 import { FIRST_RULES } from "../../../convex/rules/firstRules";
 import { MINUTE_MS, WEEK_MS } from "../../../convex/shared/time";
 import { WAIVER_MS } from "../../../convex/waivers/waiverPlayers";

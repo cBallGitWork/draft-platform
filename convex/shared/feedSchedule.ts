@@ -61,8 +61,10 @@ const LIVE_TICK = { every: { minutes: 1 }, graceMs: 4 * MINUTE_MS } as const sat
 export const FEED_SCHEDULES = {
   // A run reads FPL in a minute or two.
   football: { every: { hours: 6 }, graceMs: 30 * MINUTE_MS },
-  // Run by hand for now: spec/06 names no cadence.
-  positions: null,
+  // Daily at 06:00 UK time (#1194, Craig, 5 Nov 2026). crons.ts fires at 05:00 and 06:00 UTC and
+  // only the one at 06:00 UK runs, so across a clock change two runs are 23 or 25 hours apart; a
+  // run takes minutes, and one with matches left carries on at once.
+  positions: { every: { hours: 24 }, graceMs: 2 * HOUR_MS },
   // Late stats, every 10 minutes (spec/20). A run of ten due matches can take most of Convex's
   // 10-minute action limit, and Convex skips the next while it runs.
   matchStats: { every: { minutes: 10 }, graceMs: 10 * MINUTE_MS },
