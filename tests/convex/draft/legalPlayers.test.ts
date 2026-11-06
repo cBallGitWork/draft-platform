@@ -1,5 +1,5 @@
 import { describe, expect, test } from "vitest";
-import { legalPlayers, type DraftPlayer } from "../../../convex/draft/legalPlayers";
+import { legalPlayers, whyNotLegal, type DraftPlayer } from "../../../convex/draft/legalPlayers";
 import { areasOf } from "../../../convex/lineup/pitch";
 import { POSITIONS, type Position } from "../../../convex/positions/positionTables";
 import type { LeagueRules } from "../../../convex/rules/leagueRulesShape";
@@ -137,5 +137,18 @@ describe("the players still undrafted", () => {
     const legal = legalPlayers([player(ARSENAL, "CB")], 2, rules, left);
     expect(legal(player(CHELSEA, "ST"))).toBe(true);
     expect(legal(player(ARSENAL, "GK"))).toBe(false);
+  });
+});
+
+describe("why a player is greyed out, as the draft room's list says it", () => {
+  test("each squad rule names itself, and a pick leaving no legal finish from those left says so", () => {
+    const rules = squadRules({ maxPerClub: 2, minimumByArea: { ...NO_AREA_MINIMUMS, goalkeeper: 1 } });
+    const left = [player(ARSENAL, "GK"), player(ARSENAL, "ST"), player(CHELSEA, "ST")];
+    const why = whyNotLegal([player(ARSENAL, "CB")], 2, rules, left);
+    expect(why(player(ARSENAL, "ST"))).toBe("noFinish");
+    expect(why(player(CHELSEA, "ST"))).toBeNull();
+    expect(whyNotLegal([player(ARSENAL, "CB"), player(ARSENAL, "ST")], 10, rules, PLENTY)(player(ARSENAL, "CM"))).toBe("clubFull");
+    expect(whyNotLegal([CENTRE_BACK], 1, rules, PLENTY)(STRIKER)).toBe("areasShort");
+    expect(whyNotLegal([], 0, rules, PLENTY)(KEEPER)).toBe("squadFull");
   });
 });

@@ -6,7 +6,8 @@ import type { Id } from "../../convex/_generated/dataModel";
 import { snakeOrder } from "../../convex/draft/snakeOrder";
 import type { Position } from "../../convex/positions/positionTables";
 import { DAY_MS, HOUR_MS, SECOND_MS } from "../../convex/shared/time";
-import type { BoardPick, DraftSeam, DraftState } from "./seam";
+import { previewPlayers, previewScouting } from "../scouting/preview";
+import type { BoardPick, DraftChanges, DraftLists, DraftSeam, DraftState, GreyedPlayer, RoomFigures } from "./seam";
 
 const NAMES = ["Kroos Control", "Rovers XI", "Bale Out", "Pep Talk", "Klopp Shop", "Havertz Rent", "Xhaka Laka", "Saka Potatoes", "Show Me Your Moyes", "Dirty Dozen"];
 const order = NAMES.map((name, index) => ({ teamId: `preview-draft-team-${index + 1}` as Id<"teams">, name }));
@@ -48,8 +49,47 @@ const before: DraftState = { status: "waiting", startsAt: startedAt + 4 * DAY_MS
 /** Whether `?draft=before` asks for the draft before its start. */
 const isBefore = () => new URLSearchParams(window.location.search).get("draft") === "before";
 
+const GREYED: readonly GreyedPlayer[] = [
+  { code: 2, reason: "clubFull" },
+  { code: 3, reason: "clubFull" },
+];
+/** The preview's pick is made at once, and changes nothing. */
+const PREVIEW_CHANGES: DraftChanges = { makePick: () => Promise.resolve(null) };
+
+/** Scouting's preview players' figures, by code: rank, 25/26's points, and MP, G, A and CS. */
+const FIGURES: readonly [number, number, number | null, number, number, number, number][] = [
+  [1, 5, 212, 38, 12, 9, 0],
+  [2, 31, 164, 36, 4, 6, 0],
+  [3, 40, 123, 32, 0, 0, 13],
+  [4, 2, 245, 37, 15, 10, 0],
+  [5, 47, 112, 29, 1, 3, 9],
+  [6, 1, 265, 38, 22, 12, 0],
+  [7, 35, 131, 35, 2, 3, 12],
+];
+const figures: RoomFigures = {
+  players: FIGURES.map(([code, rank, lastSeasonPoints, appearances, goals, assists, cleanSheets]) => ({
+    code,
+    rank,
+    lastSeasonPoints,
+    overview: { appearances, goals, assists, cleanSheets },
+  })),
+  lastSeason: 2025,
+  statsSeason: 2025,
+  maxPerClub: 2,
+};
+
+/** Salah then Rice in the reader's queue, as listed. */
+const listed = (code: number) => ({ ...previewPlayers.find((each) => each.code === code)!, gone: false });
+const LISTS: DraftLists = { queue: [listed(6), listed(2)], doNotDraft: [listed(7)] };
+
 export const previewDraft: DraftSeam = {
   useDraft: () => (isBefore() ? before : draft),
   useBoard: () => ({ picks: isBefore() ? [] : picks, yourTeamId: YOURS, pickSeconds: 90 }),
   useInMenu: () => true,
+  // Scouting's preview players; Saka Potatoes is at its Arsenal maximum, so Rice and Raya are greyed.
+  usePlayersList: previewScouting.usePlayersList,
+  useGreyedOut: () => (isBefore() ? [] : GREYED),
+  useFigures: () => figures,
+  useLists: () => LISTS,
+  useDraftChanges: () => PREVIEW_CHANGES,
 };
