@@ -1,14 +1,18 @@
 // Copies a past season's Premier League matches from ai-carling-premiership into a deployment's
-// pastPlayerMatchStats (#1113; convex/pastSeasons/pastSeasonRows.ts). Run on Craig's Mac, where
-// ai-carling and its .venv live, from this checkout:
+// pastPlayerMatchStats (#1113 for 2025/26, #842 for 2021/22 to 2024/25;
+// convex/pastSeasons/pastSeasonRows.ts, and pastStatColumns.ts for each stat's column). Run on
+// Craig's Mac, where ai-carling and its .venv live, from this checkout:
 //
 //   node scripts/past-season.mjs --season 2025 --from ~/path/to/ai-carling-premiership          (dev)
 //   node scripts/past-season.mjs --season 2025 --from ~/path/to/ai-carling-premiership --prod   (live)
+//   node scripts/past-season.mjs --season 2021 --from ~/path/to/ai-carling-premiership --players <that season's FPL list>
 //
 // The parquet is read by ai-carling's own Python (pyarrow) and printed as JSON, so this checkout
 // adds no parquet reader. Before anything is written the season's sizes are checked against the
-// counts it was planned on (docs/research/last-season-points.md), and every row's player must have
-// an FPL code and a position: any miss stops the run, naming it. The season's old rows are cleared
+// counts it was planned on (docs/research/last-season-points.md for 2025/26; 380 matches for the
+// older ones). A player with no FPL code is skipped, his rows left out and his name printed (Craig,
+// 6 Nov 2026, on #842); every other row's player must have a position in the season's FPL list:
+// a miss stops the run, naming him. The season's old rows are cleared
 // first, so a second run replaces the first. Then last season's points are re-priced under the
 // site's set as it stands (#1114; convex/pastSeasons/pastSeasonPoints.ts), a job that pages on by
 // itself.
@@ -18,13 +22,32 @@ import { join } from "node:path";
 import { parseArgs } from "node:util";
 import { pathToFileURL } from "node:url";
 import { PAST_ROWS_ADDED_MOST } from "../convex/pastSeasons/pastSeasonLimits.ts";
-import { SOURCE_COLUMNS, fplCodesByRoot, fplPositionsByCode, pastSeasonRows, seasonCounts } from "../convex/pastSeasons/pastSeasonRows.ts";
+import { SOURCE_COLUMNS, fplCodesByRoot, fplPositionsByCode, pastSeasonRows, seasonCounts, withoutFplCode } from "../convex/pastSeasons/pastSeasonRows.ts";
 import { captured } from "./live-setup/tools.mjs";
 
-/** Each season the copy knows, by the year it starts: its log, its FPL player list, and its sizes. */
+/** A season's log in ai-carling, by the year it starts (2021 → season=21-22). */
+const logOf = (start) => {
+  const short = (year) => String(year % 100).padStart(2, "0");
+  return `data/match_logs/player_match_log/season=${short(start)}-${short(start + 1)}/player_match_log.parquet`;
+};
+
+/** Every Premier League season has 380 matches. */
+const PREMIER_LEAGUE_MATCHES = 380;
+
+/** An older season (#842, for the rule balance lab): its sizes weren't counted before, so only its
+ *  matches are checked, and its FPL player list is named on the run with --players (ai-carling's
+ *  list for that season, read on Craig's Mac). */
+const olderSeason = (start) => ({ log: logOf(start), players: null, counts: { matches: PREMIER_LEAGUE_MATCHES } });
+
+/** Each season the copy knows, by the year it starts: its log, its FPL player list (null where the
+ *  run names it), and the sizes it is checked against. spec/14: the five seasons 2021/22 to 2025/26. */
 export const SEASONS = {
+  2021: olderSeason(2021),
+  2022: olderSeason(2022),
+  2023: olderSeason(2023),
+  2024: olderSeason(2024),
   2025: {
-    log: "data/match_logs/player_match_log/season=25-26/player_match_log.parquet",
+    log: logOf(2025),
     // 2025/26's FPL list on 1 Jun 2026, its last before the reset: each player's position that season, by code. It names all 707; 1 Mar's lacked 22 who joined later, and no one changes position across the season's lists.
     players: "data/raw/fpl/wayback_bootstrap/bootstrap_20260601000016.json",
     counts: { matches: 380, playedRows: 11492, played: 537, named: 707 },
@@ -88,15 +111,22 @@ const batches = (rows, size) => Array.from({ length: Math.ceil(rows.length / siz
 /** Reads `season` from the ai-carling checkout at `from`, checks it, and loads it into the
  *  deployment the checkout at `cwd` points at (the live one with `prod`). `exec` and `print` are
  *  swapped in tests. */
-export async function loadPastSeason({ season, from, prod = false, cwd = process.cwd(), seasons = SEASONS, exec = captured, print = console.log }) {
+export async function loadPastSeason({ season, from, players, prod = false, cwd = process.cwd(), seasons = SEASONS, exec = captured, print = console.log }) {
   const plan = seasons[season];
   if (plan === undefined) throw new Error(`No past season ${season}: the copy knows ${Object.keys(seasons).join(", ")}`);
+  const list = players ?? plan.players;
+  if (list === null) throw new Error(`${season} needs its FPL player list: name it with --players <its path in ai-carling>`);
   const log = JSON.parse(await run(exec, join(from, PYTHON), ["-I", "-c", READ_LOG, join(from, plan.log), SOURCE_COLUMNS.join(",")], cwd));
   const counts = seasonCounts(log);
   checkCounts(season, counts, plan.counts);
   const codes = fplCodesByRoot(await personFiles(from));
-  const positions = fplPositionsByCode(await readJson(join(from, plan.players)));
-  const rows = pastSeasonRows(season, log, codes, positions);
+  const positions = fplPositionsByCode(await readJson(join(from, list)));
+  const { kept, skipped } = withoutFplCode(log, codes);
+  if (skipped.length > 0) {
+    const names = skipped.map(({ root, played }) => `${root} (${played} played)`).join(", ");
+    print(`${season}: skipped ${skipped.length} with no FPL code, ${skipped.reduce((sum, { played }) => sum + played, 0)} played matches in all: ${names}`);
+  }
+  const rows = pastSeasonRows(season, kept, codes, positions);
 
   const convex = join(cwd, "node_modules", ".bin", "convex");
   const target = prod ? ["--prod"] : [];
@@ -114,14 +144,18 @@ export async function loadPastSeason({ season, from, prod = false, cwd = process
     `${season}: ${counts.matches} matches, ${counts.playedRows} played rows, ${counts.played} who played and ${counts.named} named; ` +
       `${cleared} old rows cleared and ${added} added to ${prod ? "the live deployment" : "dev"}, last season's points re-priced`,
   );
-  return { counts, cleared, added };
+  return { counts, cleared, added, skipped };
 }
 
 if (import.meta.url === pathToFileURL(process.argv[1] ?? "").href) {
   try {
-    const { values } = parseArgs({ options: { season: { type: "string" }, from: { type: "string" }, prod: { type: "boolean", default: false } } });
-    if (values.season === undefined || values.from === undefined) throw new Error("usage: node scripts/past-season.mjs --season 2025 --from <ai-carling-premiership> [--prod]");
-    await loadPastSeason({ season: Number(values.season), from: values.from, prod: values.prod });
+    const { values } = parseArgs({
+      options: { season: { type: "string" }, from: { type: "string" }, players: { type: "string" }, prod: { type: "boolean", default: false } },
+    });
+    if (values.season === undefined || values.from === undefined) {
+      throw new Error("usage: node scripts/past-season.mjs --season 2025 --from <ai-carling-premiership> [--players <FPL list>] [--prod]");
+    }
+    await loadPastSeason({ season: Number(values.season), from: values.from, players: values.players, prod: values.prod });
   } catch (error) {
     console.error(`past-season: ${error.message}`);
     process.exit(1);

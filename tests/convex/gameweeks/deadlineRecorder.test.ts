@@ -108,7 +108,7 @@ describe("a postponed first match", () => {
 
     expect(await shownDeadline(GAMEWEEK)).toBe(deadlineBefore(OPENER));
     await expectRefused(setUsedIn(GAMEWEEK, false), gameweekRefusals.begun(GAMEWEEK));
-    const change = await changeRules(t, leagueId, { ...FIRST_RULES, format: "totalPoints" });
+    const change = await changeRules(t, leagueId, { ...FIRST_RULES, doubleGameweek: "bestMatch" });
     expect(change).toBe(GAMEWEEK + 1);
   });
 

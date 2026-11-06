@@ -9,7 +9,7 @@ import {
   type PlayersSort,
 } from "../../../convex/scouting/playersList";
 import { listOf } from "../../../convex/scouting/playersOrder";
-import { PL_SEASON_START_YEAR } from "../../../convex/football/football";
+import { FPL_SEASON } from "../../support/recorded/plSeasons.payloads";
 import { refusals } from "../../../convex/shared/leagueAccess";
 import { SEASON_PLAYERS_MOST } from "../../../convex/stats/matchRecords";
 import { CLUB_PLAYERS_MOST } from "../../../convex/shared/players";
@@ -152,7 +152,7 @@ describe("sorting by a figure", () => {
 });
 
 describe("any stat, as a season total (spec/19, sortable by any stat)", () => {
-  const THIS_SEASON = PL_SEASON_START_YEAR;
+  const THIS_SEASON = FPL_SEASON;
   // Saka and Mbeumo have goals this season, Palmer more last season, and Rice no totals at all.
   beforeEach(() =>
     t.run(async (ctx) => {

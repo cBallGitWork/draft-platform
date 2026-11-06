@@ -58,6 +58,7 @@ import type * as football_plStandings from "../football/plStandings.js";
 import type * as football_plTable from "../football/plTable.js";
 import type * as football_premierLeague_plCommentary from "../football/premierLeague/plCommentary.js";
 import type * as football_premierLeague_plMatch from "../football/premierLeague/plMatch.js";
+import type * as football_premierLeague_plSeasons from "../football/premierLeague/plSeasons.js";
 import type * as football_premierLeague_plTeamStats from "../football/premierLeague/plTeamStats.js";
 import type * as football_premierLeague_premierLeague from "../football/premierLeague/premierLeague.js";
 import type * as football_scoreReads from "../football/scoreReads.js";
@@ -135,6 +136,7 @@ import type * as pastSeasons_pastSeasonLimits from "../pastSeasons/pastSeasonLim
 import type * as pastSeasons_pastSeasonLoad from "../pastSeasons/pastSeasonLoad.js";
 import type * as pastSeasons_pastSeasonPoints from "../pastSeasons/pastSeasonPoints.js";
 import type * as pastSeasons_pastSeasonRows from "../pastSeasons/pastSeasonRows.js";
+import type * as pastSeasons_pastStatColumns from "../pastSeasons/pastStatColumns.js";
 import type * as playerCard_cardPoints from "../playerCard/cardPoints.js";
 import type * as playerCard_playerCard from "../playerCard/playerCard.js";
 import type * as positions_playerPositions from "../positions/playerPositions.js";
@@ -146,6 +148,7 @@ import type * as positions_positions from "../positions/positions.js";
 import type * as positions_positionsSync from "../positions/positionsSync.js";
 import type * as rules_drawRulesBackfill from "../rules/drawRulesBackfill.js";
 import type * as rules_firstRules from "../rules/firstRules.js";
+import type * as rules_formatLock from "../rules/formatLock.js";
 import type * as rules_leagueRules from "../rules/leagueRules.js";
 import type * as rules_leagueRulesCheck from "../rules/leagueRulesCheck.js";
 import type * as rules_leagueRulesShape from "../rules/leagueRulesShape.js";
@@ -329,6 +332,7 @@ declare const fullApi: ApiFromModules<{
   "football/plTable": typeof football_plTable;
   "football/premierLeague/plCommentary": typeof football_premierLeague_plCommentary;
   "football/premierLeague/plMatch": typeof football_premierLeague_plMatch;
+  "football/premierLeague/plSeasons": typeof football_premierLeague_plSeasons;
   "football/premierLeague/plTeamStats": typeof football_premierLeague_plTeamStats;
   "football/premierLeague/premierLeague": typeof football_premierLeague_premierLeague;
   "football/scoreReads": typeof football_scoreReads;
@@ -406,6 +410,7 @@ declare const fullApi: ApiFromModules<{
   "pastSeasons/pastSeasonLoad": typeof pastSeasons_pastSeasonLoad;
   "pastSeasons/pastSeasonPoints": typeof pastSeasons_pastSeasonPoints;
   "pastSeasons/pastSeasonRows": typeof pastSeasons_pastSeasonRows;
+  "pastSeasons/pastStatColumns": typeof pastSeasons_pastStatColumns;
   "playerCard/cardPoints": typeof playerCard_cardPoints;
   "playerCard/playerCard": typeof playerCard_playerCard;
   "positions/playerPositions": typeof positions_playerPositions;
@@ -417,6 +422,7 @@ declare const fullApi: ApiFromModules<{
   "positions/positionsSync": typeof positions_positionsSync;
   "rules/drawRulesBackfill": typeof rules_drawRulesBackfill;
   "rules/firstRules": typeof rules_firstRules;
+  "rules/formatLock": typeof rules_formatLock;
   "rules/leagueRules": typeof rules_leagueRules;
   "rules/leagueRulesCheck": typeof rules_leagueRulesCheck;
   "rules/leagueRulesShape": typeof rules_leagueRulesShape;
