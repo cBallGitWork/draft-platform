@@ -1,5 +1,6 @@
 import { expect, test } from "vitest";
 import { mapFpl } from "../../../../convex/football/fpl/fpl";
+import { JULY, JUNE } from "../../../../convex/shared/time";
 import { CLUB_CODE, FIXTURE_CODE, PLAYER_CODE, RECORDED_COUNT, recordedFpl, type FplPayloads } from "../../../support/recorded/fpl.payloads";
 
 const { bootstrap, fixtures } = recordedFpl();
@@ -66,8 +67,41 @@ test("a match names both clubs by code and its kickoff in epoch milliseconds", (
   });
 });
 
-test("a gameweek is its number and FPL's own deadline", () => {
-  expect(football.gameweeks[0]).toEqual({ number: 1, deadline: Date.UTC(2026, 7, 21, 17, 30) });
+test("a gameweek is its season, its number and FPL's own deadline (#66)", () => {
+  expect(football.gameweeks[0]).toEqual({ season: 2026, number: 1, deadline: Date.UTC(2026, 7, 21, 17, 30) });
+});
+
+test("a gameweek's season is the one its season's first deadline falls in, so next August's are 2027's (#66)", () => {
+  const nextAugust = recordedFpl();
+  nextAugust.bootstrap.events = nextAugust.bootstrap.events.map((event) => ({
+    ...event,
+    deadline_time: event.deadline_time.replace("2026-", "2027-"),
+  }));
+  expect(new Set(mapFpl(nextAugust.bootstrap, nextAugust.fixtures).gameweeks.map(({ season }) => season))).toEqual(new Set([2027]));
+});
+
+// Between seasons FPL can send no fixtures until it publishes the next season's (#66).
+const FIRST_DEADLINE = Date.UTC(2026, 7, 21, 17, 30);
+test.each([
+  ["from 1 June after the season", Date.UTC(2027, JUNE, 1)],
+  ["in July after it", Date.UTC(2027, JULY, 10)],
+  ["before the season's first deadline", FIRST_DEADLINE - 1],
+])("an empty fixtures list %s is between seasons: none sent, none refused", (_when, now) => {
+  const mapped = mapFpl(bootstrap, [], now);
+  expect(mapped.betweenSeasons).toBe(true);
+  expect(mapped.fixtures).toEqual([]);
+  expect(mapped.gameweeks).toHaveLength(football.gameweeks.length);
+});
+
+test.each([
+  ["at the first deadline", FIRST_DEADLINE],
+  ["on 31 May, the season not yet over", Date.UTC(2027, JUNE, 1) - 1],
+])("an empty fixtures list %s is still refused", (_when, now) => {
+  expect(() => mapFpl(bootstrap, [], now)).toThrow("FPL sent an empty match list");
+});
+
+test("a sent fixtures list is never between seasons, whatever the date", () => {
+  expect(mapFpl(bootstrap, fixtures, Date.UTC(2027, JULY, 10)).betweenSeasons).toBe(false);
 });
 
 test("a postponed match with no gameweek or kickoff yet is held without them", () => {

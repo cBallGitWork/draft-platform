@@ -82,7 +82,7 @@ describe("the held schedule", () => {
 
   test(`reads the season's ${GAMEWEEKS} gameweeks, a dropped one kept (#202), and throws past them rather than cut the schedule short`, async () => {
     await t.run(async (ctx) => {
-      const first = await ctx.db.query("gameweeks").withIndex("by_number", (q) => q.eq("number", FIRST_GAMEWEEK)).unique();
+      const first = await ctx.db.query("gameweeks").withIndex("by_season_and_number", (q) => q.eq("season", undefined).eq("number", FIRST_GAMEWEEK)).unique();
       await ctx.db.patch("gameweeks", first!._id, { droppedAt: DROPPED_AT });
     });
     const { gameweeks } = await schedule();
