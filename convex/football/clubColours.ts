@@ -40,10 +40,20 @@ export const CLUB_COLOURS: Readonly<Record<number, ClubColours>> = {
 /** A club with no row: the white shirt the pitch drew before colours. */
 const UNKNOWN_CLUB: Omit<ClubColours, "shortName"> = { primary: "#FFFFFF", secondary: "#FFFFFF", pattern: "plain" };
 
+/** A club's two colours, or white and white for a club with no row or none held (null, #323). */
+export function coloursOf(clubCode: number | null): Omit<ClubColours, "shortName"> {
+  return (clubCode === null ? undefined : CLUB_COLOURS[clubCode]) ?? UNKNOWN_CLUB;
+}
+
 /** The two inks a shirt's number and outline can take: styles.css's `--color-ground` and
  *  `--color-fact` (tests/src/myTeam/tactics/pitch/shirts.test.tsx holds them equal). */
 export const INKS = { dark: "#111214", light: "#ffffff" } as const;
 export type Ink = keyof typeof INKS;
+
+/** Whichever of the two inks reads better on a colour. */
+export function inkOn(colour: string): Ink {
+  return contrast(colour, INKS.dark) >= contrast(colour, INKS.light) ? "dark" : "light";
+}
 
 /** What one player's shirt is drawn in: its colour, its trim (the stripes' colour on a striped
  *  shirt), its pattern, and the ink of its number and outline. */
@@ -54,10 +64,10 @@ export type Kit = { shirt: string; trim: string; pattern: Pattern; ink: Ink };
  *  whichever of the two inks reads better on the shirt's colour. A player with no club held
  *  (null, #323) wears the shirt of a club with no colours. */
 export function kitOf(clubCode: number | null, goalkeeper: boolean): Kit {
-  const colours = (clubCode === null ? undefined : CLUB_COLOURS[clubCode]) ?? UNKNOWN_CLUB;
+  const colours = coloursOf(clubCode);
   const [shirt, trim] = goalkeeper ? [colours.secondary, colours.primary] : [colours.primary, colours.secondary];
   const pattern = goalkeeper ? "plain" : colours.pattern;
-  return { shirt, trim, pattern, ink: contrast(shirt, INKS.dark) >= contrast(shirt, INKS.light) ? "dark" : "light" };
+  return { shirt, trim, pattern, ink: inkOn(shirt) };
 }
 
 /** WCAG 2's contrast ratio between two `#rrggbb` colours, 1 to 21. */

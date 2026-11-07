@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 import type { Position } from "../../../convex/positions/positionTables";
 import type { SeasonStats } from "../../../convex/squads/teamSquad";
-import { ClubShort } from "../../premierLeague/ClubName";
+import { ClubMark, ClubShort } from "../../premierLeague/ClubName";
 import { cellClassOf, ColumnHeads } from "../../ui/ColumnHeads";
 import { Placeholder } from "../../ui/Placeholder";
 import { PositionCodes } from "../../ui/PositionCodes";
@@ -148,6 +148,7 @@ export function PlayerCell({ className, player, starts, marks, isSelected, onSel
         {!starts && <span className="sr-only">, {benchWords}</span>}
       </button>{" "}
       <span className="text-muted">
+        <ClubMark code={player.club.code} />
         <ClubShort club={player.club} />
       </span>
       {player.chanceOfPlaying !== null && (

@@ -107,6 +107,13 @@ name (the score).
   each 4 of the shirt's 40 units wide, one every 8, one down the middle; its number keeps the ink
   that reads on the first colour and gains a 1.5-unit outline in the other ink. A keeper's shirt is
   always plain.
+- **A club's mark** (spec/12, Club colours; #840): the club's real crest from the Premier League's
+  image server by its `code`, `--spacing-club-mark` square, 4px before its code or name where that
+  stands alone (Squad, Scouting, the player card, the Premier League table), never in a
+  fixture-difficulty cell. A crest that won't load is drawn: the square split down the middle, the
+  club's first colour left and its second right. Built once, `src/premierLeague/ClubName.tsx`.
+- **A match's scoreboard** (spec/10): each club's crest and name on its first colour, inked
+  `--color-ground` or `--color-fact`, whichever reads better on it.
 - **Stars**: SVG, filled in the figure colour, empty ones as outlines in muted grey, the set
   labelled "Role fit 4 of 5".
 - **A doubt**: the orange knock chip of the status chips (Tables and panels), on the name plate and

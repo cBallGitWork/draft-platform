@@ -29,6 +29,7 @@ import {
 } from "../../../src/playerCard/words";
 import { addToShortlistWords } from "../../../src/scouting/shortlist/words";
 import { squadsPath } from "../../../src/squads/paths";
+import { crestUrl } from "../../../src/premierLeague/ClubName";
 import { gameweekWords, versusWords } from "../../../src/shared/words";
 import { ARSENAL, COVENTRY } from "../../support/convex/footballRows.harness";
 import { HELD, openCard, RICE, SAKA } from "../../support/src/playerCardScreen.harness";
@@ -98,12 +99,18 @@ describe("the card", () => {
     openCard();
     const facts = within(await screen.findByRole("region", { name: PLAYER_TITLE }));
 
-    expect(facts.getByText(ARSENAL.name)).toBeTruthy();
+    expect(facts.getByText(ARSENAL.name).firstElementChild!.getAttribute("src")).toBe(crestUrl(ARSENAL.code));
     expect(facts.getByTitle("Winger").textContent).toBe("W");
     expect(facts.getByTitle("Attacking midfielder").textContent).toBe("CAM");
     expect(facts.getByText("Saka Potatoes")).toBeTruthy();
     expect(facts.getByText(SAKA.news!)).toBeTruthy();
     expect(facts.queryByText(chanceWords(75))).toBeNull();
+  });
+
+  it("keeps its title plate the plate's colour, never his club's (spec/12, Club colours)", async () => {
+    openCard();
+    await screen.findByRole("region", { name: PLAYER_TITLE });
+    expect(document.body.querySelectorAll('[style*="background"]')).toHaveLength(0);
   });
 
   it("a chance of playing with no news stands alone", async () => {

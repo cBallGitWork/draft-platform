@@ -4,6 +4,7 @@ import { screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
 import { STAT_CATALOGUE } from "../../../convex/scoring/statCatalogueList";
+import { crestUrl } from "../../../src/premierLeague/ClubName";
 import {
   clearComparisonWords,
   clubLabel,
@@ -68,6 +69,9 @@ describe("comparing two players", () => {
     expectColumnHeads(comparisonTable(), SAKA_AND_PALMER_HEADS);
     expectUnseenHead(comparisonTable(), compareWhatColumn);
     expect(cellsOf(columns.club.long)).toEqual(["ARS", "CHE"]);
+    expect([...comparisonTable().querySelectorAll("[data-club-mark]")].map((mark) => mark.getAttribute("src"))).toEqual(
+      [SAKA, PALMER].map((player) => crestUrl(player.club.code)),
+    );
     expect(cellsOf(columns.owner.short)).toEqual(["Saka Potatoes", "Kroos Control"]);
     expect(cellsOf(columns.seasonPoints.short)).toEqual([noFigureWords, noFigureWords]);
     expect(cellsOf(matchesWords)).toEqual(["9", "8"]);
