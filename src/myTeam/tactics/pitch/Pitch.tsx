@@ -118,8 +118,8 @@ export function Pitch({
 
 /** A player on the pitch: his shirt over his name plate, which opens with his slot's position label
  *  ("ST Haaland": the position, never its side, so a sweeper or libero reads CB; spec/05 What the
- *  pitch shows; Craig, 4 Nov 2026), the role he plays under his name (spec/05 Roles;his positions are in his name for screen readers). A tap opens his panel, and his block
- *  is ringed while it is open; picked up, the plate turns white; one the player picked up can swap
+ *  pitch shows; Craig, 4 Nov 2026), the role he plays under his name (spec/05 Roles); his
+ *  positions are in his name for screen readers. A tap opens his panel, and his block is ringed while it is open; picked up, the plate turns white; one the player picked up can swap
  *  with is lit, dashed, with the picked-up player's stars for the role he'd land on there, his name
  *  under them (spec/05, Moving players; Craig, 7 Nov 2026, #11), and a tap swaps them. `landing`
  *  is null on a player who isn't lit. */
