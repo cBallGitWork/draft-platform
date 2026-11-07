@@ -48,7 +48,7 @@ export function RecapPage({ league, seam, gameweek }: { league: LeagueSummary; s
         ) : recap === null ? (
           <PanelNote>{noRecapWords(gameweek)}</PanelNote>
         ) : (
-          <article className="flex flex-col gap-1 px-3 pt-2">
+          <article className="flex flex-col items-start gap-1 px-3 pt-2">
             <DateBlock at={recap.writtenAt} />
             <p className="whitespace-pre-line">{recap.text}</p>
           </article>
