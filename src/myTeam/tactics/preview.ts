@@ -10,7 +10,8 @@ import { areasOf, cellsOf, LANES, type Cell } from "../../../convex/lineup/pitch
 import { everyRoleOf } from "../../../convex/lineup/roles";
 import { NO_DATA, UNSURE, type RoleStars } from "../../../convex/stars/starsShape";
 import type { Position } from "../../../convex/positions/positionTables";
-import { FIRST_RULES } from "../../../convex/rules/firstRules";
+import { FIRST_RULES, instructionsOf } from "../../../convex/rules/firstRules";
+import { keptOrSwitched } from "../../../convex/lineup/instructions";
 import { DAY_MS, HOUR_MS } from "../../../convex/shared/time";
 import type { DraftLineup } from "./lineupDraft";
 import type { Tactics, TacticsSeam } from "./seam";
@@ -69,14 +70,18 @@ export const previewSquad = squad;
 const positionsOf = new Map(squad.map(({ playerCode, positions }) => [playerCode, positions]));
 const nameOf = (playerCode: number) => squad.find((member) => member.playerCode === playerCode)!.name;
 
-const tacticsWith = ({ starters, bench }: DraftLineup): Tactics => ({
+const instructions = [...instructionsOf(FIRST_RULES)];
+
+const tacticsWith = ({ starters, bench, instructions: picked }: DraftLineup): Tactics => ({
   kind: "open",
   gameweek: PREVIEW_GAMEWEEK,
   deadline: PREVIEW_DEADLINE,
   areaLimits: FIRST_RULES.areaLimits,
   presets: FIRST_RULES.presets,
+  instructions,
+  picked: keptOrSwitched(picked, starters, FIRST_RULES.presets, instructions).pair,
   squad,
-  lineup: { fromGameweek: PREVIEW_GAMEWEEK, starters: [...starters], bench: [...bench], leftSquad: [], joinedBench: [], vacated: [] },
+  lineup: { fromGameweek: PREVIEW_GAMEWEEK, starters: [...starters], bench: [...bench], leftSquad: [], joinedBench: [], vacated: [], ...(picked && { instructions: picked }) },
 });
 
 // A new object only when it changes, as useSyncExternalStore needs.

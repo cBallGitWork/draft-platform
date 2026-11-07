@@ -8,13 +8,15 @@ import { unheldNoticeWords } from "../../shared/words";
 import { TeamPage } from "../header/TeamHeader";
 import { markedBy } from "./focusMarks";
 import { FormationWindow } from "./formationWindow/FormationWindow";
-import { benchedAt, dropOutcome, openingLineup, placeOf, presetInUse, reachOf, reshaped, swapped, withRole, type DraftLineup, type MoveRules, type RatingsOf } from "./lineupDraft";
+import { benchedAt, dropOutcome, openingLineup, placeOf, presetInUse, reachOf, reshaped, swapped, withInstruction, withRole, type DraftLineup, type MoveRules, type RatingsOf } from "./lineupDraft";
+import { keptOrSwitched, type Side } from "../../../convex/lineup/instructions";
+import { switchedWords } from "../../../convex/lineup/instructionsWords";
 import { Pitch, PITCH_ROOM_STYLE, type Moving } from "./pitch/Pitch";
 import { SquadTable } from "./SquadTable";
 import { useLineupEdits } from "./useLineupEdits";
 import { RunsSwitch, TacticsToolbar } from "./TacticsControls";
 import { PlayerPanel } from "./widgets/PlayerPanel";
-import { LineupCheck, OpponentWidget, TeamTacticWidget } from "./widgets/SideWidgets";
+import { LineupCheck, OpponentWidget, TeamInstructionsWidget } from "./widgets/SideWidgets";
 import type { MyTeamSeam } from "../seam";
 import type { OpenTactics } from "./seam";
 import {
@@ -100,6 +102,11 @@ function LineupEditor({ league, teamName, tactics, seam, opened }: { league: Lea
   const ratingsOf: RatingsOf = (playerCode) => squad.get(playerCode)?.stars ?? [];
   const reach = useMemo(() => (picked === null ? null : reachOf(draft, picked.playerCode, rules)), [draft, picked, rules]);
   const inUse = presetInUse(draft, tactics.presets)?.name ?? null;
+  const instructions = draft.instructions ?? tactics.picked;
+  // The preset last picked, until the lineup saves in it: its empty slots are marked, and its own
+  // cells decide the instructions offered. Saved, the eleven stand in it, as the server judges them.
+  const shapePicked = tactics.presets.find(({ name }) => name === edits.shape)?.cells;
+  const shape = shapePicked ?? draft.starters;
 
   // After a move, the moved player keeps the focus, wherever he now stands.
   const root = useRef<HTMLDivElement>(null);
@@ -156,7 +163,14 @@ function LineupEditor({ league, teamName, tactics, seam, opened }: { league: Lea
     const preset = tactics.presets.find((each) => each.name === name);
     if (preset === undefined) return;
     setPickedCode(null);
-    edits.reshape(name, reshaped(draft, preset.cells, rules, ratingsOf));
+    // An instruction the new shape offers stays; one it blocks switches to its default (spec/05).
+    const { pair, switched } = keptOrSwitched(instructions, preset.cells, tactics.presets, tactics.instructions);
+    edits.reshape(name, { ...reshaped(draft, preset.cells, rules, ratingsOf), instructions: pair }, switchedWords(switched));
+  };
+  /** One side's team instruction picked (spec/05, Team instructions). */
+  const pickInstruction = (side: Side, key: string) => {
+    setPickedCode(null);
+    edits.edit(withInstruction(draft, instructions, side, key));
   };
   /** Up, down, or a drop on a bench row: the player at that place in the bench order. Up or Down
    *  keeps the focus on the button pressed. */
@@ -180,7 +194,12 @@ function LineupEditor({ league, teamName, tactics, seam, opened }: { league: Lea
         canUndo={edits.canUndo}
         onUndo={edits.undo}
         savedAt={edits.savedAt}
+        switchedNote={edits.switchedNote}
         problem={edits.problem}
+        cells={shape}
+        instructions={tactics.instructions}
+        picked={instructions}
+        onInstruction={pickInstruction}
       />
       {joined.length > 0 && <Notice>{joinedBenchWords(joined.map((code) => squad.get(code)!.name))}</Notice>}
       {tactics.squad.some((member) => member.unheld) && <Notice>{unheldNoticeWords}</Notice>}
@@ -208,7 +227,7 @@ function LineupEditor({ league, teamName, tactics, seam, opened }: { league: Lea
               {picked === null ? pickHintWords : movingHintWords(picked.name, picked.positions)}
             </p>
             <div className="p-2">
-              <Pitch draft={draft} squad={squad} moving={moving} slots={tactics.presets.find(({ name }) => name === edits.shape)?.cells ?? []} runsShown={runsShown} ratingsOf={ratingsOf} />
+              <Pitch draft={draft} squad={squad} moving={moving} slots={shapePicked ?? []} runsShown={runsShown} ratingsOf={ratingsOf} />
             </div>
           </Panel>
           <LineupCheck
@@ -244,7 +263,7 @@ function LineupEditor({ league, teamName, tactics, seam, opened }: { league: Lea
               onBenchAt={toBenchAt}
             />
           )}
-          <TeamTacticWidget />
+          <TeamInstructionsWidget formation={inUse} cells={shape} instructions={tactics.instructions} picked={instructions} />
           <OpponentWidget table={table} teamName={teamName} gameweek={tactics.gameweek} />
         </div>
       </div>

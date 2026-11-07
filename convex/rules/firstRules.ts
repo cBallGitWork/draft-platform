@@ -1,18 +1,21 @@
 import { FPL_DEADLINE_RULE } from "../gameweeks/deadline";
 import type { DraftRules, LeagueRules } from "./leagueRulesShape";
 import { AREAS, type Area } from "../lineup/pitch";
+import { FIRST_INSTRUCTIONS, type Instruction } from "../lineup/instructions";
 import { DEFAULT_PRESETS } from "../lineup/presets";
 import type { DrawRules, OddTeamOut } from "../table/roundRobin";
 
 // The first rules a deployment gives a new league (#25), used once: the first league created
 // copies them into the admin's default rules row (`defaultLeagueRules`), and every league after
 // copies that row, which the admin edits (leagueRules.ts says how). Once that row exists, nothing
-// reads this file but `drawRulesOf` and `draftRulesOf`, for rules saved before the odd team out,
-// games a gameweek and the draft were among them. The scoring is not a league's rule but the
-// site's (spec/14, Who owns it): ../scoring/firstScoring.ts holds the first set.
+// reads this file but `drawRulesOf`, `draftRulesOf` and `instructionsOf`, for rules saved before the
+// odd team out, games a gameweek, the draft and the team instructions were among them. The scoring
+// is not a league's rule but the site's (spec/14, Who owns it): ../scoring/firstScoring.ts holds
+// the first set.
 //
-// Only the presets, the deadline, the double-gameweek rule, the odd team out, games a gameweek and
-// the draft's rules are the spec's own or Craig's (spec/05, spec/03, spec/09, spec/04). The rest
+// Only the presets, the team instructions, the deadline, the double-gameweek rule, the odd team
+// out, games a gameweek and the draft's rules are the spec's own or Craig's (spec/05, spec/03,
+// spec/09, spec/04). The rest
 // is a guess marked where it stands, against docs/research/fantrax-options.md's live values where
 // it has them.
 
@@ -40,6 +43,10 @@ export const drawRulesOf = (rules: LeagueRules): DrawRules => ({
   gamesPerGameweek: rules.gamesPerGameweek ?? FIRST_GAMES_PER_GAMEWEEK,
 });
 
+/** The team instructions a league picks from: the first rules' for rules saved before #990 made
+ *  them rules. */
+export const instructionsOf = (rules: Pick<LeagueRules, "instructions">): readonly Instruction[] => rules.instructions ?? FIRST_INSTRUCTIONS;
+
 export const FIRST_RULES: LeagueRules = {
   format: "headToHead", // guess: the Tim Hortons league plays head-to-head matchups
   squad: {
@@ -52,7 +59,11 @@ export const FIRST_RULES: LeagueRules = {
   },
   // guess: spec/05 sets no defaults. One goalkeeper, and room for every preset.
   areaLimits: { ...everyArea({ minimum: 0, maximum: 10 }), goalkeeper: { minimum: 1, maximum: 1 } },
-  presets: DEFAULT_PRESETS.map(({ cells, ...rest }) => ({ ...rest, cells: cells.map((cell) => ({ ...cell })) })),
+  presets: DEFAULT_PRESETS.map(({ cells, instructions, ...rest }) => ({
+    ...rest,
+    cells: cells.map((cell) => ({ ...cell })),
+    ...(instructions !== undefined && { instructions: { ...instructions } }),
+  })),
   deadline: { ...FPL_DEADLINE_RULE },
   doubleGameweek: "bothMatches",
   // guess: the doc's live tie-breaks, "none; highest seed", are a matchup's and a playoff's, not
@@ -70,4 +81,6 @@ export const FIRST_RULES: LeagueRules = {
     order: "reverseStandings",
   },
   draft: { ...FIRST_DRAFT_RULES },
+  // Craig's (spec/05, 4 Nov 2026), each description Claude's draft for him to edit.
+  instructions: FIRST_INSTRUCTIONS.map((instruction) => ({ ...instruction })),
 };
