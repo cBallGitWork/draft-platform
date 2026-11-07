@@ -104,7 +104,7 @@ name (the score).
 
 - **Shirts**: our own outline in the club's colours, the squad number on the chest. A striped
   club's shirt (spec/12, Club colours) is its first colour with five upright stripes of its second,
-  each 4 of the shirt's 40 units wide and 8 apart, one down the middle; its number keeps the ink
+  each 4 of the shirt's 40 units wide, one every 8, one down the middle; its number keeps the ink
   that reads on the first colour and gains a 1.5-unit outline in the other ink. A keeper's shirt is
   always plain.
 - **Stars**: SVG, filled in the figure colour, empty ones as outlines in muted grey, the set
