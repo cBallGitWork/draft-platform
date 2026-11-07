@@ -6,9 +6,9 @@ import { AREAS, type Area } from "../lineup/pitch";
 import { categoryName } from "./categories";
 import { validateOwnStats, type OwnStat } from "./ownStats";
 import type { Priced } from "./priced";
-import { requirePoints, validateRule } from "./ruleChecks";
+import { validateRule } from "./ruleChecks";
 import { CATALOGUE_STATS } from "./statCatalogue";
-import { isObject, showValue, UnsoundScoring } from "./values";
+import { isObject, requireNumber, showValue, UnsoundScoring } from "./values";
 
 export type { OwnStat };
 
@@ -70,17 +70,30 @@ export interface ScoringSet {
   rules: readonly ScoringRule[];
   wholePointsOnly: boolean;
   ownStats?: readonly OwnStat[];
-  /** Each role's adjustment (spec/05 Roles): flat points per action, added to a starter's base
-   *  points on top of every rule and its points limit (spec/14). A role it doesn't name adjusts
-   *  nothing; a set with none adjusts no one. */
-  roleAdjustments?: readonly RoleAdjustments[];
+  /** Each role's scoring (spec/05 Roles): whole points by bars, added to a starter's base points
+   *  on top of every rule and its points limit (spec/14). A role it doesn't name scores nothing;
+   *  a set with none scores no role. */
+  roles?: readonly RoleScoring[];
 }
 
-/** One role's adjustment: so many points per action of each stat, plus or minus. */
-export interface RoleAdjustments {
+/** The most bars a side of a role has, so a role moves a match by at most 3 either way (spec/05:
+ *  "±3, chosen over ±2", Craig, 5 Nov 2026). */
+export const ROLE_BARS_MOST = 3;
+
+/** One side of a role: its stats, each weighed (2 × goals, ½ recoveries, accurate passes ÷ 10),
+ *  added up into a count, and its bars, rising: the count gives a point at each it reaches. */
+export interface RoleSide {
+  parts: readonly { stat: string; weight: number }[];
+  bars: readonly number[];
+}
+
+/** One role's scoring (spec/05 Roles): +1 at each bar of its bonus reached, −1 at each bar of its
+ *  cost, which is one bad action, never a good one. */
+export interface RoleScoring {
   /** A role's key (lineup/roles.ts). */
   role: string;
-  adjustments: readonly { stat: string; points: number }[];
+  bonus: RoleSide;
+  cost: RoleSide;
 }
 
 /**
@@ -101,31 +114,42 @@ export function validateScoringSet(set: unknown): asserts set is ScoringSet {
   set.rules.forEach((rule, index) =>
     validateRule(rule, index + 1, wholePointsOnly, isScorable, (stat) => categoryName(stat, ownStats)),
   );
-  if (set.roleAdjustments !== undefined) validateRoleAdjustments(set.roleAdjustments, wholePointsOnly, isScorable, (stat) => categoryName(stat, ownStats));
+  if (set.roles !== undefined) validateRoles(set.roles, isScorable, (stat) => categoryName(stat, ownStats));
 }
 
-/** Each role named once, each of its stats scorable and named once, each adjustment points. */
-function validateRoleAdjustments(
-  roles: unknown,
-  wholePointsOnly: boolean,
-  isScorable: (stat: string) => boolean,
-  nameOf: (stat: string) => string,
-): void {
-  if (!Array.isArray(roles)) throw new UnsoundScoring("a scoring set's role adjustments must be a list");
+/** Each role named once, and both its sides sound. */
+function validateRoles(roles: unknown, isScorable: (stat: string) => boolean, nameOf: (stat: string) => string): void {
+  if (!Array.isArray(roles)) throw new UnsoundScoring("a scoring set's roles must be a list");
   const seen = new Set<string>();
   for (const each of roles as unknown[]) {
-    if (!isObject(each) || typeof each.role !== "string" || each.role === "") throw new UnsoundScoring("a role adjustment names no role");
-    if (seen.has(each.role)) throw new UnsoundScoring(`the role ${showValue(each.role)} is adjusted twice`);
+    if (!isObject(each) || typeof each.role !== "string" || each.role === "") throw new UnsoundScoring("a role's scoring names no role");
+    if (seen.has(each.role)) throw new UnsoundScoring(`the role ${showValue(each.role)} is scored twice`);
     seen.add(each.role);
-    if (!Array.isArray(each.adjustments)) throw new UnsoundScoring(`the role ${showValue(each.role)} has no list of adjustments`);
-    const stats = new Set<string>();
-    for (const adjustment of each.adjustments as unknown[]) {
-      if (!isObject(adjustment) || typeof adjustment.stat !== "string" || !isScorable(adjustment.stat)) {
-        throw new UnsoundScoring(`the role ${showValue(each.role)} adjusts ${showValue(isObject(adjustment) ? adjustment.stat : adjustment)}, which is neither a catalogue stat nor one of the set's own stats`);
-      }
-      if (stats.has(adjustment.stat)) throw new UnsoundScoring(`the role ${showValue(each.role)} adjusts ${nameOf(adjustment.stat)} twice`);
-      stats.add(adjustment.stat);
-      requirePoints(adjustment.points, `the role ${showValue(each.role)}'s ${nameOf(adjustment.stat)} adjustment is worth`, wholePointsOnly);
+    for (const side of ["bonus", "cost"] as const) validateRoleSide(each[side], `the role ${showValue(each.role)}'s ${side}`, isScorable, nameOf);
+  }
+}
+
+/** A side adds up scorable stats, each once and weighed above 0, and has 1 to ROLE_BARS_MOST bars,
+ *  each above 0 and above the one before. */
+function validateRoleSide(side: unknown, named: string, isScorable: (stat: string) => boolean, nameOf: (stat: string) => string): void {
+  if (!isObject(side) || !Array.isArray(side.parts) || side.parts.length === 0) throw new UnsoundScoring(`${named} adds up no stats`);
+  const stats = new Set<string>();
+  for (const part of side.parts as unknown[]) {
+    if (!isObject(part) || typeof part.stat !== "string" || !isScorable(part.stat)) {
+      throw new UnsoundScoring(`${named} adds ${showValue(isObject(part) ? part.stat : part)}, which is neither a catalogue stat nor one of the set's own stats`);
     }
+    if (stats.has(part.stat)) throw new UnsoundScoring(`${named} adds ${nameOf(part.stat)} twice`);
+    stats.add(part.stat);
+    requireNumber(part.weight, `${named} weighs ${nameOf(part.stat)} at`);
+    if (part.weight <= 0) throw new UnsoundScoring(`${named} weighs ${nameOf(part.stat)} at ${part.weight}, not above 0`);
+  }
+  if (!Array.isArray(side.bars) || side.bars.length === 0 || side.bars.length > ROLE_BARS_MOST) {
+    throw new UnsoundScoring(`${named} must have 1 to ${ROLE_BARS_MOST} bars`);
+  }
+  let last = 0;
+  for (const bar of side.bars as unknown[]) {
+    requireNumber(bar, `${named} has a bar at`);
+    if (bar <= last) throw new UnsoundScoring(`${named} has a bar at ${bar}, not above ${last}`);
+    last = bar;
   }
 }

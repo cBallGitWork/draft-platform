@@ -32,8 +32,8 @@ A screen's approved picture binds its layout (`CLAUDE.md`, Decided; the index is
   picture, drawn through `/design` (`.claude/skills/design/SKILL.md`).
 - The pull request pastes ui-verifier's Approved vs built block, signed; `gh pr create` is refused
   without it on a branch that changes a file the screen's route renders (`.claude/hooks/pr_body.py`).
-  With a difference listed, `gh pr merge` waits for Craig's `craig-approved` label, which only he
-  adds (`.claude/hooks/approval_gate.py`).
+  A difference listed doesn't hold the merge: layout waits for the UI reskin (Craig, 7 Nov 2026),
+  and the `look-approved` check lists it (`.claude/hooks/approval_gate.py`).
 - The README's interaction notes say what can be tapped and what happens. A control they don't
   name is a question for Craig, never an invented drop-down or button.
 - Data not held yet shows as its placeholder, in its real place and size (plate.md, Marks), never

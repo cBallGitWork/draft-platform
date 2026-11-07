@@ -34,16 +34,37 @@ export const REVISION = "site-scoring-1" as SiteRevision;
  *  the reader may edit (the admin); `loading` keeps it on its way (undefined). */
 export type ScoringData = { view?: ScoringView; loading?: boolean };
 
-/** The view the fake server gives by default: the first set, as the admin reads it. */
-export const ADMINS_VIEW: ScoringView = { part: FIRST_SCORING, revision: REVISION, changesFrom: CHANGES_FROM, canEdit: true };
+/** When the fake server's draft was saved, and the moments it offers a patch from: gameweek 10 then
+ *  11, a week apart. */
+export const DRAFT_SAVED_AT = Date.parse("2026-10-25T12:00:00Z");
+export const PATCH_GAMEWEEKS = [
+  { gameweek: 10, takesEffectAt: Date.parse("2026-11-07T15:00:00Z") },
+  { gameweek: 11, takesEffectAt: Date.parse("2026-11-14T15:00:00Z") },
+];
+
+/** The view the fake server gives by default: the first set, as the admin reads it, with no
+ *  version or draft yet. */
+export const ADMINS_VIEW: ScoringView = {
+  part: FIRST_SCORING,
+  revision: REVISION,
+  changesFrom: CHANGES_FROM,
+  canEdit: true,
+  versions: [],
+  draft: null,
+  patchGameweeks: PATCH_GAMEWEEKS,
+};
 
 /** The admin's view of the first set with LIMITED_BANDS added. */
 export const VIEW_WITH_LIMITED_BANDS: ScoringView = { ...ADMINS_VIEW, part: { ...FIRST_SCORING, rules: [...FIRST_SCORING.rules, LIMITED_BANDS] } };
 
-/** Saving succeeds from CHANGES_FROM, unless a test says otherwise. */
+/** Saving succeeds from CHANGES_FROM, a draft saves at DRAFT_SAVED_AT, and announcing and
+ *  withdrawing succeed, unless a test says otherwise. */
 export function fakeScoring({ view = structuredClone(ADMINS_VIEW), loading = false }: ScoringData = {}) {
   return {
     useScoring: vi.fn<ScoringSeam["useScoring"]>(() => (loading ? undefined : view)),
     save: vi.fn<ScoringSeam["save"]>(async () => CHANGES_FROM),
+    saveDraft: vi.fn<ScoringSeam["saveDraft"]>(async () => DRAFT_SAVED_AT),
+    announce: vi.fn<ScoringSeam["announce"]>(async () => ({ name: "26_27.1", fromGameweek: 10 })),
+    withdraw: vi.fn<ScoringSeam["withdraw"]>(async () => null),
   };
 }

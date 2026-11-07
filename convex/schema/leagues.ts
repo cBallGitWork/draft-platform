@@ -21,7 +21,8 @@ export const leagueDeletion = v.object({
 });
 
 /** One person who wasn't emailed that a league has been deleted (#320). The league is gone by
- *  then, so the row stands alone: it names the league rather than pointing at it. */
+ *  then, so the row stands alone: it names the league rather than pointing at it. No screen reads
+ *  it, as the log says the same, and it goes after UNEMAILED_KEPT_MS (deletionNotices.ts, #897). */
 const unemailedDeletionFields = {
   leagueName: v.string(),
   /** Who deleted it, by email. */
@@ -171,5 +172,5 @@ export const leagueTables = {
     // League home's latest squad moves of each kind (spec/12), without reading every other event.
     .index("by_leagueId_and_kind_and_at", ["leagueId", "event.kind", "at"]),
   lastLeagues: defineTable(lastLeagueFields).index("by_email", ["email"]).index("by_leagueId", ["leagueId"]),
-  unemailedDeletions: defineTable(unemailedDeletionFields),
+  unemailedDeletions: defineTable(unemailedDeletionFields).index("by_at", ["at"]),
 };

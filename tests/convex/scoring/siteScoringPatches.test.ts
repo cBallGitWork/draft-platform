@@ -199,8 +199,10 @@ describe("announcing a patch", () => {
   });
 
   test("of a draft made before a version announced since is refused, naming it", async () => {
-    await saveDraftAs(ADMIN, EDITED_AGAIN);
+    // A fix now carries into the draft and remakes it from the fix (#368), so a draft is only
+    // ever left made from an older version by one saved before that: held here as it would be.
     await fixAs(ADMIN, EDITED);
+    await t.run((ctx) => ctx.db.insert("siteScoringDraft", { scoring: EDITED_AGAIN, madeFrom: null, savedAt: TODAY }));
 
     await expectRefused(announceAs(ADMIN, TODAY + NOTICE), siteScoringRefusals.draftOvertaken("26_27.1"));
     expect(await versions()).toBe(1);

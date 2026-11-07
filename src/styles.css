@@ -105,6 +105,10 @@
   --spacing-chip: 30px;
   /* a form chip's least width: one letter, W, L or D (plate.md, Marks: form) */
   --spacing-chip-tight: 18px;
+  /* a player's stars for a role, five side by side, each 13px, as the approved Tactics picture's
+     Role fit (plate.md, Marks: Stars) */
+  --spacing-star: 13px;
+  --spacing-stars: 65px;
   /* The widest a lost player's error words run in the Tactics squad list on a phone, wrapping
      after, so they leave the Role column its room (#323) */
   --spacing-error-name: 104px;

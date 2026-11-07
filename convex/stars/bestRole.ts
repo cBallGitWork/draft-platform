@@ -4,7 +4,12 @@
 
 import type { Cell } from "../lineup/pitch";
 import { rolesOfSlot, type Formation, type Role } from "../lineup/roles";
-import type { RoleStars } from "./starsShape";
+import { NO_DATA, type RoleStars, type Stars } from "./starsShape";
+
+/** His stars for a role in a cell's area: "—" where he holds no rating for it. */
+export function starsIn(cell: Cell, role: string, ratings: readonly RoleStars[]): Stars {
+  return ratings.find((each) => each.area === cell.area && each.role === role)?.stars ?? NO_DATA;
+}
 
 /** The role among these, the roles of this slot, a player has the most stars for: a tie, or no
  *  stars for any of them ("?" or "—"), goes to the first (Craig, 1 Nov 2026). */
@@ -12,7 +17,7 @@ export function bestRoleIn(cell: Cell, roles: readonly Role[], ratings: readonly
   let best = roles[0];
   let bestStars = -Infinity;
   for (const role of roles) {
-    const stars = ratings.find((each) => each.area === cell.area && each.role === role.key)?.stars;
+    const stars = starsIn(cell, role.key, ratings);
     if (typeof stars === "number" && stars > bestStars) [best, bestStars] = [role, stars];
   }
   return best;

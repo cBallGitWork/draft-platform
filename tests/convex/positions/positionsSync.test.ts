@@ -1,14 +1,8 @@
 import { expect, test } from "vitest";
 import { api, internal } from "../../../convex/_generated/api";
-import {
-  FPL_BOOTSTRAP_URL,
-  PL_COMP_SEASON,
-  PL_LAST_COMP_SEASON,
-  PL_SEASON_IDS_STALE,
-  PL_SEASON_IDS_STALE_FROM,
-  plFixturesUrl,
-  plFixtureUrl,
-} from "../../../convex/football/football";
+import { FPL_BOOTSTRAP_URL, plCompSeasonsUrl, plFixturesUrl, plFixtureUrl } from "../../../convex/football/football";
+import { plSeasonMissing } from "../../../convex/football/premierLeague/plSeasons";
+import { FPL_SEASON, PL_LAST_SEASON, PL_THIS_SEASON, plSeasonList } from "../../support/recorded/plSeasons.payloads";
 import {
   FIRST_COPY,
   REFUSED_MATCH,
@@ -176,8 +170,9 @@ test("a man's row keeps his newest 38 starts, the oldest dropped", async () => {
 
 test.each([
   ["FPL's players", FPL_BOOTSTRAP_URL],
-  ["last season's fixture list", plFixturesUrl(undefined, PL_LAST_COMP_SEASON)],
-  ["this season's fixture list", plFixturesUrl(undefined, PL_COMP_SEASON)],
+  ["the Premier League's seasons", plCompSeasonsUrl()],
+  ["last season's fixture list", plFixturesUrl(PL_LAST_SEASON)],
+  ["this season's fixture list", plFixturesUrl(PL_THIS_SEASON)],
 ])("a refused read of %s is recorded as the run's failure, and files nothing", async (_what, url) => {
   const t = freshConvex();
   const logged = silenceConsoleError();
@@ -189,14 +184,27 @@ test.each([
   expect(await heldStarts(t, PLAYER.barnes)).toEqual([]);
 });
 
-test("a run once the season ids are out of date fails, saying so, and files nothing (#201)", async () => {
+test("a run reads the seasons FPL is on and the one before, even on 1 July, with no ids to update (#300)", async () => {
   const t = freshConvex();
   const logged = silenceConsoleError();
 
-  const { outcome } = await syncPositionsWith(t, recordedPositions(), undefined, PL_SEASON_IDS_STALE_FROM);
+  const { outcome, urls } = await syncPositionsWith(t, recordedPositions(), undefined, Date.parse("2027-07-01T00:00:00Z"));
 
-  expect(outcome).toEqual({ ok: false, error: PL_SEASON_IDS_STALE });
-  expect(logged).toHaveBeenCalledWith(`${SYNC_FAILED_LOG}: ${PL_SEASON_IDS_STALE}`);
+  expect(outcome.ok).toBe(true);
+  expect(logged).toHaveBeenCalledWith(reported());
+  expect(urls).toEqual(expect.arrayContaining([plFixturesUrl(PL_LAST_SEASON), plFixturesUrl(PL_THIS_SEASON)]));
+});
+
+test("a run when the Premier League lists no season FPL is on fails, saying which, and files nothing (#300)", async () => {
+  const t = freshConvex();
+  const logged = silenceConsoleError();
+  const payloads = { ...recordedPositions(), plSeasons: plSeasonList().slice(1) };
+
+  const { outcome } = await syncPositionsWith(t, payloads);
+
+  const missing = plSeasonMissing(FPL_SEASON, FPL_SEASON);
+  expect(outcome).toEqual({ ok: false, error: missing });
+  expect(logged).toHaveBeenCalledWith(`${SYNC_FAILED_LOG}: ${missing}`);
   expect(await heldStarts(t, PLAYER.barnes)).toEqual([]);
 });
 

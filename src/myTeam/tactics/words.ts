@@ -24,6 +24,8 @@ export const pitchLabel = "The pitch, attack at the top";
 const cellWords = (area: Area, lane: Lane) => `${AREA_WORDS[area]}, ${LANE_WORDS[lane]}`;
 /** A player the one picked up can swap with, lit on the pitch and in the squad (spec/05, Moving players). */
 export const swapLabel = (name: string, other: string) => `Swap ${name} with ${other}`;
+/** What a lit player's stars rate: the player who would land in that slot, on his role there (#11). */
+export const landingSubject = (name: string, role: string) => `${name} as ${role}`;
 export const playerOnPitchLabel = (name: string, positions: readonly string[], area: Area, lane: Lane) =>
   `${name}, ${positionsWords(positions)}, in ${cellWords(area, lane)}`;
 export const emptySlotLabel = (area: Area, lane: Lane) => `Empty slot: ${cellWords(area, lane)}`;
@@ -92,8 +94,8 @@ export const benchPlaceLong = (index: number) => `Substitute ${index + 1}`;
 /** A starter's role picker, for screen readers (spec/05 Roles). */
 export const roleLabel = (name: string) => `${name}'s role`;
 export const emptyBenchWords = "Nobody on the bench.";
-/** Data not held yet, in its place (plate.md, Marks: a placeholder). */
-export const roleFitPlaceholder = "Role fit: not shown yet; it waits on stars on screen (#11) and scouts (#375)";
+/** What a row's stars rate, named on them: "Role fit 4 of 5" (plate.md, Marks: Stars). */
+export const ROLE_FIT_SUBJECT = "Role fit";
 
 /** The selected player's panel, on top of the right-hand column (plate.md, Tables and panels). */
 export const startingWhereWords = (club: string | null, slot: string) => (club === null ? slot : `${club}, ${slot}`);
@@ -102,7 +104,6 @@ export const closePanelLabel = (name: string) => `Close ${name}'s panel`;
 export const rolesHead = (slot: string) => `Role, ${slot} slot`;
 export const pointsPerActionHead = "Points per action";
 export const nowWords = "now";
-export const roleStarsPlaceholder = (role: string) => `${role}: his stars show here once stars are on screen (#11)`;
 export const pointsPerActionPlaceholder = (role: string) => `${role}: what it scores more and less for shows here once roles' scoring is on screen`;
 export const teamTacticLinePlaceholder = "What the team instructions do for him shows here once they are built";
 export const playsHead = "Plays";
@@ -123,7 +124,13 @@ export const downLabel = (name: string) => `Move ${name} down the bench`;
 export const playerCardLabel = (name: string) => `${name}'s player card`;
 
 /** The left column's widget under the pitch, and the right column's. */
+/** The mark after a player's name while one of his positions is at stake (#23; Craig, 6 Nov 2026),
+ *  read on hover and by screen readers. */
+export const flaggedMarkLabel = (position: string, startsElsewhere: number) => `Flagged at ${position}: ${startsElsewhere} starts in a row elsewhere`;
+export const outOfPositionMarkLabel = (position: string) => `Out of position: no longer plays ${position}`;
 export const LINEUP_CHECK_TITLE = "Lineup check";
+/** A line of the lineup check for each starter out of position (#23; Craig, 6 Nov 2026). */
+export const outOfPositionLineWords = (position: string) => `: out of position at ${position}`;
 export const lineupCheckPlaceholder = "Lineup check: who is doubtful, booked, injured or suspended shows here once the status chips' data is settled";
 export const TEAM_TACTIC_TITLE = teamTacticWords;
 export const opponentTitle = (gameweek: number) => `${gameweekShort(gameweek)} opponent`;

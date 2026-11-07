@@ -30,6 +30,8 @@ each league's **commissioner**.
   behind. A feed that stops silently is the failure to catch. A feed or sync that fails also
   emails the admin, at most once a day for each feed (24 Oct 2026). The page also shows a stat
   correction that arrives after a match's points have locked ([7](07-scoring.md#match-stats)).
+- A match's score problems show on the feeds page and are emailed to the admin, as well as on its
+  run row: "a and b" (Craig, 7 Nov 2026, on #904). `S15.1`
 - One league whose rules are broken never stops the football feed for the other leagues: it is
   skipped, named in the log and emailed to the admin, and the others carry on (Craig, 1 Nov 2026:
   "no", to whether one league's broken rules should stop the feed for every league; #896).

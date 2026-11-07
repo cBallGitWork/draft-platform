@@ -16,7 +16,8 @@ export type ScoutingSeam = ShortlistSeam & QueueFromShortlist & {
    *  with null for the codes, as nothing is asked. */
   useComparison(leagueId: Id<"leagues">, codes: readonly number[] | null): Comparison | undefined;
   /** The players the filters keep, in the sort's order, each with his season total of the shown
-   *  stat (a catalogue key, or null for none), and every club for the club filter, live (a hook):
+   *  stat (a catalogue key, an own stat's of the site's set, or null for none), every club for the
+   *  club filter and the site set's own stats for the stat box, live (a hook):
    *  undefined while they load. */
   usePlayersList(leagueId: Id<"leagues">, filters: PlayersFilters, sort: PlayersSort, stat: string | null): PlayersList | undefined;
 };

@@ -4,26 +4,27 @@
 import type { Stats } from "../stats/statTotals";
 import type { Availability, ListedPlayer, PlayersFilters, PlayersSort } from "./playersList";
 
-/** The players the filters keep, in the sort's order. No player is on waivers until waivers are built. */
+/** The players the filters keep, in the sort's order. */
 export function listOf(players: readonly ListedPlayer[], filters: PlayersFilters, sort: PlayersSort): ListedPlayer[] {
   const kept = players.filter(
     (player) =>
-      keptByAvailability(filters.availability, player.ownerTeamName) &&
+      keptByAvailability(filters.availability, player) &&
       (filters.position === null || player.positions.includes(filters.position)) &&
       (filters.clubCode === null || player.club.code === filters.clubCode),
   );
   return sortedPlayers(kept, sort);
 }
 
-/** Whether a player with this owner (null for none) is one the availability keeps. */
-function keptByAvailability(chosen: Availability, ownerTeamName: string | null): boolean {
+/** Whether the availability keeps the player: a free agent is on no team and not on waivers
+ *  (spec/08). */
+function keptByAvailability(chosen: Availability, { ownerTeamName, onWaivers }: Pick<ListedPlayer, "ownerTeamName" | "onWaivers">): boolean {
   switch (chosen) {
     case "all":
       return true;
     case "freeAgents":
-      return ownerTeamName === null;
+      return ownerTeamName === null && onWaivers === null;
     case "onWaivers":
-      return false;
+      return onWaivers !== null;
     case "owned":
       return ownerTeamName !== null;
   }

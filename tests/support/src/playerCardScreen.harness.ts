@@ -66,6 +66,8 @@ export const SAKA: PlayerCard = {
   news: "Hamstring injury - 75% chance of playing",
   chanceOfPlaying: 75,
   matches: [NOT_ARRIVED, PRICED],
+  // At CAM, then at W, as each match's points.
+  lastSeason: { season: 2025, played: { appearances: 34, minutes: 2810, points: [212, 198] } },
   nextFixtures: [{ fixtureCode: 9, gameweek: 10, kickoff: Date.parse("2026-11-07T15:00:00Z"), home: COVENTRY, away: ARSENAL }],
 };
 /** Saka priced at one position, so with no switch. */

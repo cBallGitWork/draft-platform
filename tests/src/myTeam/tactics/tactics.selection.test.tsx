@@ -15,19 +15,35 @@ import {
   BEST_ROLE_HEAD,
   pitchTitle,
   presetLabel,
-  roleFitPlaceholder,
+  ROLE_FIT_SUBJECT,
   squadTableLabel,
 } from "../../../../src/myTeam/tactics/words";
+import { roleIn, rolesOfSlot } from "../../../../convex/lineup/roles";
+import { UNSURE } from "../../../../convex/stars/starsShape";
+import { noFigureWords } from "../../../../src/shared/words";
+import { noDataLabel, starsLabel, unsureGlyph, unsureLabel } from "../../../../src/ui/StarRating";
 import { nextFixtureShort, statusNotSettledLabel } from "../../../../src/myTeam/squad/words";
 import { SAKA, squadOf } from "../../../support/src/squadTab.harness";
 import { FIRST_RULES } from "../../../../convex/rules/firstRules";
 import { colorToken } from "../../../support/src/colorTokens";
 import { openTactics } from "../../../support/src/tactics.harness";
-import { ARRIZABALAGA, HAVERTZ, RAYA, SAVED, SQUAD, STARTERS, WHITE, member, openedPitch, rowOf, type Member } from "../../../support/src/tacticsScreen.harness";
+import { ARRIZABALAGA, HAVERTZ, RAYA, RICE, SALIBA, SAVED, SQUAD, STARTERS, WHITE, member, openPanel, openedPitch, rowOf, type Member } from "../../../support/src/tacticsScreen.harness";
 
 /** The Squad tab's read for Raya and White: his next match and points (squadTab.harness.ts's rows). */
 const seasonRow = (player: Member, seasonPoints: number | null, last: number | null) => ({ ...SAKA, code: player.playerCode, name: player.name, positions: player.positions, seasonPoints, lastGameweekPoints: last });
 const TEAM_SQUAD = squadOf([seasonRow(RAYA, 41, 6), { ...seasonRow(WHITE, 12, null), chanceOfPlaying: 75 }]);
+
+/** Saliba 4.5 stars for the role he plays, White 4 as a defensive full-back, Rice too few matches
+ *  to be sure, the rest with none. */
+const STARRED: Member[] = SQUAD.map((player) =>
+  player === SALIBA
+    ? { ...player, stars: [{ area: "defence", role: roleIn(STARTERS[1], undefined).key, stars: 4.5 }] }
+    : player === WHITE
+      ? { ...player, stars: [{ area: "defence", role: "defensiveFullBack", stars: 4 }] }
+      : player === RICE
+        ? { ...player, stars: [{ area: "midfield", role: roleIn(STARTERS[2], undefined).key, stars: UNSURE }] }
+        : player,
+);
 
 describe("the Selection table", () => {
   it("gives each player his next fixture, outlined until its difficulty colour comes, his season's and last gameweek's points, and a status chip only where FPL has news", async () => {
@@ -53,9 +69,23 @@ describe("the Selection table", () => {
     expect(within(rowOf(WHITE)).getByText("Overlapping full-back").className).toContain("text-muted");
   });
 
-  it("draws each row's role fit as a placeholder: stars aren't on screen yet (#11, #375)", async () => {
-    await openedPitch();
-    expect(within(screen.getByRole("table", { name: squadTableLabel })).getAllByRole("img", { name: roleFitPlaceholder })).toHaveLength(SQUAD.length);
+  it("gives each starter his stars for the role he plays, each bench player his for his best role, and ? or — unrated (#11)", async () => {
+    await openedPitch({ tactics: openTactics({ ...SAVED, squad: STARRED }) });
+    expect(within(rowOf(SALIBA)).getByRole("img", { name: starsLabel(ROLE_FIT_SUBJECT, 4.5) })).toBeTruthy();
+    expect(within(rowOf(WHITE)).getByText("Defensive full-back")).toBeTruthy();
+    expect(within(rowOf(WHITE)).getByRole("img", { name: starsLabel(ROLE_FIT_SUBJECT, 4) })).toBeTruthy();
+    expect(within(rowOf(RICE)).getByRole("img", { name: unsureLabel(ROLE_FIT_SUBJECT) }).textContent).toBe(unsureGlyph);
+    expect(within(rowOf(HAVERTZ)).getByRole("img", { name: noDataLabel(ROLE_FIT_SUBJECT) }).textContent).toBe(noFigureWords);
+  });
+});
+
+describe("the selected player's panel (#11)", () => {
+  it("gives each role his slot offers his stars for it", async () => {
+    await openedPitch({ tactics: openTactics({ ...SAVED, squad: STARRED }) });
+    await openPanel(SALIBA);
+    const [playing, other] = rolesOfSlot(STARTERS[1], STARTERS);
+    expect(screen.getByRole("img", { name: starsLabel(playing.name, 4.5) })).toBeTruthy();
+    expect(screen.getByRole("img", { name: noDataLabel(other.name) })).toBeTruthy();
   });
 });
 

@@ -3,7 +3,7 @@ import { lineupProblems, type Lineup } from "../../../convex/lineup/lineup";
 import { problemWords } from "../../../convex/lineup/lineupWords";
 import { AREAS, LANES, positionOfSlot, type SlotPosition } from "../../../convex/lineup/pitch";
 import { centreBacksIn, DEFAULT_ROLES, everyRoleOf, isRole, offersRole, roleIn, roleName, rolesOfSlot } from "../../../convex/lineup/roles";
-import { DRAFTED_ROLE_ADJUSTMENTS } from "../../../convex/scoring/draftedRoleAdjustments";
+import { FIRST_ROLE_OWN_STATS, FIRST_ROLES } from "../../../convex/scoring/draftedRoleAdjustments";
 import { FIRST_SCORING } from "../../../convex/scoring/firstScoring";
 import { scoreTeam } from "../../../convex/scoring/teamPoints";
 import { FIRST, STRIKER, STRIKERS_CELL, plays, subbed, withBench } from "../../support/convex/autoSubs.harness";
@@ -197,7 +197,7 @@ describe("a role removed from the set (spec/05 Roles; #841; Craig, 31 Oct 2026)"
       scoreTeam({
         lineup: { starters: [{ ...leftBack, role }], bench: [] },
         matches: new Map([[leftBack.playerCode, [{ record: { minutes: 90, accurate_cross: 2, clean_sheets: 1 }, final: true }]]]),
-        set: { ...FIRST_SCORING, roleAdjustments: DRAFTED_ROLE_ADJUSTMENTS },
+        set: { ...FIRST_SCORING, ownStats: [...FIRST_ROLE_OWN_STATS], roles: [...FIRST_ROLES] },
         doubleGameweekRule: "bothMatches",
         substitutions: [],
         benchCells: new Map(),

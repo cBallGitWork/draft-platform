@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, test, vi } from "vitest";
 import { ConvexError } from "convex/values";
 import { api } from "../../../convex/_generated/api";
-import { PL_SEASON_START_YEAR } from "../../../convex/football/football";
+import { FPL_SEASON } from "../../support/recorded/plSeasons.payloads";
 import { FIRST_SCORING } from "../../../convex/scoring/firstScoring";
 import { LONDON_ZONE } from "../../../convex/shared/moments";
 import { ANN, deletes, leagueWithPeople } from "../../support/convex/leagueDeletion.harness";
@@ -43,7 +43,7 @@ beforeEach(async () => {
   const beingDeleted = await leagueWithPeople(t, "A league being deleted");
   await deletes(t, COMMISSIONER, beingDeleted);
   // Dismissing a banner needs a version of the site's scoring.
-  const versionId = await t.run((ctx) => holdSiteScoring(ctx, { scoring: FIRST_SCORING, kind: "patch", season: PL_SEASON_START_YEAR, number: 1, at: Date.now() }));
+  const versionId = await t.run((ctx) => holdSiteScoring(ctx, { scoring: FIRST_SCORING, kind: "patch", season: FPL_SEASON, number: 1, at: Date.now() }));
 
   calls = (caller) => {
     const now = Date.now();
@@ -111,6 +111,7 @@ beforeEach(async () => {
       "scoring/siteScoring:saveDraft": () =>
         caller.mutation(api.scoring.siteScoring.saveDraft, { scoring: FIRST_SCORING, revision: null, draftSavedAt: null }),
       "scoring/siteScoring:view": () => caller.query(api.scoring.siteScoring.view, { now }),
+      "scoring/siteScoring:withdraw": () => caller.mutation(api.scoring.siteScoring.withdraw, { versionId }),
       "scouting/compare:players": () => caller.query(api.scouting.compare.players, { leagueId, codes: [SOME_CODE] }),
       "scouting/playersList:list": () =>
         caller.query(api.scouting.playersList.list, {
@@ -119,6 +120,8 @@ beforeEach(async () => {
           sort: { by: "name", descending: false },
           stat: null,
         }),
+      "scouting/scouts:mine": () => caller.query(api.scouting.scouts.mine, { leagueId }),
+      "scouting/scouts:onPlayer": () => caller.query(api.scouting.scouts.onPlayer, { leagueId, playerCode: SOME_CODE }),
       "scouting/shortlist:mine": () => caller.query(api.scouting.shortlist.mine, { leagueId }),
       "scouting/statRace:teams": () => caller.query(api.scouting.statRace.teams, { leagueId, stat: "goals_scored", descending: true }),
       "signIn/account:signedInAs": () => caller.query(api.signIn.account.signedInAs, {}),
@@ -128,11 +131,12 @@ beforeEach(async () => {
       "squads/squads:squads": () => caller.query(api.squads.squads.squads, { leagueId }),
       "squads/teamSquad:ofMyTeam": () => caller.query(api.squads.teamSquad.ofMyTeam, { leagueId, now }),
       "squads/teamTransactions:ofMyTeam": () => caller.query(api.squads.teamTransactions.ofMyTeam, { leagueId }),
-      "stars/playerStars:ofPlayer": () => caller.query(api.stars.playerStars.ofPlayer, { leagueId, playerCode: SOME_CODE }),
-      "stars/playerStars:ofPlayers": () => caller.query(api.stars.playerStars.ofPlayers, { leagueId, playerCodes: [SOME_CODE] }),
+      "stars/playerStars:ofPlayer": () => caller.query(api.stars.playerStars.ofPlayer, { leagueId, playerCode: SOME_CODE, now }),
+      "stars/playerStars:ofPlayers": () => caller.query(api.stars.playerStars.ofPlayers, { leagueId, playerCodes: [SOME_CODE], now }),
       "table/leagueTable:ofLeague": () => caller.query(api.table.leagueTable.ofLeague, { leagueId }),
       "table/teamFixtures:ofMyTeam": () => caller.query(api.table.teamFixtures.ofMyTeam, { leagueId }),
       "waivers/waiverClaims:pending": () => caller.query(api.waivers.waiverClaims.pending, { leagueId }),
+      "waivers/waivers:cardActionOn": () => caller.query(api.waivers.waivers.cardActionOn, { leagueId, playerCode: SOME_CODE }),
       "waivers/waivers:stateOf": () => caller.query(api.waivers.waivers.stateOf, { leagueId, playerCode: SOME_CODE }),
     };
   };

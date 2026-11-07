@@ -22,6 +22,9 @@ export function seasonStartYear(at: number): number {
   return date.getUTCFullYear() - (date.getUTCMonth() < JULY ? 1 : 0);
 }
 
+/** When the season `at` falls in began: 1 July of `seasonStartYear`, UTC. */
+export const seasonStartAt = (at: number): number => Date.UTC(seasonStartYear(at), JULY, 1);
+
 /** About when a match's lineups are out before kickoff: spec/10's "about an hour". The Premier
  *  League had them out at the first read 58 minutes before (docs/pl-commentary.md, What a live
  *  match showed). The live tick reads the team sheets from then, and the matchup's commentary

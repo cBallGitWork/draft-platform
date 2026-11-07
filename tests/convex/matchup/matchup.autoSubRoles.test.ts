@@ -1,8 +1,10 @@
 import { expect, test } from "vitest";
 import { FIRST_SCORING } from "../../../convex/scoring/firstScoring";
 import { fullTimeRecords, lockMatch } from "../../support/convex/gameweekScoresMatch.harness";
+import { pricedRole } from "../../support/convex/scoring.example";
 import { holdSiteScoring } from "../../support/convex/siteScoring.harness";
 import { DAY_MS } from "../../../convex/shared/time";
+import { positionOfSlot } from "../../../convex/lineup/pitch";
 import { everyRoleOf, namedRole, roleIn } from "../../../convex/lineup/roles";
 import {
   annsScoredGame,
@@ -39,7 +41,18 @@ test("a sub into the empty slot plays its role, and a bench player not on plays 
   const game = await annsScoredGame(league, GAMEWEEK);
   expect(slotOf(game.team, HULL_KEEPER)).toMatchObject({ autoSub: { kind: "on" }, role: namedRole(given) });
   expect(given.key).not.toBe(first.key);
-  expect(slotOf(game.team, BELLOUMI)).toMatchObject({ counts: false, role: null });
+  expect(slotOf(game.team, BELLOUMI)).toMatchObject({ counts: false, role: null, place: null });
+});
+
+// Craig, 6 Nov 2026 (#850): "Once Rice is on, the slot shows its own label (RW) and Rice's role's
+// run; Saka shows no run". The sub stands in the slot he came on in; the man off keeps his own.
+test("a sub who came on carries the slot he came on in, its lane and label", async () => {
+  const league = await scoresLeague();
+  const keepersSlot = HULL_STARTERS.find((starter) => starter.playerCode === PHILLIPS)!;
+  await fullTimeRecords(league);
+
+  const game = await annsScoredGame(league, GAMEWEEK);
+  expect(slotOf(game.team, HULL_KEEPER)).toMatchObject({ autoSub: { kind: "on" }, area: keepersSlot.area, place: { lane: keepersSlot.lane, label: positionOfSlot(keepersSlot) } });
 });
 
 // With no stars kept at the deadline: his new slot's first role.
@@ -75,10 +88,7 @@ async function belloumiOnInMidfield(league: ScoresLeague) {
  *  under each. In force from before the gameweek. */
 const ROLES_PRICED_APART = {
   ...FIRST_SCORING,
-  roleAdjustments: [
-    { role: "attackingEight", adjustments: [{ stat: "goals_scored", points: 1 }] },
-    { role: "ballWinner", adjustments: [{ stat: "goals_scored", points: -1 }] },
-  ],
+  roles: [pricedRole("attackingEight", "goals_scored", 1), pricedRole("ballWinner", "goals_scored", -1)],
 };
 
 test("a sub coming on in his own area plays his best-star role at the deadline: stars moving after never move his role or points, provisional or final", async () => {

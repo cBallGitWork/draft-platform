@@ -16,6 +16,7 @@ import { BENCH_POSITION, FOUR_FOUR_TWO, holdSquad, nameOf, SQUAD, STARTER_POSITI
 import { ratedRoles } from "../../../convex/stars/stars";
 import { NO_DATA } from "../../../convex/stars/starsShape";
 import type { Position } from "../../../convex/positions/positionTables";
+import { movedToFullBack } from "../../support/convex/positionStarts.harness";
 
 // What My team's Tactics tab is set from (#14): the gameweek a save now is from, its league
 // deadline, the league's area limits and presets in it, the squad with each player's positions,
@@ -61,7 +62,7 @@ describe("the lineup to set", () => {
     });
     if (tactics.kind !== "open") throw new Error("expected an open gameweek");
     expect(tactics.squad).toEqual(
-      SQUAD.map((code) => ({ playerCode: code, name: nameOf(code), clubShortName: CLUB.shortName, clubCode: CLUB.code, unheld: false, positions: STARTER_POSITIONS.get(code) ?? [BENCH_POSITION], number: null, stars: noStarsYet(STARTER_POSITIONS.get(code) ?? [BENCH_POSITION]) })),
+      SQUAD.map((code) => ({ playerCode: code, name: nameOf(code), clubShortName: CLUB.shortName, clubCode: CLUB.code, unheld: false, positions: STARTER_POSITIONS.get(code) ?? [BENCH_POSITION], flagged: [], number: null, stars: noStarsYet(STARTER_POSITIONS.get(code) ?? [BENCH_POSITION]) })),
     );
   });
 
@@ -69,8 +70,19 @@ describe("the lineup to set", () => {
     await t.run((ctx) => ctx.db.insert("squadPlayers", { leagueId, teamId: annsTeam, playerCode: UNHELD }));
     const tactics = await tacticsOf(ANN);
     if (tactics.kind !== "open") throw new Error("expected an open gameweek");
-    expect(tactics.squad.at(-1)).toEqual({ playerCode: UNHELD, name: unheldPlayerWords(UNHELD), clubShortName: null, clubCode: null, unheld: true, positions: [], number: null, stars: [] });
+    expect(tactics.squad.at(-1)).toEqual({ playerCode: UNHELD, name: unheldPlayerWords(UNHELD), clubShortName: null, clubCode: null, unheld: true, positions: [], flagged: [], number: null, stars: [] });
     expect(tactics.squad).toHaveLength(SQUAD.length + 1);
+  });
+
+  test("sends each player's positions flagged by a run elsewhere, with its length, for the mark after his name (#23)", async () => {
+    const [benched] = FOUR_FOUR_TWO.bench;
+    await t.run(async (ctx) => {
+      const row = await ctx.db.query("playerPositions").withIndex("by_code", (q) => q.eq("code", benched)).unique();
+      await ctx.db.patch("playerPositions", row!._id, { starts: movedToFullBack(3), approved: ["CB", "FB"], set: [] });
+    });
+    const tactics = await tacticsOf(ANN);
+    if (tactics.kind !== "open") throw new Error("expected an open gameweek");
+    expect(tactics.squad.find((member) => member.playerCode === benched)).toMatchObject({ positions: ["CB", "FB"], flagged: [{ position: "CB", startsElsewhere: 3 }] });
   });
 
   test("sends each player's stars, which pick the role his first lineup puts him on (#11)", async () => {

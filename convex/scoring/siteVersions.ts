@@ -88,8 +88,33 @@ export async function siteVersionByGameweek(ctx: QueryCtx): Promise<(gameweek: n
  *  kicked off, 39 (`nextGameweek`). It counts the season's gameweeks, never the held gameweek rows,
  *  whose read throws past FPL's 38 (#832). */
 export async function firstGameweekFrom(ctx: QueryCtx, at: number): Promise<number> {
+  return (await firstGameweekFromAny(ctx))(at);
+}
+
+/** `firstGameweekFrom` for any moment, reading the schedule once: for the versions list. */
+export async function firstGameweekFromAny(ctx: QueryCtx): Promise<(at: number) => number> {
   const matches = await scheduledMatches(ctx);
+  const starts = await gameweekStartsOf(ctx, matches);
   const gameweeks = SEASON_GAMEWEEKS.map((number) => ({ number }));
   // nextGameweek counts a gameweek begun at its kickoff; a version taking effect then still reaches it.
-  return nextGameweek(gameweeks, matches, () => AT_FIRST_KICKOFF, await gameweekStartsOf(ctx, matches), at - 1);
+  return (at) => nextGameweek(gameweeks, matches, () => AT_FIRST_KICKOFF, starts, at - 1);
+}
+
+/** A gameweek a patch can be announced to take effect from, and the moment that is. */
+export type PatchGameweek = { gameweek: number; takesEffectAt: number };
+
+/** The gameweeks a patch announced at `now` can take effect from (Craig, 6 Nov 2026, on #368: "you
+ *  pick a gameweek and it takes effect from that gameweek's deadline; only gameweeks at least 7 days
+ *  away are offered"), in order. The site's scoring has no league, so a gameweek's moment is the one
+ *  every version is read by: its first kickoff (`siteVersionByGameweek`). Offered: a gameweek not
+ *  yet begun, with a kickoff time, at least `noticeMs` after `now` and none before the latest
+ *  version takes effect, as `announce` refuses a patch landing before one already announced. */
+export async function patchGameweeks(ctx: QueryCtx, now: number, noticeMs: number): Promise<PatchGameweek[]> {
+  const matches = await scheduledMatches(ctx);
+  const starts = await gameweekStartsOf(ctx, matches);
+  const latestAt = (await siteVersions(ctx)).at(-1)?.takesEffectAt ?? -Infinity;
+  return [...firstKickoffs(matches)]
+    .filter(([gameweek, kickoff]) => !starts.has(gameweek) && kickoff >= now + noticeMs && kickoff >= latestAt)
+    .map(([gameweek, takesEffectAt]) => ({ gameweek, takesEffectAt }))
+    .toSorted((one, other) => one.gameweek - other.gameweek);
 }

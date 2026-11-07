@@ -1,5 +1,5 @@
 import { v, type Validator } from "convex/values";
-import { AREAS, LANES } from "./pitch";
+import { AREAS, LANES, SLOT_POSITIONS } from "./pitch";
 
 // The pitch's validators: an area, a cell, and the same validator for each area. League rules,
 // the site's scoring set, squads and matchups each store one, so they live with the pitch.
@@ -20,6 +20,9 @@ export function byArea<Value extends RequiredValidator>(value: Value) {
 
 /** One of the pitch's six areas. */
 export const areaShape = v.union(...AREAS.map((name) => v.literal(name)));
-const lane = v.union(...LANES.map((name) => v.literal(name)));
+/** One of the pitch's five lanes. */
+export const laneShape = v.union(...LANES.map((name) => v.literal(name)));
+/** A slot's position label: pitch.ts's SlotPosition. */
+export const slotPosition = v.union(...SLOT_POSITIONS.map((each) => v.literal(each)));
 /** One cell of the pitch: pitch.ts's Cell. */
-export const cellShape = v.object({ area: areaShape, lane });
+export const cellShape = v.object({ area: areaShape, lane: laneShape });

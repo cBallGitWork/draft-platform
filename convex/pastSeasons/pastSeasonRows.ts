@@ -3,29 +3,20 @@
 // each player the season's rows name who played none, so he is known to be in that season's data
 // (Craig, 4 Nov 2026: a newcomer is "Not in last season's data"). Rows are keyed by FPL's
 // season-stable `code`, the season and the kickoff, never the per-season `fpl_fixture_id`.
-// Pure and with no runtime imports, so scripts/past-season.mjs reads it in plain Node.
+// Pure, importing at runtime only pastStatColumns.ts (by its file name), so scripts/past-season.mjs
+// reads it in plain Node.
 
 import type { Area } from "../lineup/pitch";
+import { PAST_STAT_COLUMNS } from "./pastStatColumns.ts";
 
 /** The competition a row must name to be a Premier League match: the log holds cups and Europe too. */
 export const PREMIER_LEAGUE = "premier_league";
 
-/** Each stat the site's first scoring set prices (firstScoring.ts), and defensive contribution, by
- *  our name (matchRecords.ts, FPL's), from its column in the log. */
-export const STAT_COLUMNS: Readonly<Record<string, string>> = {
-  minutes: "fpl_minutes",
-  goals_scored: "goals",
-  assists: "assists_fpl",
-  clean_sheets: "fpl_clean_sheets",
-  goals_conceded: "fpl_goals_conceded",
-  saves: "fpl_saves",
-  penalties_saved: "fpl_penalties_saved",
-  penalties_missed: "fpl_penalties_missed",
-  defensive_contribution: "fpl_defensive_contribution",
-  yellow_cards: "yellow_cards",
-  red_cards: "red_cards",
-  own_goals: "fpl_own_goals",
-};
+/** Each stat the copy keeps, by our name (matchRecords.ts, FPL's), from its column in the log
+ *  (pastStatColumns.ts, which also names its feed). */
+export const STAT_COLUMNS: Readonly<Record<string, string>> = Object.fromEntries(
+  Object.entries(PAST_STAT_COLUMNS).map(([stat, { column }]) => [stat, column]),
+);
 
 /** When the match kicked off. The column's name is read from the log's own FPL columns, not yet
  *  checked against the file: a missing one stops the read, naming it. */
@@ -123,6 +114,34 @@ export function fplPositionsByCode(bootstrap: unknown): Map<number, FplPosition>
 
 /** The log's Premier League rows. */
 export const premierLeagueRows = (rows: readonly LogRow[]): LogRow[] => rows.filter((row) => row.competition === PREMIER_LEAGUE);
+
+/** A person the season's Premier League rows name who has no FPL code: his person root id, his
+ *  rows and the matches he played in them. */
+export interface SkippedPerson {
+  root: string;
+  rows: number;
+  played: number;
+}
+
+/** The log without the Premier League rows of anyone with no FPL code, and who those were, A to Z.
+ *  Older seasons may name a player ai-carling never matched to FPL: his rows are left out and the
+ *  rest of the season still loads (Craig, 6 Nov 2026, on #842). */
+export function withoutFplCode(log: readonly LogRow[], codes: ReadonlyMap<string, number>): { kept: LogRow[]; skipped: SkippedPerson[] } {
+  const kept: LogRow[] = [];
+  const skipped = new Map<string, SkippedPerson>();
+  for (const row of premierLeagueRows(log)) {
+    const root = row.person_root_id;
+    if (typeof root !== "string" || codes.has(root)) {
+      kept.push(row);
+      continue;
+    }
+    const person = skipped.get(root) ?? { root, rows: 0, played: 0 };
+    person.rows += 1;
+    if (playedIn(row)) person.played += 1;
+    skipped.set(root, person);
+  }
+  return { kept, skipped: [...skipped.values()].sort((a, b) => a.root.localeCompare(b.root)) };
+}
 
 /** A row's value in `column`, or null where it has none; a value that isn't a number throws. */
 function numberIn(row: LogRow, column: string): number | null {

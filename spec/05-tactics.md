@@ -96,6 +96,11 @@ From `/grill the Tactics pitch` (Craig, 31 Oct 2026), unless dated otherwise.
 - Tap a player and each player he can swap with lights up, with his stars there. Anything that
   would break the area limits stays unlit. Tap a lit player to swap them, or drag him onto one.
   There are no empty cells to move into: presets only (Craig, 1 Nov 2026).
+- While a player is picked up, each lit starter's chip shows the picked-up player's stars for the
+  role he would land on in that slot, marked as his, and goes back to the starter's own stars when
+  he is put down. When a starter is picked up, each lit bench player shows his own stars for that
+  starter's slot. The pitch only: the Selection table keeps each row's own Role fit (Craig, 7 Nov
+  2026, on #11: "a" to all three). `S05.9`
 - Dropping a player on another swaps them, starter for starter or bench for starter. Each lands on
   the role he has the most stars for in his new slot (Roles).
 - The lineup saves itself after each valid move. A line by the deadline countdown says when it
@@ -133,7 +138,9 @@ From `/grill the Tactics pitch` (Craig, 31 Oct 2026).
 - A role that holds its place has no run.
 - On the desk every moving role's run shows, with a switch to hide them. On a phone only the
   tapped player's run shows.
-- A role's run is held with the role and can change by patch with it, never drawn in the code.
+- A role's run is held with the site's scoring set, beside the roles' adjustments, so an
+  announced patch can change it, never drawn in the code: "Yes change role arrow allowed" (Craig,
+  7 Nov 2026, on #886; "probably not but allow the capability?", 1 Nov 2026). `S05.8`
 - Each role's real run needs its own research. Until then each moving role gets a rough first run
   from FM's nearest role, marked rough, for Craig to refine.
 - The matchup's lineups show the runs too (`spec/10`).
@@ -222,6 +229,11 @@ From Craig, 1 Nov 2026.
 - So a role moves a player by at most 3 points a match either way: ±3, chosen over ±2 (Craig,
   5 Nov 2026). At ±2 more than a third of starts sat on the ceiling, so a good fit and a great fit
   scored the same.
+- The bars count per match, whatever his minutes: a cameo's count as a full match's (Craig, 5 Nov
+  2026: "Yes: bars count per match, whatever his minutes"). `S05.1`
+- The player card's line for a role gives the net and each side that moved him: "Poacher: +1 (+2:
+  1 goal in box, 1 shot on target in box; −1: 1 big chance missed)" (Craig, 5 Nov 2026: "One line
+  with the net and each side"). `S05.2`
 - Roles lift the slots that score less, as defcon does in FPL: "roles/tactics are essentially a
   dynamic defcon for each positon and role". Every slot has a target role bonus a start: half its
   gap in base points to strikers, plus 0.5 for every slot, as "i do want players to get points"
@@ -233,9 +245,26 @@ From Craig, 1 Nov 2026.
 
   Every role in a slot aims at its slot's target, so picking the role that suits the player is
   the skill. The check: over the slot's real starts, each role's average lands within 0.25 points
-  a match of its target. It replaces the check against base scoring of 26 Oct 2026.
+  a match of its target. It replaces the check against base scoring of 26 Oct 2026. The check is a
+  backtest over past seasons' real stats, never this season's gameweeks, so the other seasons'
+  data comes first: "argh again your making it sound like "this project is live now so we test
+  it" we try get other seasons data first to create the intiial backtest" (Craig, 5 Nov 2026).
+  The past seasons are copied on Craig's Mac, plus small files the backtest reads ("You copy them
+  on your Mac, plus small files"); a role stat a past season lacks takes its nearest past stat, or
+  the role is marked not tested ("Nearest past stat, else "not tested""); a past start counts in
+  the slot he started that match in ("Where he started that match"); and the scoring ships before
+  the backtest ("Scoring first"; all Craig, 5 Nov 2026).
+- The past seasons for the backtest live in Convex, where it reads them: "convex" (Craig, 7 Nov
+  2026, on #1196). `S05.11`
+- A role the backtest puts more than 0.25 points a start off its target fails it, and the build
+  redrafts its values until it lands within 0.25. The new values go into the site's set as a patch
+  from the next gameweek not begun, and the PR lists each role it changed, old against new, for
+  Craig to check (Craig, 7 Nov 2026, on #10: "a"). `S05.10`
 - Claude drafts the first values and Craig edits them by patch (26 Oct 2026). The first values,
   fitted to 26/27 gameweeks 1 to 9, are in [roles-first-values.md](../docs/roles-first-values.md).
+  They went into the site's set as its starting rules, taking effect from the next gameweek that
+  hadn't begun, with no letter; later changes go by patch (Craig, 5 Nov 2026: "put
+  roles-first-values.md into the site's set now as the starting rules"). `S05.3`
 - Roles' scoring adjustments are the site's, changed by patch (`spec/14`, 25 Oct 2026); the
   ready-made rules carry a default set.
 - A patch changes a role's scoring but doesn't remove a role (Craig, 31 Oct 2026). If a role ever
@@ -351,7 +380,18 @@ From Craig, 1 Nov 2026.
   we can always admin update later" (Craig, 31 Oct 2026; #810).
 - An abandoned match counts as never played: "abndoned match is essentailly null like it didnt
   happen, so a player in an absondeoned match would get auto subbed" (Craig, 1 Nov 2026; #904).
-- A goalkeeper is replaced only by a goalkeeper.
+- The feed marks a match abandoned, and the admin can mark it when the feed doesn't: "the feed
+  should say it's abandoned", then "a" to the admin marking it as well (Craig, 7 Nov 2026, on
+  #904), after "admin mark it but we need to get away from relying on FPL, doesn't scale other
+  leagues" (2 Nov 2026). `S05.6`
+- An abandoned match's player stats are deleted, and only its replay counts: "removed, first game
+  never happened". A league's points overrides on it (`spec/14`) are deleted with it: "abandoned
+  match essentially doesn't happen" (Craig, 7 Nov 2026, on #904). `S05.7`
+- A postponed match counts as never played, so its players are auto-subbed, unless it is
+  rearranged into the same gameweek: "postponed match should mean an auto subbed if the match is
+  not rearranged to be in the gameweek" (Craig, 1 Nov 2026; #900). `S05.4`
+- A goalkeeper is replaced only by a goalkeeper, and never comes on for an outfield player, even
+  where the league's limits allow two in goal: "dont allow 2 in goal" (Craig, 1 Nov 2026; #900). `S05.5`
 - In a double gameweek, a starter who plays in either match is not subbed.
 - Auto-subs are always on, and there is no limit on them, ever.
 

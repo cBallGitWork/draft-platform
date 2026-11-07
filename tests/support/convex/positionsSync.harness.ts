@@ -7,8 +7,10 @@ import { expect, vi } from "vitest";
 import { api, internal } from "../../../convex/_generated/api";
 import type { Doc } from "../../../convex/_generated/dataModel";
 import { DAY_MS } from "../../../convex/shared/time";
-import { FPL_BOOTSTRAP_URL, PL_COMP_SEASON, PL_LAST_COMP_SEASON, plFixturesUrl, plFixtureUrl, plSquadUrl } from "../../../convex/football/football";
+import { FPL_BOOTSTRAP_URL, plFixturesUrl, plFixtureUrl, plSquadUrl } from "../../../convex/football/football";
+import { FPL_GAMEWEEKS, PL_LAST_SEASON, PL_THIS_SEASON, plSeasonsBody } from "../recorded/plSeasons.payloads";
 import type { RawPlFixture } from "../../../convex/football/premierLeague/premierLeague";
+import type { RawPlCompSeason } from "../../../convex/football/premierLeague/plSeasons";
 import { MATCHES_PER_RUN } from "../../../convex/positions/positionsSync";
 import { ADMIN, actingAs } from "./leagues.harness";
 import { BRENTFORD_CODE, NEWCASTLE, PLAYER, recordedPositions, SHEET, type PositionsPayloads } from "../recorded/positions.payloads";
@@ -23,14 +25,21 @@ export function reported(unknown: { unknownFormations?: string[]; unknownLabels?
   return `positions sync: ${JSON.stringify({ unknownFormations: [], unknownLabels: [], matchesRefused: [REFUSED_MATCH], ...unknown })}`;
 }
 
+/** What a run reads: the recorded payloads, and the Premier League's seasons unless a test names
+ *  others. */
+type SyncPayloads = PositionsPayloads & { plSeasons?: RawPlCompSeason[] };
+
 /** Both feeds answering with `payloads`, and refusing the `refuse` URL as `fakeFetch` does. */
-function fakeFeeds(payloads: PositionsPayloads, refuse?: string) {
-  const bodies = new Map<string, unknown>([[FPL_BOOTSTRAP_URL, { elements: payloads.fplElements }]]);
+function fakeFeeds(payloads: SyncPayloads, refuse?: string) {
+  const bodies = new Map<string, unknown>([
+    [FPL_BOOTSTRAP_URL, { elements: payloads.fplElements, events: FPL_GAMEWEEKS }],
+    plSeasonsBody(payloads.plSeasons),
+  ]);
   for (const [season, content] of Object.entries(payloads.fixtureLists)) {
-    bodies.set(plFixturesUrl(undefined, Number(season)), { content });
+    bodies.set(plFixturesUrl(Number(season)), { content });
   }
   for (const sheet of payloads.sheets) bodies.set(plFixtureUrl(sheet.id), sheet);
-  for (const [team, squad] of Object.entries(payloads.squads)) bodies.set(plSquadUrl(Number(team)), squad);
+  for (const [team, squad] of Object.entries(payloads.squads)) bodies.set(plSquadUrl(Number(team), PL_THIS_SEASON), squad);
   return fakeFetch(bodies, (url) => url === refuse);
 }
 
@@ -38,7 +47,7 @@ function fakeFeeds(payloads: PositionsPayloads, refuse?: string) {
  *  time), by hand unless `trigger` says the cron: the outcome it recorded, and the URLs it asked for. */
 export async function syncPositionsWith(
   t: TestConvex,
-  payloads: PositionsPayloads,
+  payloads: SyncPayloads,
   refuse?: string,
   at?: number,
   trigger: "manual" | "cron" = "manual",
@@ -117,7 +126,7 @@ export function pastTheCap(template?: RawPlFixture): PositionsPayloads {
     kickoff: { millis: sheet.kickoff!.millis - index },
   }));
   payloads.sheets = copies;
-  payloads.fixtureLists = { [PL_LAST_COMP_SEASON]: copies, [PL_COMP_SEASON]: [] };
+  payloads.fixtureLists = { [PL_LAST_SEASON]: copies, [PL_THIS_SEASON]: [] };
   // FPL listing Thiaw alone, so each copy files his one start, not a whole match's: filing every
   // starter of 152 matches took over the default five seconds on a loaded machine.
   payloads.fplElements = payloads.fplElements.filter((element) => element.code === PLAYER.thiaw);

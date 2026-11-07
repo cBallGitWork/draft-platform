@@ -9,9 +9,10 @@ import { useMinute } from "../shared/useMinute";
 import { gameweekWords, whenWords } from "../shared/words";
 import type { PlayerCard, PlayerCardSeam } from "./seam";
 import { MatchName } from "./MatchName";
-import { Season } from "./SeasonPanel";
+import { Season, usePricedAt } from "./SeasonPanel";
 import { OverridePoints } from "./OverridePoints";
 import { ShortlistAction } from "./ShortlistAction";
+import { WaiverAction } from "./WaiverAction";
 import {
   backWords,
   chanceWords,
@@ -19,6 +20,7 @@ import {
   goneWords,
   LAST_SEASON_TITLE,
   lastSeasonNotHeldWords,
+  lastSeasonWords,
   loadingWords,
   NEXT_FIXTURES_TITLE,
   newsLabel,
@@ -27,6 +29,7 @@ import {
   noNewsWords,
   noPositionsWords,
   noSuchPlayerWords,
+  notInLastSeasonWords,
   ownerLabel,
   PLAYER_TITLE,
   positionsLabel,
@@ -35,7 +38,8 @@ import {
 /** A player's card (spec/12, The player card), its own page, for anyone in the league: who he is
  *  and who owns him, FPL's news, this season's matches by category, last season's line and his
  *  club's next fixtures. Its actions (shortlist, scout, claim or drop, trade) join below the facts
- *  as each is built: the shortlist is (#374), and for whoever `runs` the league, the override (#32). */
+ *  as each is built: the shortlist is (#374), claim or drop (#1200), and for whoever `runs` the
+ *  league, the override (#32). */
 export function PlayerCardPage({ league, runs, playerCode, seam }: { league: LeagueSummary; runs: boolean; playerCode: number; seam: PlayerCardSeam }) {
   const card = seam.usePlayerCard(league.leagueId, playerCode, useMinute());
   return (
@@ -45,21 +49,42 @@ export function PlayerCardPage({ league, runs, playerCode, seam }: { league: Lea
       ) : card === null ? (
         <p className="bg-panel px-3 py-2 text-muted">{noSuchPlayerWords}</p>
       ) : (
-        <div className="grid items-start gap-2 lg:grid-cols-card">
-          <div className="flex flex-col gap-2">
-            <Facts card={card}>
-              <ShortlistAction leagueId={league.leagueId} playerCode={card.code} gone={card.gone} seam={seam} />
-              {runs && <OverridePoints leagueId={league.leagueId} card={card} seam={seam} />}
-            </Facts>
-            <Panel title={LAST_SEASON_TITLE}>
-              <PanelNote>{lastSeasonNotHeldWords}</PanelNote>
-            </Panel>
-            <NextFixtures card={card} />
-          </div>
-          <Season card={card} />
-        </div>
+        <Card league={league} runs={runs} card={card} seam={seam} />
       )}
     </PageSection>
+  );
+}
+
+function Card({ league, runs, card, seam }: { league: LeagueSummary; runs: boolean; card: PlayerCard; seam: PlayerCardSeam }) {
+  const pricedAt = usePricedAt(card);
+  return (
+    <div className="grid items-start gap-2 lg:grid-cols-card">
+      <div className="flex flex-col gap-2">
+        <Facts card={card}>
+          <ShortlistAction leagueId={league.leagueId} playerCode={card.code} gone={card.gone} seam={seam} />
+          <WaiverAction leagueId={league.leagueId} card={card} seam={seam} />
+          {runs && <OverridePoints leagueId={league.leagueId} card={card} seam={seam} />}
+        </Facts>
+        <LastSeason lastSeason={card.lastSeason} shown={pricedAt.shown} />
+        <NextFixtures card={card} />
+      </div>
+      <Season card={card} pricedAt={pricedAt} />
+    </div>
+  );
+}
+
+/** Last season's one line (spec/12), at the position the card's switch picks (Craig, 6 Nov 2026). */
+function LastSeason({ lastSeason, shown }: { lastSeason: PlayerCard["lastSeason"]; shown: number }) {
+  return (
+    <Panel title={LAST_SEASON_TITLE}>
+      {lastSeason === null ? (
+        <PanelNote>{lastSeasonNotHeldWords}</PanelNote>
+      ) : lastSeason.played === null ? (
+        <PanelNote>{notInLastSeasonWords}</PanelNote>
+      ) : (
+        <p className={PANEL_BODY}>{lastSeasonWords(lastSeason.season, { ...lastSeason.played, points: lastSeason.played.points[shown] ?? 0 })}</p>
+      )}
+    </Panel>
   );
 }
 

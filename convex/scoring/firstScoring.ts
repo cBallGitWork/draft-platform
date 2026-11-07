@@ -10,7 +10,8 @@ import type { StoredScoringSet } from "./scoringSetShape";
 // (spec/14, 21 Oct 2026), and without its defensive contribution (Craig, 4 Nov 2026: "Drop it from
 // scoring"), keyed on FPL's stat names as #27 stores them. FPL scores a player by his
 // position and this by the area he starts in, so all three midfield areas take FPL's midfielder
-// values. It adjusts no role (spec/05): adjustments arrive by patch (draftedRoleAdjustments.ts).
+// values. It scores no role (spec/05): the roles' first values came in a version of their own
+// (firstRolesVersion.ts), so the gameweeks before them keep this set.
 
 /** FPL's four positions spread over the six areas: every midfield area is FPL's midfielder. */
 function fplPositions<Value>(goalkeeper: Value, defender: Value, midfielder: Value, forward: Value): Record<Area, Value> {
