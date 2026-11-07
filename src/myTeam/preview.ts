@@ -58,6 +58,8 @@ const squad: TeamSquad = {
       seasonPoints: unplayed ? null : 20 + ((code * 17) % 60),
       lastGameweekPoints: unplayed ? null : (code * 7) % 14,
       form: unplayed ? [null, null, null, null, null] : [0, 1, 2, 3, 4].map((week) => (code * 5 + week * 3) % 13),
+      started: unplayed ? 0 : 3 + (code % 5),
+      rolePoints: unplayed ? null : (code % 7) - 2,
       // One who hasn't played has nothing counted, as his totals row would hold (seasonStats.ts).
       stats: unplayed ? NOTHING_COUNTED : {
         appearances: 5 + (code % 4),

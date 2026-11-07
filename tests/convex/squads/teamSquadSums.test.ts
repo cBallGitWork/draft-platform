@@ -1,6 +1,6 @@
 import { describe, expect, test } from "vitest";
 import { checkCatalogueStat } from "../../../convex/scoring/statCatalogue";
-import { FORM_GAMEWEEKS, SQUAD_STATS, squadForm, squadPoints } from "../../../convex/squads/teamSquad";
+import { FORM_GAMEWEEKS, SQUAD_STATS, squadEleven, squadForm, squadPoints } from "../../../convex/squads/teamSquad";
 
 // My team's Squad tab's sums (#364), apart from the query's reads (teamSquad.test.ts): his points
 // added up from his priced matches, his form, and the stats a row holds.
@@ -32,6 +32,33 @@ describe("the points", () => {
     ];
     expect(0.1 + 0.2).not.toBe(0.3);
     expect(squadPoints(matches, 2)).toEqual({ seasonPoints: 0.3, lastGameweekPoints: 0.3 });
+  });
+});
+
+describe("Started and Role points (#1005)", () => {
+  test("a start is every match he stood in the scoring eleven for, a double gameweek's uncounted one too", () => {
+    const matches = [
+      { inEleven: true, counted: true, points: 6, rolePoints: 1 },
+      { inEleven: true, counted: false, points: 2, rolePoints: 2 },
+      { inEleven: false, counted: false, points: 4, rolePoints: null },
+    ];
+    expect(squadEleven(matches).started).toBe(2);
+  });
+
+  test("Role points add only the role lines of matches his team got, kept to tenths", () => {
+    const matches = [
+      { inEleven: true, counted: true, points: 6, rolePoints: 0.1 },
+      { inEleven: true, counted: true, points: 3, rolePoints: 0.2 },
+      { inEleven: true, counted: true, points: 2, rolePoints: null },
+      { inEleven: true, counted: false, points: 2, rolePoints: 5 },
+    ];
+    expect(squadEleven(matches).rolePoints).toBe(0.3);
+  });
+
+  test("with no match his team got priced, Role points are '—'", () => {
+    expect(squadEleven([{ inEleven: true, counted: true, points: null, rolePoints: null }])).toEqual({ started: 1, rolePoints: null });
+    expect(squadEleven([{ inEleven: false, counted: false, points: 4, rolePoints: null }])).toEqual({ started: 0, rolePoints: null });
+    expect(squadEleven([])).toEqual({ started: 0, rolePoints: null });
   });
 });
 
