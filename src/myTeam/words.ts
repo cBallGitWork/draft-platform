@@ -10,6 +10,28 @@ export { figureWords, liveWords, noFigureWords, shortThenLongName, versusWords, 
 export const noTeamWords = "You don't run a team in this league.";
 export const noRulesWords = "This league was made before leagues had rules, so it has no fixtures to draw.";
 
+// What the Squad and Tactics tabs' tables and panels both say (#1042).
+
+/** Where his club plays a match, after the opponent's code. */
+export const homeWords = "(H)";
+export const awayWords = "(A)";
+/** A match as its cell shows it: "CHE (H)". */
+export const nextFixtureShort = (opponentCode: string, home: boolean) => `${opponentCode} ${home ? homeWords : awayWords}`;
+/** A match's hover: "Chelsea, at home, Sat 5 Sep, 15:00". */
+export const nextFixtureLong = (opponent: string, home: boolean, kickoff: string) => `${opponent}, ${home ? "at home" : "away"}, ${kickoff}`;
+/** A match cell waits for fixture difficulty (to-grill: Where fixture difficulty comes from). */
+export const difficultyNotRatedWords = "difficulty not rated yet";
+export const noNextFixtureWords = "No match with a kickoff time yet.";
+/** A match whose kickoff time FPL hasn't set yet, in its hover. */
+export const noKickoffWords = "kickoff time not set";
+/** A points cell with no figure: none of his matches is priced yet. */
+export const noPointsWords = "No points yet: none of his matches has been priced.";
+/** A status chip after a name, until it is settled which FPL statuses each chip reads (to-grill:
+ *  Status chips' data). Only a player FPL holds a doubt about gets one. */
+export const statusNotSettledLabel = "Status chip: which one isn't settled yet";
+/** A bench place's short name, first sub S1. */
+export const benchShort = (place: number) => `S${place}`;
+
 /** The Fixtures tab (#365). */
 export const FIXTURES_TITLE = menuWords.fixtures;
 export const fixturesLoadingWords = "Loading your fixtures…";

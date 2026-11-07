@@ -11,13 +11,13 @@ import { DAY_MS, HOUR_MS, MINUTE_MS } from "../../../../convex/shared/time";
 import { MY_TEAM_PATH } from "../../../../src/frame/menu";
 import {
   BENCH_TITLE,
-  closePanelLabel,
+  closeSelectedLabel,
   emptyBenchWords,
   joinedBenchWords,
   pitchLabel,
   playerCardLabel,
   seasonOverWords,
-  squadTableLabel,
+  selectionTableLabel,
   startingWords,
   tacticsLoadingWords,
   tacticsNoRulesWords,
@@ -87,7 +87,7 @@ describe("reaching it", () => {
 
   it("opens with the player the address names selected, his panel open (#1008)", async () => {
     openApp(`${MY_TEAM_PATH}?player=${WHITE.playerCode}`, manager, { myTeam: { tactics: SAVED } });
-    expect(await screen.findByRole("button", { name: closePanelLabel(WHITE.name) })).toBeTruthy();
+    expect(await screen.findByRole("button", { name: closeSelectedLabel(WHITE.name) })).toBeTruthy();
   });
 
   it.each([
@@ -136,7 +136,7 @@ describe("the lineup held", () => {
 
   it("is listed beside it: the eleven back to front, then the bench in order", async () => {
     openTacticsTab();
-    await screen.findByRole("table", { name: squadTableLabel });
+    await screen.findByRole("table", { name: selectionTableLabel });
     expect(squadRows()).toEqual([
       // Each starter's slot chip, then role picker, name, club, role fit ("—": no stars held here)
       // and next fixture (none held here, so empty).

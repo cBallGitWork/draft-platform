@@ -1,33 +1,15 @@
-import { Fragment, type ReactNode } from "react";
+import type { ReactNode } from "react";
 import type { Position } from "../../../convex/positions/positionTables";
 import type { SeasonStats } from "../../../convex/squads/teamSquad";
 import { ClubShort } from "../../premierLeague/ClubName";
 import { cellClassOf, ColumnHeads } from "../../ui/ColumnHeads";
 import { Placeholder } from "../../ui/Placeholder";
-import { PositionCode } from "../../ui/PositionCodes";
+import { PositionCodes } from "../../ui/PositionCodes";
 import { unheldPlayerWords } from "../../shared/words";
 import type { TeamSquad } from "../seam";
+import { NextMatches, PointsCell } from "../SquadCells";
 import { PositionMarks, type PositionMark } from "../tactics/positionMarks";
-import {
-  benchWords,
-  difficultyNotRatedWords,
-  figureWords,
-  lastGameweekLong,
-  nextFixtureLong,
-  nextFixtureShort,
-  noFigureWords,
-  noKickoffWords,
-  noNextFixtureWords,
-  noPointsWords,
-  noStatsWords,
-  openPanelLabel,
-  shortThenLongName,
-  squadColumns,
-  squadTableLabel,
-  statusNotSettledLabel,
-  whenWords,
-  goneWords,
-} from "./words";
+import { benchWords, figureWords, lastGameweekLong, noStatsWords, openPanelLabel, squadColumns, squadTableLabel, statusNotSettledLabel, goneWords } from "./words";
 
 export type Row = TeamSquad["players"][number];
 type Column = keyof typeof squadColumns;
@@ -113,7 +95,7 @@ function SquadCell({ column, player, starts, marks, isSelected, onSelect }: { co
     case "positions":
       return (
         <td className={`${className} whitespace-nowrap`}>
-          <PositionList positions={player.positions} />
+          <PositionCodes positions={player.positions} spaced />
         </td>
       );
     case "player":
@@ -180,21 +162,6 @@ export function PlayerCell({ className, player, starts, marks, isSelected, onSel
   );
 }
 
-/** Every position he holds, his main first, side by side as the picture's chips are: a space
- *  between them for screen readers, which the row's gap draws. */
-export function PositionList({ positions }: { positions: readonly Position[] }) {
-  return (
-    <span className="flex gap-1">
-      {positions.map((position, index) => (
-        <Fragment key={position}>
-          {index > 0 && " "}
-          <PositionCode position={position} />
-        </Fragment>
-      ))}
-    </span>
-  );
-}
-
 function StatCell({ className, stat, player }: { className: string; stat: Stat; player: Row }) {
   if (stat === "saves" && !player.positions.includes(KEEPER)) return <td className={className} />;
   if (player.stats === null) {
@@ -205,45 +172,4 @@ function StatCell({ className, stat, player }: { className: string; stat: Stat; 
     );
   }
   return <td className={className}>{figureWords(player.stats[stat])}</td>;
-}
-
-function PointsCell({ className, points }: { className: string; points: number | null }) {
-  return points === null ? (
-    <td title={noPointsWords} className={`${className} text-muted`}>
-      {noFigureWords}
-    </td>
-  ) : (
-    <td className={`${className} font-bold text-figure`}>{figureWords(points)}</td>
-  );
-}
-
-/** His club's next matches, each a cell whose fill waits for fixture difficulty (the README's
- *  placeholders), so it is the placeholder's outline round the match. */
-export function NextMatches({ matches }: { matches: Row["nextFixtures"] }) {
-  if (matches.length === 0) {
-    return (
-      <span title={noNextFixtureWords} className="text-muted">
-        {noFigureWords}
-      </span>
-    );
-  }
-  return (
-    <span className="flex gap-px">
-      {matches.map((match) => (
-        <MatchMark key={match.kickoff} match={match} />
-      ))}
-    </span>
-  );
-}
-
-/** One of his club's matches: the opponent's code and where, named in full in its hover. */
-export function MatchMark({ match }: { match: { opponent: Row["club"]; home: boolean; kickoff: number | null } }) {
-  const short = nextFixtureShort(match.opponent.shortName, match.home);
-  const when = match.kickoff === null ? noKickoffWords : whenWords(match.kickoff);
-  const long = `${nextFixtureLong(match.opponent.name, match.home, when)}, ${difficultyNotRatedWords}`;
-  return (
-    <abbr title={long} aria-label={shortThenLongName({ short, long })} className="grow basis-0 border border-muted px-1 text-center whitespace-nowrap no-underline">
-      {short}
-    </abbr>
-  );
 }

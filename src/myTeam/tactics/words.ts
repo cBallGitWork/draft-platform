@@ -7,6 +7,7 @@ import { AREA_WORDS, LANE_WORDS } from "../../../convex/lineup/pitchWords";
 import { menuWords } from "../../frame/words";
 import { failedWords, listSeparator, timeOfDayWords } from "../../shared/words";
 import { gameweekShort } from "../header/words";
+import { benchShort } from "../words";
 import type { MoveRefusal } from "./lineupDraft";
 
 export const TACTICS_TITLE = menuWords.tactics;
@@ -87,8 +88,8 @@ export function refusalWords(refusal: MoveRefusal, nameOf: (playerCode: number) 
 export const SELECTION_TITLE = "Selection";
 export const startingWords = (starting: number) => `${starting} starting`;
 export const onTheBenchWords = (bench: number) => `${bench} on the bench`;
-export const squadTableLabel = "Your squad: the eleven, then the bench in order";
-export const squadColumns = {
+export const selectionTableLabel = "Your squad: the eleven, then the bench in order";
+export const selectionColumns = {
   position: { short: "Pos", long: "The slot's position; on the bench, his place and his main position" },
   player: { short: "Player", long: "Player" },
   next: { short: "Next", long: "Next fixture" },
@@ -97,8 +98,8 @@ export const squadColumns = {
 } as const;
 /** Over the bench's Role column: the role each has the most stars for at his main position. */
 export const BEST_ROLE_HEAD = "Best role";
-/** A bench player's place in the bench order: "S1", the first on. */
-export const benchPlaceWords = (index: number) => `S${index + 1}`;
+/** A bench player's place in the bench order, by his index: "S1", the first on. */
+export const benchPlaceWords = (index: number) => benchShort(index + 1);
 export const benchPlaceLong = (index: number) => `Substitute ${index + 1}`;
 /** A starter's role picker, for screen readers (spec/05 Roles). */
 export const roleLabel = (name: string) => `${name}'s role`;
@@ -109,7 +110,7 @@ export const ROLE_FIT_SUBJECT = "Role fit";
 /** The selected player's panel, on top of the right-hand column (plate.md, Tables and panels). */
 export const startingWhereWords = (club: string | null, slot: string) => (club === null ? slot : `${club}, ${slot}`);
 export const benchWhereWords = (club: string | null, index: number) => startingWhereWords(club, benchPlaceWords(index));
-export const closePanelLabel = (name: string) => `Close ${name}'s panel`;
+export const closeSelectedLabel = (name: string) => `Close ${name}'s panel`;
 export const rolesHead = (slot: string) => `Role, ${slot} slot`;
 export const pointsPerActionHead = "Points per action";
 export const nowWords = "now";

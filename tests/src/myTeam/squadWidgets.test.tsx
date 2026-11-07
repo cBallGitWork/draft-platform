@@ -35,7 +35,7 @@ import {
 } from "../../../src/myTeam/squad/words";
 import { everyRoleOf } from "../../../convex/lineup/roles";
 import { starsLabel } from "../../../src/ui/StarRating";
-import { closePanelLabel as closeTacticsPanelLabel, ROLE_FIT_SUBJECT } from "../../../src/myTeam/tactics/words";
+import { closeSelectedLabel as closeTacticsPanelLabel, ROLE_FIT_SUBJECT } from "../../../src/myTeam/tactics/words";
 import { league } from "../../support/src/shell.harness";
 import { openSquad, PALMER, RAYA, SAKA, squadOf, tacticsWith } from "../../support/src/squadTab.harness";
 

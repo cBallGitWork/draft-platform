@@ -5,10 +5,23 @@ import { LANE_WORDS } from "../../../convex/lineup/pitchWords";
 import type { Lane } from "../../../convex/lineup/pitch";
 import { menuWords } from "../../frame/words";
 import { failedWords } from "../../shared/words";
+import { benchShort } from "../words";
 
 export { figureWords, signedWords, gameweekWords, noFigureWords, shortThenLongName, whenWords, nextGlyph, closeGlyph, playerCardWords } from "../../shared/words";
 export { goneWords } from "../../squads/words";
-export { noTeamWords } from "../words";
+export {
+  awayWords,
+  benchShort,
+  difficultyNotRatedWords,
+  homeWords,
+  nextFixtureLong,
+  nextFixtureShort,
+  noKickoffWords,
+  noNextFixtureWords,
+  noPointsWords,
+  noTeamWords,
+  statusNotSettledLabel,
+} from "../words";
 
 export const SQUAD_TITLE = menuWords.squad;
 export const squadLoadingWords = "Loading your squad…";
@@ -31,7 +44,6 @@ export const scheduleTableLabel = (teamName: string) => `${teamName}'s schedule`
 export const scheduleGameweekWords = (gameweek: number) => ({ short: `GW${gameweek}`, long: `Gameweek ${gameweek}` });
 /** A blank week's cell: his club has no match in it. */
 export const blankWeekWords = "No match this gameweek";
-export const noKickoffWords = "kickoff time not set";
 export const noScheduleWords = "No gameweek left to set: the season is over, or the league has no rules yet.";
 
 /** The Rules view (#1006): one row per limit, each naming the players it counts. */
@@ -79,24 +91,8 @@ export const openPanelLabel = (name: string) => `${name}: his season`;
 /** A bench player's row says so to screen readers, as his muted name says it on screen. */
 export const benchWords = "on the bench";
 
-/** Where his club plays a match, after the opponent's code. */
-export const homeWords = "(H)";
-export const awayWords = "(A)";
-/** A match as its cell shows it: "CHE (H)". */
-export const nextFixtureShort = (opponentCode: string, home: boolean) => `${opponentCode} ${home ? homeWords : awayWords}`;
-/** A match's hover: "Chelsea, at home, Sat 5 Sep, 15:00". */
-export const nextFixtureLong = (opponent: string, home: boolean, kickoff: string) => `${opponent}, ${home ? "at home" : "away"}, ${kickoff}`;
-/** A match cell waits for fixture difficulty (to-grill: Where fixture difficulty comes from). */
-export const difficultyNotRatedWords = "difficulty not rated yet";
-export const noNextFixtureWords = "No match with a kickoff time yet.";
-/** A points cell with no figure: none of his matches is priced yet. */
-export const noPointsWords = "No points yet: none of his matches has been priced.";
 /** A stat cell while no season's stats are held. */
 export const noStatsWords = "No stats held yet.";
-
-/** A status chip after a name, until it is settled which FPL statuses each chip reads (to-grill:
- *  Status chips' data). Only a player FPL holds a doubt about gets one. */
-export const statusNotSettledLabel = "Status chip: which one isn't settled yet";
 
 /** His season panel (the README's interaction notes). */
 export const closePanelLabel = (name: string) => `Close ${name}'s season`;
@@ -124,9 +120,7 @@ export const setRoleWords = "Set his role";
 /** Where he stands in the gameweek being set: "Starting, W right"; "Bench, S3". */
 export const gameweekRowWords = (gameweek: number) => `GW${gameweek}`;
 export const startingInWords = (slot: string, lane: Lane) => `Starting, ${slot} ${LANE_WORDS[lane]}`;
-export const benchPlaceWords = (place: number) => `Bench, ${benchShort(place)}`;
-/** A bench place's short name, first sub S1. */
-export const benchShort = (place: number) => `S${place}`;
+export const benchedInWords = (place: number) => `Bench, ${benchShort(place)}`;
 
 /** The squad number box's name, for one player (#13). */
 export const numberLabel = (name: string) => `${name}'s squad number`;

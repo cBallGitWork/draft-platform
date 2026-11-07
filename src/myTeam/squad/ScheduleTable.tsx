@@ -1,7 +1,9 @@
 import type { PositionMark } from "../tactics/positionMarks";
 import { ColumnHeads } from "../../ui/ColumnHeads";
 import { PanelNote } from "../../ui/Panel";
-import { MatchMark, PlayerCell, PlayerRow, PositionList, squadCellClass, type Row } from "./SquadTable";
+import { PositionCodes } from "../../ui/PositionCodes";
+import { MatchMark } from "../SquadCells";
+import { PlayerCell, PlayerRow, squadCellClass, type Row } from "./SquadTable";
 import { blankWeekWords, noScheduleWords, scheduleGameweekWords, scheduleTableLabel, squadColumns } from "./words";
 
 /** The Schedule view (#1006; spec/12: "his next 6 fixtures"): each player's club's matches in the
@@ -40,7 +42,7 @@ export function ScheduleTable({
           {rows.map((player) => (
             <PlayerRow key={player.code} code={player.code} isSelected={selected === player.code} onSelect={onSelect}>
               <td className={`${classOf("positions")} whitespace-nowrap`}>
-                <PositionList positions={player.positions} />
+                <PositionCodes positions={player.positions} spaced />
               </td>
               <PlayerCell
                 className={classOf("player")}

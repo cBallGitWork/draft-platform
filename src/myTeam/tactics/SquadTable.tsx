@@ -7,8 +7,8 @@ import { PositionChip } from "../../ui/PositionChip";
 import { StarRating } from "../../ui/StarRating";
 import { starsIn } from "../../../convex/stars/bestRole";
 import type { SquadRow } from "../../../convex/squads/teamSquad";
-import { NextMatches } from "../squad/SquadTable";
-import { statusNotSettledLabel } from "../squad/words";
+import { NextMatches } from "../SquadCells";
+import { statusNotSettledLabel } from "../words";
 import { markOf } from "./focusMarks";
 import { PositionMarks, positionMarksOf } from "./positionMarks";
 import { benchBestRole, startersInOrder, type DraftLineup, type SquadMember, type Starter } from "./lineupDraft";
@@ -21,12 +21,12 @@ import {
   emptyBenchWords,
   ROLE_FIT_SUBJECT,
   roleLabel,
-  squadColumns,
-  squadTableLabel,
+  selectionColumns,
+  selectionTableLabel,
   swapLabel,
 } from "./words";
 
-type Column = keyof typeof squadColumns;
+type Column = keyof typeof selectionColumns;
 /** Each row opens with the slot's chip, then the role, the player, his stars for the role and his
  *  next fixture; the season's points stay on the Squad tab (spec/12; Craig, 6 Nov 2026, on #847:
  *  "Drop both"). */
@@ -80,8 +80,8 @@ export function SquadTable({
     <SelectionRow key={playerCode} player={squad.get(playerCode)!} season={season?.get(playerCode) ?? (season === undefined ? undefined : null)} place={place} onBenchAt={onBenchAt} onRole={onRole} moving={moving} pickedOnBench={picked !== null && !pickedStarts} />
   );
   return (
-    <table aria-label={squadTableLabel} className="w-full border-collapse">
-      <ColumnHeads columns={squadColumns} shown={COLUMNS} classOf={cellClasses} />
+    <table aria-label={selectionTableLabel} className="w-full border-collapse">
+      <ColumnHeads columns={selectionColumns} shown={COLUMNS} classOf={cellClasses} />
       <tbody>{startersInOrder(draft).map((starter) => row(starter.playerCode, { starter, formation: draft.starters }))}</tbody>
       <tbody onDragOver={allowDrop} onDrop={drop}>
         <tr className="bg-plate">
