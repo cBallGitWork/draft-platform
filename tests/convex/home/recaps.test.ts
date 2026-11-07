@@ -62,6 +62,22 @@ test("it is written once: the gameweek stored again writes no second recap", asy
   expect(recaps).toHaveLength(1);
 });
 
+test("a gameweek stored final after a newer one gets no recap: only the newest is written and Mailed", async () => {
+  const league = await scoresLeague();
+  await fullTimeRecords(league);
+  await lockMatch(league);
+  const claude = fakeClaude();
+  // A later gameweek already stored final, as when a pass catches up on several.
+  await league.t.run((ctx) =>
+    ctx.db.insert("finalScores", { leagueId: league.leagueId, gameweek: GAMEWEEK + 1, teamId: league.annsTeam, points: 0, fixtureCodes: [], storedAt: 0 }),
+  );
+  await storeLeague(league);
+  await elapse(league.t, 0);
+
+  expect(claude.asked).toEqual([]);
+  expect(await league.t.run((ctx) => ctx.db.query("recaps").collect())).toEqual([]);
+});
+
 test("a score changed after it is written leaves the recap as written, with a line naming that team's matchup", async () => {
   const { league } = await finalLeague();
   const before = await recapOf(league);

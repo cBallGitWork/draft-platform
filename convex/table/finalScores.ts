@@ -82,10 +82,18 @@ async function storeFinal(ctx: MutationCtx, league: Doc<"leagues">): Promise<num
       const { points } = scores.get(gameweek)!.get(teamId)!;
       await ctx.db.insert("finalScores", { leagueId: league._id, gameweek, teamId, points, fixtureCodes, storedAt });
     }
-    // Every match of it final: its recap is written, once (home/recaps.ts).
-    await startRecap(ctx, league._id, gameweek);
   }
-  return finalUnstored.map(({ gameweek }) => gameweek);
+  const stored = finalUnstored.map(({ gameweek }) => gameweek);
+  // Every match of it final: the league's newest final gameweek gets its recap, once (home/recaps.ts).
+  // Only the newest, so a pass catching up on several, or storing an older one again, writes and
+  // Mails no recap League home would never show.
+  const newest = await ctx.db
+    .query("finalScores")
+    .withIndex("by_leagueId_and_gameweek", (q) => q.eq("leagueId", league._id))
+    .order("desc")
+    .first();
+  if (newest !== null && stored.includes(newest.gameweek)) await startRecap(ctx, league._id, newest.gameweek);
+  return stored;
 }
 
 /** The gameweek's stored rows go: a team's left from before it was removed among them. */

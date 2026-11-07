@@ -16,6 +16,8 @@ import type { HomeSeam, LeagueHome } from "./seam";
 const TEAMS = ["Saka Potatoes", "Kroos Control", "Lingard Franca", "Neville Wears Prada", "Team 5", "Murder on Zidane's Floor", "Dinamo Kiev Leave", "Haaland Oates", "Expected Toulouse"];
 const MINE = "Saka Potatoes";
 const SCORED = 6;
+/** The gameweek whose recap the preview has: the last one scored. */
+export const PREVIEW_RECAP_GAMEWEEK = SCORED;
 const firstDeadline = Date.now() - SCORED * WEEK_MS + DAY_MS;
 
 const schedule = drawFixtures(TEAMS, SEASON_GAMEWEEKS, () => ({ oddTeamOut: "leagueAverage", gamesPerGameweek: 1 }), "preview-home");

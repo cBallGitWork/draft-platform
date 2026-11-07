@@ -226,7 +226,7 @@ test.describe("dev server, signed out of Convex", { tag: "@dev" }, () => {
 
     for (const [session, path, title] of BUILT_SCREENS) {
       test(`?preview=${session} at ${path} shows "${title}", doesn't scroll sideways, and has no tap under the tap size`, async ({ page }) => {
-        await page.goto(`${path}?preview=${session}`);
+        await page.goto(`${path}${path.includes("?") ? "&" : "?"}preview=${session}`);
         await expect(page.getByRole("main").getByRole("heading", { level: 1, name: title, exact: true })).toBeVisible();
         await expect(page.getByRole("heading", { name: ERROR_PAGE_TITLE })).toHaveCount(0);
         const { scrollWidth, innerWidth } = await page.evaluate(() => ({
