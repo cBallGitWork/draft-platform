@@ -175,7 +175,7 @@ jobs:
               | (any(.statusCheckRollup[]?; (.name == "verify" or .name == "smoke") and .conclusion == "FAILURE")) as $red
               | (any(.statusCheckRollup[]?; .context == "review-landed" and .state == "PENDING")) as $waiting
               | select($red or .mergeable == "CONFLICTING" or $waiting)
-              | (if $red then "red" elif .mergeable == "CONFLICTING" then "conflict" else "review" end) as $kind
+              | (if $red then "red" elif .mergeable == "CONFLICTING" then "conflict" elif .mergeable == "MERGEABLE" then "review" else "unknown" end) as $kind
               | (any(.labels[]?; .name == env.CONFLICT_LABEL)) as $rounded
               | "\(.number):\($kind):\($rounded):\((.body // "") | ([scan("(?m)^(?:Part of|Closes) #([0-9]+)")] | first // [""]) | .[0])"' <<<"$prs"); do
             IFS=: read -r pr kind rounded n <<<"$row"
@@ -188,6 +188,7 @@ jobs:
               conflict)  # stuck only once a conflict round, not a review round, ran on this head and left it (1b)
                 { [ "$rounded" = true ] && fixed_since "$n" "$last"; } || continue
                 why="still conflicting with main after a round to resolve it" ;;
+              unknown) continue ;;  # GitHub hasn't worked out yet whether it conflicts (a reopened one): next pass
               review)  # its fix round ran on this head, pushed nothing, and was STUCK_HOURS ago
                 fixed_since "$n" "$last" || continue
                 [ "$(date -u -d "$(last_fix "$n")" +%s)" -lt "$(date -u -d "$STUCK_HOURS hours ago" +%s)" ] || continue
