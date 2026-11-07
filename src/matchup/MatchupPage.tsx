@@ -1,5 +1,8 @@
 import { Link } from "@tanstack/react-router";
+import { useState } from "react";
 import type { LeagueSummary } from "../../convex/leagues/myLeagues";
+import type { MatchupSide } from "../../convex/matchup/matchupShape";
+import { PlayerBreakdown } from "./PlayerBreakdown";
 import { Loading, PAGE_STACK, PageSection, PANEL_COLUMNS, PanelNote } from "../ui/Panel";
 import { useLastLoaded } from "../shared/useLastLoaded";
 import { useMinute } from "../shared/useMinute";
@@ -54,20 +57,20 @@ export function MatchupPage({ league, seam, asked }: { league: LeagueSummary; se
       ) : matchup.kind === "noTeam" ? (
         <p className="text-muted">{noTeamWords}</p>
       ) : (
-        <HeadToHeadMatchup matchup={matchup} />
+        <HeadToHeadMatchup leagueId={league.leagueId} matchup={matchup} />
       )}
     </PageSection>
   );
 }
 
-function HeadToHeadMatchup({ matchup }: { matchup: HeadToHead }) {
+function HeadToHeadMatchup({ leagueId, matchup }: { leagueId: string; matchup: HeadToHead }) {
   const { teamName, gameweek, deadline, game } = matchup;
   if (gameweek === null) return <p className="text-muted">{noGamesWords(teamName)}</p>;
   return (
     <>
       <Stepper matchup={matchup} gameweek={gameweek} />
       {game.kind === "scored" ? (
-        <ScoredMatchup game={game} />
+        <ScoredMatchup leagueId={leagueId} game={game} />
       ) : (
         <div className="bg-panel">
           {game.kind === "none" ? (
@@ -121,8 +124,23 @@ function Fixture({ teamName, opponent, score }: { teamName: string; opponent: st
   );
 }
 
-function ScoredMatchup({ game: { team, opponent, commentary } }: { game: Scored }) {
+/** The man whose breakdown is open, found afresh in each side as the live matchup moves; none once
+ *  neither side holds him (another gameweek's matchup, say). */
+function pickedSlot(sides: readonly MatchupSide[], picked: number | null) {
+  for (const side of sides) {
+    if (side.kind !== "team") continue;
+    const found = [...side.lineup.starters, ...side.lineup.bench].find((slot) => slot.playerCode === picked);
+    if (found !== undefined) return found;
+  }
+  return undefined;
+}
+
+function ScoredMatchup({ leagueId, game: { team, opponent, commentary, version } }: { leagueId: string; game: Scored }) {
   const provisional = team.provisional || opponent.provisional;
+  const [picked, setPicked] = useState<number | null>(null);
+  // Tapping the man whose breakdown is open closes it.
+  const picking = { picked, pick: (playerCode: number) => setPicked((current) => (current === playerCode ? null : playerCode)) };
+  const slot = pickedSlot([team, opponent], picked);
   return (
     <>
       <section aria-label={SCORE_LABEL} className="bg-panel shadow-bevel-panel">
@@ -131,9 +149,10 @@ function ScoredMatchup({ game: { team, opponent, commentary } }: { game: Scored 
           {provisional ? provisionalWords : finalWords}
         </p>
       </section>
+      {slot !== undefined && <PlayerBreakdown leagueId={leagueId} slot={slot} version={version} close={() => setPicked(null)} />}
       <div className={PANEL_COLUMNS}>
-        <SidePanel side={team} />
-        <SidePanel side={opponent} />
+        <SidePanel side={team} picking={picking} />
+        <SidePanel side={opponent} picking={picking} />
         <Vidiprinter commentary={commentary} title={VIDIPRINTER_TITLE} noLinesWords={noCommentaryWords} className="lg:col-span-2" />
       </div>
     </>

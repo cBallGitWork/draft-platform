@@ -70,6 +70,14 @@ export async function overridesIn(ctx: QueryCtx, leagueId: Id<"leagues">, fixtur
   return new Map(rows.map((row) => [row.playerCode, row.points]));
 }
 
+/** The league's override of one man's points in one match, with its reason, or null with none. */
+export function overrideOf(ctx: QueryCtx, leagueId: Id<"leagues">, fixtureCode: number, playerCode: PlayerCode): Promise<Doc<"pointsOverrides"> | null> {
+  return ctx.db
+    .query("pointsOverrides")
+    .withIndex("by_leagueId_and_fixtureCode_and_playerCode", (q) => q.eq("leagueId", leagueId).eq("fixtureCode", fixtureCode).eq("playerCode", playerCode))
+    .unique();
+}
+
 /** The league's overrides of teams' totals in the gameweek (#903, spec/14 S14.3): each team's
  *  row, by team: one a team at most, so the league's most teams bound them. More throws, never a
  *  silent cut. */
