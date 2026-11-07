@@ -44,4 +44,14 @@ describe("the tick box", () => {
     render(<TickBox checked={false} onChange={vi.fn()}>{LABEL}</TickBox>);
     expect(box().closest("label")!.querySelector(".sr-only")).toBeNull();
   });
+
+  it("keeps the 44px tap only on the phone when it sits in a table row", () => {
+    const { rerender } = render(<TickBox checked={false} onChange={vi.fn()}>{LABEL}</TickBox>);
+    expect(box().closest("label")!.className).not.toContain("lg:min-h-0");
+
+    rerender(<TickBox checked={false} onChange={vi.fn()} inTableRow>{LABEL}</TickBox>);
+    const row = box().closest("label")!.className;
+    expect(row).toContain("min-h-tap");
+    expect(row).toContain("lg:min-h-0");
+  });
 });
