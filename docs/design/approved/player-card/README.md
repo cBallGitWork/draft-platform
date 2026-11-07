@@ -50,7 +50,7 @@ Each shows in its place and size until its data comes.
 
 | Placeholder | Waits for | Where it's tracked |
 |---|---|---|
-| The portrait | where portraits come from: FPL's photos, our own drawn ones, or none | Craig's call, asked 7 Nov 2026 |
+| The portrait | FPL's photo of him (Craig, 7 Nov 2026: "a"), once FPL's terms allow it | #79, `spec/12` (S12.1) |
 | Captain and set pieces | the hints after the mini beta | `spec/17`, Both |
 | Role fit and the scout report | scouts: hidden for a player you haven't scouted | #375 |
 | News notes | the news job | `spec/21` |

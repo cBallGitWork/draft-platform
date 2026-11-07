@@ -78,6 +78,8 @@ homage, simple, in CM's blue, with a top menu. The canvas with every round is
     from the same events Mail files.
 - **The player card** is its own page, with Back, opened from any player's name anywhere (25 Oct
   2026). It holds:
+  - his portrait, FPL's own photo of him (Craig, 7 Nov 2026: "a", of FPL's photos, our own drawn
+    portraits or none), once #79 finds FPL's terms allow it;
   - his name, club and positions, who owns him in the league, and FPL's injury news and chance of
     playing, and his three latest news notes (`spec/21`);
   - this season's matches, each broken down by category (`spec/14`), at his base points: "The
@@ -98,7 +100,7 @@ homage, simple, in CM's blue, with a top menu. The canvas with every round is
     (`spec/19`), and the captain and set-piece hints `spec/17` adds after the mini beta;
   - his club's next few Premier League fixtures;
   - the actions that apply to him and the manager: shortlist, send a scout, claim or drop, offer a
-    trade.
+    trade. `S12.1`
 - **Trades** shows offers to and from the manager, with accept, reject and counter, and makes an
   offer; its rules are in `spec/08`. It follows `docs/design/plate.md` (25 Oct 2026).
 - The player card follows `docs/design/plate.md`, and comes by the mini beta; its stars and report
