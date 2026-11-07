@@ -1,6 +1,7 @@
 import { expect, test, vi } from "vitest";
 import { api, internal } from "../../../convex/_generated/api";
 import { silenceConsoleError } from "../../support/convex/test.harness";
+import { fakeClaude } from "../../support/convex/scouts.harness";
 import { actingAs, addManagers, COMMISSIONER } from "../../support/convex/leagues.harness";
 import { HULL_EVERTON } from "../../support/convex/matchStats.harness";
 import {
@@ -81,6 +82,8 @@ test("a starter released after the deadline is in the stored score: it freezes t
 test("the lock itself asks every league to store what it made final", async () => {
   const league = await scoresLeague();
   await fullTimeRecords(league);
+  // Storing it final starts the league's recap (home/recaps.ts), which the clock run on here writes.
+  fakeClaude();
   await lockMatch(league);
   await league.t.finishAllScheduledFunctions(vi.runAllTimers);
 

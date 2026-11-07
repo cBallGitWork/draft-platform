@@ -6,6 +6,7 @@ import { seasonRules } from "../rules/rulesHistory";
 import { LEAGUES_READ_MOST, takeAllOrThrow } from "../shared/cappedRead";
 import { teamsOf } from "../shared/leagueAccess";
 import { leagueScores } from "../gameweekScorer/gameweekScores";
+import { startRecap } from "../home/recaps";
 
 // Stores each team's points in a gameweek once they are final (#418), so the table reads them
 // rather than scoring the whole season on every read. Final means every match in the gameweek has
@@ -81,6 +82,8 @@ async function storeFinal(ctx: MutationCtx, league: Doc<"leagues">): Promise<num
       const { points } = scores.get(gameweek)!.get(teamId)!;
       await ctx.db.insert("finalScores", { leagueId: league._id, gameweek, teamId, points, fixtureCodes, storedAt });
     }
+    // Every match of it final: its recap is written, once (home/recaps.ts).
+    await startRecap(ctx, league._id, gameweek);
   }
   return finalUnstored.map(({ gameweek }) => gameweek);
 }

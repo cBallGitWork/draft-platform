@@ -24,10 +24,11 @@ import { scoredFixtures } from "../table/sentTables";
 import { formOf, RESULTS } from "../table/standings";
 import { shownRows, TICKER_MOST } from "./glance";
 import { matchdayAt } from "./matchday";
+import { homeRecap, shownRecap } from "./recaps";
 
 // League home (spec/12, League home; #387): the glance (this gameweek's head-to-heads, scored once
 // begun, the table and each team's form), the league's latest squad moves from its events (Mail's,
-// #26), the commissioner's latest letter, pinned, and matchday mode (matchday.ts): while a matchday
+// #26), the commissioner's latest letter, pinned, the latest weekly recap (recaps.ts), and matchday mode (matchday.ts): while a matchday
 // is open, the Vidiprinter of its matches' lines that move one of the league's head-to-heads. Its
 // lines leave with the window; each stays on its matchup (Craig, 6 Nov 2026). For anyone with a
 // part in the league.
@@ -75,6 +76,9 @@ export const leagueHome = v.object({
   /** The latest TICKER_MOST squad moves, newest first. */
   squadMoves: v.array(squadMove),
   pinnedLetter: v.union(v.null(), pinnedLetter),
+  /** The latest weekly recap, until the next gameweek's first matchday mode begins (recaps.ts);
+   *  null with none. */
+  recap: v.union(v.null(), shownRecap),
 });
 export type LeagueHome = Infer<typeof leagueHome>;
 
@@ -140,6 +144,7 @@ export const ofLeague = query({
       matchday: await matchdayOf(ctx, league, season, teamIds, now),
       squadMoves: await latestSquadMoves(ctx, leagueId),
       pinnedLetter: league.pinnedLetter ?? null,
+      recap: await homeRecap(ctx, leagueId, results, now),
     };
   },
 });
