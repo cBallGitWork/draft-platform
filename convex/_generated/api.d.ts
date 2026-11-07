@@ -17,6 +17,7 @@ import type * as admin_sideRuns from "../admin/sideRuns.js";
 import type * as auth from "../auth.js";
 import type * as availability_availability from "../availability/availability.js";
 import type * as balanceLab_balanceLab from "../balanceLab/balanceLab.js";
+import type * as balanceLab_balanceLabLimits from "../balanceLab/balanceLabLimits.js";
 import type * as balanceLab_balanceLabRun from "../balanceLab/balanceLabRun.js";
 import type * as balanceLab_labReportShape from "../balanceLab/labReportShape.js";
 import type * as crons from "../crons.js";
@@ -301,6 +302,7 @@ declare const fullApi: ApiFromModules<{
   auth: typeof auth;
   "availability/availability": typeof availability_availability;
   "balanceLab/balanceLab": typeof balanceLab_balanceLab;
+  "balanceLab/balanceLabLimits": typeof balanceLab_balanceLabLimits;
   "balanceLab/balanceLabRun": typeof balanceLab_balanceLabRun;
   "balanceLab/labReportShape": typeof balanceLab_labReportShape;
   crons: typeof crons;

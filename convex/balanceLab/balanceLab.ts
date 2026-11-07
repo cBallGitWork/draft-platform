@@ -3,6 +3,7 @@ import { DEFAULT_ROLES } from "../lineup/roles";
 import { PAST_STAT_COLUMNS } from "../pastSeasons/pastStatColumns";
 import { roleTotal } from "../scoring/scoring";
 import type { ScoringSet } from "../scoring/scoringSet";
+import { ROLE_TARGET_MARGIN } from "./balanceLabLimits";
 import type { LabReport, LabRole } from "./labReportShape";
 
 // The rule balance lab (spec/14, The rule balance lab; #843): a backtest of a patch draft on the
@@ -33,10 +34,6 @@ export const ROLE_TARGETS: Readonly<Record<SlotPosition, number>> = {
   CDM: 1.1,
   CB: 1.2,
 };
-
-/** How far a role's average may land from its slot's target before it is flagged (spec/05: "within
- *  0.25 points a match of its target"). */
-export const ROLE_TARGET_MARGIN = 0.25;
 
 /** Where the past seasons' log says he started (ai-carling's codes, as Football Manager writes
  *  them), and the slot each stands for (spec/14, How a rule scores: left and right alike). A code
