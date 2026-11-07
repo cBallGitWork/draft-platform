@@ -6,7 +6,7 @@ import type { Lane } from "../../../convex/lineup/pitch";
 import { menuWords } from "../../frame/words";
 import { failedWords } from "../../shared/words";
 
-export { figureWords, gameweekWords, noFigureWords, shortThenLongName, whenWords, nextGlyph, closeGlyph, playerCardWords } from "../../shared/words";
+export { figureWords, signedWords, gameweekWords, noFigureWords, shortThenLongName, whenWords, nextGlyph, closeGlyph, playerCardWords } from "../../shared/words";
 export { goneWords } from "../../squads/words";
 export { noTeamWords } from "../words";
 
@@ -89,8 +89,6 @@ export const seasonWords = "Season";
 export const lastWords = "Last";
 export const formLabel = (gameweeks: number) => `Points in the league's last ${gameweeks} gameweeks, oldest first`;
 /** The panel's placeholders: each says what will show there. */
-export const startedNotBuiltLabel = "Started: not counted yet";
-export const rolePointsNotBuiltLabel = "Role points: not counted yet";
 export const bestRoleNotRatedLabel = "Best role: not rated yet";
 export const roleLastGameweekNotSettledLabel = "Role last gameweek: what it counts isn't settled yet";
 export const setRoleNotBuiltLabel = "Set his role: waits for Tactics to open with him selected";
