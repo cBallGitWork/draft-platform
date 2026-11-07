@@ -100,6 +100,7 @@ export const feedColumns = {
 export const feedNames = FEED_NAMES;
 export const feedStateWords: Record<FeedState, string> = {
   fine: "On time",
+  betweenSeasons: "Between seasons",
   late: "Late",
   failing: "Failing",
   notRunningYet: "Not running yet",

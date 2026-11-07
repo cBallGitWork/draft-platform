@@ -68,7 +68,7 @@ vi.mock("convex/react", async () => {
             .map((name) => [name, vi.fn()]),
         ),
       },
-      actions: { "signIn/signInLinks:ask": convex.ask, "joining/inviteLink:signInToJoin": vi.fn() },
+      actions: { "signIn/signInLinks:ask": convex.ask, "joining/inviteLink:signInToJoin": vi.fn(), "balanceLab/balanceLabRun:run": vi.fn() },
     }),
     ConvexReactClient: class {},
     useConvexAuth: () => convex.auth,

@@ -1,5 +1,6 @@
 import { defineTable } from "convex/server";
 import { v } from "convex/values";
+import { labReportShape } from "../balanceLab/labReportShape";
 import { scoringSetShape } from "../scoring/scoringSetShape";
 
 /** How a version of the site's scoring was announced: a patch with a week's notice, or a fix at
@@ -21,6 +22,9 @@ export const siteScoringTables = {
     number: v.number(),
     announcedAt: v.number(),
     takesEffectAt: v.number(),
+    /** A patch's rule balance lab report (balanceLab/balanceLabRun.ts), run by itself once it is
+     *  announced, for the patch notes; absent on a fix, and until that run is done. */
+    lab: v.optional(labReportShape),
     /** A patch announced from a gameweek: that gameweek, whose first kickoff `takesEffectAt`
      *  follows if it moves later before the patch lands (Craig, 1 Nov 2026, on #901;
      *  patchKickoffs.ts). None for a fix, or a patch announced at a moment no gameweek starts at. */

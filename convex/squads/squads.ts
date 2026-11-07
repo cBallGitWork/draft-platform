@@ -17,18 +17,20 @@ import { readOnce } from "../shared/readOnce";
 import { heldOrNot, ownerOf, placeOf, squadOf, unheldCodes } from "./squadPlace";
 import { pickFirstLineupAgain } from "../lineup/lineups";
 import { offWaivers } from "../waivers/waiverPlayers";
+import { closeOffersHolding } from "../trades/tradeClose";
 
 // Assigning players (#31, spec/15): the league's commissioners and the admin put any player on any
 // team, one at a time, move him between teams, or release him to free agency. Each files a Mail
 // letter (spec/15: nothing changes quietly), and a release also tells each manager whose shortlist
-// holds him (spec/19). The league's squad limits warn, never block. All three are refused while the
+// holds him (spec/19); a move or release closes each open trade offer holding him (spec/08,
+// ../trades/tradeClose.ts). The league's squad limits warn, never block. All three are refused while the
 // league's draft is live, when its picks alone change squads (../draft/draftPicks.ts).
 //
 // Each change to a squad files its league event in the same transaction, and nothing but these and
 // a draft pick (../draft/draftPicks.ts, filed as `playerAssigned`), a manager's drop
 // (../waivers/waivers.ts, `playerDropped`), a waiver run's claim (../waivers/waiverRun.ts,
 // `playerClaimed` and `playerDropped`) and a free agent pickup (../waivers/freeAgents.ts,
-// `playerPickedUp` and `playerDropped`) writes squadPlayers, so the events say what every squad was
+// `playerPickedUp` and `playerDropped`) and a trade (../trades/tradeReview.ts, `playerMoved`) writes squadPlayers, so the events say what every squad was
 // at any moment (squadPlace.ts `squadAt`, #415). A new way to change a squad must file one of squadPlace.ts's SQUAD_MOVES too, or join
 // them, and pick each team's first lineup again (lineups.ts `pickFirstLineupAgain`), so a team
 // always has a lineup (#637).
@@ -110,6 +112,7 @@ export const move = mutation({
     });
     await pickFirstLineupAgain(ctx, leagueId, teamId);
     await pickFirstLineupAgain(ctx, leagueId, from._id);
+    await closeOffersHolding(ctx, leagueId, from._id, [playerCode]);
     return null;
   },
 });
@@ -127,6 +130,7 @@ export const release = mutation({
     await recordEvent(ctx, leagueId, by, { kind: "playerReleased", playerCode, playerName: player.name, teamId: team._id, teamName: team.name });
     await tellShortlisters(ctx, league, player, team, by, { released: true });
     await pickFirstLineupAgain(ctx, leagueId, team._id);
+    await closeOffersHolding(ctx, leagueId, team._id, [playerCode]);
     return null;
   },
 });
@@ -134,7 +138,7 @@ export const release = mutation({
 const squadPlayer = v.object({ code: v.number(), name: v.string(), clubShortName: v.string(), gone: v.boolean() });
 
 /** Where a squad stands against the league's squad limits (spec/03): each one it breaks. */
-const squadWarning = v.union(
+export const squadWarning = v.union(
   v.object({ kind: v.literal("overMaximum"), players: v.number(), maximum: v.number() }),
   v.object({ kind: v.literal("underMinimum"), players: v.number(), minimum: v.number() }),
   v.object({ kind: v.literal("overClubMaximum"), clubShortName: v.string(), players: v.number(), maximum: v.number() }),

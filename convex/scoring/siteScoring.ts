@@ -1,4 +1,5 @@
 import { v } from "convex/values";
+import { internal } from "../_generated/api";
 import type { Doc, Id } from "../_generated/dataModel";
 import { mutation, query, type MutationCtx } from "../_generated/server";
 import { siteScoringKind } from "../schema";
@@ -99,7 +100,7 @@ export async function addVersion(
   const fromGameweek = await firstGameweekFrom(ctx, version.takesEffectAt);
   const changes = scoringChanges(setOf(history.at(-1)), version.scoring);
   const news = { name, kind: version.kind, takesEffectAt: version.takesEffectAt, fromGameweek, changes };
-  if (by !== null) await fileSiteLetter(ctx, (zone) => versionLetter(news, zone), by);
+  if (by !== null) await fileSiteLetter(ctx, (tell) => versionLetter(news, tell), by);
   await repriceAt(ctx, version.takesEffectAt);
   return { id, name, fromGameweek };
 }
@@ -204,6 +205,8 @@ export const announce = mutation({
     const gameweek = (await patchGameweeks(ctx, Date.now(), PATCH_NOTICE_MS)).find((offered) => offered.takesEffectAt === takesEffectAt)?.gameweek;
     const added = await addVersion(ctx, history, { scoring: draft.scoring, kind: "patch", takesEffectAt, gameweek }, admin);
     await ctx.db.delete("siteScoringDraft", draft._id);
+    // The lab runs once more by itself on exactly this set, for the patch notes (Craig, 6 Nov 2026, on #843).
+    await ctx.scheduler.runAfter(0, internal.balanceLab.balanceLabRun.recordAnnounced, { versionId: added.id });
     return { name: added.name, fromGameweek: added.fromGameweek };
   },
 });
@@ -263,7 +266,7 @@ export const withdraw = mutation({
     else await ctx.db.insert("siteScoringDraft", draft);
     await ctx.db.delete("siteScoring", patch._id);
     const news = { name: versionName(patch), takesEffectAt: patch.takesEffectAt };
-    await fileSiteLetter(ctx, (zone) => withdrawnLetter(news, zone), admin);
+    await fileSiteLetter(ctx, (tell) => withdrawnLetter(news, tell), admin);
     return savedAt;
   },
 });

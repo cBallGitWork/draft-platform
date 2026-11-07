@@ -14,12 +14,13 @@ import { liveShortlist } from "../../../src/scouting/shortlist/liveShortlist";
 import { silenceConsoleError } from "../../support/console.setup";
 import { A_LEAGUE_ID } from "../../support/src/convexReact.harness";
 
-const convex = vi.hoisted(() => ({ card: vi.fn(), override: vi.fn(), action: vi.fn(), drop: vi.fn(), putIn: vi.fn(), pickUp: vi.fn() }));
+const convex = vi.hoisted(() => ({ card: vi.fn(), override: vi.fn(), removeOverride: vi.fn(), action: vi.fn(), drop: vi.fn(), putIn: vi.fn(), pickUp: vi.fn() }));
 vi.mock("convex/react", async () =>
   (await import("../../support/src/convexReact.harness")).fakeConvexReact({
     queries: { "playerCard/playerCard:card": convex.card, "waivers/waivers:cardActionOn": convex.action },
     mutations: {
       "table/pointsOverrides:override": convex.override,
+      "table/pointsOverrides:removeOverride": convex.removeOverride,
       "waivers/waivers:drop": convex.drop,
       "waivers/waiverClaims:putIn": convex.putIn,
       "waivers/freeAgents:pickUp": convex.pickUp,
@@ -45,9 +46,20 @@ test("overriding asks table/pointsOverrides:override with the league spread into
   expect(convex.override).toHaveBeenCalledWith({ leagueId: A_LEAGUE_ID, ...CHANGE });
 });
 
+test("removing an override asks table/pointsOverrides:removeOverride with the league and the match, and a refusal comes back in the server's words", async () => {
+  const removeOf = () => renderHook(() => livePlayerCard.useRemoveOverride()).result.current;
+  const match = { fixtureCode: CHANGE.fixtureCode, playerCode: PLAYER_CODE };
+  convex.removeOverride.mockResolvedValue(null);
+  expect(await removeOf()(A_LEAGUE_ID, match)).toBeNull();
+  expect(convex.removeOverride).toHaveBeenCalledWith({ leagueId: A_LEAGUE_ID, ...match });
+
+  convex.removeOverride.mockRejectedValue(new ConvexError(overrideRefusals.noOverride("Saka")));
+  expect(await removeOf()(A_LEAGUE_ID, match)).toBe(overrideRefusals.noOverride("Saka"));
+});
+
 test("a refused override resolves with the server's own words", async () => {
-  convex.override.mockRejectedValue(new ConvexError(overrideRefusals.notLocked));
-  expect(await overrideOf()(A_LEAGUE_ID, CHANGE)).toBe(overrideRefusals.notLocked);
+  convex.override.mockRejectedValue(new ConvexError(overrideRefusals.blankReason));
+  expect(await overrideOf()(A_LEAGUE_ID, CHANGE)).toBe(overrideRefusals.blankReason);
 });
 
 test("any other failure is logged and said plainly", async () => {

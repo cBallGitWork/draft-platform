@@ -102,7 +102,11 @@ name (the score).
 
 ## Marks
 
-- **Shirts**: our own outline in the club's colours, the squad number on the chest.
+- **Shirts**: our own outline in the club's colours, the squad number on the chest. A striped
+  club's shirt (spec/12, Club colours) is its first colour with five upright stripes of its second,
+  each 4 of the shirt's 40 units wide, one every 8, one down the middle; its number keeps the ink
+  that reads on the first colour and gains a 1.5-unit outline in the other ink. A keeper's shirt is
+  always plain.
 - **A club's mark** (spec/12, Club colours; #840): the club's real crest from the Premier League's
   image server by its `code`, `--spacing-club-mark` square, 4px before its code or name where that
   stands alone (Squad, Scouting, the player card, the Premier League table), never in a
