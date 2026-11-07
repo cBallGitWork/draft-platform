@@ -9,6 +9,7 @@ import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
 import {
   downLabel,
+  landingSubject,
   moveLabel,
   movingHintWords,
   playerCardLabel,
@@ -48,6 +49,8 @@ import {
   type Member,
 } from "../../../support/src/tacticsScreen.harness";
 import { openTactics } from "../../../support/src/tactics.harness";
+import { roleIn } from "../../../../convex/lineup/roles";
+import { starsLabel } from "../../../../src/ui/StarRating";
 
 const SALIBAS_CELL = { area: "defence", lane: "leftCentre" } as const;
 
@@ -75,6 +78,22 @@ describe("moving a player", () => {
     await swap(WHITE, SALIBA);
 
     expect((screen.getByRole("combobox", { name: roleLabel(WHITE.name) }) as HTMLSelectElement).value).toBe("ballPlayingDefender");
+  });
+
+  it("picked up, each lit starter shows his stars for the role he'd land on there, on the pitch only (#11; Craig, 7 Nov 2026)", async () => {
+    const starred: Member = { ...WHITE, stars: [{ area: "defence", role: "ballPlayingDefender", stars: 4 }] };
+    openTacticsTab({ tactics: openTactics({ ...SAVED, squad: SQUAD.map((each) => (each === WHITE ? starred : each)) }) });
+    const whitesStars = starsLabel(landingSubject(WHITE.name, roleIn(SALIBAS_CELL, "ballPlayingDefender").name), 4);
+    await pickUp(WHITE);
+
+    const lit = within(pitch()).getByRole("button", { name: swapLabel(WHITE.name, SALIBA.name) });
+    expect(within(lit).getByRole("img", { name: whitesStars })).toBeTruthy();
+    expect(within(lit).getByText(WHITE.name)).toBeTruthy();
+    // The Selection table keeps each row's own Role fit.
+    expect(within(screen.getByRole("table", { name: squadTableLabel })).queryByRole("img", { name: whitesStars })).toBeNull();
+
+    await userEvent.keyboard("{Escape}");
+    expect(within(pitch()).queryByRole("img", { name: whitesStars })).toBeNull();
   });
 
   it("a starter picked up by Move in the panel a tap on him opens lights the bench players he can swap with", async () => {
@@ -228,7 +247,8 @@ describe("the selected player's panel (the approved Tactics picture)", () => {
     await openedPitch();
     await openPanel(SALIBA);
     const roles = within(screen.getByRole("region", { name: SALIBA.name })).getAllByRole("listitem");
-    expect(roles.map((role) => role.textContent)).toEqual(["Stoppernow", "Ball-playing centre-back", "No-nonsense centre-back", "Attacking centre-back"]);
+    // Each with his stars for it: none here, so "—".
+    expect(roles.map((role) => role.textContent)).toEqual(["Stoppernow—", "Ball-playing centre-back—", "No-nonsense centre-back—", "Attacking centre-back—"]);
     expect(roles[0].getAttribute("aria-current")).toBe("true");
   });
 

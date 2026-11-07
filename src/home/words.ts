@@ -62,5 +62,7 @@ export function moveWords({ kind, playerName, teamName, fromTeamName }: SquadMov
       return `${playerName} was dropped by ${teamName}`;
     case "playerClaimed":
       return `${playerName} was claimed by ${teamName}`;
+    case "playerPickedUp":
+      return `${playerName} was picked up by ${teamName}`;
   }
 }

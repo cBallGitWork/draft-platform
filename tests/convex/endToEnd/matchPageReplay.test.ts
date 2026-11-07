@@ -19,7 +19,7 @@ const HALF_AN_HOUR_BEFORE = KICKOFF - LINEUPS_OUT_BEFORE_KICKOFF_MS / 2;
 const FIRST_HALF = 30;
 
 async function pageAs(league: MiniBeta, email: string): Promise<MatchPageData> {
-  const page = await (await actingAs(league.t, email)).query(api.match.matchPage.ofMatch, { leagueId: league.leagueId, fixtureCode: HULL_EVERTON });
+  const page = await (await actingAs(league.t, email)).query(api.match.matchPage.ofMatch, { leagueId: league.leagueId, now: Date.now(), fixtureCode: HULL_EVERTON });
   if (page === null) throw new Error("the match page found no match");
   return page;
 }

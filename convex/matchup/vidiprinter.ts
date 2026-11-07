@@ -17,7 +17,7 @@ import type { Doc } from "../_generated/dataModel";
 import { FEED_TYPE, withFullTimePoints } from "../football/commentary";
 import type { InMatch } from "../gameweekScorer/teamGameweek";
 import type { Cell } from "../lineup/pitch";
-import { roleAdjustmentFor, scoreMatch } from "../scoring/scoring";
+import { roleTotal, scoreMatch } from "../scoring/scoring";
 import type { ScoringSet } from "../scoring/scoringSet";
 import { inTenths, type MatchStats } from "../scoring/values";
 import { categoryName } from "../scoring/categories";
@@ -175,13 +175,22 @@ function thresholdLines(match: VidiprinterMatch, players: ReadonlyMap<PlayerCode
     const key = tallyKey(step.playerCode, step.stat);
     const last = lastShown.get(key);
     if (player === undefined || (last !== undefined && last.from === step.from && last.to === step.to)) return [];
-    const points = inTenths(stepPoints(step, set, player.cell) + (step.to - step.from) * roleAdjustmentFor(set, player.role, step.stat));
+    const points = inTenths(stepPoints(step, set, player.cell) + roleStep(step, match.fixtureCode, player, set));
     if (points === 0) return [];
     lastShown.set(key, step);
     const when = step.minute === null ? "" : `~${step.minute}' `;
     const text = `${when}${player.name}: ${step.to} ${statWords(step.stat, set)}`;
     return [{ line: { key: `${match.fixtureCode}:step:${index}`, text, points: worth([{ name: player.name, points }], 1) }, minute: step.minute }];
   });
+}
+
+/** What a step moves his role's points by (spec/05 Roles: whole points by bars): his role's points
+ *  with the step's stat at its after, less at its before, the rest of his record as it stands, as
+ *  a goal's line is priced. Nothing while his record isn't whole. */
+function roleStep(step: StoredStep, fixtureCode: number, player: VidiprinterPlayer, set: ScoringSet): number {
+  const stats = player.inMatch.get(fixtureCode)?.stats ?? null;
+  if (stats === null) return 0;
+  return roleTotal({ ...stats, [step.stat]: step.to }, set, player.role) - roleTotal({ ...stats, [step.stat]: step.from }, set, player.role);
 }
 
 /** "+4" for a line naming one man; "Saka +4, Ødegaard +3" for one naming more. */

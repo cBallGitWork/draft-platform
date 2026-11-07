@@ -1,5 +1,6 @@
-import { expect, test } from "vitest";
+import { expect, test, vi } from "vitest";
 import { api, internal } from "../../../convex/_generated/api";
+import { MINUTE_MS } from "../../../convex/shared/time";
 import { bySheetOrder } from "../../../convex/match/sheetOrder";
 import { refusals } from "../../../convex/shared/leagueAccess";
 import {
@@ -206,6 +207,23 @@ test("the commentary is the match's lines newest first, the goal priced for its 
   // The same lines, priced alike, as the matchup's.
   expect(page.commentary).toEqual({ kind: "read", lines: matchup.commentary.lines, delayed: true });
   expect(page.commentary.kind === "read" && page.commentary.lines[0].points).toMatch(/^\+/);
+});
+
+// With the live tick stopped, the page judges the stream itself (#917; spec/10, The commentary).
+test("with the tick stopped mid-match, the page says the commentary is delayed once its newest line trails the clock by over 10 minutes", async () => {
+  const league = await matchLeague();
+  await fullTimeRecords(league);
+  const readAt = Date.now();
+  await scoreRead(league, "live", 70);
+  await holdScorersGoal(league);
+  const delayedAt = async (minutesLater: number) => {
+    vi.setSystemTime(readAt + minutesLater * MINUTE_MS);
+    const { commentary } = (await matchAs(league, ANN))!;
+    return commentary.kind === "read" && commentary.delayed;
+  };
+  // The goal at 64': the clock may run to 74' before it trails by over 10.
+  expect(await delayedAt(4)).toBe(false);
+  expect(await delayedAt(5)).toBe(true);
 });
 
 test("a goal's points include his role's adjustment, on the match page and the matchup alike, as his slot's do", async () => {

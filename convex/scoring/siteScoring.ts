@@ -10,11 +10,12 @@ import { zoneOf } from "../signIn/timeZone";
 import { sortedJson } from "../shared/sortedJson";
 import { DAY_MS, seasonStartYear } from "../shared/time";
 import { fileSiteLetter } from "../mail/letters";
-import { versionLetter } from "../mail/letterWords";
+import { versionLetter, withdrawnLetter } from "../mail/letterWords";
+import { carryFix } from "./carryFix";
 import { scoringChanges } from "./patchChanges";
 import { checkOwnStatsAgainstCatalogue } from "./ownStats";
 import { validateScoringSet } from "./scoringSet";
-import { firstGameweekFrom, setOf, SITE_SCORING_VERSIONS_MOST, siteVersions, versionName } from "./siteVersions";
+import { firstGameweekFrom, firstGameweekFromAny, patchGameweeks, setOf, SITE_SCORING_VERSIONS_MOST, siteVersions, versionName } from "./siteVersions";
 import { UnsoundScoring } from "./values";
 
 // The site's scoring set (spec/14, Who owns it, and Changes and corrections; #354, #355): one set
@@ -29,7 +30,8 @@ import { UnsoundScoring } from "./values";
 // nor a re-score of a played one; before any, the first set (firstScoring.ts). Scoring a league's
 // match reads `siteScoringInGameweek` (siteVersions.ts, which reads which version is in force),
 // never the league's rules. Versions take effect in the order they are announced, so a newer one
-// never lands before an older one it was made from.
+// never lands before an older one it was made from. A fix is carried into the draft patch, and a
+// patch announced and not yet in effect can be withdrawn, back to a draft (Craig, 6 Nov 2026, on #368).
 
 /** The least notice a patch is announced with (spec/14: "week notice for updates"). */
 export const PATCH_NOTICE_DAYS = 7;
@@ -50,6 +52,8 @@ export const siteScoringRefusals = {
   beforeWaiting: (name: string, at: number, zone: string | undefined) => `Version ${name} takes effect on ${momentIn(at, zone)}, so this one can't take effect before it.`,
   fixWhileWaiting: (name: string, at: number, zone: string | undefined) =>
     `Version ${name} is announced to take effect on ${momentIn(at, zone)} and was made without this fix, so the fix wasn't saved. Fix it once ${name} has taken effect.`,
+  notWaiting: "That patch isn't waiting to take effect, so it can't be withdrawn.",
+  carriedUnsound: (reason: string) => `The fix can't be carried into the draft patch: ${reason}. Change the draft, then save the fix again.`,
   tooManyVersions: `The site's scoring has been changed ${SITE_SCORING_VERSIONS_MOST} times, the most it can hold, so this change wasn't saved.`,
   unsound: (reason: string) => `The scoring set can't be saved: ${reason}.`,
 };
@@ -60,13 +64,13 @@ const siteRevisionShape = v.union(v.null(), v.id("siteScoring"));
 
 /** Refuses, with the reason, a set that would score wrong or an own stat named as a catalogue
  *  stat is. Anything else the checks throw is the bug it is, never a refusal. */
-function checkScoringSet(scoring: StoredScoringSet): void {
+function checkScoringSet(scoring: StoredScoringSet, refusal = siteScoringRefusals.unsound): void {
   try {
     validateScoringSet(scoring);
     // On saving only: ownStats.ts's validateOwnStats says why.
     checkOwnStatsAgainstCatalogue(scoring.ownStats ?? []);
   } catch (error) {
-    if (error instanceof UnsoundScoring) refuse(siteScoringRefusals.unsound(error.message));
+    if (error instanceof UnsoundScoring) refuse(refusal(error.message));
     throw error;
   }
 }
@@ -77,39 +81,49 @@ function checkRevision(latest: Doc<"siteScoring"> | undefined, revision: Id<"sit
 }
 
 /** Adds a version taking effect at `takesEffectAt`, numbered next in its season, and files the
- *  letter telling every manager what it changes (spec/14: a patch is announced by a Mail letter, and
- *  a fix is announced as a fix, so it gets one too; #356). Returns its name and the first gameweek
- *  it reaches. */
-async function addVersion(
+ *  letter from `by` telling every manager what it changes (spec/14: a patch is announced by a Mail
+ *  letter, and a fix is announced as a fix, so it gets one too; #356). `by` is null for the one
+ *  version with no letter, the roles' first values (Craig, 5 Nov 2026; firstRolesVersion.ts).
+ *  Returns its name and the first gameweek it reaches. */
+export async function addVersion(
   ctx: MutationCtx,
   history: readonly Doc<"siteScoring">[],
   version: Pick<Doc<"siteScoring">, "scoring" | "kind" | "takesEffectAt">,
-  by: string,
-): Promise<{ name: string; fromGameweek: number }> {
+  by: string | null,
+): Promise<{ id: Id<"siteScoring">; name: string; fromGameweek: number }> {
   if (history.length >= SITE_SCORING_VERSIONS_MOST) refuse(siteScoringRefusals.tooManyVersions);
   const season = seasonStartYear(version.takesEffectAt);
   const number = Math.max(0, ...history.filter((row) => row.season === season).map((row) => row.number)) + 1;
-  await ctx.db.insert("siteScoring", { ...version, season, number, announcedAt: Date.now() });
+  const id = await ctx.db.insert("siteScoring", { ...version, season, number, announcedAt: Date.now() });
   const name = versionName({ season, number });
   const fromGameweek = await firstGameweekFrom(ctx, version.takesEffectAt);
   const changes = scoringChanges(setOf(history.at(-1)), version.scoring);
   const news = { name, kind: version.kind, takesEffectAt: version.takesEffectAt, fromGameweek, changes };
-  await fileSiteLetter(ctx, (zone) => versionLetter(news, zone), by);
+  if (by !== null) await fileSiteLetter(ctx, (zone) => versionLetter(news, zone), by);
   // Stars price every match under today's scoring, so everyone is rated again once it takes effect
   // (stars/starsRefresh.ts, #11).
   await ctx.scheduler.runAt(version.takesEffectAt, internal.stars.starsRefresh.refreshAll, { cursor: null });
   // Last season's points are priced under the set as it stands too (spec/19; pastSeasonPoints.ts).
   await ctx.scheduler.runAt(version.takesEffectAt, internal.pastSeasons.pastSeasonPoints.reprice, { cursor: null });
-  return { name, fromGameweek };
+  return { id, name, fromGameweek };
 }
 
-const versionSummary = v.object({ name: v.string(), kind: siteScoringKind, takesEffectAt: v.number() });
+const versionSummary = v.object({
+  id: v.id("siteScoring"),
+  name: v.string(),
+  kind: siteScoringKind,
+  announcedAt: v.number(),
+  takesEffectAt: v.number(),
+  fromGameweek: v.number(),
+});
+const patchGameweek = v.object({ gameweek: v.number(), takesEffectAt: v.number() });
 const draftShape = v.object({ part: scoringSetShape, savedAt: v.number() });
 
 /** Player scoring's read: the site's latest set, a waiting patch's among them; the version it is
  *  (for a change to carry); the gameweek a fix made at `now` would first reach; whether the reader
- *  may change it, which only the admin may; every version, oldest first; and, for the admin alone,
- *  the draft patch. `now` is the screen's, moved on each minute, as a query must not read the clock
+ *  may change it, which only the admin may; every version, oldest first, with the first gameweek
+ *  each reaches; and, for the admin alone, the draft patch and the gameweeks a patch announced at
+ *  `now` can take effect from (siteVersions.ts's `patchGameweeks`). `now` is the screen's, moved on each minute, as a query must not read the clock
  *  (convex/admin/feeds.ts says why). */
 export const view = query({
   args: { now: v.number() },
@@ -120,19 +134,29 @@ export const view = query({
     canEdit: v.boolean(),
     versions: v.array(versionSummary),
     draft: v.union(v.null(), draftShape),
+    patchGameweeks: v.array(patchGameweek),
   }),
   handler: async (ctx, { now }) => {
     const canEdit = isAdmin(await callerEmail(ctx));
     const history = await siteVersions(ctx);
     const latest = history.at(-1);
     const draft = canEdit ? await ctx.db.query("siteScoringDraft").unique() : null;
+    const reachedFrom = await firstGameweekFromAny(ctx);
     return {
       part: setOf(latest),
       revision: latest?._id ?? null,
-      changesFrom: await firstGameweekFrom(ctx, now),
+      changesFrom: reachedFrom(now),
       canEdit,
-      versions: history.map((row) => ({ name: versionName(row), kind: row.kind, takesEffectAt: row.takesEffectAt })),
+      versions: history.map((row) => ({
+        id: row._id,
+        name: versionName(row),
+        kind: row.kind,
+        announcedAt: row.announcedAt,
+        takesEffectAt: row.takesEffectAt,
+        fromGameweek: reachedFrom(row.takesEffectAt),
+      })),
       draft: draft && { part: draft.scoring, savedAt: draft.savedAt },
+      patchGameweeks: canEdit ? await patchGameweeks(ctx, now, PATCH_NOTICE_MS) : [],
     };
   },
 });
@@ -182,14 +206,16 @@ export const announce = mutation({
     if (latest !== undefined && takesEffectAt < latest.takesEffectAt) refuse(siteScoringRefusals.beforeWaiting(versionName(latest), latest.takesEffectAt, zone));
     const added = await addVersion(ctx, history, { scoring: draft.scoring, kind: "patch", takesEffectAt }, admin);
     await ctx.db.delete("siteScoringDraft", draft._id);
-    return added;
+    return { name: added.name, fromGameweek: added.fromGameweek };
   },
 });
 
 /** The admin's fix to the site's set, made from the version `revision` names: a new version for
  *  every league, taking effect now, so it never reaches a gameweek already begun. The same set again
- *  changes nothing. Returns the first gameweek it reaches. Refused, with the reason, for anyone but
- *  the admin, if saved since `revision`, while a patch waits to take effect, or if unsound. */
+ *  changes nothing. A draft patch made from the same version gets the fix too, except where it
+ *  changes a value itself (carryFix.ts), and is then made from the fix. Returns the first gameweek
+ *  it reaches. Refused, with the reason, for anyone but the admin, if saved since `revision`, while
+ *  a patch waits to take effect, if unsound, or if the draft with the fix carried in would be. */
 export const fix = mutation({
   args: { scoring: scoringSetShape, revision: siteRevisionShape },
   returns: v.number(),
@@ -203,6 +229,43 @@ export const fix = mutation({
     const now = Date.now();
     if (sortedJson(setOf(latest)) === sortedJson(scoring)) return firstGameweekFrom(ctx, now);
     if (latest !== undefined && latest.takesEffectAt > now) refuse(siteScoringRefusals.fixWhileWaiting(versionName(latest), latest.takesEffectAt, zone));
-    return (await addVersion(ctx, history, { scoring, kind: "fix", takesEffectAt: now }, admin)).fromGameweek;
+    // A draft made from an older version is refused when announced anyway (`draftOvertaken`).
+    const draft = await ctx.db.query("siteScoringDraft").unique();
+    const carrying = draft !== null && draft.madeFrom === (latest?._id ?? null) ? draft : null;
+    const carried = carrying && carryFix(setOf(latest), scoring, carrying.scoring);
+    if (carried) checkScoringSet(carried, siteScoringRefusals.carriedUnsound);
+    const added = await addVersion(ctx, history, { scoring, kind: "fix", takesEffectAt: now }, admin);
+    if (carrying && carried) await ctx.db.replace("siteScoringDraft", carrying._id, { scoring: carried, madeFrom: added.id, savedAt: now });
+    return added.fromGameweek;
+  },
+});
+
+/** The admin withdraws the patch `versionId` names, announced and not yet in effect (Craig, 6 Nov
+ *  2026, on #368: "back to a draft, its banner goes, and every manager gets a Mail letter saying
+ *  so"; announced again, it has a fresh 7 days). Its set becomes the draft patch, made from the
+ *  version before it; a draft already made from the patch holds it, so is kept, made from that
+ *  version too; one made before the patch could never be announced (`draftOvertaken`), so the patch
+ *  replaces it. The banner goes with the version (patchNotes.ts reads the versions); the stars and
+ *  last season's prices it scheduled are worked out again under the set then in force, which is no
+ *  harm. Returns when the draft was saved. Refused, with the reason, for anyone but the admin, or
+ *  for a version that isn't a patch still waiting. */
+export const withdraw = mutation({
+  args: { versionId: v.id("siteScoring") },
+  returns: v.number(),
+  handler: async (ctx, { versionId }) => {
+    const admin = await adminOf(ctx);
+    const history = await siteVersions(ctx);
+    const patch = history.at(-1);
+    if (patch === undefined || patch._id !== versionId || patch.kind !== "patch" || patch.takesEffectAt <= Date.now()) refuse(siteScoringRefusals.notWaiting);
+    const madeFrom = history.at(-2)?._id ?? null;
+    const held = await ctx.db.query("siteScoringDraft").unique();
+    const savedAt = Date.now();
+    const draft = { scoring: held?.madeFrom === patch._id ? held.scoring : patch.scoring, madeFrom, savedAt };
+    if (held) await ctx.db.replace("siteScoringDraft", held._id, draft);
+    else await ctx.db.insert("siteScoringDraft", draft);
+    await ctx.db.delete("siteScoring", patch._id);
+    const news = { name: versionName(patch), takesEffectAt: patch.takesEffectAt };
+    await fileSiteLetter(ctx, (zone) => withdrawnLetter(news, zone), admin);
+    return savedAt;
   },
 });

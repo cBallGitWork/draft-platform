@@ -183,6 +183,7 @@ describe("a keeper", () => {
     ]);
   });
 
+  // S05.5
   test("never comes on for an outfield player, even with room in goal", () => {
     const { lineup, positions } = withBench(["GK"]);
     const roomForTwo = openLimits({ goalkeeper: { minimum: 1, maximum: 2 } });
@@ -222,8 +223,24 @@ describe("when no one can come on legally", () => {
 });
 
 describe("a double gameweek", () => {
-  const finished = (minutes: number) => ({ finished: true, minutes });
-  const toCome = { finished: false, minutes: 0 };
+  const finished = (minutes: number) => ({ finished: true, minutes, postponed: false });
+  const toCome = { finished: false, minutes: 0, postponed: false };
+  const postponed = { finished: false, minutes: 0, postponed: true };
+
+  // S05.4
+  test("a postponed match counts as one he didn't play, so he is subbed straight away (#900)", () => {
+    expect(gameweekPlay([postponed])).toBe("didNotPlay");
+    const { lineup, positions } = withBench(["ST"]);
+    expect(subbed(lineup, positions, plays(lineup, [], [[STRIKER, gameweekPlay([postponed])]])).substitutions).toEqual([
+      strikerReplacedBy(FIRST),
+    ]);
+  });
+
+  test("with a postponed match and one still to come, he waits for the one to come (#900)", () => {
+    expect(gameweekPlay([postponed, toCome])).toBe("stillToPlay");
+    expect(gameweekPlay([postponed, finished(0)])).toBe("didNotPlay");
+    expect(gameweekPlay([postponed, finished(60)])).toBe("played");
+  });
 
   test("a starter who plays in either match played", () => {
     expect(gameweekPlay([finished(0), finished(30)])).toBe("played");

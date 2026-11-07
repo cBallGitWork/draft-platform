@@ -71,7 +71,7 @@ Each shows in its place and size until its data comes.
 | The formation window's Unlocks and Costs lines | the same | to-grill: Team tactic per formation |
 | A classic's text and its Gains and Loses lines (marked sample) | Craig's own words for each | to-grill: Formation descriptions |
 | Preset names (marked sample names) | a manager's own saved presets | `spec/05`, The pitch |
-| Role fit stars, the panel's stars and "Last 5 in role" | stars on screen (#11); scouts decide whose a manager sees (#375) | #11, #375 |
+| "Last 5 in role" | what it counts; scouts decide whose stars a manager sees (#375); Role fit and the panel's stars are built (#11) | #375 |
 | The Next column and fixture chips' colours | where fixture difficulty comes from | to-grill: Where fixture difficulty comes from |
 | The status chips after a name, and Lineup check's lines (doubt, booking, injured, suspended) | which FPL statuses each chip reads, and a count of bookings | to-grill: Status chips' data; to-grill: Who's doubtful, on Tactics |
 | The formation window's group counts (Back 3 5, Back 4 12, Back 5 4, Classics 6) | the league's presets and the classics listed; the picture's counts are sample | `spec/05`, The pitch |

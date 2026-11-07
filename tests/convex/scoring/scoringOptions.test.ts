@@ -76,14 +76,15 @@ describe("a points limit", () => {
   });
 
   // 0.1 three times is a hair over 0.3 in floating point. Points are rounded to tenths before the
-  // limit holds them (#825), so reaching the limit exactly scores it and cuts nothing.
+  // limit holds them (#825), so reaching the limit exactly scores it, cuts nothing, and is marked
+  // as reaching it (Craig, 1 Nov 2026, #863).
   test.each([
-    ["its most: three tenths held to 0.3", 0.1, { max: 0.3, min: null }, 0.3],
-    ["its least: three tenths off held to -0.3", -0.1, { max: null, min: -0.3 }, -0.3],
-  ])("reached exactly, %s, scores the limit and cuts nothing", (_what, value, limit, edge) => {
+    ["its most: three tenths held to 0.3", 0.1, { max: 0.3, min: null }, 0.3, "atMax"],
+    ["its least: three tenths off held to -0.3", -0.1, { max: null, min: -0.3 }, -0.3, "atMin"],
+  ])("reached exactly, %s, scores the limit and says he reached it", (_what, value, limit, edge, by) => {
     const rule: ScoringRule = { shape: "perAction", stat: "won_tackle", values: { all: value }, limit: { all: limit } };
     const [category] = scoreMatch({ minutes: 90, won_tackle: 3 }, setOf(rule), CENTRE_BACK).categories;
-    expect(category).toMatchObject({ points: edge, why: { cut: null } });
+    expect(category).toMatchObject({ points: edge, why: { cut: { by, limit: edge } } });
   });
 
   test("points too large to be a number still say which rule, when the limit has no most", () => {

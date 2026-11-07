@@ -6,7 +6,9 @@ import type { Id } from "../../convex/_generated/dataModel";
 import { snakeOrder } from "../../convex/draft/snakeOrder";
 import type { Position } from "../../convex/positions/positionTables";
 import { DAY_MS, HOUR_MS, SECOND_MS } from "../../convex/shared/time";
-import type { BoardPick, DraftSeam, DraftState } from "./seam";
+import { previewScouting } from "../scouting/preview";
+import { previewLists, usePreviewAutoPick } from "./previewLists";
+import type { BoardPick, CommissionerChanges, DraftChanges, DraftSeam, DraftState, GreyedPlayer, RoomFigures } from "./seam";
 
 const NAMES = ["Kroos Control", "Rovers XI", "Bale Out", "Pep Talk", "Klopp Shop", "Havertz Rent", "Xhaka Laka", "Saka Potatoes", "Show Me Your Moyes", "Dirty Dozen"];
 const order = NAMES.map((name, index) => ({ teamId: `preview-draft-team-${index + 1}` as Id<"teams">, name }));
@@ -28,6 +30,7 @@ const snake = snakeOrder(order, ROUNDS);
 const picks: BoardPick[] = TAKEN.map(([name, clubShortName, position], index) => ({
   pick: index + 1,
   teamId: snake[index].teamId,
+  auto: false,
   player: { code: 9000 + index, name, clubShortName, position },
 }));
 
@@ -48,8 +51,50 @@ const before: DraftState = { status: "waiting", startsAt: startedAt + 4 * DAY_MS
 /** Whether `?draft=before` asks for the draft before its start. */
 const isBefore = () => new URLSearchParams(window.location.search).get("draft") === "before";
 
+/** The preview changes nothing, and says nothing went wrong. */
+const done = () => Promise.resolve(null);
+const COMMISSIONER_CHANGES: CommissionerChanges = { start: done, pause: done, resume: done, undo: done, setPickTime: done, markForCommissioner: done };
+
+const GREYED: readonly GreyedPlayer[] = [
+  { code: 2, reason: "clubFull" },
+  { code: 3, reason: "clubFull" },
+];
+/** The preview's pick is made at once, and changes nothing. */
+const PREVIEW_CHANGES: DraftChanges = { makePick: done };
+
+/** Scouting's preview players' figures, by code: rank, 25/26's points, and MP, G, A and CS. */
+const FIGURES: readonly [number, number, number | null, number, number, number, number][] = [
+  [1, 5, 212, 38, 12, 9, 0],
+  [2, 31, 164, 36, 4, 6, 0],
+  [3, 40, 123, 32, 0, 0, 13],
+  [4, 2, 245, 37, 15, 10, 0],
+  [5, 47, 112, 29, 1, 3, 9],
+  [6, 1, 265, 38, 22, 12, 0],
+  [7, 35, 131, 35, 2, 3, 12],
+];
+const figures: RoomFigures = {
+  players: FIGURES.map(([code, rank, lastSeasonPoints, appearances, goals, assists, cleanSheets]) => ({
+    code,
+    rank,
+    lastSeasonPoints,
+    overview: { appearances, goals, assists, cleanSheets },
+  })),
+  lastSeason: 2025,
+  statsSeason: 2025,
+  maxPerClub: 2,
+};
+
 export const previewDraft: DraftSeam = {
   useDraft: () => (isBefore() ? before : draft),
-  useBoard: () => ({ picks: isBefore() ? [] : picks, yourTeamId: YOURS, pickSeconds: 90 }),
+  useBoard: () => ({ picks: isBefore() ? [] : picks, yourTeamId: YOURS, pickSeconds: 90, yourAutoPick: usePreviewAutoPick() }),
   useInMenu: () => true,
+  // Scouting's preview players; Saka Potatoes is at its Arsenal maximum, so Rice and Raya are greyed.
+  usePlayersList: previewScouting.usePlayersList,
+  useGreyedOut: () => (isBefore() ? [] : GREYED),
+  useFigures: () => figures,
+  useDraftChanges: () => PREVIEW_CHANGES,
+  ...previewLists,
+  // The commissioner panel, for the preview's commissioner session: Dirty Dozen has no manager.
+  useCommissioner: () => ({ pickSeconds: 90, unmanaged: [{ teamId: order[9].teamId, name: NAMES[9], marked: false }] }),
+  useCommissionerChanges: () => COMMISSIONER_CHANGES,
 };

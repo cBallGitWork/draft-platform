@@ -53,3 +53,22 @@ export function latestRunAt(runs: readonly WaiverRun[], now: number): number | n
   }
   return latest;
 }
+
+/** The first of the league's waiver runs at or after `from`, or null with no runs: for a player a
+ *  run may take from `from` on, the run that can first take him (Craig, 6 Nov 2026, on #1200: "Show
+ *  the run's day and time"). */
+export function firstRunFrom(runs: readonly WaiverRun[], from: number): number | null {
+  const today = Math.floor((from + londonOffset(from)) / DAY_MS) * DAY_MS;
+  let first: number | null = null;
+  // Today, and a week on from it, holds every weekday's first.
+  for (let on = 0; on <= 7; on += 1) {
+    const day = today + on * DAY_MS;
+    const weekday = DATE_DAYS[new Date(day).getUTCDay()];
+    for (const run of runs) {
+      if (run.day !== weekday) continue;
+      const at = ukMoment(day, run.hour, run.minute);
+      if (at >= from && (first === null || at < first)) first = at;
+    }
+  }
+  return first;
+}

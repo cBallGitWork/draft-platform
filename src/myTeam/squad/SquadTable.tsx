@@ -7,6 +7,7 @@ import { Placeholder } from "../../ui/Placeholder";
 import { PositionCode } from "../../ui/PositionCodes";
 import { unheldPlayerWords } from "../../shared/words";
 import type { TeamSquad } from "../seam";
+import { PositionMarks, type PositionMark } from "../tactics/positionMarks";
 import {
   benchWords,
   difficultyNotRatedWords,
@@ -51,6 +52,7 @@ export function SquadTable({
   unheld,
   lastGameweek,
   starting,
+  marks,
   selected,
   onSelect,
 }: {
@@ -60,6 +62,8 @@ export function SquadTable({
   lastGameweek: number | null;
   /** The eleven's codes; null while no lineup is open to set, when nobody is benched. */
   starting: ReadonlySet<number> | null;
+  /** Each player's position marks, by his code (tactics/positionMarks.ts). */
+  marks: ReadonlyMap<number, readonly PositionMark[]>;
   selected: number | null;
   onSelect(code: number): void;
 }) {
@@ -71,7 +75,7 @@ export function SquadTable({
         <ColumnHeads columns={heads} shown={COLUMNS} classOf={cellClasses} />
         <tbody>
           {rows.map((player) => (
-            <SquadRow key={player.code} player={player} starts={starting === null || starting.has(player.code)} isSelected={selected === player.code} onSelect={onSelect} />
+            <SquadRow key={player.code} player={player} starts={starting === null || starting.has(player.code)} marks={marks.get(player.code) ?? []} isSelected={selected === player.code} onSelect={onSelect} />
           ))}
           {/* Data gone wrong, kept so it shows (#323): there's no player to fill the columns. */}
           {unheld.map((code) => (
@@ -87,7 +91,7 @@ export function SquadTable({
   );
 }
 
-function SquadRow({ player, starts, isSelected, onSelect }: { player: Row; starts: boolean; isSelected: boolean; onSelect(code: number): void }) {
+function SquadRow({ player, starts, marks, isSelected, onSelect }: { player: Row; starts: boolean; marks: readonly PositionMark[]; isSelected: boolean; onSelect(code: number): void }) {
   return (
     <tr
       onClick={() => onSelect(player.code)}
@@ -95,7 +99,7 @@ function SquadRow({ player, starts, isSelected, onSelect }: { player: Row; start
       className="cursor-pointer border-t border-panel-rule aria-current:bg-name-plate aria-current:shadow-current-edge"
     >
       {COLUMNS.map((column) => (
-        <SquadCell key={column} column={column} player={player} starts={starts} isSelected={isSelected} onSelect={onSelect} />
+        <SquadCell key={column} column={column} player={player} starts={starts} marks={marks} isSelected={isSelected} onSelect={onSelect} />
       ))}
     </tr>
   );
@@ -103,7 +107,7 @@ function SquadRow({ player, starts, isSelected, onSelect }: { player: Row; start
 
 /** One cell of a player's row. His name is the row's button, for the keyboard and screen readers;
  *  a tap anywhere on the row does the same. */
-function SquadCell({ column, player, starts, isSelected, onSelect }: { column: Column; player: Row; starts: boolean; isSelected: boolean; onSelect(code: number): void }) {
+function SquadCell({ column, player, starts, marks, isSelected, onSelect }: { column: Column; player: Row; starts: boolean; marks: readonly PositionMark[]; isSelected: boolean; onSelect(code: number): void }) {
   const className = cellClasses(column);
   switch (column) {
     case "number":
@@ -140,6 +144,7 @@ function SquadCell({ column, player, starts, isSelected, onSelect }: { column: C
               <Placeholder label={statusNotSettledLabel} className="size-3 align-middle" />
             </>
           )}
+          <PositionMarks marks={marks} />
           {player.gone && <span className="block font-normal text-event">{goneWords}</span>}
         </th>
       );

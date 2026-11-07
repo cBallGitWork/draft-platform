@@ -3,7 +3,7 @@ import { ALL_CELLS, positionOfSlot, SLOT_POSITIONS, type Area, type SlotPosition
 import type { StoredScoringSet } from "./scoringSetShape";
 import { categoryName } from "./categories";
 import { priceFor, type Priced } from "./priced";
-import type { Band, PointsLimit } from "./scoringSet";
+import type { Band, PointsLimit, RoleSide } from "./scoringSet";
 import { groupedBy } from "../shared/groupedBy";
 import { figureWords, MINUS_SIGN, signedWords } from "../shared/numberWords";
 
@@ -148,26 +148,30 @@ export function scoringChanges(before: StoredScoringSet, after: StoredScoringSet
   for (const [key, rule] of beforeRules) if (!afterRules.has(key)) lines.push(`${categoryName(rule.stat, before.ownStats)}: no longer scored`);
   if (before.wholePointsOnly !== after.wholePointsOnly) lines.push(after.wholePointsOnly ? "Points are now whole only" : "Points can now be fractions");
   lines.push(...ownStatChanges(before.ownStats ?? [], after.ownStats ?? []));
-  lines.push(...roleAdjustmentChanges(before, after));
+  lines.push(...roleChanges(before, after));
   return lines;
 }
 
-/** One line for each role whose adjustment changed, named as managers say it, each stat's points
- *  per action (spec/05 Roles): "Attacking full-back: now +1 per Accurate cross, −1 per Clean
- *  sheets", or that it no longer adjusts anything. */
-function roleAdjustmentChanges(before: StoredScoringSet, after: StoredScoringSet): string[] {
-  const words = (set: StoredScoringSet, role: string) =>
-    (set.roleAdjustments ?? [])
-      .find((each) => each.role === role)
-      ?.adjustments.map(({ stat, points }) => `${signedWords(points)} per ${categoryName(stat, set.ownStats)}`)
-      .join(", ") ?? "";
-  const roles = new Set([...(before.roleAdjustments ?? []), ...(after.roleAdjustments ?? [])].map(({ role }) => role));
+/** One line for each role whose scoring changed, named as managers say it, each side's bars and
+ *  mix (spec/05 Roles): "Poacher: now +1 at 2, +2 at 3, +3 at 4 of 2 × Goals in box + Shots on
+ *  target in box; −1 at 1, −2 at 4, −3 at 7 of Big chances missed", or that it no longer scores. */
+function roleChanges(before: StoredScoringSet, after: StoredScoringSet): string[] {
+  const words = (set: StoredScoringSet, role: string) => {
+    const scoring = (set.roles ?? []).find((each) => each.role === role);
+    if (scoring === undefined) return "";
+    const side = ({ parts, bars }: RoleSide, sign: 1 | -1) =>
+      `${bars.map((bar, index) => `${signedWords(sign * (index + 1))} at ${figureWords(bar)}`).join(", ")} of ${parts
+        .map(({ stat, weight }) => `${weight === 1 ? "" : `${figureWords(weight)} × `}${categoryName(stat, set.ownStats)}`)
+        .join(" + ")}`;
+    return `${side(scoring.bonus, 1)}; ${side(scoring.cost, -1)}`;
+  };
+  const roles = new Set([...(before.roles ?? []), ...(after.roles ?? [])].map(({ role }) => role));
   const lines: string[] = [];
   for (const role of roles) {
     const was = words(before, role);
     const now = words(after, role);
     if (was === now) continue;
-    lines.push(`${roleName(role)}: ${now === "" ? "no longer adjusted" : `now ${now}`}`);
+    lines.push(`${roleName(role)}: ${now === "" ? "no longer scored" : `now ${now}`}`);
   }
   return lines;
 }

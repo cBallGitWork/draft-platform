@@ -1,7 +1,7 @@
 import { v, type Infer } from "convex/values";
 import type { Doc, Id } from "../_generated/dataModel";
 import { query, type QueryCtx } from "../_generated/server";
-import { heldOf } from "../football/matchCommentary";
+import { delayedAt, heldOf } from "../football/matchCommentary";
 import { heldTeamSheetsOf } from "../football/matchTeamSheets";
 import { heldTeamStatsOf } from "../football/matchTeamStats";
 import { scoreOf, scoreOnly } from "../football/matchScores";
@@ -87,11 +87,12 @@ export const matchPageData = v.object({
 });
 export type MatchPageData = Infer<typeof matchPageData>;
 
-/** The match for anyone in the league, or null while no match with its code is held. */
+/** The match for anyone in the league, or null while no match with its code is held. `now` is the
+ *  screen's, which the commentary is judged delayed at: a query may not read the clock. */
 export const ofMatch = query({
-  args: { leagueId: v.id("leagues"), fixtureCode: v.number() },
+  args: { leagueId: v.id("leagues"), now: v.number(), fixtureCode: v.number() },
   returns: v.union(matchPageData, v.null()),
-  handler: async (ctx, { leagueId, fixtureCode }) => {
+  handler: async (ctx, { leagueId, now, fixtureCode }) => {
     const { league } = await memberOf(ctx, leagueId);
     const fixture = await fixtureByCode(ctx, fixtureCode);
     if (fixture === null) return null;
@@ -115,7 +116,7 @@ export const ofMatch = query({
       men,
       pointsProblem: priced.problem,
       teamStats: teamStats === null ? null : { home: teamStats.home, away: teamStats.away },
-      commentary: await commentaryOf(ctx, fixture, priced.set, new Map([...unowned, ...priced.players])),
+      commentary: await commentaryOf(ctx, fixture, priced.set, new Map([...unowned, ...priced.players]), { score: held, now }),
     };
   },
 });
@@ -239,8 +240,15 @@ function heldPlayer(ctx: QueryCtx, fixtureCode: number, playerCode: PlayerCode):
 }
 
 /** The match's stored lines, newest first, priced for the `players` once the gameweek has begun;
- *  or why they can't be read, while the rest still shows. */
-async function commentaryOf(ctx: QueryCtx, fixture: Doc<"fixtures">, set: ScoringSet | null, players: ReadonlyMap<PlayerCode, VidiprinterPlayer>): Promise<MatchupCommentary> {
+ *  or why they can't be read, while the rest still shows. Delayed as at `now`, against the match's
+ *  held `score` (`delayedAt`). */
+async function commentaryOf(
+  ctx: QueryCtx,
+  fixture: Doc<"fixtures">,
+  set: ScoringSet | null,
+  players: ReadonlyMap<PlayerCode, VidiprinterPlayer>,
+  { score, now }: { score: Doc<"matchScores"> | null; now: number },
+): Promise<MatchupCommentary> {
   try {
     const row = await heldOf(ctx, fixture.code);
     if (row === null) return { kind: "read", lines: [], delayed: false };
@@ -248,7 +256,7 @@ async function commentaryOf(ctx: QueryCtx, fixture: Doc<"fixtures">, set: Scorin
       set === null
         ? row.lines.map((line) => ({ key: `${fixture.code}:${line.sourceId}`, text: line.text, points: null }))
         : vidiprinter([{ fixtureCode: fixture.code, kickoff: fixture.kickoff, lines: row.lines, steps: await thresholdStepsOf(ctx, fixture.code) }], players, set);
-    return { kind: "read", lines, delayed: row.delayed !== null };
+    return { kind: "read", lines, delayed: delayedAt(row, score, now) };
   } catch (error) {
     return { kind: "unread", reason: logFailure(`Match ${fixture.code}'s commentary can't be read`, error) };
   }

@@ -57,8 +57,14 @@ permissions:
   pull-requests: write  # labelling a pull request (FIXED_LABEL, RESUMED_LABEL) needs it: issues: write alone got 403 on 5 Nov 2026
   contents: read
 
+# One pass at a time. GitHub keeps one pass waiting in a group and drops the one it replaces, so an event the job's
+# `if` drops (a skipped build, any other label) runs in a group of its own: in the lead's group it replaced the real
+# pass waiting behind a running one and then skipped, and on 7 Nov 2026 the builders sat idle from 10:42 to 15:23.
 concurrency:
-  group: lead
+  group: >-
+    ${{ ((github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'skipped')
+         || (github.event_name == 'issues' && !contains(fromJSON('["next","lane:auto","rules:clear"]'), github.event.label.name)))
+        && format('lead-dropped-{0}', github.run_id) || 'lead' }}
   cancel-in-progress: false
 
 env:
@@ -103,12 +109,17 @@ jobs:
           gh label create "$BOARD_LABEL" --color 1D76DB --description "The lead's board, rewritten every pass" --force
           gh label create "$STUCK_LABEL" --color D93F0B --description "Its pull request stayed red after its fix round; take off to build again" --force
       - name: Fill the builders
+        env:
+          # builds are started as the pipeline's own account (CBHelper180): GitHub fires no workflow_run for a run started
+          # with the job's token, so before 6 Nov 2026 no build the lead started ever woke the lead when it ended, and only
+          # the schedule, which GitHub drops, refilled the slots (18:25 to 20:26 that day, with a full queue)
+          DISPATCH_TOKEN: ${{ secrets.BUILD_TOKEN || github.token }}
         run: |
           set -euo pipefail
           # builds run from the lead's own ref, so a branch's lead dispatches that branch's claude-build.yml
           dispatch() { # issue mode [pr]
             echo "Dispatching claude-build: $2 #$1${3:+ on pull request #$3}"
-            [ "$DRY_RUN" = true ] || gh workflow run claude-build.yml --ref "$GITHUB_REF_NAME" -f issue="$1" -f mode="$2" -f pr="${3:-}"
+            [ "$DRY_RUN" = true ] || GH_TOKEN="$DISPATCH_TOKEN" gh workflow run claude-build.yml --ref "$GITHUB_REF_NAME" -f issue="$1" -f mode="$2" -f pr="${3:-}"
           }
           spec_files() { # issue: the spec/NN files its body names
             gh issue view "$1" --json body --jq '.body // ""' | grep -oE 'spec/[0-9]+' | sort -u || true
@@ -257,10 +268,9 @@ jobs:
           stuck=$(jq -r '.[] | select(any(.labels[]?; .name == env.STUCK_LABEL)) | "- #\(.number) \(.title): its pull request stayed red after its fix round (the issue says which)"' <<<"$issues")
           today=$(date -u +%Y-%m-%d)
           merged=$(gh pr list --state merged --search "merged:>=$today" --limit 100 --json number,title --jq '.[] | "- #\(.number) \(.title)"')
-          red=$(jq -r '.[] | select(.isDraft | not) | select(any(.statusCheckRollup[]?; .conclusion == "FAILURE" and .name != "look-approved")) | "- #\(.number) \(.headRefName)"' <<<"$prs")  # a look waiting on Craig is listed under looks, not red
-          looks=$(jq -r '.[] | select(.isDraft | not) | select(any(.statusCheckRollup[]?; .name == "look-approved" and .conclusion == "FAILURE")) | "- #\(.number): the look, your craig-approved label"' <<<"$prs")
-          body=$(printf '## %s, %s UTC\n\n**Next up** (build order; label an issue `next` to put it first)\n%s\n\n**In flight**\n%s\n\n**Blocked, and on what**\n%s\n%s\n\n**Stuck** (take `%s` off an issue to build it again)\n%s\n\n**Not yet checked for open rules** (the 01:37 sweep)\n%s\n\n**Merged today**\n%s\n\n**Red**\n%s\n\n*Written by the lead; it rewrites this every pass. Healthchecks emails Craig if no pass comes for 3 hours, or nothing merges for a day.*\n' \
-            "$today" "$(date -u +%H:%M)" "${next_up:-- nothing ready: answer the blocked ones, or file an issue}" "${running:-- nothing}" "${blocked:-- nothing}" "${looks:-}" "$STUCK_LABEL" "${stuck:-- nothing}" "${unchecked:-- none}" "${merged:-- nothing}" "${red:-- nothing}")
+          red=$(jq -r '.[] | select(.isDraft | not) | select(any(.statusCheckRollup[]?; .conclusion == "FAILURE")) | "- #\(.number) \(.headRefName)"' <<<"$prs")  # look-approved holds no merge since 7 Nov 2026, so its failure is red too
+          body=$(printf '## %s, %s UTC\n\n**Next up** (build order; label an issue `next` to put it first)\n%s\n\n**In flight**\n%s\n\n**Blocked, and on what**\n%s\n\n**Stuck** (take `%s` off an issue to build it again)\n%s\n\n**Not yet checked for open rules** (the 01:37 sweep)\n%s\n\n**Merged today**\n%s\n\n**Red**\n%s\n\n*Written by the lead; it rewrites this every pass. Healthchecks emails Craig if no pass comes for 3 hours, or nothing merges for a day.*\n' \
+            "$today" "$(date -u +%H:%M)" "${next_up:-- nothing ready: answer the blocked ones, or file an issue}" "${running:-- nothing}" "${blocked:-- nothing}" "$STUCK_LABEL" "${stuck:-- nothing}" "${unchecked:-- none}" "${merged:-- nothing}" "${red:-- nothing}")
           board=$(gh issue list --state open --label "$BOARD_LABEL" --limit 1 --json number --jq '.[0].number // empty')
           if [ "$DRY_RUN" = true ]; then echo "$body"
           elif [ -n "$board" ]; then gh issue edit "$board" --title "$BOARD_TITLE" --body "$body" > /dev/null
@@ -274,8 +284,11 @@ jobs:
         env:
           PING_URL: ${{ secrets.HEALTHCHECKS_PING_URL }}
         run: |
-          [ -n "$PING_URL" ] || { echo "::warning::No HEALTHCHECKS_PING_URL secret: no heartbeat."; exit 0; }
-          ping() { curl -fsS -m 10 --retry 2 -o /dev/null "$PING_URL/$1?create=1" || echo "::warning::The $1 ping didn't reach Healthchecks."; }
+          # a heartbeat that can't beat fails the pass, so it shows red rather than as a warning nobody reads
+          [ -n "$PING_URL" ] || { echo "::error::No HEALTHCHECKS_PING_URL secret: nothing tells Craig when the lead stops."; exit 1; }
+          failed=0
+          ping() { curl -fsS -m 10 --retry 2 -o /dev/null "$PING_URL/$1?create=1" || { echo "::error::The $1 ping didn't reach Healthchecks."; failed=1; }; }
           ping "$PASS_CHECK"
           since=$(date -u -d '24 hours ago' +%FT%TZ)
           [ -n "$(gh pr list --state merged --search "merged:>=$since" --limit 1 --json number --jq '.[].number')" ] && ping "$MERGE_CHECK" || true
+          exit "$failed"

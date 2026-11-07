@@ -34,13 +34,21 @@ const cellClasses = (column: Column) => cellClassOf(!FIGURES.includes(column));
 /** The switch's radio group's name. */
 const PRICED_AT_CHOICE = "card-priced-at";
 
-/** This season's matches at his base points, each with its points by category under it (spec/12;
- *  Craig, 31 Oct 2026), at the position the switch picks: a key for each position he has, opening
- *  on the first, and no switch with fewer than two. */
-export function Season({ card }: { card: PlayerCard }) {
+/** The card's switch (spec/12; Craig, 31 Oct 2026): which of his positions every figure on it is
+ *  priced at, this season's and last season's alike (Craig, 6 Nov 2026), opening on the first.
+ *  `shown` is its place in each match's points, which come in pricedAt's order; with no position
+ *  priced, the one at his best. */
+export function usePricedAt(card: PlayerCard) {
   const [chosen, choose] = useChoiceAmong(card.pricedAt);
-  // Each match's points come in pricedAt's order; with no position priced, the one at his best.
   const shown = chosen === undefined ? 0 : card.pricedAt.indexOf(chosen);
+  return { chosen, choose, shown };
+}
+export type PricedAt = ReturnType<typeof usePricedAt>;
+
+/** This season's matches at his base points, each with its points by category under it (spec/12;
+ *  Craig, 31 Oct 2026), at the position the switch picks: a key for each position he has, and no
+ *  switch with fewer than two. */
+export function Season({ card, pricedAt: { chosen, choose, shown } }: { card: PlayerCard; pricedAt: PricedAt }) {
   return (
     <Panel title={SEASON_TITLE}>
       {card.matches.length === 0 ? (
@@ -85,13 +93,13 @@ function UnderRow({ tone, label, children }: { tone: string; label?: string; chi
 }
 
 /** Under a match his team started him in, what his role did to his points (spec/05 Roles):
- *  "Attacking full-back +2", and what made it, apart from his base points and never in them. Not
+ *  "Poacher: +1", and what made it, each side apart, away from his base points and never in them. Not
  *  shown under an override, the match's whole score. */
 function RoleLine({ role }: { role: NonNullable<PlayedMatch["role"]> }) {
   return (
     <UnderRow tone="text-soft" label={roleLineLabel(role.name)}>
-      {role.name} <span className="text-figure">{adjustmentWords(role.points)}</span>
-      {role.lines.length > 0 && <span className="text-muted"> ({roleMadeOfWords(role.lines)})</span>}
+      {role.name}: <span className="text-figure">{adjustmentWords(role.points)}</span>
+      {role.sides.length > 0 && <span className="text-muted"> ({roleMadeOfWords(role.sides)})</span>}
     </UnderRow>
   );
 }

@@ -33,8 +33,8 @@ describe("a manager's own queue", () => {
     await ann.queue(SAKA.code);
     await ann.queue(PALMER.code);
     expect((await ann.mine())?.queue).toEqual([
-      { code: SAKA.code, name: "Saka", fullName: "Bukayo Saka", club: ARSENAL, ownerTeamName: null, gone: false },
-      { code: PALMER.code, name: "Palmer", fullName: "Cole Palmer", club: CHELSEA, ownerTeamName: "Team 2", gone: false },
+      { code: SAKA.code, name: "Saka", fullName: "Bukayo Saka", club: ARSENAL, ownerTeamName: null, gone: false, position: null },
+      { code: PALMER.code, name: "Palmer", fullName: "Cole Palmer", club: CHELSEA, ownerTeamName: "Team 2", gone: false, position: null },
     ]);
   });
 

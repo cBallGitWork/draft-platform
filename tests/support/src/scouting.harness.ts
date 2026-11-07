@@ -9,11 +9,12 @@ import type { Stats } from "../../../convex/stats/statTotals";
 import type { ComparedPlayer, PlayersList, ScoutingSeam } from "../../../src/scouting/seam";
 import { fakeShortlist, type ShortlistData } from "./shortlist.harness";
 
-/** What the fake server holds: its clubs, players and their season totals by code, each one's
+/** What the fake server holds: its clubs, the site set's own stats, players and their season totals by code, each one's
  *  season to compare (matches and stats added up) by his code, or nothing yet while the list or
  *  the comparison loads, and the shortlist. */
 export type ScoutingData = {
   clubs?: PlayersList["clubs"];
+  ownStats?: PlayersList["ownStats"];
   players?: readonly ListedPlayer[];
   totals?: Record<number, Stats>;
   seasons?: Record<number, Pick<ComparedPlayer, "matches" | "stats">>;
@@ -25,13 +26,16 @@ export type ScoutingData = {
 /** A player with no season held: no matches yet. */
 const NO_SEASON = { matches: 0, stats: {} };
 
-export function fakeScouting({ clubs = [], players = [], totals = {}, seasons = {}, loading = false, comparing = false, shortlist }: ScoutingData = {}) {
+export function fakeScouting({ clubs = [], ownStats = [], players = [], totals = {}, seasons = {}, loading = false, comparing = false, shortlist }: ScoutingData = {}) {
+  const addToQueue = vi.fn<ReturnType<ScoutingSeam["useAddToQueue"]>>(async () => shortlist?.refusal ?? null);
   return {
     ...fakeShortlist(shortlist),
+    useAddToQueue: () => addToQueue,
+    addToQueue,
     usePlayersList: vi.fn<ScoutingSeam["usePlayersList"]>((_leagueId, filters, sort, stat) =>
       loading
         ? undefined
-        : { clubs, players: listOf(players.map((player) => ({ ...player, stat: shownStat(totals[player.code], stat) })), filters, sort) },
+        : { clubs, ownStats, players: listOf(players.map((player) => ({ ...player, stat: shownStat(totals[player.code], stat) })), filters, sort) },
     ),
     useComparison: vi.fn<ScoutingSeam["useComparison"]>((_leagueId, codes) =>
       codes === null || comparing

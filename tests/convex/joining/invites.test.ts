@@ -11,8 +11,7 @@ import {
   openLastLinkTo,
 } from "../../support/convex/joining.harness";
 import { joiningRefusals } from "../../../convex/joining/joining";
-import { INVITE_LIFETIME_MS, invitedPath } from "../../../convex/joining/joiningShared";
-import { ROWS_SHOWN } from "../../../convex/joining/invitesPage";
+import { INVITE_LIFETIME_MS, ROWS_SHOWN, invitedPath } from "../../../convex/joining/joiningShared";
 import { refusals } from "../../../convex/shared/leagueAccess";
 import {
   COMMISSIONER,
@@ -60,7 +59,7 @@ describe("an invite", () => {
     const inviteId = await invite(t, leagueId, ANN);
 
     const email = lastEmailTo(sent, ANN);
-    expect(email.subject).toBe("You're invited to Tim Hortons Pro League on Draft Manager, Sunday 1 November at 14:32 GMT");
+    expect(email.subject).toBe("You're invited to Tim Hortons Pro League on Fantasy Draft Manager, Sunday 1 November at 14:32 GMT");
     expect(email.text).toContain(`${COMMISSIONER} has invited you to run a new team in ${LEAGUE_NAME}`);
     expect(email.text).toContain(`${SITE_URL}${invitedPath(inviteId)}?code=`);
     expect(await openLastLinkTo(t, sent, ANN)).not.toBeNull();
@@ -170,6 +169,24 @@ describe("the invites page", () => {
     });
 
     expect((await invitesPage(t, leagueId))?.invites.map((row) => row.inviteId)).toEqual([inviteId]);
+  });
+
+  test("says when more live invites exist than it lists, and not at exactly the most it lists (#410)", async () => {
+    const addLive = (count: number, from: number) =>
+      t.run(async (ctx) => {
+        for (let n = from; n < from + count; n++) {
+          await ctx.db.insert("invites", { leagueId, email: `live${n}@example.com`, invitedBy: COMMISSIONER, expiresAt: Date.now() + INVITE_LIFETIME_MS, delivery: "sent" });
+        }
+      });
+
+    await addLive(ROWS_SHOWN, 0);
+    expect((await invitesPage(t, leagueId))?.invitesCut).toBe(false);
+
+    await addLive(1, ROWS_SHOWN);
+    const page = await invitesPage(t, leagueId);
+    expect(page?.invitesCut).toBe(true);
+    expect(page?.invites).toHaveLength(ROWS_SHOWN);
+    expect(page?.invites[0]?.email).toBe(`live${ROWS_SHOWN}@example.com`);
   });
 });
 

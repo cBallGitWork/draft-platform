@@ -28,7 +28,7 @@ export const matchWrites = v.object({
 /** One match's records as read at `readAt`, a match at full time. Before the lock each record is
  *  written as sent, so a correction updates it and a stat taken away is gone (read as 0); the match
  *  is complete once every record is whole, and its lock is scheduled then. After the lock nothing
- *  is written but the changes, for the feeds page. */
+ *  is written but the changes, for the feeds page, and a whole record filling a held one's gap. */
 export const upsertMatch = internalMutation({
   args: { fixtureCode: v.number(), readAt: v.number(), records: v.array(playerMatchRecord) },
   returns: matchWrites,
@@ -37,8 +37,18 @@ export const upsertMatch = internalMutation({
     const held = new Map((await recordsOf(ctx, fixtureCode)).map((row) => [row.playerCode, row]));
     if (status?.state === "locked") {
       await ctx.db.patch("matchStatsStatus", status._id, { lastReadAt: readAt });
-      const lateCorrections = await recordLateCorrections(ctx, records, held, readAt);
-      return { state: status.state, inserted: 0, updated: 0, changed: [], lateCorrections };
+      // A man held not whole at the lock (a live tick's record the full-time read left out) whose
+      // whole record arrives now fills the feed's gap: written, and his gameweek asked to store (#805).
+      const fillsGap = (record: PlayerMatchRecord) => {
+        const row = held.get(record.playerCode);
+        return row !== undefined && !isWhole(row) && isWhole(record);
+      };
+      const filled = records.filter(fillsGap);
+      const lateCorrections = await recordLateCorrections(ctx, records.filter((record) => !fillsGap(record)), held, readAt);
+      if (filled.length === 0) return { state: status.state, inserted: 0, updated: 0, changed: [], lateCorrections };
+      const writes = await writeRecords(ctx, filled, held, status.state);
+      await askToStoreFinal(ctx, fixtureCode);
+      return { state: status.state, ...writes, lateCorrections };
     }
     const complete = isMatchComplete(records);
     const state: State = complete ? "complete" : "provisional";
@@ -76,16 +86,21 @@ export const lock = internalMutation({
     for (const row of await recordsOf(ctx, fixtureCode)) {
       await ctx.db.patch("playerMatchStats", row._id, { state: "locked" });
     }
-    // Its gameweek may now be final in each league: stored apart, so a league that can't be scored
-    // never undoes the lock (finalScores.ts, #418).
-    await ctx.scheduler.runAfter(0, internal.table.finalScores.storeEveryLeague, {});
-    // And each team's season stats for the stat race (teamSeasonStats.ts, #800), the same way.
-    await ctx.scheduler.runAfter(0, internal.stats.teamSeasonStats.storeEveryLeague, {});
-    // Its players' stars, now it counts (stars/starsRefresh.ts, #11).
-    await ctx.scheduler.runAfter(0, internal.stars.starsRefresh.refreshMatch, { fixtureCode });
+    await askToStoreFinal(ctx, fixtureCode);
     return null;
   },
 });
+
+/** A locked match's records now count, at its lock or when a gap in them fills after it. */
+async function askToStoreFinal(ctx: MutationCtx, fixtureCode: number) {
+  // Its gameweek may now be final in each league: stored apart, so a league that can't be scored
+  // never undoes the lock (finalScores.ts, #418).
+  await ctx.scheduler.runAfter(0, internal.table.finalScores.storeEveryLeague, {});
+  // And each team's season stats for the stat race (teamSeasonStats.ts, #800), the same way.
+  await ctx.scheduler.runAfter(0, internal.stats.teamSeasonStats.storeEveryLeague, {});
+  // Its players' stars, now it counts (stars/starsRefresh.ts, #11).
+  await ctx.scheduler.runAfter(0, internal.stars.starsRefresh.refreshMatch, { fixtureCode });
+}
 
 /** The run's row, and every match it tried marked tried then, whether it read, waited or failed;
  *  and the kickoff `due` said the next run reads the fixtures from, when it read. */

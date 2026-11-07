@@ -14,6 +14,13 @@ export type ShortlistChanges = {
   remove(leagueId: Id<"leagues">, playerCode: number): Change;
 };
 
+/** Scouting's shortlist feeding the draft queue (spec/04; Craig, 5 Nov 2026, on #1100): "Add to
+ *  queue" on a row puts him at the bottom of the manager's queue. */
+export type QueueFromShortlist = {
+  /** The change (a hook). */
+  useAddToQueue(): (leagueId: Id<"leagues">, playerCode: number) => Change;
+};
+
 export type ShortlistSeam = {
   /** The manager's own shortlist in the league, by name, live (a hook): undefined while it loads,
    *  null for someone who runs no team there, who has none. */

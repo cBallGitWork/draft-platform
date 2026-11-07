@@ -5,6 +5,7 @@ import { roleIn } from "../../../convex/lineup/roles";
 import { FIRST_SCORING } from "../../../convex/scoring/firstScoring";
 import type { StoredScoringSet } from "../../../convex/scoring/scoringSetShape";
 import { HULL_SCORER, HULL_STARTERS, type ScoresLeague } from "./gameweekScores.harness";
+import { pricedRole } from "./scoring.example";
 import { holdSiteScoring } from "./siteScoring.harness";
 
 /** A stat no record holds: a typo of goals_scored. */
@@ -28,5 +29,5 @@ export const MIDFIELD_GOAL = 5;
 export async function adjustScorersRole(league: ScoresLeague, points: number) {
   const scorer = HULL_STARTERS.find((starter) => starter.playerCode === HULL_SCORER)!;
   const role = roleIn(scorer, undefined).key;
-  await holdFix(league, { ...FIRST_SCORING, roleAdjustments: [{ role, adjustments: [{ stat: "goals_scored", points }] }] });
+  await holdFix(league, { ...FIRST_SCORING, roles: [pricedRole(role, "goals_scored", points)] });
 }

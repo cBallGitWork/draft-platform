@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState, type ReactNode } from "react";
 import type { LeagueSummary } from "../../convex/leagues/myLeagues";
 import { categoryName } from "../../convex/scoring/categories";
 import type { Priced } from "../../convex/scoring/priced";
@@ -7,7 +7,8 @@ import { STAT_CATALOGUE } from "../../convex/scoring/statCatalogueList";
 import { Loading, PAGE_STACK, PageSection, Panel, PanelNote } from "../ui/Panel";
 import { LeagueHeading } from "../leagues/LeagueLinks";
 import { PatchNotesLink } from "../patches/PatchBanner";
-import { useRulesDraft } from "../rules/rulesDraft";
+import { sectionTabClasses } from "../frame/AppFrame";
+import { useRulesDraft, type RulesView } from "../rules/rulesDraft";
 import { SaveBar } from "../rules/SaveBar";
 import { BoxRefusalContext } from "../rules/blank";
 import { TickBox } from "../ui/TickBox";
@@ -15,6 +16,7 @@ import { useChoiceAmong } from "../shared/useChoiceAmong";
 import { CategoryEditor } from "./CategoryEditor";
 import { firstBlankRule, newRule, rulePricing, valueAt, withOwnStat, type OwnStatMade, type PerCount, type Rule, type Scoring } from "./editing";
 import { OwnStatMaker } from "./OwnStatMaker";
+import { AnnounceBar, VersionsPanel } from "./Patches";
 import type { ScoringSeam, ScoringView } from "./seam";
 import {
   addCategoryLabel,
@@ -24,6 +26,11 @@ import {
   bandsWords,
   blankBoxWords,
   categoriesLabel,
+  draftSavedWords,
+  draftTabWords,
+  editorTabsLabel,
+  liveTabWords,
+  saveDraftWords,
   fractionsReadWords,
   loadingWords,
   perCountSummary,
@@ -48,20 +55,72 @@ export function ScoringPage({ league, seam }: { league: LeagueSummary; seam: Sco
       <PageSection title={SCORING_TITLE} aside={<PatchNotesLink />} className="bg-panel">
         <LeagueHeading name={league.name} />
       </PageSection>
-      {view === undefined ? <Loading>{loadingWords}</Loading> : <Editor seam={seam} view={view} />}
+      {view === undefined ? <Loading>{loadingWords}</Loading> : view.canEdit ? <AdminsEditor seam={seam} view={view} /> : <Editor view={view} save={seam.save} readOnly />}
     </div>
   );
 }
 
-/** The two panes: the categories, and the one chosen; and, for the admin, the bar that saves them
- *  (rulesDraft.ts says how the draft follows the latest set, and what a save over someone else's
- *  does). For anyone else, the same panes read only, and a line saying who sets them. A save
+type EditorTab = "live" | "draft";
+const EDITOR_TABS: readonly EditorTab[] = ["live", "draft"];
+const TAB_WORDS: Record<EditorTab, string> = { live: liveTabWords, draft: draftTabWords };
+
+/** The admin's editor (Craig, 6 Nov 2026, on #368): two tabs, Live, saved as a fix at once, and
+ *  Draft patch, the same table saved as a draft and announced from a gameweek; then every version. */
+function AdminsEditor({ seam, view }: { seam: ScoringSeam; view: ScoringView }) {
+  const [tab, setTab] = useState<EditorTab>("live");
+  return (
+    <>
+      <div role="group" aria-label={editorTabsLabel} className="flex flex-wrap bg-panel shadow-panel-top">
+        {EDITOR_TABS.map((each) => (
+          <button key={each} type="button" aria-pressed={tab === each} data-status={tab === each ? "active" : undefined} onClick={() => setTab(each)} className={sectionTabClasses}>
+            {TAB_WORDS[each]}
+          </button>
+        ))}
+      </div>
+      {tab === "live" ? <Editor key="live" view={view} save={seam.save} /> : <DraftEditor key="draft" seam={seam} view={view} />}
+      <VersionsPanel versions={view.versions} withdraw={seam.withdraw} />
+    </>
+  );
+}
+
+/** The draft patch's editor: the saved draft, or the live set while there's none, saved over the
+ *  draft it was opened on; then announcing what was saved. */
+function DraftEditor({ seam, view }: { seam: ScoringSeam; view: ScoringView }) {
+  const savedAt = view.draft?.savedAt ?? null;
+  // Kept while neither changes, as rulesDraft.ts tells a draft overtaken by its revision changing.
+  const revision = useMemo(() => ({ site: view.revision, savedAt }), [view.revision, savedAt]);
+  const draftView = { part: view.draft?.part ?? view.part, revision, changesFrom: view.changesFrom };
+  return (
+    <Editor
+      view={draftView}
+      save={(part, from) => seam.saveDraft(part, from.site, from.savedAt)}
+      bar={{ savedWords: () => draftSavedWords, saveLabel: saveDraftWords, appliesFrom: false }}
+      after={(edited) => <AnnounceBar announce={seam.announce} savedAt={edited ? null : savedAt} gameweeks={view.patchGameweeks} />}
+    />
+  );
+}
+
+/** The two panes: the categories, and the one chosen; and, unless `readOnly`, the bar that saves
+ *  them with `save` (rulesDraft.ts says how the draft follows the latest set, and what a save over
+ *  someone else's does), `bar` its words, and `after` what follows it, told whether the set is
+ *  edited since it was read. Read only, the same panes, and a line saying who sets them. A save
  *  refused for a box left without a number opens the category it names, and says so beside the
  *  box, the cursor in it. */
-function Editor({ seam, view }: { seam: ScoringSeam; view: ScoringView }) {
+function Editor<Rev>({
+  view,
+  save,
+  readOnly = false,
+  bar = { savedWords },
+  after,
+}: {
+  view: RulesView<Scoring, Rev>;
+  save: (part: Scoring, revision: Rev) => Promise<number | string>;
+  readOnly?: boolean;
+  bar?: { savedWords: (saved: number) => string; saveLabel?: string; appliesFrom?: boolean };
+  after?: (edited: boolean) => ReactNode;
+}) {
   const [picked, choose] = useState(0);
-  const rulesDraft = useRulesDraft(view, seam.save, blankBoxRefusal, (refusedSet) => choose(firstBlankRule(refusedSet)));
-  const readOnly = !view.canEdit;
+  const rulesDraft = useRulesDraft(view, save, blankBoxRefusal, (refusedSet) => choose(firstBlankRule(refusedSet)));
   const { draft, edit } = rulesDraft;
   const nameOf = (stat: string) => categoryName(stat, draft.ownStats);
   // The last, once removing or discarding leaves fewer than the one picked.
@@ -118,11 +177,14 @@ function Editor({ seam, view }: { seam: ScoringSeam; view: ScoringView }) {
             <p className="text-muted">{readOnlyWords}</p>
           </div>
         ) : (
-          <SaveBar draft={rulesDraft} savedWords={savedWords}>
-            <TickBox checked={draft.wholePointsOnly} onChange={(on) => edit({ ...draft, wholePointsOnly: on })}>
-              {wholePointsWords}
-            </TickBox>
-          </SaveBar>
+          <>
+            <SaveBar draft={rulesDraft} {...bar}>
+              <TickBox checked={draft.wholePointsOnly} onChange={(on) => edit({ ...draft, wholePointsOnly: on })}>
+                {wholePointsWords}
+              </TickBox>
+            </SaveBar>
+            {after?.(!rulesDraft.unchanged)}
+          </>
         )}
       </div>
     </div>

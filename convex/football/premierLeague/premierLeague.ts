@@ -32,7 +32,8 @@ export interface RawPlSquadPlayer {
   id: number;
   name: { display: string };
   altIds?: RawPlAltIds;
-  info?: { positionInfo?: string };
+  /** `shirtNum` is his squad number, on a squad list's man who has one. */
+  info?: { positionInfo?: string; shirtNum?: number };
 }
 
 /** `/teams/{id}/compseasons/{season}/staff`: a club's registered squad. */
@@ -132,11 +133,10 @@ export interface RawPlTeamStats {
   data?: Record<string, { M: RawPlMetric[] }>;
 }
 
-/** One gameweek's fixtures, or the season's, each with its FPL join (`altIds`); this season's
- *  unless another is named. */
-export async function readPlFixtures(gameweek?: number, compSeason?: number): Promise<RawPlFixture[]> {
+/** `compSeason`'s fixtures in one gameweek, or all of them, each with its FPL join (`altIds`). */
+export async function readPlFixtures(compSeason: number, gameweek?: number): Promise<RawPlFixture[]> {
   const page = await getShaped<RawPlFixturePage>(
-    plFixturesUrl(gameweek, compSeason),
+    plFixturesUrl(compSeason, gameweek),
     "list of fixtures with ids",
     (body) => Array.isArray(body.content) && body.content.every(hasId),
   );
@@ -148,10 +148,10 @@ export async function readPlFixture(fixtureId: number): Promise<RawPlFixture> {
   return getShaped<RawPlFixture>(plFixtureUrl(fixtureId), "fixture id", hasId);
 }
 
-/** A club's registered squad this season, each man with his label and his join to FPL. */
-export async function readPlSquad(teamId: number): Promise<RawPlSquad> {
+/** A club's registered squad in `compSeason`, each man with his label and his join to FPL. */
+export async function readPlSquad(teamId: number, compSeason: number): Promise<RawPlSquad> {
   return getShaped<RawPlSquad>(
-    plSquadUrl(teamId),
+    plSquadUrl(teamId, compSeason),
     "list of players with ids",
     (body) => Array.isArray(body.players) && body.players.every(hasId),
   );
@@ -199,13 +199,13 @@ export async function readPlTeamStats(fixtureId: number): Promise<RawPlTeamStats
 /** The Premier League's id for Arsenal, whose squad list proves squad numbers can be read. */
 export const PL_ARSENAL = 1;
 
-export async function plFixtureCount(): Promise<number> {
-  const page = (await getJson(plFixturesUrl())) as RawPlFixturePage;
+export async function plFixtureCount(compSeason: number): Promise<number> {
+  const page = (await getJson(plFixturesUrl(compSeason))) as RawPlFixturePage;
   return page.content.length;
 }
 
-export async function arsenalSquadNumbers(): Promise<number> {
-  const staff = (await getJson(plSquadUrl(PL_ARSENAL))) as RawPlStaff;
+export async function arsenalSquadNumbers(compSeason: number): Promise<number> {
+  const staff = (await getJson(plSquadUrl(PL_ARSENAL, compSeason))) as RawPlStaff;
   return squadNumbers(staff).size;
 }
 

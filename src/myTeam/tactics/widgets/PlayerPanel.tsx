@@ -7,6 +7,8 @@ import { playerCardPath } from "../../../playerCard/paths";
 import { closeGlyph, nextGlyph, playerCardWords } from "../../../shared/words";
 import { Placeholder } from "../../../ui/Placeholder";
 import { PositionChip } from "../../../ui/PositionChip";
+import { StarRating } from "../../../ui/StarRating";
+import { starsIn } from "../../../../convex/stars/bestRole";
 import { figureWords, noFigureWords } from "../../words";
 import { markOf } from "../focusMarks";
 import { benchBestRole, placeOf, type SquadMember } from "../lineupDraft";
@@ -32,7 +34,6 @@ import {
   pointsHead,
   pointsPerActionHead,
   pointsPerActionPlaceholder,
-  roleStarsPlaceholder,
   rolesHead,
   seasonShort,
   startingWhereWords,
@@ -113,7 +114,9 @@ export function PlayerPanel({
                 <span className="flex items-center gap-2">
                   <span className="text-lead font-semibold">{role.name}</span>
                   {role.key === playing && <span className="text-soft">{nowWords}</span>}
-                  <Placeholder label={roleStarsPlaceholder(role.name)} className="ml-auto h-3 w-16" />
+                  <span className="ml-auto">
+                    <StarRating stars={starsIn(slot, role.key, player.stars)} subject={role.name} />
+                  </span>
                 </span>
                 <Placeholder label={pointsPerActionPlaceholder(role.name)} className="h-5 w-full" />
               </li>

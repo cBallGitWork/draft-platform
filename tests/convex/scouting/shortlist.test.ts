@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, test } from "vitest";
 import { api } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
-import { shortlistedReleasedLetter } from "../../../convex/mail/letterWords";
+import { shortlistedReleasedLetter } from "../../../convex/scouting/shortlistWords";
 import { SHORTLIST_MOST, shortlistRefusals } from "../../../convex/scouting/shortlist";
 import { refusals } from "../../../convex/shared/leagueAccess";
 import { ADMIN, COMMISSIONER, MANAGERS, actingAs, addManagers, adminCreatesLeague, type TestConvex } from "../../support/convex/leagues.harness";

@@ -113,7 +113,7 @@ export const sendApprovedEmail = internalAction({
     const to: { email: string; leagueName: string } | null = await ctx.runMutation(internal.joining.joinRequests.takeEmailFor, args);
     if (to === null) return null;
     try {
-      await sendEmail(to.email, approvedEmail({ leagueName: to.leagueName, teamName: args.teamName }));
+      await sendEmail(to.email, approvedEmail({ leagueName: to.leagueName, teamName: args.teamName }, Date.now()));
       await ctx.runMutation(internal.joining.joinRequests.recordApprovedEmail, { requestId: args.requestId, delivery: "sent" });
     } catch (error) {
       console.error(`The email telling ${to.email} they're in ${to.leagueName} wasn't sent:`, error);
