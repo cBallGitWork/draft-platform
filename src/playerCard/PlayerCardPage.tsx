@@ -12,6 +12,7 @@ import { MatchName } from "./MatchName";
 import { Season, usePricedAt } from "./SeasonPanel";
 import { OverridePoints } from "./OverridePoints";
 import { ShortlistAction } from "./ShortlistAction";
+import { WaiverAction } from "./WaiverAction";
 import {
   backWords,
   chanceWords,
@@ -37,7 +38,8 @@ import {
 /** A player's card (spec/12, The player card), its own page, for anyone in the league: who he is
  *  and who owns him, FPL's news, this season's matches by category, last season's line and his
  *  club's next fixtures. Its actions (shortlist, scout, claim or drop, trade) join below the facts
- *  as each is built: the shortlist is (#374), and for whoever `runs` the league, the override (#32). */
+ *  as each is built: the shortlist is (#374), claim or drop (#1200), and for whoever `runs` the
+ *  league, the override (#32). */
 export function PlayerCardPage({ league, runs, playerCode, seam }: { league: LeagueSummary; runs: boolean; playerCode: number; seam: PlayerCardSeam }) {
   const card = seam.usePlayerCard(league.leagueId, playerCode, useMinute());
   return (
@@ -60,6 +62,7 @@ function Card({ league, runs, card, seam }: { league: LeagueSummary; runs: boole
       <div className="flex flex-col gap-2">
         <Facts card={card}>
           <ShortlistAction leagueId={league.leagueId} playerCode={card.code} gone={card.gone} seam={seam} />
+          <WaiverAction leagueId={league.leagueId} card={card} seam={seam} />
           {runs && <OverridePoints leagueId={league.leagueId} card={card} seam={seam} />}
         </Facts>
         <LastSeason lastSeason={card.lastSeason} shown={pricedAt.shown} />

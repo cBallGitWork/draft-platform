@@ -9,7 +9,10 @@ import { useChoiceAmong } from "../shared/useChoiceAmong";
 import { useMinute } from "../shared/useMinute";
 import { cellClassOf, ColumnHeads } from "../ui/ColumnHeads";
 import { Confirm } from "../ui/Confirm";
-import { Panel, PanelNote, Problem, Status } from "../ui/Panel";
+import { Loading, Panel, PanelNote, Problem, Status } from "../ui/Panel";
+import type { LabReport } from "../../convex/balanceLab/labReportShape";
+import { LabReportView } from "../patches/LabReport";
+import { labTitle } from "../patches/words";
 import type { ScoringSeam, PatchGameweek, ScoringVersion } from "./seam";
 import {
   announceGameweekLabel,
@@ -20,7 +23,10 @@ import {
   notesLinkWords,
   noVersionsYetWords,
   patchGameweekWords,
+  runLabWords,
+  runningLabWords,
   saveDraftFirstWords,
+  saveDraftToRunLabWords,
   versionColumns,
   versionsTitle,
   withdrawNoWords,
@@ -87,6 +93,40 @@ export function AnnounceBar({ announce, savedAt, gameweeks }: { announce: Scorin
       <Status words={announced} className="px-3 pb-2" />
       <Problem problem={problem} />
     </div>
+  );
+}
+
+/** Under Announce: the rule balance lab (spec/14; #843), run when the admin presses its button on
+ *  the draft saved at `savedAt`, never on a save; null while there's none saved, or the draft is
+ *  edited since. Its report shows until the draft is saved again; it is saved nowhere. */
+export function LabPanel({ runLab, savedAt }: { runLab: ScoringSeam["runLab"]; savedAt: number | null }) {
+  const [ran, setRan] = useState<{ savedAt: number; report: LabReport } | null>(null);
+  const { busy, problem, run } = useChange();
+  const report = ran !== null && ran.savedAt === savedAt ? ran.report : null;
+
+  function runIt(draftSavedAt: number) {
+    void run(async () => {
+      const answer = await runLab(draftSavedAt);
+      if (typeof answer === "string") return answer;
+      setRan({ savedAt: draftSavedAt, report: answer });
+      return null;
+    });
+  }
+
+  return (
+    <Panel
+      title={labTitle}
+      aside={
+        <button type="button" disabled={savedAt === null || busy} onClick={() => savedAt !== null && runIt(savedAt)} className={savedAt === null ? "action-idle" : "action"}>
+          {runLabWords}
+        </button>
+      }
+    >
+      {savedAt === null && <PanelNote>{saveDraftToRunLabWords}</PanelNote>}
+      {busy && <Loading className="px-3 py-2">{runningLabWords}</Loading>}
+      {report && !busy && <LabReportView report={report} />}
+      <Problem problem={problem} />
+    </Panel>
   );
 }
 

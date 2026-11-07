@@ -12,7 +12,6 @@ export const backGroupWords = (back: number) => `Back ${back}`;
 export const CLASSICS = "Classics";
 export const classicsLine = "famous sides, formation and roles";
 /** The marks on a group's heading, saying what in it is sample (the approved formation window). */
-export const sampleNamesWords = "sample names";
 export const samplePointsWords = "points lines: sample";
 export const savePresetName = "Save preset…";
 export const savePresetLine = "Saves the formation and roles in use now";
@@ -31,9 +30,20 @@ export const appliesWords = (name: string) =>
   `The ${name}. Your players stay, each in a slot of his own area where there is one; anyone without a slot goes to the front of the bench. Each keeps his role where his new slot offers it.`;
 export const previewLabel = (name: string) => `${name}: each slot's position and the role it would play`;
 
+/** A saved plan (spec/05, Saved plans; Craig, 6 Nov 2026, #992): its preview's line, what loading
+ *  it applies, one whose formation the league no longer has, and saving one. */
+export const yourPresetWords = (formation: string) => `Your preset, ${formation}`;
+export const appliesPlanWords = (formation: string) =>
+  `The ${formation} and all eleven roles. Your players stay; anyone without a slot goes to the bench.`;
+export const notAllowedWords = "no longer allowed";
+export const deletePlanLabel = (name: string) => `Delete ${name}`;
+export const planNameLabel = "Preset name";
+export const saveWords = "Save";
+export const replaceQuestion = (name: string) => `Replace '${name}'?`;
+export const replaceWords = "Replace";
+export const plansLoadingWords = "Loading your presets…";
+
 /** Data not held yet, in its place (plate.md, Marks: a placeholder). */
-export const presetsPlaceholder = "Your saved presets show here once saving them is built: each a formation and every slot's role";
-export const savePresetPlaceholder = `${savePresetName}: saves the formation and roles in use now, once saving presets is built`;
 export const subtitlePlaceholder = (name: string) => `${name}'s subtitle shows here once Craig writes it`;
 export const descriptionPlaceholder = (name: string) => `What ${name} does shows here once Craig writes it`;
 export const gainsPlaceholder = "What this formation gains shows here once Craig writes it";

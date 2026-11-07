@@ -1,9 +1,12 @@
 # The lead: keeps the builders busy all day, so no session has to start, watch or restart a build
 # (Craig, 5 Nov 2026: "we created a dev team but it still feels like im a solo worker"). Every pass (when a build ends, an issue is labelled to build, and every 30 minutes) it fills
 # up to MAX_IN_FLIGHT claude-build.yml runs, in this order:
-#   1. A fix round. A ready builder pull request (opened by the build bot, not a session) whose `verify` or `smoke` failed, that conflicts with main, or
+#   1. A fix round. A ready builder pull request (opened by a build, not Craig's session) whose `verify` or `smoke` failed, that conflicts with main, or
 #      whose review says "look at these first", gets one claude-build run in mode `fix` on its branch, and the label
 #      FIXED_LABEL so it never gets a second (one review round). After that it waits on the PM dashboard.
+#      A conflict with main after that is not the build's own fault (others merged), so it gets a conflict round
+#      (mode `fix` again, and the label CONFLICT_LABEL) each time its head is newer than its last fix run; only a
+#      conflict round that leaves it conflicting closes it as stuck, never a review round that pushed nothing (7 Nov 2026: seven pull requests closed in 20 minutes as main took 11 merges).
 #   2. A resume. An unfinished build's draft (`wip/issue-N-*`) gets one more build of N, which carries on from it,
 #      and the label RESUMED_LABEL, unless N waits on Craig's rules (`rules:open`: his answer restarts it).
 #   3. A new build. Ready issues, oldest first: `lane:auto` (a grill's issues) or `rules:clear` (the sweep found
@@ -57,8 +60,14 @@ permissions:
   pull-requests: write  # labelling a pull request (FIXED_LABEL, RESUMED_LABEL) needs it: issues: write alone got 403 on 5 Nov 2026
   contents: read
 
+# One pass at a time. GitHub keeps one pass waiting in a group and drops the one it replaces, so an event the job's
+# `if` drops (a skipped build, any other label) runs in a group of its own: in the lead's group it replaced the real
+# pass waiting behind a running one and then skipped, and on 7 Nov 2026 the builders sat idle from 10:42 to 15:23.
 concurrency:
-  group: lead
+  group: >-
+    ${{ ((github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'skipped')
+         || (github.event_name == 'issues' && !contains(fromJSON('["next","lane:auto","rules:clear"]'), github.event.label.name)))
+        && format('lead-dropped-{0}', github.run_id) || 'lead' }}
   cancel-in-progress: false
 
 env:
@@ -80,9 +89,13 @@ env:
   STOPPED_HOURS: 24  # how long a build that stopped without a pull request waits before it is tried again
   STUCK_HOURS: 3  # how long a builder pull request may stay red after its fix round before it is closed
   STUCK_LABEL: "lead:stuck"
+  CONFLICT_LABEL: "lead:conflict-round"  # the lead gave this builder pull request a round for main's conflicts
   PASS_CHECK: "lead-pass"  # Healthchecks check slugs: a pass of the lead, and a merge to main in the last day
   MERGE_CHECK: "main-merged"
   DRY_RUN: ${{ inputs.dry_run == true }}
+  # a builder pull request is any not opened by Craig, as lane-auto.yml has it: builds open theirs as CBHelper180, a user
+  # account, since 5 Nov 2026, and an `is_bot` test gave none of them a fix round or a stuck close (7 Nov 2026: 11 sat red)
+  OWNER: ${{ github.repository_owner }}
 
 jobs:
   lead:
@@ -101,6 +114,7 @@ jobs:
           gh label create "$STALE_LABEL" --color BFBFBF --description "The rules sweep found it already built or out of date" --force
           gh label create "$NEXT_LABEL" --color B60205 --description "Craig: build this first" --force
           gh label create "$BOARD_LABEL" --color 1D76DB --description "The lead's board, rewritten every pass" --force
+          gh label create "$CONFLICT_LABEL" --color 5319E7 --description "The lead gave this pull request a round for its conflicts with main" --force
           gh label create "$STUCK_LABEL" --color D93F0B --description "Its pull request stayed red after its fix round; take off to build again" --force
       - name: Fill the builders
         env:
@@ -143,30 +157,41 @@ jobs:
           taken=$(linked)
           label() { echo "Labelling #$1 $2"; [ "$DRY_RUN" = true ] || gh api "repos/$GH_REPO/issues/$1/labels" -f "labels[]=$2" > /dev/null; }  # a pull request too
 
+          # each fix run's issue and start time ("N 2026-11-07T20:15:26Z"), to tell whether one ran since a head's last commit
+          fix_runs=$(gh run list --workflow claude-build.yml --limit 200 --json displayTitle,createdAt \
+                       --jq '.[] | select(.displayTitle | startswith("fix #")) | "\(.displayTitle | ltrimstr("fix #")) \(.createdAt)"')
+          head_date() { gh pr view "$1" --json commits --jq '.commits[-1].committedDate'; }
+          fixed_since() { awk -v n="$1" -v t="$2" '$1 == n && $2 > t { found = 1 } END { exit !found }' <<<"$fix_runs"; }  # issue, time
+
           # 0. stuck: a builder pull request still red STUCK_HOURS after its one fix round is closed, its branch kept,
           # and its issue labelled STUCK_LABEL with the reason, so the queue never clogs behind it (CTO review, 5 Nov
           # 2026: #1177 red since 14:12). Taking the label off puts the issue back in the queue.
           for row in $(jq -r '
-              .[] | select((.isDraft | not) and .author.is_bot == true)
+              .[] | select((.isDraft | not) and .author.login != env.OWNER)
               | select(any(.labels[]?; .name == env.FIXED_LABEL))
-              | select(any(.statusCheckRollup[]?; (.name == "verify" or .name == "smoke") and .conclusion == "FAILURE") or .mergeable == "CONFLICTING")
-              | "\(.number):\((.body // "") | ([scan("(?m)^(?:Part of|Closes) #([0-9]+)")] | first // [""]) | .[0])"' <<<"$prs"); do
-            IFS=: read -r pr n <<<"$row"
+              | (any(.statusCheckRollup[]?; (.name == "verify" or .name == "smoke") and .conclusion == "FAILURE")) as $red
+              | select($red or .mergeable == "CONFLICTING")
+              | (any(.labels[]?; .name == env.CONFLICT_LABEL)) as $rounded
+              | "\(.number):\($red):\($rounded):\((.body // "") | ([scan("(?m)^(?:Part of|Closes) #([0-9]+)")] | first // [""]) | .[0])"' <<<"$prs"); do
+            IFS=: read -r pr red rounded n <<<"$row"
             [ -n "$n" ] || continue
             grep -qx "$n" <<<"$busy_issues" && continue  # its fix round is still running
-            last=$(gh pr view "$pr" --json commits --jq '.commits[-1].committedDate')
+            last=$(head_date "$pr")
             [ "$(date -u -d "$last" +%s)" -lt "$(date -u -d "$STUCK_HOURS hours ago" +%s)" ] || continue
-            echo "Closing #$pr: still red ${STUCK_HOURS}h after its fix round"
+            # a conflict alone is stuck only once a conflict round, not a review round, ran on this head and left it (1b)
+            if [ "$red" != true ] && { [ "$rounded" != true ] || ! fixed_since "$n" "$last"; }; then continue; fi
+            if [ "$red" = true ]; then why="still red ${STUCK_HOURS} hours after its one fix round"; else why="still conflicting with main after a round to resolve it"; fi
+            echo "Closing #$pr: $why"
             if [ "$DRY_RUN" != true ]; then
-              gh pr close "$pr" --comment "Closed by the lead: still red ${STUCK_HOURS} hours after its one fix round. The branch is kept. #$n is labelled \`$STUCK_LABEL\`; take the label off to build it again." > /dev/null
-              gh issue comment "$n" --body "Stuck: #$pr was still red ${STUCK_HOURS} hours after its fix round (\`gh pr checks $pr\` says what), so the lead closed it and kept its branch. Take \`$STUCK_LABEL\` off to build this again." > /dev/null
+              gh pr close "$pr" --comment "Closed by the lead: $why. The branch is kept. #$n is labelled \`$STUCK_LABEL\`; take the label off to build it again." > /dev/null
+              gh issue comment "$n" --body "Stuck: #$pr was $why (\`gh pr checks $pr\` says what), so the lead closed it and kept its branch. Take \`$STUCK_LABEL\` off to build this again." > /dev/null
             fi
             label "$n" "$STUCK_LABEL"
           done
 
           # 1. one fix round for a red or flagged builder pull request
           for row in $(jq -r --arg fixed "$FIXED_LABEL" '
-              .[] | select((.isDraft | not) and .author.is_bot == true)
+              .[] | select((.isDraft | not) and .author.login != env.OWNER)
               | select(all(.labels[]?; .name != $fixed))
               | "\(.number):\(any(.statusCheckRollup[]?; (.name == "verify" or .name == "smoke") and .conclusion == "FAILURE") or .mergeable == "CONFLICTING"):\((.body // "") | ([scan("(?m)^(?:Part of|Closes) #([0-9]+)")] | first // [""]) | .[0])"' <<<"$prs"); do
             [ "$slots" -gt 0 ] || break
@@ -179,6 +204,21 @@ jobs:
             fi
             take "$n" || continue
             dispatch "$n" fix "$pr"; label "$pr" "$FIXED_LABEL"; slots=$((slots - 1))
+          done
+
+          # 1b. a conflict round for a builder pull request past its fix round that main has since moved under: one per head
+          for row in $(jq -r '
+              .[] | select((.isDraft | not) and .author.login != env.OWNER)
+              | select(any(.labels[]?; .name == env.FIXED_LABEL)) | select(.mergeable == "CONFLICTING")
+              | "\(.number):\(any(.labels[]?; .name == env.CONFLICT_LABEL)):\((.body // "") | ([scan("(?m)^(?:Part of|Closes) #([0-9]+)")] | first // [""]) | .[0])"' <<<"$prs"); do
+            [ "$slots" -gt 0 ] || break
+            IFS=: read -r pr rounded n <<<"$row"
+            [ -n "$n" ] || continue
+            # its conflict round ran on this head and left it conflicting: step 0 closes it. A review round's doesn't count
+            [ "$rounded" = true ] && fixed_since "$n" "$(head_date "$pr")" && continue
+            take "$n" || continue
+            echo "#$pr conflicts with main after its fix round: a conflict round"
+            dispatch "$n" fix "$pr"; label "$pr" "$CONFLICT_LABEL"; slots=$((slots - 1))
           done
 
           # 2. resume an unfinished build once
@@ -262,10 +302,9 @@ jobs:
           stuck=$(jq -r '.[] | select(any(.labels[]?; .name == env.STUCK_LABEL)) | "- #\(.number) \(.title): its pull request stayed red after its fix round (the issue says which)"' <<<"$issues")
           today=$(date -u +%Y-%m-%d)
           merged=$(gh pr list --state merged --search "merged:>=$today" --limit 100 --json number,title --jq '.[] | "- #\(.number) \(.title)"')
-          red=$(jq -r '.[] | select(.isDraft | not) | select(any(.statusCheckRollup[]?; .conclusion == "FAILURE" and .name != "look-approved")) | "- #\(.number) \(.headRefName)"' <<<"$prs")  # a look waiting on Craig is listed under looks, not red
-          looks=$(jq -r '.[] | select(.isDraft | not) | select(any(.statusCheckRollup[]?; .name == "look-approved" and .conclusion == "FAILURE")) | "- #\(.number): the look, your craig-approved label"' <<<"$prs")
-          body=$(printf '## %s, %s UTC\n\n**Next up** (build order; label an issue `next` to put it first)\n%s\n\n**In flight**\n%s\n\n**Blocked, and on what**\n%s\n%s\n\n**Stuck** (take `%s` off an issue to build it again)\n%s\n\n**Not yet checked for open rules** (the 01:37 sweep)\n%s\n\n**Merged today**\n%s\n\n**Red**\n%s\n\n*Written by the lead; it rewrites this every pass. Healthchecks emails Craig if no pass comes for 3 hours, or nothing merges for a day.*\n' \
-            "$today" "$(date -u +%H:%M)" "${next_up:-- nothing ready: answer the blocked ones, or file an issue}" "${running:-- nothing}" "${blocked:-- nothing}" "${looks:-}" "$STUCK_LABEL" "${stuck:-- nothing}" "${unchecked:-- none}" "${merged:-- nothing}" "${red:-- nothing}")
+          red=$(jq -r '.[] | select(.isDraft | not) | select(any(.statusCheckRollup[]?; .conclusion == "FAILURE")) | "- #\(.number) \(.headRefName)"' <<<"$prs")  # look-approved holds no merge since 7 Nov 2026, so its failure is red too
+          body=$(printf '## %s, %s UTC\n\n**Next up** (build order; label an issue `next` to put it first)\n%s\n\n**In flight**\n%s\n\n**Blocked, and on what**\n%s\n\n**Stuck** (take `%s` off an issue to build it again)\n%s\n\n**Not yet checked for open rules** (the 01:37 sweep)\n%s\n\n**Merged today**\n%s\n\n**Red**\n%s\n\n*Written by the lead; it rewrites this every pass. Healthchecks emails Craig if no pass comes for 3 hours, or nothing merges for a day.*\n' \
+            "$today" "$(date -u +%H:%M)" "${next_up:-- nothing ready: answer the blocked ones, or file an issue}" "${running:-- nothing}" "${blocked:-- nothing}" "$STUCK_LABEL" "${stuck:-- nothing}" "${unchecked:-- none}" "${merged:-- nothing}" "${red:-- nothing}")
           board=$(gh issue list --state open --label "$BOARD_LABEL" --limit 1 --json number --jq '.[0].number // empty')
           if [ "$DRY_RUN" = true ]; then echo "$body"
           elif [ -n "$board" ]; then gh issue edit "$board" --title "$BOARD_TITLE" --body "$body" > /dev/null
@@ -279,8 +318,11 @@ jobs:
         env:
           PING_URL: ${{ secrets.HEALTHCHECKS_PING_URL }}
         run: |
-          [ -n "$PING_URL" ] || { echo "::warning::No HEALTHCHECKS_PING_URL secret: no heartbeat."; exit 0; }
-          ping() { curl -fsS -m 10 --retry 2 -o /dev/null "$PING_URL/$1?create=1" || echo "::warning::The $1 ping didn't reach Healthchecks."; }
+          # a heartbeat that can't beat fails the pass, so it shows red rather than as a warning nobody reads
+          [ -n "$PING_URL" ] || { echo "::error::No HEALTHCHECKS_PING_URL secret: nothing tells Craig when the lead stops."; exit 1; }
+          failed=0
+          ping() { curl -fsS -m 10 --retry 2 -o /dev/null "$PING_URL/$1?create=1" || { echo "::error::The $1 ping didn't reach Healthchecks."; failed=1; }; }
           ping "$PASS_CHECK"
           since=$(date -u -d '24 hours ago' +%FT%TZ)
           [ -n "$(gh pr list --state merged --search "merged:>=$since" --limit 1 --json number --jq '.[].number')" ] && ping "$MERGE_CHECK" || true
+          exit "$failed"

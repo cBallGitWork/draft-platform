@@ -11,6 +11,7 @@ import { StarRating } from "../../ui/StarRating";
 import { starsIn } from "../../../convex/stars/bestRole";
 import { benchBestRole } from "../tactics/lineupDraft";
 import { ROLE_FIT_SUBJECT } from "../tactics/words";
+import { tacticsLink } from "../tactics/paths";
 import type { Tactics } from "../tactics/seam";
 import { SquadNumberBox } from "./SquadNumberBox";
 import { NextMatches, PositionList, type Row } from "./SquadTable";
@@ -31,7 +32,7 @@ import {
   playerCardWords,
   roleLastGameweekNotSettledLabel,
   seasonWords,
-  setRoleNotBuiltLabel,
+  setRoleWords,
   signedWords,
   startingInWords,
   statusNotSettledLabel,
@@ -118,8 +119,10 @@ export function PlayerPanel({
         <GameweekPlace tactics={tactics} code={player.code} />
       </dl>
       <div className="flex items-center justify-between gap-2 px-3 pb-2">
-        {/* Set his role opens Tactics with him selected (the README), once Tactics can from the address. */}
-        <Placeholder label={setRoleNotBuiltLabel} className="h-tap w-28" />
+        {/* Set his role opens Tactics with him selected (the README, Answered; #1008). */}
+        <Link {...tacticsLink(player.code)} className="secondary-action lg:min-h-0 lg:py-1">
+          {setRoleWords}
+        </Link>
         <Link to={playerCardPath(leagueId, player.code)} className="flex min-h-tap items-center font-semibold">
           {playerCardWords} <span aria-hidden="true">&nbsp;{nextGlyph}</span>
         </Link>

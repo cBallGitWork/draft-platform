@@ -76,7 +76,28 @@ export const commentaryTables = {
 
 // The threshold lines' moments (#44, #835, spec/10): each live read that showed a stat move a man's
 // points, up or down, under some slot's pricing, with the clock then (stats/thresholdSteps.ts).
+
+/** One man's stat as a read showed it move his points. */
+export const thresholdStep = v.object({
+  playerCode: v.number(),
+  /** The rule's stat, a catalogue stat or an own stat, and his total before and after the read. */
+  stat: v.string(),
+  from: v.number(),
+  to: v.number(),
+  /** His minutes then, which a rule's minimum is judged by. */
+  minutes: v.number(),
+});
+
 export const thresholdStepTables = {
+  /** A live read's steps, at most THRESHOLD_STEPS_A_ROW a row (#871): a match's rows stay about as
+   *  few as its reads, so a set whose roles adjust every pass fits in one query. */
+  thresholdStepReads: defineTable({
+    fixtureCode: v.number(),
+    /** The match clock then, null where the read gave none. */
+    minute: v.union(v.number(), v.null()),
+    steps: v.array(thresholdStep),
+  }).index("by_fixtureCode", ["fixtureCode"]),
+  /** One row a step, as stored before #871: still read for the matches it holds, never written. */
   thresholdSteps: defineTable({
     fixtureCode: v.number(),
     playerCode: v.number(),

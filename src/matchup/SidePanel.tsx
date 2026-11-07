@@ -15,6 +15,7 @@ import {
   lineupLabel,
   noFigureWords,
   notCountingLabel,
+  openBreakdownLabel,
   statusLabels,
   statusWords,
 } from "./words";
@@ -25,8 +26,11 @@ import {
 /** A side's name: its team's, or the league's average. */
 export const sideName = (side: MatchupSide) => (side.kind === "team" ? side.teamName : leagueAverageWords);
 
-/** A side's panel, under its name. */
-export function SidePanel({ side }: { side: MatchupSide }) {
+/** Which man's breakdown is open, if any, and opening another's. */
+export type Picking = { picked: number | null; pick(playerCode: number): void };
+
+/** A side's panel, under its name: tapping a man opens his breakdown (#798). */
+export function SidePanel({ side, picking }: { side: MatchupSide; picking: Picking }) {
   const name = sideName(side);
   return (
     <Panel title={name} namesTeam={side.kind === "team"}>
@@ -37,7 +41,7 @@ export function SidePanel({ side }: { side: MatchupSide }) {
           <ColumnHeads columns={columns} classOf={(column) => (column === "player" ? "px-2 text-left" : "px-2 text-right")} />
           <tbody>
             {side.lineup.starters.map((slot) => (
-              <SlotRow key={slot.playerCode} slot={slot} />
+              <SlotRow key={slot.playerCode} slot={slot} picking={picking} />
             ))}
             <tr>
               <th colSpan={Object.keys(columns).length} scope="colgroup" className="bg-plate px-3 text-left font-bold shadow-bevel-plate">
@@ -45,7 +49,7 @@ export function SidePanel({ side }: { side: MatchupSide }) {
               </th>
             </tr>
             {side.lineup.bench.map((slot) => (
-              <SlotRow key={slot.playerCode} slot={slot} />
+              <SlotRow key={slot.playerCode} slot={slot} picking={picking} />
             ))}
           </tbody>
         </table>
@@ -57,8 +61,8 @@ export function SidePanel({ side }: { side: MatchupSide }) {
 /** One man: greyed while his points don't count (spec/14, On screen), the role he plays under his
  *  name, as on the Tactics pitch (a bench player's once he has come on), his match's state, and
  *  what the auto-subs did with him. */
-function SlotRow({ slot }: { slot: MatchupStarter | MatchupBenchSlot }) {
-  const { area, name, role, points, counts, status, autoSub } = slot;
+function SlotRow({ slot, picking }: { slot: MatchupStarter | MatchupBenchSlot; picking: Picking }) {
+  const { playerCode, area, name, role, points, counts, status, autoSub } = slot;
   return (
     <tr className={`border-t border-panel-rule align-top ${counts ? "" : "text-muted"}`}>
       <td className="px-2 text-right">
@@ -67,7 +71,15 @@ function SlotRow({ slot }: { slot: MatchupStarter | MatchupBenchSlot }) {
         </abbr>
       </td>
       <th scope="row" className={`px-2 text-left font-semibold ${counts ? "text-lead" : ""}`}>
-        {name}
+        <button
+          type="button"
+          aria-expanded={picking.picked === playerCode}
+          aria-label={openBreakdownLabel(name)}
+          onClick={() => picking.pick(playerCode)}
+          className="inline-flex min-h-tap min-w-tap items-center text-inherit text-align-inherit font-semibold lg:min-h-0 lg:min-w-0"
+        >
+          {name}
+        </button>
         {role !== null && <span className={`block text-data font-normal ${counts ? "text-soft" : ""}`}>{role.name}</span>}
         {autoSub !== null && (
           <span className={`block text-data font-normal ${autoSub.kind === "on" ? "text-derived" : "text-muted"}`}>

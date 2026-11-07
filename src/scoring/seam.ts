@@ -3,6 +3,7 @@
 // it in live (liveScoring.ts); the preview and the tests hand the screen their own.
 
 import type { Id } from "../../convex/_generated/dataModel";
+import type { LabReport } from "../../convex/balanceLab/labReportShape";
 import type { VersionNotes } from "../patches/seam";
 import type { Change } from "../shared/refusal";
 import type { RulesView } from "../rules/rulesDraft";
@@ -54,4 +55,7 @@ export type ScoringSeam = {
   announce(draftSavedAt: number, takesEffectAt: number): Promise<Announced | string>;
   /** Withdraws the patch `versionId` names, back to the draft. */
   withdraw(versionId: Id<"siteScoring">): Change;
+  /** Runs the rule balance lab on the draft saved at `draftSavedAt`: its report, saved nowhere, or
+   *  the words saying why not. It never rejects. */
+  runLab(draftSavedAt: number): Promise<LabReport | string>;
 };
