@@ -2,7 +2,9 @@ import { expect, test } from "vitest";
 import { FIRST_SCORING } from "../../../convex/scoring/firstScoring";
 import type { ScoringSet } from "../../../convex/scoring/scoringSet";
 import { pricedRole } from "../../support/convex/scoring.example";
-import { THRESHOLD_STEPS_MOST, thresholdSteps } from "../../../convex/stats/thresholdSteps";
+import { THRESHOLD_STEP_READS_MOST, THRESHOLD_STEPS_A_ROW, THRESHOLD_STEPS_MOST, thresholdSteps, thresholdStepsOf } from "../../../convex/stats/thresholdSteps";
+import { LIVE_WINDOW_MS } from "../../../convex/stats/liveStats";
+import { MINUTE_MS } from "../../../convex/shared/time";
 import { FIRST_ROLE_OWN_STATS, FIRST_ROLES } from "../../../convex/scoring/draftedRoleAdjustments";
 import { withOwnStats } from "../../../convex/scoring/ownStats";
 import { STAT_CATALOGUE } from "../../../convex/scoring/statCatalogueList";
@@ -153,13 +155,47 @@ test("under the first set, a busy match stays far under the cap", () => {
 
 test("the roles' first values could take a busy match past the cap: its commentary would throw, never be cut", () => {
   // About 3,550 at Hull v Everton (6 Nov 2026): they adjust every accurate, forward and misplaced
-  // pass, every possession lost and more. Left for #871: a cap that holds them (THRESHOLD_STEPS_MOST).
+  // pass, every possession lost and more. Past the cap a row a step held, so since #871 a match's
+  // steps are stored a row a read (THRESHOLD_STEP_READS_MOST), below.
   expect(busiest(WITH_FIRST_ROLES)).toBeGreaterThan(THRESHOLD_STEPS_MOST);
 });
 
 test("a set pricing every catalogue stat per action would store over ten times the cap", () => {
   // About 11,970 at Hull v Everton (6 Nov 2026), mostly passes and touches.
   expect(busiest(EVERY_STAT_PER_ACTION)).toBeGreaterThan(10 * THRESHOLD_STEPS_MOST);
+});
+
+// Stored a row a read (#871): a match's rows are as many as its live reads that showed a step, and
+// a query reads every match some lineups' men play in, a double gameweek's twenty at most.
+
+/** The live tick's reads of one match: once a minute for LIVE_WINDOW_MS from kick-off. */
+const LIVE_READS = LIVE_WINDOW_MS / MINUTE_MS;
+
+/** A double gameweek's matches, all of which league home's Vidiprinter can read at once. */
+const DOUBLE_GAMEWEEK_MATCHES = 20;
+
+/** Convex's own limits on one query (docs.convex.dev, Limits): documents and bytes read. */
+const CONVEX_DOCUMENTS_READ = 32_000;
+const CONVEX_BYTES_READ = 16 * 1024 * 1024;
+
+/** A stored step's size at worst, written out with its field names and the catalogue's longest stat
+ *  name. */
+const STEP_BYTES =
+  JSON.stringify({ playerCode: 999_999, stat: STAT_CATALOGUE.reduce((longest, { stat }) => (stat.length > longest.length ? stat : longest), ""), from: 999, to: 999, minutes: 120 }).length;
+
+test("every live read of a match fits its rows with room, and a double gameweek's rows stay under Convex's documents read", () => {
+  expect(THRESHOLD_STEP_READS_MOST).toBeGreaterThanOrEqual(LIVE_READS + Math.ceil(busiest(WITH_FIRST_ROLES) / THRESHOLD_STEPS_A_ROW));
+  expect(DOUBLE_GAMEWEEK_MATCHES * THRESHOLD_STEP_READS_MOST).toBeLessThan(CONVEX_DOCUMENTS_READ / 2);
+});
+
+test("a row's steps stay under Convex's 8192 values an array", () => {
+  expect(THRESHOLD_STEPS_A_ROW).toBeLessThan(8192);
+});
+
+test("under the roles' first values, a double gameweek's busy matches stay far under Convex's bytes read", () => {
+  // At most about 3,550 steps a busy match at about 100 bytes (7 Nov 2026), so under half the
+  // limit over twenty: one step an action is itself the worst, as a read a minute shows several.
+  expect(DOUBLE_GAMEWEEK_MATCHES * busiest(WITH_FIRST_ROLES) * STEP_BYTES).toBeLessThan(CONVEX_BYTES_READ / 2);
 });
 
 test("each live read stores the steps its records show over the last, with the clock then", async () => {
@@ -171,10 +207,38 @@ test("each live read stores the steps its records show over the last, with the c
   await liveRecords(league, at(30), 31);
   await liveRecords(league, at(61), 61);
 
-  const steps = await league.t.run((ctx) => ctx.db.query("thresholdSteps").collect());
-  const his = steps.filter((step) => step.playerCode === HULL_SCORER && step.fixtureCode === HULL_EVERTON && step.stat === "minutes");
+  const steps = await league.t.run((ctx) => thresholdStepsOf(ctx, HULL_EVERTON));
+  const his = steps.filter((step) => step.playerCode === HULL_SCORER && step.stat === "minutes");
   // Past 1 minute is none: his kick-off line already says he played.
   expect(his.map(({ from, to, minutes, minute }) => ({ from, to, minutes, minute }))).toEqual([{ from: 30, to: 61, minutes: 61, minute: 61 }]);
+});
+
+test("a read's steps are stored in one row, and a read that showed none stores no row", async () => {
+  const league = await scoresLeague();
+  const records = mergedHullEverton();
+  const at = (minutes: number) => records.map((record) => (record.playerCode === HULL_SCORER ? { ...record, stats: { ...record.stats, minutes } } : record));
+
+  await liveRecords(league, at(30), 30);
+  const first = await league.t.run((ctx) => ctx.db.query("thresholdStepReads").collect());
+  await liveRecords(league, at(30), 31);
+  await liveRecords(league, at(61), 61);
+
+  const rows = await league.t.run((ctx) => ctx.db.query("thresholdStepReads").collect());
+  // The minute-31 read moved nothing, so only the minute-61 read added a row.
+  expect(rows.map(({ minute }) => minute)).toEqual([...first.map(({ minute }) => minute), 61]);
+  expect(rows.at(-1)?.steps).toContainEqual({ playerCode: HULL_SCORER, stat: "minutes", from: 30, to: 61, minutes: 61 });
+});
+
+test("steps stored a row a step before #871 are still read, ahead of the reads' rows", async () => {
+  const league = await scoresLeague();
+  await league.t.run(async (ctx) => {
+    await ctx.db.insert("thresholdStepReads", { fixtureCode: HULL_EVERTON, minute: 70, steps: [{ playerCode: HULL_SCORER, stat: "saves", from: 2, to: 3, minutes: 70 }] });
+    await ctx.db.insert("thresholdSteps", { fixtureCode: HULL_EVERTON, playerCode: HULL_SCORER, stat: "minutes", from: 59, to: 61, minutes: 61, minute: 61 });
+  });
+  expect(await league.t.run((ctx) => thresholdStepsOf(ctx, HULL_EVERTON))).toEqual([
+    expect.objectContaining({ playerCode: HULL_SCORER, stat: "minutes", from: 59, to: 61, minutes: 61, minute: 61 }),
+    { playerCode: HULL_SCORER, stat: "saves", from: 2, to: 3, minutes: 70, minute: 70 },
+  ]);
 });
 
 test("a site set that can't be read stores no steps, logs why, and the records are still written", async () => {
@@ -185,6 +249,6 @@ test("a site set that can't be read stores no steps, logs why, and the records a
   expect(logged).toHaveBeenCalledWith(expect.stringContaining(`match ${HULL_EVERTON}'s threshold steps weren't stored`));
   // Handed back for the threshold lines feed's row (#522), so the feeds page and the admin hear.
   expect(thresholdSteps).toMatchObject({ fixtureCode: HULL_EVERTON, ok: false, error: expect.any(String) });
-  expect(await league.t.run((ctx) => ctx.db.query("thresholdSteps").collect())).toEqual([]);
+  expect(await league.t.run((ctx) => ctx.db.query("thresholdStepReads").collect())).toEqual([]);
   expect(await league.t.run((ctx) => ctx.db.query("playerMatchStats").collect())).toHaveLength(mergedHullEverton().length);
 });
