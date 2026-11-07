@@ -84,8 +84,6 @@ export const selectionColumns = {
   next: { short: "Next", long: "Next fixture" },
   roleFit: { short: "Role fit", long: "His stars for the role" },
   role: { short: "Role", long: "The role he plays in his slot" },
-  season: { short: "Season", long: "Season points" },
-  last: { short: "Last", long: "Last gameweek's points" },
 } as const;
 /** Over the bench's Role column: the role each has the most stars for at his main position. */
 export const BEST_ROLE_HEAD = "Best role";

@@ -89,7 +89,8 @@ export const startedNotBuiltLabel = "Started: not counted yet";
 export const rolePointsNotBuiltLabel = "Role points: not counted yet";
 export const bestRoleNotRatedLabel = "Best role: not rated yet";
 export const roleLastGameweekNotSettledLabel = "Role last gameweek: what it counts isn't settled yet";
-export const setRoleNotBuiltLabel = "Set his role: waits for Tactics to open with him selected";
+/** The panel's link to Tactics, with him selected there (#1008). */
+export const setRoleWords = "Set his role";
 /** Where he stands in the gameweek being set: "Starting, W right"; "Bench, S3". */
 export const gameweekRowWords = (gameweek: number) => `GW${gameweek}`;
 export const startingInWords = (slot: string, lane: Lane) => `Starting, ${slot} ${LANE_WORDS[lane]}`;

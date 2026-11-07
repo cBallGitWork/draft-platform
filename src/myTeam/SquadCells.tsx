@@ -13,10 +13,8 @@ import {
 
 // The cells the Squad and Tactics tabs' tables and panels both draw, written once (#1042).
 
-/** A points figure in bold; none yet is a muted dash, saying why on hover. Undefined while his row
- *  loads draws the cell empty. */
-export function PointsCell({ className, points }: { className: string; points: number | null | undefined }) {
-  if (points === undefined) return <td className={className} />;
+/** A points figure in bold; none yet is a muted dash, saying why on hover. */
+export function PointsCell({ className, points }: { className: string; points: number | null }) {
   return points === null ? (
     <td title={noPointsWords} className={`${className} text-muted`}>
       {noFigureWords}

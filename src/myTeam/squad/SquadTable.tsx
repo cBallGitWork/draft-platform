@@ -156,4 +156,3 @@ function StatCell({ className, stat, player }: { className: string; stat: Stat; 
   }
   return <td className={className}>{figureWords(player.stats[stat])}</td>;
 }
-

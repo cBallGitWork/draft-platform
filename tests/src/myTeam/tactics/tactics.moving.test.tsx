@@ -90,7 +90,7 @@ describe("moving a player", () => {
     expect(within(lit).getByRole("img", { name: whitesStars })).toBeTruthy();
     expect(within(lit).getByText(WHITE.name)).toBeTruthy();
     // The Selection table keeps each row's own Role fit.
-    expect(within(screen.getByRole("table", { name: squadTableLabel })).queryByRole("img", { name: whitesStars })).toBeNull();
+    expect(within(screen.getByRole("table", { name: selectionTableLabel })).queryByRole("img", { name: whitesStars })).toBeNull();
 
     await userEvent.keyboard("{Escape}");
     expect(within(pitch()).queryByRole("img", { name: whitesStars })).toBeNull();
