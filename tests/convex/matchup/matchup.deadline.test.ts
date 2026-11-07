@@ -1,4 +1,5 @@
 import { expect, test } from "vitest";
+import { positionOfSlot } from "../../../convex/lineup/pitch";
 import { everyRoleOf, namedRole, roleIn } from "../../../convex/lineup/roles";
 import {
   annsScoredGame,
@@ -48,4 +49,23 @@ test("once the deadline has passed each starter on both sides carries his role: 
   for (const starter of EVERTON_STARTERS) expect(everton.get(starter.playerCode)).toEqual(namedRole(roleIn(starter, undefined)));
   // Nobody has come on, so the bench plays none.
   expect(lineupOf(game.team).bench.map((slot) => slot.role)).toEqual(lineupOf(game.team).bench.map(() => null));
+});
+
+// spec/10: "Each starter on the matchup's lineups shows his slot's position label and his role's
+// run, as on the Tactics pitch" (#850). The run is read from the role set at his place.
+test("once the deadline has passed each starter on both sides carries his slot's lane and label, and from them his role's run", async () => {
+  const league = await scoresLeague();
+  const game = await annsScoredGame(league, GAMEWEEK);
+  for (const [side, starters] of [[game.team, HULL_STARTERS], [game.opponent, EVERTON_STARTERS]] as const) {
+    const sent = lineupOf(side).starters;
+    expect(sent.map(({ playerCode, area, place }) => ({ playerCode, area, lane: place.lane, label: place.label }))).toEqual(
+      starters.map(({ playerCode, area, lane }) => ({ playerCode, area, lane, label: positionOfSlot({ area, lane }) })),
+    );
+    // Each starter's run is his role's at his cell: the one the Tactics pitch draws.
+    for (const { area, place, role } of sent) expect(roleIn({ area, lane: place.lane }, role.key).key).toBe(role.key);
+  }
+  // Hull's lineup holds at least one moving role, so the matchup has a run to draw.
+  expect(lineupOf(game.team).starters.some(({ area, place, role }) => roleIn({ area, lane: place.lane }, role.key).run !== null)).toBe(true);
+  // Nobody has come on, so the bench stands in no slot.
+  expect(lineupOf(game.team).bench.map((slot) => slot.place)).toEqual(lineupOf(game.team).bench.map(() => null));
 });

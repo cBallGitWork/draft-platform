@@ -1,8 +1,7 @@
 import { v, type Infer } from "convex/values";
 import type { Doc } from "../_generated/dataModel";
 import { query, type QueryCtx } from "../_generated/server";
-import { SLOT_POSITIONS } from "../lineup/pitch";
-import { areaShape } from "../lineup/pitchShape";
+import { areaShape, slotPosition } from "../lineup/pitchShape";
 import { roleName } from "../lineup/roles";
 import { positionsNow } from "../positions/playerPositions";
 import type { Position } from "../positions/positionTables";
@@ -27,8 +26,6 @@ import { basePoints, cardPositions } from "./cardPoints";
 /** How many of his club's next matches the card shows: "the next few" (spec/12). Claude's choice,
  *  not yet Craig's. */
 export const NEXT_FIXTURES_SHOWN = 5;
-
-const slotPosition = v.union(...SLOT_POSITIONS.map((each) => v.literal(each)));
 
 const match = v.object({
   fixtureCode: v.number(),

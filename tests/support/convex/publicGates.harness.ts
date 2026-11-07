@@ -180,6 +180,7 @@ export const gates: Record<string, Gate> = {
   "waivers/waiverClaims:putIn": "manager",
   "waivers/waiverClaims:rank": "manager",
   "waivers/waiverClaims:withdraw": "manager",
+  "waivers/waivers:cardActionOn": "member",
   "waivers/waivers:drop": "manager",
   "waivers/waivers:stateOf": "member",
 };
