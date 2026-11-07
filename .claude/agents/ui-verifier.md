@@ -123,9 +123,8 @@ or every difference, numbered; with none shot, say so:
 ```
 
 `gh pr create` is refused on a branch that changes a screen with an approved picture unless the
-body holds this block and that signature line, and `gh pr merge` waits for Craig's `craig-approved`
-label while a layout difference is numbered (`.claude/hooks/pr_body.py`, `approval_gate.py`). Start
-each difference with its kind and a colon, as above: Density, Type and Colour are look details and
-merge without the label; Structure, Columns, Missing, or a line naming no kind, wait for it (Craig,
-5 Nov 2026: "Yes, layout only"). Number only differences: a numbered line anywhere in the block
+body holds this block and that signature line (`.claude/hooks/pr_body.py`); no difference holds the
+merge, and the layout ones are listed for the UI reskin (`approval_gate.py`; Craig, 7 Nov 2026). Start
+each difference with its kind and a colon, as above: Density, Type and Colour are look details;
+Structure, Columns, Missing, or a line naming no kind, are layout, and the check lists those. Number only differences: a numbered line anywhere in the block
 counts as one.

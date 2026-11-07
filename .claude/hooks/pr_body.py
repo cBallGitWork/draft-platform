@@ -4,7 +4,7 @@ anywhere but a bare "Closes #n" line. On gh pr create it also denies a body that
 template's "## What" or its "Part of #n" / "Closes #n" line, and, where the branch changes a file that renders
 a screen with an approved picture (screen_routes.py), one without ui-verifier's signature and an
 "Approved vs built" section that says it "matches the approved picture" or numbers each difference
-(#947; approval_gate.py then holds the merge for Craig). A body the guard can't read is denied too.
+(#947; approval_gate.py lists its layout differences for the UI reskin). A body the guard can't read is denied too.
 pr-reviewer's verdict is no longer asked for here: review.yml posts it as a comment on every pull request
 (Craig, 4 Nov 2026: the builder only builds, and the review is a job of its own).
 A title past TITLE_HARD characters is denied; one past TITLE_SOFT gets a note, not a denial
