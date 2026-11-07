@@ -22,7 +22,7 @@ commentary` (16 Oct 2026).
   gameweek arrows step gameweek by gameweek and the switch picks the game. Opened without a game's
   link, it shows the first game drawn in the fixtures. One lineup and one score for the gameweek,
   counted as a separate result against each opponent, and each game's commentary is only its two
-  sides' players (Craig, 6 Nov 2026: "Build take recs"; #521).
+  sides' players (Craig, 6 Nov 2026: "Build take recs"; #521). `S10.2`
 - Each starter on the matchup's lineups shows his slot's position label and his role's run, as on
   the Tactics pitch (`spec/05`; Craig, 31 Oct 2026, `/grill the Tactics pitch`).
 - Tapping a player on the matchup or its pitch shows his breakdown for this match, his role's line
