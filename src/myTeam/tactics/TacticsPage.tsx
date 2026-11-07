@@ -88,7 +88,9 @@ function LineupEditor({ league, teamName, tactics, seam }: { league: LeagueSumma
   // The formation window: opened by All formations, or by Save preset… on Your presets, its form open.
   const [windowOpen, setWindowOpen] = useState<"formations" | "saving" | null>(null);
   // The manager's saved plans (spec/05, Saved plans; #992), and the one he last loaded.
-  const plans = seam.usePlans(league.leagueId) ?? [];
+  // Undefined while they load: the toolbar has none to load yet, and the window says they are loading.
+  const plansRead = seam.usePlans(league.leagueId);
+  const plans = plansRead ?? [];
   const planChanges = seam.usePlanChanges();
   const [loadedName, setLoadedName] = useState<string | null>(null);
   // The desk's switch for the roles' runs, on until it is turned off (spec/05 Runs).
@@ -210,7 +212,7 @@ function LineupEditor({ league, teamName, tactics, seam }: { league: LeagueSumma
         <FormationWindow
           key={windowOpen}
           saving={windowOpen === "saving"}
-          plans={plans}
+          plans={plansRead}
           planInUse={planInUse}
           onLoadPlan={(name) => {
             setWindowOpen(null);

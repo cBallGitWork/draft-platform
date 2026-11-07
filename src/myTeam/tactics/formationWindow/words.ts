@@ -41,6 +41,7 @@ export const planNameLabel = "Preset name";
 export const saveWords = "Save";
 export const replaceQuestion = (name: string) => `Replace '${name}'?`;
 export const replaceWords = "Replace";
+export const plansLoadingWords = "Loading your presets…";
 
 /** Data not held yet, in its place (plate.md, Marks: a placeholder). */
 export const subtitlePlaceholder = (name: string) => `${name}'s subtitle shows here once Craig writes it`;

@@ -23,10 +23,14 @@ export const openTactics = (change: Partial<OpenTactics> = {}): OpenTactics => (
 
 /** What the fake server holds: the tactics, or nothing yet while they load; what a save
  *  answers, the gameweek it saved from (the tactics' by default) or the words refusing it; and
- *  whether that answer is held back until the test lets it go (`letSaveGo`), as a slow server's. */
-export type TacticsData = { tactics?: Tactics; saveAnswer?: number | string; saveHeld?: boolean; plans?: readonly Plan[]; planAnswer?: string | null };
+ *  whether that answer is held back until the test lets it go (`letSaveGo`), as a slow server's;
+ *  the saved plans, or nothing yet while they load (`plansLoading`). */
+export type TacticsData = { tactics?: Tactics; saveAnswer?: number | string; saveHeld?: boolean; plans?: readonly Plan[]; plansLoading?: boolean; planAnswer?: string | null };
 
-export function fakeTactics({ tactics = openTactics(), saveAnswer = TACTICS_GAMEWEEK, saveHeld = false, plans = [], planAnswer = null }: TacticsData, loading: boolean) {
+export function fakeTactics(
+  { tactics = openTactics(), saveAnswer = TACTICS_GAMEWEEK, saveHeld = false, plans = [], plansLoading = false, planAnswer = null }: TacticsData,
+  loading: boolean,
+) {
   let letGo: (() => void) | null = null;
   const changes = {
     save: vi.fn<LineupChanges["save"]>(async () => {
@@ -75,7 +79,7 @@ export function fakeTactics({ tactics = openTactics(), saveAnswer = TACTICS_GAME
     },
     useLineupChanges: vi.fn<TacticsSeam["useLineupChanges"]>(() => changes),
     useTacticsOpened: vi.fn<TacticsSeam["useTacticsOpened"]>(),
-    usePlans: vi.fn<TacticsSeam["usePlans"]>(() => useSyncExternalStore(subscribe, () => (loading ? undefined : heldPlans))),
+    usePlans: vi.fn<TacticsSeam["usePlans"]>(() => useSyncExternalStore(subscribe, () => (loading || plansLoading ? undefined : heldPlans))),
     usePlanChanges: vi.fn<TacticsSeam["usePlanChanges"]>(() => planChanges),
     lineupChanges: changes,
     planChanges,

@@ -16,6 +16,7 @@ import {
   deletePlanLabel,
   notAllowedWords,
   planNameLabel,
+  plansLoadingWords,
   replaceQuestion,
   replaceWords,
   savePresetName,
@@ -75,6 +76,13 @@ describe("saving a plan", () => {
     await userEvent.click((await openWindow()).getByRole("button", { name: new RegExp(`^${savePresetName}`) }));
     await saveAs("Sixth");
     expect(screen.getByRole("alert").textContent).toBe(planRefusals.full);
+  });
+
+  it("while his plans load, Your presets says so and offers no Save preset…, which could replace one unasked", async () => {
+    await openedPitch({ ...IN_A_442, plansLoading: true });
+    const window = await openWindow();
+    expect(window.getByRole("status").textContent).toBe(plansLoadingWords);
+    expect(window.queryByRole("button", { name: new RegExp(`^${savePresetName}`) })).toBeNull();
   });
 
   it("× deletes one", async () => {

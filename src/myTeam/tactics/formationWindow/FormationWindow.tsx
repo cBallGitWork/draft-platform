@@ -1,5 +1,6 @@
 import { useEffect, useId, useRef, useState, type ReactNode } from "react";
 import { closeGlyph } from "../../../shared/words";
+import { Loading } from "../../../ui/Panel";
 import { Placeholder } from "../../../ui/Placeholder";
 import type { DraftLineup, MoveRules, RatingsOf } from "../lineupDraft";
 import { backGroups, type Shape } from "./formationGroups";
@@ -25,6 +26,7 @@ import {
   yourPresetsLine,
   yourPresetWords,
   appliesPlanWords,
+  plansLoadingWords,
 } from "./words";
 import { PlansGroup } from "./PlansGroup";
 import { loadedPlan, presetOfPlan, type Plan } from "../savedPlans";
@@ -49,7 +51,7 @@ export function FormationWindow({
   ratingsOf,
   onUse,
   onClose,
-  plans,
+  plans: plansRead,
   planInUse,
   saving = false,
   onLoadPlan,
@@ -63,9 +65,9 @@ export function FormationWindow({
   ratingsOf: RatingsOf;
   onUse(name: string): void;
   onClose(): void;
-  /** The manager's saved plans (spec/05, Saved plans), and the one last loaded, if the pitch still
-   *  stands in its formation. */
-  plans: readonly Plan[];
+  /** The manager's saved plans (spec/05, Saved plans), undefined while they load, and the one last
+   *  loaded, if the pitch still stands in its formation. */
+  plans: readonly Plan[] | undefined;
   planInUse: string | null;
   /** Opened by the toolbar's Save preset…: on Your presets, its form open. */
   saving?: boolean;
@@ -84,6 +86,9 @@ export function FormationWindow({
   const [group, setGroup] = useState<GroupKey>(saving ? "presets" : (opening?.back ?? "presets"));
   const [picked, setPicked] = useState<string | null>(saving ? planInUse : (inUse ?? opening?.shapes[0]?.name ?? null));
   const shapes = groups.find(({ back }) => back === group)?.shapes ?? [];
+  // While the plans load, Your presets says so rather than offering Save preset…, which would replace
+  // a plan by the same name without asking.
+  const plans = plansRead ?? [];
   const listed = plans.map((plan) => ({ plan, formation: presetOfPlan(plan, presets)?.name }));
   const plan = group === "presets" ? plans.find(({ name }) => name === picked) : undefined;
   const loaded = plan === undefined ? null : loadedPlan(draft, plan, presets, rules, ratingsOf);
@@ -124,7 +129,11 @@ export function FormationWindow({
         <div className="flex min-h-0 min-w-0 flex-col">
           {group === "presets" ? (
             <Group head={YOUR_PRESETS} line={yourPresetsLine} picking>
-              <PlansGroup plans={listed} picked={picked} inUse={planInUse} saving={saving} onPick={setPicked} onSave={onSavePlan} onDelete={onDeletePlan} />
+              {plansRead === undefined ? (
+                <Loading className="col-span-2">{plansLoadingWords}</Loading>
+              ) : (
+                <PlansGroup plans={listed} picked={picked} inUse={planInUse} saving={saving} onPick={setPicked} onSave={onSavePlan} onDelete={onDeletePlan} />
+              )}
             </Group>
           ) : group === "classics" ? (
             <Group head={CLASSICS} line={classicsLine} mark={samplePointsWords}>
