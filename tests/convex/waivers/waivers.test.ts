@@ -141,3 +141,34 @@ describe("players no team holds", () => {
     expect(await stateOf(DROPPED)).toEqual({ kind: "freeAgent" });
   });
 });
+
+describe("the player card's action (#1200)", () => {
+  const actionOn = async (email: string, playerCode: number) => (await actingAs(t, email)).query(api.waivers.waivers.cardActionOn, { leagueId, playerCode });
+  const annsSquad = () => [...SQUAD].map((playerCode) => ({ playerCode, playerName: nameOf(playerCode) })).sort((one, other) => one.playerName.localeCompare(other.playerName));
+
+  test("is a drop for the manager's own player, and nothing for another team's", async () => {
+    expect(await actionOn(ANN, DROPPED)).toEqual({ kind: "drop" });
+    expect(await actionOn(BOB, DROPPED)).toEqual({ kind: "none" });
+  });
+
+  test("is a pickup for a free agent, with the manager's squad by name to name who goes", async () => {
+    await holdPlayers(t, [FREE_AGENT]);
+    expect(await actionOn(ANN, FREE_AGENT)).toEqual({ kind: "pickUp", squad: annsSquad() });
+    expect(await actionOn(BOB, FREE_AGENT)).toEqual({ kind: "pickUp", squad: [] });
+  });
+
+  test("is a claim for a player on waivers, saying the run that can first take him", async () => {
+    await drop(ANN, DROPPED);
+    const action = await actionOn(BOB, DROPPED);
+    const { claimableFrom } = (await stateOf(DROPPED)) as { claimableFrom: number };
+    expect(action).toEqual({ kind: "claim", firstRunAt: expect.any(Number), squad: [] });
+    const firstRunAt = (action as { firstRunAt: number }).firstRunAt;
+    expect(firstRunAt).toBeGreaterThanOrEqual(claimableFrom);
+    expect(firstRunAt).toBeLessThan(claimableFrom + 7 * DAY_MS);
+  });
+
+  test("is nothing for the commissioner, who runs no team", async () => {
+    await holdPlayers(t, [FREE_AGENT]);
+    expect(await actionOn(COMMISSIONER, FREE_AGENT)).toEqual({ kind: "none" });
+  });
+});

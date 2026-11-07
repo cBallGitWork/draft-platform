@@ -16,6 +16,13 @@ export function londonHour(at: number): number {
   return Number(LONDON_HOUR.format(at));
 }
 
+const LONDON_DAY = new Intl.DateTimeFormat(LOCALE, { timeZone: LONDON_ZONE, year: "numeric", month: "2-digit", day: "2-digit" });
+
+/** The UK calendar day `at` falls on, as "06/11/2026", whatever the clocks. */
+export function londonDay(at: number): string {
+  return LONDON_DAY.format(at);
+}
+
 /** "A", "A and B", "A, B and C": no comma before the last "and". Written out rather than through
  *  Intl.ListFormat, so it reads the same whatever locale data a runtime holds. */
 export function andListWords(items: readonly string[]): string {

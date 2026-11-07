@@ -6,7 +6,7 @@ import { vi } from "vitest";
 import type { Id } from "../../../convex/_generated/dataModel";
 import type { PlayingState } from "../../../convex/football/matchScores";
 import type { Area } from "../../../convex/lineup/pitch";
-import { namedRole, roleIn } from "../../../convex/lineup/roles";
+import { centreSlotOf } from "../../../src/matchup/preview";
 import type { MatchupCommentary, MatchupSide, MatchupBenchSlot, MatchupSlot, MatchupStarter } from "../../../convex/matchup/matchupShape";
 import type { Matchup, MatchupSeam } from "../../../src/matchup/seam";
 import { lineupLabel } from "../../../src/matchup/words";
@@ -80,14 +80,15 @@ export const slot = (name: string, rest: Partial<Slot> = {}): Slot => ({
 
 /** The role a made-up starter plays unless his test gives one: his area's centre slot's first, as
  *  made-up men stand in areas, not cells. */
-export const roleOf = (area: Area) => namedRole(roleIn({ area, lane: "centre" }, undefined));
+export const roleOf = (area: Area) => centreSlotOf(area).role;
 
-/** A team's side: its starters, each in his area's role (roleOf) unless he has one, and bench, none
- *  with a role unless he has one, its total and whether that is provisional. */
+/** A team's side: its starters, each in his area's centre slot and role (roleOf) unless he has
+ *  one, and bench, none with a role or place unless he has one, its total and whether that is
+ *  provisional. */
 export const teamSide = (
   teamName: string,
-  starters: (Slot & Partial<Pick<MatchupStarter, "role">>)[],
-  bench: (Slot & Partial<Pick<MatchupBenchSlot, "role">>)[],
+  starters: (Slot & Partial<Pick<MatchupStarter, "role" | "place">>)[],
+  bench: (Slot & Partial<Pick<MatchupBenchSlot, "role" | "place">>)[],
   points = 0,
   provisional = true,
 ): Side => ({
@@ -96,7 +97,7 @@ export const teamSide = (
   teamName,
   points,
   provisional,
-  lineup: { starters: starters.map((starter) => ({ role: roleOf(starter.area), ...starter })), bench: bench.map((slot) => ({ role: null, ...slot })) },
+  lineup: { starters: starters.map((starter) => ({ ...centreSlotOf(starter.area), ...starter })), bench: bench.map((slot) => ({ role: null, place: null, ...slot })) },
   formation: null,
 });
 

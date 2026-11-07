@@ -4,6 +4,7 @@ import { fullTimeRecords, lockMatch } from "../../support/convex/gameweekScoresM
 import { pricedRole } from "../../support/convex/scoring.example";
 import { holdSiteScoring } from "../../support/convex/siteScoring.harness";
 import { DAY_MS } from "../../../convex/shared/time";
+import { positionOfSlot } from "../../../convex/lineup/pitch";
 import { everyRoleOf, namedRole, roleIn } from "../../../convex/lineup/roles";
 import {
   annsScoredGame,
@@ -40,7 +41,18 @@ test("a sub into the empty slot plays its role, and a bench player not on plays 
   const game = await annsScoredGame(league, GAMEWEEK);
   expect(slotOf(game.team, HULL_KEEPER)).toMatchObject({ autoSub: { kind: "on" }, role: namedRole(given) });
   expect(given.key).not.toBe(first.key);
-  expect(slotOf(game.team, BELLOUMI)).toMatchObject({ counts: false, role: null });
+  expect(slotOf(game.team, BELLOUMI)).toMatchObject({ counts: false, role: null, place: null });
+});
+
+// Craig, 6 Nov 2026 (#850): "Once Rice is on, the slot shows its own label (RW) and Rice's role's
+// run; Saka shows no run". The sub stands in the slot he came on in; the man off keeps his own.
+test("a sub who came on carries the slot he came on in, its lane and label", async () => {
+  const league = await scoresLeague();
+  const keepersSlot = HULL_STARTERS.find((starter) => starter.playerCode === PHILLIPS)!;
+  await fullTimeRecords(league);
+
+  const game = await annsScoredGame(league, GAMEWEEK);
+  expect(slotOf(game.team, HULL_KEEPER)).toMatchObject({ autoSub: { kind: "on" }, area: keepersSlot.area, place: { lane: keepersSlot.lane, label: positionOfSlot(keepersSlot) } });
 });
 
 // With no stars kept at the deadline: his new slot's first role.

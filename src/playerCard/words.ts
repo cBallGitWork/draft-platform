@@ -2,7 +2,7 @@
 
 import type { CategoryWhy, Cut, PricedBy, SlotValue } from "../../convex/scoring/scoring";
 import { seasonShortWords } from "../draft/words";
-import { AREA_WORDS, figureWords, gameweekWords, signedWords, versusWords } from "../shared/words";
+import { AREA_WORDS, figureWords, gameweekWords, signedWords, versusWords, whenWords } from "../shared/words";
 
 export { figureWords, freeAgentWords, noFigureWords } from "../shared/words";
 
@@ -106,6 +106,24 @@ export const overrideWords = "Override";
 export const cancelOverrideWords = "Cancel";
 export const overriddenDoneWords = "Overridden: the league has a letter saying why.";
 export const overrideFailedWords = "The override couldn't be saved. Try again.";
+/** Taking the override off the match picked (#903, spec/14 S14.5): "remove override button". */
+export const removeOverrideWords = "Remove override";
+export const overrideRemovedWords = "Override removed: his scored points are back, and the league has a letter.";
+export const removeOverrideFailedWords = "The override couldn't be removed. Try again.";
+
+/** The card's waiver action (#1200, spec/08): the words stay waivers, claim, drop and free agent. */
+export const dropWords = "Drop";
+export const confirmDropWords = (name: string) => `Drop ${name}?`;
+export const keepWords = "Keep him";
+export const claimWords = "Claim";
+export const pickUpWords = "Pick up";
+/** With a claim or a pickup, who he names to go (spec/08). */
+export const whoGoesLabel = "Who goes";
+export const dropNobodyWords = "Nobody";
+/** The run that can first take him (Craig, 6 Nov 2026, on #1200: "Show the run's day and time"). */
+export const onWaiversUntilWords = (firstRunAt: number | null) => (firstRunAt === null ? "On waivers" : `On waivers: first run ${whenWords(firstRunAt)}`);
+export const claimedDoneWords = "Claim put in, last of your claims.";
+export const waiverFailedWords = "That couldn't be done. Try again.";
 
 /** A role's adjustment, signed: "+2", "−1", "0". */
 export const adjustmentWords = signedWords;

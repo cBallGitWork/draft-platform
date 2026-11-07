@@ -36,7 +36,10 @@ the product until a grill settles it.
 ## 2. References
 
 `docs/design/references/` (FM26, FM27 per screen, CM, FPL, FPL Draft, Sleeper; its README says what each shot
-shows), plus what Fantrax and FPL do on the same screen. Background only: FM's organisation, never
+shows), plus what Fantrax and FPL do on the same screen. Look wider too: how other fantasy sports
+(Sleeper, ESPN and Yahoo for the NFL and NBA) and other sports games (EA FC's Ultimate Team, MLB The
+Show's franchise mode) handle the same screen (Craig, 7 Nov 2026: "encourage research from other
+fantasy sports and games"). Background only: FM's organisation, never
 its colours or a copy of its screens ("dont obviously rip off FM but they do things right", Craig,
 1 Nov 2026). Note the one or two ideas the board borrows; they go in the README later.
 
