@@ -54,6 +54,7 @@ beforeEach(async () => {
       "availability/availability:ofPlayer": () => caller.query(api.availability.availability.ofPlayer, { code: SOME_CODE }),
       "availability/availability:set": () => caller.mutation(api.availability.availability.set, { code: SOME_CODE, availability: null }),
       "auth:signOut": () => caller.action(api.auth.signOut, {}),
+      "balanceLab/balanceLabRun:run": () => caller.action(api.balanceLab.balanceLabRun.run, { draftSavedAt: now }),
       "draft/draftBoard:inMenu": () => caller.query(api.draft.draftBoard.inMenu, { leagueId }),
       "draft/draftBoard:ofLeague": () => caller.query(api.draft.draftBoard.ofLeague, { leagueId, now }),
       "draft/draftLists:mine": () => caller.query(api.draft.draftLists.mine, { leagueId }),

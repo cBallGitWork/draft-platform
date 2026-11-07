@@ -206,6 +206,8 @@ export const announce = mutation({
     if (latest !== undefined && takesEffectAt < latest.takesEffectAt) refuse(siteScoringRefusals.beforeWaiting(versionName(latest), latest.takesEffectAt, zone));
     const added = await addVersion(ctx, history, { scoring: draft.scoring, kind: "patch", takesEffectAt }, admin);
     await ctx.db.delete("siteScoringDraft", draft._id);
+    // The lab runs once more by itself on exactly this set, for the patch notes (Craig, 6 Nov 2026, on #843).
+    await ctx.scheduler.runAfter(0, internal.balanceLab.balanceLabRun.recordAnnounced, { versionId: added.id });
     return { name: added.name, fromGameweek: added.fromGameweek };
   },
 });
