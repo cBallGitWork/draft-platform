@@ -18,6 +18,7 @@ import {
   noPointsYetWords,
   noRoleFitYetWords,
   notLastSeasonWords,
+  onWaiversWords,
   seasonPointsColumn,
   statLabel,
 } from "./words";
@@ -141,7 +142,7 @@ function PlayerCell({
     case "owner":
       return (
         <td className={className}>
-          <OwnerName teamName={player.ownerTeamName} />
+          {player.onWaivers === null ? <OwnerName teamName={player.ownerTeamName} /> : onWaiversWords(player.onWaivers.firstRunAt)}
         </td>
       );
     case "seasonPoints":
