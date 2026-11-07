@@ -8,6 +8,7 @@ import { unheldNoticeWords } from "../../shared/words";
 import { TeamPage } from "../header/TeamHeader";
 import { markedBy } from "./focusMarks";
 import { FormationWindow } from "./formationWindow/FormationWindow";
+import { formationNameOf, onClassic } from "./classicLineup";
 import { benchedAt, dropOutcome, openingLineup, placeOf, presetInUse, reachOf, reshaped, swapped, withInstruction, withRole, type DraftLineup, type MoveRules, type RatingsOf } from "./lineupDraft";
 import { keptOrSwitched, type Side } from "../../../convex/lineup/instructions";
 import { switchedWords } from "../../../convex/lineup/instructionsWords";
@@ -103,11 +104,16 @@ function LineupEditor({ league, teamName, tactics, seam, opened }: { league: Lea
   /** Each squad player's stars, which pick the role he starts on when dropped into a slot, and show on a lit player (#11). */
   const ratingsOf: RatingsOf = (playerCode) => squad.get(playerCode)?.stars ?? [];
   const reach = useMemo(() => (picked === null ? null : reachOf(draft, picked.playerCode, rules)), [draft, picked, rules]);
-  const inUse = presetInUse(draft, tactics.presets)?.name ?? null;
   const instructions = draft.instructions ?? tactics.picked;
-  // The preset last picked, until the lineup saves in it: its empty slots are marked, and its own
-  // cells decide the instructions offered. Saved, the eleven stand in it, as the server judges them.
-  const shapePicked = tactics.presets.find(({ name }) => name === edits.shape)?.cells;
+  // The formation in use, by name: a classic's, or the preset's the eleven stand in (#991).
+  const inUse = formationNameOf({ ...draft, instructions }, tactics.presets, tactics.classics);
+  // The Formation key pressed, and the preset a saved plan is matched to: none while on a classic,
+  // which no key is.
+  const presetKey = draft.classic === undefined ? (presetInUse(draft, tactics.presets)?.name ?? null) : null;
+  // The preset or classic last picked, until the lineup saves in it: its empty slots are marked, and
+  // its own cells decide the instructions offered. Saved, the eleven stand in it, as the server
+  // judges them.
+  const shapePicked = [...tactics.presets, ...tactics.classics].find(({ name }) => name === edits.shape)?.cells;
   const shape = shapePicked ?? draft.starters;
 
   // After a move, the moved player keeps the focus, wherever he now stands.
@@ -172,12 +178,19 @@ function LineupEditor({ league, teamName, tactics, seam, opened }: { league: Lea
     const preset = tactics.presets.find((each) => each.name === name);
     if (preset !== undefined) reshapeTo(preset, reshaped(draft, preset.cells, rules, ratingsOf));
   };
+  /** A classic picked sets its shape, every slot's role and its instructions (spec/05; #991). */
+  const pickClassic = (name: string) => {
+    const classic = tactics.classics.find((each) => each.name === name);
+    if (classic === undefined) return;
+    setPickedCode(null);
+    edits.reshape(name, onClassic(draft, classic, rules, ratingsOf), null);
+  };
   /** One side's team instruction picked (spec/05, Team instructions). */
   const pickInstruction = (side: Side, key: string) => {
     setPickedCode(null);
     edits.edit(withInstruction(draft, instructions, side, key));
   };
-  const plans = useSavedPlans({ leagueId: league.leagueId, seam, draft, presets: tactics.presets, inUse, rules, ratingsOf, onLoad: reshapeTo });
+  const plans = useSavedPlans({ leagueId: league.leagueId, seam, draft, presets: tactics.presets, inUse: presetKey, rules, ratingsOf, onLoad: reshapeTo });
   /** Up, down, or a drop on a bench row: the player at that place in the bench order. Up or Down
    *  keeps the focus on the button pressed. */
   const toBenchAt = (playerCode: number, index: number, pressed?: "up" | "down") => {
@@ -193,7 +206,7 @@ function LineupEditor({ league, teamName, tactics, seam, opened }: { league: Lea
     <div ref={root} className="mt-2 flex flex-col gap-2">
       <TacticsToolbar
         presets={tactics.presets}
-        inUse={inUse}
+        inUse={presetKey}
         onPreset={pickPreset}
         windowOpen={windowOpen !== null}
         onAllFormations={() => setWindowOpen((open) => (open === null ? "formations" : null))}
@@ -225,6 +238,7 @@ function LineupEditor({ league, teamName, tactics, seam, opened }: { league: Lea
           onSavePlan={plans.save}
           onDeletePlan={plans.remove}
           presets={tactics.presets}
+          classics={tactics.classics}
           inUse={inUse}
           draft={draft}
           rules={rules}
@@ -232,6 +246,10 @@ function LineupEditor({ league, teamName, tactics, seam, opened }: { league: Lea
           onUse={(name) => {
             setWindowOpen(null);
             pickPreset(name);
+          }}
+          onUseClassic={(name) => {
+            setWindowOpen(null);
+            pickClassic(name);
           }}
           onClose={() => setWindowOpen(null)}
         />

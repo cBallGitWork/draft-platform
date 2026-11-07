@@ -22,6 +22,9 @@ export type Starter = Cell & { playerCode: number; role?: string };
 export interface DraftLineup {
   starters: readonly Starter[];
   bench: readonly number[];
+  /** The classic picked, by name, until another formation is (spec/05; #991): every move keeps it,
+   *  and `formationNameOf` says whether it is custom since. */
+  classic?: string;
   /** The team's two instructions (spec/05, Team instructions; #990): every move keeps them, and a
    *  preset picked keeps or switches them (convex/lineup/instructions.ts `keptOrSwitched`). */
   instructions?: InstructionPair;
@@ -40,9 +43,13 @@ const droppedInto = (playerCode: number, cell: Cell, formation: Formation, ratin
   droppedStarter(playerCode, cell, formation, ratingsOf(playerCode));
 
 /** The lineup the screen opens on: the one held for the gameweek, its first until the manager
- *  saves one (spec/05), with its instructions in force. */
-export function openingLineup({ lineup, picked }: Pick<OpenTactics, "lineup"> & Partial<Pick<OpenTactics, "picked">>): DraftLineup {
-  return { starters: lineup.starters, bench: lineup.bench, ...(picked !== undefined && { instructions: picked }) };
+ *  saves one (spec/05), with its instructions in force, on its classic while the league still
+ *  holds it, so a classic the league has since dropped or renamed never refuses his next save
+ *  (#991). */
+export function openingLineup({ lineup, classics, picked }: Pick<OpenTactics, "lineup" | "classics"> & Partial<Pick<OpenTactics, "picked">>): DraftLineup {
+  const { classic } = lineup;
+  const held = classic !== undefined && classics.some(({ name }) => name === classic);
+  return { starters: lineup.starters, bench: lineup.bench, ...(held && { classic }), ...(picked !== undefined && { instructions: picked }) };
 }
 
 /** The lineup with one side's instruction picked (spec/05, Team instructions), the other kept. */
@@ -196,7 +203,8 @@ export function benchedAt(draft: DraftLineup, playerCode: number, index: number)
 /** Back to front, left to right: the order the squad lists the eleven. */
 export const startersInOrder = (draft: DraftLineup): Starter[] => draft.starters.toSorted(byPitchOrder);
 
-/** Whether two lineups stand the same: the same players in the same cells, the same bench order. */
+/** Whether two lineups stand the same: the same players in the same cells, the same bench order,
+ *  the same instructions, picked from the same classic or none. */
 export function sameLineup(one: DraftLineup, other: DraftLineup): boolean {
   const key = (draft: DraftLineup) =>
     [
@@ -207,7 +215,7 @@ export function sameLineup(one: DraftLineup, other: DraftLineup): boolean {
       draft.instructions?.attacking ?? "",
       draft.instructions?.defensive ?? "",
     ].join(" ");
-  return key(one) === key(other);
+  return key(one) === key(other) && one.classic === other.classic;
 }
 
 /** The lineup reshaped to a preset's cells (spec/05; Craig, 26 Oct and 1 Nov 2026): each starter,

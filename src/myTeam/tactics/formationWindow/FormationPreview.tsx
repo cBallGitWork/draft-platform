@@ -27,8 +27,9 @@ import {
 // shows as its placeholder (plate.md, Marks).
 
 /** The lineup reshaped to `shape`, as Use this would leave it (spec/05, The pitch): `after`, or the
- *  lineup reshaped to it as a plain formation. A saved plan says the formation it stands in under its
- *  name (`subtitle`) and what loading it applies. */
+ *  lineup reshaped to it as a plain formation. A saved plan or a classic says the formation it
+ *  stands in under its name (`subtitle`) and what using it applies; a classic, what it did
+ *  (`description`). */
 export function FormationPreview({
   shape,
   draft,
@@ -36,6 +37,7 @@ export function FormationPreview({
   ratingsOf,
   after = reshaped(draft, shape.cells, rules, ratingsOf),
   subtitle,
+  description,
   applies = appliesWords(shape.name),
 }: {
   shape: Shape;
@@ -44,6 +46,7 @@ export function FormationPreview({
   ratingsOf: RatingsOf;
   after?: DraftLineup;
   subtitle?: string;
+  description?: string;
   applies?: string;
 }) {
   const lines: [string, string, string][] = [
@@ -76,6 +79,7 @@ export function FormationPreview({
           })}
         </div>
         <dl className="grid min-w-0 flex-1 grid-cols-facts content-start gap-x-3 gap-y-2">
+          {description !== undefined && <p className="col-span-full text-lead">{description}</p>}
           <dt className="text-muted">{appliesHead}</dt>
           <dd>{applies}</dd>
           {lines.map(([head, label, height]) => (

@@ -173,7 +173,7 @@ describe("read against the squad as it is now", () => {
     const ann = await as(ANN);
     await ann.save(FOUR_FOUR_TWO);
     // The screen holds the lineup it opened on while the squad changes under it.
-    const opened = openingLineup({ lineup: await ann.mine(NEXT) });
+    const opened = openingLineup({ lineup: await ann.mine(NEXT), classics: [] });
     const [goneStarter] = STARTERS;
     await t.run(async (ctx) => {
       for (const row of await ctx.db.query("squadPlayers").collect()) {

@@ -51,7 +51,20 @@ describe("the same lineup", () => {
 
 it("opens on the lineup the server holds, a team's first until its manager saves one (spec/05)", () => {
   const lineup = { fromGameweek: null, starters: [KEEPER], bench: [7, 5, 6], leftSquad: [], joinedBench: [], vacated: [] };
-  expect(openingLineup({ lineup })).toEqual({ starters: [KEEPER], bench: [7, 5, 6] });
+  expect(openingLineup({ lineup, classics: [] })).toEqual({ starters: [KEEPER], bench: [7, 5, 6] });
+});
+
+describe("a lineup saved on a classic (#991)", () => {
+  const lineup = { fromGameweek: 3, starters: [KEEPER], bench: [7], leftSquad: [], joinedBench: [], vacated: [], classic: "Keegan's Newcastle" };
+  const KEEGANS = { name: "Keegan's Newcastle", subtitle: "", description: "", cells: [], instructions: { attacking: "", defensive: "" } };
+
+  it("opens on it while the league holds it", () => {
+    expect(openingLineup({ lineup, classics: [KEEGANS] }).classic).toBe("Keegan's Newcastle");
+  });
+
+  it("opens on no classic once the league has dropped or renamed it, so his next save stands", () => {
+    expect(openingLineup({ lineup, classics: [{ ...KEEGANS, name: "Keegan's Newcastle 1996" }] })).toEqual({ starters: [KEEPER], bench: [7] });
+  });
 });
 
 describe("the lineup shown", () => {

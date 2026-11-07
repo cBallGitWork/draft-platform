@@ -2,7 +2,7 @@
 
 import { useSyncExternalStore } from "react";
 import { vi } from "vitest";
-import { FIRST_RULES, instructionsOf } from "../../../convex/rules/firstRules";
+import { classicsOf, FIRST_RULES, instructionsOf } from "../../../convex/rules/firstRules";
 import { firstPairFor } from "../../../convex/lineup/instructions";
 import type { LineupChanges, OpenTactics, Plan, PlanChanges, Tactics, TacticsSeam } from "../../../src/myTeam/tactics/seam";
 
@@ -21,6 +21,7 @@ export const openTactics = (change: Partial<OpenTactics> = {}): OpenTactics => (
   deadline: null,
   areaLimits: FIRST_RULES.areaLimits,
   presets: FIRST_RULES.presets,
+  classics: classicsOf(FIRST_RULES),
   instructions: [...instructionsOf(FIRST_RULES)],
   picked: OPEN_PICKED,
   squad: [],
