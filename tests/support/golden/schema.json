@@ -6120,6 +6120,15 @@
             },
             "optional": false
           },
+          "moments": {
+            "fieldType": {
+              "type": "array",
+              "value": {
+                "type": "number"
+              }
+            },
+            "optional": true
+          },
           "readAt": {
             "fieldType": {
               "type": "number"
