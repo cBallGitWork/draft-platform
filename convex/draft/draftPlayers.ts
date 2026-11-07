@@ -2,6 +2,7 @@ import { v, type Infer } from "convex/values";
 import type { Doc } from "../_generated/dataModel";
 import { query, type QueryCtx } from "../_generated/server";
 import { positionsNow } from "../positions/playerPositions";
+import { latestRules } from "../rules/rulesHistory";
 import { memberOf } from "../shared/leagueAccess";
 import { currentClubs, currentPlayersAt } from "../shared/players";
 import { squadOf } from "../squads/squadPlace";
@@ -11,7 +12,6 @@ import { autoPickOrder } from "./autoPickOrder";
 import { squadRulesOf, undraftedIn, whyNotLegalFor } from "./draftPicks";
 import { draftRanking } from "./draftRanking";
 import { draftOf, picksMadeIn } from "./draftRow";
-import { rulesInForceAt } from "./draftStart";
 import { lastPricedSeason, lastSeasonPoints } from "./lastSeasonPoints";
 import { pickOnTheClock } from "./snakeOrder";
 
@@ -81,7 +81,8 @@ const roomFigures = v.object({
   /** The season the overview's totals are from, by the year it starts, or null while none is held. */
   statsSeason: v.union(v.number(), v.null()),
   /** The most players of one club a squad may hold under the rules the draft picks by: those it
-   *  started under, or before it starts those in force at `now`; null for no limit. */
+   *  started under, or before it starts the league's latest, which it would start under; null for
+   *  no limit. */
   maxPerClub: v.union(v.number(), v.null()),
 });
 export type RoomFigures = Infer<typeof roomFigures>;
@@ -100,9 +101,11 @@ const overviewOf = (stats: Stats): RoomFigure["overview"] => {
  *  squad against. No pick moves any of it, so a pick doesn't run it again. Refused to anyone
  *  outside the league. */
 export const figures = query({
+  // `now`, the screen's minute, no longer moves anything here: it stays until the draft room's seam
+  // drops it, as that screen's change.
   args: { leagueId: v.id("leagues"), now: v.number() },
   returns: roomFigures,
-  handler: async (ctx, { leagueId, now }) => {
+  handler: async (ctx, { leagueId }) => {
     await memberOf(ctx, leagueId);
     const players = await everyPlayerNow(ctx);
     const points = await lastSeasonPoints(ctx, await positionsNow(ctx, leagueId));
@@ -111,7 +114,7 @@ export const figures = query({
     const season = await newestSeasonWithTotals(ctx);
     const totals = season === null ? new Map<number, Stats>() : await seasonTotals(ctx, season);
     const started = (await draftOf(ctx, leagueId))?.started;
-    const squadRules = started === undefined ? (await rulesInForceAt(ctx, leagueId, now))?.squad : await squadRulesOf(ctx, leagueId, started);
+    const squadRules = started === undefined ? (await latestRules(ctx, leagueId))?.squad : await squadRulesOf(ctx, leagueId, started);
     return {
       players: players.map(({ code }) => ({
         code,
