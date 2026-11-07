@@ -98,7 +98,7 @@ export function PlayerPanel({
           </span>
         </Fact>
         <Fact term={panelRows.started}>
-          <span className="font-bold text-figure">{figureWords(player.started)}</span>
+          <Figure points={player.started} />
         </Fact>
         <Fact term={panelRows.rolePoints}>
           <Figure points={player.rolePoints} words={signedWords} />
