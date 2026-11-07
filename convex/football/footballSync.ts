@@ -31,6 +31,7 @@ import { repriceMatches } from "../stats/seasonPointsMoves";
 import { rebuildIfNoneKept } from "../stats/seasonRebuilds";
 import { putNewPlayersOnWaivers } from "../waivers/waiverPlayers";
 import { heldGameweek, heldSeason } from "../gameweeks/seasonGameweeks";
+import { followKickoffs } from "../scoring/patchKickoffs";
 
 // Issue #21: the real Premier League's clubs, players, fixtures and gameweeks, copied in from the
 // football layer, and each match's score (#49, matchScores.ts). crons.ts runs it on a schedule;
@@ -124,6 +125,8 @@ export const upsertFixtures = internalMutation({
       if (held.gameweek !== row.gameweek || held.droppedAt !== undefined) moved.push(row);
     });
     await repriceMatches(ctx, moved);
+    // A waiting patch follows its gameweek's first kickoff later (patchKickoffs.ts, #901).
+    await followKickoffs(ctx, Date.now());
     await rebuildIfNoneKept(ctx);
     return upserted;
   },
@@ -162,7 +165,10 @@ export const markDropped = internalMutation({
     }
     await Promise.all(dropped.map((held) => ctx.db.patch(table, held._id, { droppedAt })));
     // On the fixtures table, its page holds fixtures.
-    if (table === "fixtures") await repriceMatches(ctx, dropped as Doc<"fixtures">[]);
+    if (table === "fixtures") {
+      await repriceMatches(ctx, dropped as Doc<"fixtures">[]);
+      await followKickoffs(ctx, Date.now());
+    }
     return { marked: dropped.length, cursor: page.continueCursor, isDone: page.isDone };
   },
 });
