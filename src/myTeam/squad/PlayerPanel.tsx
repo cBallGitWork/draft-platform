@@ -31,10 +31,9 @@ import {
   panelRows,
   playerCardWords,
   roleLastGameweekNotSettledLabel,
-  rolePointsNotBuiltLabel,
   seasonWords,
   setRoleWords,
-  startedNotBuiltLabel,
+  signedWords,
   startingInWords,
   statusNotSettledLabel,
   THIS_SEASON,
@@ -100,10 +99,10 @@ export function PlayerPanel({
           </span>
         </Fact>
         <Fact term={panelRows.started}>
-          <Placeholder label={startedNotBuiltLabel} className={ROW_PLACEHOLDER} />
+          <Figure points={player.started} />
         </Fact>
         <Fact term={panelRows.rolePoints}>
-          <Placeholder label={rolePointsNotBuiltLabel} className={ROW_PLACEHOLDER} />
+          <Figure points={player.rolePoints} words={signedWords} />
         </Fact>
         <Fact term={panelRows.plays}>
           <PositionList positions={player.positions} />
@@ -141,8 +140,9 @@ function Fact({ term, children }: { term: string; children: ReactNode }) {
   );
 }
 
-function Figure({ points }: { points: number | null }) {
-  return points === null ? <span className="text-muted">{noFigureWords}</span> : <span className="font-bold text-figure">{figureWords(points)}</span>;
+/** A figure, "—" while there is none; `words` writes it, signed for an adjustment. */
+function Figure({ points, words = figureWords }: { points: number | null; words?: (value: number) => string }) {
+  return points === null ? <span className="text-muted">{noFigureWords}</span> : <span className="font-bold text-figure">{words(points)}</span>;
 }
 
 /** The role he has the most stars for at his main position's slot, with his stars for it, as the

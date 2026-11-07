@@ -21,16 +21,15 @@ import {
   MAIL_WIDGET_TITLE,
   noLimitsWords,
   openPanelLabel,
+  panelRows,
   playerCardWords,
   roleLastGameweekNotSettledLabel,
-  rolePointsNotBuiltLabel,
   scheduleTableLabel,
   setLineupWords,
   setRoleWords,
   squadCountWords,
   squadTableLabel,
   squadViewWords,
-  startedNotBuiltLabel,
   statusNotSettledLabel,
   YOUR_ELEVEN_TITLE,
 } from "../../../src/myTeam/squad/words";
@@ -50,6 +49,8 @@ const lineup = tacticsWith(players, [
 ]);
 const openPanel = (name: string) => userEvent.click(screen.getByRole("button", { name: openPanelLabel(name) }));
 const panelOf = (name: string) => screen.getByRole("region", { name });
+/** What a panel's row says beside its name. */
+const factOf = (panel: HTMLElement, term: string) => within(panel).getByText(term, { selector: "dt" }).nextElementSibling!.textContent;
 
 const letter = (number: number, read: boolean): LetterSummary => ({
   letterId: `letter-${number}` as Id<"letters">,
@@ -122,9 +123,22 @@ describe("his season panel", () => {
       .map((each) => each.textContent)).toEqual(["3", "7", "—", "12", "7"]);
     expect(within(panel).getByTitle("Winger").textContent).toBe("W");
     expect(within(panel).getByText("Starting, W right")).toBeTruthy();
+    // Started and Role points (#1005): an adjustment is signed, with the one minus sign.
+    expect(factOf(panel, panelRows.started)).toBe("6");
+    expect(factOf(panel, panelRows.rolePoints)).toBe("−1.5");
 
     await openPanel("Palmer");
     expect(within(panelOf("Palmer")).getByText("Bench, S1")).toBeTruthy();
+    // None of his matches priced: no start, and Role points has no figure.
+    expect(factOf(panelOf("Palmer"), panelRows.started)).toBe("0");
+    expect(factOf(panelOf("Palmer"), panelRows.rolePoints)).toBe("—");
+  });
+
+  it("signs a role's gain with a plus", async () => {
+    openSquad({ squad: squadOf([{ ...SAKA, rolePoints: 3 }]) });
+    await screen.findByRole("table");
+    await openPanel("Saka");
+    expect(factOf(panelOf("Saka"), panelRows.rolePoints)).toBe("+3");
   });
 
   it("shows a placeholder for each thing not held or settled yet, never a made-up figure", async () => {
@@ -133,7 +147,7 @@ describe("his season panel", () => {
     await openPanel("Saka");
     const panel = panelOf("Saka");
 
-    for (const label of [startedNotBuiltLabel, rolePointsNotBuiltLabel, bestRoleNotRatedLabel, roleLastGameweekNotSettledLabel, statusNotSettledLabel]) {
+    for (const label of [bestRoleNotRatedLabel, roleLastGameweekNotSettledLabel, statusNotSettledLabel]) {
       expect(within(panel).getByRole("img", { name: label })).toBeTruthy();
     }
     // FPL's news is held, so it shows beside the chip that waits.
