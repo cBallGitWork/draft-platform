@@ -12,7 +12,7 @@ import { saveFailedWords } from "../../../src/scoring/words";
 import { silenceConsoleError } from "../../support/console.setup";
 import { REVISION as revision } from "../../support/src/scoring.harness";
 
-const convex = vi.hoisted(() => ({ view: vi.fn(), fix: vi.fn(), saveDraft: vi.fn(), announce: vi.fn(), withdraw: vi.fn() }));
+const convex = vi.hoisted(() => ({ view: vi.fn(), fix: vi.fn(), saveDraft: vi.fn(), announce: vi.fn(), withdraw: vi.fn(), runLab: vi.fn() }));
 vi.mock("convex/react", async () =>
   (await import("../../support/src/convexReact.harness")).fakeConvexReact({
     queries: { "scoring/siteScoring:view": convex.view },
@@ -22,6 +22,7 @@ vi.mock("convex/react", async () =>
       "scoring/siteScoring:announce": convex.announce,
       "scoring/siteScoring:withdraw": convex.withdraw,
     },
+    actions: { "balanceLab/balanceLabRun:run": convex.runLab },
   }),
 );
 
@@ -79,4 +80,15 @@ test("withdrawing calls scoring/siteScoring:withdraw, and a refusal comes back i
 
   convex.withdraw.mockRejectedValueOnce(new ConvexError(refusal));
   expect(await seam().withdraw(versionId)).toBe(refusal);
+});
+
+test("running the lab calls balanceLab/balanceLabRun:run with the draft, and a refusal comes back in the server's words (#843)", async () => {
+  const report = { seasons: [2025], starts: 1, startsSkipped: 0, roles: [] };
+  const refusal = "There's no draft patch to announce: save one first.";
+  convex.runLab.mockResolvedValueOnce(report);
+  expect(await seam().runLab(1_000)).toEqual(report);
+  expect(convex.runLab).toHaveBeenCalledExactlyOnceWith({ draftSavedAt: 1_000 });
+
+  convex.runLab.mockRejectedValueOnce(new ConvexError(refusal));
+  expect(await seam().runLab(1_000)).toBe(refusal);
 });

@@ -27,6 +27,7 @@ import {
   seasonPointsColumn,
 } from "../../../src/scouting/words";
 import { POSITION_NAMES } from "../../../src/shared/words";
+import { crestUrl } from "../../../src/premierLeague/ClubName";
 import { ARSENAL } from "../../support/convex/footballRows.harness";
 import { columnHeadIn } from "../../support/src/columnHeads";
 import { HELD, lastAsk, namesShown, openScouting, RICE, rowOf, table } from "../../support/src/scoutingScreen.harness";
@@ -71,6 +72,7 @@ describe("the list", () => {
     await screen.findByRole("table");
     const rice = within(rowOf("Rice"));
     expect(rice.getByText("ARS").getAttribute("title")).toBe("Arsenal");
+    expect(rice.getByText("ARS").previousElementSibling!.getAttribute("src")).toBe(crestUrl(ARSENAL.code));
     expect(rice.getByText("CDM").getAttribute("title")).toBe(POSITION_NAMES.CDM);
     expect(rice.getByText("CM").getAttribute("title")).toBe(POSITION_NAMES.CM);
     expect(within(table()).getByRole("rowheader", { name: "Rice" }).getAttribute("title")).toBe("Rice in full");

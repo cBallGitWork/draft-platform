@@ -15,6 +15,8 @@ import type { Stats } from "../stats/statTotals";
 import { heldOrNot, squadOf, unheldCodes } from "./squadPlace";
 import { shirtNumber } from "./squadNumbers";
 import { latestRules } from "../rules/rulesHistory";
+import { squadLimit, squadLimits } from "./squadLimits";
+import { scheduledMatch, sidesOf, squadSchedule } from "./squadSchedule";
 
 // My team's Squad tab (#364; spec/12, My team's tabs: "every player in the squad in one table,
 // with his position, club, next fixture, season points and last gameweek's points"). His points
@@ -80,6 +82,9 @@ const squadRow = v.object({
   /** His club's next matches after `now`, soonest first, at most NEXT_MATCHES_SHOWN: none while
    *  it has none with a kickoff time. */
   nextFixtures: v.array(nextFixture),
+  /** His club's matches in the Schedule view's gameweeks (`scheduleGameweeks`), in their order:
+   *  none in a blank week, two in a double. */
+  schedule: v.array(scheduledMatch),
   /** What his team got from him this season, or null ("—") while none of his matches has been
    *  priced. */
   seasonPoints: v.union(v.number(), v.null()),
@@ -89,6 +94,11 @@ const squadRow = v.object({
   /** What his team got from him in each of the league's last FORM_GAMEWEEKS begun gameweeks,
    *  oldest first, null ("—") for one where none of his matches has been priced. */
   form: v.array(v.union(v.number(), v.null())),
+  /** The matches he started in his team's scoring eleven this season, auto-subs in (squadEleven). */
+  started: v.number(),
+  /** What his roles added or took away in the matches his team got this season, or null ("—")
+   *  while none of them has been priced (squadEleven). */
+  rolePoints: v.union(v.number(), v.null()),
   /** His season's stats, or null while no season has any totals held. */
   stats: v.union(seasonStats, v.null()),
   /** FPL's news on him, or null with none. */
@@ -107,12 +117,36 @@ export const teamSquad = v.object({
   unheld: unheldCodes,
   /** The most players the league's rules let a squad hold; null with no limit, or no rules. */
   squadMaximum: v.union(v.number(), v.null()),
+  /** The Schedule view's gameweeks, from the one a lineup is being set for, at most
+   *  SCHEDULE_GAMEWEEKS (squadSchedule.ts): none once the season is over or with no rules. */
+  scheduleGameweeks: v.array(v.number()),
+  /** The Rules view's rows: the squad against each of the league's squad limits (squadLimits.ts). */
+  limits: v.array(squadLimit),
 });
 export type TeamSquad = Infer<typeof teamSquad>;
 
 /** One priced match: its gameweek, its points (null while his whole record hasn't arrived), and
  *  whether his team got them: scored at his slot, not left out or priced at his best position. */
 export type PricedMatch = { gameweek: number; points: number | null; counted: boolean };
+
+/** One of his matches for his panel's Started and Role points: whether he stood in his team's
+ *  scoring eleven, whether his team got its points, and his role's points in it, null with no role
+ *  line (none scored, or an override in its place). */
+export type ElevenMatch = Pick<PricedMatch, "points" | "counted"> & { inEleven: boolean; rolePoints: number | null };
+
+/** His panel's Started and Role points (spec/12 Squad; Craig, 6 Nov 2026, #1005): the matches he
+ *  stood in his team's scoring eleven for, auto-subs in, so a sub who came on gets the start and
+ *  the man he replaced none; and what his roles added or took away in the matches his team got,
+ *  never his roles for another team, nor a team instruction's line. A live gameweek counts
+ *  provisionally, as his season points do. Role points is null ("—") while his team has got no
+ *  priced match of his, as his season points are. */
+export function squadEleven(matches: readonly ElevenMatch[]) {
+  const counted = matches.filter((match) => match.counted && match.points !== null);
+  return {
+    started: matches.filter((match) => match.inEleven).length,
+    rolePoints: counted.length === 0 ? null : inTenths(counted.reduce((total, { rolePoints }) => total + (rolePoints ?? 0), 0)),
+  };
+}
 
 /** Season and last gameweek's points from his priced matches: each the sum of those his team got,
  *  kept to tenths as the table keeps them, or null while none is priced. */
@@ -157,7 +191,9 @@ export const ofMyTeam = query({
         return { player, number: await shirtNumber(ctx, row), positions, club: await clubs(player.clubCode), matches: await price(player.code, positions), stats };
       }),
     );
-    const next = await nextFixturesOf(ctx, new Set(players.map(({ player }) => player.clubCode)), now, clubs);
+    const clubCodes = new Set(players.map(({ player }) => player.clubCode));
+    const next = await nextFixturesOf(ctx, clubCodes, now, clubs);
+    const schedule = await squadSchedule(ctx, leagueId, now, clubCodes, clubs);
     const rows = players.map(({ player, number, positions, club, matches, stats }) => ({
       code: player.code,
       name: player.name,
@@ -167,15 +203,25 @@ export const ofMyTeam = query({
       gone: player.droppedAt !== undefined,
       number,
       nextFixtures: next.get(player.clubCode) ?? [],
+      schedule: schedule.byClub.get(player.clubCode) ?? [],
       ...squadPoints(matches, lastGameweek),
       form: squadForm(matches, begun),
+      ...squadEleven(matches),
       stats,
       news: player.news || null,
       chanceOfPlaying: player.chanceOfPlaying ?? null,
     }));
     rows.sort((one, other) => positionOrder(one) - positionOrder(other) || one.name.localeCompare(other.name));
     const rules = await latestRules(ctx, leagueId);
-    return { teamName: team.name, lastGameweek, players: rows, unheld, squadMaximum: rules?.squad.size?.maximum ?? null };
+    return {
+      teamName: team.name,
+      lastGameweek,
+      players: rows,
+      unheld,
+      squadMaximum: rules?.squad.size?.maximum ?? null,
+      scheduleGameweeks: schedule.gameweeks,
+      limits: squadLimits(rows, unheld.length, rules?.squad ?? null),
+    };
   },
 });
 
@@ -192,8 +238,14 @@ export const ofMyTeam = query({
  *  reads the matches ahead until every club has three, so it grows with the squad, never the league. */
 async function pricer(ctx: QueryCtx, league: Doc<"leagues">, teamId: Id<"teams">) {
   const scored = await scoredMatches(ctx, league, teamId);
-  return async (code: number, positions: readonly Position[]): Promise<PricedMatch[]> =>
-    (await scored.of({ code, positions })).map(({ gameweek, points, counted }) => ({ gameweek, points: points.total, counted }));
+  return async (code: number, positions: readonly Position[]): Promise<(PricedMatch & ElevenMatch)[]> =>
+    (await scored.of({ code, positions })).map(({ gameweek, points, counted, inEleven }) => ({
+      gameweek,
+      points: points.total,
+      counted,
+      inEleven,
+      rolePoints: points.role?.points ?? null,
+    }));
 }
 
 /** Each of these clubs' next NEXT_MATCHES_SHOWN matches after `now`, soonest first, by club code:
@@ -215,9 +267,3 @@ async function nextFixturesOf(ctx: QueryCtx, clubCodes: ReadonlySet<number>, now
   }
   return next;
 }
-
-/** A match from each side: the club, its opponent, and whether it is at home. */
-const sidesOf = ({ homeClubCode, awayClubCode }: Doc<"fixtures">): [number, number, boolean][] => [
-  [homeClubCode, awayClubCode, true],
-  [awayClubCode, homeClubCode, false],
-];

@@ -1,6 +1,7 @@
 import { v, type Infer } from "convex/values";
 import { query } from "../_generated/server";
-import { leagueRulesShape } from "../rules/leagueRulesShape";
+import { classicShape, leagueRulesShape } from "../rules/leagueRulesShape";
+import { classicsOf, instructionsOf } from "../rules/firstRules";
 import { deadlineOf, leagueDeadlines } from "../gameweeks/leagueDeadlines";
 import { shownDeadline } from "../gameweeks/usedGameweeks";
 import { clubByCode, playerByCode, unheldPlayerWords } from "../shared/players";
@@ -12,6 +13,8 @@ import { squadOf } from "../squads/squadPlace";
 import { shirtNumber } from "../squads/squadNumbers";
 import { heldLineupShape, lineupInGameweek, saveGameweekOf } from "./lineups";
 import { starsOfPlayers } from "../stars/playerStars";
+import { keptOrSwitched } from "./instructions";
+import { instructionPairShape, instructionShape } from "./instructionsShape";
 import { roleStarsShape } from "../stars/starsShape";
 
 // My team's Tactics tab (#14; spec/05, The pitch): what the pitch is set from. The gameweek is the
@@ -53,6 +56,14 @@ const tacticsShape = v.union(
     deadline: shownDeadline,
     areaLimits: leagueRulesShape.fields.areaLimits,
     presets: leagueRulesShape.fields.presets,
+    /** The league's classics in force, the first rules' for rules saved before #991 (firstRules.ts
+     *  `classicsOf`). */
+    classics: v.array(classicShape),
+    /** The league's team instructions, in its order (#990). */
+    instructions: v.array(instructionShape),
+    /** The lineup's two picks in force: its own where its shape still offers them, else the
+     *  formation's defaults (instructions.ts). */
+    picked: instructionPairShape,
     /** In the order its players joined it. */
     squad: v.array(squadMember),
     lineup: heldLineupShape,
@@ -97,15 +108,21 @@ export const ofMyTeam = query({
         };
       }),
     );
-    const { areaLimits, presets } = season.inGameweek(gameweek);
+    const rules = season.inGameweek(gameweek);
+    const { areaLimits, presets } = rules;
+    const instructions = [...instructionsOf(rules)];
+    const lineup = await lineupInGameweek(ctx, leagueId, team._id, gameweek);
     return {
       kind: "open" as const,
       gameweek,
       deadline: deadlineOf(await leagueDeadlines(ctx, leagueId))(gameweek),
       areaLimits,
       presets,
+      classics: classicsOf(rules),
+      instructions,
+      picked: keptOrSwitched(lineup.instructions, lineup.starters, presets, instructions).pair,
       squad,
-      lineup: await lineupInGameweek(ctx, leagueId, team._id, gameweek),
+      lineup,
     };
   },
 });

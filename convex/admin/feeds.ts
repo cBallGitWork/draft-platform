@@ -127,7 +127,7 @@ async function readRuns(runs: AsyncIterable<Run>): Promise<RunsRead> {
   let count = 0;
   for await (const { ranAt, outcome } of runs) {
     const failure = failureOf(outcome);
-    read.lastRun ??= { ranAt, failure };
+    read.lastRun ??= { ranAt, failure, betweenSeasons: outcome.ok && outcome.betweenSeasons === true };
     if (failure === null) read.lastSuccessAt ??= ranAt;
     else read.lastError ??= { at: ranAt, error: failure };
     count += 1;

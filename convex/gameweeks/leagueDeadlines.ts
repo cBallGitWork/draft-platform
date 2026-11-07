@@ -4,6 +4,7 @@ import { leagueDeadline, type DeadlineOf, type LeagueDeadlines, type ScheduledMa
 import { fixedDeadlinesOf } from "./passedDeadlines";
 import { FIRST_GAMEWEEK, GAMEWEEKS, SEASON_GAMEWEEKS } from "./usedGameweeks";
 import { takeAllOrThrow } from "../shared/cappedRead";
+import { heldSeason } from "./seasonGameweeks";
 import { currentFixtures } from "../shared/fixtures";
 import { historyOf, inForce } from "../rules/rulesHistory";
 
@@ -14,10 +15,14 @@ import { historyOf, inForce } from "../rules/rulesHistory";
  *  38 are read: a row past FPL's 38 can only be written by hand, and a lineup save
  *  or a rules change must not stop on one (#872). */
 export async function heldSchedule(ctx: QueryCtx) {
-  // At most one row a gameweek number: the football sync keeps one, a new season's updating the
-  // last's (footballSync.ts's upsertGameweeks), so more is a bug.
+  // Only this season's: each season's gameweeks are kept, last season's beside it (#66). At most
+  // one row a gameweek number in a season: the football sync keeps one (footballSync.ts's
+  // upsertGameweeks), so more is a bug.
+  const season = await heldSeason(ctx);
   const seasonRows = await takeAllOrThrow(
-    ctx.db.query("gameweeks").withIndex("by_number", (q) => q.gte("number", FIRST_GAMEWEEK).lte("number", GAMEWEEKS)),
+    ctx.db
+      .query("gameweeks")
+      .withIndex("by_season_and_number", (q) => q.eq("season", season).gte("number", FIRST_GAMEWEEK).lte("number", GAMEWEEKS)),
     GAMEWEEKS,
     `More than ${GAMEWEEKS} gameweek rows are held for gameweeks ${FIRST_GAMEWEEK} to ${GAMEWEEKS}, so the season's schedule would be cut short`,
   );

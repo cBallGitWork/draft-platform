@@ -6,7 +6,7 @@ import { Loading, Panel, PanelNote, Problem, Status } from "../../ui/Panel";
 import { playerCardPath } from "../../playerCard/paths";
 import { useChange } from "../../shared/useChange";
 import { OwnerName } from "../../ui/OwnerName";
-import { ClubShort } from "../../premierLeague/ClubName";
+import { ClubMark, ClubShort } from "../../premierLeague/ClubName";
 import type { QueueFromShortlist, ShortlistSeam } from "./seam";
 import {
   addToQueueNamedLabel,
@@ -52,7 +52,10 @@ export function ShortlistPanel({ leagueId, seam }: { leagueId: Id<"leagues">; se
                 <Link to={playerCardPath(leagueId, player.code)} title={player.fullName} className="inline-flex min-h-tap min-w-tap items-center font-semibold">
                   {player.name}
                 </Link>
-                <ClubShort club={player.club} className="text-muted" />
+                <span className="text-muted">
+                  <ClubMark code={player.club.code} />
+                  <ClubShort club={player.club} />
+                </span>
                 {player.gone ? (
                   <span className="text-event">{goneWords}</span>
                 ) : (

@@ -22,6 +22,15 @@ const notes: readonly VersionNotes[] = [
       "Defensive contribution, points limit: at most 2 → at most 3",
       "New own stat: Tackles plus (TP) = Tackles + 0.5 × Clearances blocks interceptions",
     ],
+    lab: {
+      seasons: [2021, 2022, 2023, 2024, 2025],
+      starts: 41820,
+      startsSkipped: 96,
+      roles: [
+        { role: "shotStopper", slot: "GK", target: 0.9, starts: 1900, average: 1.31, offTarget: true },
+        { role: "poacher", slot: "ST", target: 0.5, missing: ["att_ibox_goal", "att_ibox_target", "big_chance_missed"] },
+      ],
+    },
   },
   { name: "26_27.1", kind: "fix", announcedAt: ANNOUNCED - 3 * DAY_MS, takesEffectAt: ANNOUNCED - 3 * DAY_MS, changes: ["Penalties missed: 2 → −2"] },
 ];

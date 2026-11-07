@@ -20,6 +20,8 @@ export const SQUAD = [...STARTERS, ...FOUR_FOUR_TWO.bench];
 export const BENCH_POSITION: Position = "CM";
 /** The club every test player is at. */
 const CLUB_CODE = 1;
+/** That club's row, for a test reading the Tactics tab, which names each player's club. */
+export const SQUAD_CLUB = { code: CLUB_CODE, name: "Arsenal", shortName: "ARS" };
 /** Each test player is named for his code. */
 export const nameOf = (code: number) => `Player ${code}`;
 

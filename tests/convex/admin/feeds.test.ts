@@ -7,7 +7,7 @@ import { lateAfterMs, FEED_SCHEDULES, FEEDS } from "../../../convex/shared/feedS
 import { RUNS_READ } from "../../../convex/admin/feeds";
 import { ALWAYS_OWED, judgeFeed } from "../../../convex/admin/feedState";
 import { refusals } from "../../../convex/shared/leagueAccess";
-import { HOUR_MS, LINEUPS_OUT_BEFORE_KICKOFF_MS, MINUTE_MS } from "../../../convex/shared/time";
+import { HOUR_MS, JULY, LINEUPS_OUT_BEFORE_KICKOFF_MS, MINUTE_MS } from "../../../convex/shared/time";
 import { ADMIN, COMMISSIONER, actingAs } from "../../support/convex/leagues.harness";
 import { feedAt, feedsAt, holdMatch, holdStatus, recordRun, T0 } from "../../support/convex/feeds.harness";
 import { syncRun } from "../../support/convex/footballSync.harness";
@@ -40,6 +40,16 @@ test("a football sync that stops is late once its schedule's interval passes wit
 
   expect(await feedAt(t, "football", ranAt + FOOTBALL_LATE_AFTER)).toMatchObject({ state: "fine", lastSuccessAt: ranAt });
   expect(await feedAt(t, "football", ranAt + FOOTBALL_LATE_AFTER + 1)).toMatchObject({ state: "late", lastSuccessAt: ranAt });
+});
+
+test("a football sync that finds FPL with no fixtures in the summer is between seasons, never failing (#66)", async () => {
+  vi.useFakeTimers({ now: Date.UTC(2027, JULY, 10) });
+  const t = freshConvex();
+  const summer = recordedFpl();
+  summer.fixtures = [];
+  const { ranAt } = await syncRun(t, summer, undefined, "cron");
+
+  expect(await feedAt(t, "football", ranAt)).toMatchObject({ state: "betweenSeasons", lastSuccessAt: ranAt, lastError: null });
 });
 
 test("a feed whose last run failed is failing, with its error, and keeps its last success", async () => {

@@ -30,6 +30,8 @@ import { writeScores } from "./matchScores";
 import { repriceMatches } from "../stats/seasonPointsMoves";
 import { rebuildIfNoneKept } from "../stats/seasonRebuilds";
 import { putNewPlayersOnWaivers } from "../waivers/waiverPlayers";
+import { heldGameweek, heldSeason } from "../gameweeks/seasonGameweeks";
+import { followKickoffs } from "../scoring/patchKickoffs";
 
 // Issue #21: the real Premier League's clubs, players, fixtures and gameweeks, copied in from the
 // football layer, and each match's score (#49, matchScores.ts). crons.ts runs it on a schedule;
@@ -45,8 +47,13 @@ type Upserted = Infer<typeof upserted>;
 
 const footballTable = v.union(v.literal("clubs"), v.literal("players"), v.literal("fixtures"), v.literal("gameweeks"));
 type FootballTable = Infer<typeof footballTable>;
-/** A record or a held row, by the key it is matched on. */
-type Keyed = { code: number } | { number: number };
+/** A record or a held row, by the key it is matched on: a gameweek's season is absent only on a
+ *  row from before #66. */
+type Keyed = { code: number } | { season?: number; number: number };
+/** A gameweek's key's step a season: past any gameweek number. */
+const SEASON_KEY_STEP = 100;
+/** A table's share of a sync that read none of it. */
+const NO_WRITES: TableWrites = { received: 0, inserted: 0, updated: 0, marked: 0, unmarked: 0 };
 const markedPage = v.object({ marked: v.number(), cursor: v.string(), isDone: v.boolean() });
 type MarkedPage = Infer<typeof markedPage>;
 
@@ -71,7 +78,11 @@ export const run = internalAction({
           // Gameweeks before fixtures, so a gameweek FPL stops sending keeps the deadline its matches
           // give before any of them moves (#202, deadlineRecorder.ts's keepDroppedDeadlines).
           gameweeks: await syncTable(ctx, "gameweeks", internal.football.footballSync.upsertGameweeks, football.gameweeks, ranAt),
-          fixtures: await syncTable(ctx, "fixtures", internal.football.footballSync.upsertFixtures, football.fixtures, ranAt),
+          // Between seasons FPL sends no fixtures: last season's are left as they are, none marked (#66).
+          fixtures: football.betweenSeasons
+            ? NO_WRITES
+            : await syncTable(ctx, "fixtures", internal.football.footballSync.upsertFixtures, football.fixtures, ranAt),
+          ...(football.betweenSeasons && { betweenSeasons: true as const }),
           scores: await writeScores(ctx, "fpl", ranAt, football.scores),
         };
       });
@@ -114,6 +125,8 @@ export const upsertFixtures = internalMutation({
       if (held.gameweek !== row.gameweek || held.droppedAt !== undefined) moved.push(row);
     });
     await repriceMatches(ctx, moved);
+    // A waiting patch follows its gameweek's first kickoff later (patchKickoffs.ts, #901).
+    await followKickoffs(ctx, Date.now());
     await rebuildIfNoneKept(ctx);
     return upserted;
   },
@@ -123,9 +136,8 @@ export const upsertGameweeks = internalMutation({
   args: { rows: v.array(gameweekRecord) },
   returns: upserted,
   handler: (ctx, { rows }): Promise<Upserted> =>
-    upsertEach(ctx, "gameweeks", rows, (row) =>
-      ctx.db.query("gameweeks").withIndex("by_number", (q) => q.eq("number", row.number)).unique(),
-    ),
+    // Each season's are their own rows, never last season's overwritten (#66).
+    upsertEach(ctx, "gameweeks", rows, (row) => heldGameweek(ctx, row)),
 });
 
 /** One page of `table`'s held rows not yet marked: each not in `sentKeys` is marked `droppedAt`.
@@ -144,11 +156,19 @@ export const markDropped = internalMutation({
     const sent = new Set(sentKeys);
     const page = await unmarkedPage(ctx, table, paginationOpts);
     const dropped = page.page.filter((held) => !sent.has(keyOf(held)));
-    // A gameweek FPL stops sending keeps its last deadline (#202).
-    if (table === "gameweeks") await keepDroppedDeadlines(ctx, dropped.map(keyOf));
+    // A gameweek of this season FPL stops sending keeps its last deadline (#202); last season's,
+    // left out once FPL sends the new one's, are only marked (#66).
+    if (table === "gameweeks") {
+      const season = await heldSeason(ctx);
+      const thisSeason = (dropped as Doc<"gameweeks">[]).filter((held) => held.season === season);
+      await keepDroppedDeadlines(ctx, thisSeason.map(({ number }) => number));
+    }
     await Promise.all(dropped.map((held) => ctx.db.patch(table, held._id, { droppedAt })));
     // On the fixtures table, its page holds fixtures.
-    if (table === "fixtures") await repriceMatches(ctx, dropped as Doc<"fixtures">[]);
+    if (table === "fixtures") {
+      await repriceMatches(ctx, dropped as Doc<"fixtures">[]);
+      await followKickoffs(ctx, Date.now());
+    }
     return { marked: dropped.length, cursor: page.continueCursor, isDone: page.isDone };
   },
 });
@@ -194,9 +214,12 @@ function unmarkedPage(
   }
 }
 
-/** A row's stable key: a club's, player's or match's season-stable code, or a gameweek's number. */
+/** A row's stable key: a club's, player's or match's season-stable code, or a gameweek's season
+ *  and number, 202605 for 2026/27's gameweek 5, so last season's is never taken for this one's
+ *  (#66). A row from before #66, with no season, keys on its number alone. */
 function keyOf(row: Keyed): number {
-  return "code" in row ? row.code : row.number;
+  if ("code" in row) return row.code;
+  return row.season === undefined ? row.number : row.season * SEASON_KEY_STEP + row.number;
 }
 
 /** Every row the feed sent, upserted in batches of `BATCH_SIZE`; then every held row it did not

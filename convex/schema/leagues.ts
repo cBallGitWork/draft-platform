@@ -29,6 +29,9 @@ const unemailedDeletionFields = {
   by: v.string(),
   email: v.string(),
   reason: unemailedReason,
+  /** What the email service said when it refused it (#215), as signInAsks keeps; absent in rows
+   *  kept before then. */
+  sendError: v.optional(v.string()),
   at: v.number(),
 };
 
@@ -131,6 +134,31 @@ export const leagueEvent = v.union(
     to: v.number(),
     reason: v.string(),
     teams: v.array(v.object({ teamName: v.string(), from: v.number(), to: v.number() })),
+  }),
+  /** A commissioner's removal of a player's override (#903, spec/14 S14.5): `from` the
+   *  override's points, `to` what he scores there again, null while no lineup fields him, and
+   *  `teams` each team whose gameweek total it moved. */
+  v.object({
+    kind: v.literal("pointsOverrideRemoved"),
+    playerCode: v.number(),
+    playerName: v.string(),
+    fixtureCode: v.number(),
+    matchName: v.string(),
+    gameweek: v.number(),
+    from: v.number(),
+    to: v.union(v.number(), v.null()),
+    teams: v.array(v.object({ teamName: v.string(), from: v.number(), to: v.number() })),
+  }),
+  /** A commissioner's override of a team's total in a gameweek (#903, spec/14 S14.3), or its
+   *  removal (`reason` null, `to` the total as scored again): `from` its total before. */
+  v.object({
+    kind: v.literal("teamPointsOverridden"),
+    teamId: v.id("teams"),
+    teamName: v.string(),
+    gameweek: v.number(),
+    from: v.number(),
+    to: v.number(),
+    reason: v.union(v.string(), v.null()),
   }),
   /** A commissioner's fixture edit (spec/09, Fixture edits; #1208): `swapped` the two sides moved
    *  between two games in the gameweek, and `games` those two games after, each side by name and

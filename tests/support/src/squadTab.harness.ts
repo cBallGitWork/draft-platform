@@ -34,9 +34,12 @@ export const SAKA: Row = {
   gone: false,
   number: 7,
   nextFixtures: [{ gameweek: 10, kickoff: KICKOFF, opponent: CHELSEA, home: true }],
+  schedule: [{ gameweek: 10, kickoff: KICKOFF, opponent: CHELSEA, home: true }],
   seasonPoints: 42,
   lastGameweekPoints: 7,
   form: [3, 7, null, 12, 7],
+  started: 6,
+  rolePoints: -1.5,
   stats: { ...NO_STATS, appearances: 8, minutes: 590, goals: 3, assists: 4, cleanSheets: 3, yellowCards: 1 },
   news: null,
   chanceOfPlaying: null,
@@ -53,6 +56,8 @@ export const PALMER: Row = {
   seasonPoints: null,
   lastGameweekPoints: null,
   form: [null, null, null, null, null],
+  started: 0,
+  rolePoints: null,
 };
 export const RAYA: Row = { ...SAKA, code: 1003, name: "Raya", fullName: "David Raya", positions: ["GK"], number: 1, stats: { ...NO_STATS, appearances: 8, minutes: 720, saves: 24 } };
 
@@ -62,6 +67,8 @@ export const squadOf = (players: Row[], lastGameweek: number | null = 9, unheld:
   players,
   unheld,
   squadMaximum,
+  scheduleGameweeks: [10, 11, 12, 13, 14, 15],
+  limits: [],
 });
 
 /** A squad member as the Tactics tab's read holds him. */

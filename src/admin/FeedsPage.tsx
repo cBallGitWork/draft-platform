@@ -37,6 +37,7 @@ const NEEDS_YOU: readonly FeedState[] = ["late", "failing"];
 const NEEDS_YOU_CLASSES = "font-semibold text-event";
 const stateClasses: Record<FeedState, string> = {
   fine: "",
+  betweenSeasons: "text-muted",
   late: NEEDS_YOU_CLASSES,
   failing: NEEDS_YOU_CLASSES,
   notRunningYet: "text-muted",

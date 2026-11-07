@@ -7,7 +7,7 @@ import { nextGlyph } from "../../shared/words";
 import { PageSection } from "../../ui/Panel";
 import type { MyTeamSeam } from "../seam";
 import { FormChips } from "./FormChips";
-import { gameIn, standingOf, type Standing, type TeamGame } from "./teamStanding";
+import { gamesIn, standingOf, type Standing, type TeamGame } from "./teamStanding";
 import {
   againstWords,
   countdownWords,
@@ -66,7 +66,7 @@ function TeamMeters({ league, teamName, seam }: { league: LeagueSummary; teamNam
   const table = seam.useLeagueTable(league.leagueId);
   const open = tactics?.kind === "open" ? tactics : null;
   const standing = table ? standingOf(table, teamName) : null;
-  const next = open !== null && table ? gameIn(table, teamName, open.gameweek) : null;
+  const next = open !== null && table ? gamesIn(table, teamName, open.gameweek) : [];
   const headToHead = table?.format === "headToHead";
   return (
     <dl className="flex flex-wrap items-stretch">
@@ -83,9 +83,9 @@ function TeamMeters({ league, teamName, seam }: { league: LeagueSummary; teamNam
           )}
         </Meter>
       )}
-      {next !== null && standing !== null && (
+      {open !== null && headToHead && standing !== null && (
         <Meter head={versusWords}>
-          <OpponentLink game={next} teamId={standing.teamId} />
+          <Opponents games={next} teamId={standing.teamId} />
         </Meter>
       )}
       {standing !== null && <LastMeter standing={standing} headToHead={headToHead} />}
@@ -100,6 +100,19 @@ function TeamMeters({ league, teamName, seam }: { league: LeagueSummary; teamNam
         </Meter>
       )}
     </dl>
+  );
+}
+
+/** The team's opponents in the gameweek, each opening its own matchup: both in a gameweek of two
+ *  games (#849; Craig, 6 Nov 2026), and "—" where it has none, before the fixtures are drawn. */
+function Opponents({ games, teamId }: { games: readonly TeamGame[]; teamId: Standing["teamId"] }) {
+  if (games.length === 0) return <span className="text-muted">{noFigureWords}</span>;
+  return (
+    <span className="flex flex-wrap gap-x-3">
+      {games.map((game, index) => (
+        <OpponentLink key={index} game={game} teamId={teamId} />
+      ))}
+    </span>
   );
 }
 

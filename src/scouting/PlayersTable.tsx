@@ -6,7 +6,7 @@ import { TickBox } from "../ui/TickBox";
 import { PositionCodes } from "../ui/PositionCodes";
 import { cellClassOf, ColumnHeads, type ColumnWords } from "../ui/ColumnHeads";
 import { OwnerName } from "../ui/OwnerName";
-import { ClubShort } from "../premierLeague/ClubName";
+import { ClubMark, ClubShort } from "../premierLeague/ClubName";
 import type { PickedPlayer } from "./ComparePanel";
 import { statFigure } from "./figures";
 import type { ListedPlayer, PlayersSort, SortColumn } from "./seam";
@@ -130,6 +130,7 @@ function PlayerCell({
     case "club":
       return (
         <td className={className}>
+          <ClubMark code={player.club.code} />
           <ClubShort club={player.club} />
         </td>
       );

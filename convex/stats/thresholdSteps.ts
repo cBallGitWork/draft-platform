@@ -1,4 +1,5 @@
 import type { Doc } from "../_generated/dataModel";
+import type { StoredStep } from "../matchup/vidiprinter";
 import type { SideMatchOutcome } from "../admin/sideRuns";
 import type { MutationCtx, QueryCtx } from "../_generated/server";
 import { ALL_CELLS, type Cell } from "../lineup/pitch";
@@ -37,20 +38,24 @@ export interface ThresholdStep {
   to: number;
 }
 
-/** The most steps one match holds. Under the first set, by count of its rules: each of about 32
- *  men who play makes at most 1 for his minutes (past 60), about 3 for a clean sheet (added, taken
- *  away, and back if VAR rules the goal out), 1 for each 2 goals conceded each way, and 1 for each
- *  3 saves or each penalty; about 8 a man with a few goals, so about 250 a match. A set with role
- *  adjustments adds at most 1 a read for each action of a stat they adjust (#868). Measured over
- *  the recorded team stats, at most one step an action (thresholdSteps.test.ts, #871): about 260
- *  under the first set; about 3,550 with the roles' first values (draftedRoleAdjustments.ts), as
- *  they adjust every accurate, forward and misplaced pass and every possession lost, so past this;
- *  about 11,970 with every catalogue stat priced per action. Not raised to meet them: a matchup
- *  reads every match its men play in one query, so ten matches at the roles' figure would reach
- *  Convex's own read limit and stop its scores too. More throws, never a silent cut: the matchup
- *  then says its commentary can't be read, and logs why, while its scores still show.
- *  Claude's choice. */
+/** The most steps one match held a row a step, as stored before #871 (thresholdSteps): enough for
+ *  the first set, about 260 a busy match measured (thresholdSteps.test.ts). Those rows are only
+ *  read now. More throws, never a silent cut. Claude's choice. */
 export const THRESHOLD_STEPS_MOST = 1000;
+
+/** The most steps one row holds: well under Convex's 8192 values an array, which a read pricing
+ *  every catalogue stat for 40 men would pass. A read showing more takes more rows. */
+export const THRESHOLD_STEPS_A_ROW = 1000;
+
+/** The most rows of steps one match holds (#871). A row is a live read's, and the live tick reads a
+ *  match once a minute for at most LIVE_WINDOW_MS (4 hours, liveStats.ts) from kick-off: 240 reads,
+ *  and only one that showed a step stores a row. Doubled for runs by hand and a read past
+ *  THRESHOLD_STEPS_A_ROW. Measured over the recorded team stats (thresholdSteps.test.ts): a busy
+ *  match's steps under the roles' first values, about 3,550, fit these rows, and a double
+ *  gameweek's twenty matches stay far under Convex's read limits in one query. More throws, never a
+ *  silent cut: the matchup then says its commentary can't be read, and logs why, while its scores
+ *  still show. Claude's choice. */
+export const THRESHOLD_STEP_READS_MOST = 500;
 
 /** The stats a goal, an assist, a card or an own goal moves: their own lines price them
  *  (vidiprinter.ts), so a step would show the move twice. */
@@ -125,7 +130,8 @@ function rulesByStat(set: ScoringSet): Map<string, ScoringRule[]> {
 /** The steps a live read's `records` show over the `held` rows, stored with the clock's `minute`,
  *  and how it went. Never throws: a set that can't be read is logged, stores no steps and is handed
  *  back for the threshold lines feed's row (#522), so it never stops the records being written.
- *  Only a whole record counts, as only it is scored. */
+ *  Only a whole record counts, as only it is scored. The read's steps go in as few rows as hold
+ *  them, none when it showed none (#871). */
 export async function storeThresholdSteps(
   ctx: MutationCtx,
   fixtureCode: number,
@@ -133,36 +139,42 @@ export async function storeThresholdSteps(
   records: readonly PlayerMatchRecord[],
   held: ReadonlyMap<PlayerCode, Doc<"playerMatchStats">>,
 ): Promise<SideMatchOutcome> {
-  let rows: Omit<Doc<"thresholdSteps">, "_id" | "_creationTime">[];
+  let steps: Doc<"thresholdStepReads">["steps"];
   try {
     const fixture = await fixtureByCode(ctx, fixtureCode);
     // A match not held, or with no gameweek, has no set to price by; the records' own write says so.
     if (fixture === null || fixture.gameweek === null) return { fixtureCode, ok: true };
     const set = await siteScoringInGameweek(ctx, fixture.gameweek);
     validateScoringSet(set);
-    rows = records
+    steps = records
       .filter((record) => isWhole(record))
       .flatMap((record) =>
         thresholdSteps(held.get(record.playerCode)?.stats ?? {}, record.stats, set).map((step) => ({
-          fixtureCode,
           playerCode: record.playerCode,
           ...step,
           minutes: statIn(record.stats, MINUTES_STAT),
-          minute,
         })),
       );
   } catch (error) {
     return { fixtureCode, ok: false, error: logFailure(`match ${fixtureCode}'s threshold steps weren't stored`, error) };
   }
-  for (const row of rows) await ctx.db.insert("thresholdSteps", row);
+  for (let start = 0; start < steps.length; start += THRESHOLD_STEPS_A_ROW) {
+    await ctx.db.insert("thresholdStepReads", { fixtureCode, minute, steps: steps.slice(start, start + THRESHOLD_STEPS_A_ROW) });
+  }
   return { fixtureCode, ok: true };
 }
 
-/** One match's stored steps, oldest first. */
-export function thresholdStepsOf(ctx: QueryCtx, fixtureCode: number): Promise<Doc<"thresholdSteps">[]> {
-  return takeAllOrThrow(
+/** One match's stored steps, oldest first: those stored a row a step before #871, then the reads'. */
+export async function thresholdStepsOf(ctx: QueryCtx, fixtureCode: number): Promise<StoredStep[]> {
+  const before = await takeAllOrThrow(
     ctx.db.query("thresholdSteps").withIndex("by_fixtureCode", (q) => q.eq("fixtureCode", fixtureCode)),
     THRESHOLD_STEPS_MOST,
     `Match ${fixtureCode} holds more than ${THRESHOLD_STEPS_MOST} threshold steps, so some would be left out`,
   );
+  const reads = await takeAllOrThrow(
+    ctx.db.query("thresholdStepReads").withIndex("by_fixtureCode", (q) => q.eq("fixtureCode", fixtureCode)),
+    THRESHOLD_STEP_READS_MOST,
+    `Match ${fixtureCode} holds more than ${THRESHOLD_STEP_READS_MOST} reads' threshold steps, so some would be left out`,
+  );
+  return [...before, ...reads.flatMap(({ minute, steps }) => steps.map((step) => ({ ...step, minute })))];
 }
