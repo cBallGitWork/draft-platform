@@ -48,7 +48,7 @@ export function LineupCheck({ draft, squad, onSelect }: { draft: DraftLineup; sq
 
 /** The team instructions the formation unlocks (spec/05, Team instructions; #990): each side's
  *  offered ones, with what each rewards and costs, the picked one marked. */
-export function TeamTacticWidget({
+export function TeamInstructionsWidget({
   formation,
   cells,
   instructions,

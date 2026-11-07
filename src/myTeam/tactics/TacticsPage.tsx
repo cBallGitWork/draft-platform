@@ -16,7 +16,7 @@ import { SquadTable } from "./SquadTable";
 import { useLineupEdits } from "./useLineupEdits";
 import { RunsSwitch, TacticsToolbar } from "./TacticsControls";
 import { PlayerPanel } from "./widgets/PlayerPanel";
-import { LineupCheck, OpponentWidget, TeamTacticWidget } from "./widgets/SideWidgets";
+import { LineupCheck, OpponentWidget, TeamInstructionsWidget } from "./widgets/SideWidgets";
 import type { MyTeamSeam } from "../seam";
 import type { OpenTactics } from "./seam";
 import {
@@ -263,7 +263,7 @@ function LineupEditor({ league, teamName, tactics, seam, opened }: { league: Lea
               onBenchAt={toBenchAt}
             />
           )}
-          <TeamTacticWidget formation={inUse} cells={shape} instructions={tactics.instructions} picked={instructions} />
+          <TeamInstructionsWidget formation={inUse} cells={shape} instructions={tactics.instructions} picked={instructions} />
           <OpponentWidget table={table} teamName={teamName} gameweek={tactics.gameweek} />
         </div>
       </div>

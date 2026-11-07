@@ -6437,6 +6437,26 @@
                           },
                           "optional": false
                         },
+                        "instructions": {
+                          "fieldType": {
+                            "type": "object",
+                            "value": {
+                              "attacking": {
+                                "fieldType": {
+                                  "type": "string"
+                                },
+                                "optional": false
+                              },
+                              "defensive": {
+                                "fieldType": {
+                                  "type": "string"
+                                },
+                                "optional": false
+                              }
+                            }
+                          },
+                          "optional": true
+                        },
                         "centreRole": {
                           "fieldType": {
                             "type": "string"
@@ -6661,6 +6681,87 @@
                           ]
                         },
                         "optional": true
+                      }
+                    }
+                  },
+                  "optional": true
+                },
+                "instructions": {
+                  "fieldType": {
+                    "type": "array",
+                    "value": {
+                      "type": "object",
+                      "value": {
+                        "key": {
+                          "fieldType": {
+                            "type": "string"
+                          },
+                          "optional": false
+                        },
+                        "side": {
+                          "fieldType": {
+                            "type": "union",
+                            "value": [
+                              {
+                                "type": "literal",
+                                "value": "attacking"
+                              },
+                              {
+                                "type": "literal",
+                                "value": "defensive"
+                              }
+                            ]
+                          },
+                          "optional": false
+                        },
+                        "name": {
+                          "fieldType": {
+                            "type": "string"
+                          },
+                          "optional": false
+                        },
+                        "description": {
+                          "fieldType": {
+                            "type": "string"
+                          },
+                          "optional": false
+                        },
+                        "needs": {
+                          "fieldType": {
+                            "type": "union",
+                            "value": [
+                              {
+                                "type": "literal",
+                                "value": "anyShape"
+                              },
+                              {
+                                "type": "literal",
+                                "value": "oneUpTopNoWingers"
+                              },
+                              {
+                                "type": "literal",
+                                "value": "wideOnBothFlanks"
+                              },
+                              {
+                                "type": "literal",
+                                "value": "twoAtTheBack"
+                              },
+                              {
+                                "type": "literal",
+                                "value": "threeInARow"
+                              },
+                              {
+                                "type": "literal",
+                                "value": "backThreeOrFour"
+                              },
+                              {
+                                "type": "literal",
+                                "value": "fiveAtTheBack"
+                              }
+                            ]
+                          },
+                          "optional": false
+                        }
                       }
                     }
                   },
@@ -10577,6 +10678,26 @@
                           },
                           "optional": false
                         },
+                        "instructions": {
+                          "fieldType": {
+                            "type": "object",
+                            "value": {
+                              "attacking": {
+                                "fieldType": {
+                                  "type": "string"
+                                },
+                                "optional": false
+                              },
+                              "defensive": {
+                                "fieldType": {
+                                  "type": "string"
+                                },
+                                "optional": false
+                              }
+                            }
+                          },
+                          "optional": true
+                        },
                         "centreRole": {
                           "fieldType": {
                             "type": "string"
@@ -10801,6 +10922,87 @@
                           ]
                         },
                         "optional": true
+                      }
+                    }
+                  },
+                  "optional": true
+                },
+                "instructions": {
+                  "fieldType": {
+                    "type": "array",
+                    "value": {
+                      "type": "object",
+                      "value": {
+                        "key": {
+                          "fieldType": {
+                            "type": "string"
+                          },
+                          "optional": false
+                        },
+                        "side": {
+                          "fieldType": {
+                            "type": "union",
+                            "value": [
+                              {
+                                "type": "literal",
+                                "value": "attacking"
+                              },
+                              {
+                                "type": "literal",
+                                "value": "defensive"
+                              }
+                            ]
+                          },
+                          "optional": false
+                        },
+                        "name": {
+                          "fieldType": {
+                            "type": "string"
+                          },
+                          "optional": false
+                        },
+                        "description": {
+                          "fieldType": {
+                            "type": "string"
+                          },
+                          "optional": false
+                        },
+                        "needs": {
+                          "fieldType": {
+                            "type": "union",
+                            "value": [
+                              {
+                                "type": "literal",
+                                "value": "anyShape"
+                              },
+                              {
+                                "type": "literal",
+                                "value": "oneUpTopNoWingers"
+                              },
+                              {
+                                "type": "literal",
+                                "value": "wideOnBothFlanks"
+                              },
+                              {
+                                "type": "literal",
+                                "value": "twoAtTheBack"
+                              },
+                              {
+                                "type": "literal",
+                                "value": "threeInARow"
+                              },
+                              {
+                                "type": "literal",
+                                "value": "backThreeOrFour"
+                              },
+                              {
+                                "type": "literal",
+                                "value": "fiveAtTheBack"
+                              }
+                            ]
+                          },
+                          "optional": false
+                        }
                       }
                     }
                   },
@@ -22380,6 +22582,26 @@
             "fieldType": {
               "type": "literal",
               "value": true
+            },
+            "optional": true
+          },
+          "instructions": {
+            "fieldType": {
+              "type": "object",
+              "value": {
+                "attacking": {
+                  "fieldType": {
+                    "type": "string"
+                  },
+                  "optional": false
+                },
+                "defensive": {
+                  "fieldType": {
+                    "type": "string"
+                  },
+                  "optional": false
+                }
+              }
             },
             "optional": true
           }
