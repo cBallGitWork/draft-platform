@@ -16,6 +16,8 @@ import { firstLineup, keptOnBenchOf, withDroppedRoles } from "./firstLineup";
 import { starsOfPlayers } from "../stars/playerStars";
 import type { Area, Lane } from "./pitch";
 import { roleIn } from "./roles";
+import { inClassicShape } from "./classics";
+import { classicsOf } from "../rules/firstRules";
 import { lineupRefusals, problemWords, unknownPlayerWords } from "./lineupWords";
 
 // Each team's lineup, stored (spec/05, The pitch; #8). A save is a row from the next gameweek
@@ -37,6 +39,8 @@ import { lineupRefusals, problemWords, unknownPlayerWords } from "./lineupWords"
 const sentLineup = v.object({
   starters: v.array(v.object({ playerCode: v.number(), area: v.string(), lane: v.string(), role: v.optional(v.string()) })),
   bench: v.array(v.number()),
+  /** The classic picked, by name, if its shape is the one the starters stand in (#991). */
+  classic: v.optional(v.string()),
 });
 
 /** A team's lineup in a gameweek: the newest row from that gameweek or before, as the squad has it
@@ -53,6 +57,8 @@ export const heldLineupShape = v.object({
   leftSquad: v.array(v.number()),
   joinedBench: v.array(v.number()),
   vacated: v.array(placementShape),
+  /** The classic its manager picked, by name, until he picks another formation (#991). */
+  classic: v.optional(v.string()),
 });
 export type HeldLineup = Infer<typeof heldLineupShape>;
 
@@ -98,7 +104,7 @@ export async function lineupsInGameweek(
       continue;
     }
     const { lineup, ...changes } = reconciled(row, squad);
-    lineups.set(teamId, { fromGameweek: row.fromGameweek, ...lineup, ...changes });
+    lineups.set(teamId, { fromGameweek: row.fromGameweek, ...lineup, ...changes, ...(row.classic !== undefined && { classic: row.classic }) });
   }
   return lineups;
 }
@@ -177,8 +183,8 @@ export const save = mutation({
     if (leftOut.length > 0) refuse(lineupRefusals.leftOut(leftOut.map(nameOf)));
 
     const positions = await heldPositionsOf(ctx, leagueId, lineup.starters.map(({ playerCode }) => playerCode));
-    const { areaLimits } = season.inGameweek(fromGameweek);
-    const problems = lineupProblems(lineup, positions, { areaLimits });
+    const rules = season.inGameweek(fromGameweek);
+    const problems = lineupProblems(lineup, positions, { areaLimits: rules.areaLimits });
     if (problems.length > 0) refuse(problems.map((problem) => problemWords(problem, nameOf)).join(" "));
 
     // lineupProblems refused any cell not on the pitch, so every starter's is one, and any role
@@ -187,10 +193,17 @@ export const save = mutation({
       const cell = { area: starter.area as Area, lane: starter.lane as Lane };
       return { ...starter, ...cell, ...(role === undefined ? {} : { role: roleIn(cell, role).key }) };
     });
+    // A classic's shape never changes (spec/05; #991): its starters stand in its cells.
+    const { classic } = lineup;
+    if (classic !== undefined) {
+      const held = classicsOf(rules).find(({ name }) => name === classic);
+      if (held === undefined) refuse(lineupRefusals.noSuchClassic(classic));
+      if (!inClassicShape(starters, held)) refuse(lineupRefusals.notInClassicShape(classic));
+    }
     const existing = await rowInForce(ctx, leagueId, team._id, fromGameweek);
     // The manager's own from here: no squad change picks it again.
-    if (existing?.fromGameweek !== fromGameweek) await ctx.db.insert("lineups", { leagueId, teamId: team._id, fromGameweek, starters, bench: lineup.bench });
-    else await ctx.db.patch("lineups", existing._id, { starters, bench: lineup.bench, firstLineup: undefined });
+    if (existing?.fromGameweek !== fromGameweek) await ctx.db.insert("lineups", { leagueId, teamId: team._id, fromGameweek, starters, bench: lineup.bench, classic });
+    else await ctx.db.patch("lineups", existing._id, { starters, bench: lineup.bench, classic, firstLineup: undefined });
     return fromGameweek;
   },
 });
@@ -226,7 +239,7 @@ export async function storeAutoTeamLineup(
   lineup: Pick<Doc<"lineups">, "starters" | "bench">,
 ): Promise<void> {
   const existing = await rowInForce(ctx, leagueId, teamId, fromGameweek);
-  if (existing?.fromGameweek === fromGameweek) await ctx.db.patch("lineups", existing._id, { ...lineup, firstLineup: undefined });
+  if (existing?.fromGameweek === fromGameweek) await ctx.db.patch("lineups", existing._id, { ...lineup, firstLineup: undefined, classic: undefined });
   else await ctx.db.insert("lineups", { leagueId, teamId, fromGameweek, ...lineup });
 }
 

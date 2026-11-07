@@ -24,5 +24,8 @@ export const lineupTables = {
     /** True while it is the team's first lineup, picked from its squad and picked again as the
      *  squad changes (lineups.ts); absent once its manager has saved one. */
     firstLineup: v.optional(v.literal(true)),
+    /** The classic its manager picked (lineup/classics.ts), its name, until he picks another
+     *  formation; its starters say whether he has changed it since (#991). */
+    classic: v.optional(v.string()),
   }).index("by_leagueId_and_teamId_and_fromGameweek", ["leagueId", "teamId", "fromGameweek"]),
 };

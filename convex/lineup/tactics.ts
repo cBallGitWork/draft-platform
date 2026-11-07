@@ -1,6 +1,7 @@
 import { v, type Infer } from "convex/values";
 import { query } from "../_generated/server";
-import { leagueRulesShape } from "../rules/leagueRulesShape";
+import { classicShape, leagueRulesShape } from "../rules/leagueRulesShape";
+import { classicsOf } from "../rules/firstRules";
 import { deadlineOf, leagueDeadlines } from "../gameweeks/leagueDeadlines";
 import { shownDeadline } from "../gameweeks/usedGameweeks";
 import { clubByCode, playerByCode, unheldPlayerWords } from "../shared/players";
@@ -53,6 +54,9 @@ const tacticsShape = v.union(
     deadline: shownDeadline,
     areaLimits: leagueRulesShape.fields.areaLimits,
     presets: leagueRulesShape.fields.presets,
+    /** The league's classics in force, the first rules' for rules saved before #991 (firstRules.ts
+     *  `classicsOf`). */
+    classics: v.array(classicShape),
     /** In the order its players joined it. */
     squad: v.array(squadMember),
     lineup: heldLineupShape,
@@ -97,13 +101,14 @@ export const ofMyTeam = query({
         };
       }),
     );
-    const { areaLimits, presets } = season.inGameweek(gameweek);
+    const rules = season.inGameweek(gameweek);
     return {
       kind: "open" as const,
       gameweek,
       deadline: deadlineOf(await leagueDeadlines(ctx, leagueId))(gameweek),
-      areaLimits,
-      presets,
+      areaLimits: rules.areaLimits,
+      presets: rules.presets,
+      classics: classicsOf(rules),
       squad,
       lineup: await lineupInGameweek(ctx, leagueId, team._id, gameweek),
     };
