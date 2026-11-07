@@ -36,7 +36,7 @@ import { commissioned, league, manager, managerIn, miniBeta, openApp } from "../
 import { squadWithWarnings } from "../../support/src/squads.harness";
 
 /** His row on Scouting's list. */
-const listed = ({ code, name, fullName, club, positions, ownerTeamName }: PlayerCard): ListedPlayer => ({ code, name, fullName, club, positions, ownerTeamName, seasonPoints: null, stat: null });
+const listed = ({ code, name, fullName, club, positions, ownerTeamName }: PlayerCard): ListedPlayer => ({ code, name, fullName, club, positions, ownerTeamName, onWaivers: null, seasonPoints: null, stat: null });
 
 describe("reaching it", () => {
   it("a player's name on Scouting opens his card, and Back returns to Scouting", async () => {

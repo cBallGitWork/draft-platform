@@ -104,16 +104,12 @@ const waiverChanges = { drop: overrideNothing, claim: overrideNothing, pickUp: o
 
 /** The preview manager's squad, to name who goes with a claim or a pickup: the players a team holds. */
 const PREVIEW_SQUAD = previewPlayers.filter((player) => player.ownerTeamName !== null).map(({ code, name }) => ({ playerCode: code, playerName: name }));
-/** One unowned player on waivers, the next Thursday's 18:00 run first taking him, so the claim shows. */
-const PREVIEW_ON_WAIVERS = previewPlayers.find((player) => player.ownerTeamName === null)?.code;
-const nextThursday = lastSaturday + 5 * DAY_MS;
-
-/** In the preview an owned player is another team's, with no action; an unowned one is a claim or
- *  a pickup. */
+/** In the preview an owned player is another team's, with no action; one on Scouting's preview
+ *  waivers is a claim, and any other a pickup. */
 function cardActionOf(playerCode: number): CardAction {
-  const player = cards.get(playerCode);
+  const player = previewPlayers.find(({ code }) => code === playerCode);
   if (player === undefined || player.ownerTeamName !== null) return { kind: "none" };
-  return playerCode === PREVIEW_ON_WAIVERS ? { kind: "claim", firstRunAt: nextThursday, squad: PREVIEW_SQUAD } : { kind: "pickUp", squad: PREVIEW_SQUAD };
+  return player.onWaivers === null ? { kind: "pickUp", squad: PREVIEW_SQUAD } : { kind: "claim", firstRunAt: player.onWaivers.firstRunAt, squad: PREVIEW_SQUAD };
 }
 
 export const previewPlayerCard: PlayerCardSeam = {

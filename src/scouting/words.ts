@@ -1,5 +1,6 @@
 // What Scouting says, in one place for Craig to change in the pull request.
 
+import { LOCALE } from "../../convex/shared/moments";
 import { STAT_WORD } from "../shared/words";
 import type { Availability } from "./seam";
 
@@ -31,8 +32,11 @@ export const catalogueGroupWords = "The feeds' stats";
 /** How many players the filters keep. */
 export const countWords = (count: number) => (count === 1 ? "1 player" : `${count} players`);
 export const noneMatchWords = "No player matches these filters.";
-/** Said for "On waivers", which keeps nobody until waivers are built. */
-export const noWaiversWords = "No player is on waivers: the app doesn't run waivers yet.";
+
+const runFormat = new Intl.DateTimeFormat(LOCALE, { weekday: "short", hour: "2-digit", minute: "2-digit" });
+/** In the owner column, a player on waivers and the run that can first take him, in the viewer's
+ *  own zone (Craig, 6 Nov 2026, on #1200): "Waivers, Thu 18:00"; just "Waivers" with no run times. */
+export const onWaiversWords = (firstRunAt: number | null) => (firstRunAt === null ? "Waivers" : `Waivers, ${runFormat.format(firstRunAt)}`);
 
 /** The list's columns: a short head, and what it stands for (spec/14: dense tables use short codes,
  *  the full name on hover). */
