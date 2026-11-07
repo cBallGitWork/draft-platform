@@ -159,7 +159,9 @@ One file per feature in [spec/](spec/); this page is the index. A feature's stat
 ## Glossary
 
 The Avoid column's roster, soccer, standings, waiver wire, franchise, playoffs, uniform and cleats
-are Craig's (1 Nov 2026: "Add all eight"; #950).
+are Craig's (1 Nov 2026: "Add all eight"; #950). Line-up, matchup, subs and skipper are Claude's
+call, as Craig left them to it (7 Nov 2026: "your call"; #951): line-up is the UK spelling,
+matchup stays, subs and auto-subs are allowed, and skipper stays avoided.
 
 | Term | Meaning | Avoid |
 |---|---|---|
@@ -205,10 +207,10 @@ are Craig's (1 Nov 2026: "Add all eight"; #950).
 | own stat | a stat the admin makes for the site's set by adding catalogue stats with weights | custom stat, formula |
 | points limit | a rule's maximum or minimum points for one player in one match | cap (that is the salary cap), floor, ceiling |
 | short code | a category's abbreviation in dense tables: G, A, CS, KP, TW | |
-| lineup | a team's starters and bench for one gameweek | |
+| line-up | a team's starters and bench for one gameweek | |
 | squad | every player a team owns | roster |
 | starter | a player in the lineup's eleven | |
-| bench | the lineup's players who don't start, in the order auto-subs use | subs |
+| bench | the lineup's players who don't start, in the order auto-subs use | |
 | draft league | a league on the platform, such as the Tim Hortons Pro League; on screen, "draft league" wherever the Premier League could be meant. "League" alone in the spec means one | fantasy league |
 | Premier League | the real competition, and the menu section of that name | league (alone) |
 | match | a real Premier League match | |
