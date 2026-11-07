@@ -43,11 +43,19 @@ type Opponent = Exclude<Against<TeamId>, { kind: typeof BYE }>;
 
 /** One team's head-to-head in a gameweek, or null for a league made before rules were held (#25).
  *  The team is the caller's own unless one is named; the gameweek is the latest begun, or before
- *  any, the first, unless one is named. `now` is the screen's: a query may not read the clock. */
+ *  any, the first, unless one is named; the game, in a league playing more than one a gameweek, is
+ *  its number among the team's that gameweek as drawn, the first unless one is named or when the
+ *  one named isn't drawn (#521). `now` is the screen's: a query may not read the clock. */
 export const ofTeam = query({
-  args: { leagueId: v.id("leagues"), now: v.number(), teamId: v.optional(v.id("teams")), gameweek: v.optional(v.number()) },
+  args: {
+    leagueId: v.id("leagues"),
+    now: v.number(),
+    teamId: v.optional(v.id("teams")),
+    gameweek: v.optional(v.number()),
+    game: v.optional(v.number()),
+  },
   returns: v.union(matchup, v.null()),
-  handler: async (ctx, { leagueId, now, teamId, gameweek: asked }) => {
+  handler: async (ctx, { leagueId, now, teamId, gameweek: asked, game: askedGame }) => {
     const { league, team: own } = await memberOf(ctx, leagueId);
     const season = await seasonRules(ctx, leagueId);
     if (season === null) return null;
@@ -60,10 +68,22 @@ export const ofTeam = query({
     const deadlineIn = deadlineOf(await leagueDeadlines(ctx, leagueId));
     const gameweek = asked ?? thisGameweekOf(games, deadlineIn, now)?.gameweek ?? null;
     const heading = { kind: "headToHead" as const, teamId: team._id, teamName: team.name, gameweeks: [...new Set(games.map((each) => each.gameweek))] };
-    if (gameweek === null) return { ...heading, gameweek, deadline: null, game: { kind: "none" as const } };
-    const against = games.find((each) => each.gameweek === gameweek)?.against;
+    if (gameweek === null) return { ...heading, gameweek, deadline: null, gameNumber: FIRST_GAME, games: [], game: { kind: "none" as const } };
+    // The team's games in the gameweek, shown one at a time with a switch between them: the
+    // stepper steps gameweeks, the switch games (Craig, 6 Nov 2026, #521).
+    const inGameweek = games.filter((each) => each.gameweek === gameweek).map(({ against }) => against);
+    const gameNumber = askedGame !== undefined && askedGame >= FIRST_GAME && askedGame <= inGameweek.length ? askedGame : FIRST_GAME;
     const drawn = schedule.find((each) => each.gameweek === gameweek);
-    return { ...heading, gameweek, deadline: deadlineIn(gameweek), game: await gameOf(ctx, league, season, team, drawn, against, now) };
+    const teams = await teamsOf(ctx, league._id);
+    const nameOf = nameIn(teams, gameweek);
+    return {
+      ...heading,
+      gameweek,
+      deadline: deadlineIn(gameweek),
+      gameNumber,
+      games: inGameweek.map((against) => (against.kind === BYE ? { kind: BYE as typeof BYE } : opponentOf(against, nameOf))),
+      game: await gameOf(ctx, league, season, team, teams, drawn, inGameweek.at(gameNumber - FIRST_GAME), now),
+    };
   },
 });
 
@@ -73,6 +93,7 @@ async function gameOf(
   league: Doc<"leagues">,
   season: SeasonRules,
   team: Doc<"teams">,
+  teams: readonly Doc<"teams">[],
   drawn: GameweekFixtures<TeamId> | undefined,
   against: Against<TeamId> | undefined,
   now: number,
@@ -81,13 +102,8 @@ async function gameOf(
   if (against === undefined || drawn === undefined) return { kind: "none" };
   const { gameweek } = drawn;
   if (against.kind === BYE) return { kind: BYE };
-  const teams = await teamsOf(ctx, league._id);
-  const nameOf = (teamId: TeamId) => {
-    const named = teams.find((each) => each._id === teamId);
-    if (named === undefined) throw new Error(`gameweek ${gameweek}'s fixtures name team ${teamId}, which isn't in the league`);
-    return named.name;
-  };
-  const opponent = against.kind === "team" ? { kind: "team" as const, teamName: nameOf(against.team) } : { kind: LEAGUE_AVERAGE as typeof LEAGUE_AVERAGE };
+  const nameOf = nameIn(teams, gameweek);
+  const opponent = opponentOf(against, nameOf);
   if (!(await begunGameweeks(ctx, league)).includes(gameweek)) return { kind: "notBegun", opponent };
   try {
     const teamIds = teams.map((each) => each._id);
@@ -107,6 +123,20 @@ async function gameOf(
     return { kind: "unscored", opponent, reason };
   }
 }
+
+/** The first of a team's games in a gameweek, as the address and the switch number them. */
+const FIRST_GAME = 1;
+
+/** A team's name, for a team `gameweek`'s fixtures name. */
+const nameIn = (teams: readonly Doc<"teams">[], gameweek: number) => (teamId: TeamId) => {
+  const named = teams.find((each) => each._id === teamId);
+  if (named === undefined) throw new Error(`gameweek ${gameweek}'s fixtures name team ${teamId}, which isn't in the league`);
+  return named.name;
+};
+
+/** Who a game is against: another team, by name, or the league's average. */
+const opponentOf = (against: Opponent, nameOf: (teamId: TeamId) => string) =>
+  against.kind === "team" ? { kind: "team" as const, teamName: nameOf(against.team) } : { kind: LEAGUE_AVERAGE as typeof LEAGUE_AVERAGE };
 
 /** Each side of the matchup, from the table's scorer: each slot worked out, and each total the
  *  table's, its saved final total where the table reads one. A stored total is final, so should the
