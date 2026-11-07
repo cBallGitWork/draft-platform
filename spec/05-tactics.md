@@ -96,6 +96,11 @@ From `/grill the Tactics pitch` (Craig, 31 Oct 2026), unless dated otherwise.
 - Tap a player and each player he can swap with lights up, with his stars there. Anything that
   would break the area limits stays unlit. Tap a lit player to swap them, or drag him onto one.
   There are no empty cells to move into: presets only (Craig, 1 Nov 2026).
+- While a player is picked up, each lit starter's chip shows the picked-up player's stars for the
+  role he would land on in that slot, marked as his, and goes back to the starter's own stars when
+  he is put down. When a starter is picked up, each lit bench player shows his own stars for that
+  starter's slot. The pitch only: the Selection table keeps each row's own Role fit (Craig, 7 Nov
+  2026, on #11: "a" to all three). `S05.9`
 - Dropping a player on another swaps them, starter for starter or bench for starter. Each lands on
   the role he has the most stars for in his new slot (Roles).
 - The lineup saves itself after each valid move. A line by the deadline countdown says when it
@@ -133,7 +138,9 @@ From `/grill the Tactics pitch` (Craig, 31 Oct 2026).
 - A role that holds its place has no run.
 - On the desk every moving role's run shows, with a switch to hide them. On a phone only the
   tapped player's run shows.
-- A role's run is held with the role and can change by patch with it, never drawn in the code.
+- A role's run is held with the site's scoring set, beside the roles' adjustments, so an
+  announced patch can change it, never drawn in the code: "Yes change role arrow allowed" (Craig,
+  7 Nov 2026, on #886; "probably not but allow the capability?", 1 Nov 2026). `S05.8`
 - Each role's real run needs its own research. Until then each moving role gets a rough first run
   from FM's nearest role, marked rough, for Craig to refine.
 - The matchup's lineups show the runs too (`spec/10`).
@@ -257,6 +264,12 @@ From Craig, 1 Nov 2026.
   the role is marked not tested ("Nearest past stat, else "not tested""); a past start counts in
   the slot he started that match in ("Where he started that match"); and the scoring ships before
   the backtest ("Scoring first"; all Craig, 5 Nov 2026).
+- The past seasons for the backtest live in Convex, where it reads them: "convex" (Craig, 7 Nov
+  2026, on #1196). `S05.11`
+- A role the backtest puts more than 0.25 points a start off its target fails it, and the build
+  redrafts its values until it lands within 0.25. The new values go into the site's set as a patch
+  from the next gameweek not begun, and the PR lists each role it changed, old against new, for
+  Craig to check (Craig, 7 Nov 2026, on #10: "a"). `S05.10`
 - Claude drafts the first values and Craig edits them by patch (26 Oct 2026). The first values,
   fitted to 26/27 gameweeks 1 to 9, are in [roles-first-values.md](../docs/roles-first-values.md).
   They went into the site's set as its starting rules, taking effect from the next gameweek that
@@ -377,6 +390,13 @@ From Craig, 1 Nov 2026.
   we can always admin update later" (Craig, 31 Oct 2026; #810).
 - An abandoned match counts as never played: "abndoned match is essentailly null like it didnt
   happen, so a player in an absondeoned match would get auto subbed" (Craig, 1 Nov 2026; #904).
+- The feed marks a match abandoned, and the admin can mark it when the feed doesn't: "the feed
+  should say it's abandoned", then "a" to the admin marking it as well (Craig, 7 Nov 2026, on
+  #904), after "admin mark it but we need to get away from relying on FPL, doesn't scale other
+  leagues" (2 Nov 2026). `S05.6`
+- An abandoned match's player stats are deleted, and only its replay counts: "removed, first game
+  never happened". A league's points overrides on it (`spec/14`) are deleted with it: "abandoned
+  match essentially doesn't happen" (Craig, 7 Nov 2026, on #904). `S05.7`
 - A postponed match counts as never played, so its players are auto-subbed, unless it is
   rearranged into the same gameweek: "postponed match should mean an auto subbed if the match is
   not rearranged to be in the gameweek" (Craig, 1 Nov 2026; #900). `S05.4`
