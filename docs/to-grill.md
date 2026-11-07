@@ -113,19 +113,9 @@ liverpools team, and it goes red and white"; then "put on to do list").
   back.
 - Premier League clubs' colours come from the admin's club colours (`spec/15`).
 
-**Overriding any player's or team's score, in any gameweek**: "should be for indovoduals players
-or a team score in any gameweek, fantrax has this, i can override any player score or any team
-score from any week," (Craig, 1 Nov 2026; #903). Today `spec/14` has one player's points for one
-match, overridden by the commissioner.
-- Who can override a team's score: the admin, the commissioner, the co-commissioner.
-- A team's override: its gameweek total, or one head-to-head's score; does it move the table, and
-  does a later re-score or stat correction leave it standing?
-- "Any week": a gameweek already final included, against a final gameweek's saved total
-  (`spec/07`) and patches never touching a played gameweek (`spec/14`)?
-- A player's override in a match that hasn't locked yet: allowed, or only once it locks (as built,
-  #439)? Overriding him twice replaces the first; is there an undo?
-- A player the football data has lost (#812): can he still be overridden?
-- Where the form lives: the player card only (as built), or the matchup and the team too.
+**Overriding any player's or team's score, the rest**: who, what, when, undo and the team
+override's place are settled in `spec/14` (Craig, 7 Nov 2026; #903). Still open:
+- Whether each player's row on the matchup carries the player override too, as well as his card.
 - Fantrax's Commissioner fixes (Smaller pages, below) may be part of this.
 
 **Who's doubtful, on Tactics**: "obv we need that for tactics too" (Craig, 1 Nov 2026, on
@@ -239,6 +229,7 @@ on #454). Rules can change many times a season (`spec/03`); when a change takes 
 | Gameweeks to come after a team joins at a split | Once begun, a gameweek's fixtures are fixed (`spec/13`). Open: how the gameweeks still to come are drawn when a team joins at a split (`convex/table/playedFixtures.ts`, `scheduleAround`); goes with the split season above |
 | The draft's start, the gaps (`spec/04` Starting it) | Found in review of the draft's start (#1089, 4 Nov 2026). (1) Answered on #1102: the commissioner gets a letter (`spec/04`). (2) The approved draft room picture says "Random, drawn Mon 3 Aug", but nothing is drawn on its own now; it needs redrawing in a `/design` session Craig watches ("Redraw it soon", 5 Nov 2026, on #1130). (3), (4) and (5) answered on #1130: "Draw at random" stays on League settings; the rounds and the squad rules count a waiting change (`spec/04`); a vacated team can be handed over after the start |
 | Draft picks in Mail (`spec/04` The picks) | Found in review of a manager's pick (#1090, 4 Nov 2026). A pick is filed as an assignment, by the manager who made it, so Mail reads "Ann put Saka on Team 1" and the team's transactions say "assigned"; there is no "drafted" wording. What should a pick say in Mail and the transactions? |
+| Where the admin marks an abandoned match (`spec/05` Auto-subs) | The feed marks it and the admin can when the feed doesn't (Craig, 7 Nov 2026, #904), but where he marks it (the feeds page, the admin dashboard, the match page) isn't said |
 | One player on several teams | Not now; maybe later (Craig, 20 Oct 2026). A draft is normally one owner per league; some leagues do one per division. The draft, waivers, trades and "owned in the league" all assume one owner |
 
 Thought of and set aside, as they clash with what's settled: board confidence and the sack
