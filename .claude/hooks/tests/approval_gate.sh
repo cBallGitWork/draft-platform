@@ -2,8 +2,8 @@
 # approval_gate.py's and pr_body.py's screen checks (#947), through guard_bash.py and guard_github.py:
 # gh pr create on a branch that changes a file rendering a route with an approved picture needs
 # ui-verifier's signature and an Approved vs built section that matches or numbers each difference;
-# gh pr merge is refused while that section numbers one, unless the pull request has the
-# craig-approved label; and adding that label, by gh or a GitHub tool, is refused.
+# gh pr merge is never held by it (Craig, 7 Nov 2026: layout waits for the UI reskin), and the
+# look-approved check passes, listing the layout differences.
 . "$(dirname "$0")/helpers.sh"
 
 # a small app: /team's route hands it TeamPage, which imports a table; /other renders OtherPage
@@ -92,55 +92,22 @@ git -C "$repo" update-ref -d refs/remotes/origin/main
 says "Can't tell whether this branch changes a screen" guard_bash.py "$(bash_in "$repo" "$(create pr-matches.md)")"
 git -C "$repo" update-ref refs/remotes/origin/main main
 
-# the merge: the stand-in gh api gives $FAKE_BODY's file and $FAKE_LABELS; the GitHub tool's merge
-# waits the same way
-stand_in_gh <<'EOF'
+# the merge: no difference from an approved picture holds it (Craig, 7 Nov 2026: layout waits for the
+# UI reskin), by gh or the GitHub tool, label or none; --admin is still refused
+stand_in_gh <<'EOF2'
 echo "stand-in gh: no answer for $*" >&2; exit 1
-EOF
+EOF2
 tool=$("$jq" -nc --arg d "$repo" '{tool_name:"mcp__github__merge_pull_request",tool_input:{owner:"o",repo:"r",pullNumber:5},cwd:$d}')
 git -C "$repo" switch -q main
 merge="gh pr merge 5 --squash"
-export FAKE_BODY=$repo/pr-differs.md
-check deny guard_bash.py "$(bash_in "$repo" "$merge")"
-says "lists 1 layout difference(s) from the approved picture (2. Columns" guard_bash.py "$(bash_in "$repo" "$merge")"
-says "lists 1 layout difference(s) from the approved picture (2. Columns" guard_github.py "$tool"
-export FAKE_LABELS='[{"name":"bug"}]'
-check deny guard_bash.py "$(bash_in "$repo" "$merge")"
-FAKE_BODY=$repo/pr-pasted.md check deny guard_bash.py "$(bash_in "$repo" "$merge")"
-export FAKE_LABELS='[{"name":"bug"},{"name":"craig-approved"}]'
-check allow guard_bash.py "$(bash_in "$repo" "$merge")"  # Craig said yes
-check allow guard_github.py "$tool"
-unset FAKE_LABELS
-for body in pr-matches.md pr.md; do  # nothing to wait for
+for body in pr-differs.md pr-pasted.md pr-matches.md pr.md; do
   export FAKE_BODY=$repo/$body
   check allow guard_bash.py "$(bash_in "$repo" "$merge")"
+  check allow guard_github.py "$tool"
 done
-# a difference only inside a comment, or numbered under another heading, isn't listed
-printf '%s\n' '## Approved vs built' '<!--' '1. an example in a comment' '-->' 'matches the approved picture' \
-  '## Left for later' '1. a parked finding' > "$repo/pr-elsewhere.md"
-export FAKE_BODY=$repo/pr-elsewhere.md
-check allow guard_bash.py "$(bash_in "$repo" "$merge")"
 unset FAKE_BODY
-FAKE_API_FAIL=pulls/5 says "Can't read this pull request's body and labels" guard_bash.py "$(bash_in "$repo" "$merge")"
-FAKE_API_FAIL=pulls/5 says "Can't read this pull request's body and labels" guard_github.py "$tool"
-
-# only Craig adds the label
-for c in 'gh pr edit 5 --add-label craig-approved' 'gh pr edit 5 --add-label bug,craig-approved' \
-  'gh pr create --title x --body-file pr.md --label craig-approved' 'gh issue edit 5 -l craig-approved' \
-  'gh api repos/o/r/issues/5/labels -f "labels[]=craig-approved"' 'git status && gh pr edit 5 --add-label=craig-approved' \
-  'gh pr edit 5 --add-label Craig-Approved' 'gh api repos/o/r/issues/5/labels -f "labels[]=CRAIG-APPROVED"'; do
-  check deny guard_bash.py "$(bash_in "$repo" "$c")"
-done
-says "Only Craig adds the craig-approved label" guard_bash.py "$(bash_in "$repo" 'gh pr edit 5 --add-label craig-approved')"
-for c in 'gh pr edit 5 --add-label bug' 'gh pr list --label craig-approved' 'gh pr edit 5 --remove-label craig-approved' \
-  'gh pr edit 5 --title craig-approved'; do
-  check allow guard_bash.py "$(bash_in "$repo" "$c")"
-done
-export DRAFT_PRIVATE_WORDS_LIST=acmecorp
-check deny guard_github.py "$(gh_call issue_write '{"method":"update","issue_number":5,"labels":["craig-approved"]}')"
-check deny guard_github.py "$(gh_call add_labels '{"issue_number":5,"labels":"craig-approved"}')"
-check deny guard_github.py "$(gh_call issue_write '{"method":"update","issue_number":5,"labels":["Craig-Approved"]}')"
-check allow guard_github.py "$(gh_call issue_write '{"method":"update","issue_number":5,"labels":["bug"]}')"
+says "bypasses the main ruleset" guard_bash.py "$(bash_in "$repo" "gh pr merge 5 --squash --admin")"
+check allow guard_github.py "$(gh_call issue_write '{"method":"update","issue_number":5,"labels":["craig-approved"]}')"
 
 # this repo's own routes trace to their pages and the stylesheets, so a rename in src/routes/ that
 # loses a page fails here rather than letting its changes pass as no screen
@@ -157,29 +124,19 @@ for row in '/team|src/myTeam/tactics/TacticsPage.tsx' '/team/squad|src/myTeam/Sq
 done
 if traced /team | grep -qx src/myTeam/SquadPage.tsx; then fail "screen_routes.py: /team traces to the Squad tab's page"; fi
 
-# the same gate as look-gate.yml's look-approved check: approval_gate.py run on the event GitHub
-# hands the job exits 1 while a numbered difference lacks craig-approved, 0 once Craig adds it or
-# when nothing differs, and 1 on an event it can't read (never a silent pass)
-gate_on() { # expected-exit body-file labels-json: approval_gate.py on an event holding them
-  local want=$1 body=$2 labels=$3 got
-  $jq -n --rawfile body "$body" --argjson labels "$labels" '{pull_request: {body: $body, labels: $labels}}' > "$tmp/event.json"
-  GITHUB_EVENT_PATH=$tmp/event.json python3 "$hooks/approval_gate.py" > /dev/null 2>&1; got=$?
-  [ "$got" -eq "$want" ] || fail "approval_gate.py as the check: expected exit $want, got $got: $body $labels"
+# the same as look-gate.yml's look-approved check: approval_gate.py run on the event GitHub hands
+# the job passes whatever the differences, listing the layout ones, and exits 1 only on an event
+# it can't read (never a silent pass)
+gate_on() { # expected-exit body-file: approval_gate.py on an event holding that body
+  local want=$1 body=$2 got
+  $jq -n --rawfile body "$body" '{pull_request: {body: $body, labels: []}}' > "$tmp/event.json"
+  GITHUB_EVENT_PATH=$tmp/event.json python3 "$hooks/approval_gate.py" > "$tmp/gate.out" 2>&1; got=$?
+  [ "$got" -eq "$want" ] || fail "approval_gate.py as the check: expected exit $want, got $got: $body"
 }
-gate_on 1 "$repo/pr-differs.md" '[{"name":"bug"}]'
-gate_on 1 "$repo/pr-pasted.md" '[]'
-gate_on 0 "$repo/pr-differs.md" '[{"name":"Craig-Approved"}]'
-gate_on 0 "$repo/pr-matches.md" '[]'
-gate_on 0 "$repo/pr.md" '[]'
-# only a layout difference waits (Craig, 5 Nov 2026: "Yes, layout only"): density, type and colour
-# go through in any case; structure, columns, missing, and a difference naming no kind, still wait
-printf '%s\n' '## Approved vs built' '/team:' '1. Density: rows 20px, the picture 28px' '2. type: page title 18px' \
-  '3. Colour: the tag cyan, the picture teal' "$verifier" > "$repo/pr-details.md"
-gate_on 0 "$repo/pr-details.md" '[]'
-for line in '1. Structure: the queue panel sits left' '1. Missing: no Draft button' '1. the board is wider'; do
-  printf '%s\n' '## Approved vs built' '/team:' '1. Density: gaps 4px' "${line/1./2.}" "$verifier" > "$repo/pr-layout.md"
-  gate_on 1 "$repo/pr-layout.md" '[]'
-done
+for body in pr-differs.md pr-pasted.md pr-matches.md pr.md; do gate_on 0 "$repo/$body"; done
+gate_on 0 "$repo/pr-differs.md"
+grep -q "1 layout difference(s) from the approved picture, left for the UI reskin" "$tmp/gate.out" \
+  || fail "approval_gate.py as the check: doesn't list the layout difference: $(cat "$tmp/gate.out")"
 printf 'not json' > "$tmp/event.json"
 if GITHUB_EVENT_PATH=$tmp/event.json python3 "$hooks/approval_gate.py" > /dev/null 2>&1; then
   fail "approval_gate.py as the check: passed an event it can't read"

@@ -82,6 +82,9 @@ Feature 14 of [SPEC.md](../SPEC.md). Only Craig's answers, from `/grill scoring 
   starting again at 1 each season. Only the admin makes one.
 - The admin saves a patch as a draft, then announces it with the deadline it takes effect from, at
   least 7 days after it is announced ("week notice for updates"). Patches can land mid-season.
+- A version takes effect at the gameweek's deadline, where the league's gameweek begins (`spec/05`),
+  not at its first kickoff: "the deadline but you can't score until first match anyways?" (Craig,
+  7 Nov 2026, on #902). `S14.1`
 - Gameweeks already played keep the version in force in them, and a re-score never applies a later
   patch: past gameweeks are "locked in as a relic" (25 Oct 2026).
 - When the first kickoff of a waiting patch's gameweek moves later, the patch's start moves with
@@ -94,6 +97,19 @@ Feature 14 of [SPEC.md](../SPEC.md). Only Craig's answers, from `/grill scoring 
   notes, a page listing every version's changes.
 - A commissioner can override one player's points for one match, with a reason. It re-scores that
   head-to-head and sends Mail to the whole league saying what changed and why.
+- Any player's or team's score can be overridden, in any match or gameweek, open ones included,
+  back to the start of the season: "b any match any time" (Craig, 7 Nov 2026, on #903; "i can
+  override any player score or any team score from any week", 1 Nov 2026). `S14.2`
+- A team's override sets its total for the gameweek. The head-to-head and the table follow it, and
+  the league gets a Mail letter with the reason: "set the total a" (Craig, 7 Nov 2026, on #903). `S14.3`
+- An override stands over a later stat correction until it is changed, for players and teams
+  alike, and a team's override stands over the player overrides in its gameweek: "a it stands"
+  (Craig, 7 Nov 2026, on #903). `S14.4`
+- A "remove override" button puts the scored points back: "yes remove override button" (Craig,
+  7 Nov 2026, on #903). A player the football data has lost can be overridden from his last saved
+  row: "we can always admin update later" (Craig, 31 Oct 2026, #810). `S14.5`
+- The team override is on the matchup, for the commissioner, the co-commissioner and the admin;
+  the player override stays on the player card: "matchup" (Craig, 7 Nov 2026, on #903). `S14.6`
 
 ## The rule balance lab
 
@@ -104,16 +120,31 @@ change is good".
   call), not on every save.
 - A what-if only: it saves nothing, and locked gameweeks keep their scores.
 - On past seasons: each role's average against its slot's target role bonus (`spec/05`), flagging
-  any more than 0.25 points a match off it; each team instruction's average for a whole XI; and the
-  biggest movers among players.
-- On this season's real lineups: the head-to-heads that would have flipped and the table moves,
-  for each league ("the lab backtests just to make sure a change is good").
+  any more than 0.25 points a match off it, and each team instruction's average for a whole XI. `S14.7`
+- A past start counts in the slot his position in that match's real starting line-up maps to,
+  never his FPL position: "don't use FPL for position source, doesn't fit our game". A start with
+  no known position is left out and counted in a "starts skipped" line (Craig, 6 Nov 2026, on
+  #843). `S14.8`
+- Each team instruction's average is taken on each club's real XI in each past match, only where
+  its shape allows the instruction, and shown beside the others with no flag, as an instruction
+  has no target: "6 a sure" (Craig, 6 Nov 2026, on #843). `S14.9`
+- No biggest movers, in the lab or the patch notes: "I don't want you showing which players
+  improve. Just patch notes" (Craig, 6 Nov 2026, on #843). `S14.10`
+- No what-ifs on this season: no head-to-heads that would have flipped and no table moves, in the
+  lab or the patch notes. Past results are locked and a patch only acts forward: "woah, no we
+  don't change past results after a patch. They are locked. Patch is only forward thinking", then
+  "Drop what ifs" (Craig, 6 Nov 2026, on #843). `S14.11`
 - Its numbers go in the patch notes.
+- On Announce the lab runs once more by itself, on exactly the announced draft, and those numbers
+  go in the patch notes: "5 a" (Craig, 6 Nov 2026, on #843). `S14.12`
 - Past seasons: "not much data this season, might need last". The five seasons 2021/22 to 2025/26
   from ai-carling-premiership, copied once into our own data by a script, keyed by each player's
   FPL `code`. They hold FPL's stats and FotMob's, SofaScore's and Understat's, not the Premier
   League's own, so each category takes its nearest column, and one with none is marked "not
   tested" in the lab and the patch notes.
+- A role or team instruction whose stats weren't copied from the past seasons is listed as "not
+  tested", naming its missing stats, with no average and no flag, in the lab and the patch notes
+  (Craig, 7 Nov 2026, on #843: "a"). `S14.13`
 
 ## The first scoring set
 

@@ -17,7 +17,7 @@ import { scoreTeam, type PlayerMatch, type SlotPoints, type TeamPoints } from ".
 import { playerByCode } from "../shared/players";
 import { readOnce } from "../shared/readOnce";
 import { MINUTES_STAT, statsIfWhole } from "../stats/matchRecords";
-import { heldMatches, isFinished, isMatchFinal, playsIn, type HeldMatch } from "./heldMatches";
+import { heldMatches, isFinished, isMatchFinal, isPostponed, playsIn, type HeldMatch } from "./heldMatches";
 import { deadlineStarsIn } from "../stars/deadlineStars";
 import type { RoleStars } from "../stars/starsShape";
 
@@ -241,7 +241,11 @@ const PLAYED_MINUTES_UNKNOWN = 1;
 function forPlay(match: HeldMatch, code: PlayerCode) {
   const record = match.records.get(code);
   const minutes = record?.stats[MINUTES_STAT] ?? 0;
-  return { finished: isFinished(match), minutes: record?.played === true ? Math.max(minutes, PLAYED_MINUTES_UNKNOWN) : minutes };
+  return {
+    finished: isFinished(match),
+    minutes: record?.played === true ? Math.max(minutes, PLAYED_MINUTES_UNKNOWN) : minutes,
+    postponed: isPostponed(match),
+  };
 }
 
 /** Where a bench player's greyed points are priced while he hasn't come on: the first cell he plays,

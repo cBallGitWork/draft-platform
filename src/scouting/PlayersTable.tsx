@@ -10,7 +10,7 @@ import { ClubShort } from "../premierLeague/ClubName";
 import type { PickedPlayer } from "./ComparePanel";
 import { statFigure } from "./figures";
 import type { ListedPlayer, PlayersSort, SortColumn } from "./seam";
-import { columns, compareLabel, figureWords, noFigureWords, noPointsYetWords, noRoleFitYetWords, statLabel } from "./words";
+import { columns, compareLabel, figureWords, noFigureWords, noPointsYetWords, noRoleFitYetWords, onWaiversWords, statLabel } from "./words";
 
 /** The list's columns: the fixed ones, and "stat" for the shown stat's season total. */
 type Column = keyof typeof columns | "stat";
@@ -125,7 +125,7 @@ function PlayerCell({
     case "owner":
       return (
         <td className={className}>
-          <OwnerName teamName={player.ownerTeamName} />
+          {player.onWaivers === null ? <OwnerName teamName={player.ownerTeamName} /> : onWaiversWords(player.onWaivers.firstRunAt)}
         </td>
       );
     case "seasonPoints":
