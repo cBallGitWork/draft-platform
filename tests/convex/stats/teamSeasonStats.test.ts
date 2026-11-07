@@ -18,6 +18,8 @@ import {
 } from "../../support/convex/gameweekScores.harness";
 import { fullTimeRecords, holdMovedIn, liveRecords, lockMatch, lockMovedIn, MOVED_IN, storeLeague } from "../../support/convex/gameweekScoresMatch.harness";
 import { BELLOUMI } from "../../support/convex/teamPoints.harness";
+// A gameweek stored final starts its recap (home/recaps.ts), which the tests running every job write.
+import { fakeClaude } from "../../support/convex/scouts.harness";
 
 // The stat race's totals (#800, spec/19 The stat race): each team's season stats, counting only its
 // starters and the bench players who came on, added in once a gameweek is final and moved when a
@@ -87,6 +89,7 @@ test("storing again adds nothing twice", async () => {
 
 test("the lock itself asks every league to store its teams' stats", async () => {
   const league = await scoresLeague();
+  fakeClaude();
   await fullTimeRecords(league);
   await lockMatch(league);
   await league.t.finishAllScheduledFunctions(vi.runAllTimers);
@@ -130,6 +133,7 @@ test("a share stored from other matches is stored again, the totals moved by the
 
 test("rebuild sets every total afresh from the gameweeks, whatever was held", async () => {
   const league = await scoresLeague();
+  fakeClaude();
   await fullTimeRecords(league);
   await lockMatch(league);
   await storeStats(league);
@@ -203,6 +207,7 @@ test("a live tick's record the full-time read left out stays not whole after the
 
 test("a read after the lock sending that record whole fills the gap: it is written, not taken as a late correction, and the table and the stat race both store the gameweek", async () => {
   const league = await lockedWithScorerGap();
+  fakeClaude();
 
   const writes = await league.t.mutation(internal.stats.matchStats.upsertMatch, { fixtureCode: HULL_EVERTON, readAt: Date.now(), records: RECORDS });
   expect(writes).toMatchObject({ state: "locked", inserted: 0, changed: [HULL_SCORER], lateCorrections: 0 });

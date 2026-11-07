@@ -14,6 +14,8 @@ import { vi } from "vitest";
 import { api, internal } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
 import { positionOfSlot, type Cell } from "../../../convex/lineup/pitch";
+import { ANTHROPIC_MESSAGES_URL } from "../../../convex/outbound/claude";
+import { ANTHROPIC_KEY_SETTING } from "../../../convex/outbound/deploymentSettings";
 import { RESEND_EMAILS_URL } from "../../../convex/outbound/email";
 import { FIRST_RULES } from "../../../convex/rules/firstRules";
 import { MINUTE_MS } from "../../../convex/shared/time";
@@ -94,10 +96,21 @@ export function leagueWorld(payloads: Gw6Payloads, { beforeKickoff = false } = {
   return payloads;
 }
 
-/** Every feed's read from `payloads`, and Resend taking every email the league sends. */
+/** What Claude writes as the gameweek's recap (home/recaps.ts) once it is final. */
+export const WORLD_RECAP = "Gameweek 6's recap.";
+
+/** Every feed's read from `payloads`, Resend taking every email the league sends, and Claude
+ *  writing the gameweek's recap. */
 function worldFetch(payloads: Gw6Payloads) {
   const feeds = fakeFeeds(payloads);
-  return vi.fn(async (url: string) => (url === RESEND_EMAILS_URL ? Response.json(RESEND_ACCEPTED) : feeds(url)));
+  vi.stubEnv(ANTHROPIC_KEY_SETTING, "test-key");
+  return vi.fn(async (url: string) =>
+    url === RESEND_EMAILS_URL
+      ? Response.json(RESEND_ACCEPTED)
+      : url === ANTHROPIC_MESSAGES_URL
+        ? Response.json({ content: [{ type: "text", text: WORLD_RECAP }] })
+        : feeds(url),
+  );
 }
 
 /** The football sync at `time`, reading `payloads`, as its cron runs it. */

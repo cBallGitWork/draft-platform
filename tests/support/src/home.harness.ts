@@ -2,7 +2,7 @@
 
 import { vi } from "vitest";
 import type { Id } from "../../../convex/_generated/dataModel";
-import type { HomeSeam, LeagueHome } from "../../../src/home/seam";
+import type { HomeSeam, LeagueHome, Recap } from "../../../src/home/seam";
 
 type Row = LeagueHome["table"][number];
 
@@ -40,12 +40,19 @@ export const quietHome: LeagueHome = {
   teams: 2,
   squadMoves: [],
   pinnedLetter: null,
+  recap: null,
 };
 
-/** What the fake server holds: league home, null for a league with no rules, or nothing yet while
- *  it loads. */
-export type HomeData = { leagueHome?: LeagueHome | null; loading?: boolean };
+/** Gameweek 1's recap, written, no score changed since. */
+export const gameweekOneRecap: Recap = { gameweek: 1, text: "Team 1 beat Team 2.\nSaka scored 15.", writtenAt: Date.parse("2026-10-27T09:00:00Z"), changedTeamId: null };
 
-export function fakeHome({ leagueHome = quietHome, loading = false }: HomeData = {}) {
-  return { useLeagueHome: vi.fn<HomeSeam["useLeagueHome"]>(() => (loading ? undefined : leagueHome)) };
+/** What the fake server holds: league home, null for a league with no rules, or nothing yet while
+ *  it loads; and its recaps, by gameweek. */
+export type HomeData = { leagueHome?: LeagueHome | null; loading?: boolean; recaps?: readonly Recap[] };
+
+export function fakeHome({ leagueHome = quietHome, loading = false, recaps = [] }: HomeData = {}) {
+  return {
+    useLeagueHome: vi.fn<HomeSeam["useLeagueHome"]>(() => (loading ? undefined : leagueHome)),
+    useRecap: vi.fn<HomeSeam["useRecap"]>((_, gameweek) => (loading ? undefined : (recaps.find((recap) => recap.gameweek === gameweek) ?? null))),
+  };
 }

@@ -20,8 +20,8 @@ const NOT_SMOKED: ReadonlyMap<string, string> = new Map([
   [TRADES_PATH, "a placeholder until Trades is built"],
 ]);
 
-/** A route's path as a pattern its addresses match: each `$param` one segment. */
-const routePattern = (route: string) => new RegExp(`^${route.replace(/\$[^/]+/g, "[^/]+")}$`);
+/** A route's path as a pattern its addresses match: each `$param` one segment, then any search. */
+const routePattern = (route: string) => new RegExp(`^${route.replace(/\$[^/]+/g, "[^/]+")}(\\?.*)?$`);
 
 describe("the smoke run's built screens", () => {
   it("open every route the router has, but those listed with a reason", () => {

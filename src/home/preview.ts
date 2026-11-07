@@ -1,7 +1,7 @@
 // League home in the preview (src/app/preview.ts): the Pro League's nine teams, six gameweeks scored so
 // the form shows, the server's own rules picking this gameweek (nextGameweek.ts) and the rows
 // (glance.ts), its head-to-heads scored, a matchday open with a few Vidiprinter lines, a pinned
-// letter and a few squad moves. Made up.
+// letter, a few squad moves and the last gameweek's recap. Made up.
 
 import { shownRows } from "../../convex/home/glance";
 import { thisGameweekOf } from "../../convex/gameweeks/nextGameweek";
@@ -16,6 +16,8 @@ import type { HomeSeam, LeagueHome } from "./seam";
 const TEAMS = ["Saka Potatoes", "Kroos Control", "Lingard Franca", "Neville Wears Prada", "Team 5", "Murder on Zidane's Floor", "Dinamo Kiev Leave", "Haaland Oates", "Expected Toulouse"];
 const MINE = "Saka Potatoes";
 const SCORED = 6;
+/** The gameweek whose recap the preview has: the last one scored. */
+export const PREVIEW_RECAP_GAMEWEEK = SCORED;
 const firstDeadline = Date.now() - SCORED * WEEK_MS + DAY_MS;
 
 const schedule = drawFixtures(TEAMS, SEASON_GAMEWEEKS, () => ({ oddTeamOut: "leagueAverage", gamesPerGameweek: 1 }), "preview-home");
@@ -79,6 +81,12 @@ const home: LeagueHome = {
     subject: "The trophy is up for grabs",
     body: "Last season's winner keeps it on his mantelpiece.\nFirst to the top by Christmas gets a pint from me.",
   },
+  recap: {
+    gameweek: SCORED,
+    writtenAt: Date.now() - 2 * DAY_MS,
+    changedTeamId: null,
+    text: `Saka Potatoes edged Kroos Control in the game of Gameweek ${SCORED}, while Haaland Oates ran away with the week's top score. Haaland led the performers with 18 for Haaland Oates, ahead of Saka's 15 and Palmer's 12. Rice managed only 1 for Lingard Franca. Expected Toulouse left 14 on the bench, the most of anyone.`,
+  },
 };
 
-export const previewHome: HomeSeam = { useLeagueHome: () => home };
+export const previewHome: HomeSeam = { useLeagueHome: () => home, useRecap: (_, gameweek) => (gameweek === SCORED ? home.recap : null) };
