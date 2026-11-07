@@ -17,7 +17,9 @@ import {
   overrideHint,
   overrideLabels,
   overrideMatchWords,
+  overrideRemovedWords,
   overrideWords,
+  removeOverrideWords,
   SEASON_TITLE,
 } from "../../../src/playerCard/words";
 import { ARSENAL, COVENTRY } from "../../support/convex/footballRows.harness";
@@ -146,6 +148,34 @@ describe("overriding", () => {
     expect((await screen.findByRole("alert")).textContent).toBe(refusal);
     expect((form.getByLabelText(overrideLabels.reason) as HTMLInputElement).value).toBe(REASON);
     expect(screen.queryByText(overriddenDoneWords)).toBeNull();
+  });
+});
+
+describe("removing an override (S14.5)", () => {
+  const OVERRIDDEN_SAKA: PlayerCard = { ...SAKA, matches: [MATCH, { ...EARLIER, override: { points: 12.5, reason: REASON } }] };
+  const removeButton = () => screen.queryByRole("button", { name: removeOverrideWords });
+
+  it("is offered only on a match the league overrode, and removes that one, then says so", async () => {
+    const app = openCard(managerIn(commissioned), { cards: [OVERRIDDEN_SAKA] });
+    await userEvent.click(await screen.findByRole("button", { name: OVERRIDE_TITLE }));
+    expect(removeButton()).toBeNull();
+
+    const form = within(screen.getByRole("form", { name: OVERRIDE_TITLE }));
+    await userEvent.selectOptions(form.getByLabelText(overrideLabels.match), overrideMatchWords(3, "COV", "ARS"));
+    await userEvent.click(removeButton()!);
+    expect(app.playerCard.removeOverride).toHaveBeenCalledWith(league.leagueId, { fixtureCode: EARLIER.fixtureCode, playerCode: SAKA.code });
+    expect((await screen.findByText(overrideRemovedWords)).getAttribute("role")).toBe("status");
+    expect(app.playerCard.override).not.toHaveBeenCalled();
+  });
+
+  it("says why the server refused", async () => {
+    const refusal = "His points in that match aren't overridden.";
+    openCard(managerIn(commissioned), { cards: [{ ...SAKA, matches: [{ ...MATCH, override: { points: 1, reason: REASON } }] }], overrideRefusal: refusal });
+    await userEvent.click(await screen.findByRole("button", { name: OVERRIDE_TITLE }));
+    await userEvent.click(removeButton()!);
+
+    expect((await screen.findByRole("alert")).textContent).toBe(refusal);
+    expect(screen.queryByText(overrideRemovedWords)).toBeNull();
   });
 });
 

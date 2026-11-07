@@ -2,6 +2,7 @@
 // its own rules, which it can edit (spec/03), so this is only the set it is given: nothing checks
 // a lineup against it. A league's copy is held with its rules (#25, leagueRules.ts).
 
+import { firstPairFor, type InstructionPair } from "./instructions";
 import { cellsOf, LANES, sameCell, type Area, type Cell, type Lane } from "./pitch";
 
 export interface Preset {
@@ -9,6 +10,9 @@ export interface Preset {
   name: string;
   /** One cell per starter, back to front. */
   cells: readonly Cell[];
+  /** Its default attacking and defensive instruction (spec/05, Team instructions; #990): absent
+   *  only from presets a league held before #990, which read instructions.ts's first defaults. */
+  instructions?: InstructionPair;
 }
 
 const row = (area: Area, ...lanes: Lane[]): Cell[] => cellsOf(area, lanes);
@@ -33,10 +37,10 @@ const BACK_TWO = row("defence", "leftCentre", "rightCentre");
 
 /** Each preset gets cells of its own: a league edits its copy (spec/03), and a cell shared with
  *  another preset would change that one too. */
-const preset = (name: string, ...areas: Cell[][]): Preset => ({
-  name,
-  cells: [...KEEPER, ...areas.flat()].map((cell) => ({ ...cell })),
-});
+const preset = (name: string, ...areas: Cell[][]): Preset => {
+  const cells = [...KEEPER, ...areas.flat()].map((cell) => ({ ...cell }));
+  return { name, cells, instructions: firstPairFor(cells) };
+};
 
 /** In spec/05's order. */
 export const DEFAULT_PRESETS: readonly Preset[] = [

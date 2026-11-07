@@ -6,8 +6,9 @@ import type { Matchup } from "../../convex/matchup/matchupShape";
 
 export type { Matchup };
 
-/** Which matchup: a team's (the manager's own when none) in a gameweek (the latest begun when none). */
-export type MatchupAsked = { teamId?: Id<"teams">; gameweek?: number };
+/** Which matchup: a team's (the manager's own when none) in a gameweek (the latest begun when none),
+ *  its game numbered from 1 (the first drawn when none, #521). */
+export type MatchupAsked = { teamId?: Id<"teams">; gameweek?: number; game?: number };
 
 export type MatchupSeam = {
   /** The matchup at the minute `now`, live (a hook): undefined while it loads, null for a league

@@ -2,9 +2,9 @@ import { useMutation, useQuery } from "convex/react";
 import { useEffect, useMemo, useRef } from "react";
 import { api } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
-import { answerOf } from "../../shared/refusal";
+import { answerOf, refusalOf } from "../../shared/refusal";
 import type { TacticsSeam } from "./seam";
-import { saveFailedWords } from "./words";
+import { planDeleteFailedWords, planSaveFailedWords, saveFailedWords } from "./words";
 
 /** The Tactics seam filled in by Convex. A refusal comes back as the server's own words
  *  (convex/lineup/lineupWords.ts); any other failure is logged and said plainly. */
@@ -14,10 +14,22 @@ export const liveTactics: TacticsSeam = {
     const save = useMutation(api.lineup.lineups.save);
     return useMemo(
       () => ({
-        save: (leagueId, { starters, bench, classic }) =>
-          answerOf(() => save({ leagueId, lineup: { starters: [...starters], bench: [...bench], classic } }), "Saving a lineup", saveFailedWords),
+        save: (leagueId, { starters, bench, classic, instructions }) =>
+          answerOf(() => save({ leagueId, lineup: { starters: [...starters], bench: [...bench], classic, instructions } }), "Saving a lineup", saveFailedWords),
       }),
       [save],
+    );
+  },
+  usePlans: (leagueId) => useQuery(api.lineup.savedPlans.mine, { leagueId }),
+  usePlanChanges: () => {
+    const save = useMutation(api.lineup.savedPlans.save);
+    const remove = useMutation(api.lineup.savedPlans.remove);
+    return useMemo(
+      () => ({
+        save: (leagueId, name, slots) => refusalOf(() => save({ leagueId, name, slots: [...slots] }), "Saving a plan", planSaveFailedWords),
+        remove: (leagueId, name) => refusalOf(() => remove({ leagueId, name }), "Deleting a plan", planDeleteFailedWords),
+      }),
+      [save, remove],
     );
   },
   useTacticsOpened: (leagueId, gameweek) => {

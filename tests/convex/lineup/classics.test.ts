@@ -1,7 +1,7 @@
 import { describe, expect, test } from "vitest";
 import { DEFAULT_CLASSICS, inClassicShape, standsAsClassic } from "../../../convex/lineup/classics";
 import { DEFAULT_PRESETS, presetNameOf } from "../../../convex/lineup/presets";
-import { INSTRUCTIONS } from "../../../convex/lineup/instructions";
+import { FIRST_INSTRUCTIONS, pairRefusal } from "../../../convex/lineup/instructions";
 import { offersRole } from "../../../convex/lineup/roles";
 import { classicsOf, FIRST_RULES } from "../../../convex/rules/firstRules";
 
@@ -32,11 +32,10 @@ describe("the first classics", () => {
     expect(hungary.cells.some(({ role }) => role === "falseNine")).toBe(true);
   });
 
-  test.each(DEFAULT_CLASSICS)("$name stands in a preset, every slot on a role it offers there, one instruction a side", (classic) => {
+  test.each(DEFAULT_CLASSICS)("$name stands in a preset, every slot on a role it offers there, one instruction a side its shape offers", (classic) => {
     expect(presetNameOf(classic.cells, DEFAULT_PRESETS)).not.toBeNull();
     for (const slot of classic.cells) expect(offersRole(slot, slot.role, classic.cells)).toBe(true);
-    expect(INSTRUCTIONS.attacking.map(({ key }) => key)).toContain(classic.instructions.attacking);
-    expect(INSTRUCTIONS.defensive.map(({ key }) => key)).toContain(classic.instructions.defensive);
+    expect(pairRefusal(classic.instructions, classic.cells, FIRST_INSTRUCTIONS)).toBeNull();
   });
 
   test("are the first rules', and a league's rules saved before #991 play them", () => {

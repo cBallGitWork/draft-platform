@@ -9,6 +9,7 @@ const TEXT_CONTRAST = 4.5;
 
 const CLUB_CODES = Object.keys(CLUB_COLOURS).map(Number);
 const UNKNOWN_CODE = 999;
+const NEWCASTLE_CODE = 4;
 
 describe("club colours", () => {
   it("has a row for every club in FPL's recorded season, by its code, with its short name", () => {
@@ -25,8 +26,18 @@ describe("club colours", () => {
     for (const code of CLUB_CODES) expect(kitOf(code, true).shirt).not.toBe(kitOf(code, false).shirt);
   });
 
+  it("starts Newcastle, Brentford, Palace, Brighton and Sunderland striped, and the rest plain (spec/12, Club colours)", () => {
+    const striped = Object.values(CLUB_COLOURS).filter((club) => club.pattern === "stripes").map((club) => club.shortName);
+    expect(striped.toSorted()).toEqual(["BHA", "BRE", "CRY", "NEW", "SUN"]);
+  });
+
+  it("trims a striped shirt in the club's second colour, and dresses its keeper plain", () => {
+    expect(kitOf(NEWCASTLE_CODE, false)).toEqual({ shirt: "#241F20", trim: "#FFFFFF", pattern: "stripes", ink: "light" });
+    expect(kitOf(NEWCASTLE_CODE, true).pattern).toBe("plain");
+  });
+
   it("draws a club with no row in the white shirt the pitch had before colours", () => {
-    expect(kitOf(UNKNOWN_CODE, false)).toEqual({ shirt: "#FFFFFF", ink: "dark" });
+    expect(kitOf(UNKNOWN_CODE, false)).toEqual({ shirt: "#FFFFFF", trim: "#FFFFFF", pattern: "plain", ink: "dark" });
   });
 
   it("draws a player with no club held, as for one the football sync doesn't hold (#323), in the same shirt", () => {

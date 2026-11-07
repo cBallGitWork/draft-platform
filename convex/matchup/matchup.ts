@@ -1,28 +1,26 @@
 import { v, type Infer } from "convex/values";
 import type { Doc, Id } from "../_generated/dataModel";
 import { query, type QueryCtx } from "../_generated/server";
-import { delayedAt, heldOf } from "../football/matchCommentary";
-import { isPlaying, scoreOf } from "../football/matchScores";
+import { isPlaying } from "../football/matchScores";
 import { deadlineOf, leagueDeadlines } from "../gameweeks/leagueDeadlines";
 import { thisGameweekOf } from "../gameweeks/nextGameweek";
 import { seasonRules, type SeasonRules } from "../rules/rulesHistory";
 import { logFailure } from "../shared/errors";
 import { memberOf, teamIn, teamsOf } from "../shared/leagueAccess";
-import { playerByCode, unheldPlayerWords } from "../shared/players";
-import { readOnce } from "../shared/readOnce";
 import { begunGameweeks, tableGameweek, type GameweekTeams } from "../gameweekScorer/gameweekScores";
 import { scheduleOf } from "../table/playedFixtures";
-import { isFinished, type HeldMatch } from "../gameweekScorer/heldMatches";
-import { inMatchOf, leagueReads, type TeamInGameweek } from "../gameweekScorer/teamGameweek";
+import { isFinished, overrideOf, type HeldMatch } from "../gameweekScorer/heldMatches";
+import { leagueReads, scoredByMatch, type TeamInGameweek } from "../gameweekScorer/teamGameweek";
 import { LEAGUE_AVERAGE, type GameweekFixtures } from "../table/roundRobin";
 import { teamsInGameweek } from "../table/standings";
 import { averageScore, BYE, gamesOf, type Against } from "../table/teamGames";
 import type { SlotPoints } from "../scoring/teamPoints";
+import { namedCategoriesOf, roleLineOf } from "../scoring/breakdownShape";
+import { siteVersionByGameweek } from "../scoring/siteVersions";
 import { positionOfSlot } from "../lineup/pitch";
 import { namedRole, roleIn, type Role } from "../lineup/roles";
-import { thresholdStepsOf } from "../stats/thresholdSteps";
-import { game, matchup, type MatchupCommentary, type MatchupBenchSlot, type MatchupPlace, type MatchupSide, type MatchupSlot, type MatchupStarter, type SlotStatus } from "./matchupShape";
-import { vidiprinter, type VidiprinterMatch, type VidiprinterPlayer } from "./vidiprinter";
+import { game, matchup, type MatchBreakdown, type MatchupCommentary, type MatchupBenchSlot, type MatchupPlace, type MatchupSide, type MatchupSlot, type MatchupStarter, type SlotStatus } from "./matchupShape";
+import { commentaryReads, readCommentary, type CommentaryReads } from "./readCommentary";
 
 // One head-to-head in one gameweek (#34; spec/10, The matchup, as a live match; spec/14, On
 // screen): both lineups slot by slot, each player's points and whether his match is yet to come,
@@ -40,17 +38,24 @@ import { vidiprinter, type VidiprinterMatch, type VidiprinterPlayer } from "./vi
 // priced for them (vidiprinter.ts, #44).
 
 type TeamId = Id<"teams">;
-type PlayerCode = number;
 type Game = Infer<typeof game>;
 type Opponent = Exclude<Against<TeamId>, { kind: typeof BYE }>;
 
 /** One team's head-to-head in a gameweek, or null for a league made before rules were held (#25).
  *  The team is the caller's own unless one is named; the gameweek is the latest begun, or before
- *  any, the first, unless one is named. `now` is the screen's: a query may not read the clock. */
+ *  any, the first, unless one is named; the game, in a league playing more than one a gameweek, is
+ *  its number among the team's that gameweek as drawn, the first unless one is named or when the
+ *  one named isn't drawn (#521). `now` is the screen's: a query may not read the clock. */
 export const ofTeam = query({
-  args: { leagueId: v.id("leagues"), now: v.number(), teamId: v.optional(v.id("teams")), gameweek: v.optional(v.number()) },
+  args: {
+    leagueId: v.id("leagues"),
+    now: v.number(),
+    teamId: v.optional(v.id("teams")),
+    gameweek: v.optional(v.number()),
+    game: v.optional(v.number()),
+  },
   returns: v.union(matchup, v.null()),
-  handler: async (ctx, { leagueId, now, teamId, gameweek: asked }) => {
+  handler: async (ctx, { leagueId, now, teamId, gameweek: asked, game: askedGame }) => {
     const { league, team: own } = await memberOf(ctx, leagueId);
     const season = await seasonRules(ctx, leagueId);
     if (season === null) return null;
@@ -63,10 +68,22 @@ export const ofTeam = query({
     const deadlineIn = deadlineOf(await leagueDeadlines(ctx, leagueId));
     const gameweek = asked ?? thisGameweekOf(games, deadlineIn, now)?.gameweek ?? null;
     const heading = { kind: "headToHead" as const, teamId: team._id, teamName: team.name, gameweeks: [...new Set(games.map((each) => each.gameweek))] };
-    if (gameweek === null) return { ...heading, gameweek, deadline: null, game: { kind: "none" as const } };
-    const against = games.find((each) => each.gameweek === gameweek)?.against;
+    if (gameweek === null) return { ...heading, gameweek, deadline: null, gameNumber: FIRST_GAME, games: [], game: { kind: "none" as const } };
+    // The team's games in the gameweek, shown one at a time with a switch between them: the
+    // stepper steps gameweeks, the switch games (Craig, 6 Nov 2026, #521).
+    const inGameweek = games.filter((each) => each.gameweek === gameweek).map(({ against }) => against);
+    const gameNumber = askedGame !== undefined && askedGame >= FIRST_GAME && askedGame <= inGameweek.length ? askedGame : FIRST_GAME;
     const drawn = schedule.find((each) => each.gameweek === gameweek);
-    return { ...heading, gameweek, deadline: deadlineIn(gameweek), game: await gameOf(ctx, league, season, team, drawn, against, now) };
+    const teams = await teamsOf(ctx, league._id);
+    const nameOf = nameIn(teams, gameweek);
+    return {
+      ...heading,
+      gameweek,
+      deadline: deadlineIn(gameweek),
+      gameNumber,
+      games: inGameweek.map((against) => (against.kind === BYE ? { kind: BYE as typeof BYE } : opponentOf(against, nameOf))),
+      game: await gameOf(ctx, league, season, team, teams, drawn, inGameweek.at(gameNumber - FIRST_GAME), now),
+    };
   },
 });
 
@@ -76,6 +93,7 @@ async function gameOf(
   league: Doc<"leagues">,
   season: SeasonRules,
   team: Doc<"teams">,
+  teams: readonly Doc<"teams">[],
   drawn: GameweekFixtures<TeamId> | undefined,
   against: Against<TeamId> | undefined,
   now: number,
@@ -84,24 +102,21 @@ async function gameOf(
   if (against === undefined || drawn === undefined) return { kind: "none" };
   const { gameweek } = drawn;
   if (against.kind === BYE) return { kind: BYE };
-  const teams = await teamsOf(ctx, league._id);
-  const nameOf = (teamId: TeamId) => {
-    const named = teams.find((each) => each._id === teamId);
-    if (named === undefined) throw new Error(`gameweek ${gameweek}'s fixtures name team ${teamId}, which isn't in the league`);
-    return named.name;
-  };
-  const opponent = against.kind === "team" ? { kind: "team" as const, teamName: nameOf(against.team) } : { kind: LEAGUE_AVERAGE as typeof LEAGUE_AVERAGE };
+  const nameOf = nameIn(teams, gameweek);
+  const opponent = opponentOf(against, nameOf);
   if (!(await begunGameweeks(ctx, league)).includes(gameweek)) return { kind: "notBegun", opponent };
   try {
     const teamIds = teams.map((each) => each._id);
-    const inGameweek = await tableGameweek(ctx, await leagueReads(ctx, league, season), gameweek, teamIds);
-    const scorer = new SideScorer(ctx, inGameweek, teamsInGameweek(drawn), gameweek);
+    const versionIn = await siteVersionByGameweek(ctx);
+    const inGameweek = await tableGameweek(ctx, await leagueReads(ctx, league, season, (each) => versionIn(each).set), gameweek, teamIds);
+    const scorer = new SideScorer(ctx, league._id, inGameweek, teamsInGameweek(drawn), gameweek);
     const sides = against.kind === "team" ? [team._id, against.team] : [team._id];
     return {
       kind: "scored",
       team: await scorer.team(team._id, team.name),
       opponent: await scorer.opponent(against, nameOf),
       commentary: await scorer.commentary(sides, `League ${league._id} (${league.name}) can't read ${team.name}'s commentary in gameweek ${gameweek}`, now),
+      version: versionIn(gameweek).name,
     };
   } catch (error) {
     const reason = logFailure(`League ${league._id} (${league.name}) can't score ${team.name}'s matchup in gameweek ${gameweek}`, error);
@@ -109,23 +124,44 @@ async function gameOf(
   }
 }
 
+/** The first of a team's games in a gameweek, as the address and the switch number them. */
+const FIRST_GAME = 1;
+
+/** A team's name, for a team `gameweek`'s fixtures name. */
+const nameIn = (teams: readonly Doc<"teams">[], gameweek: number) => (teamId: TeamId) => {
+  const named = teams.find((each) => each._id === teamId);
+  if (named === undefined) throw new Error(`gameweek ${gameweek}'s fixtures name team ${teamId}, which isn't in the league`);
+  return named.name;
+};
+
+/** Who a game is against: another team, by name, or the league's average. */
+const opponentOf = (against: Opponent, nameOf: (teamId: TeamId) => string) =>
+  against.kind === "team" ? { kind: "team" as const, teamName: nameOf(against.team) } : { kind: LEAGUE_AVERAGE as typeof LEAGUE_AVERAGE };
+
 /** Each side of the matchup, from the table's scorer: each slot worked out, and each total the
  *  table's, its saved final total where the table reads one. A stored total is final, so should the
  *  data behind a slot change after storing (a position corrected, say), the slots may no longer add
  *  up to it; and a gameweek whose slots can't be worked out is unscored here even while the table
  *  shows its stored totals. */
 class SideScorer {
-  /** His name; for one the football sync doesn't hold, the error saying so (#810, #323). */
-  private readonly name = readOnce((playerCode: PlayerCode) => playerByCode(this.ctx, playerCode).then((player) => player?.name ?? unheldPlayerWords(playerCode)));
-  private readonly score = readOnce((fixtureCode: number) => scoreOf(this.ctx, fixtureCode));
+  /** Each man's name, for one the football sync doesn't hold the words saying so (#810, #323), and
+   *  each match's score, read once. */
+  private readonly reads: CommentaryReads;
+  private readonly name: CommentaryReads["name"];
+  private readonly score: CommentaryReads["score"];
 
   constructor(
     private readonly ctx: QueryCtx,
+    private readonly leagueId: Id<"leagues">,
     private readonly inGameweek: GameweekTeams,
     /** The teams the league's average is over: the gameweek's own (standings.ts's teamsInGameweek). */
     private readonly averaged: readonly TeamId[],
     private readonly gameweek: number,
-  ) {}
+  ) {
+    this.reads = commentaryReads(ctx);
+    this.name = this.reads.name;
+    this.score = this.reads.score;
+  }
 
   async team(teamId: TeamId, teamName: string): Promise<MatchupSide> {
     const scored = await this.inGameweek.slotsOf(teamId);
@@ -155,28 +191,8 @@ class SideScorer {
    *  is logged and says why, while the scores still show. Delayed as at `now` (`delayedAt`). */
   async commentary(teamIds: readonly TeamId[], failure: string, now: number): Promise<MatchupCommentary> {
     try {
-      const players = new Map<PlayerCode, VidiprinterPlayer>();
-      const matches = new Map<number, HeldMatch>();
-      for (const teamId of teamIds) {
-        const scored = await this.inGameweek.slotsOf(teamId);
-        for (const slot of [...scored.team.starters, ...scored.team.bench]) {
-          const his = scored.matchesOf.get(slot.playerCode) ?? [];
-          for (const match of his) matches.set(match.fixture.code, match);
-          players.set(slot.playerCode, { name: await this.name(slot.playerCode), cell: slot.cell, role: slot.role, inLineup: true, inMatch: inMatchOf(slot, his) });
-        }
-      }
-      const held = await Promise.all(
-        [...matches.values()].map(async ({ fixture }) => ({
-          fixture,
-          row: await heldOf(this.ctx, fixture.code),
-          score: await this.score(fixture.code),
-          steps: await thresholdStepsOf(this.ctx, fixture.code),
-        })),
-      );
-      const read: VidiprinterMatch[] = held.flatMap(({ fixture, row, steps }) =>
-        row === null ? [] : [{ fixtureCode: fixture.code, kickoff: fixture.kickoff, lines: row.lines, steps }],
-      );
-      return { kind: "read", lines: vidiprinter(read, players, this.inGameweek.set), delayed: held.some(({ row, score }) => row !== null && delayedAt(row, score, now)) };
+      const read = await readCommentary(this.ctx, this.inGameweek, teamIds, now, this.reads, { countingOnly: false });
+      return { kind: "read", ...read };
     } catch (error) {
       return { kind: "unread", reason: logFailure(failure, error) };
     }
@@ -214,7 +230,30 @@ class SideScorer {
       provisional,
       status: await this.status(matchesOf.get(playerCode) ?? []),
       autoSub,
+      breakdown: await this.breakdown(slotPoints, matchesOf.get(playerCode) ?? []),
     };
+  }
+
+  /** Each of his matches as his slot scored it, kickoff first: its categories, his role's line and
+   *  the league's override, from the scorer's own points, so they add up to his. */
+  private async breakdown(slotPoints: SlotPoints, matches: readonly HeldMatch[]): Promise<MatchBreakdown[]> {
+    const { playerCode } = slotPoints;
+    const { ownStats } = this.inGameweek.set;
+    const scored = scoredByMatch(slotPoints, matches).toSorted((one, other) => byKickoffOrder(one.match.fixture, other.match.fixture));
+    return Promise.all(
+      scored.map(async ({ match: { fixture, overrides }, points: { total, categories, role }, counted }) => {
+        const overridden = overrides.has(playerCode) ? await overrideOf(this.ctx, this.leagueId, fixture.code, playerCode) : null;
+        return {
+          fixtureCode: fixture.code,
+          kickoff: fixture.kickoff,
+          points: total,
+          counted,
+          categories: namedCategoriesOf(categories, ownStats),
+          ...(role === undefined ? {} : { role: roleLineOf(role, ownStats) }),
+          override: overridden === null ? null : { points: overridden.points, reason: overridden.reason },
+        };
+      }),
+    );
   }
 
   /** On while any of his matches is; over once all are (at full time, though his points stay
@@ -245,6 +284,11 @@ function pricedRole({ playerCode, cell, role }: SlotPoints): Pick<Role, "key" | 
 /** The slot he plays in: its lane and its position label, as the Tactics pitch labels it. */
 const placeOf = ({ cell }: SlotPoints): MatchupPlace => ({ lane: cell.lane, label: positionOfSlot(cell) });
 
+type KicksOff = { kickoff: number | null };
+
+/** Two matches in kickoff order, any with no time yet last. */
+const byKickoffOrder = (one: KicksOff, other: KicksOff) =>
+  (one.kickoff === null ? 1 : 0) - (other.kickoff === null ? 1 : 0) || (one.kickoff ?? 0) - (other.kickoff ?? 0);
+
 /** Matches by kickoff, any with no time yet last. */
-const byKickoff = <Fixture extends { kickoff: number | null }>(fixtures: readonly Fixture[]): Fixture[] =>
-  fixtures.toSorted((one, other) => (one.kickoff === null ? 1 : 0) - (other.kickoff === null ? 1 : 0) || (one.kickoff ?? 0) - (other.kickoff ?? 0));
+const byKickoff = <Fixture extends KicksOff>(fixtures: readonly Fixture[]): Fixture[] => fixtures.toSorted(byKickoffOrder);

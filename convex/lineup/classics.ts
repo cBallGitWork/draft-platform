@@ -1,14 +1,14 @@
 // The classics every league starts with (spec/05, The pitch; #991): famous sides' formations, each
 // a league rule like a preset, which the ready-made rules carry. A classic sets its shape, which is
 // always one of the league's presets (Craig, 6 Nov 2026: "Yes, one of ours"), every slot's role and
-// its two team instructions, which apply once picking instructions is built (#990; Craig, 6 Nov
-// 2026: "Build now, instructions apply later"). Eight to start, their text sample until Craig
-// rewrites it (Craig, 6 Nov 2026: "Eight to start"). A league's copy is held with its rules
-// (leagueRulesShape.ts), and its rules check says a classic is sound (leagueRulesCheck.ts).
+// its two team instructions, each one its shape offers (instructions.ts; #990). Eight to start,
+// their text sample until Craig rewrites it (Craig, 6 Nov 2026: "Eight to start"). A league's copy
+// is held with its rules (leagueRulesShape.ts), and its rules check says a classic is sound
+// (leagueRulesCheck.ts).
 
 import { sameCell, type Cell } from "./pitch";
 import { DEFAULT_PRESETS } from "./presets";
-import type { InstructionSide } from "./instructions";
+import type { InstructionPair } from "./instructions";
 
 /** One of a classic's slots and the role it sets there (roles.ts). */
 export type ClassicSlot = Cell & { role: string };
@@ -23,7 +23,7 @@ export interface Classic {
   /** One slot per starter, back to front: the cells of one of the league's presets. */
   cells: readonly ClassicSlot[];
   /** instructions.ts's keys, one a side. */
-  instructions: Record<InstructionSide, string>;
+  instructions: InstructionPair;
 }
 
 /** A classic on the default preset `formation`, its roles in that preset's cell order: the keeper,
@@ -34,7 +34,7 @@ function classic(
   description: string,
   formation: string,
   roles: readonly string[],
-  instructions: Record<InstructionSide, string>,
+  instructions: InstructionPair,
 ): Classic {
   const preset = DEFAULT_PRESETS.find((each) => each.name === formation);
   if (preset === undefined) throw new Error(`The classic ${name} stands in ${formation}, which isn't a preset`);
@@ -67,7 +67,8 @@ export const DEFAULT_CLASSICS: readonly Classic[] = [
     "The Mighty Magyars: Hidegkuti dropping off as a false 9, Puskás shooting from anywhere.",
     "4-2-4",
     ["sweeperKeeper", "defensiveFullBack", "stopper", "noNonsenseCentreBack", "defensiveFullBack", "boxToBox", "ballWinner", "winger", "winger", "falseNine", "poacher"],
-    { attacking: "shootOnSight", defensive: "pressHigh" },
+    // Press high needs three in a row, which a 4-2-4 has nowhere (#990): its back four holds a line.
+    { attacking: "shootOnSight", defensive: "holdAHighLine" },
   ),
   classic(
     "Man United",
