@@ -56,7 +56,7 @@ export function RulesTable({ teamName, limits, players }: { teamName: string; li
 
 /** A limit's row in words: its name, how many it counts, what the league allows, and how far
  *  outside it the squad is, null inside it. */
-export function limitWords(limit: SquadLimit): { name: string; held: number; allowed: string; out: string | null } {
+function limitWords(limit: SquadLimit): { name: string; held: number; allowed: string; out: string | null } {
   switch (limit.kind) {
     case "size": {
       const { count, minimum, maximum } = limit;
