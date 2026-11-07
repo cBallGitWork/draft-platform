@@ -159,7 +159,8 @@ deployment has a token. To set one, once: on GitHub, Settings, Developer setting
 tokens, make a token for the account the builds run as (CBHelper180). Its only repository is
 `cBallGitWork/draft-platform` and its only permission is **Actions: Read and write**. Then:
 `npx convex env set --prod LEAD_WAKE_GITHUB_TOKEN <the token>`. A refused wake-up (an expired
-token, say) shows as a failed `wake the lead` run in the Convex dashboard's logs.
+token, say) shows as a failed `wake the lead` run in the Convex dashboard's logs, and, if GitHub's
+schedule has dropped too, as Healthchecks' `lead-pass` email after 3 hours with no pass.
 
 ## Restoring saved data
 
