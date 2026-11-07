@@ -54,24 +54,28 @@ export function startDrag(event: DragEvent, playerCode: number, moving: Moving) 
 }
 
 /** `slots` are the cells of the preset last picked, if any: those still empty are marked, the
- *  shape's slots nobody fills (spec/05). `runsShown` is the desk's switch for the roles' runs (spec/05 Runs). */
+ *  shape's slots nobody fills (spec/05). `runsShown` is the desk's switch for the roles' runs (spec/05 Runs).
+ *  `ratingsOf` gives the stars a lit player shows for the swap (#11). */
 export function Pitch({
   draft,
   squad,
   moving,
   slots,
   runsShown,
+  ratingsOf,
 }: {
   draft: DraftLineup;
   squad: ReadonlyMap<number, SquadMember>;
   moving: Moving;
   slots: readonly Cell[];
   runsShown: boolean;
+  ratingsOf: RatingsOf;
 }) {
   const { picked, reach } = moving;
   const isSlot = (cell: Cell) => slots.some((slot) => sameCell(slot, cell));
-  const swapsWith = (playerCode: number) => picked !== null && reach !== null && reach.players.includes(playerCode);
-  const ratingsOf: RatingsOf = (playerCode) => squad.get(playerCode)?.stars ?? [];
+  /** The swap a lit player shows; null on one who isn't lit. */
+  const landingOn = (playerCode: number) =>
+    picked === null || reach === null || !reach.players.includes(playerCode) ? null : landingOf(draft, picked.playerCode, playerCode, ratingsOf);
   const rows = rowLayoutOf([...draft.starters, ...slots]);
   return (
     <div role="group" aria-label={pitchLabel} style={cellGridOf(rows)} className="pitch relative mx-auto grid">
@@ -98,7 +102,7 @@ export function Pitch({
                   player={squad.get(standing.playerCode)!}
                   cell={cell}
                   role={roleIn(cell, standing.role).name}
-                  landing={swapsWith(standing.playerCode) ? landingOf(draft, picked!.playerCode, standing.playerCode, ratingsOf) : null}
+                  landing={landingOn(standing.playerCode)}
                   moving={moving}
                 />
               ) : (
