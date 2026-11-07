@@ -82,7 +82,7 @@ export async function teamOverridesIn(ctx: QueryCtx, leagueId: Id<"leagues">, ga
   return new Map(rows.map((row) => [row.teamId, row]));
 }
 
-export const playsIn =(fixture: Doc<"fixtures">, clubCode: number) => fixture.homeClubCode === clubCode || fixture.awayClubCode === clubCode;
+export const playsIn = (fixture: Doc<"fixtures">, clubCode: number) => fixture.homeClubCode === clubCode || fixture.awayClubCode === clubCode;
 
 /** A match read at full time has a state; one still live has none (liveStats.ts). */
 export const isFinished = (match: HeldMatch) => match.status !== null;
