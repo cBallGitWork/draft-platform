@@ -1,4 +1,5 @@
-import { andListWords, momentIn } from "../shared/moments";
+import { andListWords } from "../shared/moments";
+import type { TellMoment } from "./letterMoments";
 
 // What trades' Mail letters say (spec/08 Trades, spec/16; #383): split from letterWords.ts, as
 // waivers' are (waiverLetterWords.ts). ../trades/ files them.
@@ -69,8 +70,8 @@ export function offerClosedLetter(trade: TradeWords, closed: OfferClosed): Words
 export type ReviewWords = { kind: "veto"; by: string } | { kind: "vote" };
 
 /** To both managers when an offer is accepted and goes into review, until `endsAt`. */
-export function acceptedLetter(trade: TradeWords, review: ReviewWords, endsAt: number, zone: string | undefined): Words {
-  const until = momentIn(endsAt, zone);
+export function acceptedLetter(trade: TradeWords, review: ReviewWords, endsAt: number, tell: TellMoment): Words {
+  const until = tell(endsAt);
   const who =
     review.kind === "veto"
       ? `${review.by} can block it until ${until}`
@@ -83,8 +84,8 @@ export function acceptedLetter(trade: TradeWords, review: ReviewWords, endsAt: n
 
 /** To whoever reviews an accepted trade: the one who may block it, or each manager who may vote
  *  against it (spec/08: "with Block in it", "with Against in it"). */
-export function reviewLetter(trade: TradeWords, review: ReviewWords, endsAt: number, zone: string | undefined): Words {
-  const until = momentIn(endsAt, zone);
+export function reviewLetter(trade: TradeWords, review: ReviewWords, endsAt: number, tell: TellMoment): Words {
+  const until = tell(endsAt);
   return review.kind === "veto"
     ? {
         subject: `Block the trade between ${trade.fromTeamName} and ${trade.toTeamName}?`,

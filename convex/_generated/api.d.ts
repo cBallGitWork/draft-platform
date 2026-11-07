@@ -81,6 +81,7 @@ import type * as gameweeks_leagueGameweeks from "../gameweeks/leagueGameweeks.js
 import type * as gameweeks_nextGameweek from "../gameweeks/nextGameweek.js";
 import type * as gameweeks_passedDeadlines from "../gameweeks/passedDeadlines.js";
 import type * as gameweeks_scoringStart from "../gameweeks/scoringStart.js";
+import type * as gameweeks_seasonGameweeks from "../gameweeks/seasonGameweeks.js";
 import type * as gameweeks_usedGameweeks from "../gameweeks/usedGameweeks.js";
 import type * as heartbeats_heartbeat from "../heartbeats/heartbeat.js";
 import type * as heartbeats_leadWake from "../heartbeats/leadWake.js";
@@ -123,7 +124,9 @@ import type * as lineup_pitchShape from "../lineup/pitchShape.js";
 import type * as lineup_pitchWords from "../lineup/pitchWords.js";
 import type * as lineup_presets from "../lineup/presets.js";
 import type * as lineup_roles from "../lineup/roles.js";
+import type * as lineup_savedPlans from "../lineup/savedPlans.js";
 import type * as lineup_tactics from "../lineup/tactics.js";
+import type * as mail_letterMoments from "../mail/letterMoments.js";
 import type * as mail_letterWords from "../mail/letterWords.js";
 import type * as mail_letters from "../mail/letters.js";
 import type * as mail_mail from "../mail/mail.js";
@@ -384,6 +387,7 @@ declare const fullApi: ApiFromModules<{
   "gameweeks/nextGameweek": typeof gameweeks_nextGameweek;
   "gameweeks/passedDeadlines": typeof gameweeks_passedDeadlines;
   "gameweeks/scoringStart": typeof gameweeks_scoringStart;
+  "gameweeks/seasonGameweeks": typeof gameweeks_seasonGameweeks;
   "gameweeks/usedGameweeks": typeof gameweeks_usedGameweeks;
   "heartbeats/heartbeat": typeof heartbeats_heartbeat;
   "heartbeats/leadWake": typeof heartbeats_leadWake;
@@ -426,7 +430,9 @@ declare const fullApi: ApiFromModules<{
   "lineup/pitchWords": typeof lineup_pitchWords;
   "lineup/presets": typeof lineup_presets;
   "lineup/roles": typeof lineup_roles;
+  "lineup/savedPlans": typeof lineup_savedPlans;
   "lineup/tactics": typeof lineup_tactics;
+  "mail/letterMoments": typeof mail_letterMoments;
   "mail/letterWords": typeof mail_letterWords;
   "mail/letters": typeof mail_letters;
   "mail/mail": typeof mail_mail;

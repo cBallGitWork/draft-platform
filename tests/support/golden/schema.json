@@ -951,8 +951,9 @@
       "tableName": "gameweeks",
       "indexes": [
         {
-          "indexDescriptor": "by_number",
+          "indexDescriptor": "by_season_and_number",
           "fields": [
+            "season",
             "number"
           ]
         },
@@ -971,6 +972,12 @@
       "documentType": {
         "type": "object",
         "value": {
+          "season": {
+            "fieldType": {
+              "type": "number"
+            },
+            "optional": true
+          },
           "number": {
             "fieldType": {
               "type": "number"
@@ -1190,6 +1197,13 @@
                         }
                       },
                       "optional": false
+                    },
+                    "betweenSeasons": {
+                      "fieldType": {
+                        "type": "literal",
+                        "value": true
+                      },
+                      "optional": true
                     },
                     "scores": {
                       "fieldType": {
@@ -6105,6 +6119,15 @@
               "type": "string"
             },
             "optional": false
+          },
+          "moments": {
+            "fieldType": {
+              "type": "array",
+              "value": {
+                "type": "number"
+              }
+            },
+            "optional": true
           },
           "readAt": {
             "fieldType": {
@@ -22891,6 +22914,126 @@
               }
             },
             "optional": true
+          }
+        }
+      }
+    },
+    {
+      "tableName": "savedPlans",
+      "indexes": [
+        {
+          "indexDescriptor": "by_leagueId_and_teamId_and_name",
+          "fields": [
+            "leagueId",
+            "teamId",
+            "name"
+          ]
+        }
+      ],
+      "stagedDbIndexes": [],
+      "searchIndexes": [],
+      "stagedSearchIndexes": [],
+      "vectorIndexes": [],
+      "stagedVectorIndexes": [],
+      "documentType": {
+        "type": "object",
+        "value": {
+          "leagueId": {
+            "fieldType": {
+              "type": "id",
+              "tableName": "leagues"
+            },
+            "optional": false
+          },
+          "teamId": {
+            "fieldType": {
+              "type": "id",
+              "tableName": "teams"
+            },
+            "optional": false
+          },
+          "name": {
+            "fieldType": {
+              "type": "string"
+            },
+            "optional": false
+          },
+          "slots": {
+            "fieldType": {
+              "type": "array",
+              "value": {
+                "type": "object",
+                "value": {
+                  "area": {
+                    "fieldType": {
+                      "type": "union",
+                      "value": [
+                        {
+                          "type": "literal",
+                          "value": "goalkeeper"
+                        },
+                        {
+                          "type": "literal",
+                          "value": "defence"
+                        },
+                        {
+                          "type": "literal",
+                          "value": "defensiveMidfield"
+                        },
+                        {
+                          "type": "literal",
+                          "value": "midfield"
+                        },
+                        {
+                          "type": "literal",
+                          "value": "attackingMidfield"
+                        },
+                        {
+                          "type": "literal",
+                          "value": "attack"
+                        }
+                      ]
+                    },
+                    "optional": false
+                  },
+                  "lane": {
+                    "fieldType": {
+                      "type": "union",
+                      "value": [
+                        {
+                          "type": "literal",
+                          "value": "left"
+                        },
+                        {
+                          "type": "literal",
+                          "value": "leftCentre"
+                        },
+                        {
+                          "type": "literal",
+                          "value": "centre"
+                        },
+                        {
+                          "type": "literal",
+                          "value": "rightCentre"
+                        },
+                        {
+                          "type": "literal",
+                          "value": "right"
+                        }
+                      ]
+                    },
+                    "optional": false
+                  },
+                  "role": {
+                    "fieldType": {
+                      "type": "string"
+                    },
+                    "optional": false
+                  }
+                }
+              }
+            },
+            "optional": false
           }
         }
       }

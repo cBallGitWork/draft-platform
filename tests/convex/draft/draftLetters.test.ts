@@ -6,6 +6,7 @@ import { UP_NEXT_EMAIL_OVER_MS } from "../../../convex/draft/draftLetters";
 import { draftStartRefusals } from "../../../convex/draft/draftStart";
 import { dayOf, EMAILS_PER_DAY } from "../../../convex/outbound/emailLimit";
 import { momentIn } from "../../../convex/shared/moments";
+import { letterAsRead } from "../../../convex/mail/letterMoments";
 import { DAY_MS, SECOND_MS } from "../../../convex/shared/time";
 import { ARSENAL, insertClubs, insertPlayers, type HeldPlayer } from "../../support/convex/footballRows.harness";
 import { changeEveryRules, HELD_FIRST_RULES, holdGameweeks, setPickSeconds as setPickSecondsOf } from "../../support/convex/leagueRules.harness";
@@ -34,7 +35,10 @@ const start = async () => (await as(COMMISSIONER)).mutation(api.draft.draftStart
 const pick = async (email: string, playerCode: number) => (await as(email)).mutation(api.draft.draftPicks.makePick, { leagueId, playerCode });
 const pause = async () => (await as(COMMISSIONER)).mutation(api.draft.draftPause.pause, { leagueId });
 const resume = async () => (await as(COMMISSIONER)).mutation(api.draft.draftPause.resume, { leagueId });
-const letters = () => t.run(async (ctx) => (await ctx.db.query("letters").collect()).map(({ to, subject, body, readAt }) => ({ to, subject, body, read: readAt !== undefined })));
+const letters = () =>
+  t.run(async (ctx) =>
+    (await ctx.db.query("letters").collect()).map((row) => ({ to: row.to, ...letterAsRead(row, undefined), read: row.readAt !== undefined })),
+  );
 /** The letters filed since `before` of them were. */
 const lettersSince = async (before: number) => (await letters()).slice(before);
 /** The up-next emails sent, leaving out the harness's sign-in links. */

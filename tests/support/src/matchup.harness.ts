@@ -112,7 +112,13 @@ const NO_COMMENTARY: MatchupCommentary = { kind: "read", lines: [], delayed: fal
  *  commentary, scored under the first set, unless it gives some. */
 export const headToHead = (
   game: Exclude<Game, Scored> | (Omit<Scored, "commentary" | "version"> & Partial<Pick<Scored, "commentary" | "version">>),
-  { gameweek = 6, gameweeks = [5, 6, 7], deadline = null as number | null } = {},
+  {
+    gameweek = 6,
+    gameweeks = [5, 6, 7],
+    deadline = null as number | null,
+    gameNumber = 1,
+    games = [{ kind: "team", teamName: "Team 2" }] as HeadToHead["games"],
+  } = {},
 ): HeadToHead => ({
   kind: "headToHead",
   teamId: "team-Team 1" as Id<"teams">,
@@ -120,5 +126,7 @@ export const headToHead = (
   gameweeks,
   gameweek,
   deadline,
+  gameNumber,
+  games,
   game: game.kind === "scored" ? { commentary: NO_COMMENTARY, version: null, ...game } : game,
 });

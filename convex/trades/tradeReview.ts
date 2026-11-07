@@ -97,9 +97,9 @@ export async function startReview(ctx: MutationCtx, offer: Doc<"tradeOffers">, a
   const reviewer = review.kind === "veto" ? review : { kind: "vote" as const, against: [] };
   await ctx.db.patch("tradeOffers", offer._id, { review: { acceptedBy, endsAt, scheduledId, reviewer } });
   const words = await tradeWordsOf(ctx, offer);
-  await fileLetter(ctx, league, await managersOf(ctx, offer), (zone) => acceptedLetter(words, review, endsAt, zone), acceptedBy);
+  await fileLetter(ctx, league, await managersOf(ctx, offer), (tell) => acceptedLetter(words, review, endsAt, tell), acceptedBy);
   const reviewers = review.kind === "veto" ? [review.by] : await votersOn(ctx, offer);
-  await fileLetter(ctx, league, reviewers, (zone) => reviewLetter(words, review, endsAt, zone));
+  await fileLetter(ctx, league, reviewers, (tell) => reviewLetter(words, review, endsAt, tell));
 }
 
 /** The player in the trade no longer on his side's team, if one is. */

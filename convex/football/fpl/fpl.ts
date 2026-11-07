@@ -8,7 +8,7 @@ import { FPL_BOOTSTRAP_URL, FPL_FIXTURES_URL, getJson, getShaped, type Football 
 import { fplScoreRead, readEach } from "../scoreReads";
 import type { Infer } from "convex/values";
 import type { availability } from "../../schema";
-import { seasonStartYear } from "../../shared/time";
+import { JUNE, seasonStartYear } from "../../shared/time";
 
 type Availability = Infer<typeof availability>;
 
@@ -86,7 +86,7 @@ export async function readFplPayloads(): Promise<{ bootstrap: RawBootstrap; fixt
 /** Bootstrap and the season's fixtures, mapped onto the seam. */
 export async function readFpl(): Promise<Football> {
   const { bootstrap, fixtures } = await readFplPayloads();
-  return mapFpl(bootstrap, fixtures);
+  return mapFpl(bootstrap, fixtures, Date.now());
 }
 
 /** Bootstrap as FPL sent it, for what the seam leaves out: each player's join to the Premier
@@ -111,48 +111,74 @@ export async function fplPlayerCount(): Promise<number> {
   return bootstrap.elements.length;
 }
 
-/** Pure raw → seam mapping: no I/O and no clock, so the same payloads always give the same records. */
-export function mapFpl(bootstrap: RawBootstrap, fixtures: RawFixture[]): Football {
+/** Pure raw → seam mapping: no I/O and no clock, so the same payloads always give the same records.
+ *  `now` only tells an empty fixtures list between seasons from a changed payload
+ *  (`fplBetweenSeasons`); without it, an empty list is refused as ever. */
+export function mapFpl(bootstrap: RawBootstrap, fixtures: RawFixture[], now?: number): Football {
   const clubCode = clubCodes(bootstrap.teams);
   // Clubs first: an empty club list is refused by name before a player looks his club up.
+  const clubs = wholeList(
+    "club",
+    bootstrap.teams.map((team) => ({ code: team.code, name: team.name, shortName: team.short_name })),
+    (club) => club.code,
+  );
+  const players = wholeList(
+    "player",
+    bootstrap.elements.map((element) => ({
+      code: element.code,
+      name: element.web_name,
+      fullName: `${element.first_name} ${element.second_name}`.trim(),
+      clubCode: clubCode(element.team),
+      news: element.news,
+      chanceOfPlaying: element.chance_of_playing_next_round,
+      availability: availabilityOf(element),
+    })),
+    (player) => player.code,
+  );
+  const gameweeks = seasonGameweeks(bootstrap.events);
+  const betweenSeasons = fixtures.length === 0 && now !== undefined && fplBetweenSeasons(gameweeks, now);
   return {
-    clubs: wholeList(
-      "club",
-      bootstrap.teams.map((team) => ({ code: team.code, name: team.name, shortName: team.short_name })),
-      (club) => club.code,
-    ),
-    players: wholeList(
-      "player",
-      bootstrap.elements.map((element) => ({
-        code: element.code,
-        name: element.web_name,
-        fullName: `${element.first_name} ${element.second_name}`.trim(),
-        clubCode: clubCode(element.team),
-        news: element.news,
-        chanceOfPlaying: element.chance_of_playing_next_round,
-        availability: availabilityOf(element),
-      })),
-      (player) => player.code,
-    ),
-    fixtures: wholeList(
-      "match",
-      fixtures.map((fixture) => ({
-        code: fixture.code,
-        gameweek: fixture.event ?? null,
-        homeClubCode: clubCode(fixture.team_h),
-        awayClubCode: clubCode(fixture.team_a),
-        kickoff: fixture.kickoff_time ? epochMs(fixture.kickoff_time) : null,
-      })),
-      (fixture) => fixture.code,
-    ),
-    gameweeks: wholeList(
-      "gameweek",
-      bootstrap.events.map((event) => ({ number: event.id, deadline: epochMs(event.deadline_time) })),
-      (gameweek) => gameweek.number,
-    ),
+    clubs,
+    players,
+    fixtures: betweenSeasons
+      ? []
+      : wholeList(
+          "match",
+          fixtures.map((fixture) => ({
+            code: fixture.code,
+            gameweek: fixture.event ?? null,
+            homeClubCode: clubCode(fixture.team_h),
+            awayClubCode: clubCode(fixture.team_a),
+            kickoff: fixture.kickoff_time ? epochMs(fixture.kickoff_time) : null,
+          })),
+          (fixture) => fixture.code,
+        ),
+    gameweeks,
+    betweenSeasons,
     // After `fixtures`, so a list sending a match twice is refused before its scores are read.
     scores: readEach(fixtures, (fixture) => fixture.code, fplScoreRead),
   };
+}
+
+/** FPL's gameweeks, each labelled with its season (#66): the one its first deadline falls in, as
+ *  FPL sends one season's at a time. */
+function seasonGameweeks(events: RawEvent[]): Football["gameweeks"] {
+  const deadlines = wholeList(
+    "gameweek",
+    events.map((event) => ({ number: event.id, deadline: epochMs(event.deadline_time) })),
+    (gameweek) => gameweek.number,
+  );
+  const season = seasonStartYear(Math.min(...deadlines.map(({ deadline }) => deadline)));
+  return deadlines.map((gameweek) => ({ season, ...gameweek }));
+}
+
+/** Whether an empty fixtures list, at `now`, is FPL between seasons rather than a changed payload
+ *  (#66): from 1 June after the season it sends the gameweeks of, or before that season's first
+ *  deadline, while FPL has yet to publish the new season's matches. */
+export function fplBetweenSeasons(gameweeks: Football["gameweeks"], now: number): boolean {
+  const firstDeadline = Math.min(...gameweeks.map(({ deadline }) => deadline));
+  const season = seasonStartYear(firstDeadline);
+  return now < firstDeadline || now >= Date.UTC(season + 1, JUNE, 1);
 }
 
 /** Our availability from FPL's flag (spec/06, Availability): injured, suspended or unavailable is

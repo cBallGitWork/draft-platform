@@ -137,6 +137,11 @@ const leagueRows: { [Table in TableNames]?: LeagueRowsBatch<Table> } = {
       .query("lineups")
       .withIndex("by_leagueId_and_teamId_and_fromGameweek", (q) => q.eq("leagueId", leagueId))
       .take(ROWS_PER_RUN),
+  savedPlans: (ctx, leagueId) =>
+    ctx.db
+      .query("savedPlans")
+      .withIndex("by_leagueId_and_teamId_and_name", (q) => q.eq("leagueId", leagueId))
+      .take(ROWS_PER_RUN),
   deadlineStars: (ctx, leagueId) =>
     ctx.db
       .query("deadlineStars")

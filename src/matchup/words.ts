@@ -35,6 +35,11 @@ export const finalWords = "Final";
 export const matchupLinkLabel = (team: string, opponent: string | null, gameweek: number) =>
   `${team} ${versusWords} ${opponent ?? leagueAverageWords}, ${gameweekWords(gameweek)}: the matchup`;
 
+/** The switch between a team's games in a gameweek, in a league playing more than one (#521):
+ *  "Game 1 v Dave", or "Game 2 bye". */
+export const GAME_SWITCH_LABEL = "Game";
+export const gameSwitchWords = (game: number, opponent: string | null) => `${GAME_SWITCH_LABEL} ${game} ${opponent === null ? "bye" : `${versusWords} ${opponent}`}`;
+
 export const lineupLabel = (teamName: string) => `${teamName}'s lineup`;
 export { BENCH_TITLE } from "../myTeam/tactics/words";
 export const columns = {
