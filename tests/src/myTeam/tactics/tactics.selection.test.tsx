@@ -16,13 +16,13 @@ import {
   pitchTitle,
   presetLabel,
   ROLE_FIT_SUBJECT,
-  squadTableLabel,
+  selectionTableLabel,
 } from "../../../../src/myTeam/tactics/words";
 import { roleIn, rolesOfSlot } from "../../../../convex/lineup/roles";
 import { UNSURE } from "../../../../convex/stars/starsShape";
 import { noFigureWords } from "../../../../src/shared/words";
 import { noDataLabel, starsLabel, unsureGlyph, unsureLabel } from "../../../../src/ui/StarRating";
-import { nextFixtureShort, statusNotSettledLabel } from "../../../../src/myTeam/squad/words";
+import { nextFixtureShort, statusNotSettledLabel } from "../../../../src/myTeam/words";
 import { SAKA, squadOf } from "../../../support/src/squadTab.harness";
 import { FIRST_RULES } from "../../../../convex/rules/firstRules";
 import { colorToken } from "../../../support/src/colorTokens";
@@ -65,7 +65,7 @@ describe("the Selection table", () => {
 
   it("heads the bench's Role column Best role, each bench player's best role muted", async () => {
     await openedPitch();
-    expect(within(screen.getByRole("table", { name: squadTableLabel })).getByText(BEST_ROLE_HEAD)).toBeTruthy();
+    expect(within(screen.getByRole("table", { name: selectionTableLabel })).getByText(BEST_ROLE_HEAD)).toBeTruthy();
     expect(within(rowOf(WHITE)).getByText("Overlapping full-back").className).toContain("text-muted");
   });
 

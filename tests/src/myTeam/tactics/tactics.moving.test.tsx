@@ -14,7 +14,7 @@ import {
   playerCardLabel,
   pickHintWords,
   roleLabel,
-  squadTableLabel,
+  selectionTableLabel,
   startingWords,
   swapLabel,
   upLabel,
@@ -124,7 +124,7 @@ describe("moving a player", () => {
     await pickUp(RAYA);
     // Only the other keeper plays goal: White isn't lit.
     expect(screen.queryByRole("button", { name: swapLabel(RAYA.name, WHITE.name) })).toBeNull();
-    const table = screen.getByRole("table", { name: squadTableLabel });
+    const table = screen.getByRole("table", { name: selectionTableLabel });
     await userEvent.click(within(table).getByRole("button", { name: swapLabel(RAYA.name, ARRIZABALAGA.name) }));
     expect(blockOf(ARRIZABALAGA, { area: "goalkeeper", lane: "centre" })).toBeTruthy();
   });
@@ -235,7 +235,7 @@ describe("the selected player's panel (the approved Tactics picture)", () => {
 
   it("has no Move column in the table: what can be done to a player is in his panel", async () => {
     await openedPitch();
-    expect(within(screen.getByRole("table", { name: squadTableLabel })).queryByRole("button", { name: moveLabel(WHITE.name) })).toBeNull();
+    expect(within(screen.getByRole("table", { name: selectionTableLabel })).queryByRole("button", { name: moveLabel(WHITE.name) })).toBeNull();
     expect(squadRows().some((row) => row.includes("Move"))).toBe(false);
   });
 });
