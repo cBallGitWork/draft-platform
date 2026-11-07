@@ -68,7 +68,7 @@ First, though, check whether this branch changed the screen at all. A branch oft
 only through an import (a shared words file), and nothing it draws changes. Shoot the route on main
 too, from a worktree of `origin/main` on its own port, and compare the two 1440 PNGs byte for byte
 (`cmp`). If they are identical, write "<route>: unchanged from main" and list no differences: the
-ones main already has aren't this branch's, and listing them holds its merge for Craig's label
+ones main already has aren't this branch's, and listing them puts them on its record for the reskin
 (Craig, 4 Nov 2026, on #1128). If they differ at all, compare with the picture as above.
 
 **3. Read every PNG.** Then say, per image, what is in it, against `docs/design/plate.md`:

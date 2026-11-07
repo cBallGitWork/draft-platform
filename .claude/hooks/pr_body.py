@@ -46,9 +46,9 @@ COMMENT = re.compile(r"<!--.*?-->", re.S)
 # the section ends at the next heading but its own, as ui-verifier's pasted block repeats it
 NEXT_HEADING = re.compile(r"^## (?!" + re.escape(APPROVED_VS_BUILT[3:]) + ")", re.M)
 DIFFERENCE = re.compile(r"^\s*\d+\.\s+\S.*$", re.M)  # "1. Columns: …"
-# ui-verifier's kinds (.claude/agents/ui-verifier.md, step 2b) that are a look detail, not the layout: only a
-# difference of another kind (Structure, Columns, Missing, or none named) waits for Craig's label (Craig, 5 Nov
-# 2026: "Yes, layout only")
+# ui-verifier's kinds (.claude/agents/ui-verifier.md, step 2b) that are a look detail, not the layout: a
+# difference of another kind (Structure, Columns, Missing, or none named) is layout, which approval_gate.py
+# lists for the UI reskin (Craig, 7 Nov 2026)
 DETAIL_KINDS = ("Density", "Type", "Colour")
 DETAIL = re.compile(r"^\s*\d+\.\s+(" + "|".join(DETAIL_KINDS) + r")\s*:", re.I)
 
