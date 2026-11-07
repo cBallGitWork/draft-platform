@@ -13,6 +13,9 @@ export const placementShape = cellShape.extend({
   role: v.optional(v.string()),
 });
 
+/** A slot of a saved plan: its cell and the role it plays. */
+export const planSlotShape = cellShape.extend({ role: v.string() });
+
 export const lineupTables = {
   lineups: defineTable({
     leagueId: v.id("leagues"),
@@ -25,4 +28,13 @@ export const lineupTables = {
      *  squad changes (lineups.ts); absent once its manager has saved one. */
     firstLineup: v.optional(v.literal(true)),
   }).index("by_leagueId_and_teamId_and_fromGameweek", ["leagueId", "teamId", "fromGameweek"]),
+  /** Each team's saved plans (spec/05, Saved plans; #992): a formation and every slot's role, by
+   *  name, never players. lineup/savedPlans.ts writes and reads them. */
+  savedPlans: defineTable({
+    leagueId: v.id("leagues"),
+    teamId: v.id("teams"),
+    name: v.string(),
+    /** One per starter's slot, each with the role it plays (lineup/roles.ts). */
+    slots: v.array(planSlotShape),
+  }).index("by_leagueId_and_teamId_and_name", ["leagueId", "teamId", "name"]),
 };
