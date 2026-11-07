@@ -64,7 +64,7 @@ Feature 4 of [SPEC.md](../SPEC.md). Only Craig's answers.
 - The rounds are the squad maximum in the latest rules, counting a change waiting for next
   gameweek: "the squad size is what indicates the draft size" (Craig, 7 Nov 2026, on #1130,
   replacing his 4 Nov answer on #1090). The squad rules the draft starts under are that waiting
-  change's too ("ok", same day).
+  change's too ("ok", same day). `S04.1`
 - "Picks follow the squad rules the draft started under" (Craig, 4 Nov 2026, on #1090).
 - "The commissioner's assign, move and release are refused while the draft is live" (Craig, 4 Nov
   2026, on #1090).

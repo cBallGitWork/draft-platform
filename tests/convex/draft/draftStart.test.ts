@@ -137,7 +137,7 @@ describe("pressing start", () => {
     expect(await status()).toBe("waiting");
   });
 
-  test("takes its rounds and its squad rules from a change waiting for the next gameweek, as the waiting draft shows them (#1130)", async () => {
+  test("takes its rounds and its squad rules from a change waiting for the next gameweek, as the waiting draft shows them (#1130, S04.1)", async () => {
     await holdGameweeks(t, { next: 5 });
     const waiting = { ...HELD_FIRST_RULES.squad, size: { minimum: 11, maximum: ROUNDS - 1 } };
     expect(await changeRules(t, leagueId, rulesWith({ squad: waiting }))).toBe(5);

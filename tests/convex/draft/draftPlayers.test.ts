@@ -127,7 +127,7 @@ describe("the draft room's figures", () => {
     expect((await figuresOf(ANN)).maxPerClub).toBe(1);
   });
 
-  test("before the start, give the club maximum of a change waiting for the next gameweek, which the draft would start under (#1130)", async () => {
+  test("before the start, give the club maximum of a change waiting for the next gameweek, which the draft would start under (#1130, S04.1)", async () => {
     await holdGameweeks(t, { next: 5 });
     expect(HELD_FIRST_RULES.squad.maxPerClub).not.toBe(1);
     expect(await changeRules(t, leagueId, rulesWith({ squad: { ...HELD_FIRST_RULES.squad, maxPerClub: 1 } }))).toBe(5);
