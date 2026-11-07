@@ -137,13 +137,16 @@ describe("pressing start", () => {
     expect(await status()).toBe("waiting");
   });
 
-  test("takes its rounds from the squad maximum in force, not a change waiting for the next gameweek, as the waiting draft shows them", async () => {
+  test("takes its rounds and its squad rules from a change waiting for the next gameweek, as the waiting draft shows them (#1130)", async () => {
     await holdGameweeks(t, { next: 5 });
-    expect(await changeRules(t, leagueId, rulesWith({ squad: { ...HELD_FIRST_RULES.squad, size: { minimum: 11, maximum: ROUNDS - 1 } } }))).toBe(5);
-    expect(await read()).toMatchObject({ status: "waiting", rounds: ROUNDS });
+    const waiting = { ...HELD_FIRST_RULES.squad, size: { minimum: 11, maximum: ROUNDS - 1 } };
+    expect(await changeRules(t, leagueId, rulesWith({ squad: waiting }))).toBe(5);
+    expect(await read()).toMatchObject({ status: "waiting", rounds: ROUNDS - 1 });
     await start();
 
-    expect(await read()).toMatchObject({ status: "live", rounds: ROUNDS });
+    expect(await read()).toMatchObject({ status: "live", rounds: ROUNDS - 1 });
+    const started = await t.run(async (ctx) => (await ctx.db.query("drafts").withIndex("by_leagueId", (q) => q.eq("leagueId", leagueId)).unique())!.started);
+    expect(started?.squad).toEqual(waiting);
   });
 
   test("is refused to a manager", async () => {

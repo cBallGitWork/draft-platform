@@ -4,7 +4,7 @@ import type { Id } from "../../../convex/_generated/dataModel";
 import type { LeagueRules } from "../../../convex/rules/leagueRulesShape";
 import { refusals } from "../../../convex/shared/leagueAccess";
 import { ARSENAL, CHELSEA, insertClubs, insertPlayers, type HeldPlayer } from "../../support/convex/footballRows.harness";
-import { NO_AREA_MINIMUMS } from "../../support/convex/leagueRules.harness";
+import { changeRules, HELD_FIRST_RULES, holdGameweeks, NO_AREA_MINIMUMS, rulesWith } from "../../support/convex/leagueRules.harness";
 import { expectRefused } from "../../support/convex/test.harness";
 import { actingAs, addManagers, adminCreatesLeague, COMMISSIONER, MANAGERS, OUTSIDER, type TestConvex } from "../../support/convex/leagues.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
@@ -124,6 +124,14 @@ describe("the draft room's figures", () => {
     expect((await figuresOf(ANN)).maxPerClub).toBe(1);
     await start();
     await setSquadRules({ maxPerClub: 2 });
+    expect((await figuresOf(ANN)).maxPerClub).toBe(1);
+  });
+
+  test("before the start, give the club maximum of a change waiting for the next gameweek, which the draft would start under (#1130)", async () => {
+    await holdGameweeks(t, { next: 5 });
+    expect(HELD_FIRST_RULES.squad.maxPerClub).not.toBe(1);
+    expect(await changeRules(t, leagueId, rulesWith({ squad: { ...HELD_FIRST_RULES.squad, maxPerClub: 1 } }))).toBe(5);
+
     expect((await figuresOf(ANN)).maxPerClub).toBe(1);
   });
 
