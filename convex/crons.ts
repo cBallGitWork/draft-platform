@@ -1,12 +1,14 @@
 import { cronJobs } from "convex/server";
 import { internal } from "./_generated/api";
 import { CRON_TRIGGER } from "./heartbeats/heartbeat";
+import { LEAD_WAKE_CRON } from "./heartbeats/leadWake";
 import { FEED_SCHEDULES } from "./shared/feedSchedule";
 import { DAILY_RUN_UTC_HOURS } from "./positions/positionsSync";
 import { PRUNE_EVERY } from "./shared/syncRuns";
 import { WAIVER_CHECK_EVERY } from "./waivers/waiverRun";
 
-// The six timed jobs, the same on the live site and on development (spec/20, "Timed jobs").
+// The six timed jobs, the same on the live site and on development (spec/20, "Timed jobs"), and the build
+// pipeline's wake-up for the lead, the last below.
 const crons = cronJobs();
 /** A sync's argument when its cron starts it, so its run row says so. */
 const BY_CRON = { trigger: CRON_TRIGGER } as const;
@@ -30,5 +32,9 @@ crons.cron("positions sync", `0 ${DAILY_RUN_UTC_HOURS.join(",")} * * *`, interna
 
 // Clearing old run logs (#146, admin/runLogs.ts), then old sign-in asks (signInLinks.ts).
 crons.interval("prune run logs", PRUNE_EVERY, internal.admin.runLogs.prune, {});
+
+// Not one of spec/20's jobs but the build pipeline's: wakes the lead every half hour, since GitHub's
+// schedule drops its passes (heartbeats/leadWake.ts). Only where its token is set, the live site.
+crons.cron("wake the lead", LEAD_WAKE_CRON, internal.heartbeats.leadWake.wake, {});
 
 export default crons;
