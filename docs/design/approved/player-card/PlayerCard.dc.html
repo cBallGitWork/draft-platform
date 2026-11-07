@@ -1,0 +1,224 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Player card, Palmer, another team's, scouted</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo+Narrow:wght@400;600;700&family=Archivo:wdth,wght@125,800&display=swap">
+<style>
+body{margin:0;background:#1b1916}
+a{color:#ffffff;text-decoration:none}a:hover{text-decoration:underline;text-decoration-color:#6bfdfa}
+button{font-family:inherit;border-radius:0;cursor:pointer}
+button:focus-visible,a:focus-visible{outline:2px solid #6bfdfa;outline-offset:2px}
+.disp{font-family:'Archivo','Archivo Narrow',sans-serif;font-weight:800;font-stretch:125%}
+.plate{height:32px;background:#2a1f86;box-shadow:inset 0 2px 0 #6a5fe0,inset 0 -2px 0 #110a4a;display:flex;align-items:center;justify-content:space-between;gap:8px;padding:0 12px}
+.plate h2{margin:0;font-size:15px;line-height:20px;font-weight:700}
+.panel{background:rgba(40,34,29,0.9)}
+.head{height:24px;display:flex;align-items:center;padding:0 12px;background:#b9bcc4;color:#111214;font-weight:600}
+.chip{display:inline-block;min-width:30px;padding:0 3px;box-sizing:border-box;text-align:center;font-size:11px;line-height:18px;font-weight:700}
+.sec{height:32px;padding:0 12px;background:#2a1f86;color:#ffffff;border:1px solid #caced4;font-size:13px;display:inline-flex;align-items:center;gap:6px}
+@media (hover: hover){.sec:hover{background:#3529a8;border-color:#ffffff}}
+.tb td{height:28px;padding:0 8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tb th{height:24px;padding:0 8px;text-align:left;font-weight:600;color:#111214;background:#b9bcc4;white-space:nowrap}
+.key{height:28px;min-width:48px;padding:0 10px;border:0;border-right:1px solid #110a4a;font-size:13px;background:#2a1f86;color:#caced4;box-shadow:inset 0 2px 0 #6a5fe0,inset 0 -2px 0 #110a4a}
+.key[aria-checked="true"]{background:#111214;color:#ffffff;font-weight:600;box-shadow:inset 0 2px 0 #110a4a,inset 0 -2px 0 #6a5fe0}
+.muted{color:#a1a5ab}
+.fig{color:#ffe600;font-weight:700}
+</style>
+</helmet>
+<div style="min-height: 900px; background-color: #1b1916; background-image: radial-gradient(ellipse 90% 60% at 50% 0%, rgba(70, 96, 84, 0.22), rgba(70, 96, 84, 0) 70%); font-family: 'Archivo Narrow', 'Arial Narrow', sans-serif; font-size: 13px; line-height: 20px; color: #ffffff; font-variant-numeric: tabular-nums">
+
+<header style="background: #173a94; box-shadow: inset 0 2px 0 #4a6cc8, inset 0 -2px 0 #001a5e; display: flex; flex-wrap: wrap; align-items: stretch; min-height: 44px; padding: 0 16px">
+  <div class="disp" style="display: flex; align-items: center; font-size: 15px; padding-right: 16px">Fantasy Draft Manager</div>
+  <button style="display: flex; align-items: center; gap: 8px; background: none; border: 0; border-left: 1px solid #001a5e; border-right: 1px solid #001a5e; color: #ffffff; font-size: 13px; padding: 0 12px">
+    <span style="font-weight: 600">Tim Hortons Pro League</span>
+    <svg width="10" height="6" viewBox="0 0 10 6" aria-hidden="true"><path d="M0 0 L10 0 L5 6 Z" fill="#ffffff"></path></svg>
+  </button>
+  <nav aria-label="Main" style="display: flex; align-items: stretch">
+    <sc-for list="{{ menu }}" as="m" hint-placeholder-count="10">
+      <a href="#" style="display: flex; align-items: center; gap: 6px; padding: 0 12px; color: {{m.ink}}; font-weight: {{m.weight}}; border-right: 1px solid #001a5e; font-size: 15px; box-shadow: {{m.edge}}">{{m.name}}<sc-if value="{{ m.count }}" hint-placeholder-val="{{ false }}"><span style="background: #ff9b3d; color: #111214; font-size: 13px; font-weight: 700; padding: 0 5px; line-height: 18px">{{m.count}}</span></sc-if></a>
+    </sc-for>
+  </nav>
+  <div style="margin-left: auto; display: flex; align-items: center; gap: 12px">
+    <button aria-label="Continue: 3 unread letters" style="height: 32px; padding: 0 16px; background: #ffffff; color: #111214; border: 0; box-shadow: inset 0 2px 0 #ffffff, inset 0 -2px 0 #b9bcc4; font-size: 15px; font-weight: 600">Continue</button>
+    <button style="background: none; border: 0; color: #ffffff; font-size: 13px">Sign out</button>
+  </div>
+</header>
+
+<main style="max-width: 1440px; margin: 0 auto; padding: 8px 16px 16px; box-sizing: border-box; display: flex; flex-direction: column; gap: 8px">
+
+  <!-- Title plate: who he is, whose he is, and what you can do with him -->
+  <div style="background: #2a1f86; box-shadow: inset 0 2px 0 #6a5fe0, inset 0 -2px 0 #110a4a; display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; padding: 8px 12px 8px 16px; min-height: 52px; box-sizing: border-box">
+    <a href="#" style="display: flex; align-items: center; gap: 6px; color: #caced4"><svg width="6" height="10" viewBox="0 0 6 10" aria-hidden="true"><path d="M6 0 L0 5 L6 10 Z" fill="#caced4"></path></svg>Back</a>
+    <span role="img" aria-label="Portrait: not held yet" title="His portrait: the source is Craig's call" style="width: 60px; height: 72px; margin: -4px 0; box-sizing: border-box; border: 1px solid #a1a5ab; background: #111214"></span>
+    <svg role="img" aria-label="Chelsea shirt, number 10" width="34" height="34" viewBox="0 0 34 34"><path d="M10 3 L14 3 Q17 7 20 3 L24 3 L33 9 L29 16 L26 14 L26 32 L8 32 L8 14 L5 16 L1 9 Z" fill="#034694" stroke="#ffffff" stroke-width="1"></path><text x="17" y="24" text-anchor="middle" font-family="Archivo Narrow, sans-serif" font-size="11" font-weight="700" fill="#ffffff">10</text></svg>
+    <h1 class="disp" style="margin: 0; font-size: 26px; line-height: 32px">Cole Palmer</h1>
+    <span class="chip" style="min-width: 0; padding: 0 6px; background: #ff9b3d; color: #111214">Doubt</span>
+    <span style="display: flex; gap: 2px"><span class="chip" style="background: #9a3db8; color: #ffffff">CAM</span><span class="chip" style="background: #9a3db8; color: #ffffff">W</span></span>
+    <span style="display: flex; align-items: center; gap: 6px"><span role="img" aria-label="Chelsea" style="width: 12px; height: 12px; background: linear-gradient(135deg, #034694 50%, #ffffff 50%)"></span>Chelsea</span>
+    <span style="display: flex; align-items: center; gap: 6px; padding-left: 16px; border-left: 1px solid #110a4a"><span style="color: #caced4">Owned by</span><a href="#" style="font-weight: 600">Kroos Control</a></span>
+    <div style="margin-left: auto; display: flex; flex-wrap: wrap; align-items: center; gap: 8px">
+      <button class="sec">Add to shortlist</button>
+      <button class="sec">Send a scout<span style="color: #caced4">2 of 3 free</span></button>
+      <button class="sec">Offer a trade</button>
+    </div>
+  </div>
+
+  <div style="display: flex; flex-wrap: wrap; align-items: flex-start; gap: 8px">
+
+    <!-- Left: the player, his news, his roles -->
+    <div style="flex: 0 0 300px; max-width: 100%; display: flex; flex-direction: column; gap: 8px">
+      <section class="panel" aria-labelledby="pc-news">
+        <div class="plate"><h2 id="pc-news">News</h2></div>
+        <div style="display: flex; align-items: center; gap: 8px; padding: 8px 12px; border-bottom: 1px solid #111214">
+          <span class="chip" style="min-width: 0; padding: 0 6px; background: #ff9b3d; color: #111214">Doubt</span>
+          <span>Knock, 75% chance of playing</span>
+        </div>
+        <sc-for list="{{ news }}" as="n" hint-placeholder-count="3">
+          <div style="padding: 6px 12px; border-bottom: 1px solid #111214">
+            <div>{{n.text}}</div>
+            <div style="display: flex; gap: 8px"><span class="muted">{{n.date}}</span><a href="#" style="color: #caced4">{{n.source}}</a></div>
+          </div>
+        </sc-for>
+      </section>
+
+      <section class="panel" aria-labelledby="pc-roles">
+        <div class="plate"><h2 id="pc-roles">Role fit</h2></div>
+        <sc-for list="{{ roles }}" as="r" hint-placeholder-count="12">
+          <div style="height: 28px; display: flex; align-items: center; gap: 8px; padding: 0 12px; border-bottom: 1px solid #111214">
+            <span class="chip" style="background: #9a3db8; color: #ffffff">{{r.pos}}</span>
+            <span style="flex: 1 1 auto">{{r.name}}</span>
+            <span role="img" aria-label="{{r.label}}" style="display: flex; gap: 1px"><sc-for list="{{ r.stars }}" as="s" hint-placeholder-count="5"><svg width="11" height="11" viewBox="0 0 10 10" aria-hidden="true"><path d="M5 0.6 L6.3 3.6 L9.6 3.8 L7 5.9 L7.9 9.2 L5 7.4 L2.1 9.2 L3 5.9 L0.4 3.8 L3.7 3.6 Z" style="fill: {{s.fill}}; stroke: {{s.stroke}}; stroke-width: 0.8"></path></svg></sc-for></span>
+          </div>
+        </sc-for>
+      </section>
+
+    </div>
+
+    <!-- Centre: this season, one row a match, at his base points -->
+    <div style="flex: 1 1 520px; min-width: 0; display: flex; flex-direction: column; gap: 8px">
+    <section class="panel" aria-labelledby="pc-season">
+      <div class="plate" style="height: 36px">
+        <span style="display: flex; align-items: center; gap: 12px"><h2 id="pc-season">This season</h2>
+        <span role="radiogroup" aria-label="Price his matches at" style="display: flex">
+          <button class="key" role="radio" aria-checked="true">CAM</button>
+          <button class="key" role="radio" aria-checked="false" style="border-right: 0">W</button>
+        </span></span>
+      </div>
+      <table class="tb" aria-label="Palmer's matches this season, newest first: his stats in each scoring category and his base points as an attacking midfielder" style="width: 100%; border-collapse: collapse; table-layout: fixed">
+        <colgroup><col style="width: 40px"><col style="width: 76px"><col style="width: 48px"><col style="width: 44px"><sc-for list="{{ cols }}" as="c" hint-placeholder-count="10"><col style="width: 34px"></sc-for><col></colgroup>
+        <thead><tr><th style="text-align: right">GW</th><th>Opp</th><th>Score</th><th style="text-align: right" title="Minutes">Min</th><sc-for list="{{ cols }}" as="c" hint-placeholder-count="10"><th style="text-align: right" title="{{c.name}}">{{c.code}}</th></sc-for><th style="text-align: right">Pts</th></tr></thead>
+        <tbody>
+          <sc-for list="{{ matches }}" as="m" hint-placeholder-count="9">
+            <tr aria-selected="{{m.selected}}" style="border-bottom: 1px solid #111214; background: {{m.bg}}; box-shadow: {{m.edge}}">
+              <td style="text-align: right">{{m.gw}}</td>
+              <td>{{m.opp}}</td>
+              <td>{{m.score}}</td>
+              <td style="text-align: right">{{m.min}}</td>
+              <sc-for list="{{ m.stats }}" as="v" hint-placeholder-count="10"><td style="text-align: right; color: {{v.ink}}">{{v.n}}</td></sc-for>
+              <td style="text-align: right" title="{{m.title}}"><span style="color: {{m.noteInk}}; font-weight: 600; margin-right: 8px">{{m.note}}</span><span class="fig">{{m.pts}}</span></td>
+            </tr>
+          </sc-for>
+        </tbody>
+      </table>
+      <div style="display: flex; align-items: center; gap: 8px; padding: 8px 12px; border-top: 1px solid #111214">
+        <span class="muted">Last season, under today's scoring</span>
+        <span>2025/26: 36 matches, 3,012 min,</span><span class="fig">231</span><span>pts</span>
+      </div>
+    </section>
+    <section class="panel" aria-labelledby="pc-fix">
+        <div class="plate"><h2 id="pc-fix">Chelsea's next fixtures</h2></div>
+        <div style="display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 2px; padding: 8px 12px">
+          <sc-for list="{{ fixtures }}" as="f" hint-placeholder-count="5">
+            <div style="display: flex; flex-direction: column; gap: 2px">
+              <span class="muted">GW{{f.gw}}</span>
+              <span role="img" aria-label="{{f.label}}" title="{{f.label}}" style="height: 28px; background: {{f.bg}}; color: {{f.ink}}; font-weight: 600; text-align: center; line-height: 28px">{{f.opp}}</span>
+              <span class="muted">{{f.when}}</span>
+            </div>
+          </sc-for>
+        </div>
+      </section>
+      <section class="panel" aria-labelledby="pc-hints">
+        <div class="plate"><h2 id="pc-hints">Captain and set pieces</h2></div>
+        <div style="display: grid; grid-template-columns: 96px minmax(0, 1fr); row-gap: 8px; column-gap: 8px; padding: 8px 12px">
+          <span class="muted">Club captain</span><span role="img" aria-label="Club captain: not known yet" title="Club captain: not known yet (spec/17, after the mini beta)" style="display: block; width: 72px; height: 20px; box-sizing: border-box; border: 1px solid #a1a5ab"></span>
+          <span class="muted">Set pieces</span><span role="img" aria-label="Set-piece duties: not known yet" title="Set-piece duties: not known yet (spec/17, after the mini beta)" style="display: block; width: 200px; height: 20px; box-sizing: border-box; border: 1px solid #a1a5ab"></span>
+        </div>
+      </section>
+    </div>
+
+    <!-- Right: the selected match's breakdown, and his club's fixtures -->
+    <div style="flex: 0 0 340px; max-width: 100%; display: flex; flex-direction: column; gap: 8px">
+      <aside class="panel" aria-labelledby="pc-match">
+        <div class="plate"><h2 id="pc-match">GW8, LIV (A) 2–1</h2><span class="fig" style="font-size: 15px">10</span></div>
+        <sc-for list="{{ breakdown }}" as="b" hint-placeholder-count="5">
+          <div style="display: flex; align-items: baseline; gap: 8px; padding: 4px 12px; border-bottom: 1px solid #111214">
+            <span style="flex: 1 1 auto">{{b.cat}} <span class="muted">{{b.why}}</span></span>
+            <span class="fig">{{b.pts}}</span>
+          </div>
+        </sc-for>
+        <div style="padding: 6px 12px; border-bottom: 1px solid #111214" class="muted">Scored under scoring set 26_27.2</div>
+        <div style="padding: 6px 12px">
+          <div style="display: flex; align-items: baseline; gap: 8px"><span style="flex: 1 1 auto; font-weight: 600">Number 10, for Kroos Control</span><span class="fig">+1</span></div>
+          <div style="display: flex; gap: 8px"><span class="fig" style="width: 24px">+2</span><span class="muted">1 big chance created, 2 key passes</span></div>
+          <div style="display: flex; gap: 8px"><span class="fig" style="width: 24px">−1</span><span class="muted">1 big chance missed</span></div>
+          <div class="muted">His role's line, not in his base points.</div>
+        </div>
+      </aside>
+
+      <section class="panel" aria-labelledby="pc-report">
+        <div class="plate"><h2 id="pc-report">Scout report</h2><span style="color: #caced4">5 Nov</span></div>
+        <p style="margin: 0; padding: 8px 12px">A strong fit for a 4-2-3-1 that plays him as a Number 10: he creates two big chances a match there and the scoring pays for both. His form is rising, with returns in four of his last five. He starts every match he is fit for, but the knock makes GW9 a doubt. Fixtures soften after Manchester City.</p>
+        <div style="padding: 0 12px 8px"><a href="#" style="color: #caced4">Older report, 12 Oct</a></div>
+      </section>
+    </div>
+  </div>
+</main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":900}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const MENU = ['Home', 'My team', 'Draft', 'Matchup', 'Table', 'Scouting', 'Trades', 'Premier League', 'Mail'];
+    const menu = MENU.map((name) => ({ name, ink: name === 'Scouting' ? '#ffffff' : '#caced4', weight: name === 'Scouting' ? 600 : 400, edge: name === 'Scouting' ? 'inset 0 -3px 0 #6bfdfa' : 'none', count: name === 'Mail' ? 3 : false }));
+    const star = (n) => [0, 1, 2, 3, 4].map((i) => n >= i + 1 ? { fill: '#ffe600', stroke: '#ffe600' } : { fill: 'none', stroke: '#a1a5ab' });
+    const stars = (n) => star(Math.round(n));
+    const rate = (pos, list) => list.map(([name, n]) => ({ pos, name, stars: stars(n), label: name + ': role fit ' + n + ' of 5' }));
+    const roles = rate('CAM', [['Number 10', 5], ['Shadow striker', 4], ['Maverick', 4], ['Carrier', 3], ['Pressing 10', 2]]).concat(rate('W', [['Touchline winger', 2], ['Dribbler', 3], ['Inside forward', 4], ['Wide playmaker', 4], ['Wide forward', 3], ['Pressing winger', 2], ['Tracking winger', 1]]));
+    const news = [
+      { text: 'Maresca says Palmer felt his thigh in training and will be assessed before Sunday.', date: '6 Nov', source: 'BBC Sport' },
+      { text: 'Palmer scored and set up the winner in the 2–1 win at Anfield.', date: '2 Nov', source: 'The Guardian' },
+      { text: 'Named in the England squad for the November internationals.', date: '30 Oct', source: 'Sky Sports' }
+    ];
+    const cols = [['G', 'Goals scored'], ['A', 'Assists'], ['CS', 'Clean sheets'], ['GC', 'Goals conceded'], ['S', 'Saves'], ['PS', 'Penalties saved'], ['PM', 'Penalties missed'], ['YC', 'Yellow cards'], ['RC', 'Red cards'], ['OG', 'Own goals']].map(([code, name]) => ({ code, name }));
+    // gw, opponent, score, min, [G A CS GC S PS PM YC RC OG], note, pts, note colour
+    const M = [
+      [9, 'MCI (H)', '0–0', '58', [0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 'Live', '1', '#ffffff'],
+      [8, 'LIV (A)', '2–1', '90', [1, 1, 0, 1, 0, 0, 0, 0, 0, 0], '', '10', ''],
+      [7, 'BOU (H)', '3–0', '81', [2, 0, 1, 0, 0, 0, 0, 0, 0, 0], '', '13', ''],
+      [6, 'NEW (A)', '1–1', '90', [0, 0, 0, 1, 0, 0, 0, 0, 0, 0], '', '2', ''],
+      [5, 'BRE (H)', '2–2', '90', [1, 0, 0, 2, 0, 0, 0, 0, 0, 0], 'Overridden, was 7', '9', '#ff9b3d'],
+      [4, 'EVE (A)', '1–0', '74', [0, 1, 1, 0, 0, 0, 0, 0, 0, 0], '', '6', ''],
+      [3, 'FUL (H)', '4–1', '90', [2, 1, 0, 1, 0, 0, 0, 0, 0, 0], '', '15', ''],
+      [2, 'WHU (A)', '0–1', '90', [0, 0, 0, 1, 0, 0, 0, 0, 0, 0], '', '2', ''],
+      [1, 'TOT (H)', '1–1', '0', [0, 0, 0, 0, 0, 0, 0, 0, 0, 0], '', '0', '']
+    ];
+    const matches = M.map(([gw, opp, score, min, st, note, pts, noteInk]) => ({ gw, opp, score, min, note, pts, stats: st.map((n) => ({ n, ink: n ? '#ffffff' : '#a1a5ab' })), noteInk: noteInk || '#ffffff', title: note.startsWith('Overridden') ? 'Overridden by the commissioner: the feed gave his assist to Jackson' : '', selected: gw === 8 ? 'true' : 'false', bg: gw === 8 ? 'rgba(255, 255, 255, 0.07)' : 'transparent', edge: gw === 8 ? 'inset 3px 0 0 #6bfdfa' : 'none' }));
+    const breakdown = [
+      { cat: 'Minutes', why: '90, 2 for 60 or more', pts: '2' },
+      { cat: 'Goals scored', why: '1 at 5 each for an attacking midfielder', pts: '5' },
+      { cat: 'Assists', why: '1 at 3 each', pts: '3' }
+    ];
+    const DIFF = [null, ['#57e08a', '#04130a', 'very easy'], ['#93b83a', '#0c1a06', 'easy'], ['#8a90a0', '#08090b', 'average'], ['#c9304f', '#ffffff', 'hard'], ['#8c1236', '#ffffff', 'very hard']];
+    const F = [[10, 'ARS', 'A', 5, 'Sat 14 Nov, 17:30'], [11, 'SUN', 'H', 2, 'Sat 21 Nov, 15:00'], [12, 'AVL', 'A', 4, 'Sun 29 Nov, 14:00'], [13, 'IPS', 'H', 1, 'Wed 2 Dec, 19:30'], [14, 'COV', 'H', 1, 'Sat 5 Dec, 15:00']];
+    const fixtures = F.map(([gw, opp, side, d, when]) => ({ gw, when, opp: opp + ' (' + side + ')', bg: DIFF[d][0], ink: DIFF[d][1], label: 'GW' + gw + ': ' + opp + ', ' + (side === 'H' ? 'home' : 'away') + ', difficulty ' + d + ' of 5, ' + DIFF[d][2] }));
+    return { menu, news, roles, cols, matches, breakdown, fixtures };
+  }
+}
+</script>
+</body>
+</html>
