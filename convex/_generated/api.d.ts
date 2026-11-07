@@ -79,6 +79,7 @@ import type * as gameweeks_passedDeadlines from "../gameweeks/passedDeadlines.js
 import type * as gameweeks_scoringStart from "../gameweeks/scoringStart.js";
 import type * as gameweeks_usedGameweeks from "../gameweeks/usedGameweeks.js";
 import type * as heartbeats_heartbeat from "../heartbeats/heartbeat.js";
+import type * as heartbeats_leadWake from "../heartbeats/leadWake.js";
 import type * as home_glance from "../home/glance.js";
 import type * as home_leagueHome from "../home/leagueHome.js";
 import type * as home_matchday from "../home/matchday.js";
@@ -363,6 +364,7 @@ declare const fullApi: ApiFromModules<{
   "gameweeks/scoringStart": typeof gameweeks_scoringStart;
   "gameweeks/usedGameweeks": typeof gameweeks_usedGameweeks;
   "heartbeats/heartbeat": typeof heartbeats_heartbeat;
+  "heartbeats/leadWake": typeof heartbeats_leadWake;
   "home/glance": typeof home_glance;
   "home/leagueHome": typeof home_leagueHome;
   "home/matchday": typeof home_matchday;

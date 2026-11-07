@@ -6,8 +6,9 @@ import crons from "../../convex/crons";
 // live tick points stand still during matches; without late stats a match still unsettled when
 // the live window ends is never read again; without waiver runs no claim is ever made (spec/08,
 // #1198); without the positions sync a player's positions and stars stand still (#1194); without
-// the clean-up the run logs grow for ever.
-test("exactly six timed jobs run: football every six hours, live stats every minute, late stats every 10 minutes, waiver runs every 5 minutes, positions daily at 06:00 UK, clean-up daily", () => {
+// the clean-up the run logs grow for ever. The seventh is the build pipeline's, not spec/20's: the
+// lead's wake-up, which does nothing where its token isn't set (heartbeats/leadWake.ts).
+test("exactly seven timed jobs run: football every six hours, live stats every minute, late stats every 10 minutes, waiver runs every 5 minutes, positions daily at 06:00 UK, clean-up daily, and the lead's wake-up every half hour", () => {
   expect(crons.crons).toEqual({
     // 05:00 and 06:00 UTC, and only the one at 06:00 UK runs it (positionsSync.daily).
     "positions sync": { name: "positions/positionsSync:daily", args: [{}], schedule: { type: "cron", cron: "0 5,6 * * *" } },
@@ -16,5 +17,6 @@ test("exactly six timed jobs run: football every six hours, live stats every min
     "late stats": { name: "stats/matchStatsSync:run", args: [{ trigger: "cron" }], schedule: { type: "interval", minutes: 10 } },
     "waiver runs": { name: "waivers/waiverRun:runDue", args: [{}], schedule: { type: "interval", minutes: 5 } },
     "prune run logs": { name: "admin/runLogs:prune", args: [{}], schedule: { type: "interval", hours: 24 } },
+    "wake the lead": { name: "heartbeats/leadWake:wake", args: [{}], schedule: { type: "cron", cron: "19,49 * * * *" } },
   });
 });
