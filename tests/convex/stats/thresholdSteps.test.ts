@@ -198,10 +198,12 @@ test("under the roles' first values, a double gameweek's busy matches stay far u
   expect(DOUBLE_GAMEWEEK_MATCHES * busiest(WITH_FIRST_ROLES) * STEP_BYTES).toBeLessThan(CONVEX_BYTES_READ / 2);
 });
 
+/** Hull v Everton's merged records, Hull's scorer having played `minutes`. */
+const at = (minutes: number) =>
+  mergedHullEverton().map((record) => (record.playerCode === HULL_SCORER ? { ...record, stats: { ...record.stats, minutes } } : record));
+
 test("each live read stores the steps its records show over the last, with the clock then", async () => {
   const league = await scoresLeague();
-  const records = mergedHullEverton();
-  const at = (minutes: number) => records.map((record) => (record.playerCode === HULL_SCORER ? { ...record, stats: { ...record.stats, minutes } } : record));
 
   await liveRecords(league, at(30), 30);
   await liveRecords(league, at(30), 31);
@@ -215,8 +217,6 @@ test("each live read stores the steps its records show over the last, with the c
 
 test("a read's steps are stored in one row, and a read that showed none stores no row", async () => {
   const league = await scoresLeague();
-  const records = mergedHullEverton();
-  const at = (minutes: number) => records.map((record) => (record.playerCode === HULL_SCORER ? { ...record, stats: { ...record.stats, minutes } } : record));
 
   await liveRecords(league, at(30), 30);
   const first = await league.t.run((ctx) => ctx.db.query("thresholdStepReads").collect());
