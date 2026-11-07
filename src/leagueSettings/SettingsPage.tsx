@@ -56,7 +56,8 @@ const ODD_TEAM_OUT_CHOICE = "odd-team-out";
 /** League settings (Craig, 22 Oct 2026), for a league's commissioners and the admin: the rules
  *  that build the league, apart from players' points, saved from the next gameweek with a letter
  *  to the league: the round robin's two (spec/09), the squad's make-up (spec/03; #341), how
- *  the draft runs (spec/04; #1087) and how trades run (spec/08; #383), with the commissioner's draft order, which saves at once. */
+ *  the draft runs (spec/04; #1087) and how trades run (spec/08; #383), with the commissioner's
+ *  draft order, which saves at once. */
 export function SettingsPage({ league, seam }: { league: LeagueSummary; seam: LeagueSettingsSeam }) {
   const view = seam.useSettings(league.leagueId);
   return (
