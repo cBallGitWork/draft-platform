@@ -57,8 +57,14 @@ permissions:
   pull-requests: write  # labelling a pull request (FIXED_LABEL, RESUMED_LABEL) needs it: issues: write alone got 403 on 5 Nov 2026
   contents: read
 
+# One pass at a time. GitHub keeps one pass waiting in a group and drops the one it replaces, so an event the job's
+# `if` drops (a skipped build, any other label) runs in a group of its own: in the lead's group it replaced the real
+# pass waiting behind a running one and then skipped, and on 7 Nov 2026 the builders sat idle from 10:42 to 15:23.
 concurrency:
-  group: lead
+  group: >-
+    ${{ ((github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'skipped')
+         || (github.event_name == 'issues' && !contains(fromJSON('["next","lane:auto","rules:clear"]'), github.event.label.name)))
+        && format('lead-dropped-{0}', github.run_id) || 'lead' }}
   cancel-in-progress: false
 
 env:
@@ -278,8 +284,11 @@ jobs:
         env:
           PING_URL: ${{ secrets.HEALTHCHECKS_PING_URL }}
         run: |
-          [ -n "$PING_URL" ] || { echo "::warning::No HEALTHCHECKS_PING_URL secret: no heartbeat."; exit 0; }
-          ping() { curl -fsS -m 10 --retry 2 -o /dev/null "$PING_URL/$1?create=1" || echo "::warning::The $1 ping didn't reach Healthchecks."; }
+          # a heartbeat that can't beat fails the pass, so it shows red rather than as a warning nobody reads
+          [ -n "$PING_URL" ] || { echo "::error::No HEALTHCHECKS_PING_URL secret: nothing tells Craig when the lead stops."; exit 1; }
+          failed=0
+          ping() { curl -fsS -m 10 --retry 2 -o /dev/null "$PING_URL/$1?create=1" || { echo "::error::The $1 ping didn't reach Healthchecks."; failed=1; }; }
           ping "$PASS_CHECK"
           since=$(date -u -d '24 hours ago' +%FT%TZ)
           [ -n "$(gh pr list --state merged --search "merged:>=$since" --limit 1 --json number --jq '.[].number')" ] && ping "$MERGE_CHECK" || true
+          exit "$failed"
