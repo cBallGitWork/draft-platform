@@ -1,6 +1,6 @@
 // The matchup's game switch (#521; Craig, 6 Nov 2026): in a league playing two or more
 // head-to-heads a gameweek, the team's games show one at a time, a switch under the score naming
-// each ("Game 1 v Team 2"), the one shown current and each other a link to its own matchup.
+// each ("Game 1 v Team 2"), the one shown current and each other a link to its own matchup. S10.2
 
 import { screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";

@@ -4,7 +4,7 @@ import { ANN, ANNS_TEAM, BOBS_TEAM, GAMEWEEK, matchupAs, scoresLeague, type Scor
 // A league playing two head-to-heads a gameweek (#521; Craig, 6 Nov 2026): the matchup shows one
 // game at a time, the first as drawn unless the address names another, with every game of the
 // gameweek listed for the switch; the stepper still steps gameweek by gameweek; one lineup and one
-// score for the gameweek, the same in each game.
+// score for the gameweek, the same in each game. S10.2
 
 /** Cat's team, as the league names a third team. */
 const CATS_TEAM = "Team 3";
