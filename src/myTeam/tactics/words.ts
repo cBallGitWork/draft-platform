@@ -110,7 +110,7 @@ export const rolesHead = (slot: string) => `Role, ${slot} slot`;
 export const pointsPerActionHead = "Points per action";
 export const nowWords = "now";
 export const pointsPerActionPlaceholder = (role: string) => `${role}: what it scores more and less for shows here once roles' scoring is on screen`;
-export const teamTacticLinePlaceholder = "What the team instructions do for him shows here once they are built";
+export const teamTacticLinePlaceholder = "What the team instructions score for him shows here once they are scored";
 export const playsHead = "Plays";
 export const nextThreeHead = "Next 3";
 export const lastFiveHead = "Last 5 in role";

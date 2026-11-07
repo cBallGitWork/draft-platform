@@ -7,7 +7,7 @@
 // defence, and Press high's three are counted one row at a time. Pure: the server's save and the
 // Tactics screen both read it, so the two never differ. Scoring an instruction is not here.
 
-import { AREAS, type Area, type Cell, type Lane } from "./pitch";
+import { AREAS, sameCell, type Area, type Cell, type Lane } from "./pitch";
 
 export const SIDES = ["attacking", "defensive"] as const;
 export type Side = (typeof SIDES)[number];
@@ -123,8 +123,7 @@ export interface PresetDefaults {
   instructions?: InstructionPair;
 }
 
-const sameShape = (one: readonly Cell[], other: readonly Cell[]) =>
-  one.length === other.length && one.every((cell) => other.some((each) => each.area === cell.area && each.lane === cell.lane));
+const sameShape = (one: readonly Cell[], other: readonly Cell[]) => one.length === other.length && one.every((cell) => other.some((each) => sameCell(each, cell)));
 
 /** The formation's default pair: the league's preset of this shape's own, each where it is still
  *  offered; else, for a preset saved before #990 or a shape that is no preset, the first defaults'
