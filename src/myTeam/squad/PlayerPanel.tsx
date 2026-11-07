@@ -121,7 +121,7 @@ export function PlayerPanel({
       </dl>
       <div className="flex items-center justify-between gap-2 px-3 pb-2">
         {/* Set his role opens Tactics with him selected (the README, Answered; #1008). */}
-        <Link {...tacticsLink(player.code)} className="secondary-action">
+        <Link {...tacticsLink(player.code)} className="secondary-action lg:min-h-0 lg:py-1">
           {setRoleWords}
         </Link>
         <Link to={playerCardPath(leagueId, player.code)} className="flex min-h-tap items-center font-semibold">
