@@ -1,6 +1,7 @@
 import { Loading, PageSection, PanelNote } from "../ui/Panel";
 import type { PatchesSeam, VersionNotes } from "./seam";
-import { fromWords, KIND_WORDS, loadingWords, noVersionsWords, notesHint, nothingScoresDifferentlyWords, PATCH_NOTES_TITLE } from "./words";
+import { LabReportView } from "./LabReport";
+import { fromWords, KIND_WORDS, labTitle, loadingWords, noVersionsWords, notesHint, nothingScoresDifferentlyWords, PATCH_NOTES_TITLE } from "./words";
 
 /** The patch notes (spec/14, Changes and corrections): every version of the site's scoring, newest
  *  first, each with what it changed from the one before, as the server works it out. */
@@ -23,7 +24,7 @@ export function PatchNotesPage({ seam }: { seam: PatchesSeam }) {
 }
 
 /** One version: its name, whether a patch or a fix, when it is in force from, and its changes. */
-function Version({ version: { name, kind, takesEffectAt, changes } }: { version: VersionNotes }) {
+function Version({ version: { name, kind, takesEffectAt, changes, lab } }: { version: VersionNotes }) {
   const headingId = `version-${name}`;
   return (
     <li aria-labelledby={headingId} className="border-t border-panel-rule">
@@ -40,6 +41,14 @@ function Version({ version: { name, kind, takesEffectAt, changes } }: { version:
           </li>
         ))}
       </ul>
+      {lab && (
+        <section aria-labelledby={`${headingId}-lab`}>
+          <h3 id={`${headingId}-lab`} className="px-3 font-semibold">
+            {labTitle}
+          </h3>
+          <LabReportView report={lab} />
+        </section>
+      )}
     </li>
   );
 }

@@ -4,9 +4,8 @@
 Denies staging everything, force pushes, committing while on main (a local commit GitHub can't
 see: a push or write to main GitHub's main ruleset refuses itself), publishing a word on Craig's
 private list (private_words.py), a pull request body that breaks the template's rules or a title
-far too long (pr_body.py), a gh pr merge of a screen whose
-differences from its approved picture wait for Craig, or adding his craig-approved label
-(approval_gate.py), and a read-only agent's git command that changes a checkout of this repo (read_only.py). Every command the line runs is
+far too long (pr_body.py), a gh pr merge with --admin or of
+no pull request it can name (approval_gate.py), and a read-only agent's git command that changes a checkout of this repo (read_only.py). Every command the line runs is
 checked, those it passes to sh -c, eval, $(…), a heredoc, here-string or pipe into a shell (or a
 group around one), find -exec or ssh included, whatever its redirections (commands.py; where.py
 lists what it can't see), each in the folder it runs in (the shell's cwd, any cd before it, its
@@ -22,7 +21,7 @@ import json
 import re
 import sys
 
-from approval_gate import approval_problem, label_problem
+from approval_gate import approval_problem
 from commands import XARGS, Unbalanced, Unreadable, UnreadableStdin, commands, runs_unknown, short_flags
 from hook_payload import project_dir
 from pr_body import pr_body_problem, pr_title_note
@@ -157,7 +156,7 @@ def decide(cmd, cwd, agent_type=None):
     except UnreadableStdin:
         return UNREADABLE_STDIN
     problem = private_word_problem(cmd, cmds, cwd) or pr_body_problem(cmds, cwd)
-    problem = problem or label_problem(cmds) or approval_problem(cmds)
+    problem = problem or approval_problem(cmds)
     problem = problem or read_only_problem(cmds, cwd, agent_type)
     if problem:
         return problem

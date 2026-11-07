@@ -1,10 +1,11 @@
 import { v, type Infer } from "convex/values";
 import type { Doc } from "../_generated/dataModel";
 import { query, type QueryCtx } from "../_generated/server";
+import { slotPosition } from "../lineup/pitchShape";
 import { positionsNow } from "../positions/playerPositions";
 import type { Position } from "../positions/positionTables";
 import { clubRecord, position } from "../schema";
-import { namedCategories, namedCategoriesOf, roleLine, roleLineOf, slotPosition } from "../scoring/breakdownShape";
+import { namedCategories, namedCategoriesOf, roleLine, roleLineOf } from "../scoring/breakdownShape";
 import { siteScoringAt, siteVersionByGameweek } from "../scoring/siteVersions";
 import { memberOf } from "../shared/leagueAccess";
 import { clubsByCode, playerByCode, type Clubs } from "../shared/players";

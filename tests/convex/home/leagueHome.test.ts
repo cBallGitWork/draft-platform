@@ -55,9 +55,8 @@ describe("the glance", () => {
     const home = (await read())!;
     const fixtures = (await (await actingAs(t, ANN)).query(api.table.leagueTable.ofLeague, { leagueId }))!.gameweeks[0];
 
-    // The table's fixtures also carry their score; the glance's don't.
-    const unscored = fixtures.fixtures.map(({ points: _points, ...fixture }) => fixture);
-    expect(home.thisGameweek).toEqual({ gameweek: fixtures.gameweek, fixtures: unscored, byes: fixtures.byes });
+    expect(home.thisGameweek).toEqual({ gameweek: fixtures.gameweek, fixtures: fixtures.fixtures, byes: fixtures.byes });
+    expect(home.thisGameweek?.fixtures.every((fixture) => fixture.points === null)).toBe(true);
   });
 
   test("once gameweeks have begun, it shows the latest begun", async () => {

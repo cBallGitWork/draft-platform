@@ -1,6 +1,7 @@
-// League home's first slice (#387; spec/12, League home): reached from the menu's Home by anyone in
-// the league; this gameweek's head-to-heads, the table with each team's form (whole, or the top and
-// the reader's row), the commissioner's latest letter pinned, and the latest claims, drops and trades.
+// League home (#387; spec/12, League home): reached from the menu's Home by anyone in the league;
+// this gameweek's head-to-heads, scored once begun, the table with each team's form (whole, or the
+// top and the reader's row), the commissioner's latest letter pinned, the latest claims, drops and
+// trades, and while a matchday is open, the Vidiprinter.
 
 import { screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
@@ -21,14 +22,17 @@ import {
   MOVES_TITLE,
   noHeadToHeadsWords,
   noLetterWords,
+  noMatchdayLinesWords,
   noMovesWords,
   noResultsWords,
   noRulesWords,
   partTableWords,
   TABLE_TITLE,
+  VIDIPRINTER_TITLE,
   wholeTableLink,
   yourTeamWords,
 } from "../../../src/home/words";
+import { scoreWords } from "../../../src/matchup/words";
 import { expectColumnHeads } from "../../support/src/columnHeads";
 import { homeFixture, homeRow, quietHome, type HomeData } from "../../support/src/home.harness";
 import { commissioner, league, manager, openApp } from "../../support/src/shell.harness";
@@ -69,6 +73,12 @@ describe("this gameweek's head-to-heads", () => {
     withHome({ thisGameweek: { gameweek: 9, fixtures: [homeFixture("Ann's", "Bob's"), homeFixture("Cat's", null)], byes: ["Dan's"] } });
     const gameweek = await panel(gameweekWords(9));
     expect(within(gameweek).getAllByRole("listitem").map((item) => item.textContent)).toEqual(["Ann'svBob's", "Cat'svLeague average", "Dan's: bye"]);
+  });
+
+  it("once begun, shows each head-to-head's score in place of the v", async () => {
+    withHome({ thisGameweek: { gameweek: 9, fixtures: [homeFixture("Ann's", "Bob's", { team: 41, opponent: 22 }), homeFixture("Cat's", null)], byes: [] } });
+    const gameweek = await panel(gameweekWords(9));
+    expect(within(gameweek).getAllByRole("listitem").map((item) => item.textContent)).toEqual([`Ann's${scoreWords(41, 22)}Bob's`, "Cat'svLeague average"]);
   });
 
   it.each([
@@ -163,5 +173,30 @@ describe("the latest claims, drops and trades", () => {
   it("says so when there are none", async () => {
     openHome();
     expect(within(await panel(MOVES_TITLE)).getByText(noMovesWords)).toBeTruthy();
+  });
+});
+
+describe("matchday mode", () => {
+  const lines = [
+    { key: "a", text: "78' GOAL Haaland", points: "+9" },
+    { key: "b", text: "71' YELLOW Rice", points: "−1" },
+  ];
+
+  it("while a matchday is open, the Vidiprinter tops the right-hand column, each line with what it moves", async () => {
+    withHome({ matchday: { gameweek: 1, commentary: { kind: "read", delayed: false, lines } } });
+    const vidiprinter = await panel(VIDIPRINTER_TITLE);
+    expect(within(vidiprinter).getAllByRole("listitem").map((item) => item.textContent)).toEqual(["78' GOAL Haaland+9", "71' YELLOW Rice−1"]);
+    expect(vidiprinter.compareDocumentPosition(await panel(LETTER_TITLE)) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  });
+
+  it("says so before its first line", async () => {
+    withHome({ matchday: { gameweek: 1, commentary: { kind: "read", delayed: false, lines: [] } } });
+    expect(within(await panel(VIDIPRINTER_TITLE)).getByText(noMatchdayLinesWords)).toBeTruthy();
+  });
+
+  it("while the home is quiet, there is no Vidiprinter", async () => {
+    openHome();
+    await panel(TABLE_TITLE);
+    expect(screen.queryByRole("region", { name: VIDIPRINTER_TITLE })).toBeNull();
   });
 });

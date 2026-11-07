@@ -1,6 +1,7 @@
 // Player scoring's tests' fake seam (shell.harness.tsx hands it to the app).
 
 import { vi } from "vitest";
+import type { LabReport } from "../../../convex/balanceLab/labReportShape";
 import { FIRST_SCORING } from "../../../convex/scoring/firstScoring";
 import type { ScoringSeam, ScoringView, SiteRevision } from "../../../src/scoring/seam";
 import type { Rule } from "../../../src/scoring/editing";
@@ -42,6 +43,17 @@ export const PATCH_GAMEWEEKS = [
   { gameweek: 11, takesEffectAt: Date.parse("2026-11-14T15:00:00Z") },
 ];
 
+/** The lab's report the fake server gives: a role off its target and one not tested. */
+export const LAB_REPORT: LabReport = {
+  seasons: [2024, 2025],
+  starts: 1200,
+  startsSkipped: 3,
+  roles: [
+    { role: "shotStopper", slot: "GK", target: 0.9, starts: 80, average: 1.67, offTarget: true },
+    { role: "numberTen", slot: "CAM", target: 0.6, missing: ["big_chance_created"] },
+  ],
+};
+
 /** The view the fake server gives by default: the first set, as the admin reads it, with no
  *  version or draft yet. */
 export const ADMINS_VIEW: ScoringView = {
@@ -66,5 +78,6 @@ export function fakeScoring({ view = structuredClone(ADMINS_VIEW), loading = fal
     saveDraft: vi.fn<ScoringSeam["saveDraft"]>(async () => DRAFT_SAVED_AT),
     announce: vi.fn<ScoringSeam["announce"]>(async () => ({ name: "26_27.1", fromGameweek: 10 })),
     withdraw: vi.fn<ScoringSeam["withdraw"]>(async () => null),
+    runLab: vi.fn<ScoringSeam["runLab"]>(async () => LAB_REPORT),
   };
 }

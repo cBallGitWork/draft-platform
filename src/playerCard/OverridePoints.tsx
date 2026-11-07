@@ -5,7 +5,17 @@ import { PANEL_BODY, Problem, Status } from "../ui/Panel";
 import { useChange } from "../shared/useChange";
 import { useChoiceAmong } from "../shared/useChoiceAmong";
 import type { PlayerCard, PlayerCardSeam } from "./seam";
-import { cancelOverrideWords, OVERRIDE_TITLE, overriddenDoneWords, overrideHint, overrideLabels, overrideMatchWords, overrideWords } from "./words";
+import {
+  cancelOverrideWords,
+  OVERRIDE_TITLE,
+  overriddenDoneWords,
+  overrideHint,
+  overrideLabels,
+  overrideMatchWords,
+  overrideRemovedWords,
+  overrideWords,
+  removeOverrideWords,
+} from "./words";
 
 const MATCH_ID = "override-match";
 const POINTS_ID = "override-points";
@@ -17,36 +27,44 @@ const POINTS_STEP = 0.1;
 
 /** The card's override (spec/14, Changes and corrections; #32), for whoever runs the league: one of
  *  his matches this season, his points there and why. Shut until asked for, and again on Cancel;
- *  nothing while he has played no match. The server refuses a match not yet final, and says why. */
+ *  nothing while he has played no match. A match already overridden offers "Remove override",
+ *  which puts his scored points back (#903, spec/14 S14.5). */
 export function OverridePoints({ leagueId, card, seam }: { leagueId: Id<"leagues">; card: PlayerCard; seam: PlayerCardSeam }) {
   const override = seam.useOverride();
+  const removeOverride = seam.useRemoveOverride();
   const change = useChange();
   const [open, setOpen] = useState(false);
   const [fixtureCode, setFixtureCode] = useChoiceAmong(card.matches.map((match) => match.fixtureCode));
   const [points, setPoints] = useState("");
   const [reason, setReason] = useState("");
-  const [done, setDone] = useState(false);
+  const [done, setDone] = useState<string | null>(null);
   if (fixtureCode === undefined) return null;
   const picked = fixtureCode;
   const unfilled = points === "" || reason.trim() === "";
+  const overridden = (card.matches.find((match) => match.fixtureCode === picked)?.override ?? null) !== null;
 
   /** Shuts the form, forgetting what was typed and said. */
   function shut() {
     setOpen(false);
     setPoints("");
     setReason("");
-    setDone(false);
+    setDone(null);
     change.clear();
   }
 
   async function save(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    setDone(false);
+    setDone(null);
     const made = await change.run(() => override(leagueId, { fixtureCode: picked, playerCode: card.code, points: Number(points), reason }));
     if (!made) return;
-    setDone(true);
+    setDone(overriddenDoneWords);
     setPoints("");
     setReason("");
+  }
+
+  async function remove() {
+    setDone(null);
+    if (await change.run(() => removeOverride(leagueId, { fixtureCode: picked, playerCode: card.code }))) setDone(overrideRemovedWords);
   }
 
   return (
@@ -60,7 +78,7 @@ export function OverridePoints({ leagueId, card, seam }: { leagueId: Id<"leagues
       ) : (
         <>
           <Problem problem={change.problem} />
-          <Status words={done ? overriddenDoneWords : null} className="px-3 pt-2 text-derived" />
+          <Status words={done} className="px-3 pt-2 text-derived" />
           <form onSubmit={save} aria-label={OVERRIDE_TITLE} className={PANEL_BODY}>
             <p id={HINT_ID} className="text-muted">
               {overrideHint}
@@ -105,6 +123,11 @@ export function OverridePoints({ leagueId, card, seam }: { leagueId: Id<"leagues
               <button type="submit" disabled={unfilled || change.busy} className={unfilled ? "action-idle" : "action"}>
                 {overrideWords}
               </button>
+              {overridden && (
+                <button type="button" onClick={remove} disabled={change.busy} className="secondary-action">
+                  {removeOverrideWords}
+                </button>
+              )}
               <button type="button" onClick={shut} className="secondary-action">
                 {cancelOverrideWords}
               </button>

@@ -1,6 +1,5 @@
 import { v, type Infer } from "convex/values";
-import { SLOT_POSITIONS } from "../lineup/pitch";
-import { areaShape } from "../lineup/pitchShape";
+import { areaShape, slotPosition } from "../lineup/pitchShape";
 import { roleName } from "../lineup/roles";
 import type { OwnStat } from "./scoringSet";
 import { categoryName } from "./categories";
@@ -10,8 +9,6 @@ import { bandShape } from "./scoringSetShape";
 // A match's points breakdown as the screens are sent it (spec/14, On screen: each line says why):
 // each category by full name with why, and his role's line. The player card (#797) and the
 // matchup's breakdown (#798) send the same lines, so the two never word them apart.
-
-export const slotPosition = v.union(...SLOT_POSITIONS.map((each) => v.literal(each)));
 
 /** scoring.ts's CategoryWhy: what a category's points are made of (spec/14, On screen). */
 const categoryWhy = v.object({
