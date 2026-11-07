@@ -120,7 +120,7 @@ export function Pitch({
  *  Roles; his positions are in his name for screen readers). A tap opens his panel, and his block
  *  is ringed while it is open; picked up, the plate turns white; one the player picked up can swap
  *  with is lit, dashed, with the picked-up player's stars for the role he'd land on there, his name
- *  beside them (spec/05, Moving players; Craig, 7 Nov 2026, #11), and a tap swaps them. `landing`
+ *  under them (spec/05, Moving players; Craig, 7 Nov 2026, #11), and a tap swaps them. `landing`
  *  is null on a player who isn't lit. */
 function PlayerBlock({ player, cell, role, landing, moving }: { player: SquadMember; cell: Cell; role: string; landing: Landing | null; moving: Moving }) {
   const { picked } = moving;
@@ -146,9 +146,10 @@ function PlayerBlock({ player, cell, role, landing, moving }: { player: SquadMem
           set closer there so a two-line role still fits his row (--leading-pitch-role). */}
       <span className={`line-clamp-2 max-w-full px-1 text-center max-lg:leading-pitch-role ${isPicked ? plate : "bg-name-plate text-soft"}`}>{role}</span>
       {swapsWith && (
-        <span className="flex max-w-full items-center gap-1 bg-name-plate px-1">
+        // His name under the stars, as a pitch cell is too narrow for both on one line.
+        <span className="flex max-w-full flex-col items-center bg-name-plate px-1">
           <StarRating stars={landing.stars} subject={landingSubject(picked.name, landing.role.name)} />
-          <span className="truncate text-soft">{picked.name}</span>
+          <span className="max-w-full truncate text-soft">{picked.name}</span>
         </span>
       )}
     </button>
