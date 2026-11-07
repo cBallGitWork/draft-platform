@@ -59,7 +59,7 @@ describe("an invite", () => {
     const inviteId = await invite(t, leagueId, ANN);
 
     const email = lastEmailTo(sent, ANN);
-    expect(email.subject).toBe("You're invited to Tim Hortons Pro League on Draft Manager, Sunday 1 November at 14:32 GMT");
+    expect(email.subject).toBe("You're invited to Tim Hortons Pro League on Fantasy Draft Manager, Sunday 1 November at 14:32 GMT");
     expect(email.text).toContain(`${COMMISSIONER} has invited you to run a new team in ${LEAGUE_NAME}`);
     expect(email.text).toContain(`${SITE_URL}${invitedPath(inviteId)}?code=`);
     expect(await openLastLinkTo(t, sent, ANN)).not.toBeNull();

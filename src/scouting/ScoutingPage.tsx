@@ -9,7 +9,7 @@ import { Filters } from "./Filters";
 import { PlayersTable } from "./PlayersTable";
 import type { ListedPlayer, PlayersFilters, PlayersSort, ScoutingSeam, SortColumn } from "./seam";
 import { ShortlistPanel } from "./shortlist/ShortlistPanel";
-import { countWords, loadingWords, noneMatchWords, noWaiversWords, PLAYERS_TITLE, SCOUTING_TITLE } from "./words";
+import { countWords, loadingWords, noneMatchWords, PLAYERS_TITLE, SCOUTING_TITLE } from "./words";
 
 const OPENING_FILTERS: PlayersFilters = { availability: "all", position: null, clubCode: null };
 /** The list opens by name: no player has season points to rank by until matches are scored (#29).
@@ -44,11 +44,11 @@ export function ScoutingPage({ league, seam }: { league: LeagueSummary; seam: Sc
       {picked.length > 0 && <ComparePanel picked={picked} comparison={comparison} clear={() => setPicked([])} />}
       <ShortlistPanel leagueId={league.leagueId} seam={seam} />
       <Panel title={PLAYERS_TITLE}>
-        <Filters filters={filters} clubs={list?.clubs} filterBy={filterBy} stat={stat} show={show} />
+        <Filters filters={filters} clubs={list?.clubs} ownStats={list?.ownStats} filterBy={filterBy} stat={stat} show={show} />
         {list === undefined ? (
           <Loading className="px-3 py-2">{loadingWords}</Loading>
         ) : list.players.length === 0 ? (
-          <PanelNote>{filters.availability === "onWaivers" ? noWaiversWords : noneMatchWords}</PanelNote>
+          <PanelNote>{noneMatchWords}</PanelNote>
         ) : (
           <>
             <PanelNote edge="b">{countWords(list.players.length)}</PanelNote>

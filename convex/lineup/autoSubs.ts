@@ -32,14 +32,17 @@ export type GameweekPlay = "played" | "didNotPlay" | "stillToPlay";
 export interface MatchPlayed {
   finished: boolean;
   minutes: number;
+  /** Postponed and not rearranged into the gameweek: it has no kickoff time. */
+  postponed: boolean;
 }
 
 /** A player who plays in either match of a double gameweek played; one whose every match ended
  *  with him on 0 minutes didn't. With no match at all he didn't play, so pass none only once his
- *  club's fixtures are known; a match postponed but still passed keeps him still to play. */
+ *  club's fixtures are known. A postponed match counts as one he didn't play, so he is subbed
+ *  unless it is rearranged into the gameweek (Craig, 1 Nov 2026; #900). */
 export function gameweekPlay(matches: readonly MatchPlayed[]): GameweekPlay {
   if (matches.some((match) => match.minutes > 0)) return "played";
-  return matches.every((match) => match.finished) ? "didNotPlay" : "stillToPlay";
+  return matches.every((match) => match.finished || match.postponed) ? "didNotPlay" : "stillToPlay";
 }
 
 export interface AutoSub {

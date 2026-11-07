@@ -5,7 +5,7 @@ import { screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
 import { STAT_CATALOGUE } from "../../../convex/scoring/statCatalogueList";
-import { columns, noStatWords, statLabel } from "../../../src/scouting/words";
+import { catalogueGroupWords, columns, noStatWords, ownStatsGroupWords, statLabel } from "../../../src/scouting/words";
 import { columnHeadIn, sortLabelOf } from "../../support/src/columnHeads";
 import { HELD, lastAsk, namesShown, openScouting, PALMER, RICE, table } from "../../support/src/scoutingScreen.harness";
 
@@ -94,6 +94,21 @@ describe("any stat, as a season total", () => {
     await userEvent.click(screen.getByRole("button", { name: sortLabelOf(columns.name) }));
     expect(lastAsk(app).slice(2)).toEqual([{ by: "name", descending: false }, GOALS.stat]);
     expect(statCells()).toEqual(["5", "2", "0"]);
+  });
+
+  it("offers the site set's own stats in a group above the feeds' (#910), and shows one chosen", async () => {
+    const OWN = { stat: "league:involvements", name: "Involvements", shortCode: "INV" };
+    const app = openScouting({ ...HELD, ownStats: [OWN], totals: { [RICE.code]: { [OWN.stat]: 1.5 }, [PALMER.code]: { [OWN.stat]: 3 } } });
+    const picker = await screen.findByRole("combobox", { name: statLabel });
+    const groups = within(picker).getAllByRole("group");
+    expect(groups.map((group) => group.getAttribute("label"))).toEqual([ownStatsGroupWords, catalogueGroupWords]);
+    expect(within(groups[0]).getAllByRole("option").map((option) => option.textContent)).toEqual([OWN.name]);
+    expect(within(groups[1]).getAllByRole("option").map((option) => option.textContent)).toEqual(STAT_CATALOGUE.map((each) => each.name));
+
+    await chooseStat(OWN.name);
+    expect(lastAsk(app).slice(2)).toEqual([{ by: "stat", descending: true }, OWN.stat]);
+    expect(statCells()).toEqual(["3", "1.5", "0"]);
+    expect(screen.getByRole("button", { name: sortLabelOf({ short: OWN.shortCode, long: OWN.name }) })).toBeTruthy();
   });
 
   it("none chosen again drops the column, and a sort by it goes back to names", async () => {

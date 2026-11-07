@@ -5,6 +5,7 @@ import { noFigureWords } from "../shared/words";
 // A player's stars for a role (plate.md, Marks: Stars; spec/05 Roles): drawn in SVG, filled in the
 // figure colour, the empty ones as muted outlines, in half-star steps. Unrated, "?" (fewer than 3
 // matches, with a tooltip saying we aren't sure yet) or "—" (no match yet), muted (26 Oct 2026).
+// In a box narrower than the set (a lit pitch cell, #11) the stars shrink to fit rather than overrun it.
 
 /** The most stars a rating gives. */
 const MOST_STARS = 5;
@@ -33,7 +34,7 @@ export function StarRating({ stars, subject }: { stars: Stars; subject: string }
   }
   const label = starsLabel(subject, stars);
   return (
-    <svg role="img" aria-label={label} viewBox={`0 0 ${MOST_STARS * STAR_SIZE} ${STAR_SIZE}`} className="inline-block h-star w-stars shrink-0 align-middle">
+    <svg role="img" aria-label={label} viewBox={`0 0 ${MOST_STARS * STAR_SIZE} ${STAR_SIZE}`} className="inline-block h-star w-stars max-w-full shrink-0 align-middle">
       <title>{label}</title>
       <clipPath id={clipId}>
         <rect width={stars * STAR_SIZE} height={STAR_SIZE} />
