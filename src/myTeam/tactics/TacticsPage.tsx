@@ -96,7 +96,7 @@ function LineupEditor({ league, teamName, tactics, seam }: { league: LeagueSumma
     () => ({ areaLimits: tactics.areaLimits, positionsOf: (playerCode: number) => squad.get(playerCode)?.positions ?? [] }),
     [tactics.areaLimits, squad],
   );
-  /** Each squad player's stars, which pick the role he starts on when dropped into a slot (#11). */
+  /** Each squad player's stars, which pick the role he starts on when dropped into a slot, and show on a lit player (#11). */
   const ratingsOf: RatingsOf = (playerCode) => squad.get(playerCode)?.stars ?? [];
   const reach = useMemo(() => (picked === null ? null : reachOf(draft, picked.playerCode, rules)), [draft, picked, rules]);
   // The formation in use, by name: a classic's, or the preset's the eleven stand in (#991).
@@ -223,7 +223,7 @@ function LineupEditor({ league, teamName, tactics, seam }: { league: LeagueSumma
               {picked === null ? pickHintWords : movingHintWords(picked.name, picked.positions)}
             </p>
             <div className="p-2">
-              <Pitch draft={draft} squad={squad} moving={moving} slots={[...tactics.presets, ...tactics.classics].find(({ name }) => name === edits.shape)?.cells ?? []} runsShown={runsShown} />
+              <Pitch draft={draft} squad={squad} moving={moving} slots={[...tactics.presets, ...tactics.classics].find(({ name }) => name === edits.shape)?.cells ?? []} runsShown={runsShown} ratingsOf={ratingsOf} />
             </div>
           </Panel>
           <LineupCheck

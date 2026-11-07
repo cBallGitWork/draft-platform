@@ -7,8 +7,9 @@ import { PitchLines } from "./PitchLines";
 import { RoleRuns } from "./RoleRuns";
 import { PITCH_ASPECT } from "./pitchMarkings";
 import { cellGridOf, EVEN_ROWS, ROWS_DRAWN, rowLayoutOf } from "./rowLayout";
-import { standingIn, type DraftLineup, type DropTarget, type Reach, type SquadMember } from "../lineupDraft";
-import { emptySlotLabel, pitchLabel, playerOnPitchLabel, swapLabel } from "../words";
+import { StarRating } from "../../../ui/StarRating";
+import { landingOf, standingIn, type DraftLineup, type DropTarget, type Landing, type RatingsOf, type Reach, type SquadMember } from "../lineupDraft";
+import { emptySlotLabel, landingSubject, pitchLabel, playerOnPitchLabel, swapLabel } from "../words";
 
 // The Tactics tab's pitch (#14; spec/05, The pitch): six areas by five lanes, attack at the top, CM
 // style, the rows nobody stands in closed up (./rowLayout.ts). Presets only (Craig, 1 Nov 2026; #1022): a player is moved by picking him up (Move, in his
@@ -53,23 +54,28 @@ export function startDrag(event: DragEvent, playerCode: number, moving: Moving) 
 }
 
 /** `slots` are the cells of the preset last picked, if any: those still empty are marked, the
- *  shape's slots nobody fills (spec/05). `runsShown` is the desk's switch for the roles' runs (spec/05 Runs). */
+ *  shape's slots nobody fills (spec/05). `runsShown` is the desk's switch for the roles' runs (spec/05 Runs).
+ *  `ratingsOf` gives the stars a lit player shows for the swap (#11). */
 export function Pitch({
   draft,
   squad,
   moving,
   slots,
   runsShown,
+  ratingsOf,
 }: {
   draft: DraftLineup;
   squad: ReadonlyMap<number, SquadMember>;
   moving: Moving;
   slots: readonly Cell[];
   runsShown: boolean;
+  ratingsOf: RatingsOf;
 }) {
   const { picked, reach } = moving;
   const isSlot = (cell: Cell) => slots.some((slot) => sameCell(slot, cell));
-  const swapsWith = (playerCode: number) => reach !== null && reach.players.includes(playerCode);
+  /** The swap a lit player shows; null on one who isn't lit. */
+  const landingOn = (playerCode: number) =>
+    picked === null || reach === null || !reach.players.includes(playerCode) ? null : landingOf(draft, picked.playerCode, playerCode, ratingsOf);
   const rows = rowLayoutOf([...draft.starters, ...slots]);
   return (
     <div role="group" aria-label={pitchLabel} style={cellGridOf(rows)} className="pitch relative mx-auto grid">
@@ -92,7 +98,13 @@ export function Pitch({
           return (
             <div key={cellKey(cell)} onDragOver={allowDrop} onDrop={drop} className="relative flex min-h-0 min-w-0 items-center justify-center p-0.5">
               {standing !== undefined ? (
-                <PlayerBlock player={squad.get(standing.playerCode)!} cell={cell} role={roleIn(cell, standing.role).name} lit={swapsWith(standing.playerCode)} moving={moving} />
+                <PlayerBlock
+                  player={squad.get(standing.playerCode)!}
+                  cell={cell}
+                  role={roleIn(cell, standing.role).name}
+                  landing={landingOn(standing.playerCode)}
+                  moving={moving}
+                />
               ) : (
                 isSlot(cell) && <div role="img" aria-label={emptySlotLabel(area, lane)} className="h-full w-full border border-dotted border-pitch-line" />
               )}
@@ -107,13 +119,15 @@ export function Pitch({
 /** A player on the pitch: his shirt over his name plate, the role he plays under his name (spec/05
  *  Roles; his positions are in his name for screen readers). A tap opens his panel, and his block
  *  is ringed while it is open; picked up, the plate turns white; one the player picked up can swap
- *  with is lit, dashed, and a tap swaps them. */
-function PlayerBlock({ player, cell, role, lit, moving }: { player: SquadMember; cell: Cell; role: string; lit: boolean; moving: Moving }) {
+ *  with is lit, dashed, with the picked-up player's stars for the role he'd land on there, his name
+ *  under them (spec/05, Moving players; Craig, 7 Nov 2026, #11), and a tap swaps them. `landing`
+ *  is null on a player who isn't lit. */
+function PlayerBlock({ player, cell, role, landing, moving }: { player: SquadMember; cell: Cell; role: string; landing: Landing | null; moving: Moving }) {
   const { picked } = moving;
   const isPicked = picked?.playerCode === player.playerCode;
   const isSelected = moving.selected === player.playerCode;
   const plate = isPicked ? "bg-fact text-ground" : "bg-name-plate";
-  const swapsWith = lit && picked !== null;
+  const swapsWith = landing !== null && picked !== null;
   return (
     <button
       type="button"
@@ -131,6 +145,13 @@ function PlayerBlock({ player, cell, role, lit, moving }: { player: SquadMember;
       {/* Up to two lines, so "Defensive full-back" and "Defensive winger" stay apart on a phone,
           set closer there so a two-line role still fits his row (--leading-pitch-role). */}
       <span className={`line-clamp-2 max-w-full px-1 text-center max-lg:leading-pitch-role ${isPicked ? plate : "bg-name-plate text-soft"}`}>{role}</span>
+      {swapsWith && (
+        // His name under the stars, as a pitch cell is too narrow for both on one line.
+        <span className="flex max-w-full flex-col items-center bg-name-plate px-1">
+          <StarRating stars={landing.stars} subject={landingSubject(picked.name, landing.role.name)} />
+          <span className="max-w-full truncate text-soft">{picked.name}</span>
+        </span>
+      )}
     </button>
   );
 }

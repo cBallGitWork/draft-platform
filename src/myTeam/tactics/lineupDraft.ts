@@ -10,9 +10,9 @@ import { ALL_CELLS, AREAS, byPitchOrder, cellKey, LANES, playsCell, positionOfSl
 import { namedCodes, reconciled, type LineupRules } from "../../../convex/lineup/lineup";
 import type { Position } from "../../../convex/positions/positionTables";
 import type { OpenTactics } from "../../../convex/lineup/tactics";
-import { everyRoleOf, offersRole, roleIn, rolesOfSlot, type Formation } from "../../../convex/lineup/roles";
-import { bestRoleIn, droppedStarter } from "../../../convex/stars/bestRole";
-import type { RoleStars } from "../../../convex/stars/starsShape";
+import { everyRoleOf, offersRole, roleIn, rolesOfSlot, type Formation, type Role } from "../../../convex/lineup/roles";
+import { bestRoleIn, droppedStarter, starsIn } from "../../../convex/stars/bestRole";
+import type { RoleStars, Stars } from "../../../convex/stars/starsShape";
 
 export type SquadMember = OpenTactics["squad"][number];
 /** A starter, his cell and the role he plays there (roles.ts), none given meaning the slot's first. */
@@ -156,6 +156,25 @@ export interface Reach {
 
 export function reachOf(draft: DraftLineup, playerCode: number, rules: MoveRules): Reach {
   return { players: namedCodes(draft).filter((other) => canSwap(draft, playerCode, other, rules)) };
+}
+
+/** Who comes onto the pitch in a swap, the role he lands on there and his stars for it. */
+export interface Landing {
+  playerCode: number;
+  role: Role;
+  stars: Stars;
+}
+
+/** The swap of the player picked up with `other` as its lit player shows it (spec/05, Moving
+ *  players: "with his stars there"; Craig, 7 Nov 2026, #11): the picked-up player in a lit
+ *  starter's slot, or a lit bench player in the picked-up starter's, on the role he has the most
+ *  stars for there. Null where neither comes onto the pitch in another's slot (two on the bench). */
+export function landingOf(draft: DraftLineup, picked: number, other: number, ratingsOf: RatingsOf): Landing | null {
+  const lander = starts(draft, other) ? picked : starts(draft, picked) ? other : null;
+  if (lander === null) return null;
+  const landed = swapped(draft, picked, other, ratingsOf).starters.find((starter) => starter.playerCode === lander)!;
+  const role = roleIn(landed, landed.role);
+  return { playerCode: lander, role, stars: starsIn(landed, role.key, ratingsOf(lander)) };
 }
 
 /** The starter given a role his slot offers (spec/05 Roles). */
