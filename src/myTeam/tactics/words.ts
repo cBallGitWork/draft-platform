@@ -19,6 +19,8 @@ const positionsWords = (positions: readonly string[]) => positions.join(listSepa
 
 /** The pitch's panel: its plate names the formation the eleven stand in, where it is a preset. */
 export const pitchTitle = (formation: string | null) => (formation === null ? "Pitch" : `Pitch ${formation}`);
+/** A classic once its manager has changed a role (spec/05; Craig, 6 Nov 2026). */
+export const customWords = (classic: string) => `${classic} (custom)`;
 /** The pitch, named for screen readers, and its cells. */
 export const pitchLabel = "The pitch, attack at the top";
 const cellWords = (area: Area, lane: Lane) => `${AREA_WORDS[area]}, ${LANE_WORDS[lane]}`;

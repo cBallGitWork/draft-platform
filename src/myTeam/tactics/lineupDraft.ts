@@ -21,6 +21,9 @@ export type Starter = Cell & { playerCode: number; role?: string };
 export interface DraftLineup {
   starters: readonly Starter[];
   bench: readonly number[];
+  /** The classic picked, by name, until another formation is (spec/05; #991): every move keeps it,
+   *  and `formationNameOf` says whether it is custom since. */
+  classic?: string;
 }
 
 /** Each squad player's stars, which pick the role he starts on when dropped into a slot (spec/05
@@ -38,14 +41,17 @@ const droppedInto = (playerCode: number, cell: Cell, formation: Formation, ratin
 /** The lineup the screen opens on: the one held for the gameweek, its first until the manager
  *  saves one (spec/05). */
 export function openingLineup({ lineup }: Pick<OpenTactics, "lineup">): DraftLineup {
-  return { starters: lineup.starters, bench: lineup.bench };
+  return { starters: lineup.starters, bench: lineup.bench, ...classicOf(lineup) };
 }
+
+/** The classic a lineup was picked from, if any, to carry onto another. */
+const classicOf = ({ classic }: { classic?: string }) => (classic === undefined ? {} : { classic });
 
 /** The lineup the screen shows: the one held, or the manager's edit read against the squad as it
  *  is now by the server's own rule (lineup.ts `reconciled`), so an edit made before a squad change
  *  never names a player the squad no longer holds and stands as the server would read it. */
 export function shownLineup(edited: DraftLineup | null, opening: DraftLineup, squadCodes: readonly number[]): DraftLineup {
-  return edited === null ? opening : reconciled(edited, squadCodes).lineup;
+  return edited === null ? opening : { ...reconciled(edited, squadCodes).lineup, ...classicOf(edited) };
 }
 
 
@@ -67,6 +73,7 @@ export function swapped(draft: DraftLineup, one: number, other: number, ratingsO
   if (!starts(draft, one) && !starts(draft, other)) throw new Error(`Players ${one} and ${other} are both on the bench: a swap takes a starter`);
   const swap = (playerCode: number) => (playerCode === one ? other : playerCode === other ? one : playerCode);
   return {
+    ...classicOf(draft),
     starters: draft.starters.map((starter) =>
       swap(starter.playerCode) === starter.playerCode ? starter : droppedInto(swap(starter.playerCode), starter, draft.starters, ratingsOf),
     ),
@@ -161,17 +168,18 @@ export function benchedAt(draft: DraftLineup, playerCode: number, index: number)
   if (starts(draft, playerCode)) throw new Error(`Player ${playerCode} starts: a starter leaves the pitch only by a swap`);
   const rest = without(draft, playerCode);
   const at = Math.max(0, Math.min(index, rest.bench.length));
-  return { starters: rest.starters, bench: [...rest.bench.slice(0, at), playerCode, ...rest.bench.slice(at)] };
+  return { ...classicOf(draft), starters: rest.starters, bench: [...rest.bench.slice(0, at), playerCode, ...rest.bench.slice(at)] };
 }
 
 /** Back to front, left to right: the order the squad lists the eleven. */
 export const startersInOrder = (draft: DraftLineup): Starter[] => draft.starters.toSorted(byPitchOrder);
 
-/** Whether two lineups stand the same: the same players in the same cells, the same bench order. */
+/** Whether two lineups stand the same: the same players in the same cells, the same bench order,
+ *  picked from the same classic or none. */
 export function sameLineup(one: DraftLineup, other: DraftLineup): boolean {
   const key = (draft: DraftLineup) =>
     [...startersInOrder(draft).map(({ playerCode, area, lane, role }) => `${playerCode}@${cellKey({ area, lane })}:${role ?? ""}`), "bench", ...draft.bench].join(" ");
-  return key(one) === key(other);
+  return key(one) === key(other) && one.classic === other.classic;
 }
 
 /** The lineup reshaped to a preset's cells (spec/05; Craig, 26 Oct and 1 Nov 2026): each starter,

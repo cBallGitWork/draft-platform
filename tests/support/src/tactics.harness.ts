@@ -2,7 +2,7 @@
 
 import { useSyncExternalStore } from "react";
 import { vi } from "vitest";
-import { FIRST_RULES } from "../../../convex/rules/firstRules";
+import { classicsOf, FIRST_RULES } from "../../../convex/rules/firstRules";
 import type { LineupChanges, OpenTactics, Tactics, TacticsSeam } from "../../../src/myTeam/tactics/seam";
 
 /** The gameweek the fake server sets a lineup for, unless a test says. */
@@ -16,6 +16,7 @@ export const openTactics = (change: Partial<OpenTactics> = {}): OpenTactics => (
   deadline: null,
   areaLimits: FIRST_RULES.areaLimits,
   presets: FIRST_RULES.presets,
+  classics: classicsOf(FIRST_RULES),
   squad: [],
   lineup: { fromGameweek: TACTICS_GAMEWEEK, starters: [], bench: [], leftSquad: [], joinedBench: [], vacated: [] },
   ...change,

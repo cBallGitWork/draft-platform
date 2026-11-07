@@ -13,7 +13,6 @@ export const CLASSICS = "Classics";
 export const classicsLine = "famous sides, formation and roles";
 /** The marks on a group's heading, saying what in it is sample (the approved formation window). */
 export const sampleNamesWords = "sample names";
-export const samplePointsWords = "points lines: sample";
 export const savePresetName = "Save preset…";
 export const savePresetLine = "Saves the formation and roles in use now";
 export const MODERN = "Modern";
@@ -29,6 +28,13 @@ export const costsHead = "Costs";
 /** What a plain formation does when used (spec/05, The pitch). */
 export const appliesWords = (name: string) =>
   `The ${name}. Your players stay, each in a slot of his own area where there is one; anyone without a slot goes to the front of the bench. Each keeps his role where his new slot offers it.`;
+/** What a classic does when used (spec/05, The pitch; #991): its instructions apply once they are
+ *  built (#990). */
+export const classicAppliesWords = (formation: string) =>
+  `The ${formation} and all eleven roles, like a preset. Your players stay; anyone without a slot goes to the bench. Change a role and it becomes custom.`;
+/** A classic's preview title after its name: "1988-89, Sacchi, 4-4-2". */
+export const classicTitleWords = (subtitle: string, formation: string) => `${subtitle}, ${formation}`;
+export const sampleTextWords = "text: sample";
 export const previewLabel = (name: string) => `${name}: each slot's position and the role it would play`;
 
 /** Data not held yet, in its place (plate.md, Marks: a placeholder). */
@@ -38,7 +44,6 @@ export const subtitlePlaceholder = (name: string) => `${name}'s subtitle shows h
 export const descriptionPlaceholder = (name: string) => `What ${name} does shows here once Craig writes it`;
 export const gainsPlaceholder = "What this formation gains shows here once Craig writes it";
 export const losesPlaceholder = "What this formation loses shows here once Craig writes it";
-export const classicsPlaceholder = "Classic sides, each a formation and all eleven roles, show here once Craig writes their text";
 export const modernPlaceholder = "Modern sides show here once they are chosen";
 export const unlocksPlaceholder = "The team instructions this formation offers show here once they are built";
 export const costsPlaceholder = "What this formation costs shows here once team instructions are built";

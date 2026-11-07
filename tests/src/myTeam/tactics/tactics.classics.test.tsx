@@ -1,0 +1,84 @@
+// My team's Tactics tab (spec/05, The pitch; #991): a classic picked from the formation window
+// sets its shape and every slot's role, and one change makes it custom (Craig, 6 Nov 2026:
+// "Keegan's Newcastle (custom)") until another formation is picked.
+
+import { screen, within } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
+import { describe, expect, it } from "vitest";
+import { DEFAULT_CLASSICS } from "../../../../convex/lineup/classics";
+import { sameCell } from "../../../../convex/lineup/pitch";
+import { FIRST_RULES } from "../../../../convex/rules/firstRules";
+import { applyWords, CLASSICS, classicTitleWords, inUseWords, WINDOW_TITLE } from "../../../../src/myTeam/tactics/formationWindow/words";
+import { allFormationsWords, customWords, pitchTitle, roleLabel } from "../../../../src/myTeam/tactics/words";
+import { league } from "../../../support/src/shell.harness";
+import { openTactics } from "../../../support/src/tactics.harness";
+import { member, openedPitch, pickFormation, SAVED } from "../../../support/src/tacticsScreen.harness";
+
+const keegans = DEFAULT_CLASSICS.find(({ name }) => name === "Keegan's Newcastle")!;
+
+/** Eleven standing in the 4-4-2, each playing his cell's area, on their slots' first roles. */
+const IN_A_442 = (() => {
+  const starters = FIRST_RULES.presets.find(({ name }) => name === "4-4-2")!.cells.map((cell, index) => ({ playerCode: index + 1, ...cell }));
+  const squad = starters.map(({ playerCode, area }) => member(playerCode, `Player ${playerCode}`, area === "goalkeeper" ? ["GK"] : area === "defence" ? ["CB", "FB"] : area === "attack" ? ["ST"] : ["CM", "WM"]));
+  return { tactics: openTactics({ squad, lineup: { ...SAVED.lineup, starters, bench: [] } }) };
+})();
+
+const openClassics = async () => {
+  await userEvent.click(screen.getByRole("button", { name: allFormationsWords }));
+  await userEvent.click(screen.getByRole("button", { name: new RegExp(`^${CLASSICS}`) }));
+  return within(screen.getByRole("region", { name: WINDOW_TITLE }));
+};
+const pickClassic = async (name: string) => {
+  const window = await openClassics();
+  await userEvent.click(window.getByRole("radio", { name }));
+  await userEvent.click(window.getByRole("button", { name: applyWords }));
+};
+const pitchHeading = (name: string | null) => screen.getByRole("heading", { name: pitchTitle(name) });
+
+describe("a classic (spec/05; #991)", () => {
+  it("lists the league's eight, each with its formation's tag, its season and what it did", async () => {
+    await openedPitch(IN_A_442);
+    const window = await openClassics();
+    expect(window.getByRole("button", { name: new RegExp(`^${CLASSICS}`) }).textContent).toBe(`${CLASSICS}${DEFAULT_CLASSICS.length}`);
+    expect(window.getAllByRole("radio").map((tile) => tile.getAttribute("aria-label"))).toEqual(DEFAULT_CLASSICS.map(({ name }) => name));
+    const tile = within(window.getByRole("radio", { name: keegans.name }));
+    expect(tile.getByText("4-4-2")).toBeTruthy();
+    expect(tile.getByText(keegans.subtitle)).toBeTruthy();
+    expect(tile.getByText(keegans.description)).toBeTruthy();
+    // The first is picked and previewed: its subtitle and formation after its name.
+    expect(window.getByRole("heading", { level: 3, name: `${keegans.name}${classicTitleWords(keegans.subtitle, "4-4-2")}` })).toBeTruthy();
+  });
+
+  it("sets its shape and every slot's role, saved with its name, and the pitch says so", async () => {
+    const app = await openedPitch(IN_A_442);
+    await pickClassic(keegans.name);
+    const starters = IN_A_442.tactics.lineup.starters.map((starter) => ({ ...starter, role: keegans.cells.find((slot) => sameCell(slot, starter))!.role }));
+    expect(app.myTeam.lineupChanges.save).toHaveBeenLastCalledWith(league.leagueId, expect.objectContaining({ classic: keegans.name, starters: expect.arrayContaining(starters) }));
+    expect(pitchHeading(keegans.name)).toBeTruthy();
+    // No Formation key is pressed: none is the classic.
+    expect(screen.getByRole("radio", { name: "4-4-2" }).getAttribute("aria-checked")).not.toBe("true");
+    const window = await openClassics();
+    expect(within(window.getByRole("radio", { name: keegans.name })).getByText(inUseWords)).toBeTruthy();
+  });
+
+  it("becomes custom once a role changes, and picking it again resets every role", async () => {
+    await openedPitch(IN_A_442);
+    await pickClassic(keegans.name);
+    await userEvent.selectOptions(screen.getByRole("combobox", { name: roleLabel("Player 1") }), "commandingKeeper");
+    expect(pitchHeading(customWords(keegans.name))).toBeTruthy();
+    await pickClassic(keegans.name);
+    expect(pitchHeading(keegans.name)).toBeTruthy();
+    expect(screen.getByRole<HTMLSelectElement>("combobox", { name: roleLabel("Player 1") }).value).toBe("shotStopper");
+  });
+
+  it("is left by picking a formation, each starter keeping his role where the new slot offers it", async () => {
+    const app = await openedPitch(IN_A_442);
+    await pickClassic(keegans.name);
+    await pickFormation("4-4-2");
+    expect(pitchHeading("4-4-2")).toBeTruthy();
+    const sent = app.myTeam.lineupChanges.save.mock.lastCall![1];
+    expect(sent.classic).toBeUndefined();
+    // Player 3, at left-centre of the back four, stays Keegan's attacking centre-back.
+    expect(sent.starters.find(({ playerCode }) => playerCode === 3)?.role).toBe("attackingCentreBack");
+  });
+});

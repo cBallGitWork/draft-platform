@@ -10,7 +10,7 @@ import { areasOf, cellsOf, LANES, type Cell } from "../../../convex/lineup/pitch
 import { everyRoleOf } from "../../../convex/lineup/roles";
 import { NO_DATA, UNSURE, type RoleStars } from "../../../convex/stars/starsShape";
 import type { Position } from "../../../convex/positions/positionTables";
-import { FIRST_RULES } from "../../../convex/rules/firstRules";
+import { classicsOf, FIRST_RULES } from "../../../convex/rules/firstRules";
 import { DAY_MS, HOUR_MS } from "../../../convex/shared/time";
 import type { DraftLineup } from "./lineupDraft";
 import type { Tactics, TacticsSeam } from "./seam";
@@ -75,6 +75,7 @@ const tacticsWith = ({ starters, bench }: DraftLineup): Tactics => ({
   deadline: PREVIEW_DEADLINE,
   areaLimits: FIRST_RULES.areaLimits,
   presets: FIRST_RULES.presets,
+  classics: classicsOf(FIRST_RULES),
   squad,
   lineup: { fromGameweek: PREVIEW_GAMEWEEK, starters: [...starters], bench: [...bench], leftSquad: [], joinedBench: [], vacated: [] },
 });

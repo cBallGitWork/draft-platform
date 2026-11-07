@@ -8,6 +8,7 @@ import { unheldNoticeWords } from "../../shared/words";
 import { TeamPage } from "../header/TeamHeader";
 import { markedBy } from "./focusMarks";
 import { FormationWindow } from "./formationWindow/FormationWindow";
+import { formationNameOf, onClassic } from "./classicLineup";
 import { benchedAt, dropOutcome, openingLineup, placeOf, presetInUse, reachOf, reshaped, swapped, withRole, type DraftLineup, type MoveRules, type RatingsOf } from "./lineupDraft";
 import { Pitch, PITCH_ROOM_STYLE, type Moving } from "./pitch/Pitch";
 import { SquadTable } from "./SquadTable";
@@ -98,7 +99,10 @@ function LineupEditor({ league, teamName, tactics, seam }: { league: LeagueSumma
   /** Each squad player's stars, which pick the role he starts on when dropped into a slot (#11). */
   const ratingsOf: RatingsOf = (playerCode) => squad.get(playerCode)?.stars ?? [];
   const reach = useMemo(() => (picked === null ? null : reachOf(draft, picked.playerCode, rules)), [draft, picked, rules]);
-  const inUse = presetInUse(draft, tactics.presets)?.name ?? null;
+  // The formation in use, by name: a classic's, or the preset's the eleven stand in (#991).
+  const inUse = formationNameOf(draft, tactics.presets, tactics.classics);
+  // The Formation key pressed: none while on a classic, which no key is.
+  const presetKey = draft.classic === undefined ? (presetInUse(draft, tactics.presets)?.name ?? null) : null;
 
   // After a move, the moved player keeps the focus, wherever he now stands.
   const root = useRef<HTMLDivElement>(null);
@@ -157,6 +161,13 @@ function LineupEditor({ league, teamName, tactics, seam }: { league: LeagueSumma
     setPickedCode(null);
     edits.reshape(name, reshaped(draft, preset.cells, rules, ratingsOf));
   };
+  /** A classic picked sets its shape and every slot's role (spec/05; #991). */
+  const pickClassic = (name: string) => {
+    const classic = tactics.classics.find((each) => each.name === name);
+    if (classic === undefined) return;
+    setPickedCode(null);
+    edits.reshape(name, onClassic(draft, classic, rules, ratingsOf));
+  };
   /** Up, down, or a drop on a bench row: the player at that place in the bench order. Up or Down
    *  keeps the focus on the button pressed. */
   const toBenchAt = (playerCode: number, index: number, pressed?: "up" | "down") => {
@@ -172,7 +183,7 @@ function LineupEditor({ league, teamName, tactics, seam }: { league: LeagueSumma
     <div ref={root} className="mt-2 flex flex-col gap-2">
       <TacticsToolbar
         presets={tactics.presets}
-        inUse={inUse}
+        inUse={presetKey}
         onPreset={pickPreset}
         windowOpen={windowOpen}
         onAllFormations={() => setWindowOpen((open) => !open)}
@@ -186,6 +197,7 @@ function LineupEditor({ league, teamName, tactics, seam }: { league: LeagueSumma
       {windowOpen && (
         <FormationWindow
           presets={tactics.presets}
+          classics={tactics.classics}
           inUse={inUse}
           draft={draft}
           rules={rules}
@@ -193,6 +205,10 @@ function LineupEditor({ league, teamName, tactics, seam }: { league: LeagueSumma
           onUse={(name) => {
             setWindowOpen(false);
             pickPreset(name);
+          }}
+          onUseClassic={(name) => {
+            setWindowOpen(false);
+            pickClassic(name);
           }}
           onClose={() => setWindowOpen(false)}
         />
@@ -207,7 +223,7 @@ function LineupEditor({ league, teamName, tactics, seam }: { league: LeagueSumma
               {picked === null ? pickHintWords : movingHintWords(picked.name, picked.positions)}
             </p>
             <div className="p-2">
-              <Pitch draft={draft} squad={squad} moving={moving} slots={tactics.presets.find(({ name }) => name === edits.shape)?.cells ?? []} runsShown={runsShown} />
+              <Pitch draft={draft} squad={squad} moving={moving} slots={[...tactics.presets, ...tactics.classics].find(({ name }) => name === edits.shape)?.cells ?? []} runsShown={runsShown} />
             </div>
           </Panel>
           <LineupCheck

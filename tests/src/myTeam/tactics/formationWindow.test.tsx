@@ -13,7 +13,7 @@ import {
   inUseWords,
   losesPlaceholder,
   sampleNamesWords,
-  samplePointsWords,
+  sampleTextWords,
   savePresetLine,
   savePresetName,
   subtitlePlaceholder,
@@ -48,7 +48,7 @@ describe("the formation window", () => {
     await userEvent.click(screen.getByRole("button", { name: YOUR_PRESETS }));
     expect(headingOf(YOUR_PRESETS).textContent).toBe(`${YOUR_PRESETS}${yourPresetsLine}${sampleNamesWords}`);
     await userEvent.click(screen.getByRole("button", { name: new RegExp(`^${CLASSICS}`) }));
-    expect(headingOf(CLASSICS).textContent).toBe(`${CLASSICS}${classicsLine}${samplePointsWords}`);
+    expect(headingOf(CLASSICS).textContent).toBe(`${CLASSICS}${classicsLine}${sampleTextWords}`);
   });
 
   it("shows the Save preset… tile on Your presets, in place, as saving presets waits", async () => {
