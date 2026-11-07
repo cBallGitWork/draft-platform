@@ -58,7 +58,7 @@ he goes) and target man. Each has no run, as before.
 | Tracking winger | 44 back | With their full-back all the way into his own third (Park Ji-sung, Milner). |
 | Number 10 | 4 up and 10 across | Into the pocket between their lines. |
 | Shadow striker (attacking midfield) | 10 up, then 18 up and 10 across | Past the striker into the box (Lampard, Müller). |
-| Carrier | 15 up and 3 across | Straight at them through the middle to the box's edge. |
+| Carrier | 9 up | Straight at them through the middle to the box's edge. |
 | Pressing 10 | 6 up and 6 across, then 12 up the other way | Onto their holding midfielder, then their centre-back. |
 | Poacher | 5 up and 10 across | The near post (Inzaghi, Defoe). |
 | In-behind striker | 3 up and 8 across, then 6 up and 8 the other way | Across their line and in behind it (Vardy, Werner). |

@@ -139,7 +139,7 @@ export const DEFAULT_ROLES: Record<SlotPosition, readonly Role[]> = {
     role("numberTen", "Number 10", "N10", "Drifts into the pocket between their midfield and defence and makes the chances.", ["Chances created", "Big chances created", "Through balls"], ["Shots off target"], runOf([4, 10])),
     role("attackingMidfieldShadowStriker", "Shadow striker", "SSA", "Runs past the striker into the box to shoot.", ["Box entries", "Shots on target", "Shots from outside the box"], ["Offsides"], runOf([10, 2], [18, 10])),
     role("maverick", "Maverick", "MAV", "Tries the pass or the shot nobody else would.", ["Through balls tried", "Accurate long balls", "Accurate chipped passes", "Shots on target"], ["Heavy touches"]),
-    role("carrier", "Carrier", "CAR", "Picks it up and runs straight at them, through the middle to the edge of the box.", ["Take-ons won", "Progressive carries", "Fouled in the final third"], ["Dispossessed"], runOf([15, 3])),
+    role("carrier", "Carrier", "CAR", "Picks it up and runs straight at them, through the middle to the edge of the box.", ["Take-ons won", "Progressive carries", "Fouled in the final third"], ["Dispossessed"], runOf([9, 0])),
     role("pressingTen", "Pressing 10", "P10", "Leads the press from behind the striker, onto their holding midfielder and then their centre-back.", ["Possession won in the attacking third", "Tackles won", "Recoveries"], ["Fouls"], runOf([6, -6], [12, 6])),
   ],
   ST: [
