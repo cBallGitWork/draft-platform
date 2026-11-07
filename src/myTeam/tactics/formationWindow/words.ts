@@ -13,6 +13,8 @@ export const CLASSICS = "Classics";
 export const classicsLine = "famous sides, formation and roles";
 /** The marks on a group's heading, saying what in it is sample (the approved formation window). */
 export const sampleNamesWords = "sample names";
+/** The classics' text, Claude's until Craig rewrites it (spec/05, The pitch). */
+export const sampleTextWords = "text: sample";
 export const savePresetName = "Save preset…";
 export const savePresetLine = "Saves the formation and roles in use now";
 export const MODERN = "Modern";
@@ -34,7 +36,6 @@ export const classicAppliesWords = (formation: string) =>
   `The ${formation} and all eleven roles, like a preset. Your players stay; anyone without a slot goes to the bench. Change a role and it becomes custom.`;
 /** A classic's preview title after its name: "1988-89, Sacchi, 4-4-2". */
 export const classicTitleWords = (subtitle: string, formation: string) => `${subtitle}, ${formation}`;
-export const sampleTextWords = "text: sample";
 export const previewLabel = (name: string) => `${name}: each slot's position and the role it would play`;
 
 /** Data not held yet, in its place (plate.md, Marks: a placeholder). */

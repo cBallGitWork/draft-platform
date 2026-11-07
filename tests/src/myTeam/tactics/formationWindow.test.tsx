@@ -21,17 +21,8 @@ import {
   YOUR_PRESETS,
   yourPresetsLine,
 } from "../../../../src/myTeam/tactics/formationWindow/words";
-import { FIRST_RULES } from "../../../../convex/rules/firstRules";
 import { allFormationsWords } from "../../../../src/myTeam/tactics/words";
-import { openTactics } from "../../../support/src/tactics.harness";
-import { member, openedPitch, SAVED } from "../../../support/src/tacticsScreen.harness";
-
-/** Eleven standing in the 4-4-2, each playing his cell's area. */
-const IN_A_442 = (() => {
-  const starters = FIRST_RULES.presets.find(({ name }) => name === "4-4-2")!.cells.map((cell, index) => ({ playerCode: index + 1, ...cell }));
-  const squad = starters.map(({ playerCode, area }) => member(playerCode, `Player ${playerCode}`, area === "goalkeeper" ? ["GK"] : area === "defence" ? ["CB", "FB"] : area === "attack" ? ["ST"] : ["CM", "WM"]));
-  return { tactics: openTactics({ squad, lineup: { ...SAVED.lineup, starters, bench: [] } }) };
-})();
+import { IN_A_442, openedPitch } from "../../../support/src/tacticsScreen.harness";
 
 /** The window, opened from All formations; with `in442`, over a side standing in the 4-4-2. */
 const opened = async (in442 = false) => {

@@ -7,21 +7,12 @@ import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
 import { DEFAULT_CLASSICS } from "../../../../convex/lineup/classics";
 import { sameCell } from "../../../../convex/lineup/pitch";
-import { FIRST_RULES } from "../../../../convex/rules/firstRules";
 import { applyWords, CLASSICS, classicTitleWords, inUseWords, WINDOW_TITLE } from "../../../../src/myTeam/tactics/formationWindow/words";
 import { allFormationsWords, customWords, pitchTitle, roleLabel } from "../../../../src/myTeam/tactics/words";
 import { league } from "../../../support/src/shell.harness";
-import { openTactics } from "../../../support/src/tactics.harness";
-import { member, openedPitch, pickFormation, SAVED } from "../../../support/src/tacticsScreen.harness";
+import { IN_A_442, openedPitch, pickFormation } from "../../../support/src/tacticsScreen.harness";
 
 const keegans = DEFAULT_CLASSICS.find(({ name }) => name === "Keegan's Newcastle")!;
-
-/** Eleven standing in the 4-4-2, each playing his cell's area, on their slots' first roles. */
-const IN_A_442 = (() => {
-  const starters = FIRST_RULES.presets.find(({ name }) => name === "4-4-2")!.cells.map((cell, index) => ({ playerCode: index + 1, ...cell }));
-  const squad = starters.map(({ playerCode, area }) => member(playerCode, `Player ${playerCode}`, area === "goalkeeper" ? ["GK"] : area === "defence" ? ["CB", "FB"] : area === "attack" ? ["ST"] : ["CM", "WM"]));
-  return { tactics: openTactics({ squad, lineup: { ...SAVED.lineup, starters, bench: [] } }) };
-})();
 
 const openClassics = async () => {
   await userEvent.click(screen.getByRole("button", { name: allFormationsWords }));

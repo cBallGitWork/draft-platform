@@ -4,6 +4,7 @@
 import { fireEvent, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { LANES, type Cell } from "../../../convex/lineup/pitch";
+import { FIRST_RULES } from "../../../convex/rules/firstRules";
 import { ROWS_DRAWN } from "../../../src/myTeam/tactics/pitch/rowLayout";
 import type { Position } from "../../../convex/positions/positionTables";
 import { MY_TEAM_PATH } from "../../../src/frame/menu";
@@ -49,7 +50,14 @@ export const SAVED = openTactics({
   lineup: { fromGameweek: TACTICS_GAMEWEEK, starters: STARTERS, bench: [ARRIZABALAGA.playerCode, WHITE.playerCode], leftSquad: [], joinedBench: [], vacated: [] },
 });
 
-export const openTacticsTab = (myTeam: MyTeamData = { tactics: SAVED }, session = manager) => openApp(MY_TEAM_PATH, session, { myTeam });
+/** Eleven standing in the 4-4-2, each playing his cell's area, on their slots' first roles. */
+export const IN_A_442: MyTeamData & { tactics: OpenTactics } = (() => {
+  const starters = FIRST_RULES.presets.find(({ name }) => name === "4-4-2")!.cells.map((cell, index) => ({ playerCode: index + 1, ...cell }));
+  const squad = starters.map(({ playerCode, area }) => member(playerCode, `Player ${playerCode}`, area === "goalkeeper" ? ["GK"] : area === "defence" ? ["CB", "FB"] : area === "attack" ? ["ST"] : ["CM", "WM"]));
+  return { tactics: openTactics({ squad, lineup: { ...SAVED.lineup, starters, bench: [] } }) };
+})();
+
+export const openTacticsTab =(myTeam: MyTeamData = { tactics: SAVED }, session = manager) => openApp(MY_TEAM_PATH, session, { myTeam });
 export const pitch = () => screen.getByRole("group", { name: pitchLabel });
 export const selectionTable = () => screen.getByRole("table", { name: squadTableLabel });
 /** Each row of the Selection table under its heads, as its words read; the bench's plate as its

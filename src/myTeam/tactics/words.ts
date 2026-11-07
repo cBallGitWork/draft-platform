@@ -17,7 +17,8 @@ export const seasonOverWords = "Every gameweek has begun, so there's no lineup l
 
 const positionsWords = (positions: readonly string[]) => positions.join(listSeparator);
 
-/** The pitch's panel: its plate names the formation the eleven stand in, where it is a preset. */
+/** The pitch's panel: its plate names the formation the eleven stand in, where it is a preset or a
+ *  classic. */
 export const pitchTitle = (formation: string | null) => (formation === null ? "Pitch" : `Pitch ${formation}`);
 /** A classic once its manager has changed a role (spec/05; Craig, 6 Nov 2026). */
 export const customWords = (classic: string) => `${classic} (custom)`;

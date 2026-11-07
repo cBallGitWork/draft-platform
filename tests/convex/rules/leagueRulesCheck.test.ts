@@ -20,7 +20,8 @@ test("the first rules are sound", () => {
   expect(() => checkLeagueRules(FIRST_RULES)).not.toThrow();
 });
 
-test("no squad limits, no club limit, no presets, no classics and no tie-breaks are all sound", () => {
+test("no squad limits, no club limit, no presets and no tie-breaks are all sound", () => {
+  // With no presets, no classic has one to stand in, so there are none.
   const free = rulesWith({ squad: { size: null, minimumByArea: null, maxPerClub: null }, presets: [], classics: [], tieBreaks: [] });
   expect(() => checkLeagueRules(free)).not.toThrow();
 });
