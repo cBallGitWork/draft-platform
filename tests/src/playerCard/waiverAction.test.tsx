@@ -19,7 +19,7 @@ import {
   whoGoesLabel,
 } from "../../../src/playerCard/words";
 import { HELD, openCard, RICE, SAKA } from "../../support/src/playerCardScreen.harness";
-import { league } from "../../support/src/shell.harness";
+import { league, manager } from "../../support/src/shell.harness";
 
 const FIRST_RUN = Date.parse("2026-11-12T18:00:00Z");
 const SQUAD = [
@@ -79,6 +79,17 @@ describe("a free agent", () => {
     await userEvent.selectOptions(screen.getByLabelText(whoGoesLabel), "Mbeumo");
     await userEvent.click(screen.getByRole("button", { name: pickUpWords }));
     expect(app.playerCard.waiverChanges.pickUp).toHaveBeenLastCalledWith(league.leagueId, RICE.code, 2001);
+  });
+
+  it("drops a choice made for a claim once he leaves waivers", async () => {
+    const actions = new Map<number, CardAction>([[RICE.code, { kind: "claim", firstRunAt: FIRST_RUN, squad: SQUAD }]]);
+    const app = openCard(RICE, { ...HELD, actions });
+    await userEvent.selectOptions(await screen.findByLabelText(whoGoesLabel), "Wissa");
+
+    actions.set(RICE.code, { kind: "pickUp", squad: SQUAD });
+    app.becomes({ ...manager });
+    await userEvent.click(await screen.findByRole("button", { name: pickUpWords }));
+    expect(app.playerCard.waiverChanges.pickUp).toHaveBeenCalledWith(league.leagueId, RICE.code, null);
   });
 });
 

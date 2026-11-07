@@ -27,9 +27,13 @@ export function WaiverAction({ leagueId, card, seam }: { leagueId: Id<"leagues">
   const changes = seam.useWaiverChanges();
   const change = useChange();
   const [confirming, setConfirming] = useState(false);
-  const [whoGoes, setWhoGoes] = useState<number | null>(null);
+  const [choice, setChoice] = useState<{ kind: CardAction["kind"]; code: number | null }>({ kind: "none", code: null });
   const [claimed, setClaimed] = useState(false);
   if (action === undefined || action.kind === "none") return null;
+  // A choice made for a claim is dropped once the player turns free agent, and the other way round.
+  const kind = action.kind;
+  const whoGoes = choice.kind === kind ? choice.code : null;
+  const setWhoGoes = (code: number | null) => setChoice({ kind, code });
 
   function keep() {
     setConfirming(false);
