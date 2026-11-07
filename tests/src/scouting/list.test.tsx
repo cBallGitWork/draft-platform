@@ -20,14 +20,14 @@ import {
   noneMatchWords,
   noPointsYetWords,
   noRoleFitYetWords,
-  noWaiversWords,
+  onWaiversWords,
   positionLabel,
   SCOUTING_TITLE,
 } from "../../../src/scouting/words";
 import { POSITION_NAMES } from "../../../src/shared/words";
 import { ARSENAL } from "../../support/convex/footballRows.harness";
 import { columnHeadIn } from "../../support/src/columnHeads";
-import { HELD, lastAsk, namesShown, openScouting, rowOf, table } from "../../support/src/scoutingScreen.harness";
+import { HELD, lastAsk, namesShown, openScouting, RICE, rowOf, table } from "../../support/src/scoutingScreen.harness";
 import { commissioner, league, manager, managerIn, miniBeta, openApp } from "../../support/src/shell.harness";
 
 describe("reaching it", () => {
@@ -111,11 +111,28 @@ describe("the filters ask the server", () => {
     expect(namesShown()).toEqual(names);
   });
 
-  it("on waivers keeps nobody, and says the app doesn't run waivers yet", async () => {
+  it("on waivers keeps those on waivers, each saying the run that can first take him, and free agents leaves them out (#1200)", async () => {
+    const firstRunAt = Date.parse("2026-11-12T18:00:00Z");
+    const james = { ...RICE, code: 9, name: "James", onWaivers: { firstRunAt } };
+    openScouting({ ...HELD, players: [...HELD.players!, james] });
+    await userEvent.click(await screen.findByRole("radio", { name: availabilityWords.onWaivers }));
+    expect(namesShown()).toEqual(["James"]);
+    expect(rowOf("James").textContent).toContain(onWaiversWords(firstRunAt));
+    expect(onWaiversWords(firstRunAt)).toMatch(/^Waivers, Thu \d\d:\d\d$/);
+
+    await userEvent.click(screen.getByRole("radio", { name: availabilityWords.freeAgents }));
+    expect(namesShown()).toEqual(["Rice"]);
+  });
+
+  it("on waivers with nobody on them says none matches", async () => {
     openScouting();
     await userEvent.click(await screen.findByRole("radio", { name: availabilityWords.onWaivers }));
-    expect(screen.getByText(noWaiversWords)).toBeTruthy();
+    expect(screen.getByText(noneMatchWords)).toBeTruthy();
     expect(screen.queryByRole("table")).toBeNull();
+  });
+
+  it("a player on waivers with no run times set says just Waivers", () => {
+    expect(onWaiversWords(null)).toBe("Waivers");
   });
 
   it("by position", async () => {

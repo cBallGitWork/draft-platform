@@ -60,11 +60,7 @@ export function leagueTableFrom({
     gameweeks: schedule.map((drawn) => ({
       gameweek: drawn.gameweek,
       deadline: deadlineOf(drawn.gameweek),
-      fixtures: drawn.fixtures.map((each) => {
-        const scored = results.get(drawn.gameweek);
-        const score = scored === undefined ? null : gameScore(teamsInGameweek(drawn), scored, drawn.gameweek, each.team, each.opponent);
-        return { teamId: each.team, ...namedFixture(each, named), points: score === null ? null : { team: score.team, opponent: score.opponent } };
-      }),
+      fixtures: scoredFixtures(drawn, results, named),
       byes: drawn.byes.map(named),
     })),
     table: table.map(({ team, ...row }) => ({ teamId: team, teamName: named(team), ...row })),
@@ -74,6 +70,16 @@ export function leagueTableFrom({
     })),
     unscored,
   };
+}
+
+/** The gameweek's fixtures, each with both sides' points once the gameweek is scored, live until
+ *  final: the table's and league home's. */
+export function scoredFixtures(drawn: GameweekFixtures<TeamId>, results: Results, named: (teamId: TeamId) => string): LeagueTable["gameweeks"][number]["fixtures"] {
+  const scored = results.get(drawn.gameweek);
+  return drawn.fixtures.map((each) => {
+    const score = scored === undefined ? null : gameScore(teamsInGameweek(drawn), scored, drawn.gameweek, each.team, each.opponent);
+    return { teamId: each.team, ...namedFixture(each, named), points: score === null ? null : { team: score.team, opponent: score.opponent } };
+  });
 }
 
 /** `team`'s games in the league, each scored once its gameweek is, as `ofMyTeam` sends them. */

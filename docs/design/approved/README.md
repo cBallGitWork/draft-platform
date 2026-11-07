@@ -47,3 +47,5 @@ Named after its route: `team` for `/team`, `team-squad` for `/team/squad`.
 - [`join`](join/README.md): Join, a league's invite link (1 Nov 2026).
 - [`draft-room`](draft-room/README.md): The draft room, live, before the start and a slow draft
   (4 Nov 2026).
+- [`player-card`](player-card/README.md): The player card, for now: it has yet to scale to other
+  leagues (7 Nov 2026).
