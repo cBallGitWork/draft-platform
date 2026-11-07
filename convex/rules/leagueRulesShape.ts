@@ -1,5 +1,6 @@
 import { v, type Infer } from "convex/values";
 import { UNDRAFTED_GO_TO } from "../draft/draftRules";
+import { instructionPairShape, instructionShape } from "../lineup/instructionsShape";
 import { byArea, cellShape } from "../lineup/pitchShape";
 import { scoringSetShape } from "../scoring/scoringSetShape";
 import { DOUBLE_GAMEWEEK_RULES } from "../scoring/values";
@@ -17,7 +18,13 @@ import { TIE_BREAKS } from "../table/standings";
 const limit = v.object({ minimum: v.number(), maximum: v.number() });
 
 /** presets.ts's Preset. */
-const preset = v.object({ name: v.string(), cells: v.array(cellShape) });
+const preset = v.object({
+  name: v.string(),
+  cells: v.array(cellShape),
+  /** Its default team instructions (#990): absent only from presets saved before them, which read
+   *  instructions.ts's first defaults. */
+  instructions: v.optional(instructionPairShape),
+});
 
 /** A preset as rows hold it: one saved between #988 and #1159 may also carry the role its
  *  defence's centre started on, dropped with the sweeper and libero presets (Craig, 5 Nov 2026),
@@ -78,6 +85,10 @@ export const leagueRulesShape = v.object({
   /** How the draft runs (spec/04; #1087). Absent, as `oddTeamOut` is, only from rules saved before
    *  #1087, which play the first rules' (firstRules.ts, `draftRulesOf`). */
   draft: v.optional(draftRulesShape),
+  /** The team instructions a manager picks from (spec/05, Team instructions; #990). Absent, as
+   *  `draft` is, only from rules saved before #990, which play the first rules' (firstRules.ts,
+   *  `instructionsOf`). */
+  instructions: v.optional(v.array(instructionShape)),
 });
 
 export type LeagueRules = Infer<typeof leagueRulesShape>;

@@ -222,6 +222,7 @@ const RULES_PART_WORDS: Record<keyof LeagueRules | "scoring", string> = {
   gamesPerGameweek: "games a gameweek",
   waivers: "waivers",
   draft: "draft settings",
+  instructions: "team instructions",
   scoring: "scoring",
 };
 
