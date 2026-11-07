@@ -2,11 +2,16 @@
 
 import { useSyncExternalStore } from "react";
 import { vi } from "vitest";
-import { FIRST_RULES } from "../../../convex/rules/firstRules";
+import { FIRST_RULES, instructionsOf } from "../../../convex/rules/firstRules";
+import { firstPairFor } from "../../../convex/lineup/instructions";
 import type { LineupChanges, OpenTactics, Plan, PlanChanges, Tactics, TacticsSeam } from "../../../src/myTeam/tactics/seam";
 
 /** The gameweek the fake server sets a lineup for, unless a test says. */
 export const TACTICS_GAMEWEEK = 9;
+
+/** The team instructions the fake server holds in force, unless a test says: a back four's first
+ *  defaults, Play out from the back and Keep it tight early. A save sends them with the lineup. */
+export const OPEN_PICKED = firstPairFor([]);
 
 /** An open gameweek under the first rules, with this squad and lineup: an empty squad and its
  *  empty first lineup, and no deadline, unless a test says. */
@@ -16,6 +21,8 @@ export const openTactics = (change: Partial<OpenTactics> = {}): OpenTactics => (
   deadline: null,
   areaLimits: FIRST_RULES.areaLimits,
   presets: FIRST_RULES.presets,
+  instructions: [...instructionsOf(FIRST_RULES)],
+  picked: OPEN_PICKED,
   squad: [],
   lineup: { fromGameweek: TACTICS_GAMEWEEK, starters: [], bench: [], leftSquad: [], joinedBench: [], vacated: [] },
   ...change,

@@ -1,5 +1,6 @@
 import { defineTable } from "convex/server";
 import { v } from "convex/values";
+import { instructionPairShape } from "../lineup/instructionsShape";
 import { cellShape } from "../lineup/pitchShape";
 
 // Each team's lineup (#8, spec/05): one row for each gameweek it was saved from, its first
@@ -27,6 +28,9 @@ export const lineupTables = {
     /** True while it is the team's first lineup, picked from its squad and picked again as the
      *  squad changes (lineups.ts); absent once its manager has saved one. */
     firstLineup: v.optional(v.literal(true)),
+    /** The team's attacking and defensive instruction by key (spec/05, Team instructions; #990);
+     *  absent until its manager picks: the formation's defaults (lineup/instructions.ts). */
+    instructions: v.optional(instructionPairShape),
   }).index("by_leagueId_and_teamId_and_fromGameweek", ["leagueId", "teamId", "fromGameweek"]),
   /** Each team's saved plans (spec/05, Saved plans; #992): a formation and every slot's role, by
    *  name, never players. lineup/savedPlans.ts writes and reads them. */

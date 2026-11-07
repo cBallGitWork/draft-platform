@@ -48,7 +48,7 @@ import {
   swaps,
   type Member,
 } from "../../../support/src/tacticsScreen.harness";
-import { openTactics } from "../../../support/src/tactics.harness";
+import { OPEN_PICKED, openTactics } from "../../../support/src/tactics.harness";
 import { roleIn } from "../../../../convex/lineup/roles";
 import { starsLabel } from "../../../../src/ui/StarRating";
 
@@ -124,6 +124,7 @@ describe("moving a player", () => {
     expect(app.myTeam.lineupChanges.save).toHaveBeenLastCalledWith(league.leagueId, {
       starters: [at(ARRIZABALAGA, { area: "goalkeeper", lane: "centre" }), ...STARTERS.slice(1)],
       bench: [RAYA.playerCode, WHITE.playerCode],
+      instructions: OPEN_PICKED,
     });
   });
 
@@ -223,7 +224,7 @@ describe("the bench order (spec/05 Auto-subs; Craig, 26 Oct 2026)", () => {
     const app = await openedPitch();
     await openPanel(WHITE);
     await userEvent.click(up(WHITE));
-    expect(app.myTeam.lineupChanges.save).toHaveBeenCalledWith(league.leagueId, { starters: STARTERS, bench: [WHITE.playerCode, ARRIZABALAGA.playerCode] });
+    expect(app.myTeam.lineupChanges.save).toHaveBeenCalledWith(league.leagueId, { starters: STARTERS, bench: [WHITE.playerCode, ARRIZABALAGA.playerCode], instructions: OPEN_PICKED });
   });
 });
 

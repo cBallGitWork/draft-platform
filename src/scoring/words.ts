@@ -122,6 +122,11 @@ export const saveDraftFirstWords = "Save the draft to announce it.";
 export const noPatchGameweekWords = "No gameweek is far enough off for a patch's notice.";
 export const draftFailedWords = failedWords("the draft wasn't saved");
 export const announceFailedWords = failedWords("the patch wasn't announced");
+/** The rule balance lab on the draft patch (spec/14; #843): run on the saved draft, saving nothing. */
+export const runLabWords = "Run the lab";
+export const runningLabWords = "Running the lab on the past seasons…";
+export const saveDraftToRunLabWords = "Save the draft to run the lab on it.";
+export const labFailedWords = failedWords("the lab didn't run");
 
 /** The versions list. */
 export const versionsTitle = "Versions";

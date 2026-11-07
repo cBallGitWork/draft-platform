@@ -17,7 +17,7 @@ import { scoreTeam, type PlayerMatch, type SlotPoints, type TeamPoints } from ".
 import { playerByCode } from "../shared/players";
 import { readOnce } from "../shared/readOnce";
 import { MINUTES_STAT, statsIfWhole } from "../stats/matchRecords";
-import { heldMatches, isFinished, isMatchFinal, isPostponed, playsIn, type HeldMatch } from "./heldMatches";
+import { heldMatches, isFinished, isMatchFinal, isPostponed, playsIn, teamOverridesIn, type HeldMatch } from "./heldMatches";
 import { deadlineStarsIn } from "../stars/deadlineStars";
 import type { RoleStars } from "../stars/starsShape";
 
@@ -79,6 +79,8 @@ export interface GameweekInputs {
   lineups: ReadonlyMap<TeamId, HeldLineup>;
   /** Each team's bench players' stars kept at the deadline, which pick an auto-sub's role. */
   deadlineStars: ReadonlyMap<TeamId, ReadonlyMap<PlayerCode, RoleStars[]>>;
+  /** The league's overrides of teams' totals in the gameweek (#903): each its team's total. */
+  teamOverrides: ReadonlyMap<TeamId, Doc<"teamOverrides">>;
 }
 
 /** The gameweek's inputs. A set holding a rule no longer sound throws (#287). A caller that has
@@ -97,6 +99,7 @@ export async function gameweekInputs(
     matches: await heldMatches(ctx, reads.leagueId, fixtures),
     lineups: lineups ?? (await lineupsInGameweek(ctx, reads.leagueId, teamIds, gameweek)),
     deadlineStars: await deadlineStarsIn(ctx, reads.leagueId, gameweek),
+    teamOverrides: await teamOverridesIn(ctx, reads.leagueId, gameweek),
   };
 }
 
@@ -136,8 +139,12 @@ export async function teamInGameweek(reads: LeagueReads, inputs: GameweekInputs,
     const { clubCode, positions: hisPositions } = await reads.player(code);
     // One the football sync doesn't hold is data gone wrong: he scores as if he didn't play, with no
     // match, so a starter is subbed and a bench player never comes on (Craig, 31 Oct 2026, #810;
-    // spec/05 Auto-subs). Once the sync holds him again, he scores as any other man.
-    const hisMatches = clubCode === null ? [] : matches.filter((match) => match.records.has(code) || playsIn(match.fixture, clubCode));
+    // spec/05 Auto-subs), but for a match the league has overridden his points in: "we can always
+    // admin update later" (#810; spec/14 S14.5). There his saved record says whether he played.
+    // Once the sync holds him again, he scores as any other man.
+    const hisMatches = matches.filter((match) =>
+      clubCode === null ? match.overrides.has(code) : match.records.has(code) || playsIn(match.fixture, clubCode),
+    );
     positions.set(code, hisPositions);
     matchesOf.set(code, hisMatches);
     playerMatches.set(code, hisMatches.map((match) => forPoints(match, code)));
@@ -176,7 +183,7 @@ export interface ScoredInMatch {
 
 /** Each of his matches as his slot scored it. scoreTeam scores a man's matches in the order
  *  matchesOf holds them, so this is the one place that pairs a match with its points. */
-function scoredByMatch(slot: SlotPoints, matches: readonly HeldMatch[]): ScoredInMatch[] {
+export function scoredByMatch(slot: SlotPoints, matches: readonly HeldMatch[]): ScoredInMatch[] {
   return matches.map((match, index) => ({ match, points: slot.matches[index], counted: slot.matchesCounted[index] }));
 }
 

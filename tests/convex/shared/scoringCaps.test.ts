@@ -9,7 +9,7 @@ import { OWNED_IN_LEAGUE_MOST, type PlayersFilters, type PlayersSort } from "../
 import { GAMEWEEK_MATCHES_MOST } from "../../../convex/shared/fixtures";
 import { PLAYER_RECORDS_MOST } from "../../../convex/stats/matchRecords";
 import { LEAGUE_OVERRIDES_MOST } from "../../../convex/stats/seasonPoints";
-import { thresholdStepsOf, THRESHOLD_STEPS_MOST } from "../../../convex/stats/thresholdSteps";
+import { thresholdStepsOf, THRESHOLD_STEP_READS_MOST, THRESHOLD_STEPS_MOST } from "../../../convex/stats/thresholdSteps";
 import { LEAGUES_READ_MOST } from "../../../convex/shared/cappedRead";
 import { leagueScores } from "../../../convex/gameweekScorer/gameweekScores";
 import { heldFixtures, MATCH_OVERRIDES_MOST, MATCH_RECORDS_MOST } from "../../../convex/gameweekScorer/heldMatches";
@@ -233,6 +233,18 @@ test(`a match's threshold steps: ${THRESHOLD_STEPS_MOST} are read, one more thro
     ),
     () => league.t.run((ctx) => thresholdStepsOf(ctx, HULL_EVERTON)),
     `Match ${HULL_EVERTON} holds more than ${THRESHOLD_STEPS_MOST} threshold steps, so some would be left out`,
+  );
+});
+
+test(`a match's reads of threshold steps: ${THRESHOLD_STEP_READS_MOST} are read, one more throws`, ROWS_TO_THE_CAP, async () => {
+  await readsToTheCapThenThrows(
+    THRESHOLD_STEP_READS_MOST,
+    holdRows(
+      async (ctx) => (await ctx.db.query("thresholdStepReads").collect()).length,
+      (ctx) => ctx.db.insert("thresholdStepReads", { fixtureCode: HULL_EVERTON, minute: null, steps: [{ playerCode: PHILLIPS, stat: "minutes", from: 0, to: 1, minutes: 1 }] }),
+    ),
+    () => league.t.run((ctx) => thresholdStepsOf(ctx, HULL_EVERTON)),
+    `Match ${HULL_EVERTON} holds more than ${THRESHOLD_STEP_READS_MOST} reads' threshold steps, so some would be left out`,
   );
 });
 

@@ -8,10 +8,12 @@ import { gamesIn, standingOf } from "../../header/teamStanding";
 import type { LeagueTable } from "../../../table/seam";
 import { startersInOrder, type DraftLineup, type SquadMember } from "../lineupDraft";
 import { positionMarksOf } from "../positionMarks";
-import { LINEUP_CHECK_TITLE, lineupCheckPlaceholder, opponentTitle, outOfPositionLineWords, TEAM_TACTIC_TITLE, teamTacticPlaceholder } from "../words";
+import { instructionsTitle, LINEUP_CHECK_TITLE, lineupCheckPlaceholder, opponentTitle, outOfPositionLineWords, pickedWords, SIDE_WORDS } from "../words";
+import { offeredOn, SIDES, type Instruction, type InstructionPair } from "../../../../convex/lineup/instructions";
+import type { Cell } from "../../../../convex/lineup/pitch";
 
 // The Tactics tab's widgets, each a panel with its title plate (plate.md, Tables and panels): the
-// lineup check under the pitch, and the team tactic and the gameweek's opponent down the right.
+// lineup check under the pitch, and the team instructions and the gameweek's opponent down the right.
 
 /** Who to look at before the deadline: a line for each starter out of position, his name selecting
  *  him (#23; Craig, 6 Nov 2026), in the pitch's order; above what waits on the status chips' data
@@ -44,13 +46,36 @@ export function LineupCheck({ draft, squad, onSelect }: { draft: DraftLineup; sq
   );
 }
 
-/** The team tactic the formation unlocks: unspecced (SPEC.md, Second release; to-grill: Team tactic
- *  per formation), so a placeholder in its place and size. */
-export function TeamTacticWidget() {
+/** The team instructions the formation unlocks (spec/05, Team instructions; #990): each side's
+ *  offered ones, with what each rewards and costs, the picked one marked. */
+export function TeamInstructionsWidget({
+  formation,
+  cells,
+  instructions,
+  picked,
+}: {
+  formation: string | null;
+  cells: readonly Cell[];
+  instructions: readonly Instruction[];
+  picked: InstructionPair;
+}) {
   return (
-    <Panel title={TEAM_TACTIC_TITLE}>
-      <div className="p-3">
-        <Placeholder label={teamTacticPlaceholder} className="h-32 w-full" />
+    <Panel title={instructionsTitle(formation)}>
+      <div className="flex flex-col gap-3 p-3">
+        {SIDES.map((side) => (
+          <section key={side} aria-label={SIDE_WORDS[side]}>
+            <h3 className="text-soft">{SIDE_WORDS[side]}</h3>
+            <ul>
+              {offeredOn(side, cells, instructions).map(({ key, name, description }) => (
+                <li key={key} aria-current={key === picked[side] || undefined}>
+                  <span className={key === picked[side] ? "font-semibold" : undefined}>{name}</span>
+                  {key === picked[side] && <span className="text-soft"> {pickedWords}</span>}
+                  <p className="text-soft">{description}</p>
+                </li>
+              ))}
+            </ul>
+          </section>
+        ))}
       </div>
     </Panel>
   );

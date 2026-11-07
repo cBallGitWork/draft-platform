@@ -32,6 +32,7 @@ export const mine = query({
   returns: v.array(planShape),
   handler: async (ctx, { leagueId }) => {
     const { team } = await managerOf(ctx, leagueId);
+    // save refuses a sixth, so a team never holds more than PLANS_KEPT: the bound cuts nothing.
     const rows = await plansOf(ctx, leagueId, team._id).take(PLANS_KEPT);
     return rows.toSorted((one, other) => one._creationTime - other._creationTime).map(({ name, slots }) => ({ name, slots }));
   },

@@ -16,7 +16,7 @@ import { useChoiceAmong } from "../shared/useChoiceAmong";
 import { CategoryEditor } from "./CategoryEditor";
 import { firstBlankRule, newRule, rulePricing, valueAt, withOwnStat, type OwnStatMade, type PerCount, type Rule, type Scoring } from "./editing";
 import { OwnStatMaker } from "./OwnStatMaker";
-import { AnnounceBar, VersionsPanel } from "./Patches";
+import { AnnounceBar, LabPanel, VersionsPanel } from "./Patches";
 import type { ScoringSeam, ScoringView } from "./seam";
 import {
   addCategoryLabel,
@@ -95,7 +95,12 @@ function DraftEditor({ seam, view }: { seam: ScoringSeam; view: ScoringView }) {
       view={draftView}
       save={(part, from) => seam.saveDraft(part, from.site, from.savedAt)}
       bar={{ savedWords: () => draftSavedWords, saveLabel: saveDraftWords, appliesFrom: false }}
-      after={(edited) => <AnnounceBar announce={seam.announce} savedAt={edited ? null : savedAt} gameweeks={view.patchGameweeks} />}
+      after={(edited) => (
+        <>
+          <AnnounceBar announce={seam.announce} savedAt={edited ? null : savedAt} gameweeks={view.patchGameweeks} />
+          <LabPanel runLab={seam.runLab} savedAt={edited ? null : savedAt} />
+        </>
+      )}
     />
   );
 }
