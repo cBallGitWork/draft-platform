@@ -11,6 +11,7 @@ import { DAY_MS, HOUR_MS, MINUTE_MS } from "../../../../convex/shared/time";
 import { MY_TEAM_PATH } from "../../../../src/frame/menu";
 import {
   BENCH_TITLE,
+  closePanelLabel,
   emptyBenchWords,
   joinedBenchWords,
   pitchLabel,
@@ -82,6 +83,20 @@ describe("reaching it", () => {
     const app = openTacticsTab({ tactics: { kind: "seasonOver" } });
     await screen.findByText(seasonOverWords);
     expect(app.myTeam.useTacticsOpened).toHaveBeenLastCalledWith(league.leagueId, null);
+  });
+
+  it("opens with the player the address names selected, his panel open (#1008)", async () => {
+    openApp(`${MY_TEAM_PATH}?player=${WHITE.playerCode}`, manager, { myTeam: { tactics: SAVED } });
+    expect(await screen.findByRole("button", { name: closePanelLabel(WHITE.name) })).toBeTruthy();
+  });
+
+  it.each([
+    ["a player not in the squad", "999"],
+    ["something that isn't a player's code", "white"],
+  ])("opens with no panel for %s", async (_, player) => {
+    openApp(`${MY_TEAM_PATH}?player=${player}`, manager, { myTeam: { tactics: SAVED } });
+    await screen.findByRole("group", { name: pitchLabel });
+    expect(screen.queryByRole("button", { name: /^Close .*'s panel$/ })).toBeNull();
   });
 });
 
