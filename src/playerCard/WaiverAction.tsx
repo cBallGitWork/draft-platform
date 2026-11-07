@@ -39,7 +39,9 @@ export function WaiverAction({ leagueId, card, seam }: { leagueId: Id<"leagues">
   async function claimOrPickUp(kind: "claim" | "pickUp") {
     setClaimed(false);
     const made = await change.run(() => changes[kind](leagueId, card.code, whoGoes));
-    if (made && kind === "claim") setClaimed(true);
+    if (!made) return;
+    setWhoGoes(null);
+    setClaimed(kind === "claim");
   }
 
   return (

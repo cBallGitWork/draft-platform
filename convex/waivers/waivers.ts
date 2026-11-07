@@ -81,7 +81,8 @@ export const stateOf = query({
   },
 });
 
-const squadPlayer = v.object({ playerCode: v.number(), playerName: v.string() });
+/** A player a claim or the card names, by code and name. */
+export const namedPlayer = v.object({ playerCode: v.number(), playerName: v.string() });
 
 const cardAction = v.union(
   /** Nothing to do: he is on another team, or the caller runs no team in the league. */
@@ -89,8 +90,8 @@ const cardAction = v.union(
   /** He is in the caller's squad. */
   v.object({ kind: v.literal("drop") }),
   /** On waivers: `firstRunAt` is the run that can first take him, or null with no run times set. */
-  v.object({ kind: v.literal("claim"), firstRunAt: v.union(v.number(), v.null()), squad: v.array(squadPlayer) }),
-  v.object({ kind: v.literal("pickUp"), squad: v.array(squadPlayer) }),
+  v.object({ kind: v.literal("claim"), firstRunAt: v.union(v.number(), v.null()), squad: v.array(namedPlayer) }),
+  v.object({ kind: v.literal("pickUp"), squad: v.array(namedPlayer) }),
 );
 export type CardAction = Infer<typeof cardAction>;
 

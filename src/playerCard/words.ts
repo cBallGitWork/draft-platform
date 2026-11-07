@@ -109,7 +109,7 @@ export const overrideFailedWords = "The override couldn't be saved. Try again.";
 
 /** The card's waiver action (#1200, spec/08): the words stay waivers, claim, drop and free agent. */
 export const dropWords = "Drop";
-export const confirmDropWords = (name: string) => `Drop ${name}? He goes on waivers.`;
+export const confirmDropWords = (name: string) => `Drop ${name}?`;
 export const keepWords = "Keep him";
 export const claimWords = "Claim";
 export const pickUpWords = "Pick up";
