@@ -1,5 +1,8 @@
 import { STARTER_COUNT, type AreaLimit } from "../lineup/lineup";
 import { AREAS, type Area } from "../lineup/pitch";
+import { inClassicShape } from "../lineup/classics";
+import { isInstruction } from "../lineup/instructions";
+import { offersRole } from "../lineup/roles";
 import type { DraftRules, LeagueRules } from "./leagueRulesShape";
 import { PICK_SECONDS_FEWEST, PICK_SECONDS_MOST, TIMEOUTS_FEWEST, TIMEOUTS_MOST } from "../draft/draftLimits";
 import { MOST_IN_SQUAD } from "../leagues/leagueLimits";
@@ -19,6 +22,7 @@ export function checkLeagueRules(rules: LeagueRules, maxTeams?: number): void {
   checkSquad(rules.squad);
   checkAreaLimits(rules.areaLimits);
   checkPresets(rules.presets, rules.areaLimits);
+  if (rules.classics !== undefined) checkClassics(rules.classics, rules.presets);
   checkWholeNumber(rules.deadline.minutesBeforeFirstKickoff, "The deadline's minutes before the first kickoff", 0);
   checkNoneTwice(rules.tieBreaks, (tieBreak) => `The tie-break ${tieBreak} is listed twice.`);
   if (rules.gamesPerGameweek !== undefined) {
@@ -131,6 +135,28 @@ function checkPresets(presets: LeagueRules["presets"], limits: Record<Area, Area
       if (standing < minimum || standing > maximum) {
         throw new UnsoundRules(`The preset ${name} puts ${standing} in ${area}, outside its limits of ${minimum} to ${maximum}.`);
       }
+    }
+  }
+}
+
+/** Each classic named once, standing in one of the league's presets (Craig, 6 Nov 2026: "Yes, one
+ *  of ours"), with a role its slot offers in it and one instruction a side (spec/05). */
+function checkClassics(classics: NonNullable<LeagueRules["classics"]>, presets: LeagueRules["presets"]): void {
+  checkNoneTwice(
+    classics.map((classic) => classic.name.trim()),
+    (name) => `Two classics are called "${name}".`,
+  );
+  for (const classic of classics) {
+    const { name, cells, instructions } = classic;
+    if (name.trim() === "") throw new UnsoundRules("A classic needs a name.");
+    if (!presets.some((preset) => inClassicShape(preset.cells, classic))) {
+      throw new UnsoundRules(`The classic ${name} stands in no formation of the league's.`);
+    }
+    for (const cell of cells) {
+      if (!offersRole(cell, cell.role, cells)) throw new UnsoundRules(`The classic ${name} gives its ${cell.area} ${cell.lane} slot the role ${cell.role}, which that slot doesn't offer.`);
+    }
+    for (const side of ["attacking", "defensive"] as const) {
+      if (!isInstruction(side, instructions[side])) throw new UnsoundRules(`The classic ${name}'s ${side} instruction, ${instructions[side]}, isn't one.`);
     }
   }
 }

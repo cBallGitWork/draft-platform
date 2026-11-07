@@ -13,14 +13,15 @@ import { MOST_IN_SQUAD } from "../../../convex/leagues/leagueLimits";
 
 const [firstPreset] = FIRST_RULES.presets;
 const limits = FIRST_RULES.areaLimits;
+const keegans = FIRST_RULES.classics!.find(({ name }) => name === "Keegan's Newcastle")!;
 const FRIDAY_9_05 = { day: "friday", hour: 9, minute: 5 } as const;
 
 test("the first rules are sound", () => {
   expect(() => checkLeagueRules(FIRST_RULES)).not.toThrow();
 });
 
-test("no squad limits, no club limit, no presets and no tie-breaks are all sound", () => {
-  const free = rulesWith({ squad: { size: null, minimumByArea: null, maxPerClub: null }, presets: [], tieBreaks: [] });
+test("no squad limits, no club limit, no presets, no classics and no tie-breaks are all sound", () => {
+  const free = rulesWith({ squad: { size: null, minimumByArea: null, maxPerClub: null }, presets: [], classics: [], tieBreaks: [] });
   expect(() => checkLeagueRules(free)).not.toThrow();
 });
 
@@ -109,6 +110,29 @@ describe.each<[string, Partial<LeagueRules>, string]>([
     "a preset the league's own area limits forbid",
     { areaLimits: { ...limits, attack: { minimum: 0, maximum: 1 } } },
     "The preset 4-4-2 puts 2 in attack, outside its limits of 0 to 1.",
+  ],
+  // A classic stands in one of the league's presets (Craig, 6 Nov 2026, on #991).
+  ["a classic with no name", { classics: [{ ...keegans, name: " " }] }, "A classic needs a name."],
+  ["two classics of one name", { classics: [keegans, { ...keegans }] }, `Two classics are called "Keegan's Newcastle".`],
+  [
+    "a classic whose formation the league has dropped",
+    { presets: FIRST_RULES.presets.filter(({ name }) => name !== "4-4-2") },
+    "The classic Keegan's Newcastle stands in no formation of the league's.",
+  ],
+  [
+    "a classic giving a slot a role it doesn't offer",
+    { classics: [{ ...keegans, cells: [{ ...keegans.cells[0], role: "poacher" }, ...keegans.cells.slice(1)] }] },
+    "The classic Keegan's Newcastle gives its goalkeeper centre slot the role poacher, which that slot doesn't offer.",
+  ],
+  [
+    "a classic giving a sweeper to a back four",
+    { classics: [{ ...keegans, cells: [keegans.cells[0], { ...keegans.cells[1] }, { ...keegans.cells[2], role: "sweeper" }, ...keegans.cells.slice(3)] }] },
+    "The classic Keegan's Newcastle gives its defence leftCentre slot the role sweeper, which that slot doesn't offer.",
+  ],
+  [
+    "a classic whose defensive instruction is an attacking one",
+    { classics: [{ ...keegans, instructions: { attacking: "getItWide", defensive: "gungHo" } }] },
+    "The classic Keegan's Newcastle's defensive instruction, gungHo, isn't one.",
   ],
   [
     "a deadline after the first kickoff",

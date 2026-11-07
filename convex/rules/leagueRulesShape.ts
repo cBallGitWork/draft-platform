@@ -24,6 +24,15 @@ const preset = v.object({ name: v.string(), cells: v.array(cellShape) });
  *  which nothing reads (`heldRules` drops it), optional so those rows need no migration. */
 const storedPreset = v.object({ ...preset.fields, centreRole: v.optional(v.string()) });
 
+/** classics.ts's Classic. */
+export const classicShape = v.object({
+  name: v.string(),
+  subtitle: v.string(),
+  description: v.string(),
+  cells: v.array(cellShape.extend({ role: v.string() })),
+  instructions: v.object({ attacking: v.string(), defensive: v.string() }),
+});
+
 const WEEKDAYS = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"] as const;
 const weekday = v.union(...WEEKDAYS.map((day) => v.literal(day)));
 
@@ -56,6 +65,9 @@ export const leagueRulesShape = v.object({
   /** Each area's minimum and maximum on the pitch: lineup.ts's LineupRules["areaLimits"]. */
   areaLimits: byArea(limit),
   presets: v.array(preset),
+  /** Absent, as `oddTeamOut` is, only from rules saved before #991, which play the first rules'
+   *  (firstRules.ts, `classicsOf`). */
+  classics: v.optional(v.array(classicShape)),
   /** deadline.ts's DeadlineRule. */
   deadline: v.object({ minutesBeforeFirstKickoff: v.number() }),
   /** values.ts's DoubleGameweekRule. */

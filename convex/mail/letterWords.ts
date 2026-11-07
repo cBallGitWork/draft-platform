@@ -215,6 +215,7 @@ const RULES_PART_WORDS: Record<keyof LeagueRules | "scoring", string> = {
   squad: "squad limits",
   areaLimits: "limits on the pitch",
   presets: "formations",
+  classics: "classic formations",
   deadline: "deadline",
   doubleGameweek: "double gameweek rule",
   tieBreaks: "tie-breaks",
