@@ -84,10 +84,12 @@ export function useLineupEdits({
     setShape("");
     show(last);
   };
-  /** The lineup reshaped to a preset, whose empty slots the pitch marks until it saves. */
-  const reshape = (name: string, next: DraftLineup) => {
+  /** The lineup reshaped to a preset, whose empty slots the pitch marks until it saves; `said`, a
+   *  line under the toolbar about it, such as a loaded plan's roles no longer allowed (#992). */
+  const reshape = (name: string, next: DraftLineup, said: string | null = null) => {
     setShape(name);
     edit(next);
+    setRefused(said);
   };
   return { draft, edit, undo, reshape, refuse, canUndo: undoable.length > 0, savedAt, problem: refused ?? problem, shape };
 }

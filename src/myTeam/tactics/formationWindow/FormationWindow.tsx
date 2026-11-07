@@ -18,25 +18,24 @@ import {
   inUseNowWords,
   MODERN,
   modernPlaceholder,
-  presetsPlaceholder,
-  sampleNamesWords,
   samplePointsWords,
-  savePresetLine,
-  savePresetName,
-  savePresetPlaceholder,
   toComeWords,
   WINDOW_TITLE,
   YOUR_PRESETS,
   yourPresetsLine,
+  yourPresetWords,
+  appliesPlanWords,
 } from "./words";
+import { PlansGroup } from "./PlansGroup";
+import { loadedPlan, presetOfPlan, type Plan } from "../savedPlans";
 
 // The formation window (the approved formation window, opened by the Tactics tab's All
 // formations): the groups on the left, the group's tiles in the middle, the picked one's preview on
 // the right, and Use this or Cancel. Opened in place under the toolbar, as a disclosure (Craig,
 // 2 Nov 2026, #1024: "Keep both as built"), its height on the desk fixed so Cancel and Use this sit
-// inside a 1440 by 900 window, a long group's tiles scrolling within it. Saved presets, the
-// classics and the modern sides wait on data not held yet, so each shows as its placeholder
-// (plate.md, Marks).
+// inside a 1440 by 900 window, a long group's tiles scrolling within it. Your presets are the
+// manager's saved plans (spec/05, Saved plans; #992). The classics and the modern sides wait on
+// data not held yet, so each shows as its placeholder (plate.md, Marks).
 
 /** The window's groups: the manager's presets, the league's formations by back line, the classics
  *  and the modern sides. */
@@ -50,6 +49,12 @@ export function FormationWindow({
   ratingsOf,
   onUse,
   onClose,
+  plans,
+  planInUse,
+  saving = false,
+  onLoadPlan,
+  onSavePlan,
+  onDeletePlan,
 }: {
   presets: readonly Shape[];
   inUse: string | null;
@@ -58,6 +63,15 @@ export function FormationWindow({
   ratingsOf: RatingsOf;
   onUse(name: string): void;
   onClose(): void;
+  /** The manager's saved plans (spec/05, Saved plans), and the one last loaded, if the pitch still
+   *  stands in its formation. */
+  plans: readonly Plan[];
+  planInUse: string | null;
+  /** Opened by the toolbar's Save preset…: on Your presets, its form open. */
+  saving?: boolean;
+  onLoadPlan(name: string): void;
+  onSavePlan(name: string): Promise<string | null>;
+  onDeletePlan(name: string): Promise<string | null>;
 }) {
   const titleId = useId();
   // Opened under the toolbar, it scrolls into view whole, Cancel and Use this with it.
@@ -67,15 +81,19 @@ export function FormationWindow({
   }, []);
   const groups = backGroups(presets);
   const opening = groups.find(({ shapes }) => shapes.some(({ name }) => name === inUse)) ?? groups[0];
-  const [group, setGroup] = useState<GroupKey>(opening?.back ?? "presets");
-  const [picked, setPicked] = useState<string | null>(inUse ?? opening?.shapes[0]?.name ?? null);
+  const [group, setGroup] = useState<GroupKey>(saving ? "presets" : (opening?.back ?? "presets"));
+  const [picked, setPicked] = useState<string | null>(saving ? planInUse : (inUse ?? opening?.shapes[0]?.name ?? null));
   const shapes = groups.find(({ back }) => back === group)?.shapes ?? [];
-  const shape = presets.find(({ name }) => name === picked) ?? null;
-  const usable = shape !== null && typeof group === "number";
-  /** A group opened; a back line's first formation picked, unless the one picked is in it. */
+  const listed = plans.map((plan) => ({ plan, formation: presetOfPlan(plan, presets)?.name }));
+  const plan = group === "presets" ? plans.find(({ name }) => name === picked) : undefined;
+  const loaded = plan === undefined ? null : loadedPlan(draft, plan, presets, rules, ratingsOf);
+  const shape = typeof group === "number" ? (presets.find(({ name }) => name === picked) ?? null) : null;
+  const usable = shape !== null || loaded !== null;
+  /** A group opened: a back line's first formation picked, or Your presets' first plan, unless the
+   *  one picked is in it. */
   const open = (key: GroupKey) => {
     setGroup(key);
-    const grouped = groups.find(({ back }) => back === key)?.shapes ?? [];
+    const grouped = key === "presets" ? plans : (groups.find(({ back }) => back === key)?.shapes ?? []);
     if (grouped.length > 0 && !grouped.some(({ name }) => name === picked)) setPicked(grouped[0].name);
   };
   return (
@@ -95,7 +113,7 @@ export function FormationWindow({
       </div>
       <div className="grid min-h-0 flex-1 gap-2 p-2 lg:grid-cols-formation-window">
         <nav aria-label={groupsLabel} className="flex flex-col">
-          <GroupButton current={group === "presets"} onClick={() => open("presets")} name={YOUR_PRESETS} />
+          <GroupButton current={group === "presets"} onClick={() => open("presets")} name={YOUR_PRESETS} count={plans.length} />
           <span className="px-3 pt-2 font-semibold text-muted">{FORMATIONS_HEAD}</span>
           {groups.map(({ back, shapes: grouped }) => (
             <GroupButton key={back} current={group === back} onClick={() => open(back)} name={backGroupWords(back)} count={grouped.length} indented />
@@ -105,12 +123,8 @@ export function FormationWindow({
         </nav>
         <div className="flex min-h-0 min-w-0 flex-col">
           {group === "presets" ? (
-            <Group head={YOUR_PRESETS} line={yourPresetsLine} mark={sampleNamesWords}>
-              <Placeholder label={presetsPlaceholder} className="h-tile" />
-              <Placeholder label={savePresetPlaceholder} className="h-tile p-2">
-                <span className="block text-tile font-semibold">{savePresetName}</span>
-                <span className="block text-soft">{savePresetLine}</span>
-              </Placeholder>
+            <Group head={YOUR_PRESETS} line={yourPresetsLine} picking>
+              <PlansGroup plans={listed} picked={picked} inUse={planInUse} saving={saving} onPick={setPicked} onSave={onSavePlan} onDelete={onDeletePlan} />
             </Group>
           ) : group === "classics" ? (
             <Group head={CLASSICS} line={classicsLine} mark={samplePointsWords}>
@@ -129,12 +143,28 @@ export function FormationWindow({
           )}
         </div>
         <div className="flex min-w-0 flex-col">
-          {usable && <FormationPreview shape={shape} draft={draft} rules={rules} ratingsOf={ratingsOf} />}
+          {shape !== null && <FormationPreview shape={shape} draft={draft} rules={rules} ratingsOf={ratingsOf} />}
+          {plan !== undefined && loaded !== null && (
+            <FormationPreview
+              shape={{ name: plan.name, cells: plan.slots }}
+              draft={draft}
+              rules={rules}
+              ratingsOf={ratingsOf}
+              after={loaded.lineup}
+              subtitle={yourPresetWords(loaded.preset.name)}
+              applies={appliesPlanWords(loaded.preset.name)}
+            />
+          )}
           <div className="mt-auto flex justify-end gap-2 border-t border-panel-rule p-2">
             <button type="button" onClick={onClose} className="secondary-action">
               {cancelWords}
             </button>
-            <button type="button" disabled={!usable} onClick={() => usable && onUse(shape.name)} className={usable ? "action" : "action-idle"}>
+            <button
+              type="button"
+              disabled={!usable}
+              onClick={() => (shape !== null ? onUse(shape.name) : plan !== undefined && loaded !== null && onLoadPlan(plan.name))}
+              className={usable ? "action" : "action-idle"}
+            >
               {applyWords}
             </button>
           </div>

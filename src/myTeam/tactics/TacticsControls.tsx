@@ -7,12 +7,11 @@ import type { OpenTactics } from "./seam";
 import {
   allFormationsWords,
   presetLabel,
-  presetsPlaceholder,
   presetsWords,
   quickPickPlaceholder,
   runsWords,
   savedWords,
-  savePresetPlaceholder,
+  savePresetWords,
   teamTacticPlaceholder,
   teamTacticWords,
   toolbarLabel,
@@ -30,6 +29,8 @@ export const FORMATION_KEYS = 5;
 
 /** The keys' radio group's name. */
 const FORMATION_KEYS_NAME = "formation";
+/** The saved plans' keys' radio group's name: none is pressed in, as loading one is a move. */
+const PLAN_KEYS_NAME = "plan";
 
 /** The presets the Formation keys show: the league's first, and the one in use where it is not one
  *  of them, so the shape the eleven stand in is always pressed in. */
@@ -40,13 +41,16 @@ export function keyedPresets(presets: OpenTactics["presets"], inUse: string | nu
 
 /** The toolbar, with the line the last save left under it: when it landed, or the refusal in the
  *  server's words, read where the move was made, even on a phone. Data and features not held yet
- *  (Team tactic, saved presets, Quick Pick) show as placeholders in their places (plate.md, Marks). */
+ *  (Team tactic, Quick Pick) show as placeholders in their places (plate.md, Marks). */
 export function TacticsToolbar({
   presets,
   inUse,
   onPreset,
   windowOpen,
   onAllFormations,
+  plans,
+  onPlan,
+  onSavePreset,
   canUndo,
   onUndo,
   savedAt,
@@ -57,6 +61,10 @@ export function TacticsToolbar({
   onPreset: (name: string) => void;
   windowOpen: boolean;
   onAllFormations: () => void;
+  /** The manager's saved plans he can load now, by name. */
+  plans: readonly string[];
+  onPlan: (name: string) => void;
+  onSavePreset: () => void;
   canUndo: boolean;
   onUndo: () => void;
   savedAt: number | null;
@@ -75,9 +83,10 @@ export function TacticsToolbar({
           <Placeholder label={teamTacticPlaceholder} className="h-9 w-36" />
         </span>
         <span className="flex max-w-full flex-wrap items-center gap-3">
-          <span className="text-soft">{presetsWords}</span>
-          <Placeholder label={presetsPlaceholder} className="h-9 w-64 max-w-full" />
-          <Placeholder label={savePresetPlaceholder} className="h-9 w-24" />
+          {plans.length > 0 ? <Choice label={presetsWords} name={PLAN_KEYS_NAME} options={plans} words={(name) => name} chosen={null} onChoose={onPlan} /> : <span className="text-soft">{presetsWords}</span>}
+          <button type="button" onClick={onSavePreset} className="secondary-action">
+            {savePresetWords}
+          </button>
         </span>
         <span className="ml-auto flex gap-2">
           <button type="button" disabled={!canUndo} onClick={onUndo} className={canUndo ? "secondary-action" : "action-idle"}>

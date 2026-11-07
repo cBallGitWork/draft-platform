@@ -51,7 +51,8 @@ describe("saving", () => {
   it("saves nothing until something moves, then saves each move as it stands, with no button", async () => {
     const app = await openedPitch();
     expect(app.myTeam.lineupChanges.save).not.toHaveBeenCalled();
-    expect(screen.queryByRole("button", { name: /^Save/ })).toBeNull();
+    // Save preset… saves a plan (#992), never the lineup.
+    expect(screen.queryByRole("button", { name: /^Save(?! preset…)/ })).toBeNull();
     const statusesBefore = screen.getAllByRole("status");
 
     await swap(ARRIZABALAGA, RAYA);

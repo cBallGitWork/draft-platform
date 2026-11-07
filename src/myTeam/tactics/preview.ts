@@ -1,10 +1,11 @@
 // The Tactics tab in the preview (src/app/preview.ts): a squad of real players in a 4-2-3-1 with four on
 // the bench, under the first rules, the deadline a day and a half off. A save is judged by the
-// server's own check (lineup.ts) and said in its words, so a refusal shows as it would live.
+// server's own check (lineup.ts) and said in its words, so a refusal shows as it would live. Saved
+// plans start none.
 
 import { useSyncExternalStore } from "react";
 import { lineupProblems } from "../../../convex/lineup/lineup";
-import { problemWords } from "../../../convex/lineup/lineupWords";
+import { PLANS_KEPT, planRefusals, problemWords } from "../../../convex/lineup/lineupWords";
 import { CLUB_COLOURS } from "../../../convex/football/clubColours";
 import { areasOf, cellsOf, LANES, type Cell } from "../../../convex/lineup/pitch";
 import { everyRoleOf } from "../../../convex/lineup/roles";
@@ -13,7 +14,7 @@ import type { Position } from "../../../convex/positions/positionTables";
 import { FIRST_RULES } from "../../../convex/rules/firstRules";
 import { DAY_MS, HOUR_MS } from "../../../convex/shared/time";
 import type { DraftLineup } from "./lineupDraft";
-import type { Tactics, TacticsSeam } from "./seam";
+import type { Plan, PlanChanges, Tactics, TacticsSeam } from "./seam";
 
 const PREVIEW_GAMEWEEK = 9;
 const PREVIEW_DEADLINE = Date.now() + DAY_MS + 17 * HOUR_MS;
@@ -100,8 +101,27 @@ const changes = {
   },
 };
 
+/** The preview's saved plans, kept as the server would: up to 5, a name it has replaced. */
+let plans: readonly Plan[] = [];
+const planChanges: PlanChanges = {
+  save: async (_leagueId, name, slots) => {
+    const kept = plans.some((plan) => plan.name === name);
+    if (!kept && plans.length >= PLANS_KEPT) return planRefusals.full;
+    plans = kept ? plans.map((plan) => (plan.name === name ? { name, slots } : plan)) : [...plans, { name, slots }];
+    for (const listener of listeners) listener();
+    return null;
+  },
+  remove: async (_leagueId, name) => {
+    plans = plans.filter((plan) => plan.name !== name);
+    for (const listener of listeners) listener();
+    return null;
+  },
+};
+
 export const previewTactics: TacticsSeam = {
   useTactics: () => useSyncExternalStore(subscribe, () => tactics),
   useLineupChanges: () => changes,
+  usePlans: () => useSyncExternalStore(subscribe, () => plans),
+  usePlanChanges: () => planChanges,
   useTacticsOpened: () => {},
 };

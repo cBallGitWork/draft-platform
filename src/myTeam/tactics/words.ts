@@ -44,8 +44,7 @@ export const allFormationsWords = "All formations";
 export const teamTacticWords = "Team instruction";
 export const teamTacticPlaceholder = "Team instructions: the ones a formation offers show here once they are built";
 export const presetsWords = "Presets";
-export const presetsPlaceholder = "Your presets: each a formation and every slot's role, never players; they show here once saving them is built";
-export const savePresetPlaceholder = "Save preset…: saves the formation and every slot's role in use now, once saving presets is built";
+export const savePresetWords = "Save preset…";
 export const quickPickPlaceholder = "Quick Pick: fills the formation with the best eleven by stars, once it is built (#849)";
 
 /** Back one move, through every move since the tab was opened (spec/05, Moving players). */
@@ -53,6 +52,11 @@ export const undoWords = "Undo";
 /** When the lineup last saved, by the viewer's own clock (spec/05, Moving players). */
 export const savedWords = (at: number) => `Lineup saved ${timeOfDayWords(at)}`;
 export const saveFailedWords = failedWords("the lineup wasn't saved");
+export const planSaveFailedWords = failedWords("the preset wasn't saved");
+export const planDeleteFailedWords = failedWords("the preset wasn't deleted");
+/** A plan loaded with roles the league no longer offers in their slot (Craig, 6 Nov 2026, #992). */
+export const rolesLostWords = (name: string, lost: number) =>
+  `${name}: ${lost === 1 ? "1 role is" : `${lost} roles are`} no longer allowed, so ${lost === 1 ? "that slot takes its player's" : "those slots take each player's"} best-star role.`;
 /** Why a drop was refused, said in the line under the toolbar (spec/05, The pitch; Craig, 4 Nov
  *  2026): presets only, so the formation changes only by picking one. `nameOf` names a squad player. */
 export function refusalWords(refusal: MoveRefusal, nameOf: (playerCode: number) => string): string {

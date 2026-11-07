@@ -10,6 +10,7 @@ import { markedBy } from "./focusMarks";
 import { FormationWindow } from "./formationWindow/FormationWindow";
 import { benchedAt, dropOutcome, openingLineup, placeOf, presetInUse, reachOf, reshaped, swapped, withRole, type DraftLineup, type MoveRules, type RatingsOf } from "./lineupDraft";
 import { Pitch, PITCH_ROOM_STYLE, type Moving } from "./pitch/Pitch";
+import { loadedPlan, planSlotsOf, presetOfPlan } from "./savedPlans";
 import { SquadTable } from "./SquadTable";
 import { useLineupEdits } from "./useLineupEdits";
 import { RunsSwitch, TacticsToolbar } from "./TacticsControls";
@@ -24,6 +25,7 @@ import {
   pickHintWords,
   pitchTitle,
   refusalWords,
+  rolesLostWords,
   seasonOverWords,
   SELECTION_TITLE,
   startingWords,
@@ -83,8 +85,12 @@ function LineupEditor({ league, teamName, tactics, seam }: { league: LeagueSumma
   const [pickedCode, setPickedCode] = useState<number | null>(null);
   // The player whose panel is open on top of the right-hand column (plate.md, Tables and panels).
   const [selectedCode, setSelectedCode] = useState<number | null>(null);
-  // The formation window, opened by All formations.
-  const [windowOpen, setWindowOpen] = useState(false);
+  // The formation window: opened by All formations, or by Save preset… on Your presets, its form open.
+  const [windowOpen, setWindowOpen] = useState<"formations" | "saving" | null>(null);
+  // The manager's saved plans (spec/05, Saved plans; #992), and the one he last loaded.
+  const plans = seam.usePlans(league.leagueId) ?? [];
+  const planChanges = seam.usePlanChanges();
+  const [loadedName, setLoadedName] = useState<string | null>(null);
   // The desk's switch for the roles' runs, on until it is turned off (spec/05 Runs).
   const [runsShown, setRunsShown] = useState(true);
   const squadCodes = useMemo(() => tactics.squad.map(({ playerCode }) => playerCode), [tactics.squad]);
@@ -157,6 +163,20 @@ function LineupEditor({ league, teamName, tactics, seam }: { league: LeagueSumma
     setPickedCode(null);
     edits.reshape(name, reshaped(draft, preset.cells, rules, ratingsOf));
   };
+  /** A saved plan loaded: the pitch reshaped keeping the players, each slot on the plan's role, or
+   *  the player's best-star role where the league no longer offers it (spec/05, Saved plans;
+   *  Craig, 6 Nov 2026). The plan itself changes only when he saves it again. */
+  const loadPlan = (name: string) => {
+    const plan = plans.find((each) => each.name === name);
+    const loaded = plan === undefined ? null : loadedPlan(draft, plan, tactics.presets, rules, ratingsOf);
+    if (loaded === null) return;
+    setPickedCode(null);
+    setLoadedName(name);
+    edits.reshape(loaded.preset.name, loaded.lineup, loaded.rolesLost > 0 ? rolesLostWords(name, loaded.rolesLost) : null);
+  };
+  const loadedPlanShown = plans.find(({ name }) => name === loadedName);
+  const planInUse = loadedPlanShown !== undefined && inUse !== null && presetOfPlan(loadedPlanShown, tactics.presets)?.name === inUse ? loadedPlanShown.name : null;
+  const loadable = plans.filter((plan) => presetOfPlan(plan, tactics.presets) !== undefined).map(({ name }) => name);
   /** Up, down, or a drop on a bench row: the player at that place in the bench order. Up or Down
    *  keeps the focus on the button pressed. */
   const toBenchAt = (playerCode: number, index: number, pressed?: "up" | "down") => {
@@ -174,8 +194,11 @@ function LineupEditor({ league, teamName, tactics, seam }: { league: LeagueSumma
         presets={tactics.presets}
         inUse={inUse}
         onPreset={pickPreset}
-        windowOpen={windowOpen}
-        onAllFormations={() => setWindowOpen((open) => !open)}
+        windowOpen={windowOpen !== null}
+        onAllFormations={() => setWindowOpen((open) => (open === null ? "formations" : null))}
+        plans={loadable}
+        onPlan={loadPlan}
+        onSavePreset={() => setWindowOpen("saving")}
         canUndo={edits.canUndo}
         onUndo={edits.undo}
         savedAt={edits.savedAt}
@@ -183,18 +206,28 @@ function LineupEditor({ league, teamName, tactics, seam }: { league: LeagueSumma
       />
       {joined.length > 0 && <Notice>{joinedBenchWords(joined.map((code) => squad.get(code)!.name))}</Notice>}
       {tactics.squad.some((member) => member.unheld) && <Notice>{unheldNoticeWords}</Notice>}
-      {windowOpen && (
+      {windowOpen !== null && (
         <FormationWindow
+          key={windowOpen}
+          saving={windowOpen === "saving"}
+          plans={plans}
+          planInUse={planInUse}
+          onLoadPlan={(name) => {
+            setWindowOpen(null);
+            loadPlan(name);
+          }}
+          onSavePlan={(name) => planChanges.save(league.leagueId, name, planSlotsOf(draft))}
+          onDeletePlan={(name) => planChanges.remove(league.leagueId, name)}
           presets={tactics.presets}
           inUse={inUse}
           draft={draft}
           rules={rules}
           ratingsOf={ratingsOf}
           onUse={(name) => {
-            setWindowOpen(false);
+            setWindowOpen(null);
             pickPreset(name);
           }}
-          onClose={() => setWindowOpen(false)}
+          onClose={() => setWindowOpen(null)}
         />
       )}
       {/* The pitch is the tab's centrepiece (plate.md, Decided): as tall as the window, so

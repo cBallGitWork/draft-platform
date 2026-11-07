@@ -229,9 +229,13 @@ export function reshaped(draft: DraftLineup, cells: readonly Cell[], { positions
 
 /** The league's preset whose shape the eleven stand in now, cell for cell, if any: its key is the
  *  one pressed in the Formation keys, and its name heads the pitch. */
-export function presetInUse<Shape extends { name: string; cells: readonly Cell[] }>(draft: DraftLineup, presets: readonly Shape[]): Shape | undefined {
-  const standing = new Set(draft.starters.map(cellKey));
-  return presets.find(({ cells }) => cells.length === standing.size && cells.every((cell) => standing.has(cellKey(cell))));
+export const presetInUse = <Shape extends { name: string; cells: readonly Cell[] }>(draft: DraftLineup, presets: readonly Shape[]): Shape | undefined =>
+  presetOfCells(draft.starters, presets);
+
+/** The league's preset whose shape is these cells, cell for cell, if any. */
+export function presetOfCells<Shape extends { name: string; cells: readonly Cell[] }>(cells: readonly Cell[], presets: readonly Shape[]): Shape | undefined {
+  const standing = new Set(cells.map(cellKey));
+  return presets.find((preset) => preset.cells.length === standing.size && preset.cells.every((cell) => standing.has(cellKey(cell))));
 }
 
 /** The slot a position stands for, the first cell of the pitch whose slot it is: a bench player's
