@@ -2419,6 +2419,14 @@
                 {
                   "type": "literal",
                   "value": "scoutsPerTeam"
+                },
+                {
+                  "type": "literal",
+                  "value": "matchdayHoursBefore"
+                },
+                {
+                  "type": "literal",
+                  "value": "matchdayHoursAfter"
                 }
               ]
             },
