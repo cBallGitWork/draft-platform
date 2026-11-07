@@ -1,6 +1,6 @@
 // Player scoring in the preview (src/app/preview.ts): the first scoring set, which the admin edits, a
-// change saved now taking effect from gameweek 9, and everyone else reads. No version or draft yet;
-// a patch can be announced from gameweek 10 or 11, a week apart.
+// change saved now taking effect from gameweek 9, and everyone else reads. No version yet, and a
+// draft patch saved, which can be announced from gameweek 10 or 11, a week apart, and the lab run on.
 
 import type { LabReport } from "../../convex/balanceLab/labReportShape";
 import { FIRST_SCORING } from "../../convex/scoring/firstScoring";
@@ -20,7 +20,8 @@ export function previewScoringFor(session: Session): ScoringSeam {
     changesFrom: PREVIEW_CHANGES_FROM,
     canEdit: session.signedIn && session.isAdmin,
     versions: [],
-    draft: null,
+    // A draft saved, so the lab can be run on it (#843).
+    draft: { part: FIRST_SCORING, savedAt: Date.now() },
     patchGameweeks: [0, 1].map((later) => ({ gameweek: PREVIEW_CHANGES_FROM + 1 + later, takesEffectAt: firstPatchAt + later * WEEK_MS })),
   };
   const says = previewSays(unsavedOutcome);
