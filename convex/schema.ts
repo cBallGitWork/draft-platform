@@ -21,6 +21,7 @@ import { pastSeasonTables } from "./schema/pastSeasons";
 import { availabilityTables } from "./schema/availability";
 import { waiverTables } from "./schema/waivers";
 import { scoutTables } from "./schema/scouting";
+import { tradeTables } from "./schema/trades";
 
 // The database, one group of tables a feature, each in its own file in convex/schema/ with the
 // shapes it is made of. Everything the features read from the schema is re-exported here.
@@ -69,4 +70,5 @@ export default defineSchema({
   ...availabilityTables,
   ...waiverTables,
   ...scoutTables,
+  ...tradeTables,
 });

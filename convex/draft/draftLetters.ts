@@ -14,6 +14,7 @@ import {
 } from "../mail/letterWords";
 import type { MovedStart } from "../gameweeks/scoringStart";
 import { bylineOf, fileLetter, wholeLeague } from "../mail/letters";
+import { tellIn } from "../mail/letterMoments";
 import { sendEmail } from "../outbound/email";
 import { takeTodaysEmail } from "../outbound/emailLimit";
 import { MINUTE_MS } from "../shared/time";
@@ -40,13 +41,13 @@ export async function tellUpNext(ctx: MutationCtx, league: Doc<"leagues">, clock
   const to = clocked.team.managerEmail;
   if (to === undefined) return;
   const news = { round: clocked.round, pick: clocked.pick, teamName: clocked.team.name, endsAt: clocked.endsAt };
-  await fileLetter(ctx, league, [to], (zone) => upNextLetter(news, zone));
+  await fileLetter(ctx, league, [to], (tell) => upNextLetter(news, tell));
   if (clocked.endsAt - clocked.startsAt <= UP_NEXT_EMAIL_OVER_MS) return;
   if (!(await takeTodaysEmail(ctx))) {
     console.warn(`${to} wasn't emailed that they're up next in ${league.name}'s draft: the day's emails are all gone`);
     return;
   }
-  const { subject, body } = upNextLetter(news, await zoneOf(ctx, to));
+  const { subject, body } = upNextLetter(news, tellIn(await zoneOf(ctx, to)));
   await ctx.scheduler.runAfter(0, internal.draft.draftLetters.sendUpNext, { to, subject, text: body });
 }
 
@@ -77,7 +78,7 @@ export async function tellUndone(ctx: MutationCtx, league: Doc<"leagues">, by: s
 
 /** Tells the commissioner the draft didn't start at its date, `startsAt`, for `refusal`. */
 export async function tellNotStarted(ctx: MutationCtx, league: Doc<"leagues">, startsAt: number, refusal: string): Promise<void> {
-  await fileLetter(ctx, league, [league.commissionerEmail], (zone) => draftNotStartedLetter(startsAt, refusal, zone));
+  await fileLetter(ctx, league, [league.commissionerEmail], (tell) => draftNotStartedLetter(startsAt, refusal, tell));
 }
 
 /** Sends the "you're up next" email, already counted; a refusal is logged. */

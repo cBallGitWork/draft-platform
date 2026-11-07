@@ -111,7 +111,7 @@ export async function moveFplDeadline(t: TestConvex, gameweek: number, deadline:
   await t.run(async (ctx) => {
     const row = await ctx.db
       .query("gameweeks")
-      .withIndex("by_number", (q) => q.eq("number", gameweek))
+      .withIndex("by_season_and_number", (q) => q.eq("season", undefined).eq("number", gameweek))
       .unique();
     await ctx.db.patch("gameweeks", row!._id, { deadline });
   });

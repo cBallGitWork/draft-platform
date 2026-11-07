@@ -128,4 +128,5 @@ export const previewPlayerCard: PlayerCardSeam = {
   useCardAction: (_leagueId, playerCode) => cardActionOf(playerCode),
   useWaiverChanges: () => waiverChanges,
   useOverride: () => overrideNothing,
+  useRemoveOverride: () => overrideNothing,
 };

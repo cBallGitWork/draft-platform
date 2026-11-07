@@ -48,9 +48,10 @@ export const playedFixtureTables = {
     fixtureCodes: v.array(v.number()),
     storedAt: v.number(),
   }).index("by_leagueId_and_gameweek", ["leagueId", "gameweek"]),
-  /** A commissioner's override of one player's points in one locked match (#32, spec/14): his
-   *  points there in place of what his record scores. One row a league, match and player, a
-   *  second override replacing the first; written only by convex/table/pointsOverrides.ts. */
+  /** A commissioner's override of one player's points in one match (#32, spec/14), open or
+   *  locked: his points there in place of what his record scores, standing over any later
+   *  correction until changed or removed (#903). One row a league, match and player, a second
+   *  override replacing the first; written only by convex/table/pointsOverrides.ts. */
   pointsOverrides: defineTable({
     leagueId: v.id("leagues"),
     gameweek: v.number(),
@@ -64,4 +65,19 @@ export const playedFixtureTables = {
   })
     .index("by_leagueId_and_fixtureCode_and_playerCode", ["leagueId", "fixtureCode", "playerCode"])
     .index("by_leagueId_and_playerCode", ["leagueId", "playerCode"]),
+  /** A commissioner's override of one team's total in one gameweek (#903, spec/14 S14.3): its
+   *  total there, the head-to-head and the table following it, standing over the gameweek's
+   *  player overrides and any later correction until changed or removed. One row a league,
+   *  gameweek and team, a second override replacing the first; written only by
+   *  convex/table/teamOverrides.ts. */
+  teamOverrides: defineTable({
+    leagueId: v.id("leagues"),
+    gameweek: v.number(),
+    teamId: v.id("teams"),
+    points: v.number(),
+    reason: v.string(),
+    /** Who set it, by email, and when. */
+    by: v.string(),
+    at: v.number(),
+  }).index("by_leagueId_and_gameweek_and_teamId", ["leagueId", "gameweek", "teamId"]),
 };

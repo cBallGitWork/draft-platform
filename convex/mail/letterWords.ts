@@ -1,12 +1,13 @@
 import type { Infer } from "convex/values";
 import { aNewTeamWords } from "../joining/joiningShared";
-import { andListWords, momentIn } from "../shared/moments";
-import { figureWords } from "../shared/numberWords";
+import { andListWords } from "../shared/moments";
 import type { LeagueRules } from "../rules/leagueRulesShape";
 import { NOTHING_SCORES_DIFFERENTLY } from "../scoring/patchChanges";
 import { autoTeamSwitchedWords } from "../lineup/autoTeamWords";
 import type { leagueEvent, siteScoringKind } from "../schema";
+import { overrideLetterWords } from "./overrideLetterWords";
 import { claimedBody, pickedUpBody } from "./waiverLetterWords";
+import type { TellMoment } from "./letterMoments";
 
 // What the letters Mail files about a league's events say (spec/15: nothing changes quietly), in
 // one place for Craig to change. Each names who did it: an email, or `adminByline`.
@@ -21,8 +22,8 @@ const handOn = "The team stays, for the commissioner to hand to someone new.";
 const inPlaceOf = (replaced: string | null) => (replaced === null ? "" : ` in place of ${replaced}`);
 const forTeam = (teamName: string | null) => teamName ?? aNewTeamWords;
 
-/** The letter reporting `event`, done by `who`, telling any time in `zone`, the reader's. */
-export function eventLetter(event: LeagueEvent, who: string, zone: string | undefined): Words {
+/** The letter reporting `event`, done by `who`, telling any time with `tell`, in the reader's zone. */
+export function eventLetter(event: LeagueEvent, who: string, tell: TellMoment): Words {
   switch (event.kind) {
     case "created":
       return { subject: `${event.name} was created`, body: `${who} created the league, for up to ${event.maxTeams} teams.` };
@@ -60,7 +61,7 @@ export function eventLetter(event: LeagueEvent, who: string, zone: string | unde
     case "deletionStarted":
       return {
         subject: `${event.name} is being deleted`,
-        body: `${who} deleted the league. It goes for good on ${momentIn(event.deletesAt, zone)}, unless that is undone.`,
+        body: `${who} deleted the league. It goes for good on ${tell(event.deletesAt)}, unless that is undone.`,
       };
     case "deletionUndone":
       return { subject: `${event.name} is no longer being deleted`, body: `${who} undid deleting the league. It is as it was.` };
@@ -120,7 +121,9 @@ export function eventLetter(event: LeagueEvent, who: string, zone: string | unde
         body: rulesChangedBody(event, who),
       };
     case "pointsOverridden":
-      return { subject: `${event.playerName}'s points in ${event.matchName} were overridden`, body: overriddenBody(event, who) };
+    case "pointsOverrideRemoved":
+    case "teamPointsOverridden":
+      return overrideLetterWords(event, who);
     case "fixturesSwapped":
       return { subject: `Gameweek ${event.gameweek}'s fixtures were changed`, body: swappedBody(event, who) };
     case "autoTeamSwitched":
@@ -143,24 +146,12 @@ function swappedBody(event: Extract<LeagueEvent, { kind: "fixturesSwapped" }>, w
 /** A match as a letter names it: "Arsenal v Chelsea". */
 export const matchWords = (home: string, away: string) => `${home} v ${away}`;
 
-/** "Ann overrode Saka's points in Arsenal v Chelsea, gameweek 6: 2 to 8. Why: a goal the feed
- *  gave to Rice. / Lions now have 61 in gameweek 6, not 55." */
-function overriddenBody(event: Extract<LeagueEvent, { kind: "pointsOverridden" }>, who: string): string {
-  const { playerName, matchName, gameweek, from, to, reason, teams } = event;
-  const change = from === null ? `now ${figureWords(to)}` : `${figureWords(from)} to ${figureWords(to)}`;
-  const totals =
-    teams.length === 0
-      ? "No team's total moved: no lineup counted him."
-      : teams.map((team) => `${team.teamName} now have ${figureWords(team.to)} in gameweek ${gameweek}, not ${figureWords(team.from)}.`).join("\n");
-  return `${who} overrode ${playerName}'s points in ${matchName}, gameweek ${gameweek}: ${change}. Why: ${reason}\n\n${totals}`;
-}
-
 /** The draft's letters (spec/04, Mail; #1102). "You're up next" to the manager whose pick's clock
- *  starts, its deadline told in `zone`, the reader's; it is also the email when the clock is long. */
-export function upNextLetter({ round, pick, teamName, endsAt }: { round: number; pick: number; teamName: string; endsAt: number }, zone: string | undefined): Words {
+ *  starts, its deadline told with `tell`, in the reader's zone; it is also the email when the clock is long. */
+export function upNextLetter({ round, pick, teamName, endsAt }: { round: number; pick: number; teamName: string; endsAt: number }, tell: TellMoment): Words {
   return {
     subject: "You're up next in the draft",
-    body: `${teamName} is on the clock: round ${round}, pick ${pick}. Make your pick by ${momentIn(endsAt, zone)}, or the draft picks for you.`,
+    body: `${teamName} is on the clock: round ${round}, pick ${pick}. Make your pick by ${tell(endsAt)}, or the draft picks for you.`,
   };
 }
 
@@ -201,10 +192,10 @@ export function draftUndoneLetter(who: string, { pick, playerName, teamName }: P
 
 /** To the commissioner when the draft's start date, `startsAt`, comes and it can't start, for
  *  `refusal` (draftStart.ts `draftStartRefusals`). */
-export function draftNotStartedLetter(startsAt: number, refusal: string, zone: string | undefined): Words {
+export function draftNotStartedLetter(startsAt: number, refusal: string, tell: TellMoment): Words {
   return {
     subject: "The draft didn't start",
-    body: `The draft was set to start on ${momentIn(startsAt, zone)}, but couldn't. ${refusal} It waits for you to press start or set a new date.`,
+    body: `The draft was set to start on ${tell(startsAt)}, but couldn't. ${refusal} It waits for you to press start or set a new date.`,
   };
 }
 
@@ -222,6 +213,8 @@ const RULES_PART_WORDS: Record<keyof LeagueRules | "scoring", string> = {
   gamesPerGameweek: "games a gameweek",
   waivers: "waivers",
   draft: "draft settings",
+  trades: "trade settings",
+  instructions: "team instructions",
   scoring: "scoring",
 };
 
@@ -246,16 +239,16 @@ const capitalised = (words: string) => words.charAt(0).toUpperCase() + words.sli
 type VersionNews = { name: string; kind: SiteScoringKind; takesEffectAt: number; fromGameweek: number; changes: readonly string[] };
 
 /** The letter announcing a patch to the site's scoring, or a fix to it, with what changes. A fix
- *  takes effect as it is made, so its letter names no moment; a patch's is told in `zone`, the reader's. */
-export function versionLetter({ name, kind, takesEffectAt, fromGameweek, changes }: VersionNews, zone: string | undefined): Words {
+ *  takes effect as it is made, so its letter names no moment; a patch's is told with `tell`, in the reader's zone. */
+export function versionLetter({ name, kind, takesEffectAt, fromGameweek, changes }: VersionNews, tell: TellMoment): Words {
   const kept = "Gameweeks played before it keep the scoring they had.";
   const what = changes.length === 0 ? NOTHING_SCORES_DIFFERENTLY : `What changes:\n${changes.map((change) => `- ${change}`).join("\n")}`;
   if (kind === "patch") {
     return {
-      subject: `Scoring patch ${name} takes effect on ${momentIn(takesEffectAt, zone)}`,
+      subject: `Scoring patch ${name} takes effect on ${tell(takesEffectAt)}`,
       body:
         `${adminByline} announced patch ${name} to the scoring every league plays on. It takes effect on ` +
-        `${momentIn(takesEffectAt, zone)}, from gameweek ${fromGameweek}. ${kept}\n\n${what}`,
+        `${tell(takesEffectAt)}, from gameweek ${fromGameweek}. ${kept}\n\n${what}`,
     };
   }
   return {
@@ -265,10 +258,10 @@ export function versionLetter({ name, kind, takesEffectAt, fromGameweek, changes
 }
 
 /** The letter saying a patch to the site's scoring was withdrawn before it took effect (Craig, 6 Nov
- *  2026, on #368: "every manager gets a Mail letter saying so"), its moment told in `zone`. */
-export function withdrawnLetter({ name, takesEffectAt }: { name: string; takesEffectAt: number }, zone: string | undefined): Words {
+ *  2026, on #368: "every manager gets a Mail letter saying so"), its moment told with `tell`. */
+export function withdrawnLetter({ name, takesEffectAt }: { name: string; takesEffectAt: number }, tell: TellMoment): Words {
   return {
     subject: `Scoring patch ${name} withdrawn`,
-    body: `${adminByline} withdrew patch ${name}, which was to take effect on ${momentIn(takesEffectAt, zone)}. The scoring stays as it is.`,
+    body: `${adminByline} withdrew patch ${name}, which was to take effect on ${tell(takesEffectAt)}. The scoring stays as it is.`,
   };
 }

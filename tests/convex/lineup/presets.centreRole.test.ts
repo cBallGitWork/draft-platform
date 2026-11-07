@@ -7,5 +7,6 @@ import { DEFAULT_PRESETS } from "../../../convex/lineup/presets";
 
 test("no default preset is a sweeper or libero formation, and none sets a role", () => {
   expect(DEFAULT_PRESETS.map(({ name }) => name).filter((name) => name.includes("("))).toEqual([]);
-  expect(DEFAULT_PRESETS.every((preset) => Object.keys(preset).sort().join() === "cells,name")).toBe(true);
+  // Its default team instructions (#990) are all a preset holds besides its shape.
+  expect(DEFAULT_PRESETS.every((preset) => Object.keys(preset).sort().join() === "cells,instructions,name")).toBe(true);
 });

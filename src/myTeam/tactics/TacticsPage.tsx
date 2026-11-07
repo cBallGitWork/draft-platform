@@ -8,13 +8,17 @@ import { unheldNoticeWords } from "../../shared/words";
 import { TeamPage } from "../header/TeamHeader";
 import { markedBy } from "./focusMarks";
 import { FormationWindow } from "./formationWindow/FormationWindow";
-import { benchedAt, dropOutcome, openingLineup, placeOf, presetInUse, reachOf, reshaped, swapped, withRole, type DraftLineup, type MoveRules, type RatingsOf } from "./lineupDraft";
+import { benchedAt, dropOutcome, openingLineup, placeOf, presetInUse, reachOf, reshaped, swapped, withInstruction, withRole, type DraftLineup, type MoveRules, type RatingsOf } from "./lineupDraft";
+import { keptOrSwitched, type Side } from "../../../convex/lineup/instructions";
+import { switchedWords } from "../../../convex/lineup/instructionsWords";
+import type { Cell } from "../../../convex/lineup/pitch";
 import { Pitch, PITCH_ROOM_STYLE, type Moving } from "./pitch/Pitch";
+import { useSavedPlans } from "./useSavedPlans";
 import { SquadTable } from "./SquadTable";
 import { useLineupEdits } from "./useLineupEdits";
 import { RunsSwitch, TacticsToolbar } from "./TacticsControls";
 import { PlayerPanel } from "./widgets/PlayerPanel";
-import { LineupCheck, OpponentWidget, TeamTacticWidget } from "./widgets/SideWidgets";
+import { LineupCheck, OpponentWidget, TeamInstructionsWidget } from "./widgets/SideWidgets";
 import type { MyTeamSeam } from "../seam";
 import type { OpenTactics } from "./seam";
 import {
@@ -84,8 +88,8 @@ function LineupEditor({ league, teamName, tactics, seam, opened }: { league: Lea
   // The player whose panel is open on top of the right-hand column (plate.md, Tables and panels): at
   // first the one the address names, unless he isn't in the squad.
   const [selectedCode, setSelectedCode] = useState<number | null>(() => (opened !== undefined && squad.has(opened) ? opened : null));
-  // The formation window, opened by All formations.
-  const [windowOpen, setWindowOpen] = useState(false);
+  // The formation window: opened by All formations, or by Save preset… on Your presets, its form open.
+  const [windowOpen, setWindowOpen] = useState<"formations" | "saving" | null>(null);
   // The desk's switch for the roles' runs, on until it is turned off (spec/05 Runs).
   const [runsShown, setRunsShown] = useState(true);
   const squadCodes = useMemo(() => tactics.squad.map(({ playerCode }) => playerCode), [tactics.squad]);
@@ -100,6 +104,11 @@ function LineupEditor({ league, teamName, tactics, seam, opened }: { league: Lea
   const ratingsOf: RatingsOf = (playerCode) => squad.get(playerCode)?.stars ?? [];
   const reach = useMemo(() => (picked === null ? null : reachOf(draft, picked.playerCode, rules)), [draft, picked, rules]);
   const inUse = presetInUse(draft, tactics.presets)?.name ?? null;
+  const instructions = draft.instructions ?? tactics.picked;
+  // The preset last picked, until the lineup saves in it: its empty slots are marked, and its own
+  // cells decide the instructions offered. Saved, the eleven stand in it, as the server judges them.
+  const shapePicked = tactics.presets.find(({ name }) => name === edits.shape)?.cells;
+  const shape = shapePicked ?? draft.starters;
 
   // After a move, the moved player keeps the focus, wherever he now stands.
   const root = useRef<HTMLDivElement>(null);
@@ -151,13 +160,24 @@ function LineupEditor({ league, teamName, tactics, seam, opened }: { league: Lea
   };
   /** A starter given another role his slot offers; the picker keeps the focus. */
   const toRole = (playerCode: number, role: string) => change(withRole(draft, playerCode, role), playerCode, [markedBy("role", playerCode)]);
+  /** The pitch reshaped to a preset, by picking it or loading a plan in it: an instruction the new
+   *  shape offers stays, one it blocks switches to its default (spec/05). */
+  const reshapeTo = (preset: { name: string; cells: readonly Cell[] }, next: DraftLineup, said: string | null = null) => {
+    setPickedCode(null);
+    const { pair, switched } = keptOrSwitched(instructions, preset.cells, tactics.presets, tactics.instructions);
+    edits.reshape(preset.name, { ...next, instructions: pair }, switchedWords(switched), said);
+  };
   /** A preset picked reshapes the pitch, keeping the players (spec/05; Craig, 26 Oct 2026). */
   const pickPreset = (name: string) => {
     const preset = tactics.presets.find((each) => each.name === name);
-    if (preset === undefined) return;
-    setPickedCode(null);
-    edits.reshape(name, reshaped(draft, preset.cells, rules, ratingsOf));
+    if (preset !== undefined) reshapeTo(preset, reshaped(draft, preset.cells, rules, ratingsOf));
   };
+  /** One side's team instruction picked (spec/05, Team instructions). */
+  const pickInstruction = (side: Side, key: string) => {
+    setPickedCode(null);
+    edits.edit(withInstruction(draft, instructions, side, key));
+  };
+  const plans = useSavedPlans({ leagueId: league.leagueId, seam, draft, presets: tactics.presets, inUse, rules, ratingsOf, onLoad: reshapeTo });
   /** Up, down, or a drop on a bench row: the player at that place in the bench order. Up or Down
    *  keeps the focus on the button pressed. */
   const toBenchAt = (playerCode: number, index: number, pressed?: "up" | "down") => {
@@ -175,27 +195,45 @@ function LineupEditor({ league, teamName, tactics, seam, opened }: { league: Lea
         presets={tactics.presets}
         inUse={inUse}
         onPreset={pickPreset}
-        windowOpen={windowOpen}
-        onAllFormations={() => setWindowOpen((open) => !open)}
+        windowOpen={windowOpen !== null}
+        onAllFormations={() => setWindowOpen((open) => (open === null ? "formations" : null))}
+        plans={plans.loadable}
+        onPlan={plans.load}
+        onSavePreset={() => setWindowOpen("saving")}
         canUndo={edits.canUndo}
         onUndo={edits.undo}
         savedAt={edits.savedAt}
+        switchedNote={edits.switchedNote}
         problem={edits.problem}
+        cells={shape}
+        instructions={tactics.instructions}
+        picked={instructions}
+        onInstruction={pickInstruction}
       />
       {joined.length > 0 && <Notice>{joinedBenchWords(joined.map((code) => squad.get(code)!.name))}</Notice>}
       {tactics.squad.some((member) => member.unheld) && <Notice>{unheldNoticeWords}</Notice>}
-      {windowOpen && (
+      {windowOpen !== null && (
         <FormationWindow
+          key={windowOpen}
+          saving={windowOpen === "saving"}
+          plans={plans.read}
+          planInUse={plans.inUse}
+          onLoadPlan={(name) => {
+            setWindowOpen(null);
+            plans.load(name);
+          }}
+          onSavePlan={plans.save}
+          onDeletePlan={plans.remove}
           presets={tactics.presets}
           inUse={inUse}
           draft={draft}
           rules={rules}
           ratingsOf={ratingsOf}
           onUse={(name) => {
-            setWindowOpen(false);
+            setWindowOpen(null);
             pickPreset(name);
           }}
-          onClose={() => setWindowOpen(false)}
+          onClose={() => setWindowOpen(null)}
         />
       )}
       {/* The pitch is the tab's centrepiece (plate.md, Decided): as tall as the window, so
@@ -208,7 +246,7 @@ function LineupEditor({ league, teamName, tactics, seam, opened }: { league: Lea
               {picked === null ? pickHintWords : movingHintWords(picked.name, picked.positions)}
             </p>
             <div className="p-2">
-              <Pitch draft={draft} squad={squad} moving={moving} slots={tactics.presets.find(({ name }) => name === edits.shape)?.cells ?? []} runsShown={runsShown} ratingsOf={ratingsOf} />
+              <Pitch draft={draft} squad={squad} moving={moving} slots={shapePicked ?? []} runsShown={runsShown} ratingsOf={ratingsOf} />
             </div>
           </Panel>
           <LineupCheck
@@ -244,7 +282,7 @@ function LineupEditor({ league, teamName, tactics, seam, opened }: { league: Lea
               onBenchAt={toBenchAt}
             />
           )}
-          <TeamTacticWidget />
+          <TeamInstructionsWidget formation={inUse} cells={shape} instructions={tactics.instructions} picked={instructions} />
           <OpponentWidget table={table} teamName={teamName} gameweek={tactics.gameweek} />
         </div>
       </div>

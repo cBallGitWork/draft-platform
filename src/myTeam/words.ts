@@ -22,6 +22,8 @@ export const nextFixtureLong = (opponent: string, home: boolean, kickoff: string
 /** A match cell waits for fixture difficulty (to-grill: Where fixture difficulty comes from). */
 export const difficultyNotRatedWords = "difficulty not rated yet";
 export const noNextFixtureWords = "No match with a kickoff time yet.";
+/** A match whose kickoff time FPL hasn't set yet, in its hover. */
+export const noKickoffWords = "kickoff time not set";
 /** A points cell with no figure: none of his matches is priced yet. */
 export const noPointsWords = "No points yet: none of his matches has been priced.";
 /** A status chip after a name, until it is settled which FPL statuses each chip reads (to-grill:

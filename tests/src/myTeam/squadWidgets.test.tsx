@@ -19,10 +19,12 @@ import {
   elevenPlayerLabel,
   formLabel,
   MAIL_WIDGET_TITLE,
+  noLimitsWords,
   openPanelLabel,
   playerCardWords,
   roleLastGameweekNotSettledLabel,
   rolePointsNotBuiltLabel,
+  scheduleTableLabel,
   setLineupWords,
   setRoleWords,
   squadCountWords,
@@ -30,8 +32,6 @@ import {
   squadViewWords,
   startedNotBuiltLabel,
   statusNotSettledLabel,
-
-  viewNotBuiltLabel,
   YOUR_ELEVEN_TITLE,
 } from "../../../src/myTeam/squad/words";
 import { everyRoleOf } from "../../../convex/lineup/roles";
@@ -71,18 +71,19 @@ describe("the table's plate", () => {
     expect(squadCountWords(19, null)).toBe("19 players");
   });
 
-  it("switches the table's view; Schedule and Rules are placeholders until what they hold is settled", async () => {
+  it("switches the table's view between Stats, Schedule and Rules (#1006)", async () => {
     openSquad({ squad: squadOf([SAKA]) });
     await screen.findByRole("table", { name: squadTableLabel("Team 1") });
     expect(screen.getByRole<HTMLInputElement>("radio", { name: squadViewWords.stats }).checked).toBe(true);
 
     await userEvent.click(screen.getByRole("radio", { name: squadViewWords.schedule }));
-    expect(screen.queryByRole("table")).toBeNull();
-    expect(screen.getByRole("img", { name: viewNotBuiltLabel("schedule") })).toBeTruthy();
+    expect(screen.getByRole("table", { name: scheduleTableLabel("Team 1") })).toBeTruthy();
+    expect(screen.queryByRole("table", { name: squadTableLabel("Team 1") })).toBeNull();
     await userEvent.click(screen.getByRole("radio", { name: squadViewWords.rules }));
-    expect(screen.getByRole("img", { name: viewNotBuiltLabel("rules") })).toBeTruthy();
+    // The harness's league sets no squad limits.
+    expect(screen.getByText(noLimitsWords)).toBeTruthy();
     await userEvent.click(screen.getByRole("radio", { name: squadViewWords.stats }));
-    expect(screen.getByRole("table")).toBeTruthy();
+    expect(screen.getByRole("table", { name: squadTableLabel("Team 1") })).toBeTruthy();
   });
 });
 

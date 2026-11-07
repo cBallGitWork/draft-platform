@@ -12,7 +12,6 @@ import {
   gainsPlaceholder,
   inUseWords,
   losesPlaceholder,
-  sampleNamesWords,
   samplePointsWords,
   savePresetLine,
   savePresetName,
@@ -21,17 +20,8 @@ import {
   YOUR_PRESETS,
   yourPresetsLine,
 } from "../../../../src/myTeam/tactics/formationWindow/words";
-import { FIRST_RULES } from "../../../../convex/rules/firstRules";
 import { allFormationsWords } from "../../../../src/myTeam/tactics/words";
-import { openTactics } from "../../../support/src/tactics.harness";
-import { member, openedPitch, SAVED } from "../../../support/src/tacticsScreen.harness";
-
-/** Eleven standing in the 4-4-2, each playing his cell's area. */
-const IN_A_442 = (() => {
-  const starters = FIRST_RULES.presets.find(({ name }) => name === "4-4-2")!.cells.map((cell, index) => ({ playerCode: index + 1, ...cell }));
-  const squad = starters.map(({ playerCode, area }) => member(playerCode, `Player ${playerCode}`, area === "goalkeeper" ? ["GK"] : area === "defence" ? ["CB", "FB"] : area === "attack" ? ["ST"] : ["CM", "WM"]));
-  return { tactics: openTactics({ squad, lineup: { ...SAVED.lineup, starters, bench: [] } }) };
-})();
+import { IN_A_442, openedPitch } from "../../../support/src/tacticsScreen.harness";
 
 /** The window, opened from All formations; with `in442`, over a side standing in the 4-4-2. */
 const opened = async (in442 = false) => {
@@ -45,18 +35,17 @@ const headingOf = (name: string) => screen.getByRole("heading", { level: 3, name
 describe("the formation window", () => {
   it("heads Your presets and the Classics with their line and sample mark, as drawn", async () => {
     await opened();
-    await userEvent.click(screen.getByRole("button", { name: YOUR_PRESETS }));
-    expect(headingOf(YOUR_PRESETS).textContent).toBe(`${YOUR_PRESETS}${yourPresetsLine}${sampleNamesWords}`);
+    await userEvent.click(screen.getByRole("button", { name: `${YOUR_PRESETS}0` }));
+    // A manager's own presets are real names now (#992): no sample mark.
+    expect(headingOf(YOUR_PRESETS).textContent).toBe(`${YOUR_PRESETS}${yourPresetsLine}`);
     await userEvent.click(screen.getByRole("button", { name: new RegExp(`^${CLASSICS}`) }));
     expect(headingOf(CLASSICS).textContent).toBe(`${CLASSICS}${classicsLine}${samplePointsWords}`);
   });
 
-  it("shows the Save preset… tile on Your presets, in place, as saving presets waits", async () => {
+  it("shows the Save preset… tile on Your presets, in place, its line under its name", async () => {
     await opened();
-    await userEvent.click(screen.getByRole("button", { name: YOUR_PRESETS }));
-    expect(screen.getByText(savePresetName)).toBeTruthy();
-    expect(screen.getByText(savePresetLine)).toBeTruthy();
-    expect(screen.queryByRole("button", { name: savePresetName })).toBeNull();
+    await userEvent.click(screen.getByRole("button", { name: `${YOUR_PRESETS}0` }));
+    expect(screen.getByRole("button", { name: `${savePresetName}${savePresetLine}` })).toBeTruthy();
   });
 
   it("gives each tile its name, its formation's tag, a subtitle and a description waiting on Craig's words, and In use", async () => {
