@@ -1,5 +1,5 @@
 import { useId, type CSSProperties, type DragEvent } from "react";
-import { cellKey, LANES, sameCell, type Cell } from "../../../../convex/lineup/pitch";
+import { cellKey, LANES, positionOfSlot, sameCell, type Cell } from "../../../../convex/lineup/pitch";
 import { roleIn } from "../../../../convex/lineup/roles";
 import { kitOf, type Ink } from "../../../../convex/football/clubColours";
 import { markOf } from "../focusMarks";
@@ -116,9 +116,10 @@ export function Pitch({
   );
 }
 
-/** A player on the pitch: his shirt over his name plate, the role he plays under his name (spec/05
- *  Roles; his positions are in his name for screen readers). A tap opens his panel, and his block
- *  is ringed while it is open; picked up, the plate turns white; one the player picked up can swap
+/** A player on the pitch: his shirt over his name plate, which opens with his slot's position label
+ *  ("ST Haaland": the position, never its side, so a sweeper or libero reads CB; spec/05 What the
+ *  pitch shows; Craig, 4 Nov 2026), the role he plays under his name (spec/05 Roles); his
+ *  positions are in his name for screen readers. A tap opens his panel, and his block is ringed while it is open; picked up, the plate turns white; one the player picked up can swap
  *  with is lit, dashed, with the picked-up player's stars for the role he'd land on there, his name
  *  under them (spec/05, Moving players; Craig, 7 Nov 2026, #11), and a tap swaps them. `landing`
  *  is null on a player who isn't lit. */
@@ -141,7 +142,9 @@ function PlayerBlock({ player, cell, role, landing, moving }: { player: SquadMem
       className={`flex w-full min-w-0 cursor-grab flex-col items-center ${swapsWith ? "outline-2 outline-dashed outline-pitch-line" : isSelected ? "outline-2 outline-pitch-line" : ""}`}
     >
       <Shirt number={player.number} clubCode={player.clubCode} goalkeeper={cell.area === "goalkeeper"} />
-      <span className={`max-w-full truncate px-1 text-lead font-semibold ${plate}`}>{player.name}</span>
+      <span className={`max-w-full truncate px-1 text-lead font-semibold ${plate}`}>
+        <span data-slot-label>{positionOfSlot(cell)}</span> {player.name}
+      </span>
       {/* Up to two lines, so "Defensive full-back" and "Defensive winger" stay apart on a phone,
           set closer there so a two-line role still fits his row (--leading-pitch-role). */}
       <span className={`line-clamp-2 max-w-full px-1 text-center max-lg:leading-pitch-role ${isPicked ? plate : "bg-name-plate text-soft"}`}>{role}</span>
