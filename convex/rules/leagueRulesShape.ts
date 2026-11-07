@@ -49,10 +49,15 @@ export const draftRulesShape = v.object({
 });
 export type DraftRules = Infer<typeof draftRulesShape>;
 
+/** Who reviews an accepted trade: nobody, the commissioner (a veto) or the other managers (a vote),
+ *  in spec/03's order. */
+export const TRADE_REVIEWS = ["none", "veto", "vote"] as const;
+export type TradeReview = (typeof TRADE_REVIEWS)[number];
+
 /** How the league's trades run (spec/03, spec/08; #383). */
 export const tradeRulesShape = v.object({
-  /** Who reviews an accepted trade: nobody, the commissioner (a veto) or the other managers (a vote). */
-  review: v.union(v.literal("none"), v.literal("veto"), v.literal("vote")),
+  /** Who reviews an accepted trade (`TRADE_REVIEWS`). */
+  review: v.union(...TRADE_REVIEWS.map((name) => v.literal(name))),
   /** The gameweek after whose last match no trades are made; null: no trade deadline. */
   deadline: v.union(v.number(), v.null()),
 });
