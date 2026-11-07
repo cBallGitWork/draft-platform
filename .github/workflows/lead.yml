@@ -6,7 +6,9 @@
 #      FIXED_LABEL so it never gets a second (one review round). After that it waits on the PM dashboard.
 #      A conflict with main after that is not the build's own fault (others merged), so it gets a conflict round
 #      (mode `fix` again, and the label CONFLICT_LABEL) each time its head is newer than its last fix run; only a
-#      conflict round that leaves it conflicting closes it as stuck, never a review round that pushed nothing (7 Nov 2026: seven pull requests closed in 20 minutes as main took 11 merges).
+#      conflict round that leaves it conflicting closes it as stuck, never a review round that pushed nothing.
+#      A review round that pushed nothing, its review still waiting (`review-landed` pending), is stuck STUCK_HOURS
+#      after that round, as a red one is (Craig, 7 Nov 2026, #1308: #1288, #1277, #1246 waited for ever) (7 Nov 2026: seven pull requests closed in 20 minutes as main took 11 merges).
 #   2. A resume. An unfinished build's draft (`wip/issue-N-*`) gets one more build of N, which carries on from it,
 #      and the label RESUMED_LABEL, unless N waits on Craig's rules (`rules:open`: his answer restarts it).
 #   3. A new build. Ready issues, oldest first: `lane:auto` (a grill's issues) or `rules:clear` (the sweep found
@@ -162,6 +164,7 @@ jobs:
                        --jq '.[] | select(.displayTitle | startswith("fix #")) | "\(.displayTitle | ltrimstr("fix #")) \(.createdAt)"')
           head_date() { gh pr view "$1" --json commits --jq '.commits[-1].committedDate'; }
           fixed_since() { awk -v n="$1" -v t="$2" '$1 == n && $2 > t { found = 1 } END { exit !found }' <<<"$fix_runs"; }  # issue, time
+          last_fix() { awk -v n="$1" '$1 == n && $2 > t { t = $2 } END { print t }' <<<"$fix_runs"; }  # issue: its latest fix run's start
 
           # 0. stuck: a builder pull request still red STUCK_HOURS after its one fix round is closed, its branch kept,
           # and its issue labelled STUCK_LABEL with the reason, so the queue never clogs behind it (CTO review, 5 Nov
@@ -170,17 +173,26 @@ jobs:
               .[] | select((.isDraft | not) and .author.login != env.OWNER)
               | select(any(.labels[]?; .name == env.FIXED_LABEL))
               | (any(.statusCheckRollup[]?; (.name == "verify" or .name == "smoke") and .conclusion == "FAILURE")) as $red
-              | select($red or .mergeable == "CONFLICTING")
+              | (any(.statusCheckRollup[]?; .context == "review-landed" and .state == "PENDING")) as $waiting
+              | select($red or .mergeable == "CONFLICTING" or $waiting)
+              | (if $red then "red" elif .mergeable == "CONFLICTING" then "conflict" else "review" end) as $kind
               | (any(.labels[]?; .name == env.CONFLICT_LABEL)) as $rounded
-              | "\(.number):\($red):\($rounded):\((.body // "") | ([scan("(?m)^(?:Part of|Closes) #([0-9]+)")] | first // [""]) | .[0])"' <<<"$prs"); do
-            IFS=: read -r pr red rounded n <<<"$row"
+              | "\(.number):\($kind):\($rounded):\((.body // "") | ([scan("(?m)^(?:Part of|Closes) #([0-9]+)")] | first // [""]) | .[0])"' <<<"$prs"); do
+            IFS=: read -r pr kind rounded n <<<"$row"
             [ -n "$n" ] || continue
             grep -qx "$n" <<<"$busy_issues" && continue  # its fix round is still running
             last=$(head_date "$pr")
             [ "$(date -u -d "$last" +%s)" -lt "$(date -u -d "$STUCK_HOURS hours ago" +%s)" ] || continue
-            # a conflict alone is stuck only once a conflict round, not a review round, ran on this head and left it (1b)
-            if [ "$red" != true ] && { [ "$rounded" != true ] || ! fixed_since "$n" "$last"; }; then continue; fi
-            if [ "$red" = true ]; then why="still red ${STUCK_HOURS} hours after its one fix round"; else why="still conflicting with main after a round to resolve it"; fi
+            case $kind in
+              red) why="still red ${STUCK_HOURS} hours after its one fix round" ;;
+              conflict)  # stuck only once a conflict round, not a review round, ran on this head and left it (1b)
+                { [ "$rounded" = true ] && fixed_since "$n" "$last"; } || continue
+                why="still conflicting with main after a round to resolve it" ;;
+              review)  # its fix round ran on this head, pushed nothing, and was STUCK_HOURS ago
+                fixed_since "$n" "$last" || continue
+                [ "$(date -u -d "$(last_fix "$n")" +%s)" -lt "$(date -u -d "$STUCK_HOURS hours ago" +%s)" ] || continue
+                why="its review still waiting ${STUCK_HOURS} hours after a fix round that pushed nothing" ;;
+            esac
             echo "Closing #$pr: $why"
             if [ "$DRY_RUN" != true ]; then
               gh pr close "$pr" --comment "Closed by the lead: $why. The branch is kept. #$n is labelled \`$STUCK_LABEL\`; take the label off to build it again." > /dev/null
