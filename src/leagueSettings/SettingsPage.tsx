@@ -14,6 +14,7 @@ import { DraftPanel } from "./DraftPanel";
 import { NumberRow } from "./NumberRow";
 import type { LeagueSettingsSeam, SettingsView } from "./seam";
 import { TeamOrderPanel } from "./TeamOrderPanel";
+import { TradesPanel } from "./TradesPanel";
 import {
   areaMinimumLabel,
   areaMinimumsHint,
@@ -24,6 +25,7 @@ import {
   blankPickClockWords,
   blankSquadMaximumWords,
   blankTimeoutsWords,
+  blankTradeDeadlineWords,
   clubMaximumHint,
   clubMaximumLabel,
   clubMaximumWords,
@@ -53,8 +55,8 @@ const ODD_TEAM_OUT_CHOICE = "odd-team-out";
 
 /** League settings (Craig, 22 Oct 2026), for a league's commissioners and the admin: the rules
  *  that build the league, apart from players' points, saved from the next gameweek with a letter
- *  to the league: the round robin's two (spec/09), the squad's make-up (spec/03; #341) and how
- *  the draft runs (spec/04; #1087), with the commissioner's draft order, which saves at once. */
+ *  to the league: the round robin's two (spec/09), the squad's make-up (spec/03; #341), how
+ *  the draft runs (spec/04; #1087) and how trades run (spec/08; #383), with the commissioner's draft order, which saves at once. */
 export function SettingsPage({ league, seam }: { league: LeagueSummary; seam: LeagueSettingsSeam }) {
   const view = seam.useSettings(league.leagueId);
   return (
@@ -101,6 +103,7 @@ function Editor({ league, seam, view }: { league: LeagueSummary; seam: LeagueSet
         </Panel>
         <SquadPanel draft={draft} edit={edit} />
         <DraftPanel draft={draft.draft} edit={(draftRules) => edit({ ...draft, draft: draftRules })} />
+        <TradesPanel trades={draft.trades} edit={(trades) => edit({ ...draft, trades })} />
         <SaveBar draft={rulesDraft} savedWords={savedWords} />
       </BoxRefusalContext>
       <TeamOrderPanel leagueId={league.leagueId} seam={seam} />
@@ -181,5 +184,6 @@ function blankRefusal(settings: LeagueSettings): string | null {
   if (Number.isNaN(settings.maxPerClub)) return blankClubMaximumWords;
   if (Number.isNaN(settings.draft.pickSeconds)) return blankPickClockWords;
   if (Number.isNaN(settings.draft.timeoutsBeforeAutoPick)) return blankTimeoutsWords;
+  if (Number.isNaN(settings.trades.deadline)) return blankTradeDeadlineWords;
   return null;
 }
