@@ -6,3 +6,6 @@ export const OVERRIDE_REASON_MAX = 200;
 /** The most points an override gives or takes away, so a slip of the keyboard (800 for 8) is
  *  refused rather than scored and mailed to the league. */
 export const OVERRIDE_POINTS_MOST = 100;
+/** The most a team's override of its gameweek total sets it to either way (#903): a team's total
+ *  is many men's, so its bound is wider, there only to refuse a slip of the keyboard. */
+export const TEAM_OVERRIDE_POINTS_MOST = 1000;

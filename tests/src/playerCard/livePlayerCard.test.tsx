@@ -46,8 +46,8 @@ test("overriding asks table/pointsOverrides:override with the league spread into
 });
 
 test("a refused override resolves with the server's own words", async () => {
-  convex.override.mockRejectedValue(new ConvexError(overrideRefusals.notLocked));
-  expect(await overrideOf()(A_LEAGUE_ID, CHANGE)).toBe(overrideRefusals.notLocked);
+  convex.override.mockRejectedValue(new ConvexError(overrideRefusals.blankReason));
+  expect(await overrideOf()(A_LEAGUE_ID, CHANGE)).toBe(overrideRefusals.blankReason);
 });
 
 test("any other failure is logged and said plainly", async () => {

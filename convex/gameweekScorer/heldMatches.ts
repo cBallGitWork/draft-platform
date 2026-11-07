@@ -1,6 +1,7 @@
 import type { Doc, Id } from "../_generated/dataModel";
 import type { QueryCtx } from "../_generated/server";
 import { takeAllOrThrow } from "../shared/cappedRead";
+import { MOST_TEAMS } from "../leagues/leagueLimits";
 import { gameweekFixtures } from "../shared/fixtures";
 import { statusOf } from "../stats/matchStats";
 
@@ -69,7 +70,19 @@ export async function overridesIn(ctx: QueryCtx, leagueId: Id<"leagues">, fixtur
   return new Map(rows.map((row) => [row.playerCode, row.points]));
 }
 
-export const playsIn = (fixture: Doc<"fixtures">, clubCode: number) => fixture.homeClubCode === clubCode || fixture.awayClubCode === clubCode;
+/** The league's overrides of teams' totals in the gameweek (#903, spec/14 S14.3): each team's
+ *  row, by team: one a team at most, so the league's most teams bound them. More throws, never a
+ *  silent cut. */
+export async function teamOverridesIn(ctx: QueryCtx, leagueId: Id<"leagues">, gameweek: number): Promise<Map<Id<"teams">, Doc<"teamOverrides">>> {
+  const rows = await takeAllOrThrow(
+    ctx.db.query("teamOverrides").withIndex("by_leagueId_and_gameweek_and_teamId", (q) => q.eq("leagueId", leagueId).eq("gameweek", gameweek)),
+    MOST_TEAMS,
+    `League ${leagueId} holds more than ${MOST_TEAMS} team overrides in gameweek ${gameweek}, so its totals would be cut short`,
+  );
+  return new Map(rows.map((row) => [row.teamId, row]));
+}
+
+export const playsIn =(fixture: Doc<"fixtures">, clubCode: number) => fixture.homeClubCode === clubCode || fixture.awayClubCode === clubCode;
 
 /** A match read at full time has a state; one still live has none (liveStats.ts). */
 export const isFinished = (match: HeldMatch) => match.status !== null;
