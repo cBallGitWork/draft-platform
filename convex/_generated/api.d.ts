@@ -85,6 +85,7 @@ import type * as gameweeks_usedGameweeks from "../gameweeks/usedGameweeks.js";
 import type * as heartbeats_heartbeat from "../heartbeats/heartbeat.js";
 import type * as home_glance from "../home/glance.js";
 import type * as home_leagueHome from "../home/leagueHome.js";
+import type * as home_matchday from "../home/matchday.js";
 import type * as http from "../http.js";
 import type * as joining_endedInvite from "../joining/endedInvite.js";
 import type * as joining_inviteLink from "../joining/inviteLink.js";
@@ -130,6 +131,7 @@ import type * as match_sheetOrder from "../match/sheetOrder.js";
 import type * as match_unownedPoints from "../match/unownedPoints.js";
 import type * as matchup_matchup from "../matchup/matchup.js";
 import type * as matchup_matchupShape from "../matchup/matchupShape.js";
+import type * as matchup_readCommentary from "../matchup/readCommentary.js";
 import type * as matchup_vidiprinter from "../matchup/vidiprinter.js";
 import type * as outbound_claude from "../outbound/claude.js";
 import type * as outbound_deploymentSettings from "../outbound/deploymentSettings.js";
@@ -190,6 +192,7 @@ import type * as scoring_firstRolesVersion from "../scoring/firstRolesVersion.js
 import type * as scoring_firstScoring from "../scoring/firstScoring.js";
 import type * as scoring_ownStats from "../scoring/ownStats.js";
 import type * as scoring_patchChanges from "../scoring/patchChanges.js";
+import type * as scoring_patchKickoffs from "../scoring/patchKickoffs.js";
 import type * as scoring_patchNotes from "../scoring/patchNotes.js";
 import type * as scoring_priced from "../scoring/priced.js";
 import type * as scoring_ruleChecks from "../scoring/ruleChecks.js";
@@ -370,6 +373,7 @@ declare const fullApi: ApiFromModules<{
   "heartbeats/heartbeat": typeof heartbeats_heartbeat;
   "home/glance": typeof home_glance;
   "home/leagueHome": typeof home_leagueHome;
+  "home/matchday": typeof home_matchday;
   http: typeof http;
   "joining/endedInvite": typeof joining_endedInvite;
   "joining/inviteLink": typeof joining_inviteLink;
@@ -415,6 +419,7 @@ declare const fullApi: ApiFromModules<{
   "match/unownedPoints": typeof match_unownedPoints;
   "matchup/matchup": typeof matchup_matchup;
   "matchup/matchupShape": typeof matchup_matchupShape;
+  "matchup/readCommentary": typeof matchup_readCommentary;
   "matchup/vidiprinter": typeof matchup_vidiprinter;
   "outbound/claude": typeof outbound_claude;
   "outbound/deploymentSettings": typeof outbound_deploymentSettings;
@@ -475,6 +480,7 @@ declare const fullApi: ApiFromModules<{
   "scoring/firstScoring": typeof scoring_firstScoring;
   "scoring/ownStats": typeof scoring_ownStats;
   "scoring/patchChanges": typeof scoring_patchChanges;
+  "scoring/patchKickoffs": typeof scoring_patchKickoffs;
   "scoring/patchNotes": typeof scoring_patchNotes;
   "scoring/priced": typeof scoring_priced;
   "scoring/ruleChecks": typeof scoring_ruleChecks;
