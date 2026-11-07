@@ -31,4 +31,9 @@ export type PlayerCardSeam = ShortlistSeam & {
   usePlayerCard(leagueId: Id<"leagues">, playerCode: number, now: number): PlayerCard | null | undefined;
   /** Overriding a player's points in a match (a hook). */
   useOverride(): (leagueId: Id<"leagues">, override: PointsOverride) => Change;
+  /** Removing his override in a match, so he scores what his record does again (a hook; #903). */
+  useRemoveOverride(): (leagueId: Id<"leagues">, overridden: OverriddenMatch) => Change;
 };
+
+/** The match a player's override is removed from. */
+export type OverriddenMatch = Pick<PointsOverride, "fixtureCode" | "playerCode">;

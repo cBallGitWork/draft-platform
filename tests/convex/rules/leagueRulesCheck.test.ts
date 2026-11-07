@@ -6,6 +6,7 @@ import { NO_AREA_MINIMUMS, rulesWith } from "../../support/convex/leagueRules.ha
 import { ODD_TEAM_OUTS } from "../../../convex/table/roundRobin";
 import { everyArea } from "../../support/convex/scoring.example";
 import { MOST_IN_SQUAD } from "../../../convex/leagues/leagueLimits";
+import { FIRST_INSTRUCTIONS } from "../../../convex/lineup/instructions";
 
 // What a league's rules are refused for on save, with the reason (#25 Done: "an invalid rule is
 // refused with the reason"). Unchecked, each of these would save and then fail, or score wrong,
@@ -109,6 +110,21 @@ describe.each<[string, Partial<LeagueRules>, string]>([
     "a preset the league's own area limits forbid",
     { areaLimits: { ...limits, attack: { minimum: 0, maximum: 1 } } },
     "The preset 4-4-2 puts 2 in attack, outside its limits of 0 to 1.",
+  ],
+  [
+    "a preset whose default instruction its shape blocks (#990)",
+    { presets: [{ ...firstPreset, instructions: { attacking: "playOutFromTheBack", defensive: "parkTheBus" } }] },
+    "The preset 4-4-2's default defensive instruction, parkTheBus, isn't one its shape offers.",
+  ],
+  [
+    "team instructions with no defensive one (#990)",
+    { instructions: FIRST_INSTRUCTIONS.filter(({ side }) => side === "attacking") },
+    "The team instructions need at least one defensive instruction.",
+  ],
+  [
+    "two team instructions of one key (#990)",
+    { instructions: [...FIRST_INSTRUCTIONS, FIRST_INSTRUCTIONS[0]] },
+    'Two team instructions have the key "playOutFromTheBack".',
   ],
   [
     "a deadline after the first kickoff",

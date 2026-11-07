@@ -89,6 +89,17 @@ export const autoSubWords = {
 /** Read out for a bench player whose points don't count, greyed on screen (spec/14, On screen). */
 export const notCountingLabel = "not counting";
 
+/** A player's breakdown for the gameweek, opened by tapping his name (spec/10; #798). */
+export const openBreakdownLabel = (name: string) => `${name}: why his points`;
+export { closeGlyph, playerCardWords } from "../shared/words";
+export const closeBreakdownLabel = "Close";
+/** One of his matches, named by its kickoff ("Sat 15:00"), opening its page. */
+export const breakdownMatchWords = (kickoff: number | null) => (kickoff === null ? "His match" : kickoffFormat.format(kickoff));
+/** Under best match, the lower of his double gameweek's two (spec/03; Craig, 6 Nov 2026). */
+export const notCountedWords = "Not counted: best match";
+export const noMatchBreakdownWords = "No match this gameweek.";
+export { notArrivedWords, overriddenWords } from "../playerCard/words";
+
 /** The matchup's commentary (spec/10): every line of every match either team's men play in. */
 export const VIDIPRINTER_TITLE = "Vidiprinter";
 /** When the stream falls behind or stops; points carry on from FPL (spec/10, The commentary). */

@@ -24,8 +24,36 @@ export function squadCountWords(players: number, maximum: number | null): string
   if (maximum === null) return `${players} players`;
   return players === maximum ? `${players} of ${maximum}, the league's maximum` : `${players} of ${maximum}`;
 }
-/** A view answered but not built yet: its placeholder's name. */
-export const viewNotBuiltLabel = (view: SquadView) => `${squadViewWords[view]}: not built yet`;
+
+/** The Schedule view (#1006): his club's matches in each of the next six gameweeks. */
+export const scheduleTableLabel = (teamName: string) => `${teamName}'s schedule`;
+/** A gameweek's head: "GW10", named in full in its tooltip. */
+export const scheduleGameweekWords = (gameweek: number) => ({ short: `GW${gameweek}`, long: `Gameweek ${gameweek}` });
+/** A blank week's cell: his club has no match in it. */
+export const blankWeekWords = "No match this gameweek";
+export const noKickoffWords = "kickoff time not set";
+export const noScheduleWords = "No gameweek left to set: the season is over, or the league has no rules yet.";
+
+/** The Rules view (#1006): one row per limit, each naming the players it counts. */
+export const rulesTableLabel = (teamName: string) => `${teamName}'s squad against the league's limits`;
+export const rulesColumns = {
+  limit: { short: "Limit", long: "The league's limit" },
+  held: { short: "Held", long: "How many of your squad it counts" },
+  allowed: { short: "Allowed", long: "What the league allows" },
+  status: { short: "Out", long: "How far outside the limit" },
+  players: { short: "Players", long: "The players it counts" },
+} as const;
+export const squadSizeWords = "Squad size";
+export const clubLimitWords = (club: string) => `From ${club}`;
+export const betweenWords = (minimum: number, maximum: number) => `${minimum} to ${maximum}`;
+export const atLeastWords = (minimum: number) => `at least ${minimum}`;
+export const atMostWords = (maximum: number) => `at most ${maximum}`;
+/** How far outside a limit the squad is: "1 over", "2 short". */
+export const overWords = (by: number) => `${by} over`;
+export const shortWords = (by: number) => `${by} short`;
+/** Players the football sync no longer holds: counted, with no name to show. */
+export const unnamedWords = (count: number) => `and ${count} not held`;
+export const noLimitsWords = "The league sets no squad limits.";
 
 export const squadTableLabel = (teamName: string) => `${teamName}'s squad`;
 export const squadColumns = {
@@ -93,7 +121,8 @@ export const startedNotBuiltLabel = "Started: not counted yet";
 export const rolePointsNotBuiltLabel = "Role points: not counted yet";
 export const bestRoleNotRatedLabel = "Best role: not rated yet";
 export const roleLastGameweekNotSettledLabel = "Role last gameweek: what it counts isn't settled yet";
-export const setRoleNotBuiltLabel = "Set his role: waits for Tactics to open with him selected";
+/** The panel's link to Tactics, with him selected there (#1008). */
+export const setRoleWords = "Set his role";
 /** Where he stands in the gameweek being set: "Starting, W right"; "Bench, S3". */
 export const gameweekRowWords = (gameweek: number) => `GW${gameweek}`;
 export const startingInWords = (slot: string, lane: Lane) => `Starting, ${slot} ${LANE_WORDS[lane]}`;

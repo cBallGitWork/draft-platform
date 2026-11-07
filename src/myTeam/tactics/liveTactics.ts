@@ -14,8 +14,8 @@ export const liveTactics: TacticsSeam = {
     const save = useMutation(api.lineup.lineups.save);
     return useMemo(
       () => ({
-        save: (leagueId, { starters, bench }) =>
-          answerOf(() => save({ leagueId, lineup: { starters: [...starters], bench: [...bench] } }), "Saving a lineup", saveFailedWords),
+        save: (leagueId, { starters, bench, instructions }) =>
+          answerOf(() => save({ leagueId, lineup: { starters: [...starters], bench: [...bench], instructions } }), "Saving a lineup", saveFailedWords),
       }),
       [save],
     );

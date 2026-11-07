@@ -1,7 +1,7 @@
 import { v } from "convex/values";
 import { mutation, query } from "../_generated/server";
 import { refuse } from "../shared/leagueAccess";
-import { draftRulesOf, drawRulesOf } from "./firstRules";
+import { draftRulesOf, drawRulesOf, tradeRulesOf } from "./firstRules";
 import { sortedJson } from "../shared/sortedJson";
 import { changeLatest, editorView, editorViewOf, revisionShape } from "./leagueRules";
 import type { LeagueRules } from "./leagueRulesShape";
@@ -27,14 +27,15 @@ export const settings = query({
  *  Its limits are the rules' check's (leagueRulesCheck.ts): games a gameweek a whole number, 1 or
  *  more, and no more than the league's teams have rounds for; the squad's maximum no more than a
  *  Premier League squad, and the minimums by area adding up to no more than it; the pick clock and
- *  the timeouts before auto-pick within ../draft/draftLimits.ts's. */
+ *  the timeouts before auto-pick within ../draft/draftLimits.ts's; a trade deadline a gameweek of
+ *  the season. */
 export const changeSettings = mutation({
   args: { leagueId: v.id("leagues"), settings: leagueSettingsShape, revision: revisionShape },
   returns: v.number(),
   handler: (ctx, { leagueId, settings, revision }) => changeLatest(ctx, leagueId, revision, (latest) => withLeagueSettings(latest, settings)),
 });
 
-/** The rules with these settings. A draw setting, or the draft's, is written only if it differs
+/** The rules with these settings. A draw setting, the draft's or the trades', is written only if it differs
  *  from what the league plays by, so rules saved before it was a rule don't read as changing it.
  *  Refused if the settings would add or take away the squad size limit. */
 function withLeagueSettings(rules: LeagueRules, settings: LeagueSettings): LeagueRules {
@@ -46,6 +47,7 @@ function withLeagueSettings(rules: LeagueRules, settings: LeagueSettings): Leagu
     ...(settings.oddTeamOut !== playedBy.oddTeamOut && { oddTeamOut: settings.oddTeamOut }),
     ...(settings.gamesPerGameweek !== playedBy.gamesPerGameweek && { gamesPerGameweek: settings.gamesPerGameweek }),
     ...(sortedJson(settings.draft) !== sortedJson(draftRulesOf(rules)) && { draft: settings.draft }),
+    ...(sortedJson(settings.trades) !== sortedJson(tradeRulesOf(rules)) && { trades: settings.trades }),
     squad: {
       size: size === null || settings.squadMaximum === null ? null : { ...size, maximum: settings.squadMaximum },
       minimumByArea: settings.minimumByArea,

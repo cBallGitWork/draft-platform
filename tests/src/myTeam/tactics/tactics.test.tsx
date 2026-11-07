@@ -11,6 +11,7 @@ import { DAY_MS, HOUR_MS, MINUTE_MS } from "../../../../convex/shared/time";
 import { MY_TEAM_PATH } from "../../../../src/frame/menu";
 import {
   BENCH_TITLE,
+  closePanelLabel,
   emptyBenchWords,
   joinedBenchWords,
   pitchLabel,
@@ -83,6 +84,20 @@ describe("reaching it", () => {
     await screen.findByText(seasonOverWords);
     expect(app.myTeam.useTacticsOpened).toHaveBeenLastCalledWith(league.leagueId, null);
   });
+
+  it("opens with the player the address names selected, his panel open (#1008)", async () => {
+    openApp(`${MY_TEAM_PATH}?player=${WHITE.playerCode}`, manager, { myTeam: { tactics: SAVED } });
+    expect(await screen.findByRole("button", { name: closePanelLabel(WHITE.name) })).toBeTruthy();
+  });
+
+  it.each([
+    ["a player not in the squad", "999"],
+    ["something that isn't a player's code", "white"],
+  ])("opens with no panel for %s", async (_, player) => {
+    openApp(`${MY_TEAM_PATH}?player=${player}`, manager, { myTeam: { tactics: SAVED } });
+    await screen.findByRole("group", { name: pitchLabel });
+    expect(screen.queryByRole("button", { name: /^Close .*'s panel$/ })).toBeNull();
+  });
 });
 
 describe("the deadline", () => {
@@ -123,14 +138,14 @@ describe("the lineup held", () => {
     openTacticsTab();
     await screen.findByRole("table", { name: squadTableLabel });
     expect(squadRows()).toEqual([
-      // Each starter's slot chip, then name, club, next fixture (none held here, so empty), role
-      // fit ("—": no stars held here) and role picker.
-      "GKRayaARS—Shot-stopperSweeper keeperDistributorCommanding keeper",
-      "CBSalibaARS—StopperBall-playing centre-backNo-nonsense centre-backAttacking centre-back",
-      "CMRiceARS—Box-to-boxBall-winnerAttacking 8EngineLate runner",
-      "STHavertzARS—PoacherTarget manIn-behind strikerPressing forwardShadow strikerFalse 9",
-      // Each bench player's place and main position, his stars for his best role there, and it.
-      BENCH_TITLE, "S1GKArrizabalagaARS—Shot-stopper", "S2FBWhiteARS—Overlapping full-back"]);
+      // Each starter's slot chip, then role picker, name, club, role fit ("—": no stars held here)
+      // and next fixture (none held here, so empty).
+      "GKShot-stopperSweeper keeperDistributorCommanding keeperRayaARS—",
+      "CBStopperBall-playing centre-backNo-nonsense centre-backAttacking centre-backSalibaARS—",
+      "CMBox-to-boxBall-winnerAttacking 8EngineLate runnerRiceARS—",
+      "STPoacherTarget manIn-behind strikerPressing forwardShadow strikerFalse 9HavertzARS—",
+      // Each bench player's place and main position, his best role there, and his stars for it.
+      BENCH_TITLE, "S1GKShot-stopperArrizabalagaARS—", "S2FBOverlapping full-backWhiteARS—"]);
   });
 
   it("says who joined the squad since and sits at the end of the bench", async () => {

@@ -1,13 +1,14 @@
 import { ConvexError } from "convex/values";
 import { expect, test } from "vitest";
-import { api } from "../../../convex/_generated/api";
+import { api, internal } from "../../../convex/_generated/api";
 import type { TableNames } from "../../../convex/_generated/dataModel";
 import { adminByline, matchWords } from "../../../convex/mail/letterWords";
 import schema from "../../../convex/schema";
 import { inTenths } from "../../../convex/scoring/values";
 import { refusals } from "../../../convex/shared/leagueAccess";
 import { OVERRIDE_POINTS_MOST, OVERRIDE_REASON_MAX } from "../../../convex/table/overrideLimits";
-import { overrideRefusals } from "../../../convex/table/pointsOverrides";
+import { lostPlayerName, overrideRefusals } from "../../../convex/table/pointsOverrides";
+import { MINUTES_STAT } from "../../../convex/stats/matchRecords";
 import {
   ANN,
   annsScoredGame,
@@ -18,6 +19,7 @@ import {
   HULL_POINTS,
   HULL_SCORER,
   HULL_STARTERS,
+  losePlayer,
   nameOf,
   PHILLIPS,
   readTable,
@@ -195,11 +197,79 @@ test(`a reason of ${OVERRIDE_REASON_MAX} characters is let in when each is an em
   expect(await refusalOf(overrides(league, COMMISSIONER, { reason: reason + EMOJI }))).toBe(overrideRefusals.reasonTooLong);
 });
 
-test("a match still inside its corrections window can't be overridden: its own corrections still move it", async () => {
+test("a match still inside its corrections window can be overridden, and the override stands over a later correction (S14.2, S14.4)", async () => {
   const league = await scoresLeague();
+  await holdHullAndEverton(league);
   await fullTimeRecords(league);
+  await overrides(league, COMMISSIONER);
+  expect((await annsMatchup(league)).scorer).toBe(OVERRIDDEN);
 
-  expect(await refusalOf(overrides(league, COMMISSIONER))).toBe(overrideRefusals.notLocked);
+  // The feed takes his goal away: everything but his minutes goes.
+  await fullTimeRecords(league, RECORDS.map((record) => (record.playerCode === HULL_SCORER ? { ...record, stats: { [MINUTES_STAT]: record.stats[MINUTES_STAT] } } : record)));
+  expect(await annsMatchup(league)).toEqual({ team: ANNS_AFTER, opponent: EVERTON_POINTS, scorer: OVERRIDDEN });
+  await lockMatch(league);
+  await storeLeague(league);
+  expect(await tablePoints(league)).toEqual([
+    { teamId: league.annsTeam, points: ANNS_AFTER },
+    { teamId: league.bobsTeam, points: EVERTON_POINTS },
+  ]);
+});
+
+const removes = async ({ t, leagueId }: ScoresLeague, by: string, playerCode = HULL_SCORER) =>
+  (await actingAs(t, by)).mutation(api.table.pointsOverrides.removeOverride, { leagueId, fixtureCode: HULL_EVERTON, playerCode });
+
+test("removing an override puts his scored points back everywhere, and the league is told (S14.5)", async () => {
+  const league = await storedLeague();
+  const annsTeamName = (await league.t.run((ctx) => ctx.db.get("teams", league.annsTeam)))!.name;
+  await overrides(league, COMMISSIONER);
+  await removes(league, ADMIN);
+
+  expect(await league.t.run((ctx) => ctx.db.query("pointsOverrides").collect())).toEqual([]);
+  const scored = [
+    { teamId: league.annsTeam, points: HULL_POINTS },
+    { teamId: league.bobsTeam, points: EVERTON_POINTS },
+  ];
+  expect(await tablePoints(league)).toEqual(scored);
+  expect(await storedPoints(league)).toEqual(scored);
+  expect(await annsMatchup(league)).toEqual({ team: HULL_POINTS, opponent: EVERTON_POINTS, scorer: SCORERS_POINTS });
+
+  const name = await nameOf(league, HULL_SCORER);
+  const last = (await lettersOf(league)).at(-1)!;
+  expect(last.subject).toBe(`${name}'s override in ${MATCH_NAME} was removed`);
+  expect(last.body).toBe(
+    `${adminByline} removed the override of ${name}'s points in ${MATCH_NAME}, gameweek ${GAMEWEEK}: ${OVERRIDDEN} to ${SCORERS_POINTS}, as scored.\n\n` +
+      `${annsTeamName} now have ${HULL_POINTS} in gameweek ${GAMEWEEK}, not ${ANNS_AFTER}.`,
+  );
+});
+
+test("removing an override is refused where none is held, or by a manager who doesn't run the league", async () => {
+  const league = await storedLeague();
+  const name = await nameOf(league, HULL_SCORER);
+  expect(await refusalOf(removes(league, COMMISSIONER))).toBe(overrideRefusals.noOverride(name));
+  await overrides(league, COMMISSIONER);
+  expect(await refusalOf(removes(league, ANN))).toBe(refusals.notRunner);
+  expect(await league.t.run((ctx) => ctx.db.query("pointsOverrides").collect())).toHaveLength(1);
+});
+
+test("a man the football data has lost can be overridden in a match he has a saved record in, and his points count again (#810, S14.5)", async () => {
+  const league = await storedLeague();
+  await losePlayer(league, HULL_SCORER);
+  await league.t.mutation(internal.table.finalScores.rescore, { leagueId: league.leagueId, gameweek: GAMEWEEK });
+  const lost = await tablePoints(league);
+  expect(lost).not.toEqual([
+    { teamId: league.annsTeam, points: HULL_POINTS },
+    { teamId: league.bobsTeam, points: EVERTON_POINTS },
+  ]);
+
+  await overrides(league, COMMISSIONER);
+  expect(await tablePoints(league)).toEqual([
+    { teamId: league.annsTeam, points: ANNS_AFTER },
+    { teamId: league.bobsTeam, points: EVERTON_POINTS },
+  ]);
+  expect((await lettersOf(league)).at(-1)!.subject).toBe(`${lostPlayerName(HULL_SCORER)}'s points in ${MATCH_NAME} were overridden`);
+
+  await removes(league, COMMISSIONER);
+  expect(await tablePoints(league)).toEqual(lost);
 });
 
 test("his card shows the override on the match, with why, to anyone in the league", async () => {
