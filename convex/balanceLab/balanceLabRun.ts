@@ -88,15 +88,21 @@ export const keepReport = internalMutation({
 });
 
 /** Runs the lab on the patch `versionId` names, just announced, and keeps its report with it for
- *  the patch notes. A patch withdrawn first is left alone. */
+ *  the patch notes. A patch withdrawn first is left alone. A run that fails says so in the logs,
+ *  naming the patch whose notes will lack the report, and still fails. */
 export const recordAnnounced = internalAction({
   args: { versionId: v.id("siteScoring") },
   returns: v.null(),
   handler: async (ctx, { versionId }) => {
-    const set: StoredScoringSet | null = await ctx.runQuery(internal.balanceLab.balanceLabRun.versionSet, { versionId });
-    if (set === null) return null;
-    const report = await labOn(ctx, set);
-    await ctx.runMutation(internal.balanceLab.balanceLabRun.keepReport, { versionId, report });
-    return null;
+    try {
+      const set: StoredScoringSet | null = await ctx.runQuery(internal.balanceLab.balanceLabRun.versionSet, { versionId });
+      if (set === null) return null;
+      const report = await labOn(ctx, set);
+      await ctx.runMutation(internal.balanceLab.balanceLabRun.keepReport, { versionId, report });
+      return null;
+    } catch (error) {
+      console.error(`The rule balance lab didn't run on announced patch ${versionId}, so its patch notes have no lab report:`, error);
+      throw error;
+    }
   },
 });

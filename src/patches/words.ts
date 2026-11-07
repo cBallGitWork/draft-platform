@@ -32,11 +32,11 @@ export const labSummaryWords = (seasons: readonly number[], starts: number, skip
   const on = first === last ? seasonShortWords(first) : `${seasonShortWords(first)} to ${seasonShortWords(last)}`;
   return `On ${on}: ${starts.toLocaleString("en-GB")} real starts, each counted in the slot he started in. Starts skipped (where he started maps to no slot): ${skipped.toLocaleString("en-GB")}.`;
 };
-export const labHint = `Each role's average a start over its slot's real starts, against the slot's target role bonus. More than ${ROLE_TARGET_MARGIN} off it is flagged.`;
+export const labHint = `Each role's average a start over its slot's real starts, against the slot's target role adjustment. More than ${ROLE_TARGET_MARGIN} off it is flagged.`;
 export const labColumns = {
   role: { short: "Role", long: "Role" },
   slot: { short: "Slot", long: "Slot" },
-  target: { short: "Target", long: "Target role bonus a start" },
+  target: { short: "Target", long: "Target role adjustment a start" },
   average: { short: "Avg", long: "Average a start" },
   starts: { short: "Starts", long: "Starts tested on" },
 } as const;
