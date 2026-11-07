@@ -1,4 +1,3 @@
-import { Link } from "@tanstack/react-router";
 import { TOP_ROWS } from "../../convex/home/glance";
 import type { LeagueSummary } from "../../convex/leagues/myLeagues";
 import { cellClassOf, ColumnHeads } from "../ui/ColumnHeads";
@@ -8,6 +7,7 @@ import { MAIL_PATH, TABLE_PATH } from "../frame/menu";
 import { MatchupLink } from "../matchup/MatchupLink";
 import { Vidiprinter } from "../matchup/Vidiprinter";
 import { useMinute } from "../shared/useMinute";
+import { PanelLink } from "./PanelLink";
 import { RecapPanel } from "./Recap";
 import type { HomeSeam, LeagueHome } from "./seam";
 import {
@@ -83,15 +83,6 @@ export function HomePage({ league, seam }: { league: LeagueSummary; seam: HomeSe
         </div>
       )}
     </PageSection>
-  );
-}
-
-/** A panel's way on to the page that holds all of what it shows. */
-function PanelLink({ to, children }: { to: string; children: string }) {
-  return (
-    <Link to={to} className="flex min-h-tap items-center px-3">
-      {children}
-    </Link>
   );
 }
 

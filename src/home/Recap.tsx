@@ -3,6 +3,7 @@ import type { LeagueSummary } from "../../convex/leagues/myLeagues";
 import { DateBlock } from "../mail/DateBlock";
 import { matchupLink } from "../matchup/paths";
 import { Loading, PAGE_STACK, PageSection, Panel, PanelNote } from "../ui/Panel";
+import { PanelLink } from "./PanelLink";
 import { recapLink } from "./paths";
 import type { HomeSeam, Recap } from "./seam";
 import { backHomeLink, changedMatchupLink, loadingRecapWords, noRecapWords, readRecapLink, recapTitle, scoreChangedWords } from "./words";
@@ -11,8 +12,6 @@ import { HOME_PATH } from "../frame/menu";
 // League home's weekly recap (spec/12, League home; #387): its panel on the home, a few lines and
 // Read the recap, and the page that opens, the recap whole. Under each, once a score has changed
 // since it was written, a line saying so links to that matchup (Craig, 6 Nov 2026).
-
-const LINK = "flex min-h-tap items-center px-3";
 
 /** The line under the recap once a score has changed since it was written; nothing before. */
 function ScoreChanged({ recap }: { recap: Recap }) {
@@ -33,9 +32,7 @@ export function RecapPanel({ recap }: { recap: Recap }) {
     <Panel title={recapTitle(recap.gameweek)}>
       <p className="line-clamp-4 whitespace-pre-line px-3 pt-2">{recap.text}</p>
       <ScoreChanged recap={recap} />
-      <Link {...recapLink(recap.gameweek)} className={LINK}>
-        {readRecapLink}
-      </Link>
+      <PanelLink {...recapLink(recap.gameweek)}>{readRecapLink}</PanelLink>
     </Panel>
   );
 }
@@ -57,9 +54,7 @@ export function RecapPage({ league, seam, gameweek }: { league: LeagueSummary; s
           </article>
         )}
         {recap && <ScoreChanged recap={recap} />}
-        <Link to={HOME_PATH} className={LINK}>
-          {backHomeLink}
-        </Link>
+        <PanelLink to={HOME_PATH}>{backHomeLink}</PanelLink>
       </div>
     </PageSection>
   );

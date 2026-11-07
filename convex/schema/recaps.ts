@@ -8,6 +8,9 @@ import { v } from "convex/values";
 /** Where a recap stands: being written, or written. */
 export const recapState = v.union(v.literal("writing"), v.literal("written"));
 
+/** Each team's points in the gameweek, as a recap was written from them. */
+export const recapTeamPoints = v.array(v.object({ teamId: v.id("teams"), points: v.number() }));
+
 export const recapTables = {
   recaps: defineTable({
     leagueId: v.id("leagues"),
@@ -18,7 +21,7 @@ export const recapTables = {
     writtenAt: v.optional(v.number()),
     /** Each team's points as the recap was written from them: a score that differs later puts a
      *  line under it saying so (Craig, 6 Nov 2026). Empty while it is being written. */
-    teamPoints: v.array(v.object({ teamId: v.id("teams"), points: v.number() })),
+    teamPoints: recapTeamPoints,
     /** How many times writing it has failed, and the last failure's words, while it is tried
      *  again. Absent until one fails. */
     failedTries: v.optional(v.number()),

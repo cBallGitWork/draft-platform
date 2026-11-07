@@ -1,4 +1,4 @@
-import { v } from "convex/values";
+import { v, type Infer } from "convex/values";
 import { internal } from "../_generated/api";
 import type { Doc, Id } from "../_generated/dataModel";
 import { internalAction, internalMutation, internalQuery, query, type MutationCtx, type QueryCtx } from "../_generated/server";
@@ -10,6 +10,7 @@ import { leagueAverageWords } from "../mail/letterWords";
 import { fileLetter, wholeLeague } from "../mail/letters";
 import { writeWithClaude } from "../outbound/claude";
 import { seasonRules } from "../rules/rulesHistory";
+import { recapTeamPoints } from "../schema/recaps";
 import { takeAllOrThrow } from "../shared/cappedRead";
 import { logFailure } from "../shared/errors";
 import { GAMEWEEK_MATCHES_MOST } from "../shared/fixtures";
@@ -54,7 +55,7 @@ const recapOf = (ctx: QueryCtx, leagueId: Id<"leagues">, gameweek: number) =>
  *  written. Throws while the gameweek has no score. */
 export const brief = internalQuery({
   args: { recapId: v.id("recaps") },
-  returns: v.union(v.null(), v.object({ prompt: v.string(), teamPoints: v.array(v.object({ teamId: v.id("teams"), points: v.number() })) })),
+  returns: v.union(v.null(), v.object({ prompt: v.string(), teamPoints: recapTeamPoints })),
   handler: async (ctx, { recapId }) => {
     const recap = await ctx.db.get("recaps", recapId);
     if (recap === null || recap.state !== "writing") return null;
@@ -111,7 +112,7 @@ export const write = internalAction({
   args: { recapId: v.id("recaps") },
   returns: v.null(),
   handler: async (ctx, { recapId }) => {
-    let written: { text: string; teamPoints: { teamId: TeamId; points: number }[] };
+    let written: { text: string; teamPoints: Infer<typeof recapTeamPoints> };
     try {
       const facts = await ctx.runQuery(internal.home.recaps.brief, { recapId });
       if (facts === null) return null;
@@ -128,7 +129,7 @@ export const write = internalAction({
 
 /** The recap is written, and Mail tells the whole league it is up. Nothing for one written already. */
 export const landed = internalMutation({
-  args: { recapId: v.id("recaps"), text: v.string(), teamPoints: v.array(v.object({ teamId: v.id("teams"), points: v.number() })) },
+  args: { recapId: v.id("recaps"), text: v.string(), teamPoints: recapTeamPoints },
   returns: v.null(),
   handler: async (ctx, { recapId, text, teamPoints }) => {
     const recap = await ctx.db.get("recaps", recapId);
