@@ -90,7 +90,10 @@ export function changesTo(
       admin.mutation(api.draft.draftCommissioner.markForCommissioner, { leagueId, teamId: annsTeam._id, marked: true }),
     "lineup/autoTeam:set": () => ann.mutation(api.lineup.autoTeam.set, { leagueId, teamId: annsTeam._id, on: true }),
     "lineup/lineups:save": () => ann.mutation(api.lineup.lineups.save, { leagueId, lineup: { starters: [], bench: [] } }),
-    "lineup/lineupDue:openedTactics": () => ann.mutation(api.lineup.lineupDue.openedTactics, { leagueId, gameweek: 1 }),
+    "lineup/savedPlans:save": () =>
+      ann.mutation(api.lineup.savedPlans.save, { leagueId, name: "Press", slots: FIRST_RULES.presets[0].cells.map((cell) => ({ ...cell })) }),
+    "lineup/savedPlans:remove": () => ann.mutation(api.lineup.savedPlans.remove, { leagueId, name: "Press" }),
+    "lineup/lineupDue:openedTactics":() => ann.mutation(api.lineup.lineupDue.openedTactics, { leagueId, gameweek: 1 }),
     "leagues/lastLeague:switchTo": () => commissioner.mutation(api.leagues.lastLeague.switchTo, { leagueId }),
     "mail/mail:writeToLeague": () => admin.mutation(api.mail.mail.writeToLeague, { leagueId, subject: "Still here?", body: "It's being deleted." }),
     "squads/squads:assign": () => admin.mutation(api.squads.squads.assign, { leagueId, playerCode: 1, teamId: annsTeam._id }),

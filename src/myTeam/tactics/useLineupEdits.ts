@@ -90,11 +90,13 @@ export function useLineupEdits({
     show(last);
   };
   /** The lineup reshaped to a preset, whose empty slots the pitch marks until it saves, with the
-   *  words for any instruction it switched. */
-  const reshape = (name: string, next: DraftLineup, switched: string | null) => {
+   *  words for any instruction it switched; `said`, a line under the toolbar about it, such as a
+   *  loaded plan's roles no longer allowed (#992). */
+  const reshape = (name: string, next: DraftLineup, switched: string | null, said: string | null = null) => {
     setShape(name);
     edit(next);
     setSwitchedNote(switched);
+    setRefused(said);
   };
   return { draft, edit, undo, reshape, refuse, canUndo: undoable.length > 0, savedAt, switchedNote, problem: refused ?? problem, shape };
 }

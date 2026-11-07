@@ -82,7 +82,8 @@ beforeEach(async () => {
         caller.mutation(api.leagues.leagues.create, { name: "Another league", maxTeams: 4, commissionerEmail: COMMISSIONER }),
       // Its nothing is "not due", so false is read as nothing here alone.
       "lineup/lineupDue:isDue": async () => (await caller.query(api.lineup.lineupDue.isDue, { leagueId, now })) || null,
-      "lineup/tactics:ofMyTeam": () => caller.query(api.lineup.tactics.ofMyTeam, { leagueId, now }),
+      "lineup/savedPlans:mine": () => caller.query(api.lineup.savedPlans.mine, { leagueId }),
+      "lineup/tactics:ofMyTeam":() => caller.query(api.lineup.tactics.ofMyTeam, { leagueId, now }),
       "mail/mail:latest": () => caller.query(api.mail.mail.latest, {}),
       "mail/mail:letters": () => caller.query(api.mail.mail.letters, {}),
       "mail/mail:open": () => caller.mutation(api.mail.mail.open, { letterId: annsLetter._id }),
