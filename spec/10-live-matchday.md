@@ -67,6 +67,7 @@ commentary` (16 Oct 2026).
   or coming-on line already says; a clean sheet added and taken away ("same for when CS is added
   and removed for defedners"), added once he has the minutes for it with nothing conceded, taken
   away by the goal that ends it (31 Oct 2026); goals conceded (for example "71' Saliba: 2 conceded, −1").
+- The first minutes band starts at 1 minute, as FPL's does (Craig, 7 Nov 2026, on #889: keep it). `S10.1`
 - A kick-off and a full-time line for each match with either team's players in it, on the matchup
   ("FT ARS 2–1 CHE: Saka 11, Palmer 6").
 - If the commentary stream falls behind or stops, the matchup and the match page say so

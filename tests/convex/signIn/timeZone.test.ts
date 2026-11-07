@@ -4,8 +4,8 @@ import type { Id } from "../../../convex/_generated/dataModel";
 import { refusals } from "../../../convex/shared/leagueAccess";
 import { LONDON_ZONE, momentIn, screenMoment } from "../../../convex/shared/moments";
 import { notAZone, zoneOf } from "../../../convex/signIn/timeZone";
-import { ANN, BOB, deletes, leagueWithPeople } from "../../support/convex/leagueDeletion.harness";
-import { COMMISSIONER, actingAs, leagueRow, type TestConvex } from "../../support/convex/leagues.harness";
+import { ANN, deletes, leagueWithPeople } from "../../support/convex/leagueDeletion.harness";
+import { ADMIN, COMMISSIONER, actingAs, leagueRow, type TestConvex } from "../../support/convex/leagues.harness";
 import { expectRefused } from "../../support/convex/test.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
 
@@ -70,8 +70,8 @@ describe("keeping a person's zone", () => {
 describe("Mail's letters", () => {
   test("each reader's copy tells when the league goes in their own zone, London's for one not yet known", async () => {
     const leagueId: Id<"leagues"> = await leagueWithPeople(t);
-    await records(ANN, SYDNEY);
-    await deletes(t, COMMISSIONER, leagueId);
+    await records(COMMISSIONER, SYDNEY);
+    await deletes(t, ADMIN, leagueId);
     const deletesAt = (await leagueRow(t, leagueId))!.deletion!.deletesAt;
     const deletionLetterTo = (email: string) =>
       t.run(async (ctx) =>
@@ -80,8 +80,8 @@ describe("Mail's letters", () => {
         ),
       );
 
-    expect((await deletionLetterTo(ANN))?.body).toContain(momentIn(deletesAt, SYDNEY));
-    expect((await deletionLetterTo(BOB))?.body).toContain(momentIn(deletesAt, LONDON_ZONE));
+    expect((await deletionLetterTo(COMMISSIONER))?.body).toContain(momentIn(deletesAt, SYDNEY));
+    expect((await deletionLetterTo(ADMIN))?.body).toContain(momentIn(deletesAt, LONDON_ZONE));
     expect(momentIn(deletesAt, SYDNEY)).not.toBe(momentIn(deletesAt, LONDON_ZONE));
   });
 });

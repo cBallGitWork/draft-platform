@@ -5,7 +5,7 @@ import { MINUTES_STAT } from "../stats/matchRecords";
 import { withOwnStats } from "./ownStats";
 import { AREAS, LANES, positionOfSlot, type Cell, type SlotPosition } from "../lineup/pitch";
 import { priceFor, type Priced } from "./priced";
-import { validateScoringSet, type Area, type Band, type ScoringRule, type ScoringSet } from "./scoringSet";
+import { validateScoringSet, type Area, type Band, type RoleSide, type ScoringRule, type ScoringSet } from "./scoringSet";
 import { DOUBLE_GAMEWEEK_RULES, inTenths, showValue, statIn, type DoubleGameweekRule, type MatchStats } from "./values";
 
 /** One category's points, with why he earned them, or null ("—") while his record for the match
@@ -34,24 +34,35 @@ export type SlotValue =
 export type PricedBy = { by: "all" } | { by: "area"; area: Area } | { by: "position"; position: SlotPosition };
 
 /** What changed his points from the value's: he played fewer minutes than the rule needs, so it
- *  gave nothing; or its points limit held them to its most or its least. */
-export type Cut = { by: "minutes"; atLeast: number } | { by: "max" | "min"; limit: number };
+ *  gave nothing; or its points limit held them to its most or its least. Or, though it changed
+ *  nothing, his points landed exactly on its most or its least, so the line says he reached it
+ *  (spec/14, On screen; Craig, 1 Nov 2026, #863). */
+export type Cut = { by: "minutes"; atLeast: number } | { by: "max" | "min" | "atMax" | "atMin"; limit: number };
 
 /** A player's match: each rule's category in the set's order, and their total, null with them. */
 export interface MatchPoints {
   total: number | null;
   categories: CategoryPoints[];
-  /** His role's adjustment, in the total, when the set adjusts the role he played: each stat it
-   *  adjusts that he made, and the points for it (spec/05: "Attacking full-back: +2, two key
-   *  passes"). Absent when no role was given or the set adjusts none. */
+  /** His role's points, in the total, when the set scores the role he played (spec/05: "Poacher:
+   *  +1 (+2: 1 goal in box, 1 shot on target in box; −1: 1 big chance missed)"). Absent when no
+   *  role was given or the set scores none. */
   role?: RolePoints;
 }
 
+/** A role's points in a match: its bonus less its cost, each at most ROLE_BARS_MOST. */
 export interface RolePoints {
   /** A role's key (lineup/roles.ts). */
   role: string;
   points: number;
-  lines: { stat: string; actions: number; points: number }[];
+  /** Each side that moved his points, bonus first: what it gave, +2 or −1, and each of its stats he
+   *  made, by how many he made. */
+  sides: RoleSidePoints[];
+}
+
+export interface RoleSidePoints {
+  side: "bonus" | "cost";
+  points: number;
+  lines: { stat: string; actions: number }[];
 }
 
 /** Where he starts: the slot's area, and the position its area and lane make it (pitch.ts). */
@@ -88,31 +99,41 @@ export function scoreMatch(record: MatchStats | null, set: ScoringSet, cell: Cel
   return { total: inTenths(base + adjusted.points), categories, role: adjusted };
 }
 
-/** The role's adjustment for this record: flat points per action, on top of every rule and its
- *  points limit (spec/14). Undefined when the set doesn't adjust the role. */
-function rolePoints(record: MatchStats, set: ScoringSet, role: string): RolePoints | undefined {
-  const adjustments = adjustmentsOf(set, role);
-  if (adjustments === undefined) return undefined;
-  const lines = adjustments
-    .map(({ stat, points }) => ({ stat, actions: statIn(record, stat), points: inTenths(statIn(record, stat) * points) }))
-    .filter(({ actions }) => actions !== 0);
-  return { role, points: inTenths(sum(lines.map((line) => line.points))), lines };
-}
-
-/** The set's adjustments for `role`; undefined when it adjusts none. */
-function adjustmentsOf(set: ScoringSet, role: string) {
-  return set.roleAdjustments?.find((each) => each.role === role)?.adjustments;
-}
-
-/** What `role` adds to each action of `stat` under `set`, flat, on top of every rule: 0 for no
- *  role, or one the set doesn't adjust for it. What a threshold line adds for his role (#835). */
-export function roleAdjustmentFor(set: ScoringSet, role: string | undefined, stat: string): number {
+/** What `role` gives a man with this record under `set`, own stats worked out: 0 for no role, or
+ *  one the set doesn't score. What a threshold line adds for his role (vidiprinter.ts). */
+export function roleTotal(record: MatchStats, set: ScoringSet, role: string | undefined): number {
   if (role === undefined) return 0;
-  return adjustmentsOf(set, role)?.find((each) => each.stat === stat)?.points ?? 0;
+  return rolePoints(withOwnStats(record, set), set, role)?.points ?? 0;
+}
+
+/** What a role side's count is rounded to before its bars: a millionth, far finer than any weight. */
+const COUNT_PRECISION = 1e6;
+
+/** The role's points for this record (spec/05 Roles): whole points by bars, never per action, on
+ *  top of every rule and its points limit (spec/14), whatever his minutes (Craig, 5 Nov 2026: bars
+ *  count per match, a cameo's too). Undefined when the set doesn't score the role. */
+function rolePoints(record: MatchStats, set: ScoringSet, role: string): RolePoints | undefined {
+  const scoring = set.roles?.find((each) => each.role === role);
+  if (scoring === undefined) return undefined;
+  const bonus = sidePoints(record, scoring.bonus, "bonus");
+  const cost = sidePoints(record, scoring.cost, "cost");
+  const sides = [bonus, cost].filter((side) => side.points !== 0);
+  return { role, points: bonus.points + cost.points, sides };
+}
+
+/** A side's points: one for each of its bars his weighed count reaches, plus for the bonus and
+ *  minus for the cost, with each of its stats he made. */
+function sidePoints(record: MatchStats, { parts, bars }: RoleSide, side: RoleSidePoints["side"]): RoleSidePoints {
+  // Floating point's noise goes first, so 10 × 0.1 reaches a bar at 1, never just under it.
+  const count = Math.round(sum(parts.map(({ stat, weight }) => weight * statIn(record, stat))) * COUNT_PRECISION) / COUNT_PRECISION;
+  const reached = bars.filter((bar) => count >= bar).length;
+  const lines = parts.map(({ stat }) => ({ stat, actions: statIn(record, stat) })).filter(({ actions }) => actions !== 0);
+  return { side, points: side === "bonus" ? reached : -reached || 0, lines };
 }
 
 /** A rule's points for the slot, with its value there and what cut them: nothing below its
- *  minimum minutes, else held to its points limit. Points too large to be a number throw. */
+ *  minimum minutes, else held to its points limit, or marked as reaching it exactly. Points too
+ *  large to be a number throw. */
 function ruleScore(rule: ScoringRule, slot: Slot, actions: number, minutes: number): { points: number; value: SlotValue; cut: Cut | null } {
   const price: Price = (priced) => priceFor(priced, slot.area, slot.position);
   const value = valueAt(rule, price, actions);
@@ -127,6 +148,9 @@ function ruleScore(rule: ScoringRule, slot: Slot, actions: number, minutes: numb
     const { max, min } = price(rule.limit);
     if (max !== null && points > max) [points, cut] = [max, { by: "max", limit: max }];
     if (min !== null && points < min) [points, cut] = [min, { by: "min", limit: min }];
+    // Landing on a limit of 0 with nothing earned isn't reaching it: no line for every man without the stat.
+    if (cut === null && points !== 0 && points === max) cut = { by: "atMax", limit: max };
+    if (cut === null && points !== 0 && points === min) cut = { by: "atMin", limit: min };
   }
   if (!Number.isFinite(points)) throw new Error(`the ${rule.stat} rule gives ${points} points as ${slot.position}`);
   return { points: inTenths(points), value, cut };

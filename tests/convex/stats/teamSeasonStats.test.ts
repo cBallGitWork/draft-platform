@@ -175,15 +175,21 @@ test("a team added after a gameweek was stored has its own share worked out, the
   expect(await totalsOf(league, league.annsTeam)).toEqual(statsOf(RECORDS, codesOf(HULL_AFTER_SUB)));
 });
 
-// Pinned as it stands, not as it should be: what to do about it waits on Craig (#805). When he
-// decides, this test changes with the fix.
-test("a live tick's record the full-time read left out stays not whole after the lock, so neither the table nor the stat race stores the gameweek, even on a rebuild or a rescore", async () => {
+/** The match locked with Hull's scorer not whole: a live tick sent him without the Premier League's
+ *  half of his record, and the full-time read left him out (#805). */
+async function lockedWithScorerGap() {
   const league = await scoresLeague();
   await liveRecords(league, RECORDS.map((record) => (record.playerCode === HULL_SCORER ? { ...record, arrived: PL_NOT_ARRIVED } : record)));
   await fullTimeRecords(league, RECORDS.filter((record) => record.playerCode !== HULL_SCORER));
   await lockMatch(league);
   const states = await league.t.run(async (ctx) => (await ctx.db.query("matchStatsStatus").collect()).map((row) => row.state));
   expect(states).toEqual(["locked"]);
+  return league;
+}
+
+// Until a later read sends his whole record, as the next test has it.
+test("a live tick's record the full-time read left out stays not whole after the lock, so neither the table nor the stat race stores the gameweek, even on a rebuild or a rescore", async () => {
+  const league = await lockedWithScorerGap();
 
   expect(await storeStats(league)).toEqual([]);
   expect(await storeLeague(league)).toEqual([]);
@@ -193,4 +199,19 @@ test("a live tick's record the full-time read left out stays not whole after the
   expect(await shares(league)).toEqual([]);
   expect(await totalsOf(league, league.annsTeam)).toBeUndefined();
   expect(await league.t.run((ctx) => ctx.db.query("finalScores").collect())).toEqual([]);
+});
+
+test("a read after the lock sending that record whole fills the gap: it is written, not taken as a late correction, and the table and the stat race both store the gameweek", async () => {
+  const league = await lockedWithScorerGap();
+
+  const writes = await league.t.mutation(internal.stats.matchStats.upsertMatch, { fixtureCode: HULL_EVERTON, readAt: Date.now(), records: RECORDS });
+  expect(writes).toMatchObject({ state: "locked", inserted: 0, changed: [HULL_SCORER], lateCorrections: 0 });
+  await league.t.finishAllScheduledFunctions(vi.runAllTimers);
+
+  const scorer = await league.t.run(async (ctx) => (await ctx.db.query("playerMatchStats").collect()).find((row) => row.playerCode === HULL_SCORER)!);
+  expect(scorer).toMatchObject({ state: "locked", arrived: { fpl: true, pl: true } });
+  expect(await league.t.run((ctx) => ctx.db.query("lateStatCorrections").collect())).toEqual([]);
+  expect(await totalsOf(league, league.annsTeam)).toEqual(statsOf(RECORDS, codesOf(HULL_AFTER_SUB)));
+  const stored = await league.t.run((ctx) => ctx.db.query("finalScores").collect());
+  expect(new Set(stored.map((row) => row.teamId))).toEqual(new Set([league.annsTeam, league.bobsTeam]));
 });

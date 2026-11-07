@@ -1,8 +1,7 @@
 import { v, type Infer } from "convex/values";
 import type { Doc } from "../_generated/dataModel";
 import { query, type QueryCtx } from "../_generated/server";
-import { SLOT_POSITIONS } from "../lineup/pitch";
-import { areaShape } from "../lineup/pitchShape";
+import { areaShape, slotPosition } from "../lineup/pitchShape";
 import { roleName } from "../lineup/roles";
 import { positionsNow } from "../positions/playerPositions";
 import type { Position } from "../positions/positionTables";
@@ -28,8 +27,6 @@ import { basePoints, cardPositions } from "./cardPoints";
  *  not yet Craig's. */
 export const NEXT_FIXTURES_SHOWN = 5;
 
-const slotPosition = v.union(...SLOT_POSITIONS.map((each) => v.literal(each)));
-
 const match = v.object({
   fixtureCode: v.number(),
   gameweek: v.union(v.number(), v.null()),
@@ -54,7 +51,7 @@ const categoryWhy = v.object({
   cut: v.union(
     v.null(),
     v.object({ by: v.literal("minutes"), atLeast: v.number() }),
-    v.object({ by: v.union(v.literal("max"), v.literal("min")), limit: v.number() }),
+    v.object({ by: v.union(v.literal("max"), v.literal("min"), v.literal("atMax"), v.literal("atMin")), limit: v.number() }),
   ),
 });
 
@@ -86,14 +83,15 @@ const playedMatch = v.object({
   /** The version of the site's scoring set his points were scored under (26_27.1), null for the
    *  first set (spec/14, On screen). */
   version: v.union(v.string(), v.null()),
-  /** His role's adjustment, when his team started him and the set adjusts that role (spec/05:
-   *  "Attacking full-back: +2, two key passes"): its name, its points, each stat he made. Shown
-   *  beside his base points, never in them. */
+  /** His role's points, when his team started him and the set scores that role (spec/05; Craig, 5
+   *  Nov 2026: "Poacher: +1 (+2: 1 goal in box, 1 shot on target in box; −1: 1 big chance
+   *  missed)"): its name, its net, and each side that moved him with each of its stats he made.
+   *  Shown beside his base points, never in them. */
   role: v.optional(
     v.object({
       name: v.string(),
       points: v.number(),
-      lines: v.array(v.object({ stat: v.string(), name: v.string(), actions: v.number(), points: v.number() })),
+      sides: v.array(v.object({ points: v.number(), lines: v.array(v.object({ stat: v.string(), name: v.string(), actions: v.number() })) })),
     }),
   ),
   /** The league's override of his points in the match (#32), or null with none. */
@@ -189,7 +187,7 @@ const asMatch = async (fixture: Doc<"fixtures">, clubs: Clubs) => ({
  *  card prices, by category. His role's line, the league's override and whether his points may
  *  still move come from his team's scoring (scoredMatches.ts); the points his team got are the
  *  Squad tab's, not the card's. */
-async function seasonMatches(ctx: QueryCtx, league: Doc<"leagues">, player: Doc<"players">, positions: readonly Position[], clubs: Clubs): Promise<PlayedMatch[]> {
+export async function seasonMatches(ctx: QueryCtx, league: Doc<"leagues">, player: Doc<"players">, positions: readonly Position[], clubs: Clubs): Promise<PlayedMatch[]> {
   const owner = await placeOf(ctx, league._id, player.code);
   const { of } = await scoredMatches(ctx, league, owner?.teamId ?? null);
   // Read beside scoredMatches' own, for the version's name: the same versions, so the same set.
@@ -207,7 +205,13 @@ async function seasonMatches(ctx: QueryCtx, league: Doc<"leagues">, player: Doc<
       const roleLine =
         role === undefined
           ? {}
-          : { role: { name: roleName(role.role), points: role.points, lines: role.lines.map((line) => ({ ...line, name: named(line.stat) })) } };
+          : {
+              role: {
+                name: roleName(role.role),
+                points: role.points,
+                sides: role.sides.map(({ points, lines }) => ({ points, lines: lines.map((line) => ({ ...line, name: named(line.stat) })) })),
+              },
+            };
       return {
         ...(await asMatch(fixture, clubs)),
         minutes: statValue(record, MINUTES_STAT),
@@ -244,7 +248,7 @@ async function lastSeasonLine(ctx: QueryCtx, playerCode: number, positions: read
 }
 
 /** His club's next matches after `now`, soonest first. A match with no kickoff time is left out. */
-async function nextFixtures(ctx: QueryCtx, clubCode: number, now: number, clubs: Clubs) {
+export async function nextFixtures(ctx: QueryCtx, clubCode: number, now: number, clubs: Clubs) {
   const next = [];
   const ahead = ctx.db.query("fixtures").withIndex("by_droppedAt_and_kickoff", (q) => q.eq("droppedAt", undefined).gt("kickoff", now));
   for await (const fixture of ahead) {

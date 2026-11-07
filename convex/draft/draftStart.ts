@@ -4,7 +4,7 @@ import type { Doc, Id } from "../_generated/dataModel";
 import { internalMutation, mutation, query, type MutationCtx, type QueryCtx } from "../_generated/server";
 import { nextOpenGameweek } from "../lineup/lineups";
 import { draftRulesOf } from "../rules/firstRules";
-import { historyOf, inForce, seasonRules } from "../rules/rulesHistory";
+import { historyOf, inForce, latestRules, seasonRules } from "../rules/rulesHistory";
 import type { LeagueRules } from "../rules/leagueRulesShape";
 import { memberOf, refuse, runnerOf, teamsOf } from "../shared/leagueAccess";
 import { startClock } from "./draftClock";
@@ -20,9 +20,10 @@ import { pickOnTheClock } from "./snakeOrder";
 // its rounds are the squad's most players; a date can't be set without them either, and must be in
 // the future. A date that comes when the league can't start stays waiting, as an unset date does
 // (Craig, 4 Nov 2026, on #1089). Starting fixes the order: the draft order then (draftOrder.ts),
-// and no team can join after (../leagues/teams.ts). It waits until every squad is empty, and its
-// rounds are the squad maximum in force when it starts, never a change still waiting for a later
-// gameweek (Craig, 4 Nov 2026, on #1090).
+// and no team can join after (../leagues/teams.ts). It waits until every squad is empty. Its rounds,
+// and the squad rules its picks follow, are the league's latest, a change waiting for a later
+// gameweek among them: "the squad size is what indicates the draft size" (Craig, 7 Nov 2026, on
+// #1130, replacing #1090's "in force when it starts").
 
 /** Why the draft's start is refused, in the words the commissioner is shown. */
 export const draftStartRefusals = {
@@ -38,9 +39,8 @@ export const draftStartRefusals = {
 const roundsOf = (rules: LeagueRules | null): number | null => rules?.squad.size?.maximum ?? null;
 
 /** The league's rules in force at `now`: those of the gameweek under way, or before the league's
- *  first gameweek begins, that gameweek's; a change waiting for a later gameweek isn't among them
- *  (Craig, 4 Nov 2026, on #1090). Null for a league made before #25. What the draft starts and
- *  picks under. */
+ *  first gameweek begins, that gameweek's; a change waiting for a later gameweek isn't among them.
+ *  Null for a league made before #25. What the draft's pick clock runs by. */
 export async function rulesInForceAt(ctx: QueryCtx, leagueId: Id<"leagues">, now: number): Promise<LeagueRules | null> {
   const [history, season] = await Promise.all([historyOf(ctx, leagueId), seasonRules(ctx, leagueId)]);
   if (season === null || history.length === 0) return null;
@@ -54,19 +54,19 @@ async function anyoneHeld(ctx: QueryCtx, leagueId: Id<"leagues">): Promise<boole
 }
 
 /** Why the league's draft can't start now, or be given a date; otherwise what it starts with: its
- *  teams, its rounds and the squad rules its picks follow, the league's in force now (Craig, 4 Nov
- *  2026, on #1090: "Picks follow the squad rules the draft started under"). */
+ *  teams; its rounds and the squad rules its picks follow, the league's latest, a waiting change's
+ *  among them (Craig, 7 Nov 2026, on #1130); and its pick clock, the rules' in force now. */
 async function startable(
   ctx: MutationCtx,
   leagueId: Id<"leagues">,
 ): Promise<{ refusal: string } | { refusal: null; teams: Doc<"teams">[]; rounds: number; squad: LeagueRules["squad"]; pickSeconds: number }> {
   const teams = await teamsOf(ctx, leagueId);
   if (teams.length < DRAFT_FEWEST_TEAMS) return { refusal: draftStartRefusals.tooFewTeams };
-  const rules = await rulesInForceAt(ctx, leagueId, Date.now());
-  const rounds = roundsOf(rules);
-  if (rules === null || rounds === null) return { refusal: draftStartRefusals.noSquadSize };
+  const [rules, latest] = await Promise.all([rulesInForceAt(ctx, leagueId, Date.now()), latestRules(ctx, leagueId)]);
+  const rounds = roundsOf(latest);
+  if (rules === null || latest === null || rounds === null) return { refusal: draftStartRefusals.noSquadSize };
   if (await anyoneHeld(ctx, leagueId)) return { refusal: draftStartRefusals.squadsNotEmpty };
-  return { refusal: null, teams, rounds, squad: rules.squad, pickSeconds: draftRulesOf(rules).pickSeconds };
+  return { refusal: null, teams, rounds, squad: latest.squad, pickSeconds: draftRulesOf(rules).pickSeconds };
 }
 
 /** Writes the draft's date and its scheduled start, or neither for null, cancelling any start
@@ -167,9 +167,9 @@ const pickClock = v.object({ startsAt: v.number(), endsAt: v.number(), pausedAt:
  *  commissioner presses start), its rounds (null: the league has no squad size limit) and the
  *  draft order now; live, with when it started, its rounds, its order, fixed at the start, how many
  *  picks are made, the pick on the clock and its clock (null in a draft started before #1091, until
- *  its next pick); or over, once every pick is made (draftPicks.ts).
- *  A waiting draft's rounds are those it would start with at `now`, the screen's, moved on each
- *  minute, as a query must not read the clock (convex/admin/feeds.ts says why). */
+ *  its next pick); or over, once every pick is made (draftPicks.ts). A waiting draft's rounds are
+ *  those it would start with now. `now`, the screen's minute, no longer moves anything here: it
+ *  stays until the draft room's seam drops it, as that screen's change. */
 export const ofLeague = query({
   args: { leagueId: v.id("leagues"), now: v.number() },
   returns: v.union(
@@ -177,11 +177,11 @@ export const ofLeague = query({
     v.object({ status: v.literal("live"), startedAt: v.number(), rounds: v.number(), order: v.array(teamInOrder), picksMade: v.number(), onTheClock, clock: v.union(pickClock, v.null()) }),
     v.object({ status: v.literal("over"), startedAt: v.number(), rounds: v.number(), order: v.array(teamInOrder), picksMade: v.number() }),
   ),
-  handler: async (ctx, { leagueId, now }) => {
+  handler: async (ctx, { leagueId }) => {
     const { league } = await memberOf(ctx, leagueId);
     const [draft, teams] = await Promise.all([draftOf(ctx, leagueId), teamsOf(ctx, leagueId)]);
     if (draft?.started === undefined) {
-      const rounds = roundsOf(await rulesInForceAt(ctx, leagueId, now));
+      const rounds = roundsOf(await latestRules(ctx, leagueId));
       return { status: "waiting" as const, startsAt: draft?.startsAt ?? null, rounds, order: teamOrderOf(teams, league) };
     }
     const { at, teamIds, rounds } = draft.started;

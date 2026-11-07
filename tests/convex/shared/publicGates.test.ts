@@ -120,6 +120,8 @@ beforeEach(async () => {
           sort: { by: "name", descending: false },
           stat: null,
         }),
+      "scouting/scouts:mine": () => caller.query(api.scouting.scouts.mine, { leagueId }),
+      "scouting/scouts:onPlayer": () => caller.query(api.scouting.scouts.onPlayer, { leagueId, playerCode: SOME_CODE }),
       "scouting/shortlist:mine": () => caller.query(api.scouting.shortlist.mine, { leagueId }),
       "scouting/statRace:teams": () => caller.query(api.scouting.statRace.teams, { leagueId, stat: "goals_scored", descending: true }),
       "signIn/account:signedInAs": () => caller.query(api.signIn.account.signedInAs, {}),
@@ -129,11 +131,12 @@ beforeEach(async () => {
       "squads/squads:squads": () => caller.query(api.squads.squads.squads, { leagueId }),
       "squads/teamSquad:ofMyTeam": () => caller.query(api.squads.teamSquad.ofMyTeam, { leagueId, now }),
       "squads/teamTransactions:ofMyTeam": () => caller.query(api.squads.teamTransactions.ofMyTeam, { leagueId }),
-      "stars/playerStars:ofPlayer": () => caller.query(api.stars.playerStars.ofPlayer, { leagueId, playerCode: SOME_CODE }),
-      "stars/playerStars:ofPlayers": () => caller.query(api.stars.playerStars.ofPlayers, { leagueId, playerCodes: [SOME_CODE] }),
+      "stars/playerStars:ofPlayer": () => caller.query(api.stars.playerStars.ofPlayer, { leagueId, playerCode: SOME_CODE, now }),
+      "stars/playerStars:ofPlayers": () => caller.query(api.stars.playerStars.ofPlayers, { leagueId, playerCodes: [SOME_CODE], now }),
       "table/leagueTable:ofLeague": () => caller.query(api.table.leagueTable.ofLeague, { leagueId }),
       "table/teamFixtures:ofMyTeam": () => caller.query(api.table.teamFixtures.ofMyTeam, { leagueId }),
       "waivers/waiverClaims:pending": () => caller.query(api.waivers.waiverClaims.pending, { leagueId }),
+      "waivers/waivers:cardActionOn": () => caller.query(api.waivers.waivers.cardActionOn, { leagueId, playerCode: SOME_CODE }),
       "waivers/waivers:stateOf": () => caller.query(api.waivers.waivers.stateOf, { leagueId, playerCode: SOME_CODE }),
     };
   };

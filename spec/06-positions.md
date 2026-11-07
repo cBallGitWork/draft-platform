@@ -57,6 +57,9 @@ Feature 6 of [SPEC.md](../SPEC.md). Only Craig's answers: the first `/grill` and
   position it could mean ("Defender" counts as CB and FB).
 - So does any player with fewer than 3 starts anywhere, or whose positions from starts the admin
   hasn't approved yet: he plays on his label until they are.
+- A player no feed has placed yet: the admin sets his area, and he counts towards that area's
+  minimum (`spec/03`) until a feed places him. With no area set he fills none: "admin set that"
+  (Craig, 7 Nov 2026, on #911). `S06.1`
 - The dashboard links to his Transfermarkt, FotMob and Understat pages for the admin to read;
   nothing fetches them.
 

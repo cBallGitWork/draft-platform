@@ -99,16 +99,26 @@ describe("this season", () => {
     expect(await screen.findByText(nothingEarnedWords)).toBeTruthy();
   });
 
-  it("a match his team started him in shows his base points, and his role's adjustment apart, with what made it (#10)", async () => {
-    const role = { name: "Inside forward", points: 2, lines: [{ stat: "goals_scored", name: "Goals scored", actions: 1, points: 2 }] };
+  it("a match his team started him in shows his base points, and his role's points apart, each side with what made it (#10)", async () => {
+    // S05.2. Craig, 5 Nov 2026: "Poacher: +1 (+2: 1 goal in box, 1 shot on target in box; −1: 1 big chance missed)".
+    const role = {
+      name: "Poacher",
+      points: 1,
+      sides: [
+        { points: 2, lines: [{ stat: "att_ibox_goal", name: "Goal in box", actions: 1 }, { stat: "att_ibox_target", name: "Shot on target in box", actions: 1 }] },
+        { points: -1, lines: [{ stat: "big_chance_missed", name: "Big chance missed", actions: 1 }] },
+      ],
+    };
     openCard(AT_ONE, { cards: [{ ...AT_ONE, matches: [{ ...AT_W, role }] }] });
-    expect((await screen.findByLabelText(roleLineLabel("Inside forward"))).textContent).toBe("Inside forward +2 (Goals scored 1)");
+    expect((await screen.findByLabelText(roleLineLabel("Poacher"))).textContent).toBe(
+      "Poacher: +1 (+2: 1 goal in box, 1 shot on target in box; −1: 1 big chance missed)",
+    );
     const row = screen.getByRole("rowheader", { name: MATCH_NAME }).closest("tr")!;
     expect(within(row).getAllByRole("cell").map((cell) => cell.textContent)).toEqual(["2", "90", "W", "11"]);
   });
 
   it("a match that cost him points shows the true minus in its total, breakdown and role line, never a hyphen (#564)", async () => {
-    const role = { name: "Inside forward", points: -1, lines: [{ stat: "yellow_cards", name: "Yellow cards", actions: 1, points: -1 }] };
+    const role = { name: "Inside forward", points: -1, sides: [{ points: -1, lines: [{ stat: "big_chance_missed", name: "Big chance missed", actions: 1 }] }] };
     const categories = [category("minutes", "Minutes", 1), category("yellow_cards", "Yellow cards", -3, perAction(3, -1))];
     const booked = { ...AT_W, points: [{ position: "W" as const, total: -2, categories }], role };
     openCard(AT_ONE, { cards: [{ ...AT_ONE, matches: [booked] }] });
@@ -117,7 +127,7 @@ describe("this season", () => {
 
     expect(within(row).getAllByRole("cell").map((cell) => cell.textContent)).toEqual(["2", "90", "W", "−2"]);
     expect(breakdownLines(season, 2).slice(0, 2)).toEqual(["Minutes 1 (1 at 1 each)", "Yellow cards −3 (3 at −1 each)"]);
-    expect(season.getByLabelText(roleLineLabel("Inside forward")).textContent).toBe("Inside forward −1 (Yellow cards 1)");
+    expect(season.getByLabelText(roleLineLabel("Inside forward")).textContent).toBe("Inside forward: −1 (−1: 1 big chance missed)");
   });
 
   it("a match whose points may still move is marked live, and the card says why (#577)", async () => {
@@ -135,7 +145,7 @@ describe("this season", () => {
   });
 
   it("an overridden match shows no role line: the override is its whole score", async () => {
-    const role = { name: "Inside forward", points: 2, lines: [] };
+    const role = { name: "Inside forward", points: 2, sides: [] };
     const overridden = { ...AT_W, role, override: { points: 9, reason: "A goal the feed gave someone else" } };
     openCard(AT_ONE, { cards: [{ ...AT_ONE, matches: [overridden] }] });
     await screen.findByRole("region", { name: SEASON_TITLE });

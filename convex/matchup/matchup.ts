@@ -18,9 +18,10 @@ import { LEAGUE_AVERAGE, type GameweekFixtures } from "../table/roundRobin";
 import { teamsInGameweek } from "../table/standings";
 import { averageScore, BYE, gamesOf, type Against } from "../table/teamGames";
 import type { SlotPoints } from "../scoring/teamPoints";
+import { positionOfSlot } from "../lineup/pitch";
 import { namedRole, roleIn, type Role } from "../lineup/roles";
 import { thresholdStepsOf } from "../stats/thresholdSteps";
-import { game, matchup, type MatchupCommentary, type MatchupBenchSlot, type MatchupSide, type MatchupSlot, type MatchupStarter, type SlotStatus } from "./matchupShape";
+import { game, matchup, type MatchupCommentary, type MatchupBenchSlot, type MatchupPlace, type MatchupSide, type MatchupSlot, type MatchupStarter, type SlotStatus } from "./matchupShape";
 import { vidiprinter, type VidiprinterMatch, type VidiprinterPlayer } from "./vidiprinter";
 
 // One head-to-head in one gameweek (#34; spec/10, The matchup, as a live match; spec/14, On
@@ -211,14 +212,14 @@ class SideScorer {
   }
 
   private async starter(slotPoints: SlotPoints, scored: TeamInGameweek): Promise<MatchupStarter> {
-    return { ...(await this.slot(slotPoints, scored)), role: pricedRole(slotPoints) };
+    return { ...(await this.slot(slotPoints, scored)), role: pricedRole(slotPoints), place: placeOf(slotPoints) };
   }
 
-  /** A bench player has a role only once he has come on: until then he plays none, though the
-   *  scorer prices his greyed points at his bench cell's first. */
+  /** A bench player has a role and a place only once he has come on: until then he plays none,
+   *  though the scorer prices his greyed points at his bench cell's first. */
   private async benchSlot(slotPoints: SlotPoints, scored: TeamInGameweek): Promise<MatchupBenchSlot> {
     const cameOn = scored.autoSubs.substitutions.some((each) => each.on === slotPoints.playerCode);
-    return { ...(await this.slot(slotPoints, scored)), role: cameOn ? pricedRole(slotPoints) : null };
+    return { ...(await this.slot(slotPoints, scored)), role: cameOn ? pricedRole(slotPoints) : null, place: cameOn ? placeOf(slotPoints) : null };
   }
 
   private async slot(slotPoints: SlotPoints, { autoSubs, matchesOf }: TeamInGameweek): Promise<MatchupSlot> {
@@ -264,11 +265,14 @@ class SideScorer {
 }
 
 /** The role the scorer priced him in at his cell, so the matchup and the table never disagree. Its
- *  run isn't drawn on the matchup yet (spec/05 Runs), so it is sent without one. */
+ *  run is read from the role set at his place (spec/05 Runs), so only its key is sent. */
 function pricedRole({ playerCode, cell, role }: SlotPoints): Pick<Role, "key" | "name"> {
   if (role === undefined) throw new Error(`player ${playerCode} plays at ${cell.area} ${cell.lane}, which has no roles`);
   return namedRole(roleIn(cell, role));
 }
+
+/** The slot he plays in: its lane and its position label, as the Tactics pitch labels it. */
+const placeOf = ({ cell }: SlotPoints): MatchupPlace => ({ lane: cell.lane, label: positionOfSlot(cell) });
 
 /** Matches by kickoff, any with no time yet last. */
 const byKickoff = <Fixture extends { kickoff: number | null }>(fixtures: readonly Fixture[]): Fixture[] =>

@@ -46,7 +46,7 @@ One file per feature in [spec/](spec/); this page is the index. A feature's stat
 | 16 | [Mail](spec/16-mail.md) | the letter store, letters about a league's events, the commissioner's letter, the Mail screen and its count built (#26), and letters from the site to everyone, such as a scoring patch (#356); down the side of My team not yet (#14); each feature files its own letters | a claim, a drop and a trade each file one letter for every manager in the league |
 | 17 | [Captain and set pieces](spec/17-captain-and-set-pieces.md) | after the mini beta | the first on a set-piece list who plays earns the duty's adjustment for the whole match, and no one else on the list does |
 | 18 | [Premier League](spec/18-premier-league.md) | fixtures and results built, a gameweek at a time with live scores, each opening its match page (#49, #45); the table beside them, worked out from the held results, live and marked provisional while a match is being played (#50); not yet the club mark in the table (31 Oct 2026) | a goal in a live match moves the Premier League table at once, marked provisional |
-| 19 | [Scouting](spec/19-scouting.md) | the players list, in the menu in place of Players, filtered by who holds a player, his position and his club, sorted by name, club or season points, any catalogue stat shown as a season total and sorted by, but not yet the site's own stats (#910), and any two ticked compared side by side, built (#373); season points, each player's card total in the league at his main position with the league's overrides, built for this season (#525), not yet last season's under today's scoring for the summer, and role fit waits on stars and scouts (#11, #375); the shortlist, built (#374): a manager adds a player from his card and takes him off there or on Scouting, and Mail tells him when one is released; feeding the draft queue, on the server (#1137); not yet a letter when one clears waivers (spec/08); scouts after the mini beta; the stat race's team season totals built (#808), its screen not yet (#800) | a scout's report is ready 24 hours after he is sent, and no other team can tell who was scouted |
+| 19 | [Scouting](spec/19-scouting.md) | the players list, in the menu in place of Players, filtered by who holds a player, his position and his club, sorted by name, club or season points, any catalogue stat or the site set's own stat shown as a season total and sorted by (#910), and any two ticked compared side by side, built (#373); season points, each player's card total in the league at his main position with the league's overrides, built for this season (#525), not yet last season's under today's scoring for the summer, and role fit waits on stars and scouts (#11, #375); the shortlist, built (#374): a manager adds a player from his card and takes him off there or on Scouting, and Mail tells him when one is released; feeding the draft queue, on the server (#1137); not yet a letter when one clears waivers (spec/08); scouts after the mini beta; the stat race's team season totals built (#808), its screen not yet (#800) | a scout's report is ready 24 hours after he is sent, and no other team can tell who was scouted |
 | 20 | [Going live](spec/20-going-live.md) | the release (#517), the backup before a change to saved data's shape (#518), the after-release sign-in check (#517) and the setup command (#519) built; going live waits on Craig's setup run in docs/setup.md (#511, #512, #514) | a merge to `main` is live on `fantasydraftmanager.net` with its server code, and the check after it signs in there |
 | 21 | [Player news](spec/21-player-news.md) | after the mini beta | an article about one player gives one note on his card, dated and linked to it, naming nothing of our game |
 
@@ -159,13 +159,15 @@ One file per feature in [spec/](spec/); this page is the index. A feature's stat
 ## Glossary
 
 The Avoid column's roster, soccer, standings, waiver wire, franchise, playoffs, uniform and cleats
-are Craig's (1 Nov 2026: "Add all eight"; #950).
+are Craig's (1 Nov 2026: "Add all eight"; #950). Line-up, matchup, subs and skipper are Claude's
+call, as Craig left them to it (7 Nov 2026: "your call"; #951): line-up is the UK spelling,
+matchup stays, subs and auto-subs are allowed, and skipper stays avoided.
 
 | Term | Meaning | Avoid |
 |---|---|---|
 | team | a fantasy side: a manager's draft team | |
 | base points | what a player earns from the site's scoring set for what he did, as in FPL: so many for a goal, an assist, a clean sheet | |
-| role adjustment | the points a starter's role adds or takes on top of his base points, per action (+1 a key pass, −1 a clean sheet) | role bonus, multiplier, pays, paid |
+| role adjustment | the points a starter's role adds or takes on top of his base points, in whole points by bars: +1 at each of up to three bars of the role's bonus stats, −1 at each of up to three bars of its one bad action, ±3 at most a match ([05](spec/05-tactics.md#roles)) | role bonus, multiplier, pays, paid |
 | earns, loses | what a player does with points | pays, is paid |
 | run | where a starter's role goes as if in a real match, drawn as a dashed arrow on the pitch; it never changes points | lean |
 | chip | the coloured label under a shirt on the pitch, or at the start of a squad list row | plate, badge |
@@ -205,10 +207,10 @@ are Craig's (1 Nov 2026: "Add all eight"; #950).
 | own stat | a stat the admin makes for the site's set by adding catalogue stats with weights | custom stat, formula |
 | points limit | a rule's maximum or minimum points for one player in one match | cap (that is the salary cap), floor, ceiling |
 | short code | a category's abbreviation in dense tables: G, A, CS, KP, TW | |
-| lineup | a team's starters and bench for one gameweek | |
+| line-up | a team's starters and bench for one gameweek | |
 | squad | every player a team owns | roster |
 | starter | a player in the lineup's eleven | |
-| bench | the lineup's players who don't start, in the order auto-subs use | subs |
+| bench | the lineup's players who don't start, in the order auto-subs use | |
 | draft league | a league on the platform, such as the Tim Hortons Pro League; on screen, "draft league" wherever the Premier League could be meant. "League" alone in the spec means one | fantasy league |
 | Premier League | the real competition, and the menu section of that name | league (alone) |
 | match | a real Premier League match | |

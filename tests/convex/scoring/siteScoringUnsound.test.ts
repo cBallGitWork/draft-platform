@@ -24,8 +24,9 @@ useSiteScoringDeployment();
 type Rule = StoredScoringSet["rules"][number];
 const setOf = (...rules: Rule[]): StoredScoringSet => ({ rules, wholePointsOnly: false });
 const tackles = (rule: Partial<Extract<Rule, { shape: "perAction" }>> = {}): Rule => ({ shape: "perAction", stat: "tackles", values: { all: 1 }, ...rule });
-const anchor = (adjustments: { stat: string; points: number }[]) => ({ role: "anchor", adjustments });
-const roles = (roleAdjustments: StoredScoringSet["roleAdjustments"]): StoredScoringSet => ({ ...setOf(), roleAdjustments });
+const tackling = { parts: [{ stat: "tackles", weight: 1 }], bars: [1] };
+const anchor = (parts: { stat: string; weight: number }[]) => ({ role: "anchor", bonus: { parts, bars: [1] }, cost: tackling });
+const roles = (roles: StoredScoringSet["roles"]): StoredScoringSet => ({ ...setOf(), roles });
 type StoredOwnStat = NonNullable<StoredScoringSet["ownStats"]>[number];
 const ownWith = (...ownStats: Partial<StoredOwnStat>[]): StoredScoringSet => ({
   ...setOf(),
@@ -35,10 +36,10 @@ const T_C = TACKLES_AND_CLEARANCES.stat;
 const minutesBands = (bands: { atLeast: number; points: number }[]): Rule => ({ shape: "bands", stat: "minutes", stack: false, values: { all: bands } });
 
 describe.each<[StoredScoringSet, string]>([
-  [roles([{ role: "", adjustments: [] }]), "a role adjustment names no role"],
-  [roles([anchor([]), anchor([])]), 'the role "anchor" is adjusted twice'],
-  [roles([anchor([{ stat: "goals_scroed", points: 1 }])]), `the role "anchor" adjusts "goals_scroed", which is neither a catalogue stat nor one of the set's own stats`],
-  [roles([anchor([{ stat: "tackles", points: 1 }, { stat: "tackles", points: 1 }])]), 'the role "anchor" adjusts Tackles twice'],
+  [roles([{ role: "", bonus: tackling, cost: tackling }]), "a role's scoring names no role"],
+  [roles([anchor(tackling.parts), anchor(tackling.parts)]), 'the role "anchor" is scored twice'],
+  [roles([anchor([{ stat: "goals_scroed", weight: 1 }])]), `the role "anchor"'s bonus adds "goals_scroed", which is neither a catalogue stat nor one of the set's own stats`],
+  [roles([anchor([{ stat: "tackles", weight: 1 }, { stat: "tackles", weight: 1 }])]), `the role "anchor"'s bonus adds Tackles twice`],
   [setOf(tackles({ stat: "" })), "rule 1 of the scoring set names no stat"],
   [
     setOf(

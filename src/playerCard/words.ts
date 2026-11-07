@@ -2,7 +2,7 @@
 
 import type { CategoryWhy, Cut, PricedBy, SlotValue } from "../../convex/scoring/scoring";
 import { seasonShortWords } from "../draft/words";
-import { AREA_WORDS, figureWords, gameweekWords, signedWords, versusWords } from "../shared/words";
+import { AREA_WORDS, figureWords, gameweekWords, signedWords, versusWords, whenWords } from "../shared/words";
 
 export { figureWords, freeAgentWords, noFigureWords } from "../shared/words";
 
@@ -43,7 +43,8 @@ export const breakdownLabel = (gameweek: number | null) => (gameweek === null ? 
 export const nothingEarnedWords = "No category earned him points.";
 /** Why a category's points are what they are (spec/14, On screen), in brackets after them: "(1 at
  *  5 each for Midfield)", "(4, 1 for every 3)", "(14, 2 for 10+ and 2 for 12+, held to at most 2)",
- *  "(1 at 4 each for Defence, but none under 60 minutes)". */
+ *  "(1 at 4 each for Defence, but none under 60 minutes)", "(2 at 1 each, reaching its limit of at
+ *  most 2)": the last cost him nothing (#863). */
 export const whyWords = ({ actions, value, pricedBy, cut }: CategoryWhy) => `(${valueWords(value, actions)}${pricedByWords(pricedBy)}${cutWords(cut)})`;
 const valueWords = (value: SlotValue, actions: number) => {
   switch (value.shape) {
@@ -74,6 +75,10 @@ const cutWords = (cut: Cut | null) => {
       return `, held to at most ${figureWords(cut.limit)}`;
     case "min":
       return `, held to at least ${figureWords(cut.limit)}`;
+    case "atMax":
+      return `, reaching its limit of at most ${figureWords(cut.limit)}`;
+    case "atMin":
+      return `, reaching its limit of at least ${figureWords(cut.limit)}`;
   }
 };
 /** The breakdown's last line: the version of the site's scoring the match was scored under. */
@@ -102,9 +107,25 @@ export const cancelOverrideWords = "Cancel";
 export const overriddenDoneWords = "Overridden: the league has a letter saying why.";
 export const overrideFailedWords = "The override couldn't be saved. Try again.";
 
+/** The card's waiver action (#1200, spec/08): the words stay waivers, claim, drop and free agent. */
+export const dropWords = "Drop";
+export const confirmDropWords = (name: string) => `Drop ${name}?`;
+export const keepWords = "Keep him";
+export const claimWords = "Claim";
+export const pickUpWords = "Pick up";
+/** With a claim or a pickup, who he names to go (spec/08). */
+export const whoGoesLabel = "Who goes";
+export const dropNobodyWords = "Nobody";
+/** The run that can first take him (Craig, 6 Nov 2026, on #1200: "Show the run's day and time"). */
+export const onWaiversUntilWords = (firstRunAt: number | null) => (firstRunAt === null ? "On waivers" : `On waivers: first run ${whenWords(firstRunAt)}`);
+export const claimedDoneWords = "Claim put in, last of your claims.";
+export const waiverFailedWords = "That couldn't be done. Try again.";
+
 /** A role's adjustment, signed: "+2", "−1", "0". */
 export const adjustmentWords = signedWords;
-/** What made his role's adjustment, under it: "Accurate cross 2, Clean sheets 1". */
-export const roleMadeOfWords = (lines: readonly { name: string; actions: number }[]) => lines.map(({ name, actions }) => `${name} ${actions}`).join(", ");
+/** What made his role's points, each side that moved him with its stats (Craig, 5 Nov 2026): "+2:
+ *  1 goal in box, 1 shot on target in box; −1: 1 big chance missed". */
+export const roleMadeOfWords = (sides: readonly { points: number; lines: readonly { name: string; actions: number }[] }[]) =>
+  sides.map(({ points, lines }) => `${signedWords(points)}: ${lines.map(({ name, actions }) => `${actions} ${name.toLowerCase()}`).join(", ")}`).join("; ");
 /** The role line's name for screen readers: "Role adjustment, Attacking full-back". */
 export const roleLineLabel = (name: string) => `Role adjustment, ${name}`;

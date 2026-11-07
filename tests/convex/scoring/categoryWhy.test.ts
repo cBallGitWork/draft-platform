@@ -97,8 +97,13 @@ describe("what cut his points", () => {
   });
 
   test("a most he didn't reach cuts nothing", () => {
-    const set = oneRule({ ...stackedTwice, limit: { all: { max: 4, min: null } } });
+    const set = oneRule({ ...stackedTwice, limit: { all: { max: 5, min: null } } });
     expect(whyOf({ defensive_contribution: 14 }, set, centreOf("defence"), "defensive_contribution").cut).toBeNull();
+  });
+
+  test("a limit of 0 with nothing earned isn't reached: no line for a man without the stat", () => {
+    const set = oneRule({ shape: "perAction", stat: "own_goals", values: { all: -2 }, limit: { all: { max: null, min: 0 } } });
+    expect(whyOf({ own_goals: 0 }, set, centreOf("defence"), "own_goals").cut).toBeNull();
   });
 
   test("a least that held them: three own goals at −2 are held to −4", () => {

@@ -151,6 +151,9 @@ export const gates: Record<string, Gate> = {
   "scoring/siteScoring:withdraw": "admin",
   "scouting/compare:players": "member",
   "scouting/playersList:list": "member",
+  "scouting/scouts:mine": "member",
+  "scouting/scouts:onPlayer": "member",
+  "scouting/scouts:send": "member",
   "scouting/shortlist:add": "member",
   "scouting/shortlist:mine": "member",
   "scouting/shortlist:remove": "member",
@@ -177,6 +180,7 @@ export const gates: Record<string, Gate> = {
   "waivers/waiverClaims:putIn": "manager",
   "waivers/waiverClaims:rank": "manager",
   "waivers/waiverClaims:withdraw": "manager",
+  "waivers/waivers:cardActionOn": "member",
   "waivers/waivers:drop": "manager",
   "waivers/waivers:stateOf": "member",
 };

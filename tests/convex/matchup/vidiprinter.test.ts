@@ -6,6 +6,7 @@ import type { Cell } from "../../../convex/lineup/pitch";
 import { vidiprinter, type StoredStep, type VidiprinterMatch, type VidiprinterPlayer } from "../../../convex/matchup/vidiprinter";
 import { FIRST_SCORING } from "../../../convex/scoring/firstScoring";
 import type { ScoringSet } from "../../../convex/scoring/scoringSet";
+import { pricedRole } from "../../support/convex/scoring.example";
 import { MINUTE_MS } from "../../../convex/shared/time";
 import { recordedLiveCommentary, recordedLiveFplPlayers, recordedLiveSheets } from "../../support/recorded/live.payloads";
 
@@ -90,10 +91,7 @@ test("under another set the same lines move other points, and the big chances sh
 test("a goal shows his role's adjustment as his slot's points do: a poacher's goal 1 more, a false 9's 1 less", () => {
   const roles: ScoringSet = {
     ...FIRST_SCORING,
-    roleAdjustments: [
-      { role: "poacher", adjustments: [{ stat: "goals_scored", points: 1 }] },
-      { role: "falseNine", adjustments: [{ stat: "goals_scored", points: -1 }] },
-    ],
+    roles: [pricedRole("poacher", "goals_scored", 1), pricedRole("falseNine", "goals_scored", -1)],
   } as ScoringSet;
   const goalIn = (role: string) => {
     const players = new Map(PLAYERS);
@@ -190,16 +188,16 @@ test("his minutes past 60 show a line, past 1 none: his kick-off line says he pl
   expect(shown(FIRST_SCORING as ScoringSet, [{ ...MATCH, steps }]).filter((line) => line.includes("minutes"))).toEqual(["~60' N.Williams: 60 minutes | +1"]);
 });
 
-test("a step carries his role's adjustment for its stat, as his slot's points do", () => {
-  const roles = { ...FIRST_SCORING, roleAdjustments: [{ role: "attackingFullBack", adjustments: [{ stat: "clean_sheets", points: -1 }] }] } as ScoringSet;
+test("a step carries what it moves his role's points by, as his slot's points do", () => {
+  const roles = { ...FIRST_SCORING, roles: [pricedRole("attackingFullBack", "clean_sheets", -1)] } as ScoringSet;
   const players = new Map(PLAYERS);
   players.set(CODE.murillo, { ...PLAYERS.get(CODE.murillo)!, role: "attackingFullBack" });
   const line = vidiprinter([{ ...MATCH, steps: [murillo("clean_sheets", 0, 1, 61)] }], players, roles).find((each) => each.text.includes("Murillo:"));
   expect(line?.points).toBe("+3");
 });
 
-test("a step on a stat no rule prices shows his role's adjustment alone, and nothing for a man whose role doesn't adjust it (#868)", () => {
-  const roles = { ...FIRST_SCORING, roleAdjustments: [{ role: "attackingFullBack", adjustments: [{ stat: "accurate_cross", points: 1 }] }] } as ScoringSet;
+test("a step on a stat no rule prices shows his role's points alone, and nothing for a man whose role doesn't score it (#868)", () => {
+  const roles = { ...FIRST_SCORING, roles: [pricedRole("attackingFullBack", "accurate_cross", 1)] } as ScoringSet;
   const steps = [murillo("accurate_cross", 1, 2, 30)];
   expect(murillosLines(steps, roles)).toEqual([]);
   const players = new Map(PLAYERS);

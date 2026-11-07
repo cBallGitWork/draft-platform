@@ -151,6 +151,40 @@ describe("while it can be undone", () => {
     expect((await leagueRow(t, leagueId))?.deletion).toBeUndefined();
   });
 
+  describe("its Mail letters, as an undone deletion tells no one (#897)", () => {
+    /** Who has a letter with `subject`, and whether they have read it. */
+    const lettersSaying = (subject: string) =>
+      t.run(async (ctx) =>
+        (await ctx.db.query("letters").collect())
+          .filter((letter) => letter.subject === subject)
+          .map(({ to, readAt }) => ({ to, read: readAt !== undefined })),
+      );
+    const STARTED = `${LEAGUE_NAME} is being deleted`;
+    const UNDONE = `${LEAGUE_NAME} is no longer being deleted`;
+
+    test("the commissioner deleting it tells only themselves, filed read", async () => {
+      await deletes(t, COMMISSIONER, leagueId);
+      expect(await lettersSaying(STARTED)).toEqual([{ to: COMMISSIONER, read: true }]);
+    });
+
+    test("the admin deleting it tells the commissioner, unread, who can undo it; no manager or co-commissioner", async () => {
+      await deletes(t, ADMIN, leagueId);
+      expect(await lettersSaying(STARTED)).toEqual([
+        { to: COMMISSIONER, read: false },
+        { to: ADMIN, read: true },
+      ]);
+    });
+
+    test("the commissioner undoing the admin's deletion tells the admin too; nobody else", async () => {
+      await deletes(t, ADMIN, leagueId);
+      await (await actingAs(t, COMMISSIONER)).mutation(api.leagues.leagueDeletion.undo, { leagueId });
+      expect(await lettersSaying(UNDONE)).toEqual([
+        { to: COMMISSIONER, read: true },
+        { to: ADMIN, read: false },
+      ]);
+    });
+  });
+
   test("undoing a league that isn't being deleted is refused", async () => {
     await expectRefused((await actingAs(t, ADMIN)).mutation(api.leagues.leagueDeletion.undo, { leagueId }), refusals.notBeingDeleted);
   });
