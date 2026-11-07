@@ -40,14 +40,18 @@ export async function rowsToChange(t: TestConvex, leagueId: Id<"leagues">) {
   const reversedTeamIds = teams.map((team) => team._id).reverse();
   /** A pending waiver claim of ANN's, written straight in. */
   const claimId = await t.run((ctx) => ctx.db.insert("waiverClaims", { leagueId, teamId: annsTeam._id, playerCode: 1, dropCode: null, rank: 0, by: ANN }));
-  return { leagueId, annsTeam, inviteId, requestId, revision, reversedTeamIds, claimId };
+  /** An open trade offer from ANN's team to the next, written straight in. */
+  const offerId = await t.run((ctx) =>
+    ctx.db.insert("tradeOffers", { leagueId, fromTeamId: annsTeam._id, toTeamId: teams[1]._id, gives: [1], gets: [], by: ANN, madeAt: Date.now() }),
+  );
+  return { leagueId, annsTeam, otherTeam: teams[1], inviteId, requestId, revision, reversedTeamIds, claimId, offerId };
 }
 
 /** A call of each public mutation given a league that would change it, by whoever might be let
  *  in to make it, keyed by its name in `mutationsGivenALeague`. */
 export function changesTo(
   { admin, ann, commissioner }: Callers,
-  { leagueId, annsTeam, inviteId, requestId, revision, reversedTeamIds, claimId }: RowsToChange,
+  { leagueId, annsTeam, otherTeam, inviteId, requestId, revision, reversedTeamIds, claimId, offerId }: RowsToChange,
 ): Record<string, () => Promise<unknown>> {
   return {
     "leagues/leagues:setMaxTeams": () => admin.mutation(api.leagues.leagues.setMaxTeams, { leagueId, maxTeams: 6 }),
@@ -97,7 +101,15 @@ export function changesTo(
     "waivers/waiverClaims:putIn": () => ann.mutation(api.waivers.waiverClaims.putIn, { leagueId, playerCode: 1, dropCode: null }),
     "waivers/waiverClaims:withdraw": () => ann.mutation(api.waivers.waiverClaims.withdraw, { leagueId, claimId }),
     "waivers/waiverClaims:rank": () => ann.mutation(api.waivers.waiverClaims.rank, { leagueId, claimIds: [claimId] }),
-    "squads/squadNumbers:set": () => ann.mutation(api.squads.squadNumbers.set, { leagueId, playerCode: 1, number: 7 }),
+    "trades/tradeOffers:offer": () =>
+      ann.mutation(api.trades.tradeOffers.offer, { leagueId, toTeamId: otherTeam._id, gives: [1], gets: [], note: null }),
+    "trades/tradeOffers:accept": () => ann.mutation(api.trades.tradeOffers.accept, { leagueId, offerId }),
+    "trades/tradeOffers:reject": () => ann.mutation(api.trades.tradeOffers.reject, { leagueId, offerId }),
+    "trades/tradeOffers:counter": () => ann.mutation(api.trades.tradeOffers.counter, { leagueId, offerId, gives: [], gets: [1], note: null }),
+    "trades/tradeOffers:withdraw": () => ann.mutation(api.trades.tradeOffers.withdraw, { leagueId, offerId }),
+    "trades/tradeReview:block": () => commissioner.mutation(api.trades.tradeReview.block, { leagueId, offerId }),
+    "trades/tradeReview:against": () => ann.mutation(api.trades.tradeReview.against, { leagueId, offerId }),
+    "squads/squadNumbers:set":() => ann.mutation(api.squads.squadNumbers.set, { leagueId, playerCode: 1, number: 7 }),
     "table/fixtureEdits:swap": () =>
       admin.mutation(api.table.fixtureEdits.swap, {
         leagueId,
