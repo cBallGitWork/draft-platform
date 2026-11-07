@@ -6,6 +6,8 @@ import { DraftPage } from "../draft/DraftPage";
 import { DRAFT_PATH, HOME_PATH, MAIL_PATH, MATCHUP_PATH, MY_TEAM_FIXTURES_PATH, MY_TEAM_PATH, MY_TEAM_SQUAD_PATH, MY_TEAM_TRANSACTIONS_PATH, pages, PREMIER_LEAGUE_PATH, SCOUTING_PATH, TABLE_PATH } from "../frame/menu";
 import { PageNotBuilt } from "../frame/PageNotBuilt";
 import { HomePage } from "../home/HomePage";
+import { recapSearchOf, RECAP_PATH } from "../home/paths";
+import { RecapPage } from "../home/Recap";
 import { MatchupPage } from "../matchup/MatchupPage";
 import { matchupSearchOf } from "../matchup/paths";
 import { FixturesPage } from "../myTeam/FixturesPage";
@@ -89,6 +91,22 @@ const matchupRoute = createRoute({
   },
 });
 
+// League home's weekly recap, whole (#387), opened by Read the recap. With no gameweek named it is
+// League home's to show, so it goes there.
+const recapRoute = createRoute({
+  getParentRoute: () => frameRoute,
+  path: RECAP_PATH,
+  validateSearch: recapSearchOf,
+  beforeLoad: ({ search }) => {
+    if (search.gameweek === undefined) throw redirect({ to: HOME_PATH });
+  },
+  component: function RecapScreen() {
+    const { session, home } = recapRoute.useRouteContext();
+    const { gameweek } = recapRoute.useSearch();
+    return <CurrentLeague session={session} page={(league) => <RecapPage league={league} seam={home} gameweek={gameweek!} />} />;
+  },
+});
+
 // The Premier League section (#49), for anyone in a league: the real competition, the same for all.
 const premierLeagueRoute = createRoute({
   getParentRoute: () => frameRoute,
@@ -121,7 +139,7 @@ const matchRoute = createRoute({
   },
 });
 
-const builtRoutes = [landingRoute, homeRoute, tableRoute, scoutingRoute, draftRoute, myTeamTacticsRoute, myTeamSquadRoute, myTeamFixturesRoute, myTeamTransactionsRoute, matchupRoute, premierLeagueRoute, matchRoute];
+const builtRoutes = [landingRoute, homeRoute, recapRoute,tableRoute, scoutingRoute, draftRoute, myTeamTacticsRoute, myTeamSquadRoute, myTeamFixturesRoute, myTeamTransactionsRoute, matchupRoute, premierLeagueRoute, matchRoute];
 
 /** Every address with its own screen: each route above, and Mail, whose route is with the league
  *  pages (leaguePages.tsx). Any other menu page gets a placeholder. */

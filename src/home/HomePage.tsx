@@ -8,6 +8,7 @@ import { MAIL_PATH, TABLE_PATH } from "../frame/menu";
 import { MatchupLink } from "../matchup/MatchupLink";
 import { Vidiprinter } from "../matchup/Vidiprinter";
 import { useMinute } from "../shared/useMinute";
+import { RecapPanel } from "./Recap";
 import type { HomeSeam, LeagueHome } from "./seam";
 import {
   byeWords,
@@ -58,7 +59,7 @@ const cellClasses = (column: Column) =>
 
 /** League home (spec/12, League home): the league's hub, laid out by us, never by its managers. The
  *  glance (this gameweek's head-to-heads, scored once begun, the table and each team's form), the
- *  commissioner's latest letter, pinned, and the latest claims, drops and trades. While a matchday
+ *  commissioner's latest letter, pinned, the latest weekly recap, and the latest claims, drops and trades. While a matchday
  *  is open, the Vidiprinter tops the right-hand column, as the approved live picture has it
  *  (docs/design/approved/home/1440-locked.png), and the scores move with the live query. */
 export function HomePage({ league, seam }: { league: LeagueSummary; seam: HomeSeam }) {
@@ -75,6 +76,7 @@ export function HomePage({ league, seam }: { league: LeagueSummary; seam: HomeSe
           <TablePanel home={home} />
           <div className="flex flex-col gap-2">
             {home.matchday !== null && <Vidiprinter commentary={home.matchday.commentary} title={VIDIPRINTER_TITLE} noLinesWords={noMatchdayLinesWords} />}
+            {home.recap !== null && <RecapPanel recap={home.recap} />}
             <PinnedLetter letter={home.pinnedLetter} />
             <SquadMoves moves={home.squadMoves} />
           </div>
