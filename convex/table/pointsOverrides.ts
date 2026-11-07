@@ -46,6 +46,18 @@ export const overrideRefusals = {
   noOverride: (name: string) => `${name}'s points in that match aren't overridden.`,
 } as const;
 
+/** An override's reason as it is kept, refused when blank or too long. */
+export const overrideReason = (typed: string) =>
+  typedText(typed, OVERRIDE_REASON_MAX, { blank: overrideRefusals.blankReason, tooLong: overrideRefusals.reasonTooLong });
+
+/** Refuses points an override can't set: not kept to a tenth, beyond `most` either way
+ *  (`outOfRange` says so), or not whole under a set that counts `wholePointsOnly`. */
+export function checkPoints(points: number, most: number, outOfRange: string, wholePointsOnly: boolean): void {
+  if (!Number.isFinite(points) || inTenths(points) !== points) refuse(overrideRefusals.notPoints);
+  if (Math.abs(points) > most) refuse(outOfRange);
+  if (wholePointsOnly && !Number.isInteger(points)) refuse(overrideRefusals.notWhole);
+}
+
 /** How a letter names a man the football data has lost, who has no name left to give. */
 export const lostPlayerName = (code: number) => `Player ${code}`;
 
@@ -55,10 +67,8 @@ export const override = mutation({
   returns: v.null(),
   handler: async (ctx, { leagueId, fixtureCode, playerCode, points, reason: typed }) => {
     const { by, match } = await overridable(ctx, leagueId, fixtureCode, playerCode);
-    const reason = typedText(typed, OVERRIDE_REASON_MAX, { blank: overrideRefusals.blankReason, tooLong: overrideRefusals.reasonTooLong });
-    if (!Number.isFinite(points) || inTenths(points) !== points) refuse(overrideRefusals.notPoints);
-    if (Math.abs(points) > OVERRIDE_POINTS_MOST) refuse(overrideRefusals.outOfRange);
-    if (match.reads.setIn(match.gameweek).wholePointsOnly && !Number.isInteger(points)) refuse(overrideRefusals.notWhole);
+    const reason = overrideReason(typed);
+    checkPoints(points, OVERRIDE_POINTS_MOST, overrideRefusals.outOfRange, match.reads.setIn(match.gameweek).wholePointsOnly);
 
     const held = await heldOverride(ctx, leagueId, fixtureCode, playerCode);
     const row = { leagueId, gameweek: match.gameweek, fixtureCode, playerCode, points, reason, by, at: Date.now() };

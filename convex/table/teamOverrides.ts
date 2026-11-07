@@ -3,15 +3,13 @@ import type { Doc, Id } from "../_generated/dataModel";
 import { mutation, type MutationCtx } from "../_generated/server";
 import { recordEvent } from "../mail/letters";
 import { seasonRules } from "../rules/rulesHistory";
-import { inTenths } from "../scoring/values";
 import { refuse, runnerOf, teamIn } from "../shared/leagueAccess";
 import { figureWords } from "../shared/numberWords";
-import { typedText } from "../shared/typedText";
 import { begunGameweeks, workedOutGameweek } from "../gameweekScorer/gameweekScores";
 import { leagueReads } from "../gameweekScorer/teamGameweek";
 import { rescoreGameweek } from "./finalScores";
-import { OVERRIDE_REASON_MAX, TEAM_OVERRIDE_POINTS_MOST } from "./overrideLimits";
-import { overrideRefusals } from "./pointsOverrides";
+import { TEAM_OVERRIDE_POINTS_MOST } from "./overrideLimits";
+import { checkPoints, overrideReason, overrideRefusals } from "./pointsOverrides";
 
 // A commissioner overrides one team's total in one gameweek, with a reason (spec/14 S14.3; #903):
 // "set the total". The row stands as the team's points wherever the league's scorer reads them
@@ -32,10 +30,8 @@ export const overrideTeam = mutation({
   returns: v.null(),
   handler: async (ctx, { leagueId, gameweek, teamId, points, reason: typed }) => {
     const scored = await overridableTeam(ctx, leagueId, gameweek, teamId);
-    const reason = typedText(typed, OVERRIDE_REASON_MAX, { blank: overrideRefusals.blankReason, tooLong: overrideRefusals.reasonTooLong });
-    if (!Number.isFinite(points) || inTenths(points) !== points) refuse(overrideRefusals.notPoints);
-    if (Math.abs(points) > TEAM_OVERRIDE_POINTS_MOST) refuse(teamOverrideRefusals.outOfRange);
-    if (scored.wholePointsOnly && !Number.isInteger(points)) refuse(overrideRefusals.notWhole);
+    const reason = overrideReason(typed);
+    checkPoints(points, TEAM_OVERRIDE_POINTS_MOST, teamOverrideRefusals.outOfRange, scored.wholePointsOnly);
 
     const held = await heldTeamOverride(ctx, leagueId, gameweek, teamId);
     const row = { leagueId, gameweek, teamId, points, reason, by: scored.by, at: Date.now() };
