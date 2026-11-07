@@ -1,6 +1,7 @@
 import { v, type Infer } from "convex/values";
 import { query } from "../_generated/server";
-import { leagueRulesShape } from "../rules/leagueRulesShape";
+import { classicShape, leagueRulesShape } from "../rules/leagueRulesShape";
+import { classicsOf, instructionsOf } from "../rules/firstRules";
 import { deadlineOf, leagueDeadlines } from "../gameweeks/leagueDeadlines";
 import { shownDeadline } from "../gameweeks/usedGameweeks";
 import { clubByCode, playerByCode, unheldPlayerWords } from "../shared/players";
@@ -12,7 +13,6 @@ import { squadOf } from "../squads/squadPlace";
 import { shirtNumber } from "../squads/squadNumbers";
 import { heldLineupShape, lineupInGameweek, saveGameweekOf } from "./lineups";
 import { starsOfPlayers } from "../stars/playerStars";
-import { instructionsOf } from "../rules/firstRules";
 import { keptOrSwitched } from "./instructions";
 import { instructionPairShape, instructionShape } from "./instructionsShape";
 import { roleStarsShape } from "../stars/starsShape";
@@ -56,6 +56,9 @@ const tacticsShape = v.union(
     deadline: shownDeadline,
     areaLimits: leagueRulesShape.fields.areaLimits,
     presets: leagueRulesShape.fields.presets,
+    /** The league's classics in force, the first rules' for rules saved before #991 (firstRules.ts
+     *  `classicsOf`). */
+    classics: v.array(classicShape),
     /** The league's team instructions, in its order (#990). */
     instructions: v.array(instructionShape),
     /** The lineup's two picks in force: its own where its shape still offers them, else the
@@ -115,6 +118,7 @@ export const ofMyTeam = query({
       deadline: deadlineOf(await leagueDeadlines(ctx, leagueId))(gameweek),
       areaLimits,
       presets,
+      classics: classicsOf(rules),
       instructions,
       picked: keptOrSwitched(lineup.instructions, lineup.starters, presets, instructions).pair,
       squad,

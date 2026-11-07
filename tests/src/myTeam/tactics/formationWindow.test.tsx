@@ -12,7 +12,7 @@ import {
   gainsPlaceholder,
   inUseWords,
   losesPlaceholder,
-  samplePointsWords,
+  sampleTextWords,
   savePresetLine,
   savePresetName,
   subtitlePlaceholder,
@@ -39,7 +39,7 @@ describe("the formation window", () => {
     // A manager's own presets are real names now (#992): no sample mark.
     expect(headingOf(YOUR_PRESETS).textContent).toBe(`${YOUR_PRESETS}${yourPresetsLine}`);
     await userEvent.click(screen.getByRole("button", { name: new RegExp(`^${CLASSICS}`) }));
-    expect(headingOf(CLASSICS).textContent).toBe(`${CLASSICS}${classicsLine}${samplePointsWords}`);
+    expect(headingOf(CLASSICS).textContent).toBe(`${CLASSICS}${classicsLine}${sampleTextWords}`);
   });
 
   it("shows the Save preset… tile on Your presets, in place, its line under its name", async () => {

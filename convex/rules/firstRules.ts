@@ -3,15 +3,16 @@ import type { DraftRules, LeagueRules, TradeRules } from "./leagueRulesShape";
 import { AREAS, type Area } from "../lineup/pitch";
 import { FIRST_INSTRUCTIONS, type Instruction } from "../lineup/instructions";
 import { DEFAULT_PRESETS } from "../lineup/presets";
+import { DEFAULT_CLASSICS } from "../lineup/classics";
 import type { DrawRules, OddTeamOut } from "../table/roundRobin";
 
 // The first rules a deployment gives a new league (#25), used once: the first league created
 // copies them into the admin's default rules row (`defaultLeagueRules`), and every league after
 // copies that row, which the admin edits (leagueRules.ts says how). Once that row exists, nothing
-// reads this file but `drawRulesOf`, `draftRulesOf`, `tradeRulesOf` and `instructionsOf`, for rules
-// saved before the odd team out, games a gameweek, the draft, trades and the team instructions were
-// among them. The scoring is not a league's rule but the site's (spec/14, Who owns it):
-// ../scoring/firstScoring.ts holds the first set.
+// reads this file but `drawRulesOf`, `draftRulesOf`, `tradeRulesOf`, `instructionsOf` and
+// `classicsOf`, for rules saved before the odd team out, games a gameweek, the draft, trades, the
+// team instructions and the classics were among them. The scoring is not a league's rule but the
+// site's (spec/14, Who owns it): ../scoring/firstScoring.ts holds the first set.
 //
 // Only the presets, the team instructions, the deadline, the double-gameweek rule, the odd team
 // out, games a gameweek, the draft's rules and the trades' are the spec's own or Craig's (spec/05,
@@ -32,6 +33,16 @@ const FIRST_GAMES_PER_GAMEWEEK = 1;
 /** Craig's (4 Nov 2026, on #1087; spec/04): a 90-second pick clock; auto-pick after 2 timeouts;
  *  undrafted players to waivers. */
 const FIRST_DRAFT_RULES: DraftRules = { pickSeconds: 90, timeoutsBeforeAutoPick: 2, undrafted: "waivers" };
+
+/** Craig's (6 Nov 2026, on #991): eight to start, their text sample (../lineup/classics.ts). */
+const firstClassics = (): LeagueClassics =>
+  DEFAULT_CLASSICS.map(({ cells, instructions, ...rest }) => ({ ...rest, cells: cells.map((cell) => ({ ...cell })), instructions: { ...instructions } }));
+
+/** A league's classics, as its rules hold them (../lineup/classics.ts's Classic). */
+type LeagueClassics = NonNullable<LeagueRules["classics"]>;
+
+/** The league's classics: the first rules' for rules saved before #991 made them rules. */
+export const classicsOf = (rules: LeagueRules): LeagueClassics => rules.classics ?? firstClassics();
 
 /** How the league's draft runs: the first rules' for rules saved before #1087 made it a rule. */
 export const draftRulesOf = (rules: LeagueRules): DraftRules => rules.draft ?? FIRST_DRAFT_RULES;
@@ -71,6 +82,7 @@ export const FIRST_RULES: LeagueRules = {
     cells: cells.map((cell) => ({ ...cell })),
     ...(instructions !== undefined && { instructions: { ...instructions } }),
   })),
+  classics: firstClassics(),
   deadline: { ...FPL_DEADLINE_RULE },
   doubleGameweek: "bothMatches",
   // guess: the doc's live tie-breaks, "none; highest seed", are a matchup's and a playoff's, not
