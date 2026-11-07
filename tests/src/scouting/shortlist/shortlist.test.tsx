@@ -8,6 +8,7 @@ import { describe, expect, it } from "vitest";
 import { shortlistRefusals } from "../../../../convex/scouting/shortlist";
 import { SCOUTING_PATH } from "../../../../src/frame/menu";
 import { playerCardPath } from "../../../../src/playerCard/paths";
+import { crestUrl } from "../../../../src/premierLeague/ClubName";
 import type { PlayerCard } from "../../../../src/playerCard/seam";
 import { draftListRefusals } from "../../../../convex/draft/draftLists";
 import {
@@ -45,7 +46,7 @@ describe("on Scouting", () => {
     expect(rows.map((row) => within(row).getByRole("link").textContent)).toEqual(["Rice", "Saka"]);
     expect(rows[0].textContent).toContain(freeAgentWords);
     expect(rows[1].textContent).toContain("Saka Potatoes");
-    expect(rows[1].textContent).toContain("ARS");
+    expect(within(rows[1]).getByTitle(ARSENAL.name).previousElementSibling!.getAttribute("src")).toBe(crestUrl(ARSENAL.code));
     expect(app.scouting.useShortlist.mock.lastCall).toEqual([league.leagueId]);
 
     await userEvent.click(within(rows[1]).getByRole("link", { name: "Saka" }));

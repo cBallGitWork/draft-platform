@@ -1,6 +1,8 @@
 import { STARTER_COUNT, type AreaLimit } from "../lineup/lineup";
 import { AREAS, type Area } from "../lineup/pitch";
+import { inClassicShape } from "../lineup/classics";
 import { pairRefusal, SIDES, type Instruction } from "../lineup/instructions";
+import { offersRole } from "../lineup/roles";
 import { instructionsOf } from "./firstRules";
 import type { DraftRules, LeagueRules, TradeRules } from "./leagueRulesShape";
 import { FIRST_GAMEWEEK, GAMEWEEKS } from "../gameweeks/usedGameweeks";
@@ -23,6 +25,7 @@ export function checkLeagueRules(rules: LeagueRules, maxTeams?: number): void {
   checkAreaLimits(rules.areaLimits);
   checkPresets(rules.presets, rules.areaLimits);
   checkInstructions(instructionsOf(rules), rules.presets);
+  if (rules.classics !== undefined) checkClassics(rules.classics, rules.presets, instructionsOf(rules));
   checkWholeNumber(rules.deadline.minutesBeforeFirstKickoff, "The deadline's minutes before the first kickoff", 0);
   checkNoneTwice(rules.tieBreaks, (tieBreak) => `The tie-break ${tieBreak} is listed twice.`);
   if (rules.gamesPerGameweek !== undefined) {
@@ -161,6 +164,28 @@ function checkInstructions(set: readonly Instruction[], presets: LeagueRules["pr
     if (instructions === undefined) continue;
     const refusal = pairRefusal(instructions, cells, set);
     if (refusal !== null) throw new UnsoundRules(`The preset ${name}'s default ${refusal.side} instruction, ${refusal.key}, isn't one its shape offers.`);
+  }
+}
+
+/** Each classic named once, standing in one of the league's presets (Craig, 6 Nov 2026: "Yes, one
+ *  of ours"), with a role its slot offers in it and one instruction a side its shape offers
+ *  (spec/05). */
+function checkClassics(classics: NonNullable<LeagueRules["classics"]>, presets: LeagueRules["presets"], set: readonly Instruction[]): void {
+  checkNoneTwice(
+    classics.map((classic) => classic.name.trim()),
+    (name) => `Two classics are called "${name}".`,
+  );
+  for (const classic of classics) {
+    const { name, cells, instructions } = classic;
+    if (name.trim() === "") throw new UnsoundRules("A classic needs a name.");
+    if (!presets.some((preset) => inClassicShape(preset.cells, classic))) {
+      throw new UnsoundRules(`The classic ${name} stands in no formation of the league's.`);
+    }
+    for (const cell of cells) {
+      if (!offersRole(cell, cell.role, cells)) throw new UnsoundRules(`The classic ${name} gives its ${cell.area} ${cell.lane} slot the role ${cell.role}, which that slot doesn't offer.`);
+    }
+    const refusal = pairRefusal(instructions, cells, set);
+    if (refusal !== null) throw new UnsoundRules(`The classic ${name}'s ${refusal.side} instruction, ${refusal.key}, isn't one its shape offers.`);
   }
 }
 

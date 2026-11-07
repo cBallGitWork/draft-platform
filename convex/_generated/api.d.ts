@@ -111,6 +111,7 @@ import type * as leagues_teams from "../leagues/teams.js";
 import type * as lineup_autoSubs from "../lineup/autoSubs.js";
 import type * as lineup_autoTeam from "../lineup/autoTeam.js";
 import type * as lineup_autoTeamWords from "../lineup/autoTeamWords.js";
+import type * as lineup_classics from "../lineup/classics.js";
 import type * as lineup_firstLineup from "../lineup/firstLineup.js";
 import type * as lineup_firstLineupBackfill from "../lineup/firstLineupBackfill.js";
 import type * as lineup_instructions from "../lineup/instructions.js";
@@ -420,6 +421,7 @@ declare const fullApi: ApiFromModules<{
   "lineup/autoSubs": typeof lineup_autoSubs;
   "lineup/autoTeam": typeof lineup_autoTeam;
   "lineup/autoTeamWords": typeof lineup_autoTeamWords;
+  "lineup/classics": typeof lineup_classics;
   "lineup/firstLineup": typeof lineup_firstLineup;
   "lineup/firstLineupBackfill": typeof lineup_firstLineupBackfill;
   "lineup/instructions": typeof lineup_instructions;

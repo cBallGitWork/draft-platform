@@ -94,7 +94,7 @@ function GameweekTable({
               <th scope="row" className={`${cellClasses} font-semibold`}>{row.gameweek}</th>
               <DeadlineCell deadline={row.deadline} begun={begun} />
               <td className={cellClasses}>
-                <TickBox checked={row.used} disabled={begun || sending === row.gameweek} onChange={() => onTick(row)} labelHidden>
+                <TickBox checked={row.used} disabled={begun || sending === row.gameweek} onChange={() => onTick(row)} labelHidden inTableRow>
                   {gameweekWords(row.gameweek)}
                 </TickBox>
               </td>

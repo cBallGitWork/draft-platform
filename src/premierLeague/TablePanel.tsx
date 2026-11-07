@@ -1,6 +1,6 @@
 import { cellClassOf, ColumnHeads } from "../ui/ColumnHeads";
 import { LiveNote, Loading, Panel, PanelNote } from "../ui/Panel";
-import { ClubName } from "./ClubName";
+import { ClubMark, ClubName } from "./ClubName";
 import type { PlStandings, PremierLeagueSeam } from "./seam";
 import { goalDifferenceWords, loadingTableWords, noClubsWords, provisionalWords, TABLE_TITLE, tableColumns } from "./words";
 
@@ -54,6 +54,7 @@ function TableCell({ column, row }: { column: Column; row: Row }) {
     case "club":
       return (
         <th scope="row" className={`${className} font-semibold`}>
+          <ClubMark code={row.club.code} />
           <ClubName club={row.club} />
         </th>
       );
