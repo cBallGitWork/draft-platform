@@ -50,7 +50,7 @@ export async function siteScoringAt(ctx: QueryCtx, at: number): Promise<StoredSc
 
 /** The site's scoring set in a gameweek, which every league scores that gameweek's matches by: the
  *  newest version to take effect at or before its first kickoff, the first set before any. A
- *  gameweek with no kickoff time yet plays the newest. */
+ *  gameweek with no kickoff time yet plays the one in force, never a waiting patch. */
 export async function siteScoringInGameweek(ctx: QueryCtx, gameweek: number): Promise<StoredScoringSet> {
   return (await siteScoringByGameweek(ctx))(gameweek);
 }
@@ -75,11 +75,28 @@ export async function siteVersionByGameweek(ctx: QueryCtx): Promise<(gameweek: n
   const matches = await scheduledMatches(ctx);
   const recordedStarts = await gameweekStartsOf(ctx, matches);
   const kickoffs = firstKickoffs(matches);
+  const unscheduled = versionInForceUnscheduled(history, recordedStarts, kickoffs);
   return (gameweek) => {
     const firstKickoff = recordedStarts.get(gameweek) ?? kickoffs.get(gameweek) ?? null;
-    const inForce = firstKickoff === null ? history.at(-1) : history.findLast((row) => row.takesEffectAt <= firstKickoff);
+    const inForce = firstKickoff === null ? unscheduled : history.findLast((row) => row.takesEffectAt <= firstKickoff);
     return { set: setOf(inForce), name: inForce === undefined ? null : versionName(inForce) };
   };
+}
+
+/** The version a gameweek with no kickoff time yet plays: the one in force, never a patch still
+ *  waiting (Craig, 1 Nov 2026, on #901: "old", though gameweeks always have a time). A query must
+ *  not read the clock, so in force is what the schedule shows: a fix takes effect when it is made,
+ *  so is in force; a patch is once a gameweek has begun at or after its moment, or if its moment
+ *  came before the season's first kickoff (with no kickoffs held, nothing is scored, so any is).
+ *  Undefined for the first set. */
+function versionInForceUnscheduled(
+  history: readonly Doc<"siteScoring">[],
+  recordedStarts: ReadonlyMap<number, number>,
+  kickoffs: ReadonlyMap<number, number>,
+): Doc<"siteScoring"> | undefined {
+  const latestBegun = Math.max(-Infinity, ...recordedStarts.values());
+  const seasonFirst = Math.min(Infinity, ...kickoffs.values(), ...recordedStarts.values());
+  return history.findLast((row) => row.kind === "fix" || row.takesEffectAt <= latestBegun || row.takesEffectAt < seasonFirst);
 }
 
 /** The first gameweek a version taking effect at `at` reaches: the first whose first kickoff is at

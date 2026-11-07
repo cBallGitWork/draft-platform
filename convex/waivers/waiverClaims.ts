@@ -9,7 +9,7 @@ import { playerByCode } from "../shared/players";
 import { placeOf } from "../squads/squadPlace";
 import { inWaiverLock } from "./waiverLock";
 import { waiverRowOf } from "./waiverPlayers";
-import { dropRefusals } from "./waivers";
+import { dropRefusals, namedPlayer } from "./waivers";
 
 // A manager's waiver claims (#1198, spec/08 Waivers and free agency): as many as he likes, ranked,
 // each for a player on waivers and, with a full squad, naming who he drops if it succeeds. He puts
@@ -112,8 +112,6 @@ export const rank = mutation({
     return null;
   },
 });
-
-const namedPlayer = v.object({ playerCode: v.number(), playerName: v.string() });
 
 const pendingClaim = v.object({
   claimId: v.id("waiverClaims"),

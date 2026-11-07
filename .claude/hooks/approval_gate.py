@@ -1,18 +1,16 @@
-"""The approved-picture merge gate, for guard_bash.py and guard_github.py (#947). CLAUDE.md: a pull
-request that changes a screen with an approved picture shows approved and built, every difference
-numbered; with a layout one (any kind but a look detail, pr_body.py's DETAIL_KINDS: Craig, 5 Nov 2026,
-"Yes, layout only"), it waits for Craig's yes. pr_body.py makes such a body carry ui-verifier's
-"Approved vs built" section; this refuses a merge (gh pr merge, or the GitHub tool's
-merge_pull_request) while that section numbers a layout difference,
-unless the pull request has the label CRAIG_APPROVED, which only Craig adds: a gh command or GitHub
-tool call of Claude's that adds it is refused too (in any case: GitHub's label names ignore it). A
-body or labels it can't read is a denial, never a silent pass. It stops the
-usual route only: a merge through gh api or the web button, a label named by a shell variable, and
-a body edited after it opened (gh pr edit, which pr_body.py doesn't screen-check) get past it.
-Run as a script, it is the same gate as a GitHub check, look-gate.yml's `look-approved`, which the
-`main` ruleset requires, so a merge by auto-merge, the web button or gh api waits too: it reads the
-pull request's body and labels from the event GitHub hands the job, and exits 1 saying why while
-the merge waits (Craig, 5 Nov 2026: "Yes, make it a check").
+"""The approved-picture check, for guard_bash.py and guard_github.py (#947) and as look-gate.yml's
+`look-approved` check. A pull request that changes a screen with an approved picture still carries
+ui-verifier's "Approved vs built" section, every difference numbered (pr_body.py), but no difference
+holds the merge: layout waits for the UI reskin (Craig, 7 Nov 2026: "we can worry about design
+changes later in our ui reskin"). Before that, a layout difference waited for Craig's
+`craig-approved` label (5 Nov 2026).
+
+What stays is the merge's own guard, through pull_request.py: a gh pr merge with --admin, or one
+whose pull request can't be named, is refused, by gh or the GitHub tool alike.
+
+Run as a script, it is the `look-approved` check the `main` ruleset requires: it reads the pull
+request from the event GitHub hands the job, lists any layout differences in the log for the reskin,
+and passes. An event it can't read fails it, never a silent pass.
 Stdlib only, Python 3.9+.
 """
 
@@ -22,114 +20,40 @@ import json
 import os
 import sys
 
-from pull_request import Unread, merges_problem, pull, tool_merge_problem
+from pull_request import merges_problem, tool_merge_problem
 from pr_body import layout_differences
-from where import options, runs_at
-
-CRAIG_APPROVED = "craig-approved"  # the label: Craig's yes to the differences listed
-# gh's subcommands that can put a label on a pull request or issue, and their options naming one
-LABELLING = {("pr", "create"), ("pr", "edit"), ("issue", "create"), ("issue", "edit")}
-LABEL_OPTS = {"-l", "--label", "--add-label"}
-LABEL_VALUE_OPTS = LABEL_OPTS | {"-t", "--title", "-b", "--body", "-F", "--body-file", "-B", "--base", "-H",
-                                 "--head", "-a", "--assignee", "-m", "--milestone", "-p", "--project",
-                                 "-r", "--reviewer", "-R", "--repo", "--remove-label", "--add-assignee",
-                                 "--remove-assignee", "--add-project", "--remove-project", "--add-reviewer",
-                                 "--remove-reviewer", "-T", "--template", "--recover"}
-ONLY_CRAIG = (f"Only Craig adds the {CRAIG_APPROVED} label: it is his yes to a screen's differences from its "
-              "approved picture. Ask him in chat, with the numbered differences.")
 
 
-def _labels_added(args):
-    """The labels these gh pr/issue create or edit args add, in lower case."""
-    out, i = [], 0
-    while i < len(args):
-        found, i = options(args, i, LABEL_VALUE_OPTS)
-        out += [name.strip() for opt, value in found if opt in LABEL_OPTS for name in value.lower().split(",")]
-        i += 1
-    return out
-
-
-def label_problem(cmds):
-    """A deny reason if any of cmds adds the CRAIG_APPROVED label (gh pr edit --add-label, gh pr
-    create --label, or any gh api call naming it), else None."""
-    for words, _ in cmds:
-        i = runs_at(words, "gh")
-        if i is None:
-            continue
-        if words[i + 1 : i + 2] == ["api"] and any(CRAIG_APPROVED in word.lower() for word in words[i + 2 :]):
-            return ONLY_CRAIG
-        if tuple(words[i + 1 : i + 3]) in LABELLING and CRAIG_APPROVED in _labels_added(words[i + 3 :]):
-            return ONLY_CRAIG
-    return None
-
-
-def mcp_label_problem(tool_input):
-    """A deny reason if a GitHub tool's input sets the CRAIG_APPROVED label, else None."""
-    labels = tool_input.get("labels") if isinstance(tool_input, dict) else None
-    if isinstance(labels, str):
-        labels = [labels]
-    if isinstance(labels, list) and any(isinstance(label, str) and label.strip().lower() == CRAIG_APPROVED
-                                        for label in labels):
-        return ONLY_CRAIG
-    return None
-
-
-def pr_problem(repo, number, folder):
-    """A deny reason if pull request number's Approved vs built section numbers a layout difference and it
-    lacks the CRAIG_APPROVED label, else None."""
-    try:
-        pr = pull(repo, number, folder)
-    except Unread as error:
-        return _unread(error)
-    return waits_problem(pr)
-
-
-def _unread(error):
-    return (f"Can't read this pull request's body and labels, to see whether it waits for Craig's "
-            f"yes to a screen's differences from its approved picture: {error}.")
-
-
-def waits_problem(pr):
-    """A deny reason if GitHub's record of a pull request (its body and labels) numbers a layout difference
-    in its Approved vs built section and lacks the CRAIG_APPROVED label, else None."""
-    try:
-        listed = layout_differences(pr["body"] or "")
-        labels = {(label.get("name") or "").lower() for label in pr["labels"] or []}
-    except (KeyError, TypeError, AttributeError) as error:
-        return _unread(error)
-    if listed and CRAIG_APPROVED not in labels:
-        return (f"This pull request waits for Craig: its Approved vs built section lists {len(listed)} "
-                f"layout difference(s) from the approved picture ({listed[0]}"
-                f"{' …' if len(listed) > 1 else ''}). It merges once Craig adds the {CRAIG_APPROVED} "
-                "label, or once the build matches and the section says so.")
+def _no_wait(repo, number, folder):
+    """No pull request waits on its differences from an approved picture."""
     return None
 
 
 def approval_problem(cmds):
-    """A deny reason if any of cmds (each (words, folder)) merges a pull request whose Approved vs
-    built section numbers a layout difference and that lacks the CRAIG_APPROVED label, else None."""
-    return merges_problem(cmds, pr_problem)
+    """A deny reason if any of cmds (each (words, folder)) is a gh pr merge pull_request.py refuses
+    (--admin, or no pull request it can name), else None."""
+    return merges_problem(cmds, _no_wait)
 
 
 def mcp_approval_problem(tool, tool_input, folder):
     """The same, for the GitHub tool's merge_pull_request."""
-    return tool_merge_problem(tool, tool_input, folder, pr_problem)
+    return tool_merge_problem(tool, tool_input, folder, _no_wait)
 
 
 def main():
-    """The check: the pull request in the event at GITHUB_EVENT_PATH; exit 1 while it waits, or
-    when the event can't be read."""
+    """The check: the pull request in the event at GITHUB_EVENT_PATH. It passes, listing any layout
+    differences; exit 1 only when the event can't be read."""
     try:
         with open(os.environ["GITHUB_EVENT_PATH"], encoding="utf-8") as event:
-            pr = json.load(event)["pull_request"]
-    except (KeyError, OSError, ValueError, TypeError) as error:
-        print(_unread(error), file=sys.stderr)
+            listed = layout_differences(json.load(event)["pull_request"]["body"] or "")
+    except (KeyError, OSError, ValueError, TypeError, AttributeError) as error:
+        print(f"Can't read this pull request's body from the event: {error}.", file=sys.stderr)
         return 1
-    problem = waits_problem(pr)
-    if problem:
-        print(problem, file=sys.stderr)
-        return 1
-    print("No difference from an approved picture waits for Craig.")
+    if listed:
+        print(f"{len(listed)} layout difference(s) from the approved picture, left for the UI reskin:")
+        print("\n".join(listed))
+    else:
+        print("No layout difference from an approved picture.")
     return 0
 
 

@@ -9,7 +9,9 @@ import { HOUR_MS } from "../shared/time";
 
 // Deleting a league (#75, spec/13, Deleting). For DELETION_UNDO_HOURS it can be undone: it is
 // frozen (leagueAccess's getLeague refuses every change to it), hidden from everyone with a part
-// in it but its commissioner (myLeagues.ts), and nobody is emailed.
+// in it but its commissioner (myLeagues.ts), and nobody is emailed. Its Mail letters, that it is
+// being deleted and that it no longer is, go only to its commissioner and whoever deleted or undid
+// it, as "an undone deletion tells no one" (spec/13; Claude's call on #897, Craig's "your call").
 // Then deleteForGood removes it and every row keyed to it: nothing is archived. Only once it is
 // gone is everyone with a part in it but whoever deleted it emailed (deletionNotices.ts, #320).
 
@@ -83,6 +85,11 @@ const leagueRows: { [Table in TableNames]?: LeagueRowsBatch<Table> } = {
     ctx.db
       .query("pointsOverrides")
       .withIndex("by_leagueId_and_playerCode", (q) => q.eq("leagueId", leagueId))
+      .take(ROWS_PER_RUN),
+  teamOverrides: (ctx, leagueId) =>
+    ctx.db
+      .query("teamOverrides")
+      .withIndex("by_leagueId_and_gameweek_and_teamId", (q) => q.eq("leagueId", leagueId))
       .take(ROWS_PER_RUN),
   lastLeagues: (ctx, leagueId) =>
     ctx.db
@@ -196,7 +203,7 @@ export const deleteLeague = mutation({
     const deletesAt = Date.now() + UNDO_MS;
     const scheduledId = await ctx.scheduler.runAt(deletesAt, internal.leagues.leagueDeletion.deleteForGood, { leagueId });
     await ctx.db.patch("leagues", leagueId, { deletion: { by, deletesAt, scheduledId } });
-    await recordEvent(ctx, leagueId, by, { kind: "deletionStarted", name: league.name, deletesAt });
+    await recordEvent(ctx, leagueId, by, { kind: "deletionStarted", name: league.name, deletesAt }, { only: [league.commissionerEmail, by] });
     return null;
   },
 });
@@ -215,7 +222,13 @@ export const undo = mutation({
     if (Date.now() >= deletion.deletesAt) refuse(refusals.tooLateToUndo);
     await ctx.scheduler.cancel(deletion.scheduledId);
     await ctx.db.patch("leagues", leagueId, { deletion: undefined });
-    await recordEvent(ctx, leagueId, email, { kind: "deletionUndone", name: league.name });
+    await recordEvent(
+      ctx,
+      leagueId,
+      email,
+      { kind: "deletionUndone", name: league.name },
+      { only: [league.commissionerEmail, deletion.by, email] },
+    );
     return null;
   },
 });

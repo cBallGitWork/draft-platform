@@ -13,15 +13,18 @@ import {
   runsWords,
   savedWords,
   savePresetPlaceholder,
-  teamTacticPlaceholder,
-  teamTacticWords,
+  SIDE_WORDS,
+  instructionLabel,
   toolbarLabel,
   undoWords,
 } from "./words";
+import { offeredOn, SIDES, type Instruction, type InstructionPair, type Side } from "../../../convex/lineup/instructions";
+import type { Cell } from "../../../convex/lineup/pitch";
 
 // The Tactics tab's controls (#14; spec/05; the approved Tactics picture): the toolbar over the
-// pitch and the table, with the Formation keys, All formations, Team tactic, Presets, Undo and Quick
-// Pick, and what the last save said; and the desk's switch for the roles' runs. The lineup they
+// pitch and the table, with the Formation keys, All formations, the attacking and defensive
+// instruction, Presets, Undo and Quick Pick, and what the last save and formation change said; and
+// the desk's switch for the roles' runs. The lineup they
 // change is kept in ./TacticsPage.tsx.
 
 /** How many of the league's presets the Formation keys show, in its order: the rest are in the
@@ -40,7 +43,7 @@ export function keyedPresets(presets: OpenTactics["presets"], inUse: string | nu
 
 /** The toolbar, with the line the last save left under it: when it landed, or the refusal in the
  *  server's words, read where the move was made, even on a phone. Data and features not held yet
- *  (Team tactic, saved presets, Quick Pick) show as placeholders in their places (plate.md, Marks). */
+ *  (saved presets, Quick Pick) show as placeholders in their places (plate.md, Marks). */
 export function TacticsToolbar({
   presets,
   inUse,
@@ -50,11 +53,23 @@ export function TacticsToolbar({
   canUndo,
   onUndo,
   savedAt,
+  switchedNote,
   problem,
+  cells,
+  instructions,
+  picked,
+  onInstruction,
 }: {
   presets: OpenTactics["presets"];
   inUse: string | null;
   onPreset: (name: string) => void;
+  /** Where the eleven stand: the shape that decides which instructions are offered. */
+  cells: readonly Cell[];
+  instructions: readonly Instruction[];
+  picked: InstructionPair;
+  onInstruction: (side: Side, key: string) => void;
+  /** Which instruction the last formation change switched, in words. */
+  switchedNote: string | null;
   windowOpen: boolean;
   onAllFormations: () => void;
   canUndo: boolean;
@@ -70,10 +85,9 @@ export function TacticsToolbar({
         <button type="button" aria-expanded={windowOpen} onClick={onAllFormations} className="secondary-action gap-1">
           {allFormationsWords} <span aria-hidden="true">{nextGlyph}</span>
         </button>
-        <span className="flex max-w-full flex-wrap items-center gap-3">
-          <span className="text-soft">{teamTacticWords}</span>
-          <Placeholder label={teamTacticPlaceholder} className="h-9 w-36" />
-        </span>
+        {SIDES.map((side) => (
+          <InstructionPicker key={side} side={side} offered={offeredOn(side, cells, instructions)} picked={picked[side]} onPick={onInstruction} />
+        ))}
         <span className="flex max-w-full flex-wrap items-center gap-3">
           <span className="text-soft">{presetsWords}</span>
           <Placeholder label={presetsPlaceholder} className="h-9 w-64 max-w-full" />
@@ -87,8 +101,26 @@ export function TacticsToolbar({
         </span>
       </div>
       <Status words={savedAt === null ? null : savedWords(savedAt)} className="px-3 pb-2" />
+      <Status words={switchedNote} className="px-3 pb-2" />
       <Problem problem={problem} />
     </div>
+  );
+}
+
+/** One side's team instruction: only what the formation offers (spec/05, Team instructions; Craig,
+ *  6 Nov 2026, on #990). */
+function InstructionPicker({ side, offered, picked, onPick }: { side: Side; offered: readonly Instruction[]; picked: string; onPick(side: Side, key: string): void }) {
+  return (
+    <label className="flex max-w-full items-center gap-3">
+      <span className="text-soft">{SIDE_WORDS[side]}</span>
+      <select aria-label={instructionLabel(side)} value={picked} onChange={(event) => onPick(side, event.target.value)} className="text-box">
+        {offered.map(({ key, name }) => (
+          <option key={key} value={key}>
+            {name}
+          </option>
+        ))}
+      </select>
+    </label>
   );
 }
 

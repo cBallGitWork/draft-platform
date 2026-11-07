@@ -2,7 +2,12 @@ import { expect, test } from "vitest";
 import { FIRST_SCORING } from "../../../convex/scoring/firstScoring";
 import type { ScoringSet } from "../../../convex/scoring/scoringSet";
 import { pricedRole } from "../../support/convex/scoring.example";
-import { thresholdSteps } from "../../../convex/stats/thresholdSteps";
+import { THRESHOLD_STEPS_MOST, thresholdSteps } from "../../../convex/stats/thresholdSteps";
+import { FIRST_ROLE_OWN_STATS, FIRST_ROLES } from "../../../convex/scoring/draftedRoleAdjustments";
+import { withOwnStats } from "../../../convex/scoring/ownStats";
+import { STAT_CATALOGUE } from "../../../convex/scoring/statCatalogueList";
+import type { MatchStats } from "../../../convex/scoring/values";
+import { COMMENTARY_MATCH, recordedTeamStats } from "../../support/recorded/commentary.payloads";
 import { HULL_SCORER, scoresLeague } from "../../support/convex/gameweekScores.harness";
 import { liveRecords } from "../../support/convex/gameweekScoresMatch.harness";
 import { holdTypoRule } from "../../support/convex/gameweekScoresFixes.harness";
@@ -94,6 +99,67 @@ test("a stat some role in the set adjusts is a step each time its count moves, t
 test("a role-adjusted stat is a step before its rule's minimum minutes; a goal still never is", () => {
   expect(thresholdSteps({ minutes: 30, clean_sheets: 0 }, { minutes: 31, clean_sheets: 1 }, WITH_ROLES)).toEqual([{ stat: "clean_sheets", from: 0, to: 1 }]);
   expect(thresholdSteps({ minutes: 30 }, { minutes: 31, goals_scored: 1 }, WITH_ROLES)).toEqual([]);
+});
+
+// The cap on one match's steps, measured (#871; Craig, 1 Nov 2026: "measure first"). A recorded
+// match's team stats count every action both sides made. At worst each live read shows one more
+// action, and a read stores at most one step a stat, so a stat that is a step at all stores at most
+// one for each of its actions. Per-man lines (his minutes, his clean sheet, the goals he was on for)
+// aren't in a team's count: THRESHOLD_STEPS_MOST's note counts those by hand.
+
+/** Both sides' count of every stat at `plId`'s full time, own stats worked out as `set` has them. */
+function matchTotals(plId: number, set: ScoringSet): MatchStats {
+  const totals: Record<string, number> = {};
+  for (const { M } of Object.values(recordedTeamStats(plId).data ?? {})) {
+    for (const { name, value } of M) totals[name] = (totals[name] ?? 0) + value;
+  }
+  return withOwnStats(totals, set);
+}
+
+/** The most steps a match whose sides made `totals` could store under `set`: each action of a
+ *  stat that is a step at all, its own. */
+function mostSteps(totals: MatchStats, set: ScoringSet): number {
+  // Own stats are already worked out, so each is moved by its own count, never its parts'.
+  const asCounted: ScoringSet = { ...set, ownStats: [] };
+  return Object.entries(totals).reduce((most, [stat, actions]) => {
+    const stepped = thresholdSteps({ minutes: 90 }, { minutes: 90, [stat]: actions }, asCounted).some((step) => step.stat === stat);
+    return stepped ? most + Math.ceil(Math.abs(actions)) : most;
+  }, 0);
+}
+
+/** The two recorded matches with whole team stats, Hull v Everton and Brentford v Liverpool. */
+const BUSY_MATCHES = [COMMENTARY_MATCH.hullEverton, COMMENTARY_MATCH.brentfordLiverpool];
+
+/** By count of the first set's rules, never measured: about 8 a man for his minutes, his clean
+ *  sheet, goals conceded and saves, over about 32 men who play (THRESHOLD_STEPS_MOST's note). */
+const PER_MAN_LINES = 250;
+
+/** The worst match's most steps under `set`, its per-man lines added. */
+const busiest = (set: ScoringSet) => Math.max(...BUSY_MATCHES.map((plId) => mostSteps(matchTotals(plId, set), set))) + PER_MAN_LINES;
+
+/** The site's set as the roles' first values made it (firstRolesVersion.ts). */
+const WITH_FIRST_ROLES: ScoringSet = { ...SET, ownStats: [...(SET.ownStats ?? []), ...FIRST_ROLE_OWN_STATS], roles: [...FIRST_ROLES] };
+
+/** Every catalogue stat priced a point an action. */
+const EVERY_STAT_PER_ACTION: ScoringSet = {
+  ...SET,
+  rules: STAT_CATALOGUE.map(({ stat }) => ({ shape: "perCount", stat, values: { all: { every: 1, points: 1 } } })),
+};
+
+test("under the first set, a busy match stays far under the cap", () => {
+  // About 260 (6 Nov 2026): 10 from the team counts (saves, goals conceded), the rest per man.
+  expect(busiest(SET)).toBeLessThan(THRESHOLD_STEPS_MOST / 2);
+});
+
+test("the roles' first values could take a busy match past the cap: its commentary would throw, never be cut", () => {
+  // About 3,550 at Hull v Everton (6 Nov 2026): they adjust every accurate, forward and misplaced
+  // pass, every possession lost and more. Left for #871: a cap that holds them (THRESHOLD_STEPS_MOST).
+  expect(busiest(WITH_FIRST_ROLES)).toBeGreaterThan(THRESHOLD_STEPS_MOST);
+});
+
+test("a set pricing every catalogue stat per action would store over ten times the cap", () => {
+  // About 11,970 at Hull v Everton (6 Nov 2026), mostly passes and touches.
+  expect(busiest(EVERY_STAT_PER_ACTION)).toBeGreaterThan(10 * THRESHOLD_STEPS_MOST);
 });
 
 test("each live read stores the steps its records show over the last, with the clock then", async () => {

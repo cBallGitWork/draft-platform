@@ -119,6 +119,10 @@ export function changesTo(
       }),
     "table/pointsOverrides:override": () =>
       admin.mutation(api.table.pointsOverrides.override, { leagueId, fixtureCode: 1, playerCode: 1, points: 10, reason: "A goal the feed gave someone else" }),
+    "table/pointsOverrides:removeOverride": () => admin.mutation(api.table.pointsOverrides.removeOverride, { leagueId, fixtureCode: 1, playerCode: 1 }),
+    "table/teamOverrides:overrideTeam": () =>
+      admin.mutation(api.table.teamOverrides.overrideTeam, { leagueId, gameweek: 1, teamId: annsTeam._id, points: 50, reason: "Two subs the auto-subs missed" }),
+    "table/teamOverrides:removeTeamOverride": () => admin.mutation(api.table.teamOverrides.removeTeamOverride, { leagueId, gameweek: 1, teamId: annsTeam._id }),
     "scouting/scouts:send": () => ann.mutation(api.scouting.scouts.send, { leagueId, playerCode: 1 }),
     "scouting/shortlist:add": () => ann.mutation(api.scouting.shortlist.add, { leagueId, playerCode: 1 }),
     "scouting/shortlist:remove": () => ann.mutation(api.scouting.shortlist.remove, { leagueId, playerCode: 1 }),

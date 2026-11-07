@@ -1,7 +1,7 @@
 // The servers, and which tag runs on which: playwright.config.ts. Each test fails on any console
-// error or uncaught page error it didn't expect, so a boot crash can't pass.
+// error or uncaught page error it didn't expect, so a boot crash can't pass (errorsTest.ts).
 
-import { expect, test as base, type ConsoleMessage, type Page } from "@playwright/test";
+import { expect, type Page } from "@playwright/test";
 import { DEFAULT_PRESETS } from "../../convex/lineup/presets";
 import { ADMIN_FEEDBACK_PATH, ADMIN_FEEDS_PATH, ADMIN_PATH } from "../../src/admin/paths";
 import { miniBeta } from "../../src/app/preview";
@@ -19,28 +19,7 @@ import { squadsPath } from "../../src/squads/paths";
 import { NO_CONVEX_URL } from "../../src/shared/words";
 import { tapsUnderTapSize } from "../../scripts/tap-targets.mjs";
 import { BUILT_SCREENS } from "../support/smoke/builtScreens";
-
-/** The one error every page load logs: the app has no favicon, and the browser asks for one. */
-const isFaviconMiss = (message: ConsoleMessage) => new URL(message.location().url || "about:blank").pathname === "/favicon.ico";
-
-/** A test whose page records every console error but the favicon's, and every page error; any
- *  recorded fails it. */
-const test = base.extend<{ errors: string[] }>({
-  errors: [
-    async ({ page }, use) => {
-      const errors: string[] = [];
-      page.on("console", (message) => {
-        if (message.type() === "error" && !isFaviconMiss(message)) {
-          errors.push(`console: ${message.text()} (${message.location().url})`);
-        }
-      });
-      page.on("pageerror", (error) => errors.push(`page: ${error.message}`));
-      await use(errors);
-      expect(errors, "console or page errors").toEqual([]);
-    },
-    { auto: true },
-  ],
-});
+import { test } from "../support/smoke/errorsTest";
 
 /** The phone and the desk, as scripts/shoot.mjs shoots them. */
 const PHONE = { width: 390, height: 844 };

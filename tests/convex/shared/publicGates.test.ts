@@ -54,6 +54,7 @@ beforeEach(async () => {
       "availability/availability:ofPlayer": () => caller.query(api.availability.availability.ofPlayer, { code: SOME_CODE }),
       "availability/availability:set": () => caller.mutation(api.availability.availability.set, { code: SOME_CODE, availability: null }),
       "auth:signOut": () => caller.action(api.auth.signOut, {}),
+      "balanceLab/balanceLabRun:run": () => caller.action(api.balanceLab.balanceLabRun.run, { draftSavedAt: now }),
       "draft/draftBoard:inMenu": () => caller.query(api.draft.draftBoard.inMenu, { leagueId }),
       "draft/draftBoard:ofLeague": () => caller.query(api.draft.draftBoard.ofLeague, { leagueId, now }),
       "draft/draftLists:mine": () => caller.query(api.draft.draftLists.mine, { leagueId }),
@@ -137,6 +138,7 @@ beforeEach(async () => {
       "table/teamFixtures:ofMyTeam": () => caller.query(api.table.teamFixtures.ofMyTeam, { leagueId }),
       "trades/tradeOffers:mine": () => caller.query(api.trades.tradeOffers.mine, { leagueId }),
       "waivers/waiverClaims:pending": () => caller.query(api.waivers.waiverClaims.pending, { leagueId }),
+      "waivers/waivers:cardActionOn": () => caller.query(api.waivers.waivers.cardActionOn, { leagueId, playerCode: SOME_CODE }),
       "waivers/waivers:stateOf": () => caller.query(api.waivers.waivers.stateOf, { leagueId, playerCode: SOME_CODE }),
     };
   };

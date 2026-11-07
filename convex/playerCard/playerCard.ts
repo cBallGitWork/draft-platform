@@ -1,8 +1,7 @@
 import { v, type Infer } from "convex/values";
 import type { Doc } from "../_generated/dataModel";
 import { query, type QueryCtx } from "../_generated/server";
-import { SLOT_POSITIONS } from "../lineup/pitch";
-import { areaShape } from "../lineup/pitchShape";
+import { areaShape, slotPosition } from "../lineup/pitchShape";
 import { roleName } from "../lineup/roles";
 import { positionsNow } from "../positions/playerPositions";
 import type { Position } from "../positions/positionTables";
@@ -28,8 +27,6 @@ import { basePoints, cardPositions } from "./cardPoints";
  *  not yet Craig's. */
 export const NEXT_FIXTURES_SHOWN = 5;
 
-const slotPosition = v.union(...SLOT_POSITIONS.map((each) => v.literal(each)));
-
 const match = v.object({
   fixtureCode: v.number(),
   gameweek: v.union(v.number(), v.null()),
@@ -54,7 +51,7 @@ const categoryWhy = v.object({
   cut: v.union(
     v.null(),
     v.object({ by: v.literal("minutes"), atLeast: v.number() }),
-    v.object({ by: v.union(v.literal("max"), v.literal("min")), limit: v.number() }),
+    v.object({ by: v.union(v.literal("max"), v.literal("min"), v.literal("atMax"), v.literal("atMin")), limit: v.number() }),
   ),
 });
 

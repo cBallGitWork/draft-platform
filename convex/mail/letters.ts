@@ -98,6 +98,8 @@ function takenOut(event: LeagueEvent): string[] {
     case "playerClaimed":
     case "playerPickedUp":
     case "pointsOverridden":
+    case "pointsOverrideRemoved":
+    case "teamPointsOverridden":
     case "fixturesSwapped":
     case "autoTeamSwitched":
       return [];
@@ -109,12 +111,20 @@ export function bylineOf(email: string): string {
   return isAdmin(email) ? adminByline : email;
 }
 
-/** Files the letter reporting a league's event to the whole league, as it is after the event: read
- *  for `by` unless `unread`, as a waiver run's are, which `by` didn't watch happen. */
-async function fileEventLetter(ctx: MutationCtx, leagueId: Id<"leagues">, by: string, event: LeagueEvent, unread: boolean): Promise<void> {
+/** Files the letter reporting a league's event to the whole league, as it is after the event, or
+ *  only to `only`: read for `by` unless `unread`, as a waiver run's are, which `by` didn't watch
+ *  happen. */
+async function fileEventLetter(
+  ctx: MutationCtx,
+  leagueId: Id<"leagues">,
+  by: string,
+  event: LeagueEvent,
+  unread: boolean,
+  only: readonly string[] | undefined,
+): Promise<void> {
   const league = await ctx.db.get("leagues", leagueId);
   if (!league) throw new Error(`League ${leagueId} doesn't exist, so its ${event.kind} letter can't be filed`);
-  const to = [...(await wholeLeague(ctx, league)), ...takenOut(event)];
+  const to = only ?? [...(await wholeLeague(ctx, league)), ...takenOut(event)];
   const who = bylineOf(by);
   await fileLetter(ctx, league, to, (zone) => eventLetter(event, who, zone), unread ? undefined : by);
 }
@@ -126,14 +136,14 @@ export async function fileEvent(ctx: MutationCtx, leagueId: Id<"leagues">, by: s
 }
 
 /** Files what happened, and the Mail letter reporting it (#26): the copy to `by` filed read, unless
- *  `unread`. */
+ *  `unread`. With `only`, the letter goes to them alone, not the whole league. */
 export async function recordEvent(
   ctx: MutationCtx,
   leagueId: Id<"leagues">,
   by: string,
   event: Infer<typeof leagueEvent>,
-  { unread = false } = {},
+  { unread = false, only }: { unread?: boolean; only?: readonly string[] } = {},
 ): Promise<void> {
   await fileEvent(ctx, leagueId, by, event);
-  await fileEventLetter(ctx, leagueId, by, event, unread);
+  await fileEventLetter(ctx, leagueId, by, event, unread, only);
 }
