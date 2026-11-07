@@ -106,6 +106,10 @@ export const overrideWords = "Override";
 export const cancelOverrideWords = "Cancel";
 export const overriddenDoneWords = "Overridden: the league has a letter saying why.";
 export const overrideFailedWords = "The override couldn't be saved. Try again.";
+/** Taking the override off the match picked (#903, spec/14 S14.5): "remove override button". */
+export const removeOverrideWords = "Remove override";
+export const overrideRemovedWords = "Override removed: his scored points are back, and the league has a letter.";
+export const removeOverrideFailedWords = "The override couldn't be removed. Try again.";
 
 /** The card's waiver action (#1200, spec/08): the words stay waivers, claim, drop and free agent. */
 export const dropWords = "Drop";
