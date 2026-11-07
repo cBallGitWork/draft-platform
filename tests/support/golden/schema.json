@@ -6286,6 +6286,132 @@
                   },
                   "optional": false
                 },
+                "classics": {
+                  "fieldType": {
+                    "type": "array",
+                    "value": {
+                      "type": "object",
+                      "value": {
+                        "name": {
+                          "fieldType": {
+                            "type": "string"
+                          },
+                          "optional": false
+                        },
+                        "subtitle": {
+                          "fieldType": {
+                            "type": "string"
+                          },
+                          "optional": false
+                        },
+                        "description": {
+                          "fieldType": {
+                            "type": "string"
+                          },
+                          "optional": false
+                        },
+                        "cells": {
+                          "fieldType": {
+                            "type": "array",
+                            "value": {
+                              "type": "object",
+                              "value": {
+                                "area": {
+                                  "fieldType": {
+                                    "type": "union",
+                                    "value": [
+                                      {
+                                        "type": "literal",
+                                        "value": "goalkeeper"
+                                      },
+                                      {
+                                        "type": "literal",
+                                        "value": "defence"
+                                      },
+                                      {
+                                        "type": "literal",
+                                        "value": "defensiveMidfield"
+                                      },
+                                      {
+                                        "type": "literal",
+                                        "value": "midfield"
+                                      },
+                                      {
+                                        "type": "literal",
+                                        "value": "attackingMidfield"
+                                      },
+                                      {
+                                        "type": "literal",
+                                        "value": "attack"
+                                      }
+                                    ]
+                                  },
+                                  "optional": false
+                                },
+                                "lane": {
+                                  "fieldType": {
+                                    "type": "union",
+                                    "value": [
+                                      {
+                                        "type": "literal",
+                                        "value": "left"
+                                      },
+                                      {
+                                        "type": "literal",
+                                        "value": "leftCentre"
+                                      },
+                                      {
+                                        "type": "literal",
+                                        "value": "centre"
+                                      },
+                                      {
+                                        "type": "literal",
+                                        "value": "rightCentre"
+                                      },
+                                      {
+                                        "type": "literal",
+                                        "value": "right"
+                                      }
+                                    ]
+                                  },
+                                  "optional": false
+                                },
+                                "role": {
+                                  "fieldType": {
+                                    "type": "string"
+                                  },
+                                  "optional": false
+                                }
+                              }
+                            }
+                          },
+                          "optional": false
+                        },
+                        "instructions": {
+                          "fieldType": {
+                            "type": "object",
+                            "value": {
+                              "attacking": {
+                                "fieldType": {
+                                  "type": "string"
+                                },
+                                "optional": false
+                              },
+                              "defensive": {
+                                "fieldType": {
+                                  "type": "string"
+                                },
+                                "optional": false
+                              }
+                            }
+                          },
+                          "optional": false
+                        }
+                      }
+                    }
+                  },
+                  "optional": true
+                },
                 "deadline": {
                   "fieldType": {
                     "type": "object",
@@ -10425,6 +10551,132 @@
                     }
                   },
                   "optional": false
+                },
+                "classics": {
+                  "fieldType": {
+                    "type": "array",
+                    "value": {
+                      "type": "object",
+                      "value": {
+                        "name": {
+                          "fieldType": {
+                            "type": "string"
+                          },
+                          "optional": false
+                        },
+                        "subtitle": {
+                          "fieldType": {
+                            "type": "string"
+                          },
+                          "optional": false
+                        },
+                        "description": {
+                          "fieldType": {
+                            "type": "string"
+                          },
+                          "optional": false
+                        },
+                        "cells": {
+                          "fieldType": {
+                            "type": "array",
+                            "value": {
+                              "type": "object",
+                              "value": {
+                                "area": {
+                                  "fieldType": {
+                                    "type": "union",
+                                    "value": [
+                                      {
+                                        "type": "literal",
+                                        "value": "goalkeeper"
+                                      },
+                                      {
+                                        "type": "literal",
+                                        "value": "defence"
+                                      },
+                                      {
+                                        "type": "literal",
+                                        "value": "defensiveMidfield"
+                                      },
+                                      {
+                                        "type": "literal",
+                                        "value": "midfield"
+                                      },
+                                      {
+                                        "type": "literal",
+                                        "value": "attackingMidfield"
+                                      },
+                                      {
+                                        "type": "literal",
+                                        "value": "attack"
+                                      }
+                                    ]
+                                  },
+                                  "optional": false
+                                },
+                                "lane": {
+                                  "fieldType": {
+                                    "type": "union",
+                                    "value": [
+                                      {
+                                        "type": "literal",
+                                        "value": "left"
+                                      },
+                                      {
+                                        "type": "literal",
+                                        "value": "leftCentre"
+                                      },
+                                      {
+                                        "type": "literal",
+                                        "value": "centre"
+                                      },
+                                      {
+                                        "type": "literal",
+                                        "value": "rightCentre"
+                                      },
+                                      {
+                                        "type": "literal",
+                                        "value": "right"
+                                      }
+                                    ]
+                                  },
+                                  "optional": false
+                                },
+                                "role": {
+                                  "fieldType": {
+                                    "type": "string"
+                                  },
+                                  "optional": false
+                                }
+                              }
+                            }
+                          },
+                          "optional": false
+                        },
+                        "instructions": {
+                          "fieldType": {
+                            "type": "object",
+                            "value": {
+                              "attacking": {
+                                "fieldType": {
+                                  "type": "string"
+                                },
+                                "optional": false
+                              },
+                              "defensive": {
+                                "fieldType": {
+                                  "type": "string"
+                                },
+                                "optional": false
+                              }
+                            }
+                          },
+                          "optional": false
+                        }
+                      }
+                    }
+                  },
+                  "optional": true
                 },
                 "deadline": {
                   "fieldType": {
@@ -22145,6 +22397,12 @@
             "fieldType": {
               "type": "literal",
               "value": true
+            },
+            "optional": true
+          },
+          "classic": {
+            "fieldType": {
+              "type": "string"
             },
             "optional": true
           }

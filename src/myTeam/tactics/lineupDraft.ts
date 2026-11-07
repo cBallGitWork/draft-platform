@@ -39,9 +39,11 @@ const droppedInto = (playerCode: number, cell: Cell, formation: Formation, ratin
   droppedStarter(playerCode, cell, formation, ratingsOf(playerCode));
 
 /** The lineup the screen opens on: the one held for the gameweek, its first until the manager
- *  saves one (spec/05). */
-export function openingLineup({ lineup }: Pick<OpenTactics, "lineup">): DraftLineup {
-  return { starters: lineup.starters, bench: lineup.bench, ...classicOf(lineup) };
+ *  saves one (spec/05), on its classic while the league still holds it, so a classic the league
+ *  has since dropped or renamed never refuses his next save (#991). */
+export function openingLineup({ lineup, classics }: Pick<OpenTactics, "lineup" | "classics">): DraftLineup {
+  const held = classics.some(({ name }) => name === lineup.classic);
+  return { starters: lineup.starters, bench: lineup.bench, ...(held ? classicOf(lineup) : {}) };
 }
 
 /** The classic a lineup was picked from, if any, to carry onto another. */
