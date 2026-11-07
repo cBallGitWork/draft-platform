@@ -44,6 +44,8 @@ const joinRequestFields = {
   decidedBy: v.optional(v.string()),
   /** The email telling an approved person so. */
   approvedEmail: v.optional(delivery),
+  /** What the email service said when it refused that email (#215), as signInAsks keeps. */
+  approvedEmailError: v.optional(v.string()),
 };
 
 export const joiningTables = {
