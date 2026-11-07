@@ -4,9 +4,11 @@
 
 import { PICK_SECONDS_FEWEST, PICK_SECONDS_MOST, TIMEOUTS_FEWEST, TIMEOUTS_MOST } from "../../convex/draft/draftLimits";
 import type { UndraftedGoTo } from "../../convex/draft/draftRules";
+import { FIRST_GAMEWEEK, GAMEWEEKS } from "../../convex/gameweeks/usedGameweeks";
 import { MOST_IN_SQUAD } from "../../convex/leagues/leagueLimits";
 import { STARTER_COUNT } from "../../convex/lineup/lineup";
 import type { Area } from "../../convex/lineup/pitch";
+import type { TradeReview } from "../../convex/rules/leagueRulesShape";
 import type { OddTeamOut } from "../../convex/table/roundRobin";
 import { noNumberWords, savedFromWords } from "../rules/words";
 import { AREA_WORDS, failedWords } from "../shared/words";
@@ -58,6 +60,22 @@ export const undraftedLabel = "Players nobody drafts go to";
 export const undraftedWords: Record<UndraftedGoTo, string> = { waivers: "Waivers", freeAgents: "Free agents" };
 /** Craig, 4 Nov 2026, on #1087. */
 export const undraftedHint = "Until waivers are built, they go to free agents.";
+
+export const tradesTitle = "Trades";
+export const tradeReviewLabel = "An accepted trade is reviewed by";
+export const tradeReviewWords: Record<TradeReview, string> = {
+  none: "No one",
+  veto: "Commissioner veto",
+  vote: "League vote",
+};
+/** spec/08, Trades, and Craig's answers on #383 (31 Oct and 6 Nov 2026). */
+export const tradeReviewHint =
+  "With no one, an accepted trade goes through at once; a review lasts 24 hours. Under a veto, a trade the commissioner is in goes to the co-commissioner, or to a vote if there is none. Under a vote, it is blocked only if most of the managers still playing vote against it.";
+export const tradeDeadlineWords = "A trade deadline";
+export const tradeDeadlineLabel = "No trades after gameweek";
+/** Craig, 6 Nov 2026, on #383. */
+export const tradeDeadlineHint = `A gameweek, ${FIRST_GAMEWEEK} to ${GAMEWEEKS}. Trades stop once its last match is over: open offers close, and a trade already in review finishes it.`;
+export const blankTradeDeadlineWords = noNumberWords(tradeDeadlineLabel, "turn the trade deadline off");
 
 /** The draft order, which the commissioner sets or draws at random (Craig, 4 Nov 2026, on #1087
  *  and #1089). */

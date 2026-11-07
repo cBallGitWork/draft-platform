@@ -1,11 +1,11 @@
 import type { Infer } from "convex/values";
 import { aNewTeamWords } from "../joining/joiningShared";
 import { andListWords } from "../shared/moments";
-import { figureWords } from "../shared/numberWords";
 import type { LeagueRules } from "../rules/leagueRulesShape";
 import { NOTHING_SCORES_DIFFERENTLY } from "../scoring/patchChanges";
 import { autoTeamSwitchedWords } from "../lineup/autoTeamWords";
 import type { leagueEvent, siteScoringKind } from "../schema";
+import { overrideLetterWords } from "./overrideLetterWords";
 import { claimedBody, pickedUpBody } from "./waiverLetterWords";
 import type { TellMoment } from "./letterMoments";
 
@@ -121,7 +121,9 @@ export function eventLetter(event: LeagueEvent, who: string, tell: TellMoment): 
         body: rulesChangedBody(event, who),
       };
     case "pointsOverridden":
-      return { subject: `${event.playerName}'s points in ${event.matchName} were overridden`, body: overriddenBody(event, who) };
+    case "pointsOverrideRemoved":
+    case "teamPointsOverridden":
+      return overrideLetterWords(event, who);
     case "fixturesSwapped":
       return { subject: `Gameweek ${event.gameweek}'s fixtures were changed`, body: swappedBody(event, who) };
     case "autoTeamSwitched":
@@ -143,18 +145,6 @@ function swappedBody(event: Extract<LeagueEvent, { kind: "fixturesSwapped" }>, w
 
 /** A match as a letter names it: "Arsenal v Chelsea". */
 export const matchWords = (home: string, away: string) => `${home} v ${away}`;
-
-/** "Ann overrode Saka's points in Arsenal v Chelsea, gameweek 6: 2 to 8. Why: a goal the feed
- *  gave to Rice. / Lions now have 61 in gameweek 6, not 55." */
-function overriddenBody(event: Extract<LeagueEvent, { kind: "pointsOverridden" }>, who: string): string {
-  const { playerName, matchName, gameweek, from, to, reason, teams } = event;
-  const change = from === null ? `now ${figureWords(to)}` : `${figureWords(from)} to ${figureWords(to)}`;
-  const totals =
-    teams.length === 0
-      ? "No team's total moved: no lineup counted him."
-      : teams.map((team) => `${team.teamName} now have ${figureWords(team.to)} in gameweek ${gameweek}, not ${figureWords(team.from)}.`).join("\n");
-  return `${who} overrode ${playerName}'s points in ${matchName}, gameweek ${gameweek}: ${change}. Why: ${reason}\n\n${totals}`;
-}
 
 /** The draft's letters (spec/04, Mail; #1102). "You're up next" to the manager whose pick's clock
  *  starts, its deadline told with `tell`, in the reader's zone; it is also the email when the clock is long. */
@@ -223,6 +213,8 @@ const RULES_PART_WORDS: Record<keyof LeagueRules | "scoring", string> = {
   gamesPerGameweek: "games a gameweek",
   waivers: "waivers",
   draft: "draft settings",
+  trades: "trade settings",
+  instructions: "team instructions",
   scoring: "scoring",
 };
 

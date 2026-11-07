@@ -1,6 +1,9 @@
 import { STARTER_COUNT, type AreaLimit } from "../lineup/lineup";
 import { AREAS, type Area } from "../lineup/pitch";
-import type { DraftRules, LeagueRules } from "./leagueRulesShape";
+import { pairRefusal, SIDES, type Instruction } from "../lineup/instructions";
+import { instructionsOf } from "./firstRules";
+import type { DraftRules, LeagueRules, TradeRules } from "./leagueRulesShape";
+import { FIRST_GAMEWEEK, GAMEWEEKS } from "../gameweeks/usedGameweeks";
 import { PICK_SECONDS_FEWEST, PICK_SECONDS_MOST, TIMEOUTS_FEWEST, TIMEOUTS_MOST } from "../draft/draftLimits";
 import { MOST_IN_SQUAD } from "../leagues/leagueLimits";
 import { roundsInARoundRobin } from "../table/roundRobin";
@@ -19,6 +22,7 @@ export function checkLeagueRules(rules: LeagueRules, maxTeams?: number): void {
   checkSquad(rules.squad);
   checkAreaLimits(rules.areaLimits);
   checkPresets(rules.presets, rules.areaLimits);
+  checkInstructions(instructionsOf(rules), rules.presets);
   checkWholeNumber(rules.deadline.minutesBeforeFirstKickoff, "The deadline's minutes before the first kickoff", 0);
   checkNoneTwice(rules.tieBreaks, (tieBreak) => `The tie-break ${tieBreak} is listed twice.`);
   if (rules.gamesPerGameweek !== undefined) {
@@ -27,6 +31,12 @@ export function checkLeagueRules(rules: LeagueRules, maxTeams?: number): void {
   }
   checkWaivers(rules.waivers);
   if (rules.draft !== undefined) checkDraft(rules.draft);
+  if (rules.trades !== undefined) checkTrades(rules.trades);
+}
+
+/** A trade deadline, if any, is a gameweek of the season. */
+function checkTrades({ deadline }: TradeRules): void {
+  if (deadline !== null) checkWholeNumberWithin(deadline, "The trade deadline's gameweek", FIRST_GAMEWEEK, GAMEWEEKS);
 }
 
 /** The pick clock and timeouts within Craig's limits (../draft/draftLimits.ts). */
@@ -132,6 +142,25 @@ function checkPresets(presets: LeagueRules["presets"], limits: Record<Area, Area
         throw new UnsoundRules(`The preset ${name} puts ${standing} in ${area}, outside its limits of ${minimum} to ${maximum}.`);
       }
     }
+  }
+}
+
+/** A team picks one of each side (spec/05), so each side needs one; each preset's default pair names
+ *  one of each side its own shape offers ("Each formation has a default attacking and a default
+ *  defensive instruction"). */
+function checkInstructions(set: readonly Instruction[], presets: LeagueRules["presets"]): void {
+  checkNoneTwice(
+    set.map(({ key }) => key),
+    (key) => `Two team instructions have the key "${key}".`,
+  );
+  for (const { key, name } of set) if (name.trim() === "") throw new UnsoundRules(`The team instruction ${key} needs a name.`);
+  for (const side of SIDES) {
+    if (!set.some((instruction) => instruction.side === side)) throw new UnsoundRules(`The team instructions need at least one ${side} instruction.`);
+  }
+  for (const { name, cells, instructions } of presets) {
+    if (instructions === undefined) continue;
+    const refusal = pairRefusal(instructions, cells, set);
+    if (refusal !== null) throw new UnsoundRules(`The preset ${name}'s default ${refusal.side} instruction, ${refusal.key}, isn't one its shape offers.`);
   }
 }
 

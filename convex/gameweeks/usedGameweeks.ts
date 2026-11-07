@@ -1,8 +1,8 @@
 // Which gameweeks a league plays (#74; spec/13, Gameweeks): every one of FPL's season unless its
 // commissioner unticked it. An unticked gameweek scores nothing and has no head-to-head: the
 // fixtures (#33) skip it via `scoredGameweeksOf`, and scoring's `begunGameweeks`
-// (convex/gameweekScorer/gameweekScores.ts) applies `isGameweekScored`, so it is never scored; waivers, free
-// agency and trades carry on through it. A gameweek before the league's scoring start
+// (convex/gameweekScorer/gameweekScores.ts) applies `isGameweekScored`, so it is never scored; waivers and free
+// agency carry on through it, and trades are locked through it (spec/13; tradeShut.ts). A gameweek before the league's scoring start
 // (scoringStart.ts; spec/04, After the draft) is the same: those two leave it out too. Its only imports are a type, which compiles away, and
 // Convex's validators, which the screens already load, so the screens can read it too.
 

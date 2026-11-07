@@ -4,7 +4,6 @@ import { unheldNoticeWords } from "../shared/words";
 import { useMinute } from "../shared/useMinute";
 import { Choice } from "../ui/Choice";
 import { Loading, Notice, PageSection, PanelNote } from "../ui/Panel";
-import { Placeholder } from "../ui/Placeholder";
 import type { MyTeamSeam, TeamSquad } from "./seam";
 import { TeamPage } from "./header/TeamHeader";
 import { positionMarksOf, type PositionMark } from "./tactics/positionMarks";
@@ -12,6 +11,8 @@ import type { Tactics } from "./tactics/seam";
 import { MailWidget } from "./squad/MailWidget";
 import { PlayerPanel } from "./squad/PlayerPanel";
 import { squadOrder } from "./squad/squadOrder";
+import { RulesTable } from "./squad/RulesTable";
+import { ScheduleTable } from "./squad/ScheduleTable";
 import { SquadTable } from "./squad/SquadTable";
 import { YourEleven } from "./squad/YourEleven";
 import {
@@ -23,7 +24,6 @@ import {
   squadViewLabel,
   squadViews,
   squadViewWords,
-  viewNotBuiltLabel,
   type SquadView,
 } from "./squad/words";
 
@@ -93,9 +93,9 @@ function marksByCode(tactics: Tactics | undefined): ReadonlyMap<number, readonly
   return new Map(tactics.squad.map((member) => [member.playerCode, positionMarksOf(member, cellOf.get(member.playerCode) ?? null)]));
 }
 
-/** The table's panel: its plate holds the title, the view picker and how full the squad is. Only
- *  the Stats view is built; Schedule (his next 6 fixtures) and Rules (the squad against the
- *  league's limits) are answered (README) but not built. */
+/** The table's panel: its plate holds the title, the view picker and how full the squad is. Its
+ *  views: Stats, Schedule (his next 6 gameweeks' fixtures) and Rules (the squad against the
+ *  league's limits). */
 function SquadPanel({ squad, tactics, selected, onSelect }: { squad: TeamSquad; tactics: Tactics | undefined; selected: number | null; onSelect(code: number): void }) {
   const [view, setView] = useState<SquadView>("stats");
   const titleId = useId();
@@ -114,7 +114,7 @@ function SquadPanel({ squad, tactics, selected, onSelect }: { squad: TeamSquad; 
         <span className="pr-3 text-soft">{squadCountWords(squad.players.length + squad.unheld.length, squad.squadMaximum)}</span>
       </div>
       {squad.unheld.length > 0 && <Notice>{unheldNoticeWords}</Notice>}
-      {view === "stats" ? (
+      {view === "stats" && (
         <SquadTable
           teamName={squad.teamName}
           rows={rows}
@@ -125,11 +125,11 @@ function SquadPanel({ squad, tactics, selected, onSelect }: { squad: TeamSquad; 
           selected={selected}
           onSelect={onSelect}
         />
-      ) : (
-        <div className="p-2">
-          <Placeholder label={viewNotBuiltLabel(view)} className="h-40 w-full" />
-        </div>
       )}
+      {view === "schedule" && (
+        <ScheduleTable teamName={squad.teamName} rows={rows} gameweeks={squad.scheduleGameweeks} starting={starting} marks={marks} selected={selected} onSelect={onSelect} />
+      )}
+      {view === "rules" && <RulesTable teamName={squad.teamName} limits={squad.limits} players={squad.players} />}
     </section>
   );
 }

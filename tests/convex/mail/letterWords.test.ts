@@ -32,6 +32,16 @@ const LETTERS: [Infer<typeof leagueEvent>, string, string][] = [
   [{ kind: "inviteLinkMade", replacedOne: true }, "The league has a new invite link", "the old one no longer works"],
   [{ kind: "inviteLinkSwitchedOff" }, "The invite link is off", "switched"],
   [
+    { kind: "pointsOverrideRemoved", playerCode: 1, playerName: "Saka", fixtureCode: 1, matchName: "Arsenal v Chelsea", gameweek: 6, from: 8, to: null, teams: [] },
+    "Saka's override in Arsenal v Chelsea was removed",
+    "gameweek 6: 8 no longer stands.\n\nNo team's total moved: no lineup counted him.",
+  ],
+  [
+    { kind: "teamPointsOverridden", teamId: TEAM, teamName: "Lions", gameweek: 6, from: 54, to: 60, reason: "two subs missed" },
+    "Lions's total in gameweek 6 was overridden",
+    "total in gameweek 6: 54 to 60. Why: two subs missed",
+  ],
+  [
     { kind: "rulesChanged", fromGameweek: 9, changed: ["scoring", "deadline"] },
     "The league's rules change from gameweek 9",
     "scoring and deadline, from gameweek 9.",

@@ -86,6 +86,11 @@ const leagueRows: { [Table in TableNames]?: LeagueRowsBatch<Table> } = {
       .query("pointsOverrides")
       .withIndex("by_leagueId_and_playerCode", (q) => q.eq("leagueId", leagueId))
       .take(ROWS_PER_RUN),
+  teamOverrides: (ctx, leagueId) =>
+    ctx.db
+      .query("teamOverrides")
+      .withIndex("by_leagueId_and_gameweek_and_teamId", (q) => q.eq("leagueId", leagueId))
+      .take(ROWS_PER_RUN),
   lastLeagues: (ctx, leagueId) =>
     ctx.db
       .query("lastLeagues")
@@ -109,6 +114,12 @@ const leagueRows: { [Table in TableNames]?: LeagueRowsBatch<Table> } = {
   waiverOrders: (ctx, leagueId) =>
     ctx.db
       .query("waiverOrders")
+      .withIndex("by_leagueId", (q) => q.eq("leagueId", leagueId))
+      .take(ROWS_PER_RUN),
+  // A trade in review's timer finds no offer once it is gone, and does nothing.
+  tradeOffers: (ctx, leagueId) =>
+    ctx.db
+      .query("tradeOffers")
       .withIndex("by_leagueId", (q) => q.eq("leagueId", leagueId))
       .take(ROWS_PER_RUN),
   scouts: (ctx, leagueId) =>
