@@ -6,7 +6,7 @@ Route: `/leagues/$leagueId/players/$playerCode`, checked on
 ## The picture
 
 - `1440.png`: Cole Palmer's card as a manager sees it: another team's player whom he has scouted, with
-  GW8 selected so its breakdown shows on the right.
+  GW8 selected so its breakdown shows on the right, and GW6 postponed. Board "idea A" on the canvas.
 
 ## Approved
 
@@ -17,6 +17,11 @@ row". His "looks good" took Claude's recommendations on the four calls below.
 
 Scaling to other leagues is still to work out: the card names a Premier League club, its fixtures and
 FPL's news, and another league's would read its own competition's.
+
+Then, 7 Nov 2026, after research into other fantasy sites (FPL, Fantrax, ESPN, Yahoo, Sleeper) and two
+drawn ideas: "Your call on design, il approve, its a good base". Claude chose idea A: figures beside
+the name, a postponed week kept as a row, and a Scoring | All stats switch on the game log. The game
+log's columns follow the position switch, with common sense ("so strikers don't see CS").
 
 ## The Football Manager idea
 
@@ -34,6 +39,8 @@ their colours.
   offers Drop (`spec/08`, `spec/12`). Send a scout shows how many of the team's three are free.
 - The position keys (CAM, W): price every match at that position, back to front, opening on the first.
   A player with one position has none (`spec/12`).
+- Scoring | All stats: the game log shows the categories that score at his position, or every stat
+  we hold.
 - A match row: selects it, and its breakdown shows at the top of the right column. The newest match is
   selected when the card opens.
 - A short code in the table's head (G, A, CS…): its full name on hover (`spec/14`, On screen). The
