@@ -198,13 +198,13 @@ From Craig, 1 Nov 2026.
 - Plans are built before team instructions: a plan holds the formation and every slot's role,
   and the two instructions join it when they are built. Plans live in the formation window as
   drawn, called "preset" on screen: saved from its "Save preset…" tile, loaded by picking one
-  (Craig, 6 Nov 2026, #992).
+  (Craig, 6 Nov 2026, #992). `S05.12`
 - Each plan has a delete (×). Saving under a name he has asks "Replace 'Press 4-3-3'?"; a sixth
   new name says "You keep up to 5 plans: delete one first". A name is 1 to 30 characters
-  (Craig, 6 Nov 2026, #992).
+  (Craig, 6 Nov 2026, #992). `S05.13`
 - A plan whose formation the league no longer has shows "no longer allowed" and can't be loaded.
   If only a role is gone, it loads, that slot takes the player's best-star role, and a line says
-  so (Craig, 6 Nov 2026, #992).
+  so (Craig, 6 Nov 2026, #992). `S05.14`
 
 ## Roles
 
