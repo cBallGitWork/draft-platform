@@ -57,4 +57,54 @@ describe("each role's run (spec/05 Runs; #846, #962; Craig, 31 Oct 2026)", () =>
   test("a tracking winger tracks back into his own third, two rows and more", () => {
     expect(endOf("trackingWinger").forward).toBeLessThan(-35);
   });
+
+  // Every moving role's run, point by point, from docs/role-runs.md's research. A run changed in
+  // the code alone fails here, so whoever changes it also checks the doc's line for that role.
+  test("every moving role's run is pinned point by point", () => {
+    const runs = Object.fromEntries(
+      everyRole.filter(({ run }) => run !== null).map(({ key, run }) => [key, run!.path.map(({ forward, across }) => [forward, across])]),
+    );
+    expect(runs).toEqual({
+      sweeperKeeper: [[9, 0]],
+      overlappingFullBack: [[22, -1], [60, -3]],
+      underlappingFullBack: [[24, 2], [44, 14]],
+      invertedFullBack: [[12, 16]],
+      stopper: [[9, 0]],
+      attackingCentreBack: [[34, 0], [60, 3]],
+      sweeper: [[-6, 4], [-5, 16]],
+      libero: [[18, 0], [32, 3]],
+      attackingWingBack: [[44, -2]],
+      completeWingBack: [[44, -2], [-10, 2]],
+      invertedWingBack: [[10, 16]],
+      goalscoringWingBack: [[24, 0], [46, 18]],
+      halfBack: [[-16, 6]],
+      engine: [[14, 3], [-10, -3]],
+      wideMidfielder: [[20, -1], [-20, 1]],
+      defensiveWinger: [[-20, 1]],
+      wideMidfieldPlaymaker: [[10, 16]],
+      crosser: [[30, -2]],
+      wideMidfieldWinger: [[20, -2], [38, -2]],
+      boxToBox: [[28, 3], [-10, -3]],
+      ballWinner: [[8, -8], [10, 8]],
+      attackingEight: [[18, 6], [30, 8]],
+      midfieldEngine: [[16, 3], [-12, -3]],
+      lateRunner: [[20, 2], [32, 6]],
+      winger: [[18, -2], [21, 6]],
+      dribbler: [[10, 4], [16, 12]],
+      insideForward: [[8, 6], [14, 18]],
+      widePlaymaker: [[-2, 14]],
+      wideForward: [[12, 4], [20, 12]],
+      pressingWinger: [[8, 4], [12, 12]],
+      trackingWinger: [[-44, -1]],
+      numberTen: [[4, 10]],
+      attackingMidfieldShadowStriker: [[10, 2], [18, 10]],
+      carrier: [[9, 0]],
+      pressingTen: [[6, -6], [12, 6]],
+      poacher: [[5, 10]],
+      inBehindStriker: [[3, -8], [6, 8]],
+      pressingForward: [[5, -10], [5, 10]],
+      shadowStriker: [[-8, 4], [2, 10]],
+      falseNine: [[-16, 2]],
+    });
+  });
 });
