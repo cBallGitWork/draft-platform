@@ -96,7 +96,7 @@ function LineupEditor({ league, teamName, tactics, seam, opened }: { league: Lea
     () => ({ areaLimits: tactics.areaLimits, positionsOf: (playerCode: number) => squad.get(playerCode)?.positions ?? [] }),
     [tactics.areaLimits, squad],
   );
-  /** Each squad player's stars, which pick the role he starts on when dropped into a slot (#11). */
+  /** Each squad player's stars, which pick the role he starts on when dropped into a slot, and show on a lit player (#11). */
   const ratingsOf: RatingsOf = (playerCode) => squad.get(playerCode)?.stars ?? [];
   const reach = useMemo(() => (picked === null ? null : reachOf(draft, picked.playerCode, rules)), [draft, picked, rules]);
   const inUse = presetInUse(draft, tactics.presets)?.name ?? null;
@@ -208,7 +208,7 @@ function LineupEditor({ league, teamName, tactics, seam, opened }: { league: Lea
               {picked === null ? pickHintWords : movingHintWords(picked.name, picked.positions)}
             </p>
             <div className="p-2">
-              <Pitch draft={draft} squad={squad} moving={moving} slots={tactics.presets.find(({ name }) => name === edits.shape)?.cells ?? []} runsShown={runsShown} />
+              <Pitch draft={draft} squad={squad} moving={moving} slots={tactics.presets.find(({ name }) => name === edits.shape)?.cells ?? []} runsShown={runsShown} ratingsOf={ratingsOf} />
             </div>
           </Panel>
           <LineupCheck

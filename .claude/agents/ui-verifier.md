@@ -68,7 +68,7 @@ First, though, check whether this branch changed the screen at all. A branch oft
 only through an import (a shared words file), and nothing it draws changes. Shoot the route on main
 too, from a worktree of `origin/main` on its own port, and compare the two 1440 PNGs byte for byte
 (`cmp`). If they are identical, write "<route>: unchanged from main" and list no differences: the
-ones main already has aren't this branch's, and listing them holds its merge for Craig's label
+ones main already has aren't this branch's, and listing them puts them on its record for the reskin
 (Craig, 4 Nov 2026, on #1128). If they differ at all, compare with the picture as above.
 
 **3. Read every PNG.** Then say, per image, what is in it, against `docs/design/plate.md`:
@@ -123,9 +123,8 @@ or every difference, numbered; with none shot, say so:
 ```
 
 `gh pr create` is refused on a branch that changes a screen with an approved picture unless the
-body holds this block and that signature line, and `gh pr merge` waits for Craig's `craig-approved`
-label while a layout difference is numbered (`.claude/hooks/pr_body.py`, `approval_gate.py`). Start
-each difference with its kind and a colon, as above: Density, Type and Colour are look details and
-merge without the label; Structure, Columns, Missing, or a line naming no kind, wait for it (Craig,
-5 Nov 2026: "Yes, layout only"). Number only differences: a numbered line anywhere in the block
+body holds this block and that signature line (`.claude/hooks/pr_body.py`); no difference holds the
+merge, and the layout ones are listed for the UI reskin (`approval_gate.py`; Craig, 7 Nov 2026). Start
+each difference with its kind and a colon, as above: Density, Type and Colour are look details;
+Structure, Columns, Missing, or a line naming no kind, are layout, and the check lists those. Number only differences: a numbered line anywhere in the block
 counts as one.

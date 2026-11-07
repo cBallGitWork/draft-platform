@@ -2226,6 +2226,12 @@
               ]
             },
             "optional": false
+          },
+          "clubCode": {
+            "fieldType": {
+              "type": "number"
+            },
+            "optional": true
           }
         }
       }
@@ -2413,6 +2419,14 @@
                 {
                   "type": "literal",
                   "value": "scoutsPerTeam"
+                },
+                {
+                  "type": "literal",
+                  "value": "matchdayHoursBefore"
+                },
+                {
+                  "type": "literal",
+                  "value": "matchdayHoursAfter"
                 }
               ]
             },
@@ -17828,6 +17842,12 @@
               "type": "number"
             },
             "optional": false
+          },
+          "gameweek": {
+            "fieldType": {
+              "type": "number"
+            },
+            "optional": true
           }
         }
       }
