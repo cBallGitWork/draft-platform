@@ -13,9 +13,11 @@ import { benchBestRole } from "../tactics/lineupDraft";
 import { ROLE_FIT_SUBJECT } from "../tactics/words";
 import type { Tactics } from "../tactics/seam";
 import { SquadNumberBox } from "./SquadNumberBox";
-import { NextMatches, PositionList, type Row } from "./SquadTable";
+import { PositionCodes } from "../../ui/PositionCodes";
+import { NextMatches } from "../SquadCells";
+import type { Row } from "./SquadTable";
 import {
-  benchPlaceWords,
+  benchedInWords,
   bestRoleNotRatedLabel,
   closeGlyph,
   closePanelLabel,
@@ -105,7 +107,7 @@ export function PlayerPanel({
           <Placeholder label={rolePointsNotBuiltLabel} className={ROW_PLACEHOLDER} />
         </Fact>
         <Fact term={panelRows.plays}>
-          <PositionList positions={player.positions} />
+          <PositionCodes positions={player.positions} spaced />
         </Fact>
         <Fact term={panelRows.bestRole}>
           <BestRole tactics={tactics} code={player.code} />
@@ -164,7 +166,7 @@ function GameweekPlace({ tactics, code }: { tactics: Tactics | undefined; code: 
   const { starters, bench } = tactics.lineup;
   const starter = starters.find((each) => each.playerCode === code);
   const benchIndex = bench.indexOf(code);
-  const where = starter !== undefined ? startingInWords(positionOfSlot(starter), starter.lane) : benchIndex >= 0 ? benchPlaceWords(benchIndex + 1) : null;
+  const where = starter !== undefined ? startingInWords(positionOfSlot(starter), starter.lane) : benchIndex >= 0 ? benchedInWords(benchIndex + 1) : null;
   if (where === null) return null;
   return (
     <>

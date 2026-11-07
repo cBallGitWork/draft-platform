@@ -1,4 +1,4 @@
-import type { DragEvent, ReactNode } from "react";
+import type { DragEvent } from "react";
 import { positionOfSlot } from "../../../convex/lineup/pitch";
 import { roleIn, rolesOfSlot, type Formation } from "../../../convex/lineup/roles";
 import { cellClassOf, ColumnHeads } from "../../ui/ColumnHeads";
@@ -7,9 +7,8 @@ import { PositionChip } from "../../ui/PositionChip";
 import { StarRating } from "../../ui/StarRating";
 import { starsIn } from "../../../convex/stars/bestRole";
 import type { SquadRow } from "../../../convex/squads/teamSquad";
-import { figureWords, noFigureWords } from "../words";
-import { NextMatches } from "../squad/SquadTable";
-import { noPointsWords, statusNotSettledLabel } from "../squad/words";
+import { NextMatches, PointsCell } from "../SquadCells";
+import { statusNotSettledLabel } from "../words";
 import { markOf } from "./focusMarks";
 import { PositionMarks, positionMarksOf } from "./positionMarks";
 import { benchBestRole, startersInOrder, type DraftLineup, type SquadMember, type Starter } from "./lineupDraft";
@@ -22,12 +21,12 @@ import {
   emptyBenchWords,
   ROLE_FIT_SUBJECT,
   roleLabel,
-  squadColumns,
-  squadTableLabel,
+  selectionColumns,
+  selectionTableLabel,
   swapLabel,
 } from "./words";
 
-type Column = keyof typeof squadColumns;
+type Column = keyof typeof selectionColumns;
 const COLUMNS: readonly Column[] = ["position", "player", "next", "roleFit", "role", "season", "last"];
 /** A phone leaves out the role fit and next fixture, for room (plate.md, The phone: the squad table
  *  keeps the player column and drops Role fit). */
@@ -79,8 +78,8 @@ export function SquadTable({
     <SelectionRow key={playerCode} player={squad.get(playerCode)!} season={season?.get(playerCode) ?? (season === undefined ? undefined : null)} place={place} onBenchAt={onBenchAt} onRole={onRole} moving={moving} pickedOnBench={picked !== null && !pickedStarts} />
   );
   return (
-    <table aria-label={squadTableLabel} className="w-full border-collapse">
-      <ColumnHeads columns={squadColumns} shown={COLUMNS} classOf={cellClasses} />
+    <table aria-label={selectionTableLabel} className="w-full border-collapse">
+      <ColumnHeads columns={selectionColumns} shown={COLUMNS} classOf={cellClasses} />
       <tbody>{startersInOrder(draft).map((starter) => row(starter.playerCode, { starter, formation: draft.starters }))}</tbody>
       <tbody onDragOver={allowDrop} onDrop={drop}>
         <tr className="bg-plate">
@@ -183,8 +182,8 @@ function SelectionRow({
       <td className={cellClasses("role")}>
         {"starter" in place ? <RolePicker player={player} starter={place.starter} formation={place.formation} onRole={onRole} /> : <span className="text-muted">{benchBestRole(player)?.role.name}</span>}
       </td>
-      <PointsCell column="season" points={season?.seasonPoints} />
-      <PointsCell column="last" points={season?.lastGameweekPoints} />
+      <PointsCell className={cellClasses("season")} points={season?.seasonPoints} />
+      <PointsCell className={cellClasses("last")} points={season?.lastGameweekPoints} />
     </tr>
   );
 }
@@ -228,16 +227,5 @@ function RolePicker({ player, starter, formation, onRole }: StarterPlace & { pla
         </option>
       ))}
     </select>
-  );
-}
-
-function PointsCell({ column, points }: { column: Column; points: number | null | undefined }): ReactNode {
-  if (points === undefined) return <td className={cellClasses(column)} />;
-  return points === null ? (
-    <td title={noPointsWords} className={`${cellClasses(column)} text-muted`}>
-      {noFigureWords}
-    </td>
-  ) : (
-    <td className={`${cellClasses(column)} font-bold text-figure`}>{figureWords(points)}</td>
   );
 }

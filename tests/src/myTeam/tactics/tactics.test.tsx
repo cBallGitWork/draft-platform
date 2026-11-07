@@ -16,7 +16,7 @@ import {
   pitchLabel,
   playerCardLabel,
   seasonOverWords,
-  squadTableLabel,
+  selectionTableLabel,
   startingWords,
   tacticsLoadingWords,
   tacticsNoRulesWords,
@@ -121,7 +121,7 @@ describe("the lineup held", () => {
 
   it("is listed beside it: the eleven back to front, then the bench in order", async () => {
     openTacticsTab();
-    await screen.findByRole("table", { name: squadTableLabel });
+    await screen.findByRole("table", { name: selectionTableLabel });
     expect(squadRows()).toEqual([
       // Each starter's slot chip, then name, club, next fixture (none held here, so empty), role
       // fit ("—": no stars held here) and role picker.

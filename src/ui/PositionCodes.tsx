@@ -12,12 +12,14 @@ export function PositionCode({ position }: { position: Position }) {
   );
 }
 
-/** His positions in a line: "CDM, CM". */
-export function PositionCodes({ positions }: { positions: readonly Position[] }) {
-  return positions.map((position, index) => (
+/** His positions in a line: "CDM, CM". `spaced` sets them side by side as a table's chips are
+ *  (the Squad tab), a gap drawn between them and a space for screen readers. */
+export function PositionCodes({ positions, spaced = false }: { positions: readonly Position[]; spaced?: boolean }) {
+  const codes = positions.map((position, index) => (
     <span key={position}>
-      {index > 0 && listSeparator}
+      {index > 0 && (spaced ? " " : listSeparator)}
       <PositionCode position={position} />
     </span>
   ));
+  return spaced ? <span className="flex gap-1">{codes}</span> : codes;
 }
