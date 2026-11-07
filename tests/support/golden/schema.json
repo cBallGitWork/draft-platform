@@ -17991,6 +17991,127 @@
             },
             "optional": false
           },
+          "lab": {
+            "fieldType": {
+              "type": "object",
+              "value": {
+                "seasons": {
+                  "fieldType": {
+                    "type": "array",
+                    "value": {
+                      "type": "number"
+                    }
+                  },
+                  "optional": false
+                },
+                "starts": {
+                  "fieldType": {
+                    "type": "number"
+                  },
+                  "optional": false
+                },
+                "startsSkipped": {
+                  "fieldType": {
+                    "type": "number"
+                  },
+                  "optional": false
+                },
+                "roles": {
+                  "fieldType": {
+                    "type": "array",
+                    "value": {
+                      "type": "union",
+                      "value": [
+                        {
+                          "type": "object",
+                          "value": {
+                            "role": {
+                              "fieldType": {
+                                "type": "string"
+                              },
+                              "optional": false
+                            },
+                            "slot": {
+                              "fieldType": {
+                                "type": "string"
+                              },
+                              "optional": false
+                            },
+                            "target": {
+                              "fieldType": {
+                                "type": "number"
+                              },
+                              "optional": false
+                            },
+                            "starts": {
+                              "fieldType": {
+                                "type": "number"
+                              },
+                              "optional": false
+                            },
+                            "average": {
+                              "fieldType": {
+                                "type": "union",
+                                "value": [
+                                  {
+                                    "type": "number"
+                                  },
+                                  {
+                                    "type": "null"
+                                  }
+                                ]
+                              },
+                              "optional": false
+                            },
+                            "offTarget": {
+                              "fieldType": {
+                                "type": "boolean"
+                              },
+                              "optional": false
+                            }
+                          }
+                        },
+                        {
+                          "type": "object",
+                          "value": {
+                            "role": {
+                              "fieldType": {
+                                "type": "string"
+                              },
+                              "optional": false
+                            },
+                            "slot": {
+                              "fieldType": {
+                                "type": "string"
+                              },
+                              "optional": false
+                            },
+                            "target": {
+                              "fieldType": {
+                                "type": "number"
+                              },
+                              "optional": false
+                            },
+                            "missing": {
+                              "fieldType": {
+                                "type": "array",
+                                "value": {
+                                  "type": "string"
+                                }
+                              },
+                              "optional": false
+                            }
+                          }
+                        }
+                      ]
+                    }
+                  },
+                  "optional": false
+                }
+              }
+            },
+            "optional": true
+          },
           "gameweek": {
             "fieldType": {
               "type": "number"

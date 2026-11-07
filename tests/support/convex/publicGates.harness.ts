@@ -54,6 +54,7 @@ export const gates: Record<string, Gate> = {
   "auth:isAuthenticated": "open",
   "availability/availability:ofPlayer": "admin",
   "availability/availability:set": "admin",
+  "balanceLab/balanceLabRun:run": "admin",
   "auth:signOut": "open",
   "draft/autoPickSwitch:takeControlBack": "manager",
   "draft/autoPickSwitch:turnOn": "manager",
