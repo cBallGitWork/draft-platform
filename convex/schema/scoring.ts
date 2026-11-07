@@ -1,5 +1,6 @@
 import { defineTable } from "convex/server";
 import { v } from "convex/values";
+import { labReportShape } from "../balanceLab/labReportShape";
 import { scoringSetShape } from "../scoring/scoringSetShape";
 
 /** How a version of the site's scoring was announced: a patch with a week's notice, or a fix at
@@ -21,6 +22,9 @@ export const siteScoringTables = {
     number: v.number(),
     announcedAt: v.number(),
     takesEffectAt: v.number(),
+    /** A patch's rule balance lab report (balanceLab/balanceLabRun.ts), run by itself once it is
+     *  announced, for the patch notes; absent on a fix, and until that run is done. */
+    lab: v.optional(labReportShape),
   }).index("by_takesEffectAt", ["takesEffectAt"]),
   /** One row at most: the admin's patch saved as a draft, which changes nothing until announced,
    *  and the version it was made from (null for the first set). */
