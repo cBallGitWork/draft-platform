@@ -9,7 +9,8 @@ import { FIRST_SCORING } from "../../convex/scoring/firstScoring";
 import type { MatchStats } from "../../convex/scoring/values";
 import { DAY_MS, WEEK_MS } from "../../convex/shared/time";
 import { ARSENAL, CHELSEA, LIVERPOOL, previewPlayers, previewShortlist } from "../scouting/preview";
-import type { CardAction, PlayedMatch, PlayerCard, PlayerCardSeam } from "./seam";
+import { previewSays, proLeague } from "../app/preview";
+import type { CardAction, PlayedMatch, PlayerCard, PlayerCardSeam, WaiverChanges } from "./seam";
 
 const CLUBS = [ARSENAL, CHELSEA, LIVERPOOL];
 const lastSaturday = Date.now() - ((new Date().getDay() + 1) % 7) * DAY_MS;
@@ -98,17 +99,26 @@ function cardOf(player: (typeof previewPlayers)[number]): PlayerCard {
 
 const cards = new Map(previewPlayers.map((player) => [player.code, cardOf(player)]));
 
-/** The preview saves nothing: an override, a drop, a claim or a pickup is taken and forgotten. */
+/** The preview saves nothing: an override is taken and forgotten, and a drop, a claim or a pickup
+ *  says so. */
 const overrideNothing = () => Promise.resolve(null);
-const waiverChanges = { drop: overrideNothing, claim: overrideNothing, pickUp: overrideNothing };
+const waiverChanges: WaiverChanges = {
+  drop: previewSays("nobody was dropped"),
+  claim: previewSays("no claim was put in"),
+  pickUp: previewSays("nobody was picked up"),
+};
 
-/** The preview manager's squad, to name who goes with a claim or a pickup: the players a team holds. */
-const PREVIEW_SQUAD = previewPlayers.filter((player) => player.ownerTeamName !== null).map(({ code, name }) => ({ playerCode: code, playerName: name }));
-/** In the preview an owned player is another team's, with no action; one on Scouting's preview
- *  waivers is a claim, and any other a pickup. */
+/** The preview manager's own team, which holds Saka. */
+const OWN_TEAM = proLeague.teamName;
+/** The preview manager's squad, to name who goes with a claim or a pickup. */
+const PREVIEW_SQUAD = previewPlayers.filter((player) => player.ownerTeamName === OWN_TEAM).map(({ code, name }) => ({ playerCode: code, playerName: name }));
+
+/** In the preview the manager drops his own team's player, has nothing on another team's, claims
+ *  one on Scouting's preview waivers and picks up any other. */
 function cardActionOf(playerCode: number): CardAction {
   const player = previewPlayers.find(({ code }) => code === playerCode);
-  if (player === undefined || player.ownerTeamName !== null) return { kind: "none" };
+  if (player === undefined) return { kind: "none" };
+  if (player.ownerTeamName !== null) return { kind: player.ownerTeamName === OWN_TEAM ? "drop" : "none" };
   return player.onWaivers === null ? { kind: "pickUp", squad: PREVIEW_SQUAD } : { kind: "claim", firstRunAt: player.onWaivers.firstRunAt, squad: PREVIEW_SQUAD };
 }
 
