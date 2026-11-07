@@ -10,7 +10,8 @@ export { figureWords, liveWords, noFigureWords, shortThenLongName, versusWords, 
 export const noTeamWords = "You don't run a team in this league.";
 export const noRulesWords = "This league was made before leagues had rules, so it has no fixtures to draw.";
 
-/** What the Squad and Tactics tabs' tables and panels both say (#1042). */
+// What the Squad and Tactics tabs' tables and panels both say (#1042).
+
 /** Where his club plays a match, after the opponent's code. */
 export const homeWords = "(H)";
 export const awayWords = "(A)";
