@@ -1,6 +1,7 @@
 // Player scoring's tests' fake seam (shell.harness.tsx hands it to the app).
 
 import { vi } from "vitest";
+import type { LabReport } from "../../../convex/balanceLab/labReportShape";
 import { FIRST_SCORING } from "../../../convex/scoring/firstScoring";
 import type { ScoringSeam, ScoringView, SiteRevision } from "../../../src/scoring/seam";
 import type { Rule } from "../../../src/scoring/editing";
@@ -34,16 +35,49 @@ export const REVISION = "site-scoring-1" as SiteRevision;
  *  the reader may edit (the admin); `loading` keeps it on its way (undefined). */
 export type ScoringData = { view?: ScoringView; loading?: boolean };
 
-/** The view the fake server gives by default: the first set, as the admin reads it. */
-export const ADMINS_VIEW: ScoringView = { part: FIRST_SCORING, revision: REVISION, changesFrom: CHANGES_FROM, canEdit: true };
+/** When the fake server's draft was saved, and the moments it offers a patch from: gameweek 10 then
+ *  11, a week apart. */
+export const DRAFT_SAVED_AT = Date.parse("2026-10-25T12:00:00Z");
+export const PATCH_GAMEWEEKS = [
+  { gameweek: 10, takesEffectAt: Date.parse("2026-11-07T15:00:00Z") },
+  { gameweek: 11, takesEffectAt: Date.parse("2026-11-14T15:00:00Z") },
+];
+
+/** The lab's report the fake server gives: a role off its target and one not tested. */
+export const LAB_REPORT: LabReport = {
+  seasons: [2024, 2025],
+  starts: 1200,
+  startsSkipped: 3,
+  roles: [
+    { role: "shotStopper", slot: "GK", target: 0.9, starts: 80, average: 1.67, offTarget: true },
+    { role: "numberTen", slot: "CAM", target: 0.6, missing: ["big_chance_created"] },
+  ],
+};
+
+/** The view the fake server gives by default: the first set, as the admin reads it, with no
+ *  version or draft yet. */
+export const ADMINS_VIEW: ScoringView = {
+  part: FIRST_SCORING,
+  revision: REVISION,
+  changesFrom: CHANGES_FROM,
+  canEdit: true,
+  versions: [],
+  draft: null,
+  patchGameweeks: PATCH_GAMEWEEKS,
+};
 
 /** The admin's view of the first set with LIMITED_BANDS added. */
 export const VIEW_WITH_LIMITED_BANDS: ScoringView = { ...ADMINS_VIEW, part: { ...FIRST_SCORING, rules: [...FIRST_SCORING.rules, LIMITED_BANDS] } };
 
-/** Saving succeeds from CHANGES_FROM, unless a test says otherwise. */
+/** Saving succeeds from CHANGES_FROM, a draft saves at DRAFT_SAVED_AT, and announcing and
+ *  withdrawing succeed, unless a test says otherwise. */
 export function fakeScoring({ view = structuredClone(ADMINS_VIEW), loading = false }: ScoringData = {}) {
   return {
     useScoring: vi.fn<ScoringSeam["useScoring"]>(() => (loading ? undefined : view)),
     save: vi.fn<ScoringSeam["save"]>(async () => CHANGES_FROM),
+    saveDraft: vi.fn<ScoringSeam["saveDraft"]>(async () => DRAFT_SAVED_AT),
+    announce: vi.fn<ScoringSeam["announce"]>(async () => ({ name: "26_27.1", fromGameweek: 10 })),
+    withdraw: vi.fn<ScoringSeam["withdraw"]>(async () => null),
+    runLab: vi.fn<ScoringSeam["runLab"]>(async () => LAB_REPORT),
   };
 }

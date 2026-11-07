@@ -7,7 +7,7 @@ import type { StoredScoringSet } from "../../../convex/scoring/scoringSetShape";
 import { refusals } from "../../../convex/shared/leagueAccess";
 import { DAY_MS, WEEK_MS } from "../../../convex/shared/time";
 import { MANAGERS, OUTSIDER, actingAs, teamName, addManagers, adminCreatesLeague, type TestConvex } from "../../support/convex/leagues.harness";
-import { EXAMPLE_SET, GOAL_AND_ASSIST } from "../../support/convex/scoring.example";
+import { EXAMPLE_SET, GOAL_AND_ASSIST, pricedRole } from "../../support/convex/scoring.example";
 import { holdSiteScoring } from "../../support/convex/siteScoring.harness";
 import { ARSENAL, CHELSEA, COVENTRY, GONE, completeRecord, insertClubs, insertDroppedPlayer, insertPlayers } from "../../support/convex/footballRows.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
@@ -175,7 +175,7 @@ async function annFieldsSaka(where: "started" | "benched") {
     const madeAt = (await ctx.db.get("leagues", leagueId))!._creationTime;
     await ctx.db.insert("passedDeadlines", { leagueId, gameweek: 1, deadline: madeAt, recordedAt: madeAt });
     const row = (await ctx.db.query("siteScoring").first())!;
-    const scoring = { ...row.scoring, roleAdjustments: [{ role: "insideForward", adjustments: [{ stat: "goals_scored", points: 2 }] }] };
+    const scoring = { ...row.scoring, roles: [pricedRole("insideForward", "goals_scored", 2)] };
     await ctx.db.patch("siteScoring", row._id, { scoring });
     const slot = { playerCode: SAKA.code, area: "attackingMidfield" as const, lane: "left" as const, role: "insideForward" };
     await ctx.db.insert("lineups", {
@@ -194,7 +194,7 @@ test("a match his team started him in shows his base points, and his role's line
 
   // His base 11 as a winger; his role's +2 for the goal on its own line, not added in.
   expect(priced.points).toMatchObject([{ position: "W", total: 11 }]);
-  expect(priced.role).toEqual({ name: "Inside forward", points: 2, lines: [{ stat: "goals_scored", name: "Goals scored", actions: 1, points: 2 }] });
+  expect(priced.role).toEqual({ name: "Inside forward", points: 2, sides: [{ points: 2, lines: [{ stat: "goals_scored", name: "Goals scored", actions: 1 }] }] });
 });
 
 test("a match his team named him on the bench for shows his base points, with no role line", async () => {
@@ -229,4 +229,38 @@ test("a code the football sync doesn't hold has no card", async () => {
 
 test("someone not in the league is refused", async () => {
   await expectRefused(cardAs(OUTSIDER, SAKA.code), refusals.notInLeague);
+});
+
+/** Last season as the copy holds it (pastSeasonRows.ts), whatever clubs he played for: Forward's
+ *  two matches, and Support named in the season's data with no match. */
+const PAST_SEASON = 2025;
+async function holdLastSeason() {
+  await t.run(async (ctx) => {
+    const past = (playerCode: number, match: { kickoff: number; stats: Record<string, number> } | null) =>
+      ctx.db.insert("pastPlayerMatchStats", { season: PAST_SEASON, playerCode, fplPosition: 4, match: match && { ...match, startingPosition: "ST" } });
+    await past(FORWARD.code, { kickoff: 1, stats: GOAL_AND_ASSIST });
+    await past(FORWARD.code, { kickoff: 2, stats: { minutes: 30 } });
+    await past(SUPPORT.code, null);
+  });
+}
+
+test("while no past season is held, the card has no last season", async () => {
+  expect((await cardAs(ANN, FORWARD.code))!.lastSeason).toBeNull();
+});
+
+test("last season's line totals every match he played, at each of the card's positions, under the site's set as it stands", async () => {
+  await holdLastSeason();
+  // A goal and an assist in 90 minutes, 11 as a winger and 9 up front, then 1 for 30 minutes.
+  expect((await cardAs(ANN, FORWARD.code))!.lastSeason).toEqual({ season: PAST_SEASON, played: { appearances: 2, minutes: 120, points: [12, 10] } });
+
+  // A later version makes a goal worth 10: the line is priced under it at once.
+  const goalsAtTen = { ...EXAMPLE_SET, rules: EXAMPLE_SET.rules.map((rule) => (rule.stat === "goals_scored" ? { ...rule, values: { all: 10 } } : rule)) };
+  await t.run((ctx) => holdSiteScoring(ctx, { scoring: structuredClone(goalsAtTen) as StoredScoringSet, kind: "patch", season: 2026, number: 1, at: NOW - DAY_MS }));
+  expect((await cardAs(ANN, FORWARD.code))!.lastSeason!.played!.points).toEqual([17, 16]);
+});
+
+test("one named in last season's data who played no match is on 0; one not in it wasn't in the Premier League", async () => {
+  await holdLastSeason();
+  expect((await cardAs(ANN, SUPPORT.code))!.lastSeason).toEqual({ season: PAST_SEASON, played: { appearances: 0, minutes: 0, points: [0] } });
+  expect((await cardAs(ANN, SAKA.code))!.lastSeason).toEqual({ season: PAST_SEASON, played: null });
 });

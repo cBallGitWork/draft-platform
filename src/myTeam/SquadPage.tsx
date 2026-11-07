@@ -4,13 +4,15 @@ import { unheldNoticeWords } from "../shared/words";
 import { useMinute } from "../shared/useMinute";
 import { Choice } from "../ui/Choice";
 import { Loading, Notice, PageSection, PanelNote } from "../ui/Panel";
-import { Placeholder } from "../ui/Placeholder";
 import type { MyTeamSeam, TeamSquad } from "./seam";
 import { TeamPage } from "./header/TeamHeader";
+import { positionMarksOf, type PositionMark } from "./tactics/positionMarks";
 import type { Tactics } from "./tactics/seam";
 import { MailWidget } from "./squad/MailWidget";
 import { PlayerPanel } from "./squad/PlayerPanel";
 import { squadOrder } from "./squad/squadOrder";
+import { RulesTable } from "./squad/RulesTable";
+import { ScheduleTable } from "./squad/ScheduleTable";
 import { SquadTable } from "./squad/SquadTable";
 import { YourEleven } from "./squad/YourEleven";
 import {
@@ -22,7 +24,6 @@ import {
   squadViewLabel,
   squadViews,
   squadViewWords,
-  viewNotBuiltLabel,
   type SquadView,
 } from "./squad/words";
 
@@ -84,14 +85,23 @@ function SquadBody({ league, seam }: { league: LeagueSummary; seam: MyTeamSeam }
   );
 }
 
-/** The table's panel: its plate holds the title, the view picker and how full the squad is. Only
- *  the Stats view is built; Schedule (his next 6 fixtures) and Rules (the squad against the
- *  league's limits) are answered (README) but not built. */
+/** Each player's position marks, as Tactics shows them (Craig, 6 Nov 2026, on #23): flagged, and
+ *  out of position in the lineup the next save is for. None while no lineup is open to set. */
+function marksByCode(tactics: Tactics | undefined): ReadonlyMap<number, readonly PositionMark[]> {
+  if (tactics?.kind !== "open") return new Map();
+  const cellOf = new Map(tactics.lineup.starters.map((starter) => [starter.playerCode, starter]));
+  return new Map(tactics.squad.map((member) => [member.playerCode, positionMarksOf(member, cellOf.get(member.playerCode) ?? null)]));
+}
+
+/** The table's panel: its plate holds the title, the view picker and how full the squad is. Its
+ *  views: Stats, Schedule (his next 6 gameweeks' fixtures) and Rules (the squad against the
+ *  league's limits). */
 function SquadPanel({ squad, tactics, selected, onSelect }: { squad: TeamSquad; tactics: Tactics | undefined; selected: number | null; onSelect(code: number): void }) {
   const [view, setView] = useState<SquadView>("stats");
   const titleId = useId();
   const starting = useMemo(() => (tactics?.kind === "open" ? new Set(tactics.lineup.starters.map(({ playerCode }) => playerCode)) : null), [tactics]);
   const rows = useMemo(() => squadOrder(squad.players, starting ?? new Set()), [squad.players, starting]);
+  const marks = useMemo(() => marksByCode(tactics), [tactics]);
   return (
     <section aria-labelledby={titleId} className="bg-panel">
       <div className="flex flex-wrap items-center justify-between gap-x-3 bg-plate pl-3 shadow-bevel-plate">
@@ -104,21 +114,22 @@ function SquadPanel({ squad, tactics, selected, onSelect }: { squad: TeamSquad; 
         <span className="pr-3 text-soft">{squadCountWords(squad.players.length + squad.unheld.length, squad.squadMaximum)}</span>
       </div>
       {squad.unheld.length > 0 && <Notice>{unheldNoticeWords}</Notice>}
-      {view === "stats" ? (
+      {view === "stats" && (
         <SquadTable
           teamName={squad.teamName}
           rows={rows}
           unheld={squad.unheld}
           lastGameweek={squad.lastGameweek}
           starting={starting}
+          marks={marks}
           selected={selected}
           onSelect={onSelect}
         />
-      ) : (
-        <div className="p-2">
-          <Placeholder label={viewNotBuiltLabel(view)} className="h-40 w-full" />
-        </div>
       )}
+      {view === "schedule" && (
+        <ScheduleTable teamName={squad.teamName} rows={rows} gameweeks={squad.scheduleGameweeks} starting={starting} marks={marks} selected={selected} onSelect={onSelect} />
+      )}
+      {view === "rules" && <RulesTable teamName={squad.teamName} limits={squad.limits} players={squad.players} />}
     </section>
   );
 }

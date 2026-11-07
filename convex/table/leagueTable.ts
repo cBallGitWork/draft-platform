@@ -15,8 +15,8 @@ import { shownDeadline } from "../gameweeks/usedGameweeks";
 // one begun with no head-to-head (before the league was made, say: #282), and the rest are drawn
 // from the teams, the gameweeks the league plays and the rules in force in each (playedFixtures.ts;
 // #137, #266). The table counts the same fixtures the screen shows, each scored once its gameweek
-// has begun (gameweekScores.ts, #29): live points count, marked provisional until final. The
-// commissioner editing fixtures (spec/09) comes later.
+// has begun (gameweekScores.ts, #29): live points count, marked provisional until final. A
+// gameweek to come reads as the commissioner edited it (fixtureEdits.ts, spec/09).
 
 export const fixture = v.object({
   /** The team's own, for a link to its matchup (#34). */
@@ -26,8 +26,8 @@ export const fixture = v.object({
   opponent: v.union(v.string(), v.null()),
 });
 
-/** A fixture on the table's screen, with its score. */
-const scoredFixture = v.object({
+/** A fixture on the table's screen and league home, with its score. */
+export const scoredFixture = v.object({
   ...fixture.fields,
   /** Each side's points, the average's for the league's average; null until the gameweek is scored. */
   points: v.union(v.object({ team: v.number(), opponent: v.number() }), v.null()),

@@ -2,7 +2,8 @@ import { v, type Infer } from "convex/values";
 import { internal } from "../_generated/api";
 import { internalAction, internalMutation, internalQuery } from "../_generated/server";
 import { namedMen } from "./feedIds";
-import { fplPlayerCount } from "./fpl/fpl";
+import { fplPlayerCount, fplSeason, readFplBootstrap } from "./fpl/fpl";
+import { readPlSeasons } from "./premierLeague/plSeasons";
 import { logFailure } from "../shared/errors";
 import {
   arsenalSquadNumbers,
@@ -26,10 +27,12 @@ export const check = internalAction({
   args: { trigger: feedCheckTrigger, scheduledFor: v.optional(v.number()) },
   returns: v.null(),
   handler: async (ctx, args) => {
+    // Both Premier League counts are of the season FPL is on (#300), worked out once.
+    const seasons = readFplBootstrap().then((bootstrap) => readPlSeasons(fplSeason(bootstrap)));
     const [fplPlayers, plFixtures, squadNumbers] = await Promise.all([
       outcome(fplPlayerCount),
-      outcome(plFixtureCount),
-      outcome(arsenalSquadNumbers),
+      outcome(async () => plFixtureCount((await seasons).current)),
+      outcome(async () => arsenalSquadNumbers((await seasons).current)),
     ]);
     await ctx.runMutation(internal.football.feeds.record, {
       ...args,

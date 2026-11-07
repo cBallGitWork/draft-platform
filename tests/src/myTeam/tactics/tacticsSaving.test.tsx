@@ -10,7 +10,7 @@ import { describe, expect, it, vi } from "vitest";
 import { HOUR_MS } from "../../../../convex/shared/time";
 import { saveFailedWords, savedWords, startingWords } from "../../../../src/myTeam/tactics/words";
 import { league } from "../../../support/src/shell.harness";
-import { TACTICS_GAMEWEEK, openTactics } from "../../../support/src/tactics.harness";
+import { OPEN_PICKED, TACTICS_GAMEWEEK, openTactics } from "../../../support/src/tactics.harness";
 import {
   ARRIZABALAGA,
   RAYA,
@@ -51,7 +51,8 @@ describe("saving", () => {
   it("saves nothing until something moves, then saves each move as it stands, with no button", async () => {
     const app = await openedPitch();
     expect(app.myTeam.lineupChanges.save).not.toHaveBeenCalled();
-    expect(screen.queryByRole("button", { name: /^Save/ })).toBeNull();
+    // Save preset… saves a plan (#992), never the lineup.
+    expect(screen.queryByRole("button", { name: /^Save(?! preset…)/ })).toBeNull();
     const statusesBefore = screen.getAllByRole("status");
 
     await swap(ARRIZABALAGA, RAYA);
@@ -59,6 +60,7 @@ describe("saving", () => {
     expect(app.myTeam.lineupChanges.save).toHaveBeenCalledWith(league.leagueId, {
       starters: [at(ARRIZABALAGA, { area: "goalkeeper", lane: "centre" }), ...STARTERS.slice(1)],
       bench: [RAYA.playerCode, WHITE.playerCode],
+      instructions: OPEN_PICKED,
     });
     const saved = await screen.findByText(SAVED_LINE);
     // The live region was in the page, empty, before the save, so the words are announced.
@@ -170,7 +172,7 @@ describe("Undo (spec/05, Moving players)", () => {
     expect(app.myTeam.lineupChanges.save).toHaveBeenLastCalledWith(league.leagueId, afterOne);
     await userEvent.click(undo());
     expect(within(pitch()).queryByRole("button", { name: new RegExp(`^${WHITE.name},`) })).toBeNull();
-    expect(app.myTeam.lineupChanges.save).toHaveBeenLastCalledWith(league.leagueId, { starters: STARTERS, bench: [ARRIZABALAGA.playerCode, WHITE.playerCode] });
+    expect(app.myTeam.lineupChanges.save).toHaveBeenLastCalledWith(league.leagueId, { starters: STARTERS, bench: [ARRIZABALAGA.playerCode, WHITE.playerCode], instructions: OPEN_PICKED });
     expect(undo().disabled).toBe(true);
   });
 });

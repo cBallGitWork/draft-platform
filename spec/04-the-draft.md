@@ -61,8 +61,10 @@ Feature 4 of [SPEC.md](../SPEC.md). Only Craig's answers.
 - A team left with no legal pick is an error, not the end of that team's draft: greying out always
   leaves a legal pick (Craig, 4 Nov 2026, on #1090: "ok").
 - The draft can't start until every squad is empty (Craig, 4 Nov 2026, on #1090: "ok").
-- The rounds are taken from the squad limit in force when the draft starts, never a change still
-  waiting for next gameweek (Craig, 4 Nov 2026, on #1090, "rec": Claude's recommendation).
+- The rounds are the squad maximum in the latest rules, counting a change waiting for next
+  gameweek: "the squad size is what indicates the draft size" (Craig, 7 Nov 2026, on #1130,
+  replacing his 4 Nov answer on #1090). The squad rules the draft starts under are that waiting
+  change's too ("ok", same day). `S04.1`
 - "Picks follow the squad rules the draft started under" (Craig, 4 Nov 2026, on #1090).
 - "The commissioner's assign, move and release are refused while the draft is live" (Craig, 4 Nov
   2026, on #1090).
@@ -159,6 +161,8 @@ Feature 4 of [SPEC.md](../SPEC.md). Only Craig's answers.
   fixtures (Craig, 4 Nov 2026).
 - A player a team can't pick stays in his place in the list, greyed out (Craig, 4 Nov 2026, "yes"
   to Claude's recommendation).
+- Players already drafted drop out of the list, and Scouting's owner filter shows them (Craig,
+  4 Nov 2026, on #1099: "rec yes").
 - The board shows six rounds at a time, with the whole board a button away (Craig, 4 Nov 2026,
   "ok" to Claude's recommendation).
 - No pick, the manager's or an auto-pick, files a Mail letter: "we dont need mail for that and each

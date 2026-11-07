@@ -1,7 +1,7 @@
 # The lead: keeps the builders busy all day, so no session has to start, watch or restart a build
-# (Craig, 5 Nov 2026: "we created a dev team but it still feels like im a solo worker"). Every 30 minutes it fills
+# (Craig, 5 Nov 2026: "we created a dev team but it still feels like im a solo worker"). Every pass (when a build ends, an issue is labelled to build, and every 30 minutes) it fills
 # up to MAX_IN_FLIGHT claude-build.yml runs, in this order:
-#   1. A fix round. A ready builder pull request (opened by the build bot, not a session) whose `verify` failed, or
+#   1. A fix round. A ready builder pull request (opened by a build, not Craig's session) whose `verify` or `smoke` failed, that conflicts with main, or
 #      whose review says "look at these first", gets one claude-build run in mode `fix` on its branch, and the label
 #      FIXED_LABEL so it never gets a second (one review round). After that it waits on the PM dashboard.
 #   2. A resume. An unfinished build's draft (`wip/issue-N-*`) gets one more build of N, which carries on from it,
@@ -57,8 +57,14 @@ permissions:
   pull-requests: write  # labelling a pull request (FIXED_LABEL, RESUMED_LABEL) needs it: issues: write alone got 403 on 5 Nov 2026
   contents: read
 
+# One pass at a time. GitHub keeps one pass waiting in a group and drops the one it replaces, so an event the job's
+# `if` drops (a skipped build, any other label) runs in a group of its own: in the lead's group it replaced the real
+# pass waiting behind a running one and then skipped, and on 7 Nov 2026 the builders sat idle from 10:42 to 15:23.
 concurrency:
-  group: lead
+  group: >-
+    ${{ ((github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'skipped')
+         || (github.event_name == 'issues' && !contains(fromJSON('["next","lane:auto","rules:clear"]'), github.event.label.name)))
+        && format('lead-dropped-{0}', github.run_id) || 'lead' }}
   cancel-in-progress: false
 
 env:
@@ -77,7 +83,15 @@ env:
   BOARD_LABEL: "lead:board"
   NEXT_LABEL: "next"  # Craig's "build this first", from the PM dashboard
   NEXT_UP: 15  # how many of the queue the board lists
+  STOPPED_HOURS: 24  # how long a build that stopped without a pull request waits before it is tried again
+  STUCK_HOURS: 3  # how long a builder pull request may stay red after its fix round before it is closed
+  STUCK_LABEL: "lead:stuck"
+  PASS_CHECK: "lead-pass"  # Healthchecks check slugs: a pass of the lead, and a merge to main in the last day
+  MERGE_CHECK: "main-merged"
   DRY_RUN: ${{ inputs.dry_run == true }}
+  # a builder pull request is any not opened by Craig, as lane-auto.yml has it: builds open theirs as CBHelper180, a user
+  # account, since 5 Nov 2026, and an `is_bot` test gave none of them a fix round or a stuck close (7 Nov 2026: 11 sat red)
+  OWNER: ${{ github.repository_owner }}
 
 jobs:
   lead:
@@ -96,13 +110,19 @@ jobs:
           gh label create "$STALE_LABEL" --color BFBFBF --description "The rules sweep found it already built or out of date" --force
           gh label create "$NEXT_LABEL" --color B60205 --description "Craig: build this first" --force
           gh label create "$BOARD_LABEL" --color 1D76DB --description "The lead's board, rewritten every pass" --force
+          gh label create "$STUCK_LABEL" --color D93F0B --description "Its pull request stayed red after its fix round; take off to build again" --force
       - name: Fill the builders
+        env:
+          # builds are started as the pipeline's own account (CBHelper180): GitHub fires no workflow_run for a run started
+          # with the job's token, so before 6 Nov 2026 no build the lead started ever woke the lead when it ended, and only
+          # the schedule, which GitHub drops, refilled the slots (18:25 to 20:26 that day, with a full queue)
+          DISPATCH_TOKEN: ${{ secrets.BUILD_TOKEN || github.token }}
         run: |
           set -euo pipefail
           # builds run from the lead's own ref, so a branch's lead dispatches that branch's claude-build.yml
           dispatch() { # issue mode [pr]
             echo "Dispatching claude-build: $2 #$1${3:+ on pull request #$3}"
-            [ "$DRY_RUN" = true ] || gh workflow run claude-build.yml --ref "$GITHUB_REF_NAME" -f issue="$1" -f mode="$2" -f pr="${3:-}"
+            [ "$DRY_RUN" = true ] || GH_TOKEN="$DISPATCH_TOKEN" gh workflow run claude-build.yml --ref "$GITHUB_REF_NAME" -f issue="$1" -f mode="$2" -f pr="${3:-}"
           }
           spec_files() { # issue: the spec/NN files its body names
             gh issue view "$1" --json body --jq '.body // ""' | grep -oE 'spec/[0-9]+' | sort -u || true
@@ -127,21 +147,44 @@ jobs:
             busy_issues=$(printf '%s\n%s\n' "$busy_issues" "$n"); busy_specs=$(printf '%s\n%s\n' "$busy_specs" "$files")
           }
 
-          prs=$(gh pr list --state open --limit 200 --json number,isDraft,headRefName,author,body,labels,statusCheckRollup)
+          prs=$(gh pr list --state open --limit 200 --json number,isDraft,headRefName,author,body,labels,statusCheckRollup,mergeable)
           linked() { jq -r '.[] | (.body // "") | scan("(?m)^(?:Part of|Closes) #([0-9]+)") | .[0]' <<<"$prs" | sort -u; }
           taken=$(linked)
+          label() { echo "Labelling #$1 $2"; [ "$DRY_RUN" = true ] || gh api "repos/$GH_REPO/issues/$1/labels" -f "labels[]=$2" > /dev/null; }  # a pull request too
+
+          # 0. stuck: a builder pull request still red STUCK_HOURS after its one fix round is closed, its branch kept,
+          # and its issue labelled STUCK_LABEL with the reason, so the queue never clogs behind it (CTO review, 5 Nov
+          # 2026: #1177 red since 14:12). Taking the label off puts the issue back in the queue.
+          for row in $(jq -r '
+              .[] | select((.isDraft | not) and .author.login != env.OWNER)
+              | select(any(.labels[]?; .name == env.FIXED_LABEL))
+              | select(any(.statusCheckRollup[]?; (.name == "verify" or .name == "smoke") and .conclusion == "FAILURE") or .mergeable == "CONFLICTING")
+              | "\(.number):\((.body // "") | ([scan("(?m)^(?:Part of|Closes) #([0-9]+)")] | first // [""]) | .[0])"' <<<"$prs"); do
+            IFS=: read -r pr n <<<"$row"
+            [ -n "$n" ] || continue
+            grep -qx "$n" <<<"$busy_issues" && continue  # its fix round is still running
+            last=$(gh pr view "$pr" --json commits --jq '.commits[-1].committedDate')
+            [ "$(date -u -d "$last" +%s)" -lt "$(date -u -d "$STUCK_HOURS hours ago" +%s)" ] || continue
+            echo "Closing #$pr: still red ${STUCK_HOURS}h after its fix round"
+            if [ "$DRY_RUN" != true ]; then
+              gh pr close "$pr" --comment "Closed by the lead: still red ${STUCK_HOURS} hours after its one fix round. The branch is kept. #$n is labelled \`$STUCK_LABEL\`; take the label off to build it again." > /dev/null
+              gh issue comment "$n" --body "Stuck: #$pr was still red ${STUCK_HOURS} hours after its fix round (\`gh pr checks $pr\` says what), so the lead closed it and kept its branch. Take \`$STUCK_LABEL\` off to build this again." > /dev/null
+            fi
+            label "$n" "$STUCK_LABEL"
+          done
 
           # 1. one fix round for a red or flagged builder pull request
-          label() { echo "Labelling #$1 $2"; [ "$DRY_RUN" = true ] || gh api "repos/$GH_REPO/issues/$1/labels" -f "labels[]=$2" > /dev/null; }  # a pull request too
           for row in $(jq -r --arg fixed "$FIXED_LABEL" '
-              .[] | select((.isDraft | not) and .author.is_bot == true)
+              .[] | select((.isDraft | not) and .author.login != env.OWNER)
               | select(all(.labels[]?; .name != $fixed))
-              | "\(.number):\(any(.statusCheckRollup[]?; .name == "verify" and .conclusion == "FAILURE")):\((.body // "") | ([scan("(?m)^(?:Part of|Closes) #([0-9]+)")] | first // [""]) | .[0])"' <<<"$prs"); do
+              | "\(.number):\(any(.statusCheckRollup[]?; (.name == "verify" or .name == "smoke") and .conclusion == "FAILURE") or .mergeable == "CONFLICTING"):\((.body // "") | ([scan("(?m)^(?:Part of|Closes) #([0-9]+)")] | first // [""]) | .[0])"' <<<"$prs"); do
             [ "$slots" -gt 0 ] || break
             IFS=: read -r pr red n <<<"$row"
             [ -n "$n" ] || continue
             if [ "$red" != true ]; then
-              gh pr view "$pr" --json comments --jq '.comments[].body' | grep -q 'look at these first' || continue
+              # read first, then test: under pipefail, grep -q closing the pipe early fails it, and a match was skipped
+              comments=$(gh pr view "$pr" --json comments --jq '.comments[].body')
+              grep -q 'look at these first' <<<"$comments" || continue
             fi
             take "$n" || continue
             dispatch "$n" fix "$pr"; label "$pr" "$FIXED_LABEL"; slots=$((slots - 1))
@@ -165,7 +208,7 @@ jobs:
           issues=$(gh issue list --state open --limit 300 --json number,title,body,labels)
           ready=$(jq -r '
               .[] | select(((.title + " " + ([.labels[]?.name] | join(" "))) | test(env.OWN_JOBS)) | not)
-              | select(all(.labels[]?; .name != env.STALE_LABEL))
+              | select(all(.labels[]?; .name != env.STALE_LABEL and .name != env.STUCK_LABEL))
               | (if any(.labels[]?; .name == env.NEXT_LABEL) then "0" else "1" end) as $prio
               | if any(.labels[]?; .name == "rules:open") then "\($prio):\(.number):rules"
                 elif any(.labels[]?; .name == "lane:craig") then "\($prio):\(.number):craig"
@@ -182,8 +225,18 @@ jobs:
           merged_refs=$(gh pr list --state merged --search "merged:>=$(date -u -d '14 days ago' +%F)" --limit 200 --json title,body,headRefName \
                           --jq '.[] | select(.headRefName | test("^(feat|fix|wip)/"))
                                 | ((.title | scan("\\(#([0-9]+)\\)")), ((.body // "") | scan("(?m)^\\s*-?\\s*(?:Closes|Fixes|Resolves|Part of|Part [0-9]+ of) #([0-9]+)"))) | .[0]' | sort -u)
-          # only the issue a PR closes or is part of, from its title or that line: #1205 named #1199 in passing
-          ready=$(for row in $ready; do n=${row%%:*}; if [ "${row#*:}" = build ] && grep -qx "$n" <<<"$merged_refs"; then echo "$n:sweep"; else echo "$row"; fi; done)
+          # only the issue a PR closes or is part of, from its title or that line: #1205 named #1199 in passing.
+          # An issue the sweep already found work left in (CLEAR_LABEL) is built: swept again it would only be cleared
+          # again, every night for a fortnight
+          cleared=$(jq -r '.[] | select(any(.labels[]?; .name == env.CLEAR_LABEL)) | .number' <<<"$issues")
+          ready=$(for row in $ready; do n=${row%%:*}; if [ "${row#*:}" = build ] && grep -qx "$n" <<<"$merged_refs" && ! grep -qx "$n" <<<"$cleared"; then echo "$n:sweep"; else echo "$row"; fi; done)
+          # a build that ended in the last STOPPED_HOURS with no pull request stopped on purpose (blocked by another
+          # issue, or already done), and says why on the issue: built again it stops again, and since a build's end
+          # starts the lead that is a loop (5 Nov 2026: #1096 waits on #383). It waits on the board instead.
+          stopped=$(gh run list --workflow claude-build.yml --event workflow_dispatch --status completed --limit 100 \
+                      --created ">=$(date -u -d "$STOPPED_HOURS hours ago" +%FT%TZ)" --json displayTitle \
+                      --jq '.[].displayTitle | select(startswith("build #")) | ltrimstr("build #")' | sort -u)
+          ready=$(for row in $ready; do n=${row%%:*}; if [ "${row#*:}" = build ] && grep -qx "$n" <<<"$stopped" && ! grep -qx "$n" <<<"$taken"; then echo "$n:stopped"; else echo "$row"; fi; done)
           for row in $ready; do
             [ "$slots" -gt 0 ] || break
             n=${row%%:*}
@@ -214,15 +267,31 @@ jobs:
           # counted in the loop, not with head: under pipefail, head closing the pipe fails the step (5 Nov 2026, dry run)
           next_up=$(k=0; for row in $ready; do [ "$k" -lt "$NEXT_UP" ] || break; n=${row%%:*}; [ "${row#*:}" = build ] || continue; grep -qx "$n" <<<"$taken" && continue; grep -qx "$n" <<<"$busy_issues" && continue; line "$n"; k=$((k + 1)); done)
           unchecked=$(k=0; for row in $ready; do [ "$k" -lt "$NEXT_UP" ] || break; [ "${row#*:}" = sweep ] || continue; line "${row%%:*}"; k=$((k + 1)); done)
-          blocked=$(for row in $ready; do n=${row%%:*}; case ${row#*:} in rules) echo "- #$n $(title_of "$n"): your answers (the dashboard has the questions)";; craig) echo "- #$n $(title_of "$n"): you";; esac; done)
+          blocked=$(for row in $ready; do n=${row%%:*}; case ${row#*:} in rules) echo "- #$n $(title_of "$n"): your answers (the dashboard has the questions)";; craig) echo "- #$n $(title_of "$n"): you";; stopped) echo "- #$n $(title_of "$n"): its build stopped (the issue's last comment says why); tried again after ${STOPPED_HOURS}h";; esac; done)
+          stuck=$(jq -r '.[] | select(any(.labels[]?; .name == env.STUCK_LABEL)) | "- #\(.number) \(.title): its pull request stayed red after its fix round (the issue says which)"' <<<"$issues")
           today=$(date -u +%Y-%m-%d)
           merged=$(gh pr list --state merged --search "merged:>=$today" --limit 100 --json number,title --jq '.[] | "- #\(.number) \(.title)"')
-          red=$(jq -r '.[] | select(.isDraft | not) | select(any(.statusCheckRollup[]?; .conclusion == "FAILURE")) | "- #\(.number) \(.headRefName)"' <<<"$prs")
-          looks=$(jq -r '.[] | select(.isDraft | not) | select(any(.statusCheckRollup[]?; .name == "look-approved" and .conclusion == "FAILURE")) | "- #\(.number): the look, your craig-approved label"' <<<"$prs")
-          body=$(printf '## %s, %s UTC\n\n**Next up** (build order; label an issue `next` to put it first)\n%s\n\n**In flight**\n%s\n\n**Blocked, and on what**\n%s\n%s\n\n**Not yet checked for open rules** (the 01:37 sweep)\n%s\n\n**Merged today**\n%s\n\n**Red**\n%s\n\n*Written by the lead; it rewrites this every half hour.*\n' \
-            "$today" "$(date -u +%H:%M)" "${next_up:-- nothing ready: answer the blocked ones, or file an issue}" "${running:-- nothing}" "${blocked:-- nothing}" "${looks:-}" "${unchecked:-- none}" "${merged:-- nothing}" "${red:-- nothing}")
+          red=$(jq -r '.[] | select(.isDraft | not) | select(any(.statusCheckRollup[]?; .conclusion == "FAILURE")) | "- #\(.number) \(.headRefName)"' <<<"$prs")  # look-approved holds no merge since 7 Nov 2026, so its failure is red too
+          body=$(printf '## %s, %s UTC\n\n**Next up** (build order; label an issue `next` to put it first)\n%s\n\n**In flight**\n%s\n\n**Blocked, and on what**\n%s\n\n**Stuck** (take `%s` off an issue to build it again)\n%s\n\n**Not yet checked for open rules** (the 01:37 sweep)\n%s\n\n**Merged today**\n%s\n\n**Red**\n%s\n\n*Written by the lead; it rewrites this every pass. Healthchecks emails Craig if no pass comes for 3 hours, or nothing merges for a day.*\n' \
+            "$today" "$(date -u +%H:%M)" "${next_up:-- nothing ready: answer the blocked ones, or file an issue}" "${running:-- nothing}" "${blocked:-- nothing}" "$STUCK_LABEL" "${stuck:-- nothing}" "${unchecked:-- none}" "${merged:-- nothing}" "${red:-- nothing}")
           board=$(gh issue list --state open --label "$BOARD_LABEL" --limit 1 --json number --jq '.[0].number // empty')
           if [ "$DRY_RUN" = true ]; then echo "$body"
           elif [ -n "$board" ]; then gh issue edit "$board" --title "$BOARD_TITLE" --body "$body" > /dev/null
           else gh issue create --title "$BOARD_TITLE" --label "$BOARD_LABEL" --body "$body" > /dev/null; fi
           echo "Board written."
+      # The heartbeat: nothing watched the lead, and on 5 Nov 2026 it never ran on GitHub's schedule for hours
+      # unnoticed (CTO review). Each pass on main pings Healthchecks (the app's own project, as convex/heartbeats does);
+      # a missing ping emails Craig. A second check hears only when something merged in the last day.
+      - name: Ping the heartbeat
+        if: github.ref_name == github.event.repository.default_branch && inputs.dry_run != true
+        env:
+          PING_URL: ${{ secrets.HEALTHCHECKS_PING_URL }}
+        run: |
+          # a heartbeat that can't beat fails the pass, so it shows red rather than as a warning nobody reads
+          [ -n "$PING_URL" ] || { echo "::error::No HEALTHCHECKS_PING_URL secret: nothing tells Craig when the lead stops."; exit 1; }
+          failed=0
+          ping() { curl -fsS -m 10 --retry 2 -o /dev/null "$PING_URL/$1?create=1" || { echo "::error::The $1 ping didn't reach Healthchecks."; failed=1; }; }
+          ping "$PASS_CHECK"
+          since=$(date -u -d '24 hours ago' +%FT%TZ)
+          [ -n "$(gh pr list --state merged --search "merged:>=$since" --limit 1 --json number --jq '.[].number')" ] && ping "$MERGE_CHECK" || true
+          exit "$failed"

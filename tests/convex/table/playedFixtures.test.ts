@@ -128,7 +128,9 @@ describe("a gameweek begun with no head-to-head never gets fixtures (#282)", () 
     await changeRulesTo({ format: "totalPoints" });
     playUpTo(PLAYED);
     await recordPassed();
-    expect(await changeRulesTo({ format: "headToHead" })).toBe(PLAYED + 1);
+    // Written straight in: a commissioner can no longer change the format once the season has
+    // begun (#275), but a league that did before then still holds such rules.
+    await t.run((ctx) => ctx.db.insert("leagueRules", { leagueId, fromGameweek: PLAYED + 1, rules: rulesWith({ format: "headToHead" }) }));
     expect(await firstWithFixtures(leagueId)).toBe(PLAYED + 1);
   });
 });

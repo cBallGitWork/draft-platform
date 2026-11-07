@@ -12,6 +12,9 @@ export const SITE_URL_SETTING = "SITE_URL";
  *  @convex-dev/auth's Resend provider), so fixed by the library. */
 export const RESEND_KEY_SETTING = "AUTH_RESEND_KEY";
 
+/** Anthropic's API key, for what the app has Claude write: a scout's report (spec/19). */
+export const ANTHROPIC_KEY_SETTING = "ANTHROPIC_API_KEY";
+
 /** The sender's address: the live site's is set by `npm run setup:live` (docs/setup.md). */
 export const EMAIL_FROM_SETTING = "EMAIL_FROM";
 
@@ -20,3 +23,7 @@ export const TEST_ACCOUNT_EMAIL_SETTING = "TEST_ACCOUNT_EMAIL";
 
 /** The test account's secret (spec/02). While this or the email is unset, the secret path is off. */
 export const TEST_ACCOUNT_SECRET_SETTING = "TEST_ACCOUNT_SECRET";
+
+/** A GitHub token that may run this repository's workflows (Actions: read and write), for the lead's
+ *  wake-up (heartbeats/leadWake.ts). Set on the live deployment only: unset, nothing wakes the lead. */
+export const LEAD_WAKE_TOKEN_SETTING = "LEAD_WAKE_GITHUB_TOKEN";

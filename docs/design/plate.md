@@ -102,7 +102,11 @@ name (the score).
 
 ## Marks
 
-- **Shirts**: our own outline in the club's colours, the squad number on the chest.
+- **Shirts**: our own outline in the club's colours, the squad number on the chest. A striped
+  club's shirt (spec/12, Club colours) is its first colour with five upright stripes of its second,
+  each 4 of the shirt's 40 units wide, one every 8, one down the middle; its number keeps the ink
+  that reads on the first colour and gains a 1.5-unit outline in the other ink. A keeper's shirt is
+  always plain.
 - **Stars**: SVG, filled in the figure colour, empty ones as outlines in muted grey, the set
   labelled "Role fit 4 of 5".
 - **A doubt**: the orange knock chip of the status chips (Tables and panels), on the name plate and
@@ -128,9 +132,10 @@ name (the score).
 - **The pitch**: portrait, a real pitch's 68 m wide by 105 m long, attack at the top, its markings
   to scale: penalty area 40.32 × 16.5 m, goal area 18.32 × 5.5 m, penalty spot 11 m out (its dot drawn bigger, to show), the D
   9.15 m from the spot, centre circle 9.15 m round, the halfway line and 1 m corner arcs. The
-  measurements live once, in `src/myTeam/tactics/pitch/pitchMarkings.ts`. Flat: one stripe to each of
-  its six rows, which share its length equally so each line of players stands where it would; no
-  gradients or photo grass. It is the Tactics tab's centrepiece (Decided).
+  measurements live once, in `src/myTeam/tactics/pitch/pitchMarkings.ts`. Flat: one stripe to each
+  row the formation uses, the used rows sharing its length equally and an empty row closed up, so a
+  shape leaves no gap ("pitch view should be dynamic so it fills out correctly", Craig, 5 Nov 2026;
+  `src/myTeam/tactics/pitch/rowLayout.ts`); no gradients or photo grass. It is the Tactics tab's centrepiece (Decided).
 - **A role's run** (spec/05 Runs): a 2px dashed white line from the player's place with a solid
   white arrowhead, drawn under the players' blocks so it never covers a name. Its shape is the
   role's, in metres (`convex/lineup/roles.ts`); `src/myTeam/tactics/pitch/RoleRuns.tsx` only draws it.

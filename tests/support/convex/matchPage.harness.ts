@@ -18,7 +18,7 @@ export async function matchLeague(): Promise<ScoresLeague> {
 }
 
 export async function matchAs(league: ScoresLeague, email: string, fixtureCode: number = HULL_EVERTON) {
-  return (await actingAs(league.t, email)).query(api.match.matchPage.ofMatch, { leagueId: league.leagueId, fixtureCode });
+  return (await actingAs(league.t, email)).query(api.match.matchPage.ofMatch, { leagueId: league.leagueId, now: Date.now(), fixtureCode });
 }
 
 /** One commentary line naming `playerCodes`, as the live tick stores it. */

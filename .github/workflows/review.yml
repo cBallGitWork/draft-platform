@@ -1,7 +1,7 @@
 # The fresh-eyes review, as a job of its own (Craig, 4 Nov 2026: the builder only builds; the review is a separate
 # Sonnet job on the pull request, posting a comment alongside CI). It runs .claude/agents/pr-reviewer.md's brief on
 # Sonnet, a different model from the Opus builder (CLAUDE.md, "Decided"), read-only, and posts its verdict as a
-# comment. It never blocks a merge: the `main` ruleset requires only `verify`, `smoke` and `look-approved`, and a failed review is
+# comment. Its verdict never turns a pull request red, but the merge waits for it to land (review-gate.yml), and a failed review is
 # kept off the run's result. Pull requests from this repository only, since a fork's would run with its secrets.
 # Bills to Craig's subscription (CLAUDE_CODE_OAUTH_TOKEN). Actions pinned to the SHAs claude-build.yml uses.
 name: review

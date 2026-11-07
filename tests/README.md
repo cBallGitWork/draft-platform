@@ -88,9 +88,13 @@ against points worked out man by man. How, and the other proofs a refactor owes:
 
 ## Citing the spec
 
-An answer in `spec/NN-*.md` may end with an ID such as `S07.2` (#454; for now only spec/07's
-*Match stats*). A test that asserts that answer cites it by writing the ID beside it, as a comment
-or in the test's name. `scripts/spec-ids.mjs`, run by `npm run verify`, fails on an ID given twice
-or a citation to an ID no answer has, and lists the answers no test cites. Where an answer has an
+An answer in `spec/NN-*.md` may end with an ID such as `S07.2` (#454). Every new answer gets one,
+and every new check names the answer it tests (Craig, 6 Nov 2026); older answers get theirs when
+next reworded. A test that asserts that answer cites it by writing the ID beside it, as a comment
+or in the test's name. `scripts/spec-ids.mjs`, run by `npm run verify`, fails on an ID given twice,
+a citation to an ID no answer has, a new or reworded answer with no ID, and an ID origin/main has
+that the branch drops (mark it withdrawn instead). It lists, never fails on, the answers no test
+cites, the tests citing an answer the branch changes, for a second look, and new test files citing
+no answer. Where an answer has an
 example table, `tests/support/specExamples.ts` reads its rows for a test to run
 (`tests/convex/stats/matchStats.examples.test.ts`).

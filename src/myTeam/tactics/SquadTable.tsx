@@ -1,14 +1,16 @@
-import type { DragEvent, ReactNode } from "react";
+import type { DragEvent } from "react";
 import { positionOfSlot } from "../../../convex/lineup/pitch";
 import { roleIn, rolesOfSlot, type Formation } from "../../../convex/lineup/roles";
 import { cellClassOf, ColumnHeads } from "../../ui/ColumnHeads";
 import { Placeholder } from "../../ui/Placeholder";
 import { PositionChip } from "../../ui/PositionChip";
+import { StarRating } from "../../ui/StarRating";
+import { starsIn } from "../../../convex/stars/bestRole";
 import type { SquadRow } from "../../../convex/squads/teamSquad";
-import { figureWords, noFigureWords } from "../words";
 import { NextMatches } from "../squad/SquadTable";
-import { noPointsWords, statusNotSettledLabel } from "../squad/words";
+import { statusNotSettledLabel } from "../squad/words";
 import { markOf } from "./focusMarks";
+import { PositionMarks, positionMarksOf } from "./positionMarks";
 import { benchBestRole, startersInOrder, type DraftLineup, type SquadMember, type Starter } from "./lineupDraft";
 import { startDrag, type Moving } from "./pitch/Pitch";
 import {
@@ -17,7 +19,7 @@ import {
   benchPlaceLong,
   benchPlaceWords,
   emptyBenchWords,
-  roleFitPlaceholder,
+  ROLE_FIT_SUBJECT,
   roleLabel,
   squadColumns,
   squadTableLabel,
@@ -25,25 +27,27 @@ import {
 } from "./words";
 
 type Column = keyof typeof squadColumns;
-const COLUMNS: readonly Column[] = ["position", "player", "next", "roleFit", "role", "season", "last"];
+/** Each row opens with the slot's chip, then the role, the player, his stars for the role and his
+ *  next fixture; the season's points stay on the Squad tab (spec/12; Craig, 6 Nov 2026, on #847:
+ *  "Drop both"). */
+const COLUMNS: readonly Column[] = ["position", "role", "player", "roleFit", "next"];
 /** A phone leaves out the role fit and next fixture, for room (plate.md, The phone: the squad table
  *  keeps the player column and drops Role fit). */
 const DESK_ONLY: readonly Column[] = ["next", "roleFit"];
-const FIGURES: readonly Column[] = ["season", "last"];
-const cellClasses = (column: Column) => cellClassOf(!FIGURES.includes(column), DESK_ONLY.includes(column));
+const cellClasses = (column: Column) => cellClassOf(true, DESK_ONLY.includes(column));
 /** The bench plate's first cell spans the columns before Role, where Best role heads the bench's. */
 const BEFORE_ROLE = COLUMNS.indexOf("role");
 
 /** Each squad player's row on the Squad tab's read (convex/squads/teamSquad.ts), by his code: his
- *  next fixture and points; undefined while it loads. */
+ *  next fixture and FPL's news on him; undefined while it loads. */
 export type SeasonOf = ReadonlyMap<number, SquadRow> | undefined;
 
 /** A starter's row: him, and the cells the eleven stand in, which pick the roles his slot offers. */
 type StarterPlace = { starter: Starter; formation: Formation };
 
 /** The Selection table (the approved Tactics picture; plate.md, Tables and panels): the eleven back
- *  to front, each led by his slot's position chip, then the bench in order under its own plate,
- *  each led by his place and his main position, with the role he'd play best there, muted. A tap on
+ *  to front, each led by his slot's position chip and his role, then the bench in order under its
+ *  own plate, each led by his place and his main position, with the role he'd play best there, muted. A tap on
  *  a player opens his panel, where Move is (no action column); a row drags onto the pitch. A player
  *  he can swap with is lit, and a tap or a drop on him swaps them (spec/05, Moving players); a bench
  *  player dropped on another bench row takes its place (spec/05 Auto-subs). A starter leaves the
@@ -154,6 +158,9 @@ function SelectionRow({
       <td className={cellClasses("position")}>
         <PositionCell player={player} place={place} />
       </td>
+      <td className={cellClasses("role")}>
+        {"starter" in place ? <RolePicker player={player} starter={place.starter} formation={place.formation} onRole={onRole} /> : <span className="text-muted">{benchBestRole(player)?.role.name}</span>}
+      </td>
       <th scope="row" className={`${cellClasses("player")} font-normal whitespace-nowrap`}>
         <button
           type="button"
@@ -169,20 +176,24 @@ function SelectionRow({
         {player.clubShortName !== null && <span className="ml-1 text-muted max-sm:hidden">{player.clubShortName}</span>}
         {/* As on the Squad tab: only a player FPL holds news on gets one, until its data is settled. */}
         {season?.chanceOfPlaying != null && <Placeholder label={statusNotSettledLabel} className="ml-1 size-3 align-middle max-sm:hidden" />}
+        <PositionMarks marks={positionMarksOf(player, "starter" in place ? place.starter : null)} />
       </th>
+      <td className={cellClasses("roleFit")}>
+        <RoleFit player={player} place={place} />
+      </td>
       <td className={cellClasses("next")}>
         {season != null && <NextMatches matches={season.nextFixtures.slice(0, 1)} />}
       </td>
-      <td className={cellClasses("roleFit")}>
-        <Placeholder label={roleFitPlaceholder} className="h-3 w-16 align-middle" />
-      </td>
-      <td className={cellClasses("role")}>
-        {"starter" in place ? <RolePicker player={player} starter={place.starter} formation={place.formation} onRole={onRole} /> : <span className="text-muted">{benchBestRole(player)?.role.name}</span>}
-      </td>
-      <PointsCell column="season" points={season?.seasonPoints} />
-      <PointsCell column="last" points={season?.lastGameweekPoints} />
     </tr>
   );
+}
+
+/** His stars for the role he plays in his slot; on the bench, for his best role at his main
+ *  position's slot, the role the Best role column names (spec/05 Roles; the approved Tactics
+ *  picture). Nothing for a bench player with no position that has a slot. */
+function RoleFit({ player, place }: { player: SquadMember; place: StarterPlace | { benchIndex: number } }) {
+  const rated = "starter" in place ? { cell: place.starter, role: roleIn(place.starter, place.starter.role) } : benchBestRole(player);
+  return rated === undefined ? null : <StarRating stars={starsIn(rated.cell, rated.role.key, player.stars)} subject={ROLE_FIT_SUBJECT} />;
 }
 
 /** A starter's slot chip; a bench player's place, then his main position's chip. */
@@ -216,16 +227,5 @@ function RolePicker({ player, starter, formation, onRole }: StarterPlace & { pla
         </option>
       ))}
     </select>
-  );
-}
-
-function PointsCell({ column, points }: { column: Column; points: number | null | undefined }): ReactNode {
-  if (points === undefined) return <td className={cellClasses(column)} />;
-  return points === null ? (
-    <td title={noPointsWords} className={`${cellClasses(column)} text-muted`}>
-      {noFigureWords}
-    </td>
-  ) : (
-    <td className={`${cellClasses(column)} font-bold text-figure`}>{figureWords(points)}</td>
   );
 }

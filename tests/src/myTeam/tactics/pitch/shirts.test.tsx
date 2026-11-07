@@ -2,8 +2,10 @@
 // club's colour, a keeper in its second, inked in the page's own two inks so the number and the
 // edge read on the shirt and on the grass.
 
+import { render } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import { CLUB_COLOURS, contrast, INKS } from "../../../../../convex/football/clubColours";
+import { Shirt } from "../../../../../src/myTeam/tactics/pitch/Pitch";
 import { ARSENAL } from "../../../../support/convex/footballRows.harness";
 import { colorToken } from "../../../../support/src/colorTokens";
 import { blockOf, openedPitch, RAYA, SALIBA } from "../../../../support/src/tacticsScreen.harness";
@@ -33,7 +35,35 @@ describe("the shirts", () => {
     expect(keeper.querySelector("path")!.style.fill).toBe(hexToRgb(CLUB_COLOURS[ARSENAL.code].secondary));
     expect(outfield.getAttribute("aria-hidden")).toBe("true");
   });
+
+  it("draws Arsenal's shirt plain, its number without an outline", () => {
+    const shirt = drawnShirt(ARSENAL.code, false);
+    expect(shirt.querySelectorAll("rect")).toHaveLength(0);
+    expect(shirt.querySelector("text")!.getAttribute("class")).toContain("stroke-none");
+  });
+
+  it("draws Newcastle's shirt in white stripes, its number outlined in the other ink so it reads", () => {
+    const shirt = drawnShirt(NEWCASTLE_CODE, false);
+    const stripes = shirt.querySelector("g")!;
+    expect(stripes.style.fill).toBe(hexToRgb(CLUB_COLOURS[NEWCASTLE_CODE].secondary));
+    expect(stripes.querySelectorAll("rect").length).toBeGreaterThan(0);
+    // Newcastle's black takes the light ink, so the outline is the dark one.
+    expect(shirt.getAttribute("class")).toContain("fill-fact");
+    expect(shirt.querySelector("text")!.getAttribute("class")).toContain("stroke-ground");
+  });
+
+  it("draws Newcastle's keeper plain, apart from his outfield players", () => {
+    expect(drawnShirt(NEWCASTLE_CODE, true).querySelectorAll("rect")).toHaveLength(0);
+  });
 });
+
+const NEWCASTLE_CODE = 4;
+
+/** One shirt alone, numbered, as the pitch draws it. */
+function drawnShirt(clubCode: number, goalkeeper: boolean): SVGSVGElement {
+  const { container } = render(<Shirt number={9} clubCode={clubCode} goalkeeper={goalkeeper} />);
+  return container.querySelector("svg")!;
+}
 
 /** The `rgb(r, g, b)` jsdom reads a `#rrggbb` style back as. */
 function hexToRgb(hex: string): string {

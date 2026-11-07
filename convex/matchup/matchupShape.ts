@@ -1,8 +1,9 @@
 import { v, type Infer } from "convex/values";
 import { playingState } from "../football/matchScores";
 import { shownDeadline } from "../gameweeks/usedGameweeks";
-import { areaShape } from "../lineup/pitchShape";
+import { areaShape, laneShape, slotPosition } from "../lineup/pitchShape";
 import { scoreRead } from "../schema";
+import { namedCategories, roleLine } from "../scoring/breakdownShape";
 import { LEAGUE_AVERAGE } from "../table/roundRobin";
 import { BYE } from "../table/teamGames";
 
@@ -40,6 +41,25 @@ const autoSub = v.union(
   v.object({ kind: v.literal("unreplaced") }),
 );
 
+/** One of his matches in the gameweek, broken down as the table's scorer scored his slot (spec/10:
+ *  "the opposition manager needs to see why his opponent got the points"; #798): each category and
+ *  his role's line, which add up to his points there, or the league's override in their place. */
+const matchBreakdown = v.object({
+  /** The match, which its page opens by, and its kickoff, null while it has no time. */
+  fixtureCode: v.number(),
+  kickoff: v.union(v.number(), v.null()),
+  /** His points in the match; null ("—") while his record hasn't arrived. */
+  points: v.union(v.number(), v.null()),
+  /** Whether his gameweek's points include it: false for the lower of a double gameweek's two under
+   *  best match (spec/03), greyed (Craig, 6 Nov 2026). */
+  counted: v.boolean(),
+  categories: namedCategories,
+  /** His role's line, when he plays a role the set scores; never beside an override. */
+  role: v.optional(roleLine),
+  override: v.union(v.object({ points: v.number(), reason: v.string() }), v.null()),
+});
+export type MatchBreakdown = Infer<typeof matchBreakdown>;
+
 const slot = v.object({
   playerCode: v.number(),
   name: v.string(),
@@ -52,6 +72,8 @@ const slot = v.object({
   provisional: v.boolean(),
   status: slotStatus,
   autoSub,
+  /** Each of his matches in the gameweek, broken down, kickoff first; none in a blank one. */
+  breakdown: v.array(matchBreakdown),
 });
 export type MatchupSlot = Infer<typeof slot>;
 
@@ -59,13 +81,21 @@ export type MatchupSlot = Infer<typeof slot>;
  *  named as the Tactics pitch names it. */
 const role = v.object({ key: v.string(), name: v.string() });
 
-/** A starter: a slot, and his role: the one he was given, or the slot's first. */
-const starter = slot.extend({ role });
+/** The slot a man plays his role in (spec/10, The matchup, as a live match: "his slot's position
+ *  label and his role's run, as on the Tactics pitch"): its lane, which with his `area` is the cell
+ *  his run is drawn from (roleIn's run), and its position label (pitch.ts's positionOfSlot). */
+const place = v.object({ lane: laneShape, label: slotPosition });
+export type MatchupPlace = Infer<typeof place>;
+
+/** A starter: a slot, his role (the one he was given, or the slot's first) and where he plays it. */
+const starter = slot.extend({ role, place });
 export type MatchupStarter = Infer<typeof starter>;
 
-/** A bench player: a slot, and once he has come on the role he plays (spec/05 Auto-subs): the
- *  empty slot's, or in his own area his best-star one at the deadline (#11). Null until then. */
-const benchSlot = slot.extend({ role: v.union(role, v.null()) });
+/** A bench player: a slot, and once he has come on the role he plays (spec/05 Auto-subs), the
+ *  empty slot's or in his own area his best-star one at the deadline (#11), and the slot he came on
+ *  in, whose label and run are then his, not the man's he replaced (Craig, 6 Nov 2026; #850). Both
+ *  null until then. */
+const benchSlot = slot.extend({ role: v.union(role, v.null()), place: v.union(place, v.null()) });
 export type MatchupBenchSlot = Infer<typeof benchSlot>;
 
 const side = v.union(
@@ -110,7 +140,15 @@ export const game = v.union(
   /** Begun, but it can't be scored (#287), and why. */
   v.object({ kind: v.literal("unscored"), opponent, reason: v.string() }),
   /** The team on the left, its opponent on the right. */
-  v.object({ kind: v.literal("scored"), team: side, opponent: side, commentary }),
+  v.object({
+    kind: v.literal("scored"),
+    team: side,
+    opponent: side,
+    commentary,
+    /** The version of the site's scoring the gameweek is scored under, null for the first set: a
+     *  breakdown's last line (spec/14, On screen). */
+    version: v.union(v.string(), v.null()),
+  }),
 );
 
 export const matchup = v.union(
@@ -126,6 +164,11 @@ export const matchup = v.union(
     /** Null while the team plays no head-to-head gameweek at all (fewer than two teams, say). */
     gameweek: v.union(v.number(), v.null()),
     deadline: shownDeadline,
+    /** Which of the team's games in the gameweek this is, from 1, as drawn (#521). */
+    gameNumber: v.number(),
+    /** Each of the team's games in the gameweek, as drawn, for the switch between them in a league
+     *  playing more than one a gameweek: who each is against, or a bye. Empty with no gameweek. */
+    games: v.array(v.union(opponent, v.object({ kind: v.literal(BYE) }))),
     game,
   }),
 );

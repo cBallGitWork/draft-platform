@@ -19,21 +19,24 @@ import {
   elevenPlayerLabel,
   formLabel,
   MAIL_WIDGET_TITLE,
+  noLimitsWords,
   openPanelLabel,
   playerCardWords,
   roleLastGameweekNotSettledLabel,
   rolePointsNotBuiltLabel,
+  scheduleTableLabel,
   setLineupWords,
-  setRoleNotBuiltLabel,
+  setRoleWords,
   squadCountWords,
   squadTableLabel,
   squadViewWords,
   startedNotBuiltLabel,
   statusNotSettledLabel,
-
-  viewNotBuiltLabel,
   YOUR_ELEVEN_TITLE,
 } from "../../../src/myTeam/squad/words";
+import { everyRoleOf } from "../../../convex/lineup/roles";
+import { starsLabel } from "../../../src/ui/StarRating";
+import { closePanelLabel as closeTacticsPanelLabel, ROLE_FIT_SUBJECT } from "../../../src/myTeam/tactics/words";
 import { league } from "../../support/src/shell.harness";
 import { openSquad, PALMER, RAYA, SAKA, squadOf, tacticsWith } from "../../support/src/squadTab.harness";
 
@@ -68,18 +71,19 @@ describe("the table's plate", () => {
     expect(squadCountWords(19, null)).toBe("19 players");
   });
 
-  it("switches the table's view; Schedule and Rules are placeholders until what they hold is settled", async () => {
+  it("switches the table's view between Stats, Schedule and Rules (#1006)", async () => {
     openSquad({ squad: squadOf([SAKA]) });
     await screen.findByRole("table", { name: squadTableLabel("Team 1") });
     expect(screen.getByRole<HTMLInputElement>("radio", { name: squadViewWords.stats }).checked).toBe(true);
 
     await userEvent.click(screen.getByRole("radio", { name: squadViewWords.schedule }));
-    expect(screen.queryByRole("table")).toBeNull();
-    expect(screen.getByRole("img", { name: viewNotBuiltLabel("schedule") })).toBeTruthy();
+    expect(screen.getByRole("table", { name: scheduleTableLabel("Team 1") })).toBeTruthy();
+    expect(screen.queryByRole("table", { name: squadTableLabel("Team 1") })).toBeNull();
     await userEvent.click(screen.getByRole("radio", { name: squadViewWords.rules }));
-    expect(screen.getByRole("img", { name: viewNotBuiltLabel("rules") })).toBeTruthy();
+    // The harness's league sets no squad limits.
+    expect(screen.getByText(noLimitsWords)).toBeTruthy();
     await userEvent.click(screen.getByRole("radio", { name: squadViewWords.stats }));
-    expect(screen.getByRole("table")).toBeTruthy();
+    expect(screen.getByRole("table", { name: squadTableLabel("Team 1") })).toBeTruthy();
   });
 });
 
@@ -129,12 +133,25 @@ describe("his season panel", () => {
     await openPanel("Saka");
     const panel = panelOf("Saka");
 
-    for (const label of [startedNotBuiltLabel, rolePointsNotBuiltLabel, bestRoleNotRatedLabel, roleLastGameweekNotSettledLabel, setRoleNotBuiltLabel, statusNotSettledLabel]) {
+    for (const label of [startedNotBuiltLabel, rolePointsNotBuiltLabel, bestRoleNotRatedLabel, roleLastGameweekNotSettledLabel, statusNotSettledLabel]) {
       expect(within(panel).getByRole("img", { name: label })).toBeTruthy();
     }
     // FPL's news is held, so it shows beside the chip that waits.
     expect(within(panel).getByText("Knock - 75% chance of playing")).toBeTruthy();
     expect(within(panel).queryByRole("button", { name: /role/i })).toBeNull();
+  });
+
+  it("names his best role at his main position, with his stars for it (#11)", async () => {
+    const winger = everyRoleOf(WINGER)[1];
+    const starred = { ...lineup, squad: lineup.squad.map((each) => (each.playerCode === SAKA.code ? { ...each, stars: [{ area: WINGER.area, role: winger.key, stars: 4.5 }] } : each)) };
+    openSquad({ squad: squadOf(players), tactics: starred });
+    await screen.findByRole("table");
+    await openPanel("Saka");
+    const panel = panelOf("Saka");
+
+    expect(within(panel).getByText(winger.name)).toBeTruthy();
+    expect(within(panel).getByRole("img", { name: starsLabel(ROLE_FIT_SUBJECT, 4.5) })).toBeTruthy();
+    expect(within(panel).queryByRole("img", { name: bestRoleNotRatedLabel })).toBeNull();
   });
 
   it("shows FPL's news without a chip when FPL holds no doubt, as his row does", async () => {
@@ -151,6 +168,16 @@ describe("his season panel", () => {
     await openPanel("Saka");
     await userEvent.click(within(panelOf("Saka")).getByRole("link", { name: playerCardWords }));
     expect(app.path()).toBe(playerCardPath(league.leagueId, SAKA.code));
+  });
+
+  it("opens Tactics with him selected from Set his role (#1008)", async () => {
+    const app = openSquad({ squad: squadOf(players), tactics: lineup });
+    await screen.findByRole("table");
+    await openPanel("Saka");
+    await userEvent.click(within(panelOf("Saka")).getByRole("link", { name: setRoleWords }));
+    expect(app.path()).toBe(MY_TEAM_PATH);
+    expect(app.search()).toBe(`?player=${SAKA.code}`);
+    expect(await screen.findByRole("button", { name: closeTacticsPanelLabel("Saka") })).toBeTruthy();
   });
 
   it("moves Mail and news under the table while it is open", async () => {

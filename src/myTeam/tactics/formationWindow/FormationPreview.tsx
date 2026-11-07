@@ -3,7 +3,7 @@ import { roleIn } from "../../../../convex/lineup/roles";
 import { Placeholder } from "../../../ui/Placeholder";
 import { PositionChip } from "../../../ui/PositionChip";
 import { reshaped, standingIn, type DraftLineup, type MoveRules, type RatingsOf } from "../lineupDraft";
-import { CELL_GRID } from "../pitch/Pitch";
+import { cellGridOf, rowLayoutOf } from "../pitch/rowLayout";
 import type { Shape } from "./formationGroups";
 import { cellsDrawn } from "./FormationTile";
 import {
@@ -26,9 +26,26 @@ import {
 // descriptions), Unlocks and Costs on team tactics (to-grill: Team tactic per formation), so each
 // shows as its placeholder (plate.md, Marks).
 
-/** The lineup reshaped to `shape`, as Use this would leave it (spec/05, The pitch). */
-export function FormationPreview({ shape, draft, rules, ratingsOf }: { shape: Shape; draft: DraftLineup; rules: Pick<MoveRules, "positionsOf">; ratingsOf: RatingsOf }) {
-  const after = reshaped(draft, shape.cells, rules, ratingsOf);
+/** The lineup reshaped to `shape`, as Use this would leave it (spec/05, The pitch): `after`, or the
+ *  lineup reshaped to it as a plain formation. A saved plan says the formation it stands in under its
+ *  name (`subtitle`) and what loading it applies. */
+export function FormationPreview({
+  shape,
+  draft,
+  rules,
+  ratingsOf,
+  after = reshaped(draft, shape.cells, rules, ratingsOf),
+  subtitle,
+  applies = appliesWords(shape.name),
+}: {
+  shape: Shape;
+  draft: DraftLineup;
+  rules: Pick<MoveRules, "positionsOf">;
+  ratingsOf: RatingsOf;
+  after?: DraftLineup;
+  subtitle?: string;
+  applies?: string;
+}) {
   const lines: [string, string, string][] = [
     [gainsHead, gainsPlaceholder, "h-10"],
     [losesHead, losesPlaceholder, "h-10"],
@@ -37,9 +54,12 @@ export function FormationPreview({ shape, draft, rules, ratingsOf }: { shape: Sh
   ];
   return (
     <div className="flex flex-col">
-      <h3 className="bg-plate px-3 py-1 text-heading font-bold shadow-bevel-plate">{shape.name}</h3>
+      <h3 className="flex items-baseline gap-3 bg-plate px-3 py-1 shadow-bevel-plate">
+        <span className="text-heading font-bold">{shape.name}</span>
+        {subtitle !== undefined && <span>{subtitle}</span>}
+      </h3>
       <div className="flex flex-wrap gap-3 p-3">
-        <div role="img" aria-label={previewLabel(shape.name)} style={CELL_GRID} className="grid h-96 w-64 shrink-0 border-2 border-pitch-line bg-pitch-stripe">
+        <div role="img" aria-label={previewLabel(shape.name)} style={cellGridOf(rowLayoutOf(shape.cells))} className="grid h-96 w-64 shrink-0 border-2 border-pitch-line bg-pitch-stripe">
           {cellsDrawn((cell) => {
             const inShape = shape.cells.some((each) => sameCell(each, cell));
             const standing = standingIn(after, cell);
@@ -57,7 +77,7 @@ export function FormationPreview({ shape, draft, rules, ratingsOf }: { shape: Sh
         </div>
         <dl className="grid min-w-0 flex-1 grid-cols-facts content-start gap-x-3 gap-y-2">
           <dt className="text-muted">{appliesHead}</dt>
-          <dd>{appliesWords(shape.name)}</dd>
+          <dd>{applies}</dd>
           {lines.map(([head, label, height]) => (
             <div key={head} className="contents">
               <dt className="text-muted">{head}</dt>

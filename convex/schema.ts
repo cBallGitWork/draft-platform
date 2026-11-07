@@ -18,12 +18,15 @@ import { lineupTables } from "./schema/lineup";
 import { starsTables } from "./schema/stars";
 import { draftRankingTables, draftTables } from "./schema/draft";
 import { pastSeasonTables } from "./schema/pastSeasons";
+import { availabilityTables } from "./schema/availability";
 import { waiverTables } from "./schema/waivers";
+import { scoutTables } from "./schema/scouting";
+import { tradeTables } from "./schema/trades";
 
 // The database, one group of tables a feature, each in its own file in convex/schema/ with the
 // shapes it is made of. Everything the features read from the schema is re-exported here.
 export { feedOutcome, feedCheckTrigger, feedCheckFields } from "./schema/feeds";
-export { clubRecord, playerRecord, fixtureRecord, gameweekRecord, matchState, scoreFeed, scoreRead, scoreProblem, scoreWrites, tableWrites, syncTrigger, footballSyncFields } from "./schema/football";
+export { availability, clubRecord, playerRecord, fixtureRecord, gameweekRecord, matchState, scoreFeed, scoreRead, scoreProblem, scoreWrites, tableWrites, syncTrigger, footballSyncFields } from "./schema/football";
 export { matchStatsState, playerMatchRecord, lateStatChange, matchSyncOutcome, matchStatsSyncFields } from "./schema/matchStats";
 export { position, startRecord, approveMode, changeThresholds, positionsSyncFields } from "./schema/positions";
 export { liveStatsTickFields, sideMatchOutcome, sideRunFields, commentaryLine, sideTeamStats, teamSheetMan } from "./schema/live";
@@ -64,5 +67,8 @@ export default defineSchema({
   ...draftRankingTables,
   ...draftTables,
   ...pastSeasonTables,
+  ...availabilityTables,
   ...waiverTables,
+  ...scoutTables,
+  ...tradeTables,
 });

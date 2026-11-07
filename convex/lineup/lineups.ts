@@ -1,5 +1,5 @@
 import { v, type Infer } from "convex/values";
-import type { Id } from "../_generated/dataModel";
+import type { Doc, Id } from "../_generated/dataModel";
 import { mutation, type MutationCtx, type QueryCtx } from "../_generated/server";
 import { managerOf, refuse } from "../shared/leagueAccess";
 import { seasonRules, type SeasonRules } from "../rules/rulesHistory";
@@ -17,6 +17,10 @@ import { starsOfPlayers } from "../stars/playerStars";
 import type { Area, Lane } from "./pitch";
 import { roleIn } from "./roles";
 import { lineupRefusals, problemWords, unknownPlayerWords } from "./lineupWords";
+import { pairRefusal } from "./instructions";
+import { instructionPairShape } from "./instructionsShape";
+import { pairRefusalWords } from "./instructionsWords";
+import { instructionsOf } from "../rules/firstRules";
 
 // Each team's lineup, stored (spec/05, The pitch; #8). A save is a row from the next gameweek
 // whose league deadline hasn't passed, and the lineup in a gameweek is the newest row from it or
@@ -37,6 +41,9 @@ import { lineupRefusals, problemWords, unknownPlayerWords } from "./lineupWords"
 const sentLineup = v.object({
   starters: v.array(v.object({ playerCode: v.number(), area: v.string(), lane: v.string(), role: v.optional(v.string()) })),
   bench: v.array(v.number()),
+  /** Its two team instructions (#990); absent from a browser that sends none: the formation's
+   *  defaults. */
+  instructions: v.optional(instructionPairShape),
 });
 
 /** A team's lineup in a gameweek: the newest row from that gameweek or before, as the squad has it
@@ -53,6 +60,9 @@ export const heldLineupShape = v.object({
   leftSquad: v.array(v.number()),
   joinedBench: v.array(v.number()),
   vacated: v.array(placementShape),
+  /** The row's team instructions as its manager picked them (#990); absent until he does. What
+   *  stands in force is instructions.ts's `keptOrSwitched`, under the league's rules. */
+  instructions: v.optional(instructionPairShape),
 });
 export type HeldLineup = Infer<typeof heldLineupShape>;
 
@@ -98,13 +108,13 @@ export async function lineupsInGameweek(
       continue;
     }
     const { lineup, ...changes } = reconciled(row, squad);
-    lineups.set(teamId, { fromGameweek: row.fromGameweek, ...lineup, ...changes });
+    lineups.set(teamId, { fromGameweek: row.fromGameweek, ...lineup, ...changes, ...(row.instructions !== undefined && { instructions: row.instructions }) });
   }
   return lineups;
 }
 
 /** Each player's positions now in the league (spec/06), for picking a first lineup. */
-async function heldPositionsOf(ctx: QueryCtx, leagueId: Id<"leagues">, playerCodes: readonly number[]): Promise<PlayerPositions> {
+export async function heldPositionsOf(ctx: QueryCtx, leagueId: Id<"leagues">, playerCodes: readonly number[]): Promise<PlayerPositions> {
   const positionsOfNow = await positionsNow(ctx, leagueId);
   return new Map(await Promise.all(playerCodes.map(async (playerCode) => [playerCode, await positionsOfNow(playerCode)] as const)));
 }
@@ -177,20 +187,27 @@ export const save = mutation({
     if (leftOut.length > 0) refuse(lineupRefusals.leftOut(leftOut.map(nameOf)));
 
     const positions = await heldPositionsOf(ctx, leagueId, lineup.starters.map(({ playerCode }) => playerCode));
-    const { areaLimits } = season.inGameweek(fromGameweek);
-    const problems = lineupProblems(lineup, positions, { areaLimits });
+    const rules = season.inGameweek(fromGameweek);
+    const problems = lineupProblems(lineup, positions, rules);
     if (problems.length > 0) refuse(problems.map((problem) => problemWords(problem, nameOf)).join(" "));
+    // lineupProblems refused any cell not on the pitch, so every starter's is one.
+    const cells = lineup.starters.map(({ area, lane }) => ({ area: area as Area, lane: lane as Lane }));
+    const set = instructionsOf(rules);
+    const refusal = lineup.instructions === undefined ? null : pairRefusal(lineup.instructions, cells, set);
+    if (refusal !== null) refuse(pairRefusalWords(refusal, set));
+    // None sent is none picked: the row reads the formation's defaults (tactics.ts).
+    const { instructions } = lineup;
 
-    // lineupProblems refused any cell not on the pitch, so every starter's is one, and any role
-    // another slot offers; a role removed from the set is saved as the one he plays (#841).
+    // lineupProblems refused any role another slot offers; a role removed from the set is saved as
+    // the one he plays (#841).
     const starters = lineup.starters.map(({ role, ...starter }) => {
       const cell = { area: starter.area as Area, lane: starter.lane as Lane };
       return { ...starter, ...cell, ...(role === undefined ? {} : { role: roleIn(cell, role).key }) };
     });
     const existing = await rowInForce(ctx, leagueId, team._id, fromGameweek);
     // The manager's own from here: no squad change picks it again.
-    if (existing?.fromGameweek !== fromGameweek) await ctx.db.insert("lineups", { leagueId, teamId: team._id, fromGameweek, starters, bench: lineup.bench });
-    else await ctx.db.patch("lineups", existing._id, { starters, bench: lineup.bench, firstLineup: undefined });
+    if (existing?.fromGameweek !== fromGameweek) await ctx.db.insert("lineups", { leagueId, teamId: team._id, fromGameweek, starters, bench: lineup.bench, ...(instructions && { instructions }) });
+    else await ctx.db.patch("lineups", existing._id, { starters, bench: lineup.bench, instructions, firstLineup: undefined });
     return fromGameweek;
   },
 });
@@ -214,6 +231,20 @@ export async function pickFirstLineupAgain(ctx: MutationCtx, leagueId: Id<"leagu
   const picked = withDroppedRoles(firstLineup(squad, positions, season.inGameweek(fromGameweek), keptOnBench), (playerCode) => stars.get(playerCode)!, row?.starters);
   if (row?.fromGameweek === fromGameweek) await ctx.db.patch("lineups", row._id, picked);
   else await ctx.db.insert("lineups", { leagueId, teamId, fromGameweek, ...picked, firstLineup: true });
+}
+
+/** The auto team's lineup for a gameweek begun (autoTeam.ts; spec/09): a saved row from it, which
+ *  rolls over as the manager's would, replacing one from that gameweek if there is one. */
+export async function storeAutoTeamLineup(
+  ctx: MutationCtx,
+  leagueId: Id<"leagues">,
+  teamId: Id<"teams">,
+  fromGameweek: number,
+  lineup: Pick<Doc<"lineups">, "starters" | "bench">,
+): Promise<void> {
+  const existing = await rowInForce(ctx, leagueId, teamId, fromGameweek);
+  if (existing?.fromGameweek === fromGameweek) await ctx.db.patch("lineups", existing._id, { ...lineup, firstLineup: undefined });
+  else await ctx.db.insert("lineups", { leagueId, teamId, fromGameweek, ...lineup });
 }
 
 /** When the draft ends (#1040): the team's first lineup, as its picks left it, becomes its saved

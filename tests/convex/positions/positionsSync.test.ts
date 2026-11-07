@@ -1,19 +1,22 @@
 import { expect, test } from "vitest";
 import { api, internal } from "../../../convex/_generated/api";
+import { FPL_BOOTSTRAP_URL, plCompSeasonsUrl, plFixturesUrl, plFixtureUrl } from "../../../convex/football/football";
+import { plSeasonMissing } from "../../../convex/football/premierLeague/plSeasons";
+import { FPL_SEASON, PL_LAST_SEASON, PL_THIS_SEASON, plSeasonList } from "../../support/recorded/plSeasons.payloads";
 import {
-  FPL_BOOTSTRAP_URL,
-  PL_COMP_SEASON,
-  PL_LAST_COMP_SEASON,
-  PL_SEASON_IDS_STALE,
-  PL_SEASON_IDS_STALE_FROM,
-  plFixturesUrl,
-  plFixtureUrl,
-} from "../../../convex/football/football";
-import { REFUSED_MATCH, asAdmin, heldPositions, reported, syncPositionsWith } from "../../support/convex/positionsSync.harness";
+  FIRST_COPY,
+  REFUSED_MATCH,
+  asAdmin,
+  heldPositions,
+  heldStarts,
+  pastTheCap,
+  reported,
+  syncPositionsWith,
+} from "../../support/convex/positionsSync.harness";
 import { MATCHES_PER_RUN, SYNC_FAILED_LOG } from "../../../convex/positions/positionsSync";
 import type { RawPlSquadPlayer } from "../../../convex/football/premierLeague/premierLeague";
 import { NEWCASTLE, PLAYER, recordedPositions, SHEET, UNPLAYED_MATCH } from "../../support/recorded/positions.payloads";
-import { freshConvex, refusedError, silenceConsoleError, type TestConvex } from "../../support/convex/test.harness";
+import { freshConvex, pendingJobs, refusedError, silenceConsoleError } from "../../support/convex/test.harness";
 
 /** The line a run logs when its read of url is refused. */
 function reportedFailure(url: string): string {
@@ -22,13 +25,6 @@ function reportedFailure(url: string): string {
 
 function manIn(men: RawPlSquadPlayer[], code: number): RawPlSquadPlayer {
   return men.find((man) => man.altIds?.opta === `p${code}`)!;
-}
-
-function heldStarts(t: TestConvex, code: number) {
-  return t.run(async (ctx) => {
-    const row = await ctx.db.query("playerPositions").withIndex("by_code", (q) => q.eq("code", code)).unique();
-    return row?.starts ?? [];
-  });
 }
 
 test("a run files every played match's starts and this season's labels, and reports what it could not place", async () => {
@@ -49,6 +45,8 @@ test("a run files every played match's starts and this season's labels, and repo
     // Every man FPL lists that a squad or a sheet names, each new to the table.
     labelsReceived: 121,
     labelsChanged: 121,
+    // The recorded squads were cut to each man's label, so none carries his number.
+    clubNumbersChanged: 0,
     unknownFormations: [],
     unknownLabels: [],
   });
@@ -112,6 +110,24 @@ test("a label the table does not know is reported, and gives no position", async
   expect(await heldPositions(t, PLAYER.steur)).toEqual({});
 });
 
+test("each squad man's number is his club number (#13), and a run with it unchanged changes nothing", async () => {
+  const t = freshConvex();
+  const logged = silenceConsoleError();
+  const payloads = recordedPositions();
+  manIn(payloads.squads[NEWCASTLE.pl].players, PLAYER.hall).info!.shirtNum = 3;
+  manIn(payloads.squads[NEWCASTLE.pl].players, PLAYER.steur).info!.shirtNum = 41;
+  const clubNumbers = () => t.run(async (ctx) => (await ctx.db.query("clubNumbers").collect()).map(({ code, number }) => [code, number]));
+
+  expect((await syncPositionsWith(t, payloads)).outcome).toMatchObject({ ok: true, clubNumbersChanged: 2 });
+  expect(await clubNumbers()).toEqual(expect.arrayContaining([[PLAYER.hall, 3], [PLAYER.steur, 41]]));
+  expect(await clubNumbers()).toHaveLength(2);
+
+  delete manIn(payloads.squads[NEWCASTLE.pl].players, PLAYER.steur).info!.shirtNum;
+  expect((await syncPositionsWith(t, payloads)).outcome).toMatchObject({ ok: true, clubNumbersChanged: 1 });
+  expect(await clubNumbers()).toEqual([[PLAYER.hall, 3]]);
+  expect(logged).toHaveBeenCalledWith(reported());
+});
+
 test("a squad's label wins over a sheet's, and a man no squad lists keeps his newest sheet's", async () => {
   const t = freshConvex();
   const logged = silenceConsoleError();
@@ -154,8 +170,9 @@ test("a man's row keeps his newest 38 starts, the oldest dropped", async () => {
 
 test.each([
   ["FPL's players", FPL_BOOTSTRAP_URL],
-  ["last season's fixture list", plFixturesUrl(undefined, PL_LAST_COMP_SEASON)],
-  ["this season's fixture list", plFixturesUrl(undefined, PL_COMP_SEASON)],
+  ["the Premier League's seasons", plCompSeasonsUrl()],
+  ["last season's fixture list", plFixturesUrl(PL_LAST_SEASON)],
+  ["this season's fixture list", plFixturesUrl(PL_THIS_SEASON)],
 ])("a refused read of %s is recorded as the run's failure, and files nothing", async (_what, url) => {
   const t = freshConvex();
   const logged = silenceConsoleError();
@@ -167,14 +184,27 @@ test.each([
   expect(await heldStarts(t, PLAYER.barnes)).toEqual([]);
 });
 
-test("a run once the season ids are out of date fails, saying so, and files nothing (#201)", async () => {
+test("a run reads the seasons FPL is on and the one before, even on 1 July, with no ids to update (#300)", async () => {
   const t = freshConvex();
   const logged = silenceConsoleError();
 
-  const { outcome } = await syncPositionsWith(t, recordedPositions(), undefined, PL_SEASON_IDS_STALE_FROM);
+  const { outcome, urls } = await syncPositionsWith(t, recordedPositions(), undefined, Date.parse("2027-07-01T00:00:00Z"));
 
-  expect(outcome).toEqual({ ok: false, error: PL_SEASON_IDS_STALE });
-  expect(logged).toHaveBeenCalledWith(`${SYNC_FAILED_LOG}: ${PL_SEASON_IDS_STALE}`);
+  expect(outcome.ok).toBe(true);
+  expect(logged).toHaveBeenCalledWith(reported());
+  expect(urls).toEqual(expect.arrayContaining([plFixturesUrl(PL_LAST_SEASON), plFixturesUrl(PL_THIS_SEASON)]));
+});
+
+test("a run when the Premier League lists no season FPL is on fails, saying which, and files nothing (#300)", async () => {
+  const t = freshConvex();
+  const logged = silenceConsoleError();
+  const payloads = { ...recordedPositions(), plSeasons: plSeasonList().slice(1) };
+
+  const { outcome } = await syncPositionsWith(t, payloads);
+
+  const missing = plSeasonMissing(FPL_SEASON, FPL_SEASON);
+  expect(outcome).toEqual({ ok: false, error: missing });
+  expect(logged).toHaveBeenCalledWith(`${SYNC_FAILED_LOG}: ${missing}`);
   expect(await heldStarts(t, PLAYER.barnes)).toEqual([]);
 });
 
@@ -192,27 +222,14 @@ test("a failed read mid-run fails the run, and leaves the matches read before it
 
 test(`one run reads at most ${MATCHES_PER_RUN} matches' sheets, oldest first, and says how many are left`, async () => {
   const t = freshConvex();
-  const payloads = recordedPositions();
-  const [template] = payloads.sheets;
-  // Copies of one match, each its own fixture, the first the newest.
-  const firstCopy = 900_000;
-  const copies = Array.from({ length: MATCHES_PER_RUN + 2 }, (_, index) => ({
-    ...structuredClone(template),
-    id: firstCopy + index,
-    altIds: { opta: `g${firstCopy + index}` },
-    kickoff: { millis: template.kickoff!.millis - index },
-  }));
-  payloads.sheets = copies;
-  payloads.fixtureLists = { [PL_LAST_COMP_SEASON]: copies, [PL_COMP_SEASON]: [] };
-  // FPL listing Thiaw alone, so each copy files his one start, not a whole match's: filing every
-  // starter of 152 matches took over the default five seconds on a loaded machine.
-  payloads.fplElements = payloads.fplElements.filter((element) => element.code === PLAYER.thiaw);
 
-  const { outcome } = await syncPositionsWith(t, payloads);
+  const { outcome } = await syncPositionsWith(t, pastTheCap());
 
   expect(outcome).toMatchObject({ ok: true, matchesRead: MATCHES_PER_RUN, matchesLeft: 2 });
   const filed = (await heldStarts(t, PLAYER.thiaw)).map((start) => start.fixtureCode);
-  expect(filed).toContain(firstCopy + 2);
-  expect(filed).not.toContain(firstCopy); // the newest two wait for the next run
-  expect(filed).not.toContain(firstCopy + 1);
+  expect(filed).toContain(FIRST_COPY + 2);
+  expect(filed).not.toContain(FIRST_COPY); // the newest two wait for the next run
+  expect(filed).not.toContain(FIRST_COPY + 1);
+  // Run by hand, it stays one run.
+  expect(await pendingJobs(t, internal.positions.positionsSync.run)).toEqual([]);
 }, 30_000);

@@ -8,6 +8,7 @@ guard_mode.py then judges by the message before. Stdlib only, Python 3.9+.
 
 from __future__ import annotations
 
+import re
 import sys
 import tempfile
 from pathlib import Path
@@ -16,13 +17,24 @@ from hook_payload import BadPayload, field, read_payload, report
 
 STATE_DIR = Path(tempfile.gettempdir()) / "draft-last-prompt"
 PROMPT_BYTES = 4000
+NOTICE_TAGS = ("system-reminder", "task-notification", "agent-message", "side-sessions-event", "ci-monitor-event")
+NOTICE = re.compile(r"<(%s)\b[^>]*>.*?</\1[^>]*>" % "|".join(NOTICE_TAGS), re.S)
 
 
 def state_file(session):
     return STATE_DIR / ("".join(c for c in session if c.isalnum() or c in "-_") or "unknown")
 
 
+def own_words(prompt):
+    """The prompt without the app's notices (a finished background task, an agent's report), which arrive as
+    prompts but aren't Craig's: one must never stand in for his latest message (CTO review, 5 Nov 2026)."""
+    return NOTICE.sub("", prompt).strip()
+
+
 def remember(session, prompt):
+    prompt = own_words(prompt)
+    if not prompt:
+        return  # only a notice: his message before still stands
     try:
         STATE_DIR.mkdir(exist_ok=True)
         state_file(session).write_text(prompt[:PROMPT_BYTES], encoding="utf-8")

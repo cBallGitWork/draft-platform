@@ -12,12 +12,18 @@ export const WEEK_MS = 7 * DAY_MS;
 /** `Date.UTC`'s month for July: a season's last match is in May and the next one's first in August,
  *  so a season is counted from 1 July. */
 export const JULY = 6;
+/** `Date.UTC`'s month for June: from 1 June after its season, FPL may send no fixtures until it
+ *  publishes the next season's (#66). */
+export const JUNE = 5;
 /** The year the season `at` falls in starts, 2026 for 2026/27: a season runs from 1 July (JULY)
  *  to 30 June. The one way the platform knows a season (#355). */
 export function seasonStartYear(at: number): number {
   const date = new Date(at);
   return date.getUTCFullYear() - (date.getUTCMonth() < JULY ? 1 : 0);
 }
+
+/** When the season `at` falls in began: 1 July of `seasonStartYear`, UTC. */
+export const seasonStartAt = (at: number): number => Date.UTC(seasonStartYear(at), JULY, 1);
 
 /** About when a match's lineups are out before kickoff: spec/10's "about an hour". The Premier
  *  League had them out at the first read 58 minutes before (docs/pl-commentary.md, What a live

@@ -7,6 +7,7 @@ import { MATCH_RECORDS_MOST } from "../../../convex/gameweekScorer/heldMatches";
 import { REFRESH_COMMAND } from "../../../convex/stars/starsRefresh";
 import { PLAYERS_PAGE } from "../../../convex/stats/matchRecords";
 import { UNSURE } from "../../../convex/stars/starsShape";
+import { pricedRole } from "../../support/convex/scoring.example";
 import { holdSiteScoring } from "../../support/convex/siteScoring.harness";
 import { freshConvex, pendingJobs, silenceConsoleError, type TestConvex } from "../../support/convex/test.harness";
 import { ARSENAL, insertPlayers } from "../../support/convex/footballRows.harness";
@@ -121,7 +122,7 @@ test("matches are priced under today's scoring: a role's adjustment in force lif
   const before = await ratingOf(poacher);
   await t.run((ctx) =>
     holdSiteScoring(ctx, {
-      scoring: { ...FIRST_SCORING, roleAdjustments: [{ role: poacher, adjustments: [{ stat: "goals_scored", points: 1 }] }] },
+      scoring: { ...FIRST_SCORING, roles: [pricedRole(poacher, "goals_scored", 1)] },
       kind: "patch",
       season: 2026,
       number: 1,

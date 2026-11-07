@@ -6,7 +6,7 @@ import { vi } from "vitest";
 import type { Id } from "../../../convex/_generated/dataModel";
 import type { PlayingState } from "../../../convex/football/matchScores";
 import type { Area } from "../../../convex/lineup/pitch";
-import { namedRole, roleIn } from "../../../convex/lineup/roles";
+import { centreSlotOf } from "../../../src/matchup/preview";
 import type { MatchupCommentary, MatchupSide, MatchupBenchSlot, MatchupSlot, MatchupStarter } from "../../../convex/matchup/matchupShape";
 import type { Matchup, MatchupSeam } from "../../../src/matchup/seam";
 import { lineupLabel } from "../../../src/matchup/words";
@@ -75,19 +75,21 @@ export const slot = (name: string, rest: Partial<Slot> = {}): Slot => ({
   provisional: true,
   status: { kind: "yetToPlay", fixtureCode: SLOT_MATCH, kickoff: null },
   autoSub: null,
+  breakdown: [],
   ...rest,
 });
 
 /** The role a made-up starter plays unless his test gives one: his area's centre slot's first, as
  *  made-up men stand in areas, not cells. */
-export const roleOf = (area: Area) => namedRole(roleIn({ area, lane: "centre" }, undefined));
+export const roleOf = (area: Area) => centreSlotOf(area).role;
 
-/** A team's side: its starters, each in his area's role (roleOf) unless he has one, and bench, none
- *  with a role unless he has one, its total and whether that is provisional. */
+/** A team's side: its starters, each in his area's centre slot and role (roleOf) unless he has
+ *  one, and bench, none with a role or place unless he has one, its total and whether that is
+ *  provisional. */
 export const teamSide = (
   teamName: string,
-  starters: (Slot & Partial<Pick<MatchupStarter, "role">>)[],
-  bench: (Slot & Partial<Pick<MatchupBenchSlot, "role">>)[],
+  starters: (Slot & Partial<Pick<MatchupStarter, "role" | "place">>)[],
+  bench: (Slot & Partial<Pick<MatchupBenchSlot, "role" | "place">>)[],
   points = 0,
   provisional = true,
 ): Side => ({
@@ -96,7 +98,7 @@ export const teamSide = (
   teamName,
   points,
   provisional,
-  lineup: { starters: starters.map((starter) => ({ role: roleOf(starter.area), ...starter })), bench: bench.map((slot) => ({ role: null, ...slot })) },
+  lineup: { starters: starters.map((starter) => ({ ...centreSlotOf(starter.area), ...starter })), bench: bench.map((slot) => ({ role: null, place: null, ...slot })) },
   formation: null,
 });
 
@@ -107,10 +109,16 @@ type Scored = Extract<Game, { kind: "scored" }>;
 const NO_COMMENTARY: MatchupCommentary = { kind: "read", lines: [], delayed: false };
 
 /** Team 1's matchup in `gameweek`, of the gameweeks it plays, holding `game`; a scored one with no
- *  commentary unless it gives some. */
+ *  commentary, scored under the first set, unless it gives some. */
 export const headToHead = (
-  game: Exclude<Game, Scored> | (Omit<Scored, "commentary"> & { commentary?: MatchupCommentary }),
-  { gameweek = 6, gameweeks = [5, 6, 7], deadline = null as number | null } = {},
+  game: Exclude<Game, Scored> | (Omit<Scored, "commentary" | "version"> & Partial<Pick<Scored, "commentary" | "version">>),
+  {
+    gameweek = 6,
+    gameweeks = [5, 6, 7],
+    deadline = null as number | null,
+    gameNumber = 1,
+    games = [{ kind: "team", teamName: "Team 2" }] as HeadToHead["games"],
+  } = {},
 ): HeadToHead => ({
   kind: "headToHead",
   teamId: "team-Team 1" as Id<"teams">,
@@ -118,5 +126,7 @@ export const headToHead = (
   gameweeks,
   gameweek,
   deadline,
-  game: game.kind === "scored" ? { commentary: NO_COMMENTARY, ...game } : game,
+  gameNumber,
+  games,
+  game: game.kind === "scored" ? { commentary: NO_COMMENTARY, version: null, ...game } : game,
 });

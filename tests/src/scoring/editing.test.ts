@@ -15,6 +15,7 @@ import {
   withPricing,
   withShape,
   withStack,
+  withOwnStat,
   withValue,
   type Rule,
 } from "../../../src/scoring/editing";
@@ -120,4 +121,21 @@ it("finds the first rule holding a box left without a number", () => {
   expect(firstBlankRule(scoring)).toBe(-1);
   scoring.rules[3] = withValue(scoring.rules[3], "midfield", NaN);
   expect(firstBlankRule(scoring)).toBe(3);
+});
+
+describe("an own stat made (spec/14, Own stats)", () => {
+  const made = { name: "Tackles + clearances", shortCode: "T+C", parts: [{ stat: "tackles", weight: 1 }, { stat: "total_clearance", weight: 0.5 }] };
+
+  it("joins the set with a category scoring it, worth nothing yet, and the set stays sound", () => {
+    const scoring = withOwnStat(structuredClone(FIRST_SCORING), made);
+    expect(scoring.ownStats).toEqual([{ stat: "league:tackles_clearances", ...made }]);
+    expect(scoring.rules.at(-1)).toEqual({ shape: "perAction", stat: "league:tackles_clearances", values: { all: 0 } });
+    validateScoringSet(scoring);
+  });
+
+  it("gets a key no own stat in the set has, even named alike or with no letters", () => {
+    const twice = withOwnStat(withOwnStat(structuredClone(FIRST_SCORING), made), { ...made, name: "tackles clearances", shortCode: "TC2" });
+    expect(twice.ownStats?.map((own) => own.stat)).toEqual(["league:tackles_clearances", "league:tackles_clearances_2"]);
+    expect(withOwnStat(structuredClone(FIRST_SCORING), { ...made, name: "++" }).ownStats?.[0].stat).toBe("league:own");
+  });
 });

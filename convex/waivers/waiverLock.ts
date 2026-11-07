@@ -8,7 +8,7 @@ import { gameweekFixtures } from "../shared/fixtures";
 // gameweek until every match the feed still sends in it is at full time.
 
 /** The latest gameweek the league has begun by `now`, or null before its first deadline. */
-function latestBegun(deadlines: LeagueDeadlines, now: number): number | null {
+export function latestBegun(deadlines: LeagueDeadlines, now: number): number | null {
   const begun = [...deadlines].flatMap(([gameweek, deadline]) => (isLocked(deadline, now) ? [gameweek] : []));
   return begun.length === 0 ? null : Math.max(...begun);
 }
@@ -17,7 +17,12 @@ function latestBegun(deadlines: LeagueDeadlines, now: number): number | null {
  *  at full time, or with no score read yet. A league with no deadline yet has no lock. */
 export async function inWaiverLock(ctx: QueryCtx, deadlines: LeagueDeadlines, now: number): Promise<boolean> {
   const gameweek = latestBegun(deadlines, now);
-  if (gameweek === null) return false;
+  return gameweek !== null && (await gameweekUnderWay(ctx, gameweek));
+}
+
+/** Whether a gameweek has a match not yet at full time, or with no score read yet: it is under way
+ *  once begun, until its last match is over. Trades read it too (../trades/tradeShut.ts). */
+export async function gameweekUnderWay(ctx: QueryCtx, gameweek: number): Promise<boolean> {
   const matches = await gameweekFixtures(ctx, gameweek, "the waiver lock can't tell whether its last match is over");
   const scores = await Promise.all(matches.map(({ code }) => scoreOf(ctx, code)));
   return scores.some((score) => score?.state !== "fullTime");

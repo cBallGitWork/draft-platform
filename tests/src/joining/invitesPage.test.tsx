@@ -19,12 +19,14 @@ import {
   forTeamWords,
   inviteHint,
   inviteLinkWords,
+  invitesCutWords,
   INVITES_TITLE,
   joinedWords,
   linkHint,
   loadingWords,
   noTeamWords,
   notYoursWords,
+  requestsCutWords,
   requestsWords,
   waitingStrip,
 } from "../../../src/joining/words";
@@ -48,7 +50,9 @@ const page: InvitesPageData = {
     { ...inviteRow("invite-cat", "cat@example.com"), expiresAt: Date.now() - DAY_MS },
     { ...inviteRow("invite-dan", "dan@example.com"), joinedTeamName: "Team 1" },
   ],
+  invitesCut: false,
   requests: [{ requestId: "request-eve" as Id<"joinRequests">, email: "eve@example.com", askedAt: Date.UTC(2026, 9, 19) }],
+  requestsCut: false,
 };
 
 const openPage = (invitesPage: InvitesPageData | null = page) =>
@@ -76,6 +80,14 @@ describe("the invites page", () => {
     expect(within(inviteItem("cat@example.com")).getByText(expiredWords)).toBeTruthy();
     expect(within(inviteItem("dan@example.com")).getByText(joinedWords("Team 1"))).toBeTruthy();
     expect(screen.getByRole("status").textContent).toBe(waitingStrip(1));
+    expect(screen.queryByText(invitesCutWords)).toBeNull();
+    expect(screen.queryByText(requestsCutWords)).toBeNull();
+  });
+
+  it("says when more invites or requests exist than it lists (#410)", async () => {
+    openPage({ ...page, invitesCut: true, requestsCut: true });
+    expect(await screen.findByText(invitesCutWords)).toBeTruthy();
+    expect(screen.getByText(requestsCutWords)).toBeTruthy();
   });
 
   it("an invite that lapses while the page is open shows as expired within a minute", async () => {

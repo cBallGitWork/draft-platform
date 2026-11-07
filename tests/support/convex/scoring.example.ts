@@ -5,6 +5,7 @@
 import { SLOT_POSITIONS, type Cell, type SlotPosition } from "../../../convex/lineup/pitch";
 import type { ByArea, ByPosition } from "../../../convex/scoring/priced";
 import { AREAS, type Area, type OwnStat, type ScoringSet } from "../../../convex/scoring/scoringSet";
+import type { StoredScoringSet } from "../../../convex/scoring/scoringSetShape";
 
 /** The slot in the centre of an area: where the tests stand a player when only his area matters. */
 export const centreOf = (area: Area): Cell => ({ area, lane: "centre" });
@@ -76,9 +77,18 @@ export const EXAMPLE_SET: ScoringSet = {
  *  4 + 3 + 2 = 9 up front. */
 export const GOAL_AND_ASSIST = { minutes: 90, goals_scored: 1, assists: 1 };
 
+/** A role (spec/05 Roles) moving a man by `points` for each action of `stat`, up to its three
+ *  bars: `pricedRole("poacher", "goals_scored", 1)` is +1 a goal, at most +3, and a negative
+ *  `points` takes them as its cost. Its other side counts handballs, which no test's man makes. */
+export function pricedRole(role: string, stat: string, points: number): NonNullable<StoredScoringSet["roles"]>[number] {
+  const priced = { parts: [{ stat, weight: Math.abs(points) }], bars: [1, 2, 3] };
+  const unmoved = { parts: [{ stat: "hand_ball", weight: 1 }], bars: [1] };
+  return points > 0 ? { role, bonus: priced, cost: unmoved } : { role, bonus: unmoved, cost: priced };
+}
+
 /** One of the site's own stats (spec/14, Own stats): tackles won + 0.5 × clearances. */
 export const TACKLES_AND_CLEARANCES: OwnStat = {
-  stat: "own_tackles_and_clearances",
+  stat: "league:tackles_and_clearances",
   name: "Tackles and clearances",
   shortCode: "T+C",
   parts: [

@@ -18,13 +18,11 @@ export const leagueDeletion = v.object({
   deletesAt: v.number(),
   /** The scheduled deleteForGood, which undoing cancels. */
   scheduledId: v.id("_scheduled_functions"),
-  /** Left by #75, which emailed while a league could be undone: nothing writes or reads it now
-   *  (#320). Kept only so a league deleted before then still matches; drop it once none is left (#328). */
-  unemailed: v.optional(v.array(v.object({ email: v.string(), reason: unemailedReason }))),
 });
 
 /** One person who wasn't emailed that a league has been deleted (#320). The league is gone by
- *  then, so the row stands alone: it names the league rather than pointing at it. */
+ *  then, so the row stands alone: it names the league rather than pointing at it. No screen reads
+ *  it, as the log says the same, and it goes after UNEMAILED_KEPT_MS (deletionNotices.ts, #897). */
 const unemailedDeletionFields = {
   leagueName: v.string(),
   /** Who deleted it, by email. */
@@ -85,6 +83,10 @@ const teamFields = {
    *  starts (spec/04, Auto-pick; #1095): the draft doesn't pick for it at once, its clock runs, and
    *  he picks for it. A manager joining the team takes it off. ../draft/draftCommissioner.ts writes it. */
   commissionerPicks: v.optional(v.literal(true)),
+  /** The auto team, switched on by a person (spec/09, The auto team; ../lineup/autoTeam.ts): who
+   *  switched it on, and the gameweek it ends after, if its manager named one. Absent while off. A
+   *  team with no manager is on it whatever this holds, and handing it on clears this. */
+  autoTeam: v.optional(v.object({ by: v.string(), endsAfter: v.optional(v.number()) })),
 };
 
 /** The league switcher (#76): the league each person used last, by email, one row each. */
@@ -133,6 +135,49 @@ export const leagueEvent = v.union(
     reason: v.string(),
     teams: v.array(v.object({ teamName: v.string(), from: v.number(), to: v.number() })),
   }),
+  /** A commissioner's removal of a player's override (#903, spec/14 S14.5): `from` the
+   *  override's points, `to` what he scores there again, null while no lineup fields him, and
+   *  `teams` each team whose gameweek total it moved. */
+  v.object({
+    kind: v.literal("pointsOverrideRemoved"),
+    playerCode: v.number(),
+    playerName: v.string(),
+    fixtureCode: v.number(),
+    matchName: v.string(),
+    gameweek: v.number(),
+    from: v.number(),
+    to: v.union(v.number(), v.null()),
+    teams: v.array(v.object({ teamName: v.string(), from: v.number(), to: v.number() })),
+  }),
+  /** A commissioner's override of a team's total in a gameweek (#903, spec/14 S14.3), or its
+   *  removal (`reason` null, `to` the total as scored again): `from` its total before. */
+  v.object({
+    kind: v.literal("teamPointsOverridden"),
+    teamId: v.id("teams"),
+    teamName: v.string(),
+    gameweek: v.number(),
+    from: v.number(),
+    to: v.number(),
+    reason: v.union(v.string(), v.null()),
+  }),
+  /** A commissioner's fixture edit (spec/09, Fixture edits; #1208): `swapped` the two sides moved
+   *  between two games in the gameweek, and `games` those two games after, each side by name and
+   *  the league's average as null. */
+  v.object({
+    kind: v.literal("fixturesSwapped"),
+    gameweek: v.number(),
+    swapped: v.array(v.union(v.string(), v.null())),
+    games: v.array(v.object({ team: v.union(v.string(), v.null()), opponent: v.union(v.string(), v.null()) })),
+  }),
+  /** A person switched a team's auto team on or off (spec/09, The auto team; #1207): `endsAfter`
+   *  the gameweek its manager named it ends after, null when he named none or it went off. */
+  v.object({
+    kind: v.literal("autoTeamSwitched"),
+    teamId: v.id("teams"),
+    teamName: v.string(),
+    on: v.boolean(),
+    endsAfter: v.union(v.number(), v.null()),
+  }),
 );
 
 const leagueEventFields = {
@@ -155,5 +200,5 @@ export const leagueTables = {
     // League home's latest squad moves of each kind (spec/12), without reading every other event.
     .index("by_leagueId_and_kind_and_at", ["leagueId", "event.kind", "at"]),
   lastLeagues: defineTable(lastLeagueFields).index("by_email", ["email"]).index("by_leagueId", ["leagueId"]),
-  unemailedDeletions: defineTable(unemailedDeletionFields),
+  unemailedDeletions: defineTable(unemailedDeletionFields).index("by_at", ["at"]),
 };

@@ -59,7 +59,7 @@ test("the log is read by ai-carling's own Python, the columns the copy keeps and
 
 test("the season's old rows are cleared page by page, then its rows added and last season re-priced, on dev", async () => {
   const { exec, calls } = await fakeTools({ clearing: 2500 });
-  expect(await run(exec)).toEqual({ counts: SAMPLE[2025].counts, cleared: 2500, added: 9 });
+  expect(await run(exec)).toEqual({ counts: SAMPLE[2025].counts, cleared: 2500, added: 9, skipped: [] });
   const convexCalls = calls.filter((call) => call.command === CONVEX).map((call) => call.args);
   expect(convexCalls.map((args) => args[1])).toEqual([
     "pastSeasons/pastSeasonLoad:clearSeason",
@@ -91,6 +91,38 @@ test("a log whose sizes aren't the planned ones stops the run before anything is
   const wrong = { 2025: { ...SAMPLE[2025], counts: { ...SAMPLE[2025].counts, playedRows: 9 } } };
   await expect(run(exec, { seasons: wrong })).rejects.toThrow("2025's log isn't the season it was planned on (playedRows 8, planned 9): nothing was loaded");
   expect(calls.some((call) => call.command === CONVEX)).toBe(false);
+});
+
+test("the copy knows spec/14's five seasons, each from its own log, an older one checked on its 380 matches", () => {
+  expect(Object.keys(SEASONS)).toEqual(["2021", "2022", "2023", "2024", "2025"]);
+  expect(SEASONS[2021].log).toBe("data/match_logs/player_match_log/season=21-22/player_match_log.parquet");
+  expect(SEASONS[2024].log).toBe("data/match_logs/player_match_log/season=24-25/player_match_log.parquet");
+  expect(SEASONS[2025].log).toBe("data/match_logs/player_match_log/season=25-26/player_match_log.parquet");
+  expect(SEASONS[2022].counts).toEqual({ matches: 380 });
+});
+
+test("an older season loads from the FPL list named with --players, checked only on its matches", async () => {
+  const { exec, calls } = await fakeTools();
+  const older = { 2021: { log: SAMPLE[2025].log, players: null, counts: { matches: 2 } } };
+  await expect(run(exec, { season: 2021, seasons: older })).rejects.toThrow("2021 needs its FPL player list: name it with --players");
+  expect(calls).toEqual([]);
+  const result = await run(exec, { season: 2021, seasons: older, players: SAMPLE[2025].players });
+  expect(result.added).toBe(9);
+  const added = calls.filter((call) => call.args[1]?.endsWith(":addRows")).flatMap((call) => JSON.parse(call.args[2]).rows);
+  expect(added.every((row) => row.season === 2021)).toBe(true);
+});
+
+test("a player with no FPL code is skipped and named, and the rest of the season still loads", async () => {
+  const sample = JSON.parse(await readFile(join(FROM, "playerMatchLog.sample.json"), "utf8"));
+  const unmatched = sample.filter((row) => row.person_root_id === "keeper-one").map((row) => ({ ...row, person_root_id: "no-fpl-seven" }));
+  const { exec } = await fakeTools();
+  const withUnmatched = async (command, args) => (command === join(FROM, PYTHON) ? { code: 0, stdout: JSON.stringify([...sample, ...unmatched]), stderr: "" } : exec(command, args));
+  const printed = [];
+  const counts = { 2025: { ...SAMPLE[2025], counts: { matches: 2 } } };
+  const result = await run(withUnmatched, { seasons: counts, print: (line) => printed.push(line) });
+  expect(result.added).toBe(9);
+  expect(result.skipped.map(({ root }) => root)).toEqual(["no-fpl-seven"]);
+  expect(printed[0]).toMatch(/^2025: skipped 1 with no FPL code, \d+ played matches in all: no-fpl-seven \(\d+ played\)$/);
 });
 
 test("a season the copy doesn't know is refused", async () => {

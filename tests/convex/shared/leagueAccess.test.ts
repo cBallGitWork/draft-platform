@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, test, vi } from "vitest";
 import { ConvexError } from "convex/values";
 import { api } from "../../../convex/_generated/api";
 import type { TableNames } from "../../../convex/_generated/dataModel";
+import { autoTeamRefusals } from "../../../convex/lineup/autoTeamWords";
 import { mailRefusals } from "../../../convex/mail/mail";
 import schema from "../../../convex/schema";
 import { refusals } from "../../../convex/shared/leagueAccess";
@@ -31,6 +32,7 @@ const KEEPS_OUT: string[] = [
   refusals.runsNoTeam,
   refusals.notInLeague,
   mailRefusals.noLetter,
+  autoTeamRefusals.notYours,
 ];
 
 let t: TestConvex;

@@ -50,7 +50,7 @@ export async function siteScoringAt(ctx: QueryCtx, at: number): Promise<StoredSc
 
 /** The site's scoring set in a gameweek, which every league scores that gameweek's matches by: the
  *  newest version to take effect at or before its first kickoff, the first set before any. A
- *  gameweek with no kickoff time yet plays the newest. */
+ *  gameweek with no kickoff time yet plays the one in force, never a waiting patch. */
 export async function siteScoringInGameweek(ctx: QueryCtx, gameweek: number): Promise<StoredScoringSet> {
   return (await siteScoringByGameweek(ctx))(gameweek);
 }
@@ -75,11 +75,28 @@ export async function siteVersionByGameweek(ctx: QueryCtx): Promise<(gameweek: n
   const matches = await scheduledMatches(ctx);
   const recordedStarts = await gameweekStartsOf(ctx, matches);
   const kickoffs = firstKickoffs(matches);
+  const unscheduled = versionInForceUnscheduled(history, recordedStarts, kickoffs);
   return (gameweek) => {
     const firstKickoff = recordedStarts.get(gameweek) ?? kickoffs.get(gameweek) ?? null;
-    const inForce = firstKickoff === null ? history.at(-1) : history.findLast((row) => row.takesEffectAt <= firstKickoff);
+    const inForce = firstKickoff === null ? unscheduled : history.findLast((row) => row.takesEffectAt <= firstKickoff);
     return { set: setOf(inForce), name: inForce === undefined ? null : versionName(inForce) };
   };
+}
+
+/** The version a gameweek with no kickoff time yet plays: the one in force, never a patch still
+ *  waiting (Craig, 1 Nov 2026, on #901: "old", though gameweeks always have a time). A query must
+ *  not read the clock, so in force is what the schedule shows: a fix takes effect when it is made,
+ *  so is in force; a patch is once a gameweek has begun at or after its moment, or if its moment
+ *  came before the season's first kickoff (with no kickoffs held, nothing is scored, so any is).
+ *  Undefined for the first set. */
+function versionInForceUnscheduled(
+  history: readonly Doc<"siteScoring">[],
+  recordedStarts: ReadonlyMap<number, number>,
+  kickoffs: ReadonlyMap<number, number>,
+): Doc<"siteScoring"> | undefined {
+  const latestBegun = Math.max(-Infinity, ...recordedStarts.values());
+  const seasonFirst = Math.min(Infinity, ...kickoffs.values(), ...recordedStarts.values());
+  return history.findLast((row) => row.kind === "fix" || row.takesEffectAt <= latestBegun || row.takesEffectAt < seasonFirst);
 }
 
 /** The first gameweek a version taking effect at `at` reaches: the first whose first kickoff is at
@@ -88,8 +105,33 @@ export async function siteVersionByGameweek(ctx: QueryCtx): Promise<(gameweek: n
  *  kicked off, 39 (`nextGameweek`). It counts the season's gameweeks, never the held gameweek rows,
  *  whose read throws past FPL's 38 (#832). */
 export async function firstGameweekFrom(ctx: QueryCtx, at: number): Promise<number> {
+  return (await firstGameweekFromAny(ctx))(at);
+}
+
+/** `firstGameweekFrom` for any moment, reading the schedule once: for the versions list. */
+export async function firstGameweekFromAny(ctx: QueryCtx): Promise<(at: number) => number> {
   const matches = await scheduledMatches(ctx);
+  const starts = await gameweekStartsOf(ctx, matches);
   const gameweeks = SEASON_GAMEWEEKS.map((number) => ({ number }));
   // nextGameweek counts a gameweek begun at its kickoff; a version taking effect then still reaches it.
-  return nextGameweek(gameweeks, matches, () => AT_FIRST_KICKOFF, await gameweekStartsOf(ctx, matches), at - 1);
+  return (at) => nextGameweek(gameweeks, matches, () => AT_FIRST_KICKOFF, starts, at - 1);
+}
+
+/** A gameweek a patch can be announced to take effect from, and the moment that is. */
+export type PatchGameweek = { gameweek: number; takesEffectAt: number };
+
+/** The gameweeks a patch announced at `now` can take effect from (Craig, 6 Nov 2026, on #368: "you
+ *  pick a gameweek and it takes effect from that gameweek's deadline; only gameweeks at least 7 days
+ *  away are offered"), in order. The site's scoring has no league, so a gameweek's moment is the one
+ *  every version is read by: its first kickoff (`siteVersionByGameweek`). Offered: a gameweek not
+ *  yet begun, with a kickoff time, at least `noticeMs` after `now` and none before the latest
+ *  version takes effect, as `announce` refuses a patch landing before one already announced. */
+export async function patchGameweeks(ctx: QueryCtx, now: number, noticeMs: number): Promise<PatchGameweek[]> {
+  const matches = await scheduledMatches(ctx);
+  const starts = await gameweekStartsOf(ctx, matches);
+  const latestAt = (await siteVersions(ctx)).at(-1)?.takesEffectAt ?? -Infinity;
+  return [...firstKickoffs(matches)]
+    .filter(([gameweek, kickoff]) => !starts.has(gameweek) && kickoff >= now + noticeMs && kickoff >= latestAt)
+    .map(([gameweek, takesEffectAt]) => ({ gameweek, takesEffectAt }))
+    .toSorted((one, other) => one.gameweek - other.gameweek);
 }

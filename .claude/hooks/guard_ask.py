@@ -92,17 +92,20 @@ def normal(text):
     return " ".join(re.sub(r"[^a-z0-9 ]", " ", text.lower()).split())
 
 
-def asked_before(text):
-    """True if this question (its words, not its header) was asked within ASK_ONCE_DAYS; records it otherwise."""
+def asked_before(text, call):
+    """True if this question (its words, not its header) was asked within ASK_ONCE_DAYS by another call;
+    records it otherwise. The mark holds the asking call's tool_use_id, since Claude Code can run a
+    call's PreToolUse hooks twice: on 6 Nov 2026 the second run found the first run's marks and refused
+    a question never asked before. With no id, every run is its own call."""
     mark = ASKED_DIR / hashlib.sha256(normal(text).encode()).hexdigest()[:24]
     try:
         if time.time() - mark.stat().st_mtime < ASK_ONCE_DAYS * 86400:
-            return True
+            return not call or mark.read_text(encoding="utf-8") != call
     except OSError:
         pass
     try:
         ASKED_DIR.mkdir(exist_ok=True)
-        mark.touch()
+        mark.write_text(call, encoding="utf-8")
     except OSError:
         pass
     return False
@@ -121,7 +124,8 @@ def decide(payload):
         if kind:
             found.append(Settled(text, kind))
     if not found and tool == ASK_TOOL:
-        repeats = [t for t in asked if asked_before(t.split(" ", 1)[-1] if " " in t else t)]
+        call = field(payload, "tool_use_id", str, "")
+        repeats = [t for t in asked if asked_before(t.split(" ", 1)[-1] if " " in t else t, call)]
         if repeats:
             return (f"Already asked in the last {ASK_ONCE_DAYS} days: \"{repeats[0][:120]}\". Read the answer on its "
                     "issue or the PM dashboard (file-answers-before-asking), and ask only what's new.")

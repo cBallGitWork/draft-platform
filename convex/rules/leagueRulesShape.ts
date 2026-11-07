@@ -1,5 +1,6 @@
 import { v, type Infer } from "convex/values";
 import { UNDRAFTED_GO_TO } from "../draft/draftRules";
+import { instructionPairShape, instructionShape } from "../lineup/instructionsShape";
 import { byArea, cellShape } from "../lineup/pitchShape";
 import { scoringSetShape } from "../scoring/scoringSetShape";
 import { DOUBLE_GAMEWEEK_RULES } from "../scoring/values";
@@ -17,7 +18,13 @@ import { TIE_BREAKS } from "../table/standings";
 const limit = v.object({ minimum: v.number(), maximum: v.number() });
 
 /** presets.ts's Preset. */
-const preset = v.object({ name: v.string(), cells: v.array(cellShape) });
+const preset = v.object({
+  name: v.string(),
+  cells: v.array(cellShape),
+  /** Its default team instructions (#990): absent only from presets saved before them, which read
+   *  instructions.ts's first defaults. */
+  instructions: v.optional(instructionPairShape),
+});
 
 /** A preset as rows hold it: one saved between #988 and #1159 may also carry the role its
  *  defence's centre started on, dropped with the sweeper and libero presets (Craig, 5 Nov 2026),
@@ -42,6 +49,20 @@ export const draftRulesShape = v.object({
 });
 export type DraftRules = Infer<typeof draftRulesShape>;
 
+/** Who reviews an accepted trade: nobody, the commissioner (a veto) or the other managers (a vote),
+ *  in spec/03's order. */
+export const TRADE_REVIEWS = ["none", "veto", "vote"] as const;
+export type TradeReview = (typeof TRADE_REVIEWS)[number];
+
+/** How the league's trades run (spec/03, spec/08; #383). */
+export const tradeRulesShape = v.object({
+  /** Who reviews an accepted trade (`TRADE_REVIEWS`). */
+  review: v.union(...TRADE_REVIEWS.map((name) => v.literal(name))),
+  /** The gameweek after whose last match no trades are made; null: no trade deadline. */
+  deadline: v.union(v.number(), v.null()),
+});
+export type TradeRules = Infer<typeof tradeRulesShape>;
+
 export const leagueRulesShape = v.object({
   format: v.union(v.literal("headToHead"), v.literal("totalPoints")),
   squad: v.object({
@@ -64,7 +85,8 @@ export const leagueRulesShape = v.object({
   tieBreaks: v.array(v.union(...TIE_BREAKS.map((name) => v.literal(name)))),
   /** roundRobin.ts's OddTeamOut. Absent only from rules saved before #33, which play the first
    *  rules' (firstRules.ts, `drawRulesOf`): optional, so those rows need no migration
-   *  (ARCHITECTURE.md's Data, "Changing a saved shape"). */
+   *  (ARCHITECTURE.md's Data, "Changing a saved shape"). drawRulesBackfill.ts fills it and
+   *  `gamesPerGameweek` in; once it has run on each deployment, both can be made required. */
   oddTeamOut: v.optional(oddTeamOutShape),
   /** roundRobin.ts's DrawRules["gamesPerGameweek"]: a whole number, 1 or more. Absent, as
    *  `oddTeamOut` is, only from rules saved before #130. */
@@ -77,6 +99,13 @@ export const leagueRulesShape = v.object({
   /** How the draft runs (spec/04; #1087). Absent, as `oddTeamOut` is, only from rules saved before
    *  #1087, which play the first rules' (firstRules.ts, `draftRulesOf`). */
   draft: v.optional(draftRulesShape),
+  /** How trades run (spec/08; #383). Absent, as `draft` is, only from rules saved before #383,
+   *  which play the first rules' (firstRules.ts, `tradeRulesOf`). */
+  trades: v.optional(tradeRulesShape),
+  /** The team instructions a manager picks from (spec/05, Team instructions; #990). Absent, as
+   *  `draft` is, only from rules saved before #990, which play the first rules' (firstRules.ts,
+   *  `instructionsOf`). */
+  instructions: v.optional(v.array(instructionShape)),
 });
 
 export type LeagueRules = Infer<typeof leagueRulesShape>;

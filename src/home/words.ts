@@ -41,6 +41,9 @@ export const formLabel = (results: readonly Result[]) =>
 export const noFormWords = "—";
 export const wholeTableLink = "Whole table and fixtures";
 
+/** The matchday's Vidiprinter, and its words before any line, the matchup's own. */
+export { noCommentaryWords as noMatchdayLinesWords, VIDIPRINTER_TITLE } from "../matchup/words";
+
 export const LETTER_TITLE = "From the commissioner";
 export const noLetterWords = "Nothing from the commissioner yet.";
 export const fromWords = (from: string) => `From ${from}`;
@@ -60,5 +63,9 @@ export function moveWords({ kind, playerName, teamName, fromTeamName }: SquadMov
       return `${playerName} was released by ${teamName}`;
     case "playerDropped":
       return `${playerName} was dropped by ${teamName}`;
+    case "playerClaimed":
+      return `${playerName} was claimed by ${teamName}`;
+    case "playerPickedUp":
+      return `${playerName} was picked up by ${teamName}`;
   }
 }

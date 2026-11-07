@@ -13,7 +13,10 @@ import { EVENT_STATS, MINUTES_STAT } from "../stats/matchRecords";
 import { newestSeasonWithTotals, playerSeasonTotals } from "../stats/seasonStats";
 import type { Stats } from "../stats/statTotals";
 import { heldOrNot, squadOf, unheldCodes } from "./squadPlace";
+import { shirtNumber } from "./squadNumbers";
 import { latestRules } from "../rules/rulesHistory";
+import { squadLimit, squadLimits } from "./squadLimits";
+import { scheduledMatch, sidesOf, squadSchedule } from "./squadSchedule";
 
 // My team's Squad tab (#364; spec/12, My team's tabs: "every player in the squad in one table,
 // with his position, club, next fixture, season points and last gameweek's points"). His points
@@ -74,11 +77,14 @@ const squadRow = v.object({
   club: clubRecord,
   /** Left the Premier League: he stays on the team until released. */
   gone: v.boolean(),
-  /** The squad number his manager gave him, or null until given (#13). */
+  /** His shirt's number (#13): his manager's, else his club's, else null (squadNumbers.ts). */
   number: v.union(v.number(), v.null()),
   /** His club's next matches after `now`, soonest first, at most NEXT_MATCHES_SHOWN: none while
    *  it has none with a kickoff time. */
   nextFixtures: v.array(nextFixture),
+  /** His club's matches in the Schedule view's gameweeks (`scheduleGameweeks`), in their order:
+   *  none in a blank week, two in a double. */
+  schedule: v.array(scheduledMatch),
   /** What his team got from him this season, or null ("—") while none of his matches has been
    *  priced. */
   seasonPoints: v.union(v.number(), v.null()),
@@ -106,6 +112,11 @@ export const teamSquad = v.object({
   unheld: unheldCodes,
   /** The most players the league's rules let a squad hold; null with no limit, or no rules. */
   squadMaximum: v.union(v.number(), v.null()),
+  /** The Schedule view's gameweeks, from the one a lineup is being set for, at most
+   *  SCHEDULE_GAMEWEEKS (squadSchedule.ts): none once the season is over or with no rules. */
+  scheduleGameweeks: v.array(v.number()),
+  /** The Rules view's rows: the squad against each of the league's squad limits (squadLimits.ts). */
+  limits: v.array(squadLimit),
 });
 export type TeamSquad = Infer<typeof teamSquad>;
 
@@ -150,13 +161,15 @@ export const ofMyTeam = query({
     const price = await pricer(ctx, league, team._id);
     const { held, unheld } = await heldOrNot(ctx, await squadOf(ctx, team._id));
     const players = await Promise.all(
-      held.map(async ({ row: { number }, player }) => {
+      held.map(async ({ row, player }) => {
         const positions = await positionsOfNow(player.code);
         const stats = season === null ? null : squadStats(await playerSeasonTotals(ctx, season, player.code));
-        return { player, number: number ?? null, positions, club: await clubs(player.clubCode), matches: await price(player.code, positions), stats };
+        return { player, number: await shirtNumber(ctx, row), positions, club: await clubs(player.clubCode), matches: await price(player.code, positions), stats };
       }),
     );
-    const next = await nextFixturesOf(ctx, new Set(players.map(({ player }) => player.clubCode)), now, clubs);
+    const clubCodes = new Set(players.map(({ player }) => player.clubCode));
+    const next = await nextFixturesOf(ctx, clubCodes, now, clubs);
+    const schedule = await squadSchedule(ctx, leagueId, now, clubCodes, clubs);
     const rows = players.map(({ player, number, positions, club, matches, stats }) => ({
       code: player.code,
       name: player.name,
@@ -166,6 +179,7 @@ export const ofMyTeam = query({
       gone: player.droppedAt !== undefined,
       number,
       nextFixtures: next.get(player.clubCode) ?? [],
+      schedule: schedule.byClub.get(player.clubCode) ?? [],
       ...squadPoints(matches, lastGameweek),
       form: squadForm(matches, begun),
       stats,
@@ -174,7 +188,15 @@ export const ofMyTeam = query({
     }));
     rows.sort((one, other) => positionOrder(one) - positionOrder(other) || one.name.localeCompare(other.name));
     const rules = await latestRules(ctx, leagueId);
-    return { teamName: team.name, lastGameweek, players: rows, unheld, squadMaximum: rules?.squad.size?.maximum ?? null };
+    return {
+      teamName: team.name,
+      lastGameweek,
+      players: rows,
+      unheld,
+      squadMaximum: rules?.squad.size?.maximum ?? null,
+      scheduleGameweeks: schedule.gameweeks,
+      limits: squadLimits(rows, unheld.length, rules?.squad ?? null),
+    };
   },
 });
 
@@ -214,9 +236,3 @@ async function nextFixturesOf(ctx: QueryCtx, clubCodes: ReadonlySet<number>, now
   }
   return next;
 }
-
-/** A match from each side: the club, its opponent, and whether it is at home. */
-const sidesOf = ({ homeClubCode, awayClubCode }: Doc<"fixtures">): [number, number, boolean][] => [
-  [homeClubCode, awayClubCode, true],
-  [awayClubCode, homeClubCode, false],
-];

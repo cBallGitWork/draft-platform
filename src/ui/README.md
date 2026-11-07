@@ -22,6 +22,7 @@ names the [plate.md](../../docs/design/plate.md) section it draws; the values ar
 - `OwnerName.tsx`: a player's owner, or a muted "Free agent" (Colour roles: fact, muted).
 - `PositionChip.tsx`: one position's coloured chip.
 - `PositionCodes.tsx`: position codes, each named in full on hover (Tables and panels: Roles in full).
+- `StarRating.tsx`: a player's stars for a role, in half-star steps, or "?" and "—" unrated (Marks: Stars).
 - `Placeholder.tsx`: data not held yet, a 1px muted outline in its place and size, its hover saying what will show (Marks: A placeholder).
 
 ## Utilities in controls.css

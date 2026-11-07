@@ -4,12 +4,17 @@ import { leagueRulesShape } from "../rules/leagueRulesShape";
 import { deadlineOf, leagueDeadlines } from "../gameweeks/leagueDeadlines";
 import { shownDeadline } from "../gameweeks/usedGameweeks";
 import { clubByCode, playerByCode, unheldPlayerWords } from "../shared/players";
-import { positionsNow } from "../positions/playerPositions";
+import { workedOutNow } from "../positions/playerPositions";
+import { howPositionsCount } from "../positions/positionSettings";
 import { position } from "../schema";
 import { managerOf } from "../shared/leagueAccess";
 import { squadOf } from "../squads/squadPlace";
+import { shirtNumber } from "../squads/squadNumbers";
 import { heldLineupShape, lineupInGameweek, saveGameweekOf } from "./lineups";
 import { starsOfPlayers } from "../stars/playerStars";
+import { instructionsOf } from "../rules/firstRules";
+import { keptOrSwitched } from "./instructions";
+import { instructionPairShape, instructionShape } from "./instructionsShape";
 import { roleStarsShape } from "../stars/starsShape";
 
 // My team's Tactics tab (#14; spec/05, The pitch): what the pitch is set from. The gameweek is the
@@ -30,7 +35,10 @@ const squadMember = v.object({
   /** The football sync doesn't hold him: data gone wrong, kept so it shows (#323). */
   unheld: v.boolean(),
   positions: v.array(position),
-  /** The squad number his manager gave him, on his shirt, or null until given (#13). */
+  /** His positions flagged by a run of starts elsewhere (#23; spec/06, When positions change), each
+   *  with how many in a row: the mark after his name says which is at stake. */
+  flagged: v.array(v.object({ position, startsElsewhere: v.number() })),
+  /** His shirt's number (#13): his manager's, else his club's, else null (squadNumbers.ts). */
   number: v.union(v.number(), v.null()),
   /** His stars for each role in each area he plays (#11), which pick the role he starts on when
    *  dropped into a slot. */
@@ -48,6 +56,11 @@ const tacticsShape = v.union(
     deadline: shownDeadline,
     areaLimits: leagueRulesShape.fields.areaLimits,
     presets: leagueRulesShape.fields.presets,
+    /** The league's team instructions, in its order (#990). */
+    instructions: v.array(instructionShape),
+    /** The lineup's two picks in force: its own where its shape still offers them, else the
+     *  formation's defaults (instructions.ts). */
+    picked: instructionPairShape,
     /** In the order its players joined it. */
     squad: v.array(squadMember),
     lineup: heldLineupShape,
@@ -67,37 +80,45 @@ export const ofMyTeam = query({
     if (next.kind !== "open") return { kind: next.kind };
     const { season, gameweek } = next;
 
-    const positionsOfNow = await positionsNow(ctx, leagueId);
+    const how = await howPositionsCount(ctx, leagueId);
     const members = await squadOf(ctx, team._id);
     const starsOf = await starsOfPlayers(
       ctx,
       members.map(({ playerCode }) => playerCode),
     );
     const squad = await Promise.all(
-      members.map(async ({ playerCode, number }) => {
+      members.map(async (member) => {
+        const { playerCode } = member;
         const player = await playerByCode(ctx, playerCode);
+        // His positions are read as for any other player: the lineup's check says where he may stand.
+        const { positions } = await workedOutNow(ctx, playerCode, how);
         return {
           playerCode,
           name: player === null ? unheldPlayerWords(playerCode) : player.name,
           clubShortName: player === null ? null : (await clubByCode(ctx, player.clubCode)).shortName,
           clubCode: player?.clubCode ?? null,
           unheld: player === null,
-          // His positions are read as for any other player: the lineup's check says where he may stand.
-          positions: await positionsOfNow(playerCode),
-          number: number ?? null,
+          positions: positions.map(({ position }) => position),
+          flagged: positions.flatMap(({ position, flaggedElsewhere }) => (flaggedElsewhere === null ? [] : [{ position, startsElsewhere: flaggedElsewhere }])),
+          number: await shirtNumber(ctx, member),
           stars: starsOf.get(playerCode)!,
         };
       }),
     );
-    const { areaLimits, presets } = season.inGameweek(gameweek);
+    const rules = season.inGameweek(gameweek);
+    const { areaLimits, presets } = rules;
+    const instructions = [...instructionsOf(rules)];
+    const lineup = await lineupInGameweek(ctx, leagueId, team._id, gameweek);
     return {
       kind: "open" as const,
       gameweek,
       deadline: deadlineOf(await leagueDeadlines(ctx, leagueId))(gameweek),
       areaLimits,
       presets,
+      instructions,
+      picked: keptOrSwitched(lineup.instructions, lineup.starters, presets, instructions).pair,
       squad,
-      lineup: await lineupInGameweek(ctx, leagueId, team._id, gameweek),
+      lineup,
     };
   },
 });

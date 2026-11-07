@@ -1,6 +1,7 @@
 // Every public function's gate (SEC-6), the table tests/convex/shared/publicGates.test.ts sweeps:
 // who each lets in, and what a signed-out caller and a signed-in outsider get behind each gate.
 
+import { autoTeamRefusals } from "../../../convex/lineup/autoTeamWords";
 import { mailRefusals } from "../../../convex/mail/mail";
 import { refusals } from "../../../convex/shared/leagueAccess";
 
@@ -25,6 +26,8 @@ export const GATES = {
   managerOrNothing: { signedOut: ANSWERS_NOTHING, outsider: ANSWERS_NOTHING },
   /** The team's own manager, or the admin. */
   teamsManager: { signedOut: refusals.signedOut, outsider: refusals.notManager },
+  /** The team's own manager, the commissioner, the co-commissioner or the admin. */
+  teamsManagerOrRunner: { signedOut: refusals.signedOut, outsider: autoTeamRefusals.notYours },
   /** The commissioner, the co-commissioner or the admin. */
   runner: { signedOut: refusals.signedOut, outsider: refusals.notRunner },
   /** The same, but anyone else is answered with nothing rather than refused. */
@@ -49,10 +52,16 @@ export const GATE_REFUSALS = new Set<string>(
 export const gates: Record<string, Gate> = {
   "admin/feeds:feeds": "admin",
   "auth:isAuthenticated": "open",
+  "availability/availability:ofPlayer": "admin",
+  "availability/availability:set": "admin",
+  "balanceLab/balanceLabRun:run": "admin",
   "auth:signOut": "open",
+  "draft/autoPickSwitch:takeControlBack": "manager",
+  "draft/autoPickSwitch:turnOn": "manager",
   "draft/draftBoard:inMenu": "member",
   "draft/draftBoard:ofLeague": "member",
   "draft/draftCommissioner:markForCommissioner": "runner",
+  "draft/draftCommissioner:panel": "runner",
   "draft/draftCommissioner:setPickTime": "runner",
   "draft/draftCommissioner:undoPick": "runner",
   "draft/draftLists:add": "member",
@@ -68,7 +77,8 @@ export const gates: Record<string, Gate> = {
   "draft/draftPause:resume": "runner",
   "draft/draftPicks:makePick": "manager",
   "draft/draftPicks:pickFor": "runner",
-  "draft/draftPicks:takeControlBack": "manager",
+  "draft/draftPlayers:figures": "member",
+  "draft/draftPlayers:greyedOut": "member",
   "draft/draftRanking:upload": "admin",
   "draft/draftRanking:view": "admin",
   "draft/draftStart:ofLeague": "member",
@@ -108,7 +118,11 @@ export const gates: Record<string, Gate> = {
   "leagues/teams:rename": "teamsManager",
   "lineup/lineupDue:isDue": "managerOrNothing",
   "lineup/lineupDue:openedTactics": "manager",
+  "lineup/autoTeam:set": "teamsManagerOrRunner",
   "lineup/lineups:save": "manager",
+  "lineup/savedPlans:mine": "manager",
+  "lineup/savedPlans:save": "manager",
+  "lineup/savedPlans:remove": "manager",
   "lineup/tactics:ofMyTeam": "manager",
   "mail/mail:latest": "signedInOrNothing",
   "mail/mail:letters": "signedInOrNothing",
@@ -138,8 +152,12 @@ export const gates: Record<string, Gate> = {
   "scoring/siteScoring:fix": "admin",
   "scoring/siteScoring:saveDraft": "admin",
   "scoring/siteScoring:view": "signedIn",
+  "scoring/siteScoring:withdraw": "admin",
   "scouting/compare:players": "member",
   "scouting/playersList:list": "member",
+  "scouting/scouts:mine": "member",
+  "scouting/scouts:onPlayer": "member",
+  "scouting/scouts:send": "member",
   "scouting/shortlist:add": "member",
   "scouting/shortlist:mine": "member",
   "scouting/shortlist:remove": "member",
@@ -157,9 +175,27 @@ export const gates: Record<string, Gate> = {
   "squads/teamTransactions:ofMyTeam": "manager",
   "stars/playerStars:ofPlayer": "member",
   "stars/playerStars:ofPlayers": "member",
+  "table/fixtureEdits:swap": "runner",
   "table/leagueTable:ofLeague": "member",
   "table/pointsOverrides:override": "runner",
+  "table/pointsOverrides:removeOverride": "runner",
   "table/teamFixtures:ofMyTeam": "manager",
+  "table/teamOverrides:overrideTeam": "runner",
+  "table/teamOverrides:removeTeamOverride": "runner",
+  "trades/tradeOffers:accept": "manager",
+  "trades/tradeOffers:counter": "manager",
+  "trades/tradeOffers:mine": "manager",
+  "trades/tradeOffers:offer": "manager",
+  "trades/tradeOffers:reject": "manager",
+  "trades/tradeOffers:withdraw": "manager",
+  "trades/tradeReview:against": "manager",
+  "trades/tradeReview:block": "member",
+  "waivers/freeAgents:pickUp": "manager",
+  "waivers/waiverClaims:pending": "member",
+  "waivers/waiverClaims:putIn": "manager",
+  "waivers/waiverClaims:rank": "manager",
+  "waivers/waiverClaims:withdraw": "manager",
+  "waivers/waivers:cardActionOn": "member",
   "waivers/waivers:drop": "manager",
   "waivers/waivers:stateOf": "member",
 };

@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, test } from "vitest";
-import { api } from "../../../convex/_generated/api";
+import { api, internal } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
 import { refusals } from "../../../convex/shared/leagueAccess";
 import { squadNumberRefusals } from "../../../convex/squads/squadNumbers";
@@ -99,5 +99,56 @@ describe("a player who moves starts afresh (Craig, 26 Oct 2026)", () => {
     await commissioner.mutation(api.squads.squads.release, { leagueId, playerCode: SAKA });
     await commissioner.mutation(api.squads.squads.assign, { leagueId, playerCode: SAKA, teamId: annsTeam });
     expect(await numberOf(SAKA)).toBeNull();
+  });
+});
+
+describe("his shirt wears his club's number until his manager gives one (Craig, 5 Nov 2026)", () => {
+  const clubLists = (numbers: { code: number; number: number | null }[]) =>
+    t.mutation(internal.positions.positionsSync.recordClubNumbers, { numbers });
+  /** A player's shirt on Ann's Squad tab, checked against her pitch, which always agrees. */
+  const shirtOf = async (playerCode: number) => {
+    const ann = await actingAs(t, ANN);
+    const squad = await ann.query(api.squads.teamSquad.ofMyTeam, { leagueId, now: Date.now() });
+    const tactics = await ann.query(api.lineup.tactics.ofMyTeam, { leagueId, now: Date.now() });
+    const onSquadTab = squad.players.find((each) => each.code === playerCode)?.number;
+    expect(tactics.kind === "open" && tactics.squad.find((each) => each.playerCode === playerCode)?.number).toBe(onSquadTab);
+    return onSquadTab;
+  };
+
+  test("#13 Done: a new team shows real club numbers, and his manager's change shows instead", async () => {
+    await clubLists([{ code: SAKA, number: 7 }]);
+    expect(await shirtOf(SAKA)).toBe(7);
+    await setAs(ANN, SAKA, 10);
+    expect(await shirtOf(SAKA)).toBe(10);
+  });
+
+  test("an emptied number goes back to his club's", async () => {
+    await clubLists([{ code: SAKA, number: 7 }]);
+    await setAs(ANN, SAKA, 10);
+    await setAs(ANN, SAKA, null);
+    expect(await shirtOf(SAKA)).toBe(7);
+  });
+
+  test("his club changing his number, or a move to another club, changes an untouched one and keeps his manager's", async () => {
+    await clubLists([{ code: SAKA, number: 32 }, { code: RICE, number: 41 }]);
+    await setAs(ANN, RICE, 4);
+    expect(await clubLists([{ code: SAKA, number: 9 }, { code: RICE, number: 20 }])).toBe(2);
+    expect([await shirtOf(SAKA), await shirtOf(RICE)]).toEqual([9, 4]);
+  });
+
+  test("a signing his club hasn't numbered is blank, then fills in by itself", async () => {
+    expect(await shirtOf(SAKA)).toBeNull();
+    await clubLists([{ code: SAKA, number: null }]);
+    expect(await shirtOf(SAKA)).toBeNull();
+    await clubLists([{ code: SAKA, number: 7 }]);
+    expect(await shirtOf(SAKA)).toBe(7);
+    // A number his club takes away leaves him blank again.
+    await clubLists([{ code: SAKA, number: null }]);
+    expect(await shirtOf(SAKA)).toBeNull();
+  });
+
+  test("a club number already held changes nothing", async () => {
+    await clubLists([{ code: SAKA, number: 7 }]);
+    expect(await clubLists([{ code: SAKA, number: 7 }, { code: RICE, number: null }])).toBe(0);
   });
 });

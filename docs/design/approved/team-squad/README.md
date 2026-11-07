@@ -23,11 +23,12 @@ colours.
 ## Interaction notes
 
 - The view picker, Stats | Schedule | Rules: changes the table's view. Stats is drawn; Schedule's and
-  Rules' columns are not.
+  Rules' columns are not, and are built to Craig's answers on #1006 (6 Nov 2026): Schedule heads the
+  next 6 gameweeks, a blank week's cell empty and a double's holding both matches; Rules has one row
+  per limit, naming the players it counts, a row outside it flagged with how far out.
 - A row: opens his season panel on top of the right column. The cross closes it.
 - Squad number ▾, in his panel: changes his squad number (`spec/05`, Squad numbers).
-- Set his role, in his panel: see Answered. A placeholder until Tactics can open with a player
-  selected from the address, which it can't yet.
+- Set his role, in his panel: opens Tactics with him selected (see Answered).
 - Player card, in his panel: opens his player card.
 - Your eleven: the lineup's pitch and bench, each with his season points. Set lineup opens the
   Tactics tab.
@@ -41,10 +42,8 @@ Each shows in its place and size until its data comes.
 |---|---|---|
 | Next 3's colours | where fixture difficulty comes from | to-grill: Where fixture difficulty comes from |
 | The status chips after a name, and the panel's Doubt line | which FPL statuses each chip reads, and a count of bookings | to-grill: Status chips' data |
-| The panel's Best role stars | stars on screen (#11); scouts decide whose a manager sees (#375) | #11, #375 |
+| The panel's Best role, with no lineup open to set (the season over) | its stars come with the lineup being set; built otherwise (#11) | #11 |
 | The panel's Started and Role points (empty boxes) | their build: what each counts is answered below | answered 1 Nov 2026 |
-| The Schedule and Rules views | their build: what each holds is answered below | answered 1 Nov 2026 |
-| Set his role | Tactics opening with a player selected from the address | answered 1 Nov 2026 |
 
 ## Answered
 

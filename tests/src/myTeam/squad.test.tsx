@@ -228,7 +228,7 @@ describe("squad numbers (#13)", () => {
     expect(app.myTeam.useSquadNumbers().set).toHaveBeenLastCalledWith(league.leagueId, SAKA.code, 11);
   });
 
-  it("an emptied box takes his number away, and one left as it was sends nothing", async () => {
+  it("an emptied box takes his number away and shows the one his shirt wears then, and one left as it was sends nothing", async () => {
     const app = openSquad({ squad: squadOf([SAKA, PALMER]) });
     await screen.findByRole("table");
     await openPanel("Palmer");
@@ -239,7 +239,22 @@ describe("squad numbers (#13)", () => {
     await retype("Saka", "");
     await userEvent.tab();
     expect(app.myTeam.useSquadNumbers().set).toHaveBeenCalledWith(league.leagueId, SAKA.code, null);
-    // Made, it stays empty, though the squad read here still holds his old 7.
+    // Made, it shows what the squad read holds: still 7, as his club's number was the 7 his
+    // manager gave him (#13: an emptied number goes back to his club's).
+    expect(box("Saka").value).toBe("7");
+  });
+
+  it("an emptied box shows his club's number once the server holds it, or stays empty with none (#13)", async () => {
+    const app = openSquad({ squad: squadOf([SAKA, PALMER]) });
+    await screen.findByRole("table");
+    await openPanel("Saka");
+    await retype("Saka", "");
+    await userEvent.tab();
+    act(() => app.myTeam.serverHoldsSquad(squadOf([{ ...SAKA, number: 23 }, PALMER])));
+    expect(box("Saka").value).toBe("23");
+    await retype("Saka", "");
+    await userEvent.tab();
+    act(() => app.myTeam.serverHoldsSquad(squadOf([{ ...SAKA, number: null }, PALMER])));
     expect(box("Saka").value).toBe("");
   });
 

@@ -3,7 +3,9 @@ import { getFunctionName } from "convex/server";
 import { api, internal } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
 import { ANN, BOB, deletes, leagueWithPeople, moreEventsThanOneRun } from "../../support/convex/leagueDeletion.harness";
-import { notEmailedLog, waitingLog } from "../../../convex/leagues/deletionNotices";
+import { UNEMAILED_KEPT_MS, notEmailedLog, waitingLog } from "../../../convex/leagues/deletionNotices";
+import { PRUNE_ORDER } from "../../../convex/admin/runLogs";
+import { BATCH_SIZE } from "../../../convex/shared/syncRuns";
 import { ADMIN, COMMISSIONER, CO_COMMISSIONER, LEAGUE_NAME, actingAs, type TestConvex } from "../../support/convex/leagues.harness";
 import { EMAILS_PER_DAY, startOfNextDay } from "../../../convex/outbound/emailLimit";
 import { finishWhatIsDueNow } from "../../support/convex/joining.harness";
@@ -81,16 +83,6 @@ describe("once it is gone for good, it emails", () => {
     expect(sent.map((email) => email.to)).toEqual([CO_COMMISSIONER, ANN, BOB]);
   });
 
-  test("the same people, for a league deleted before #320 that still holds its old list of who wasn't told", async () => {
-    await deletes(t, COMMISSIONER, leagueId);
-    await t.run(async (ctx) => {
-      const { deletion } = (await ctx.db.get("leagues", leagueId))!;
-      await ctx.db.patch("leagues", leagueId, { deletion: { ...deletion!, unemailed: [{ email: ANN, reason: "paused" }] } });
-    });
-    await goneForGood();
-    expect(sent.map((email) => email.to)).toEqual([CO_COMMISSIONER, ANN, BOB]);
-  });
-
   test("each counting against the day's emails: the day it goes", async () => {
     await toTheMomentBeforeItGoes();
     const before = await sentToday(t);
@@ -158,5 +150,18 @@ describe("someone the email service refuses", () => {
     ]);
     expect(logged).toHaveBeenCalledTimes(3);
     expect(logged).toHaveBeenCalledWith(notEmailedLog(ANN), new Error("Resend refused the email (500): refused"));
+  });
+
+  test("is kept for UNEMAILED_KEPT_MS, then the daily clean-up deletes it, a batch at a time (#897)", async () => {
+    const keep = (age: number) =>
+      t.run((ctx) => ctx.db.insert("unemailedDeletions", { leagueName: LEAGUE_NAME, by: COMMISSIONER, email: ANN, reason: "notSent", at: Date.now() - age }));
+    for (let index = 0; index <= BATCH_SIZE; index++) await keep(UNEMAILED_KEPT_MS + 1 + index);
+    await keep(UNEMAILED_KEPT_MS);
+
+    await t.mutation(internal.admin.runLogs.prune, { feed: PRUNE_ORDER.at(-1) });
+    await t.finishAllScheduledFunctions(vi.runAllTimers);
+
+    const left = await t.run((ctx) => ctx.db.query("unemailedDeletions").collect());
+    expect(left.map(({ at }) => at)).toEqual([Date.now() - UNEMAILED_KEPT_MS]);
   });
 });

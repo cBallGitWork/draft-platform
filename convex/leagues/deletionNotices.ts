@@ -4,6 +4,8 @@ import { internalAction, internalMutation } from "../_generated/server";
 import { sendEmail } from "../outbound/email";
 import { takeTodaysEmail as takeOne, waitForTomorrow } from "../outbound/emailLimit";
 import { errorMessage } from "../shared/errors";
+import { BATCH_SIZE } from "../shared/syncRuns";
+import { DAY_MS } from "../shared/time";
 
 // The email each person with a part in a league gets once leagueDeletion.deleteForGood has removed
 // it (#320, spec/13, Deleting): "just delay the deletion email until its actually gone". Each
@@ -11,7 +13,9 @@ import { errorMessage } from "../shared/errors";
 // limit wait for the next day, as invites do (spec/13, #837): `send` runs again then with the
 // emails left, a job carrying its own arguments, so nothing waiting is saved anywhere else. One the
 // email service refuses is logged and kept in unemailedDeletions with what the service said, as
-// there is no league left to keep it on.
+// there is no league left to keep it on. No screen shows those rows, as the log says the same to the
+// admin, and each goes after UNEMAILED_KEPT_MS, so no one's address is held for good (Claude's call
+// on #897, Craig's "your call").
 
 /** Wording for Craig to change in the pull request. */
 function deletionEmail(leagueName: string, by: string) {
@@ -73,6 +77,26 @@ export const recordUnemailed = internalMutation({
   returns: v.null(),
   handler: async (ctx, row) => {
     await ctx.db.insert("unemailedDeletions", { ...row, reason: "notSent", at: Date.now() });
+    return null;
+  },
+});
+
+/** How long a row of unemailedDeletions is kept: as long as a run log that succeeded. */
+export const UNEMAILED_KEPT_MS = 30 * DAY_MS;
+
+/** Deletes the rows older than `UNEMAILED_KEPT_MS`, a batch a run, handing on to the next while any
+ *  are left. The daily run-log prune starts it once it has finished (admin/runLogs.ts). */
+export const pruneUnemailed = internalMutation({
+  args: {},
+  returns: v.null(),
+  handler: async (ctx) => {
+    const expired = await ctx.db
+      .query("unemailedDeletions")
+      .withIndex("by_at", (q) => q.lt("at", Date.now() - UNEMAILED_KEPT_MS))
+      .take(BATCH_SIZE);
+    for (const row of expired) await ctx.db.delete("unemailedDeletions", row._id);
+    console.log(`Pruned ${expired.length} unemailedDeletions rows`);
+    if (expired.length === BATCH_SIZE) await ctx.scheduler.runAfter(0, internal.leagues.deletionNotices.pruneUnemailed, {});
     return null;
   },
 });

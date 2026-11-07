@@ -12,7 +12,7 @@
 // - FPL's bootstrap-static players, cut to every man the sheets and squads name whom FPL lists
 //   today, and to the fields read. The men it leaves out (Trippier, Krafth, gone) are unmatched.
 
-import { PL_COMP_SEASON, PL_LAST_COMP_SEASON } from "../../../convex/football/football";
+import { PL_LAST_SEASON, PL_THIS_SEASON } from "./plSeasons.payloads";
 import type { RawBootstrap } from "../../../convex/football/fpl/fpl";
 import type { RawPlFixture, RawPlSquad } from "../../../convex/football/premierLeague/premierLeague";
 import recorded from "./positions.json";
@@ -61,8 +61,8 @@ export function recordedPositions(): PositionsPayloads {
   return {
     fplElements: copy.fplElements as RawBootstrap["elements"],
     fixtureLists: {
-      [PL_LAST_COMP_SEASON]: copy.fixtureLists[PL_LAST_COMP_SEASON] as RawPlFixture[],
-      [PL_COMP_SEASON]: copy.fixtureLists[PL_COMP_SEASON] as RawPlFixture[],
+      [PL_LAST_SEASON]: copy.fixtureLists[PL_LAST_SEASON] as RawPlFixture[],
+      [PL_THIS_SEASON]: copy.fixtureLists[PL_THIS_SEASON] as RawPlFixture[],
     },
     sheets: copy.sheets as RawPlFixture[],
     squads: Object.fromEntries(Object.entries(copy.squads).map(([team, squad]) => [Number(team), squad as RawPlSquad])),

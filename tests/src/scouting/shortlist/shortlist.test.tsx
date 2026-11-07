@@ -9,8 +9,11 @@ import { shortlistRefusals } from "../../../../convex/scouting/shortlist";
 import { SCOUTING_PATH } from "../../../../src/frame/menu";
 import { playerCardPath } from "../../../../src/playerCard/paths";
 import type { PlayerCard } from "../../../../src/playerCard/seam";
+import { draftListRefusals } from "../../../../convex/draft/draftLists";
 import {
+  addToQueueNamedLabel,
   addToShortlistWords,
+  queuedWords,
   emptyShortlistWords,
   freeAgentWords,
   goneWords,
@@ -66,6 +69,21 @@ describe("on Scouting", () => {
     expect((await screen.findByRole("alert")).textContent).toBe(REFUSAL);
   });
 
+  it("Add to queue puts him in the draft queue, asking for this league, and says so", async () => {
+    const app = openScouting({ players: [RICE, SAKA] });
+    const panel = await shortlistPanel();
+    await userEvent.click(within(panel).getByRole("button", { name: addToQueueNamedLabel("Rice") }));
+    expect(app.scouting.addToQueue).toHaveBeenCalledWith(league.leagueId, RICE.code);
+    expect(within(panel).getByRole("status").textContent).toBe(queuedWords("Rice"));
+  });
+
+  it("Add to queue says the server's refusal: he's already taken, say", async () => {
+    const taken = draftListRefusals.taken("Saka", "Saka Potatoes");
+    openScouting({ players: [SAKA], refusal: taken });
+    await userEvent.click(within(await shortlistPanel()).getByRole("button", { name: addToQueueNamedLabel("Saka") }));
+    expect((await screen.findByRole("alert")).textContent).toBe(taken);
+  });
+
   it("says when it is empty, and how to add one", async () => {
     openScouting({ players: [] });
     expect(within(await shortlistPanel()).getByText(emptyShortlistWords)).toBeTruthy();
@@ -95,6 +113,7 @@ const card = (code: number, name: string, gone = false): PlayerCard => ({
   news: null,
   chanceOfPlaying: null,
   matches: [],
+  lastSeason: null,
   nextFixtures: [],
 });
 

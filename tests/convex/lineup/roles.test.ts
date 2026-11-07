@@ -3,7 +3,7 @@ import { lineupProblems, type Lineup } from "../../../convex/lineup/lineup";
 import { problemWords } from "../../../convex/lineup/lineupWords";
 import { AREAS, LANES, positionOfSlot, type SlotPosition } from "../../../convex/lineup/pitch";
 import { centreBacksIn, DEFAULT_ROLES, everyRoleOf, isRole, offersRole, roleIn, roleName, rolesOfSlot } from "../../../convex/lineup/roles";
-import { DRAFTED_ROLE_ADJUSTMENTS } from "../../../convex/scoring/draftedRoleAdjustments";
+import { FIRST_ROLE_OWN_STATS, FIRST_ROLES } from "../../../convex/scoring/draftedRoleAdjustments";
 import { FIRST_SCORING } from "../../../convex/scoring/firstScoring";
 import { scoreTeam } from "../../../convex/scoring/teamPoints";
 import { FIRST, STRIKER, STRIKERS_CELL, plays, subbed, withBench } from "../../support/convex/autoSubs.harness";
@@ -197,7 +197,7 @@ describe("a role removed from the set (spec/05 Roles; #841; Craig, 31 Oct 2026)"
       scoreTeam({
         lineup: { starters: [{ ...leftBack, role }], bench: [] },
         matches: new Map([[leftBack.playerCode, [{ record: { minutes: 90, accurate_cross: 2, clean_sheets: 1 }, final: true }]]]),
-        set: { ...FIRST_SCORING, roleAdjustments: DRAFTED_ROLE_ADJUSTMENTS },
+        set: { ...FIRST_SCORING, ownStats: [...FIRST_ROLE_OWN_STATS], roles: [...FIRST_ROLES] },
         doubleGameweekRule: "bothMatches",
         substitutions: [],
         benchCells: new Map(),
@@ -234,42 +234,5 @@ describe("an auto-sub (spec/05 Auto-subs)", () => {
     const pressing: Lineup = { ...lineup, starters: lineup.starters.map((starter) => (starter.playerCode === STRIKER ? { ...starter, role: "pressingForward" } : starter)) };
     const result = subbed(pressing, positions, plays(pressing, [STRIKER]));
     expect(result.lineup.starters).toContainEqual({ playerCode: FIRST, ...STRIKERS_CELL, role: "pressingForward" });
-  });
-});
-
-describe("each role's run (spec/05 Runs; #846; Craig, 31 Oct 2026)", () => {
-  const everyRole = Object.values(DEFAULT_ROLES).flat();
-
-  test("every default role holds its place or has a run, each marked rough until its own research", () => {
-    for (const { key, run } of everyRole) {
-      if (run === null) continue;
-      expect(run.rough, key).toBe(true);
-      expect(run.path.length, key).toBeGreaterThan(0);
-    }
-  });
-
-  test("the roles that hold their place have none, and the moving ones go where FM's nearest would", () => {
-    const holding = everyRole.filter(({ run }) => run === null).map(({ key }) => key);
-    expect(holding).toEqual([
-      "shotStopper",
-      "distributor",
-      "commandingKeeper",
-      "playmakingFullBack",
-      "defensiveFullBack",
-      "ballPlayingDefender",
-      "noNonsenseCentreBack",
-      "holdingWingBack",
-      "metronome",
-      "quarterback",
-      "tower",
-      "destroyer",
-      "maverick",
-      "targetMan",
-    ]);
-    const endOf = (key: string) => everyRole.find((each) => each.key === key)!.run!.path.at(-1)!;
-    expect(endOf("overlappingFullBack").forward).toBeGreaterThan(0);
-    expect(endOf("halfBack").forward).toBeLessThan(0);
-    expect(endOf("falseNine").forward).toBeLessThan(0);
-    expect(endOf("insideForward").across).toBeGreaterThan(0);
   });
 });

@@ -37,6 +37,10 @@ export function useLineupEdits({
   // Why the last drop was refused, said where a save's line is (spec/05; Craig, 4 Nov 2026), until
   // the next move.
   const [refused, setRefused] = useState<string | null>(null);
+  // Which instruction the last preset picked switched, said under the toolbar (spec/05, Team
+  // instructions: "Park the bus needs 5 at the back: switched to Keep it tight early"), until the
+  // next move.
+  const [switchedNote, setSwitchedNote] = useState<string | null>(null);
   const draft = useMemo(() => shownLineup(edited, opening, squadCodes), [edited, opening, squadCodes]);
 
   // A lineup that can't stand yet, ten starting say, is refused in the server's words and kept.
@@ -61,6 +65,7 @@ export function useLineupEdits({
     onShown();
     setSavedAt(null);
     setRefused(null);
+    setSwitchedNote(null);
     clear();
     void save(next);
   };
@@ -84,10 +89,14 @@ export function useLineupEdits({
     setShape("");
     show(last);
   };
-  /** The lineup reshaped to a preset, whose empty slots the pitch marks until it saves. */
-  const reshape = (name: string, next: DraftLineup) => {
+  /** The lineup reshaped to a preset, whose empty slots the pitch marks until it saves, with the
+   *  words for any instruction it switched; `said`, a line under the toolbar about it, such as a
+   *  loaded plan's roles no longer allowed (#992). */
+  const reshape = (name: string, next: DraftLineup, switched: string | null, said: string | null = null) => {
     setShape(name);
     edit(next);
+    setSwitchedNote(switched);
+    setRefused(said);
   };
-  return { draft, edit, undo, reshape, refuse, canUndo: undoable.length > 0, savedAt, problem: refused ?? problem, shape };
+  return { draft, edit, undo, reshape, refuse, canUndo: undoable.length > 0, savedAt, switchedNote, problem: refused ?? problem, shape };
 }

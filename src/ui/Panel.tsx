@@ -92,7 +92,7 @@ export function Panel({
   children,
   namesTeam = false,
 }: {
-  title: string;
+  title: ReactNode;
   aside?: ReactNode;
   className?: string;
   children?: ReactNode;
@@ -110,7 +110,7 @@ export function Panel({
 }
 
 /** A panel's title plate (plate.md, Shape). */
-function PanelTitle({ id, aside, titleClasses, children }: { id: string; aside?: ReactNode; titleClasses: string; children: string }) {
+function PanelTitle({ id, aside, titleClasses, children }: { id: string; aside?: ReactNode; titleClasses: string; children: ReactNode }) {
   if (aside === undefined) {
     return (
       <h2 id={id} className={`${PANEL_PLATE} text-lead ${titleClasses}`}>

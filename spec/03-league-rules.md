@@ -13,7 +13,9 @@ higher than 200 (Craig, 1 Nov 2026: "limit much higher"; #894).
 
 Among them:
 
-- Format: head-to-head, or total points.
+- Format: head-to-head, or total points. The format is locked once the league's first gameweek
+  has begun, and League settings says why: one table with one meaning all season (Craig, 6 Nov
+  2026: "Locked once the season starts"; #275). `S03.1`
 - Play-offs: how many teams, how many legs.
 - Table tie-breaks.
 - How many head-to-head games each team plays a gameweek: one, or more (`spec/09`), never more

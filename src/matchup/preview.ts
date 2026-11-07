@@ -6,9 +6,9 @@
 // minute N of the replay, `?minute=final` at the end, for screenshots.
 
 import { useEffect, useMemo, useState } from "react";
-import type { Area } from "../../convex/lineup/pitch";
+import { positionOfSlot, type Area } from "../../convex/lineup/pitch";
 import { namedRole, roleIn } from "../../convex/lineup/roles";
-import type { MatchupCommentary, MatchupSide, MatchupBenchSlot, MatchupSlot, MatchupStarter } from "../../convex/matchup/matchupShape";
+import type { MatchBreakdown, MatchupCommentary, MatchupSide, MatchupBenchSlot, MatchupSlot, MatchupStarter } from "../../convex/matchup/matchupShape";
 import { MINUTE_MS } from "../../convex/shared/time";
 import { previewFixtureCode } from "../premierLeague/preview";
 import { previewIdOf, previewSeason, previewTeams } from "../table/preview";
@@ -80,34 +80,51 @@ function slotAt([area, name, match, finalPoints]: Man, minute: number, onBench: 
   const played = minute - match * SECOND_KICKOFF;
   // The Premier League preview's code for the match, whose page every fixture there opens.
   const fixtureCode = previewFixtureCode(GAMEWEEK, match);
+  const kickoff = startedAt + match * SECOND_KICKOFF * MINUTE_MS;
   const status: MatchupSlot["status"] =
     played < 0
-      ? { kind: "yetToPlay", fixtureCode, kickoff: startedAt + match * SECOND_KICKOFF * MINUTE_MS }
+      ? { kind: "yetToPlay", fixtureCode, kickoff }
       : played <= MATCH_MINUTES
         ? { kind: "playing", fixtureCode, state: "live", minute: Math.min(played, MATCH_MINUTES), clockLabel: null }
         : { kind: "finished", fixtureCode };
   const points = played < 0 ? null : Math.floor((finalPoints * Math.min(played, MATCH_MINUTES)) / MATCH_MINUTES);
   const autoSub = name === UNUSED_KEEPER && status.kind === "finished" ? { kind: "off" as const, playerName: BENCH_KEEPER } : null;
-  return { playerCode: codeOf(name), name, area, points, counts: !onBench, provisional: true, status, autoSub };
+  return { playerCode: codeOf(name), name, area, points, counts: !onBench, provisional: true, status, autoSub, breakdown: [breakdownOf(fixtureCode, kickoff, points)] };
 }
 
-/** The made-up men stand in areas, not cells: each plays his area's centre slot's first role. */
-const roleOf = (area: Area) => namedRole(roleIn({ area, lane: "centre" }, undefined));
+/** A made-up man's match broken down: a point for appearing, the rest goals at 1 each. */
+function breakdownOf(fixtureCode: number, kickoff: number, points: number | null): MatchBreakdown {
+  const all = { by: "all" } as const;
+  const categories =
+    points === null
+      ? [{ stat: "minutes", name: "Minutes played", points: null }, { stat: "goalsScored", name: "Goals scored", points: null }]
+      : [
+          { stat: "minutes", name: "Minutes played", points: Math.min(points, 1), why: { actions: 1, value: { shape: "perAction", points: 1 }, pricedBy: all, cut: null } },
+          { stat: "goalsScored", name: "Goals scored", points: Math.max(points - 1, 0), why: { actions: Math.max(points - 1, 0), value: { shape: "perAction", points: 1 }, pricedBy: all, cut: null } },
+        ] as const;
+  return { fixtureCode, kickoff, points, counted: true, categories: [...categories], override: null };
+}
+
+/** The made-up men stand in areas, not cells: each plays his area's centre slot, in its first role. */
+export function centreSlotOf(area: Area): Pick<MatchupStarter, "role" | "place"> {
+  const cell = { area, lane: "centre" } as const;
+  return { role: namedRole(roleIn(cell, undefined)), place: { lane: cell.lane, label: positionOfSlot(cell) } };
+}
 
 /** A starter `minute` minutes in, in his role. */
 function starterAt(man: Man, minute: number): MatchupStarter {
-  return { ...slotAt(man, minute, false), role: roleOf(man[0]) };
+  return { ...slotAt(man, minute, false), ...centreSlotOf(man[0]) };
 }
 
 /** A side `minute` minutes in: the keeper's auto-sub once his match is over, then the total. */
 function sideAt(teamName: string, men: typeof SAKA_POTATOES, minute: number): MatchupSide {
   const starters = men.starters.map((man) => starterAt(man, minute));
-  const bench: MatchupBenchSlot[] = men.bench.map((man) => ({ ...slotAt(man, minute, true), role: null }));
+  const bench: MatchupBenchSlot[] = men.bench.map((man) => ({ ...slotAt(man, minute, true), role: null, place: null }));
   const off = starters.find((slot) => slot.autoSub?.kind === "off");
   if (off !== undefined) {
     off.counts = false;
     const on = bench.find((slot) => slot.name === BENCH_KEEPER)!;
-    Object.assign(on, { counts: true, autoSub: { kind: "on", playerName: off.name }, role: roleOf(off.area) });
+    Object.assign(on, { counts: true, autoSub: { kind: "on", playerName: off.name }, ...centreSlotOf(off.area) });
   }
   const final = minute >= FINAL_MINUTE;
   const counting = [...starters, ...bench].filter((slot) => slot.counts);
@@ -162,11 +179,14 @@ function matchupAt(minute: number, gameweek: number): Matchup {
     gameweeks: [...previewSeason.gameweeks],
     gameweek,
     deadline: previewSeason.deadlineOf(gameweek),
+    gameNumber: 1,
+    games: [{ kind: "team", teamName: OPPONENT }],
     game: {
       kind: "scored",
       team: sideAt(MINE, SAKA_POTATOES, minute),
       opponent: sideAt(OPPONENT, KROOS_CONTROL, minute),
       commentary: commentaryAt(minute),
+      version: null,
     },
   };
 }

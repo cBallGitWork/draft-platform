@@ -10,6 +10,7 @@ import { mainMenuLabel, signOutWords } from "../../../src/frame/words";
 import { MAIL_TITLE } from "../../../src/mail/words";
 import { SIGN_IN_PATH } from "../../../src/signIn/paths";
 import { admin, adminSeeing, beingDeleted, commissioned, league, manager, managerIn, newcomer, openApp, visitor, withNoPart } from "../../support/src/shell.harness";
+import { gameweeksPath } from "../../../src/gameweeks/paths";
 import { GAMEWEEKS_TITLE } from "../../../src/gameweeks/words";
 import { scoringPath } from "../../../src/scoring/paths";
 import { SCORING_TITLE } from "../../../src/scoring/words";
@@ -131,6 +132,16 @@ describe("the admin, with no part in a league", () => {
   it("is told when there are more leagues than the list shows (#144)", async () => {
     openApp(LEAGUES_PATH, { ...adminSeeing(withNoPart(league)), leaguesCut: true });
     await rowOf(league.name);
+    expect(screen.getByRole("status").textContent).toBe(leaguesCutWords);
+  });
+
+  it.each([
+    ["Gameweeks", gameweeksPath],
+    ["Player scoring", scoringPath],
+  ])("opening %s of a league past the list's cut lands on his leagues, which says some are missing (#297)", async (_, pathOf) => {
+    const app = openApp(pathOf("league-past-the-cut"), { ...adminSeeing(withNoPart(league)), leaguesCut: true });
+    await screen.findByRole("heading", { level: 1, name: LEAGUES_TITLE });
+    expect(app.path()).toBe(LEAGUES_PATH);
     expect(screen.getByRole("status").textContent).toBe(leaguesCutWords);
   });
 });

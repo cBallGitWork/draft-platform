@@ -17,6 +17,12 @@ commentary` (16 Oct 2026).
   then we name it (as a amanger might make a custom one )" (Craig, 1 Nov 2026; #878).
 - In a league with two games a gameweek, each game's link opens its own matchup (Craig, 1 Nov
   2026: "yes"; #913).
+- With two or more games a gameweek, the matchup shows one game at a time, with a switch under the
+  score ("Game 1 v Dave · Game 2 v Sam"); each game keeps its own score, lineups and commentary. The
+  gameweek arrows step gameweek by gameweek and the switch picks the game. Opened without a game's
+  link, it shows the first game drawn in the fixtures. One lineup and one score for the gameweek,
+  counted as a separate result against each opponent, and each game's commentary is only its two
+  sides' players (Craig, 6 Nov 2026: "Build take recs"; #521). `S10.2`
 - Each starter on the matchup's lineups shows his slot's position label and his role's run, as on
   the Tactics pitch (`spec/05`; Craig, 31 Oct 2026, `/grill the Tactics pitch`).
 - Tapping a player on the matchup or its pitch shows his breakdown for this match, his role's line
@@ -61,6 +67,7 @@ commentary` (16 Oct 2026).
   or coming-on line already says; a clean sheet added and taken away ("same for when CS is added
   and removed for defedners"), added once he has the minutes for it with nothing conceded, taken
   away by the goal that ends it (31 Oct 2026); goals conceded (for example "71' Saliba: 2 conceded, −1").
+- The first minutes band starts at 1 minute, as FPL's does (Craig, 7 Nov 2026, on #889: keep it). `S10.1`
 - A kick-off and a full-time line for each match with either team's players in it, on the matchup
   ("FT ARS 2–1 CHE: Saka 11, Palmer 6").
 - If the commentary stream falls behind or stops, the matchup and the match page say so

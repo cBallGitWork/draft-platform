@@ -9,7 +9,7 @@ import {
   type PlayersSort,
 } from "../../../convex/scouting/playersList";
 import { listOf } from "../../../convex/scouting/playersOrder";
-import { PL_SEASON_START_YEAR } from "../../../convex/football/football";
+import { FPL_SEASON } from "../../support/recorded/plSeasons.payloads";
 import { refusals } from "../../../convex/shared/leagueAccess";
 import { SEASON_PLAYERS_MOST } from "../../../convex/stats/matchRecords";
 import { CLUB_PLAYERS_MOST } from "../../../convex/shared/players";
@@ -66,6 +66,7 @@ test("every Premier League player now is listed, with his club, positions and ow
     club: ARSENAL,
     positions: ["W"],
     ownerTeamName: await teamName(t, teams[0]),
+    onWaivers: null,
     seasonPoints: null,
     stat: null,
   });
@@ -88,6 +89,15 @@ describe("the filters", () => {
     ["onWaivers", []],
   ] as const)("by who holds him: %s", async (availability, names) => {
     expect(await namesListed({ availability })).toEqual(names);
+  });
+
+  test("on waivers: a player on them is listed there, with the run that can first take him, and is no free agent (#1200)", async () => {
+    // Wednesday 13 January 2027 at 19:00, winter: the league's first runs are Wednesday and Thursday at 18:00.
+    await t.run((ctx) => ctx.db.insert("waiverPlayers", { leagueId, playerCode: MBEUMO.code, claimableFrom: Date.UTC(2027, 0, 13, 19, 0) }));
+    expect(await namesListed({ availability: "onWaivers" })).toEqual(["Mbeumo"]);
+    expect(await namesListed({ availability: "freeAgents" })).toEqual(["Rice"]);
+    const mbeumo = (await listAs(ANN)).players.find((player) => player.code === MBEUMO.code);
+    expect(mbeumo?.onWaivers).toEqual({ firstRunAt: Date.UTC(2027, 0, 14, 18, 0) });
   });
 
   test("by position: a player with it among his positions", async () => {
@@ -136,6 +146,7 @@ describe("sorting by a figure", () => {
     club: ARSENAL,
     positions: [],
     ownerTeamName: null,
+    onWaivers: null,
     seasonPoints,
     stat: null,
   });
@@ -152,7 +163,7 @@ describe("sorting by a figure", () => {
 });
 
 describe("any stat, as a season total (spec/19, sortable by any stat)", () => {
-  const THIS_SEASON = PL_SEASON_START_YEAR;
+  const THIS_SEASON = FPL_SEASON;
   // Saka and Mbeumo have goals this season, Palmer more last season, and Rice no totals at all.
   beforeEach(() =>
     t.run(async (ctx) => {

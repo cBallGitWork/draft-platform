@@ -6,6 +6,8 @@ import { screen, within } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import { formLabel, deadlineHead, meterListLabel, formHead, gameweekShort, placeWords, pointsShort, tableHead, versusWords } from "../../../../src/myTeam/header/words";
 import { opponentTitle } from "../../../../src/myTeam/tactics/words";
+import { byeWords, leagueAverageWords, noFigureWords } from "../../../../src/myTeam/words";
+import { gamesIn } from "../../../../src/myTeam/header/teamStanding";
 import { MATCHUP_PATH } from "../../../../src/frame/menu";
 import { idOf, leagueTableOf } from "../../../../src/table/drawnTable";
 import { league } from "../../../support/src/shell.harness";
@@ -18,6 +20,10 @@ const TEAMS = [ME, "Rovers XI", "Kroos Control", "Pique Blinders"];
 const POINTS: Record<string, number> = { [ME]: 54, "Rovers XI": 41, "Kroos Control": 47, "Pique Blinders": 30 };
 const scores = new Map(Array.from({ length: TACTICS_GAMEWEEK - 1 }, (_, index) => [index + 1, new Map(TEAMS.map((team) => [team, POINTS[team]]))]));
 const TABLE = leagueTableOf(TEAMS, { scores });
+
+/** The first gameweek the manager's team is the odd one out, on a bye or against the average. */
+const sittingOutIn = (table: typeof TABLE) =>
+  table.gameweeks.find(({ fixtures, byes }) => byes.includes(ME) || fixtures.some(({ team, opponent }) => team === ME && opponent === null))!.gameweek;
 
 /** The band's readings, by their heads. */
 const meter = (head: string) => within(screen.getByRole("group", { name: meterListLabel })).getByText(head).nextElementSibling!;
@@ -56,6 +62,44 @@ describe("the Tactics tab's GW opponent widget", () => {
     expect(within(widget).getByRole("link").getAttribute("href")).toContain(MATCHUP_PATH);
     expect(within(widget).getByText(tableHead)).toBeTruthy();
     expect(within(widget).getByText(formHead)).toBeTruthy();
+  });
+
+  it("in a gameweek of two games, names both opponents, each opening its own matchup, in the band too", async () => {
+    const table = leagueTableOf(TEAMS, { scores, gamesPerGameweek: 2 });
+    openTacticsTab({ tactics: SAVED, leagueTable: table });
+    const widget = await screen.findByRole("region", { name: opponentTitle(TACTICS_GAMEWEEK) });
+    const names = gamesIn(table, ME, TACTICS_GAMEWEEK).map(({ against }) => (against.kind === "team" ? against.team : ""));
+    expect(names).toHaveLength(2);
+    for (const links of [within(widget).getAllByRole("link"), within(meter(versusWords) as HTMLElement).getAllByRole("link")]) {
+      expect(links.map((link) => link.textContent)).toEqual(names.map((name) => expect.stringContaining(name)));
+      for (const link of links) expect(link.getAttribute("href")).toContain(MATCHUP_PATH);
+    }
+    expect(within(widget).getAllByText(formHead)).toHaveLength(2);
+  });
+
+  it("shows the odd team out playing the league's average, as a link to its matchup", async () => {
+    const table = leagueTableOf(TEAMS.slice(0, 3), { oddTeamOut: "leagueAverage" });
+    const gameweek = sittingOutIn(table);
+    openTacticsTab({ tactics: { ...SAVED, gameweek }, leagueTable: table });
+    const widget = await screen.findByRole("region", { name: opponentTitle(gameweek) });
+    expect(within(widget).getByRole("link").textContent).toContain(leagueAverageWords);
+  });
+
+  it("shows the odd team out on a bye, with no matchup", async () => {
+    const table = leagueTableOf(TEAMS.slice(0, 3), { oddTeamOut: "bye" });
+    const gameweek = sittingOutIn(table);
+    openTacticsTab({ tactics: { ...SAVED, gameweek }, leagueTable: table });
+    const widget = await screen.findByRole("region", { name: opponentTitle(gameweek) });
+    expect(within(widget).getByText(byeWords)).toBeTruthy();
+    expect(within(widget).queryByRole("link")).toBeNull();
+  });
+
+  it("shows — where the team has no game in the gameweek, as before the fixtures are drawn", async () => {
+    openTacticsTab({ tactics: SAVED, leagueTable: leagueTableOf(TEAMS, { scores, gameweeks: [1, 2, 3] }) });
+    const widget = await screen.findByRole("region", { name: opponentTitle(TACTICS_GAMEWEEK) });
+    expect(widget.textContent).toContain(noFigureWords);
+    expect(within(widget).queryByRole("link")).toBeNull();
+    expect(meter(versusWords).textContent).toBe(noFigureWords);
   });
 
   it("isn't there in total points, where there is no opponent", async () => {

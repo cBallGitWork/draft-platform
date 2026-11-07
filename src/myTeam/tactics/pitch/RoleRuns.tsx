@@ -1,6 +1,7 @@
 import { roleIn } from "../../../../convex/lineup/roles";
 import type { DraftLineup } from "../lineupDraft";
 import { PITCH_SIZE } from "./pitchMarkings";
+import type { RowLayout } from "./rowLayout";
 import { arrowheadOf, RUN_MARK, runPath, runShows, type PitchPoint } from "./runs";
 
 // Each starter's run on the pitch (spec/05 Runs; #846): a dashed arrow from his place, as old FM
@@ -16,15 +17,16 @@ const RUN_LINE = { vectorEffect: "non-scaling-stroke", strokeDasharray: RUN_DASH
 
 const pointsOf = (points: readonly PitchPoint[]) => points.map(({ x, y }) => `${x},${y}`).join(" ");
 
-/** `tapped` is the player picked up, whose run shows on a phone; `switchedOn` is the desk's switch. */
-export function RoleRuns({ draft, tapped, switchedOn }: { draft: DraftLineup; tapped: number | null; switchedOn: boolean }) {
+/** `rows` are how the pitch's rows share its length; `tapped` is the player picked up, whose run
+ *  shows on a phone; `switchedOn` is the desk's switch. */
+export function RoleRuns({ draft, rows, tapped, switchedOn }: { draft: DraftLineup; rows: RowLayout; tapped: number | null; switchedOn: boolean }) {
   return (
     <svg aria-hidden="true" viewBox={`0 0 ${width} ${length}`} preserveAspectRatio="none" className="pointer-events-none absolute inset-0 size-full">
       {draft.starters.map((starter) => {
         const { run } = roleIn(starter, starter.role);
         const shows = runShows(starter.playerCode === tapped, switchedOn);
         if (run === null || shows === null) return null;
-        const path = runPath(run, starter);
+        const path = runPath(run, starter, rows);
         return (
           <g key={starter.playerCode} {...{ [RUN_MARK]: starter.playerCode }} className={shows}>
             <polyline points={pointsOf(path)} {...RUN_LINE} />

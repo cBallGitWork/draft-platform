@@ -113,19 +113,9 @@ liverpools team, and it goes red and white"; then "put on to do list").
   back.
 - Premier League clubs' colours come from the admin's club colours (`spec/15`).
 
-**Overriding any player's or team's score, in any gameweek**: "should be for indovoduals players
-or a team score in any gameweek, fantrax has this, i can override any player score or any team
-score from any week," (Craig, 1 Nov 2026; #903). Today `spec/14` has one player's points for one
-match, overridden by the commissioner.
-- Who can override a team's score: the admin, the commissioner, the co-commissioner.
-- A team's override: its gameweek total, or one head-to-head's score; does it move the table, and
-  does a later re-score or stat correction leave it standing?
-- "Any week": a gameweek already final included, against a final gameweek's saved total
-  (`spec/07`) and patches never touching a played gameweek (`spec/14`)?
-- A player's override in a match that hasn't locked yet: allowed, or only once it locks (as built,
-  #439)? Overriding him twice replaces the first; is there an undo?
-- A player the football data has lost (#812): can he still be overridden?
-- Where the form lives: the player card only (as built), or the matchup and the team too.
+**Overriding any player's or team's score, the rest**: who, what, when, undo and the team
+override's place are settled in `spec/14` (Craig, 7 Nov 2026; #903). Still open:
+- Whether each player's row on the matchup carries the player override too, as well as his card.
 - Fantrax's Commissioner fixes (Smaller pages, below) may be part of this.
 
 **Who's doubtful, on Tactics**: "obv we need that for tactics too" (Craig, 1 Nov 2026, on
@@ -218,6 +208,12 @@ when its feature is built (`docs/design/approved/home/`).
 (Craig, 1 Nov 2026: "yes to all").
 - Does it switch the current league too (`spec/13`, Several leagues)?
 
+**A commissioner changing the rules mid-gameweek**: parked for its own talk (Craig, 6 Nov 2026,
+on #454). Rules can change many times a season (`spec/03`); when a change takes effect isn't said.
+- Can a commissioner change the league's rules after a gameweek's deadline, with games under way,
+  such as clean-sheet points on a Saturday at 16:00? Does the change wait for the next gameweek?
+- Can a manager contest a change, and who settles it?
+
 ## Suggested, not yet picked
 
 | What | Why |
@@ -231,8 +227,9 @@ when its feature is built (`docs/design/approved/home/`).
 | Stars and a dropped player's role, the gaps (`spec/05` Roles) | Found in review of stars part 2 (#11, 1 Nov 2026). (1) spec/05 still says "until stars are built, on the slot's first role"; stars are now built. (2) When the first lineup is picked again as the squad changes, a player still in the same cell keeps the role he had, and isn't re-picked by stars. That is Claude's reading, not an answer. (3) A player with stars for one of the slot's roles and "?" for another starts on the rated one, also unstated |
 | Deadline stars lost to a failed keeping (`spec/05` Auto-subs) | Found in review of stars part 3 (#11, 1 Nov 2026). Each team's bench stars are kept at the deadline and asked for again until one of the gameweek's matches locks. If the keeping fails and a match locks before it succeeds, that gameweek's auto-subs play the slot's first role for good. Is that right, or should a later keeping use the stars as they stood at the deadline some other way? |
 | Gameweeks to come after a team joins at a split | Once begun, a gameweek's fixtures are fixed (`spec/13`). Open: how the gameweeks still to come are drawn when a team joins at a split (`convex/table/playedFixtures.ts`, `scheduleAround`); goes with the split season above |
-| The draft's start, the gaps (`spec/04` Starting it) | Found in review of the draft's start (#1089, 4 Nov 2026). (1) Answered on #1102: the commissioner gets a letter (`spec/04`). (2) The approved draft room picture says "Random, drawn Mon 3 Aug", but nothing is drawn on its own now; it needs redrawing before the draft room is built. (3) "Draw at random" sits under the order list on League settings, which has no approved picture. (4) Answered on #1090: the rounds come from the squad limit in force at the start, never a waiting change (`spec/04`). (5) A vacated team can still be handed to a new manager after the start; only a new team is refused: Claude's reading of "no team can join" |
+| The draft's start, the gaps (`spec/04` Starting it) | Found in review of the draft's start (#1089, 4 Nov 2026). (1) Answered on #1102: the commissioner gets a letter (`spec/04`). (2) The approved draft room picture says "Random, drawn Mon 3 Aug", but nothing is drawn on its own now; it needs redrawing in a `/design` session Craig watches ("Redraw it soon", 5 Nov 2026, on #1130). (3), (4) and (5) answered on #1130: "Draw at random" stays on League settings; the rounds and the squad rules count a waiting change (`spec/04`); a vacated team can be handed over after the start |
 | Draft picks in Mail (`spec/04` The picks) | Found in review of a manager's pick (#1090, 4 Nov 2026). A pick is filed as an assignment, by the manager who made it, so Mail reads "Ann put Saka on Team 1" and the team's transactions say "assigned"; there is no "drafted" wording. What should a pick say in Mail and the transactions? |
+| Where the admin marks an abandoned match (`spec/05` Auto-subs) | The feed marks it and the admin can when the feed doesn't (Craig, 7 Nov 2026, #904), but where he marks it (the feeds page, the admin dashboard, the match page) isn't said |
 | One player on several teams | Not now; maybe later (Craig, 20 Oct 2026). A draft is normally one owner per league; some leagues do one per division. The draft, waivers, trades and "owned in the league" all assume one owner |
 
 Thought of and set aside, as they clash with what's settled: board confidence and the sack

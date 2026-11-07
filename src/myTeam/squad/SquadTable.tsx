@@ -1,4 +1,4 @@
-import { Fragment } from "react";
+import { Fragment, type ReactNode } from "react";
 import type { Position } from "../../../convex/positions/positionTables";
 import type { SeasonStats } from "../../../convex/squads/teamSquad";
 import { ClubShort } from "../../premierLeague/ClubName";
@@ -7,6 +7,7 @@ import { Placeholder } from "../../ui/Placeholder";
 import { PositionCode } from "../../ui/PositionCodes";
 import { unheldPlayerWords } from "../../shared/words";
 import type { TeamSquad } from "../seam";
+import { PositionMarks, type PositionMark } from "../tactics/positionMarks";
 import {
   benchWords,
   difficultyNotRatedWords,
@@ -15,6 +16,7 @@ import {
   nextFixtureLong,
   nextFixtureShort,
   noFigureWords,
+  noKickoffWords,
   noNextFixtureWords,
   noPointsWords,
   noStatsWords,
@@ -41,7 +43,8 @@ const KEEPER = "GK" satisfies Position;
 
 /** The squad's cells: the data's 20px line with 4px above and below, a 28px row on the desk
  *  (plate.md, Decided). */
-const cellClasses = (column: Column) => `${cellClassOf(WORDS.includes(column))} py-1`;
+export const squadCellClass = (words: boolean) => `${cellClassOf(words)} py-1`;
+const cellClasses = (column: Column) => squadCellClass(WORDS.includes(column));
 
 /** The Stats view (the approved picture): each player's season in one row, the bench's names
  *  muted, and a tap on a row opens his season panel. `rows` are in the table's order (squadOrder). */
@@ -51,6 +54,7 @@ export function SquadTable({
   unheld,
   lastGameweek,
   starting,
+  marks,
   selected,
   onSelect,
 }: {
@@ -60,6 +64,8 @@ export function SquadTable({
   lastGameweek: number | null;
   /** The eleven's codes; null while no lineup is open to set, when nobody is benched. */
   starting: ReadonlySet<number> | null;
+  /** Each player's position marks, by his code (tactics/positionMarks.ts). */
+  marks: ReadonlyMap<number, readonly PositionMark[]>;
   selected: number | null;
   onSelect(code: number): void;
 }) {
@@ -71,7 +77,7 @@ export function SquadTable({
         <ColumnHeads columns={heads} shown={COLUMNS} classOf={cellClasses} />
         <tbody>
           {rows.map((player) => (
-            <SquadRow key={player.code} player={player} starts={starting === null || starting.has(player.code)} isSelected={selected === player.code} onSelect={onSelect} />
+            <SquadRow key={player.code} player={player} starts={starting === null || starting.has(player.code)} marks={marks.get(player.code) ?? []} isSelected={selected === player.code} onSelect={onSelect} />
           ))}
           {/* Data gone wrong, kept so it shows (#323): there's no player to fill the columns. */}
           {unheld.map((code) => (
@@ -87,23 +93,19 @@ export function SquadTable({
   );
 }
 
-function SquadRow({ player, starts, isSelected, onSelect }: { player: Row; starts: boolean; isSelected: boolean; onSelect(code: number): void }) {
+function SquadRow({ player, starts, marks, isSelected, onSelect }: { player: Row; starts: boolean; marks: readonly PositionMark[]; isSelected: boolean; onSelect(code: number): void }) {
   return (
-    <tr
-      onClick={() => onSelect(player.code)}
-      aria-current={isSelected || undefined}
-      className="cursor-pointer border-t border-panel-rule aria-current:bg-name-plate aria-current:shadow-current-edge"
-    >
+    <PlayerRow code={player.code} isSelected={isSelected} onSelect={onSelect}>
       {COLUMNS.map((column) => (
-        <SquadCell key={column} column={column} player={player} starts={starts} isSelected={isSelected} onSelect={onSelect} />
+        <SquadCell key={column} column={column} player={player} starts={starts} marks={marks} isSelected={isSelected} onSelect={onSelect} />
       ))}
-    </tr>
+    </PlayerRow>
   );
 }
 
 /** One cell of a player's row. His name is the row's button, for the keyboard and screen readers;
  *  a tap anywhere on the row does the same. */
-function SquadCell({ column, player, starts, isSelected, onSelect }: { column: Column; player: Row; starts: boolean; isSelected: boolean; onSelect(code: number): void }) {
+function SquadCell({ column, player, starts, marks, isSelected, onSelect }: { column: Column; player: Row; starts: boolean; marks: readonly PositionMark[]; isSelected: boolean; onSelect(code: number): void }) {
   const className = cellClasses(column);
   switch (column) {
     case "number":
@@ -115,34 +117,7 @@ function SquadCell({ column, player, starts, isSelected, onSelect }: { column: C
         </td>
       );
     case "player":
-      return (
-        <th scope="row" title={player.fullName} className={`${className} whitespace-nowrap`}>
-          <button
-            type="button"
-            aria-expanded={isSelected}
-            aria-label={openPanelLabel(player.name)}
-            onClick={(event) => {
-              // The row's own tap would select him a second time.
-              event.stopPropagation();
-              onSelect(player.code);
-            }}
-            className={`inline-flex min-h-tap min-w-tap items-center text-lead font-semibold lg:min-h-0 lg:min-w-0 ${starts ? "text-fact" : "text-muted"}`}
-          >
-            {player.name}
-            {!starts && <span className="sr-only">, {benchWords}</span>}
-          </button>{" "}
-          <span className="text-muted">
-            <ClubShort club={player.club} />
-          </span>
-          {player.chanceOfPlaying !== null && (
-            <>
-              {" "}
-              <Placeholder label={statusNotSettledLabel} className="size-3 align-middle" />
-            </>
-          )}
-          {player.gone && <span className="block font-normal text-event">{goneWords}</span>}
-        </th>
-      );
+      return <PlayerCell className={className} player={player} starts={starts} marks={marks} isSelected={isSelected} onSelect={onSelect} />;
     case "season":
       return <PointsCell className={className} points={player.seasonPoints} />;
     case "last":
@@ -156,6 +131,53 @@ function SquadCell({ column, player, starts, isSelected, onSelect }: { column: C
     default:
       return <StatCell className={className} stat={column} player={player} />;
   }
+}
+
+/** A player's row in any of the table's views: a tap on it opens his season panel. */
+export function PlayerRow({ code, isSelected, onSelect, children }: { code: number; isSelected: boolean; onSelect(code: number): void; children: ReactNode }) {
+  return (
+    <tr
+      onClick={() => onSelect(code)}
+      aria-current={isSelected || undefined}
+      className="cursor-pointer border-t border-panel-rule aria-current:bg-name-plate aria-current:shadow-current-edge"
+    >
+      {children}
+    </tr>
+  );
+}
+
+/** His name, the row's button for the keyboard and screen readers, muted on the bench, with his
+ *  club, his status chip's place, his position marks, and whether he has left the league. */
+export function PlayerCell({ className, player, starts, marks, isSelected, onSelect }: { className: string; player: Row; starts: boolean; marks: readonly PositionMark[]; isSelected: boolean; onSelect(code: number): void }) {
+  return (
+    <th scope="row" title={player.fullName} className={`${className} whitespace-nowrap`}>
+      <button
+        type="button"
+        aria-expanded={isSelected}
+        aria-label={openPanelLabel(player.name)}
+        onClick={(event) => {
+          // The row's own tap would select him a second time.
+          event.stopPropagation();
+          onSelect(player.code);
+        }}
+        className={`inline-flex min-h-tap min-w-tap items-center text-lead font-semibold lg:min-h-0 lg:min-w-0 ${starts ? "text-fact" : "text-muted"}`}
+      >
+        {player.name}
+        {!starts && <span className="sr-only">, {benchWords}</span>}
+      </button>{" "}
+      <span className="text-muted">
+        <ClubShort club={player.club} />
+      </span>
+      {player.chanceOfPlaying !== null && (
+        <>
+          {" "}
+          <Placeholder label={statusNotSettledLabel} className="size-3 align-middle" />
+        </>
+      )}
+      <PositionMarks marks={marks} />
+      {player.gone && <span className="block font-normal text-event">{goneWords}</span>}
+    </th>
+  );
 }
 
 /** Every position he holds, his main first, side by side as the picture's chips are: a space
@@ -207,15 +229,21 @@ export function NextMatches({ matches }: { matches: Row["nextFixtures"] }) {
   }
   return (
     <span className="flex gap-px">
-      {matches.map((match) => {
-        const short = nextFixtureShort(match.opponent.shortName, match.home);
-        const long = `${nextFixtureLong(match.opponent.name, match.home, whenWords(match.kickoff))}, ${difficultyNotRatedWords}`;
-        return (
-          <abbr key={match.kickoff} title={long} aria-label={shortThenLongName({ short, long })} className="grow basis-0 border border-muted px-1 text-center whitespace-nowrap no-underline">
-            {short}
-          </abbr>
-        );
-      })}
+      {matches.map((match) => (
+        <MatchMark key={match.kickoff} match={match} />
+      ))}
     </span>
+  );
+}
+
+/** One of his club's matches: the opponent's code and where, named in full in its hover. */
+export function MatchMark({ match }: { match: { opponent: Row["club"]; home: boolean; kickoff: number | null } }) {
+  const short = nextFixtureShort(match.opponent.shortName, match.home);
+  const when = match.kickoff === null ? noKickoffWords : whenWords(match.kickoff);
+  const long = `${nextFixtureLong(match.opponent.name, match.home, when)}, ${difficultyNotRatedWords}`;
+  return (
+    <abbr title={long} aria-label={shortThenLongName({ short, long })} className="grow basis-0 border border-muted px-1 text-center whitespace-nowrap no-underline">
+      {short}
+    </abbr>
   );
 }

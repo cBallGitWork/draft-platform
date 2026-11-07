@@ -20,9 +20,9 @@ import { listsOf } from "./draftLists";
 import { draftRanking } from "./draftRanking";
 import { draftOf, picksMadeIn, type StartedDraft } from "./draftRow";
 import { rulesInForceAt } from "./draftStart";
-import { afterTakeBack, afterTimeout, isOnAutoPick, picksAtOnce } from "./draftTimeouts";
+import { afterTimeout, choseAutoPick, isOnAutoPick, picksAtOnce } from "./draftTimeouts";
 import { lastSeasonPoints } from "./lastSeasonPoints";
-import { legalPlayers, type DraftPlayer } from "./legalPlayers";
+import { whyNotLegal, type DraftPlayer, type NotLegal } from "./legalPlayers";
 import { pickOnTheClock } from "./snakeOrder";
 import { offWaivers, putOnWaivers } from "../waivers/waiverPlayers";
 
@@ -52,13 +52,14 @@ export const pickRefusals = {
   taken: (name: string, teamName: string) => `${name} is already on ${teamName}.`,
   breaksSquadRules: (name: string) => `${name} would leave your squad unable to meet the league's squad rules.`,
   notOnAutoPick: "You aren't on auto-pick.",
+  onAutoPick: "You're already on auto-pick.",
 };
 
 /** The squad rules the draft picks under: those it started under, never a change made since (Craig,
  *  4 Nov 2026, on #1090: "Picks follow the squad rules the draft started under"). A draft started
  *  before #1090 kept none, so its are the league's in force when it started; it always has them, as
  *  it can't start without a squad size limit. */
-async function squadRulesOf(ctx: QueryCtx, leagueId: Id<"leagues">, started: StartedDraft): Promise<LeagueRules["squad"]> {
+export async function squadRulesOf(ctx: QueryCtx, leagueId: Id<"leagues">, started: StartedDraft): Promise<LeagueRules["squad"]> {
   return started.squad ?? (await startedRulesAt(ctx, leagueId, started.at)).squad;
 }
 
@@ -72,10 +73,32 @@ async function startedRulesAt(ctx: QueryCtx, leagueId: Id<"leagues">, at: number
 type Turn = NonNullable<ReturnType<typeof pickOnTheClock<Id<"teams">>>>;
 
 /** The players still undrafted in the league: in the Premier League now and held by no team. */
-async function undraftedIn(ctx: QueryCtx, leagueId: Id<"leagues">): Promise<Doc<"players">[]> {
+export async function undraftedIn(ctx: QueryCtx, leagueId: Id<"leagues">): Promise<Doc<"players">[]> {
   const players = (await Promise.all((await currentClubs(ctx)).map(({ code }) => currentPlayersAt(ctx, code)))).flat();
   const places = await Promise.all(players.map(({ code }) => placeOf(ctx, leagueId, code)));
   return players.filter((_, index) => places[index] === null);
+}
+
+/** Why `teamId` may not take a player as its next pick, under the squad rules the draft started
+ *  under, with `picksLeft` picks still to make counting this one and a legal finish from the
+ *  `undrafted`; null when it may. The pick and the draft room's greyed-out list both ask it. */
+export async function whyNotLegalFor(
+  ctx: QueryCtx,
+  leagueId: Id<"leagues">,
+  started: StartedDraft,
+  teamId: Id<"teams">,
+  picksLeft: number,
+  undrafted: readonly Doc<"players">[],
+): Promise<(player: Doc<"players">) => Promise<NotLegal | null>> {
+  const positionsOf = await positionsNow(ctx, leagueId);
+  const asDraftPlayer = async ({ clubCode, code }: Doc<"players">): Promise<DraftPlayer> => ({ clubCode, areas: areasOf(await positionsOf(code)) });
+  const squad = await Promise.all(
+    (await squadOf(ctx, teamId)).map(async ({ playerCode }) =>
+      asDraftPlayer(await heldPlayerByCode(ctx, playerCode, `Player ${playerCode}, drafted by team ${teamId}, isn't in the football data`)),
+    ),
+  );
+  const why = whyNotLegal(squad, picksLeft, await squadRulesOf(ctx, leagueId, started), await Promise.all(undrafted.map(asDraftPlayer)));
+  return async (player) => why(await asDraftPlayer(player));
 }
 
 /** Whether the team on the clock may legally take a player, under the squad rules the draft started
@@ -87,16 +110,9 @@ async function legalForTurn(
   turn: Turn,
   undrafted: readonly Doc<"players">[],
 ): Promise<(player: Doc<"players">) => Promise<boolean>> {
-  const positionsOf = await positionsNow(ctx, leagueId);
-  const asDraftPlayer = async ({ clubCode, code }: Doc<"players">): Promise<DraftPlayer> => ({ clubCode, areas: areasOf(await positionsOf(code)) });
-  const squad = await Promise.all(
-    (await squadOf(ctx, turn.team)).map(async ({ playerCode }) =>
-      asDraftPlayer(await heldPlayerByCode(ctx, playerCode, `Player ${playerCode}, drafted by team ${turn.team}, isn't in the football data`)),
-    ),
-  );
   // Each team picks once a round, so this round's pick is its (round)th: rounds - round + 1 are left.
-  const legal = legalPlayers(squad, started.rounds - turn.round + 1, await squadRulesOf(ctx, leagueId, started), await Promise.all(undrafted.map(asDraftPlayer)));
-  return async (player) => legal(await asDraftPlayer(player));
+  const why = await whyNotLegalFor(ctx, leagueId, started, turn.team, started.rounds - turn.round + 1, undrafted);
+  return async (player) => (await why(player)) === null;
 }
 
 /** The player the manager picks, or the refusal: there is no such player, he has left the Premier
@@ -118,10 +134,10 @@ export async function pickSecondsNow(ctx: QueryCtx, leagueId: Id<"leagues">): Pr
   return (await draftOf(ctx, leagueId))?.pickSeconds ?? (await draftRulesNow(ctx, leagueId)).pickSeconds;
 }
 
-/** How a pick was made, besides who by: `timeout` for one the draft made when a managed team's
- *  clock ran out, and `pausedAt` for one the commissioner made while the draft was paused, whose
- *  next clock waits for him to resume. */
-type Placed = { timeout?: Doc<"draftPicks">["timeout"]; pausedAt?: number };
+/** How a pick was made, besides who by: `auto` for one the draft made, `timeout` for one it made
+ *  when a managed team's clock ran out, and `pausedAt` for one the commissioner made while the draft
+ *  was paused, whose next clock waits for him to resume. */
+type Placed = { auto?: true; timeout?: Doc<"draftPicks">["timeout"]; pausedAt?: number };
 
 /** `player` joins the squad of `team`, on the clock, as its pick, filed as `by`'s, and the next
  *  pick's clock starts PICK_GAP_MS from now, its manager told he is up next; after the last pick,
@@ -129,10 +145,10 @@ type Placed = { timeout?: Doc<"draftPicks">["timeout"]; pausedAt?: number };
  *  league's scoring start is set (scoringStart.ts `startAfterDraft`; #1097), the players nobody
  *  drafted go on waivers for the next run if its draft setting says so (#1197), and the whole league
  *  is told the draft is over (draftLetters.ts), the commissioner too when the start moved. */
-async function placePick(ctx: MutationCtx, league: Doc<"leagues">, turn: Turn, team: Doc<"teams">, player: Doc<"players">, by: string, { timeout, pausedAt }: Placed = {}): Promise<void> {
+async function placePick(ctx: MutationCtx, league: Doc<"leagues">, turn: Turn, team: Doc<"teams">, player: Doc<"players">, by: string, { auto, timeout, pausedAt }: Placed = {}): Promise<void> {
   const leagueId = league._id;
   const now = Date.now();
-  await ctx.db.insert("draftPicks", { leagueId, pick: turn.pick, teamId: team._id, playerCode: player.code, at: now, ...(timeout && { timeout }) });
+  await ctx.db.insert("draftPicks", { leagueId, pick: turn.pick, teamId: team._id, playerCode: player.code, at: now, ...(auto && { auto }), ...(timeout && { timeout }) });
   await ctx.db.insert("squadPlayers", { leagueId, teamId: team._id, playerCode: player.code });
   await offWaivers(ctx, leagueId, player.code);
   await fileEvent(ctx, leagueId, by, { kind: "playerAssigned", playerCode: player.code, playerName: player.name, teamId: team._id, teamName: team.name });
@@ -251,28 +267,14 @@ export const autoPick = internalMutation({
     }
     const player = await autoPickFor(ctx, leagueId, started, turn);
     let timeout: Placed["timeout"];
-    if (team.managerEmail !== undefined) {
+    // A manager who chose auto-pick keeps his count as it is (Craig, 5 Nov 2026, on #1100).
+    if (team.managerEmail !== undefined && !choseAutoPick(draft.timeouts, team._id)) {
       const limit = (await draftRulesNow(ctx, leagueId)).timeoutsBeforeAutoPick;
       const timeouts = afterTimeout(draft.timeouts, team._id, limit);
       timeout = { putOnAutoPick: !isOnAutoPick(draft.timeouts, team._id) && isOnAutoPick(timeouts, team._id) };
       await ctx.db.patch("drafts", draft._id, { timeouts });
     }
-    await placePick(ctx, league, turn, team, player, team.managerEmail ?? league.commissionerEmail, { timeout });
-    return null;
-  },
-});
-
-/** A manager on auto-pick takes control back (spec/04, Auto-pick; #1094): his team is off it and
- *  his timeout count is 0 again. A pick of his already on the clock then runs to the clock's end,
- *  not made at once (`autoPick`). Refused to anyone not on auto-pick. */
-export const takeControlBack = mutation({
-  args: { leagueId: v.id("leagues") },
-  returns: v.null(),
-  handler: async (ctx, { leagueId }) => {
-    const { team } = await managerOf(ctx, leagueId);
-    const draft = await draftOf(ctx, leagueId);
-    if (draft === null || !isOnAutoPick(draft.timeouts, team._id)) refuse(pickRefusals.notOnAutoPick);
-    await ctx.db.patch("drafts", draft._id, { timeouts: afterTakeBack(draft.timeouts, team._id) });
+    await placePick(ctx, league, turn, team, player, team.managerEmail ?? league.commissionerEmail, { auto: true, timeout });
     return null;
   },
 });
