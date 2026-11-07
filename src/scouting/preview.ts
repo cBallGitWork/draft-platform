@@ -1,4 +1,4 @@
-// Scouting in the preview (src/app/preview.ts): a few players at three clubs, two of them owned, a few
+// Scouting in the preview (src/app/preview.ts): a few players at three clubs, two of them owned and one on waivers, a few
 // stats added up for each, filtered and sorted by the server's own rule (listOf).
 
 import type { ListedPlayer } from "../../convex/scouting/playersList";
@@ -6,6 +6,7 @@ import { listOf, shownStat } from "../../convex/scouting/playersOrder";
 import { withOwnStats } from "../../convex/scoring/ownStats";
 import { OWN_STAT_PREFIX } from "../../convex/scoring/statCatalogue";
 import type { Stats } from "../../convex/stats/statTotals";
+import { DAY_MS } from "../../convex/shared/time";
 import { listedFromScouting, queueInPreview, setPreviewShortlisted } from "../draft/previewLists";
 import { previewShortlistOf } from "./shortlist/preview";
 import type { ScoutingSeam } from "./seam";
@@ -21,16 +22,21 @@ const player = (code: number, name: string, fullName: string, club: ListedPlayer
   club,
   positions,
   ownerTeamName,
+  onWaivers: null,
   seasonPoints: null,
   stat: null,
 });
+
+/** One player on waivers, so the filter and the player card's claim show: a run two days off first
+ *  takes him. */
+const onWaivers = (listed: ListedPlayer): ListedPlayer => ({ ...listed, onWaivers: { firstRunAt: Date.now() + 2 * DAY_MS } });
 
 export const previewPlayers: readonly ListedPlayer[] = [
   player(1, "Saka", "Bukayo Saka", ARSENAL, ["W"], "Saka Potatoes"),
   player(2, "Rice", "Declan Rice", ARSENAL, ["CDM", "CM"]),
   player(3, "Raya", "David Raya Martín", ARSENAL, ["GK"]),
   player(4, "Palmer", "Cole Palmer", CHELSEA, ["CAM", "W"], "Kroos Control"),
-  player(5, "James", "Reece James", CHELSEA, ["FB", "WB"]),
+  onWaivers(player(5, "James", "Reece James", CHELSEA, ["FB", "WB"])),
   player(6, "Salah", "Mohamed Salah", LIVERPOOL, ["W", "ST"]),
   player(7, "Van Dijk", "Virgil van Dijk", LIVERPOOL, ["CB"]),
 ];
