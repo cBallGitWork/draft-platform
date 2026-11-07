@@ -9,7 +9,7 @@ import { FIRST_SCORING } from "../../convex/scoring/firstScoring";
 import type { MatchStats } from "../../convex/scoring/values";
 import { DAY_MS, WEEK_MS } from "../../convex/shared/time";
 import { ARSENAL, CHELSEA, LIVERPOOL, previewPlayers, previewShortlist } from "../scouting/preview";
-import type { PlayedMatch, PlayerCard, PlayerCardSeam } from "./seam";
+import type { CardAction, PlayedMatch, PlayerCard, PlayerCardSeam } from "./seam";
 
 const CLUBS = [ARSENAL, CHELSEA, LIVERPOOL];
 const lastSaturday = Date.now() - ((new Date().getDay() + 1) % 7) * DAY_MS;
@@ -98,11 +98,28 @@ function cardOf(player: (typeof previewPlayers)[number]): PlayerCard {
 
 const cards = new Map(previewPlayers.map((player) => [player.code, cardOf(player)]));
 
-/** The preview saves nothing: an override is taken and forgotten. */
+/** The preview saves nothing: an override, a drop, a claim or a pickup is taken and forgotten. */
 const overrideNothing = () => Promise.resolve(null);
+const waiverChanges = { drop: overrideNothing, claim: overrideNothing, pickUp: overrideNothing };
+
+/** The preview manager's squad, to name who goes with a claim or a pickup: the players a team holds. */
+const PREVIEW_SQUAD = previewPlayers.filter((player) => player.ownerTeamName !== null).map(({ code, name }) => ({ playerCode: code, playerName: name }));
+/** One unowned player on waivers, the next Thursday's 18:00 run first taking him, so the claim shows. */
+const PREVIEW_ON_WAIVERS = previewPlayers.find((player) => player.ownerTeamName === null)?.code;
+const nextThursday = lastSaturday + 5 * DAY_MS;
+
+/** In the preview an owned player is another team's, with no action; an unowned one is a claim or
+ *  a pickup. */
+function cardActionOf(playerCode: number): CardAction {
+  const player = cards.get(playerCode);
+  if (player === undefined || player.ownerTeamName !== null) return { kind: "none" };
+  return playerCode === PREVIEW_ON_WAIVERS ? { kind: "claim", firstRunAt: nextThursday, squad: PREVIEW_SQUAD } : { kind: "pickUp", squad: PREVIEW_SQUAD };
+}
 
 export const previewPlayerCard: PlayerCardSeam = {
   ...previewShortlist,
   usePlayerCard: (_leagueId, playerCode) => cards.get(playerCode) ?? null,
+  useCardAction: (_leagueId, playerCode) => cardActionOf(playerCode),
+  useWaiverChanges: () => waiverChanges,
   useOverride: () => overrideNothing,
 };
