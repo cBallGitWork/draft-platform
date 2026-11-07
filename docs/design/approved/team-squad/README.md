@@ -26,8 +26,7 @@ colours.
   Rules' columns are not.
 - A row: opens his season panel on top of the right column. The cross closes it.
 - Squad number ▾, in his panel: changes his squad number (`spec/05`, Squad numbers).
-- Set his role, in his panel: see Answered. A placeholder until Tactics can open with a player
-  selected from the address, which it can't yet.
+- Set his role, in his panel: opens Tactics with him selected (see Answered).
 - Player card, in his panel: opens his player card.
 - Your eleven: the lineup's pitch and bench, each with his season points. Set lineup opens the
   Tactics tab.
@@ -44,8 +43,6 @@ Each shows in its place and size until its data comes.
 | The panel's Best role, with no lineup open to set (the season over) | its stars come with the lineup being set; built otherwise (#11) | #11 |
 | The panel's Started and Role points (empty boxes) | their build: what each counts is answered below | answered 1 Nov 2026 |
 | The Schedule and Rules views | their build: what each holds is answered below | answered 1 Nov 2026 |
-| Set his role | Tactics opening with a player selected from the address | answered 1 Nov 2026 |
-
 ## Answered
 
 The README's open questions, answered by Craig's "ok" to Claude's suggestions (1 Nov 2026):
