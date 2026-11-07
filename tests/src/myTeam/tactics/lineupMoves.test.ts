@@ -6,7 +6,8 @@ import { describe, expect, it } from "vitest";
 import { AREAS, type Cell } from "../../../../convex/lineup/pitch";
 import { rolesOfSlot } from "../../../../convex/lineup/roles";
 import type { Position } from "../../../../convex/positions/positionTables";
-import { canSwap, dropOutcome, reachOf, swapped, withRole, type MoveRules, type RatingsOf } from "../../../../src/myTeam/tactics/lineupDraft";
+import { NO_DATA } from "../../../../convex/stars/starsShape";
+import { canSwap, dropOutcome, landingOf, reachOf, swapped, withRole, type MoveRules, type RatingsOf } from "../../../../src/myTeam/tactics/lineupDraft";
 
 const KEEPER = { playerCode: 1, area: "goalkeeper", lane: "centre" } as const;
 const BACK = { playerCode: 2, area: "defence", lane: "left" } as const;
@@ -47,6 +48,31 @@ describe("where a player picked up can go (spec/05, Moving players; #851)", () =
     }
     expect(reachOf(DRAFT, 3, RULES)).toEqual({ players: [1] });
     expect(reachOf(DEFENCE_FULL, 4, RULES)).toEqual({ players: [2, 6] });
+  });
+});
+
+describe("the stars a lit player shows (spec/05, Moving players; Craig, 7 Nov 2026, #11)", () => {
+  const BENCH_BACK = 4;
+  /** A role of the left-back's slot other than its first, so only his stars put him on it. */
+  const playmaker = rolesOfSlot(BACK, DRAFT.starters)[1];
+  const ratingsOf: RatingsOf = (playerCode) => (playerCode === BENCH_BACK ? [{ area: "defence", role: playmaker.key, stars: 3.5 }] : []);
+
+  it("a lit starter: the player picked up, on the role he has the most stars for in that slot", () => {
+    expect(landingOf(DRAFT, BENCH_BACK, BACK.playerCode, ratingsOf)).toEqual({ playerCode: BENCH_BACK, role: playmaker, stars: 3.5 });
+  });
+
+  it("a lit bench player, a starter picked up: the bench player, on his best-star role in the starter's slot", () => {
+    expect(landingOf(DRAFT, BACK.playerCode, BENCH_BACK, ratingsOf)).toEqual({ playerCode: BENCH_BACK, role: playmaker, stars: 3.5 });
+  });
+
+  it("no stars for the slot: its first role, and no figure", () => {
+    const landing = landingOf(DRAFT, 3, KEEPER.playerCode, NO_STARS);
+    expect(landing?.role).toEqual(rolesOfSlot(KEEPER, DRAFT.starters)[0]);
+    expect(landing?.stars).toBe(NO_DATA);
+  });
+
+  it("two on the bench: nobody lands", () => {
+    expect(landingOf(DRAFT, 3, BENCH_BACK, NO_STARS)).toBeNull();
   });
 });
 

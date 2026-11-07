@@ -11,16 +11,24 @@ import { seasonPointsIn } from "../stats/seasonPoints";
 import { newestSeasonWithTotals, seasonTotals } from "../stats/seasonStats";
 import type { Stats } from "../stats/statTotals";
 import { listOf, shownStat } from "./playersOrder";
-import { checkCatalogueStat } from "../scoring/statCatalogue";
+import { withOwnStats } from "../scoring/ownStats";
+import type { StoredScoringSet } from "../scoring/scoringSetShape";
+import { setOf, siteVersions } from "../scoring/siteVersions";
+import { CATALOGUE_STATS } from "../scoring/statCatalogue";
+import { latestRules } from "../rules/rulesHistory";
+import { WAIVER_PLAYERS_READ_MOST } from "../waivers/waiverRun";
+import { firstRunFrom } from "../waivers/waiverTimes";
 
 // Scouting's players list (spec/19, The players list; #373): every Premier League player now, for
 // anyone in the league, filtered and sorted here on the server so the screen never holds a cut
 // list. Each player says who owns him in this league, and his season points under the site's
-// scoring: his card's total in the league, at his main position (seasonPoints.ts, #525). Waivers
-// aren't built, so no player is on waivers.
-// Any stat of the catalogue can be shown beside them as a season total and sorted by (spec/19,
-// "sortable by any stat"), read from the totals kept as records are written (seasonStats.ts), for
-// the newest season with any: last season's until the new one's first match (#647).
+// scoring: his card's total in the league, at his main position (seasonPoints.ts, #525). One on
+// waivers says the run that can first take him (#1200).
+// Any stat of the catalogue, or of the site set's own stats (#910), can be shown beside them as a
+// season total and sorted by (spec/19, "sortable by any stat"), read from the totals kept as
+// records are written (seasonStats.ts), for the newest season with any: last season's until the
+// new one's first match (#647). An own stat's total is worked out from those totals as a match's
+// is from its record (ownStats.ts), by the site's latest set, the one Player scoring shows.
 
 /** The most players the list reads: the Premier League's 20 squads as FPL lists them, a few dozen
  *  a club, with room. Each costs one read of his positions row, so a full list stays far inside a
@@ -57,8 +65,11 @@ const listedPlayer = v.object({
   fullName: v.string(),
   club: clubRecord,
   positions: v.array(position),
-  /** The team in this league that owns him, or null for a free agent. */
+  /** The team in this league that owns him, or null for nobody's. */
   ownerTeamName: v.union(v.string(), v.null()),
+  /** While he is on waivers (spec/08), the run that can first take him, or null with no run times
+   *  set (Craig, 6 Nov 2026, on #1200: "Show the run's day and time"); null when he isn't. */
+  onWaivers: v.union(v.object({ firstRunAt: v.union(v.number(), v.null()) }), v.null()),
   /** His points this season under the site's scoring, as his card adds them up in this league
    *  (seasonPoints.ts), or null ("—") while none of his matches is priced. */
   seasonPoints: v.union(v.number(), v.null()),
@@ -67,28 +78,36 @@ const listedPlayer = v.object({
 });
 export type ListedPlayer = Infer<typeof listedPlayer>;
 
+/** One of the site set's own stats (spec/14, Own stats), as the stat box offers it. */
+const offeredOwnStat = v.object({ stat: v.string(), name: v.string(), shortCode: v.string() });
+
 const playersList = v.object({
   /** Every club now, by name, for the club filter. */
   clubs: v.array(clubRecord),
+  /** The site's latest set's own stats, in its order, offered beside the catalogue's (#910). */
+  ownStats: v.array(offeredOwnStat),
   players: v.array(listedPlayer),
 });
 export type PlayersList = Infer<typeof playersList>;
 
 /** Every club now, and the players the filters keep in the sort's order (`listOf`), each with his
- *  season total of `stat` when one is shown (a catalogue stat's key, or null). Only the chosen
- *  club's players are read. Anyone not in the league is refused, as is a stat the catalogue doesn't
- *  hold, or a sort by the stat with none shown. */
+ *  season total of `stat` when one is shown (a catalogue stat's key, an own stat's of the site's
+ *  latest set, or null), and that set's own stats. Only the chosen club's players are read. Anyone
+ *  not in the league is refused, as is a stat neither holds, or a sort by the stat with none shown. */
 export const list = query({
   args: { leagueId: v.id("leagues"), filters, sort, stat: v.union(v.string(), v.null()) },
   returns: playersList,
   handler: async (ctx, { leagueId, filters, sort, stat }) => {
     await memberOf(ctx, leagueId);
-    if (stat !== null) checkCatalogueStat(stat);
+    const set = setOf((await siteVersions(ctx)).at(-1));
+    const ownStats = (set.ownStats ?? []).map(({ stat, name, shortCode }) => ({ stat, name, shortCode }));
+    if (stat !== null) checkShownStat(stat, ownStats);
     if (sort.by === "stat" && stat === null) throw new Error("The list can't be sorted by the stat with none shown");
     const clubs = (await currentClubs(ctx)).sort((one, other) => one.name.localeCompare(other.name));
     const listedClubs = filters.clubCode === null ? clubs : clubs.filter((each) => each.code === filters.clubCode);
     const players = await currentPlayersOf(ctx, listedClubs);
     const ownerOf = await ownersIn(ctx, leagueId);
+    const onWaiversOf = await onWaiversIn(ctx, leagueId);
     const positionsOfNow = await positionsNow(ctx, leagueId);
     const seasonPointsOf = await seasonPointsIn(ctx, leagueId);
     const season = stat === null ? null : await newestSeasonWithTotals(ctx);
@@ -105,14 +124,29 @@ export const list = query({
           club: listedClubOf.get(player.clubCode)!,
           positions,
           ownerTeamName: ownerOf.get(player.code) ?? null,
+          onWaivers: onWaiversOf.get(player.code) ?? null,
           seasonPoints: seasonPointsOf(player.code, positions),
-          stat: shownStat(totals.get(player.code), stat),
+          stat: shownStat(withOwnTotals(totals.get(player.code), stat, set), stat),
         };
       }),
     );
-    return { clubs: [...listedClubOf.values()], players: listOf(rows, filters, sort) };
+    return { clubs: [...listedClubOf.values()], ownStats, players: listOf(rows, filters, sort) };
   },
 });
+
+/** Refuses a stat that is neither the catalogue's nor one of `ownStats`. */
+function checkShownStat(stat: string, ownStats: readonly { stat: string }[]): void {
+  if (!CATALOGUE_STATS.has(stat) && !ownStats.some((own) => own.stat === stat)) {
+    throw new Error(`No stat ${stat} is in the catalogue or the site's own stats`);
+  }
+}
+
+/** A player's season totals with the site's own stats worked out from them (ownStats.ts) when the
+ *  shown stat is one; as they are otherwise, undefined for a player with none. */
+function withOwnTotals(totals: Stats | undefined, stat: string | null, set: StoredScoringSet): Stats | undefined {
+  if (totals === undefined || stat === null || CATALOGUE_STATS.has(stat)) return totals;
+  return withOwnStats(totals, set);
+}
 
 /** The current players at these clubs, at most LISTED_PLAYERS_MOST of them. */
 async function currentPlayersOf(ctx: QueryCtx, clubs: readonly Doc<"clubs">[]): Promise<Doc<"players">[]> {
@@ -132,4 +166,15 @@ async function ownersIn(ctx: QueryCtx, leagueId: Id<"leagues">): Promise<Map<num
     `More than ${OWNED_IN_LEAGUE_MOST} players are owned in league ${leagueId}, so the list would be cut short`,
   );
   return new Map(owned.map((row) => [row.playerCode, teamName.get(row.teamId)!]));
+}
+
+/** Each player on the league's waivers, by his code, with the run that can first take him. */
+async function onWaiversIn(ctx: QueryCtx, leagueId: Id<"leagues">): Promise<Map<number, { firstRunAt: number | null }>> {
+  const runs = (await latestRules(ctx, leagueId))?.waivers.runs ?? [];
+  const onWaivers = await takeAllOrThrow(
+    ctx.db.query("waiverPlayers").withIndex("by_leagueId_and_playerCode", (q) => q.eq("leagueId", leagueId)),
+    WAIVER_PLAYERS_READ_MOST,
+    `More than ${WAIVER_PLAYERS_READ_MOST} players are on waivers in league ${leagueId}, so the list would be cut short`,
+  );
+  return new Map(onWaivers.map((row) => [row.playerCode, { firstRunAt: firstRunFrom(runs, row.claimableFrom) }]));
 }

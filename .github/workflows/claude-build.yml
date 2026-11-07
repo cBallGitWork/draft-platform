@@ -63,9 +63,9 @@ jobs:
       ISSUE: ${{ inputs.issue || github.event.issue.number }}
       MODE: ${{ inputs.mode || 'build' }}
       HAS_SUBSCRIPTION: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN != '' }}  # a step's `if` cannot read secrets, so this carries it
-      # lead.yml dispatches each build with the job's token, so the build's actor is the github-actions bot, and
-      # claude-code-action refuses any bot not named here (the 5 Nov 2026 nightly: #989, #990 and #991 all failed with
-      # "Workflow initiated by non-human actor: github-actions").
+      # lead.yml dispatches each build as CBHelper180 (BUILD_TOKEN) since 6 Nov 2026, falling back to the job's token,
+      # whose actor is the github-actions bot; claude-code-action refuses any bot not named here (the 5 Nov 2026
+      # nightly: #989, #990 and #991 all failed with "Workflow initiated by non-human actor: github-actions").
       BUILD_STARTER_BOTS: github-actions
       # the agent runs headless, so every tool it needs is named here or it is denied; the deny list is a speed bump,
       # and the real guard is the ruleset's required checks, Code Owners review, and lane-auto.yml's refusal to approve a

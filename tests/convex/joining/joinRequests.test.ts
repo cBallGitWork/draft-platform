@@ -66,7 +66,7 @@ describe("a join request", () => {
     const [team] = await teamsIn(t, leagueId);
     expect(team).toMatchObject({ name: "Team 1", managerEmail: ANN });
     expect((await eventsIn(t, leagueId)).at(-1)).toEqual({ by: COMMISSIONER, kind: "joinRequestApproved", email: ANN, teamId: team._id, teamName: "Team 1" });
-    expect(lastEmailTo(sent, ANN)).toMatchObject({ subject: `You're in ${LEAGUE_NAME} on Draft Manager, Sunday 1 November at 14:32 GMT` });
+    expect(lastEmailTo(sent, ANN)).toMatchObject({ subject: `You're in ${LEAGUE_NAME} on Fantasy Draft Manager, Sunday 1 November at 14:32 GMT` });
     expect(lastEmailTo(sent, ANN).text).toContain("you run Team 1");
     expect(await joinPageFor(ANN)).toEqual({ leagueName: LEAGUE_NAME, standing: "inLeague", teamName: "Team 1" });
     expect(await waitingRequests()).toEqual([]);
