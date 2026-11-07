@@ -36,7 +36,7 @@ test("an invite resent a minute later has a different subject, so Gmail doesn't 
   const sentAt = Date.UTC(2026, 10, 1, 14, 32);
   const first = inviteEmail(url, facts, sentAt).subject;
   const next = inviteEmail(url, facts, sentAt + MINUTE_MS).subject;
-  expect(first).toBe("You're invited to A league on Draft Manager, Sunday 1 November at 14:32 GMT");
+  expect(first).toBe("You're invited to A league on Fantasy Draft Manager, Sunday 1 November at 14:32 GMT");
   expect(next).not.toBe(first);
 });
 
@@ -45,6 +45,6 @@ test("a second approval into the same league has a different subject, so Gmail d
   const facts = { leagueName: "A league", teamName: "Team 1" };
   const sentAt = Date.UTC(2026, 10, 1, 14, 32);
   const first = approvedEmail(facts, sentAt).subject;
-  expect(first).toBe("You're in A league on Draft Manager, Sunday 1 November at 14:32 GMT");
+  expect(first).toBe("You're in A league on Fantasy Draft Manager, Sunday 1 November at 14:32 GMT");
   expect(approvedEmail(facts, sentAt + MINUTE_MS).subject).not.toBe(first);
 });
