@@ -3,7 +3,7 @@
 
 import { describe, expect, it } from "vitest";
 import { FORM_RESULTS } from "../../../../convex/table/standings";
-import { gameIn, gamesOfTeam, standingOf } from "../../../../src/myTeam/header/teamStanding";
+import { gamesIn, gamesOfTeam, standingOf } from "../../../../src/myTeam/header/teamStanding";
 import { idOf, leagueTableOf } from "../../../../src/table/drawnTable";
 
 const TEAMS = ["Ana", "Ben", "Cal", "Dee"];
@@ -25,8 +25,18 @@ describe("a team's games", () => {
   });
 
   it("in a gameweek, is the one it plays, or none in total points", () => {
-    expect(gameIn(leagueTableOf(TEAMS, { gameweeks: GAMEWEEKS }), "Ana", 3)?.gameweek).toBe(3);
-    expect(gameIn(leagueTableOf(TEAMS, { gameweeks: GAMEWEEKS, format: "totalPoints" }), "Ana", 3)).toBeNull();
+    expect(gamesIn(leagueTableOf(TEAMS, { gameweeks: GAMEWEEKS }), "Ana", 3).map(({ gameweek }) => gameweek)).toEqual([3]);
+    expect(gamesIn(leagueTableOf(TEAMS, { gameweeks: GAMEWEEKS, format: "totalPoints" }), "Ana", 3)).toEqual([]);
+  });
+
+  it("in a gameweek of two games, is both, against two different teams; and none in a gameweek not drawn", () => {
+    const table = leagueTableOf(TEAMS, { gameweeks: GAMEWEEKS, gamesPerGameweek: 2 });
+    const games = gamesIn(table, "Ana", 3);
+    expect(games.map(({ gameweek }) => gameweek)).toEqual([3, 3]);
+    const opponents = games.map(({ against }) => (against.kind === "team" ? against.team : null));
+    expect(new Set(opponents).size).toBe(2);
+    expect(opponents).not.toContain(null);
+    expect(gamesIn(table, "Ana", 8)).toEqual([]);
   });
 
   it("against the league's average, in a league with an odd team out", () => {

@@ -1,5 +1,5 @@
 // The Tactics tab's Selection table and toolbar (the approved Tactics picture; plate.md, Tables and
-// panels): each row's position chip, next fixture, role fit, role and points; the bench's places and
+// panels): each row's position chip, role, player, role fit and next fixture; the bench's places and
 // best roles; data not held yet as its placeholder; the Formation keys and the formation window.
 
 import { screen, within } from "@testing-library/react";
@@ -46,13 +46,26 @@ const STARRED: Member[] = SQUAD.map((player) =>
 );
 
 describe("the Selection table", () => {
-  it("gives each player his next fixture, outlined until its difficulty colour comes, his season's and last gameweek's points, and a status chip only where FPL has news", async () => {
+  it("gives each player his next fixture, outlined until its difficulty colour comes, and a status chip only where FPL has news", async () => {
     await openedPitch({ tactics: SAVED, squad: TEAM_SQUAD });
     expect(within(rowOf(RAYA)).getByText(nextFixtureShort(SAKA.nextFixtures[0].opponent.shortName, true)).className).toContain("border-muted");
     expect(within(rowOf(RAYA)).queryByRole("img", { name: statusNotSettledLabel })).toBeNull();
     expect(within(rowOf(WHITE)).getByRole("img", { name: statusNotSettledLabel })).toBeTruthy();
-    expect(rowOf(RAYA).textContent).toMatch(/416$/);
-    expect(rowOf(WHITE).textContent).toMatch(/12—$/);
+  });
+
+  it("opens each row with the chip, then the role, the player, his stars and his next fixture, and no points: those stay on the Squad tab (#847)", async () => {
+    await openedPitch({ tactics: SAVED, squad: TEAM_SQUAD });
+    const table = screen.getByRole("table", { name: squadTableLabel });
+    const heads = within(table).getAllByRole("columnheader").map((head) => head.textContent);
+    expect(heads.slice(0, 5)).toEqual(["Pos", "Role", "Player", "Role fit", "Next"]);
+    const [chip, role, player, stars, next] = Array.from(rowOf(RAYA).cells);
+    expect(chip.textContent).toBe("GK");
+    expect(within(role).getByRole("combobox").textContent).toContain(roleIn(STARTERS[0], undefined).name);
+    expect(within(player as HTMLElement).getByRole("button", { name: RAYA.name })).toBeTruthy();
+    expect(within(stars).getByRole("img", { name: noDataLabel(ROLE_FIT_SUBJECT) })).toBeTruthy();
+    expect(within(next).getByText(nextFixtureShort(SAKA.nextFixtures[0].opponent.shortName, true))).toBeTruthy();
+    expect(rowOf(RAYA).cells).toHaveLength(5);
+    expect(rowOf(RAYA).textContent).not.toContain("41");
   });
 
   it("leads each starter with his slot's position chip, and each bench player with his place and main position", async () => {

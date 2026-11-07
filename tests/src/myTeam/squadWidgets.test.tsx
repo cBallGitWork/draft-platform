@@ -24,7 +24,7 @@ import {
   roleLastGameweekNotSettledLabel,
   rolePointsNotBuiltLabel,
   setLineupWords,
-  setRoleNotBuiltLabel,
+  setRoleWords,
   squadCountWords,
   squadTableLabel,
   squadViewWords,
@@ -36,7 +36,7 @@ import {
 } from "../../../src/myTeam/squad/words";
 import { everyRoleOf } from "../../../convex/lineup/roles";
 import { starsLabel } from "../../../src/ui/StarRating";
-import { ROLE_FIT_SUBJECT } from "../../../src/myTeam/tactics/words";
+import { closePanelLabel as closeTacticsPanelLabel, ROLE_FIT_SUBJECT } from "../../../src/myTeam/tactics/words";
 import { league } from "../../support/src/shell.harness";
 import { openSquad, PALMER, RAYA, SAKA, squadOf, tacticsWith } from "../../support/src/squadTab.harness";
 
@@ -132,7 +132,7 @@ describe("his season panel", () => {
     await openPanel("Saka");
     const panel = panelOf("Saka");
 
-    for (const label of [startedNotBuiltLabel, rolePointsNotBuiltLabel, bestRoleNotRatedLabel, roleLastGameweekNotSettledLabel, setRoleNotBuiltLabel, statusNotSettledLabel]) {
+    for (const label of [startedNotBuiltLabel, rolePointsNotBuiltLabel, bestRoleNotRatedLabel, roleLastGameweekNotSettledLabel, statusNotSettledLabel]) {
       expect(within(panel).getByRole("img", { name: label })).toBeTruthy();
     }
     // FPL's news is held, so it shows beside the chip that waits.
@@ -167,6 +167,16 @@ describe("his season panel", () => {
     await openPanel("Saka");
     await userEvent.click(within(panelOf("Saka")).getByRole("link", { name: playerCardWords }));
     expect(app.path()).toBe(playerCardPath(league.leagueId, SAKA.code));
+  });
+
+  it("opens Tactics with him selected from Set his role (#1008)", async () => {
+    const app = openSquad({ squad: squadOf(players), tactics: lineup });
+    await screen.findByRole("table");
+    await openPanel("Saka");
+    await userEvent.click(within(panelOf("Saka")).getByRole("link", { name: setRoleWords }));
+    expect(app.path()).toBe(MY_TEAM_PATH);
+    expect(app.search()).toBe(`?player=${SAKA.code}`);
+    expect(await screen.findByRole("button", { name: closeTacticsPanelLabel("Saka") })).toBeTruthy();
   });
 
   it("moves Mail and news under the table while it is open", async () => {
