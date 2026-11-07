@@ -3,6 +3,7 @@ import type { QueryCtx } from "../_generated/server";
 import { namedCodes } from "../lineup/lineup";
 import { lineupsInGameweek } from "../lineup/lineups";
 import { statusOf } from "../stats/matchStats";
+import { teamOverridesIn } from "./heldMatches";
 import { rulesIn, type GameweekInputs, type LeagueReads } from "./teamGameweek";
 import { deadlineStarsIn } from "../stars/deadlineStars";
 
@@ -42,5 +43,11 @@ export async function squadInputs(
       overrides: inMatch(fixture.code, (row) => row.overrides),
     })),
   );
-  return { ...ruled, matches, lineups, deadlineStars: await deadlineStarsIn(ctx, reads.leagueId, gameweek, teamId) };
+  return {
+    ...ruled,
+    matches,
+    lineups,
+    deadlineStars: await deadlineStarsIn(ctx, reads.leagueId, gameweek, teamId),
+    teamOverrides: await teamOverridesIn(ctx, reads.leagueId, gameweek),
+  };
 }
