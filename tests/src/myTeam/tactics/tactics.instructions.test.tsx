@@ -43,6 +43,14 @@ describe("team instructions", () => {
     expect(app.myTeam.lineupChanges.save.mock.lastCall![1].instructions).toEqual({ attacking: "playOutFromTheBack", defensive: OPEN_PICKED.defensive });
   });
 
+  it("says so too for a formation picked in the formation window", async () => {
+    await openedPitch();
+    await userEvent.selectOptions(picker("attacking"), "Boot it to the big man");
+    // Not among the Formation keys: picked in the window. Its front three has wingers.
+    await pickFormation("3-4-3");
+    expect(await screen.findByText("Boot it to the big man needs one up top and no wingers: switched to Play out from the back")).toBeTruthy();
+  });
+
   it("keeps a pick the new formation allows, with no line", async () => {
     await openedPitch();
     await userEvent.selectOptions(picker("defensive"), "Get stuck in");

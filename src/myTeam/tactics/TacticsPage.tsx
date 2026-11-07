@@ -102,6 +102,10 @@ function LineupEditor({ league, teamName, tactics, seam }: { league: LeagueSumma
   const reach = useMemo(() => (picked === null ? null : reachOf(draft, picked.playerCode, rules)), [draft, picked, rules]);
   const inUse = presetInUse(draft, tactics.presets)?.name ?? null;
   const instructions = draft.instructions ?? tactics.picked;
+  // The preset last picked, until the lineup saves in it: its empty slots are marked, and its own
+  // cells decide the instructions offered. Saved, the eleven stand in it, as the server judges them.
+  const shapePicked = tactics.presets.find(({ name }) => name === edits.shape)?.cells;
+  const shape = shapePicked ?? draft.starters;
 
   // After a move, the moved player keeps the focus, wherever he now stands.
   const root = useRef<HTMLDivElement>(null);
@@ -191,7 +195,7 @@ function LineupEditor({ league, teamName, tactics, seam }: { league: LeagueSumma
         savedAt={edits.savedAt}
         switchedNote={edits.switchedNote}
         problem={edits.problem}
-        cells={draft.starters}
+        cells={shape}
         instructions={tactics.instructions}
         picked={instructions}
         onInstruction={pickInstruction}
@@ -222,7 +226,7 @@ function LineupEditor({ league, teamName, tactics, seam }: { league: LeagueSumma
               {picked === null ? pickHintWords : movingHintWords(picked.name, picked.positions)}
             </p>
             <div className="p-2">
-              <Pitch draft={draft} squad={squad} moving={moving} slots={tactics.presets.find(({ name }) => name === edits.shape)?.cells ?? []} runsShown={runsShown} />
+              <Pitch draft={draft} squad={squad} moving={moving} slots={shapePicked ?? []} runsShown={runsShown} />
             </div>
           </Panel>
           <LineupCheck
@@ -258,7 +262,7 @@ function LineupEditor({ league, teamName, tactics, seam }: { league: LeagueSumma
               onBenchAt={toBenchAt}
             />
           )}
-          <TeamTacticWidget formation={inUse} cells={draft.starters} instructions={tactics.instructions} picked={instructions} />
+          <TeamTacticWidget formation={inUse} cells={shape} instructions={tactics.instructions} picked={instructions} />
           <OpponentWidget table={table} teamName={teamName} gameweek={tactics.gameweek} />
         </div>
       </div>
