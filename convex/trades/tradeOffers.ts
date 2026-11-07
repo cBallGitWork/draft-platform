@@ -25,7 +25,7 @@ export const NOTE_MOST = 140;
 export const offerRefusals = {
   draftLive: "Trades can't be made while the draft is live.",
   tradeDeadline: "The league's trade deadline has passed.",
-  break: "Trades are locked through a gameweek the league doesn't play.",
+  unusedGameweek: "Trades are locked through a gameweek the league doesn't play.",
   autoTeam: (teamName: string) => `${teamName} is on the auto team, so it can't trade.`,
   sameTeam: "A trade is between two teams.",
   noPlayers: "Put at least one player in the trade.",

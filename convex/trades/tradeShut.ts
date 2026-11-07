@@ -15,7 +15,7 @@ import { gameweekUnderWay, latestBegun } from "../waivers/waiverLock";
 // the auto team (spec/09).
 
 /** Why trades are shut, or null while they are open. */
-export type TradesShut = "draftLive" | "tradeDeadline" | "break" | null;
+export type TradesShut = "draftLive" | "tradeDeadline" | "unusedGameweek" | null;
 
 /** Why the league's trades are shut at `now`, if they are. */
 export async function tradesShut(ctx: QueryCtx, league: Doc<"leagues">, deadlines: LeagueDeadlines, now: number): Promise<TradesShut> {
@@ -27,7 +27,7 @@ export async function tradesShut(ctx: QueryCtx, league: Doc<"leagues">, deadline
   if (tradeDeadline !== null && begun >= tradeDeadline) {
     if (begun > tradeDeadline || !(await gameweekUnderWay(ctx, begun))) return "tradeDeadline";
   }
-  if (!isGameweekUsed(league, begun) && (await gameweekUnderWay(ctx, begun))) return "break";
+  if (!isGameweekUsed(league, begun) && (await gameweekUnderWay(ctx, begun))) return "unusedGameweek";
   return null;
 }
 

@@ -60,7 +60,7 @@ describe("with no review", () => {
     const { offerId } = await w.offer(CAT, w.annsTeam, [RICE], []);
     await w.accept(ANN, offerId);
 
-    expect(await w.lettersTo(BOB)).toContainEqual({ subject: "Team 3 and Team 1 traded", body: `${nameOf(RICE)} to Team 1; nobody to Team 3. Team 3 now breaks the league's squad limits.` });
+    expect(await w.lettersTo(BOB)).toContainEqual({ subject: "Team 3 and Team 1 traded", body: `${nameOf(RICE)} to Team 1; nobody to Team 3. Team 3 is now outside the league's squad limits.` });
   });
 
   test("closes every other open offer holding one of its players, with a letter to both of its managers", async () => {
@@ -262,7 +262,7 @@ describe("open offers close", () => {
     await (await actingAs(w.t, COMMISSIONER)).mutation(api.gameweeks.leagueGameweeks.setUsed, { leagueId: w.leagueId, gameweek: 5, used: false });
     await w.gameweekEnds(5);
     await w.matchIs(5, "live");
-    await expectRefused(w.offer(CAT, w.bobsTeam, [RICE], [PALMER]), offerRefusals.break);
+    await expectRefused(w.offer(CAT, w.bobsTeam, [RICE], [PALMER]), offerRefusals.unusedGameweek);
 
     await w.matchIs(5, "fullTime");
     await w.offer(CAT, w.bobsTeam, [RICE], [PALMER]);

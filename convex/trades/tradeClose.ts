@@ -117,7 +117,7 @@ async function closingReason(
   deadlines: LeagueDeadlines,
   now: number,
 ): Promise<OfferClosed | null> {
-  if (shut === "tradeDeadline" || shut === "break") return { why: shut };
+  if (shut === "tradeDeadline" || shut === "unusedGameweek") return { why: shut };
   if (deadlinePassed(offer, deadlines, now)) return { why: "deadline" };
   for (const teamId of [offer.fromTeamId, offer.toTeamId]) {
     const team = await ctx.db.get("teams", teamId);
