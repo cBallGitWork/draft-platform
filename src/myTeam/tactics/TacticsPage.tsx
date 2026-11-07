@@ -43,8 +43,8 @@ const PUT_BACK_KEY = ESCAPE_KEY;
  *  table beside it with the bench in order, and down the right the selected player's panel, the team
  *  tactic and the gameweek's opponent. Each move saves itself, and Undo walks back through every move
  *  since the tab was opened (spec/05, Moving players; #851). A player dropped into a slot starts on
- *  his best-star role (#11). */
-export function TacticsPage({ league, seam }: { league: LeagueSummary; seam: MyTeamSeam }) {
+ *  his best-star role (#11). `selected`, from the address, opens that player's panel (#1008). */
+export function TacticsPage({ league, seam, selected }: { league: LeagueSummary; seam: MyTeamSeam; selected?: number }) {
   if (league.teamName === null) {
     return (
       <PageSection title={TACTICS_TITLE} className="bg-panel">
@@ -52,10 +52,10 @@ export function TacticsPage({ league, seam }: { league: LeagueSummary; seam: MyT
       </PageSection>
     );
   }
-  return <TacticsBody league={league} teamName={league.teamName} seam={seam} />;
+  return <TacticsBody league={league} teamName={league.teamName} seam={seam} selected={selected} />;
 }
 
-function TacticsBody({ league, teamName, seam }: { league: LeagueSummary; teamName: string; seam: MyTeamSeam }) {
+function TacticsBody({ league, teamName, seam, selected }: { league: LeagueSummary; teamName: string; seam: MyTeamSeam; selected: number | undefined }) {
   const now = useMinute();
   const tactics = seam.useTactics(league.leagueId, now);
   seam.useTacticsOpened(league.leagueId, tactics?.kind === "open" ? tactics.gameweek : null);
@@ -70,12 +70,12 @@ function TacticsBody({ league, teamName, seam }: { league: LeagueSummary; teamNa
   return (
     <TeamPage league={league} teamName={teamName} seam={seam}>
       {/* Keyed by the gameweek, so a deadline passing mid-edit starts the next one afresh. */}
-      <LineupEditor key={tactics.gameweek} league={league} teamName={teamName} tactics={tactics} seam={seam} />
+      <LineupEditor key={tactics.gameweek} league={league} teamName={teamName} tactics={tactics} seam={seam} opened={selected} />
     </TeamPage>
   );
 }
 
-function LineupEditor({ league, teamName, tactics, seam }: { league: LeagueSummary; teamName: string; tactics: OpenTactics; seam: MyTeamSeam }) {
+function LineupEditor({ league, teamName, tactics, seam, opened }: { league: LeagueSummary; teamName: string; tactics: OpenTactics; seam: MyTeamSeam; opened: number | undefined }) {
   const squad = useMemo(() => new Map(tactics.squad.map((member) => [member.playerCode, member])), [tactics.squad]);
   const opening = useMemo(() => openingLineup(tactics), [tactics]);
   // Next fixtures and points, from the Squad tab's read, and the league's table for the opponent.
@@ -83,8 +83,9 @@ function LineupEditor({ league, teamName, tactics, seam }: { league: LeagueSumma
   const season = useMemo(() => (teamSquad === undefined ? undefined : new Map(teamSquad.players.map((row) => [row.code, row]))), [teamSquad]);
   const table = seam.useLeagueTable(league.leagueId);
   const [pickedCode, setPickedCode] = useState<number | null>(null);
-  // The player whose panel is open on top of the right-hand column (plate.md, Tables and panels).
-  const [selectedCode, setSelectedCode] = useState<number | null>(null);
+  // The player whose panel is open on top of the right-hand column (plate.md, Tables and panels): at
+  // first the one the address names, unless he isn't in the squad.
+  const [selectedCode, setSelectedCode] = useState<number | null>(() => (opened !== undefined && squad.has(opened) ? opened : null));
   // The formation window, opened by All formations.
   const [windowOpen, setWindowOpen] = useState(false);
   // The desk's switch for the roles' runs, on until it is turned off (spec/05 Runs).
@@ -97,7 +98,7 @@ function LineupEditor({ league, teamName, tactics, seam }: { league: LeagueSumma
     () => ({ areaLimits: tactics.areaLimits, positionsOf: (playerCode: number) => squad.get(playerCode)?.positions ?? [] }),
     [tactics.areaLimits, squad],
   );
-  /** Each squad player's stars, which pick the role he starts on when dropped into a slot (#11). */
+  /** Each squad player's stars, which pick the role he starts on when dropped into a slot, and show on a lit player (#11). */
   const ratingsOf: RatingsOf = (playerCode) => squad.get(playerCode)?.stars ?? [];
   const reach = useMemo(() => (picked === null ? null : reachOf(draft, picked.playerCode, rules)), [draft, picked, rules]);
   const inUse = presetInUse(draft, tactics.presets)?.name ?? null;
@@ -226,7 +227,7 @@ function LineupEditor({ league, teamName, tactics, seam }: { league: LeagueSumma
               {picked === null ? pickHintWords : movingHintWords(picked.name, picked.positions)}
             </p>
             <div className="p-2">
-              <Pitch draft={draft} squad={squad} moving={moving} slots={shapePicked ?? []} runsShown={runsShown} />
+              <Pitch draft={draft} squad={squad} moving={moving} slots={shapePicked ?? []} runsShown={runsShown} ratingsOf={ratingsOf} />
             </div>
           </Panel>
           <LineupCheck

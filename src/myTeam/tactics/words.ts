@@ -25,6 +25,8 @@ export const pitchLabel = "The pitch, attack at the top";
 const cellWords = (area: Area, lane: Lane) => `${AREA_WORDS[area]}, ${LANE_WORDS[lane]}`;
 /** A player the one picked up can swap with, lit on the pitch and in the squad (spec/05, Moving players). */
 export const swapLabel = (name: string, other: string) => `Swap ${name} with ${other}`;
+/** What a lit player's stars rate: the player who would land in that slot, on his role there (#11). */
+export const landingSubject = (name: string, role: string) => `${name} as ${role}`;
 export const playerOnPitchLabel = (name: string, positions: readonly string[], area: Area, lane: Lane) =>
   `${name}, ${positionsWords(positions)}, in ${cellWords(area, lane)}`;
 export const emptySlotLabel = (area: Area, lane: Lane) => `Empty slot: ${cellWords(area, lane)}`;
@@ -88,8 +90,6 @@ export const squadColumns = {
   next: { short: "Next", long: "Next fixture" },
   roleFit: { short: "Role fit", long: "His stars for the role" },
   role: { short: "Role", long: "The role he plays in his slot" },
-  season: { short: "Season", long: "Season points" },
-  last: { short: "Last", long: "Last gameweek's points" },
 } as const;
 /** Over the bench's Role column: the role each has the most stars for at his main position. */
 export const BEST_ROLE_HEAD = "Best role";

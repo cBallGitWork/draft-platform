@@ -2,8 +2,9 @@ import { Panel } from "../../../ui/Panel";
 import { Placeholder } from "../../../ui/Placeholder";
 import { FormChips } from "../../header/FormChips";
 import { formHead, placeWords, pointsShort, tableHead } from "../../header/words";
+import { noFigureWords } from "../../../shared/words";
 import { OpponentLink } from "../../header/TeamHeader";
-import { gameIn, standingOf } from "../../header/teamStanding";
+import { gamesIn, standingOf } from "../../header/teamStanding";
 import type { LeagueTable } from "../../../table/seam";
 import { startersInOrder, type DraftLineup, type SquadMember } from "../lineupDraft";
 import { positionMarksOf } from "../positionMarks";
@@ -81,32 +82,41 @@ export function TeamTacticWidget({
 }
 
 /** The team's opponent in the gameweek being set (spec/05, What the pitch shows: "The team's next
- *  head-to-head opponent shows on the Tactics tab"): his name, a link to the matchup, with his
- *  place, points and form. None in total points, or before the league's table has loaded. */
+ *  head-to-head opponent shows on the Tactics tab"), in the gameweek the lineup is for: each one's
+ *  name, a link to its own matchup, with his place, points and form, both in a gameweek of two
+ *  games, and "—" where the team has none, before the fixtures are drawn (#849; Craig, 6 Nov
+ *  2026). None in total points, or before the league's table has loaded. */
 export function OpponentWidget({ table, teamName, gameweek }: { table: LeagueTable | null | undefined; teamName: string; gameweek: number }) {
-  if (!table) return null;
+  if (!table || table.format !== "headToHead") return null;
   const own = standingOf(table, teamName);
-  const game = gameIn(table, teamName, gameweek);
-  if (own === null || game === null) return null;
-  const opponent = game.against.kind === "team" ? standingOf(table, game.against.team) : null;
+  if (own === null) return null;
+  const games = gamesIn(table, teamName, gameweek);
   return (
     <Panel title={opponentTitle(gameweek)}>
-      <div className="flex flex-col gap-2 p-3">
-        <span className="text-lead">
-          <OpponentLink game={game} teamId={own.teamId} />
-        </span>
-        {opponent !== null && (
-          <dl className="grid grid-cols-facts items-center gap-x-3 gap-y-2">
-            <dt className="text-muted">{tableHead}</dt>
-            <dd>
-              {placeWords(opponent.place)}, <span className="font-bold text-figure">{pointsShort(opponent.points)}</span>
-            </dd>
-            <dt className="text-muted">{formHead}</dt>
-            <dd>
-              <FormChips form={opponent.form} />
-            </dd>
-          </dl>
-        )}
+      <div className="flex flex-col gap-3 p-3">
+        {games.length === 0 && <span className="text-muted">{noFigureWords}</span>}
+        {games.map((game, index) => {
+          const opponent = game.against.kind === "team" ? standingOf(table, game.against.team) : null;
+          return (
+            <div key={index} className="flex flex-col gap-2">
+              <span className="text-lead">
+                <OpponentLink game={game} teamId={own.teamId} />
+              </span>
+              {opponent !== null && (
+                <dl className="grid grid-cols-facts items-center gap-x-3 gap-y-2">
+                  <dt className="text-muted">{tableHead}</dt>
+                  <dd>
+                    {placeWords(opponent.place)}, <span className="font-bold text-figure">{pointsShort(opponent.points)}</span>
+                  </dd>
+                  <dt className="text-muted">{formHead}</dt>
+                  <dd>
+                    <FormChips form={opponent.form} />
+                  </dd>
+                </dl>
+              )}
+            </div>
+          );
+        })}
       </div>
     </Panel>
   );

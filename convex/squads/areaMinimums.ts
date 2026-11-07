@@ -14,6 +14,16 @@ export interface AreaShort {
 
 /** Each area whose minimum the squad can't fill, back to front, with each player's areas given. */
 export function areasShort(playersAreas: readonly (readonly Area[])[], minimums: Readonly<Record<Area, number>>): AreaShort[] {
+  const filled = minimumsFilled(playersAreas, minimums);
+  return AREAS.flatMap((area) => {
+    const players = filled.filter((each) => each === area).length;
+    return players < minimums[area] ? [{ area, players, minimum: minimums[area] }] : [];
+  });
+}
+
+/** The area whose minimum each player fills, in `playersAreas`' order, with as many places filled
+ *  as can be; null for one who fills none. */
+export function minimumsFilled(playersAreas: readonly (readonly Area[])[], minimums: Readonly<Record<Area, number>>): (Area | null)[] {
   /** One entry for each place in a minimum: its area. */
   const places = AREAS.flatMap((area) => Array.from({ length: minimums[area] }, () => area));
   /** Who fills each place, by index into `playersAreas`; null while no one does. */
@@ -35,8 +45,8 @@ export function areasShort(playersAreas: readonly (readonly Area[])[], minimums:
   };
   playersAreas.forEach((_, player) => placeFor(player, new Set()));
 
-  return AREAS.flatMap((area) => {
-    const players = places.filter((placeArea, index) => placeArea === area && filledBy[index] !== null).length;
-    return players < minimums[area] ? [{ area, players, minimum: minimums[area] }] : [];
+  return playersAreas.map((_, player) => {
+    const index = filledBy.indexOf(player);
+    return index === -1 ? null : places[index];
   });
 }

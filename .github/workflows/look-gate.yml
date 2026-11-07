@@ -1,11 +1,9 @@
-# The approved-picture gate as a GitHub check (CLAUDE.md: a pull request whose Approved vs built section numbers a
-# layout difference, not just a look detail, waits for the `craig-approved` label only Craig adds). approval_gate.py holds the rule; the hooks stop
-# only Claude's own gh merges, so a build's auto-merge went past it. The `main` ruleset requires `look-approved`, so
-# no merge route skips it (Craig, 5 Nov 2026: "Yes, make it a check"). It runs again when the body is edited or a
-# label goes on or off, so Craig's label turns it green without a push.
+# The approved-picture check, `look-approved`, which the `main` ruleset requires. approval_gate.py lists a pull
+# request's layout differences from its approved picture and passes: layout waits for the UI reskin (Craig, 7 Nov
+# 2026: "we can worry about design changes later in our ui reskin"). Before that a layout difference waited for
+# the `craig-approved` label (5 Nov 2026). It fails only on an event it can't read, never a silent pass.
 # pull_request, not pull_request_target: a check from pull_request_target lands on main's commit, never the pull
-# request's head, so the ruleset couldn't count it. A pull request not by the repo's owner that edits this file or
-# the hooks is never approved by lane-auto, so it can't loosen the gate that judges it.
+# request's head, so the ruleset couldn't count it.
 name: look-gate
 
 on:

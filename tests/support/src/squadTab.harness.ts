@@ -34,6 +34,7 @@ export const SAKA: Row = {
   gone: false,
   number: 7,
   nextFixtures: [{ gameweek: 10, kickoff: KICKOFF, opponent: CHELSEA, home: true }],
+  schedule: [{ gameweek: 10, kickoff: KICKOFF, opponent: CHELSEA, home: true }],
   seasonPoints: 42,
   lastGameweekPoints: 7,
   form: [3, 7, null, 12, 7],
@@ -62,6 +63,8 @@ export const squadOf = (players: Row[], lastGameweek: number | null = 9, unheld:
   players,
   unheld,
   squadMaximum,
+  scheduleGameweeks: [10, 11, 12, 13, 14, 15],
+  limits: [],
 });
 
 /** A squad member as the Tactics tab's read holds him. */

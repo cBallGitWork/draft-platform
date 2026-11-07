@@ -57,10 +57,11 @@ function scoreOf(table: LeagueTable, teamName: string, gameweek: number, against
   return { team: ownSide ? fixture.points.team : fixture.points.opponent, opponent: ownSide ? fixture.points.opponent : fixture.points.team, provisional };
 }
 
-/** The team's game in the gameweek, or null where it plays none (total points, or a gameweek
+/** The team's games in the gameweek, as drawn: more than one where the league plays more than one
+ *  a gameweek (spec/09), none where it plays none (total points, a gameweek not drawn yet, or one
  *  drawn before it joined). */
-export const gameIn = (table: LeagueTable, teamName: string, gameweek: number): TeamGame | null =>
-  gamesOfTeam(table, teamName).find((game) => game.gameweek === gameweek) ?? null;
+export const gamesIn = (table: LeagueTable, teamName: string, gameweek: number): TeamGame[] =>
+  gamesOfTeam(table, teamName).filter((game) => game.gameweek === gameweek);
 
 /** Where the team stands, or null for one the table doesn't hold. */
 export function standingOf(table: LeagueTable, teamName: string): Standing | null {

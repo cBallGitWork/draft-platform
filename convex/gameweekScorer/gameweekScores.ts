@@ -189,13 +189,19 @@ export async function squadGameweek(
   return teamsFrom(reads, await squadInputs(ctx, reads, gameweek, fixtures, teamId, rowsOf), new Map());
 }
 
-/** The gameweek team by team from its inputs, each team's `stored` total standing as its points. */
+/** The gameweek team by team from its inputs. A team's points are the league's override of its
+ *  total where one stands (#903: it stands over its slots, their player overrides and any later
+ *  correction, and is never provisional), else its `stored` total, else worked out. */
 function teamsFrom(reads: LeagueReads, inputs: GameweekInputs, stored: TeamScores): GameweekTeams {
   const slotsOf = readOnce((teamId: TeamId) => teamInGameweek(reads, inputs, teamId));
   return {
     set: inputs.set,
     slotsOf,
-    pointsOf: async (teamId) => stored.get(teamId) ?? totalOf(await slotsOf(teamId)),
+    pointsOf: async (teamId) => {
+      const overridden = inputs.teamOverrides.get(teamId);
+      if (overridden !== undefined) return { points: overridden.points, provisional: false };
+      return stored.get(teamId) ?? totalOf(await slotsOf(teamId));
+    },
   };
 }
 

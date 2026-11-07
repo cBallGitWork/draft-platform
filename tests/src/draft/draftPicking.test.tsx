@@ -49,6 +49,7 @@ const listed = (code: number, name: string, ownerTeamName: string | null = null,
   club,
   positions,
   ownerTeamName,
+  onWaivers: null,
   seasonPoints: null,
   stat: null,
 });
