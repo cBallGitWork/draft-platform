@@ -74,7 +74,16 @@ export const matchStatsSyncFields = {
 };
 
 export const matchStatsTables = {
-  playerMatchStats: defineTable(playerMatchRecord.extend({ state: matchStatsState }))
+  playerMatchStats: defineTable(
+    playerMatchRecord.extend({
+      state: matchStatsState,
+      /** The club he played this match for: his club when his record was first written, kept
+       *  through every later write, so a man who moves on still shows under it on the match's page
+       *  (#502). Absent on a record written before #502, or for a man the football sync didn't
+       *  hold then. */
+      clubCode: v.optional(v.number()),
+    }),
+  )
     .index("by_fixtureCode_and_playerCode", ["fixtureCode", "playerCode"])
     // A player's matches, for his card (#381), whichever clubs he played them for.
     .index("by_playerCode", ["playerCode"]),

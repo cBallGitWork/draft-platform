@@ -142,14 +142,56 @@ test("once the match has records, they are its men, not the sheets", async () =>
   expect(manOf(page.men, PHILLIPS).started).toBe(false);
 });
 
+/** `playerCode` moved to the club `clubCode`, as the football sync would after a transfer. */
+async function moveTo({ t }: ScoresLeague, playerCode: number, clubCode: number) {
+  await t.run(async (ctx) => {
+    const player = (await ctx.db.query("players").withIndex("by_code", (q) => q.eq("code", playerCode)).unique())!;
+    await ctx.db.patch("players", player._id, { clubCode });
+  });
+}
+
+/** `playerCode`'s held record of the match. */
+const heldRecordOf = ({ t }: ScoresLeague, playerCode: number) =>
+  t.run(async (ctx) =>
+    (await ctx.db
+      .query("playerMatchStats")
+      .withIndex("by_fixtureCode_and_playerCode", (q) => q.eq("fixtureCode", HULL_EVERTON).eq("playerCode", playerCode))
+      .unique())!,
+  );
+
+// spec/10, The match page; #502: an old match shows a man under the club he played it for.
+test("a man who moved from the home club to the away club after the match shows under the home club", async () => {
+  const league = await matchLeague();
+  await fullTimeRecords(league);
+  const moved = HULL_BENCH[2];
+  const before = (await matchAs(league, ANN))!;
+  const everton = before.away.code;
+  await moveTo(league, moved, everton);
+  const page = (await matchAs(league, ANN))!;
+  expect(manOf(page.men, moved).side).toBe("home");
+  expect(page.men.map((man) => man.playerCode)).toEqual(before.men.map((man) => man.playerCode));
+});
+
+test("a record keeps the club it was first written with when a later read rewrites it", async () => {
+  const league = await matchLeague();
+  await fullTimeRecords(league);
+  const moved = HULL_BENCH[2];
+  const hull = (await matchAs(league, ANN))!.home.code;
+  await moveTo(league, moved, 999);
+  // A correction to his record, read after he moved.
+  await fullTimeRecords(league, mergedHullEverton().map((record) => (record.playerCode === moved ? { ...record, stats: { ...record.stats, fouls: 9 } } : record)));
+  expect((await heldRecordOf(league, moved)).clubCode).toBe(hull);
+  expect(manOf((await matchAs(league, ANN))!.men, moved).side).toBe("home");
+});
+
+// A record written before #502 holds no club, so his side is by his club now.
 test("a man who has left both clubs has no side", async () => {
   const league = await matchLeague();
   await fullTimeRecords(league);
   const moved = HULL_BENCH[2];
-  await league.t.run(async (ctx) => {
-    const player = (await ctx.db.query("players").withIndex("by_code", (q) => q.eq("code", moved)).unique())!;
-    await ctx.db.patch("players", player._id, { clubCode: 999 });
-  });
+  const { _id, _creationTime, clubCode, ...unclubbed } = await heldRecordOf(league, moved);
+  await league.t.run((ctx) => ctx.db.replace("playerMatchStats", _id, unclubbed));
+  await moveTo(league, moved, 999);
   const page = (await matchAs(league, ANN))!;
   expect(manOf(page.men, moved).side).toBeNull();
   expect(page.men.at(-1)!.playerCode).toBe(moved);
