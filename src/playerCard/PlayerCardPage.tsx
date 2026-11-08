@@ -1,160 +1,143 @@
-import { useCanGoBack, useRouter } from "@tanstack/react-router";
-import type { ReactNode } from "react";
+import { useState } from "react";
 import type { LeagueSummary } from "../../convex/leagues/myLeagues";
-import { PositionCodes } from "../ui/PositionCodes";
-import { ClubMark } from "../ui/ClubName";
-import { OwnerName } from "../ui/OwnerName";
-import { SCOUTING_PATH } from "../frame/menu";
-import { Loading, PAGE_STACK, PageSection, Panel, PANEL_BODY, PanelNote } from "../ui/Panel";
+import { Loading, PageSection, Panel, PanelNote } from "../ui/Panel";
+import { Placeholder } from "../ui/Placeholder";
 import { useMinute } from "../shared/useMinute";
-import { gameweekWords, whenWords } from "../shared/words";
-import type { PlayerCard, PlayerCardSeam } from "./seam";
+import { gameweekShort, whenWords } from "../shared/words";
+import { CardHead } from "./CardHead";
+import { opponentWords } from "./gameLog";
+import { MatchBreakdown } from "./MatchBreakdown";
 import { MatchName } from "./MatchName";
-import { Season, usePricedAt } from "./SeasonPanel";
 import { OverridePoints } from "./OverridePoints";
-import { ScoutAction } from "./ScoutAction";
+import type { PlayerCard, PlayerCardSeam } from "./seam";
 import { ScoutReport } from "./ScoutReport";
-import { ShortlistAction } from "./ShortlistAction";
-import { WaiverAction } from "./WaiverAction";
+import { Season, usePricedAt } from "./SeasonPanel";
 import {
-  backWords,
+  CAPTAIN_TITLE,
+  captainLabels,
   chanceWords,
-  clubLabel,
-  goneWords,
-  LAST_SEASON_TITLE,
-  lastSeasonNotHeldWords,
-  lastSeasonWords,
+  difficultyNotRatedWords,
+  hintNotHeldLabel,
   loadingWords,
-  NEXT_FIXTURES_TITLE,
-  newsLabel,
+  NEWS_TITLE,
+  newsNotesLabel,
+  nextFixturesTitle,
   noFigureWords,
   noFixturesWords,
   noNewsWords,
-  noPositionsWords,
   noSuchPlayerWords,
-  notInLastSeasonWords,
-  ownerLabel,
   PLAYER_TITLE,
-  positionsLabel,
+  ROLE_FIT_TITLE,
+  roleFitLabel,
 } from "./words";
 
-/** A player's card (spec/12, The player card), its own page, for anyone in the league: who he is
- *  and who owns him, FPL's news, this season's matches by category, last season's line and his
- *  club's next fixtures, and his team's scout reports on him (#375). Its actions (shortlist, scout,
- *  claim or drop, trade) join below the facts as each is built: the shortlist is (#374), the scout
- *  (#375), claim or drop (#1200), and for whoever `runs` the league, the override (#32). */
+/** A player's card (spec/12, The player card), its own page, for anyone in the league, laid out to
+ *  its approved picture: his head across the top; down the left, FPL's news and his role fit; in the
+ *  middle, this season's game log, his club's next fixtures and the captain and set-piece hints;
+ *  down the right, the selected match's breakdown and his team's scout reports (#375). Whoever
+ *  `runs` the league overrides a match's points from the breakdown (#32). */
 export function PlayerCardPage({ league, runs, playerCode, seam }: { league: LeagueSummary; runs: boolean; playerCode: number; seam: PlayerCardSeam }) {
   const card = seam.usePlayerCard(league.leagueId, playerCode, useMinute());
-  return (
-    <PageSection title={card?.fullName ?? PLAYER_TITLE} aside={<Back />} className={PAGE_STACK}>
-      {card === undefined ? (
-        <Loading className="bg-panel px-3 py-2">{loadingWords}</Loading>
-      ) : card === null ? (
-        <p className="bg-panel px-3 py-2 text-muted">{noSuchPlayerWords}</p>
-      ) : (
-        <Card league={league} runs={runs} card={card} seam={seam} />
-      )}
-    </PageSection>
-  );
+  if (card === undefined || card === null) {
+    return (
+      <PageSection title={PLAYER_TITLE}>
+        {card === undefined ? <Loading className="bg-panel px-3 py-2">{loadingWords}</Loading> : <p className="bg-panel px-3 py-2 text-muted">{noSuchPlayerWords}</p>}
+      </PageSection>
+    );
+  }
+  return <Card key={card.code} league={league} runs={runs} card={card} seam={seam} />;
 }
 
 function Card({ league, runs, card, seam }: { league: LeagueSummary; runs: boolean; card: PlayerCard; seam: PlayerCardSeam }) {
   const pricedAt = usePricedAt(card);
+  // The newest match is selected when the card opens (the README's interaction notes).
+  const [picked, pick] = useState<number | null>(null);
+  const selected = card.matches.find((match) => match.fixtureCode === picked) ?? card.matches[0];
   return (
-    <div className="grid items-start gap-2 lg:grid-cols-card">
-      <div className="flex flex-col gap-2">
-        <Facts card={card}>
-          <ShortlistAction leagueId={league.leagueId} playerCode={card.code} gone={card.gone} seam={seam} />
-          <ScoutAction leagueId={league.leagueId} playerCode={card.code} gone={card.gone} seam={seam} />
-          <WaiverAction leagueId={league.leagueId} card={card} seam={seam} />
-          {runs && <OverridePoints leagueId={league.leagueId} card={card} seam={seam} />}
-        </Facts>
-        <ScoutReport leagueId={league.leagueId} playerCode={card.code} seam={seam} />
-        <LastSeason lastSeason={card.lastSeason} shown={pricedAt.shown} />
-        <NextFixtures card={card} />
+    <div className="flex flex-col gap-2">
+      <CardHead league={league} card={card} shown={pricedAt.shown} seam={seam} />
+      <div className="grid items-start gap-2 lg:grid-cols-card">
+        <div className="flex flex-col gap-2">
+          <News card={card} />
+          <Panel title={ROLE_FIT_TITLE}>
+            <div className="p-3">
+              <Placeholder label={roleFitLabel} className="h-24 w-full" />
+            </div>
+          </Panel>
+        </div>
+        <div className="flex min-w-0 flex-col gap-2">
+          <Season card={card} pricedAt={pricedAt} selected={selected?.fixtureCode ?? null} select={pick} />
+          <NextFixtures card={card} />
+          <CaptainAndSetPieces />
+        </div>
+        <div className="flex flex-col gap-2">
+          {selected !== undefined && (
+            <MatchBreakdown match={selected} shown={pricedAt.shown} clubCode={card.club.code}>
+              {runs && <OverridePoints leagueId={league.leagueId} card={card} seam={seam} />}
+            </MatchBreakdown>
+          )}
+          <ScoutReport leagueId={league.leagueId} playerCode={card.code} seam={seam} />
+        </div>
       </div>
-      <Season card={card} pricedAt={pricedAt} />
     </div>
   );
 }
 
-/** Last season's one line (spec/12), at the position the card's switch picks (Craig, 6 Nov 2026). */
-function LastSeason({ lastSeason, shown }: { lastSeason: PlayerCard["lastSeason"]; shown: number }) {
+/** FPL's news on him, which names his chance of playing itself, so the chance stands alone only
+ *  without news; then his news notes (spec/21), a placeholder until the news job is built. */
+function News({ card }: { card: PlayerCard }) {
+  const news = card.news ?? (card.chanceOfPlaying === null ? null : chanceWords(card.chanceOfPlaying));
   return (
-    <Panel title={LAST_SEASON_TITLE}>
-      {lastSeason === null ? (
-        <PanelNote>{lastSeasonNotHeldWords}</PanelNote>
-      ) : lastSeason.played === null ? (
-        <PanelNote>{notInLastSeasonWords}</PanelNote>
-      ) : (
-        <p className={PANEL_BODY}>{lastSeasonWords(lastSeason.season, { ...lastSeason.played, points: lastSeason.played.points[shown] ?? 0 })}</p>
-      )}
+    <Panel title={NEWS_TITLE}>
+      {news === null ? <PanelNote>{noNewsWords}</PanelNote> : <p className="px-3 py-2 text-event">{news}</p>}
+      <div className="border-t border-panel-rule p-3">
+        <Placeholder label={newsNotesLabel} className="h-16 w-full" />
+      </div>
     </Panel>
   );
 }
 
-/** Back where the manager came from; to Scouting when the card was opened straight from a link. */
-function Back() {
-  const router = useRouter();
-  const canGoBack = useCanGoBack();
-  const goBack = () => (canGoBack ? router.history.back() : void router.navigate({ to: SCOUTING_PATH }));
-  return (
-    <button type="button" onClick={goBack} className="secondary-action">
-      {backWords}
-    </button>
-  );
-}
-
-/** The facts at the card's head, and under them its actions. */
-function Facts({ card, children }: { card: PlayerCard; children: ReactNode }) {
-  return (
-    <Panel title={PLAYER_TITLE}>
-      <dl className={`${PANEL_BODY} grid grid-cols-facts gap-x-3`}>
-        <dt className="text-soft">{clubLabel}</dt>
-        <dd>
-          <ClubMark code={card.club.code} />
-          {card.club.name}
-        </dd>
-        <dt className="text-soft">{positionsLabel}</dt>
-        <dd>{card.positions.length === 0 ? <span className="text-muted">{noPositionsWords}</span> : <PositionCodes positions={card.positions} />}</dd>
-        <dt className="text-soft">{ownerLabel}</dt>
-        <dd>
-          <OwnerName teamName={card.ownerTeamName} />
-        </dd>
-        <dt className="text-soft">{newsLabel}</dt>
-        {/* FPL's news names his chance of playing itself, so the chance stands alone only without news. */}
-        {card.news !== null ? (
-          <dd className="text-event">{card.news}</dd>
-        ) : card.chanceOfPlaying !== null ? (
-          <dd className="text-event">{chanceWords(card.chanceOfPlaying)}</dd>
-        ) : (
-          <dd className="text-muted">{noNewsWords}</dd>
-        )}
-      </dl>
-      {card.gone && <PanelNote edge="b">{goneWords}</PanelNote>}
-      {children}
-    </Panel>
-  );
-}
-
+/** His club's next fixtures in a single row (Craig, 7 Nov 2026), each cell's fill waiting for
+ *  fixture difficulty (to-grill), so it is the placeholder's outline round the match. */
 function NextFixtures({ card }: { card: PlayerCard }) {
   return (
-    <Panel title={NEXT_FIXTURES_TITLE}>
+    <Panel title={nextFixturesTitle(card.club.name)}>
       {card.nextFixtures.length === 0 ? (
         <PanelNote>{noFixturesWords}</PanelNote>
       ) : (
-        <ul className="py-1">
-          {card.nextFixtures.map((fixture) => (
-            <li key={fixture.fixtureCode} className="grid grid-cols-next-fixture gap-2 px-3">
-              <span className="text-soft">{fixture.gameweek === null ? noFigureWords : gameweekWords(fixture.gameweek)}</span>
-              <span>
-                <MatchName match={fixture} />
-              </span>
-              <span>{fixture.kickoff === null ? noFigureWords : whenWords(fixture.kickoff)}</span>
-            </li>
-          ))}
+        <ul className="flex gap-px p-3">
+          {card.nextFixtures.map((fixture) => {
+            const opponent = opponentWords(fixture, card.club.code);
+            return (
+              <li key={fixture.fixtureCode} className="flex min-w-0 grow basis-0 flex-col gap-1">
+                <span className="text-soft">{fixture.gameweek === null ? noFigureWords : gameweekShort(fixture.gameweek)}</span>
+                <Placeholder label={`${opponent ?? ""} ${difficultyNotRatedWords}`.trim()} className="py-1 text-center font-semibold">
+                  {opponent ?? <MatchName match={fixture} />}
+                </Placeholder>
+                <span className="text-muted">{fixture.kickoff === null ? noFigureWords : whenWords(fixture.kickoff)}</span>
+              </li>
+            );
+          })}
         </ul>
       )}
+    </Panel>
+  );
+}
+
+/** The captain and set-piece hints (spec/17), placeholders until they come after the mini beta. */
+function CaptainAndSetPieces() {
+  return (
+    <Panel title={CAPTAIN_TITLE}>
+      <dl className="grid grid-cols-facts items-center gap-x-6 gap-y-2 p-3">
+        {Object.values(captainLabels).map((label) => (
+          <div key={label} className="contents">
+            <dt className="text-soft">{label}</dt>
+            <dd>
+              <Placeholder label={hintNotHeldLabel(label)} className="h-5 w-40" />
+            </dd>
+          </div>
+        ))}
+      </dl>
     </Panel>
   );
 }

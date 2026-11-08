@@ -3,10 +3,10 @@
 // rule that cut it, and the version of the site's scoring it was scored under. The words come
 // from the scoring rows the server sends, never written apart from them.
 
-import { screen, within } from "@testing-library/react";
+import { screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import type { PlayedMatch, PlayerCard } from "../../../src/playerCard/seam";
-import { SEASON_TITLE, scoredUnderWords } from "../../../src/playerCard/words";
+import { breakdownLabel, scoredUnderWords } from "../../../src/playerCard/words";
 import { AT_ONE, AT_W, breakdownLines, category, openCard, perAction, type Category, type Why } from "../../support/src/playerCardScreen.harness";
 
 /** The card priced at one position, holding one match with these categories and version. */
@@ -17,7 +17,9 @@ function cardWith(categories: Category[], version: string | null = "26_27.1"): P
 
 async function linesOf(card: PlayerCard) {
   openCard(card, { cards: [card] });
-  return breakdownLines(within(await screen.findByRole("region", { name: SEASON_TITLE })), AT_W.gameweek!);
+  // His one match, the newest, is selected as the card opens, so its breakdown shows.
+  await screen.findByLabelText(breakdownLabel(AT_W.gameweek));
+  return breakdownLines(AT_W.gameweek!);
 }
 
 const inDefence = (why: Why): Why => ({ ...why, pricedBy: { by: "area", area: "defence" } });

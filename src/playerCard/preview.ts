@@ -1,9 +1,9 @@
 // The player card in the preview (src/app/preview.ts): a card for each of Scouting's preview players,
-// with three matches at his base points at each of his positions under the first scoring set by the
+// with six matches and a postponed one, each at his base points at each of his positions under the first scoring set by the
 // server's own rule (cardPoints), and his club's next fixtures. Saka carries FPL's news, and an
 // override on one match.
 
-import { basePoints, cardPositions } from "../../convex/playerCard/cardPoints";
+import { basePoints, cardPositions, logCategories } from "../../convex/playerCard/cardPoints";
 import { categoryName } from "../../convex/scoring/categories";
 import { FIRST_SCORING } from "../../convex/scoring/firstScoring";
 import type { MatchStats } from "../../convex/scoring/values";
@@ -17,8 +17,20 @@ const CLUBS = [ARSENAL, CHELSEA, LIVERPOOL];
 const lastSaturday = Date.now() - ((new Date().getDay() + 1) % 7) * DAY_MS;
 const opponentOf = (clubCode: number, index: number) => CLUBS.filter((club) => club.code !== clubCode)[index % 2];
 
-/** His three newest matches, newest first: the last one's record not yet whole. */
-const RECORDS: readonly (MatchStats | null)[] = [null, { minutes: 90, goals_scored: 1, assists: 1 }, { minutes: 64, yellow_cards: 1 }];
+/** His newest matches, newest first: the newest still being played, then one his club's
+ *  postponement leaves a row for (the gameweek between the second and the third). */
+const RECORDS: readonly (MatchStats | null)[] = [
+  { minutes: 58 },
+  { minutes: 90, goals_scored: 1, assists: 1, big_chance_created: 1 },
+  { minutes: 64, yellow_cards: 1 },
+  { minutes: 90, goals_scored: 2, clean_sheets: 1 },
+  { minutes: 74, assists: 1, goals_conceded: 1 },
+  null,
+];
+/** Each match's score, home side first, in RECORDS' order. */
+const SCORES = [{ home: 0, away: 0 }, { home: 1, away: 2 }, { home: 3, away: 0 }, { home: 2, away: 2 }, { home: 1, away: 0 }, null];
+/** The gameweek his club's postponed match was in. */
+const POSTPONED_GAMEWEEK = 7;
 
 /** One match the league overrode, so the card shows how an override reads (#32). */
 const PREVIEW_OVERRIDDEN = "Saka";
@@ -37,20 +49,24 @@ function matchesOf(player: (typeof previewPlayers)[number]): PlayedMatch[] {
     }));
     // One match shows how a role's line reads (spec/05), though the first set adjusts no role.
     const started = player.name === PREVIEW_ROLE_PLAYER && index === 1 && record !== null ? { role: PREVIEW_ROLE } : {};
+    // A week further back past the postponed one.
+    const weeksAgo = index < 2 ? index : index + 1;
     return {
       fixtureCode: player.code * 100 + index,
-      gameweek: 9 - index,
-      kickoff: lastSaturday - index * WEEK_MS,
+      gameweek: 9 - weeksAgo,
+      kickoff: lastSaturday - weeksAgo * WEEK_MS,
       home: index % 2 === 0 ? player.club : opponentOf(player.club.code, index),
       away: index % 2 === 0 ? opponentOf(player.club.code, index) : player.club,
       minutes: record?.minutes ?? null,
+      score: SCORES[index],
+      stats: record,
       points,
       // The preview plays the first set, which has no version's name.
       version: null,
       ...started,
       override: player.name === PREVIEW_OVERRIDDEN && index === 1 ? PREVIEW_OVERRIDE : null,
-      // The two newest may still move: one still being played, one inside its corrections window.
-      provisional: index <= 1,
+      // The newest may still move: it is still being played.
+      provisional: index === 0,
     };
   });
 }
@@ -87,6 +103,16 @@ function cardOf(player: (typeof previewPlayers)[number]): PlayerCard {
     news: injured ? "Hamstring injury - 75% chance of playing" : null,
     chanceOfPlaying: injured ? 75 : null,
     matches: matchesOf(player),
+    postponed: [
+      {
+        fixtureCode: player.code * 100 + 40,
+        gameweek: POSTPONED_GAMEWEEK,
+        kickoff: null,
+        home: opponentOf(player.club.code, 1),
+        away: player.club,
+      },
+    ],
+    categories: logCategories(FIRST_SCORING, cardPositions(player.positions)),
     lastSeason: lastSeasonOf(player),
     nextFixtures: [1, 2, 3, 4, 5].map((weeksOn) => ({
       fixtureCode: player.code * 100 + 50 + weeksOn,

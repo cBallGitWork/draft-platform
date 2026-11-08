@@ -3,15 +3,13 @@
 
 import { DAY_MS, HOUR_MS, MINUTE_MS } from "../../../convex/shared/time";
 import { LOCALE } from "../../../convex/shared/moments";
-import { figureWords, gameweekWords, scoreWords } from "../../shared/words";
+import { figureWords, gameweekShort, gameweekWords, scoreWords } from "../../shared/words";
 import { byeWords, leagueAverageWords } from "../words";
 import { resultOf, type Result } from "../../../convex/table/standings";
 import type { TeamGame } from "./teamStanding";
 
 export { liveWords, noFigureWords, versusWords, whenWords } from "../words";
-
-/** A gameweek, short, as a head says it: "GW9". */
-export const gameweekShort = (gameweek: number) => `GW${gameweek}`;
+export { gameweekShort } from "../../shared/words";
 
 /** The band's heads over each reading. */
 export const deadlineHead = (gameweek: number) => `${gameweekShort(gameweek)} deadline`;

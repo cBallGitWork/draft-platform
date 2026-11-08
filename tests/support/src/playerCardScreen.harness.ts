@@ -1,7 +1,8 @@
 // The player card's screen tests' cards (playerCard.test.tsx, season.test.tsx, breakdown.test.tsx), and the card opened
 // as a manager in the league opens it (playerCard.harness.ts is its fake seam).
 
-import { within } from "@testing-library/react";
+import { screen, within } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { playerCardPath } from "../../../src/playerCard/paths";
 import type { PlayedMatch, PlayerCard } from "../../../src/playerCard/seam";
 import { breakdownLabel } from "../../../src/playerCard/words";
@@ -24,11 +25,18 @@ export const CATEGORIES = [
 ];
 /** The version PRICED was scored under. */
 export const PRICED_VERSION = "26_27.2";
-/** The breakdown's lines under the match of `gameweek`. */
-export const breakdownLines = (season: ReturnType<typeof within>, gameweek: number) =>
-  within(season.getByLabelText(breakdownLabel(gameweek)))
+/** The selected match's breakdown lines, the match of `gameweek`, in the right column. */
+export const breakdownLines = (gameweek: number) =>
+  within(screen.getByLabelText(breakdownLabel(gameweek)))
     .getAllByRole("listitem")
     .map((line) => line.textContent);
+/** The priced match's row as the game log names it: Arsenal at home to Coventry. */
+export const PRICED_OPPONENT = `${COVENTRY.shortName} (H)`;
+/** Selects a match in the game log by its opponent, so its breakdown shows; the `index`th of those
+ *  so named, as two of the harness's matches share one. */
+export async function selectMatch(opponent = PRICED_OPPONENT, index = 0) {
+  await userEvent.click((await screen.findAllByRole("button", { name: opponent }))[index]);
+}
 export const PRICED: PlayedMatch = {
   fixtureCode: 1,
   gameweek: 2,
@@ -36,6 +44,8 @@ export const PRICED: PlayedMatch = {
   home: ARSENAL,
   away: COVENTRY,
   minutes: 90,
+  score: { home: 2, away: 1 },
+  stats: { minutes: 90, goals_scored: 1, assists: 1, touches: 54 },
   // At CAM, where his assist is worth one more, then at W: back to front, as pricedAt.
   points: [
     { position: "CAM", total: 12, categories: CATEGORIES.map((each) => (each.stat === "assists" ? category("assists", "Assists", 5, atPosition("CAM", 5)) : each)) },
@@ -50,10 +60,19 @@ export const NOT_ARRIVED: PlayedMatch = {
   fixtureCode: 2,
   gameweek: 3,
   minutes: null,
+  score: null,
+  stats: null,
   points: PRICED.points.map((each) => ({ ...each, total: null, categories: each.categories.map((one) => ({ ...one, points: null })) })),
 };
 /** PRICED with only the winger's price, for a card priced at one position. */
 export const AT_W: PlayedMatch = { ...PRICED, points: [PRICED.points[1]] };
+/** The game log's scoring columns, at CAM then W: clean sheets score at neither. */
+export const LOG_CATEGORIES: PlayerCard["categories"] = [
+  { stat: "goals_scored", shortCode: "G", name: "Goals scored", scoresAt: [true, true] },
+  { stat: "assists", shortCode: "A", name: "Assists", scoresAt: [true, true] },
+  { stat: "clean_sheets", shortCode: "CS", name: "Clean sheets", scoresAt: [false, false] },
+  { stat: "yellow_cards", shortCode: "YC", name: "Yellow cards", scoresAt: [true, true] },
+];
 export const SAKA: PlayerCard = {
   code: 1001,
   name: "Saka",
@@ -66,6 +85,8 @@ export const SAKA: PlayerCard = {
   news: "Hamstring injury - 75% chance of playing",
   chanceOfPlaying: 75,
   matches: [NOT_ARRIVED, PRICED],
+  postponed: [],
+  categories: LOG_CATEGORIES,
   // At CAM, then at W, as each match's points.
   lastSeason: { season: 2025, played: { appearances: 34, minutes: 2810, points: [212, 198] } },
   nextFixtures: [{ fixtureCode: 9, gameweek: 10, kickoff: Date.parse("2026-11-07T15:00:00Z"), home: COVENTRY, away: ARSENAL }],
