@@ -3,6 +3,10 @@
 Route: `/home`, the Overview tab, checked on `/home?preview=manager`, and on
 `/home?preview=commissioner` for Run the league.
 
+**Contents:** [The pictures](#the-pictures) · [Approved](#approved) · [The News tab](#the-news-tab) ·
+[The Football Manager idea](#the-football-manager-idea) · [Interaction notes](#interaction-notes) ·
+[Placeholders](#placeholders) · [Canvas](#canvas)
+
 ## The pictures
 
 - `1440.png`: the main board in a gameweek before its deadline, Overview open (Home E). Its
@@ -22,6 +26,8 @@ go; they don't bind until that grill settles what they hold:
   Joiner).
 - `1440-season-over.png`: the season over, with the champions and the final table (Home E, Over).
 
+- `1440-news.png`: the News tab, every team's moves (approved 8 Nov 2026, below).
+
 ## Approved
 
 1 Nov 2026, Craig, "yes to all", answering:
@@ -32,6 +38,26 @@ go; they don't bind until that grill settles what they hold:
 
 With it: "ditch team of the week", so Team of the Week is off Home (`spec/12`, League home).
 
+## The News tab
+
+8 Nov 2026: Craig, "approve", after a grill the same day. He asked for a league-wide feed like
+Fantrax's and Sleeper's: "So let's do this".
+
+- It is League home's News tab, the tab this picture already had: every team's completed moves.
+  These are claims won, free agents picked up, drops, trades once through, and the commissioner's
+  assignments.
+- Pending claims stay private (`spec/08`), and failed claims stay in Mail.
+- Team and Kind filters, newest first, over the whole season, with Older moves paging back.
+- My team's Transactions tab stays as well (`approved/waivers/`).
+- On "your call": selecting a row opens its detail on the right, such as a trade's sides. A
+  commissioner action that isn't a squad move, such as a rule change or a break, is only his
+  letter, never a row. A trade that is blocked never shows.
+- The commissioner's latest letter is pinned on top and opens in Mail. Overview's "More, on News"
+  opens this tab.
+
+Built from the squad events Mail reads, through one league-wide read indexed by league and time,
+with paging. Trades join once they are built.
+
 ## The Football Manager idea
 
 FM27's Portal › Overview: columns of messages, news, the table and collapsible widgets, so the
@@ -40,7 +66,7 @@ colours.
 
 ## Interaction notes
 
-- Overview | News | Calendar: Home's own tabs. Overview is drawn; News and Calendar are not.
+- Overview | News | Calendar: Home's own tabs. Overview and News are drawn; Calendar is not.
 - The patch banner's Read the patch notes: opens Patch notes. The cross hides the banner.
 - The deadline strip: reads only, until its grill says otherwise.
 - Mail's Needs you | All: switches the panel between letters waiting on him and every letter. A
@@ -63,7 +89,7 @@ Each shows in its place and size until its data comes.
 
 | Placeholder | Waits for | Where it's tracked |
 |---|---|---|
-| The News and Calendar tabs | what each holds | to-grill: Home's tabs |
+| The Calendar tab | what it holds | to-grill: Home's tabs |
 | The deadline strip's boxes | which boxes, in which states | to-grill: The deadline strip |
 | Mail's Needs you tab | which letters need a manager | to-grill: Mail's Needs you on Home |
 | Premier League, GW9: each match's "You" and "Them" players | whether Home carries the Premier League | to-grill: The Premier League on Home |
