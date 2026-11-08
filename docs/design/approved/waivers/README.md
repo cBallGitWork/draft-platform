@@ -60,6 +60,19 @@ rank, grouped by when they process. Their organisation, never their colours.
   and time rows, with Remove and Add a run; at least one run, and no time twice. Save stays muted
   until something changes. The waiver order on the right previews a change of type before Save.
 
+## Finding your claims
+
+Claims start in Scouting and are managed on My team, so two marks join them up (Craig, 8 Nov
+2026: "Yes 1 and 2"):
+
+1. **A count on the tab.** While claims are pending, My team's Transactions tab carries their count
+   ("Transactions 3"), so a claim riding on Wednesday's run isn't forgotten.
+2. **Your claim on the player.** In Scouting, the panel of a player you've claimed says so: "Your
+   claim 2, Wed run", with a link to Transactions.
+
+Neither is drawn: each is one word or line on an approved picture (Transactions here, Scouting's
+player panel in `approved/scouting/`).
+
 ## Not drawn
 
 - Claims closed: after the deadline until the gameweek's last match, and before the draft ends
