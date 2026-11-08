@@ -10,7 +10,7 @@ import { heldPlayerByCode } from "../shared/players";
 import { placeOf } from "../squads/squadPlace";
 import { startClock } from "./draftClock";
 import { tellUndone, tellUpNext } from "./draftLetters";
-import { pauseRefusals } from "./draftPause";
+import { liveClock, pauseRefusals } from "./draftPause";
 import { pickSecondsNow } from "./draftPicks";
 import { draftIsPaused, pickTimeRefusals } from "./draftPickTime";
 import { draftHasStarted, draftIsLive, draftOf, lastPickIn } from "./draftRow";
@@ -49,10 +49,7 @@ export const undoPick = mutation({
   returns: v.null(),
   handler: async (ctx, { leagueId }) => {
     const { email, league } = await runnerOf(ctx, leagueId);
-    const draft = await draftOf(ctx, leagueId);
-    if (draft?.started === undefined) refuse(commissionerRefusals.notStarted);
-    if (!(await draftIsLive(ctx, leagueId)) || draft.clock === undefined) refuse(commissionerRefusals.over);
-    const { clock } = draft;
+    const { draft, clock } = await liveClock(ctx, leagueId);
     const last = (await lastPickIn(ctx, leagueId)) ?? refuse(commissionerRefusals.noPick);
     const team = await teamIn(ctx, leagueId, last.teamId);
     const player = await heldPlayerByCode(ctx, last.playerCode, `Player ${last.playerCode}, drafted at pick ${last.pick}, isn't in the football data`);
