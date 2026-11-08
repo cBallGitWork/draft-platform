@@ -12,6 +12,10 @@ export const tradeReviewer = v.union(
   v.object({ kind: v.literal("vote"), against: v.array(v.string()) }),
 );
 
+/** A draft pick in a trade (#1096): `teamId`'s pick in `round`, whoever holds it now. A traded pick
+ *  is a team's pick in a round, not a fixed slot (Craig, 8 Nov 2026). */
+export const tradePick = v.object({ round: v.number(), teamId: v.id("teams") });
+
 export const tradeTables = {
   tradeOffers: defineTable({
     leagueId: v.id("leagues"),
@@ -22,6 +26,10 @@ export const tradeTables = {
     gives: v.array(v.number()),
     /** The players coming from `toTeamId` to `fromTeamId`. */
     gets: v.array(v.number()),
+    /** A pick trade's picks, one each way, before the draft starts (spec/04, The picks): the pick
+     *  going from `fromTeamId` and the one coming back. Its `gives` and `gets` are then empty, as an
+     *  offer with a pick in it holds nothing else (Craig, 8 Nov 2026). Absent from a players' trade. */
+    picks: v.optional(v.object({ gives: tradePick, gets: tradePick })),
     /** Its one-line note; absent with none. */
     note: v.optional(v.string()),
     /** Who made it, by email. */

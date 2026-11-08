@@ -12,6 +12,8 @@ import { tellNotStarted, tellUpNext } from "./draftLetters";
 import { DRAFT_FEWEST_TEAMS } from "./draftLimits";
 import { draftOrderOf, teamInOrder, teamOrderOf } from "./draftOrder";
 import { draftOf, picksMadeIn } from "./draftRow";
+import { roundsOf } from "./draftRules";
+import { closePickTrades } from "../trades/tradePicks";
 import { pickOnTheClock } from "./snakeOrder";
 
 // Starting the draft (spec/04, Starting it; #1089). It starts on a date the commissioner sets or
@@ -23,7 +25,8 @@ import { pickOnTheClock } from "./snakeOrder";
 // and no team can join after (../leagues/teams.ts). It waits until every squad is empty. Its rounds,
 // and the squad rules its picks follow, are the league's latest, a change waiting for a later
 // gameweek among them: "the squad size is what indicates the draft size" (Craig, 7 Nov 2026, on
-// #1130, replacing #1090's "in force when it starts").
+// #1130, replacing #1090's "in force when it starts"). Starting closes every pick trade still open
+// or in review, unmade (#1096; Craig, 8 Nov 2026), as picks are traded only before it.
 
 /** Why the draft's start is refused, in the words the commissioner is shown. */
 export const draftStartRefusals = {
@@ -33,10 +36,6 @@ export const draftStartRefusals = {
   notAhead: "The start has to be in the future.",
   squadsNotEmpty: "The draft can't start until every squad is empty.",
 };
-
-/** The draft's rounds under these rules: the squad's most players, or null with no squad size
- *  limit, or no rules (a league made before #25). */
-const roundsOf = (rules: LeagueRules | null): number | null => rules?.squad.size?.maximum ?? null;
 
 /** The league's rules in force at `now`: those of the gameweek under way, or before the league's
  *  first gameweek begins, that gameweek's; a change waiting for a later gameweek isn't among them.
@@ -88,6 +87,7 @@ async function begin(ctx: MutationCtx, league: Doc<"leagues">, draft: Doc<"draft
   const started = { at: Date.now(), teamIds: draftOrderOf(can.teams, league.draftOrder).map((team) => team._id), rounds: can.rounds, squad: can.squad };
   if (draft === null) await ctx.db.insert("drafts", { leagueId: league._id, started });
   else await ctx.db.patch("drafts", draft._id, { started, startsAt: undefined, startJob: undefined });
+  await closePickTrades(ctx, league._id);
   const first = await startClock(ctx, league._id, 0, started.at, can.pickSeconds);
   if (first !== null) await tellUpNext(ctx, league, first);
   return null;
@@ -192,10 +192,11 @@ export const ofLeague = query({
       return { teamId, name };
     });
     const picksMade = await picksMadeIn(ctx, leagueId);
-    const turn = pickOnTheClock(order, rounds, picksMade);
+    const turn = pickOnTheClock(teamIds, rounds, picksMade, draft.tradedPicks);
     const started = { startedAt: at, rounds, order, picksMade };
     if (turn === null) return { status: "over" as const, ...started };
     const clock = draft.clock === undefined ? null : { startsAt: draft.clock.startsAt, endsAt: draft.clock.endsAt, pausedAt: draft.clock.paused?.at };
-    return { status: "live" as const, ...started, onTheClock: { pick: turn.pick, round: turn.round, ...turn.team }, clock };
+    const name = names.get(turn.team) ?? "";
+    return { status: "live" as const, ...started, onTheClock: { pick: turn.pick, round: turn.round, teamId: turn.team, name }, clock };
   },
 });

@@ -3,7 +3,8 @@ import type { Doc, Id } from "../_generated/dataModel";
 import { internalMutation, type MutationCtx, type QueryCtx } from "../_generated/server";
 import { leagueDeadlines } from "../gameweeks/leagueDeadlines";
 import { fileLetter } from "../mail/letters";
-import { offerClosedLetter, type OfferClosed, type TradeWords } from "../mail/tradeLetterWords";
+import { offerClosedLetter, pickWords, type OfferClosed, type TradeWords } from "../mail/tradeLetterWords";
+import type { TradePick } from "./tradePicks";
 import { takeAllOrThrow } from "../shared/cappedRead";
 import type { LeagueDeadlines } from "../gameweeks/deadline";
 import { groupedBy } from "../shared/groupedBy";
@@ -48,6 +49,11 @@ export async function tradedName(ctx: QueryCtx, playerCode: number): Promise<str
 export async function tradeWordsOf(ctx: QueryCtx, offer: Doc<"tradeOffers">): Promise<TradeWords> {
   const [from, to] = await Promise.all([ctx.db.get("teams", offer.fromTeamId), ctx.db.get("teams", offer.toTeamId)]);
   if (from === null || to === null) throw new Error(`Trade offer ${offer._id} is between teams that no longer exist`);
+  const { picks } = offer;
+  if (picks !== undefined) {
+    const [gives, gets] = await Promise.all([pickName(ctx, picks.gives), pickName(ctx, picks.gets)]);
+    return { fromTeamName: from.name, toTeamName: to.name, gives: [gives], gets: [gets], note: offer.note ?? null };
+  }
   return {
     fromTeamName: from.name,
     toTeamName: to.name,
@@ -55,6 +61,13 @@ export async function tradeWordsOf(ctx: QueryCtx, offer: Doc<"tradeOffers">): Pr
     gets: await Promise.all(offer.gets.map((code) => tradedName(ctx, code))),
     note: offer.note ?? null,
   };
+}
+
+/** A draft pick in a trade (#1096), as its letters name it: by the team whose pick it is. */
+export async function pickName(ctx: QueryCtx, pick: TradePick): Promise<string> {
+  const team = await ctx.db.get("teams", pick.teamId);
+  if (team === null) throw new Error(`A trade offer names a pick of team ${pick.teamId}, which no longer exists`);
+  return pickWords(pick.round, team.name);
 }
 
 /** Both teams' managers, by email: those a trade's own letters go to. */

@@ -78,6 +78,15 @@ Feature 4 of [SPEC.md](../SPEC.md). Only Craig's answers.
   20 Oct 2026). He keeps his place in the squad, shown as not available, like an FPL red flag.
 - A traded pick shows on the board under the team that owns it now, marked "via" the team it came
   from (Craig, 4 Nov 2026, "yes" to Claude's recommendation).
+- A pick trade is one pick for one pick: "nah dont allow uneven picks, teams just need to figure
+  tha tout" (Craig, 4 Nov 2026, on #1096). An offer with a pick in it holds one pick each way and
+  nothing else, no players (Craig, 8 Nov 2026, on #1096). `S04.2`
+- A traded pick is a team's pick in a round, not a fixed slot: "Just trade '3rd round pick' rather
+  than precise number" (Craig, 8 Nov 2026, on #1096, replacing his 4 Nov "a fixed slot"). It goes
+  wherever that team's turn falls in that round, so the order can still change. `S04.3`
+- A pick trade still in review when the draft starts closes without going through, and both
+  managers get a letter saying why; any pick offer still open closes the same way (Craig, 8 Nov
+  2026, on #1096). `S04.4`
 - Until waivers are built, players nobody drafts go to free agents (Craig, 4 Nov 2026, "yes" to
   Claude's recommendation).
 - Players nobody drafts go to waivers or straight to free agents: a league setting, waivers by

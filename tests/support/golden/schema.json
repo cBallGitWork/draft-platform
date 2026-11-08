@@ -23756,6 +23756,37 @@
             },
             "optional": true
           },
+          "tradedPicks": {
+            "fieldType": {
+              "type": "array",
+              "value": {
+                "type": "object",
+                "value": {
+                  "round": {
+                    "fieldType": {
+                      "type": "number"
+                    },
+                    "optional": false
+                  },
+                  "teamId": {
+                    "fieldType": {
+                      "type": "id",
+                      "tableName": "teams"
+                    },
+                    "optional": false
+                  },
+                  "ownerId": {
+                    "fieldType": {
+                      "type": "id",
+                      "tableName": "teams"
+                    },
+                    "optional": false
+                  }
+                }
+              }
+            },
+            "optional": true
+          },
           "clock": {
             "fieldType": {
               "type": "object",
@@ -24571,6 +24602,56 @@
               }
             },
             "optional": false
+          },
+          "picks": {
+            "fieldType": {
+              "type": "object",
+              "value": {
+                "gives": {
+                  "fieldType": {
+                    "type": "object",
+                    "value": {
+                      "round": {
+                        "fieldType": {
+                          "type": "number"
+                        },
+                        "optional": false
+                      },
+                      "teamId": {
+                        "fieldType": {
+                          "type": "id",
+                          "tableName": "teams"
+                        },
+                        "optional": false
+                      }
+                    }
+                  },
+                  "optional": false
+                },
+                "gets": {
+                  "fieldType": {
+                    "type": "object",
+                    "value": {
+                      "round": {
+                        "fieldType": {
+                          "type": "number"
+                        },
+                        "optional": false
+                      },
+                      "teamId": {
+                        "fieldType": {
+                          "type": "id",
+                          "tableName": "teams"
+                        },
+                        "optional": false
+                      }
+                    }
+                  },
+                  "optional": false
+                }
+              }
+            },
+            "optional": true
           },
           "note": {
             "fieldType": {

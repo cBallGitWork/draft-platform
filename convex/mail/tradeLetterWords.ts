@@ -6,18 +6,23 @@ import type { TellMoment } from "./letterMoments";
 
 type Words = { subject: string; body: string };
 
-/** A trade as its letters name it: each team by name, and each side's players by name. */
+/** A trade as its letters name it: each team by name, and each side's players, or its one pick,
+ *  by name. */
 export type TradeWords = {
   fromTeamName: string;
   toTeamName: string;
-  /** The players going from the offering team to the other. */
+  /** The players, or the pick, going from the offering team to the other. */
   gives: readonly string[];
-  /** The players coming from the other team to the offering one. */
+  /** The players, or the pick, coming from the other team to the offering one. */
   gets: readonly string[];
   note: string | null;
 };
 
-const nobody = (players: readonly string[]) => (players.length === 0 ? "nobody" : andListWords(players));
+/** A draft pick in a trade (#1096), named by the team whose pick in the round it is: "the Lions
+ *  round 3 pick", even once another team holds it. */
+export const pickWords = (round: number, teamName: string) => `the ${teamName} round ${round} pick`;
+
+const nobody =(players: readonly string[]) => (players.length === 0 ? "nobody" : andListWords(players));
 
 /** "Lions give Saka and Rice; Tigers give Palmer." */
 function sides({ fromTeamName, toTeamName, gives, gets }: TradeWords): string {
@@ -39,7 +44,8 @@ export function offerLetter(trade: TradeWords, who: string, countered: boolean):
 
 /** Why an offer closed before it was accepted (spec/08; Craig, 6 Nov 2026, on #383). */
 export type OfferClosed =
-  | { why: "withdrawn" | "rejected" | "deadline" | "tradeDeadline" | "unusedGameweek" }
+  | { why: "withdrawn" | "rejected" | "deadline" | "tradeDeadline" | "unusedGameweek" | "draftStarted" }
+  | { why: "pickTraded"; pickName: string }
   | { why: "autoTeam"; teamName: string }
   | { why: "playerLeft"; playerName: string; teamName: string };
 
@@ -61,6 +67,10 @@ export function offerClosedLetter(trade: TradeWords, closed: OfferClosed): Words
         return `${closed.teamName} went on the auto team, which trades with nobody.`;
       case "playerLeft":
         return `${closed.playerName} left ${closed.teamName}'s squad.`;
+      case "draftStarted":
+        return "The draft started, and picks are traded only before it.";
+      case "pickTraded":
+        return `Another trade took ${closed.pickName}.`;
     }
   })();
   return { subject: `The trade between ${trade.fromTeamName} and ${trade.toTeamName} is closed`, body: `${because} The offer was: ${sides(trade)}` };

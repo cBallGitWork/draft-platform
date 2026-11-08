@@ -38,15 +38,38 @@ describe("the snake order", () => {
 
 describe("the pick on the clock (#1089)", () => {
   test("is the first team's first pick before any is made", () => {
-    expect(pickOnTheClock(["A", "B", "C"], 2, 0)).toEqual({ pick: 1, round: 1, team: "A" });
+    expect(pickOnTheClock(["A", "B", "C"], 2, 0)).toEqual({ pick: 1, round: 1, team: "A", via: null });
   });
 
   test("turns at the end of a round: the last team picks again, in round 2", () => {
-    expect(pickOnTheClock(["A", "B", "C"], 2, 3)).toEqual({ pick: 4, round: 2, team: "C" });
-    expect(pickOnTheClock(["A", "B", "C"], 2, 5)).toEqual({ pick: 6, round: 2, team: "A" });
+    expect(pickOnTheClock(["A", "B", "C"], 2, 3)).toEqual({ pick: 4, round: 2, team: "C", via: null });
+    expect(pickOnTheClock(["A", "B", "C"], 2, 5)).toEqual({ pick: 6, round: 2, team: "A", via: null });
   });
 
   test("is none once every pick is made", () => {
     expect(pickOnTheClock(["A", "B", "C"], 2, 6)).toBeNull();
+  });
+});
+
+describe("a traded pick on the clock (#1096)", () => {
+  // A's round-2 pick is C's now, and C's round-1 pick is A's.
+  const traded = [
+    { round: 2, teamId: "A", ownerId: "C" },
+    { round: 1, teamId: "C", ownerId: "A" },
+  ];
+
+  test("its new owner makes it, via the team whose turn it is", () => {
+    expect(pickOnTheClock(["A", "B", "C"], 2, 2, traded)).toEqual({ pick: 3, round: 1, team: "A", via: "C" });
+    expect(pickOnTheClock(["A", "B", "C"], 2, 5, traded)).toEqual({ pick: 6, round: 2, team: "C", via: "A" });
+  });
+
+  test("a pick never traded stays its team's", () => {
+    expect(pickOnTheClock(["A", "B", "C"], 2, 1, traded)).toEqual({ pick: 2, round: 1, team: "B", via: null });
+  });
+
+  test("is a team's pick in a round, not a slot: a new order moves it with its team", () => {
+    // C goes first now: its round-1 pick is pick 1, and A's round-2 pick is pick 5, both still traded.
+    expect(pickOnTheClock(["C", "A", "B"], 2, 0, traded)).toEqual({ pick: 1, round: 1, team: "A", via: "C" });
+    expect(pickOnTheClock(["C", "A", "B"], 2, 4, traded)).toEqual({ pick: 5, round: 2, team: "C", via: "A" });
   });
 });
