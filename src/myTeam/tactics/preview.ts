@@ -65,6 +65,7 @@ const squad = PLAYERS.map(([playerCode, name, clubShortName, positions]) => ({
   flagged: [],
   number: playerCode === 15 ? null : playerCode,
   stars: previewStars(playerCode, positions),
+  availability: "available" as const,
 }));
 /** The squad, for the Squad tab's preview (../preview.ts), so both tabs show the same players. */
 export const previewSquad = squad;

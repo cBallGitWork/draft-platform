@@ -58,7 +58,8 @@ export const instructionsTitle = (formation: string | null) => (formation === nu
 export const pickedWords = "Picked";
 export const presetsWords = "Presets";
 export const savePresetWords = "Save preset…";
-export const quickPickPlaceholder = "Quick Pick: fills the formation with the best eleven by stars, once it is built (#849)";
+/** Fills the formation with the best eleven by stars (spec/05, Moving players; #849). */
+export const quickPickWords = "Quick Pick";
 
 /** Back one move, through every move since the tab was opened (spec/05, Moving players). */
 export const undoWords = "Undo";

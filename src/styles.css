@@ -132,6 +132,8 @@
   --grid-template-columns-dated-row: auto minmax(0, 1fr);
   --grid-template-columns-home: minmax(0, 2fr) minmax(0, 3fr) minmax(0, 2fr);
   --grid-template-columns-card: 18.75rem minmax(0, 1fr) 21.25rem;
+  /* League home's News tab: the moves, and the selected one's detail (approved/home/1440-news.png) */
+  --grid-template-columns-news: minmax(0, 5fr) minmax(0, 2fr);
   --grid-template-columns-facts: auto 1fr;
   /* The formation window's groups, its tiles and the picked one's preview (the approved formation
      window) */

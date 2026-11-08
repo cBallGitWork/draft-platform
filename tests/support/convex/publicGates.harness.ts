@@ -96,6 +96,7 @@ export const gates: Record<string, Gate> = {
   "gameweeks/leagueGameweeks:setUsed": "runner",
   "gameweeks/scoringStart:setScoringStart": "runner",
   "home/leagueHome:ofLeague": "member",
+  "home/leagueNews:ofLeague": "member",
   "home/recaps:ofGameweek": "member",
   "joining/endedInvite:mine": "signedInOrNothing",
   "joining/inviteLink:make": "runner",

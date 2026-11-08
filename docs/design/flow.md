@@ -69,6 +69,7 @@ flowchart TD
   subgraph FR["League frame: signed in and in a league"]
     HOME["Home<br/>/home<br/>manager"]
     RECAP["Recap<br/>/home/recap<br/>manager"]
+    NEWS["League home, tab News<br/>/home/news<br/>manager"]
     DRAFT["Draft room<br/>/draft<br/>manager, commissioner"]
     TEAM["My team, tab Tactics<br/>/team<br/>manager"]
     TSQ["Squad<br/>/team/squad<br/>manager"]
@@ -109,6 +110,8 @@ flowchart TD
   HOME -- "a head-to-head's v" --> MATCHUP
   HOME -- "Read the recap" --> RECAP
   RECAP -- "Back to League home" --> HOME
+  HOME -- "More, on News" --> NEWS
+  NEWS -- "the pinned letter" --> MAIL
   RECAP -.->|"no gameweek named"| HOME
   TFX -- "a game's result or v" --> MATCHUP
   MATCHUP -- "◄ ► (another gameweek's)" --> MATCHUP
@@ -154,6 +157,7 @@ Features table (feature 12), the one home for screen status.
 | Scouting | `/scouting` | src/scouting/ScoutingPage.tsx | spec/19 The players list, The shortlist | built |
 | League home | `/home` | src/home/HomePage.tsx | spec/12 League home | built |
 | Recap, Read the recap's page | `/home/recap` | src/home/Recap.tsx | spec/12 League home | built |
+| News, a tab of League home | `/home/news` | src/home/NewsPage.tsx | spec/12 League home | built |
 | Draft room | `/draft` | src/draft/DraftPage.tsx | spec/04, spec/12 The frame | built |
 | My team (Tactics) | `/team` | src/myTeam/tactics/TacticsPage.tsx | spec/12 The frame, spec/12 My team's tabs, spec/05 | built |
 | Squad | `/team/squad` | src/myTeam/SquadPage.tsx | spec/12 My team's tabs | built |
