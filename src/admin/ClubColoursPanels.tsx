@@ -23,6 +23,7 @@ import {
 type Club = PositionsQueue["clubs"][number];
 
 const CLUB_ID = "colours-club";
+const PATTERN_ID = "colours-pattern";
 const PATTERNS: readonly Pattern[] = ["plain", "stripes"];
 
 /** The clubs with no colours held, whose shirts and marks are white until he sets them. */
@@ -104,11 +105,11 @@ function ColoursForm({ club, seam, change }: { club: Club } & Pick<PanelProps, "
           </span>
         ))}
         <span className="flex flex-col gap-1">
-          <label htmlFor="colours-pattern" className="font-semibold">
+          <label htmlFor={PATTERN_ID} className="font-semibold">
             {patternLabel}
           </label>
           <select
-            id="colours-pattern"
+            id={PATTERN_ID}
             value={colours.pattern}
             onChange={(event) => setColours({ ...colours, pattern: event.target.value as Pattern })}
             className="text-box"
