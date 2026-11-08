@@ -56,3 +56,5 @@ Named after its route: `team` for `/team`, `team-squad` for `/team/squad`.
   (8 Nov 2026).
 - [`waivers`](waivers/README.md): Waivers: pending claims on My team's Transactions, the commissioner's
   every team, and League settings' Waivers tab (8 Nov 2026).
+- [`trades`](trades/README.md): Trades: offers to and from you, one you sent in a vote league, and a new
+  offer (8 Nov 2026).
