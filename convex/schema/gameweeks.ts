@@ -31,4 +31,11 @@ export const gameweekTables = {
     firstKickoff: v.number(),
     recordedAt: v.number(),
   }).index("by_season_and_gameweek", ["season", "gameweek"]),
+  /** The one deadline alarm pending, site-wide (#1329): at most one row, written only by
+   *  deadlineRecorder.ts's `setDeadlineAlarm`, so it cancels or keeps the alarm by its id rather
+   *  than scanning every scheduled function Convex keeps. */
+  deadlineAlarms: defineTable({
+    scheduledId: v.id("_scheduled_functions"),
+    at: v.number(),
+  }),
 };
