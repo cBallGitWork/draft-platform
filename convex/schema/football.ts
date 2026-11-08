@@ -23,7 +23,6 @@ export const clubColoursRecord = v.object({ primary: v.string(), secondary: v.st
 
 /** Whether a player can play, as the platform holds it (spec/06, Availability): the feed's, or the
  *  admin's over it (`convex/availability/`). The auto team reads only this (spec/09). */
-
 export const availability = v.union(v.literal("out"), v.literal("doubtful"), v.literal("available"));
 
 export const playerRecord = v.object({
