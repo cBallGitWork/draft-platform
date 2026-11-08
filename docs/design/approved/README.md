@@ -51,3 +51,4 @@ Named after its route: `team` for `/team`, `team-squad` for `/team/squad`.
   leagues (7 Nov 2026).
 - [`matchup`](matchup/README.md): The matchup, live, and the commissioner's view with two games a
   gameweek (8 Nov 2026).
+- [`scouting`](scouting/README.md): Scouting's players, compare, a scout's report and the stat race (8 Nov 2026).
