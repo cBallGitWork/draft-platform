@@ -9,7 +9,7 @@ import { actingAs, addManagers, adminCreatesLeague, COMMISSIONER, eventsIn, MANA
 import { holdPlayers, holdSquad, nameOf, passNextDeadline, SQUAD, squadMoves } from "../../support/convex/lineupSquad.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
 import { expectRefused } from "../../support/convex/test.harness";
-import { lettersTo as lettersToOf } from "../../support/convex/waivers.harness";
+import { draftOver, lettersTo as lettersToOf } from "../../support/convex/waivers.harness";
 
 // A manager's drop and a player's waiver state (#1197, spec/08 Waivers and free agency): a drop
 // goes on waivers for at least 24 hours; a free agent picked up and dropped before the next
@@ -49,6 +49,7 @@ beforeEach(async () => {
   await holdGameweeks(t, { next: NEXT });
   await matchIs(NEXT - 1, "fullTime");
   await holdSquad(t, leagueId, annsTeam);
+  await draftOver(t, leagueId, [annsTeam, bobsTeam]);
 });
 
 describe("a drop", () => {
@@ -120,8 +121,6 @@ describe("players no team holds", () => {
   });
 
   test("a player new to the Premier League once the draft is over goes on waivers for the next run", async () => {
-    // A finished draft: started with no rounds, so no pick is left on the clock.
-    await t.run((ctx) => ctx.db.insert("drafts", { leagueId, started: { at: Date.now(), teamIds: [annsTeam, bobsTeam], rounds: 0 } }));
     const otherLeague = await adminCreatesLeague(t, 4, "Still to draft");
     await t.mutation(internal.football.footballSync.upsertPlayers, { rows: [{ code: FREE_AGENT, name: "New", fullName: "New Man", clubCode: 1 }] });
 

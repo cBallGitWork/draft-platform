@@ -5,8 +5,9 @@ import { pickOnTheClock } from "./snakeOrder";
 // A league's draft row (../schema/draft.ts's `drafts`; spec/04, Starting it; #1089), read: by the
 // draft's start (draftStart.ts), its order (draftOrder.ts) and joining (../leagues/teams.ts), which
 // each stop once it has started; how many picks it has made and the pick on its clock (draftPicks.ts,
-// draftPlayers.ts); and whether it is live, while the commissioner's assign, move and release are
-// refused (../squads/squads.ts).
+// draftPlayers.ts); whether it is live, while the commissioner's assign, move and release are refused
+// (../squads/squads.ts); and whether it is over, before which free agency and waivers are shut
+// (../waivers/).
 
 /** The league's draft row, or null while it has none: its commissioner has set no start yet. */
 export function draftOf(ctx: QueryCtx, leagueId: Id<"leagues">): Promise<Doc<"drafts"> | null> {
@@ -53,4 +54,10 @@ export async function turnNow(ctx: QueryCtx, draft: Doc<"drafts">): Promise<Turn
 export async function draftIsLive(ctx: QueryCtx, leagueId: Id<"leagues">): Promise<boolean> {
   const draft = await draftOf(ctx, leagueId);
   return draft !== null && (await turnNow(ctx, draft)) !== null;
+}
+
+/** Whether the league's draft is over: started, with no pick left on the clock. Free agency and
+ *  waivers wait for it (spec/08, Craig, 8 Nov 2026: "refused until drafted"; #1326). */
+export async function draftIsOver(ctx: QueryCtx, leagueId: Id<"leagues">): Promise<boolean> {
+  return (await draftHasStarted(ctx, leagueId)) && !(await draftIsLive(ctx, leagueId));
 }
