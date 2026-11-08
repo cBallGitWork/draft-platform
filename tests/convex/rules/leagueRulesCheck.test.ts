@@ -6,6 +6,7 @@ import { NO_AREA_MINIMUMS, rulesWith } from "../../support/convex/leagueRules.ha
 import { ODD_TEAM_OUTS } from "../../../convex/table/roundRobin";
 import { everyArea } from "../../support/convex/scoring.example";
 import { MOST_IN_SQUAD } from "../../../convex/leagues/leagueLimits";
+import { FIRST_INSTRUCTIONS } from "../../../convex/lineup/instructions";
 
 // What a league's rules are refused for on save, with the reason (#25 Done: "an invalid rule is
 // refused with the reason"). Unchecked, each of these would save and then fail, or score wrong,
@@ -13,6 +14,7 @@ import { MOST_IN_SQUAD } from "../../../convex/leagues/leagueLimits";
 
 const [firstPreset] = FIRST_RULES.presets;
 const limits = FIRST_RULES.areaLimits;
+const keegans = FIRST_RULES.classics!.find(({ name }) => name === "Keegan's Newcastle")!;
 const FRIDAY_9_05 = { day: "friday", hour: 9, minute: 5 } as const;
 
 test("the first rules are sound", () => {
@@ -20,7 +22,8 @@ test("the first rules are sound", () => {
 });
 
 test("no squad limits, no club limit, no presets and no tie-breaks are all sound", () => {
-  const free = rulesWith({ squad: { size: null, minimumByArea: null, maxPerClub: null }, presets: [], tieBreaks: [] });
+  // With no presets, no classic has one to stand in, so there are none.
+  const free = rulesWith({ squad: { size: null, minimumByArea: null, maxPerClub: null }, presets: [], classics: [], tieBreaks: [] });
   expect(() => checkLeagueRules(free)).not.toThrow();
 });
 
@@ -109,6 +112,49 @@ describe.each<[string, Partial<LeagueRules>, string]>([
     "a preset the league's own area limits forbid",
     { areaLimits: { ...limits, attack: { minimum: 0, maximum: 1 } } },
     "The preset 4-4-2 puts 2 in attack, outside its limits of 0 to 1.",
+  ],
+  // A classic stands in one of the league's presets (Craig, 6 Nov 2026, on #991).
+  ["a classic with no name", { classics: [{ ...keegans, name: " " }] }, "A classic needs a name."],
+  ["two classics of one name", { classics: [keegans, { ...keegans }] }, `Two classics are called "Keegan's Newcastle".`],
+  [
+    "a classic whose formation the league has dropped",
+    { presets: FIRST_RULES.presets.filter(({ name }) => name !== "4-4-2") },
+    "The classic Keegan's Newcastle stands in no formation of the league's.",
+  ],
+  [
+    "a classic giving a slot a role it doesn't offer",
+    { classics: [{ ...keegans, cells: [{ ...keegans.cells[0], role: "poacher" }, ...keegans.cells.slice(1)] }] },
+    "The classic Keegan's Newcastle gives its goalkeeper centre slot the role poacher, which that slot doesn't offer.",
+  ],
+  [
+    "a classic giving a sweeper to a back four",
+    { classics: [{ ...keegans, cells: [keegans.cells[0], { ...keegans.cells[1] }, { ...keegans.cells[2], role: "sweeper" }, ...keegans.cells.slice(3)] }] },
+    "The classic Keegan's Newcastle gives its defence leftCentre slot the role sweeper, which that slot doesn't offer.",
+  ],
+  [
+    "a classic whose defensive instruction is an attacking one",
+    { classics: [{ ...keegans, instructions: { attacking: "getItWide", defensive: "gungHo" } }] },
+    "The classic Keegan's Newcastle's defensive instruction, gungHo, isn't one its shape offers.",
+  ],
+  [
+    "a classic whose instruction its shape blocks (#990)",
+    { classics: [{ ...keegans, instructions: { attacking: "getItWide", defensive: "parkTheBus" } }] },
+    "The classic Keegan's Newcastle's defensive instruction, parkTheBus, isn't one its shape offers.",
+  ],
+  [
+    "a preset whose default instruction its shape blocks (#990)",
+    { presets: [{ ...firstPreset, instructions: { attacking: "playOutFromTheBack", defensive: "parkTheBus" } }] },
+    "The preset 4-4-2's default defensive instruction, parkTheBus, isn't one its shape offers.",
+  ],
+  [
+    "team instructions with no defensive one (#990)",
+    { instructions: FIRST_INSTRUCTIONS.filter(({ side }) => side === "attacking") },
+    "The team instructions need at least one defensive instruction.",
+  ],
+  [
+    "two team instructions of one key (#990)",
+    { instructions: [...FIRST_INSTRUCTIONS, FIRST_INSTRUCTIONS[0]] },
+    'Two team instructions have the key "playOutFromTheBack".',
   ],
   [
     "a deadline after the first kickoff",

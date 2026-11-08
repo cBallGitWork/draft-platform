@@ -10,28 +10,31 @@ import { DAY_MS, HOUR_MS, WEEK_MS } from "../../convex/shared/time";
 import { previewMatch, previewMatchBeforeKickoff } from "./matchPreview";
 import type { FirstKickoff, GameweekMatch, PremierLeagueSeam } from "./seam";
 
-const CLUBS = [
-  ["Arsenal", "ARS"],
-  ["Aston Villa", "AVL"],
-  ["Bournemouth", "BOU"],
-  ["Brentford", "BRE"],
-  ["Brighton", "BHA"],
-  ["Chelsea", "CHE"],
-  ["Coventry City", "COV"],
-  ["Crystal Palace", "CRY"],
-  ["Everton", "EVE"],
-  ["Fulham", "FUL"],
-  ["Ipswich Town", "IPS"],
-  ["Leeds United", "LEE"],
-  ["Liverpool", "LIV"],
-  ["Man City", "MCI"],
-  ["Man Utd", "MUN"],
-  ["Newcastle", "NEW"],
-  ["Nottingham Forest", "NFO"],
-  ["Spurs", "TOT"],
-  ["West Ham", "WHU"],
-  ["Wolves", "WOL"],
-].map(([name, shortName], index) => ({ code: index + 1, name, shortName }));
+/** Each club by its real FPL `code`, so its crest and colours are its own (#840). */
+const CLUBS = (
+  [
+    [3, "Arsenal", "ARS"],
+    [7, "Aston Villa", "AVL"],
+    [91, "Bournemouth", "BOU"],
+    [94, "Brentford", "BRE"],
+    [36, "Brighton", "BHA"],
+    [8, "Chelsea", "CHE"],
+    [9, "Coventry City", "COV"],
+    [31, "Crystal Palace", "CRY"],
+    [11, "Everton", "EVE"],
+    [54, "Fulham", "FUL"],
+    [40, "Ipswich Town", "IPS"],
+    [2, "Leeds United", "LEE"],
+    [14, "Liverpool", "LIV"],
+    [43, "Man City", "MCI"],
+    [1, "Man Utd", "MUN"],
+    [4, "Newcastle", "NEW"],
+    [17, "Nottingham Forest", "NFO"],
+    [6, "Spurs", "TOT"],
+    [21, "West Ham", "WHU"],
+    [39, "Wolves", "WOL"],
+  ] as const
+).map(([code, name, shortName]) => ({ code, name, shortName }));
 
 const CURRENT = 9;
 /** The current gameweek's first kickoff: 12:30 today, or yesterday before 14:30, so its first

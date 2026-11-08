@@ -6,10 +6,13 @@ import { DraftPage } from "../draft/DraftPage";
 import { DRAFT_PATH, HOME_PATH, MAIL_PATH, MATCHUP_PATH, MY_TEAM_FIXTURES_PATH, MY_TEAM_PATH, MY_TEAM_SQUAD_PATH, MY_TEAM_TRANSACTIONS_PATH, pages, PREMIER_LEAGUE_PATH, SCOUTING_PATH, TABLE_PATH } from "../frame/menu";
 import { PageNotBuilt } from "../frame/PageNotBuilt";
 import { HomePage } from "../home/HomePage";
+import { recapSearchOf, RECAP_PATH } from "../home/paths";
+import { RecapPage } from "../home/Recap";
 import { MatchupPage } from "../matchup/MatchupPage";
 import { matchupSearchOf } from "../matchup/paths";
 import { FixturesPage } from "../myTeam/FixturesPage";
 import { SquadPage } from "../myTeam/SquadPage";
+import { tacticsSearchOf } from "../myTeam/tactics/paths";
 import { TacticsPage } from "../myTeam/tactics/TacticsPage";
 import { TransactionsPage } from "../myTeam/TransactionsPage";
 import { MatchPage } from "../premierLeague/MatchPage";
@@ -59,8 +62,18 @@ const scoutingRoute = leaguePage(SCOUTING_PATH, "scouting", ScoutingPage); // Sc
 // The draft room (#1098): its menu tab leaves once the draft is over, and its address still opens it.
 const draftRoute = leaguePage(DRAFT_PATH, "draft", DraftPage);
 
-// My team's Tactics tab (#14), where a manager lands: his own team's lineup on the pitch.
-const myTeamTacticsRoute = leaguePage(MY_TEAM_PATH, "myTeam", TacticsPage);
+// My team's Tactics tab (#14), where a manager lands: his own team's lineup on the pitch, with the
+// player the address names selected (#1008).
+const myTeamTacticsRoute = createRoute({
+  getParentRoute: () => frameRoute,
+  path: MY_TEAM_PATH,
+  validateSearch: tacticsSearchOf,
+  component: function Tactics() {
+    const { session, myTeam } = myTeamTacticsRoute.useRouteContext();
+    const { player } = myTeamTacticsRoute.useSearch();
+    return <CurrentLeague session={session} page={(league) => <TacticsPage league={league} seam={myTeam} selected={player} />} />;
+  },
+});
 const myTeamSquadRoute = leaguePage(MY_TEAM_SQUAD_PATH, "myTeam", SquadPage); // #364
 const myTeamFixturesRoute = leaguePage(MY_TEAM_FIXTURES_PATH, "myTeam", FixturesPage); // #365
 const myTeamTransactionsRoute = leaguePage(MY_TEAM_TRANSACTIONS_PATH, "myTeam", TransactionsPage); // #366
@@ -73,8 +86,24 @@ const matchupRoute = createRoute({
   validateSearch: matchupSearchOf,
   component: function MatchupScreen() {
     const { session, matchup } = matchupRoute.useRouteContext();
-    const { team, gameweek } = matchupRoute.useSearch();
-    return <CurrentLeague session={session} page={(league) => <MatchupPage league={league} seam={matchup} asked={{ teamId: team, gameweek }} />} />;
+    const { team, gameweek, game } = matchupRoute.useSearch();
+    return <CurrentLeague session={session} page={(league) => <MatchupPage league={league} seam={matchup} asked={{ teamId: team, gameweek, game }} />} />;
+  },
+});
+
+// League home's weekly recap, whole (#387), opened by Read the recap. With no gameweek named it is
+// League home's to show, so it goes there.
+const recapRoute = createRoute({
+  getParentRoute: () => frameRoute,
+  path: RECAP_PATH,
+  validateSearch: recapSearchOf,
+  beforeLoad: ({ search }) => {
+    if (search.gameweek === undefined) throw redirect({ to: HOME_PATH });
+  },
+  component: function RecapScreen() {
+    const { session, home } = recapRoute.useRouteContext();
+    const { gameweek } = recapRoute.useSearch();
+    return <CurrentLeague session={session} page={(league) => <RecapPage league={league} seam={home} gameweek={gameweek!} />} />;
   },
 });
 
@@ -110,7 +139,7 @@ const matchRoute = createRoute({
   },
 });
 
-const builtRoutes = [landingRoute, homeRoute, tableRoute, scoutingRoute, draftRoute, myTeamTacticsRoute, myTeamSquadRoute, myTeamFixturesRoute, myTeamTransactionsRoute, matchupRoute, premierLeagueRoute, matchRoute];
+const builtRoutes = [landingRoute, homeRoute, recapRoute, tableRoute, scoutingRoute, draftRoute, myTeamTacticsRoute, myTeamSquadRoute, myTeamFixturesRoute, myTeamTransactionsRoute, matchupRoute, premierLeagueRoute, matchRoute];
 
 /** Every address with its own screen: each route above, and Mail, whose route is with the league
  *  pages (leaguePages.tsx). Any other menu page gets a placeholder. */

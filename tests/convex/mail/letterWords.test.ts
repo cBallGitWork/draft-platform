@@ -2,12 +2,15 @@ import type { Infer } from "convex/values";
 import { expect, test } from "vitest";
 import type { Id } from "../../../convex/_generated/dataModel";
 import { eventLetter } from "../../../convex/mail/letterWords";
+import { tellIn } from "../../../convex/mail/letterMoments";
 import type { leagueEvent } from "../../../convex/schema";
 
 // The letters for the league events joining, gameweeks, deletion and rules file (#73, #74, #75,
 // #25): each says who did what, and the facts the event carries.
 
 const WHO = "commish@example.com";
+/** Times told in London's zone, as for a reader whose own isn't known. */
+const LONDON = tellIn(undefined);
 const TEAM = "team-1" as Id<"teams">;
 const ANN = "ann@example.com";
 const IN_JANUARY = Date.parse("2027-01-15T12:00:00Z");
@@ -28,6 +31,16 @@ const LETTERS: [Infer<typeof leagueEvent>, string, string][] = [
   [{ kind: "joinRequestApproved", email: ANN, teamId: TEAM, teamName: "Saka Potatoes" }, `${ANN} joined as manager of Saka Potatoes`, "approved"],
   [{ kind: "inviteLinkMade", replacedOne: true }, "The league has a new invite link", "the old one no longer works"],
   [{ kind: "inviteLinkSwitchedOff" }, "The invite link is off", "switched"],
+  [
+    { kind: "pointsOverrideRemoved", playerCode: 1, playerName: "Saka", fixtureCode: 1, matchName: "Arsenal v Chelsea", gameweek: 6, from: 8, to: null, teams: [] },
+    "Saka's override in Arsenal v Chelsea was removed",
+    "gameweek 6: 8 no longer stands.\n\nNo team's total moved: no lineup counted him.",
+  ],
+  [
+    { kind: "teamPointsOverridden", teamId: TEAM, teamName: "Lions", gameweek: 6, from: 54, to: 60, reason: "two subs missed" },
+    "Lions's total in gameweek 6 was overridden",
+    "total in gameweek 6: 54 to 60. Why: two subs missed",
+  ],
   [
     { kind: "rulesChanged", fromGameweek: 9, changed: ["scoring", "deadline"] },
     "The league's rules change from gameweek 9",
@@ -51,7 +64,7 @@ const LETTERS: [Infer<typeof leagueEvent>, string, string][] = [
 ];
 
 test.each(LETTERS)("the %o letter names it and who did it", (event, subject, inBody) => {
-  const letter = eventLetter(event, WHO, undefined);
+  const letter = eventLetter(event, WHO, LONDON);
   expect(letter.subject).toBe(subject);
   expect(letter.body).toContain(inBody);
   if (event.kind !== "joinedByInvite") expect(letter.body).toContain(WHO);
@@ -72,7 +85,7 @@ test("an override letter writes points below 0 with the true minus, never a hyph
       teams: [{ teamName: "Lions", from: 3, to: -0.5 }],
     },
     WHO,
-    undefined,
+    LONDON,
   );
   expect(letter.body).toContain("gameweek 6: 2 to −1.");
   expect(letter.body).toContain("Lions now have −0.5 in gameweek 6, not 3.");

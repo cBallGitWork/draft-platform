@@ -22,6 +22,20 @@ export const lineupRefusals = {
   notInSquad: (names: readonly string[]) => `${andListWords(names)} ${isNot(names)} in your squad.`,
   leftOut: (names: readonly string[]) =>
     `${andListWords(names)} ${isNot(names)} in the lineup: every player in your squad starts or sits on the bench.`,
+  noSuchClassic: (name: string) => `This league has no classic called ${name} any more: pick a formation to save your lineup.`,
+  notInClassicShape: (name: string) => `${name} keeps its formation: pick another formation to leave it.`,
+};
+
+/** How many plans a manager keeps, and how long a plan's name may be (spec/05, Saved plans;
+ *  Craig, 6 Nov 2026, #992). */
+export const PLANS_KEPT = 5;
+export const PLAN_NAME_MOST = 30;
+
+/** Why a plan can't be saved, as the manager is told it (Craig's words, 6 Nov 2026, #992). */
+export const planRefusals = {
+  full: `You keep up to ${PLANS_KEPT} plans: delete one first`,
+  nameLength: `A preset's name is 1 to ${PLAN_NAME_MOST} characters`,
+  notEleven: `A preset saves all ${STARTER_COUNT} slots, each in its own cell of the pitch`,
 };
 
 /** One of lineup.ts's problems, as the manager is told it. */

@@ -4,7 +4,7 @@ import { api } from "../../convex/_generated/api";
 import { refusalOf } from "../shared/refusal";
 import { liveShortlist } from "../scouting/shortlist/liveShortlist";
 import type { PlayerCardSeam, WaiverChanges } from "./seam";
-import { overrideFailedWords, waiverFailedWords } from "./words";
+import { overrideFailedWords, removeOverrideFailedWords, waiverFailedWords } from "./words";
 
 /** The player card's seam filled in by Convex. A refused change comes back as the server's own
  *  words (convex/table/pointsOverrides.ts, convex/waivers/); any other failure is logged and said
@@ -31,6 +31,13 @@ export const livePlayerCard: PlayerCardSeam = {
     return useCallback(
       (leagueId, change) => refusalOf(() => override({ leagueId, ...change }), "Overriding a player's points", overrideFailedWords),
       [override],
+    );
+  },
+  useRemoveOverride: () => {
+    const remove = useMutation(api.table.pointsOverrides.removeOverride);
+    return useCallback(
+      (leagueId, overridden) => refusalOf(() => remove({ leagueId, ...overridden }), "Removing a player's override", removeOverrideFailedWords),
+      [remove],
     );
   },
 };

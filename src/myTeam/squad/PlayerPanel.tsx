@@ -11,11 +11,14 @@ import { StarRating } from "../../ui/StarRating";
 import { starsIn } from "../../../convex/stars/bestRole";
 import { benchBestRole } from "../tactics/lineupDraft";
 import { ROLE_FIT_SUBJECT } from "../tactics/words";
+import { tacticsLink } from "../tactics/paths";
 import type { Tactics } from "../tactics/seam";
 import { SquadNumberBox } from "./SquadNumberBox";
-import { NextMatches, PositionList, type Row } from "./SquadTable";
+import { PositionCodes } from "../../ui/PositionCodes";
+import { NextMatches } from "../SquadCells";
+import type { Row } from "./SquadTable";
 import {
-  benchPlaceWords,
+  benchedInWords,
   bestRoleNotRatedLabel,
   closeGlyph,
   closePanelLabel,
@@ -30,10 +33,9 @@ import {
   panelRows,
   playerCardWords,
   roleLastGameweekNotSettledLabel,
-  rolePointsNotBuiltLabel,
   seasonWords,
-  setRoleNotBuiltLabel,
-  startedNotBuiltLabel,
+  setRoleWords,
+  signedWords,
   startingInWords,
   statusNotSettledLabel,
   THIS_SEASON,
@@ -99,13 +101,13 @@ export function PlayerPanel({
           </span>
         </Fact>
         <Fact term={panelRows.started}>
-          <Placeholder label={startedNotBuiltLabel} className={ROW_PLACEHOLDER} />
+          <Figure points={player.started} />
         </Fact>
         <Fact term={panelRows.rolePoints}>
-          <Placeholder label={rolePointsNotBuiltLabel} className={ROW_PLACEHOLDER} />
+          <Figure points={player.rolePoints} words={signedWords} />
         </Fact>
         <Fact term={panelRows.plays}>
-          <PositionList positions={player.positions} />
+          <PositionCodes positions={player.positions} spaced />
         </Fact>
         <Fact term={panelRows.bestRole}>
           <BestRole tactics={tactics} code={player.code} />
@@ -119,8 +121,10 @@ export function PlayerPanel({
         <GameweekPlace tactics={tactics} code={player.code} />
       </dl>
       <div className="flex items-center justify-between gap-2 px-3 pb-2">
-        {/* Set his role opens Tactics with him selected (the README), once Tactics can from the address. */}
-        <Placeholder label={setRoleNotBuiltLabel} className="h-tap w-28" />
+        {/* Set his role opens Tactics with him selected (the README, Answered; #1008). */}
+        <Link {...tacticsLink(player.code)} className="secondary-action lg:min-h-0 lg:py-1">
+          {setRoleWords}
+        </Link>
         <Link to={playerCardPath(leagueId, player.code)} className="flex min-h-tap items-center font-semibold">
           {playerCardWords} <span aria-hidden="true">&nbsp;{nextGlyph}</span>
         </Link>
@@ -138,8 +142,9 @@ function Fact({ term, children }: { term: string; children: ReactNode }) {
   );
 }
 
-function Figure({ points }: { points: number | null }) {
-  return points === null ? <span className="text-muted">{noFigureWords}</span> : <span className="font-bold text-figure">{figureWords(points)}</span>;
+/** A figure, "—" while there is none; `words` writes it, signed for an adjustment. */
+function Figure({ points, words = figureWords }: { points: number | null; words?: (value: number) => string }) {
+  return points === null ? <span className="text-muted">{noFigureWords}</span> : <span className="font-bold text-figure">{words(points)}</span>;
 }
 
 /** The role he has the most stars for at his main position's slot, with his stars for it, as the
@@ -164,7 +169,7 @@ function GameweekPlace({ tactics, code }: { tactics: Tactics | undefined; code: 
   const { starters, bench } = tactics.lineup;
   const starter = starters.find((each) => each.playerCode === code);
   const benchIndex = bench.indexOf(code);
-  const where = starter !== undefined ? startingInWords(positionOfSlot(starter), starter.lane) : benchIndex >= 0 ? benchPlaceWords(benchIndex + 1) : null;
+  const where = starter !== undefined ? startingInWords(positionOfSlot(starter), starter.lane) : benchIndex >= 0 ? benchedInWords(benchIndex + 1) : null;
   if (where === null) return null;
   return (
     <>

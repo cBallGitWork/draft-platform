@@ -1,32 +1,15 @@
-import { Fragment } from "react";
+import type { ReactNode } from "react";
 import type { Position } from "../../../convex/positions/positionTables";
 import type { SeasonStats } from "../../../convex/squads/teamSquad";
-import { ClubShort } from "../../premierLeague/ClubName";
+import { ClubMark, ClubShort } from "../../premierLeague/ClubName";
 import { cellClassOf, ColumnHeads } from "../../ui/ColumnHeads";
 import { Placeholder } from "../../ui/Placeholder";
-import { PositionCode } from "../../ui/PositionCodes";
+import { PositionCodes } from "../../ui/PositionCodes";
 import { unheldPlayerWords } from "../../shared/words";
 import type { TeamSquad } from "../seam";
+import { NextMatches, PointsCell } from "../SquadCells";
 import { PositionMarks, type PositionMark } from "../tactics/positionMarks";
-import {
-  benchWords,
-  difficultyNotRatedWords,
-  figureWords,
-  lastGameweekLong,
-  nextFixtureLong,
-  nextFixtureShort,
-  noFigureWords,
-  noNextFixtureWords,
-  noPointsWords,
-  noStatsWords,
-  openPanelLabel,
-  shortThenLongName,
-  squadColumns,
-  squadTableLabel,
-  statusNotSettledLabel,
-  whenWords,
-  goneWords,
-} from "./words";
+import { benchWords, figureWords, lastGameweekLong, noStatsWords, openPanelLabel, squadColumns, squadTableLabel, statusNotSettledLabel, goneWords } from "./words";
 
 export type Row = TeamSquad["players"][number];
 type Column = keyof typeof squadColumns;
@@ -42,7 +25,8 @@ const KEEPER = "GK" satisfies Position;
 
 /** The squad's cells: the data's 20px line with 4px above and below, a 28px row on the desk
  *  (plate.md, Decided). */
-const cellClasses = (column: Column) => `${cellClassOf(WORDS.includes(column))} py-1`;
+export const squadCellClass = (words: boolean) => `${cellClassOf(words)} py-1`;
+const cellClasses = (column: Column) => squadCellClass(WORDS.includes(column));
 
 /** The Stats view (the approved picture): each player's season in one row, the bench's names
  *  muted, and a tap on a row opens his season panel. `rows` are in the table's order (squadOrder). */
@@ -93,15 +77,11 @@ export function SquadTable({
 
 function SquadRow({ player, starts, marks, isSelected, onSelect }: { player: Row; starts: boolean; marks: readonly PositionMark[]; isSelected: boolean; onSelect(code: number): void }) {
   return (
-    <tr
-      onClick={() => onSelect(player.code)}
-      aria-current={isSelected || undefined}
-      className="cursor-pointer border-t border-panel-rule aria-current:bg-name-plate aria-current:shadow-current-edge"
-    >
+    <PlayerRow code={player.code} isSelected={isSelected} onSelect={onSelect}>
       {COLUMNS.map((column) => (
         <SquadCell key={column} column={column} player={player} starts={starts} marks={marks} isSelected={isSelected} onSelect={onSelect} />
       ))}
-    </tr>
+    </PlayerRow>
   );
 }
 
@@ -115,39 +95,11 @@ function SquadCell({ column, player, starts, marks, isSelected, onSelect }: { co
     case "positions":
       return (
         <td className={`${className} whitespace-nowrap`}>
-          <PositionList positions={player.positions} />
+          <PositionCodes positions={player.positions} spaced />
         </td>
       );
     case "player":
-      return (
-        <th scope="row" title={player.fullName} className={`${className} whitespace-nowrap`}>
-          <button
-            type="button"
-            aria-expanded={isSelected}
-            aria-label={openPanelLabel(player.name)}
-            onClick={(event) => {
-              // The row's own tap would select him a second time.
-              event.stopPropagation();
-              onSelect(player.code);
-            }}
-            className={`inline-flex min-h-tap min-w-tap items-center text-lead font-semibold lg:min-h-0 lg:min-w-0 ${starts ? "text-fact" : "text-muted"}`}
-          >
-            {player.name}
-            {!starts && <span className="sr-only">, {benchWords}</span>}
-          </button>{" "}
-          <span className="text-muted">
-            <ClubShort club={player.club} />
-          </span>
-          {player.chanceOfPlaying !== null && (
-            <>
-              {" "}
-              <Placeholder label={statusNotSettledLabel} className="size-3 align-middle" />
-            </>
-          )}
-          <PositionMarks marks={marks} />
-          {player.gone && <span className="block font-normal text-event">{goneWords}</span>}
-        </th>
-      );
+      return <PlayerCell className={className} player={player} starts={starts} marks={marks} isSelected={isSelected} onSelect={onSelect} />;
     case "season":
       return <PointsCell className={className} points={player.seasonPoints} />;
     case "last":
@@ -163,18 +115,51 @@ function SquadCell({ column, player, starts, marks, isSelected, onSelect }: { co
   }
 }
 
-/** Every position he holds, his main first, side by side as the picture's chips are: a space
- *  between them for screen readers, which the row's gap draws. */
-export function PositionList({ positions }: { positions: readonly Position[] }) {
+/** A player's row in any of the table's views: a tap on it opens his season panel. */
+export function PlayerRow({ code, isSelected, onSelect, children }: { code: number; isSelected: boolean; onSelect(code: number): void; children: ReactNode }) {
   return (
-    <span className="flex gap-1">
-      {positions.map((position, index) => (
-        <Fragment key={position}>
-          {index > 0 && " "}
-          <PositionCode position={position} />
-        </Fragment>
-      ))}
-    </span>
+    <tr
+      onClick={() => onSelect(code)}
+      aria-current={isSelected || undefined}
+      className="cursor-pointer border-t border-panel-rule aria-current:bg-name-plate aria-current:shadow-current-edge"
+    >
+      {children}
+    </tr>
+  );
+}
+
+/** His name, the row's button for the keyboard and screen readers, muted on the bench, with his
+ *  club, his status chip's place, his position marks, and whether he has left the league. */
+export function PlayerCell({ className, player, starts, marks, isSelected, onSelect }: { className: string; player: Row; starts: boolean; marks: readonly PositionMark[]; isSelected: boolean; onSelect(code: number): void }) {
+  return (
+    <th scope="row" title={player.fullName} className={`${className} whitespace-nowrap`}>
+      <button
+        type="button"
+        aria-expanded={isSelected}
+        aria-label={openPanelLabel(player.name)}
+        onClick={(event) => {
+          // The row's own tap would select him a second time.
+          event.stopPropagation();
+          onSelect(player.code);
+        }}
+        className={`inline-flex min-h-tap min-w-tap items-center text-lead font-semibold lg:min-h-0 lg:min-w-0 ${starts ? "text-fact" : "text-muted"}`}
+      >
+        {player.name}
+        {!starts && <span className="sr-only">, {benchWords}</span>}
+      </button>{" "}
+      <span className="text-muted">
+        <ClubMark code={player.club.code} />
+        <ClubShort club={player.club} />
+      </span>
+      {player.chanceOfPlaying !== null && (
+        <>
+          {" "}
+          <Placeholder label={statusNotSettledLabel} className="size-3 align-middle" />
+        </>
+      )}
+      <PositionMarks marks={marks} />
+      {player.gone && <span className="block font-normal text-event">{goneWords}</span>}
+    </th>
   );
 }
 
@@ -188,39 +173,4 @@ function StatCell({ className, stat, player }: { className: string; stat: Stat; 
     );
   }
   return <td className={className}>{figureWords(player.stats[stat])}</td>;
-}
-
-function PointsCell({ className, points }: { className: string; points: number | null }) {
-  return points === null ? (
-    <td title={noPointsWords} className={`${className} text-muted`}>
-      {noFigureWords}
-    </td>
-  ) : (
-    <td className={`${className} font-bold text-figure`}>{figureWords(points)}</td>
-  );
-}
-
-/** His club's next matches, each a cell whose fill waits for fixture difficulty (the README's
- *  placeholders), so it is the placeholder's outline round the match. */
-export function NextMatches({ matches }: { matches: Row["nextFixtures"] }) {
-  if (matches.length === 0) {
-    return (
-      <span title={noNextFixtureWords} className="text-muted">
-        {noFigureWords}
-      </span>
-    );
-  }
-  return (
-    <span className="flex gap-px">
-      {matches.map((match) => {
-        const short = nextFixtureShort(match.opponent.shortName, match.home);
-        const long = `${nextFixtureLong(match.opponent.name, match.home, whenWords(match.kickoff))}, ${difficultyNotRatedWords}`;
-        return (
-          <abbr key={match.kickoff} title={long} aria-label={shortThenLongName({ short, long })} className="grow basis-0 border border-muted px-1 text-center whitespace-nowrap no-underline">
-            {short}
-          </abbr>
-        );
-      })}
-    </span>
-  );
 }

@@ -14,8 +14,7 @@ export interface PitchPoint {
 }
 
 /** How far inside the goal lines and touchlines a run stops, in metres, so its arrowhead shows
- *  whole: a rough run from a slot further up than its role's usual one (a shadow striker up front)
- *  would otherwise run off the pitch. */
+ *  whole: a run long enough to reach a goal line or touchline would otherwise run off the pitch. */
 export const RUN_MARGIN = 3;
 
 const MIDDLE_LANE = (LANES.length - 1) / 2;

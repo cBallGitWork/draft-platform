@@ -3,7 +3,8 @@ import { v } from "convex/values";
 
 // The real Premier League, as the football layer hands it over (#21). Each row is keyed on a
 // season-stable code, never FPL's per-season id, and names its clubs by their codes too, so a
-// new season's ids change nothing. A gameweek is keyed on its number, as FPL numbers them.
+// new season's ids change nothing. A gameweek is keyed on its season and its number, as FPL
+// numbers them afresh each season, so last season's are kept beside this one's (#66).
 // Times are epoch milliseconds.
 
 export const clubRecord = v.object({
@@ -12,6 +13,13 @@ export const clubRecord = v.object({
   /** Three letters, e.g. "ARS". */
   shortName: v.string(),
 });
+
+/** A club shirt's pattern (spec/12, Club colours: "plain or stripes now, more as a club needs one"). */
+export const shirtPattern = v.union(v.literal("plain"), v.literal("stripes"));
+
+/** A club's two colours, `#rrggbb` (the shirt a fan would name first, and its trim), and its
+ *  shirt's pattern: the admin's (spec/15, The admin), seeded from convex/football/clubColours.ts. */
+export const clubColoursRecord = v.object({ primary: v.string(), secondary: v.string(), pattern: shirtPattern });
 
 /** Whether a player can play, as the platform holds it (spec/06, Availability): the feed's, or the
  *  admin's over it (`convex/availability/`). The auto team reads only this (spec/09). */
@@ -43,6 +51,8 @@ export const fixtureRecord = v.object({
 });
 
 export const gameweekRecord = v.object({
+  /** The year its season starts, 2026 for 2026/27 (`seasonStartYear`, shared/time.ts). */
+  season: v.number(),
   number: v.number(),
   /** FPL's own deadline. A league's deadline is its own rule (spec/03), worked out from the kickoffs. */
   deadline: v.number(),
@@ -117,6 +127,9 @@ export const footballSyncFields = {
       players: tableWrites,
       fixtures: tableWrites,
       gameweeks: tableWrites,
+      /** True when FPL sent no fixtures between seasons, so none were upserted or marked (#66);
+       *  absent otherwise. */
+      betweenSeasons: v.optional(v.literal(true)),
       /** Absent on runs before #49's scores. */
       scores: v.optional(scoreWrites),
     }),
@@ -137,7 +150,10 @@ export const footballTables = {
     .index("by_droppedAt_and_kickoff", ["droppedAt", "kickoff"])
     // A gameweek's matches, for the Premier League's fixtures and results (#49).
     .index("by_gameweek_and_droppedAt", ["gameweek", "droppedAt"]),
-  gameweeks: defineTable(gameweekRecord.extend({ droppedAt })).index("by_number", ["number"]).index("by_droppedAt", ["droppedAt"]),
+  // `season` is absent only on rows written before #66: the next sync of their season labels them.
+  gameweeks: defineTable(v.object({ ...gameweekRecord.fields, season: v.optional(v.number()), droppedAt }))
+    .index("by_season_and_number", ["season", "number"])
+    .index("by_droppedAt", ["droppedAt"]),
   footballSyncs: defineTable(footballSyncFields),
   /** Each player's number at his club, by FPL's `code`, from the Premier League's squad lists, which
    *  the positions sync reads (#13): the shirt he wears until his manager gives him one (spec/05,
@@ -150,6 +166,10 @@ export const footballTables = {
     "season",
     "clubCode",
   ]),
+  /** Each club's colours and shirt pattern, by FPL's season-stable club `code` (#838): the admin
+   *  sets them on his dashboard (spec/15). No row while none are set: the club's shirt and mark
+   *  are white, and it waits in the dashboard's queue. */
+  clubColours: defineTable(clubColoursRecord.extend({ code: v.number() })).index("by_code", ["code"]),
   /** Each match's newest score, which feed gave it and when that read was made. */
   matchScores: defineTable(scoreRead.extend({ feed: scoreFeed, readAt: v.number() })).index("by_fixtureCode", ["fixtureCode"]),
 };

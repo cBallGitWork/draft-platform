@@ -8,8 +8,9 @@ import { ROWS_DRAWN } from "../../../src/myTeam/tactics/pitch/rowLayout";
 import type { Position } from "../../../convex/positions/positionTables";
 import { MY_TEAM_PATH } from "../../../src/frame/menu";
 import type { OpenTactics } from "../../../src/myTeam/tactics/seam";
-import { allFormationsWords, BENCH_TITLE, moveLabel, pitchLabel, playerOnPitchLabel, squadTableLabel, swapLabel, undoWords } from "../../../src/myTeam/tactics/words";
+import { allFormationsWords, BENCH_TITLE, moveLabel, pitchLabel, playerOnPitchLabel, selectionTableLabel, swapLabel, undoWords } from "../../../src/myTeam/tactics/words";
 import { applyWords } from "../../../src/myTeam/tactics/formationWindow/words";
+import { FIRST_RULES } from "../../../convex/rules/firstRules";
 import { ARSENAL } from "../convex/footballRows.harness";
 import type { MyTeamData } from "./myTeam.harness";
 import { manager, openApp } from "./shell.harness";
@@ -51,7 +52,7 @@ export const SAVED = openTactics({
 
 export const openTacticsTab = (myTeam: MyTeamData = { tactics: SAVED }, session = manager) => openApp(MY_TEAM_PATH, session, { myTeam });
 export const pitch = () => screen.getByRole("group", { name: pitchLabel });
-export const selectionTable = () => screen.getByRole("table", { name: squadTableLabel });
+export const selectionTable = () => screen.getByRole("table", { name: selectionTableLabel });
 /** Each row of the Selection table under its heads, as its words read; the bench's plate as its
  *  title. */
 export const squadRows = () =>
@@ -69,7 +70,7 @@ export const benchOrder = () => {
 export const rowOf = (player: Member) => within(selectionTable()).getByRole("button", { name: player.name }).closest("tr")!;
 /** His panel opened by a tap on his name in the Selection table, unless it is open already. */
 export async function openPanel(player: Member) {
-  const name = within(await screen.findByRole("table", { name: squadTableLabel })).getByRole("button", { name: player.name });
+  const name = within(await screen.findByRole("table", { name: selectionTableLabel })).getByRole("button", { name: player.name });
   if (name.getAttribute("aria-pressed") !== "true") await userEvent.click(name);
 }
 /** The player picked up: his panel opened, then Move (the approved Tactics picture's interaction
@@ -118,6 +119,13 @@ export function drag(from: Element, onto: Element) {
 export const undo = () => screen.getByRole("button", { name: undoWords }) as HTMLButtonElement;
 /** The line a save leaves, "Lineup saved 14:02", at whatever minute it landed. */
 export const SAVED_LINE = /^Lineup saved \d{2}:\d{2}$/;
+/** Eleven standing in the 4-4-2, each playing his cell's area, none on the bench. */
+export const IN_A_442 = (() => {
+  const starters = FIRST_RULES.presets.find(({ name }) => name === "4-4-2")!.cells.map((cell, index) => ({ playerCode: index + 1, ...cell }));
+  const squad = starters.map(({ playerCode, area }) => member(playerCode, `Player ${playerCode}`, area === "goalkeeper" ? ["GK"] : area === "defence" ? ["CB", "FB"] : area === "attack" ? ["ST"] : ["CM", "WM"]));
+  return { tactics: openTactics({ squad, lineup: { ...SAVED.lineup, starters, bench: [] } }) };
+})();
+
 /** The tab opened on the lineup held, once its pitch is up. */
 export async function openedPitch(myTeam?: MyTeamData) {
   const app = openTacticsTab(myTeam);

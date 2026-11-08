@@ -1,6 +1,10 @@
 import { useEffect, useId, useRef, useState, type ReactNode } from "react";
 import { closeGlyph } from "../../../shared/words";
+import { Loading } from "../../../ui/Panel";
 import { Placeholder } from "../../../ui/Placeholder";
+import type { Classic } from "../../../../convex/lineup/classics";
+import { presetNameOf } from "../../../../convex/lineup/presets";
+import { classicInUse, onClassic } from "../classicLineup";
 import type { DraftLineup, MoveRules, RatingsOf } from "../lineupDraft";
 import { backGroups, type Shape } from "./formationGroups";
 import { FormationPreview } from "./FormationPreview";
@@ -10,33 +14,34 @@ import {
   backGroupWords,
   cancelWords,
   CLASSICS,
+  classicAppliesWords,
   classicsLine,
-  classicsPlaceholder,
+  classicTitleWords,
   closeWindowLabel,
   FORMATIONS_HEAD,
   groupsLabel,
   inUseNowWords,
   MODERN,
   modernPlaceholder,
-  presetsPlaceholder,
-  sampleNamesWords,
-  samplePointsWords,
-  savePresetLine,
-  savePresetName,
-  savePresetPlaceholder,
+  sampleTextWords,
   toComeWords,
   WINDOW_TITLE,
   YOUR_PRESETS,
   yourPresetsLine,
+  yourPresetWords,
+  appliesPlanWords,
+  plansLoadingWords,
 } from "./words";
+import { PlansGroup } from "./PlansGroup";
+import { loadedPlan, presetOfPlan, type Plan } from "../savedPlans";
 
 // The formation window (the approved formation window, opened by the Tactics tab's All
 // formations): the groups on the left, the group's tiles in the middle, the picked one's preview on
 // the right, and Use this or Cancel. Opened in place under the toolbar, as a disclosure (Craig,
 // 2 Nov 2026, #1024: "Keep both as built"), its height on the desk fixed so Cancel and Use this sit
-// inside a 1440 by 900 window, a long group's tiles scrolling within it. Saved presets, the
-// classics and the modern sides wait on data not held yet, so each shows as its placeholder
-// (plate.md, Marks).
+// inside a 1440 by 900 window, a long group's tiles scrolling within it. Your presets are the
+// manager's saved plans (spec/05, Saved plans; #992), and the classics the league's (#991). The
+// modern sides wait on data not held yet, so they show as a placeholder (plate.md, Marks).
 
 /** The window's groups: the manager's presets, the league's formations by back line, the classics
  *  and the modern sides. */
@@ -44,20 +49,40 @@ type GroupKey = "presets" | number | "classics" | "modern";
 
 export function FormationWindow({
   presets,
+  classics,
   inUse,
   draft,
   rules,
   ratingsOf,
   onUse,
+  onUseClassic,
   onClose,
+  plans: plansRead,
+  planInUse,
+  saving = false,
+  onLoadPlan,
+  onSavePlan,
+  onDeletePlan,
 }: {
   presets: readonly Shape[];
+  classics: readonly Classic[];
+  /** The formation in use, by name: a classic's, marked custom once changed (classicLineup.ts). */
   inUse: string | null;
   draft: DraftLineup;
   rules: Pick<MoveRules, "positionsOf">;
   ratingsOf: RatingsOf;
   onUse(name: string): void;
+  onUseClassic(name: string): void;
   onClose(): void;
+  /** The manager's saved plans (spec/05, Saved plans), undefined while they load, and the one last
+   *  loaded, if the pitch still stands in its formation. */
+  plans: readonly Plan[] | undefined;
+  planInUse: string | null;
+  /** Opened by the toolbar's Save preset…: on Your presets, its form open. */
+  saving?: boolean;
+  onLoadPlan(name: string): void;
+  onSavePlan(name: string): Promise<string | null>;
+  onDeletePlan(name: string): Promise<string | null>;
 }) {
   const titleId = useId();
   // Opened under the toolbar, it scrolls into view whole, Cancel and Use this with it.
@@ -66,17 +91,34 @@ export function FormationWindow({
     section.current?.scrollIntoView({ block: "nearest" });
   }, []);
   const groups = backGroups(presets);
+  // On a classic, it opens on the Classics with that one picked; else on the preset in use's group.
+  const onAClassic = classicInUse(draft, classics);
   const opening = groups.find(({ shapes }) => shapes.some(({ name }) => name === inUse)) ?? groups[0];
-  const [group, setGroup] = useState<GroupKey>(opening?.back ?? "presets");
-  const [picked, setPicked] = useState<string | null>(inUse ?? opening?.shapes[0]?.name ?? null);
+  const [group, setGroup] = useState<GroupKey>(saving ? "presets" : onAClassic !== undefined ? "classics" : (opening?.back ?? "presets"));
+  const [picked, setPicked] = useState<string | null>(saving ? planInUse : (onAClassic?.name ?? inUse ?? opening?.shapes[0]?.name ?? null));
   const shapes = groups.find(({ back }) => back === group)?.shapes ?? [];
-  const shape = presets.find(({ name }) => name === picked) ?? null;
-  const usable = shape !== null && typeof group === "number";
-  /** A group opened; a back line's first formation picked, unless the one picked is in it. */
+  const classic = group === "classics" ? classics.find(({ name }) => name === picked) : undefined;
+  /** The preset a classic stands in, as its tag says (Craig, 6 Nov 2026: "Yes, one of ours"). */
+  const tagOf = (each: Classic) => presetNameOf(each.cells, presets) ?? "";
+  // While the plans load, Your presets says so rather than offering Save preset…, which would replace
+  // a plan by the same name without asking.
+  const plans = plansRead ?? [];
+  const listed = plans.map((plan) => ({ plan, formation: presetOfPlan(plan, presets)?.name }));
+  const plan = group === "presets" ? plans.find(({ name }) => name === picked) : undefined;
+  const loaded = plan === undefined ? null : loadedPlan(draft, plan, presets, rules, ratingsOf);
+  const shape = typeof group === "number" ? (presets.find(({ name }) => name === picked) ?? null) : null;
+  const usable = shape !== null || classic !== undefined || loaded !== null;
+  /** A group opened: a back line's first formation picked, the first classic, or Your presets' first
+   *  plan, unless the one picked is in it. */
   const open = (key: GroupKey) => {
     setGroup(key);
-    const grouped = groups.find(({ back }) => back === key)?.shapes ?? [];
+    const grouped = key === "presets" ? plans : key === "classics" ? classics : (groups.find(({ back }) => back === key)?.shapes ?? []);
     if (grouped.length > 0 && !grouped.some(({ name }) => name === picked)) setPicked(grouped[0].name);
+  };
+  const use = () => {
+    if (shape !== null) onUse(shape.name);
+    else if (classic !== undefined) onUseClassic(classic.name);
+    else if (plan !== undefined && loaded !== null) onLoadPlan(plan.name);
   };
   return (
     <section ref={section}aria-labelledby={titleId} className="flex flex-col bg-panel lg:h-formation-window">
@@ -95,26 +137,37 @@ export function FormationWindow({
       </div>
       <div className="grid min-h-0 flex-1 gap-2 p-2 lg:grid-cols-formation-window">
         <nav aria-label={groupsLabel} className="flex flex-col">
-          <GroupButton current={group === "presets"} onClick={() => open("presets")} name={YOUR_PRESETS} />
+          <GroupButton current={group === "presets"} onClick={() => open("presets")} name={YOUR_PRESETS} count={plans.length} />
           <span className="px-3 pt-2 font-semibold text-muted">{FORMATIONS_HEAD}</span>
           {groups.map(({ back, shapes: grouped }) => (
             <GroupButton key={back} current={group === back} onClick={() => open(back)} name={backGroupWords(back)} count={grouped.length} indented />
           ))}
-          <GroupButton current={group === "classics"} onClick={() => open("classics")} name={CLASSICS} />
+          <GroupButton current={group === "classics"} onClick={() => open("classics")} name={CLASSICS} count={classics.length} />
           <GroupButton current={group === "modern"} onClick={() => open("modern")} name={MODERN} count={toComeWords} />
         </nav>
         <div className="flex min-h-0 min-w-0 flex-col">
           {group === "presets" ? (
-            <Group head={YOUR_PRESETS} line={yourPresetsLine} mark={sampleNamesWords}>
-              <Placeholder label={presetsPlaceholder} className="h-tile" />
-              <Placeholder label={savePresetPlaceholder} className="h-tile p-2">
-                <span className="block text-tile font-semibold">{savePresetName}</span>
-                <span className="block text-soft">{savePresetLine}</span>
-              </Placeholder>
+            <Group head={YOUR_PRESETS} line={yourPresetsLine} picking>
+              {plansRead === undefined ? (
+                <Loading className="col-span-2">{plansLoadingWords}</Loading>
+              ) : (
+                <PlansGroup plans={listed} picked={picked} inUse={planInUse} saving={saving} onPick={setPicked} onSave={onSavePlan} onDelete={onDeletePlan} />
+              )}
             </Group>
           ) : group === "classics" ? (
-            <Group head={CLASSICS} line={classicsLine} mark={samplePointsWords}>
-              <Placeholder label={classicsPlaceholder} className="h-tile" />
+            <Group head={CLASSICS} line={classicsLine} mark={sampleTextWords} picking>
+              {classics.map((each) => (
+                <FormationTile
+                  key={each.name}
+                  shape={each}
+                  tag={tagOf(each)}
+                  subtitle={each.subtitle}
+                  description={each.description}
+                  checked={each.name === picked}
+                  inUse={each.name === draft.classic}
+                  onPick={() => setPicked(each.name)}
+                />
+              ))}
             </Group>
           ) : group === "modern" ? (
             <Group head={MODERN}>
@@ -129,12 +182,35 @@ export function FormationWindow({
           )}
         </div>
         <div className="flex min-w-0 flex-col">
-          {usable && <FormationPreview shape={shape} draft={draft} rules={rules} ratingsOf={ratingsOf} />}
+          {shape !== null && <FormationPreview shape={shape} draft={draft} rules={rules} ratingsOf={ratingsOf} />}
+          {classic !== undefined && (
+            <FormationPreview
+              shape={classic}
+              draft={draft}
+              rules={rules}
+              ratingsOf={ratingsOf}
+              after={onClassic(draft, classic, rules, ratingsOf)}
+              subtitle={classicTitleWords(classic.subtitle, tagOf(classic))}
+              description={classic.description}
+              applies={classicAppliesWords(tagOf(classic))}
+            />
+          )}
+          {plan !== undefined && loaded !== null && (
+            <FormationPreview
+              shape={{ name: plan.name, cells: plan.slots }}
+              draft={draft}
+              rules={rules}
+              ratingsOf={ratingsOf}
+              after={loaded.lineup}
+              subtitle={yourPresetWords(loaded.preset.name)}
+              applies={appliesPlanWords(loaded.preset.name)}
+            />
+          )}
           <div className="mt-auto flex justify-end gap-2 border-t border-panel-rule p-2">
             <button type="button" onClick={onClose} className="secondary-action">
               {cancelWords}
             </button>
-            <button type="button" disabled={!usable} onClick={() => usable && onUse(shape.name)} className={usable ? "action" : "action-idle"}>
+            <button type="button" disabled={!usable} onClick={use} className={usable ? "action" : "action-idle"}>
               {applyWords}
             </button>
           </div>

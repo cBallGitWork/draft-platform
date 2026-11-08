@@ -10,7 +10,7 @@ export type PlayerCardData = {
   cards?: readonly PlayerCard[];
   loading?: boolean;
   shortlist?: ShortlistData;
-  /** What the server says to an override: null when it saves it. */
+  /** What the server says to an override, or to its removal: null when it makes it. */
   overrideRefusal?: string | null;
   /** The card's waiver action on each player by code; none for a player not named. */
   actions?: ReadonlyMap<number, CardAction>;
@@ -22,9 +22,12 @@ export function fakePlayerCard({ cards = [], loading = false, shortlist, overrid
   const override = vi.fn<ReturnType<PlayerCardSeam["useOverride"]>>(() => Promise.resolve(overrideRefusal));
   const answer = () => Promise.resolve(waiverRefusal);
   const waiverChanges = { drop: vi.fn<WaiverChanges["drop"]>(answer), claim: vi.fn<WaiverChanges["claim"]>(answer), pickUp: vi.fn<WaiverChanges["pickUp"]>(answer) };
+  const removeOverride = vi.fn<ReturnType<PlayerCardSeam["useRemoveOverride"]>>(() => Promise.resolve(overrideRefusal));
   return {
     override,
     useOverride: () => override,
+    removeOverride,
+    useRemoveOverride: () => removeOverride,
     waiverChanges,
     useWaiverChanges: () => waiverChanges,
     useCardAction: (_leagueId: unknown, playerCode: number): CardAction => actions.get(playerCode) ?? { kind: "none" },

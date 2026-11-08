@@ -40,6 +40,10 @@ export interface ScoredMatch extends SeasonRecord {
   points: CardPoints;
   /** Whether his team got these points: his slot's, and counted there. */
   counted: boolean;
+  /** Whether he stood in his team's scoring eleven that gameweek: a starter not subbed off, or a
+   *  sub who came on (spec/12, Squad's Started; Craig, 6 Nov 2026, #1005). Under best match, his
+   *  other match there too, though its points aren't counted. */
+  inEleven: boolean;
   override: Doc<"pointsOverrides"> | null;
   /** Until the match is locked and his record whole, and, from a lineup, until every man in it
    *  is final, as auto-subs can still change. */
@@ -66,11 +70,11 @@ export async function scoredMatches(ctx: QueryCtx, league: Doc<"leagues">, teamI
         const override = overrides.get(held.fixture.code) ?? null;
         const team = teamGameweekOf === null ? null : await teamGameweekOf(held.gameweek);
         const fromTeam = team === null ? null : asScored(team, code, held.fixture.code);
-        if (fromTeam?.counts) return { ...held, points: fromTeam.points, counted: fromTeam.counted, override, provisional: fromTeam.provisional };
+        if (fromTeam?.counts) return { ...held, points: fromTeam.points, counted: fromTeam.counted, inEleven: true, override, provisional: fromTeam.provisional };
         const best = cardPoints(statsIfWhole(held.record), setIn(held.gameweek), positions);
         const points = { ...best, total: override?.points ?? best.total, ...(fromTeam === null ? {} : { scoredAs: "notCounted" as const }) };
         const provisional = fromTeam?.provisional ?? (!isWhole(held.record) || !isMatchFinal({ status: await statusOf(ctx, held.fixture.code) }));
-        return { ...held, points, counted: false, override, provisional };
+        return { ...held, points, counted: false, inEleven: false, override, provisional };
       }),
     );
   };

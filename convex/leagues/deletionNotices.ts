@@ -3,6 +3,7 @@ import { internal } from "../_generated/api";
 import { internalAction, internalMutation } from "../_generated/server";
 import { sendEmail } from "../outbound/email";
 import { takeTodaysEmail as takeOne, waitForTomorrow } from "../outbound/emailLimit";
+import { errorMessage } from "../shared/errors";
 import { BATCH_SIZE } from "../shared/syncRuns";
 import { DAY_MS } from "../shared/time";
 
@@ -11,10 +12,10 @@ import { DAY_MS } from "../shared/time";
 // counts against the day's emails as a sign-in link does (emailLimit.ts). Those past the day's
 // limit wait for the next day, as invites do (spec/13, #837): `send` runs again then with the
 // emails left, a job carrying its own arguments, so nothing waiting is saved anywhere else. One the
-// email service refuses is logged and kept in unemailedDeletions, as there is no league left to
-// keep it on. No screen shows those rows, as the log says the same to the admin, and each goes
-// after UNEMAILED_KEPT_MS, so no one's address is held for good (Claude's call on #897, Craig's
-// "your call").
+// email service refuses is logged and kept in unemailedDeletions with what the service said, as
+// there is no league left to keep it on. No screen shows those rows, as the log says the same to the
+// admin, and each goes after UNEMAILED_KEPT_MS, so no one's address is held for good (Claude's call
+// on #897, Craig's "your call").
 
 /** Wording for Craig to change in the pull request. */
 function deletionEmail(leagueName: string, by: string) {
@@ -43,20 +44,22 @@ export const send = internalAction({
         await waitForTomorrow(ctx.scheduler, internal.leagues.deletionNotices.send, { leagueName, by, emails: waiting });
         return null;
       }
-      if (!(await sent(to, email))) await ctx.runMutation(internal.leagues.deletionNotices.recordUnemailed, { leagueName, by, email: to });
+      const sendError = await sendOne(to, email);
+      if (sendError !== null) await ctx.runMutation(internal.leagues.deletionNotices.recordUnemailed, { leagueName, by, email: to, sendError });
     }
     return null;
   },
 });
 
-/** Sends one email, already counted: whether the email service took it, a refusal logged. */
-async function sent(to: string, email: ReturnType<typeof deletionEmail>): Promise<boolean> {
+/** Sends one email, already counted: null once the email service took it, or, with the refusal
+ *  logged, what it said. */
+async function sendOne(to: string, email: ReturnType<typeof deletionEmail>): Promise<string | null> {
   try {
     await sendEmail(to, email);
-    return true;
+    return null;
   } catch (error) {
     console.error(notEmailedLog(to), error);
-    return false;
+    return errorMessage(error);
   }
 }
 
@@ -67,10 +70,10 @@ export const takeTodaysEmail = internalMutation({
   handler: (ctx) => takeOne(ctx),
 });
 
-/** Keeps one the email service refused. Rows with reason "paused" were kept before #837, when the
- *  day's limit dropped an email rather than waiting: none is written now. */
+/** Keeps one the email service refused, with what it said. Rows with reason "paused" were kept
+ *  before #837, when the day's limit dropped an email rather than waiting: none is written now. */
 export const recordUnemailed = internalMutation({
-  args: { leagueName: v.string(), by: v.string(), email: v.string() },
+  args: { leagueName: v.string(), by: v.string(), email: v.string(), sendError: v.string() },
   returns: v.null(),
   handler: async (ctx, row) => {
     await ctx.db.insert("unemailedDeletions", { ...row, reason: "notSent", at: Date.now() });

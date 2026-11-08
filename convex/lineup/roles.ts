@@ -3,7 +3,8 @@
 // Sweeper and libero are centre-back roles offered only while the formation has three or more
 // centre-backs (Craig, 4 Nov 2026). Each role's adjustment comes with the site's scoring (spec/14),
 // not here; this is who may be asked to play what, what each role is for, and each role's run
-// (spec/05 Runs; #846; Craig, 31 Oct 2026).
+// (spec/05 Runs; #846, #962; Craig, 31 Oct 2026), researched role by role in
+// docs/role-runs.md.
 
 import { positionOfSlot, type Cell, type SlotPosition } from "./pitch";
 
@@ -19,9 +20,6 @@ export interface RunPoint {
  *  a dashed arrow from his place through each point in turn. */
 export interface Run {
   path: readonly RunPoint[];
-  /** A first guess from FM's nearest role, until each role's run has its own research, for Craig
-   *  to refine (spec/05 Runs). */
-  rough: boolean;
 }
 
 export interface Role {
@@ -32,8 +30,8 @@ export interface Role {
   /** What the pitch shows at every width: at most three characters, one per role (spec/05 What
    *  the pitch shows). */
   code: string;
-  /** What he does on the role, for the role card (spec/05 Roles: "Each role's description is held
-   *  with the role"). */
+  /** What he does on the role, and where his run takes him, for the role card (spec/05 Roles:
+   *  "Each role's description is held with the role"). */
   description: string;
   /** The categories it scores more for, and the bad actions it scores less for, without values
    *  (spec/05 Roles; Craig, 1 Nov 2026): the values are the site's scoring, by patch (spec/14), first
@@ -55,101 +53,102 @@ const role = (key: string, name: string, code: string, description: string, rewa
   run,
 });
 
-/** A rough first run (spec/05 Runs) through these points, each [forward, across] in metres. A run
- *  straight up or down the pitch ends just past where the rows meet (9 m, 26.5 m from his place: a
- *  row is 17.5 m), so its arrowhead shows between two rows' players, not under one. */
-const rough = (...points: [forward: number, across: number][]): Run => ({
+/** A run (spec/05 Runs) through these points, each [forward, across] in metres from his place. The
+ *  pitch's rows are 17.5 m apart, from his own goal line to theirs: the goalkeeper's middle is
+ *  96 m from their goal line, a defender's 79 m, a defensive midfielder's 61 m, a midfielder's
+ *  44 m, an attacking midfielder's 26 m and a striker's 9 m; their box's edge is 16.5 m out. A run
+ *  straight up or down ends where two rows meet (9 m, 26.5 m from his place), so its arrowhead shows
+ *  between two rows' players, not under one. */
+const runOf = (...points: [forward: number, across: number][]): Run => ({
   path: points.map(([forward, across]) => ({ forward, across })),
-  rough: true,
 });
 
 /** The roles only a back of three or more centre-backs offers, last in the centre-back's list so a
  *  back three keeps its first (spec/05 The pitch; Craig, 4 Nov 2026). A sweeper sweeps across behind
  *  the line; a libero steps out of it with the ball. */
 const BACK_THREE_ROLES: readonly Role[] = [
-  role("sweeper", "Sweeper", "SW", "Stays behind the line and sweeps up whatever gets past it.", ["Interceptions", "Recoveries", "Clearances off the line"], ["Errors leading to a shot or goal"], rough([-4, 14])),
-  role("libero", "Libero", "LIB", "Steps out of the back line with the ball and carries it into midfield.", ["Progressive carries", "Accurate passes", "Final third entries"], ["Heavy touches"], rough([26.5, 0])),
+  role("sweeper", "Sweeper", "SW", "Drops a few yards behind the line and sweeps across it, mopping up whatever gets past.", ["Interceptions", "Recoveries", "Clearances off the line"], ["Errors leading to a shot or goal"], runOf([-6, 4], [-5, 16])),
+  role("libero", "Libero", "LIB", "Steps out of the back line with the ball and carries it up into midfield.", ["Progressive carries", "Accurate passes", "Final third entries"], ["Heavy touches"], runOf([18, 0], [32, 3])),
 ];
 
 /** How many centre-backs a formation needs before its centre-backs are offered sweeper and libero. */
 export const BACK_THREE = 3;
 
 /** spec/05's default set, by the position each slot stands for: each slot's first is the one a
- *  player starts on until stars are built (spec/05 Roles). Each run is a rough one from FM's
- *  nearest role (spec/05 Runs). */
+ *  player starts on until stars are built (spec/05 Roles). */
 export const DEFAULT_ROLES: Record<SlotPosition, readonly Role[]> = {
   GK: [
     role("shotStopper", "Shot-stopper", "SHS", "Stays on his line and keeps the shots out, so a busy keeper at a weaker club earns most.", ["Saves", "Big-chance saves", "Penalty saves"], ["Goals let in from outside the box"]),
-    role("sweeperKeeper", "Sweeper keeper", "SK", "Comes off his line to sweep up balls played in behind his defence.", ["Sweeps off his line", "Smothers", "Clearances", "Progressive carries"], ["Errors leading to a shot or goal"], rough([9, 0])),
+    role("sweeperKeeper", "Sweeper keeper", "SK", "Plays high, up to the edge of his box, to sweep up balls played in behind his defence.", ["Sweeps off his line", "Smothers", "Clearances", "Progressive carries"], ["Errors leading to a shot or goal"], runOf([9, 0])),
     role("distributor", "Distributor", "DIS", "Starts the attacks, passing and throwing it out long and short.", ["Passes into their half", "Forward passes", "Accurate throws"], ["Failed launches"]),
     role("commandingKeeper", "Commanding keeper", "CK", "Rules his box, coming for crosses and claiming everything in the air.", ["Crosses claimed", "Punches", "Aerials won", "Diving catches"], ["Crosses dropped", "Goals let in inside the box"]),
   ],
   FB: [
-    role("overlappingFullBack", "Overlapping full-back", "OFB", "Bombs on round the outside of his winger to cross.", ["Accurate crosses", "Crosses attempted", "Take-ons won"], ["Dispossessed"], rough([26.5, 0])),
-    role("underlappingFullBack", "Underlapping full-back", "UFB", "Runs inside his winger, into the channel and the box.", ["Box entries", "Progressive carries", "Final third entries"], ["Heavy touches", "Offsides"], rough([20, 10])),
-    role("invertedFullBack", "Inverted full-back", "IFB", "Steps into midfield when his side has the ball and keeps it moving.", ["Accurate passes", "Final third passes"], ["Misplaced passes"], rough([9, 14])),
+    role("overlappingFullBack", "Overlapping full-back", "OFB", "Bombs on down the touchline, round the outside of his winger, to cross from level with their box.", ["Accurate crosses", "Crosses attempted", "Take-ons won"], ["Dispossessed"], runOf([22, -1], [60, -3])),
+    role("underlappingFullBack", "Underlapping full-back", "UFB", "Runs up and then inside his winger, into the channel between their full-back and centre-back, and on into the box.", ["Box entries", "Progressive carries", "Final third entries"], ["Heavy touches", "Offsides"], runOf([24, 2], [44, 14])),
+    role("invertedFullBack", "Inverted full-back", "IFB", "Steps inside into midfield, next to the holding midfielder, when his side has the ball, and keeps it moving.", ["Accurate passes", "Final third passes"], ["Misplaced passes"], runOf([12, 16])),
     role("playmakingFullBack", "Playmaking full-back", "PFB", "Holds his position and plays the long, early ball forward.", ["Long passes into their half", "Accurate long balls", "Big chances created"], ["Failed long balls"]),
     role("defensiveFullBack", "Defensive full-back", "DFB", "Stays back and defends first.", ["Tackles won", "Interceptions", "Clearances"], ["Dribbled past"]),
   ],
   CB: [
-    role("stopper", "Stopper", "STP", "Steps out of the line to meet his man and win the ball.", ["Tackles won", "Aerials won", "Interceptions"], ["Dribbled past"], rough([9, 0])),
+    role("stopper", "Stopper", "STP", "Steps out of the line into midfield to meet his man before he can turn, and win the ball.", ["Tackles won", "Aerials won", "Interceptions"], ["Dribbled past"], runOf([9, 0])),
     role("ballPlayingDefender", "Ball-playing centre-back", "BPD", "Brings the ball out from the back and passes it forward.", ["Long passes into their half", "Forward passes", "Accurate long balls"], ["Failed long balls"]),
     role("noNonsenseCentreBack", "No-nonsense centre-back", "NNC", "Heads it, kicks it and blocks it: the danger cleared, never played out.", ["Clearances", "Headed clearances", "Blocks"], ["Errors leading to a shot or goal"]),
-    role("attackingCentreBack", "Attacking centre-back", "ACB", "Carries it forward and gets into the box, as Keegan's Newcastle played.", ["Headed shots", "Box entries", "Progressive carries"], ["Dispossessed"], rough([26.5, 0])),
+    role("attackingCentreBack", "Attacking centre-back", "ACB", "Carries it out of defence through midfield and keeps going into their box, as Keegan's Newcastle played.", ["Headed shots", "Box entries", "Progressive carries"], ["Dispossessed"], runOf([34, 0], [60, 3])),
     ...BACK_THREE_ROLES,
   ],
   WB: [
-    role("attackingWingBack", "Attacking wing-back", "AWB", "Gets forward down the flank to cross and create.", ["Accurate crosses", "Box entries", "Chances created"], ["Dispossessed"], rough([26.5, 0])),
+    role("attackingWingBack", "Attacking wing-back", "AWB", "Gets right up the flank to the edge of their box to cross and create.", ["Accurate crosses", "Box entries", "Chances created"], ["Dispossessed"], runOf([44, -2])),
     role("holdingWingBack", "Holding wing-back", "HWB", "Holds his flank and defends it, getting forward only when it's safe.", ["Tackles won", "Interceptions", "Recoveries"], ["Dribbled past"]),
-    role("completeWingBack", "Complete wing-back", "CWB", "Covers the whole flank: carries it up, crosses, and gets back.", ["Progressive carries", "Accurate crosses", "Recoveries"], ["Heavy touches"], rough([26.5, 0])),
-    role("invertedWingBack", "Inverted wing-back", "IWB", "Comes inside into midfield with the ball and keeps it moving.", ["Accurate passes", "Final third passes", "Take-ons won"], ["Fouls"], rough([9, 14])),
-    role("goalscoringWingBack", "Goalscoring wing-back", "GWB", "Arrives in the box from the flank to shoot and score.", ["Shots on target", "Touches in their box", "Box entries", "Goals"], ["Big chances missed"], rough([26.5, 10])),
+    role("completeWingBack", "Complete wing-back", "CWB", "Covers the whole flank: carries it up to their box to cross, then gets back past where he started.", ["Progressive carries", "Accurate crosses", "Recoveries"], ["Heavy touches"], runOf([44, -2], [-10, 2])),
+    role("invertedWingBack", "Inverted wing-back", "IWB", "Comes inside into central midfield when his side has the ball and keeps it moving.", ["Accurate passes", "Final third passes", "Take-ons won"], ["Fouls"], runOf([10, 16])),
+    role("goalscoringWingBack", "Goalscoring wing-back", "GWB", "Runs up the flank, then cuts in on a diagonal to arrive in the box to shoot and score.", ["Shots on target", "Touches in their box", "Box entries", "Goals"], ["Big chances missed"], runOf([24, 0], [46, 18])),
   ],
   CDM: [
     role("metronome", "Metronome", "MET", "Sits in front of the defence and keeps the ball moving, short and simple.", ["Accurate passes", "Forward passes"], ["Misplaced passes"]),
     role("quarterback", "Quarterback", "QB", "Sits deep and switches the play with long passes.", ["Long passes into their half", "Accurate long balls", "Accurate chipped passes"], ["Failed long balls"]),
-    role("halfBack", "Half-back", "HB", "Drops between the centre-backs to make a back three.", ["Clearances", "Aerials won", "Possession won in his own third"], ["Errors leading to a shot or goal"], rough([-9, 0])),
-    role("engine", "Engine", "ENG", "Covers every blade of grass, winning it back and giving it simply.", ["Recoveries", "Interceptions", "Accurate passes"], ["Dribbled past"], rough([9, 0])),
+    role("halfBack", "Half-back", "HB", "Drops back between the centre-backs to make a back three when his side has the ball.", ["Clearances", "Aerials won", "Possession won in his own third"], ["Errors leading to a shot or goal"], runOf([-16, 6])),
+    role("engine", "Engine", "ENG", "Covers every blade of grass, up to support the attack and back to win it, giving it simply.", ["Recoveries", "Interceptions", "Accurate passes"], ["Dribbled past"], runOf([14, 3], [-10, -3])),
     role("tower", "Tower", "TWR", "Wins everything in the air in front of the defence.", ["Aerials won", "Headed clearances", "Headed passes"], ["Aerials lost"]),
     role("destroyer", "Destroyer", "DES", "Gets stuck in, tackling and winning duels to break up their play.", ["Tackles won", "Duels won"], ["Fouls"]),
   ],
   WM: [
-    role("wideMidfielder", "Wide workhorse", "WW", "Runs up and down his flank all game, helping at both ends.", ["Recoveries", "Passes into the final third", "Tackles"], ["Fouls"], rough([9, 0], [-9, 0])),
-    role("defensiveWinger", "Defensive winger", "DW", "Tracks back to help his full-back before he thinks of attacking.", ["Tackles", "Interceptions", "Blocks"], ["Dribbled past"], rough([-9, 0])),
-    role("wideMidfieldPlaymaker", "Wide playmaker", "WMP", "Drifts inside from the flank to pick the pass.", ["Accurate long balls", "Key passes"], ["Failed long balls"], rough([9, 10])),
-    role("crosser", "Crosser", "CR", "Gets the ball wide and puts it into the box.", ["Accurate crosses", "Crosses attempted", "Big chances created"], ["Failed crosses"], rough([26.5, 0])),
-    role("wideMidfieldWinger", "Touchline winger", "TLW", "Hugs the touchline and takes his man on.", ["Take-ons won", "Times fouled", "Accurate crosses"], ["Dispossessed"], rough([26.5, 0])),
+    role("wideMidfielder", "Wide workhorse", "WW", "Runs up and down his flank all game, from their third back into his own, helping at both ends.", ["Recoveries", "Passes into the final third", "Tackles"], ["Fouls"], runOf([20, -1], [-20, 1])),
+    role("defensiveWinger", "Defensive winger", "DW", "Tracks back level with his full-back to help him before he thinks of attacking.", ["Tackles", "Interceptions", "Blocks"], ["Dribbled past"], runOf([-20, 1])),
+    role("wideMidfieldPlaymaker", "Wide playmaker", "WMP", "Drifts inside from the flank into the space between the lines to pick the pass.", ["Accurate long balls", "Key passes"], ["Failed long balls"], runOf([10, 16])),
+    role("crosser", "Crosser", "CR", "Gets the ball wide and goes down the line to put it into the box early.", ["Accurate crosses", "Crosses attempted", "Big chances created"], ["Failed crosses"], runOf([30, -2])),
+    role("wideMidfieldWinger", "Touchline winger", "TLW", "Hugs the touchline all the way to the byline and takes his man on.", ["Take-ons won", "Times fouled", "Accurate crosses"], ["Dispossessed"], runOf([20, -2], [38, -2])),
   ],
   CM: [
-    role("boxToBox", "Box-to-box", "BTB", "Gets up to the box to shoot and back to win the ball.", ["Box entries", "Recoveries", "Tackles won", "Shots on target"], ["Heavy touches"], rough([30, 6])),
-    role("ballWinner", "Ball-winner", "BW", "Hunts the ball in midfield and wins it back.", ["Tackles won", "Interceptions", "Possession won in midfield"], ["Fouls"], rough([9, 0])),
-    role("attackingEight", "Attacking 8", "A8", "Carries it forward from midfield and gets into the box.", ["Progressive carries", "Box entries", "Take-ons won"], ["Dispossessed"], rough([26.5, 4])),
-    role("midfieldEngine", "Engine", "EN", "Covers every blade of grass, winning it back and giving it simply.", ["Recoveries", "Interceptions", "Accurate passes"], ["Dribbled past"], rough([9, 0], [-9, 0])),
-    role("lateRunner", "Late runner", "LR", "Arrives late in the box, unmarked, to finish.", ["Shots on target", "Box entries", "Goals"], ["Big chances missed"], rough([35, 8])),
+    role("boxToBox", "Box-to-box", "BTB", "Gets up to the edge of their box to shoot, then back behind the ball to win it.", ["Box entries", "Recoveries", "Tackles won", "Shots on target"], ["Heavy touches"], runOf([28, 3], [-10, -3])),
+    role("ballWinner", "Ball-winner", "BW", "Hunts the ball across midfield, closing down whoever has it, and wins it back.", ["Tackles won", "Interceptions", "Possession won in midfield"], ["Fouls"], runOf([8, -8], [10, 8])),
+    role("attackingEight", "Attacking 8", "A8", "Carries it forward from midfield through the inside channel and into the box.", ["Progressive carries", "Box entries", "Take-ons won"], ["Dispossessed"], runOf([18, 6], [30, 8])),
+    role("midfieldEngine", "Engine", "EN", "Covers every blade of grass, up to support the attack and back to win it, giving it simply.", ["Recoveries", "Interceptions", "Accurate passes"], ["Dribbled past"], runOf([16, 3], [-12, -3])),
+    role("lateRunner", "Late runner", "LR", "Arrives late in the box, round the penalty spot, unmarked, to finish.", ["Shots on target", "Box entries", "Goals"], ["Big chances missed"], runOf([20, 2], [32, 6])),
   ],
   W: [
-    role("winger", "Touchline winger", "TW", "Goes down the line to the byline, then in to cross.", ["Accurate crosses", "Take-ons won", "Chances created"], ["Dispossessed"], rough([18, 0], [20, 6])),
-    role("dribbler", "Dribbler", "DRB", "Takes his man on, again and again.", ["Take-ons won", "Progressive carries", "Fouled in the final third"], ["Dispossessed"], rough([14, 8])),
-    role("insideForward", "Inside forward", "IF", "Cuts in on the diagonal to shoot.", ["Shots on target", "Shots in the box", "Goals"], ["Big chances missed"], rough([14, 16])),
-    role("widePlaymaker", "Wide playmaker", "WP", "Drifts inside from the flank to create.", ["Shots created", "Through balls", "Final third passes"], ["Possession lost"], rough([4, 12])),
-    role("wideForward", "Wide forward", "WF", "Plays off the striker, running in behind on the break.", ["Counter-attack shots", "Open-play box entries", "Fouled in the final third"], ["Offsides"], rough([18, 10])),
-    role("pressingWinger", "Pressing winger", "PW", "Presses their full-back high up the pitch to win it back.", ["Possession won in the attacking third", "Tackles won"], ["Fouls"], rough([6, 4])),
-    role("trackingWinger", "Tracking winger", "TRW", "Tracks their full-back all the way back.", ["Tackles won", "Interceptions", "Possession won in midfield and his own third"], ["Fouls", "Dribbled past"], rough([-9, 0])),
+    role("winger", "Touchline winger", "TW", "Goes down the line to the byline, then in along it to cross.", ["Accurate crosses", "Take-ons won", "Chances created"], ["Dispossessed"], runOf([18, -2], [21, 6])),
+    role("dribbler", "Dribbler", "DRB", "Runs at his full-back and takes him on, again and again, heading for the box.", ["Take-ons won", "Progressive carries", "Fouled in the final third"], ["Dispossessed"], runOf([10, 4], [16, 12])),
+    role("insideForward", "Inside forward", "IF", "Cuts in from the flank on the diagonal into the box to shoot.", ["Shots on target", "Shots in the box", "Goals"], ["Big chances missed"], runOf([8, 6], [14, 18])),
+    role("widePlaymaker", "Wide playmaker", "WP", "Drifts inside from the flank into the pocket between their midfield and defence to create.", ["Shots created", "Through balls", "Final third passes"], ["Possession lost"], runOf([-2, 14])),
+    role("wideForward", "Wide forward", "WF", "Plays off the striker, running in behind their full-back toward goal on the break.", ["Counter-attack shots", "Open-play box entries", "Fouled in the final third"], ["Offsides"], runOf([12, 4], [20, 12])),
+    role("pressingWinger", "Pressing winger", "PW", "Curves in on their centre-back to press him, cutting off the pass out to their full-back.", ["Possession won in the attacking third", "Tackles won"], ["Fouls"], runOf([8, 4], [12, 12])),
+    role("trackingWinger", "Tracking winger", "TRW", "Tracks their full-back all the way back into his own third.", ["Tackles won", "Interceptions", "Possession won in midfield and his own third"], ["Fouls", "Dribbled past"], runOf([-44, -1])),
   ],
   CAM: [
-    role("numberTen", "Number 10", "N10", "Plays between the lines and makes the chances.", ["Chances created", "Big chances created", "Through balls"], ["Shots off target"], rough([9, 0])),
-    role("attackingMidfieldShadowStriker", "Shadow striker", "SSA", "Runs into the box from behind the striker to shoot.", ["Box entries", "Shots on target", "Shots from outside the box"], ["Offsides"], rough([18, 8])),
+    role("numberTen", "Number 10", "N10", "Drifts into the pocket between their midfield and defence and makes the chances.", ["Chances created", "Big chances created", "Through balls"], ["Shots off target"], runOf([4, 10])),
+    role("attackingMidfieldShadowStriker", "Shadow striker", "SSA", "Runs past the striker into the box to shoot.", ["Box entries", "Shots on target", "Shots from outside the box"], ["Offsides"], runOf([10, 2], [18, 10])),
     role("maverick", "Maverick", "MAV", "Tries the pass or the shot nobody else would.", ["Through balls tried", "Accurate long balls", "Accurate chipped passes", "Shots on target"], ["Heavy touches"]),
-    role("carrier", "Carrier", "CAR", "Picks it up and runs at them.", ["Take-ons won", "Progressive carries", "Fouled in the final third"], ["Dispossessed"], rough([18, 6])),
-    role("pressingTen", "Pressing 10", "P10", "Leads the press from behind the striker.", ["Possession won in the attacking third", "Tackles won", "Recoveries"], ["Fouls"], rough([9, 0])),
+    role("carrier", "Carrier", "CAR", "Picks it up and runs straight at them, through the middle to the edge of the box.", ["Take-ons won", "Progressive carries", "Fouled in the final third"], ["Dispossessed"], runOf([9, 0])),
+    role("pressingTen", "Pressing 10", "P10", "Leads the press from behind the striker, onto their holding midfielder and then their centre-back.", ["Possession won in the attacking third", "Tackles won", "Recoveries"], ["Fouls"], runOf([6, -6], [12, 6])),
   ],
   ST: [
-    role("poacher", "Poacher", "PCH", "Lives in the box, waiting for the chance to finish.", ["Goals in the box", "Shots on target in the box"], ["Big chances missed"], rough([6, 8])),
+    role("poacher", "Poacher", "PCH", "Lives in the box and attacks the near post, waiting for the chance to finish.", ["Goals in the box", "Shots on target in the box"], ["Big chances missed"], runOf([5, 10])),
     role("targetMan", "Target man", "TM", "Wins it in the air and holds it up for others.", ["Aerials won", "Accurate flick-ons", "Accurate layoffs"], ["Aerials lost"]),
-    role("inBehindStriker", "In-behind striker", "IBS", "Runs in behind their back line and carries it at goal.", ["Counter-attack shots", "Progressive carries", "Open-play box entries", "Fouled in the final third"], ["Offsides"], rough([14, 4])),
-    role("pressingForward", "Pressing forward", "PF", "Harries their back line to win it high up.", ["Possession won in the attacking third", "Possession won in midfield", "Tackles won"], ["Fouls"], rough([4, -10], [6, 10])),
-    role("shadowStriker", "Shadow striker", "SS", "Plays off the main striker and gets into the box around him.", ["Final third entries", "Box entries", "Shots from outside the box"], ["Heavy touches", "Offsides"], rough([18, 8])),
-    role("falseNine", "False 9", "F9", "Drops deep from up front to make the chances.", ["Through balls", "Shots created", "Progressive carries", "Big chances created"], ["Dispossessed"], rough([-9, 0])),
+    role("inBehindStriker", "In-behind striker", "IBS", "Runs across and in behind their back line, then carries it at goal.", ["Counter-attack shots", "Progressive carries", "Open-play box entries", "Fouled in the final third"], ["Offsides"], runOf([3, -8], [6, 8])),
+    role("pressingForward", "Pressing forward", "PF", "Harries their back line, pressing from one centre-back across to the other.", ["Possession won in the attacking third", "Possession won in midfield", "Tackles won"], ["Fouls"], runOf([5, -10], [5, 10])),
+    role("shadowStriker", "Shadow striker", "SS", "Drops off the main striker, then gets into the box around him.", ["Final third entries", "Box entries", "Shots from outside the box"], ["Heavy touches", "Offsides"], runOf([-8, 4], [2, 10])),
+    role("falseNine", "False 9", "F9", "Drops deep from up front into the number 10's space to make the chances.", ["Through balls", "Shots created", "Progressive carries", "Big chances created"], ["Dispossessed"], runOf([-16, 2])),
   ],
 };
 

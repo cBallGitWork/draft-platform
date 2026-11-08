@@ -9,16 +9,15 @@ import { Placeholder } from "../../../ui/Placeholder";
 import { PositionChip } from "../../../ui/PositionChip";
 import { StarRating } from "../../../ui/StarRating";
 import { starsIn } from "../../../../convex/stars/bestRole";
-import { figureWords, noFigureWords } from "../../words";
+import { figureWords, noFigureWords, statusNotSettledLabel } from "../../words";
 import { markOf } from "../focusMarks";
 import { benchBestRole, placeOf, type SquadMember } from "../lineupDraft";
 import type { Moving } from "../pitch/Pitch";
 import type { SeasonOf } from "../SquadTable";
-import { NextMatches } from "../../squad/SquadTable";
-import { statusNotSettledLabel } from "../../squad/words";
+import { NextMatches } from "../../SquadCells";
 import {
   benchWhereWords,
-  closePanelLabel,
+  closeSelectedLabel,
   downLabel,
   downWords,
   lastFiveHead,
@@ -92,7 +91,7 @@ export function PlayerPanel({
           {player.name}
         </h2>
         <span className="grow text-soft">{where}</span>
-        <button type="button" aria-label={closePanelLabel(player.name)} onClick={onClose} className="flex min-h-tap min-w-tap items-center justify-center text-lead font-bold lg:min-h-0">
+        <button type="button" aria-label={closeSelectedLabel(player.name)} onClick={onClose} className="flex min-h-tap min-w-tap items-center justify-center text-lead font-bold lg:min-h-0">
           <span aria-hidden="true">{closeGlyph}</span>
         </button>
       </div>

@@ -157,6 +157,15 @@ second team, once (running it again changes nothing):
 Put the same two, and `TEST_ACCOUNT_CONVEX_URL` (the live deployment's address), in `.env.local`;
 `npm run test-account` signs in and saves the session to `.auth/test-account.json` (gitignored).
 
+The lead's wake-up (`convex/heartbeats/leadWake.ts`) runs the build pipeline's lead every half
+hour, since GitHub's own schedule drops its passes. It asks GitHub nothing until the live
+deployment has a token. To set one, once: on GitHub, Settings, Developer settings, Fine-grained
+tokens, make a token for the account the builds run as (CBHelper180). Its only repository is
+`cBallGitWork/draft-platform` and its only permission is **Actions: Read and write**. Then:
+`npx convex env set --prod LEAD_WAKE_GITHUB_TOKEN <the token>`. A refused wake-up (an expired
+token, say) shows as a failed `wake the lead` run in the Convex dashboard's logs, and, if GitHub's
+schedule has dropped too, as Healthchecks' `lead-pass` email after 3 hours with no pass.
+
 ## Restoring saved data
 
 A release that changes saved data's shape backs it up first (`scripts/release.mjs`): its Vercel

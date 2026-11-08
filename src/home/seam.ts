@@ -5,9 +5,13 @@ import type { Id } from "../../convex/_generated/dataModel";
 import type { LeagueHome } from "../../convex/home/leagueHome";
 
 export type { LeagueHome };
+export type Recap = NonNullable<LeagueHome["recap"]>;
 
 export type HomeSeam = {
   /** League home at the minute `now`, live (a hook): undefined while it loads, null for a league
    *  made before rules were held. */
   useLeagueHome(leagueId: Id<"leagues">, now: number): LeagueHome | null | undefined;
+  /** The league's recap of the gameweek, whole, live (a hook): undefined while it loads, null
+   *  while there is none. */
+  useRecap(leagueId: Id<"leagues">, gameweek: number): Recap | null | undefined;
 };

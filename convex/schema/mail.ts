@@ -17,6 +17,9 @@ export const letterFields = {
   from: v.optional(v.string()),
   subject: v.string(),
   body: v.string(),
+  /** The moments its subject and body name, each marked where it goes and told in the reader's
+   *  zone as they read it (#912, `letterMoments.ts`); absent on a letter that names none. */
+  moments: v.optional(v.array(v.number())),
   /** When `to` opened it; absent while unread. */
   readAt: v.optional(v.number()),
 };

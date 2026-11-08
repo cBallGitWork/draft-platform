@@ -4,6 +4,7 @@
 import type { ChangeThresholds } from "../../convex/positions/positionChanges";
 import type { ApproveMode, PositionSource } from "../../convex/positions/positions";
 import type { FeedState } from "../../convex/admin/feedState";
+import type { Pattern } from "../../convex/football/clubColours";
 import { FEED_NAMES } from "../../convex/shared/feedSchedule";
 import { FEEDBACK_TITLE } from "../feedback/words";
 import { LOCALE } from "../../convex/shared/moments";
@@ -51,6 +52,18 @@ export const removedWords = (position: string) => `${position} removed`;
 export const clubTitle = "Approve a whole club";
 export const clubLabel = "Club";
 export const approveClubWords = "Approve the club";
+
+/** Each club's colours (spec/15, #838): the queue of clubs with none, and setting any club's. */
+export const uncolouredTitle = "Clubs with no colours";
+export const uncolouredHint = "Their shirts and marks are white until you set them.";
+export const noUncolouredWords = "Every club has its colours.";
+export const coloursTitle = "Club colours";
+export const coloursClubLabel = "Club to set";
+export const primaryLabel = "Shirt";
+export const secondaryLabel = "Trim";
+export const patternLabel = "Pattern";
+export const patternWords: Record<Pattern, string> = { plain: "Plain", stripes: "Stripes" };
+export const saveColoursWords = "Save the colours";
 
 export const modeTitle = "How starts count";
 export const modeWords: Record<ApproveMode, string> = {
@@ -100,6 +113,7 @@ export const feedColumns = {
 export const feedNames = FEED_NAMES;
 export const feedStateWords: Record<FeedState, string> = {
   fine: "On time",
+  betweenSeasons: "Between seasons",
   late: "Late",
   failing: "Failing",
   notRunningYet: "Not running yet",

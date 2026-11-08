@@ -1,0 +1,58 @@
+# The branch sweep: deletes the branches of pull requests that have merged, which GitHub leaves behind (8 Nov 2026:
+# 81 of 124 branches were merged ones). Craig, 8 Nov 2026: "Build branch sweep". A session can't do it, since its
+# proxy refuses a push that deletes a branch, so this runs with the repository's own token.
+# Kept, whatever their age: main, a branch with an open pull request, a branch whose last pull request closed
+# without merging (the lead keeps a stuck build's branch so it can be built again), and a branch with no pull
+# request at all (work held on purpose, such as #1025's). A deleted branch can be restored from its pull request.
+# Once a week, and by hand; with `dry_run`, and on a pull request that changes this file, it only says what it would
+# delete. That is how a change here is tested before it merges (CLAUDE.md).
+name: branch-sweep
+
+on:
+  schedule:
+    - cron: "23 2 * * 0"  # Sundays 02:23 UTC, off the hour
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: Say what it would delete, and delete nothing
+        type: boolean
+        default: false
+  pull_request:
+    paths: [".github/workflows/branch-sweep.yml"]
+
+permissions:
+  contents: write  # delete a branch
+  pull-requests: read
+
+env:
+  GH_TOKEN: ${{ github.token }}
+  GH_REPO: ${{ github.repository }}
+  DRY_RUN: ${{ github.event_name == 'pull_request' || inputs.dry_run == true }}
+
+jobs:
+  sweep:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Delete merged pull requests' branches
+        run: |
+          set -euo pipefail
+          default=$(gh api "repos/$GH_REPO" --jq .default_branch)
+          branches=$(gh api --paginate "repos/$GH_REPO/branches?per_page=100" --jq '.[] | select(.protected | not) | .name')
+          # every pull request's branch and how it ended, newest first: "<branch>\t<open|merged|closed>"
+          prs=$(gh pr list --state all --limit 5000 --json headRefName,state,number \
+                  --jq 'sort_by(-.number) | .[] | "\(.headRefName)\t\(.state | ascii_downcase)"')
+          deleted=0 kept=0
+          for b in $branches; do
+            [ "$b" = "$default" ] && continue
+            ends=$(awk -F'\t' -v b="$b" '$1 == b { print $2 }' <<<"$prs")
+            if [ -z "$ends" ] || grep -qx open <<<"$ends" || [ "$(head -n1 <<<"$ends")" != merged ]; then
+              kept=$((kept + 1)); continue
+            fi
+            echo "Deleting $b"
+            [ "$DRY_RUN" = true ] || gh api -X DELETE "repos/$GH_REPO/git/refs/heads/$b" --silent
+            deleted=$((deleted + 1))
+          done
+          verb=$([ "$DRY_RUN" = true ] && echo "Would delete" || echo "Deleted")
+          echo "$verb $deleted merged branch(es); kept $kept (open, closed unmerged, or no pull request)."
+          echo "$verb $deleted merged branch(es); kept $kept." >> "$GITHUB_STEP_SUMMARY"

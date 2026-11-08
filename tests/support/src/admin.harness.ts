@@ -37,5 +37,6 @@ export function fakeAdmin({ queue = EMPTY_QUEUE, found = [], feeds, loading = fa
     removePosition: vi.fn<AdminSeam["removePosition"]>(async () => null),
     setApproveMode: vi.fn<AdminSeam["setApproveMode"]>(async () => null),
     setChangeThresholds: vi.fn<AdminSeam["setChangeThresholds"]>(async () => null),
+    setClubColours: vi.fn<AdminSeam["setClubColours"]>(async () => null),
   };
 }

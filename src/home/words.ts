@@ -41,12 +41,25 @@ export const formLabel = (results: readonly Result[]) =>
 export const noFormWords = "—";
 export const wholeTableLink = "Whole table and fixtures";
 
+/** The matchday's Vidiprinter, and its words before any line, the matchup's own. */
+export { noCommentaryWords as noMatchdayLinesWords, VIDIPRINTER_TITLE } from "../matchup/words";
+
 export const LETTER_TITLE = "From the commissioner";
 export const noLetterWords = "Nothing from the commissioner yet.";
 export const fromWords = (from: string) => `From ${from}`;
 export const inMailLink = "Every letter, in Mail";
 
-export const MOVES_TITLE = "Claims, drops and trades";
+/** The weekly recap (spec/12, League home): its panel, Read the recap's page, and the line under it
+ *  once a score has changed since it was written (Craig, 6 Nov 2026). */
+export const recapTitle = (gameweek: number) => `GW${gameweek} recap`;
+export const readRecapLink = "Read the recap";
+export const scoreChangedWords = "A score has changed since this recap was written.";
+export const changedMatchupLink = "See the matchup";
+export const loadingRecapWords = "Loading the recap…";
+export const noRecapWords = (gameweek: number) => `No recap of Gameweek ${gameweek} yet.`;
+export const backHomeLink = "Back to League home";
+
+export const MOVES_TITLE ="Claims, drops and trades";
 export const noMovesWords = "No player has joined or left a squad yet.";
 type SquadMove = LeagueHome["squadMoves"][number];
 /** A squad move in a line: "Saka joined Kroos Control". */

@@ -1,4 +1,3 @@
-import { Link } from "@tanstack/react-router";
 import { TOP_ROWS } from "../../convex/home/glance";
 import type { LeagueSummary } from "../../convex/leagues/myLeagues";
 import { cellClassOf, ColumnHeads } from "../ui/ColumnHeads";
@@ -6,7 +5,10 @@ import { DateBlock } from "../mail/DateBlock";
 import { Loading, PAGE_STACK, PageSection, Panel, PanelNote } from "../ui/Panel";
 import { MAIL_PATH, TABLE_PATH } from "../frame/menu";
 import { MatchupLink } from "../matchup/MatchupLink";
+import { Vidiprinter } from "../matchup/Vidiprinter";
 import { useMinute } from "../shared/useMinute";
+import { PanelLink } from "./PanelLink";
+import { RecapPanel } from "./Recap";
 import type { HomeSeam, LeagueHome } from "./seam";
 import {
   byeWords,
@@ -27,12 +29,14 @@ import {
   noFormWords,
   noHeadToHeadsWords,
   noLetterWords,
+  noMatchdayLinesWords,
   noMovesWords,
   noResultsWords,
   noRulesWords,
   partTableWords,
   resultWords,
   TABLE_TITLE,
+  VIDIPRINTER_TITLE,
   wholeTableLink,
   yourTeamWords,
 } from "./words";
@@ -54,8 +58,10 @@ const cellClasses = (column: Column) =>
   cellClassOf(column === "team" || column === "form", DESK_ONLY.includes(column));
 
 /** League home (spec/12, League home): the league's hub, laid out by us, never by its managers. The
- *  glance (this gameweek's head-to-heads, the table and each team's form), the commissioner's
- *  latest letter, pinned, and the latest claims, drops and trades. */
+ *  glance (this gameweek's head-to-heads, scored once begun, the table and each team's form), the
+ *  commissioner's latest letter, pinned, the latest weekly recap, and the latest claims, drops and trades. While a matchday
+ *  is open, the Vidiprinter tops the right-hand column, as the approved live picture has it
+ *  (docs/design/approved/home/1440-locked.png), and the scores move with the live query. */
 export function HomePage({ league, seam }: { league: LeagueSummary; seam: HomeSeam }) {
   const home = seam.useLeagueHome(league.leagueId, useMinute());
   return (
@@ -69,21 +75,14 @@ export function HomePage({ league, seam }: { league: LeagueSummary; seam: HomeSe
           <HeadToHeads home={home} />
           <TablePanel home={home} />
           <div className="flex flex-col gap-2">
+            {home.matchday !== null && <Vidiprinter commentary={home.matchday.commentary} title={VIDIPRINTER_TITLE} noLinesWords={noMatchdayLinesWords} />}
+            {home.recap !== null && <RecapPanel recap={home.recap} />}
             <PinnedLetter letter={home.pinnedLetter} />
             <SquadMoves moves={home.squadMoves} />
           </div>
         </div>
       )}
     </PageSection>
-  );
-}
-
-/** A panel's way on to the page that holds all of what it shows. */
-function PanelLink({ to, children }: { to: string; children: string }) {
-  return (
-    <Link to={to} className="flex min-h-tap items-center px-3">
-      {children}
-    </Link>
   );
 }
 
@@ -99,10 +98,10 @@ function HeadToHeads({ home: { format, thisGameweek } }: { home: LeagueHome }) {
   return (
     <Panel title={title}>
       <ul aria-label={headToHeadsLabel(title)}>
-        {thisGameweek.fixtures.map(({ teamId, team, opponent }) => (
+        {thisGameweek.fixtures.map(({ teamId, team, opponent, points }) => (
           <li key={`${team} v ${opponent ?? leagueAverageWords}`} className="grid grid-cols-sides items-center gap-2 border-b border-panel-rule px-3 py-1 text-lead">
             <span className="text-right font-semibold">{team}</span>
-            <MatchupLink teamId={teamId} team={team} opponent={opponent} gameweek={thisGameweek.gameweek} points={null} />
+            <MatchupLink teamId={teamId} team={team} opponent={opponent} gameweek={thisGameweek.gameweek} points={points} />
             {opponent === null ? <span className="text-derived">{leagueAverageWords}</span> : <span className="font-semibold">{opponent}</span>}
           </li>
         ))}

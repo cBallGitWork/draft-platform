@@ -9,6 +9,8 @@ import { describe, expect, it } from "vitest";
 import { HOUR_MS } from "../../../convex/shared/time";
 import { MATCHUP_PATH, PREMIER_LEAGUE_PATH } from "../../../src/frame/menu";
 import { statusLabels } from "../../../src/matchup/words";
+import { CLUB_COLOURS, contrast, INKS } from "../../../convex/football/clubColours";
+import { crestUrl } from "../../../src/premierLeague/ClubName";
 import { matchPath } from "../../../src/premierLeague/paths";
 import {
   commentaryDelayedWords,
@@ -26,6 +28,7 @@ import {
   versusWords,
 } from "../../../src/premierLeague/words";
 import { FIXTURE, matchOf, openMatch } from "../../support/src/matchPage.harness";
+import { styledColour } from "../../support/src/styledColour";
 import { headToHead, playing, slot, teamSide } from "../../support/src/matchup.harness";
 import { ARSENAL, CHELSEA, plMatch } from "../../support/src/premierLeague.harness";
 import { league, manager, openApp } from "../../support/src/shell.harness";
@@ -120,6 +123,19 @@ describe("the score and clock", () => {
   it("at full time, says so", async () => {
     openMatch({ match: matchOf({ score: { state: "fullTime", homeGoals: 1, awayGoals: 1, minutes: 90, clockLabel: null } }) });
     expect(await scoreboard()).toContain(`${scoreWords(1, 1)}${CHELSEA.name}${fullTime.long}`);
+  });
+
+  it("puts each club's crest and name on its first colour, in the ink that reads on it", async () => {
+    openMatch({ match: matchOf() });
+    const board = await screen.findByRole("region", { name: "Score" });
+    for (const club of [ARSENAL, CHELSEA]) {
+      const side = board.querySelector<HTMLElement>(`[data-club-side="${club.shortName}"]`)!;
+      const { primary } = CLUB_COLOURS[club.code];
+      expect(side.style.backgroundColor).toBe(styledColour(primary));
+      expect(side.firstElementChild!.getAttribute("src")).toBe(crestUrl(club.code));
+      const ink = side.className.includes("text-fact") ? INKS.light : INKS.dark;
+      expect(contrast(primary, ink)).toBeGreaterThanOrEqual(4.5);
+    }
   });
 
   it("before kickoff: v and the day and time it kicks off", async () => {
