@@ -43,5 +43,8 @@ export const lineupTables = {
     name: v.string(),
     /** One per starter's slot, each with the role it plays (lineup/roles.ts). */
     slots: v.array(planSlotShape),
+    /** Its attacking and defensive instruction by key (spec/05, Saved plans; #990): absent from a
+     *  plan saved before them, which loads as a formation change does (lineup/instructions.ts). */
+    instructions: v.optional(instructionPairShape),
   }).index("by_leagueId_and_teamId_and_name", ["leagueId", "teamId", "name"]),
 };

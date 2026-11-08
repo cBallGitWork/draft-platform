@@ -166,11 +166,11 @@ function LineupEditor({ league, teamName, tactics, seam, opened }: { league: Lea
   };
   /** A starter given another role his slot offers; the picker keeps the focus. */
   const toRole = (playerCode: number, role: string) => change(withRole(draft, playerCode, role), playerCode, [markedBy("role", playerCode)]);
-  /** The pitch reshaped to a preset, by picking it or loading a plan in it: an instruction the new
-   *  shape offers stays, one it blocks switches to its default (spec/05). */
+  /** The pitch reshaped to a preset, or a plan loaded on its own pair (spec/05; #990): an instruction
+   *  the new shape offers stays, one it blocks switches to its default. */
   const reshapeTo = (preset: { name: string; cells: readonly Cell[] }, next: DraftLineup, said: string | null = null) => {
     setPickedCode(null);
-    const { pair, switched } = keptOrSwitched(instructions, preset.cells, tactics.presets, tactics.instructions);
+    const { pair, switched } = keptOrSwitched(next.instructions ?? instructions, preset.cells, tactics.presets, tactics.instructions);
     edits.reshape(preset.name, { ...next, instructions: pair }, switchedWords(switched), said);
   };
   /** A preset picked reshapes the pitch, keeping the players (spec/05; Craig, 26 Oct 2026). */
@@ -190,7 +190,7 @@ function LineupEditor({ league, teamName, tactics, seam, opened }: { league: Lea
     setPickedCode(null);
     edits.edit(withInstruction(draft, instructions, side, key));
   };
-  const plans = useSavedPlans({ leagueId: league.leagueId, seam, draft, presets: tactics.presets, inUse: presetKey, rules, ratingsOf, onLoad: reshapeTo });
+  const plans = useSavedPlans({ leagueId: league.leagueId, seam, draft, instructions, presets: tactics.presets, inUse: presetKey, rules, ratingsOf, onLoad: reshapeTo });
   /** Up, down, or a drop on a bench row: the player at that place in the bench order. Up or Down
    *  keeps the focus on the button pressed. */
   const toBenchAt = (playerCode: number, index: number, pressed?: "up" | "down") => {

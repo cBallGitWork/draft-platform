@@ -1,5 +1,6 @@
 import { useState } from "react";
 import type { Id } from "../../../convex/_generated/dataModel";
+import type { InstructionPair } from "../../../convex/lineup/instructions";
 import type { Cell } from "../../../convex/lineup/pitch";
 import type { DraftLineup, MoveRules, RatingsOf } from "./lineupDraft";
 import { loadedPlan, planSlotsOf, presetOfPlan } from "./savedPlans";
@@ -9,11 +10,13 @@ import { rolesLostWords } from "./words";
 /** The manager's saved plans on the Tactics tab (spec/05, Saved plans; #992), and the one he last
  *  loaded. `read` is undefined while they load: the toolbar has none to load yet, and the window
  *  says they are loading. `onLoad` reshapes the pitch to a loaded plan's preset, with a line under
- *  the toolbar where the league no longer offers some of its roles. */
+ *  the toolbar where the league no longer offers some of its roles, on the plan's two instructions
+ *  where it holds them (#990). */
 export function useSavedPlans({
   leagueId,
   seam,
   draft,
+  instructions,
   presets,
   inUse,
   rules,
@@ -23,6 +26,8 @@ export function useSavedPlans({
   leagueId: Id<"leagues">;
   seam: Pick<TacticsSeam, "usePlans" | "usePlanChanges">;
   draft: DraftLineup;
+  /** The two instructions in force, as a plan saved now keeps them (#990). */
+  instructions: InstructionPair;
   presets: OpenTactics["presets"];
   inUse: string | null;
   rules: MoveRules;
@@ -51,7 +56,7 @@ export function useSavedPlans({
     inUse: loadedShown !== undefined && inUse !== null && presetOfPlan(loadedShown, presets)?.name === inUse ? loadedShown.name : null,
     /** The plans whose formation the league still offers, by name. */
     loadable: plans.filter((plan) => presetOfPlan(plan, presets) !== undefined).map(({ name }) => name),
-    save: (name: string) => changes.save(leagueId, name, planSlotsOf(draft)),
+    save: (name: string) => changes.save(leagueId, name, planSlotsOf(draft), instructions),
     remove: (name: string) => changes.remove(leagueId, name),
   };
 }

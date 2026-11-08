@@ -3,6 +3,7 @@
 // their own.
 
 import type { Id } from "../../../convex/_generated/dataModel";
+import type { InstructionPair } from "../../../convex/lineup/instructions";
 import type { OpenTactics, Tactics } from "../../../convex/lineup/tactics";
 import type { Change } from "../../shared/refusal";
 import type { DraftLineup } from "./lineupDraft";
@@ -17,9 +18,10 @@ export type LineupChanges = {
 };
 
 export type PlanChanges = {
-  /** Saves the slots as the manager's plan `name`, replacing the one he has by that name: resolves
-   *  with null once saved, or with the words saying why not. It never rejects. */
-  save(leagueId: Id<"leagues">, name: string, slots: Plan["slots"]): Change;
+  /** Saves the slots and the two instructions as the manager's plan `name`, replacing the one he
+   *  has by that name: resolves with null once saved, or with the words saying why not. It never
+   *  rejects. */
+  save(leagueId: Id<"leagues">, name: string, slots: Plan["slots"], instructions: InstructionPair): Change;
   /** Deletes his plan `name`, as `save` answers. */
   remove(leagueId: Id<"leagues">, name: string): Change;
 };

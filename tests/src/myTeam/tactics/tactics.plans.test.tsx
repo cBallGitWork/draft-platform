@@ -27,7 +27,7 @@ import {
 import { allFormationsWords, presetLabel, presetsWords, rolesLostWords, savePresetWords } from "../../../../src/myTeam/tactics/words";
 import { sameCell } from "../../../../convex/lineup/pitch";
 import { league } from "../../../support/src/shell.harness";
-import { openTactics } from "../../../support/src/tactics.harness";
+import { OPEN_PICKED, openTactics } from "../../../support/src/tactics.harness";
 import { IN_A_442, openedPitch } from "../../../support/src/tacticsScreen.harness";
 
 const presetCells = (name: string) => FIRST_RULES.presets.find((preset) => preset.name === name)!.cells;
@@ -37,6 +37,7 @@ const planOn = (name: string, preset: string, role?: (cell: (typeof FIRST_RULES.
   slots: presetCells(preset).map((cell) => ({ ...cell, role: role?.(cell) ?? rolesOfSlot(cell, presetCells(preset)).at(-1)!.key })),
 });
 const PRESS = planOn("Press", "4-3-3");
+const WIDE_PRESS = { attacking: "getItWide", defensive: "pressHigh" };
 
 const openWindow = async () => {
   await userEvent.click(screen.getByRole("button", { name: allFormationsWords }));
@@ -54,7 +55,7 @@ describe("saving a plan", () => {
     const app = await openedPitch(IN_A_442);
     await userEvent.click(screen.getByRole("button", { name: savePresetWords }));
     await saveAs("Flat four");
-    expect(app.myTeam.planChanges.save).toHaveBeenCalledWith(league.leagueId, "Flat four", planSlotsOf({ starters: startersOf(), bench: [] }));
+    expect(app.myTeam.planChanges.save).toHaveBeenCalledWith(league.leagueId, "Flat four", planSlotsOf({ starters: startersOf(), bench: [] }), OPEN_PICKED);
     const window = within(screen.getByRole("region", { name: WINDOW_TITLE }));
     expect(window.getByRole("radio", { name: "Flat four" })).toBeTruthy();
     // The toolbar offers it too, to load.
@@ -68,7 +69,7 @@ describe("saving a plan", () => {
     expect(screen.getByText(replaceQuestion("Press"))).toBeTruthy();
     expect(app.myTeam.planChanges.save).not.toHaveBeenCalled();
     await userEvent.click(screen.getByRole("button", { name: replaceWords }));
-    expect(app.myTeam.planChanges.save).toHaveBeenCalledWith(league.leagueId, "Press", expect.any(Array));
+    expect(app.myTeam.planChanges.save).toHaveBeenCalledWith(league.leagueId, "Press", expect.any(Array), OPEN_PICKED);
   });
 
   it("a sixth is refused in the server's words", async () => {
@@ -107,9 +108,27 @@ describe("loading a plan", () => {
     );
     expect(saved.starters.length).toBeGreaterThan(0);
     for (const starter of saved.starters) expect(starter.role).toBe(PRESS.slots.find((slot) => sameCell(slot, starter))!.role);
+    // A plan saved before the instructions holds none: the pitch's own stay, as on a formation change.
+    expect(saved.instructions).toEqual(OPEN_PICKED);
     // A move after loading changes only this week's lineup: the plan isn't saved again.
     await userEvent.click(within(screen.getByRole("radiogroup", { name: presetLabel })).getByRole("radio", { name: "4-4-2" }));
     expect(app.myTeam.planChanges.save).not.toHaveBeenCalled();
+  });
+
+  it("sets both of the plan's instructions (#990)", async () => {
+    // A 4-3-3 has wide players on both flanks and three in midfield.
+    const app = await openedPitch({ ...IN_A_442, plans: [{ ...PRESS, instructions: WIDE_PRESS }] });
+    await userEvent.click(within(screen.getByRole("radiogroup", { name: presetsWords })).getByRole("radio", { name: "Press" }));
+    expect(app.myTeam.lineupChanges.save.mock.lastCall![1].instructions).toEqual(WIDE_PRESS);
+    expect(screen.queryByText(/switched to/)).toBeNull();
+  });
+
+  it("an instruction of the plan the league's rules no longer offer on its formation switches to the default, and the line says so", async () => {
+    const instructions = IN_A_442.tactics.instructions.map((each) => (each.key === "pressHigh" ? { ...each, needs: "fiveAtTheBack" as const } : each));
+    const app = await openedPitch({ tactics: openTactics({ ...IN_A_442.tactics, instructions }), plans: [{ ...PRESS, instructions: WIDE_PRESS }] });
+    await userEvent.click(within(screen.getByRole("radiogroup", { name: presetsWords })).getByRole("radio", { name: "Press" }));
+    expect(await screen.findByText("Press high needs 5 at the back: switched to Keep it tight early")).toBeTruthy();
+    expect(app.myTeam.lineupChanges.save.mock.lastCall![1].instructions).toEqual({ attacking: "getItWide", defensive: "keepItTightEarly" });
   });
 
   it("a slot whose role the league no longer offers takes the best-star role, and the line says so", async () => {
