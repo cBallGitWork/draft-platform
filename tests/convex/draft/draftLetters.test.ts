@@ -12,6 +12,7 @@ import { ARSENAL, insertClubs, insertPlayers, type HeldPlayer } from "../../supp
 import { changeEveryRules, HELD_FIRST_RULES, holdGameweeks, setPickSeconds as setPickSecondsOf } from "../../support/convex/leagueRules.harness";
 import { actingAs, addManagers, adminCreatesLeague, COMMISSIONER, MANAGERS, type TestConvex } from "../../support/convex/leagues.harness";
 import { fakeResend, signInDeployment, type SentEmail } from "../../support/convex/signIn.harness";
+import { elapse } from "../../support/convex/test.harness";
 
 // The draft's letters (spec/04, Mail; #1102), Craig's "Up next + draft over" (4 Nov 2026): the
 // manager whose pick's clock starts is told he is up next, by email too when the clock is over 10
@@ -44,10 +45,7 @@ const lettersSince = async (before: number) => (await letters()).slice(before);
 /** The up-next emails sent, leaving out the harness's sign-in links. */
 const upNextEmails = () => sent.filter(({ subject }) => subject === UP_NEXT);
 /** The clock moves on `ms`, and every job scheduled by then runs. */
-async function pass(ms: number) {
-  vi.advanceTimersByTime(ms);
-  await t.finishInProgressScheduledFunctions();
-}
+const pass = (ms: number) => elapse(t, ms);
 
 beforeEach(async () => {
   t = await signInDeployment();

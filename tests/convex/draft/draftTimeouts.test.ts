@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, test, vi } from "vitest";
+import { beforeEach, describe, expect, test } from "vitest";
 import { api } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
 import { PICK_GAP_MS } from "../../../convex/draft/draftClock";
@@ -7,6 +7,7 @@ import { ARSENAL, CHELSEA, insertClubs, insertPlayers, type HeldPlayer } from ".
 import { changeEveryRules, HELD_FIRST_RULES } from "../../support/convex/leagueRules.harness";
 import { actingAs, addManagers, adminCreatesLeague, COMMISSIONER, MANAGERS, type TestConvex } from "../../support/convex/leagues.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
+import { elapse } from "../../support/convex/test.harness";
 
 // The timeout count (spec/04, Auto-pick; #1136): each clock that runs out on a team with a manager
 // is one of its timeouts, across the whole draft; at the league's number it goes on auto-pick, its
@@ -43,10 +44,7 @@ async function bobPicks() {
   await (await as(BOB)).mutation(api.draft.draftPicks.makePick, { leagueId, playerCode: code });
 }
 /** The clock moves on `ms`, and every pick scheduled by then is made. */
-async function pass(ms: number) {
-  vi.advanceTimersByTime(ms);
-  await t.finishInProgressScheduledFunctions();
-}
+const pass = (ms: number) => elapse(t, ms);
 /** The next clock starts after the gap and runs out. */
 const timeOut = () => pass(PICK_GAP_MS + PICK_MS);
 
