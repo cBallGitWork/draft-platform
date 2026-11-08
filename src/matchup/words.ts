@@ -15,7 +15,7 @@ import {
   whenWords,
 } from "../shared/words";
 
-export { AREA_WORDS, figureWords, gameweekWords, noFigureWords, versusWords } from "../shared/words";
+export { figureWords, gameweekWords, noFigureWords, versusWords } from "../shared/words";
 export { leagueAverageWords, scoreWords } from "../table/words";
 export { nextGameweekLabel as nextLabel, nextGlyph, previousGameweekLabel as previousLabel, previousGlyph } from "../shared/words";
 
@@ -48,7 +48,6 @@ export const matchupLinkLabel = (team: string, opponent: string | null, gameweek
 export const GAME_SWITCH_LABEL = "Game";
 export const gameSwitchWords = (game: number, opponent: string | null) => `${GAME_SWITCH_LABEL} ${game} ${opponent === null ? "bye" : `${versusWords} ${opponent}`}`;
 
-export const lineupLabel = (teamName: string) => `${teamName}'s lineup`;
 /** A side's pitch (spec/10, The matchup, as a live match; #850), and each man on it: "Haaland, ST
  *  Poacher, 13". */
 export const sidePitchLabel = (teamName: string) => `${teamName}'s pitch`;
