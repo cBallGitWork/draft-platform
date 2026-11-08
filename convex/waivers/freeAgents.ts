@@ -10,7 +10,6 @@ import { latestRules } from "../rules/rulesHistory";
 import { managerOf, refuse, refusals } from "../shared/leagueAccess";
 import { playerByCode } from "../shared/players";
 import { placeOf } from "../squads/squadPlace";
-import { squadRefusals } from "../squads/squads";
 import { inWaiverLock, latestBegun } from "./waiverLock";
 import { waiverOrderRow } from "./waiverOrder";
 import { dropFromSquad, waiverRowOf } from "./waiverPlayers";
@@ -31,7 +30,7 @@ export const pickUpRefusals = {
   locked: "Free agents can't be picked up from the deadline until the gameweek's last match is over.",
   notOpen: "Free agents can be picked up from the first waiver run after a gameweek until the next deadline.",
   notFreeAgent: (name: string) => `${name} isn't a free agent.`,
-  playerGone: squadRefusals.playerGone,
+  playerGone: claimRefusals.playerGone,
   dropNotYours: claimRefusals.dropNotYours,
   dropHeld: dropRefusals.held,
   limits: (name: string) => `Picking up ${name} would break your squad's limits.`,
