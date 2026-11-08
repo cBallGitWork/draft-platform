@@ -7,7 +7,7 @@ import { api, internal } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
 import { recordPassedDeadlines } from "../../../convex/gameweeks/deadlineRecorder";
 import { MINUTE_MS, WEEK_MS } from "../../../convex/shared/time";
-import { holdGameweeks } from "./leagueRules.harness";
+import { holdGameweeks, holdMatchState } from "./leagueRules.harness";
 import { actingAs, addManagers, adminCreatesLeague, MANAGERS, teamsIn, type TestConvex } from "./leagues.harness";
 import { holdPlayers, holdSquad, passNextDeadline, SQUAD } from "./lineupSquad.harness";
 import { fakeResend, signInDeployment } from "./signIn.harness";
@@ -47,12 +47,7 @@ export async function waiverLeague() {
   await holdGameweeks(t, { next: NEXT });
 
   /** The gameweek's one match (holdGameweeks gives each gameweek one, coded by its number) at `state`. */
-  const matchIs = (gameweek: number, state: "live" | "fullTime") =>
-    t.run(async (ctx) => {
-      const held = await ctx.db.query("matchScores").withIndex("by_fixtureCode", (q) => q.eq("fixtureCode", gameweek)).unique();
-      if (held !== null) await ctx.db.delete("matchScores", held._id);
-      await ctx.db.insert("matchScores", { fixtureCode: gameweek, state, homeGoals: 1, awayGoals: 0, minutes: 90, clockLabel: null, feed: "fpl", readAt: Date.now() });
-    });
+  const matchIs = (gameweek: number, state: "live" | "fullTime") => holdMatchState(t, gameweek, state);
   await matchIs(NEXT - 1, "fullTime");
   await holdSquad(t, leagueId, annsTeam);
   await holdPlayers(t, [SAKA, PALMER, RICE]);

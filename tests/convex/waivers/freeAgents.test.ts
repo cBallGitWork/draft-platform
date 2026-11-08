@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, test } from "vitest";
 import { api } from "../../../convex/_generated/api";
 import { pickUpRefusals } from "../../../convex/waivers/freeAgents";
 import { WAIVER_MS } from "../../../convex/waivers/waiverLimits";
-import { changeRules, HELD_FIRST_RULES, rulesWith } from "../../support/convex/leagueRules.harness";
+import { changeRules, HELD_FIRST_RULES, rulesWith, setUsed } from "../../support/convex/leagueRules.harness";
 import { actingAs, eventsIn } from "../../support/convex/leagues.harness";
 import { nameOf, passNextDeadline, SQUAD } from "../../support/convex/lineupSquad.harness";
 import { expectRefused } from "../../support/convex/test.harness";
@@ -100,6 +100,19 @@ describe("outside the window", () => {
 
     await w.matchIs(NEXT, "fullTime");
     await expectRefused(pickUp(BOB, SAKA), pickUpRefusals.notOpen, "after the last match, before the run");
+    await w.runWaivers();
+    await pickUp(BOB, SAKA);
+    expect(await w.squadCodes(w.bobsTeam)).toContain(SAKA);
+  });
+
+  test("a pickup through a gameweek the league doesn't play is refused until its last match is over (spec/13)", async () => {
+    await setUsed(w.t, w.leagueId, NEXT, false);
+    await w.runWaivers();
+    await passNextDeadline(w.t);
+    await w.matchIs(NEXT, "live");
+    await expectRefused(pickUp(BOB, SAKA), pickUpRefusals.locked);
+
+    await w.matchIs(NEXT, "fullTime");
     await w.runWaivers();
     await pickUp(BOB, SAKA);
     expect(await w.squadCodes(w.bobsTeam)).toContain(SAKA);
