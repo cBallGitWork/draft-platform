@@ -89,6 +89,7 @@ import type * as heartbeats_heartbeat from "../heartbeats/heartbeat.js";
 import type * as heartbeats_leadWake from "../heartbeats/leadWake.js";
 import type * as home_glance from "../home/glance.js";
 import type * as home_leagueHome from "../home/leagueHome.js";
+import type * as home_leagueNews from "../home/leagueNews.js";
 import type * as home_matchday from "../home/matchday.js";
 import type * as home_recapWords from "../home/recapWords.js";
 import type * as home_recaps from "../home/recaps.js";
@@ -405,6 +406,7 @@ declare const fullApi: ApiFromModules<{
   "heartbeats/leadWake": typeof heartbeats_leadWake;
   "home/glance": typeof home_glance;
   "home/leagueHome": typeof home_leagueHome;
+  "home/leagueNews": typeof home_leagueNews;
   "home/matchday": typeof home_matchday;
   "home/recapWords": typeof home_recapWords;
   "home/recaps": typeof home_recaps;

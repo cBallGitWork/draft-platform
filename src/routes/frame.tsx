@@ -3,9 +3,10 @@ import { createRoute, redirect } from "@tanstack/react-router";
 import type { LeagueSummary } from "../../convex/leagues/myLeagues";
 import { CurrentLeague } from "./CurrentLeague";
 import { DraftPage } from "../draft/DraftPage";
-import { DRAFT_PATH, HOME_PATH, MAIL_PATH, MATCHUP_PATH, MY_TEAM_FIXTURES_PATH, MY_TEAM_PATH, MY_TEAM_SQUAD_PATH, MY_TEAM_TRANSACTIONS_PATH, pages, PREMIER_LEAGUE_PATH, SCOUTING_PATH, TABLE_PATH } from "../frame/menu";
+import { DRAFT_PATH, HOME_NEWS_PATH, HOME_PATH, MAIL_PATH, MATCHUP_PATH, MY_TEAM_FIXTURES_PATH, MY_TEAM_PATH, MY_TEAM_SQUAD_PATH, MY_TEAM_TRANSACTIONS_PATH, pages, PREMIER_LEAGUE_PATH, SCOUTING_PATH, TABLE_PATH } from "../frame/menu";
 import { PageNotBuilt } from "../frame/PageNotBuilt";
 import { HomePage } from "../home/HomePage";
+import { NewsPage } from "../home/NewsPage";
 import { recapSearchOf, RECAP_PATH } from "../home/paths";
 import { RecapPage } from "../home/Recap";
 import { MatchupPage } from "../matchup/MatchupPage";
@@ -58,6 +59,7 @@ function leaguePage<Seam extends keyof LeaguePageSeams, Path extends string>(
 
 const tableRoute = leaguePage(TABLE_PATH, "table", TablePage); // The league's table and fixtures (#33)
 const homeRoute = leaguePage(HOME_PATH, "home", HomePage); // League home (#387)
+const homeNewsRoute = leaguePage(HOME_NEWS_PATH, "home", NewsPage); // League home's News tab (#1356)
 const scoutingRoute = leaguePage(SCOUTING_PATH, "scouting", ScoutingPage); // Scouting's players list (#373)
 // The draft room (#1098): its menu tab leaves once the draft is over, and its address still opens it.
 const draftRoute = leaguePage(DRAFT_PATH, "draft", DraftPage);
@@ -139,7 +141,7 @@ const matchRoute = createRoute({
   },
 });
 
-const builtRoutes = [landingRoute, homeRoute, recapRoute, tableRoute, scoutingRoute, draftRoute, myTeamTacticsRoute, myTeamSquadRoute, myTeamFixturesRoute, myTeamTransactionsRoute, matchupRoute, premierLeagueRoute, matchRoute];
+const builtRoutes = [landingRoute, homeRoute, homeNewsRoute, recapRoute, tableRoute, scoutingRoute, draftRoute, myTeamTacticsRoute, myTeamSquadRoute, myTeamFixturesRoute, myTeamTransactionsRoute, matchupRoute, premierLeagueRoute, matchRoute];
 
 /** Every address with its own screen: each route above, and Mail, whose route is with the league
  *  pages (leaguePages.tsx). Any other menu page gets a placeholder. */

@@ -2,7 +2,7 @@
 
 import { vi } from "vitest";
 import type { Id } from "../../../convex/_generated/dataModel";
-import type { HomeSeam, LeagueHome, Recap } from "../../../src/home/seam";
+import type { HomeSeam, LeagueHome, LeagueNews, NewsAsked, NewsMove, Recap } from "../../../src/home/seam";
 
 type Row = LeagueHome["table"][number];
 
@@ -46,13 +46,40 @@ export const quietHome: LeagueHome = {
 /** Gameweek 1's recap, written, no score changed since. */
 export const gameweekOneRecap: Recap = { gameweek: 1, text: "Team 1 beat Team 2.\nSaka scored 15.", writtenAt: Date.parse("2026-10-27T09:00:00Z"), changedTeamId: null };
 
-/** What the fake server holds: league home, null for a league with no rules, or nothing yet while
- *  it loads; and its recaps, by gameweek. */
-export type HomeData = { leagueHome?: LeagueHome | null; loading?: boolean; recaps?: readonly Recap[] };
+/** A move on the News tab, at `at`, of `team`: Saka joining it unless `rest` says otherwise. */
+export const newsMove = (at: number, teamName: string, rest: Partial<NewsMove> = {}): NewsMove => ({
+  at,
+  filed: at,
+  kind: "playerAssigned",
+  teamId: `team-${teamName}` as Id<"teams">,
+  teamName,
+  joined: { playerCode: 1001, playerName: "Saka" },
+  left: null,
+  toWaivers: null,
+  fromTeamId: null,
+  fromTeamName: null,
+  ...rest,
+});
 
-export function fakeHome({ leagueHome = quietHome, loading = false, recaps = [] }: HomeData = {}) {
+/** No moves and no letter, the league's two teams to filter by. */
+export const quietNews: LeagueNews = {
+  moves: [],
+  older: null,
+  teams: [
+    { teamId: "team-Team 1" as Id<"teams">, teamName: "Team 1" },
+    { teamId: "team-Team 2" as Id<"teams">, teamName: "Team 2" },
+  ],
+  pinnedLetter: null,
+};
+
+/** What the fake server holds: league home, null for a league with no rules, or nothing yet while
+ *  it loads; its recaps, by gameweek; and the News tab's pages, by what each asks. */
+export type HomeData = { leagueHome?: LeagueHome | null; loading?: boolean; recaps?: readonly Recap[]; news?: (asked: NewsAsked) => LeagueNews };
+
+export function fakeHome({ leagueHome = quietHome, loading = false, recaps = [], news = () => quietNews }: HomeData = {}) {
   return {
     useLeagueHome: vi.fn<HomeSeam["useLeagueHome"]>(() => (loading ? undefined : leagueHome)),
     useRecap: vi.fn<HomeSeam["useRecap"]>((_, gameweek) => (loading ? undefined : (recaps.find((recap) => recap.gameweek === gameweek) ?? null))),
+    useLeagueNews: vi.fn<HomeSeam["useLeagueNews"]>((_, asked) => (loading ? undefined : news(asked))),
   };
 }

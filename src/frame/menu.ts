@@ -12,6 +12,8 @@ type Page = { label: string; path: string };
 export type Section = Page & { tabs: readonly Page[] };
 
 export const HOME_PATH = "/home";
+/** League home's News tab (#1356): every team's moves. */
+export const HOME_NEWS_PATH = `${HOME_PATH}/news`;
 export const MY_TEAM_PATH = "/team";
 export const MY_TEAM_SQUAD_PATH = `${MY_TEAM_PATH}/squad`;
 export const MY_TEAM_FIXTURES_PATH = `${MY_TEAM_PATH}/fixtures`;
@@ -24,7 +26,15 @@ export const TRADES_PATH = "/trades";
 export const PREMIER_LEAGUE_PATH = "/premier-league";
 
 export const sections: readonly Section[] = [
-  { label: menuWords.home, path: HOME_PATH, tabs: [] },
+  {
+    label: menuWords.home,
+    path: HOME_PATH,
+    // Overview and News, as the approved Home pictures have them; Calendar waits for its grill.
+    tabs: [
+      { label: menuWords.overview, path: HOME_PATH },
+      { label: menuWords.news, path: HOME_NEWS_PATH },
+    ],
+  },
   {
     label: menuWords.myTeam,
     path: MY_TEAM_PATH,

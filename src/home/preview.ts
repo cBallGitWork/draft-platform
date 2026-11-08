@@ -1,7 +1,7 @@
 // League home in the preview (src/app/preview.ts): the Pro League's nine teams, six gameweeks scored so
 // the form shows, the server's own rules picking this gameweek (nextGameweek.ts) and the rows
 // (glance.ts), its head-to-heads scored, a matchday open with a few Vidiprinter lines, a pinned
-// letter, a few squad moves and the last gameweek's recap. Made up.
+// letter, a few squad moves, the News tab's two pages of them and the last gameweek's recap. Made up.
 
 import { shownRows } from "../../convex/home/glance";
 import { thisGameweekOf } from "../../convex/gameweeks/nextGameweek";
@@ -11,7 +11,7 @@ import { drawFixtures, namedFixture } from "../../convex/table/roundRobin";
 import { formOf, headToHeadTable, teamsInGameweek } from "../../convex/table/standings";
 import { gameScore } from "../../convex/table/teamGames";
 import { previewIdOf } from "../table/preview";
-import type { HomeSeam, LeagueHome } from "./seam";
+import type { HomeSeam, LeagueHome, LeagueNews, NewsAsked, NewsMove } from "./seam";
 
 const TEAMS = ["Saka Potatoes", "Kroos Control", "Lingard Franca", "Neville Wears Prada", "Team 5", "Murder on Zidane's Floor", "Dinamo Kiev Leave", "Haaland Oates", "Expected Toulouse"];
 const MINE = "Saka Potatoes";
@@ -89,4 +89,37 @@ const home: LeagueHome = {
   },
 };
 
-export const previewHome: HomeSeam = { useLeagueHome: () => home, useRecap: (_, gameweek) => (gameweek === SCORED ? home.recap : null) };
+/** The News tab's moves (#1356), made up: a page of the newest, and one older page behind it. */
+const newsMove = (hoursAgo: number, kind: NewsMove["kind"], team: string, joined: string | null, left: string | null, rest: Partial<NewsMove> = {}): NewsMove => {
+  const at = Date.now() - hoursAgo * HOUR_MS;
+  const player = (name: string | null) => (name === null ? null : { playerCode: name.length * 1000 + hoursAgo, playerName: name });
+  return { at, filed: at, kind, teamId: previewIdOf(team), teamName: team, joined: player(joined), left: player(left), toWaivers: null, fromTeamId: null, fromTeamName: null, ...rest };
+};
+const NEWS_MOVES: NewsMove[] = [
+  newsMove(3, "playerDropped", "Kroos Control", null, "Kudus", { toWaivers: true }),
+  newsMove(20, "playerClaimed", MINE, "Mbeumo", "Livramento", { toWaivers: true }),
+  newsMove(30, "playerMoved", "Haaland Oates", "Konsa", null, { fromTeamId: previewIdOf(MINE), fromTeamName: MINE }),
+  newsMove(50, "playerPickedUp", "Lingard Franca", "Calvert-Lewin", "Kamara", { toWaivers: false }),
+  newsMove(70, "playerAssigned", "Team 5", "Wissa", null),
+  newsMove(90, "playerReleased", "Expected Toulouse", null, "Minteh"),
+];
+const OLDER_NEWS: NewsMove[] = [newsMove(200, "playerAssigned", "Dinamo Kiev Leave", "Eze", null), newsMove(220, "playerAssigned", MINE, "Saka", null)];
+const news = (before: NewsAsked["before"]): LeagueNews => {
+  const moves = before === null ? NEWS_MOVES : OLDER_NEWS;
+  const last = moves.at(-1)!;
+  return {
+    moves,
+    older: before === null ? { at: last.at, filed: last.filed } : null,
+    teams: TEAMS.map((team) => ({ teamId: previewIdOf(team), teamName: team })),
+    pinnedLetter: home.pinnedLetter,
+  };
+};
+
+export const previewHome: HomeSeam = {
+  useLeagueHome: () => home,
+  useRecap: (_, gameweek) => (gameweek === SCORED ? home.recap : null),
+  useLeagueNews: (_, { before, teamId, kind }) => {
+    const page = news(before);
+    return { ...page, moves: page.moves.filter((move) => (teamId === null || move.teamId === teamId || move.fromTeamId === teamId) && (kind === null || move.kind === kind)) };
+  },
+};
