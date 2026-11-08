@@ -110,7 +110,7 @@ function Standing({ side }: { side: MatchupSide }) {
 function TeamHead({ side, control, align }: { side: MatchupSide; control: ReactNode; align: string }) {
   return (
     <div className={`flex min-w-0 flex-col gap-1 ${align}`}>
-      <p className="text-title display-face">{sideName(side)}</p>
+      <p className="text-lead wrap-break-word display-face lg:text-title">{sideName(side)}</p>
       <Standing side={side} />
       {control}
     </div>
@@ -118,7 +118,7 @@ function TeamHead({ side, control, align }: { side: MatchupSide; control: ReactN
 }
 
 /** A total on its plate. */
-const ScorePlate = ({ points }: { points: number }) => <span className="bg-name-plate px-3 text-score font-bold text-figure">{figureWords(points)}</span>;
+const ScorePlate = ({ points }: { points: number }) => <span className="bg-name-plate px-2 text-title font-bold text-figure lg:px-3 lg:text-score">{figureWords(points)}</span>;
 
 /** The head of a scored matchup. `overrides` wraps the head's middle in the team override's
  *  controls, for whoever runs the league; null for anyone else. */
@@ -137,7 +137,7 @@ export function ScoredHead({
 }) {
   const provisional = team.provisional || opponent.provisional;
   const middle = (controlOf: (side: MatchupSide) => ReactNode) => (
-    <div className="grid grid-cols-sides items-start gap-x-6 px-4 py-2">
+    <div className="grid grid-cols-sides items-start gap-x-2 px-2 py-2 lg:gap-x-6 lg:px-4">
       <TeamHead side={team} control={controlOf(team)} align="items-end text-right" />
       <div className="flex flex-col items-center gap-1">
         <p className="flex gap-2">
@@ -156,7 +156,8 @@ export function ScoredHead({
     </div>
   );
   return (
-    <section aria-label={SCORE_LABEL} className="flex bg-plate shadow-bevel-plate">
+    // On a phone the stepper sits over the rest, as it does with no score.
+    <section aria-label={SCORE_LABEL} className="flex flex-col bg-plate shadow-bevel-plate lg:flex-row">
       {stepper}
       <div className="min-w-0 grow">{overrides === null ? middle(() => null) : overrides(middle)}</div>
     </section>

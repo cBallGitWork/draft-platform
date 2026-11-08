@@ -123,7 +123,7 @@ function ScoredMatchup({
   return (
     <>
       <ScoredHead stepper={stepper} team={team} opponent={opponent} gameSwitch={gameSwitch} overrides={overrides} />
-      <div className="grid items-start gap-2 lg:grid-cols-3">
+      <div className="grid grid-cols-1 items-start gap-2 lg:grid-cols-3">
         <SidePanel side={team} picking={picking} />
         <div className="flex min-w-0 flex-col gap-2">
           {open !== undefined && <PlayerBreakdown leagueId={leagueId} slot={open.slot} teamName={open.teamName} version={version} close={() => setPicked(null)} />}
