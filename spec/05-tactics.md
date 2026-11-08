@@ -98,9 +98,12 @@ From `/grill the Tactics pitch` (Craig, 31 Oct 2026), unless dated otherwise.
   There are no empty cells to move into: presets only (Craig, 1 Nov 2026).
 - While a player is picked up, each lit starter's chip shows the picked-up player's stars for the
   role he would land on in that slot, marked as his, and goes back to the starter's own stars when
-  he is put down. When a starter is picked up, each lit bench player shows his own stars for that
-  starter's slot. The pitch only: the Selection table keeps each row's own Role fit (Craig, 7 Nov
+  he is put down. The pitch only: the Selection table keeps each row's own Role fit (Craig, 7 Nov
   2026, on #11: "a" to all three). `S05.9`
+- When a starter is picked up, each lit bench player's stars for that starter's slot (the role he
+  would land on there) show on his bench row in the Selection table, beside his name, and nowhere
+  on the pitch. His Role fit column stays his own (Craig, 7 Nov 2026, on #11: "b nowhere on pitch
+  view, just on row"). `S05.15`
 - Dropping a player on another swaps them, starter for starter or bench for starter. Each lands on
   the role he has the most stars for in his new slot (Roles).
 - The lineup saves itself after each valid move. A line by the deadline countdown says when it

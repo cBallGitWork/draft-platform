@@ -96,7 +96,7 @@ describe("moving a player", () => {
     expect(within(pitch()).queryByRole("img", { name: whitesStars })).toBeNull();
   });
 
-  it("a starter picked up, each lit bench row shows that player's stars for the starter's slot beside his name, never on the pitch (#11; Craig, 7 Nov 2026)", async () => {
+  it("a starter picked up, each lit bench row shows that player's stars for the starter's slot beside his name, never on the pitch (#11; S05.15)", async () => {
     const starred: Member = { ...WHITE, stars: [{ area: "defence", role: "ballPlayingDefender", stars: 4 }] };
     openTacticsTab({ tactics: openTactics({ ...SAVED, squad: SQUAD.map((each) => (each === WHITE ? starred : each)) }) });
     const whitesStars = starsLabel(landingSubject(WHITE.name, roleIn(SALIBAS_CELL, "ballPlayingDefender").name), 4);
