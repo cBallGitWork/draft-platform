@@ -105,6 +105,9 @@ const side = v.union(
     teamName: v.string(),
     points: v.number(),
     provisional: v.boolean(),
+    /** Whether the league has overridden its total for the gameweek, which `points` then is
+     *  (spec/14 S14.3; #903): the override control under its name then removes it. */
+    overridden: v.boolean(),
     lineup: v.object({ starters: v.array(starter), bench: v.array(benchSlot) }),
     /** The preset its lineup stands in, such as "4-4-2" (spec/10: a side's formation "is named by
      *  its preset until its edited"); null once its manager has edited it off every preset, as

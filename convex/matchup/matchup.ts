@@ -174,6 +174,7 @@ class SideScorer {
       teamName,
       points,
       provisional,
+      overridden: this.inGameweek.overridden(teamId),
       lineup: { starters: await Promise.all(scored.team.starters.map(starterOf)), bench: await Promise.all(scored.team.bench.map(benchOf)) },
       formation: scored.formation,
     };

@@ -2,6 +2,7 @@
 
 import type { Area } from "../../convex/lineup/pitch";
 import { leagueAverageWords } from "../table/words";
+import { overrideLabels, removeOverrideWords } from "../playerCard/words";
 import {
   clockWords,
   fewestTeamsWords,
@@ -106,6 +107,23 @@ export const breakdownMatchWords = (kickoff: number | null) => (kickoff === null
 export const notCountedWords = "Not counted: best match";
 export const noMatchBreakdownWords = "No match this gameweek.";
 export { notArrivedWords, overriddenWords } from "../playerCard/words";
+
+/** The team override under each team's name, for whoever runs the league (spec/14 S14.3 to S14.6;
+ *  #903): "set the total". */
+export const OVERRIDE_TOTAL_TITLE = "Override total";
+export const overrideTotalLabel = (teamName: string) => `${OVERRIDE_TOTAL_TITLE}: ${teamName}`;
+export const removeTotalOverrideLabel = (teamName: string) => `${removeOverrideWords}: ${teamName}`;
+export const overrideTotalLabels = { points: "Total", reason: overrideLabels.reason } as const;
+export const totalOverrideRemovedWords = "Override removed: the scored total is back, and the league has a letter.";
+export {
+  cancelOverrideWords,
+  overriddenDoneWords,
+  overrideFailedWords,
+  overrideHint,
+  overrideWords,
+  removeOverrideFailedWords,
+  removeOverrideWords,
+} from "../playerCard/words";
 
 /** The matchup's commentary (spec/10): every line of every match either team's men play in. */
 export const VIDIPRINTER_TITLE = "Vidiprinter";

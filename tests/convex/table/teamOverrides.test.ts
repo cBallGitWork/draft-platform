@@ -100,6 +100,19 @@ test("a team's override stands over a player override in its gameweek (S14.4)", 
   expect((await everywhere(league)).table).toEqual([SET, EVERTON_POINTS]);
 });
 
+test("the matchup says which side's total is overridden, so its control removes it, and stops saying so once it's removed (S14.5, S14.6)", async () => {
+  const league = await storedLeague();
+  const overriddenSides = async () => {
+    const { team, opponent } = await annsScoredGame(league);
+    return [team, opponent].map((side) => side.kind === "team" && side.overridden);
+  };
+  expect(await overriddenSides()).toEqual([false, false]);
+  await overridesTeam(league, COMMISSIONER);
+  expect(await overriddenSides()).toEqual([true, false]);
+  await removesTeam(league, COMMISSIONER);
+  expect(await overriddenSides()).toEqual([false, false]);
+});
+
 test("a gameweek still open can be overridden, and the override stands over its corrections (S14.2, S14.4)", async () => {
   const league = await scoresLeague();
   await holdHullAndEverton(league);
