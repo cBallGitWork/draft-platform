@@ -84,7 +84,7 @@ function Figures({ card, shown }: { card: PlayerCard; shown: number }) {
     <dl className="flex gap-6 border-l border-plate-rule pl-6">
       <Figure label={figureLabels.seasonPoints}>{figure(seasonPoints)}</Figure>
       <Figure label={figureLabels.aMatch}>{figure(aMatch)}</Figure>
-      <Figure label={figureLabels.minutes}>{figureWords(minutes)}</Figure>
+      <Figure label={figureLabels.minutes}>{figure(minutes)}</Figure>
       <Figure label={figureLabels.lastFive}>
         {lastFive.length === 0 ? (
           noFigureWords

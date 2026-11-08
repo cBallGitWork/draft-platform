@@ -27,6 +27,7 @@ import {
   NEWS_TITLE,
   newsNotesLabel,
   nextFixturesTitle,
+  noFigureWords,
   noNewsWords,
   noSuchPlayerWords,
   notInLastSeasonWords,
@@ -43,7 +44,7 @@ import { squadsPath } from "../../../src/squads/paths";
 import { crestUrl } from "../../../src/ui/ClubName";
 import { difficultyNotRatedWords, gameweekShort } from "../../../src/shared/words";
 import { ARSENAL, COVENTRY } from "../../support/convex/footballRows.harness";
-import { HELD, openCard, PRICED, RICE, SAKA } from "../../support/src/playerCardScreen.harness";
+import { HELD, NOT_ARRIVED, openCard, PRICED, RICE, SAKA } from "../../support/src/playerCardScreen.harness";
 import { commissioned, league, manager, managerIn, miniBeta, openApp } from "../../support/src/shell.harness";
 import { squadWithWarnings } from "../../support/src/squads.harness";
 
@@ -219,6 +220,12 @@ describe("the card's head (#1027)", () => {
 
     await userEvent.click(within(screen.getByRole("region", { name: SEASON_TITLE })).getByRole("radio", { name: "W" }));
     expect(figure(figureLabels.seasonPoints)).toBe("13");
+  });
+
+  it("shows no minutes, not 0, while none of his matches' records has arrived", async () => {
+    openCard(SAKA, { cards: [{ ...SAKA, matches: [NOT_ARRIVED] }] });
+    const head = await headOf();
+    expect(head.getByText(figureLabels.minutes).nextElementSibling!.textContent).toBe(noFigureWords);
   });
 
   it("keeps the portrait, a news note, role fit and the captain and set-piece hints in their places as placeholders", async () => {

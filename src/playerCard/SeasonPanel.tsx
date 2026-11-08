@@ -153,7 +153,7 @@ function LogLine({
         {row.kind === "postponed" ? (
           opponent ?? <MatchName match={row} />
         ) : (
-          <button type="button" aria-pressed={isSelected} onClick={() => select(row.fixtureCode)} className="min-h-tap text-align-inherit lg:min-h-0">
+          <button type="button" aria-pressed={isSelected} onClick={() => select(row.fixtureCode)} className="min-h-tap min-w-tap text-align-inherit lg:min-h-0 lg:min-w-0">
             {opponent ?? <MatchName match={row} />}
           </button>
         )}
