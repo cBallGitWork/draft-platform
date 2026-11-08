@@ -42,6 +42,7 @@ const NEEDLES = {
   "src/rules/preview.ts": "preview-rules",
   "src/scoring/preview.ts": null,
   "src/scouting/preview.ts": "Virgil van Dijk",
+  "src/scouting/scouts/preview.ts": "Fixtures soften after the next two",
   "src/scouting/shortlist/preview.ts": null,
   "src/shared/preview.ts": "preview-pro-league",
   "src/squads/preview.ts": "preview-team-1",
