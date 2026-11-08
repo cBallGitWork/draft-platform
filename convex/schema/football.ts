@@ -159,6 +159,13 @@ export const footballTables = {
    *  the positions sync reads (#13): the shirt he wears until his manager gives him one (spec/05,
    *  Squad numbers). No row while no squad list gives him a number. */
   clubNumbers: defineTable({ code: v.number(), number: v.number() }).index("by_code", ["code"]),
+  /** A club's total points in a season's Premier League table, set by the admin for a points
+   *  deduction in place of what its results earn (spec/18, The table: "you hard override the total
+   *  points", Craig, 1 Nov 2026; #898). `season` is the year it starts. No row: its results' total. */
+  plPointsOverrides: defineTable({ season: v.number(), clubCode: v.number(), points: v.number() }).index("by_season_and_clubCode", [
+    "season",
+    "clubCode",
+  ]),
   /** Each club's colours and shirt pattern, by FPL's season-stable club `code` (#838): the admin
    *  sets them on his dashboard (spec/15). No row while none are set: the club's shirt and mark
    *  are white, and it waits in the dashboard's queue. */

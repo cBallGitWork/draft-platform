@@ -1,10 +1,12 @@
 import { expect, test } from "vitest";
 import { api, internal } from "../../../convex/_generated/api";
+import { pointsOverrideRefusals } from "../../../convex/football/plPointsOverrides";
 import type { ScoreRead } from "../../../convex/football/scoreReads";
 import { refusals } from "../../../convex/shared/leagueAccess";
 import { HOUR_MS } from "../../../convex/shared/time";
 import { actingAs } from "../../support/convex/leagues.harness";
 import { syncRun } from "../../support/convex/footballSync.harness";
+import { asAdmin } from "../../support/convex/positionsSync.harness";
 import { expectRefused, freshConvex, type TestConvex } from "../../support/convex/test.harness";
 import { clubCodeOfPlTeam, recordedResults, recordedStandings } from "../../support/recorded/standings.payloads";
 
@@ -196,6 +198,53 @@ test("a match held as played with no score throws, never left out of the table",
   });
 
   await expect(table(t)).rejects.toThrow("Match 1 is held at live with no score");
+});
+
+// A club's points deduction: the admin sets its total (spec/18, The table: "you hard override the
+// total points"; #898).
+
+const setTotal = async (t: TestConvex, clubCode: number, points: number | null) =>
+  (await asAdmin(t)).mutation(api.football.plPointsOverrides.set, { clubCode, points });
+
+/** Each row as [position, club code, played, points]. */
+const totals = async (t: TestConvex) => (await lines(t)).map(([position, club, played, , , , , , , points]) => [position, club, played, points]);
+
+test("a total the admin sets stands in place of the club's results' and places it, until he clears it", async () => {
+  const t = freshConvex();
+  // Burnley top on 7 by head-to-head, Arsenal on 7, Chelsea on 3.
+  await holdSeason(t, levelSeason);
+
+  await setTotal(t, 2, 2);
+  expect(await totals(t)).toEqual([
+    [1, 1, 4, 7],
+    [2, 3, 4, 3],
+    [3, 2, 4, 2],
+  ]);
+  await setTotal(t, 2, 4);
+  expect(await totals(t)).toEqual([
+    [1, 1, 4, 7],
+    [2, 2, 4, 4],
+    [3, 3, 4, 3],
+  ]);
+  await setTotal(t, 2, null);
+  expect(await totals(t)).toEqual([
+    [1, 2, 4, 7],
+    [2, 1, 4, 7],
+    [3, 3, 4, 3],
+  ]);
+});
+
+test("a total is refused for a club not in the league now, or one that isn't whole, and from anyone but the admin", async () => {
+  const t = freshConvex();
+  await holdSeason(t, levelSeason);
+
+  await expectRefused(setTotal(t, 99, 4), pointsOverrideRefusals.notCurrent);
+  await expectRefused(setTotal(t, 2, 4.5), pointsOverrideRefusals.notWhole);
+  await expectRefused((await actingAs(t, MANAGER)).mutation(api.football.plPointsOverrides.set, { clubCode: 2, points: 4 }), refusals.notAdmin);
+});
+
+test("with no season's matches held, a total is refused", async () => {
+  await expectRefused(setTotal(freshConvex(), 2, 4), pointsOverrideRefusals.noSeason);
 });
 
 test("someone signed out is refused the table", async () => {

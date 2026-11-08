@@ -148,6 +148,23 @@ describe("the Premier League table", () => {
     expect(placed(table)).toEqual([[1, ARS], [2, BOU], [3, CHE]]);
   });
 
+  test("a club's total the admin set (a points deduction) stands in place of its results' and places it (#898)", () => {
+    // Arsenal beat Chelsea, who draw with Bournemouth, but Arsenal are set to 0 after a deduction.
+    const table = plTable([ARS, BOU, CHE], [result(ARS, 1, 0, CHE), result(BOU, 2, 2, CHE)], IN_SEASON, new Map([[ARS, 0]]));
+
+    expect(placed(table)).toEqual([[1, BOU], [2, CHE], [3, ARS]]);
+    expect(rowOf(table, ARS)).toEqual({ club: ARS, position: 3, played: 1, won: 1, drawn: 0, lost: 0, goalsFor: 1, goalsAgainst: 0, goalDifference: 1, points: 0 });
+  });
+
+  test("a total set below nothing stands, the club placed under one on nothing", () => {
+    expect(placed(plTable([ARS, BOU], [], IN_SEASON, new Map([[ARS, -4]])))).toEqual([[1, BOU], [2, ARS]]);
+  });
+
+  test("a total set for a club not in the table, or not a whole number, throws", () => {
+    expect(() => plTable([ARS], [], IN_SEASON, new Map([[BOU, 1]]))).toThrow(/Bournemouth, which isn't one of the clubs/);
+    expect(() => plTable([ARS], [], IN_SEASON, new Map([[ARS, 1.5]]))).toThrow(/Arsenal's points are set to 1.5/);
+  });
+
   test("a club listed twice throws", () => {
     expect(() => plTable([ARS, BOU, ARS], [], IN_SEASON)).toThrow(/listed twice in Arsenal, Bournemouth, Arsenal/);
   });

@@ -1309,6 +1309,46 @@
       }
     },
     {
+      "tableName": "plPointsOverrides",
+      "indexes": [
+        {
+          "indexDescriptor": "by_season_and_clubCode",
+          "fields": [
+            "season",
+            "clubCode"
+          ]
+        }
+      ],
+      "stagedDbIndexes": [],
+      "searchIndexes": [],
+      "stagedSearchIndexes": [],
+      "vectorIndexes": [],
+      "stagedVectorIndexes": [],
+      "documentType": {
+        "type": "object",
+        "value": {
+          "season": {
+            "fieldType": {
+              "type": "number"
+            },
+            "optional": false
+          },
+          "clubCode": {
+            "fieldType": {
+              "type": "number"
+            },
+            "optional": false
+          },
+          "points": {
+            "fieldType": {
+              "type": "number"
+            },
+            "optional": false
+          }
+        }
+      }
+    },
+    {
       "tableName": "clubColours",
       "indexes": [
         {
