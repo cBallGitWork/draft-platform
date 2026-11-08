@@ -52,3 +52,5 @@ Named after its route: `team` for `/team`, `team-squad` for `/team/squad`.
 - [`matchup`](matchup/README.md): The matchup, live, and the commissioner's view with two games a
   gameweek (8 Nov 2026).
 - [`scouting`](scouting/README.md): Scouting's players, compare, a scout's report and the stat race (8 Nov 2026).
+- [`waivers`](waivers/README.md): Waivers: pending claims on My team's Transactions, the commissioner's
+  every team, and League settings' Waivers tab (8 Nov 2026).
