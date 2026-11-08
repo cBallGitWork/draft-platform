@@ -1,5 +1,4 @@
 import { v } from "convex/values";
-import { internal } from "../_generated/api";
 import type { Doc, Id } from "../_generated/dataModel";
 import { internalMutation, mutation, type MutationCtx, type QueryCtx } from "../_generated/server";
 import { areasOf } from "../lineup/pitch";
@@ -13,14 +12,14 @@ import { currentClubs, currentPlayersAt, heldPlayerByCode, playerByCode } from "
 import { placeOf, squadOf } from "../squads/squadPlace";
 import { squadRefusals } from "../squads/squads";
 import { autoPickOrder } from "./autoPickOrder";
-import { PICK_GAP_MS, startClock } from "./draftClock";
+import { autoPickAt, PICK_GAP_MS, scheduleAutoPick, startClock } from "./draftClock";
 import { tellDraftOver, tellPickedFor, tellScoringStartMoved, tellUpNext } from "./draftLetters";
 import { startAfterDraft } from "../gameweeks/scoringStart";
 import { listsOf } from "./draftLists";
 import { draftRanking } from "./draftRanking";
 import { draftOf, picksMadeIn, type StartedDraft } from "./draftRow";
 import { rulesInForceAt } from "./draftStart";
-import { afterTimeout, choseAutoPick, isOnAutoPick, picksAtOnce } from "./draftTimeouts";
+import { afterTimeout, choseAutoPick, isOnAutoPick } from "./draftTimeouts";
 import { lastSeasonPoints } from "./lastSeasonPoints";
 import { whyNotLegal, type DraftPlayer, type NotLegal } from "./legalPlayers";
 import { pickOnTheClock } from "./snakeOrder";
@@ -258,11 +257,11 @@ export const autoPick = internalMutation({
     const turn = pickOnTheClock(started.teamIds, started.rounds, await picksMadeIn(ctx, leagueId), draft.tradedPicks);
     if (turn?.pick !== pick) return null;
     const team = await teamIn(ctx, leagueId, turn.team);
-    if ((!picksAtOnce(draft.timeouts, team) || draft.clock.fullClock) && Date.now() < draft.clock.endsAt) {
+    if (Date.now() < autoPickAt(draft, draft.clock, team)) {
       // Scheduled at once, but since then a manager took the team over or took control back, or the
-      // commissioner's undo put this pick back on its full clock: the clock runs out first.
-      const job = await ctx.scheduler.runAt(draft.clock.endsAt, internal.draft.draftPicks.autoPick, { leagueId, pick });
-      await ctx.db.patch("drafts", draft._id, { clock: { ...draft.clock, job } });
+      // commissioner's undo put this pick back on its full clock: the clock runs out first. This job
+      // is the clock's own, so the clock goes without it: cancelling it would cancel the new one too.
+      await scheduleAutoPick(ctx, draft, { ...draft.clock, job: undefined }, team);
       return null;
     }
     const player = await autoPickFor(ctx, leagueId, started, turn);
