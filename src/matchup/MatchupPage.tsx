@@ -2,7 +2,9 @@ import { Link } from "@tanstack/react-router";
 import { useState, type ReactNode } from "react";
 import type { LeagueSummary } from "../../convex/leagues/myLeagues";
 import type { MatchupSide } from "../../convex/matchup/matchupShape";
+import { runs } from "../leagues/access";
 import { PlayerBreakdown } from "./PlayerBreakdown";
+import { TeamOverrides } from "./TeamOverride";
 import { Loading, PAGE_STACK, PageSection, PANEL_COLUMNS, PanelNote } from "../ui/Panel";
 import { useLastLoaded } from "../shared/useLastLoaded";
 import { useMinute } from "../shared/useMinute";
@@ -59,21 +61,23 @@ export function MatchupPage({ league, seam, asked }: { league: LeagueSummary; se
       ) : matchup.kind === "noTeam" ? (
         <p className="text-muted">{noTeamWords}</p>
       ) : (
-        <HeadToHeadMatchup leagueId={league.leagueId} matchup={matchup} />
+        <HeadToHeadMatchup league={league} seam={seam} matchup={matchup} />
       )}
     </PageSection>
   );
 }
 
-function HeadToHeadMatchup({ leagueId, matchup }: { leagueId: string; matchup: HeadToHead }) {
+function HeadToHeadMatchup({ league, seam, matchup }: { league: LeagueSummary; seam: MatchupSeam; matchup: HeadToHead }) {
   const { teamName, gameweek, deadline, game } = matchup;
   if (gameweek === null) return <p className="text-muted">{noGamesWords(teamName)}</p>;
   const gameSwitch = <GameSwitch matchup={matchup} gameweek={gameweek} />;
+  // Whoever runs the league overrides a team's total under its name (spec/14 S14.6; #903).
+  const overrides = runs(league) ? (sides: readonly MatchupSide[]) => <TeamOverrides leagueId={league.leagueId} gameweek={gameweek} sides={sides} seam={seam} /> : null;
   return (
     <>
       <Stepper matchup={matchup} gameweek={gameweek} />
       {game.kind === "scored" ? (
-        <ScoredMatchup leagueId={leagueId} game={game} gameSwitch={gameSwitch} />
+        <ScoredMatchup leagueId={league.leagueId} game={game} gameSwitch={gameSwitch} overrides={overrides} />
       ) : (
         <div className="bg-panel">
           {game.kind === "none" ? (
@@ -172,10 +176,14 @@ function ScoredMatchup({
   leagueId,
   game: { team, opponent, commentary, version },
   gameSwitch,
+  overrides,
 }: {
   leagueId: string;
   game: Scored;
   gameSwitch: ReactNode;
+  /** The team override's controls under the sides' names, for whoever runs the league; null for
+   *  anyone else. */
+  overrides: ((sides: readonly MatchupSide[]) => ReactNode) | null;
 }) {
   const provisional = team.provisional || opponent.provisional;
   const [picked, setPicked] = useState<number | null>(null);
@@ -186,6 +194,7 @@ function ScoredMatchup({
     <>
       <section aria-label={SCORE_LABEL} className="bg-panel shadow-bevel-panel">
         <Fixture teamName={sideName(team)} opponent={sideName(opponent)} score={scoreWords(team.points, opponent.points)} />
+        {overrides?.([team, opponent])}
         <p aria-live="polite" className={`px-3 pb-2 text-center ${provisional ? "text-derived" : "text-muted"}`}>
           {provisional ? provisionalWords : finalWords}
         </p>

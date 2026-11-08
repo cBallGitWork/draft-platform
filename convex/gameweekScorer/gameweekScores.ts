@@ -146,6 +146,9 @@ export interface GameweekTeams {
   slotsOf: (teamId: TeamId) => Promise<TeamInGameweek>;
   /** The team's points: its saved total where one stands, else worked out from its slots. */
   pointsOf: (teamId: TeamId) => Promise<TeamGameweekTotal>;
+  /** Whether the league has overridden the team's total in the gameweek (#903), which its points
+   *  then are. */
+  overridden: (teamId: TeamId) => boolean;
 }
 
 /** The gameweek for the `teamIds` as the table has it: a team's saved total once final, else worked
@@ -202,6 +205,7 @@ function teamsFrom(reads: LeagueReads, inputs: GameweekInputs, stored: TeamScore
       if (overridden !== undefined) return { points: overridden.points, provisional: false };
       return stored.get(teamId) ?? totalOf(await slotsOf(teamId));
     },
+    overridden: (teamId) => inputs.teamOverrides.has(teamId),
   };
 }
 

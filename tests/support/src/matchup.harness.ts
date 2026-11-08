@@ -36,11 +36,18 @@ export function liveMatchup(first: Matchup | undefined) {
 }
 
 /** What the fake server holds: the matchup, null for a league with no rules, nothing yet while it
- *  loads, or a `live` one the test moves on. A league in total points by default. */
-export type MatchupData = { matchup?: Matchup | null; loading?: boolean; live?: ReturnType<typeof liveMatchup> };
+ *  loads, or a `live` one the test moves on. A league in total points by default. And what it says
+ *  to a team override or its removal: null when it makes it. */
+export type MatchupData = { matchup?: Matchup | null; loading?: boolean; live?: ReturnType<typeof liveMatchup>; overrideRefusal?: string | null };
 
-export function fakeMatchup({ matchup = { kind: "totalPoints" }, loading = false, live }: MatchupData = {}) {
+export function fakeMatchup({ matchup = { kind: "totalPoints" }, loading = false, live, overrideRefusal = null }: MatchupData = {}) {
+  const overrideTeam = vi.fn<ReturnType<MatchupSeam["useOverrideTeam"]>>(() => Promise.resolve(overrideRefusal));
+  const removeTeamOverride = vi.fn<ReturnType<MatchupSeam["useRemoveTeamOverride"]>>(() => Promise.resolve(overrideRefusal));
   return {
+    overrideTeam,
+    useOverrideTeam: () => overrideTeam,
+    removeTeamOverride,
+    useRemoveTeamOverride: () => removeTeamOverride,
     useMatchup: vi.fn<MatchupSeam["useMatchup"]>(() =>
       // `live` is fixed for the fake's life, so each render calls the same hooks.
       live === undefined ? (loading ? undefined : matchup) : useSyncExternalStore(live.subscribe, live.get),
@@ -98,6 +105,7 @@ export const teamSide = (
   teamName,
   points,
   provisional,
+  overridden: false,
   lineup: { starters: starters.map((starter) => ({ ...centreSlotOf(starter.area), ...starter })), bench: bench.map((slot) => ({ role: null, place: null, ...slot })) },
   formation: null,
 });

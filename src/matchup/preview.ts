@@ -135,6 +135,7 @@ function sideAt(teamName: string, men: typeof SAKA_POTATOES, minute: number): Ma
     teamName,
     points: counting.reduce((total, slot) => total + (slot.points ?? 0), 0),
     provisional: !final,
+    overridden: false,
     lineup: { starters, bench },
     formation: null,
   };
@@ -217,6 +218,11 @@ function usePreviewMatchup(gameweek: number): Matchup {
   return useMemo(() => matchupAt(minute, gameweek), [minute, gameweek]);
 }
 
+/** The preview saves nothing: a team override is taken and forgotten. */
+const overrideNothing = () => Promise.resolve(null);
+
 export const previewMatchup: MatchupSeam = {
   useMatchup: (_leagueId, _now, asked) => usePreviewMatchup(asked.gameweek ?? GAMEWEEK),
+  useOverrideTeam: () => overrideNothing,
+  useRemoveTeamOverride: () => overrideNothing,
 };
