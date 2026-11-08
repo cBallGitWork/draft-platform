@@ -5,7 +5,16 @@ import { internalMutation, mutation, type MutationCtx, type QueryCtx } from "../
 import { MOST_IN_SQUAD } from "../leagues/leagueLimits";
 import { pickFirstLineupAgain } from "../lineup/lineups";
 import { fileEvent, fileLetter, wholeLeague } from "../mail/letters";
-import { acceptedLetter, reviewLetter, tradeBlockedLetter, tradeFailedLetter, tradeMadeLetter, type ReviewWords } from "../mail/tradeLetterWords";
+import {
+  acceptedLetter,
+  reviewLetter,
+  tradeBlockedLetter,
+  tradeFailedLetter,
+  tradeMadeLetter,
+  type ReviewWords,
+  type TradeFailed,
+  type TradeWords,
+} from "../mail/tradeLetterWords";
 import { tradeRulesOf } from "../rules/firstRules";
 import { latestRules } from "../rules/rulesHistory";
 import { managerOf, memberOf, refuse, teamsOf } from "../shared/leagueAccess";
@@ -114,20 +123,41 @@ async function playerGone(ctx: QueryCtx, offer: Doc<"tradeOffers">) {
   return null;
 }
 
-/** Makes the trade: its players move at once, the league gets the usual trade letter, each team's
- *  first lineup is picked again, and any other open offer holding one of them closes. If a player
- *  has left his side's team meanwhile, nobody moves and both managers are told. The letter is
- *  filed read for `by` only when `watched`: accepted with no review, not at a review's end. */
-async function goThrough(ctx: MutationCtx, offer: Doc<"tradeOffers">, by: string, watched: boolean): Promise<void> {
-  const league = await leagueOf(ctx, offer.leagueId);
-  const words = await tradeWordsOf(ctx, offer);
-  await ctx.db.delete("tradeOffers", offer._id);
+/** Why the trade can't be made now, if it can't: a player in it has left his side's team, or a team
+ *  would hold more than the most in a squad, filled meanwhile by another trade or an assignment. */
+async function cantMake(ctx: QueryCtx, offer: Doc<"tradeOffers">): Promise<TradeFailed | null> {
   const gone = await playerGone(ctx, offer);
   if (gone !== null) {
     const team = await ctx.db.get("teams", gone.teamId);
-    await fileLetter(ctx, league, await managersOf(ctx, offer), tradeFailedLetter(words, await tradedName(ctx, gone.playerCode), team?.name ?? "his team"));
+    return { why: "playerGone", playerName: await tradedName(ctx, gone.playerCode), teamName: team?.name ?? "his team" };
+  }
+  if (offer.picks !== undefined) return null;
+  for (const { teamId, codes } of await squadsAfter(ctx, offer)) {
+    if (codes.length > MOST_IN_SQUAD) return { why: "squadFull", teamName: (await ctx.db.get("teams", teamId))?.name ?? "A team" };
+  }
+  return null;
+}
+
+/** Closes the trade unmade, telling both managers why. */
+async function failTrade(ctx: MutationCtx, offer: Doc<"tradeOffers">, words: TradeWords, failed: TradeFailed): Promise<void> {
+  await ctx.db.delete("tradeOffers", offer._id);
+  await fileLetter(ctx, await leagueOf(ctx, offer.leagueId), await managersOf(ctx, offer), tradeFailedLetter(words, failed));
+}
+
+/** Makes the trade: its players move at once, the league gets the usual trade letter, each team's
+ *  first lineup is picked again, and any other open offer holding one of them closes. If it can't
+ *  be made (`cantMake`), nobody moves and both managers are told. The letter is filed read for `by`
+ *  only when `watched`: accepted with no review, not at a review's end. Everything that can refuse
+ *  it is read before its first write, so a throw leaves nothing half-made. */
+async function goThrough(ctx: MutationCtx, offer: Doc<"tradeOffers">, by: string, watched: boolean): Promise<void> {
+  const league = await leagueOf(ctx, offer.leagueId);
+  const words = await tradeWordsOf(ctx, offer);
+  const failed = await cantMake(ctx, offer);
+  if (failed !== null) {
+    await failTrade(ctx, offer, words, failed);
     return;
   }
+  await ctx.db.delete("tradeOffers", offer._id);
   if (offer.picks !== undefined) {
     await movePicks(ctx, offer, offer.picks);
     await fileLetter(ctx, league, await wholeLeague(ctx, league), tradeMadeLetter(words, []), watched ? by : undefined);
@@ -215,6 +245,16 @@ export function mostAgainst(voters: readonly string[], against: readonly string[
   return counted * 2 > voters.length;
 }
 
+/** Nothing retries a review's end, so a trade it can't make closes rather than throw and hold its
+ *  players for good (#1325): logged, and both managers told when its words can still be read. */
+async function closeUnmade(ctx: MutationCtx, offer: Doc<"tradeOffers">, error: unknown): Promise<void> {
+  console.error(`Trade offer ${offer._id} couldn't be made at its review's end, so it closed:`, error);
+  if ((await ctx.db.get("tradeOffers", offer._id)) === null) return;
+  const words = await tradeWordsOf(ctx, offer).catch(() => null);
+  if (words === null) await ctx.db.delete("tradeOffers", offer._id);
+  else await failTrade(ctx, offer, words, { why: "error" });
+}
+
 /** The review's 24 hours are up: blocked if most voted against, through otherwise. A trade already
  *  blocked, or a league since deleted, leaves no offer, and nothing happens. */
 export const finish = internalMutation({
@@ -228,7 +268,11 @@ export const finish = internalMutation({
       await blockTrade(ctx, offer, { kind: "vote" });
       return null;
     }
-    await goThrough(ctx, offer, acceptedBy, false);
+    try {
+      await goThrough(ctx, offer, acceptedBy, false);
+    } catch (error) {
+      await closeUnmade(ctx, offer, error);
+    }
     return null;
   },
 });

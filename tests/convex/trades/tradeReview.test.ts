@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, test } from "vitest";
 import { api, internal } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
+import { MOST_IN_SQUAD } from "../../../convex/leagues/leagueLimits";
 import { claimFailedLetter } from "../../../convex/mail/waiverLetterWords";
 import { offerRefusals } from "../../../convex/trades/tradeOffers";
 import { mostAgainst, REVIEW_MS, reviewRefusals } from "../../../convex/trades/tradeReview";
@@ -209,6 +210,33 @@ describe("players held in review (Craig, 6 Nov 2026)", () => {
     expect(await squadOf(w.catsTeam)).toContain(SAKA);
     expect(await squadOf(w.annsTeam)).toContain(ANNS_FIRST_DROP);
     expect(await w.subjectsTo(ANN)).toContain("The trade between Team 1 and Team 2 didn't go through");
+  });
+
+  test("two accepted trades each fit alone; the second's review end must not throw or stick (#1325)", async () => {
+    await w.tradesAre({ review: "vote", deadline: null });
+    const have = (await w.squadCodes(w.annsTeam)).length;
+    const extra = Array.from({ length: MOST_IN_SQUAD - 1 - have }, (_, i) => 9500 + i);
+    await holdPlayers(w.t, extra);
+    await w.t.run(async (ctx) => {
+      for (const playerCode of extra) await ctx.db.insert("squadPlayers", { leagueId: w.leagueId, teamId: w.annsTeam, playerCode });
+    });
+    const first = await w.offer(BOB, w.annsTeam, [SAKA], []);
+    await w.accept(ANN, first.offerId);
+    const second = await w.offer(CAT, w.annsTeam, [RICE], []);
+    await w.accept(ANN, second.offerId);
+    await w.reviewEnds(first.offerId);
+    await expect(w.reviewEnds(second.offerId)).resolves.toBeUndefined();
+
+    expect((await w.offers()).map(({ _id }) => _id)).not.toContain(second.offerId);
+    expect(await squadOf(w.catsTeam)).toContain(RICE);
+    const letter = {
+      subject: "The trade between Team 3 and Team 1 didn't go through",
+      body: `Team 1 would hold more than ${MOST_IN_SQUAD} players, so nobody moves. The trade was: Team 3 give ${nameOf(RICE)}; Team 1 give nobody.`,
+    };
+    expect(await w.lettersTo(CAT)).toContainEqual(letter);
+    expect(await w.lettersTo(ANN)).toContainEqual(letter);
+    await (await actingAs(w.t, CAT)).mutation(api.waivers.waivers.drop, { leagueId: w.leagueId, playerCode: RICE });
+    expect(await squadOf(w.catsTeam)).not.toContain(RICE);
   });
 });
 
