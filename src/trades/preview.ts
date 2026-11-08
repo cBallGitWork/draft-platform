@@ -87,7 +87,6 @@ const offer = (
 
 const view: TradesView = {
   myTeamId: previewIdOf(ME),
-  review: "veto",
   shut: null,
   squadMaximum: 20,
   teams: [

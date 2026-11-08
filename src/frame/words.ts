@@ -15,7 +15,7 @@ export const continueWords = "Continue";
 export const continueLabel = (reason: string) => `Continue: ${reason}`;
 export const signOutWords = "Sign out";
 
-/** The top menu's sections and Home's and My team's tabs (menu.ts); Mail's is its page title. */
+/** The top menu's sections and Home's, My team's and Trades' tabs (menu.ts); Mail's is its page title. */
 export const menuWords = {
   home: "Home",
   overview: "Overview",

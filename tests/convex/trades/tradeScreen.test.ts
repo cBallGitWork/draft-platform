@@ -54,7 +54,6 @@ describe("the Trades screen", () => {
       [SAKA, 9002].sort(),
     );
     expect(view.teams.map(({ teamId }) => teamId)).toContain(w.annsTeam);
-    expect(view.review).toBe("veto");
     expect(view.shut).toBeNull();
   });
 

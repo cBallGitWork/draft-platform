@@ -125,6 +125,5 @@ export const noteLabel = "Note, one line";
 export const sendOfferWords = "Send offer";
 export const sendCounterWords = "Send counter";
 export const clearWords = "Clear";
-export const sentWords = "Offer sent.";
 export const noPartnerWords = "No other team can trade now.";
 export const noneTickedWords = "Tick a player on either side.";

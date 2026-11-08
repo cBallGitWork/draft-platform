@@ -5,8 +5,6 @@ import { leagueDeadlines } from "../gameweeks/leagueDeadlines";
 import type { LeagueDeadlines } from "../gameweeks/deadline";
 import { positionsNow, type PositionsNow } from "../positions/playerPositions";
 import { positionRank } from "../positions/positionTables";
-import { tradeRulesOf } from "../rules/firstRules";
-import { TRADE_REVIEWS } from "../rules/leagueRulesShape";
 import { latestRules } from "../rules/rulesHistory";
 import { clubRecord, position } from "../schema";
 import { managerOf, teamsOf } from "../shared/leagueAccess";
@@ -77,8 +75,6 @@ export type ScreenTeam = Infer<typeof screenTeam>;
 
 export const tradesView = v.object({
   myTeamId: v.id("teams"),
-  /** How the league reviews an accepted trade (League settings). */
-  review: v.union(...TRADE_REVIEWS.map((name) => v.literal(name))),
   /** Why no trade can be offered or accepted now, or null while trades are open (tradeShut.ts). */
   shut: v.union(
     v.literal("draftLive"),
@@ -270,7 +266,6 @@ export const ofMyTeam = query({
 
     return {
       myTeamId: mine._id,
-      review: rules === null ? "none" : tradeRulesOf(rules).review,
       shut: await tradesShut(ctx, league, deadlines, now),
       squadMaximum: rules?.squad.size?.maximum ?? null,
       teams: shownTeams,

@@ -14,8 +14,6 @@ export const OFFER_GROUPS: readonly OfferGroup[] = [
 
 export type OfferSides = {
   group: OfferGroup;
-  /** He made it. */
-  fromYou: boolean;
   otherTeamId: Id<"teams">;
   otherTeamName: string;
   youGet: TradedPlayer[];
@@ -31,7 +29,6 @@ export function sidesOf(offer: ScreenOffer, myTeamId: Id<"teams">): OfferSides {
   return {
     group:
       offer.reviewEndsAt !== null ? "inReview" : fromYou ? "fromYou" : "toYou",
-    fromYou,
     otherTeamId: fromYou ? offer.toTeamId : offer.fromTeamId,
     otherTeamName: fromYou ? offer.toTeamName : offer.fromTeamName,
     youGet: fromYou ? offer.gets : offer.gives,

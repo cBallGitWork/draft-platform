@@ -79,7 +79,6 @@ export const screenOffer = (rest: Partial<ScreenOffer> = {}): ScreenOffer => ({
 /** Team 1 holding Saka and Rice, Team 2 Palmer and James, a commissioner veto, nothing offered. */
 export const quietTrades: TradesView = {
   myTeamId: MY_TEAM,
-  review: "veto",
   shut: null,
   squadMaximum: 20,
   teams: [

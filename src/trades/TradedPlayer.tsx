@@ -11,16 +11,14 @@ import { nobodyWords } from "./words";
 export function TradedPlayer({
   player,
   withMark = false,
-  dimmed = false,
 }: {
   player: Player;
   withMark?: boolean;
-  dimmed?: boolean;
 }) {
   return (
     <span className="inline-flex items-center gap-2">
       {player.position === null ? null : (
-        <PositionChip label={player.position} dimmed={dimmed} />
+        <PositionChip label={player.position} />
       )}
       <span className="font-semibold">{player.name}</span>
       <span className="inline-flex items-center text-soft">
