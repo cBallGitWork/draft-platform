@@ -2,6 +2,7 @@ import { useId, type CSSProperties, type DragEvent } from "react";
 import { cellKey, LANES, positionOfSlot, sameCell, type Cell } from "../../../../convex/lineup/pitch";
 import { roleIn } from "../../../../convex/lineup/roles";
 import { kitOf, type Ink } from "../../../../convex/football/clubColours";
+import { useClubColours } from "../../../shared/clubColours";
 import { markOf } from "../focusMarks";
 import { PitchLines } from "./PitchLines";
 import { RoleRuns } from "./RoleRuns";
@@ -178,7 +179,7 @@ const STRIPE_WIDTH = 4;
  *  second colour, plain), with his squad number on it once his manager gives him one (#13). The
  *  colour is only a look: his name says who he is, so screen readers skip the shirt. */
 export function Shirt({ number, clubCode, goalkeeper }: { number: number | null; clubCode: number | null; goalkeeper: boolean }) {
-  const kit = kitOf(clubCode, goalkeeper);
+  const kit = kitOf(useClubColours()(clubCode), goalkeeper);
   const striped = kit.pattern === "stripes";
   const clipId = useId();
   return (

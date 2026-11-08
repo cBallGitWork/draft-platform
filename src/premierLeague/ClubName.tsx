@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { coloursOf } from "../../convex/football/clubColours";
+import { useClubColours } from "../shared/clubColours";
 
 /** A club's name on the desk, its three letters on a phone, which has no room for "Nottingham
  *  Forest". The caller's element places and weights it: a fixture's span, the table's row head. */
@@ -51,7 +51,7 @@ export function ClubMark({ code }: { code: number }) {
 
 /** The drawn mark: the club's first colour on the left, its second on the right. */
 function ClubSquare({ code }: { code: number }) {
-  const { primary, secondary } = coloursOf(code);
+  const { primary, secondary } = useClubColours()(code);
   return (
     <span aria-hidden="true" data-club-mark="drawn" className="mr-1 inline-flex size-club-mark shrink-0 align-middle shadow-bevel-panel">
       <span className="h-full w-1/2" style={{ backgroundColor: primary }} />

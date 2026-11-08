@@ -86,6 +86,8 @@ export const gates: Record<string, Gate> = {
   "draft/draftStart:start": "runner",
   "feedback/feedback:list": "admin",
   "feedback/feedback:send": "signedIn",
+  "football/clubKits:all": "signedInOrNothing",
+  "football/clubKits:set": "admin",
   "football/matchScores:ofGameweek": "signedIn",
   "football/plGameweeks:firstKickoffs": "signedIn",
   "football/plStandings:ofSeason": "signedIn",

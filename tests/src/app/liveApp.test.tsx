@@ -46,6 +46,8 @@ vi.mock("convex/react", async () => {
         "lineup/lineupDue:isDue": unlessSkipped(() => false),
         "joining/endedInvite:mine": unlessSkipped(() => null),
         "scoring/patchNotes:banner": unlessSkipped(() => null),
+        // Every club's colours, for the shirts and club marks: none held, so the file's first.
+        "football/clubKits:all": unlessSkipped(() => undefined),
       },
       mutations: {
         "signIn/timeZone:recordZone": convex.recordZone,
@@ -61,7 +63,7 @@ vi.mock("convex/react", async () => {
             ["squads/squads:assign", "squads/squads:move", "squads/squads:release"],
             ["scoring/siteScoring:fix", "scoring/siteScoring:saveDraft", "scoring/siteScoring:announce", "scoring/siteScoring:withdraw"],
             ["rules/leagueSettings:changeSettings", "draft/draftOrder:setTeamOrder", "draft/draftOrder:drawTeamOrder"],
-            ["feedback/feedback:send"],
+            ["feedback/feedback:send", "football/clubKits:set"],
             ["scoring/patchNotes:dismissBanner"],
           ]
             .flat()

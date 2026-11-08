@@ -27,6 +27,7 @@ import { BATCH_SIZE, LATEST_RUNS } from "../shared/syncRuns";
 import { keepDroppedDeadlines, recordPassedDeadlines } from "../gameweeks/deadlineRecorder";
 import { emailIfFailed } from "../admin/feedFailureEmails";
 import { writeScores } from "./matchScores";
+import { seedColours } from "./clubKits";
 import { repriceMatches } from "../stats/seasonPointsMoves";
 import { rebuildIfNoneKept } from "../stats/seasonRebuilds";
 import { putNewPlayersOnWaivers } from "../waivers/waiverPlayers";
@@ -94,8 +95,12 @@ export const run = internalAction({
 export const upsertClubs = internalMutation({
   args: { rows: v.array(clubRecord) },
   returns: upserted,
-  handler: (ctx, { rows }): Promise<Upserted> =>
-    upsertEach(ctx, "clubs", rows, (row) => findClubByCode(ctx, row.code)),
+  handler: async (ctx, { rows }): Promise<Upserted> => {
+    const upserted = await upsertEach(ctx, "clubs", rows, (row) => findClubByCode(ctx, row.code));
+    // A club with no colours held gets its first from the file (clubKits.ts, #838).
+    await seedColours(ctx, rows.map(({ code }) => code));
+    return upserted;
+  },
 });
 
 export const upsertPlayers = internalMutation({

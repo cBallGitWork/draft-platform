@@ -14,6 +14,13 @@ export const clubRecord = v.object({
   shortName: v.string(),
 });
 
+/** A club shirt's pattern (spec/12, Club colours: "plain or stripes now, more as a club needs one"). */
+export const shirtPattern = v.union(v.literal("plain"), v.literal("stripes"));
+
+/** A club's two colours, `#rrggbb` (the shirt a fan would name first, and its trim), and its
+ *  shirt's pattern: the admin's (spec/15, The admin), seeded from convex/football/clubColours.ts. */
+export const clubColoursRecord = v.object({ primary: v.string(), secondary: v.string(), pattern: shirtPattern });
+
 /** Whether a player can play, as the platform holds it (spec/06, Availability): the feed's, or the
  *  admin's over it (`convex/availability/`). The auto team reads only this (spec/09). */
 export const availability = v.union(v.literal("out"), v.literal("doubtful"), v.literal("available"));
@@ -152,6 +159,10 @@ export const footballTables = {
    *  the positions sync reads (#13): the shirt he wears until his manager gives him one (spec/05,
    *  Squad numbers). No row while no squad list gives him a number. */
   clubNumbers: defineTable({ code: v.number(), number: v.number() }).index("by_code", ["code"]),
+  /** Each club's colours and shirt pattern, by FPL's season-stable club `code` (#838): the admin
+   *  sets them on his dashboard (spec/15). No row while none are set: the club's shirt and mark
+   *  are white, and it waits in the dashboard's queue. */
+  clubColours: defineTable(clubColoursRecord.extend({ code: v.number() })).index("by_code", ["code"]),
   /** Each match's newest score, which feed gave it and when that read was made. */
   matchScores: defineTable(scoreRead.extend({ feed: scoreFeed, readAt: v.number() })).index("by_fixtureCode", ["fixtureCode"]),
 };

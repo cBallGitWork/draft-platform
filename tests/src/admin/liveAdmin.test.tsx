@@ -11,7 +11,15 @@ import { changeFailedWords } from "../../../src/shared/words";
 import { MINUTE_MS } from "../../../convex/shared/time";
 import { refusals } from "../../../convex/shared/leagueAccess";
 
-const convex = vi.hoisted(() => ({ find: vi.fn(), feeds: vi.fn(), setPosition: vi.fn(), approvePlayer: vi.fn(), approveClub: vi.fn(), setChangeThresholds: vi.fn() }));
+const convex = vi.hoisted(() => ({
+  find: vi.fn(),
+  feeds: vi.fn(),
+  setPosition: vi.fn(),
+  approvePlayer: vi.fn(),
+  approveClub: vi.fn(),
+  setChangeThresholds: vi.fn(),
+  setClubColours: vi.fn(),
+}));
 vi.mock("convex/react", async () =>
   (await import("../../support/src/convexReact.harness")).fakeConvexReact({
     queries: { "positions/playerPositions:find": convex.find, "admin/feeds:feeds": convex.feeds },
@@ -22,6 +30,7 @@ vi.mock("convex/react", async () =>
       "positions/playerPositions:removePosition": vi.fn(),
       "positions/positionSettings:setApproveMode": vi.fn(),
       "positions/positionSettings:setChangeThresholds": convex.setChangeThresholds,
+      "football/clubKits:set": convex.setClubColours,
     },
   }),
 );
@@ -62,6 +71,13 @@ test("new thresholds go to positions/positionSettings:setChangeThresholds", asyn
   convex.setChangeThresholds.mockResolvedValue(null);
   expect(await seam().setChangeThresholds({ flagAfter: 2, removeAfter: 5 })).toBeNull();
   expect(convex.setChangeThresholds).toHaveBeenCalledWith({ flagAfter: 2, removeAfter: 5 });
+});
+
+test("a club's colours go to football/clubKits:set", async () => {
+  convex.setClubColours.mockResolvedValue(null);
+  const colours = { primary: "#D71920", secondary: "#FFFFFF", pattern: "stripes" as const };
+  expect(await seam().setClubColours(999, colours)).toBeNull();
+  expect(convex.setClubColours).toHaveBeenCalledWith({ code: 999, ...colours });
 });
 
 test("a change the server refuses resolves with the server's own words", async () => {
