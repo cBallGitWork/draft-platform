@@ -12,6 +12,9 @@ import { minimumsFilled } from "./areaMinimums";
 // minimum. A player who plays two areas fills whichever minimum helps the squad (spec/03, Squad
 // make-up; areaMinimums.ts), and is named there once. Pure: no I/O.
 
+/** How many of his club's next matches a squad row holds (the picture's Next 3; teamSquad.ts). */
+export const NEXT_MATCHES_SHOWN = 3;
+
 export const squadLimit = v.union(
   v.object({
     kind: v.literal("size"),

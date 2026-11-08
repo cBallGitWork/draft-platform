@@ -5,7 +5,7 @@ import { pickRefusals as draftPickRefusals } from "../../../convex/draft/draftPi
 import type { TradeRules } from "../../../convex/rules/leagueRulesShape";
 import { offerRefusals } from "../../../convex/trades/tradeOffers";
 import { pickRefusals } from "../../../convex/trades/tradePicks";
-import { REVIEW_MS } from "../../../convex/trades/tradeReview";
+import { REVIEW_MS } from "../../../convex/trades/tradeLimits";
 import { ARSENAL, insertClubs, insertPlayers, type HeldPlayer } from "../../support/convex/footballRows.harness";
 import { changeEveryRules } from "../../support/convex/leagueRules.harness";
 import { actingAs, addManagers, adminCreatesLeague, COMMISSIONER, MANAGERS, type TestConvex } from "../../support/convex/leagues.harness";
