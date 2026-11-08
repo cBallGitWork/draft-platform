@@ -1,6 +1,6 @@
 import type { LeagueRules } from "../rules/leagueRulesShape";
-import { LONDON_ZONE } from "../shared/moments";
-import { DAY_MS, HOUR_MS, MINUTE_MS, SECOND_MS } from "../shared/time";
+import { londonOffset } from "../shared/moments";
+import { DAY_MS, HOUR_MS, MINUTE_MS } from "../shared/time";
 
 // When a league's waivers run (#1198; spec/03, spec/08): on each of its runs' weekdays at the hour
 // and minute in UK time, whatever the clocks, Wednesday and Thursday at 18:00 by default
@@ -10,25 +10,6 @@ type WaiverRun = LeagueRules["waivers"]["runs"][number];
 
 /** The weekdays in Date's own order, Sunday first. */
 const DATE_DAYS: readonly WaiverRun["day"][] = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"];
-
-const LONDON = new Intl.DateTimeFormat("en-GB", {
-  timeZone: LONDON_ZONE,
-  hourCycle: "h23",
-  year: "numeric",
-  month: "numeric",
-  day: "numeric",
-  hour: "numeric",
-  minute: "numeric",
-  second: "numeric",
-});
-
-/** How far UK time is ahead of UTC at `at`: nothing in winter, an hour in summer. */
-function londonOffset(at: number): number {
-  const parts = LONDON.formatToParts(at);
-  const part = (type: Intl.DateTimeFormatPartTypes) => Number(parts.find((each) => each.type === type)?.value);
-  const wall = Date.UTC(part("year"), part("month") - 1, part("day"), part("hour"), part("minute"), part("second"));
-  return wall - Math.floor(at / SECOND_MS) * SECOND_MS;
-}
 
 /** The moment it is `hour`:`minute` in the UK on the UK day whose midnight, read as UTC, is `day`. */
 function ukMoment(day: number, hour: number, minute: number): number {

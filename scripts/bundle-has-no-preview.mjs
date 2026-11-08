@@ -22,7 +22,7 @@ const PREVIEW_FILE = /^preview\w*\.ts$|Preview\.ts$/;
  *  own (its words are the app's, its rules row src/rules/preview.ts's, its teams the table's, its
  *  players Scouting's). */
 const NEEDLES = {
-  "src/app/preview.ts": "preview-pro-league",
+  "src/app/preview.ts": "preview-sunday-league",
   "src/admin/preview.ts": "Nick Woltemade",
   "src/draft/preview.ts": "preview-draft-team-",
   "src/draft/previewLists.ts": "Marcos Senesi",
@@ -42,7 +42,9 @@ const NEEDLES = {
   "src/rules/preview.ts": "preview-rules",
   "src/scoring/preview.ts": null,
   "src/scouting/preview.ts": "Virgil van Dijk",
+  "src/scouting/scouts/preview.ts": "Fixtures soften after the next two",
   "src/scouting/shortlist/preview.ts": null,
+  "src/shared/preview.ts": "preview-pro-league",
   "src/squads/preview.ts": "preview-team-1",
   "src/table/preview.ts": "Ctrl Alt Defeat",
 };

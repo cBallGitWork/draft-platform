@@ -3,7 +3,7 @@
 
 import { FIRST_RULES } from "../../convex/rules/firstRules";
 import { leagueSettingsOf } from "../../convex/rules/leagueSettingsPart";
-import { previewSays } from "../app/preview";
+import { previewSays } from "../shared/preview";
 import { PREVIEW_CHANGES_FROM, PREVIEW_REVISION } from "../rules/preview";
 import { previewIdOf, previewTeams } from "../table/preview";
 import type { LeagueSettingsSeam } from "./seam";

@@ -7,7 +7,8 @@ import { EVERY_LEAGUE, howPositionsCount, type HowPositionsCount, type Positions
 import { positionsFromStarts, positionsOf, type WorkedOutPositions } from "./positions";
 import type { Position } from "./positionTables";
 import { internal } from "../_generated/api";
-import { approveMode, changeThresholds, position } from "../schema";
+import { approveMode, changeThresholds, clubColoursRecord, position } from "../schema";
+import { heldColours } from "../football/clubKits";
 
 // Each player's positions (#22): his row holds what the feeds gave (his starts, his label) and the
 // admin's say, and `positionsOf` works his positions out from it on every read, so a change to
@@ -116,8 +117,9 @@ const positionsQueue = v.object({
   /** Positions from starts a run elsewhere has flagged, then removed (spec/06, When positions change). */
   flagged: v.array(v.object({ ...queuedPlayer, position, startsElsewhere: v.number() })),
   removed: v.array(v.object({ ...queuedPlayer, position })),
-  /** The clubs, by name, for approving one whole. */
-  clubs: v.array(v.object({ code: v.number(), name: v.string() })),
+  /** The clubs, by name, for approving one whole and setting its colours (spec/15): null for a club
+   *  with none held, which waits in the queue (#838). */
+  clubs: v.array(v.object({ code: v.number(), name: v.string(), colours: v.union(clubColoursRecord, v.null()) })),
   approveMode,
   thresholds: changeThresholds,
 });
@@ -125,7 +127,7 @@ export type PositionsQueue = Infer<typeof positionsQueue>;
 
 /** The admin's queue (spec/06; spec/15): new signings, whose starts give no position yet (fewer than
  *  3 at a place) and who play on their label until he confirms it, the men whose starts give
- *  positions waiting for his approval, and positions flagged or removed. By name. It reads the rows
+ *  positions waiting for his approval, positions flagged or removed, and each club's colours. By name. It reads the rows
  *  of today's players only, within players.ts's caps, which throw past them rather than lose the
  *  newest, who are the new signings (#214). */
 export const queue = query({
@@ -156,8 +158,9 @@ export const queue = query({
       for (const lost of positionsNow.removed) removed.push({ ...who, position: lost });
     }
     const byName = (one: { name: string }, other: { name: string }) => one.name.localeCompare(other.name);
+    const colours = new Map((await heldColours(ctx)).map(({ code, ...held }) => [code, held]));
     const clubs = currentClubsHeld
-      .map(({ code, name }) => ({ code, name }))
+      .map(({ code, name }) => ({ code, name, colours: colours.get(code) ?? null }))
       .sort(byName);
     return {
       newSignings: newSignings.sort(byName),

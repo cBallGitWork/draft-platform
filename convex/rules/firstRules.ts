@@ -16,9 +16,9 @@ import type { DrawRules, OddTeamOut } from "../table/roundRobin";
 //
 // Only the presets, the team instructions, the deadline, the double-gameweek rule, the odd team
 // out, games a gameweek, the draft's rules and the trades' are the spec's own or Craig's (spec/05,
-// spec/03, spec/09, spec/04, spec/08). The rest
-// is a guess marked where it stands, against docs/research/fantrax-options.md's live values where
-// it has them.
+// spec/03, spec/09, spec/04, spec/08). The rest are starting values the commissioner edits, settled
+// as such by Craig (spec/01: "stop tunneling in on first format we will edit later"), each marked
+// where it stands, against docs/research/fantrax-options.md's live values where it has them.
 
 function everyArea<Value>(value: Value): Record<Area, Value> {
   return Object.fromEntries(AREAS.map((area) => [area, value])) as Record<Area, Value>;
@@ -66,16 +66,16 @@ export const drawRulesOf = (rules: LeagueRules): DrawRules => ({
 export const instructionsOf = (rules: Pick<LeagueRules, "instructions">): readonly Instruction[] => rules.instructions ?? FIRST_INSTRUCTIONS;
 
 export const FIRST_RULES: LeagueRules = {
-  format: "headToHead", // guess: the Tim Hortons league plays head-to-head matchups
+  format: "headToHead", // a starting value (spec/01): the Tim Hortons league plays head-to-head matchups
   squad: {
-    // guess: 14 is the Tim Hortons league's draft rounds on Fantrax, which spec/04 makes the
+    // A starting value (spec/01): 14 is the Tim Hortons league's draft rounds on Fantrax, which spec/04 makes the
     // maximum; 11 is only enough to field a team. No league is made with 14: a new league's
     // maximum is the site's for its size (squadMaximums.ts).
     size: { minimum: 11, maximum: 14 },
     minimumByArea: null,
     maxPerClub: null,
   },
-  // guess: spec/05 sets no defaults. One goalkeeper, and room for every preset.
+  // A starting value (spec/01): spec/05 sets no defaults. One goalkeeper, and room for every preset.
   areaLimits: { ...everyArea({ minimum: 0, maximum: 10 }), goalkeeper: { minimum: 1, maximum: 1 } },
   presets: DEFAULT_PRESETS.map(({ cells, instructions, ...rest }) => ({
     ...rest,
@@ -85,13 +85,13 @@ export const FIRST_RULES: LeagueRules = {
   classics: firstClassics(),
   deadline: { ...FPL_DEADLINE_RULE },
   doubleGameweek: "bothMatches",
-  // guess: the doc's live tie-breaks, "none; highest seed", are a matchup's and a playoff's, not
+  // A starting value (spec/01): the doc's live tie-breaks, "none; highest seed", are a matchup's and a playoff's, not
   // the standings' these are; it has no standings value.
   tieBreaks: ["pointsFor"],
   oddTeamOut: FIRST_ODD_TEAM_OUT,
   gamesPerGameweek: FIRST_GAMES_PER_GAMEWEEK,
   // Craig's (spec/03, spec/08; 5 Nov 2026): Wednesday and Thursday at 18:00 UK time, "for now",
-  // and reverse table order. The 24 hours on waivers is a constant (../waivers/waiverPlayers.ts).
+  // and reverse table order. The 24 hours on waivers is a constant (../waivers/waiverLimits.ts).
   waivers: {
     runs: [
       { day: "wednesday", hour: 18, minute: 0 },

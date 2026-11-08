@@ -2,18 +2,14 @@ import type { Doc, Id } from "../_generated/dataModel";
 import type { MutationCtx, QueryCtx } from "../_generated/server";
 import { draftIsLive } from "../draft/draftRow";
 import { LEAGUES_READ_MOST, takeAllOrThrow } from "../shared/cappedRead";
-import { DAY_MS } from "../shared/time";
 import type { LeagueDeadlines } from "../gameweeks/deadline";
+import { WAIVER_MS } from "./waiverLimits";
 import { deadlinePassedSince } from "./waiverLock";
 
 // Who is on waivers in a league (#1197, spec/08 Waivers and free agency): a row in waiverPlayers
 // (../schema/waivers.ts) each, only while no team holds him. A drop puts him there for at least 24
 // hours; a player new to the Premier League once the league's draft is over, and those nobody
 // drafted when the league's draft setting says waivers (spec/04), go there for the next run.
-
-/** How long a dropped player is on waivers before a run can take him (spec/08: "at least 24
- *  hours"). Craig's answer, so a constant: no league setting holds it. */
-export const WAIVER_MS = DAY_MS;
 
 /** The player's waiver row in the league, or null while he isn't on waivers. */
 export function waiverRowOf(ctx: QueryCtx, leagueId: Id<"leagues">, playerCode: number): Promise<Doc<"waiverPlayers"> | null> {

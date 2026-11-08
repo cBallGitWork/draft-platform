@@ -4,20 +4,22 @@ import { mutation, query, type MutationCtx, type QueryCtx } from "../_generated/
 import { leagueDeadlines } from "../gameweeks/leagueDeadlines";
 import { fileLetter } from "../mail/letters";
 import { offerLetter } from "../mail/tradeLetterWords";
+import { tradePick } from "../schema/trades";
 import { managerOf, refuse, refusals, teamIn } from "../shared/leagueAccess";
 import { playerByCode } from "../shared/players";
 import { placeOf } from "../squads/squadPlace";
 import { squadWarning } from "../squads/squads";
 import { closeOffer, deadlinePassed, leagueOffers, reviewHolding, tradeWordsOf } from "./tradeClose";
 import { startReview, tradeWarnings } from "./tradeReview";
+import { checkPicks, checkPicksFree, type TradePicks } from "./tradePicks";
 import { onAutoTeam, tradesShut } from "./tradeShut";
 
 // A trade's offer (spec/08 Trades; #383): a manager offers another any mix of players on either
 // side, in any numbers, with a one-line note. The other manager accepts, rejects or counters with
 // a changed offer, which closes the old one; the manager who made it can withdraw it until it is
 // accepted (Craig, 6 Nov 2026). Accepted, it goes into review or straight through
-// (tradeReview.ts). Both managers get a Mail letter at each step. Draft picks join offers with the
-// draft (#383: "ship players-only first").
+// (tradeReview.ts). Both managers get a Mail letter at each step. Before the draft starts, an
+// offer can instead be one draft pick each way and nothing else (tradePicks.ts; #1096).
 
 /** The longest note an offer carries: Claude's sizing for "a one-line note". */
 export const NOTE_MOST = 140;
@@ -45,8 +47,12 @@ const offerArgs = {
   leagueId: v.id("leagues"),
   gives: v.array(v.number()),
   gets: v.array(v.number()),
+  /** A pick trade's picks, one each way (tradePicks.ts), with `gives` and `gets` empty. */
+  picks: v.optional(v.object({ gives: tradePick, gets: tradePick })),
   note: v.union(v.string(), v.null()),
 };
+
+type OfferTerms = { gives: number[]; gets: number[]; picks?: TradePicks; note: string | null };
 
 /** The note as kept: trimmed, absent when blank. */
 function keptNote(note: string | null): string | undefined {
@@ -76,6 +82,19 @@ async function checkPlayers(ctx: QueryCtx, leagueId: Id<"leagues">, sides: reado
   }
 }
 
+/** Refuses what each side gives unless it is players each on his side's team, or one pick each way
+ *  and nothing else (tradePicks.ts). */
+async function checkSides(ctx: QueryCtx, leagueId: Id<"leagues">, from: Doc<"teams">, to: Doc<"teams">, { gives, gets, picks }: Omit<OfferTerms, "note">) {
+  if (picks !== undefined) {
+    await checkPicks(ctx, leagueId, picks, { from, to, players: gives.length + gets.length });
+    return;
+  }
+  await checkPlayers(ctx, leagueId, [
+    { team: from, codes: gives },
+    { team: to, codes: gets },
+  ]);
+}
+
 /** Makes an offer from `from` to `to`, with both managers' letter, after every check. */
 async function makeOffer(
   ctx: MutationCtx,
@@ -83,18 +102,25 @@ async function makeOffer(
   by: string,
   from: Doc<"teams">,
   to: Doc<"teams">,
-  { gives, gets, note }: { gives: number[]; gets: number[]; note: string | null },
+  { gives, gets, picks, note }: OfferTerms,
   countered: boolean,
 ) {
   if (from._id === to._id) refuse(offerRefusals.sameTeam);
   const now = Date.now();
   await checkOpen(ctx, league, [from, to], now);
-  await checkPlayers(ctx, league._id, [
-    { team: from, codes: gives },
-    { team: to, codes: gets },
-  ]);
+  await checkSides(ctx, league._id, from, to, { gives, gets, picks });
   const kept = keptNote(note);
-  const offer = { leagueId: league._id, fromTeamId: from._id, toTeamId: to._id, gives, gets, by, madeAt: now, ...(kept === undefined ? {} : { note: kept }) };
+  const offer = {
+    leagueId: league._id,
+    fromTeamId: from._id,
+    toTeamId: to._id,
+    gives,
+    gets,
+    ...(picks === undefined ? {} : { picks }),
+    by,
+    madeAt: now,
+    ...(kept === undefined ? {} : { note: kept }),
+  };
   const warnings = await tradeWarnings(ctx, league._id, offer);
   const offerId = await ctx.db.insert("tradeOffers", offer);
   const words = await tradeWordsOf(ctx, { ...offer, _id: offerId, _creationTime: now });
@@ -107,10 +133,10 @@ async function makeOffer(
 export const offer = mutation({
   args: { ...offerArgs, toTeamId: v.id("teams") },
   returns: v.object({ offerId: v.id("tradeOffers"), warnings: teamWarnings }),
-  handler: async (ctx, { leagueId, toTeamId, gives, gets, note }) => {
+  handler: async (ctx, { leagueId, toTeamId, ...terms }) => {
     const { email, league, team } = await managerOf(ctx, leagueId);
     const to = await teamIn(ctx, leagueId, toTeamId);
-    return makeOffer(ctx, league, email, team, to, { gives, gets, note }, false);
+    return makeOffer(ctx, league, email, team, to, terms, false);
   },
 });
 
@@ -140,10 +166,8 @@ export const accept = mutation({
     const { email, league, team, offer } = await offerToMe(ctx, leagueId, offerId);
     const from = await teamIn(ctx, leagueId, offer.fromTeamId);
     await checkOpen(ctx, league, [from, team], Date.now());
-    await checkPlayers(ctx, leagueId, [
-      { team: from, codes: offer.gives },
-      { team, codes: offer.gets },
-    ]);
+    await checkSides(ctx, leagueId, from, team, offer);
+    await checkPicksFree(ctx, offer);
     for (const code of [...offer.gives, ...offer.gets]) {
       if ((await reviewHolding(ctx, leagueId, code)) !== null) {
         refuse(offerRefusals.held((await playerByCode(ctx, code))?.name ?? "A player"));
@@ -171,11 +195,11 @@ export const reject = mutation({
 export const counter = mutation({
   args: { ...offerArgs, offerId: v.id("tradeOffers") },
   returns: v.object({ offerId: v.id("tradeOffers"), warnings: teamWarnings }),
-  handler: async (ctx, { leagueId, offerId, gives, gets, note }) => {
+  handler: async (ctx, { leagueId, offerId, ...terms }) => {
     const { email, league, team, offer } = await offerToMe(ctx, leagueId, offerId);
     const to = await teamIn(ctx, leagueId, offer.fromTeamId);
     await ctx.db.delete("tradeOffers", offer._id);
-    return makeOffer(ctx, league, email, team, to, { gives, gets, note }, true);
+    return makeOffer(ctx, league, email, team, to, terms, true);
   },
 });
 
@@ -202,6 +226,8 @@ const shownOffer = v.object({
   toTeamName: v.string(),
   gives: v.array(namedPlayer),
   gets: v.array(namedPlayer),
+  /** A pick trade's picks, each named as its letters name it; null for a players' trade. */
+  picks: v.union(v.object({ gives: v.object({ ...tradePick.fields, name: v.string() }), gets: v.object({ ...tradePick.fields, name: v.string() }) }), v.null()),
   note: v.union(v.string(), v.null()),
   madeAt: v.number(),
   /** Null while it is open; once accepted, how it is reviewed and when the review ends. */
@@ -227,6 +253,7 @@ export const mine = query({
           toTeamName: words.toTeamName,
           gives: named(offer.gives, words.gives),
           gets: named(offer.gets, words.gets),
+          picks: offer.picks === undefined ? null : { gives: { ...offer.picks.gives, name: words.gives[0] }, gets: { ...offer.picks.gets, name: words.gets[0] } },
           note: words.note,
           madeAt: offer.madeAt,
           review: offer.review === undefined ? null : { kind: offer.review.reviewer.kind, endsAt: offer.review.endsAt },

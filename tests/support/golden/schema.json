@@ -1309,6 +1309,101 @@
       }
     },
     {
+      "tableName": "plPointsOverrides",
+      "indexes": [
+        {
+          "indexDescriptor": "by_season_and_clubCode",
+          "fields": [
+            "season",
+            "clubCode"
+          ]
+        }
+      ],
+      "stagedDbIndexes": [],
+      "searchIndexes": [],
+      "stagedSearchIndexes": [],
+      "vectorIndexes": [],
+      "stagedVectorIndexes": [],
+      "documentType": {
+        "type": "object",
+        "value": {
+          "season": {
+            "fieldType": {
+              "type": "number"
+            },
+            "optional": false
+          },
+          "clubCode": {
+            "fieldType": {
+              "type": "number"
+            },
+            "optional": false
+          },
+          "points": {
+            "fieldType": {
+              "type": "number"
+            },
+            "optional": false
+          }
+        }
+      }
+    },
+    {
+      "tableName": "clubColours",
+      "indexes": [
+        {
+          "indexDescriptor": "by_code",
+          "fields": [
+            "code"
+          ]
+        }
+      ],
+      "stagedDbIndexes": [],
+      "searchIndexes": [],
+      "stagedSearchIndexes": [],
+      "vectorIndexes": [],
+      "stagedVectorIndexes": [],
+      "documentType": {
+        "type": "object",
+        "value": {
+          "primary": {
+            "fieldType": {
+              "type": "string"
+            },
+            "optional": false
+          },
+          "secondary": {
+            "fieldType": {
+              "type": "string"
+            },
+            "optional": false
+          },
+          "pattern": {
+            "fieldType": {
+              "type": "union",
+              "value": [
+                {
+                  "type": "literal",
+                  "value": "plain"
+                },
+                {
+                  "type": "literal",
+                  "value": "stripes"
+                }
+              ]
+            },
+            "optional": false
+          },
+          "code": {
+            "fieldType": {
+              "type": "number"
+            },
+            "optional": false
+          }
+        }
+      }
+    },
+    {
       "tableName": "matchScores",
       "indexes": [
         {
@@ -22584,6 +22679,33 @@
       }
     },
     {
+      "tableName": "deadlineAlarms",
+      "indexes": [],
+      "stagedDbIndexes": [],
+      "searchIndexes": [],
+      "stagedSearchIndexes": [],
+      "vectorIndexes": [],
+      "stagedVectorIndexes": [],
+      "documentType": {
+        "type": "object",
+        "value": {
+          "scheduledId": {
+            "fieldType": {
+              "type": "id",
+              "tableName": "_scheduled_functions"
+            },
+            "optional": false
+          },
+          "at": {
+            "fieldType": {
+              "type": "number"
+            },
+            "optional": false
+          }
+        }
+      }
+    },
+    {
       "tableName": "playedFixtures",
       "indexes": [
         {
@@ -23304,6 +23426,26 @@
               }
             },
             "optional": false
+          },
+          "instructions": {
+            "fieldType": {
+              "type": "object",
+              "value": {
+                "attacking": {
+                  "fieldType": {
+                    "type": "string"
+                  },
+                  "optional": false
+                },
+                "defensive": {
+                  "fieldType": {
+                    "type": "string"
+                  },
+                  "optional": false
+                }
+              }
+            },
+            "optional": true
           }
         }
       }
@@ -23751,6 +23893,37 @@
                     }
                   },
                   "optional": true
+                }
+              }
+            },
+            "optional": true
+          },
+          "tradedPicks": {
+            "fieldType": {
+              "type": "array",
+              "value": {
+                "type": "object",
+                "value": {
+                  "round": {
+                    "fieldType": {
+                      "type": "number"
+                    },
+                    "optional": false
+                  },
+                  "teamId": {
+                    "fieldType": {
+                      "type": "id",
+                      "tableName": "teams"
+                    },
+                    "optional": false
+                  },
+                  "ownerId": {
+                    "fieldType": {
+                      "type": "id",
+                      "tableName": "teams"
+                    },
+                    "optional": false
+                  }
                 }
               }
             },
@@ -24572,6 +24745,56 @@
             },
             "optional": false
           },
+          "picks": {
+            "fieldType": {
+              "type": "object",
+              "value": {
+                "gives": {
+                  "fieldType": {
+                    "type": "object",
+                    "value": {
+                      "round": {
+                        "fieldType": {
+                          "type": "number"
+                        },
+                        "optional": false
+                      },
+                      "teamId": {
+                        "fieldType": {
+                          "type": "id",
+                          "tableName": "teams"
+                        },
+                        "optional": false
+                      }
+                    }
+                  },
+                  "optional": false
+                },
+                "gets": {
+                  "fieldType": {
+                    "type": "object",
+                    "value": {
+                      "round": {
+                        "fieldType": {
+                          "type": "number"
+                        },
+                        "optional": false
+                      },
+                      "teamId": {
+                        "fieldType": {
+                          "type": "id",
+                          "tableName": "teams"
+                        },
+                        "optional": false
+                      }
+                    }
+                  },
+                  "optional": false
+                }
+              }
+            },
+            "optional": true
+          },
           "note": {
             "fieldType": {
               "type": "string"
@@ -24661,6 +24884,105 @@
                   "optional": false
                 }
               }
+            },
+            "optional": true
+          }
+        }
+      }
+    },
+    {
+      "tableName": "recaps",
+      "indexes": [
+        {
+          "indexDescriptor": "by_leagueId_and_gameweek",
+          "fields": [
+            "leagueId",
+            "gameweek"
+          ]
+        }
+      ],
+      "stagedDbIndexes": [],
+      "searchIndexes": [],
+      "stagedSearchIndexes": [],
+      "vectorIndexes": [],
+      "stagedVectorIndexes": [],
+      "documentType": {
+        "type": "object",
+        "value": {
+          "leagueId": {
+            "fieldType": {
+              "type": "id",
+              "tableName": "leagues"
+            },
+            "optional": false
+          },
+          "gameweek": {
+            "fieldType": {
+              "type": "number"
+            },
+            "optional": false
+          },
+          "state": {
+            "fieldType": {
+              "type": "union",
+              "value": [
+                {
+                  "type": "literal",
+                  "value": "writing"
+                },
+                {
+                  "type": "literal",
+                  "value": "written"
+                }
+              ]
+            },
+            "optional": false
+          },
+          "text": {
+            "fieldType": {
+              "type": "string"
+            },
+            "optional": true
+          },
+          "writtenAt": {
+            "fieldType": {
+              "type": "number"
+            },
+            "optional": true
+          },
+          "teamPoints": {
+            "fieldType": {
+              "type": "array",
+              "value": {
+                "type": "object",
+                "value": {
+                  "teamId": {
+                    "fieldType": {
+                      "type": "id",
+                      "tableName": "teams"
+                    },
+                    "optional": false
+                  },
+                  "points": {
+                    "fieldType": {
+                      "type": "number"
+                    },
+                    "optional": false
+                  }
+                }
+              }
+            },
+            "optional": false
+          },
+          "failedTries": {
+            "fieldType": {
+              "type": "number"
+            },
+            "optional": true
+          },
+          "lastFailure": {
+            "fieldType": {
+              "type": "string"
             },
             "optional": true
           }

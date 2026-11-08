@@ -3,13 +3,14 @@ import { expect, test } from "vitest";
 // No value-import cycle in convex/. A cycle works only while every use sits inside a function:
 // a module-level constant built from a file in the loop is undefined at load (#198). #637 added
 // one between lineups.ts and squads.ts and nothing noticed; this test notices the next one.
-// Beside it: schema.ts and the browser's rules editor stay clear of the scorer's files (#756).
+// Beside it: schema.ts and the browser's rules editor stay clear of the scorer's files (#756), and
+// src/ has no cycle either (#1330: four features' words.ts once re-exported each other in a loop).
 
 const SOURCES = import.meta.glob("../../convex/**/*.ts", { query: "?raw", import: "default", eager: true }) as Record<
   string,
   string
 >;
-const BROWSER_SOURCES = import.meta.glob("../../src/**/*.ts", { query: "?raw", import: "default", eager: true }) as Record<
+const BROWSER_SOURCES = import.meta.glob("../../src/**/*.{ts,tsx}", { query: "?raw", import: "default", eager: true }) as Record<
   string,
   string
 >;
@@ -23,7 +24,10 @@ const SCORER_FILES = [
 const SOURCE_PREFIX = "../../";
 const GENERATED = "convex/_generated/";
 const TS = ".ts";
+const TSX = ".tsx";
 const INDEX = "/index.ts";
+/** A specifier naming a file that isn't code, such as a stylesheet, which no cycle runs through. */
+const NOT_CODE = /\.(css|svg|png|json)$/;
 
 /** `import … from "x"` and `export … from "x"`, the clause kept to tell type-only ones apart. */
 const FROM_CLAUSE = /^\s*(import|export)\s+([^;=]*?)\s*from\s*["']([^"']+)["']/gm;
@@ -60,15 +64,16 @@ function normalise(path: string): string {
   return parts.join("/");
 }
 
-/** The convex file a relative specifier names: `<path>.ts` first, then `<path>/index.ts`. */
+/** The file a relative specifier names: `<path>.ts` first, then `<path>.tsx`, then `<path>/index.ts`. */
 function resolve(from: string, specifier: string, known: Map<string, string>): string | undefined {
-  if (!specifier.startsWith(".")) return undefined;
+  if (!specifier.startsWith(".") || NOT_CODE.test(specifier)) return undefined;
   const base = normalise(`${folderOf(from)}/${specifier}`);
-  for (const candidate of [base.endsWith(TS) ? base : `${base}${TS}`, `${base}${INDEX}`]) {
+  const named = base.endsWith(TS) || base.endsWith(TSX);
+  for (const candidate of named ? [base] : [`${base}${TS}`, `${base}${TSX}`, `${base}${INDEX}`]) {
     if (candidate.startsWith(GENERATED)) return undefined;
     if (known.has(candidate)) return candidate;
   }
-  throw new Error(`${from} imports ${specifier}, which names no file under convex/`);
+  throw new Error(`${from} imports ${specifier}, which names no file under convex/ or src/`);
 }
 
 /** The files one file loads by value import, each once. */
@@ -166,6 +171,11 @@ test("the walk finds a cycle and skips type-only imports", () => {
 
 test("no value-import cycle in convex/", () => {
   const found = cycles(edges(files()));
+  expect(found, `import cycles: ${found.map((g) => g.join(" <-> ")).join("; ")}`).toEqual([]);
+});
+
+test("no value-import cycle in src/ (#1330)", () => {
+  const found = cycles(edges(new Map([...files(), ...files(BROWSER_SOURCES)])));
   expect(found, `import cycles: ${found.map((g) => g.join(" <-> ")).join("; ")}`).toEqual([]);
 });
 

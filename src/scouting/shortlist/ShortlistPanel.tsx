@@ -6,7 +6,7 @@ import { Loading, Panel, PanelNote, Problem, Status } from "../../ui/Panel";
 import { playerCardPath } from "../../playerCard/paths";
 import { useChange } from "../../shared/useChange";
 import { OwnerName } from "../../ui/OwnerName";
-import { ClubMark, ClubShort } from "../../premierLeague/ClubName";
+import { ClubMark, ClubShort } from "../../ui/ClubName";
 import type { QueueFromShortlist, ShortlistSeam } from "./seam";
 import {
   addToQueueNamedLabel,

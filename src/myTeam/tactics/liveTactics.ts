@@ -26,7 +26,7 @@ export const liveTactics: TacticsSeam = {
     const remove = useMutation(api.lineup.savedPlans.remove);
     return useMemo(
       () => ({
-        save: (leagueId, name, slots) => refusalOf(() => save({ leagueId, name, slots: [...slots] }), "Saving a plan", planSaveFailedWords),
+        save: (leagueId, name, slots, instructions) => refusalOf(() => save({ leagueId, name, slots: [...slots], instructions }), "Saving a plan", planSaveFailedWords),
         remove: (leagueId, name) => refusalOf(() => remove({ leagueId, name }), "Deleting a plan", planDeleteFailedWords),
       }),
       [save, remove],

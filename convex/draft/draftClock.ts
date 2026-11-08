@@ -2,7 +2,7 @@ import { internal } from "../_generated/api";
 import type { Doc, Id } from "../_generated/dataModel";
 import type { MutationCtx } from "../_generated/server";
 import { SECOND_MS } from "../shared/time";
-import { draftOf } from "./draftRow";
+import { draftOf, picksMadeIn } from "./draftRow";
 import { picksAtOnce } from "./draftTimeouts";
 import { pickOnTheClock } from "./snakeOrder";
 
@@ -42,7 +42,7 @@ export async function startClock(
 ): Promise<Clocked | null> {
   const draft = await draftOf(ctx, leagueId);
   if (draft?.started === undefined) throw new Error(`League ${leagueId}'s draft hasn't started, so no pick can be put on the clock`);
-  const turn = pickOnTheClock(draft.started.teamIds, draft.started.rounds, picksMade);
+  const turn = pickOnTheClock(draft.started.teamIds, draft.started.rounds, picksMade, draft.tradedPicks);
   if (turn === null) {
     await ctx.db.patch("drafts", draft._id, { clock: undefined });
     return null;
@@ -54,9 +54,39 @@ export async function startClock(
   if (pausedAt !== undefined) {
     await ctx.db.patch("drafts", draft._id, { clock: { ...clock, paused: { at: pausedAt, pickSeconds } } });
   } else {
-    const firesAt = picksAtOnce(draft.timeouts, team) && !fullClock ? startsAt : endsAt;
-    const job = await ctx.scheduler.runAt(firesAt, internal.draft.draftPicks.autoPick, { leagueId, pick: turn.pick });
-    await ctx.db.patch("drafts", draft._id, { clock: { ...clock, job } });
+    await scheduleAutoPick(ctx, draft, clock, team);
   }
   return { pick: turn.pick, round: turn.round, team, startsAt, endsAt };
+}
+
+/** A draft's pick clock, as its row holds it. */
+type Clock = NonNullable<Doc<"drafts">["clock"]>;
+
+/** When the draft picks for `team`, whose pick is `clock`'s: as the clock starts for a team it picks
+ *  for at once (draftTimeouts.ts `picksAtOnce`), unless the commissioner's undo put the pick back on
+ *  its full clock, and when the clock runs out otherwise. */
+export function autoPickAt(draft: Doc<"drafts">, clock: Clock, team: Doc<"teams">): number {
+  return picksAtOnce(draft.timeouts, team) && !clock.fullClock ? clock.startsAt : clock.endsAt;
+}
+
+/** Schedules the pick the draft makes for `team`, whose pick is `clock`'s, at `autoPickAt`, and
+ *  saves the job on the clock. Cancels `clock`'s job first, so a caller running as that job passes
+ *  the clock without it. A paused clock schedules nothing until the commissioner resumes it. */
+export async function scheduleAutoPick(ctx: MutationCtx, draft: Doc<"drafts">, clock: Clock, team: Doc<"teams">): Promise<void> {
+  if (clock.paused !== undefined) return;
+  if (clock.job !== undefined) await ctx.scheduler.cancel(clock.job);
+  const job = await ctx.scheduler.runAt(autoPickAt(draft, clock, team), internal.draft.draftPicks.autoPick, { leagueId: draft.leagueId, pick: clock.pick });
+  await ctx.db.patch("drafts", draft._id, { clock: { ...clock, job } });
+}
+
+/** When `team`'s pick is on the clock in its league's draft, schedules its auto-pick again, for a
+ *  team whose rule just changed: its manager turned auto-pick on (autoPickSwitch.ts; #1100), or it
+ *  lost its manager, when nobody can pick for it and the draft picks at once (Craig, 8 Nov 2026:
+ *  "Auto-pick at once"; #1334). `draft` is the row as it is now, timeouts included. */
+export async function rescheduleIfOnTheClock(ctx: MutationCtx, draft: Doc<"drafts">, team: Doc<"teams">): Promise<void> {
+  const { clock, started } = draft;
+  if (clock === undefined || started === undefined) return;
+  const turn = pickOnTheClock(started.teamIds, started.rounds, await picksMadeIn(ctx, draft.leagueId), draft.tradedPicks);
+  if (turn?.pick !== clock.pick || turn.team !== team._id) return;
+  await scheduleAutoPick(ctx, draft, clock, team);
 }

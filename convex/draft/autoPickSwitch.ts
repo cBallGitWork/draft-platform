@@ -1,11 +1,10 @@
 import { v } from "convex/values";
-import { internal } from "../_generated/api";
 import { mutation } from "../_generated/server";
 import { managerOf, refuse } from "../shared/leagueAccess";
+import { rescheduleIfOnTheClock } from "./draftClock";
 import { pickRefusals } from "./draftPicks";
 import { draftIsLive, draftOf } from "./draftRow";
 import { afterChoosing, afterTakeBack, isOnAutoPick } from "./draftTimeouts";
-import { pickOnTheClock } from "./snakeOrder";
 
 // A manager's own auto-pick switch (spec/04, Auto-pick): he turns it on himself (#1100), or takes
 // control back from it (#1094). The draft's timeouts hold which teams are on it (draftTimeouts.ts),
@@ -30,12 +29,7 @@ export const turnOn = mutation({
       return null;
     }
     await ctx.db.patch("drafts", draft._id, { timeouts });
-    const { clock, started } = draft;
-    if (clock === undefined || started === undefined || clock.paused !== undefined || clock.fullClock) return null;
-    if (pickOnTheClock(started.teamIds, started.rounds, clock.pick - 1)?.team !== team._id) return null;
-    if (clock.job !== undefined) await ctx.scheduler.cancel(clock.job);
-    const job = await ctx.scheduler.runAt(clock.startsAt, internal.draft.draftPicks.autoPick, { leagueId, pick: clock.pick });
-    await ctx.db.patch("drafts", draft._id, { clock: { ...clock, job } });
+    await rescheduleIfOnTheClock(ctx, { ...draft, timeouts }, team);
     return null;
   },
 });

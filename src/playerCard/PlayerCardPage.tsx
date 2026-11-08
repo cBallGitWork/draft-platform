@@ -2,7 +2,7 @@ import { useCanGoBack, useRouter } from "@tanstack/react-router";
 import type { ReactNode } from "react";
 import type { LeagueSummary } from "../../convex/leagues/myLeagues";
 import { PositionCodes } from "../ui/PositionCodes";
-import { ClubMark } from "../premierLeague/ClubName";
+import { ClubMark } from "../ui/ClubName";
 import { OwnerName } from "../ui/OwnerName";
 import { SCOUTING_PATH } from "../frame/menu";
 import { Loading, PAGE_STACK, PageSection, Panel, PANEL_BODY, PanelNote } from "../ui/Panel";
@@ -12,6 +12,8 @@ import type { PlayerCard, PlayerCardSeam } from "./seam";
 import { MatchName } from "./MatchName";
 import { Season, usePricedAt } from "./SeasonPanel";
 import { OverridePoints } from "./OverridePoints";
+import { ScoutAction } from "./ScoutAction";
+import { ScoutReport } from "./ScoutReport";
 import { ShortlistAction } from "./ShortlistAction";
 import { WaiverAction } from "./WaiverAction";
 import {
@@ -38,9 +40,9 @@ import {
 
 /** A player's card (spec/12, The player card), its own page, for anyone in the league: who he is
  *  and who owns him, FPL's news, this season's matches by category, last season's line and his
- *  club's next fixtures. Its actions (shortlist, scout, claim or drop, trade) join below the facts
- *  as each is built: the shortlist is (#374), claim or drop (#1200), and for whoever `runs` the
- *  league, the override (#32). */
+ *  club's next fixtures, and his team's scout reports on him (#375). Its actions (shortlist, scout,
+ *  claim or drop, trade) join below the facts as each is built: the shortlist is (#374), the scout
+ *  (#375), claim or drop (#1200), and for whoever `runs` the league, the override (#32). */
 export function PlayerCardPage({ league, runs, playerCode, seam }: { league: LeagueSummary; runs: boolean; playerCode: number; seam: PlayerCardSeam }) {
   const card = seam.usePlayerCard(league.leagueId, playerCode, useMinute());
   return (
@@ -63,9 +65,11 @@ function Card({ league, runs, card, seam }: { league: LeagueSummary; runs: boole
       <div className="flex flex-col gap-2">
         <Facts card={card}>
           <ShortlistAction leagueId={league.leagueId} playerCode={card.code} gone={card.gone} seam={seam} />
+          <ScoutAction leagueId={league.leagueId} playerCode={card.code} gone={card.gone} seam={seam} />
           <WaiverAction leagueId={league.leagueId} card={card} seam={seam} />
           {runs && <OverridePoints leagueId={league.leagueId} card={card} seam={seam} />}
         </Facts>
+        <ScoutReport leagueId={league.leagueId} playerCode={card.code} seam={seam} />
         <LastSeason lastSeason={card.lastSeason} shown={pricedAt.shown} />
         <NextFixtures card={card} />
       </div>

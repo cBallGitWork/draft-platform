@@ -78,6 +78,15 @@ Feature 4 of [SPEC.md](../SPEC.md). Only Craig's answers.
   20 Oct 2026). He keeps his place in the squad, shown as not available, like an FPL red flag.
 - A traded pick shows on the board under the team that owns it now, marked "via" the team it came
   from (Craig, 4 Nov 2026, "yes" to Claude's recommendation).
+- A pick trade is one pick for one pick: "nah dont allow uneven picks, teams just need to figure
+  tha tout" (Craig, 4 Nov 2026, on #1096). An offer with a pick in it holds one pick each way and
+  nothing else, no players (Craig, 8 Nov 2026, on #1096). `S04.2`
+- A traded pick is a team's pick in a round, not a fixed slot: "Just trade '3rd round pick' rather
+  than precise number" (Craig, 8 Nov 2026, on #1096, replacing his 4 Nov "a fixed slot"). It goes
+  wherever that team's turn falls in that round, so the order can still change. `S04.3`
+- A pick trade still in review when the draft starts closes without going through, and both
+  managers get a letter saying why; any pick offer still open closes the same way (Craig, 8 Nov
+  2026, on #1096). `S04.4`
 - Until waivers are built, players nobody drafts go to free agents (Craig, 4 Nov 2026, "yes" to
   Claude's recommendation).
 - Players nobody drafts go to waivers or straight to free agents: a league setting, waivers by
@@ -102,6 +111,9 @@ Feature 4 of [SPEC.md](../SPEC.md). Only Craig's answers.
   10 seconds (Craig, 4 Nov 2026, on #1091).
 - A team with no manager, which the commissioner hasn't taken on, is auto-picked at once, and the
   next team's clock starts after the 10-second gap (Craig, 4 Nov 2026, on #1091).
+- When a manager leaves or is removed while his team's pick is on the clock, the pick is made for
+  the team at once, not at the clock's end, as nobody can pick for it (Craig, 8 Nov 2026, on #1334:
+  "Auto-pick at once"). `S04.5`
 - After a timed-out pick, the next clock waits the usual 10 seconds, as after every other pick
   (Craig, 4 Nov 2026, on #1091).
 - Players the ranking leaves out come after every ranked player, ordered by last season's points,

@@ -4,7 +4,7 @@
 import { expect, type Page } from "@playwright/test";
 import { DEFAULT_PRESETS } from "../../convex/lineup/presets";
 import { ADMIN_FEEDBACK_PATH, ADMIN_FEEDS_PATH, ADMIN_PATH } from "../../src/admin/paths";
-import { miniBeta } from "../../src/app/preview";
+import { miniBeta } from "../../src/shared/preview";
 import { MY_TEAM_PATH, SCOUTING_PATH } from "../../src/frame/menu";
 import { invitesPath } from "../../src/joining/paths";
 import { ERROR_PAGE_TITLE, mainMenuLabel } from "../../src/frame/words";
@@ -226,7 +226,7 @@ test.describe("dev server, signed out of Convex", { tag: "@dev" }, () => {
 
     for (const [session, path, title] of BUILT_SCREENS) {
       test(`?preview=${session} at ${path} shows "${title}", doesn't scroll sideways, and has no tap under the tap size`, async ({ page }) => {
-        await page.goto(`${path}?preview=${session}`);
+        await page.goto(`${path}${path.includes("?") ? "&" : "?"}preview=${session}`);
         await expect(page.getByRole("main").getByRole("heading", { level: 1, name: title, exact: true })).toBeVisible();
         await expect(page.getByRole("heading", { name: ERROR_PAGE_TITLE })).toHaveCount(0);
         const { scrollWidth, innerWidth } = await page.evaluate(() => ({

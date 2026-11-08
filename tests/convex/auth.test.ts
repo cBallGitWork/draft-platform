@@ -1,6 +1,6 @@
 import { expect, test, vi } from "vitest";
 import { replyWords } from "../../src/signIn/words";
-import { LINK_LIFETIME_S } from "../../convex/auth";
+import { LINK_LIFETIME_S } from "../../convex/signIn/signInLimits";
 import { approvedEmail, inviteEmail } from "../../convex/joining/joiningEmails";
 import { SIGN_IN_SUBJECT_START, signInEmail } from "../../convex/signIn/signInEmail";
 import { HOUR_MS, MINUTE_MS } from "../../convex/shared/time";

@@ -1,6 +1,6 @@
 import { cellClassOf, ColumnHeads } from "../ui/ColumnHeads";
 import { LiveNote, Loading, Panel, PanelNote } from "../ui/Panel";
-import { ClubMark, ClubName } from "./ClubName";
+import { ClubMark, ClubName } from "../ui/ClubName";
 import type { PlStandings, PremierLeagueSeam } from "./seam";
 import { goalDifferenceWords, loadingTableWords, noClubsWords, provisionalWords, TABLE_TITLE, tableColumns } from "./words";
 

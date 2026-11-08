@@ -70,6 +70,7 @@ export async function aRowInEveryTable(t: TestConvex, leagueId: Id<"leagues">): 
     await ctx.db.insert("squadPlayers", { leagueId, teamId, playerCode });
     await ctx.db.insert("shortlistPlayers", { leagueId, teamId, playerCode });
     await ctx.db.insert("scouts", { leagueId, teamId, playerCode, sentAt: 0, dueAt: 0, state: "reported", report: { text: WORDS, writtenAt: 0 } });
+    await ctx.db.insert("recaps", { leagueId, gameweek, state: "written", text: WORDS, writtenAt: 0, teamPoints: [{ teamId, points: 0 }] });
     await ctx.db.insert("waiverPlayers", { leagueId, playerCode: playerCode + 1, claimableFrom: 0 });
     await ctx.db.insert("waiverClaims", { leagueId, teamId, playerCode: playerCode + 1, dropCode: playerCode, rank: 0, by: ANN });
     await ctx.db.insert("tradeOffers", { leagueId, fromTeamId: teamId, toTeamId: teamId, gives: [playerCode], gets: [], by: ANN, madeAt: 0 });

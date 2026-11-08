@@ -1,6 +1,7 @@
 import type { LeagueSummary } from "../../convex/leagues/myLeagues";
-import { coloursOf, inkOn, type Ink } from "../../convex/football/clubColours";
-import { ClubMark } from "./ClubName";
+import { inkOn, type Ink } from "../../convex/football/clubColours";
+import { useClubColours } from "../shared/clubColours";
+import { ClubMark } from "../ui/ClubName";
 import { ColumnHeads } from "../ui/ColumnHeads";
 import { Loading, Notice, PAGE_STACK, PageSection, Panel, PanelNote } from "../ui/Panel";
 import { Vidiprinter } from "../matchup/Vidiprinter";
@@ -105,7 +106,7 @@ const SIDE_INKS: Record<Ink, string> = { dark: "text-ground", light: "text-fact"
 /** One side of the scoreboard: the club's crest and name on its first colour (spec/10, The match
  *  page; spec/12, Club colours), inked in whichever of the two inks reads on it. */
 function ScoreboardSide({ club, className }: { club: Club; className: string }) {
-  const { primary } = coloursOf(club.code);
+  const { primary } = useClubColours()(club.code);
   return (
     <span data-club-side={club.shortName} className={`display-face inline-flex items-center px-2 ${SIDE_INKS[inkOn(primary)]} ${className}`} style={{ backgroundColor: primary }}>
       <ClubMark code={club.code} />

@@ -27,7 +27,7 @@ import {
   seasonPointsColumn,
 } from "../../../src/scouting/words";
 import { POSITION_NAMES } from "../../../src/shared/words";
-import { crestUrl } from "../../../src/premierLeague/ClubName";
+import { crestUrl } from "../../../src/ui/ClubName";
 import { ARSENAL } from "../../support/convex/footballRows.harness";
 import { columnHeadIn } from "../../support/src/columnHeads";
 import { HELD, lastAsk, namesShown, openScouting, RICE, rowOf, table } from "../../support/src/scoutingScreen.harness";

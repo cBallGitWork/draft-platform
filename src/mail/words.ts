@@ -4,8 +4,7 @@
 
 import { LEAGUES_SHOWN } from "../../convex/leagues/leagueLimits";
 import { LETTERS_SHOWN, UNREAD_COUNTED } from "../../convex/mail/mailLimits";
-import { LOCALE } from "../../convex/shared/moments";
-import { failedWords, timeOfDayWords } from "../shared/words";
+import { dayWords, failedWords, timeOfDayWords } from "../shared/words";
 
 export const MAIL_TITLE = "Mail";
 export const noLettersWords = "No letters yet.";
@@ -22,9 +21,8 @@ export const unreadTabLabel = (label: string, unread: number) => `${label}, ${un
 /** Where a letter came from: its league, and who wrote it, if someone did. */
 export const letterSource = (leagueName: string, from: string | null) => (from === null ? leagueName : `${leagueName}, from ${from}`);
 
-const day = new Intl.DateTimeFormat(LOCALE, { day: "numeric", month: "short" });
 /** When a letter was filed, in the reader's own time: "20 Oct" and "09:00". */
-export const letterDay = (at: number) => day.format(at);
+export const letterDay = dayWords;
 export const letterTime = timeOfDayWords;
 
 export const WRITE_TITLE = "Write to the league";

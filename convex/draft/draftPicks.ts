@@ -1,5 +1,4 @@
 import { v } from "convex/values";
-import { internal } from "../_generated/api";
 import type { Doc, Id } from "../_generated/dataModel";
 import { internalMutation, mutation, type MutationCtx, type QueryCtx } from "../_generated/server";
 import { areasOf } from "../lineup/pitch";
@@ -13,17 +12,16 @@ import { currentClubs, currentPlayersAt, heldPlayerByCode, playerByCode } from "
 import { placeOf, squadOf } from "../squads/squadPlace";
 import { squadRefusals } from "../squads/squads";
 import { autoPickOrder } from "./autoPickOrder";
-import { PICK_GAP_MS, startClock } from "./draftClock";
+import { autoPickAt, PICK_GAP_MS, scheduleAutoPick, startClock } from "./draftClock";
 import { tellDraftOver, tellPickedFor, tellScoringStartMoved, tellUpNext } from "./draftLetters";
 import { startAfterDraft } from "../gameweeks/scoringStart";
 import { listsOf } from "./draftLists";
 import { draftRanking } from "./draftRanking";
-import { draftOf, picksMadeIn, type StartedDraft } from "./draftRow";
+import { draftOf, turnNow, type StartedDraft, type Turn } from "./draftRow";
 import { rulesInForceAt } from "./draftStart";
-import { afterTimeout, choseAutoPick, isOnAutoPick, picksAtOnce } from "./draftTimeouts";
+import { afterTimeout, choseAutoPick, isOnAutoPick } from "./draftTimeouts";
 import { lastSeasonPoints } from "./lastSeasonPoints";
 import { whyNotLegal, type DraftPlayer, type NotLegal } from "./legalPlayers";
-import { pickOnTheClock } from "./snakeOrder";
 import { offWaivers, putOnWaivers } from "../waivers/waiverPlayers";
 
 // Making a pick (spec/04, The picks; #1090). The manager whose team is on the clock picks a player
@@ -69,8 +67,6 @@ async function startedRulesAt(ctx: QueryCtx, leagueId: Id<"leagues">, at: number
   if (rules === null) throw new Error(`League ${leagueId}'s draft has started, but the league has no rules`);
   return rules;
 }
-
-type Turn = NonNullable<ReturnType<typeof pickOnTheClock<Id<"teams">>>>;
 
 /** The players still undrafted in the league: in the Premier League now and held by no team. */
 export async function undraftedIn(ctx: QueryCtx, leagueId: Id<"leagues">): Promise<Doc<"players">[]> {
@@ -188,7 +184,7 @@ export const makePick = mutation({
 async function liveTurn(ctx: QueryCtx, leagueId: Id<"leagues">): Promise<{ draft: Doc<"drafts">; started: StartedDraft; turn: Turn }> {
   const draft = (await draftOf(ctx, leagueId)) ?? refuse(pickRefusals.notStarted);
   const started = draft.started ?? refuse(pickRefusals.notStarted);
-  const turn = pickOnTheClock(started.teamIds, started.rounds, await picksMadeIn(ctx, leagueId)) ?? refuse(pickRefusals.over);
+  const turn = (await turnNow(ctx, draft)) ?? refuse(pickRefusals.over);
   return { draft, started, turn };
 }
 
@@ -255,14 +251,14 @@ export const autoPick = internalMutation({
     const [league, draft] = await Promise.all([ctx.db.get("leagues", leagueId), draftOf(ctx, leagueId)]);
     const started = draft?.started;
     if (league === null || started === undefined || draft?.clock?.pick !== pick || draft.clock.paused !== undefined) return null;
-    const turn = pickOnTheClock(started.teamIds, started.rounds, await picksMadeIn(ctx, leagueId));
+    const turn = await turnNow(ctx, draft);
     if (turn?.pick !== pick) return null;
     const team = await teamIn(ctx, leagueId, turn.team);
-    if ((!picksAtOnce(draft.timeouts, team) || draft.clock.fullClock) && Date.now() < draft.clock.endsAt) {
+    if (Date.now() < autoPickAt(draft, draft.clock, team)) {
       // Scheduled at once, but since then a manager took the team over or took control back, or the
-      // commissioner's undo put this pick back on its full clock: the clock runs out first.
-      const job = await ctx.scheduler.runAt(draft.clock.endsAt, internal.draft.draftPicks.autoPick, { leagueId, pick });
-      await ctx.db.patch("drafts", draft._id, { clock: { ...draft.clock, job } });
+      // commissioner's undo put this pick back on its full clock: the clock runs out first. This job
+      // is the clock's own, so the clock goes without it: cancelling it would cancel the new one too.
+      await scheduleAutoPick(ctx, draft, { ...draft.clock, job: undefined }, team);
       return null;
     }
     const player = await autoPickFor(ctx, leagueId, started, turn);

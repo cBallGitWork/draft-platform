@@ -1,6 +1,8 @@
 import { beforeEach, describe, expect, test } from "vitest";
 import { api } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
+import { FIRST_INSTRUCTIONS, type InstructionPair } from "../../../convex/lineup/instructions";
+import { pairRefusalWords } from "../../../convex/lineup/instructionsWords";
 import { PLAN_NAME_MOST, PLANS_KEPT, planRefusals } from "../../../convex/lineup/lineupWords";
 import { DEFAULT_PRESETS } from "../../../convex/lineup/presets";
 import { DEFAULT_ROLES } from "../../../convex/lineup/roles";
@@ -33,6 +35,7 @@ const as = async (email: string) => {
   return {
     save: (name: string, slots: readonly { area: string; lane: string; role?: string }[] = PRESS) =>
       person.mutation(api.lineup.savedPlans.save, { leagueId, name, slots: [...slots] }),
+    saveWith: (name: string, instructions: InstructionPair) => person.mutation(api.lineup.savedPlans.save, { leagueId, name, slots: [...PRESS], instructions }),
     remove: (name: string) => person.mutation(api.lineup.savedPlans.remove, { leagueId, name }),
     mine: () => person.query(api.lineup.savedPlans.mine, { leagueId }),
   };
@@ -93,6 +96,20 @@ describe("saving a plan", () => {
     await expectRefused(ann.save("Twice", [...PRESS.slice(1), PRESS[1]]), planRefusals.notEleven);
     await expectRefused(ann.save("Off", [{ area: "stands", lane: "centre", role: "x" }, ...PRESS.slice(1)]), planRefusals.notEleven);
     expect(await ann.mine()).toEqual([]);
+  });
+
+  test("keeps both team instructions with it, and refuses a pair its formation doesn't offer (#990)", async () => {
+    const ann = await as(ANN);
+    const pair = { attacking: "getItWide", defensive: "pressHigh" };
+    await ann.saveWith("Wide", pair);
+    expect(await ann.mine()).toEqual([{ name: "Wide", slots: PRESS, instructions: pair }]);
+    // A 4-4-2 has four at the back, not five.
+    const parked = { attacking: "playOutFromTheBack", defensive: "parkTheBus" };
+    await expectRefused(ann.saveWith("Parked", parked), pairRefusalWords({ side: "defensive", key: "parkTheBus", blockedBy: "fiveAtTheBack" }, FIRST_INSTRUCTIONS));
+    await expectRefused(ann.saveWith("Made up", { ...pair, attacking: "noSuchInstruction" }), pairRefusalWords({ side: "attacking", key: "noSuchInstruction" }, FIRST_INSTRUCTIONS));
+    // Saved again without them, as a browser from before them does, it holds none.
+    await ann.save("Wide");
+    expect(await ann.mine()).toEqual([{ name: "Wide", slots: PRESS }]);
   });
 
   test("refused for anyone who runs no team in the league", async () => {

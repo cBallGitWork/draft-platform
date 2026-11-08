@@ -16,7 +16,7 @@ import { INVITES_ROUTE, JOIN_ROUTE } from "../joining/paths";
 import { LeaguesPage } from "../leagues/LeaguesPage";
 import { NewLeaguePage } from "../leagues/NewLeaguePage";
 import { LEAGUES_PATH, NEW_LEAGUE_PATH } from "../leagues/paths";
-import { leagueIn, leagueRunBy, runs } from "../leagues/roles";
+import { leagueIn, leagueRunBy, runs } from "../leagues/access";
 import { SETTINGS_ROUTE } from "../leagueSettings/paths";
 import { SettingsPage } from "../leagueSettings/SettingsPage";
 import { MailPage, leaguesToWriteFrom } from "../mail/MailPage";

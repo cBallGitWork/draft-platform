@@ -5,7 +5,7 @@ import { LANE_WORDS } from "../../../convex/lineup/pitchWords";
 import type { Lane } from "../../../convex/lineup/pitch";
 import { menuWords } from "../../frame/words";
 import { failedWords } from "../../shared/words";
-import { benchShort } from "../words";
+import { benchShort, nextMatchesLong, nextMatchesShort } from "../words";
 
 export { figureWords, signedWords, gameweekWords, noFigureWords, shortThenLongName, whenWords, nextGlyph, closeGlyph, playerCardWords } from "../../shared/words";
 export { goneWords } from "../../squads/words";
@@ -82,7 +82,7 @@ export const squadColumns = {
   saves: { short: "Sv", long: "Saves, keepers only" },
   yellowCards: { short: "YC", long: "Yellow cards" },
   redCards: { short: "RC", long: "Red cards" },
-  next: { short: "Next 3", long: "His club's next three matches" },
+  next: { short: nextMatchesShort, long: nextMatchesLong },
 } as const;
 /** The Last column's hover, naming the gameweek. */
 export const lastGameweekLong = (gameweek: number) => `Points in gameweek ${gameweek}`;
@@ -106,7 +106,7 @@ export const panelRows = {
   rolePoints: "Role points",
   plays: "Plays",
   bestRole: "Best role",
-  next: "Next 3",
+  next: nextMatchesShort,
   roleLastGameweek: "Role last GW",
 } as const;
 export const seasonWords = "Season";

@@ -17,7 +17,7 @@ import type { JoiningSeam } from "../joining/seam";
 import { signInToJoinWords } from "../joining/words";
 import { LeaguelessFrame } from "../frame/LeaguelessFrame";
 import { LEAGUES_PATH } from "../leagues/paths";
-import { leagueIn, leagueRunBy } from "../leagues/roles";
+import { leagueIn, leagueRunBy } from "../leagues/access";
 import type { LeaguesSeam } from "../leagues/seam";
 import type { LeagueSettingsSeam } from "../leagueSettings/seam";
 import type { MailSeam } from "../mail/seam";

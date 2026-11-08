@@ -1,5 +1,5 @@
 import { expect, test } from "vitest";
-import { statFigure } from "../../../src/scouting/figures";
+import { statFigure } from "../../../src/shared/figures";
 
 test("a stat's season total shows two decimal places at most, no trailing zeros", () => {
   expect(statFigure(3.456)).toBe("3.46");

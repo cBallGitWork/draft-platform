@@ -4,7 +4,7 @@
 import { screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
-import type { SquadLimit } from "../../../convex/squads/squadLimits";
+import type { SquadLimit } from "../../../../convex/squads/squadLimits";
 import {
   blankWeekWords,
   noScheduleWords,
@@ -13,10 +13,10 @@ import {
   scheduleTableLabel,
   squadViewWords,
   squadTableLabel,
-} from "../../../src/myTeam/squad/words";
-import { ARSENAL, CHELSEA } from "../../support/convex/footballRows.harness";
-import { cells, KICKOFF, openSquad, PALMER, RAYA, SAKA, squadOf } from "../../support/src/squadTab.harness";
-import type { TeamSquad } from "../../../src/myTeam/seam";
+} from "../../../../src/myTeam/squad/words";
+import { ARSENAL, CHELSEA } from "../../../support/convex/footballRows.harness";
+import { cells, KICKOFF, openSquad, PALMER, RAYA, SAKA, squadOf } from "../../../support/src/squadTab.harness";
+import type { TeamSquad } from "../../../../src/myTeam/seam";
 
 const DAY = 24 * 60 * 60 * 1000;
 const showView = async (squad: TeamSquad, view: "schedule" | "rules") => {

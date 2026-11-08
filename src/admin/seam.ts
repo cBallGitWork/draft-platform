@@ -3,6 +3,7 @@
 // the screen their own.
 
 import type { FeedsReport } from "../../convex/admin/feeds";
+import type { Colours } from "../../convex/football/clubColours";
 import type { FoundPlayerPositions, PositionsQueue } from "../../convex/positions/playerPositions";
 import type { ChangeThresholds } from "../../convex/positions/positionChanges";
 import type { ApproveMode } from "../../convex/positions/positions";
@@ -26,4 +27,6 @@ export type AdminSeam = {
   removePosition(code: number, position: Position): Change;
   setApproveMode(approveMode: ApproveMode): Change;
   setChangeThresholds(thresholds: ChangeThresholds): Change;
+  /** Sets a club's two colours and its shirt's pattern (spec/15, #838). */
+  setClubColours(code: number, colours: Colours): Change;
 };

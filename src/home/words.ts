@@ -1,7 +1,8 @@
 // What league home says, in one place for Craig to change in the pull request.
 
 import { TOP_ROWS } from "../../convex/home/glance";
-import { FORM_RESULTS, type Result } from "../../convex/table/standings";
+import { FORM_RESULTS } from "../../convex/table/standings";
+import { fewestTeamsWords, noHeadToHeadsTotalPointsWords } from "../shared/words";
 import { columns as tableColumns } from "../table/words";
 import type { LeagueHome } from "./seam";
 
@@ -16,8 +17,8 @@ export const noRulesWords = "This league was made before leagues had rules, so i
 export const HEAD_TO_HEADS_TITLE = "Head-to-heads";
 export const headToHeadsLabel = (gameweekName: string) => `${gameweekName}'s head-to-heads`;
 export const noHeadToHeadsWords = {
-  totalPoints: "The league plays total points, so it has no head-to-heads.",
-  headToHead: "Head-to-heads are drawn once the league has two teams.",
+  totalPoints: noHeadToHeadsTotalPointsWords,
+  headToHead: `Head-to-heads are drawn once the league has ${fewestTeamsWords}.`,
 } as const satisfies Record<LeagueHome["format"], string>;
 export const byeWords = (teamName: string) => `${teamName}: bye`;
 
@@ -30,14 +31,7 @@ export const columns = {
   form: { short: "Form", long: `Form, the latest ${FORM_RESULTS} results, oldest first` },
 } as const;
 export const yourTeamWords = "Your team";
-/** A result as form shows it, and as a screen reader says it. */
-export const resultWords: Record<Result, { short: string; long: string }> = {
-  won: { short: "W", long: "won" },
-  drawn: { short: "D", long: "drawn" },
-  lost: { short: "L", long: "lost" },
-};
-export const formLabel = (results: readonly Result[]) =>
-  results.length === 0 ? "No results yet" : `Form: ${results.map((result) => resultWords[result].long).join(", ")}`;
+export { formLabel, resultWords } from "../shared/words";
 export const noFormWords = "—";
 export const wholeTableLink = "Whole table and fixtures";
 
@@ -49,7 +43,17 @@ export const noLetterWords = "Nothing from the commissioner yet.";
 export const fromWords = (from: string) => `From ${from}`;
 export const inMailLink = "Every letter, in Mail";
 
-export const MOVES_TITLE = "Claims, drops and trades";
+/** The weekly recap (spec/12, League home): its panel, Read the recap's page, and the line under it
+ *  once a score has changed since it was written (Craig, 6 Nov 2026). */
+export const recapTitle = (gameweek: number) => `GW${gameweek} recap`;
+export const readRecapLink = "Read the recap";
+export const scoreChangedWords = "A score has changed since this recap was written.";
+export const changedMatchupLink = "See the matchup";
+export const loadingRecapWords = "Loading the recap…";
+export const noRecapWords = (gameweek: number) => `No recap of Gameweek ${gameweek} yet.`;
+export const backHomeLink = "Back to League home";
+
+export const MOVES_TITLE ="Claims, drops and trades";
 export const noMovesWords = "No player has joined or left a squad yet.";
 type SquadMove = LeagueHome["squadMoves"][number];
 /** A squad move in a line: "Saka joined Kroos Control". */

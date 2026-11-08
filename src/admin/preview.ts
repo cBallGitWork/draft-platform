@@ -1,11 +1,11 @@
 // The admin's dashboard in the preview (src/app/preview.ts): a new signing, a man whose starts wait, a
-// position flagged and one removed, three clubs, and a search that finds one player with positions
+// position flagged and one removed, four clubs, one with no colours yet, and a search that finds one player with positions
 // from all three sources, one of them flagged. On the feeds page, FPL's sync late, match stats
 // failing, a match behind and a correction after the lock.
 
 import { FIRST_THRESHOLDS } from "../../convex/positions/positionChanges";
 import { HOUR_MS, MINUTE_MS } from "../../convex/shared/time";
-import { previewSays } from "../app/preview";
+import { previewSays } from "../shared/preview";
 import type { AdminSeam, FeedsReport, PositionsQueue } from "./seam";
 
 const queue: PositionsQueue = {
@@ -14,9 +14,10 @@ const queue: PositionsQueue = {
   flagged: [{ code: 3, name: "Woltemade", fullName: "Nick Woltemade", clubCode: 4, position: "ST", startsElsewhere: 4 }],
   removed: [{ code: 4, name: "Joelinton", fullName: "Joelinton Cássio Apolinário de Lira", clubCode: 4, position: "ST" }],
   clubs: [
-    { code: 3, name: "Arsenal" },
-    { code: 8, name: "Chelsea" },
-    { code: 4, name: "Newcastle" },
+    { code: 3, name: "Arsenal", colours: { primary: "#E50107", secondary: "#FFFFFF", pattern: "plain" } },
+    { code: 8, name: "Chelsea", colours: { primary: "#034694", secondary: "#FFFFFF", pattern: "plain" } },
+    { code: 4, name: "Newcastle", colours: { primary: "#241F20", secondary: "#FFFFFF", pattern: "stripes" } },
+    { code: 999, name: "Wrexham", colours: null },
   ],
   approveMode: "proposals",
   thresholds: FIRST_THRESHOLDS,
@@ -77,4 +78,5 @@ export const previewAdmin: AdminSeam = {
   removePosition: previewSays("no position was removed"),
   setApproveMode: previewSays("how starts count didn't change"),
   setChangeThresholds: previewSays("the thresholds didn't change"),
+  setClubColours: previewSays("no club's colours changed"),
 };

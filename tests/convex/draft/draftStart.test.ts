@@ -7,7 +7,7 @@ import { refusals } from "../../../convex/shared/leagueAccess";
 import { DAY_MS, HOUR_MS, MINUTE_MS, SECOND_MS } from "../../../convex/shared/time";
 import { SAKA } from "../../support/convex/footballRows.harness";
 import { changeRules, HELD_FIRST_RULES, holdGameweeks, rulesWith } from "../../support/convex/leagueRules.harness";
-import { expectRefused } from "../../support/convex/test.harness";
+import { elapse, expectRefused } from "../../support/convex/test.harness";
 import { actingAs, addManager, addManagers, adminCreatesLeague, COMMISSIONER, MANAGERS, OUTSIDER, type TestConvex } from "../../support/convex/leagues.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
 
@@ -37,10 +37,7 @@ const setOrder = async (teamIds: Id<"teams">[]) => (await as()).mutation(api.dra
 const orderOf = async () => (await read()).order.map(({ teamId }) => teamId);
 const status = async () => (await read()).status;
 /** The clock moves on `ms`, and every start scheduled by then runs. */
-async function pass(ms: number) {
-  vi.advanceTimersByTime(ms);
-  await t.finishInProgressScheduledFunctions();
-}
+const pass = (ms: number) => elapse(t, ms);
 /** A league of its own with one team. */
 async function leagueOfOne() {
   const lonely = await adminCreatesLeague(t, 4, "Lonely League");

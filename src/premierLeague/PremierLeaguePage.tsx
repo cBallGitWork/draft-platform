@@ -3,7 +3,7 @@ import { useState } from "react";
 import { FIRST_GAMEWEEK, GAMEWEEKS } from "../../convex/gameweeks/usedGameweeks";
 import { GameweekStepper } from "../ui/GameweekStepper";
 import { Loading, PAGE_STACK, PageSection, Panel, PANEL_COLUMNS, PanelNote } from "../ui/Panel";
-import { ClubName } from "./ClubName";
+import { ClubName } from "../ui/ClubName";
 import { openingGameweek } from "./openingGameweek";
 import { matchPath } from "./paths";
 import { TablePanel } from "./TablePanel";

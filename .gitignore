@@ -16,3 +16,6 @@ playwright-report/
 coverage/
 .design-lint-roles-*.mjs
 .auth/
+# Builders write pull request bodies to files.
+/pr-body-*.md
+/.pr-body-*.md

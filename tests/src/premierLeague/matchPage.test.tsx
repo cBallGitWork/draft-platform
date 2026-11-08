@@ -9,8 +9,8 @@ import { describe, expect, it } from "vitest";
 import { HOUR_MS } from "../../../convex/shared/time";
 import { MATCHUP_PATH, PREMIER_LEAGUE_PATH } from "../../../src/frame/menu";
 import { statusLabels } from "../../../src/matchup/words";
-import { coloursOf, contrast, INKS } from "../../../convex/football/clubColours";
-import { crestUrl } from "../../../src/premierLeague/ClubName";
+import { CLUB_COLOURS, contrast, INKS } from "../../../convex/football/clubColours";
+import { crestUrl } from "../../../src/ui/ClubName";
 import { matchPath } from "../../../src/premierLeague/paths";
 import {
   commentaryDelayedWords,
@@ -130,7 +130,7 @@ describe("the score and clock", () => {
     const board = await screen.findByRole("region", { name: "Score" });
     for (const club of [ARSENAL, CHELSEA]) {
       const side = board.querySelector<HTMLElement>(`[data-club-side="${club.shortName}"]`)!;
-      const { primary } = coloursOf(club.code);
+      const { primary } = CLUB_COLOURS[club.code];
       expect(side.style.backgroundColor).toBe(styledColour(primary));
       expect(side.firstElementChild!.getAttribute("src")).toBe(crestUrl(club.code));
       const ink = side.className.includes("text-fact") ? INKS.light : INKS.dark;

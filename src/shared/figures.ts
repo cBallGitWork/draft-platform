@@ -1,6 +1,6 @@
-// How Scouting shows a stat's season total (#373).
+// How a stat's season total shows, on Scouting and in the draft room (#373).
 
-import { figureWords } from "../shared/words";
+import { figureWords } from "./words";
 
 /** The decimal places a stat's season total shows: expected goals come in hundredths. */
 const STAT_DECIMALS_SHOWN = 2;

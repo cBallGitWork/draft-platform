@@ -3,7 +3,9 @@
 import type { PlayingState } from "../../convex/football/matchScores";
 import type { Position } from "../../convex/positions/positionTables";
 import { LOCALE } from "../../convex/shared/moments";
-import { figureWords } from "../../convex/shared/numberWords";
+import { countInWords, figureWords } from "../../convex/shared/numberWords";
+import { FEWEST_TO_DRAW } from "../../convex/table/roundRobin";
+import type { Result } from "../../convex/table/standings";
 
 /** A squad's row whose player the football sync doesn't hold, in place of his name: the Tactics
  *  tab has it from the server, which words it. */
@@ -67,10 +69,17 @@ export const shortThenLongName = ({ short, long }: { short: string; long: string
 export const columnHeadName = shortThenLongName;
 /** A stat, as a column of stats or the choice of one is headed. */
 export const STAT_WORD = "Stat";
+/** The stat box's two groups (src/ui/StatBox.tsx), once the site's set has own stats of its own
+ *  (spec/14, Own stats; #910). */
+export const ownStatsGroupWords = "The site's own stats";
+export const catalogueGroupWords = "The feeds' stats";
 
 const whenFormat = new Intl.DateTimeFormat(LOCALE, { weekday: "short", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
 /** A time in the viewer's own zone, e.g. "Sat 17 Oct, 13:00": a deadline, a feed's last run. */
 export const whenWords = (at: number) => whenFormat.format(at);
+const dayFormat = new Intl.DateTimeFormat(LOCALE, { day: "numeric", month: "short" });
+/** A day in the viewer's own zone, e.g. "20 Oct": when a letter was filed, or a report written. */
+export const dayWords = (at: number) => dayFormat.format(at);
 const timeOfDayFormat = new Intl.DateTimeFormat(LOCALE, { hour: "2-digit", minute: "2-digit" });
 /** The time of day alone, in the viewer's own zone: "15:00", a kickoff or when a letter was filed. */
 export const timeOfDayWords = (at: number) => timeOfDayFormat.format(at);
@@ -108,6 +117,28 @@ export const clockWords = (state: PlayingState, clockLabel: string | null, minut
   if (label) return `${label}'`;
   return minutes === null ? liveWords : `${minutes}'`;
 };
+
+/** A result as form shows it, and as a screen reader says it: league home's table and My team's
+ *  header alike. */
+export const resultWords: Record<Result, { short: string; long: string }> = {
+  won: { short: "W", long: "won" },
+  drawn: { short: "D", long: "drawn" },
+  lost: { short: "L", long: "lost" },
+};
+export const formLabel = (results: readonly Result[]) =>
+  results.length === 0 ? "No results yet" : `Form: ${results.map((result) => resultWords[result].long).join(", ")}`;
+
+/** The bench's title, on Tactics and under a matchup's lineup alike. */
+export const BENCH_TITLE = "Bench";
+
+/** The fewest teams a league's fixtures are drawn for, as a sentence says it: "two teams". */
+export const fewestTeamsWords = `${countInWords(FEWEST_TO_DRAW)} teams`;
+/** Why a league playing total points has no head-to-heads, on the matchup and league home alike. */
+export const noHeadToHeadsTotalPointsWords = "The league plays total points, so it has no head-to-heads.";
+
+const weekdayTimeFormat = new Intl.DateTimeFormat(LOCALE, { weekday: "short", hour: "2-digit", minute: "2-digit" });
+/** A time within the week, in the viewer's own zone: "Thu 18:00", a kickoff or a waiver run. */
+export const weekdayTimeWords = (at: number) => weekdayTimeFormat.format(at);
 
 /** The "Find a player" panel, on the admin's dashboard and the squads page alike; each says its own hint. */
 export const findTitle = "Find a player";

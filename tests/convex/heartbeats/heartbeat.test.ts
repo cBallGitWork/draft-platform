@@ -79,3 +79,15 @@ test("the daily clean-up pings once its last run log is pruned", async () => {
   await t.finishAllScheduledFunctions(vi.runAllTimers);
   expect(fetch.mock.calls.map(([url]) => url)).toEqual([`${BASE}/prune-run-logs`]);
 });
+
+test("the waiver runs and trade offers jobs each ping their check once they finish (#1346, S20.1, S20.2)", async () => {
+  vi.stubEnv(PING_URL_ENV, BASE);
+  const fetch = pings();
+  vi.useFakeTimers();
+  const t = freshConvex();
+  await t.mutation(internal.waivers.waiverRun.runDue, {});
+  await t.finishAllScheduledFunctions(vi.runAllTimers);
+  await t.mutation(internal.trades.tradeClose.closeDue, {});
+  await t.finishAllScheduledFunctions(vi.runAllTimers);
+  expect(fetch.mock.calls.map(([url]) => url)).toEqual([`${BASE}/waiver-runs`, `${BASE}/trade-offers`]);
+});

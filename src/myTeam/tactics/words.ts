@@ -7,11 +7,11 @@ import { AREA_WORDS, LANE_WORDS } from "../../../convex/lineup/pitchWords";
 import { menuWords } from "../../frame/words";
 import { failedWords, listSeparator, timeOfDayWords } from "../../shared/words";
 import { gameweekShort } from "../header/words";
-import { benchShort } from "../words";
-import type { MoveRefusal } from "./lineupDraft";
+import { benchShort, nextMatchesShort } from "../words";
+import type { MoveRefusal } from "./swaps";
 
 export const TACTICS_TITLE = menuWords.tactics;
-export const BENCH_TITLE = "Bench";
+export { BENCH_TITLE } from "../../shared/words";
 
 export const tacticsLoadingWords = "Loading your lineup…";
 export const tacticsNoRulesWords = "This league was made before leagues had rules, so it has no deadline or area limits to set a lineup under.";
@@ -120,7 +120,7 @@ export const nowWords = "now";
 export const pointsPerActionPlaceholder = (role: string) => `${role}: what it scores more and less for shows here once roles' scoring is on screen`;
 export const teamTacticLinePlaceholder = "What the team instructions score for him shows here once they are scored";
 export const playsHead = "Plays";
-export const nextThreeHead = "Next 3";
+export const nextThreeHead = nextMatchesShort;
 export const lastFiveHead = "Last 5 in role";
 export const lastFivePlaceholder = "His points in the role in one of his last five gameweeks: not held yet";
 export const pointsHead = "Points";

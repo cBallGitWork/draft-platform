@@ -6,7 +6,7 @@ import type { Id } from "../../convex/_generated/dataModel";
 import type { LabReport } from "../../convex/balanceLab/labReportShape";
 import type { VersionNotes } from "../patches/seam";
 import type { Change } from "../shared/refusal";
-import type { RulesView } from "../rules/rulesDraft";
+import type { RulesView } from "../rules/rulesEdits";
 import type { Scoring } from "./editing";
 
 /** The site's scoring version a set was read from: null while the site plays its first set. */

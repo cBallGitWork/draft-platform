@@ -1,3 +1,4 @@
+import { MOST_IN_SQUAD } from "../leagues/leagueLimits";
 import { andListWords } from "../shared/moments";
 import type { TellMoment } from "./letterMoments";
 
@@ -6,16 +7,21 @@ import type { TellMoment } from "./letterMoments";
 
 type Words = { subject: string; body: string };
 
-/** A trade as its letters name it: each team by name, and each side's players by name. */
+/** A trade as its letters name it: each team by name, and each side's players, or its one pick,
+ *  by name. */
 export type TradeWords = {
   fromTeamName: string;
   toTeamName: string;
-  /** The players going from the offering team to the other. */
+  /** The players, or the pick, going from the offering team to the other. */
   gives: readonly string[];
-  /** The players coming from the other team to the offering one. */
+  /** The players, or the pick, coming from the other team to the offering one. */
   gets: readonly string[];
   note: string | null;
 };
+
+/** A draft pick in a trade (#1096), named by the team whose pick in the round it is: "the Lions
+ *  round 3 pick", even once another team holds it. */
+export const pickWords = (round: number, teamName: string) => `the ${teamName} round ${round} pick`;
 
 const nobody = (players: readonly string[]) => (players.length === 0 ? "nobody" : andListWords(players));
 
@@ -39,7 +45,8 @@ export function offerLetter(trade: TradeWords, who: string, countered: boolean):
 
 /** Why an offer closed before it was accepted (spec/08; Craig, 6 Nov 2026, on #383). */
 export type OfferClosed =
-  | { why: "withdrawn" | "rejected" | "deadline" | "tradeDeadline" | "unusedGameweek" }
+  | { why: "withdrawn" | "rejected" | "deadline" | "tradeDeadline" | "unusedGameweek" | "draftStarted" }
+  | { why: "pickTraded"; pickName: string }
   | { why: "autoTeam"; teamName: string }
   | { why: "playerLeft"; playerName: string; teamName: string };
 
@@ -61,6 +68,10 @@ export function offerClosedLetter(trade: TradeWords, closed: OfferClosed): Words
         return `${closed.teamName} went on the auto team, which trades with nobody.`;
       case "playerLeft":
         return `${closed.playerName} left ${closed.teamName}'s squad.`;
+      case "draftStarted":
+        return "The draft started, and picks are traded only before it.";
+      case "pickTraded":
+        return `Another trade took ${closed.pickName}.`;
     }
   })();
   return { subject: `The trade between ${trade.fromTeamName} and ${trade.toTeamName} is closed`, body: `${because} The offer was: ${sides(trade)}` };
@@ -116,11 +127,28 @@ export function tradeBlockedLetter(trade: TradeWords, review: ReviewWords): Word
   };
 }
 
-/** To both managers when a trade cleared review but can't be made: a player in it is no longer on
- *  his side's team, moved by the commissioner while it was in review. */
-export function tradeFailedLetter(trade: TradeWords, playerName: string, teamName: string): Words {
+/** Why a trade that cleared review can't be made (#1325): a player in it is no longer on his side's
+ *  team, moved by the commissioner while it was in review; a team would hold more than the most in
+ *  a squad, filled meanwhile by another trade or an assignment; or anything else that stops it. */
+export type TradeFailed =
+  | { why: "playerGone"; playerName: string; teamName: string }
+  | { why: "squadFull"; teamName: string }
+  | { why: "error" };
+
+/** To both managers when a trade cleared review but can't be made, saying why. */
+export function tradeFailedLetter(trade: TradeWords, failed: TradeFailed): Words {
+  const because = (() => {
+    switch (failed.why) {
+      case "playerGone":
+        return `${failed.playerName} is no longer in ${failed.teamName}'s squad`;
+      case "squadFull":
+        return `${failed.teamName} would hold more than ${MOST_IN_SQUAD} players`;
+      case "error":
+        return "It couldn't be made";
+    }
+  })();
   return {
     subject: `The trade between ${trade.fromTeamName} and ${trade.toTeamName} didn't go through`,
-    body: `${playerName} is no longer in ${teamName}'s squad, so nobody moves. The trade was: ${sides(trade)}`,
+    body: `${because}, so nobody moves. The trade was: ${sides(trade)}`,
   };
 }

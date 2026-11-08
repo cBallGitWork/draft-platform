@@ -23,6 +23,25 @@ export function londonDay(at: number): string {
   return LONDON_DAY.format(at);
 }
 
+const LONDON_WALL = new Intl.DateTimeFormat(LOCALE, {
+  timeZone: LONDON_ZONE,
+  hourCycle: "h23",
+  year: "numeric",
+  month: "numeric",
+  day: "numeric",
+  hour: "numeric",
+  minute: "numeric",
+  second: "numeric",
+});
+
+/** How far UK time is ahead of UTC at `at`, in ms: nothing in winter, an hour in summer. */
+export function londonOffset(at: number): number {
+  const parts = LONDON_WALL.formatToParts(at);
+  const part = (type: Intl.DateTimeFormatPartTypes) => Number(parts.find((each) => each.type === type)?.value);
+  const wall = Date.UTC(part("year"), part("month") - 1, part("day"), part("hour"), part("minute"), part("second"));
+  return wall - Math.floor(at / 1000) * 1000; // whole seconds: the parts hold no milliseconds
+}
+
 /** "A", "A and B", "A, B and C": no comma before the last "and". Written out rather than through
  *  Intl.ListFormat, so it reads the same whatever locale data a runtime holds. */
 export function andListWords(items: readonly string[]): string {

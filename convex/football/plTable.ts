@@ -7,7 +7,12 @@
 // head-to-head steps apply when the competition's timing says (the Premier League's: once the
 // season is over), and only while every match between the clubs level at that step is played.
 // Clubs level after the last step share a position, in the order the caller lists them: the Premier League lists them alphabetically, a practice and not a rule.
+//
+// A club given a points deduction has its total set by the admin (spec/18, The table: "you hard
+// override the total points", Craig, 1 Nov 2026; #898): the caller passes it, and it stands in
+// place of the points the club's results earn, the club placed by it.
 
+import { rankedGroups } from "../shared/groupedBy";
 import { HEAD_TO_HEAD_TIE_BREAKS, type CompetitionTieBreak, type CompetitionTieBreaking } from "./tieBreaks";
 
 /** A league match's points (Handbook C.4): the Premier League's, fixed. */
@@ -29,6 +34,9 @@ export type PlTieBreaking<Club> = {
   unplayed: readonly PlMatch<Club>[];
 };
 
+/** The admin's total points for a club, in place of what its results earn (#898). */
+export type PlPointsOverrides<Club> = ReadonlyMap<Club, number>;
+
 export type PlTableRow<Club> = {
   club: Club;
   /** 1 at the top; clubs the order can't split share one, and the next club's skips past them
@@ -46,19 +54,21 @@ export type PlTableRow<Club> = {
 
 type Row<Club> = Omit<PlTableRow<Club>, "position">;
 
-/** The table: every club in `clubs`, a club with no results on nothing. A club listed twice, a
- *  match naming a club not in `clubs`, a club playing itself, or goals that aren't a whole number
- *  from 0 throws: each is the caller's bug. */
+/** The table: every club in `clubs`, a club with no results on nothing, a club in `overrides` on
+ *  the admin's total. A club listed twice, a match or an override naming a club not in `clubs`, a
+ *  club playing itself, goals that aren't a whole number from 0, or an override that isn't a whole
+ *  number throws: each is the caller's bug. */
 export function plTable<Club>(
   clubs: readonly Club[],
   results: readonly PlResult<Club>[],
   { competition, seasonOver, unplayed }: PlTieBreaking<Club>,
+  overrides: PlPointsOverrides<Club> = new Map(),
 ): PlTableRow<Club>[] {
   const rows = new Map(clubs.map((club) => [club, emptyRow(club)]));
   if (rows.size !== clubs.length) throw new Error(`A club is listed twice in ${clubs.map(String).join(", ")}`);
   const rowOf = (club: Club) => {
     const row = rows.get(club);
-    if (row === undefined) throw new Error(`A match names ${String(club)}, which isn't one of the clubs`);
+    if (row === undefined) throw new Error(`A match or a set total names ${String(club)}, which isn't one of the clubs`);
     return row;
   };
   for (const result of results) {
@@ -71,7 +81,11 @@ export function plTable<Club>(
     rowOf(match.home);
     rowOf(match.away);
   }
-  const levelGroups = groupedBy([...rows.values()], (row) => row.points).flatMap((level) =>
+  for (const [club, points] of overrides) {
+    if (!Number.isInteger(points)) throw new Error(`${String(club)}'s points are set to ${points}, not a whole number`);
+    rowOf(club).points = points;
+  }
+  const levelGroups = rankedGroups([...rows.values()], (row) => row.points).flatMap((level) =>
     brokenTies(level, competition.order, {
       results,
       unplayed,
@@ -129,17 +143,6 @@ function addResult<Club>(row: Row<Club>, goals: number, against: number): void {
   row.goalDifference = row.goalsFor - row.goalsAgainst;
 }
 
-/** Rows grouped by a key, highest first, each group in the rows' own order. */
-function groupedBy<R>(rows: readonly R[], key: (row: R) => number): R[][] {
-  const groups = new Map<number, R[]>();
-  for (const row of rows) {
-    const group = groups.get(key(row));
-    if (group === undefined) groups.set(key(row), [row]);
-    else group.push(row);
-  }
-  return [...groups.entries()].toSorted(([one], [other]) => other - one).map(([, group]) => group);
-}
-
 type Matches<Club> = { results: readonly PlResult<Club>[]; unplayed: readonly PlMatch<Club>[]; headToHeadDue: boolean };
 
 /** Clubs level on points, split by the first tie-break, those still level by the next, and so on:
@@ -151,7 +154,7 @@ function brokenTies<Club>(level: Row<Club>[], tieBreaks: readonly CompetitionTie
   if (HEAD_TO_HEAD_TIE_BREAKS.has(first) && (!matches.headToHeadDue || between(level, matches.unplayed).length > 0)) {
     return brokenTies(level, rest, matches);
   }
-  return groupedBy(level, tieBreakKey(first, level, matches.results)).flatMap((stillLevel) =>
+  return rankedGroups(level, tieBreakKey(first, level, matches.results)).flatMap((stillLevel) =>
     brokenTies(stillLevel, rest, matches),
   );
 }

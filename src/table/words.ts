@@ -2,7 +2,7 @@
 
 import { andListWords } from "../../convex/shared/moments";
 import { menuWords } from "../frame/words";
-import { gameweekWords, signedWords } from "../shared/words";
+import { fewestTeamsWords, gameweekWords, signedWords } from "../shared/words";
 
 export { figureWords, gameweekWords, scoreWords, versusWords } from "../shared/words";
 
@@ -42,7 +42,7 @@ export const byeWords = (teamNames: readonly string[]) => `${andListWords(teamNa
 export const fixturesListLabel = (gameweek: number) => `${gameweekWords(gameweek)}'s fixtures`;
 
 export const totalPointsWords = "The league plays total points, so it has no fixtures.";
-export const tooFewTeamsWords = "Fixtures are drawn once the league has two teams.";
+export const tooFewTeamsWords = `Fixtures are drawn once the league has ${fewestTeamsWords}.`;
 export const noGameweeksWords = "The league plays no gameweeks, so it has no fixtures.";
 
 /** Points for less against, signed: "+4.5", "−3", "0". */

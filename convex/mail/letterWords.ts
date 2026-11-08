@@ -6,7 +6,7 @@ import { NOTHING_SCORES_DIFFERENTLY } from "../scoring/patchChanges";
 import { autoTeamSwitchedWords } from "../lineup/autoTeamWords";
 import type { leagueEvent, siteScoringKind } from "../schema";
 import { overrideLetterWords } from "./overrideLetterWords";
-import { claimedBody, pickedUpBody } from "./waiverLetterWords";
+import { claimedBody, onWaiversWords, pickedUpBody } from "./waiverLetterWords";
 import type { TellMoment } from "./letterMoments";
 
 // What the letters Mail files about a league's events say (spec/15: nothing changes quietly), in
@@ -108,7 +108,7 @@ export function eventLetter(event: LeagueEvent, who: string, tell: TellMoment): 
       return {
         subject: `${event.teamName} dropped ${event.playerName}`,
         body: event.toWaivers
-          ? `${who} dropped ${event.playerName} from ${event.teamName}. He is on waivers for at least 24 hours.`
+          ? `${who} dropped ${event.playerName} from ${event.teamName}. He is on waivers for ${onWaiversWords}.`
           : `${who} dropped ${event.playerName} from ${event.teamName}. Picked up since the last deadline, he is a free agent again, not on waivers.`,
       };
     case "playerClaimed":

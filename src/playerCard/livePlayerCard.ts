@@ -2,6 +2,7 @@ import { useMutation, useQuery } from "convex/react";
 import { useCallback, useMemo } from "react";
 import { api } from "../../convex/_generated/api";
 import { refusalOf } from "../shared/refusal";
+import { liveScouts } from "../scouting/scouts/liveScouts";
 import { liveShortlist } from "../scouting/shortlist/liveShortlist";
 import type { PlayerCardSeam, WaiverChanges } from "./seam";
 import { overrideFailedWords, removeOverrideFailedWords, waiverFailedWords } from "./words";
@@ -11,6 +12,7 @@ import { overrideFailedWords, removeOverrideFailedWords, waiverFailedWords } fro
  *  plainly. */
 export const livePlayerCard: PlayerCardSeam = {
   ...liveShortlist,
+  ...liveScouts,
   usePlayerCard: (leagueId, playerCode, now) => useQuery(api.playerCard.playerCard.card, { leagueId, playerCode, now }),
   useCardAction: (leagueId, playerCode) => useQuery(api.waivers.waivers.cardActionOn, { leagueId, playerCode }),
   useWaiverChanges: function useWaiverChanges() {

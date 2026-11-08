@@ -14,7 +14,7 @@ import type { Position } from "../../../convex/positions/positionTables";
 import { classicsOf, FIRST_RULES, instructionsOf } from "../../../convex/rules/firstRules";
 import { keptOrSwitched } from "../../../convex/lineup/instructions";
 import { DAY_MS, HOUR_MS } from "../../../convex/shared/time";
-import type { DraftLineup } from "./lineupDraft";
+import type { EditedLineup } from "./lineupEdits";
 import type { Plan, PlanChanges, Tactics, TacticsSeam } from "./seam";
 
 const PREVIEW_GAMEWEEK = 9;
@@ -73,7 +73,7 @@ const nameOf = (playerCode: number) => squad.find((member) => member.playerCode 
 
 const instructions = [...instructionsOf(FIRST_RULES)];
 
-const tacticsWith = ({ starters, bench, classic, instructions: picked }: DraftLineup): Tactics => ({
+const tacticsWith = ({ starters, bench, classic, instructions: picked }: EditedLineup): Tactics => ({
   kind: "open",
   gameweek: PREVIEW_GAMEWEEK,
   deadline: PREVIEW_DEADLINE,
@@ -107,7 +107,7 @@ const subscribe = (listener: () => void) => {
 };
 
 const changes = {
-  save: async (_leagueId: unknown, lineup: DraftLineup) => {
+  save: async (_leagueId: unknown, lineup: EditedLineup) => {
     const problems = lineupProblems(lineup, positionsOf, { areaLimits: FIRST_RULES.areaLimits });
     if (problems.length > 0) return problems.map((problem) => problemWords(problem, nameOf)).join(" ");
     tactics = tacticsWith(lineup);
