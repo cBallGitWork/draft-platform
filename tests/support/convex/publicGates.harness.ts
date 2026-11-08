@@ -195,6 +195,7 @@ export const gates: Record<string, Gate> = {
   "trades/tradeOffers:withdraw": "manager",
   "trades/tradeReview:against": "manager",
   "trades/tradeReview:block": "member",
+  "trades/tradeScreen:ofMyTeam": "manager",
   "waivers/freeAgents:pickUp": "manager",
   "waivers/waiverClaims:pending": "member",
   "waivers/waiverClaims:putIn": "manager",
