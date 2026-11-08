@@ -151,9 +151,8 @@ other states' boards "as the plan for later" (1 Nov 2026: "yes to all";
 `docs/design/approved/home/`). He took FM as the model: "fm and its widgets as inspo". The picture
 places these; none says yet what it holds or does, and each is a placeholder until its grill.
 
-**Home's tabs, Overview | News | Calendar**.
-- What News holds beyond Overview's News panel: every claim, drop, trade and the commissioner's
-  letters, or more.
+**Home's tabs, Overview | News | Calendar**. News was settled on 8 Nov 2026
+(`docs/design/approved/home/README.md`, The News tab).
 - What Calendar holds: the league's gameweeks and deadlines, the draft, breaks (Break weeks,
   below) and waivers' runs (Run the league, below).
 
