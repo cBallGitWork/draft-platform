@@ -6,7 +6,7 @@
 // minute N of the replay, `?minute=final` at the end, for screenshots.
 
 import { useEffect, useMemo, useState } from "react";
-import { positionOfSlot, type Area } from "../../convex/lineup/pitch";
+import { positionOfSlot, type Area, type Cell, type Lane } from "../../convex/lineup/pitch";
 import { namedRole, roleIn } from "../../convex/lineup/roles";
 import type { MatchBreakdown, MatchupCommentary, MatchupSide, MatchupBenchSlot, MatchupSlot, MatchupStarter } from "../../convex/matchup/matchupShape";
 import { MINUTE_MS } from "../../convex/shared/time";
@@ -105,26 +105,43 @@ function breakdownOf(fixtureCode: number, kickoff: number, points: number | null
   return { fixtureCode, kickoff, points, counted: true, categories: [...categories], override: null };
 }
 
-/** The made-up men stand in areas, not cells: each plays his area's centre slot, in its first role. */
-export function centreSlotOf(area: Area): Pick<MatchupStarter, "role" | "place"> {
-  const cell = { area, lane: "centre" } as const;
-  return { role: namedRole(roleIn(cell, undefined)), place: { lane: cell.lane, label: positionOfSlot(cell) } };
+/** A man in `cell`, in its first role. */
+const slotOf = (cell: Cell): Pick<MatchupStarter, "role" | "place"> => ({
+  role: namedRole(roleIn(cell, undefined)),
+  place: { lane: cell.lane, label: positionOfSlot(cell) },
+});
+
+/** A man playing his area's centre slot. */
+export const centreSlotOf = (area: Area) => slotOf({ area, lane: "centre" });
+
+/** The lanes an area's men stand in, left to right, by how many there are, so each has his own slot
+ *  on the pitch (#850). */
+const LANES_BY_COUNT: Record<number, readonly Lane[]> = {
+  1: ["centre"],
+  2: ["leftCentre", "rightCentre"],
+  3: ["leftCentre", "centre", "rightCentre"],
+  4: ["left", "leftCentre", "rightCentre", "right"],
+};
+
+/** A side's starters `minute` minutes in, each in his own slot of his area, in its first role. */
+function startersAt(men: Man[], minute: number): MatchupStarter[] {
+  return men.map((man) => {
+    const inArea = men.filter(([area]) => area === man[0]);
+    const lane = LANES_BY_COUNT[inArea.length][inArea.indexOf(man)];
+    return { ...slotAt(man, minute, false), ...slotOf({ area: man[0], lane }) };
+  });
 }
 
-/** A starter `minute` minutes in, in his role. */
-function starterAt(man: Man, minute: number): MatchupStarter {
-  return { ...slotAt(man, minute, false), ...centreSlotOf(man[0]) };
-}
-
-/** A side `minute` minutes in: the keeper's auto-sub once his match is over, then the total. */
+/** A side `minute` minutes in: the keeper's auto-sub once his match is over, in his slot, then the
+ *  total. */
 function sideAt(teamName: string, men: typeof SAKA_POTATOES, minute: number): MatchupSide {
-  const starters = men.starters.map((man) => starterAt(man, minute));
+  const starters = startersAt(men.starters, minute);
   const bench: MatchupBenchSlot[] = men.bench.map((man) => ({ ...slotAt(man, minute, true), role: null, place: null }));
   const off = starters.find((slot) => slot.autoSub?.kind === "off");
   if (off !== undefined) {
     off.counts = false;
     const on = bench.find((slot) => slot.name === BENCH_KEEPER)!;
-    Object.assign(on, { counts: true, autoSub: { kind: "on", playerName: off.name }, ...centreSlotOf(off.area) });
+    Object.assign(on, { counts: true, autoSub: { kind: "on", playerName: off.name }, ...slotOf({ area: off.area, lane: off.place.lane }) });
   }
   const final = minute >= FINAL_MINUTE;
   const counting = [...starters, ...bench].filter((slot) => slot.counts);
