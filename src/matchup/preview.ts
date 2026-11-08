@@ -70,6 +70,9 @@ const KROOS_CONTROL: { starters: Man[]; bench: Man[] } = {
     ["attack", "Thiago", 1, 2],
   ],
 };
+/** Each side's clubs by match, as the made-up lines name them: ARS v LIV, then CHE v MCI. */
+const CLUBS: Record<string, readonly [number, number]> = { [MINE]: [3, 8], [OPPONENT]: [14, 43] };
+
 /** Saka Potatoes' keeper and the bench keeper who comes on for him. */
 const [UNUSED_KEEPER, BENCH_KEEPER] = ["Raya", "Pickford"];
 
@@ -89,7 +92,8 @@ function slotAt([area, name, match, finalPoints]: Man, minute: number, onBench: 
         : { kind: "finished", fixtureCode };
   const points = played < 0 ? null : Math.floor((finalPoints * Math.min(played, MATCH_MINUTES)) / MATCH_MINUTES);
   const autoSub = name === UNUSED_KEEPER && status.kind === "finished" ? { kind: "off" as const, playerName: BENCH_KEEPER } : null;
-  return { playerCode: codeOf(name), name, area, points, counts: !onBench, provisional: true, status, autoSub, breakdown: [breakdownOf(fixtureCode, kickoff, points)] };
+  // His shirt is the side's to dress (sideAt).
+  return { playerCode: codeOf(name), name, area, clubCode: null, number: null, points, counts: !onBench, provisional: true, status, autoSub, breakdown: [breakdownOf(fixtureCode, kickoff, points)] };
 }
 
 /** A made-up man's match broken down: a point for appearing, the rest goals at 1 each. */
@@ -137,6 +141,8 @@ function startersAt(men: Man[], minute: number): MatchupStarter[] {
 function sideAt(teamName: string, men: typeof SAKA_POTATOES, minute: number): MatchupSide {
   const starters = startersAt(men.starters, minute);
   const bench: MatchupBenchSlot[] = men.bench.map((man) => ({ ...slotAt(man, minute, true), role: null, place: null }));
+  // Each man in his match's club's shirt, numbered in squad order.
+  [...men.starters, ...men.bench].forEach(([, , match], index) => Object.assign([...starters, ...bench][index], { clubCode: CLUBS[teamName][match], number: index + 1 }));
   const off = starters.find((slot) => slot.autoSub?.kind === "off");
   if (off !== undefined) {
     off.counts = false;
@@ -153,6 +159,7 @@ function sideAt(teamName: string, men: typeof SAKA_POTATOES, minute: number): Ma
     points: counting.reduce((total, slot) => total + (slot.points ?? 0), 0),
     provisional: !final,
     overridden: false,
+    autoTeam: false,
     lineup: { starters, bench },
     formation: null,
   };

@@ -146,6 +146,7 @@ import type * as match_unownedPoints from "../match/unownedPoints.js";
 import type * as matchup_matchup from "../matchup/matchup.js";
 import type * as matchup_matchupShape from "../matchup/matchupShape.js";
 import type * as matchup_readCommentary from "../matchup/readCommentary.js";
+import type * as matchup_slotParts from "../matchup/slotParts.js";
 import type * as matchup_vidiprinter from "../matchup/vidiprinter.js";
 import type * as outbound_claude from "../outbound/claude.js";
 import type * as outbound_deploymentSettings from "../outbound/deploymentSettings.js";
@@ -462,6 +463,7 @@ declare const fullApi: ApiFromModules<{
   "matchup/matchup": typeof matchup_matchup;
   "matchup/matchupShape": typeof matchup_matchupShape;
   "matchup/readCommentary": typeof matchup_readCommentary;
+  "matchup/slotParts": typeof matchup_slotParts;
   "matchup/vidiprinter": typeof matchup_vidiprinter;
   "outbound/claude": typeof outbound_claude;
   "outbound/deploymentSettings": typeof outbound_deploymentSettings;

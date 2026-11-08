@@ -77,6 +77,8 @@ export const slot = (name: string, rest: Partial<Slot> = {}): Slot => ({
   playerCode: [...name].reduce((code, letter) => code * 31 + letter.charCodeAt(0), 7),
   name,
   area: "midfield",
+  clubCode: null,
+  number: null,
   points: null,
   counts: true,
   provisional: true,
@@ -106,6 +108,7 @@ export const teamSide = (
   points,
   provisional,
   overridden: false,
+  autoTeam: false,
   lineup: { starters: starters.map((starter) => ({ ...centreSlotOf(starter.area), ...starter })), bench: bench.map((slot) => ({ role: null, place: null, ...slot })) },
   formation: null,
 });
