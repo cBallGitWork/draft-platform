@@ -7,7 +7,7 @@ import { takeTodaysEmail } from "../outbound/emailLimit";
 import { FAILURE_EMAIL_NAMES, failureEmailKindValidator, type FailureEmailKind } from "../shared/feedSchedule";
 import { momentIn } from "../shared/moments";
 import { PRODUCT_NAME } from "../shared/product";
-import { DAY_MS } from "../shared/time";
+import { DAY_MS, daysWords } from "../shared/time";
 import { adminEmail } from "../signIn/allowedEmails";
 
 // The email the admin gets when a feed or sync fails, "at most once a day for each feed" (#319,
@@ -33,7 +33,7 @@ function failureEmail(feed: FailureEmailKind, ranAt: number, error: string, zone
       "",
       error,
       "",
-      "The feeds page shows how it stands now. Another failure like this won't email you for a day.",
+      `The feeds page shows how it stands now. Another failure like this won't email you for ${daysWords(FAILURE_EMAIL_GAP_MS)}.`,
     ].join("\n"),
   };
 }

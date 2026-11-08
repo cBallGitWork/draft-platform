@@ -4,6 +4,8 @@ import { sendEmail } from "../outbound/email";
 import { inviteIdIn } from "../joining/joiningShared";
 import { PRODUCT_NAME } from "../shared/product";
 import { momentIn } from "../shared/moments";
+import { hoursWords } from "../shared/time";
+import { LINK_LIFETIME_MS } from "./signInLimits";
 
 // The sign-in email. Convex Auth calls `sendSignInEmail` once it has made the link, which only an
 // ask lets it do (signInLinks.ts).
@@ -21,7 +23,7 @@ export function signInEmail(url: string, sentAt = Date.now()) {
       "",
       url,
       "",
-      "It works once, within an hour, on any device. If you didn't ask for it, you can ignore this email.",
+      `It works once, within ${hoursWords(LINK_LIFETIME_MS)}, on any device. If you didn't ask for it, you can ignore this email.`,
     ].join("\n"),
   };
 }

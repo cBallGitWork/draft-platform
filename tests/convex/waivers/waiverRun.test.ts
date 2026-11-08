@@ -3,7 +3,7 @@ import { api, internal } from "../../../convex/_generated/api";
 import { claimFailedLetter } from "../../../convex/mail/waiverLetterWords";
 import { FIRST_RULES } from "../../../convex/rules/firstRules";
 import { MINUTE_MS, WEEK_MS } from "../../../convex/shared/time";
-import { WAIVER_MS } from "../../../convex/waivers/waiverPlayers";
+import { WAIVER_MS } from "../../../convex/waivers/waiverLimits";
 import { latestRunAt } from "../../../convex/waivers/waiverTimes";
 import { changeRules, HELD_FIRST_RULES, rulesWith, TOTAL_POINTS } from "../../support/convex/leagueRules.harness";
 import { actingAs, eventsIn } from "../../support/convex/leagues.harness";

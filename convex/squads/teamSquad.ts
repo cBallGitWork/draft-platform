@@ -15,7 +15,7 @@ import type { Stats } from "../stats/statTotals";
 import { heldOrNot, squadOf, unheldCodes } from "./squadPlace";
 import { shirtNumber } from "./squadNumbers";
 import { latestRules } from "../rules/rulesHistory";
-import { squadLimit, squadLimits } from "./squadLimits";
+import { NEXT_MATCHES_SHOWN, squadLimit, squadLimits } from "./squadLimits";
 import { scheduledMatch, sidesOf, squadSchedule } from "./squadSchedule";
 
 // My team's Squad tab (#364; spec/12, My team's tabs: "every player in the squad in one table,
@@ -28,8 +28,6 @@ import { scheduledMatch, sidesOf, squadSchedule } from "./squadSchedule";
 // matches, his points in the league's last five gameweeks, and FPL's news on him (Squad's approved
 // picture, docs/design/approved/team-squad).
 
-/** How many of his club's next matches a row holds (the picture's Next 3). */
-export const NEXT_MATCHES_SHOWN = 3;
 /** How many of the league's latest begun gameweeks his form holds. */
 export const FORM_GAMEWEEKS = 5;
 

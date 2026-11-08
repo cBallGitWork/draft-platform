@@ -6,7 +6,6 @@ import type { ScoringSet } from "../../../convex/scoring/scoringSet";
 import { pricedRole } from "../../support/convex/scoring.example";
 import {
   countedMatches,
-  LEAST_MATCHES_RATED,
   LOWEST_STARS,
   perMatchUnder,
   ratedRoles,
@@ -15,7 +14,7 @@ import {
   starsFor,
   type RatedRecord,
 } from "../../../convex/stars/stars";
-import { NO_DATA, UNSURE } from "../../../convex/stars/starsShape";
+import { LEAST_MATCHES_RATED, NO_DATA, UNSURE } from "../../../convex/stars/starsShape";
 
 // Stars (#11; spec/05 Roles; Craig, 1 Nov 2026): a rating ranks a player's points per match under a
 // role against everyone rated who plays its area.

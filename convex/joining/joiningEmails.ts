@@ -2,6 +2,8 @@ import { INVITE_DAYS, aNewTeamWords } from "./joiningShared";
 import { PRODUCT_NAME } from "../shared/product";
 import { SITE_URL_SETTING } from "../outbound/deploymentSettings";
 import { momentIn } from "../shared/moments";
+import { hoursWords } from "../shared/time";
+import { LINK_LIFETIME_MS } from "../signIn/signInLimits";
 
 // Joining's emails (#73), in words for Craig to change in the pull request: an invite, which
 // carries a sign-in link, and the one telling a person their join request was approved.
@@ -21,7 +23,7 @@ export function inviteEmail(url: string, { leagueName, invitedBy, teamName }: In
       "",
       url,
       "",
-      "The link works once, within an hour, on any device. After that, open",
+      `The link works once, within ${hoursWords(LINK_LIFETIME_MS)}, on any device. After that, open`,
       `${siteUrl()} and ask for a new one with this email: the invite lasts ${INVITE_DAYS} days.`,
     ].join("\n"),
   };

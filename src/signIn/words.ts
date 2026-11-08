@@ -1,6 +1,8 @@
 // What sign-in says, in one place for Craig to change in the pull request (spec/02). The email
 // itself is convex/signIn/signInEmail.ts.
 
+import { hoursWords } from "../../convex/shared/time";
+import { LINK_LIFETIME_MS } from "../../convex/signIn/signInLimits";
 import { failedWords } from "../shared/words";
 
 /** The sign-in page: the top bar's "Invite only", and the form asking for a link. */
@@ -15,7 +17,7 @@ export const signInWords = {
 /** The reply to asking for a link, one for each of `signIn/signInLinks:ask`'s answers. `checkYourEmail`
  *  goes to every email, on the list or not, so nobody can tell which are on it. */
 export const replyWords = {
-  checkYourEmail: "Check your email. If this address can sign in, a link is on its way. It works once, within an hour.",
+  checkYourEmail: `Check your email. If this address can sign in, a link is on its way. It works once, within ${hoursWords(LINK_LIFETIME_MS)}.`,
   tryLater: "Too many links have been asked for this email in the last hour. Try again later.",
   paused: "Sign-in links are paused until tomorrow: today's emails have all been sent.",
   notSent: "The link couldn't be sent. Try again in a few minutes.",

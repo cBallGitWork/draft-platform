@@ -2,10 +2,17 @@
 
 import type { Area } from "../../convex/lineup/pitch";
 import { leagueAverageWords } from "../table/words";
-import { LOCALE } from "../../convex/shared/moments";
-import { clockWords, fullTime, gameweekWords, halfTime, versusWords, whenWords } from "../shared/words";
-
-const kickoffFormat = new Intl.DateTimeFormat(LOCALE, { weekday: "short", hour: "2-digit", minute: "2-digit" });
+import {
+  clockWords,
+  fewestTeamsWords,
+  fullTime,
+  gameweekWords,
+  halfTime,
+  noHeadToHeadsTotalPointsWords,
+  versusWords,
+  weekdayTimeWords,
+  whenWords,
+} from "../shared/words";
 
 export { AREA_WORDS, figureWords, gameweekWords, noFigureWords, versusWords } from "../shared/words";
 export { leagueAverageWords, scoreWords } from "../table/words";
@@ -16,9 +23,9 @@ export const MATCHUP_TITLE = "Matchup";
 export const SCORE_LABEL = "Score";
 export const loadingWords = "Loading the matchup…";
 export const noRulesWords = "This league was made before leagues had rules, so it has no matchups.";
-export const totalPointsWords = "The league plays total points, so it has no head-to-heads.";
+export const totalPointsWords = noHeadToHeadsTotalPointsWords;
 export const noTeamWords = "You run no team in this league.";
-export const noGamesWords = (teamName: string) => `${teamName} has no head-to-heads: fixtures are drawn once the league has two teams.`;
+export const noGamesWords = (teamName: string) => `${teamName} has no head-to-heads: fixtures are drawn once the league has ${fewestTeamsWords}.`;
 export const noGameWords = (teamName: string, gameweek: number) => `${teamName} plays no head-to-head in ${gameweekWords(gameweek)}.`;
 export const byeWords = (teamName: string) => `${teamName} has a bye this gameweek.`;
 /** Before the deadline: no lineup is shown, the manager's own is on My team. */
@@ -41,7 +48,7 @@ export const GAME_SWITCH_LABEL = "Game";
 export const gameSwitchWords = (game: number, opponent: string | null) => `${GAME_SWITCH_LABEL} ${game} ${opponent === null ? "bye" : `${versusWords} ${opponent}`}`;
 
 export const lineupLabel = (teamName: string) => `${teamName}'s lineup`;
-export { BENCH_TITLE } from "../myTeam/tactics/words";
+export { BENCH_TITLE } from "../shared/words";
 export const columns = {
   area: { short: "Pos", long: "Area" },
   player: { short: "Player", long: "Player" },
@@ -62,7 +69,7 @@ export const AREA_CODES: Record<Area, string> = {
 /** His match, as the status column says it. */
 export const statusWords = {
   /** His kickoff, short as the column is: "Sat 15:00". */
-  yetToPlay: (kickoff: number | null) => (kickoff === null ? "To play" : kickoffFormat.format(kickoff)),
+  yetToPlay: (kickoff: number | null) => (kickoff === null ? "To play" : weekdayTimeWords(kickoff)),
   /** His match's clock, as the Premier League's pages show it: "45+1'", "HT" at half-time, or
    *  "Live" before it has a minute. */
   playing: clockWords,
@@ -94,7 +101,7 @@ export const openBreakdownLabel = (name: string) => `${name}: why his points`;
 export { closeGlyph, playerCardWords } from "../shared/words";
 export const closeBreakdownLabel = "Close";
 /** One of his matches, named by its kickoff ("Sat 15:00"), opening its page. */
-export const breakdownMatchWords = (kickoff: number | null) => (kickoff === null ? "His match" : kickoffFormat.format(kickoff));
+export const breakdownMatchWords = (kickoff: number | null) => (kickoff === null ? "His match" : weekdayTimeWords(kickoff));
 /** Under best match, the lower of his double gameweek's two (spec/03; Craig, 6 Nov 2026). */
 export const notCountedWords = "Not counted: best match";
 export const noMatchBreakdownWords = "No match this gameweek.";

@@ -1,6 +1,9 @@
 // What My team's tabs say, in one place for Craig to change in the pull request.
 
+import { countInWords } from "../../convex/shared/numberWords";
+import { NEXT_MATCHES_SHOWN } from "../../convex/squads/squadLimits";
 import { menuWords } from "../frame/words";
+import { fewestTeamsWords } from "../shared/words";
 import type { TeamTransactions } from "./seam";
 
 export { figureWords, liveWords, noFigureWords, shortThenLongName, versusWords, whenWords } from "../shared/words";
@@ -31,6 +34,9 @@ export const noPointsWords = "No points yet: none of his matches has been priced
 export const statusNotSettledLabel = "Status chip: which one isn't settled yet";
 /** A bench place's short name, first sub S1. */
 export const benchShort = (place: number) => `S${place}`;
+/** A squad row's next matches, as a head says it: "Next 3", and in full. */
+export const nextMatchesShort = `Next ${NEXT_MATCHES_SHOWN}`;
+export const nextMatchesLong = `His club's next ${countInWords(NEXT_MATCHES_SHOWN)} matches`;
 
 /** The Fixtures tab (#365). */
 export const FIXTURES_TITLE = menuWords.fixtures;
@@ -45,7 +51,7 @@ export const fixtureColumns = {
 export const byeWords = "Bye";
 export { leagueAverageWords, provisionalWords, scoreWords, unscoredWords } from "../table/words";
 export const totalPointsWords = "The league plays total points, so your team has no head-to-head fixtures.";
-export const noFixturesWords = "No fixtures yet: they're drawn once the league has two teams and a gameweek to play.";
+export const noFixturesWords = `No fixtures yet: they're drawn once the league has ${fewestTeamsWords} and a gameweek to play.`;
 
 /** The Transactions tab (#366). */
 export const TRANSACTIONS_TITLE = menuWords.transactions;

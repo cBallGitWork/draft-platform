@@ -1,7 +1,6 @@
 // What Scouting says, in one place for Craig to change in the pull request.
 
-import { LOCALE } from "../../convex/shared/moments";
-import { STAT_WORD } from "../shared/words";
+import { STAT_WORD, weekdayTimeWords } from "../shared/words";
 import type { Availability } from "./seam";
 
 export { figureWords, freeAgentWords, noFigureWords } from "../shared/words";
@@ -33,10 +32,9 @@ export const catalogueGroupWords = "The feeds' stats";
 export const countWords = (count: number) => (count === 1 ? "1 player" : `${count} players`);
 export const noneMatchWords = "No player matches these filters.";
 
-const runFormat = new Intl.DateTimeFormat(LOCALE, { weekday: "short", hour: "2-digit", minute: "2-digit" });
 /** In the owner column, a player on waivers and the run that can first take him, in the viewer's
  *  own zone (Craig, 6 Nov 2026, on #1200): "Waivers, Thu 18:00"; just "Waivers" with no run times. */
-export const onWaiversWords = (firstRunAt: number | null) => (firstRunAt === null ? "Waivers" : `Waivers, ${runFormat.format(firstRunAt)}`);
+export const onWaiversWords = (firstRunAt: number | null) => (firstRunAt === null ? "Waivers" : `Waivers, ${weekdayTimeWords(firstRunAt)}`);
 
 /** The list's columns: a short head, and what it stands for (spec/14: dense tables use short codes,
  *  the full name on hover). */

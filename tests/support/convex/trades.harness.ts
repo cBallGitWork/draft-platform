@@ -7,7 +7,7 @@ import { vi } from "vitest";
 import { api, internal } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
 import type { TradeRules } from "../../../convex/rules/leagueRulesShape";
-import { REVIEW_MS } from "../../../convex/trades/tradeReview";
+import { REVIEW_MS } from "../../../convex/trades/tradeLimits";
 import { changeEveryRules } from "./leagueRules.harness";
 import { actingAs } from "./leagues.harness";
 import { ANN, BOB, CAT, PALMER, RICE, SAKA, waiverLeague } from "./waivers.harness";
