@@ -26,7 +26,8 @@ const startedDraft = v.object({
 
 export const draftTables = {
   /** A league's draft (spec/04, Starting it; #1089), one row at most, made the first time its
-   *  commissioner sets a start or starts it: a league with none waits for him to press start.
+   *  commissioner sets a start or starts it, a manager chooses auto-pick or a pick is traded: a
+   *  league with none waits for him to press start.
    *  ../draft/draftStart.ts writes it. */
   drafts: defineTable({
     leagueId: v.id("leagues"),
@@ -36,6 +37,11 @@ export const draftTables = {
     startJob: v.optional(v.id("_scheduled_functions")),
     /** Present once it has started. */
     started: v.optional(startedDraft),
+    /** Each pick that has changed hands in a trade before the draft started (#1096): `teamId`'s pick
+     *  in `round`, which `ownerId` holds now and makes. A pick back with its own team has no entry.
+     *  Absent until a pick is traded, which makes this row if the league has none yet.
+     *  ../trades/tradePicks.ts writes it, and it can't change once the draft starts. */
+    tradedPicks: v.optional(v.array(v.object({ round: v.number(), teamId: v.id("teams"), ownerId: v.id("teams") }))),
     /** The pick on the clock (spec/04, The picks; #1091): its number, when its clock starts, 10
      *  seconds after the pick before it, and when it runs out, and the scheduled job that makes the
      *  pick for its team then, or as its clock starts for a team with no manager. Absent before the

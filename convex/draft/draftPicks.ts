@@ -188,7 +188,7 @@ export const makePick = mutation({
 async function liveTurn(ctx: QueryCtx, leagueId: Id<"leagues">): Promise<{ draft: Doc<"drafts">; started: StartedDraft; turn: Turn }> {
   const draft = (await draftOf(ctx, leagueId)) ?? refuse(pickRefusals.notStarted);
   const started = draft.started ?? refuse(pickRefusals.notStarted);
-  const turn = pickOnTheClock(started.teamIds, started.rounds, await picksMadeIn(ctx, leagueId)) ?? refuse(pickRefusals.over);
+  const turn = pickOnTheClock(started.teamIds, started.rounds, await picksMadeIn(ctx, leagueId), draft.tradedPicks) ?? refuse(pickRefusals.over);
   return { draft, started, turn };
 }
 
@@ -255,7 +255,7 @@ export const autoPick = internalMutation({
     const [league, draft] = await Promise.all([ctx.db.get("leagues", leagueId), draftOf(ctx, leagueId)]);
     const started = draft?.started;
     if (league === null || started === undefined || draft?.clock?.pick !== pick || draft.clock.paused !== undefined) return null;
-    const turn = pickOnTheClock(started.teamIds, started.rounds, await picksMadeIn(ctx, leagueId));
+    const turn = pickOnTheClock(started.teamIds, started.rounds, await picksMadeIn(ctx, leagueId), draft.tradedPicks);
     if (turn?.pick !== pick) return null;
     const team = await teamIn(ctx, leagueId, turn.team);
     if ((!picksAtOnce(draft.timeouts, team) || draft.clock.fullClock) && Date.now() < draft.clock.endsAt) {

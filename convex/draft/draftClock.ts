@@ -42,7 +42,7 @@ export async function startClock(
 ): Promise<Clocked | null> {
   const draft = await draftOf(ctx, leagueId);
   if (draft?.started === undefined) throw new Error(`League ${leagueId}'s draft hasn't started, so no pick can be put on the clock`);
-  const turn = pickOnTheClock(draft.started.teamIds, draft.started.rounds, picksMade);
+  const turn = pickOnTheClock(draft.started.teamIds, draft.started.rounds, picksMade, draft.tradedPicks);
   if (turn === null) {
     await ctx.db.patch("drafts", draft._id, { clock: undefined });
     return null;

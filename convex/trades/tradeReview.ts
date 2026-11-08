@@ -14,6 +14,7 @@ import { placeOf, squadOf } from "../squads/squadPlace";
 import { limitsBroken } from "../squads/squads";
 import { newlyBroken } from "../waivers/waiverRun";
 import { closeOffersHolding, leagueOf, managersOf, tradedName, tradeWordsOf } from "./tradeClose";
+import { movePicks } from "./tradePicks";
 import { onAutoTeam } from "./tradeShut";
 
 // A trade's review and its move (spec/08 Trades; #383). Accepted, a trade goes through at once in
@@ -24,7 +25,8 @@ import { onAutoTeam } from "./tradeShut";
 // to act on, a blocked trade files a letter to the whole league, and one that clears review the
 // usual trade letter. Once through, its players move at once: the commissioner's own move
 // (../squads/squads.ts `move`) is filed for each, and a gameweek already under way keeps their
-// points with the old team, as that move does. Any other open offer holding one of them closes.
+// points with the old team, as that move does. Any other open offer holding one of them closes. A
+// pick trade's picks change owner instead (tradePicks.ts; #1096).
 
 /** How long a review lasts (spec/08: "24 hours"). Craig's answer, so a constant. */
 export const REVIEW_MS = DAY_MS;
@@ -124,6 +126,11 @@ async function goThrough(ctx: MutationCtx, offer: Doc<"tradeOffers">, by: string
   if (gone !== null) {
     const team = await ctx.db.get("teams", gone.teamId);
     await fileLetter(ctx, league, await managersOf(ctx, offer), tradeFailedLetter(words, await tradedName(ctx, gone.playerCode), team?.name ?? "his team"));
+    return;
+  }
+  if (offer.picks !== undefined) {
+    await movePicks(ctx, offer, offer.picks);
+    await fileLetter(ctx, league, await wholeLeague(ctx, league), tradeMadeLetter(words, []), watched ? by : undefined);
     return;
   }
   const warnings = await tradeWarnings(ctx, league._id, offer);

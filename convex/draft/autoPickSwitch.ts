@@ -32,7 +32,7 @@ export const turnOn = mutation({
     await ctx.db.patch("drafts", draft._id, { timeouts });
     const { clock, started } = draft;
     if (clock === undefined || started === undefined || clock.paused !== undefined || clock.fullClock) return null;
-    if (pickOnTheClock(started.teamIds, started.rounds, clock.pick - 1)?.team !== team._id) return null;
+    if (pickOnTheClock(started.teamIds, started.rounds, clock.pick - 1, draft.tradedPicks)?.team !== team._id) return null;
     if (clock.job !== undefined) await ctx.scheduler.cancel(clock.job);
     const job = await ctx.scheduler.runAt(clock.startsAt, internal.draft.draftPicks.autoPick, { leagueId, pick: clock.pick });
     await ctx.db.patch("drafts", draft._id, { clock: { ...clock, job } });
