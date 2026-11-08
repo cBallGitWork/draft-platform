@@ -14,14 +14,15 @@ export const clubRecord = v.object({
   shortName: v.string(),
 });
 
-/** Whether a player can play, as the platform holds it (spec/06, Availability): the feed's, or the
- *  admin's over it (`convex/availability/`). The auto team reads only this (spec/09). */
 /** A club shirt's pattern (spec/12, Club colours: "plain or stripes now, more as a club needs one"). */
 export const shirtPattern = v.union(v.literal("plain"), v.literal("stripes"));
 
 /** A club's two colours, `#rrggbb` (the shirt a fan would name first, and its trim), and its
  *  shirt's pattern: the admin's (spec/15, The admin), seeded from convex/football/clubColours.ts. */
 export const clubColoursRecord = v.object({ primary: v.string(), secondary: v.string(), pattern: shirtPattern });
+
+/** Whether a player can play, as the platform holds it (spec/06, Availability): the feed's, or the
+ *  admin's over it (`convex/availability/`). The auto team reads only this (spec/09). */
 
 export const availability = v.union(v.literal("out"), v.literal("doubtful"), v.literal("available"));
 
