@@ -25,6 +25,13 @@ export const draftOver = (t: TestConvex, leagueId: Id<"leagues">, teamIds: Id<"t
     await ctx.db.insert("drafts", { leagueId, started: { at: Date.now(), teamIds, rounds: 0 } });
   });
 
+/** The league's draft row gone, as before its commissioner set a start. */
+export const noDraft = (t: TestConvex, leagueId: Id<"leagues">) =>
+  t.run(async (ctx) => {
+    const draft = await ctx.db.query("drafts").withIndex("by_leagueId", (q) => q.eq("leagueId", leagueId)).unique();
+    if (draft !== null) await ctx.db.delete("drafts", draft._id);
+  });
+
 export async function waiverLeague() {
   const t: TestConvex = await signInDeployment();
   fakeResend();
