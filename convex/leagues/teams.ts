@@ -23,7 +23,8 @@ import { leagueDeadlines } from "../gameweeks/leagueDeadlines";
 import { storeBegunFixtures } from "../table/playedFixtures";
 import { TEAM_NAME_MAX } from "./leagueLimits";
 import { cancelLiveInvites } from "../joining/liveInvites";
-import { draftHasStarted } from "../draft/draftRow";
+import { draftHasStarted, draftOf } from "../draft/draftRow";
+import { rescheduleIfOnTheClock } from "../draft/draftClock";
 
 // A league's teams and their managers (#24, spec/13, Teams and Leaving). Each change files an
 // event for Mail (#26). One manager runs one team; a team whose manager goes stays, vacated.
@@ -128,6 +129,7 @@ export const removeManager = mutation({
     const team = await teamIn(ctx, leagueId, teamId);
     if (team.managerEmail === undefined) refuse(refusals.noManager);
     await ctx.db.patch("teams", teamId, { managerEmail: undefined });
+    await pickAtOnceIfOnTheClock(ctx, { ...team, managerEmail: undefined });
     // With no manager it is on the auto team (spec/09), so its open trade offers close (spec/08).
     await closeOffersOfTeam(ctx, team);
     await cancelLiveInvites(ctx, leagueId, team.managerEmail);
@@ -143,12 +145,21 @@ export const leave = mutation({
   handler: async (ctx, { leagueId }) => {
     const { email, team } = await managerOf(ctx, leagueId);
     await ctx.db.patch("teams", team._id, { managerEmail: undefined });
+    await pickAtOnceIfOnTheClock(ctx, { ...team, managerEmail: undefined });
     await closeOffersOfTeam(ctx, team);
     await cancelLiveInvites(ctx, leagueId, email);
     await recordEvent(ctx, leagueId, email, { kind: "managerLeft", email, teamId: team._id, teamName: team.name });
     return null;
   },
 });
+
+/** spec/04, The picks: a team that has just lost its manager while its pick is on the clock is
+ *  picked for at once, not at the clock's end, as nobody can pick for it (Craig, 8 Nov 2026:
+ *  "Auto-pick at once"; #1334). */
+async function pickAtOnceIfOnTheClock(ctx: MutationCtx, team: Doc<"teams">): Promise<void> {
+  const draft = await draftOf(ctx, team.leagueId);
+  if (draft !== null) await rescheduleIfOnTheClock(ctx, draft, team);
+}
 
 /** spec/13, Teams: a team's manager (or the admin) renames it, unique in the league and up to
  *  TEAM_NAME_MAX characters. */
