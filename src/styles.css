@@ -134,6 +134,8 @@
   --grid-template-columns-dated-row: auto minmax(0, 1fr);
   --grid-template-columns-home: minmax(0, 2fr) minmax(0, 3fr) minmax(0, 2fr);
   --grid-template-columns-card: 2fr 3fr;
+  /* The table beside its fixtures, as the approved table picture splits them (about 5 to 2) */
+  --grid-template-columns-table: minmax(0, 5fr) minmax(0, 2fr);
   --grid-template-columns-facts: auto 1fr;
   /* The formation window's groups, its tiles and the picked one's preview (the approved formation
      window) */

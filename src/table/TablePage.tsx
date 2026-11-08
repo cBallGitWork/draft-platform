@@ -59,7 +59,7 @@ export function TablePage({ league, seam }: { league: LeagueSummary; seam: Table
       ) : leagueTable === null ? (
         <p className="text-muted">{noRulesWords}</p>
       ) : (
-        <div className={PANEL_COLUMNS}>
+        <div className={totalPoints ? PANEL_COLUMNS : "grid items-start gap-2 lg:grid-cols-table"}>
           {totalPoints || competition === "league" ? <StandingsPanel leagueTable={leagueTable} mine={league.teamName} /> : <CupBracket />}
           {!totalPoints && <FixturesPanel leagueTable={leagueTable} mine={league.teamName} />}
         </div>
@@ -111,7 +111,7 @@ function StandingsPanel({ leagueTable, mine }: { leagueTable: LeagueTable; mine:
         <ColumnHeads columns={columns} shown={shown} classOf={cellClasses} />
         <tbody>
           {table.map((row, index) => (
-            <tr key={row.teamId} aria-current={row.teamName === mine || undefined} className="border-t border-panel-rule aria-current:shadow-current-edge">
+            <tr key={row.teamId} aria-current={row.teamName === mine || undefined} className="h-row border-t border-panel-rule aria-current:shadow-current-edge">
               {shown.map((column) => (
                 <TableCell key={column} column={column} row={row} position={index + 1} mine={row.teamName === mine} leagueTable={leagueTable} />
               ))}
