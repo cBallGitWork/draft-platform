@@ -36,8 +36,9 @@ const COLUMNS_OF: Record<LeagueTable["format"], readonly Column[]> = {
   totalPoints: ["position", "team", "played", "points"],
 };
 
-/** Columns a phone leaves out, for room: the difference says what they would. */
-const DESK_ONLY: readonly Column[] = ["pointsFor", "pointsAgainst"];
+/** Columns a phone leaves out, for room beside the form: the difference and points say what
+ *  they would. */
+const DESK_ONLY: readonly Column[] = ["won", "drawn", "lost", "pointsFor", "pointsAgainst"];
 
 /** A column's cells: names and form read from the left, figures line up on the right, and a phone
  *  leaves out what it has no room for. */
