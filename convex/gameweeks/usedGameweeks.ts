@@ -1,8 +1,9 @@
 // Which gameweeks a league plays (#74; spec/13, Gameweeks): every one of FPL's season unless its
 // commissioner unticked it. An unticked gameweek scores nothing and has no head-to-head: the
 // fixtures (#33) skip it via `scoredGameweeksOf`, and scoring's `begunGameweeks`
-// (convex/gameweekScorer/gameweekScores.ts) applies `isGameweekScored`, so it is never scored; waivers and free
-// agency carry on through it, and trades are locked through it (spec/13; tradeShut.ts). A gameweek before the league's scoring start
+// (convex/gameweekScorer/gameweekScores.ts) applies `isGameweekScored`, so it is never scored; lineups,
+// waivers, free agency and trades are locked through it (spec/13; waiverLock.ts's `inUnplayedGameweek`
+// and its waiver lock), and the league's season ends at the last it plays (`lastPlayedGameweek`). A gameweek before the league's scoring start
 // (scoringStart.ts; spec/04, After the draft) is the same: those two leave it out too. Its only imports are a type, which compiles away, and
 // Convex's validators, which the screens already load, so the screens can read it too.
 
@@ -37,6 +38,10 @@ export function isGameweekUsed(league: WithUnusedGameweeks, gameweek: number): b
 
 /** The gameweeks the league plays, in order. */
 export const usedGameweeksOf = (league: WithUnusedGameweeks) => SEASON_GAMEWEEKS.filter((gameweek) => isGameweekUsed(league, gameweek));
+
+/** The last gameweek the league plays, its season's end: before GAMEWEEKS for a league that ends
+ *  early (spec/13, Gameweeks). One before the season's first when it plays none. */
+export const lastPlayedGameweek = (league: WithUnusedGameweeks) => usedGameweeksOf(league).at(-1) ?? FIRST_GAMEWEEK - 1;
 
 /** Whether the league scores this gameweek and plays its head-to-head: it is ticked, and not before
  *  the league's scoring start. Throws as `isGameweekUsed` does. */

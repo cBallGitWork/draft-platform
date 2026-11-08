@@ -48,7 +48,7 @@ const squadMember = v.object({
 const tacticsShape = v.union(
   /** A league made before rules were held: no deadline and no area limits to set a lineup under. */
   v.object({ kind: v.literal("noRules") }),
-  /** Every gameweek has begun: there is none left to set. */
+  /** Every gameweek the league plays has begun: there is none left to set. */
   v.object({ kind: v.literal("seasonOver") }),
   v.object({
     kind: v.literal("open"),

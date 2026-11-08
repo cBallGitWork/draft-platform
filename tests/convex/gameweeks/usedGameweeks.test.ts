@@ -1,5 +1,15 @@
 import { describe, expect, test } from "vitest";
-import { GAMEWEEKS, isGameweekScored, isGameweekUsed, noSuchGameweek, scoredGameweeksOf, unusedAfter, usedGameweeksOf } from "../../../convex/gameweeks/usedGameweeks";
+import {
+  GAMEWEEKS,
+  isGameweekScored,
+  isGameweekUsed,
+  lastPlayedGameweek,
+  noSuchGameweek,
+  scoredGameweeksOf,
+  SEASON_GAMEWEEKS,
+  unusedAfter,
+  usedGameweeksOf,
+} from "../../../convex/gameweeks/usedGameweeks";
 
 // The helper scoring (#29) and the fixtures (#33) read: whether a league plays a gameweek (#74).
 
@@ -24,6 +34,17 @@ describe("usedGameweeksOf", () => {
     const withBreak = usedGameweeksOf({ unusedGameweeks: [17, 18] });
     expect(withBreak.slice(14, 18)).toEqual([15, 16, 19, 20]);
     expect(withBreak).toHaveLength(GAMEWEEKS - 2);
+  });
+});
+
+describe("lastPlayedGameweek", () => {
+  test("is the season's last for a league that plays it, and the last it plays for one that ends early (spec/13)", () => {
+    expect(lastPlayedGameweek({})).toBe(GAMEWEEKS);
+    expect(lastPlayedGameweek({ unusedGameweeks: [17, GAMEWEEKS - 1, GAMEWEEKS] })).toBe(GAMEWEEKS - 2);
+  });
+
+  test("is before the season's first for a league that plays none", () => {
+    expect(lastPlayedGameweek({ unusedGameweeks: [...SEASON_GAMEWEEKS] })).toBe(0);
   });
 });
 

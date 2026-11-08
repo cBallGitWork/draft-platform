@@ -2,10 +2,9 @@ import type { Doc } from "../_generated/dataModel";
 import type { QueryCtx } from "../_generated/server";
 import { draftIsLive } from "../draft/draftRow";
 import type { LeagueDeadlines } from "../gameweeks/deadline";
-import { isGameweekUsed } from "../gameweeks/usedGameweeks";
 import { tradeRulesOf } from "../rules/firstRules";
 import { latestRules } from "../rules/rulesHistory";
-import { gameweekUnderWay, latestBegun } from "../waivers/waiverLock";
+import { gameweekUnderWay, inUnplayedGameweek, latestBegun } from "../waivers/waiverLock";
 
 // When no trade is offered or accepted (spec/08 Trades; #383): while the league's draft is live,
 // when only its picks change squads; once its trade deadline, a league setting off by default, has
@@ -27,7 +26,7 @@ export async function tradesShut(ctx: QueryCtx, league: Doc<"leagues">, deadline
   if (tradeDeadline !== null && begun >= tradeDeadline) {
     if (begun > tradeDeadline || !(await gameweekUnderWay(ctx, begun))) return "tradeDeadline";
   }
-  if (!isGameweekUsed(league, begun) && (await gameweekUnderWay(ctx, begun))) return "unusedGameweek";
+  if (await inUnplayedGameweek(ctx, league, deadlines, now)) return "unusedGameweek";
   return null;
 }
 
