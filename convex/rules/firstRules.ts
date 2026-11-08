@@ -91,7 +91,7 @@ export const FIRST_RULES: LeagueRules = {
   oddTeamOut: FIRST_ODD_TEAM_OUT,
   gamesPerGameweek: FIRST_GAMES_PER_GAMEWEEK,
   // Craig's (spec/03, spec/08; 5 Nov 2026): Wednesday and Thursday at 18:00 UK time, "for now",
-  // and reverse table order. The 24 hours on waivers is a constant (../waivers/waiverPlayers.ts).
+  // and reverse table order. The 24 hours on waivers is a constant (../waivers/waiverLimits.ts).
   waivers: {
     runs: [
       { day: "wednesday", hour: 18, minute: 0 },
