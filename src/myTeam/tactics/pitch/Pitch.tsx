@@ -82,7 +82,7 @@ export function Pitch({
   return (
     <div role="group" aria-label={pitchLabel} style={cellGridOf(rows)} className="pitch relative mx-auto grid">
       <PitchLines rows={rows} />
-      <RoleRuns draft={draft} rows={rows} tapped={picked?.playerCode ?? moving.selected} switchedOn={runsShown} />
+      <RoleRuns starters={draft.starters} rows={rows} tapped={picked?.playerCode ?? moving.selected} switchedOn={runsShown} />
       {ROWS_DRAWN.flatMap((area) =>
         LANES.map((lane) => {
           const cell = { area, lane };

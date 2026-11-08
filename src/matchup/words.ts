@@ -1,6 +1,7 @@
 // What the matchup says, in one place for Craig to change in the pull request.
 
 import type { Area } from "../../convex/lineup/pitch";
+import type { SlotStatus } from "../../convex/matchup/matchupShape";
 import { leagueAverageWords } from "../table/words";
 import {
   clockWords,
@@ -48,6 +49,10 @@ export const GAME_SWITCH_LABEL = "Game";
 export const gameSwitchWords = (game: number, opponent: string | null) => `${GAME_SWITCH_LABEL} ${game} ${opponent === null ? "bye" : `${versusWords} ${opponent}`}`;
 
 export const lineupLabel = (teamName: string) => `${teamName}'s lineup`;
+/** A side's pitch (spec/10, The matchup, as a live match; #850), and each man on it: "Haaland, ST
+ *  Poacher, 13". */
+export const sidePitchLabel = (teamName: string) => `${teamName}'s pitch`;
+export const pitchPlayerLabel = (name: string, position: string, role: string, points: string) => `${name}, ${position} ${role}, ${points}`;
 export { BENCH_TITLE } from "../shared/words";
 export const columns = {
   area: { short: "Pos", long: "Area" },
@@ -76,6 +81,19 @@ export const statusWords = {
   finished: fullTime.short,
   noMatch: "No match",
 } as const;
+/** His match's state, short, as the status column and his tile on the pitch say it. */
+export function statusText(status: SlotStatus): string {
+  switch (status.kind) {
+    case "yetToPlay":
+      return statusWords.yetToPlay(status.kickoff);
+    case "playing":
+      return statusWords.playing(status.state, status.clockLabel, status.minute);
+    case "finished":
+      return statusWords.finished;
+    case "noMatch":
+      return statusWords.noMatch;
+  }
+}
 /** The same, in full for screen readers. */
 export const statusLabels = {
   yetToPlay: "Yet to play",
