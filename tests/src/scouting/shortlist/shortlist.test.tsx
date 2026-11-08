@@ -114,6 +114,8 @@ const card = (code: number, name: string, gone = false): PlayerCard => ({
   news: null,
   chanceOfPlaying: null,
   matches: [],
+  postponed: [],
+  categories: [],
   lastSeason: null,
   nextFixtures: [],
 });

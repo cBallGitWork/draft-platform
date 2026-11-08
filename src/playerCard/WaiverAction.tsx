@@ -49,10 +49,10 @@ export function WaiverAction({ leagueId, card, seam }: { leagueId: Id<"leagues">
   }
 
   return (
-    <div className="border-t border-panel-rule">
+    <div className="flex flex-col gap-1">
       <Problem problem={change.problem} />
       {action.kind === "drop" ? (
-        <div className="flex flex-wrap items-center gap-3 px-3 py-2">
+        <div className="flex flex-wrap items-center gap-2">
           {!confirming ? (
             <button type="button" onClick={() => setConfirming(true)} className="secondary-action">
               {dropWords}
@@ -71,8 +71,8 @@ export function WaiverAction({ leagueId, card, seam }: { leagueId: Id<"leagues">
         </div>
       ) : (
         <>
-          <Status words={claimed ? claimedDoneWords : null} className="px-3 pt-2 text-derived" />
-          <div className="flex flex-wrap items-center gap-3 px-3 py-2">
+          <Status words={claimed ? claimedDoneWords : null} className="text-derived" />
+          <div className="flex flex-wrap items-center gap-2">
             {action.kind === "claim" && <span className="text-soft">{onWaiversUntilWords(action.firstRunAt)}</span>}
             <WhoGoes squad={action.squad} whoGoes={whoGoes} choose={setWhoGoes} />
             <button type="button" disabled={change.busy} onClick={() => void claimOrPickUp(action.kind)} className="action">

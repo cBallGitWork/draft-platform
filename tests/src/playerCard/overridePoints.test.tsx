@@ -13,6 +13,7 @@ import {
   cancelOverrideWords,
   OVERRIDE_TITLE,
   overriddenDoneWords,
+  overriddenWasWords,
   overriddenWords,
   overrideHint,
   overrideLabels,
@@ -35,6 +36,8 @@ const MATCH: PlayedMatch = {
   home: ARSENAL,
   away: COVENTRY,
   minutes: 90,
+  score: null,
+  stats: null,
   points: [
     {
       position: "W",
@@ -59,6 +62,8 @@ const SAKA: PlayerCard = {
   news: null,
   chanceOfPlaying: null,
   matches: [MATCH, EARLIER],
+  postponed: [],
+  categories: [],
   lastSeason: null,
   nextFixtures: [],
 };
@@ -184,8 +189,11 @@ it("a match the league overrode shows the override's points, and why, to everyon
   const season = within(await screen.findByRole("region", { name: SEASON_TITLE }));
   const row = season.getAllByRole("rowheader")[0].closest("tr")!;
 
-  expect(within(row).getAllByRole("cell").at(-1)!.textContent).toBe("12.5");
-  expect(season.getByText(overriddenWords(12.5, REASON))).toBeTruthy();
+  // In the game log, what he scored before it with its reason on hover; in the breakdown, why.
+  const points = within(row).getAllByRole("cell").at(-1)!;
+  expect(points.textContent).toBe(`${overriddenWasWords(7)}12.5`);
+  expect(within(points).getByTitle(REASON)).toBeTruthy();
+  expect(screen.getByText(overriddenWords(12.5, REASON))).toBeTruthy();
 });
 
 // The card is live (livePlayerCard.ts), so its matches can change while it is open: the form keeps

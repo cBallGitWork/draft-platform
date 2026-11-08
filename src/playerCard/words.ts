@@ -2,7 +2,7 @@
 
 import type { CategoryWhy, Cut, PricedBy, SlotValue } from "../../convex/scoring/scoring";
 import { seasonShortWords } from "../draft/words";
-import { AREA_WORDS, figureWords, gameweekWords, signedWords, versusWords, whenWords } from "../shared/words";
+import { AREA_WORDS, figureWords, gameweekShort, gameweekWords, signedWords, versusWords, whenWords } from "../shared/words";
 
 export { figureWords, freeAgentWords, noFigureWords } from "../shared/words";
 
@@ -11,34 +11,58 @@ export const loadingWords = "Loading the player…";
 export const noSuchPlayerWords = "No player with that code is held: the link may be wrong.";
 export const goneWords = "No longer in the Premier League.";
 
-/** The facts at the head of the card. */
+/** The card's head (the approved picture): his name, his positions, club and owner, his figures
+ *  beside them, and his actions. */
 export const PLAYER_TITLE = "Player";
-export const clubLabel = "Club";
-export const positionsLabel = "Positions";
-export const noPositionsWords = "None yet";
-export const ownerLabel = "Team";
-export const newsLabel = "News";
-export const noNewsWords = "None";
+export const noPositionsWords = "No position yet";
+export const ownedByWords = "Owned by";
 export const chanceWords = (percent: number) => `${percent}% chance of playing next round`;
+/** His figures beside his name, at the position the switch is on (spec/12 S12.1; #1027). */
+export const figureLabels = { seasonPoints: "Base points", aMatch: "A match", minutes: "Minutes", lastFive: "Last 5" } as const;
+/** The placeholders the card keeps in their places until their data comes (the README's table). */
+export const portraitLabel = "His portrait: waiting on FPL's terms for its photos";
+export const offerTradeWords = "Offer a trade";
+export const tradeNotBuiltLabel = "Offer a trade: trades aren't built yet";
 
-/** This season's matches. */
+/** The left column: FPL's news on him, his news notes, and his role fit. */
+export const NEWS_TITLE = "News";
+export const noNewsWords = "No news on him.";
+export const newsNotesLabel = "His news notes: the news job isn't built yet";
+export const ROLE_FIT_TITLE = "Role fit";
+export const roleFitLabel = "Role fit: comes with scouts";
+/** Under the game log: the captain and set-piece hints (spec/17, after the mini beta). */
+export const CAPTAIN_TITLE = "Captain and set pieces";
+export const captainLabels = { captain: "Club captain", setPieces: "Set pieces" } as const;
+export const hintNotHeldLabel = (what: string) => `${what}: comes after the mini beta`;
+
+/** This season's matches, as a game log. */
 export const SEASON_TITLE = "This season";
 export const noMatchesWords = "He hasn't played a match this season.";
 /** The switch over the matches: which of his positions they are priced at. */
 export const pricedAtLabel = "Points at";
+/** The game log's switch: the categories that score at his position, or every stat we hold. */
+export const logViewLabel = "Columns";
+export const logViews = { scoring: "Scoring", all: "All stats" } as const;
 /** Beside points that may still move ("Live", as on My team's fixtures): the match isn't final, or
  *  his team's auto-subs aren't (spec/12). */
 export { liveWords, provisionalWords } from "../shared/words";
 export const columns = {
   gameweek: { short: "GW", long: "Gameweek" },
-  match: { short: "Match", long: "Match" },
+  opponent: { short: "Opp", long: "Opponent, at home (H) or away (A)" },
+  score: { short: "Score", long: "The match's score, home side first" },
   minutes: { short: "Min", long: "Minutes played" },
-  position: { short: "At", long: "The position he is priced at" },
   points: { short: "Pts", long: "Points under the site's scoring" },
 } as const;
 export const notArrivedWords = "His record for this match hasn't fully arrived yet.";
-/** The lines under a match: each category he earned or lost points in, as "Goals scored 5", and
- *  why. */
+/** A match his club's postponement took out, kept as its row. */
+export const postponedWords = "Postponed";
+/** Before a match's points, the league's override, its reason on hover. */
+export const overriddenWasWords = (was: number | null) => (was === null ? "Overridden" : `Overridden, was ${figureWords(was)}`);
+/** The selected match's breakdown, at the top of the right column: "GW8, LIV (A) 2–1". */
+export const matchTitle = (gameweek: number | null, opponent: string, score: string | null) =>
+  `${gameweek === null ? "" : `${gameweekShort(gameweek)}, `}${opponent}${score === null ? "" : ` ${score}`}`;
+/** The lines in a match's breakdown: each category he earned or lost points in, as "Goals scored
+ *  5", and why. */
 export const breakdownLabel = (gameweek: number | null) => (gameweek === null ? "Points by category" : `${gameweekWords(gameweek)} points by category`);
 export const nothingEarnedWords = "No category earned him points.";
 /** Why a category's points are what they are (spec/14, On screen), in brackets after them: "(1 at
@@ -84,15 +108,17 @@ const cutWords = (cut: Cut | null) => {
 /** The breakdown's last line: the version of the site's scoring the match was scored under. */
 export const scoredUnderWords = (version: string | null) => `Scored under ${version === null ? "the first scoring set" : `version ${version}`}`;
 
-/** Last season's one line (spec/12; Craig, 6 Nov 2026): "25/26: 34 apps, 2810 min, 212 pts". */
-export const LAST_SEASON_TITLE = "Last season";
+/** Last season's one line under the game log (spec/12; Craig, 6 Nov 2026): "25/26: 34 apps, 2810
+ *  min, 212 pts". */
+export const LAST_SEASON_TITLE = "Last season, under today's scoring";
 export const lastSeasonWords = (season: number, { appearances, minutes, points }: { appearances: number; minutes: number; points: number }) =>
   `${seasonShortWords(season)}: ${figureWords(appearances)} apps, ${figureWords(minutes)} min, ${figureWords(points)} pts`;
 export const notInLastSeasonWords = "Not in the Premier League last season.";
 export const lastSeasonNotHeldWords = "Last season isn't held yet.";
 
-/** His club's next fixtures. */
-export const NEXT_FIXTURES_TITLE = "Next fixtures";
+/** His club's next fixtures, in a single row (Craig, 7 Nov 2026). */
+export const nextFixturesTitle = (club: string) => `${club}'s next fixtures`;
+export { difficultyNotRatedWords, nextFixtureShort, statusNotSettledLabel } from "../shared/words";
 export const noFixturesWords = "No fixtures ahead with a date.";
 
 /** A commissioner's override of his points in a match (#32, spec/14). */

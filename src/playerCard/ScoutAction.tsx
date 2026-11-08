@@ -16,9 +16,9 @@ export function ScoutAction({ leagueId, playerCode, gone, seam }: { leagueId: Id
   const free = Math.max(0, mine.scouts - mine.out.length);
   const onHim = mine.out.some((scout) => scout.playerCode === playerCode);
   return (
-    <div className="border-t border-panel-rule">
+    <div className="flex flex-col gap-1">
       <Problem problem={change.problem} />
-      <div className="flex flex-wrap items-center gap-3 px-3 py-2">
+      <div className="flex flex-wrap items-center gap-2">
         <button
           type="button"
           disabled={change.busy || free === 0 || onHim}
