@@ -82,6 +82,7 @@ const memberOf = ({ code, name, club, positions, number }: Row): SquadMember => 
   flagged: [],
   number,
   stars: [],
+  availability: "available",
 });
 
 /** The Tactics read with these players starting in these cells, and the rest of `players` on the

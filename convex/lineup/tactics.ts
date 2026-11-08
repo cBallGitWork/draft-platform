@@ -7,7 +7,8 @@ import { shownDeadline } from "../gameweeks/usedGameweeks";
 import { clubByCode, playerByCode, unheldPlayerWords } from "../shared/players";
 import { workedOutNow } from "../positions/playerPositions";
 import { howPositionsCount } from "../positions/positionSettings";
-import { position } from "../schema";
+import { availability, position } from "../schema";
+import { availabilityOf } from "../availability/availability";
 import { managerOf } from "../shared/leagueAccess";
 import { squadOf } from "../squads/squadPlace";
 import { shirtNumber } from "../squads/squadNumbers";
@@ -43,6 +44,9 @@ const squadMember = v.object({
   /** His stars for each role in each area he plays (#11), which pick the role he starts on when
    *  dropped into a slot. */
   stars: v.array(roleStarsShape),
+  /** Out, doubtful or available (spec/06, Availability), which Quick Pick reads (#849); null for
+   *  one the football sync doesn't hold. */
+  availability: v.union(availability, v.null()),
 });
 
 const tacticsShape = v.union(
@@ -105,6 +109,7 @@ export const ofMyTeam = query({
           flagged: positions.flatMap(({ position, flaggedElsewhere }) => (flaggedElsewhere === null ? [] : [{ position, startsElsewhere: flaggedElsewhere }])),
           number: await shirtNumber(ctx, member),
           stars: starsOf.get(playerCode)!,
+          availability: player === null ? null : (await availabilityOf(ctx, playerCode)).availability,
         };
       }),
     );

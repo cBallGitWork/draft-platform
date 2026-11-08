@@ -1,6 +1,5 @@
 import { Choice } from "../../ui/Choice";
 import { Problem, Status } from "../../ui/Panel";
-import { Placeholder } from "../../ui/Placeholder";
 import { TickBox } from "../../ui/TickBox";
 import { nextGlyph } from "../../shared/words";
 import type { OpenTactics } from "./seam";
@@ -8,7 +7,7 @@ import {
   allFormationsWords,
   presetLabel,
   presetsWords,
-  quickPickPlaceholder,
+  quickPickWords,
   runsWords,
   savedWords,
   savePresetWords,
@@ -43,8 +42,8 @@ export function keyedPresets(presets: OpenTactics["presets"], inUse: string | nu
 }
 
 /** The toolbar, with the line the last save left under it: when it landed, or the refusal in the
- *  server's words, read where the move was made, even on a phone. Data and features not held yet
- *  (Quick Pick) show as placeholders in their places (plate.md, Marks). */export function TacticsToolbar({
+ *  server's words, read where the move was made, even on a phone. */
+export function TacticsToolbar({
   presets,
   inUse,
   onPreset,
@@ -55,6 +54,7 @@ export function keyedPresets(presets: OpenTactics["presets"], inUse: string | nu
   onSavePreset,
   canUndo,
   onUndo,
+  onQuickPick,
   savedAt,
   switchedNote,
   problem,
@@ -81,6 +81,8 @@ export function keyedPresets(presets: OpenTactics["presets"], inUse: string | nu
   onSavePreset: () => void;
   canUndo: boolean;
   onUndo: () => void;
+  /** Fills the formation with the best eleven by stars (spec/05, Moving players). */
+  onQuickPick: () => void;
   savedAt: number | null;
   problem: string | null;
 }) {
@@ -105,7 +107,9 @@ export function keyedPresets(presets: OpenTactics["presets"], inUse: string | nu
           <button type="button" disabled={!canUndo} onClick={onUndo} className={canUndo ? "secondary-action" : "action-idle"}>
             {undoWords}
           </button>
-          <Placeholder label={quickPickPlaceholder} className="h-11 w-24" />
+          <button type="button" onClick={onQuickPick} className="secondary-action">
+            {quickPickWords}
+          </button>
         </span>
       </div>
       <Status words={savedAt === null ? null : savedWords(savedAt)} className="px-3 pb-2" />
