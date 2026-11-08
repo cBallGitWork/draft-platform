@@ -1,11 +1,13 @@
-// The player card's claim or drop (#1200), in a real browser on the dev server's preview: the
-// preview manager drops his own Saka, claims James off waivers naming Saka to go, and picks up
-// Rice; the preview saves nothing and says so. Fails on any console or page error (errorsTest.ts).
+// The player card in a real browser on the dev server's preview: opened from Scouting, its game
+// log's Scoring | All stats switch and a match row's breakdown (#1027); and its claim or drop
+// (#1200): the preview manager drops his own Saka, claims James off waivers naming Saka to go, and
+// picks up Rice; the preview saves nothing and says so. Fails on any console or page error (errorsTest.ts).
 
 import { expect } from "@playwright/test";
 import { proLeague } from "../../src/shared/preview";
 import { playerCardPath } from "../../src/playerCard/paths";
-import { claimWords, confirmDropWords, dropWords, pickUpWords, whoGoesLabel } from "../../src/playerCard/words";
+import { SCOUTING_PATH } from "../../src/frame/menu";
+import { breakdownLabel, claimWords, confirmDropWords, dropWords, logViews, pickUpWords, postponedWords, SEASON_TITLE, whoGoesLabel } from "../../src/playerCard/words";
 import { test } from "../support/smoke/errorsTest";
 
 /** Scouting's preview players (src/scouting/preview.ts): the preview manager's own Saka, Rice a free
@@ -15,6 +17,24 @@ const RICE = 2;
 const JAMES = 5;
 
 test.describe("the player card, on the dev server's preview", { tag: "@dev" }, () => {
+  test("opens from Scouting, switches its game log to every stat and shows a match's breakdown (#1027)", async ({ page }) => {
+    await page.goto(`${SCOUTING_PATH}?preview=manager`);
+    await page.getByRole("link", { name: "Palmer" }).click();
+    await expect(page.getByRole("heading", { level: 1, name: "Cole Palmer" })).toBeVisible();
+
+    // Scoring shows the categories that score at CAM; All stats every stat held, big chances among them.
+    const season = page.getByRole("region", { name: SEASON_TITLE });
+    await expect(season.getByRole("columnheader", { name: /Big chance created/ })).toHaveCount(0);
+    await season.getByText(logViews.all, { exact: true }).click();
+    await expect(season.getByRole("columnheader", { name: /Big chance created/ })).toHaveCount(1);
+    await expect(season.getByText(postponedWords)).toBeVisible();
+
+    // The newest match is selected; pressing gameweek 8's shows its breakdown instead.
+    await season.getByRole("button", { name: "LIV (A)" }).first().click();
+    await expect(page.getByRole("region", { name: "GW8, LIV (A) 1–2" })).toBeVisible();
+    await expect(page.getByLabel(breakdownLabel(8)).getByText(/^Goals scored/)).toBeVisible();
+  });
+
   test("drops, claims and picks up", async ({ page }) => {
     const card = (code: number) => page.goto(`${playerCardPath(proLeague.leagueId, code)}?preview=manager`);
     const said = (words: string) => expect(page.getByRole("alert")).toHaveText(words);
