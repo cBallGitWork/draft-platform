@@ -2,7 +2,7 @@ import { v } from "convex/values";
 import { internal } from "../_generated/api";
 import type { Doc, Id } from "../_generated/dataModel";
 import { internalMutation, type MutationCtx, type QueryCtx } from "../_generated/server";
-import { draftIsLive } from "../draft/draftRow";
+import { draftIsOver } from "../draft/draftRow";
 import type { LeagueDeadlines } from "../gameweeks/deadline";
 import { leagueDeadlines } from "../gameweeks/leagueDeadlines";
 import { leagueOpens } from "../leagues/leagueOpens";
@@ -138,8 +138,8 @@ async function report(ctx: MutationCtx, league: Doc<"leagues">, claim: Doc<"waiv
   await pickFirstLineupAgain(ctx, league._id, team._id);
 }
 
-/** Runs the league's waivers for its run time `at`, once: skipped in the lock or while the draft
- *  is live. */
+/** Runs the league's waivers for its run time `at`, once: skipped in the lock or until the draft
+ *  is over (#1326). */
 async function runWaivers(ctx: MutationCtx, leagueId: Id<"leagues">, at: number): Promise<void> {
   const league = await ctx.db.get("leagues", leagueId);
   const held = await waiverOrderRow(ctx, leagueId);
@@ -156,7 +156,7 @@ async function runWaivers(ctx: MutationCtx, leagueId: Id<"leagues">, at: number)
     held === null
       ? ctx.db.insert("waiverOrders", { leagueId, winners, gameweek, ranAt: at, madeAt })
       : ctx.db.patch("waiverOrders", held._id, { winners, gameweek, ranAt: at, madeAt });
-  if ((await draftIsLive(ctx, leagueId)) || (await inWaiverLock(ctx, deadlines, now))) {
+  if (!(await draftIsOver(ctx, leagueId)) || (await inWaiverLock(ctx, deadlines, now))) {
     await save();
     return;
   }

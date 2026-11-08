@@ -1,7 +1,7 @@
 import { v } from "convex/values";
 import type { Doc, Id } from "../_generated/dataModel";
 import { mutation, query, type QueryCtx } from "../_generated/server";
-import { draftIsLive } from "../draft/draftRow";
+import { draftIsOver } from "../draft/draftRow";
 import { leagueDeadlines } from "../gameweeks/leagueDeadlines";
 import { takeAllOrThrow } from "../shared/cappedRead";
 import { managerOf, memberOf, powersIn, refuse, refusals, teamsOf } from "../shared/leagueAccess";
@@ -14,11 +14,11 @@ import { dropRefusals, namedPlayer } from "./waivers";
 // A manager's waiver claims (#1198, spec/08 Waivers and free agency): as many as he likes, ranked,
 // each for a player on waivers and, with a full squad, naming who he drops if it succeeds. He puts
 // one in, withdraws it and ranks them again; the run (waiverRun.ts) tries them. No claim is put in
-// from the deadline until the gameweek's last match is over, nor while the draft is live. A manager
+// from the deadline until the gameweek's last match is over, nor until the draft is over. A manager
 // sees only his own pending claims; the commissioner sees everyone's.
 
 export const claimRefusals = {
-  draftLive: dropRefusals.draftLive,
+  notDrafted: dropRefusals.notDrafted,
   locked: "Claims can't be put in from the deadline until the gameweek's last match is over.",
   notOnWaivers: (name: string) => `${name} isn't on waivers.`,
   dropNotYours: dropRefusals.notYours,
@@ -64,7 +64,7 @@ export const putIn = mutation({
   returns: v.id("waiverClaims"),
   handler: async (ctx, { leagueId, playerCode, dropCode }) => {
     const { email, team } = await managerOf(ctx, leagueId);
-    if (await draftIsLive(ctx, leagueId)) refuse(claimRefusals.draftLive);
+    if (!(await draftIsOver(ctx, leagueId))) refuse(claimRefusals.notDrafted);
     if (await inWaiverLock(ctx, await leagueDeadlines(ctx, leagueId), Date.now())) refuse(claimRefusals.locked);
     const player = (await playerByCode(ctx, playerCode)) ?? refuse(refusals.noPlayer);
     if ((await waiverRowOf(ctx, leagueId, playerCode)) === null) refuse(claimRefusals.notOnWaivers(player.name));
