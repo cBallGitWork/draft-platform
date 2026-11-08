@@ -92,9 +92,11 @@ export function OfferPanel({
         </p>
       )}
       <dl className="grid grid-cols-facts">
-        <Fact label={yourSquadWords}>
-          {squadAfterWords(after, squadMaximum)}
-        </Fact>
+        {sides.group !== "fromYou" && (
+          <Fact label={yourSquadWords}>
+            {squadAfterWords(after, squadMaximum)}
+          </Fact>
+        )}
         {sides.group === "fromYou" && (
           <Fact label={waitingOnWords}>{sides.otherTeamName}</Fact>
         )}
