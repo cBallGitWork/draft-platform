@@ -48,10 +48,9 @@ import {
 } from "../../../src/admin/words";
 import { refusals } from "../../../convex/shared/leagueAccess";
 
-const ARSENAL = { code: 3, name: "Arsenal" };
-const NEWCASTLE = { code: 4, name: "Newcastle" };
-const LEEDS = { code: 7, name: "Leeds" };
-const STEUR = { code: 1, name: "Steur", fullName: "Jacob Steur", clubCode: NEWCASTLE.code, label: "Centre Central Midfielder" };
+const ARSENAL = { code: 3, name: "Arsenal", colours: { primary: "#E50107", secondary: "#FFFFFF", pattern: "plain" as const } };
+const NEWCASTLE = { code: 4, name: "Newcastle", colours: { primary: "#241F20", secondary: "#FFFFFF", pattern: "stripes" as const } };
+const LEEDS = { code: 7, name: "Leeds", colours: { primary: "#FFFFFF", secondary: "#1D428A", pattern: "plain" as const } };const STEUR = { code: 1, name: "Steur", fullName: "Jacob Steur", clubCode: NEWCASTLE.code, label: "Centre Central Midfielder" };
 const BARNES = { code: 2, name: "Barnes", fullName: "Harvey Barnes", clubCode: NEWCASTLE.code, proposals: ["W" as const] };
 const WOLTEMADE = { code: 3, name: "Woltemade", fullName: "Nick Woltemade", clubCode: NEWCASTLE.code };
 const DATA: AdminData = {

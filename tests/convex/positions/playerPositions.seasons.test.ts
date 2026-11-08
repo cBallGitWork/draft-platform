@@ -45,7 +45,8 @@ describe("as seasons pile up, nothing is cut short silently", () => {
   test(`the queue's clubs are today's, however many clubs have been dropped before them`, async () => {
     const t = await synced();
     await holdClubs(t, CURRENT_CLUBS_MOST + 5);
-    expect((await (await asAdmin(t)).query(api.positions.playerPositions.queue, {})).clubs).toEqual(
+    const { clubs } = await (await asAdmin(t)).query(api.positions.playerPositions.queue, {});
+    expect(clubs.map(({ code, name }) => ({ code, name }))).toEqual(
       SYNCED_CLUBS.map(({ code, name }) => ({ code, name })).sort((one, other) => one.name.localeCompare(other.name)),
     );
   });

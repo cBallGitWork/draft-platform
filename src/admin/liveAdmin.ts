@@ -29,6 +29,7 @@ export function useLiveAdmin(): AdminSeam {
   const removePosition = useMutation(api.positions.playerPositions.removePosition);
   const setApproveMode = useMutation(api.positions.positionSettings.setApproveMode);
   const setChangeThresholds = useMutation(api.positions.positionSettings.setChangeThresholds);
+  const setClubColours = useMutation(api.football.clubKits.set);
   return useMemo(
     () => ({
       useQueue,
@@ -40,7 +41,8 @@ export function useLiveAdmin(): AdminSeam {
       removePosition: (code, position) => refusalOf(() => removePosition({ code, position }), "Removing a position", changeFailedWords),
       setApproveMode: (approveMode) => refusalOf(() => setApproveMode({ approveMode }), "Changing the approve mode", changeFailedWords),
       setChangeThresholds: (thresholds) => refusalOf(() => setChangeThresholds(thresholds), "Changing the thresholds", changeFailedWords),
+      setClubColours: (code, colours) => refusalOf(() => setClubColours({ code, ...colours }), "Setting a club's colours", changeFailedWords),
     }),
-    [approvePlayer, approveClub, setPosition, removePosition, setApproveMode, setChangeThresholds],
+    [approvePlayer, approveClub, setPosition, removePosition, setApproveMode, setChangeThresholds, setClubColours],
   );
 }

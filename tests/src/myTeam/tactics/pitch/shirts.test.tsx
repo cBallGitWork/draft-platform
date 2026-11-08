@@ -4,7 +4,8 @@
 
 import { render } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
-import { CLUB_COLOURS, contrast, INKS } from "../../../../../convex/football/clubColours";
+import { CLUB_COLOURS, contrast, INKS, UNSET_COLOURS } from "../../../../../convex/football/clubColours";
+import { ClubColoursProvider } from "../../../../../src/shared/clubColours";
 import { Shirt } from "../../../../../src/myTeam/tactics/pitch/Pitch";
 import { ARSENAL } from "../../../../support/convex/footballRows.harness";
 import { colorToken } from "../../../../support/src/colorTokens";
@@ -54,6 +55,20 @@ describe("the shirts", () => {
 
   it("draws Newcastle's keeper plain, apart from his outfield players", () => {
     expect(drawnShirt(NEWCASTLE_CODE, true).querySelectorAll("rect")).toHaveLength(0);
+  });
+
+  it("#838 draws the colours the admin set, and a club with none held in white", () => {
+    const held = [{ code: ARSENAL.code, primary: "#000000", secondary: "#FFD700", pattern: "stripes" as const }];
+    const { container } = render(
+      <ClubColoursProvider held={held}>
+        <Shirt number={9} clubCode={ARSENAL.code} goalkeeper={false} />
+        <Shirt number={9} clubCode={NEWCASTLE_CODE} goalkeeper={false} />
+      </ClubColoursProvider>,
+    );
+    const [arsenal, newcastle] = container.querySelectorAll("svg");
+    expect(arsenal.querySelector("path")!.style.fill).toBe(hexToRgb("#000000"));
+    expect(arsenal.querySelector("g")!.style.fill).toBe(hexToRgb("#FFD700"));
+    expect(newcastle.querySelector("path")!.style.fill).toBe(hexToRgb(UNSET_COLOURS.primary));
   });
 });
 

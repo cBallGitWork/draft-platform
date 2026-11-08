@@ -28,6 +28,7 @@ import { liveScouting } from "../scouting/liveScouting";
 import { useLiveSquads } from "../squads/liveSquads";
 import { liveTable } from "../table/liveTable";
 import { answerOf } from "../shared/refusal";
+import { ClubColoursProvider } from "../shared/clubColours";
 import { ShellApp } from "./ShellApp";
 import { SIGN_IN_PATH } from "../signIn/paths";
 import { askFailedWords, replyWords, waitingWords, type LinkProblem } from "../signIn/words";
@@ -125,6 +126,7 @@ function LiveShell({ linkCode }: { linkCode: string | null }) {
   const feedback = useLiveFeedback();
   const patches = useLivePatches();
   const account = useQuery(api.signIn.account.signedInAs, isAuthenticated ? {} : "skip");
+  const clubColours = useQuery(api.football.clubKits.all, isAuthenticated ? {} : "skip");
   const [checkingLink, setCheckingLink] = useState(linkCode !== null);
   const redeemed = useRef(false);
   const recordZone = useMutation(api.signIn.timeZone.recordZone);
@@ -166,10 +168,10 @@ function LiveShell({ linkCode }: { linkCode: string | null }) {
     );
   }
   return (
-    <>
+    <ClubColoursProvider held={clubColours}>
       {lineupDueWatch}
       <ShellApp session={session} auth={auth} leagues={leagues} mail={mail} joining={joining} topBar={topBar} gameweeks={liveGameweeks} squads={squads} scoring={scoring} leagueSettings={leagueSettings} table={liveTable} scouting={liveScouting} playerCard={livePlayerCard} home={liveHome} myTeam={liveMyTeam} matchup={liveMatchup} premierLeague={livePremierLeague} admin={admin} feedback={feedback} patches={patches} draft={liveDraft} />
-    </>
+    </ClubColoursProvider>
   );
 }
 
