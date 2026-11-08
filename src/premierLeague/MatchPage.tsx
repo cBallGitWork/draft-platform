@@ -1,7 +1,7 @@
 import type { LeagueSummary } from "../../convex/leagues/myLeagues";
 import { inkOn, type Ink } from "../../convex/football/clubColours";
 import { useClubColours } from "../shared/clubColours";
-import { ClubMark } from "./ClubName";
+import { ClubMark } from "../ui/ClubName";
 import { ColumnHeads } from "../ui/ColumnHeads";
 import { Loading, Notice, PAGE_STACK, PageSection, Panel, PanelNote } from "../ui/Panel";
 import { Vidiprinter } from "../matchup/Vidiprinter";

@@ -5,7 +5,7 @@ import { Placeholder } from "../../../ui/Placeholder";
 import type { Classic } from "../../../../convex/lineup/classics";
 import { presetNameOf } from "../../../../convex/lineup/presets";
 import { classicInUse, onClassic } from "../classicLineup";
-import type { DraftLineup, MoveRules, RatingsOf } from "../lineupDraft";
+import type { EditedLineup, MoveRules, RatingsOf } from "../lineupEdits";
 import { backGroups, type Shape } from "./formationGroups";
 import { FormationPreview } from "./FormationPreview";
 import { FormationTile } from "./FormationTile";
@@ -68,7 +68,7 @@ export function FormationWindow({
   classics: readonly Classic[];
   /** The formation in use, by name: a classic's, marked custom once changed (classicLineup.ts). */
   inUse: string | null;
-  draft: DraftLineup;
+  draft: EditedLineup;
   rules: Pick<MoveRules, "positionsOf">;
   ratingsOf: RatingsOf;
   onUse(name: string): void;

@@ -14,7 +14,7 @@ import {
   swapped,
   withRole,
   type RatingsOf,
-} from "../../../../src/myTeam/tactics/lineupDraft";
+} from "../../../../src/myTeam/tactics/lineupEdits";
 import type { RoleStars } from "../../../../convex/stars/starsShape";
 
 const KEEPER = { playerCode: 1, area: "goalkeeper", lane: "centre" } as const;

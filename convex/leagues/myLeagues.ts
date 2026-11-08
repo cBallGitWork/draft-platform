@@ -1,7 +1,7 @@
 import { v, type Infer } from "convex/values";
 import type { Doc, Id } from "../_generated/dataModel";
 import type { QueryCtx } from "../_generated/server";
-import { isAdmin, leaguePowers, leagueRole, powersIn, rolesIn, seesWhileDeleted, teamsOf } from "../shared/leagueAccess";
+import { isAdmin, leaguePowers, leaguePart, powersIn, partsIn, seesWhileDeleted, teamsOf } from "../shared/leagueAccess";
 import { leagueDeletion } from "../schema";
 import { LEAGUES_SHOWN } from "./leagueLimits";
 import { takeShown } from "../shared/cappedRead";
@@ -16,7 +16,7 @@ export const leagueSummary = v.object({
   name: v.string(),
   commissionerEmail: v.string(),
   /** The person's parts in it; none for the admin in a league he has no part in. */
-  roles: v.array(leagueRole),
+  roles: v.array(leaguePart),
   /** What the person may do in it, as the server judges every change (powersIn), so a screen
    *  offers a way in only to who may use it. */
   powers: leaguePowers,
@@ -76,7 +76,7 @@ export async function leaguesOf(ctx: QueryCtx, email: string): Promise<LeagueLis
       leagueId: league._id,
       name: league.name,
       commissionerEmail: league.commissionerEmail,
-      roles: rolesIn(league, email, team),
+      roles: partsIn(league, email, team),
       powers: powersIn(league, email),
       teamName: team?.name ?? null,
       teams: teams.length,

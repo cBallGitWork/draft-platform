@@ -15,7 +15,7 @@ import { fakeResend, signInDeployment } from "../../support/convex/signIn.harnes
 import { FIRST_SUB, REMOVED_ROLE } from "../../support/convex/lineup.harness";
 import { FOUR_FOUR_TWO, holdPlayers, holdSquad, nameOf, SQUAD, STARTERS } from "../../support/convex/lineupSquad.harness";
 import { lineupInGameweek } from "../../../convex/lineup/lineups";
-import { openingLineup, shownLineup } from "../../../src/myTeam/tactics/lineupDraft";
+import { openingLineup, shownLineup } from "../../../src/myTeam/tactics/lineupEdits";
 
 // Storing a lineup (#8, spec/05: "A lineup rolls over to the next gameweek if the manager doesn't
 // touch it"): a save is from the next gameweek not begun, a read takes the newest from that

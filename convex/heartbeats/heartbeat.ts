@@ -26,6 +26,8 @@ export const CHECK_SLUGS = {
   liveStatsTick: "live-stats-tick",
   lateStats: "late-stats",
   pruneRunLogs: "prune-run-logs",
+  waiverRuns: "waiver-runs",
+  tradeOffers: "trade-offers",
 } as const;
 export type Check = keyof typeof CHECK_SLUGS;
 const checkValidator = v.union(...(Object.keys(CHECK_SLUGS) as Check[]).map((check) => v.literal(check)));

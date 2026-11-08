@@ -9,7 +9,7 @@ import { contrast } from "../../../../convex/football/clubColours";
 import { FORMATION_KEYS, keyedPresets } from "../../../../src/myTeam/tactics/TacticsControls";
 import { backGroups } from "../../../../src/myTeam/tactics/formationWindow/formationGroups";
 import { previewLabel } from "../../../../src/myTeam/tactics/formationWindow/words";
-import { benchBestRole, placeOf, presetInUse } from "../../../../src/myTeam/tactics/lineupDraft";
+import { benchBestRole, placeOf, presetInUse } from "../../../../src/myTeam/tactics/lineupEdits";
 import {
   allFormationsWords,
   BEST_ROLE_HEAD,

@@ -5,6 +5,7 @@ import { internalMutation, type MutationCtx, type QueryCtx } from "../_generated
 import { draftIsOver } from "../draft/draftRow";
 import type { LeagueDeadlines } from "../gameweeks/deadline";
 import { leagueDeadlines } from "../gameweeks/leagueDeadlines";
+import { scheduleHeartbeat } from "../heartbeats/heartbeat";
 import { leagueOpens } from "../leagues/leagueOpens";
 import { MOST_IN_SQUAD } from "../leagues/leagueLimits";
 import { pickFirstLineupAgain } from "../lineup/lineups";
@@ -235,6 +236,7 @@ export const runDue = internalMutation({
       if (held === null ? at <= now - 2 * CHECK_MS : at <= held.ranAt) continue;
       await ctx.scheduler.runAfter(0, internal.waivers.waiverRun.run, { leagueId: league._id, at });
     }
+    await scheduleHeartbeat(ctx, "waiverRuns");
     return null;
   },
 });

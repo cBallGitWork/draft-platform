@@ -29,7 +29,7 @@ import {
 } from "../../../src/playerCard/words";
 import { addToShortlistWords } from "../../../src/scouting/shortlist/words";
 import { squadsPath } from "../../../src/squads/paths";
-import { crestUrl } from "../../../src/premierLeague/ClubName";
+import { crestUrl } from "../../../src/ui/ClubName";
 import { gameweekWords, versusWords } from "../../../src/shared/words";
 import { ARSENAL, COVENTRY } from "../../support/convex/footballRows.harness";
 import { HELD, openCard, RICE, SAKA } from "../../support/src/playerCardScreen.harness";

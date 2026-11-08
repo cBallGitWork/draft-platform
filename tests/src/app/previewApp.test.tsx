@@ -4,7 +4,7 @@
 import { render, screen } from "@testing-library/react";
 import { expect, test, vi } from "vitest";
 import { mainMenuLabel } from "../../../src/frame/words";
-import { proLeague } from "../../../src/app/preview";
+import { proLeague } from "../../../src/shared/preview";
 import { previewApp } from "../../../src/app/previewApp";
 
 test("on the dev server, ?preview=manager mounts the frame on the preview's data", async () => {

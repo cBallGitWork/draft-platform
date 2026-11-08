@@ -8,9 +8,9 @@
 import { act, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
-import { MY_TEAM_PATH, MY_TEAM_SQUAD_PATH } from "../../../src/frame/menu";
-import { sectionTabsLabel } from "../../../src/frame/words";
-import { meterListLabel } from "../../../src/myTeam/header/words";
+import { MY_TEAM_PATH, MY_TEAM_SQUAD_PATH } from "../../../../src/frame/menu";
+import { sectionTabsLabel } from "../../../../src/frame/words";
+import { meterListLabel } from "../../../../src/myTeam/header/words";
 import {
   awayWords,
   difficultyNotRatedWords,
@@ -30,13 +30,13 @@ import {
   SQUAD_TITLE,
   statusNotSettledLabel,
   whenWords,
-} from "../../../src/myTeam/squad/words";
-import { unheldNoticeWords, unheldPlayerWords } from "../../../src/shared/words";
-import { crestUrl } from "../../../src/premierLeague/ClubName";
-import { ARSENAL, UNHELD } from "../../support/convex/footballRows.harness";
-import { columnHeadIn, expectColumnHeads } from "../../support/src/columnHeads";
-import { commissioner, league, manager, openApp } from "../../support/src/shell.harness";
-import { cells, KICKOFF, openSquad, PALMER, RAYA, rows, SAKA, squadOf, tacticsWith } from "../../support/src/squadTab.harness";
+} from "../../../../src/myTeam/squad/words";
+import { unheldNoticeWords, unheldPlayerWords } from "../../../../src/shared/words";
+import { crestUrl } from "../../../../src/ui/ClubName";
+import { ARSENAL, UNHELD } from "../../../support/convex/footballRows.harness";
+import { columnHeadIn, expectColumnHeads } from "../../../support/src/columnHeads";
+import { commissioner, league, manager, openApp } from "../../../support/src/shell.harness";
+import { cells, KICKOFF, openSquad, PALMER, RAYA, rows, SAKA, squadOf, tacticsWith } from "../../../support/src/squadTab.harness";
 
 /** The long words of a match cell: the match, then that its difficulty isn't rated yet. */
 const matchLong = (opponent: string, home: boolean) => `${nextFixtureLong(opponent, home, whenWords(KICKOFF))}, ${difficultyNotRatedWords}`;

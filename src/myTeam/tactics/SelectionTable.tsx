@@ -11,7 +11,7 @@ import { NextMatches } from "../SquadCells";
 import { statusNotSettledLabel } from "../words";
 import { markOf } from "./focusMarks";
 import { PositionMarks, positionMarksOf } from "./positionMarks";
-import { benchBestRole, startersInOrder, type DraftLineup, type SquadMember, type Starter } from "./lineupDraft";
+import { benchBestRole, startersInOrder, type EditedLineup, type SquadMember, type Starter } from "./lineupEdits";
 import { startDrag, type Moving } from "./pitch/Pitch";
 import {
   BEST_ROLE_HEAD,
@@ -52,7 +52,7 @@ type StarterPlace = { starter: Starter; formation: Formation };
  *  he can swap with is lit, and a tap or a drop on him swaps them (spec/05, Moving players); a bench
  *  player dropped on another bench row takes its place (spec/05 Auto-subs). A starter leaves the
  *  pitch only by a swap (Craig, 4 Nov 2026), so any other drop of one is refused, saying why. */
-export function SquadTable({
+export function SelectionTable({
   draft,
   squad,
   season,
@@ -60,7 +60,7 @@ export function SquadTable({
   onBenchAt,
   onRole,
 }: {
-  draft: DraftLineup;
+  draft: EditedLineup;
   squad: ReadonlyMap<number, SquadMember>;
   season: SeasonOf;
   moving: Moving;
