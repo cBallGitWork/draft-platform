@@ -11,9 +11,8 @@ import type { Stats } from "../stats/statTotals";
 import { autoPickOrder } from "./autoPickOrder";
 import { squadRulesOf, undraftedIn, whyNotLegalFor } from "./draftPicks";
 import { draftRanking } from "./draftRanking";
-import { draftOf, picksMadeIn } from "./draftRow";
+import { draftOf, turnNow } from "./draftRow";
 import { lastPricedSeason, lastSeasonPoints } from "./lastSeasonPoints";
-import { pickOnTheClock } from "./snakeOrder";
 
 // The draft room's players list's figures (spec/04, The draft room; #1099). The list itself is
 // Scouting's (../scouting/playersList.ts); beside it:
@@ -43,9 +42,9 @@ export const greyedOut = query({
   returns: v.array(greyedPlayer),
   handler: async (ctx, { leagueId }) => {
     const { team } = await memberOf(ctx, leagueId);
-    const started = (await draftOf(ctx, leagueId))?.started;
-    if (!team || started === undefined) return [];
-    if (pickOnTheClock(started.teamIds, started.rounds, await picksMadeIn(ctx, leagueId)) === null) return [];
+    const draft = await draftOf(ctx, leagueId);
+    const started = draft?.started;
+    if (!team || draft === null || started === undefined || (await turnNow(ctx, draft)) === null) return [];
     // Squads are empty when the draft starts (spec/04, The picks), so each player in it is a pick made.
     const picksLeft = started.rounds - (await squadOf(ctx, team._id)).length;
     const why = await whyNotLegalFor(ctx, leagueId, started, team._id, picksLeft, await undraftedIn(ctx, leagueId));

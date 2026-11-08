@@ -4,7 +4,8 @@ import { pickOnTheClock } from "./snakeOrder";
 
 // A league's draft row (../schema/draft.ts's `drafts`; spec/04, Starting it; #1089), read: by the
 // draft's start (draftStart.ts), its order (draftOrder.ts) and joining (../leagues/teams.ts), which
-// each stop once it has started; how many picks it has made (draftPicks.ts); and whether it is
+// each stop once it has started; how many picks it has made and the pick on its clock (draftPicks.ts,
+// draftPlayers.ts); and whether it is
 // live, while the commissioner's assign, move and release are refused (../squads/squads.ts).
 
 /** The league's draft row, or null while it has none: its commissioner has set no start yet. */
@@ -37,9 +38,19 @@ export async function draftHasStarted(ctx: QueryCtx, leagueId: Id<"leagues">): P
 /** A started draft, as its row holds it. */
 export type StartedDraft = NonNullable<Doc<"drafts">["started"]>;
 
+/** A pick on a draft's clock (snakeOrder.ts). */
+export type Turn = NonNullable<ReturnType<typeof pickOnTheClock<Id<"teams">>>>;
+
+/** The pick on the draft's clock now, after any trade, or null before it starts and once it is over. */
+export async function turnNow(ctx: QueryCtx, draft: Doc<"drafts">): Promise<Turn | null> {
+  const started = draft.started;
+  if (started === undefined) return null;
+  return pickOnTheClock(started.teamIds, started.rounds, await picksMadeIn(ctx, draft.leagueId), draft.tradedPicks);
+}
+
 /** Whether the league's draft is live: started, with a pick still on the clock (snakeOrder.ts).
  *  Before it starts and once it is over, it isn't. */
 export async function draftIsLive(ctx: QueryCtx, leagueId: Id<"leagues">): Promise<boolean> {
-  const started = (await draftOf(ctx, leagueId))?.started;
-  return started !== undefined && pickOnTheClock(started.teamIds, started.rounds, await picksMadeIn(ctx, leagueId)) !== null;
+  const draft = await draftOf(ctx, leagueId);
+  return draft !== null && (await turnNow(ctx, draft)) !== null;
 }

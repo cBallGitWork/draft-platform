@@ -18,12 +18,11 @@ import { tellDraftOver, tellPickedFor, tellScoringStartMoved, tellUpNext } from 
 import { startAfterDraft } from "../gameweeks/scoringStart";
 import { listsOf } from "./draftLists";
 import { draftRanking } from "./draftRanking";
-import { draftOf, picksMadeIn, type StartedDraft } from "./draftRow";
+import { draftOf, turnNow, type StartedDraft, type Turn } from "./draftRow";
 import { rulesInForceAt } from "./draftStart";
 import { afterTimeout, choseAutoPick, isOnAutoPick, picksAtOnce } from "./draftTimeouts";
 import { lastSeasonPoints } from "./lastSeasonPoints";
 import { whyNotLegal, type DraftPlayer, type NotLegal } from "./legalPlayers";
-import { pickOnTheClock } from "./snakeOrder";
 import { offWaivers, putOnWaivers } from "../waivers/waiverPlayers";
 
 // Making a pick (spec/04, The picks; #1090). The manager whose team is on the clock picks a player
@@ -69,8 +68,6 @@ async function startedRulesAt(ctx: QueryCtx, leagueId: Id<"leagues">, at: number
   if (rules === null) throw new Error(`League ${leagueId}'s draft has started, but the league has no rules`);
   return rules;
 }
-
-type Turn = NonNullable<ReturnType<typeof pickOnTheClock<Id<"teams">>>>;
 
 /** The players still undrafted in the league: in the Premier League now and held by no team. */
 export async function undraftedIn(ctx: QueryCtx, leagueId: Id<"leagues">): Promise<Doc<"players">[]> {
@@ -188,7 +185,7 @@ export const makePick = mutation({
 async function liveTurn(ctx: QueryCtx, leagueId: Id<"leagues">): Promise<{ draft: Doc<"drafts">; started: StartedDraft; turn: Turn }> {
   const draft = (await draftOf(ctx, leagueId)) ?? refuse(pickRefusals.notStarted);
   const started = draft.started ?? refuse(pickRefusals.notStarted);
-  const turn = pickOnTheClock(started.teamIds, started.rounds, await picksMadeIn(ctx, leagueId), draft.tradedPicks) ?? refuse(pickRefusals.over);
+  const turn = (await turnNow(ctx, draft)) ?? refuse(pickRefusals.over);
   return { draft, started, turn };
 }
 
@@ -255,7 +252,7 @@ export const autoPick = internalMutation({
     const [league, draft] = await Promise.all([ctx.db.get("leagues", leagueId), draftOf(ctx, leagueId)]);
     const started = draft?.started;
     if (league === null || started === undefined || draft?.clock?.pick !== pick || draft.clock.paused !== undefined) return null;
-    const turn = pickOnTheClock(started.teamIds, started.rounds, await picksMadeIn(ctx, leagueId), draft.tradedPicks);
+    const turn = await turnNow(ctx, draft);
     if (turn?.pick !== pick) return null;
     const team = await teamIn(ctx, leagueId, turn.team);
     if ((!picksAtOnce(draft.timeouts, team) || draft.clock.fullClock) && Date.now() < draft.clock.endsAt) {
