@@ -20,6 +20,8 @@ import {
   PREMIER_LEAGUE_PATH,
   SCOUTING_PATH,
   TABLE_PATH,
+  TRADES_NEW_PATH,
+  TRADES_PATH,
 } from "../../../src/frame/menu";
 import { gameweeksPath } from "../../../src/gameweeks/paths";
 import { GAMEWEEKS_TITLE } from "../../../src/gameweeks/words";
@@ -49,6 +51,7 @@ import { SCOUTING_TITLE } from "../../../src/scouting/words";
 import { squadsPath } from "../../../src/squads/paths";
 import { SQUADS_TITLE } from "../../../src/squads/words";
 import { TABLE_PAGE_TITLE } from "../../../src/table/words";
+import { TRADES_TITLE } from "../../../src/trades/words";
 
 /** One built screen: the preview session that reaches it (src/app/preview.ts), its address, and its
  *  page's title. */
@@ -74,6 +77,8 @@ export const BUILT_SCREENS: readonly BuiltScreen[] = [
   ["manager", MATCHUP_PATH, MATCHUP_TITLE],
   ["manager", TABLE_PATH, TABLE_PAGE_TITLE],
   ["manager", SCOUTING_PATH, SCOUTING_TITLE],
+  ["manager", TRADES_PATH, TRADES_TITLE],
+  ["manager", TRADES_NEW_PATH, TRADES_TITLE],
   ["manager", PREMIER_LEAGUE_PATH, PREMIER_LEAGUE_TITLE],
   ["manager", matchPath(previewMatch.fixtureCode), MATCH_TITLE],
   ["manager", MAIL_PATH, MAIL_TITLE],

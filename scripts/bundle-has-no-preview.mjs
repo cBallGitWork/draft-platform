@@ -47,6 +47,7 @@ const NEEDLES = {
   "src/shared/preview.ts": "preview-pro-league",
   "src/squads/preview.ts": "preview-team-1",
   "src/table/preview.ts": "Ctrl Alt Defeat",
+  "src/trades/preview.ts": "Rogers is a better fit",
 };
 
 function fail(message) {

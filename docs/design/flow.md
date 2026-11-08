@@ -78,7 +78,8 @@ flowchart TD
     MATCHUP["Matchup<br/>/matchup<br/>manager"]
     TABLE["Table and fixtures<br/>/table<br/>manager"]
     SCOUTING["Scouting<br/>/scouting<br/>manager"]
-    TRADES["Trades<br/>/trades<br/>manager"]
+    TRADES["Trades, tab Offers<br/>/trades<br/>manager"]
+    NEWOFFER["Trades, tab New offer<br/>/trades/new<br/>manager"]
     PL["Premier League<br/>/premier-league<br/>manager"]
     MATCH["Match<br/>/premier-league/match/$fixtureCode<br/>manager"]
   end
@@ -112,6 +113,8 @@ flowchart TD
   RECAP -- "Back to League home" --> HOME
   HOME -- "More, on News" --> NEWS
   NEWS -- "the pinned letter" --> MAIL
+  TRADES -- "New offer / Counter" --> NEWOFFER
+  NEWOFFER -- "Send offer" --> TRADES
   RECAP -.->|"no gameweek named"| HOME
   TFX -- "a game's result or v" --> MATCHUP
   MATCHUP -- "◄ ► (another gameweek's)" --> MATCHUP
@@ -164,7 +167,8 @@ Features table (feature 12), the one home for screen status.
 | Fixtures | `/team/fixtures` | src/myTeam/FixturesPage.tsx | spec/12 My team's tabs | built |
 | Transactions | `/team/transactions` | src/myTeam/TransactionsPage.tsx | spec/12 My team's tabs | built |
 | Matchup | `/matchup` | src/matchup/MatchupPage.tsx | spec/10 The matchup, spec/12 | built |
-| Trades | `/trades` | src/frame/PageNotBuilt.tsx | spec/12 Trades, spec/08 Trades | placeholder |
+| Trades (Offers) | `/trades` | src/trades/OffersPage.tsx | spec/12 Trades, spec/08 Trades | built |
+| New offer, a tab of Trades | `/trades/new` | src/trades/NewOfferPage.tsx | spec/12 Trades, spec/08 Trades | built |
 | Premier League | `/premier-league` | src/premierLeague/PremierLeaguePage.tsx | spec/18 | built |
 | Match | `/premier-league/match/$fixtureCode` | src/premierLeague/MatchPage.tsx | spec/10 The match page | built |
 | Player card | `/leagues/$leagueId/players/$playerCode` | src/playerCard/PlayerCardPage.tsx | spec/12 The player card, spec/05, spec/14, spec/19 | built |
@@ -175,4 +179,4 @@ Features table (feature 12), the one home for screen status.
 - Your leagues has no link into a league's frame pages: the menu, or `/`, gets there.
 - An admin in no league can't open the frame, so `/table` and `/team` send him to Your leagues.
 - Continue leads to Mail for an unread letter, then to Tactics from 24 hours before the deadline
-  until he opens it that gameweek (#526); trades aren't built.
+  until he opens it that gameweek (#526); an offer to him doesn't lead there yet.

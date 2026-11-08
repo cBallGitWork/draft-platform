@@ -5,3 +5,6 @@ import { DAY_MS } from "../shared/time";
 
 /** How long a review lasts (spec/08: "24 hours"). Craig's answer, so a constant. */
 export const REVIEW_MS = DAY_MS;
+
+/** The longest note an offer carries: Claude's sizing for "a one-line note". */
+export const NOTE_MOST = 140;

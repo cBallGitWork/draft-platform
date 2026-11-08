@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, test } from "vitest";
 import { api } from "../../../convex/_generated/api";
-import { NOTE_MOST, offerRefusals } from "../../../convex/trades/tradeOffers";
+import { NOTE_MOST } from "../../../convex/trades/tradeLimits";
+import { offerRefusals } from "../../../convex/trades/tradeOffers";
 import { refusals } from "../../../convex/shared/leagueAccess";
 import { DAY_MS } from "../../../convex/shared/time";
 import { actingAs, COMMISSIONER } from "../../support/convex/leagues.harness";
