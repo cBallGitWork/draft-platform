@@ -211,7 +211,7 @@ describe("the card's head (#1027)", () => {
     const head = await headOf();
     const figure = (label: string) => head.getByText(label).nextElementSibling!.textContent;
 
-    // At CAM: 12, then the override's 2; the match not yet arrived counts for nothing.
+    // S12.1. At CAM: 12, then the override's 2; the match not yet arrived counts for nothing.
     expect(figure(figureLabels.seasonPoints)).toBe("14");
     expect(figure(figureLabels.aMatch)).toBe("7");
     expect(figure(figureLabels.minutes)).toBe("135");

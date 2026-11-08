@@ -3,10 +3,8 @@
 // server's own rule (cardPoints), and his club's next fixtures. Saka carries FPL's news, and an
 // override on one match.
 
-import type { SlotPosition } from "../../convex/lineup/pitch";
-import { basePoints, cardPositions, scoresAt } from "../../convex/playerCard/cardPoints";
-import { categoryName, categoryShortCode } from "../../convex/scoring/categories";
-import { MINUTES_STAT } from "../../convex/stats/matchRecords";
+import { basePoints, cardPositions, logCategories } from "../../convex/playerCard/cardPoints";
+import { categoryName } from "../../convex/scoring/categories";
 import { FIRST_SCORING } from "../../convex/scoring/firstScoring";
 import type { MatchStats } from "../../convex/scoring/values";
 import { DAY_MS, WEEK_MS } from "../../convex/shared/time";
@@ -91,18 +89,6 @@ function lastSeasonOf(player: (typeof previewPlayers)[number]): PlayerCard["last
   };
 }
 
-/** The game log's columns under the first set, as the server works them out (playerCard.ts). */
-function previewCategories(pricedAt: readonly SlotPosition[]): PlayerCard["categories"] {
-  return FIRST_SCORING.rules
-    .filter((rule) => rule.stat !== MINUTES_STAT)
-    .map((rule) => ({
-      stat: rule.stat,
-      shortCode: categoryShortCode(rule.stat),
-      name: categoryName(rule.stat),
-      scoresAt: pricedAt.length === 0 ? [true] : pricedAt.map((position) => scoresAt(rule, position)),
-    }));
-}
-
 function cardOf(player: (typeof previewPlayers)[number]): PlayerCard {
   const injured = player.name === "Saka";
   return {
@@ -126,7 +112,7 @@ function cardOf(player: (typeof previewPlayers)[number]): PlayerCard {
         away: player.club,
       },
     ],
-    categories: previewCategories(cardPositions(player.positions)),
+    categories: logCategories(FIRST_SCORING, cardPositions(player.positions)),
     lastSeason: lastSeasonOf(player),
     nextFixtures: [1, 2, 3, 4, 5].map((weeksOn) => ({
       fixtureCode: player.code * 100 + 50 + weeksOn,

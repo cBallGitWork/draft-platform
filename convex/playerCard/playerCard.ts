@@ -5,11 +5,8 @@ import { slotPosition } from "../lineup/pitchShape";
 import { positionsNow } from "../positions/playerPositions";
 import type { Position } from "../positions/positionTables";
 import { clubRecord, position } from "../schema";
-import { SLOT_POSITIONS, type SlotPosition } from "../lineup/pitch";
 import { scoreOf } from "../football/matchScores";
 import { namedCategories, namedCategoriesOf, roleLine, roleLineOf } from "../scoring/breakdownShape";
-import { categoryName, categoryShortCode } from "../scoring/categories";
-import type { StoredScoringSet } from "../scoring/scoringSetShape";
 import { siteScoringAt, siteVersionByGameweek } from "../scoring/siteVersions";
 import { takeAllOrThrow } from "../shared/cappedRead";
 import { memberOf } from "../shared/leagueAccess";
@@ -19,7 +16,7 @@ import { MINUTES_STAT, statsIfWhole, statValue } from "../stats/matchRecords";
 import { playsIn } from "../gameweekScorer/heldMatches";
 import { scoredMatches } from "../gameweekScorer/scoredMatches";
 import { lastSeasonCopied, pastRowsOf } from "../pastSeasons/pastSeasonPoints";
-import { basePoints, cardPositions, scoresAt } from "./cardPoints";
+import { basePoints, cardPositions, logCategories } from "./cardPoints";
 
 // A player's card (spec/12, The player card; #381), for anyone in the league: who he is and who
 // owns him here, FPL's news on him, this season's matches at his base points, at each position he
@@ -239,20 +236,6 @@ async function postponedFixtures(ctx: QueryCtx, clubCode: number, clubs: Clubs) 
     `More than ${POSTPONED_MOST} matches wait for a new date, so a player card's postponed matches would be cut short`,
   );
   return Promise.all(waiting.filter((fixture) => playsIn(fixture, clubCode)).map((fixture) => asMatch(fixture, clubs)));
-}
-
-/** The game log's scoring columns: the set's categories but minutes, each saying whether it scores at
- *  each of `pricedAt`, or, with none priced (only SS has no price), at any slot's position, as
- *  basePoints then prices him at his best. */
-function logCategories(set: StoredScoringSet, pricedAt: readonly SlotPosition[]) {
-  return set.rules
-    .filter((rule) => rule.stat !== MINUTES_STAT)
-    .map((rule) => ({
-      stat: rule.stat,
-      shortCode: categoryShortCode(rule.stat, set.ownStats),
-      name: categoryName(rule.stat, set.ownStats),
-      scoresAt: pricedAt.length === 0 ? [SLOT_POSITIONS.some((position) => scoresAt(rule, position))] : pricedAt.map((position) => scoresAt(rule, position)),
-    }));
 }
 
 /** His club's next matches after `now`, soonest first. A match with no kickoff time is left out. */
