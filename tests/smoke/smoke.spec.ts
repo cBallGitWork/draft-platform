@@ -5,7 +5,8 @@ import { expect, type Page } from "@playwright/test";
 import { DEFAULT_PRESETS } from "../../convex/lineup/presets";
 import { ADMIN_FEEDBACK_PATH, ADMIN_FEEDS_PATH, ADMIN_PATH } from "../../src/admin/paths";
 import { miniBeta } from "../../src/shared/preview";
-import { MY_TEAM_PATH, SCOUTING_PATH } from "../../src/frame/menu";
+import { HOME_NEWS_PATH, MY_TEAM_PATH, SCOUTING_PATH } from "../../src/frame/menu";
+import { everyTeamWords, gotWords, newsKindWords, newsTableLabel, teamFilterLabel } from "../../src/home/words";
 import { invitesPath } from "../../src/joining/paths";
 import { ERROR_PAGE_TITLE, mainMenuLabel } from "../../src/frame/words";
 import { PITCH_ASPECT } from "../../src/myTeam/tactics/pitch/pitchMarkings";
@@ -93,6 +94,24 @@ test.describe("dev server, signed out of Convex", { tag: "@dev" }, () => {
   test("/ with no preview mounts the live app, which says VITE_CONVEX_URL isn't set", async ({ page }) => {
     await page.goto("/");
     await expect(page.getByRole("alert")).toHaveText(NO_CONVEX_URL);
+  });
+
+  // League home's News tab (#1356), on the preview's made-up moves (src/home/preview.ts).
+  test("the News tab shows the newest move, narrows by Team, and opens a row's detail", async ({ page }) => {
+    await page.goto(`${HOME_NEWS_PATH}?preview=manager`);
+    const moves = page.getByRole("table", { name: newsTableLabel });
+    await expect(moves.getByRole("row").nth(1)).toContainText("Kroos Control");
+    await expect(moves.getByRole("row").nth(1)).toContainText("Kudus");
+
+    await page.getByRole("combobox", { name: teamFilterLabel }).selectOption({ label: "Lingard Franca" });
+    await expect(moves.getByRole("row")).toHaveCount(3);
+    await expect(moves.getByRole("row").nth(1)).toContainText("Calvert-Lewin");
+
+    await page.getByRole("combobox", { name: teamFilterLabel }).selectOption({ label: everyTeamWords });
+    await moves.getByRole("button", { name: "Haaland Oates" }).click();
+    const detail = page.getByRole("region", { name: newsKindWords.playerMoved });
+    await expect(detail).toContainText(gotWords("Haaland Oates"));
+    await expect(detail).toContainText("Konsa");
   });
 
   test("?preview=visitor shows the sign-in page", async ({ page }) => {

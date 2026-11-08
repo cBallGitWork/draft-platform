@@ -2,9 +2,9 @@
 
 import { TOP_ROWS } from "../../convex/home/glance";
 import { fewestTeamsWords, noHeadToHeadsTotalPointsWords } from "../shared/words";
-import type { LeagueHome } from "./seam";
+import type { LeagueHome, NewsMove } from "./seam";
 
-export { figureWords, gameweekWords, versusWords } from "../shared/words";
+export { figureWords, gameweekWords, versusWords, whenWords } from "../shared/words";
 export { leagueAverageWords, noResultsWords, TABLE_TITLE } from "../table/words";
 
 export const HOME_TITLE = "League home";
@@ -46,6 +46,42 @@ export const changedMatchupLink = "See the matchup";
 export const loadingRecapWords = "Loading the recap…";
 export const noRecapWords = (gameweek: number) => `No recap of Gameweek ${gameweek} yet.`;
 export const backHomeLink = "Back to League home";
+
+export const moreOnNewsLink = "More, on News";
+
+/** League home's News tab (#1356): every team's moves, filtered, and the selected one's detail. */
+export const NEWS_TITLE = "League news";
+export const newestFirstWords = "Newest first";
+export const newsLoadingWords = "Loading the moves…";
+export const noNewsWords = "No moves yet.";
+export const teamFilterLabel = "Team";
+export const everyTeamWords = "Every team";
+export const kindFilterLabel = "Kind";
+export const everyKindWords = "Every kind";
+export const olderMovesWords = "Older moves ›";
+export const newsColumns = {
+  when: { short: "When", long: "When" },
+  kind: { short: "Kind", long: "Kind" },
+  team: { short: "Team", long: "Team" },
+  joined: { short: "In", long: "In" },
+  left: { short: "Out", long: "Out" },
+  note: { short: "", long: "Note" },
+} as const;
+export const newsTableLabel = "Every team's moves";
+/** Each kind of move, in the Kind column and filter. */
+export const newsKindWords = {
+  playerAssigned: "Assigned",
+  playerMoved: "Moved",
+  playerReleased: "Released",
+  playerDropped: "Drop",
+  playerClaimed: "Claim",
+  playerPickedUp: "Free agent",
+} as const satisfies Record<NewsMove["kind"], string>;
+export const fromTeamWords = (teamName: string) => `From ${teamName}`;
+/** The selected move's detail: who got whom, who let whom go, and where he went. */
+export const gotWords = (teamName: string) => `${teamName} got`;
+export const letGoWords = (teamName: string) => `${teamName} let go`;
+export const leftToWords = (toWaivers: boolean) => (toWaivers ? "Onto waivers" : "Back to the free agents");
 
 export const MOVES_TITLE ="Claims, drops and trades";
 export const noMovesWords = "No player has joined or left a squad yet.";

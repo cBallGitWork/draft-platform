@@ -9,6 +9,7 @@ import { FEEDBACK_TITLE } from "../../../src/feedback/words";
 import { DRAFT_TITLE, stateWords } from "../../../src/draft/words";
 import {
   DRAFT_PATH,
+  HOME_NEWS_PATH,
   HOME_PATH,
   MAIL_PATH,
   MATCHUP_PATH,
@@ -24,7 +25,7 @@ import { gameweeksPath } from "../../../src/gameweeks/paths";
 import { GAMEWEEKS_TITLE } from "../../../src/gameweeks/words";
 import { RECAP_PATH } from "../../../src/home/paths";
 import { PREVIEW_RECAP_GAMEWEEK } from "../../../src/home/preview";
-import { HOME_TITLE, recapTitle } from "../../../src/home/words";
+import { HOME_TITLE, NEWS_TITLE, recapTitle } from "../../../src/home/words";
 import { invitesPath } from "../../../src/joining/paths";
 import { INVITES_TITLE, joinPageWords } from "../../../src/joining/words";
 import { settingsPath } from "../../../src/leagueSettings/paths";
@@ -60,6 +61,7 @@ const [cardPlayer] = previewPlayers;
  *  ask with, one asked, one switched off. */
 export const BUILT_SCREENS: readonly BuiltScreen[] = [
   ["manager", HOME_PATH, HOME_TITLE],
+  ["manager", HOME_NEWS_PATH, NEWS_TITLE],
   // Read the recap's page names its gameweek in the address's search: the preview's recap.
   ["manager", `${RECAP_PATH}?gameweek=${PREVIEW_RECAP_GAMEWEEK}`, recapTitle(PREVIEW_RECAP_GAMEWEEK)],
   // The draft room's title carries the draft's state: the preview's is live (src/draft/preview.ts).

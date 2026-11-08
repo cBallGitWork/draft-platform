@@ -4,13 +4,13 @@
 import { renderHook } from "@testing-library/react";
 import { expect, test, vi } from "vitest";
 import { liveHome } from "../../../src/home/liveHome";
-import { gameweekOneRecap, quietHome } from "../../support/src/home.harness";
+import { gameweekOneRecap, quietHome, quietNews } from "../../support/src/home.harness";
 import { A_LEAGUE_ID } from "../../support/src/convexReact.harness";
 
-const convex = vi.hoisted(() => ({ ofLeague: vi.fn(), ofGameweek: vi.fn() }));
+const convex = vi.hoisted(() => ({ ofLeague: vi.fn(), ofGameweek: vi.fn(), news: vi.fn() }));
 vi.mock("convex/react", async () =>
   (await import("../../support/src/convexReact.harness")).fakeConvexReact({
-    queries: { "home/leagueHome:ofLeague": convex.ofLeague, "home/recaps:ofGameweek": convex.ofGameweek },
+    queries: { "home/leagueHome:ofLeague": convex.ofLeague, "home/recaps:ofGameweek": convex.ofGameweek, "home/leagueNews:ofLeague": convex.news },
   }),
 );
 
@@ -26,6 +26,13 @@ test("it asks home/leagueHome:ofLeague with the league and the minute, and hands
   convex.ofLeague.mockReturnValue(quietHome);
   expect(renderHook(() => liveHome.useLeagueHome(A_LEAGUE_ID, now)).result.current).toBe(quietHome);
   expect(convex.ofLeague).toHaveBeenCalledWith({ leagueId: A_LEAGUE_ID, now });
+});
+
+test("its News asks home/leagueNews:ofLeague with the league, the page and the filters, and hands on what comes back", () => {
+  const asked = { before: { at: 2, filed: 1 }, teamId: null, kind: "playerDropped" as const };
+  convex.news.mockReturnValue(quietNews);
+  expect(renderHook(() => liveHome.useLeagueNews(A_LEAGUE_ID, asked)).result.current).toBe(quietNews);
+  expect(convex.news).toHaveBeenCalledWith({ leagueId: A_LEAGUE_ID, ...asked });
 });
 
 test("it is undefined while loading", () => {

@@ -75,6 +75,7 @@ beforeEach(async () => {
       "football/plStandings:ofSeason": () => caller.query(api.football.plStandings.ofSeason, {}),
       "gameweeks/leagueGameweeks:ofLeague": () => caller.query(api.gameweeks.leagueGameweeks.ofLeague, { leagueId }),
       "home/leagueHome:ofLeague": () => caller.query(api.home.leagueHome.ofLeague, { leagueId, now }),
+      "home/leagueNews:ofLeague": () => caller.query(api.home.leagueNews.ofLeague, { leagueId, before: null, teamId: null, kind: null }),
       "home/recaps:ofGameweek": () => caller.query(api.home.recaps.ofGameweek, { leagueId, gameweek: 1 }),
       "joining/endedInvite:mine": () => caller.query(api.joining.endedInvite.mine, { now }),
       "joining/inviteLink:signInToJoin": () => caller.action(api.joining.inviteLink.signInToJoin, { token: NO_SUCH_LINK, email: OUTSIDER }),
