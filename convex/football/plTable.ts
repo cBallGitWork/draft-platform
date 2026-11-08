@@ -12,6 +12,7 @@
 // override the total points", Craig, 1 Nov 2026; #898): the caller passes it, and it stands in
 // place of the points the club's results earn, the club placed by it.
 
+import { rankedGroups } from "../shared/groupedBy";
 import { HEAD_TO_HEAD_TIE_BREAKS, type CompetitionTieBreak, type CompetitionTieBreaking } from "./tieBreaks";
 
 /** A league match's points (Handbook C.4): the Premier League's, fixed. */
@@ -84,7 +85,7 @@ export function plTable<Club>(
     if (!Number.isInteger(points)) throw new Error(`${String(club)}'s points are set to ${points}, not a whole number`);
     rowOf(club).points = points;
   }
-  const levelGroups = groupedBy([...rows.values()], (row) => row.points).flatMap((level) =>
+  const levelGroups = rankedGroups([...rows.values()], (row) => row.points).flatMap((level) =>
     brokenTies(level, competition.order, {
       results,
       unplayed,
@@ -142,17 +143,6 @@ function addResult<Club>(row: Row<Club>, goals: number, against: number): void {
   row.goalDifference = row.goalsFor - row.goalsAgainst;
 }
 
-/** Rows grouped by a key, highest first, each group in the rows' own order. */
-function groupedBy<R>(rows: readonly R[], key: (row: R) => number): R[][] {
-  const groups = new Map<number, R[]>();
-  for (const row of rows) {
-    const group = groups.get(key(row));
-    if (group === undefined) groups.set(key(row), [row]);
-    else group.push(row);
-  }
-  return [...groups.entries()].toSorted(([one], [other]) => other - one).map(([, group]) => group);
-}
-
 type Matches<Club> = { results: readonly PlResult<Club>[]; unplayed: readonly PlMatch<Club>[]; headToHeadDue: boolean };
 
 /** Clubs level on points, split by the first tie-break, those still level by the next, and so on:
@@ -164,7 +154,7 @@ function brokenTies<Club>(level: Row<Club>[], tieBreaks: readonly CompetitionTie
   if (HEAD_TO_HEAD_TIE_BREAKS.has(first) && (!matches.headToHeadDue || between(level, matches.unplayed).length > 0)) {
     return brokenTies(level, rest, matches);
   }
-  return groupedBy(level, tieBreakKey(first, level, matches.results)).flatMap((stillLevel) =>
+  return rankedGroups(level, tieBreakKey(first, level, matches.results)).flatMap((stillLevel) =>
     brokenTies(stillLevel, rest, matches),
   );
 }

@@ -1,5 +1,6 @@
 import { LEAGUE_AVERAGE, type GameweekFixtures } from "./roundRobin";
 import { inTenths } from "../scoring/values";
+import { rankedGroups } from "../shared/groupedBy";
 
 // The league's table (#33; spec/09, spec/03). A head-to-head table is a real football table: 3
 // points for a win, 1 for a draw, none for a loss, equal scores a draw; teams level on points are
@@ -121,7 +122,7 @@ export function headToHeadTable<Team>(
       meetings.push({ team, opponent, teamScore, opponentScore });
     }
   }
-  const byPoints = groupedBy([...rows.values()], (row) => row.points);
+  const byPoints = rankedGroups([...rows.values()], (row) => row.points);
   return byPoints.flatMap((level) => brokenTies(level, tieBreaks, meetings));
 }
 
@@ -179,18 +180,7 @@ export function totalPointsTable<Team>(teams: readonly Team[], scores: GameweekS
     row.points = row.pointsFor;
     return row;
   });
-  return groupedBy(rows, (row) => row.points).flat();
-}
-
-/** Rows grouped by a key, highest first, each group in the rows' own order. */
-function groupedBy<Row>(rows: readonly Row[], key: (row: Row) => number): Row[][] {
-  const groups = new Map<number, Row[]>();
-  for (const row of rows) {
-    const group = groups.get(key(row));
-    if (group === undefined) groups.set(key(row), [row]);
-    else group.push(row);
-  }
-  return [...groups.entries()].toSorted(([one], [other]) => other - one).map(([, group]) => group);
+  return rankedGroups(rows, (row) => row.points).flat();
 }
 
 /** Teams level on points, ordered by the first tie-break, those still level by the next, and so
@@ -203,7 +193,7 @@ function brokenTies<Team>(
   const [first, ...rest] = tieBreaks;
   if (level.length < 2 || first === undefined) return level;
   const key = tieBreakKey(first, level, meetings);
-  return groupedBy(level, key).flatMap((stillLevel) => brokenTies(stillLevel, rest, meetings));
+  return rankedGroups(level, key).flatMap((stillLevel) => brokenTies(stillLevel, rest, meetings));
 }
 
 /** What a tie-break ranks by, higher first: the most points for, the fewest points against, or
