@@ -25,5 +25,5 @@ export const TEST_ACCOUNT_EMAIL_SETTING = "TEST_ACCOUNT_EMAIL";
 export const TEST_ACCOUNT_SECRET_SETTING = "TEST_ACCOUNT_SECRET";
 
 /** A GitHub token that may run this repository's workflows (Actions: read and write), for the lead's
- *  wake-up (heartbeats/leadWake.ts). Set on the live deployment only: unset, nothing wakes the lead. */
+ *  wake-up (heartbeats/leadWake.ts). Set on the development deployment only, never the live one (Craig, 8 Nov 2026): unset, nothing wakes the lead. */
 export const LEAD_WAKE_TOKEN_SETTING = "LEAD_WAKE_GITHUB_TOKEN";

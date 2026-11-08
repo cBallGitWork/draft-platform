@@ -54,3 +54,5 @@ Named after its route: `team` for `/team`, `team-squad` for `/team/squad`.
 - [`scouting`](scouting/README.md): Scouting's players, compare, a scout's report and the stat race (8 Nov 2026).
 - [`table`](table/README.md): Table and fixtures, live, a total-points league and a placeholder cup
   (8 Nov 2026).
+- [`waivers`](waivers/README.md): Waivers: pending claims on My team's Transactions, the commissioner's
+  every team, and League settings' Waivers tab (8 Nov 2026).

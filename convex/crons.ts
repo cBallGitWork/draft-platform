@@ -39,7 +39,7 @@ crons.cron("positions sync", `0 ${DAILY_RUN_UTC_HOURS.join(",")} * * *`, interna
 crons.interval("prune run logs", PRUNE_EVERY, internal.admin.runLogs.prune, {});
 
 // Not one of spec/20's jobs but the build pipeline's: wakes the lead every half hour, since GitHub's
-// schedule drops its passes (heartbeats/leadWake.ts). Only where its token is set, the live site.
+// schedule drops its passes (heartbeats/leadWake.ts). Only where its token is set: the development deployment, never the live one.
 crons.cron("wake the lead", LEAD_WAKE_CRON, internal.heartbeats.leadWake.wake, {});
 
 export default crons;
