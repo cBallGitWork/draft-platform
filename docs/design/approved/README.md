@@ -51,3 +51,10 @@ Named after its route: `team` for `/team`, `team-squad` for `/team/squad`.
   leagues (7 Nov 2026).
 - [`matchup`](matchup/README.md): The matchup, live, and the commissioner's view with two games a
   gameweek (8 Nov 2026).
+- [`scouting`](scouting/README.md): Scouting's players, compare, a scout's report and the stat race (8 Nov 2026).
+- [`table`](table/README.md): Table and fixtures, live, a total-points league and a placeholder cup
+  (8 Nov 2026).
+- [`waivers`](waivers/README.md): Waivers: pending claims on My team's Transactions, the commissioner's
+  every team, and League settings' Waivers tab (8 Nov 2026).
+- [`trades`](trades/README.md): Trades: offers to and from you, one you sent in a vote league, and a new
+  offer (8 Nov 2026).
