@@ -51,6 +51,17 @@ describe("the alarm at the next deadline", () => {
     expect(await pendingAlarms()).toEqual([soonestToCome()]);
   });
 
+  test("the pending alarm is kept by its id, and a recording with the same soonest deadline keeps it as it is", async () => {
+    const [alarm] = await pendingJobs(t, internal.gameweeks.deadlineRecorder.recordDueDeadlines);
+    const rows = () => t.run((ctx) => ctx.db.query("deadlineAlarms").collect());
+    expect((await rows()).map(({ scheduledId, at }) => ({ scheduledId, at }))).toEqual([{ scheduledId: alarm._id, at: soonestToCome() }]);
+
+    await recordPassed();
+
+    expect((await pendingJobs(t, internal.gameweeks.deadlineRecorder.recordDueDeadlines)).map((job) => job._id)).toEqual([alarm._id]);
+    expect((await rows()).map((row) => row.scheduledId)).toEqual([alarm._id]);
+  });
+
   test("a kickoff moved an hour earlier cancels the alarm set for the old deadline: one is left pending, at the new one", async () => {
     const stale = soonestToCome();
     expect(await pendingAlarms()).toEqual([stale]);

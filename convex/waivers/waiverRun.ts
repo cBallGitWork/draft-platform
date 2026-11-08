@@ -2,7 +2,7 @@ import { v } from "convex/values";
 import { internal } from "../_generated/api";
 import type { Doc, Id } from "../_generated/dataModel";
 import { internalMutation, type MutationCtx, type QueryCtx } from "../_generated/server";
-import { draftIsLive } from "../draft/draftRow";
+import { draftIsOver } from "../draft/draftRow";
 import type { LeagueDeadlines } from "../gameweeks/deadline";
 import { leagueDeadlines } from "../gameweeks/leagueDeadlines";
 import { leagueOpens } from "../leagues/leagueOpens";
@@ -15,6 +15,7 @@ import { latestRules, seasonRules } from "../rules/rulesHistory";
 import { LEAGUES_READ_MOST, takeAllOrThrow } from "../shared/cappedRead";
 import { tellShortlisters, tellShortlistersCleared } from "../scouting/shortlist";
 import { teamIn } from "../shared/leagueAccess";
+import { playerByCode } from "../shared/players";
 import { MINUTE_MS } from "../shared/time";
 import { placeOf, squadOf } from "../squads/squadPlace";
 import { limitsBroken, type SquadWarning } from "../squads/squads";
@@ -30,7 +31,7 @@ import { latestRunAt } from "./waiverTimes";
 // (waiverOrder.ts): the team at the top has its first claim still standing tried; one that
 // succeeds sends the team to the bottom for the rest of the run and after, and one that fails is
 // gone, its manager told why, and the team's next is tried. A claim fails if another team got the
-// player first, if the player he named to drop is no longer his or is held in a trade under review
+// player first, if the player has left the Premier League (#1327), if the player he named to drop is no longer his or is held in a trade under review
 // (../trades/, Craig, 6 Nov 2026), or if it would break the squad's
 // limits. A player nobody claims is a free agent straight after, and each manager whose shortlist
 // holds him is told (../scouting/shortlist.ts). A run that falls from the deadline
@@ -101,6 +102,7 @@ async function tryClaim(ctx: MutationCtx, run: Run, claim: Doc<"waiverClaims">):
   const { league, squadRules, deadlines, now, claimable } = run;
   const onWaivers = claimable.get(claim.playerCode);
   if (onWaivers === undefined) return { won: false, why: "ahead" };
+  if ((await playerByCode(ctx, claim.playerCode))?.droppedAt !== undefined) return { won: false, why: "playerGone" };
   const drop = claim.dropCode === null ? null : await placeOf(ctx, league._id, claim.dropCode);
   if (claim.dropCode !== null && drop?.teamId !== claim.teamId) return { won: false, why: "dropGone" };
   if (claim.dropCode !== null && (await reviewHolding(ctx, league._id, claim.dropCode)) !== null) return { won: false, why: "dropHeld" };
@@ -138,8 +140,8 @@ async function report(ctx: MutationCtx, league: Doc<"leagues">, claim: Doc<"waiv
   await pickFirstLineupAgain(ctx, league._id, team._id);
 }
 
-/** Runs the league's waivers for its run time `at`, once: skipped in the lock or while the draft
- *  is live. */
+/** Runs the league's waivers for its run time `at`, once: skipped in the lock or until the draft
+ *  is over (#1326). */
 async function runWaivers(ctx: MutationCtx, leagueId: Id<"leagues">, at: number): Promise<void> {
   const league = await ctx.db.get("leagues", leagueId);
   const held = await waiverOrderRow(ctx, leagueId);
@@ -156,7 +158,7 @@ async function runWaivers(ctx: MutationCtx, leagueId: Id<"leagues">, at: number)
     held === null
       ? ctx.db.insert("waiverOrders", { leagueId, winners, gameweek, ranAt: at, madeAt })
       : ctx.db.patch("waiverOrders", held._id, { winners, gameweek, ranAt: at, madeAt });
-  if ((await draftIsLive(ctx, leagueId)) || (await inWaiverLock(ctx, deadlines, now))) {
+  if (!(await draftIsOver(ctx, leagueId)) || (await inWaiverLock(ctx, deadlines, now))) {
     await save();
     return;
   }

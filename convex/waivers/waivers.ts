@@ -1,6 +1,6 @@
 import { v, type Infer } from "convex/values";
 import { mutation, query } from "../_generated/server";
-import { draftIsLive } from "../draft/draftRow";
+import { draftIsOver } from "../draft/draftRow";
 import { leagueDeadlines } from "../gameweeks/leagueDeadlines";
 import { pickFirstLineupAgain } from "../lineup/lineups";
 import { recordEvent } from "../mail/letters";
@@ -9,7 +9,6 @@ import { playerByCode } from "../shared/players";
 import { tellShortlisters } from "../scouting/shortlist";
 import { latestRules } from "../rules/rulesHistory";
 import { heldOrNot, placeOf, squadOf } from "../squads/squadPlace";
-import { squadRefusals } from "../squads/squads";
 import { closeOffersHolding, reviewHolding } from "../trades/tradeClose";
 import { inWaiverLock } from "./waiverLock";
 import { dropFromSquad, waiverRowOf } from "./waiverPlayers";
@@ -21,11 +20,12 @@ import { firstRunFrom } from "./waiverTimes";
 // team's first lineup is picked again, as the commissioner's release does (../squads/squads.ts).
 // He goes on waivers for at least 24 hours, unless the churn rule sends him straight back to the
 // free agents: picked up as one and dropped before a deadline has passed. Dropping is never
-// restricted but in the lock (waiverLock.ts) and while the draft is live, when only its picks
-// change squads.
+// restricted but in the lock (waiverLock.ts) and until the draft is over (#1326): before it,
+// and while only its picks change squads.
 
 export const dropRefusals = {
-  draftLive: squadRefusals.draftLive,
+  /** spec/08 (Craig, 8 Nov 2026, #1326): nothing moves before the draft is over, nor while it is live. */
+  notDrafted: "Free agency and waivers open once the league's draft is over.",
   locked: "Players can't be dropped from the deadline until the gameweek's last match is over.",
   notYours: (name: string) => `${name} isn't in your squad.`,
   /** spec/08 (Craig, 6 Nov 2026, on #383): a player in a trade under review is held. */
@@ -39,7 +39,7 @@ export const drop = mutation({
   returns: v.null(),
   handler: async (ctx, { leagueId, playerCode }) => {
     const { email, league, team } = await managerOf(ctx, leagueId);
-    if (await draftIsLive(ctx, leagueId)) refuse(dropRefusals.draftLive);
+    if (!(await draftIsOver(ctx, leagueId))) refuse(dropRefusals.notDrafted);
     const now = Date.now();
     const deadlines = await leagueDeadlines(ctx, leagueId);
     if (await inWaiverLock(ctx, deadlines, now)) refuse(dropRefusals.locked);

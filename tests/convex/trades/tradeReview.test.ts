@@ -11,6 +11,7 @@ import { actingAs, addManager, COMMISSIONER, CO_COMMISSIONER, eventsIn, MANAGERS
 import { holdPlayers, nameOf } from "../../support/convex/lineupSquad.harness";
 import { expectRefused, pendingJobs } from "../../support/convex/test.harness";
 import { ANN, ANNS_FIRST_DROP, BOB, CAT, PALMER, RICE, SAKA, tradeLeague, type TradeLeague } from "../../support/convex/trades.harness";
+import { draftOver, noDraft } from "../../support/convex/waivers.harness";
 
 // A trade's review and move (#383, spec/08 Trades): accepted, it goes through at once with no
 // review; under a commissioner veto he has 24 hours to block it, and a trade he is in goes to the
@@ -21,10 +22,13 @@ import { ANN, ANNS_FIRST_DROP, BOB, CAT, PALMER, RICE, SAKA, tradeLeague, type T
 const DAN = MANAGERS[3];
 
 let w: TradeLeague;
-/** The league's fourth team, made when a test gives `email` it: Team 4. */
+/** The league's fourth team, made when a test gives `email` it: Team 4. Joining shuts once the
+ *  draft starts, so it joins as if before the draft, which is over again after. */
 let fourthTeam: Id<"teams">;
 const fourthTeamTo = async (email: string) => {
+  await noDraft(w.t, w.leagueId);
   fourthTeam = await addManager(w.t, w.leagueId, email);
+  await draftOver(w.t, w.leagueId, w.teams);
 };
 beforeEach(async () => {
   w = await tradeLeague();

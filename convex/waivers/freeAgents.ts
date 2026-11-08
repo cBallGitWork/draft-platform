@@ -1,7 +1,7 @@
 import { v } from "convex/values";
 import type { Id } from "../_generated/dataModel";
 import { mutation, type QueryCtx } from "../_generated/server";
-import { draftIsLive } from "../draft/draftRow";
+import { draftIsOver } from "../draft/draftRow";
 import type { LeagueDeadlines } from "../gameweeks/deadline";
 import { leagueDeadlines } from "../gameweeks/leagueDeadlines";
 import { pickFirstLineupAgain } from "../lineup/lineups";
@@ -10,7 +10,6 @@ import { latestRules } from "../rules/rulesHistory";
 import { managerOf, refuse, refusals } from "../shared/leagueAccess";
 import { playerByCode } from "../shared/players";
 import { placeOf } from "../squads/squadPlace";
-import { squadRefusals } from "../squads/squads";
 import { inWaiverLock, latestBegun } from "./waiverLock";
 import { waiverOrderRow } from "./waiverOrder";
 import { dropFromSquad, waiverRowOf } from "./waiverPlayers";
@@ -27,11 +26,11 @@ import { closeOffersHolding, reviewHolding } from "../trades/tradeClose";
 // a Mail letter for each.
 
 export const pickUpRefusals = {
-  draftLive: claimRefusals.draftLive,
+  notDrafted: claimRefusals.notDrafted,
   locked: "Free agents can't be picked up from the deadline until the gameweek's last match is over.",
   notOpen: "Free agents can be picked up from the first waiver run after a gameweek until the next deadline.",
   notFreeAgent: (name: string) => `${name} isn't a free agent.`,
-  playerGone: squadRefusals.playerGone,
+  playerGone: claimRefusals.playerGone,
   dropNotYours: claimRefusals.dropNotYours,
   dropHeld: dropRefusals.held,
   limits: (name: string) => `Picking up ${name} would break your squad's limits.`,
@@ -54,7 +53,7 @@ export const pickUp = mutation({
   returns: v.null(),
   handler: async (ctx, { leagueId, playerCode, dropCode }) => {
     const { email, team } = await managerOf(ctx, leagueId);
-    if (await draftIsLive(ctx, leagueId)) refuse(pickUpRefusals.draftLive);
+    if (!(await draftIsOver(ctx, leagueId))) refuse(pickUpRefusals.notDrafted);
     const now = Date.now();
     const deadlines = await leagueDeadlines(ctx, leagueId);
     if (await inWaiverLock(ctx, deadlines, now)) refuse(pickUpRefusals.locked);

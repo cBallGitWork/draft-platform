@@ -6,6 +6,7 @@ import { MINUTE_MS, WEEK_MS } from "../../../convex/shared/time";
 import { WAIVER_MS } from "../../../convex/waivers/waiverLimits";
 import { latestRunAt } from "../../../convex/waivers/waiverTimes";
 import { changeRules, HELD_FIRST_RULES, rulesWith, TOTAL_POINTS } from "../../support/convex/leagueRules.harness";
+import { playerLeaves } from "../../support/convex/draftLists.harness";
 import { actingAs, eventsIn } from "../../support/convex/leagues.harness";
 import { nameOf, SQUAD } from "../../support/convex/lineupSquad.harness";
 import { ANN, ANNS_FIRST_DROP, BOB, CAT, NEXT, PALMER, RICE, SAKA, waiverLeague, type WaiverLeague } from "../../support/convex/waivers.harness";
@@ -51,6 +52,18 @@ describe("a run", () => {
     expect(await w.stateOf(SAKA)).toEqual({ kind: "freeAgent" });
     expect(await w.stateOf(PALMER)).toMatchObject({ kind: "owned", teamId: w.annsTeam });
     expect(await w.lettersTo(ANN)).toContainEqual(claimFailedLetter({ playerName: nameOf(SAKA), dropName: null, why: "limits" }));
+  });
+
+  test("a claim for a player who has left the Premier League since fails, saying so", async () => {
+    await w.onWaivers([SAKA]);
+    await w.claim(BOB, SAKA);
+    await playerLeaves(w.t, SAKA);
+    await w.runWaivers();
+
+    expect(await w.squadCodes(w.bobsTeam)).not.toContain(SAKA);
+    const gone = claimFailedLetter({ playerName: nameOf(SAKA), dropName: null, why: "playerGone" });
+    expect(await w.lettersTo(BOB)).toContainEqual(gone);
+    expect(gone.body).toContain(`${nameOf(SAKA)} has left the Premier League, so he couldn't join your squad.`);
   });
 });
 
