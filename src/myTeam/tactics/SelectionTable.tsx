@@ -195,7 +195,7 @@ function SelectionRow({
           {player.name}
         </button>
         {landing !== null && (
-          <span className="ml-1 inline-flex align-middle">
+          <span className="ml-2 inline-flex align-middle">
             <StarRating stars={landing.stars} subject={landingSubject(player.name, landing.role.name)} />
           </span>
         )}
