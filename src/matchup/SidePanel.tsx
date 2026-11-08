@@ -44,23 +44,23 @@ export function SidePanel({ side, picking }: { side: MatchupSide; picking: Picki
         <PanelNote>{averageWords}</PanelNote>
       ) : (
         <>
-        <SidePitch side={side} picked={picking.picked} runsShown={runsShown} />
-        <table aria-label={lineupLabel(name)} className="w-full border-collapse">
-          <ColumnHeads columns={columns} classOf={(column) => (column === "player" ? "px-2 text-left" : "px-2 text-right")} />
-          <tbody>
-            {side.lineup.starters.map((slot) => (
-              <SlotRow key={slot.playerCode} slot={slot} picking={picking} />
-            ))}
-            <tr>
-              <th colSpan={Object.keys(columns).length} scope="colgroup" className="bg-plate px-3 text-left font-bold shadow-bevel-plate">
-                {BENCH_TITLE}
-              </th>
-            </tr>
-            {side.lineup.bench.map((slot) => (
-              <SlotRow key={slot.playerCode} slot={slot} picking={picking} />
-            ))}
-          </tbody>
-        </table>
+          <SidePitch side={side} picked={picking.picked} runsShown={runsShown} />
+          <table aria-label={lineupLabel(name)} className="w-full border-collapse">
+            <ColumnHeads columns={columns} classOf={(column) => (column === "player" ? "px-2 text-left" : "px-2 text-right")} />
+            <tbody>
+              {side.lineup.starters.map((slot) => (
+                <SlotRow key={slot.playerCode} slot={slot} picking={picking} />
+              ))}
+              <tr>
+                <th colSpan={Object.keys(columns).length} scope="colgroup" className="bg-plate px-3 text-left font-bold shadow-bevel-plate">
+                  {BENCH_TITLE}
+                </th>
+              </tr>
+              {side.lineup.bench.map((slot) => (
+                <SlotRow key={slot.playerCode} slot={slot} picking={picking} />
+              ))}
+            </tbody>
+          </table>
         </>
       )}
     </Panel>
