@@ -2,7 +2,7 @@ import { useState } from "react";
 import type { Id } from "../../../convex/_generated/dataModel";
 import type { InstructionPair } from "../../../convex/lineup/instructions";
 import type { Cell } from "../../../convex/lineup/pitch";
-import type { DraftLineup, MoveRules, RatingsOf } from "./lineupDraft";
+import type { EditedLineup, MoveRules, RatingsOf } from "./lineupEdits";
 import { loadedPlan, planSlotsOf, presetOfPlan } from "./savedPlans";
 import type { OpenTactics, TacticsSeam } from "./seam";
 import { rolesLostWords } from "./words";
@@ -25,14 +25,14 @@ export function useSavedPlans({
 }: {
   leagueId: Id<"leagues">;
   seam: Pick<TacticsSeam, "usePlans" | "usePlanChanges">;
-  draft: DraftLineup;
+  draft: EditedLineup;
   /** The two instructions in force, as a plan saved now keeps them (#990). */
   instructions: InstructionPair;
   presets: OpenTactics["presets"];
   inUse: string | null;
   rules: MoveRules;
   ratingsOf: RatingsOf;
-  onLoad(preset: { name: string; cells: readonly Cell[] }, lineup: DraftLineup, said: string | null): void;
+  onLoad(preset: { name: string; cells: readonly Cell[] }, lineup: EditedLineup, said: string | null): void;
 }) {
   const read = seam.usePlans(leagueId);
   const plans = read ?? [];

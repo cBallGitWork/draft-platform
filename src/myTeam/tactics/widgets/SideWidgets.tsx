@@ -6,7 +6,7 @@ import { noFigureWords } from "../../../shared/words";
 import { OpponentLink } from "../../header/TeamHeader";
 import { gamesIn, standingOf } from "../../header/teamStanding";
 import type { LeagueTable } from "../../../table/seam";
-import { startersInOrder, type DraftLineup, type SquadMember } from "../lineupDraft";
+import { startersInOrder, type EditedLineup, type SquadMember } from "../lineupEdits";
 import { positionMarksOf } from "../positionMarks";
 import { instructionsTitle, LINEUP_CHECK_TITLE, lineupCheckPlaceholder, opponentTitle, outOfPositionLineWords, pickedWords, SIDE_WORDS } from "../words";
 import { offeredOn, SIDES, type Instruction, type InstructionPair } from "../../../../convex/lineup/instructions";
@@ -18,7 +18,7 @@ import type { Cell } from "../../../../convex/lineup/pitch";
 /** Who to look at before the deadline: a line for each starter out of position, his name selecting
  *  him (#23; Craig, 6 Nov 2026), in the pitch's order; above what waits on the status chips' data
  *  (to-grill: Status chips' data; Who's doubtful, on Tactics), a placeholder in its place and size. */
-export function LineupCheck({ draft, squad, onSelect }: { draft: DraftLineup; squad: ReadonlyMap<number, SquadMember>; onSelect(playerCode: number): void }) {
+export function LineupCheck({ draft, squad, onSelect }: { draft: EditedLineup; squad: ReadonlyMap<number, SquadMember>; onSelect(playerCode: number): void }) {
   const outOfPosition = startersInOrder(draft).flatMap((starter) => {
     const player = squad.get(starter.playerCode);
     // Out of position comes first of his marks.

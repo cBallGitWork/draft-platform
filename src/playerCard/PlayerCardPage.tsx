@@ -2,7 +2,7 @@ import { useCanGoBack, useRouter } from "@tanstack/react-router";
 import type { ReactNode } from "react";
 import type { LeagueSummary } from "../../convex/leagues/myLeagues";
 import { PositionCodes } from "../ui/PositionCodes";
-import { ClubMark } from "../premierLeague/ClubName";
+import { ClubMark } from "../ui/ClubName";
 import { OwnerName } from "../ui/OwnerName";
 import { SCOUTING_PATH } from "../frame/menu";
 import { Loading, PAGE_STACK, PageSection, Panel, PANEL_BODY, PanelNote } from "../ui/Panel";

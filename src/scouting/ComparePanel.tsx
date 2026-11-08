@@ -4,9 +4,9 @@ import { STAT_CATALOGUE } from "../../convex/scoring/statCatalogueList";
 import { Loading, Panel, PanelNote } from "../ui/Panel";
 import { PositionCodes } from "../ui/PositionCodes";
 import { OwnerName } from "../ui/OwnerName";
-import { ClubMark, ClubShort } from "../premierLeague/ClubName";
+import { ClubMark, ClubShort } from "../ui/ClubName";
 import { ColumnHeads } from "../ui/ColumnHeads";
-import { statFigure } from "./figures";
+import { statFigure } from "../shared/figures";
 import type { ComparedPlayer, Comparison } from "./seam";
 import {
   clearComparisonWords,

@@ -3,8 +3,8 @@
 // beside 0 minutes).
 
 import { describe, expect, it } from "vitest";
-import { previewMyTeam } from "../../../src/myTeam/preview";
-import { league } from "../../support/src/shell.harness";
+import { previewMyTeam } from "../../../../src/myTeam/preview";
+import { league } from "../../../support/src/shell.harness";
 
 describe("the preview's squad", () => {
   it("never shows goals, cards or clean sheets beside no minutes, and no points with no matches", () => {

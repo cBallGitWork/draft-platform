@@ -7,7 +7,7 @@ import { AREAS, type Cell } from "../../../../convex/lineup/pitch";
 import { rolesOfSlot } from "../../../../convex/lineup/roles";
 import type { Position } from "../../../../convex/positions/positionTables";
 import { NO_DATA } from "../../../../convex/stars/starsShape";
-import { canSwap, dropOutcome, landingOf, reachOf, swapped, withRole, type MoveRules, type RatingsOf } from "../../../../src/myTeam/tactics/lineupDraft";
+import { canSwap, dropOutcome, landingOf, reachOf, swapped, withRole, type MoveRules, type RatingsOf } from "../../../../src/myTeam/tactics/lineupEdits";
 
 const KEEPER = { playerCode: 1, area: "goalkeeper", lane: "centre" } as const;
 const BACK = { playerCode: 2, area: "defence", lane: "left" } as const;

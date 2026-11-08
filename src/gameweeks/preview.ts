@@ -1,6 +1,6 @@
 // The gameweeks screen in the preview (src/app/preview.ts): a made-up season (weeklySeason.ts).
 
-import { previewChristmasBreak, previewSays } from "../app/preview";
+import { previewChristmasBreak, previewSays } from "../shared/preview";
 import type { GameweeksSeam } from "./seam";
 import { weeklySeason } from "./weeklySeason";
 

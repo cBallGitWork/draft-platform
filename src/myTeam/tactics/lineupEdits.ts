@@ -19,7 +19,7 @@ export type SquadMember = OpenTactics["squad"][number];
 /** A starter, his cell and the role he plays there (roles.ts), none given meaning the slot's first. */
 export type Starter = Cell & { playerCode: number; role?: string };
 
-export interface DraftLineup {
+export interface EditedLineup {
   starters: readonly Starter[];
   bench: readonly number[];
   /** The classic picked, by name, until another formation is (spec/05; #991): every move keeps it,
@@ -46,40 +46,40 @@ const droppedInto = (playerCode: number, cell: Cell, formation: Formation, ratin
  *  saves one (spec/05), with its instructions in force, on its classic while the league still
  *  holds it, so a classic the league has since dropped or renamed never refuses his next save
  *  (#991). */
-export function openingLineup({ lineup, classics, picked }: Pick<OpenTactics, "lineup" | "classics"> & Partial<Pick<OpenTactics, "picked">>): DraftLineup {
+export function openingLineup({ lineup, classics, picked }: Pick<OpenTactics, "lineup" | "classics"> & Partial<Pick<OpenTactics, "picked">>): EditedLineup {
   const { classic } = lineup;
   const held = classic !== undefined && classics.some(({ name }) => name === classic);
   return { starters: lineup.starters, bench: lineup.bench, ...(held && { classic }), ...(picked !== undefined && { instructions: picked }) };
 }
 
 /** The lineup with one side's instruction picked (spec/05, Team instructions), the other kept. */
-export function withInstruction(draft: DraftLineup, inForce: InstructionPair, side: Side, key: string): DraftLineup {
+export function withInstruction(draft: EditedLineup, inForce: InstructionPair, side: Side, key: string): EditedLineup {
   return { ...draft, instructions: { ...inForce, [side]: key } };
 }
 
 /** The lineup the screen shows: the one held, or the manager's edit read against the squad as it
  *  is now by the server's own rule (lineup.ts `reconciled`), so an edit made before a squad change
  *  never names a player the squad no longer holds and stands as the server would read it. */
-export function shownLineup(edited: DraftLineup | null, opening: DraftLineup, squadCodes: readonly number[]): DraftLineup {
+export function shownLineup(edited: EditedLineup | null, opening: EditedLineup, squadCodes: readonly number[]): EditedLineup {
   return edited === null ? opening : { ...edited, ...reconciled(edited, squadCodes).lineup };
 }
 
 
 /** Who stands in the cell, if anyone. */
-export const standingIn = (draft: DraftLineup, cell: Cell) => draft.starters.find((starter) => sameCell(starter, cell));
+export const standingIn = (draft: EditedLineup, cell: Cell) => draft.starters.find((starter) => sameCell(starter, cell));
 
-const without = (draft: DraftLineup, playerCode: number): DraftLineup => ({
+const without = (draft: EditedLineup, playerCode: number): EditedLineup => ({
   starters: draft.starters.filter((starter) => starter.playerCode !== playerCode),
   bench: draft.bench.filter((code) => code !== playerCode),
 });
 
-const starts = (draft: DraftLineup, playerCode: number) => draft.starters.some((starter) => starter.playerCode === playerCode);
+const starts = (draft: EditedLineup, playerCode: number) => draft.starters.some((starter) => starter.playerCode === playerCode);
 
 /** Two players swapped (spec/05, Moving players): starter for starter, each in the other's cell, or
  *  a bench player for a starter, the starter taking his place in the bench order. Each lands on the
  *  role he has the most stars for in his new slot. Two on the bench throws: the bench is put in
  *  order, not swapped. */
-export function swapped(draft: DraftLineup, one: number, other: number, ratingsOf: RatingsOf): DraftLineup {
+export function swapped(draft: EditedLineup, one: number, other: number, ratingsOf: RatingsOf): EditedLineup {
   if (!starts(draft, one) && !starts(draft, other)) throw new Error(`Players ${one} and ${other} are both on the bench: a swap takes a starter`);
   const swap = (playerCode: number) => (playerCode === one ? other : playerCode === other ? one : playerCode);
   return {
@@ -97,7 +97,7 @@ export interface MoveRules extends LineupRules {
 }
 
 /** How far an area's starters fall outside its limits: 0 within them. */
-function outsideLimits(draft: DraftLineup, area: Cell["area"], { areaLimits }: LineupRules): number {
+function outsideLimits(draft: EditedLineup, area: Cell["area"], { areaLimits }: LineupRules): number {
   const count = draft.starters.filter((starter) => starter.area === area).length;
   const { minimum, maximum } = areaLimits[area];
   return Math.max(0, minimum - count, count - maximum);
@@ -105,7 +105,7 @@ function outsideLimits(draft: DraftLineup, area: Cell["area"], { areaLimits }: L
 
 /** Whether a move keeps the limits: no area further outside its own than before. A swap leaves
  *  every cell held as it was, so it never should; the check stays so that one never can (#1022). */
-function keepsLimits(before: DraftLineup, after: DraftLineup, rules: LineupRules): boolean {
+function keepsLimits(before: EditedLineup, after: EditedLineup, rules: LineupRules): boolean {
   return AREAS.every((area) => outsideLimits(after, area, rules) <= outsideLimits(before, area, rules));
 }
 
@@ -124,7 +124,7 @@ const isKeeper = (positions: readonly Position[]) => positions.includes("GK");
 
 /** Why the two may not swap, null where they may: each plays the cell he lands in, and the limits
  *  hold. Two on the bench, or a player and himself, are no swap: the screen never asks. */
-export function swapRefusal(draft: DraftLineup, one: number, other: number, rules: MoveRules): MoveRefusal | null {
+export function swapRefusal(draft: EditedLineup, one: number, other: number, rules: MoveRules): MoveRefusal | null {
   const after = swapped(draft, one, other, NO_STARS);
   for (const starter of after.starters.filter(({ playerCode }) => playerCode === one || playerCode === other)) {
     const positions = rules.positionsOf(starter.playerCode);
@@ -136,7 +136,7 @@ export function swapRefusal(draft: DraftLineup, one: number, other: number, rule
 }
 
 /** Whether the two may swap (spec/05, Moving players): one starts, and the swap isn't refused. */
-export function canSwap(draft: DraftLineup, one: number, other: number, rules: MoveRules): boolean {
+export function canSwap(draft: EditedLineup, one: number, other: number, rules: MoveRules): boolean {
   if (one === other || (!starts(draft, one) && !starts(draft, other))) return false;
   return swapRefusal(draft, one, other, rules) === null;
 }
@@ -148,7 +148,7 @@ export type DropTarget = { cell: Cell } | { playerCode: number } | "bench";
  *  2026): an empty cell takes nobody, and a starter leaves the pitch only by a swap, so the bench's
  *  plate takes nobody either. A bench player dropped along the bench is put in order (benchedAt),
  *  never asked here. */
-export function dropOutcome(draft: DraftLineup, playerCode: number, target: DropTarget, rules: MoveRules): { swapWith: number } | { refusal: MoveRefusal } {
+export function dropOutcome(draft: EditedLineup, playerCode: number, target: DropTarget, rules: MoveRules): { swapWith: number } | { refusal: MoveRefusal } {
   if (target === "bench") return { refusal: { kind: "offThePitch" } };
   const other = "cell" in target ? standingIn(draft, target.cell)?.playerCode : target.playerCode;
   if (other === undefined) return { refusal: { kind: "emptyCell" } };
@@ -162,7 +162,7 @@ export interface Reach {
   players: number[];
 }
 
-export function reachOf(draft: DraftLineup, playerCode: number, rules: MoveRules): Reach {
+export function reachOf(draft: EditedLineup, playerCode: number, rules: MoveRules): Reach {
   return { players: namedCodes(draft).filter((other) => canSwap(draft, playerCode, other, rules)) };
 }
 
@@ -177,7 +177,7 @@ export interface Landing {
  *  players: "with his stars there"; Craig, 7 Nov 2026, #11): the picked-up player in a lit
  *  starter's slot, or a lit bench player in the picked-up starter's, on the role he has the most
  *  stars for there. Null where neither comes onto the pitch in another's slot (two on the bench). */
-export function landingOf(draft: DraftLineup, picked: number, other: number, ratingsOf: RatingsOf): Landing | null {
+export function landingOf(draft: EditedLineup, picked: number, other: number, ratingsOf: RatingsOf): Landing | null {
   const lander = starts(draft, other) ? picked : starts(draft, picked) ? other : null;
   if (lander === null) return null;
   const landed = swapped(draft, picked, other, ratingsOf).starters.find((starter) => starter.playerCode === lander)!;
@@ -186,14 +186,14 @@ export function landingOf(draft: DraftLineup, picked: number, other: number, rat
 }
 
 /** The starter given a role his slot offers (spec/05 Roles). */
-export function withRole(draft: DraftLineup, playerCode: number, role: string): DraftLineup {
+export function withRole(draft: EditedLineup, playerCode: number, role: string): EditedLineup {
   return { ...draft, starters: draft.starters.map((starter) => (starter.playerCode === playerCode ? { ...starter, role } : starter)) };
 }
 
 /** The bench player put at `index` in the bench order, 0 being first on (spec/05 Auto-subs: the
  *  manager's bench order). Past either end is that end. A starter throws: he leaves the pitch only
  *  by a swap, so the eleven stay eleven (spec/05; Craig, 4 Nov 2026). */
-export function benchedAt(draft: DraftLineup, playerCode: number, index: number): DraftLineup {
+export function benchedAt(draft: EditedLineup, playerCode: number, index: number): EditedLineup {
   if (starts(draft, playerCode)) throw new Error(`Player ${playerCode} starts: a starter leaves the pitch only by a swap`);
   const rest = without(draft, playerCode);
   const at = Math.max(0, Math.min(index, rest.bench.length));
@@ -201,12 +201,12 @@ export function benchedAt(draft: DraftLineup, playerCode: number, index: number)
 }
 
 /** Back to front, left to right: the order the squad lists the eleven. */
-export const startersInOrder = (draft: DraftLineup): Starter[] => draft.starters.toSorted(byPitchOrder);
+export const startersInOrder = (draft: EditedLineup): Starter[] => draft.starters.toSorted(byPitchOrder);
 
 /** Whether two lineups stand the same: the same players in the same cells, the same bench order,
  *  the same instructions, picked from the same classic or none. */
-export function sameLineup(one: DraftLineup, other: DraftLineup): boolean {
-  const key = (draft: DraftLineup) =>
+export function sameLineup(one: EditedLineup, other: EditedLineup): boolean {
+  const key = (draft: EditedLineup) =>
     [
       ...startersInOrder(draft).map(({ playerCode, area, lane, role }) => `${playerCode}@${cellKey({ area, lane })}:${role ?? ""}`),
       "bench",
@@ -225,7 +225,7 @@ export function sameLineup(one: DraftLineup, other: DraftLineup): boolean {
  *  order. Then each bench player, in bench order, takes the first free cell he plays, back to
  *  front (Craig, 1 Nov 2026; #1025); cells still empty are the shape's slots to fill. One whose
  *  new slot doesn't offer his role starts on his best-star role there (Craig, 1 Nov 2026). */
-export function reshaped(draft: DraftLineup, cells: readonly Cell[], { positionsOf }: Pick<MoveRules, "positionsOf">, ratingsOf: RatingsOf): DraftLineup {
+export function reshaped(draft: EditedLineup, cells: readonly Cell[], { positionsOf }: Pick<MoveRules, "positionsOf">, ratingsOf: RatingsOf): EditedLineup {
   const free = [...cells];
   const starters: Starter[] = [];
   const nearestFree = (starter: Starter, inHisArea: boolean) => {
@@ -273,7 +273,7 @@ export function reshaped(draft: DraftLineup, cells: readonly Cell[], { positions
 
 /** The league's preset whose shape the eleven stand in now, cell for cell, if any: its key is the
  *  one pressed in the Formation keys, and its name heads the pitch. */
-export const presetInUse = <Shape extends { name: string; cells: readonly Cell[] }>(draft: DraftLineup, presets: readonly Shape[]): Shape | undefined =>
+export const presetInUse = <Shape extends { name: string; cells: readonly Cell[] }>(draft: EditedLineup, presets: readonly Shape[]): Shape | undefined =>
   presetOfCells(draft.starters, presets);
 
 /** The league's preset whose shape is these cells, cell for cell, if any. */
@@ -298,7 +298,7 @@ export function benchBestRole({ positions, stars }: Pick<SquadMember, "positions
 /** Where a player stands in the lineup, for his panel: his slot and the cells the eleven stand in
  *  (which pick the roles it offers), or his place on the bench and how long it is; null for one in
  *  neither (gone from the squad since he was tapped). */
-export function placeOf(draft: DraftLineup, playerCode: number): { starter: Starter; formation: Formation } | { benchIndex: number; benchLast: number } | null {
+export function placeOf(draft: EditedLineup, playerCode: number): { starter: Starter; formation: Formation } | { benchIndex: number; benchLast: number } | null {
   const starter = draft.starters.find((each) => each.playerCode === playerCode);
   if (starter !== undefined) return { starter, formation: draft.starters };
   const benchIndex = draft.bench.indexOf(playerCode);

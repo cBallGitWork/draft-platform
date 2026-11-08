@@ -4,7 +4,7 @@
 import { screen, within } from "@testing-library/react";
 import type { Cell } from "../../../convex/lineup/pitch";
 import type { TeamSquad } from "../../../src/myTeam/seam";
-import type { SquadMember } from "../../../src/myTeam/tactics/lineupDraft";
+import type { SquadMember } from "../../../src/myTeam/tactics/lineupEdits";
 import { MY_TEAM_SQUAD_PATH } from "../../../src/frame/menu";
 import { squadTableLabel } from "../../../src/myTeam/squad/words";
 import { ARSENAL, CHELSEA } from "../convex/footballRows.harness";

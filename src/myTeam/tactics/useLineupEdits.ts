@@ -1,7 +1,7 @@
 import { useMemo, useRef, useState } from "react";
 import type { Id } from "../../../convex/_generated/dataModel";
 import { useChange } from "../../shared/useChange";
-import { sameLineup, shownLineup, type DraftLineup } from "./lineupDraft";
+import { sameLineup, shownLineup, type EditedLineup } from "./lineupEdits";
 import type { LineupChanges } from "./seam";
 
 /** The lineup the Tactics tab shows and each move to it (spec/05, Moving players): every move saves
@@ -16,23 +16,23 @@ export function useLineupEdits({
   onShown,
 }: {
   leagueId: Id<"leagues">;
-  opening: DraftLineup;
+  opening: EditedLineup;
   squadCodes: readonly number[];
   changes: LineupChanges;
   onShown(): void;
 }) {
   // The manager's last move; it stays after it is saved, so the pitch never shows the lineup held
   // before the server catches up with it.
-  const [edited, setEdited] = useState<DraftLineup | null>(null);
+  const [edited, setEdited] = useState<EditedLineup | null>(null);
   // Each lineup a move left behind, newest last, since the tab was opened: what Undo goes back to.
-  const [undoable, setUndoable] = useState<readonly DraftLineup[]>([]);
+  const [undoable, setUndoable] = useState<readonly EditedLineup[]>([]);
   // The preset last picked, whose empty slots the pitch marks; none until one is.
   const [shape, setShape] = useState<string>("");
   // When the last save landed, by the manager's own clock: the line under the toolbar says it.
   const [savedAt, setSavedAt] = useState<number | null>(null);
   // The lineup the save last sent. A save sent after it forgets it, so the answer that lands after
   // one, about a lineup no longer on the pitch, says nothing (#642).
-  const sent = useRef<DraftLineup | null>(null);
+  const sent = useRef<EditedLineup | null>(null);
   const { problem, run, clear } = useChange();
   // Why the last drop was refused, said where a save's line is (spec/05; Craig, 4 Nov 2026), until
   // the next move.
@@ -44,7 +44,7 @@ export function useLineupEdits({
   const draft = useMemo(() => shownLineup(edited, opening, squadCodes), [edited, opening, squadCodes]);
 
   // A lineup that can't stand yet, ten starting say, is refused in the server's words and kept.
-  const save = async (lineup: DraftLineup) => {
+  const save = async (lineup: EditedLineup) => {
     sent.current = lineup;
     const movedSince = () => sent.current !== lineup;
     const made = await run(async () => {
@@ -60,7 +60,7 @@ export function useLineupEdits({
   };
   /** The lineup shown from now on, saved as it is: the saved line or refusal of the one before no
    *  longer stands, so both go (#622). */
-  const show = (next: DraftLineup) => {
+  const show = (next: EditedLineup) => {
     setEdited(next);
     onShown();
     setSavedAt(null);
@@ -77,7 +77,7 @@ export function useLineupEdits({
     setRefused(words);
   };
   /** Any move that changes the lineup, which Undo can take back. */
-  const edit = (next: DraftLineup) => {
+  const edit = (next: EditedLineup) => {
     if (sameLineup(next, draft)) return;
     setUndoable((before) => [...before, draft]);
     show(next);
@@ -92,7 +92,7 @@ export function useLineupEdits({
   /** The lineup reshaped to a preset, whose empty slots the pitch marks until it saves, with the
    *  words for any instruction it switched; `said`, a line under the toolbar about it, such as a
    *  loaded plan's roles no longer allowed (#992). */
-  const reshape = (name: string, next: DraftLineup, switched: string | null, said: string | null = null) => {
+  const reshape = (name: string, next: EditedLineup, switched: string | null, said: string | null = null) => {
     setShape(name);
     edit(next);
     setSwitchedNote(switched);

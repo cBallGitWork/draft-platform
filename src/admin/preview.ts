@@ -5,7 +5,7 @@
 
 import { FIRST_THRESHOLDS } from "../../convex/positions/positionChanges";
 import { HOUR_MS, MINUTE_MS } from "../../convex/shared/time";
-import { previewSays } from "../app/preview";
+import { previewSays } from "../shared/preview";
 import type { AdminSeam, FeedsReport, PositionsQueue } from "./seam";
 
 const queue: PositionsQueue = {

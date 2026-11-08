@@ -2,7 +2,7 @@ import { Link } from "@tanstack/react-router";
 import { useId } from "react";
 import type { Id } from "../../convex/_generated/dataModel";
 import { playerCardPath } from "../playerCard/paths";
-import { ClubShort } from "../premierLeague/ClubName";
+import { ClubShort } from "../ui/ClubName";
 import type { ListedPlayer } from "../scouting/seam";
 import { figureWords } from "../scouting/words";
 import { closeGlyph } from "../shared/words";

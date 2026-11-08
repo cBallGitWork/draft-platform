@@ -103,12 +103,12 @@ export function powersIn(league: Doc<"leagues">, email: string): LeaguePowers {
 }
 
 /** A person's parts in a league: a role in it, which the admin's override alone isn't. */
-export const leagueRole = v.union(v.literal("commissioner"), v.literal("co-commissioner"), v.literal("manager"));
-export type LeagueRole = Infer<typeof leagueRole>;
+export const leaguePart = v.union(v.literal("commissioner"), v.literal("co-commissioner"), v.literal("manager"));
+export type LeaguePart = Infer<typeof leaguePart>;
 
 /** This email's parts in the league, given the team it manages there, if any. */
-export function rolesIn(league: Doc<"leagues">, email: string, team: Doc<"teams"> | undefined): LeagueRole[] {
-  const roles: LeagueRole[] = [];
+export function partsIn(league: Doc<"leagues">, email: string, team: Doc<"teams"> | undefined): LeaguePart[] {
+  const roles: LeaguePart[] = [];
   if (email === league.commissionerEmail) roles.push("commissioner");
   if (email === league.coCommissionerEmail) roles.push("co-commissioner");
   if (team) roles.push("manager");

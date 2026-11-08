@@ -3,7 +3,7 @@ import { positionOfSlot, sameCell, type Cell } from "../../../../convex/lineup/p
 import { DEFAULT_PRESETS } from "../../../../convex/lineup/presets";
 import { DEFAULT_ROLES, rolesOfSlot } from "../../../../convex/lineup/roles";
 import type { Position } from "../../../../convex/positions/positionTables";
-import { reshaped, swapped, type DraftLineup } from "../../../../src/myTeam/tactics/lineupDraft";
+import { reshaped, swapped, type EditedLineup } from "../../../../src/myTeam/tactics/lineupEdits";
 import { loadedPlan, planSlotsOf, presetOfPlan, type Plan } from "../../../../src/myTeam/tactics/savedPlans";
 
 // Saved plans (spec/05, Saved plans; #992): saving keeps the formation and every slot's role, never
@@ -20,13 +20,13 @@ const positionsByArea: Record<Cell["area"], Position[]> = {
   attack: ["ST"],
 };
 /** Eleven in the 4-4-2, each on his slot's first role, and two on the bench. */
-const IN_A_442: DraftLineup = { starters: FOUR_FOUR_TWO.cells.map((cell, index) => ({ playerCode: index + 1, ...cell })), bench: [12, 13] };
+const IN_A_442: EditedLineup = { starters: FOUR_FOUR_TWO.cells.map((cell, index) => ({ playerCode: index + 1, ...cell })), bench: [12, 13] };
 const areaOf = new Map(IN_A_442.starters.map(({ playerCode, area }) => [playerCode, area]));
 const rules = { positionsOf: (playerCode: number) => [...(positionsByArea[areaOf.get(playerCode) ?? "midfield"] ?? []), "CM" as Position] };
 const noStars = () => [];
 /** The 4-3-3 with each slot on the last role it offers: none a slot's first. */
 const PRESS: Plan = { name: "Press", slots: FOUR_THREE_THREE.cells.map((cell) => ({ ...cell, role: rolesOfSlot(cell, FOUR_THREE_THREE.cells).at(-1)!.key })) };
-const roleAt = (lineup: DraftLineup, cell: Cell) => lineup.starters.find((starter) => sameCell(starter, cell))?.role;
+const roleAt = (lineup: EditedLineup, cell: Cell) => lineup.starters.find((starter) => sameCell(starter, cell))?.role;
 
 describe("saving a plan", () => {
   it("keeps each starter's cell and the role he plays, a slot's first where none is given, never players", () => {

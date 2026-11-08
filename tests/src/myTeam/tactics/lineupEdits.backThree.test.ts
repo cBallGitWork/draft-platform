@@ -5,7 +5,7 @@
 import { describe, expect, it } from "vitest";
 import { DEFAULT_PRESETS } from "../../../../convex/lineup/presets";
 import { positionOfSlot } from "../../../../convex/lineup/pitch";
-import { reshaped, type RatingsOf } from "../../../../src/myTeam/tactics/lineupDraft";
+import { reshaped, type RatingsOf } from "../../../../src/myTeam/tactics/lineupEdits";
 
 const cellsOf = (name: string) => DEFAULT_PRESETS.find((preset) => preset.name === name)!.cells;
 const PLAYS = { positionsOf: (playerCode: number) => (playerCode === 1 ? (["GK"] as const) : (["CB"] as const)) };

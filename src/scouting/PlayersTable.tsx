@@ -6,9 +6,9 @@ import { TickBox } from "../ui/TickBox";
 import { PositionCodes } from "../ui/PositionCodes";
 import { cellClassOf, ColumnHeads, type ColumnWords } from "../ui/ColumnHeads";
 import { OwnerName } from "../ui/OwnerName";
-import { ClubMark, ClubShort } from "../premierLeague/ClubName";
+import { ClubMark, ClubShort } from "../ui/ClubName";
 import type { PickedPlayer } from "./ComparePanel";
-import { statFigure } from "./figures";
+import { statFigure } from "../shared/figures";
 import type { ListedPlayer, PlayersSort, SortColumn } from "./seam";
 import { columns, compareLabel, figureWords, noFigureWords, noPointsYetWords, noRoleFitYetWords, onWaiversWords, statLabel } from "./words";
 

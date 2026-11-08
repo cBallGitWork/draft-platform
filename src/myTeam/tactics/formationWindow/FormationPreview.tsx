@@ -2,7 +2,7 @@ import { positionOfSlot, sameCell } from "../../../../convex/lineup/pitch";
 import { roleIn } from "../../../../convex/lineup/roles";
 import { Placeholder } from "../../../ui/Placeholder";
 import { PositionChip } from "../../../ui/PositionChip";
-import { reshaped, standingIn, type DraftLineup, type MoveRules, type RatingsOf } from "../lineupDraft";
+import { reshaped, standingIn, type EditedLineup, type MoveRules, type RatingsOf } from "../lineupEdits";
 import { cellGridOf, rowLayoutOf } from "../pitch/rowLayout";
 import type { Shape } from "./formationGroups";
 import { cellsDrawn } from "./FormationTile";
@@ -41,10 +41,10 @@ export function FormationPreview({
   applies = appliesWords(shape.name),
 }: {
   shape: Shape;
-  draft: DraftLineup;
+  draft: EditedLineup;
   rules: Pick<MoveRules, "positionsOf">;
   ratingsOf: RatingsOf;
-  after?: DraftLineup;
+  after?: EditedLineup;
   subtitle?: string;
   description?: string;
   applies?: string;

@@ -67,6 +67,10 @@ export const shortThenLongName = ({ short, long }: { short: string; long: string
 export const columnHeadName = shortThenLongName;
 /** A stat, as a column of stats or the choice of one is headed. */
 export const STAT_WORD = "Stat";
+/** The stat box's two groups (src/ui/StatBox.tsx), once the site's set has own stats of its own
+ *  (spec/14, Own stats; #910). */
+export const ownStatsGroupWords = "The site's own stats";
+export const catalogueGroupWords = "The feeds' stats";
 
 const whenFormat = new Intl.DateTimeFormat(LOCALE, { weekday: "short", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
 /** A time in the viewer's own zone, e.g. "Sat 17 Oct, 13:00": a deadline, a feed's last run. */

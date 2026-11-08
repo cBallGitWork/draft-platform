@@ -19,7 +19,7 @@ import { SQUADS_TITLE } from "../squads/words";
 import { LeagueDeletionRow, type DeletionActions } from "./LeagueDeletion";
 import { leagueColumnCount } from "./LeagueLinks";
 import { NEW_LEAGUE_PATH } from "./paths";
-import { deletes, runs } from "./roles";
+import { deletes, runs } from "./access";
 import {
   adminWords,
   commissionerLine,

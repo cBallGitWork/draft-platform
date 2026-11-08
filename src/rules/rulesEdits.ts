@@ -27,7 +27,7 @@ type SavePart<Part, Rev> = (part: Part, revision: Rev) => Promise<number | strin
  *  unless `blankRefusal` finds a box left without a number, which it tells `onRefused` (as the
  *  screen draws what that changes, the box is found inside `area`). That refusal is `boxRefusal`,
  *  said beside the box; any other, or one whose box isn't on screen, is `problem`, said in the bar. */
-export function useRulesDraft<Part, Rev = Revision>(
+export function useRulesEdits<Part, Rev = Revision>(
   view: RulesView<Part, Rev>,
   save: SavePart<Part, Rev>,
   blankRefusal: (draft: Part) => string | null = () => null,
@@ -94,4 +94,4 @@ export function useRulesDraft<Part, Rev = Revision>(
   };
 }
 
-export type RulesDraft<Part> = ReturnType<typeof useRulesDraft<Part>>;
+export type RulesEdits<Part> = ReturnType<typeof useRulesEdits<Part>>;

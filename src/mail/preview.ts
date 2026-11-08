@@ -6,7 +6,7 @@ import type { Id } from "../../convex/_generated/dataModel";
 import type { LetterSummary } from "../../convex/mail/mail";
 import { HOUR_MS } from "../../convex/shared/time";
 import { nextStep, type TopBarState } from "../frame/topBar/topBarState";
-import { manager, previewSays, proLeague } from "../app/preview";
+import { manager, previewSays, proLeague } from "../shared/preview";
 import type { MailSeam } from "./seam";
 
 const NEWEST = Date.parse("2026-10-20T14:02:00Z");

@@ -9,7 +9,7 @@ import { FIRST_SCORING } from "../../convex/scoring/firstScoring";
 import type { MatchStats } from "../../convex/scoring/values";
 import { DAY_MS, WEEK_MS } from "../../convex/shared/time";
 import { ARSENAL, CHELSEA, LIVERPOOL, previewPlayers, previewShortlist } from "../scouting/preview";
-import { previewSays, proLeague } from "../app/preview";
+import { previewSays, proLeague } from "../shared/preview";
 import type { CardAction, PlayedMatch, PlayerCard, PlayerCardSeam, WaiverChanges } from "./seam";
 
 const CLUBS = [ARSENAL, CHELSEA, LIVERPOOL];

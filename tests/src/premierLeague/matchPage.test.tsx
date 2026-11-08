@@ -10,7 +10,7 @@ import { HOUR_MS } from "../../../convex/shared/time";
 import { MATCHUP_PATH, PREMIER_LEAGUE_PATH } from "../../../src/frame/menu";
 import { statusLabels } from "../../../src/matchup/words";
 import { CLUB_COLOURS, contrast, INKS } from "../../../convex/football/clubColours";
-import { crestUrl } from "../../../src/premierLeague/ClubName";
+import { crestUrl } from "../../../src/ui/ClubName";
 import { matchPath } from "../../../src/premierLeague/paths";
 import {
   commentaryDelayedWords,

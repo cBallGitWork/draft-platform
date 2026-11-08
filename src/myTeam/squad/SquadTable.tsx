@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 import type { Position } from "../../../convex/positions/positionTables";
 import type { SeasonStats } from "../../../convex/squads/teamSquad";
-import { ClubMark, ClubShort } from "../../premierLeague/ClubName";
+import { ClubMark, ClubShort } from "../../ui/ClubName";
 import { cellClassOf, ColumnHeads } from "../../ui/ColumnHeads";
 import { Placeholder } from "../../ui/Placeholder";
 import { PositionCodes } from "../../ui/PositionCodes";

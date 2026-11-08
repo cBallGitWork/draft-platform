@@ -9,13 +9,13 @@ import { TeamPage } from "../header/TeamHeader";
 import { markedBy } from "./focusMarks";
 import { FormationWindow } from "./formationWindow/FormationWindow";
 import { formationNameOf, onClassic } from "./classicLineup";
-import { benchedAt, dropOutcome, openingLineup, placeOf, presetInUse, reachOf, reshaped, swapped, withInstruction, withRole, type DraftLineup, type MoveRules, type RatingsOf } from "./lineupDraft";
+import { benchedAt, dropOutcome, openingLineup, placeOf, presetInUse, reachOf, reshaped, swapped, withInstruction, withRole, type EditedLineup, type MoveRules, type RatingsOf } from "./lineupEdits";
 import { keptOrSwitched, type Side } from "../../../convex/lineup/instructions";
 import { switchedWords } from "../../../convex/lineup/instructionsWords";
 import type { Cell } from "../../../convex/lineup/pitch";
 import { Pitch, PITCH_ROOM_STYLE, type Moving } from "./pitch/Pitch";
 import { useSavedPlans } from "./useSavedPlans";
-import { SquadTable } from "./SquadTable";
+import { SelectionTable } from "./SelectionTable";
 import { useLineupEdits } from "./useLineupEdits";
 import { RunsSwitch, TacticsToolbar } from "./TacticsControls";
 import { PlayerPanel } from "./widgets/PlayerPanel";
@@ -137,7 +137,7 @@ function LineupEditor({ league, teamName, tactics, seam, opened }: { league: Lea
   }, [pickedCode]);
 
   /** Any move that changes the lineup, which Undo can take back; it puts down the player in hand. */
-  const change = (next: DraftLineup, moved: number, focus: readonly string[] = [markedBy("player", moved)]) => {
+  const change = (next: EditedLineup, moved: number, focus: readonly string[] = [markedBy("player", moved)]) => {
     setPickedCode(null);
     edits.edit(next);
     setFocusOn(focus);
@@ -168,7 +168,7 @@ function LineupEditor({ league, teamName, tactics, seam, opened }: { league: Lea
   const toRole = (playerCode: number, role: string) => change(withRole(draft, playerCode, role), playerCode, [markedBy("role", playerCode)]);
   /** The pitch reshaped to a preset, or a plan loaded on its own pair (spec/05; #990): an instruction
    *  the new shape offers stays, one it blocks switches to its default. */
-  const reshapeTo = (preset: { name: string; cells: readonly Cell[] }, next: DraftLineup, said: string | null = null) => {
+  const reshapeTo = (preset: { name: string; cells: readonly Cell[] }, next: EditedLineup, said: string | null = null) => {
     setPickedCode(null);
     const { pair, switched } = keptOrSwitched(next.instructions ?? instructions, preset.cells, tactics.presets, tactics.instructions);
     edits.reshape(preset.name, { ...next, instructions: pair }, switchedWords(switched), said);
@@ -286,7 +286,7 @@ function LineupEditor({ league, teamName, tactics, seam, opened }: { league: Lea
           }
           className="min-w-0 grow basis-squad"
         >
-          <SquadTable draft={draft} squad={squad} season={season} moving={moving} onBenchAt={toBenchAt} onRole={toRole} />
+          <SelectionTable draft={draft} squad={squad} season={season} moving={moving} onBenchAt={toBenchAt} onRole={toRole} />
         </Panel>
         <div className="flex min-w-0 grow basis-widgets flex-col gap-2 lg:grow-0">
           {selected !== undefined && selectedPlace !== null && (

@@ -5,7 +5,7 @@ import type { Id } from "../../../convex/_generated/dataModel";
 import { FIRST_RULES } from "../../../convex/rules/firstRules";
 import { leagueSettingsOf } from "../../../convex/rules/leagueSettingsPart";
 import type { LeagueSettingsSeam, SettingsView, TeamInOrder } from "../../../src/leagueSettings/seam";
-import type { Revision } from "../../../src/rules/rulesDraft";
+import type { Revision } from "../../../src/rules/rulesEdits";
 import { CHANGES_FROM } from "./scoring.harness";
 
 /** The rules row the fake server's settings are from. */

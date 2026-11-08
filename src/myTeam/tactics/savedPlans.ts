@@ -9,7 +9,7 @@ import type { InstructionPair } from "../../../convex/lineup/instructions";
 import { sameCell, type Cell } from "../../../convex/lineup/pitch";
 import { offersRole, roleIn } from "../../../convex/lineup/roles";
 import { droppedStarter } from "../../../convex/stars/bestRole";
-import { presetOfCells, reshaped, type DraftLineup, type MoveRules, type RatingsOf } from "./lineupDraft";
+import { presetOfCells, reshaped, type EditedLineup, type MoveRules, type RatingsOf } from "./lineupEdits";
 
 /** A saved plan: a formation, each slot's role and both team instructions (#990), by name, never
  *  players. A plan saved before the instructions holds none. */
@@ -19,7 +19,7 @@ export type Plan = { name: string; slots: readonly (Cell & { role: string })[]; 
 type Preset = { name: string; cells: readonly Cell[] };
 
 /** What Save preset… keeps of the pitch: each starter's cell and the role he plays there. */
-export const planSlotsOf = ({ starters }: DraftLineup): Plan["slots"] =>
+export const planSlotsOf = ({ starters }: EditedLineup): Plan["slots"] =>
   starters.map(({ area, lane, role }) => ({ area, lane, role: roleIn({ area, lane }, role).key }));
 
 /** The league's preset a plan stands in, undefined once the league no longer has it. */
@@ -29,12 +29,12 @@ export const presetOfPlan = (plan: Plan, presets: readonly Preset[]): Preset | u
  *  where it holds them), and how many of its roles the league no longer offers in their slot. Null
  *  for a plan whose formation is no longer allowed. */
 export function loadedPlan(
-  draft: DraftLineup,
+  draft: EditedLineup,
   plan: Plan,
   presets: readonly Preset[],
   rules: Pick<MoveRules, "positionsOf">,
   ratingsOf: RatingsOf,
-): { preset: Preset; lineup: DraftLineup; rolesLost: number } | null {
+): { preset: Preset; lineup: EditedLineup; rolesLost: number } | null {
   const preset = presetOfPlan(plan, presets);
   if (preset === undefined) return null;
   const formation = preset.cells;

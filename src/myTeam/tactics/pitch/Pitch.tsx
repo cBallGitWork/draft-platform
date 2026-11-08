@@ -9,7 +9,7 @@ import { RoleRuns } from "./RoleRuns";
 import { PITCH_ASPECT } from "./pitchMarkings";
 import { cellGridOf, EVEN_ROWS, ROWS_DRAWN, rowLayoutOf } from "./rowLayout";
 import { StarRating } from "../../../ui/StarRating";
-import { landingOf, standingIn, type DraftLineup, type DropTarget, type Landing, type RatingsOf, type Reach, type SquadMember } from "../lineupDraft";
+import { landingOf, standingIn, type EditedLineup, type DropTarget, type Landing, type RatingsOf, type Reach, type SquadMember } from "../lineupEdits";
 import { emptySlotLabel, landingSubject, pitchLabel, playerOnPitchLabel, swapLabel } from "../words";
 
 // The Tactics tab's pitch (#14; spec/05, The pitch): six areas by five lanes, attack at the top, CM
@@ -65,7 +65,7 @@ export function Pitch({
   runsShown,
   ratingsOf,
 }: {
-  draft: DraftLineup;
+  draft: EditedLineup;
   squad: ReadonlyMap<number, SquadMember>;
   moving: Moving;
   slots: readonly Cell[];
