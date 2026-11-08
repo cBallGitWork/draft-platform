@@ -17,8 +17,9 @@ from __future__ import annotations
 
 import os
 import re
-import subprocess
 from collections import namedtuple
+
+from run_command import call
 
 MAIN = "main"
 REMOTE = "origin"  # GitHub's copy of the repo
@@ -230,13 +231,14 @@ def git_dir(words, here):
     return here if here and os.path.isdir(here) else None
 
 
+# a guard's git call is on every command, so it gets less time than run_command's default
+GIT_TIMEOUT_SECONDS = 5
+
+
 def git_output(folder, *args):
     """git's output, run in folder; None if it fails or can't run."""
-    try:
-        done = subprocess.run(["git", "-C", folder, *args], capture_output=True, text=True, timeout=5)
-    except (OSError, subprocess.SubprocessError):
-        return None
-    return done.stdout if done.returncode == 0 else None
+    code, out = call(folder, "git", "-C", folder, *args, timeout=GIT_TIMEOUT_SECONDS)
+    return out if code == 0 else None
 
 
 def current_branch(folder):

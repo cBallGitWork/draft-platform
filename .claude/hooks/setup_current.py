@@ -18,11 +18,10 @@ from __future__ import annotations
 
 import json
 import os
-import subprocess
 import sys
 
 from hook_payload import project_dir
-from run_command import failure_line
+from run_command import call
 from where import REMOTE_MAIN
 
 SETUP = (".claude", "CLAUDE.md")  # what Claude Code loads at a session's start
@@ -35,11 +34,12 @@ class GitFailed(Exception):
 
 
 def git(folder, *args):
-    """(exit code, stdout) of a git call; GitFailed past DIFFERS."""
-    proc = subprocess.run(["git", "-C", folder, *args], capture_output=True, text=True)
-    if proc.returncode > DIFFERS:
-        raise GitFailed(f"git {' '.join(args)} failed in {folder} ({failure_line(proc)})")
-    return proc.returncode, proc.stdout
+    """(exit code, stdout) of a git call; GitFailed past DIFFERS, or when it can't run or runs out of
+    time (run_command's limit: before #1053 it had none)."""
+    code, out = call(folder, "git", "-C", folder, *args)
+    if code is None or code > DIFFERS:
+        raise GitFailed(f"git {' '.join(args)} failed in {folder} ({out})")
+    return code, out
 
 
 def differing(folder):

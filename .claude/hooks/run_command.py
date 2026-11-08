@@ -17,11 +17,11 @@ def failure_line(done):
     return said[0]
 
 
-def call(folder, *args):
+def call(folder, *args, timeout=RUN_TIMEOUT_SECONDS):
     """(exit code, output) for a command run in folder; output is stderr's first line when it fails,
     and the code is None when the command couldn't run or ran out of time."""
     try:
-        done = subprocess.run(list(args), cwd=folder, capture_output=True, text=True, timeout=RUN_TIMEOUT_SECONDS)
+        done = subprocess.run(list(args), cwd=folder, capture_output=True, text=True, timeout=timeout)
     except (OSError, subprocess.SubprocessError) as error:
         return None, str(error)
     if done.returncode == 0:
