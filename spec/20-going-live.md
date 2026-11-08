@@ -44,11 +44,13 @@ Feature 20 of [SPEC.md](../SPEC.md). Only Craig's answers, from `/grill #203 dep
 
 ## Timed jobs
 
-The same five run on the live site and on development:
+The same seven run on the live site and on development:
 
 - the football sync, every six hours;
 - live stats, every minute;
 - late stats, every 10 minutes (`spec/07`);
+- waiver runs, at each league's run times (`spec/08`; #1346). `S20.1`
+- trade offers, each open one closed at the next deadline (`spec/08`; #1346). `S20.2`
 - the positions sync, daily at 06:00 UK time, with the same late warning and failure email as
   the others (`spec/06`; Craig, 5 Nov 2026, #1194);
 - clearing old run logs, daily.
