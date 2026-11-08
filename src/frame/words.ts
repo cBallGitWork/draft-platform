@@ -29,6 +29,8 @@ export const menuWords = {
   table: "Table",
   scouting: "Scouting",
   trades: "Trades",
+  offers: "Offers",
+  newOffer: "New offer",
   premierLeague: "Premier League",
 } as const;
 

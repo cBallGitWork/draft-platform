@@ -5,7 +5,7 @@
 import { screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
-import { HOME_PATH, MAIL_PATH, MATCHUP_PATH, MY_TEAM_PATH, pages, SCOUTING_PATH, TABLE_PATH, TRADES_PATH } from "../../../src/frame/menu";
+import { HOME_PATH, MAIL_PATH, MATCHUP_PATH, MY_TEAM_PATH, pages, SCOUTING_PATH, TABLE_PATH } from "../../../src/frame/menu";
 import { notBuiltWords } from "../../../src/frame/words";
 import { matchPath } from "../../../src/premierLeague/paths";
 import { createShellRouter, type ShellContext } from "../../../src/routes/router";
@@ -51,11 +51,6 @@ describe("the placeholders for pages not built", () => {
 
   it("give every menu page a route here but Mail, whose route is with the league pages", () => {
     expect(pages.map((page) => page.path).filter((path) => !paths.includes(path))).toEqual([MAIL_PATH]);
-  });
-
-  it("stand at Trades, not built yet, saying so", async () => {
-    openApp(TRADES_PATH, inTwo);
-    expect(await screen.findByText(notBuiltWords)).toBeTruthy();
   });
 
   it("don't stand at a built page", async () => {

@@ -3,7 +3,7 @@ import { createRoute, redirect } from "@tanstack/react-router";
 import type { LeagueSummary } from "../../convex/leagues/myLeagues";
 import { CurrentLeague } from "./CurrentLeague";
 import { DraftPage } from "../draft/DraftPage";
-import { DRAFT_PATH, HOME_NEWS_PATH, HOME_PATH, MAIL_PATH, MATCHUP_PATH, MY_TEAM_FIXTURES_PATH, MY_TEAM_PATH, MY_TEAM_SQUAD_PATH, MY_TEAM_TRANSACTIONS_PATH, pages, PREMIER_LEAGUE_PATH, SCOUTING_PATH, TABLE_PATH } from "../frame/menu";
+import { DRAFT_PATH, HOME_NEWS_PATH, HOME_PATH, MAIL_PATH, MATCHUP_PATH, MY_TEAM_FIXTURES_PATH, MY_TEAM_PATH, MY_TEAM_SQUAD_PATH, MY_TEAM_TRANSACTIONS_PATH, pages, PREMIER_LEAGUE_PATH, SCOUTING_PATH, TABLE_PATH, TRADES_NEW_PATH, TRADES_PATH } from "../frame/menu";
 import { PageNotBuilt } from "../frame/PageNotBuilt";
 import { HomePage } from "../home/HomePage";
 import { NewsPage } from "../home/NewsPage";
@@ -21,6 +21,9 @@ import { MATCH_ROUTE } from "../premierLeague/paths";
 import { PremierLeaguePage } from "../premierLeague/PremierLeaguePage";
 import { ScoutingPage } from "../scouting/ScoutingPage";
 import { TablePage } from "../table/TablePage";
+import { NewOfferPage } from "../trades/NewOfferPage";
+import { OffersPage } from "../trades/OffersPage";
+import { newOfferSearchOf } from "../trades/paths";
 import { CODE_DIGITS, LANDING_PATH, frameRoute, type ShellContext } from "./root";
 
 // The pages under root.tsx's frameRoute, for anyone in a league, in its frame; and a placeholder for
@@ -37,7 +40,7 @@ const landingRoute = createRoute({
 });
 
 /** The seams of the current league's pages that take only the league and their seam. */
-type LeaguePageSeams = Pick<ShellContext, "table" | "home" | "scouting" | "myTeam" | "draft">;
+type LeaguePageSeams = Pick<ShellContext, "table" | "home" | "scouting" | "myTeam" | "draft" | "trades">;
 
 /** A page of the current league's at `path`, for anyone in it: `Page` is given the league the app
  *  is in and its seam from the context. */
@@ -141,7 +144,21 @@ const matchRoute = createRoute({
   },
 });
 
-const builtRoutes = [landingRoute, homeRoute, homeNewsRoute, recapRoute, tableRoute, scoutingRoute, draftRoute, myTeamTacticsRoute, myTeamSquadRoute, myTeamFixturesRoute, myTeamTransactionsRoute, matchupRoute, premierLeagueRoute, matchRoute];
+// Trades (#383; docs/design/approved/trades): the Offers tab, and New offer, which a counter opens
+// filled with the offer it answers.
+const tradesRoute = leaguePage(TRADES_PATH, "trades", OffersPage);
+const newOfferRoute = createRoute({
+  getParentRoute: () => frameRoute,
+  path: TRADES_NEW_PATH,
+  validateSearch: newOfferSearchOf,
+  component: function NewOffer() {
+    const { session, trades } = newOfferRoute.useRouteContext();
+    const { counter } = newOfferRoute.useSearch();
+    return <CurrentLeague session={session} page={(league) => <NewOfferPage league={league} seam={trades} counter={counter} />} />;
+  },
+});
+
+const builtRoutes = [landingRoute, homeRoute, homeNewsRoute, recapRoute, tableRoute, scoutingRoute, draftRoute, myTeamTacticsRoute, myTeamSquadRoute, myTeamFixturesRoute, myTeamTransactionsRoute, matchupRoute, premierLeagueRoute, matchRoute, tradesRoute, newOfferRoute];
 
 /** Every address with its own screen: each route above, and Mail, whose route is with the league
  *  pages (leaguePages.tsx). Any other menu page gets a placeholder. */

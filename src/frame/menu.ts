@@ -23,6 +23,8 @@ export const TABLE_PATH = "/table";
 export const SCOUTING_PATH = "/scouting";
 export const MATCHUP_PATH = "/matchup";
 export const TRADES_PATH = "/trades";
+/** Trades' New offer tab (#383). */
+export const TRADES_NEW_PATH = `${TRADES_PATH}/new`;
 export const PREMIER_LEAGUE_PATH = "/premier-league";
 
 export const sections: readonly Section[] = [
@@ -48,7 +50,15 @@ export const sections: readonly Section[] = [
   { label: menuWords.matchup, path: MATCHUP_PATH, tabs: [] },
   { label: menuWords.table, path: TABLE_PATH, tabs: [] },
   { label: menuWords.scouting, path: SCOUTING_PATH, tabs: [] },
-  { label: menuWords.trades, path: TRADES_PATH, tabs: [] },
+  {
+    label: menuWords.trades,
+    path: TRADES_PATH,
+    // Offers and New offer, as the approved Trades pictures have them (#383).
+    tabs: [
+      { label: menuWords.offers, path: TRADES_PATH },
+      { label: menuWords.newOffer, path: TRADES_NEW_PATH },
+    ],
+  },
   { label: menuWords.premierLeague, path: PREMIER_LEAGUE_PATH, tabs: [] },
   { label: MAIL_TITLE, path: MAIL_PATH, tabs: [] },
 ];

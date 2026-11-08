@@ -33,7 +33,11 @@ const tradedPlayer = v.object({
 export type TradedPlayer = Infer<typeof tradedPlayer>;
 
 /** Who reviews a trade: the commissioner or the co-commissioner by veto, or a league vote. */
-const reviewer = v.union(v.literal("commissioner"), v.literal("coCommissioner"), v.literal("vote"));
+const reviewer = v.union(
+  v.literal("commissioner"),
+  v.literal("coCommissioner"),
+  v.literal("vote"),
+);
 export type Reviewer = Infer<typeof reviewer>;
 
 const screenOffer = v.object({
@@ -76,7 +80,12 @@ export const tradesView = v.object({
   /** How the league reviews an accepted trade (League settings). */
   review: v.union(...TRADE_REVIEWS.map((name) => v.literal(name))),
   /** Why no trade can be offered or accepted now, or null while trades are open (tradeShut.ts). */
-  shut: v.union(v.literal("draftLive"), v.literal("tradeDeadline"), v.literal("unusedGameweek"), v.null()),
+  shut: v.union(
+    v.literal("draftLive"),
+    v.literal("tradeDeadline"),
+    v.literal("unusedGameweek"),
+    v.null(),
+  ),
   /** The most players the league's rules let a squad hold; null with no limit, or no rules. */
   squadMaximum: v.union(v.number(), v.null()),
   /** Every team in the league, the manager's own first. */
@@ -87,38 +96,66 @@ export const tradesView = v.object({
 export type TradesView = Infer<typeof tradesView>;
 
 /** The first deadline after `from`, with its gameweek: when an offer made then closes unanswered. */
-export function nextDeadline(deadlines: LeagueDeadlines, from: number): { gameweek: number; at: number } | null {
+export function nextDeadline(
+  deadlines: LeagueDeadlines,
+  from: number,
+): { gameweek: number; at: number } | null {
   let next: { gameweek: number; at: number } | null = null;
   for (const [gameweek, at] of deadlines) {
-    if (at !== null && at > from && (next === null || at < next.at)) next = { gameweek, at };
+    if (at !== null && at > from && (next === null || at < next.at))
+      next = { gameweek, at };
   }
   return next;
 }
 
 /** A player as the screen shows him: name, main position and club; null for one the football sync
  *  doesn't hold. */
-async function shownPlayer(ctx: QueryCtx, code: number, positionsOf: PositionsNow, clubOf: Clubs): Promise<TradedPlayer | null> {
+async function shownPlayer(
+  ctx: QueryCtx,
+  code: number,
+  positionsOf: PositionsNow,
+  clubOf: Clubs,
+): Promise<TradedPlayer | null> {
   const player = await playerByCode(ctx, code);
   if (player === null) return null;
-  return { code, name: player.name, position: (await positionsOf(code))[0] ?? null, club: await clubOf(player.clubCode) };
+  return {
+    code,
+    name: player.name,
+    position: (await positionsOf(code))[0] ?? null,
+    club: await clubOf(player.clubCode),
+  };
 }
 
 /** A traded player as the screen shows him: an offer names only players the sync holds (tradeClose.ts). */
-async function tradedShown(ctx: QueryCtx, code: number, positionsOf: PositionsNow, clubOf: Clubs): Promise<TradedPlayer> {
+async function tradedShown(
+  ctx: QueryCtx,
+  code: number,
+  positionsOf: PositionsNow,
+  clubOf: Clubs,
+): Promise<TradedPlayer> {
   const shown = await shownPlayer(ctx, code, positionsOf, clubOf);
-  if (shown === null) throw new Error(`A trade offer names player ${code}, whom the football sync doesn't hold`);
+  if (shown === null)
+    throw new Error(
+      `A trade offer names player ${code}, whom the football sync doesn't hold`,
+    );
   return shown;
 }
 
 /** Position, then name: a squad's order on the screen. */
 const byPositionThenName = (one: TradedPlayer, other: TradedPlayer) =>
-  positionRank(one.position) - positionRank(other.position) || one.name.localeCompare(other.name);
+  positionRank(one.position) - positionRank(other.position) ||
+  one.name.localeCompare(other.name);
 
 /** Who reviews the offer under `review`, as the screen names them. */
-function reviewerNamed(league: Doc<"leagues">, review: { kind: "veto"; by: string } | { kind: "vote" } | null): Reviewer | null {
+function reviewerNamed(
+  league: Doc<"leagues">,
+  review: { kind: "veto"; by: string } | { kind: "vote" } | null,
+): Reviewer | null {
   if (review === null) return null;
   if (review.kind === "vote") return "vote";
-  return review.by === league.commissionerEmail ? "commissioner" : "coCommissioner";
+  return review.by === league.commissionerEmail
+    ? "commissioner"
+    : "coCommissioner";
 }
 
 /** The Trades screen for the manager's team at the minute `now` (a query may not read the clock). */
@@ -132,50 +169,101 @@ export const ofMyTeam = query({
     const positionsOf = await positionsNow(ctx, leagueId);
     const clubOf = clubsByCode(ctx);
     const offers = await leagueOffers(ctx, leagueId);
-    const held = new Set(offers.flatMap((offer) => (offer.review === undefined ? [] : [...offer.gives, ...offer.gets])));
+    const held = new Set(
+      offers.flatMap((offer) =>
+        offer.review === undefined ? [] : [...offer.gives, ...offer.gets],
+      ),
+    );
     const teams = await teamsOf(ctx, leagueId);
     const squads = new Map<Id<"teams">, number[]>();
-    for (const team of teams) squads.set(team._id, (await squadOf(ctx, team._id)).map((row) => row.playerCode));
+    for (const team of teams)
+      squads.set(
+        team._id,
+        (await squadOf(ctx, team._id)).map((row) => row.playerCode),
+      );
     const myCodes = squads.get(mine._id) ?? [];
-    const myLimitsNow = await limitsBroken(ctx, leagueId, myCodes, rules?.squad ?? null);
-
-    const shownTeams = await Promise.all(
-      [mine, ...teams.filter((team) => team._id !== mine._id)].map(async (team) => {
-        const players = await Promise.all(
-          (squads.get(team._id) ?? []).map(async (code) => {
-            const shown = await shownPlayer(ctx, code, positionsOf, clubOf);
-            return shown === null ? null : { ...shown, held: held.has(code) };
-          }),
-        );
-        const sorted = players.filter((player) => player !== null).sort(byPositionThenName);
-        return { teamId: team._id, teamName: team.name, onAutoTeam: onAutoTeam(team), players: sorted };
-      }),
+    const myLimitsNow = await limitsBroken(
+      ctx,
+      leagueId,
+      myCodes,
+      rules?.squad ?? null,
     );
 
-    const myOffers = offers.filter((offer) => offer.fromTeamId === mine._id || offer.toTeamId === mine._id);
+    const shownTeams = await Promise.all(
+      [mine, ...teams.filter((team) => team._id !== mine._id)].map(
+        async (team) => {
+          const players = await Promise.all(
+            (squads.get(team._id) ?? []).map(async (code) => {
+              const shown = await shownPlayer(ctx, code, positionsOf, clubOf);
+              return shown === null ? null : { ...shown, held: held.has(code) };
+            }),
+          );
+          const sorted = players
+            .filter((player) => player !== null)
+            .sort(byPositionThenName);
+          return {
+            teamId: team._id,
+            teamName: team.name,
+            onAutoTeam: onAutoTeam(team),
+            players: sorted,
+          };
+        },
+      ),
+    );
+
+    const myOffers = offers.filter(
+      (offer) => offer.fromTeamId === mine._id || offer.toTeamId === mine._id,
+    );
     const shownOffers = await Promise.all(
       myOffers.map(async (offer) => {
-        const nameOf = (teamId: Id<"teams">) => teams.find((team) => team._id === teamId)?.name ?? "";
+        const nameOf = (teamId: Id<"teams">) =>
+          teams.find((team) => team._id === teamId)?.name ?? "";
         const out = offer.fromTeamId === mine._id ? offer.gives : offer.gets;
         const into = offer.fromTeamId === mine._id ? offer.gets : offer.gives;
-        const after = [...myCodes.filter((code) => !out.includes(code)), ...into];
-        const reviewNow = offer.review === undefined ? await reviewerOf(ctx, league, offer) : offer.review.reviewer;
-        const picks = offer.picks === undefined ? null : { gives: await pickName(ctx, offer.picks.gives), gets: await pickName(ctx, offer.picks.gets) };
+        const after = [
+          ...myCodes.filter((code) => !out.includes(code)),
+          ...into,
+        ];
+        const reviewNow =
+          offer.review === undefined
+            ? await reviewerOf(ctx, league, offer)
+            : offer.review.reviewer;
+        const picks =
+          offer.picks === undefined
+            ? null
+            : {
+                gives: await pickName(ctx, offer.picks.gives),
+                gets: await pickName(ctx, offer.picks.gets),
+              };
         return {
           offerId: offer._id,
           fromTeamId: offer.fromTeamId,
           fromTeamName: nameOf(offer.fromTeamId),
           toTeamId: offer.toTeamId,
           toTeamName: nameOf(offer.toTeamId),
-          gives: await Promise.all(offer.gives.map((code) => tradedShown(ctx, code, positionsOf, clubOf))),
-          gets: await Promise.all(offer.gets.map((code) => tradedShown(ctx, code, positionsOf, clubOf))),
+          gives: await Promise.all(
+            offer.gives.map((code) =>
+              tradedShown(ctx, code, positionsOf, clubOf),
+            ),
+          ),
+          gets: await Promise.all(
+            offer.gets.map((code) =>
+              tradedShown(ctx, code, positionsOf, clubOf),
+            ),
+          ),
           picks,
           note: offer.note ?? null,
           madeAt: offer.madeAt,
-          closes: offer.review === undefined ? nextDeadline(deadlines, offer.madeAt) : null,
+          closes:
+            offer.review === undefined
+              ? nextDeadline(deadlines, offer.madeAt)
+              : null,
           reviewer: reviewerNamed(league, reviewNow),
           reviewEndsAt: offer.review?.endsAt ?? null,
-          warnings: newlyBroken(myLimitsNow, await limitsBroken(ctx, leagueId, after, rules?.squad ?? null)),
+          warnings: newlyBroken(
+            myLimitsNow,
+            await limitsBroken(ctx, leagueId, after, rules?.squad ?? null),
+          ),
         };
       }),
     );
