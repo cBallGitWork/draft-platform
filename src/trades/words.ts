@@ -121,7 +121,7 @@ export const squadColumns = {
 } as const;
 export const tickLabel = (playerName: string) => `Trade ${playerName}`;
 export const heldWords = "In review";
-export const noteLabel = "Note, one line";
+export const noteLabel = "Note";
 export const sendOfferWords = "Send offer";
 export const sendCounterWords = "Send counter";
 export const clearWords = "Clear";

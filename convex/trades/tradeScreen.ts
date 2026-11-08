@@ -137,6 +137,10 @@ async function tradedShown(
   return shown;
 }
 
+/** The log line for a squad player the football sync doesn't hold, left off the Trades screen. */
+export const missingPlayerLog = (teamName: string, code: number) =>
+  `Trades screen: ${teamName}'s player ${code} isn't held by the football sync, so he isn't shown`;
+
 /** Position, then name: a squad's order on the screen. */
 const byPositionThenName = (one: TradedPlayer, other: TradedPlayer) =>
   positionRank(one.position) - positionRank(other.position) ||
@@ -191,7 +195,11 @@ export const ofMyTeam = query({
           const players = await Promise.all(
             (squads.get(team._id) ?? []).map(async (code) => {
               const shown = await shownPlayer(ctx, code, positionsOf, clubOf);
-              return shown === null ? null : { ...shown, held: held.has(code) };
+              if (shown === null) {
+                console.warn(missingPlayerLog(team.name, code));
+                return null;
+              }
+              return { ...shown, held: held.has(code) };
             }),
           );
           const sorted = players
@@ -212,8 +220,14 @@ export const ofMyTeam = query({
     );
     const shownOffers = await Promise.all(
       myOffers.map(async (offer) => {
-        const nameOf = (teamId: Id<"teams">) =>
-          teams.find((team) => team._id === teamId)?.name ?? "";
+        const nameOf = (teamId: Id<"teams">) => {
+          const team = teams.find((each) => each._id === teamId);
+          if (team === undefined)
+            throw new Error(
+              `Trade offer ${offer._id} names team ${teamId}, which isn't in its league`,
+            );
+          return team.name;
+        };
         const out = offer.fromTeamId === mine._id ? offer.gives : offer.gets;
         const into = offer.fromTeamId === mine._id ? offer.gets : offer.gives;
         const after = [

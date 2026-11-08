@@ -1,6 +1,9 @@
-import { beforeEach, describe, expect, test } from "vitest";
+import { beforeEach, describe, expect, test, vi } from "vitest";
 import { api } from "../../../convex/_generated/api";
-import { nextDeadline } from "../../../convex/trades/tradeScreen";
+import {
+  missingPlayerLog,
+  nextDeadline,
+} from "../../../convex/trades/tradeScreen";
 import { actingAs } from "../../support/convex/leagues.harness";
 import { nameOf } from "../../support/convex/lineupSquad.harness";
 import {
@@ -55,6 +58,21 @@ describe("the Trades screen", () => {
     );
     expect(view.teams.map(({ teamId }) => teamId)).toContain(w.annsTeam);
     expect(view.shut).toBeNull();
+  });
+
+  test("logs a squad player the football sync doesn't hold, and leaves him off", async () => {
+    await w.t.run(async (ctx) => {
+      const player = await ctx.db
+        .query("players")
+        .filter((q) => q.eq(q.field("code"), 9002))
+        .unique();
+      await ctx.db.delete(player!._id);
+    });
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+    const view = await viewOf(BOB);
+    expect(view.teams[0].players.map(({ code }) => code)).toEqual([SAKA]);
+    expect(warn).toHaveBeenCalledWith(missingPlayerLog("Team 2", 9002));
+    warn.mockRestore();
   });
 
   test("shows an open offer to both managers, closing at the next deadline, reviewed by the commissioner once accepted", async () => {

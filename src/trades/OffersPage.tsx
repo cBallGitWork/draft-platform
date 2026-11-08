@@ -76,7 +76,7 @@ function Offers({
   return (
     <PageSection title={TRADES_TITLE} className="flex flex-col gap-2">
       {view.shut !== null && <Notice>{shutWords[view.shut]}</Notice>}
-      <div className="grid items-start gap-2 lg:grid-cols-news">
+      <div className="grid grid-cols-1 items-start gap-2 lg:grid-cols-news">
         <Panel
           title={OFFERS_TITLE}
           aside={
@@ -123,40 +123,42 @@ function OffersTable({
   select: (offerId: Id<"tradeOffers">) => void;
 }) {
   return (
-    <table aria-label={offersTableLabel} className="w-full border-collapse">
-      <ColumnHeads
-        columns={offersColumns}
-        shown={COLUMNS}
-        classOf={() => CELL}
-      />
-      <tbody>
-        {OFFER_GROUPS.map((group) => {
-          const inGroup = rows.filter((row) => row.sides.group === group);
-          if (inGroup.length === 0) return null;
-          return (
-            <Fragment key={group}>
-              <tr className="border-t border-panel-rule">
-                <th
-                  scope="colgroup"
-                  colSpan={COLUMNS.length}
-                  className={`${CELL} h-row font-bold`}
-                >
-                  {groupWords[group]}
-                </th>
-              </tr>
-              {inGroup.map((row) => (
-                <OfferRow
-                  key={row.offer.offerId}
-                  row={row}
-                  selected={row.offer.offerId === selected}
-                  select={select}
-                />
-              ))}
-            </Fragment>
-          );
-        })}
-      </tbody>
-    </table>
+    <div className="overflow-x-auto">
+      <table aria-label={offersTableLabel} className="w-full border-collapse">
+        <ColumnHeads
+          columns={offersColumns}
+          shown={COLUMNS}
+          classOf={() => CELL}
+        />
+        <tbody>
+          {OFFER_GROUPS.map((group) => {
+            const inGroup = rows.filter((row) => row.sides.group === group);
+            if (inGroup.length === 0) return null;
+            return (
+              <Fragment key={group}>
+                <tr className="border-t border-panel-rule">
+                  <th
+                    scope="colgroup"
+                    colSpan={COLUMNS.length}
+                    className={`${CELL} h-row font-bold`}
+                  >
+                    {groupWords[group]}
+                  </th>
+                </tr>
+                {inGroup.map((row) => (
+                  <OfferRow
+                    key={row.offer.offerId}
+                    row={row}
+                    selected={row.offer.offerId === selected}
+                    select={select}
+                  />
+                ))}
+              </Fragment>
+            );
+          })}
+        </tbody>
+      </table>
+    </div>
   );
 }
 
@@ -187,7 +189,7 @@ function OfferRow({
           type="button"
           aria-current={selected ? "true" : undefined}
           onClick={() => select(offer.offerId)}
-          className="min-h-tap font-semibold text-align-inherit lg:min-h-0"
+          className="min-h-tap min-w-tap font-semibold text-align-inherit lg:min-h-0 lg:min-w-0"
         >
           {sides.otherTeamName}
         </button>

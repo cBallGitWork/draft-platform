@@ -22,8 +22,6 @@ import { onAutoTeam, tradesShut } from "./tradeShut";
 // (tradeReview.ts). Both managers get a Mail letter at each step. Before the draft starts, an
 // offer can instead be one draft pick each way and nothing else (tradePicks.ts; #1096).
 
-export { NOTE_MOST };
-
 export const offerRefusals = {
   draftLive: "Trades can't be made while the draft is live.",
   tradeDeadline: "The league's trade deadline has passed.",
