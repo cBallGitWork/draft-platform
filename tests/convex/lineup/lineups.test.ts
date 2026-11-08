@@ -8,7 +8,7 @@ import { refusals } from "../../../convex/shared/leagueAccess";
 import { FIRST_GAMEWEEK, GAMEWEEKS } from "../../../convex/gameweeks/usedGameweeks";
 import { MINUTE_MS, WEEK_MS } from "../../../convex/shared/time";
 import { FPL_DEADLINE_RULE } from "../../../convex/gameweeks/deadline";
-import { holdGameweeks, holdGameweeksPastTheSeason, KICKS_OFF_IN, rulesWith, setUsed } from "../../support/convex/leagueRules.harness";
+import { holdGameweeks, holdGameweeksPastTheSeason, holdMatchState, KICKS_OFF_IN, rulesWith, setUsed } from "../../support/convex/leagueRules.harness";
 import { expectRefused } from "../../support/convex/test.harness";
 import { COMMISSIONER, MANAGERS, actingAs, addManagers, adminCreatesLeague, type TestConvex } from "../../support/convex/leagues.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
@@ -156,9 +156,7 @@ describe("a saved lineup", () => {
     vi.advanceTimersByTime(KICKS_OFF_IN - FPL_DEADLINE_RULE.minutesBeforeFirstKickoff * MINUTE_MS);
     await expectRefused((await as(ANN)).save(REVERSED_BENCH), lineupRefusals.unplayedGameweek);
 
-    await t.run((ctx) =>
-      ctx.db.insert("matchScores", { fixtureCode: NEXT, state: "fullTime", homeGoals: 1, awayGoals: 0, minutes: 90, clockLabel: null, feed: "fpl", readAt: Date.now() }),
-    );
+    await holdMatchState(t, NEXT, "fullTime");
     expect(await (await as(ANN)).save(REVERSED_BENCH)).toBe(NEXT + 1);
   });
 });
