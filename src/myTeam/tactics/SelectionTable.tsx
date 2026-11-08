@@ -11,7 +11,7 @@ import { NextMatches } from "../SquadCells";
 import { statusNotSettledLabel } from "../words";
 import { markOf } from "./focusMarks";
 import { PositionMarks, positionMarksOf } from "./positionMarks";
-import { benchBestRole, startersInOrder, type EditedLineup, type SquadMember, type Starter } from "./lineupEdits";
+import { benchBestRole, landingOf, startersInOrder, type EditedLineup, type Landing, type RatingsOf, type SquadMember, type Starter } from "./lineupEdits";
 import { startDrag, type Moving } from "./pitch/Pitch";
 import {
   BEST_ROLE_HEAD,
@@ -19,6 +19,7 @@ import {
   benchPlaceLong,
   benchPlaceWords,
   emptyBenchWords,
+  landingSubject,
   ROLE_FIT_SUBJECT,
   roleLabel,
   selectionColumns,
@@ -51,7 +52,10 @@ type StarterPlace = { starter: Starter; formation: Formation };
  *  a player opens his panel, where Move is (no action column); a row drags onto the pitch. A player
  *  he can swap with is lit, and a tap or a drop on him swaps them (spec/05, Moving players); a bench
  *  player dropped on another bench row takes its place (spec/05 Auto-subs). A starter leaves the
- *  pitch only by a swap (Craig, 4 Nov 2026), so any other drop of one is refused, saying why. */
+ *  pitch only by a swap (Craig, 4 Nov 2026), so any other drop of one is refused, saying why. With
+ *  a starter picked up, each lit bench row shows, beside his name, his stars for the role he'd land
+ *  on in that starter's slot, and his Role fit stays his own (spec/05, Moving players; Craig, 7 Nov
+ *  2026, #11); `ratingsOf` gives those stars. */
 export function SelectionTable({
   draft,
   squad,
@@ -59,6 +63,7 @@ export function SelectionTable({
   moving,
   onBenchAt,
   onRole,
+  ratingsOf,
 }: {
   draft: EditedLineup;
   squad: ReadonlyMap<number, SquadMember>;
@@ -66,6 +71,7 @@ export function SelectionTable({
   moving: Moving;
   onBenchAt(playerCode: number, index: number): void;
   onRole(playerCode: number, role: string): void;
+  ratingsOf: RatingsOf;
 }) {
   const { picked } = moving;
   const pickedStarts = picked !== null && draft.starters.some((starter) => starter.playerCode === picked.playerCode);
@@ -76,8 +82,21 @@ export function SelectionTable({
     event.preventDefault();
     if (pickedStarts) moving.onDrop("bench");
   };
+  /** A bench player's swap for the starter picked up, where he is lit; null otherwise. */
+  const landingOn = (playerCode: number) =>
+    pickedStarts && moving.reach?.players.includes(playerCode) ? landingOf(draft, picked.playerCode, playerCode, ratingsOf) : null;
   const row = (playerCode: number, place: StarterPlace | { benchIndex: number }) => (
-    <SelectionRow key={playerCode} player={squad.get(playerCode)!} season={season?.get(playerCode) ?? (season === undefined ? undefined : null)} place={place} onBenchAt={onBenchAt} onRole={onRole} moving={moving} pickedOnBench={picked !== null && !pickedStarts} />
+    <SelectionRow
+      key={playerCode}
+      player={squad.get(playerCode)!}
+      season={season?.get(playerCode) ?? (season === undefined ? undefined : null)}
+      place={place}
+      onBenchAt={onBenchAt}
+      onRole={onRole}
+      moving={moving}
+      pickedOnBench={picked !== null && !pickedStarts}
+      landing={"benchIndex" in place ? landingOn(playerCode) : null}
+    />
   );
   return (
     <table aria-label={selectionTableLabel} className="w-full border-collapse">
@@ -115,6 +134,7 @@ function SelectionRow({
   onRole,
   moving,
   pickedOnBench,
+  landing,
 }: {
   player: SquadMember;
   /** His row on the Squad tab's read: undefined while it loads, null where it has none (one the
@@ -126,6 +146,8 @@ function SelectionRow({
   moving: Moving;
   /** Whether the player picked up is on the bench. */
   pickedOnBench: boolean;
+  /** On a lit bench row with a starter picked up, his stars in that starter's slot; null elsewhere. */
+  landing: Landing | null;
 }) {
   const { picked } = moving;
   const shown = moving.selected === player.playerCode || picked?.playerCode === player.playerCode;
@@ -172,6 +194,11 @@ function SelectionRow({
         >
           {player.name}
         </button>
+        {landing !== null && (
+          <span className="ml-2 inline-flex align-middle">
+            <StarRating stars={landing.stars} subject={landingSubject(player.name, landing.role.name)} />
+          </span>
+        )}
         {/* A phone leaves out the club and the status, for the role's room (plate.md, The phone). */}
         {player.clubShortName !== null && <span className="ml-1 text-muted max-sm:hidden">{player.clubShortName}</span>}
         {/* As on the Squad tab: only a player FPL holds news on gets one, until its data is settled. */}

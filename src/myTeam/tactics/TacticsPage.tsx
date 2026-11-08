@@ -270,7 +270,7 @@ function LineupEditor({ league, teamName, tactics, seam, opened }: { league: Lea
           }
           className="min-w-0 grow basis-squad"
         >
-          <SelectionTable draft={draft} squad={squad} season={season} moving={moving} onBenchAt={toBenchAt} onRole={toRole} />
+          <SelectionTable draft={draft} squad={squad} season={season} moving={moving} onBenchAt={toBenchAt} onRole={toRole} ratingsOf={ratingsOf} />
         </Panel>
         <div className="flex min-w-0 grow basis-widgets flex-col gap-2 lg:grow-0">
           {selected !== undefined && selectedPlace !== null && (
