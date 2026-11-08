@@ -123,15 +123,16 @@ async function playerGone(ctx: QueryCtx, offer: Doc<"tradeOffers">) {
   return null;
 }
 
-/** Why the trade can't be made now, if it can't: a player in it has left his side's team, or a team
- *  would hold more than the most in a squad, filled meanwhile by another trade or an assignment. */
-async function cantMake(ctx: QueryCtx, offer: Doc<"tradeOffers">): Promise<TradeFailed | null> {
+/** Why the trade can't be made now, if it can't: a player in it has left his side's team, or, at a
+ *  review's end, a team would hold more than the most in a squad, filled meanwhile by another trade
+ *  or an assignment. Accepted with no review, that is the accepter's refusal (`tradeWarnings`). */
+async function cantMake(ctx: QueryCtx, offer: Doc<"tradeOffers">, watched: boolean): Promise<TradeFailed | null> {
   const gone = await playerGone(ctx, offer);
   if (gone !== null) {
     const team = await ctx.db.get("teams", gone.teamId);
     return { why: "playerGone", playerName: await tradedName(ctx, gone.playerCode), teamName: team?.name ?? "his team" };
   }
-  if (offer.picks !== undefined) return null;
+  if (watched || offer.picks !== undefined) return null;
   for (const { teamId, codes } of await squadsAfter(ctx, offer)) {
     if (codes.length > MOST_IN_SQUAD) return { why: "squadFull", teamName: (await ctx.db.get("teams", teamId))?.name ?? "A team" };
   }
@@ -147,12 +148,12 @@ async function failTrade(ctx: MutationCtx, offer: Doc<"tradeOffers">, words: Tra
 /** Makes the trade: its players move at once, the league gets the usual trade letter, each team's
  *  first lineup is picked again, and any other open offer holding one of them closes. If it can't
  *  be made (`cantMake`), nobody moves and both managers are told. The letter is filed read for `by`
- *  only when `watched`: accepted with no review, not at a review's end. Everything that can refuse
- *  it is read before its first write, so a throw leaves nothing half-made. */
+ *  only when `watched`: accepted with no review, not at a review's end. A throw must roll back the
+ *  whole mutation, so the caller never catches it in the same transaction (`makeAtReviewEnd`). */
 async function goThrough(ctx: MutationCtx, offer: Doc<"tradeOffers">, by: string, watched: boolean): Promise<void> {
   const league = await leagueOf(ctx, offer.leagueId);
   const words = await tradeWordsOf(ctx, offer);
-  const failed = await cantMake(ctx, offer);
+  const failed = await cantMake(ctx, offer, watched);
   if (failed !== null) {
     await failTrade(ctx, offer, words, failed);
     return;
@@ -245,11 +246,24 @@ export function mostAgainst(voters: readonly string[], against: readonly string[
   return counted * 2 > voters.length;
 }
 
+/** The trade made at its review's end, run by `finish` as its own sub-transaction: a throw part-way
+ *  rolls back every write it made, so the trade is whole or not made at all. */
+export const makeAtReviewEnd = internalMutation({
+  args: { offerId: v.id("tradeOffers") },
+  returns: v.null(),
+  handler: async (ctx, { offerId }) => {
+    const offer = await ctx.db.get("tradeOffers", offerId);
+    if (offer?.review === undefined) return null;
+    await goThrough(ctx, offer, offer.review.acceptedBy, false);
+    return null;
+  },
+});
+
 /** Nothing retries a review's end, so a trade it can't make closes rather than throw and hold its
- *  players for good (#1325): logged, and both managers told when its words can still be read. */
+ *  players for good (#1325): logged, and both managers told when its words can still be read. The
+ *  throw rolled its writes back, so nobody has moved. */
 async function closeUnmade(ctx: MutationCtx, offer: Doc<"tradeOffers">, error: unknown): Promise<void> {
   console.error(`Trade offer ${offer._id} couldn't be made at its review's end, so it closed:`, error);
-  if ((await ctx.db.get("tradeOffers", offer._id)) === null) return;
   const words = await tradeWordsOf(ctx, offer).catch(() => null);
   if (words === null) await ctx.db.delete("tradeOffers", offer._id);
   else await failTrade(ctx, offer, words, { why: "error" });
@@ -263,13 +277,14 @@ export const finish = internalMutation({
   handler: async (ctx, { offerId }) => {
     const offer = await ctx.db.get("tradeOffers", offerId);
     if (offer === null || offer.review === undefined) return null;
-    const { reviewer, acceptedBy } = offer.review;
+    const { reviewer } = offer.review;
     if (reviewer.kind === "vote" && mostAgainst(await votersOn(ctx, offer), reviewer.against)) {
       await blockTrade(ctx, offer, { kind: "vote" });
       return null;
     }
     try {
-      await goThrough(ctx, offer, acceptedBy, false);
+      const made: null = await ctx.runMutation(internal.trades.tradeReview.makeAtReviewEnd, { offerId });
+      return made;
     } catch (error) {
       await closeUnmade(ctx, offer, error);
     }
