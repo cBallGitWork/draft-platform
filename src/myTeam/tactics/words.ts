@@ -15,7 +15,7 @@ export const BENCH_TITLE = "Bench";
 
 export const tacticsLoadingWords = "Loading your lineup…";
 export const tacticsNoRulesWords = "This league was made before leagues had rules, so it has no deadline or area limits to set a lineup under.";
-export const seasonOverWords = "Every gameweek has begun, so there's no lineup left to set this season.";
+export const seasonOverWords = "Every gameweek this league plays has begun, so there's no lineup left to set this season.";
 
 const positionsWords = (positions: readonly string[]) => positions.join(listSeparator);
 
