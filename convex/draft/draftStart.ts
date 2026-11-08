@@ -7,13 +7,13 @@ import { draftRulesOf } from "../rules/firstRules";
 import { historyOf, inForce, latestRules, seasonRules } from "../rules/rulesHistory";
 import type { LeagueRules } from "../rules/leagueRulesShape";
 import { memberOf, refuse, runnerOf, teamsOf } from "../shared/leagueAccess";
+import { closePickTrades } from "../trades/tradePicks";
 import { startClock } from "./draftClock";
 import { tellNotStarted, tellUpNext } from "./draftLetters";
 import { DRAFT_FEWEST_TEAMS } from "./draftLimits";
 import { draftOrderOf, teamInOrder, teamOrderOf } from "./draftOrder";
 import { draftOf, picksMadeIn } from "./draftRow";
 import { roundsOf } from "./draftRules";
-import { closePickTrades } from "../trades/tradePicks";
 import { pickOnTheClock } from "./snakeOrder";
 
 // Starting the draft (spec/04, Starting it; #1089). It starts on a date the commissioner sets or
@@ -196,7 +196,8 @@ export const ofLeague = query({
     const started = { startedAt: at, rounds, order, picksMade };
     if (turn === null) return { status: "over" as const, ...started };
     const clock = draft.clock === undefined ? null : { startsAt: draft.clock.startsAt, endsAt: draft.clock.endsAt, pausedAt: draft.clock.paused?.at };
-    const name = names.get(turn.team) ?? "";
+    // A traded pick's owner is one of the draft's teams, each named in `order` above.
+    const { name } = order.find(({ teamId }) => teamId === turn.team)!;
     return { status: "live" as const, ...started, onTheClock: { pick: turn.pick, round: turn.round, teamId: turn.team, name }, clock };
   },
 });
