@@ -22,7 +22,7 @@ export type TradeWords = {
  *  round 3 pick", even once another team holds it. */
 export const pickWords = (round: number, teamName: string) => `the ${teamName} round ${round} pick`;
 
-const nobody =(players: readonly string[]) => (players.length === 0 ? "nobody" : andListWords(players));
+const nobody = (players: readonly string[]) => (players.length === 0 ? "nobody" : andListWords(players));
 
 /** "Lions give Saka and Rice; Tigers give Palmer." */
 function sides({ fromTeamName, toTeamName, gives, gets }: TradeWords): string {
