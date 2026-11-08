@@ -102,17 +102,18 @@ export function powersIn(league: Doc<"leagues">, email: string): LeaguePowers {
   };
 }
 
-/** A person's parts in a league: a role in it, which the admin's override alone isn't. */
+/** A person's part in a league, which the admin's override alone isn't. Not "role": in the
+ *  glossary that is a player's job in a slot. */
 export const leaguePart = v.union(v.literal("commissioner"), v.literal("co-commissioner"), v.literal("manager"));
 export type LeaguePart = Infer<typeof leaguePart>;
 
 /** This email's parts in the league, given the team it manages there, if any. */
 export function partsIn(league: Doc<"leagues">, email: string, team: Doc<"teams"> | undefined): LeaguePart[] {
-  const roles: LeaguePart[] = [];
-  if (email === league.commissionerEmail) roles.push("commissioner");
-  if (email === league.coCommissionerEmail) roles.push("co-commissioner");
-  if (team) roles.push("manager");
-  return roles;
+  const parts: LeaguePart[] = [];
+  if (email === league.commissionerEmail) parts.push("commissioner");
+  if (email === league.coCommissionerEmail) parts.push("co-commissioner");
+  if (team) parts.push("manager");
+  return parts;
 }
 
 /** Whether this email is the league's commissioner or the admin: who still sees a league being
