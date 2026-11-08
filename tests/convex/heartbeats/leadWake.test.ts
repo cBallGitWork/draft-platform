@@ -4,8 +4,9 @@ import { LEAD_DISPATCH_URL, LEAD_REF } from "../../../convex/heartbeats/leadWake
 import { LEAD_WAKE_TOKEN_SETTING } from "../../../convex/outbound/deploymentSettings";
 import { freshConvex } from "../../support/convex/test.harness";
 
-// The lead's wake-up (Craig, 7 Nov 2026): every half hour the live site asks GitHub to run lead.yml
-// on main, since GitHub's own schedule drops passes. Development, with no token, asks nothing.
+// The lead's wake-up (Craig, 7 Nov 2026): every half hour the development deployment asks GitHub to
+// run lead.yml on main, since GitHub's own schedule drops passes (8 Nov 2026: on dev, never the
+// live site). A deployment with no token asks nothing.
 
 /** A fetch that answers every request with `status`, recording each. */
 function github(status = 204, body = "") {
