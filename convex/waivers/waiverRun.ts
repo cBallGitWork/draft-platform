@@ -15,6 +15,7 @@ import { latestRules, seasonRules } from "../rules/rulesHistory";
 import { LEAGUES_READ_MOST, takeAllOrThrow } from "../shared/cappedRead";
 import { tellShortlisters, tellShortlistersCleared } from "../scouting/shortlist";
 import { teamIn } from "../shared/leagueAccess";
+import { playerByCode } from "../shared/players";
 import { MINUTE_MS } from "../shared/time";
 import { placeOf, squadOf } from "../squads/squadPlace";
 import { limitsBroken, type SquadWarning } from "../squads/squads";
@@ -30,7 +31,7 @@ import { latestRunAt } from "./waiverTimes";
 // (waiverOrder.ts): the team at the top has its first claim still standing tried; one that
 // succeeds sends the team to the bottom for the rest of the run and after, and one that fails is
 // gone, its manager told why, and the team's next is tried. A claim fails if another team got the
-// player first, if the player he named to drop is no longer his or is held in a trade under review
+// player first, if the player has left the Premier League (#1327), if the player he named to drop is no longer his or is held in a trade under review
 // (../trades/, Craig, 6 Nov 2026), or if it would break the squad's
 // limits. A player nobody claims is a free agent straight after, and each manager whose shortlist
 // holds him is told (../scouting/shortlist.ts). A run that falls from the deadline
@@ -101,6 +102,7 @@ async function tryClaim(ctx: MutationCtx, run: Run, claim: Doc<"waiverClaims">):
   const { league, squadRules, deadlines, now, claimable } = run;
   const onWaivers = claimable.get(claim.playerCode);
   if (onWaivers === undefined) return { won: false, why: "ahead" };
+  if ((await playerByCode(ctx, claim.playerCode))?.droppedAt !== undefined) return { won: false, why: "playerGone" };
   const drop = claim.dropCode === null ? null : await placeOf(ctx, league._id, claim.dropCode);
   if (claim.dropCode !== null && drop?.teamId !== claim.teamId) return { won: false, why: "dropGone" };
   if (claim.dropCode !== null && (await reviewHolding(ctx, league._id, claim.dropCode)) !== null) return { won: false, why: "dropHeld" };

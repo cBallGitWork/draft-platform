@@ -7,6 +7,7 @@ import { takeAllOrThrow } from "../shared/cappedRead";
 import { managerOf, memberOf, powersIn, refuse, refusals, teamsOf } from "../shared/leagueAccess";
 import { playerByCode } from "../shared/players";
 import { placeOf } from "../squads/squadPlace";
+import { squadRefusals } from "../squads/squads";
 import { inWaiverLock } from "./waiverLock";
 import { waiverRowOf } from "./waiverPlayers";
 import { dropRefusals, namedPlayer } from "./waivers";
@@ -21,6 +22,7 @@ export const claimRefusals = {
   draftLive: dropRefusals.draftLive,
   locked: "Claims can't be put in from the deadline until the gameweek's last match is over.",
   notOnWaivers: (name: string) => `${name} isn't on waivers.`,
+  playerGone: squadRefusals.playerGone,
   dropNotYours: dropRefusals.notYours,
   twice: "You have that claim in already.",
   notYours: "That claim isn't one of your pending claims.",
@@ -68,6 +70,7 @@ export const putIn = mutation({
     if (await inWaiverLock(ctx, await leagueDeadlines(ctx, leagueId), Date.now())) refuse(claimRefusals.locked);
     const player = (await playerByCode(ctx, playerCode)) ?? refuse(refusals.noPlayer);
     if ((await waiverRowOf(ctx, leagueId, playerCode)) === null) refuse(claimRefusals.notOnWaivers(player.name));
+    if (player.droppedAt !== undefined) refuse(claimRefusals.playerGone(player.name));
     if (dropCode !== null) {
       const drop = (await playerByCode(ctx, dropCode)) ?? refuse(refusals.noPlayer);
       if ((await placeOf(ctx, leagueId, dropCode))?.teamId !== team._id) refuse(claimRefusals.dropNotYours(drop.name));
