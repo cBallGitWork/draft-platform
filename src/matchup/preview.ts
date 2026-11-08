@@ -141,8 +141,9 @@ function startersAt(men: Man[], minute: number): MatchupStarter[] {
 function sideAt(teamName: string, men: typeof SAKA_POTATOES, minute: number): MatchupSide {
   const starters = startersAt(men.starters, minute);
   const bench: MatchupBenchSlot[] = men.bench.map((man) => ({ ...slotAt(man, minute, true), role: null, place: null }));
+  const slots = [...starters, ...bench];
   // Each man in his match's club's shirt, numbered in squad order.
-  [...men.starters, ...men.bench].forEach(([, , match], index) => Object.assign([...starters, ...bench][index], { clubCode: CLUBS[teamName][match], number: index + 1 }));
+  [...men.starters, ...men.bench].forEach(([, , match], index) => Object.assign(slots[index], { clubCode: CLUBS[teamName][match], number: index + 1 }));
   const off = starters.find((slot) => slot.autoSub?.kind === "off");
   if (off !== undefined) {
     off.counts = false;
@@ -150,8 +151,8 @@ function sideAt(teamName: string, men: typeof SAKA_POTATOES, minute: number): Ma
     Object.assign(on, { counts: true, autoSub: { kind: "on", playerName: off.name }, ...slotOf({ area: off.area, lane: off.place.lane }) });
   }
   const final = minute >= FINAL_MINUTE;
-  const counting = [...starters, ...bench].filter((slot) => slot.counts);
-  for (const slot of [...starters, ...bench]) slot.provisional = !final;
+  const counting = slots.filter((slot) => slot.counts);
+  for (const slot of slots) slot.provisional = !final;
   return {
     kind: "team",
     teamId: previewIdOf(teamName),
