@@ -9,6 +9,7 @@ import { FIRST_SCORING } from "../../convex/scoring/firstScoring";
 import type { MatchStats } from "../../convex/scoring/values";
 import { DAY_MS, WEEK_MS } from "../../convex/shared/time";
 import { ARSENAL, CHELSEA, LIVERPOOL, previewPlayers, previewShortlist } from "../scouting/preview";
+import { previewScouts } from "../scouting/scouts/preview";
 import { previewSays, proLeague } from "../shared/preview";
 import type { CardAction, PlayedMatch, PlayerCard, PlayerCardSeam, WaiverChanges } from "./seam";
 
@@ -124,6 +125,7 @@ function cardActionOf(playerCode: number): CardAction {
 
 export const previewPlayerCard: PlayerCardSeam = {
   ...previewShortlist,
+  ...previewScouts,
   usePlayerCard: (_leagueId, playerCode) => cards.get(playerCode) ?? null,
   useCardAction: (_leagueId, playerCode) => cardActionOf(playerCode),
   useWaiverChanges: () => waiverChanges,

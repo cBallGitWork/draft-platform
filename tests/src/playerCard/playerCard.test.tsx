@@ -27,6 +27,7 @@ import {
   PLAYER_TITLE,
   SEASON_TITLE,
 } from "../../../src/playerCard/words";
+import { sendScoutWords } from "../../../src/scouting/scouts/words";
 import { addToShortlistWords } from "../../../src/scouting/shortlist/words";
 import { squadsPath } from "../../../src/squads/paths";
 import { crestUrl } from "../../../src/ui/ClubName";
@@ -161,9 +162,13 @@ describe("the card", () => {
     expect(next.textContent).toContain(`${COVENTRY.shortName} ${versusWords} ${ARSENAL.shortName}`);
   });
 
-  it("offers no action but Back and the shortlist, the one built", async () => {
+  it("offers no action but Back, the shortlist and the scout, the ones built", async () => {
     openCard();
     await screen.findByRole("region", { name: SEASON_TITLE });
-    expect(screen.getAllByRole("button").filter((button) => button.closest("main")).map((button) => button.textContent)).toEqual([backWords, addToShortlistWords]);
+    expect(screen.getAllByRole("button").filter((button) => button.closest("main")).map((button) => button.textContent)).toEqual([
+      backWords,
+      addToShortlistWords,
+      sendScoutWords,
+    ]);
   });
 });
