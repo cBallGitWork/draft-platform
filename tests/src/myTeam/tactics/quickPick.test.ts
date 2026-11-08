@@ -77,6 +77,13 @@ describe("Quick Pick", () => {
     expect(standing(quickPick(draft, SHAPE, [KEEPER, out, unheld]))).toEqual({ [cellKey(GOAL)]: 1, [cellKey(BACK)]: 2, [cellKey(UP_FRONT)]: 3 });
   });
 
+  it("never picks one the football sync doesn't hold while a fit one can stand there, whatever his stars", () => {
+    const unheld = { ...player(2, ["CB"], { CB: 5 }), unheld: true, availability: null };
+    const fit = player(3, ["CB"], { CB: 1 });
+    const draft = lineupOf([[KEEPER, GOAL], [unheld, BACK]], [fit]);
+    expect(standing(quickPick(draft, [GOAL, BACK], [KEEPER, unheld, fit]))[cellKey(BACK)]).toBe(3);
+  });
+
   it('ranks "?" and "—" below any starred player', () => {
     const unsure = player(2, ["CB"], { CB: UNSURE });
     const newSigning = player(3, ["CB"], { CB: NO_DATA });
