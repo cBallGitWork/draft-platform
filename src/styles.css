@@ -101,6 +101,10 @@
   --flex-basis-squad: 320px;
   --spacing-pitch-desk: 360px;
   --spacing-shirt: 32px;
+  /* The matchup's player tile and its bigger shirt, as its approved picture draws them (FPL's
+     tile: "Our shirt too small", Craig, 8 Nov 2026) */
+  --spacing-tile: 84px;
+  --spacing-shirt-tile: 44px;
   /* a club's mark before its code or name: its crest, or its two colours (plate.md, Marks) */
   --spacing-club-mark: 16px;
   /* a position chip's least width, so GK and CDM line up down the Tactics Selection table */
@@ -159,6 +163,9 @@
   --text-heading--line-height: 24px;
   --text-title: 26px;
   --text-title--line-height: 32px;
+  /* the matchup's two totals, each on its own plate (its approved picture) */
+  --text-score: 40px;
+  --text-score--line-height: 48px;
 
   /* CM's 2px bevel, light above and dark below */
   --shadow-bevel-bar: inset 0 2px 0 var(--color-bar-edge), inset 0 -2px 0 var(--color-bar-rule);

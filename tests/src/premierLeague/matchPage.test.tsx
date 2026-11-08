@@ -8,7 +8,7 @@ import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
 import { HOUR_MS } from "../../../convex/shared/time";
 import { MATCHUP_PATH, PREMIER_LEAGUE_PATH } from "../../../src/frame/menu";
-import { statusLabels } from "../../../src/matchup/words";
+import { breakdownMatchWords, noMatchBreakdownWords, openBreakdownLabel, statusLabels } from "../../../src/matchup/words";
 import { CLUB_COLOURS, contrast, INKS } from "../../../convex/football/clubColours";
 import { crestUrl } from "../../../src/ui/ClubName";
 import { matchPath } from "../../../src/premierLeague/paths";
@@ -60,12 +60,15 @@ describe("reaching it", () => {
       matchup: {
         matchup: headToHead({
           kind: "scored",
-          team: teamSide("Team 1", [slot("Saka", { status: playing(67, "67'12", FIXTURE) })], []),
+          team: teamSide("Team 1", [slot("Saka", { status: playing(67, "67'12", FIXTURE), breakdown: [{ fixtureCode: FIXTURE, kickoff: null, points: null, counted: true, categories: [], override: null }] })], []),
           opponent: teamSide("Team 2", [], []),
         }),
       },
     });
-    await userEvent.click(await screen.findByRole("link", { name: `${statusLabels.playing} 67'` }));
+    // His tile shows his match's state; tapped, his breakdown opens his match (the approved picture).
+    expect(await screen.findByRole("listitem", { name: new RegExp(`${statusLabels.playing} 67'`) })).toBeTruthy();
+    await userEvent.click(screen.getByRole("button", { name: openBreakdownLabel("Saka") }));
+    await userEvent.click(screen.getByRole("link", { name: breakdownMatchWords(null) }));
 
     expect(await screen.findByRole("heading", { level: 1, name: MATCH_TITLE })).toBeTruthy();
     expect(app.path()).toBe(matchPath(FIXTURE));
@@ -76,8 +79,10 @@ describe("reaching it", () => {
     openApp(MATCHUP_PATH, manager, {
       matchup: { matchup: headToHead({ kind: "scored", team: teamSide("Team 1", [slot("Wood", { status: { kind: "noMatch" } })], []), opponent: teamSide("Team 2", [], []) }) },
     });
-    expect(await screen.findByText(statusLabels.noMatch)).toBeTruthy();
-    expect(screen.queryByRole("link", { name: new RegExp(statusLabels.noMatch) })).toBeNull();
+    expect(await screen.findByRole("listitem", { name: new RegExp(statusLabels.noMatch) })).toBeTruthy();
+    await userEvent.click(screen.getByRole("button", { name: openBreakdownLabel("Wood") }));
+    expect(screen.getByText(noMatchBreakdownWords)).toBeTruthy();
+    expect(screen.queryByRole("link", { name: breakdownMatchWords(null) })).toBeNull();
   });
 
   it("a fixture before kickoff links from its v", async () => {

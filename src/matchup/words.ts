@@ -1,6 +1,6 @@
 // What the matchup says, in one place for Craig to change in the pull request.
 
-import type { Area } from "../../convex/lineup/pitch";
+import type { SlotStatus } from "../../convex/matchup/matchupShape";
 import { leagueAverageWords } from "../table/words";
 import { overrideLabels, removeOverrideWords } from "../playerCard/words";
 import {
@@ -15,7 +15,7 @@ import {
   whenWords,
 } from "../shared/words";
 
-export { AREA_WORDS, figureWords, gameweekWords, noFigureWords, versusWords } from "../shared/words";
+export { figureWords, gameweekWords, noFigureWords, versusWords } from "../shared/words";
 export { leagueAverageWords, scoreWords } from "../table/words";
 export { nextGameweekLabel as nextLabel, nextGlyph, previousGameweekLabel as previousLabel, previousGlyph } from "../shared/words";
 
@@ -48,24 +48,27 @@ export const matchupLinkLabel = (team: string, opponent: string | null, gameweek
 export const GAME_SWITCH_LABEL = "Game";
 export const gameSwitchWords = (game: number, opponent: string | null) => `${GAME_SWITCH_LABEL} ${game} ${opponent === null ? "bye" : `${versusWords} ${opponent}`}`;
 
-export const lineupLabel = (teamName: string) => `${teamName}'s lineup`;
+/** A side's pitch (spec/10, The matchup, as a live match; #850), and each man on it: "Haaland, ST
+ *  Poacher, 13". */
+export const sidePitchLabel = (teamName: string) => `${teamName}'s pitch`;
+export const pitchPlayerLabel = (name: string, position: string, role: string, points: string) => `${name}, ${position} ${role}, ${points}`;
 export { BENCH_TITLE } from "../shared/words";
-export const columns = {
-  area: { short: "Pos", long: "Area" },
-  player: { short: "Player", long: "Player" },
-  status: { short: "Match", long: "His match" },
-  points: { short: "Pts", long: "Points" },
-} as const;
-
-/** Each area's short code, its name on hover. */
-export const AREA_CODES: Record<Area, string> = {
-  goalkeeper: "GK",
-  defence: "DEF",
-  defensiveMidfield: "DM",
-  midfield: "MID",
-  attackingMidfield: "AM",
-  attack: "ATT",
-};
+/** Each side's panel's title (the approved picture): its team's name, read out, is the panel's. */
+export const LINEUP_TITLE = "Lineup";
+/** A side's bench, a row of tiles (the approved picture), and each man in it. */
+export const benchLabel = (teamName: string) => `${teamName}'s bench`;
+/** On a tile's shirt where his match's state goes: a starter who didn't play and was replaced. */
+export const offWords = "Off";
+/** A side nobody runs, its lineup the auto team's (#1207). */
+export const autoTeamWords = "Auto team";
+/** A side's formation once its manager has edited it off every preset (Craig, 1 Nov 2026, #878:
+ *  "only preset formations", a changed one "Custom"). */
+export const customFormationWords = "Custom";
+/** Under each team's name: how many of the men standing for it have played, are on and are still
+ *  to play (the approved picture: "2 played, 6 live, 3 to play"). */
+export const standingWords = { played: (count: number) => `${count} played`, live: (count: number) => `${count} live`, toPlay: (count: number) => `${count} to play` };
+/** The breakdown's head: his slot's role and his team ("Target man, Kroos Control"). */
+export const breakdownRoleWords = (role: string | null, teamName: string) => (role === null ? teamName : `${role}, ${teamName}`);
 
 /** His match, as the status column says it. */
 export const statusWords = {
@@ -77,6 +80,19 @@ export const statusWords = {
   finished: fullTime.short,
   noMatch: "No match",
 } as const;
+/** His match's state, short, as the status column and his tile on the pitch say it. */
+export function statusText(status: SlotStatus): string {
+  switch (status.kind) {
+    case "yetToPlay":
+      return statusWords.yetToPlay(status.kickoff);
+    case "playing":
+      return statusWords.playing(status.state, status.clockLabel, status.minute);
+    case "finished":
+      return statusWords.finished;
+    case "noMatch":
+      return statusWords.noMatch;
+  }
+}
 /** The same, in full for screen readers. */
 export const statusLabels = {
   yetToPlay: "Yet to play",

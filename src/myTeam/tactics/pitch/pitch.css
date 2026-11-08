@@ -9,6 +9,10 @@
     --pitch-width: var(--spacing-pitch-desk);
   }
 }
+/* The matchup's pitches, each its side's panel's whole width at any size (its approved picture). */
+@utility pitch-room-full {
+  --pitch-width: 100%;
+}
 /* The panel holding the pitch: just wide enough for it and its padding (px-2), so the squad beside
    takes the rest. */
 @utility basis-pitch-panel {
