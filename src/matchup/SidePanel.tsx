@@ -39,7 +39,7 @@ export function SidePanel({ side, picking }: { side: MatchupSide; picking: Picki
   const name = sideName(side);
   const [runsShown, setRunsShown] = useState(true);
   return (
-    <Panel title={name} namesTeam={side.kind === "team"} aside={side.kind === "team" && <RunsSwitch shown={runsShown} onChange={setRunsShown} />}>
+    <Panel title={name} namesTeam={side.kind === "team"} aside={side.kind === "team" ? <RunsSwitch shown={runsShown} onChange={setRunsShown} /> : undefined}>
       {side.kind === "leagueAverage" ? (
         <PanelNote>{averageWords}</PanelNote>
       ) : (
