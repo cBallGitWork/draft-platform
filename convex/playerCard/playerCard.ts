@@ -5,8 +5,10 @@ import { slotPosition } from "../lineup/pitchShape";
 import { positionsNow } from "../positions/playerPositions";
 import type { Position } from "../positions/positionTables";
 import { clubRecord, position } from "../schema";
+import { scoreOf } from "../football/matchScores";
 import { namedCategories, namedCategoriesOf, roleLine, roleLineOf } from "../scoring/breakdownShape";
 import { siteScoringAt, siteVersionByGameweek } from "../scoring/siteVersions";
+import { takeAllOrThrow } from "../shared/cappedRead";
 import { memberOf } from "../shared/leagueAccess";
 import { clubsByCode, playerByCode, type Clubs } from "../shared/players";
 import { ownerOf, placeOf } from "../squads/squadPlace";
@@ -14,7 +16,7 @@ import { MINUTES_STAT, statsIfWhole, statValue } from "../stats/matchRecords";
 import { playsIn } from "../gameweekScorer/heldMatches";
 import { scoredMatches } from "../gameweekScorer/scoredMatches";
 import { lastSeasonCopied, pastRowsOf } from "../pastSeasons/pastSeasonPoints";
-import { basePoints, cardPositions } from "./cardPoints";
+import { basePoints, cardPositions, logCategories } from "./cardPoints";
 
 // A player's card (spec/12, The player card; #381), for anyone in the league: who he is and who
 // owns him here, FPL's news on him, this season's matches at his base points, at each position he
@@ -50,6 +52,11 @@ const playedMatch = v.object({
   ...match.fields,
   /** Null while his whole record hasn't arrived. */
   minutes: v.union(v.number(), v.null()),
+  /** The match's newest score, null until a feed has read one. */
+  score: v.union(v.object({ home: v.number(), away: v.number() }), v.null()),
+  /** Every stat his record holds, by the name it is kept under, for the game log's All stats; null
+   *  while his whole record hasn't arrived. */
+  stats: v.union(v.record(v.string(), v.number()), v.null()),
   /** His base points at each of the card's positions, in its order; one at his best position when
    *  none of his positions has a price (spec/14: SS has none yet). */
   points: v.array(pricedPoints),
@@ -106,6 +113,13 @@ const playerCard = v.object({
   chanceOfPlaying: v.union(v.number(), v.null()),
   /** This season's matches he was in, newest first. */
   matches: v.array(playedMatch),
+  /** His club's matches postponed and waiting for a new date, each keeping its row in the game log
+   *  (Claude's call, 7 Nov 2026, spec/12). */
+  postponed: v.array(match),
+  /** The game log's scoring columns (spec/12): each of the site's categories as it stands, but
+   *  minutes, which has its own, in its order, by short code and full name, and whether it scores at
+   *  each of the card's positions, in the order of each match's points. */
+  categories: v.array(v.object({ stat: v.string(), shortCode: v.string(), name: v.string(), scoresAt: v.array(v.boolean()) })),
   /** Last season's line, or null while no past season is held. */
   lastSeason: v.union(lastSeason, v.null()),
   /** His club's next matches, soonest first, at most NEXT_FIXTURES_SHOWN. */
@@ -124,6 +138,7 @@ export const card = query({
     if (player === null) return null;
     const positions = await (await positionsNow(ctx, leagueId))(playerCode);
     const clubs = clubsByCode(ctx);
+    const pricedAt = cardPositions(positions);
     return {
       code: player.code,
       name: player.name,
@@ -131,11 +146,13 @@ export const card = query({
       club: await clubs(player.clubCode),
       gone: player.droppedAt !== undefined,
       positions,
-      pricedAt: cardPositions(positions),
+      pricedAt,
       ownerTeamName: (await (await ownerOf(ctx, leagueId))(playerCode))?.name ?? null,
       news: player.news || null,
       chanceOfPlaying: player.chanceOfPlaying ?? null,
       matches: await seasonMatches(ctx, league, player, positions, clubs),
+      postponed: await postponedFixtures(ctx, player.clubCode, clubs),
+      categories: logCategories(await siteScoringAt(ctx, now), pricedAt),
       lastSeason: await lastSeasonLine(ctx, playerCode, positions, now),
       nextFixtures: await nextFixtures(ctx, player.clubCode, now, clubs),
     };
@@ -168,9 +185,12 @@ export async function seasonMatches(ctx: QueryCtx, league: Doc<"leagues">, playe
         total,
         categories: namedCategoriesOf(categories, set.ownStats),
       }));
+      const score = await scoreOf(ctx, fixture.code);
       return {
         ...(await asMatch(fixture, clubs)),
         minutes: statValue(record, MINUTES_STAT),
+        score: score === null || score.homeGoals === null || score.awayGoals === null ? null : { home: score.homeGoals, away: score.awayGoals },
+        stats: statsIfWhole(record),
         points,
         version,
         ...(role === undefined ? {} : { role: roleLineOf(role, set.ownStats) }),
@@ -201,6 +221,21 @@ async function lastSeasonLine(ctx: QueryCtx, playerCode: number, positions: read
     basePoints(match.stats, set, positions).forEach(({ total }, index) => (points[index] += total ?? 0));
   }
   return { season, played: { appearances, minutes, points } };
+}
+
+/** The most postponed matches waiting for a date the card reads: a season has a handful. More
+ *  throws, never a silent cut. Claude's choice, not yet Craig's. */
+const POSTPONED_MOST = 100;
+
+/** His club's matches postponed and not yet given a new date: held, with no kickoff time
+ *  (heldMatches.ts's isPostponed). */
+async function postponedFixtures(ctx: QueryCtx, clubCode: number, clubs: Clubs) {
+  const waiting = await takeAllOrThrow(
+    ctx.db.query("fixtures").withIndex("by_droppedAt_and_kickoff", (q) => q.eq("droppedAt", undefined).eq("kickoff", null)),
+    POSTPONED_MOST,
+    `More than ${POSTPONED_MOST} matches wait for a new date, so a player card's postponed matches would be cut short`,
+  );
+  return Promise.all(waiting.filter((fixture) => playsIn(fixture, clubCode)).map((fixture) => asMatch(fixture, clubs)));
 }
 
 /** His club's next matches after `now`, soonest first. A match with no kickoff time is left out. */

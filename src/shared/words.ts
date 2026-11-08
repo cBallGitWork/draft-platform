@@ -42,6 +42,8 @@ export const NO_CONVEX_URL = "VITE_CONVEX_URL isn't set, so the app can't reach 
 
 /** A gameweek by name, as its tick box and the fixtures' stepper say it. */
 export const gameweekWords = (gameweek: number) => `Gameweek ${gameweek}`;
+/** A gameweek, short, as a head says it: "GW9" (My team's header band, the player card). */
+export const gameweekShort = (gameweek: number) => `GW${gameweek}`;
 /** The fixtures' stepper (src/ui/GameweekStepper.tsx): each arrow's label, and CM's arrows,
  *  decoration, as each button carries its label. */
 export const previousGameweekLabel = "Previous gameweek";
@@ -96,6 +98,16 @@ export const listSeparator = ", ";
 
 /** Between the two sides of a match or a fixture: "Hull City v Everton". */
 export const versusWords = "v";
+/** Where his club plays a match, after the opponent's code (My team's tables and the player card). */
+export const homeWords = "(H)";
+export const awayWords = "(A)";
+/** A match as its cell shows it: "CHE (H)". */
+export const nextFixtureShort = (opponentCode: string, home: boolean) => `${opponentCode} ${home ? homeWords : awayWords}`;
+/** A status chip after a name, until it is settled which FPL statuses each chip reads (to-grill:
+ *  Status chips' data). Only a player FPL holds a doubt about gets one. */
+export const statusNotSettledLabel = "Status chip: which one isn't settled yet";
+/** A match cell waits for fixture difficulty (to-grill: Where fixture difficulty comes from). */
+export const difficultyNotRatedWords = "difficulty not rated yet";
 /** A match's or a fixture's score, the first side's then the other's: "2–1", or a matchup's
  *  points, which can fall below 0: "−2–5". */
 export const scoreWords = (first: number, second: number) => `${figureWords(first)}–${figureWords(second)}`;

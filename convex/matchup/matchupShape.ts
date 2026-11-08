@@ -65,6 +65,11 @@ const slot = v.object({
   name: v.string(),
   /** The area he is priced in: his slot, the one he came on in, or his bench cell's. */
   area: areaShape,
+  /** His club, whose colours his shirt wears; null for one the football sync doesn't hold. */
+  clubCode: v.union(v.number(), v.null()),
+  /** His shirt's number (#13): his manager's while the team still holds him, else his club's, else
+   *  null (squadNumbers.ts). */
+  number: v.union(v.number(), v.null()),
   /** Null ("—") while none of his records has arrived. */
   points: v.union(v.number(), v.null()),
   /** Whether his points count: false is greyed, a bench player not on or a starter subbed off. */
@@ -108,6 +113,8 @@ const side = v.union(
     /** Whether the league has overridden its total for the gameweek, which `points` then is
      *  (spec/14 S14.3; #903): the override control under its name then removes it. */
     overridden: v.boolean(),
+    /** Whether nobody runs it, so the auto team picks its lineup (#1207): the "Auto team" tag. */
+    autoTeam: v.boolean(),
     lineup: v.object({ starters: v.array(starter), bench: v.array(benchSlot) }),
     /** The preset its lineup stands in, such as "4-4-2" (spec/10: a side's formation "is named by
      *  its preset until its edited"); null once its manager has edited it off every preset, as

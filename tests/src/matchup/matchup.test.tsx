@@ -13,11 +13,12 @@ import { HOME_PATH, MATCHUP_PATH, MY_TEAM_PATH, TABLE_PATH } from "../../../src/
 import type { MatchupCommentary } from "../../../convex/matchup/matchupShape";
 import type { Matchup } from "../../../src/matchup/seam";
 import {
-  AREA_CODES,
   autoSubWords,
   averageWords,
-  BENCH_TITLE,
+  benchLabel,
   byeWords,
+  offWords,
+  sidePitchLabel,
   finalWords,
   gameweekWords,
   leagueAverageWords,
@@ -125,36 +126,38 @@ describe("a replayed gameweek plays out on screen", () => {
     const top = await screen.findByRole("region", { name: SCORE_LABEL });
     expect(top.textContent).toContain(scoreWords(0, 0));
     expect(within(top).getByText(provisionalWords)).toBeTruthy();
+    // The pitch top to bottom, then the bench.
+    const keeper = `GK ${roleOf("goalkeeper").name}`;
+    const midfielder = `CM ${roleOf("midfield").name}`;
     expect(lineupRows("Team 1")).toEqual([
-      `${AREA_CODES.goalkeeper}Phillips${roleOf("goalkeeper").name}${statusLabels.yetToPlay} ${statusWords.yetToPlay(KICKOFF)}—`,
-      `${AREA_CODES.midfield}Coyle${roleOf("midfield").name}${statusLabels.yetToPlay} ${statusWords.yetToPlay(KICKOFF)}—`,
-      BENCH_TITLE,
-      `${AREA_CODES.goalkeeper}Pandur${statusLabels.yetToPlay} To play— ${notCountingLabel}`,
+      `Coyle, ${midfielder}, —, ${statusLabels.yetToPlay} ${statusWords.yetToPlay(KICKOFF)}`,
+      `Phillips, ${keeper}, —, ${statusLabels.yetToPlay} ${statusWords.yetToPlay(KICKOFF)}`,
+      `Pandur, —, ${statusLabels.yetToPlay} To play, ${notCountingLabel}`,
     ]);
 
     live.play(stages.live);
     expect(await screen.findByText(scoreWords(2, 5))).toBeTruthy();
     // The bench keeper's points show, greyed: they don't count while Phillips stands.
     expect(lineupRows("Team 1")).toEqual([
-      `${AREA_CODES.goalkeeper}Phillips${roleOf("goalkeeper").name}${statusLabels.playing} 60'0`,
-      `${AREA_CODES.midfield}Coyle${roleOf("midfield").name}${statusLabels.playing} 60'2`,
-      BENCH_TITLE,
-      `${AREA_CODES.goalkeeper}Pandur${statusLabels.playing} 60'3 ${notCountingLabel}`,
+      `Coyle, ${midfielder}, 2, ${statusLabels.playing} 60'`,
+      `Phillips, ${keeper}, 0, ${statusLabels.playing} 60'`,
+      `Pandur, 3, ${statusLabels.playing} 60', ${notCountingLabel}`,
     ]);
 
     live.play(stages.fullTime);
     expect(await screen.findByText(scoreWords(9, 7))).toBeTruthy();
+    // Pandur on in Phillips' slot, and Phillips in his place on the bench, "Off".
     expect(lineupRows("Team 1")).toEqual([
-      `${AREA_CODES.goalkeeper}Phillips${roleOf("goalkeeper").name}${autoSubWords.off("Pandur")}${statusLabels.finished} ${statusWords.finished}0 ${notCountingLabel}`,
-      `${AREA_CODES.midfield}Coyle${roleOf("midfield").name}${statusLabels.finished} ${statusWords.finished}6`,
-      BENCH_TITLE,
-      `${AREA_CODES.goalkeeper}Pandur${autoSubWords.on("Phillips")}${statusLabels.finished} ${statusWords.finished}3`,
+      `Coyle, ${midfielder}, 6, ${statusLabels.finished} ${statusWords.finished}`,
+      `Pandur, ${keeper}, 3, ${statusLabels.finished} ${statusWords.finished}, ${autoSubWords.on("Phillips")}`,
+      `Phillips, ${keeper}, 0, ${statusLabels.finished} ${statusWords.finished}, ${notCountingLabel}, ${autoSubWords.off("Pandur")}`,
     ]);
+    expect(within(screen.getByRole("list", { name: benchLabel("Team 1") })).getByText(offWords)).toBeTruthy();
     expect(screen.getByText(provisionalWords)).toBeTruthy();
 
     live.play(final);
     expect(await screen.findByText(finalWords)).toBeTruthy();
-    expect(screen.getByRole("region", { name: SCORE_LABEL }).textContent).toContain(`Team 1${scoreWords(9, 7)}Team 2`);
+    expect(screen.getByRole("region", { name: SCORE_LABEL }).textContent).toMatch(new RegExp(`Team 1.*${scoreWords(9, 7)}.*Team 2`));
     expect(screen.queryByText(provisionalWords)).toBeNull();
   });
 });
@@ -200,17 +203,19 @@ describe("each side", () => {
   it("the league's average says what it is", async () => {
     openMatchup({ matchup: headToHead({ kind: "scored", team: teamSide("Team 1", [], []), opponent: { kind: "leagueAverage", points: 21.3, provisional: false } }) });
     expect(await screen.findByText(averageWords)).toBeTruthy();
-    expect(screen.getByRole("region", { name: SCORE_LABEL }).textContent).toContain(`Team 1${scoreWords(0, 21.3)}${leagueAverageWords}`);
+    expect(screen.getByRole("region", { name: SCORE_LABEL }).textContent).toMatch(new RegExp(`Team 1.*${scoreWords(0, 21.3)}.*${leagueAverageWords}`));
   });
 
   it("a starter whom no one could replace says so", async () => {
     openMatchup({ matchup: headToHead({ kind: "scored", team: teamSide("Team 1", [slot("Raya", { counts: true, status: { kind: "finished", fixtureCode: SLOT_MATCH }, autoSub: { kind: "unreplaced" } })], []), opponent: teamSide("Team 2", [], []) }) });
-    expect(await screen.findByText(autoSubWords.unreplaced)).toBeTruthy();
+    await screen.findByRole("list", { name: sidePitchLabel("Team 1") });
+    expect(lineupRows("Team 1")[0]).toContain(autoSubWords.unreplaced);
   });
 
   it("a man whose club has no match says so", async () => {
     openMatchup({ matchup: headToHead({ kind: "scored", team: teamSide("Team 1", [slot("Wood", { status: { kind: "noMatch" } })], []), opponent: teamSide("Team 2", [], []) }) });
-    expect(await screen.findByText(statusLabels.noMatch)).toBeTruthy();
+    await screen.findByRole("list", { name: sidePitchLabel("Team 1") });
+    expect(lineupRows("Team 1")[0]).toContain(statusLabels.noMatch);
   });
 });
 
@@ -234,7 +239,7 @@ describe("when there's nothing to score", () => {
     openMatchup({ matchup: headToHead({ kind: "notBegun", opponent: { kind: "team", teamName: "Team 2" } }, { deadline }) });
     expect(await screen.findByText(notBegunWords(deadline))).toBeTruthy();
     expect(screen.getByText("Team 2")).toBeTruthy();
-    expect(screen.queryByRole("table")).toBeNull();
+    expect(screen.queryByRole("list", { name: sidePitchLabel("Team 1") })).toBeNull();
   });
 });
 

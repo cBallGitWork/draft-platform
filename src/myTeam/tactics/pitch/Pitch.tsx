@@ -82,7 +82,7 @@ export function Pitch({
   return (
     <div role="group" aria-label={pitchLabel} style={cellGridOf(rows)} className="pitch relative mx-auto grid">
       <PitchLines rows={rows} />
-      <RoleRuns draft={draft} rows={rows} tapped={picked?.playerCode ?? moving.selected} switchedOn={runsShown} />
+      <RoleRuns starters={draft.starters} rows={rows} tapped={picked?.playerCode ?? moving.selected} switchedOn={runsShown} />
       {ROWS_DRAWN.flatMap((area) =>
         LANES.map((lane) => {
           const cell = { area, lane };
@@ -178,13 +178,14 @@ const STRIPE_WIDTH = 4;
 
 /** Our own shirt outline in his club's colours and pattern (plate.md, Marks; a keeper in its
  *  second colour, plain), with his squad number on it once his manager gives him one (#13). The
- *  colour is only a look: his name says who he is, so screen readers skip the shirt. */
-export function Shirt({ number, clubCode, goalkeeper }: { number: number | null; clubCode: number | null; goalkeeper: boolean }) {
+ *  colour is only a look: his name says who he is, so screen readers skip the shirt. `size` is its
+ *  size class: the matchup's tile draws it bigger. */
+export function Shirt({ number, clubCode, goalkeeper, size = "size-shirt" }: { number: number | null; clubCode: number | null; goalkeeper: boolean; size?: string }) {
   const kit = kitOf(useClubColours()(clubCode), goalkeeper);
   const striped = kit.pattern === "stripes";
   const clipId = useId();
   return (
-    <svg viewBox="0 0 40 40" aria-hidden="true" className={`size-shirt shrink-0 ${INK_CLASSES[kit.ink]}`}>
+    <svg viewBox="0 0 40 40" aria-hidden="true" className={`${size} shrink-0 ${INK_CLASSES[kit.ink]}`}>
       <path style={{ fill: kit.shirt }} d={SHIRT_PATH} />
       {striped && (
         <>

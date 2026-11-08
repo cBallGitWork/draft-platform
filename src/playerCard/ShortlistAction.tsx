@@ -15,9 +15,9 @@ export function ShortlistAction({ leagueId, playerCode, gone, seam }: { leagueId
   const onIt = players.some((player) => player.code === playerCode);
   if (!onIt && gone) return null;
   return (
-    <div className="border-t border-panel-rule">
+    <div className="flex flex-col gap-1">
       <Problem problem={change.problem} />
-      <div className="flex flex-wrap items-center gap-3 px-3 py-2">
+      <div className="flex flex-wrap items-center gap-2">
         <button
           type="button"
           disabled={change.busy}

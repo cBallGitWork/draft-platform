@@ -31,6 +31,9 @@ const CHIP_COLOURS: Record<Position, { fill: string; ink: string }> = {
 /** A chip's fill alone, for a mark in its colour with no code on it (a formation's thumbnail). */
 export const chipFillOf = (label: Position) => CHIP_COLOURS[label].fill;
 
+/** A chip's fill and ink, for a strip in its area's colour with words on it (a matchup tile's). */
+export const chipColoursOf = (label: Position) => CHIP_COLOURS[label];
+
 /** A chip greyed out with its row, such as a player a draft pick can't take (the approved draft
  *  room picture). */
 const DIMMED = "opacity-50";

@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from "react";
+import { useState, type FormEvent, type ReactNode } from "react";
 import type { Id } from "../../convex/_generated/dataModel";
 import type { MatchupSide } from "../../convex/matchup/matchupShape";
 import { OVERRIDE_REASON_MAX, TEAM_OVERRIDE_POINTS_MOST } from "../../convex/table/overrideLimits";
@@ -30,8 +30,19 @@ type TeamSide = Extract<MatchupSide, { kind: "team" }>;
 /** The team override (spec/14 S14.3 to S14.6; #903), for whoever runs the league: under each team's
  *  name, "Override total" opens a form for its total in the gameweek and why; once its total is
  *  overridden, "Remove override" puts the scored total back. The league's average has none. Each
- *  change sends the league a letter (convex/table/teamOverrides.ts). */
-export function TeamOverrides({ leagueId, gameweek, sides, seam }: { leagueId: Id<"leagues">; gameweek: number; sides: readonly MatchupSide[]; seam: MatchupSeam }) {
+ *  change sends the league a letter (convex/table/teamOverrides.ts). `layout` places each side's
+ *  control, under its name in the matchup's head; the form opens under it. */
+export function TeamOverrides({
+  leagueId,
+  gameweek,
+  seam,
+  layout,
+}: {
+  leagueId: Id<"leagues">;
+  gameweek: number;
+  seam: MatchupSeam;
+  layout: (controlOf: (side: MatchupSide) => ReactNode) => ReactNode;
+}) {
   const override = seam.useOverrideTeam();
   const removeOverride = seam.useRemoveTeamOverride();
   const change = useChange();
@@ -69,8 +80,8 @@ export function TeamOverrides({ leagueId, gameweek, sides, seam }: { leagueId: I
     if (await change.run(() => removeOverride(leagueId, { gameweek, teamId: side.teamId }))) setDone(totalOverrideRemovedWords);
   }
 
-  const control = (side: MatchupSide, className: string) => (
-    <div className={className}>
+  const control = (side: MatchupSide) => (
+    <div>
       {side.kind === "team" &&
         (side.overridden ? (
           <button type="button" onClick={() => remove(side)} disabled={change.busy} aria-label={removeTotalOverrideLabel(side.teamName)} className="secondary-action">
@@ -90,14 +101,9 @@ export function TeamOverrides({ leagueId, gameweek, sides, seam }: { leagueId: I
     </div>
   );
 
-  const [team, opponent] = sides;
   return (
-    <div className="pb-2">
-      <div className="grid grid-cols-sides gap-3 px-3">
-        {control(team, "text-right")}
-        <span />
-        {control(opponent, "")}
-      </div>
+    <div>
+      {layout(control)}
       <Problem problem={change.problem} />
       <Status words={done} className="px-3 pt-2 text-center text-derived" />
       {open !== null && (

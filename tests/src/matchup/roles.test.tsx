@@ -7,7 +7,7 @@ import { screen, within } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import { namedRole, roleIn } from "../../../convex/lineup/roles";
 import { MATCHUP_PATH } from "../../../src/frame/menu";
-import { AREA_CODES, autoSubWords, BENCH_TITLE, lineupLabel, notCountingLabel, statusLabels, statusWords } from "../../../src/matchup/words";
+import { autoSubWords, notCountingLabel, sidePitchLabel, statusLabels, statusWords } from "../../../src/matchup/words";
 import { headToHead, lineupRows, roleOf, slot, SLOT_MATCH, teamSide } from "../../support/src/matchup.harness";
 import { manager, openApp } from "../../support/src/shell.harness";
 
@@ -38,14 +38,15 @@ describe("each man's role", () => {
   it("shows under each starter's name and a sub's once he has come on, never a bench player's not on", async () => {
     openApp(MATCHUP_PATH, manager, { matchup: { matchup: headToHead({ kind: "scored", team: team1, opponent: team2 }) } });
     await screen.findByRole("region", { name: "Team 1" });
+    const finished = `${statusLabels.finished} ${statusWords.finished}`;
+    // The pitch top to bottom, Pandur on in Phillips' slot; then the bench, Phillips in Pandur's place.
     expect(lineupRows("Team 1")).toEqual([
-      `${AREA_CODES.goalkeeper}Phillips${roleOf("goalkeeper").name}${autoSubWords.off("Pandur")}${statusLabels.finished} ${statusWords.finished}0 ${notCountingLabel}`,
-      `${AREA_CODES.midfield}Coyle${roleOf("midfield").name}${statusLabels.finished} ${statusWords.finished}2`,
-      `${AREA_CODES.attack}Delap${POACHER.name}${statusLabels.finished} ${statusWords.finished}5`,
-      BENCH_TITLE,
-      `${AREA_CODES.goalkeeper}Pandur${roleOf("goalkeeper").name}${autoSubWords.on("Phillips")}${statusLabels.finished} ${statusWords.finished}3`,
-      `${AREA_CODES.attack}Singh${statusLabels.finished} ${statusWords.finished}1 ${notCountingLabel}`,
+      `Delap, ST ${POACHER.name}, 5, ${finished}`,
+      `Coyle, CM ${roleOf("midfield").name}, 2, ${finished}`,
+      `Pandur, GK ${roleOf("goalkeeper").name}, 3, ${finished}, ${autoSubWords.on("Phillips")}`,
+      `Phillips, GK ${roleOf("goalkeeper").name}, 0, ${finished}, ${notCountingLabel}, ${autoSubWords.off("Pandur")}`,
+      `Singh, 1, ${finished}, ${notCountingLabel}`,
     ]);
-    expect(within(screen.getByRole("table", { name: lineupLabel("Team 2") })).getByText(TARGET_MAN.name)).toBeTruthy();
+    expect(within(screen.getByRole("list", { name: sidePitchLabel("Team 2") })).getByText(TARGET_MAN.name)).toBeTruthy();
   });
 });

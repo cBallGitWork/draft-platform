@@ -103,6 +103,10 @@
   --flex-basis-squad: 320px;
   --spacing-pitch-desk: 360px;
   --spacing-shirt: 32px;
+  /* The matchup's player tile and its bigger shirt, as its approved picture draws them (FPL's
+     tile: "Our shirt too small", Craig, 8 Nov 2026) */
+  --spacing-tile: 84px;
+  --spacing-shirt-tile: 44px;
   /* a club's mark before its code or name: its crest, or its two colours (plate.md, Marks) */
   --spacing-club-mark: 16px;
   /* a position chip's least width, so GK and CDM line up down the Tactics Selection table */
@@ -123,17 +127,17 @@
   --spacing-caret-width: 10px;
   --spacing-caret-height: 6px;
   --spacing-league-list: 288px;
-  /* A row's columns: a Premier League match (where it stands, home, the score, away), a league
-     fixture (team, the score, opponent), and the player card's next fixtures (gameweek, match, kickoff) */
+  /* A row's columns: a Premier League match (where it stands, home, the score, away), and a league
+     fixture (team, the score, opponent) */
   --grid-template-columns-match-row: 3.5rem minmax(0, 1fr) 3.5rem minmax(0, 1fr);
   --grid-template-columns-fixture-row: minmax(0, 1fr) 5rem minmax(0, 1fr);
-  --grid-template-columns-next-fixture: 6rem 1fr auto;
   /* Two sides and what stands between them, a date and its line, the home page's three columns,
-     the player card's two columns, and a label beside its value */
+     the player card's three columns (News and Role fit, the game log, the match's breakdown: the
+     approved picture), and a label beside its value */
   --grid-template-columns-sides: minmax(0, 1fr) auto minmax(0, 1fr);
   --grid-template-columns-dated-row: auto minmax(0, 1fr);
   --grid-template-columns-home: minmax(0, 2fr) minmax(0, 3fr) minmax(0, 2fr);
-  --grid-template-columns-card: 2fr 3fr;
+  --grid-template-columns-card: 18.75rem minmax(0, 1fr) 21.25rem;
   /* The table beside its fixtures, as the approved table picture splits them (about 5 to 2) */
   --grid-template-columns-table: minmax(0, 5fr) minmax(0, 2fr);
   /* League home's News tab: the moves, and the selected one's detail (approved/home/1440-news.png) */
@@ -163,6 +167,9 @@
   --text-heading--line-height: 24px;
   --text-title: 26px;
   --text-title--line-height: 32px;
+  /* the matchup's two totals, each on its own plate (its approved picture) */
+  --text-score: 40px;
+  --text-score--line-height: 48px;
 
   /* CM's 2px bevel, light above and dark below */
   --shadow-bevel-bar: inset 0 2px 0 var(--color-bar-edge), inset 0 -2px 0 var(--color-bar-rule);

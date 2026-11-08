@@ -1,11 +1,14 @@
 import { Link } from "@tanstack/react-router";
-import type { MatchBreakdown, MatchupSlot } from "../../convex/matchup/matchupShape";
+import type { MatchBreakdown } from "../../convex/matchup/matchupShape";
+import { PositionChip } from "../ui/PositionChip";
+import type { TileMan } from "./PlayerTile";
 import { CategoryLines, RoleWords } from "../playerCard/Breakdown";
 import { playerCardPath } from "../playerCard/paths";
 import { matchPath } from "../premierLeague/paths";
 import { Panel, PanelNote } from "../ui/Panel";
 import {
   breakdownMatchWords,
+  breakdownRoleWords,
   closeBreakdownLabel,
   closeGlyph,
   figureWords,
@@ -21,13 +24,20 @@ import {
 // A lineup player's breakdown for the gameweek, opened by tapping him on the matchup (spec/10: "the
 // opposition manager needs to see why his opponent got the points"; #798): each of his matches,
 // each line saying why, his role's line included, as the table's scorer scored him. Under best
-// match, the match that doesn't count is greyed (Craig, 6 Nov 2026). It opens over the matchup
-// until the matchup's picture places it (#1026; Craig, 6 Nov 2026: "4 a").
+// match, the match that doesn't count is greyed (Craig, 6 Nov 2026). It opens at the top of the
+// matchup's centre column, over the vidiprinter (the approved picture; #1026).
 
-export function PlayerBreakdown({ leagueId, slot, version, close }: { leagueId: string; slot: MatchupSlot; version: string | null; close(): void }) {
+export function PlayerBreakdown({ leagueId, slot, teamName, version, close }: { leagueId: string; slot: TileMan; teamName: string; version: string | null; close(): void }) {
   return (
     <Panel
-      title={slot.name}
+      title={
+        // His slot's chip, his name, then his role and team (the approved picture: "ST Wood Target man, Kroos Control").
+        <span className="flex items-center gap-2">
+          {/* Spaces between, so the panel's name reads "ST Wood Target man, Kroos Control". */}
+          {slot.place !== null && <PositionChip label={slot.place.label} />} <span>{slot.name}</span>{" "}
+          <span className="text-data font-normal text-soft">{breakdownRoleWords(slot.role?.name ?? null, teamName)}</span>
+        </span>
+      }
       aside={
         <button type="button" aria-label={closeBreakdownLabel} onClick={close} className="min-h-tap min-w-tap text-title leading-none">
           {closeGlyph}

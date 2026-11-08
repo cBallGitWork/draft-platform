@@ -129,6 +129,40 @@ test("this season's matches are newest first, at his base points, by category", 
   expect(unarrived).toMatchObject({ minutes: null, points: [{ position: "W", total: null }] });
 });
 
+test("each match carries its score and every stat his record holds, for the game log; neither while they haven't come (#1027)", async () => {
+  await t.run((ctx) =>
+    ctx.db.insert("matchScores", { fixtureCode: ARS_COV.code, state: "fullTime", homeGoals: 2, awayGoals: 1, minutes: 90, clockLabel: null, feed: "fpl", readAt: NOW }),
+  );
+  const [unarrived, priced] = (await cardAs(ANN, SAKA.code))!.matches;
+
+  expect(priced.score).toEqual({ home: 2, away: 1 });
+  expect(priced.stats).toMatchObject(GOAL_AND_ASSIST);
+  expect(unarrived.score).toBeNull();
+  expect(unarrived.stats).toBeNull();
+});
+
+test("the game log's columns are the site's categories but minutes, each saying whether it scores at each of his positions (#1027)", async () => {
+  const { categories } = (await cardAs(ANN, FORWARD.code))!;
+
+  // At W, then ST: a striker's and a winger's goals, assists and yellow cards score; saves, goals
+  // conceded score only at the back, and defensive contribution everywhere outfield.
+  expect(categories.map(({ stat, shortCode, name, scoresAt }) => [stat, shortCode, name, scoresAt])).toEqual([
+    ["goals_scored", "GSC", "Goals scored", [true, true]],
+    ["assists", "AS", "Assists", [true, true]],
+    ["saves", "S", "Saves", [false, false]],
+    ["goals_conceded", "GC", "Goals conceded", [false, false]],
+    ["defensive_contribution", "DC", "Defensive contribution", [true, true]],
+    ["yellow_cards", "YC", "Yellow cards", [true, true]],
+  ]);
+  // A second striker, priced at no slot, has one column of his own: whether it scores anywhere.
+  expect((await cardAs(ANN, SUPPORT.code))!.categories.find(({ stat }) => stat === "saves")!.scoresAt).toEqual([true]);
+});
+
+test("his club's matches postponed with no new date keep their rows in the game log; another club's don't (#1027)", async () => {
+  expect((await cardAs(ANN, SAKA.code))!.postponed).toEqual([{ fixtureCode: NO_KICKOFF_YET.code, gameweek: null, kickoff: null, home: ARSENAL, away: COVENTRY }]);
+  expect((await cardAs(ANN, MOVER.code))!.postponed).toEqual([]);
+});
+
 test("each match names the version it was scored under: a later version reaches only the gameweeks after it (spec/14)", async () => {
   // Takes effect between gameweek 1's kickoff and gameweek 2's.
   const between = ARS_COV.kickoff! + DAY_MS;

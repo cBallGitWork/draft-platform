@@ -1,5 +1,5 @@
 import { roleIn } from "../../../../convex/lineup/roles";
-import type { EditedLineup } from "../lineupEdits";
+import type { Starter } from "../lineupEdits";
 import { PITCH_SIZE } from "./pitchMarkings";
 import type { RowLayout } from "./rowLayout";
 import { arrowheadOf, RUN_MARK, runPath, runShows, type PitchPoint } from "./runs";
@@ -17,12 +17,13 @@ const RUN_LINE = { vectorEffect: "non-scaling-stroke", strokeDasharray: RUN_DASH
 
 const pointsOf = (points: readonly PitchPoint[]) => points.map(({ x, y }) => `${x},${y}`).join(" ");
 
-/** `rows` are how the pitch's rows share its length; `tapped` is the player picked up, whose run
+/** `starters` are who stands where in which role, the Tactics pitch's or a matchup side's; `rows`
+ *  are how the pitch's rows share its length; `tapped` is the player picked up or tapped, whose run
  *  shows on a phone; `switchedOn` is the desk's switch. */
-export function RoleRuns({ draft, rows, tapped, switchedOn }: { draft: EditedLineup; rows: RowLayout; tapped: number | null; switchedOn: boolean }) {
+export function RoleRuns({ starters, rows, tapped, switchedOn }: { starters: readonly Starter[]; rows: RowLayout; tapped: number | null; switchedOn: boolean }) {
   return (
     <svg aria-hidden="true" viewBox={`0 0 ${width} ${length}`} preserveAspectRatio="none" className="pointer-events-none absolute inset-0 size-full">
-      {draft.starters.map((starter) => {
+      {starters.map((starter) => {
         const { run } = roleIn(starter, starter.role);
         const shows = runShows(starter.playerCode === tapped, switchedOn);
         if (run === null || shows === null) return null;

@@ -9,7 +9,10 @@ import { ALL_CELLS, playsCell, positionOfSlot, SLOT_POSITIONS, type Cell, type S
 import { positionRank, type Position } from "../positions/positionTables";
 import { scoreMatch, type MatchPoints } from "../scoring/scoring";
 import type { MatchStats } from "../scoring/values";
-import type { ScoringSet } from "../scoring/scoringSet";
+import { categoryName, categoryShortCode } from "../scoring/categories";
+import { priceFor } from "../scoring/priced";
+import { MINUTES_STAT } from "../stats/matchRecords";
+import type { ScoringRule, ScoringSet } from "../scoring/scoringSet";
 
 /** How the Squad tab's match was priced: from his slot in a lineup, at his best position, or there
  *  but not counted: a bench player who didn't come on, at his best position, or his other match in
@@ -75,6 +78,36 @@ export function basePoints(record: MatchStats | null, set: ScoringSet, positions
  *  basePoints(record, set, [it]) gives. Null with no position, where every match is null. */
 export function cardOpensAt(positions: readonly Position[]): Position | null {
   return cardPositions(positions)[0] ?? positions[0] ?? null;
+}
+
+/** Whether `rule` gives points at `position` at all: a value, a count's points or a band that isn't
+ *  0 there. The card's game log shows a column for each category that does at the position its
+ *  switch is on, "so strikers don't see CS" (spec/12; Craig, 7 Nov 2026). */
+export function scoresAt(rule: ScoringRule, position: SlotPosition): boolean {
+  const { area } = cellAt(position);
+  switch (rule.shape) {
+    case "perAction":
+      return priceFor(rule.values, area, position) !== 0;
+    case "perCount":
+      return priceFor(rule.values, area, position).points !== 0;
+    case "bands":
+      return priceFor(rule.values, area, position).some(({ points }) => points !== 0);
+  }
+}
+
+/** The game log's scoring columns (playerCard.ts): the set's categories but minutes, which has its
+ *  own, each by short code and full name, saying whether it scores at each of `pricedAt`, or, with
+ *  none priced (only SS has no price), at any slot's position, as basePoints then prices him at his
+ *  best. */
+export function logCategories(set: ScoringSet, pricedAt: readonly SlotPosition[]) {
+  return set.rules
+    .filter((rule) => rule.stat !== MINUTES_STAT)
+    .map((rule) => ({
+      stat: rule.stat,
+      shortCode: categoryShortCode(rule.stat, set.ownStats),
+      name: categoryName(rule.stat, set.ownStats),
+      scoresAt: pricedAt.length === 0 ? [SLOT_POSITIONS.some((position) => scoresAt(rule, position))] : pricedAt.map((position) => scoresAt(rule, position)),
+    }));
 }
 
 /** One cell for each slot these positions may stand in: a rule is priced by the slot's area and

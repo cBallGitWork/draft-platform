@@ -9,14 +9,16 @@ import type { Area } from "../../../convex/lineup/pitch";
 import { centreSlotOf } from "../../../src/matchup/preview";
 import type { MatchupCommentary, MatchupSide, MatchupBenchSlot, MatchupSlot, MatchupStarter } from "../../../convex/matchup/matchupShape";
 import type { Matchup, MatchupSeam } from "../../../src/matchup/seam";
-import { lineupLabel } from "../../../src/matchup/words";
+import { benchLabel, sidePitchLabel } from "../../../src/matchup/words";
 
-/** Each row of a team's lineup on screen, as its text, under the heads. */
+/** Each tile of a team's lineup on screen, as it is read out: the pitch's top to bottom, then the
+ *  bench's in order. */
 export const lineupRows = (teamName: string) =>
-  within(screen.getByRole("table", { name: lineupLabel(teamName) }))
-    .getAllByRole("row")
-    .slice(1)
-    .map((row) => row.textContent);
+  [sidePitchLabel(teamName), benchLabel(teamName)].flatMap((list) =>
+    within(screen.getByRole("list", { name: list }))
+      .queryAllByRole("listitem", { name: (name) => name !== "" })
+      .map((tile) => tile.getAttribute("aria-label")),
+  );
 
 /** A matchup the test moves on, as Convex's live query would: each `play` re-renders the screen. */
 export function liveMatchup(first: Matchup | undefined) {
@@ -77,6 +79,8 @@ export const slot = (name: string, rest: Partial<Slot> = {}): Slot => ({
   playerCode: [...name].reduce((code, letter) => code * 31 + letter.charCodeAt(0), 7),
   name,
   area: "midfield",
+  clubCode: null,
+  number: null,
   points: null,
   counts: true,
   provisional: true,
@@ -106,7 +110,8 @@ export const teamSide = (
   points,
   provisional,
   overridden: false,
-  lineup: { starters: starters.map((starter) => ({ ...centreSlotOf(starter.area), ...starter })), bench: bench.map((slot) => ({ role: null, place: null, ...slot })) },
+  autoTeam: false,
+  lineup: { starters: starters.map((starter) => ({ ...centreSlotOf(starter.area), ...starter })), bench: bench.map((slot) => ({ role: null, place: null, ...(slot.autoSub?.kind === "on" ? centreSlotOf(slot.area) : {}), ...slot })) },
   formation: null,
 });
 
