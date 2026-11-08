@@ -3,7 +3,7 @@ import type { LeagueSummary } from "../../convex/leagues/myLeagues";
 import { Loading, PageSection, Panel, PanelNote } from "../ui/Panel";
 import { Placeholder } from "../ui/Placeholder";
 import { useMinute } from "../shared/useMinute";
-import { gameweekWords, whenWords } from "../shared/words";
+import { gameweekShort, whenWords } from "../shared/words";
 import { CardHead } from "./CardHead";
 import { opponentWords } from "./gameLog";
 import { MatchBreakdown } from "./MatchBreakdown";
@@ -110,7 +110,7 @@ function NextFixtures({ card }: { card: PlayerCard }) {
             const opponent = opponentWords(fixture, card.club.code);
             return (
               <li key={fixture.fixtureCode} className="flex min-w-0 grow basis-0 flex-col gap-1">
-                <span className="text-soft">{fixture.gameweek === null ? noFigureWords : gameweekWords(fixture.gameweek)}</span>
+                <span className="text-soft">{fixture.gameweek === null ? noFigureWords : gameweekShort(fixture.gameweek)}</span>
                 <Placeholder label={`${opponent ?? ""} ${difficultyNotRatedWords}`.trim()} className="py-1 text-center font-semibold">
                   {opponent ?? <MatchName match={fixture} />}
                 </Placeholder>

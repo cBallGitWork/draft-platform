@@ -41,7 +41,7 @@ import { freeScoutsWords, sendScoutWords } from "../../../src/scouting/scouts/wo
 import { addToShortlistWords } from "../../../src/scouting/shortlist/words";
 import { squadsPath } from "../../../src/squads/paths";
 import { crestUrl } from "../../../src/ui/ClubName";
-import { difficultyNotRatedWords, gameweekWords } from "../../../src/shared/words";
+import { difficultyNotRatedWords, gameweekShort } from "../../../src/shared/words";
 import { ARSENAL, COVENTRY } from "../../support/convex/footballRows.harness";
 import { HELD, openCard, PRICED, RICE, SAKA } from "../../support/src/playerCardScreen.harness";
 import { commissioned, league, manager, managerIn, miniBeta, openApp } from "../../support/src/shell.harness";
@@ -170,7 +170,7 @@ describe("the card", () => {
     const fixtures = within(await screen.findByRole("region", { name: nextFixturesTitle(ARSENAL.name) }));
     const [next] = fixtures.getAllByRole("listitem");
 
-    expect(next.textContent).toContain(gameweekWords(10));
+    expect(next.textContent).toContain(gameweekShort(10));
     // From his club's side, its fill waiting for fixture difficulty.
     expect(within(next).getByRole("img", { name: `${COVENTRY.shortName} (A) ${difficultyNotRatedWords}` }).textContent).toBe(`${COVENTRY.shortName} (A)`);
   });
