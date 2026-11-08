@@ -11,6 +11,7 @@ import { FormationWindow } from "./formationWindow/FormationWindow";
 import { formationNameOf } from "./classicLineup";
 import { benchedAt, openingLineup, placeOf, presetInUse, swapped, withRole, type EditedLineup, type MoveRules, type RatingsOf } from "./lineupEdits";
 import { dropOutcome, reachOf } from "./swaps";
+import { quickPick } from "./quickPick";
 import { Pitch, PITCH_ROOM_STYLE, type Moving } from "./pitch/Pitch";
 import { useFormationPicks } from "./useFormationPicks";
 import { SelectionTable } from "./SelectionTable";
@@ -199,6 +200,7 @@ function LineupEditor({ league, teamName, tactics, seam, opened }: { league: Lea
         onSavePreset={() => setWindowOpen("saving")}
         canUndo={edits.canUndo}
         onUndo={edits.undo}
+        onQuickPick={() => edits.edit(quickPick(draft, shape, tactics.squad))}
         savedAt={edits.savedAt}
         switchedNote={edits.switchedNote}
         problem={edits.problem}
