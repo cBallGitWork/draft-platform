@@ -153,7 +153,7 @@ export const leave = mutation({
   },
 });
 
-/** spec/04, The picks: a team that has just lost its manager while its pick is on the clock is
+/** spec/04, Auto-pick (S04.5): a team that has just lost its manager while its pick is on the clock is
  *  picked for at once, not at the clock's end, as nobody can pick for it (Craig, 8 Nov 2026:
  *  "Auto-pick at once"; #1334). */
 async function pickAtOnceIfOnTheClock(ctx: MutationCtx, team: Doc<"teams">): Promise<void> {
