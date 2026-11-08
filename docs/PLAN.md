@@ -1,5 +1,11 @@
 # Draft platform: fix plan
 
+**History (8 Nov 2026, #1333):** this is the plan as adopted, kept for its reasons; it is not
+kept up to date. Its "Order of work", its staging and Argos lines and its hooks table are out of
+date: what binds now is `CLAUDE.md`, `ARCHITECTURE.md` and the workflows in `.github/workflows/`.
+Its sections stay, since code and workflows cite them ("No monitoring", "The pipeline",
+"Removing the bottleneck").
+
 Adopted by Craig 2 Nov 2026. Where this plan and `CLAUDE.md` disagree, `CLAUDE.md` still binds until the matching replacement is switched on; each hook is retired only after its GitHub replacement works.
 
 ## Contents

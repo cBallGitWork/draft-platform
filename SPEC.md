@@ -161,7 +161,9 @@ One file per feature in [spec/](spec/); this page is the index. A feature's stat
 The Avoid column's roster, soccer, standings, waiver wire, franchise, playoffs, uniform and cleats
 are Craig's (1 Nov 2026: "Add all eight"; #950). Line-up, matchup, subs and skipper are Claude's
 call, as Craig left them to it (7 Nov 2026: "your call"; #951): line-up is the UK spelling,
-matchup stays, subs and auto-subs are allowed, and skipper stays avoided.
+matchup stays, subs and auto-subs are allowed, and skipper stays avoided. Fixture is Craig's
+(8 Nov 2026, #1333): a real Premier League match only, never a league's head-to-head. New code
+follows it; tables and fields already saved keep their names.
 
 | Term | Meaning | Avoid |
 |---|---|---|
@@ -214,7 +216,8 @@ matchup stays, subs and auto-subs are allowed, and skipper stays avoided.
 | draft league | a league on the platform, such as the Tim Hortons Pro League; on screen, "draft league" wherever the Premier League could be meant. "League" alone in the spec means one | fantasy league |
 | Premier League | the real competition, and the menu section of that name | league (alone) |
 | match | a real Premier League match | |
-| matchup | a head-to-head between two teams in one gameweek | match |
+| fixture | a real Premier League match, never a league's head-to-head | |
+| matchup | a head-to-head between two teams in one gameweek, or a game in a gameweek | match, fixture |
 | commentary | the short lines that report a match or a matchup as it is played | feed (that is the data source) |
 | vidiprinter | the matchup's running list of commentary, newest first | |
 | gameweek | one round of Premier League fixtures, as FPL numbers them | period |
