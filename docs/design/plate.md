@@ -111,7 +111,7 @@ name (the score).
   image server by its `code`, `--spacing-club-mark` square, 4px before its code or name where that
   stands alone (Squad, Scouting, the player card, the Premier League table), never in a
   fixture-difficulty cell. A crest that won't load is drawn: the square split down the middle, the
-  club's first colour left and its second right. Built once, `src/premierLeague/ClubName.tsx`.
+  club's first colour left and its second right. Built once, `src/ui/ClubName.tsx`.
 - **A match's scoreboard** (spec/10): each club's crest and name on its first colour, inked
   `--color-ground` or `--color-fact`, whichever reads better on it.
 - **Stars**: SVG, filled in the figure colour, empty ones as outlines in muted grey, the set

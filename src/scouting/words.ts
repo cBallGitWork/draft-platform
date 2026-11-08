@@ -25,9 +25,6 @@ export const everyClubWords = "Every club";
 /** The stat shown as a season total beside the list, and sorted by (spec/19, "sortable by any stat"). */
 export const statLabel = STAT_WORD;
 export const noStatWords = "None";
-/** The stat box's two groups, once the site's set has own stats of its own (spec/14, Own stats; #910). */
-export const ownStatsGroupWords = "The site's own stats";
-export const catalogueGroupWords = "The feeds' stats";
 
 /** How many players the filters keep. */
 export const countWords = (count: number) => (count === 1 ? "1 player" : `${count} players`);

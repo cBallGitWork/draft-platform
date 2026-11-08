@@ -7,7 +7,7 @@ import type { LeagueSummary } from "../../convex/leagues/myLeagues";
 import type { Session } from "../signIn/seam";
 import { DateBlock } from "./DateBlock";
 import { Loading, PageSection, PanelNote } from "../ui/Panel";
-import { runs } from "../leagues/roles";
+import { runs } from "../leagues/access";
 import type { MailSeam } from "./seam";
 import { WriteToLeague } from "./WriteToLeague";
 import {

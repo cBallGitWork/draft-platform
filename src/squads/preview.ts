@@ -1,7 +1,7 @@
 // The squads screen in the preview (src/app/preview.ts): two teams, one over the league's most and
 // one holding a player the football data has lost, and a search that finds two men, one free.
 
-import { previewSays } from "../app/preview";
+import { previewSays } from "../shared/preview";
 import type { SquadsSeam, SquadWithWarnings } from "./seam";
 
 const player = (code: number, name: string, clubShortName: string, gone = false) => ({ code, name, clubShortName, gone });

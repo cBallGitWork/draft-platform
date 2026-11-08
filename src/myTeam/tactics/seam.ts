@@ -6,7 +6,7 @@ import type { Id } from "../../../convex/_generated/dataModel";
 import type { InstructionPair } from "../../../convex/lineup/instructions";
 import type { OpenTactics, Tactics } from "../../../convex/lineup/tactics";
 import type { Change } from "../../shared/refusal";
-import type { DraftLineup } from "./lineupDraft";
+import type { EditedLineup } from "./lineupEdits";
 import type { Plan } from "./savedPlans";
 
 export type { OpenTactics, Plan, Tactics };
@@ -14,7 +14,7 @@ export type { OpenTactics, Plan, Tactics };
 export type LineupChanges = {
   /** Saves the manager's own team's lineup, from the next gameweek not begun as the server judges
    *  it: resolves with that gameweek, or with the words saying why not. It never rejects. */
-  save(leagueId: Id<"leagues">, lineup: DraftLineup): Promise<number | string>;
+  save(leagueId: Id<"leagues">, lineup: EditedLineup): Promise<number | string>;
 };
 
 export type PlanChanges = {

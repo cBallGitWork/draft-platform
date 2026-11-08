@@ -4,7 +4,7 @@
 import { fireEvent, render } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import { CLUB_COLOURS } from "../../../convex/football/clubColours";
-import { ClubMark, crestUrl } from "../../../src/premierLeague/ClubName";
+import { ClubMark, crestUrl } from "../../../src/ui/ClubName";
 import { styledColour } from "../../support/src/styledColour";
 
 const ARSENAL_CODE = 3;

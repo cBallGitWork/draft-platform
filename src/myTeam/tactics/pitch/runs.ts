@@ -48,7 +48,7 @@ export function runPath(run: Run, cell: Cell, rows: RowLayout = EVEN_ROWS): Pitc
 }
 
 /** The arrowhead's length and half its width, in metres. */
-export const ARROWHEAD = { length: 2.4, halfWidth: 1.3 } as const;
+const ARROWHEAD = { length: 2.4, halfWidth: 1.3 } as const;
 
 /** The arrowhead at the path's end, pointing along its last leg: its tip, then its two barbs. */
 export function arrowheadOf(path: readonly PitchPoint[]): PitchPoint[] {

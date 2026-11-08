@@ -40,7 +40,7 @@ import { playerCardPath } from "../../../src/playerCard/paths";
 import { previewMatch } from "../../../src/premierLeague/matchPreview";
 import { matchPath } from "../../../src/premierLeague/paths";
 import { MATCH_TITLE, PREMIER_LEAGUE_TITLE } from "../../../src/premierLeague/words";
-import { miniBeta, proLeague } from "../../../src/app/preview";
+import { miniBeta, proLeague } from "../../../src/shared/preview";
 import { scoringPath } from "../../../src/scoring/paths";
 import { SCORING_TITLE } from "../../../src/scoring/words";
 import { previewPlayers } from "../../../src/scouting/preview";

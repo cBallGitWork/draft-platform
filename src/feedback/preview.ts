@@ -3,7 +3,7 @@
 
 import type { Id } from "../../convex/_generated/dataModel";
 import { HOUR_MS } from "../../convex/shared/time";
-import { previewSays } from "../app/preview";
+import { previewSays } from "../shared/preview";
 import type { FeedbackList, FeedbackSeam } from "./seam";
 import { notSentWords } from "./words";
 
