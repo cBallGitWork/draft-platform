@@ -3,7 +3,7 @@ import type { LeagueSummary } from "../../convex/leagues/myLeagues";
 import { cellClassOf, ColumnHeads } from "../ui/ColumnHeads";
 import { DateBlock } from "../mail/DateBlock";
 import { Loading, PAGE_STACK, PageSection, Panel, PanelNote } from "../ui/Panel";
-import { MAIL_PATH, TABLE_PATH } from "../frame/menu";
+import { HOME_NEWS_PATH, MAIL_PATH, TABLE_PATH } from "../frame/menu";
 import { MatchupLink } from "../matchup/MatchupLink";
 import { Vidiprinter } from "../matchup/Vidiprinter";
 import { useMinute } from "../shared/useMinute";
@@ -24,6 +24,7 @@ import {
   leagueAverageWords,
   LETTER_TITLE,
   loadingWords,
+  moreOnNewsLink,
   MOVES_TITLE,
   moveWords,
   noFormWords,
@@ -210,6 +211,7 @@ function SquadMoves({ moves }: { moves: LeagueHome["squadMoves"] }) {
           ))}
         </ol>
       )}
+      <PanelLink to={HOME_NEWS_PATH}>{moreOnNewsLink}</PanelLink>
     </Panel>
   );
 }
