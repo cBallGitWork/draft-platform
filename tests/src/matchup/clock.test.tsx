@@ -4,7 +4,7 @@
 import { screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import { MATCHUP_PATH } from "../../../src/frame/menu";
-import { AREA_CODES, BENCH_TITLE, lineupLabel, notCountingLabel, statusLabels } from "../../../src/matchup/words";
+import { notCountingLabel, sidePitchLabel, statusLabels } from "../../../src/matchup/words";
 import { halfTime, liveWords } from "../../../src/shared/words";
 import { headToHead, lineupRows, playing, roleOf, slot, SLOT_MATCH, teamSide } from "../../support/src/matchup.harness";
 import { manager, openApp } from "../../support/src/shell.harness";
@@ -16,7 +16,7 @@ const TEAM = "Team 1";
 async function openLineup(starters: Parameters<typeof teamSide>[1], bench: Parameters<typeof teamSide>[2] = []) {
   const matchup = headToHead({ kind: "scored", team: teamSide(TEAM, starters, bench), opponent: teamSide("Team 2", [], []) });
   openApp(MATCHUP_PATH, manager, { matchup: { matchup } });
-  await screen.findByRole("table", { name: lineupLabel(TEAM) });
+  await screen.findByRole("list", { name: sidePitchLabel(TEAM) });
 }
 
 describe("his match's clock", () => {
@@ -26,17 +26,18 @@ describe("his match's clock", () => {
       [slot("Pandur", { area: "goalkeeper", counts: false, status: playing(null) })],
     );
     expect(lineupRows(TEAM)).toEqual([
-      `${AREA_CODES.goalkeeper}Phillips${roleOf("goalkeeper").name}${statusLabels.playing} 45+1'0`,
-      `${AREA_CODES.midfield}Coyle${roleOf("midfield").name}${statusLabels.playing} 46'2`,
-      BENCH_TITLE,
-      `${AREA_CODES.goalkeeper}Pandur${statusLabels.playing} ${liveWords}— ${notCountingLabel}`,
+      `Coyle, CM ${roleOf("midfield").name}, 2, ${statusLabels.playing} 46'`,
+      `Phillips, GK ${roleOf("goalkeeper").name}, 0, ${statusLabels.playing} 45+1'`,
+      `Pandur, —, ${statusLabels.playing} ${liveWords}, ${notCountingLabel}`,
     ]);
+    // On his shirt, the clock alone.
+    expect(screen.getByText("45+1'")).toBeTruthy();
   });
 
   it("says HT at half-time, as the Premier League's pages do, not the clock it stopped at", async () => {
     await openLineup([slot("Phillips", { area: "goalkeeper", points: 0, status: playing(47, "45+2'00", SLOT_MATCH, "halfTime") })]);
-    expect(lineupRows(TEAM)).toEqual([`${AREA_CODES.goalkeeper}Phillips${roleOf("goalkeeper").name}${halfTime.long} ${halfTime.short}0`, BENCH_TITLE]);
-    // Read out in full, as full time is: the link to his match says "Half-time", not "HT".
-    expect(screen.getByRole("link", { name: halfTime.long })).toBeTruthy();
+    // Read out in full, as full time is: "Half-time", then the "HT" his shirt shows.
+    expect(lineupRows(TEAM)).toEqual([`Phillips, GK ${roleOf("goalkeeper").name}, 0, ${halfTime.long} ${halfTime.short}`]);
+    expect(screen.getByText(halfTime.short)).toBeTruthy();
   });
 });

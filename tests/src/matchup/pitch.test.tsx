@@ -12,11 +12,24 @@ import { namedRole, roleIn } from "../../../convex/lineup/roles";
 import { MATCHUP_PATH } from "../../../src/frame/menu";
 import { RUN_MARK } from "../../../src/myTeam/tactics/pitch/runs";
 import { runsWords } from "../../../src/myTeam/tactics/words";
-import { figureWords, noFigureWords, notCountingLabel, openBreakdownLabel, pitchPlayerLabel, sidePitchLabel } from "../../../src/matchup/words";
+import {
+  autoSubWords,
+  benchLabel,
+  figureWords,
+  noFigureWords,
+  notCountingLabel,
+  openBreakdownLabel,
+  pitchPlayerLabel,
+  sidePitchLabel,
+  statusLabels,
+  statusWords,
+} from "../../../src/matchup/words";
 import { headToHead, roleOf, slot, SLOT_MATCH, teamSide } from "../../support/src/matchup.harness";
 import { manager, openApp } from "../../support/src/shell.harness";
 
 const FINISHED = { kind: "finished", fixtureCode: SLOT_MATCH } as const;
+/** A finished man's match, as his tile reads it out. */
+const FINISHED_WORDS = `${statusLabels.finished} ${statusWords.finished}`;
 const POACHER = namedRole(roleIn({ area: "attack", lane: "centre" }, "poacher"));
 const RIGHT_MIDFIELD = { area: "midfield", lane: "right" } as const;
 const WIDE_LABEL = positionOfSlot(RIGHT_MIDFIELD);
@@ -56,19 +69,26 @@ describe("each side's pitch", () => {
   it("shows each man on it with his slot's label and his role, a sub in the slot he came on in, never the man he replaced or a bench player not on", async () => {
     const pitch = await opened();
     expect(tilesOn(pitch)).toEqual([
-      pitchPlayerLabel("Delap", "ST", POACHER.name, figureWords(5)),
-      pitchPlayerLabel("Coyle", "CM", roleOf("midfield").name, figureWords(2)),
+      `${pitchPlayerLabel("Delap", "ST", POACHER.name, figureWords(5))}, ${FINISHED_WORDS}`,
+      `${pitchPlayerLabel("Coyle", "CM", roleOf("midfield").name, figureWords(2))}, ${FINISHED_WORDS}`,
       // Saka's slot and its label, with Rice's role.
-      pitchPlayerLabel("Rice", WIDE_LABEL, WIDE_ROLE.name, figureWords(3)),
-      pitchPlayerLabel("Raya", "GK", roleOf("goalkeeper").name, figureWords(6)),
+      `${pitchPlayerLabel("Rice", WIDE_LABEL, WIDE_ROLE.name, figureWords(3))}, ${FINISHED_WORDS}, ${autoSubWords.on("Saka")}`,
+      `${pitchPlayerLabel("Raya", "GK", roleOf("goalkeeper").name, figureWords(6))}, ${FINISHED_WORDS}`,
     ]);
-    expect(tilesOn(screen.getByRole("list", { name: sidePitchLabel("Team 2") }))).toEqual([pitchPlayerLabel("Beto", "ST", POACHER.name, noFigureWords)]);
+    expect(tilesOn(screen.getByRole("list", { name: sidePitchLabel("Team 2") }))).toEqual([
+      `${pitchPlayerLabel("Beto", "ST", POACHER.name, noFigureWords)}, ${statusLabels.yetToPlay} ${statusWords.yetToPlay(null)}`,
+    ]);
+    // Saka on the bench in Rice's place, "Off", then Singh, not on.
+    expect(tilesOn(screen.getByRole("list", { name: benchLabel("Team 1") }))).toEqual([
+      `${pitchPlayerLabel("Saka", WIDE_LABEL, roleOf("midfield").name, figureWords(0))}, ${FINISHED_WORDS}, ${notCountingLabel}, ${autoSubWords.off("Rice")}`,
+      `Singh, ${figureWords(1)}, ${FINISHED_WORDS}, ${notCountingLabel}`,
+    ]);
   });
 
   it("greys a starter no one could replace, who keeps his slot", async () => {
     const unreplaced = { ...centre, counts: false, points: 0, autoSub: { kind: "unreplaced" } } as const;
     const pitch = await opened(teamSide("Team 1", [unreplaced], []));
-    expect(tilesOn(pitch)).toEqual([`${pitchPlayerLabel("Coyle", "CM", roleOf("midfield").name, figureWords(0))} ${notCountingLabel}`]);
+    expect(tilesOn(pitch)).toEqual([`${pitchPlayerLabel("Coyle", "CM", roleOf("midfield").name, figureWords(0))}, ${FINISHED_WORDS}, ${notCountingLabel}, ${autoSubWords.unreplaced}`]);
   });
 
   it("draws each moving role's run, the sub's in the slot he came on in, none for a role that holds or the man he replaced", async () => {
@@ -91,6 +111,6 @@ describe("each side's pitch", () => {
   it("marks the man whose breakdown is open", async () => {
     const pitch = await opened();
     await userEvent.click(within(screen.getByRole("region", { name: "Team 1" })).getByRole("button", { name: openBreakdownLabel("Delap") }));
-    expect(within(pitch).getByRole("listitem", { current: true }).getAttribute("aria-label")).toBe(pitchPlayerLabel("Delap", "ST", POACHER.name, figureWords(5)));
+    expect(within(pitch).getByRole("listitem", { current: true }).getAttribute("aria-label")).toBe(`${pitchPlayerLabel("Delap", "ST", POACHER.name, figureWords(5))}, ${FINISHED_WORDS}`);
   });
 });
