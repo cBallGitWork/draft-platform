@@ -72,25 +72,31 @@ const cursorOf = (row: Row): NewsCursor => ({ at: row.at, filed: row._creationTi
 /** Whether the row sits below the cursor, in the order the moves are listed. */
 const below = (row: Row, cursor: NewsCursor) => row.at < cursor.at || (row.at === cursor.at && row._creationTime < cursor.filed);
 
-/** One kind's moves below `before`, newest first, and whether it has more past those read. */
-async function kindBelow(ctx: QueryCtx, leagueId: Id<"leagues">, kind: SquadMoveKind, before: NewsCursor | null) {
-  const ofKind = () => ctx.db.query("leagueEvents").withIndex("by_leagueId_and_kind_and_at", (q) => q.eq("leagueId", leagueId).eq("event.kind", kind));
-  if (before === null) return takeShown(ofKind().order("desc"), NEWS_READ_OF_EACH_KIND);
-  const sameInstant = await takeAllOrThrow(
+/** One kind's moves filed at the instant `at`, newest first. */
+const kindAt = (ctx: QueryCtx, leagueId: Id<"leagues">, kind: SquadMoveKind, at: number) =>
+  takeAllOrThrow(
     ctx.db
       .query("leagueEvents")
-      .withIndex("by_leagueId_and_kind_and_at", (q) => q.eq("leagueId", leagueId).eq("event.kind", kind).eq("at", before.at))
+      .withIndex("by_leagueId_and_kind_and_at", (q) => q.eq("leagueId", leagueId).eq("event.kind", kind).eq("at", at))
       .order("desc"),
     SAME_INSTANT_MOST,
-    `League ${leagueId} has more than ${SAME_INSTANT_MOST} ${kind} moves at ${before.at}, so its News can't page past them`,
+    `League ${leagueId} has more than ${SAME_INSTANT_MOST} ${kind} moves at ${at}, so its News can't page past them`,
   );
+
+/** One kind's moves below `before`, newest first, and whether it has more past those read. */
+async function kindBelow(ctx: QueryCtx, leagueId: Id<"leagues">, kind: SquadMoveKind, before: NewsCursor | null) {
   const older = await takeShown(
     ctx.db
       .query("leagueEvents")
-      .withIndex("by_leagueId_and_kind_and_at", (q) => q.eq("leagueId", leagueId).eq("event.kind", kind).lt("at", before.at))
+      .withIndex("by_leagueId_and_kind_and_at", (q) => {
+        const ofKind = q.eq("leagueId", leagueId).eq("event.kind", kind);
+        return before === null ? ofKind : ofKind.lt("at", before.at);
+      })
       .order("desc"),
     NEWS_READ_OF_EACH_KIND,
   );
+  if (before === null) return older;
+  const sameInstant = await kindAt(ctx, leagueId, kind, before.at);
   return { rows: [...sameInstant.filter((row) => below(row, before)), ...older.rows], more: older.more };
 }
 
@@ -132,15 +138,7 @@ const madeFor = (drop: NewsMove, joining: readonly NewsMove[]) =>
  *  sit below it. */
 async function joiningAt(ctx: QueryCtx, leagueId: Id<"leagues">, before: NewsCursor | null): Promise<NewsMove[]> {
   if (before === null) return [];
-  const read = await Promise.all(
-    (["playerClaimed", "playerPickedUp"] as const).map((kind) =>
-      takeAllOrThrow(
-        ctx.db.query("leagueEvents").withIndex("by_leagueId_and_kind_and_at", (q) => q.eq("leagueId", leagueId).eq("event.kind", kind).eq("at", before.at)),
-        SAME_INSTANT_MOST,
-        `League ${leagueId} has more than ${SAME_INSTANT_MOST} ${kind} moves at ${before.at}, so its News can't page past them`,
-      ),
-    ),
-  );
+  const read = await Promise.all((["playerClaimed", "playerPickedUp"] as const).map((kind) => kindAt(ctx, leagueId, kind, before.at)));
   return read.flat().map(moveOf);
 }
 
