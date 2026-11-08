@@ -1,8 +1,9 @@
 import { beforeEach, describe, expect, test } from "vitest";
 import { api } from "../../../convex/_generated/api";
 import { claimRefusals } from "../../../convex/waivers/waiverClaims";
-import { WAIVER_MS } from "../../../convex/waivers/waiverPlayers";
+import { WAIVER_MS } from "../../../convex/waivers/waiverLimits";
 import { playerLeaves } from "../../support/convex/draftLists.harness";
+import { setUsed } from "../../support/convex/leagueRules.harness";
 import { actingAs, COMMISSIONER } from "../../support/convex/leagues.harness";
 import { nameOf, passNextDeadline } from "../../support/convex/lineupSquad.harness";
 import { expectRefused } from "../../support/convex/test.harness";
@@ -95,6 +96,21 @@ describe("the lock", () => {
 
     expect(await w.stateOf(SAKA)).toMatchObject({ kind: "onWaivers" });
     expect(await w.pending(BOB)).toHaveLength(1);
+
+    await w.matchIs(NEXT, "fullTime");
+    await w.runWaivers();
+    expect(await w.stateOf(SAKA)).toMatchObject({ kind: "owned", teamId: w.bobsTeam });
+  });
+
+  test("holds through a gameweek the league doesn't play, claims and the run alike (spec/13)", async () => {
+    await setUsed(w.t, w.leagueId, NEXT, false);
+    await w.onWaivers([SAKA]);
+    await w.claim(BOB, SAKA);
+    await passNextDeadline(w.t);
+    await w.matchIs(NEXT, "live");
+    await expectRefused(w.claim(ANN, SAKA), claimRefusals.locked);
+    await w.runWaivers();
+    expect(await w.stateOf(SAKA)).toMatchObject({ kind: "onWaivers" });
 
     await w.matchIs(NEXT, "fullTime");
     await w.runWaivers();

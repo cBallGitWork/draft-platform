@@ -3,6 +3,7 @@
 
 import { vi } from "vitest";
 import type { CardAction, PlayerCard, PlayerCardSeam, WaiverChanges } from "../../../src/playerCard/seam";
+import { fakeScouts, type ScoutsData } from "./scouts.harness";
 import { fakeShortlist, type ShortlistData } from "./shortlist.harness";
 
 /** What the fake server holds: each player's card, or nothing yet while it loads. */
@@ -10,6 +11,7 @@ export type PlayerCardData = {
   cards?: readonly PlayerCard[];
   loading?: boolean;
   shortlist?: ShortlistData;
+  scouts?: ScoutsData;
   /** What the server says to an override, or to its removal: null when it makes it. */
   overrideRefusal?: string | null;
   /** The card's waiver action on each player by code; none for a player not named. */
@@ -18,7 +20,7 @@ export type PlayerCardData = {
   waiverRefusal?: string | null;
 };
 
-export function fakePlayerCard({ cards = [], loading = false, shortlist, overrideRefusal = null, actions = new Map(), waiverRefusal = null }: PlayerCardData = {}) {
+export function fakePlayerCard({ cards = [], loading = false, shortlist, scouts, overrideRefusal = null, actions = new Map(), waiverRefusal = null }: PlayerCardData = {}) {
   const override = vi.fn<ReturnType<PlayerCardSeam["useOverride"]>>(() => Promise.resolve(overrideRefusal));
   const answer = () => Promise.resolve(waiverRefusal);
   const waiverChanges = { drop: vi.fn<WaiverChanges["drop"]>(answer), claim: vi.fn<WaiverChanges["claim"]>(answer), pickUp: vi.fn<WaiverChanges["pickUp"]>(answer) };
@@ -32,6 +34,7 @@ export function fakePlayerCard({ cards = [], loading = false, shortlist, overrid
     useWaiverChanges: () => waiverChanges,
     useCardAction: (_leagueId: unknown, playerCode: number): CardAction => actions.get(playerCode) ?? { kind: "none" },
     ...fakeShortlist(shortlist),
+    ...fakeScouts(scouts),
     usePlayerCard: vi.fn<PlayerCardSeam["usePlayerCard"]>((_leagueId, playerCode) =>
       loading ? undefined : (cards.find((card) => card.code === playerCode) ?? null),
     ),

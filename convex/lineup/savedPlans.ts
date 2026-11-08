@@ -17,7 +17,7 @@ import { roleIn } from "./roles";
 // team instructions (#990), saved by name, never players ("Players change too much to save"). He
 // keeps up to 5; saving under a name he already has replaces that plan, and a plan he deletes is
 // gone (Craig, 6 Nov 2026). Whether a plan may still be loaded under the league's rules is the screen's, read against the presets of the
-// gameweek it edits (src/myTeam/tactics/lineupDraft.ts `loadedPlan`).
+// gameweek it edits (src/myTeam/tactics/lineupEdits.ts `loadedPlan`).
 
 const planShape = v.object({ name: v.string(), slots: v.array(planSlotShape), instructions: v.optional(instructionPairShape) });
 

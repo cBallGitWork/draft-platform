@@ -5,11 +5,11 @@
 import { screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
-import type { Id } from "../../../convex/_generated/dataModel";
-import type { LetterSummary } from "../../../convex/mail/mail";
-import { MAIL_PATH, MY_TEAM_PATH } from "../../../src/frame/menu";
-import { MAIL_TITLE, unreadCount } from "../../../src/mail/words";
-import { playerCardPath } from "../../../src/playerCard/paths";
+import type { Id } from "../../../../convex/_generated/dataModel";
+import type { LetterSummary } from "../../../../convex/mail/mail";
+import { MAIL_PATH, MY_TEAM_PATH } from "../../../../src/frame/menu";
+import { MAIL_TITLE, unreadCount } from "../../../../src/mail/words";
+import { playerCardPath } from "../../../../src/playerCard/paths";
 import {
   allMailWords,
   bestRoleNotRatedLabel,
@@ -32,12 +32,12 @@ import {
   squadViewWords,
   statusNotSettledLabel,
   YOUR_ELEVEN_TITLE,
-} from "../../../src/myTeam/squad/words";
-import { everyRoleOf } from "../../../convex/lineup/roles";
-import { starsLabel } from "../../../src/ui/StarRating";
-import { closeSelectedLabel as closeTacticsPanelLabel, ROLE_FIT_SUBJECT } from "../../../src/myTeam/tactics/words";
-import { league } from "../../support/src/shell.harness";
-import { openSquad, PALMER, RAYA, SAKA, squadOf, tacticsWith } from "../../support/src/squadTab.harness";
+} from "../../../../src/myTeam/squad/words";
+import { everyRoleOf } from "../../../../convex/lineup/roles";
+import { starsLabel } from "../../../../src/ui/StarRating";
+import { closeSelectedLabel as closeTacticsPanelLabel, ROLE_FIT_SUBJECT } from "../../../../src/myTeam/tactics/words";
+import { league } from "../../../support/src/shell.harness";
+import { openSquad, PALMER, RAYA, SAKA, squadOf, tacticsWith } from "../../../support/src/squadTab.harness";
 
 const WINGER = { area: "attackingMidfield", lane: "right" } as const;
 const KEEPER = { area: "goalkeeper", lane: "centre" } as const;

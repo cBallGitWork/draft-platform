@@ -12,19 +12,16 @@ import type { ScoringSet } from "../scoring/scoringSet";
 import { statIn, type MatchStats } from "../scoring/values";
 import type { Doc } from "../_generated/dataModel";
 import { isWhole, MINUTES_STAT } from "../stats/matchRecords";
-import { NO_DATA, UNSURE, type Stars } from "./starsShape";
+import { LEAST_MATCHES_RATED, MOST_STARS, NO_DATA, UNSURE, type Stars } from "./starsShape";
 
 /** How many of his newest matches he is rated on (spec/05: "the last 38 matches he played"). */
 export const STARS_WINDOW = 38;
-
-/** Fewer counted matches than this and he shows "?": we aren't sure yet (spec/05). */
-export const LEAST_MATCHES_RATED = 3;
 
 /** The first cut points (Craig, 1 Nov 2026), tunable: each rating, best first, and the share of the
  *  pool that may score more than him for it. Five stars is the top 5%; 4.5 from the 85th
  *  percentile, so fewer than 15% above him; and so on down to 1. */
 export const STAR_CUTS: readonly { stars: number; fewerAbove: number }[] = [
-  { stars: 5, fewerAbove: 0.05 },
+  { stars: MOST_STARS, fewerAbove: 0.05 },
   { stars: 4.5, fewerAbove: 0.15 },
   { stars: 4, fewerAbove: 0.25 },
   { stars: 3.5, fewerAbove: 0.35 },

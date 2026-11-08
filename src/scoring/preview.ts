@@ -6,7 +6,7 @@ import type { LabReport } from "../../convex/balanceLab/labReportShape";
 import { FIRST_SCORING } from "../../convex/scoring/firstScoring";
 import { DAY_MS, WEEK_MS } from "../../convex/shared/time";
 import type { Session } from "../signIn/seam";
-import { previewSays } from "../app/preview";
+import { previewSays } from "../shared/preview";
 import { PREVIEW_CHANGES_FROM } from "../rules/preview";
 import type { ScoringSeam, ScoringView } from "./seam";
 import { unsavedOutcome } from "./words";

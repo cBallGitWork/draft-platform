@@ -6,7 +6,7 @@ import { GAMEWEEKS } from "../../../convex/gameweeks/usedGameweeks";
 import { LINEUP_DUE_BEFORE_DEADLINE_MS } from "../../../convex/lineup/lineupLimits";
 import { refusals } from "../../../convex/shared/leagueAccess";
 import { MINUTE_MS, WEEK_MS } from "../../../convex/shared/time";
-import { KICKS_OFF_IN, holdGameweeks } from "../../support/convex/leagueRules.harness";
+import { KICKS_OFF_IN, holdGameweeks, setUsed } from "../../support/convex/leagueRules.harness";
 import { expectRefused } from "../../support/convex/test.harness";
 import { ADMIN, COMMISSIONER, MANAGERS, actingAs, addManager, addManagers, adminCreatesLeague, type TestConvex } from "../../support/convex/leagues.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
@@ -114,6 +114,13 @@ describe("opening Tactics", () => {
   test("keeps nothing once the season is over", async () => {
     clockTo(nextDeadline() + (GAMEWEEKS - NEXT) * WEEK_MS);
     await opensTactics(ANN, GAMEWEEKS + 1);
+    expect(await openedIn()).toBeNull();
+  });
+
+  test("keeps nothing once the last gameweek of a league that ends early has begun (spec/13)", async () => {
+    await setUsed(t, leagueId, GAMEWEEKS, false);
+    clockTo(nextDeadline() + (GAMEWEEKS - 1 - NEXT) * WEEK_MS);
+    await opensTactics(ANN, GAMEWEEKS);
     expect(await openedIn()).toBeNull();
   });
 

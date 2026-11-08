@@ -7,7 +7,7 @@ import { api, internal } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
 import { recordPassedDeadlines } from "../../../convex/gameweeks/deadlineRecorder";
 import { MINUTE_MS, WEEK_MS } from "../../../convex/shared/time";
-import { holdGameweeks } from "./leagueRules.harness";
+import { holdGameweeks, holdMatchState } from "./leagueRules.harness";
 import { actingAs, addManagers, adminCreatesLeague, MANAGERS, teamsIn, type TestConvex } from "./leagues.harness";
 import { holdPlayers, holdSquad, passNextDeadline, SQUAD } from "./lineupSquad.harness";
 import { fakeResend, signInDeployment } from "./signIn.harness";
@@ -17,6 +17,10 @@ export const [ANN, BOB, CAT] = MANAGERS;
 export const NEXT = 5;
 export const [SAKA, PALMER, RICE] = [9001, 9002, 9003];
 export const [ANNS_FIRST_DROP, ANNS_SECOND_DROP] = [SQUAD[SQUAD.length - 1], SQUAD[SQUAD.length - 2]];
+
+/** The letters `email` has been sent, oldest first, as their subjects and bodies. */
+export const lettersTo = (t: TestConvex, email: string) =>
+  t.run(async (ctx) => (await ctx.db.query("letters").withIndex("by_to_and_at", (q) => q.eq("to", email)).collect()).map(({ subject, body }) => ({ subject, body })));
 
 /** The league's draft over: started with no rounds, so no pick is left on the clock. Free agency
  *  and waivers wait for it (#1326). */
@@ -43,12 +47,7 @@ export async function waiverLeague() {
   await holdGameweeks(t, { next: NEXT });
 
   /** The gameweek's one match (holdGameweeks gives each gameweek one, coded by its number) at `state`. */
-  const matchIs = (gameweek: number, state: "live" | "fullTime") =>
-    t.run(async (ctx) => {
-      const held = await ctx.db.query("matchScores").withIndex("by_fixtureCode", (q) => q.eq("fixtureCode", gameweek)).unique();
-      if (held !== null) await ctx.db.delete("matchScores", held._id);
-      await ctx.db.insert("matchScores", { fixtureCode: gameweek, state, homeGoals: 1, awayGoals: 0, minutes: 90, clockLabel: null, feed: "fpl", readAt: Date.now() });
-    });
+  const matchIs = (gameweek: number, state: "live" | "fullTime") => holdMatchState(t, gameweek, state);
   await matchIs(NEXT - 1, "fullTime");
   await holdSquad(t, leagueId, annsTeam);
   await holdPlayers(t, [SAKA, PALMER, RICE]);
@@ -73,8 +72,7 @@ export async function waiverLeague() {
     stateOf: async (playerCode: number) => (await actingAs(t, BOB)).query(api.waivers.waivers.stateOf, { leagueId, playerCode }),
     squadCodes: (teamId: Id<"teams">) =>
       t.run(async (ctx) => (await ctx.db.query("squadPlayers").withIndex("by_teamId", (q) => q.eq("teamId", teamId)).collect()).map(({ playerCode }) => playerCode)),
-    lettersTo: (email: string) =>
-      t.run(async (ctx) => (await ctx.db.query("letters").withIndex("by_to_and_at", (q) => q.eq("to", email)).collect()).map(({ subject, body }) => ({ subject, body }))),
+    lettersTo: (email: string) => lettersTo(t, email),
     /** A minute on, then the league's waivers run for now, as the cron starts them. The clock is
      *  set, never advanced, so no scheduled timer fires. */
     runWaivers: async () => {

@@ -30,3 +30,16 @@ export const seasonStartAt = (at: number): number => Date.UTC(seasonStartYear(at
  *  match showed). The live tick reads the team sheets from then, and the matchup's commentary
  *  sorts an untimed line there. */
 export const LINEUPS_OUT_BEFORE_KICKOFF_MS = HOUR_MS;
+
+/** A span in whole units as words say it; a span that isn't whole is a slip in a constant, so it
+ *  throws rather than be worded wrong. */
+function spanWords(ms: number, unitMs: number, unit: string, one: string): string {
+  const count = ms / unitMs;
+  if (!Number.isInteger(count) || count < 1) throw new Error(`${ms} ms is no whole number of ${unit}s`);
+  return count === 1 ? one : `${count} ${unit}s`;
+}
+
+/** A span in hours, as a letter or a screen says it: "an hour", "24 hours". */
+export const hoursWords = (ms: number) => spanWords(ms, HOUR_MS, "hour", "an hour");
+/** A span in days: "a day", "7 days". */
+export const daysWords = (ms: number) => spanWords(ms, DAY_MS, "day", "a day");

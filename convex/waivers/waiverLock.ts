@@ -1,6 +1,7 @@
 import type { QueryCtx } from "../_generated/server";
 import { scoreOf } from "../football/matchScores";
 import { isLocked, type LeagueDeadlines } from "../gameweeks/deadline";
+import { isGameweekUsed, type WithUnusedGameweeks } from "../gameweeks/usedGameweeks";
 import { gameweekFixtures } from "../shared/fixtures";
 
 // The waiver lock (#1197, spec/08: "From the deadline until the gameweek's last match is over,
@@ -18,6 +19,15 @@ export function latestBegun(deadlines: LeagueDeadlines, now: number): number | n
 export async function inWaiverLock(ctx: QueryCtx, deadlines: LeagueDeadlines, now: number): Promise<boolean> {
   const gameweek = latestBegun(deadlines, now);
   return gameweek !== null && (await gameweekUnderWay(ctx, gameweek));
+}
+
+/** Whether the league is at `now` in a gameweek it doesn't play, from that gameweek's deadline
+ *  until its last match is over: spec/13, "Lineups, waivers, free agency and trades are locked
+ *  through it". The waiver lock already covers that span for waivers and free agency; trades
+ *  (../trades/tradeShut.ts) and lineup saves (../lineup/lineups.ts) read this. */
+export async function inUnplayedGameweek(ctx: QueryCtx, league: WithUnusedGameweeks, deadlines: LeagueDeadlines, now: number): Promise<boolean> {
+  const gameweek = latestBegun(deadlines, now);
+  return gameweek !== null && !isGameweekUsed(league, gameweek) && (await gameweekUnderWay(ctx, gameweek));
 }
 
 /** Whether a gameweek has a match not yet at full time, or with no score read yet: it is under way

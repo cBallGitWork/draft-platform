@@ -13,7 +13,7 @@ import { mailTables, feedbackTables } from "./schema/mail";
 import { leagueRulesTables, squadMaximumTables } from "./schema/rules";
 import { siteScoringTables } from "./schema/scoring";
 import { gameweekTables } from "./schema/gameweeks";
-import { playedFixtureTables } from "./schema/table";
+import { tableTables } from "./schema/table";
 import { lineupTables } from "./schema/lineup";
 import { starsTables } from "./schema/stars";
 import { draftRankingTables, draftTables } from "./schema/draft";
@@ -62,7 +62,7 @@ export default defineSchema({
   ...siteScoringTables,
   ...squadMaximumTables,
   ...gameweekTables,
-  ...playedFixtureTables,
+  ...tableTables,
   ...lineupTables,
   ...starsTables,
   ...draftRankingTables,

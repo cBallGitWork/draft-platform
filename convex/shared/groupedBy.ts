@@ -12,3 +12,8 @@ export function groupedBy<T, K>(items: Iterable<T>, keyOf: (item: T) => K): Map<
   }
   return groups;
 }
+
+/** `items` grouped by a number, highest first, each group's items in the order given. */
+export function rankedGroups<T>(items: Iterable<T>, keyOf: (item: T) => number): T[][] {
+  return [...groupedBy(items, keyOf).entries()].toSorted(([one], [other]) => other - one).map(([, group]) => group);
+}

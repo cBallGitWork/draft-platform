@@ -1,7 +1,8 @@
 // What league home says, in one place for Craig to change in the pull request.
 
 import { TOP_ROWS } from "../../convex/home/glance";
-import { FORM_RESULTS, type Result } from "../../convex/table/standings";
+import { FORM_RESULTS } from "../../convex/table/standings";
+import { fewestTeamsWords, noHeadToHeadsTotalPointsWords } from "../shared/words";
 import { columns as tableColumns } from "../table/words";
 import type { LeagueHome } from "./seam";
 
@@ -16,8 +17,8 @@ export const noRulesWords = "This league was made before leagues had rules, so i
 export const HEAD_TO_HEADS_TITLE = "Head-to-heads";
 export const headToHeadsLabel = (gameweekName: string) => `${gameweekName}'s head-to-heads`;
 export const noHeadToHeadsWords = {
-  totalPoints: "The league plays total points, so it has no head-to-heads.",
-  headToHead: "Head-to-heads are drawn once the league has two teams.",
+  totalPoints: noHeadToHeadsTotalPointsWords,
+  headToHead: `Head-to-heads are drawn once the league has ${fewestTeamsWords}.`,
 } as const satisfies Record<LeagueHome["format"], string>;
 export const byeWords = (teamName: string) => `${teamName}: bye`;
 
@@ -30,14 +31,7 @@ export const columns = {
   form: { short: "Form", long: `Form, the latest ${FORM_RESULTS} results, oldest first` },
 } as const;
 export const yourTeamWords = "Your team";
-/** A result as form shows it, and as a screen reader says it. */
-export const resultWords: Record<Result, { short: string; long: string }> = {
-  won: { short: "W", long: "won" },
-  drawn: { short: "D", long: "drawn" },
-  lost: { short: "L", long: "lost" },
-};
-export const formLabel = (results: readonly Result[]) =>
-  results.length === 0 ? "No results yet" : `Form: ${results.map((result) => resultWords[result].long).join(", ")}`;
+export { formLabel, resultWords } from "../shared/words";
 export const noFormWords = "—";
 export const wholeTableLink = "Whole table and fixtures";
 

@@ -18,11 +18,11 @@ import {
 import { tradeRulesOf } from "../rules/firstRules";
 import { latestRules } from "../rules/rulesHistory";
 import { managerOf, memberOf, refuse, teamsOf } from "../shared/leagueAccess";
-import { DAY_MS } from "../shared/time";
 import { placeOf, squadOf } from "../squads/squadPlace";
 import { limitsBroken } from "../squads/squads";
 import { newlyBroken } from "../waivers/waiverRun";
 import { closeOffersHolding, leagueOf, managersOf, tradedName, tradeWordsOf } from "./tradeClose";
+import { REVIEW_MS } from "./tradeLimits";
 import { movePicks } from "./tradePicks";
 import { onAutoTeam } from "./tradeShut";
 
@@ -36,9 +36,6 @@ import { onAutoTeam } from "./tradeShut";
 // (../squads/squads.ts `move`) is filed for each, and a gameweek already under way keeps their
 // points with the old team, as that move does. Any other open offer holding one of them closes. A
 // pick trade's picks change owner instead (tradePicks.ts; #1096).
-
-/** How long a review lasts (spec/08: "24 hours"). Craig's answer, so a constant. */
-export const REVIEW_MS = DAY_MS;
 
 export const reviewRefusals = {
   notInReview: "That trade isn't in review.",

@@ -9,7 +9,9 @@ import { MOST_IN_SQUAD } from "../../convex/leagues/leagueLimits";
 import { STARTER_COUNT } from "../../convex/lineup/lineup";
 import type { Area } from "../../convex/lineup/pitch";
 import type { TradeReview } from "../../convex/rules/leagueRulesShape";
+import { hoursWords } from "../../convex/shared/time";
 import type { OddTeamOut } from "../../convex/table/roundRobin";
+import { REVIEW_MS } from "../../convex/trades/tradeLimits";
 import { noNumberWords, savedFromWords } from "../rules/words";
 import { AREA_WORDS, failedWords } from "../shared/words";
 import { inUnit, type PickClockUnit } from "./pickClock";
@@ -70,7 +72,7 @@ export const tradeReviewWords: Record<TradeReview, string> = {
 };
 /** spec/08, Trades, and Craig's answers on #383 (31 Oct and 6 Nov 2026). */
 export const tradeReviewHint =
-  "With no one, an accepted trade goes through at once; a review lasts 24 hours. Under a veto, a trade the commissioner is in goes to the co-commissioner, or to a vote if there is none. Under a vote, it is blocked only if most of the managers still playing vote against it.";
+  `With no one, an accepted trade goes through at once; a review lasts ${hoursWords(REVIEW_MS)}. Under a veto, a trade the commissioner is in goes to the co-commissioner, or to a vote if there is none. Under a vote, it is blocked only if most of the managers still playing vote against it.`;
 export const tradeDeadlineWords = "A trade deadline";
 export const tradeDeadlineLabel = "No trades after gameweek";
 /** Craig, 6 Nov 2026, on #383. */

@@ -2,7 +2,7 @@ import { Link } from "@tanstack/react-router";
 import { useState, type DragEvent, type KeyboardEvent } from "react";
 import type { Id } from "../../convex/_generated/dataModel";
 import { SCOUTING_PATH } from "../frame/menu";
-import { ClubShort } from "../premierLeague/ClubName";
+import { ClubShort } from "../ui/ClubName";
 import { useChange } from "../shared/useChange";
 import { Loading, Panel, PanelNote, Problem, Status } from "../ui/Panel";
 import { PositionChip } from "../ui/PositionChip";

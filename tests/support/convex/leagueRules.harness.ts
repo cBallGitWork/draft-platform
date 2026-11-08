@@ -98,6 +98,15 @@ export async function holdGameweeks(
   });
 }
 
+/** Holds holdGameweeks' one match in the gameweek (coded by its number) at `state`, replacing any
+ *  score held for it. */
+export const holdMatchState = (t: TestConvex, gameweek: number, state: "live" | "fullTime") =>
+  t.run(async (ctx) => {
+    const held = await ctx.db.query("matchScores").withIndex("by_fixtureCode", (q) => q.eq("fixtureCode", gameweek)).unique();
+    if (held !== null) await ctx.db.delete("matchScores", held._id);
+    await ctx.db.insert("matchScores", { fixtureCode: gameweek, state, homeGoals: 1, awayGoals: 0, minutes: 90, clockLabel: null, feed: "fpl", readAt: Date.now() });
+  });
+
 /** Holds `extra` current gameweek rows past FPL's 38, with no matches: only a row written by hand
  *  can pass it, and no read of the season's schedule may stop on one (#831, #832, #872). */
 export const holdGameweeksPastTheSeason = (t: TestConvex, extra: number) =>

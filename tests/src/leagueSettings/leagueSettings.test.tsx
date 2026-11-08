@@ -10,7 +10,7 @@ import type { SettingsView } from "../../../src/leagueSettings/seam";
 import { blankGamesWords, gamesHint, gamesLabel, loadingWords, noRulesWords, oddTeamOutWords, redrawWords, savedWords, SETTINGS_TITLE } from "../../../src/leagueSettings/words";
 import { LEAGUES_PATH } from "../../../src/leagues/paths";
 import { LEAGUES_TITLE } from "../../../src/leagues/words";
-import type { Revision } from "../../../src/rules/rulesDraft";
+import type { Revision } from "../../../src/rules/rulesEdits";
 import { discardWords, gameweekWords, loadLatestWords, overtakenWords, unchangedWords } from "../../../src/rules/words";
 import { SCORING_TITLE } from "../../../src/scoring/words";
 import { REVISION } from "../../support/src/leagueSettings.harness";

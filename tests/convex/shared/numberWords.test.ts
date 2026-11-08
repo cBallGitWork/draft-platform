@@ -1,5 +1,5 @@
 import { describe, expect, test } from "vitest";
-import { figureWords, MINUS_SIGN, signedWords } from "../../../convex/shared/numberWords";
+import { countInWords, figureWords, MINUS_SIGN, signedWords } from "../../../convex/shared/numberWords";
 
 describe("the one minus sign (#564)", () => {
   test("is the true minus, U+2212, not the hyphen", () => {
@@ -26,5 +26,15 @@ describe("the one minus sign (#564)", () => {
       expect(figureWords(value)).not.toContain("-");
       expect(signedWords(value)).not.toContain("-");
     }
+  });
+});
+
+describe("a count written out (#1330)", () => {
+  test("up to ten is a word, past ten or not whole its figure", () => {
+    expect(countInWords(2)).toBe("two");
+    expect(countInWords(3)).toBe("three");
+    expect(countInWords(10)).toBe("ten");
+    expect(countInWords(11)).toBe("11");
+    expect(countInWords(1.5)).toBe("1.5");
   });
 });

@@ -5,6 +5,7 @@ import type { Id } from "../../convex/_generated/dataModel";
 import type { PlayedMatch, PlayerCard } from "../../convex/playerCard/playerCard";
 import type { CardAction } from "../../convex/waivers/waivers";
 import type { Change } from "../shared/refusal";
+import type { ScoutsSeam } from "../scouting/scouts/seam";
 import type { ShortlistSeam } from "../scouting/shortlist/seam";
 
 export type { CardAction, PlayedMatch, PlayerCard };
@@ -20,9 +21,9 @@ export type WaiverChanges = {
   pickUp(leagueId: Id<"leagues">, playerCode: number, dropCode: number | null): Change;
 };
 
-/** His card, the manager's shortlist for the card's shortlist action, his waiver action, and the
- *  override for whoever runs the league. */
-export type PlayerCardSeam = ShortlistSeam & {
+/** His card, the manager's shortlist for the card's shortlist action, his scouts for the card's
+ *  scout and reports (#375), his waiver action, and the override for whoever runs the league. */
+export type PlayerCardSeam = ShortlistSeam & ScoutsSeam & {
   /** What the card offers the manager on him, live (a hook): undefined while it loads. */
   useCardAction(leagueId: Id<"leagues">, playerCode: number): CardAction | undefined;
   /** The drop, the claim and the pickup (a hook). */

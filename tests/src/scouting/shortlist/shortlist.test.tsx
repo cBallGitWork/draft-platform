@@ -8,7 +8,7 @@ import { describe, expect, it } from "vitest";
 import { shortlistRefusals } from "../../../../convex/scouting/shortlist";
 import { SCOUTING_PATH } from "../../../../src/frame/menu";
 import { playerCardPath } from "../../../../src/playerCard/paths";
-import { crestUrl } from "../../../../src/premierLeague/ClubName";
+import { crestUrl } from "../../../../src/ui/ClubName";
 import type { PlayerCard } from "../../../../src/playerCard/seam";
 import { draftListRefusals } from "../../../../convex/draft/draftLists";
 import {

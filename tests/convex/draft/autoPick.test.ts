@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, test, vi } from "vitest";
+import { beforeEach, describe, expect, test } from "vitest";
 import { api } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
 import { PICK_GAP_MS } from "../../../convex/draft/draftClock";
@@ -9,6 +9,7 @@ import { ARSENAL, CHELSEA, insertClubs, insertPlayers, type HeldPlayer } from ".
 import { changeEveryRules, HELD_FIRST_RULES } from "../../support/convex/leagueRules.harness";
 import { actingAs, addManagers, adminCreatesLeague, COMMISSIONER, MANAGERS, type TestConvex } from "../../support/convex/leagues.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
+import { elapse } from "../../support/convex/test.harness";
 
 // Auto-pick (spec/04, Auto-pick and The queue and the ranking; #1094): when a clock runs out the
 // draft takes the best legal player left in the team's queue, then the admin's ranking, then by
@@ -57,10 +58,7 @@ const lists = (team: Id<"teams">, queue: number[], doNotDraft: number[] = []) =>
 const ranking = (codes: number[]) =>
   t.run((ctx) => ctx.db.insert("draftRanking", { players: codes.map((code, index) => ({ code, rank: index + 1 })), uploadedAt: Date.now() }));
 /** The clock moves on `ms`, and every pick scheduled by then is made. */
-async function pass(ms: number) {
-  vi.advanceTimersByTime(ms);
-  await t.finishInProgressScheduledFunctions();
-}
+const pass = (ms: number) => elapse(t, ms);
 
 beforeEach(async () => {
   t = await signInDeployment();

@@ -1,7 +1,6 @@
 // What a manager is told when a lineup they save is refused (#8): each of lineup.ts's problems in
 // words, and the refusals of saving one.
 
-import { GAMEWEEKS } from "../gameweeks/usedGameweeks";
 import { andListWords } from "../shared/moments";
 import { STARTER_COUNT, type LineupProblem } from "./lineup";
 import { AREA_WORDS, LANE_WORDS } from "./pitchWords";
@@ -18,7 +17,8 @@ const isNot = (names: readonly string[]) => (names.length === 1 ? "isn't" : "are
 /** Why a lineup can't be saved, as the manager is told it. */
 export const lineupRefusals = {
   noRules: "This league has no rules yet, so it has no deadline and no area limits to set a lineup under. It was made before leagues held their rules.",
-  seasonOver: `All ${GAMEWEEKS} gameweeks have begun, so there's no gameweek left to set a lineup for.`,
+  seasonOver: "Every gameweek this league plays has begun, so there's no gameweek left to set a lineup for.",
+  unplayedGameweek: "Lineups are locked through a gameweek the league doesn't play, until its last match is over.",
   notInSquad: (names: readonly string[]) => `${andListWords(names)} ${isNot(names)} in your squad.`,
   leftOut: (names: readonly string[]) =>
     `${andListWords(names)} ${isNot(names)} in the lineup: every player in your squad starts or sits on the bench.`,

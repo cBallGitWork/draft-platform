@@ -2,6 +2,7 @@ import { v } from "convex/values";
 import type { Doc, Id } from "../_generated/dataModel";
 import { internalMutation, type MutationCtx, type QueryCtx } from "../_generated/server";
 import { leagueDeadlines } from "../gameweeks/leagueDeadlines";
+import { scheduleHeartbeat } from "../heartbeats/heartbeat";
 import { fileLetter } from "../mail/letters";
 import { offerClosedLetter, pickWords, type OfferClosed, type TradeWords } from "../mail/tradeLetterWords";
 import type { TradePick } from "./tradePicks";
@@ -164,6 +165,7 @@ export const closeDue = internalMutation({
         if (closed !== null) await closeOffer(ctx, offer, closed);
       }
     }
+    await scheduleHeartbeat(ctx, "tradeOffers");
     return null;
   },
 });

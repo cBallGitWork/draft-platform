@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import { Notice, PanelNote, Problem, Status } from "../ui/Panel";
-import type { RulesDraft } from "./rulesDraft";
+import type { RulesEdits } from "./rulesEdits";
 import { appliesFromWords, discardWords, gameweekWords, loadLatestWords, overtakenWords, saveWords, unchangedWords } from "./words";
 
 /** The bar under a rules screen: the gameweek a change applies from, any of the screen's own
@@ -16,7 +16,7 @@ export function SaveBar<Part>({
   appliesFrom = true,
   children,
 }: {
-  draft: RulesDraft<Part>;
+  draft: RulesEdits<Part>;
   savedWords: (gameweek: number) => string;
   saveLabel?: string;
   appliesFrom?: boolean;

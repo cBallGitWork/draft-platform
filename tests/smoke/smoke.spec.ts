@@ -4,7 +4,7 @@
 import { expect, type Page } from "@playwright/test";
 import { DEFAULT_PRESETS } from "../../convex/lineup/presets";
 import { ADMIN_FEEDBACK_PATH, ADMIN_FEEDS_PATH, ADMIN_PATH } from "../../src/admin/paths";
-import { miniBeta } from "../../src/app/preview";
+import { miniBeta } from "../../src/shared/preview";
 import { MY_TEAM_PATH, SCOUTING_PATH } from "../../src/frame/menu";
 import { invitesPath } from "../../src/joining/paths";
 import { ERROR_PAGE_TITLE, mainMenuLabel } from "../../src/frame/words";

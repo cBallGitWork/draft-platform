@@ -49,3 +49,8 @@ Named after its route: `team` for `/team`, `team-squad` for `/team/squad`.
   (4 Nov 2026).
 - [`player-card`](player-card/README.md): The player card, for now: it has yet to scale to other
   leagues (7 Nov 2026).
+- [`matchup`](matchup/README.md): The matchup, live, and the commissioner's view with two games a
+  gameweek (8 Nov 2026).
+- [`scouting`](scouting/README.md): Scouting's players, compare, a scout's report and the stat race (8 Nov 2026).
+- [`table`](table/README.md): Table and fixtures, live, a total-points league and a placeholder cup
+  (8 Nov 2026).
