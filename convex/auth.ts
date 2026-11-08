@@ -2,6 +2,7 @@ import Resend from "@auth/core/providers/resend";
 import { convexAuth } from "@convex-dev/auth/server";
 import { joinByInvites } from "./joining/invites";
 import { sendSignInEmail } from "./signIn/signInEmail";
+import { LINK_LIFETIME_S } from "./signIn/signInLimits";
 import { claimAsk } from "./signIn/signInLinks";
 import { TestAccount } from "./signIn/testAccount";
 import { DAY_MS } from "./shared/time";
@@ -11,8 +12,6 @@ import { DAY_MS } from "./shared/time";
 // link's code with `signIn`, and refreshes and ends its session with `signIn` and `signOut`.
 // The one test account signs in with a secret instead (signIn/testAccount.ts).
 
-/** spec/02: a link works once and lasts an hour. */
-export const LINK_LIFETIME_S = 60 * 60;
 /** spec/02: signed in, a manager stays signed in on that device for 30 days. */
 const SESSION_MS = 30 * DAY_MS;
 

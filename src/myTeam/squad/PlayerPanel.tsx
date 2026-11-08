@@ -9,7 +9,7 @@ import { Placeholder } from "../../ui/Placeholder";
 import type { SquadNumberChanges } from "../seam";
 import { StarRating } from "../../ui/StarRating";
 import { starsIn } from "../../../convex/stars/bestRole";
-import { benchBestRole } from "../tactics/lineupDraft";
+import { benchBestRole } from "../tactics/lineupEdits";
 import { ROLE_FIT_SUBJECT } from "../tactics/words";
 import { tacticsLink } from "../tactics/paths";
 import type { Tactics } from "../tactics/seam";

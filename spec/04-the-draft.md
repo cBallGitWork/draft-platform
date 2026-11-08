@@ -111,6 +111,9 @@ Feature 4 of [SPEC.md](../SPEC.md). Only Craig's answers.
   10 seconds (Craig, 4 Nov 2026, on #1091).
 - A team with no manager, which the commissioner hasn't taken on, is auto-picked at once, and the
   next team's clock starts after the 10-second gap (Craig, 4 Nov 2026, on #1091).
+- When a manager leaves or is removed while his team's pick is on the clock, the pick is made for
+  the team at once, not at the clock's end, as nobody can pick for it (Craig, 8 Nov 2026, on #1334:
+  "Auto-pick at once"). `S04.5`
 - After a timed-out pick, the next clock waits the usual 10 seconds, as after every other pick
   (Craig, 4 Nov 2026, on #1091).
 - Players the ranking leaves out come after every ranked player, ordered by last season's points,

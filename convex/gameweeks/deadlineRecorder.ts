@@ -1,4 +1,3 @@
-import { getFunctionName } from "convex/server";
 import { v } from "convex/values";
 import { internal } from "../_generated/api";
 import { internalMutation, type MutationCtx } from "../_generated/server";
@@ -163,20 +162,24 @@ export const recordDueDeadlines = internalMutation({
   },
 });
 
-/** The alarm's name as `_scheduled_functions` holds it, less any `.js` the deployment adds to the
- *  module's path. */
-const DEADLINE_ALARM = getFunctionName(internal.gameweeks.deadlineRecorder.recordDueDeadlines);
-const JS_EXTENSION = /\.js(?=:)/;
-
 /** Leaves exactly one alarm pending, at `at`, or none when no deadline is to come. Every sync and
- *  every alarm records, so without this each would start a chain of its own. The scan reads every
- *  scheduled function Convex keeps: those pending, and those finished in the last week. */
+ *  every alarm records, so without this each would start a chain of its own. The pending alarm's
+ *  id is kept in `deadlineAlarms` (#1329), so this reads one row and one scheduled function, never
+ *  the whole `_scheduled_functions` table, which grows with every league. An alarm that has
+ *  already run, or is the one running this, is left alone and replaced. */
 async function setDeadlineAlarm(ctx: MutationCtx, at: number | null): Promise<void> {
-  let kept = false;
-  for await (const job of ctx.db.system.query("_scheduled_functions")) {
-    if (job.state.kind !== "pending" || job.name.replace(JS_EXTENSION, "") !== DEADLINE_ALARM) continue;
-    if (!kept && job.scheduledTime === at) kept = true;
-    else await ctx.scheduler.cancel(job._id);
+  const row = await ctx.db.query("deadlineAlarms").first();
+  if (row !== null) {
+    const job = await ctx.db.system.get("_scheduled_functions", row.scheduledId);
+    const pending = job?.state.kind === "pending";
+    if (pending && row.at === at) return;
+    if (pending) await ctx.scheduler.cancel(row.scheduledId);
   }
-  if (at !== null && !kept) await ctx.scheduler.runAt(at, internal.gameweeks.deadlineRecorder.recordDueDeadlines, {});
+  if (at === null) {
+    if (row !== null) await ctx.db.delete("deadlineAlarms", row._id);
+    return;
+  }
+  const scheduledId = await ctx.scheduler.runAt(at, internal.gameweeks.deadlineRecorder.recordDueDeadlines, {});
+  if (row === null) await ctx.db.insert("deadlineAlarms", { scheduledId, at });
+  else await ctx.db.patch("deadlineAlarms", row._id, { scheduledId, at });
 }

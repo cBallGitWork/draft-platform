@@ -13,7 +13,7 @@ const gameweekGames = {
 // and read from here ever after (#137); none in one begun with no head-to-head, such as before the
 // league was made (#282). One row a league and gameweek, written only by
 // convex/table/playedFixtures.ts, which says why.
-export const playedFixtureTables = {
+export const tableTables = {
   playedFixtures: defineTable({
     leagueId: v.id("leagues"),
     gameweek: v.number(),

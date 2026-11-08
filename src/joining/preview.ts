@@ -4,7 +4,7 @@
 
 import type { Id } from "../../convex/_generated/dataModel";
 import { DAY_MS } from "../../convex/shared/time";
-import { miniBeta, previewSays } from "../app/preview";
+import { miniBeta, previewSays } from "../shared/preview";
 import { replyWords } from "../signIn/words";
 import type { InvitesPageData, JoiningSeam } from "./seam";
 

@@ -1,7 +1,7 @@
 import { Fragment, type ReactNode } from "react";
 import type { LeagueSummary } from "../../convex/leagues/myLeagues";
 import type { Session } from "../signIn/seam";
-import { currentLeagueOf } from "../leagues/roles";
+import { currentLeagueOf } from "../leagues/access";
 
 const byLeague = (league: LeagueSummary) => league.leagueId;
 

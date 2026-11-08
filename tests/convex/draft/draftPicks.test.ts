@@ -6,7 +6,7 @@ import type { LeagueRules } from "../../../convex/rules/leagueRulesShape";
 import { squadRefusals } from "../../../convex/squads/squads";
 import { refusals } from "../../../convex/shared/leagueAccess";
 import { ARSENAL, CHELSEA, GONE, insertClubs, insertDroppedPlayer, insertPlayers, UNHELD, type HeldPlayer } from "../../support/convex/footballRows.harness";
-import { NO_AREA_MINIMUMS } from "../../support/convex/leagueRules.harness";
+import { changeEveryRules, NO_AREA_MINIMUMS } from "../../support/convex/leagueRules.harness";
 import { expectRefused } from "../../support/convex/test.harness";
 import { actingAs, addManagers, adminCreatesLeague, COMMISSIONER, eventsIn, MANAGERS, type TestConvex } from "../../support/convex/leagues.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
@@ -36,13 +36,7 @@ const [A1, A2, A3, A4, A5, A6] = ARSENAL_MIDS.map(({ code }) => code);
 
 /** The league's squad rules become these, squads of 2 players unless said: the rules in force. */
 const setSquadRules = (squad: Partial<LeagueRules["squad"]>) =>
-  t.run(async (ctx) => {
-    for (const row of await ctx.db.query("leagueRules").withIndex("by_leagueId_and_fromGameweek", (q) => q.eq("leagueId", leagueId)).collect()) {
-      await ctx.db.patch("leagueRules", row._id, {
-        rules: { ...row.rules, squad: { size: { minimum: 1, maximum: 2 }, minimumByArea: null, maxPerClub: null, ...squad } },
-      });
-    }
-  });
+  changeEveryRules(t, leagueId, (rules) => ({ ...rules, squad: { size: { minimum: 1, maximum: 2 }, minimumByArea: null, maxPerClub: null, ...squad } }));
 
 const as = (email: string) => actingAs(t, email);
 const pick = async (email: string, playerCode: number) => (await as(email)).mutation(api.draft.draftPicks.makePick, { leagueId, playerCode });

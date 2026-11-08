@@ -3,7 +3,7 @@
 
 import { DAY_MS, WEEK_MS } from "../../convex/shared/time";
 import { usedGameweeksOf } from "../../convex/gameweeks/usedGameweeks";
-import { previewChristmasBreak } from "../app/preview";
+import { previewChristmasBreak } from "../shared/preview";
 import type { Id } from "../../convex/_generated/dataModel";
 import type { TableSeam } from "./seam";
 import { leagueTableOf, type Drawn } from "./drawnTable";

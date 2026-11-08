@@ -27,8 +27,9 @@ export const pauseRefusals = {
 
 type Clock = NonNullable<Doc<"drafts">["clock"]>;
 
-/** The league's live draft and its clock, or the refusal: it hasn't started, or it is over. */
-async function liveClock(ctx: QueryCtx, leagueId: Id<"leagues">): Promise<{ draft: Doc<"drafts">; clock: Clock }> {
+/** The league's live draft and its clock, or the refusal: it hasn't started, or it is over. Undo
+ *  refuses the same way (draftCommissioner.ts). */
+export async function liveClock(ctx: QueryCtx, leagueId: Id<"leagues">): Promise<{ draft: Doc<"drafts">; clock: Clock }> {
   const draft = await draftOf(ctx, leagueId);
   if (draft?.started === undefined) refuse(pauseRefusals.notStarted);
   if (!(await draftIsLive(ctx, leagueId)) || draft.clock === undefined) refuse(pauseRefusals.over);

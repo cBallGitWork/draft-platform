@@ -1,4 +1,4 @@
-import { ClubShort } from "../premierLeague/ClubName";
+import { ClubShort } from "../ui/ClubName";
 import { versusWords } from "../shared/words";
 import type { PlayedMatch } from "./seam";
 

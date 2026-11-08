@@ -1,6 +1,6 @@
 import { playsCell, positionOfSlot, type Cell } from "../../../convex/lineup/pitch";
 import type { Position } from "../../../convex/positions/positionTables";
-import type { SquadMember } from "./lineupDraft";
+import type { SquadMember } from "./lineupEdits";
 import { flaggedMarkLabel, outOfPositionMarkLabel } from "./words";
 
 // A player's positions at stake (#23; spec/06, When positions change; Craig, 6 Nov 2026), marked

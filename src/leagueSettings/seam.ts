@@ -3,7 +3,7 @@
 
 import type { Id } from "../../convex/_generated/dataModel";
 import type { LeagueSettings } from "../../convex/rules/leagueSettingsPart";
-import type { Revision, RulesView } from "../rules/rulesDraft";
+import type { Revision, RulesView } from "../rules/rulesEdits";
 import type { Change } from "../shared/refusal";
 
 export type SettingsView = RulesView<LeagueSettings>;

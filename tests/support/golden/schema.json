@@ -22679,6 +22679,33 @@
       }
     },
     {
+      "tableName": "deadlineAlarms",
+      "indexes": [],
+      "stagedDbIndexes": [],
+      "searchIndexes": [],
+      "stagedSearchIndexes": [],
+      "vectorIndexes": [],
+      "stagedVectorIndexes": [],
+      "documentType": {
+        "type": "object",
+        "value": {
+          "scheduledId": {
+            "fieldType": {
+              "type": "id",
+              "tableName": "_scheduled_functions"
+            },
+            "optional": false
+          },
+          "at": {
+            "fieldType": {
+              "type": "number"
+            },
+            "optional": false
+          }
+        }
+      }
+    },
+    {
       "tableName": "playedFixtures",
       "indexes": [
         {

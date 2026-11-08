@@ -4,7 +4,7 @@ import { screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
 import { STAT_CATALOGUE } from "../../../convex/scoring/statCatalogueList";
-import { crestUrl } from "../../../src/premierLeague/ClubName";
+import { crestUrl } from "../../../src/ui/ClubName";
 import {
   clearComparisonWords,
   clubLabel,

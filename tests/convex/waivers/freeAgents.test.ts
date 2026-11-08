@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, test } from "vitest";
 import { api } from "../../../convex/_generated/api";
 import { pickUpRefusals } from "../../../convex/waivers/freeAgents";
-import { WAIVER_MS } from "../../../convex/waivers/waiverPlayers";
+import { WAIVER_MS } from "../../../convex/waivers/waiverLimits";
 import { changeRules, HELD_FIRST_RULES, rulesWith, setUsed } from "../../support/convex/leagueRules.harness";
 import { actingAs, eventsIn } from "../../support/convex/leagues.harness";
 import { nameOf, passNextDeadline, SQUAD } from "../../support/convex/lineupSquad.harness";

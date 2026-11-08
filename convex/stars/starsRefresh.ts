@@ -15,8 +15,8 @@ import { sortedJson } from "../shared/sortedJson";
 import { PLAYERS_PAGE, SEASON_PLAYERS_MOST } from "../stats/matchRecords";
 import { playerRecords } from "../stats/seasonRecords";
 import { starsRow } from "./playerStars";
-import { countedMatches, LEAST_MATCHES_RATED, perMatchUnder, ratedRoles, starsFor, type RatedRecord } from "./stars";
-import { UNSURE } from "./starsShape";
+import { countedMatches, perMatchUnder, ratedRoles, starsFor, type RatedRecord } from "./stars";
+import { LEAST_MATCHES_RATED, UNSURE } from "./starsShape";
 
 // Stars kept up to date (#11; spec/05 Roles), stored in playerRoleStars so no read prices every
 // player under every role. Two steps, each its own transaction:

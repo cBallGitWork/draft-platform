@@ -1,4 +1,5 @@
 import { andListWords } from "../shared/moments";
+import { onWaiversWords } from "../mail/waiverLetterWords";
 
 // What the letters to a manager about a player on his shortlist say (spec/16, spec/19 The
 // shortlist; #374), in one place for Craig to change: released, dropped, or clearing waivers.
@@ -19,7 +20,7 @@ export function shortlistedDroppedLetter(
   { playerName, teamName, toWaivers }: { playerName: string; teamName: string; toWaivers: boolean },
   who: string,
 ): Words {
-  const now = toWaivers ? "He is on waivers for at least 24 hours" : "He is a free agent again, not on waivers";
+  const now = toWaivers ? `He is on waivers for ${onWaiversWords}` :"He is a free agent again, not on waivers";
   return {
     subject: `${playerName}, on your shortlist, was dropped`,
     body: `${who} dropped ${playerName} from ${teamName}. ${now}, and on your shortlist.`,

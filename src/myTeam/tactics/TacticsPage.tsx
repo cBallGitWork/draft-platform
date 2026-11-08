@@ -8,14 +8,12 @@ import { unheldNoticeWords } from "../../shared/words";
 import { TeamPage } from "../header/TeamHeader";
 import { markedBy } from "./focusMarks";
 import { FormationWindow } from "./formationWindow/FormationWindow";
-import { formationNameOf, onClassic } from "./classicLineup";
-import { benchedAt, dropOutcome, openingLineup, placeOf, presetInUse, reachOf, reshaped, swapped, withInstruction, withRole, type DraftLineup, type MoveRules, type RatingsOf } from "./lineupDraft";
-import { keptOrSwitched, type Side } from "../../../convex/lineup/instructions";
-import { switchedWords } from "../../../convex/lineup/instructionsWords";
-import type { Cell } from "../../../convex/lineup/pitch";
+import { formationNameOf } from "./classicLineup";
+import { benchedAt, openingLineup, placeOf, presetInUse, swapped, withRole, type EditedLineup, type MoveRules, type RatingsOf } from "./lineupEdits";
+import { dropOutcome, reachOf } from "./swaps";
 import { Pitch, PITCH_ROOM_STYLE, type Moving } from "./pitch/Pitch";
-import { useSavedPlans } from "./useSavedPlans";
-import { SquadTable } from "./SquadTable";
+import { useFormationPicks } from "./useFormationPicks";
+import { SelectionTable } from "./SelectionTable";
 import { useLineupEdits } from "./useLineupEdits";
 import { RunsSwitch, TacticsToolbar } from "./TacticsControls";
 import { PlayerPanel } from "./widgets/PlayerPanel";
@@ -137,7 +135,7 @@ function LineupEditor({ league, teamName, tactics, seam, opened }: { league: Lea
   }, [pickedCode]);
 
   /** Any move that changes the lineup, which Undo can take back; it puts down the player in hand. */
-  const change = (next: DraftLineup, moved: number, focus: readonly string[] = [markedBy("player", moved)]) => {
+  const change = (next: EditedLineup, moved: number, focus: readonly string[] = [markedBy("player", moved)]) => {
     setPickedCode(null);
     edits.edit(next);
     setFocusOn(focus);
@@ -166,31 +164,17 @@ function LineupEditor({ league, teamName, tactics, seam, opened }: { league: Lea
   };
   /** A starter given another role his slot offers; the picker keeps the focus. */
   const toRole = (playerCode: number, role: string) => change(withRole(draft, playerCode, role), playerCode, [markedBy("role", playerCode)]);
-  /** The pitch reshaped to a preset, or a plan loaded on its own pair (spec/05; #990): an instruction
-   *  the new shape offers stays, one it blocks switches to its default. */
-  const reshapeTo = (preset: { name: string; cells: readonly Cell[] }, next: DraftLineup, said: string | null = null) => {
-    setPickedCode(null);
-    const { pair, switched } = keptOrSwitched(next.instructions ?? instructions, preset.cells, tactics.presets, tactics.instructions);
-    edits.reshape(preset.name, { ...next, instructions: pair }, switchedWords(switched), said);
-  };
-  /** A preset picked reshapes the pitch, keeping the players (spec/05; Craig, 26 Oct 2026). */
-  const pickPreset = (name: string) => {
-    const preset = tactics.presets.find((each) => each.name === name);
-    if (preset !== undefined) reshapeTo(preset, reshaped(draft, preset.cells, rules, ratingsOf));
-  };
-  /** A classic picked sets its shape, every slot's role and its instructions (spec/05; #991). */
-  const pickClassic = (name: string) => {
-    const classic = tactics.classics.find((each) => each.name === name);
-    if (classic === undefined) return;
-    setPickedCode(null);
-    edits.reshape(name, onClassic(draft, classic, rules, ratingsOf), null);
-  };
-  /** One side's team instruction picked (spec/05, Team instructions). */
-  const pickInstruction = (side: Side, key: string) => {
-    setPickedCode(null);
-    edits.edit(withInstruction(draft, instructions, side, key));
-  };
-  const plans = useSavedPlans({ leagueId: league.leagueId, seam, draft, instructions, presets: tactics.presets, inUse: presetKey, rules, ratingsOf, onLoad: reshapeTo });
+  const { pickPreset, pickClassic, pickInstruction, plans } = useFormationPicks({
+    leagueId: league.leagueId,
+    seam,
+    tactics,
+    edits,
+    instructions,
+    inUse: presetKey,
+    rules,
+    ratingsOf,
+    putDown: () => setPickedCode(null),
+  });
   /** Up, down, or a drop on a bench row: the player at that place in the bench order. Up or Down
    *  keeps the focus on the button pressed. */
   const toBenchAt = (playerCode: number, index: number, pressed?: "up" | "down") => {
@@ -286,7 +270,7 @@ function LineupEditor({ league, teamName, tactics, seam, opened }: { league: Lea
           }
           className="min-w-0 grow basis-squad"
         >
-          <SquadTable draft={draft} squad={squad} season={season} moving={moving} onBenchAt={toBenchAt} onRole={toRole} />
+          <SelectionTable draft={draft} squad={squad} season={season} moving={moving} onBenchAt={toBenchAt} onRole={toRole} ratingsOf={ratingsOf} />
         </Panel>
         <div className="flex min-w-0 grow basis-widgets flex-col gap-2 lg:grow-0">
           {selected !== undefined && selectedPlace !== null && (

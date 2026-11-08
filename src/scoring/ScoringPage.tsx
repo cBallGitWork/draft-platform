@@ -8,7 +8,7 @@ import { Loading, PAGE_STACK, PageSection, Panel, PanelNote } from "../ui/Panel"
 import { LeagueHeading } from "../leagues/LeagueLinks";
 import { PatchNotesLink } from "../patches/PatchBanner";
 import { sectionTabClasses } from "../frame/AppFrame";
-import { useRulesDraft, type RulesView } from "../rules/rulesDraft";
+import { useRulesEdits, type RulesView } from "../rules/rulesEdits";
 import { SaveBar } from "../rules/SaveBar";
 import { BoxRefusalContext } from "../rules/blank";
 import { TickBox } from "../ui/TickBox";
@@ -87,7 +87,7 @@ function AdminsEditor({ seam, view }: { seam: ScoringSeam; view: ScoringView }) 
  *  draft it was opened on; then announcing what was saved. */
 function DraftEditor({ seam, view }: { seam: ScoringSeam; view: ScoringView }) {
   const savedAt = view.draft?.savedAt ?? null;
-  // Kept while neither changes, as rulesDraft.ts tells a draft overtaken by its revision changing.
+  // Kept while neither changes, as rulesEdits.ts tells a draft overtaken by its revision changing.
   const revision = useMemo(() => ({ site: view.revision, savedAt }), [view.revision, savedAt]);
   const draftView = { part: view.draft?.part ?? view.part, revision, changesFrom: view.changesFrom };
   return (
@@ -106,7 +106,7 @@ function DraftEditor({ seam, view }: { seam: ScoringSeam; view: ScoringView }) {
 }
 
 /** The two panes: the categories, and the one chosen; and, unless `readOnly`, the bar that saves
- *  them with `save` (rulesDraft.ts says how the draft follows the latest set, and what a save over
+ *  them with `save` (rulesEdits.ts says how the draft follows the latest set, and what a save over
  *  someone else's does), `bar` its words, and `after` what follows it, told whether the set is
  *  edited since it was read. Read only, the same panes, and a line saying who sets them. A save
  *  refused for a box left without a number opens the category it names, and says so beside the
@@ -125,8 +125,8 @@ function Editor<Rev>({
   after?: (edited: boolean) => ReactNode;
 }) {
   const [picked, choose] = useState(0);
-  const rulesDraft = useRulesDraft(view, save, blankBoxRefusal, (refusedSet) => choose(firstBlankRule(refusedSet)));
-  const { draft, edit } = rulesDraft;
+  const rulesEdits = useRulesEdits(view, save, blankBoxRefusal, (refusedSet) => choose(firstBlankRule(refusedSet)));
+  const { draft, edit } = rulesEdits;
   const nameOf = (stat: string) => categoryName(stat, draft.ownStats);
   // The last, once removing or discarding leaves fewer than the one picked.
   const chosen = Math.max(0, Math.min(picked, draft.rules.length - 1));
@@ -146,7 +146,7 @@ function Editor<Rev>({
   }
 
   return (
-    <div ref={rulesDraft.area} className="flex flex-col gap-2 lg:flex-row lg:items-start">
+    <div ref={rulesEdits.area} className="flex flex-col gap-2 lg:flex-row lg:items-start">
       <Panel title={categoriesLabel} className="lg:shrink-0 lg:basis-categories">
         <ul aria-label={categoriesLabel}>
           {draft.rules.map((each, index) => (
@@ -172,7 +172,7 @@ function Editor<Rev>({
       </Panel>
       <div className="flex min-w-0 grow flex-col gap-2">
         {rule && (
-          <BoxRefusalContext value={rulesDraft.boxRefusal}>
+          <BoxRefusalContext value={rulesEdits.boxRefusal}>
             <CategoryEditor key={chosen} name={nameOf(rule.stat)} rule={rule} readOnly={readOnly} onChange={(changed) => setRule(chosen, changed)} onRemove={() => remove(chosen)} />
           </BoxRefusalContext>
         )}
@@ -183,12 +183,12 @@ function Editor<Rev>({
           </div>
         ) : (
           <>
-            <SaveBar draft={rulesDraft} {...bar}>
+            <SaveBar draft={rulesEdits} {...bar}>
               <TickBox checked={draft.wholePointsOnly} onChange={(on) => edit({ ...draft, wholePointsOnly: on })}>
                 {wholePointsWords}
               </TickBox>
             </SaveBar>
-            {after?.(!rulesDraft.unchanged)}
+            {after?.(!rulesEdits.unchanged)}
           </>
         )}
       </div>

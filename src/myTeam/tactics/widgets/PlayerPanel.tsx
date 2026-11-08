@@ -11,9 +11,9 @@ import { StarRating } from "../../../ui/StarRating";
 import { starsIn } from "../../../../convex/stars/bestRole";
 import { figureWords, noFigureWords, statusNotSettledLabel } from "../../words";
 import { markOf } from "../focusMarks";
-import { benchBestRole, placeOf, type SquadMember } from "../lineupDraft";
+import { benchBestRole, placeOf, type SquadMember } from "../lineupEdits";
 import type { Moving } from "../pitch/Pitch";
-import type { SeasonOf } from "../SquadTable";
+import type { SeasonOf } from "../SelectionTable";
 import { NextMatches } from "../../SquadCells";
 import {
   benchWhereWords,

@@ -1,3 +1,4 @@
+import { MOST_IN_SQUAD } from "../leagues/leagueLimits";
 import { andListWords } from "../shared/moments";
 import type { TellMoment } from "./letterMoments";
 
@@ -126,11 +127,28 @@ export function tradeBlockedLetter(trade: TradeWords, review: ReviewWords): Word
   };
 }
 
-/** To both managers when a trade cleared review but can't be made: a player in it is no longer on
- *  his side's team, moved by the commissioner while it was in review. */
-export function tradeFailedLetter(trade: TradeWords, playerName: string, teamName: string): Words {
+/** Why a trade that cleared review can't be made (#1325): a player in it is no longer on his side's
+ *  team, moved by the commissioner while it was in review; a team would hold more than the most in
+ *  a squad, filled meanwhile by another trade or an assignment; or anything else that stops it. */
+export type TradeFailed =
+  | { why: "playerGone"; playerName: string; teamName: string }
+  | { why: "squadFull"; teamName: string }
+  | { why: "error" };
+
+/** To both managers when a trade cleared review but can't be made, saying why. */
+export function tradeFailedLetter(trade: TradeWords, failed: TradeFailed): Words {
+  const because = (() => {
+    switch (failed.why) {
+      case "playerGone":
+        return `${failed.playerName} is no longer in ${failed.teamName}'s squad`;
+      case "squadFull":
+        return `${failed.teamName} would hold more than ${MOST_IN_SQUAD} players`;
+      case "error":
+        return "It couldn't be made";
+    }
+  })();
   return {
     subject: `The trade between ${trade.fromTeamName} and ${trade.toTeamName} didn't go through`,
-    body: `${playerName} is no longer in ${teamName}'s squad, so nobody moves. The trade was: ${sides(trade)}`,
+    body: `${because}, so nobody moves. The trade was: ${sides(trade)}`,
   };
 }

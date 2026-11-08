@@ -4,6 +4,11 @@ import { areaShape } from "../lineup/pitchShape";
 // A rating's values and validators, apart from stars.ts so the schema and the browser read them
 // without loading the scorer (as scoring/scoringSetShape.ts is, #756).
 
+/** Fewer counted matches than this and he shows "?": we aren't sure yet (spec/05). */
+export const LEAST_MATCHES_RATED = 3;
+/** The most stars a rating gives: five. */
+export const MOST_STARS = 5;
+
 /** Shown "?": he has played, but too few matches to be sure (spec/05). */
 export const UNSURE = "unsure";
 /** Shown "—": no counted match at all, as a new signing (spec/05). */

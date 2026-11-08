@@ -3,7 +3,7 @@
 // Rice; the preview saves nothing and says so. Fails on any console or page error (errorsTest.ts).
 
 import { expect } from "@playwright/test";
-import { proLeague } from "../../src/app/preview";
+import { proLeague } from "../../src/shared/preview";
 import { playerCardPath } from "../../src/playerCard/paths";
 import { claimWords, confirmDropWords, dropWords, pickUpWords, whoGoesLabel } from "../../src/playerCard/words";
 import { test } from "../support/smoke/errorsTest";

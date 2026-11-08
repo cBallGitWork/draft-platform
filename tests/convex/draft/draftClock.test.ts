@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, test, vi } from "vitest";
+import { beforeEach, describe, expect, test } from "vitest";
 import { api } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
 import { PICK_GAP_MS } from "../../../convex/draft/draftClock";
@@ -8,6 +8,7 @@ import { ARSENAL, CHELSEA, insertClubs, insertPlayers, type HeldPlayer } from ".
 import { changeEveryRules, HELD_FIRST_RULES, setPickSeconds as setPickSecondsOf } from "../../support/convex/leagueRules.harness";
 import { actingAs, addManagers, adminCreatesLeague, COMMISSIONER, eventsIn, MANAGERS, type TestConvex } from "../../support/convex/leagues.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
+import { elapse } from "../../support/convex/test.harness";
 
 // The pick clock (spec/04, The picks; #1091): each pick runs on the league's pick time, the first
 // from the start and each after 10 seconds from the pick before; when a clock runs out the draft
@@ -38,10 +39,7 @@ const picks = () => t.run(async (ctx) => (await ctx.db.query("draftPicks").colle
 const letterCount = () => t.run(async (ctx) => (await ctx.db.query("letters").collect()).length);
 const newLetterSubjects = (after: number) => t.run(async (ctx) => (await ctx.db.query("letters").collect()).slice(after).map(({ subject }) => subject));
 /** The clock moves on `ms`, and every pick scheduled by then is made. */
-async function pass(ms: number) {
-  vi.advanceTimersByTime(ms);
-  await t.finishInProgressScheduledFunctions();
-}
+const pass = (ms: number) => elapse(t, ms);
 
 beforeEach(async () => {
   t = await signInDeployment();
@@ -153,5 +151,50 @@ describe("Mail", () => {
 
     expect((await picks()).map(({ playerCode }) => playerCode)).toEqual([A1, A2]);
     expect(await newLetterSubjects(before)).toEqual(["You're up next in the draft", "You're up next in the draft"]);
+  });
+});
+
+// spec/04, Auto-pick, S04.5 (Craig, 8 Nov 2026, on #1334: "Auto-pick at once"): nobody can pick for
+// a team whose manager has gone, so the draft does, without waiting for the clock.
+describe("a manager who goes while his pick is on the clock", () => {
+  const leave = async (email: string) => (await as(email)).mutation(api.leagues.teams.leave, { leagueId });
+  const pickedCodes = async () => (await picks()).map(({ playerCode }) => playerCode);
+
+  test("leaves: the draft picks for his team at once", async () => {
+    await start();
+    await pass(PICK_MS / 2);
+    expect(await picks()).toEqual([]);
+
+    await leave(ANN);
+    await pass(0);
+    expect(await pickedCodes()).toEqual([A1]);
+  });
+
+  test("is removed by the commissioner: the draft picks for his team at once", async () => {
+    await start();
+    await (await as(COMMISSIONER)).mutation(api.leagues.teams.removeManager, { leagueId, teamId: teams[0] });
+    await pass(0);
+    expect(await pickedCodes()).toEqual([A1]);
+  });
+
+  test("leaves while the draft is paused: the pick waits for the resume, then is made at once", async () => {
+    await start();
+    await (await as(COMMISSIONER)).mutation(api.draft.draftPause.pause, { leagueId });
+    await leave(ANN);
+    await pass(PICK_MS);
+    expect(await picks()).toEqual([]);
+
+    await (await as(COMMISSIONER)).mutation(api.draft.draftPause.resume, { leagueId });
+    await pass(0);
+    expect(await pickedCodes()).toEqual([A1]);
+  });
+
+  test("leaves while another team is on the clock: that pick still runs its clock", async () => {
+    await start();
+    await leave(BOB);
+    await pass(PICK_MS - 1);
+    expect(await picks()).toEqual([]);
+    await pass(1);
+    expect(await pickedCodes()).toEqual([A1]);
   });
 });

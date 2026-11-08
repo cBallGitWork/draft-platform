@@ -5,7 +5,7 @@ import { ODD_TEAM_OUTS } from "../../convex/table/roundRobin";
 import { Loading, PANEL_BODY, PageSection, Panel, PanelNote } from "../ui/Panel";
 import { LeagueHeading } from "../leagues/LeagueLinks";
 import { Choice } from "../ui/Choice";
-import { useRulesDraft } from "../rules/rulesDraft";
+import { useRulesEdits } from "../rules/rulesEdits";
 import { SaveBar } from "../rules/SaveBar";
 import { BoxRefusalContext } from "../rules/blank";
 import { TickBox } from "../ui/TickBox";
@@ -76,15 +76,15 @@ export function SettingsPage({ league, seam }: { league: LeagueSummary; seam: Le
   );
 }
 
-/** The settings, and the bar that saves them (rulesDraft.ts says how the draft follows the latest
+/** The settings, and the bar that saves them (rulesEdits.ts says how the draft follows the latest
  *  settings, and what a save over someone else's does). A save refused for a box left without a
  *  number says so beside that box, the cursor in it. */
 function Editor({ league, seam, view }: { league: LeagueSummary; seam: LeagueSettingsSeam; view: SettingsView }) {
-  const rulesDraft = useRulesDraft(view, (settings, revision) => seam.save(league.leagueId, settings, revision), blankRefusal);
-  const { draft, edit } = rulesDraft;
+  const rulesEdits = useRulesEdits(view, (settings, revision) => seam.save(league.leagueId, settings, revision), blankRefusal);
+  const { draft, edit } = rulesEdits;
   return (
-    <div ref={rulesDraft.area} className="flex flex-col gap-2">
-      <BoxRefusalContext value={rulesDraft.boxRefusal}>
+    <div ref={rulesEdits.area} className="flex flex-col gap-2">
+      <BoxRefusalContext value={rulesEdits.boxRefusal}>
         <Panel title={fixturesTitle}>
           <div className={PANEL_BODY}>
             <Choice
@@ -105,7 +105,7 @@ function Editor({ league, seam, view }: { league: LeagueSummary; seam: LeagueSet
         <SquadPanel draft={draft} edit={edit} />
         <DraftPanel draft={draft.draft} edit={(draftRules) => edit({ ...draft, draft: draftRules })} />
         <TradesPanel trades={draft.trades} edit={(trades) => edit({ ...draft, trades })} />
-        <SaveBar draft={rulesDraft} savedWords={savedWords} />
+        <SaveBar draft={rulesEdits} savedWords={savedWords} />
       </BoxRefusalContext>
       <TeamOrderPanel leagueId={league.leagueId} seam={seam} />
     </div>

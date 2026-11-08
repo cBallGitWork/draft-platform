@@ -10,3 +10,8 @@ export const figureWords = (value: number) => (value < 0 ? `${MINUS_SIGN}${-valu
 
 /** A number shown with its sign, as a difference or an adjustment is: "+4", "0", "−3". */
 export const signedWords = (value: number) => (value > 0 ? `+${value}` : figureWords(value));
+
+const COUNT_NAMES = ["no", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten"];
+/** A small count written out, as a sentence says it: "two teams", "three matches"; past ten, or
+ *  not a whole count, its figure. */
+export const countInWords =(count: number) => (Number.isInteger(count) && count >= 0 ? (COUNT_NAMES[count] ?? figureWords(count)) : figureWords(count));

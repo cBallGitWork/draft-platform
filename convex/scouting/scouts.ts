@@ -1,4 +1,4 @@
-import { v } from "convex/values";
+import { v, type Infer } from "convex/values";
 import type { Doc, Id } from "../_generated/dataModel";
 import { internal } from "../_generated/api";
 import { mutation, query, type QueryCtx } from "../_generated/server";
@@ -83,13 +83,19 @@ const trip = v.object({
   state: scoutState,
   report: v.union(v.object({ text: v.string(), writtenAt: v.number() }), v.null()),
 });
+const myScouts = v.object({ scouts: v.number(), out: v.array(outScout), reports: v.array(report) });
+
+/** The team's scouts, as `mine` reads them. */
+export type MyScouts = Infer<typeof myScouts>;
+/** One scout's trip to a player, as `onPlayer` reads it. */
+export type ScoutTrip = Infer<typeof trip>;
 
 /** The caller's scouts (the Scouts panel's): how many the team has, those out (whom, and when each
  *  is back), and its newest REPORTS_SHOWN reports, newest first. Null for someone in the league who
  *  runs no team. */
 export const mine = query({
   args: { leagueId: v.id("leagues") },
-  returns: v.union(v.object({ scouts: v.number(), out: v.array(outScout), reports: v.array(report) }), v.null()),
+  returns: v.union(myScouts, v.null()),
   handler: async (ctx, { leagueId }) => {
     const { team } = await memberOf(ctx, leagueId);
     if (!team) return null;

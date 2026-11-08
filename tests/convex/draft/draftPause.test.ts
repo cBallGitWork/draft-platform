@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, test, vi } from "vitest";
+import { beforeEach, describe, expect, test } from "vitest";
 import { api } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
 import { PICK_GAP_MS } from "../../../convex/draft/draftClock";
@@ -10,6 +10,7 @@ import { ARSENAL, insertClubs, insertPlayers, type HeldPlayer } from "../../supp
 import { changeEveryRules, HELD_FIRST_RULES, setPickSeconds as setPickSecondsOf } from "../../support/convex/leagueRules.harness";
 import { actingAs, addManagers, adminCreatesLeague, COMMISSIONER, MANAGERS, type TestConvex } from "../../support/convex/leagues.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
+import { elapse } from "../../support/convex/test.harness";
 
 // Pausing and resuming the draft (spec/04, The commissioner; #1135): a pause keeps the time left,
 // the 10 seconds before the next clock freeze too, a paused clock never fires, and a pick time
@@ -35,10 +36,7 @@ const resume = async (email = COMMISSIONER) => (await as(email)).mutation(api.dr
 const pick = async (email: string, playerCode: number) => (await as(email)).mutation(api.draft.draftPicks.makePick, { leagueId, playerCode });
 const pickCount = () => t.run(async (ctx) => (await ctx.db.query("draftPicks").collect()).length);
 /** The clock moves on `ms`, and every pick scheduled by then is made. */
-async function pass(ms: number) {
-  vi.advanceTimersByTime(ms);
-  await t.finishInProgressScheduledFunctions();
-}
+const pass = (ms: number) => elapse(t, ms);
 
 beforeEach(async () => {
   t = await signInDeployment();

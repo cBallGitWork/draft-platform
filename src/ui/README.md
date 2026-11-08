@@ -23,6 +23,8 @@ names the [plate.md](../../docs/design/plate.md) section it draws; the values ar
 - `PositionChip.tsx`: one position's coloured chip.
 - `PositionCodes.tsx`: position codes, each named in full on hover, in a line or `spaced` as a table's chips (Tables and panels: Roles in full).
 - `StarRating.tsx`: a player's stars for a role, in half-star steps, or "?" and "—" unrated (Marks: Stars).
+- `ClubName.tsx`: a club's name, or its three letters (`ClubShort`), and its mark (`ClubMark`): its crest, or its two colours where that won't load (Marks: A club's mark).
+- `StatBox.tsx`: the stat box, every stat of the catalogue and the site's own, as a box or a title-bar button (Controls), on Scouting and the draft room.
 - `Placeholder.tsx`: data not held yet, a 1px muted outline in its place and size, its hover saying what will show (Marks: A placeholder).
 
 ## Utilities in controls.css
