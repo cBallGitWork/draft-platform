@@ -18,6 +18,10 @@ export const NEXT = 5;
 export const [SAKA, PALMER, RICE] = [9001, 9002, 9003];
 export const [ANNS_FIRST_DROP, ANNS_SECOND_DROP] = [SQUAD[SQUAD.length - 1], SQUAD[SQUAD.length - 2]];
 
+/** The letters `email` has been sent, oldest first, as their subjects and bodies. */
+export const lettersTo = (t: TestConvex, email: string) =>
+  t.run(async (ctx) => (await ctx.db.query("letters").withIndex("by_to_and_at", (q) => q.eq("to", email)).collect()).map(({ subject, body }) => ({ subject, body })));
+
 /** The league's draft over: started with no rounds, so no pick is left on the clock. Free agency
  *  and waivers wait for it (#1326). */
 export const draftOver = (t: TestConvex, leagueId: Id<"leagues">, teamIds: Id<"teams">[]) =>
@@ -73,8 +77,7 @@ export async function waiverLeague() {
     stateOf: async (playerCode: number) => (await actingAs(t, BOB)).query(api.waivers.waivers.stateOf, { leagueId, playerCode }),
     squadCodes: (teamId: Id<"teams">) =>
       t.run(async (ctx) => (await ctx.db.query("squadPlayers").withIndex("by_teamId", (q) => q.eq("teamId", teamId)).collect()).map(({ playerCode }) => playerCode)),
-    lettersTo: (email: string) =>
-      t.run(async (ctx) => (await ctx.db.query("letters").withIndex("by_to_and_at", (q) => q.eq("to", email)).collect()).map(({ subject, body }) => ({ subject, body }))),
+    lettersTo: (email: string) => lettersTo(t, email),
     /** A minute on, then the league's waivers run for now, as the cron starts them. The clock is
      *  set, never advanced, so no scheduled timer fires. */
     runWaivers: async () => {
