@@ -158,11 +158,13 @@ Put the same two, and `TEST_ACCOUNT_CONVEX_URL` (the live deployment's address),
 `npm run test-account` signs in and saves the session to `.auth/test-account.json` (gitignored).
 
 The lead's wake-up (`convex/heartbeats/leadWake.ts`) runs the build pipeline's lead every half
-hour, since GitHub's own schedule drops its passes. It asks GitHub nothing until the live
-deployment has a token. To set one, once: on GitHub, Settings, Developer settings, Fine-grained
+hour, since GitHub's own schedule drops its passes. It runs on the development deployment,
+never the live one, so the live site holds no GitHub token (Craig, 8 Nov 2026), and it asks
+GitHub nothing until that deployment has a token. To set one, once: on GitHub, Settings, Developer settings, Fine-grained
 tokens, make a token for the account the builds run as (CBHelper180). Its only repository is
 `cBallGitWork/draft-platform` and its only permission is **Actions: Read and write**. Then:
-`npx convex env set --prod LEAD_WAKE_GITHUB_TOKEN <the token>`. A refused wake-up (an expired
+`npx convex env set LEAD_WAKE_GITHUB_TOKEN <the token>` from this checkout (no `--prod`), or the
+Convex dashboard's development deployment, Settings, Environment Variables. A refused wake-up (an expired
 token, say) shows as a failed `wake the lead` run in the Convex dashboard's logs, and, if GitHub's
 schedule has dropped too, as Healthchecks' `lead-pass` email after 3 hours with no pass.
 

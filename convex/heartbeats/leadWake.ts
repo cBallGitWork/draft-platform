@@ -1,7 +1,8 @@
 import { internalAction } from "../_generated/server";
 import { LEAD_WAKE_TOKEN_SETTING } from "../outbound/deploymentSettings";
 
-// The lead's wake-up (Craig, 7 Nov 2026: a Convex cron, over cron-job.org). The lead (`lead.yml`)
+// The lead's wake-up (Craig, 7 Nov 2026: a Convex cron, over cron-job.org; 8 Nov 2026: on the development
+// deployment, never the live one, so the live site holds no GitHub token). The lead (`lead.yml`)
 // keeps the builders busy, but GitHub's own schedule is not to be relied on: on 5 and 7 Nov 2026 it
 // fired nothing for hours and the builders sat idle. So every half hour this asks GitHub to run the
 // lead on main, as "Run workflow" does by hand. A pass more than needed costs nothing: the lead runs
