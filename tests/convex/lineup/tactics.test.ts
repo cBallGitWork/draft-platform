@@ -104,6 +104,19 @@ describe("the lineup to set", () => {
     expect(tactics.lineup.starters[0]).toEqual({ ...keeper, role: "sweeperKeeper" });
   });
 
+  test("sends each player's availability, the admin's over the feed's, which Quick Pick reads (#849)", async () => {
+    const [keeper, back] = FOUR_FOUR_TWO.starters;
+    await t.run(async (ctx) => {
+      const row = await ctx.db.query("players").withIndex("by_code", (q) => q.eq("code", keeper.playerCode)).unique();
+      await ctx.db.patch("players", row!._id, { availability: "doubtful" });
+      await ctx.db.insert("availabilitySettings", { code: back.playerCode, availability: "out" });
+    });
+    const tactics = await tacticsOf(ANN);
+    if (tactics.kind !== "open") throw new Error("expected an open gameweek");
+    const availabilityOf = (code: number) => tactics.squad.find((member) => member.playerCode === code)?.availability;
+    expect([availabilityOf(keeper.playerCode), availabilityOf(back.playerCode)]).toEqual(["doubtful", "out"]);
+  });
+
   test("holds the lineup the manager saved", async () => {
     const ann = await actingAs(t, ANN);
     await ann.mutation(api.lineup.lineups.save, { leagueId, lineup: { starters: [...FOUR_FOUR_TWO.starters], bench: [...FOUR_FOUR_TWO.bench] } });
