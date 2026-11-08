@@ -68,6 +68,8 @@
   /* A table's row on the desk (plate.md, Type): h-row. Only a screen rebuilt to its approved picture
      draws it; the other built tables keep their 20px rows until theirs is rebuilt. */
   --spacing-row: 28px;
+  /* A cup tie's box, its two teams' rows (the approved table's cup picture) */
+  --spacing-tie: calc(var(--spacing-row) * 2);
 
   /* The width each of Mail's two panels grows from; with less room than both, the form wraps under */
   --flex-basis-letters: 480px;

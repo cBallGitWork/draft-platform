@@ -127,6 +127,10 @@ export const resultWords: Record<Result, { short: string; long: string }> = {
 };
 export const formLabel = (results: readonly Result[]) =>
   results.length === 0 ? "No results yet" : `Form: ${results.map((result) => resultWords[result].long).join(", ")}`;
+/** Form whose last result is still live: "Form: won, lost, Provisional". */
+export const liveFormLabel = (results: readonly Result[]) => `${formLabel(results)}${listSeparator}${provisionalWords}`;
+/** A live result's chip, on hover: "won, Provisional". */
+export const liveResultWords = (result: Result) => `${resultWords[result].long}${listSeparator}${provisionalWords}`;
 
 /** The bench's title, on Tactics and under a matchup's lineup alike. */
 export const BENCH_TITLE = "Bench";

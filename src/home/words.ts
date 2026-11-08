@@ -1,9 +1,7 @@
 // What league home says, in one place for Craig to change in the pull request.
 
 import { TOP_ROWS } from "../../convex/home/glance";
-import { FORM_RESULTS } from "../../convex/table/standings";
 import { fewestTeamsWords, noHeadToHeadsTotalPointsWords } from "../shared/words";
-import { columns as tableColumns } from "../table/words";
 import type { LeagueHome } from "./seam";
 
 export { figureWords, gameweekWords, versusWords } from "../shared/words";
@@ -25,12 +23,8 @@ export const byeWords = (teamName: string) => `${teamName}: bye`;
 /** Under a table cut to its top rows: how many teams it has, and whether the reader's row is added. */
 export const partTableWords = (teams: number, withMine: boolean) =>
   `The top ${TOP_ROWS} of ${teams} teams${withMine ? ", and yours" : ""}.`;
-/** The table screen's columns, and form. */
-export const columns = {
-  ...tableColumns,
-  form: { short: "Form", long: `Form, the latest ${FORM_RESULTS} results, oldest first` },
-} as const;
-export const yourTeamWords = "Your team";
+/** The table screen's columns, form among them. */
+export { columns, yourTeamWords } from "../table/words";
 export { formLabel, resultWords } from "../shared/words";
 export const noFormWords = "—";
 export const wholeTableLink = "Whole table and fixtures";
