@@ -1,13 +1,13 @@
 // The lineup a manager is setting on the Tactics tab (#14), as each move leaves it: who stands in
 // which cell, and the bench in order. Pure, so the screen only says what was asked. Whether it may
-// stand is the server's (convex/lineup/lineup.ts), told as each move saves; here a player is only
+// stand is the server's (convex/lineup/lineup.ts), told as each move saves; in ./swaps.ts a player is only
 // ever offered a swap in which each plays the cell he lands in (spec/05: "a player fills only slots
 // in the areas his positions play") and the league's area limits hold (spec/05, Moving players:
 // "Anything that would break the area limits stays unlit"). Presets only: the shape comes from a
 // preset, never a player moved into an empty cell (Craig, 1 Nov 2026; #1022).
 
 import { ALL_CELLS, AREAS, byPitchOrder, cellKey, LANES, playsCell, positionOfSlot, sameCell, type Cell } from "../../../convex/lineup/pitch";
-import { namedCodes, reconciled, type LineupRules } from "../../../convex/lineup/lineup";
+import { reconciled, type LineupRules } from "../../../convex/lineup/lineup";
 import type { Position } from "../../../convex/positions/positionTables";
 import type { OpenTactics } from "../../../convex/lineup/tactics";
 import { everyRoleOf, offersRole, roleIn, rolesOfSlot, type Formation, type Role } from "../../../convex/lineup/roles";
@@ -33,9 +33,6 @@ export interface EditedLineup {
 /** Each squad player's stars, which pick the role he starts on when dropped into a slot (spec/05
  *  Roles). */
 export type RatingsOf = (playerCode: number) => readonly RoleStars[];
-
-/** No stars: for the checks below, which ask only whether a move may stand, never which role he plays. */
-const NO_STARS: RatingsOf = () => [];
 
 /** A player dropped into `cell` of `formation` (the cells the eleven stand in once he is there), on
  *  the role he has the most stars for there (spec/05 Roles). */
@@ -73,7 +70,8 @@ const without = (draft: EditedLineup, playerCode: number): EditedLineup => ({
   bench: draft.bench.filter((code) => code !== playerCode),
 });
 
-const starts = (draft: EditedLineup, playerCode: number) => draft.starters.some((starter) => starter.playerCode === playerCode);
+/** Whether the player is in the eleven. */
+export const starts = (draft: EditedLineup, playerCode: number) => draft.starters.some((starter) => starter.playerCode === playerCode);
 
 /** Two players swapped (spec/05, Moving players): starter for starter, each in the other's cell, or
  *  a bench player for a starter, the starter taking his place in the bench order. Each lands on the
@@ -94,76 +92,6 @@ export function swapped(draft: EditedLineup, one: number, other: number, ratings
 /** What a move is judged by: each squad player's positions, and the league's area limits. */
 export interface MoveRules extends LineupRules {
   positionsOf(playerCode: number): readonly Position[];
-}
-
-/** How far an area's starters fall outside its limits: 0 within them. */
-function outsideLimits(draft: EditedLineup, area: Cell["area"], { areaLimits }: LineupRules): number {
-  const count = draft.starters.filter((starter) => starter.area === area).length;
-  const { minimum, maximum } = areaLimits[area];
-  return Math.max(0, minimum - count, count - maximum);
-}
-
-/** Whether a move keeps the limits: no area further outside its own than before. A swap leaves
- *  every cell held as it was, so it never should; the check stays so that one never can (#1022). */
-function keepsLimits(before: EditedLineup, after: EditedLineup, rules: LineupRules): boolean {
-  return AREAS.every((area) => outsideLimits(after, area, rules) <= outsideLimits(before, area, rules));
-}
-
-/** Why a move is refused, which the line under the toolbar says (spec/05, The pitch; Craig,
- *  4 Nov 2026). Presets only, so nobody moves into an empty cell or leaves the pitch but by a swap;
- *  only a keeper plays in goal, and a keeper only there; each plays only the cells his positions
- *  play; and the area limits hold. */
-export type MoveRefusal =
-  | { kind: "emptyCell" }
-  | { kind: "offThePitch" }
-  | { kind: "goal" }
-  | { kind: "doesNotPlay"; playerCode: number; cell: Cell }
-  | { kind: "areaLimits" };
-
-const isKeeper = (positions: readonly Position[]) => positions.includes("GK");
-
-/** Why the two may not swap, null where they may: each plays the cell he lands in, and the limits
- *  hold. Two on the bench, or a player and himself, are no swap: the screen never asks. */
-export function swapRefusal(draft: EditedLineup, one: number, other: number, rules: MoveRules): MoveRefusal | null {
-  const after = swapped(draft, one, other, NO_STARS);
-  for (const starter of after.starters.filter(({ playerCode }) => playerCode === one || playerCode === other)) {
-    const positions = rules.positionsOf(starter.playerCode);
-    if (playsCell(positions, starter)) continue;
-    if (starter.area === "goalkeeper" || isKeeper(positions)) return { kind: "goal" };
-    return { kind: "doesNotPlay", playerCode: starter.playerCode, cell: { area: starter.area, lane: starter.lane } };
-  }
-  return keepsLimits(draft, after, rules) ? null : { kind: "areaLimits" };
-}
-
-/** Whether the two may swap (spec/05, Moving players): one starts, and the swap isn't refused. */
-export function canSwap(draft: EditedLineup, one: number, other: number, rules: MoveRules): boolean {
-  if (one === other || (!starts(draft, one) && !starts(draft, other))) return false;
-  return swapRefusal(draft, one, other, rules) === null;
-}
-
-/** Where a dragged player lands: a cell of the pitch, a player's row, or the bench's plate. */
-export type DropTarget = { cell: Cell } | { playerCode: number } | "bench";
-
-/** Who a drop swaps the player picked up with, or why it is refused (spec/05; Craig, 1 and 4 Nov
- *  2026): an empty cell takes nobody, and a starter leaves the pitch only by a swap, so the bench's
- *  plate takes nobody either. A bench player dropped along the bench is put in order (benchedAt),
- *  never asked here. */
-export function dropOutcome(draft: EditedLineup, playerCode: number, target: DropTarget, rules: MoveRules): { swapWith: number } | { refusal: MoveRefusal } {
-  if (target === "bench") return { refusal: { kind: "offThePitch" } };
-  const other = "cell" in target ? standingIn(draft, target.cell)?.playerCode : target.playerCode;
-  if (other === undefined) return { refusal: { kind: "emptyCell" } };
-  const refusal = swapRefusal(draft, playerCode, other, rules);
-  return refusal === null ? { swapWith: other } : { refusal };
-}
-
-/** Everyone a picked-up player can swap with, on the pitch or the bench, each of whom lights up
- *  (spec/05, Moving players): there are no empty cells to move into. */
-export interface Reach {
-  players: number[];
-}
-
-export function reachOf(draft: EditedLineup, playerCode: number, rules: MoveRules): Reach {
-  return { players: namedCodes(draft).filter((other) => canSwap(draft, playerCode, other, rules)) };
 }
 
 /** Who comes onto the pitch in a swap, the role he lands on there and his stars for it. */

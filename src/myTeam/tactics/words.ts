@@ -8,7 +8,7 @@ import { menuWords } from "../../frame/words";
 import { failedWords, listSeparator, timeOfDayWords } from "../../shared/words";
 import { gameweekShort } from "../header/words";
 import { benchShort } from "../words";
-import type { MoveRefusal } from "./lineupEdits";
+import type { MoveRefusal } from "./swaps";
 
 export const TACTICS_TITLE = menuWords.tactics;
 export const BENCH_TITLE = "Bench";
