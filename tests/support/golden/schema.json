@@ -23304,6 +23304,26 @@
               }
             },
             "optional": false
+          },
+          "instructions": {
+            "fieldType": {
+              "type": "object",
+              "value": {
+                "attacking": {
+                  "fieldType": {
+                    "type": "string"
+                  },
+                  "optional": false
+                },
+                "defensive": {
+                  "fieldType": {
+                    "type": "string"
+                  },
+                  "optional": false
+                }
+              }
+            },
+            "optional": true
           }
         }
       }
