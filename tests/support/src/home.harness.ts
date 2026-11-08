@@ -58,7 +58,6 @@ export const newsMove = (at: number, teamName: string, rest: Partial<NewsMove> =
   toWaivers: null,
   fromTeamId: null,
   fromTeamName: null,
-  by: "commish@example.com",
   ...rest,
 });
 

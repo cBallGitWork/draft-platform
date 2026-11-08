@@ -1,7 +1,6 @@
 import { v, type Infer } from "convex/values";
 import type { Doc, Id } from "../_generated/dataModel";
 import { query, type QueryCtx } from "../_generated/server";
-import { bylineOf } from "../mail/letters";
 import { pinnedLetter } from "../schema";
 import { takeAllOrThrow, takeShown } from "../shared/cappedRead";
 import { memberOf, teamsOf } from "../shared/leagueAccess";
@@ -52,8 +51,6 @@ const newsMove = v.object({
   /** The team a moved player came from, and its name then; null for any other kind. */
   fromTeamId: v.union(v.id("teams"), v.null()),
   fromTeamName: v.union(v.string(), v.null()),
-  /** Who did it: an email, or the admin's byline, as Mail's letter names them. */
-  by: v.string(),
 });
 export type NewsMove = Infer<typeof newsMove>;
 
@@ -101,11 +98,11 @@ async function kindBelow(ctx: QueryCtx, leagueId: Id<"leagues">, kind: SquadMove
 }
 
 /** The move as the News tab lists it. */
-function moveOf({ _id, _creationTime, at, by, event }: Row): NewsMove {
+function moveOf({ _id, _creationTime, at, event }: Row): NewsMove {
   // Only squad moves were read; any other is a bug in the read.
   if (!isSquadMove(event)) throw new Error(`League event ${_id} is a ${event.kind}, not a squad move`);
   const player = { playerCode: event.playerCode, playerName: event.playerName };
-  const done = { at, filed: _creationTime, kind: event.kind, teamId: event.teamId, teamName: event.teamName, by: bylineOf(by), fromTeamId: null, fromTeamName: null };
+  const done = { at, filed: _creationTime, kind: event.kind, teamId: event.teamId, teamName: event.teamName, fromTeamId: null, fromTeamName: null };
   switch (event.kind) {
     case "playerAssigned":
       return { ...done, joined: player, left: null, toWaivers: null };

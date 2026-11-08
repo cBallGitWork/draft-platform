@@ -93,7 +93,7 @@ const home: LeagueHome = {
 const newsMove = (hoursAgo: number, kind: NewsMove["kind"], team: string, joined: string | null, left: string | null, rest: Partial<NewsMove> = {}): NewsMove => {
   const at = Date.now() - hoursAgo * HOUR_MS;
   const player = (name: string | null) => (name === null ? null : { playerCode: name.length * 1000 + hoursAgo, playerName: name });
-  return { at, filed: at, kind, teamId: previewIdOf(team), teamName: team, joined: player(joined), left: player(left), toWaivers: null, fromTeamId: null, fromTeamName: null, by: "commish@example.com", ...rest };
+  return { at, filed: at, kind, teamId: previewIdOf(team), teamName: team, joined: player(joined), left: player(left), toWaivers: null, fromTeamId: null, fromTeamName: null, ...rest };
 };
 const NEWS_MOVES: NewsMove[] = [
   newsMove(3, "playerDropped", "Kroos Control", null, "Kudus", { toWaivers: true }),

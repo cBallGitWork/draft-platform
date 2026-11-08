@@ -88,7 +88,6 @@ export const fromTeamWords = (teamName: string) => `From ${teamName}`;
 export const gotWords = (teamName: string) => `${teamName} got`;
 export const letGoWords = (teamName: string) => `${teamName} let go`;
 export const leftToWords = (toWaivers: boolean) => (toWaivers ? "Onto waivers" : "Back to the free agents");
-export const byWords = (by: string) => `By ${by}`;
 
 export const MOVES_TITLE ="Claims, drops and trades";
 export const noMovesWords = "No player has joined or left a squad yet.";

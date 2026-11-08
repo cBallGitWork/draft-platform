@@ -7,7 +7,6 @@ import { cellClassOf, ColumnHeads } from "../ui/ColumnHeads";
 import { Loading, PageSection, Panel, PANEL_LIST_ROW, PanelNote } from "../ui/Panel";
 import type { HomeSeam, LeagueNews, NewsAsked, NewsMove } from "./seam";
 import {
-  byWords,
   everyKindWords,
   everyTeamWords,
   fromTeamWords,
@@ -219,7 +218,6 @@ function Detail({ move }: { move: NewsMove }) {
           {move.toWaivers !== null && <span className="text-soft"> {leftToWords(move.toWaivers)}</span>}
         </DetailLine>
       )}
-      <p className="px-3 py-2 text-soft">{byWords(move.by)}</p>
     </Panel>
   );
 }
