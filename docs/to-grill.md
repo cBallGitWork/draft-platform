@@ -225,7 +225,7 @@ ai-carling-premiership match logs; the numbers there come from FotMob and Sofasc
 
   | | FWD | AM | CM | DEF | GK |
   |---|---|---|---|---|---|
-  | Appearance (any minutes) | 1 | 1 | 1 | 1 | 1 |
+  | Appearance | 1, or 2 at 60+ min | 1, or 2 at 60+ min | 1, or 2 at 60+ min | 1, or 2 at 60+ min | 1, or 2 at 60+ min |
   | Goal | 4 | 5 | 5 | 5 | 5 |
   | Assist | 3 | 3 | 3 | 3 | 3 |
   | Clean sheet (60+ min) | – | – | 2 | 4 | 4 |
@@ -241,14 +241,16 @@ ai-carling-premiership match logs; the numbers there come from FotMob and Sofasc
   out from lower tier still" (Craig, 9 Nov 2026). Without it the defcon lifts defenders at poor
   sides, who defend more. With it, a regular defender's season averages 47 at a top-6 side, 36 in
   mid-table and 23 in the bottom six (55, 47 and 36 without), and fewer defenders crowd the top 25.
-- The appearance point is flat, never more at 60 minutes, so a less-nailed player keeps his
-  value: a regular sub scores about two-thirds of a nailed starter's points per appearance.
-- What it gives over the five seasons, per 60-minute start: FWD 2.65, AM 2.62, CM 2.65, DEF 2.23,
-  GK 2.51; goals and assists are about 31% of all points. Defenders are the deepest pool (about
+- Appearance points are the classic 1, or 2 at 60 minutes: "its classic afterall" (Craig, 9 Nov
+  2026). A regular sub scores about 59% of a nailed starter's points per appearance; the super
+  sub is what makes bench players worth having.
+- What it gives over the five seasons, per 60-minute start: FWD 3.65, AM 3.62, CM 3.65, DEF 3.23,
+  GK 3.51; goals and assists are about 23% of all points. Defenders are the deepest pool (about
   78 regulars a season), so they sit lowest a start and the best still stand out. The 10th-best
-  season by line is FWD 106, AM 121, CM 117, DEF 107, GK 103. Strikers are scarce (about 20
-  regulars a season), so a good one is a scarcity pick rather than a big total. Top of 25-26:
-  Haaland 163, Bruno Fernandes 140, Gabriel 140, Rice 130, Semenyo 128, O'Reilly 127.
+  season by line is FWD 135, AM 153, CM 150, DEF 142, GK 138. Strikers are scarce (about 20
+  regulars a season), so a good one is a scarcity pick rather than a big total. Keepers play
+  every minute, so the 60-minute point lifts them most: up to 7 of 25-26's top 25. Top of 25-26:
+  Haaland 196, Bruno Fernandes 174, Gabriel 170, Rice 165, Raya 163, Semenyo 163.
 - Why lines and one line each: a player is scored by the slot he plays in (`spec/14`). With
   detailed positions, any slot that paid more for the same player (a deeper slot's clean sheet or
   defcon) drew attackers back; in the data no stat tells a W from a WM, or a CM from a DM.
