@@ -83,7 +83,7 @@ async function votersOn(ctx: QueryCtx, offer: Doc<"tradeOffers">): Promise<strin
 /** Who reviews the trade under the league's rules, or null for nobody: the commissioner under a
  *  veto, the co-commissioner when he is in it, or a vote when there is none (or the
  *  co-commissioner is in it too). */
-async function reviewerOf(ctx: QueryCtx, league: Doc<"leagues">, offer: Doc<"tradeOffers">): Promise<ReviewWords | null> {
+export async function reviewerOf(ctx: QueryCtx, league: Doc<"leagues">, offer: Doc<"tradeOffers">): Promise<ReviewWords | null> {
   const rules = await latestRules(ctx, league._id);
   const review = rules === null ? "none" : tradeRulesOf(rules).review;
   if (review !== "veto") return review === "vote" ? { kind: "vote" } : null;

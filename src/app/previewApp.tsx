@@ -22,6 +22,7 @@ import { previewScouting } from "../scouting/preview";
 import { ShellApp } from "./ShellApp";
 import { previewSquads } from "../squads/preview";
 import { previewTable } from "../table/preview";
+import { previewTrades } from "../trades/preview";
 
 /** The frame on the preview's data, or null when the address names no preview session. */
 export function previewApp(): ReactNode | null {
@@ -50,6 +51,7 @@ export function previewApp(): ReactNode | null {
       feedback={previewFeedback}
       patches={previewPatches}
       draft={previewDraft}
+      trades={previewTrades}
     />
   );
 }

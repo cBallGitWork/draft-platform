@@ -5,9 +5,9 @@
 
 import { CLUB_COLOURS } from "../../convex/football/clubColours";
 import { adminByline } from "../../convex/mail/letterWords";
-import { LATEST_LETTERS } from "../../convex/mail/mailLimits";
 import { DAY_MS, HOUR_MS, WEEK_MS } from "../../convex/shared/time";
-import { squadLimits } from "../../convex/squads/squadLimits";import { previewMail, previewTopBar } from "../mail/preview";
+import { squadLimits } from "../../convex/squads/squadLimits";
+import { previewLatestMail } from "../mail/preview";
 import { teamFixturesOf } from "../table/drawnTable";
 import { previewScored, previewTable, previewTeams } from "../table/preview";
 import { previewSquad, previewTactics } from "./tactics/preview";
@@ -107,7 +107,6 @@ const squad: TeamSquad = {
 
 /** The preview holds no server: a number changed there is taken, and goes when the page reloads. */
 const previewNumbers = { set: async () => null };
-const latestMail = { letters: previewMail.useLetters()!.slice(0, LATEST_LETTERS), unread: previewTopBar.unreadMail };
 
 export const previewMyTeam: MyTeamSeam = {
   ...previewTactics,
@@ -116,5 +115,5 @@ export const previewMyTeam: MyTeamSeam = {
   useTeamTransactions: () => transactions,
   useTeamSquad: () => squad,
   useSquadNumbers: () => previewNumbers,
-  useLatestMail: () => latestMail,
+  useLatestMail: () => previewLatestMail,
 };

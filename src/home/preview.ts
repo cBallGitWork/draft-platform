@@ -10,6 +10,7 @@ import { DAY_MS, HOUR_MS, WEEK_MS } from "../../convex/shared/time";
 import { drawFixtures, namedFixture } from "../../convex/table/roundRobin";
 import { formOf, headToHeadTable, teamsInGameweek } from "../../convex/table/standings";
 import { gameScore } from "../../convex/table/teamGames";
+import { previewLatestMail } from "../mail/preview";
 import { previewIdOf } from "../table/preview";
 import type { HomeSeam, LeagueHome, LeagueNews, NewsAsked, NewsMove } from "./seam";
 
@@ -117,6 +118,7 @@ const news = (before: NewsAsked["before"]): LeagueNews => {
 
 export const previewHome: HomeSeam = {
   useLeagueHome: () => home,
+  useLatestMail: () => previewLatestMail,
   useRecap: (_, gameweek) => (gameweek === SCORED ? home.recap : null),
   useLeagueNews: (_, { before, teamId, kind }) => {
     const page = news(before);

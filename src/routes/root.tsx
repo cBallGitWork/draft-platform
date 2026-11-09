@@ -34,12 +34,13 @@ import { SignInPage } from "../signIn/SignInPage";
 import { linkProblemWords, type LinkProblem } from "../signIn/words";
 import type { SquadsSeam } from "../squads/seam";
 import type { TableSeam } from "../table/seam";
+import type { TradesSeam } from "../trades/seam";
 
 // The routes' root (src/routes/router.tsx assembles the tree): the context every route reads, the guards,
 // sign-in, and the two frames the app's pages hang from, leaguePages.tsx's and frame.tsx's.
 
 // A seam is a top-level useLive* hook holding root state (mail, joining, squads, scoring, league
-// settings, admin, leagues, feedback, patches) or a constant object of hooks (gameweeks, table, scouting, player card, home, my team, matchup, Premier League, draft). Each new one needs a
+// settings, admin, leagues, feedback, patches) or a constant object of hooks (gameweeks, table, scouting, player card, home, my team, matchup, Premier League, draft, trades). Each new one needs a
 // preview (previewApp.tsx), a live value (liveApp.tsx) and a fake (shell.harness.tsx), and the
 // typechecker flags any that's missing.
 export type ShellContext = {
@@ -64,6 +65,7 @@ export type ShellContext = {
   feedback: FeedbackSeam;
   patches: PatchesSeam;
   draft: DraftSeam;
+  trades: TradesSeam;
 };
 
 /** Where the app opens: the guards below send each visitor on from here. */
