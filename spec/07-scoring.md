@@ -4,8 +4,9 @@ Feature 7 of [SPEC.md](../SPEC.md). Only Craig's answers; the last section from 
 stats` (20 Oct 2026). The Examples section works his answers through, row by row, and he
 approved its rows (6 Nov 2026, #454).
 
-- Only stats from the two free feeds: FPL's public API and the Premier League's public API. What
-  can be scored and how: [14. Scoring categories](14-scoring-categories.md).
+- Only stats from Sportmonks, the football data's feed (SPEC, *What it is*; Craig, 9 Nov 2026),
+  in place of FPL's and the Premier League's public APIs. What can be scored and how:
+  [14. Scoring categories](14-scoring-categories.md).
 - Points move live during matches, provisional until final.
 - Stat corrections: points stay open for a fixed window after a match, then lock. The window
   is a platform setting, not a league rule.

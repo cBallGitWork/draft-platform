@@ -19,8 +19,16 @@ drafted, for the basics. It needs:
 features 1, 2, 3, 5, 6, 7, 10, 12, 14, 16 and 18, and the admin tools listed in
 [spec/15's The mini beta](spec/15-admin-tools.md#the-mini-beta). Live commentary and the match
 page (10) are in it if the live stream is proven, and among the first things dropped if late.
-The draft (4) waits for the summer. Before it starts, FPL's and the Premier League's terms are
-checked (Craig, 20 Oct 2026; issue #79).
+The draft (4) waits for the summer.
+
+The football data comes from Sportmonks, a paid feed, in place of FPL's and the Premier League's
+public APIs: "stop with fpl and prem, thats not scalable" (Craig, 9 Nov 2026, on #1196). Its
+Starter plan's five leagues: England, Scotland, Italy, Spain and Germany ("not france, germany").
+Sportmonks replaces everything those two feeds give (clubs, players, fixtures, team sheets, live
+stats, commentary, the table), and players are keyed on Sportmonks' player id, with FPL's `code`
+kept only to match past seasons copied from ai-carling-premiership. Points move during the match.
+xG isn't needed. Its free plan's Scottish Premiership is read first (#1391), before the 14-day
+paid trial.
 
 ## Features
 
@@ -78,11 +86,8 @@ One file per feature in [spec/](spec/); this page is the index. A feature's stat
   area rule": his own area and the next, no further (spec/05; `docs/to-grill.md`).
 - **Cups**, after the beta, with a plate competition beside them (Craig, 20 Oct 2026). Their
   own `/grill` then (`docs/to-grill.md`).
-- **Other leagues**: Scotland and the rest of Europe. None has a free public feed like the
-  Premier League's; a paid feed (Sportmonks, API-Football) covers them all. The football data is
-  built so a feed can plug in.
-- **Licensed data**: a licensed feed if FPL's and the Premier League's terms, checked before the
-  mini beta (above), don't allow a public product.
+- **Other leagues**: leagues on Scotland's and the rest of Europe's football. Sportmonks covers
+  them (*What it is*).
 - **Traits** (what a player does in real life), if a source for them turns up.
 - **A landing page** for the public, when signups open to anyone; its own `/grill` then.
 - **Carrying a league into next season**, a different thing from spec/03's carry-over rule
