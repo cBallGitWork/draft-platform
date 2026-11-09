@@ -24,8 +24,8 @@ its own reason, never a cleanup:
 - **Scoring and the draft.** `CLAUDE.md`: breakage is acceptable on the look and the screens,
   never on scoring, the draft or saved league data.
 - **Saved data.** Renaming a field in the Convex schema, or anything persisted, is a migration.
-- **Player identity.** Players are keyed on FPL's season-stable `code`; a refactor never touches
-  that key.
+- **Player identity.** Players are keyed on Sportmonks' player id (FPL's `code` kept only to match
+  past seasons); a refactor never touches that key.
 - **League rules as data.** Lifting a value into a constant is a refactor only if it is one of
   FPL's fixed rules. A league's rule stays a row.
 - **Copied football code.** Code copied from epl-draft's `packages/core` is copied on purpose

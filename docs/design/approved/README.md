@@ -38,6 +38,8 @@ Named after its route: `team` for `/team`, `team-squad` for `/team/squad`.
 - [`team`](team/README.md): My team's Tactics tab (1 Nov 2026).
 - The formation window, opened from the Tactics tab's All formations; its pictures are in `team`
   (1 Nov 2026).
+- The role card, opened from a starter's Role ▾ on the Tactics tab; its picture is in `team`
+  (9 Nov 2026).
 - [`team-squad`](team-squad/README.md): My team's Squad tab (1 Nov 2026).
 - [`home`](home/README.md): League home's Overview, with the season's other states as the plan for
   later (1 Nov 2026).
@@ -58,4 +60,6 @@ Named after its route: `team` for `/team`, `team-squad` for `/team/squad`.
   every team, and League settings' Waivers tab (8 Nov 2026).
 - [`trades`](trades/README.md): Trades: offers to and from you, one you sent in a vote league, and a new
   offer (8 Nov 2026).
+- [`settings`](settings/README.md): League settings' Fixtures (with the scoring start), Squad, Draft,
+  Trades and Draft order tabs; its Waivers tab is in `waivers` (9 Nov 2026).
 - [`mail`](mail/README.md): Mail, a trade offer open (9 Nov 2026).

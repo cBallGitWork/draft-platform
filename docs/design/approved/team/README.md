@@ -1,5 +1,8 @@
 # My team: Tactics
 
+**Contents:** [The pictures](#the-pictures) · [Approved](#approved) · [The Football Manager idea](#the-football-manager-idea) ·
+[Interaction notes](#interaction-notes) · [Placeholders](#placeholders) · [Canvas](#canvas)
+
 Route: `/team`, the Tactics tab, checked on `/team?preview=manager`.
 
 ## The pictures
@@ -11,6 +14,8 @@ Route: `/team`, the Tactics tab, checked on `/team?preview=manager`.
   picked and previewed (Formation card A8).
 - `1440-formations-presets.png`: the same window on Your presets, with 4-3-3 press picked and
   previewed, and the Save preset… tile (Formation card A8, presets).
+- `1440-role-card.png`: the role card opened from Caicedo's Role ▾, Metronome in use, Engine
+  previewed, GW4 tapped (Role card B1, source `RoleCardB1.dc.html`).
 
 On 1 Nov 2026 Craig floated that the slot behind the striker could read SS, the support striker,
 as in the 4-4-1-1: "maybe am becomes a ss (like a the 4-4-1-1)". It isn't settled (to-grill: Where
@@ -24,6 +29,10 @@ thumbnail has no labels.
 
 - Tactics: "9a better, happy with that for now". Earlier, of A8: "yes a8 looking better".
 - The formation window: "ok presets much better, will do for now".
+- The role card, 9 Nov 2026: "go ahead". On the way: preview then a button; the slot's fixed
+  order; a tapped match shows what earned the role's points; his season per 90 for the role's
+  stats, ranked ("6th"); where he moves on a small pitch; a word beside the stars; "Punishes" for
+  the bad side; no notes on the obvious.
 
 ## The Football Manager idea
 
@@ -60,6 +69,16 @@ opponent, last gameweek, form, the table). Its organisation, never its colours.
   doesn't offer his role starts on his best-star role there (`spec/05`, Roles).
 - The players stay: each moves to a slot of the new shape in his own area, and anyone left without
   a slot goes to the front of the bench (`spec/05`, The pitch).
+
+### The role card
+
+- A role's row: previews it on the right; the cyan bar and "In use" mark the role he has now.
+- Play him as …: saves the role (#848); Cancel and the cross close with nothing changed.
+- A match row: opens that match's role line under it (spec/05, `S05.2` wording).
+- Star words: 5 Outstanding, 4 Very good, 3 Good, 2 Fair, 1 Poor; a half star rounds down.
+- Still to draw from the spec: "No matches yet", "?" and "—" stars, read-only after the deadline.
+- Still to settle at the build: who his stat ranks are against (drafted: everyone who plays the
+  area with 3 or more matches, per 90 over the season).
 
 ## Placeholders
 

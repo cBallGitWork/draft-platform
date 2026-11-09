@@ -261,6 +261,14 @@ ai-carling-premiership match logs; the numbers there come from FotMob and Sofasc
   - The rates checked again against the Premier League feed once it's recorded, and whether that
     feed sends recoveries and blocked shots.
 
+**In-box role stats**: roles (`spec/05`), the role card.
+- `spec/05`'s poacher scores "1 goal in box, 1 shot on target in box". Sportmonks gives no in-box
+  split for shots or goals, only for saves. Craig: "would need a feed similar for each league in
+  that case" (9 Nov 2026, on #1196): an in-box stat needs a source that has it for all five leagues.
+- Questions for the grill: whether the Sportmonks trial's events or ball positions can give the
+  split; if not, plain shots on target and goals in its place, or the roles that use it marked
+  not tested until a feed has it.
+
 ## Suggested, not yet picked
 
 | What | Why |
