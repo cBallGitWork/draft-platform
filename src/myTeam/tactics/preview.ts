@@ -138,7 +138,8 @@ const planChanges: PlanChanges = {
 
 /** The role card prices the preview's made-up matches under the roles' first values. */
 const ROLE_SET = FIRST_SCORING_WITH_ROLES;
-const OPPONENTS = ["BUR", "LIV", "BHA", "FUL", "BRE"];
+/** Clubs CLUB_COLOURS holds, for their shirts, and none of the squad's own. */
+const OPPONENTS = ["BOU", "SUN", "BHA", "FUL", "BRE"];
 
 /** Made-up last 5 matches for each player, from his code, as the preview's stars are; the last
  *  player (Watkins) has none yet, so his card says so. */
