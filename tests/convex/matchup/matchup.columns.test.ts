@@ -1,4 +1,5 @@
-import { expect, test } from "vitest";
+import { expect, test, vi } from "vitest";
+import { missingClubLog } from "../../../convex/matchup/slotParts";
 import { annsScoredGame, GAMEWEEK, holdHullAndEverton, HULL_KEEPER, HULL_SCORER, nameOf, scoresLeague, slotOf } from "../../support/convex/gameweekScores.harness";
 import { fullTimeRecords, liveRecords, scoreRead } from "../../support/convex/gameweekScoresMatch.harness";
 import { MIDFIELD_GOAL } from "../../support/convex/gameweekScoresFixes.harness";
@@ -68,10 +69,13 @@ test("a breakdown names its match by its clubs and its score as the newest read 
   expect(match).toMatchObject({ home: HULL_CITY.shortName, away: EVERTON_CLUB.shortName, score: { state: "fullTime", homeGoals: 1, awayGoals: 2, minutes: 90 } });
 });
 
-test("a breakdown's clubs the football sync doesn't hold are null, and the matchup still scores", async () => {
+test("a breakdown's clubs the football sync doesn't hold are null and logged, and the matchup still scores", async () => {
   const league = await scoresLeague();
   await fullTimeRecords(league);
+  const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
 
   const [match] = slotOf((await annsScoredGame(league, GAMEWEEK)).team, HULL_SCORER).breakdown;
   expect(match).toMatchObject({ home: null, away: null, score: null });
+  expect(warn).toHaveBeenCalledWith(missingClubLog(match.fixtureCode, HULL_CITY.code));
+  expect(warn).toHaveBeenCalledWith(missingClubLog(match.fixtureCode, EVERTON_CLUB.code));
 });

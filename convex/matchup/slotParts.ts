@@ -37,18 +37,27 @@ export async function shirtOf(
   };
 }
 
+/** The log when the football sync doesn't hold a match's club, so his breakdown names it by kickoff. */
+export const missingClubLog = (fixtureCode: number, clubCode: number) =>
+  `match ${fixtureCode}'s club ${clubCode} isn't in the football sync, so the matchup's breakdown names the match by its kickoff`;
+
 /** A match as his breakdown names it (#1026, "NFO 1–0 BRE 67'"): its clubs' short names, null for
- *  one the football sync doesn't hold, and its score and clock as the newest read gives them, null
- *  before any. */
+ *  one the football sync doesn't hold (logged, so a missing club is never silent), and its score
+ *  and clock as the newest read gives them, null before any. */
 export async function namedMatch(
   fixture: Pick<Doc<"fixtures">, "code" | "homeClubCode" | "awayClubCode">,
   club: (code: number) => Promise<Doc<"clubs"> | null>,
   score: (fixtureCode: number) => Promise<Doc<"matchScores"> | null>,
 ): Promise<Pick<MatchBreakdown, "home" | "away" | "score">> {
   const read = await score(fixture.code);
+  const shortName = async (clubCode: number) => {
+    const held = await club(clubCode);
+    if (held === null) console.warn(missingClubLog(fixture.code, clubCode));
+    return held?.shortName ?? null;
+  };
   return {
-    home: (await club(fixture.homeClubCode))?.shortName ?? null,
-    away: (await club(fixture.awayClubCode))?.shortName ?? null,
+    home: await shortName(fixture.homeClubCode),
+    away: await shortName(fixture.awayClubCode),
     score:
       read === null
         ? null
