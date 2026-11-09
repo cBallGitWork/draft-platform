@@ -213,6 +213,46 @@ on #454). Rules can change many times a season (`spec/03`); when a change takes 
   such as clean-sheet points on a Saturday at 16:00? Does the change wait for the next gameweek?
 - Can a manager contest a change, and who settles it?
 
+**Classic scoring, a league with tactics off**: a note kept for when it's built (Craig, 9 Nov
+2026: "we dont build, we keep this work as a note for when we build"). A league setting turns
+player and team tactics off ("essentially classic"), and classic needs a base scoring set. Worked
+out in a talk session against five Premier League seasons (21-22 to 25-26) of the
+ai-carling-premiership match logs; the numbers there come from FotMob and Sofascore counts.
+- Lines, not detailed positions: GK, DEF (CB, FB, WB), CM (CDM, CM, WM), AM (CAM, W), FWD (ST).
+  Each player is hard-locked to one line ("dont allow am's to be cm's, just hard lock a player
+  into a role").
+- Craig's set:
+
+  | | FWD | AM | CM | DEF | GK |
+  |---|---|---|---|---|---|
+  | Appearance | – | – | – | – | – |
+  | Goal | 4 | 5 | 5 | 5 | 5 |
+  | Assist | 3 | 3 | 3 | 3 | 3 |
+  | Clean sheet (60+ min) | – | – | 2 | 4 | 3 |
+  | Defcon | – | +1 per 5 midfield stat | +1 per 4 midfield stat | +1 per 4 defender stat | – |
+  | Saves | – | – | – | – | +1 per 2 |
+
+  The midfield stat is tackles + interceptions + blocked shots + ¼ recoveries. The defender stat
+  is tackles + interceptions + blocked shots + ¼ clearances, Fantrax's DFP. Counted per action,
+  never FPL's all-or-nothing +2 ("i dont like their defcon"). No goals-conceded penalty and no FPL
+  bonus. The super sub (SPEC, *Second release*) stays the reward for bench players.
+- What it gives over the five seasons: every line scores 1.6 to 1.7 points a 60-minute start, and
+  goals and assists are about 54% of all points. The 10th-best season by line is FWD 72, AM 86,
+  CM 82, DEF 83, GK 71. Strikers are scarce (about 20 regulars a season), so a good one is a
+  scarcity pick rather than a big total. Top of 25-26: Haaland 128, Gabriel 114, Bruno Fernandes
+  105, O'Reilly 100, Guéhi 99, Rice 94.
+- Why lines and one line each: a player is scored by the slot he plays in (`spec/14`). With
+  detailed positions, any slot that paid more for the same player (a deeper slot's clean sheet or
+  defcon) drew attackers back; in the data no stat tells a W from a WM, or a CM from a DM.
+- Questions for the grill:
+  - Cards, own goals, missed and saved penalties: the talk assumed FPL's -1, -3, -2, -2 and +5.
+  - How a player's one line is chosen (his most-started line, over what window), whether it can
+    change mid-season, and whether the admin can override it.
+  - Classic's lines against `spec/06`'s "the same in every league": a new rule on top of the
+    positions, or a change to them.
+  - The rates checked again against the Premier League feed once it's recorded, and whether that
+    feed sends recoveries and blocked shots.
+
 ## Suggested, not yet picked
 
 | What | Why |
