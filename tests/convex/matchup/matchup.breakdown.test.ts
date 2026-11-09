@@ -34,3 +34,49 @@ test("a starter with a role, scored in a recorded gameweek, gets breakdown lines
   expect(match.points).toBe(scorer.points);
   expect(game.version).not.toBeNull();
 });
+
+// spec/05, Team instructions (#990): "It shows as its own line under his role's line on the matchup
+// breakdown". Each instruction here earns a point a goal, so the line is in his points.
+const GOAL_A_POINT = (instruction: string) => ({ instruction, lines: [{ stats: [{ stat: "goals_scored", weight: 1 }], every: 1, points: 1 }] });
+
+test("his team's picked instructions each get a line under his role's, named as the league names them, in his points", async () => {
+  const league = await scoresLeague();
+  await league.t.run((ctx) =>
+    holdSiteScoring(ctx, {
+      scoring: { ...FIRST_SCORING, instructions: [GOAL_A_POINT("shootOnSight"), GOAL_A_POINT("getStuckIn"), GOAL_A_POINT("playOutFromTheBack")] },
+      kind: "patch",
+      season: 2026,
+      number: 1,
+      at: Date.now() - 365 * DAY_MS,
+    }),
+  );
+  await picksAnnsInstructions(league, { attacking: "shootOnSight", defensive: "getStuckIn" });
+  await fullTimeRecords(league);
+
+  const scorer = slotOf((await annsScoredGame(league, GAMEWEEK)).team, HULL_SCORER);
+  const [match] = scorer.breakdown;
+  expect(match.instructions).toEqual([
+    { name: "Shoot on sight", points: 1, sides: [{ points: 1, lines: [{ stat: "goals_scored", name: "Goals scored", actions: 1 }] }] },
+    { name: "Get stuck in", points: 1, sides: [{ points: 1, lines: [{ stat: "goals_scored", name: "Goals scored", actions: 1 }] }] },
+  ]);
+  const lines = match.categories.reduce((total, each) => total + (each.points ?? 0), 0) + (match.role?.points ?? 0) + 2;
+  expect(lines).toBe(match.points);
+});
+
+test("a team that hasn't picked plays its formation's default pair", async () => {
+  const league = await scoresLeague();
+  await league.t.run((ctx) =>
+    holdSiteScoring(ctx, { scoring: { ...FIRST_SCORING, instructions: [GOAL_A_POINT("playOutFromTheBack")] }, kind: "patch", season: 2026, number: 1, at: Date.now() - 365 * DAY_MS }),
+  );
+  await fullTimeRecords(league);
+
+  const [match] = slotOf((await annsScoredGame(league, GAMEWEEK)).team, HULL_SCORER).breakdown;
+  expect(match.instructions?.map(({ name, points }) => [name, points])).toEqual([["Play out from the back", 1]]);
+});
+
+/** Ann's lineup as its manager picked these two instructions. */
+const picksAnnsInstructions = ({ t, annsTeam }: Awaited<ReturnType<typeof scoresLeague>>, instructions: { attacking: string; defensive: string }) =>
+  t.run(async (ctx) => {
+    const lineup = (await ctx.db.query("lineups").collect()).find((each) => each.teamId === annsTeam)!;
+    await ctx.db.patch("lineups", lineup._id, { instructions });
+  });

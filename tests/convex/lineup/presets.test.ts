@@ -2,7 +2,7 @@ import { describe, expect, test } from "vitest";
 import { lineupProblems, STARTER_COUNT } from "../../../convex/lineup/lineup";
 import { filledLineup, openLimits } from "../../support/convex/lineup.harness";
 import { AREAS, LANES, type Area } from "../../../convex/lineup/pitch";
-import { DEFAULT_PRESETS, type Preset } from "../../../convex/lineup/presets";
+import { backLineOf, DEFAULT_PRESETS, type Preset } from "../../../convex/lineup/presets";
 
 /** Each preset as a pitch: attack at the top, the keeper at the bottom, a row's lanes left to
  *  right, X where a starter stands. */
@@ -244,5 +244,31 @@ describe("the default presets", () => {
     const cells = DEFAULT_PRESETS.flatMap((preset) => preset.cells);
 
     expect(new Set(cells).size).toBe(cells.length);
+  });
+});
+
+// Two at the back changes base scoring for its keeper and defenders (spec/05; Craig, 4 Nov 2026:
+// "clean sheets is 3, every goal conceded -1"), held with the formation as a league rule (#990).
+describe("each preset's back line", () => {
+  const named = (name: string) => DEFAULT_PRESETS.find((preset) => preset.name === name)!;
+
+  test("is two at the back's for 2-3-5 and 2-3-2-3, and none for every other", () => {
+    const withOne = DEFAULT_PRESETS.filter((preset) => preset.backLine !== null).map((preset) => preset.name);
+    expect(withOne).toEqual(["2-3-5", "2-3-2-3"]);
+    expect(named("2-3-5").backLine).toEqual({ cleanSheet: 3, goalConceded: -1 });
+  });
+
+  test("is the league's own, whatever the first values: one it edits, or takes off", () => {
+    const edited = DEFAULT_PRESETS.map((preset) => (preset.name === "2-3-5" ? { ...preset, backLine: { cleanSheet: 2, goalConceded: -2 } } : preset));
+    expect(backLineOf(named("2-3-5").cells, edited)).toEqual({ cleanSheet: 2, goalConceded: -2 });
+    const dropped = DEFAULT_PRESETS.map((preset) => ({ ...preset, backLine: null }));
+    expect(backLineOf(named("2-3-5").cells, dropped)).toBeNull();
+  });
+
+  test("of a preset held before #990 is the first for its shape, and a shape no preset is has none", () => {
+    const held = DEFAULT_PRESETS.map(({ backLine: _backLine, ...preset }) => preset);
+    expect(backLineOf(named("2-3-2-3").cells, held)).toEqual({ cleanSheet: 3, goalConceded: -1 });
+    expect(backLineOf(named("4-4-2").cells, held)).toBeNull();
+    expect(backLineOf(named("2-3-5").cells, [])).toBeNull();
   });
 });

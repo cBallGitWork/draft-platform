@@ -4,9 +4,11 @@ import { FIRST_INSTRUCTION_SCORING } from "../../../convex/scoring/draftedInstru
 import { FIRST_ROLE_OWN_STATS } from "../../../convex/scoring/draftedRoleAdjustments";
 import { FIRST_SCORING } from "../../../convex/scoring/firstScoring";
 import { scoreMatch, type TeamScoring } from "../../../convex/scoring/scoring";
-import { validateScoringSet, type InstructionScoring, type ScoringSet } from "../../../convex/scoring/scoringSet";
+import { validateScoringSet, type ScoringSet } from "../../../convex/scoring/scoringSet";
 import { TWO_AT_THE_BACK } from "../../../convex/lineup/presets";
-import { UnsoundScoring } from "../../../convex/scoring/values";
+import type { TeamPointsInput } from "../../../convex/scoring/teamPoints";
+import { EXAMPLE_SET } from "../../support/convex/scoring.example";
+import { ATTACK, BELLOUMI, GELHARDT, team } from "../../support/convex/teamPoints.harness";
 
 // A team instruction's scoring (#990, spec/05 Team instructions): each line scored player by player
 // on his own club's match, whole points for each whole `every`, only in the slots it names, as its
@@ -82,24 +84,25 @@ describe("an instruction's line", () => {
   });
 });
 
-describe("a set refuses an instruction that would score wrong", () => {
-  const refused = (instruction: Partial<InstructionScoring> & Record<string, unknown>) =>
-    expect(() => validateScoringSet({ ...SET, instructions: [{ instruction: "x", lines: [{ stats: [{ stat: "fouls", weight: 1 }], every: 1, points: -1 }], ...instruction }] }));
-  const line = (changes: Record<string, unknown>) => ({ lines: [{ stats: [{ stat: "fouls", weight: 1 }], every: 1, points: -1, ...changes }] });
+describe("a team's instructions", () => {
+  const scored = (changes: Partial<TeamPointsInput> = {}) => team({ set: { ...EXAMPLE_SET, ownStats: FIRST_ROLE_OWN_STATS, instructions: FIRST_INSTRUCTION_SCORING }, team: picks("gungHo"), ...changes });
+  const gungHo = (slot: { matches: { instructions?: unknown }[] }) => slot.matches[0].instructions;
 
-  test("one scored twice, or with no lines", () => {
-    expect(() => validateScoringSet({ ...SET, instructions: [FIRST_INSTRUCTION_SCORING[0], FIRST_INSTRUCTION_SCORING[0]] })).toThrow(/scored twice/);
-    refused({ lines: [] }).toThrow(UnsoundScoring);
+  test("score every starter, each on his own club's match: a goal is +1 under Gung-ho", () => {
+    const [, , striker] = scored().starters;
+    expect(striker.playerCode).toBe(GELHARDT);
+    expect(gungHo(striker)).toEqual([{ instruction: "gungHo", points: 1, lines: [{ points: 1, stats: [{ stat: "goals_scored", actions: 1 }] }] }]);
+    expect(scored().total).toBe(team().total + scored().starters.reduce((total, slot) => total + slot.matches[0].instructions![0].points, 0));
   });
 
-  test("a line of points that aren't whole, an every of 0, a stat nobody holds or a slot that isn't one", () => {
-    refused(line({ points: 0.5 })).toThrow(/not whole points/);
-    refused(line({ every: 0 })).toThrow(/not above 0/);
-    refused(line({ stats: [{ stat: "nonsense", weight: 1 }] })).toThrow(/neither a catalogue stat/);
-    refused(line({ positions: ["LB"] })).toThrow(/no slot's position/);
-    refused(line({ most: 0 })).toThrow(/not a whole number above 0/);
+  test("score a bench player who comes on, never one who doesn't", () => {
+    const subbed = scored({ substitutions: [{ off: GELHARDT, on: BELLOUMI, cell: ATTACK }] });
+    expect(gungHo(subbed.bench[0])).toEqual([{ instruction: "gungHo", points: 1, lines: [{ points: 1, stats: [{ stat: "goals_scored", actions: 1 }] }] }]);
+    expect(gungHo(scored().bench[0])).toBeUndefined();
   });
 });
+
+// A set's refusals of an unsound instruction are scoringSet.test.ts's sweep's.
 
 describe("two at the back's back line", () => {
   const record = { minutes: 90, clean_sheets: 0, goals_conceded: 3 };

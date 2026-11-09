@@ -6669,6 +6669,34 @@
                           },
                           "optional": true
                         },
+                        "backLine": {
+                          "fieldType": {
+                            "type": "union",
+                            "value": [
+                              {
+                                "type": "object",
+                                "value": {
+                                  "cleanSheet": {
+                                    "fieldType": {
+                                      "type": "number"
+                                    },
+                                    "optional": false
+                                  },
+                                  "goalConceded": {
+                                    "fieldType": {
+                                      "type": "number"
+                                    },
+                                    "optional": false
+                                  }
+                                }
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "optional": true
+                        },
                         "centreRole": {
                           "fieldType": {
                             "type": "string"
@@ -10693,6 +10721,132 @@
                                         }
                                       },
                                       "optional": false
+                                    }
+                                  }
+                                },
+                                "optional": false
+                              }
+                            }
+                          }
+                        },
+                        "optional": true
+                      },
+                      "instructions": {
+                        "fieldType": {
+                          "type": "array",
+                          "value": {
+                            "type": "object",
+                            "value": {
+                              "instruction": {
+                                "fieldType": {
+                                  "type": "string"
+                                },
+                                "optional": false
+                              },
+                              "lines": {
+                                "fieldType": {
+                                  "type": "array",
+                                  "value": {
+                                    "type": "object",
+                                    "value": {
+                                      "positions": {
+                                        "fieldType": {
+                                          "type": "array",
+                                          "value": {
+                                            "type": "union",
+                                            "value": [
+                                              {
+                                                "type": "literal",
+                                                "value": "GK"
+                                              },
+                                              {
+                                                "type": "literal",
+                                                "value": "FB"
+                                              },
+                                              {
+                                                "type": "literal",
+                                                "value": "CB"
+                                              },
+                                              {
+                                                "type": "literal",
+                                                "value": "WB"
+                                              },
+                                              {
+                                                "type": "literal",
+                                                "value": "CDM"
+                                              },
+                                              {
+                                                "type": "literal",
+                                                "value": "WM"
+                                              },
+                                              {
+                                                "type": "literal",
+                                                "value": "CM"
+                                              },
+                                              {
+                                                "type": "literal",
+                                                "value": "W"
+                                              },
+                                              {
+                                                "type": "literal",
+                                                "value": "CAM"
+                                              },
+                                              {
+                                                "type": "literal",
+                                                "value": "ST"
+                                              }
+                                            ]
+                                          }
+                                        },
+                                        "optional": true
+                                      },
+                                      "stats": {
+                                        "fieldType": {
+                                          "type": "array",
+                                          "value": {
+                                            "type": "object",
+                                            "value": {
+                                              "stat": {
+                                                "fieldType": {
+                                                  "type": "string"
+                                                },
+                                                "optional": false
+                                              },
+                                              "weight": {
+                                                "fieldType": {
+                                                  "type": "number"
+                                                },
+                                                "optional": false
+                                              }
+                                            }
+                                          }
+                                        },
+                                        "optional": false
+                                      },
+                                      "every": {
+                                        "fieldType": {
+                                          "type": "number"
+                                        },
+                                        "optional": false
+                                      },
+                                      "points": {
+                                        "fieldType": {
+                                          "type": "number"
+                                        },
+                                        "optional": false
+                                      },
+                                      "most": {
+                                        "fieldType": {
+                                          "type": "number"
+                                        },
+                                        "optional": true
+                                      },
+                                      "minMinutes": {
+                                        "fieldType": {
+                                          "type": "number"
+                                        },
+                                        "optional": true
+                                      }
                                     }
                                   }
                                 },
@@ -11078,6 +11232,34 @@
                           },
                           "optional": true
                         },
+                        "backLine": {
+                          "fieldType": {
+                            "type": "union",
+                            "value": [
+                              {
+                                "type": "object",
+                                "value": {
+                                  "cleanSheet": {
+                                    "fieldType": {
+                                      "type": "number"
+                                    },
+                                    "optional": false
+                                  },
+                                  "goalConceded": {
+                                    "fieldType": {
+                                      "type": "number"
+                                    },
+                                    "optional": false
+                                  }
+                                }
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "optional": true
+                        },
                         "centreRole": {
                           "fieldType": {
                             "type": "string"
@@ -15102,6 +15284,132 @@
                                         }
                                       },
                                       "optional": false
+                                    }
+                                  }
+                                },
+                                "optional": false
+                              }
+                            }
+                          }
+                        },
+                        "optional": true
+                      },
+                      "instructions": {
+                        "fieldType": {
+                          "type": "array",
+                          "value": {
+                            "type": "object",
+                            "value": {
+                              "instruction": {
+                                "fieldType": {
+                                  "type": "string"
+                                },
+                                "optional": false
+                              },
+                              "lines": {
+                                "fieldType": {
+                                  "type": "array",
+                                  "value": {
+                                    "type": "object",
+                                    "value": {
+                                      "positions": {
+                                        "fieldType": {
+                                          "type": "array",
+                                          "value": {
+                                            "type": "union",
+                                            "value": [
+                                              {
+                                                "type": "literal",
+                                                "value": "GK"
+                                              },
+                                              {
+                                                "type": "literal",
+                                                "value": "FB"
+                                              },
+                                              {
+                                                "type": "literal",
+                                                "value": "CB"
+                                              },
+                                              {
+                                                "type": "literal",
+                                                "value": "WB"
+                                              },
+                                              {
+                                                "type": "literal",
+                                                "value": "CDM"
+                                              },
+                                              {
+                                                "type": "literal",
+                                                "value": "WM"
+                                              },
+                                              {
+                                                "type": "literal",
+                                                "value": "CM"
+                                              },
+                                              {
+                                                "type": "literal",
+                                                "value": "W"
+                                              },
+                                              {
+                                                "type": "literal",
+                                                "value": "CAM"
+                                              },
+                                              {
+                                                "type": "literal",
+                                                "value": "ST"
+                                              }
+                                            ]
+                                          }
+                                        },
+                                        "optional": true
+                                      },
+                                      "stats": {
+                                        "fieldType": {
+                                          "type": "array",
+                                          "value": {
+                                            "type": "object",
+                                            "value": {
+                                              "stat": {
+                                                "fieldType": {
+                                                  "type": "string"
+                                                },
+                                                "optional": false
+                                              },
+                                              "weight": {
+                                                "fieldType": {
+                                                  "type": "number"
+                                                },
+                                                "optional": false
+                                              }
+                                            }
+                                          }
+                                        },
+                                        "optional": false
+                                      },
+                                      "every": {
+                                        "fieldType": {
+                                          "type": "number"
+                                        },
+                                        "optional": false
+                                      },
+                                      "points": {
+                                        "fieldType": {
+                                          "type": "number"
+                                        },
+                                        "optional": false
+                                      },
+                                      "most": {
+                                        "fieldType": {
+                                          "type": "number"
+                                        },
+                                        "optional": true
+                                      },
+                                      "minMinutes": {
+                                        "fieldType": {
+                                          "type": "number"
+                                        },
+                                        "optional": true
+                                      }
                                     }
                                   }
                                 },
@@ -18687,6 +18995,132 @@
                                   }
                                 },
                                 "optional": false
+                              }
+                            }
+                          },
+                          "optional": false
+                        }
+                      }
+                    }
+                  },
+                  "optional": true
+                },
+                "instructions": {
+                  "fieldType": {
+                    "type": "array",
+                    "value": {
+                      "type": "object",
+                      "value": {
+                        "instruction": {
+                          "fieldType": {
+                            "type": "string"
+                          },
+                          "optional": false
+                        },
+                        "lines": {
+                          "fieldType": {
+                            "type": "array",
+                            "value": {
+                              "type": "object",
+                              "value": {
+                                "positions": {
+                                  "fieldType": {
+                                    "type": "array",
+                                    "value": {
+                                      "type": "union",
+                                      "value": [
+                                        {
+                                          "type": "literal",
+                                          "value": "GK"
+                                        },
+                                        {
+                                          "type": "literal",
+                                          "value": "FB"
+                                        },
+                                        {
+                                          "type": "literal",
+                                          "value": "CB"
+                                        },
+                                        {
+                                          "type": "literal",
+                                          "value": "WB"
+                                        },
+                                        {
+                                          "type": "literal",
+                                          "value": "CDM"
+                                        },
+                                        {
+                                          "type": "literal",
+                                          "value": "WM"
+                                        },
+                                        {
+                                          "type": "literal",
+                                          "value": "CM"
+                                        },
+                                        {
+                                          "type": "literal",
+                                          "value": "W"
+                                        },
+                                        {
+                                          "type": "literal",
+                                          "value": "CAM"
+                                        },
+                                        {
+                                          "type": "literal",
+                                          "value": "ST"
+                                        }
+                                      ]
+                                    }
+                                  },
+                                  "optional": true
+                                },
+                                "stats": {
+                                  "fieldType": {
+                                    "type": "array",
+                                    "value": {
+                                      "type": "object",
+                                      "value": {
+                                        "stat": {
+                                          "fieldType": {
+                                            "type": "string"
+                                          },
+                                          "optional": false
+                                        },
+                                        "weight": {
+                                          "fieldType": {
+                                            "type": "number"
+                                          },
+                                          "optional": false
+                                        }
+                                      }
+                                    }
+                                  },
+                                  "optional": false
+                                },
+                                "every": {
+                                  "fieldType": {
+                                    "type": "number"
+                                  },
+                                  "optional": false
+                                },
+                                "points": {
+                                  "fieldType": {
+                                    "type": "number"
+                                  },
+                                  "optional": false
+                                },
+                                "most": {
+                                  "fieldType": {
+                                    "type": "number"
+                                  },
+                                  "optional": true
+                                },
+                                "minMinutes": {
+                                  "fieldType": {
+                                    "type": "number"
+                                  },
+                                  "optional": true
+                                }
                               }
                             }
                           },
@@ -22428,6 +22862,132 @@
                                   }
                                 },
                                 "optional": false
+                              }
+                            }
+                          },
+                          "optional": false
+                        }
+                      }
+                    }
+                  },
+                  "optional": true
+                },
+                "instructions": {
+                  "fieldType": {
+                    "type": "array",
+                    "value": {
+                      "type": "object",
+                      "value": {
+                        "instruction": {
+                          "fieldType": {
+                            "type": "string"
+                          },
+                          "optional": false
+                        },
+                        "lines": {
+                          "fieldType": {
+                            "type": "array",
+                            "value": {
+                              "type": "object",
+                              "value": {
+                                "positions": {
+                                  "fieldType": {
+                                    "type": "array",
+                                    "value": {
+                                      "type": "union",
+                                      "value": [
+                                        {
+                                          "type": "literal",
+                                          "value": "GK"
+                                        },
+                                        {
+                                          "type": "literal",
+                                          "value": "FB"
+                                        },
+                                        {
+                                          "type": "literal",
+                                          "value": "CB"
+                                        },
+                                        {
+                                          "type": "literal",
+                                          "value": "WB"
+                                        },
+                                        {
+                                          "type": "literal",
+                                          "value": "CDM"
+                                        },
+                                        {
+                                          "type": "literal",
+                                          "value": "WM"
+                                        },
+                                        {
+                                          "type": "literal",
+                                          "value": "CM"
+                                        },
+                                        {
+                                          "type": "literal",
+                                          "value": "W"
+                                        },
+                                        {
+                                          "type": "literal",
+                                          "value": "CAM"
+                                        },
+                                        {
+                                          "type": "literal",
+                                          "value": "ST"
+                                        }
+                                      ]
+                                    }
+                                  },
+                                  "optional": true
+                                },
+                                "stats": {
+                                  "fieldType": {
+                                    "type": "array",
+                                    "value": {
+                                      "type": "object",
+                                      "value": {
+                                        "stat": {
+                                          "fieldType": {
+                                            "type": "string"
+                                          },
+                                          "optional": false
+                                        },
+                                        "weight": {
+                                          "fieldType": {
+                                            "type": "number"
+                                          },
+                                          "optional": false
+                                        }
+                                      }
+                                    }
+                                  },
+                                  "optional": false
+                                },
+                                "every": {
+                                  "fieldType": {
+                                    "type": "number"
+                                  },
+                                  "optional": false
+                                },
+                                "points": {
+                                  "fieldType": {
+                                    "type": "number"
+                                  },
+                                  "optional": false
+                                },
+                                "most": {
+                                  "fieldType": {
+                                    "type": "number"
+                                  },
+                                  "optional": true
+                                },
+                                "minMinutes": {
+                                  "fieldType": {
+                                    "type": "number"
+                                  },
+                                  "optional": true
+                                }
                               }
                             }
                           },
