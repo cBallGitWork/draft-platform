@@ -8,6 +8,7 @@ import { listOf, shownStat } from "../../../convex/scouting/playersOrder";
 import type { Stats } from "../../../convex/stats/statTotals";
 import { raceOrder } from "../../../convex/scouting/raceOrder";
 import type { ComparedPlayer, PlayersList, RacingTeam, ScoutingSeam, StatRace } from "../../../src/scouting/seam";
+import { fakeScouts, type ScoutsData } from "./scouts.harness";
 import { fakeShortlist, type ShortlistData } from "./shortlist.harness";
 
 /** What the fake server holds: its clubs, the site set's own stats, players and their season totals by code, each one's
@@ -24,6 +25,7 @@ export type ScoutingData = {
   loading?: boolean;
   comparing?: boolean;
   shortlist?: ShortlistData;
+  scouts?: ScoutsData;
   /** The stat race's categories, teams and start (#800); its teams are ranked here by the stat
    *  asked, by the server's own rule (raceOrder). None held reads as loading. */
   race?: Omit<StatRace, "teams"> & { teams: readonly Omit<RacingTeam, "stat">[] };
@@ -32,10 +34,11 @@ export type ScoutingData = {
 /** A player with no season held: no matches yet. */
 const NO_SEASON = { matches: 0, stats: {} };
 
-export function fakeScouting({ clubs = [], ownStats = [], players = [], totals = {}, seasons = {}, pointsSeason = null, loading = false, comparing = false, shortlist, race }: ScoutingData = {}) {
+export function fakeScouting({ clubs = [], ownStats = [], players = [], totals = {}, seasons = {}, pointsSeason = null, loading = false, comparing = false, shortlist, scouts, race }: ScoutingData = {}) {
   const addToQueue = vi.fn<ReturnType<ScoutingSeam["useAddToQueue"]>>(async () => shortlist?.refusal ?? null);
   return {
     ...fakeShortlist(shortlist),
+    ...fakeScouts(scouts),
     useAddToQueue: () => addToQueue,
     addToQueue,
     usePlayersList: vi.fn<ScoutingSeam["usePlayersList"]>((_leagueId, filters, sort, stat) =>

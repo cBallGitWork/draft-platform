@@ -1,0 +1,72 @@
+{
+  "league": {
+    "id": 501,
+    "sport_id": 1,
+    "country_id": 1161,
+    "name": "Premiership",
+    "active": true,
+    "short_code": "SCO P",
+    "type": "league",
+    "sub_type": "domestic",
+    "currentseason": { "id": 25598, "sport_id": 1, "league_id": 501, "name": "2026/2027", "finished": false, "is_current": true }
+  },
+  "teams": [
+    {
+      "id": 53, "sport_id": 1, "country_id": 1161, "venue_id": 8909, "gender": "male", "name": "Celtic", "short_code": "CEL", "founded": 1888, "type": "domestic",
+      "players": [
+        { "id": 1, "transfer_id": null, "player_id": 37292381, "team_id": 53, "position_id": 24, "jersey_number": 1, "captain": false,
+          "player": { "id": 37292381, "name": "Kasper Schmeichel", "common_name": "K. Schmeichel", "display_name": "Kasper Schmeichel", "firstname": "Kasper", "lastname": "Schmeichel" } },
+        { "id": 2, "transfer_id": null, "player_id": 37306481, "team_id": 53, "position_id": 27, "jersey_number": 8, "captain": false,
+          "player": { "id": 37306481, "name": "Kyogo Furuhashi", "common_name": "Kyogo", "display_name": null, "firstname": "Kyogo", "lastname": "Furuhashi" } }
+      ]
+    },
+    {
+      "id": 62, "sport_id": 1, "country_id": 1161, "venue_id": 8914, "gender": "male", "name": "Rangers", "short_code": "RAN", "founded": 1872, "type": "domestic",
+      "players": [
+        { "id": 3, "transfer_id": null, "player_id": 31739, "team_id": 62, "position_id": 25, "jersey_number": 2, "captain": true,
+          "player": { "id": 31739, "name": "James Tavernier", "common_name": "J. Tavernier", "display_name": "James Tavernier", "firstname": "James", "lastname": "Tavernier" } }
+      ]
+    },
+    { "id": 273, "sport_id": 1, "country_id": 1161, "venue_id": 8912, "gender": "male", "name": "Heart of Midlothian", "short_code": null, "founded": 1874, "type": "domestic", "players": [] }
+  ],
+  "schedule": [
+    {
+      "id": 77476879, "name": "Regular Season", "type_id": 223, "finished": false, "is_current": true,
+      "rounds": [
+        {
+          "id": 372190, "sport_id": 1, "league_id": 501, "season_id": 25598, "stage_id": 77476879, "name": "11", "finished": true, "is_current": false,
+          "starting_at": "2026-11-01", "ending_at": "2026-11-02",
+          "fixtures": [
+            {
+              "id": 19134506, "round_id": 372190, "state_id": 5, "name": "Rangers vs Heart of Midlothian", "starting_at": "2026-11-01 15:00:00", "starting_at_timestamp": 1793545200,
+              "participants": [{ "id": 62, "meta": { "location": "home" } }, { "id": 273, "meta": { "location": "away" } }],
+              "scores": [
+                { "description": "CURRENT", "score": { "goals": 3, "participant": "home" } },
+                { "description": "CURRENT", "score": { "goals": 0, "participant": "away" } }
+              ]
+            }
+          ]
+        },
+        {
+          "id": 372191, "sport_id": 1, "league_id": 501, "season_id": 25598, "stage_id": 77476879, "name": "12", "finished": false, "is_current": true,
+          "starting_at": "2026-11-08", "ending_at": "2026-11-09",
+          "fixtures": [
+            {
+              "id": 19134512, "round_id": 372191, "state_id": 22, "name": "Celtic vs Rangers", "starting_at": "2026-11-08 12:00:00", "starting_at_timestamp": 1794139200,
+              "participants": [{ "id": 53, "meta": { "location": "home" } }, { "id": 62, "meta": { "location": "away" } }],
+              "scores": [
+                { "description": "CURRENT", "score": { "goals": 2, "participant": "home" } },
+                { "description": "CURRENT", "score": { "goals": 1, "participant": "away" } }
+              ]
+            },
+            {
+              "id": 19134513, "round_id": 372191, "state_id": 1, "name": "Heart of Midlothian vs Celtic", "starting_at": "2026-11-09 15:00:00",
+              "participants": [{ "id": 273, "meta": { "location": "home" } }, { "id": 53, "meta": { "location": "away" } }],
+              "scores": []
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

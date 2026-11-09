@@ -5,6 +5,7 @@ import type { Id } from "../../convex/_generated/dataModel";
 import type { Comparison } from "../../convex/scouting/compare";
 import type { PlayersFilters, PlayersList, PlayersSort } from "../../convex/scouting/playersList";
 import type { StatRace } from "../../convex/scouting/statRace";
+import type { ScoutsSeam } from "./scouts/seam";
 import type { QueueFromShortlist, ShortlistSeam } from "./shortlist/seam";
 
 export type { Comparison, PlayersFilters, PlayersList, PlayersSort, StatRace };
@@ -12,8 +13,9 @@ export type { RacingTeam } from "../../convex/scouting/statRace";
 export type { ComparedPlayer } from "../../convex/scouting/compare";
 export type { Availability, ListedPlayer, SortColumn } from "../../convex/scouting/playersList";
 
-/** The players list, and beside it the manager's shortlist, which feeds his draft queue. */
-export type ScoutingSeam = ShortlistSeam & QueueFromShortlist & {
+/** The players list, and beside it the manager's shortlist, which feeds his draft queue, and his
+ *  team's scouts. */
+export type ScoutingSeam = ShortlistSeam & QueueFromShortlist & ScoutsSeam & {
   /** The two players with these codes side by side, live (a hook): undefined while it loads, and
    *  with null for the codes, as nothing is asked. */
   useComparison(leagueId: Id<"leagues">, codes: readonly number[] | null): Comparison | undefined;

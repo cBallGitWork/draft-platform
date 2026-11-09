@@ -8,6 +8,7 @@ import { ComparePanel, type PickedPlayer } from "./ComparePanel";
 import { Filters } from "./Filters";
 import { PlayersTable } from "./PlayersTable";
 import type { ListedPlayer, PlayersFilters, PlayersSort, ScoutingSeam, SortColumn } from "./seam";
+import { OpenReport, ScoutsPanel, type TeamReport } from "./scouts/ScoutsPanel";
 import { ShortlistPanel } from "./shortlist/ShortlistPanel";
 import { PlateTabs } from "../ui/PlateTabs";
 import { StatRaceTab } from "./statRace/StatRaceTab";
@@ -32,7 +33,8 @@ const FIRST_DESCENDING: Record<SortColumn, boolean> = { name: false, club: false
 /** Scouting (spec/19), for anyone in the league, under Players and Stat race tabs on its title
  *  plate (the approved picture). Players: every Premier League player, filtered by who holds
  *  him, his position and his club, any stat shown as a season total, and sorted by a column's head,
- *  all on the server; any two ticked are compared side by side above the list. */
+ *  all on the server; any two ticked are compared side by side above the list. Beside it, the
+ *  manager's shortlist and his team's scouts, whose reports open above the shortlist. */
 export function ScoutingPage({ league, seam }: { league: LeagueSummary; seam: ScoutingSeam }) {
   const [tab, choose] = useState<ScoutingTab>("players");
   const tabs = <PlateTabs label={scoutingTabsLabel} tabs={SCOUTING_TABS} words={scoutingTabWords} chosen={tab} choose={choose} />;
@@ -51,6 +53,8 @@ function PlayersTab({ league, seam }: { league: LeagueSummary; seam: ScoutingSea
   // While a changed filter or sort loads, the last list stays up, so the club filter keeps its clubs.
   const list = useLastLoaded(seam.usePlayersList(league.leagueId, filters, sort, stat?.stat ?? null));
   const [picked, setPicked] = useState<readonly PickedPlayer[]>([]);
+  // The scout's report opened from the Scouts panel, read above the shortlist.
+  const [reading, setReading] = useState<TeamReport | null>(null);
   const comparison = seam.useComparison(league.leagueId, picked.length === COMPARED_PLAYERS ? picked.map((each) => each.code) : null);
   // A third ticked takes the place of the first, so the comparison always holds the last two.
   const pick = ({ code, name }: ListedPlayer, ticked: boolean) =>
@@ -66,7 +70,9 @@ function PlayersTab({ league, seam }: { league: LeagueSummary; seam: ScoutingSea
   return (
     <>
       {picked.length > 0 && <ComparePanel picked={picked} comparison={comparison} pointsSeason={list?.pointsSeason ?? null} clear={() => setPicked([])} />}
+      {reading !== null && <OpenReport leagueId={league.leagueId} report={reading} seam={seam} close={() => setReading(null)} />}
       <ShortlistPanel leagueId={league.leagueId} seam={seam} />
+      <ScoutsPanel leagueId={league.leagueId} seam={seam} read={setReading} />
       <Panel title={PLAYERS_TITLE}>
         <Filters filters={filters} clubs={list?.clubs} ownStats={list?.ownStats} filterBy={filterBy} stat={stat} show={show} />
         {list === undefined ? (

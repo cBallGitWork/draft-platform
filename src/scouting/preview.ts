@@ -9,6 +9,7 @@ import { OWN_STAT_PREFIX } from "../../convex/scoring/statCatalogue";
 import type { Stats } from "../../convex/stats/statTotals";
 import { DAY_MS } from "../../convex/shared/time";
 import { listedFromScouting, queueInPreview, setPreviewShortlisted } from "../draft/previewLists";
+import { previewScouts } from "./scouts/preview";
 import { previewShortlistOf } from "./shortlist/preview";
 import { previewIdOf, previewTeams } from "../table/preview";
 import type { ScoutingSeam, StatRace } from "./seam";
@@ -92,6 +93,7 @@ const previewRace = (stat: string): StatRace => ({
 
 export const previewScouting: ScoutingSeam = {
   ...previewShortlist,
+  ...previewScouts,
   useAddToQueue: () => addToQueue,
   useComparison: (_leagueId, codes) =>
     codes?.map((code) => ({ ...previewPlayers.find((each) => each.code === code)!, matches: PREVIEW_MATCHES, stats: previewTotals[code] ?? {} })),
