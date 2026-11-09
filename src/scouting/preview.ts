@@ -2,6 +2,7 @@
 // stats added up for each, filtered and sorted by the server's own rule (listOf).
 
 import type { ListedPlayer } from "../../convex/scouting/playersList";
+import { mainArea, per90PanelOf } from "../../convex/scouting/per90Figures";
 import { listFigures, listOf, NO_FIGURES, shownStat } from "../../convex/scouting/playersOrder";
 import { withOwnStats } from "../../convex/scoring/ownStats";
 import { OWN_STAT_PREFIX } from "../../convex/scoring/statCatalogue";
@@ -81,6 +82,11 @@ export const previewScouting: Omit<ScoutingSeam, keyof WaiverActionSeam> = {
   useAddToQueue: () => addToQueue,
   useComparison: (_leagueId, codes) =>
     codes?.map((code) => ({ ...previewPlayers.find((each) => each.code === code)!, matches: PREVIEW_MATCHES, stats: previewTotals[code] ?? {} })),
+  usePer90: (_leagueId, playerCode, stat) => {
+    const weighed = (player: ListedPlayer) => ({ area: mainArea(player.positions), totals: withOwnStats(previewTotals[player.code] ?? {}, PREVIEW_SET) });
+    const his = previewPlayers.find(({ code }) => code === playerCode);
+    return his === undefined ? undefined : per90PanelOf(weighed(his), previewPlayers.map(weighed), stat);
+  },
   usePlayersList: (_leagueId, filters, sort, stat) => ({
     clubs: [ARSENAL, CHELSEA, LIVERPOOL],
     ownStats: PREVIEW_SET.ownStats.map(({ stat, name, shortCode }) => ({ stat, name, shortCode })),

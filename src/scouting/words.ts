@@ -1,5 +1,7 @@
 // What Scouting says, in one place for Craig to change in the pull request.
 
+import type { Area } from "../../convex/lineup/pitch";
+import { RANKED_MINUTES } from "../../convex/scouting/per90Figures";
 import { lastSeasonPointsColumn } from "../draft/words";
 import { STAT_WORD, weekdayTimeWords } from "../shared/words";
 import type { Availability } from "./seam";
@@ -68,6 +70,39 @@ export const selectPlayerLabel = (name: string) => `Show ${name}'s panel`;
 export const panelSeasonPointsWords = "Season points";
 export const panelMinutesWords = "Minutes this season";
 export const closePanelLabel = "Close his panel";
+/** His figures per 90 over the period, ranked against the players of his area (the approved
+ *  picture: "Per 90, last 6 gameweeks", "vs attacking mids"). */
+export const per90Words = "Per 90, season";
+export const AREA_PLAYERS: Record<Area, string> = {
+  goalkeeper: "goalkeepers",
+  defence: "defenders",
+  defensiveMidfield: "defensive mids",
+  midfield: "midfielders",
+  attackingMidfield: "attacking mids",
+  attack: "attackers",
+};
+/** The panel's own names for the stats it lists per 90, as the picture names them; a stat not here
+ *  goes by its catalogue name. */
+export const PER90_STAT_NAMES: Readonly<Record<string, string>> = {
+  goals_scored: "Goals",
+  assists: "Assists",
+  total_att_assist: "Key passes",
+  ontarget_scoring_att: "Shots on target",
+  big_chance_created: "Big chances created",
+  won_tackle: "Tackles won",
+  saves: "Saves",
+  goals_conceded: "Goals conceded",
+  clean_sheets: "Clean sheets",
+  total_pass: "Passes",
+  interception: "Interceptions",
+  total_clearance: "Clearances",
+};
+export const versusWords = (area: Area) => `vs ${AREA_PLAYERS[area]}`;
+/** A percentile bar's hover and name: the figure it draws. */
+export const percentileLabel = (percentile: number, area: Area) => `${percentile} percentile ${versusWords(area)}`;
+/** Why a player has no percentile: too few minutes to be ranked. */
+export const notRankedWords = `Ranked from ${RANKED_MINUTES} minutes`;
+export const loadingPer90Words = "Loading his figures per 90…";
 export const compareWithAnotherWords = "Compare with another…";
 export const pickSecondWords = (name: string) => `Pick a second player in the list to compare with ${name}.`;
 export const playerCardLinkWords = "Player card ›";

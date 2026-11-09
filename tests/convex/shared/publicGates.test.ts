@@ -121,6 +121,7 @@ beforeEach(async () => {
       "scoring/siteScoring:view": () => caller.query(api.scoring.siteScoring.view, { now }),
       "scoring/siteScoring:withdraw": () => caller.mutation(api.scoring.siteScoring.withdraw, { versionId }),
       "scouting/compare:players": () => caller.query(api.scouting.compare.players, { leagueId, codes: [SOME_CODE] }),
+      "scouting/per90:figures": () => caller.query(api.scouting.per90.figures, { leagueId, playerCode: SOME_CODE, stat: null }),
       "scouting/playersList:list": () =>
         caller.query(api.scouting.playersList.list, {
           leagueId,

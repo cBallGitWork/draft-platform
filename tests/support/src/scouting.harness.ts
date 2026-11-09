@@ -4,6 +4,7 @@
 
 import { vi } from "vitest";
 import type { ListedPlayer } from "../../../convex/scouting/playersList";
+import { mainArea, per90PanelOf } from "../../../convex/scouting/per90Figures";
 import { listOf, shownStat } from "../../../convex/scouting/playersOrder";
 import type { Stats } from "../../../convex/stats/statTotals";
 import type { ComparedPlayer, PlayersList, ScoutingSeam } from "../../../src/scouting/seam";
@@ -56,5 +57,10 @@ export function fakeScouting({ clubs = [], ownStats = [], players = [], totals =
         ? undefined
         : codes.map((code) => ({ ...players.find((player) => player.code === code)!, ...(seasons[code] ?? NO_SEASON) })),
     ),
+    // Each player's per-90 panel from his season totals, by the server's own rule (per90PanelOf).
+    usePer90: vi.fn<ScoutingSeam["usePer90"]>((_leagueId, playerCode, stat) => {
+      const weighed = (player: ListedPlayer) => ({ area: mainArea(player.positions), totals: totals[player.code] ?? {} });
+      return per90PanelOf(weighed(players.find((player) => player.code === playerCode)!), players.map(weighed), stat);
+    }),
   };
 }

@@ -160,6 +160,7 @@ export const gates: Record<string, Gate> = {
   "scoring/siteScoring:view": "signedIn",
   "scoring/siteScoring:withdraw": "admin",
   "scouting/compare:players": "member",
+  "scouting/per90:figures": "member",
   "scouting/playersList:list": "member",
   "scouting/scouts:mine": "member",
   "scouting/scouts:onPlayer": "member",

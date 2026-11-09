@@ -123,6 +123,7 @@ function PlayersTab({ league, seam }: { league: LeagueSummary; seam: ScoutingSea
             leagueId={league.leagueId}
             player={shownSelected}
             pointsSeason={list?.pointsSeason ?? null}
+            stat={stat}
             shortlisted={shortlisted.has(shownSelected.code)}
             comparing={comparing}
             seam={seam}

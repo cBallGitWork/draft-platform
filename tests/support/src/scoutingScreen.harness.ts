@@ -4,7 +4,7 @@
 
 import { screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { availabilityWords } from "../../../src/scouting/words";
+import { availabilityWords, PLAYERS_TITLE } from "../../../src/scouting/words";
 import type { ListedPlayer } from "../../../convex/scouting/playersList";
 import { NO_FIGURES } from "../../../convex/scouting/playersOrder";
 import { SCOUTING_PATH } from "../../../src/frame/menu";
@@ -36,7 +36,8 @@ export async function openOnAll(scouting: ScoutingData = HELD) {
   await userEvent.click(await screen.findByRole("radio", { name: availabilityWords.all }));
   return app;
 }
-export const table = () => screen.getByRole("table");
+/** The players list's table, apart from the selected player's figures per 90. */
+export const table = () => within(screen.getByRole("region", { name: PLAYERS_TITLE })).getByRole("table");
 /** A row's name: the link to his card that heads it, after which come a star and his club. */
 const nameIn = (cell: HTMLElement) => within(cell).getAllByRole("link")[0].textContent;
 export const namesShown = () => within(table()).getAllByRole("rowheader").map(nameIn);

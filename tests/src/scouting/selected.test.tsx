@@ -6,21 +6,28 @@ import { screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
 import { NO_FIGURES } from "../../../convex/scouting/playersOrder";
+import type { Stats } from "../../../convex/stats/statTotals";
 import { pickUpWords } from "../../../src/playerCard/words";
 import { playerCardPath } from "../../../src/playerCard/paths";
 import {
   closePanelLabel,
   noFigureWords,
   noPointsYetWords,
+  notRankedWords,
   panelMinutesWords,
   panelSeasonPointsWords,
+  PER90_STAT_NAMES,
+  per90Words,
+  percentileLabel,
   playerCardLinkWords,
   scoutingTabWords,
   selectPlayerLabel,
   shortlistedLabel,
+  statLabel,
+  versusWords,
 } from "../../../src/scouting/words";
 import { addToShortlistWords } from "../../../src/scouting/shortlist/words";
-import { HELD, openOnAll, openScouting, PALMER, RICE, rowOf } from "../../support/src/scoutingScreen.harness";
+import { HELD, openOnAll, openScouting, PALMER, RICE, rowOf, SAKA } from "../../support/src/scoutingScreen.harness";
 import { shortlisted } from "../../support/src/shortlist.harness";
 import { league } from "../../support/src/shell.harness";
 
@@ -74,6 +81,46 @@ describe("selecting a player", () => {
     await screen.findByRole("table");
     await userEvent.click(within(rowOf("Rice")).getByRole("link", { name: "Rice" }));
     expect(app.path()).toBe(playerCardPath(league.leagueId, RICE.code));
+  });
+});
+
+describe("his figures per 90", () => {
+  // Palmer (CAM) and Saka (W) are both attacking mids with 900 minutes; Palmer has scored twice as often.
+  const TOTALS: Record<number, Stats> = {
+    [PALMER.code]: { minutes: 900, goals_scored: 10, total_att_assist: 9 },
+    [SAKA.code]: { minutes: 900, goals_scored: 5, total_att_assist: 18 },
+    [RICE.code]: { minutes: 180, goals_scored: 1 },
+  };
+  const rowIn = (panel: HTMLElement, name: string) => within(panel).getByRole("rowheader", { name }).closest("tr")!;
+
+  it("lists his area's stats per 90 with a bar as long as his percentile against the area's players, hover giving it", async () => {
+    await openOnAll({ ...HELD, totals: TOTALS });
+    await userEvent.click(rowOf("Palmer"));
+    const panel = panelOf("CAM");
+    expect(within(panel).getByText(per90Words)).toBeTruthy();
+    expect(within(panel).getByText(versusWords("attackingMidfield"))).toBeTruthy();
+    const goals = rowIn(panel, PER90_STAT_NAMES.goals_scored);
+    expect(within(goals).getAllByRole("cell").map((cell) => cell.textContent)).toEqual(["1", "", "100"]);
+    const bar = within(goals).getByRole("img", { name: percentileLabel(100, "attackingMidfield") });
+    expect(bar.getAttribute("title")).toBe(percentileLabel(100, "attackingMidfield"));
+    expect(within(rowIn(panel, PER90_STAT_NAMES.total_att_assist)).getAllByRole("cell").at(-1)!.textContent).toBe("50");
+  });
+
+  it("under 270 minutes he has figures but no bar, saying why", async () => {
+    await openOnAll({ ...HELD, totals: TOTALS });
+    await userEvent.click(rowOf("Rice"));
+    const panel = panelOf("CDM");
+    expect(within(panel).getByText(notRankedWords)).toBeTruthy();
+    expect(within(rowIn(panel, PER90_STAT_NAMES.goals_scored)).getAllByRole("cell").map((cell) => cell.textContent)).toEqual(["0.5", "", noFigureWords]);
+    expect(within(panel).queryByRole("img", { name: /percentile/ })).toBeNull();
+  });
+
+  it("asks for the list's stat to join them", async () => {
+    const app = await openOnAll({ ...HELD, totals: TOTALS });
+    await userEvent.selectOptions(screen.getByRole("combobox", { name: statLabel }), "Saves");
+    await userEvent.click(rowOf("Palmer"));
+    expect(app.scouting.usePer90.mock.lastCall).toEqual([league.leagueId, PALMER.code, "saves"]);
+    expect(within(panelOf("CAM")).getByRole("rowheader", { name: PER90_STAT_NAMES.saves })).toBeTruthy();
   });
 });
 

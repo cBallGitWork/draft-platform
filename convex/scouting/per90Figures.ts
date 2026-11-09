@@ -1,0 +1,86 @@
+// Scouting's per-90 figures and percentiles (#1028; Craig, 9 Nov 2026, on #1028): what the selected
+// player's panel lists for his area, and how he ranks against the players of it. Pure, apart from
+// per90.ts, so the preview and the tests share it without the server's imports.
+
+import { AREAS, areasOf, cellsOf, LANES, positionOfSlot, SLOT_POSITIONS, type Area } from "../lineup/pitch";
+import { cardOpensAt } from "../playerCard/cardPoints";
+import type { Position } from "../positions/positionTables";
+import { EVENT_STATS, MINUTES_STAT } from "../stats/matchRecords";
+import type { Stats } from "../stats/statTotals";
+
+/** The fewest minutes a player has over the period to be ranked (the approved picture: "270+
+ *  minutes to be ranked"), his own percentile and his place among the others' alike. */
+export const RANKED_MINUTES = 270;
+
+/** A match's minutes, the per-90 figures' unit. */
+const MATCH_MINUTES = 90;
+
+/** The stats each area's panel lists per 90 (Craig, 9 Nov 2026, on #1028, answer 3), by the names
+ *  the merged record keeps them under (sportmonksStats.ts): the goalkeeper's, the defence's, and
+ *  the picture's six for every other area, midfield and attack. */
+const GOALKEEPER_STATS = ["saves", "goals_conceded", "clean_sheets", "total_pass"] as const;
+const DEFENCE_STATS = ["won_tackle", "interception", "total_clearance", "clean_sheets", EVENT_STATS.assists] as const;
+const MIDFIELD_AND_ATTACK_STATS = [EVENT_STATS.goals, EVENT_STATS.assists, "total_att_assist", "ontarget_scoring_att", "big_chance_created", "won_tackle"] as const;
+
+/** The stats a player of `area` is shown per 90, then `picked` (the list's stat) as a seventh when
+ *  it isn't among them already. */
+export function per90Stats(area: Area, picked: string | null): string[] {
+  const set: readonly string[] = area === "goalkeeper" ? GOALKEEPER_STATS : area === "defence" ? DEFENCE_STATS : MIDFIELD_AND_ATTACK_STATS;
+  return picked === null || set.includes(picked) ? [...set] : [...set, picked];
+}
+
+/** The area of a player's main position (his card's, cardOpensAt), as spec/14's table places each
+ *  slot's position: a winger and an attacking midfielder are both attacking midfield. A position
+ *  with no slot of its own (SS) is the first area it plays. Null with no position. */
+export function mainArea(positions: readonly Position[]): Area | null {
+  const main = cardOpensAt(positions);
+  if (main === null) return null;
+  const slot = SLOT_POSITIONS.find((each) => each === main);
+  if (slot === undefined) return areasOf([main])[0] ?? null;
+  return AREA_OF_SLOT.get(slot)!;
+}
+
+/** Each slot's position's area: the area of a cell it is the slot of. */
+const AREA_OF_SLOT = new Map(
+  AREAS.flatMap((area) =>
+    cellsOf(area, LANES).map((cell) => [positionOfSlot(cell), area] as const),
+  ),
+);
+
+/** His figure per 90 minutes from his totals, or null with no minutes played. */
+export function perNinety(totals: Stats, stat: string): number | null {
+  const minutes = totals[MINUTES_STAT] ?? 0;
+  return minutes > 0 ? ((totals[stat] ?? 0) / minutes) * MATCH_MINUTES : null;
+}
+
+/** Whether a player with these totals has played enough to be ranked. */
+export const isRanked = (totals: Stats) => (totals[MINUTES_STAT] ?? 0) >= RANKED_MINUTES;
+
+/** A player as his per-90 panel weighs him: his main position's area and his totals over the
+ *  period. */
+export type Weighed = { area: Area | null; totals: Stats };
+
+/** The selected player's panel: his area's stats and `stat` per 90 (per90Stats), each with his
+ *  percentile among `everyone`'s ranked players of his area, null while he isn't ranked himself. */
+export function per90PanelOf(his: Weighed, everyone: Iterable<Weighed>, stat: string | null) {
+  const { area, totals } = his;
+  if (area === null) return { area, ranked: false, figures: [] };
+  const peers = [...everyone].filter((each) => each.area === area && isRanked(each.totals)).map((each) => each.totals);
+  const ranked = isRanked(totals);
+  return {
+    area,
+    ranked,
+    figures: per90Stats(area, stat).map((each) => {
+      const value = perNinety(totals, each);
+      const others = peers.map((peer) => perNinety(peer, each)!);
+      return { stat: each, perNinety: value, percentile: ranked && value !== null ? percentileOf(value, others) : null };
+    }),
+  };
+}
+
+/** Where `value` stands among `peers`' figures, as a percentile from 0 to 100: the share of them at
+ *  or below it, rounded, so the best of them is 100. Null with no peers. */
+export function percentileOf(value: number, peers: readonly number[]): number | null {
+  if (peers.length === 0) return null;
+  return Math.round((100 * peers.filter((peer) => peer <= value).length) / peers.length);
+}

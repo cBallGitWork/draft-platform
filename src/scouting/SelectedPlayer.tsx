@@ -1,7 +1,9 @@
 import { Link } from "@tanstack/react-router";
 import type { Id } from "../../convex/_generated/dataModel";
 import { cardOpensAt } from "../../convex/playerCard/cardPoints";
+import type { CatalogueStat } from "../../convex/scoring/statCatalogueList";
 import { ShortlistAction } from "../playerCard/ShortlistAction";
+import { Per90Figures } from "./Per90Figures";
 import { WaiverAction } from "../playerCard/WaiverAction";
 import { playerCardPath } from "../playerCard/paths";
 import { ClubMark, ClubShort } from "../ui/ClubName";
@@ -37,6 +39,7 @@ export function SelectedPlayer({
   leagueId,
   player,
   pointsSeason,
+  stat,
   shortlisted,
   comparing,
   seam,
@@ -46,6 +49,8 @@ export function SelectedPlayer({
   leagueId: Id<"leagues">;
   player: ListedPlayer;
   pointsSeason: number | null;
+  /** The list's stat, which joins his figures per 90. */
+  stat: CatalogueStat | null;
   shortlisted: boolean;
   /** Whether Compare with another… is waiting for a second row. */
   comparing: boolean;
@@ -93,6 +98,7 @@ export function SelectedPlayer({
           <dd className="text-muted">{noRoleFitYetWords}</dd>
         </div>
       </dl>
+      <Per90Figures leagueId={leagueId} playerCode={player.code} stat={stat} seam={seam} />
       <div className="flex flex-col gap-2 border-t border-panel-rule p-3">
         <WaiverAction leagueId={leagueId} card={player} seam={seam} />
         <ShortlistAction leagueId={leagueId} playerCode={player.code} gone={false} seam={seam} />

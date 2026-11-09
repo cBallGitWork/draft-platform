@@ -149,7 +149,7 @@ export const list = query({
 });
 
 /** Refuses a stat that is neither the catalogue's nor one of `ownStats`. */
-function checkShownStat(stat: string, ownStats: readonly { stat: string }[]): void {
+export function checkShownStat(stat: string, ownStats: readonly { stat: string }[]): void {
   if (!CATALOGUE_STATS.has(stat) && !ownStats.some((own) => own.stat === stat)) {
     throw new Error(`No stat ${stat} is in the catalogue or the site's own stats`);
   }
@@ -157,7 +157,7 @@ function checkShownStat(stat: string, ownStats: readonly { stat: string }[]): vo
 
 /** A player's season totals with the site's own stats worked out from them (ownStats.ts) when the
  *  shown stat is one; as they are otherwise, undefined for a player with none. */
-function withOwnTotals(totals: Stats | undefined, stat: string | null, set: StoredScoringSet): Stats | undefined {
+export function withOwnTotals(totals: Stats | undefined, stat: string | null, set: StoredScoringSet): Stats | undefined {
   if (totals === undefined || stat === null || CATALOGUE_STATS.has(stat)) return totals;
   return withOwnStats(totals, set);
 }
