@@ -96,7 +96,9 @@ export function Pitch({
         LANES.map((lane) => {
           const cell = { area, lane };
           const standing = standingIn(draft, cell);
-          const player = standing && squad.get(standing.playerCode)!;
+          const player = standing && squad.get(standing.playerCode);
+          // A starter missing from his squad is a broken lineup: say so, never draw an empty cell.
+          if (standing !== undefined && player === undefined) throw new Error(`Starter ${standing.playerCode} is not in the squad`);
           // Any cell takes the drop of the player picked up, so a refused one can say why (#1022);
           // his own cell is no move.
           const takesDrop = picked !== null && standing?.playerCode !== picked.playerCode;
