@@ -40,6 +40,8 @@ export const PAST_STAT_COLUMNS: Readonly<Record<string, PastColumn>> = {
 
 /** Every other catalogue stat: not copied, so "not tested" in the lab. */
 export const NOT_TESTED: readonly string[] = [
+  // Keep it tight early's half-time stats (#990): the past seasons' tables hold no half-time score.
+  "clean_sheet_half_time", "goals_conceded_half_time",
   "accurate_back_zone_pass", "accurate_chipped_pass", "accurate_corners_intobox", "accurate_cross", "accurate_cross_nocorner",
   "accurate_flick_on", "accurate_freekick_cross", "accurate_fwd_zone_pass", "accurate_goal_kicks", "accurate_keeper_sweeper",
   "accurate_keeper_throws", "accurate_launches", "accurate_layoffs", "accurate_long_balls", "accurate_pass",

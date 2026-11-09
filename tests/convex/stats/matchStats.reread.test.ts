@@ -1,4 +1,5 @@
 import { beforeEach, expect, test, vi } from "vitest";
+import { HALF_TIME_STATS } from "../../../convex/football/premierLeague/plMatch";
 import { statValue } from "../../../convex/stats/matchRecords";
 import {
   FULL_TIME_READ,
@@ -72,7 +73,9 @@ test.each([
 
   expect(run.outcome).toMatchObject({ matches: [{ state: "provisional", inserted: 0, updated: 1, changed: [playerCode] }] });
   const row = (await heldMatch(t)).records.get(playerCode)!;
-  expect(row.stats).toEqual(held.stats);
+  // A starter's half-time stats come with Opta's first counted line (plMatch.ts), so leave them out.
+  const { [HALF_TIME_STATS.cleanSheet]: _clean, [HALF_TIME_STATS.goalsConceded]: _conceded, ...stats } = row.stats;
+  expect(stats).toEqual(held.stats);
   expect(held).not.toMatchObject(changed);
   expect(row).toMatchObject(changed);
 });

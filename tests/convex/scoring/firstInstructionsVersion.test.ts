@@ -35,6 +35,19 @@ test("they are added to the set as it stands, its roles and own stats kept and n
   expect(await versions()).toBe(2);
 });
 
+test("run again on a set that scores some of them, it adds only those it lacks, the rest as the set holds them", async () => {
+  await holdGameweeks(t, { next: 9 });
+  const [edited, ...others] = FIRST_INSTRUCTION_SCORING.filter(({ instruction }) => instruction !== "keepItTightEarly");
+  const held = [{ ...edited, lines: edited.lines.map((line) => ({ ...line, points: line.points * 2 })) }, ...others];
+  const before = { ...FIRST_SCORING, ownStats: [...FIRST_ROLE_OWN_STATS], instructions: held };
+  await t.run((ctx) => holdSiteScoring(ctx, { scoring: before, kind: "fix", season: 2026, number: 1, at: TODAY - 1 }));
+
+  expect((await addFirstInstructions())?.name).toBe("26_27.2");
+  const tight = FIRST_INSTRUCTION_SCORING.find(({ instruction }) => instruction === "keepItTightEarly");
+  expect(await inGameweek(9)).toEqual({ ...before, instructions: [...held, tight] });
+  expect(await addFirstInstructions()).toBeNull();
+});
+
 test("while a patch made without them waits to take effect, they aren't added, so it can't drop them", async () => {
   await holdGameweeks(t, { next: 9 });
   await patch(EDITED, TODAY + NOTICE);

@@ -8,9 +8,8 @@ import type { StoredScoringSet } from "./scoringSetShape";
 // from the next gameweek that hasn't begun, no letter, changed by patch after that"). Each stat is
 // the live feed's own key (statCatalogueList.ts); failed long balls and crosses are the roles' own
 // stats (FIRST_ROLE_OWN_STATS).
-//
-// Keep it tight early isn't here: it scores his club's half-time score (Craig, 9 Nov 2026), which
-// no match record holds yet, so until it does the set doesn't score it.
+// Keep it tight early scores his club's half-time score, for starters only (Craig, 9 Nov 2026):
+// the two half-time stats only a starter's record holds (plMatch.ts's HALF_TIME_STATS).
 
 type InstructionScoring = NonNullable<StoredScoringSet["instructions"]>[number];
 type InstructionLine = InstructionScoring["lines"][number];
@@ -85,6 +84,8 @@ export const FIRST_INSTRUCTION_SCORING: readonly InstructionScoring[] = [
     line(1, -5, ["red_cards"]),
     line(2, -1, ["fouls"]),
   ),
+  // +1 if his club kept a clean sheet at half-time; −1 per goal his club let in before half-time.
+  instruction("keepItTightEarly", line(1, 1, ["clean_sheet_half_time"]), line(1, -1, ["goals_conceded_half_time"])),
   // GK/DEF clean sheet +1, at base scoring's 60 minutes; goals and assists −1 (all players).
   instruction(
     "parkTheBus",

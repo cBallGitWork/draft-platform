@@ -1,7 +1,7 @@
-import { expect, test } from "vitest";
+import { describe, expect, test } from "vitest";
 import { codesByOpta } from "../../../../convex/football/feedIds";
-import { plStatLines, plStats } from "../../../../convex/football/premierLeague/plMatch";
-import type { RawPlPlayerStats } from "../../../../convex/football/premierLeague/premierLeague";
+import { HALF_TIME_STATS, halfTimeStats, plStatLines, plStats } from "../../../../convex/football/premierLeague/plMatch";
+import type { RawPlFixture, RawPlPlayerStats } from "../../../../convex/football/premierLeague/premierLeague";
 import { fplElementsWithout, FULL_STATS, hullEvertonReads, MATCH, recordedGw6, recordedPlFixture } from "../../../support/recorded/gw6.payloads";
 
 const gw6 = recordedGw6();
@@ -46,7 +46,43 @@ test("a stat line is the man's and the match's FPL codes, for every man read", (
   expect(lines.find((line) => line.playerCode === FULL_STATS.mcBurnie.code)).toEqual({
     playerCode: FULL_STATS.mcBurnie.code,
     fixtureCode: MATCH.hullEverton.code,
-    stats: plStats(readOf(FULL_STATS.mcBurnie.pl)),
+    // Hull were level 0–0 at half-time, so their striker, a starter, kept a half-time clean sheet.
+    stats: { ...plStats(readOf(FULL_STATS.mcBurnie.pl)), clean_sheet_half_time: 1, goals_conceded_half_time: 0 },
+  });
+});
+
+describe("half-time's stats, for Keep it tight early (#990)", () => {
+  const atHalfTime = (homeScore: number, awayScore: number, phase = "H"): RawPlFixture => ({
+    ...structuredClone(hullEverton),
+    status: "L",
+    phase,
+    halfTimeScore: { homeScore, awayScore },
+  });
+
+  test("each starter holds his own club's half-time goals conceded, and a clean sheet only when none", () => {
+    const stats = halfTimeStats(atHalfTime(2, 1));
+
+    expect(stats.get(FULL_STATS.coyle.pl)).toEqual({ [HALF_TIME_STATS.cleanSheet]: 0, [HALF_TIME_STATS.goalsConceded]: 1 });
+    const everton = hullEverton.teamLists![1]!.lineup[0].id;
+    expect(stats.get(everton)).toEqual({ [HALF_TIME_STATS.cleanSheet]: 0, [HALF_TIME_STATS.goalsConceded]: 2 });
+    expect(halfTimeStats(atHalfTime(0, 1, "2")).get(everton)).toEqual({ [HALF_TIME_STATS.cleanSheet]: 1, [HALF_TIME_STATS.goalsConceded]: 0 });
+  });
+
+  test("a bench man has none, even one who came on, and nor does anyone before half-time", () => {
+    expect(halfTimeStats(atHalfTime(2, 1)).has(FULL_STATS.belloumi.pl)).toBe(false);
+    expect(halfTimeStats(atHalfTime(0, 0, "1")).size).toBe(0);
+    const { lines } = plStatLines(atHalfTime(0, 0, "1"), reads, codeByOpta);
+    expect(lines.some((line) => HALF_TIME_STATS.cleanSheet in line.stats)).toBe(false);
+  });
+
+  test("a starter Opta hasn't counted yet gets none, so his line still reads as not counted", () => {
+    const empty = new Map([[FULL_STATS.coyle.pl, { ...readOf(FULL_STATS.coyle.pl), stats: [] }]]);
+    expect(plStatLines(atHalfTime(1, 0), empty, codeByOpta).lines[0].stats).toEqual({});
+  });
+
+  test("a half-time score that isn't two whole goal counts throws", () => {
+    const broken = { ...atHalfTime(0, 0), halfTimeScore: { homeScore: 1 } };
+    expect(() => halfTimeStats(broken)).toThrow(`PL fixture ${hullEverton.id} sent half-time score {"homeScore":1}`);
   });
 });
 
