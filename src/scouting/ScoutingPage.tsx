@@ -9,7 +9,19 @@ import { Filters } from "./Filters";
 import { PlayersTable } from "./PlayersTable";
 import type { ListedPlayer, PlayersFilters, PlayersSort, ScoutingSeam, SortColumn } from "./seam";
 import { ShortlistPanel } from "./shortlist/ShortlistPanel";
-import { countWords, loadingWords, noneMatchWords, PLAYERS_TITLE, SCOUTING_TITLE } from "./words";
+import { PlateTabs } from "../ui/PlateTabs";
+import { StatRaceTab } from "./statRace/StatRaceTab";
+import {
+  countWords,
+  loadingWords,
+  noneMatchWords,
+  PLAYERS_TITLE,
+  SCOUTING_TABS,
+  SCOUTING_TITLE,
+  scoutingTabsLabel,
+  scoutingTabWords,
+  type ScoutingTab,
+} from "./words";
 
 const OPENING_FILTERS: PlayersFilters = { availability: "all", position: null, clubCode: null };
 /** The list opens by name: no player has season points to rank by until matches are scored (#29).
@@ -17,10 +29,22 @@ const OPENING_FILTERS: PlayersFilters = { availability: "all", position: null, c
 const OPENING_SORT: PlayersSort = { by: "name", descending: false };
 const FIRST_DESCENDING: Record<SortColumn, boolean> = { name: false, club: false, seasonPoints: true, stat: true };
 
-/** Scouting (spec/19), for anyone in the league: every Premier League player, filtered by who holds
+/** Scouting (spec/19), for anyone in the league, under Players and Stat race tabs on its title
+ *  plate (the approved picture). Players: every Premier League player, filtered by who holds
  *  him, his position and his club, any stat shown as a season total, and sorted by a column's head,
  *  all on the server; any two ticked are compared side by side above the list. */
 export function ScoutingPage({ league, seam }: { league: LeagueSummary; seam: ScoutingSeam }) {
+  const [tab, choose] = useState<ScoutingTab>("players");
+  const tabs = <PlateTabs label={scoutingTabsLabel} tabs={SCOUTING_TABS} words={scoutingTabWords} chosen={tab} choose={choose} />;
+  return (
+    <PageSection title={SCOUTING_TITLE} aside={tabs} className={PAGE_STACK}>
+      {tab === "players" ? <PlayersTab league={league} seam={seam} /> : <StatRaceTab league={league} seam={seam} />}
+    </PageSection>
+  );
+}
+
+/** The Players tab: the compare, the shortlist and the list. */
+function PlayersTab({ league, seam }: { league: LeagueSummary; seam: ScoutingSeam }) {
   const [filters, setFilters] = useState(OPENING_FILTERS);
   const [sort, setSort] = useState(OPENING_SORT);
   const [stat, setStat] = useState<CatalogueStat | null>(null);
@@ -40,7 +64,7 @@ export function ScoutingPage({ league, seam }: { league: LeagueSummary; seam: Sc
     else if (sort.by === "stat") setSort(OPENING_SORT);
   };
   return (
-    <PageSection title={SCOUTING_TITLE} className={PAGE_STACK}>
+    <>
       {picked.length > 0 && <ComparePanel picked={picked} comparison={comparison} pointsSeason={list?.pointsSeason ?? null} clear={() => setPicked([])} />}
       <ShortlistPanel leagueId={league.leagueId} seam={seam} />
       <Panel title={PLAYERS_TITLE}>
@@ -56,6 +80,6 @@ export function ScoutingPage({ league, seam }: { league: LeagueSummary; seam: Sc
           </>
         )}
       </Panel>
-    </PageSection>
+    </>
   );
 }

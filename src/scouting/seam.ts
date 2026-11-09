@@ -4,9 +4,11 @@
 import type { Id } from "../../convex/_generated/dataModel";
 import type { Comparison } from "../../convex/scouting/compare";
 import type { PlayersFilters, PlayersList, PlayersSort } from "../../convex/scouting/playersList";
+import type { StatRace } from "../../convex/scouting/statRace";
 import type { QueueFromShortlist, ShortlistSeam } from "./shortlist/seam";
 
-export type { Comparison, PlayersFilters, PlayersList, PlayersSort };
+export type { Comparison, PlayersFilters, PlayersList, PlayersSort, StatRace };
+export type { RacingTeam } from "../../convex/scouting/statRace";
 export type { ComparedPlayer } from "../../convex/scouting/compare";
 export type { Availability, ListedPlayer, SortColumn } from "../../convex/scouting/playersList";
 
@@ -20,4 +22,8 @@ export type ScoutingSeam = ShortlistSeam & QueueFromShortlist & {
    *  club filter and the site set's own stats for the stat box, live (a hook):
    *  undefined while they load. */
   usePlayersList(leagueId: Id<"leagues">, filters: PlayersFilters, sort: PlayersSort, stat: string | null): PlayersList | undefined;
+  /** The stat race (#800): every team's season totals, most of `stat` (a catalogue key) first, the
+   *  scoring categories and where a mid-season league's totals start, live (a hook): undefined
+   *  while it loads. */
+  useStatRace(leagueId: Id<"leagues">, stat: string): StatRace | undefined;
 };

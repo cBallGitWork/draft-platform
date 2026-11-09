@@ -6,7 +6,8 @@ import { vi } from "vitest";
 import type { ListedPlayer } from "../../../convex/scouting/playersList";
 import { listOf, shownStat } from "../../../convex/scouting/playersOrder";
 import type { Stats } from "../../../convex/stats/statTotals";
-import type { ComparedPlayer, PlayersList, ScoutingSeam } from "../../../src/scouting/seam";
+import { raceOrder } from "../../../convex/scouting/raceOrder";
+import type { ComparedPlayer, PlayersList, RacingTeam, ScoutingSeam, StatRace } from "../../../src/scouting/seam";
 import { fakeShortlist, type ShortlistData } from "./shortlist.harness";
 
 /** What the fake server holds: its clubs, the site set's own stats, players and their season totals by code, each one's
@@ -23,12 +24,15 @@ export type ScoutingData = {
   loading?: boolean;
   comparing?: boolean;
   shortlist?: ShortlistData;
+  /** The stat race's categories, teams and start (#800); its teams are ranked here by the stat
+   *  asked, by the server's own rule (raceOrder). None held reads as loading. */
+  race?: Omit<StatRace, "teams"> & { teams: readonly Omit<RacingTeam, "stat">[] };
 };
 
 /** A player with no season held: no matches yet. */
 const NO_SEASON = { matches: 0, stats: {} };
 
-export function fakeScouting({ clubs = [], ownStats = [], players = [], totals = {}, seasons = {}, pointsSeason = null, loading = false, comparing = false, shortlist }: ScoutingData = {}) {
+export function fakeScouting({ clubs = [], ownStats = [], players = [], totals = {}, seasons = {}, pointsSeason = null, loading = false, comparing = false, shortlist, race }: ScoutingData = {}) {
   const addToQueue = vi.fn<ReturnType<ScoutingSeam["useAddToQueue"]>>(async () => shortlist?.refusal ?? null);
   return {
     ...fakeShortlist(shortlist),
@@ -43,6 +47,9 @@ export function fakeScouting({ clubs = [], ownStats = [], players = [], totals =
       codes === null || comparing
         ? undefined
         : codes.map((code) => ({ ...players.find((player) => player.code === code)!, ...(seasons[code] ?? NO_SEASON) })),
+    ),
+    useStatRace: vi.fn<ScoutingSeam["useStatRace"]>((_leagueId, stat) =>
+      race === undefined ? undefined : { ...race, teams: raceOrder(race.teams.map((team) => ({ ...team, stat: team.stats[stat] ?? 0 })), true) },
     ),
   };
 }

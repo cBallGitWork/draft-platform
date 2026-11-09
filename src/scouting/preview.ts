@@ -3,13 +3,15 @@
 
 import type { ListedPlayer } from "../../convex/scouting/playersList";
 import { listOf, shownStat } from "../../convex/scouting/playersOrder";
+import { raceOrder } from "../../convex/scouting/raceOrder";
 import { withOwnStats } from "../../convex/scoring/ownStats";
 import { OWN_STAT_PREFIX } from "../../convex/scoring/statCatalogue";
 import type { Stats } from "../../convex/stats/statTotals";
 import { DAY_MS } from "../../convex/shared/time";
 import { listedFromScouting, queueInPreview, setPreviewShortlisted } from "../draft/previewLists";
 import { previewShortlistOf } from "./shortlist/preview";
-import type { ScoutingSeam } from "./seam";
+import { previewIdOf, previewTeams } from "../table/preview";
+import type { ScoutingSeam, StatRace } from "./seam";
 
 export const ARSENAL = { code: 3, name: "Arsenal", shortName: "ARS" };
 export const CHELSEA = { code: 8, name: "Chelsea", shortName: "CHE" };
@@ -71,6 +73,23 @@ const addToQueue = async (_leagueId: unknown, playerCode: number) => {
   return null;
 };
 
+/** The stat race's teams (#800): the preview league's, each with made-up season totals in the first
+ *  set's categories, a league that began at gameweek 1. */
+const RACE_CATEGORIES = ["goals_scored", "assists", "clean_sheets", "goals_conceded", "saves", "penalties_saved", "penalties_missed", "yellow_cards", "red_cards", "own_goals"];
+const raceTotals = (teamIndex: number): Stats =>
+  Object.fromEntries(RACE_CATEGORIES.map((stat, index) => [stat, (teamIndex * 7 + index * 5) % 23]));
+const previewRace = (stat: string): StatRace => ({
+  categories: RACE_CATEGORIES,
+  since: null,
+  teams: raceOrder(
+    previewTeams.map((name, index) => {
+      const stats = raceTotals(index);
+      return { teamId: previewIdOf(name), name, stats, stat: stats[stat] ?? 0 };
+    }),
+    true,
+  ),
+});
+
 export const previewScouting: ScoutingSeam = {
   ...previewShortlist,
   useAddToQueue: () => addToQueue,
@@ -86,4 +105,5 @@ export const previewScouting: ScoutingSeam = {
     ),
     pointsSeason: null,
   }),
+  useStatRace: (_leagueId, stat) => previewRace(stat),
 };
