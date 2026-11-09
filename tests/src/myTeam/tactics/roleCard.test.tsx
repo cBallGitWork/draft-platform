@@ -79,6 +79,7 @@ describe("the role card (#848)", () => {
   it("a match tapped shows what earned the role's points", async () => {
     await openedPitch({ tactics: SAVED, cardMatches: MATCHES });
     await userEvent.click(roleButton(HAVERTZ.name));
+    // S05.2: the role's line, with the net and each side that moved him.
     await userEvent.click(within(roleCard(HAVERTZ.name)).getByRole("button", { name: showMatchLabel("GW8") }));
     expect(within(roleCard(HAVERTZ.name)).getByText(/^Poacher:/)).toBeTruthy();
   });

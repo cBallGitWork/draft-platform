@@ -105,6 +105,7 @@ test("a match priced under two roles gives the two totals the scoring gives, aga
 });
 
 test("only his last 5 matches played count, cameos included, newest first, at whichever club", async () => {
+  // S05.1: a cameo counts as a match, as the role's bars do.
   await hold(
     completeRecord(FORWARD.code, MATCHES[0].code, { minutes: 90 }),
     completeRecord(FORWARD.code, MATCHES[1].code, { minutes: 90 }),
