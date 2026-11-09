@@ -5,6 +5,7 @@ import type { Id } from "../../convex/_generated/dataModel";
 import type { Comparison } from "../../convex/scouting/compare";
 import type { Per90Panel } from "../../convex/scouting/per90";
 import type { PlayersFilters, PlayersList, PlayersSort } from "../../convex/scouting/playersList";
+import type { ClaimsSeam } from "../myTeam/claims/seam";
 import type { PlayerCardSeam } from "../playerCard/seam";
 import type { ScoutsSeam } from "./scouts/seam";
 import type { QueueFromShortlist, ShortlistSeam } from "./shortlist/seam";
@@ -16,9 +17,10 @@ export type { Availability, ListedPlayer, SortColumn } from "../../convex/scouti
 /** The player card's pickup, claim and drop, which the selected player's panel offers too. */
 export type WaiverActionSeam = Pick<PlayerCardSeam, "useCardAction" | "useWaiverChanges">;
 
-/** The players list, and beside it the selected player's panel, which picks him up or claims him,
- *  the manager's shortlist, which feeds his draft queue, and his team's scouts. */
-export type ScoutingSeam = ShortlistSeam & QueueFromShortlist & ScoutsSeam & WaiverActionSeam & {
+/** The players list, and beside it the selected player's panel, which picks him up or claims him
+ *  and says where the manager's pending claim on him stands, the manager's shortlist, which feeds
+ *  his draft queue, and his team's scouts. */
+export type ScoutingSeam = ShortlistSeam & QueueFromShortlist & ScoutsSeam & WaiverActionSeam & Pick<ClaimsSeam, "usePendingClaims"> & {
   /** The two players with these codes side by side, live (a hook): undefined while it loads, and
    *  with null for the codes, as nothing is asked. */
   useComparison(leagueId: Id<"leagues">, codes: readonly number[] | null): Comparison | undefined;

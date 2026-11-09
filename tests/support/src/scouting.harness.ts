@@ -8,6 +8,7 @@ import { mainArea, per90PanelOf } from "../../../convex/scouting/per90Figures";
 import { listOf, shownStat } from "../../../convex/scouting/playersOrder";
 import type { Stats } from "../../../convex/stats/statTotals";
 import type { ComparedPlayer, PlayersList, ScoutingSeam } from "../../../src/scouting/seam";
+import type { PendingClaim } from "../../../src/myTeam/claims/seam";
 import type { CardAction } from "../../../src/playerCard/seam";
 import { fakePlayerCard } from "./playerCard.harness";
 import { fakeScouts, type ScoutsData } from "./scouts.harness";
@@ -31,18 +32,21 @@ export type ScoutingData = {
   /** The selected player's pickup or claim, by his code, as the player card's tests hold them;
    *  none for a player not named. */
   actions?: ReadonlyMap<number, CardAction>;
+  /** The manager's pending claims, as My team's Transactions tab reads them. */
+  claims?: PendingClaim[];
 };
 
 /** A player with no season held: no matches yet. */
 const NO_SEASON = { matches: 0, stats: {} };
 
-export function fakeScouting({ clubs = [], ownStats = [], players = [], totals = {}, seasons = {}, pointsSeason = null, loading = false, comparing = false, shortlist, scouts, actions }: ScoutingData = {}) {
+export function fakeScouting({ clubs = [], ownStats = [], players = [], totals = {}, seasons = {}, pointsSeason = null, loading = false, comparing = false, shortlist, scouts, actions, claims = [] }: ScoutingData = {}) {
   const addToQueue = vi.fn<ReturnType<ScoutingSeam["useAddToQueue"]>>(async () => shortlist?.refusal ?? null);
   const { useCardAction, useWaiverChanges, waiverChanges } = fakePlayerCard({ actions });
   return {
     useCardAction,
     useWaiverChanges,
     waiverChanges,
+    usePendingClaims: () => claims,
     ...fakeShortlist(shortlist),
     ...fakeScouts(scouts),
     useAddToQueue: () => addToQueue,

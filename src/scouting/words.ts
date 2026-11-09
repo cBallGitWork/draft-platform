@@ -3,6 +3,7 @@
 import type { Area } from "../../convex/lineup/pitch";
 import { RANKED_MINUTES } from "../../convex/scouting/per90Figures";
 import { lastSeasonPointsColumn } from "../draft/words";
+import { noRunWords, runDayWords } from "../myTeam/claims/words";
 import { STAT_WORD, weekdayTimeWords } from "../shared/words";
 import type { Availability } from "./seam";
 
@@ -103,6 +104,9 @@ export const percentileLabel = (percentile: number, area: Area) => `${percentile
 /** Why a player has no percentile: too few minutes to be ranked. */
 export const notRankedWords = `Ranked from ${RANKED_MINUTES} minutes`;
 export const loadingPer90Words = "Loading his figures per 90…";
+/** His panel, while the manager's claim on him is pending (Craig, 8 Nov 2026, the waivers
+ *  README): "Your claim 2, Wed run", linking to My team's Transactions. */
+export const yourClaimWords = (rank: number, runAt: number | null) => `Your claim ${rank}, ${runAt === null ? noRunWords : `${runDayWords(runAt)} run`}`;
 export const compareWithAnotherWords = "Compare with another…";
 export const pickSecondWords = (name: string) => `Pick a second player in the list to compare with ${name}.`;
 export const playerCardLinkWords = "Player card ›";

@@ -3,6 +3,8 @@ import type { Id } from "../../convex/_generated/dataModel";
 import { cardOpensAt } from "../../convex/playerCard/cardPoints";
 import type { CatalogueStat } from "../../convex/scoring/statCatalogueList";
 import { ShortlistAction } from "../playerCard/ShortlistAction";
+import { MY_TEAM_TRANSACTIONS_PATH } from "../frame/menu";
+import { byRun } from "../myTeam/claims/claimGroups";
 import { Per90Figures } from "./Per90Figures";
 import { WaiverAction } from "../playerCard/WaiverAction";
 import { playerCardPath } from "../playerCard/paths";
@@ -27,9 +29,24 @@ import {
   playerCardLinkWords,
   columns,
   shortlistedLabel,
+  yourClaimWords,
 } from "./words";
 
-const FACT_ROW = "flex items-center justify-between border-t border-panel-rule px-3 py-1";
+/** Where the manager's own pending claim on him stands, ranked within its run as My team's
+ *  Transactions tab ranks it (claimGroups.ts), linking there; nothing with none. */
+function YourClaim({ leagueId, playerCode, seam }: { leagueId: Id<"leagues">; playerCode: number; seam: ScoutingSeam }) {
+  const yours = (seam.usePendingClaims(leagueId) ?? []).filter((claim) => claim.yours);
+  const group = byRun(yours).find(({ claims }) => claims.some(({ claim }) => claim.playerCode === playerCode));
+  if (group === undefined) return null;
+  const rank = group.claims.findIndex(({ claim }) => claim.playerCode === playerCode) + 1;
+  return (
+    <Link to={MY_TEAM_TRANSACTIONS_PATH} className="inline-flex min-h-tap items-center text-event lg:min-h-0">
+      {yourClaimWords(rank, group.runAt)}
+    </Link>
+  );
+}
+
+const FACT_ROW ="flex items-center justify-between border-t border-panel-rule px-3 py-1";
 
 /** The selected player's panel at the top of the right column (the approved picture; FM's player
  *  search): who he is and who holds him, his season points and minutes, role fit's placeholder, the
@@ -100,6 +117,7 @@ export function SelectedPlayer({
       </dl>
       <Per90Figures leagueId={leagueId} playerCode={player.code} stat={stat} seam={seam} />
       <div className="flex flex-col gap-2 border-t border-panel-rule p-3">
+        <YourClaim leagueId={leagueId} playerCode={player.code} seam={seam} />
         <WaiverAction leagueId={leagueId} card={player} seam={seam} />
         <ShortlistAction leagueId={leagueId} playerCode={player.code} gone={false} seam={seam} />
         <div className="flex flex-wrap items-center gap-2">

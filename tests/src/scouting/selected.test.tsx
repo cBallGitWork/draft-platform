@@ -25,7 +25,12 @@ import {
   shortlistedLabel,
   statLabel,
   versusWords,
+  yourClaimWords,
 } from "../../../src/scouting/words";
+import type { Id } from "../../../convex/_generated/dataModel";
+import type { ListedPlayer } from "../../../convex/scouting/playersList";
+import { MY_TEAM_TRANSACTIONS_PATH } from "../../../src/frame/menu";
+import type { PendingClaim } from "../../../src/myTeam/claims/seam";
 import { addToShortlistWords } from "../../../src/scouting/shortlist/words";
 import { HELD, openOnAll, openScouting, PALMER, RICE, rowOf, SAKA } from "../../support/src/scoutingScreen.harness";
 import { shortlisted } from "../../support/src/shortlist.harness";
@@ -121,6 +126,37 @@ describe("his figures per 90", () => {
     await userEvent.click(rowOf("Palmer"));
     expect(app.scouting.usePer90.mock.lastCall).toEqual([league.leagueId, PALMER.code, "saves"]);
     expect(within(panelOf("CAM")).getByRole("rowheader", { name: PER90_STAT_NAMES.saves })).toBeTruthy();
+  });
+});
+
+describe("a pending claim on him", () => {
+  const WED = Date.parse("2026-11-11T18:00:00Z");
+  const THU = WED + 24 * 60 * 60 * 1000;
+  const claimOn = (id: string, { code, name, positions, club }: ListedPlayer, runAt: number, yours = true): PendingClaim => ({
+    claimId: id as Id<"waiverClaims">,
+    teamId: id as unknown as Id<"teams">,
+    teamName: yours ? "Kroos Control" : "Saka Potatoes",
+    yours,
+    claim: { playerCode: code, playerName: name, positions, club, seasonPoints: null },
+    drop: null,
+    runAt,
+  });
+
+  it("says where it stands in its run, linking to My team's Transactions; another team's claim says nothing", async () => {
+    const claims = [claimOn("c1", SAKA, THU), claimOn("c2", PALMER, WED), claimOn("c3", RICE, WED), claimOn("c4", SAKA, WED, false)];
+    const app = await openOnAll({ ...HELD, claims });
+    await userEvent.click(rowOf("Rice"));
+    expect(within(panelOf("CDM")).getByRole("link", { name: yourClaimWords(2, WED) })).toBeTruthy();
+    expect(yourClaimWords(2, WED)).toBe("Your claim 2, Wed run");
+    await userEvent.click(rowOf("Saka"));
+    await userEvent.click(within(panelOf("W")).getByRole("link", { name: yourClaimWords(1, THU) }));
+    expect(app.path()).toBe(MY_TEAM_TRANSACTIONS_PATH);
+  });
+
+  it("with no claim of his on him, the panel says nothing of claims", async () => {
+    await openOnAll({ ...HELD, claims: [claimOn("c1", PALMER, WED, false)] });
+    await userEvent.click(rowOf("Palmer"));
+    expect(within(panelOf("CAM")).queryByRole("link", { name: /^Your claim/ })).toBeNull();
   });
 });
 

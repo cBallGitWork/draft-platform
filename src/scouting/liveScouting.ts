@@ -2,6 +2,7 @@ import { useMutation, useQuery } from "convex/react";
 import { useCallback } from "react";
 import { api } from "../../convex/_generated/api";
 import { listChangeFailedWords } from "../draft/words";
+import { liveClaims } from "../myTeam/claims/liveClaims";
 import { livePlayerCard } from "../playerCard/livePlayerCard";
 import { refusalOf } from "../shared/refusal";
 import { liveScouts } from "./scouts/liveScouts";
@@ -14,6 +15,7 @@ export const liveScouting: ScoutingSeam = {
   ...liveScouts,
   useCardAction: livePlayerCard.useCardAction,
   useWaiverChanges: livePlayerCard.useWaiverChanges,
+  usePendingClaims: liveClaims.usePendingClaims,
   useAddToQueue: () => {
     const add = useMutation(api.draft.draftLists.addFromShortlist);
     return useCallback(
