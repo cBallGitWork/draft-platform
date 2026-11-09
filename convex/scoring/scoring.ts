@@ -33,7 +33,7 @@ export type SlotValue =
   | { shape: "bands"; earned: Band[] };
 
 /** How finely the rule sets its value (spec/14): the same for all, by his slot's area, or by its
- *  position. */
+ *  position; or his team's formation set it, as two at the back's back line does (#990). */
 export type PricedBy = { by: "all" } | { by: "area"; area: Area } | { by: "position"; position: SlotPosition } | { by: "formation"; formation: string };
 
 /** What changed his points from the value's: he played fewer minutes than the rule needs, so it

@@ -174,7 +174,7 @@ export async function teamInGameweek(reads: LeagueReads, inputs: GameweekInputs,
       role: subs.lineup.starters.find((starter) => starter.playerCode === on)?.role,
     })),
     benchCells: new Map(lineup.bench.map((code) => [code, benchCell(positions.get(code)!)])),
-    team: teamScoring(held, rules, formation),
+    team: teamScoring(held, inputs, formation),
   });
   return { team, autoSubs: subs, matchesOf, formation, instructions: instructionsOf(rules) };
 }
@@ -182,13 +182,15 @@ export async function teamInGameweek(reads: LeagueReads, inputs: GameweekInputs,
 /** What the team adds to its men's points (spec/05, Team instructions; #990), from its lineup as it
  *  locked, a slot left empty by a man gone from the squad included: the two instructions in force
  *  under the league's rules then (a pick its shape no longer offers takes the formation's default,
- *  as on the Tactics tab), and the back line of the preset it stands in. A team with no lineup has
- *  neither. */
-function teamScoring(held: HeldLineup, rules: GameweekInputs["rules"], formation: string | null): TeamScoring | undefined {
+ *  as on the Tactics tab), and the back line of the preset it stands in. The back line counts only
+ *  in a gameweek whose site set scores instructions: it is among their first values, which start
+ *  from the next gameweek not begun (Craig, 9 Nov 2026, on #990), so a gameweek played before them
+ *  is never repriced. A team with no lineup has neither. */
+function teamScoring(held: HeldLineup, { set, rules }: Pick<GameweekInputs, "set" | "rules">, formation: string | null): TeamScoring | undefined {
   const cells = [...held.starters, ...held.vacated] as Cell[];
   if (cells.length === 0) return undefined;
   const { pair } = keptOrSwitched(held.instructions, cells, rules.presets, instructionsOf(rules));
-  const scoring = backLineOf(cells, rules.presets);
+  const scoring = set.instructions === undefined ? null : backLineOf(cells, rules.presets);
   return { instructions: [pair.attacking, pair.defensive], backLine: formation === null || scoring === null ? null : { formation, scoring } };
 }
 
