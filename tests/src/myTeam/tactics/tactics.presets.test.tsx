@@ -112,10 +112,10 @@ describe("roles (spec/05 Roles; #10; Craig, 26 Oct 2026)", () => {
     expect(screen.queryByRole("combobox", { name: roleLabel(WHITE.name) })).toBeNull();
   });
 
-  it("the pitch shows the role under his name", async () => {
+  it("the pitch shows the role's code over his name, its name on hover (#845)", async () => {
     await openedPitch();
     await userEvent.selectOptions(picker(SALIBA), "ballPlayingDefender");
-    expect(within(blockOf(SALIBA, SALIBAS_CELL)).getByText("Ball-playing centre-back")).toBeTruthy();
+    expect(within(blockOf(SALIBA, SALIBAS_CELL)).getByTitle("Ball-playing centre-back").textContent).toBe("BPD");
     expect(document.activeElement).toBe(picker(SALIBA));
   });
 
