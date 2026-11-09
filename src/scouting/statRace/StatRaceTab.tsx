@@ -73,10 +73,9 @@ function RankBy({ categories, stat, rankBy, since }: { categories: readonly stri
   );
 }
 
-/** A category's column, by its stat's key, beside the rank and the team. */
-type Column = "rank" | "team" | string;
-
-const cellClasses = (column: Column) => cellClassOf(column === "rank" || column === "team");
+/** A column's cells: the rank and the team read from the left, each category's column (by its
+ *  stat's key) lines up on the right. */
+const cellClasses = (column: string) => cellClassOf(column === "rank" || column === "team");
 
 /** The race: a row per team in rank order, a column per category, its head ranking by it. */
 function RaceTable({
