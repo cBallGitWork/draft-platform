@@ -60,3 +60,5 @@ Named after its route: `team` for `/team`, `team-squad` for `/team/squad`.
   every team, and League settings' Waivers tab (8 Nov 2026).
 - [`trades`](trades/README.md): Trades: offers to and from you, one you sent in a vote league, and a new
   offer (8 Nov 2026).
+- [`settings`](settings/README.md): League settings' Fixtures (with the scoring start), Squad, Draft,
+  Trades and Draft order tabs; its Waivers tab is in `waivers` (9 Nov 2026).
