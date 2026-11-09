@@ -300,10 +300,22 @@ jobs:
           ready=$(for row in $ready; do n=${row%%:*}; if [ "${row#*:}" = build ] && grep -qx "$n" <<<"$merged_refs" && ! grep -qx "$n" <<<"$cleared"; then echo "$n:sweep"; else echo "$row"; fi; done)
           # a build that ended in the last STOPPED_HOURS with no pull request stopped on purpose (blocked by another
           # issue, or already done), and says why on the issue: built again it stops again, and since a build's end
-          # starts the lead that is a loop (5 Nov 2026: #1096 waits on #383). It waits on the board instead.
+          # starts the lead that is a loop (5 Nov 2026: #1096 waits on #383). It waits on the board instead, unless it was
+          # answered after its last such run: Craig's answer filed on it, or its rules:open taken off, which is what a
+          # stopped build waited on (9 Nov 2026: #990 and #1028 had every rule answered and still sat a day)
+          answered_since() { # issue time: true if an answer came after time
+            gh api "repos/$GH_REPO/issues/$1/timeline" --paginate | jq -se --arg t "$2" '[.[][] | select((.created_at // "") > $t)
+              | select((.event == "unlabeled" and .label.name == "rules:open")
+                       or (.event == "commented" and .actor.login == env.OWNER and ((.body // "") | test("^Craig.s answer"))))]
+              | length > 0' > /dev/null
+          }
           stopped=$(gh run list --workflow claude-build.yml --event workflow_dispatch --status completed --limit 100 \
-                      --created ">=$(date -u -d "$STOPPED_HOURS hours ago" +%FT%TZ)" --json displayTitle \
-                      --jq '.[].displayTitle | select(startswith("build #")) | ltrimstr("build #")' | sort -u)
+                      --created ">=$(date -u -d "$STOPPED_HOURS hours ago" +%FT%TZ)" --json displayTitle,createdAt \
+                      --jq '[.[] | select(.displayTitle | startswith("build #")) | {n: (.displayTitle | ltrimstr("build #")), at: .createdAt}]
+                            | group_by(.n)[] | max_by(.at) | "\(.n) \(.at)"' \
+                    | while read -r n at; do
+                        if answered_since "$n" "$at"; then echo "#$n was answered after its build stopped: buildable again" >&2; else echo "$n"; fi
+                      done)
           ready=$(for row in $ready; do n=${row%%:*}; if [ "${row#*:}" = build ] && grep -qx "$n" <<<"$stopped" && ! grep -qx "$n" <<<"$taken"; then echo "$n:stopped"; else echo "$row"; fi; done)
           for row in $ready; do
             [ "$slots" -gt 0 ] || break
@@ -335,7 +347,7 @@ jobs:
           # counted in the loop, not with head: under pipefail, head closing the pipe fails the step (5 Nov 2026, dry run)
           next_up=$(k=0; for row in $ready; do [ "$k" -lt "$NEXT_UP" ] || break; n=${row%%:*}; [ "${row#*:}" = build ] || continue; grep -qx "$n" <<<"$taken" && continue; grep -qx "$n" <<<"$busy_issues" && continue; line "$n"; k=$((k + 1)); done)
           unchecked=$(k=0; for row in $ready; do [ "$k" -lt "$NEXT_UP" ] || break; [ "${row#*:}" = sweep ] || continue; line "${row%%:*}"; k=$((k + 1)); done)
-          blocked=$(for row in $ready; do n=${row%%:*}; case ${row#*:} in rules) echo "- #$n $(title_of "$n"): your answers (the dashboard has the questions)";; craig) echo "- #$n $(title_of "$n"): you";; stopped) echo "- #$n $(title_of "$n"): its build stopped (the issue's last comment says why); tried again after ${STOPPED_HOURS}h";; esac; done)
+          blocked=$(for row in $ready; do n=${row%%:*}; case ${row#*:} in rules) echo "- #$n $(title_of "$n"): your answers (the dashboard has the questions)";; craig) echo "- #$n $(title_of "$n"): you";; stopped) echo "- #$n $(title_of "$n"): its build stopped (the issue's last comment says why); tried again after ${STOPPED_HOURS}h, or once you answer it";; esac; done)
           stuck=$(jq -r '.[] | select(any(.labels[]?; .name == env.STUCK_LABEL)) | "- #\(.number) \(.title): its pull request stayed red after its fix round (the issue says which)"' <<<"$issues")
           today=$(date -u +%Y-%m-%d)
           merged=$(gh pr list --state merged --search "merged:>=$today" --limit 100 --json number,title --jq '.[] | "- #\(.number) \(.title)"')

@@ -44,16 +44,20 @@ silent guard_mode.py "$(bash_call 'gh issue view 10')"
 for go in "ok build it" "go ahead" "file it as an issue" "ship it" "merge that" "yes, do it" "sort it" \
   "plan and build the fixes" "/grill scoring" "open a PR for that" "crack on" "File" "file these" \
   "Yes." "go" "File them (this is silly)" "Yes, run the lead" "yes run it" "Yes, file them" "Yes, merge it" \
-  "yes please, open the PR" "merge it" "merge #1378" "ok merge them"; do
+  "yes please, open the PR" "merge it" "merge #1378" "ok merge them" \
+  "file answers" "File the answers on their issues" "yes but multiple workflows in one go" "yes, run them" \
+  "yes but what about a libero" "yes, set pieces matter" "yes merge confilcts are annoying" \
+  "1a 2b" "1 a
+2 a
+3 a" "1. a" "3 a" "1) b, 2) c"; do
   said "$go"
   check allow guard_mode.py "$(bash_call 'gh issue create --title t')"
   check allow guard_mode.py "$(edit "$tmp/spec/05-scoring.md")"
 done
-# a bare yes-word is a go only as the whole message: in a sentence it is talk
-for talk in "file naming is odd" "yes but what about a libero" "go figure, the cameo rule again" \
-  "yes, running backs would be fun" "what if we run the draft live" "yes, set pieces matter" \
-  "yes, add-ons are for later" "yes, open question is the cameo rule" \
-  "yes merge confilcts are annoying" "merge conflicts again"; do
+# a message opening with yes is a go (Craig, 9 Nov 2026); other talk stays talk, and numbers need only answers
+for talk in "file naming is odd" "go figure, the cameo rule again" "what if we run the draft live" \
+  "merge conflicts again" "i think one team tactic might be better?" "or shall i answer more qs first?" \
+  "the file looks wrong" "yesterday was slow" "2 things bother me" "1 a but what about cameos"; do
   said "$talk"
   check deny guard_mode.py "$(bash_call 'gh issue create --title t')"
 done
