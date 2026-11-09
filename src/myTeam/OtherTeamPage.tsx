@@ -18,7 +18,8 @@ import { goneWords, otherSquadEmptyWords, otherSquadLoadingWords, squadColumns, 
 
 type Column = "positions" | "player" | "season";
 const COLUMNS: readonly Column[] = ["positions", "player", "season"];
-const cellClasses = (column: Column) => squadCellClass(column !== "season");
+/** The Player column takes the table's spare width, so Pos and Pts sit tight to their figures. */
+const cellClasses = (column: Column) => `${squadCellClass(column !== "season")}${column === "player" ? " w-full" : ""}`;
 
 export function OtherTeamPage({ league, teamId, seam }: { league: LeagueSummary; teamId: Id<"teams">; seam: MyTeamSeam }) {
   const squad = seam.useOtherSquad(league.leagueId, teamId);
