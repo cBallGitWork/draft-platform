@@ -1,12 +1,14 @@
 // Trades in the preview (src/app/preview.ts), as the approved pictures have them
 // (docs/design/approved/trades): an offer to you, one from you, one in review under a commissioner
-// veto, and the squads to make one from, a player held in the trade under review. Made up.
+// veto, closed offers below, and the squads to make one from, a player held in the trade under
+// review. Made up.
 
 import type { Id } from "../../convex/_generated/dataModel";
 import type { Position } from "../../convex/positions/positionTables";
 import { DAY_MS, HOUR_MS } from "../../convex/shared/time";
 import { previewIdOf } from "../table/preview";
 import type {
+  ClosedOffer,
   ScreenOffer,
   ScreenTeam,
   TradedPlayer,
@@ -87,6 +89,27 @@ const offer = (
   ...rest,
 });
 
+const closedOffer = (
+  closedId: string,
+  from: string,
+  to: string,
+  gives: TradedPlayer[],
+  gets: TradedPlayer[],
+  why: ClosedOffer["why"],
+  daysAgo: number,
+): ClosedOffer => ({
+  closedId: closedId as Id<"closedTradeOffers">,
+  fromTeamId: previewIdOf(from),
+  fromTeamName: from,
+  toTeamId: previewIdOf(to),
+  toTeamName: to,
+  gives,
+  gets,
+  picks: null,
+  closedAt: now - daysAgo * DAY_MS,
+  why,
+});
+
 const view: TradesView = {
   myTeamId: previewIdOf(ME),
   shut: null,
@@ -114,6 +137,11 @@ const view: TradesView = {
       closes: null,
       reviewEndsAt: now + 20 * HOUR_MS,
     }),
+  ],
+  closed: [
+    closedOffer("preview-closed-1", ME, "Rovers XI", [ROGERS], [ODEGAARD], "rejected", 2),
+    closedOffer("preview-closed-2", "Pique Blinders", ME, [WISSA], [MURILLO], "rejected", 4),
+    closedOffer("preview-closed-3", ME, "Kroos Control", [ROGERS], [SALAH], "withdrawn", 5),
   ],
 };
 
