@@ -37,8 +37,7 @@ export async function scheduledMatches(ctx: QueryCtx): Promise<ScheduledMatch[]>
 
 /** The league's own deadline for each of gameweeks 1 to 38: the one recorded once it passed
  *  (#150), else the one kept when FPL stopped sending the gameweek (#202), else the one under the rule in force in it. When each begins, for its screens, refusals
- *  and recorder (#138, #139). Null where none of the gameweek's matches has a kickoff time held,
- *  and for every gameweek of a league made before rules were held, which has no deadline rule. */
+ *  and recorder (#138, #139). Null where none of the gameweek's matches has a kickoff time held. */
 export async function leagueDeadlines(ctx: QueryCtx, leagueId: Id<"leagues">): Promise<LeagueDeadlines> {
   return leagueDeadlinesIn(ctx, leagueId, await scheduledMatches(ctx));
 }

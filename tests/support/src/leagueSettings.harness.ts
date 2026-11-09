@@ -22,7 +22,7 @@ export const TEAMS_IN_ORDER: TeamInOrder[] = ["Saka Potatoes", "Kroos Control", 
 /** What the fake server holds: the settings as `view` says, the first rules' by default; null for
  *  a league with no rules; `loading` keeps them on their way (undefined). `teamOrder` is the
  *  draft order, TEAMS_IN_ORDER by default; `draftStarted` fixes it. */
-export type LeagueSettingsData = { view?: SettingsView | null; loading?: boolean; teamOrder?: TeamInOrder[]; draftStarted?: boolean; waivers?: WaiversView | null };
+export type LeagueSettingsData = { view?: SettingsView; loading?: boolean; teamOrder?: TeamInOrder[]; draftStarted?: boolean; waivers?: WaiversView };
 
 /** Saving succeeds from CHANGES_FROM, and a draft order at once, unless a test says otherwise. */
 export function fakeLeagueSettings({

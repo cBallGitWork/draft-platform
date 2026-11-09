@@ -4,7 +4,7 @@ import { pickFirstLineupAgain } from "../lineup/lineups";
 import { fileEvent } from "../mail/letters";
 import { draftRulesOf } from "../rules/firstRules";
 import { changeLatest } from "../rules/leagueRules";
-import { historyOf } from "../rules/rulesHistory";
+import { historyOf, newestRow } from "../rules/rulesHistory";
 import { refuse, runnerOf, teamIn, teamsOf } from "../shared/leagueAccess";
 import { heldPlayerByCode } from "../shared/players";
 import { placeOf } from "../squads/squadPlace";
@@ -132,8 +132,8 @@ export const panel = query({
     await runnerOf(ctx, leagueId);
     const [draft, teams, history] = await Promise.all([draftOf(ctx, leagueId), teamsOf(ctx, leagueId), historyOf(ctx, leagueId)]);
     const started = draft?.started !== undefined;
-    const rules = started ? await rulesInForceAt(ctx, leagueId, now) : (history.at(-1)?.rules ?? null);
-    const pickSeconds = (started ? draft.pickSeconds : undefined) ?? (rules === null ? null : draftRulesOf(rules).pickSeconds);
+    const rules = started ? await rulesInForceAt(ctx, leagueId, now) : newestRow(history, leagueId).rules;
+    const pickSeconds = (started ? draft.pickSeconds : undefined) ?? draftRulesOf(rules).pickSeconds;
     const unmanaged = teams
       .filter((team) => team.managerEmail === undefined)
       .map((team) => ({ teamId: team._id, name: team.name, marked: team.commissionerPicks === true }))

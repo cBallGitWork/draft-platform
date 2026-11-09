@@ -11,7 +11,6 @@ export const TABLE_PAGE_TITLE = "Table and fixtures";
 export const TABLE_TITLE = menuWords.table;
 export const FIXTURES_TITLE = "Fixtures";
 export const loadingWords = "Loading the table and fixtures…";
-export const noRulesWords = "This league was made before leagues had rules, so it has no fixtures or table to draw.";
 
 /** Said while every team has played nothing: no gameweek scored since the league was made. */
 export const noResultsWords = "No results yet.";

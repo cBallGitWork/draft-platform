@@ -53,7 +53,7 @@ export const pickUp = mutation({
     const drop = dropCode === null ? null : { player: (await playerByCode(ctx, dropCode)) ?? refuse(refusals.noPlayer), place: await placeOf(ctx, leagueId, dropCode) };
     if (drop !== null && drop.place?.teamId !== team._id) refuse(pickUpRefusals.dropNotYours(drop.player.name));
     if (drop !== null && (await reviewHolding(ctx, leagueId, drop.player.code)) !== null) refuse(pickUpRefusals.dropHeld(drop.player.name));
-    const squadRules = (await latestRules(ctx, leagueId))?.squad ?? null;
+    const squadRules = (await latestRules(ctx, leagueId)).squad;
     if (await joiningBreaksLimits(ctx, leagueId, team._id, playerCode, dropCode, squadRules)) refuse(pickUpRefusals.limits(player.name));
 
     const onTeam = { teamId: team._id, teamName: team.name };

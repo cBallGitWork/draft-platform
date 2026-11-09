@@ -16,9 +16,8 @@ export type NewsAsked = { before: LeagueNews["older"]; teamId: Id<"teams"> | nul
 /** League home's Mail panel reads what My team's Squad tab's does: the newest letters, never every
  *  letter (#211). */
 export type HomeSeam = Pick<SquadSeam, "useLatestMail"> & {
-  /** League home at the minute `now`, live (a hook): undefined while it loads, null for a league
-   *  made before rules were held. */
-  useLeagueHome(leagueId: Id<"leagues">, now: number): LeagueHome | null | undefined;
+  /** League home at the minute `now`, live (a hook): undefined while it loads. */
+  useLeagueHome(leagueId: Id<"leagues">, now: number): LeagueHome | undefined;
   /** The league's recap of the gameweek, whole, live (a hook): undefined while it loads, null
    *  while there is none. */
   useRecap(leagueId: Id<"leagues">, gameweek: number): Recap | null | undefined;

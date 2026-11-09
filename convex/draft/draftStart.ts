@@ -39,10 +39,9 @@ export const draftStartRefusals = {
 
 /** The league's rules in force at `now`: those of the gameweek under way, or before the league's
  *  first gameweek begins, that gameweek's; a change waiting for a later gameweek isn't among them.
- *  Null for a league made before #25. What the draft's pick clock runs by. */
-export async function rulesInForceAt(ctx: QueryCtx, leagueId: Id<"leagues">, now: number): Promise<LeagueRules | null> {
+ *  What the draft's pick clock runs by. */
+export async function rulesInForceAt(ctx: QueryCtx, leagueId: Id<"leagues">, now: number): Promise<LeagueRules> {
   const [history, season] = await Promise.all([historyOf(ctx, leagueId), seasonRules(ctx, leagueId)]);
-  if (season === null || history.length === 0) return null;
   const underWay = (await nextOpenGameweek(ctx, leagueId, season, now)) - 1;
   return inForce(history, Math.max(underWay, history[0].fromGameweek))!.rules;
 }
@@ -63,7 +62,7 @@ async function startable(
   if (teams.length < DRAFT_FEWEST_TEAMS) return { refusal: draftStartRefusals.tooFewTeams };
   const [rules, latest] = await Promise.all([rulesInForceAt(ctx, leagueId, Date.now()), latestRules(ctx, leagueId)]);
   const rounds = roundsOf(latest);
-  if (rules === null || latest === null || rounds === null) return { refusal: draftStartRefusals.noSquadSize };
+  if (rounds === null) return { refusal: draftStartRefusals.noSquadSize };
   if (await anyoneHeld(ctx, leagueId)) return { refusal: draftStartRefusals.squadsNotEmpty };
   return { refusal: null, teams, rounds, squad: latest.squad, pickSeconds: draftRulesOf(rules).pickSeconds };
 }

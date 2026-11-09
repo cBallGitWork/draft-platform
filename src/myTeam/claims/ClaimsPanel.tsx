@@ -41,7 +41,7 @@ import {
 const MINE_COLUMNS = ["handle", "rank", "positions", "claim", "points", "drop"] as const;
 
 /** The word why claims can't be changed now, or null while they can. */
-export function closedWords(waivers: WaiversView | null | undefined): string | null {
+export function closedWords(waivers: WaiversView | undefined): string | null {
   if (!waivers) return null;
   if (!waivers.drafted) return claimsNotOpenWords;
   return waivers.locked ? claimsClosedWords : null;
@@ -57,7 +57,7 @@ export function ClaimsPanel({
 }: {
   /** The claims the caller sees: his own, or every team's for whoever runs the league. */
   claims: readonly PendingClaim[];
-  waivers: WaiversView | null | undefined;
+  waivers: WaiversView | undefined;
   runsLeague: boolean;
   selected: Id<"waiverClaims"> | null;
   onSelect(claimId: Id<"waiverClaims">): void;

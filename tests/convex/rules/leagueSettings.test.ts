@@ -6,7 +6,7 @@ import { settingsRefusals } from "../../../convex/rules/leagueSettings";
 import type { LeagueSettings } from "../../../convex/rules/leagueSettingsPart";
 import { refusals } from "../../../convex/shared/leagueAccess";
 import { WEEK_MS } from "../../../convex/shared/time";
-import { HELD_FIRST_RULES, holdGameweeks, NO_AREA_MINIMUMS, rulesInGameweek, rulesRevision, savedBeforeTheyWereRules } from "../../support/convex/leagueRules.harness";
+import { HELD_FIRST_RULES, holdGameweeks, NO_AREA_MINIMUMS, rulesInGameweek, rulesRevision } from "../../support/convex/leagueRules.harness";
 import { expectRefused } from "../../support/convex/test.harness";
 import { actingAs, addManagers, adminCreatesLeague, COMMISSIONER, CO_COMMISSIONER, eventsIn, lastEventAt, MANAGERS, type TestConvex } from "../../support/convex/leagues.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
@@ -57,12 +57,6 @@ describe("reading them", () => {
     expect(await read()).toEqual({ part: FIRST, revision: await rulesRevision(t, leagueId), changesFrom: NEXT });
   });
 
-  test("gives rules saved before they were rules the first rules' values", async () => {
-    await savedBeforeTheyWereRules(t, leagueId);
-
-    expect((await read())?.part).toEqual(FIRST);
-  });
-
   test("is refused to a manager", async () => {
     await addManagers(t, leagueId, [MANAGERS[0]]);
     await expectRefused(read(MANAGERS[0]), refusals.notRunner);
@@ -78,14 +72,6 @@ describe("changing them", () => {
     expect((await eventsIn(t, leagueId)).filter((event) => event.kind === "rulesChanged")).toEqual([
       { by: COMMISSIONER, kind: "rulesChanged", fromGameweek: NEXT, changed: ["oddTeamOut", "gamesPerGameweek"] },
     ]);
-  });
-
-  test("on rules saved before they were rules, writes only the setting changed", async () => {
-    await savedBeforeTheyWereRules(t, leagueId);
-    await change({ ...FIRST, gamesPerGameweek: 2 });
-
-    expect((await inGameweek(NEXT)).oddTeamOut).toBeUndefined();
-    expect((await eventsIn(t, leagueId)).at(-1)).toMatchObject({ kind: "rulesChanged", changed: ["gamesPerGameweek"] });
   });
 
   test.each([0, 1.5])("refuses %s games a gameweek with the reason, and saves nothing", async (games) => {
@@ -209,13 +195,6 @@ describe("the squad's make-up (#341)", () => {
   test("refuses no maximum for rules with a squad size limit, as the screen can't take one away", async () => {
     await expectRefused(change({ ...FIRST, squadMaximum: null }), settingsRefusals.squadSizeFixed);
     expect(await inGameweek(NEXT)).toEqual(HELD_FIRST_RULES);
-  });
-
-  test("is refused for a league made before leagues held rules", async () => {
-    await t.run(async (ctx) => {
-      for (const row of await ctx.db.query("leagueRules").collect()) await ctx.db.delete("leagueRules", row._id);
-    });
-    await expectRefused(change(FIRST, COMMISSIONER, null), rulesRefusals.noRules);
   });
 });
 

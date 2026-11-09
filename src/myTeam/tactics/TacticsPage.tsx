@@ -33,7 +33,6 @@ import {
   startingWords,
   TACTICS_TITLE,
   tacticsLoadingWords,
-  tacticsNoRulesWords,
 } from "./words";
 import { noTeamWords } from "../words";
 
@@ -67,7 +66,6 @@ function TacticsBody({ league, teamName, seam, selected }: { league: LeagueSumma
     </TeamPage>
   );
   if (tactics === undefined) return note(tacticsLoadingWords);
-  if (tactics.kind === "noRules") return note(tacticsNoRulesWords);
   if (tactics.kind === "seasonOver") return note(seasonOverWords);
   return (
     <TeamPage league={league} teamName={teamName} seam={seam}>

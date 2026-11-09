@@ -10,7 +10,6 @@ export { figureWords, gameweekShort, gameweekWords, versusWords, whenWords } fro
 export { leagueAverageWords, noResultsWords, TABLE_TITLE } from "../table/words";
 
 export const loadingWords = "Loading league home…";
-export const noRulesWords = "This league was made before leagues had rules, so it has no table or fixtures to show.";
 
 /** What a placeholder holds until its data or its grill comes (plate.md, Marks: A placeholder). */
 export const toComeLabel = (what: string) => `${what}: still to come`;

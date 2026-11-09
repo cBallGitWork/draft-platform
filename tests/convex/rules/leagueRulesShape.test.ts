@@ -31,9 +31,8 @@ test("each stored part is its module's input type", () => {
   expectTypeOf<LeagueRules["deadline"]>().toEqualTypeOf<DeadlineRule>();
   expectTypeOf<LeagueRules["doubleGameweek"]>().toEqualTypeOf<DoubleGameweekRule>();
   expectTypeOf<LeagueRules["tieBreaks"]>().toEqualTypeOf<TieBreak[]>();
-  // Optional only for rules saved before #33 and #130 (firstRules.ts, drawRulesOf).
-  expectTypeOf<LeagueRules["oddTeamOut"]>().toEqualTypeOf<OddTeamOut | undefined>();
-  expectTypeOf<LeagueRules["gamesPerGameweek"]>().toEqualTypeOf<DrawRules["gamesPerGameweek"] | undefined>();
+  expectTypeOf<LeagueRules["oddTeamOut"]>().toEqualTypeOf<OddTeamOut>();
+  expectTypeOf<LeagueRules["gamesPerGameweek"]>().toEqualTypeOf<DrawRules["gamesPerGameweek"]>();
 });
 
 /** Each of the pitch's six areas, by hand: the stored shape lists them all, no more and no fewer. */

@@ -139,10 +139,3 @@ describe("the games", () => {
   });
 });
 
-test("a league made before rules were held has none to draw", async () => {
-  await addManagers(t, leagueId, [ANN, BOB]);
-  await t.run(async (ctx) => {
-    for await (const row of ctx.db.query("leagueRules")) await ctx.db.delete("leagueRules", row._id);
-  });
-  expect(await read()).toBeNull();
-});

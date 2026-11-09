@@ -18,7 +18,6 @@ import { inUnit, type PickClockUnit } from "./pickClock";
 
 export const SETTINGS_TITLE = "League settings";
 export const loadingWords = "Loading the league settings…";
-export const noRulesWords = "This league was made before leagues held their rules, so it has no settings to edit yet.";
 
 export const fixturesTitle = "Fixtures";
 export const oddTeamOutLabel = "With an odd number of teams, the team left over plays";

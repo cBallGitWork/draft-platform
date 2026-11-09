@@ -23,9 +23,8 @@ export type ClaimsSeam = {
   /** The caller's pending claims, or every team's for whoever runs the league, live (a hook):
    *  undefined while they load. */
   usePendingClaims(leagueId: Id<"leagues">): PendingClaim[] | undefined;
-  /** The league's waiver order, runs and window, live (a hook): undefined while it loads, null for
-   *  a league made before rules were held. */
-  useWaivers(leagueId: Id<"leagues">): WaiversView | null | undefined;
+  /** The league's waiver order, runs and window, live (a hook): undefined while it loads. */
+  useWaivers(leagueId: Id<"leagues">): WaiversView | undefined;
   /** The changes to his claims (a hook). */
   useClaimChanges(): ClaimChanges;
 };

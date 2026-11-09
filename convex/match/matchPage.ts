@@ -166,8 +166,6 @@ async function pricedOrProblem(
  *  scores in his old team's lineup, and his points are his slot's in whichever lineup holds him. */
 async function priced(ctx: QueryCtx, league: Doc<"leagues">, fixture: Doc<"fixtures">, { gameweek, teams, lineups }: DeadlineLineups, named: readonly NamedMan[]): Promise<Priced> {
   const season = await seasonRules(ctx, league._id);
-  // A league made before rules were held has no scoring (#25).
-  if (season === null) return unpriced(null);
   const reads = await leagueReads(ctx, league, season);
   const teamIds = teams.map((team) => team._id);
   const inThisMatch = new Set(named.map(({ playerCode }) => playerCode));

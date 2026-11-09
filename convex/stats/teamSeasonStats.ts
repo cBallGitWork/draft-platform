@@ -78,7 +78,6 @@ export const rebuild = internalMutation({
  *  to store is worked out, and the league runs again after it. */
 async function storeNext(ctx: MutationCtx, league: Doc<"leagues">): Promise<number[]> {
   const season = await seasonRules(ctx, league._id);
-  if (season === null) return [];
   const teamIds = (await teamsOf(ctx, league._id)).map((team) => team._id);
   if (teamIds.length === 0) return [];
   const moved: number[] = [];

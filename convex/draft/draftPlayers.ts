@@ -113,7 +113,7 @@ export const figures = query({
     const season = await newestSeasonWithTotals(ctx);
     const totals = season === null ? new Map<number, Stats>() : await seasonTotals(ctx, season);
     const started = (await draftOf(ctx, leagueId))?.started;
-    const squadRules = started === undefined ? (await latestRules(ctx, leagueId))?.squad : await squadRulesOf(ctx, leagueId, started);
+    const squadRules = started === undefined ? (await latestRules(ctx, leagueId)).squad : await squadRulesOf(ctx, leagueId, started);
     return {
       players: players.map(({ code }) => ({
         code,

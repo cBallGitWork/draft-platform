@@ -107,15 +107,13 @@ async function latestSquadMoves(ctx: QueryCtx, leagueId: Id<"leagues">): Promise
     });
 }
 
-/** League home's first slice, or null for a league made before rules were held (#25), which has no
- *  format to draw a table by. */
+/** League home's first slice. */
 export const ofLeague = query({
   args: { leagueId: v.id("leagues"), now: v.number() },
-  returns: v.union(leagueHome, v.null()),
+  returns: leagueHome,
   handler: async (ctx, { leagueId, now }) => {
     const { league, team } = await memberOf(ctx, leagueId);
     const season = await seasonRules(ctx, leagueId);
-    if (season === null) return null;
     const { rules, teamIds, schedule, results, scores, table, named } = await standingsOf(ctx, league, season);
     const current = thisGameweekOf(schedule, deadlineOf(await leagueDeadlines(ctx, leagueId)), now);
     const form = formOf(teamIds, schedule, scores);

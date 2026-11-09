@@ -1,7 +1,6 @@
 import { v } from "convex/values";
 import type { Doc } from "../_generated/dataModel";
 import { mutation, type MutationCtx } from "../_generated/server";
-import { latestRules } from "../rules/rulesHistory";
 import { refuse, runnerOf } from "../shared/leagueAccess";
 import { isLocked, type DeadlineOf } from "./deadline";
 import { deadlineOf, leagueDeadlines } from "./leagueDeadlines";
@@ -24,7 +23,6 @@ export const scoringStartRefusals = {
   unticked: (gameweek: number) => `Gameweek ${gameweek} isn't one the league plays, so scoring can't start in it. Tick it first.`,
   begun: (gameweek: number) => `Gameweek ${gameweek} has begun, so scoring can't start in it.`,
   fixed: (gameweek: number) => `Scoring started in gameweek ${gameweek}, whose deadline has passed, so it can't move.`,
-  noRules: "This league has no rules yet, so it has no deadline, and its scoring start can't be set. It was made before leagues held their rules.",
   noDeadline: (gameweek: number) =>
     `The app doesn't have a kickoff time for gameweek ${gameweek} yet, so it can't tell whether it has begun. Try again once the season's matches have arrived.`,
 } as const;
@@ -41,7 +39,6 @@ export const setScoringStart = mutation({
   handler: async (ctx, { leagueId, gameweek }) => {
     const { league } = await runnerOf(ctx, leagueId);
     if (!isGameweek(gameweek)) refuse(scoringStartRefusals.notAGameweek(gameweek));
-    if ((await latestRules(ctx, leagueId)) === null) refuse(scoringStartRefusals.noRules);
     const deadlineIn = deadlineOf(await leagueDeadlines(ctx, leagueId));
     const now = Date.now();
     if (isFixed(league, deadlineIn, now)) refuse(scoringStartRefusals.fixed(league.scoringStart!));
