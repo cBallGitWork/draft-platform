@@ -162,10 +162,8 @@ Table).
 - What "Your lineup" says (the picture: "Saka doubtful"), and whether a box opens anything.
 - Claims close needs waivers (`spec/08`), not built yet.
 
-**Mail's Needs you tab on Home**: the Mail panel splits Needs you (3) | All.
-- Which letters need a manager: a lineup to set, a trade offer, a claim's result. Is it the same
-  list Continue walks through (`spec/12`, The frame)?
-- Whether Mail itself gets the tab too.
+**Mail's Needs you and Continue**: which letters need you is settled (`spec/16`). Is it the same
+list Continue walks through (`spec/12`, The frame)?
 
 **The Premier League on Home**: "does home need some of the live footie too?" (Craig, 1 Nov 2026).
 The picture lists this gameweek's matches with your players and your opponent's in each.

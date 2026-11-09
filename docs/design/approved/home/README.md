@@ -91,7 +91,7 @@ Each shows in its place and size until its data comes.
 |---|---|---|
 | The Calendar tab | what it holds | to-grill: Home's tabs |
 | The deadline strip's boxes | which boxes, in which states | to-grill: The deadline strip |
-| Mail's Needs you tab | which letters need a manager | to-grill: Mail's Needs you on Home |
+| Mail's Needs you tab | settled 9 Nov 2026: a lineup to set, a trade offer to you, a trade to review (`spec/16`); the panel gains Unread as Mail has | #1030 |
 | Premier League, GW9: each match's "You" and "Them" players | whether Home carries the Premier League | to-grill: The Premier League on Home |
 | Your squad news, and its chips | what it lists, and which FPL statuses each chip reads | to-grill: Your squad news on Home; to-grill: Status chips' data |
 | Run the league | what its to-do list holds | to-grill: Run the league |
