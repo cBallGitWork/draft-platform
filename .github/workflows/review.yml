@@ -5,10 +5,21 @@
 # kept off the run's result. Pull requests from this repository only, since a fork's would run with its secrets.
 # Bills to Craig's subscription (CLAUDE_CODE_OAUTH_TOKEN). Actions pinned to the SHAs claude-build.yml uses.
 name: review
+# The pull request's number in the run's title: review-gate reads it back from a run started by hand, which GitHub ties
+# to no pull request, so the gate holds or passes that one pull request only.
+run-name: review #${{ github.event.pull_request.number || inputs.pr }}
 
 on:
   pull_request:
     types: [opened, reopened, ready_for_review]  # one round per pull request (Craig, 1 Nov 2026: cut token use)
+  # The lead starts it for a pull request whose review never ran: on 8 Nov 2026 #1337, #1341, #1342 and #1349 were opened
+  # and no pull_request workflow fired for them, so they waited on review-landed until a session reviewed them by hand.
+  workflow_dispatch:
+    inputs:
+      pr:
+        description: The pull request to review
+        required: true
+        type: number
 
 permissions:
   contents: read
@@ -17,23 +28,24 @@ permissions:
   id-token: write
 
 concurrency:
-  group: review-${{ github.event.pull_request.number }}
+  group: review-${{ github.event.pull_request.number || inputs.pr }}
   cancel-in-progress: true
 
 jobs:
   review:
     if: >-
-      github.event.pull_request.head.repo.full_name == github.repository
-      && !github.event.pull_request.draft
+      github.event_name == 'workflow_dispatch'
+      || (github.event.pull_request.head.repo.full_name == github.repository
+          && !github.event.pull_request.draft)
     runs-on: ubuntu-latest
     timeout-minutes: 20
     continue-on-error: true  # a review that fails never turns the pull request red
     env:
-      PR: ${{ github.event.pull_request.number }}
+      PR: ${{ github.event.pull_request.number || inputs.pr }}
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262  # v4.4.0
         with:
-          ref: ${{ github.event.pull_request.head.sha }}
+          ref: ${{ github.event.pull_request.head.sha || format('refs/pull/{0}/head', inputs.pr) }}
           fetch-depth: 0  # origin/main and the branch's commits, for pr-reviewer's merge-base diff
       - uses: anthropics/claude-code-action@c0949c50a78c1ec8ce2647db36629b870e715d0c  # v1.0.268
         with:

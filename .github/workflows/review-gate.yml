@@ -41,6 +41,9 @@ jobs:
         env:
           EVENT: ${{ github.event_name }}
           PR_FROM_EVENT: ${{ github.event.pull_request.number || github.event.workflow_run.pull_requests[0].number || '' }}
+          # a review started by hand (the lead's, for one whose review never ran) is tied to no pull request: its title
+          # names it ("review #N", review.yml's run-name)
+          RUN_TITLE: ${{ github.event.workflow_run.display_title || '' }}
           REVIEW_RUN_OK: ${{ github.event.workflow_run.conclusion == 'success' }}
         run: |
           set -euo pipefail
@@ -71,5 +74,10 @@ jobs:
             if [ "$newer" -gt 0 ]; then set_status "$sha" success "reviewed; the fix round's commit is in"
             else set_status "$sha" pending "the review said look at these first: waiting for its fix round"; fi
           }
+          if [ -z "$PR_FROM_EVENT" ] && [ "$EVENT" = workflow_run ]; then
+            PR_FROM_EVENT=$(grep -oE '^review #[0-9]+$' <<<"$RUN_TITLE" | grep -oE '[0-9]+$' || true)
+            # a review run that names no pull request gates none: passing every unreviewed one on its result would be wrong
+            [ -n "$PR_FROM_EVENT" ] || { echo "The review run names no pull request: nothing to gate"; exit 0; }
+          fi
           if [ -n "$PR_FROM_EVENT" ]; then gate "$PR_FROM_EVENT"
           else for pr in $(gh pr list --state open --limit 100 --json number --jq '.[].number'); do gate "$pr"; done; fi
