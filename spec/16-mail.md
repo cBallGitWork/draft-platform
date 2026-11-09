@@ -22,11 +22,11 @@ letters, newest first. It reports; it never advises.
 - The commissioner can send a one-way letter to the whole league. There is still no chat.
 - Mail is the league's: it shows the letters of the league picked in the top bar, as every screen
   does, never one inbox across leagues (Craig, 9 Nov 2026: "you select your team at the top menu
-  bar, that then loads everything for that league and team").
+  bar, that then loads everything for that league and team"). `S16.1`
 - A letter ends with one link to where you act on it, such as a trade offer's to Trades (Craig,
-  9 Nov 2026).
+  9 Nov 2026). `S16.2`
 - Needs you: the letters waiting on you are a lineup to set, a trade offer to you and, for the
   commissioner, a trade to review; Mail and Home's Mail panel both split All | Needs you | Unread
-  (Craig, 9 Nov 2026).
+  (Craig, 9 Nov 2026). `S16.3`
 - The deadline letter says how your lineup stands, such as "Lineup set, 1 doubt in your eleven"
-  (Craig, 9 Nov 2026: "Yes, show it").
+  (Craig, 9 Nov 2026: "Yes, show it"). `S16.4`
