@@ -5,8 +5,8 @@
 // an assist, a card or an own goal shows the points it moves; a threshold line shows any other
 // movement of his points, up or down ("~58' Rice: 3 key passes, +1", "~71' Saliba: 2 goals
 // conceded, −1"; thresholdSteps.ts); a move of his team's instructions has its own line, just
-// above the one that moved it ("~71' Rice: Get stuck in", +1; instructionLines.ts); the full-time line lists the lineups' men who played, with
-// their points in the match. Priced by the slot and role each man is priced at, under the site's
+// above the one that moved it ("~71' Rice: Get stuck in", +1; instructionLines.ts); the full-time
+// line lists the lineups' men who played, with their points in the match. Priced by the slot and role each man is priced at, under the site's
 // set in force in the gameweek, which never changes once the gameweek has begun (spec/14), so a
 // past matchup's lines keep the points they showed. Pure: matchup.ts and matchPage.ts read what
 // it needs.

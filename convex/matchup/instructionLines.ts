@@ -1,6 +1,6 @@
 // The team instructions' live lines (spec/10, The commentary; spec/05, Team instructions; #990):
 // "instruction moves get live lines like a role's, worded with the instruction's name" (Craig,
-// 9 Nov 2026, on #990), such as "~71' Rice: Get stuck in", +1, under the line that moved it.
+// 9 Nov 2026, on #990), such as "~71' Rice: Get stuck in", +1, just above the line that moved it.
 // Pure: vidiprinter.ts prices every line, and asks this for the instructions' own.
 
 import { positionOfSlot } from "../lineup/pitch";
