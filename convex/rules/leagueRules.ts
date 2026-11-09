@@ -16,7 +16,8 @@ import { refuseFormatChange } from "./formatLock";
 import { momentIn } from "../shared/moments";
 import { zoneOf } from "../signIn/timeZone";
 import { checkSquadMaximums, squadMaximumBandShape, squadMaximumFor, STARTING_SQUAD_MAXIMUMS, withSquadMaximum, type SquadMaximumBand } from "./squadMaximums";
-import { historyOf, inForce, latestRules, RULES_CHANGES_MOST, type RulesRow } from "./rulesHistory";
+import { historyOf, inForce, latestRules, RULES_CHANGES_MOST, seasonRules, type RulesRow } from "./rulesHistory";
+import { switchWaiverOrder } from "../waivers/waiverOrder";
 import { heldSchedule } from "../gameweeks/leagueDeadlines";
 import { pickTimeChanging } from "../draft/draftPickTime";
 
@@ -197,6 +198,10 @@ async function changeRules(ctx: MutationCtx, leagueId: Id<"leagues">, email: str
   if (history.length >= RULES_CHANGES_MOST) refuse(rulesRefusals.tooManyChanges);
   const pickSeconds = draftRulesOf(rules).pickSeconds;
   if (latestRow !== undefined && draftRulesOf(latestRow.rules).pickSeconds !== pickSeconds) await pickTimeChanging(ctx, leagueId, pickSeconds);
+  // A change of waiver order type applies at once, as the run reads the latest rules, and from
+  // today's order (Craig, 6 Nov 2026, on #1200), worked out by the rules before it.
+  const before = latestRow === undefined ? null : await seasonRules(ctx, leagueId);
+  if (before !== null && before.latest.waivers.order !== rules.waivers.order) await switchWaiverOrder(ctx, league, before, Date.now());
   // A second change before the same deadline is a newer row from the same gameweek: it wins.
   await ctx.db.insert("leagueRules", { leagueId, fromGameweek, rules });
   await recordEvent(ctx, leagueId, email, { kind: "rulesChanged", fromGameweek, changed });

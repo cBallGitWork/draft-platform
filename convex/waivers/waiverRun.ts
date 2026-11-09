@@ -179,7 +179,7 @@ async function runWaivers(ctx: MutationCtx, leagueId: Id<"leagues">, at: number)
     if (!waiting.has(claim.playerCode)) queues.set(claim.teamId, [...(queues.get(claim.teamId) ?? []), claim]);
   }
 
-  let order = await waiverOrderOf(ctx, league, season, winners);
+  let order = await waiverOrderOf(ctx, league, season, winners, gameweek);
   for (;;) {
     const team = order.find((teamId) => (queues.get(teamId)?.length ?? 0) > 0);
     if (team === undefined) break;
