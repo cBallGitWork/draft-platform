@@ -157,6 +157,8 @@ const pendingClaim = v.object({
   claimId: v.id("waiverClaims"),
   teamId: v.id("teams"),
   teamName: v.string(),
+  /** Whether it is the caller's own team's: the commissioner sees every team's too. */
+  yours: v.boolean(),
   claim: claimedPlayer,
   /** Who goes if it succeeds, or null for nobody. */
   drop: v.union(claimedPlayer, v.null()),
@@ -192,6 +194,7 @@ export const pending = query({
           claimId: claim._id,
           teamId: owner._id,
           teamName: owner.name,
+          yours: owner._id === team?._id,
           claim: await described(claim.playerCode),
           drop: claim.dropCode === null ? null : await described(claim.dropCode),
           runAt: onWaivers === null ? null : firstRunFrom(runs, onWaivers.claimableFrom),

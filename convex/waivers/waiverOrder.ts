@@ -2,6 +2,7 @@ import { v, type Infer } from "convex/values";
 import type { Doc, Id } from "../_generated/dataModel";
 import { query, type MutationCtx, type QueryCtx } from "../_generated/server";
 import { draftOrderOf } from "../draft/draftOrder";
+import { draftIsOver } from "../draft/draftRow";
 import type { LeagueDeadlines } from "../gameweeks/deadline";
 import { leagueDeadlines } from "../gameweeks/leagueDeadlines";
 import { WAIVER_ORDERS, type LeagueRules } from "../rules/leagueRulesShape";
@@ -142,7 +143,9 @@ function nextDeadline(deadlines: LeagueDeadlines, now: number): { gameweek: numb
 const waiversView = v.object({
   type: v.union(...WAIVER_ORDERS.map((each) => v.literal(each))),
   /** Every team, first in the order first, with its place and points in the table. */
-  teams: v.array(v.object({ teamId: v.id("teams"), name: v.string(), tablePlace: v.number(), points: v.number() })),
+  teams: v.array(v.object({ teamId: v.id("teams"), name: v.string(), yours: v.boolean(), tablePlace: v.number(), points: v.number() })),
+  /** Whether the league's draft is over: before it, claims, drops and pickups are refused (S08.1). */
+  drafted: v.boolean(),
   /** The next time each of the league's runs is made, soonest first, UK time as the rules set it. */
   runs: v.array(v.number()),
   /** Whether it is in the lock, from a deadline until the gameweek's last match is over. */
@@ -161,7 +164,7 @@ export const ofLeague = query({
   args: { leagueId: v.id("leagues"), now: v.number() },
   returns: v.union(waiversView, v.null()),
   handler: async (ctx, { leagueId, now }): Promise<WaiversView | null> => {
-    const { league } = await memberOf(ctx, leagueId);
+    const { league, team } = await memberOf(ctx, leagueId);
     const season = await seasonRules(ctx, leagueId);
     if (season === null) return null;
     const deadlines = await leagueDeadlines(ctx, leagueId);
@@ -173,8 +176,9 @@ export const ofLeague = query({
       type: season.latest.waivers.order,
       teams: order.map((teamId) => {
         const place = table.findIndex(({ team }) => team === teamId);
-        return { teamId, name: names.get(teamId)!, tablePlace: place + 1, points: table[place]?.points ?? 0 };
+        return { teamId, name: names.get(teamId)!, yours: teamId === team?._id, tablePlace: place + 1, points: table[place]?.points ?? 0 };
       }),
+      drafted: await draftIsOver(ctx, leagueId),
       runs,
       locked: await inWaiverLock(ctx, deadlines, now),
       windowOpen: await windowOpen(ctx, leagueId, deadlines, now),

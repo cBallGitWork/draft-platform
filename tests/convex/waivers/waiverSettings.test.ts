@@ -38,7 +38,7 @@ describe("League settings' waivers", () => {
   });
 
   test("saves the order type and the runs, with a letter", async () => {
-    const waivers = { runs: [{ day: "tuesday", hour: 9, minute: 30 }], order: "rotating" } as const;
+    const waivers: LeagueSettings["waivers"] = { runs: [{ day: "tuesday", hour: 9, minute: 30 }], order: "rotating" };
     await changeWaivers(waivers);
 
     expect(await latestWaivers()).toEqual(waivers);
@@ -72,7 +72,8 @@ describe("the waiver order", () => {
     // Level on 0 points, the reverse of the draft order: Ann, Bob and Cat drafted first, so go last.
     expect(view?.teams.map(({ teamId }) => teamId)).toEqual(w.teams.toReversed());
     expect(view?.teams.map(({ tablePlace }) => tablePlace)).toEqual(w.teams.map((_, place) => w.teams.length - place));
-    expect(view).toMatchObject({ type: "reverseStandings", locked: false, nextDeadline: { gameweek: NEXT } });
+    expect(view).toMatchObject({ type: "reverseStandings", drafted: true, locked: false, nextDeadline: { gameweek: NEXT } });
+    expect(view?.teams.filter(({ yours }) => yours).map(({ teamId }) => teamId)).toEqual([w.annsTeam]);
     expect(view?.runs).toHaveLength(2);
     expect(view?.runs[0]).toBeLessThan(view!.runs[1]);
   });

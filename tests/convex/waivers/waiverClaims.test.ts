@@ -106,6 +106,7 @@ describe("a manager's claims", () => {
         claimId: expect.any(String),
         teamId: w.annsTeam,
         teamName: "Team 1",
+        yours: true,
         claim: expect.objectContaining({ playerCode: SAKA, playerName: nameOf(SAKA) }),
         drop: expect.objectContaining({ playerCode: ANNS_FIRST_DROP, playerName: nameOf(ANNS_FIRST_DROP) }),
         runAt: expect.any(Number),

@@ -11,6 +11,7 @@ import { squadLimits } from "../../convex/squads/squadLimits";import { previewMa
 import { teamFixturesOf } from "../table/drawnTable";
 import { previewScored, previewTable, previewTeams } from "../table/preview";
 import { previewSquad, previewTactics } from "./tactics/preview";
+import { previewClaims } from "./claims/preview";
 import type { MyTeamSeam, TeamSquad, TeamTransactions } from "./seam";
 
 const [previewTeam, otherTeam] = previewTeams;
@@ -112,6 +113,7 @@ const latestMail = { letters: previewMail.useLetters()!.slice(0, LATEST_LETTERS)
 export const previewMyTeam: MyTeamSeam = {
   ...previewTactics,
   ...previewTable,
+  ...previewClaims,
   useTeamFixtures: () => fixtures,
   useTeamTransactions: () => transactions,
   useTeamSquad: () => squad,
