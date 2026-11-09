@@ -1,11 +1,10 @@
 import { MOST_IN_SQUAD } from "../leagues/leagueLimits";
 import { andListWords } from "../shared/moments";
 import type { TellMoment } from "./letterMoments";
+import type { Words } from "./letterShape";
 
 // What trades' Mail letters say (spec/08 Trades, spec/16; #383): split from letterWords.ts, as
 // waivers' are (waiverLetterWords.ts). ../trades/ files them.
-
-type Words = { subject: string; body: string };
 
 /** A trade as its letters name it: each team by name, and each side's players, or its one pick,
  *  by name. */

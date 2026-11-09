@@ -1,10 +1,10 @@
 import type { Infer } from "convex/values";
+import type { Words } from "../mail/letterShape";
 import type { leagueEvent } from "../schema";
 
 // What the auto team's refusals and letters say (spec/09, The auto team; #1207), in one place for
 // Craig to change. Mail's letterWords.ts reads the switch's letter from here.
 
-type Words = { subject: string; body: string };
 type Switched = Extract<Infer<typeof leagueEvent>, { kind: "autoTeamSwitched" }>;
 
 /** Why a switch was refused, as the caller is told it. */

@@ -2,7 +2,7 @@ import { v, type Infer } from "convex/values";
 import type { Doc, Id } from "../_generated/dataModel";
 import { query, type QueryCtx } from "../_generated/server";
 import { leagueDeadlines } from "../gameweeks/leagueDeadlines";
-import type { LeagueDeadlines } from "../gameweeks/deadline";
+import { nextDeadline } from "../gameweeks/deadline";
 import { positionsNow, type PositionsNow } from "../positions/playerPositions";
 import { positionRank } from "../positions/positionTables";
 import { latestRules } from "../rules/rulesHistory";
@@ -12,7 +12,7 @@ import { clubsByCode, playerByCode, type Clubs } from "../shared/players";
 import { squadOf } from "../squads/squadPlace";
 import { limitsBroken, squadWarning } from "../squads/squads";
 import { newlyBroken } from "../waivers/waiverRun";
-import { leagueOffers, pickName } from "./tradeClose";
+import { leagueOffers, pickName, unheldTradedWords } from "./tradeClose";
 import { pickHolders, tradablePick } from "./tradePicks";
 import { reviewerOf } from "./tradeReview";
 import { onAutoTeam, tradesShut } from "./tradeShut";
@@ -96,19 +96,6 @@ export const tradesView = v.object({
 });
 export type TradesView = Infer<typeof tradesView>;
 
-/** The first deadline after `from`, with its gameweek: when an offer made then closes unanswered. */
-export function nextDeadline(
-  deadlines: LeagueDeadlines,
-  from: number,
-): { gameweek: number; at: number } | null {
-  let next: { gameweek: number; at: number } | null = null;
-  for (const [gameweek, at] of deadlines) {
-    if (at !== null && at > from && (next === null || at < next.at))
-      next = { gameweek, at };
-  }
-  return next;
-}
-
 /** A player as the screen shows him: name, main position and club; null for one the football sync
  *  doesn't hold. */
 async function shownPlayer(
@@ -135,10 +122,7 @@ async function tradedShown(
   clubOf: Clubs,
 ): Promise<TradedPlayer> {
   const shown = await shownPlayer(ctx, code, positionsOf, clubOf);
-  if (shown === null)
-    throw new Error(
-      `A trade offer names player ${code}, whom the football sync doesn't hold`,
-    );
+  if (shown === null) throw new Error(unheldTradedWords(code));
   return shown;
 }
 

@@ -5,6 +5,7 @@
 import type { Id } from "../../convex/_generated/dataModel";
 import type { Position } from "../../convex/positions/positionTables";
 import { DAY_MS, HOUR_MS } from "../../convex/shared/time";
+import { ARSENAL, CHELSEA, LIVERPOOL } from "../scouting/preview";
 import { previewIdOf } from "../table/preview";
 import type {
   ScreenOffer,
@@ -15,10 +16,10 @@ import type {
 } from "./seam";
 
 const CLUBS = {
-  ARS: { code: 3, name: "Arsenal", shortName: "ARS" },
+  ARS: ARSENAL,
   AVL: { code: 7, name: "Aston Villa", shortName: "AVL" },
-  CHE: { code: 8, name: "Chelsea", shortName: "CHE" },
-  LIV: { code: 14, name: "Liverpool", shortName: "LIV" },
+  CHE: CHELSEA,
+  LIV: LIVERPOOL,
   NEW: { code: 4, name: "Newcastle", shortName: "NEW" },
   NFO: { code: 17, name: "Nottingham Forest", shortName: "NFO" },
   MCI: { code: 43, name: "Manchester City", shortName: "MCI" },
