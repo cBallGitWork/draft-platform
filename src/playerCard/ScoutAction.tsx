@@ -7,8 +7,21 @@ import { Problem } from "../ui/Panel";
 /** The card's Send a scout (spec/19, Scouts; the approved card), with how many of the team's scouts
  *  are free. Nothing for someone who runs no team, nor while it loads, nor for a player who has left
  *  the Premier League; not pressable with every scout out or one already on him, since there is no
- *  recall and only one scout on a player at a time (Craig, 6 Nov 2026, on #375). */
-export function ScoutAction({ leagueId, playerCode, gone, seam }: { leagueId: Id<"leagues">; playerCode: number; gone: boolean; seam: ScoutsSeam }) {
+ *  recall and only one scout on a player at a time (Craig, 6 Nov 2026, on #375). Scouting's report
+ *  passes its own `label`, "Scout him again". */
+export function ScoutAction({
+  leagueId,
+  playerCode,
+  gone,
+  seam,
+  label = sendScoutWords,
+}: {
+  leagueId: Id<"leagues">;
+  playerCode: number;
+  gone: boolean;
+  seam: ScoutsSeam;
+  label?: string;
+}) {
   const mine = seam.useMyScouts(leagueId);
   const send = seam.useSendScout();
   const change = useChange();
@@ -25,7 +38,7 @@ export function ScoutAction({ leagueId, playerCode, gone, seam }: { leagueId: Id
           onClick={() => void change.run(() => send(leagueId, playerCode))}
           className="secondary-action"
         >
-          {sendScoutWords}
+          {label}
         </button>
         <span className="text-soft">{freeScoutsWords(free, mine.scouts)}</span>
       </div>
