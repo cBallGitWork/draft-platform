@@ -20,9 +20,11 @@ import {
   noneMatchWords,
   noPointsYetWords,
   noRoleFitYetWords,
+  notLastSeasonWords,
   onWaiversWords,
   positionLabel,
   SCOUTING_TITLE,
+  seasonPointsColumn,
 } from "../../../src/scouting/words";
 import { POSITION_NAMES } from "../../../src/shared/words";
 import { crestUrl } from "../../../src/ui/ClubName";
@@ -89,6 +91,15 @@ describe("the list", () => {
     const cells = within(rowOf("Saka")).getAllByRole("cell");
     expect(cells.slice(-2).map((cell) => cell.textContent)).toEqual([noFigureWords, noFigureWords]);
     expect(cells.slice(-2).map((cell) => cell.getAttribute("title"))).toEqual([noPointsYetWords, noRoleFitYetWords]);
+  });
+
+  it("before the new season's first match, heads the points with last season's ('Pts 25/26'), a newcomer's '—' saying why (#956)", async () => {
+    openScouting({ ...HELD, players: HELD.players!.map((player) => ({ ...player, seasonPoints: player.name === "Rice" ? 180 : null })), pointsSeason: 2025 });
+    await screen.findByRole("table");
+    const head = columnHeadIn(table(), seasonPointsColumn(2025));
+    expect(head.textContent).toContain("Pts 25/26");
+    expect(within(rowOf("Rice")).getAllByRole("cell").at(-2)!.textContent).toBe("180");
+    expect(within(rowOf("Saka")).getAllByRole("cell").at(-2)!.getAttribute("title")).toBe(notLastSeasonWords);
   });
 
   it("heads each column with a short code, named by it and its full name, which shows on hover", async () => {
