@@ -7,6 +7,7 @@ import type { ListedPlayer } from "../../../convex/scouting/playersList";
 import { listOf, shownStat } from "../../../convex/scouting/playersOrder";
 import type { Stats } from "../../../convex/stats/statTotals";
 import type { ComparedPlayer, PlayersList, ScoutingSeam } from "../../../src/scouting/seam";
+import { fakeScouts, type ScoutsData } from "./scouts.harness";
 import { fakeShortlist, type ShortlistData } from "./shortlist.harness";
 
 /** What the fake server holds: its clubs, the site set's own stats, players and their season totals by code, each one's
@@ -23,15 +24,17 @@ export type ScoutingData = {
   loading?: boolean;
   comparing?: boolean;
   shortlist?: ShortlistData;
+  scouts?: ScoutsData;
 };
 
 /** A player with no season held: no matches yet. */
 const NO_SEASON = { matches: 0, stats: {} };
 
-export function fakeScouting({ clubs = [], ownStats = [], players = [], totals = {}, seasons = {}, pointsSeason = null, loading = false, comparing = false, shortlist }: ScoutingData = {}) {
+export function fakeScouting({ clubs = [], ownStats = [], players = [], totals = {}, seasons = {}, pointsSeason = null, loading = false, comparing = false, shortlist, scouts }: ScoutingData = {}) {
   const addToQueue = vi.fn<ReturnType<ScoutingSeam["useAddToQueue"]>>(async () => shortlist?.refusal ?? null);
   return {
     ...fakeShortlist(shortlist),
+    ...fakeScouts(scouts),
     useAddToQueue: () => addToQueue,
     addToQueue,
     usePlayersList: vi.fn<ScoutingSeam["usePlayersList"]>((_leagueId, filters, sort, stat) =>
