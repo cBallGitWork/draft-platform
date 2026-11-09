@@ -243,7 +243,7 @@ jobs:
           # and on 8 Nov 2026 four were opened with no pull_request workflow firing, so they waited on review-landed until a
           # session reviewed them by hand. Once per pull request (REVIEW_STARTED_LABEL), Craig's included, and no build slot.
           for pr in $(jq -r '
-              .[] | select((.isDraft | not) and (.isCrossRepository | not))  # never a fork's: the review holds the subscription token
+              .[] | select((.isDraft | not) and (.isCrossRepository | not))  # never a fork: the review holds the subscription token
               | select(all(.labels[]?; .name != env.REVIEW_STARTED_LABEL))
               | select(any(.statusCheckRollup[]?; .context == "review-landed" and .state == "PENDING"))
               | select((.createdAt | fromdateiso8601) < (now - (env.REVIEW_WAIT_MINUTES | tonumber) * 60))
