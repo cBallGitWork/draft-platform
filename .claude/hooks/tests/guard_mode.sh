@@ -51,7 +51,8 @@ for go in "ok build it" "go ahead" "file it as an issue" "ship it" "merge that" 
 done
 # a bare yes-word is a go only as the whole message: in a sentence it is talk
 for talk in "file naming is odd" "yes but what about a libero" "go figure, the cameo rule again" \
-  "yes, running backs would be fun" "what if we run the draft live"; do
+  "yes, running backs would be fun" "what if we run the draft live" "yes, set pieces matter" \
+  "yes, add-ons are for later" "yes, open question is the cameo rule"; do
   said "$talk"
   check deny guard_mode.py "$(bash_call 'gh issue create --title t')"
 done

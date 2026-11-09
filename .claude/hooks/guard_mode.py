@@ -26,7 +26,9 @@ GO_WORDS = re.compile(
     r"sort it|set it up|set up|implement|land|label it|fix (it|that|them|those|the|this|all|everything)|"
     r"just do|get on with|crack on|carry on|proceed|"
     # a yes that names the action: Claude's own reply buttons read so (9 Nov 2026, #1376: "Yes, run the lead" was refused)
-    r"yes,? (please,? )?(do|build|go|fix|ship|run|file|merge|start|open|add|make|set))\b", re.I)
+    # and an object after the newer verbs, so "yes, set pieces matter" stays talk (#1378's review)
+    r"yes,? (do|build|go|fix|ship)|"
+    r"yes,? (please,? )?(run|file|merge|start|open|add|make|set) (it|them|that|this|these|those|the|a|an))\b", re.I)
 # a whole message that only says yes to Claude's "shall I file these?" (6 Nov 2026: a bare "File" was
 # refused as talk, and Craig had to say "File them (this is silly)")
 BARE_GO = re.compile(r"^\W*(file|yes|yes please|go|go on)\W*$", re.I)
