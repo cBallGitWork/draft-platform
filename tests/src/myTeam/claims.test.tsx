@@ -14,6 +14,7 @@ import type { PendingClaim, WaiversView } from "../../../src/myTeam/claims/seam"
 import {
   claimPanelTitle,
   claimsClosedWords,
+  claimsNotOpenWords,
   claimsTableLabel,
   claimsViewWords,
   clashWords,
@@ -110,6 +111,14 @@ describe("the pending claims", () => {
     expect(screen.queryByRole("img", { name: dragHandleLabel("Eze") })).toBeNull();
     await userEvent.click(screen.getByRole("button", { name: selectClaimLabel("Eze") }));
     expect(screen.queryByRole("button", { name: withdrawWords })).toBeNull();
+  });
+});
+
+describe("before the league's draft is over (S08.1)", () => {
+  it("says claims open once it is, with no handles or buttons", async () => {
+    open({ waivers: { ...NO_WAIVERS, drafted: false } });
+    expect(await screen.findByText(claimsNotOpenWords)).toBeTruthy();
+    expect(screen.queryByRole("img", { name: dragHandleLabel("Eze") })).toBeNull();
   });
 });
 
