@@ -96,6 +96,7 @@
   /* A tick box's well (plate.md, Controls) */
   --spacing-tick: 22px;
   --spacing-vidiprinter: 480px; /* the matchup's commentary, scrolled past it */
+  --spacing-vidiprinter-column: 56px; /* a team's points column in it ("Saka P", "+4") */
   --spacing-tick-mark: 14px; /* the tick drawn in it */
   /* The Tactics tab: the squad beside the pitch on the desk; the pitch's width on the desk, the
      approved Tactics picture's 340px and the room a player's block needs, so each stays in his

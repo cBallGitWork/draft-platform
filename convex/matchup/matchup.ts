@@ -17,9 +17,11 @@ import { averageScore, BYE, gamesOf, type Against } from "../table/teamGames";
 import type { SlotPoints } from "../scoring/teamPoints";
 import { namedCategoriesOf, roleLineOf } from "../scoring/breakdownShape";
 import { siteVersionByGameweek } from "../scoring/siteVersions";
-import { game, matchup, type MatchBreakdown, type MatchupCommentary, type MatchupBenchSlot, type MatchupSide, type MatchupSlot, type MatchupStarter, type SlotStatus } from "./matchupShape";
+import { game, matchup, type MatchBreakdown, type TeamsCommentary, type MatchupBenchSlot, type MatchupSide, type MatchupSlot, type MatchupStarter, type SlotStatus } from "./matchupShape";
 import { commentaryReads, readCommentary, type CommentaryReads } from "./readCommentary";
-import { byKickoff, byKickoffOrder, placeOf, pricedRole, shirtOf } from "./slotParts";
+import { byKickoff, byKickoffOrder, namedMatch, placeOf, pricedRole, shirtOf } from "./slotParts";
+import { findClubByCode } from "../shared/players";
+import { readOnce } from "../shared/readOnce";
 import { onAutoTeam } from "../trades/tradeShut";
 
 // One head-to-head in one gameweek (#34; spec/10, The matchup, as a live match; spec/14, On
@@ -149,6 +151,8 @@ class SideScorer {
   private readonly reads: CommentaryReads;
   private readonly name: CommentaryReads["name"];
   private readonly score: CommentaryReads["score"];
+  /** Each club, read once, so a breakdown names its matches. */
+  private readonly club: (code: number) => Promise<Doc<"clubs"> | null>;
 
   constructor(
     private readonly ctx: QueryCtx,
@@ -162,6 +166,7 @@ class SideScorer {
     this.reads = commentaryReads(ctx);
     this.name = this.reads.name;
     this.score = this.reads.score;
+    this.club = readOnce((code: number) => findClubByCode(ctx, code));
   }
 
   async team(team: Doc<"teams">): Promise<MatchupSide> {
@@ -197,7 +202,7 @@ class SideScorer {
 
   /** The commentary of every match the sides' men play in, priced for them. One that can't be read
    *  is logged and says why, while the scores still show. Delayed as at `now` (`delayedAt`). */
-  async commentary(teamIds: readonly TeamId[], failure: string, now: number): Promise<MatchupCommentary> {
+  async commentary(teamIds: readonly TeamId[], failure: string, now: number): Promise<TeamsCommentary> {
     try {
       const read = await readCommentary(this.ctx, this.inGameweek, teamIds, now, this.reads, { countingOnly: false });
       return { kind: "read", ...read };
@@ -256,6 +261,7 @@ class SideScorer {
         return {
           fixtureCode: fixture.code,
           kickoff: fixture.kickoff,
+          ...(await namedMatch(fixture, this.club, this.score)),
           points: total,
           counted,
           categories: namedCategoriesOf(categories, ownStats),

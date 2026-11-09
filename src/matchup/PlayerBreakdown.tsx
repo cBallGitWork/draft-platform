@@ -58,7 +58,7 @@ export function PlayerBreakdown({ leagueId, slot, teamName, version, close }: { 
   );
 }
 
-/** One match: its kickoff, opening its page, and his points there, then the lines that make them,
+/** One match: its clubs, score and clock, opening its page, and his points there, then the lines that make them,
  *  or the league's override in their place. */
 function MatchLines({ match, version }: { match: MatchBreakdown; version: string | null }) {
   const { points, counted, override } = match;
@@ -66,7 +66,7 @@ function MatchLines({ match, version }: { match: MatchBreakdown; version: string
     <section className={`border-b border-panel-rule px-3 py-2 ${counted ? "" : "text-muted"}`}>
       <p className="flex items-center justify-between gap-2">
         <Link to={matchPath(match.fixtureCode)} className="flex min-h-tap shrink-0 items-center font-semibold text-inherit lg:min-h-0">
-          {breakdownMatchWords(match.kickoff)}
+          {breakdownMatchWords(match)}
         </Link>
         <span className={counted && points !== null ? "font-bold text-figure" : ""} title={points === null ? notArrivedWords : undefined}>
           {points === null ? noFigureWords : figureWords(points)}

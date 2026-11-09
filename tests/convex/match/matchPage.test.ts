@@ -204,8 +204,8 @@ test("the commentary is the match's lines newest first, the goal priced for its 
   const page = (await matchAs(league, ANN))!;
   const matchup = await annsScoredGame(league);
   if (matchup.commentary.kind !== "read") throw new Error("the matchup's commentary wasn't read");
-  // The same lines, priced alike, as the matchup's.
-  expect(page.commentary).toEqual({ kind: "read", lines: matchup.commentary.lines, delayed: true });
+  // The same lines, priced alike, as the matchup's, without its team columns.
+  expect(page.commentary).toEqual({ kind: "read", lines: matchup.commentary.lines.map(({ key, text, points }) => ({ key, text, points })), delayed: true });
   expect(page.commentary.kind === "read" && page.commentary.lines[0].points).toMatch(/^\+/);
 });
 
@@ -235,7 +235,9 @@ test("a goal's points include his role's adjustment, on the match page and the m
   // His goal in midfield, and his role's on top.
   const lines = [shownGoal(`+${MIDFIELD_GOAL + ROLE_GOAL}`)];
   expect((await matchAs(league, ANN))!.commentary).toEqual({ kind: "read", lines, delayed: false });
-  expect((await annsScoredGame(league)).commentary).toEqual({ kind: "read", lines, delayed: false });
+  // On the matchup, the same in Ann's column: he starts for her.
+  const goal = { ...lines[0], about: [expect.any(Number)], columns: [lines[0].points, null] };
+  expect((await annsScoredGame(league)).commentary).toEqual({ kind: "read", lines: [goal], delayed: false });
 });
 
 test("the five team stats show each side's, home and away, as the live poller last stored them", async () => {

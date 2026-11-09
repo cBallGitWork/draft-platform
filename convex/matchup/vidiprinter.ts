@@ -65,6 +65,29 @@ export interface VidiprinterLine {
   points: string | null;
 }
 
+/** What a line moves one man's points by, in tenths' arithmetic (inTenths). */
+export interface LineMove {
+  playerCode: PlayerCode;
+  points: number;
+}
+
+/** A line as priced, with whom it is about and what it moves each of them by, for a caller that
+ *  adds them up its own way: the matchup's column per team (readCommentary.ts). Never sent as it
+ *  is: `shownLine` keeps what a screen shows. */
+export interface PricedLine extends VidiprinterLine {
+  priced: {
+    fixtureCode: number;
+    /** The men it is priced for that it names, or lists at full time: the tapped man's lines on
+     *  the matchup (the approved picture's cyan bar). */
+    about: PlayerCode[];
+    /** What it moves each of them by; none where it moves no one's points. */
+    moves: LineMove[];
+  };
+}
+
+/** A line as a screen shows it, without what a caller added to it. */
+export const shownLine = ({ key, text, points }: VidiprinterLine): VidiprinterLine => ({ key, text, points });
+
 /** Which stat each man a line names moves, by the feed's type, in the order the line names them. */
 const STATS_MOVED: Readonly<Record<string, readonly string[]>> = {
   [FEED_TYPE.goal]: [EVENT_STATS.goals, EVENT_STATS.assists],
@@ -81,7 +104,7 @@ const HALF_MINUTES = 45;
 const HALF_TIME_MINUTES = 15;
 
 interface Placed {
-  line: VidiprinterLine;
+  line: PricedLine;
   /** About when it happened, which sorts the matches' lines among each other. */
   at: number;
   kickoff: number;
@@ -94,7 +117,7 @@ export function vidiprinter(
   matches: readonly VidiprinterMatch[],
   players: ReadonlyMap<PlayerCode, VidiprinterPlayer>,
   set: ScoringSet,
-): VidiprinterLine[] {
+): PricedLine[] {
   const placed = matches.flatMap((match) => placedOf(match, players, set));
   return placed.toSorted((one, other) => other.at - one.at || other.kickoff - one.kickoff || one.order - other.order).map(({ line }) => line);
 }
@@ -127,9 +150,13 @@ function priced(
   players: ReadonlyMap<PlayerCode, VidiprinterPlayer>,
   set: ScoringSet,
   counted: Map<string, number>,
-): Omit<VidiprinterLine, "key"> {
-  if (stored.type === FEED_TYPE.matchEnds) return { text: withFullTimePoints(stored.text, fullTimePoints(fixtureCode, players)), points: null };
+): Omit<PricedLine, "key"> {
+  if (stored.type === FEED_TYPE.matchEnds) {
+    const played = fullTimePoints(fixtureCode, players);
+    return { text: withFullTimePoints(stored.text, played), points: null, priced: { fixtureCode, about: played.map(({ playerCode }) => playerCode), moves: [] } };
+  }
   const codes = stored.playerCodes ?? [];
+  const about = [...new Set(codes.filter((code): code is PlayerCode => code !== null && code !== undefined && players.has(code)))];
   const moves = (STATS_MOVED[stored.type ?? ""] ?? []).flatMap((stat, index) => {
     const code = codes[index];
     if (code === undefined || code === null) return [];
@@ -141,9 +168,10 @@ function priced(
     // line shows unpriced until a read brings it, as his slot shows "—".
     if (player === undefined || stats === null) return [];
     const points = inTenths(totalWith(stats, stat, nth, player, set) - totalWith(stats, stat, nth - 1, player, set));
-    return points === 0 ? [] : [{ name: player.name, points }];
+    return points === 0 ? [] : [{ playerCode: code, name: player.name, points }];
   });
-  return { text: stored.text, points: worth(moves, codes.length) };
+  const priced = { fixtureCode, about, moves: moves.map(({ playerCode, points }) => ({ playerCode, points })) };
+  return { text: stored.text, points: worth(moves, codes.length), priced };
 }
 
 /** One man's count of one stat, as a match's lines and steps tally them. */
@@ -157,10 +185,10 @@ function totalWith(stats: MatchStats, stat: string, actions: number, { cell, rol
 
 /** The lineups' men who played in the match, most points first. */
 function fullTimePoints(fixtureCode: number, players: ReadonlyMap<PlayerCode, VidiprinterPlayer>) {
-  return [...players.values()]
-    .flatMap(({ name, inLineup, inMatch }) => {
+  return [...players]
+    .flatMap(([playerCode, { name, inLineup, inMatch }]) => {
       const his = inMatch.get(fixtureCode);
-      return inLineup && his?.played && his.points !== null ? [{ name, points: his.points }] : [];
+      return inLineup && his?.played && his.points !== null ? [{ playerCode, name, points: his.points }] : [];
     })
     .sort((one, other) => other.points - one.points || one.name.localeCompare(other.name));
 }
@@ -180,7 +208,13 @@ function thresholdLines(match: VidiprinterMatch, players: ReadonlyMap<PlayerCode
     lastShown.set(key, step);
     const when = step.minute === null ? "" : `~${step.minute}' `;
     const text = `${when}${player.name}: ${step.to} ${statWords(step.stat, set)}`;
-    return [{ line: { key: `${match.fixtureCode}:step:${index}`, text, points: worth([{ name: player.name, points }], 1) }, minute: step.minute }];
+    const line: PricedLine = {
+      key: `${match.fixtureCode}:step:${index}`,
+      text,
+      points: worth([{ name: player.name, points }], 1),
+      priced: { fixtureCode: match.fixtureCode, about: [step.playerCode], moves: [{ playerCode: step.playerCode, points }] },
+    };
+    return [{ line, minute: step.minute }];
   });
 }
 

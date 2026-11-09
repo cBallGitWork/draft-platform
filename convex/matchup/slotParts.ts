@@ -1,4 +1,4 @@
-import type { Id } from "../_generated/dataModel";
+import type { Doc, Id } from "../_generated/dataModel";
 import type { QueryCtx } from "../_generated/server";
 import { positionOfSlot } from "../lineup/pitch";
 import { namedRole, roleIn, type Role } from "../lineup/roles";
@@ -6,10 +6,10 @@ import type { SlotPoints } from "../scoring/teamPoints";
 import { playerByCode } from "../shared/players";
 import { shirtNumber } from "../squads/squadNumbers";
 import { placeOf as squadPlaceOf } from "../squads/squadPlace";
-import type { MatchupPlace, MatchupSlot } from "./matchupShape";
+import type { MatchBreakdown, MatchupPlace, MatchupSlot } from "./matchupShape";
 
 // The parts of a matchup slot that matchup.ts reads beside the scorer's points: his role, his
-// place, his shirt, and his matches in kickoff order.
+// place, his shirt, how his breakdown names each match, and his matches in kickoff order.
 
 /** The role the scorer priced him in at his cell, so the matchup and the table never disagree. Its
  *  run is read from the role set at his place (spec/05 Runs), so only its key is sent. */
@@ -34,6 +34,25 @@ export async function shirtOf(
   return {
     clubCode: player?.clubCode ?? null,
     number: await shirtNumber(ctx, { playerCode, number: place?.teamId === teamId ? place.number : undefined }),
+  };
+}
+
+/** A match as his breakdown names it (#1026, "NFO 1–0 BRE 67'"): its clubs' short names, null for
+ *  one the football sync doesn't hold, and its score and clock as the newest read gives them, null
+ *  before any. */
+export async function namedMatch(
+  fixture: Pick<Doc<"fixtures">, "code" | "homeClubCode" | "awayClubCode">,
+  club: (code: number) => Promise<Doc<"clubs"> | null>,
+  score: (fixtureCode: number) => Promise<Doc<"matchScores"> | null>,
+): Promise<Pick<MatchBreakdown, "home" | "away" | "score">> {
+  const read = await score(fixture.code);
+  return {
+    home: (await club(fixture.homeClubCode))?.shortName ?? null,
+    away: (await club(fixture.awayClubCode))?.shortName ?? null,
+    score:
+      read === null
+        ? null
+        : { state: read.state, homeGoals: read.homeGoals, awayGoals: read.awayGoals, minutes: read.minutes, clockLabel: read.clockLabel },
   };
 }
 
