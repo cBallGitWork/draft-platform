@@ -32,7 +32,7 @@ export function countdownWords(left: number): string {
 export const noDeadlineWords = (gameweek: number) => `${gameweekWords(gameweek)} has no deadline yet: none of its matches has a kickoff time.`;
 
 /** Form's chips and label, as League home says them. */
-export { formLabel, resultWords } from "../../shared/words";
+export { formLabel, liveFormLabel, liveResultWords, resultWords } from "../../shared/words";
 /** The last game's result, as a line says it. */
 const LAST_RESULT_WORDS: Record<Result, string> = { won: "Won", drawn: "Drew", lost: "Lost" };
 
