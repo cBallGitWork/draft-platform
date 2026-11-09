@@ -101,7 +101,7 @@ export function DraftBoard({
                     <BoardCell
                       key={teamId}
                       slot={slotWords(round, pickInRoundAt(round, column, teams))}
-                      traded={owner === teamId ? null : { owner: names.get(owner)!, team: name }}
+                      traded={tradedTo(owner, teamId, name, names)}
                       made={made.get(pick)}
                       onTheClock={onTheClock?.pick === pick ? onTheClock : null}
                       yours={teamId === yourTeamId}
@@ -115,6 +115,18 @@ export function DraftBoard({
       </div>
     </Panel>
   );
+}
+
+/** Who holds `team`'s pick when it was traded, or null when `team` still holds it. An owner no
+ *  longer in the draft order is logged and the pick shown as `team`'s, rather than breaking the board. */
+function tradedTo<Team>(owner: Team, team: Team, name: string, names: ReadonlyMap<Team, string>) {
+  if (owner === team) return null;
+  const ownerName = names.get(owner);
+  if (ownerName === undefined) {
+    console.error("A traded pick's owner is not in the draft order:", owner);
+    return null;
+  }
+  return { owner: ownerName, team: name };
 }
 
 /** One pick's cell: the player taken, the pick on the clock with its time left, or the slot to come.

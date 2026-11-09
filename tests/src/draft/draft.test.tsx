@@ -4,7 +4,7 @@
 
 import { screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { MINUTE_MS, SECOND_MS } from "../../../convex/shared/time";
 import { DRAFT_PATH, MY_TEAM_PATH } from "../../../src/frame/menu";
 import { mainMenuLabel, menuWords } from "../../../src/frame/words";
@@ -139,6 +139,17 @@ describe("while it runs", () => {
     expect(within(second).getAllByRole("cell").map((cell) => cell.textContent)).toEqual(["2.03", "2.02", "Team 1via Team 3"]);
     expect(fact(nextHead)).toBe("Team 3, then Team 1");
     expect(fact(yourNextHead(true))).toBe("Round 2, pick 2 in 3 picks");
+  });
+
+  it("logs a traded pick whose owner is no longer in the order, and shows the slot as it was", async () => {
+    const [one] = draftOrder.map((team) => team.teamId);
+    const gone = "gone" as typeof one;
+    const logged = vi.spyOn(console, "error").mockImplementation(() => {});
+    openDraft({ draft: liveDraft(0), board: { ...emptyBoard, tradedPicks: [{ round: 2, teamId: one, ownerId: gone }] } });
+    const [, second] = await boardRows();
+    expect(within(second).getAllByRole("cell").map((cell) => cell.textContent)).toEqual(["2.03", "2.02", "2.01"]);
+    expect(logged).toHaveBeenCalledWith(expect.stringContaining("not in the draft order"), gone);
+    logged.mockRestore();
   });
 
   it("says the draft is paused, and its clock stands still", async () => {
