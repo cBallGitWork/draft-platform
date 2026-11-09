@@ -8,7 +8,17 @@ export { figureWords, freeAgentWords, noFigureWords } from "../shared/words";
 
 export const SCOUTING_TITLE = "Scouting";
 export const PLAYERS_TITLE = "Players";
+
+/** Scouting's tabs on its title plate (the approved picture). */
+export const SCOUTING_TABS = ["players", "statRace"] as const;
+export type ScoutingTab = (typeof SCOUTING_TABS)[number];
+export const scoutingTabWords: Record<ScoutingTab, string> = { players: PLAYERS_TITLE, statRace: "Stat race" };
+export const scoutingTabsLabel = "Scouting's views";
 export const loadingWords = "Loading the players…";
+
+/** The name box over the list (the approved picture). */
+export const nameLabel = "Name";
+export const namePlaceholder = "Find a player";
 
 /** The filters over the list (spec/19, The players list). */
 export const availabilityLabel = "Show";
@@ -37,14 +47,30 @@ export const onWaiversWords = (firstRunAt: number | null) => (firstRunAt === nul
 /** The list's columns: a short head, and what it stands for (spec/14: dense tables use short codes,
  *  the full name on hover). */
 export const columns = {
-  compare: { short: "Cmp", long: "Compare: tick two players" },
   name: { short: "Player", long: "Player" },
   club: { short: "Club", long: "Club" },
   positions: { short: "Pos", long: "Positions" },
-  owner: { short: "Team", long: "The team that owns him in this league" },
+  owner: { short: "Status", long: "The team that owns him in this league, or when he clears waivers" },
+  minutes: { short: "Mins", long: "Minutes this season" },
   seasonPoints: { short: "Pts", long: "Season points under the site's scoring" },
+  goals: { short: "G", long: "Goals this season" },
+  assists: { short: "A", long: "Assists this season" },
+  shotsOnTarget: { short: "SOT", long: "Shots on target this season" },
   roleFit: { short: "Fit", long: "Role fit" },
 } as const;
+
+/** The star after a shortlisted player's name, for screen readers and the hover. */
+export const shortlistedLabel = "On your shortlist";
+/** A row of the list, for screen readers: pressing it opens his panel. */
+export const selectPlayerLabel = (name: string) => `Show ${name}'s panel`;
+
+/** The selected player's panel at the top of the right column (the approved picture). */
+export const panelSeasonPointsWords = "Season points";
+export const panelMinutesWords = "Minutes this season";
+export const closePanelLabel = "Close his panel";
+export const compareWithAnotherWords = "Compare with another…";
+export const pickSecondWords = (name: string) => `Pick a second player in the list to compare with ${name}.`;
+export const playerCardLinkWords = "Player card ›";
 
 /** The points' head: "Pts" for this season's, named by the season while they are last season's,
  *  before the new season's first match (spec/19; Craig, 6 Nov 2026, on #956: "Pts 25/26"). */
@@ -59,9 +85,6 @@ export const noRoleFitYetWords = "No role fit yet: it waits on stars and scouts.
 
 /** Two players side by side (spec/19, The players list). */
 export const COMPARE_TITLE = "Compare";
-/** A player's tick box in the list, for screen readers. */
-export const compareLabel = (name: string) => `Compare ${name}`;
-export const pickOneMoreWords = (name: string) => `${name} is ticked: tick one more.`;
 export const comparingWords = "Loading the comparison…";
 export const clearComparisonWords = "Clear";
 export const matchesWords = "Matches this season";

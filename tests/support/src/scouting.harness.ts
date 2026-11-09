@@ -7,6 +7,8 @@ import type { ListedPlayer } from "../../../convex/scouting/playersList";
 import { listOf, shownStat } from "../../../convex/scouting/playersOrder";
 import type { Stats } from "../../../convex/stats/statTotals";
 import type { ComparedPlayer, PlayersList, ScoutingSeam } from "../../../src/scouting/seam";
+import type { CardAction } from "../../../src/playerCard/seam";
+import { fakePlayerCard } from "./playerCard.harness";
 import { fakeScouts, type ScoutsData } from "./scouts.harness";
 import { fakeShortlist, type ShortlistData } from "./shortlist.harness";
 
@@ -25,14 +27,21 @@ export type ScoutingData = {
   comparing?: boolean;
   shortlist?: ShortlistData;
   scouts?: ScoutsData;
+  /** The selected player's pickup or claim, by his code, as the player card's tests hold them;
+   *  none for a player not named. */
+  actions?: ReadonlyMap<number, CardAction>;
 };
 
 /** A player with no season held: no matches yet. */
 const NO_SEASON = { matches: 0, stats: {} };
 
-export function fakeScouting({ clubs = [], ownStats = [], players = [], totals = {}, seasons = {}, pointsSeason = null, loading = false, comparing = false, shortlist, scouts }: ScoutingData = {}) {
+export function fakeScouting({ clubs = [], ownStats = [], players = [], totals = {}, seasons = {}, pointsSeason = null, loading = false, comparing = false, shortlist, scouts, actions }: ScoutingData = {}) {
   const addToQueue = vi.fn<ReturnType<ScoutingSeam["useAddToQueue"]>>(async () => shortlist?.refusal ?? null);
+  const { useCardAction, useWaiverChanges, waiverChanges } = fakePlayerCard({ actions });
   return {
+    useCardAction,
+    useWaiverChanges,
+    waiverChanges,
     ...fakeShortlist(shortlist),
     ...fakeScouts(scouts),
     useAddToQueue: () => addToQueue,

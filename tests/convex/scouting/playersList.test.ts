@@ -8,7 +8,7 @@ import {
   type PlayersFilters,
   type PlayersSort,
 } from "../../../convex/scouting/playersList";
-import { listOf } from "../../../convex/scouting/playersOrder";
+import { listOf, NO_FIGURES } from "../../../convex/scouting/playersOrder";
 import { FPL_SEASON } from "../../support/recorded/plSeasons.payloads";
 import { refusals } from "../../../convex/shared/leagueAccess";
 import { SEASON_PLAYERS_MOST } from "../../../convex/stats/matchRecords";
@@ -68,6 +68,7 @@ test("every Premier League player now is listed, with his club, positions and ow
     ownerTeamName: await teamName(t, teams[0]),
     onWaivers: null,
     seasonPoints: null,
+    figures: NO_FIGURES,
     stat: null,
   });
   expect(players.find((player) => player.code === RICE.code)?.ownerTeamName).toBeNull();
@@ -148,6 +149,7 @@ describe("sorting by a figure", () => {
     ownerTeamName: null,
     onWaivers: null,
     seasonPoints,
+    figures: NO_FIGURES,
     stat: null,
   });
   const players = [withPoints("Ann", 1, 4), withPoints("Bea", 2, null), withPoints("Cal", 3, 12), withPoints("Dee", 4, 4)];

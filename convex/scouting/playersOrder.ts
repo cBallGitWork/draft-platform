@@ -1,8 +1,33 @@
 // Which of Scouting's players the filters keep, and in what order (#373): the list's rule, apart
 // from playersList.ts so the preview and the tests share it without the server's imports.
 
+import { EVENT_STATS, MINUTES_STAT } from "../stats/matchRecords";
 import type { Stats } from "../stats/statTotals";
-import type { Availability, ListedPlayer, PlayersFilters, PlayersSort } from "./playersList";
+import type { Availability, ListedPlayer, ListFigure, PlayersFilters, PlayersSort } from "./playersList";
+
+/** The figures every row of the list shows as season totals (the approved picture: Mins, G, A and
+ *  SOT), by the stat each is kept under. Shots on target are Sportmonks' SHOTS_ON_TARGET, kept
+ *  under Opta's name (sportmonksStats.ts). */
+export const LIST_FIGURES = {
+  minutes: MINUTES_STAT,
+  goals: EVENT_STATS.goals,
+  assists: EVENT_STATS.assists,
+  shotsOnTarget: "ontarget_scoring_att",
+} as const satisfies Record<ListFigure, string>;
+
+/** His list figures from his season totals: 0 for each he hasn't, all 0 if he hasn't played. */
+export function listFigures(totals: Stats | undefined): ListedPlayer["figures"] {
+  const of = (stat: string) => totals?.[stat] ?? 0;
+  return {
+    minutes: of(LIST_FIGURES.minutes),
+    goals: of(LIST_FIGURES.goals),
+    assists: of(LIST_FIGURES.assists),
+    shotsOnTarget: of(LIST_FIGURES.shotsOnTarget),
+  };
+}
+
+/** The list figures of a player who hasn't played. */
+export const NO_FIGURES = listFigures(undefined);
 
 /** The players the filters keep, in the sort's order. */
 export function listOf(players: readonly ListedPlayer[], filters: PlayersFilters, sort: PlayersSort): ListedPlayer[] {
@@ -46,6 +71,8 @@ function sortedPlayers(players: readonly ListedPlayer[], { by, descending }: Pla
         return compareFigures(one.seasonPoints, other.seasonPoints, direction) || byName(one, other);
       case "stat":
         return compareFigures(one.stat, other.stat, direction) || byName(one, other);
+      default:
+        return compareFigures(one.figures[by], other.figures[by], direction) || byName(one, other);
     }
   };
   return [...players].sort(compare);

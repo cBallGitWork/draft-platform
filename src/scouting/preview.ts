@@ -2,7 +2,7 @@
 // stats added up for each, filtered and sorted by the server's own rule (listOf).
 
 import type { ListedPlayer } from "../../convex/scouting/playersList";
-import { listOf, shownStat } from "../../convex/scouting/playersOrder";
+import { listFigures, listOf, NO_FIGURES, shownStat } from "../../convex/scouting/playersOrder";
 import { withOwnStats } from "../../convex/scoring/ownStats";
 import { OWN_STAT_PREFIX } from "../../convex/scoring/statCatalogue";
 import type { Stats } from "../../convex/stats/statTotals";
@@ -10,7 +10,7 @@ import { DAY_MS } from "../../convex/shared/time";
 import { listedFromScouting, queueInPreview, setPreviewShortlisted } from "../draft/previewLists";
 import { previewScouts } from "./scouts/preview";
 import { previewShortlistOf } from "./shortlist/preview";
-import type { ScoutingSeam } from "./seam";
+import type { ScoutingSeam, WaiverActionSeam } from "./seam";
 
 export const ARSENAL = { code: 3, name: "Arsenal", shortName: "ARS" };
 export const CHELSEA = { code: 8, name: "Chelsea", shortName: "CHE" };
@@ -25,6 +25,7 @@ const player = (code: number, name: string, fullName: string, club: ListedPlayer
   ownerTeamName,
   onWaivers: null,
   seasonPoints: null,
+  figures: NO_FIGURES,
   stat: null,
 });
 
@@ -72,7 +73,9 @@ const addToQueue = async (_leagueId: unknown, playerCode: number) => {
   return null;
 };
 
-export const previewScouting: ScoutingSeam = {
+/** Scouting's own part of the preview; the app adds the player card's pickup and claim
+ *  (src/app/previewApp.tsx), whose preview reads these players. */
+export const previewScouting: Omit<ScoutingSeam, keyof WaiverActionSeam> = {
   ...previewShortlist,
   ...previewScouts,
   useAddToQueue: () => addToQueue,
@@ -82,7 +85,7 @@ export const previewScouting: ScoutingSeam = {
     clubs: [ARSENAL, CHELSEA, LIVERPOOL],
     ownStats: PREVIEW_SET.ownStats.map(({ stat, name, shortCode }) => ({ stat, name, shortCode })),
     players: listOf(
-      previewPlayers.map((player) => ({ ...player, stat: shownStat(withOwnStats(previewTotals[player.code] ?? {}, PREVIEW_SET), stat) })),
+      previewPlayers.map((player) => ({ ...player, figures: listFigures(previewTotals[player.code]), stat: shownStat(withOwnStats(previewTotals[player.code] ?? {}, PREVIEW_SET), stat) })),
       filters,
       sort,
     ),

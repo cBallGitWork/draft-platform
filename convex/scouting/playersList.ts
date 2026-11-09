@@ -9,7 +9,7 @@ import { memberOf, teamsOf } from "../shared/leagueAccess";
 import { clubOf, currentClubs, currentPlayersAt } from "../shared/players";
 import { newestSeasonWithTotals, seasonTotals } from "../stats/seasonStats";
 import type { Stats } from "../stats/statTotals";
-import { listOf, shownStat } from "./playersOrder";
+import { listFigures, listOf, shownStat } from "./playersOrder";
 import { shownSeasonPoints } from "./shownSeasonPoints";
 import { withOwnStats } from "../scoring/ownStats";
 import type { StoredScoringSet } from "../scoring/scoringSetShape";
@@ -25,6 +25,7 @@ import { firstRunFrom } from "../waivers/waiverTimes";
 // scoring: his card's total in the league, at his main position (seasonPoints.ts, #525), or last
 // season's before the new season's first match (shownSeasonPoints.ts, #956). One on waivers says
 // the run that can first take him (#1200).
+// Each row shows his season's minutes, goals, assists and shots on target (the approved picture).
 // Any stat of the catalogue, or of the site set's own stats (#910), can be shown beside them as a
 // season total and sorted by (spec/19, "sortable by any stat"), read from the totals kept as
 // records are written (seasonStats.ts), for the newest season with any: last season's until the
@@ -44,8 +45,13 @@ export const OWNED_IN_LEAGUE_MOST = MOST_TEAMS * MOST_IN_SQUAD;
 export const availability = v.union(v.literal("all"), v.literal("freeAgents"), v.literal("onWaivers"), v.literal("owned"));
 export type Availability = Infer<typeof availability>;
 
-/** What the list can be sorted by: "stat" is the shown stat's season total. */
-const sortColumn = v.union(v.literal("name"), v.literal("club"), v.literal("seasonPoints"), v.literal("stat"));
+/** The season totals every row shows (playersOrder.ts's LIST_FIGURES). */
+const listFigure = v.union(v.literal("minutes"), v.literal("goals"), v.literal("assists"), v.literal("shotsOnTarget"));
+export type ListFigure = Infer<typeof listFigure>;
+
+/** What the list can be sorted by: "stat" is the shown stat's season total, and each list figure
+ *  its own. */
+const sortColumn = v.union(v.literal("name"), v.literal("club"), v.literal("seasonPoints"), v.literal("stat"), listFigure);
 export type SortColumn = Infer<typeof sortColumn>;
 
 const filters = v.object({
@@ -75,6 +81,8 @@ const listedPlayer = v.object({
    *  (seasonPoints.ts), or null ("—") while none of his matches is priced; before the new season's
    *  first match, last season's, null for a newcomer (shownSeasonPoints.ts). */
   seasonPoints: v.union(v.number(), v.null()),
+  /** His season totals of the list's own figures (LIST_FIGURES), 0 for each he hasn't. */
+  figures: v.object({ minutes: v.number(), goals: v.number(), assists: v.number(), shotsOnTarget: v.number() }),
   /** His season total of the shown stat, 0 if he hasn't played; null with no stat shown. */
   stat: v.union(v.number(), v.null()),
 });
@@ -115,7 +123,7 @@ export const list = query({
     const onWaiversOf = await onWaiversIn(ctx, leagueId);
     const positionsOfNow = await positionsNow(ctx, leagueId);
     const { lastSeason, pointsOf } = await shownSeasonPoints(ctx, leagueId);
-    const season = stat === null ? null : await newestSeasonWithTotals(ctx);
+    const season = await newestSeasonWithTotals(ctx);
     const totals = season === null ? new Map<number, Stats>() : await seasonTotals(ctx, season);
     const listedClubOf = new Map(clubs.map((each) => [each.code, clubOf(each)]));
 
@@ -131,6 +139,7 @@ export const list = query({
           ownerTeamName: ownerOf.get(player.code) ?? null,
           onWaivers: onWaiversOf.get(player.code) ?? null,
           seasonPoints: pointsOf(player.code, positions),
+          figures: listFigures(totals.get(player.code)),
           stat: shownStat(withOwnTotals(totals.get(player.code), stat, set), stat),
         };
       }),

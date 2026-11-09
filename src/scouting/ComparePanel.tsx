@@ -1,5 +1,4 @@
 import type { ReactNode } from "react";
-import { COMPARED_PLAYERS } from "../../convex/scouting/comparedPlayers";
 import { STAT_CATALOGUE } from "../../convex/scoring/statCatalogueList";
 import { Loading, Panel, PanelNote } from "../ui/Panel";
 import { PositionCodes } from "../ui/PositionCodes";
@@ -20,32 +19,24 @@ import {
   noPointsYetWords,
   noStatsYetWords,
   notLastSeasonWords,
-  pickOneMoreWords,
   seasonPointsColumn,
 } from "./words";
 
-/** A player ticked to compare: his code, and his name to say so before the comparison loads. */
-export type PickedPlayer = { code: number; name: string };
-
 /** Two players side by side (spec/19): who each is, then every stat either has this season, added
- *  up. With one ticked, it asks for another. Their points are named by the season they are from
- *  while they are last season's (`pointsSeason`, the list's). */
+ *  up. Their points are named by the season they are from while they are last season's
+ *  (`pointsSeason`, the list's). */
 export function ComparePanel({
-  picked,
   comparison,
   pointsSeason,
   clear,
 }: {
-  picked: readonly PickedPlayer[];
   comparison: Comparison | undefined;
   pointsSeason: number | null;
   clear: () => void;
 }) {
   return (
     <Panel title={COMPARE_TITLE}>
-      {picked.length < COMPARED_PLAYERS ? (
-        <PanelNote>{pickOneMoreWords(picked[0].name)}</PanelNote>
-      ) : comparison === undefined ? (
+      {comparison === undefined ? (
         <Loading className="px-3 py-2">{comparingWords}</Loading>
       ) : (
         <SideBySide comparison={comparison} pointsSeason={pointsSeason} />

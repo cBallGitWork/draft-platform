@@ -1,64 +1,74 @@
 import { Link } from "@tanstack/react-router";
 import type { Id } from "../../convex/_generated/dataModel";
+import { cardOpensAt } from "../../convex/playerCard/cardPoints";
 import type { CatalogueStat } from "../../convex/scoring/statCatalogueList";
 import { playerCardPath } from "../playerCard/paths";
-import { TickBox } from "../ui/TickBox";
-import { PositionCodes } from "../ui/PositionCodes";
+import { PositionChip } from "../ui/PositionChip";
+import { ShortlistStar } from "../ui/StarRating";
 import { cellClassOf, ColumnHeads, type ColumnWords } from "../ui/ColumnHeads";
 import { OwnerName } from "../ui/OwnerName";
 import { ClubMark, ClubShort } from "../ui/ClubName";
-import type { PickedPlayer } from "./ComparePanel";
 import { statFigure } from "../shared/figures";
 import type { ListedPlayer, PlayersSort, SortColumn } from "./seam";
 import {
   columns,
-  compareLabel,
   figureWords,
   noFigureWords,
   noPointsYetWords,
-  noRoleFitYetWords,
   notLastSeasonWords,
   onWaiversWords,
   seasonPointsColumn,
+  selectPlayerLabel,
+  shortlistedLabel,
   statLabel,
 } from "./words";
 
-/** The list's columns: the fixed ones, and "stat" for the shown stat's season total. */
-type Column = keyof typeof columns | "stat";
-const COLUMNS: readonly Column[] = ["compare", "name", "club", "positions", "owner", "seasonPoints", "roleFit"];
+/** The list's columns, as the approved picture draws them: "stat" is the shown stat's season total,
+ *  and "owner" the Status column, drawn only where the view holds owned players. */
+type Column = "positions" | "name" | "owner" | "minutes" | "seasonPoints" | "goals" | "assists" | "shotsOnTarget" | "stat";
+const FIGURES = ["minutes", "seasonPoints", "goals", "assists", "shotsOnTarget"] as const;
+/** What the list's heads sort by: the club has no column of its own, as the picture sets it after
+ *  the name. */
+export type ListSortColumn = Exclude<SortColumn, "club">;
+export type ListSort = PlayersSort & { by: ListSortColumn };
 /** The columns a head press sorts by: each sorts by the column of its own name. */
-const SORTABLE: readonly SortColumn[] = ["name", "club", "seasonPoints", "stat"];
-/** Columns a phone leaves out, for room: the filters say who owns whom. */
-const DESK_ONLY: readonly Column[] = ["owner", "roleFit"];
-const FIGURES: readonly Column[] = ["seasonPoints", "roleFit", "stat"];
+const SORTABLE: readonly ListSortColumn[] = ["name", ...FIGURES, "stat"];
+/** Columns a phone leaves out, for room. */
+const DESK_ONLY: readonly Column[] = ["owner", "goals", "assists", "shotsOnTarget"];
 
 /** A column's cells: names read from the left, figures line up on the right, and a phone leaves
  *  out what it has no room for. */
-const cellClasses = (column: Column) =>
-  cellClassOf(!FIGURES.includes(column), DESK_ONLY.includes(column));
+const cellClasses = (column: Column) => cellClassOf(column === "positions" || column === "name" || column === "owner", DESK_ONLY.includes(column));
 
-/** The players list itself: a head per column, sortable where it can be, and a row per player. The
- *  points' head names the season they are from while they are last season's (`pointsSeason`). */
+/** The players list itself: a head per column, sortable where it can be, and a row per player,
+ *  which selects him. The points' head names the season they are from while they are last
+ *  season's (`pointsSeason`). */
 export function PlayersTable({
   leagueId,
   players,
   pointsSeason,
   stat,
+  withStatus,
+  shortlisted,
   sort,
   sortBy,
-  picked,
-  pick,
+  selected,
+  select,
 }: {
   leagueId: Id<"leagues">;
   players: readonly ListedPlayer[];
   pointsSeason: number | null;
   stat: CatalogueStat | null;
-  sort: PlayersSort;
-  sortBy: (by: SortColumn) => void;
-  picked: readonly PickedPlayer[];
-  pick: (player: ListedPlayer, ticked: boolean) => void;
+  /** Whether the Status column is drawn: in the All and Owned views. */
+  withStatus: boolean;
+  /** The codes on the manager's own shortlist, starred after the name. */
+  shortlisted: ReadonlySet<number>;
+  sort: ListSort;
+  sortBy: (by: ListSortColumn) => void;
+  selected: number | null;
+  select: (player: ListedPlayer) => void;
 }) {
-  const shown: readonly Column[] = stat === null ? COLUMNS : [...COLUMNS, "stat"];
+  const shown: readonly Column[] = ["positions", "name", ...(withStatus ? (["owner"] as const) : []), ...FIGURES, ...(stat === null ? [] : (["stat"] as const))];
   return (
     <table className="w-full border-collapse">
       <ColumnHeads
@@ -66,20 +76,18 @@ export function PlayersTable({
         shown={shown}
         classOf={cellClasses}
         sort={{ ...sort, sortable: SORTABLE, sortBy }}
+        deskRow
       />
       <tbody>
         {players.map((player) => (
-          <tr key={player.code} className="border-t border-panel-rule">
+          <tr
+            key={player.code}
+            aria-current={selected === player.code || undefined}
+            onClick={() => select(player)}
+            className="cursor-pointer border-t border-panel-rule aria-current:bg-name-plate aria-current:shadow-current-edge lg:h-row"
+          >
             {shown.map((column) => (
-              <PlayerCell
-                key={column}
-                column={column}
-                player={player}
-                pointsSeason={pointsSeason}
-                leagueId={leagueId}
-                ticked={picked.some((each) => each.code === player.code)}
-                pick={pick}
-              />
+              <PlayerCell key={column} column={column} player={player} pointsSeason={pointsSeason} leagueId={leagueId} shortlisted={shortlisted.has(player.code)} />
             ))}
           </tr>
         ))}
@@ -93,52 +101,47 @@ export function PlayersTable({
 const statHead = (stat: CatalogueStat | null): ColumnWords =>
   stat === null ? { short: statLabel, long: statLabel } : { short: stat.shortCode, long: stat.name };
 
-/** One cell of a player's row: his name heads it, his points are its figure. */
+/** One cell of a player's row: his name heads it and opens his card; his position chip is a button
+ *  that selects him for the keyboard, as a press anywhere on the row does. */
 function PlayerCell({
   column,
   player,
   pointsSeason,
   leagueId,
-  ticked,
-  pick,
+  shortlisted,
 }: {
   column: Column;
   player: ListedPlayer;
   pointsSeason: number | null;
   leagueId: Id<"leagues">;
-  ticked: boolean;
-  pick: (player: ListedPlayer, ticked: boolean) => void;
+  shortlisted: boolean;
 }) {
   const className = cellClasses(column);
   switch (column) {
-    case "compare":
+    case "positions": {
+      const main = cardOpensAt(player.positions);
       return (
-        <td className={className}>
-          <TickBox checked={ticked} onChange={(checked) => pick(player, checked)}>
-            <span className="sr-only">{compareLabel(player.name)}</span>
-          </TickBox>
+        <td className={className} title={player.positions.join(", ")}>
+          <button type="button" aria-label={selectPlayerLabel(player.name)} className="flex min-h-tap min-w-tap items-center lg:min-h-0 lg:min-w-0">
+            {main === null ? noFigureWords : <PositionChip label={main} />}
+          </button>
         </td>
       );
+    }
     case "name":
       return (
-        <th scope="row" title={player.fullName} className={`${className} text-lead font-semibold`}>
-          <Link to={playerCardPath(leagueId, player.code)} className="flex min-h-tap min-w-tap items-center">
-            {player.name}
-          </Link>
+        <th scope="row" title={player.fullName} className={`${className} font-normal`}>
+          <span className="flex items-center gap-2">
+            <Link to={playerCardPath(leagueId, player.code)} onClick={(event) => event.stopPropagation()} className="inline-flex min-h-tap items-center font-semibold text-lead lg:min-h-0">
+              {player.name}
+            </Link>
+            {shortlisted && <ShortlistStar label={shortlistedLabel} />}
+            <span className="text-soft">
+              <ClubMark code={player.club.code} />
+              <ClubShort club={player.club} />
+            </span>
+          </span>
         </th>
-      );
-    case "club":
-      return (
-        <td className={className}>
-          <ClubMark code={player.club.code} />
-          <ClubShort club={player.club} />
-        </td>
-      );
-    case "positions":
-      return (
-        <td className={className}>
-          <PositionCodes positions={player.positions} />
-        </td>
       );
     case "owner":
       return (
@@ -156,13 +159,7 @@ function PlayerCell({
       );
     case "stat":
       return <td className={`${className} font-bold text-figure`}>{player.stat === null ? noFigureWords : statFigure(player.stat)}</td>;
-    case "roleFit":
-      // Role stars show for every player until scouts exist (spec/19, Role stars); stars are stored
-      // (#11) but scouts aren't built (#375), so every player reads the no-role-fit words.
-      return (
-        <td title={noRoleFitYetWords} className={`${className} text-muted`}>
-          {noFigureWords}
-        </td>
-      );
+    default:
+      return <td className={`${className} font-bold text-figure`}>{figureWords(player.figures[column])}</td>;
   }
 }
