@@ -157,6 +157,10 @@
   /* its height on the desk: under the page's menu and toolbar, Cancel and Use this inside a
      1440 by 900 window, as drawn; its tiles scroll within it when a group runs longer */
   --spacing-formation-window: 760px;
+  /* The role card's roles and the previewed role, as drawn (the approved role card, #848), and its
+     small pitch's height */
+  --grid-template-columns-role-card: minmax(0, 836fr) minmax(0, 460fr);
+  --spacing-mini-pitch: 232px;
   /* a formation tile's height, two a row, as drawn */
   --spacing-tile: 96px;
 

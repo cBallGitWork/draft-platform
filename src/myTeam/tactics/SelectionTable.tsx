@@ -1,6 +1,7 @@
 import type { DragEvent } from "react";
 import { positionOfSlot } from "../../../convex/lineup/pitch";
-import { roleIn, rolesOfSlot, type Formation } from "../../../convex/lineup/roles";
+import { roleIn, type Formation } from "../../../convex/lineup/roles";
+import { menuGlyph } from "../../shared/words";
 import { cellClassOf, ColumnHeads } from "../../ui/ColumnHeads";
 import { Placeholder } from "../../ui/Placeholder";
 import { PositionChip } from "../../ui/PositionChip";
@@ -62,7 +63,6 @@ export function SelectionTable({
   season,
   moving,
   onBenchAt,
-  onRole,
   ratingsOf,
 }: {
   draft: EditedLineup;
@@ -70,7 +70,6 @@ export function SelectionTable({
   season: SeasonOf;
   moving: Moving;
   onBenchAt(playerCode: number, index: number): void;
-  onRole(playerCode: number, role: string): void;
   ratingsOf: RatingsOf;
 }) {
   const { picked } = moving;
@@ -92,7 +91,6 @@ export function SelectionTable({
       season={season?.get(playerCode) ?? (season === undefined ? undefined : null)}
       place={place}
       onBenchAt={onBenchAt}
-      onRole={onRole}
       moving={moving}
       pickedOnBench={picked !== null && !pickedStarts}
       landing={"benchIndex" in place ? landingOn(playerCode) : null}
@@ -131,7 +129,6 @@ function SelectionRow({
   season,
   place,
   onBenchAt,
-  onRole,
   moving,
   pickedOnBench,
   landing,
@@ -142,7 +139,6 @@ function SelectionRow({
   season: SquadRow | null | undefined;
   place: StarterPlace | { benchIndex: number };
   onBenchAt(playerCode: number, index: number): void;
-  onRole(playerCode: number, role: string): void;
   moving: Moving;
   /** Whether the player picked up is on the bench. */
   pickedOnBench: boolean;
@@ -181,7 +177,7 @@ function SelectionRow({
         <PositionCell player={player} place={place} />
       </td>
       <td className={cellClasses("role")}>
-        {"starter" in place ? <RolePicker player={player} starter={place.starter} formation={place.formation} onRole={onRole} /> : <span className="text-muted">{benchBestRole(player)?.role.name}</span>}
+        {"starter" in place ? <RoleButton player={player} starter={place.starter} onRoleCard={moving.onRoleCard} /> : <span className="text-muted">{benchBestRole(player)?.role.name}</span>}
       </td>
       <th scope="row" className={`${cellClasses("player")} font-normal whitespace-nowrap`}>
         <button
@@ -237,22 +233,19 @@ function PositionCell({ player, place }: { player: SquadMember; place: { starter
   );
 }
 
-/** A starter's role, one of those his slot offers in the eleven's formation (spec/05 Roles): the
- *  role card waits on #848. */
-function RolePicker({ player, starter, formation, onRole }: StarterPlace & { player: SquadMember; onRole(playerCode: number, role: string): void }) {
+/** A starter's Role ▾: his role, which opens his role card, where another his slot offers is picked
+ *  (spec/05 Roles; #848). */
+function RoleButton({ player, starter, onRoleCard }: { player: SquadMember; starter: Starter; onRoleCard(playerCode: number): void }) {
   return (
-    <select
+    <button
+      type="button"
       aria-label={roleLabel(player.name)}
       {...markOf("role", player.playerCode)}
-      value={roleIn(starter, starter.role).key}
-      onChange={(event) => onRole(player.playerCode, event.target.value)}
-      className="text-box w-full lg:min-h-0"
+      onClick={() => onRoleCard(player.playerCode)}
+      className="text-box flex w-full items-center justify-between gap-1 text-left lg:min-h-0"
     >
-      {rolesOfSlot(starter, formation).map(({ key, name }) => (
-        <option key={key} value={key}>
-          {name}
-        </option>
-      ))}
-    </select>
+      <span className="truncate">{roleIn(starter, starter.role).name}</span>
+      <span aria-hidden="true">{menuGlyph}</span>
+    </button>
   );
 }

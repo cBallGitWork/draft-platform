@@ -49,6 +49,8 @@ export type Moving = {
    *  the bench's plate: swapped where he may be, the refusal said where not. */
   onDrop(target: DropTarget): void;
   onDragEnd(): void;
+  /** A starter's role, on the pitch or in his row: opens his role card (spec/05 Roles; #848). */
+  onRoleCard(playerCode: number): void;
 };
 
 /** Every drag carries the player's code, as some browsers start no drag without data. */
@@ -152,7 +154,13 @@ function PlayerBlock({ player, cell, chip, landing, moving }: { player: SquadMem
       {...markOf("player", player.playerCode)}
       aria-pressed={isSelected}
       aria-label={swapsWith ? swapLabel(picked.name, player.name) : playerOnPitchLabel(player.name, player.positions, cell.area, cell.lane)}
-      onClick={() => (swapsWith ? moving.onSwap(player.playerCode) : moving.onSelect(player.playerCode))}
+      onClick={(event) => {
+        if (swapsWith) moving.onSwap(player.playerCode);
+        // His role's chip opens his role card; the rest of him, his panel. A keyboard reaches the
+        // card by his Role ▾ in the Selection table, as a block holds one button.
+        else if (picked === null && event.target instanceof Element && event.target.closest(`[${ROLE_CHIP_MARK}]`) !== null) moving.onRoleCard(player.playerCode);
+        else moving.onSelect(player.playerCode);
+      }}
       onDragStart={(event) => startDrag(event, player.playerCode, moving)}
       onDragEnd={moving.onDragEnd}
       className={`flex w-full min-w-0 cursor-grab flex-col items-center ${swapsWith ? "outline-2 outline-dashed outline-pitch-line" : isSelected ? "outline-2 outline-pitch-line" : ""}`}
@@ -181,11 +189,14 @@ function PlayerBlock({ player, cell, chip, landing, moving }: { player: SquadMem
   );
 }
 
+/** The attribute marking a starter's role chip on the pitch, which opens his role card (#848). */
+export const ROLE_CHIP_MARK = "data-role-chip";
+
 /** The role's code on his area's colour, its name on hover, then his stars for it on the plate. */
 function RoleChip({ chip }: { chip: PitchChip }) {
   const { fill, ink } = chipColoursOf(chip.position);
   return (
-    <span className="flex max-w-full items-center leading-pitch-chip">
+    <span {...{ [ROLE_CHIP_MARK]: "" }} className="flex max-w-full cursor-pointer items-center leading-pitch-chip">
       <abbr title={chip.roleName} className={`px-1 font-bold no-underline ${fill} ${ink}`}>
         {chip.code}
       </abbr>
