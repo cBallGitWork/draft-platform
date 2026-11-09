@@ -7,6 +7,7 @@ import { previewSays } from "../shared/preview";
 import { PREVIEW_CHANGES_FROM, PREVIEW_REVISION } from "../rules/preview";
 import { previewIdOf, previewTeams } from "../table/preview";
 import type { LeagueSettingsSeam } from "./seam";
+import { previewWaivers } from "../myTeam/claims/preview";
 import { unmovedOutcome, unsavedOutcome } from "./words";
 
 const view = { part: leagueSettingsOf(FIRST_RULES), revision: PREVIEW_REVISION, changesFrom: PREVIEW_CHANGES_FROM };
@@ -18,4 +19,5 @@ export const previewLeagueSettings: LeagueSettingsSeam = {
   useTeamOrder: () => teamOrder,
   saveTeamOrder: previewSays(unmovedOutcome),
   drawTeamOrder: previewSays(unmovedOutcome),
+  useWaivers: () => previewWaivers,
 };
