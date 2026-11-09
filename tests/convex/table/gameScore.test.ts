@@ -1,6 +1,6 @@
 import { describe, expect, test } from "vitest";
-import { LEAGUE_AVERAGE } from "../../../convex/table/roundRobin";
-import { gameScore } from "../../../convex/table/teamGames";
+import { LEAGUE_AVERAGE, type GameweekFixtures } from "../../../convex/table/roundRobin";
+import { gameNumberAt, gameScore, gamesOf } from "../../../convex/table/teamGames";
 
 // A fixture's score from a gameweek's team scores (#436), as the table's fixtures and My team's
 // Fixtures tab both show it: pure.
@@ -43,4 +43,31 @@ test("throws for a gameweek scored short of a team in it, rather than show a wro
   short.delete("Bob");
   expect(() => gameScore(TEAMS, short, 3, "Ann", "Bob")).toThrow("Gameweek 3 is scored, but not for team Bob");
   expect(() => gameScore(TEAMS, short, 3, "Cat", LEAGUE_AVERAGE)).toThrow("Gameweek 3 is scored, but not for team Bob");
+});
+
+// Which of a team's games in a gameweek each is (#913): the table's fixtures number theirs as the
+// team's own games do, so each link opens its own matchup.
+describe("a team's game numbers in a gameweek", () => {
+  const drawn = {
+    gameweek: 4,
+    fixtures: [
+      { team: "Ann", opponent: "Bob" },
+      { team: "Cat", opponent: "Ann" },
+      { team: "Bob", opponent: LEAGUE_AVERAGE },
+      { team: "Cat", opponent: "Dan" },
+    ],
+    byes: ["Dan"],
+  } satisfies GameweekFixtures<string>;
+
+  test("each fixture is its team side's first, second and so on, counting the games it is the opponent in", () => {
+    expect(drawn.fixtures.map((_, index) => gameNumberAt(drawn.fixtures, index))).toEqual([1, 1, 2, 2]);
+  });
+
+  test("a team's own games are numbered alike, its bye last", () => {
+    const numbered = (team: string) => gamesOf([drawn], team).map(({ game, against }) => `${game} ${against.kind === "team" ? against.team : against.kind}`);
+    expect(numbered("Ann")).toEqual(["1 Bob", "2 Cat"]);
+    expect(numbered("Bob")).toEqual(["1 Ann", `2 ${LEAGUE_AVERAGE}`]);
+    expect(numbered("Cat")).toEqual(["1 Ann", "2 Dan"]);
+    expect(numbered("Dan")).toEqual(["1 Cat", "2 bye"]);
+  });
 });
