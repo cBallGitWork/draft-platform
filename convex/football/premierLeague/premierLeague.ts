@@ -78,6 +78,9 @@ export interface RawPlFixture {
   altIds?: RawPlAltIds;
   /** On the fixture's own read: two entries, each null until that side is named. */
   teamLists?: (RawPlTeamList | null)[];
+  /** On the fixture's own read: the score at half-time, home first as `teams` is. Read only once
+   *  `phase` has reached half-time (plMatch.ts's `halfTimeStats`). */
+  halfTimeScore?: { homeScore?: number; awayScore?: number };
 }
 
 /** A fixture's `status` at full time: "C", completed, on all ten of gameweek 6's recorded. Full time
@@ -89,6 +92,9 @@ export const PL_UPCOMING = "U";
 export const PL_IN_PLAY = "L";
 /** A fixture's `phase` at half-time, its `status` still `PL_IN_PLAY`. */
 export const PL_HALF_TIME_PHASE = "H";
+/** A fixture's `phase` in the second half and at full time: half-time's score is settled by then. */
+export const PL_SECOND_HALF_PHASE = "2";
+export const PL_FULL_TIME_PHASE = "F";
 
 export interface RawPlFixturePage {
   content: RawPlFixture[];

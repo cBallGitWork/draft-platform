@@ -77,8 +77,10 @@ export const SPORTMONKS_STAT_IDS: Readonly<Record<string, number>> = {
 };
 
 /** The catalogue stats Sportmonks doesn't send. A match's appearance, start, subs, result and
- *  winning goal come from its lineups, events and score, never a statistic type. */
+ *  winning goal come from its lineups, events and score, never a statistic type; so would the
+ *  half-time clean sheet and goals conceded (#990), from its goal events' minutes. */
 export const NOT_IN_SPORTMONKS: readonly string[] = [
+  "clean_sheet_half_time", "goals_conceded_half_time",
   "accurate_back_zone_pass", "accurate_chipped_pass", "accurate_corners_intobox", "accurate_cross_nocorner", "accurate_flick_on",
   "accurate_freekick_cross", "accurate_fwd_zone_pass", "accurate_goal_kicks", "accurate_keeper_sweeper",
   "accurate_keeper_throws", "accurate_launches", "accurate_layoffs", "accurate_pull_back", "accurate_throws", "appearances",

@@ -23,8 +23,8 @@ import { EVENT_STATS, isWhole, MINUTES_STAT, type PlayerMatchRecord } from "./ma
 // has its own line, priced there (EVENT_STATS), so never a step. Which slot he stands in, and so
 // what the step is worth, is each matchup's to work out on read (matchup/vidiprinter.ts), under
 // the site's set in force that gameweek, so the step is stored for every man, owned or not; and so
-// is every move of a stat some role in that set adjusts, as whether his role moves it is the
-// matchup's to work out too (#868). A read at full time stores none: its records are the sync's
+// is every move of a stat some role or team instruction in that set adjusts, as whether his role
+// or his team's instructions move it is the matchup's to work out too (#868, #990). A read at full time stores none: its records are the sync's
 // (matchStats.ts), and the live reads have shown the match by then.
 
 type PlayerCode = number;
@@ -79,8 +79,9 @@ function statPoints(rules: readonly ScoringRule[], cell: Cell, actions: number, 
 
 /** Each stat whose points from `before` to `after` change, up or down, at some cell or in some
  *  role: one step a stat, however many rules price it. A role's adjustment is flat per action with
- *  no minimum minutes (scoring.ts), so any move in the count of a stat some role in the set adjusts
- *  is a step, though no rule prices it or its rule's minimum minutes aren't yet met (#868). His
+ *  no minimum minutes (scoring.ts), so any move in the count of a stat some role or team
+ *  instruction in the set adjusts is a step, though no rule prices it or its rule's minimum minutes
+ *  aren't yet met (#868, #990). His
  *  minutes are judged as each read shows them, so a clean sheet he now has the minutes for is a
  *  step though its count stayed 1. A step whose count stayed put while his minutes fell (a feed's
  *  correction) isn't stored: priced on read, it would show the wrong way round. */
@@ -90,25 +91,28 @@ export function thresholdSteps(before: MatchStats, after: MatchStats, set: Scori
   const minutesWere = statIn(was, MINUTES_STAT);
   const minutesNow = statIn(now, MINUTES_STAT);
   const byStat = rulesByStat(set);
-  const roleAdjusted = roleAdjustedStats(set);
+  const adjusted = adjustedStats(set);
   const steps: ThresholdStep[] = [];
-  for (const stat of new Set([...byStat.keys(), ...roleAdjusted])) {
+  for (const stat of new Set([...byStat.keys(), ...adjusted])) {
     if (ON_THEIR_OWN_LINES.has(stat)) continue;
     const rules = byStat.get(stat) ?? [];
     const from = statIn(was, stat);
     const to = statIn(now, stat);
     if (from === to && minutesNow < minutesWere) continue;
-    const roleMoves = from !== to && roleAdjusted.has(stat);
-    if (roleMoves || ALL_CELLS.some((cell) => statPoints(rules, cell, from, minutesWere) !== statPoints(rules, cell, to, minutesNow))) {
+    const adjustedMoves = from !== to && adjusted.has(stat);
+    if (adjustedMoves || ALL_CELLS.some((cell) => statPoints(rules, cell, from, minutesWere) !== statPoints(rules, cell, to, minutesNow))) {
       steps.push({ stat, from, to });
     }
   }
   return steps;
 }
 
-/** Every stat some role in the set scores, on either side. */
-function roleAdjustedStats(set: ScoringSet): Set<string> {
-  return new Set((set.roles ?? []).flatMap(({ bonus, cost }) => [...bonus.parts, ...cost.parts].map(({ stat }) => stat)));
+/** Every stat some role in the set scores, on either side, and every stat some team instruction
+ *  scores (#990: an instruction's move gets its live line as a role's does). */
+function adjustedStats(set: ScoringSet): Set<string> {
+  const roleStats = (set.roles ?? []).flatMap(({ bonus, cost }) => [...bonus.parts, ...cost.parts].map(({ stat }) => stat));
+  const instructionStats = (set.instructions ?? []).flatMap(({ lines }) => lines.flatMap(({ stats }) => stats.map(({ stat }) => stat)));
+  return new Set([...roleStats, ...instructionStats]);
 }
 
 /** What a stored step is worth at `cell` under the rules for its stat, before any role: what its

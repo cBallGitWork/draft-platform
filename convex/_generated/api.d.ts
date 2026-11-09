@@ -151,6 +151,7 @@ import type * as match_matchOwners from "../match/matchOwners.js";
 import type * as match_matchPage from "../match/matchPage.js";
 import type * as match_sheetOrder from "../match/sheetOrder.js";
 import type * as match_unownedPoints from "../match/unownedPoints.js";
+import type * as matchup_instructionLines from "../matchup/instructionLines.js";
 import type * as matchup_matchup from "../matchup/matchup.js";
 import type * as matchup_matchupShape from "../matchup/matchupShape.js";
 import type * as matchup_readCommentary from "../matchup/readCommentary.js";
@@ -483,6 +484,7 @@ declare const fullApi: ApiFromModules<{
   "match/matchPage": typeof match_matchPage;
   "match/sheetOrder": typeof match_sheetOrder;
   "match/unownedPoints": typeof match_unownedPoints;
+  "matchup/instructionLines": typeof matchup_instructionLines;
   "matchup/matchup": typeof matchup_matchup;
   "matchup/matchupShape": typeof matchup_matchupShape;
   "matchup/readCommentary": typeof matchup_readCommentary;
