@@ -3,7 +3,7 @@ import { playingState } from "../football/matchScores";
 import { shownDeadline } from "../gameweeks/usedGameweeks";
 import { areaShape, laneShape, slotPosition } from "../lineup/pitchShape";
 import { scoreRead } from "../schema";
-import { namedCategories, roleLine } from "../scoring/breakdownShape";
+import { instructionLines, namedCategories, roleLine } from "../scoring/breakdownShape";
 import { LEAGUE_AVERAGE } from "../table/roundRobin";
 import { BYE } from "../table/teamGames";
 
@@ -71,6 +71,9 @@ const matchBreakdown = v.object({
   categories: namedCategories,
   /** His role's line, when he plays a role the set scores; never beside an override. */
   role: v.optional(roleLine),
+  /** His team's instructions' lines, under his role's (spec/05, Team instructions); never beside
+   *  an override. */
+  instructions: v.optional(instructionLines),
   override: v.union(v.object({ points: v.number(), reason: v.string() }), v.null()),
 });
 export type MatchBreakdown = Infer<typeof matchBreakdown>;

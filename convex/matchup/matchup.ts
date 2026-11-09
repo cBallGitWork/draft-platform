@@ -15,7 +15,7 @@ import { LEAGUE_AVERAGE, type GameweekFixtures } from "../table/roundRobin";
 import { teamsInGameweek } from "../table/standings";
 import { averageScore, BYE, gamesOf, type Against } from "../table/teamGames";
 import type { SlotPoints } from "../scoring/teamPoints";
-import { namedCategoriesOf, roleLineOf } from "../scoring/breakdownShape";
+import { instructionLinesOf, namedCategoriesOf, roleLineOf } from "../scoring/breakdownShape";
 import { siteVersionByGameweek } from "../scoring/siteVersions";
 import { game, matchup, type MatchBreakdown, type TeamsCommentary, type MatchupBenchSlot, type MatchupSide, type MatchupSlot, type MatchupStarter, type SlotStatus } from "./matchupShape";
 import { commentaryReads, readCommentary, type CommentaryReads } from "./readCommentary";
@@ -223,7 +223,7 @@ class SideScorer {
   }
 
   /** `teamId` is the side's, whose squad number he wears while it still holds him. */
-  private async slot(slotPoints: SlotPoints, { autoSubs, matchesOf }: TeamInGameweek, teamId: TeamId): Promise<MatchupSlot> {
+  private async slot(slotPoints: SlotPoints, { autoSubs, matchesOf, instructions }: TeamInGameweek, teamId: TeamId): Promise<MatchupSlot> {
     const { playerCode, cell, points, counts, provisional } = slotPoints;
     const wentOff = autoSubs.substitutions.find((each) => each.off === playerCode);
     const cameOn = autoSubs.substitutions.find((each) => each.on === playerCode);
@@ -245,18 +245,18 @@ class SideScorer {
       provisional,
       status: await this.status(matchesOf.get(playerCode) ?? []),
       autoSub,
-      breakdown: await this.breakdown(slotPoints, matchesOf.get(playerCode) ?? []),
+      breakdown: await this.breakdown(slotPoints, matchesOf.get(playerCode) ?? [], instructions),
     };
   }
 
   /** Each of his matches as his slot scored it, kickoff first: its categories, his role's line and
    *  the league's override, from the scorer's own points, so they add up to his. */
-  private async breakdown(slotPoints: SlotPoints, matches: readonly HeldMatch[]): Promise<MatchBreakdown[]> {
+  private async breakdown(slotPoints: SlotPoints, matches: readonly HeldMatch[], instructions: TeamInGameweek["instructions"]): Promise<MatchBreakdown[]> {
     const { playerCode } = slotPoints;
     const { ownStats } = this.inGameweek.set;
     const scored = scoredByMatch(slotPoints, matches).toSorted((one, other) => byKickoffOrder(one.match.fixture, other.match.fixture));
     return Promise.all(
-      scored.map(async ({ match: { fixture, overrides }, points: { total, categories, role }, counted }) => {
+      scored.map(async ({ match: { fixture, overrides }, points: { total, categories, role, instructions: instructed }, counted }) => {
         const overridden = overrides.has(playerCode) ? await overrideOf(this.ctx, this.leagueId, fixture.code, playerCode) : null;
         return {
           fixtureCode: fixture.code,
@@ -266,6 +266,7 @@ class SideScorer {
           counted,
           categories: namedCategoriesOf(categories, ownStats),
           ...(role === undefined ? {} : { role: roleLineOf(role, ownStats) }),
+          ...(instructed === undefined ? {} : { instructions: instructionLinesOf(instructed, instructions, ownStats) }),
           override: overridden === null ? null : { points: overridden.points, reason: overridden.reason },
         };
       }),
