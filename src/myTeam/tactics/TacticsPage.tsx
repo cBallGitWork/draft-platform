@@ -18,6 +18,7 @@ import { SelectionTable } from "./SelectionTable";
 import { useLineupEdits } from "./useLineupEdits";
 import { RunsSwitch, TacticsToolbar } from "./TacticsControls";
 import { PlayerPanel } from "./widgets/PlayerPanel";
+import { RoleCardWindow } from "./roleCard/RoleCard";
 import { LineupCheck, OpponentWidget, TeamInstructionsWidget } from "./widgets/SideWidgets";
 import type { MyTeamSeam } from "../seam";
 import type { OpenTactics } from "./seam";
@@ -72,12 +73,14 @@ function TacticsBody({ league, teamName, seam, selected }: { league: LeagueSumma
   return (
     <TeamPage league={league} teamName={teamName} seam={seam}>
       {/* Keyed by the gameweek, so a deadline passing mid-edit starts the next one afresh. */}
-      <LineupEditor key={tactics.gameweek} league={league} teamName={teamName} tactics={tactics} seam={seam} opened={selected} />
+      <LineupEditor key={tactics.gameweek} league={league} teamName={teamName} tactics={tactics} seam={seam} opened={selected} now={now} />
     </TeamPage>
   );
 }
 
-function LineupEditor({ league, teamName, tactics, seam, opened }: { league: LeagueSummary; teamName: string; tactics: OpenTactics; seam: MyTeamSeam; opened: number | undefined }) {
+type EditorProps = { league: LeagueSummary; teamName: string; tactics: OpenTactics; seam: MyTeamSeam; opened: number | undefined; now: number };
+
+function LineupEditor({ league, teamName, tactics, seam, opened, now }: EditorProps) {
   const squad = useMemo(() => new Map(tactics.squad.map((member) => [member.playerCode, member])), [tactics.squad]);
   const opening = useMemo(() => openingLineup(tactics), [tactics]);
   // Next fixtures and points, from the Squad tab's read, and the league's table for the opponent.
@@ -88,8 +91,9 @@ function LineupEditor({ league, teamName, tactics, seam, opened }: { league: Lea
   // The player whose panel is open on top of the right-hand column (plate.md, Tables and panels): at
   // first the one the address names, unless he isn't in the squad.
   const [selectedCode, setSelectedCode] = useState<number | null>(() => (opened !== undefined && squad.has(opened) ? opened : null));
-  // The formation window: opened by All formations, or by Save preset… on Your presets, its form open.
-  const [windowOpen, setWindowOpen] = useState<"formations" | "saving" | null>(null);
+  // The formation window: opened by All formations, or by Save preset… on Your presets, its form
+  // open; or a starter's role card, by his code (#848). One at a time, in the same place.
+  const [windowOpen, setWindowOpen] = useState<"formations" | "saving" | { roleCard: number } | null>(null);
   // The desk's switch for the roles' runs, on until it is turned off (spec/05 Runs).
   const [runsShown, setRunsShown] = useState(true);
   const squadCodes = useMemo(() => tactics.squad.map(({ playerCode }) => playerCode), [tactics.squad]);
@@ -162,9 +166,19 @@ function LineupEditor({ league, teamName, tactics, seam, opened }: { league: Lea
       else edits.refuse(refusalWords(outcome.refusal, (playerCode) => squad.get(playerCode)!.name));
     },
     onDragEnd: () => setPickedCode(null),
+    onRoleCard: (playerCode) => {
+      setPickedCode(null);
+      setWindowOpen({ roleCard: playerCode });
+    },
   };
-  /** A starter given another role his slot offers; the picker keeps the focus. */
-  const toRole = (playerCode: number, role: string) => change(withRole(draft, playerCode, role), playerCode, [markedBy("role", playerCode)]);
+  /** A starter given another role his slot offers, from his role card: it closes, and his Role ▾
+   *  takes the focus. */
+  const toRole = (playerCode: number, role: string) => {
+    setWindowOpen(null);
+    change(withRole(draft, playerCode, role), playerCode, [markedBy("role", playerCode)]);
+  };
+  const formationsOpen = windowOpen === "formations" || windowOpen === "saving";
+  const roleCardFor = typeof windowOpen === "object" ? draft.starters.find(({ playerCode }) => playerCode === windowOpen?.roleCard) : undefined;
   const { pickPreset, pickClassic, pickInstruction, plans } = useFormationPicks({
     leagueId: league.leagueId,
     seam,
@@ -193,8 +207,8 @@ function LineupEditor({ league, teamName, tactics, seam, opened }: { league: Lea
         presets={tactics.presets}
         inUse={presetKey}
         onPreset={pickPreset}
-        windowOpen={windowOpen !== null}
-        onAllFormations={() => setWindowOpen((open) => (open === null ? "formations" : null))}
+        windowOpen={formationsOpen}
+        onAllFormations={() => setWindowOpen(formationsOpen ? null : "formations")}
         plans={plans.loadable}
         onPlan={plans.load}
         onSavePreset={() => setWindowOpen("saving")}
@@ -211,7 +225,23 @@ function LineupEditor({ league, teamName, tactics, seam, opened }: { league: Lea
       />
       {joined.length > 0 && <Notice>{joinedBenchWords(joined.map((code) => squad.get(code)!.name))}</Notice>}
       {tactics.squad.some((member) => member.unheld) && <Notice>{unheldNoticeWords}</Notice>}
-      {windowOpen !== null && (
+      {roleCardFor !== undefined && (
+        <RoleCardWindow
+          key={roleCardFor.playerCode}
+          seam={seam}
+          leagueId={league.leagueId}
+          now={now}
+          player={squad.get(roleCardFor.playerCode)!}
+          starter={roleCardFor}
+          formation={draft.starters}
+          onPlay={(role) => toRole(roleCardFor.playerCode, role)}
+          onClose={() => {
+            setWindowOpen(null);
+            setFocusOn([markedBy("role", roleCardFor.playerCode)]);
+          }}
+        />
+      )}
+      {formationsOpen && (
         <FormationWindow
           key={windowOpen}
           saving={windowOpen === "saving"}
@@ -272,7 +302,7 @@ function LineupEditor({ league, teamName, tactics, seam, opened }: { league: Lea
           }
           className="min-w-0 grow basis-squad"
         >
-          <SelectionTable draft={draft} squad={squad} season={season} moving={moving} onBenchAt={toBenchAt} onRole={toRole} ratingsOf={ratingsOf} />
+          <SelectionTable draft={draft} squad={squad} season={season} moving={moving} onBenchAt={toBenchAt} ratingsOf={ratingsOf} />
         </Panel>
         <div className="flex min-w-0 grow basis-widgets flex-col gap-2 lg:grow-0">
           {selected !== undefined && selectedPlace !== null && (

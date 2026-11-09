@@ -1,3 +1,4 @@
+import { FIRST_SCORING } from "./firstScoring";
 import type { StoredScoringSet } from "./scoringSetShape";
 
 // The roles' first values (spec/05 Roles; #10): docs/roles-first-values.md, Claude's draft fitted on
@@ -230,3 +231,7 @@ export const FIRST_ROLES: readonly RoleScoring[] = [
     side([2, 3, 4], ["unsuccessful_touch", 1]),
   ),
 ];
+
+/** The first scoring with these values in it, as firstRolesVersion.ts first put them into the
+ *  site's set: what the Tactics preview and its tests price a role card under (#848). */
+export const FIRST_SCORING_WITH_ROLES: StoredScoringSet = { ...FIRST_SCORING, ownStats: [...FIRST_ROLE_OWN_STATS], roles: [...FIRST_ROLES] };

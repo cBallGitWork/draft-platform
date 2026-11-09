@@ -3,7 +3,9 @@
 // server's own check (lineup.ts) and said in its words, so a refusal shows as it would live. Saved
 // plans start none.
 
-import { useSyncExternalStore } from "react";
+import { useMemo, useSyncExternalStore } from "react";
+import { cardRolesOf, pricedMatch } from "../../../convex/lineup/roleCardShape";
+import { FIRST_SCORING_WITH_ROLES } from "../../../convex/scoring/draftedRoleAdjustments";
 import { lineupProblems } from "../../../convex/lineup/lineup";
 import { PLANS_KEPT, planRefusals, problemWords } from "../../../convex/lineup/lineupWords";
 import { CLUB_COLOURS } from "../../../convex/football/clubColours";
@@ -134,8 +136,31 @@ const planChanges: PlanChanges = {
   },
 };
 
+/** The role card prices the preview's made-up matches under the roles' first values. */
+const ROLE_SET = FIRST_SCORING_WITH_ROLES;
+const OPPONENTS = ["BUR", "LIV", "BHA", "FUL", "BRE"];
+
+/** Made-up last 5 matches for each player, from his code, as the preview's stars are; the last
+ *  player (Watkins) has none yet, so his card says so. */
+function previewMatches(playerCode: number) {
+  if (playerCode === PLAYERS.length) return [];
+  return OPPONENTS.map((shortName, index) => {
+    const step = (playerCode * 5 + index * 3) % 7;
+    const stats = { minutes: index === 4 ? 23 : 90, goals_scored: step === 6 ? 1 : 0, assists: step === 5 ? 1 : 0, accurate_pass: 20 + step * 6, fwd_pass: 8 + step * 2, ball_recovery: step, interception: step % 3, aerial_won: step % 4, won_tackle: step % 3 };
+    const club = { code: clubCodeOf(shortName), name: shortName, shortName };
+    return { stats, set: ROLE_SET, gameweek: PREVIEW_GAMEWEEK - 1 - index - (index >= 2 ? 1 : 0), pastSeason: null, opponent: { club, home: index % 2 === 0 } };
+  });
+}
+
 export const previewTactics: TacticsSeam = {
   useTactics: () => useSyncExternalStore(subscribe, () => tactics),
+  useRoleCard: (_leagueId, playerCode, cell, formation) =>
+    useMemo(() => {
+      const roles = cardRolesOf(cell, formation, ROLE_SET);
+      return { roles, matches: previewMatches(playerCode).map((match) => pricedMatch(match, cell, roles.map(({ key }) => key))) };
+      // A cell and a formation are new objects each render: their contents say whether the card changes.
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [playerCode, JSON.stringify(cell), JSON.stringify(formation)]),
   useLineupChanges: () => changes,
   usePlans: () => useSyncExternalStore(subscribe, () => plans),
   usePlanChanges: () => planChanges,

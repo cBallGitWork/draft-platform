@@ -8,8 +8,9 @@ import { ROWS_DRAWN } from "../../../src/myTeam/tactics/pitch/rowLayout";
 import type { Position } from "../../../convex/positions/positionTables";
 import { MY_TEAM_PATH } from "../../../src/frame/menu";
 import type { OpenTactics } from "../../../src/myTeam/tactics/seam";
-import { allFormationsWords, BENCH_TITLE, moveLabel, pitchLabel, playerOnPitchLabel, selectionTableLabel, swapLabel, undoWords } from "../../../src/myTeam/tactics/words";
+import { allFormationsWords, BENCH_TITLE, moveLabel, pitchLabel, playerOnPitchLabel, roleLabel, selectionTableLabel, swapLabel, undoWords } from "../../../src/myTeam/tactics/words";
 import { applyWords } from "../../../src/myTeam/tactics/formationWindow/words";
+import { playAsWords } from "../../../src/myTeam/tactics/roleCard/words";
 import { FIRST_RULES } from "../../../convex/rules/firstRules";
 import { ARSENAL } from "../convex/footballRows.harness";
 import type { MyTeamData } from "./myTeam.harness";
@@ -118,6 +119,24 @@ export function drag(from: Element, onto: Element) {
   fireEvent.drop(onto, { dataTransfer: DATA_TRANSFER });
 }
 export const undo = () => screen.getByRole("button", { name: undoWords }) as HTMLButtonElement;
+/** A starter's Role ▾ in the Selection table, which opens his role card (#848). */
+export const roleButton = (name: string) => screen.getByRole("button", { name: roleLabel(name) });
+/** The role a starter plays, by name, as his Role ▾ shows it; null for one with none (the bench). */
+export const roleShown = (name: string) => screen.queryByRole("button", { name: roleLabel(name) })?.querySelector("span")?.textContent ?? null;
+/** A starter's open role card. */
+export const roleCard = (name: string) => screen.getByRole("region", { name: new RegExp(`^${name}\\b.*, his role$`) });
+/** The roles his open card lists, by name, in its order. */
+export const rolesOnCard = (name: string) =>
+  within(roleCard(name))
+    .getAllByRole("button")
+    .filter((button) => button.hasAttribute("aria-pressed"))
+    .map((button) => button.textContent);
+/** His role card opened by his Role ▾, `role` (its name) previewed, and played. */
+export async function pickRole(name: string, role: string) {
+  await userEvent.click(roleButton(name));
+  await userEvent.click(within(roleCard(name)).getByRole("button", { name: role, pressed: false }));
+  await userEvent.click(within(roleCard(name)).getByRole("button", { name: playAsWords(role) }));
+}
 /** The line a save leaves, "Lineup saved 14:02", at whatever minute it landed. */
 export const SAVED_LINE = /^Lineup saved \d{2}:\d{2}$/;
 /** Eleven standing in the 4-4-2, each playing his cell's area, none on the bench. */

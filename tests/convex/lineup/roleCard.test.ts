@@ -2,7 +2,7 @@ import { beforeEach, expect, test } from "vitest";
 import { api } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
 import type { Cell } from "../../../convex/lineup/pitch";
-import { ROLE_CARD_MATCHES } from "../../../convex/lineup/roleCard";
+import { ROLE_CARD_MATCHES } from "../../../convex/lineup/roleCardShape";
 import { roleIn, rolesOfSlot } from "../../../convex/lineup/roles";
 import { categoryName } from "../../../convex/scoring/categories";
 import { scoreMatch } from "../../../convex/scoring/scoring";
