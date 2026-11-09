@@ -3,12 +3,14 @@ import { useCallback } from "react";
 import { api } from "../../convex/_generated/api";
 import { listChangeFailedWords } from "../draft/words";
 import { refusalOf } from "../shared/refusal";
+import { liveScouts } from "./scouts/liveScouts";
 import { liveShortlist } from "./shortlist/liveShortlist";
 import type { ScoutingSeam } from "./seam";
 
 /** The Scouting seam filled in by Convex. */
 export const liveScouting: ScoutingSeam = {
   ...liveShortlist,
+  ...liveScouts,
   useAddToQueue: () => {
     const add = useMutation(api.draft.draftLists.addFromShortlist);
     return useCallback(
