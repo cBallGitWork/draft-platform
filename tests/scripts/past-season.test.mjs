@@ -2,7 +2,7 @@ import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 import { expect, test } from "vitest";
 import { PAST_ROWS_ADDED_MOST } from "../../convex/pastSeasons/pastSeasonLimits.ts";
-import { PYTHON, READ_LOG, REPRICE, SEASONS, loadPastSeason } from "../../scripts/past-season.mjs";
+import { PYTHON, READ_LOG, REPRICE, SEASONS, loadPastSeason, parseJson } from "../../scripts/past-season.mjs";
 import { REPO_ROOT } from "../support/scripts/repoRoot.mjs";
 
 // The copy run on the sample in tests/support/scripts/aiCarling/ (laid out as ai-carling is), with
@@ -134,4 +134,10 @@ test("a failed write stops the run with what the CLI said", async () => {
   const exec = async (command) =>
     command === CONVEX ? { code: 1, stdout: "", stderr: "not signed in" } : { code: 0, stdout: await readFile(join(FROM, "playerMatchLog.sample.json"), "utf8"), stderr: "" };
   await expect(run(exec)).rejects.toThrow("failed (exit 1): not signed in");
+});
+
+test("an older season's FPL list, written by Python with a bare NaN for a missing number, reads it as null", () => {
+  expect(parseJson('[{"code": 1, "element_type": 2, "corners_order": NaN, "name": "NaN"}]')).toEqual([
+    { code: 1, element_type: 2, corners_order: null, name: "NaN" },
+  ]);
 });

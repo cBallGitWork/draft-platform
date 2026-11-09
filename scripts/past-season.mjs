@@ -85,8 +85,15 @@ async function run(exec, command, args, cwd) {
   return stdout;
 }
 
+/** A bare NaN as a value, as Python's json writes a missing number: the older seasons' FPL lists
+ *  (`data/raw/fpl_history/<season>/players_raw.json`) have them, and JSON has no NaN. */
+const BARE_NAN = /(:\s*)NaN(?=\s*[,}\]])/g;
+
+/** Parses JSON that may hold Python's bare NaN, read as null. */
+export const parseJson = (text) => JSON.parse(text.replace(BARE_NAN, "$1null"));
+
 async function readJson(path) {
-  return JSON.parse(await readFile(path, "utf8"));
+  return parseJson(await readFile(path, "utf8"));
 }
 
 /** ai-carling's person files, each with its name. */

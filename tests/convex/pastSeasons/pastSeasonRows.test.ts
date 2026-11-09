@@ -175,8 +175,23 @@ describe("the copy stops, naming him, rather than guess", () => {
   });
 
   test("an FPL player in none of FPL's four positions", () => {
-    expect(() => fplPositionsByCode({ elements: [{ code: 1, element_type: 5 }] })).toThrow("FPL player 1 has position 5");
+    expect(() => fplPositionsByCode({ elements: [{ code: 1, element_type: 6 }] })).toThrow("FPL player 1 has position 6");
   });
+});
+
+test("an older season's FPL list, its players alone with no bootstrap around them, gives the same positions", () => {
+  expect(fplPositionsByCode((SAMPLE_BOOTSTRAP as { elements: unknown[] }).elements)).toEqual(positions);
+});
+
+test("2024/25's managers in FPL's list are no players, so they get no position", () => {
+  expect(fplPositionsByCode([{ code: 1, element_type: 5 }, { code: 2, element_type: 2 }])).toEqual(new Map([[2, 2]]));
+});
+
+test("a man only on the bench who isn't in the season's FPL list is left out, and the rest is kept", () => {
+  const benchOnly = SAMPLE_LOG.filter((row) => row.competition === "premier_league" && !playedIn(row)).map((row) => ({ ...row, person_root_id: "keeper-one" }));
+  expect(benchOnly.length).toBeGreaterThan(0);
+  const withoutKeeper = new Map([...positions].filter(([code]) => code !== 100001));
+  expect(pastSeasonRows(SAMPLE_SEASON, benchOnly, codes, withoutKeeper)).toEqual([]);
 });
 
 test("a kickoff the log gives with no zone is read as UTC", () => {
