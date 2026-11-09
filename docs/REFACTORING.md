@@ -24,8 +24,10 @@ its own reason, never a cleanup:
 - **Scoring and the draft.** `CLAUDE.md`: breakage is acceptable on the look and the screens,
   never on scoring, the draft or saved league data.
 - **Saved data.** Renaming a field in the Convex schema, or anything persisted, is a migration.
-- **Player identity.** Players are keyed on Sportmonks' player id (FPL's `code` kept only to match
-  past seasons); a refactor never touches that key.
+- **Player identity.** Players are keyed on Sportmonks' player id, and FPL's season-stable `code` is
+  kept only to match past seasons (Craig, 9 Nov 2026, on #1196). Until the move off FPL lands, the
+  site's tables still key players on FPL's `code`; only the `sportmonks*` tables key on Sportmonks'
+  id. A refactor never touches either key.
 - **League rules as data.** Lifting a value into a constant is a refactor only if it is one of
   FPL's fixed rules. A league's rule stays a row.
 - **Copied football code.** Code copied from epl-draft's `packages/core` is copied on purpose
@@ -113,8 +115,10 @@ heading's exact text, so renaming it means changing the skill's `sed` line too.
   interface nearly as big as what it does. Deep is better: callers learn less.
 - **Seam:** where one module meets another, through its interface. Tests poke a module at its
   seam.
-- **Adapter:** a thing that plugs in at a seam. FPL's adapter (`convex/football/fpl/fpl.ts`) is the
-  one at the football layer's seam, `Football`; the recorded payloads the tests replay sit
+- **Adapter:** a thing that plugs in at a seam. The football layer's seam, `Football`, has two:
+  FPL's (`convex/football/fpl/fpl.ts`), which fills the tables the site reads, and Sportmonks'
+  (`convex/football/sportmonks/sportmonks.ts`, #1391), which fills only its own `sportmonks*`
+  tables until the switch lands; the recorded payloads the tests replay sit
   underneath every adapter, through the faked fetch (`tests/support/convex/test.harness.ts`).
 - **Locality:** for whoever changes a module: a change, or a bug, sits in one place, not spread
   across many.
