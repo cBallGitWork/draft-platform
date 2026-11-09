@@ -68,7 +68,7 @@ export function CardHead({ league, card, shown, seam }: { league: LeagueSummary;
 function Owner({ leagueId, card }: { leagueId: LeagueSummary["leagueId"]; card: PlayerCard }) {
   if (card.ownerTeamId === null) return <OwnerName teamName={card.ownerTeamName} />;
   return (
-    <Link to={otherTeamPath(leagueId, card.ownerTeamId)}>
+    <Link to={otherTeamPath(leagueId, card.ownerTeamId)} className="inline-flex min-h-tap items-center lg:min-h-0">
       <OwnerName teamName={card.ownerTeamName} />
     </Link>
   );
