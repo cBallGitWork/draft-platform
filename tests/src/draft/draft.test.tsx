@@ -136,7 +136,7 @@ describe("while it runs", () => {
     openDraft({ draft: liveDraft(1), board: { ...emptyBoard, picks: [pickOf(1, 2, "Saka")], tradedPicks } });
     const [first, second] = await boardRows();
     expect(within(first).getAllByRole("cell")[0].textContent).toBe("WSakaARS, 1.01Team 3 via Team 1");
-    expect(within(second).getAllByRole("cell").map((cell) => cell.textContent)).toEqual(["2.03", "2.02", "2.01Team 1 via Team 3"]);
+    expect(within(second).getAllByRole("cell").map((cell) => cell.textContent)).toEqual(["2.03", "2.02", "Team 1via Team 3"]);
     expect(fact(nextHead)).toBe("Team 3, then Team 1");
     expect(fact(yourNextHead(true))).toBe("Round 2, pick 2 in 3 picks");
   });

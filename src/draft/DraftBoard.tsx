@@ -19,6 +19,7 @@ import {
   slotWords,
   theOrderRoundsWords,
   wholeBoardWords,
+  heldViaWords,
   viaWords,
   yourTeamWords,
 } from "./words";
@@ -100,7 +101,7 @@ export function DraftBoard({
                     <BoardCell
                       key={teamId}
                       slot={slotWords(round, pickInRoundAt(round, column, teams))}
-                      via={owner === teamId ? null : viaWords(names.get(owner)!, name)}
+                      traded={owner === teamId ? null : { owner: names.get(owner)!, team: name }}
                       made={made.get(pick)}
                       onTheClock={onTheClock?.pick === pick ? onTheClock : null}
                       yours={teamId === yourTeamId}
@@ -116,11 +117,24 @@ export function DraftBoard({
   );
 }
 
-/** One pick's cell: the player taken, the pick on the clock with its time left, or the slot to come;
- *  a traded pick's last line names the team holding it, "via" the team whose turn it is (`via`). */
-function BoardCell({ slot, via, made, onTheClock, yours }: { slot: string; via: string | null; made: BoardPick | undefined; onTheClock: OnTheClock | null; yours: boolean }) {
+/** One pick's cell: the player taken, the pick on the clock with its time left, or the slot to come.
+ *  A traded pick to come shows the team holding it, "via" the team whose turn it is, as the approved
+ *  picture draws it; made or on the clock, the same words take a last line. */
+function BoardCell({
+  slot,
+  traded,
+  made,
+  onTheClock,
+  yours,
+}: {
+  slot: string;
+  traded: { owner: string; team: string } | null;
+  made: BoardPick | undefined;
+  onTheClock: OnTheClock | null;
+  yours: boolean;
+}) {
   const className = `h-tap border-l border-panel-rule px-2 py-0.5 align-top ${yours ? "bg-panel-edge" : ""}`;
-  const viaLine = via !== null && <span className="block truncate text-soft">{via}</span>;
+  const viaLine = traded !== null && <span className="block truncate text-soft">{heldViaWords(traded.owner, traded.team)}</span>;
   if (onTheClock !== null) {
     return (
       <td aria-current="true" className={`${className} outline-2 -outline-offset-2 outline-derived outline-solid`}>
@@ -133,14 +147,15 @@ function BoardCell({ slot, via, made, onTheClock, yours }: { slot: string; via: 
       </td>
     );
   }
-  if (made === undefined) {
+  if (made === undefined && traded !== null) {
     return (
-      <td className={`${className} text-muted`}>
-        {slot}
-        {viaLine}
+      <td title={slot} className={className}>
+        <span className="block truncate font-semibold">{traded.owner}</span>
+        <span className="block truncate text-soft">{viaWords(traded.team)}</span>
       </td>
     );
   }
+  if (made === undefined) return <td className={`${className} text-muted`}>{slot}</td>;
   if (made.player === null) {
     return (
       <td className={className}>
