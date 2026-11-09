@@ -1,4 +1,4 @@
-import type { Infer } from "convex/values";
+import { v, type Infer } from "convex/values";
 import type { Doc, Id } from "../_generated/dataModel";
 import type { MutationCtx, QueryCtx } from "../_generated/server";
 import { draftHasStarted, draftOf } from "../draft/draftRow";
@@ -62,6 +62,32 @@ export async function checkPicks(
     await teamIn(ctx, leagueId, pick.teamId);
     if (pickOwner(traded, pick.round, pick.teamId) !== holder._id) refuse(pickRefusals.notHeld(await pickName(ctx, pick), holder.name));
   }
+}
+
+/** A pick as the New offer tab offers it: `teamId`'s pick in `round`, `teamName` its team, and
+ *  `held` while it is in a trade under review. */
+export const tradablePick = v.object({ round: v.number(), teamId: v.id("teams"), teamName: v.string(), held: v.boolean() });
+export type TradablePick = Infer<typeof tradablePick>;
+
+/** Who holds each pick of the league's draft now: a team's picks, round by round. None once the
+ *  draft has started, or in a league with no rounds. */
+export async function pickHolders(
+  ctx: QueryCtx,
+  leagueId: Id<"leagues">,
+  teams: readonly Doc<"teams">[],
+  offers: readonly Doc<"tradeOffers">[],
+): Promise<(teamId: Id<"teams">) => TradablePick[]> {
+  const rounds = roundsOf(await latestRules(ctx, leagueId));
+  if (rounds === null || (await draftHasStarted(ctx, leagueId))) return () => [];
+  const traded = await tradedPicksIn(ctx, leagueId);
+  const reviewed = offers.filter((offer) => offer.review !== undefined).flatMap(picksIn);
+  const all = Array.from({ length: rounds }, (_, index) => index + 1).flatMap((round) =>
+    teams.map((team) => ({
+      ownerId: pickOwner(traded, round, team._id),
+      pick: { round, teamId: team._id, teamName: team.name, held: reviewed.some((each) => samePick(each, { round, teamId: team._id })) },
+    })),
+  );
+  return (teamId) => all.filter(({ ownerId }) => ownerId === teamId).map(({ pick }) => pick);
 }
 
 /** Refuses accepting the offer while one of its picks is in another trade under review. */

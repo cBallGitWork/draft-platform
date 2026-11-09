@@ -13,6 +13,7 @@ import { squadOf } from "../squads/squadPlace";
 import { limitsBroken, squadWarning } from "../squads/squads";
 import { newlyBroken } from "../waivers/waiverRun";
 import { leagueOffers, pickName } from "./tradeClose";
+import { pickHolders, tradablePick } from "./tradePicks";
 import { reviewerOf } from "./tradeReview";
 import { onAutoTeam, tradesShut } from "./tradeShut";
 
@@ -70,6 +71,10 @@ const screenTeam = v.object({
   onAutoTeam: v.boolean(),
   /** Its squad by position, then name; `held` marks a player in a trade under review. */
   players: v.array(v.object({ ...tradedPlayer.fields, held: v.boolean() })),
+  /** The draft picks it holds now, round by round, to trade before the draft starts (spec/04, The
+   *  picks; #1096): `teamId`'s pick in `round`, `teamName` its team, its own or one traded to it;
+   *  `held` marks one in a trade under review. Empty once the draft starts, or with no rounds. */
+  picks: v.array(tradablePick),
 });
 export type ScreenTeam = Infer<typeof screenTeam>;
 
@@ -175,6 +180,7 @@ export const ofMyTeam = query({
       ),
     );
     const teams = await teamsOf(ctx, leagueId);
+    const picksOf = await pickHolders(ctx, leagueId, teams, offers);
     const squads = new Map<Id<"teams">, number[]>();
     for (const team of teams)
       squads.set(
@@ -210,6 +216,7 @@ export const ofMyTeam = query({
             teamName: team.name,
             onAutoTeam: onAutoTeam(team),
             players: sorted,
+            picks: picksOf(team._id),
           };
         },
       ),

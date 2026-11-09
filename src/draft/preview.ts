@@ -48,6 +48,9 @@ const draft: DraftState = {
 /** Before the start: the order drawn and no picks yet, starting in four days and six hours. */
 const before: DraftState = { status: "waiting", startsAt: startedAt + 4 * DAY_MS + 6 * HOUR_MS, rounds: ROUNDS, order };
 
+/** One pick traded before the draft (#1096): Bale Out's round-5 pick, held by Rovers XI. */
+const TRADED = [{ round: 5, teamId: order[2].teamId, ownerId: order[1].teamId }];
+
 /** Whether `?draft=before` asks for the draft before its start. */
 const isBefore = () => new URLSearchParams(window.location.search).get("draft") === "before";
 
@@ -86,7 +89,7 @@ const figures: RoomFigures = {
 
 export const previewDraft: DraftSeam = {
   useDraft: () => (isBefore() ? before : draft),
-  useBoard: () => ({ picks: isBefore() ? [] : picks, yourTeamId: YOURS, pickSeconds: 90, yourAutoPick: usePreviewAutoPick() }),
+  useBoard: () => ({ picks: isBefore() ? [] : picks, yourTeamId: YOURS, pickSeconds: 90, yourAutoPick: usePreviewAutoPick(), tradedPicks: TRADED }),
   useInMenu: () => true,
   // Scouting's preview players; Saka Potatoes is at its Arsenal maximum, so Rice and Raya are greyed.
   usePlayersList: previewScouting.usePlayersList,
