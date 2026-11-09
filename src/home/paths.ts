@@ -2,6 +2,7 @@
 // address's search, so Read the recap and a letter can link to it.
 
 import { HOME_PATH } from "../frame/menu";
+import { wholeNumber } from "../shared/search";
 
 export const RECAP_PATH = `${HOME_PATH}/recap`;
 
@@ -13,5 +14,5 @@ export const recapLink = (gameweek: number) => ({ to: RECAP_PATH, search: { game
 
 /** The search as the address holds it: a gameweek must be a whole number, else it is dropped. */
 export function recapSearchOf({ gameweek }: Record<string, unknown>): RecapSearch {
-  return { gameweek: typeof gameweek === "number" && Number.isInteger(gameweek) ? gameweek : undefined };
+  return { gameweek: wholeNumber(gameweek) };
 }

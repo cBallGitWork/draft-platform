@@ -214,9 +214,10 @@ describe("a start date the draft can't start on", () => {
     await (await as(COMMISSIONER)).mutation(api.draft.draftStart.setStart, { leagueId, startsAt });
     await changeEveryRules(t, leagueId, (rules) => ({ ...rules, squad: { ...rules.squad, size: null } }));
     const before = (await letters()).length;
-    vi.spyOn(console, "warn").mockImplementation(() => {});
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
     await pass(DAY_MS);
 
+    expect(warn).toHaveBeenCalledWith(expect.stringContaining(`draft didn't start at its date, and waits for its commissioner: ${draftStartRefusals.noSquadSize}`));
     expect(await lettersSince(before)).toEqual([
       {
         to: COMMISSIONER,

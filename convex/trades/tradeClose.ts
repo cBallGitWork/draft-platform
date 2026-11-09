@@ -10,7 +10,7 @@ import type { TradePick } from "./tradePicks";
 import { takeAllOrThrow } from "../shared/cappedRead";
 import type { LeagueDeadlines } from "../gameweeks/deadline";
 import { groupedBy } from "../shared/groupedBy";
-import { playerByCode } from "../shared/players";
+import { heldPlayerByCode } from "../shared/players";
 import { deadlinePassedSince } from "../waivers/waiverLock";
 import { onAutoTeam, tradesShut, type TradesShut } from "./tradeShut";
 
@@ -39,12 +39,13 @@ export function leagueOffers(ctx: QueryCtx, leagueId: Id<"leagues">): Promise<Do
   );
 }
 
+/** The log line for an offer naming a player the football sync doesn't hold. */
+export const unheldTradedWords = (playerCode: number) => `A trade offer names player ${playerCode}, whom the football sync doesn't hold`;
+
 /** A player's name, as a trade's letters name him: an offer names only players the football sync
  *  holds, and it never deletes one. */
 export async function tradedName(ctx: QueryCtx, playerCode: number): Promise<string> {
-  const player = await playerByCode(ctx, playerCode);
-  if (player === null) throw new Error(`A trade offer names player ${playerCode}, whom the football sync doesn't hold`);
-  return player.name;
+  return (await heldPlayerByCode(ctx, playerCode, unheldTradedWords(playerCode))).name;
 }
 
 /** The offer as its letters name it. */

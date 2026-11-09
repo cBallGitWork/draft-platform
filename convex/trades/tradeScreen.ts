@@ -2,7 +2,7 @@ import { v, type Infer } from "convex/values";
 import type { Doc, Id } from "../_generated/dataModel";
 import { query } from "../_generated/server";
 import { leagueDeadlines } from "../gameweeks/leagueDeadlines";
-import type { LeagueDeadlines } from "../gameweeks/deadline";
+import { nextDeadline } from "../gameweeks/deadline";
 import { positionsNow } from "../positions/playerPositions";
 import { positionRank } from "../positions/positionTables";
 import { latestRules } from "../rules/rulesHistory";
@@ -91,19 +91,6 @@ export const tradesView = v.object({
   closed: v.array(closedOffer),
 });
 export type TradesView = Infer<typeof tradesView>;
-
-/** The first deadline after `from`, with its gameweek: when an offer made then closes unanswered. */
-export function nextDeadline(
-  deadlines: LeagueDeadlines,
-  from: number,
-): { gameweek: number; at: number } | null {
-  let next: { gameweek: number; at: number } | null = null;
-  for (const [gameweek, at] of deadlines) {
-    if (at !== null && at > from && (next === null || at < next.at))
-      next = { gameweek, at };
-  }
-  return next;
-}
 
 /** The log line for a squad player the football sync doesn't hold, left off the Trades screen. */
 export const missingPlayerLog = (teamName: string, code: number) =>

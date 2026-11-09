@@ -3,6 +3,7 @@ import type { QueryCtx } from "../_generated/server";
 import type { PositionsNow } from "../positions/playerPositions";
 import { clubRecord, position } from "../schema";
 import { playerByCode, type Clubs } from "../shared/players";
+import { unheldTradedWords } from "./tradeClose";
 
 // A player in a trade as the Trades screen shows him (#383; docs/design/approved/trades): name,
 // main position and club only. Split from tradeScreen.ts, so its open offers and closedOffers.ts's
@@ -42,9 +43,6 @@ export async function tradedShown(
   clubOf: Clubs,
 ): Promise<TradedPlayer> {
   const shown = await shownPlayer(ctx, code, positionsOf, clubOf);
-  if (shown === null)
-    throw new Error(
-      `A trade offer names player ${code}, whom the football sync doesn't hold`,
-    );
+  if (shown === null) throw new Error(unheldTradedWords(code));
   return shown;
 }

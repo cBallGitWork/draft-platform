@@ -1,7 +1,7 @@
+import type { Words } from "../mail/letterShape";
+
 // What league home's weekly recap says (spec/12, League home; #387), in one place for Craig to
 // change: the brief Claude writes it from, how it is told to write, and Mail's letter that it is up.
-
-type Words = { subject: string; body: string };
 
 /** The most top performers, and the most letdowns, the recap names (Craig, 6 Nov 2026). */
 export const RECAP_PLAYERS = 3;
