@@ -54,7 +54,7 @@ function GameweekFixtures({ leagueTable: { gameweeks, results }, mine }: { leagu
   return (
     <Panel title={FIXTURES_TITLE} aside={aside}>
       <ul aria-label={fixturesListLabel(gameweek)}>
-        {fixtures.map(({ teamId, team, opponent, points }) => {
+        {fixtures.map(({ teamId, game, team, opponent, points }) => {
           const ours = mine !== null && (team === mine || opponent === mine);
           return (
             <li
@@ -66,7 +66,7 @@ function GameweekFixtures({ leagueTable: { gameweeks, results }, mine }: { leagu
                 {ours && <span className="sr-only">{yourTeamWords}: </span>}
                 {team}
               </span>
-              <MatchupLink teamId={teamId} team={team} opponent={opponent} gameweek={gameweek} points={points} />
+              <MatchupLink teamId={teamId} team={team} opponent={opponent} gameweek={gameweek} game={game} points={points} />
               {opponent === null ? <span className="text-derived">{leagueAverageWords}</span> : <span className="font-semibold">{opponent}</span>}
             </li>
           );

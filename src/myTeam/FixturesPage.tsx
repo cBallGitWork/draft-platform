@@ -99,10 +99,10 @@ function Opponent({ against }: { against: Game["against"] }) {
 }
 
 /** A game's score, or "v" before it is scored, as a link to the matchup; a bye has none. */
-function Result({ teamId, teamName, game: { gameweek, against, score } }: { teamId: TeamFixtures["teamId"]; teamName: string; game: Game }) {
+function Result({ teamId, teamName, game: { gameweek, game, against, score } }: { teamId: TeamFixtures["teamId"]; teamName: string; game: Game }) {
   if (against.kind === "bye") return null;
   const opponent = against.kind === "team" ? against.teamName : null;
   return (
-    <MatchupLink teamId={teamId} team={teamName} opponent={opponent} gameweek={gameweek} points={score} live={score?.provisional ?? false} />
+    <MatchupLink teamId={teamId} team={teamName} opponent={opponent} gameweek={gameweek} game={game} points={score} live={score?.provisional ?? false} />
   );
 }
