@@ -291,6 +291,6 @@ async function upsertEach<Table extends FootballTable>(
 
 /** Every field the feed sent equals the held one. The records are flat, so `===` compares them;
  *  `droppedAt` is the platform's, never sent, so it is not compared. */
-function sameFields(row: Record<string, Value>, held: Record<string, Value>): boolean {
+export function sameFields(row: Record<string, Value>, held: Record<string, Value>): boolean {
   return Object.keys(row).every((field) => row[field] === held[field]);
 }

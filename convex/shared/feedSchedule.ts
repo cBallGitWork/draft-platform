@@ -9,8 +9,12 @@ import { HOUR_MS, MINUTE_MS } from "./time";
  *  own: they never stop a match's points (admin/sideRuns.ts). */
 export const SIDE_FEEDS = ["teamSheets", "teamStats", "thresholdSteps"] as const;
 
+/** Sportmonks' reads (#1391): the Scottish Premiership on its free plan, beside FPL's until a later
+ *  slice switches the site over (football/sportmonks/). */
+export const SPORTMONKS_FEEDS = ["sportmonks", "sportmonksLive"] as const;
+
 /** The feeds, each a sync or tick with its own run table. */
-export const FEEDS = ["football", "positions", "matchStats", "liveStats", ...SIDE_FEEDS] as const;
+export const FEEDS = ["football", "positions", "matchStats", "liveStats", ...SIDE_FEEDS, ...SPORTMONKS_FEEDS] as const;
 export type Feed = (typeof FEEDS)[number];
 /** A feed, as a function's argument or a saved field takes one. */
 export const feedValidator = v.union(...FEEDS.map((feed) => v.literal(feed)));
@@ -33,6 +37,8 @@ export const FEED_NAMES: Record<Feed, { name: string; source: string }> = {
   teamSheets: { name: "Team sheets before kickoff", source: "the Premier League, in the hour before each match" },
   teamStats: { name: "Team stats", source: "the Premier League, during matches and at full time" },
   thresholdSteps: { name: "Threshold lines", source: "worked out from the live stats, during matches" },
+  sportmonks: { name: "Scottish clubs, players and fixtures", source: "Sportmonks" },
+  sportmonksLive: { name: "Scottish live matches", source: "Sportmonks, during matches" },
 };
 
 /** Each feed's run table: one row a run, newest last. */
@@ -44,6 +50,8 @@ export const FEED_RUN_TABLES = {
   teamSheets: "teamSheetsRuns",
   teamStats: "teamStatsRuns",
   thresholdSteps: "thresholdStepsRuns",
+  sportmonks: "sportmonksSyncs",
+  sportmonksLive: "sportmonksLiveTicks",
 } as const satisfies Record<Feed, string>;
 
 /** A run's interval, as `crons.interval` takes it. */
@@ -72,6 +80,9 @@ export const FEED_SCHEDULES = {
   teamSheets: LIVE_TICK,
   teamStats: LIVE_TICK,
   thresholdSteps: LIVE_TICK,
+  // On the football sync's six hours (#1391); a run is three calls.
+  sportmonks: { every: { hours: 6 }, graceMs: 30 * MINUTE_MS },
+  sportmonksLive: LIVE_TICK,
 } as const satisfies Record<Feed, FeedSchedule | null>;
 
 /** How long a scheduled feed may go without a success before it is late. */
