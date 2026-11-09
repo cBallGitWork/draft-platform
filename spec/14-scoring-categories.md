@@ -23,7 +23,7 @@ Feature 14 of [SPEC.md](../SPEC.md). Only Craig's answers, from `/grill scoring 
   and a short code. The site's set can score any of them; roles (`spec/05`) draw on the same list.
   The names and codes are written with the first scoring set (`/grill match stats`, 20 Oct 2026).
   For now they are placeholders copied from the feeds' own names, for Craig to refine later (21 Oct
-  2026).
+  2026). `S14.15`
 - No FPL bonus points.
 
 ## How a rule scores

@@ -6,7 +6,7 @@ approved its rows (6 Nov 2026, #454).
 
 - Only stats from Sportmonks, the football data's feed (SPEC, *What it is*; Craig, 9 Nov 2026),
   in place of FPL's and the Premier League's public APIs. What can be scored and how:
-  [14. Scoring categories](14-scoring-categories.md).
+  [14. Scoring categories](14-scoring-categories.md). `S07.7`
 - Points move live during matches, provisional until final.
 - Stat corrections: points stay open for a fixed window after a match, then lock. The window
   is a platform setting, not a league rule.
