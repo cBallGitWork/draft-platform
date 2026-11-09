@@ -18,7 +18,7 @@ npm test -- <file>   # one test file
 `npm run verify` is the local gate, and CI runs the same steps, as jobs side by side, on every pull request, which the
 `main` ruleset requires, so a failure you didn't catch here stops the merge.
 
-CI also runs `npm run build` and `npm run smoke`. A pull request that changes only docs (docs/, spec/, .claude/, *.md) skips the unit tests, build and smoke. Smoke needs Google Chrome locally (the Smoke
+CI also runs `npm run build`, `npm run smoke` and actionlint on the workflows (with shellcheck, warnings and above). A pull request that changes only docs (docs/, spec/, .claude/, *.md) skips the unit tests, build and smoke. Smoke needs Google Chrome locally (the Smoke
 tests row in [ARCHITECTURE.md](../../../ARCHITECTURE.md#libraries-claudes)).
 
 **After a change to a screen, the router, `src/main.tsx`, `index.html` or the Vite config,** run
