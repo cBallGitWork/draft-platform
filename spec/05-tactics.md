@@ -186,6 +186,13 @@ and how they score from Craig, 4 Nov 2026.
   starter and every bench player who comes on. A clean sheet or a goal conceded is his club's
   while he was on the pitch, as in base scoring. It shows as its own line under his role's line on
   the matchup breakdown ("Park the bus: clean sheet +1").
+- Keep it tight early is the exception to "while he was on the pitch": it goes by his club's
+  half-time score for every starter, and a bench player who comes on scores nothing from it
+  (Craig, 9 Nov 2026, on #990). `S05.16`
+- An instruction that scores GK/DEF scores the keeper, full-back, centre-back and wing-back slots;
+  every other slot is ATT/MID (Craig, 9 Nov 2026, on #990). `S05.17`
+- The first values go into the site's set as roles' do: from the next gameweek that hasn't begun,
+  with no letter, and change by patch after that (Craig, 9 Nov 2026, on #990). `S05.18`
 - Like a role, it is whole points by thresholds, and the values come from backtesting. The first
   values are Claude's backtest of 26/27 gameweeks 1 to 9, in
   [roles-first-values.md](../docs/roles-first-values.md); Craig edits them by patch.
@@ -193,6 +200,9 @@ and how they score from Craig, 4 Nov 2026.
   picked: a clean sheet is worth 3, and every goal conceded costs 1. "2 at the back wont have many
   and punsih goals conceded ... clean sheets is 3, every goal conceded -1" (Craig, 4 Nov 2026). It
   is held with the formation as a league rule, never in the code.
+- Two at the back replaces the base values for its keeper and defence slots rather than adding a
+  line of its own: a clean sheet is 3 and keeps its 60-minute minimum, every goal conceded is −1,
+  and both show on his clean sheet and goals conceded lines (Craig, 9 Nov 2026, on #990). `S05.19`
 
 ## Saved plans
 

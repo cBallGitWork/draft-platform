@@ -1,3 +1,4 @@
+// A team instruction's move gets a live line like a role's, worded with its name (S10.3).
 import { expect, test } from "vitest";
 import { FIRST_INSTRUCTIONS } from "../../../convex/lineup/instructions";
 import type { Cell } from "../../../convex/lineup/pitch";

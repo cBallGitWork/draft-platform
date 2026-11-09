@@ -51,7 +51,7 @@ test("a stat line is the man's and the match's FPL codes, for every man read", (
   });
 });
 
-describe("half-time's stats, for Keep it tight early (#990)", () => {
+describe("half-time's stats, for Keep it tight early (#990, S05.16)", () => {
   const atHalfTime = (homeScore: number, awayScore: number, phase = "H"): RawPlFixture => ({
     ...structuredClone(hullEverton),
     status: "L",
