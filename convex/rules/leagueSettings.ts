@@ -28,7 +28,7 @@ export const settings = query({
  *  more, and no more than the league's teams have rounds for; the squad's maximum no more than a
  *  Premier League squad, and the minimums by area adding up to no more than it; the pick clock and
  *  the timeouts before auto-pick within ../draft/draftLimits.ts's; a trade deadline a gameweek of
- *  the season. */
+ *  the season; waivers run at least once a week, never twice at one time. */
 export const changeSettings = mutation({
   args: { leagueId: v.id("leagues"), settings: leagueSettingsShape, revision: revisionShape },
   returns: v.number(),
@@ -48,6 +48,7 @@ function withLeagueSettings(rules: LeagueRules, settings: LeagueSettings): Leagu
     ...(settings.gamesPerGameweek !== playedBy.gamesPerGameweek && { gamesPerGameweek: settings.gamesPerGameweek }),
     ...(sortedJson(settings.draft) !== sortedJson(draftRulesOf(rules)) && { draft: settings.draft }),
     ...(sortedJson(settings.trades) !== sortedJson(tradeRulesOf(rules)) && { trades: settings.trades }),
+    waivers: settings.waivers,
     squad: {
       size: size === null || settings.squadMaximum === null ? null : { ...size, maximum: settings.squadMaximum },
       minimumByArea: settings.minimumByArea,

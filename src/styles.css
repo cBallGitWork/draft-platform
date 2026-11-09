@@ -68,6 +68,8 @@
   /* A table's row on the desk (plate.md, Type): h-row. Only a screen rebuilt to its approved picture
      draws it; the other built tables keep their 20px rows until theirs is rebuilt. */
   --spacing-row: 28px;
+  /* A cup tie's box, its two teams' rows (the approved table's cup picture) */
+  --spacing-tie: calc(var(--spacing-row) * 2);
 
   /* The width each of Mail's two panels grows from; with less room than both, the form wraps under */
   --flex-basis-letters: 480px;
@@ -136,6 +138,8 @@
   --grid-template-columns-dated-row: auto minmax(0, 1fr);
   --grid-template-columns-home: minmax(0, 1fr) minmax(0, 2.1fr) minmax(0, 1fr);
   --grid-template-columns-card: 18.75rem minmax(0, 1fr) 21.25rem;
+  /* The table beside its fixtures, as the approved table picture splits them (about 5 to 2) */
+  --grid-template-columns-table: minmax(0, 5fr) minmax(0, 2fr);
   /* League home's News tab: the moves, and the selected one's detail (approved/home/1440-news.png) */
   --grid-template-columns-news: minmax(0, 5fr) minmax(0, 2fr);
   /* Trades' New offer tab: your squad, theirs, and your offer (approved/trades/1440-new.png) */

@@ -144,7 +144,9 @@ beforeEach(async () => {
       "table/teamFixtures:ofMyTeam": () => caller.query(api.table.teamFixtures.ofMyTeam, { leagueId }),
       "trades/tradeOffers:mine": () => caller.query(api.trades.tradeOffers.mine, { leagueId }),
       "trades/tradeScreen:ofMyTeam": () => caller.query(api.trades.tradeScreen.ofMyTeam, { leagueId, now }),
+      "waivers/waiverClaims:countMine": () => caller.query(api.waivers.waiverClaims.countMine, { leagueId }),
       "waivers/waiverClaims:pending": () => caller.query(api.waivers.waiverClaims.pending, { leagueId }),
+      "waivers/waiverOrder:ofLeague": () => caller.query(api.waivers.waiverOrder.ofLeague, { leagueId, now }),
       "waivers/waivers:cardActionOn": () => caller.query(api.waivers.waivers.cardActionOn, { leagueId, playerCode: SOME_CODE }),
       "waivers/waivers:stateOf": () => caller.query(api.waivers.waivers.stateOf, { leagueId, playerCode: SOME_CODE }),
     };

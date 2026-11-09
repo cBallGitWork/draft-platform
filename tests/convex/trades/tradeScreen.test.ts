@@ -24,10 +24,12 @@ import { NEXT } from "../../support/convex/waivers.harness";
 let w: TradeLeague;
 beforeEach(async () => {
   w = await tradeLeague();
-  // The trade league's players name clubs it doesn't hold; the screen shows each player's club.
+  // The trade league holds only the squad's club; the screen shows each player's club, so the rest
+  // are added.
   await w.t.run(async (ctx) => {
+    const held = new Set((await ctx.db.query("clubs").collect()).map(({ code }) => code));
     const codes = new Set(
-      (await ctx.db.query("players").collect()).map(({ clubCode }) => clubCode),
+      (await ctx.db.query("players").collect()).map(({ clubCode }) => clubCode).filter((code) => !held.has(code)),
     );
     for (const code of codes)
       await ctx.db.insert("clubs", {

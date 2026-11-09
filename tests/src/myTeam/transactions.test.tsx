@@ -19,6 +19,7 @@ import {
   TRANSACTIONS_TITLE,
   whenWords,
 } from "../../../src/myTeam/words";
+import { claimsLoadingWords, waiverOrderLoadingWords } from "../../../src/myTeam/claims/words";
 import { expectColumnHeads } from "../../support/src/columnHeads";
 import type { MyTeamData } from "../../support/src/myTeam.harness";
 import { commissioner, league, manager, openApp } from "../../support/src/shell.harness";
@@ -55,7 +56,8 @@ describe("reaching it", () => {
 
   it("says so while it loads", async () => {
     openTransactions({ loading: true });
-    expect((await screen.findByRole("status")).textContent).toBe(transactionsLoadingWords);
+    const statuses = (await screen.findAllByRole("status")).map((status) => status.textContent);
+    expect(statuses).toEqual([claimsLoadingWords, transactionsLoadingWords, waiverOrderLoadingWords]);
   });
 
   it("tells someone running no team in the league there's nothing to show, and reads nothing", async () => {

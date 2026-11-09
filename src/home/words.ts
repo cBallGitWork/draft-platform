@@ -1,9 +1,8 @@
 // What league home says, in one place for Craig to change in the pull request.
 
 import { TOP_ROWS } from "../../convex/home/glance";
-import { FORM_RESULTS } from "../../convex/table/standings";
-import { placeWords } from "../myTeam/header/words";
 import { fewestTeamsWords, gameweekShort, noHeadToHeadsTotalPointsWords } from "../shared/words";
+import { placeWords } from "../myTeam/header/words";
 import { columns as tableColumns } from "../table/words";
 import type { LeagueHome, NewsMove } from "./seam";
 
@@ -61,14 +60,12 @@ export const byeWords = (teamName: string) => `${teamName}: bye`;
 /** Under a table cut to its top rows: how many teams it has, and whether the reader's row is added. */
 export const partTableWords = (teams: number, withMine: boolean) =>
   `The top ${TOP_ROWS} of ${teams} teams${withMine ? ", and yours" : ""}.`;
-/** The table screen's columns, won, drawn and lost in one, and form. */
-export const columns = {
-  ...tableColumns,
-  record: { short: "W-D-L", long: "Won, drawn, lost" },
-  form: { short: "Form", long: `Form, the latest ${FORM_RESULTS} results, oldest first` },
-} as const;
+/** The table screen's columns (form among them), with won, drawn and lost in one. */
+export const columns = { ...tableColumns, record: { short: "W-D-L", long: "Won, drawn, lost" } } as const;
 export const recordWords = ({ won, drawn, lost }: { won: number; drawn: number; lost: number }) => `${won}-${drawn}-${lost}`;
-export const yourTeamWords = "Your team";
+export { yourTeamWords } from "../table/words";
+export { formLabel, resultWords } from "../shared/words";
+export const noFormWords = "—";
 export const wholeTableLink = "Whole table and fixtures";
 
 /** The matchday's Vidiprinter, and its words before any line, the matchup's own. */

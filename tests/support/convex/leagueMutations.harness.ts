@@ -104,6 +104,7 @@ export function changesTo(
     "waivers/waiverClaims:putIn": () => ann.mutation(api.waivers.waiverClaims.putIn, { leagueId, playerCode: 1, dropCode: null }),
     "waivers/waiverClaims:withdraw": () => ann.mutation(api.waivers.waiverClaims.withdraw, { leagueId, claimId }),
     "waivers/waiverClaims:rank": () => ann.mutation(api.waivers.waiverClaims.rank, { leagueId, claimIds: [claimId] }),
+    "waivers/waiverClaims:changeDrop": () => ann.mutation(api.waivers.waiverClaims.changeDrop, { leagueId, claimId, dropCode: null }),
     "trades/tradeOffers:offer": () =>
       ann.mutation(api.trades.tradeOffers.offer, { leagueId, toTeamId: otherTeam._id, gives: [1], gets: [], note: null }),
     "trades/tradeOffers:accept": () => ann.mutation(api.trades.tradeOffers.accept, { leagueId, offerId }),

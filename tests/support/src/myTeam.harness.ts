@@ -7,6 +7,7 @@ import { idOf } from "../../../src/table/drawnTable";
 import type { LeagueTable } from "../../../src/table/seam";
 import { fakeTactics, type TacticsData } from "./tactics.harness";
 import type { LatestMail } from "../../../src/myTeam/squad/seam";
+import type { ClaimChanges, PendingClaim, WaiversView } from "../../../src/myTeam/claims/seam";
 
 /** What the fake server holds: the team's fixtures, null for a league with no rules, its
  *  transactions and squad, and its tactics (tactics.harness.ts), or nothing yet while they load. A
@@ -24,8 +25,16 @@ export type MyTeamData = TacticsData & {
   numberAnswer?: string | null;
   /** The newest letters for the Squad tab's Mail widget, and the unread count. */
   mail?: LatestMail;
+  /** The pending claims the caller sees, and the league's waiver order, runs and window (#1200). */
+  claims?: PendingClaim[];
+  waivers?: WaiversView | null;
+  /** What each change to a claim answers: null once made, or the words why not. */
+  claimAnswer?: string | null;
   loading?: boolean;
 };
+
+/** A league's waivers with nobody's claims open to doubt: drafted, out of the lock, no runs. */
+export const NO_WAIVERS: WaiversView = { type: "reverseStandings", teams: [], drafted: true, runs: [], locked: false, windowOpen: false, nextDeadline: null };
 
 export function fakeMyTeam({
   fixtures = { teamId: MY_TEAM_ID, teamName: "Team 1", format: "headToHead", games: [], unscored: [] },
@@ -34,10 +43,18 @@ export function fakeMyTeam({
   numberAnswer = null,
   mail = { letters: [], unread: 0 },
   leagueTable = null,
+  claims = [],
+  waivers = NO_WAIVERS,
+  claimAnswer = null,
   loading = false,
   ...tactics
 }: MyTeamData = {}) {
   const numbers = { set: vi.fn<SquadNumberChanges["set"]>(async () => numberAnswer) };
+  const claimChanges = {
+    rank: vi.fn<ClaimChanges["rank"]>(async () => claimAnswer),
+    withdraw: vi.fn<ClaimChanges["withdraw"]>(async () => claimAnswer),
+    changeDrop: vi.fn<ClaimChanges["changeDrop"]>(async () => claimAnswer),
+  };
   // A store, so a test can change the squad under an open screen, as Convex would.
   let heldSquad = squad;
   const listeners = new Set<() => void>();
@@ -58,5 +75,9 @@ export function fakeMyTeam({
     useSquadNumbers: () => numbers,
     useLatestMail: vi.fn<MyTeamSeam["useLatestMail"]>(() => (loading ? undefined : mail)),
     useLeagueTable: vi.fn<MyTeamSeam["useLeagueTable"]>(() => (loading ? undefined : leagueTable)),
+    usePendingClaims: vi.fn<MyTeamSeam["usePendingClaims"]>(() => (loading ? undefined : claims)),
+    useWaivers: vi.fn<MyTeamSeam["useWaivers"]>(() => (loading ? undefined : waivers)),
+    useClaimChanges: () => claimChanges,
+    claimChanges,
   };
 }

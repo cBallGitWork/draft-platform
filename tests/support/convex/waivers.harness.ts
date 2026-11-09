@@ -9,7 +9,7 @@ import { recordPassedDeadlines } from "../../../convex/gameweeks/deadlineRecorde
 import { MINUTE_MS, WEEK_MS } from "../../../convex/shared/time";
 import { holdGameweeks, holdMatchState } from "./leagueRules.harness";
 import { actingAs, addManagers, adminCreatesLeague, MANAGERS, teamsIn, type TestConvex } from "./leagues.harness";
-import { holdPlayers, holdSquad, passNextDeadline, SQUAD } from "./lineupSquad.harness";
+import { holdPlayers, holdSquad, passNextDeadline, SQUAD, SQUAD_CLUB } from "./lineupSquad.harness";
 import { fakeResend, signInDeployment } from "./signIn.harness";
 
 export const [ANN, BOB, CAT] = MANAGERS;
@@ -51,6 +51,8 @@ export async function waiverLeague() {
   await matchIs(NEXT - 1, "fullTime");
   await holdSquad(t, leagueId, annsTeam);
   await holdPlayers(t, [SAKA, PALMER, RICE]);
+  // Pending claims name each player's club.
+  await t.run((ctx) => ctx.db.insert("clubs", SQUAD_CLUB));
   await draftOver(t, leagueId, teams);
 
   return {

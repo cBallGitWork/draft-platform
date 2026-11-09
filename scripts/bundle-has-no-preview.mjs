@@ -34,6 +34,7 @@ const NEEDLES = {
   "src/matchup/preview.ts": "Mac Allister",
   "src/home/preview.ts": "Expected Toulouse",
   "src/myTeam/preview.ts": "Martinelli",
+  "src/myTeam/claims/preview.ts": "preview-claim-",
   "src/myTeam/tactics/preview.ts": "Henderson",
   "src/patches/preview.ts": "preview-patch-",
   "src/playerCard/preview.ts": "Hamstring injury - 75% chance of playing",

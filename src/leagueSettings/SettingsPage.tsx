@@ -15,6 +15,10 @@ import { NumberRow } from "./NumberRow";
 import type { LeagueSettingsSeam, SettingsView } from "./seam";
 import { TeamOrderPanel } from "./TeamOrderPanel";
 import { TradesPanel } from "./TradesPanel";
+import { runTwice, WaiversPanel } from "./WaiversPanel";
+import type { WaiverOrderType } from "../../convex/rules/leagueRulesShape";
+import { RunsPanel, WaiverOrderPanel } from "../myTeam/claims/WaiverOrderPanel";
+import { waiverOrderLoadingWords } from "../myTeam/claims/words";
 import {
   areaMinimumLabel,
   areaMinimumsHint,
@@ -38,6 +42,7 @@ import {
   oddTeamOutLabel,
   oddTeamOutWords,
   redrawWords,
+  runTwiceWords,
   savedWords,
   SETTINGS_TITLE,
   squadMaximumHint,
@@ -56,8 +61,8 @@ const ODD_TEAM_OUT_CHOICE = "odd-team-out";
 /** League settings (Craig, 22 Oct 2026), for a league's commissioners and the admin: the rules
  *  that build the league, apart from players' points, saved from the next gameweek with a letter
  *  to the league: the round robin's two (spec/09), the squad's make-up (spec/03; #341), how
- *  the draft runs (spec/04; #1087) and how trades run (spec/08; #383), with the commissioner's
- *  draft order, which saves at once. */
+ *  the draft runs (spec/04; #1087), how trades run (spec/08; #383) and how waivers do, beside the
+ *  waiver order (spec/08; #1200), with the commissioner's draft order, which saves at once. */
 export function SettingsPage({ league, seam }: { league: LeagueSummary; seam: LeagueSettingsSeam }) {
   const view = seam.useSettings(league.leagueId);
   return (
@@ -105,10 +110,26 @@ function Editor({ league, seam, view }: { league: LeagueSummary; seam: LeagueSet
         <SquadPanel draft={draft} edit={edit} />
         <DraftPanel draft={draft.draft} edit={(draftRules) => edit({ ...draft, draft: draftRules })} />
         <TradesPanel trades={draft.trades} edit={(trades) => edit({ ...draft, trades })} />
+        <WaiversPanel waivers={draft.waivers} edit={(waivers) => edit({ ...draft, waivers })} />
+        <WaiverOrderBeside leagueId={league.leagueId} seam={seam} type={draft.waivers.order} />
         <SaveBar draft={rulesEdits} savedWords={savedWords} />
       </BoxRefusalContext>
       <TeamOrderPanel leagueId={league.leagueId} seam={seam} />
     </div>
+  );
+}
+
+/** The league's waiver order and its next runs, the order's note following the type about to be
+ *  saved: a change starts from today's order, so the order itself stays as it is (#1200). */
+function WaiverOrderBeside({ leagueId, seam, type }: { leagueId: LeagueSummary["leagueId"]; seam: LeagueSettingsSeam; type: WaiverOrderType }) {
+  const waivers = seam.useWaivers(leagueId);
+  if (waivers === undefined) return <Loading>{waiverOrderLoadingWords}</Loading>;
+  if (waivers === null) return null;
+  return (
+    <>
+      <WaiverOrderPanel waivers={waivers} type={type} />
+      <RunsPanel waivers={waivers} />
+    </>
   );
 }
 
@@ -186,5 +207,6 @@ function blankRefusal(settings: LeagueSettings): string | null {
   if (Number.isNaN(settings.draft.pickSeconds)) return blankPickClockWords;
   if (Number.isNaN(settings.draft.timeoutsBeforeAutoPick)) return blankTimeoutsWords;
   if (Number.isNaN(settings.trades.deadline)) return blankTradeDeadlineWords;
+  if (runTwice(settings.waivers.runs)) return runTwiceWords;
   return null;
 }
