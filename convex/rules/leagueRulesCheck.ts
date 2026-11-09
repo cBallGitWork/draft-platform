@@ -129,8 +129,15 @@ function checkPresets(presets: LeagueRules["presets"], limits: Record<Area, Area
     presets.map((preset) => preset.name.trim()),
     (name) => `Two presets are called "${name}".`,
   );
-  for (const { name, cells } of presets) {
+  for (const { name, cells, backLine } of presets) {
     if (name.trim() === "") throw new UnsoundRules("A preset needs a name.");
+    // Whole points, as every instruction and role scores (spec/05).
+    if (backLine !== undefined && backLine !== null) {
+      checkWholeNumber(backLine.cleanSheet, `The preset ${name}'s clean sheet`, 0);
+      if (!Number.isInteger(backLine.goalConceded) || backLine.goalConceded > 0) {
+        throw new UnsoundRules(`The preset ${name}'s goal conceded must be a whole number, 0 or less, not ${backLine.goalConceded}.`);
+      }
+    }
     if (cells.length !== STARTER_COUNT) {
       throw new UnsoundRules(`The preset ${name} places ${cells.length} players, not the ${STARTER_COUNT} who start.`);
     }

@@ -81,6 +81,12 @@ function MatchLines({ match, version }: { match: MatchBreakdown; version: string
               <RoleWords role={match.role} />
             </p>
           )}
+          {override === null &&
+            match.instructions?.map((instruction) => (
+              <p key={instruction.name}>
+                <RoleWords role={instruction} />
+              </p>
+            ))}
         </div>
       )}
       {override !== null && <p className="text-event">{overriddenWords(override.points, override.reason)}</p>}
