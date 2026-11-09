@@ -126,6 +126,21 @@ describe("while it runs", () => {
     expect(onClock.textContent).toBe(`${onTheClockHead}1.02, 0:48`);
   });
 
+  it("names a traded pick's team on the board, via the team it came from, and in who is next (#1096)", async () => {
+    // Team 1's round-1 pick for Team 3's round-2 pick: the snake is Team 1, 2, 3, then 3, 2, 1.
+    const [one, , three] = draftOrder.map((team) => team.teamId);
+    const tradedPicks = [
+      { round: 1, teamId: one, ownerId: three },
+      { round: 2, teamId: three, ownerId: one },
+    ];
+    openDraft({ draft: liveDraft(1), board: { ...emptyBoard, picks: [pickOf(1, 2, "Saka")], tradedPicks } });
+    const [first, second] = await boardRows();
+    expect(within(first).getAllByRole("cell")[0].textContent).toBe("WSakaARS, 1.01Team 3 via Team 1");
+    expect(within(second).getAllByRole("cell").map((cell) => cell.textContent)).toEqual(["2.03", "2.02", "2.01Team 1 via Team 3"]);
+    expect(fact(nextHead)).toBe("Team 3, then Team 1");
+    expect(fact(yourNextHead(true))).toBe("Round 2, pick 2 in 3 picks");
+  });
+
   it("says the draft is paused, and its clock stands still", async () => {
     openDraft({ draft: liveDraft(0, 2, true), board: emptyBoard });
     expect((await screen.findByRole("heading", { level: 1 })).textContent).toContain(stateWords.paused);

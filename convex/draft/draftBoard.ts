@@ -37,11 +37,15 @@ const draftBoard = v.object({
    *  many put it on auto-pick (null: never, or a league with no rules); null for a caller who runs
    *  no team. */
   yourAutoPick: v.union(v.object({ on: v.boolean(), timeouts: v.number(), limit: v.union(v.number(), v.null()) }), v.null()),
+  /** Each pick traded before the draft (#1096): `teamId`'s pick in `round`, which `ownerId` holds
+   *  and makes now, so the board shows it under its owner, marked "via" `teamId` (spec/04, The
+   *  picks). Empty until a pick is traded. */
+  tradedPicks: v.array(v.object({ round: v.number(), teamId: v.id("teams"), ownerId: v.id("teams") })),
 });
 export type DraftBoard = Infer<typeof draftBoard>;
 
 /** The board as everyone in the league reads it: every pick made, first first, the caller's team,
- *  and the league's pick time at `now`, the screen's minute, as a query must not read the clock. */
+ *  the league's pick time at `now`, the screen's minute, and the picks traded, as a query must not read the clock. */
 export const ofLeague = query({
   args: { leagueId: v.id("leagues"), now: v.number() },
   returns: draftBoard,
@@ -65,13 +69,14 @@ export const ofLeague = query({
     );
     const rules = await rulesInForceAt(ctx, leagueId, now);
     const draftRules = rules === null ? null : draftRulesOf(rules);
+    const draft = await draftOf(ctx, leagueId);
     let yourAutoPick: DraftBoard["yourAutoPick"] = null;
     if (team) {
-      const timeouts = (await draftOf(ctx, leagueId))?.timeouts;
+      const timeouts = draft?.timeouts;
       const count = timeouts?.find(({ teamId }) => teamId === team._id)?.count ?? 0;
       yourAutoPick = { on: isOnAutoPick(timeouts, team._id), timeouts: count, limit: draftRules?.timeoutsBeforeAutoPick ?? null };
     }
-    return { picks, yourTeamId: team?._id ?? null, pickSeconds: draftRules?.pickSeconds ?? null, yourAutoPick };
+    return { picks, yourTeamId: team?._id ?? null, pickSeconds: draftRules?.pickSeconds ?? null, yourAutoPick, tradedPicks: draft?.tradedPicks ?? [] };
   },
 });
 

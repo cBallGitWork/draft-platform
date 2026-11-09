@@ -78,6 +78,9 @@ export const onTheClockSlotWords = (slot: string) => `${slot}, `;
  *  sees (Craig, 5 Nov 2026, on #1100). */
 export const pickedWords = (clubShortName: string, slot: string, auto: boolean) => `${clubShortName}, ${slot}${auto ? `, ${autoWords}` : ""}`;
 export const autoWords = "auto";
+/** A traded pick (#1096): the team that holds it now, "via" the team it came from, whose turn it
+ *  falls on (spec/04, The picks): "Rovers via Kroos Control". */
+export const viaWords = (owner: string, via: string) => `${owner} via ${via}`;
 /** A pick whose player the football data no longer holds (#323). */
 export const lostPlayerWords = "Player missing from the football data";
 /** The queue and do-not-draft panels (spec/04, The queue and the ranking; #1100). */

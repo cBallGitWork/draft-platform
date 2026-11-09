@@ -87,6 +87,17 @@ describe("a pick swap", () => {
     expect(await onTheClock()).toBeNull();
   });
 
+  test("is on the board's read for the whole league, each pick with its team and its owner now", async () => {
+    const { offerId } = await offerPicks(ANN, bob, pickOf(ann, 1), pickOf(bob, 2));
+    expect((await (await as(CAT)).query(api.draft.draftBoard.ofLeague, { leagueId, now: Date.now() })).tradedPicks).toEqual([]);
+    await accept(BOB, offerId);
+
+    expect((await (await as(CAT)).query(api.draft.draftBoard.ofLeague, { leagueId, now: Date.now() })).tradedPicks).toEqual([
+      { round: 1, teamId: ann, ownerId: bob },
+      { round: 2, teamId: bob, ownerId: ann },
+    ]);
+  });
+
   test("is a team's pick in a round, not a slot: a new order moves it with its team", async () => {
     const { offerId } = await offerPicks(ANN, bob, pickOf(ann, 1), pickOf(bob, 2));
     await accept(BOB, offerId);

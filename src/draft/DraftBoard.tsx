@@ -1,10 +1,11 @@
 import { useState } from "react";
 import type { Id } from "../../convex/_generated/dataModel";
+import { pickOwner } from "../../convex/draft/snakeOrder";
 import { Panel, PanelNote } from "../ui/Panel";
 import { PositionChip } from "../ui/PositionChip";
 import { pickAt, pickInRoundAt, roundOf, roundsShown, runsLeftToRight } from "./board";
 import { ClockLeft, type OnTheClock } from "./ClockLeft";
-import type { BoardPick, DraftState } from "./seam";
+import type { BoardPick, DraftBoard as DraftBoardRead, DraftState } from "./seam";
 import {
   BOARD_TITLE,
   lostPlayerWords,
@@ -18,21 +19,25 @@ import {
   slotWords,
   theOrderRoundsWords,
   wholeBoardWords,
+  viaWords,
   yourTeamWords,
 } from "./words";
 
 // The draft board (spec/04, The draft room; the approved draft room pictures): a column a team in
 // the draft order, a row a round, six rounds at a time with the whole board a button away (Craig,
-// 4 Nov 2026). Each pick made shows its player; the pick on the clock is outlined in cyan.
+// 4 Nov 2026). Each pick made shows its player; the pick on the clock is outlined in cyan. A pick
+// traded before the draft names the team holding it, "via" the team it came from (#1096).
 
 export function DraftBoard({
   draft,
   picks,
+  tradedPicks,
   yourTeamId,
   onTheClock,
 }: {
   draft: DraftState;
   picks: readonly BoardPick[];
+  tradedPicks: DraftBoardRead["tradedPicks"];
   yourTeamId: Id<"teams"> | null;
   onTheClock: OnTheClock | null;
 }) {
@@ -51,6 +56,7 @@ export function DraftBoard({
   const first = shown[0];
   const last = shown[shown.length - 1];
   const made = new Map(picks.map((pick) => [pick.pick, pick]));
+  const names = new Map(order.map(({ teamId, name }) => [teamId, name]));
   const aside = (
     <span className="flex items-center gap-3">
       <span className="text-soft">{(draft.status === "waiting" ? theOrderRoundsWords : roundsShownWords)(first, last, rounds)}</span>
@@ -87,12 +93,14 @@ export function DraftBoard({
                     {runsLeftToRight(round) ? "▶︎" : "◀︎"}
                   </span>
                 </th>
-                {order.map(({ teamId }, column) => {
+                {order.map(({ teamId, name }, column) => {
                   const pick = pickAt(round, column, teams);
+                  const owner = pickOwner(tradedPicks, round, teamId);
                   return (
                     <BoardCell
                       key={teamId}
                       slot={slotWords(round, pickInRoundAt(round, column, teams))}
+                      via={owner === teamId ? null : viaWords(names.get(owner)!, name)}
                       made={made.get(pick)}
                       onTheClock={onTheClock?.pick === pick ? onTheClock : null}
                       yours={teamId === yourTeamId}
@@ -108,9 +116,11 @@ export function DraftBoard({
   );
 }
 
-/** One pick's cell: the player taken, the pick on the clock with its time left, or the slot to come. */
-function BoardCell({ slot, made, onTheClock, yours }: { slot: string; made: BoardPick | undefined; onTheClock: OnTheClock | null; yours: boolean }) {
+/** One pick's cell: the player taken, the pick on the clock with its time left, or the slot to come;
+ *  a traded pick's last line names the team holding it, "via" the team whose turn it is (`via`). */
+function BoardCell({ slot, via, made, onTheClock, yours }: { slot: string; via: string | null; made: BoardPick | undefined; onTheClock: OnTheClock | null; yours: boolean }) {
   const className = `h-tap border-l border-panel-rule px-2 py-0.5 align-top ${yours ? "bg-panel-edge" : ""}`;
+  const viaLine = via !== null && <span className="block truncate text-soft">{via}</span>;
   if (onTheClock !== null) {
     return (
       <td aria-current="true" className={`${className} outline-2 -outline-offset-2 outline-derived outline-solid`}>
@@ -119,11 +129,26 @@ function BoardCell({ slot, made, onTheClock, yours }: { slot: string; made: Boar
           {onTheClockSlotWords(slot)}
           <ClockLeft onTheClock={onTheClock} />
         </span>
+        {viaLine}
       </td>
     );
   }
-  if (made === undefined) return <td className={`${className} text-muted`}>{slot}</td>;
-  if (made.player === null) return <td className={`${className} text-event`}>{lostPlayerWords}</td>;
+  if (made === undefined) {
+    return (
+      <td className={`${className} text-muted`}>
+        {slot}
+        {viaLine}
+      </td>
+    );
+  }
+  if (made.player === null) {
+    return (
+      <td className={className}>
+        <span className="block text-event">{lostPlayerWords}</span>
+        {viaLine}
+      </td>
+    );
+  }
   const { name, clubShortName, position } = made.player;
   return (
     <td className={className}>
@@ -132,6 +157,7 @@ function BoardCell({ slot, made, onTheClock, yours }: { slot: string; made: Boar
         {name}
       </span>
       <span className="block text-soft">{pickedWords(clubShortName, slot, made.auto)}</span>
+      {viaLine}
     </td>
   );
 }
