@@ -148,6 +148,8 @@
   --grid-template-columns-table: minmax(0, 5fr) minmax(0, 2fr);
   /* League home's News tab: the moves, and the selected one's detail (approved/home/1440-news.png) */
   --grid-template-columns-news: minmax(0, 5fr) minmax(0, 2fr);
+  /* Scouting's Players tab: the list, and the right column of widgets (approved/scouting/1440.png) */
+  --grid-template-columns-scouting: minmax(0, 5fr) minmax(0, 2fr);
   /* Trades' New offer tab: your squad, theirs, and your offer (approved/trades/1440-new.png) */
   --grid-template-columns-new-offer: minmax(0, 5fr) minmax(0, 5fr) minmax(0, 4fr);
   --grid-template-columns-facts: auto 1fr;

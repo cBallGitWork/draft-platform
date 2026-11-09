@@ -2,42 +2,24 @@ import { beforeEach, expect, test } from "vitest";
 import { api } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
 import type { Position } from "../../../convex/positions/positionTables";
+import { per90Stats } from "../../../convex/scouting/per90Figures";
 import { refusals } from "../../../convex/shared/leagueAccess";
+import { FPL_SEASON } from "../../support/recorded/plSeasons.payloads";
 import { MANAGERS, actingAs, addManagers, adminCreatesLeague, teamName, type TestConvex } from "../../support/convex/leagues.harness";
-import { ARSENAL, CHELSEA, SAKA, completeRecord, insertClubs, insertPlayers } from "../../support/convex/footballRows.harness";
+import { ARSENAL, CHELSEA, SAKA, insertClubs, insertPlayers } from "../../support/convex/footballRows.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
 import { expectRefused } from "../../support/convex/test.harness";
 
-// Two players side by side (#373, spec/19 The players list): who each is and who owns him in the
-// league, and his stats this season added up from the matches his card lists: not last season's,
-// not a match he sat out unused, not one postponed with no new date, and a match's stats only once
-// both feeds' parts are in. Season points are "—" (null) here, with none priced; that they match
-// the list's is tests/convex/stats/seasonPoints.test.ts's.
+// Two players side by side (#373, spec/19 The players list; the approved picture's compare, #1028):
+// who each is and who owns him in the league, his minutes over the season and the first's area's
+// stats, each with his total and per 90 (how they are ranked is per90.test.ts's). Season points
+// are "—" (null) here, with none priced; that they match the list's is
+// tests/convex/stats/seasonPoints.test.ts's.
 
 const [ANN, BOB] = MANAGERS;
 const PALMER = { code: 1004, name: "Palmer", fullName: "Cole Palmer", clubCode: CHELSEA.code, positions: ["CAM", "W"] as Position[] };
 /** Held by the football sync, with no match yet. */
 const NEW_BOY = { code: 1005, name: "New", fullName: "New Boy", clubCode: CHELSEA.code, positions: [] as Position[] };
-
-const KICKOFF = Date.parse("2026-08-22T14:00:00Z");
-const fixture = (code: number, gameweek: number | null, dropped = false) => ({
-  code,
-  gameweek,
-  homeClubCode: ARSENAL.code,
-  awayClubCode: CHELSEA.code,
-  kickoff: KICKOFF + code,
-  ...(dropped ? { droppedAt: KICKOFF } : {}),
-});
-const GW1 = fixture(1, 1);
-const GW2 = fixture(2, 2);
-const GW3 = fixture(3, 3);
-/** Last season's, which the feed no longer sends. */
-const LAST_SEASON = fixture(4, 30, true);
-/** Postponed with no new date. */
-const POSTPONED = fixture(5, null);
-
-const record = (playerCode: number, fixtureCode: number, stats: Record<string, number>, played: boolean | null = true, pl = true) =>
-  completeRecord(playerCode, fixtureCode, stats, { started: played === true, played, pl });
 
 let t: TestConvex;
 let leagueId: Id<"leagues">;
@@ -50,57 +32,28 @@ beforeEach(async () => {
   await t.run(async (ctx) => {
     await insertClubs(ctx, [ARSENAL, CHELSEA]);
     await insertPlayers(ctx, [SAKA, PALMER, NEW_BOY]);
-    for (const each of [GW1, GW2, GW3, LAST_SEASON, POSTPONED]) await ctx.db.insert("fixtures", each);
     await ctx.db.insert("squadPlayers", { leagueId, teamId: teams[0], playerCode: SAKA.code });
-    for (const each of [
-      record(SAKA.code, GW1.code, { minutes: 90, goals_scored: 1, expected_goals: 0.71 }),
-      record(SAKA.code, GW2.code, { minutes: 64, goals_scored: 2, expected_goals: 0.43, assists: 1 }),
-      record(SAKA.code, LAST_SEASON.code, { minutes: 90, goals_scored: 3 }),
-      record(SAKA.code, POSTPONED.code, { minutes: 90, goals_scored: 5 }),
-      record(PALMER.code, GW1.code, { minutes: 90, assists: 2 }),
-      // An unused substitute.
-      record(PALMER.code, GW2.code, { minutes: 0 }, false),
-      record(PALMER.code, GW3.code, { minutes: 80, assists: 1, goals_scored: 1 }),
-      // Only FPL's part has arrived: a match he was in, whose stats don't count until whole.
-      record(SAKA.code, GW3.code, { minutes: 90, goals_scored: 4 }, true, false),
-    ]) {
-      await ctx.db.insert("playerMatchStats", each);
-    }
+    await ctx.db.insert("playerSeasonStats", { season: FPL_SEASON, playerCode: SAKA.code, stats: { minutes: 180, goals_scored: 3, assists: 1 } });
+    await ctx.db.insert("playerSeasonStats", { season: FPL_SEASON, playerCode: PALMER.code, stats: { minutes: 90, assists: 3 } });
   });
 });
 
-const compareAs = async (email: string, codes: number[]) => (await actingAs(t, email)).query(api.scouting.compare.players, { leagueId, codes });
+const compareAs = async (email: string, codes: number[]) => (await actingAs(t, email)).query(api.scouting.compare.players, { leagueId, codes, stat: null });
 
-test("two players side by side, in the order asked: who each is, his matches this season and his stats added up", async () => {
-  expect(await compareAs(ANN, [SAKA.code, PALMER.code])).toEqual([
-    {
-      code: SAKA.code,
-      name: "Saka",
-      fullName: "Bukayo Saka",
-      club: ARSENAL,
-      positions: ["W"],
-      ownerTeamName: await teamName(t, teams[0]),
-      seasonPoints: null,
-      matches: 3,
-      stats: { minutes: 154, goals_scored: 3, expected_goals: 1.14, assists: 1 },
-    },
-    {
-      code: PALMER.code,
-      name: "Palmer",
-      fullName: "Cole Palmer",
-      club: CHELSEA,
-      positions: ["CAM", "W"],
-      ownerTeamName: null,
-      seasonPoints: null,
-      matches: 2,
-      stats: { minutes: 170, assists: 3, goals_scored: 1 },
-    },
-  ]);
+test("two players side by side, in the order asked: who each is, his minutes and the first's area's stats, each total and per 90", async () => {
+  const [saka, palmer] = await compareAs(ANN, [SAKA.code, PALMER.code]);
+  expect(saka).toMatchObject({ code: SAKA.code, name: "Saka", fullName: "Bukayo Saka", club: ARSENAL, positions: ["W"], ownerTeamName: await teamName(t, teams[0]), seasonPoints: null, minutes: 180 });
+  expect(palmer).toMatchObject({ code: PALMER.code, name: "Palmer", club: CHELSEA, positions: ["CAM", "W"], ownerTeamName: null, seasonPoints: null, minutes: 90 });
+  expect(saka.figures.map(({ stat }) => stat)).toEqual(per90Stats("attackingMidfield", null));
+  expect(saka.figures[0]).toMatchObject({ stat: "goals_scored", total: 3, perNinety: 1.5 });
+  expect(palmer.figures[1]).toMatchObject({ stat: "assists", total: 3, perNinety: 3 });
 });
 
-test("a player with no match this season has none, and no stats", async () => {
+test("a player with no minutes has no figure per 90; with the first's position unknown, no rows at all", async () => {
   const [, newBoy] = await compareAs(ANN, [SAKA.code, NEW_BOY.code]);
-  expect(newBoy).toMatchObject({ code: NEW_BOY.code, matches: 0, stats: {} });
+  expect(newBoy.minutes).toBe(0);
+  expect(newBoy.figures[0]).toEqual({ stat: "goals_scored", total: 0, perNinety: null, percentile: null });
+  expect((await compareAs(ANN, [NEW_BOY.code, SAKA.code]))[1].figures).toEqual([]);
 });
 
 test.each([

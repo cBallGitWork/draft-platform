@@ -43,6 +43,13 @@ export function withFigures(players: readonly ListedPlayer[], figures: readonly 
 /** Words folded for Find: lower case with accents dropped, so "joao" finds João Pedro. */
 const folded = (words: string) => words.normalize("NFD").replace(/\p{Diacritic}/gu, "").toLowerCase();
 
+/** The players whose short or full name holds `typed`, folded as Find folds them: Scouting's name
+ *  box. Every player while it is empty. */
+export function namedPlayers<Player extends ListedPlayer>(players: readonly Player[], typed: string): Player[] {
+  const text = folded(typed.trim());
+  return text === "" ? [...players] : players.filter((player) => [player.name, player.fullName].some((each) => folded(each).includes(text)));
+}
+
 /** Whether Find's `text` names the player, in his short or full name, or his club's name or code. */
 const found = (player: ListedPlayer, text: string) =>
   [player.name, player.fullName, player.club.name, player.club.shortName].some((each) => folded(each).includes(text));
