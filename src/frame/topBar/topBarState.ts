@@ -7,7 +7,13 @@ import { menuWords } from "../words";
 // (convex/lineup/lineupDue.ts, #526); liveTopBar.tsx puts them together. Trades aren't built.
 
 export type NextStep = { path: string; reason: string };
-export type TopBarState = { unreadMail: number; next: NextStep | null };
+export type TopBarState = {
+  unreadMail: number;
+  next: NextStep | null;
+  /** The manager's pending waiver claims, which My team's Transactions tab counts while there are
+   *  any (#1200; Craig, 8 Nov 2026: "Yes 1 and 2"); none where not said. */
+  pendingClaims?: number;
+};
 
 /** Where Continue goes, in spec/12's order: an unread letter, then a lineup before the deadline
  *  (his Tactics tab, My team's own page); with neither, nowhere. */

@@ -8,6 +8,8 @@ import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
 import type { Id } from "../../../convex/_generated/dataModel";
 import { MY_TEAM_TRANSACTIONS_PATH } from "../../../src/frame/menu";
+import { pendingClaimsTabLabel, sectionTabsLabel } from "../../../src/frame/words";
+import { TRANSACTIONS_TITLE } from "../../../src/myTeam/words";
 import type { PendingClaim, WaiversView } from "../../../src/myTeam/claims/seam";
 import {
   claimPanelTitle,
@@ -108,6 +110,24 @@ describe("the pending claims", () => {
     expect(screen.queryByRole("img", { name: dragHandleLabel("Eze") })).toBeNull();
     await userEvent.click(screen.getByRole("button", { name: selectClaimLabel("Eze") }));
     expect(screen.queryByRole("button", { name: withdrawWords })).toBeNull();
+  });
+});
+
+describe("the Transactions tab's count (Craig, 8 Nov 2026: \"Yes 1 and 2\")", () => {
+  const transactionsTab = () => within(screen.getByRole("navigation", { name: sectionTabsLabel })).getByRole("link", { name: new RegExp(`^${TRANSACTIONS_TITLE}`) });
+
+  it("carries the manager's pending claims while there are any", async () => {
+    openApp(MY_TEAM_TRANSACTIONS_PATH, manager, { myTeam: { claims: CLAIMS, squad }, topBar: { unreadMail: 0, next: null, pendingClaims: 3 } });
+    await screen.findByRole("table", { name: claimsTableLabel });
+
+    expect(transactionsTab().textContent).toBe(`${TRANSACTIONS_TITLE}3`);
+    expect(transactionsTab().getAttribute("aria-label")).toBe(pendingClaimsTabLabel(TRANSACTIONS_TITLE, 3));
+  });
+
+  it("carries none without any", async () => {
+    open();
+    await screen.findByRole("table", { name: claimsTableLabel });
+    expect(transactionsTab().textContent).toBe(TRANSACTIONS_TITLE);
   });
 });
 

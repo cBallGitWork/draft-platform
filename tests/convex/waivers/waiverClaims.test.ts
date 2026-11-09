@@ -87,6 +87,16 @@ describe("a manager's claims", () => {
     await expectRefused(changeDrop(ANNS_SECOND_DROP), claimRefusals.twice);
   });
 
+  test("are counted for My team's Transactions tab: the caller's own, and none for someone running no team", async () => {
+    await w.onWaivers([SAKA, PALMER]);
+    await w.claim(ANN, SAKA);
+    await w.claim(ANN, PALMER);
+    await w.claim(BOB, SAKA);
+    const countOf = async (email: string) => (await actingAs(w.t, email)).query(api.waivers.waiverClaims.countMine, { leagueId: w.leagueId });
+
+    expect([await countOf(ANN), await countOf(BOB), await countOf(COMMISSIONER)]).toEqual([2, 1, 0]);
+  });
+
   test("list each player with his positions, club and points, and the run that can first take him", async () => {
     await w.onWaivers([SAKA]);
     await w.claim(ANN, SAKA);

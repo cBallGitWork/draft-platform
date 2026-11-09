@@ -7,7 +7,8 @@ import { positionsNow } from "../positions/playerPositions";
 import { latestRules } from "../rules/rulesHistory";
 import { clubRecord, position } from "../schema";
 import { takeAllOrThrow } from "../shared/cappedRead";
-import { managerOf, memberOf, powersIn, refuse, refusals, teamsOf } from "../shared/leagueAccess";
+import { leagueOpens } from "../leagues/leagueOpens";
+import { managerOf, memberOf, powersIn, refuse, refusals, signedInEmail, teamOf, teamsOf } from "../shared/leagueAccess";
 import { clubByCode, clubOf, heldPlayerByCode, playerByCode } from "../shared/players";
 import { placeOf } from "../squads/squadPlace";
 import { squadRefusals } from "../squads/squads";
@@ -140,6 +141,21 @@ export const rank = mutation({
     }
     for (const [rank, claimId] of claimIds.entries()) await ctx.db.patch("waiverClaims", claimId, { rank });
     return null;
+  },
+});
+
+/** How many pending claims the caller's own team has, for the count on My team's Transactions tab
+ *  (Craig, 8 Nov 2026, on #1200: "Yes 1 and 2"). The frame asks it on every page, so it answers 0,
+ *  never a refusal, for anyone signed out, outside the league or running no team in it. */
+export const countMine = query({
+  args: { leagueId: v.id("leagues") },
+  returns: v.number(),
+  handler: async (ctx, { leagueId }) => {
+    const email = await signedInEmail(ctx);
+    const league = await ctx.db.get("leagues", leagueId);
+    if (email === null || league === null || !leagueOpens(league)) return 0;
+    const team = await teamOf(ctx, leagueId, email);
+    return team === undefined ? 0 : (await claimsOf(ctx, leagueId, team._id)).length;
   },
 });
 
