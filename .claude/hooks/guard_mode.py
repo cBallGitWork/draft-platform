@@ -4,7 +4,7 @@ crafting on scoring, and instead youve tried built it and its destroyed the proj
 command that files, specs, starts or ships work (gh issue create or edit, gh pr create, ready or
 merge, gh workflow run, the GitHub tool's writes, and an edit to SPEC.md or spec/) is denied unless
 Craig's latest message in this session (last_prompt.py) says to act: one of GO_WORDS, as "build it",
-"go ahead", "file it", "ship it", "merge", a bare "File" or "yes", or a slash command, which is an instruction by itself.
+"go ahead", "file it", "ship it", "merge it" (merge and the verbs after a yes need an object), a bare "File" or "yes", or a slash command, which is an instruction by itself.
 Without his message on record (a cloud builder, whose whole run is a build Craig or the lead started)
 nothing is gated. Reads and git are never gated: a branch, a commit and a push are the session's own
 and publish nothing. Stdlib only, Python 3.9+.
