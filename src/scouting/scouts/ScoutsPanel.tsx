@@ -91,7 +91,7 @@ export function ScoutsPanel({ leagueId, seam, read }: { leagueId: Id<"leagues">;
 
 function ReadButton({ report, read }: { report: TeamReport; read: (report: TeamReport) => void }) {
   return (
-    <button type="button" onClick={() => read(report)} aria-label={readNamedLabel(report.name, report.writtenAt)} className="ml-auto hover:underline">
+    <button type="button" onClick={() => read(report)} aria-label={readNamedLabel(report.name, report.writtenAt)} className="ml-auto min-h-tap min-w-tap hover:underline">
       {readWords}
     </button>
   );
