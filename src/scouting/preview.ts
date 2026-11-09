@@ -84,5 +84,6 @@ export const previewScouting: ScoutingSeam = {
       filters,
       sort,
     ),
+    pointsSeason: null,
   }),
 };
