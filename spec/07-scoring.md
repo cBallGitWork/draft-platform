@@ -7,9 +7,18 @@ approved its rows (6 Nov 2026, #454).
 - Only stats from Sportmonks, the football data's feed (SPEC, *What it is*; Craig, 9 Nov 2026),
   in place of FPL's and the Premier League's public APIs. What can be scored and how:
   [14. Scoring categories](14-scoring-categories.md). `S07.7`
+- Sportmonks replaces FPL's and the Premier League's public APIs: "stop with fpl and prem, thats
+  not scalable". It is the one feed, with the same stats and scoring in every competition: "which
+  is good but we want a universal experience" (Craig, 9 Nov 2026, on #1196). Until the switch
+  (`spec/20`), the match stats rules below still read both. `S07.8`
 - Points move live during matches, provisional until final.
 - Stat corrections: points stay open for a fixed window after a match, then lock. The window
   is a platform setting, not a league rule.
+- A gameweek is a date window: gameweek N is Sportmonks' round N as first scheduled, running from
+  its deadline to the next gameweek's deadline. Each match counts in the gameweek it kicks off in,
+  the same rule in every competition, so a rearranged match makes a double or a blank week;
+  Sportmonks' rounds aren't followed for that. The admin can move a match (Craig, 9 Nov 2026, on
+  #1196). `S07.9`
 - A player in a double gameweek scores per the league's rule (see [3. League rules](03-league-rules.md)).
 - A team always has a lineup, carried over week to week, as in FPL or Fantrax: there is no "no
   lineup" state (Craig, 29 Oct 2026).
@@ -30,6 +39,9 @@ approved its rows (6 Nov 2026, #454).
   sheets, goals conceded and penalties; the Premier League's for every other stat. That split is
   for now: Craig is investigating the best ways to get them. `S07.5`
 - FPL's bonus points and BPS aren't stored. `S07.6`
+- At the switch to Sportmonks (`spec/20`), the two answers above that name both feeds (`S07.1`'s
+  "both feeds" and `S07.5`'s split) are withdrawn: one feed sends every stat, so a match stops
+  being provisional once it has sent every player who played (Craig, 9 Nov 2026, on #1196). `S07.10`
 
 ### Examples
 

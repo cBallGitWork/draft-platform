@@ -33,8 +33,9 @@ Among them:
   off by default.
 - Carry-over: redraft, keeper (the league sets how many each team keeps; keeping costs nothing)
   or dynasty (the whole squad carries over).
-- The deadline: when it falls, as a time before the gameweek's first kickoff, starting at FPL's
-  own, 90 minutes before (see [5. Tactics](05-tactics.md)).
+- The deadline: when it falls, as a time before the gameweek's first kickoff, starting at 15
+  minutes before: "i have said multiple times we dont use fpls time, its 15 minutes" (Craig,
+  9 Nov 2026, on #1196; see [5. Tactics](05-tactics.md)). `S03.3`
 - Each area's minimum and maximum on the pitch, and the formation presets.
 - Double gameweeks: both matches count (the default), or best match.
 - Waivers: when they run, set by the league; can be more than once a week, Wednesday and Thursday
