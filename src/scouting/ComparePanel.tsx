@@ -76,7 +76,7 @@ export function ComparePanel({
   );
 }
 
-const CELL = "px-2 text-right";
+const CELL = "whitespace-nowrap px-2 text-right";
 
 /** The points' cell: "—", saying why on hover, while none is priced. */
 function PointsCell({ points, pointsSeason }: { points: number | null; pointsSeason: number | null }) {
@@ -108,7 +108,7 @@ function SideBySide({
   /** A row naming what it is, then each player's total (and, for a stat, his per 90 and bar). */
   const row = (label: string, title: string | undefined, cells: (player: ComparedPlayer, at: number) => ReactNode) => (
     <tr key={label} className="border-t border-panel-rule">
-      <th scope="row" title={title} className="px-3 py-1 text-left font-normal text-soft">
+      <th scope="row" title={title} className="whitespace-nowrap px-3 py-1 text-left font-normal text-soft">
         {label}
       </th>
       {comparison.map((player, at) => cells(player, at))}
@@ -124,7 +124,7 @@ function SideBySide({
     <>
       <table className="w-full border-collapse">
         <thead>
-          <tr className="bg-name-plate">
+          <tr>
             <td />
             {comparison.map((player) => (
               <th key={player.code} scope="colgroup" colSpan={3} title={player.fullName} className="px-2 py-1 text-left font-normal">

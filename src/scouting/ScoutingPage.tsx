@@ -123,7 +123,8 @@ function PlayersTab({ league, seam }: { league: LeagueSummary; seam: ScoutingSea
         )}
       </section>
       <div className="flex min-w-0 flex-col gap-2">
-        {shownSelected !== null && (
+        {/* Compare takes his panel's place at the top of the column (the approved picture); closing it brings the panel back. */}
+        {shownSelected !== null && compared === null && (
           <SelectedPlayer
             key={shownSelected.code}
             leagueId={league.leagueId}
@@ -143,6 +144,7 @@ function PlayersTab({ league, seam }: { league: LeagueSummary; seam: ScoutingSea
         )}
         {compared !== null && (
           <ComparePanel
+            key={compared.join()}
             leagueId={league.leagueId}
             comparison={comparison}
             pointsSeason={list?.pointsSeason ?? null}
