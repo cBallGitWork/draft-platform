@@ -23,7 +23,7 @@ Convex deploys, or lists one it doesn't: after adding, moving or deleting a file
 `npm test` runs the three Vitest projects (`vitest.config.ts` holds their include patterns); a
 file that matches none of them never runs. `npm run verify` runs them with the install check, the
 type check, the lint step, the recorded-payload check, the tests-kept check, the spec-ID check, the
-contents-list check and the hook checks; CI also runs `npm run build` and `npm run smoke`.
+contents-list check and the hook checks; CI also runs `npm run build`, `npm run smoke` and actionlint on the workflows.
 
 ## What `tests/support/` holds
 
