@@ -1,5 +1,6 @@
 import { expect, test } from "vitest";
 import { api } from "../../../convex/_generated/api";
+import { FIRST_SCORING } from "../../../convex/scoring/firstScoring";
 import { refusals } from "../../../convex/shared/leagueAccess";
 import { actingAs, OUTSIDER } from "../../support/convex/leagues.harness";
 import { expectRefused } from "../../support/convex/test.harness";
@@ -54,6 +55,13 @@ test("only the catalogue's stats are shown: FPL's own bonus never is", async () 
   const anns = (await race(league, "goals_scored")).find((team) => team.name === ANNS_TEAM)!;
   expect(anns.stats).toEqual({ goals_scored: 3, clean_sheets: 1 });
   await expect(race(league, "bonus")).rejects.toThrow("No stat bonus is in the catalogue");
+});
+
+test("the categories are the stats the site's scoring scores, in its order, minutes left out", async () => {
+  const categories = (await raceOf(await scoresLeague(), "goals_scored")).categories;
+  const scored = [...new Set(FIRST_SCORING.rules.map((rule) => rule.stat))].filter((stat) => stat !== "minutes");
+  expect(categories).toEqual(scored);
+  expect(categories).toContain("clean_sheets");
 });
 
 test("a league whose first begun gameweek is after FPL's first says where its totals start", async () => {

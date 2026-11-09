@@ -3,12 +3,13 @@ import { query } from "../_generated/server";
 import { begunGameweeks } from "../gameweekScorer/gameweekScores";
 import { FIRST_GAMEWEEK } from "../gameweeks/usedGameweeks";
 import { CATALOGUE_STATS, checkCatalogueStat } from "../scoring/statCatalogue";
+import { setOf, siteVersions } from "../scoring/siteVersions";
 import { memberOf, teamsOf } from "../shared/leagueAccess";
 import type { Stats } from "../stats/statTotals";
 import { teamTotals } from "../stats/teamSeasonTotals";
 
 // Scouting's stat race (#800, spec/19 The stat race): each of the league's teams with its season
-// total in every stat of the catalogue, counting only its starters and the bench players who came
+// total in every stat of the catalogue, and the scoring categories the screen races them in, counting only its starters and the bench players who came
 // on (teamSeasonStats.ts), ranked by the stat the manager picks. Raw stats, not points. Totals are
 // added once a gameweek is final, so the gameweek in play joins them about an hour after its last
 // match, when that match locks (spec/07).
@@ -23,7 +24,13 @@ const racingTeam = v.object({
 });
 export type RacingTeam = Infer<typeof racingTeam>;
 
+/** Minutes are scored (appearance points) but never raced: the approved picture leaves them out. */
+const NOT_RACED: ReadonlySet<string> = new Set(["minutes"]);
+
 const statRace = v.object({
+  /** The scoring categories, by the stat's key: each catalogue stat the site's scoring set scores
+   *  (its newest version, as Player scoring shows it), in the set's order, minutes left out. */
+  categories: v.array(v.string()),
   /** The league's first begun gameweek when it is after FPL's first, as a league drafted
    *  mid-season counts from there (Craig, 6 Nov 2026, on #800: "Since GW10"); null otherwise, and
    *  before any gameweek has begun. */
@@ -49,7 +56,9 @@ export const teams = query({
     const direction = descending ? -1 : 1;
     rows.sort((one, other) => direction * (one.stat - other.stat) || one.name.localeCompare(other.name));
     const first = (await begunGameweeks(ctx, league))[0];
-    return { since: first !== undefined && first > FIRST_GAMEWEEK ? first : null, teams: rows };
+    const scored = setOf((await siteVersions(ctx)).at(-1)).rules.map((rule) => rule.stat);
+    const categories = [...new Set(scored)].filter((each) => CATALOGUE_STATS.has(each) && !NOT_RACED.has(each));
+    return { categories, since: first !== undefined && first > FIRST_GAMEWEEK ? first : null, teams: rows };
   },
 });
 
