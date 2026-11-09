@@ -8,21 +8,31 @@ import { expect, test, vi } from "vitest";
 import { FIRST_RULES } from "../../../convex/rules/firstRules";
 import { leagueSettingsOf, type LeagueSettings } from "../../../convex/rules/leagueSettingsPart";
 import { useLiveLeagueSettings } from "../../../src/leagueSettings/liveSettings";
-import { saveFailedWords, teamOrderFailedWords } from "../../../src/leagueSettings/words";
+import { saveFailedWords, scoringStartFailedWords, teamOrderFailedWords } from "../../../src/leagueSettings/words";
+import { scoringStartRefusals } from "../../../convex/gameweeks/scoringStart";
 import type { Id } from "../../../convex/_generated/dataModel";
 import { draftOrderRefusals } from "../../../convex/draft/draftOrder";
 import { silenceConsoleError } from "../../support/console.setup";
 import { REVISION as revision } from "../../support/src/leagueSettings.harness";
 import { A_LEAGUE_ID } from "../../support/src/convexReact.harness";
 
-const convex = vi.hoisted(() => ({ settings: vi.fn(), changeSettings: vi.fn(), teamOrder: vi.fn(), setTeamOrder: vi.fn(), drawTeamOrder: vi.fn() }));
+const convex = vi.hoisted(() => ({
+  settings: vi.fn(),
+  changeSettings: vi.fn(),
+  teamOrder: vi.fn(),
+  setTeamOrder: vi.fn(),
+  drawTeamOrder: vi.fn(),
+  scoringStart: vi.fn(),
+  setScoringStart: vi.fn(),
+}));
 vi.mock("convex/react", async () =>
   (await import("../../support/src/convexReact.harness")).fakeConvexReact({
-    queries: { "rules/leagueSettings:settings": convex.settings, "draft/draftOrder:teamOrder": convex.teamOrder },
+    queries: { "rules/leagueSettings:settings": convex.settings, "draft/draftOrder:teamOrder": convex.teamOrder, "gameweeks/scoringStart:ofLeague": convex.scoringStart },
     mutations: {
       "rules/leagueSettings:changeSettings": convex.changeSettings,
       "draft/draftOrder:setTeamOrder": convex.setTeamOrder,
       "draft/draftOrder:drawTeamOrder": convex.drawTeamOrder,
+      "gameweeks/scoringStart:setScoringStart": convex.setScoringStart,
     },
   }),
 );
@@ -97,4 +107,27 @@ test("drawing the draft order calls draft/draftOrder:drawTeamOrder, and resolves
   const logged = silenceConsoleError();
   expect(await seam().drawTeamOrder(A_LEAGUE_ID)).toBe(teamOrderFailedWords);
   expect(logged).toHaveBeenCalledWith("Drawing the draft order failed:", failure);
+});
+
+test("the scoring start is read from gameweeks/scoringStart:ofLeague", () => {
+  const view = { start: 8, ticked: [{ gameweek: 8, deadline: null }] };
+  convex.scoringStart.mockReturnValue(view);
+
+  expect(renderHook(() => useLiveLeagueSettings().useScoringStart(A_LEAGUE_ID)).result.current).toBe(view);
+  expect(convex.scoringStart).toHaveBeenLastCalledWith({ leagueId: A_LEAGUE_ID });
+});
+
+test("setting the scoring start calls gameweeks/scoringStart:setScoringStart, and resolves with null, the server's refusal, or the failure said plainly", async () => {
+  convex.setScoringStart.mockResolvedValueOnce(null);
+  expect(await seam().setScoringStart(A_LEAGUE_ID, 8)).toBeNull();
+  expect(convex.setScoringStart).toHaveBeenCalledExactlyOnceWith({ leagueId: A_LEAGUE_ID, gameweek: 8 });
+
+  convex.setScoringStart.mockRejectedValueOnce(new ConvexError(scoringStartRefusals.begun(8)));
+  expect(await seam().setScoringStart(A_LEAGUE_ID, 8)).toBe(scoringStartRefusals.begun(8));
+
+  const failure = new Error("offline");
+  convex.setScoringStart.mockRejectedValueOnce(failure);
+  const logged = silenceConsoleError();
+  expect(await seam().setScoringStart(A_LEAGUE_ID, 8)).toBe(scoringStartFailedWords);
+  expect(logged).toHaveBeenCalledWith("Setting the scoring start failed:", failure);
 });
