@@ -23,8 +23,7 @@ import { onAutoTeam, tradesShut } from "./tradeShut";
 // waits on and the squad limits it would break for him; and every team's squad to make an offer
 // from, a player held in a trade under review marked.
 
-export type { TradedPlayer };
-export type { ClosedOffer };
+export type { ClosedOffer, TradedPlayer };
 
 /** Who reviews a trade: the commissioner or the co-commissioner by veto, or a league vote. */
 const reviewer = v.union(
