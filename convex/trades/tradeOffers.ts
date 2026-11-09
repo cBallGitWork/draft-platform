@@ -9,7 +9,7 @@ import { managerOf, refuse, refusals, teamIn } from "../shared/leagueAccess";
 import { playerByCode } from "../shared/players";
 import { placeOf } from "../squads/squadPlace";
 import { squadWarning } from "../squads/squads";
-import { closeOffer, deadlinePassed, leagueOffers, reviewHolding, tradeWordsOf } from "./tradeClose";
+import { closeOffer, deadlinePassed, endOffer, leagueOffers, reviewHolding, tradeWordsOf } from "./tradeClose";
 import { startReview, tradeWarnings } from "./tradeReview";
 import { NOTE_MOST } from "./tradeLimits";
 import { checkPicks, checkPicksFree, type TradePicks } from "./tradePicks";
@@ -196,7 +196,7 @@ export const counter = mutation({
   handler: async (ctx, { leagueId, offerId, ...terms }) => {
     const { email, league, team, offer } = await offerToMe(ctx, leagueId, offerId);
     const to = await teamIn(ctx, leagueId, offer.fromTeamId);
-    await ctx.db.delete("tradeOffers", offer._id);
+    await endOffer(ctx, offer, "countered");
     return makeOffer(ctx, league, email, team, to, terms, true);
   },
 });

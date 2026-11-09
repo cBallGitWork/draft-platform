@@ -1,4 +1,5 @@
-import { v } from "convex/values";
+import { v, type Infer } from "convex/values";
+import type { closedWhy } from "../schema/trades";
 import type { Doc, Id } from "../_generated/dataModel";
 import { internalMutation, type MutationCtx, type QueryCtx } from "../_generated/server";
 import { leagueDeadlines } from "../gameweeks/leagueDeadlines";
@@ -84,10 +85,30 @@ export async function leagueOf(ctx: QueryCtx, leagueId: Id<"leagues">): Promise<
   return league;
 }
 
+/** Ends an offer that didn't go through: it leaves the open offers and is kept, with why, for the
+ *  Trades screen's Closed offers. Its letters are the caller's. */
+export async function endOffer(ctx: MutationCtx, offer: Doc<"tradeOffers">, why: Infer<typeof closedWhy>): Promise<void> {
+  await ctx.db.delete("tradeOffers", offer._id);
+  const { leagueId, fromTeamId, toTeamId, gives, gets, picks, note, by, madeAt } = offer;
+  await ctx.db.insert("closedTradeOffers", {
+    leagueId,
+    fromTeamId,
+    toTeamId,
+    gives,
+    gets,
+    ...(picks === undefined ? {} : { picks }),
+    ...(note === undefined ? {} : { note }),
+    by,
+    madeAt,
+    closedAt: Date.now(),
+    why,
+  });
+}
+
 /** Closes an open offer, telling both managers why: the copy to `by`, who closed it, filed read. */
 export async function closeOffer(ctx: MutationCtx, offer: Doc<"tradeOffers">, closed: OfferClosed, by?: string): Promise<void> {
   const words = await tradeWordsOf(ctx, offer);
-  await ctx.db.delete("tradeOffers", offer._id);
+  await endOffer(ctx, offer, closed.why);
   await fileLetter(ctx, await leagueOf(ctx, offer.leagueId), await managersOf(ctx, offer), offerClosedLetter(words, closed), by);
 }
 
