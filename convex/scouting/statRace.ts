@@ -1,5 +1,7 @@
 import { v, type Infer } from "convex/values";
 import { query } from "../_generated/server";
+import { begunGameweeks } from "../gameweekScorer/gameweekScores";
+import { FIRST_GAMEWEEK } from "../gameweeks/usedGameweeks";
 import { CATALOGUE_STATS, checkCatalogueStat } from "../scoring/statCatalogue";
 import { memberOf, teamsOf } from "../shared/leagueAccess";
 import type { Stats } from "../stats/statTotals";
@@ -21,13 +23,23 @@ const racingTeam = v.object({
 });
 export type RacingTeam = Infer<typeof racingTeam>;
 
-/** Every team in the league, most of `stat` first (fewest with `descending` false), ties by name.
- *  Anyone not in the league is refused, as is a stat the catalogue doesn't hold. */
+const statRace = v.object({
+  /** The league's first begun gameweek when it is after FPL's first, as a league drafted
+   *  mid-season counts from there (Craig, 6 Nov 2026, on #800: "Since GW10"); null otherwise, and
+   *  before any gameweek has begun. */
+  since: v.union(v.number(), v.null()),
+  teams: v.array(racingTeam),
+});
+export type StatRace = Infer<typeof statRace>;
+
+/** Every team in the league, most of `stat` first (fewest with `descending` false), ties by name,
+ *  and the gameweek its totals start in. Anyone not in the league is refused, as is a stat the
+ *  catalogue doesn't hold. */
 export const teams = query({
   args: { leagueId: v.id("leagues"), stat: v.string(), descending: v.boolean() },
-  returns: v.array(racingTeam),
+  returns: statRace,
   handler: async (ctx, { leagueId, stat, descending }) => {
-    await memberOf(ctx, leagueId);
+    const { league } = await memberOf(ctx, leagueId);
     checkCatalogueStat(stat);
     const totals = await teamTotals(ctx, leagueId);
     const rows = (await teamsOf(ctx, leagueId)).map((team) => {
@@ -35,7 +47,9 @@ export const teams = query({
       return { teamId: team._id, name: team.name, stats, stat: stats[stat] ?? 0 };
     });
     const direction = descending ? -1 : 1;
-    return rows.sort((one, other) => direction * (one.stat - other.stat) || one.name.localeCompare(other.name));
+    rows.sort((one, other) => direction * (one.stat - other.stat) || one.name.localeCompare(other.name));
+    const first = (await begunGameweeks(ctx, league))[0];
+    return { since: first !== undefined && first > FIRST_GAMEWEEK ? first : null, teams: rows };
   },
 });
 
