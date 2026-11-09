@@ -62,3 +62,4 @@ Named after its route: `team` for `/team`, `team-squad` for `/team/squad`.
   offer (8 Nov 2026).
 - [`settings`](settings/README.md): League settings' Fixtures (with the scoring start), Squad, Draft,
   Trades and Draft order tabs; its Waivers tab is in `waivers` (9 Nov 2026).
+- [`mail`](mail/README.md): Mail, a trade offer open (9 Nov 2026).

@@ -131,6 +131,16 @@ test("a lineup type or a stat value not seen before throws, naming it, rather th
   expect(() => mapSportmonksMatch(shaped)).toThrow(`Sportmonks sent stat 119 for player ${SM.schmeichel} in match ${SM.oldFirm} as {"total":67}`);
 });
 
+test("the defensive, keeper and possession stats a Scottish starter carried (9 Nov 2026, #1391) are mapped, not marked missing", () => {
+  // Type ids from the starters' `lineups.details` in three finished Scottish Premiership matches.
+  const sent: Record<string, number> = {
+    aerial_lost: 27266, backward_pass: 27272, ball_recovery: 27271, challenge_lost: 110, duel_lost: 1491,
+    error_lead_to_shot: 48997, good_high_claim: 584, last_man_tackle: 583, poss_lost_all: 27273, punches: 103,
+    recoveries: 27271, won_tackle: 27267,
+  };
+  for (const [stat, id] of Object.entries(sent)) expect(SPORTMONKS_STAT_TYPES[stat]).toBe(id);
+});
+
 test("every catalogue stat has its Sportmonks type id or is marked missing, in one table, and nothing else is in it", () => {
   const catalogue = STAT_CATALOGUE.map(({ stat }) => stat).sort();
   expect(Object.keys(SPORTMONKS_STAT_TYPES).sort()).toEqual(catalogue);

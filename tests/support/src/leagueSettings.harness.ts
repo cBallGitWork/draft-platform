@@ -2,6 +2,7 @@
 
 import { vi } from "vitest";
 import type { Id } from "../../../convex/_generated/dataModel";
+import type { ScoringStartView } from "../../../convex/gameweeks/scoringStart";
 import { FIRST_RULES } from "../../../convex/rules/firstRules";
 import { leagueSettingsOf } from "../../../convex/rules/leagueSettingsPart";
 import type { LeagueSettingsSeam, SettingsView, TeamInOrder } from "../../../src/leagueSettings/seam";
@@ -22,7 +23,15 @@ export const TEAMS_IN_ORDER: TeamInOrder[] = ["Saka Potatoes", "Kroos Control", 
 /** What the fake server holds: the settings as `view` says, the first rules' by default; null for
  *  a league with no rules; `loading` keeps them on their way (undefined). `teamOrder` is the
  *  draft order, TEAMS_IN_ORDER by default; `draftStarted` fixes it. */
-export type LeagueSettingsData = { view?: SettingsView | null; loading?: boolean; teamOrder?: TeamInOrder[]; draftStarted?: boolean; waivers?: WaiversView | null };
+export type LeagueSettingsData = {
+  view?: SettingsView | null;
+  loading?: boolean;
+  teamOrder?: TeamInOrder[];
+  draftStarted?: boolean;
+  waivers?: WaiversView | null;
+  /** The scoring start and the ticked gameweeks: none set and none ticked unless a test says. */
+  scoringStart?: ScoringStartView;
+};
 
 /** Saving succeeds from CHANGES_FROM, and a draft order at once, unless a test says otherwise. */
 export function fakeLeagueSettings({
@@ -31,6 +40,7 @@ export function fakeLeagueSettings({
   teamOrder = TEAMS_IN_ORDER,
   draftStarted = false,
   waivers = NO_WAIVERS,
+  scoringStart = { start: null, ticked: [] },
 }: LeagueSettingsData = {}) {
   return {
     useSettings: vi.fn<LeagueSettingsSeam["useSettings"]>(() => (loading ? undefined : view)),
@@ -38,6 +48,8 @@ export function fakeLeagueSettings({
     useTeamOrder: vi.fn<LeagueSettingsSeam["useTeamOrder"]>(() => ({ teams: teamOrder, started: draftStarted })),
     saveTeamOrder: vi.fn<LeagueSettingsSeam["saveTeamOrder"]>(async () => null),
     drawTeamOrder: vi.fn<LeagueSettingsSeam["drawTeamOrder"]>(async () => null),
+    useScoringStart: vi.fn<LeagueSettingsSeam["useScoringStart"]>(() => scoringStart),
+    setScoringStart: vi.fn<LeagueSettingsSeam["setScoringStart"]>(async () => null),
     useWaivers: vi.fn<LeagueSettingsSeam["useWaivers"]>(() => waivers),
   };
 }
