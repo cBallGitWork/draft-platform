@@ -5,8 +5,7 @@
 import { screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
-import type { ScoringStartView } from "../../../convex/gameweeks/scoringStart";
-import { scoringStartRefusals } from "../../../convex/gameweeks/scoringStart";
+import { scoringStartRefusals, type ScoringStartView } from "../../../convex/gameweeks/scoringStart";
 import { HOUR_MS, WEEK_MS } from "../../../convex/shared/time";
 import { noScoringStartChoicesWords, noScoringStartWords, scoringStartLabel } from "../../../src/leagueSettings/words";
 import { descriptionOf } from "../../support/src/describedBy";
