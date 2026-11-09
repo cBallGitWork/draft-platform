@@ -134,7 +134,7 @@
      approved picture), and a label beside its value */
   --grid-template-columns-sides: minmax(0, 1fr) auto minmax(0, 1fr);
   --grid-template-columns-dated-row: auto minmax(0, 1fr);
-  --grid-template-columns-home: minmax(0, 2fr) minmax(0, 3fr) minmax(0, 2fr);
+  --grid-template-columns-home: minmax(0, 1fr) minmax(0, 2.1fr) minmax(0, 1fr);
   --grid-template-columns-card: 18.75rem minmax(0, 1fr) 21.25rem;
   /* League home's News tab: the moves, and the selected one's detail (approved/home/1440-news.png) */
   --grid-template-columns-news: minmax(0, 5fr) minmax(0, 2fr);

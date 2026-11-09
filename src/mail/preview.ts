@@ -4,6 +4,7 @@
 
 import type { Id } from "../../convex/_generated/dataModel";
 import type { LetterSummary } from "../../convex/mail/mail";
+import { LATEST_LETTERS } from "../../convex/mail/mailLimits";
 import { HOUR_MS } from "../../convex/shared/time";
 import { nextStep, type TopBarState } from "../frame/topBar/topBarState";
 import { manager, previewSays, proLeague } from "../shared/preview";
@@ -55,3 +56,7 @@ export const previewMail: MailSeam = {
 const unreadMail = previewLetters.filter((each) => !each.read).length;
 // The preview's lineup locks more than a day off (myTeam/tactics/preview.ts), so it isn't due yet.
 export const previewTopBar: TopBarState = { unreadMail, next: nextStep({ unreadMail, lineupDue: false }) };
+
+/** The newest letters a screen's Mail panel shows (My team's Squad tab, League home), and how many
+ *  are unread. */
+export const previewLatestMail = { letters: previewLetters.slice(0, LATEST_LETTERS), unread: unreadMail };
