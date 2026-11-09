@@ -11,6 +11,7 @@ import { DAY_MS, WEEK_MS } from "../../convex/shared/time";
 import { ARSENAL, CHELSEA, LIVERPOOL, previewPlayers, previewShortlist } from "../scouting/preview";
 import { previewScouts } from "../scouting/scouts/preview";
 import { previewSays, proLeague } from "../shared/preview";
+import { previewIdOf } from "../table/preview";
 import type { CardAction, PlayedMatch, PlayerCard, PlayerCardSeam, WaiverChanges } from "./seam";
 
 const CLUBS = [ARSENAL, CHELSEA, LIVERPOOL];
@@ -100,6 +101,7 @@ function cardOf(player: (typeof previewPlayers)[number]): PlayerCard {
     positions: player.positions,
     pricedAt: cardPositions(player.positions),
     ownerTeamName: player.ownerTeamName,
+    ownerTeamId: player.ownerTeamName === null ? null : previewIdOf(player.ownerTeamName),
     news: injured ? "Hamstring injury - 75% chance of playing" : null,
     chanceOfPlaying: injured ? 75 : null,
     matches: matchesOf(player),

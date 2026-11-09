@@ -166,7 +166,7 @@ export function squadForm(matches: readonly PricedMatch[], begun: readonly numbe
 }
 
 /** Where a player's first position falls in POSITIONS, back to front; one with none goes last. */
-const positionOrder = ({ positions }: Pick<SquadRow, "positions">) => positionRank(positions[0] ?? null);
+export const positionOrder = ({ positions }: Pick<SquadRow, "positions">) => positionRank(positions[0] ?? null);
 
 /** The caller's team's squad at `now`, the screen's minute (a query may not read the clock),
  *  back to front by his first position, then by name. Refused for anyone who runs no team. */
@@ -234,7 +234,7 @@ export const ofMyTeam = query({
  *  Storing a gameweek's priced matches once final, as finalScores.ts does the totals, is the way on
  *  if it grows. Beside it the read adds one season-totals row a player and the league's rules, and
  *  reads the matches ahead until every club has three, so it grows with the squad, never the league. */
-async function pricer(ctx: QueryCtx, league: Doc<"leagues">, teamId: Id<"teams">) {
+export async function pricer(ctx: QueryCtx, league: Doc<"leagues">, teamId: Id<"teams">) {
   const scored = await scoredMatches(ctx, league, teamId);
   return async (code: number, positions: readonly Position[]): Promise<(PricedMatch & ElevenMatch)[]> =>
     (await scored.of({ code, positions })).map(({ gameweek, points, counted, inEleven }) => ({

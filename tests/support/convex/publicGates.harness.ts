@@ -170,6 +170,7 @@ export const gates: Record<string, Gate> = {
   "signIn/account:signedInAs": "signedInOrNothing",
   "signIn/signInLinks:ask": "open",
   "signIn/timeZone:recordZone": "signedIn",
+  "squads/otherSquad:ofTeam": "member",
   "squads/squadNumbers:set": "manager",
   "squads/squads:assign": "runner",
   "squads/squads:findPlayers": "runner",
