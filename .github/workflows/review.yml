@@ -7,7 +7,7 @@
 name: review
 # The pull request's number in the run's title: review-gate reads it back from a run started by hand, which GitHub ties
 # to no pull request, so the gate holds or passes that one pull request only.
-run-name: review #${{ github.event.pull_request.number || inputs.pr }}
+run-name: "review #${{ github.event.pull_request.number || inputs.pr }}"
 
 on:
   pull_request:
