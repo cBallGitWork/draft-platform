@@ -11,13 +11,13 @@ import { RECAP_PATH } from "../../../src/home/paths";
 import {
   backHomeLink,
   changedMatchupLink,
-  LETTER_TITLE,
   loadingRecapWords,
   noRecapWords,
   readRecapLink,
   recapTitle,
+  recapToComeWords,
   scoreChangedWords,
-  TABLE_TITLE,
+  SQUAD_NEWS_TITLE,
 } from "../../../src/home/words";
 import { gameweekOneRecap, quietHome, type HomeData } from "../../support/src/home.harness";
 import { league, manager, openApp } from "../../support/src/shell.harness";
@@ -29,11 +29,11 @@ const openRecap = (gameweek: number, home: HomeData = {}) => openApp(`${RECAP_PA
 const changed = { ...gameweekOneRecap, changedTeamId: "team-2" as Id<"teams"> };
 
 describe("on League home", () => {
-  it("shows its opening lines above the commissioner's letter, and Read the recap opens it whole", async () => {
+  it("shows its opening lines above Your squad news, and Read the recap opens it whole", async () => {
     const app = openHome({ leagueHome: { ...quietHome, recap: gameweekOneRecap }, recaps: [gameweekOneRecap] });
     const recap = await panel(TITLE);
     expect(within(recap).getByText(/Team 1 beat Team 2/)).toBeTruthy();
-    expect(recap.compareDocumentPosition(await panel(LETTER_TITLE)) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(recap.compareDocumentPosition(await panel(SQUAD_NEWS_TITLE)) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
     expect(within(recap).queryByText(scoreChangedWords)).toBeNull();
 
     await userEvent.click(within(recap).getByRole("link", { name: readRecapLink }));
@@ -42,10 +42,11 @@ describe("on League home", () => {
     expect(app.home.useRecap).toHaveBeenLastCalledWith(league.leagueId, gameweekOneRecap.gameweek);
   });
 
-  it("with none to show, there is no recap panel", async () => {
+  it("with none to show, its panel holds outlines, with no Read the recap", async () => {
     openHome({ leagueHome: quietHome });
-    await panel(TABLE_TITLE);
-    expect(screen.queryByRole("region", { name: TITLE })).toBeNull();
+    const recap = await panel(TITLE);
+    expect(within(recap).getByText(recapToComeWords(gameweekOneRecap.gameweek))).toBeTruthy();
+    expect(within(recap).queryByRole("link", { name: readRecapLink })).toBeNull();
   });
 
   it("once a score has changed since, a line under it says so and opens that team's matchup", async () => {
@@ -86,7 +87,7 @@ describe("Read the recap's page", () => {
 
   it("with no gameweek named, goes to League home", async () => {
     const app = openApp(RECAP_PATH, manager);
-    await screen.findByRole("heading", { level: 1, name: /League home/ });
+    await screen.findByRole("heading", { level: 1, name: league.name });
     expect(app.path()).toBe(HOME_PATH);
   });
 });

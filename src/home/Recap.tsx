@@ -2,7 +2,8 @@ import { Link } from "@tanstack/react-router";
 import type { LeagueSummary } from "../../convex/leagues/myLeagues";
 import { DateBlock } from "../mail/DateBlock";
 import { matchupLink } from "../matchup/paths";
-import { Loading, PAGE_STACK, PageSection, Panel, PanelNote } from "../ui/Panel";
+import { Loading, PAGE_STACK, PageSection, PanelNote } from "../ui/Panel";
+import { FoldingPanel } from "./FoldingPanel";
 import { PanelLink } from "./PanelLink";
 import { recapLink } from "./paths";
 import type { HomeSeam, Recap } from "./seam";
@@ -29,11 +30,11 @@ function ScoreChanged({ recap }: { recap: Recap }) {
 /** The recap on League home: its opening lines, and Read the recap. */
 export function RecapPanel({ recap }: { recap: Recap }) {
   return (
-    <Panel title={recapTitle(recap.gameweek)}>
+    <FoldingPanel title={recapTitle(recap.gameweek)}>
       <p className="line-clamp-4 whitespace-pre-line px-3 pt-2">{recap.text}</p>
       <ScoreChanged recap={recap} />
       <PanelLink {...recapLink(recap.gameweek)}>{readRecapLink}</PanelLink>
-    </Panel>
+    </FoldingPanel>
   );
 }
 

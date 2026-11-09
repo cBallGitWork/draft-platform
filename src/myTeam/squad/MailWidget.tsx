@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import { Link } from "@tanstack/react-router";
 import type { LetterSummary } from "../../../convex/mail/mail";
 import { MAIL_PATH } from "../../frame/menu";
@@ -10,11 +11,26 @@ import { allMailWords, MAIL_WIDGET_TITLE, mailLoadingWords, nextGlyph, noMailWor
 // The Squad tab's Mail and news (its approved picture): the newest letters, unread ones with
 // Mail's orange edge (plate.md, Marks: Unread); a letter opens it in Mail, and All mail opens Mail.
 
-/** `mail` is undefined while it loads, and null for someone signed out, who has none. */
-export function MailWidget({ mail }: { mail: LatestMail | null | undefined }) {
+/** `mail` is undefined while it loads, and null for someone signed out, who has none. League home
+ *  passes its own `title`, its Needs you | All switch as `controls`, and, while Needs you is chosen,
+ *  what shows in place of the letters as `children`. */
+export function MailWidget({
+  mail,
+  title = MAIL_WIDGET_TITLE,
+  controls,
+  children,
+}: {
+  mail: LatestMail | null | undefined;
+  title?: string;
+  controls?: ReactNode;
+  children?: ReactNode;
+}) {
   return (
-    <Panel title={MAIL_WIDGET_TITLE} aside={mail ? <span>{unreadCount(mail.unread)}</span> : undefined}>
-      {mail === undefined ? (
+    <Panel title={title} aside={mail ? <span>{unreadCount(mail.unread)}</span> : undefined}>
+      {controls}
+      {children !== undefined ? (
+        children
+      ) : mail === undefined ? (
         <Loading className="px-3 py-2">{mailLoadingWords}</Loading>
       ) : mail === null || mail.letters.length === 0 ? (
         <PanelNote>{noMailWords}</PanelNote>

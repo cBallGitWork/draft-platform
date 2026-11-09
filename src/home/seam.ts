@@ -4,6 +4,7 @@
 import type { Id } from "../../convex/_generated/dataModel";
 import type { LeagueHome } from "../../convex/home/leagueHome";
 import type { LeagueNews, NewsMove } from "../../convex/home/leagueNews";
+import type { SquadSeam } from "../myTeam/squad/seam";
 
 export type { LeagueHome, LeagueNews, NewsMove };
 export type Recap = NonNullable<LeagueHome["recap"]>;
@@ -12,7 +13,9 @@ export type Recap = NonNullable<LeagueHome["recap"]>;
  *  team and of one kind when not null. */
 export type NewsAsked = { before: LeagueNews["older"]; teamId: Id<"teams"> | null; kind: NewsMove["kind"] | null };
 
-export type HomeSeam = {
+/** League home's Mail panel reads what My team's Squad tab's does: the newest letters, never every
+ *  letter (#211). */
+export type HomeSeam = Pick<SquadSeam, "useLatestMail"> & {
   /** League home at the minute `now`, live (a hook): undefined while it loads, null for a league
    *  made before rules were held. */
   useLeagueHome(leagueId: Id<"leagues">, now: number): LeagueHome | null | undefined;

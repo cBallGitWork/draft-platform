@@ -27,7 +27,7 @@ import { gameweeksPath } from "../../../src/gameweeks/paths";
 import { GAMEWEEKS_TITLE } from "../../../src/gameweeks/words";
 import { RECAP_PATH } from "../../../src/home/paths";
 import { PREVIEW_RECAP_GAMEWEEK } from "../../../src/home/preview";
-import { HOME_TITLE, NEWS_TITLE, recapTitle } from "../../../src/home/words";
+import { NEWS_TITLE, recapTitle } from "../../../src/home/words";
 import { invitesPath } from "../../../src/joining/paths";
 import { INVITES_TITLE, joinPageWords } from "../../../src/joining/words";
 import { settingsPath } from "../../../src/leagueSettings/paths";
@@ -63,7 +63,8 @@ const [cardPlayer] = previewPlayers;
 /** Built screens past the landing page. The invite link's tokens are joining/preview.ts's: one to
  *  ask with, one asked, one switched off. */
 export const BUILT_SCREENS: readonly BuiltScreen[] = [
-  ["manager", HOME_PATH, HOME_TITLE],
+  // League home is titled with the league's name, its gameweek beside it read once in the strip.
+  ["manager", HOME_PATH, proLeague.name],
   ["manager", HOME_NEWS_PATH, NEWS_TITLE],
   // Read the recap's page names its gameweek in the address's search: the preview's recap.
   ["manager", `${RECAP_PATH}?gameweek=${PREVIEW_RECAP_GAMEWEEK}`, recapTitle(PREVIEW_RECAP_GAMEWEEK)],

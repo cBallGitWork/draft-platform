@@ -2,19 +2,55 @@
 
 import { TOP_ROWS } from "../../convex/home/glance";
 import { FORM_RESULTS } from "../../convex/table/standings";
-import { fewestTeamsWords, noHeadToHeadsTotalPointsWords } from "../shared/words";
+import { placeWords } from "../myTeam/header/words";
+import { fewestTeamsWords, gameweekShort, noHeadToHeadsTotalPointsWords } from "../shared/words";
 import { columns as tableColumns } from "../table/words";
 import type { LeagueHome, NewsMove } from "./seam";
 
-export { figureWords, gameweekWords, versusWords, whenWords } from "../shared/words";
+export { figureWords, gameweekShort, gameweekWords, versusWords, whenWords } from "../shared/words";
 export { leagueAverageWords, noResultsWords, TABLE_TITLE } from "../table/words";
 
-export const HOME_TITLE = "League home";
 export const loadingWords = "Loading league home…";
 export const noRulesWords = "This league was made before leagues had rules, so it has no table or fixtures to show.";
 
-/** The head-to-heads' title with no gameweek to name: with one, it is the gameweek. */
-export const HEAD_TO_HEADS_TITLE = "Head-to-heads";
+/** What a placeholder holds until its data or its grill comes (plate.md, Marks: A placeholder). */
+export const toComeLabel = (what: string) => `${what}: still to come`;
+
+/** The deadline strip's boxes (docs/design/approved/home/, Placeholders: which boxes, in which
+ *  states, is still to grill). */
+export const stripLabel = "This gameweek at a glance";
+export const stripBoxes = (gameweek: number) => [`${gameweekShort(gameweek)} locks`, "Your lineup", "Claims close", "Table"] as const;
+
+/** The Mail panel and its Needs you | All switch; which letters need a manager is still to grill. */
+export { MAIL_TITLE } from "../mail/words";
+export const mailViewLabel = "Show";
+export const mailViews = { needsYou: "Needs you", all: "All" } as const;
+export const needsYouToComeWords = "Which letters need you is still to come.";
+
+/** Your matchup: the reader's head-to-head this gameweek. */
+export const MATCHUP_PANEL_TITLE = "Your matchup";
+export const openMatchupLink = "Open the matchup";
+export const setLineupLink = "Set lineup";
+export const standingWords = (place: number, points: number) => `${placeWords(place)}, ${points} pts`;
+export const scoreToComeLabel = toComeLabel("The score");
+
+export const THIS_GAMEWEEK_TITLE = "This gameweek";
+
+/** The News panel: the commissioner's latest letter pinned on top, then the latest moves. */
+export const NEWS_PANEL_TITLE = "News";
+
+/** The right-hand column's panels still to come, each in its place. */
+export const premierLeagueTitle = (gameweek: number) => `Premier League, ${gameweekShort(gameweek)}`;
+export const SQUAD_NEWS_TITLE = "Your squad news";
+export const RUN_LEAGUE_TITLE = "Run the league";
+export const runLeagueAside = "commissioner";
+export const runLeagueLink = "Run the league ▸";
+/** The recap's panel before the gameweek is final. */
+export const recapToComeWords = (gameweek: number) => `Lands once every ${gameweekShort(gameweek)} match is final.`;
+/** The ▾ on a right-hand panel: it folds the panel away, and opens it again. */
+export const foldLabel = (title: string) => `Fold ${title}`;
+export const unfoldLabel = (title: string) => `Open ${title}`;
+
 export const headToHeadsLabel = (gameweekName: string) => `${gameweekName}'s head-to-heads`;
 export const noHeadToHeadsWords = {
   totalPoints: noHeadToHeadsTotalPointsWords,
@@ -25,27 +61,25 @@ export const byeWords = (teamName: string) => `${teamName}: bye`;
 /** Under a table cut to its top rows: how many teams it has, and whether the reader's row is added. */
 export const partTableWords = (teams: number, withMine: boolean) =>
   `The top ${TOP_ROWS} of ${teams} teams${withMine ? ", and yours" : ""}.`;
-/** The table screen's columns, and form. */
+/** The table screen's columns, won, drawn and lost in one, and form. */
 export const columns = {
   ...tableColumns,
+  record: { short: "W-D-L", long: "Won, drawn, lost" },
   form: { short: "Form", long: `Form, the latest ${FORM_RESULTS} results, oldest first` },
 } as const;
+export const recordWords = ({ won, drawn, lost }: { won: number; drawn: number; lost: number }) => `${won}-${drawn}-${lost}`;
 export const yourTeamWords = "Your team";
-export { formLabel, resultWords } from "../shared/words";
-export const noFormWords = "—";
 export const wholeTableLink = "Whole table and fixtures";
 
 /** The matchday's Vidiprinter, and its words before any line, the matchup's own. */
 export { noCommentaryWords as noMatchdayLinesWords, VIDIPRINTER_TITLE } from "../matchup/words";
 
+/** The chip on the commissioner's latest letter, pinned on top of News. */
 export const LETTER_TITLE = "From the commissioner";
-export const noLetterWords = "Nothing from the commissioner yet.";
-export const fromWords = (from: string) => `From ${from}`;
-export const inMailLink = "Every letter, in Mail";
 
 /** The weekly recap (spec/12, League home): its panel, Read the recap's page, and the line under it
  *  once a score has changed since it was written (Craig, 6 Nov 2026). */
-export const recapTitle = (gameweek: number) => `GW${gameweek} recap`;
+export const recapTitle = (gameweek: number) => `${gameweekShort(gameweek)} recap`;
 export const readRecapLink = "Read the recap";
 export const scoreChangedWords = "A score has changed since this recap was written.";
 export const changedMatchupLink = "See the matchup";
@@ -89,7 +123,6 @@ export const gotWords = (teamName: string) => `${teamName} got`;
 export const letGoWords = (teamName: string) => `${teamName} let go`;
 export const leftToWords = (toWaivers: boolean) => (toWaivers ? "Onto waivers" : "Back to the free agents");
 
-export const MOVES_TITLE ="Claims, drops and trades";
 export const noMovesWords = "No player has joined or left a squad yet.";
 type SquadMove = LeagueHome["squadMoves"][number];
 /** A squad move in a line: "Saka joined Kroos Control". */
