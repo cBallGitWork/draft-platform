@@ -70,6 +70,8 @@ const waivers: WaiversView = {
 };
 
 export const previewWaivers = waivers;
+/** How many of the preview's claims are the manager's own, which My team's Transactions tab counts. */
+export const previewPendingClaims = claims.filter(({ yours }) => yours).length;
 
 export const previewClaims: ClaimsSeam = {
   usePendingClaims: () => claims,

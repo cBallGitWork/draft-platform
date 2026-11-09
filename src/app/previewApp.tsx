@@ -13,6 +13,7 @@ import { previewLeagueSettings } from "../leagueSettings/preview";
 import { previewMail, previewTopBar } from "../mail/preview";
 import { previewMatchup } from "../matchup/preview";
 import { previewMyTeam } from "../myTeam/preview";
+import { previewPendingClaims } from "../myTeam/claims/preview";
 import { previewPatches } from "../patches/preview";
 import { previewAuth, previewLeagues, previewSession } from "./preview";
 import { previewScoringFor } from "../scoring/preview";
@@ -35,7 +36,7 @@ export function previewApp(): ReactNode | null {
       leagues={previewLeagues}
       mail={previewMail}
       joining={previewJoining}
-      topBar={previewTopBar}
+      topBar={{ ...previewTopBar, pendingClaims: previewPendingClaims }}
       gameweeks={previewGameweeks}
       squads={previewSquads}
       scoring={previewScoringFor(session)}
