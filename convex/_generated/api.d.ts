@@ -139,6 +139,7 @@ import type * as lineup_roles from "../lineup/roles.js";
 import type * as lineup_savedPlans from "../lineup/savedPlans.js";
 import type * as lineup_tactics from "../lineup/tactics.js";
 import type * as mail_letterMoments from "../mail/letterMoments.js";
+import type * as mail_letterShape from "../mail/letterShape.js";
 import type * as mail_letterWords from "../mail/letterWords.js";
 import type * as mail_letters from "../mail/letters.js";
 import type * as mail_mail from "../mail/mail.js";
@@ -470,6 +471,7 @@ declare const fullApi: ApiFromModules<{
   "lineup/savedPlans": typeof lineup_savedPlans;
   "lineup/tactics": typeof lineup_tactics;
   "mail/letterMoments": typeof mail_letterMoments;
+  "mail/letterShape": typeof mail_letterShape;
   "mail/letterWords": typeof mail_letterWords;
   "mail/letters": typeof mail_letters;
   "mail/mail": typeof mail_mail;

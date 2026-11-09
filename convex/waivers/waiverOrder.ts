@@ -3,7 +3,7 @@ import type { Doc, Id } from "../_generated/dataModel";
 import { query, type MutationCtx, type QueryCtx } from "../_generated/server";
 import { draftOrderOf } from "../draft/draftOrder";
 import { draftIsOver } from "../draft/draftRow";
-import type { LeagueDeadlines } from "../gameweeks/deadline";
+import { nextDeadline, type LeagueDeadlines } from "../gameweeks/deadline";
 import { leagueDeadlines } from "../gameweeks/leagueDeadlines";
 import { WAIVER_ORDERS, type LeagueRules } from "../rules/leagueRulesShape";
 import { seasonRules, type SeasonRules } from "../rules/rulesHistory";
@@ -131,13 +131,6 @@ export async function windowOpen(ctx: QueryCtx, leagueId: Id<"leagues">, deadlin
   const deadline = deadlines.get(gameweek) ?? null;
   const madeAt = (await waiverOrderRow(ctx, leagueId))?.madeAt;
   return deadline !== null && madeAt !== undefined && madeAt > deadline;
-}
-
-/** The next deadline after `now`, or null with none set. Pure. */
-function nextDeadline(deadlines: LeagueDeadlines, now: number): { gameweek: number; at: number } | null {
-  let next: { gameweek: number; at: number } | null = null;
-  for (const [gameweek, at] of deadlines) if (at !== null && at > now && (next === null || at < next.at)) next = { gameweek, at };
-  return next;
 }
 
 const waiversView = v.object({

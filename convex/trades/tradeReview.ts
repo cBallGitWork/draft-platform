@@ -261,7 +261,10 @@ export const makeAtReviewEnd = internalMutation({
  *  throw rolled its writes back, so nobody has moved. */
 async function closeUnmade(ctx: MutationCtx, offer: Doc<"tradeOffers">, error: unknown): Promise<void> {
   console.error(`Trade offer ${offer._id} couldn't be made at its review's end, so it closed:`, error);
-  const words = await tradeWordsOf(ctx, offer).catch(() => null);
+  const words = await tradeWordsOf(ctx, offer).catch((wordsError: unknown) => {
+    console.error(`Trade offer ${offer._id}'s words couldn't be read, so it closed with no letters:`, wordsError);
+    return null;
+  });
   if (words === null) await ctx.db.delete("tradeOffers", offer._id);
   else await failTrade(ctx, offer, words, { why: "error" });
 }

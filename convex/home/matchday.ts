@@ -5,6 +5,7 @@
 // into one (Craig, 6 Nov 2026, #387). Pure: leagueHome.ts reads what it needs.
 
 import { LIVE_WINDOW_MS } from "../stats/liveStats";
+import { groupedBy } from "../shared/groupedBy";
 import { londonDay } from "../shared/moments";
 
 export interface MatchdayMatch {
@@ -29,12 +30,8 @@ export function matchdayAt(matches: readonly MatchdayMatch[], margins: { beforeM
 
 /** Each matchday's window, in order, overlapping ones joined. */
 export function matchdays(matches: readonly MatchdayMatch[], { beforeMs, afterMs }: { beforeMs: number; afterMs: number }): Matchday[] {
-  const days = new Map<string, { kickoff: number; fullTimeAt: number | null; fixtureCode: number }[]>();
-  for (const match of matches) {
-    if (match.kickoff === null) continue;
-    const day = londonDay(match.kickoff);
-    days.set(day, [...(days.get(day) ?? []), { ...match, kickoff: match.kickoff }]);
-  }
+  const timed = matches.flatMap((match) => (match.kickoff === null ? [] : [{ ...match, kickoff: match.kickoff }]));
+  const days = groupedBy(timed, ({ kickoff }) => londonDay(kickoff));
   const windows = [...days.values()]
     .map((day) => ({
       start: Math.min(...day.map(({ kickoff }) => kickoff)) - beforeMs,

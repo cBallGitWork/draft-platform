@@ -8,14 +8,13 @@ import type { TradesView } from "../../convex/trades/tradeScreen";
 import { changeFailedWords } from "../shared/words";
 import type { Reviewer } from "./seam";
 
-export { whenWords } from "../shared/words";
+export { noTeamWords, whenWords } from "../shared/words";
 export { warningWords } from "../squads/words";
 export { NOTE_MOST, pickWords };
 export { viaWords } from "../draft/words";
 
 export const TRADES_TITLE = "Trades";
 export const tradesLoadingWords = "Loading your trades…";
-export const noTeamWords = "You don't run a team in this league.";
 export const tradeFailedWords = changeFailedWords;
 
 /** Why no trade can be offered or accepted now (convex/trades/tradeShut.ts). */
@@ -37,6 +36,8 @@ export const offersColumns = {
   waiting: { short: "Waiting on", long: "Who the offer is waiting on" },
   closes: { short: "Closes", long: "When it closes, or its review ends" },
 } as const;
+/** The Offers table's groups; "In review" also marks a squad's player or pick held in a trade
+ *  under review, on the New offer tab. */
 export const groupWords = {
   toYou: "To you",
   fromYou: "From you",
@@ -107,8 +108,6 @@ export const rejectYesWords = "Reject it";
 export const rejectNoWords = "Keep it";
 
 // The New offer tab.
-export const YOUR_SQUAD_TITLE = "Your squad";
-export const THEIR_SQUAD_TITLE = "Their squad";
 export const YOUR_OFFER_TITLE = "Your offer";
 export const YOUR_COUNTER_TITLE = "Your counter";
 export const squadCountWords = (count: number, maximum: number | null) =>
@@ -122,7 +121,6 @@ export const squadColumns = {
   player: { short: "Player", long: "Player" },
 } as const;
 export const tickLabel = (playerName: string) => `Trade ${playerName}`;
-export const heldWords = "In review";
 /** The Picks block under each squad on the New offer tab (#1096; the approved trades README,
  *  Picks): the draft picks a team holds before the draft, one for one and nothing else (spec/04). */
 export const PICKS_TITLE = "Picks";

@@ -8,7 +8,7 @@ import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
 import { TRADES_NEW_PATH, TRADES_PATH } from "../../../src/frame/menu";
 import {
-  heldWords,
+  groupWords,
   noteLabel,
   onePickEachWords,
   partnerLabel,
@@ -106,7 +106,7 @@ describe("a new offer", () => {
         name: tickLabel(SAKA.name),
       }).disabled,
     ).toBe(true);
-    expect(within(table).getByText(heldWords)).toBeTruthy();
+    expect(within(table).getByText(groupWords.inReview)).toBeTruthy();
   });
 
   it("offers no team on the auto team, and changing team clears their ticks", async () => {
@@ -167,7 +167,7 @@ describe("a pick offer (#1096)", () => {
     const [own, via] = mine.getAllByRole("rowheader");
     expect(own.textContent).toBe(pickRoundWords(1));
     expect(via.textContent).toBe(
-      `${pickRoundWords(2)}${viaWords("Team 2")}${heldWords}`,
+      `${pickRoundWords(2)}${viaWords("Team 2")}${groupWords.inReview}`,
     );
     expect(
       mine.getByRole<HTMLInputElement>("checkbox", {

@@ -1,10 +1,9 @@
+import type { Words } from "../mail/letterShape";
 import { NO_DATA, UNSURE, type Stars } from "../stars/starsShape";
 
 // What scouts say (spec/19, Scouts and The report; #375), in one place for Craig to change: the
 // refusals, the Mail letters (a report is in, and nothing more; or the player left first), and the
 // brief Claude writes the report from.
-
-type Words = { subject: string; body: string };
 
 export const scoutRefusals = {
   allOut: (scouts: number) =>
