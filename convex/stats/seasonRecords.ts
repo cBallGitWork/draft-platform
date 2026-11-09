@@ -5,8 +5,8 @@ import { fixtureByCode } from "../shared/fixtures";
 import { PLAYER_RECORDS_MOST } from "./matchRecords";
 
 // A player's match records this season, each with its match: the matches his card lists
-// (scoredMatches.ts), the two players Scouting compares (compare.ts) and his season points
-// (seasonPoints.ts) all read his season from here, so all three count the same matches.
+// (scoredMatches.ts) and his season points (seasonPoints.ts) both read his season from here, so
+// both count the same matches.
 
 /** One of his records this season, with its match and the gameweek it was played in. */
 export type SeasonRecord = { record: Doc<"playerMatchStats">; fixture: Doc<"fixtures">; gameweek: number };

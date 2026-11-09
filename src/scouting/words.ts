@@ -140,8 +140,3 @@ export const compareTakeWords = (kind: "pickUp" | "claim", name: string, dropNam
   `${kind === "claim" ? "Claim" : "Pick up"} ${name}${dropName === null ? "" : `, drop ${dropName}`}`;
 export const comparingWords = "Loading the comparison…";
 export const clearComparisonWords = "Clear";
-export const matchesWords = "Matches this season";
-/** The comparison's first column, which names each row: its head is read out, not drawn. A player's
- *  column is headed by his name, named by his full name. */
-export const compareWhatColumn = { short: statLabel, long: "What's compared" };
-export const noStatsYetWords = "Neither has a stat this season yet.";

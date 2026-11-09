@@ -64,9 +64,6 @@ const PREVIEW_SET = {
   wholePointsOnly: false,
   ownStats: [{ stat: `${OWN_STAT_PREFIX}goal_involvements`, name: "Goal involvements", shortCode: "GI", parts: [{ stat: "goals_scored", weight: 1 }, { stat: "assists", weight: 1 }] }],
 };
-/** Matches this season, the same for everyone in the preview. */
-const PREVIEW_MATCHES = 9;
-
 const previewPlayer = (playerCode: number) => previewPlayers.find(({ code }) => code === playerCode)!;
 /** A preview player as the per-90 figures weigh him (per90Figures.ts). */
 const weighed = (player: ListedPlayer) => ({ area: mainArea(player.positions), totals: withOwnStats(previewTotals[player.code] ?? {}, PREVIEW_SET) });
@@ -95,7 +92,7 @@ export const previewScouting: Omit<ScoutingSeam, keyof WaiverActionSeam> = {
     return codes.map((code) => {
       const totals = weighed(previewPlayer(code)).totals;
       const figures = area === null ? [] : per90FiguresIn(area, totals, previewPlayers.map(weighed), stat);
-      return { ...previewPlayer(code), matches: PREVIEW_MATCHES, stats: previewTotals[code] ?? {}, minutes: totals[MINUTES_STAT] ?? 0, figures };
+      return { ...previewPlayer(code), minutes: totals[MINUTES_STAT] ?? 0, figures };
     });
   },
   usePer90: (_leagueId, playerCode, stat) => per90PanelOf(weighed(previewPlayer(playerCode)), previewPlayers.map(weighed), stat),
