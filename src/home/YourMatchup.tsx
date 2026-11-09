@@ -46,7 +46,11 @@ export function YourMatchup({ home: { thisGameweek, table } }: { home: LeagueHom
           {MATCHUP_PANEL_TITLE} <span className="ml-1 font-normal text-soft">{gameweekShort(gameweek)}</span>
         </>
       }
-      aside={<Link {...link}>{openMatchupLink}</Link>}
+      aside={
+        <Link {...link} className="inline-flex min-h-tap items-center lg:min-h-0">
+          {openMatchupLink}
+        </Link>
+      }
     >
       <div className="grid grid-cols-sides items-center gap-4 border-b border-panel-rule px-4 py-3">
         <Side name={mine.teamName} row={mine} end={false} />

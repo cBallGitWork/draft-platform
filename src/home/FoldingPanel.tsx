@@ -16,7 +16,7 @@ export function FoldingPanel({ title, aside, children }: { title: string; aside?
       aside={
         <span className="flex items-baseline gap-3">
           {aside}
-          <button type="button" aria-expanded={open} aria-label={open ? foldLabel(title) : unfoldLabel(title)} onClick={() => setOpen(!open)} className="min-w-tap lg:min-w-0">
+          <button type="button" aria-expanded={open} aria-label={open ? foldLabel(title) : unfoldLabel(title)} onClick={() => setOpen(!open)} className="min-h-tap min-w-tap lg:min-h-0 lg:min-w-0">
             <span aria-hidden="true">{open ? OPEN_GLYPH : FOLDED_GLYPH}</span>
           </button>
         </span>
