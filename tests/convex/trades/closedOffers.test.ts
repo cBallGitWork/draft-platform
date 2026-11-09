@@ -68,7 +68,8 @@ describe("closed offers", () => {
     expect((await closedFor(ANN)).map(({ why }) => why)).toEqual(["blocked"]);
   });
 
-  test("shows only this season's, at most the read's most", async () => {
+  test("shows only this season's, at most the read's most, and logs the ones left out", async () => {
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
     await w.t.run(async (ctx) => {
       const kept = { leagueId: w.leagueId, fromTeamId: w.annsTeam, toTeamId: w.bobsTeam, gives: [], gets: [SAKA], by: ANN, madeAt: 0, why: "rejected" as const };
       await ctx.db.insert("closedTradeOffers", { ...kept, closedAt: seasonStartAt(Date.now()) - 1 });
@@ -79,5 +80,7 @@ describe("closed offers", () => {
     const closed = await closedFor(ANN);
     expect(closed).toHaveLength(CLOSED_READ_MOST);
     expect(closed.every(({ closedAt }) => closedAt >= seasonStartAt(Date.now()))).toBe(true);
+    expect(warn).toHaveBeenCalledWith(expect.stringContaining(`over ${CLOSED_READ_MOST} closed trade offers`));
+    warn.mockRestore();
   });
 });

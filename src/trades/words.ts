@@ -81,7 +81,7 @@ export function closedWhyWords(why: ClosedOffer["why"], you: boolean): string {
     case "tradeDeadline":
       return "Trade deadline passed";
     case "unusedGameweek":
-      return "Trades locked for a break";
+      return "Trades locked through an unplayed gameweek";
     case "draftStarted":
       return "The draft started";
     case "pickTraded":
