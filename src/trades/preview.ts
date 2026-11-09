@@ -56,6 +56,8 @@ const team = (
   teamName,
   onAutoTeam: false,
   players: players.map((each) => ({ ...each, held: held.includes(each) })),
+  // The pictures are mid-season, after the draft, so no picks are left to trade.
+  picks: [],
 });
 
 const ME = "Saka Potatoes";

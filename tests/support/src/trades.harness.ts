@@ -54,6 +54,7 @@ export const screenTeam = (
   teamName,
   onAutoTeam: false,
   players: players.map((player) => ({ ...player, held: false })),
+  picks: [],
   ...rest,
 });
 

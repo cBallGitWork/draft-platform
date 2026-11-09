@@ -98,6 +98,40 @@ describe("a pick swap", () => {
     ]);
   });
 
+  test("is on the Trades screen: each team's picks it holds now, held while in review, none once the draft starts", async () => {
+    await tradesAre({ review: "veto", deadline: null });
+    const picksOn = async (email: string) => {
+      const view = await (await as(email)).query(api.trades.tradeScreen.ofMyTeam, { leagueId, now: Date.now() });
+      return new Map(view.teams.map((team) => [team.teamId, team.picks.map(({ round, teamId, held }) => ({ round, teamId, held }))]));
+    };
+    expect((await picksOn(ANN)).get(ann)).toEqual([
+      { round: 1, teamId: ann, held: false },
+      { round: 2, teamId: ann, held: false },
+    ]);
+    const { offerId } = await offerPicks(ANN, bob, pickOf(ann, 1), pickOf(bob, 2));
+    await accept(BOB, offerId);
+    const inReview = await picksOn(CAT);
+    expect(inReview.get(ann)?.[0]).toEqual({ round: 1, teamId: ann, held: true });
+    expect(inReview.get(cat)?.every(({ held }) => !held)).toBe(true);
+
+    vi.setSystemTime(Date.now() + REVIEW_MS);
+    await t.mutation(internal.trades.tradeReview.finish, { offerId });
+    const after = await picksOn(ANN);
+    expect(after.get(ann)).toEqual([
+      { round: 2, teamId: ann, held: false },
+      { round: 2, teamId: bob, held: false },
+    ]);
+    expect(after.get(bob)).toEqual([
+      { round: 1, teamId: ann, held: false },
+      { round: 1, teamId: bob, held: false },
+    ]);
+    const view = await (await as(ANN)).query(api.trades.tradeScreen.ofMyTeam, { leagueId, now: Date.now() });
+    expect(view.teams[0].picks[1].teamName).toBe(await teamName(bob));
+
+    await start();
+    expect([...(await picksOn(ANN)).values()].flat()).toEqual([]);
+  });
+
   test("is a team's pick in a round, not a slot: a new order moves it with its team", async () => {
     const { offerId } = await offerPicks(ANN, bob, pickOf(ann, 1), pickOf(bob, 2));
     await accept(BOB, offerId);
