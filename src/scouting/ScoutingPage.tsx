@@ -59,17 +59,23 @@ function PlayersTab({ league, seam }: { league: LeagueSummary; seam: ScoutingSea
   const [selected, setSelected] = useState<ListedPlayer | null>(null);
   const [comparing, setComparing] = useState(false);
   const [compared, setCompared] = useState<readonly [number, number] | null>(null);
+  // Whether the second compared is the manager's own player, from Compare with your [position].
+  const [withYours, setWithYours] = useState(false);
   // The scout's report opened from the Scouts panel, read at the top of the right column.
   const [reading, setReading] = useState<TeamReport | null>(null);
-  const comparison = seam.useComparison(league.leagueId, compared);
+  const comparison = seam.useComparison(league.leagueId, compared, stat?.stat ?? null);
+  const compareTwo = (first: number, second: number, yours: boolean) => {
+    setCompared([first, second]);
+    setWithYours(yours);
+    setComparing(false);
+  };
   // The selected player as the list now holds him, so a pickup or a claim shows on his panel.
   const shownSelected = selected === null ? null : (list?.players.find(({ code }) => code === selected.code) ?? selected);
   const players = list === undefined ? undefined : namedPlayers(list.players, name);
 
   const select = (player: ListedPlayer) => {
     if (comparing && selected !== null && player.code !== selected.code) {
-      setCompared([selected.code, player.code]);
-      setComparing(false);
+      compareTwo(selected.code, player.code, false);
       return;
     }
     setSelected(player);
@@ -128,13 +134,25 @@ function PlayersTab({ league, seam }: { league: LeagueSummary; seam: ScoutingSea
             comparing={comparing}
             seam={seam}
             compare={() => setComparing(!comparing)}
+            compareWith={(yours) => compareTwo(shownSelected.code, yours, true)}
             close={() => {
               setSelected(null);
               setComparing(false);
             }}
           />
         )}
-        {compared !== null && <ComparePanel comparison={comparison} pointsSeason={list?.pointsSeason ?? null} clear={() => setCompared(null)} />}
+        {compared !== null && (
+          <ComparePanel
+            leagueId={league.leagueId}
+            comparison={comparison}
+            pointsSeason={list?.pointsSeason ?? null}
+            stat={stat}
+            yours={withYours}
+            ownTeamName={league.teamName}
+            seam={seam}
+            clear={() => setCompared(null)}
+          />
+        )}
         {reading !== null && <OpenReport leagueId={league.leagueId} report={reading} seam={seam} close={() => setReading(null)} />}
         <ShortlistPanel leagueId={league.leagueId} seam={seam} />
         <ScoutsPanel leagueId={league.leagueId} seam={seam} read={setReading} />

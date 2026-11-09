@@ -108,6 +108,8 @@ export const loadingPer90Words = "Loading his figures per 90…";
  *  README): "Your claim 2, Wed run", linking to My team's Transactions. */
 export const yourClaimWords = (rank: number, runAt: number | null) => `Your claim ${rank}, ${runAt === null ? noRunWords : `${runDayWords(runAt)} run`}`;
 export const compareWithAnotherWords = "Compare with another…";
+/** The manager's own player at his main position (Craig, 9 Nov 2026, on #1028, answer 1). */
+export const compareWithYourWords = (position: string, name: string) => `Compare with your ${position}, ${name}`;
 export const pickSecondWords = (name: string) => `Pick a second player in the list to compare with ${name}.`;
 export const playerCardLinkWords = "Player card ›";
 
@@ -122,8 +124,20 @@ export const noPointsYetWords = "No points yet: none of his matches is scored.";
 export const notLastSeasonWords = "No points: he isn't in last season's data.";
 export const noRoleFitYetWords = "No role fit yet: it waits on stars and scouts.";
 
-/** Two players side by side (spec/19, The players list). */
+/** Two players side by side (spec/19, The players list); "with your player" when the second is the
+ *  manager's own at the first's position (the approved picture). */
 export const COMPARE_TITLE = "Compare";
+export const COMPARE_YOURS_TITLE = "Compare with your player";
+/** After a player's name in Compare's head: the manager's own. */
+export const yoursWords = "yours";
+export const totalWords = "Total";
+export const perNinetyWords = "Per 90";
+/** Under Compare's figures: what they are over, and whom the bars rank them against. */
+export const compareNoteWords = (area: Area) => `Totals and per 90 over the season; bars rank each against ${AREA_PLAYERS[area]} with ${RANKED_MINUTES}+ minutes.`;
+/** Compare's pickup or claim of the first player, naming the second when he goes (Craig, 9 Nov
+ *  2026, on #1028, answer 4: only with the squad full). */
+export const compareTakeWords = (kind: "pickUp" | "claim", name: string, dropName: string | null) =>
+  `${kind === "claim" ? "Claim" : "Pick up"} ${name}${dropName === null ? "" : `, drop ${dropName}`}`;
 export const comparingWords = "Loading the comparison…";
 export const clearComparisonWords = "Clear";
 export const matchesWords = "Matches this season";

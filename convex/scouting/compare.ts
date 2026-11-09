@@ -7,10 +7,12 @@ import { clubRecord, position } from "../schema";
 import { memberOf } from "../shared/leagueAccess";
 import { clubByCode, clubOf, heldPlayerByCode } from "../shared/players";
 import { ownerOf } from "../squads/squadPlace";
-import { isWhole } from "../stats/matchRecords";
+import { isWhole, MINUTES_STAT } from "../stats/matchRecords";
 import type { SeasonPointsOf } from "../stats/seasonPoints";
 import { sumStats } from "../stats/statTotals";
 import { COMPARED_PLAYERS } from "./comparedPlayers";
+import { per90Figure, weigher } from "./per90";
+import { per90FiguresIn } from "./per90Figures";
 import { shownSeasonPoints } from "./shownSeasonPoints";
 
 // Two players side by side (spec/19, The players list: "Two players side by side, to compare";
@@ -35,26 +37,39 @@ const comparedPlayer = v.object({
   /** His stats this season added up from his whole records, by the name the merged record keeps
    *  each under; a stat left out is 0. */
   stats: v.record(v.string(), v.number()),
+  /** His minutes over the per-90 figures' period (per90.ts). */
+  minutes: v.number(),
+  /** His per-90 figures (per90.ts) for the first player's area's stats and the list's stat, ranked
+   *  against that area, so the two line up row by row; none while the first has no position. */
+  figures: v.array(per90Figure),
 });
 export type ComparedPlayer = Infer<typeof comparedPlayer>;
 
 const comparison = v.array(comparedPlayer);
 export type Comparison = Infer<typeof comparison>;
 
-/** The players with these codes, in that order, side by side. Anyone not in the league is
- *  refused, as is asking for other than two players, the same one twice, or one the football sync
- *  doesn't hold. */
+/** The players with these codes, in that order, side by side, with their per-90 figures over the
+ *  selected player's panel's period for the first's area and `stat` (the list's, or null). Anyone
+ *  not in the league is refused, as is asking for other than two players, the same one twice, one
+ *  the football sync doesn't hold, or a stat neither the catalogue nor the site's set holds. */
 export const players = query({
-  args: { leagueId: v.id("leagues"), codes: v.array(v.number()) },
+  args: { leagueId: v.id("leagues"), codes: v.array(v.number()), stat: v.union(v.string(), v.null()) },
   returns: comparison,
-  handler: async (ctx, { leagueId, codes }) => {
+  handler: async (ctx, { leagueId, codes, stat }) => {
     await memberOf(ctx, leagueId);
     if (codes.length !== COMPARED_PLAYERS || new Set(codes).size !== COMPARED_PLAYERS) {
       throw new Error(`Compare ${COMPARED_PLAYERS} different players, not ${codes.join(", ")}`);
     }
     const positionsOfNow = await positionsNow(ctx, leagueId);
     const { pointsOf: seasonPointsOf } = await shownSeasonPoints(ctx, leagueId, codes);
-    return Promise.all(codes.map((code) => compared(ctx, leagueId, code, positionsOfNow, seasonPointsOf)));
+    const sides = await Promise.all(codes.map((code) => compared(ctx, leagueId, code, positionsOfNow, seasonPointsOf)));
+    const { weighed, ranked } = await weigher(ctx, leagueId, stat);
+    const weighedSides = await Promise.all(codes.map((code) => weighed(code)));
+    const area = weighedSides[0].area;
+    return sides.map((side, at) => {
+      const { totals } = weighedSides[at];
+      return { ...side, minutes: totals[MINUTES_STAT] ?? 0, figures: area === null ? [] : per90FiguresIn(area, totals, ranked, stat) };
+    });
   },
 });
 
@@ -64,7 +79,7 @@ async function compared(
   code: number,
   positionsOfNow: PositionsNow,
   seasonPointsOf: SeasonPointsOf,
-): Promise<ComparedPlayer> {
+): Promise<Omit<ComparedPlayer, "minutes" | "figures">> {
   const player = await heldPlayerByCode(ctx, code, `No player ${code} is held to compare`);
   const club = await clubByCode(ctx, player.clubCode);
   const season = await seasonRecords(ctx, code);

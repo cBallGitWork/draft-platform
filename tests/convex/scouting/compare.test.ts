@@ -2,6 +2,7 @@ import { beforeEach, expect, test } from "vitest";
 import { api } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
 import type { Position } from "../../../convex/positions/positionTables";
+import { per90Stats } from "../../../convex/scouting/per90Figures";
 import { refusals } from "../../../convex/shared/leagueAccess";
 import { MANAGERS, actingAs, addManagers, adminCreatesLeague, teamName, type TestConvex } from "../../support/convex/leagues.harness";
 import { ARSENAL, CHELSEA, SAKA, completeRecord, insertClubs, insertPlayers } from "../../support/convex/footballRows.harness";
@@ -69,7 +70,10 @@ beforeEach(async () => {
   });
 });
 
-const compareAs = async (email: string, codes: number[]) => (await actingAs(t, email)).query(api.scouting.compare.players, { leagueId, codes });
+const compareAs = async (email: string, codes: number[]) => (await actingAs(t, email)).query(api.scouting.compare.players, { leagueId, codes, stat: null });
+
+/** Saka's area's stats per 90 with no season totals held (their own test is per90.test.ts). */
+const NO_FIGURES = per90Stats("attackingMidfield", null).map((stat) => ({ stat, total: 0, perNinety: null, percentile: null }));
 
 test("two players side by side, in the order asked: who each is, his matches this season and his stats added up", async () => {
   expect(await compareAs(ANN, [SAKA.code, PALMER.code])).toEqual([
@@ -83,6 +87,8 @@ test("two players side by side, in the order asked: who each is, his matches thi
       seasonPoints: null,
       matches: 3,
       stats: { minutes: 154, goals_scored: 3, expected_goals: 1.14, assists: 1 },
+      minutes: 0,
+      figures: NO_FIGURES,
     },
     {
       code: PALMER.code,
@@ -94,6 +100,8 @@ test("two players side by side, in the order asked: who each is, his matches thi
       seasonPoints: null,
       matches: 2,
       stats: { minutes: 170, assists: 3, goals_scored: 1 },
+      minutes: 0,
+      figures: NO_FIGURES,
     },
   ]);
 });

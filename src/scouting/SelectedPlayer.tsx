@@ -5,6 +5,7 @@ import type { CatalogueStat } from "../../convex/scoring/statCatalogueList";
 import { ShortlistAction } from "../playerCard/ShortlistAction";
 import { MY_TEAM_TRANSACTIONS_PATH } from "../frame/menu";
 import { byRun } from "../myTeam/claims/claimGroups";
+import { useMinute } from "../shared/useMinute";
 import { Per90Figures } from "./Per90Figures";
 import { WaiverAction } from "../playerCard/WaiverAction";
 import { playerCardPath } from "../playerCard/paths";
@@ -17,6 +18,7 @@ import type { ListedPlayer, ScoutingSeam } from "./seam";
 import {
   closePanelLabel,
   compareWithAnotherWords,
+  compareWithYourWords,
   figureWords,
   noFigureWords,
   noPointsYetWords,
@@ -46,6 +48,28 @@ function YourClaim({ leagueId, playerCode, seam }: { leagueId: Id<"leagues">; pl
   );
 }
 
+/** Compare with your [position], [player]: the manager's own player at his main position (Craig,
+ *  9 Nov 2026, on #1028, answer 1); nothing with none, nor while it loads. */
+function CompareWithYours({
+  leagueId,
+  playerCode,
+  seam,
+  compareWith,
+}: {
+  leagueId: Id<"leagues">;
+  playerCode: number;
+  seam: ScoutingSeam;
+  compareWith: (playerCode: number) => void;
+}) {
+  const yours = seam.useYourPlayer(leagueId, playerCode, useMinute())?.player;
+  if (yours === undefined || yours === null) return null;
+  return (
+    <button type="button" onClick={() => compareWith(yours.code)} className="secondary-action">
+      {compareWithYourWords(yours.position, yours.name)}
+    </button>
+  );
+}
+
 const FACT_ROW ="flex items-center justify-between border-t border-panel-rule px-3 py-1";
 
 /** The selected player's panel at the top of the right column (the approved picture; FM's player
@@ -61,6 +85,7 @@ export function SelectedPlayer({
   comparing,
   seam,
   compare,
+  compareWith,
   close,
 }: {
   leagueId: Id<"leagues">;
@@ -73,6 +98,8 @@ export function SelectedPlayer({
   comparing: boolean;
   seam: ScoutingSeam;
   compare: () => void;
+  /** Compares him with the manager's own player with this code. */
+  compareWith: (playerCode: number) => void;
   close: () => void;
 }) {
   const main = cardOpensAt(player.positions);
@@ -121,6 +148,7 @@ export function SelectedPlayer({
         <WaiverAction leagueId={leagueId} card={player} seam={seam} />
         <ShortlistAction leagueId={leagueId} playerCode={player.code} gone={false} seam={seam} />
         <div className="flex flex-wrap items-center gap-2">
+          <CompareWithYours leagueId={leagueId} playerCode={player.code} seam={seam} compareWith={compareWith} />
           <button type="button" aria-pressed={comparing} onClick={compare} className="secondary-action">
             {compareWithAnotherWords}
           </button>

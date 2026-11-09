@@ -97,7 +97,7 @@ describe("what a player's season points are", () => {
 
   test("the two compared show the same figures as the list", async () => {
     const { t, leagueId } = league;
-    const compared = await (await actingAs(t, ANN)).query(api.scouting.compare.players, { leagueId, codes: [SAKA.code, RICE.code] });
+    const compared = await (await actingAs(t, ANN)).query(api.scouting.compare.players, { leagueId, codes: [SAKA.code, RICE.code], stat: null });
     const listed = await pointsListed(league);
     expect(compared.map((player) => player.seasonPoints)).toEqual([listed.get(SAKA.code), listed.get(RICE.code)]);
   });

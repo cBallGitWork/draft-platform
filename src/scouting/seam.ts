@@ -5,12 +5,13 @@ import type { Id } from "../../convex/_generated/dataModel";
 import type { Comparison } from "../../convex/scouting/compare";
 import type { Per90Panel } from "../../convex/scouting/per90";
 import type { PlayersFilters, PlayersList, PlayersSort } from "../../convex/scouting/playersList";
+import type { YourPlayer } from "../../convex/scouting/yourPlayer";
 import type { ClaimsSeam } from "../myTeam/claims/seam";
 import type { PlayerCardSeam } from "../playerCard/seam";
 import type { ScoutsSeam } from "./scouts/seam";
 import type { QueueFromShortlist, ShortlistSeam } from "./shortlist/seam";
 
-export type { Comparison, Per90Panel, PlayersFilters, PlayersList, PlayersSort };
+export type { Comparison, Per90Panel, PlayersFilters, PlayersList, PlayersSort, YourPlayer };
 export type { ComparedPlayer } from "../../convex/scouting/compare";
 export type { Availability, ListedPlayer, SortColumn } from "../../convex/scouting/playersList";
 
@@ -21,9 +22,14 @@ export type WaiverActionSeam = Pick<PlayerCardSeam, "useCardAction" | "useWaiver
  *  and says where the manager's pending claim on him stands, the manager's shortlist, which feeds
  *  his draft queue, and his team's scouts. */
 export type ScoutingSeam = ShortlistSeam & QueueFromShortlist & ScoutsSeam & WaiverActionSeam & Pick<ClaimsSeam, "usePendingClaims"> & {
-  /** The two players with these codes side by side, live (a hook): undefined while it loads, and
-   *  with null for the codes, as nothing is asked. */
-  useComparison(leagueId: Id<"leagues">, codes: readonly number[] | null): Comparison | undefined;
+  /** The two players with these codes side by side, each with his per-90 figures for the first's
+   *  area and the list's stat (or null), live (a hook): undefined while it loads, and with null for
+   *  the codes, as nothing is asked. */
+  useComparison(leagueId: Id<"leagues">, codes: readonly number[] | null, stat: string | null): Comparison | undefined;
+  /** The manager's own player at the main position of the player with this code, to compare him
+   *  with, and whether the squad is full, as of `now` (a minute's), live (a hook): undefined while
+   *  it loads, null for someone running no team. */
+  useYourPlayer(leagueId: Id<"leagues">, playerCode: number, now: number): YourPlayer | undefined;
   /** The selected player's per-90 figures and percentiles, the list's stat (or null) among them,
    *  live (a hook): undefined while they load. */
   usePer90(leagueId: Id<"leagues">, playerCode: number, stat: string | null): Per90Panel | undefined;

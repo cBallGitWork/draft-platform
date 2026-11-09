@@ -169,6 +169,7 @@ export const gates: Record<string, Gate> = {
   "scouting/shortlist:mine": "member",
   "scouting/shortlist:remove": "member",
   "scouting/statRace:teams": "member",
+  "scouting/yourPlayer:at": "member",
   "signIn/account:signedInAs": "signedInOrNothing",
   "signIn/signInLinks:ask": "open",
   "signIn/timeZone:recordZone": "signedIn",

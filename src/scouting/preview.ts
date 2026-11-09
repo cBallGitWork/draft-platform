@@ -2,7 +2,10 @@
 // stats added up for each, filtered and sorted by the server's own rule (listOf).
 
 import type { ListedPlayer } from "../../convex/scouting/playersList";
-import { mainArea, per90PanelOf } from "../../convex/scouting/per90Figures";
+import { mainArea, per90FiguresIn, per90PanelOf } from "../../convex/scouting/per90Figures";
+import { cardOpensAt } from "../../convex/playerCard/cardPoints";
+import { MINUTES_STAT } from "../../convex/stats/matchRecords";
+import { proLeague } from "../shared/preview";
 import { listFigures, listOf, NO_FIGURES, shownStat } from "../../convex/scouting/playersOrder";
 import { withOwnStats } from "../../convex/scoring/ownStats";
 import { OWN_STAT_PREFIX } from "../../convex/scoring/statCatalogue";
@@ -64,6 +67,10 @@ const PREVIEW_SET = {
 /** Matches this season, the same for everyone in the preview. */
 const PREVIEW_MATCHES = 9;
 
+const previewPlayer = (playerCode: number) => previewPlayers.find(({ code }) => code === playerCode)!;
+/** A preview player as the per-90 figures weigh him (per90Figures.ts). */
+const weighed = (player: ListedPlayer) => ({ area: mainArea(player.positions), totals: withOwnStats(previewTotals[player.code] ?? {}, PREVIEW_SET) });
+
 /** Rice and Salah are on the preview manager's shortlist to begin with, and feed his draft queue. */
 const SHORTLISTED = [2, 6];
 export const previewShortlist = previewShortlistOf(previewPlayers, SHORTLISTED);
@@ -82,12 +89,21 @@ export const previewScouting: Omit<ScoutingSeam, keyof WaiverActionSeam> = {
   ...previewScouts,
   usePendingClaims: previewClaims.usePendingClaims,
   useAddToQueue: () => addToQueue,
-  useComparison: (_leagueId, codes) =>
-    codes?.map((code) => ({ ...previewPlayers.find((each) => each.code === code)!, matches: PREVIEW_MATCHES, stats: previewTotals[code] ?? {} })),
-  usePer90: (_leagueId, playerCode, stat) => {
-    const weighed = (player: ListedPlayer) => ({ area: mainArea(player.positions), totals: withOwnStats(previewTotals[player.code] ?? {}, PREVIEW_SET) });
-    const his = previewPlayers.find(({ code }) => code === playerCode);
-    return his === undefined ? undefined : per90PanelOf(weighed(his), previewPlayers.map(weighed), stat);
+  useComparison: (_leagueId, codes, stat) => {
+    if (codes === null) return undefined;
+    const area = mainArea(previewPlayer(codes[0]).positions);
+    return codes.map((code) => {
+      const totals = weighed(previewPlayer(code)).totals;
+      const figures = area === null ? [] : per90FiguresIn(area, totals, previewPlayers.map(weighed), stat);
+      return { ...previewPlayer(code), matches: PREVIEW_MATCHES, stats: previewTotals[code] ?? {}, minutes: totals[MINUTES_STAT] ?? 0, figures };
+    });
+  },
+  usePer90: (_leagueId, playerCode, stat) => per90PanelOf(weighed(previewPlayer(playerCode)), previewPlayers.map(weighed), stat),
+  // The preview manager's player at the same main position, as the server picks him with no lineup to read.
+  useYourPlayer: (_leagueId, playerCode) => {
+    const main = cardOpensAt(previewPlayer(playerCode).positions);
+    const yours = previewPlayers.find((each) => each.ownerTeamName === proLeague.teamName && each.code !== playerCode && main !== null && cardOpensAt(each.positions) === main);
+    return { player: yours === undefined || main === null ? null : { position: main, code: yours.code, name: yours.name }, squadFull: false };
   },
   usePlayersList: (_leagueId, filters, sort, stat) => ({
     clubs: [ARSENAL, CHELSEA, LIVERPOOL],

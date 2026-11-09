@@ -51,14 +51,14 @@ test("an attacking midfielder's six per 90, ranked among his area's players of 2
   expect(palmer.ranked).toBe(true);
   expect(palmer.figures.map(({ stat }) => stat)).toEqual(["goals_scored", "assists", "total_att_assist", "ontarget_scoring_att", "big_chance_created", "won_tackle"]);
   // 10 goals in 900 minutes is 1 a match; Saka's 0.5 is below, Rice (another area) and Ødegaard (180 minutes) aren't counted.
-  expect(palmer.figures[0]).toEqual({ stat: "goals_scored", perNinety: 1, percentile: 100 });
-  expect(await figureOf(SAKA.code, "goals_scored")).toEqual({ stat: "goals_scored", perNinety: 0.5, percentile: 50 });
+  expect(palmer.figures[0]).toEqual({ stat: "goals_scored", total: 10, perNinety: 1, percentile: 100 });
+  expect(await figureOf(SAKA.code, "goals_scored")).toEqual({ stat: "goals_scored", total: 5, perNinety: 0.5, percentile: 50 });
 });
 
 test(`under ${RANKED_MINUTES} minutes he has figures but no percentile`, async () => {
   const odegaard = await figuresOf(ODEGAARD.code);
   expect(odegaard.ranked).toBe(false);
-  expect(odegaard.figures[0]).toEqual({ stat: "goals_scored", perNinety: 2, percentile: null });
+  expect(odegaard.figures[0]).toEqual({ stat: "goals_scored", total: 4, perNinety: 2, percentile: null });
 });
 
 test("a goalkeeper gets the goalkeeper's set; the list's stat joins as a seventh, never twice", async () => {
@@ -71,7 +71,16 @@ test("a player with no minutes has no figures per 90", async () => {
   await t.run(async (ctx) => {
     for (const row of await ctx.db.query("playerSeasonStats").collect()) await ctx.db.delete("playerSeasonStats", row._id);
   });
-  expect(await figureOf(PALMER.code, "goals_scored")).toEqual({ stat: "goals_scored", perNinety: null, percentile: null });
+  expect(await figureOf(PALMER.code, "goals_scored")).toEqual({ stat: "goals_scored", total: 0, perNinety: null, percentile: null });
+});
+
+test("Compare weighs both players by the first's area, so a goalkeeper set beside a midfielder gets the midfielder's rows", async () => {
+  const [palmer, raya] = await (await actingAs(t, ANN)).query(api.scouting.compare.players, { leagueId, codes: [PALMER.code, RAYA.code], stat: null });
+  expect(palmer).toMatchObject({ minutes: 900, figures: (await figuresOf(PALMER.code)).figures });
+  expect(raya.minutes).toBe(900);
+  expect(raya.figures.map(({ stat }) => stat)).toEqual(palmer.figures.map(({ stat }) => stat));
+  // Raya is ranked against attacking midfielders in Palmer's rows: neither Saka's goals per 90 nor Palmer's is at or below his 0.
+  expect(raya.figures[0]).toEqual({ stat: "goals_scored", total: 0, perNinety: 0, percentile: 0 });
 });
 
 test("a stat neither the catalogue nor the site's set holds is refused, as is someone not in the league", async () => {

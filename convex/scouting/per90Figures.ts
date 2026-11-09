@@ -65,17 +65,20 @@ export type Weighed = { area: Area | null; totals: Stats };
 export function per90PanelOf(his: Weighed, everyone: Iterable<Weighed>, stat: string | null) {
   const { area, totals } = his;
   if (area === null) return { area, ranked: false, figures: [] };
+  return { area, ranked: isRanked(totals), figures: per90FiguresIn(area, totals, everyone, stat) };
+}
+
+/** `totals`' figures for `area`'s stats and `stat` (per90Stats): each one's total over the period,
+ *  per 90, and the percentile among `everyone`'s ranked players of `area`, null while these totals
+ *  aren't ranked. Compare weighs both its players by the first's area, so their rows line up. */
+export function per90FiguresIn(area: Area, totals: Stats, everyone: Iterable<Weighed>, stat: string | null) {
   const peers = [...everyone].filter((each) => each.area === area && isRanked(each.totals)).map((each) => each.totals);
   const ranked = isRanked(totals);
-  return {
-    area,
-    ranked,
-    figures: per90Stats(area, stat).map((each) => {
-      const value = perNinety(totals, each);
-      const others = peers.map((peer) => perNinety(peer, each)!);
-      return { stat: each, perNinety: value, percentile: ranked && value !== null ? percentileOf(value, others) : null };
-    }),
-  };
+  return per90Stats(area, stat).map((each) => {
+    const value = perNinety(totals, each);
+    const others = peers.map((peer) => perNinety(peer, each)!);
+    return { stat: each, total: totals[each] ?? 0, perNinety: value, percentile: ranked && value !== null ? percentileOf(value, others) : null };
+  });
 }
 
 /** Where `value` stands among `peers`' figures, as a percentile from 0 to 100: the share of them at

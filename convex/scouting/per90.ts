@@ -1,5 +1,6 @@
 import { v, type Infer } from "convex/values";
-import { query } from "../_generated/server";
+import type { Id } from "../_generated/dataModel";
+import { query, type QueryCtx } from "../_generated/server";
 import { AREAS } from "../lineup/pitch";
 import { positionsNow } from "../positions/playerPositions";
 import { setOf, siteVersions } from "../scoring/siteVersions";
@@ -13,14 +14,17 @@ import { checkShownStat, withOwnTotals } from "./playersList";
 // area's panel lists (per90Figures.ts), and the list's stat, per 90 over the season, with his
 // percentile among the players whose main position is in his area and who have played
 // RANKED_MINUTES or more (Craig, 9 Nov 2026, on #1028, answer 2). The season is the list's: the
-// newest with totals, so last season's until the new one's first match. Over the last 4 or 6
-// gameweeks waits on the list's period (#1028's story 3).
+// newest with totals, so last season's until the new one's first match. Compare (compare.ts)
+// weighs its two players the same way. Over the last 4 or 6 gameweeks waits on the list's period
+// (#1028's story 3).
 
-const per90Figure = v.object({
+export const per90Figure = v.object({
   stat: v.string(),
+  /** His total over the period. */
+  total: v.number(),
   /** His figure per 90 minutes, or null with no minutes played. */
   perNinety: v.union(v.number(), v.null()),
-  /** Where it stands among his area's ranked players, 0 to 100, or null while he isn't ranked. */
+  /** Where it stands among the area's ranked players, 0 to 100, or null while he isn't ranked. */
   percentile: v.union(v.number(), v.null()),
 });
 
@@ -41,14 +45,23 @@ export const figures = query({
   returns: per90Panel,
   handler: async (ctx, { leagueId, playerCode, stat }): Promise<Per90Panel> => {
     await memberOf(ctx, leagueId);
-    const set = setOf((await siteVersions(ctx)).at(-1));
-    if (stat !== null) checkShownStat(stat, set.ownStats ?? []);
-    const positionsOf = await positionsNow(ctx, leagueId);
-    const season = await newestSeasonWithTotals(ctx);
-    const totals = season === null ? new Map<number, Stats>() : await seasonTotals(ctx, season);
-    const weighed = async (code: number): Promise<Weighed> => ({ area: mainArea(await positionsOf(code)), totals: withOwnTotals(totals.get(code), stat, set) ?? {} });
-    // Only a ranked player's positions are read: no one else is a peer.
-    const ranked = await Promise.all([...totals].filter(([, held]) => isRanked(held)).map(([code]) => weighed(code)));
+    const { weighed, ranked } = await weigher(ctx, leagueId, stat);
     return per90PanelOf(await weighed(playerCode), ranked, stat);
   },
 });
+
+/** How the per-90 figures weigh players over the season: `weighed` gives a player's main area and
+ *  totals (the site's own stats worked out when `stat` is one), and `ranked` is every player with
+ *  enough minutes to be ranked, weighed. A stat neither the catalogue nor the site's set holds is
+ *  refused. */
+export async function weigher(ctx: QueryCtx, leagueId: Id<"leagues">, stat: string | null) {
+  const set = setOf((await siteVersions(ctx)).at(-1));
+  if (stat !== null) checkShownStat(stat, set.ownStats ?? []);
+  const positionsOf = await positionsNow(ctx, leagueId);
+  const season = await newestSeasonWithTotals(ctx);
+  const totals = season === null ? new Map<number, Stats>() : await seasonTotals(ctx, season);
+  const weighed = async (code: number): Promise<Weighed> => ({ area: mainArea(await positionsOf(code)), totals: withOwnTotals(totals.get(code), stat, set) ?? {} });
+  // Only a ranked player's positions are read: no one else is a peer.
+  const ranked = await Promise.all([...totals].filter(([, held]) => isRanked(held)).map(([code]) => weighed(code)));
+  return { weighed, ranked };
+}

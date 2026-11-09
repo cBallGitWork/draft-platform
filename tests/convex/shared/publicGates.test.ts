@@ -120,7 +120,7 @@ beforeEach(async () => {
         caller.mutation(api.scoring.siteScoring.saveDraft, { scoring: FIRST_SCORING, revision: null, draftSavedAt: null }),
       "scoring/siteScoring:view": () => caller.query(api.scoring.siteScoring.view, { now }),
       "scoring/siteScoring:withdraw": () => caller.mutation(api.scoring.siteScoring.withdraw, { versionId }),
-      "scouting/compare:players": () => caller.query(api.scouting.compare.players, { leagueId, codes: [SOME_CODE] }),
+      "scouting/compare:players": () => caller.query(api.scouting.compare.players, { leagueId, codes: [SOME_CODE], stat: null }),
       "scouting/per90:figures": () => caller.query(api.scouting.per90.figures, { leagueId, playerCode: SOME_CODE, stat: null }),
       "scouting/playersList:list": () =>
         caller.query(api.scouting.playersList.list, {
@@ -133,6 +133,7 @@ beforeEach(async () => {
       "scouting/scouts:onPlayer": () => caller.query(api.scouting.scouts.onPlayer, { leagueId, playerCode: SOME_CODE }),
       "scouting/shortlist:mine": () => caller.query(api.scouting.shortlist.mine, { leagueId }),
       "scouting/statRace:teams": () => caller.query(api.scouting.statRace.teams, { leagueId, stat: "goals_scored", descending: true }),
+      "scouting/yourPlayer:at": () => caller.query(api.scouting.yourPlayer.at, { leagueId, playerCode: SOME_CODE, now }),
       "signIn/account:signedInAs": () => caller.query(api.signIn.account.signedInAs, {}),
       "signIn/signInLinks:ask": () => caller.action(api.signIn.signInLinks.ask, { email: OUTSIDER }),
       "signIn/timeZone:recordZone": () => caller.mutation(api.signIn.timeZone.recordZone, { zone: LONDON_ZONE }),
