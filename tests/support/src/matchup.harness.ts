@@ -7,7 +7,7 @@ import type { Id } from "../../../convex/_generated/dataModel";
 import type { PlayingState } from "../../../convex/football/matchScores";
 import type { Area } from "../../../convex/lineup/pitch";
 import { centreSlotOf } from "../../../src/matchup/preview";
-import type { MatchupCommentary, MatchupSide, MatchupBenchSlot, MatchupSlot, MatchupStarter } from "../../../convex/matchup/matchupShape";
+import type { TeamsCommentary, MatchupSide, MatchupBenchSlot, MatchupSlot, MatchupStarter } from "../../../convex/matchup/matchupShape";
 import type { Matchup, MatchupSeam } from "../../../src/matchup/seam";
 import { benchLabel, sidePitchLabel } from "../../../src/matchup/words";
 
@@ -119,7 +119,19 @@ type Game = HeadToHead["game"];
 type Scored = Extract<Game, { kind: "scored" }>;
 
 /** Commentary with no lines yet, keeping up: what a scored game holds unless a test says. */
-const NO_COMMENTARY: MatchupCommentary = { kind: "read", lines: [], delayed: false };
+const NO_COMMENTARY: TeamsCommentary = { kind: "read", lines: [], delayed: false };
+
+type TeamsLine = Extract<TeamsCommentary, { kind: "read" }>["lines"][number];
+
+/** A matchup's commentary line, about nobody and moving neither team's score unless `rest` says. */
+export const commentaryLine = (key: string, text: string, rest: Partial<Omit<TeamsLine, "key" | "text">> = {}): TeamsLine => ({
+  key,
+  text,
+  points: null,
+  about: [],
+  columns: [null, null],
+  ...rest,
+});
 
 /** Team 1's matchup in `gameweek`, of the gameweeks it plays, holding `game`; a scored one with no
  *  commentary, scored under the first set, unless it gives some. */

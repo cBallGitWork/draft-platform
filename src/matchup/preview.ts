@@ -8,7 +8,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { positionOfSlot, type Area, type Cell, type Lane } from "../../convex/lineup/pitch";
 import { namedRole, roleIn } from "../../convex/lineup/roles";
-import type { MatchBreakdown, MatchupCommentary, MatchupSide, MatchupBenchSlot, MatchupSlot, MatchupStarter } from "../../convex/matchup/matchupShape";
+import type { MatchBreakdown, TeamsCommentary, MatchupSide, MatchupBenchSlot, MatchupSlot, MatchupStarter } from "../../convex/matchup/matchupShape";
 import { MINUTE_MS } from "../../convex/shared/time";
 import { previewFixtureCode } from "../premierLeague/preview";
 import { previewIdOf, previewSeason, previewTeams } from "../table/preview";
@@ -93,11 +93,29 @@ function slotAt([area, name, match, finalPoints]: Man, minute: number, onBench: 
   const points = played < 0 ? null : Math.floor((finalPoints * Math.min(played, MATCH_MINUTES)) / MATCH_MINUTES);
   const autoSub = name === UNUSED_KEEPER && status.kind === "finished" ? { kind: "off" as const, playerName: BENCH_KEEPER } : null;
   // His shirt is the side's to dress (sideAt).
-  return { playerCode: codeOf(name), name, area, clubCode: null, number: null, points, counts: !onBench, provisional: true, status, autoSub, breakdown: [breakdownOf(fixtureCode, kickoff, points)] };
+  return { playerCode: codeOf(name), name, area, clubCode: null, number: null, points, counts: !onBench, provisional: true, status, autoSub, breakdown: [breakdownOf(fixtureCode, kickoff, points, namedAt(match, played))] };
+}
+
+/** Each match's clubs, as its lines name them, and the minutes each club scores in (the lines' goals). */
+const MATCHES = [
+  { home: "ARS", away: "LIV", homeGoals: [23], awayGoals: [77] },
+  { home: "CHE", away: "MCI", homeGoals: [58], awayGoals: [17] },
+] as const;
+
+/** Match `match`'s clubs and its score `played` minutes in: none before kickoff. */
+function namedAt(match: 0 | 1, played: number): Pick<MatchBreakdown, "home" | "away" | "score"> {
+  const { home, away, homeGoals, awayGoals } = MATCHES[match];
+  const goals = (minutes: readonly number[]) => minutes.filter((at) => at <= played).length;
+  const state = played < 0 ? null : played <= MATCH_MINUTES ? ("live" as const) : ("fullTime" as const);
+  return {
+    home,
+    away,
+    score: state === null ? null : { state, homeGoals: goals(homeGoals), awayGoals: goals(awayGoals), minutes: Math.min(played, MATCH_MINUTES), clockLabel: null },
+  };
 }
 
 /** A made-up man's match broken down: a point for appearing, the rest goals at 1 each. */
-function breakdownOf(fixtureCode: number, kickoff: number, points: number | null): MatchBreakdown {
+function breakdownOf(fixtureCode: number, kickoff: number, points: number | null, named: Pick<MatchBreakdown, "home" | "away" | "score">): MatchBreakdown {
   const all = { by: "all" } as const;
   const categories =
     points === null
@@ -106,7 +124,7 @@ function breakdownOf(fixtureCode: number, kickoff: number, points: number | null
           { stat: "minutes", name: "Minutes played", points: Math.min(points, 1), why: { actions: 1, value: { shape: "perAction", points: 1 }, pricedBy: all, cut: null } },
           { stat: "goalsScored", name: "Goals scored", points: Math.max(points - 1, 0), why: { actions: Math.max(points - 1, 0), value: { shape: "perAction", points: 1 }, pricedBy: all, cut: null } },
         ] as const;
-  return { fixtureCode, kickoff, points, counted: true, categories: [...categories], override: null };
+  return { fixtureCode, kickoff, ...named, points, counted: true, categories: [...categories], override: null };
 }
 
 /** A man in `cell`, in its first role. */
@@ -168,29 +186,32 @@ function sideAt(teamName: string, men: typeof SAKA_POTATOES, minute: number): Ma
 
 /** Each match's made-up lines: which match, its minute, the line, and its worth to either team.
  *  The second match's minutes count from its own kickoff. */
-const LINES: [0 | 1, number, string, string | null][] = [
-  [0, 0, "KO ARS v LIV", null],
-  [0, 12, "12' YELLOW Van Dijk", "-1"],
-  [0, 23, "23' GOAL Saka, assist Rice", "Saka +5, Rice +3"],
-  [1, 0, "KO CHE v MCI", null],
-  [0, 38, "38' Corner, conceded by Konaté", null],
-  [1, 17, "17' GOAL Haaland", "+4"],
-  [0, 45, "45+2' HT", null],
-  [0, 61, "~61' Saka: 60 minutes", "+1"],
-  [1, 40, "40' SHOT Palmer, saved", null],
-  [0, 77, "77' GOAL Szoboszlai, penalty", "+5"],
-  [1, 58, "58' GOAL Palmer, assist Ødegaard", "Palmer +4, Ødegaard +3"],
-  [0, MATCH_MINUTES, "FT ARS 1–1 LIV: Saka 11, Szoboszlai 9, Van Dijk 6, Rice 3, Isak 2", null],
-  [1, 88, "88' RED Cucurella", "-3"],
-  [1, MATCH_MINUTES, "FT CHE 1–1 MCI: Haaland 13, Gabriel 8, Palmer 7, Ødegaard 5", null],
+const LINES: [0 | 1, number, string, string | null, about: string[], columns: [string | null, string | null]][] = [
+  [0, 0, "KO ARS v LIV", null, [], [null, null]],
+  [0, 12, "12' YELLOW Van Dijk", "-1", ["Van Dijk"], [null, "-1"]],
+  [0, 23, "23' GOAL Saka, assist Rice", "Saka +5, Rice +3", ["Saka", "Rice"], ["+8", null]],
+  [1, 0, "KO CHE v MCI", null, [], [null, null]],
+  [0, 38, "38' Corner, conceded by Konaté", null, ["Konaté"], [null, null]],
+  [1, 17, "17' GOAL Haaland", "+4", ["Haaland"], [null, "+4"]],
+  [0, 45, "45+2' HT", null, [], [null, null]],
+  [0, 61, "~61' Saka: 60 minutes", "+1", ["Saka"], ["+1", null]],
+  [1, 40, "40' SHOT Palmer, saved", null, ["Palmer"], [null, null]],
+  [0, 77, "77' GOAL Szoboszlai, penalty", "+5", ["Szoboszlai"], [null, "+5"]],
+  [1, 58, "58' GOAL Palmer, assist Ødegaard", "Palmer +4, Ødegaard +3", ["Palmer", "Ødegaard"], ["+7", null]],
+  [0, MATCH_MINUTES, "FT ARS 1–1 LIV: Saka 11, Szoboszlai 9, Van Dijk 6, Rice 3, Isak 2", null, ["Saka", "Szoboszlai", "Van Dijk", "Rice", "Isak"], [null, null]],
+  [1, 88, "88' RED Cucurella", "-3", ["Cucurella"], [null, "-3"]],
+  [1, MATCH_MINUTES, "FT CHE 1–1 MCI: Haaland 13, Gabriel 8, Palmer 7, Ødegaard 5", null, ["Haaland", "Gabriel", "Palmer", "Ødegaard"], [null, null]],
 ];
 /** The replay's minutes the commentary is delayed for, so the note shows. */
 const DELAYED_FROM = 70;
 const DELAYED_UNTIL = 75;
 
 /** The lines `minute` minutes into the replay, newest first. */
-function commentaryAt(minute: number): MatchupCommentary {
-  const lines = LINES.map(([match, at, text, points], index) => ({ when: at + match * SECOND_KICKOFF, line: { key: `${index}`, text, points } }))
+function commentaryAt(minute: number): TeamsCommentary {
+  const lines = LINES.map(([match, at, text, points, about, columns], index) => ({
+    when: at + match * SECOND_KICKOFF,
+    line: { key: `${index}`, text, points, about: about.map(codeOf), columns },
+  }))
     .filter(({ when }) => when <= minute)
     .sort((one, other) => other.when - one.when)
     .map(({ line }) => line);

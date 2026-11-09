@@ -54,13 +54,26 @@ describe("reaching it", () => {
     expect(screen.getByRole("link", { name: "Premier League" }).getAttribute("data-status")).toBe("active");
   });
 
+  /** His match on the matchup, as his breakdown names it: "ARS 1–0 CHE 67'". */
+  const HIS_MATCH = {
+    fixtureCode: FIXTURE,
+    kickoff: null,
+    home: "ARS",
+    away: "CHE",
+    score: { state: "live" as const, homeGoals: 1, awayGoals: 0, minutes: 67, clockLabel: "67'12" },
+    points: null,
+    counted: true,
+    categories: [],
+    override: null,
+  };
+
   it("opens from a player's status on the matchup, at his match", async () => {
     const app = openApp(MATCHUP_PATH, manager, {
       premierLeague: { match: matchOf() },
       matchup: {
         matchup: headToHead({
           kind: "scored",
-          team: teamSide("Team 1", [slot("Saka", { status: playing(67, "67'12", FIXTURE), breakdown: [{ fixtureCode: FIXTURE, kickoff: null, points: null, counted: true, categories: [], override: null }] })], []),
+          team: teamSide("Team 1", [slot("Saka", { status: playing(67, "67'12", FIXTURE), breakdown: [HIS_MATCH] })], []),
           opponent: teamSide("Team 2", [], []),
         }),
       },
@@ -68,7 +81,7 @@ describe("reaching it", () => {
     // His tile shows his match's state; tapped, his breakdown opens his match (the approved picture).
     expect(await screen.findByRole("listitem", { name: new RegExp(`${statusLabels.playing} 67'`) })).toBeTruthy();
     await userEvent.click(screen.getByRole("button", { name: openBreakdownLabel("Saka") }));
-    await userEvent.click(screen.getByRole("link", { name: breakdownMatchWords(null) }));
+    await userEvent.click(screen.getByRole("link", { name: breakdownMatchWords(HIS_MATCH) }));
 
     expect(await screen.findByRole("heading", { level: 1, name: MATCH_TITLE })).toBeTruthy();
     expect(app.path()).toBe(matchPath(FIXTURE));
@@ -82,7 +95,7 @@ describe("reaching it", () => {
     expect(await screen.findByRole("listitem", { name: new RegExp(statusLabels.noMatch) })).toBeTruthy();
     await userEvent.click(screen.getByRole("button", { name: openBreakdownLabel("Wood") }));
     expect(screen.getByText(noMatchBreakdownWords)).toBeTruthy();
-    expect(screen.queryByRole("link", { name: breakdownMatchWords(null) })).toBeNull();
+    expect(screen.queryByRole("link", { name: breakdownMatchWords(HIS_MATCH) })).toBeNull();
   });
 
   it("a fixture before kickoff links from its v", async () => {
