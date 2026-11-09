@@ -20,14 +20,15 @@ import {
 // League home's panels whose data or grill is still to come (docs/design/approved/home/,
 // Placeholders): each in its place and size, as outlines, never a made-up figure (plate.md, Marks).
 
-/** Bars standing for lines still to come, each a little shorter than the last, as the picture draws
- *  them. */
+/** The bars' widths, line by line, as the picture draws them. */
+const WIDTHS = ["w-full", "w-full", "w-11/12", "w-2/3", "w-1/2"];
+
+/** Bars standing for lines still to come, each a little shorter than the last. */
 function PlaceholderLines({ label, lines }: { label: string; lines: number }) {
-  const widths = ["w-full", "w-full", "w-11/12", "w-2/3", "w-1/2"];
   return (
     <div className="flex flex-col gap-2 px-3 py-2">
       {Array.from({ length: lines }, (_, line) => (
-        <Placeholder key={line} label={label} className={`block h-5 ${widths[line % widths.length]}`} />
+        <Placeholder key={line} label={label} className={`block h-5 ${WIDTHS[line % WIDTHS.length]}`} />
       ))}
     </div>
   );
