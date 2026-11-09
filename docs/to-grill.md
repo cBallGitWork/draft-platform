@@ -225,7 +225,7 @@ ai-carling-premiership match logs; the numbers there come from FotMob and Sofasc
 
   | | FWD | AM | CM | DEF | GK |
   |---|---|---|---|---|---|
-  | Appearance | – | – | – | – | – |
+  | Appearance (any minutes) | 1 | 1 | 1 | 1 | 1 |
   | Goal | 4 | 5 | 5 | 5 | 5 |
   | Assist | 3 | 3 | 3 | 3 | 3 |
   | Clean sheet (60+ min) | – | – | 2 | 4 | 4 |
@@ -241,12 +241,14 @@ ai-carling-premiership match logs; the numbers there come from FotMob and Sofasc
   out from lower tier still" (Craig, 9 Nov 2026). Without it the defcon lifts defenders at poor
   sides, who defend more. With it, a regular defender's season averages 47 at a top-6 side, 36 in
   mid-table and 23 in the bottom six (55, 47 and 36 without), and fewer defenders crowd the top 25.
-- What it gives over the five seasons, per 60-minute start: FWD 1.65, AM 1.62, CM 1.65, DEF 1.23,
-  GK 1.51; goals and assists are about 60% of all points. Defenders are the deepest pool (about
+- The appearance point is flat, never more at 60 minutes, so a less-nailed player keeps his
+  value: a regular sub scores about two-thirds of a nailed starter's points per appearance.
+- What it gives over the five seasons, per 60-minute start: FWD 2.65, AM 2.62, CM 2.65, DEF 2.23,
+  GK 2.51; goals and assists are about 31% of all points. Defenders are the deepest pool (about
   78 regulars a season), so they sit lowest a start and the best still stand out. The 10th-best
-  season by line is FWD 72, AM 86, CM 82, DEF 72, GK 68. Strikers are scarce (about 20 regulars
-  a season), so a good one is a scarcity pick rather than a big total. Top of 25-26: Haaland 128,
-  Gabriel 108, Bruno Fernandes 105, Rice 94, O'Reilly 93, Semenyo 91.
+  season by line is FWD 106, AM 121, CM 117, DEF 107, GK 103. Strikers are scarce (about 20
+  regulars a season), so a good one is a scarcity pick rather than a big total. Top of 25-26:
+  Haaland 163, Bruno Fernandes 140, Gabriel 140, Rice 130, Semenyo 128, O'Reilly 127.
 - Why lines and one line each: a player is scored by the slot he plays in (`spec/14`). With
   detailed positions, any slot that paid more for the same player (a deeper slot's clean sheet or
   defcon) drew attackers back; in the data no stat tells a W from a WM, or a CM from a DM.
