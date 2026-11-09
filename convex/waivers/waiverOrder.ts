@@ -159,14 +159,13 @@ export type WaiversView = Infer<typeof waiversView>;
 
 /** The league's waivers at `now`, for anyone in it (Craig, 6 Nov 2026, on #1200: "Everyone sees
  *  the whole order"): the waiver order with each team's table place, the next runs and the free
- *  agent window. Null for a league made before rules were held, which has no waivers. */
+ *  agent window. */
 export const ofLeague = query({
   args: { leagueId: v.id("leagues"), now: v.number() },
-  returns: v.union(waiversView, v.null()),
-  handler: async (ctx, { leagueId, now }): Promise<WaiversView | null> => {
+  returns: waiversView,
+  handler: async (ctx, { leagueId, now }): Promise<WaiversView> => {
     const { league, team } = await memberOf(ctx, leagueId);
     const season = await seasonRules(ctx, leagueId);
-    if (season === null) return null;
     const deadlines = await leagueDeadlines(ctx, leagueId);
     const order = await orderNow(ctx, league, season, latestBegun(deadlines, now));
     const table = await waiverTable(ctx, league, season, await draftOrderIn(ctx, league));

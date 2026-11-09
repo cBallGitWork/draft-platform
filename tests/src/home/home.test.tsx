@@ -18,7 +18,6 @@ import {
   noHeadToHeadsWords,
   noMatchdayLinesWords,
   noResultsWords,
-  noRulesWords,
   partTableWords,
   premierLeagueTitle,
   TABLE_TITLE,
@@ -56,11 +55,6 @@ describe("reaching it", () => {
   it("says so while it loads", async () => {
     openHome({ loading: true });
     expect((await screen.findByRole("status")).textContent).toBe(loadingWords);
-  });
-
-  it("says why a league made before rules has none", async () => {
-    openHome({ leagueHome: null });
-    expect(await screen.findByText(noRulesWords)).toBeTruthy();
   });
 });
 

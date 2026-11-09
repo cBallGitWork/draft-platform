@@ -7,7 +7,7 @@ import { cleanup, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
 import type { SettingsView } from "../../../src/leagueSettings/seam";
-import { blankGamesWords, gamesHint, gamesLabel, loadingWords, noRulesWords, oddTeamOutWords, redrawWords, savedWords, SETTINGS_TITLE } from "../../../src/leagueSettings/words";
+import { blankGamesWords, gamesHint, gamesLabel, loadingWords, oddTeamOutWords, redrawWords, savedWords, SETTINGS_TITLE } from "../../../src/leagueSettings/words";
 import { LEAGUES_PATH } from "../../../src/leagues/paths";
 import { LEAGUES_TITLE } from "../../../src/leagues/words";
 import type { Revision } from "../../../src/rules/rulesEdits";
@@ -141,10 +141,5 @@ describe("while the server answers, or has nothing", () => {
   it("says the settings are loading, to screen readers too", async () => {
     await openedSettings({ loading: true });
     expect(screen.getByRole("status").textContent).toBe(loadingWords);
-  });
-
-  it("says a league made before rules were held has none to edit", async () => {
-    openSettings({ view: null });
-    expect(await screen.findByText(noRulesWords)).toBeTruthy();
   });
 });

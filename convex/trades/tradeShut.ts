@@ -22,7 +22,7 @@ export async function tradesShut(ctx: QueryCtx, league: Doc<"leagues">, deadline
   const begun = latestBegun(deadlines, now);
   if (begun === null) return null;
   const rules = await latestRules(ctx, league._id);
-  const tradeDeadline = rules === null ? null : tradeRulesOf(rules).deadline;
+  const tradeDeadline = tradeRulesOf(rules).deadline;
   if (tradeDeadline !== null && begun >= tradeDeadline) {
     if (begun > tradeDeadline || !(await gameweekUnderWay(ctx, begun))) return "tradeDeadline";
   }

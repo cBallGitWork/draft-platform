@@ -19,7 +19,6 @@ import {
   noCommentaryWords,
   noGamesWords,
   noGameWords,
-  noRulesWords,
   notBegunWords,
   noTeamWords,
   totalPointsWords,
@@ -42,8 +41,6 @@ export function MatchupPage({ league, seam, asked }: { league: LeagueSummary; se
     <PageSection title={MATCHUP_TITLE} className="flex flex-col gap-2">
       {matchup === undefined ? (
         <Loading>{loadingWords}</Loading>
-      ) : matchup === null ? (
-        <p className="text-muted">{noRulesWords}</p>
       ) : matchup.kind === "totalPoints" ? (
         <p className="text-muted">{totalPointsWords}</p>
       ) : matchup.kind === "noTeam" ? (

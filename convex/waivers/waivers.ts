@@ -116,7 +116,7 @@ export const cardActionOn = query({
     const squad = held.map(({ player }) => ({ playerCode: player.code, playerName: player.name })).sort((one, other) => one.playerName.localeCompare(other.playerName));
     const onWaivers = await waiverRowOf(ctx, leagueId, playerCode);
     if (onWaivers === null) return { kind: "pickUp", squad };
-    const runs = (await latestRules(ctx, leagueId))?.waivers.runs ?? [];
+    const runs = (await latestRules(ctx, leagueId)).waivers.runs;
     return { kind: "claim", firstRunAt: firstRunFrom(runs, onWaivers.claimableFrom), squad };
   },
 });

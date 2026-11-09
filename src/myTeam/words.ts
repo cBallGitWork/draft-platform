@@ -11,7 +11,6 @@ export { figureWords, liveWords, noFigureWords, shortThenLongName, versusWords, 
 /** Said on any tab to someone who runs no team in the league, such as a commissioner who doesn't
  *  play. */
 export const noTeamWords = "You don't run a team in this league.";
-export const noRulesWords = "This league was made before leagues had rules, so it has no fixtures to draw.";
 
 // What the Squad and Tactics tabs' tables and panels both say (#1042).
 

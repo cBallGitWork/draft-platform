@@ -23,7 +23,6 @@ export const MATCHUP_TITLE = "Matchup";
 /** The totals at the top, the score of the matchup (spec/10). */
 export const SCORE_LABEL = "Score";
 export const loadingWords = "Loading the matchup…";
-export const noRulesWords = "This league was made before leagues had rules, so it has no matchups.";
 export const totalPointsWords = noHeadToHeadsTotalPointsWords;
 export const noTeamWords = "You run no team in this league.";
 export const noGamesWords = (teamName: string) => `${teamName} has no head-to-heads: fixtures are drawn once the league has ${fewestTeamsWords}.`;

@@ -98,7 +98,7 @@ export const leagueRulesShape = v.object({
   /** Each area's minimum and maximum on the pitch: lineup.ts's LineupRules["areaLimits"]. */
   areaLimits: byArea(limit),
   presets: v.array(preset),
-  /** Absent, as `oddTeamOut` is, only from rules saved before #991, which play the first rules'
+  /** Absent only from rules saved before #991, which play the first rules'
    *  (firstRules.ts, `classicsOf`). */
   classics: v.optional(v.array(classicShape)),
   /** deadline.ts's DeadlineRule. */
@@ -107,16 +107,14 @@ export const leagueRulesShape = v.object({
   doubleGameweek: v.union(...DOUBLE_GAMEWEEK_RULES.map((name) => v.literal(name))),
   /** standings.ts's TieBreak, in the league's order. */
   tieBreaks: v.array(v.union(...TIE_BREAKS.map((name) => v.literal(name)))),
-  /** roundRobin.ts's OddTeamOut. Absent only from rules saved before #33, which play the first
-   *  rules' (firstRules.ts, `drawRulesOf`): optional, so those rows need no migration
-   *  (ARCHITECTURE.md's Data, "Changing a saved shape"). drawRulesBackfill.ts fills it and
-   *  `gamesPerGameweek` in; once it has run on each deployment, both can be made required. */
-  oddTeamOut: v.optional(oddTeamOutShape),
-  /** roundRobin.ts's DrawRules["gamesPerGameweek"]: a whole number, 1 or more. Absent, as
-   *  `oddTeamOut` is, only from rules saved before #130. */
-  gamesPerGameweek: v.optional(v.number()),
+  /** roundRobin.ts's OddTeamOut. Required since #147 backfilled the rows saved before #33
+   *  (ARCHITECTURE.md's Data, "Changing a saved shape"). */
+  oddTeamOut: oddTeamOutShape,
+  /** roundRobin.ts's DrawRules["gamesPerGameweek"]: a whole number, 1 or more. Required, as
+   *  `oddTeamOut` is. */
+  gamesPerGameweek: v.number(),
   waivers: waiverRulesShape,
-  /** How the draft runs (spec/04; #1087). Absent, as `oddTeamOut` is, only from rules saved before
+  /** How the draft runs (spec/04; #1087). Absent only from rules saved before
    *  #1087, which play the first rules' (firstRules.ts, `draftRulesOf`). */
   draft: v.optional(draftRulesShape),
   /** How trades run (spec/08; #383). Absent, as `draft` is, only from rules saved before #383,

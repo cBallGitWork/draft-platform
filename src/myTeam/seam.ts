@@ -21,9 +21,8 @@ export type SquadNumberChanges = {
 /** The league's table and fixtures (the table's own seam) give the header band its readings; the
  *  claims' seam gives the Transactions tab its claims, waiver order and runs. */
 export type MyTeamSeam = TacticsSeam & TableSeam & SquadSeam & ClaimsSeam & {
-  /** The manager's team's games for the season, live (a hook): undefined while they load, null
-   *  for a league made before rules were held. */
-  useTeamFixtures(leagueId: Id<"leagues">): TeamFixtures | null | undefined;
+  /** The manager's team's games for the season, live (a hook): undefined while they load. */
+  useTeamFixtures(leagueId: Id<"leagues">): TeamFixtures | undefined;
   /** The manager's team's transactions, newest first, live (a hook): undefined while they load. */
   useTeamTransactions(leagueId: Id<"leagues">): TeamTransactions | undefined;
   /** The manager's team's squad, with each player's next fixture and points, live (a hook):

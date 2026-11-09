@@ -28,7 +28,6 @@ import {
   nextLabel,
   noGamesWords,
   noGameWords,
-  noRulesWords,
   notBegunWords,
   notCountingLabel,
   noTeamWords,
@@ -222,7 +221,6 @@ describe("each side", () => {
 describe("when there's nothing to score", () => {
   it.each<[string, MatchupData, string]>([
     ["while it loads", { loading: true }, loadingWords],
-    ["for a league with no rules", { matchup: null }, noRulesWords],
     ["for a league in total points", { matchup: { kind: "totalPoints" } }, totalPointsWords],
     ["for someone running no team", { matchup: { kind: "noTeam" } }, noTeamWords],
     ["for a team with no head-to-heads", { matchup: { ...headToHead({ kind: "none" }), gameweek: null, gameweeks: [] } }, noGamesWords("Team 1")],

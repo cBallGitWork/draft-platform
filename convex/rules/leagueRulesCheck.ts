@@ -28,10 +28,8 @@ export function checkLeagueRules(rules: LeagueRules, maxTeams?: number): void {
   if (rules.classics !== undefined) checkClassics(rules.classics, rules.presets, instructionsOf(rules));
   checkWholeNumber(rules.deadline.minutesBeforeFirstKickoff, "The deadline's minutes before the first kickoff", 0);
   checkNoneTwice(rules.tieBreaks, (tieBreak) => `The tie-break ${tieBreak} is listed twice.`);
-  if (rules.gamesPerGameweek !== undefined) {
-    checkWholeNumber(rules.gamesPerGameweek, "The head-to-head games each team plays a gameweek", 1);
-    if (maxTeams !== undefined) checkGamesFor(rules.gamesPerGameweek, maxTeams);
-  }
+  checkWholeNumber(rules.gamesPerGameweek, "The head-to-head games each team plays a gameweek", 1);
+  if (maxTeams !== undefined) checkGamesFor(rules.gamesPerGameweek, maxTeams);
   checkWaivers(rules.waivers);
   if (rules.draft !== undefined) checkDraft(rules.draft);
   if (rules.trades !== undefined) checkTrades(rules.trades);

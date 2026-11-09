@@ -6,7 +6,7 @@ import type { LeagueTable, TableSeam } from "../../../src/table/seam";
 
 /** What the fake server holds: the league's table, null for a league with no rules, or nothing
  *  yet while it loads. Two teams' table by default. */
-export type TableData = { leagueTable?: LeagueTable | null; loading?: boolean };
+export type TableData = { leagueTable?: LeagueTable; loading?: boolean };
 
 export function fakeTable({ leagueTable = leagueTableOf(["Team 1", "Team 2"]), loading = false }: TableData = {}) {
   return { useLeagueTable: vi.fn<TableSeam["useLeagueTable"]>(() => (loading ? undefined : leagueTable)) };

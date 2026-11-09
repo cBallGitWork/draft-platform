@@ -148,8 +148,6 @@ async function runWaivers(ctx: MutationCtx, leagueId: Id<"leagues">, at: number)
   const held = await waiverOrderRow(ctx, leagueId);
   if (league === null || !leagueOpens(league) || (held !== null && at <= held.ranAt)) return;
   const season = await seasonRules(ctx, leagueId);
-  // runDue starts a run only for a league with rules, so none here is a fault, never a quiet skip.
-  if (season === null) throw new Error(`League ${leagueId}'s rules can't be read, so its waiver run at ${new Date(at).toISOString()} can't be made`);
   const now = Date.now();
   const deadlines = await leagueDeadlines(ctx, leagueId);
   const gameweek = latestBegun(deadlines, now);
@@ -228,9 +226,8 @@ export const runDue = internalMutation({
     );
     for (const league of leagues) {
       if (!leagueOpens(league)) continue;
-      // A league made before rules were held (#25) has no run times, so it never runs waivers.
       const rules = await latestRules(ctx, league._id);
-      const at = rules === null ? null : latestRunAt(rules.waivers.runs, now);
+      const at = latestRunAt(rules.waivers.runs, now);
       if (at === null) continue;
       const held = await waiverOrderRow(ctx, league._id);
       if (held === null ? at <= now - 2 * CHECK_MS : at <= held.ranAt) continue;

@@ -14,7 +14,6 @@ export const TACTICS_TITLE = menuWords.tactics;
 export { BENCH_TITLE } from "../../shared/words";
 
 export const tacticsLoadingWords = "Loading your lineup…";
-export const tacticsNoRulesWords = "This league was made before leagues had rules, so it has no deadline or area limits to set a lineup under.";
 export const seasonOverWords = "Every gameweek this league plays has begun, so there's no lineup left to set this season.";
 
 const positionsWords = (positions: readonly string[]) => positions.join(listSeparator);

@@ -58,14 +58,7 @@ export const pickRefusals = {
  *  before #1090 kept none, so its are the league's in force when it started; it always has them, as
  *  it can't start without a squad size limit. */
 export async function squadRulesOf(ctx: QueryCtx, leagueId: Id<"leagues">, started: StartedDraft): Promise<LeagueRules["squad"]> {
-  return started.squad ?? (await startedRulesAt(ctx, leagueId, started.at)).squad;
-}
-
-/** The league's rules in force at `at`, which a started draft always has: it can't start without. */
-async function startedRulesAt(ctx: QueryCtx, leagueId: Id<"leagues">, at: number): Promise<LeagueRules> {
-  const rules = await rulesInForceAt(ctx, leagueId, at);
-  if (rules === null) throw new Error(`League ${leagueId}'s draft has started, but the league has no rules`);
-  return rules;
+  return started.squad ?? (await rulesInForceAt(ctx, leagueId, started.at)).squad;
 }
 
 /** The players still undrafted in the league: in the Premier League now and held by no team. */
@@ -122,7 +115,7 @@ async function pickable(ctx: QueryCtx, leagueId: Id<"leagues">, playerCode: numb
 }
 
 /** The league's draft rules now: a change the commissioner makes reaches the next clock. */
-const draftRulesNow = async (ctx: QueryCtx, leagueId: Id<"leagues">) => draftRulesOf(await startedRulesAt(ctx, leagueId, Date.now()));
+const draftRulesNow = async (ctx: QueryCtx, leagueId: Id<"leagues">) => draftRulesOf(await rulesInForceAt(ctx, leagueId, Date.now()));
 
 /** The draft's pick time now, in seconds: the one the commissioner set while it was paused, which
  *  reaches it at once (draftCommissioner.ts; #1095), or else the league's in force now. */

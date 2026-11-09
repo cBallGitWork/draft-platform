@@ -21,7 +21,6 @@ import {
   liveWords,
   noFigureWords,
   noFixturesWords,
-  noRulesWords,
   noTeamWords,
   provisionalWords,
   scoreWords,
@@ -180,7 +179,6 @@ describe("why there are none", () => {
   it.each([
     ["a league in total points", { ...fixturesOf([]), format: "totalPoints" as const }, totalPointsWords],
     ["a league with no fixtures drawn yet", fixturesOf([]), noFixturesWords],
-    ["a league made before rules", null, noRulesWords],
   ])("says so for %s", async (_, fixtures, words) => {
     openFixtures({ fixtures });
     expect(await screen.findByText(words)).toBeTruthy();
