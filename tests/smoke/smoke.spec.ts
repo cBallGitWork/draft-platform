@@ -207,7 +207,12 @@ test.describe("dev server, signed out of Convex", { tag: "@dev" }, () => {
     test.use({ viewport: DESK });
     const titleWidth = async (page: Page, path: string) => {
       await page.goto(path);
-      return (await page.getByRole("main").getByRole("heading", { level: 1 }).boundingBox())!.width;
+      // The title's container: the plate itself, or the page's section when the title is the plate,
+      // so a plate carrying tabs beside its title (Scouting's, #1028) measures the same.
+      return page
+        .getByRole("main")
+        .getByRole("heading", { level: 1 })
+        .evaluate((title) => title.parentElement!.getBoundingClientRect().width);
     };
     const SHARING_THE_WIDTH = [
       `${squadsPath(miniBeta.leagueId)}?preview=commissioner`,

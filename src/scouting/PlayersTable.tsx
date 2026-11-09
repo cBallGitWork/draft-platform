@@ -132,7 +132,7 @@ function PlayerCell({
       return (
         <th scope="row" title={player.fullName} className={`${className} font-normal`}>
           <span className="flex items-center gap-2">
-            <Link to={playerCardPath(leagueId, player.code)} onClick={(event) => event.stopPropagation()} className="inline-flex min-h-tap items-center font-semibold text-lead lg:min-h-0">
+            <Link to={playerCardPath(leagueId, player.code)} onClick={(event) => event.stopPropagation()} className="inline-flex min-h-tap min-w-tap items-center font-semibold text-lead lg:min-h-0 lg:min-w-0">
               {player.name}
             </Link>
             {shortlisted && <ShortlistStar label={shortlistedLabel} />}
