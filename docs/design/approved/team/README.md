@@ -1,5 +1,8 @@
 # My team: Tactics
 
+**Contents:** [The pictures](#the-pictures) · [Approved](#approved) · [The Football Manager idea](#the-football-manager-idea) ·
+[Interaction notes](#interaction-notes) · [Placeholders](#placeholders) · [Canvas](#canvas)
+
 Route: `/team`, the Tactics tab, checked on `/team?preview=manager`.
 
 ## The pictures
