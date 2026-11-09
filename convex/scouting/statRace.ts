@@ -10,8 +10,9 @@ import type { Stats } from "../stats/statTotals";
 import { teamTotals } from "../stats/teamSeasonTotals";
 
 // Scouting's stat race (#800, spec/19 The stat race): each of the league's teams with its season
-// total in every stat of the catalogue, and the scoring categories the screen races them in, counting only its starters and the bench players who came
-// on (teamSeasonStats.ts), ranked by the stat the manager picks. Raw stats, not points. Totals are
+// total in every stat of the catalogue, and the scoring categories the screen races them in,
+// counting only its starters and the bench players who came on (teamSeasonStats.ts), ranked by
+// the stat the manager picks. Raw stats, not points. Totals are
 // added once a gameweek is final, so the gameweek in play joins them about an hour after its last
 // match, when that match locks (spec/07).
 
