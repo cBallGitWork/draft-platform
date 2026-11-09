@@ -15,10 +15,10 @@ Among them:
 
 - Format: head-to-head, or total points. The format is locked once the league's first gameweek
   has begun, and League settings says why: one table with one meaning all season (Craig, 6 Nov
-  2026: "Locked once the season starts"; #275). `S03.1` With a scoring start (`spec/04`, After the
-  draft), the first gameweek is the first scored one (Craig, 9 Nov 2026: "First scored GW").
+  2026: "Locked once the season starts"; #275). With a scoring start (`spec/04`, After the
+  draft), the first gameweek is the first scored one (Craig, 9 Nov 2026: "First scored GW"). `S03.1`
 - Play-offs: how many teams, how many legs.
-- Table tie-breaks, whose order the commissioner changes (Craig, 9 Nov 2026: "Yes, Up/Down").
+- Table tie-breaks, whose order the commissioner changes (Craig, 9 Nov 2026: "Yes, Up/Down"). `S03.2`
 - How many head-to-head games each team plays a gameweek: one, or more (`spec/09`), never more
   than the league's maximum of teams gives a team different opponents for; more is refused when
   saved, naming the most, and so is lowering the maximum below what the games need (22 Oct 2026).
