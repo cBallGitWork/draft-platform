@@ -1,9 +1,10 @@
 import { expect, test } from "vitest";
+import type { Cell } from "../../../convex/lineup/pitch";
 import { everyRoleOf } from "../../../convex/lineup/roles";
 import { FIRST_SCORING } from "../../../convex/scoring/firstScoring";
 import { DAY_MS } from "../../../convex/shared/time";
 import { fullTimeRecords } from "../../support/convex/gameweekScoresMatch.harness";
-import { annsScoredGame, GAMEWEEK, giveAnnsStarterRole, HULL_SCORER, HULL_STARTERS, scoresLeague, slotOf } from "../../support/convex/gameweekScores.harness";
+import { annsScoredGame, GAMEWEEK, giveAnnsStarterRole, HULL_SCORER, HULL_STARTERS, HULL_STRIKER, PHILLIPS, scoresLeague, slotOf } from "../../support/convex/gameweekScores.harness";
 import { pricedRole } from "../../support/convex/scoring.example";
 import { holdSiteScoring } from "../../support/convex/siteScoring.harness";
 
@@ -79,4 +80,54 @@ const picksAnnsInstructions = ({ t, annsTeam }: Awaited<ReturnType<typeof scores
   t.run(async (ctx) => {
     const lineup = (await ctx.db.query("lineups").collect()).find((each) => each.teamId === annsTeam)!;
     await ctx.db.patch("lineups", lineup._id, { instructions });
+  });
+
+// spec/05, Team instructions (#990): two at the back's own clean sheet and goals conceded count only
+// from the first gameweek whose site set scores instructions (teamGameweek.ts's teamScoring), so a
+// gameweek played before them keeps FPL's line.
+const HULL_CENTRE_BACK = 193278;
+
+test("two at the back reprices its centre back's goals conceded only once the site set scores instructions", async () => {
+  const goalsConcededOf = async (scoresInstructions: boolean) => {
+    const league = await scoresLeague();
+    if (scoresInstructions) {
+      await league.t.run((ctx) =>
+        holdSiteScoring(ctx, { scoring: { ...FIRST_SCORING, instructions: [GOAL_A_POINT("playOutFromTheBack")] }, kind: "patch", season: 2026, number: 1, at: Date.now() - 365 * DAY_MS }),
+      );
+    }
+    await standsAnnInTwoThreeFive(league);
+    await fullTimeRecords(league);
+    const [match] = slotOf((await annsScoredGame(league, GAMEWEEK)).team, HULL_CENTRE_BACK).breakdown;
+    const line = match.categories.find((each) => each.stat === "goals_conceded");
+    if (line === undefined || line.points === null) throw new Error("his breakdown has no priced goals conceded line");
+    return line;
+  };
+
+  const before = await goalsConcededOf(false);
+  const after = await goalsConcededOf(true);
+  expect(before.points).toBe(-1); // FPL's: a point off for every two conceded
+  expect(after.why.actions).toBe(before.why.actions);
+  expect(after.why.actions).toBeGreaterThan(1);
+  expect(after.points).toBe(-after.why.actions); // the back line's: a point off for every one
+});
+
+/** Ann's eleven stood as a 2-3-5: two of her back five stay at the back, the rest step up. */
+const standsAnnInTwoThreeFive = ({ t, annsTeam }: Awaited<ReturnType<typeof scoresLeague>>) =>
+  t.run(async (ctx) => {
+    const lineup = (await ctx.db.query("lineups").collect()).find((each) => each.teamId === annsTeam)!;
+    const shape: { area: Cell["area"]; lane: Cell["lane"] }[] = [
+      { area: "goalkeeper", lane: "centre" },
+      { area: "defence", lane: "leftCentre" },
+      { area: "defence", lane: "rightCentre" },
+      { area: "midfield", lane: "leftCentre" },
+      { area: "midfield", lane: "centre" },
+      { area: "midfield", lane: "rightCentre" },
+      { area: "attack", lane: "left" },
+      { area: "attack", lane: "leftCentre" },
+      { area: "attack", lane: "centre" },
+      { area: "attack", lane: "rightCentre" },
+      { area: "attack", lane: "right" },
+    ];
+    const order = [PHILLIPS, HULL_CENTRE_BACK, 232351, 243413, HULL_SCORER, 243951, 606930, 108416, HULL_STRIKER, 146426, 101282];
+    await ctx.db.patch("lineups", lineup._id, { starters: order.map((playerCode, index) => ({ playerCode, ...shape[index] })) });
   });
