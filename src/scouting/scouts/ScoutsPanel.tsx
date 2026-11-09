@@ -60,12 +60,12 @@ export function ScoutsPanel({ leagueId, seam, read }: { leagueId: Id<"leagues">;
               <span className="w-16 shrink-0 text-soft">{scoutNumberWords(index + 1)}</span>
               {out !== undefined ? (
                 <>
-                  <span className="font-semibold">{outOnWords(out.name)}</span>
+                  <span>{outOnWords(out.name)}</span>
                   <span className="ml-auto text-figure">{reportInSoonWords(timeLeftWords(out.dueAt - now))}</span>
                 </>
               ) : report !== undefined ? (
                 <>
-                  <span className="font-semibold">{reportInOnWords(report.name)}</span>
+                  <span>{reportInOnWords(report.name)}</span>
                   <ReadButton report={report} read={read} />
                 </>
               ) : (
