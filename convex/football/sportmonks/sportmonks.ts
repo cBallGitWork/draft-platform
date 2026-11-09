@@ -92,13 +92,22 @@ function seasonStart(season: RawSeason): number {
   return year;
 }
 
+/** A club's short name: Sportmonks' `short_code`, or, where it sends none, the name's first three
+ *  letters, logged so a club standing on the made-up one shows in the run's logs. */
+function shortNameOf(team: RawTeam): string {
+  if (team.short_code) return team.short_code;
+  const made = team.name.slice(0, 3).toUpperCase();
+  console.warn(`${SPORTMONKS} sent club ${team.id} (${team.name}) with no short_code; using ${made}`);
+  return made;
+}
+
 /** The payloads as the seam's records: each club, each squad's men (a man in two squads once,
  *  under the club listed last), each round as a gameweek and each match under its round's number. */
 export function mapSportmonks({ league, teams, schedule }: SportmonksPayloads): Football {
   if (!league.currentseason) throw new Error(`${SPORTMONKS} sent no current season`);
   const season = seasonStart(league.currentseason);
   if (teams.length === 0) throw new Error(`${SPORTMONKS} sent no clubs`);
-  const clubs = teams.map((team) => ({ code: team.id, name: team.name, shortName: team.short_code ?? team.name.slice(0, 3).toUpperCase() }));
+  const clubs = teams.map((team) => ({ code: team.id, name: team.name, shortName: shortNameOf(team) }));
   const players = new Map<number, Football["players"][number]>();
   for (const team of teams) {
     for (const man of team.players ?? []) {

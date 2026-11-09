@@ -124,7 +124,7 @@ Tactics pitch are built with no package, and components, motion, forms and chart
   (league 501) on Sportmonks' free plan into its own `sportmonks*` tables, keyed on Sportmonks'
   ids; nothing the site shows reads them yet. Its two crons do nothing where
   `SPORTMONKS_API_TOKEN` isn't set (the live deployment). Calls, against the plan's 2,000 an
-  entity an hour: a six-hourly run makes three (the league with its current season, the season's
+  entity an hour (Sportmonks' plan page and livescores docs, checked 9 Nov 2026, as league 501 was): a six-hourly run makes three (the league with its current season, the season's
   clubs with their squads in one page, the season's schedule), one more per 50 clubs past the
   first 50; the live tick makes none with no Scottish match on and one a minute while any is, all
   of a round's matches in one `fixtures/multi` read with their lineups, `lineups.details` and
