@@ -8,6 +8,7 @@ import { ClockLeft, type OnTheClock } from "./ClockLeft";
 import type { BoardPick, DraftBoard as DraftBoardRead, DraftState } from "./seam";
 import {
   BOARD_TITLE,
+  heldViaWords,
   lostPlayerWords,
   noRoundsWords,
   onTheClockHead,
@@ -19,7 +20,6 @@ import {
   slotWords,
   theOrderRoundsWords,
   wholeBoardWords,
-  heldViaWords,
   viaWords,
   yourTeamWords,
 } from "./words";
