@@ -176,7 +176,9 @@ export const ofLeague = query({
       type: season.latest.waivers.order,
       teams: order.map((teamId) => {
         const place = table.findIndex(({ team }) => team === teamId);
-        return { teamId, name: names.get(teamId)!, yours: teamId === team?._id, tablePlace: place + 1, points: table[place]?.points ?? 0 };
+        const name = names.get(teamId);
+        if (place === -1 || name === undefined) throw new Error(`League ${leagueId}'s waiver order names team ${teamId}, which its ${place === -1 ? "table" : "teams"} doesn't hold`);
+        return { teamId, name, yours: teamId === team?._id, tablePlace: place + 1, points: table[place].points };
       }),
       drafted: await draftIsOver(ctx, leagueId),
       runs,

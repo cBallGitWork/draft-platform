@@ -89,7 +89,9 @@ export function ClaimsPanel({
         <MineTable claims={mine} open={closed === null} selected={selected} onSelect={onSelect} onReorder={onReorder} />
       )}
       <p className="px-3 py-2">
-        <Link to={SCOUTING_PATH}>{playersOnWaiversWords}</Link>
+        <Link to={SCOUTING_PATH} className="inline-flex min-h-tap items-center lg:min-h-0">
+          {playersOnWaiversWords}
+        </Link>
       </p>
     </Panel>
   );
@@ -157,6 +159,7 @@ function MineTable({
                   type="button"
                   aria-expanded={selected === claim.claimId}
                   aria-label={selectClaimLabel(claim.claim.playerName)}
+                  className="flex min-h-tap items-center lg:min-h-0"
                   onClick={(event) => {
                     event.stopPropagation();
                     onSelect(claim.claimId);
