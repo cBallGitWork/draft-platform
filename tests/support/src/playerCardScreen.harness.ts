@@ -3,6 +3,7 @@
 
 import { screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import type { Id } from "../../../convex/_generated/dataModel";
 import { playerCardPath } from "../../../src/playerCard/paths";
 import type { PlayedMatch, PlayerCard } from "../../../src/playerCard/seam";
 import { breakdownLabel } from "../../../src/playerCard/words";
@@ -10,7 +11,10 @@ import { ARSENAL, COVENTRY } from "../convex/footballRows.harness";
 import type { PlayerCardData } from "./playerCard.harness";
 import { league, manager, openApp } from "./shell.harness";
 
-export type Category = Extract<PlayedMatch["points"][number]["categories"][number], { points: number }>;
+/** The team that owns SAKA. */
+export const SAKA_POTATOES = "team-saka-potatoes" as Id<"teams">;
+
+export type Category =Extract<PlayedMatch["points"][number]["categories"][number], { points: number }>;
 export type Why = Category["why"];
 /** A per-action rule's why, the same for all: `actions` at `each` points. */
 export const perAction = (actions: number, each: number): Why => ({ actions, value: { shape: "perAction", points: each }, pricedBy: { by: "all" }, cut: null });
@@ -82,6 +86,7 @@ export const SAKA: PlayerCard = {
   positions: ["W", "CAM"],
   pricedAt: ["CAM", "W"],
   ownerTeamName: "Saka Potatoes",
+  ownerTeamId: SAKA_POTATOES,
   news: "Hamstring injury - 75% chance of playing",
   chanceOfPlaying: 75,
   matches: [NOT_ARRIVED, PRICED],
@@ -93,7 +98,7 @@ export const SAKA: PlayerCard = {
 };
 /** Saka priced at one position, so with no switch. */
 export const AT_ONE: PlayerCard = { ...SAKA, pricedAt: ["W"] };
-export const RICE: PlayerCard = { ...SAKA, code: 1002, name: "Rice", fullName: "Declan Rice", ownerTeamName: null, news: null, chanceOfPlaying: null, matches: [], nextFixtures: [] };
+export const RICE: PlayerCard = { ...SAKA, code: 1002, name: "Rice", fullName: "Declan Rice", ownerTeamName: null, ownerTeamId: null, news: null, chanceOfPlaying: null, matches: [], nextFixtures: [] };
 export const HELD: PlayerCardData = { cards: [SAKA, RICE] };
 
 export const openCard = (card: PlayerCard = SAKA, playerCard: PlayerCardData = HELD) => openApp(playerCardPath(league.leagueId, card.code), manager, { playerCard });

@@ -134,6 +134,7 @@ beforeEach(async () => {
       "signIn/account:signedInAs": () => caller.query(api.signIn.account.signedInAs, {}),
       "signIn/signInLinks:ask": () => caller.action(api.signIn.signInLinks.ask, { email: OUTSIDER }),
       "signIn/timeZone:recordZone": () => caller.mutation(api.signIn.timeZone.recordZone, { zone: LONDON_ZONE }),
+      "squads/otherSquad:ofTeam": () => caller.query(api.squads.otherSquad.ofTeam, { leagueId, teamId: rows.otherTeam._id }),
       "squads/squads:findPlayers": () => caller.query(api.squads.squads.findPlayers, { leagueId, text: SOME_TEXT }),
       "squads/squads:squads": () => caller.query(api.squads.squads.squads, { leagueId }),
       "squads/teamSquad:ofMyTeam": () => caller.query(api.squads.teamSquad.ofMyTeam, { leagueId, now }),
