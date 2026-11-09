@@ -222,7 +222,7 @@ function unmarkedPage(
 /** A row's stable key: a club's, player's or match's season-stable code, or a gameweek's season
  *  and number, 202605 for 2026/27's gameweek 5, so last season's is never taken for this one's
  *  (#66). A row from before #66, with no season, keys on its number alone. */
-function keyOf(row: Keyed): number {
+export function keyOf(row: Keyed): number {
   if ("code" in row) return row.code;
   return row.season === undefined ? row.number : row.season * SEASON_KEY_STEP + row.number;
 }

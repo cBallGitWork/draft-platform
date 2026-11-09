@@ -7,7 +7,7 @@ import { outcomeOf } from "../../shared/errors";
 import { CRON_TRIGGER, withHeartbeat } from "../../heartbeats/heartbeat";
 import { emailIfFailed } from "../../admin/feedFailureEmails";
 import { clubRecord, fixtureRecord, gameweekRecord, playerRecord, scoreRead, sportmonksSyncFields, syncTrigger, tableWrites } from "../../schema";
-import { sameFields } from "../footballSync";
+import { keyOf, sameFields } from "../footballSync";
 import { readSportmonks, sportmonksToken } from "./sportmonks";
 
 // Sportmonks' six-hourly read stored (#1391): the Scottish Premiership's clubs, players, fixtures
@@ -21,8 +21,6 @@ import { readSportmonks, sportmonksToken } from "./sportmonks";
 type TableWrites = Required<Infer<typeof tableWrites>>;
 type SyncOutcome = Infer<typeof sportmonksSyncFields.outcome>;
 type SportmonksTable = "sportmonksClubs" | "sportmonksPlayers" | "sportmonksFixtures" | "sportmonksRounds";
-/** A round's key's step a season, past any round number, as footballSync.ts's gameweeks. */
-const SEASON_KEY_STEP = 100;
 const NO_WRITES: TableWrites = { received: 0, inserted: 0, updated: 0, marked: 0, unmarked: 0 };
 
 /** What the log says, before the error, when a run fails. */
@@ -128,12 +126,8 @@ export async function writeScore(ctx: MutationCtx, read: Infer<typeof scoreRead>
   return true;
 }
 
+/** A row keyed as footballSync.ts keys its own: Sportmonks' id, or a round's season and number. */
 type Keyed = { code: number } | { season: number; number: number };
-
-/** A row's stable key: Sportmonks' id, or a round's season and number. */
-function keyOf(row: Keyed): number {
-  return "code" in row ? row.code : row.season * SEASON_KEY_STEP + row.number;
-}
 
 /** Every row sent upserted by its key, and every held row not sent marked dropped at `ranAt`, as
  *  footballSync.ts does: kept, never deleted, and unmarked when sent again. A table here holds at
