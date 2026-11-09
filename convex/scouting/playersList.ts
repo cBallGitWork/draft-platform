@@ -7,10 +7,10 @@ import { clubRecord, position } from "../schema";
 import { takeAllOrThrow } from "../shared/cappedRead";
 import { memberOf, teamsOf } from "../shared/leagueAccess";
 import { clubOf, currentClubs, currentPlayersAt } from "../shared/players";
-import { seasonPointsIn } from "../stats/seasonPoints";
 import { newestSeasonWithTotals, seasonTotals } from "../stats/seasonStats";
 import type { Stats } from "../stats/statTotals";
 import { listOf, shownStat } from "./playersOrder";
+import { shownSeasonPoints } from "./shownSeasonPoints";
 import { withOwnStats } from "../scoring/ownStats";
 import type { StoredScoringSet } from "../scoring/scoringSetShape";
 import { setOf, siteVersions } from "../scoring/siteVersions";
@@ -22,8 +22,9 @@ import { firstRunFrom } from "../waivers/waiverTimes";
 // Scouting's players list (spec/19, The players list; #373): every Premier League player now, for
 // anyone in the league, filtered and sorted here on the server so the screen never holds a cut
 // list. Each player says who owns him in this league, and his season points under the site's
-// scoring: his card's total in the league, at his main position (seasonPoints.ts, #525). One on
-// waivers says the run that can first take him (#1200).
+// scoring: his card's total in the league, at his main position (seasonPoints.ts, #525), or last
+// season's before the new season's first match (shownSeasonPoints.ts, #956). One on waivers says
+// the run that can first take him (#1200).
 // Any stat of the catalogue, or of the site set's own stats (#910), can be shown beside them as a
 // season total and sorted by (spec/19, "sortable by any stat"), read from the totals kept as
 // records are written (seasonStats.ts), for the newest season with any: last season's until the
@@ -71,7 +72,8 @@ const listedPlayer = v.object({
    *  set (Craig, 6 Nov 2026, on #1200: "Show the run's day and time"); null when he isn't. */
   onWaivers: v.union(v.object({ firstRunAt: v.union(v.number(), v.null()) }), v.null()),
   /** His points this season under the site's scoring, as his card adds them up in this league
-   *  (seasonPoints.ts), or null ("—") while none of his matches is priced. */
+   *  (seasonPoints.ts), or null ("—") while none of his matches is priced; before the new season's
+   *  first match, last season's, null for a newcomer (shownSeasonPoints.ts). */
   seasonPoints: v.union(v.number(), v.null()),
   /** His season total of the shown stat, 0 if he hasn't played; null with no stat shown. */
   stat: v.union(v.number(), v.null()),
@@ -87,6 +89,9 @@ const playersList = v.object({
   /** The site's latest set's own stats, in its order, offered beside the catalogue's (#910). */
   ownStats: v.array(offeredOwnStat),
   players: v.array(listedPlayer),
+  /** The season the points are from while they are last season's, by the year it starts, for the
+   *  head to name ("Pts 25/26"); null while they are this season's. */
+  pointsSeason: v.union(v.number(), v.null()),
 });
 export type PlayersList = Infer<typeof playersList>;
 
@@ -109,7 +114,7 @@ export const list = query({
     const ownerOf = await ownersIn(ctx, leagueId);
     const onWaiversOf = await onWaiversIn(ctx, leagueId);
     const positionsOfNow = await positionsNow(ctx, leagueId);
-    const seasonPointsOf = await seasonPointsIn(ctx, leagueId);
+    const { lastSeason, pointsOf } = await shownSeasonPoints(ctx, leagueId);
     const season = stat === null ? null : await newestSeasonWithTotals(ctx);
     const totals = season === null ? new Map<number, Stats>() : await seasonTotals(ctx, season);
     const listedClubOf = new Map(clubs.map((each) => [each.code, clubOf(each)]));
@@ -125,12 +130,12 @@ export const list = query({
           positions,
           ownerTeamName: ownerOf.get(player.code) ?? null,
           onWaivers: onWaiversOf.get(player.code) ?? null,
-          seasonPoints: seasonPointsOf(player.code, positions),
+          seasonPoints: pointsOf(player.code, positions),
           stat: shownStat(withOwnTotals(totals.get(player.code), stat, set), stat),
         };
       }),
     );
-    return { clubs: [...listedClubOf.values()], ownStats, players: listOf(rows, filters, sort) };
+    return { clubs: [...listedClubOf.values()], ownStats, players: listOf(rows, filters, sort), pointsSeason: lastSeason };
   },
 });
 

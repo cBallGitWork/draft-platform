@@ -72,7 +72,7 @@ its team stats reads are kept for the tests (`tests/support/recorded/pl-live-mat
 - Resend's 100 a day: sign-in links, a busy waiver night across several leagues, or a slow
   draft's emails,
   means Resend Pro or another sender.
-- Before the mini beta, FPL's and the Premier League's terms are checked (SPEC, *What it is*; #79).
+- Sportmonks, a paid feed, replaces FPL's and the Premier League's (SPEC, *What it is*; Craig, 9 Nov 2026).
 
 ## Libraries (Claude's)
 
@@ -111,14 +111,28 @@ Tactics pitch are built with no package, and components, motion, forms and chart
   `convex/football/premierLeague/`; in `convex/football/`, `feedIds.ts`, `scoreReads.ts`,
   `commentary.ts`, `feeds.ts`, `matchTeamSheets.ts`, `matchCommentary.ts` and `matchTeamStats.ts`;
   `convex/stats/matchStatsSync.ts`, `convex/stats/liveStatsSync.ts` and `convex/stats/matchRecords.ts`;
-  and `convex/positions/positionsSync.ts`.
-- Players are keyed on FPL's season-stable `code`, never the per-season `id`.
+  and `convex/positions/positionsSync.ts`. Sportmonks replaces both feeds (SPEC, *What it is*);
+  until it does, these are what runs.
+- Players are keyed on Sportmonks' player id; FPL's season-stable `code` is kept only to match past
+  seasons (SPEC, *What it is*; Craig, 9 Nov 2026).
 - The two feeds are matched on Opta's ids (`convex/football/feedIds.ts`): a Premier League fixture's
   `altIds.opta` is `g` + FPL's fixture `code`, and a man's is FPL's `opta_code`; one that matches
   nothing is reported, never dropped ([docs/pl-match-stats.md](docs/pl-match-stats.md#matching-the-two-feeds)).
 - Clubs, players, fixtures and gameweeks refresh every six hours (`convex/crons.ts`): nothing
   held moves during a match, and what does (a signing, a rescheduled match) is known days ahead.
   Every run, failed or not, is a row in `footballSyncs`.
+- Sportmonks (#1391, slice 1 of the switch off FPL and the Premier League): a second adapter fills
+  the same `Football` seam, in `convex/football/sportmonks/`, reading the Scottish Premiership
+  (league 501) on Sportmonks' free plan into its own `sportmonks*` tables, keyed on Sportmonks'
+  ids; nothing the site shows reads them yet. Its two crons do nothing where
+  `SPORTMONKS_API_TOKEN` isn't set (the live deployment). Calls, against the plan's 2,000 an
+  entity an hour (Sportmonks' plan page and livescores docs, checked 9 Nov 2026, as league 501 was): a six-hourly run makes three (the league with its current season, the season's
+  clubs with their squads in one page, the season's schedule), one more per 50 clubs past the
+  first 50; the live tick makes none with no Scottish match on and one a minute while any is, all
+  of a round's matches in one `fixtures/multi` read with their lineups, `lineups.details` and
+  events, so 60 an hour on the fixture entity at most, well inside its 2,000 and Sportmonks' "no
+  faster than 10 seconds". Each catalogue stat's Sportmonks type, or that it has none:
+  `convex/football/sportmonks/sportmonksStats.ts`.
 - Match stats (#27): one record per player per match in `playerMatchStats`, keyed on FPL's
   player and fixture codes, both feeds merged by spec/07's split
   ([docs/pl-match-stats.md](docs/pl-match-stats.md#one-record-per-player-per-match)).

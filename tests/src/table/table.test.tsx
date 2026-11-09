@@ -28,9 +28,18 @@ import {
   scoreWords,
   unscoredWords,
   TABLE_PAGE_TITLE,
+  TABLE_TITLE,
+  afterWords,
+  competitionWords,
+  CUP_TITLE,
+  cupRounds,
+  cupTieLabel,
+  FIXTURES_TITLE,
+  liveWords,
   tooFewTeamsWords,
-  totalPointsWords,
+  yourTeamWords,
 } from "../../../src/table/words";
+import { formLabel, liveFormLabel, noFigureWords } from "../../../src/shared/words";
 
 const FIVE = ["Ann's", "Bob's", "Cat's", "Dan's", "Eve's"];
 const openTable = (table: TableData = {}) => openApp(TABLE_PATH, manager, { table });
@@ -73,7 +82,7 @@ describe("the table", () => {
     openTable({ leagueTable: leagueTableOf(FIVE) });
     await screen.findByText(noResultsWords);
     const rows = within(screen.getByRole("table")).getAllByRole("row").slice(1).map((row) => [within(row).getByRole("rowheader").textContent, within(row).getAllByRole("cell").map((cell) => cell.textContent)]);
-    expect(rows).toEqual(FIVE.map((name, index) => [name, [String(index + 1), "0", "0", "0", "0", "0", "0", "0", "0"]]));
+    expect(rows).toEqual(FIVE.map((name, index) => [name, [String(index + 1), "0", "0", "0", "0", "0", "0", "0", "0", noFigureWords]]));
   });
 
   it("heads a head-to-head table with played, won, drawn, lost, for, against, the difference and points", async () => {
@@ -128,8 +137,37 @@ describe("the table", () => {
     openTable({ leagueTable: leagueTableOf(FIVE, { format: "totalPoints" }) });
     const heads = within(await screen.findByRole("table")).getAllByRole("columnheader");
     expect(heads.map((head) => head.textContent)).toEqual(["Pos", "Team", "P", "Pts"]);
-    expect(screen.getByText(totalPointsWords)).toBeTruthy();
+    // Titled Table, with no tabs and no Fixtures panel (the approved total-points picture).
+    expect(screen.getByRole("heading", { level: 1, name: TABLE_TITLE })).toBeTruthy();
+    expect(screen.queryByRole("button", { name: competitionWords.cup })).toBeNull();
+    expect(screen.queryByRole("region", { name: FIXTURES_TITLE })).toBeNull();
     expect(screen.queryByRole("button", { name: nextGameweekLabel })).toBeNull();
+  });
+
+  it("picks out the reader's own team's row, named so for screen readers", async () => {
+    openTable({ leagueTable: leagueTableOf(["Team 1", "Team 2"]) });
+    const rows = (await screen.findAllByRole("row")).slice(1);
+    expect(rows.map((row) => [within(row).getByRole("rowheader").textContent, row.getAttribute("aria-current")])).toEqual([
+      [`${yourTeamWords}: Team 1`, "true"],
+      ["Team 2", null],
+    ]);
+  });
+
+  it("shows each team's form as chips, and the gameweek the table counts up to", async () => {
+    const scores = new Map([[1, new Map([["Ann's", 10], ["Bob's", 30.5]])]]);
+    openTable({ leagueTable: leagueTableOf(["Ann's", "Bob's"], { scores }) });
+    expect(await screen.findByRole("img", { name: formLabel(["won"]) })).toBeTruthy();
+    expect(screen.getByRole("img", { name: formLabel(["lost"]) })).toBeTruthy();
+    expect(within(screen.getByRole("region", { name: TABLE_TITLE })).getByText(afterWords(1))).toBeTruthy();
+  });
+
+  it("while live, marks each team's last result provisional, and the fixtures say Live", async () => {
+    const scores = new Map([[1, new Map([["Ann's", 10], ["Bob's", 30.5]])]]);
+    openTable({ leagueTable: leagueTableOf(["Ann's", "Bob's"], { scores, provisional: ["Bob's"], gameweeks: [1] }) });
+    expect(await screen.findByRole("img", { name: liveFormLabel(["won"]) })).toBeTruthy();
+    expect(screen.getByRole("img", { name: liveFormLabel(["lost"]) })).toBeTruthy();
+    expect(screen.queryByText(afterWords(1))).toBeNull();
+    expect(within(screen.getByRole("region", { name: FIXTURES_TITLE })).getByText(liveWords)).toBeTruthy();
   });
 });
 
@@ -201,8 +239,36 @@ describe("the fixtures", () => {
     expect(fixtureLines(1)).toHaveLength(4);
   });
 
+  it("pick out the reader's own game", async () => {
+    openTable({ leagueTable: leagueTableOf(["Team 1", "Team 2"], { gameweeks: [1] }) });
+    const items = within(await screen.findByRole("list", { name: fixturesListLabel(1) })).getAllByRole("listitem");
+    expect(items.map((item) => item.getAttribute("aria-current"))).toEqual(["true"]);
+    expect(items[0].textContent).toContain(yourTeamWords);
+  });
+
   it("wait for a second team", async () => {
     openTable({ leagueTable: leagueTableOf(["Ann's"]) });
     expect(await screen.findByText(tooFewTeamsWords)).toBeTruthy();
+  });
+});
+
+describe("the tabs", () => {
+  it("open on League, and Cup is an empty eight-team bracket with no teams or scores, the fixtures kept on their gameweek", async () => {
+    openTable({ leagueTable: leagueTableOf(FIVE, { gameweeks: [1, 2, 3] }) });
+    expect((await screen.findByRole("button", { name: competitionWords.league })).getAttribute("aria-pressed")).toBe("true");
+    await userEvent.click(screen.getByRole("button", { name: nextGameweekLabel }));
+
+    await userEvent.click(screen.getByRole("button", { name: competitionWords.cup }));
+    const cup = screen.getByRole("region", { name: CUP_TITLE });
+    expect(screen.queryByRole("table")).toBeNull();
+    const ties = within(cup).getAllByRole("img");
+    expect(cupRounds.map((round) => ties.filter((tie) => tie.getAttribute("aria-label")!.startsWith(round)).length)).toEqual([4, 2, 1]);
+    expect(within(cup).getByRole("img", { name: cupTieLabel(cupRounds[2], 1) }).textContent).toBe("");
+    FIVE.forEach((team) => expect(within(cup).queryByText(team)).toBeNull());
+    expect(screen.getByRole("heading", { level: 3, name: gameweekWords(2) })).toBeTruthy();
+
+    await userEvent.click(screen.getByRole("button", { name: competitionWords.league }));
+    expect(screen.getByRole("table")).toBeTruthy();
+    expect(screen.getByRole("heading", { level: 3, name: gameweekWords(2) })).toBeTruthy();
   });
 });

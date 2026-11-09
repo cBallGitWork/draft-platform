@@ -1,10 +1,11 @@
 // What the table and fixtures screen says, in one place for Craig to change in the pull request.
 
 import { andListWords } from "../../convex/shared/moments";
+import { FORM_RESULTS } from "../../convex/table/standings";
 import { menuWords } from "../frame/words";
 import { fewestTeamsWords, gameweekWords, signedWords } from "../shared/words";
 
-export { figureWords, gameweekWords, scoreWords, versusWords } from "../shared/words";
+export { figureWords, gameweekWords, liveWords, scoreWords, versusWords } from "../shared/words";
 
 export const TABLE_PAGE_TITLE = "Table and fixtures";
 export const TABLE_TITLE = menuWords.table;
@@ -34,14 +35,34 @@ export const columns = {
   pointsAgainst: { short: "A", long: "Points against" },
   difference: { short: "+/-", long: "Points for less points against" },
   points: { short: "Pts", long: "Points" },
+  form: { short: "Form", long: `Form, the latest ${FORM_RESULTS} results, oldest first` },
 } as const;
+/** Before the reader's own team's name, for screen readers: the cyan edge says it on screen. */
+export const yourTeamWords = "Your team";
+
+/** The page's title plate: the head-to-head page's tabs, and a total-points league's title, which
+ *  has no fixtures (the approved total-points picture). */
+export const COMPETITIONS = ["league", "cup"] as const;
+export type Competition = (typeof COMPETITIONS)[number];
+export const competitionWords: Record<Competition, string> = { league: "League", cup: "Cup" };
+export const competitionsLabel = "Competition";
+export const TOTAL_POINTS_PAGE_TITLE = TABLE_TITLE;
+
+/** On the table's plate: the last gameweek it counts, while none is live. */
+export const afterWords = (gameweek: number) => `After GW${gameweek}`;
+
+/** The Cup tab until cups are grilled and built (SPEC.md, Later): an empty eight-team bracket. */
+export const CUP_TITLE = "Cup";
+export const cupTeamsWords = "Eight teams";
+export const cupRounds = ["Quarter-finals", "Semi-finals", "Final"] as const;
+/** On a placeholder tie's hover: what will show there. */
+export const cupTieLabel = (round: string, tie: number) => `${round}, tie ${tie}: drawn once the league has a cup`;
 
 export const leagueAverageWords = "League average";
 /** The teams with a bye in a gameweek: one a game, so several when a league plays more than one. */
 export const byeWords = (teamNames: readonly string[]) => `${andListWords(teamNames)} ${teamNames.length === 1 ? "has" : "have"} a bye.`;
 export const fixturesListLabel = (gameweek: number) => `${gameweekWords(gameweek)}'s fixtures`;
 
-export const totalPointsWords = "The league plays total points, so it has no fixtures.";
 export const tooFewTeamsWords = `Fixtures are drawn once the league has ${fewestTeamsWords}.`;
 export const noGameweeksWords = "The league plays no gameweeks, so it has no fixtures.";
 

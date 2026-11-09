@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { pickAt, pickInRoundAt, pickInRoundOf, picksOf, roundOf, roundsShown } from "../../../src/draft/board";
+import { pickAt, pickInRoundAt, pickInRoundOf, pickMakers, picksOf, roundOf, roundsShown } from "../../../src/draft/board";
 
 // Where each pick sits on the draft board (spec/04, The picks and The draft room; #1098).
 
@@ -37,6 +37,16 @@ describe("a pick's place", () => {
   });
 
   it("lists a team's picks over the draft", () => {
-    expect(picksOf("B", ["A", "B", "C"], 3)).toEqual([2, 5, 8]);
+    expect(picksOf("B", ["A", "B", "C"], 3, [])).toEqual([2, 5, 8]);
+  });
+
+  it("counts a pick a team holds after a trade, and leaves out the one it traded away (#1096)", () => {
+    // B's round-2 pick for C's round-3 pick: B makes C's round-3 turn, C makes B's round-2 turn.
+    const traded = [
+      { round: 2, teamId: "B", ownerId: "C" },
+      { round: 3, teamId: "C", ownerId: "B" },
+    ];
+    expect(pickMakers(["A", "B", "C"], 3, traded)).toEqual(["A", "B", "C", "C", "C", "A", "A", "B", "B"]);
+    expect(picksOf("B", ["A", "B", "C"], 3, traded)).toEqual([2, 8, 9]);
   });
 });

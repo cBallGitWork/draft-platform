@@ -13,14 +13,18 @@ import { menuWords } from "../../../../src/frame/words";
 import { unreadCount } from "../../../../src/mail/words";
 import { A_LEAGUE_ID } from "../../../support/src/convexReact.harness";
 
-const convex = vi.hoisted(() => ({ isDue: vi.fn() }));
+const convex = vi.hoisted(() => ({ isDue: vi.fn(), countMine: vi.fn() }));
 vi.mock("convex/react", async () =>
-  (await import("../../../support/src/convexReact.harness")).fakeConvexReact({ queries: { "lineup/lineupDue:isDue": convex.isDue } }),
+  (await import("../../../support/src/convexReact.harness")).fakeConvexReact({
+    queries: { "lineup/lineupDue:isDue": convex.isDue, "waivers/waiverClaims:countMine": convex.countMine },
+  }),
 );
 
 beforeEach(() => {
   convex.isDue.mockReset();
   convex.isDue.mockReturnValue(false);
+  convex.countMine.mockReset();
+  convex.countMine.mockReturnValue(0);
 });
 afterEach(() => {
   vi.useRealTimers();
@@ -46,19 +50,19 @@ function liveShell(unreadMail: number, leagueId: Id<"leagues"> | null = A_LEAGUE
 const live = (unreadMail: number, leagueId?: Id<"leagues"> | null) => liveShell(unreadMail, leagueId).topBar;
 
 test("unread letters are the top bar's count, and Continue goes to Mail", () => {
-  expect(live(UNREAD)).toEqual({ unreadMail: UNREAD, next: TO_MAIL });
+  expect(live(UNREAD)).toEqual({ unreadMail: UNREAD, next: TO_MAIL, pendingClaims: 0 });
 });
 
 test("with nothing unread, or the count still loading, there is no count and nothing to continue to", () => {
   // useLiveMail gives a count still loading as none.
-  expect(live(0)).toEqual({ unreadMail: 0, next: null });
+  expect(live(0)).toEqual({ unreadMail: 0, next: null, pendingClaims: 0 });
   convex.isDue.mockReturnValue(undefined);
-  expect(live(0)).toEqual({ unreadMail: 0, next: null });
+  expect(live(0)).toEqual({ unreadMail: 0, next: null, pendingClaims: 0 });
 });
 
 test("a lineup the server says is due, with nothing unread, is Continue's: his Tactics tab", () => {
   convex.isDue.mockReturnValue(true);
-  expect(live(0)).toEqual({ unreadMail: 0, next: TO_TACTICS });
+  expect(live(0)).toEqual({ unreadMail: 0, next: TO_TACTICS, pendingClaims: 0 });
 });
 
 test("an unread letter still comes before a lineup that is due", () => {
@@ -71,7 +75,7 @@ test("it asks lineup/lineupDue:isDue for the league the app is in at the minute,
   expect(convex.isDue).toHaveBeenCalledWith({ leagueId: A_LEAGUE_ID, now: expect.any(Number) });
   convex.isDue.mockClear();
   convex.isDue.mockReturnValue(true);
-  expect(live(0, null)).toEqual({ unreadMail: 0, next: null });
+  expect(live(0, null)).toEqual({ unreadMail: 0, next: null, pendingClaims: 0 });
   expect(convex.isDue).not.toHaveBeenCalled();
 });
 
@@ -108,6 +112,14 @@ test("while the new minute's answer loads, Continue stays where the last answer 
   const rendersBefore = shell.renders;
   convex.isDue.mockReturnValueOnce(undefined);
   act(() => vi.advanceTimersByTime(MINUTE_MS));
-  expect(shell.topBar).toEqual({ unreadMail: 0, next: TO_TACTICS });
+  expect(shell.topBar).toEqual({ unreadMail: 0, next: TO_TACTICS, pendingClaims: 0 });
   expect(shell.renders).toBe(rendersBefore);
+});
+
+test("the manager's pending claims in the league the app is in are the Transactions tab's count (#1200), none while it loads", () => {
+  convex.countMine.mockReturnValue(3);
+  expect(live(0)?.pendingClaims).toBe(3);
+  expect(convex.countMine).toHaveBeenCalledWith({ leagueId: A_LEAGUE_ID });
+  convex.countMine.mockReturnValue(undefined);
+  expect(live(0)?.pendingClaims).toBe(0);
 });

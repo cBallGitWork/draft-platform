@@ -85,5 +85,7 @@ test("a line naming a man on a lineup's bench is priced for him, as his greyed s
   await holdLines(league, [booked]);
   const { commentary, team } = await annsScoredGame(league, GAMEWEEK);
   expect(lineupOf(team).bench.map((slot) => slot.playerCode)).toContain(benchMan);
-  expect(commentary).toEqual({ kind: "read", lines: [{ key: `${HULL_EVERTON}:1`, text: booked.text, points: "−1" }], delayed: false });
+  // His points don't count, so neither team's column shows the line (Craig, 9 Nov 2026, on #1026).
+  const line = { key: `${HULL_EVERTON}:1`, text: booked.text, points: "−1", about: [benchMan], columns: [null, null] };
+  expect(commentary).toEqual({ kind: "read", lines: [line], delayed: false });
 });

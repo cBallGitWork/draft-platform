@@ -67,6 +67,45 @@ describe("a manager's claims", () => {
     expect((await w.pending(ANN)).map(({ claim }) => claim.playerCode)).toEqual([SAKA]);
   });
 
+  test("change who they drop, keeping their rank (Craig, 6 Nov 2026, on #1200), by their manager alone", async () => {
+    await w.onWaivers([SAKA, PALMER]);
+    const sakaClaim = await w.claim(ANN, SAKA, ANNS_FIRST_DROP);
+    await w.claim(ANN, PALMER, ANNS_FIRST_DROP);
+    const ann = await actingAs(w.t, ANN);
+    const changeDrop = (dropCode: number | null, by = ann) => by.mutation(api.waivers.waiverClaims.changeDrop, { leagueId: w.leagueId, claimId: sakaClaim, dropCode });
+    await changeDrop(ANNS_SECOND_DROP);
+
+    expect((await w.pending(ANN)).map(({ claim, drop }) => [claim.playerCode, drop?.playerCode])).toEqual([
+      [SAKA, ANNS_SECOND_DROP],
+      [PALMER, ANNS_FIRST_DROP],
+    ]);
+    await changeDrop(null);
+    expect((await w.pending(ANN))[0].drop).toBeNull();
+    await expectRefused(changeDrop(PALMER), claimRefusals.dropNotYours(nameOf(PALMER)));
+    await expectRefused(changeDrop(ANNS_SECOND_DROP, await actingAs(w.t, BOB)), claimRefusals.notYours);
+    await w.claim(ANN, SAKA, ANNS_SECOND_DROP);
+    await expectRefused(changeDrop(ANNS_SECOND_DROP), claimRefusals.twice);
+  });
+
+  test("are counted for My team's Transactions tab: the caller's own, and none for someone running no team", async () => {
+    await w.onWaivers([SAKA, PALMER]);
+    await w.claim(ANN, SAKA);
+    await w.claim(ANN, PALMER);
+    await w.claim(BOB, SAKA);
+    const countOf = async (email: string) => (await actingAs(w.t, email)).query(api.waivers.waiverClaims.countMine, { leagueId: w.leagueId });
+
+    expect([await countOf(ANN), await countOf(BOB), await countOf(COMMISSIONER)]).toEqual([2, 1, 0]);
+  });
+
+  test("list each player with his positions, club and points, and the run that can first take him", async () => {
+    await w.onWaivers([SAKA]);
+    await w.claim(ANN, SAKA);
+    const [pending] = await w.pending(ANN);
+
+    expect(pending.claim).toMatchObject({ positions: expect.any(Array), club: { shortName: expect.any(String) } });
+    expect(pending.runAt).toBeGreaterThanOrEqual(Date.now());
+  });
+
   test("a manager sees only his own pending claims; the commissioner sees everyone's", async () => {
     await w.onWaivers([SAKA]);
     await w.claim(ANN, SAKA, ANNS_FIRST_DROP);
@@ -77,8 +116,10 @@ describe("a manager's claims", () => {
         claimId: expect.any(String),
         teamId: w.annsTeam,
         teamName: "Team 1",
-        claim: { playerCode: SAKA, playerName: nameOf(SAKA) },
-        drop: { playerCode: ANNS_FIRST_DROP, playerName: nameOf(ANNS_FIRST_DROP) },
+        yours: true,
+        claim: expect.objectContaining({ playerCode: SAKA, playerName: nameOf(SAKA) }),
+        drop: expect.objectContaining({ playerCode: ANNS_FIRST_DROP, playerName: nameOf(ANNS_FIRST_DROP) }),
+        runAt: expect.any(Number),
       },
     ]);
     expect((await w.pending(BOB)).map(({ teamId }) => teamId)).toEqual([w.bobsTeam]);

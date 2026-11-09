@@ -14,8 +14,9 @@ export const YOUR_TEAM = draftOrder[1].teamId;
 /** A draft of three teams over two rounds, waiting for the commissioner to press start. */
 export const waitingDraft: DraftState = { status: "waiting", startsAt: null, rounds: 2, order: draftOrder };
 
-/** No picks yet, the reader's team Team 2, 90 seconds a pick, off auto-pick with no timeouts of 2. */
-export const emptyBoard: DraftBoard = { picks: [], yourTeamId: YOUR_TEAM, pickSeconds: 90, yourAutoPick: { on: false, timeouts: 0, limit: 2 } };
+/** No picks yet or traded, the reader's team Team 2, 90 seconds a pick, off auto-pick with no
+ *  timeouts of 2. */
+export const emptyBoard: DraftBoard = { picks: [], yourTeamId: YOUR_TEAM, pickSeconds: 90, yourAutoPick: { on: false, timeouts: 0, limit: 2 }, tradedPicks: [] };
 
 /** A player on the reader's queue or do-not-draft list, as the server sends him. */
 export const draftListed = (code: number, name: string): DraftLists["queue"][number] => ({

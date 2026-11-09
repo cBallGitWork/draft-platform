@@ -19,15 +19,28 @@ import {
   noFigureWords,
   noPointsYetWords,
   noStatsYetWords,
+  notLastSeasonWords,
   pickOneMoreWords,
+  seasonPointsColumn,
 } from "./words";
 
 /** A player ticked to compare: his code, and his name to say so before the comparison loads. */
 export type PickedPlayer = { code: number; name: string };
 
 /** Two players side by side (spec/19): who each is, then every stat either has this season, added
- *  up. With one ticked, it asks for another. */
-export function ComparePanel({ picked, comparison, clear }: { picked: readonly PickedPlayer[]; comparison: Comparison | undefined; clear: () => void }) {
+ *  up. With one ticked, it asks for another. Their points are named by the season they are from
+ *  while they are last season's (`pointsSeason`, the list's). */
+export function ComparePanel({
+  picked,
+  comparison,
+  pointsSeason,
+  clear,
+}: {
+  picked: readonly PickedPlayer[];
+  comparison: Comparison | undefined;
+  pointsSeason: number | null;
+  clear: () => void;
+}) {
   return (
     <Panel title={COMPARE_TITLE}>
       {picked.length < COMPARED_PLAYERS ? (
@@ -35,7 +48,7 @@ export function ComparePanel({ picked, comparison, clear }: { picked: readonly P
       ) : comparison === undefined ? (
         <Loading className="px-3 py-2">{comparingWords}</Loading>
       ) : (
-        <SideBySide comparison={comparison} />
+        <SideBySide comparison={comparison} pointsSeason={pointsSeason} />
       )}
       <div className="px-3 pt-2 pb-3">
         <button type="button" onClick={clear} className="secondary-action min-h-tap px-3">
@@ -49,7 +62,7 @@ export function ComparePanel({ picked, comparison, clear }: { picked: readonly P
 /** One row of the comparison: what it is, and each player's. */
 type Row = { label: string; title?: string; cell: (player: ComparedPlayer) => ReactNode };
 
-const FIXED_ROWS: readonly Row[] = [
+const fixedRows = (pointsSeason: number | null): readonly Row[] => [
   {
     label: columns.club.long,
     cell: (player) => (
@@ -62,11 +75,11 @@ const FIXED_ROWS: readonly Row[] = [
   { label: columns.positions.long, cell: (player) => <PositionCodes positions={player.positions} /> },
   { label: columns.owner.short, title: columns.owner.long, cell: (player) => <OwnerName teamName={player.ownerTeamName} /> },
   {
-    label: columns.seasonPoints.short,
-    title: columns.seasonPoints.long,
+    label: seasonPointsColumn(pointsSeason).short,
+    title: seasonPointsColumn(pointsSeason).long,
     cell: (player) =>
       player.seasonPoints === null ? (
-        <span title={noPointsYetWords} className="text-muted">
+        <span title={pointsSeason === null ? noPointsYetWords : notLastSeasonWords} className="text-muted">
           {noFigureWords}
         </span>
       ) : (
@@ -79,7 +92,7 @@ const FIXED_ROWS: readonly Row[] = [
 /** The key of the column that names each row (`compareWhatColumn`). */
 const WHAT = "what";
 
-function SideBySide({ comparison }: { comparison: Comparison }) {
+function SideBySide({ comparison, pointsSeason }: { comparison: Comparison; pointsSeason: number | null }) {
   // Every catalogue stat either has this season, in the catalogue's order; one neither has is 0 for both.
   const stats = STAT_CATALOGUE.filter((each) => comparison.some((player) => (player.stats[each.stat] ?? 0) !== 0));
   const statRows: Row[] = stats.map((each) => ({
@@ -100,7 +113,7 @@ function SideBySide({ comparison }: { comparison: Comparison }) {
           classOf={(column) => (column === WHAT ? "px-2" : "px-2 text-right")}
         />
         <tbody>
-          {[...FIXED_ROWS, ...statRows].map((row) => (
+          {[...fixedRows(pointsSeason), ...statRows].map((row) => (
             <tr key={row.label} className="border-t border-panel-rule">
               <th scope="row" title={row.title} className="px-2 text-left font-normal text-soft">
                 {row.label}

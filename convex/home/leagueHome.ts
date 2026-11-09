@@ -13,6 +13,7 @@ import { DAY_MS } from "../shared/time";
 import { LIVE_WINDOW_MS } from "../stats/liveStats";
 import { commentary, type MatchupCommentary } from "../matchup/matchupShape";
 import { commentaryReads, readCommentary } from "../matchup/readCommentary";
+import { shownLine } from "../matchup/vidiprinter";
 import { leagueRulesShape } from "../rules/leagueRulesShape";
 import { pinnedLetter } from "../schema";
 import { isSquadMove, newestFirst, SQUAD_MOVES } from "../squads/squadPlace";
@@ -197,7 +198,7 @@ async function vidiprinterOf(
   try {
     const inGameweek = await tableGameweek(ctx, await leagueReads(ctx, league, season), gameweek, teamIds);
     const { lines, delayed } = await readCommentary(ctx, inGameweek, teamIds, now, commentaryReads(ctx), { countingOnly: true, fixtureCodes });
-    return { kind: "read", lines: lines.filter((line) => line.points !== null), delayed };
+    return { kind: "read", lines: lines.filter((line) => line.points !== null).map(shownLine), delayed };
   } catch (error) {
     return { kind: "unread", reason: logFailure(`League ${league._id} (${league.name}) can't read gameweek ${gameweek}'s Vidiprinter`, error) };
   }

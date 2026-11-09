@@ -19,11 +19,11 @@ Feature 14 of [SPEC.md](../SPEC.md). Only Craig's answers, from `/grill scoring 
 
 ## The catalogue
 
-- Every stat the two free feeds give per player per match (confirmed by #7), each with a plain name
+- Every stat the football data's feed gives per player per match, each with a plain name
   and a short code. The site's set can score any of them; roles (`spec/05`) draw on the same list.
   The names and codes are written with the first scoring set (`/grill match stats`, 20 Oct 2026).
   For now they are placeholders copied from the feeds' own names, for Craig to refine later (21 Oct
-  2026).
+  2026). `S14.15`
 - No FPL bonus points.
 
 ## How a rule scores

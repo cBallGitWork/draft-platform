@@ -113,6 +113,17 @@ describe.each<[string, Partial<LeagueRules>, string]>([
     { areaLimits: { ...limits, attack: { minimum: 0, maximum: 1 } } },
     "The preset 4-4-2 puts 2 in attack, outside its limits of 0 to 1.",
   ],
+  // A back line scores whole points, as every role and instruction does (spec/05; #990).
+  [
+    "a back line's clean sheet of half a point",
+    { presets: [{ ...firstPreset, backLine: { cleanSheet: 2.5, goalConceded: -1 } }, ...FIRST_RULES.presets.slice(1)] },
+    "The preset 4-4-2's clean sheet must be a whole number, 0 or more, not 2.5.",
+  ],
+  [
+    "a back line that pays for a goal conceded",
+    { presets: [{ ...firstPreset, backLine: { cleanSheet: 3, goalConceded: 1 } }, ...FIRST_RULES.presets.slice(1)] },
+    "The preset 4-4-2's goal conceded must be a whole number, 0 or less, not 1.",
+  ],
   // A classic stands in one of the league's presets (Craig, 6 Nov 2026, on #991).
   ["a classic with no name", { classics: [{ ...keegans, name: " " }] }, "A classic needs a name."],
   ["two classics of one name", { classics: [keegans, { ...keegans }] }, `Two classics are called "Keegan's Newcastle".`],

@@ -11,6 +11,8 @@
 #      after that round, as a red one is (Craig, 7 Nov 2026, #1308: #1288, #1277, #1246 waited for ever) (7 Nov 2026: seven pull requests closed in 20 minutes as main took 11 merges).
 #   2. A resume. An unfinished build's draft (`wip/issue-N-*`) gets one more build of N, which carries on from it,
 #      and the label RESUMED_LABEL, unless N waits on Craig's rules (`rules:open`: his answer restarts it).
+#   1c. A ready pull request with no review REVIEW_WAIT_MINUTES after it opened gets review.yml started for it, once
+#      (REVIEW_STARTED_LABEL): its own run never fired. No build slot is used.
 #   3. A new build. Ready issues, oldest first: `lane:auto` (a grill's issues) or `rules:clear` (the sweep found
 #      every rule settled), with no `rules:open`, `lane:craig` or STALE_LABEL, and no open pull request naming them
 #      (`Part of #N` or `Closes #N`). The drift-pass and nightly-ci issues have their own jobs.
@@ -91,6 +93,8 @@ env:
   STOPPED_HOURS: 24  # how long a build that stopped without a pull request waits before it is tried again
   STUCK_HOURS: 3  # how long a builder pull request may stay red after its fix round before it is closed
   STUCK_LABEL: "lead:stuck"
+  REVIEW_STARTED_LABEL: "lead:review-started"  # the lead started review.yml for this pull request, whose own never ran
+  REVIEW_WAIT_MINUTES: 30  # how long a ready pull request may go with no review before the lead starts one
   CONFLICT_LABEL: "lead:conflict-round"  # the lead gave this builder pull request a round for main's conflicts
   PASS_CHECK: "lead-pass"  # Healthchecks check slugs: a pass of the lead, and a merge to main in the last day
   MERGE_CHECK: "main-merged"
@@ -118,6 +122,7 @@ jobs:
           gh label create "$BOARD_LABEL" --color 1D76DB --description "The lead's board, rewritten every pass" --force
           gh label create "$CONFLICT_LABEL" --color 5319E7 --description "The lead gave this pull request a round for its conflicts with main" --force
           gh label create "$STUCK_LABEL" --color D93F0B --description "Its pull request stayed red after its fix round; take off to build again" --force
+          gh label create "$REVIEW_STARTED_LABEL" --color 5319E7 --description "Its review never ran, so the lead started one" --force
       - name: Fill the builders
         env:
           # builds are started as the pipeline's own account (CBHelper180): GitHub fires no workflow_run for a run started
@@ -154,7 +159,7 @@ jobs:
             busy_issues=$(printf '%s\n%s\n' "$busy_issues" "$n"); busy_specs=$(printf '%s\n%s\n' "$busy_specs" "$files")
           }
 
-          prs=$(gh pr list --state open --limit 200 --json number,isDraft,headRefName,author,body,labels,statusCheckRollup,mergeable)
+          prs=$(gh pr list --state open --limit 200 --json number,isDraft,headRefName,author,body,labels,statusCheckRollup,mergeable,createdAt,isCrossRepository)
           linked() { jq -r '.[] | (.body // "") | scan("(?m)^(?:Part of|Closes) #([0-9]+)") | .[0]' <<<"$prs" | sort -u; }
           taken=$(linked)
           label() { echo "Labelling #$1 $2"; [ "$DRY_RUN" = true ] || gh api "repos/$GH_REPO/issues/$1/labels" -f "labels[]=$2" > /dev/null; }  # a pull request too
@@ -232,6 +237,25 @@ jobs:
             take "$n" || continue
             echo "#$pr conflicts with main after its fix round: a conflict round"
             dispatch "$n" fix "$pr"; label "$pr" "$CONFLICT_LABEL"; slots=$((slots - 1))
+          done
+
+          # 1c. a review for a ready pull request whose own never ran: review.yml runs only when a pull request is opened,
+          # and on 8 Nov 2026 four were opened with no pull_request workflow firing, so they waited on review-landed until a
+          # session reviewed them by hand. Once per pull request (REVIEW_STARTED_LABEL), Craig's included, and no build slot.
+          for pr in $(jq -r '
+              .[] | select((.isDraft | not) and (.isCrossRepository | not))  # never a fork: the review holds the subscription token
+              | select(all(.labels[]?; .name != env.REVIEW_STARTED_LABEL))
+              | select(any(.statusCheckRollup[]?; .context == "review-landed" and .state == "PENDING"))
+              | select((.createdAt | fromdateiso8601) < (now - (env.REVIEW_WAIT_MINUTES | tonumber) * 60))
+              | .number' <<<"$prs"); do
+            # pending can also mean a "look at these first" waiting on its fix round: only a pull request with no review
+            comments=$(gh pr view "$pr" --json comments --jq '.comments[].body')
+            grep -qF '*Reviewer: pr-reviewer' <<<"$comments" && continue
+            echo "#$pr has no review ${REVIEW_WAIT_MINUTES} minutes on: starting one"
+            if [ "$DRY_RUN" != true ] && ! GH_TOKEN="$DISPATCH_TOKEN" gh workflow run review.yml --ref "$GITHUB_REF_NAME" -f pr="$pr"; then
+              echo "::warning::Couldn't start #$pr's review: the next pass tries again"; continue  # the rest of the pass still runs
+            fi
+            label "$pr" "$REVIEW_STARTED_LABEL"
           done
 
           # 2. resume an unfinished build once

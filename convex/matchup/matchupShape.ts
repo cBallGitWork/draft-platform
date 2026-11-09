@@ -1,9 +1,9 @@
-import { v, type Infer } from "convex/values";
+import { v, type Infer, type Validator } from "convex/values";
 import { playingState } from "../football/matchScores";
 import { shownDeadline } from "../gameweeks/usedGameweeks";
 import { areaShape, laneShape, slotPosition } from "../lineup/pitchShape";
 import { scoreRead } from "../schema";
-import { namedCategories, roleLine } from "../scoring/breakdownShape";
+import { instructionLines, namedCategories, roleLine } from "../scoring/breakdownShape";
 import { LEAGUE_AVERAGE } from "../table/roundRobin";
 import { BYE } from "../table/teamGames";
 
@@ -48,6 +48,21 @@ const matchBreakdown = v.object({
   /** The match, which its page opens by, and its kickoff, null while it has no time. */
   fixtureCode: v.number(),
   kickoff: v.union(v.number(), v.null()),
+  /** Its clubs' short names, home first, each null for one the football sync doesn't hold, and its
+   *  score and clock as the newest read gives them, null before any: the breakdown names it
+   *  "NFO 1–0 BRE 67'" (the approved picture), or by its kickoff while a club's name is missing. */
+  home: v.union(v.string(), v.null()),
+  away: v.union(v.string(), v.null()),
+  score: v.union(
+    v.object({
+      state: scoreRead.fields.state,
+      homeGoals: scoreRead.fields.homeGoals,
+      awayGoals: scoreRead.fields.awayGoals,
+      minutes: scoreRead.fields.minutes,
+      clockLabel: scoreRead.fields.clockLabel,
+    }),
+    v.null(),
+  ),
   /** His points in the match; null ("—") while his record hasn't arrived. */
   points: v.union(v.number(), v.null()),
   /** Whether his gameweek's points include it: false for the lower of a double gameweek's two under
@@ -56,6 +71,9 @@ const matchBreakdown = v.object({
   categories: namedCategories,
   /** His role's line, when he plays a role the set scores; never beside an override. */
   role: v.optional(roleLine),
+  /** His team's instructions' lines, under his role's (spec/05, Team instructions); never beside
+   *  an override. */
+  instructions: v.optional(instructionLines),
   override: v.union(v.object({ points: v.number(), reason: v.string() }), v.null()),
 });
 export type MatchBreakdown = Infer<typeof matchBreakdown>;
@@ -128,18 +146,28 @@ export type MatchupSide = Infer<typeof side>;
 
 const opponent = v.union(v.object({ kind: v.literal("team"), teamName: v.string() }), v.object({ kind: v.literal(LEAGUE_AVERAGE) }));
 
-/** The matchup's commentary (spec/10; matchup/vidiprinter.ts): every line of every match with
- *  either lineup's men in it, newest first, and whether any of those matches' commentary is
- *  delayed ("Commentary delayed"); or why it can't be read, while the scores still show. */
-export const commentary = v.union(
-  v.object({
-    kind: v.literal("read"),
-    lines: v.array(v.object({ key: v.string(), text: v.string(), points: v.union(v.string(), v.null()) })),
-    delayed: v.boolean(),
-  }),
-  v.object({ kind: v.literal("unread"), reason: v.string() }),
-);
+/** A commentary line (matchup/vidiprinter.ts): its words, and what it is worth to the men it is
+ *  priced for. */
+const commentaryLine = v.object({ key: v.string(), text: v.string(), points: v.union(v.string(), v.null()) });
+
+/** Commentary, its lines `line`: every line, newest first, and whether any of the matches'
+ *  commentary is delayed ("Commentary delayed"); or why it can't be read, while the scores still
+ *  show. */
+const commentaryOf = <Line extends Validator<Infer<typeof commentaryLine>, "required", string>>(line: Line) =>
+  v.union(v.object({ kind: v.literal("read"), lines: v.array(line), delayed: v.boolean() }), v.object({ kind: v.literal("unread"), reason: v.string() }));
+
+/** League home's and the match page's commentary (spec/10, spec/12). */
+export const commentary = commentaryOf(commentaryLine);
 export type MatchupCommentary = Infer<typeof commentary>;
+
+/** The matchup's commentary (spec/10): every line of every match with either lineup's men in it,
+ *  each with the men it is about, whose lines a tapped man's cyan bar marks, and a column for each
+ *  side, team then opponent, of what it moves that team's score by (readCommentary.ts; the approved
+ *  picture's "Saka P / Kroos C"). The league's average has no column. */
+export const teamsCommentary = commentaryOf(
+  commentaryLine.extend({ about: v.array(v.number()), columns: v.array(v.union(v.string(), v.null())) }),
+);
+export type TeamsCommentary = Infer<typeof teamsCommentary>;
 
 export const game = v.union(
   /** The team plays nobody in the gameweek: one begun before it joined, say. */
@@ -154,7 +182,7 @@ export const game = v.union(
     kind: v.literal("scored"),
     team: side,
     opponent: side,
-    commentary,
+    commentary: teamsCommentary,
     /** The version of the site's scoring the gameweek is scored under, null for the first set: a
      *  breakdown's last line (spec/14, On screen). */
     version: v.union(v.string(), v.null()),

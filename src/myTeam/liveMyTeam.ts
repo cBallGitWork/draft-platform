@@ -4,6 +4,7 @@ import { api } from "../../convex/_generated/api";
 import { refusalOf } from "../shared/refusal";
 import { useMinute } from "../shared/useMinute";
 import { liveTactics } from "./tactics/liveTactics";
+import { liveClaims } from "./claims/liveClaims";
 import { liveTable } from "../table/liveTable";
 import type { MyTeamSeam, SquadNumberChanges } from "./seam";
 import { numberFailedWords } from "./squad/words";
@@ -12,10 +13,12 @@ import { numberFailedWords } from "./squad/words";
 export const liveMyTeam: MyTeamSeam = {
   ...liveTactics,
   ...liveTable,
+  ...liveClaims,
   useTeamFixtures: (leagueId) => useQuery(api.table.teamFixtures.ofMyTeam, { leagueId }),
   useTeamTransactions: (leagueId) => useQuery(api.squads.teamTransactions.ofMyTeam, { leagueId }),
   // Asked at the screen's minute, as a query may not read the clock: the next fixture moves on with it.
   useTeamSquad: (leagueId) => useQuery(api.squads.teamSquad.ofMyTeam, { leagueId, now: useMinute() }),
+  useOtherSquad: (leagueId, teamId) => useQuery(api.squads.otherSquad.ofTeam, { leagueId, teamId }),
   // My team is for a signed-in manager, so the query is never skipped as Mail's is.
   useLatestMail: () => useQuery(api.mail.mail.latest, {}),
   useSquadNumbers: function useSquadNumbers() {

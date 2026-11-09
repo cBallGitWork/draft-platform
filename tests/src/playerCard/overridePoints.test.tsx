@@ -26,6 +26,7 @@ import {
 import { ARSENAL, COVENTRY } from "../../support/convex/footballRows.harness";
 import { descriptionOf } from "../../support/src/describedBy";
 import { fakePlayerCard, type PlayerCardData } from "../../support/src/playerCard.harness";
+import { SAKA_POTATOES } from "../../support/src/playerCardScreen.harness";
 import { adminSeeing, coCommissioned, commissioned, league, manager, managerIn, openApp } from "../../support/src/shell.harness";
 import type { Session } from "../../../src/signIn/seam";
 
@@ -59,6 +60,7 @@ const SAKA: PlayerCard = {
   positions: ["W"],
   pricedAt: ["W"],
   ownerTeamName: "Saka Potatoes",
+  ownerTeamId: SAKA_POTATOES,
   news: null,
   chanceOfPlaying: null,
   matches: [MATCH, EARLIER],

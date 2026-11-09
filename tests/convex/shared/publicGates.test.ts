@@ -134,6 +134,7 @@ beforeEach(async () => {
       "signIn/account:signedInAs": () => caller.query(api.signIn.account.signedInAs, {}),
       "signIn/signInLinks:ask": () => caller.action(api.signIn.signInLinks.ask, { email: OUTSIDER }),
       "signIn/timeZone:recordZone": () => caller.mutation(api.signIn.timeZone.recordZone, { zone: LONDON_ZONE }),
+      "squads/otherSquad:ofTeam": () => caller.query(api.squads.otherSquad.ofTeam, { leagueId, teamId: rows.otherTeam._id }),
       "squads/squads:findPlayers": () => caller.query(api.squads.squads.findPlayers, { leagueId, text: SOME_TEXT }),
       "squads/squads:squads": () => caller.query(api.squads.squads.squads, { leagueId }),
       "squads/teamSquad:ofMyTeam": () => caller.query(api.squads.teamSquad.ofMyTeam, { leagueId, now }),
@@ -144,7 +145,9 @@ beforeEach(async () => {
       "table/teamFixtures:ofMyTeam": () => caller.query(api.table.teamFixtures.ofMyTeam, { leagueId }),
       "trades/tradeOffers:mine": () => caller.query(api.trades.tradeOffers.mine, { leagueId }),
       "trades/tradeScreen:ofMyTeam": () => caller.query(api.trades.tradeScreen.ofMyTeam, { leagueId, now }),
+      "waivers/waiverClaims:countMine": () => caller.query(api.waivers.waiverClaims.countMine, { leagueId }),
       "waivers/waiverClaims:pending": () => caller.query(api.waivers.waiverClaims.pending, { leagueId }),
+      "waivers/waiverOrder:ofLeague": () => caller.query(api.waivers.waiverOrder.ofLeague, { leagueId, now }),
       "waivers/waivers:cardActionOn": () => caller.query(api.waivers.waivers.cardActionOn, { leagueId, playerCode: SOME_CODE }),
       "waivers/waivers:stateOf": () => caller.query(api.waivers.waivers.stateOf, { leagueId, playerCode: SOME_CODE }),
     };

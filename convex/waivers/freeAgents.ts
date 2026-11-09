@@ -1,8 +1,6 @@
 import { v } from "convex/values";
-import type { Id } from "../_generated/dataModel";
-import { mutation, type QueryCtx } from "../_generated/server";
+import { mutation } from "../_generated/server";
 import { draftIsOver } from "../draft/draftRow";
-import type { LeagueDeadlines } from "../gameweeks/deadline";
 import { leagueDeadlines } from "../gameweeks/leagueDeadlines";
 import { pickFirstLineupAgain } from "../lineup/lineups";
 import { fileEvent, recordEvent } from "../mail/letters";
@@ -10,8 +8,8 @@ import { latestRules } from "../rules/rulesHistory";
 import { managerOf, refuse, refusals } from "../shared/leagueAccess";
 import { playerByCode } from "../shared/players";
 import { placeOf } from "../squads/squadPlace";
-import { inWaiverLock, latestBegun } from "./waiverLock";
-import { waiverOrderRow } from "./waiverOrder";
+import { inWaiverLock } from "./waiverLock";
+import { windowOpen } from "./waiverOrder";
 import { dropFromSquad, waiverRowOf } from "./waiverPlayers";
 import { joiningBreaksLimits } from "./waiverRun";
 import { claimRefusals } from "./waiverClaims";
@@ -35,17 +33,6 @@ export const pickUpRefusals = {
   dropHeld: dropRefusals.held,
   limits: (name: string) => `Picking up ${name} would break your squad's limits.`,
 };
-
-/** Whether the window is open at `now`, the lock aside: no gameweek begun yet, or a waiver run
- *  made since the latest begun one's deadline. Made runs never fall in the lock, so one after the
- *  deadline came after the gameweek's last match. */
-async function windowOpen(ctx: QueryCtx, leagueId: Id<"leagues">, deadlines: LeagueDeadlines, now: number): Promise<boolean> {
-  const gameweek = latestBegun(deadlines, now);
-  if (gameweek === null) return true;
-  const deadline = deadlines.get(gameweek) ?? null;
-  const madeAt = (await waiverOrderRow(ctx, leagueId))?.madeAt;
-  return deadline !== null && madeAt !== undefined && madeAt > deadline;
-}
 
 /** The manager picks up a free agent, `dropCode` going for him at once, or nobody when null. */
 export const pickUp = mutation({

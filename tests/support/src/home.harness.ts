@@ -23,9 +23,10 @@ export const homeRow = (position: number, teamName: string, rest: Partial<Row> =
 });
 
 /** A head-to-head of `team` against `opponent`, null for the league's average, unscored unless
- *  `points` says. */
-export const homeFixture = (team: string, opponent: string | null, points: { team: number; opponent: number } | null = null) => ({
+ *  `points` says, and the team's first game in the gameweek unless `game` says. */
+export const homeFixture = (team: string, opponent: string | null, points: { team: number; opponent: number } | null = null, game = 1) => ({
   teamId: `team-${team}` as Id<"teams">,
+  game,
   team,
   opponent,
   points,

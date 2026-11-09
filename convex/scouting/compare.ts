@@ -8,9 +8,10 @@ import { memberOf } from "../shared/leagueAccess";
 import { clubByCode, clubOf, heldPlayerByCode } from "../shared/players";
 import { ownerOf } from "../squads/squadPlace";
 import { isWhole } from "../stats/matchRecords";
-import { seasonPointsIn, type SeasonPointsOf } from "../stats/seasonPoints";
+import type { SeasonPointsOf } from "../stats/seasonPoints";
 import { sumStats } from "../stats/statTotals";
 import { COMPARED_PLAYERS } from "./comparedPlayers";
+import { shownSeasonPoints } from "./shownSeasonPoints";
 
 // Two players side by side (spec/19, The players list: "Two players side by side, to compare";
 // #373), for anyone in the league: who each is and who owns him here, and his stats this season
@@ -26,8 +27,8 @@ const comparedPlayer = v.object({
   positions: v.array(position),
   /** The team in this league that owns him, or null for a free agent. */
   ownerTeamName: v.union(v.string(), v.null()),
-  /** His points this season under the site's scoring, as on the players list, or null ("—") while
-   *  none of his matches is priced. */
+  /** His points under the site's scoring, as on the players list: last season's before the new
+   *  season's first match (shownSeasonPoints.ts), or null ("—") while none is priced. */
   seasonPoints: v.union(v.number(), v.null()),
   /** This season's matches he was in. */
   matches: v.number(),
@@ -52,7 +53,7 @@ export const players = query({
       throw new Error(`Compare ${COMPARED_PLAYERS} different players, not ${codes.join(", ")}`);
     }
     const positionsOfNow = await positionsNow(ctx, leagueId);
-    const seasonPointsOf = await seasonPointsIn(ctx, leagueId, codes);
+    const { pointsOf: seasonPointsOf } = await shownSeasonPoints(ctx, leagueId, codes);
     return Promise.all(codes.map((code) => compared(ctx, leagueId, code, positionsOfNow, seasonPointsOf)));
   },
 });

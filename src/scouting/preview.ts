@@ -8,6 +8,7 @@ import { OWN_STAT_PREFIX } from "../../convex/scoring/statCatalogue";
 import type { Stats } from "../../convex/stats/statTotals";
 import { DAY_MS } from "../../convex/shared/time";
 import { listedFromScouting, queueInPreview, setPreviewShortlisted } from "../draft/previewLists";
+import { previewScouts } from "./scouts/preview";
 import { previewShortlistOf } from "./shortlist/preview";
 import type { ScoutingSeam } from "./seam";
 
@@ -73,6 +74,7 @@ const addToQueue = async (_leagueId: unknown, playerCode: number) => {
 
 export const previewScouting: ScoutingSeam = {
   ...previewShortlist,
+  ...previewScouts,
   useAddToQueue: () => addToQueue,
   useComparison: (_leagueId, codes) =>
     codes?.map((code) => ({ ...previewPlayers.find((each) => each.code === code)!, matches: PREVIEW_MATCHES, stats: previewTotals[code] ?? {} })),
@@ -84,5 +86,6 @@ export const previewScouting: ScoutingSeam = {
       filters,
       sort,
     ),
+    pointsSeason: null,
   }),
 };

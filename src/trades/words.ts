@@ -1,6 +1,7 @@
 // What Trades says (#383; docs/design/approved/trades), in one place for Craig to change in the
 // pull request.
 
+import { pickWords } from "../../convex/mail/tradeLetterWords";
 import { NOTE_MOST, REVIEW_MS } from "../../convex/trades/tradeLimits";
 import { HOUR_MS } from "../../convex/shared/time";
 import type { TradesView } from "../../convex/trades/tradeScreen";
@@ -9,7 +10,8 @@ import type { Reviewer } from "./seam";
 
 export { whenWords } from "../shared/words";
 export { warningWords } from "../squads/words";
-export { NOTE_MOST };
+export { NOTE_MOST, pickWords };
+export { viaWords } from "../draft/words";
 
 export const TRADES_TITLE = "Trades";
 export const tradesLoadingWords = "Loading your trades…";
@@ -121,6 +123,15 @@ export const squadColumns = {
 } as const;
 export const tickLabel = (playerName: string) => `Trade ${playerName}`;
 export const heldWords = "In review";
+/** The Picks block under each squad on the New offer tab (#1096; the approved trades README,
+ *  Picks): the draft picks a team holds before the draft, one for one and nothing else (spec/04). */
+export const PICKS_TITLE = "Picks";
+export const picksTableLabel = (teamName: string) => `${teamName}'s picks`;
+export const pickRoundWords = (round: number) => `Round ${round}`;
+export const pickTickLabel = (round: number, teamName: string) =>
+  `Trade ${pickWords(round, teamName)}`;
+/** One pick ticked, and none on the other side yet: a pick trade is one pick each way. */
+export const onePickEachWords = "Tick a pick on the other side too.";
 export const noteLabel = "Note";
 export const sendOfferWords = "Send offer";
 export const sendCounterWords = "Send counter";

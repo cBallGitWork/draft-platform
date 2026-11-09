@@ -24,6 +24,9 @@ const against = v.union(
 
 const teamGame = v.object({
   gameweek: v.number(),
+  /** Which of the team's games in the gameweek it is, from 1 (teamGames.ts's gamesOf), for its
+   *  matchup's link (#913). */
+  game: v.number(),
   /** The league's own deadline in the gameweek (#139), as the table's fixtures show it. */
   deadline: shownDeadline,
   against,
