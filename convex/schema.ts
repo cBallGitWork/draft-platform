@@ -23,6 +23,7 @@ import { waiverTables } from "./schema/waivers";
 import { scoutTables } from "./schema/scouting";
 import { tradeTables } from "./schema/trades";
 import { recapTables } from "./schema/recaps";
+import { sportmonksTables } from "./schema/sportmonks";
 
 // The database, one group of tables a feature, each in its own file in convex/schema/ with the
 // shapes it is made of. Everything the features read from the schema is re-exported here.
@@ -37,6 +38,7 @@ export { siteScoringKind } from "./schema/scoring";
 export { placementShape } from "./schema/lineup";
 export { rankedPlayer } from "./schema/draft";
 export { pastSeasonRow } from "./schema/pastSeasons";
+export { sportmonksLineupMan, sportmonksEvent, sportmonksSyncFields } from "./schema/sportmonks";
 
 export default defineSchema({
   ...authTables,
@@ -73,4 +75,5 @@ export default defineSchema({
   ...scoutTables,
   ...tradeTables,
   ...recapTables,
+  ...sportmonksTables,
 });
