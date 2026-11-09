@@ -14,7 +14,8 @@ and head-to-head fixtures are a different screen (`spec/12`, "table and fixtures
 
 ## The table
 
-- P W D L GF GA GD Pts, worked out from the results.
+- P W D L GF GA GD Pts, from Sportmonks' standings for each competition, not worked out by us
+  (Craig, 9 Nov 2026, on #1196). `S18.2`
 - Each club's mark before its name (`spec/12`, Club colours; 31 Oct 2026).
 - Live during matches, provisional until they are final.
 - A club's points deduction: the admin overrides its total points (Craig, 1 Nov 2026: "you hard
@@ -25,8 +26,10 @@ and head-to-head fixtures are a different screen (`spec/12`, "table and fixtures
   head-to-head between the tied clubs, then a play-off; if one of their matches is never played,
   head-to-head is skipped and they stay level (Craig, 1 Nov 2026: "Follow the real PL rule";
   #899). Another competition (SPEC.md, Later: Other leagues) brings its own order.
+  Dropped 9 Nov 2026 (#1196): the table now comes from Sportmonks' standings. `S18.1 withdrawn`
 
 ## After the mini beta
 
-- Club pages (the squad, who owns whom in the draft league, set-piece takers, doubts) come after
-  the mini beta.
+- Club pages (the squad, who owns whom in the draft league, doubts) come after the mini beta. No
+  set-piece takers: "we didthced set piece taker (unless its a role)" (Craig, 9 Nov 2026, on
+  #1196). `S18.3`

@@ -28,7 +28,11 @@ Sportmonks replaces everything those two feeds give (clubs, players, fixtures, t
 stats, commentary, the table), and players are keyed on Sportmonks' player id, with FPL's `code`
 kept only to match past seasons copied from ai-carling-premiership. Points move during the match.
 xG isn't needed. Its free plan's Scottish Premiership is read first (#1391), before the 14-day
-paid trial.
+paid trial and the switch ([spec/20](spec/20-going-live.md)).
+
+The beta plays on the Premier League and the Scottish Premiership, "so we can handle multi
+leagues" (Craig, 9 Nov 2026, on #1196). Each draft league drafts only from its own competition's
+players, and no player is shared between the two.
 
 ## Features
 
@@ -52,7 +56,7 @@ One file per feature in [spec/](spec/); this page is the index. A feature's stat
 | 14 | [Scoring categories](spec/14-scoring-categories.md) | the catalogue (placeholder names), pricing by area or position, points limits and minutes (#111), own stats (#112), made in the rules editor (#262), and the first scoring set, FPL's (#25), built, with the rules editor (#30); the site owns the set, kept in versions by gameweek, and every league plays on it (#354), changed by patch with a week's notice or by fix (#355), each announced by a Mail letter, the banner and the patch notes (#356); the admin's patch screen: a draft patch announced from a gameweek, the versions listed and withdrawn (#368), a waiting patch moving with its gameweek's kickoff (#901); the rule balance lab, run on a draft patch, its report in the patch notes (#843); a commissioner's score override of one player in any match, or of a team's gameweek total, from the card or the matchup, each removable (#32, #903); a league's matches are scored for its table (#29); each category's points with why, on the player card's breakdown (#797), a player landing on a points limit noted (#863) | a match's stats priced under a set of rules give each category's points and the total, by the slot's area or position, within each rule's points limits |
 | 15 | [Admin tools](spec/15-admin-tools.md) | creating a league and naming its commissioner (#24), inviting managers (#73), assigning players (#31), the positions dashboard (#126) and the feeds page (#35) with a failure email to the admin (#319), its team sheets before kickoff, team stats and threshold lines each a feed (#522), and managers' feedback on the dashboard (#357) built; removing a manager on the invites page, and a manager leaving from the top bar (#134); renaming teams, the maximum and the co-commissioner only from the CLI, and editing the scoring set (#30), its patch screen (#368) and balance lab (#843); the score override, from the player card, the admin's as the commissioner's (#32, #903); each club's colours and pattern set by the admin, a club with none queued and white (#838); a club's points total set for a deduction (#898); a player's availability set by hand (#1206); not yet the ranking's admin panel (#1093) or the admin's log | a commissioner's assignment puts the player on the team and files a Mail letter to the league |
 | 16 | [Mail](spec/16-mail.md) | the letter store, letters about a league's events, the commissioner's letter, the Mail screen and its count built (#26), and letters from the site to everyone, such as a scoring patch (#356); a letter's times in the reader's zone (#912); down the side of the Tactics tab not yet (#14); each feature files its own letters | a claim, a drop and a trade each file one letter for every manager in the league |
-| 17 | [Captain and set pieces](spec/17-captain-and-set-pieces.md) | after the mini beta | the first on a set-piece list who plays earns the duty's adjustment for the whole match, and no one else on the list does |
+| 17 | [Captain and set pieces](spec/17-captain-and-set-pieces.md) | after the mini beta; the captain and vice-captain stay, and the set-piece lists are dropped (9 Nov 2026) | the vice-captain takes the armband when the captain's match ends with him on 0 minutes |
 | 18 | [Premier League](spec/18-premier-league.md) | fixtures and results built, a gameweek at a time with live scores, each opening its match page (#49, #45); the table beside them, worked out from the held results, live and marked provisional while a match is being played (#50), a club's points deduction set by the admin (#898); each club's crest before its code (#840); Sportmonks' Scottish Premiership read into its own tables (#1391), the Premier League still read from FPL's and its own feeds | a goal in a live match moves the Premier League table at once, marked provisional |
 | 19 | [Scouting](spec/19-scouting.md) | the players list, in the menu in place of Players, filtered by who holds a player, his position and his club, sorted by name, club, season points or any catalogue or own stat (#910), and any two ticked compared side by side, built (#373); season points, each player's card total in the league at his main position with the league's overrides (#525), and last season's under today's scoring before the new season's first match (#956), built; Role fit stars, hidden outside the squad until a player is scouted (#11, #375); the shortlist (#374), Mail telling a manager when one is dropped or clears waivers, and feeding the draft queue (#1137), built; who is on waivers (#1200); scouts, three a team, sent from the player card, each report written 24 hours on, and Scouting's Scouts panel opening the reports (#375), built; the stat race's team season totals built (#808), its screen not yet (#800) | a scout's report is ready 24 hours after he is sent, and no other team can tell who was scouted |
 | 20 | [Going live](spec/20-going-live.md) | the release (#517), the backup before a change to saved data's shape (#518), the after-release sign-in check (#517) and the setup command (#519) built; going live waits on Craig's setup run in docs/setup.md (#511, #512, #514) | a merge to `main` is live on `fantasydraftmanager.net` with its server code, and the check after it signs in there |
@@ -86,8 +90,10 @@ One file per feature in [spec/](spec/); this page is the index. A feature's stat
   area rule": his own area and the next, no further (spec/05; `docs/to-grill.md`).
 - **Cups**, after the beta, with a plate competition beside them (Craig, 20 Oct 2026). Their
   own `/grill` then (`docs/to-grill.md`).
-- **Other leagues**: leagues on Scotland's and the rest of Europe's football. Sportmonks covers
-  them (*What it is*).
+- **Other leagues**: leagues on Italy's, Spain's and Germany's football, on Sportmonks' Starter
+  plan; the beta has the Premier League and the Scottish Premiership (*What it is*).
+- **A richer feed** (StatsBomb, Opta, Sportradar), only if the redesigned roles feel flat (Craig,
+  9 Nov 2026, on #1196).
 - **Traits** (what a player does in real life), if a source for them turns up.
 - **A landing page** for the public, when signups open to anyone; its own `/grill` then.
 - **Carrying a league into next season**, a different thing from spec/03's carry-over rule
@@ -122,6 +128,8 @@ One file per feature in [spec/](spec/); this page is the index. A feature's stat
 
 ## Out of scope
 
+- Set-piece lists and set-piece takers: "we didthced set piece taker (unless its a role)" (Craig,
+  9 Nov 2026, on #1196). A set-piece duty can only come back as a role (spec/17).
 - A sleep timer that pauses the pick clock overnight: the commissioner pauses and resumes by hand (spec/04).
 - Trading draft picks while the draft is running: they can be traded before it starts (spec/04).
 - A ranking per scoring system or per league, or one made by a commissioner: the draft's ranking is the admin's, one for the platform (spec/04).
@@ -226,7 +234,7 @@ follows it; tables and fields already saved keep their names.
 | matchup | a head-to-head between two teams in one gameweek; also "a game in a gameweek" (Craig, 8 Nov 2026) | match, fixture |
 | commentary | the short lines that report a match or a matchup as it is played | feed (that is the data source) |
 | vidiprinter | the matchup's running list of commentary, newest first | |
-| gameweek | one round of Premier League fixtures, as FPL numbers them | period |
+| gameweek | a date window from its deadline to the next gameweek's; a match counts in the gameweek it kicks off in, in every competition. Gameweek N is Sportmonks' round N as first scheduled | period |
 | best match | in a double gameweek, only his higher-scoring match counts | best ball |
 | auto team | the app setting an absent manager's lineup | |
 | super sub | a bench player who scores extra if he comes on in the real match | |
@@ -236,8 +244,6 @@ follows it; tables and fields already saved keep their names.
 | captain | the starter a manager picks to lead by example, whose own scoring the armband changes | skipper; armband (for the person) |
 | vice-captain | the starter who takes the armband if the captain doesn't play | |
 | club captain | the real club's captain, shown as a hint | captain (for the real one) |
-| set-piece list | a manager's order of up to three players for one duty: penalties, free kicks or corners | |
-| set-piece taker | the player holding a duty in a match: the first on its list who plays | |
 | note | one item in a player's News: a match note or real news, dated and linked to its source (spec/21) | blurb, snippet |
 | squad number | the number a manager gives a player, shown on his shirt ("shirt number" means the same) | |
 | football | the game itself | soccer |

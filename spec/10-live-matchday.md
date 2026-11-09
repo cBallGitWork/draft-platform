@@ -37,9 +37,9 @@ commentary` (16 Oct 2026).
 
 ## The match page
 
-- One real Premier League match: the score and clock, each club's name on its own colour with the
+- One real match: the score and clock, each club's name on its own colour with the
   score between (Craig, 31 Oct 2026; `spec/12`, Club colours), both clubs' lineups and subs, five team stats
-  (shots, shots on target, possession, corners, cards), and commentary for every event in it.
+  (shots, shots on target, possession, corners, cards), and commentary for every event in it. `S10.6`
 - Every player shows his live points, and only one owned in the league his team: "I need to stress
   that players who don't have a team still have their scores show. Just because they aren't a team
   doesn't mean they don't get points" (Craig, 31 Oct 2026). A player with no team says so in place
@@ -53,9 +53,10 @@ commentary` (16 Oct 2026).
 
 ## The commentary
 
-- Our own short lines, CM-terse, built from the Premier League's events: "62' GOAL Saka, assist
-  Ødegaard". Championship Manager's and Football Manager's commentary is a style reference only;
-  none of it is copied.
+- Our own short lines, CM-terse: "62' GOAL Saka, assist Ødegaard". Championship Manager's and
+  Football Manager's commentary is a style reference only; none of it is copied. The lines are
+  built from Sportmonks' events timeline (goals, cards, subs, VAR), unless the trial shows its
+  Starter plan includes Sportmonks' full commentary lines (Craig, 9 Nov 2026, on #1196). `S10.4`
 - A goal, an assist, a card or an own goal shows the points it moves, for every player, owned or
   not, bench included (Craig, 31 Oct 2026: "yes the main ones"; an own goal "same as red card
   etc").
@@ -73,5 +74,6 @@ commentary` (16 Oct 2026).
 - A kick-off and a full-time line for each match with either team's players in it, on the matchup
   ("FT ARS 2–1 CHE: Saka 11, Palmer 6").
 - If the commentary stream falls behind or stops, the matchup and the match page say so
-  ("Commentary delayed"); points carry on from FPL. It is behind once its newest line trails the
-  match clock by over 10 minutes (Craig, 1 Nov 2026: "10 mins"; #905).
+  ("Commentary delayed"); points carry on from Sportmonks' live stats (Craig, 9 Nov 2026, on #1196).
+  It is behind once its newest line trails the match clock by over 10 minutes (Craig, 1 Nov 2026:
+  "10 mins"; #905). `S10.5`
