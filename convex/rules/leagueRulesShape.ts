@@ -40,7 +40,7 @@ export const classicShape = v.object({
   instructions: v.object({ attacking: v.string(), defensive: v.string() }),
 });
 
-const WEEKDAYS = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"] as const;
+export const WEEKDAYS = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"] as const;
 const weekday = v.union(...WEEKDAYS.map((day) => v.literal(day)));
 
 /** roundRobin.ts's OddTeamOut. */
@@ -71,6 +71,18 @@ export const tradeRulesShape = v.object({
   deadline: v.union(v.number(), v.null()),
 });
 export type TradeRules = Infer<typeof tradeRulesShape>;
+
+/** The waiver order's types (spec/03, spec/08): reverse table order, the default, or rotating. */
+export const WAIVER_ORDERS = ["reverseStandings", "rotating"] as const;
+export type WaiverOrderType = (typeof WAIVER_ORDERS)[number];
+
+/** How the league's waivers run (spec/03, spec/08). */
+export const waiverRulesShape = v.object({
+  /** When they run each week, UK time (spec/08): one run or more. */
+  runs: v.array(v.object({ day: weekday, hour: v.number(), minute: v.number() })),
+  order: v.union(...WAIVER_ORDERS.map((name) => v.literal(name))),
+});
+export type WaiverRules = Infer<typeof waiverRulesShape>;
 
 export const leagueRulesShape = v.object({
   format: v.union(v.literal("headToHead"), v.literal("totalPoints")),
@@ -103,11 +115,7 @@ export const leagueRulesShape = v.object({
   /** roundRobin.ts's DrawRules["gamesPerGameweek"]: a whole number, 1 or more. Absent, as
    *  `oddTeamOut` is, only from rules saved before #130. */
   gamesPerGameweek: v.optional(v.number()),
-  waivers: v.object({
-    /** When they run each week, UK time (spec/08): one run or more. */
-    runs: v.array(v.object({ day: weekday, hour: v.number(), minute: v.number() })),
-    order: v.union(v.literal("reverseStandings"), v.literal("rotating")),
-  }),
+  waivers: waiverRulesShape,
   /** How the draft runs (spec/04; #1087). Absent, as `oddTeamOut` is, only from rules saved before
    *  #1087, which play the first rules' (firstRules.ts, `draftRulesOf`). */
   draft: v.optional(draftRulesShape),

@@ -5,6 +5,7 @@ import type { Id } from "../../convex/_generated/dataModel";
 import type { LeagueSettings } from "../../convex/rules/leagueSettingsPart";
 import type { Revision, RulesView } from "../rules/rulesEdits";
 import type { Change } from "../shared/refusal";
+import type { ClaimsSeam } from "../myTeam/claims/seam";
 
 export type SettingsView = RulesView<LeagueSettings>;
 
@@ -22,6 +23,8 @@ export type LeagueSettingsSeam = {
   /** Draws the draft order at random from the league's teams now and saves it: resolves with null
    *  once saved, or the words saying why not. It never rejects. */
   drawTeamOrder(leagueId: Id<"leagues">): Change;
+  /** The waiver order and the runs, as My team's Transactions tab reads them (#1200). */
+  useWaivers: ClaimsSeam["useWaivers"];
 };
 
 /** A team in the draft order (convex/draft/draftOrder.ts). */

@@ -10,6 +10,9 @@ export const retryWords = "Retry";
 /** The top bar: its two menus, named for screen readers, Continue, and Sign out. */
 export const mainMenuLabel = "Main";
 export const sectionTabsLabel = "Section";
+/** My team's Transactions tab while claims are pending, for screen readers: "Transactions, 3
+ *  pending claims" (#1200). */
+export const pendingClaimsTabLabel = (label: string, claims: number) => `${label}, ${claims} pending ${claims === 1 ? "claim" : "claims"}`;
 export const nothingNeedsYouWords = "Nothing needs you";
 export const continueWords = "Continue";
 export const continueLabel = (reason: string) => `Continue: ${reason}`;

@@ -4,6 +4,7 @@ import { api } from "../../convex/_generated/api";
 import { answerOf, refusalOf } from "../shared/refusal";
 import { useMinute } from "../shared/useMinute";
 import type { LeagueSettingsSeam } from "./seam";
+import { liveClaims } from "../myTeam/claims/liveClaims";
 import { saveFailedWords, teamOrderFailedWords } from "./words";
 
 /** Asked again each minute, so the gameweek a change takes effect from moves on at a deadline. */
@@ -24,6 +25,7 @@ export function useLiveLeagueSettings(): LeagueSettingsSeam {
       useTeamOrder,
       saveTeamOrder: (leagueId, teamIds) => refusalOf(() => setTeamOrder({ leagueId, teamIds }), "Saving the draft order", teamOrderFailedWords),
       drawTeamOrder: (leagueId) => refusalOf(() => drawTeamOrder({ leagueId }), "Drawing the draft order", teamOrderFailedWords),
+      useWaivers: liveClaims.useWaivers,
     }),
     [changeSettings, setTeamOrder, drawTeamOrder],
   );

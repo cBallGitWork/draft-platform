@@ -41,4 +41,14 @@ export const waiverTables = {
      *  only once one is made after the latest begun gameweek's deadline (#1199, the window). */
     madeAt: v.optional(v.number()),
   }).index("by_leagueId", ["leagueId"]),
+  /** The order a league's waivers start from after its commissioner changed the order type, one row
+   *  at most (#1200; Craig, 6 Nov 2026: "At once, from today's order"): the order that day, first
+   *  first, so nobody jumps the queue by the switch. Rotating starts from it for good; reverse table
+   *  order only until the next gameweek begins, when the table orders it again. */
+  waiverStarts: defineTable({
+    leagueId: v.id("leagues"),
+    teams: v.array(v.id("teams")),
+    /** The latest gameweek the league had begun at the switch, null before its first. */
+    gameweek: v.union(v.number(), v.null()),
+  }).index("by_leagueId", ["leagueId"]),
 };

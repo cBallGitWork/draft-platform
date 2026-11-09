@@ -38,6 +38,7 @@ const FIRST: LeagueSettings = {
   maxPerClub: null,
   draft: { pickSeconds: 90, timeoutsBeforeAutoPick: 2, undrafted: "waivers" },
   trades: { review: "veto", deadline: null },
+  waivers: HELD_FIRST_RULES.waivers,
 };
 /** The fixtures in one round of the four-team leagues the table tests make. */
 const FIXTURES_A_ROUND = 2;

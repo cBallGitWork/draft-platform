@@ -1,11 +1,11 @@
 import { v, type Infer } from "convex/values";
 import { draftRulesOf, drawRulesOf, tradeRulesOf } from "./firstRules";
-import { draftRulesShape, leagueRulesShape, oddTeamOutShape, tradeRulesShape, type LeagueRules } from "./leagueRulesShape";
+import { draftRulesShape, leagueRulesShape, oddTeamOutShape, tradeRulesShape, waiverRulesShape, type LeagueRules } from "./leagueRulesShape";
 
 // The part of a league's rules League settings edits (Craig, 22 Oct 2026): those that build the
 // league; players' points are the site's (spec/14, Who owns it). The round robin's two (spec/09),
-// the squad's make-up (spec/03, Squad make-up; #341), how the draft runs (spec/04; #1087) and how
-// trades do (spec/08; #383). Pure, so the screens' previews read it too; leagueSettings.ts reads
+// the squad's make-up (spec/03, Squad make-up; #341), how the draft runs (spec/04; #1087), how
+// trades do (spec/08; #383) and how waivers do (spec/08; #1200). Pure, so the screens' previews read it too; leagueSettings.ts reads
 // and saves it.
 
 const squad = leagueRulesShape.fields.squad.fields;
@@ -19,6 +19,8 @@ export const leagueSettingsShape = v.object({
   maxPerClub: squad.maxPerClub,
   draft: draftRulesShape,
   trades: tradeRulesShape,
+  /** The waiver order's type and the runs (spec/03, spec/08; #1200). */
+  waivers: waiverRulesShape,
 });
 export type LeagueSettings = Infer<typeof leagueSettingsShape>;
 
@@ -32,4 +34,5 @@ export const leagueSettingsOf = (rules: LeagueRules): LeagueSettings => ({
   maxPerClub: rules.squad.maxPerClub,
   draft: draftRulesOf(rules),
   trades: tradeRulesOf(rules),
+  waivers: rules.waivers,
 });
