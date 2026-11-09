@@ -1,6 +1,6 @@
 ---
 name: verify
-description: Run the local gate before a commit or a pull request (the install check, tests, typecheck, the lint step, the recorded-payload check, the tests-kept check, the spec-ID check, the contents-list check, the hook checks) and report the count; CI also runs the build and the smoke suite. Use before any commit, before /refactor and pr-reviewer, and whenever Craig asks whether it passes. Adapted from epl-draft's verify (17 Oct 2026).
+description: Run the local gate before a commit or a pull request (the install check, tests, typecheck, the lint step, the recorded-payload check, the tests-kept check, the spec-ID check, the contents-list check, the hook checks) and report the count; CI also runs the build, the smoke suite and actionlint on the workflows. Use before any commit, before /refactor and pr-reviewer, and whenever Craig asks whether it passes. Adapted from epl-draft's verify (17 Oct 2026).
 ---
 
 # Verify

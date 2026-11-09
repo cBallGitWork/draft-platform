@@ -1,5 +1,5 @@
 # The local gate (`npm run verify`) split into jobs that run side by side: `checks` (types, lint, the scripts checks,
-# the hooks), `unit` (`npm test` in vitest shards) and `build`; beside them `npm run smoke`. What it catches and why
+# the hooks, actionlint), `unit` (`npm test` in vitest shards) and `build`; beside them `npm run smoke`. What it catches and why
 # here: ARCHITECTURE.md, Services. Split again to halve a PR's wait (about 4 min as one job, 5 Nov 2026).
 # A pull request that changes only docs (docs/, spec/, .claude/, *.md) or the agents' prompt workflows runs the cheap
 # checks and skips the unit tests and build; smoke runs only when the PR touches what the browser loads (src/,
@@ -31,6 +31,12 @@ env:
   # what the browser loads, so what smoke exercises
   SMOKE_PATHS: '^(src/|public/|index\.html$|vite\.config|package(-lock)?\.json$)'
   UNIT_SHARDS: 3  # keep in step with the `shard` matrix below
+  # actionlint checks every workflow, and the shell in its `run:` blocks through shellcheck, at warning and above (an
+  # info note like SC2016 is often meant). On 9 Nov 2026 #1371 merged an apostrophe that ended a single-quoted jq
+  # program, and every lead pass died until #1372. Pinned, and its download checked against the release's checksum.
+  ACTIONLINT_VERSION: 1.7.12
+  ACTIONLINT_SHA256: 8aca8db96f1b94770f1b0d72b6dddcb1ebb8123cb3712530b08cc387b349a3d8  # its linux_amd64 tarball
+  SHELLCHECK_OPTS: --severity=warning
 
 jobs:
   # what changed, and smoke's container tag; no npm ci
@@ -84,6 +90,14 @@ jobs:
       - run: node scripts/spec-ids.mjs
       - run: node scripts/contents-lists.mjs
       - run: .claude/hooks/test.sh
+      - name: actionlint
+        run: |
+          tarball="actionlint_${ACTIONLINT_VERSION}_linux_amd64.tar.gz"
+          curl -sSfLO "https://github.com/rhysd/actionlint/releases/download/v${ACTIONLINT_VERSION}/$tarball"
+          echo "$ACTIONLINT_SHA256  $tarball" | sha256sum -c -
+          tar -xzf "$tarball" actionlint
+          shellcheck --version | sed -n 2p
+          ./actionlint -color
 
   # `npm test`, split across runners: vitest's own shards, so every test file runs in exactly one of them
   unit:
