@@ -161,10 +161,10 @@ export type MatchupCommentary = Infer<typeof commentary>;
  *  each with the men it is about, whose lines a tapped man's cyan bar marks, and a column for each
  *  side, team then opponent, of what it moves that team's score by (readCommentary.ts; the approved
  *  picture's "Saka P / Kroos C"). The league's average has no column. */
-export const matchupCommentary = commentaryOf(
+export const teamsCommentary = commentaryOf(
   commentaryLine.extend({ about: v.array(v.number()), columns: v.array(v.union(v.string(), v.null())) }),
 );
-export type TeamsCommentary = Infer<typeof matchupCommentary>;
+export type TeamsCommentary = Infer<typeof teamsCommentary>;
 
 export const game = v.union(
   /** The team plays nobody in the gameweek: one begun before it joined, say. */
@@ -179,7 +179,7 @@ export const game = v.union(
     kind: v.literal("scored"),
     team: side,
     opponent: side,
-    commentary: matchupCommentary,
+    commentary: teamsCommentary,
     /** The version of the site's scoring the gameweek is scored under, null for the first set: a
      *  breakdown's last line (spec/14, On screen). */
     version: v.union(v.string(), v.null()),

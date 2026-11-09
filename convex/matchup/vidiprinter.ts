@@ -170,8 +170,7 @@ function priced(
     const points = inTenths(totalWith(stats, stat, nth, player, set) - totalWith(stats, stat, nth - 1, player, set));
     return points === 0 ? [] : [{ playerCode: code, name: player.name, points }];
   });
-  const priced = { fixtureCode, about, moves: moves.map(({ playerCode, points }) => ({ playerCode, points })) };
-  return { text: stored.text, points: worth(moves, codes.length), priced };
+  return { text: stored.text, points: worth(moves, codes.length), priced: { fixtureCode, about, moves } };
 }
 
 /** One man's count of one stat, as a match's lines and steps tally them. */
