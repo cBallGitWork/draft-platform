@@ -84,6 +84,20 @@ describe("a past season's rows", () => {
     expect(row?.match?.stats.minutes).toBe(20);
   });
 
+  test("a feed that leaves its 0s out gives 0 for a missing stat where it covered the match, and nothing where it didn't", () => {
+    const row = SAMPLE_LOG.find((each) => each.person_root_id === "keeper-one")!;
+    const covered = statsIn({ ...row, sofascore_minutes: 90, fotmob_minutes: 90, sofascore_won_tackle: 3 });
+    expect(covered).toMatchObject({ won_tackle: 3, big_chance_missed: 0, total_tackle: 0, won_contest: 0 });
+    const uncovered = statsIn({ ...row, sofascore_minutes: null, fotmob_minutes: null });
+    expect(uncovered).not.toHaveProperty("won_tackle");
+    expect(uncovered).not.toHaveProperty("won_contest");
+  });
+
+  test("an FPL stat stays absent when missing, even where FPL gave minutes", () => {
+    const row = SAMPLE_LOG.find((each) => each.person_root_id === "keeper-one")!;
+    expect(statsIn({ ...row, sofascore_minutes: 90, fpl_defensive_contribution: null })).not.toHaveProperty("defensive_contribution");
+  });
+
   test("a start the log gives no position for is kept as null", () => {
     const row = sampleRows().find((each) => each.playerCode === 100004 && each.match?.kickoff === KICKOFF_A);
     expect(row?.match?.startingPosition).toBeNull();

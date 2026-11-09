@@ -7,7 +7,7 @@
 // reads it in plain Node.
 
 import type { Area } from "../lineup/pitch";
-import { PAST_STAT_COLUMNS } from "./pastStatColumns.ts";
+import { PAST_STAT_COLUMNS, ZERO_LEFT_OUT_BY, type PastFeed } from "./pastStatColumns.ts";
 
 /** The competition a row must name to be a Premier League match: the log holds cups and Europe too. */
 export const PREMIER_LEAGUE = "premier_league";
@@ -23,7 +23,8 @@ export const STAT_COLUMNS: Readonly<Record<string, string>> = Object.fromEntries
 export const KICKOFF_COLUMN = "kickoff_utc";
 
 /** Every column the copy reads. FPL's fixture id is read only to count the season's matches, and
- *  never kept; FPL's own points are read only by the re-score test. */
+ *  never kept; FPL's own points are read only by the re-score test; a feed's minutes only say
+ *  whether it covered the match (ZERO_LEFT_OUT_BY). */
 export const SOURCE_COLUMNS = [
   "competition",
   "person_root_id",
@@ -31,6 +32,7 @@ export const SOURCE_COLUMNS = [
   KICKOFF_COLUMN,
   "starting_position",
   ...Object.values(STAT_COLUMNS),
+  ...Object.values(ZERO_LEFT_OUT_BY),
   "fpl_total_points",
   "fpl_bonus",
 ];
@@ -155,14 +157,21 @@ function numberIn(row: LogRow, column: string): number | null {
 export const playedIn = (row: LogRow): boolean => (numberIn(row, STAT_COLUMNS.minutes) ?? 0) > 0;
 
 /** A row's stats under our names. A column with no value is left out: the 267 played rows of
- *  2025/26 with no defensive contribution keep it absent, never 0 (#1113). */
+ *  2025/26 with no defensive contribution keep it absent, never 0 (#1113). The one exception is a
+ *  feed that leaves its 0s out (ZERO_LEFT_OUT_BY): where it covered his match, its missing stat is 0. */
 export function statsIn(row: LogRow): Record<string, number> {
   const stats: Record<string, number> = {};
-  for (const [stat, column] of Object.entries(STAT_COLUMNS)) {
-    const value = numberIn(row, column);
+  for (const [stat, { feed, column }] of Object.entries(PAST_STAT_COLUMNS)) {
+    const value = numberIn(row, column) ?? (coveredBy(row, feed) ? 0 : null);
     if (value !== null) stats[stat] = value;
   }
   return stats;
+}
+
+/** The feed covered his match: it is one that leaves its 0s out, and gives him minutes. */
+function coveredBy(row: LogRow, feed: PastFeed): boolean {
+  const minutes = ZERO_LEFT_OUT_BY[feed];
+  return minutes !== undefined && numberIn(row, minutes) !== null;
 }
 
 /** A kickoff in ms. One the log gives with no zone is read as UTC, as FPL gives every kickoff. */

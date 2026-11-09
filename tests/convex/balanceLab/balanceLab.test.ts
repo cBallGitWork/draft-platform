@@ -10,8 +10,8 @@ type RoleScoring = NonNullable<ScoringSet["roles"]>[number];
 const side = (bars: number[], ...parts: [string, number][]) => ({ bars, parts: parts.map(([stat, weight]) => ({ stat, weight })) });
 /** A shot-stopper on saves alone (copied), costing for goals conceded (copied). */
 const shotStopper = (bars: number[]): RoleScoring => ({ role: "shotStopper", bonus: side(bars, ["saves", 1]), cost: side([3, 4, 5], ["goals_conceded", 1]) });
-/** A number 10 on key passes and big chances created, neither copied. */
-const numberTen: RoleScoring = { role: "numberTen", bonus: side([2, 4, 6], ["big_chance_created", 1], ["att_assist_openplay", 1]), cost: side([1, 2, 3], ["goals_scored", 1]) };
+/** A number 10 on through balls and open-play key passes, neither copied. */
+const numberTen: RoleScoring = { role: "numberTen", bonus: side([2, 4, 6], ["accurate_through_ball", 1], ["att_assist_openplay", 1]), cost: side([1, 2, 3], ["goals_scored", 1]) };
 const setWith = (...roles: RoleScoring[]): ScoringSet => ({ ...EXAMPLE_SET, roles });
 
 const start = (startingPosition: string, stats: Record<string, number>, season = 2024): PastStart => ({ season, startingPosition, stats });
@@ -33,7 +33,7 @@ describe("roles on the past seasons", () => {
 
   test("a role scoring a stat the past seasons weren't copied with is not tested, naming the stats", () => {
     const report = balanceLab(setWith(numberTen), [start("AMC", { goals_scored: 1 })]);
-    expect(report.roles).toEqual([{ role: "numberTen", slot: "CAM", target: 0.6, missing: ["att_assist_openplay", "big_chance_created"] }]);
+    expect(report.roles).toEqual([{ role: "numberTen", slot: "CAM", target: 0.6, missing: ["accurate_through_ball", "att_assist_openplay"] }]);
   });
 
   test("an own stat counts as the stats it adds up", () => {
