@@ -67,6 +67,8 @@ describe("a feed that fails", () => {
     await t.mutation(internal.stats.matchStats.record, { trigger: "manual", ranAt: now, outcome: failed });
     await t.mutation(internal.stats.liveStats.recordTick, { ranAt: now, outcome: failed });
     for (const feed of SIDE_FEEDS) await t.mutation(internal.admin.sideRuns.record, { feed, ranAt: now, outcome: failed });
+    await t.mutation(internal.football.sportmonks.sportmonksSync.record, { trigger: "manual", ranAt: now, outcome: failed });
+    await t.mutation(internal.football.sportmonks.sportmonksLive.recordTick, { ranAt: now, outcome: failed });
     await t.finishAllScheduledFunctions(vi.runAllTimers);
     expect(sent.map((email) => email.subject)).toEqual(FEEDS.map(subjectOf));
   });
