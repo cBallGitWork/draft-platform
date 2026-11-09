@@ -8,7 +8,7 @@ import { ownerOf } from "../squads/squadPlace";
 import { MINUTES_STAT } from "../stats/matchRecords";
 import { COMPARED_PLAYERS } from "./comparedPlayers";
 import { per90Figure, weigher } from "./per90";
-import { per90FiguresIn } from "./per90Figures";
+import { per90FiguresIn, totalOf } from "./per90Figures";
 import { shownSeasonPoints } from "./shownSeasonPoints";
 
 // Two players side by side (spec/19, The players list: "Two players side by side, to compare";
@@ -69,7 +69,7 @@ export const players = query({
           positions,
           ownerTeamName: (await ownerOfCode(code))?.name ?? null,
           seasonPoints: seasonPointsOf(code, positions),
-          minutes: totals[MINUTES_STAT] ?? 0,
+          minutes: totalOf(totals, MINUTES_STAT),
           figures: area === null ? [] : per90FiguresIn(area, totals, ranked, stat),
         };
       }),

@@ -47,14 +47,19 @@ const AREA_OF_SLOT = new Map(
   ),
 );
 
+/** His total of `stat`, 0 when his totals leave it out. Deliberate, not a missing feed hidden:
+ *  statTotals.ts's addStats drops every total of 0, so a stat he never recorded (a minute, a save)
+ *  is absent rather than 0, and no minutes gives a null per-90 figure, never a made-up one. */
+export const totalOf = (totals: Stats, stat: string) => totals[stat] ?? 0;
+
 /** His figure per 90 minutes from his totals, or null with no minutes played. */
 export function perNinety(totals: Stats, stat: string): number | null {
-  const minutes = totals[MINUTES_STAT] ?? 0;
-  return minutes > 0 ? ((totals[stat] ?? 0) / minutes) * MATCH_MINUTES : null;
+  const minutes = totalOf(totals, MINUTES_STAT);
+  return minutes > 0 ? (totalOf(totals, stat) / minutes) * MATCH_MINUTES : null;
 }
 
 /** Whether a player with these totals has played enough to be ranked. */
-export const isRanked = (totals: Stats) => (totals[MINUTES_STAT] ?? 0) >= RANKED_MINUTES;
+export const isRanked = (totals: Stats) => totalOf(totals, MINUTES_STAT) >= RANKED_MINUTES;
 
 /** A player as his per-90 panel weighs him: his main position's area and his totals over the
  *  period. */
@@ -77,7 +82,7 @@ export function per90FiguresIn(area: Area, totals: Stats, everyone: Iterable<Wei
   return per90Stats(area, stat).map((each) => {
     const value = perNinety(totals, each);
     const others = peers.map((peer) => perNinety(peer, each)!);
-    return { stat: each, total: totals[each] ?? 0, perNinety: value, percentile: ranked && value !== null ? percentileOf(value, others) : null };
+    return { stat: each, total: totalOf(totals, each), perNinety: value, percentile: ranked && value !== null ? percentileOf(value, others) : null };
   });
 }
 

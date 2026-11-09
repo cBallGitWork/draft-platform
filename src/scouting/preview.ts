@@ -2,7 +2,7 @@
 // stats added up for each, filtered and sorted by the server's own rule (listOf).
 
 import type { ListedPlayer } from "../../convex/scouting/playersList";
-import { mainArea, per90FiguresIn, per90PanelOf } from "../../convex/scouting/per90Figures";
+import { mainArea, per90FiguresIn, per90PanelOf, totalOf } from "../../convex/scouting/per90Figures";
 import { cardOpensAt } from "../../convex/playerCard/cardPoints";
 import { MINUTES_STAT } from "../../convex/stats/matchRecords";
 import { proLeague } from "../shared/preview";
@@ -92,7 +92,7 @@ export const previewScouting: Omit<ScoutingSeam, keyof WaiverActionSeam> = {
     return codes.map((code) => {
       const totals = weighed(previewPlayer(code)).totals;
       const figures = area === null ? [] : per90FiguresIn(area, totals, previewPlayers.map(weighed), stat);
-      return { ...previewPlayer(code), minutes: totals[MINUTES_STAT] ?? 0, figures };
+      return { ...previewPlayer(code), minutes: totalOf(totals, MINUTES_STAT), figures };
     });
   },
   usePer90: (_leagueId, playerCode, stat) => per90PanelOf(weighed(previewPlayer(playerCode)), previewPlayers.map(weighed), stat),
