@@ -68,7 +68,7 @@ describe("the role card (#848)", () => {
     await userEvent.click(within(roleCard(HAVERTZ.name)).getByRole("button", { name: "Poacher" }));
     const preview = within(roleCard(HAVERTZ.name)).getByRole("region", { name: "Poacher" });
     expect(within(preview).getByText(rolesOfSlot(HAVERTZS_CELL, STARTERS)[0].description)).toBeTruthy();
-    const rows = within(preview).getAllByRole("row").map((row) => Array.from(row.cells).map((cell) => cell.textContent));
+    const rows = within(preview).getAllByRole<HTMLTableRowElement>("row").map((row) => Array.from(row.cells).map((cell) => cell.textContent));
     const base = scoreMatch(GOAL, SET, HAVERTZS_CELL).total!;
     const total = scoreMatch(GOAL, SET, HAVERTZS_CELL, "poacher").total!;
     expect(rows[1]).toEqual(["GW8", "CHE (A)", "90", String(base), total === base ? "0" : `+${total - base}`, String(total)]);
