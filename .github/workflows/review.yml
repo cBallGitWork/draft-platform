@@ -43,6 +43,16 @@ jobs:
     env:
       PR: ${{ github.event.pull_request.number || inputs.pr }}
     steps:
+      # a review started by hand names its pull request by number, so the event can't say whose branch it is: refuse a
+      # fork's here, as the `if:` does for one opened, since a fork's code would run beside the subscription token
+      - name: This repository's pull request only
+        if: github.event_name == 'workflow_dispatch'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          head=$(gh api "repos/${{ github.repository }}/pulls/$PR" --jq '.head.repo.full_name // ""')
+          [ "$head" = "${{ github.repository }}" ] || { echo "::error::#$PR comes from ${head:-a deleted fork}, not this repository: no review"; exit 1; }
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262  # v4.4.0
         with:
           ref: ${{ github.event.pull_request.head.sha || format('refs/pull/{0}/head', inputs.pr) }}

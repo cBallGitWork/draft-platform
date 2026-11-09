@@ -159,7 +159,7 @@ jobs:
             busy_issues=$(printf '%s\n%s\n' "$busy_issues" "$n"); busy_specs=$(printf '%s\n%s\n' "$busy_specs" "$files")
           }
 
-          prs=$(gh pr list --state open --limit 200 --json number,isDraft,headRefName,author,body,labels,statusCheckRollup,mergeable,createdAt)
+          prs=$(gh pr list --state open --limit 200 --json number,isDraft,headRefName,author,body,labels,statusCheckRollup,mergeable,createdAt,isCrossRepository)
           linked() { jq -r '.[] | (.body // "") | scan("(?m)^(?:Part of|Closes) #([0-9]+)") | .[0]' <<<"$prs" | sort -u; }
           taken=$(linked)
           label() { echo "Labelling #$1 $2"; [ "$DRY_RUN" = true ] || gh api "repos/$GH_REPO/issues/$1/labels" -f "labels[]=$2" > /dev/null; }  # a pull request too
@@ -243,7 +243,7 @@ jobs:
           # and on 8 Nov 2026 four were opened with no pull_request workflow firing, so they waited on review-landed until a
           # session reviewed them by hand. Once per pull request (REVIEW_STARTED_LABEL), Craig's included, and no build slot.
           for pr in $(jq -r '
-              .[] | select(.isDraft | not)
+              .[] | select((.isDraft | not) and (.isCrossRepository | not))  # never a fork's: the review holds the subscription token
               | select(all(.labels[]?; .name != env.REVIEW_STARTED_LABEL))
               | select(any(.statusCheckRollup[]?; .context == "review-landed" and .state == "PENDING"))
               | select((.createdAt | fromdateiso8601) < (now - (env.REVIEW_WAIT_MINUTES | tonumber) * 60))
@@ -252,7 +252,9 @@ jobs:
             comments=$(gh pr view "$pr" --json comments --jq '.comments[].body')
             grep -qF '*Reviewer: pr-reviewer' <<<"$comments" && continue
             echo "#$pr has no review ${REVIEW_WAIT_MINUTES} minutes on: starting one"
-            [ "$DRY_RUN" = true ] || GH_TOKEN="$DISPATCH_TOKEN" gh workflow run review.yml --ref "$GITHUB_REF_NAME" -f pr="$pr"
+            if [ "$DRY_RUN" != true ] && ! GH_TOKEN="$DISPATCH_TOKEN" gh workflow run review.yml --ref "$GITHUB_REF_NAME" -f pr="$pr"; then
+              echo "::warning::Couldn't start #$pr's review: the next pass tries again"; continue  # the rest of the pass still runs
+            fi
             label "$pr" "$REVIEW_STARTED_LABEL"
           done
 
