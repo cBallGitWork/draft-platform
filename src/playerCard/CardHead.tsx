@@ -1,7 +1,8 @@
-import { useCanGoBack, useRouter } from "@tanstack/react-router";
+import { Link, useCanGoBack, useRouter } from "@tanstack/react-router";
 import { useId, type ReactNode } from "react";
 import type { LeagueSummary } from "../../convex/leagues/myLeagues";
 import { SCOUTING_PATH } from "../frame/menu";
+import { otherTeamPath } from "../myTeam/paths";
 import { ClubMark } from "../ui/ClubName";
 import { OwnerName } from "../ui/OwnerName";
 import { Placeholder } from "../ui/Placeholder";
@@ -51,7 +52,7 @@ export function CardHead({ league, card, shown, seam }: { league: LeagueSummary;
             {card.club.name}
           </span>
           <span>
-            <span className="text-soft">{ownedByWords}</span> <OwnerName teamName={card.ownerTeamName} />
+            <span className="text-soft">{ownedByWords}</span> <Owner leagueId={league.leagueId} card={card} />
           </span>
         </span>
       </div>
@@ -60,6 +61,16 @@ export function CardHead({ league, card, shown, seam }: { league: LeagueSummary;
         <Actions league={league} card={card} seam={seam} />
       </div>
     </section>
+  );
+}
+
+/** His owner's name, which opens that team's squad, read-only (#1027); a free agent's is plain. */
+function Owner({ leagueId, card }: { leagueId: LeagueSummary["leagueId"]; card: PlayerCard }) {
+  if (card.ownerTeamId === null) return <OwnerName teamName={card.ownerTeamName} />;
+  return (
+    <Link to={otherTeamPath(leagueId, card.ownerTeamId)}>
+      <OwnerName teamName={card.ownerTeamName} />
+    </Link>
   );
 }
 

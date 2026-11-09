@@ -2,7 +2,7 @@
 
 import { useSyncExternalStore } from "react";
 import { vi } from "vitest";
-import type { MyTeamSeam, SquadNumberChanges, TeamFixtures, TeamSquad, TeamTransactions } from "../../../src/myTeam/seam";
+import type { MyTeamSeam, OtherSquad, SquadNumberChanges, TeamFixtures, TeamSquad, TeamTransactions } from "../../../src/myTeam/seam";
 import { idOf } from "../../../src/table/drawnTable";
 import type { LeagueTable } from "../../../src/table/seam";
 import { fakeTactics, type TacticsData } from "./tactics.harness";
@@ -19,6 +19,8 @@ export type MyTeamData = TacticsData & {
   fixtures?: TeamFixtures | null;
   transactions?: TeamTransactions;
   squad?: TeamSquad;
+  /** Another team's squad, read-only, whichever team is asked for. */
+  otherSquad?: OtherSquad;
   /** The league's table and fixtures, which the header band reads; null for a league with no rules. */
   leagueTable?: LeagueTable | null;
   /** What setting a squad number answers: null once made, or the words why not. */
@@ -40,6 +42,7 @@ export function fakeMyTeam({
   fixtures = { teamId: MY_TEAM_ID, teamName: "Team 1", format: "headToHead", games: [], unscored: [] },
   transactions = { transactions: [], cut: false },
   squad = { teamName: "Team 1", lastGameweek: null, players: [], unheld: [], squadMaximum: null, scheduleGameweeks: [], limits: [] },
+  otherSquad = { teamName: "Team 2", players: [] },
   numberAnswer = null,
   mail = { letters: [], unread: 0 },
   leagueTable = null,
@@ -66,6 +69,7 @@ export function fakeMyTeam({
     ...fakeTactics(tactics, loading),
     useTeamFixtures: vi.fn<MyTeamSeam["useTeamFixtures"]>(() => (loading ? undefined : fixtures)),
     useTeamTransactions: vi.fn<MyTeamSeam["useTeamTransactions"]>(() => (loading ? undefined : transactions)),
+    useOtherSquad: vi.fn<MyTeamSeam["useOtherSquad"]>(() => (loading ? undefined : otherSquad)),
     useTeamSquad: vi.fn<MyTeamSeam["useTeamSquad"]>(() => useSyncExternalStore(subscribe, () => (loading ? undefined : heldSquad))),
     /** The squad the server holds from now on (inside act). */
     serverHoldsSquad: (next: TeamSquad) => {

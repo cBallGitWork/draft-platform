@@ -3,6 +3,7 @@
 
 import type { Id } from "../../convex/_generated/dataModel";
 import type { Change } from "../shared/refusal";
+import type { OtherSquad } from "../../convex/squads/otherSquad";
 import type { TeamSquad } from "../../convex/squads/teamSquad";
 import type { TeamTransactions } from "../../convex/squads/teamTransactions";
 import type { TeamFixtures } from "../../convex/table/teamFixtures";
@@ -11,7 +12,7 @@ import type { SquadSeam } from "./squad/seam";
 import type { ClaimsSeam } from "./claims/seam";
 import type { TableSeam } from "../table/seam";
 
-export type { TeamFixtures, TeamSquad, TeamTransactions };
+export type { OtherSquad, TeamFixtures, TeamSquad, TeamTransactions };
 
 export type SquadNumberChanges = {
   /** Gives one of the manager's own players `number`, or null to take it away (#13). */
@@ -29,6 +30,8 @@ export type MyTeamSeam = TacticsSeam & TableSeam & SquadSeam & ClaimsSeam & {
   /** The manager's team's squad, with each player's next fixture and points, live (a hook):
    *  undefined while it loads. */
   useTeamSquad(leagueId: Id<"leagues">): TeamSquad | undefined;
+  /** Another team's squad, read-only (#1027), live (a hook): undefined while it loads. */
+  useOtherSquad(leagueId: Id<"leagues">, teamId: Id<"teams">): OtherSquad | undefined;
   /** The changes to its squad numbers (a hook). */
   useSquadNumbers(): SquadNumberChanges;
 };
