@@ -228,19 +228,25 @@ ai-carling-premiership match logs; the numbers there come from FotMob and Sofasc
   | Appearance | – | – | – | – | – |
   | Goal | 4 | 5 | 5 | 5 | 5 |
   | Assist | 3 | 3 | 3 | 3 | 3 |
-  | Clean sheet (60+ min) | – | – | 2 | 4 | 3 |
+  | Clean sheet (60+ min) | – | – | 2 | 4 | 4 |
+  | Goals conceded | – | – | – | −1 per 2 | −1 per 2 |
   | Defcon | – | +1 per 5 midfield stat | +1 per 4 midfield stat | +1 per 4 defender stat | – |
   | Saves | – | – | – | – | +1 per 2 |
 
   The midfield stat is tackles + interceptions + blocked shots + ¼ recoveries. The defender stat
   is tackles + interceptions + blocked shots + ¼ clearances, Fantrax's DFP. Counted per action,
-  never FPL's all-or-nothing +2 ("i dont like their defcon"). No goals-conceded penalty and no FPL
-  bonus. The super sub (SPEC, *Second release*) stays the reward for bench players.
-- What it gives over the five seasons: every line scores 1.6 to 1.7 points a 60-minute start, and
-  goals and assists are about 54% of all points. The 10th-best season by line is FWD 72, AM 86,
-  CM 82, DEF 83, GK 71. Strikers are scarce (about 20 regulars a season), so a good one is a
-  scarcity pick rather than a big total. Top of 25-26: Haaland 128, Gabriel 114, Bruno Fernandes
-  105, O'Reilly 100, Guéhi 99, Rice 94.
+  never FPL's all-or-nothing +2 ("i dont like their defcon"). No FPL bonus. The super sub (SPEC,
+  *Second release*) stays the reward for bench players.
+- Goals conceded is there so defenders have a curve: "need defenders on mid table teams to stand
+  out from lower tier still" (Craig, 9 Nov 2026). Without it the defcon lifts defenders at poor
+  sides, who defend more. With it, a regular defender's season averages 47 at a top-6 side, 36 in
+  mid-table and 23 in the bottom six (55, 47 and 36 without), and fewer defenders crowd the top 25.
+- What it gives over the five seasons, per 60-minute start: FWD 1.65, AM 1.62, CM 1.65, DEF 1.23,
+  GK 1.51; goals and assists are about 60% of all points. Defenders are the deepest pool (about
+  78 regulars a season), so they sit lowest a start and the best still stand out. The 10th-best
+  season by line is FWD 72, AM 86, CM 82, DEF 72, GK 68. Strikers are scarce (about 20 regulars
+  a season), so a good one is a scarcity pick rather than a big total. Top of 25-26: Haaland 128,
+  Gabriel 108, Bruno Fernandes 105, Rice 94, O'Reilly 93, Semenyo 91.
 - Why lines and one line each: a player is scored by the slot he plays in (`spec/14`). With
   detailed positions, any slot that paid more for the same player (a deeper slot's clean sheet or
   defcon) drew attackers back; in the data no stat tells a W from a WM, or a CM from a DM.
