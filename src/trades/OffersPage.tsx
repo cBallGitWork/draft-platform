@@ -3,6 +3,7 @@ import type { Id } from "../../convex/_generated/dataModel";
 import type { LeagueSummary } from "../../convex/leagues/myLeagues";
 import { cellClassOf, ColumnHeads } from "../ui/ColumnHeads";
 import { Loading, Notice, PageSection, Panel, PanelNote } from "../ui/Panel";
+import { ClosedOffers } from "./ClosedOffers";
 import { OfferPanel } from "./OfferPanel";
 import { OFFER_GROUPS, sidesOf, type OfferSides } from "./offerSides";
 import type { ScreenOffer, TradesSeam, TradesView } from "./seam";
@@ -77,22 +78,25 @@ function Offers({
     <PageSection title={TRADES_TITLE} className="flex flex-col gap-2">
       {view.shut !== null && <Notice>{shutWords[view.shut]}</Notice>}
       <div className="grid grid-cols-1 items-start gap-2 lg:grid-cols-news">
-        <Panel
-          title={OFFERS_TITLE}
-          aside={
-            <span className="text-soft">{openCountWords(rows.length)}</span>
-          }
-        >
-          {rows.length === 0 ? (
-            <PanelNote>{noOffersWords}</PanelNote>
-          ) : (
-            <OffersTable
-              rows={ordered}
-              selected={selected?.offer.offerId ?? null}
-              select={choose}
-            />
-          )}
-        </Panel>
+        <div className="flex flex-col gap-2">
+          <Panel
+            title={OFFERS_TITLE}
+            aside={
+              <span className="text-soft">{openCountWords(rows.length)}</span>
+            }
+          >
+            {rows.length === 0 ? (
+              <PanelNote>{noOffersWords}</PanelNote>
+            ) : (
+              <OffersTable
+                rows={ordered}
+                selected={selected?.offer.offerId ?? null}
+                select={choose}
+              />
+            )}
+          </Panel>
+          <ClosedOffers closed={view.closed} myTeamId={view.myTeamId} />
+        </div>
         {selected !== null && (
           <OfferPanel
             key={selected.offer.offerId}

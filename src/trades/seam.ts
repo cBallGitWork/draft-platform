@@ -3,6 +3,7 @@
 
 import type { Id } from "../../convex/_generated/dataModel";
 import type {
+  ClosedOffer,
   Reviewer,
   ScreenOffer,
   ScreenTeam,
@@ -11,7 +12,7 @@ import type {
 } from "../../convex/trades/tradeScreen";
 import type { Change } from "../shared/refusal";
 
-export type { Reviewer, ScreenOffer, ScreenTeam, TradedPlayer, TradesView };
+export type { ClosedOffer, Reviewer, ScreenOffer, ScreenTeam, TradedPlayer, TradesView };
 
 /** A draft pick in an offer (#1096): `teamId`'s pick in `round`, whoever holds it now. */
 export type TradePick = { round: number; teamId: Id<"teams"> };

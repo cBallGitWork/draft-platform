@@ -127,6 +127,11 @@ const leagueRows: { [Table in TableNames]?: LeagueRowsBatch<Table> } = {
       .query("tradeOffers")
       .withIndex("by_leagueId", (q) => q.eq("leagueId", leagueId))
       .take(ROWS_PER_RUN),
+  closedTradeOffers: (ctx, leagueId) =>
+    ctx.db
+      .query("closedTradeOffers")
+      .withIndex("by_leagueId", (q) => q.eq("leagueId", leagueId))
+      .take(ROWS_PER_RUN),
   recaps: (ctx, leagueId) =>
     ctx.db
       .query("recaps")

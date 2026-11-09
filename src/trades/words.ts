@@ -6,9 +6,9 @@ import { NOTE_MOST, REVIEW_MS } from "../../convex/trades/tradeLimits";
 import { HOUR_MS } from "../../convex/shared/time";
 import type { TradesView } from "../../convex/trades/tradeScreen";
 import { changeFailedWords } from "../shared/words";
-import type { Reviewer } from "./seam";
+import type { ClosedOffer, Reviewer } from "./seam";
 
-export { noTeamWords, whenWords } from "../shared/words";
+export { dayWords, noTeamWords, whenWords } from "../shared/words";
 export { warningWords } from "../squads/words";
 export { NOTE_MOST, pickWords };
 export { viaWords } from "../draft/words";
@@ -52,6 +52,51 @@ export const reviewerWords: Record<Reviewer, string> = {
   coCommissioner: "The co-commissioner",
   vote: "A league vote",
 };
+
+// The Closed offers panel: those that ended this season without going through, newest first.
+export const CLOSED_TITLE = "Closed offers";
+export const thisSeasonWords = "This season";
+export const closedTableLabel = "Your closed trade offers";
+export const closedColumns = {
+  with: { short: "With", long: "The team the offer was with" },
+  get: { short: "You get", long: "What you would have got" },
+  give: { short: "You give", long: "What you would have given" },
+  closed: { short: "Closed", long: "Why it closed" },
+  when: { short: "When", long: "When it closed" },
+} as const;
+export const noClosedWords = "No closed offers this season.";
+export const olderWords = "Older ›";
+
+/** Why an offer closed, from the manager's side: `you` when his team is the one that acted. */
+export function closedWhyWords(why: ClosedOffer["why"], you: boolean): string {
+  const who = you ? "You" : "They";
+  switch (why) {
+    case "withdrawn":
+      return `${who} withdrew it`;
+    case "rejected":
+      return `${who} rejected it`;
+    case "countered":
+      return `${who} countered it`;
+    case "deadline":
+      return "Unanswered by the deadline";
+    case "tradeDeadline":
+      return "Trade deadline passed";
+    case "unusedGameweek":
+      return "Trades locked through an unplayed gameweek";
+    case "draftStarted":
+      return "The draft started";
+    case "pickTraded":
+      return "Its pick was traded";
+    case "autoTeam":
+      return "A team went on the auto team";
+    case "playerLeft":
+      return "A player left his squad";
+    case "blocked":
+      return "Blocked in review";
+    case "failed":
+      return "Couldn't go through";
+  }
+}
 
 // The selected offer's panel.
 export const offerToYouTitle = (teamName: string) => `${teamName}'s offer`;

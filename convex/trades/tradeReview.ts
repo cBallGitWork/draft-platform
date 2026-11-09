@@ -21,7 +21,7 @@ import { managerOf, memberOf, refuse, teamsOf } from "../shared/leagueAccess";
 import { placeOf, squadOf } from "../squads/squadPlace";
 import { limitsBroken } from "../squads/squads";
 import { newlyBroken } from "../waivers/waiverRun";
-import { closeOffersHolding, leagueOf, managersOf, tradedName, tradeWordsOf } from "./tradeClose";
+import { closeOffersHolding, endOffer, leagueOf, managersOf, tradedName, tradeWordsOf } from "./tradeClose";
 import { REVIEW_MS } from "./tradeLimits";
 import { movePicks } from "./tradePicks";
 import { onAutoTeam } from "./tradeShut";
@@ -138,7 +138,7 @@ async function cantMake(ctx: QueryCtx, offer: Doc<"tradeOffers">, watched: boole
 
 /** Closes the trade unmade, telling both managers why. */
 async function failTrade(ctx: MutationCtx, offer: Doc<"tradeOffers">, words: TradeWords, failed: TradeFailed): Promise<void> {
-  await ctx.db.delete("tradeOffers", offer._id);
+  await endOffer(ctx, offer, "failed");
   await fileLetter(ctx, await leagueOf(ctx, offer.leagueId), await managersOf(ctx, offer), tradeFailedLetter(words, failed));
 }
 
@@ -196,7 +196,7 @@ async function blockTrade(ctx: MutationCtx, offer: Doc<"tradeOffers">, review: R
   const league = await leagueOf(ctx, offer.leagueId);
   const words = await tradeWordsOf(ctx, offer);
   if (offer.review !== undefined) await ctx.scheduler.cancel(offer.review.scheduledId);
-  await ctx.db.delete("tradeOffers", offer._id);
+  await endOffer(ctx, offer, "blocked");
   await fileLetter(ctx, league, await wholeLeague(ctx, league), tradeBlockedLetter(words, review), by);
 }
 
@@ -265,7 +265,7 @@ async function closeUnmade(ctx: MutationCtx, offer: Doc<"tradeOffers">, error: u
     console.error(`Trade offer ${offer._id}'s words couldn't be read, so it closed with no letters:`, wordsError);
     return null;
   });
-  if (words === null) await ctx.db.delete("tradeOffers", offer._id);
+  if (words === null) await endOffer(ctx, offer, "failed");
   else await failTrade(ctx, offer, words, { why: "error" });
 }
 

@@ -1,18 +1,19 @@
 import { v, type Infer } from "convex/values";
 import type { Doc, Id } from "../_generated/dataModel";
-import { query, type QueryCtx } from "../_generated/server";
+import { query } from "../_generated/server";
 import { leagueDeadlines } from "../gameweeks/leagueDeadlines";
 import { nextDeadline } from "../gameweeks/deadline";
-import { positionsNow, type PositionsNow } from "../positions/playerPositions";
+import { positionsNow } from "../positions/playerPositions";
 import { positionRank } from "../positions/positionTables";
 import { latestRules } from "../rules/rulesHistory";
-import { clubRecord, position } from "../schema";
 import { managerOf, teamsOf } from "../shared/leagueAccess";
-import { clubsByCode, playerByCode, type Clubs } from "../shared/players";
+import { clubsByCode } from "../shared/players";
+import { closedOffer, closedOffersOf, type ClosedOffer } from "./closedOffers";
+import { shownPlayer, tradedPlayer, tradedShown, type TradedPlayer } from "./tradedPlayers";
 import { squadOf } from "../squads/squadPlace";
 import { limitsBroken, squadWarning } from "../squads/squads";
 import { newlyBroken } from "../waivers/waiverRun";
-import { leagueOffers, pickName, unheldTradedWords } from "./tradeClose";
+import { leagueOffers, pickName } from "./tradeClose";
 import { pickHolders, tradablePick } from "./tradePicks";
 import { reviewerOf } from "./tradeReview";
 import { onAutoTeam, tradesShut } from "./tradeShut";
@@ -22,14 +23,7 @@ import { onAutoTeam, tradesShut } from "./tradeShut";
 // waits on and the squad limits it would break for him; and every team's squad to make an offer
 // from, a player held in a trade under review marked.
 
-const tradedPlayer = v.object({
-  code: v.number(),
-  name: v.string(),
-  /** His main position now; null while no feed has named one. */
-  position: v.union(position, v.null()),
-  club: clubRecord,
-});
-export type TradedPlayer = Infer<typeof tradedPlayer>;
+export type { ClosedOffer, TradedPlayer };
 
 /** Who reviews a trade: the commissioner or the co-commissioner by veto, or a league vote. */
 const reviewer = v.union(
@@ -93,38 +87,10 @@ export const tradesView = v.object({
   teams: v.array(screenTeam),
   /** Open or in review, oldest first. */
   offers: v.array(screenOffer),
+  /** Those that ended this season without going through, newest first (closedOffers.ts). */
+  closed: v.array(closedOffer),
 });
 export type TradesView = Infer<typeof tradesView>;
-
-/** A player as the screen shows him: name, main position and club; null for one the football sync
- *  doesn't hold. */
-async function shownPlayer(
-  ctx: QueryCtx,
-  code: number,
-  positionsOf: PositionsNow,
-  clubOf: Clubs,
-): Promise<TradedPlayer | null> {
-  const player = await playerByCode(ctx, code);
-  if (player === null) return null;
-  return {
-    code,
-    name: player.name,
-    position: (await positionsOf(code))[0] ?? null,
-    club: await clubOf(player.clubCode),
-  };
-}
-
-/** A traded player as the screen shows him: an offer names only players the sync holds (tradeClose.ts). */
-async function tradedShown(
-  ctx: QueryCtx,
-  code: number,
-  positionsOf: PositionsNow,
-  clubOf: Clubs,
-): Promise<TradedPlayer> {
-  const shown = await shownPlayer(ctx, code, positionsOf, clubOf);
-  if (shown === null) throw new Error(unheldTradedWords(code));
-  return shown;
-}
 
 /** The log line for a squad player the football sync doesn't hold, left off the Trades screen. */
 export const missingPlayerLog = (teamName: string, code: number) =>
@@ -275,6 +241,9 @@ export const ofMyTeam = query({
       squadMaximum: rules?.squad.size?.maximum ?? null,
       teams: shownTeams,
       offers: shownOffers,
+      closed: await closedOffersOf(ctx, mine._id, teams, now, (code) =>
+        tradedShown(ctx, code, positionsOf, clubOf),
+      ),
     };
   },
 });
