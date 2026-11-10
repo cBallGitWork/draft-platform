@@ -40,6 +40,19 @@ commentary` (16 Oct 2026).
 - One real match: the score and clock, each club's name on its own colour with the
   score between (Craig, 31 Oct 2026; `spec/12`, Club colours), both clubs' lineups and subs, five team stats
   (shots, shots on target, possession, corners, cards), and commentary for every event in it. `S10.6`
+- Under the scoreboard, each side's scorers; yellow and red cards are two rows of the team stats;
+  the column naming a player's team is headed "Owner" (Craig, 10 Nov 2026, on #1032). `S10.7`
+- Two tabs: Overview, and Player stats, each player's stats for the match: "A match needs a ten for
+  detailed stats Tab" (Craig, 10 Nov 2026, on #1032). Player stats has a Stats | Points switch,
+  Points showing what each stat earned him, and a shot map with each shot's xG (Craig, 10 Nov 2026,
+  on #1032). `S10.8`
+- Overview shows the lineups as a list or on a pitch; clicking a player opens his panel; your own
+  players are highlighted; a goal, an assist and a card each have a mark after the player's name:
+  "We probably need an assist icon somewhere too" (Craig, 10 Nov 2026, on #1032). `S10.9`
+- Live points carry a small "prov." tag until the gameweek's points are final (Craig, 10 Nov 2026,
+  on #1032). `S10.10`
+- A Highlights tab with the match's YouTube highlights: "Oh highlights tab too for YouTube
+  connection?" (Craig, 10 Nov 2026, on #1032). `S10.11`
 - Every player shows his live points, and only one owned in the league his team: "I need to stress
   that players who don't have a team still have their scores show. Just because they aren't a team
   doesn't mean they don't get points" (Craig, 31 Oct 2026). A player with no team says so in place
