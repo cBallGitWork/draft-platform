@@ -6,7 +6,8 @@ settings' Waivers tab (`/leagues/$leagueId/settings`, checked on
 
 ## The pictures
 
-- `1440.png`: Saka Potatoes' Transactions tab, with Pending claims grouped by run and History
+- `1440.png`: superseded on 10 Nov 2026 by [`team-transactions`](../team-transactions/README.md),
+  which binds the manager's Transactions tab. Kept as history: Saka Potatoes' Transactions tab, with Pending claims grouped by run and History
   below. Wednesday's claim 2 (Eze) is selected, and its panel is at the top of the right column.
 - `1440-commissioner.png`: the same tab as the commissioner sees it, switched from Mine to Every
   team: each team with claims, in waiver order.
