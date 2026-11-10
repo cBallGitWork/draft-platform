@@ -7,6 +7,7 @@ import { fileEvent } from "../mail/letters";
 import { positionsNow } from "../positions/playerPositions";
 import { draftRulesOf } from "../rules/firstRules";
 import type { LeagueRules } from "../rules/leagueRulesShape";
+import { latestRules } from "../rules/rulesHistory";
 import { managerOf, refuse, refusals, runnerOf, teamIn, teamsOf } from "../shared/leagueAccess";
 import { currentClubs, currentPlayersAt, heldPlayerByCode, playerByCode } from "../shared/players";
 import { placeOf, squadOf } from "../squads/squadPlace";
@@ -114,11 +115,14 @@ async function pickable(ctx: QueryCtx, leagueId: Id<"leagues">, playerCode: numb
   return player;
 }
 
-/** The league's draft rules now: a change the commissioner makes reaches the next clock. */
-const draftRulesNow = async (ctx: QueryCtx, leagueId: Id<"leagues">) => draftRulesOf(await rulesInForceAt(ctx, leagueId, Date.now()));
+/** The league's draft rules now, its latest, a change waiting for a later gameweek among them: a
+ *  change the commissioner makes reaches the next clock, and a mid-season draft runs on the timeout
+ *  limit and undrafted-players setting last typed (Craig, 10 Nov 2026, on #1439: "Last typed"). */
+const draftRulesNow = async (ctx: QueryCtx, leagueId: Id<"leagues">) => draftRulesOf(await latestRules(ctx, leagueId));
 
-/** The draft's pick time now, in seconds: the one the commissioner set while it was paused, which
- *  reaches it at once (draftCommissioner.ts; #1095), or else the league's in force now. */
+/** The draft's pick time now, in seconds: the one it started on, or the commissioner set since while
+ *  it was paused, which reaches it at once (draftCommissioner.ts; #1095); for a draft started before
+ *  #1439 with neither, the league's latest. */
 export async function pickSecondsNow(ctx: QueryCtx, leagueId: Id<"leagues">): Promise<number> {
   return (await draftOf(ctx, leagueId))?.pickSeconds ?? (await draftRulesNow(ctx, leagueId)).pickSeconds;
 }
