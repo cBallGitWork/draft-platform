@@ -8,6 +8,7 @@
 
 import { ALL_CELLS, AREAS, byPitchOrder, cellKey, LANES, playsCell, positionOfSlot, sameCell, type Cell } from "../../../convex/lineup/pitch";
 import { reconciled, type LineupRules } from "../../../convex/lineup/lineup";
+import { matched } from "./matching";
 import type { Position } from "../../../convex/positions/positionTables";
 import type { OpenTactics } from "../../../convex/lineup/tactics";
 import { everyRoleOf, offersRole, roleIn, rolesOfSlot, type Formation, type Role } from "../../../convex/lineup/roles";
@@ -151,28 +152,66 @@ export function sameLineup(one: EditedLineup, other: EditedLineup): boolean {
  *  his own first. Anyone the shape has no room for there then takes the free cell he plays in the
  *  nearest area, the deeper on a tie; anyone left over goes to the front of the bench, in that
  *  order. Then each bench player, in bench order, takes the first free cell he plays, back to
- *  front (Craig, 1 Nov 2026; #1025); cells still empty are the shape's slots to fill. One whose
- *  new slot doesn't offer his role starts on his best-star role there (Craig, 1 Nov 2026). */
-export function reshaped(draft: EditedLineup, cells: readonly Cell[], { positionsOf }: Pick<MoveRules, "positionsOf">, ratingsOf: RatingsOf): EditedLineup {
+ *  front (Craig, 1 Nov 2026; #1025); cells still empty are the shape's slots to fill. Only when
+ *  that leaves a starter out or a slot empty does it place everyone by best fit instead, taken
+ *  where it starts more of the eleven or fills more of the shape (`bestFit`; Craig, 10 Nov 2026,
+ *  on #1025). One whose new slot doesn't offer his role starts on his best-star role there (Craig,
+ *  1 Nov 2026). */
+export function reshaped(draft: EditedLineup, cells: readonly Cell[], rules: Pick<MoveRules, "positionsOf">, ratingsOf: RatingsOf): EditedLineup {
+  const first = ownAreaFirst(draft, cells, rules, ratingsOf);
+  const kept = (shaped: EditedLineup) => draft.starters.filter(({ playerCode }) => starts(shaped, playerCode)).length;
+  if (first.starters.length === cells.length && kept(first) === draft.starters.length) return first;
+  const fit = bestFit(draft, cells, rules, ratingsOf);
+  return fit.starters.length > first.starters.length || kept(fit) > kept(first) ? fit : first;
+}
+
+/** Cells by how near they are to the starter's own: his area first, then the nearest, the deeper of
+ *  two as near; in an area, the nearest lane, then left first. */
+const byNearness = (starter: Cell) => (one: Cell, other: Cell) => {
+  const rows = (cell: Cell) => AREAS.indexOf(cell.area) - AREAS.indexOf(starter.area);
+  const lanes = (cell: Cell) => Math.abs(LANES.indexOf(cell.lane) - LANES.indexOf(starter.lane));
+  return Math.abs(rows(one)) - Math.abs(rows(other)) || rows(one) - rows(other) || lanes(one) - lanes(other) || LANES.indexOf(one.lane) - LANES.indexOf(other.lane);
+};
+
+/** A starter moved into `cell` of `cells`: he keeps the role he plays where the new slot offers it
+ *  too, given or his old slot's first, and starts on his best-star role there where it doesn't. */
+function movedInto(starter: Starter, cell: Cell, cells: readonly Cell[], ratingsOf: RatingsOf): Starter {
+  const playing = roleIn(starter, starter.role).key;
+  if (!offersRole(cell, playing, cells)) return droppedInto(starter.playerCode, cell, cells, ratingsOf);
+  const role = starter.role ?? (playing === rolesOfSlot(cell, cells)[0].key ? undefined : playing);
+  return { playerCode: starter.playerCode, area: cell.area, lane: cell.lane, ...(role !== undefined && { role }) };
+}
+
+/** The lineup on a preset's cells by best fit (Craig, 10 Nov 2026; #1025): the most cells filled,
+ *  the starters, back to front, surest of a place, each the nearest cell to his own he can have,
+ *  then the bench in bench order, each the first free cell he plays, back to front. Anyone left
+ *  over goes to the bench, starters first, back to front, then the bench as it was. */
+function bestFit(draft: EditedLineup, cells: readonly Cell[], { positionsOf }: Pick<MoveRules, "positionsOf">, ratingsOf: RatingsOf): EditedLineup {
+  const plays = (playerCode: number) => cells.filter((cell) => playsCell(positionsOf(playerCode), cell));
+  const order = startersInOrder(draft);
+  const players = [...order, ...draft.bench.map((playerCode) => ({ playerCode }))];
+  const cellOf = matched(players, (player) =>
+    "area" in player ? plays(player.playerCode).toSorted(byNearness(player)) : plays(player.playerCode).toSorted(byPitchOrder),
+  );
+  const starters = players.flatMap((player) => {
+    const cell = cellOf.get(player);
+    if (cell === undefined) return [];
+    return ["area" in player ? movedInto(player, cell, cells, ratingsOf) : droppedInto(player.playerCode, cell, cells, ratingsOf)];
+  });
+  return { starters, bench: players.filter((player) => !cellOf.has(player)).map(({ playerCode }) => playerCode) };
+}
+
+/** Each starter in his own area first, then the nearest he plays, then the bench into what's free. */
+function ownAreaFirst(draft: EditedLineup, cells: readonly Cell[], { positionsOf }: Pick<MoveRules, "positionsOf">, ratingsOf: RatingsOf): EditedLineup {
   const free = [...cells];
   const starters: Starter[] = [];
-  const nearestFree = (starter: Starter, inHisArea: boolean) => {
-    const rows = (cell: Cell) => AREAS.indexOf(cell.area) - AREAS.indexOf(starter.area);
-    const lanes = (cell: Cell) => Math.abs(LANES.indexOf(cell.lane) - LANES.indexOf(starter.lane));
-    return free
+  const nearestFree = (starter: Starter, inHisArea: boolean) =>
+    free
       .filter((cell) => (!inHisArea || cell.area === starter.area) && playsCell(positionsOf(starter.playerCode), cell))
-      .toSorted((one, other) =>
-        Math.abs(rows(one)) - Math.abs(rows(other)) || rows(one) - rows(other) || lanes(one) - lanes(other) || LANES.indexOf(one.lane) - LANES.indexOf(other.lane))[0];
-  };
+      .toSorted(byNearness(starter))[0];
   const moveInto = (starter: Starter, cell: Cell) => {
     free.splice(free.indexOf(cell), 1);
-    // He keeps the role he plays where the new slot offers it too, given or his old slot's first.
-    const playing = roleIn(starter, starter.role).key;
-    if (!offersRole(cell, playing, cells)) starters.push(droppedInto(starter.playerCode, cell, cells, ratingsOf));
-    else {
-      const role = starter.role ?? (playing === rolesOfSlot(cell, cells)[0].key ? undefined : playing);
-      starters.push({ playerCode: starter.playerCode, area: cell.area, lane: cell.lane, ...(role !== undefined && { role }) });
-    }
+    starters.push(movedInto(starter, cell, cells, ratingsOf));
   };
   // His own area first for everyone, so no one moved across takes a cell its own player needed.
   const unplaced: Starter[] = [];

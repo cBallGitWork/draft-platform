@@ -162,6 +162,35 @@ describe("a preset picked fills its empty slots from the bench (Craig, 1 Nov 202
   });
 });
 
+describe("a preset picked falls back to best fit when own area first leaves a starter out or a slot empty (S05.36; #1025)", () => {
+  const cell = (area: Cell["area"], lane: Cell["lane"]) => ({ area, lane });
+  const SHAPE = [cell("defence", "leftCentre"), cell("defensiveMidfield", "centre")];
+
+  it("moves a starter across so one who plays only his own area keeps a place", () => {
+    const draft = { starters: [{ playerCode: 2, area: "defence", lane: "centre" } as const, { playerCode: 9, area: "defence", lane: "left" } as const], bench: [] };
+    expect(reshaped(draft, SHAPE, PLAYS, NO_STARS)).toEqual({
+      starters: [{ playerCode: 9, area: "defensiveMidfield", lane: "centre" }, { playerCode: 2, area: "defence", lane: "leftCentre" }],
+      bench: [],
+    });
+  });
+
+  it("moves a starter across so a bench player fills the slot left empty", () => {
+    const draft = { starters: [{ playerCode: 9, area: "defence", lane: "left" } as const], bench: [3, 2] };
+    expect(reshaped(draft, SHAPE, PLAYS, NO_STARS)).toEqual({
+      starters: [{ playerCode: 9, area: "defensiveMidfield", lane: "centre" }, { playerCode: 2, area: "defence", lane: "leftCentre" }],
+      bench: [3],
+    });
+  });
+
+  it("keeps own area first where best fit starts no more and fills no more", () => {
+    const draft = { starters: [{ playerCode: 9, area: "defence", lane: "left" } as const, { playerCode: 8, area: "defensiveMidfield", lane: "centre" } as const], bench: [5] };
+    expect(reshaped(draft, [cell("defensiveMidfield", "centre"), cell("attack", "centre")], PLAYS, NO_STARS)).toEqual({
+      starters: [{ playerCode: 8, area: "defensiveMidfield", lane: "centre" }, { playerCode: 5, area: "attack", lane: "centre" }],
+      bench: [9],
+    });
+  });
+});
+
 describe("a role (spec/05 Roles)", () => {
   it("given, is the starter's until he moves; the same lineup with another role isn't the same", () => {
     const given = withRole(DRAFT, 2, "defensiveFullBack");
