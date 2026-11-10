@@ -65,7 +65,8 @@ export function smScoreRead(match: RawFixture): ScoreRead {
 }
 
 /** One match as a live read gives it. Each man's stats are Sportmonks' running totals, kept as
- *  sent; a stat that isn't a number throws, naming it, rather than be dropped. */
+ *  sent; a yes-or-no stat, as `captain` comes (true, in a real read of 8 Nov 2026), is 1 or 0; any
+ *  other stat that isn't a number throws, naming it, rather than be dropped. */
 export function mapSportmonksMatch(match: RawFixture): SportmonksMatch {
   const men = (match.lineups ?? []).map((man): SportmonksMan => {
     if (man.type_id !== LINEUP_STARTER && man.type_id !== LINEUP_BENCH) {
@@ -78,10 +79,11 @@ export function mapSportmonksMatch(match: RawFixture): SportmonksMatch {
       formationField: man.formation_field,
       formationPosition: man.formation_position,
       stats: (man.details ?? []).map(({ type_id, data }) => {
-        if (typeof data?.value !== "number") {
-          throw new Error(`${SPORTMONKS} sent stat ${type_id} for player ${man.player_id} in match ${match.id} as ${JSON.stringify(data?.value)}`);
+        const value = typeof data?.value === "boolean" ? Number(data.value) : data?.value;
+        if (typeof value !== "number") {
+          throw new Error(`${SPORTMONKS} sent stat ${type_id} for player ${man.player_id} in match ${match.id} as ${JSON.stringify(value)}`);
         }
-        return { typeId: type_id, value: data.value };
+        return { typeId: type_id, value };
       }),
     };
   });

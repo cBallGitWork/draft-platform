@@ -1,5 +1,5 @@
-// Sportmonks' v3 payloads (#1391), as much of each as football/sportmonks/ reads, as Sportmonks'
-// docs give them. Types only: a body of another shape throws where it is read.
+// Sportmonks' v3 payloads (#1391), as much of each as football/sportmonks/ reads, checked against
+// real reads on 10 Nov 2026. Types only: a body of another shape throws where it is read.
 
 export interface RawSeason { id: number; name: string }
 export interface RawLeague { id: number; currentseason?: RawSeason | null }

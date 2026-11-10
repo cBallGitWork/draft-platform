@@ -1,72 +1,551 @@
 {
   "league": {
-    "id": 501,
-    "sport_id": 1,
-    "country_id": 1161,
-    "name": "Premiership",
     "active": true,
+    "category": 2,
+    "country_id": 1161,
+    "currentseason": {
+      "ending_at": "2027-04-10",
+      "finished": false,
+      "games_in_current_week": false,
+      "id": 28275,
+      "is_current": true,
+      "league_id": 501,
+      "name": "2026/2027",
+      "pending": false,
+      "sport_id": 1,
+      "standings_recalculated_at": "2026-11-08 19:38:15",
+      "starting_at": "2026-07-31",
+      "tie_breaker_rule_id": 171
+    },
+    "has_jerseys": false,
+    "id": 501,
+    "image_path": "https://cdn.sportmonks.com/images/soccer/leagues/501.png",
+    "last_played_at": "2026-11-08 16:00:00",
+    "name": "Premiership",
     "short_code": "SCO P",
-    "type": "league",
+    "sport_id": 1,
     "sub_type": "domestic",
-    "currentseason": { "id": 25598, "sport_id": 1, "league_id": 501, "name": "2026/2027", "finished": false, "is_current": true }
+    "type": "league"
   },
   "teams": [
     {
-      "id": 53, "sport_id": 1, "country_id": 1161, "venue_id": 8909, "gender": "male", "name": "Celtic", "short_code": "CEL", "founded": 1888, "type": "domestic",
+      "country_id": 1161,
+      "founded": 1869,
+      "gender": "male",
+      "id": 180,
+      "image_path": "https://cdn.sportmonks.com/images/soccer/teams/20/180.png",
+      "last_played_at": "2026-11-08 16:00:00",
+      "name": "Kilmarnock",
+      "placeholder": false,
       "players": [
-        { "id": 1, "transfer_id": null, "player_id": 37292381, "team_id": 53, "position_id": 24, "jersey_number": 1, "captain": false,
-          "player": { "id": 37292381, "name": "Kasper Schmeichel", "common_name": "K. Schmeichel", "display_name": "Kasper Schmeichel", "firstname": "Kasper", "lastname": "Schmeichel" } },
-        { "id": 2, "transfer_id": null, "player_id": 37306481, "team_id": 53, "position_id": 27, "jersey_number": 8, "captain": false,
-          "player": { "id": 37306481, "name": "Kyogo Furuhashi", "common_name": "Kyogo", "display_name": null, "firstname": "Kyogo", "lastname": "Furuhashi" } }
-      ]
+        {
+          "captain": false,
+          "detailed_position_id": 151,
+          "end": "2028-05-31",
+          "id": 1647281,
+          "jersey_number": 27,
+          "player": {
+            "city_id": null,
+            "common_name": "I. Owen",
+            "country_id": 515,
+            "date_of_birth": null,
+            "detailed_position_id": 151,
+            "display_name": "Ieuan Owen",
+            "firstname": "Ieuan Gwyn",
+            "gender": "male",
+            "height": null,
+            "id": 37674481,
+            "image_path": "https://cdn.sportmonks.com/images/soccer/placeholder.png",
+            "lastname": "Owen",
+            "name": "Ieuan Gwyn Owen",
+            "nationality_id": 515,
+            "position_id": 27,
+            "sport_id": 1,
+            "type_id": null,
+            "weight": null
+          },
+          "player_id": 37674481,
+          "position_id": 27,
+          "start": "2026-07-01",
+          "team_id": 180,
+          "transfer_id": null
+        }
+      ],
+      "short_code": "KIL",
+      "sport_id": 1,
+      "type": "domestic",
+      "venue_id": 8906
     },
     {
-      "id": 62, "sport_id": 1, "country_id": 1161, "venue_id": 8914, "gender": "male", "name": "Rangers", "short_code": "RAN", "founded": 1872, "type": "domestic",
+      "country_id": 1161,
+      "founded": 1888,
+      "gender": "male",
+      "id": 53,
+      "image_path": "https://cdn.sportmonks.com/images/soccer/teams/21/53.png",
+      "last_played_at": "2026-11-08 16:00:00",
+      "name": "Celtic",
+      "placeholder": false,
       "players": [
-        { "id": 3, "transfer_id": null, "player_id": 31739, "team_id": 62, "position_id": 25, "jersey_number": 2, "captain": true,
-          "player": { "id": 31739, "name": "James Tavernier", "common_name": "J. Tavernier", "display_name": "James Tavernier", "firstname": "James", "lastname": "Tavernier" } }
-      ]
+        {
+          "captain": false,
+          "detailed_position_id": 148,
+          "end": "2029-06-30",
+          "id": 1009239,
+          "jersey_number": 6,
+          "player": {
+            "city_id": null,
+            "common_name": "A. Trusty",
+            "country_id": 3483,
+            "date_of_birth": "1998-08-12",
+            "detailed_position_id": 148,
+            "display_name": "Auston Trusty",
+            "firstname": "Auston",
+            "gender": "male",
+            "height": 190,
+            "id": 262280,
+            "image_path": "https://cdn.sportmonks.com/images/soccer/players/8/262280.png",
+            "lastname": "Trusty",
+            "name": "Auston Trusty",
+            "nationality_id": 3483,
+            "position_id": 25,
+            "sport_id": 1,
+            "type_id": 25,
+            "weight": 84
+          },
+          "player_id": 262280,
+          "position_id": 25,
+          "start": "2024-08-30",
+          "team_id": 53,
+          "transfer_id": 380606
+        },
+        {
+          "captain": false,
+          "detailed_position_id": 154,
+          "end": "2031-06-30",
+          "id": 1290661,
+          "jersey_number": 51,
+          "player": {
+            "city_id": null,
+            "common_name": "C. Donovan",
+            "country_id": 1161,
+            "date_of_birth": "2006-09-07",
+            "detailed_position_id": 154,
+            "display_name": "Colby Donovan",
+            "firstname": "Colby",
+            "gender": "male",
+            "height": 186,
+            "id": 37732189,
+            "image_path": "https://cdn.sportmonks.com/images/soccer/players/29/37732189.png",
+            "lastname": "Donovan",
+            "name": "Colby Donovan",
+            "nationality_id": 1161,
+            "position_id": 25,
+            "sport_id": 1,
+            "type_id": null,
+            "weight": null
+          },
+          "player_id": 37732189,
+          "position_id": 25,
+          "start": "2025-07-01",
+          "team_id": 53,
+          "transfer_id": null
+        }
+      ],
+      "short_code": "CEL",
+      "sport_id": 1,
+      "type": "domestic",
+      "venue_id": 8909
     },
-    { "id": 273, "sport_id": 1, "country_id": 1161, "venue_id": 8912, "gender": "male", "name": "Heart of Midlothian", "short_code": null, "founded": 1874, "type": "domestic", "players": [] }
+    {
+      "country_id": 1161,
+      "founded": 1877,
+      "gender": "male",
+      "id": 496,
+      "image_path": "https://cdn.sportmonks.com/images/soccer/teams/16/496.png",
+      "last_played_at": "2026-11-07 20:00:00",
+      "name": "St. Mirren",
+      "placeholder": false,
+      "players": [
+        {
+          "captain": false,
+          "detailed_position_id": 154,
+          "end": "2027-05-31",
+          "id": 1634881,
+          "jersey_number": 47,
+          "player": {
+            "city_id": null,
+            "common_name": "C. Ramsey",
+            "country_id": 1161,
+            "date_of_birth": "2003-07-31",
+            "detailed_position_id": 154,
+            "display_name": "Calvin Ramsay",
+            "firstname": "Calvin",
+            "gender": "male",
+            "height": 177,
+            "id": 37260590,
+            "image_path": "https://cdn.sportmonks.com/images/soccer/players/14/37260590.png",
+            "lastname": "Ramsey",
+            "name": "Calvin Ramsey",
+            "nationality_id": 1161,
+            "position_id": 25,
+            "sport_id": 1,
+            "type_id": 25,
+            "weight": 68
+          },
+          "player_id": 37260590,
+          "position_id": 25,
+          "start": "2026-08-25",
+          "team_id": 496,
+          "transfer_id": 592942
+        }
+      ],
+      "short_code": "STM",
+      "sport_id": 1,
+      "type": "domestic",
+      "venue_id": 8879
+    }
   ],
   "schedule": [
     {
-      "id": 77476879, "name": "Regular Season", "type_id": 223, "finished": false, "is_current": true,
+      "aggregates": [],
+      "ending_at": "2027-04-10",
+      "finished": false,
+      "games_in_current_week": false,
+      "id": 77482564,
+      "is_current": true,
+      "league_id": 501,
+      "name": "1st Phase",
       "rounds": [
         {
-          "id": 372190, "sport_id": 1, "league_id": 501, "season_id": 25598, "stage_id": 77476879, "name": "11", "finished": true, "is_current": false,
-          "starting_at": "2026-11-01", "ending_at": "2026-11-02",
+          "ending_at": "2026-11-08",
+          "finished": true,
           "fixtures": [
             {
-              "id": 19134506, "round_id": 372190, "state_id": 5, "name": "Rangers vs Heart of Midlothian", "starting_at": "2026-11-01 15:00:00", "starting_at_timestamp": 1793545200,
-              "participants": [{ "id": 62, "meta": { "location": "home" } }, { "id": 273, "meta": { "location": "away" } }],
+              "aggregate_id": null,
+              "details": null,
+              "group_id": null,
+              "has_odds": true,
+              "has_premium_odds": true,
+              "id": 19722750,
+              "league_id": 501,
+              "leg": "1/1",
+              "length": 90,
+              "name": "Celtic vs Kilmarnock",
+              "participants": [
+                {
+                  "country_id": 1161,
+                  "founded": 1869,
+                  "gender": "male",
+                  "id": 180,
+                  "image_path": "https://cdn.sportmonks.com/images/soccer/teams/20/180.png",
+                  "last_played_at": "2026-11-08 16:00:00",
+                  "meta": {
+                    "location": "away",
+                    "position": 12,
+                    "winner": false
+                  },
+                  "name": "Kilmarnock",
+                  "placeholder": false,
+                  "short_code": "KIL",
+                  "sport_id": 1,
+                  "type": "domestic",
+                  "venue_id": 8906
+                },
+                {
+                  "country_id": 1161,
+                  "founded": 1888,
+                  "gender": "male",
+                  "id": 53,
+                  "image_path": "https://cdn.sportmonks.com/images/soccer/teams/21/53.png",
+                  "last_played_at": "2026-11-08 16:00:00",
+                  "meta": {
+                    "location": "home",
+                    "position": 1,
+                    "winner": true
+                  },
+                  "name": "Celtic",
+                  "placeholder": false,
+                  "short_code": "CEL",
+                  "sport_id": 1,
+                  "type": "domestic",
+                  "venue_id": 8909
+                }
+              ],
+              "placeholder": false,
+              "result_info": "Celtic won after full-time.",
+              "round_id": 407961,
               "scores": [
-                { "description": "CURRENT", "score": { "goals": 3, "participant": "home" } },
-                { "description": "CURRENT", "score": { "goals": 0, "participant": "away" } }
-              ]
+                {
+                  "description": "1ST_HALF",
+                  "fixture_id": 19722750,
+                  "id": 37677784,
+                  "participant_id": 53,
+                  "score": {
+                    "goals": 1,
+                    "participant": "home"
+                  },
+                  "type_id": 1
+                },
+                {
+                  "description": "1ST_HALF",
+                  "fixture_id": 19722750,
+                  "id": 37677783,
+                  "participant_id": 180,
+                  "score": {
+                    "goals": 0,
+                    "participant": "away"
+                  },
+                  "type_id": 1
+                },
+                {
+                  "description": "2ND_HALF",
+                  "fixture_id": 19722750,
+                  "id": 37677786,
+                  "participant_id": 53,
+                  "score": {
+                    "goals": 1,
+                    "participant": "home"
+                  },
+                  "type_id": 2
+                },
+                {
+                  "description": "2ND_HALF",
+                  "fixture_id": 19722750,
+                  "id": 37677785,
+                  "participant_id": 180,
+                  "score": {
+                    "goals": 0,
+                    "participant": "away"
+                  },
+                  "type_id": 2
+                },
+                {
+                  "description": "CURRENT",
+                  "fixture_id": 19722750,
+                  "id": 37677782,
+                  "participant_id": 53,
+                  "score": {
+                    "goals": 1,
+                    "participant": "home"
+                  },
+                  "type_id": 1525
+                },
+                {
+                  "description": "CURRENT",
+                  "fixture_id": 19722750,
+                  "id": 37677781,
+                  "participant_id": 180,
+                  "score": {
+                    "goals": 0,
+                    "participant": "away"
+                  },
+                  "type_id": 1525
+                },
+                {
+                  "description": "2ND_HALF_ONLY",
+                  "fixture_id": 19722750,
+                  "id": 37679955,
+                  "participant_id": 53,
+                  "score": {
+                    "goals": 0,
+                    "participant": "home"
+                  },
+                  "type_id": 48996
+                },
+                {
+                  "description": "2ND_HALF_ONLY",
+                  "fixture_id": 19722750,
+                  "id": 37679956,
+                  "participant_id": 180,
+                  "score": {
+                    "goals": 0,
+                    "participant": "away"
+                  },
+                  "type_id": 48996
+                }
+              ],
+              "season_id": 28275,
+              "sport_id": 1,
+              "stage_id": 77482564,
+              "starting_at": "2026-11-08 16:00:00",
+              "starting_at_timestamp": 1794153600,
+              "state_id": 5,
+              "venue_id": 8909
             }
-          ]
+          ],
+          "games_in_current_week": false,
+          "id": 407961,
+          "is_current": false,
+          "league_id": 501,
+          "name": "13",
+          "season_id": 28275,
+          "sport_id": 1,
+          "stage_id": 77482564,
+          "starting_at": "2026-11-07"
         },
         {
-          "id": 372191, "sport_id": 1, "league_id": 501, "season_id": 25598, "stage_id": 77476879, "name": "12", "finished": false, "is_current": true,
-          "starting_at": "2026-11-08", "ending_at": "2026-11-09",
+          "ending_at": "2026-11-21",
+          "finished": false,
           "fixtures": [
             {
-              "id": 19134512, "round_id": 372191, "state_id": 22, "name": "Celtic vs Rangers", "starting_at": "2026-11-08 12:00:00", "starting_at_timestamp": 1794139200,
-              "participants": [{ "id": 53, "meta": { "location": "home" } }, { "id": 62, "meta": { "location": "away" } }],
-              "scores": [
-                { "description": "CURRENT", "score": { "goals": 2, "participant": "home" } },
-                { "description": "CURRENT", "score": { "goals": 1, "participant": "away" } }
-              ]
-            },
-            {
-              "id": 19134513, "round_id": 372191, "state_id": 1, "name": "Heart of Midlothian vs Celtic", "starting_at": "2026-11-09 15:00:00",
-              "participants": [{ "id": 273, "meta": { "location": "home" } }, { "id": 53, "meta": { "location": "away" } }],
-              "scores": []
+              "aggregate_id": null,
+              "details": null,
+              "group_id": null,
+              "has_odds": true,
+              "has_premium_odds": true,
+              "id": 19722745,
+              "league_id": 501,
+              "leg": "1/1",
+              "length": 90,
+              "name": "Celtic vs St. Mirren",
+              "participants": [
+                {
+                  "country_id": 1161,
+                  "founded": 1877,
+                  "gender": "male",
+                  "id": 496,
+                  "image_path": "https://cdn.sportmonks.com/images/soccer/teams/16/496.png",
+                  "last_played_at": "2026-11-07 20:00:00",
+                  "meta": {
+                    "location": "away",
+                    "position": null,
+                    "winner": null
+                  },
+                  "name": "St. Mirren",
+                  "placeholder": false,
+                  "short_code": "STM",
+                  "sport_id": 1,
+                  "type": "domestic",
+                  "venue_id": 8879
+                },
+                {
+                  "country_id": 1161,
+                  "founded": 1888,
+                  "gender": "male",
+                  "id": 53,
+                  "image_path": "https://cdn.sportmonks.com/images/soccer/teams/21/53.png",
+                  "last_played_at": "2026-11-08 16:00:00",
+                  "meta": {
+                    "location": "home",
+                    "position": null,
+                    "winner": null
+                  },
+                  "name": "Celtic",
+                  "placeholder": false,
+                  "short_code": "CEL",
+                  "sport_id": 1,
+                  "type": "domestic",
+                  "venue_id": 8909
+                }
+              ],
+              "placeholder": false,
+              "result_info": null,
+              "round_id": 407960,
+              "scores": [],
+              "season_id": 28275,
+              "sport_id": 1,
+              "stage_id": 77482564,
+              "starting_at": "2026-11-21 15:00:00",
+              "starting_at_timestamp": 1795273200,
+              "state_id": 1,
+              "venue_id": 8909
             }
-          ]
+          ],
+          "games_in_current_week": false,
+          "id": 407960,
+          "is_current": false,
+          "league_id": 501,
+          "name": "14",
+          "season_id": 28275,
+          "sport_id": 1,
+          "stage_id": 77482564,
+          "starting_at": "2026-11-21"
+        },
+        {
+          "ending_at": "2026-11-29",
+          "finished": false,
+          "fixtures": [
+            {
+              "aggregate_id": null,
+              "details": null,
+              "group_id": null,
+              "has_odds": true,
+              "has_premium_odds": true,
+              "id": 19722734,
+              "league_id": 501,
+              "leg": "1/1",
+              "length": 90,
+              "name": "St. Mirren vs Kilmarnock",
+              "participants": [
+                {
+                  "country_id": 1161,
+                  "founded": 1869,
+                  "gender": "male",
+                  "id": 180,
+                  "image_path": "https://cdn.sportmonks.com/images/soccer/teams/20/180.png",
+                  "last_played_at": "2026-11-08 16:00:00",
+                  "meta": {
+                    "location": "away",
+                    "position": null,
+                    "winner": null
+                  },
+                  "name": "Kilmarnock",
+                  "placeholder": false,
+                  "short_code": "KIL",
+                  "sport_id": 1,
+                  "type": "domestic",
+                  "venue_id": 8906
+                },
+                {
+                  "country_id": 1161,
+                  "founded": 1877,
+                  "gender": "male",
+                  "id": 496,
+                  "image_path": "https://cdn.sportmonks.com/images/soccer/teams/16/496.png",
+                  "last_played_at": "2026-11-07 20:00:00",
+                  "meta": {
+                    "location": "home",
+                    "position": null,
+                    "winner": null
+                  },
+                  "name": "St. Mirren",
+                  "placeholder": false,
+                  "short_code": "STM",
+                  "sport_id": 1,
+                  "type": "domestic",
+                  "venue_id": 8879
+                }
+              ],
+              "placeholder": false,
+              "result_info": null,
+              "round_id": 407959,
+              "scores": [],
+              "season_id": 28275,
+              "sport_id": 1,
+              "stage_id": 77482564,
+              "starting_at": "2026-11-28 15:00:00",
+              "starting_at_timestamp": 1795878000,
+              "state_id": 1,
+              "venue_id": 8879
+            }
+          ],
+          "games_in_current_week": false,
+          "id": 407959,
+          "is_current": false,
+          "league_id": 501,
+          "name": "15",
+          "season_id": 28275,
+          "sport_id": 1,
+          "stage_id": 77482564,
+          "starting_at": "2026-11-28"
         }
-      ]
+      ],
+      "season_id": 28275,
+      "sort_order": 1,
+      "sport_id": 1,
+      "starting_at": "2026-07-31",
+      "tie_breaker_rule_id": null,
+      "type_id": 223
     }
   ]
 }

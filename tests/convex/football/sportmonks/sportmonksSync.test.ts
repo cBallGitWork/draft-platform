@@ -10,10 +10,10 @@ import type { SportmonksPayloads } from "../../../../convex/football/sportmonks/
 import { SM, sportmonksLiveRead, sportmonksSeason } from "../../../support/recorded/sportmonks.payloads";
 
 const TOKEN = "test-token";
-const SEASON_ID = 25598;
-const OLD_FIRM_KICKOFF = Date.parse("2026-11-08T12:00:00Z");
-/** The live read's clock: 67 minutes in. */
-const LIVE_NOW = OLD_FIRM_KICKOFF + 70 * MINUTE_MS;
+const SEASON_ID = 28275;
+const MATCH_KICKOFF = Date.parse("2026-11-08T16:00:00Z");
+/** Twenty minutes into the second half of Celtic v Kilmarnock. */
+const LIVE_NOW = MATCH_KICKOFF + 70 * MINUTE_MS;
 const WRITES = (n: number) => ({ received: n, inserted: n, updated: 0, marked: 0, unmarked: 0 });
 
 /** Sportmonks as these payloads, each URL its body; the token asked for in the header. */
@@ -22,7 +22,7 @@ function fakeSportmonks({ refuse, season = sportmonksSeason() }: { refuse?: stri
     [leagueUrl()]: { data: season.league },
     [seasonTeamsUrl(SEASON_ID, 1)]: { data: season.teams, pagination: { has_more: false } },
     [scheduleUrl(SEASON_ID)]: { data: season.schedule },
-    [liveFixturesUrl([SM.oldFirm])]: sportmonksLiveRead(),
+    [liveFixturesUrl([SM.celticKilmarnock])]: sportmonksLiveRead(),
   };
   return vi.fn(async (url: string, init?: RequestInit) => {
     expect((init?.headers as Record<string, string>).Authorization).toBe(TOKEN);
@@ -30,6 +30,14 @@ function fakeSportmonks({ refuse, season = sportmonksSeason() }: { refuse?: stri
     if (!(url in bodies)) throw new Error(`no fake for ${url}`);
     return Response.json(bodies[url]);
   });
+}
+
+/** The season as a six-hourly read during Celtic v Kilmarnock's second half (state 22) would send
+ *  it. The recordings were read in the international break, with no match on. */
+function midMatchSeason(): SportmonksPayloads {
+  const season = sportmonksSeason();
+  season.schedule[0].rounds![0].fixtures![0].state_id = 22;
+  return season;
 }
 
 beforeEach(() => {
@@ -58,7 +66,7 @@ test("a run fills the Scottish clubs, players, fixtures and rounds by Sportmonks
   expect(row).toMatchObject({
     trigger: "manual",
     ranAt: LIVE_NOW,
-    outcome: { ok: true, clubs: WRITES(3), players: WRITES(3), fixtures: WRITES(3), rounds: WRITES(2), scores: { received: 3, written: 3, problems: [] } },
+    outcome: { ok: true, clubs: WRITES(3), players: WRITES(4), fixtures: WRITES(3), rounds: WRITES(3), scores: { received: 3, written: 3, problems: [] } },
   });
   const held = await t.run(async (ctx) => ({
     players: (await ctx.db.query("sportmonksPlayers").collect()).map(({ code, clubCode }) => [code, clubCode]),
@@ -66,9 +74,9 @@ test("a run fills the Scottish clubs, players, fixtures and rounds by Sportmonks
     scores: (await ctx.db.query("sportmonksScores").collect()).map(({ fixtureCode, state }) => [fixtureCode, state]),
   }));
   expect(held).toEqual({
-    players: [[SM.schmeichel, SM.celtic], [SM.kyogo, SM.celtic], [SM.tavernier, SM.rangers]],
-    fixtures: [[SM.rangersHearts, 11], [SM.oldFirm, 12], [SM.heartsCeltic, 12]],
-    scores: [[SM.rangersHearts, "fullTime"], [SM.oldFirm, "live"], [SM.heartsCeltic, "upcoming"]],
+    players: [[SM.owen, SM.kilmarnock], [SM.trusty, SM.celtic], [SM.donovan, SM.celtic], [SM.ramsey, SM.stMirren]],
+    fixtures: [[SM.celticKilmarnock, 13], [SM.celticStMirren, 14], [SM.stMirrenKilmarnock, 15]],
+    scores: [[SM.celticKilmarnock, "fullTime"], [SM.celticStMirren, "upcoming"], [SM.stMirrenKilmarnock, "upcoming"]],
   });
 });
 
@@ -76,13 +84,13 @@ test("a run again changes nothing held, and marks a man no squad sends any more 
   const t = freshConvex();
   await sync(t);
   const season = sportmonksSeason();
-  season.teams[1].players = [];
+  season.teams[0].players = [];
   await sync(t, { season });
 
   const [, second] = await syncs(t);
-  expect(second.outcome).toMatchObject({ ok: true, clubs: { ...WRITES(3), inserted: 0 }, players: { received: 2, inserted: 0, updated: 0, marked: 1, unmarked: 0 } });
-  const tavernier = await t.run((ctx) => ctx.db.query("sportmonksPlayers").withIndex("by_code", (q) => q.eq("code", SM.tavernier)).unique());
-  expect(tavernier?.droppedAt).toBe(LIVE_NOW);
+  expect(second.outcome).toMatchObject({ ok: true, clubs: { ...WRITES(3), inserted: 0 }, players: { received: 3, inserted: 0, updated: 0, marked: 1, unmarked: 0 } });
+  const owen = await t.run((ctx) => ctx.db.query("sportmonksPlayers").withIndex("by_code", (q) => q.eq("code", SM.owen)).unique());
+  expect(owen?.droppedAt).toBe(LIVE_NOW);
 });
 
 test("a refused read is a failed run's row with Sportmonks' own words, and no table is touched", async () => {
@@ -110,33 +118,34 @@ test("with no token set nothing is read and no row is written, on either job", a
 
 test("during a Scottish match the tick reads it in one call and writes its lineups, stats, events and score, and its row", async () => {
   const t = freshConvex();
-  await sync(t);
+  await sync(t, { season: midMatchSeason() });
   const fetch = fakeSportmonks();
   vi.stubGlobal("fetch", fetch);
   await t.action(internal.football.sportmonks.sportmonksLive.tick, {});
 
   expect(fetch).toHaveBeenCalledTimes(1);
   expect((await ticks(t)).map(({ ranAt, outcome }) => ({ ranAt, outcome }))).toEqual([
-    { ranAt: LIVE_NOW, outcome: { ok: true, matches: [{ fixtureCode: SM.oldFirm, ok: true }] } },
+    { ranAt: LIVE_NOW, outcome: { ok: true, matches: [{ fixtureCode: SM.celticKilmarnock, ok: true }] } },
   ]);
-  const match = await t.run((ctx) => ctx.db.query("sportmonksMatches").withIndex("by_fixtureCode", (q) => q.eq("fixtureCode", SM.oldFirm)).unique());
-  expect(match?.men.map(({ playerId, started }) => [playerId, started])).toEqual([
-    [SM.schmeichel, true],
-    [SM.kyogo, true],
-    [SM.mcCowan, false],
-    [SM.tavernier, true],
+  const match = await t.run((ctx) => ctx.db.query("sportmonksMatches").withIndex("by_fixtureCode", (q) => q.eq("fixtureCode", SM.celticKilmarnock)).unique());
+  expect(match?.men).toHaveLength(40);
+  expect(match?.men.slice(0, 4).map(({ playerId, started }) => [playerId, started])).toEqual([
+    [SM.sinisalo, false],
+    [SM.scales, true],
+    [SM.jota, true],
+    [SM.nygren, true],
   ]);
-  expect(match?.events).toHaveLength(6);
-  const score = await t.run((ctx) => ctx.db.query("sportmonksScores").withIndex("by_fixtureCode", (q) => q.eq("fixtureCode", SM.oldFirm)).unique());
-  expect(score).toMatchObject({ state: "live", homeGoals: 2, awayGoals: 1, minutes: 67, readAt: LIVE_NOW });
+  expect(match?.events).toHaveLength(19);
+  // The recorded read was taken after full time.
+  const score = await t.run((ctx) => ctx.db.query("sportmonksScores").withIndex("by_fixtureCode", (q) => q.eq("fixtureCode", SM.celticKilmarnock)).unique());
+  expect(score).toMatchObject({ state: "fullTime", homeGoals: 1, awayGoals: 0, minutes: null, readAt: LIVE_NOW });
 });
 
 test("a match read at full time is no longer live, so the next tick calls nothing and writes no row", async () => {
   const t = freshConvex();
-  await sync(t);
-  const read = sportmonksLiveRead();
-  read.data[0].state_id = 5;
-  vi.stubGlobal("fetch", vi.fn(async () => Response.json(read)));
+  await sync(t, { season: midMatchSeason() });
+  // The recorded read is at full time (state 5).
+  vi.stubGlobal("fetch", vi.fn(async () => Response.json(sportmonksLiveRead())));
   await t.action(internal.football.sportmonks.sportmonksLive.tick, {});
   const fetch = fakeSportmonks();
   vi.stubGlobal("fetch", fetch);
@@ -149,11 +158,11 @@ test("a match read at full time is no longer live, so the next tick calls nothin
 test("a match the live read leaves out fails on its own in the tick's row", async () => {
   silenceConsoleError();
   const t = freshConvex();
-  await sync(t);
+  await sync(t, { season: midMatchSeason() });
   vi.stubGlobal("fetch", vi.fn(async () => Response.json({ data: [] })));
   await t.action(internal.football.sportmonks.sportmonksLive.tick, {});
   await t.finishAllScheduledFunctions(vi.runAllTimers);
 
   const [row] = await ticks(t);
-  expect(row.outcome).toEqual({ ok: true, matches: [{ fixtureCode: SM.oldFirm, ok: false, error: `Sportmonks sent no match ${SM.oldFirm}` }] });
+  expect(row.outcome).toEqual({ ok: true, matches: [{ fixtureCode: SM.celticKilmarnock, ok: false, error: `Sportmonks sent no match ${SM.celticKilmarnock}` }] });
 });

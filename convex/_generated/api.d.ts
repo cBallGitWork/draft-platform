@@ -72,6 +72,7 @@ import type * as football_sportmonks_sportmonks from "../football/sportmonks/spo
 import type * as football_sportmonks_sportmonksLive from "../football/sportmonks/sportmonksLive.js";
 import type * as football_sportmonks_sportmonksMatch from "../football/sportmonks/sportmonksMatch.js";
 import type * as football_sportmonks_sportmonksRaw from "../football/sportmonks/sportmonksRaw.js";
+import type * as football_sportmonks_sportmonksRecording from "../football/sportmonks/sportmonksRecording.js";
 import type * as football_sportmonks_sportmonksStats from "../football/sportmonks/sportmonksStats.js";
 import type * as football_sportmonks_sportmonksSync from "../football/sportmonks/sportmonksSync.js";
 import type * as football_tieBreaks from "../football/tieBreaks.js";
@@ -419,6 +420,7 @@ declare const fullApi: ApiFromModules<{
   "football/sportmonks/sportmonksLive": typeof football_sportmonks_sportmonksLive;
   "football/sportmonks/sportmonksMatch": typeof football_sportmonks_sportmonksMatch;
   "football/sportmonks/sportmonksRaw": typeof football_sportmonks_sportmonksRaw;
+  "football/sportmonks/sportmonksRecording": typeof football_sportmonks_sportmonksRecording;
   "football/sportmonks/sportmonksStats": typeof football_sportmonks_sportmonksStats;
   "football/sportmonks/sportmonksSync": typeof football_sportmonks_sportmonksSync;
   "football/tieBreaks": typeof football_tieBreaks;
