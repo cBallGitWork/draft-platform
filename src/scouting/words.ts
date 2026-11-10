@@ -40,8 +40,8 @@ export const everyClubWords = "Every club";
 export const statLabel = STAT_WORD;
 export const noStatWords = "None";
 /** What the list's figures, his panel's per 90 and Compare are over (the approved picture's
- *  Period; #1028, story 3). */
-export const periodLabel = "Period";
+ *  Period; #1028, story 3). Shown as "Over": SPEC.md's Glossary avoids "period" for a gameweek. */
+export const periodLabel = "Over";
 export const periodWords: Record<Period, string> = { season: "Season", last4: "Last 4 gameweeks", last6: "Last 6 gameweeks" };
 /** A figure's period as a hover says it: "this season", "over the last 4 gameweeks". */
 const overWords = (period: Period) => (period === "season" ? "this season" : `over the ${periodWords[period].toLowerCase()}`);
