@@ -4,10 +4,11 @@
 // that slot, and a doubtful one is picked on his stars; "?" and "—" rank below any starred player;
 // a tie keeps whoever is already starting, then goes by bench order.
 
-import { byPitchOrder, cellKey, playsCell, sameCell, type Cell } from "../../../convex/lineup/pitch";
+import { byPitchOrder, playsCell, sameCell, type Cell } from "../../../convex/lineup/pitch";
 import { rolesOfSlot } from "../../../convex/lineup/roles";
 import { bestRoleIn, droppedStarter, starsIn } from "../../../convex/stars/bestRole";
 import type { EditedLineup, SquadMember, Starter } from "./lineupEdits";
+import { matched } from "./matching";
 
 /** What Quick Pick reads of each squad player. */
 export type PickedFrom = Pick<SquadMember, "playerCode" | "positions" | "stars" | "availability" | "unheld">;
@@ -22,21 +23,9 @@ function starsThere(member: PickedFrom, cell: Cell, shape: readonly Cell[]): num
   return typeof stars === "number" ? stars : -1;
 }
 
-/** The most slots the players can fill between them, each in a cell he plays (augmenting paths). */
-function mostFilled(cells: readonly Cell[], players: readonly PickedFrom[]): number {
-  const holder = new Map<string, PickedFrom>();
-  const place = (player: PickedFrom, seen: Set<string>): boolean =>
-    cells.some((cell) => {
-      const key = cellKey(cell);
-      if (seen.has(key) || !playsCell(player.positions, cell)) return false;
-      seen.add(key);
-      const other = holder.get(key);
-      if (other !== undefined && !place(other, seen)) return false;
-      holder.set(key, player);
-      return true;
-    });
-  return players.filter((player) => place(player, new Set())).length;
-}
+/** The most slots the players can fill between them, each in a cell he plays. */
+const mostFilled = (cells: readonly Cell[], players: readonly PickedFrom[]): number =>
+  matched(players, (player) => cells.filter((cell) => playsCell(player.positions, cell))).size;
 
 /** The lineup with the shape's cells filled by the best eleven by stars (spec/05): the best player
  *  and slot first, each pick only where the slots left can still all be filled, each landing on his

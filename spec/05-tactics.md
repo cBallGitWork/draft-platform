@@ -64,6 +64,9 @@ Feature 5 of [SPEC.md](../SPEC.md). Only Craig's answers: the first `/grill` and
 - Then the bench fills the new shape's empty slots: each bench player, in bench order, takes a
   free slot he plays ("yes", Craig, 1 Nov 2026, #1025, asked whether the bench fills the empty
   slots it plays, in bench order).
+- Only when that leaves a starter out or a slot empty, the switch falls back to placing everyone
+  by best fit, starters first, then the bench in order: "Fall back" (Craig, 10 Nov 2026, on
+  #1025). `S05.36`
 - The formation window keeps classic sides as ready-made formation-plus-roles, and the modern ones
   too: "4 yes and re write" (Craig, 1 Nov 2026, asked whether to keep the classic and modern
   formations). Their text is sample until Craig rewrites it.

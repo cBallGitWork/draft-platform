@@ -6,7 +6,8 @@
 import { standsAsClassic, type Classic } from "../../../convex/lineup/classics";
 import { sameCell } from "../../../convex/lineup/pitch";
 import { roleIn } from "../../../convex/lineup/roles";
-import { presetInUse, reshaped, type EditedLineup, type MoveRules, type RatingsOf } from "./lineupEdits";
+import { presetInUse, type EditedLineup, type MoveRules, type RatingsOf } from "./lineupEdits";
+import { reshaped } from "./reshape";
 import { customWords } from "./words";
 
 /** The lineup on the classic: reshaped to its cells as a preset is, each starter on the role its

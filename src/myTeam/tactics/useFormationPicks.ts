@@ -3,7 +3,8 @@ import { keptOrSwitched, type InstructionPair, type Side } from "../../../convex
 import { switchedWords } from "../../../convex/lineup/instructionsWords";
 import type { Cell } from "../../../convex/lineup/pitch";
 import { onClassic } from "./classicLineup";
-import { reshaped, withInstruction, type EditedLineup, type MoveRules, type RatingsOf } from "./lineupEdits";
+import { withInstruction, type EditedLineup, type MoveRules, type RatingsOf } from "./lineupEdits";
+import { reshaped } from "./reshape";
 import type { OpenTactics, TacticsSeam } from "./seam";
 import type { useLineupEdits } from "./useLineupEdits";
 import { useSavedPlans } from "./useSavedPlans";

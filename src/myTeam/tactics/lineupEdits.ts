@@ -6,11 +6,11 @@
 // "Anything that would break the area limits stays unlit"). Presets only: the shape comes from a
 // preset, never a player moved into an empty cell (Craig, 1 Nov 2026; #1022).
 
-import { ALL_CELLS, AREAS, byPitchOrder, cellKey, LANES, playsCell, positionOfSlot, sameCell, type Cell } from "../../../convex/lineup/pitch";
+import { ALL_CELLS, byPitchOrder, cellKey, positionOfSlot, sameCell, type Cell } from "../../../convex/lineup/pitch";
 import { reconciled, type LineupRules } from "../../../convex/lineup/lineup";
 import type { Position } from "../../../convex/positions/positionTables";
 import type { OpenTactics } from "../../../convex/lineup/tactics";
-import { everyRoleOf, offersRole, roleIn, rolesOfSlot, type Formation, type Role } from "../../../convex/lineup/roles";
+import { everyRoleOf, roleIn, type Formation, type Role } from "../../../convex/lineup/roles";
 import { bestRoleIn, droppedStarter, starsIn } from "../../../convex/stars/bestRole";
 import type { InstructionPair, Side } from "../../../convex/lineup/instructions";
 import type { RoleStars, Stars } from "../../../convex/stars/starsShape";
@@ -36,7 +36,7 @@ export type RatingsOf = (playerCode: number) => readonly RoleStars[];
 
 /** A player dropped into `cell` of `formation` (the cells the eleven stand in once he is there), on
  *  the role he has the most stars for there (spec/05 Roles). */
-const droppedInto = (playerCode: number, cell: Cell, formation: Formation, ratingsOf: RatingsOf): Starter =>
+export const droppedInto = (playerCode: number, cell: Cell, formation: Formation, ratingsOf: RatingsOf): Starter =>
   droppedStarter(playerCode, cell, formation, ratingsOf(playerCode));
 
 /** The lineup the screen opens on: the one held for the gameweek, its first until the manager
@@ -144,59 +144,6 @@ export function sameLineup(one: EditedLineup, other: EditedLineup): boolean {
       draft.instructions?.defensive ?? "",
     ].join(" ");
   return key(one) === key(other) && one.classic === other.classic;
-}
-
-/** The lineup reshaped to a preset's cells (spec/05; Craig, 26 Oct and 1 Nov 2026): each starter,
- *  back to front, moves to a free cell of the shape he plays in his own area, the nearest lane to
- *  his own first. Anyone the shape has no room for there then takes the free cell he plays in the
- *  nearest area, the deeper on a tie; anyone left over goes to the front of the bench, in that
- *  order. Then each bench player, in bench order, takes the first free cell he plays, back to
- *  front (Craig, 1 Nov 2026; #1025); cells still empty are the shape's slots to fill. One whose
- *  new slot doesn't offer his role starts on his best-star role there (Craig, 1 Nov 2026). */
-export function reshaped(draft: EditedLineup, cells: readonly Cell[], { positionsOf }: Pick<MoveRules, "positionsOf">, ratingsOf: RatingsOf): EditedLineup {
-  const free = [...cells];
-  const starters: Starter[] = [];
-  const nearestFree = (starter: Starter, inHisArea: boolean) => {
-    const rows = (cell: Cell) => AREAS.indexOf(cell.area) - AREAS.indexOf(starter.area);
-    const lanes = (cell: Cell) => Math.abs(LANES.indexOf(cell.lane) - LANES.indexOf(starter.lane));
-    return free
-      .filter((cell) => (!inHisArea || cell.area === starter.area) && playsCell(positionsOf(starter.playerCode), cell))
-      .toSorted((one, other) =>
-        Math.abs(rows(one)) - Math.abs(rows(other)) || rows(one) - rows(other) || lanes(one) - lanes(other) || LANES.indexOf(one.lane) - LANES.indexOf(other.lane))[0];
-  };
-  const moveInto = (starter: Starter, cell: Cell) => {
-    free.splice(free.indexOf(cell), 1);
-    // He keeps the role he plays where the new slot offers it too, given or his old slot's first.
-    const playing = roleIn(starter, starter.role).key;
-    if (!offersRole(cell, playing, cells)) starters.push(droppedInto(starter.playerCode, cell, cells, ratingsOf));
-    else {
-      const role = starter.role ?? (playing === rolesOfSlot(cell, cells)[0].key ? undefined : playing);
-      starters.push({ playerCode: starter.playerCode, area: cell.area, lane: cell.lane, ...(role !== undefined && { role }) });
-    }
-  };
-  // His own area first for everyone, so no one moved across takes a cell its own player needed.
-  const unplaced: Starter[] = [];
-  for (const starter of startersInOrder(draft)) {
-    const cell = nearestFree(starter, true);
-    if (cell === undefined) unplaced.push(starter);
-    else moveInto(starter, cell);
-  }
-  const leftOver: number[] = [];
-  for (const starter of unplaced) {
-    const cell = nearestFree(starter, false);
-    if (cell === undefined) leftOver.push(starter.playerCode);
-    else moveInto(starter, cell);
-  }
-  const bench: number[] = [];
-  for (const playerCode of [...leftOver, ...draft.bench]) {
-    const cell = free.toSorted(byPitchOrder).find((each) => playsCell(positionsOf(playerCode), each));
-    if (cell === undefined) bench.push(playerCode);
-    else {
-      free.splice(free.indexOf(cell), 1);
-      starters.push(droppedInto(playerCode, cell, cells, ratingsOf));
-    }
-  }
-  return { starters, bench };
 }
 
 /** The league's preset whose shape the eleven stand in now, cell for cell, if any: its key is the
