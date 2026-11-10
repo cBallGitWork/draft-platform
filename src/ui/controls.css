@@ -135,6 +135,30 @@
   cursor: pointer;
 }
 
+/* A radio of two or three lines that each hold more than a word (the auto team's "Until the end of
+   GW13", "Until I switch it off"; its approved picture): the tick box's well, round, and the
+   chosen one's dot white. Keys (below) stay the control for one-word options. */
+@utility radio-well {
+  appearance: none;
+  margin: 0;
+  width: var(--spacing-tick);
+  height: var(--spacing-tick);
+  flex-shrink: 0;
+  border: 1px solid var(--color-soft);
+  border-radius: 50%;
+  background: var(--color-name-plate);
+  box-shadow: var(--shadow-bevel-sunk);
+  cursor: pointer;
+  &:checked {
+    background: var(--color-fact);
+    box-shadow: inset 0 0 0 4px var(--color-name-plate);
+  }
+  &:focus-visible {
+    outline: var(--focus-ring);
+    outline-offset: var(--focus-ring-offset);
+  }
+}
+
 /* One of a row of butted keys (plate.md, Controls): the plate, and the chosen one pressed in. It is
    the label around a hidden radio, so the radio's focus rings the key. */
 @utility key {

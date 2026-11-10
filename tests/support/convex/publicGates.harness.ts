@@ -124,6 +124,7 @@ export const gates: Record<string, Gate> = {
   "leagues/teams:rename": "teamsManager",
   "lineup/lineupDue:isDue": "managerOrNothing",
   "lineup/lineupDue:openedTactics": "manager",
+  "lineup/autoTeam:ofMyTeam": "manager",
   "lineup/autoTeam:set": "teamsManagerOrRunner",
   "lineup/lineups:save": "manager",
   "lineup/roleCard:forSlot": "manager",

@@ -1,14 +1,15 @@
-import { v } from "convex/values";
+import { v, type Infer } from "convex/values";
 import type { Doc, Id } from "../_generated/dataModel";
-import { internalMutation, mutation, type MutationCtx } from "../_generated/server";
+import { internalMutation, mutation, query, type MutationCtx } from "../_generated/server";
 import { availabilityOf } from "../availability/availability";
 import { GAMEWEEKS } from "../gameweeks/usedGameweeks";
 import { fileLetter, recordEvent, wholeLeague } from "../mail/letters";
 import { seasonRules } from "../rules/rulesHistory";
 import { logFailure } from "../shared/errors";
-import { callerEmail, getLeague, powersIn, refuse, teamIn, teamsOf } from "../shared/leagueAccess";
+import { callerEmail, getLeague, managerOf, powersIn, refuse, teamIn, teamsOf } from "../shared/leagueAccess";
 import { starsOfPlayers } from "../stars/playerStars";
 import { closeOffersOfTeam } from "../trades/tradeClose";
+import { onAutoTeam } from "../trades/tradeShut";
 import type { RoleStars } from "../stars/starsShape";
 import { autoSubs, standingProblems, type GameweekPlay } from "./autoSubs";
 import { firstLineup, withDroppedRoles, type FirstLineup, type FirstLineupRules } from "./firstLineup";
@@ -151,6 +152,25 @@ export const set = mutation({
     }
     await recordEvent(ctx, leagueId, email, { kind: "autoTeamSwitched", teamId, teamName: team.name, on, endsAfter: on ? (endsAfter ?? null) : null });
     return null;
+  },
+});
+
+/** A team's auto team as its switch shows it: on or off, and the gameweek it ends after, if its
+ *  manager named one. */
+export const autoTeamSwitch = v.object({ on: v.boolean(), endsAfter: v.union(v.number(), v.null()) });
+export type AutoTeamSwitch = Infer<typeof autoTeamSwitch>;
+
+/** A team's switch: on while a person switched it on or it has no manager (trades/tradeShut.ts). */
+export const switchOf = (team: Doc<"teams">): AutoTeamSwitch => ({ on: onAutoTeam(team), endsAfter: team.autoTeam?.endsAfter ?? null });
+
+/** The caller's team's auto team, for My team's header band (spec/09). Refused for anyone who
+ *  runs no team in the league. */
+export const ofMyTeam = query({
+  args: { leagueId: v.id("leagues") },
+  returns: v.object({ teamId: v.id("teams"), ...autoTeamSwitch.fields }),
+  handler: async (ctx, { leagueId }) => {
+    const { team } = await managerOf(ctx, leagueId);
+    return { teamId: team._id, ...switchOf(team) };
   },
 });
 

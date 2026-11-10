@@ -34,6 +34,8 @@ export const POSITION_NAMES: Record<Position, string> = {
 /** What a screen says when a change or a read failed for any reason but the server's refusal (src/shared/refusal.ts):
  *  `outcome` is what that left, such as "nothing changed". */
 export const failedWords = (outcome: string) => `Something went wrong, so ${outcome}. Check your connection and try again.`;
+/** Closes what was opened to change something, changing nothing. */
+export const cancelWords = "Cancel";
 /** When a change failed before the server could say why: the connection, or the server itself. */
 export const changeFailedWords = failedWords("nothing changed");
 

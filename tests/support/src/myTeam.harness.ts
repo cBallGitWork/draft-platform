@@ -2,7 +2,7 @@
 
 import { useSyncExternalStore } from "react";
 import { vi } from "vitest";
-import type { MyTeamSeam, OtherSquad, SquadNumberChanges, TeamFixtures, TeamSquad, TeamTransactions } from "../../../src/myTeam/seam";
+import type { AutoTeamChanges, MyAutoTeam, MyTeamSeam, OtherSquad, SquadNumberChanges, TeamFixtures, TeamSquad, TeamTransactions } from "../../../src/myTeam/seam";
 import { idOf } from "../../../src/table/drawnTable";
 import type { LeagueTable } from "../../../src/table/seam";
 import { fakeTactics, type TacticsData } from "./tactics.harness";
@@ -32,6 +32,10 @@ export type MyTeamData = TacticsData & {
   waivers?: WaiversView | null;
   /** What each change to a claim answers: null once made, or the words why not. */
   claimAnswer?: string | null;
+  /** The team's auto team: off by default. */
+  autoTeam?: Omit<MyAutoTeam, "teamId">;
+  /** What switching it answers: null once made, or the words why not. */
+  autoTeamAnswer?: string | null;
   loading?: boolean;
 };
 
@@ -49,10 +53,13 @@ export function fakeMyTeam({
   claims = [],
   waivers = NO_WAIVERS,
   claimAnswer = null,
+  autoTeam = { on: false, endsAfter: null },
+  autoTeamAnswer = null,
   loading = false,
   ...tactics
 }: MyTeamData = {}) {
   const numbers = { set: vi.fn<SquadNumberChanges["set"]>(async () => numberAnswer) };
+  const autoTeamChanges = { set: vi.fn<AutoTeamChanges["set"]>(async () => autoTeamAnswer) };
   const claimChanges = {
     rank: vi.fn<ClaimChanges["rank"]>(async () => claimAnswer),
     withdraw: vi.fn<ClaimChanges["withdraw"]>(async () => claimAnswer),
@@ -83,5 +90,8 @@ export function fakeMyTeam({
     useWaivers: vi.fn<MyTeamSeam["useWaivers"]>(() => (loading ? undefined : waivers)),
     useClaimChanges: () => claimChanges,
     claimChanges,
+    useMyAutoTeam: vi.fn<MyTeamSeam["useMyAutoTeam"]>(() => (loading ? undefined : { teamId: MY_TEAM_ID, ...autoTeam })),
+    useAutoTeamChanges: () => autoTeamChanges,
+    autoTeamChanges,
   };
 }

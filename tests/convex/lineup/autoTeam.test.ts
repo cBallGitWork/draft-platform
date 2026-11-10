@@ -137,6 +137,13 @@ describe("who may switch it", () => {
     await expect(switches(ANN, true, NEXT - 1)).rejects.toThrow(autoTeamRefusals.endsAfterOutOfRange(NEXT, 38));
   });
 
+  test("its manager reads it on My team: off, then on until the gameweek named", async () => {
+    const read = async () => (await actingAs(t, ANN)).query(api.lineup.autoTeam.ofMyTeam, { leagueId });
+    expect(await read()).toEqual({ teamId: annsTeam, on: false, endsAfter: null });
+    await switches(ANN, true, NEXT + 2);
+    expect(await read()).toEqual({ teamId: annsTeam, on: true, endsAfter: NEXT + 2 });
+  });
+
   test("it can't be switched on twice, nor off while off", async () => {
     await expect(switches(ANN, false)).rejects.toThrow(autoTeamRefusals.alreadyOff);
     await switches(ANN, true);

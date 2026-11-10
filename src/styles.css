@@ -133,6 +133,8 @@
   --spacing-caret-width: 10px;
   --spacing-caret-height: 6px;
   --spacing-league-list: 288px;
+  /* My team's Auto team panel, dropped from the header band's reading (the approved auto-team picture) */
+  --spacing-auto-team-panel: 380px;
   /* A row's columns: a Premier League match (where it stands, home, the score, away), and a league
      fixture (team, the score, opponent) */
   --grid-template-columns-match-row: 3.5rem minmax(0, 1fr) 3.5rem minmax(0, 1fr);

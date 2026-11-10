@@ -90,6 +90,7 @@ beforeEach(async () => {
       "lineup/lineupDue:isDue": async () => (await caller.query(api.lineup.lineupDue.isDue, { leagueId, now })) || null,
       "lineup/roleCard:forSlot": () =>
         caller.query(api.lineup.roleCard.forSlot, { leagueId, playerCode: SOME_CODE, cell: { area: "goalkeeper", lane: "centre" }, formation: [], now }),
+      "lineup/autoTeam:ofMyTeam": () => caller.query(api.lineup.autoTeam.ofMyTeam, { leagueId }),
       "lineup/savedPlans:mine": () => caller.query(api.lineup.savedPlans.mine, { leagueId }),
       "lineup/tactics:ofMyTeam":() => caller.query(api.lineup.tactics.ofMyTeam, { leagueId, now }),
       "mail/mail:latest": () => caller.query(api.mail.mail.latest, {}),
