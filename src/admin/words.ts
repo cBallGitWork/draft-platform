@@ -6,7 +6,7 @@ import type { ApproveMode, PositionSource } from "../../convex/positions/positio
 import type { Availability } from "../../convex/availability/availability";
 import type { FeedState } from "../../convex/admin/feedState";
 import type { Pattern } from "../../convex/football/clubColours";
-import { FEED_NAMES } from "../../convex/shared/feedSchedule";
+import { FEED_NAMES, feedNameOf } from "../../convex/shared/feedSchedule";
 import { FEEDBACK_TITLE } from "../feedback/words";
 import { LOCALE } from "../../convex/shared/moments";
 import { DAY_MS, HOUR_MS, MINUTE_MS } from "../../convex/shared/time";
@@ -113,6 +113,8 @@ export const feedColumns = {
 } as const;
 /** Kept with the feeds themselves, as the admin's failure email names them too. */
 export const feedNames = FEED_NAMES;
+/** A feed's row's name and source: a Sportmonks feed's with its competition's name (#1414). */
+export const feedNameWords = feedNameOf;
 export const feedStateWords: Record<FeedState, string> = {
   fine: "On time",
   betweenSeasons: "Between seasons",

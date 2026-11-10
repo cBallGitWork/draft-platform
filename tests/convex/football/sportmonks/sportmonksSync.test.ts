@@ -1,54 +1,15 @@
 // Sportmonks' reads stored (#1391): the six-hourly read into its own tables and the live tick's
-// match rows, each run a row, nothing read or written where the deployment has no token.
+// match rows, each run a row, nothing read or written where the deployment has no token. More than
+// one competition: sportmonksCompetitions.test.ts.
 
-import { afterEach, beforeEach, expect, test, vi } from "vitest";
+import { expect, test, vi } from "vitest";
 import { internal } from "../../../../convex/_generated/api";
-import { leagueUrl, liveFixturesUrl, scheduleUrl, seasonTeamsUrl, SPORTMONKS_TOKEN_ENV } from "../../../../convex/football/sportmonks/sportmonks";
-import { MINUTE_MS } from "../../../../convex/shared/time";
-import { freshConvex, silenceConsoleError, type TestConvex } from "../../../support/convex/test.harness";
-import type { SportmonksPayloads } from "../../../../convex/football/sportmonks/sportmonksRaw";
+import { scheduleUrl, SPORTMONKS_TOKEN_ENV } from "../../../../convex/football/sportmonks/sportmonks";
+import { freshConvex, silenceConsoleError } from "../../../support/convex/test.harness";
 import { SM, sportmonksLiveRead, sportmonksSeason } from "../../../support/recorded/sportmonks.payloads";
+import { fakeSportmonks, LIVE_NOW, REFUSED, SEASON_ID, sync, syncs, ticks, useSportmonks, WRITES } from "../../../support/convex/sportmonks.harness";
 
-const TOKEN = "test-token";
-const SEASON_ID = 25598;
-const OLD_FIRM_KICKOFF = Date.parse("2026-11-08T12:00:00Z");
-/** The live read's clock: 67 minutes in. */
-const LIVE_NOW = OLD_FIRM_KICKOFF + 70 * MINUTE_MS;
-const WRITES = (n: number) => ({ received: n, inserted: n, updated: 0, marked: 0, unmarked: 0 });
-
-/** Sportmonks as these payloads, each URL its body; the token asked for in the header. */
-function fakeSportmonks({ refuse, season = sportmonksSeason() }: { refuse?: string; season?: SportmonksPayloads } = {}) {
-  const bodies: Record<string, unknown> = {
-    [leagueUrl()]: { data: season.league },
-    [seasonTeamsUrl(SEASON_ID, 1)]: { data: season.teams, pagination: { has_more: false } },
-    [scheduleUrl(SEASON_ID)]: { data: season.schedule },
-    [liveFixturesUrl([SM.oldFirm])]: sportmonksLiveRead(),
-  };
-  return vi.fn(async (url: string, init?: RequestInit) => {
-    expect((init?.headers as Record<string, string>).Authorization).toBe(TOKEN);
-    if (url === refuse) return Response.json({ message: "You do not have access to this endpoint." }, { status: 403 });
-    if (!(url in bodies)) throw new Error(`no fake for ${url}`);
-    return Response.json(bodies[url]);
-  });
-}
-
-beforeEach(() => {
-  vi.useFakeTimers({ now: LIVE_NOW });
-  vi.stubEnv(SPORTMONKS_TOKEN_ENV, TOKEN);
-});
-afterEach(() => {
-  vi.useRealTimers();
-  vi.unstubAllEnvs();
-  vi.unstubAllGlobals();
-});
-
-const syncs = (t: TestConvex) => t.run((ctx) => ctx.db.query("sportmonksSyncs").collect());
-const ticks = (t: TestConvex) => t.run((ctx) => ctx.db.query("sportmonksLiveTicks").collect());
-
-async function sync(t: TestConvex, payloads: Parameters<typeof fakeSportmonks>[0] = {}) {
-  vi.stubGlobal("fetch", fakeSportmonks(payloads));
-  await t.action(internal.football.sportmonks.sportmonksSync.run, { trigger: "manual" });
-}
+useSportmonks();
 
 test("a run fills the Scottish clubs, players, fixtures and rounds by Sportmonks' ids, with each score, and records what it wrote", async () => {
   const t = freshConvex();
@@ -93,7 +54,7 @@ test("a refused read is a failed run's row with Sportmonks' own words, and no ta
   await t.finishAllScheduledFunctions(vi.runAllTimers);
 
   const [row] = await syncs(t);
-  expect(row.outcome).toEqual({ ok: false, error: `${scheduleUrl(SEASON_ID)} answered 403: You do not have access to this endpoint.` });
+  expect(row.outcome).toEqual({ ok: false, error: `${scheduleUrl(SEASON_ID)} answered 403: ${REFUSED}` });
   expect(await t.run((ctx) => ctx.db.query("sportmonksClubs").collect())).toEqual([]);
 });
 

@@ -9,12 +9,13 @@ import { HOUR_MS, MINUTE_MS } from "./time";
  *  own: they never stop a match's points (admin/sideRuns.ts). */
 export const SIDE_FEEDS = ["teamSheets", "teamStats", "thresholdSteps"] as const;
 
-/** Sportmonks' reads (#1391): the Scottish Premiership on its free plan, beside FPL's until a later
- *  slice switches the site over (football/sportmonks/). */
-export const SPORTMONKS_FEEDS = ["sportmonks", "sportmonksLive", "sportmonksPositions"] as const;
+/** Sportmonks' reads run for each competition on its list that is on (#1414), each its own row on
+ *  the feeds page, beside FPL's until a later slice switches the site over (football/sportmonks/). */
+export const SPORTMONKS_FEEDS = ["sportmonks", "sportmonksLive"] as const;
 
-/** The feeds, each a sync or tick with its own run table. */
-export const FEEDS = ["football", "positions", "matchStats", "liveStats", ...SIDE_FEEDS, ...SPORTMONKS_FEEDS] as const;
+/** The feeds, each a sync or tick with its own run table. Sportmonks' positions read (#1419) is
+ *  for the Scottish Premiership alone, so it is one row, as FPL's are. */
+export const FEEDS = ["football", "positions", "matchStats", "liveStats", ...SIDE_FEEDS, ...SPORTMONKS_FEEDS, "sportmonksPositions"] as const;
 export type Feed = (typeof FEEDS)[number];
 /** A feed, as a function's argument or a saved field takes one. */
 export const feedValidator = v.union(...FEEDS.map((feed) => v.literal(feed)));
@@ -37,8 +38,9 @@ export const FEED_NAMES: Record<Feed, { name: string; source: string }> = {
   teamSheets: { name: "Team sheets before kickoff", source: "the Premier League, in the hour before each match" },
   teamStats: { name: "Team stats", source: "the Premier League, during matches and at full time" },
   thresholdSteps: { name: "Threshold lines", source: "worked out from the live stats, during matches" },
-  sportmonks: { name: "Scottish clubs, players and fixtures", source: "Sportmonks" },
-  sportmonksLive: { name: "Scottish live matches", source: "Sportmonks, during matches" },
+  // Each competition's run is its own row, named after this with the competition's name (#1414).
+  sportmonks: { name: "Clubs, players and fixtures", source: "Sportmonks" },
+  sportmonksLive: { name: "Live matches", source: "Sportmonks, during matches" },
   sportmonksPositions: { name: "Scottish positions", source: "Sportmonks' lineups" },
 };
 
@@ -100,3 +102,10 @@ export const FAILURE_EMAIL_NAMES: Record<FailureEmailKind, { name: string; sourc
   ...FEED_NAMES,
   skippedLeague: { name: "A league's step in the football feed", source: "the league's saved rules" },
 };
+
+/** A feed's name, with its competition's where it reads one (#1414), as the feeds page and the
+ *  admin's failure email both say it. Wording for Craig to change in the pull request. */
+export function feedNameOf(feed: FailureEmailKind, competition: string | null | undefined): { name: string; source: string } {
+  const { name, source } = FAILURE_EMAIL_NAMES[feed];
+  return { name: competition ? `${name}: ${competition}` : name, source };
+}

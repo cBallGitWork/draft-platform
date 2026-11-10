@@ -4132,9 +4132,10 @@
       "tableName": "feedFailureEmails",
       "indexes": [
         {
-          "indexDescriptor": "by_feed",
+          "indexDescriptor": "by_feed_and_competition",
           "fields": [
-            "feed"
+            "feed",
+            "competition"
           ]
         }
       ],
@@ -4197,6 +4198,12 @@
               ]
             },
             "optional": false
+          },
+          "competition": {
+            "fieldType": {
+              "type": "number"
+            },
+            "optional": true
           },
           "emailedAt": {
             "fieldType": {
@@ -25864,12 +25871,57 @@
       }
     },
     {
+      "tableName": "sportmonksCompetitions",
+      "indexes": [
+        {
+          "indexDescriptor": "by_competition",
+          "fields": [
+            "competition"
+          ]
+        }
+      ],
+      "stagedDbIndexes": [],
+      "searchIndexes": [],
+      "stagedSearchIndexes": [],
+      "vectorIndexes": [],
+      "stagedVectorIndexes": [],
+      "documentType": {
+        "type": "object",
+        "value": {
+          "name": {
+            "fieldType": {
+              "type": "string"
+            },
+            "optional": false
+          },
+          "competition": {
+            "fieldType": {
+              "type": "number"
+            },
+            "optional": false
+          },
+          "on": {
+            "fieldType": {
+              "type": "boolean"
+            },
+            "optional": false
+          }
+        }
+      }
+    },
+    {
       "tableName": "sportmonksClubs",
       "indexes": [
         {
           "indexDescriptor": "by_code",
           "fields": [
             "code"
+          ]
+        },
+        {
+          "indexDescriptor": "by_competition",
+          "fields": [
+            "competition"
           ]
         }
       ],
@@ -25904,6 +25956,12 @@
               "type": "number"
             },
             "optional": true
+          },
+          "competition": {
+            "fieldType": {
+              "type": "number"
+            },
+            "optional": true
           }
         }
       }
@@ -25915,6 +25973,12 @@
           "indexDescriptor": "by_code",
           "fields": [
             "code"
+          ]
+        },
+        {
+          "indexDescriptor": "by_competition",
+          "fields": [
+            "competition"
           ]
         }
       ],
@@ -25995,6 +26059,12 @@
               "type": "number"
             },
             "optional": true
+          },
+          "competition": {
+            "fieldType": {
+              "type": "number"
+            },
+            "optional": true
           }
         }
       }
@@ -26012,6 +26082,12 @@
           "indexDescriptor": "by_kickoff",
           "fields": [
             "kickoff"
+          ]
+        },
+        {
+          "indexDescriptor": "by_competition",
+          "fields": [
+            "competition"
           ]
         }
       ],
@@ -26074,6 +26150,12 @@
               "type": "number"
             },
             "optional": true
+          },
+          "competition": {
+            "fieldType": {
+              "type": "number"
+            },
+            "optional": true
           }
         }
       }
@@ -26082,10 +26164,9 @@
       "tableName": "sportmonksRounds",
       "indexes": [
         {
-          "indexDescriptor": "by_season_and_number",
+          "indexDescriptor": "by_competition",
           "fields": [
-            "season",
-            "number"
+            "competition"
           ]
         }
       ],
@@ -26116,6 +26197,12 @@
             "optional": false
           },
           "droppedAt": {
+            "fieldType": {
+              "type": "number"
+            },
+            "optional": true
+          },
+          "competition": {
             "fieldType": {
               "type": "number"
             },
@@ -26487,7 +26574,14 @@
     },
     {
       "tableName": "sportmonksSyncs",
-      "indexes": [],
+      "indexes": [
+        {
+          "indexDescriptor": "by_competition",
+          "fields": [
+            "competition"
+          ]
+        }
+      ],
       "stagedDbIndexes": [],
       "searchIndexes": [],
       "stagedSearchIndexes": [],
@@ -26496,6 +26590,12 @@
       "documentType": {
         "type": "object",
         "value": {
+          "competition": {
+            "fieldType": {
+              "type": "number"
+            },
+            "optional": true
+          },
           "trigger": {
             "fieldType": {
               "type": "union",
@@ -27030,7 +27130,14 @@
     },
     {
       "tableName": "sportmonksLiveTicks",
-      "indexes": [],
+      "indexes": [
+        {
+          "indexDescriptor": "by_competition",
+          "fields": [
+            "competition"
+          ]
+        }
+      ],
       "stagedDbIndexes": [],
       "searchIndexes": [],
       "stagedSearchIndexes": [],
@@ -27039,6 +27146,12 @@
       "documentType": {
         "type": "object",
         "value": {
+          "competition": {
+            "fieldType": {
+              "type": "number"
+            },
+            "optional": true
+          },
           "ranAt": {
             "fieldType": {
               "type": "number"

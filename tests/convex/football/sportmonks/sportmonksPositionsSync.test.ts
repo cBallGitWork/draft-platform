@@ -36,7 +36,7 @@ function fakeSportmonks({ refuse, unfiled }: { refuse?: string; unfiled?: number
     player: { id, name: `Player ${id}`, position: { id: 25, name: position }, detailedposition: detailed === null ? null : { id: 148, name: detailed } },
   });
   const bodies: Record<string, unknown> = {
-    [leagueSeasonsUrl()]: { data: { id: 501, currentseason: THIS_SEASON, seasons: [LAST_SEASON, THIS_SEASON] } },
+    [leagueSeasonsUrl(501)]: { data: { id: 501, currentseason: THIS_SEASON, seasons: [LAST_SEASON, THIS_SEASON] } },
     [scheduleUrl(LAST_SEASON.id)]: { data: [{ id: 1, rounds: [{ id: 1, name: "1", fixtures: matches.map(listed) }] }] },
     [scheduleUrl(THIS_SEASON.id)]: { data: [{ id: 2, rounds: [{ id: 2, name: "1", fixtures: [upcoming] }] }] },
     [lineupsUrl(matches.map((match) => match.id))]: { data: sent },

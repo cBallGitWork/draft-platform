@@ -1,6 +1,7 @@
 // Sportmonks' football API (#1391), read from Convex's own servers: the second feed to fill the
 // `Football` seam (football.ts), beside FPL's (fpl/fpl.ts), so nothing past the seam knows which
-// feed filled it. Slice 1 reads the Scottish Premiership, the league Sportmonks' free plan covers.
+// feed filled it. It reads each competition on the list that is on (#1414): for now the Scottish
+// Premiership, the league Sportmonks' free plan covers.
 // Every club, player and match is keyed on Sportmonks' own id for it (Craig, 9 Nov 2026, on #1196).
 // A body of another shape throws, naming what was missing, so a changed payload is a failed run on
 // the feeds page, never a guess. Calls a run and a live minute make: ARCHITECTURE.md.
@@ -8,7 +9,7 @@
 import type { Infer } from "convex/values";
 import { TIMEOUT_MS, type Football } from "../football";
 import { readEach } from "../scoreReads";
-import type { gameweekRecord } from "../../schema";
+import type { gameweekRecord, sportmonksCompetition } from "../../schema";
 import { SECOND_MS } from "../../shared/time";
 import { smScoreRead } from "./sportmonksMatch";
 import { SPORTMONKS, type RawFixture, type RawLeague, type RawRound, type RawSeason, type RawStage, type RawTeam, type SportmonksPayloads } from "./sportmonksRaw";
@@ -17,8 +18,14 @@ import { SPORTMONKS, type RawFixture, type RawLeague, type RawRound, type RawSea
 export const SPORTMONKS_TOKEN_ENV = "SPORTMONKS_API_TOKEN";
 
 const SPORTMONKS_API_BASE = "https://api.sportmonks.com/v3/football";
-/** Sportmonks' id for the Scottish Premiership: its free plan's (checked 9 Nov 2026, on #1391). */
-export const SCOTTISH_PREMIERSHIP = 501;
+export type SportmonksCompetition = Infer<typeof sportmonksCompetition>;
+/** The competitions the beta plays on (SPEC, *What it is*; Craig, #1196), the list's first rows:
+ *  the Scottish Premiership, on the free plan (checked 9 Nov 2026, on #1391), and the Premier
+ *  League, off until the paid plan covers it. A deployment holding none starts from these. */
+export const SEEDED_COMPETITIONS: readonly SportmonksCompetition[] = [
+  { name: "Scottish Premiership", competition: 501, on: true },
+  { name: "Premier League", competition: 8, on: false },
+];
 /** The most rows Sportmonks gives a page. */
 const PER_PAGE = 50;
 /** The most matches one `fixtures/multi` read asks for. */
@@ -34,14 +41,14 @@ export const POSITIONS_SQUAD_INCLUDES = "players.player.position;players.player.
  *  man lined up in it. */
 const LINEUPS_INCLUDES = "formations;lineups.detailedPosition";
 
-/** The league, with its current season's id and name. */
-export function leagueUrl(): string {
-  return `${SPORTMONKS_API_BASE}/leagues/${SCOTTISH_PREMIERSHIP}?include=currentSeason`;
+/** A league, with its current season's id and name. */
+export function leagueUrl(leagueId: number): string {
+  return `${SPORTMONKS_API_BASE}/leagues/${leagueId}?include=currentSeason`;
 }
 
-/** The league, with its current season and every season it has had: the positions read's. */
-export function leagueSeasonsUrl(): string {
-  return `${leagueUrl()};seasons`;
+/** A league, with its current season and every season it has had: the positions read's. */
+export function leagueSeasonsUrl(leagueId: number): string {
+  return `${leagueUrl(leagueId)};seasons`;
 }
 
 /** A season's clubs, each with its squad and each man in it, a page at a time. */
@@ -81,12 +88,12 @@ export async function getData<T>(url: string, token: string): Promise<{ data: T;
   return { data: body.data, hasMore: body.pagination?.has_more === true };
 }
 
-/** The Scottish Premiership's current season, its clubs and squads, and its schedule: three
- *  reads, more only if a season had over `PER_PAGE` clubs. Throws on a failed read. */
-export async function readSportmonksPayloads(token: string): Promise<SportmonksPayloads> {
-  const { data: league } = await getData<RawLeague>(leagueUrl(), token);
+/** A league's current season, its clubs and squads, and its schedule: three reads, more only if a
+ *  season had over `PER_PAGE` clubs. Throws on a failed read. */
+export async function readSportmonksPayloads(token: string, leagueId: number): Promise<SportmonksPayloads> {
+  const { data: league } = await getData<RawLeague>(leagueUrl(leagueId), token);
   const season = league.currentseason;
-  if (!season) throw new Error(`${SPORTMONKS} sent no current season for league ${SCOTTISH_PREMIERSHIP}`);
+  if (!season) throw new Error(`${SPORTMONKS} sent no current season for league ${leagueId}`);
   const teams = await readSeasonTeams(season.id, token);
   const { data: schedule } = await getData<RawStage[]>(scheduleUrl(season.id), token);
   return { league, teams, schedule };
@@ -103,9 +110,9 @@ export async function readSeasonTeams(seasonId: number, token: string, include =
   return teams;
 }
 
-/** The Scottish Premiership as the seam takes it. */
-export async function readSportmonks(token: string): Promise<Football> {
-  return mapSportmonks(await readSportmonksPayloads(token));
+/** A league as the seam takes it. */
+export async function readSportmonks(token: string, leagueId: number): Promise<Football> {
+  return mapSportmonks(await readSportmonksPayloads(token, leagueId));
 }
 
 /** The year a season named "2025/2026" starts. */

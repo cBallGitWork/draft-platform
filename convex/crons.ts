@@ -38,12 +38,12 @@ crons.cron("positions sync", `0 ${DAILY_RUN_UTC_HOURS.join(",")} * * *`, interna
 // Clearing old run logs (#146, admin/runLogs.ts), then old sign-in asks (signInLinks.ts).
 crons.interval("prune run logs", PRUNE_EVERY, internal.admin.runLogs.prune, {});
 
-// Sportmonks' reads (#1391): the Scottish Premiership on the football sync's six hours, and each of
-// its matches every minute from kickoff to full time. Only where SPORTMONKS_API_TOKEN is set; each
+// Sportmonks' reads (#1391, #1414): each competition that is on, on the football sync's six hours,
+// and each of its matches every minute from kickoff to full time. Only where SPORTMONKS_API_TOKEN is set; each
 // reads nothing where it isn't (football/sportmonks/).
 crons.interval("sportmonks sync", FEED_SCHEDULES.sportmonks.every, internal.football.sportmonks.sportmonksSync.run, BY_CRON);
 crons.interval("sportmonks live tick", FEED_SCHEDULES.sportmonksLive.every, internal.football.sportmonks.sportmonksLive.tick, {});
-// And its lineups, for positions (#1419), at the positions sync's 06:00 UK time.
+// And the Scottish Premiership's lineups, for positions (#1419), at the positions sync's 06:00 UK time.
 crons.cron("sportmonks positions", `0 ${DAILY_RUN_UTC_HOURS.join(",")} * * *`, internal.football.sportmonks.sportmonksPositionsSync.daily, {});
 
 // Not one of spec/20's jobs but the build pipeline's: wakes the lead every half hour, since GitHub's

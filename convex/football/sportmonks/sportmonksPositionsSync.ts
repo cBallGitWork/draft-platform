@@ -23,6 +23,11 @@ import { SPORTMONKS, type RawFixture, type RawLeague, type RawSeason, type RawSt
 // From the CLI: `npx convex run football/sportmonks/sportmonksPositionsSync:run '{"trigger":"manual"}'`,
 // then `football/sportmonks/sportmonksPositionsSync:regulars '{"season":2025}'` for Craig's check (`S06.3`).
 
+/** The league this read is for: the Scottish Premiership, #1419's. The six-hourly read and the
+ *  live tick go over the competitions list (#1414); this read keeps its one league until an issue
+ *  moves it onto the list too. */
+const POSITIONS_LEAGUE = 501;
+
 /** Played matches whose lineups one run reads: two Scottish seasons' 456 take two runs of ten
  *  `fixtures/multi` calls each. */
 export const MATCHES_PER_RUN = 250;
@@ -186,7 +191,7 @@ function twoSeasons(league: RawLeague): RawSeason[] {
  *  this season's squads for each man's label. A failed read throws, and the matches filed before
  *  it stay filed. */
 async function readPositions(ctx: ActionCtx, token: string): Promise<Synced> {
-  const { data: league } = await getData<RawLeague>(leagueSeasonsUrl(), token);
+  const { data: league } = await getData<RawLeague>(leagueSeasonsUrl(POSITIONS_LEAGUE), token);
   const seasons = twoSeasons(league);
   const seasonOf = new Map<number, number>();
   const played: { id: number; kickoff: number }[] = [];

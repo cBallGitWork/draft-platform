@@ -6,10 +6,11 @@ import { takeShown } from "../shared/cappedRead";
 import { fixtureByCode } from "../shared/fixtures";
 import { adminOf } from "../shared/leagueAccess";
 import { findClubByCode, playerByCode } from "../shared/players";
-import { FEED_RUN_TABLES, FEED_SCHEDULES, FEEDS, feedValidator, type Feed } from "../shared/feedSchedule";
+import { FEED_RUN_TABLES, FEED_SCHEDULES, FEEDS, feedValidator, SPORTMONKS_FEEDS, type Feed } from "../shared/feedSchedule";
 import { liveMatches } from "../stats/liveStats";
 import { dueSheetsAt } from "../football/matchTeamSheets";
 import { sportmonksLiveMatches } from "../football/sportmonks/sportmonksLive";
+import { competitionsHeld } from "../football/sportmonks/sportmonksSync";
 import { LINEUPS_OUT_BEFORE_KICKOFF_MS } from "../shared/time";
 import { lateStatChange } from "../schema";
 
@@ -30,6 +31,8 @@ export const CORRECTIONS_SHOWN = 20;
 
 const feedReport = v.object({
   feed: feedValidator,
+  /** For a Sportmonks feed, the competition this row is: one row each that is on (#1414). */
+  competition: v.optional(v.string()),
   state: feedState,
   lastRunAt: v.union(v.number(), v.null()),
   lastSuccessAt: v.union(v.number(), v.null()),
@@ -70,11 +73,29 @@ export const feeds = query({
   handler: async (ctx, { now }) => {
     await adminOf(ctx);
     const owedSince = await owedSinceAt(ctx, now);
-    const feeds = [];
+    const competitionsOn = (await competitionsHeld(ctx)).filter((each) => each.on);
+    const live = await sportmonksLiveMatches(ctx, now);
+    const feeds: Infer<typeof feedReport>[] = [];
+    const judged = async (feed: Feed, runs: AsyncIterable<Run>, owed: number | null) => {
+      const { lastError, ...read } = await readRuns(runs);
+      const state = judgeFeed(read, FEED_SCHEDULES[feed], owed, now);
+      return { feed, state, lastRunAt: read.lastRun?.ranAt ?? null, lastSuccessAt: read.lastSuccessAt, lastError };
+    };
     for (const feed of FEEDS) {
-      const { lastError, ...runs } = await readRuns(runsOf(ctx, feed));
-      const state = judgeFeed(runs, FEED_SCHEDULES[feed], owedSince[feed], now);
-      feeds.push({ feed, state, lastRunAt: runs.lastRun?.ranAt ?? null, lastSuccessAt: runs.lastSuccessAt, lastError });
+      if (!isSportmonksFeed(feed)) {
+        feeds.push(await judged(feed, runsOf(ctx, feed), owedSince[feed]));
+        continue;
+      }
+      // Each competition that is on is its own row (#1414), so one failing never hides another.
+      for (const { name, competition } of competitionsOn) {
+        const runs = ctx.db
+          .query(FEED_RUN_TABLES[feed])
+          .withIndex("by_competition", (q) => q.eq("competition", competition))
+          .order("desc");
+        const kickoffs = live.filter((match) => match.competition === competition).map((match) => match.kickoff);
+        const owed = feed === "sportmonks" ? ALWAYS_OWED : earliest(kickoffs);
+        feeds.push({ ...(await judged(feed, runs, owed)), competition: name });
+      }
     }
     const windowMs = await statCorrectionWindowMs(ctx);
     const provisional = await takeShown(
@@ -99,8 +120,7 @@ export const feeds = query({
  *  threshold lines it reads, from the first kickoff of the matches live now; the team sheets from
  *  the first due match's hour before kickoff; none of those between matches; every other feed
  *  always. */
-async function owedSinceAt(ctx: QueryCtx, now: number): Promise<Record<Feed, number | null>> {
-  const earliest = (times: number[]) => (times.length === 0 ? null : Math.min(...times));
+async function owedSinceAt(ctx: QueryCtx, now: number): Promise<Record<Exclude<Feed, SportmonksFeed>, number | null>> {
   const liveStats = earliest((await liveMatches(ctx, now)).map((match) => match.kickoff));
   const teamSheets = earliest((await dueSheetsAt(ctx, now)).map((match) => match.kickoff - LINEUPS_OUT_BEFORE_KICKOFF_MS));
   return {
@@ -111,17 +131,21 @@ async function owedSinceAt(ctx: QueryCtx, now: number): Promise<Record<Feed, num
     teamSheets,
     teamStats: liveStats,
     thresholdSteps: liveStats,
-    sportmonks: ALWAYS_OWED,
     sportmonksPositions: ALWAYS_OWED,
-    sportmonksLive: earliest((await sportmonksLiveMatches(ctx, now)).map((match) => match.kickoff)),
   };
 }
+
+/** The first of some times; null for none. */
+const earliest = (times: number[]) => (times.length === 0 ? null : Math.min(...times));
+
+type SportmonksFeed = (typeof SPORTMONKS_FEEDS)[number];
+const isSportmonksFeed = (feed: Feed): feed is SportmonksFeed => (SPORTMONKS_FEEDS as readonly Feed[]).includes(feed);
 
 type Run = { ranAt: number; outcome: RunOutcome };
 type RunsRead = FeedRuns & { lastError: { at: number; error: string } | null };
 
 /** A feed's run rows, newest first. */
-function runsOf(ctx: QueryCtx, feed: Feed): AsyncIterable<Run> {
+function runsOf(ctx: QueryCtx, feed: Exclude<Feed, SportmonksFeed>): AsyncIterable<Run> {
   return ctx.db.query(FEED_RUN_TABLES[feed]).order("desc");
 }
 

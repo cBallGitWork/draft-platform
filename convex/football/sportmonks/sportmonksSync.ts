@@ -2,18 +2,19 @@ import { v, type Infer } from "convex/values";
 import type { WithoutSystemFields } from "convex/server";
 import { internal } from "../../_generated/api";
 import type { Doc } from "../../_generated/dataModel";
-import { internalAction, internalMutation, type MutationCtx, type QueryCtx } from "../../_generated/server";
+import { internalAction, internalMutation, type ActionCtx, type MutationCtx, type QueryCtx } from "../../_generated/server";
 import { outcomeOf } from "../../shared/errors";
 import { CRON_TRIGGER, withHeartbeat } from "../../heartbeats/heartbeat";
 import { emailIfFailed } from "../../admin/feedFailureEmails";
 import { clubRecord, fixtureRecord, gameweekRecord, playerRecord, scoreRead, sportmonksSyncFields, syncTrigger, tableWrites } from "../../schema";
 import { keyOf, sameFields } from "../footballSync";
-import { readSportmonks, sportmonksToken } from "./sportmonks";
+import { readSportmonks, SEEDED_COMPETITIONS, sportmonksToken, type SportmonksCompetition } from "./sportmonks";
 
-// Sportmonks' six-hourly read stored (#1391): the Scottish Premiership's clubs, players, fixtures
-// and rounds, and each match's score, on the football sync's cron, each into its own table
-// (schema/sportmonks.ts), so nothing the site shows changes in this slice. Each run is a row the
-// feeds page judges, and a failed one emails the admin, as every feed's does. Where the
+// Sportmonks' six-hourly read stored (#1391): each competition that is on (#1414), its clubs,
+// players, fixtures and rounds, every row naming its competition, and each match's score, on the
+// football sync's cron, each into its own table (schema/sportmonks.ts), so nothing the site shows
+// changes in this slice. Each competition's run is its own row the feeds page judges, and a failed
+// one emails the admin, as every feed's does, so one the plan refuses fails alone. Where the
 // deployment has no `SPORTMONKS_API_TOKEN` (the live site) it reads nothing and writes no row.
 // The live minute-by-minute reads: sportmonksLive.ts.
 // From the CLI: `npx convex run football/sportmonks/sportmonksSync:run '{"trigger":"manual"}'`.
@@ -22,6 +23,8 @@ type TableWrites = Required<Infer<typeof tableWrites>>;
 type SyncOutcome = Infer<typeof sportmonksSyncFields.outcome>;
 type SportmonksTable = "sportmonksClubs" | "sportmonksPlayers" | "sportmonksFixtures" | "sportmonksRounds";
 const NO_WRITES: TableWrites = { received: 0, inserted: 0, updated: 0, marked: 0, unmarked: 0 };
+/** The most competitions read back: the paid plan's five, with room. */
+const COMPETITIONS_MOST = 50;
 
 /** What the log says, before the error, when a run fails. */
 export const SPORTMONKS_SYNC_FAILED_LOG = "Sportmonks sync failed";
@@ -33,56 +36,86 @@ export const run = internalAction({
     const token = sportmonksToken();
     if (token === null) return null;
     return withHeartbeat(trigger === CRON_TRIGGER ? "sportmonksSync" : null, async () => {
-      const ranAt = Date.now();
-      const outcome: SyncOutcome = await outcomeOf(SPORTMONKS_SYNC_FAILED_LOG, async () => {
-        const football = await readSportmonks(token);
-        const sync = internal.football.sportmonks.sportmonksSync;
-        // Clubs first, so a player or a match never names a club not yet held.
-        const clubs = await ctx.runMutation(sync.syncClubs, { rows: football.clubs, ranAt });
-        const players = await ctx.runMutation(sync.syncPlayers, { rows: football.players, ranAt });
-        const rounds = await ctx.runMutation(sync.syncRounds, { rows: football.gameweeks, ranAt });
-        // A season with no matches yet sent leaves the held ones as they are, none marked.
-        const fixtures = football.betweenSeasons ? NO_WRITES : await ctx.runMutation(sync.syncFixtures, { rows: football.fixtures, ranAt });
-        const { reads, problems } = football.scores;
-        const written = await ctx.runMutation(sync.writeScores, { reads, readAt: ranAt });
-        return {
-          ok: true as const,
-          clubs,
-          players,
-          fixtures,
-          rounds,
-          ...(football.betweenSeasons && { betweenSeasons: true as const }),
-          scores: { received: reads.length + problems.length, written, problems },
-        };
-      });
-      await ctx.runMutation(internal.football.sportmonks.sportmonksSync.record, { trigger, ranAt, outcome });
+      const competitions = await ctx.runMutation(internal.football.sportmonks.sportmonksSync.competitionsOn, {});
+      // One after another, each its own run row: one the plan refuses fails alone.
+      for (const competition of competitions) await syncCompetition(ctx, token, competition, trigger);
       return null;
     });
   },
 });
 
+/** One competition read and stored, and its run's row. */
+async function syncCompetition(ctx: ActionCtx, token: string, competition: number, trigger: Infer<typeof syncTrigger>) {
+  const ranAt = Date.now();
+  const outcome: SyncOutcome = await outcomeOf(SPORTMONKS_SYNC_FAILED_LOG, async () => {
+    const football = await readSportmonks(token, competition);
+    const sync = internal.football.sportmonks.sportmonksSync;
+    const args = { competition, ranAt };
+    // Clubs first, so a player or a match never names a club not yet held.
+    const clubs = await ctx.runMutation(sync.syncClubs, { ...args, rows: football.clubs });
+    const players = await ctx.runMutation(sync.syncPlayers, { ...args, rows: football.players });
+    const rounds = await ctx.runMutation(sync.syncRounds, { ...args, rows: football.gameweeks });
+    // A season with no matches yet sent leaves the held ones as they are, none marked.
+    const fixtures = football.betweenSeasons ? NO_WRITES : await ctx.runMutation(sync.syncFixtures, { ...args, rows: football.fixtures });
+    const { reads, problems } = football.scores;
+    const written = await ctx.runMutation(sync.writeScores, { reads, readAt: ranAt });
+    return {
+      ok: true as const,
+      clubs,
+      players,
+      fixtures,
+      rounds,
+      ...(football.betweenSeasons && { betweenSeasons: true as const }),
+      scores: { received: reads.length + problems.length, written, problems },
+    };
+  });
+  await ctx.runMutation(internal.football.sportmonks.sportmonksSync.record, { competition, trigger, ranAt, outcome });
+}
+
+/** The competitions held, or, on a deployment holding none yet, the seeded ones. */
+export async function competitionsHeld(ctx: QueryCtx): Promise<SportmonksCompetition[]> {
+  const held = await ctx.db.query("sportmonksCompetitions").take(COMPETITIONS_MOST + 1);
+  if (held.length > COMPETITIONS_MOST) throw new Error(`More than ${COMPETITIONS_MOST} Sportmonks competitions are held`);
+  if (held.length === 0) return [...SEEDED_COMPETITIONS];
+  return held.map(({ name, competition, on }) => ({ name, competition, on }));
+}
+
+/** The league ids of the competitions that are on; the list seeded first where none is held. */
+export const competitionsOn = internalMutation({
+  args: {},
+  returns: v.array(v.number()),
+  handler: async (ctx) => {
+    if ((await ctx.db.query("sportmonksCompetitions").first()) === null) {
+      for (const competition of SEEDED_COMPETITIONS) await ctx.db.insert("sportmonksCompetitions", competition);
+    }
+    return (await competitionsHeld(ctx)).filter(({ on }) => on).map(({ competition }) => competition);
+  },
+});
+
+const syncArgs = { competition: v.number(), ranAt: v.number() };
+
 export const syncClubs = internalMutation({
-  args: { rows: v.array(clubRecord), ranAt: v.number() },
+  args: { ...syncArgs, rows: v.array(clubRecord) },
   returns: tableWrites,
-  handler: (ctx, { rows, ranAt }) => syncRows(ctx, "sportmonksClubs", rows, ranAt),
+  handler: (ctx, { rows, ...run }) => syncRows(ctx, "sportmonksClubs", rows, run),
 });
 
 export const syncPlayers = internalMutation({
-  args: { rows: v.array(playerRecord), ranAt: v.number() },
+  args: { ...syncArgs, rows: v.array(playerRecord) },
   returns: tableWrites,
-  handler: (ctx, { rows, ranAt }) => syncRows(ctx, "sportmonksPlayers", rows, ranAt),
+  handler: (ctx, { rows, ...run }) => syncRows(ctx, "sportmonksPlayers", rows, run),
 });
 
 export const syncFixtures = internalMutation({
-  args: { rows: v.array(fixtureRecord), ranAt: v.number() },
+  args: { ...syncArgs, rows: v.array(fixtureRecord) },
   returns: tableWrites,
-  handler: (ctx, { rows, ranAt }) => syncRows(ctx, "sportmonksFixtures", rows, ranAt),
+  handler: (ctx, { rows, ...run }) => syncRows(ctx, "sportmonksFixtures", rows, run),
 });
 
 export const syncRounds = internalMutation({
-  args: { rows: v.array(gameweekRecord), ranAt: v.number() },
+  args: { ...syncArgs, rows: v.array(gameweekRecord) },
   returns: tableWrites,
-  handler: (ctx, { rows, ranAt }) => syncRows(ctx, "sportmonksRounds", rows, ranAt),
+  handler: (ctx, { rows, ...run }) => syncRows(ctx, "sportmonksRounds", rows, run),
 });
 
 /** Each read written over the match's held score; returns how many rows changed. */
@@ -100,10 +133,17 @@ export const record = internalMutation({
   returns: v.null(),
   handler: async (ctx, row) => {
     await ctx.db.insert("sportmonksSyncs", row);
-    await emailIfFailed(ctx, "sportmonks", row);
+    await emailIfFailed(ctx, "sportmonks", row, await competitionNamed(ctx, row.competition));
     return null;
   },
 });
+
+/** A competition by its league id, for a failure email's slot and words; null for none given. */
+export async function competitionNamed(ctx: QueryCtx, leagueId: number | undefined): Promise<{ competition: number; name: string } | null> {
+  if (leagueId === undefined) return null;
+  const held = (await competitionsHeld(ctx)).find((each) => each.competition === leagueId);
+  return { competition: leagueId, name: held?.name ?? `league ${leagueId}` };
+}
 
 /** A match's held score, or null before any read gave one. */
 export function scoreOf(ctx: QueryCtx, fixtureCode: number): Promise<Doc<"sportmonksScores"> | null> {
@@ -129,26 +169,34 @@ export async function writeScore(ctx: MutationCtx, read: Infer<typeof scoreRead>
 /** A row keyed as footballSync.ts keys its own: Sportmonks' id, or a round's season and number. */
 type Keyed = { code: number } | { season: number; number: number };
 
-/** Every row sent upserted by its key, and every held row not sent marked dropped at `ranAt`, as
- *  footballSync.ts does: kept, never deleted, and unmarked when sent again. A table here holds at
- *  most a season's few hundred rows, so one mutation reads it whole. */
+/** One competition's rows sent upserted by their key, every one naming the competition, and every
+ *  held row of it not sent marked dropped at `ranAt`, as footballSync.ts does: kept, never
+ *  deleted, and unmarked when sent again. A competition's rows here are at most a season's few
+ *  hundred, so one mutation reads them whole. A row held under no competition (read before
+ *  #1414) is taken as this one's; a club, man or match held under another competition is moved
+ *  to this one, as Sportmonks' ids are one across its leagues. */
 async function syncRows<Table extends SportmonksTable>(
   ctx: MutationCtx,
   table: Table,
-  rows: (WithoutSystemFields<Doc<Table>> & Keyed)[],
-  ranAt: number,
+  sentRows: (WithoutSystemFields<Doc<Table>> & Keyed)[],
+  { competition, ranAt }: { competition: number; ranAt: number },
 ): Promise<TableWrites> {
   // Convex's types can't follow a table union through insert and patch: each row is its table's.
   type Patch = Partial<Doc<Table>>;
+  type Held = Doc<Table> & Keyed & { competition?: number };
+  const rows = sentRows.map((row) => ({ ...row, competition }));
   const writes: TableWrites = { ...NO_WRITES, received: rows.length };
-  const held = new Map<number, Doc<Table> & Keyed>();
-  for (const row of (await ctx.db.query(table).collect()) as (Doc<Table> & Keyed)[]) held.set(keyOf(row), row);
+  const held = new Map<number, Held>();
+  for (const of of [competition, undefined]) {
+    const rowsOf = ctx.db.query(table).withIndex("by_competition", (q) => q.eq("competition", of as Doc<Table>["competition"]));
+    for (const row of (await rowsOf.collect()) as Held[]) held.set(keyOf(row), row);
+  }
   const sent = new Set<number>();
   for (const row of rows) {
     const key = keyOf(row);
     sent.add(key);
-    const was = held.get(key);
-    if (was === undefined) {
+    const was = held.get(key) ?? (await heldElsewhere(ctx, table, row));
+    if (was === null) {
       await ctx.db.insert(table, row);
       writes.inserted += 1;
       continue;
@@ -161,9 +209,22 @@ async function syncRows<Table extends SportmonksTable>(
     if (changed || sentAgain) await ctx.db.patch(table, was._id as Doc<Table>["_id"], { ...row, droppedAt: undefined } as Patch);
   }
   for (const [key, was] of held) {
-    if (sent.has(key) || was.droppedAt !== undefined) continue;
-    await ctx.db.patch(table, was._id as Doc<Table>["_id"], { droppedAt: ranAt } as unknown as Patch);
-    writes.marked += 1;
+    if (sent.has(key)) continue;
+    if (was.droppedAt === undefined) writes.marked += 1;
+    else if (was.competition === competition) continue;
+    await ctx.db.patch(table, was._id as Doc<Table>["_id"], { droppedAt: was.droppedAt ?? ranAt, competition } as unknown as Patch);
   }
   return writes;
+}
+
+/** A club, man or match sent for one competition but held under another, by Sportmonks' id; null
+ *  for a round, which is keyed within its competition, or for one held nowhere. */
+async function heldElsewhere<Table extends SportmonksTable>(ctx: MutationCtx, table: Table, row: Keyed) {
+  if (!("code" in row) || table === "sportmonksRounds") return null;
+  const coded = table as Exclude<SportmonksTable, "sportmonksRounds">;
+  const found = await ctx.db
+    .query(coded)
+    .withIndex("by_code", (q) => q.eq("code", row.code))
+    .first();
+  return found as (Doc<Table> & Keyed & { competition?: number }) | null;
 }
