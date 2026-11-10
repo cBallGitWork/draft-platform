@@ -39,6 +39,16 @@ approved its rows (6 Nov 2026, #454).
   sheets, goals conceded and penalties; the Premier League's for every other stat. That split is
   for now: Craig is investigating the best ways to get them. `S07.5`
 - FPL's bonus points and BPS aren't stored. `S07.6`
+- An assist is a fantasy assist, as FPL's rules class one: "We need fantasy assists. FPL rules tell
+  you what is classed as" (Craig, 10 Nov 2026). Besides the last pass, that is a shot saved,
+  blocked or off the woodwork and scored from the rebound, a penalty or free kick won and scored
+  directly (not when its winner takes it), and an own goal forced. Last season these extras were
+  252 of FPL's 942 Premier League assists, "It's 30%" (Craig, 10 Nov 2026). The commentary's
+  assist line and the match page's assist mark follow the same rule (Craig, 10 Nov 2026). `S07.11`
+- Sportmonks sends the last pass and penalties won, but not the rebound, free-kick or own-goal
+  kinds. We ask Sportmonks first whether a plan or add-on sends them; until then the last pass and
+  penalties won count. Adding them by hand isn't the answer: "I still have to check every goal"
+  (Craig, 10 Nov 2026). `S07.12`
 - At the switch to Sportmonks (`spec/20`), the two answers above that name both feeds (`S07.1`'s
   "both feeds" and `S07.5`'s split) are withdrawn: one feed sends every stat, so a match stops
   being provisional once it has sent every player who played (Craig, 9 Nov 2026, on #1196). `S07.10`
