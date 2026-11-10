@@ -5,17 +5,18 @@ import { errorMessage, logFailure } from "../../shared/errors";
 import { withHeartbeat } from "../../heartbeats/heartbeat";
 import { emailIfFailed } from "../../admin/feedFailureEmails";
 import { LIVE_WINDOW_MS } from "../../stats/liveStats";
-import { scoreRead, sideRunFields, sportmonksEvent, sportmonksLineupMan, type sideMatchOutcome } from "../../schema";
+import { scoreRead, sideRunFields, sportmonksEvent, sportmonksLineupMan, sportmonksTickFields, type sideMatchOutcome } from "../../schema";
 import { getData, liveFixturesUrl, MULTI_FIXTURES_MAX, sportmonksToken } from "./sportmonks";
 import { mapSportmonksMatch } from "./sportmonksMatch";
 import { SPORTMONKS, type RawFixture } from "./sportmonksRaw";
-import { scoreOf, writeScore } from "./sportmonksSync";
+import { competitionNamed, competitionsHeld, scoreOf, writeScore } from "./sportmonksSync";
 
-// Sportmonks' live tick (#1391), run every minute by crons.ts as `liveStatsSync` is: each Scottish
-// match from kickoff to full time read in one call, with its lineups (starters, bench, formation
-// places), each man's running totals (`lineups.details`) and its events timeline, written over the
-// last read. No match on, no call and no row; otherwise a row a tick, each match read or why not,
-// which the feeds page judges and a failure of emails the admin. Where the deployment has no
+// Sportmonks' live tick (#1391), run every minute by crons.ts as `liveStatsSync` is: each match of
+// a competition that is on (#1414), from kickoff to full time, read with its competition's others
+// in one call, with its lineups (starters, bench, formation places), each man's running totals
+// (`lineups.details`) and its events timeline, written over the last read. No match on, no call
+// and no row; otherwise a row a tick for each competition with a match on, each match read or why
+// not, which the feeds page judges and a failure of emails the admin. Where the deployment has no
 // `SPORTMONKS_API_TOKEN` it does nothing.
 
 type MatchOutcome = Infer<typeof sideMatchOutcome>;
@@ -23,26 +24,30 @@ type MatchOutcome = Infer<typeof sideMatchOutcome>;
 /** What the log says, before the error, when a tick fails whole. */
 export const SPORTMONKS_TICK_FAILED_LOG = "Sportmonks live tick failed";
 
-/** The Scottish matches being played at `now`: kicked off within the live window, not dropped,
- *  and not yet read at full time. The read that finds full time is a match's last. */
-export async function sportmonksLiveMatches(ctx: QueryCtx, now: number): Promise<{ fixtureCode: number; kickoff: number }[]> {
+const liveMatch = v.object({ fixtureCode: v.number(), kickoff: v.number(), competition: v.number() });
+
+/** The matches of the competitions that are on being played at `now`: kicked off within the live
+ *  window, not dropped, and not yet read at full time. The read that finds full time is a match's
+ *  last. A match held under no competition yet waits for the six-hourly read to name one. */
+export async function sportmonksLiveMatches(ctx: QueryCtx, now: number): Promise<Infer<typeof liveMatch>[]> {
+  const on = new Set((await competitionsHeld(ctx)).filter((each) => each.on).map(({ leagueId }) => leagueId));
   const kickedOff = ctx.db
     .query("sportmonksFixtures")
     .withIndex("by_kickoff", (q) => q.gt("kickoff", now - LIVE_WINDOW_MS).lte("kickoff", now));
   const found = [];
-  // Uncapped: matches kicked off within one window, at most a round's six.
-  for await (const { code, kickoff, droppedAt } of kickedOff) {
-    if (droppedAt !== undefined || kickoff === null) continue;
+  // Uncapped: matches kicked off within one window, at most a round's few in each competition.
+  for await (const { code, kickoff, droppedAt, competition } of kickedOff) {
+    if (droppedAt !== undefined || kickoff === null || competition === undefined || !on.has(competition)) continue;
     const score = await scoreOf(ctx, code);
-    if (score?.state !== "fullTime") found.push({ fixtureCode: code, kickoff });
+    if (score?.state !== "fullTime") found.push({ fixtureCode: code, kickoff, competition });
   }
   return found;
 }
 
 export const live = internalQuery({
   args: { now: v.number() },
-  returns: v.array(v.number()),
-  handler: async (ctx, { now }) => (await sportmonksLiveMatches(ctx, now)).map(({ fixtureCode }) => fixtureCode),
+  returns: v.array(liveMatch),
+  handler: (ctx, { now }) => sportmonksLiveMatches(ctx, now),
 });
 
 export const tick = internalAction({
@@ -53,25 +58,40 @@ export const tick = internalAction({
     if (token === null) return null;
     return withHeartbeat("sportmonksLiveTick", async () => {
       const ranAt = Date.now();
-      let outcome: Infer<typeof sideRunFields.outcome>;
+      let live: Infer<typeof liveMatch>[];
       try {
-        const live = await ctx.runQuery(internal.football.sportmonks.sportmonksLive.live, { now: ranAt });
-        if (live.length === 0) return null;
-        const matches: MatchOutcome[] = [];
-        for (let start = 0; start < live.length; start += MULTI_FIXTURES_MAX) {
-          const codes = live.slice(start, start + MULTI_FIXTURES_MAX);
-          const { data } = await getData<RawFixture[]>(liveFixturesUrl(codes), token);
-          for (const fixtureCode of codes) matches.push(await writeLiveMatch(ctx, fixtureCode, data, ranAt));
-        }
-        outcome = { ok: true, matches };
+        live = await ctx.runQuery(internal.football.sportmonks.sportmonksLive.live, { now: ranAt });
       } catch (error: unknown) {
-        outcome = { ok: false, error: logFailure(SPORTMONKS_TICK_FAILED_LOG, error) };
+        // Before any competition is known, a failure is the tick's own, on no competition's row.
+        const outcome = { ok: false as const, error: logFailure(SPORTMONKS_TICK_FAILED_LOG, error) };
+        await ctx.runMutation(internal.football.sportmonks.sportmonksLive.recordTick, { ranAt, outcome });
+        return null;
       }
-      await ctx.runMutation(internal.football.sportmonks.sportmonksLive.recordTick, { ranAt, outcome });
+      // Each competition with a match on is its own row: one the plan refuses fails alone.
+      for (const competition of new Set(live.map((match) => match.competition))) {
+        const codes = live.filter((match) => match.competition === competition).map(({ fixtureCode }) => fixtureCode);
+        const outcome = await tickCompetition(ctx, token, codes, ranAt);
+        await ctx.runMutation(internal.football.sportmonks.sportmonksLive.recordTick, { competition, ranAt, outcome });
+      }
       return null;
     });
   },
 });
+
+/** One competition's live matches read, `MULTI_FIXTURES_MAX` to a call, and written. */
+async function tickCompetition(ctx: ActionCtx, token: string, live: number[], ranAt: number): Promise<Infer<typeof sideRunFields.outcome>> {
+  try {
+    const matches: MatchOutcome[] = [];
+    for (let start = 0; start < live.length; start += MULTI_FIXTURES_MAX) {
+      const codes = live.slice(start, start + MULTI_FIXTURES_MAX);
+      const { data } = await getData<RawFixture[]>(liveFixturesUrl(codes), token);
+      for (const fixtureCode of codes) matches.push(await writeLiveMatch(ctx, fixtureCode, data, ranAt));
+    }
+    return { ok: true, matches };
+  } catch (error: unknown) {
+    return { ok: false, error: logFailure(SPORTMONKS_TICK_FAILED_LOG, error) };
+  }
+}
 
 /** One match from a live read, written; a match the read left out, or one it couldn't map, is
  *  that match's failure on the row, and the rest go on. */
@@ -105,11 +125,11 @@ export const writeMatch = internalMutation({
 });
 
 export const recordTick = internalMutation({
-  args: sideRunFields,
+  args: sportmonksTickFields,
   returns: v.null(),
   handler: async (ctx, row) => {
     await ctx.db.insert("sportmonksLiveTicks", row);
-    await emailIfFailed(ctx, "sportmonksLive", row);
+    await emailIfFailed(ctx, "sportmonksLive", row, await competitionNamed(ctx, row.competition));
     return null;
   },
 });

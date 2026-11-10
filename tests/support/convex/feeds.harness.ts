@@ -12,7 +12,10 @@ export { asAdmin };
 /** The time the tests' runs start from. */
 export const T0 = Date.parse("2026-10-17T12:00:00Z");
 
-const NO_WRITES = { received: 0, inserted: 0, updated: 0, marked: 0, unmarked: 0 };
+/** A Sportmonks feed's runs are the seeded competition's that is on (#1414). */
+const SCOTTISH_PREMIERSHIP = 501;
+
+const NO_WRITES ={ received: 0, inserted: 0, updated: 0, marked: 0, unmarked: 0 };
 
 /** What a run found: a success, the run failing whole, or (a sync or tick reading matches) one
  *  of its matches failing. */
@@ -52,7 +55,9 @@ export function recordRun(t: TestConvex, feed: Feed, ranAt: number, ran: Ran = "
         rounds: NO_WRITES,
         scores: { received: 0, written: 0, problems: [] },
       };
-      await ctx.db.insert("sportmonksSyncs", { trigger: "cron", ranAt, outcome: failed ?? ok });
+      await ctx.db.insert("sportmonksSyncs", { competition: SCOTTISH_PREMIERSHIP, trigger: "cron", ranAt, outcome: failed ?? ok });
+    } else if (feed === "sportmonksLive") {
+      await ctx.db.insert("sportmonksLiveTicks", { competition: SCOTTISH_PREMIERSHIP, ranAt, outcome: failed ?? { ok: true, matches } });
     } else if (feed === "liveStats") {
       await ctx.db.insert("liveStatsTicks", { ranAt, outcome: failed ?? { ok: true, matches } });
     } else {

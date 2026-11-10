@@ -85,6 +85,23 @@ test("a run whose every match failed is a failure, though the run itself finishe
   expect(await feedAt(t, "matchStats", T0)).toMatchObject({ state: "failing", lastSuccessAt: null, lastError: { error: "gameweek 8's reads failed" } });
 });
 
+test("each Sportmonks competition that is on is its own row, judged by its own runs alone (#1414)", async () => {
+  const t = freshConvex();
+  await t.run(async (ctx) => {
+    await ctx.db.insert("sportmonksCompetitions", { name: "Scottish Premiership", leagueId: 501, on: true });
+    await ctx.db.insert("sportmonksCompetitions", { name: "Premier League", leagueId: 8, on: true });
+    await ctx.db.insert("sportmonksCompetitions", { name: "Serie A", leagueId: 384, on: false });
+  });
+  await recordRun(t, "sportmonks", T0);
+  await t.run((ctx) => ctx.db.insert("sportmonksSyncs", { competition: 8, trigger: "cron", ranAt: T0, outcome: { ok: false, error: "answered 403" } }));
+
+  const rows = (await feedsAt(t, T0)).feeds.filter(({ feed }) => feed === "sportmonks");
+  expect(rows.map(({ competition, state }) => ({ competition, state }))).toEqual([
+    { competition: "Scottish Premiership", state: "fine" },
+    { competition: "Premier League", state: "failing" },
+  ]);
+});
+
 // Every feed has a cron now (the positions sync since #1194), so this is judged on its own.
 test("a feed no cron runs is not scheduled, never late, however old its last success", () => {
   const long = T0 + 30 * 24 * HOUR_MS;

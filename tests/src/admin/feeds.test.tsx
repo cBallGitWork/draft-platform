@@ -139,6 +139,22 @@ describe("the feeds", () => {
     expect(within(football).getByText(neverWords)).toBeTruthy();
     expect(within(football).getByText(feedStateWords.notRunningYet).className).toContain("text-muted");
   });
+
+  it("a Sportmonks feed has a row for each competition, named with it, one failing on its own (#1414)", async () => {
+    const lastError = { at: NOW - HOUR_MS, error: "answered 403" };
+    openFeeds({
+      ...QUIET,
+      feeds: [
+        { feed: "sportmonks", competition: "Scottish Premiership", state: "fine", lastRunAt: NOW - HOUR_MS, lastSuccessAt: NOW - HOUR_MS, lastError: null },
+        { feed: "sportmonks", competition: "Premier League", state: "failing", lastRunAt: lastError.at, lastSuccessAt: null, lastError },
+      ],
+    });
+
+    const scottish = await feedRows(`${feedNames.sportmonks.name}: Scottish Premiership`);
+    expect(within(scottish).getByText(feedStateWords.fine)).toBeTruthy();
+    const premierLeague = await feedRows(`${feedNames.sportmonks.name}: Premier League`);
+    expect(within(premierLeague).getByText(feedStateWords.failing).className).toContain("text-event");
+  });
 });
 
 describe("the feeds table", () => {

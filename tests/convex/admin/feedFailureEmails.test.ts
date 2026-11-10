@@ -101,6 +101,18 @@ describe("at most once a day for each feed", () => {
     expect(sent.map((email) => email.subject)).toEqual([subjectOf("liveStats"), subjectOf("football")]);
   });
 
+  test("each Sportmonks competition counts on its own, its email naming it (#1414)", async () => {
+    const failed = { ok: false as const, error: ERROR };
+    for (const competition of [8, 501, 8]) {
+      await t.mutation(internal.football.sportmonks.sportmonksSync.record, { competition, trigger: "cron", ranAt: now, outcome: failed });
+    }
+    await t.finishAllScheduledFunctions(vi.runAllTimers);
+    expect(sent.map((email) => email.subject)).toEqual([
+      `${PRODUCT_NAME}: ${FEED_NAMES.sportmonks.name}: Premier League failed`,
+      `${PRODUCT_NAME}: ${FEED_NAMES.sportmonks.name}: Scottish Premiership failed`,
+    ]);
+  });
+
   test("a day is the gap since the last email, to the millisecond", () => {
     expect(emailsNow(null, now)).toBe(true);
     expect(emailsNow(now, now + FAILURE_EMAIL_GAP_MS - 1)).toBe(false);

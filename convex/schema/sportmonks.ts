@@ -3,9 +3,9 @@ import { v } from "convex/values";
 import { clubRecord, droppedAt, failure, fixtureRecord, gameweekRecord, playerRecord, scoreRead, scoreWrites, syncTrigger, tableWrites } from "./football";
 import { sideRunFields } from "./live";
 
-// Sportmonks' reads (#1391), slice 1 of the switch off FPL and the Premier League feeds: the
-// Scottish Premiership on Sportmonks' free plan, kept apart from the tables FPL fills, so nothing
-// the site shows changes yet. Each row is keyed on Sportmonks' own id (a club's, player's or
+// Sportmonks' reads (#1391), slice 1 of the switch off FPL and the Premier League feeds: each
+// competition on the list that is on (#1414), every row naming its own, kept apart from the tables
+// FPL fills, so nothing the site shows changes yet. Each row is keyed on Sportmonks' own id (a club's, player's or
 // match's `code` is Sportmonks' id for it), and a round on its season and number, as a gameweek
 // is. football/sportmonks/sportmonksSync.ts writes them.
 
@@ -39,8 +39,24 @@ export const sportmonksEvent = v.object({
   addition: v.union(v.string(), v.null()),
 });
 
-/** One run of the six-hourly read: what each table took, or why it failed. */
+/** The competition a row was read for, by Sportmonks' league id (#1414). Absent only on rows read
+ *  before competitions were a list: the next six-hourly read of a competition takes those as its
+ *  own, and run rows without one are on no competition's row of the feeds page. */
+const competition = v.optional(v.number());
+
+/** One competition Sportmonks is read for (#1414): data, never a constant, so a league the plan
+ *  starts covering is a row turned on. Seeded with the beta's two (sportmonks.ts). */
+export const sportmonksCompetition = v.object({
+  name: v.string(),
+  /** Sportmonks' id for the league, e.g. 501 for the Scottish Premiership. */
+  leagueId: v.number(),
+  /** Whether the six-hourly read and the live tick read it. */
+  on: v.boolean(),
+});
+
+/** One run of the six-hourly read for one competition: what each table took, or why it failed. */
 export const sportmonksSyncFields = {
+  competition,
   trigger: syncTrigger,
   ranAt: v.number(),
   outcome: v.union(
@@ -58,11 +74,19 @@ export const sportmonksSyncFields = {
   ),
 };
 
+/** One live tick's run for one competition with a match on. */
+export const sportmonksTickFields = { competition, ...sideRunFields };
+
 export const sportmonksTables = {
-  sportmonksClubs: defineTable(clubRecord.extend({ droppedAt })).index("by_code", ["code"]),
-  sportmonksPlayers: defineTable(playerRecord.extend({ droppedAt })).index("by_code", ["code"]),
-  sportmonksFixtures: defineTable(fixtureRecord.extend({ droppedAt })).index("by_code", ["code"]).index("by_kickoff", ["kickoff"]),
-  sportmonksRounds: defineTable(gameweekRecord.extend({ droppedAt })).index("by_season_and_number", ["season", "number"]),
+  sportmonksCompetitions: defineTable(sportmonksCompetition).index("by_leagueId", ["leagueId"]),
+  sportmonksClubs: defineTable(clubRecord.extend({ droppedAt, competition })).index("by_code", ["code"]).index("by_competition", ["competition"]),
+  sportmonksPlayers: defineTable(playerRecord.extend({ droppedAt, competition })).index("by_code", ["code"]).index("by_competition", ["competition"]),
+  sportmonksFixtures: defineTable(fixtureRecord.extend({ droppedAt, competition }))
+    .index("by_code", ["code"])
+    .index("by_kickoff", ["kickoff"])
+    .index("by_competition", ["competition"]),
+  // A round is keyed on its competition, season and number: two competitions both have a round 1.
+  sportmonksRounds: defineTable(gameweekRecord.extend({ droppedAt, competition })).index("by_competition", ["competition"]),
   /** Each match's newest score and clock, from the six-hourly read or the live one. */
   sportmonksScores: defineTable(scoreRead.extend({ readAt: v.number() })).index("by_fixtureCode", ["fixtureCode"]),
   /** Each match's lineups and events as the newest live read gave them, replaced whole by each. */
@@ -73,7 +97,7 @@ export const sportmonksTables = {
     events: v.array(sportmonksEvent),
     readAt: v.number(),
   }).index("by_fixtureCode", ["fixtureCode"]),
-  sportmonksSyncs: defineTable(sportmonksSyncFields),
-  /** One row a live tick that found a Scottish match on, each match read or why not. */
-  sportmonksLiveTicks: defineTable(sideRunFields),
+  sportmonksSyncs: defineTable(sportmonksSyncFields).index("by_competition", ["competition"]),
+  /** One row a live tick for each competition it found a match on in, each match read or why not. */
+  sportmonksLiveTicks: defineTable(sportmonksTickFields).index("by_competition", ["competition"]),
 };

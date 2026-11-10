@@ -38,7 +38,7 @@ export { siteScoringKind } from "./schema/scoring";
 export { placementShape } from "./schema/lineup";
 export { rankedPlayer } from "./schema/draft";
 export { pastSeasonRow } from "./schema/pastSeasons";
-export { sportmonksLineupMan, sportmonksEvent, sportmonksSyncFields } from "./schema/sportmonks";
+export { sportmonksCompetition, sportmonksLineupMan, sportmonksEvent, sportmonksSyncFields, sportmonksTickFields } from "./schema/sportmonks";
 
 export default defineSchema({
   ...authTables,

@@ -29,7 +29,11 @@ export const feedCheckTables = {
 // When the admin was last emailed that each feed failed (#319, spec/15), or that the football feed
 // skipped a league (#980): one row a kind, so he
 // hears at most once a day for each (admin/feedFailureEmails.ts). `emailedAt` is the start of the
-// failed run it emailed for, as the next failure is measured from its run's start.
+// failed run it emailed for, as the next failure is measured from its run's start. A Sportmonks
+// feed has one row a competition, by its league id (#1414), so one failing never quiets another's.
 export const feedFailureEmailTables = {
-  feedFailureEmails: defineTable({ feed: failureEmailKindValidator, emailedAt: v.number() }).index("by_feed", ["feed"]),
+  feedFailureEmails: defineTable({ feed: failureEmailKindValidator, competition: v.optional(v.number()), emailedAt: v.number() }).index(
+    "by_feed_and_competition",
+    ["feed", "competition"],
+  ),
 };
