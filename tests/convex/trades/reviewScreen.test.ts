@@ -5,7 +5,7 @@ import { nameOf } from "../../support/convex/lineupSquad.harness";
 import { ANN, ANNS_FIRST_DROP, BOB, CAT, SAKA, tradeLeague, type TradeLeague } from "../../support/convex/trades.harness";
 import { draftOver, noDraft } from "../../support/convex/waivers.harness";
 
-// The Offers tab's To review group (#383; Craig, 10 Nov 2026): the trades in review the caller
+// The Offers tab's To review group (#383; Craig, 10 Nov 2026; S08.2, S08.4): the trades in review the caller
 // reviews, what he may do to each, and only his own vote, never the count.
 
 const DAN = MANAGERS[3];

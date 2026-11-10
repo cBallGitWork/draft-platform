@@ -29,7 +29,8 @@ import { squadFullRefusal, squadsAfter, tradeWarnings } from "./tradeSquads";
 // a league with no review. Under a commissioner veto, the commissioner has 24 hours to block it;
 // a trade he is in goes to the co-commissioner, or to a league vote if there is none. Under a
 // league vote, the managers of the other teams still playing (not on the auto team) have 24 hours,
-// and it is blocked only if most of them vote against. Either way the reviewers get a Mail letter
+// and it is blocked only if most of them vote against; a voter can take his Against back until the
+// 24 hours are up (`takeBack`; Craig, 10 Nov 2026). Either way the reviewers get a Mail letter
 // to act on, a blocked trade files a letter to the whole league, and one that clears review the
 // usual trade letter. Once through, its players move at once: the commissioner's own move
 // (../squads/squads.ts `move`) is filed for each, and a gameweek already under way keeps their

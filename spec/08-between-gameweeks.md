@@ -85,3 +85,11 @@ From `/grill trades` (25 Oct 2026).
 - While a team is on the auto team (`spec/09`), no offer goes to or from it, and its open offers
   close when the auto team switches on; a trade already accepted and in review finishes it. Its
   manager doesn't vote: "most of them" is most of the managers still playing (31 Oct 2026).
+- A trade you review shows in a "To review" group at the top of Offers: its columns read as the two
+  teams' sides, Waiting on shows "You", and Closes shows when the review ends. Selecting it opens
+  its panel with both sides, the note, the review's end and Block behind a confirm. The Mail
+  review letter's one link opens it (Craig, 10 Nov 2026, #383). `S08.2`
+- An Against can be taken back until the 24 hours are up, in case of a typo: the button switches
+  to "Take back" (Craig, 10 Nov 2026, #383). `S08.3`
+- Nobody sees how a vote stands until the review ends: the blocked or made letter is the result,
+  and each voter sees only his own vote (Craig, 10 Nov 2026, #383). `S08.4`

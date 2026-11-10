@@ -1,4 +1,4 @@
-// The Offers tab's To review group (#383; Craig, 10 Nov 2026): a trade the manager reviews sits at
+// The Offers tab's To review group (#383; Craig, 10 Nov 2026; S08.2, S08.3): a trade the manager reviews sits at
 // the top, its sides read as what each team gets, waiting on him until the review ends. Its panel
 // has Block behind a confirm under a veto; under a vote, Against, then his own vote with Take back.
 // A commissioner with no team sees the trades he reviews, and a Mail letter's link opens one.
