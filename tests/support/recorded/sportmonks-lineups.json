@@ -1,0 +1,47 @@
+{
+  "data": [
+    {
+      "id": 19100001,
+      "league_id": 501,
+      "season_id": 25000,
+      "round_id": 360001,
+      "state_id": 5,
+      "name": "Celtic vs Rangers",
+      "starting_at": "2025-09-01 11:30:00",
+      "starting_at_timestamp": 1756726200,
+      "formations": [
+        { "id": 1, "fixture_id": 19100001, "participant_id": 53, "formation": "4-3-3", "location": "home" },
+        { "id": 2, "fixture_id": 19100001, "participant_id": 62, "formation": "4-2-3-1", "location": "away" }
+      ],
+      "lineups": [
+        { "id": 1, "fixture_id": 19100001, "player_id": 1001, "team_id": 53, "position_id": 24, "type_id": 11, "formation_field": "1:1", "formation_position": 1, "detailedposition": { "id": 24, "name": "Goalkeeper" } },
+        { "id": 2, "fixture_id": 19100001, "player_id": 1002, "team_id": 53, "position_id": 25, "type_id": 11, "formation_field": "2:1", "formation_position": 2, "detailedposition": { "id": 154, "name": "Right Back" } },
+        { "id": 3, "fixture_id": 19100001, "player_id": 1003, "team_id": 53, "position_id": 25, "type_id": 11, "formation_field": "2:2", "formation_position": 3, "detailedposition": { "id": 148, "name": "Centre Back" } },
+        { "id": 4, "fixture_id": 19100001, "player_id": 1004, "team_id": 53, "position_id": 25, "type_id": 11, "formation_field": "2:3", "formation_position": 4, "detailedposition": { "id": 148, "name": "Centre Back" } },
+        { "id": 5, "fixture_id": 19100001, "player_id": 1005, "team_id": 53, "position_id": 25, "type_id": 11, "formation_field": "2:4", "formation_position": 5, "detailedposition": { "id": 155, "name": "Left Back" } },
+        { "id": 6, "fixture_id": 19100001, "player_id": 1006, "team_id": 53, "position_id": 26, "type_id": 11, "formation_field": "3:1", "formation_position": 6, "detailedposition": { "id": 153, "name": "Central Midfield" } },
+        { "id": 7, "fixture_id": 19100001, "player_id": 1007, "team_id": 53, "position_id": 26, "type_id": 11, "formation_field": "3:2", "formation_position": 7, "detailedposition": { "id": 149, "name": "Defensive Midfield" } },
+        { "id": 8, "fixture_id": 19100001, "player_id": 1008, "team_id": 53, "position_id": 26, "type_id": 11, "formation_field": "3:3", "formation_position": 8, "detailedposition": { "id": 153, "name": "Central Midfield" } },
+        { "id": 9, "fixture_id": 19100001, "player_id": 1009, "team_id": 53, "position_id": 27, "type_id": 11, "formation_field": "4:1", "formation_position": 9, "detailedposition": { "id": 156, "name": "Right Wing" } },
+        { "id": 10, "fixture_id": 19100001, "player_id": 1010, "team_id": 53, "position_id": 27, "type_id": 11, "formation_field": "4:2", "formation_position": 10, "detailedposition": { "id": 151, "name": "Centre Forward" } },
+        { "id": 11, "fixture_id": 19100001, "player_id": 1011, "team_id": 53, "position_id": 27, "type_id": 11, "formation_field": "4:3", "formation_position": 11, "detailedposition": { "id": 152, "name": "Left Wing" } },
+        { "id": 12, "fixture_id": 19100001, "player_id": 1012, "team_id": 53, "position_id": 26, "type_id": 12, "formation_field": null, "formation_position": null, "detailedposition": { "id": 153, "name": "Central Midfield" } },
+        { "id": 21, "fixture_id": 19100001, "player_id": 2001, "team_id": 62, "position_id": 24, "type_id": 11, "formation_field": "1:1", "formation_position": 1, "detailedposition": { "id": 24, "name": "Goalkeeper" } },
+        { "id": 22, "fixture_id": 19100001, "player_id": 2002, "team_id": 62, "position_id": 25, "type_id": 11, "formation_field": "2:1", "formation_position": 2, "detailedposition": { "id": 154, "name": "Right Back" } },
+        { "id": 23, "fixture_id": 19100001, "player_id": 2003, "team_id": 62, "position_id": 25, "type_id": 11, "formation_field": "2:2", "formation_position": 3, "detailedposition": { "id": 148, "name": "Centre Back" } },
+        { "id": 24, "fixture_id": 19100001, "player_id": 2004, "team_id": 62, "position_id": 25, "type_id": 11, "formation_field": "2:3", "formation_position": 4, "detailedposition": { "id": 148, "name": "Centre Back" } },
+        { "id": 25, "fixture_id": 19100001, "player_id": 2005, "team_id": 62, "position_id": 25, "type_id": 11, "formation_field": "2:4", "formation_position": 5, "detailedposition": { "id": 155, "name": "Left Back" } },
+        { "id": 26, "fixture_id": 19100001, "player_id": 2006, "team_id": 62, "position_id": 26, "type_id": 11, "formation_field": "3:1", "formation_position": 6, "detailedposition": { "id": 149, "name": "Defensive Midfield" } },
+        { "id": 27, "fixture_id": 19100001, "player_id": 2007, "team_id": 62, "position_id": 26, "type_id": 11, "formation_field": "3:2", "formation_position": 7, "detailedposition": { "id": 153, "name": "Central Midfield" } },
+        { "id": 28, "fixture_id": 19100001, "player_id": 2008, "team_id": 62, "position_id": 27, "type_id": 11, "formation_field": "4:1", "formation_position": 8, "detailedposition": { "id": 156, "name": "Right Wing" } },
+        { "id": 29, "fixture_id": 19100001, "player_id": 2009, "team_id": 62, "position_id": 26, "type_id": 11, "formation_field": "4:2", "formation_position": 10, "detailedposition": { "id": 150, "name": "Attacking Midfield" } },
+        { "id": 30, "fixture_id": 19100001, "player_id": 2010, "team_id": 62, "position_id": 27, "type_id": 11, "formation_field": "4:3", "formation_position": 11, "detailedposition": { "id": 152, "name": "Left Wing" } },
+        { "id": 31, "fixture_id": 19100001, "player_id": 2011, "team_id": 62, "position_id": 27, "type_id": 11, "formation_field": "5:1", "formation_position": 9, "detailedposition": { "id": 151, "name": "Centre Forward" } },
+        { "id": 32, "fixture_id": 19100001, "player_id": 2012, "team_id": 62, "position_id": 27, "type_id": 12, "formation_field": null, "formation_position": null, "detailedposition": { "id": 151, "name": "Centre Forward" } }
+      ]
+    }
+  ],
+  "subscription": [],
+  "rate_limit": { "resets_in_seconds": 3600, "remaining": 2999, "requested_entity": "Fixture" },
+  "timezone": "UTC"
+}

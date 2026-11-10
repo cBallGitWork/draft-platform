@@ -26,15 +26,27 @@ export const MULTI_FIXTURES_MAX = 50;
 /** What a live read asks for with each match: its score, clock, lineups, each man's stats and the
  *  events timeline, all in one call. */
 const LIVE_INCLUDES = "participants;scores;periods;lineups.details;events";
+/** What a squad read asks for with each man: himself. */
+const SQUAD_INCLUDES = "players.player";
+/** What the positions read asks for with each squad man: himself, with Sportmonks' positions for him. */
+export const POSITIONS_SQUAD_INCLUDES = "players.player.position;players.player.detailedPosition";
+/** What the positions read asks for with each played match: each side's formation and where each
+ *  man lined up in it. */
+const LINEUPS_INCLUDES = "formations;lineups.detailedPosition";
 
 /** The league, with its current season's id and name. */
 export function leagueUrl(): string {
   return `${SPORTMONKS_API_BASE}/leagues/${SCOTTISH_PREMIERSHIP}?include=currentSeason`;
 }
 
+/** The league, with its current season and every season it has had: the positions read's. */
+export function leagueSeasonsUrl(): string {
+  return `${leagueUrl()};seasons`;
+}
+
 /** A season's clubs, each with its squad and each man in it, a page at a time. */
-export function seasonTeamsUrl(seasonId: number, page: number): string {
-  return `${SPORTMONKS_API_BASE}/teams/seasons/${seasonId}?include=players.player&per_page=${PER_PAGE}&page=${page}`;
+export function seasonTeamsUrl(seasonId: number, page: number, include = SQUAD_INCLUDES): string {
+  return `${SPORTMONKS_API_BASE}/teams/seasons/${seasonId}?include=${include}&per_page=${PER_PAGE}&page=${page}`;
 }
 
 /** A season's stages, each with its rounds, each round with its matches. */
@@ -45,6 +57,11 @@ export function scheduleUrl(seasonId: number): string {
 /** Up to `MULTI_FIXTURES_MAX` matches, read whole for the live tick. */
 export function liveFixturesUrl(fixtureIds: number[]): string {
   return `${SPORTMONKS_API_BASE}/fixtures/multi/${fixtureIds.join(",")}?include=${LIVE_INCLUDES}`;
+}
+
+/** Up to `MULTI_FIXTURES_MAX` played matches, each with its formations and lineups. */
+export function lineupsUrl(fixtureIds: number[]): string {
+  return `${SPORTMONKS_API_BASE}/fixtures/multi/${fixtureIds.join(",")}?include=${LINEUPS_INCLUDES}`;
 }
 
 /** The token, or null where none is set: then nothing reads Sportmonks (the live deployment). */
@@ -70,14 +87,20 @@ export async function readSportmonksPayloads(token: string): Promise<SportmonksP
   const { data: league } = await getData<RawLeague>(leagueUrl(), token);
   const season = league.currentseason;
   if (!season) throw new Error(`${SPORTMONKS} sent no current season for league ${SCOTTISH_PREMIERSHIP}`);
+  const teams = await readSeasonTeams(season.id, token);
+  const { data: schedule } = await getData<RawStage[]>(scheduleUrl(season.id), token);
+  return { league, teams, schedule };
+}
+
+/** A season's clubs with their squads, every page, each man with `include`'s. */
+export async function readSeasonTeams(seasonId: number, token: string, include = SQUAD_INCLUDES): Promise<RawTeam[]> {
   const teams: RawTeam[] = [];
   for (let page = 1, more = true; more; page += 1) {
-    const read = await getData<RawTeam[]>(seasonTeamsUrl(season.id, page), token);
+    const read = await getData<RawTeam[]>(seasonTeamsUrl(seasonId, page, include), token);
     teams.push(...read.data);
     more = read.hasMore;
   }
-  const { data: schedule } = await getData<RawStage[]>(scheduleUrl(season.id), token);
-  return { league, teams, schedule };
+  return teams;
 }
 
 /** The Scottish Premiership as the seam takes it. */
@@ -86,7 +109,7 @@ export async function readSportmonks(token: string): Promise<Football> {
 }
 
 /** The year a season named "2025/2026" starts. */
-function seasonStart(season: RawSeason): number {
+export function seasonStart(season: RawSeason): number {
   const year = Number.parseInt(season.name, 10);
   if (!Number.isInteger(year)) throw new Error(`${SPORTMONKS} sent season name ${JSON.stringify(season.name)}`);
   return year;
@@ -149,7 +172,7 @@ function roundNumber(round: RawRound): number {
 }
 
 /** A match's kickoff in epoch milliseconds, null while it has none. Sportmonks' times are UTC. */
-function kickoffOf(match: RawFixture): number | null {
+export function kickoffOf(match: RawFixture): number | null {
   if (typeof match.starting_at_timestamp === "number") return match.starting_at_timestamp * SECOND_MS;
   if (match.starting_at === null) return null;
   const at = Date.parse(`${match.starting_at.replace(" ", "T")}Z`);

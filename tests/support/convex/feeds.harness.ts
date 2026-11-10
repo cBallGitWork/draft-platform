@@ -53,6 +53,9 @@ export function recordRun(t: TestConvex, feed: Feed, ranAt: number, ran: Ran = "
         scores: { received: 0, written: 0, problems: [] },
       };
       await ctx.db.insert("sportmonksSyncs", { trigger: "cron", ranAt, outcome: failed ?? ok });
+    } else if (feed === "sportmonksPositions") {
+      const ok = { ok: true as const, matchesRead: 0, matchesLeft: 0, startsAdded: 0, labelsReceived: 0, labelsChanged: 0, unknownFormations: [], unknownLabels: [] };
+      await ctx.db.insert("sportmonksPositionsSyncs", { trigger: "cron", ranAt, outcome: failed ?? ok });
     } else if (feed === "liveStats") {
       await ctx.db.insert("liveStatsTicks", { ranAt, outcome: failed ?? { ok: true, matches } });
     } else {

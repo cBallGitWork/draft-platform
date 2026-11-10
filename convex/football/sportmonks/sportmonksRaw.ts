@@ -2,8 +2,18 @@
 // docs give them. Types only: a body of another shape throws where it is read.
 
 export interface RawSeason { id: number; name: string }
-export interface RawLeague { id: number; currentseason?: RawSeason | null }
-export interface RawPlayer { id: number; name: string; display_name?: string | null; common_name?: string | null }
+export interface RawLeague { id: number; currentseason?: RawSeason | null; seasons?: RawSeason[] }
+/** A position as Sportmonks names it: its broad one ("Defender") or its detailed one ("Centre Back"). */
+export interface RawPosition { id: number; name: string }
+export interface RawPlayer {
+  id: number;
+  name: string;
+  display_name?: string | null;
+  common_name?: string | null;
+  /** Asked for only by the positions read (`players.player.position;players.player.detailedPosition`). */
+  position?: RawPosition | null;
+  detailedposition?: RawPosition | null;
+}
 export interface RawSquadMan { player_id: number; player?: RawPlayer | null }
 export interface RawTeam { id: number; name: string; short_code: string | null; players?: RawSquadMan[] }
 export interface RawParticipant { id: number; meta?: { location?: string } }
@@ -18,7 +28,11 @@ export interface RawLineup {
   formation_field: string | null;
   formation_position: number | null;
   details?: RawDetail[];
+  /** Asked for only by the positions read (`lineups.detailedPosition`). */
+  detailedposition?: RawPosition | null;
 }
+/** A side's formation in a match, "4-2-3-1". */
+export interface RawFormation { participant_id: number; formation: string }
 export interface RawEvent {
   id: number;
   type_id: number;
@@ -45,6 +59,7 @@ export interface RawFixture {
   periods?: RawPeriod[];
   lineups?: RawLineup[];
   events?: RawEvent[];
+  formations?: RawFormation[];
 }
 export interface RawRound { id: number; name: string; fixtures?: RawFixture[] }
 export interface RawStage { id: number; rounds?: RawRound[] }

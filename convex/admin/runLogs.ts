@@ -30,6 +30,7 @@ export const PRUNE_ORDER = [
   "matchStats",
   "sportmonksLive",
   "sportmonks",
+  "sportmonksPositions",
 ] as const satisfies readonly Feed[];
 
 type RunRow = { _id: string; _creationTime: number; ranAt: number; outcome: RunOutcome };
