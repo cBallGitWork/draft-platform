@@ -18,6 +18,7 @@ import { heldOrNot, ownerOf, placeOf, squadOf, unheldCodes } from "./squadPlace"
 import { pickFirstLineupAgain } from "../lineup/lineups";
 import { offWaivers } from "../waivers/waiverPlayers";
 import { closeOffersHolding } from "../trades/tradeClose";
+import { onAutoTeam } from "../trades/tradeShut";
 
 // Assigning players (#31, spec/15): the league's commissioners and the admin put any player on any
 // team, one at a time, move him between teams, or release him to free agency. Each files a Mail
@@ -152,6 +153,11 @@ const squadWithWarnings = v.object({
   players: v.array(squadPlayer),
   unheld: unheldCodes,
   warnings: v.array(squadWarning),
+  /** Its manager, by email, or null while it has none (spec/13). */
+  managerEmail: v.union(v.string(), v.null()),
+  /** Its auto team (spec/09; trades/tradeShut.ts): on or off, the gameweek it ends after if its
+   *  manager named one, and whether its manager switched it on himself. */
+  autoTeam: v.object({ on: v.boolean(), endsAfter: v.union(v.number(), v.null()), byManager: v.boolean() }),
 });
 export type SquadWithWarnings = Infer<typeof squadWithWarnings>;
 
@@ -183,7 +189,9 @@ export const squads = query({
           : [];
         players.sort((one, other) => one.name.localeCompare(other.name));
         const warnings = squadWarnings(squad.length, players, playersAreas, rules?.squad ?? null);
-        return { teamId: team._id, teamName: team.name, players, unheld, warnings };
+        const managerEmail = team.managerEmail ?? null;
+        const autoTeam = { on: onAutoTeam(team), endsAfter: team.autoTeam?.endsAfter ?? null, byManager: managerEmail !== null && team.autoTeam?.by === managerEmail };
+        return { teamId: team._id, teamName: team.name, players, unheld, warnings, managerEmail, autoTeam };
       }),
     );
   },

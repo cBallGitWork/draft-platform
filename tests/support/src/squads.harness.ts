@@ -16,6 +16,7 @@ export function fakeSquads({ squads = [], found = [], loading = false, searching
     assign: vi.fn<SquadsSeam["assign"]>(async () => null),
     move: vi.fn<SquadsSeam["move"]>(async () => null),
     release: vi.fn<SquadsSeam["release"]>(async () => null),
+    switchAutoTeam: vi.fn<SquadsSeam["switchAutoTeam"]>(async () => null),
   };
 }
 
@@ -26,4 +27,6 @@ export const squadWithWarnings = (teamId: string, teamName: string, players: Squ
   players,
   unheld,
   warnings,
+  managerEmail: `${teamName.toLowerCase().replaceAll(" ", "")}@example.com`,
+  autoTeam: { on: false, endsAfter: null, byManager: false },
 });

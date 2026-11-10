@@ -16,4 +16,6 @@ export type SquadsSeam = {
   assign(leagueId: Id<"leagues">, playerCode: number, teamId: Id<"teams">): Change;
   move(leagueId: Id<"leagues">, playerCode: number, teamId: Id<"teams">): Change;
   release(leagueId: Id<"leagues">, playerCode: number): Change;
+  /** Switches a team's auto team on or off (spec/09): the commissioner names no gameweek it ends after. */
+  switchAutoTeam(leagueId: Id<"leagues">, teamId: Id<"teams">, on: boolean): Change;
 };

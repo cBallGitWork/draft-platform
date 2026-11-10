@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { useState } from "react";
+import { useId, useState } from "react";
 import type { Id } from "../../convex/_generated/dataModel";
 import type { LeagueSummary } from "../../convex/leagues/myLeagues";
 import { Loading, Notice, PAGE_STACK, PageSection, Panel, PANEL_BODY, PANEL_COLUMNS, PANEL_LIST_ROW, PanelNote, Problem } from "../ui/Panel";
@@ -9,7 +9,14 @@ import { useChange, type Changing } from "../shared/useChange";
 import { useChoiceAmong } from "../shared/useChoiceAmong";
 import { unheldNoticeWords, unheldPlayerWords } from "../shared/words";
 import type { FoundPlayer, SquadsSeam, SquadWithWarnings } from "./seam";
+import { Choice } from "../ui/Choice";
 import {
+  AUTO_TEAM_STATES,
+  autoTeamLabel,
+  autoTeamStateWords,
+  managersSwitchWords,
+  noManagerWords,
+  untilHandedOnWords,
   assignLabel,
   assignWords,
   foundListLabel,
@@ -165,11 +172,38 @@ function FoundRow({
   );
 }
 
+/** A team's manager and its auto team, Off or On (spec/09; the approved auto-team picture): the
+ *  commissioner switches it with no end gameweek, as only its manager names one. A team with no
+ *  manager is locked On until it is handed on; a manager's own switch says whose it is, and until when. */
+function AutoTeamRow({ league, seam, squad, change }: { league: LeagueSummary; seam: SquadsSeam; squad: SquadWithWarnings; change: Changing }) {
+  const { managerEmail, autoTeam } = squad;
+  const name = useId();
+  const note = managerEmail === null ? untilHandedOnWords : autoTeam.byManager ? managersSwitchWords(autoTeam.endsAfter) : null;
+  return (
+    <div className="flex flex-col gap-1 border-b border-panel-rule px-3 py-2">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <span className={managerEmail === null ? "text-muted" : undefined}>{managerEmail ?? noManagerWords}</span>
+        <Choice
+          label={autoTeamLabel}
+          name={name}
+          options={AUTO_TEAM_STATES}
+          words={autoTeamStateWords}
+          chosen={autoTeam.on ? "on" : "off"}
+          disabled={managerEmail === null || change.busy}
+          onChoose={(state) => void change.run(() => seam.switchAutoTeam(league.leagueId, squad.teamId, state === "on"))}
+        />
+      </div>
+      {note !== null && <span className="text-soft">{note}</span>}
+    </div>
+  );
+}
+
 /** One team's squad: its players by name, the limits it breaks, and releasing a player. */
 function Squad({ league, seam, squad, change }: { league: LeagueSummary; seam: SquadsSeam; squad: SquadWithWarnings; change: Changing }) {
   return (
     <Panel title={squad.teamName}>
       <PanelNote edge="t">{playersCount(squad.players.length + squad.unheld.length)}</PanelNote>
+      <AutoTeamRow league={league} seam={seam} squad={squad} change={change} />
       {squad.warnings.map((warning) => (
         <Notice key={warningWords(warning)}>{warningWords(warning)}</Notice>
       ))}
