@@ -3,7 +3,7 @@
 import { andListWords } from "../../convex/shared/moments";
 import { FORM_RESULTS } from "../../convex/table/standings";
 import { menuWords } from "../frame/words";
-import { fewestTeamsWords, gameweekWords, signedWords } from "../shared/words";
+import { failedWords, fewestTeamsWords, gameweekWords, signedWords } from "../shared/words";
 
 export { figureWords, gameweekWords, liveWords, scoreWords, versusWords } from "../shared/words";
 
@@ -65,6 +65,17 @@ export const fixturesListLabel = (gameweek: number) => `${gameweekWords(gameweek
 
 export const tooFewTeamsWords = `Fixtures are drawn once the league has ${fewestTeamsWords}.`;
 export const noGameweeksWords = "The league plays no gameweeks, so it has no fixtures.";
+
+/** A commissioner's fixture swap (spec/09, Fixture edits; the approved auto-team picture): the
+ *  plate's state once a side is picked, the hint, the buttons, and each side's button for screen
+ *  readers. */
+export const editingWords = "Editing";
+export const pickAnotherWords = "Pick a team in another game. Only this gameweek changes.";
+export const saveSwapWords = "Save swap";
+export { cancelWords } from "../shared/words";
+export const pickSideLabel = (side: string) => `Swap ${side}`;
+/** When a swap failed before the server could say why. */
+export const swapFailedWords = failedWords("the fixtures didn't change");
 
 /** Points for less against, signed: "+4.5", "−3", "0". */
 export const differenceWords = signedWords;

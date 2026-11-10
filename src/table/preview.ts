@@ -3,9 +3,9 @@
 
 import { DAY_MS, WEEK_MS } from "../../convex/shared/time";
 import { usedGameweeksOf } from "../../convex/gameweeks/usedGameweeks";
-import { previewChristmasBreak } from "../shared/preview";
+import { previewChristmasBreak, previewSays } from "../shared/preview";
 import type { Id } from "../../convex/_generated/dataModel";
-import type { TableSeam } from "./seam";
+import type { TableScreenSeam } from "./seam";
 import { leagueTableOf, type Drawn } from "./drawnTable";
 
 const firstDeadline = Date.now() - 8 * WEEK_MS + DAY_MS;
@@ -31,4 +31,6 @@ export const previewScored = { ...previewSeason, scores, provisional: previewTea
 /** Team 2, never saving a lineup, is on the auto team, so the table shows its chip. */
 const table = leagueTableOf(previewTeams, { ...previewScored, autoTeams: ["Team 2"] });
 
-export const previewTable: TableSeam = { useLeagueTable: () => table };
+const previewSwap = { swap: previewSays("the fixtures didn't change") };
+
+export const previewTable: TableScreenSeam = { useLeagueTable: () => table, useFixtureSwap: () => previewSwap };

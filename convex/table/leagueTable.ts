@@ -36,6 +36,7 @@ export const scoredFixture = v.object({
   /** Each side's points, the average's for the league's average; null until the gameweek is scored. */
   points: v.union(v.object({ team: v.number(), opponent: v.number() }), v.null()),
 });
+export type ScoredFixture = Infer<typeof scoredFixture>;
 
 /** A team's points in a gameweek scored (gameweekScores.ts's TeamGameweekTotal). */
 const teamResult = v.object({
@@ -50,7 +51,9 @@ const gameweekFixtures = v.object({
   /** The league's own deadline, under the rule in force in the gameweek (#139); the fixtures
    *  open on the first gameweek it hasn't locked. */
   deadline: shownDeadline,
-  fixtures: v.array(scoredFixture),
+  /** Each with its opponent's own id too, null for the league's average: a commissioner's fixture
+   *  swap names both sides of each game (spec/09, Fixture edits). */
+  fixtures: v.array(v.object({ ...scoredFixture.fields, opponentId: v.union(v.id("teams"), v.null()) })),
   /** The teams with a bye, in a league whose odd team out has one: one a game. */
   byes: v.array(v.string()),
 });

@@ -2,12 +2,14 @@
 
 import { vi } from "vitest";
 import { leagueTableOf } from "../../../src/table/drawnTable";
-import type { LeagueTable, TableSeam } from "../../../src/table/seam";
+import type { FixtureSwap, LeagueTable, TableSeam } from "../../../src/table/seam";
 
 /** What the fake server holds: the league's table, null for a league with no rules, or nothing
- *  yet while it loads. Two teams' table by default. */
-export type TableData = { leagueTable?: LeagueTable | null; loading?: boolean };
+ *  yet while it loads. Two teams' table by default. `swapAnswer` is what a fixture swap answers:
+ *  null once made, or the words why not. */
+export type TableData = { leagueTable?: LeagueTable | null; loading?: boolean; swapAnswer?: string | null };
 
-export function fakeTable({ leagueTable = leagueTableOf(["Team 1", "Team 2"]), loading = false }: TableData = {}) {
-  return { useLeagueTable: vi.fn<TableSeam["useLeagueTable"]>(() => (loading ? undefined : leagueTable)) };
+export function fakeTable({ leagueTable = leagueTableOf(["Team 1", "Team 2"]), loading = false, swapAnswer = null }: TableData = {}) {
+  const fixtureSwap = { swap: vi.fn<FixtureSwap["swap"]>(async () => swapAnswer) };
+  return { useLeagueTable: vi.fn<TableSeam["useLeagueTable"]>(() => (loading ? undefined : leagueTable)), useFixtureSwap: () => fixtureSwap, fixtureSwap };
 }
