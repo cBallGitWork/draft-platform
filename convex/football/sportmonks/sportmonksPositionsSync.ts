@@ -34,6 +34,9 @@ export const REGULAR_STARTS = 19;
 /** What the log says, before the error, when a run fails. */
 export const SPORTMONKS_POSITIONS_FAILED_LOG = "Sportmonks positions read failed";
 
+/** What the log says, before the matches' ids, when played matches came back with no starters. */
+export const NO_STARTERS_LOG = "Sportmonks positions: played matches with no starters yet, left to read again";
+
 type Synced = Omit<Extract<Infer<typeof sportmonksPositionsSyncFields.outcome>, { ok: true }>, "ok">;
 const filedMatch = v.object({ fixtureCode: v.number(), starts: v.array(v.object({ playerCode: v.number(), start: sportmonksStart })) });
 
@@ -202,7 +205,12 @@ async function readPositions(ctx: ActionCtx, token: string): Promise<Synced> {
   let startsAdded = 0;
   for (let at = 0; at < reading.length; at += MULTI_FIXTURES_MAX) {
     const { data: matches } = await getData<RawFixture[]>(lineupsUrl(reading.slice(at, at + MULTI_FIXTURES_MAX)), token);
-    const filed = matches.map((match) => ({ fixtureCode: match.id, starts: matchStarts(match, seasonOf.get(match.id)!) }));
+    const read = matches.map((match) => ({ fixtureCode: match.id, starts: matchStarts(match, seasonOf.get(match.id)!) }));
+    // A played match with no starters is Sportmonks not yet filing its lineups: left unread, so a
+    // later run reads it again, and logged.
+    const empty = read.filter(({ starts }) => starts.length === 0).map(({ fixtureCode }) => fixtureCode);
+    if (empty.length > 0) console.error(`${NO_STARTERS_LOG}: ${empty.join(", ")}`);
+    const filed = read.filter(({ starts }) => starts.length > 0);
     for (const { starts } of filed) positionsFromStarts(starts.map((each) => each.start)).unknownFormations.forEach((formation) => unknownFormations.add(formation));
     startsAdded += await ctx.runMutation(internal.football.sportmonks.sportmonksPositionsSync.recordStarts, { matches: filed });
   }

@@ -5,7 +5,7 @@
 import { afterEach, beforeEach, expect, test, vi } from "vitest";
 import { internal } from "../../../../convex/_generated/api";
 import { leagueSeasonsUrl, lineupsUrl, POSITIONS_SQUAD_INCLUDES, scheduleUrl, seasonTeamsUrl, SPORTMONKS_TOKEN_ENV } from "../../../../convex/football/sportmonks/sportmonks";
-import { REGULAR_STARTS } from "../../../../convex/football/sportmonks/sportmonksPositionsSync";
+import { NO_STARTERS_LOG, REGULAR_STARTS } from "../../../../convex/football/sportmonks/sportmonksPositionsSync";
 import type { RawFixture } from "../../../../convex/football/sportmonks/sportmonksRaw";
 import { DAY_MS } from "../../../../convex/shared/time";
 import { freshConvex, silenceConsoleError, type TestConvex } from "../../../support/convex/test.harness";
@@ -26,8 +26,9 @@ function playedMatches(): RawFixture[] {
 
 /** Sportmonks: the league with its seasons, last season's three played matches and one this season
  *  not yet played, each match's lineups, and this season's squads with their positions. */
-function fakeSportmonks({ refuse }: { refuse?: string } = {}) {
+function fakeSportmonks({ refuse, unfiled }: { refuse?: string; unfiled?: number } = {}) {
   const matches = playedMatches();
+  const sent = matches.map((match) => (match.id === unfiled ? { ...match, lineups: [] } : match));
   const listed = (fixture: RawFixture) => ({ id: fixture.id, state_id: fixture.state_id, starting_at: null, starting_at_timestamp: fixture.starting_at_timestamp });
   const upcoming = { id: 19200001, state_id: 1, starting_at: null, starting_at_timestamp: NOW / 1000 + DAY_MS / 1000 };
   const squadMan = (id: number, position: string, detailed: string | null) => ({
@@ -38,7 +39,7 @@ function fakeSportmonks({ refuse }: { refuse?: string } = {}) {
     [leagueSeasonsUrl()]: { data: { id: 501, currentseason: THIS_SEASON, seasons: [LAST_SEASON, THIS_SEASON] } },
     [scheduleUrl(LAST_SEASON.id)]: { data: [{ id: 1, rounds: [{ id: 1, name: "1", fixtures: matches.map(listed) }] }] },
     [scheduleUrl(THIS_SEASON.id)]: { data: [{ id: 2, rounds: [{ id: 2, name: "1", fixtures: [upcoming] }] }] },
-    [lineupsUrl(matches.map((match) => match.id))]: { data: matches },
+    [lineupsUrl(matches.map((match) => match.id))]: { data: sent },
     [seasonTeamsUrl(THIS_SEASON.id, 1, POSITIONS_SQUAD_INCLUDES)]: {
       data: [{ id: LINEUPS.celtic, name: "Celtic", short_code: "CEL", players: [squadMan(LINEUPS.celtic433[2], "Defender", "Centre Back"), squadMan(NEW_SIGNING, "Defender", null)] }],
       pagination: { has_more: false },
@@ -102,6 +103,17 @@ test("a run again reads no match it has filed, and adds nothing", async () => {
   const [, again] = await runs(t);
   expect(again.outcome).toMatchObject({ ok: true, matchesRead: 0, startsAdded: 0, labelsChanged: 0 });
   expect((await rowOf(t, LINEUPS.celtic433[2]))?.starts).toHaveLength(3);
+});
+
+test("a played match whose lineups come back with no starters is logged and left to read again", async () => {
+  const t = freshConvex();
+  const logged = silenceConsoleError();
+  await read(t, fakeSportmonks({ unfiled: LINEUPS.match }));
+
+  expect(logged).toHaveBeenCalledWith(`${NO_STARTERS_LOG}: ${LINEUPS.match}`);
+  const filed = await t.run((ctx) => ctx.db.query("sportmonksLineupsRead").collect());
+  expect(filed.map((each) => each.fixtureCode).sort()).toEqual([LINEUPS.match + 1, LINEUPS.match + 2]);
+  expect((await rowOf(t, LINEUPS.celtic433[2]))?.starts).toHaveLength(2);
 });
 
 test("a refused read is a failed run on record, and nothing is filed", async () => {
