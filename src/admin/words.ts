@@ -3,6 +3,7 @@
 
 import type { ChangeThresholds } from "../../convex/positions/positionChanges";
 import type { ApproveMode, PositionSource } from "../../convex/positions/positions";
+import type { Availability } from "../../convex/availability/availability";
 import type { FeedState } from "../../convex/admin/feedState";
 import type { Pattern } from "../../convex/football/clubColours";
 import { FEED_NAMES } from "../../convex/shared/feedSchedule";
@@ -22,6 +23,7 @@ export const adminTabsLabel = "Admin";
 export const positionsTabWords = "Positions";
 export const feedsTabWords = "Feeds";
 export const feedbackTabWords = FEEDBACK_TITLE;
+export const availabilityTabWords = "Availability";
 
 export const newSigningsTitle = "New signings";
 export const newSigningsHint = "No starts to go on yet, so each plays on the Premier League's label for him until you confirm it.";
@@ -165,3 +167,24 @@ export const feedbackLoadingWords = "Loading the feedback…";
 export const noFeedbackWords = "No feedback yet.";
 /** Past the newest the list shows, said as the late corrections say it. */
 export const moreFeedbackWords = moreCorrectionsWords;
+
+/** The Availability tab (#1209, spec/06 Availability; the approved auto-team picture): every player
+ *  set by hand over the feed, and the picked one's panel. */
+export const availabilityLoadingWords = "Loading who is set by hand…";
+export const setByHandTitle = "Set by hand";
+export const noneSetByHandWords = "No player is set by hand.";
+export const availabilityColumns = {
+  position: { short: "Pos", long: "Positions" },
+  player: { short: "Player", long: "Player" },
+  feed: { short: "The feed says", long: "The feed says" },
+  set: { short: "Set to", long: "Set to" },
+} as const;
+export const AVAILABILITY_WORDS: Record<Availability, string> = { out: "Out", doubtful: "Doubtful", available: "Available" };
+/** The panel's choice: the feed's, or one set by hand. */
+export const FEED_CHOICE = "feed";
+export const availabilityChoiceLabel = "Availability";
+export const availabilityChoiceWords = (choice: Availability | typeof FEED_CHOICE) => (choice === FEED_CHOICE ? "The feed" : AVAILABILITY_WORDS[choice]);
+export const feedSaysWords = "The feed says";
+/** What it changes (spec/06, spec/09): our own availability, the same in every league. */
+export const autoTeamReadsWords = "The auto team reads this in every league.";
+export const pickPlayerLabel = (name: string) => `Open ${name}'s availability`;

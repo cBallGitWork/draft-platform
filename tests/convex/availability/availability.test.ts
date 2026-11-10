@@ -88,7 +88,9 @@ test("the Availability tab lists every player set by hand, by name, with his clu
     [SALIBA, "out", "doubtful"],
   ]);
   expect(rows[0]).toMatchObject({ name: "Haaland", clubShortName: "MCI" });
-  expect(rows[0].positions.length).toBeGreaterThan(0);
+  expect(rows[0].positions).toEqual([]);
+  await admin.mutation(api.positions.playerPositions.setPosition, { code: HAALAND, position: "ST" });
+  expect((await admin.query(api.availability.availability.setByHand, {}))[0].positions).toEqual(["ST"]);
   expect(await admin.query(api.availability.availability.forAdmin, { code: SAKA })).toMatchObject({ code: SAKA, name: "Saka", clubShortName: "ARS", feed: "available", set: null });
 });
 

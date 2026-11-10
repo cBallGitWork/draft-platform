@@ -3,6 +3,7 @@
 // the screen their own.
 
 import type { FeedsReport } from "../../convex/admin/feeds";
+import type { Availability, AvailabilityRow } from "../../convex/availability/availability";
 import type { Colours } from "../../convex/football/clubColours";
 import type { FoundPlayerPositions, PositionsQueue } from "../../convex/positions/playerPositions";
 import type { ChangeThresholds } from "../../convex/positions/positionChanges";
@@ -10,7 +11,7 @@ import type { ApproveMode } from "../../convex/positions/positions";
 import type { Position } from "../../convex/positions/positionTables";
 import type { Change } from "../shared/refusal";
 
-export type { FeedsReport, FoundPlayerPositions, PositionsQueue };
+export type { Availability, AvailabilityRow, FeedsReport, FoundPlayerPositions, PositionsQueue };
 
 export type AdminSeam = {
   /** The queue, the clubs and the approve mode, live (a hook): undefined while they load. */
@@ -21,6 +22,11 @@ export type AdminSeam = {
   /** The feeds page's report, judged at the start of the current minute and again at each new
    *  one, live (a hook): undefined while it loads. */
   useFeeds(): FeedsReport | undefined;
+  /** Every player set by hand over the feed, by name, live (a hook): undefined while they load. */
+  useSetByHand(): readonly AvailabilityRow[] | undefined;
+  /** One player's availability, the feed's and the admin's, live (a hook): undefined while it
+   *  loads, and for no player (null). */
+  useAvailabilityOf(code: number | null): AvailabilityRow | undefined;
   approvePlayer(code: number): Change;
   approveClub(clubCode: number): Change;
   setPosition(code: number, position: Position): Change;
@@ -29,4 +35,7 @@ export type AdminSeam = {
   setChangeThresholds(thresholds: ChangeThresholds): Change;
   /** Sets a club's two colours and its shirt's pattern (spec/15, #838). */
   setClubColours(code: number, colours: Colours): Change;
+  /** Sets a player's availability by hand over the feed's, or null to go back to the feed's
+   *  (spec/06 Availability, #1209). */
+  setAvailability(code: number, availability: Availability | null): Change;
 };
