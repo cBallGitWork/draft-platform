@@ -8,7 +8,7 @@ import { firstKickoffs } from "./gameweekStarts";
 // the window it kicks off in, so a rearranged match makes a double or a blank week. The feed's
 // rounds aren't followed after that. The first time a sync sees a round with a kickoff time, its
 // first kickoff is recorded here, and no later move changes it. Feed-agnostic: a round is the
-// number the feed gives a match, FPL's `event` today, Sportmonks' round from #1424. Rounds are
+// number the feed gives a match, FPL's `event` today, Sportmonks' round once #1424 lands. Rounds are
 // numbered afresh each season, so they are kept by season, the one their kickoffs fall in.
 //
 // The deadline still follows the gameweek's first kickoff as it stands (spec/03, deadline.ts): only
