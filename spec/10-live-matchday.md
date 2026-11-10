@@ -52,7 +52,9 @@ commentary` (16 Oct 2026).
 - Live points carry a small "prov." tag until the gameweek's points are final (Craig, 10 Nov 2026,
   on #1032). `S10.10`
 - A Highlights tab with the match's YouTube highlights: "Oh highlights tab too for YouTube
-  connection?" (Craig, 10 Nov 2026, on #1032). `S10.11`
+  connection?" (Craig, 10 Nov 2026, on #1032). The video comes from YouTube, from the competition's
+  own English-language coverage: "YouTube, each league has English language coverage" (Craig,
+  10 Nov 2026, on #1032), so where it comes from is held per competition. `S10.11`
 - Every player shows his live points, and only one owned in the league his team: "I need to stress
   that players who don't have a team still have their scores show. Just because they aren't a team
   doesn't mean they don't get points" (Craig, 31 Oct 2026). A player with no team says so in place

@@ -63,8 +63,8 @@ formations, and the shot map with xG on its analysis tab. Their organisation, ne
 
 - The shot map and the shots lists need each shot's position and xG, from Sportmonks' xG add-on
   (#1196). Until it is bought, the Shots panel is a greyed placeholder in its place.
-- The highlights video and each moment's time in it: where they come from is not settled (Sportmonks
-  may not send video links, and highlights on YouTube may be blocked in the UK). The tab is a
-  greyed placeholder until then.
+- The highlights video: from YouTube, each competition's own English-language coverage ("YouTube,
+  each league has English language coverage", Craig, 10 Nov 2026), held per competition. Each
+  moment's time in the video has no source yet, so the ▶ times are greyed placeholders.
 
 Canvas: <https://claude.ai/artifact/HjawmrL2GPJ3bJzT1m3Cap>, the "Football ·" boards.
