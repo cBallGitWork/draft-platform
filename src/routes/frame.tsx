@@ -23,7 +23,7 @@ import { ScoutingPage } from "../scouting/ScoutingPage";
 import { TablePage } from "../table/TablePage";
 import { NewOfferPage } from "../trades/NewOfferPage";
 import { OffersPage } from "../trades/OffersPage";
-import { newOfferSearchOf } from "../trades/paths";
+import { newOfferSearchOf, offersSearchOf } from "../trades/paths";
 import { CODE_DIGITS, LANDING_PATH, frameRoute, type ShellContext } from "./root";
 
 // The pages under root.tsx's frameRoute, for anyone in a league, in its frame; and a placeholder for
@@ -144,9 +144,19 @@ const matchRoute = createRoute({
   },
 });
 
-// Trades (#383; docs/design/approved/trades): the Offers tab, and New offer, which a counter opens
+// Trades (#383; docs/design/approved/trades): the Offers tab, with the offer or trade in review the
+// address names selected, as a Mail letter's link opens it; and New offer, which a counter opens
 // filled with the offer it answers, and a player card's Offer a trade with him asked for (#1027).
-const tradesRoute = leaguePage(TRADES_PATH, "trades", OffersPage);
+const tradesRoute = createRoute({
+  getParentRoute: () => frameRoute,
+  path: TRADES_PATH,
+  validateSearch: offersSearchOf,
+  component: function Offers() {
+    const { session, trades } = tradesRoute.useRouteContext();
+    const { offer } = tradesRoute.useSearch();
+    return <CurrentLeague session={session} page={(league) => <OffersPage league={league} seam={trades} asked={offer} />} />;
+  },
+});
 const newOfferRoute = createRoute({
   getParentRoute: () => frameRoute,
   path: TRADES_NEW_PATH,

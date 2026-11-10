@@ -11,12 +11,17 @@ export const liveTrades: TradesSeam = {
   // Asked at the screen's minute, as a query may not read the clock: whether trades are shut moves on with it.
   useTrades: (leagueId) =>
     useQuery(api.trades.tradeScreen.ofMyTeam, { leagueId, now: useMinute() }),
+  useReviews: (leagueId) =>
+    useQuery(api.trades.reviewScreen.toReview, { leagueId }),
   useTradeChanges: function useTradeChanges() {
     const offer = useMutation(api.trades.tradeOffers.offer);
     const counter = useMutation(api.trades.tradeOffers.counter);
     const accept = useMutation(api.trades.tradeOffers.accept);
     const reject = useMutation(api.trades.tradeOffers.reject);
     const withdraw = useMutation(api.trades.tradeOffers.withdraw);
+    const block = useMutation(api.trades.tradeReview.block);
+    const against = useMutation(api.trades.tradeReview.against);
+    const takeBack = useMutation(api.trades.tradeReview.takeBack);
     return useMemo<TradeChanges>(
       () => ({
         offer: (leagueId, toTeamId, terms) =>
@@ -49,8 +54,26 @@ export const liveTrades: TradesSeam = {
             "Withdrawing a trade offer",
             tradeFailedWords,
           ),
+        block: (leagueId, offerId) =>
+          refusalOf(
+            () => block({ leagueId, offerId }),
+            "Blocking a trade",
+            tradeFailedWords,
+          ),
+        against: (leagueId, offerId) =>
+          refusalOf(
+            () => against({ leagueId, offerId }),
+            "Voting against a trade",
+            tradeFailedWords,
+          ),
+        takeBack: (leagueId, offerId) =>
+          refusalOf(
+            () => takeBack({ leagueId, offerId }),
+            "Taking back a vote against a trade",
+            tradeFailedWords,
+          ),
       }),
-      [offer, counter, accept, reject, withdraw],
+      [offer, counter, accept, reject, withdraw, block, against, takeBack],
     );
   },
 };

@@ -113,6 +113,7 @@ export function changesTo(
     "trades/tradeOffers:withdraw": () => ann.mutation(api.trades.tradeOffers.withdraw, { leagueId, offerId }),
     "trades/tradeReview:block": () => commissioner.mutation(api.trades.tradeReview.block, { leagueId, offerId }),
     "trades/tradeReview:against": () => ann.mutation(api.trades.tradeReview.against, { leagueId, offerId }),
+    "trades/tradeReview:takeBack": () => ann.mutation(api.trades.tradeReview.takeBack, { leagueId, offerId }),
     "squads/squadNumbers:set":() => ann.mutation(api.squads.squadNumbers.set, { leagueId, playerCode: 1, number: 7 }),
     "table/fixtureEdits:swap": () =>
       admin.mutation(api.table.fixtureEdits.swap, {

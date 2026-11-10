@@ -37,6 +37,9 @@ export async function tradeLeague() {
       (await actingAs(t, email)).mutation(api.trades.tradeOffers.counter, { leagueId, offerId, gives, gets, note: null }),
     block: async (email: string, offerId: Id<"tradeOffers">) => (await actingAs(t, email)).mutation(api.trades.tradeReview.block, { leagueId, offerId }),
     against: async (email: string, offerId: Id<"tradeOffers">) => (await actingAs(t, email)).mutation(api.trades.tradeReview.against, { leagueId, offerId }),
+    takeBack: async (email: string, offerId: Id<"tradeOffers">) => (await actingAs(t, email)).mutation(api.trades.tradeReview.takeBack, { leagueId, offerId }),
+    /** The trades in review `email` reviews, as the Offers tab's To review group reads them. */
+    toReview: async (email: string) => (await actingAs(t, email)).query(api.trades.reviewScreen.toReview, { leagueId }),
     mine: async (email: string) => (await actingAs(t, email)).query(api.trades.tradeOffers.mine, { leagueId }),
     offers,
     /** The league's trade rules, in force at once. */

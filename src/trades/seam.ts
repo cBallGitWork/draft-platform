@@ -10,9 +10,10 @@ import type {
   TradedPlayer,
   TradesView,
 } from "../../convex/trades/tradeScreen";
+import type { TradeToReview, YourReview } from "../../convex/trades/reviewScreen";
 import type { Change } from "../shared/refusal";
 
-export type { ClosedOffer, Reviewer, ScreenOffer, ScreenTeam, TradedPlayer, TradesView };
+export type { ClosedOffer, Reviewer, ScreenOffer, ScreenTeam, TradedPlayer, TradesView, TradeToReview, YourReview };
 
 /** A draft pick in an offer (#1096): `teamId`'s pick in `round`, whoever holds it now. */
 export type TradePick = { round: number; teamId: Id<"teams"> };
@@ -42,11 +43,19 @@ export type TradeChanges = {
   accept(leagueId: Id<"leagues">, offerId: Id<"tradeOffers">): Change;
   reject(leagueId: Id<"leagues">, offerId: Id<"tradeOffers">): Change;
   withdraw(leagueId: Id<"leagues">, offerId: Id<"tradeOffers">): Change;
+  /** Under a veto, blocks the trade in review. */
+  block(leagueId: Id<"leagues">, offerId: Id<"tradeOffers">): Change;
+  /** Under a vote, votes against the trade in review, or takes that vote back. */
+  against(leagueId: Id<"leagues">, offerId: Id<"tradeOffers">): Change;
+  takeBack(leagueId: Id<"leagues">, offerId: Id<"tradeOffers">): Change;
 };
 
 export type TradesSeam = {
   /** The manager's offers and every team's squad, live (a hook): undefined while they load. */
   useTrades(leagueId: Id<"leagues">): TradesView | undefined;
+  /** The trades in review the caller reviews, live (a hook): undefined while they load. A
+   *  commissioner with no team asks it too. */
+  useReviews(leagueId: Id<"leagues">): TradeToReview[] | undefined;
   /** The changes a manager makes to his trades (a hook). */
   useTradeChanges(): TradeChanges;
 };
