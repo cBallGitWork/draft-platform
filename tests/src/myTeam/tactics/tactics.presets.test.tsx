@@ -28,11 +28,14 @@ import {
   blockOf,
   openedPitch,
   pickFormation,
+  pickRole,
   pitch,
+  roleButton,
+  rolesOnCard,
+  roleShown,
   squadRows,
   swap,
   undo,
-  type Member,
 } from "../../../support/src/tacticsScreen.harness";
 
 describe("a preset (spec/05; Craig, 26 Oct 2026)", () => {
@@ -102,26 +105,26 @@ describe("a preset (spec/05; Craig, 26 Oct 2026)", () => {
 });
 
 describe("roles (spec/05 Roles; #10; Craig, 26 Oct 2026)", () => {
-  const picker = (player: Member) => screen.getByRole<HTMLSelectElement>("combobox", { name: roleLabel(player.name) });
   const SALIBAS_CELL = { area: "defence", lane: "leftCentre" } as const;
 
   it("each starter has a picker of his slot's roles, on its first until he is given one; the bench has none", async () => {
     await openedPitch();
-    expect(Array.from(picker(SALIBA).options).map((option) => option.text)).toEqual(["Stopper", "Ball-playing centre-back", "No-nonsense centre-back", "Attacking centre-back"]);
-    expect(picker(SALIBA).value).toBe("stopper");
-    expect(screen.queryByRole("combobox", { name: roleLabel(WHITE.name) })).toBeNull();
+    expect(roleShown(SALIBA.name)).toBe("Stopper");
+    await userEvent.click(roleButton(SALIBA.name));
+    expect(rolesOnCard(SALIBA.name)).toEqual(["Stopper", "Ball-playing centre-back", "No-nonsense centre-back", "Attacking centre-back"]);
+    expect(screen.queryByRole("button", { name: roleLabel(WHITE.name) })).toBeNull();
   });
 
-  it("the pitch shows the role under his name", async () => {
+  it("the pitch shows the role's code over his name, its name on hover (#845)", async () => {
     await openedPitch();
-    await userEvent.selectOptions(picker(SALIBA), "ballPlayingDefender");
-    expect(within(blockOf(SALIBA, SALIBAS_CELL)).getByText("Ball-playing centre-back")).toBeTruthy();
-    expect(document.activeElement).toBe(picker(SALIBA));
+    await pickRole(SALIBA.name, "Ball-playing centre-back");
+    expect(within(blockOf(SALIBA, SALIBAS_CELL)).getByTitle("Ball-playing centre-back").textContent).toBe("BPD");
+    expect(document.activeElement).toBe(roleButton(SALIBA.name));
   });
 
   it("saves itself with the lineup", async () => {
     const app = await openedPitch();
-    await userEvent.selectOptions(picker(SALIBA), "ballPlayingDefender");
+    await pickRole(SALIBA.name, "Ball-playing centre-back");
     const [, sent] = app.myTeam.lineupChanges.save.mock.lastCall!;
     expect(sent.starters.find((starter) => starter.playerCode === SALIBA.playerCode)).toEqual({ playerCode: SALIBA.playerCode, ...SALIBAS_CELL, role: "ballPlayingDefender" });
   });
@@ -130,8 +133,8 @@ describe("roles (spec/05 Roles; #10; Craig, 26 Oct 2026)", () => {
     await openedPitch();
     // A 4-4-2 brings White off the bench to its left back, so the two can swap.
     await pickFormation("4-4-2");
-    await userEvent.selectOptions(picker(SALIBA), "ballPlayingDefender");
+    await pickRole(SALIBA.name, "Ball-playing centre-back");
     await swap(SALIBA, WHITE);
-    expect(picker(SALIBA).value).toBe(rolesOfSlot({ area: "defence", lane: "left" }, [])[0].key);
+    expect(roleShown(SALIBA.name)).toBe(rolesOfSlot({ area: "defence", lane: "left" }, [])[0].name);
   });
 });

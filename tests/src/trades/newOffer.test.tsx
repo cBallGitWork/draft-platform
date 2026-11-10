@@ -8,9 +8,15 @@ import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
 import { TRADES_NEW_PATH, TRADES_PATH } from "../../../src/frame/menu";
 import {
-  heldWords,
+  groupWords,
   noteLabel,
+  onePickEachWords,
   partnerLabel,
+  pickRoundWords,
+  picksTableLabel,
+  pickTickLabel,
+  pickWords,
+  viaWords,
   sendCounterWords,
   sendOfferWords,
   squadTableLabel,
@@ -100,7 +106,7 @@ describe("a new offer", () => {
         name: tickLabel(SAKA.name),
       }).disabled,
     ).toBe(true);
-    expect(within(table).getByText(heldWords)).toBeTruthy();
+    expect(within(table).getByText(groupWords.inReview)).toBeTruthy();
   });
 
   it("offers no team on the auto team, and changing team clears their ticks", async () => {
@@ -123,6 +129,103 @@ describe("a new offer", () => {
     expect(
       screen.getByRole("region", { name: YOUR_OFFER_TITLE }).textContent,
     ).not.toContain(PALMER.name);
+  });
+});
+
+describe("a pick offer (#1096)", () => {
+  // Before the draft: Team 1 holds its own round-1 pick and Team 2's round-2 pick, which is in a
+  // trade under review; Team 2 its own round-1 pick.
+  const ONE = { round: 1, teamId: MY_TEAM, teamName: "Team 1", held: false };
+  const VIA = { round: 2, teamId: THEIR_TEAM, teamName: "Team 2", held: true };
+  const THEIRS = {
+    round: 1,
+    teamId: THEIR_TEAM,
+    teamName: "Team 2",
+    held: false,
+  };
+  const beforeDraft = {
+    ...quietTrades,
+    teams: [
+      screenTeam(MY_TEAM, "Team 1", [SAKA, RICE], { picks: [ONE, VIA] }),
+      screenTeam(THEIR_TEAM, "Team 2", [PALMER, JAMES], { picks: [THEIRS] }),
+    ],
+  };
+  const picksTable = async (team: string) =>
+    within(await screen.findByRole("table", { name: picksTableLabel(team) }));
+  const tickPick = async (team: string, round: number, of: string) =>
+    userEvent.click(
+      (await picksTable(team)).getByRole("checkbox", {
+        name: pickTickLabel(round, of),
+      }),
+    );
+  const send = () =>
+    screen.getByRole<HTMLButtonElement>("button", { name: sendOfferWords });
+
+  it("lists each team's picks under its squad, one traded to it via its team, one in review greyed", async () => {
+    openNewOffer({ view: beforeDraft });
+    const mine = await picksTable("Team 1");
+    const [own, via] = mine.getAllByRole("rowheader");
+    expect(own.textContent).toBe(pickRoundWords(1));
+    expect(via.textContent).toBe(
+      `${pickRoundWords(2)}${viaWords("Team 2")}${groupWords.inReview}`,
+    );
+    expect(
+      mine.getByRole<HTMLInputElement>("checkbox", {
+        name: pickTickLabel(2, "Team 2"),
+      }).disabled,
+    ).toBe(true);
+  });
+
+  it("is one pick each way and nothing else, sent with both picks", async () => {
+    const app = openNewOffer({ view: beforeDraft });
+    await tick("Team 1", SAKA.name);
+    await tickPick("Team 1", 1, "Team 1");
+    // Ticking a pick clears the players.
+    expect(
+      screen.getByRole<HTMLInputElement>("checkbox", {
+        name: tickLabel(SAKA.name),
+      }).checked,
+    ).toBe(false);
+    expect(send().disabled).toBe(true);
+    expect(screen.getByText(onePickEachWords)).toBeTruthy();
+    await tickPick("Team 2", 1, "Team 2");
+    const summary = screen.getByRole("region", { name: YOUR_OFFER_TITLE });
+    expect(summary.textContent).toContain(pickWords(1, "Team 2"));
+    expect(summary.textContent).toContain(pickWords(1, "Team 1"));
+    await userEvent.click(send());
+    expect(app.trades.offer).toHaveBeenCalledWith(league.leagueId, THEIR_TEAM, {
+      gives: [],
+      gets: [],
+      picks: {
+        gives: { round: 1, teamId: MY_TEAM },
+        gets: { round: 1, teamId: THEIR_TEAM },
+      },
+      note: null,
+    });
+  });
+
+  it("drops its picks once a player is ticked", async () => {
+    openNewOffer({ view: beforeDraft });
+    await tickPick("Team 1", 1, "Team 1");
+    await tickPick("Team 2", 1, "Team 2");
+    await tick("Team 2", PALMER.name);
+    expect(
+      (await picksTable("Team 2")).getByRole<HTMLInputElement>("checkbox")
+        .checked,
+    ).toBe(false);
+    expect(
+      (await picksTable("Team 1")).getByRole<HTMLInputElement>("checkbox", {
+        name: pickTickLabel(1, "Team 1"),
+      }).checked,
+    ).toBe(false);
+  });
+
+  it("shows no Picks block once the draft has started", async () => {
+    openNewOffer();
+    await screen.findByRole("table", { name: squadTableLabel("Team 1") });
+    expect(
+      screen.queryByRole("table", { name: picksTableLabel("Team 1") }),
+    ).toBeNull();
   });
 });
 

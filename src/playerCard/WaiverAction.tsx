@@ -21,8 +21,17 @@ const WHO_GOES_ID = "waiver-who-goes";
  *  in the manager's squad, asked once more before he goes; Claim for one on waivers, saying the run
  *  that can first take him; Pick up for a free agent; the last two naming who goes, or nobody.
  *  Nothing for another team's player, for someone who runs no team, nor while it loads. Whether the
- *  change is open now is the server's to say, so a refusal says why. */
-export function WaiverAction({ leagueId, card, seam }: { leagueId: Id<"leagues">; card: PlayerCard; seam: PlayerCardSeam }) {
+ *  change is open now is the server's to say, so a refusal says why. Scouting's selected player's
+ *  panel offers it too. */
+export function WaiverAction({
+  leagueId,
+  card,
+  seam,
+}: {
+  leagueId: Id<"leagues">;
+  card: Pick<PlayerCard, "code" | "name">;
+  seam: Pick<PlayerCardSeam, "useCardAction" | "useWaiverChanges">;
+}) {
   const action = seam.useCardAction(leagueId, card.code);
   const changes = seam.useWaiverChanges();
   const change = useChange();

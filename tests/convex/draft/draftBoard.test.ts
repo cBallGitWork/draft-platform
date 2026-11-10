@@ -40,7 +40,7 @@ beforeEach(async () => {
 
 describe("the board", () => {
   test("holds no picks before the draft, with the caller's team and the league's pick time", async () => {
-    expect(await board(ANN)).toEqual({ picks: [], yourTeamId: teams[0], pickSeconds: 90, yourAutoPick: { on: false, timeouts: 0, limit: 2 } });
+    expect(await board(ANN)).toEqual({ picks: [], yourTeamId: teams[0], pickSeconds: 90, yourAutoPick: { on: false, timeouts: 0, limit: 2 }, tradedPicks: [] });
     expect(await board(COMMISSIONER)).toMatchObject({ yourTeamId: null });
   });
 

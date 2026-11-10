@@ -186,6 +186,13 @@ and how they score from Craig, 4 Nov 2026.
   starter and every bench player who comes on. A clean sheet or a goal conceded is his club's
   while he was on the pitch, as in base scoring. It shows as its own line under his role's line on
   the matchup breakdown ("Park the bus: clean sheet +1").
+- Keep it tight early is the exception to "while he was on the pitch": it goes by his club's
+  half-time score for every starter, and a bench player who comes on scores nothing from it
+  (Craig, 9 Nov 2026, on #990). `S05.16`
+- An instruction that scores GK/DEF scores the keeper, full-back, centre-back and wing-back slots;
+  every other slot is ATT/MID (Craig, 9 Nov 2026, on #990). `S05.17`
+- The first values go into the site's set as roles' do: from the next gameweek that hasn't begun,
+  with no letter, and change by patch after that (Craig, 9 Nov 2026, on #990). `S05.18`
 - Like a role, it is whole points by thresholds, and the values come from backtesting. The first
   values are Claude's backtest of 26/27 gameweeks 1 to 9, in
   [roles-first-values.md](../docs/roles-first-values.md); Craig edits them by patch.
@@ -193,6 +200,9 @@ and how they score from Craig, 4 Nov 2026.
   picked: a clean sheet is worth 3, and every goal conceded costs 1. "2 at the back wont have many
   and punsih goals conceded ... clean sheets is 3, every goal conceded -1" (Craig, 4 Nov 2026). It
   is held with the formation as a league rule, never in the code.
+- Two at the back replaces the base values for its keeper and defence slots rather than adding a
+  line of its own: a clean sheet is 3 and keeps its 60-minute minimum, every goal conceded is −1,
+  and both show on his clean sheet and goals conceded lines (Craig, 9 Nov 2026, on #990). `S05.19`
 
 ## Saved plans
 
@@ -247,6 +257,9 @@ From Craig, 1 Nov 2026.
 - The player card's line for a role gives the net and each side that moved him: "Poacher: +1 (+2:
   1 goal in box, 1 shot on target in box; −1: 1 big chance missed)" (Craig, 5 Nov 2026: "One line
   with the net and each side"). `S05.2`
+- A role's stats come only from the feed's catalogue (Sportmonks), and the roles are redesigned
+  around the stats Sportmonks has in all five leagues, by their own grill (`docs/to-grill.md`;
+  Craig, 9 Nov 2026, on #1196: "we want a universal experience"). `S05.23`
 - Roles lift the slots that score less, as defcon does in FPL: "roles/tactics are essentially a
   dynamic defcon for each positon and role". Every slot has a target role bonus a start: half its
   gap in base points to strikers, plus 0.5 for every slot, as "i do want players to get points"
@@ -362,11 +375,16 @@ From Craig, 1 Nov 2026.
 ## The deadline
 
 - One deadline per gameweek for every team, as in FPL: it locks the whole lineup, roles and formation
-  included. Nothing locks player by player. Its time is a league rule; the default is FPL's own,
-  90 minutes before the gameweek's first kickoff (every 2026/27 gameweek so far, checked against
-  FPL's live data on 16 Oct 2026). Once passed, a deadline stays where it fell, even if the
-  gameweek's first match is then postponed, as in FPL (20 Oct 2026). A gameweek FPL stops sending
-  keeps its last deadline (Craig, 1 Nov 2026: "Keeps its last deadline"; #202).
+  included. Nothing locks player by player. Once passed, a deadline stays where it fell, even if
+  the gameweek's first match is then postponed, as in FPL (20 Oct 2026). `S05.25`
+- Its time is a league rule leagues can change; the default is 15 minutes before the gameweek's
+  first kickoff: "i have said multiple times we dont use fpls time, its 15 minutes" (Craig,
+  9 Nov 2026, on #1196). `S05.20`
+- A gameweek the feed (Sportmonks, from 9 Nov 2026, #1196) stops sending keeps its last deadline
+  (Craig, 1 Nov 2026: "Keeps its last deadline"; #202). `S05.21`
+- Gameweek N is Sportmonks' round N as first scheduled, a date window running from its deadline
+  to the next gameweek's; each match counts in the gameweek it kicks off in (`spec/07`; Craig,
+  9 Nov 2026, on #1196). `S05.22`
 - A gameweek begins at the league's own deadline, never FPL's: "ours, we arent fpl so stop copying
   them" (22 Oct 2026).
 - A player who joins the squad goes to the end of the bench, in the order he joined, until the
@@ -410,7 +428,9 @@ From Craig, 1 Nov 2026.
 
 ## Captain and set pieces
 
-- The captain, the vice-captain and the set-piece lists: [17](17-captain-and-set-pieces.md).
+- The captain and the vice-captain: [17](17-captain-and-set-pieces.md). `S05.26`
+- No set-piece lists: "we didthced set piece taker (unless its a role)" (Craig, 9 Nov 2026, on
+  #1196). A set-piece duty can only come back as a role. `S05.24`
 
 ## Squad numbers
 

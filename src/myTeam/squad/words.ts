@@ -26,6 +26,9 @@ export {
 export const SQUAD_TITLE = menuWords.squad;
 export const squadLoadingWords = "Loading your squad…";
 export const noSquadWords = "Your squad is empty.";
+/** Another team's squad, read-only (#1027). */
+export const otherSquadLoadingWords = "Loading their squad…";
+export const otherSquadEmptyWords = "Their squad is empty.";
 
 /** The table's plate: its views (the README's view picker), and how full the squad is. */
 export const squadViews = ["stats", "schedule", "rules"] as const;

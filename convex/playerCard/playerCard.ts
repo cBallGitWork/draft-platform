@@ -107,6 +107,8 @@ const playerCard = v.object({
   pricedAt: v.array(slotPosition),
   /** The team in this league that owns him, or null for a free agent. */
   ownerTeamName: v.union(v.string(), v.null()),
+  /** That team's id, which his owner's name opens (#1027), or null for a free agent. */
+  ownerTeamId: v.union(v.id("teams"), v.null()),
   /** FPL's news on him, or null with none. */
   news: v.union(v.string(), v.null()),
   /** FPL's chance he plays in the next round, in percent; null while it has no doubt about him. */
@@ -139,6 +141,7 @@ export const card = query({
     const positions = await (await positionsNow(ctx, leagueId))(playerCode);
     const clubs = clubsByCode(ctx);
     const pricedAt = cardPositions(positions);
+    const owner = await (await ownerOf(ctx, leagueId))(playerCode);
     return {
       code: player.code,
       name: player.name,
@@ -147,7 +150,8 @@ export const card = query({
       gone: player.droppedAt !== undefined,
       positions,
       pricedAt,
-      ownerTeamName: (await (await ownerOf(ctx, leagueId))(playerCode))?.name ?? null,
+      ownerTeamName: owner?.name ?? null,
+      ownerTeamId: owner?._id ?? null,
       news: player.news || null,
       chanceOfPlaying: player.chanceOfPlaying ?? null,
       matches: await seasonMatches(ctx, league, player, positions, clubs),

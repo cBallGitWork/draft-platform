@@ -11,6 +11,7 @@ import { changeEveryRules } from "../../support/convex/leagueRules.harness";
 import { actingAs, addManagers, adminCreatesLeague, COMMISSIONER, MANAGERS, type TestConvex } from "../../support/convex/leagues.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
 import { expectRefused } from "../../support/convex/test.harness";
+import { lettersTo } from "../../support/convex/waivers.harness";
 
 // Draft picks in trades (spec/04, The picks; #1096): before the draft starts only, one pick for one
 // pick and nothing else. A traded pick is a team's pick in a round, not a fixed slot (Craig, 8 Nov
@@ -43,8 +44,6 @@ const onTheClock = async () => {
 };
 const makePick = async (email: string, playerCode: number) => (await as(email)).mutation(api.draft.draftPicks.makePick, { leagueId, playerCode });
 const offers = () => t.run((ctx) => ctx.db.query("tradeOffers").collect());
-const lettersTo = (email: string) =>
-  t.run(async (ctx) => (await ctx.db.query("letters").withIndex("by_to_and_at", (q) => q.eq("to", email)).collect()).map(({ subject, body }) => ({ subject, body })));
 const teamName = async (teamId: Id<"teams">) => (await t.run((ctx) => ctx.db.get("teams", teamId)))!.name;
 const tradesAre =(trades: TradeRules) => changeEveryRules(t, leagueId, (rules) => ({ ...rules, trades }));
 
@@ -87,6 +86,51 @@ describe("a pick swap", () => {
     expect(await onTheClock()).toBeNull();
   });
 
+  test("is on the board's read for the whole league, each pick with its team and its owner now", async () => {
+    const { offerId } = await offerPicks(ANN, bob, pickOf(ann, 1), pickOf(bob, 2));
+    expect((await (await as(CAT)).query(api.draft.draftBoard.ofLeague, { leagueId, now: Date.now() })).tradedPicks).toEqual([]);
+    await accept(BOB, offerId);
+
+    expect((await (await as(CAT)).query(api.draft.draftBoard.ofLeague, { leagueId, now: Date.now() })).tradedPicks).toEqual([
+      { round: 1, teamId: ann, ownerId: bob },
+      { round: 2, teamId: bob, ownerId: ann },
+    ]);
+  });
+
+  test("is on the Trades screen: each team's picks it holds now, held while in review, none once the draft starts", async () => {
+    await tradesAre({ review: "veto", deadline: null });
+    const picksOn = async (email: string) => {
+      const view = await (await as(email)).query(api.trades.tradeScreen.ofMyTeam, { leagueId, now: Date.now() });
+      return new Map(view.teams.map((team) => [team.teamId, team.picks.map(({ round, teamId, held }) => ({ round, teamId, held }))]));
+    };
+    expect((await picksOn(ANN)).get(ann)).toEqual([
+      { round: 1, teamId: ann, held: false },
+      { round: 2, teamId: ann, held: false },
+    ]);
+    const { offerId } = await offerPicks(ANN, bob, pickOf(ann, 1), pickOf(bob, 2));
+    await accept(BOB, offerId);
+    const inReview = await picksOn(CAT);
+    expect(inReview.get(ann)?.[0]).toEqual({ round: 1, teamId: ann, held: true });
+    expect(inReview.get(cat)?.every(({ held }) => !held)).toBe(true);
+
+    vi.setSystemTime(Date.now() + REVIEW_MS);
+    await t.mutation(internal.trades.tradeReview.finish, { offerId });
+    const after = await picksOn(ANN);
+    expect(after.get(ann)).toEqual([
+      { round: 2, teamId: ann, held: false },
+      { round: 2, teamId: bob, held: false },
+    ]);
+    expect(after.get(bob)).toEqual([
+      { round: 1, teamId: ann, held: false },
+      { round: 1, teamId: bob, held: false },
+    ]);
+    const view = await (await as(ANN)).query(api.trades.tradeScreen.ofMyTeam, { leagueId, now: Date.now() });
+    expect(view.teams[0].picks[1].teamName).toBe(await teamName(bob));
+
+    await start();
+    expect([...(await picksOn(ANN)).values()].flat()).toEqual([]);
+  });
+
   test("is a team's pick in a round, not a slot: a new order moves it with its team", async () => {
     const { offerId } = await offerPicks(ANN, bob, pickOf(ann, 1), pickOf(bob, 2));
     await accept(BOB, offerId);
@@ -104,7 +148,7 @@ describe("a pick swap", () => {
     await accept(BOB, offerId);
     const annsTeam = await teamName(ann);
     const bobsTeam = await teamName(bob);
-    expect(await lettersTo(CAT)).toContainEqual({
+    expect(await lettersTo(t, CAT)).toContainEqual({
       subject: `${annsTeam} and ${bobsTeam} traded`,
       body: `the ${annsTeam} round 1 pick to ${bobsTeam}; the ${bobsTeam} round 2 pick to ${annsTeam}.`,
     });
@@ -170,7 +214,7 @@ describe("closing pick offers", () => {
     await accept(BOB, toBob.offerId);
     expect(await offers()).toEqual([]);
     const annsTeam = await teamName(ann);
-    expect((await lettersTo(CAT)).map(({ body }) => body)).toContainEqual(expect.stringContaining(`Another trade took the ${annsTeam} round 1 pick.`));
+    expect((await lettersTo(t, CAT)).map(({ body }) => body)).toContainEqual(expect.stringContaining(`Another trade took the ${annsTeam} round 1 pick.`));
   });
 
   test("the draft's start closes every pick trade open or in review, unmade, telling both managers", async () => {
@@ -182,7 +226,7 @@ describe("closing pick offers", () => {
 
     expect(await offers()).toEqual([]);
     for (const email of [ANN, BOB, CAT]) {
-      expect((await lettersTo(email)).map(({ body }) => body)).toContainEqual(expect.stringContaining("The draft started, and picks are traded only before it."));
+      expect((await lettersTo(t, email)).map(({ body }) => body)).toContainEqual(expect.stringContaining("The draft started, and picks are traded only before it."));
     }
     // The review's end finds nothing to make, and every pick stays its own team's.
     vi.setSystemTime(Date.now() + REVIEW_MS);

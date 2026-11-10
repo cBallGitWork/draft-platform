@@ -14,7 +14,6 @@ import {
   movingHintWords,
   playerCardLabel,
   pickHintWords,
-  roleLabel,
   selectionTableLabel,
   startingWords,
   swapLabel,
@@ -40,8 +39,10 @@ import {
   openPanel,
   openTacticsTab,
   openedPitch,
+  pickRole,
   pickUp,
   pitch,
+  roleShown,
   rowOf,
   squadRows,
   swap,
@@ -77,7 +78,7 @@ describe("moving a player", () => {
     openTacticsTab({ tactics: openTactics({ ...SAVED, squad: SQUAD.map((each) => (each === WHITE ? starred : each)) }) });
     await swap(WHITE, SALIBA);
 
-    expect((screen.getByRole("combobox", { name: roleLabel(WHITE.name) }) as HTMLSelectElement).value).toBe("ballPlayingDefender");
+    expect(roleShown(WHITE.name)).toBe("Ball-playing centre-back");
   });
 
   it("picked up, each lit starter shows his stars for the role he'd land on there, on the pitch only (#11; Craig, 7 Nov 2026)", async () => {
@@ -147,11 +148,11 @@ describe("moving a player", () => {
     const LEFT_BACK = { area: "defence", lane: "left" } as const;
     const withWhite = openTactics({ ...SAVED, lineup: { ...SAVED.lineup, starters: [...STARTERS, at(WHITE, LEFT_BACK)], bench: [ARRIZABALAGA.playerCode] } });
     await openedPitch({ tactics: withWhite });
-    await userEvent.selectOptions(screen.getByRole("combobox", { name: roleLabel(SALIBA.name) }), "ballPlayingDefender");
+    await pickRole(SALIBA.name, "Ball-playing centre-back");
     drag(blockOf(SALIBA, SALIBAS_CELL), cellOn(LEFT_BACK));
     expect(blockOf(SALIBA, LEFT_BACK)).toBeTruthy();
     expect(blockOf(WHITE, SALIBAS_CELL)).toBeTruthy();
-    expect((screen.getByRole("combobox", { name: roleLabel(SALIBA.name) }) as HTMLSelectElement).value).not.toBe("ballPlayingDefender");
+    expect(roleShown(SALIBA.name)).not.toBe("Ball-playing centre-back");
   });
 
   it("swaps a starter with a lit bench player from the squad", async () => {

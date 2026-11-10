@@ -36,9 +36,9 @@ const played = (stats: Record<string, number>, points: number) => ({ stats: { mi
 /** Williams up front, who scored; Muñoz in midfield, who made it; Murillo, booked. Enciso, who
  *  scored Forest's, is in neither lineup. None plays a role the sets adjust. */
 const PLAYERS = new Map<number, VidiprinterPlayer>([
-  [CODE.williams, { name: "N.Williams", cell: ATTACK, role: undefined, inLineup: true, inMatch: new Map([[IPSWICH_FOREST, played({ goals_scored: 1 }, 6)]]) }],
-  [CODE.munoz, { name: "Muñoz", cell: MIDFIELD, role: undefined, inLineup: true, inMatch: new Map([[IPSWICH_FOREST, played({ assists: 1 }, 5)]]) }],
-  [CODE.murillo, { name: "Murillo", cell: { area: "defence", lane: "leftCentre" }, role: undefined, inLineup: true, inMatch: new Map([[IPSWICH_FOREST, played({ yellow_cards: 1 }, 1)]]) }],
+  [CODE.williams, { name: "N.Williams", cell: ATTACK, role: undefined, inLineup: true, team: undefined, inMatch: new Map([[IPSWICH_FOREST, played({ goals_scored: 1 }, 6)]]) }],
+  [CODE.munoz, { name: "Muñoz", cell: MIDFIELD, role: undefined, inLineup: true, team: undefined, inMatch: new Map([[IPSWICH_FOREST, played({ assists: 1 }, 5)]]) }],
+  [CODE.murillo, { name: "Murillo", cell: { area: "defence", lane: "leftCentre" }, role: undefined, inLineup: true, team: undefined, inMatch: new Map([[IPSWICH_FOREST, played({ yellow_cards: 1 }, 1)]]) }],
 ]);
 
 /** Williams's running totals as the live reads showed them: past 60 minutes, and to two big
@@ -215,7 +215,7 @@ test("a falling step and the same count sent again each show; only a step the sa
 
 test("the full-time line names only the lineups' men, though a man in none has his lines priced", () => {
   const players = new Map(PLAYERS);
-  players.set(CODE.enciso, { name: "Enciso", cell: ATTACK, role: undefined, inLineup: false, inMatch: new Map([[IPSWICH_FOREST, played({ goals_scored: 1 }, 6)]]) });
+  players.set(CODE.enciso, { name: "Enciso", cell: ATTACK, role: undefined, inLineup: false, team: undefined, inMatch: new Map([[IPSWICH_FOREST, played({ goals_scored: 1 }, 6)]]) });
   const lines = vidiprinter([MATCH], players, FIRST_SCORING as ScoringSet);
   expect(lines[0].text).toBe("FT IPS 1–1 NFO: N.Williams 6, Muñoz 5, Murillo 1");
   expect(lines.find((line) => line.text === "41' GOAL Enciso")?.points).toBe("+4");

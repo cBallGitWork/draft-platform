@@ -10,6 +10,7 @@ import { describe, expect, it } from "vitest";
 import type { RoomFigure } from "../../../convex/draft/draftPlayers";
 import { POSITIONS } from "../../../convex/positions/positionTables";
 import type { ListedPlayer } from "../../../convex/scouting/playersList";
+import { NO_FIGURES } from "../../../convex/scouting/playersOrder";
 import { STAT_CATALOGUE } from "../../../convex/scoring/statCatalogueList";
 import { MINUTE_MS, SECOND_MS } from "../../../convex/shared/time";
 import { DRAFT_PATH } from "../../../src/frame/menu";
@@ -51,6 +52,7 @@ const listed = (code: number, name: string, ownerTeamName: string | null = null,
   ownerTeamName,
   onWaivers: null,
   seasonPoints: null,
+  figures: NO_FIGURES,
   stat: null,
 });
 const SAKA = listed(1, "Saka");

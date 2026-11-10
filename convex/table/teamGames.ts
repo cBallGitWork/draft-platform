@@ -1,4 +1,4 @@
-import { LEAGUE_AVERAGE, type GameweekFixtures } from "./roundRobin";
+import { LEAGUE_AVERAGE, type Fixture, type GameweekFixtures } from "./roundRobin";
 import { averageOf } from "./standings";
 
 // One team's games in a league's head-to-head schedule (#365; spec/12, My team's tabs: "the team's
@@ -10,11 +10,13 @@ import { averageOf } from "./standings";
 export const BYE = "bye";
 export type Against<Team> = { kind: "team"; team: Team } | { kind: typeof LEAGUE_AVERAGE } | { kind: typeof BYE };
 
-export type TeamGame<Team> = { gameweek: number; against: Against<Team> };
+/** One of a team's games: its gameweek, which of the team's games in that gameweek it is (from 1,
+ *  more than one in a league playing two a gameweek; #913), and who it meets. */
+export type TeamGame<Team> = { gameweek: number; game: number; against: Against<Team> };
 
 /** Every game `team` plays in `schedule`, in gameweek order: in a gameweek, its fixtures as drawn
- *  (on either side), then its byes. A gameweek it has no part in, such as one stored before it
- *  joined, gives none. */
+ *  (on either side), then its byes, numbered from 1 in that order. A gameweek it has no part in,
+ *  such as one stored before it joined, gives none. */
 export function gamesOf<Team>(schedule: readonly GameweekFixtures<Team>[], team: Team): TeamGame<Team>[] {
   return schedule.flatMap(({ gameweek, fixtures, byes }) => {
     const met = fixtures.flatMap((fixture): Against<Team>[] => {
@@ -23,8 +25,16 @@ export function gamesOf<Team>(schedule: readonly GameweekFixtures<Team>[], team:
       return [];
     });
     const sittingOut = byes.filter((each) => each === team).map((): Against<Team> => ({ kind: BYE }));
-    return [...met, ...sittingOut].map((against) => ({ gameweek, against }));
+    return [...met, ...sittingOut].map((against, index) => ({ gameweek, game: index + 1, against }));
   });
+}
+
+/** Which of its `team` side's games in the gameweek a gameweek's fixture at `index` is, numbered
+ *  as `gamesOf` numbers them: so each fixture's link opens its own matchup where a team plays two
+ *  games a gameweek (spec/10; #913). */
+export function gameNumberAt<Team>(fixtures: readonly Fixture<Team>[], index: number): number {
+  const { team } = fixtures[index];
+  return fixtures.slice(0, index).filter((each) => each.team === team || each.opponent === team).length + 1;
 }
 
 /** A team's points in a gameweek scored, and whether they may still move (gameweekScores.ts's

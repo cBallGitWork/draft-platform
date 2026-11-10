@@ -170,7 +170,8 @@ test.describe("dev server, signed out of Convex", { tag: "@dev" }, () => {
           await expect(runsSwitch, "no switch on a phone").toBeHidden();
           expect(await shownRuns(), "none until a player is tapped").toBe(0);
           const tapped = await runs.first().getAttribute(RUN_MARK);
-          await thePitch.locator(markedBy("player", Number(tapped))).click();
+          // His name, as his role's chip opens his role card instead (#848).
+          await thePitch.locator(markedBy("player", Number(tapped))).locator("[data-slot-label]").click();
           const shown = await runs.evaluateAll((all, mark) => all.filter((run) => getComputedStyle(run).display !== "none").map((run) => run.getAttribute(mark)), RUN_MARK);
           expect(shown, "only the tapped player's").toEqual([tapped]);
         }
@@ -207,7 +208,12 @@ test.describe("dev server, signed out of Convex", { tag: "@dev" }, () => {
     test.use({ viewport: DESK });
     const titleWidth = async (page: Page, path: string) => {
       await page.goto(path);
-      return (await page.getByRole("main").getByRole("heading", { level: 1 }).boundingBox())!.width;
+      // The title's container: the plate itself, or the page's section when the title is the plate,
+      // so a plate carrying tabs beside its title (Scouting's, #1028) measures the same.
+      return page
+        .getByRole("main")
+        .getByRole("heading", { level: 1 })
+        .evaluate((title) => title.parentElement!.getBoundingClientRect().width);
     };
     const SHARING_THE_WIDTH = [
       `${squadsPath(miniBeta.leagueId)}?preview=commissioner`,

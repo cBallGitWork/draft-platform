@@ -9,6 +9,7 @@ import { findClubByCode, playerByCode } from "../shared/players";
 import { FEED_RUN_TABLES, FEED_SCHEDULES, FEEDS, feedValidator, type Feed } from "../shared/feedSchedule";
 import { liveMatches } from "../stats/liveStats";
 import { dueSheetsAt } from "../football/matchTeamSheets";
+import { sportmonksLiveMatches } from "../football/sportmonks/sportmonksLive";
 import { LINEUPS_OUT_BEFORE_KICKOFF_MS } from "../shared/time";
 import { lateStatChange } from "../schema";
 
@@ -110,6 +111,8 @@ async function owedSinceAt(ctx: QueryCtx, now: number): Promise<Record<Feed, num
     teamSheets,
     teamStats: liveStats,
     thresholdSteps: liveStats,
+    sportmonks: ALWAYS_OWED,
+    sportmonksLive: earliest((await sportmonksLiveMatches(ctx, now)).map((match) => match.kickoff)),
   };
 }
 

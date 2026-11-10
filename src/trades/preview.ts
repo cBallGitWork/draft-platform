@@ -1,12 +1,15 @@
 // Trades in the preview (src/app/preview.ts), as the approved pictures have them
 // (docs/design/approved/trades): an offer to you, one from you, one in review under a commissioner
-// veto, and the squads to make one from, a player held in the trade under review. Made up.
+// veto, closed offers below, and the squads to make one from, a player held in the trade under
+// review. Made up.
 
 import type { Id } from "../../convex/_generated/dataModel";
 import type { Position } from "../../convex/positions/positionTables";
 import { DAY_MS, HOUR_MS } from "../../convex/shared/time";
+import { ARSENAL, CHELSEA, LIVERPOOL } from "../scouting/preview";
 import { previewIdOf } from "../table/preview";
 import type {
+  ClosedOffer,
   ScreenOffer,
   ScreenTeam,
   TradedPlayer,
@@ -15,10 +18,10 @@ import type {
 } from "./seam";
 
 const CLUBS = {
-  ARS: { code: 3, name: "Arsenal", shortName: "ARS" },
+  ARS: ARSENAL,
   AVL: { code: 7, name: "Aston Villa", shortName: "AVL" },
-  CHE: { code: 8, name: "Chelsea", shortName: "CHE" },
-  LIV: { code: 14, name: "Liverpool", shortName: "LIV" },
+  CHE: CHELSEA,
+  LIV: LIVERPOOL,
   NEW: { code: 4, name: "Newcastle", shortName: "NEW" },
   NFO: { code: 17, name: "Nottingham Forest", shortName: "NFO" },
   MCI: { code: 43, name: "Manchester City", shortName: "MCI" },
@@ -56,6 +59,8 @@ const team = (
   teamName,
   onAutoTeam: false,
   players: players.map((each) => ({ ...each, held: held.includes(each) })),
+  // The pictures are mid-season, after the draft, so no picks are left to trade.
+  picks: [],
 });
 
 const ME = "Saka Potatoes";
@@ -85,6 +90,27 @@ const offer = (
   ...rest,
 });
 
+const closedOffer = (
+  closedId: string,
+  from: string,
+  to: string,
+  gives: TradedPlayer[],
+  gets: TradedPlayer[],
+  why: ClosedOffer["why"],
+  daysAgo: number,
+): ClosedOffer => ({
+  closedId: closedId as Id<"closedTradeOffers">,
+  fromTeamId: previewIdOf(from),
+  fromTeamName: from,
+  toTeamId: previewIdOf(to),
+  toTeamName: to,
+  gives,
+  gets,
+  picks: null,
+  closedAt: now - daysAgo * DAY_MS,
+  why,
+});
+
 const view: TradesView = {
   myTeamId: previewIdOf(ME),
   shut: null,
@@ -112,6 +138,11 @@ const view: TradesView = {
       closes: null,
       reviewEndsAt: now + 20 * HOUR_MS,
     }),
+  ],
+  closed: [
+    closedOffer("preview-closed-1", ME, "Rovers XI", [ROGERS], [ODEGAARD], "rejected", 2),
+    closedOffer("preview-closed-2", "Pique Blinders", ME, [WISSA], [MURILLO], "rejected", 4),
+    closedOffer("preview-closed-3", ME, "Kroos Control", [ROGERS], [SALAH], "withdrawn", 5),
   ],
 };
 

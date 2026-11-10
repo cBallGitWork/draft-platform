@@ -1,6 +1,6 @@
 // What the matchup says, in one place for Craig to change in the pull request.
 
-import type { SlotStatus } from "../../convex/matchup/matchupShape";
+import type { MatchBreakdown, SlotStatus } from "../../convex/matchup/matchupShape";
 import { leagueAverageWords } from "../table/words";
 import { overrideLabels, removeOverrideWords } from "../playerCard/words";
 import {
@@ -10,6 +10,7 @@ import {
   gameweekWords,
   halfTime,
   noHeadToHeadsTotalPointsWords,
+  scoreWords,
   versusWords,
   weekdayTimeWords,
   whenWords,
@@ -117,8 +118,16 @@ export const notCountingLabel = "not counting";
 export const openBreakdownLabel = (name: string) => `${name}: why his points`;
 export { closeGlyph, playerCardWords } from "../shared/words";
 export const closeBreakdownLabel = "Close";
-/** One of his matches, named by its kickoff ("Sat 15:00"), opening its page. */
-export const breakdownMatchWords = (kickoff: number | null) => (kickoff === null ? "His match" : weekdayTimeWords(kickoff));
+/** One of his matches, opening its page, named by its clubs and score with its clock (the approved
+ *  picture's "NFO 1–0 BRE 67'", "NFO 1–0 BRE FT"); before kickoff, "NFO v BRE Sat 15:00". With a
+ *  club the football sync doesn't hold, by its kickoff alone ("Sat 15:00"). */
+export const breakdownMatchWords = ({ home, away, kickoff, score }: Pick<MatchBreakdown, "home" | "away" | "kickoff" | "score">) => {
+  if (home === null || away === null) return kickoff === null ? "His match" : weekdayTimeWords(kickoff);
+  if (score === null || score.state === "upcoming") return [home, versusWords, away, ...(kickoff === null ? [] : [weekdayTimeWords(kickoff)])].join(" ");
+  const goals = score.homeGoals !== null && score.awayGoals !== null ? scoreWords(score.homeGoals, score.awayGoals) : versusWords;
+  const when = score.state === "fullTime" ? fullTime.short : clockWords(score.state, score.clockLabel, score.minutes);
+  return `${home} ${goals} ${away} ${when}`;
+};
 /** Under best match, the lower of his double gameweek's two (spec/03; Craig, 6 Nov 2026). */
 export const notCountedWords = "Not counted: best match";
 export const noMatchBreakdownWords = "No match this gameweek.";
@@ -147,3 +156,13 @@ export const VIDIPRINTER_TITLE = "Vidiprinter";
 export const commentaryDelayedWords = "Commentary delayed";
 export const noCommentaryWords = "No lines yet.";
 export const unreadCommentaryWords = (reason: string) => `The commentary can't be shown: ${reason}.`;
+/** Its head row over the lines, and each team's column of what a line moves its score by (the
+ *  approved picture's "Commentary", "Saka P", "Kroos C"): a team's first word and the first
+ *  letter of its second, read out in full beside each figure. */
+export const commentaryColumnWords = "Commentary";
+export const columnHeadWords = (teamName: string) => {
+  const [first = "", second] = teamName.trim().split(/\s+/);
+  return second === undefined ? first : `${first} ${[...second][0]}`;
+};
+/** Read out on each line about the man whose breakdown is open, marked with the cyan edge. */
+export const markedLineLabel = (name: string) => `(${name})`;

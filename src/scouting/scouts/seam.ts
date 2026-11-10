@@ -1,5 +1,5 @@
 // The seam for a team's scouts (#375, spec/19 Scouts): what the player card reads and asks of them,
-// and Scouting's Scouts panel once it is drawn. Convex fills it in live (liveScouts.ts); the preview
+// and Scouting's Scouts panel (ScoutsPanel.tsx). Convex fills it in live (liveScouts.ts); the preview
 // and the tests hand the screens their own.
 
 import type { Id } from "../../../convex/_generated/dataModel";

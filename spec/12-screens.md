@@ -72,19 +72,21 @@ homage, simple, in CM's blue, with a top menu. The canvas with every round is
     - Set his role, in his season panel: opens Tactics with him selected.
     - The Schedule view: his next 6 fixtures.
     - The Rules view: your squad against the league's limits.
-  - **Fixtures**: the team's head-to-head fixtures and results for the season. A player's Premier
-    League fixtures belong on the players screen.
+  - **Fixtures**: the team's head-to-head fixtures and results for the season. A player's fixtures
+    in his competition belong on the players screen (Craig, 9 Nov 2026, on #1196: the beta plays
+    the Premier League and the Scottish Premiership).
   - **Transactions**: the team's claims, drops, trades and commissioner assignments, newest first,
-    from the same events Mail files.
+    from the same events Mail files. `S12.5`
 - **The player card** is its own page, with Back, opened from any player's name anywhere (25 Oct
   2026). It holds:
-  - his portrait, FPL's own photo of him (Craig, 7 Nov 2026: "a", of FPL's photos, our own drawn
-    portraits or none), once #79 finds FPL's terms allow it;
+  - his portrait (Craig, 7 Nov 2026: "a", of FPL's photos, our own drawn portraits or none), its
+    source open after the move to Sportmonks (`docs/to-grill.md`); `S12.7`
   - beside his name, his base points this season (the same total Scouting shows), his points a
     match, his rank at the position the switch is on, and his last five matches' points (Claude's
     call, 7 Nov 2026: "Your call on design, il approve");
-  - his name, club and positions, who owns him in the league, and FPL's injury news and chance of
-    playing, and his three latest news notes (`spec/21`);
+  - his name, club and positions, who owns him in the league, his injuries and suspensions from
+    Sportmonks, judged in the trial (`spec/20`; Craig, 9 Nov 2026, on #1196: "ive heard its not
+    great but lets see"), and his three latest news notes (`spec/21`); `S12.2`
   - this season's matches, each broken down by category (`spec/14`), at his base points: "The
     player card should be showing their base points as squad/live could be showing their
     role/tactics adjustment" (Craig, 31 Oct 2026). Every match shows the site's scoring for what he
@@ -105,14 +107,17 @@ homage, simple, in CM's blue, with a top menu. The canvas with every round is
     2026);
   - one line of last season's totals, under the site's scoring as it stands (`spec/14`);
   - his role stars and the manager's latest scout report on him, where the manager can see them
-    (`spec/19`), and the captain and set-piece hints `spec/17` adds after the mini beta;
-  - his club's next few Premier League fixtures;
+    (`spec/19`), and the club captain hint `spec/17` adds after the mini beta, from Sportmonks'
+    lineups; `S12.3`
+  - his club's next few fixtures in its competition; `S12.6`
   - the actions that apply to him and the manager: shortlist, send a scout, claim or drop, offer a
     trade. `S12.1`
 - **Trades** shows offers to and from the manager, with accept, reject and counter, and makes an
   offer; its rules are in `spec/08`. It follows `docs/design/plate.md` (25 Oct 2026).
 - The player card follows `docs/design/plate.md`, and comes by the mini beta; its stars and report
   join when scouts do.
+- A player who leaves his fantasy league's competition stays on his manager's team, scoring
+  nothing and shown as "left", until his manager drops him (Craig, 9 Nov 2026, on #1196). `S12.4`
 - A real pitch with shirts. The shirts are our own, drawn in club colours (not FPL's kit images),
   with the player's squad number on the shirt.
 

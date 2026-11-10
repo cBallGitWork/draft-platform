@@ -88,6 +88,8 @@ const pricedByWords = (pricedBy: PricedBy) => {
       return ` for ${AREA_WORDS[pricedBy.area]}`;
     case "position":
       return ` for ${pricedBy.position}`;
+    case "formation":
+      return ` for a ${pricedBy.formation}`;
   }
 };
 const cutWords = (cut: Cut | null) => {

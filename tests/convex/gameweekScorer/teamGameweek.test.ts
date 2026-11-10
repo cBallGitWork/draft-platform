@@ -40,6 +40,8 @@ const scored: TeamInGameweek = {
   team: { starters: [doubleMan, slot(SINGLE_MAN, [null])], bench: [benchMan], total: 0, provisional: true },
   autoSubs: {} as AutoSubs,
   formation: null,
+  instructions: [],
+  scoring: undefined,
   matchesOf: new Map([
     [DOUBLE_MAN, [held(FIRST_FIXTURE), held(SECOND_FIXTURE)]],
     [SINGLE_MAN, [held(SECOND_FIXTURE)]],

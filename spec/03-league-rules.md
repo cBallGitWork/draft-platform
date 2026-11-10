@@ -15,9 +15,10 @@ Among them:
 
 - Format: head-to-head, or total points. The format is locked once the league's first gameweek
   has begun, and League settings says why: one table with one meaning all season (Craig, 6 Nov
-  2026: "Locked once the season starts"; #275). `S03.1`
+  2026: "Locked once the season starts"; #275). With a scoring start (`spec/04`, After the
+  draft), the first gameweek is the first scored one (Craig, 9 Nov 2026: "First scored GW"). `S03.1`
 - Play-offs: how many teams, how many legs.
-- Table tie-breaks.
+- Table tie-breaks, whose order the commissioner changes (Craig, 9 Nov 2026: "Yes, Up/Down"). `S03.2`
 - How many head-to-head games each team plays a gameweek: one, or more (`spec/09`), never more
   than the league's maximum of teams gives a team different opponents for; more is refused when
   saved, naming the most, and so is lowering the maximum below what the games need (22 Oct 2026).
@@ -32,8 +33,9 @@ Among them:
   off by default.
 - Carry-over: redraft, keeper (the league sets how many each team keeps; keeping costs nothing)
   or dynasty (the whole squad carries over).
-- The deadline: when it falls, as a time before the gameweek's first kickoff, starting at FPL's
-  own, 90 minutes before (see [5. Tactics](05-tactics.md)).
+- The deadline: when it falls, as a time before the gameweek's first kickoff, starting at 15
+  minutes before: "i have said multiple times we dont use fpls time, its 15 minutes" (Craig,
+  9 Nov 2026, on #1196; see [5. Tactics](05-tactics.md)). `S03.3`
 - Each area's minimum and maximum on the pitch, and the formation presets.
 - Double gameweeks: both matches count (the default), or best match.
 - Waivers: when they run, set by the league; can be more than once a week, Wednesday and Thursday

@@ -19,3 +19,24 @@ export const scoutOutWords = (dueAt: number) => `Scout out: report in ${whenWord
 export const noReportWords = "Not scouted";
 /** The approved card's "Older report, 12 Oct", which opens it. */
 export const olderReportWords = (writtenAt: number) => `Older report, ${dayWords(writtenAt)}`;
+
+/** Scouting's Scouts panel (the approved Scouting picture; Craig, 6 Nov 2026, on #375): each of the
+ *  team's scouts, out with the time left, back with a report in, or free; then the team's other
+ *  reports. */
+export const SCOUTS_TITLE = "Scouts";
+export const scoutsOutWords = (out: number, scouts: number) => `${out} of ${scouts} out`;
+export const scoutNumberWords = (number: number) => `Scout ${number}`;
+export const outOnWords = (name: string) => `Out on ${name}`;
+export const reportInSoonWords = (left: string) => `report in ${left}`;
+export const reportInOnWords = (name: string) => `Report in on ${name}`;
+export const freeScoutWords = "Free: send him from a player's panel";
+export const readWords = "Read ›";
+export const readNamedLabel = (name: string, writtenAt: number) => `Read the report on ${name}, ${dayWords(writtenAt)}`;
+export const earlierReportWords = (name: string, writtenAt: number) => `Report on ${name}, ${dayWords(writtenAt)}`;
+export const reportsListLabel = "Your team's earlier reports";
+export const loadingScoutsWords = "Loading your scouts…";
+/** The report opened from the panel: whom, when, and its two actions. */
+export const reportTitle = (name: string) => `Report: ${name}`;
+export const writtenWords = (writtenAt: number) => `Written ${dayWords(writtenAt)}`;
+export const scoutAgainWords = "Scout him again";
+export const closeReportLabel = "Close the report";

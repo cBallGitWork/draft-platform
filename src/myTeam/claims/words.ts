@@ -3,7 +3,7 @@
 // and the runs' the same way.
 
 import type { WaiverOrderType } from "../../../convex/rules/leagueRulesShape";
-import { LOCALE } from "../../../convex/shared/moments";
+import { LOCALE, LONDON_ZONE } from "../../../convex/shared/moments";
 import { placeWords, pointsShort } from "../header/words";
 
 export { placeWords, pointsShort };
@@ -32,9 +32,9 @@ export const claimColumns = {
 export const claimsTableLabel = "Your pending claims";
 export const everyTeamTableLabel = "Every team's pending claims";
 
-const ukWhen = new Intl.DateTimeFormat(LOCALE, { weekday: "short", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit", timeZone: "Europe/London" });
-const ukDayTime = new Intl.DateTimeFormat(LOCALE, { weekday: "short", hour: "2-digit", minute: "2-digit", timeZone: "Europe/London" });
-const ukDay = new Intl.DateTimeFormat(LOCALE, { weekday: "short", timeZone: "Europe/London" });
+const ukWhen = new Intl.DateTimeFormat(LOCALE, { weekday: "short", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit", timeZone: LONDON_ZONE });
+const ukDayTime = new Intl.DateTimeFormat(LOCALE, { weekday: "short", hour: "2-digit", minute: "2-digit", timeZone: LONDON_ZONE });
+const ukDay = new Intl.DateTimeFormat(LOCALE, { weekday: "short", timeZone: LONDON_ZONE });
 /** A run, UK time: "Wed 11 Nov, 18:00". */
 export const runWords = (at: number) => ukWhen.format(at);
 /** A run, short: "Wed 18:00". */

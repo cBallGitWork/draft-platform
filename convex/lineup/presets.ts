@@ -13,6 +13,37 @@ export interface Preset {
   /** Its default attacking and defensive instruction (spec/05, Team instructions; #990): absent
    *  only from presets a league held before #990, which read instructions.ts's first defaults. */
   instructions?: InstructionPair;
+  /** What its keeper and defence slots score for a clean sheet and each goal conceded, in place of
+   *  the site's set (spec/05: two at the back's "clean sheets is 3, every goal conceded -1"); null
+   *  for none. Absent only from presets a league held before #990, which read `backLineOf`'s first
+   *  values. */
+  backLine?: BackLineScoring | null;
+}
+
+/** A formation's own values for its back line (spec/05, Team instructions; Craig, 9 Nov 2026, on
+ *  #990: it replaces the base values for the keeper and defence slots, the clean sheet keeping its
+ *  60-minute minimum, and shows on his clean sheet and goals conceded lines). */
+export interface BackLineScoring {
+  /** Points for a clean sheet. */
+  cleanSheet: number;
+  /** Points for each goal conceded. */
+  goalConceded: number;
+}
+
+/** Two at the back's first values (Craig, 4 Nov 2026: "clean sheets is 3, every goal conceded -1"). */
+export const TWO_AT_THE_BACK: BackLineScoring = { cleanSheet: 3, goalConceded: -1 };
+
+/** The first back line a shape gets: two at the back's, for a defence row of two; else none. */
+export function firstBackLineFor(cells: readonly Cell[]): BackLineScoring | null {
+  return cells.filter((cell) => cell.area === "defence").length === 2 ? { ...TWO_AT_THE_BACK } : null;
+}
+
+/** The back line of the preset a side stands in: its own, or for one held before #990 the first
+ *  for its shape; null for a shape no preset is. `presets` are the league's in force then. */
+export function backLineOf(cells: readonly Cell[], presets: readonly Preset[]): BackLineScoring | null {
+  const preset = presetOf(cells, presets);
+  if (preset === undefined) return null;
+  return preset.backLine === undefined ? firstBackLineFor(preset.cells) : preset.backLine;
 }
 
 const row = (area: Area, ...lanes: Lane[]): Cell[] => cellsOf(area, lanes);
@@ -39,7 +70,7 @@ const BACK_TWO = row("defence", "leftCentre", "rightCentre");
  *  another preset would change that one too. */
 const preset = (name: string, ...areas: Cell[][]): Preset => {
   const cells = [...KEEPER, ...areas.flat()].map((cell) => ({ ...cell }));
-  return { name, cells, instructions: firstPairFor(cells) };
+  return { name, cells, instructions: firstPairFor(cells), backLine: firstBackLineFor(cells) };
 };
 
 /** In spec/05's order. */
@@ -84,6 +115,10 @@ export const DEFAULT_PRESETS: readonly Preset[] = [
  *  (spec/10: "preset until its edited, then we name it"; #878). `presets` are the league's in force
  *  then (spec/03), never this file's. */
 export function presetNameOf(cells: readonly Cell[], presets: readonly Preset[]): string | null {
-  const preset = presets.find((each) => each.cells.length === cells.length && each.cells.every((cell) => cells.some((other) => sameCell(cell, other))));
-  return preset?.name ?? null;
+  return presetOf(cells, presets)?.name ?? null;
+}
+
+/** The first of `presets` whose cells are exactly these, in any order. */
+function presetOf(cells: readonly Cell[], presets: readonly Preset[]): Preset | undefined {
+  return presets.find((each) => each.cells.length === cells.length && each.cells.every((cell) => cells.some((other) => sameCell(cell, other))));
 }

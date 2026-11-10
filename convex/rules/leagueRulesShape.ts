@@ -24,6 +24,9 @@ const preset = v.object({
   /** Its default team instructions (#990): absent only from presets saved before them, which read
    *  instructions.ts's first defaults. */
   instructions: v.optional(instructionPairShape),
+  /** presets.ts's BackLineScoring, null for none (#990): absent only from presets saved before it,
+   *  which read presets.ts's first values. */
+  backLine: v.optional(v.union(v.object({ cleanSheet: v.number(), goalConceded: v.number() }), v.null())),
 });
 
 /** A preset as rows hold it: one saved between #988 and #1159 may also carry the role its

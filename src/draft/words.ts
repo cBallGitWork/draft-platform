@@ -3,7 +3,7 @@
 
 import { DRAFT_LIST_MOST } from "../../convex/draft/draftLimits";
 import { DAY_MS, HOUR_MS, MINUTE_MS, SECOND_MS } from "../../convex/shared/time";
-import { failedWords } from "../shared/words";
+import { failedWords, placeWords } from "../shared/words";
 
 /** The page's title, its menu tab's too, and the state beside it. */
 export const DRAFT_TITLE = "Draft";
@@ -20,14 +20,8 @@ export const startsHead = (at: string | null) => (at === null ? "Starts" : `Star
 export const noStartWords = "When the commissioner starts it";
 export const noClockWords = "No pick time set";
 
-/** "1st", "2nd", "13th". */
-export function ordinal(n: number): string {
-  const teen = n % 100 >= 11 && n % 100 <= 13;
-  const suffix = teen ? "th" : (["th", "st", "nd", "rd"][n % 10] ?? "th");
-  return `${n}${suffix}`;
-}
 /** Where a team picks in the first two rounds: "8th, then 13th". */
-export const youPickWords = (first: number, second: number | null) => (second === null ? ordinal(first) : `${ordinal(first)}, then ${ordinal(second)}`);
+export const youPickWords = (first: number, second: number | null) => (second === null ? placeWords(first) : `${placeWords(first)}, then ${placeWords(second)}`);
 
 /** A pick time, short: "90s", "2m", "8h". */
 export function pickTimeWords(seconds: number): string {
@@ -78,6 +72,11 @@ export const onTheClockSlotWords = (slot: string) => `${slot}, `;
  *  sees (Craig, 5 Nov 2026, on #1100). */
 export const pickedWords = (clubShortName: string, slot: string, auto: boolean) => `${clubShortName}, ${slot}${auto ? `, ${autoWords}` : ""}`;
 export const autoWords = "auto";
+/** A traded pick (#1096): "via" the team it came from, whose turn it falls on, under the team that
+ *  holds it now (spec/04, The picks; the approved draft room picture): "via Bale Out". */
+export const viaWords = (team: string) => `via ${team}`;
+/** A traded pick made or on the clock, whose first lines are taken: "Rovers XI via Bale Out". */
+export const heldViaWords = (owner: string, team: string) => `${owner} ${viaWords(team)}`;
 /** A pick whose player the football data no longer holds (#323). */
 export const lostPlayerWords = "Player missing from the football data";
 /** The queue and do-not-draft panels (spec/04, The queue and the ranking; #1100). */
@@ -101,7 +100,7 @@ export const doNotDraftListLabel = "Your do-not-draft list";
 export const takeOffLabel = (name: string, list: "queue" | "doNotDraft") =>
   list === "queue" ? `Take ${name} off your queue` : `Take ${name} off your do-not-draft list`;
 /** On a queued row's handle, for screen readers: it drags, or moves a place with the arrow keys. */
-export const moveLabel = (name: string, place: number) => `Move ${name}, ${ordinal(place)} in your queue: drag, or press the up or down arrow`;
+export const moveLabel = (name: string, place: number) => `Move ${name}, ${placeWords(place)} in your queue: drag, or press the up or down arrow`;
 export const listChangeFailedWords = failedWords("your draft lists didn't change");
 
 /** The auto-pick panel (spec/04, Auto-pick; #1100). */
@@ -180,7 +179,7 @@ export const yourSquadHead = "Your squad";
  *  maximum left off where the league sets none. */
 export const yourSquadWords = (position: string, atPosition: number, club: string, atClub: number, maxPerClub: number | null) =>
   `${position} ${atPosition}, ${club} ${atClub}${maxPerClub === null ? "" : ` of ${maxPerClub}`}`;
-export const playerCardWords = "Player card";
+export { playerCardWords } from "../shared/words";
 export const pickFailedWords = "The pick couldn't be made. Try again.";
 
 export const noRoundsWords = "The draft's rounds are its squads' most players, and this league's squads have no size limit yet.";

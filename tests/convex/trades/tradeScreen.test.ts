@@ -1,9 +1,7 @@
 import { beforeEach, describe, expect, test, vi } from "vitest";
 import { api } from "../../../convex/_generated/api";
-import {
-  missingPlayerLog,
-  nextDeadline,
-} from "../../../convex/trades/tradeScreen";
+import { nextDeadline } from "../../../convex/gameweeks/deadline";
+import { missingPlayerLog } from "../../../convex/trades/tradeScreen";
 import { actingAs } from "../../support/convex/leagues.harness";
 import { nameOf } from "../../support/convex/lineupSquad.harness";
 import {

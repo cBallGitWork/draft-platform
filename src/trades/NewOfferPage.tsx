@@ -1,4 +1,4 @@
-import { useId, useState } from "react";
+import { useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import type { Id } from "../../convex/_generated/dataModel";
 import type { LeagueSummary } from "../../convex/leagues/myLeagues";
@@ -11,25 +11,25 @@ import {
   PanelNote,
   Problem,
 } from "../ui/Panel";
+import { NoteBox, PartnerPicker } from "./OfferControls";
 import { Fact, OfferSide } from "./OfferParts";
 import { sidesOf } from "./offerSides";
+import { pickNamed, useOfferTicks } from "./offerTicks";
+import { PicksTable } from "./PicksTable";
 import type { ScreenTeam, TradeChanges, TradesSeam, TradesView } from "./seam";
 import { SquadTable } from "./SquadTable";
 import {
   clearWords,
   noneTickedWords,
   noPartnerWords,
-  noteLabel,
   noTeamWords,
-  NOTE_MOST,
-  partnerLabel,
+  onePickEachWords,
   sendCounterWords,
   sendOfferWords,
   shutWords,
   squadAfterWords,
   squadCountWords,
   theirSquadWords,
-  THEIR_SQUAD_TITLE,
   toTeamWords,
   TRADES_TITLE,
   tradesLoadingWords,
@@ -37,12 +37,12 @@ import {
   youGiveWords,
   YOUR_COUNTER_TITLE,
   YOUR_OFFER_TITLE,
-  YOUR_SQUAD_TITLE,
   yourSquadWords,
 } from "./words";
 
 /** Trades' New offer tab (#383; docs/design/approved/trades/1440-new.png): both squads side by side
- *  with ticks, the team to trade with picked in Their squad's plate, and the offer summed up on the
+ *  with ticks, each with its Picks block under it before the draft (#1096), the team to trade with
+ *  picked in Their squad's plate, and the offer summed up on the
  *  right with a one-line note. `counter` names an offer to the manager it answers, filling it in. */
 export function NewOfferPage({
   league,
@@ -134,8 +134,10 @@ function NewOffer({
   const [partnerId, setPartnerId] = useState<Id<"teams"> | null>(
     counter?.teamId ?? partners[0]?.teamId ?? null,
   );
-  const [gives, setGives] = useState<readonly number[]>(counter?.gives ?? []);
-  const [gets, setGets] = useState<readonly number[]>(counter?.gets ?? []);
+  const ticks = useOfferTicks({
+    gives: counter?.gives ?? [],
+    gets: counter?.gets ?? [],
+  });
   const [note, setNote] = useState("");
   const [busy, setBusy] = useState(false);
   const [problem, setProblem] = useState<string | null>(null);
@@ -143,11 +145,10 @@ function NewOffer({
 
   const choosePartner = (teamId: Id<"teams">) => {
     setPartnerId(teamId);
-    setGets([]);
+    ticks.clearTheirs();
   };
   const clear = () => {
-    setGives([]);
-    setGets([]);
+    ticks.clear();
     setNote("");
     setProblem(null);
   };
@@ -155,8 +156,7 @@ function NewOffer({
     if (partner === null) return;
     setBusy(true);
     const terms = {
-      gives: [...gives],
-      gets: [...gets],
+      ...ticks.terms,
       note: note.trim() === "" ? null : note,
     };
     const refused =
@@ -170,23 +170,28 @@ function NewOffer({
 
   const picked = (team: ScreenTeam | null, codes: readonly number[]) =>
     (team?.players ?? []).filter((player) => codes.includes(player.code));
-  const ticked = gives.length + gets.length > 0;
+  const { gives, gets, ready: ticked } = ticks;
   return (
     <PageSection title={TRADES_TITLE} className="flex flex-col gap-2">
       {view.shut !== null && <Notice>{shutWords[view.shut]}</Notice>}
       <div className="grid items-start gap-2 lg:grid-cols-new-offer">
         <Panel
-          title={YOUR_SQUAD_TITLE}
+          title={yourSquadWords}
           aside={
             <span className="text-soft">
               {squadCountWords(mine.players.length, view.squadMaximum)}
             </span>
           }
         >
-          <SquadTable team={mine} ticked={gives} tick={setGives} />
+          <SquadTable team={mine} ticked={gives} tick={ticks.tickGives} />
+          <PicksTable
+            team={mine}
+            ticked={ticks.givePick}
+            tick={ticks.tickGivePick}
+          />
         </Panel>
         <Panel
-          title={THEIR_SQUAD_TITLE}
+          title={theirSquadWords}
           aside={
             <PartnerPicker
               partners={partners}
@@ -204,7 +209,14 @@ function NewOffer({
           {partner === null ? (
             <PanelNote>{noPartnerWords}</PanelNote>
           ) : (
-            <SquadTable team={partner} ticked={gets} tick={setGets} />
+            <>
+              <SquadTable team={partner} ticked={gets} tick={ticks.tickGets} />
+              <PicksTable
+                team={partner}
+                ticked={ticks.getPick}
+                tick={ticks.tickGetPick}
+              />
+            </>
           )}
         </Panel>
         <Panel
@@ -215,8 +227,16 @@ function NewOffer({
             )
           }
         >
-          <OfferSide label={youGetWords} players={picked(partner, gets)} />
-          <OfferSide label={youGiveWords} players={picked(mine, gives)} />
+          <OfferSide
+            label={youGetWords}
+            players={picked(partner, gets)}
+            pick={pickNamed(partner, ticks.getPick)}
+          />
+          <OfferSide
+            label={youGiveWords}
+            players={picked(mine, gives)}
+            pick={pickNamed(mine, ticks.givePick)}
+          />
           <NoteBox note={note} setNote={setNote} />
           <dl className="grid grid-cols-facts">
             <Fact label={yourSquadWords}>
@@ -236,7 +256,11 @@ function NewOffer({
           </dl>
           <div className="flex flex-col gap-2 p-3">
             <Problem problem={problem} />
-            {!ticked && <p className="text-muted">{noneTickedWords}</p>}
+            {!ticked && (
+              <p className="text-muted">
+                {ticks.onePickOnly ? onePickEachWords : noneTickedWords}
+              </p>
+            )}
             <span className="flex flex-wrap gap-2">
               <button
                 type="button"
@@ -260,69 +284,5 @@ function NewOffer({
         </Panel>
       </div>
     </PageSection>
-  );
-}
-
-function PartnerPicker({
-  partners,
-  partnerId,
-  choose,
-  locked,
-  count,
-}: {
-  partners: readonly ScreenTeam[];
-  partnerId: Id<"teams"> | null;
-  choose: (teamId: Id<"teams">) => void;
-  locked: boolean;
-  count: string | null;
-}) {
-  if (partners.length === 0) return undefined;
-  return (
-    <span className="flex items-center gap-3">
-      <select
-        aria-label={partnerLabel}
-        value={partnerId ?? ""}
-        disabled={locked}
-        onChange={(event) => {
-          const team = partners.find(
-            ({ teamId }) => teamId === event.target.value,
-          );
-          if (team !== undefined) choose(team.teamId);
-        }}
-        className="text-box"
-      >
-        {partners.map((team) => (
-          <option key={team.teamId} value={team.teamId}>
-            {team.teamName}
-          </option>
-        ))}
-      </select>
-      {count !== null && <span className="text-soft">{count}</span>}
-    </span>
-  );
-}
-
-function NoteBox({
-  note,
-  setNote,
-}: {
-  note: string;
-  setNote: (note: string) => void;
-}) {
-  const id = useId();
-  return (
-    <div className="flex flex-col gap-1 border-b border-panel-rule px-3 py-2">
-      <label htmlFor={id} className="text-soft">
-        {noteLabel}
-      </label>
-      <input
-        id={id}
-        type="text"
-        value={note}
-        maxLength={NOTE_MOST}
-        onChange={(event) => setNote(event.target.value)}
-        className="text-box"
-      />
-    </div>
   );
 }

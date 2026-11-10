@@ -10,7 +10,7 @@ import { cellKey, isOnPitch, type Cell } from "../lineup/pitch";
 import { roleIn } from "../lineup/roles";
 import type { ScoringSet } from "./scoringSet";
 import { inTenths, type DoubleGameweekRule, type MatchStats } from "./values";
-import { countedMatches, scoreGameweek, scoreMatch, type MatchPoints } from "./scoring";
+import { countedMatches, scoreGameweek, scoreMatch, type MatchPoints, type TeamScoring } from "./scoring";
 
 /** Players are FPL's season-stable `code`. */
 type PlayerCode = number;
@@ -51,6 +51,9 @@ export interface TeamPointsInput {
   /** The cell each bench player's greyed points are priced at while he hasn't come on: he has no
    *  slot of his own, so the caller says which (#29, Left for later). */
   benchCells: ReadonlyMap<PlayerCode, Cell>;
+  /** Its two team instructions and its formation's back line (spec/05, Team instructions; #990),
+   *  which score its starters and the bench players who come on. None scores neither. */
+  team?: TeamScoring;
 }
 
 /** One player's gameweek in the team. */
@@ -100,11 +103,11 @@ export function scoreTeam(input: TeamPointsInput): TeamPoints {
 
   const starters = lineup.starters.map((starter) => {
     const cell = { area: starter.area, lane: starter.lane } as Cell;
-    return slotPoints(input, starter.playerCode, cell, !substituted.subbedOff.has(starter.playerCode), starter.role);
+    return slotPoints(input, starter.playerCode, cell, !substituted.subbedOff.has(starter.playerCode), starter.role, input.team);
   });
   const bench = lineup.bench.map((playerCode) => {
     const substitution = substituted.subbedOn.get(playerCode);
-    if (substitution !== undefined) return slotPoints(input, playerCode, substitution.cell, true, substitution.role);
+    if (substitution !== undefined) return slotPoints(input, playerCode, substitution.cell, true, substitution.role, input.team);
     const cell = benchCells.get(playerCode);
     if (cell === undefined) throw new Error(`bench player ${playerCode} has no cell to price his points at`);
     return slotPoints(input, playerCode, cell, false);
@@ -121,17 +124,18 @@ export function scoreTeam(input: TeamPointsInput): TeamPoints {
 }
 
 /** His points at `cell`, his role adjustment included: the role he was given, or the slot's first
- *  (spec/05 Roles). A bench player who hasn't come on is priced the same way, greyed. */
-function slotPoints(input: TeamPointsInput, playerCode: PlayerCode, cell: Cell, counts: boolean, role?: string): SlotPoints {
+ *  (spec/05 Roles). A bench player who hasn't come on is priced the same way, greyed, but without
+ *  the team's instructions and back line, which score starters and those who come on (spec/05). */
+function slotPoints(input: TeamPointsInput, playerCode: PlayerCode, cell: Cell, counts: boolean, role?: string, team?: TeamScoring): SlotPoints {
   // A cell off the pitch has no roles: scoreMatch refuses it, with the reason.
   const playing = isOnPitch(cell) ? roleIn(cell, role).key : undefined;
   const playerMatches = input.matches.get(playerCode);
   if (playerMatches === undefined) throw new Error(`player ${playerCode} has no entry in the gameweek's matches`);
   const matches = playerMatches.map((match) => {
-    const scored = scoreMatch(match.record, input.set, cell, playing);
-    // An override is the match's whole score: no role line shows beside a total it isn't in.
+    const scored = scoreMatch(match.record, input.set, cell, playing, team);
+    // An override is the match's whole score: no role or instruction line shows beside a total it isn't in.
     if (match.override === undefined) return scored;
-    const { role: _overridden, ...rest } = scored;
+    const { role: _overridden, instructions: _alsoOverridden, ...rest } = scored;
     return { ...rest, total: match.override };
   });
   const gameweek = scoreGameweek(matches, input.doubleGameweekRule);
