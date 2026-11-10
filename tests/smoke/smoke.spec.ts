@@ -3,7 +3,7 @@
 
 import { expect, type Page } from "@playwright/test";
 import { DEFAULT_PRESETS } from "../../convex/lineup/presets";
-import { ADMIN_FEEDBACK_PATH, ADMIN_FEEDS_PATH, ADMIN_PATH } from "../../src/admin/paths";
+import { ADMIN_AVAILABILITY_PATH, ADMIN_FEEDBACK_PATH, ADMIN_FEEDS_PATH, ADMIN_PATH } from "../../src/admin/paths";
 import { miniBeta } from "../../src/shared/preview";
 import { HOME_NEWS_PATH, MY_TEAM_PATH, SCOUTING_PATH } from "../../src/frame/menu";
 import { everyTeamWords, gotWords, newsKindWords, newsTableLabel, teamFilterLabel } from "../../src/home/words";
@@ -221,6 +221,7 @@ test.describe("dev server, signed out of Convex", { tag: "@dev" }, () => {
       `${ADMIN_PATH}?preview=admin`,
       `${ADMIN_FEEDS_PATH}?preview=admin`,
       `${ADMIN_FEEDBACK_PATH}?preview=admin`,
+      `${ADMIN_AVAILABILITY_PATH}?preview=admin`,
     ];
     for (const path of SHARING_THE_WIDTH) {
       test(`${path} is as wide as Scouting`, async ({ page }) => {
