@@ -7,7 +7,7 @@
 // reads it in plain Node.
 
 import type { Area } from "../lineup/pitch";
-import { PAST_STAT_COLUMNS } from "./pastStatColumns.ts";
+import { PAST_STAT_COLUMNS, ZERO_LEFT_OUT_BY, type PastFeed } from "./pastStatColumns.ts";
 
 /** The competition a row must name to be a Premier League match: the log holds cups and Europe too. */
 export const PREMIER_LEAGUE = "premier_league";
@@ -23,7 +23,8 @@ export const STAT_COLUMNS: Readonly<Record<string, string>> = Object.fromEntries
 export const KICKOFF_COLUMN = "kickoff_utc";
 
 /** Every column the copy reads. FPL's fixture id is read only to count the season's matches, and
- *  never kept; FPL's own points are read only by the re-score test. */
+ *  never kept; FPL's own points are read only by the re-score test; a feed's minutes only say
+ *  whether it covered the match (ZERO_LEFT_OUT_BY). */
 export const SOURCE_COLUMNS = [
   "competition",
   "person_root_id",
@@ -31,6 +32,7 @@ export const SOURCE_COLUMNS = [
   KICKOFF_COLUMN,
   "starting_position",
   ...Object.values(STAT_COLUMNS),
+  ...Object.values(ZERO_LEFT_OUT_BY),
   "fpl_total_points",
   "fpl_bonus",
 ];
@@ -41,6 +43,9 @@ export type LogRow = Readonly<Record<string, unknown>>;
 /** FPL's four positions, by its `element_type`. */
 export const FPL_POSITIONS = [1, 2, 3, 4] as const;
 export type FplPosition = (typeof FPL_POSITIONS)[number];
+
+/** FPL's `element_type` for a manager, 2024/25's assistant manager chip: in the list, never a player. */
+export const FPL_MANAGER = 5;
 
 /** The area each FPL position is priced in: FPL prices by position and the site by area, and every
  *  midfield area takes FPL's midfielder values (firstScoring.ts). */
@@ -98,13 +103,16 @@ export function fplCodesByRoot(files: readonly PersonFile[]): Map<string, number
   return codes;
 }
 
-/** Each player's FPL position by his `code`, from a season's FPL player list (bootstrap-static). */
+/** Each player's FPL position by his `code`, from a season's FPL player list: bootstrap-static, or
+ *  its `elements` alone, as the past-season source keeps the older seasons' lists
+ *  (`data/raw/fpl_history/<season>/players_raw.json`). */
 export function fplPositionsByCode(bootstrap: unknown): Map<number, FplPosition> {
-  const elements = isRecord(bootstrap) ? bootstrap.elements : undefined;
+  const elements = Array.isArray(bootstrap) ? bootstrap : isRecord(bootstrap) ? bootstrap.elements : undefined;
   if (!Array.isArray(elements)) throw new Error("The FPL player list has no `elements`");
   const positions = new Map<number, FplPosition>();
   for (const element of elements) {
     if (!isRecord(element) || typeof element.code !== "number") throw new Error("An FPL player has no `code`");
+    if (element.element_type === FPL_MANAGER) continue;
     const position = FPL_POSITIONS.find((each) => each === element.element_type);
     if (position === undefined) throw new Error(`FPL player ${element.code} has position ${String(element.element_type)}, not one of FPL's four`);
     positions.set(element.code, position);
@@ -155,14 +163,21 @@ function numberIn(row: LogRow, column: string): number | null {
 export const playedIn = (row: LogRow): boolean => (numberIn(row, STAT_COLUMNS.minutes) ?? 0) > 0;
 
 /** A row's stats under our names. A column with no value is left out: the 267 played rows of
- *  2025/26 with no defensive contribution keep it absent, never 0 (#1113). */
+ *  2025/26 with no defensive contribution keep it absent, never 0 (#1113). The one exception is a
+ *  feed that leaves its 0s out (ZERO_LEFT_OUT_BY): where it covered his match, its missing stat is 0. */
 export function statsIn(row: LogRow): Record<string, number> {
   const stats: Record<string, number> = {};
-  for (const [stat, column] of Object.entries(STAT_COLUMNS)) {
-    const value = numberIn(row, column);
+  for (const [stat, { feed, column }] of Object.entries(PAST_STAT_COLUMNS)) {
+    const value = numberIn(row, column) ?? (coveredBy(row, feed) ? 0 : null);
     if (value !== null) stats[stat] = value;
   }
   return stats;
+}
+
+/** The feed covered his match: it is one that leaves its 0s out, and gives him minutes. */
+function coveredBy(row: LogRow, feed: PastFeed): boolean {
+  const minutes = ZERO_LEFT_OUT_BY[feed];
+  return minutes !== undefined && numberIn(row, minutes) !== null;
 }
 
 /** A kickoff in ms. One the log gives with no zone is read as UTC, as FPL gives every kickoff. */
@@ -176,8 +191,9 @@ function kickoffIn(row: LogRow): number {
 
 /** The rows to store for `season` from the log's rows: every Premier League row he played, and one
  *  with no match for each player the season names who played none. Each player is found by his
- *  person root id's FPL `code`, and his position by that code; a row no code or position is found
- *  for, or a player twice at one kickoff, stops the copy, naming him. */
+ *  person root id's FPL `code`, and his position by that code; a row no code is found for, a
+ *  played row no position is found for, or a player twice at one kickoff, stops the copy, naming
+ *  him. A row he only sat on the bench for, with no position, is left out. */
 export function pastSeasonRows(
   season: number,
   log: readonly LogRow[],
@@ -194,7 +210,12 @@ export function pastSeasonRows(
     const playerCode = codes.get(root);
     if (playerCode === undefined) throw new Error(`Person ${root} has no FPL code in data/identity/persons/root/`);
     const fplPosition = positions.get(playerCode);
-    if (fplPosition === undefined) throw new Error(`Person ${root} (FPL code ${playerCode}) is not in the season's FPL player list`);
+    if (fplPosition === undefined) {
+      // Only on the bench, he never was in FPL's game that season (2022/23's and 2023/24's lists
+      // each lack one such man): left out. One who played stops the copy.
+      if (!playedIn(row)) continue;
+      throw new Error(`Person ${root} (FPL code ${playerCode}) is not in the season's FPL player list`);
+    }
     named.set(playerCode, fplPosition);
     if (!playedIn(row)) continue;
     const kickoff = kickoffIn(row);

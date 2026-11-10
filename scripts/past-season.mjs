@@ -31,21 +31,20 @@ const logOf = (start) => {
   return `data/match_logs/player_match_log/season=${short(start)}-${short(start + 1)}/player_match_log.parquet`;
 };
 
-/** Every Premier League season has 380 matches. */
-const PREMIER_LEAGUE_MATCHES = 380;
-
 /** An older season (#842, for the rule balance lab): its sizes weren't counted before, so only its
  *  matches are checked, and its FPL player list is named on the run with --players (ai-carling's
- *  list for that season, read on Craig's Mac). */
-const olderSeason = (start) => ({ log: logOf(start), players: null, counts: { matches: PREMIER_LEAGUE_MATCHES } });
+ *  list for that season, read on Craig's Mac). Of its 380 matches, `matches` are the ones the log
+ *  gives FPL's minutes for: the rest, mostly rescheduled ones, have none, so no one played in them
+ *  as the copy counts it (counted 9 Nov 2026, #10). */
+const olderSeason = (start, matches) => ({ log: logOf(start), players: null, counts: { matches } });
 
 /** Each season the copy knows, by the year it starts: its log, its FPL player list (null where the
  *  run names it), and the sizes it is checked against. spec/14: the five seasons 2021/22 to 2025/26. */
 export const SEASONS = {
-  2021: olderSeason(2021),
-  2022: olderSeason(2022),
-  2023: olderSeason(2023),
-  2024: olderSeason(2024),
+  2021: olderSeason(2021, 345),
+  2022: olderSeason(2022, 353),
+  2023: olderSeason(2023, 367),
+  2024: olderSeason(2024, 375),
   2025: {
     log: logOf(2025),
     // 2025/26's FPL list on 1 Jun 2026, its last before the reset: each player's position that season, by code. It names all 707; 1 Mar's lacked 22 who joined later, and no one changes position across the season's lists.
@@ -85,8 +84,15 @@ async function run(exec, command, args, cwd) {
   return stdout;
 }
 
+/** A bare NaN as a value, as Python's json writes a missing number: the older seasons' FPL lists
+ *  (`data/raw/fpl_history/<season>/players_raw.json`) have them, and JSON has no NaN. */
+const BARE_NAN = /(:\s*)NaN(?=\s*[,}\]])/g;
+
+/** Parses JSON that may hold Python's bare NaN, read as null. */
+export const parseJson = (text) => JSON.parse(text.replace(BARE_NAN, "$1null"));
+
 async function readJson(path) {
-  return JSON.parse(await readFile(path, "utf8"));
+  return parseJson(await readFile(path, "utf8"));
 }
 
 /** ai-carling's person files, each with its name. */
