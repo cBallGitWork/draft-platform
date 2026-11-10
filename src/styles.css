@@ -154,6 +154,10 @@
   --grid-template-columns-scouting: minmax(0, 5fr) minmax(0, 2fr);
   /* Trades' New offer tab: your squad, theirs, and your offer (approved/trades/1440-new.png) */
   --grid-template-columns-new-offer: minmax(0, 5fr) minmax(0, 5fr) minmax(0, 4fr);
+  /* My team's Fixtures tab: fixtures to come, results, and the next game and season
+     (approved/team-fixtures/1440.png); the fixtures scroll in their panel past 21 rows, as drawn */
+  --grid-template-columns-team-fixtures: minmax(0, 5fr) minmax(0, 5fr) minmax(0, 4fr);
+  --spacing-fixtures-list: calc(var(--spacing-row) * 21);
   --grid-template-columns-facts: auto 1fr;
   /* The formation window's groups, its tiles and the picked one's preview (the approved formation
      window) */
