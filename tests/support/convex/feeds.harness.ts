@@ -58,6 +58,9 @@ export function recordRun(t: TestConvex, feed: Feed, ranAt: number, ran: Ran = "
       await ctx.db.insert("sportmonksSyncs", { competition: SCOTTISH_PREMIERSHIP, trigger: "cron", ranAt, outcome: failed ?? ok });
     } else if (feed === "sportmonksLive") {
       await ctx.db.insert("sportmonksLiveTicks", { competition: SCOTTISH_PREMIERSHIP, ranAt, outcome: failed ?? { ok: true, matches } });
+    } else if (feed === "sportmonksPositions") {
+      const ok = { ok: true as const, matchesRead: 0, matchesLeft: 0, startsAdded: 0, labelsReceived: 0, labelsChanged: 0, unknownFormations: [], unknownLabels: [] };
+      await ctx.db.insert("sportmonksPositionsSyncs", { trigger: "cron", ranAt, outcome: failed ?? ok });
     } else if (feed === "liveStats") {
       await ctx.db.insert("liveStatsTicks", { ranAt, outcome: failed ?? { ok: true, matches } });
     } else {

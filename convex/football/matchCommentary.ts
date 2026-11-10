@@ -126,7 +126,7 @@ export async function readCommentary(
 /** Why the stream counts as behind: its newest timed line trails the clock of a match in play by
  *  more than `COMMENTARY_BEHIND_MINUTES`. Not judged before kickoff, at half-time, when the clock
  *  stops, or at full time. */
-function behind(stream: readonly CommentaryLine[], score: ScoreRead): string | null {
+export function behind(stream: readonly TimedLine[], score: ScoreRead): string | null {
   if (score.state !== "live" || score.minutes === null) return null;
   // The same words each minute it trails, so the row is not rewritten each tick.
   return trails(stream, score.minutes) ? STREAM_BEHIND : null;
@@ -154,7 +154,7 @@ export function delayedAt(held: Doc<"matchCommentary">, score: Doc<"matchScores"
 }
 
 /** Each reason a commentary is delayed, as one; null with none. */
-function joinedReasons(reasons: (string | null)[]): string | null {
+export function joinedReasons(reasons: (string | null)[]): string | null {
   const given = reasons.filter((reason) => reason !== null);
   return given.length === 0 ? null : given.join("; ");
 }

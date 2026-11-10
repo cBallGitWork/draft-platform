@@ -9,12 +9,13 @@ import { HOUR_MS, MINUTE_MS } from "./time";
  *  own: they never stop a match's points (admin/sideRuns.ts). */
 export const SIDE_FEEDS = ["teamSheets", "teamStats", "thresholdSteps"] as const;
 
-/** Sportmonks' reads (#1391): each competition on its list that is on (#1414), beside FPL's until
- *  a later slice switches the site over (football/sportmonks/). */
+/** Sportmonks' reads run for each competition on its list that is on (#1414), each its own row on
+ *  the feeds page, beside FPL's until a later slice switches the site over (football/sportmonks/). */
 export const SPORTMONKS_FEEDS = ["sportmonks", "sportmonksLive"] as const;
 
-/** The feeds, each a sync or tick with its own run table. */
-export const FEEDS = ["football", "positions", "matchStats", "liveStats", ...SIDE_FEEDS, ...SPORTMONKS_FEEDS] as const;
+/** The feeds, each a sync or tick with its own run table. Sportmonks' positions read (#1419) is
+ *  for the Scottish Premiership alone, so it is one row, as FPL's are. */
+export const FEEDS = ["football", "positions", "matchStats", "liveStats", ...SIDE_FEEDS, ...SPORTMONKS_FEEDS, "sportmonksPositions"] as const;
 export type Feed = (typeof FEEDS)[number];
 /** A feed, as a function's argument or a saved field takes one. */
 export const feedValidator = v.union(...FEEDS.map((feed) => v.literal(feed)));
@@ -40,6 +41,7 @@ export const FEED_NAMES: Record<Feed, { name: string; source: string }> = {
   // Each competition's run is its own row, named after this with the competition's name (#1414).
   sportmonks: { name: "Clubs, players and fixtures", source: "Sportmonks" },
   sportmonksLive: { name: "Live matches", source: "Sportmonks, during matches" },
+  sportmonksPositions: { name: "Scottish positions", source: "Sportmonks' lineups" },
 };
 
 /** Each feed's run table: one row a run, newest last. */
@@ -53,6 +55,7 @@ export const FEED_RUN_TABLES = {
   thresholdSteps: "thresholdStepsRuns",
   sportmonks: "sportmonksSyncs",
   sportmonksLive: "sportmonksLiveTicks",
+  sportmonksPositions: "sportmonksPositionsSyncs",
 } as const satisfies Record<Feed, string>;
 
 /** A run's interval, as `crons.interval` takes it. */
@@ -84,6 +87,8 @@ export const FEED_SCHEDULES = {
   // On the football sync's six hours (#1391); a run is three calls.
   sportmonks: { every: { hours: 6 }, graceMs: 30 * MINUTE_MS },
   sportmonksLive: LIVE_TICK,
+  // Daily at 06:00 UK time, as the positions sync (#1419, spec/06).
+  sportmonksPositions: { every: { hours: 24 }, graceMs: 2 * HOUR_MS },
 } as const satisfies Record<Feed, FeedSchedule | null>;
 
 /** How long a scheduled feed may go without a success before it is late. */

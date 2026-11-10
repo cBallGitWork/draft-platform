@@ -4189,6 +4189,10 @@
                 },
                 {
                   "type": "literal",
+                  "value": "sportmonksPositions"
+                },
+                {
+                  "type": "literal",
                   "value": "skippedLeague"
                 }
               ]
@@ -26826,6 +26830,273 @@
                             },
                             "optional": false
                           }
+                        }
+                      },
+                      "optional": false
+                    }
+                  }
+                },
+                {
+                  "type": "object",
+                  "value": {
+                    "ok": {
+                      "fieldType": {
+                        "type": "literal",
+                        "value": false
+                      },
+                      "optional": false
+                    },
+                    "error": {
+                      "fieldType": {
+                        "type": "string"
+                      },
+                      "optional": false
+                    }
+                  }
+                }
+              ]
+            },
+            "optional": false
+          }
+        }
+      }
+    },
+    {
+      "tableName": "sportmonksPlayerStarts",
+      "indexes": [
+        {
+          "indexDescriptor": "by_playerCode",
+          "fields": [
+            "playerCode"
+          ]
+        }
+      ],
+      "stagedDbIndexes": [],
+      "searchIndexes": [],
+      "stagedSearchIndexes": [],
+      "vectorIndexes": [],
+      "stagedVectorIndexes": [],
+      "documentType": {
+        "type": "object",
+        "value": {
+          "playerCode": {
+            "fieldType": {
+              "type": "number"
+            },
+            "optional": false
+          },
+          "label": {
+            "fieldType": {
+              "type": "string"
+            },
+            "optional": true
+          },
+          "starts": {
+            "fieldType": {
+              "type": "array",
+              "value": {
+                "type": "object",
+                "value": {
+                  "fixtureCode": {
+                    "fieldType": {
+                      "type": "number"
+                    },
+                    "optional": false
+                  },
+                  "kickoff": {
+                    "fieldType": {
+                      "type": "number"
+                    },
+                    "optional": false
+                  },
+                  "formation": {
+                    "fieldType": {
+                      "type": "union",
+                      "value": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "optional": false
+                  },
+                  "line": {
+                    "fieldType": {
+                      "type": "union",
+                      "value": [
+                        {
+                          "type": "number"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "optional": false
+                  },
+                  "place": {
+                    "fieldType": {
+                      "type": "union",
+                      "value": [
+                        {
+                          "type": "number"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "optional": false
+                  },
+                  "season": {
+                    "fieldType": {
+                      "type": "number"
+                    },
+                    "optional": false
+                  },
+                  "detailedPosition": {
+                    "fieldType": {
+                      "type": "union",
+                      "value": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "optional": false
+                  }
+                }
+              }
+            },
+            "optional": false
+          }
+        }
+      }
+    },
+    {
+      "tableName": "sportmonksLineupsRead",
+      "indexes": [
+        {
+          "indexDescriptor": "by_fixtureCode",
+          "fields": [
+            "fixtureCode"
+          ]
+        }
+      ],
+      "stagedDbIndexes": [],
+      "searchIndexes": [],
+      "stagedSearchIndexes": [],
+      "vectorIndexes": [],
+      "stagedVectorIndexes": [],
+      "documentType": {
+        "type": "object",
+        "value": {
+          "fixtureCode": {
+            "fieldType": {
+              "type": "number"
+            },
+            "optional": false
+          }
+        }
+      }
+    },
+    {
+      "tableName": "sportmonksPositionsSyncs",
+      "indexes": [],
+      "stagedDbIndexes": [],
+      "searchIndexes": [],
+      "stagedSearchIndexes": [],
+      "vectorIndexes": [],
+      "stagedVectorIndexes": [],
+      "documentType": {
+        "type": "object",
+        "value": {
+          "trigger": {
+            "fieldType": {
+              "type": "union",
+              "value": [
+                {
+                  "type": "literal",
+                  "value": "manual"
+                },
+                {
+                  "type": "literal",
+                  "value": "cron"
+                }
+              ]
+            },
+            "optional": false
+          },
+          "ranAt": {
+            "fieldType": {
+              "type": "number"
+            },
+            "optional": false
+          },
+          "outcome": {
+            "fieldType": {
+              "type": "union",
+              "value": [
+                {
+                  "type": "object",
+                  "value": {
+                    "ok": {
+                      "fieldType": {
+                        "type": "literal",
+                        "value": true
+                      },
+                      "optional": false
+                    },
+                    "matchesRead": {
+                      "fieldType": {
+                        "type": "number"
+                      },
+                      "optional": false
+                    },
+                    "matchesLeft": {
+                      "fieldType": {
+                        "type": "number"
+                      },
+                      "optional": false
+                    },
+                    "startsAdded": {
+                      "fieldType": {
+                        "type": "number"
+                      },
+                      "optional": false
+                    },
+                    "labelsReceived": {
+                      "fieldType": {
+                        "type": "number"
+                      },
+                      "optional": false
+                    },
+                    "labelsChanged": {
+                      "fieldType": {
+                        "type": "number"
+                      },
+                      "optional": false
+                    },
+                    "unknownFormations": {
+                      "fieldType": {
+                        "type": "array",
+                        "value": {
+                          "type": "string"
+                        }
+                      },
+                      "optional": false
+                    },
+                    "unknownLabels": {
+                      "fieldType": {
+                        "type": "array",
+                        "value": {
+                          "type": "string"
                         }
                       },
                       "optional": false

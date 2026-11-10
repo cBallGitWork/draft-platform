@@ -131,6 +131,7 @@ async function owedSinceAt(ctx: QueryCtx, now: number): Promise<Record<Exclude<F
     teamSheets,
     teamStats: liveStats,
     thresholdSteps: liveStats,
+    sportmonksPositions: ALWAYS_OWED,
   };
 }
 

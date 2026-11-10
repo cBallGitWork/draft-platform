@@ -2,6 +2,7 @@ import { defineTable } from "convex/server";
 import { v } from "convex/values";
 import { clubRecord, droppedAt, failure, fixtureRecord, gameweekRecord, playerRecord, scoreRead, scoreWrites, syncTrigger, tableWrites } from "./football";
 import { sideRunFields } from "./live";
+import { startRecord } from "./positions";
 
 // Sportmonks' reads (#1391), slice 1 of the switch off FPL and the Premier League feeds: each
 // competition on the list that is on (#1414), every row naming its own, kept apart from the tables
@@ -77,6 +78,32 @@ export const sportmonksSyncFields = {
 /** One live tick's run for one competition with a match on. */
 export const sportmonksTickFields = { competition, ...sideRunFields };
 
+/** One match a man started (#1419): `startRecord`'s formation place, with the season's first
+ *  year, and Sportmonks' detailed position for him in it ("Centre Back"), null where it sent none. */
+export const sportmonksStart = startRecord.extend({ season: v.number(), detailedPosition: v.union(v.string(), v.null()) });
+
+/** One run of the positions read (#1419): what it filed, and what the tables don't know yet. */
+export const sportmonksPositionsSyncFields = {
+  trigger: syncTrigger,
+  ranAt: v.number(),
+  outcome: v.union(
+    v.object({
+      ok: v.literal(true),
+      /** Played matches whose lineups were read this run, and those left for the next. */
+      matchesRead: v.number(),
+      matchesLeft: v.number(),
+      startsAdded: v.number(),
+      labelsReceived: v.number(),
+      labelsChanged: v.number(),
+      /** What football/sportmonks/sportmonksPositions.ts and positionTables.ts don't know: each
+       *  needs a row before it places anyone. */
+      unknownFormations: v.array(v.string()),
+      unknownLabels: v.array(v.string()),
+    }),
+    failure,
+  ),
+};
+
 export const sportmonksTables = {
   sportmonksCompetitions: defineTable(sportmonksCompetition).index("by_competition", ["competition"]),
   sportmonksClubs: defineTable(clubRecord.extend({ droppedAt, competition })).index("by_code", ["code"]).index("by_competition", ["competition"]),
@@ -98,6 +125,19 @@ export const sportmonksTables = {
     readAt: v.number(),
   }).index("by_fixtureCode", ["fixtureCode"]),
   sportmonksSyncs: defineTable(sportmonksSyncFields).index("by_competition", ["competition"]),
+  /** Each man's newest starts and Sportmonks' label for him (#1419), by his Sportmonks id: what
+   *  his positions are worked out from (football/sportmonks/sportmonksPositions.ts). */
+  sportmonksPlayerStarts: defineTable({
+    playerCode: v.number(),
+    /** His detailed position, or else his broad one, as this season's squads give it; absent
+     *  until one does. */
+    label: v.optional(v.string()),
+    /** At most `START_WINDOW`, newest first. */
+    starts: v.array(sportmonksStart),
+  }).index("by_playerCode", ["playerCode"]),
+  /** Each played match whose lineups the positions read has filed, so none is filed twice. */
+  sportmonksLineupsRead: defineTable({ fixtureCode: v.number() }).index("by_fixtureCode", ["fixtureCode"]),
+  sportmonksPositionsSyncs: defineTable(sportmonksPositionsSyncFields),
   /** One row a live tick for each competition it found a match on in, each match read or why not. */
   sportmonksLiveTicks: defineTable(sportmonksTickFields).index("by_competition", ["competition"]),
 };
