@@ -268,6 +268,14 @@ Hold a high line offsides won; Sportmonks sends none of them per player.
   stats.
 - Shoot on sight and Hold a high line: what each scores in place of its missing stat.
 
+**The fantasy assist, from Sportmonks**: scoring (`spec/07`, `spec/14`). "Also, sports monks, we
+need fantasy assist!" (Craig, 10 Nov 2026, in chat). FPL counted assists its own way (`S07.5`),
+and that rule goes with FPL at the switch (`S07.8`).
+- What counts as an assist: the last pass only, or also a shot saved or blocked and scored from
+  the rebound, a penalty or free kick won and scored, and an own goal forced?
+- Does Sportmonks send a fantasy assist, or do we work one out from its events, and from which?
+- Does the commentary's "assist" line and the assist mark on the match page follow the same rule?
+
 ## Suggested, not yet picked
 
 | What | Why |
