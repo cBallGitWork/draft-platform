@@ -43,6 +43,8 @@ Named after its route: `team` for `/team`, `team-squad` for `/team/squad`.
 - [`team-squad`](team-squad/README.md): My team's Squad tab (1 Nov 2026).
 - [`team-fixtures`](team-fixtures/README.md): My team's Fixtures tab, Fixtures and Results with
   any cups (10 Nov 2026).
+- [`team-transactions`](team-transactions/README.md): My team's Transactions tab, trades in
+  History, its Show keys and the claim panel's In and Out (10 Nov 2026).
 - [`home`](home/README.md): League home's Overview, with the season's other states as the plan for
   later (1 Nov 2026).
 - [`sign-in`](sign-in/README.md): Sign in (1 Nov 2026).
