@@ -5,7 +5,8 @@ import type { StoredScoringSet } from "./scoringSetShape";
 // "the fix changes the live scoring at once and the same value in the draft, unless the draft
 // already changes that value"). A value is any one setting of the set: whole points only, one
 // category's value for an area or a position, its limit, its bands, an own stat. Categories and
-// own stats are matched by their stat, wherever they sit in the list. A category whose shape the
+// own stats are matched by their stat, a role by its role and a team instruction by its
+// instruction, wherever they sit in the list. A category whose shape the
 // fix and the draft both change, or a value the fix prices one way and the draft another (for all,
 // by area, by position), is one value, so the draft's is kept whole.
 
@@ -19,9 +20,17 @@ const PRICINGS = ["all", "byArea", "byPosition"];
 const kindOf = (record: Record<string, Json>) => sortedJson([record.shape, PRICINGS.filter((key) => key in record)]);
 const sameKind = (...records: Record<string, Json>[]) => records.every((record) => kindOf(record) === kindOf(records[0]));
 
-/** A list of categories or own stats: every entry has a stat it is known by. */
-const isStatList = (value: Json): value is Record<string, Json>[] =>
-  Array.isArray(value) && value.every((entry) => isRecord(entry) && typeof entry.stat === "string");
+/** What an entry of a list is known by: a category's or own stat's stat, a role's role, a team
+ *  instruction's instruction. */
+const ENTRY_KEYS = ["stat", "role", "instruction"];
+
+/** The key every entry of a list of categories, own stats, roles or instructions is known by, or
+ *  null for any other value (a rule's bands, a side's bars, an instruction's lines: each one
+ *  value). */
+function keyOfList(value: Json): string | null {
+  if (!Array.isArray(value)) return null;
+  return ENTRY_KEYS.find((key) => value.every((entry) => isRecord(entry) && typeof entry[key] === "string")) ?? null;
+}
 
 /** `draft` with every value `fixed` changes from `live` carried in, except where `draft` changes
  *  that value itself, which it keeps. */
@@ -37,13 +46,16 @@ function carry(live: Json, fixed: Json, draft: Json): Json {
     }
     return carried;
   }
-  if (isStatList(live) && isStatList(fixed) && isStatList(draft)) return carryList(live, fixed, draft);
+  const key = keyOfList(live);
+  if (key !== null && key === keyOfList(fixed) && key === keyOfList(draft)) {
+    return carryList(key, live as Record<string, Json>[], fixed as Record<string, Json>[], draft as Record<string, Json>[]);
+  }
   return draft;
 }
 
-/** Categories or own stats carried by stat: the draft's in its order, then any the fix added. */
-function carryList(live: Record<string, Json>[], fixed: Record<string, Json>[], draft: Record<string, Json>[]): Json[] {
-  const byStat = (list: Record<string, Json>[]) => new Map(list.map((entry) => [entry.stat as string, entry]));
+/** A list's entries carried by `key`: the draft's in its order, then any the fix added. */
+function carryList(key: string, live: Record<string, Json>[], fixed: Record<string, Json>[], draft: Record<string, Json>[]): Json[] {
+  const byStat = (list: Record<string, Json>[]) => new Map(list.map((entry) => [entry[key] as string, entry]));
   const [liveOf, fixedOf, draftOf] = [byStat(live), byStat(fixed), byStat(draft)];
   const stats = [...new Set([...draftOf.keys(), ...fixedOf.keys()])];
   return stats.flatMap((stat) => {

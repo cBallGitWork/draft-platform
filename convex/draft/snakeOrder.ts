@@ -35,3 +35,10 @@ export function pickOnTheClock<Team>(
   const team = pickOwner(traded, round, turn);
   return { pick: picksMade + 1, round, team, via: team === turn ? null : turn };
 }
+
+/** How many picks `team` still has to make once `picksMade` are made, counting one on the clock:
+ *  the picks left that it holds after any trade. A team that traded for another's pick in a round
+ *  picks twice in it, so its picks left are never read off the round. */
+export function picksLeftFor<Team>(teams: readonly Team[], rounds: number, picksMade: number, traded: readonly TradedPick<Team>[], team: Team): number {
+  return snakeOrder(teams, rounds).filter((turn, index) => index >= picksMade && pickOwner(traded, Math.floor(index / teams.length) + 1, turn) === team).length;
+}

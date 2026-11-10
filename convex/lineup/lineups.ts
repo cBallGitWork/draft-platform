@@ -260,7 +260,8 @@ export async function storeAutoTeamLineup(
 ): Promise<void> {
   const existing = await rowInForce(ctx, leagueId, teamId, fromGameweek);
   if (existing?.fromGameweek === fromGameweek) await ctx.db.patch("lineups", existing._id, { ...lineup, firstLineup: undefined, classic: undefined });
-  else await ctx.db.insert("lineups", { leagueId, teamId, fromGameweek, ...lineup });
+  // A new row carries the team's instructions on: the auto team only ever touches the lineup (spec/09).
+  else await ctx.db.insert("lineups", { leagueId, teamId, fromGameweek, ...lineup, instructions: existing?.instructions });
 }
 
 /** When the draft ends (#1040): the team's first lineup, as its picks left it, becomes its saved

@@ -46,6 +46,21 @@ test("the season maps to the seam: clubs, each squad's men by Sportmonks' id, ro
   });
 });
 
+test("rounds sharing a number across stages, as after the Scottish split, are one gameweek with the earliest kickoff", () => {
+  const payloads = sportmonksSeason();
+  const whole = mapSportmonks(sportmonksSeason());
+  // Round 12's later match moves to a second stage's own round 12.
+  const [stage] = payloads.schedule;
+  const round = stage.rounds!.find(({ name }) => name === "12")!;
+  const later = round.fixtures!.find(({ id }) => id === SM.heartsCeltic)!;
+  round.fixtures = round.fixtures!.filter((match) => match !== later);
+  payloads.schedule.push({ ...stage, rounds: [{ ...round, fixtures: [later] }] });
+
+  const split = mapSportmonks(payloads);
+  expect(split.gameweeks).toEqual(whole.gameweeks);
+  expect(split.fixtures).toEqual(whole.fixtures);
+});
+
 test("a season with no matches yet is between seasons", () => {
   const payloads = sportmonksSeason();
   payloads.schedule = [];

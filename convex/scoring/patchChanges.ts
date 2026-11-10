@@ -1,9 +1,10 @@
+import { FIRST_INSTRUCTIONS } from "../lineup/instructions";
 import { roleName } from "../lineup/roles";
 import { ALL_CELLS, positionOfSlot, SLOT_POSITIONS, type Area, type SlotPosition } from "../lineup/pitch";
 import type { StoredScoringSet } from "./scoringSetShape";
 import { categoryName } from "./categories";
 import { priceFor, type Priced } from "./priced";
-import type { Band, PointsLimit, RoleSide } from "./scoringSet";
+import type { Band, InstructionLine, PointsLimit, RoleSide } from "./scoringSet";
 import { groupedBy } from "../shared/groupedBy";
 import { figureWords, MINUS_SIGN, signedWords } from "../shared/numberWords";
 
@@ -135,7 +136,8 @@ function rulesByKey(rules: readonly Rule[]): Map<string, Rule> {
 }
 
 /** Every change from `before` to `after`, one line each: the rules in the new set's order, those
- *  no longer scored, whole points, then own stats. None when the two score alike. */
+ *  no longer scored, whole points, own stats, roles, then team instructions. None when the two
+ *  score alike. */
 export function scoringChanges(before: StoredScoringSet, after: StoredScoringSet): string[] {
   const beforeRules = rulesByKey(before.rules);
   const afterRules = rulesByKey(after.rules);
@@ -149,8 +151,14 @@ export function scoringChanges(before: StoredScoringSet, after: StoredScoringSet
   if (before.wholePointsOnly !== after.wholePointsOnly) lines.push(after.wholePointsOnly ? "Points are now whole only" : "Points can now be fractions");
   lines.push(...ownStatChanges(before.ownStats ?? [], after.ownStats ?? []));
   lines.push(...roleChanges(before, after));
+  lines.push(...instructionChanges(before, after));
   return lines;
 }
+
+/** Weighed stats added up, as a role's side and an instruction's line count them: "2 × Goals in
+ *  box + Shots on target in box". */
+const partsWords = (parts: readonly { stat: string; weight: number }[], set: StoredScoringSet) =>
+  parts.map(({ stat, weight }) => `${weight === 1 ? "" : `${figureWords(weight)} × `}${categoryName(stat, set.ownStats)}`).join(" + ");
 
 /** One line for each role whose scoring changed, named as managers say it, each side's bars and
  *  mix (spec/05 Roles): "Poacher: now +1 at 2, +2 at 3, +3 at 4 of 2 × Goals in box + Shots on
@@ -160,9 +168,7 @@ function roleChanges(before: StoredScoringSet, after: StoredScoringSet): string[
     const scoring = (set.roles ?? []).find((each) => each.role === role);
     if (scoring === undefined) return "";
     const side = ({ parts, bars }: RoleSide, sign: 1 | -1) =>
-      `${bars.map((bar, index) => `${signedWords(sign * (index + 1))} at ${figureWords(bar)}`).join(", ")} of ${parts
-        .map(({ stat, weight }) => `${weight === 1 ? "" : `${figureWords(weight)} × `}${categoryName(stat, set.ownStats)}`)
-        .join(" + ")}`;
+      `${bars.map((bar, index) => `${signedWords(sign * (index + 1))} at ${figureWords(bar)}`).join(", ")} of ${partsWords(parts, set)}`;
     return `${side(scoring.bonus, 1)}; ${side(scoring.cost, -1)}`;
   };
   const roles = new Set([...(before.roles ?? []), ...(after.roles ?? [])].map(({ role }) => role));
@@ -172,6 +178,34 @@ function roleChanges(before: StoredScoringSet, after: StoredScoringSet): string[
     const now = words(after, role);
     if (was === now) continue;
     lines.push(`${roleName(role)}: ${now === "" ? "no longer scored" : `now ${now}`}`);
+  }
+  return lines;
+}
+
+/** An instruction's name as managers say it, by its key; the key itself for one not in the set. */
+const instructionName = (key: string) => FIRST_INSTRUCTIONS.find((each) => each.key === key)?.name ?? key;
+
+/** One line for each team instruction whose scoring changed, each of its lines in words (spec/05
+ *  Team instructions): "Park the bus: now +1 per 1 of Clean sheets (GK, FB, CB, WB), after 60
+ *  minutes; −1 per 2 of Goals conceded, up to 3", or that it no longer scores. */
+function instructionChanges(before: StoredScoringSet, after: StoredScoringSet): string[] {
+  const line = (set: StoredScoringSet, { positions, stats, every, points, most, minMinutes }: InstructionLine) =>
+    [
+      `${signedWords(points)} per ${figureWords(every)} of ${partsWords(stats, set)}${positions === undefined ? "" : ` (${positions.join(", ")})`}`,
+      ...(most === undefined ? [] : [`up to ${figureWords(most)}`]),
+      ...(minMinutes === undefined ? [] : [`after ${minutesWords(minMinutes)}`]),
+    ].join(", ");
+  const words = (set: StoredScoringSet, instruction: string) => {
+    const scoring = (set.instructions ?? []).find((each) => each.instruction === instruction);
+    return scoring === undefined ? "" : scoring.lines.map((each) => line(set, each)).join("; ");
+  };
+  const instructions = new Set([...(before.instructions ?? []), ...(after.instructions ?? [])].map(({ instruction }) => instruction));
+  const lines: string[] = [];
+  for (const instruction of instructions) {
+    const was = words(before, instruction);
+    const now = words(after, instruction);
+    if (was === now) continue;
+    lines.push(`${instructionName(instruction)}: ${now === "" ? "no longer scored" : `now ${now}`}`);
   }
   return lines;
 }

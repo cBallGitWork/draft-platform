@@ -11,3 +11,10 @@ export function typedText(typed: string, max: number, refusals: TypedTextRefusal
   if ([...text].length > max) refuse(refusals.tooLong);
   return text;
 }
+
+/** A typed name or subject as it is kept: `typedText` on one line, each run of spaces, tabs and
+ *  line breaks one space, so it can never break a list of names, a Mail subject or a line of a
+ *  recap's facts. */
+export function typedName(typed: string, max: number, refusals: TypedTextRefusals): string {
+  return typedText(typed.replace(/\s+/g, " "), max, refusals);
+}

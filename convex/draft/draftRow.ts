@@ -1,6 +1,6 @@
 import type { Doc, Id } from "../_generated/dataModel";
 import type { QueryCtx } from "../_generated/server";
-import { pickOnTheClock } from "./snakeOrder";
+import { pickOnTheClock, picksLeftFor } from "./snakeOrder";
 
 // A league's draft row (../schema/draft.ts's `drafts`; spec/04, Starting it; #1089), read: by the
 // draft's start (draftStart.ts), its order (draftOrder.ts) and joining (../leagues/teams.ts), which
@@ -47,6 +47,12 @@ export async function turnNow(ctx: QueryCtx, draft: Doc<"drafts">): Promise<Turn
   const started = draft.started;
   if (started === undefined) return null;
   return pickOnTheClock(started.teamIds, started.rounds, await picksMadeIn(ctx, draft.leagueId), draft.tradedPicks);
+}
+
+/** How many picks `teamId` has left in the started draft, counting one on the clock (snakeOrder.ts's
+ *  `picksLeftFor`): the pick and the draft room's greyed-out list both count them here. */
+export async function picksLeftOf(ctx: QueryCtx, draft: Doc<"drafts">, started: StartedDraft, teamId: Id<"teams">): Promise<number> {
+  return picksLeftFor(started.teamIds, started.rounds, await picksMadeIn(ctx, draft.leagueId), draft.tradedPicks ?? [], teamId);
 }
 
 /** Whether the league's draft is live: started, with a pick still on the clock (snakeOrder.ts).

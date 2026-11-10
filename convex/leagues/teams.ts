@@ -15,7 +15,7 @@ import {
   teamIn,
   teamsOf,
 } from "../shared/leagueAccess";
-import { typedText } from "../shared/typedText";
+import { typedName } from "../shared/typedText";
 import { recordEvent } from "../mail/letters";
 import { closeOffersOfTeam } from "../trades/tradeClose";
 import { seasonRules } from "../rules/rulesHistory";
@@ -25,6 +25,7 @@ import { TEAM_NAME_MAX } from "./leagueLimits";
 import { cancelLiveInvites } from "../joining/liveInvites";
 import { draftHasStarted, draftOf } from "../draft/draftRow";
 import { rescheduleIfOnTheClock } from "../draft/draftClock";
+import { afterTakeBack } from "../draft/draftTimeouts";
 
 // A league's teams and their managers (#24, spec/13, Teams and Leaving). Each change files an
 // event for Mail (#26). One manager runs one team; a team whose manager goes stays, vacated.
@@ -90,6 +91,9 @@ export async function putOnTeam(
       commissionerPicks: undefined,
       autoTeam: undefined,
     });
+    // And he starts off auto-pick, whatever the manager before him ran up or chose (spec/04, Auto-pick).
+    const draft = await draftOf(ctx, league._id);
+    if (draft?.timeouts !== undefined) await ctx.db.patch("drafts", draft._id, { timeouts: afterTakeBack(draft.timeouts, vacated._id) });
     ({ _id: teamId, name: teamName } = vacated);
   } else {
     // A new team redraws the round robin, so the gameweeks already begun are stored first (#137).
@@ -171,7 +175,7 @@ export const rename = mutation({
     const team = (await ctx.db.get("teams", args.teamId)) ?? refuse(refusals.noTeam);
     if (by !== team.managerEmail && !isAdmin(by)) refuse(refusals.notManager);
     await getLeague(ctx, team.leagueId);
-    const name = typedText(args.name, TEAM_NAME_MAX, { blank: refusals.blankName, tooLong: refusals.teamNameTooLong });
+    const name = typedName(args.name, TEAM_NAME_MAX, { blank: refusals.blankName, tooLong: refusals.teamNameTooLong });
     if (name === team.name) return null;
     const teams = await teamsOf(ctx, team.leagueId);
     if (teams.some((other) => other._id !== team._id && nameKey(other.name) === nameKey(name))) {

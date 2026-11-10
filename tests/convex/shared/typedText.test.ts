@@ -1,6 +1,6 @@
 import { ConvexError } from "convex/values";
 import { expect, test } from "vitest";
-import { typedText } from "../../../convex/shared/typedText";
+import { typedName, typedText } from "../../../convex/shared/typedText";
 import { EMOJI } from "../../support/convex/test.harness";
 
 // Every typed text the server keeps (a league's or team's name, a letter, feedback, an override's
@@ -40,4 +40,9 @@ test("the spaces trimmed off don't count towards the most", () => {
 test("an emoji counts as one character, though it is two UTF-16 units", () => {
   expect(typedText(EMOJI.repeat(MOST), MOST, REFUSALS)).toBe(EMOJI.repeat(MOST));
   expect(refusalOf(EMOJI.repeat(MOST + 1))).toBe(REFUSALS.tooLong);
+});
+
+test("a name is kept on one line: line breaks, tabs and runs of spaces inside it become one space", () => {
+  expect(typedName(" Red\n\nArmy \t FC ", 11, REFUSALS)).toBe("Red Army FC");
+  expect(() => typedName(" \n ", MOST, REFUSALS)).toThrow(ConvexError);
 });

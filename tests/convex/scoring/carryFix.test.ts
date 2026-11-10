@@ -1,5 +1,7 @@
 import { describe, expect, test } from "vitest";
 import { carryFix } from "../../../convex/scoring/carryFix";
+import { FIRST_INSTRUCTION_SCORING } from "../../../convex/scoring/draftedInstructionScoring";
+import { FIRST_SCORING_WITH_ROLES } from "../../../convex/scoring/draftedRoleAdjustments";
 import { FIRST_SCORING } from "../../../convex/scoring/firstScoring";
 import type { StoredScoringSet } from "../../../convex/scoring/scoringSetShape";
 
@@ -67,5 +69,57 @@ describe("carrying a fix into the draft", () => {
     const draft = withRule(FIRST_SCORING, "assists", assistsAt(5));
 
     expect(carryFix(FIRST_SCORING, structuredClone(FIRST_SCORING), draft)).toEqual(draft);
+  });
+
+  // Roles and team instructions are lists too, each entry known by its own key.
+  const WITH_ALL: StoredScoringSet = { ...FIRST_SCORING_WITH_ROLES, instructions: structuredClone([...FIRST_INSTRUCTION_SCORING]) };
+  const [ONE_ROLE, OTHER_ROLE] = WITH_ALL.roles!.map(({ role }) => role);
+  const [ONE_INSTRUCTION, OTHER_INSTRUCTION] = WITH_ALL.instructions!.map(({ instruction }) => instruction);
+  const withBars = (set: StoredScoringSet, role: string, bars: number[]): StoredScoringSet => ({
+    ...structuredClone(set),
+    roles: set.roles!.map((each) => (each.role === role ? { ...structuredClone(each), bonus: { ...structuredClone(each.bonus), bars } } : structuredClone(each))),
+  });
+  const withFirstLinePoints = (set: StoredScoringSet, instruction: string, points: number): StoredScoringSet => ({
+    ...structuredClone(set),
+    instructions: set.instructions!.map((each) =>
+      each.instruction === instruction ? { ...each, lines: each.lines.map((line, index) => (index === 0 ? { ...line, points } : { ...line })) } : structuredClone(each),
+    ),
+  });
+  const barsOf = (set: StoredScoringSet, role: string) => set.roles!.find((each) => each.role === role)!.bonus.bars;
+  const firstPointsOf = (set: StoredScoringSet, instruction: string) => set.instructions!.find((each) => each.instruction === instruction)!.lines[0].points;
+
+  test("a fix to one role reaches a draft that changes another role", () => {
+    const fixed = withBars(WITH_ALL, ONE_ROLE, [7, 8, 9]);
+    const draft = withBars(WITH_ALL, OTHER_ROLE, [4, 5, 6]);
+
+    const carried = carryFix(WITH_ALL, fixed, draft);
+    expect(barsOf(carried, ONE_ROLE)).toEqual([7, 8, 9]);
+    expect(barsOf(carried, OTHER_ROLE)).toEqual([4, 5, 6]);
+  });
+
+  test("a role the draft changes keeps the draft's", () => {
+    const fixed = withBars(WITH_ALL, ONE_ROLE, [7, 8, 9]);
+    const draft = withBars(WITH_ALL, ONE_ROLE, [4, 5, 6]);
+
+    expect(carryFix(WITH_ALL, fixed, draft)).toEqual(draft);
+  });
+
+  test("a fix to one team instruction reaches a draft that changes another", () => {
+    const fixed = withFirstLinePoints(WITH_ALL, ONE_INSTRUCTION, 9);
+    const draft = withFirstLinePoints(WITH_ALL, OTHER_INSTRUCTION, 8);
+
+    const carried = carryFix(WITH_ALL, fixed, draft);
+    expect(firstPointsOf(carried, ONE_INSTRUCTION)).toBe(9);
+    expect(firstPointsOf(carried, OTHER_INSTRUCTION)).toBe(8);
+  });
+
+  test("an instruction's lines are one value: a draft that changes one keeps its own whole", () => {
+    const fixed = withFirstLinePoints(WITH_ALL, ONE_INSTRUCTION, 9);
+    const draft: StoredScoringSet = {
+      ...structuredClone(WITH_ALL),
+      instructions: WITH_ALL.instructions!.map((each) => (each.instruction === ONE_INSTRUCTION ? { ...each, lines: each.lines.slice(0, 1) } : structuredClone(each))),
+    };
+
+    expect(carryFix(WITH_ALL, fixed, draft)).toEqual(draft);
   });
 });

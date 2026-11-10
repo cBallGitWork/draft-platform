@@ -60,6 +60,16 @@ describe("a shortlisted player dropped", () => {
   });
 });
 
+describe("a shortlisted player dropped for a free agent", () => {
+  test("the shortlisting manager is told, as for any drop", async () => {
+    await w.runWaivers();
+    await shortlist(BOB, [ANNS_FIRST_DROP]);
+    await (await actingAs(w.t, ANN)).mutation(api.waivers.freeAgents.pickUp, { leagueId: w.leagueId, playerCode: SAKA, dropCode: ANNS_FIRST_DROP });
+
+    expect(await shortlistLettersTo(BOB)).toEqual([dropped(true, ANN)]);
+  });
+});
+
 describe("shortlisted players clearing waivers", () => {
   test("one letter a run to each manager whose shortlist holds players nobody claimed, naming them; a claimed one isn't named", async () => {
     await w.onWaivers([SAKA, PALMER, RICE]);

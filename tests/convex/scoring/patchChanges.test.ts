@@ -116,4 +116,24 @@ describe("the set", () => {
   test("a second rule for one category is compared with the second before it", () => {
     expect(scoringChanges(set([assists(3), assists(1)]), set([assists(3), assists(2)]))).toEqual(["Assists: 1 → 2"]);
   });
+
+  test("a team instruction newly scored, changed and no longer scored", () => {
+    type Scoring = NonNullable<StoredScoringSet["instructions"]>[number];
+    const parkTheBus = (points: number): Scoring => ({
+      instruction: "parkTheBus",
+      lines: [
+        { positions: ["GK", "FB"], stats: [{ stat: "clean_sheets", weight: 1 }], every: 1, points, minMinutes: 60 },
+        { stats: [{ stat: "goals_conceded", weight: 1 }], every: 2, points: -1, most: 3 },
+      ],
+    });
+
+    expect(scoringChanges(set([]), set([], { instructions: [parkTheBus(1)] }))).toEqual([
+      "Park the bus: now +1 per 1 of Clean sheets (GK, FB), after 60 minutes; −1 per 2 of Goals conceded, up to 3",
+    ]);
+    expect(scoringChanges(set([], { instructions: [parkTheBus(1)] }), set([], { instructions: [parkTheBus(2)] }))).toEqual([
+      "Park the bus: now +2 per 1 of Clean sheets (GK, FB), after 60 minutes; −1 per 2 of Goals conceded, up to 3",
+    ]);
+    expect(scoringChanges(set([], { instructions: [parkTheBus(1)] }), set([]))).toEqual(["Park the bus: no longer scored"]);
+    expect(scoringChanges(set([], { instructions: [parkTheBus(1)] }), set([], { instructions: [parkTheBus(1)] }))).toEqual([]);
+  });
 });
