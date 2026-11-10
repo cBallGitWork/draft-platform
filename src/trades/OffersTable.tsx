@@ -148,12 +148,16 @@ function ReviewRow({
       select={select}
     >
       <td className={CELL}>
-        <span className="text-soft">{teamGetsWords(trade.fromTeamName)} </span>
-        <TradedSide players={trade.gets} pick={trade.picks?.gets ?? null} />
+        <span className="inline-flex items-center gap-2">
+          <span className="text-soft">{teamGetsWords(trade.fromTeamName)}</span>
+          <TradedSide players={trade.gets} pick={trade.picks?.gets ?? null} />
+        </span>
       </td>
       <td className={CELL}>
-        <span className="text-soft">{teamGetsWords(trade.toTeamName)} </span>
-        <TradedSide players={trade.gives} pick={trade.picks?.gives ?? null} />
+        <span className="inline-flex items-center gap-2">
+          <span className="text-soft">{teamGetsWords(trade.toTeamName)}</span>
+          <TradedSide players={trade.gives} pick={trade.picks?.gives ?? null} />
+        </span>
       </td>
       <td className={CELL}>{youWords}</td>
       <td className={`${CELL} text-derived`}>

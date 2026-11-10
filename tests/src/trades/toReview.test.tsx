@@ -40,8 +40,8 @@ describe("the To review group", () => {
       .map((row) => row.textContent);
     expect(rows[0]).toBe(toReviewWords);
     expect(rows[1]).toContain("Team 3 and Team 4");
-    expect(rows[1]).toContain("Team 3 get FBJames");
-    expect(rows[1]).toContain("Team 4 get CDMRice");
+    expect(rows[1]).toContain("Team 3 getFBJames");
+    expect(rows[1]).toContain("Team 4 getCDMRice");
     expect(rows[1]).toContain("You");
     expect(rows[1]).toContain(whenWords(ENDS));
     expect(rows[2]).toBe(groupWords.toYou);
