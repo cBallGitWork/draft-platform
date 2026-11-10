@@ -41,6 +41,8 @@ Named after its route: `team` for `/team`, `team-squad` for `/team/squad`.
 - The role card, opened from a starter's Role ▾ on the Tactics tab; its picture is in `team`
   (9 Nov 2026).
 - [`team-squad`](team-squad/README.md): My team's Squad tab (1 Nov 2026).
+- [`team-fixtures`](team-fixtures/README.md): My team's Fixtures tab, Fixtures and Results with
+  any cups (10 Nov 2026).
 - [`home`](home/README.md): League home's Overview, with the season's other states as the plan for
   later (1 Nov 2026).
 - [`sign-in`](sign-in/README.md): Sign in (1 Nov 2026).
