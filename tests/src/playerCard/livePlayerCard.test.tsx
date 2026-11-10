@@ -14,10 +14,10 @@ import { liveShortlist } from "../../../src/scouting/shortlist/liveShortlist";
 import { silenceConsoleError } from "../../support/console.setup";
 import { A_LEAGUE_ID } from "../../support/src/convexReact.harness";
 
-const convex = vi.hoisted(() => ({ card: vi.fn(), override: vi.fn(), removeOverride: vi.fn(), action: vi.fn(), drop: vi.fn(), putIn: vi.fn(), pickUp: vi.fn() }));
+const convex = vi.hoisted(() => ({ card: vi.fn(), rank: vi.fn(), override: vi.fn(), removeOverride: vi.fn(), action: vi.fn(), drop: vi.fn(), putIn: vi.fn(), pickUp: vi.fn() }));
 vi.mock("convex/react", async () =>
   (await import("../../support/src/convexReact.harness")).fakeConvexReact({
-    queries: { "playerCard/playerCard:card": convex.card, "waivers/waivers:cardActionOn": convex.action },
+    queries: { "playerCard/playerCard:card": convex.card, "playerCard/positionRank:atPosition": convex.rank, "waivers/waivers:cardActionOn": convex.action },
     mutations: {
       "table/pointsOverrides:override": convex.override,
       "table/pointsOverrides:removeOverride": convex.removeOverride,
@@ -73,6 +73,14 @@ test("the waiver action is read from waivers/waivers:cardActionOn with the leagu
   convex.action.mockReturnValue({ kind: "drop" });
   expect(renderHook(() => livePlayerCard.useCardAction(A_LEAGUE_ID, PLAYER_CODE)).result.current).toEqual({ kind: "drop" });
   expect(convex.action).toHaveBeenLastCalledWith({ leagueId: A_LEAGUE_ID, playerCode: PLAYER_CODE });
+});
+
+test("his rank is read from playerCard/positionRank:atPosition at the position asked, and skipped with none", () => {
+  convex.rank.mockReturnValue({ place: 4, of: 38 });
+  expect(renderHook(() => livePlayerCard.usePositionRank(A_LEAGUE_ID, PLAYER_CODE, "CAM")).result.current).toEqual({ place: 4, of: 38 });
+  expect(convex.rank).toHaveBeenLastCalledWith({ leagueId: A_LEAGUE_ID, playerCode: PLAYER_CODE, position: "CAM" });
+  renderHook(() => livePlayerCard.usePositionRank(A_LEAGUE_ID, PLAYER_CODE, null));
+  expect(convex.rank).toHaveBeenLastCalledWith("skip");
 });
 
 test("a drop, a claim and a pickup ask their own mutations, and a refusal comes back as the server's words", async () => {

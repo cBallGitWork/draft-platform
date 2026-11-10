@@ -59,7 +59,7 @@ export function CardHead({ league, card, shown, seam }: { league: LeagueSummary;
           </span>
         </span>
       </div>
-      <Figures card={card} shown={shown} rank={<Rank leagueId={league.leagueId} card={card} shown={shown} seam={seam} />} />
+      <Figures leagueId={league.leagueId} card={card} shown={shown} seam={seam} />
       <div className="ml-auto flex flex-wrap items-start gap-2">
         <Actions league={league} card={card} seam={seam} />
       </div>
@@ -89,16 +89,18 @@ function Back() {
   );
 }
 
+type FiguresProps = { leagueId: LeagueSummary["leagueId"]; card: PlayerCard; shown: number; seam: PlayerCardSeam };
+
 /** His figures beside his name (spec/12 S12.1; #1027): base points this season, a match, his rank
  *  at the position, his minutes and his last five matches' points, newest first. */
-function Figures({ card, shown, rank }: { card: PlayerCard; shown: number; rank: ReactNode }) {
+function Figures({ leagueId, card, shown, seam }: FiguresProps) {
   const { seasonPoints, aMatch, minutes, lastFive } = seasonFigures(card.matches, shown);
   const figure = (value: number | null) => (value === null ? noFigureWords : figureWords(value));
   return (
     <dl className="flex gap-6 border-l border-plate-rule pl-6">
       <Figure label={figureLabels.seasonPoints}>{figure(seasonPoints)}</Figure>
       <Figure label={figureLabels.aMatch}>{figure(aMatch)}</Figure>
-      {rank}
+      <Rank leagueId={leagueId} card={card} shown={shown} seam={seam} />
       <Figure label={figureLabels.minutes}>{figure(minutes)}</Figure>
       <Figure label={figureLabels.lastFive}>
         {lastFive.length === 0 ? (
@@ -119,7 +121,7 @@ function Figures({ card, shown, rank }: { card: PlayerCard; shown: number; rank:
 
 /** His rank at the position the switch is on, among every player holding it, by Scouting's season
  *  points (Craig, 9 Nov 2026, on #1027): "4th of 38", "—" while it loads or he has no points. */
-function Rank({ leagueId, card, shown, seam }: { leagueId: LeagueSummary["leagueId"]; card: PlayerCard; shown: number; seam: PlayerCardSeam }) {
+function Rank({ leagueId, card, shown, seam }: FiguresProps) {
   const position = card.pricedAt[shown] ?? null;
   const rank = seam.usePositionRank(leagueId, card.code, position);
   return (
