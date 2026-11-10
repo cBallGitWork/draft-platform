@@ -88,7 +88,9 @@ async function addRoles(ctx: MutationCtx, { history, version }: { history: Doc<"
 /** Each lineup from `gameweek` on with a starter on a role no slot offers now, that starter moved to
  *  the role he'd get dropped into his slot on (stars/bestRole.ts): a row from `gameweek` or later
  *  changed in place, and the row in force before it copied to start at `gameweek`, so no gameweek
- *  begun changes. Returns how many starters moved. */
+ *  begun changes. Returns how many starters moved. Reads every lineup in one mutation: run once, when
+ *  the beta's one or two leagues hold a few hundred rows, far inside Convex's per-mutation read
+ *  and write limits; a site with many leagues would need it in batches. */
 async function moveOffCutRoles(ctx: MutationCtx, gameweek: number): Promise<number> {
   const rows = (await ctx.db.query("lineups").collect()).toSorted((one, other) => one.fromGameweek - other.fromGameweek);
   const reached = rows.filter((row, index) => row.fromGameweek >= gameweek || !rows.slice(index + 1).some((later) => sameTeam(later, row) && later.fromGameweek <= gameweek));
