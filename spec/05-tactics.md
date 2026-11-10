@@ -233,7 +233,7 @@ From Craig, 1 Nov 2026.
 
   ```
                    LEFT            MIDDLE THREE                   RIGHT
-  ATTACK           poacher, target man, pressing forward, shadow striker, false 9 (every slot)
+  ATTACK           poacher, target man, in-behind striker, pressing forward, false 9 (every slot)
   ATT. MIDFIELD    attacking       attacking midfield, centre     attacking
                    midfield, wide                                 midfield, wide
   MIDFIELD         wide midfield   centre midfield                wide midfield
@@ -255,11 +255,29 @@ From Craig, 1 Nov 2026.
 - The bars count per match, whatever his minutes: a cameo's count as a full match's (Craig, 5 Nov
   2026: "Yes: bars count per match, whatever his minutes"). `S05.1`
 - The player card's line for a role gives the net and each side that moved him: "Poacher: +1 (+2:
-  1 goal in box, 1 shot on target in box; −1: 1 big chance missed)" (Craig, 5 Nov 2026: "One line
+  1 goal, 1 shot on target; −1: 1 big chance missed)" (Craig, 5 Nov 2026: "One line
   with the net and each side"). `S05.2`
-- A role's stats come only from the feed's catalogue (Sportmonks), and the roles are redesigned
-  around the stats Sportmonks has in all five leagues, by their own grill (`docs/to-grill.md`;
-  Craig, 9 Nov 2026, on #1196: "we want a universal experience"). `S05.23`
+- A role's stats come only from the feed's catalogue (Sportmonks), the same in all five leagues
+  (Craig, 9 Nov 2026, on #1196: "we want a universal experience"). `S05.23`
+- Each role scores a plain mix of what it is best at, and one bad action as its cost: "roles
+  suggested are convoluted, just do what they can excel at" (Craig, 9 Nov 2026, on #1196). No
+  two-sided gates, shares of the team or limits on another stat. Each role's mix is in
+  [roles-first-values.md](../docs/roles-first-values.md). `S05.27`
+- A role's mix is drawn from what Sportmonks sends, never from what a past season's data holds:
+  "can we please stick to this and not whats in the log" (Craig, 10 Nov 2026). A stat a past
+  season lacks takes its nearest past stat in the backtest, as below. Where a stat Sportmonks
+  lacks was in a role, it takes the nearest one Sportmonks sends (Craig, 9 Nov 2026, on #1196:
+  "yes"). `S05.28`
+- Where a plain mix can't tell two roles apart, who may take a role does: "maybe we tighthe
+  position eligibitluty in that case" (Craig, 9 Nov 2026, on #1196). The attack's roles go to an
+  ST or SS; a CAM may play up front, as false 9 only ("if you put an am at fwd, can only be a
+  false 9", then "any AM"); a winger never takes a striker role ("make it so wingers cant be false
+  9"); the pressing winger goes to a W only (Craig, 9 and 10 Nov 2026, on #1196). A role a player
+  can't take isn't offered to him. `S05.29`
+- A role whose stats a real Sportmonks read hasn't yet shown for his position is marked not tested
+  until one does: the sweeper keeper and the libero (Craig, 9 and 10 Nov 2026, on #1196). `S05.30`
+- There is no set-piece role: Sportmonks sends nothing per player for corners or free kicks
+  ("None for now", Craig, 10 Nov 2026, on #1196). `S05.31`
 - Roles lift the slots that score less, as defcon does in FPL: "roles/tactics are essentially a
   dynamic defcon for each positon and role". Every slot has a target role bonus a start: half its
   gap in base points to strikers, plus 0.5 for every slot, as "i do want players to get points"
@@ -282,6 +300,10 @@ From Craig, 1 Nov 2026.
   the backtest ("Scoring first"; all Craig, 5 Nov 2026).
 - The past seasons for the backtest live in Convex, where it reads them: "convex" (Craig, 7 Nov
   2026, on #1196). `S05.11`
+- The redrawn roles' backtest runs on all of ai-carling's past seasons, each player matched to his
+  Sportmonks player through FPL's code ("All past seasons", Craig, 9 Nov 2026, on #1196). `S05.33`
+- Sportmonks' xG add-on is priced during the paid trial, with no spend agreed ("Price it in the
+  trial", Craig, 9 Nov 2026, on #1196). `S05.34`
 - A role the backtest puts more than 0.25 points a start off its target fails it, and the build
   redrafts its values until it lands within 0.25. The new values go into the site's set as a patch
   from the next gameweek not begun, and the PR lists each role it changed, old against new, for
@@ -302,19 +324,19 @@ From Craig, 1 Nov 2026.
   - goalkeeper: shot-stopper, sweeper keeper, distributor, commanding keeper (added 5 Nov 2026).
     The shot-stopper earns for saves, so a busy keeper at a weaker club earns most (Craig, 5 Nov
     2026)
-  - full-back: overlapping, underlapping, inverted, playmaking, defensive
+  - full-back: overlapping, inverted, playmaking, defensive
   - wing-back: attacking, holding, complete, inverted, goalscoring ("munoz needs to be there,
     alonso back in the day")
   - centre-back: stopper, ball-playing, no-nonsense, attacking, and with three or more
     centre-backs sweeper (stays behind the line) and libero (steps out with the ball)
-  - defensive midfield: metronome, quarterback, half-back (drops between the centre-backs),
+  - defensive midfield: metronome, quarterback, third centre-back (drops between the centre-backs),
     engine, tower (wins everything in the air), destroyer (gets stuck in, duels)
-  - centre midfield: box-to-box, ball-winner, attacking 8, engine, late runner
-  - wide midfield: wide workhorse, defensive winger, wide playmaker, crosser, touchline winger
-  - attacking midfield, centre: number 10, shadow striker, maverick, carrier, pressing 10
-  - attacking midfield, wide: touchline winger, dribbler, inside forward, wide playmaker, wide
-    forward, pressing winger, tracking winger
-  - attack: poacher, target man, in-behind striker, pressing forward, shadow striker, false 9
+  - centre midfield: box-to-box, ball-winner, attacking 8, engine
+  - wide midfield: wide workhorse, defensive winger, wide playmaker, crosser
+  - attacking midfield, centre: number 10, shadow striker, carrier, pressing 10
+  - attacking midfield, wide: touchline winger, dribbler, inside forward, wide playmaker,
+    pressing winger, tracking winger
+  - attack: poacher, target man, in-behind striker, pressing forward, false 9 `S05.35`
 
   There is no free role: "we ditched free role" (Craig, 5 Nov 2026), dropping the one per team of
   1 Nov 2026. The rest of the first list went as the slots were drafted. Craig cut the complete forward,
@@ -322,6 +344,12 @@ From Craig, 1 Nov 2026.
   Trequartista and Enganche"); others were renamed, as the advanced forward became the in-behind
   striker, the classic winger the touchline winger and the wide midfielder the wide workhorse.
   The attacking centre-back is for Keegan's Newcastle.
+
+  Redrawn around Sportmonks' stats (Craig, 9 and 10 Nov 2026, on #1196): the underlapping
+  full-back, the attack's shadow striker (the centre attacking midfield's stays), the wide forward
+  and the maverick are cut; so are the wide midfield's touchline winger (it stays in wide
+  attacking midfield) and the late runner, on Craig's "your call"; the half-back is renamed the
+  third centre-back ("yes but better name"). `S05.32`
 - Each role says what it rewards and what it costs, as categories without values ("not a value,
   just what that role should reward/give minus too"; Craig, 1 Nov 2026). The values come from
   backtesting.

@@ -260,27 +260,13 @@ ai-carling-premiership match logs; the numbers there come from FotMob and Sofasc
   - The rates checked again against Sportmonks' stats, and whether it sends recoveries and
     blocked shots in all five leagues.
 
-**The roles, redesigned around Sportmonks' stats**: roles (`spec/05`), the role card, scoring
-(`spec/14`). Sportmonks is the one feed, with the same stats and scoring in every league: "which
-is good but we want a universal experience" (Craig, 9 Nov 2026, on #1196). The roles are
-redesigned around the stats Sportmonks has in all five leagues, in a grill of their own. A richer
-feed (StatsBomb, Opta, Sportradar) comes only later, if the redesigned roles feel flat.
-- Which of each role's stats Sportmonks doesn't send in all five leagues, and what each role
-  scores in their place.
-- The set-piece lists are dropped: "we didthced set piece taker (unless its a role)" (Craig,
-  9 Nov 2026, on #1196). Is a set-piece duty (penalties, free kicks, corners) a role, and which
-  stats would score it?
-- The backtest after: ai-carling's past seasons, matched to Sportmonks players through FPL's code
-  ("sure", Craig, 9 Nov 2026), rerun on the redesigned roles. Which seasons, and what it must show
-  before the roles are set.
-
-**In-box role stats**: roles (`spec/05`), the role card.
-- `spec/05`'s poacher scores "1 goal in box, 1 shot on target in box". Sportmonks gives no in-box
-  split for shots or goals, only for saves. Craig: "would need a feed similar for each league in
-  that case" (9 Nov 2026, on #1196): an in-box stat needs a source that has it for all five leagues.
-- Questions for the grill: whether the Sportmonks trial's events or ball positions can give the
-  split; if not, plain shots on target and goals in its place, or the roles that use it marked
-  not tested until a feed has it.
+**Team instructions whose stats Sportmonks lacks**: team instructions (`spec/05`). Press high
+counts possession won in the attacking third and midfield, Shoot on sight long-range shots, and
+Hold a high line offsides won; Sportmonks sends none of them per player.
+- Press high: "press high could just be the front 3 in a free (or other formations where its
+  sutiable" (Craig, 9 Nov 2026, on #1196). Which players it scores, in which shapes, and on which
+  stats.
+- Shoot on sight and Hold a high line: what each scores in place of its missing stat.
 
 ## Suggested, not yet picked
 
