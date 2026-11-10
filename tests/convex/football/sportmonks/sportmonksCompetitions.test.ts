@@ -30,7 +30,7 @@ test("a deployment holding no competitions starts from the beta's two, the Scott
   await t.action(internal.football.sportmonks.sportmonksSync.run, { trigger: "manual" });
 
   const held = await t.run((ctx) => ctx.db.query("sportmonksCompetitions").collect());
-  expect(held.map(({ name, leagueId, on }) => ({ name, leagueId, on }))).toEqual(SEEDED_COMPETITIONS);
+  expect(held.map(({ name, competition, on }) => ({ name, competition, on }))).toEqual(SEEDED_COMPETITIONS);
   expect(fetch.mock.calls.map(([url]) => url)).not.toContain(leagueUrl(PREMIER_LEAGUE));
   expect((await syncs(t)).map(({ competition }) => competition)).toEqual([SCOTTISH]);
 });
@@ -87,7 +87,7 @@ test("a competition's run marks only its own rows dropped, never another's", asy
   await t.run(async (ctx) => {
     const premierLeague = await ctx.db
       .query("sportmonksCompetitions")
-      .withIndex("by_leagueId", (q) => q.eq("leagueId", PREMIER_LEAGUE))
+      .withIndex("by_competition", (q) => q.eq("competition", PREMIER_LEAGUE))
       .unique();
     if (premierLeague) await ctx.db.patch("sportmonksCompetitions", premierLeague._id, { on: false });
   });

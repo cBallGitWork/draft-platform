@@ -25870,9 +25870,9 @@
       "tableName": "sportmonksCompetitions",
       "indexes": [
         {
-          "indexDescriptor": "by_leagueId",
+          "indexDescriptor": "by_competition",
           "fields": [
-            "leagueId"
+            "competition"
           ]
         }
       ],
@@ -25890,7 +25890,7 @@
             },
             "optional": false
           },
-          "leagueId": {
+          "competition": {
             "fieldType": {
               "type": "number"
             },

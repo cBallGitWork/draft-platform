@@ -87,12 +87,12 @@ export const feeds = query({
         continue;
       }
       // Each competition that is on is its own row (#1414), so one failing never hides another.
-      for (const { name, leagueId } of competitionsOn) {
+      for (const { name, competition } of competitionsOn) {
         const runs = ctx.db
           .query(FEED_RUN_TABLES[feed])
-          .withIndex("by_competition", (q) => q.eq("competition", leagueId))
+          .withIndex("by_competition", (q) => q.eq("competition", competition))
           .order("desc");
-        const kickoffs = live.filter((match) => match.competition === leagueId).map((match) => match.kickoff);
+        const kickoffs = live.filter((match) => match.competition === competition).map((match) => match.kickoff);
         const owed = feed === "sportmonks" ? ALWAYS_OWED : earliest(kickoffs);
         feeds.push({ ...(await judged(feed, runs, owed)), competition: name });
       }

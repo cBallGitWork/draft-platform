@@ -77,7 +77,7 @@ export async function competitionsHeld(ctx: QueryCtx): Promise<SportmonksCompeti
   const held = await ctx.db.query("sportmonksCompetitions").take(COMPETITIONS_MOST + 1);
   if (held.length > COMPETITIONS_MOST) throw new Error(`More than ${COMPETITIONS_MOST} Sportmonks competitions are held`);
   if (held.length === 0) return [...SEEDED_COMPETITIONS];
-  return held.map(({ name, leagueId, on }) => ({ name, leagueId, on }));
+  return held.map(({ name, competition, on }) => ({ name, competition, on }));
 }
 
 /** The league ids of the competitions that are on; the list seeded first where none is held. */
@@ -88,7 +88,7 @@ export const competitionsOn = internalMutation({
     if ((await ctx.db.query("sportmonksCompetitions").first()) === null) {
       for (const competition of SEEDED_COMPETITIONS) await ctx.db.insert("sportmonksCompetitions", competition);
     }
-    return (await competitionsHeld(ctx)).filter(({ on }) => on).map(({ leagueId }) => leagueId);
+    return (await competitionsHeld(ctx)).filter(({ on }) => on).map(({ competition }) => competition);
   },
 });
 
@@ -141,7 +141,7 @@ export const record = internalMutation({
 /** A competition by its league id, for a failure email's slot and words; null for none given. */
 export async function competitionNamed(ctx: QueryCtx, leagueId: number | undefined): Promise<{ competition: number; name: string } | null> {
   if (leagueId === undefined) return null;
-  const held = (await competitionsHeld(ctx)).find((each) => each.leagueId === leagueId);
+  const held = (await competitionsHeld(ctx)).find((each) => each.competition === leagueId);
   return { competition: leagueId, name: held?.name ?? `league ${leagueId}` };
 }
 

@@ -88,9 +88,9 @@ test("a run whose every match failed is a failure, though the run itself finishe
 test("each Sportmonks competition that is on is its own row, judged by its own runs alone (#1414)", async () => {
   const t = freshConvex();
   await t.run(async (ctx) => {
-    await ctx.db.insert("sportmonksCompetitions", { name: "Scottish Premiership", leagueId: 501, on: true });
-    await ctx.db.insert("sportmonksCompetitions", { name: "Premier League", leagueId: 8, on: true });
-    await ctx.db.insert("sportmonksCompetitions", { name: "Serie A", leagueId: 384, on: false });
+    await ctx.db.insert("sportmonksCompetitions", { name: "Scottish Premiership", competition: 501, on: true });
+    await ctx.db.insert("sportmonksCompetitions", { name: "Premier League", competition: 8, on: true });
+    await ctx.db.insert("sportmonksCompetitions", { name: "Serie A", competition: 384, on: false });
   });
   await recordRun(t, "sportmonks", T0);
   await t.run((ctx) => ctx.db.insert("sportmonksSyncs", { competition: 8, trigger: "cron", ranAt: T0, outcome: { ok: false, error: "answered 403" } }));

@@ -49,7 +49,7 @@ const competition = v.optional(v.number());
 export const sportmonksCompetition = v.object({
   name: v.string(),
   /** Sportmonks' id for the league, e.g. 501 for the Scottish Premiership. */
-  leagueId: v.number(),
+  competition: v.number(),
   /** Whether the six-hourly read and the live tick read it. */
   on: v.boolean(),
 });
@@ -78,7 +78,7 @@ export const sportmonksSyncFields = {
 export const sportmonksTickFields = { competition, ...sideRunFields };
 
 export const sportmonksTables = {
-  sportmonksCompetitions: defineTable(sportmonksCompetition).index("by_leagueId", ["leagueId"]),
+  sportmonksCompetitions: defineTable(sportmonksCompetition).index("by_competition", ["competition"]),
   sportmonksClubs: defineTable(clubRecord.extend({ droppedAt, competition })).index("by_code", ["code"]).index("by_competition", ["competition"]),
   sportmonksPlayers: defineTable(playerRecord.extend({ droppedAt, competition })).index("by_code", ["code"]).index("by_competition", ["competition"]),
   sportmonksFixtures: defineTable(fixtureRecord.extend({ droppedAt, competition }))

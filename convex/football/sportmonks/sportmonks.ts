@@ -23,8 +23,8 @@ export type SportmonksCompetition = Infer<typeof sportmonksCompetition>;
  *  the Scottish Premiership, on the free plan (checked 9 Nov 2026, on #1391), and the Premier
  *  League, off until the paid plan covers it. A deployment holding none starts from these. */
 export const SEEDED_COMPETITIONS: readonly SportmonksCompetition[] = [
-  { name: "Scottish Premiership", leagueId: 501, on: true },
-  { name: "Premier League", leagueId: 8, on: false },
+  { name: "Scottish Premiership", competition: 501, on: true },
+  { name: "Premier League", competition: 8, on: false },
 ];
 /** The most rows Sportmonks gives a page. */
 const PER_PAGE = 50;

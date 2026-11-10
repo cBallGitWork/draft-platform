@@ -30,7 +30,7 @@ const liveMatch = v.object({ fixtureCode: v.number(), kickoff: v.number(), compe
  *  window, not dropped, and not yet read at full time. The read that finds full time is a match's
  *  last. A match held under no competition yet waits for the six-hourly read to name one. */
 export async function sportmonksLiveMatches(ctx: QueryCtx, now: number): Promise<Infer<typeof liveMatch>[]> {
-  const on = new Set((await competitionsHeld(ctx)).filter((each) => each.on).map(({ leagueId }) => leagueId));
+  const on = new Set((await competitionsHeld(ctx)).filter((each) => each.on).map(({ competition }) => competition));
   const kickedOff = ctx.db
     .query("sportmonksFixtures")
     .withIndex("by_kickoff", (q) => q.gt("kickoff", now - LIVE_WINDOW_MS).lte("kickoff", now));
