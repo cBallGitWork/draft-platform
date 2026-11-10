@@ -102,7 +102,8 @@ export async function siteVersionByGameweek(ctx: QueryCtx): Promise<(gameweek: n
  *  waiting (Craig, 1 Nov 2026, on #901: "old", though gameweeks always have a time). A query must
  *  not read the clock, so in force is what the schedule shows: a fix takes effect when it is made,
  *  so is in force; a patch is once a gameweek has begun whose site deadline is at or after its
- *  moment, or if its moment came before the season's first site deadline (with no kickoffs held, nothing is scored, so any is).
+ *  moment, or if its moment came before the season's first site deadline (with no kickoffs held,
+ *  nothing is scored, so any is).
  *  Undefined for the first set. */
 function versionInForceUnscheduled(
   history: readonly Doc<"siteScoring">[],

@@ -8,8 +8,8 @@ import { siteDeadline, siteVersions } from "./siteVersions";
 // A waiting patch follows its gameweek's first kickoff (Craig, 1 Nov 2026, on #901: when the first
 // kickoff of the patch's gameweek moves later, "yes", the patch's start moves with it). A patch is
 // announced from a gameweek and takes effect at its site deadline, 15 minutes before its first
-// kickoff (siteVersions.ts's `patchGameweeks`, #902), so if that kickoff moves later, a patch left where it was would land before
-// the gameweek began, mid-week for stars and the banner. Only later: a kickoff moved earlier is a
+// kickoff (siteVersions.ts's `patchGameweeks`, #902), so if that kickoff moves later, a patch left
+// where it was would land before the gameweek began, mid-week for stars and the banner. Only later: a kickoff moved earlier is a
 // rule Craig hasn't given, so the patch stays and reaches the gameweek after. The football sync,
 // the only writer of kickoffs, calls this after each write that can move one.
 
@@ -36,10 +36,11 @@ export async function followKickoffs(ctx: MutationCtx, now: number): Promise<num
   for (const [index, row] of history.entries()) {
     if (row.gameweek === undefined || row.takesEffectAt <= now || begun.has(row.gameweek)) continue;
     const kickoff = kickoffs.get(row.gameweek);
-    if (kickoff === undefined || siteDeadline(kickoff) <= row.takesEffectAt || seasonStartYear(kickoff) !== row.season) continue;
-    // Left where it is: no kickoff for the gameweek (its fixtures dropped), the kickoff isn't later,
-    // or it falls in another season (a stale gameweek number). The cap below keeps versions in order.
+    if (kickoff === undefined || seasonStartYear(kickoff) !== row.season) continue;
     const deadline = siteDeadline(kickoff);
+    if (deadline <= row.takesEffectAt) continue;
+    // Left where it is: no kickoff for the gameweek (its fixtures dropped), it falls in another
+    // season (a stale gameweek number), or its deadline isn't later. The cap below keeps versions in order.
     const takesEffectAt = Math.min(deadline, history[index + 1]?.takesEffectAt ?? deadline);
     if (takesEffectAt <= row.takesEffectAt) continue;
     await ctx.db.patch("siteScoring", row._id, { takesEffectAt });

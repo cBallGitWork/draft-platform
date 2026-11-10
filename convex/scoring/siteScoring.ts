@@ -28,8 +28,8 @@ import { UnsoundScoring } from "./values";
 // - a fix: a mistake corrected at once, taking effect from the moment it is made.
 // A gameweek plays the newest version to take effect at or before its site deadline, 15 minutes
 // before its first kickoff whatever a league's deadline (siteVersions.ts's `siteDeadline`, #902;
-// once passed, from the kickoff recorded: gameweekStarts.ts, #414), so a version never reaches a gameweek already begun,
-// nor a re-score of a played one; before any, the first set (firstScoring.ts). Scoring a league's
+// once passed, from the kickoff recorded: gameweekStarts.ts, #414), so a version never reaches a
+// gameweek already locked, nor a re-score of a played one; before any, the first set (firstScoring.ts). Scoring a league's
 // match reads `siteScoringInGameweek` (siteVersions.ts, which reads which version is in force),
 // never the league's rules. Versions take effect in the order they are announced, so a newer one
 // never lands before an older one it was made from. A fix is carried into the draft patch, and a
