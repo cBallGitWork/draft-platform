@@ -188,15 +188,15 @@ function movedInto(starter: Starter, cell: Cell, cells: readonly Cell[], ratings
  *  over goes to the bench, starters first, back to front, then the bench as it was. */
 function bestFit(draft: EditedLineup, cells: readonly Cell[], { positionsOf }: Pick<MoveRules, "positionsOf">, ratingsOf: RatingsOf): EditedLineup {
   const plays = (playerCode: number) => cells.filter((cell) => playsCell(positionsOf(playerCode), cell));
-  const order = startersInOrder(draft);
-  const players = [...order, ...draft.bench.map((playerCode) => ({ playerCode }))];
-  const cellOf = matched(players, (player) =>
-    "area" in player ? plays(player.playerCode).toSorted(byNearness(player)) : plays(player.playerCode).toSorted(byPitchOrder),
-  );
+  const players: { playerCode: number; starter?: Starter }[] = [
+    ...startersInOrder(draft).map((starter) => ({ playerCode: starter.playerCode, starter })),
+    ...draft.bench.map((playerCode) => ({ playerCode })),
+  ];
+  const cellOf = matched(players, ({ playerCode, starter }) => plays(playerCode).toSorted(starter === undefined ? byPitchOrder : byNearness(starter)));
   const starters = players.flatMap((player) => {
     const cell = cellOf.get(player);
     if (cell === undefined) return [];
-    return ["area" in player ? movedInto(player, cell, cells, ratingsOf) : droppedInto(player.playerCode, cell, cells, ratingsOf)];
+    return [player.starter === undefined ? droppedInto(player.playerCode, cell, cells, ratingsOf) : movedInto(player.starter, cell, cells, ratingsOf)];
   });
   return { starters, bench: players.filter((player) => !cellOf.has(player)).map(({ playerCode }) => playerCode) };
 }
