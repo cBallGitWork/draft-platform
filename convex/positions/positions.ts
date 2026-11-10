@@ -72,7 +72,7 @@ export interface WorkedOutPositions {
 }
 
 /** Where a start's formation place puts him, or null where it places no one. */
-function placeOf({ formation, line, place }: Start): Position | null {
+export function placeOf({ formation, line, place }: Start): Position | null {
   return formation === null || line === null || place === null ? null : placePosition(formation, line, place);
 }
 
