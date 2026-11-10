@@ -3,7 +3,7 @@ import { ColumnHeads } from "../ui/ColumnHeads";
 import { PositionChip } from "../ui/PositionChip";
 import { TickBox } from "../ui/TickBox";
 import type { ScreenTeam } from "./seam";
-import { heldWords, squadColumns, squadTableLabel, tickLabel } from "./words";
+import { groupWords, squadColumns, squadTableLabel, tickLabel } from "./words";
 
 type Column = keyof typeof squadColumns;
 const COLUMNS = Object.keys(squadColumns) as Column[];
@@ -76,7 +76,7 @@ export function SquadTable({
                   </span>
                   {player.held && (
                     <span className="bg-head px-1 text-ground">
-                      {heldWords}
+                      {groupWords.inReview}
                     </span>
                   )}
                 </span>

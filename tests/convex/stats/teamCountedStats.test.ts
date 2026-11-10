@@ -57,6 +57,8 @@ const gameweek = (starterCounted: boolean[]): TeamInGameweek => ({
   },
   autoSubs: {} as AutoSubs,
   formation: null,
+  instructions: [],
+  scoring: undefined,
   matchesOf: new Map([
     [STARTER, [first, second]],
     [SUBBED_OFF, [first]],

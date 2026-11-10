@@ -42,6 +42,16 @@ export function statIn(record: MatchStats, stat: string): number {
   return actions;
 }
 
+/** What a weighed count is rounded to: a millionth, far finer than any weight. */
+const COUNT_PRECISION = 1e6;
+
+/** His stats, each weighed and added up: what a role's side and an instruction's line count by.
+ *  Floating point's noise goes first, so 10 × 0.1 reaches a bar at 1, never just under it. */
+export function weighedCount(record: MatchStats, parts: readonly { stat: string; weight: number }[]): number {
+  const count = parts.reduce((total, { stat, weight }) => total + weight * statIn(record, stat), 0);
+  return Math.round(count * COUNT_PRECISION) / COUNT_PRECISION;
+}
+
 /** A league's double-gameweek rule (spec/03): both matches count, or only his best match. */
 export const DOUBLE_GAMEWEEK_RULES = ["bothMatches", "bestMatch"] as const;
 export type DoubleGameweekRule = (typeof DOUBLE_GAMEWEEK_RULES)[number];

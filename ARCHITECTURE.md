@@ -23,8 +23,9 @@ reason, and a change to either changes this file.
 | Error reports | Sentry, from the browser only (`@sentry/react`, `src/app/errorReports.tsx`): on only when the build has `VITE_SENTRY_DSN`, errors only, no tracing or replays, every report scrubbed of the signed-in user, email addresses and sign-in codes before it leaves | docs/PLAN.md, "No monitoring": a breakage would otherwise reach us from players; the beta's managers are friends, so nothing personal goes to a third party |
 | Job heartbeats | Healthchecks.io (`convex/heartbeats/heartbeat.ts`): each of spec/20's timed jobs in `convex/crons.ts` pings its check when it finishes, `/fail` when it throws, once `HEALTHCHECKS_PING_URL` is set; a feed's failed read is caught inside the job and goes on its run row and the admin's failure email, so it still pings as finished. Craig makes each job's check in Healthchecks, `waiver-runs` and `trade-offers` included (#1346). The lead (`lead.yml`) pings `lead-pass` every pass and `main-merged` when something merged in the last day, from the `HEALTHCHECKS_PING_URL` GitHub secret. GitHub's schedule drops the lead's passes, so a Convex cron on the development deployment (`convex/heartbeats/leadWake.ts`) also runs it every half hour, once `LEAD_WAKE_GITHUB_TOKEN` is set there (Craig, 7 Nov 2026: a Convex cron over cron-job.org; 8 Nov 2026, after the CTO review: on dev, so the live site holds no GitHub token and the pipeline's wake-up never shows as a product error). The wake-up is the one cron with no check of its own: a dead one (a token never set, expired or refused) shows as the lead's missing `lead-pass` pings, which Healthchecks emails Craig about after 3 hours | docs/PLAN.md, "No monitoring": a dead scheduled job would otherwise go unseen; on 5 Nov 2026 the lead never ran on GitHub's schedule and nobody knew for hours |
 | The pipeline's account | CBHelper180, a GitHub account with write on this repo only, whose classic token (`repo`, `workflow`) is the `BUILD_TOKEN` secret: a build run from a branch, and an unfinished build's draft, push and open their pull requests as it | a push with the job's own token runs no CI, and lane-auto (approving as the github-actions bot) can't approve that bot's own pull request; the Claude app's token is refused for a workflow that differs from main's (5 Nov 2026) |
+| Football data | Sportmonks, in place of FPL's and the Premier League's public APIs, on its Starter plan's five leagues (England, Scotland, Italy, Spain, Germany) once paid (SPEC, *What it is*). For now the free plan's Scottish Premiership only, read into its own tables only where `SPORTMONKS_API_TOKEN` is set, which the live deployment isn't (#1391; Data, below); FPL and the Premier League still feed the site | "stop with fpl and prem, thats not scalable" (Craig, 9 Nov 2026, on #1196): one feed for every league the product will run |
 | Email | Resend | free: 3,000 a month, **100 a day**, which is why a live draft sends no "on the clock" email |
-| AI | Anthropic's API, Claude Haiku 5.5, with a $10 monthly spending cap in Anthropic's console (Craig, 29 Oct 2026); first used by player news (spec/21) | the cheapest big lab's price, $0.10 in and $0.50 out per million tokens (Anthropic's model table, as of 6 Oct 2026), from a model able to name the right player from an article; a note is the player's, so the bill follows players, not leagues |
+| AI | Anthropic's API, Claude Haiku 5.5, with a $10 monthly spending cap in Anthropic's console (Craig, 29 Oct 2026); called with one `fetch` to the Messages API and no SDK (`convex/outbound/claude.ts`), its key the deployment's `ANTHROPIC_API_KEY`; used by a scout's report (spec/19, `convex/scouting/scoutReports.ts`) and League home's weekly recap (#387, `convex/home/recaps.ts`) | the cheapest big lab's price, $0.10 in and $0.50 out per million tokens (Anthropic's model table, as of 6 Oct 2026), from a model able to name the right player from an article; a note is the player's, so the bill follows players, not leagues |
 | Money | free plans through the mini beta; Craig sets a monthly ceiling before August 2027 | |
 
 **Before building on Convex:** a short test that its servers can fetch FPL's and the Premier
@@ -72,7 +73,7 @@ its team stats reads are kept for the tests (`tests/support/recorded/pl-live-mat
 - Resend's 100 a day: sign-in links, a busy waiver night across several leagues, or a slow
   draft's emails,
   means Resend Pro or another sender.
-- Before the mini beta, FPL's and the Premier League's terms are checked (SPEC, *What it is*; #79).
+- Sportmonks, a paid feed, replaces FPL's and the Premier League's (SPEC, *What it is*; Craig, 9 Nov 2026).
 
 ## Libraries (Claude's)
 
@@ -104,21 +105,36 @@ Tactics pitch are built with no package, and components, motion, forms and chart
 - The football layer (FPL and the Premier League's public APIs) is copied from epl-draft's
   `packages/core` when needed, not shared. Clubs, players, fixtures, gameweeks and scores sit
   behind one seam so a paid feed can replace them for other leagues (SPEC, Later): `Football` in
-  `convex/football/football.ts`, filled only by FPL's adapter (`readFpl` and `mapFpl` in
-  `convex/football/fpl/fpl.ts`, #21) and read only by `convex/football/footballSync.ts`. Nothing
-  else goes through it. These read FPL's and the Premier League's own shapes directly, so a paid
+  `convex/football/football.ts`, filled by FPL's adapter (`readFpl` and `mapFpl` in
+  `convex/football/fpl/fpl.ts`, #21), read by `convex/football/footballSync.ts` into the tables the
+  site reads, and by Sportmonks' adapter (below) into its own. Nothing else goes through it. These read FPL's and the Premier League's own shapes directly, so a paid
   feed would replace them too: the adapters in `convex/football/fpl/` and
   `convex/football/premierLeague/`; in `convex/football/`, `feedIds.ts`, `scoreReads.ts`,
   `commentary.ts`, `feeds.ts`, `matchTeamSheets.ts`, `matchCommentary.ts` and `matchTeamStats.ts`;
   `convex/stats/matchStatsSync.ts`, `convex/stats/liveStatsSync.ts` and `convex/stats/matchRecords.ts`;
-  and `convex/positions/positionsSync.ts`.
-- Players are keyed on FPL's season-stable `code`, never the per-season `id`.
+  and `convex/positions/positionsSync.ts`. Sportmonks replaces both feeds (SPEC, *What it is*);
+  until it does, these are what runs.
+- Players are keyed on Sportmonks' player id; FPL's season-stable `code` is kept only to match past
+  seasons (SPEC, *What it is*; Craig, 9 Nov 2026, on #1196). Until the switch lands, every table
+  but the `sportmonks*` ones still keys players on FPL's `code`.
 - The two feeds are matched on Opta's ids (`convex/football/feedIds.ts`): a Premier League fixture's
   `altIds.opta` is `g` + FPL's fixture `code`, and a man's is FPL's `opta_code`; one that matches
   nothing is reported, never dropped ([docs/pl-match-stats.md](docs/pl-match-stats.md#matching-the-two-feeds)).
 - Clubs, players, fixtures and gameweeks refresh every six hours (`convex/crons.ts`): nothing
   held moves during a match, and what does (a signing, a rescheduled match) is known days ahead.
   Every run, failed or not, is a row in `footballSyncs`.
+- Sportmonks (#1391, slice 1 of the switch off FPL and the Premier League): a second adapter fills
+  the same `Football` seam, in `convex/football/sportmonks/`, reading the Scottish Premiership
+  (league 501) on Sportmonks' free plan into its own `sportmonks*` tables, keyed on Sportmonks'
+  ids; nothing the site shows reads them yet. Its two crons do nothing where
+  `SPORTMONKS_API_TOKEN` isn't set (the live deployment). Calls, against the plan's 2,000 an
+  entity an hour (Sportmonks' plan page and livescores docs, checked 9 Nov 2026, as league 501 was): a six-hourly run makes three (the league with its current season, the season's
+  clubs with their squads in one page, the season's schedule), one more per 50 clubs past the
+  first 50; the live tick makes none with no Scottish match on and one a minute while any is, all
+  of a round's matches in one `fixtures/multi` read with their lineups, `lineups.details` and
+  events, so 60 an hour on the fixture entity at most, well inside its 2,000 and Sportmonks' "no
+  faster than 10 seconds". Each catalogue stat's Sportmonks type, or that it has none:
+  `convex/football/sportmonks/sportmonksStats.ts`.
 - Match stats (#27): one record per player per match in `playerMatchStats`, keyed on FPL's
   player and fixture codes, both feeds merged by spec/07's split
   ([docs/pl-match-stats.md](docs/pl-match-stats.md#one-record-per-player-per-match)).
@@ -171,6 +187,8 @@ Tactics pitch are built with no package, and components, motion, forms and chart
   full-time team stats write a `teamStatsRuns` row too. That is two more rows each live tick,
   however many matches it reads, and one a minute in the hour before a kickoff; none grows with
   leagues or teams, and the run logs' prune clears them as it does the tick's.
+  A live read's threshold steps are rows in `thresholdStepReads`, a capped number a row (#871),
+  so a match's rows stay about as few as its reads.
   Revisit the bootstrap read each tick when Convex usage nears the plan's limit, or when
   `liveStatsTicks` rows fail from throttling.
 - Match scores (#49): each match's state, score and clock in `matchScores`, apart from
@@ -194,7 +212,9 @@ Tactics pitch are built with no package, and components, motion, forms and chart
 - Positions (#22): each player's in `playerPositions`, keyed on FPL's `code`, apart from
   `players` so no feed read touches the admin's say; `positionsSync` files each match's starts
   once (`positionSheets`) and is run by hand for now, each run a row in `positionsSyncs`
-  ([docs/positions.md](docs/positions.md)).
+  ([docs/positions.md](docs/positions.md)). Each warning Mail has sent a manager about a player's
+  position, flagged and then lost (#23), is a row in `positionWarnings` while it stands, so each
+  step is told once (`convex/positions/positionWarnings.ts`).
 - League rules are rows, never constants; FPL's own rules can be constants. Each league's are rows
   in `leagueRules`, one from each gameweek they changed in, copied at creation from
   `defaultLeagueRules` (#25), the squad maximum read instead from `squadMaximums` by the league's
@@ -213,9 +233,12 @@ Tactics pitch are built with no package, and components, motion, forms and chart
   lineup's included: that one (`firstLineup: true`) is picked again on each squad change until the
   manager saves (`convex/lineup/lineups.ts`). A league's deadline for a gameweek is kept once it passes, in
   `passedDeadlines` (#150, `convex/gameweeks/deadlineRecorder.ts`), so it stays put if the first
-  match is then postponed. The gameweek a manager last opened Tactics in is `tacticsOpenedInGameweek`
+  match is then postponed; the one deadline alarm pending, site-wide, is the one row in
+  `deadlineAlarms` (#1329), so it is kept or cancelled by its id. The gameweek a manager last opened Tactics in is `tacticsOpenedInGameweek`
   on his team's row, so Continue stops leading him there on every device (#526,
-  `convex/lineup/lineupDue.ts`); a new manager of a vacated team starts without it.
+  `convex/lineup/lineupDue.ts`); a new manager of a vacated team starts without it. Each team's
+  saved plans (#992), a formation and every slot's role by name, never players, are rows in
+  `savedPlans` (`convex/lineup/savedPlans.ts`).
 - Leagues (#24): `leagues`, `teams` and `leagueEvents`, people known by their email, so one can be
   named before they have an account; joining's rows are `invites`, `inviteLinks` and
   `joinRequests` (#73).
@@ -245,7 +268,13 @@ Tactics pitch are built with no package, and components, motion, forms and chart
   scores and stores them again, for when scoring code or a player's positions change after.
 - Points overrides (#32): a commissioner's override of one player's points in one locked match is a
   row in `pointsOverrides`, a second replacing the first, and it rescores that gameweek
-  (`convex/table/pointsOverrides.ts`).
+  (`convex/table/pointsOverrides.ts`). His override of one team's total in one gameweek (#903) is a
+  row a league, gameweek and team in `teamOverrides`, standing over the player overrides and any
+  later correction (`convex/table/teamOverrides.ts`).
+- Fixture edits (#1208): a commissioner's edit of a gameweek not yet begun is a row a league and
+  gameweek in `fixtureEdits`, held while the gameweek still draws as it did when edited; a change
+  that redraws it replaces them, and once it begins it is stored as edited
+  (`convex/table/fixtureEdits.ts`).
 - Season totals: each player's stats for a season are a row in `playerSeasonStats`, kept in step as
   each match record is written, so Scouting sorts by any stat without reading a season of records
   (`convex/stats/seasonStats.ts`).
@@ -274,6 +303,33 @@ Tactics pitch are built with no package, and components, motion, forms and chart
 - The draft queue and do-not-draft list (#1092): each team's, one row in `draftLists` holding both
   as lists of FPL's `code`, the queue in its order, read and changed only by its manager
   (`convex/draft/draftLists.ts`).
+- Trades (#383): each offer still open or in review is a row in `tradeOffers`, with any draft picks
+  in it (#1096) and who reviews it once accepted; one that closes, goes through or is blocked
+  leaves the table, and Mail and the squad moves it files say what happened (`convex/trades/`).
+- Waivers (#1197, #1198): each player on waivers in a league is a row in `waiverPlayers`, by FPL's
+  `code`, with when a run may first take him; a player no team holds and with no row is a free
+  agent. A manager's pending claims, in his order, are rows in `waiverClaims`, gone once a run
+  tries them. A league's order between runs and its last run are one row in `waiverOrders`, and
+  the order it starts from after its commissioner changes the order type one row in
+  `waiverStarts` (#1200) (`convex/waivers/`).
+- Scouts (#375): each time a team sends a scout to a player is a row in `scouts`, kept for good so
+  its report stays readable with its date, read only by its manager; Claude writes the report
+  (`convex/scouting/scouts.ts`, `convex/scouting/scoutReports.ts`).
+- Recaps (#387): League home's weekly recap is a row a league and gameweek in `recaps`, written by
+  Claude from facts once every match of the gameweek is final, and never rewritten
+  (`convex/home/recaps.ts`).
+- Availability (spec/06): the admin's say over the feed's, out, doubtful or available, is a row a
+  player in `availabilitySettings`, by FPL's `code`, apart from `players` so no feed read touches
+  it; clearing it deletes the row (`convex/availability/availability.ts`).
+- Past seasons (#1113, #1114): each match a player played in a past season, copied once from
+  ai-carling-premiership by `scripts/past-season.mjs`, is a row in `pastPlayerMatchStats`, by FPL's
+  `code`, the season and the kickoff; each player's points in that season under the site's set as
+  it stands are a row in `pastSeasonPoints`, priced afresh whenever the set changes
+  (`convex/pastSeasons/`). The balance lab (#843) backtests a draft patch on them and saves nothing.
+- Club data beside the feed's: each club's colours and shirt pattern, set by the admin (#838), are a
+  row in `clubColours`; a club's points total in a season's Premier League table, which the admin
+  sets for a deduction (#898), a row in `plPointsOverrides`; and each player's number at his club,
+  from the Premier League's squad lists (#13), a row in `clubNumbers`; all by FPL's `code`.
 - Feedback (#357): each message to the admin is a row in `feedback`, kept for him to read on his
   dashboard (`convex/feedback/feedback.ts`).
 - Each person's time zone, as their browser last named it, is a row in `timeZones` by email, so
@@ -294,7 +350,7 @@ The homes the folder pass set (29 Oct 2026), so new code has one place to go:
 - Code one feature owns but others import stays with its owner: `src/matchup/MatchupLink.tsx`,
   `src/leagues/LeagueLinks.tsx`, `src/mail/DateBlock.tsx`.
 - `src/rules/`: the editing kit the two rules screens share, League settings (`src/leagueSettings/`)
-  and Player scoring (`src/scoring/`): a part's draft and its save (`rulesDraft.ts`), a box left
+  and Player scoring (`src/scoring/`): a part's edits and its save (`rulesEdits.ts`), a box left
   blank (`blank.ts`), `NumberBox.tsx`, `SaveBar.tsx`, and their words and preview.
 - `src/frame/menu.ts`: the top menu, its sections' tabs and the sections' paths (`HOME_PATH`,
   `MY_TEAM_PATH` and the rest); a feature's `paths.ts` builds its own pages' paths from them.
@@ -310,10 +366,28 @@ The homes the folder pass set (29 Oct 2026), so new code has one place to go:
   `convex/draft/`: the draft (spec/04): the snake order, and which players a pick may take (#1088);
   the draft settings' limits and kinds, and the commissioner's draft order (#1087); the admin's
   ranking, its file read and checked and the one row it is stored as (#1093); the draft's row,
-  its start date, start and read, and the order drawn at random (#1089); a manager's pick (#1090); and
-  each team's queue and do-not-draft list (#1092).
+  its start date, start and read, and the order drawn at random (#1089); a manager's pick (#1090);
+  each team's queue and do-not-draft list (#1092); and the live room's clock, pause, timeouts,
+  auto-pick, board and letters.
 - The feed adapters: `convex/football/fpl/` and `convex/football/premierLeague/`, copies of
-  epl-draft's, never shared.
+  epl-draft's, never shared; `convex/football/sportmonks/`, Sportmonks' (#1391), the one to replace
+  them.
+- Every other feature folder, one job each. Server (`convex/`): `admin` (the feeds page, run logs,
+  failure emails, platform settings), `availability` (a player's availability, #1211), `balanceLab`
+  (the rule balance lab, #843), `feedback`, `football` (the feeds and what they fill), `gameweeks`
+  (deadlines, a league's gameweeks, the scoring start), `heartbeats` (Healthchecks pings and the
+  lead's wake-up), `home` (League home: the glance, matchday, news and recaps), `joining`, `leagues`,
+  `mail`, `match` (one Premier League match's page), `matchup`, `outbound` (what leaves the app:
+  email through Resend, Claude, the deployment's settings), `pastSeasons` (past seasons' copy and
+  points, #1113), `playerCard`, `positions`, `scouting` (the players list, compare, shortlist,
+  scouts and the stat race), `shared` (helpers every feature uses), `signIn`, `stats` (match records
+  and their totals), `trades` (#383) and `waivers` (waivers and free agents, #1197). Screens
+  (`src/`): `admin` (the admin's dashboard), `draft` (the draft room), `feedback`, `gameweeks` (the
+  commissioner's gameweeks, #74), `home` (League home and its news), `joining`, `leagues`, `mail`,
+  `matchup`, `myTeam` (squad, tactics and waiver claims in `claims/`), `patches` (patch notes, the
+  banner, the lab's report), `playerCard`, `premierLeague`, `scouting` (with `shortlist/` and
+  `scouts/`), `signIn`, `squads` (a league's squads, #31), `table` (the table, fixtures and cup) and
+  `trades` (offers, #383).
 - `convex/table/` keeps its name, because the browser and the scheduler call its functions.
 - Where a screen's feature and its server split their jobs differently, they have different names
   (rule 1 holds for every other feature):
@@ -321,12 +395,14 @@ The homes the folder pass set (29 Oct 2026), so new code has one place to go:
   | Screens (`src/`) | Server (`convex/`) |
   |---|---|
   | `src/myTeam` | `convex/lineup` and `convex/squads` |
+  | `src/myTeam/claims` | `convex/waivers` |
+  | `src/patches` (the lab's report) | `convex/balanceLab` |
   | `src/leagueSettings` | `convex/rules` |
   | `src/patches` | `convex/scoring/patch*` (`patchChanges.ts`, `patchKickoffs.ts`, `patchNotes.ts`) |
   | `src/premierLeague` | `convex/football` and `convex/match` |
 - Sub-folders: past about 12 files, a job with its own files and name gets a sub-folder
   (`src/frame/topBar/`, `src/myTeam/header/`, `src/myTeam/squad/`, `src/myTeam/tactics/`,
-  `src/scouting/shortlist/`, and inside Tactics the pitch's drawing in `pitch/`, the formation window
+  `src/scouting/shortlist/`, `src/scouting/scouts/`, `src/myTeam/claims/`, and inside Tactics the pitch's drawing in `pitch/`, the formation window
   in `formationWindow/` and its panels in `widgets/`, 1 Nov 2026). A folder over 12 that is one job, or whose
   tests mirror its sources, stays flat.
 

@@ -3,7 +3,8 @@ import { areaShape, slotPosition } from "../lineup/pitchShape";
 import { roleName } from "../lineup/roles";
 import type { OwnStat } from "./scoringSet";
 import { categoryName } from "./categories";
-import type { CategoryPoints, RolePoints } from "./scoring";
+import type { Instruction } from "../lineup/instructions";
+import type { CategoryPoints, InstructionPoints, RolePoints } from "./scoring";
 import { bandShape } from "./scoringSetShape";
 
 // A match's points breakdown as the screens are sent it (spec/14, On screen: each line says why):
@@ -22,6 +23,7 @@ const categoryWhy = v.object({
     v.object({ by: v.literal("all") }),
     v.object({ by: v.literal("area"), area: areaShape }),
     v.object({ by: v.literal("position"), position: slotPosition }),
+    v.object({ by: v.literal("formation"), formation: v.string() }),
   ),
   cut: v.union(
     v.null(),
@@ -50,6 +52,11 @@ export const roleLine = v.object({
 });
 export type RoleLine = Infer<typeof roleLine>;
 
+/** Each of his team's instructions' lines (spec/05, Team instructions; #990), under his role's and
+ *  shaped as it is: the instruction's name, its net, and each of its lines that moved him with each
+ *  of their stats he made. */
+export const instructionLines = v.array(roleLine);
+
 /** The categories, each named as the set names its stat. */
 export function namedCategoriesOf(categories: readonly CategoryPoints[], ownStats: readonly OwnStat[] | undefined) {
   return categories.map((each) => ({ ...each, name: categoryName(each.stat, ownStats) }));
@@ -60,6 +67,19 @@ export function roleLineOf(role: RolePoints, ownStats: readonly OwnStat[] | unde
   return {
     name: roleName(role.role),
     points: role.points,
-    sides: role.sides.map(({ points, lines }) => ({ points, lines: lines.map((line) => ({ ...line, name: categoryName(line.stat, ownStats) })) })),
+    sides: role.sides.map(({ points, lines }) => ({ points, lines: namedStats(lines, ownStats) })),
   };
 }
+
+/** Each instruction's line, named as the league's `instructions` name it (its key, for one no
+ *  longer among them) and each stat as the set names it. */
+export function instructionLinesOf(scored: readonly InstructionPoints[], instructions: readonly Instruction[], ownStats: readonly OwnStat[] | undefined): RoleLine[] {
+  return scored.map(({ instruction, points, lines }) => ({
+    name: instructions.find((each) => each.key === instruction)?.name ?? instruction,
+    points,
+    sides: lines.map((line) => ({ points: line.points, lines: namedStats(line.stats, ownStats) })),
+  }));
+}
+
+const namedStats = (lines: readonly { stat: string; actions: number }[], ownStats: readonly OwnStat[] | undefined) =>
+  lines.map((line) => ({ ...line, name: categoryName(line.stat, ownStats) }));

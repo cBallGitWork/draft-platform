@@ -6,7 +6,8 @@ import { heldTeamSheetsOf } from "../football/matchTeamSheets";
 import { heldTeamStatsOf } from "../football/matchTeamStats";
 import { scoreOf, scoreOnly } from "../football/matchScores";
 import { commentary, type MatchupCommentary } from "../matchup/matchupShape";
-import { vidiprinter, type VidiprinterPlayer } from "../matchup/vidiprinter";
+import { vidiprinterTeam } from "../matchup/instructionLines";
+import { shownLine, vidiprinter, type VidiprinterPlayer } from "../matchup/vidiprinter";
 import { positionsNow } from "../positions/playerPositions";
 import { seasonRules } from "../rules/rulesHistory";
 import { clubRecord, position, scoreRead, sideTeamStats } from "../schema";
@@ -182,7 +183,7 @@ async function priced(ctx: QueryCtx, league: Doc<"leagues">, fixture: Doc<"fixtu
       if (inMatch === null) continue;
       result.slots.set(slot.playerCode, { points: inMatch.points, counts: slot.counts });
       const { name } = await heldPlayer(ctx, fixture.code, slot.playerCode);
-      result.players.set(slot.playerCode, { name, cell: slot.cell, role: slot.role, inLineup: true, inMatch: inMatchOf(slot, scored.matchesOf.get(slot.playerCode) ?? []) });
+      result.players.set(slot.playerCode, { name, cell: slot.cell, role: slot.role, inLineup: true, inMatch: inMatchOf(slot, scored.matchesOf.get(slot.playerCode) ?? []), team: vidiprinterTeam(scored) });
     }
   }
   return result;
@@ -209,7 +210,7 @@ async function menOf(
       const positions = await positionsOfNow(playerCode);
       const owned = owners.has(playerCode);
       const unownedMan = owned ? null : unownedPoints(playerCode, positions);
-      if (unownedMan?.lines) unowned.set(playerCode, { name: player.name, role: undefined, inLineup: false, ...unownedMan.lines });
+      if (unownedMan?.lines) unowned.set(playerCode, { name: player.name, role: undefined, inLineup: false, team: undefined, ...unownedMan.lines });
       const slot = unownedMan === null ? slots.get(playerCode) : { points: unownedMan.points, counts: false };
       return {
         playerCode,
@@ -255,7 +256,7 @@ async function commentaryOf(
     const lines =
       set === null
         ? row.lines.map((line) => ({ key: `${fixture.code}:${line.sourceId}`, text: line.text, points: null }))
-        : vidiprinter([{ fixtureCode: fixture.code, kickoff: fixture.kickoff, lines: row.lines, steps: await thresholdStepsOf(ctx, fixture.code) }], players, set);
+        : vidiprinter([{ fixtureCode: fixture.code, kickoff: fixture.kickoff, lines: row.lines, steps: await thresholdStepsOf(ctx, fixture.code) }], players, set).map(shownLine);
     return { kind: "read", lines, delayed: delayedAt(row, score, now) };
   } catch (error) {
     return { kind: "unread", reason: logFailure(`Match ${fixture.code}'s commentary can't be read`, error) };

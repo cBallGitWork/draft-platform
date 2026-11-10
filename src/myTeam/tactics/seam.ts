@@ -4,6 +4,9 @@
 
 import type { Id } from "../../../convex/_generated/dataModel";
 import type { InstructionPair } from "../../../convex/lineup/instructions";
+import type { Cell } from "../../../convex/lineup/pitch";
+import type { RoleCard } from "../../../convex/lineup/roleCardShape";
+import type { Formation } from "../../../convex/lineup/roles";
 import type { OpenTactics, Tactics } from "../../../convex/lineup/tactics";
 import type { Change } from "../../shared/refusal";
 import type { EditedLineup } from "./lineupEdits";
@@ -36,6 +39,9 @@ export type TacticsSeam = {
   useTactics(leagueId: Id<"leagues">, now: number): Tactics | undefined;
   /** The changes to it (a hook). */
   useLineupChanges(): LineupChanges;
+  /** A starter's role card for his slot `cell` in `formation` (the eleven's cells), at `now`, live
+   *  (a hook; #848): undefined while it loads. */
+  useRoleCard(leagueId: Id<"leagues">, playerCode: number, cell: Cell, formation: Formation, now: number): RoleCard | undefined;
   /** Tells the server the manager opened the tab, once a visit, when it first shows a `gameweek`
    *  (null until then), so Continue stops leading him here for it (spec/12; a hook). A gameweek
    *  that changes while the tab stays open tells nothing. */

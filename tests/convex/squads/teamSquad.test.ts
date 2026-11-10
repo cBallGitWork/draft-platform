@@ -12,7 +12,7 @@ import { DAY_MS, WEEK_MS } from "../../../convex/shared/time";
 import { squadStats } from "../../../convex/squads/teamSquad";
 import { latestRules } from "../../../convex/rules/rulesHistory";
 import { expectRefused } from "../../support/convex/test.harness";
-import { COMMISSIONER, MANAGERS, actingAs, addManagers, adminCreatesLeague, type TestConvex } from "../../support/convex/leagues.harness";
+import { COMMISSIONER, MANAGERS, OUTSIDER, actingAs, addManagers, adminCreatesLeague, type TestConvex } from "../../support/convex/leagues.harness";
 import { EXAMPLE_SET, GOAL_AND_ASSIST } from "../../support/convex/scoring.example";
 import { holdSiteScoring } from "../../support/convex/siteScoring.harness";
 import { ARSENAL, CHELSEA, COVENTRY, UNHELD, completeRecord, insertClubs, insertPlayers } from "../../support/convex/footballRows.harness";
@@ -262,5 +262,30 @@ describe("the last gameweek", () => {
     // The table scores none of the league's gameweeks, so his team got nothing from him (#577):
     // his card prices them at his best position, and the Squad tab adds none of it (#595).
     expect(squad.players.find((each) => each.code === SAKA.code)).toMatchObject({ seasonPoints: 0, lastGameweekPoints: null });
+  });
+});
+
+// Another team's squad, read-only, from its owner's name on a player's card (#1027; Craig, 9 Nov
+// 2026): its players, positions, clubs and season points, the same as the Squad tab's.
+describe("another team's squad", () => {
+  const readTeam = async (email: string, teamId = annTeam) => (await actingAs(t, email)).query(api.squads.otherSquad.ofTeam, { leagueId, teamId });
+
+  test("is the team's players in the Squad tab's order, with his positions, club and season points as the Squad tab has them", async () => {
+    const mine = await read();
+    const { teamName, players } = await readTeam(BOB);
+    expect(teamName).toBe(mine.teamName);
+    expect(players).toEqual(mine.players.map(({ code, name, fullName, positions, club, gone, seasonPoints }) => ({ code, name, fullName, positions, club, gone, seasonPoints })));
+    expect(players.find(({ code }) => code === SAKA.code)?.seasonPoints).toBe(sakaGw1());
+  });
+
+  test("is read by the commissioner, who runs no team, and refused to someone outside the league", async () => {
+    expect((await readTeam(COMMISSIONER)).players).toHaveLength(4);
+    await expectRefused(readTeam(OUTSIDER), refusals.notInLeague);
+  });
+
+  test("is refused for a team in another league", async () => {
+    const otherLeague = await adminCreatesLeague(t);
+    const [stranger] = await addManagers(t, otherLeague, [MANAGERS[2]]);
+    await expectRefused(readTeam(BOB, stranger), refusals.noTeam);
   });
 });

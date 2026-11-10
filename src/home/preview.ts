@@ -9,7 +9,7 @@ import { SEASON_GAMEWEEKS } from "../../convex/gameweeks/usedGameweeks";
 import { DAY_MS, HOUR_MS, WEEK_MS } from "../../convex/shared/time";
 import { drawFixtures, namedFixture } from "../../convex/table/roundRobin";
 import { formOf, headToHeadTable, teamsInGameweek } from "../../convex/table/standings";
-import { gameScore } from "../../convex/table/teamGames";
+import { gameNumberAt, gameScore } from "../../convex/table/teamGames";
 import { previewLatestMail } from "../mail/preview";
 import { previewIdOf } from "../table/preview";
 import type { HomeSeam, LeagueHome, LeagueNews, NewsAsked, NewsMove } from "./seam";
@@ -35,10 +35,10 @@ const home: LeagueHome = {
   format: "headToHead",
   thisGameweek: {
     gameweek: current.gameweek,
-    fixtures: current.fixtures.map((each) => {
+    fixtures: current.fixtures.map((each, index) => {
       const scored = sides.get(current.gameweek);
       const score = scored === undefined ? null : gameScore(teamsInGameweek(current), scored, current.gameweek, each.team, each.opponent);
-      return { teamId: previewIdOf(each.team), ...namedFixture(each, (name) => name), points: score && { team: score.team, opponent: score.opponent } };
+      return { teamId: previewIdOf(each.team), game: gameNumberAt(current.fixtures, index), ...namedFixture(each, (name) => name), points: score && { team: score.team, opponent: score.opponent } };
     }),
     byes: current.byes,
   },

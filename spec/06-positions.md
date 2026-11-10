@@ -24,15 +24,17 @@ Feature 6 of [SPEC.md](../SPEC.md). Only Craig's answers: the first `/grill` and
 
 ## From real starts
 
-- Taken from where players actually lined up in real matches (the Premier League's formation
-  data), not from a scraped site.
+- Taken from where players actually lined up in real matches (Sportmonks' lineups: formation
+  position and detailed position, in place of the Premier League's team sheets; Craig, 9 Nov 2026,
+  on #1196), not from a scraped site. `S06.2`
 - A player gets a position after 3 starts there, counted over his last 38 starts, last season's
   and this. Coming on as a substitute gives no position.
 - The starts are read once a day, early morning UK time (06:00); a run with matches still to read
   carries on straight away rather than waiting a day (Craig, 5 Nov 2026, #1194).
-- Claude builds the table from a formation's places to labels from the recorded team sheets: in a
-  4-2-3-1 the two deepest midfielders are CDM; in a 4-3-3 the three are CM. Craig checks the
-  result on a list of last season's regulars before it is used.
+- Claude builds the table from a formation's places to labels from Sportmonks' lineups (formation
+  position, detailed position): in a 4-2-3-1 the two deepest midfielders are CDM; in a 4-3-3 the
+  three are CM. Craig checks the result on a list of last season's regulars before it is used.
+  `S06.3`
 - The rules follow Craig's depth chart work (starts only, 3 to get a position, a run elsewhere
   flags a change, his overrides win), not its engine.
 
@@ -51,10 +53,10 @@ Feature 6 of [SPEC.md](../SPEC.md). Only Craig's answers: the first `/grill` and
 
 ## New signings
 
-- A new signing with no starts takes his position from the Premier League's own label for him,
-  and it counts at once, shown as unconfirmed until the admin confirms it. A clear label maps
-  straight across (a full back is FB, a second striker SS); a vague one stays vague, giving every
-  position it could mean ("Defender" counts as CB and FB).
+- A new signing with no starts takes his position from Sportmonks' own label for him, and it
+  counts at once, shown as unconfirmed until the admin confirms it. A clear label maps straight
+  across (a full back is FB, a second striker SS); a vague one stays vague, giving every position
+  it could mean ("Defender" counts as CB and FB). `S06.4`
 - So does any player with fewer than 3 starts anywhere, or whose positions from starts the admin
   hasn't approved yet: he plays on his label until they are.
 - A player no feed has placed yet: the admin sets his area, and he counts towards that area's
@@ -81,7 +83,7 @@ From `/grill the auto team and fixture edits` (5 Nov 2026).
 - Every player has an availability of our own: out, doubtful or available. The auto team reads only
   that (`spec/09`): "we will need our own system for that, since that doesnt scale with leagues
   outside of prem".
-- For the Premier League it is filled from FPL's flags: injured, suspended or unavailable is out, a
-  doubt is doubtful. Reading FPL first is fine for trialling ("if needed we can use fpl for
-  trialling first"); another competition's feed fills it later, through the same football layer.
+- In every competition it is filled from Sportmonks' injuries and suspensions, in place of FPL's
+  news and chance of playing: "ive heard its not great but lets see" (Craig, 9 Nov 2026, on
+  #1196). How good it is gets judged in the Sportmonks trial. `S06.5`
 - It comes from the feed, and the admin can set it by hand over the feed (`spec/15`).

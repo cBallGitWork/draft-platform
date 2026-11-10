@@ -5,7 +5,15 @@
 // Players and matches come out as FPL's codes, through the bridge in `feedIds.ts`.
 
 import { fixtureCodeIn, matchPlayers, namedMen, type UnmatchedPlayer } from "../feedIds";
-import type { RawPlFixture, RawPlPlayerStats, RawPlTeamList } from "./premierLeague";
+import {
+  PL_FULL_TIME,
+  PL_FULL_TIME_PHASE,
+  PL_HALF_TIME_PHASE,
+  PL_SECOND_HALF_PHASE,
+  type RawPlFixture,
+  type RawPlPlayerStats,
+  type RawPlTeamList,
+} from "./premierLeague";
 
 /** Where one man was named for one match. */
 export interface MatchSlot {
@@ -94,6 +102,37 @@ export function plStats(read: RawPlPlayerStats): Record<string, number> {
   return stats;
 }
 
+/** The site's two half-time stats, worked out from the fixture's half-time score, as Opta sends
+ *  neither per player: whether his club had let none in at half-time (1 or 0), and how many it had.
+ *  Only a starter gets them (Craig, 9 Nov 2026, on #990: Keep it tight early "goes by his club's
+ *  half-time score for anyone who started; a bench player who comes on scores nothing from it"). */
+export const HALF_TIME_STATS = { cleanSheet: "clean_sheet_half_time", goalsConceded: "goals_conceded_half_time" } as const;
+
+/** The phases from which half-time's score is settled. */
+const HALF_TIME_REACHED: ReadonlySet<string | undefined> = new Set([PL_HALF_TIME_PHASE, PL_SECOND_HALF_PHASE, PL_FULL_TIME_PHASE]);
+
+/** Each starter's half-time stats, by the Premier League's player id: none before half-time, as the
+ *  score isn't settled yet. A half-time score that isn't two whole goal counts throws. */
+export function halfTimeStats(fixture: RawPlFixture): Map<number, Record<string, number>> {
+  const stats = new Map<number, Record<string, number>>();
+  if (fixture.status !== PL_FULL_TIME && !HALF_TIME_REACHED.has(fixture.phase)) return stats;
+  const { homeScore, awayScore } = fixture.halfTimeScore ?? {};
+  for (const goals of [homeScore, awayScore]) {
+    if (typeof goals !== "number" || !Number.isInteger(goals) || goals < 0) {
+      throw new Error(`PL fixture ${fixture.id} sent half-time score ${JSON.stringify(fixture.halfTimeScore)}`);
+    }
+  }
+  const homeId = fixture.teams?.[0]?.team.id;
+  if (homeId === undefined) throw new Error(`PL fixture ${fixture.id} names no home side`);
+  for (const list of fixture.teamLists ?? []) {
+    if (list === null) continue;
+    const conceded = list.teamId === homeId ? awayScore! : homeScore!;
+    const line = { [HALF_TIME_STATS.cleanSheet]: conceded === 0 ? 1 : 0, [HALF_TIME_STATS.goalsConceded]: conceded };
+    for (const man of list.lineup) stats.set(man.id, line);
+  }
+  return stats;
+}
+
 /** A line for each man read, by the Premier League's player id. A read for another man than asked,
  *  or for one neither sheet names, is a caller's or the feed's mistake: it throws. */
 export function plStatLines(
@@ -104,6 +143,7 @@ export function plStatLines(
   const fixtureCode = requireFixtureCode(fixture);
   const { codes, unmatched } = matchPlayers(fixture, codeByOpta);
   const named = new Set(namedMen(fixture).map((man) => man.id));
+  const halfTime = halfTimeStats(fixture);
   const lines: PlStatLine[] = [];
   for (const [plPlayerId, read] of reads) {
     if (read.entity?.id !== plPlayerId) {
@@ -111,7 +151,10 @@ export function plStatLines(
     }
     if (!named.has(plPlayerId)) throw new Error(`PL fixture ${fixture.id}'s sheets do not name player ${plPlayerId}`);
     const playerCode = codes.get(plPlayerId);
-    if (playerCode !== undefined) lines.push({ playerCode, fixtureCode, stats: plStats(read) });
+    // Half-time's stats join only a line Opta has counted: an empty one is read as not counted yet.
+    const stats = plStats(read);
+    if (Object.keys(stats).length > 0) Object.assign(stats, halfTime.get(plPlayerId));
+    if (playerCode !== undefined) lines.push({ playerCode, fixtureCode, stats });
   }
   return { lines, unmatched: unmatched.filter((man) => reads.has(man.plPlayerId)) };
 }

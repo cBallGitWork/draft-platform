@@ -1,4 +1,4 @@
-import { snakeOrder } from "../../convex/draft/snakeOrder";
+import { pickOwner, snakeOrder, type TradedPick } from "../../convex/draft/snakeOrder";
 
 // Where each pick sits on the board (spec/04, The picks and The draft room): a column a team in
 // the draft order, a row a round, each round running the other way from the one before (snake
@@ -31,7 +31,14 @@ export const pickInRoundOf = (pick: number, teams: number) => ((pick - 1) % team
 /** The round pick number `pick` falls in. */
 export const roundOf = (pick: number, teams: number) => Math.floor((pick - 1) / teams) + 1;
 
-/** The pick numbers `team` makes, first first, over `rounds` rounds of `order`. */
-export function picksOf<Team>(team: Team, order: readonly Team[], rounds: number): number[] {
-  return snakeOrder(order, rounds).flatMap((each, index) => (each === team ? [index + 1] : []));
+/** Who makes each pick, first to last, over `rounds` rounds of `order`: the team whose turn it is,
+ *  or the team holding its pick in that round after a trade (#1096). */
+export function pickMakers<Team>(order: readonly Team[], rounds: number, traded: readonly TradedPick<Team>[]): Team[] {
+  return snakeOrder(order, rounds).map((turn, index) => pickOwner(traded, roundOf(index + 1, order.length), turn));
+}
+
+/** The pick numbers `team` makes, first first, over `rounds` rounds of `order`, counting the picks
+ *  it holds after a trade and leaving out those it traded away. */
+export function picksOf<Team>(team: Team, order: readonly Team[], rounds: number, traded: readonly TradedPick<Team>[]): number[] {
+  return pickMakers(order, rounds, traded).flatMap((each, index) => (each === team ? [index + 1] : []));
 }

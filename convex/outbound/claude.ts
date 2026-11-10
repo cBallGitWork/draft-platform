@@ -1,3 +1,4 @@
+import { MINUTE_MS } from "../shared/time";
 import { ANTHROPIC_KEY_SETTING } from "./deploymentSettings";
 
 // What the app has AI write goes through Anthropic's Messages API, with one `fetch` and no SDK
@@ -11,6 +12,10 @@ const ANTHROPIC_VERSION = "2023-06-01";
 
 /** The model ARCHITECTURE.md names for the app's AI. */
 export const WRITING_MODEL = "claude-haiku-5-5";
+
+/** How long after a failed write Claude is asked again, for a scout's report and a recap alike:
+ *  each caller logs every failure and keeps it on its row, so a lasting one (no API key, say) shows. */
+export const CLAUDE_RETRY_MS = 30 * MINUTE_MS;
 
 /** Claude's written reply to `prompt` under `system`, trimmed, or throws saying why there is none:
  *  no key on the deployment, the API refused, or it wrote nothing. */

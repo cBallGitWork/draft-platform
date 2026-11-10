@@ -1,0 +1,182 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Role card, B1</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo+Narrow:wght@400;600;700&family=Archivo:wdth,wght@125,800&display=swap">
+<style>
+body{margin:0;background:#111214}
+a{color:#ffffff;text-decoration:none}a:hover{text-decoration:underline;text-decoration-color:#6bfdfa}
+button{font-family:inherit;border-radius:0;cursor:pointer}
+button:focus-visible,a:focus-visible,tr:focus-visible{outline:2px solid #6bfdfa;outline-offset:2px}
+.rt td{padding:0 8px;border-bottom:1px solid #111214;vertical-align:middle}
+.rt th,.mt th{height:24px;padding:0 8px;text-align:left;font-weight:600;color:#111214;background:#b9bcc4}
+.mt td{height:28px;padding:0 8px;border-bottom:1px solid #111214}
+.num,th.num{text-align:right}
+.fig{color:#ffe600;font-weight:700}
+@media (hover: hover){.rt tbody tr:hover{background:#3529a8}}
+</style>
+</helmet>
+<div style="position: relative; min-height: 1000px; overflow: hidden; background: #111214; font-family: 'Archivo Narrow', 'Arial Narrow', sans-serif; font-size: 13px; line-height: 20px; color: #ffffff; font-variant-numeric: tabular-nums">
+  <div aria-hidden="true" style="position: absolute; left: 0; top: 0; right: 0">
+    <dc-import name="TacticsA9a" hint-size="100%,1030px"></dc-import>
+  </div>
+  <div aria-hidden="true" style="position: absolute; left: 0; top: 0; right: 0; bottom: 0; background: rgba(17, 18, 20, 0.8)"></div>
+
+  <div role="dialog" aria-modal="true" aria-labelledby="rc-title" style="position: absolute; top: 32px; left: 0; right: 0; margin: 0 auto; width: 1320px; max-width: calc(100% - 32px); display: flex; flex-direction: column; background: #1a1b1f; box-shadow: inset 0 2px 0 #34363c, inset 0 -2px 0 #050608">
+    <div style="flex: none; background: #2a1f86; box-shadow: inset 0 2px 0 #6a5fe0, inset 0 -2px 0 #110a4a; display: flex; align-items: center; gap: 12px; padding: 6px 6px 6px 16px">
+      <h2 id="rc-title" style="margin: 0; font-size: 15px; line-height: 20px; font-weight: 700">Caicedo <span style="font-weight: 400; color: #caced4">CHE</span>, his role</h2>
+      <span style="background: #4e6b45; color: #ffffff; font-size: 11px; font-weight: 700; line-height: 16px; padding: 0 4px">CDM</span>
+      <span style="color: #caced4">Defensive midfield</span>
+      <button aria-label="Close" style="margin-left: auto; width: 32px; height: 32px; background: none; border: 0; display: flex; align-items: center; justify-content: center"><svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true"><path d="M1 1 L13 13 M13 1 L1 13" stroke="#ffffff" stroke-width="2"></path></svg></button>
+    </div>
+
+    <svg width="0" height="0" aria-hidden="true" style="position: absolute"><defs><linearGradient id="rcHalf"><stop offset="50%" stop-color="#ffe600"></stop><stop offset="50%" stop-color="transparent"></stop></linearGradient></defs></svg>
+
+    <div style="display: grid; grid-template-columns: minmax(0, 1fr) 460px; gap: 8px; padding: 8px; align-items: start">
+
+      <section aria-labelledby="rc-list" style="background: rgba(26, 27, 31, 0.84)">
+        <div style="background: #2a1f86; box-shadow: inset 0 2px 0 #6a5fe0, inset 0 -2px 0 #110a4a; padding: 6px 12px; display: flex; align-items: center; gap: 8px">
+          <h3 id="rc-list" style="margin: 0; font-size: 20px; line-height: 24px; font-weight: 700">Roles for this slot</h3>
+          <span style="margin-left: auto; color: #caced4">Base points, his last 5 played</span><span class="fig">{{baseTotal}}</span>
+        </div>
+        <table class="rt" role="grid" aria-label="Roles for this slot" style="width: 100%; border-collapse: collapse; table-layout: fixed">
+          <colgroup><col style="width: 176px"><col style="width: 80px"><col><col style="width: 170px"><col style="width: 96px"><col style="width: 72px"></colgroup>
+          <thead><tr><th>Role</th><th>Role fit</th><th>Rewards</th><th>Punishes</th><th class="num">+/− from role</th><th class="num">Total</th></tr></thead>
+          <tbody>
+            <sc-for list="{{ roles }}" as="r" hint-placeholder-count="6">
+              <tr aria-selected="{{r.selected}}" aria-current="{{r.current}}" tabindex="0" style="height: 44px; cursor: pointer; background: {{r.bg}}; box-shadow: {{r.edge}}">
+                <td><span style="display: flex; align-items: center; gap: 8px"><span style="font-size: 15px; font-weight: {{r.weight}}">{{r.name}}</span><sc-if value="{{ r.now }}" hint-placeholder-val="{{ false }}"><span style="background: #caced4; color: #111214; font-size: 11px; font-weight: 700; line-height: 16px; padding: 0 4px">In use</span></sc-if></span></td>
+                <td><span role="img" aria-label="Role fit {{r.stars}} of 5" style="display: flex; gap: 0"><sc-for list="{{ r.starList }}" as="s" hint-placeholder-count="5"><svg width="13" height="13" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 1.5l3.1 6.6 7.2.9-5.3 5 1.4 7.1L12 17.6l-6.4 3.5 1.4-7.1-5.3-5 7.2-.9z" fill="{{s.fill}}" stroke="{{s.stroke}}" stroke-width="1.6"></path></svg></sc-for></span></td>
+                <td style="color: #caced4; line-height: 18px">{{r.rewards}}</td>
+                <td style="color: #caced4; line-height: 18px">{{r.costs}}</td>
+                <td class="num fig">{{r.rolePts}}</td>
+                <td class="num fig">{{r.total}}</td>
+              </tr>
+            </sc-for>
+          </tbody>
+        </table>
+          <dl style="margin: 0; padding: 12px; border-top: 1px solid #111214; display: grid; grid-template-columns: 56px minmax(0, 1fr); gap: 6px 10px">
+            <dt style="color: #a1a5ab">Points</dt><dd style="margin: 0; color: #caced4">±3 a match at most.</dd>
+          </dl>
+      </section>
+
+      <section aria-labelledby="rc-pick" style="background: rgba(26, 27, 31, 0.84); display: flex; flex-direction: column">
+        <div style="background: #2a1f86; box-shadow: inset 0 2px 0 #6a5fe0, inset 0 -2px 0 #110a4a; padding: 6px 12px; display: flex; align-items: center; gap: 10px">
+          <h3 id="rc-pick" style="margin: 0; font-size: 20px; line-height: 24px; font-weight: 700">{{p.name}}</h3>
+          <span role="img" aria-label="Role fit {{p.stars}} of 5" style="display: flex"><sc-for list="{{ p.starList }}" as="s" hint-placeholder-count="5"><svg width="13" height="13" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 1.5l3.1 6.6 7.2.9-5.3 5 1.4 7.1L12 17.6l-6.4 3.5 1.4-7.1-5.3-5 7.2-.9z" fill="{{s.fill}}" stroke="{{s.stroke}}" stroke-width="1.6"></path></svg></sc-for></span>
+          <span style="color: #ffffff; font-weight: 600">{{p.word}}</span>
+          <span style="margin-left: auto; color: #6bfdfa">{{p.vsNow}}</span>
+        </div>
+        <div style="padding: 12px; display: flex; flex-direction: column; gap: 10px">
+          <p style="margin: 0; font-size: 15px; line-height: 21px">{{p.line}}</p>
+          <div style="display: flex; gap: 12px; align-items: flex-start">
+            <div style="flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; gap: 8px">
+              <table class="mt" style="width: 100%; border-collapse: collapse; table-layout: fixed">
+                <colgroup><col><col style="width: 52px"><col style="width: 112px"></colgroup>
+                <thead><tr><th>His season</th><th class="num">Per 90</th><th class="num">Rank, of 84</th></tr></thead>
+                <tbody>
+                  <tr><td colspan="3" style="color: #a1a5ab; height: 24px">Rewards</td></tr>
+                  <sc-for list="{{ p.plus }}" as="t" hint-placeholder-count="3"><tr><td>{{t.stat}}</td><td class="num fig">{{t.per90}}</td><td class="num">{{t.rank}}</td></tr></sc-for>
+                  <tr><td colspan="3" style="color: #a1a5ab; height: 24px">Punishes</td></tr>
+                  <sc-for list="{{ p.minus }}" as="t" hint-placeholder-count="1"><tr><td>{{t.stat}}</td><td class="num fig">{{t.per90}}</td><td class="num">{{t.rank}}</td></tr></sc-for>
+                </tbody>
+              </table>
+            </div>
+            <figure style="margin: 0; flex: none; width: 150px; display: flex; flex-direction: column; gap: 4px">
+              <svg width="150" height="232" viewBox="0 0 68 105" role="img" aria-label="Engine's run: from his place in defensive midfield up to support the attack, then back behind his place to win the ball">
+                <rect x="0" y="0" width="68" height="35" fill="#2f8535"></rect>
+                <rect x="0" y="35" width="68" height="35" fill="#276f2c"></rect>
+                <rect x="0" y="70" width="68" height="35" fill="#2f8535"></rect>
+                <g fill="none" stroke="#e6f2e6" stroke-width="1.5" vector-effect="non-scaling-stroke">
+                  <rect x="0.4" y="0.4" width="67.2" height="104.2"></rect>
+                  <line x1="0" y1="52.5" x2="68" y2="52.5"></line>
+                  <circle cx="34" cy="52.5" r="9.15"></circle>
+                  <rect x="13.84" y="0" width="40.32" height="16.5"></rect>
+                  <rect x="13.84" y="88.5" width="40.32" height="16.5"></rect>
+                </g>
+                <path d="M 27 64 L 30 50 L 24 74" fill="none" stroke="#ffffff" stroke-width="2" stroke-dasharray="5 3" vector-effect="non-scaling-stroke"></path>
+                <polygon points="24,74 25.9,71.3 23.3,70.7" fill="#ffffff"></polygon>
+                <rect x="25.3" y="62.3" width="3.4" height="3.4" fill="#4e6b45" stroke="#ffffff" stroke-width="1.5" vector-effect="non-scaling-stroke"></rect>
+              </svg>
+              <figcaption style="color: #a1a5ab">Where he moves</figcaption>
+            </figure>
+          </div>
+        </div>
+        <div style="display: flex; flex-direction: column; padding: 6px 12px; border-top: 1px solid #111214">
+          <h4 style="margin: 0; font-size: 13px; font-weight: 700">His last 5 matches played, as {{p.article}} {{p.lower}}</h4>
+        </div>
+        <table class="mt" style="width: 100%; border-collapse: collapse; table-layout: fixed">
+          <colgroup><col style="width: 52px"><col><col style="width: 52px"><col style="width: 56px"><col style="width: 96px"><col style="width: 56px"></colgroup>
+          <thead><tr><th>GW</th><th>Opponent</th><th class="num">Mins</th><th class="num">Base</th><th class="num">+/− from role</th><th class="num">Total</th></tr></thead>
+          <tbody>
+            <sc-for list="{{ matches }}" as="m" hint-placeholder-count="5">
+              <tr aria-expanded="{{m.open}}" tabindex="0" style="cursor: pointer; background: {{m.bg}}">
+                <td>{{m.gw}}</td>
+                <td><span style="display: inline-flex; align-items: center; gap: 4px"><span aria-hidden="true" style="width: 16px; height: 16px; display: inline-flex"><span style="width: 8px; height: 16px; background: {{m.c1}}"></span><span style="width: 8px; height: 16px; background: {{m.c2}}"></span></span>{{m.opp}} <span style="color: #a1a5ab">{{m.ha}}</span></span></td>
+                <td class="num" style="color: {{m.minsInk}}">{{m.mins}}</td>
+                <td class="num fig">{{m.base}}</td>
+                <td class="num fig">{{m.role}}</td>
+                <td class="num fig">{{m.total}}</td>
+              </tr>
+              <sc-if value="{{ m.detail }}" hint-placeholder-val="{{ false }}"><tr style="background: #111214"><td></td><td colspan="5" style="height: auto; padding: 4px 8px 6px; color: #caced4; line-height: 18px">{{m.detail}}</td></tr></sc-if>
+            </sc-for>
+            <tr style="background: #111214"><td colspan="3" style="font-weight: 700">Last 5</td><td class="num fig">{{baseTotal}}</td><td class="num fig">{{p.rolePts}}</td><td class="num fig">{{p.total}}</td></tr>
+          </tbody>
+        </table>
+        <div style="border-top: 1px solid #111214; padding: 10px 12px; display: flex; align-items: center; justify-content: flex-end; gap: 10px">
+          <button style="height: 32px; padding: 0 14px; background: #2a1f86; color: #ffffff; border: 1px solid #caced4; font-size: 13px">Cancel</button>
+          <button style="height: 32px; padding: 0 16px; background: #ffffff; color: #111214; border: 0; box-shadow: inset 0 2px 0 #ffffff, inset 0 -2px 0 #b9bcc4; font-size: 15px; font-weight: 600">Play him as {{p.name}}</button>
+        </div>
+      </section>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1000}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const NOW = 'Metronome', PICK = 'Engine';
+    const WORD = (n) => ['Poor', 'Poor', 'Fair', 'Good', 'Very good', 'Outstanding'][Math.floor(n)];
+    const starsOf = (n) => [1, 2, 3, 4, 5].map((i) => n >= i ? { fill: '#ffe600', stroke: '#ffe600' } : n >= i - 0.5 ? { fill: 'url(#rcHalf)', stroke: '#ffe600' } : { fill: 'none', stroke: '#a1a5ab' });
+    const sign = (v) => (v > 0 ? '+' + v : v < 0 ? '−' + Math.abs(v) : '0');
+    // from convex/lineup/roles.ts: name, description, rewards, costs; stars and last-5 role points made up
+    const ROLES = [
+      ['Metronome', 'Sits in front of the defence and keeps the ball moving, short and simple.', 'Accurate passes, forward passes', 'Misplaced passes', 4, 3],
+      ['Quarterback', 'Sits deep and switches the play with long passes.', 'Long passes into their half, accurate long balls, accurate chipped passes', 'Failed long balls', 3, 1],
+      ['Half-back', 'Drops back between the centre-backs to make a back three when his side has the ball.', 'Clearances, aerials won, possession won in his own third', 'Errors leading to a shot or goal', 3.5, 2],
+      ['Engine', 'Covers every blade of grass, up to support the attack and back to win it, giving it simply.', 'Recoveries, interceptions, accurate passes', 'Dribbled past', 4.5, 4],
+      ['Tower', 'Wins everything in the air in front of the defence.', 'Aerials won, headed clearances, headed passes', 'Aerials lost', 2.5, 0],
+      ['Destroyer', 'Gets stuck in, tackling and winning duels to break up their play.', 'Tackles won, duels won', 'Fouls', 5, 5]
+    ];
+    const MATCHES = [
+      ['GW8', 'BUR', '(H)', '#6c1d45', '#99d6ea', 90, 6, 1],
+      ['GW7', 'LIV', '(A)', '#c8102e', '#f6eb61', 90, 2, 1],
+      ['GW5', 'BHA', '(H)', '#0057b8', '#ffffff', 67, 2, 1],
+      ['GW4', 'FUL', '(A)', '#ffffff', '#000000', 90, 8, 2, 'Engine: +2 (+2: 5 recoveries, 2 interceptions, 41 accurate passes; dribbled past once)'],
+      ['GW3', 'BRE', '(A)', '#e30613', '#ffffff', 23, 1, -1]
+    ];
+    const baseTotal = MATCHES.reduce((t, m) => t + m[6], 0);
+    const roles = ROLES.map(([name, line, rewards, costs, stars, pts]) => {
+      const sel = name === PICK;
+      return { name, rewards, costs, stars, starList: starsOf(stars), now: name === NOW, rolePts: sign(pts), total: baseTotal + pts,
+        selected: sel ? 'true' : 'false', current: name === NOW ? 'true' : 'false', weight: sel ? 700 : 600, bg: sel ? '#111214' : 'transparent', edge: name === NOW ? 'inset 3px 0 0 #6bfdfa' : 'none' };
+    });
+    const pk = ROLES.find((r) => r[0] === PICK);
+    const nowPts = ROLES.find((r) => r[0] === NOW)[5];
+    const mins = MATCHES.reduce((t, m) => t + m[5], 0);
+    const STATS = { Engine: [[['Recoveries', '6.9', '8th'], ['Interceptions', '1.7', '15th'], ['Accurate passes', '53.4', '7th']], [['Dribbled past', '1.1', '24th']]] };
+    const toRows = (l) => l.map(([stat, per90, rank]) => ({ stat, per90, rank }));
+    const p = { article: /^[aeiou]/i.test(pk[0]) ? 'an' : 'a', word: WORD(pk[4]), mins, plus: toRows(STATS[PICK][0]), minus: toRows(STATS[PICK][1]), vsNow: sign(pk[5] - nowPts) + ' on ' + NOW + ' in his last 5', name: pk[0], lower: pk[0].toLowerCase(), line: pk[1], rewards: pk[2], costs: pk[3], stars: pk[4], starList: starsOf(pk[4]), rolePts: sign(pk[5]), total: baseTotal + pk[5] };
+    const matches = MATCHES.map(([gw, opp, ha, c1, c2, mins, base, role, detail]) => ({ gw, opp, ha, c1, c2, mins, detail: detail || '', open: detail ? 'true' : 'false', bg: detail ? '#111214' : 'transparent', minsInk: '#ffffff', base, role: sign(role), total: base + role }));
+    return { nowName: NOW, baseTotal, roles, p, matches };
+  }
+}
+</script>
+</body>
+</html>

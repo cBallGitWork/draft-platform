@@ -25,6 +25,7 @@ import {
   youPickHead,
   yourNextHead,
 } from "../../../src/draft/words";
+import { silenceConsoleError } from "../../support/console.setup";
 import { draftOrder, emptyBoard, type DraftData } from "../../support/src/draft.harness";
 import { league, manager, openApp } from "../../support/src/shell.harness";
 
@@ -124,6 +125,31 @@ describe("while it runs", () => {
     expect(made.textContent).toBe("WSakaARS, 1.01");
     expect(onClock.getAttribute("aria-current")).toBe("true");
     expect(onClock.textContent).toBe(`${onTheClockHead}1.02, 0:48`);
+  });
+
+  it("names a traded pick's team on the board, via the team it came from, and in who is next (#1096)", async () => {
+    // Team 1's round-1 pick for Team 3's round-2 pick: the snake is Team 1, 2, 3, then 3, 2, 1.
+    const [one, , three] = draftOrder.map((team) => team.teamId);
+    const tradedPicks = [
+      { round: 1, teamId: one, ownerId: three },
+      { round: 2, teamId: three, ownerId: one },
+    ];
+    openDraft({ draft: liveDraft(1), board: { ...emptyBoard, picks: [pickOf(1, 2, "Saka")], tradedPicks } });
+    const [first, second] = await boardRows();
+    expect(within(first).getAllByRole("cell")[0].textContent).toBe("WSakaARS, 1.01Team 3 via Team 1");
+    expect(within(second).getAllByRole("cell").map((cell) => cell.textContent)).toEqual(["2.03", "2.02", "Team 1via Team 3"]);
+    expect(fact(nextHead)).toBe("Team 3, then Team 1");
+    expect(fact(yourNextHead(true))).toBe("Round 2, pick 2 in 3 picks");
+  });
+
+  it("logs a traded pick whose owner is no longer in the order, and shows the slot as it was", async () => {
+    const [one] = draftOrder.map((team) => team.teamId);
+    const gone = "gone" as typeof one;
+    const logged = silenceConsoleError();
+    openDraft({ draft: liveDraft(0), board: { ...emptyBoard, tradedPicks: [{ round: 2, teamId: one, ownerId: gone }] } });
+    const [, second] = await boardRows();
+    expect(within(second).getAllByRole("cell").map((cell) => cell.textContent)).toEqual(["2.03", "2.02", "2.01"]);
+    expect(logged).toHaveBeenCalledWith(expect.stringContaining("not in the draft order"), gone);
   });
 
   it("says the draft is paused, and its clock stands still", async () => {

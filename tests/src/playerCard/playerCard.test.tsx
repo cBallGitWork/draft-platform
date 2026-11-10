@@ -9,6 +9,7 @@ import { screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
 import type { ListedPlayer } from "../../../convex/scouting/playersList";
+import { NO_FIGURES } from "../../../convex/scouting/playersOrder";
 import { SCOUTING_PATH } from "../../../src/frame/menu";
 import { LEAGUES_PATH } from "../../../src/leagues/paths";
 import { playerCardPath } from "../../../src/playerCard/paths";
@@ -52,11 +53,12 @@ import { squadWithWarnings } from "../../support/src/squads.harness";
 const headOf = async (card: PlayerCard = SAKA) => within(await screen.findByRole("region", { name: card.fullName }));
 
 /** His row on Scouting's list. */
-const listed = ({ code, name, fullName, club, positions, ownerTeamName }: PlayerCard): ListedPlayer => ({ code, name, fullName, club, positions, ownerTeamName, onWaivers: null, seasonPoints: null, stat: null });
+const listed = ({ code, name, fullName, club, positions, ownerTeamName }: PlayerCard): ListedPlayer => ({ code, name, fullName, club, positions, ownerTeamName, onWaivers: null, seasonPoints: null, figures: NO_FIGURES, stat: null });
 
 describe("reaching it", () => {
   it("a player's name on Scouting opens his card, and Back returns to Scouting", async () => {
-    const app = openApp(SCOUTING_PATH, manager, { scouting: { clubs: [ARSENAL], players: [listed(SAKA)] }, playerCard: HELD });
+    // A free agent, as Scouting opens on them.
+    const app = openApp(SCOUTING_PATH, manager, { scouting: { clubs: [ARSENAL], players: [{ ...listed(SAKA), ownerTeamName: null }] }, playerCard: HELD });
     await userEvent.click(await screen.findByRole("link", { name: "Saka" }));
 
     expect(await screen.findByRole("heading", { level: 1, name: SAKA.fullName })).toBeTruthy();

@@ -99,6 +99,20 @@ describe("the commissioner sets it", () => {
     await expectRefused(setStart(5, ANN), refusals.notRunner);
   });
 
+  test("League settings reads it, null while none is set, with the ticked gameweeks and their deadlines", async () => {
+    const read = async (by = COMMISSIONER) => (await actingAs(t, by)).query(api.gameweeks.scoringStart.ofLeague, { leagueId });
+    await setUsed(t, leagueId, 6, false);
+    const before = await read();
+    expect(before.start).toBeNull();
+    expect(before.ticked.map(({ gameweek }) => gameweek)).not.toContain(6);
+    expect(before.ticked).toHaveLength(37);
+    expect(before.ticked[1]!.deadline! - before.ticked[0]!.deadline!).toBe(WEEK_MS);
+
+    await setStart(5);
+    expect((await read()).start).toBe(5);
+    await expectRefused(read(ANN), refusals.notRunner);
+  });
+
   test("unticking it moves it to the next ticked gameweek", async () => {
     await setUsed(t, leagueId, 6, false);
     await setStart(5);

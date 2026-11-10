@@ -127,7 +127,16 @@ function ScoredMatchup({
         <SidePanel side={team} picking={picking} />
         <div className="flex min-w-0 flex-col gap-2">
           {open !== undefined && <PlayerBreakdown leagueId={leagueId} slot={open.slot} teamName={open.teamName} version={version} close={() => setPicked(null)} />}
-          <Vidiprinter commentary={commentary} title={VIDIPRINTER_TITLE} noLinesWords={noCommentaryWords} />
+          <Vidiprinter
+            commentary={commentary}
+            title={VIDIPRINTER_TITLE}
+            noLinesWords={noCommentaryWords}
+            // A column for each team, the league's average having none (readCommentary.ts).
+            teams={{
+              names: [team, opponent].flatMap((side) => (side.kind === "team" ? [side.teamName] : [])),
+              marked: open === undefined ? null : { playerCode: open.slot.playerCode, name: open.slot.name },
+            }}
+          />
         </div>
         <SidePanel side={opponent} picking={picking} />
       </div>

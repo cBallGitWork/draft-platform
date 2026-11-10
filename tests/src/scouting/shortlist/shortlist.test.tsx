@@ -111,6 +111,7 @@ const card = (code: number, name: string, gone = false): PlayerCard => ({
   positions: ["W"],
   pricedAt: ["W"],
   ownerTeamName: null,
+  ownerTeamId: null,
   news: null,
   chanceOfPlaying: null,
   matches: [],

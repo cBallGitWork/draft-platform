@@ -1,6 +1,6 @@
 import { v, type Infer } from "convex/values";
 import { SLOT_POSITIONS } from "../lineup/pitch";
-import { byArea, objectOf, type RequiredValidator } from "../lineup/pitchShape";
+import { byArea, objectOf, slotPosition, type RequiredValidator } from "../lineup/pitchShape";
 
 // The shape the site's scoring set is stored in (spec/14, Who owns it; siteScoring.ts): scoringSet.ts's
 // ScoringSet, so a stored set passes straight into scoring.ts. A league's rules held it until #354,
@@ -56,6 +56,24 @@ export const scoringSetShape = v.object({
   ),
   /** scoringSet.ts's RoleScoring (spec/05 Roles; #10). */
   roles: v.optional(v.array(v.object({ role: v.string(), bonus: roleSideShape, cost: roleSideShape }))),
+  /** scoringSet.ts's InstructionScoring (spec/05 Team instructions; #990). */
+  instructions: v.optional(
+    v.array(
+      v.object({
+        instruction: v.string(),
+        lines: v.array(
+          v.object({
+            positions: v.optional(v.array(slotPosition)),
+            stats: v.array(v.object({ stat: v.string(), weight: v.number() })),
+            every: v.number(),
+            points: v.number(),
+            most: v.optional(v.number()),
+            minMinutes: v.optional(v.number()),
+          }),
+        ),
+      }),
+    ),
+  ),
 });
 
 export type StoredScoringSet = Infer<typeof scoringSetShape>;

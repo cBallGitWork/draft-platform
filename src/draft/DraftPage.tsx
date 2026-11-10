@@ -1,13 +1,12 @@
 import type { ReactNode } from "react";
 import type { Id } from "../../convex/_generated/dataModel";
-import { snakeOrder } from "../../convex/draft/snakeOrder";
 import { screenMoment } from "../../convex/shared/moments";
 import { SECOND_MS } from "../../convex/shared/time";
 import type { LeagueSummary } from "../../convex/leagues/myLeagues";
 import { useMinute } from "../shared/useMinute";
 import { Loading, PageSection } from "../ui/Panel";
 import { Placeholder } from "../ui/Placeholder";
-import { picksOf, pickInRoundOf, roundOf } from "./board";
+import { pickMakers, picksOf, pickInRoundOf, roundOf } from "./board";
 import { ClockLeft, type OnTheClock } from "./ClockLeft";
 import { CommissionerPanel } from "./CommissionerPanel";
 import { DraftBoard } from "./DraftBoard";
@@ -79,7 +78,7 @@ export function DraftPage({ league, seam }: { league: LeagueSummary; seam: Draft
   return (
     // Full width, unlike PAGE_STACK: the approved picture runs the board across the page.
     <PageSection title={title} aside={facts} className="flex flex-col gap-2">
-      <DraftBoard draft={draft} picks={board.picks} yourTeamId={board.yourTeamId} onTheClock={onTheClock} />
+      <DraftBoard draft={draft} picks={board.picks} tradedPicks={board.tradedPicks} yourTeamId={board.yourTeamId} onTheClock={onTheClock} />
       <PickRoom leagueId={league.leagueId} seam={seam} draft={draft} board={board} onTheClock={onTheClock} now={now}>
         {league.powers.runs && draft.status !== "over" && (
           <CommissionerPanel leagueId={league.leagueId} seam={seam} draft={draft} board={board} now={now} />
@@ -115,10 +114,10 @@ function LiveFacts({ draft, board, onTheClock }: { draft: Live; board: Board; on
   const names = namesOf(order);
   const teamIds = order.map((team) => team.teamId);
   const yours = teamId === board.yourTeamId;
-  const upcoming = snakeOrder(teamIds, rounds)
+  const upcoming = pickMakers(teamIds, rounds, board.tradedPicks)
     .slice(pick, pick + 2)
     .map((each) => names.get(each)!);
-  const yourNext = board.yourTeamId === null ? undefined : picksOf(board.yourTeamId, teamIds, rounds).find((each) => each > pick);
+  const yourNext = board.yourTeamId === null ? undefined : picksOf(board.yourTeamId, teamIds, rounds, board.tradedPicks).find((each) => each > pick);
   return (
     <Facts>
       <Fact head={pickOfHead(pick, teams * rounds)}>{roundPickWords(draft.onTheClock.round, pickInRoundOf(pick, teams))}</Fact>
@@ -146,7 +145,7 @@ function LiveFacts({ draft, board, onTheClock }: { draft: Live; board: Board; on
  *  when it starts, counted down a minute at a time. */
 function WaitingFacts({ draft, board, now }: { draft: Waiting; board: Board; now: number }) {
   const teamIds = draft.order.map((team) => team.teamId);
-  const [first, second] = board.yourTeamId === null ? [] : picksOf(board.yourTeamId, teamIds, Math.min(draft.rounds ?? 2, 2));
+  const [first, second] = board.yourTeamId === null ? [] : picksOf(board.yourTeamId, teamIds, Math.min(draft.rounds ?? 2, 2), board.tradedPicks);
   return (
     <Facts>
       <Fact head={draftOrderHead}>

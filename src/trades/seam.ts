@@ -3,6 +3,7 @@
 
 import type { Id } from "../../convex/_generated/dataModel";
 import type {
+  ClosedOffer,
   Reviewer,
   ScreenOffer,
   ScreenTeam,
@@ -11,13 +12,17 @@ import type {
 } from "../../convex/trades/tradeScreen";
 import type { Change } from "../shared/refusal";
 
-export type { Reviewer, ScreenOffer, ScreenTeam, TradedPlayer, TradesView };
+export type { ClosedOffer, Reviewer, ScreenOffer, ScreenTeam, TradedPlayer, TradesView };
+
+/** A draft pick in an offer (#1096): `teamId`'s pick in `round`, whoever holds it now. */
+export type TradePick = { round: number; teamId: Id<"teams"> };
 
 /** An offer's players, by code, from the manager's side: what he gives and what he gets, and its
- *  one-line note. */
+ *  one-line note. A pick trade's `picks` are one each way, its `gives` and `gets` then empty. */
 export type OfferTerms = {
   gives: number[];
   gets: number[];
+  picks?: { gives: TradePick; gets: TradePick };
   note: string | null;
 };
 

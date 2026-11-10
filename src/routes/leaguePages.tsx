@@ -1,5 +1,6 @@
 import type { ComponentType } from "react";
 import { createRoute, redirect, useParams } from "@tanstack/react-router";
+import type { Id } from "../../convex/_generated/dataModel";
 import type { LeagueSummary } from "../../convex/leagues/myLeagues";
 import { AdminPage } from "../admin/AdminPage";
 import { FeedbackTab } from "../admin/FeedbackTab";
@@ -23,6 +24,8 @@ import { MailPage, leaguesToWriteFrom } from "../mail/MailPage";
 import { mailSearchOf } from "../mail/paths";
 import { PatchNotesPage } from "../patches/PatchNotesPage";
 import { PATCH_NOTES_PATH } from "../patches/paths";
+import { OTHER_TEAM_ROUTE } from "../myTeam/paths";
+import { OtherTeamPage } from "../myTeam/OtherTeamPage";
 import { PLAYER_CARD_ROUTE } from "../playerCard/paths";
 import { PlayerCardPage } from "../playerCard/PlayerCardPage";
 import { SCORING_ROUTE } from "../scoring/paths";
@@ -154,6 +157,22 @@ const playerCardRoute = createRoute({
   },
 });
 
+// Another team's squad, read-only (#1027), for anyone in the league, opened from its name as a
+// player's owner on his card.
+const otherTeamRoute = createRoute({
+  getParentRoute: () => leaguePagesRoute,
+  path: OTHER_TEAM_ROUTE,
+  // Wrapped, so the route's params come from its path, not from membersOnly's argument.
+  beforeLoad: ({ context, params }) => membersOnly({ context, params }),
+  component: function OtherTeam() {
+    const context = otherTeamRoute.useRouteContext();
+    const { leagueId, teamId } = otherTeamRoute.useParams();
+    const league = leagueIn(context.session, leagueId);
+    // The address names the team; the server refuses one outside the league.
+    return league ? <OtherTeamPage key={teamId} league={league} teamId={teamId as Id<"teams">} seam={context.myTeam} /> : null;
+  },
+});
+
 // Player scoring (#30): the site's scoring, which anyone in the league reads and the admin alone
 // edits (spec/14, Who owns it; #354).
 const scoringRoute = createRoute({
@@ -210,4 +229,4 @@ const joinRoute = createRoute({
   },
 });
 
-export const leaguePagesChildren = [leaguesRoute, newLeagueRoute, mailRoute, invitesRoute, joinRoute, gameweeksRoute, squadsRoute, scoringRoute, playerCardRoute, settingsRoute, adminRoute, adminFeedsRoute, adminFeedbackRoute, feedbackRoute, patchNotesRoute];
+export const leaguePagesChildren = [leaguesRoute, newLeagueRoute, mailRoute, invitesRoute, joinRoute, gameweeksRoute, squadsRoute, scoringRoute, playerCardRoute, otherTeamRoute, settingsRoute, adminRoute, adminFeedsRoute, adminFeedbackRoute, feedbackRoute, patchNotesRoute];

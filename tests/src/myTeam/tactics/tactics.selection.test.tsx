@@ -60,7 +60,7 @@ describe("the Selection table", () => {
     expect(heads.slice(0, 5)).toEqual(["Pos", "Role", "Player", "Role fit", "Next"]);
     const [chip, role, player, stars, next] = Array.from(rowOf(RAYA).cells);
     expect(chip.textContent).toBe("GK");
-    expect(within(role).getByRole("combobox").textContent).toContain(roleIn(STARTERS[0], undefined).name);
+    expect(within(role).getByRole("button").textContent).toContain(roleIn(STARTERS[0], undefined).name);
     expect(within(player as HTMLElement).getByRole("button", { name: RAYA.name })).toBeTruthy();
     expect(within(stars).getByRole("img", { name: noDataLabel(ROLE_FIT_SUBJECT) })).toBeTruthy();
     expect(within(next).getByText(nextFixtureShort(SAKA.nextFixtures[0].opponent.shortName, true))).toBeTruthy();
@@ -97,8 +97,10 @@ describe("the selected player's panel (#11)", () => {
     await openedPitch({ tactics: openTactics({ ...SAVED, squad: STARRED }) });
     await openPanel(SALIBA);
     const [playing, other] = rolesOfSlot(STARTERS[1], STARTERS);
-    expect(screen.getByRole("img", { name: starsLabel(playing.name, 4.5) })).toBeTruthy();
-    expect(screen.getByRole("img", { name: noDataLabel(other.name) })).toBeTruthy();
+    // His chip on the pitch shows the stars for the role he plays too (#845), so read the panel's.
+    const panel = within(screen.getByRole("region", { name: SALIBA.name }));
+    expect(panel.getByRole("img", { name: starsLabel(playing.name, 4.5) })).toBeTruthy();
+    expect(panel.getByRole("img", { name: noDataLabel(other.name) })).toBeTruthy();
   });
 });
 

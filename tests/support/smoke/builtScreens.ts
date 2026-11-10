@@ -36,6 +36,7 @@ import { LEAGUES_PATH, NEW_LEAGUE_PATH } from "../../../src/leagues/paths";
 import { LEAGUES_TITLE, NEW_LEAGUE_TITLE } from "../../../src/leagues/words";
 import { MAIL_TITLE } from "../../../src/mail/words";
 import { MATCHUP_TITLE } from "../../../src/matchup/words";
+import { otherTeamPath } from "../../../src/myTeam/paths";
 import { FIXTURES_TITLE, TRANSACTIONS_TITLE } from "../../../src/myTeam/words";
 import { PATCH_NOTES_PATH } from "../../../src/patches/paths";
 import { PATCH_NOTES_TITLE } from "../../../src/patches/words";
@@ -48,6 +49,7 @@ import { scoringPath } from "../../../src/scoring/paths";
 import { SCORING_TITLE } from "../../../src/scoring/words";
 import { previewPlayers } from "../../../src/scouting/preview";
 import { SCOUTING_TITLE } from "../../../src/scouting/words";
+import { previewIdOf, previewTeams } from "../../../src/table/preview";
 import { squadsPath } from "../../../src/squads/paths";
 import { SQUADS_TITLE } from "../../../src/squads/words";
 import { TABLE_PAGE_TITLE } from "../../../src/table/words";
@@ -59,6 +61,8 @@ export type BuiltScreen = readonly [session: string, path: string, title: string
 
 /** The player whose card the run opens: Scouting's first preview player, in the manager's league. */
 const [cardPlayer] = previewPlayers;
+/** The team whose squad the run opens read-only: a preview team that isn't the manager's. */
+const otherTeam = previewTeams[2];
 
 /** Built screens past the landing page. The invite link's tokens are joining/preview.ts's: one to
  *  ask with, one asked, one switched off. */
@@ -86,6 +90,8 @@ export const BUILT_SCREENS: readonly BuiltScreen[] = [
   ["manager", LEAGUES_PATH, LEAGUES_TITLE],
   // A card is titled with the player's full name.
   ["manager", playerCardPath(proLeague.leagueId, cardPlayer.code), cardPlayer.fullName],
+  // Another team's squad, read-only, is titled with that team's name.
+  ["manager", otherTeamPath(proLeague.leagueId, previewIdOf(otherTeam)), otherTeam],
   ["manager", scoringPath(proLeague.leagueId), SCORING_TITLE],
   ["manager", PATCH_NOTES_PATH, PATCH_NOTES_TITLE],
   ["manager", FEEDBACK_PATH, FEEDBACK_TITLE],

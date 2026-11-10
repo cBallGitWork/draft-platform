@@ -4,7 +4,10 @@ import { autoSubs, gameweekPlay, type AutoSubs, type GameweekPlay } from "../lin
 import { namedCodes } from "../lineup/lineup";
 import { lineupsInGameweek, type HeldLineup } from "../lineup/lineups";
 import { ALL_CELLS, playsCell, type Cell } from "../lineup/pitch";
-import { presetNameOf } from "../lineup/presets";
+import { keptOrSwitched, type Instruction } from "../lineup/instructions";
+import { backLineOf, presetNameOf } from "../lineup/presets";
+import { instructionsOf } from "../rules/firstRules";
+import type { TeamScoring } from "../scoring/scoring";
 import { positionsNow, type PositionsNow } from "../positions/playerPositions";
 import type { Position } from "../positions/positionTables";
 import type { StoredScoringSet } from "../scoring/scoringSetShape";
@@ -122,6 +125,12 @@ export interface TeamInGameweek {
    *  Read from the lineup as it locked, a slot left empty by a man gone from the squad included:
    *  auto-subs aren't an edit. */
   formation: string | null;
+  /** The league's team instructions in force in the gameweek, which name its men's instruction
+   *  lines (spec/05: "Park the bus: clean sheet +1"). */
+  instructions: readonly Instruction[];
+  /** What the team adds to its men's points, as its slots were scored by it (`teamScoring`): the
+   *  commentary prices its instructions' moves by it. Undefined for a team with no lineup. */
+  scoring: TeamScoring | undefined;
 }
 
 /** The team's gameweek: its lineup, auto-subs from who played, then scoreTeam. */
@@ -153,6 +162,8 @@ export async function teamInGameweek(reads: LeagueReads, inputs: GameweekInputs,
   const keptStars = inputs.deadlineStars.get(teamId);
   const subs = autoSubs(lineup, positions, plays, { areaLimits: rules.areaLimits }, held.vacated, (code) => keptStars?.get(code) ?? []);
   const departed = new Set(held.vacated.map(({ playerCode }) => playerCode));
+  const formation = presetNameOf([...held.starters, ...held.vacated], rules.presets);
+  const scoring = teamScoring(held, inputs, formation);
   const team = scoreTeam({
     lineup,
     matches: playerMatches,
@@ -167,9 +178,24 @@ export async function teamInGameweek(reads: LeagueReads, inputs: GameweekInputs,
       role: subs.lineup.starters.find((starter) => starter.playerCode === on)?.role,
     })),
     benchCells: new Map(lineup.bench.map((code) => [code, benchCell(positions.get(code)!)])),
+    team: scoring,
   });
-  const formation = presetNameOf([...held.starters, ...held.vacated], rules.presets);
-  return { team, autoSubs: subs, matchesOf, formation };
+  return { team, autoSubs: subs, matchesOf, formation, instructions: instructionsOf(rules), scoring };
+}
+
+/** What the team adds to its men's points (spec/05, Team instructions; #990), from its lineup as it
+ *  locked, a slot left empty by a man gone from the squad included: the two instructions in force
+ *  under the league's rules then (a pick its shape no longer offers takes the formation's default,
+ *  as on the Tactics tab), and the back line of the preset it stands in. The back line counts only
+ *  in a gameweek whose site set scores instructions: it is among their first values, which start
+ *  from the next gameweek not begun (Craig, 9 Nov 2026, on #990), so a gameweek played before them
+ *  is never repriced. A team with no lineup has neither. */
+function teamScoring(held: HeldLineup, { set, rules }: Pick<GameweekInputs, "set" | "rules">, formation: string | null): TeamScoring | undefined {
+  const cells = [...held.starters, ...held.vacated] as Cell[];
+  if (cells.length === 0) return undefined;
+  const { pair } = keptOrSwitched(held.instructions, cells, rules.presets, instructionsOf(rules));
+  const scoring = set.instructions === undefined ? null : backLineOf(cells, rules.presets);
+  return { instructions: [pair.attacking, pair.defensive], backLine: formation === null || scoring === null ? null : { formation, scoring } };
 }
 
 /** One of his matches as his slot scored it: its points by category, and whether his slot's points

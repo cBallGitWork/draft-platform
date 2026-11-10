@@ -2,13 +2,20 @@ import { useMutation, useQuery } from "convex/react";
 import { useCallback } from "react";
 import { api } from "../../convex/_generated/api";
 import { listChangeFailedWords } from "../draft/words";
+import { liveClaims } from "../myTeam/claims/liveClaims";
+import { livePlayerCard } from "../playerCard/livePlayerCard";
 import { refusalOf } from "../shared/refusal";
+import { liveScouts } from "./scouts/liveScouts";
 import { liveShortlist } from "./shortlist/liveShortlist";
 import type { ScoutingSeam } from "./seam";
 
 /** The Scouting seam filled in by Convex. */
 export const liveScouting: ScoutingSeam = {
   ...liveShortlist,
+  ...liveScouts,
+  useCardAction: livePlayerCard.useCardAction,
+  useWaiverChanges: livePlayerCard.useWaiverChanges,
+  usePendingClaims: liveClaims.usePendingClaims,
   useAddToQueue: () => {
     const add = useMutation(api.draft.draftLists.addFromShortlist);
     return useCallback(
@@ -16,6 +23,8 @@ export const liveScouting: ScoutingSeam = {
       [add],
     );
   },
-  useComparison: (leagueId, codes) => useQuery(api.scouting.compare.players, codes === null ? "skip" : { leagueId, codes: [...codes] }),
+  useComparison: (leagueId, codes, stat) => useQuery(api.scouting.compare.players, codes === null ? "skip" : { leagueId, codes: [...codes], stat }),
+  useYourPlayer: (leagueId, playerCode, now) => useQuery(api.scouting.yourPlayer.at, { leagueId, playerCode, now }),
+  usePer90: (leagueId, playerCode, stat) => useQuery(api.scouting.per90.figures, { leagueId, playerCode, stat }),
   usePlayersList: (leagueId, filters, sort, stat) => useQuery(api.scouting.playersList.list, { leagueId, filters, sort, stat }),
 };
