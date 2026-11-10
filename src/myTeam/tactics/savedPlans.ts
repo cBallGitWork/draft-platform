@@ -9,7 +9,8 @@ import type { InstructionPair } from "../../../convex/lineup/instructions";
 import { sameCell, type Cell } from "../../../convex/lineup/pitch";
 import { offersRole, roleIn, takesRole } from "../../../convex/lineup/roles";
 import { droppedStarter } from "../../../convex/stars/bestRole";
-import { presetOfCells, reshaped, type EditedLineup, type MoveRules, type RatingsOf } from "./lineupEdits";
+import { presetOfCells, type EditedLineup, type MoveRules, type RatingsOf } from "./lineupEdits";
+import { reshaped } from "./reshape";
 
 /** A saved plan: a formation, each slot's role and both team instructions (#990), by name, never
  *  players. A plan saved before the instructions holds none. */
