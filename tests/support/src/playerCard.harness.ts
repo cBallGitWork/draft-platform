@@ -2,7 +2,7 @@
 // player code, so a test sees what a card shows and what was asked for, an override among it.
 
 import { vi } from "vitest";
-import type { CardAction, PlayerCard, PlayerCardSeam, WaiverChanges } from "../../../src/playerCard/seam";
+import type { CardAction, PlayerCard, PlayerCardSeam, PositionRank, WaiverChanges } from "../../../src/playerCard/seam";
 import { fakeScouts, type ScoutsData } from "./scouts.harness";
 import { fakeShortlist, type ShortlistData } from "./shortlist.harness";
 
@@ -18,9 +18,11 @@ export type PlayerCardData = {
   actions?: ReadonlyMap<number, CardAction>;
   /** What the server says to a drop, a claim or a pickup: null when it makes it. */
   waiverRefusal?: string | null;
+  /** His rank at each position, by "code position" ("1001 CAM"); loading for one not named. */
+  ranks?: ReadonlyMap<string, PositionRank>;
 };
 
-export function fakePlayerCard({ cards = [], loading = false, shortlist, scouts, overrideRefusal = null, actions = new Map(), waiverRefusal = null }: PlayerCardData = {}) {
+export function fakePlayerCard({ cards = [], loading = false, shortlist, scouts, overrideRefusal = null, actions = new Map(), waiverRefusal = null, ranks = new Map() }: PlayerCardData = {}) {
   const override = vi.fn<ReturnType<PlayerCardSeam["useOverride"]>>(() => Promise.resolve(overrideRefusal));
   const answer = () => Promise.resolve(waiverRefusal);
   const waiverChanges = { drop: vi.fn<WaiverChanges["drop"]>(answer), claim: vi.fn<WaiverChanges["claim"]>(answer), pickUp: vi.fn<WaiverChanges["pickUp"]>(answer) };
@@ -33,6 +35,7 @@ export function fakePlayerCard({ cards = [], loading = false, shortlist, scouts,
     waiverChanges,
     useWaiverChanges: () => waiverChanges,
     useCardAction: (_leagueId: unknown, playerCode: number): CardAction => actions.get(playerCode) ?? { kind: "none" },
+    usePositionRank: vi.fn<PlayerCardSeam["usePositionRank"]>((_leagueId, playerCode, position) => ranks.get(`${playerCode} ${position}`)),
     ...fakeShortlist(shortlist),
     ...fakeScouts(scouts),
     usePlayerCard: vi.fn<PlayerCardSeam["usePlayerCard"]>((_leagueId, playerCode) =>

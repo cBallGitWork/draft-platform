@@ -3,6 +3,7 @@ import { useId, type ReactNode } from "react";
 import type { LeagueSummary } from "../../convex/leagues/myLeagues";
 import { SCOUTING_PATH } from "../frame/menu";
 import { otherTeamPath } from "../myTeam/paths";
+import { offerForLink } from "../trades/paths";
 import { ClubMark } from "../ui/ClubName";
 import { OwnerName } from "../ui/OwnerName";
 import { Placeholder } from "../ui/Placeholder";
@@ -21,9 +22,11 @@ import {
   noPositionsWords,
   offerTradeWords,
   ownedByWords,
+  placeWords,
   portraitLabel,
+  rankLabel,
+  rankOfWords,
   statusNotSettledLabel,
-  tradeNotBuiltLabel,
 } from "./words";
 
 /** The card's head, across the page (the approved picture): Back, his portrait, his name, positions,
@@ -56,7 +59,7 @@ export function CardHead({ league, card, shown, seam }: { league: LeagueSummary;
           </span>
         </span>
       </div>
-      <Figures card={card} shown={shown} />
+      <Figures card={card} shown={shown} rank={<Rank leagueId={league.leagueId} card={card} shown={shown} seam={seam} />} />
       <div className="ml-auto flex flex-wrap items-start gap-2">
         <Actions league={league} card={card} seam={seam} />
       </div>
@@ -86,15 +89,16 @@ function Back() {
   );
 }
 
-/** His figures beside his name (spec/12 S12.1; #1027): base points this season, a match, his
- *  minutes and his last five matches' points, newest first. */
-function Figures({ card, shown }: { card: PlayerCard; shown: number }) {
+/** His figures beside his name (spec/12 S12.1; #1027): base points this season, a match, his rank
+ *  at the position, his minutes and his last five matches' points, newest first. */
+function Figures({ card, shown, rank }: { card: PlayerCard; shown: number; rank: ReactNode }) {
   const { seasonPoints, aMatch, minutes, lastFive } = seasonFigures(card.matches, shown);
   const figure = (value: number | null) => (value === null ? noFigureWords : figureWords(value));
   return (
     <dl className="flex gap-6 border-l border-plate-rule pl-6">
       <Figure label={figureLabels.seasonPoints}>{figure(seasonPoints)}</Figure>
       <Figure label={figureLabels.aMatch}>{figure(aMatch)}</Figure>
+      {rank}
       <Figure label={figureLabels.minutes}>{figure(minutes)}</Figure>
       <Figure label={figureLabels.lastFive}>
         {lastFive.length === 0 ? (
@@ -113,6 +117,24 @@ function Figures({ card, shown }: { card: PlayerCard; shown: number }) {
   );
 }
 
+/** His rank at the position the switch is on, among every player holding it, by Scouting's season
+ *  points (Craig, 9 Nov 2026, on #1027): "4th of 38", "—" while it loads or he has no points. */
+function Rank({ leagueId, card, shown, seam }: { leagueId: LeagueSummary["leagueId"]; card: PlayerCard; shown: number; seam: PlayerCardSeam }) {
+  const position = card.pricedAt[shown] ?? null;
+  const rank = seam.usePositionRank(leagueId, card.code, position);
+  return (
+    <Figure label={rankLabel(position)}>
+      {rank === undefined || rank.place === null ? (
+        noFigureWords
+      ) : (
+        <>
+          {placeWords(rank.place)} <span className="text-data font-normal text-fact">{rankOfWords(rank.of)}</span>
+        </>
+      )}
+    </Figure>
+  );
+}
+
 function Figure({ label, children }: { label: string; children: ReactNode }) {
   return (
     <div className="flex flex-col">
@@ -123,8 +145,8 @@ function Figure({ label, children }: { label: string; children: ReactNode }) {
 }
 
 /** The actions that follow who he is (#1027): another team's player, the shortlist, a scout and a
- *  trade; a free agent's, Claim or Pick up in place of the trade; the manager's own, Drop alone.
- *  Trades aren't built (#383), so the offer is a placeholder, never a dead button. */
+ *  trade, which opens New offer with his owner chosen and him asked for (Craig, 9 Nov 2026); a free
+ *  agent's, Claim or Pick up in place of the trade; the manager's own, Drop alone. */
 function Actions({ league, card, seam }: { league: LeagueSummary; card: PlayerCard; seam: PlayerCardSeam }) {
   const action = seam.useCardAction(league.leagueId, card.code);
   if (action?.kind === "drop") return <WaiverAction leagueId={league.leagueId} card={card} seam={seam} />;
@@ -132,10 +154,10 @@ function Actions({ league, card, seam }: { league: LeagueSummary; card: PlayerCa
     <>
       <ShortlistAction leagueId={league.leagueId} playerCode={card.code} gone={card.gone} seam={seam} />
       <ScoutAction leagueId={league.leagueId} playerCode={card.code} gone={card.gone} seam={seam} />
-      {card.ownerTeamName !== null ? (
-        <Placeholder label={tradeNotBuiltLabel} className="px-3 py-1 text-muted">
+      {card.ownerTeamId !== null ? (
+        <Link {...offerForLink(card.ownerTeamId, card.code)} className="secondary-action">
           {offerTradeWords}
-        </Placeholder>
+        </Link>
       ) : (
         <WaiverAction leagueId={league.leagueId} card={card} seam={seam} />
       )}

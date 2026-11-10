@@ -2,6 +2,7 @@ import { v, type Infer } from "convex/values";
 import { query } from "../_generated/server";
 import { slotPosition } from "../lineup/pitchShape";
 import { positionsNow } from "../positions/playerPositions";
+import { placeOf } from "./cardPoints";
 import { currentPlayersOf } from "../scouting/playersList";
 import { shownSeasonPoints } from "../scouting/shownSeasonPoints";
 import { memberOf } from "../shared/leagueAccess";
@@ -38,11 +39,3 @@ export const atPosition = query({
     return { place: placeOf(points, playerCode), of: points.length };
   },
 });
-
-/** His place among these players' points, ties sharing the higher place: one more than how many
- *  have more. Null when he isn't among them or has no points. */
-export function placeOf(players: readonly { code: number; points: number | null }[], playerCode: number): number | null {
-  const his = players.find(({ code }) => code === playerCode)?.points ?? null;
-  if (his === null) return null;
-  return 1 + players.filter(({ points }) => points !== null && points > his).length;
-}

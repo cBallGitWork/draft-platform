@@ -3,7 +3,8 @@
 // server's own rule (cardPoints), and his club's next fixtures. Saka carries FPL's news, and an
 // override on one match.
 
-import { basePoints, cardPositions, logCategories } from "../../convex/playerCard/cardPoints";
+import type { SlotPosition } from "../../convex/lineup/pitch";
+import { basePoints, cardPositions, logCategories, placeOf } from "../../convex/playerCard/cardPoints";
 import { categoryName } from "../../convex/scoring/categories";
 import { FIRST_SCORING } from "../../convex/scoring/firstScoring";
 import type { MatchStats } from "../../convex/scoring/values";
@@ -12,7 +13,8 @@ import { ARSENAL, CHELSEA, LIVERPOOL, previewPlayers, previewShortlist } from ".
 import { previewScouts } from "../scouting/scouts/preview";
 import { previewSays, proLeague } from "../shared/preview";
 import { previewIdOf } from "../table/preview";
-import type { CardAction, PlayedMatch, PlayerCard, PlayerCardSeam, WaiverChanges } from "./seam";
+import { seasonFigures } from "./gameLog";
+import type { CardAction, PlayedMatch, PlayerCard, PlayerCardSeam, PositionRank, WaiverChanges } from "./seam";
 
 const CLUBS = [ARSENAL, CHELSEA, LIVERPOOL];
 const lastSaturday = Date.now() - ((new Date().getDay() + 1) % 7) * DAY_MS;
@@ -128,6 +130,14 @@ function cardOf(player: (typeof previewPlayers)[number]): PlayerCard {
 
 const cards = new Map(previewPlayers.map((player) => [player.code, cardOf(player)]));
 
+/** His rank at a position among the preview's players holding it, by their cards' base points
+ *  there, placed by the server's own rule (positionRank.ts). */
+function rankOf(playerCode: number, position: SlotPosition): PositionRank {
+  const holding = [...cards.values()].filter((card) => card.pricedAt.includes(position));
+  const points = holding.map((card) => ({ code: card.code, points: seasonFigures(card.matches, card.pricedAt.indexOf(position)).seasonPoints }));
+  return { place: placeOf(points, playerCode), of: holding.length };
+}
+
 /** The preview saves nothing: an override is taken and forgotten, and a drop, a claim or a pickup
  *  says so. */
 const overrideNothing = () => Promise.resolve(null);
@@ -156,6 +166,7 @@ export const previewPlayerCard: PlayerCardSeam = {
   ...previewScouts,
   usePlayerCard: (_leagueId, playerCode) => cards.get(playerCode) ?? null,
   useCardAction: (_leagueId, playerCode) => cardActionOf(playerCode),
+  usePositionRank: (_leagueId, playerCode, position) => (position === null ? undefined : rankOf(playerCode, position)),
   useWaiverChanges: () => waiverChanges,
   useOverride: () => overrideNothing,
   useRemoveOverride: () => overrideNothing,

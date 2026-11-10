@@ -1,7 +1,7 @@
 import { beforeEach, expect, test } from "vitest";
 import { api } from "../../../convex/_generated/api";
 import type { SlotPosition } from "../../../convex/lineup/pitch";
-import { placeOf } from "../../../convex/playerCard/positionRank";
+import { placeOf } from "../../../convex/playerCard/cardPoints";
 import { POSITIONS, type Position } from "../../../convex/positions/positionTables";
 import { CHELSEA, insertPlayers } from "../../support/convex/footballRows.harness";
 import { actingAs, OUTSIDER } from "../../support/convex/leagues.harness";
