@@ -6,9 +6,9 @@ import { scoreMatch } from "../../../convex/scoring/scoring";
 import { PATCH_NOTICE_DAYS, siteScoringRefusals } from "../../../convex/scoring/siteScoring";
 import { versionName } from "../../../convex/scoring/siteVersions";
 import { refusals } from "../../../convex/shared/leagueAccess";
-import { HOUR_MS, seasonStartYear } from "../../../convex/shared/time";
+import { HOUR_MS, MINUTE_MS, seasonStartYear } from "../../../convex/shared/time";
 import { SEASON_GAMEWEEKS } from "../../../convex/gameweeks/usedGameweeks";
-import { changeRules, holdGameweeks, rulesInGameweek, TOTAL_POINTS } from "../../support/convex/leagueRules.harness";
+import { changeRules, holdGameweeks, rulesInGameweek, rulesWith, TOTAL_POINTS } from "../../support/convex/leagueRules.harness";
 import { expectRefused, pendingJobs } from "../../support/convex/test.harness";
 import { ADMIN, addManagers, adminCreatesLeague, COMMISSIONER, eventsIn, MANAGERS } from "../../support/convex/leagues.harness";
 import { centreOf } from "../../support/convex/scoring.example";
@@ -25,6 +25,7 @@ import {
   NOTICE,
   patch,
   saveDraftAs,
+  siteDeadlineOf,
   siteRevision,
   t,
   TODAY,
@@ -138,10 +139,27 @@ describe("announcing a patch", () => {
     ]);
   });
 
-  test("a deadline at a gameweek's first kickoff reaches that gameweek", async () => {
+  test("#902 Done: a patch at a gameweek's site deadline, 15 minutes before its first kickoff, reaches that gameweek (S14.1)", async () => {
     await holdGameweeks(t, { next: 9 });
 
-    expect(await patch(EDITED, kickoffOf(10))).toMatchObject({ fromGameweek: 10 });
+    expect(await patch(EDITED, siteDeadlineOf(10))).toMatchObject({ fromGameweek: 10 });
+    expect(await inGameweek(10)).toEqual(EDITED);
+  });
+
+  test("#902 Done: a patch after a gameweek's site deadline, though before its first kickoff, waits for the next (S14.1)", async () => {
+    await holdGameweeks(t, { next: 9 });
+
+    expect(await patch(EDITED, siteDeadlineOf(10) + MINUTE_MS)).toMatchObject({ fromGameweek: 11 });
+    expect(await inGameweek(10)).toEqual(FIRST_SCORING);
+    expect(await inGameweek(11)).toEqual(EDITED);
+  });
+
+  test("#902 Done: one site deadline, whatever a league's: a patch in by it reaches the gameweek in a league that locks earlier too (S14.18)", async () => {
+    await holdGameweeks(t, { next: 9 });
+    const leagueId = await adminCreatesLeague(t, 4, "Early");
+    await changeRules(t, leagueId, rulesWith({ deadline: { minutesBeforeFirstKickoff: 90 } }));
+
+    expect(await patch(EDITED, kickoffOf(10) - 60 * MINUTE_MS)).toMatchObject({ fromGameweek: 10 });
     expect(await inGameweek(10)).toEqual(EDITED);
   });
 

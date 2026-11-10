@@ -91,6 +91,9 @@ Feature 14 of [SPEC.md](../SPEC.md). Only Craig's answers, from `/grill scoring 
 - A version takes effect at the gameweek's deadline, where the league's gameweek begins (`spec/05`),
   not at its first kickoff: "the deadline but you can't score until first match anyways?" (Craig,
   7 Nov 2026, on #902). `S14.1`
+- That deadline is one for the whole site: the default deadline, 15 minutes before the gameweek's
+  first kickoff, whatever deadline a league sets, so every league scores a gameweek under the same
+  version: "one site deadline" (Craig, 10 Nov 2026, on #902). `S14.18`
 - Gameweeks already played keep the version in force in them, and a re-score never applies a later
   patch: past gameweeks are "locked in as a relic" (25 Oct 2026).
 - When the first kickoff of a waiting patch's gameweek moves later, the patch's start moves with

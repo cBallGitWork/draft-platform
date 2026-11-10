@@ -8,7 +8,7 @@ import type { MutationCtx } from "../../../convex/_generated/server";
 import type { StoredScoringSet } from "../../../convex/scoring/scoringSetShape";
 import { FIRST_SCORING } from "../../../convex/scoring/firstScoring";
 import { PATCH_NOTICE_DAYS } from "../../../convex/scoring/siteScoring";
-import { siteScoringInGameweek } from "../../../convex/scoring/siteVersions";
+import { siteDeadline, siteScoringInGameweek } from "../../../convex/scoring/siteVersions";
 import { DAY_MS, WEEK_MS } from "../../../convex/shared/time";
 import { KICKS_OFF_IN } from "./leagueRules.harness";
 import { ADMIN, actingAs, type TestConvex } from "./leagues.harness";
@@ -73,6 +73,8 @@ export const EDITED_AGAIN: StoredScoringSet = {
 
 /** When holdGameweeks' gameweek kicks off, held from TODAY: 9 KICKS_OFF_IN later, each a week apart. */
 export const kickoffOf = (gameweek: number) => TODAY + KICKS_OFF_IN + (gameweek - 9) * WEEK_MS;
+/** The site's deadline for that gameweek, which a version must be in by to reach it (#902). */
+export const siteDeadlineOf = (gameweek: number) => siteDeadline(kickoffOf(gameweek));
 
 /** Writes a version of the site's scoring straight in, announced and in force from `at`, and
  *  returns its id. `scoring` is held as given: a caller that changes it later passes a copy. */
