@@ -1,4 +1,4 @@
-// The dashboard's Availability tab (#1209; spec/06 Availability; the approved auto-team picture):
+// The dashboard's Availability tab (#1209; spec/06 Availability, S06.5; the approved auto-team picture):
 // reached from the dashboard's tabs by the admin alone; every player set by hand over the feed; the
 // picked one's panel sets his availability, or gives him back to the feed.
 

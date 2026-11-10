@@ -28,8 +28,8 @@ import {
 } from "./words";
 
 const CHOICES = [FEED_CHOICE, "out", "doubtful", "available"] as const;
-type Column = keyof typeof availabilityColumns;
-const LEFT = (_column: Column) => "px-2 text-left";
+/** Every column is words, so every head sits on the left. */
+const LEFT = () => "px-2 text-left";
 
 /** Out and doubtful in the event colour, available as plain text (the approved picture). */
 const availabilityClass = (availability: Availability) => (availability === "available" ? "" : "text-event");
