@@ -115,8 +115,9 @@ const playersList = v.object({
 export type PlayersList = Infer<typeof playersList>;
 
 /** Every club now, and the players the filters keep in the sort's order (`listOf`), each with his
- *  figures over `period` (the season when left out) and his total there of `stat` when one is shown (a catalogue stat's key, an own stat's of the site's
- *  latest set, or null), and that set's own stats. Only the chosen club's players are read. Anyone
+ *  figures over `period` (the season when left out) and his total there of `stat` when one is
+ *  shown (a catalogue stat's key, an own stat's of the site's latest set, or null), and that set's
+ *  own stats. Only the chosen club's players are read. Anyone
  *  not in the league is refused, as is a stat neither holds, or a sort by the stat with none shown. */
 export const list = query({
   args: { leagueId: v.id("leagues"), filters, sort, stat: v.union(v.string(), v.null()), period: v.optional(period) },

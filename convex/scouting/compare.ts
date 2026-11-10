@@ -48,7 +48,7 @@ export type Comparison = Infer<typeof comparison>;
 export const players = query({
   args: { leagueId: v.id("leagues"), codes: v.array(v.number()), stat: v.union(v.string(), v.null()), period: v.optional(period) },
   returns: comparison,
-  handler: async (ctx, { leagueId, codes, stat, period }): Promise<Comparison> => {
+  handler: async (ctx, { leagueId, codes, stat, period = "season" }): Promise<Comparison> => {
     await memberOf(ctx, leagueId);
     if (codes.length !== COMPARED_PLAYERS || new Set(codes).size !== COMPARED_PLAYERS) {
       throw new Error(`Compare ${COMPARED_PLAYERS} different players, not ${codes.join(", ")}`);
@@ -56,7 +56,7 @@ export const players = query({
     const positionsOfNow = await positionsNow(ctx, leagueId);
     const { pointsOf: seasonPointsOf } = await shownSeasonPoints(ctx, leagueId, codes);
     const ownerOfCode = await ownerOf(ctx, leagueId);
-    const { weighed, ranked } = await weigher(ctx, leagueId, stat, period ?? "season");
+    const { weighed, ranked } = await weigher(ctx, leagueId, stat, period);
     const { area } = await weighed(codes[0]);
     return Promise.all(
       codes.map(async (code) => {
