@@ -10,7 +10,7 @@ import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
 import type { ListedPlayer } from "../../../convex/scouting/playersList";
 import { NO_FIGURES } from "../../../convex/scouting/playersOrder";
-import { SCOUTING_PATH } from "../../../src/frame/menu";
+import { SCOUTING_PATH, TRADES_NEW_PATH } from "../../../src/frame/menu";
 import { LEAGUES_PATH } from "../../../src/leagues/paths";
 import { playerCardPath } from "../../../src/playerCard/paths";
 import type { PlayerCard } from "../../../src/playerCard/seam";
@@ -36,8 +36,9 @@ import {
   portraitLabel,
   ROLE_FIT_TITLE,
   roleFitLabel,
+  offerTradeWords,
+  rankLabel,
   SEASON_TITLE,
-  tradeNotBuiltLabel,
 } from "../../../src/playerCard/words";
 import { freeScoutsWords, sendScoutWords } from "../../../src/scouting/scouts/words";
 import { addToShortlistWords } from "../../../src/scouting/shortlist/words";
@@ -45,7 +46,7 @@ import { squadsPath } from "../../../src/squads/paths";
 import { crestUrl } from "../../../src/ui/ClubName";
 import { difficultyNotRatedWords, gameweekShort } from "../../../src/shared/words";
 import { ARSENAL, COVENTRY } from "../../support/convex/footballRows.harness";
-import { HELD, NOT_ARRIVED, openCard, PRICED, RICE, SAKA } from "../../support/src/playerCardScreen.harness";
+import { HELD, NOT_ARRIVED, openCard, PRICED, RICE, SAKA, SAKA_POTATOES } from "../../support/src/playerCardScreen.harness";
 import { commissioned, league, manager, managerIn, miniBeta, openApp } from "../../support/src/shell.harness";
 import { squadWithWarnings } from "../../support/src/squads.harness";
 
@@ -188,18 +189,42 @@ describe("the card", () => {
 });
 
 describe("the card's head (#1027)", () => {
-  it("another team's player offers a trade as a placeholder until trades are built, never a dead button", async () => {
-    openCard();
-    const head = await headOf();
-    expect(head.getByRole("img", { name: tradeNotBuiltLabel })).toBeTruthy();
-    expect(head.queryByRole("button", { name: /trade/i })).toBeNull();
+  it("another team's player's Offer a trade opens New offer with his owner chosen and him asked for (Craig, 9 Nov 2026)", async () => {
+    const app = openCard();
+    await userEvent.click((await headOf()).getByRole("link", { name: offerTradeWords }));
+    expect(app.path()).toBe(TRADES_NEW_PATH);
+    expect(Object.fromEntries(new URLSearchParams(app.search()))).toEqual({ team: SAKA_POTATOES, player: String(SAKA.code) });
   });
 
   it("a free agent offers Pick up in place of a trade", async () => {
     openCard(RICE, { ...HELD, actions: new Map([[RICE.code, { kind: "pickUp", squad: [] }]]) });
     const head = await headOf(RICE);
     expect(head.getAllByRole("button").map((button) => button.textContent)).toEqual([backWords, addToShortlistWords, sendScoutWords, pickUpWords]);
-    expect(head.queryByRole("img", { name: tradeNotBuiltLabel })).toBeNull();
+    expect(head.queryByRole("link", { name: offerTradeWords })).toBeNull();
+  });
+
+  it("his rank at the position the switch is on: among every player holding it, ties sharing a place (Craig, 9 Nov 2026)", async () => {
+    const app = openCard(SAKA, {
+      ...HELD,
+      ranks: new Map([
+        [`${SAKA.code} CAM`, { place: 4, of: 38 }],
+        [`${SAKA.code} W`, { place: null, of: 52 }],
+      ]),
+    });
+    const head = await headOf();
+    expect(head.getByText(rankLabel("CAM")).nextElementSibling!.textContent).toBe("4th of 38");
+    expect(app.playerCard.usePositionRank.mock.lastCall).toEqual([league.leagueId, SAKA.code, "CAM"]);
+
+    await userEvent.click(within(screen.getByRole("region", { name: SEASON_TITLE })).getByRole("radio", { name: "W" }));
+    expect(head.getByText(rankLabel("W")).nextElementSibling!.textContent).toBe(noFigureWords);
+  });
+
+  it("a player with no priced position has no rank, and none is asked for", async () => {
+    const support = { ...SAKA, positions: ["SS" as const], pricedAt: [] };
+    const app = openCard(support, { cards: [support] });
+    const head = await headOf();
+    expect(head.getByText(rankLabel(null)).nextElementSibling!.textContent).toBe(noFigureWords);
+    expect(app.playerCard.usePositionRank.mock.lastCall![2]).toBeNull();
   });
 
   it("the manager's own player offers Drop alone", async () => {

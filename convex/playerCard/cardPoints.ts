@@ -126,3 +126,12 @@ function slotsFor(positions: readonly Position[]): Cell[] {
   const own = (cell: Cell) => (positions.includes(positionOfSlot(cell)) ? 0 : 1);
   return cells.toSorted((one, other) => own(one) - own(other));
 }
+
+/** His place among these players' season points, for the card's rank at a position
+ *  (positionRank.ts; #1027): one more than how many have more, so ties share the higher place. Null
+ *  when he isn't among them or has no points. */
+export function placeOf(players: readonly { code: number; points: number | null }[], playerCode: number): number | null {
+  const his = players.find(({ code }) => code === playerCode)?.points ?? null;
+  if (his === null) return null;
+  return 1 + players.filter(({ points }) => points !== null && points > his).length;
+}
