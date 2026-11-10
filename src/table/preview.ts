@@ -28,6 +28,7 @@ const scores = new Map(
 );
 /** How the preview league is scored: My team's preview shows the same scores. */
 export const previewScored = { ...previewSeason, scores, provisional: previewTeams } satisfies Drawn;
-const table = leagueTableOf(previewTeams, previewScored);
+/** Team 2, never saving a lineup, is on the auto team, so the table shows its chip. */
+const table = leagueTableOf(previewTeams, { ...previewScored, autoTeams: ["Team 2"] });
 
 export const previewTable: TableSeam = { useLeagueTable: () => table };

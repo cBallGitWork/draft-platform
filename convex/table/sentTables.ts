@@ -46,6 +46,7 @@ export function leagueTableFrom({
   table,
   deadlineOf,
   named,
+  autoTeams,
 }: {
   format: LeagueRules["format"];
   schedule: readonly GameweekFixtures<TeamId>[];
@@ -54,6 +55,8 @@ export function leagueTableFrom({
   table: readonly TableRow<TeamId>[];
   deadlineOf: DeadlineOf;
   named: (teamId: TeamId) => string;
+  /** The teams on the auto team now, which the table marks (spec/09). */
+  autoTeams: ReadonlySet<TeamId>;
 }): LeagueTable {
   return {
     format,
@@ -63,7 +66,7 @@ export function leagueTableFrom({
       fixtures: scoredFixtures(drawn, results, named),
       byes: drawn.byes.map(named),
     })),
-    table: table.map(({ team, ...row }) => ({ teamId: team, teamName: named(team), ...row })),
+    table: table.map(({ team, ...row }) => ({ teamId: team, teamName: named(team), ...row, onAutoTeam: autoTeams.has(team) })),
     results: [...results].map(([gameweek, teamScores]) => ({
       gameweek,
       teams: [...teamScores].map(([teamId, result]) => ({ teamId, teamName: named(teamId), ...result })),

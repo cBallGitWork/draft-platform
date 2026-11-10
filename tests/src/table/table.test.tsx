@@ -39,7 +39,7 @@ import {
   tooFewTeamsWords,
   yourTeamWords,
 } from "../../../src/table/words";
-import { formLabel, liveFormLabel, noFigureWords } from "../../../src/shared/words";
+import { autoTeamWhatWords, autoTeamWords, formLabel, liveFormLabel, noFigureWords } from "../../../src/shared/words";
 
 const FIVE = ["Ann's", "Bob's", "Cat's", "Dan's", "Eve's"];
 const openTable = (table: TableData = {}) => openApp(TABLE_PATH, manager, { table });
@@ -151,6 +151,14 @@ describe("the table", () => {
       [`${yourTeamWords}: Team 1`, "true"],
       ["Team 2", null],
     ]);
+  });
+
+  it("marks a team on the auto team with its chip after the name, its hover saying what it does (spec/09)", async () => {
+    openTable({ leagueTable: leagueTableOf(["Ann's", "Bob's"], { autoTeams: ["Bob's"] }) });
+    const [ann, bob] = (await screen.findAllByRole("row")).slice(1).map((row) => within(row).getByRole("rowheader"));
+    expect(within(ann).queryByText(autoTeamWords)).toBeNull();
+    expect(bob.textContent).toBe(`Bob's${autoTeamWords}`);
+    expect(within(bob).getByText(autoTeamWords).getAttribute("title")).toBe(autoTeamWhatWords);
   });
 
   it("shows each team's form as chips, and the gameweek the table counts up to", async () => {

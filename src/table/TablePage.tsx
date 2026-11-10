@@ -2,6 +2,7 @@ import { useState } from "react";
 import type { LeagueSummary } from "../../convex/leagues/myLeagues";
 import { FormChips } from "../myTeam/header/FormChips";
 import { standingOf } from "../myTeam/header/teamStanding";
+import { AutoTeamChip } from "../ui/AutoTeamChip";
 import { cellClassOf, ColumnHeads } from "../ui/ColumnHeads";
 import { Loading, PAGE_STACK, PageSection, Panel, PANEL_COLUMNS, PanelNote } from "../ui/Panel";
 import { PlateTabs } from "../ui/PlateTabs";
@@ -124,7 +125,10 @@ function TableCell({ column, row, position, mine, leagueTable }: { column: Colum
       return (
         <th scope="row" className={`${className} text-lead font-semibold`}>
           {mine && <span className="sr-only">{yourTeamWords}: </span>}
-          {row.teamName}
+          <span className="flex items-center gap-2">
+            {row.teamName}
+            {row.onAutoTeam && <AutoTeamChip />}
+          </span>
         </th>
       );
     case "difference":

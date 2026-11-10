@@ -171,3 +171,9 @@ export const findLabel = "Name";
 export const searchingWords = "Searching…";
 export const noneFoundWords = "No player of that name in the Premier League.";
 export const foundListLabel = "Players found";
+
+/** A team on the auto team (spec/09, The auto team): its chip on the table and the matchup, and
+ *  the switch's name on My team and Squads. */
+export const autoTeamWords = "Auto team";
+/** What the auto team does (spec/09), as its chip's hover and My team's switch say it. */
+export const autoTeamWhatWords = "Keeps your last lineup, swapping a starter who is out for the first bench player who fits. No claims, drops or trades.";

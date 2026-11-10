@@ -27,6 +27,8 @@ export type Drawn = Partial<DrawRules> & {
   /** The teams whose scores are still provisional. */
   provisional?: readonly string[];
   unscored?: LeagueTable["unscored"];
+  /** The teams on the auto team: none by default. */
+  autoTeams?: readonly string[];
 };
 
 /** A team's id here is its name behind this, so its name reads back from it. */
@@ -59,7 +61,7 @@ export function leagueTableOf(teamNames: string[], drawn: Drawn = {}): LeagueTab
   const inputs = inputsOf(teamNames, drawn);
   const { format, teamIds, schedule, results } = inputs;
   const table = tableOf(format, teamIds, schedule, pointsOf(results), drawn.tieBreaks ?? FIRST_RULES.tieBreaks);
-  return leagueTableFrom({ ...inputs, table });
+  return leagueTableFrom({ ...inputs, table, autoTeams: new Set((drawn.autoTeams ?? []).map(idOf)) });
 }
 
 /** My team's fixtures for `teamName`, one of `teamNames`, in the same draw and scores as `leagueTableOf`'s. */
