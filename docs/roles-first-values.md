@@ -146,6 +146,12 @@ were fitted so that a whole XI, in a shape the instruction allows, nets close to
 it pays when it suits that week's fixtures, and none is a free upgrade. "XI avg" is over 1,500
 random XIs in the shape shown, with the best and worst tenth of XIs after it.
 
+Shoot on sight and Press high were redrawn around what Sportmonks sends (spec/05 S05.37, 10 Nov
+2026) and are not fitted yet: they are refitted, and the code and its tests follow the new wording,
+in the build that moves team instructions onto Sportmonks' stats. Hold a high line is dropped from
+the table until Sportmonks sends offsides won. The figures in the notes below are from the
+5 Nov fit of the instructions that remain.
+
 | instruction | first values | shape | XI avg (best / worst 10%) | suits clubs |
 |---|---|---|---|---|
 | Play out from the back | GK/DEF +1 per 30 accurate passes; errors leading to a shot or goal −3 each | 4-4-2 | +0.21 (+4 / -4) | Manchester City, Nottingham Forest, Fulham |
