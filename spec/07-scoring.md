@@ -44,7 +44,9 @@ approved its rows (6 Nov 2026, #454).
   blocked or off the woodwork and scored from the rebound, a penalty or free kick won and scored
   directly (not when its winner takes it), and an own goal forced. Last season these extras were
   252 of FPL's 942 Premier League assists, "It's 30%" (Craig, 10 Nov 2026). The commentary's
-  assist line and the match page's assist mark follow the same rule (Craig, 10 Nov 2026). `S07.11`
+  assist line and the match page's assist mark follow the same rule (Craig, 10 Nov 2026). The
+  extras we count are three: "I can settle on shot rebound, foul drawn, shot or cross before OG"
+  (Craig, 10 Nov 2026). `S07.11`
 - Sportmonks sends the last pass and penalties won, but not the rebound, free-kick or own-goal
   kinds, and won't add them: "They won't do that" (Craig, 10 Nov 2026). So every competition counts
   the same: the last pass and penalties won, from Sportmonks, while Craig asks Opta what its
