@@ -6,7 +6,7 @@ import { menuWords } from "../frame/words";
 import { fewestTeamsWords } from "../shared/words";
 import type { TeamTransactions } from "./seam";
 
-export { figureWords, liveWords, noFigureWords, noTeamWords, shortThenLongName, versusWords, whenWords } from "../shared/words";
+export { figureWords, liveWords, noFigureWords, noTeamWords, placeWords, shortThenLongName, versusWords, whenWords } from "../shared/words";
 
 // What the Squad and Tactics tabs' tables and panels both say (#1042).
 
@@ -28,12 +28,25 @@ export const nextMatchesLong = `His club's next ${countInWords(NEXT_MATCHES_SHOW
 export const FIXTURES_TITLE = menuWords.fixtures;
 export const fixturesLoadingWords = "Loading your fixtures…";
 export const fixturesTableLabel = (teamName: string) => `${teamName}'s fixtures`;
+export const resultsTableLabel = (teamName: string) => `${teamName}'s results`;
 export const fixtureColumns = {
   gameweek: { short: "GW", long: "Gameweek" },
-  deadline: { short: "Deadline", long: "The league's deadline" },
+  date: { short: "Date", long: "The day of the league's deadline" },
   opponent: { short: "Opponent", long: "Opponent" },
+  now: { short: "Now", long: "The opponent's place in the table now" },
+  next: { short: "", long: "The next game" },
   result: { short: "Result", long: "Your points, then the opponent's: the matchup" },
 } as const;
+/** The panels' titles and what their plates say beside them (the approved picture). */
+export const RESULTS_TITLE = "Results";
+export const toPlayWords = (count: number) => `${count} to play`;
+export const nextGameWords = "Next";
+export const nextGameTitle = (gameweek: number, opponent: string) => `GW${gameweek} v ${opponent}`;
+export const deadlineWords = "Deadline";
+export const theirFormWords = "Their form";
+export const matchupMoreWords = "Matchup";
+export const SEASON_TITLE = "Season";
+export const tableMoreWords = "Table";
 export const byeWords = "Bye";
 export { leagueAverageWords, provisionalWords, scoreWords, unscoredWords } from "../table/words";
 export const totalPointsWords = "The league plays total points, so your team has no head-to-head fixtures.";

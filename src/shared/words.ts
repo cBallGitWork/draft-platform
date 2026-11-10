@@ -82,6 +82,10 @@ export const whenWords = (at: number) => whenFormat.format(at);
 const dayFormat = new Intl.DateTimeFormat(LOCALE, { day: "numeric", month: "short" });
 /** A day in the viewer's own zone, e.g. "20 Oct": when a letter was filed, or a report written. */
 export const dayWords = (at: number) => dayFormat.format(at);
+const dateFormat = new Intl.DateTimeFormat(LOCALE, { weekday: "short", day: "numeric", month: "short" });
+/** A day with its weekday, in the viewer's own zone, e.g. "Tue 27 Oct": when an invite ends, the
+ *  day of a league's game. */
+export const dateWords = (at: number) => dateFormat.format(at);
 const timeOfDayFormat = new Intl.DateTimeFormat(LOCALE, { hour: "2-digit", minute: "2-digit" });
 /** The time of day alone, in the viewer's own zone: "15:00", a kickoff or when a letter was filed. */
 export const timeOfDayWords = (at: number) => timeOfDayFormat.format(at);

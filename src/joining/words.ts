@@ -5,8 +5,8 @@
 import type { EndedInvite } from "../../convex/joining/endedInvite";
 import type { Delivery } from "../../convex/joining/joining";
 import { INVITE_DAYS, ROWS_SHOWN, aNewTeamWords } from "../../convex/joining/joiningShared";
-import { LOCALE } from "../../convex/shared/moments";
 import { unsentLinkWords } from "../leagues/words";
+import { dateWords } from "../shared/words";
 
 /** The commissioner's page: its title, and the link to it from their leagues. */
 export const INVITES_TITLE = "Invites and join requests";
@@ -18,9 +18,8 @@ export const forTeamWords = (teamName: string | null) => `For ${teamName ?? aNew
 
 export const inviteHint = `No approval needed. An invite lasts ${INVITE_DAYS} days.`;
 
-const dayFormat = new Intl.DateTimeFormat(LOCALE, { weekday: "short", day: "numeric", month: "short" });
 /** A day, as the page shows when an invite ends or a request was made: "Tue 27 Oct". */
-export const dayWords = (time: number) => dayFormat.format(time);
+export const dayWords = dateWords;
 
 /** Why an invite waits for tomorrow (spec/13). */
 const dayIsSpent = "today's emails have all gone";

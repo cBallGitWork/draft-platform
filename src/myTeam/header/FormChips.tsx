@@ -16,14 +16,18 @@ export function FormChips({ form, live = false }: { form: readonly Result[]; liv
   return (
     <span role="img" aria-label={live ? liveFormLabel(form) : formLabel(form)} className="inline-flex gap-1">
       {form.map((result, index) => (
-        <abbr
-          key={index}
-          title={lastLive(index) ? liveResultWords(result) : resultWords[result].long}
-          className={`${CHIP} ${lastLive(index) ? LIVE : LOCKED}`}
-        >
-          {resultWords[result].short}
-        </abbr>
+        <ResultChip key={index} result={result} live={lastLive(index)} />
       ))}
     </span>
+  );
+}
+
+/** One result's chip, W, D or L, named in full on its hover; `live` draws it as an outline while
+ *  its gameweek may still move. Form's own, and a result's on My team's Fixtures tab. */
+export function ResultChip({ result, live = false }: { result: Result; live?: boolean }) {
+  return (
+    <abbr title={live ? liveResultWords(result) : resultWords[result].long} className={`${CHIP} ${live ? LIVE : LOCKED}`}>
+      {resultWords[result].short}
+    </abbr>
   );
 }
