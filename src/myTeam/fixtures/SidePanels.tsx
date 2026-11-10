@@ -10,11 +10,12 @@ import { cellClassOf, ColumnHeads } from "../../ui/ColumnHeads";
 import { Panel } from "../../ui/Panel";
 import { FormChips } from "../header/FormChips";
 import { standingOf } from "../header/teamStanding";
-import { againstWords, countdownWords, pointsShort } from "../header/words";
+import { countdownWords, pointsShort } from "../header/words";
 import type { Game } from "../FixturesPage";
 import {
   deadlineWords,
   figureWords,
+  leagueAverageWords,
   matchupMoreWords,
   nextGameTitle,
   noFigureWords,
@@ -41,7 +42,7 @@ function MoreLink({ to, search, children }: { to: string; search?: Record<string
  *  results, and the way to the matchup. A bye has none. */
 export function NextGamePanel({ teamId, game, table, now }: { teamId: Id<"teams">; game: Game; table: LeagueTable | undefined; now: number }) {
   if (game.against.kind === "bye") return null;
-  const name = againstWords(game.against.kind === "team" ? { kind: "team", team: game.against.teamName } : game.against);
+  const name = game.against.kind === "team" ? game.against.teamName : leagueAverageWords;
   const standing = table !== undefined && game.against.kind === "team" ? standingOf(table, game.against.teamName) : null;
   return (
     <Panel title={nextGameTitle(game.gameweek, name)}>

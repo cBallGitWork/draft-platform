@@ -37,7 +37,7 @@ import { LEAGUES_TITLE, NEW_LEAGUE_TITLE } from "../../../src/leagues/words";
 import { MAIL_TITLE } from "../../../src/mail/words";
 import { MATCHUP_TITLE } from "../../../src/matchup/words";
 import { otherTeamPath } from "../../../src/myTeam/paths";
-import { FIXTURES_TITLE, TRANSACTIONS_TITLE } from "../../../src/myTeam/words";
+import { TRANSACTIONS_TITLE } from "../../../src/myTeam/words";
 import { PATCH_NOTES_PATH } from "../../../src/patches/paths";
 import { PATCH_NOTES_TITLE } from "../../../src/patches/words";
 import { playerCardPath } from "../../../src/playerCard/paths";
@@ -74,10 +74,11 @@ export const BUILT_SCREENS: readonly BuiltScreen[] = [
   ["manager", `${RECAP_PATH}?gameweek=${PREVIEW_RECAP_GAMEWEEK}`, recapTitle(PREVIEW_RECAP_GAMEWEEK)],
   // The draft room's title carries the draft's state: the preview's is live (src/draft/preview.ts).
   ["manager", DRAFT_PATH, `${DRAFT_TITLE} ${stateWords.live}`],
-  // Tactics and Squad are titled with the manager's team in the league he's in (the header band).
+  // Tactics, Squad and Fixtures are titled with the manager's team in the league he's in (the
+  // header band).
   ["manager", MY_TEAM_PATH, String(proLeague.teamName)],
   ["manager", MY_TEAM_SQUAD_PATH, String(proLeague.teamName)],
-  ["manager", MY_TEAM_FIXTURES_PATH, FIXTURES_TITLE],
+  ["manager", MY_TEAM_FIXTURES_PATH, String(proLeague.teamName)],
   ["manager", MY_TEAM_TRANSACTIONS_PATH, TRANSACTIONS_TITLE],
   ["manager", MATCHUP_PATH, MATCHUP_TITLE],
   ["manager", TABLE_PATH, TABLE_PAGE_TITLE],
