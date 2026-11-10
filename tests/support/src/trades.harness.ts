@@ -11,6 +11,7 @@ import type {
   TradeChanges,
   TradesSeam,
   TradesView,
+  TradeToReview,
 } from "../../../src/trades/seam";
 
 export const ARSENAL = { code: 3, name: "Arsenal", shortName: "ARS" };
@@ -106,16 +107,33 @@ export const closedOffer = (rest: Partial<ClosedOffer> = {}): ClosedOffer => ({
   ...rest,
 });
 
-/** What the fake server holds: the Trades view, or nothing yet while it loads; and the refusal each
- *  change answers with (null: made). */
+/** A trade between Team 3 and Team 4 in review, Rice for James, for the manager to block, unless
+ *  `rest` says. */
+export const tradeToReview = (rest: Partial<TradeToReview> = {}): TradeToReview => ({
+  offerId: "review-1" as Id<"tradeOffers">,
+  fromTeamName: "Team 3",
+  toTeamName: "Team 4",
+  gives: [RICE],
+  gets: [JAMES],
+  picks: null,
+  note: null,
+  reviewEndsAt: Date.parse("2026-11-11T09:40:00Z"),
+  yours: "block",
+  ...rest,
+});
+
+/** What the fake server holds: the Trades view and the trades the caller reviews, or nothing yet
+ *  while they load; and the refusal each change answers with (null: made). */
 export type TradesData = {
   view?: TradesView;
+  reviews?: TradeToReview[];
   loading?: boolean;
   refusal?: string | null;
 };
 
 export function fakeTrades({
   view = quietTrades,
+  reviews = [],
   loading = false,
   refusal = null,
 }: TradesData = {}) {
@@ -125,11 +143,17 @@ export function fakeTrades({
     accept: vi.fn<TradeChanges["accept"]>(async () => refusal),
     reject: vi.fn<TradeChanges["reject"]>(async () => refusal),
     withdraw: vi.fn<TradeChanges["withdraw"]>(async () => refusal),
+    block: vi.fn<TradeChanges["block"]>(async () => refusal),
+    against: vi.fn<TradeChanges["against"]>(async () => refusal),
+    takeBack: vi.fn<TradeChanges["takeBack"]>(async () => refusal),
   };
   return {
     ...changes,
     useTrades: vi.fn<TradesSeam["useTrades"]>(() =>
       loading ? undefined : view,
+    ),
+    useReviews: vi.fn<TradesSeam["useReviews"]>(() =>
+      loading ? undefined : reviews,
     ),
     useTradeChanges: vi.fn<TradesSeam["useTradeChanges"]>(() => changes),
   };

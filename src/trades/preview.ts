@@ -1,7 +1,8 @@
 // Trades in the preview (src/app/preview.ts), as the approved pictures have them
 // (docs/design/approved/trades): an offer to you, one from you, one in review under a commissioner
 // veto, closed offers below, and the squads to make one from, a player held in the trade under
-// review. Made up.
+// review; and a trade between two other teams for the manager to review, which the pictures don't
+// draw (Craig's words, 10 Nov 2026, on #383). Made up.
 
 import type { Id } from "../../convex/_generated/dataModel";
 import type { Position } from "../../convex/positions/positionTables";
@@ -15,6 +16,7 @@ import type {
   TradedPlayer,
   TradesSeam,
   TradesView,
+  TradeToReview,
 } from "./seam";
 
 const CLUBS = {
@@ -146,13 +148,32 @@ const view: TradesView = {
   ],
 };
 
+/** A trade between two other teams, in review under a commissioner veto: the manager's to block. */
+const toReview: TradeToReview[] = [
+  {
+    offerId: "preview-review-1" as Id<"tradeOffers">,
+    fromTeamName: "Rovers XI",
+    toTeamName: "Kroos Control",
+    gives: [player("Rice", "CDM", "ARS")],
+    gets: [player("Isak", "ST", "LIV")],
+    picks: null,
+    note: "Need a 9.",
+    reviewEndsAt: now + 15 * HOUR_MS,
+    yours: "block",
+  },
+];
+
 export const previewTrades: TradesSeam = {
   useTrades: () => view,
+  useReviews: () => toReview,
   useTradeChanges: () => ({
     offer: async () => null,
     counter: async () => null,
     accept: async () => null,
     reject: async () => null,
     withdraw: async () => null,
+    block: async () => null,
+    against: async () => null,
+    takeBack: async () => null,
   }),
 };

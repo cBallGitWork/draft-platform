@@ -152,6 +152,29 @@ export const rejectQuestion = (teamName: string) =>
 export const rejectYesWords = "Reject it";
 export const rejectNoWords = "Keep it";
 
+// A trade the manager reviews (Craig, 10 Nov 2026): its To review group at the top of Offers, and
+// its panel with Block, Against or Take back. Only his own vote shows, never the count.
+export const toReviewWords = "To review";
+export const betweenWords = (fromTeamName: string, toTeamName: string) =>
+  `${fromTeamName} and ${toTeamName}`;
+export const teamGetsWords = (teamName: string) => `${teamName} get`;
+export const tradeBetweenTitle = (fromTeamName: string, toTeamName: string) =>
+  `The trade between ${fromTeamName} and ${toTeamName}`;
+/** How the trade is reviewed, from the reviewer's side. */
+export const yourReviewWords = {
+  block: "Your veto",
+  against: "League vote",
+  takeBack: "League vote",
+} as const;
+export const blockWords = "Block";
+export const blockQuestion = (fromTeamName: string, toTeamName: string) =>
+  `Block the trade between ${fromTeamName} and ${toTeamName}?`;
+export const blockYesWords = "Block it";
+export const blockNoWords = "Let it stand";
+export const againstWords = "Against";
+export const votedAgainstWords = "You voted against";
+export const takeBackWords = "Take back";
+
 // The New offer tab.
 export const YOUR_OFFER_TITLE = "Your offer";
 export const YOUR_COUNTER_TITLE = "Your counter";

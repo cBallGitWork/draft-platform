@@ -1,82 +1,133 @@
-import { Fragment, useState } from "react";
+import { useState } from "react";
 import type { Id } from "../../convex/_generated/dataModel";
 import type { LeagueSummary } from "../../convex/leagues/myLeagues";
-import { cellClassOf, ColumnHeads } from "../ui/ColumnHeads";
 import { Loading, Notice, PageSection, Panel, PanelNote } from "../ui/Panel";
 import { ClosedOffers } from "./ClosedOffers";
 import { OfferPanel } from "./OfferPanel";
-import { OFFER_GROUPS, sidesOf, type OfferSides } from "./offerSides";
-import type { ScreenOffer, TradesSeam, TradesView } from "./seam";
-import { TradedSide } from "./TradedPlayer";
+import { OFFER_GROUPS, sidesOf } from "./offerSides";
+import { OffersTable } from "./OffersTable";
+import { ReviewPanel } from "./ReviewPanel";
+import type {
+  TradeChanges,
+  TradesSeam,
+  TradesView,
+  TradeToReview,
+} from "./seam";
 import {
-  groupWords,
   noOffersWords,
   noTeamWords,
-  offersColumns,
-  offersTableLabel,
   OFFERS_TITLE,
   openCountWords,
-  reviewerWords,
   shutWords,
   TRADES_TITLE,
   tradesLoadingWords,
-  whenWords,
-  youWords,
 } from "./words";
 
-type Column = keyof typeof offersColumns;
-const COLUMNS = Object.keys(offersColumns) as Column[];
-const CELL = cellClassOf(true);
-type Row = { offer: ScreenOffer; sides: OfferSides };
-
-/** Trades' Offers tab (#383; docs/design/approved/trades): the manager's offers grouped To you,
- *  From you and In review, and the selected one's panel on the right. */
+/** Trades' Offers tab (#383; docs/design/approved/trades): the trades the manager reviews To
+ *  review at the top (Craig, 10 Nov 2026), then his offers grouped To you, From you and In review,
+ *  and the selected one's panel on the right. `asked` opens with that one selected, as a Mail
+ *  letter's link names it. A commissioner with no team sees only the trades he reviews. */
 export function OffersPage({
   league,
   seam,
+  asked,
 }: {
   league: LeagueSummary;
   seam: TradesSeam;
+  asked?: Id<"tradeOffers">;
 }) {
-  if (league.teamName === null) {
+  const Page = league.teamName === null ? ReviewsOnly : Offers;
+  return <Page leagueId={league.leagueId} seam={seam} asked={asked} />;
+}
+
+type PageProps = {
+  leagueId: Id<"leagues">;
+  seam: TradesSeam;
+  asked?: Id<"tradeOffers">;
+};
+
+function Offers({ leagueId, seam, asked }: PageProps) {
+  const view = seam.useTrades(leagueId);
+  const reviews = seam.useReviews(leagueId);
+  const changes = seam.useTradeChanges();
+  if (view === undefined || reviews === undefined) return <StillLoading />;
+  return (
+    <OffersBody
+      leagueId={leagueId}
+      view={view}
+      reviews={reviews}
+      changes={changes}
+      asked={asked}
+    />
+  );
+}
+
+/** A commissioner with no team of his own: the trades he reviews, if any. */
+function ReviewsOnly({ leagueId, seam, asked }: PageProps) {
+  const reviews = seam.useReviews(leagueId);
+  const changes = seam.useTradeChanges();
+  if (reviews === undefined) return <StillLoading />;
+  if (reviews.length === 0) {
     return (
       <PageSection title={TRADES_TITLE} className="max-w-4xl bg-panel">
         <PanelNote>{noTeamWords}</PanelNote>
       </PageSection>
     );
   }
-  return <Offers leagueId={league.leagueId} seam={seam} />;
+  return (
+    <OffersBody
+      leagueId={leagueId}
+      view={null}
+      reviews={reviews}
+      changes={changes}
+      asked={asked}
+    />
+  );
 }
 
-function Offers({
+function StillLoading() {
+  return (
+    <PageSection title={TRADES_TITLE} className="max-w-4xl bg-panel">
+      <Loading className="px-3 py-2">{tradesLoadingWords}</Loading>
+    </PageSection>
+  );
+}
+
+function OffersBody({
   leagueId,
-  seam,
+  view,
+  reviews,
+  changes,
+  asked,
 }: {
   leagueId: Id<"leagues">;
-  seam: TradesSeam;
+  /** The manager's own offers; null for a commissioner with no team. */
+  view: TradesView | null;
+  reviews: readonly TradeToReview[];
+  changes: TradeChanges;
+  asked?: Id<"tradeOffers">;
 }) {
-  const view = seam.useTrades(leagueId);
-  const changes = seam.useTradeChanges();
-  const [chosen, choose] = useState<Id<"tradeOffers"> | null>(null);
-  if (view === undefined) {
-    return (
-      <PageSection title={TRADES_TITLE} className="max-w-4xl bg-panel">
-        <Loading className="px-3 py-2">{tradesLoadingWords}</Loading>
-      </PageSection>
-    );
-  }
-  const rows = view.offers.map((offer) => ({
-    offer,
-    sides: sidesOf(offer, view.myTeamId),
-  }));
+  const [chosen, choose] = useState<Id<"tradeOffers"> | null>(asked ?? null);
+  const rows =
+    view === null
+      ? []
+      : view.offers.map((offer) => ({
+          offer,
+          sides: sidesOf(offer, view.myTeamId),
+        }));
   const ordered = OFFER_GROUPS.flatMap((group) =>
     rows.filter((row) => row.sides.group === group),
   );
+  const chosenReview = reviews.find((trade) => trade.offerId === chosen);
+  const chosenRow = ordered.find((row) => row.offer.offerId === chosen);
+  // Nothing chosen, or the chosen one has gone: the first in the table, To review first.
+  const review =
+    chosenReview ?? (chosenRow === undefined ? reviews[0] : undefined);
   const selected =
-    ordered.find((row) => row.offer.offerId === chosen) ?? ordered[0] ?? null;
+    review === undefined ? (chosenRow ?? ordered[0] ?? null) : null;
   return (
     <PageSection title={TRADES_TITLE} className="flex flex-col gap-2">
-      {view.shut !== null && <Notice>{shutWords[view.shut]}</Notice>}
+      {view?.shut != null && <Notice>{shutWords[view.shut]}</Notice>}
       <div className="grid grid-cols-1 items-start gap-2 lg:grid-cols-news">
         <div className="flex flex-col gap-2">
           <Panel
@@ -85,19 +136,30 @@ function Offers({
               <span className="text-soft">{openCountWords(rows.length)}</span>
             }
           >
-            {rows.length === 0 ? (
+            {rows.length === 0 && reviews.length === 0 ? (
               <PanelNote>{noOffersWords}</PanelNote>
             ) : (
               <OffersTable
+                reviews={reviews}
                 rows={ordered}
-                selected={selected?.offer.offerId ?? null}
+                selected={review?.offerId ?? selected?.offer.offerId ?? null}
                 select={choose}
               />
             )}
           </Panel>
-          <ClosedOffers closed={view.closed} myTeamId={view.myTeamId} />
+          {view !== null && (
+            <ClosedOffers closed={view.closed} myTeamId={view.myTeamId} />
+          )}
         </div>
-        {selected !== null && (
+        {review !== undefined && (
+          <ReviewPanel
+            key={review.offerId}
+            leagueId={leagueId}
+            trade={review}
+            changes={changes}
+          />
+        )}
+        {view !== null && selected !== null && (
           <OfferPanel
             key={selected.offer.offerId}
             leagueId={leagueId}
@@ -116,98 +178,3 @@ function Offers({
 
 /** The manager's own team: the read puts it first. */
 const myTeamOf = (view: TradesView) => view.teams[0];
-
-function OffersTable({
-  rows,
-  selected,
-  select,
-}: {
-  rows: readonly Row[];
-  selected: Id<"tradeOffers"> | null;
-  select: (offerId: Id<"tradeOffers">) => void;
-}) {
-  return (
-    <div className="overflow-x-auto">
-      <table aria-label={offersTableLabel} className="w-full border-collapse">
-        <ColumnHeads
-          columns={offersColumns}
-          shown={COLUMNS}
-          classOf={() => CELL}
-        />
-        <tbody>
-          {OFFER_GROUPS.map((group) => {
-            const inGroup = rows.filter((row) => row.sides.group === group);
-            if (inGroup.length === 0) return null;
-            return (
-              <Fragment key={group}>
-                <tr className="border-t border-panel-rule">
-                  <th
-                    scope="colgroup"
-                    colSpan={COLUMNS.length}
-                    className={`${CELL} h-row font-bold`}
-                  >
-                    {groupWords[group]}
-                  </th>
-                </tr>
-                {inGroup.map((row) => (
-                  <OfferRow
-                    key={row.offer.offerId}
-                    row={row}
-                    selected={row.offer.offerId === selected}
-                    select={select}
-                  />
-                ))}
-              </Fragment>
-            );
-          })}
-        </tbody>
-      </table>
-    </div>
-  );
-}
-
-function OfferRow({
-  row: { offer, sides },
-  selected,
-  select,
-}: {
-  row: Row;
-  selected: boolean;
-  select: (offerId: Id<"tradeOffers">) => void;
-}) {
-  const waitingOn =
-    sides.group === "toYou"
-      ? youWords
-      : sides.group === "fromYou"
-        ? sides.otherTeamName
-        : offer.reviewer === null
-          ? null
-          : reviewerWords[offer.reviewer];
-  const closes = offer.reviewEndsAt ?? offer.closes?.at ?? null;
-  return (
-    <tr
-      className={`h-row border-t border-panel-rule${selected ? " bg-name-plate shadow-current-edge" : ""}`}
-    >
-      <th scope="row" className={CELL}>
-        <button
-          type="button"
-          aria-current={selected ? "true" : undefined}
-          onClick={() => select(offer.offerId)}
-          className="min-h-tap min-w-tap font-semibold text-align-inherit lg:min-h-0 lg:min-w-0"
-        >
-          {sides.otherTeamName}
-        </button>
-      </th>
-      <td className={CELL}>
-        <TradedSide players={sides.youGet} pick={sides.pickYouGet} />
-      </td>
-      <td className={CELL}>
-        <TradedSide players={sides.youGive} pick={sides.pickYouGive} />
-      </td>
-      <td className={CELL}>{waitingOn}</td>
-      <td className={`${CELL} text-derived`}>
-        {closes === null ? null : whenWords(closes)}
-      </td>
-    </tr>
-  );
-}
