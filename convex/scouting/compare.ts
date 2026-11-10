@@ -8,6 +8,7 @@ import { ownerOf } from "../squads/squadPlace";
 import { MINUTES_STAT } from "../stats/matchRecords";
 import { COMPARED_PLAYERS } from "./comparedPlayers";
 import { per90Figure, weigher } from "./per90";
+import { period } from "./periods";
 import { per90FiguresIn, totalOf } from "./per90Figures";
 import { shownSeasonPoints } from "./shownSeasonPoints";
 
@@ -28,7 +29,7 @@ const comparedPlayer = v.object({
   /** His points under the site's scoring, as on the players list: last season's before the new
    *  season's first match (shownSeasonPoints.ts), or null ("—") while none is priced. */
   seasonPoints: v.union(v.number(), v.null()),
-  /** His minutes over the per-90 figures' period (per90.ts). */
+  /** His minutes over the period (period.ts), as his per-90 figures are. */
   minutes: v.number(),
   /** His per-90 figures (per90.ts) for the first player's area's stats and the list's stat, ranked
    *  against that area, so the two line up row by row; none while the first has no position. */
@@ -39,14 +40,15 @@ export type ComparedPlayer = Infer<typeof comparedPlayer>;
 const comparison = v.array(comparedPlayer);
 export type Comparison = Infer<typeof comparison>;
 
-/** The players with these codes, in that order, side by side, with their per-90 figures for the
- *  first's area and `stat` (the list's, or null). Anyone not in the league is refused, as is asking
+/** The players with these codes, in that order, side by side, with their minutes and per-90
+ *  figures over `period` (the list's, the season when left out) for the first's area and `stat`
+ *  (the list's, or null). Anyone not in the league is refused, as is asking
  *  for other than two players, the same one twice, one the football sync doesn't hold, or a stat
  *  neither the catalogue nor the site's set holds. */
 export const players = query({
-  args: { leagueId: v.id("leagues"), codes: v.array(v.number()), stat: v.union(v.string(), v.null()) },
+  args: { leagueId: v.id("leagues"), codes: v.array(v.number()), stat: v.union(v.string(), v.null()), period: v.optional(period) },
   returns: comparison,
-  handler: async (ctx, { leagueId, codes, stat }): Promise<Comparison> => {
+  handler: async (ctx, { leagueId, codes, stat, period = "season" }): Promise<Comparison> => {
     await memberOf(ctx, leagueId);
     if (codes.length !== COMPARED_PLAYERS || new Set(codes).size !== COMPARED_PLAYERS) {
       throw new Error(`Compare ${COMPARED_PLAYERS} different players, not ${codes.join(", ")}`);
@@ -54,7 +56,7 @@ export const players = query({
     const positionsOfNow = await positionsNow(ctx, leagueId);
     const { pointsOf: seasonPointsOf } = await shownSeasonPoints(ctx, leagueId, codes);
     const ownerOfCode = await ownerOf(ctx, leagueId);
-    const { weighed, ranked } = await weigher(ctx, leagueId, stat);
+    const { weighed, ranked } = await weigher(ctx, leagueId, stat, period);
     const { area } = await weighed(codes[0]);
     return Promise.all(
       codes.map(async (code) => {

@@ -90,11 +90,11 @@ describe("comparing two players", () => {
     const app = await openToCompare();
     await compare("Saka", "Palmer");
 
-    expect(app.scouting.useComparison.mock.lastCall!).toEqual([league.leagueId, [SAKA.code, PALMER.code], null]);
+    expect(app.scouting.useComparison.mock.lastCall!).toEqual([league.leagueId, [SAKA.code, PALMER.code], null, "season"]);
     expect(playerHeads()).toEqual(["Saka (Saka Potatoes)", "Palmer (Kroos Control)"]);
     expect(cellsOf(columns.roleFit.long)).toEqual([noFigureWords, noFigureWords]);
     expect(cellsOf(columns.seasonPoints.short)).toEqual([noFigureWords, noFigureWords]);
-    expect(cellsOf(panelMinutesWords)).toEqual(["720", "765"]);
+    expect(cellsOf(panelMinutesWords("season"))).toEqual(["720", "765"]);
     const rows = within(comparisonTable()).getAllByRole("rowheader").slice(3).map((head) => head.textContent);
     expect(rows).toEqual(per90Stats("attackingMidfield", null).map((stat) => PER90_STAT_NAMES[stat]));
     // Saka's 4 in 720 is 0.5 a match, below Palmer's 6 in 765, so half the ranked are at or below him.
@@ -103,7 +103,7 @@ describe("comparing two players", () => {
     expect(within(goalsRow).getAllByRole("img").map((bar) => bar.getAttribute("aria-label"))).toEqual(
       [50, 100].map((percentile) => percentileLabel(percentile, "attackingMidfield")),
     );
-    expect(within(panel()).getByText(compareNoteWords("attackingMidfield"))).toBeTruthy();
+    expect(within(panel()).getByText(compareNoteWords("attackingMidfield", "season"))).toBeTruthy();
   });
 
   it("a free agent is said to be one, and the manager's own player his", async () => {

@@ -9,7 +9,7 @@ import { useMinute } from "../shared/useMinute";
 import { OwnerName } from "../ui/OwnerName";
 import { Loading, Panel, PanelNote, Problem, Status } from "../ui/Panel";
 import { PercentileBar, per90StatName } from "./Per90Figures";
-import type { ComparedPlayer, Comparison, ScoutingSeam } from "./seam";
+import type { ComparedPlayer, Comparison, Period, ScoutingSeam } from "./seam";
 import {
   clearComparisonWords,
   columns,
@@ -39,6 +39,7 @@ export function ComparePanel({
   leagueId,
   comparison,
   pointsSeason,
+  period,
   stat,
   yours,
   ownTeamName,
@@ -48,6 +49,8 @@ export function ComparePanel({
   leagueId: Id<"leagues">;
   comparison: Comparison | undefined;
   pointsSeason: number | null;
+  /** The list's period, which the minutes and figures are over. */
+  period: Period;
   /** The list's stat, which joins the rows. */
   stat: CatalogueStat | null;
   /** Whether the second is the manager's own player at the first's position. */
@@ -68,7 +71,7 @@ export function ComparePanel({
         <Loading className="px-3 py-2">{comparingWords}</Loading>
       ) : (
         <>
-          <SideBySide comparison={comparison} pointsSeason={pointsSeason} stat={stat} ownTeamName={ownTeamName} />
+          <SideBySide comparison={comparison} pointsSeason={pointsSeason} period={period} stat={stat} ownTeamName={ownTeamName} />
           <TakeFirst leagueId={leagueId} first={comparison[0]} second={comparison[1]} seam={seam} />
         </>
       )}
@@ -93,11 +96,13 @@ function PointsCell({ points, pointsSeason }: { points: number | null; pointsSea
 function SideBySide({
   comparison,
   pointsSeason,
+  period,
   stat,
   ownTeamName,
 }: {
   comparison: Comparison;
   pointsSeason: number | null;
+  period: Period;
   stat: CatalogueStat | null;
   ownTeamName: string | null;
 }) {
@@ -148,7 +153,7 @@ function SideBySide({
         <tbody>
           {row(columns.roleFit.long, noRoleFitYetWords, (_player, at) => totalOnly(<span className="text-muted">{noFigureWords}</span>, at))}
           {row(pointsHead.short, pointsHead.long, (player, at) => totalOnly(<PointsCell points={player.seasonPoints} pointsSeason={pointsSeason} />, at))}
-          {row(panelMinutesWords, undefined, (player, at) => totalOnly(<span className="font-bold text-figure">{figureWords(player.minutes)}</span>, at))}
+          {row(panelMinutesWords(period), undefined, (player, at) => totalOnly(<span className="font-bold text-figure">{figureWords(player.minutes)}</span>, at))}
           {area !== null &&
             comparison[0].figures.map(({ stat: each }, index) =>
               row(nameOf(each), undefined, (player) => {
@@ -168,7 +173,7 @@ function SideBySide({
             )}
         </tbody>
       </table>
-      {area !== null && <PanelNote>{compareNoteWords(area)}</PanelNote>}
+      {area !== null && <PanelNote>{compareNoteWords(area, period)}</PanelNote>}
     </>
   );
 }

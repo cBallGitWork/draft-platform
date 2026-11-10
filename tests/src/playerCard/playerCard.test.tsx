@@ -55,7 +55,7 @@ import { squadWithWarnings } from "../../support/src/squads.harness";
 const headOf = async (card: PlayerCard = SAKA) => within(await screen.findByRole("region", { name: card.fullName }));
 
 /** His row on Scouting's list. */
-const listed = ({ code, name, fullName, club, positions, ownerTeamName }: PlayerCard): ListedPlayer => ({ code, name, fullName, club, positions, ownerTeamName, onWaivers: null, seasonPoints: null, figures: NO_FIGURES, stat: null });
+const listed = ({ code, name, fullName, club, positions, ownerTeamName }: PlayerCard): ListedPlayer => ({ code, name, fullName, club, positions, ownerTeamName, onWaivers: null, seasonPoints: null, points: null, figures: NO_FIGURES, stat: null });
 
 describe("reaching it", () => {
   it("a player's name on Scouting opens his card, and Back returns to Scouting", async () => {

@@ -14,7 +14,7 @@ import { OwnerName } from "../ui/OwnerName";
 import { Panel } from "../ui/Panel";
 import { PositionChip } from "../ui/PositionChip";
 import { ShortlistStar } from "../ui/StarRating";
-import type { ListedPlayer, ScoutingSeam } from "./seam";
+import type { ListedPlayer, Period, ScoutingSeam } from "./seam";
 import {
   closePanelLabel,
   compareWithAnotherWords,
@@ -73,13 +73,15 @@ function CompareWithYours({
 const FACT_ROW ="flex items-center justify-between border-t border-panel-rule px-3 py-1";
 
 /** The selected player's panel at the top of the right column (the approved picture; FM's player
- *  search): who he is and who holds him, his season points and minutes, role fit's placeholder, the
+ *  search): who he is and who holds him, his season points, his minutes over the list's period,
+ *  role fit's placeholder, his figures per 90 over the period, the
  *  player card's pickup or claim and shortlist actions, Compare with another… (then a second row
  *  of the list), and his card. `pointsSeason` names last season's points, as the list does. */
 export function SelectedPlayer({
   leagueId,
   player,
   pointsSeason,
+  period,
   stat,
   shortlisted,
   comparing,
@@ -91,6 +93,8 @@ export function SelectedPlayer({
   leagueId: Id<"leagues">;
   player: ListedPlayer;
   pointsSeason: number | null;
+  /** The list's period, which his minutes and figures per 90 are over. */
+  period: Period;
   /** The list's stat, which joins his figures per 90. */
   stat: CatalogueStat | null;
   shortlisted: boolean;
@@ -134,7 +138,7 @@ export function SelectedPlayer({
           )}
         </div>
         <div className={FACT_ROW}>
-          <dt className="text-soft">{panelMinutesWords}</dt>
+          <dt className="text-soft">{panelMinutesWords(period)}</dt>
           <dd className="font-bold text-figure">{figureWords(player.figures.minutes)}</dd>
         </div>
         <div className={FACT_ROW}>
@@ -142,7 +146,7 @@ export function SelectedPlayer({
           <dd className="text-muted">{noRoleFitYetWords}</dd>
         </div>
       </dl>
-      <Per90Figures leagueId={leagueId} playerCode={player.code} stat={stat} seam={seam} />
+      <Per90Figures leagueId={leagueId} playerCode={player.code} stat={stat} period={period} seam={seam} />
       <div className="flex flex-col gap-2 border-t border-panel-rule p-3">
         <YourClaim leagueId={leagueId} playerCode={player.code} seam={seam} />
         <WaiverAction leagueId={leagueId} card={player} seam={seam} />

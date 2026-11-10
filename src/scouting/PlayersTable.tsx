@@ -9,24 +9,27 @@ import { cellClassOf, ColumnHeads, type ColumnWords } from "../ui/ColumnHeads";
 import { OwnerName } from "../ui/OwnerName";
 import { ClubMark, ClubShort } from "../ui/ClubName";
 import { statFigure } from "../shared/figures";
-import type { ListedPlayer, PlayersSort, SortColumn } from "./seam";
+import type { ListedPlayer, Period, PlayersSort, SortColumn } from "./seam";
 import {
   columns,
   figureWords,
   noFigureWords,
+  noPeriodPointsWords,
   noPointsYetWords,
   notLastSeasonWords,
   onWaiversWords,
+  periodColumns,
   seasonPointsColumn,
   selectPlayerLabel,
   shortlistedLabel,
   statLabel,
 } from "./words";
 
-/** The list's columns, as the approved picture draws them: "stat" is the shown stat's season total,
- *  and "owner" the Status column, drawn only where the view holds owned players. */
-type Column = "positions" | "name" | "owner" | "minutes" | "seasonPoints" | "goals" | "assists" | "shotsOnTarget" | "stat";
-const FIGURES = ["minutes", "seasonPoints", "goals", "assists", "shotsOnTarget"] as const;
+/** The list's columns, as the approved picture draws them: "points" and the figures are over the
+ *  list's period, "stat" is the shown stat's total over it, and "owner" the Status column, drawn
+ *  only where the view holds owned players. */
+type Column = "positions" | "name" | "owner" | "minutes" | "points" | "goals" | "assists" | "shotsOnTarget" | "stat";
+const FIGURES = ["minutes", "points", "goals", "assists", "shotsOnTarget"] as const;
 /** What the list's heads sort by: the club has no column of its own, as the picture sets it after
  *  the name. */
 export type ListSortColumn = Exclude<SortColumn, "club">;
@@ -42,11 +45,14 @@ const cellClasses = (column: Column) => cellClassOf(column === "positions" || co
 
 /** The players list itself: a head per column, sortable where it can be, and a row per player,
  *  which selects him. The points' head names the season they are from while they are last
- *  season's (`pointsSeason`). */
+ *  season's (`pointsSeason`); over the last few gameweeks, the figures' heads name the gameweeks on
+ *  hover. */
 export function PlayersTable({
   leagueId,
   players,
   pointsSeason,
+  period,
+  periodGameweeks,
   stat,
   withStatus,
   shortlisted,
@@ -58,6 +64,9 @@ export function PlayersTable({
   leagueId: Id<"leagues">;
   players: readonly ListedPlayer[];
   pointsSeason: number | null;
+  period: Period;
+  /** The gameweeks the period counts (the list's). */
+  periodGameweeks: readonly number[];
   stat: CatalogueStat | null;
   /** Whether the Status column is drawn: in the All and Owned views. */
   withStatus: boolean;
@@ -69,10 +78,11 @@ export function PlayersTable({
   select: (player: ListedPlayer) => void;
 }) {
   const shown: readonly Column[] = ["positions", "name", ...(withStatus ? (["owner"] as const) : []), ...FIGURES, ...(stat === null ? [] : (["stat"] as const))];
+  const noPointsWords = period !== "season" ? noPeriodPointsWords : pointsSeason === null ? noPointsYetWords : notLastSeasonWords;
   return (
     <table className="w-full border-collapse">
       <ColumnHeads
-        columns={{ ...columns, seasonPoints: seasonPointsColumn(pointsSeason), stat: statHead(stat) }}
+        columns={{ ...columns, points: seasonPointsColumn(pointsSeason), ...periodColumns(period, periodGameweeks), stat: statHead(stat) }}
         shown={shown}
         classOf={cellClasses}
         sort={{ ...sort, sortable: SORTABLE, sortBy }}
@@ -87,7 +97,7 @@ export function PlayersTable({
             className="cursor-pointer border-t border-panel-rule aria-current:bg-name-plate aria-current:shadow-current-edge lg:h-row"
           >
             {shown.map((column) => (
-              <PlayerCell key={column} column={column} player={player} pointsSeason={pointsSeason} leagueId={leagueId} shortlisted={shortlisted.has(player.code)} />
+              <PlayerCell key={column} column={column} player={player} noPointsWords={noPointsWords} leagueId={leagueId} shortlisted={shortlisted.has(player.code)} />
             ))}
           </tr>
         ))}
@@ -106,13 +116,14 @@ const statHead = (stat: CatalogueStat | null): ColumnWords =>
 function PlayerCell({
   column,
   player,
-  pointsSeason,
+  noPointsWords,
   leagueId,
   shortlisted,
 }: {
   column: Column;
   player: ListedPlayer;
-  pointsSeason: number | null;
+  /** Why a player with no points has none, on the "—"'s hover. */
+  noPointsWords: string;
   leagueId: Id<"leagues">;
   shortlisted: boolean;
 }) {
@@ -149,13 +160,13 @@ function PlayerCell({
           {player.onWaivers === null ? <OwnerName teamName={player.ownerTeamName} /> : onWaiversWords(player.onWaivers.firstRunAt)}
         </td>
       );
-    case "seasonPoints":
-      return player.seasonPoints === null ? (
-        <td title={pointsSeason === null ? noPointsYetWords : notLastSeasonWords} className={`${className} text-muted`}>
+    case "points":
+      return player.points === null ? (
+        <td title={noPointsWords} className={`${className} text-muted`}>
           {noFigureWords}
         </td>
       ) : (
-        <td className={`${className} font-bold text-figure`}>{figureWords(player.seasonPoints)}</td>
+        <td className={`${className} font-bold text-figure`}>{figureWords(player.points)}</td>
       );
     case "stat":
       return <td className={`${className} font-bold text-figure`}>{player.stat === null ? noFigureWords : statFigure(player.stat)}</td>;
