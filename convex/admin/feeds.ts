@@ -112,6 +112,7 @@ async function owedSinceAt(ctx: QueryCtx, now: number): Promise<Record<Feed, num
     teamStats: liveStats,
     thresholdSteps: liveStats,
     sportmonks: ALWAYS_OWED,
+    sportmonksPositions: ALWAYS_OWED,
     sportmonksLive: earliest((await sportmonksLiveMatches(ctx, now)).map((match) => match.kickoff)),
   };
 }

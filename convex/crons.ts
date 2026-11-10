@@ -43,6 +43,8 @@ crons.interval("prune run logs", PRUNE_EVERY, internal.admin.runLogs.prune, {});
 // reads nothing where it isn't (football/sportmonks/).
 crons.interval("sportmonks sync", FEED_SCHEDULES.sportmonks.every, internal.football.sportmonks.sportmonksSync.run, BY_CRON);
 crons.interval("sportmonks live tick", FEED_SCHEDULES.sportmonksLive.every, internal.football.sportmonks.sportmonksLive.tick, {});
+// And its lineups, for positions (#1419), at the positions sync's 06:00 UK time.
+crons.cron("sportmonks positions", `0 ${DAILY_RUN_UTC_HOURS.join(",")} * * *`, internal.football.sportmonks.sportmonksPositionsSync.daily, {});
 
 // Not one of spec/20's jobs but the build pipeline's: wakes the lead every half hour, since GitHub's
 // schedule drops its passes (heartbeats/leadWake.ts). Only where its token is set: the development deployment, never the live one.

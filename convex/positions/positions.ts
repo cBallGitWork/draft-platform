@@ -71,17 +71,26 @@ export interface WorkedOutPositions {
   unknownLabel: string | null;
 }
 
+/** Where a start's formation place puts him, or null where it places no one. */
+function placeOf({ formation, line, place }: Start): Position | null {
+  return formation === null || line === null || place === null ? null : placePosition(formation, line, place);
+}
+
 /** The positions his newest `START_WINDOW` starts give him: each place he started at
- *  `STARTS_FOR_A_POSITION` times or more, and the formations that placed no one. */
-export function positionsFromStarts(starts: Start[]): { positions: Position[]; unknownFormations: string[] } {
+ *  `STARTS_FOR_A_POSITION` times or more, and the formations that placed no one. `positionOf`
+ *  says where a start puts him; by default his formation place alone. */
+export function positionsFromStarts<S extends Start>(
+  starts: S[],
+  positionOf: (start: S) => Position | null = placeOf,
+): { positions: Position[]; unknownFormations: string[] } {
   const window = [...starts].sort((a, b) => b.kickoff - a.kickoff).slice(0, START_WINDOW);
   const startsAt = new Map<Position, number>();
   const unknownFormations = new Set<string>();
-  for (const { formation, line, place } of window) {
-    if (formation === null || line === null || place === null) continue;
-    const position = placePosition(formation, line, place);
-    if (position === null) unknownFormations.add(formation);
-    else startsAt.set(position, (startsAt.get(position) ?? 0) + 1);
+  for (const start of window) {
+    const drawn = start.formation !== null && start.line !== null && start.place !== null;
+    if (drawn && placeOf(start) === null) unknownFormations.add(start.formation!);
+    const position = positionOf(start);
+    if (position !== null) startsAt.set(position, (startsAt.get(position) ?? 0) + 1);
   }
   const positions = POSITIONS.filter((position) => (startsAt.get(position) ?? 0) >= STARTS_FOR_A_POSITION);
   return { positions, unknownFormations: [...unknownFormations].sort() };

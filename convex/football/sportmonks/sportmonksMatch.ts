@@ -18,7 +18,7 @@ export interface SportmonksMatch {
 }
 
 /** Sportmonks' lineup types: named to start, or on the bench. */
-const LINEUP_STARTER = 11;
+export const LINEUP_STARTER = 11;
 const LINEUP_BENCH = 12;
 
 /** Sportmonks' match states (its `state_id`), as our four. A postponed, delayed or unsettled match
@@ -42,6 +42,11 @@ const STATES: Record<number, ScoreRead["state"]> = {
   8: "fullTime", // FT_PEN
   17: "fullTime", // AWARDED
 };
+
+/** Whether a match in this state is over. */
+export function isFullTime(stateId: number): boolean {
+  return STATES[stateId] === "fullTime";
+}
 
 /** What Sportmonks calls a match's running score among its `scores`. */
 const CURRENT_SCORE = "CURRENT";
