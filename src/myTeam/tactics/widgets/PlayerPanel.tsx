@@ -2,7 +2,7 @@ import { Link } from "@tanstack/react-router";
 import { useId } from "react";
 import type { Id } from "../../../../convex/_generated/dataModel";
 import { positionOfSlot } from "../../../../convex/lineup/pitch";
-import { everyRoleOf, roleIn, rolesOfSlot } from "../../../../convex/lineup/roles";
+import { everyRoleOf, roleIn, rolesFor, takesRole } from "../../../../convex/lineup/roles";
 import { playerCardPath } from "../../../playerCard/paths";
 import { closeGlyph, nextGlyph, playerCardWords } from "../../../shared/words";
 import { Placeholder } from "../../../ui/Placeholder";
@@ -79,8 +79,9 @@ export function PlayerPanel({
   const starter = "starter" in place ? place.starter : null;
   const slot = starter === null ? (benchBestRole(player)?.cell ?? null) : starter;
   const label = slot === null ? null : positionOfSlot(slot);
-  // A bench player stands in no formation, so his main position's every role shows.
-  const roles = slot === null ? [] : "starter" in place ? rolesOfSlot(slot, place.formation) : everyRoleOf(slot);
+  // A bench player stands in no formation, so his main position's every role he may take shows.
+  const roles =
+    slot === null ? [] : "starter" in place ? rolesFor(slot, place.formation, player.positions) : everyRoleOf(slot).filter(({ key }) => takesRole(player.positions, key));
   const playing = starter === null ? null : roleIn(starter, starter.role).key;
   const row = season?.get(player.playerCode);
   const where = "starter" in place ? startingWhereWords(player.clubShortName, positionOfSlot(place.starter)) : benchWhereWords(player.clubShortName, place.benchIndex);

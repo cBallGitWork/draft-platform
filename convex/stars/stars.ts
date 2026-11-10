@@ -5,7 +5,7 @@
 // starts on when he is dropped into a slot (spec/05), and never price a match.
 
 import { areasOf, cellsOf, LANES, type Area, type Cell } from "../lineup/pitch";
-import { everyRoleOf } from "../lineup/roles";
+import { everyRoleOf, takesRole } from "../lineup/roles";
 import type { Position } from "../positions/positionTables";
 import { scoreMatch } from "../scoring/scoring";
 import type { ScoringSet } from "../scoring/scoringSet";
@@ -42,7 +42,7 @@ export interface RatedRole {
   cell: Cell;
 }
 
-/** Every role in every area these positions play (Craig, 1 Nov 2026), each priced in the first
+/** Every role they may take (roles.ts's takesRole) in every area these positions play (Craig, 1 Nov 2026), each priced in the first
  *  cell of the area, left to right, that offers it. A rule prices by area and position alone, so
  *  any cell offering the role prices it the same. */
 export function ratedRoles(positions: readonly Position[]): RatedRole[] {
@@ -50,7 +50,7 @@ export function ratedRoles(positions: readonly Position[]): RatedRole[] {
   for (const area of areasOf(positions)) {
     for (const cell of cellsOf(area, LANES)) {
       for (const { key } of everyRoleOf(cell)) {
-        if (!rated.some((each) => each.area === area && each.role === key)) rated.push({ area, role: key, cell });
+        if (takesRole(positions, key) && !rated.some((each) => each.area === area && each.role === key)) rated.push({ area, role: key, cell });
       }
     }
   }

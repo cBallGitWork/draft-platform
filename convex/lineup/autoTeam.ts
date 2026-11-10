@@ -46,7 +46,7 @@ export function autoTeamLineup(
   const subbed = autoSubs(held, positions, plays, rules, held.vacated, ratingsOf).lineup;
   if (standingProblems(subbed, positions, rules).length === 0) return { starters: subbed.starters.map(onThePitch), bench: [...subbed.bench] };
   const outs = new Set(squad.filter(isOut));
-  return withDroppedRoles(firstLineup(squad, positions, rules, outs), ratingsOf, held.starters);
+  return withDroppedRoles(firstLineup(squad, positions, rules, outs), ratingsOf, positions, held.starters);
 }
 
 /** A starter auto-subs placed: every cell they hand back is on the pitch (lineupProblems refused

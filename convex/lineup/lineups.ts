@@ -244,7 +244,7 @@ export async function pickFirstLineupAgain(ctx: MutationCtx, leagueId: Id<"leagu
   const positions = await heldPositionsOf(ctx, leagueId, squad);
   const keptOnBench = row === null ? new Set<number>() : keptOnBenchOf(row, squad, positions);
   const stars = await starsOfPlayers(ctx, squad);
-  const picked = withDroppedRoles(firstLineup(squad, positions, season.inGameweek(fromGameweek), keptOnBench), (playerCode) => stars.get(playerCode)!, row?.starters);
+  const picked = withDroppedRoles(firstLineup(squad, positions, season.inGameweek(fromGameweek), keptOnBench), (playerCode) => stars.get(playerCode)!, positions, row?.starters);
   if (row?.fromGameweek === fromGameweek) await ctx.db.patch("lineups", row._id, picked);
   else await ctx.db.insert("lineups", { leagueId, teamId, fromGameweek, ...picked, firstLineup: true });
 }

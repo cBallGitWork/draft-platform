@@ -99,9 +99,10 @@ export function fakeTactics(
     },
     useLineupChanges: vi.fn<TacticsSeam["useLineupChanges"]>(() => changes),
     useTacticsOpened: vi.fn<TacticsSeam["useTacticsOpened"]>(),
-    useRoleCard: vi.fn<TacticsSeam["useRoleCard"]>((_leagueId, _playerCode, cell, formation) => {
+    useRoleCard: vi.fn<TacticsSeam["useRoleCard"]>((_leagueId, playerCode, cell, formation) => {
       if (loading) return undefined;
-      const roles = cardRolesOf(cell, formation, FIRST_SCORING_WITH_ROLES);
+      const positions = (held.kind === "open" ? held.squad : []).find((member) => member.playerCode === playerCode)?.positions ?? [];
+      const roles = cardRolesOf(cell, formation, positions, FIRST_SCORING_WITH_ROLES);
       return { roles, matches: cardMatches.map((match) => pricedMatch(match, cell, roles.map(({ key }) => key))) };
     }),
     usePlans: vi.fn<TacticsSeam["usePlans"]>(() => useSyncExternalStore(subscribe, () => (loading || plansLoading ? undefined : heldPlans))),

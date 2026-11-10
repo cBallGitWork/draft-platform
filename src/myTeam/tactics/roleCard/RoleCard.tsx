@@ -26,6 +26,7 @@ import {
   closeCardLabel,
   figureWords,
   inUseWords,
+  notTestedWords,
   loadingCardWords,
   noFigureWords,
   playAsWords,
@@ -174,6 +175,7 @@ function RolesTable({
                     {role.name}
                   </button>
                   {role.key === inUse && <span className="ml-2 bg-fact px-1 text-ground">{inUseWords}</span>}
+                  {role.notTested && <span className="ml-2 text-muted">{notTestedWords}</span>}
                 </th>
                 <td className="px-2">
                   <Stars player={player} starter={starter} role={role} />

@@ -17,6 +17,8 @@ export const ROLES_TITLE = "Roles for this slot";
 export const basePointsHead = (matches: number) => `Base points, his last ${matches} played`;
 export const ROLE_COLUMNS = { role: "Role", fit: "Role fit", rewards: "Rewards", punishes: "Punishes", fromRole: "+/− from role", total: "Total" } as const;
 export const inUseWords = "In use";
+/** A role no real Sportmonks read has shown the stats of yet (spec/05 `S05.30`). */
+export const notTestedWords = "Not tested";
 export const pointsHead = "Points";
 /** spec/05 Roles: a role moves a match by at most 3 either way (Craig, 5 Nov 2026). */
 export const roleLimitWords = "±3 a match at most";

@@ -14,6 +14,7 @@ import {
   type PlayerPositions,
 } from "./lineup";
 import { ALL_CELLS, AREAS, byPitchOrder, cellKey, LANES, playsCell, type Area, type Cell, type Lane } from "./pitch";
+import { roleIn, takesRole } from "./roles";
 import { droppedStarter } from "../stars/bestRole";
 import type { RoleStars } from "../stars/starsShape";
 
@@ -157,9 +158,15 @@ function firstLegalSub(
   const slot = cellOf(absentee);
   // The hard rule (spec/05): a wing back plays only the wide lanes of a midfield row, so "can play
   // the slot's area" means can stand in the slot's own cell.
+  const formationNow = lineup.starters.map(cellOf);
   for (const playerCode of available) {
-    if (!playsCell(positionsOf(positions, playerCode), slot)) continue;
-    const tried = legalSubstitution(lineup, absentee, { playerCode, ...slot, ...(absentee.role !== undefined && { role: absentee.role }) }, "theSlot", positions, rules);
+    const playerPositions = positionsOf(positions, playerCode);
+    if (!playsCell(playerPositions, slot)) continue;
+    // He takes the slot's role, or, one he can't take (a striker's for a CAM, spec/05 `S05.29`), the one he'd be dropped on.
+    const sub = takesRole(playerPositions, roleIn(slot, absentee.role).key)
+      ? { playerCode, ...slot, ...(absentee.role !== undefined && { role: absentee.role }) }
+      : droppedStarter(playerCode, slot, formationNow, ratingsOf(playerCode), playerPositions);
+    const tried = legalSubstitution(lineup, absentee, sub, "theSlot", positions, rules);
     if (tried) return tried;
   }
   if (slot.area === GOALKEEPER) return undefined;
@@ -169,7 +176,7 @@ function firstLegalSub(
     const playerPositions = positionsOf(positions, playerCode);
     for (const cell of freeCells.filter((free) => playsCell(playerPositions, free))) {
       const formation = [...lineup.starters.filter((starter) => starter !== absentee).map(cellOf), cell];
-      const tried = legalSubstitution(lineup, absentee, droppedStarter(playerCode, cell, formation, ratingsOf(playerCode)), "hisOwnArea", positions, rules);
+      const tried = legalSubstitution(lineup, absentee, droppedStarter(playerCode, cell, formation, ratingsOf(playerCode), playerPositions), "hisOwnArea", positions, rules);
       if (tried) return tried;
     }
   }
@@ -241,13 +248,14 @@ function shortfall(problem: LineupProblem): number {
   }
 }
 
-/** A lineup that may stand, minus a starter outside his areas: one who lost a position after he
- *  was placed stays in his slot for the gameweek (spec/06), and lineup.ts reports it alone so a
- *  caller can set it aside. A sub is only ever put where he plays. A sweeper or libero left with
+/** A lineup that may stand, minus a starter outside his areas or on a role his positions no longer
+ *  take: one who lost a position after he was placed stays in his slot, on his role, for the
+ *  gameweek (spec/06), and lineup.ts reports it alone so a caller can set it aside. A sub is only
+ *  ever put where he plays, on a role he takes. A sweeper or libero left with
  *  fewer than three centre-backs by a sub elsewhere keeps his role (roles.ts's roleIn): which roles
  *  a formation offers is the manager's pick, never a reason to refuse a sub. */
 export function standingProblems(lineup: Lineup, positions: PlayerPositions, rules: LineupRules) {
-  return lineupProblems(lineup, positions, rules).filter((problem) => problem.kind !== "outsideHisAreas" && problem.kind !== "noBackThree");
+  return lineupProblems(lineup, positions, rules).filter((problem) => !["outsideHisAreas", "roleNotHis", "noBackThree"].includes(problem.kind));
 }
 
 /** A starter's cell, once standingProblems has refused any cell that doesn't exist. */

@@ -203,18 +203,18 @@ describe("each pick goes onto the pitch on his best-star role (spec/05 Roles; #1
   const ratingsOf = (playerCode: number) => (playerCode === KEEPER.playerCode ? SWEEPING : ATTACKING);
 
   test("placed anew, he is saved on his best role; on the slot's first, none is saved", () => {
-    expect(withDroppedRoles({ starters: [KEEPER, BACK], bench: [3] }, ratingsOf)).toEqual({
+    expect(withDroppedRoles({ starters: [KEEPER, BACK], bench: [3] }, ratingsOf, new Map())).toEqual({
       starters: [{ ...KEEPER, role: "sweeperKeeper" }, { ...BACK, role: "defensiveFullBack" }],
       bench: [3],
     });
-    expect(withDroppedRoles({ starters: [KEEPER], bench: [] }, () => [])).toEqual({ starters: [KEEPER], bench: [] });
+    expect(withDroppedRoles({ starters: [KEEPER], bench: [] }, () => [], new Map())).toEqual({ starters: [KEEPER], bench: [] });
   });
 
   test("still in the cell he held, he keeps the role he had there; moved, he starts on his best role again", () => {
     const held = [KEEPER, { ...BACK, role: "overlappingFullBack" }];
     const picked = { starters: [KEEPER, BACK], bench: [] };
-    expect(withDroppedRoles(picked, ratingsOf, held).starters).toEqual([KEEPER, { ...BACK, role: "overlappingFullBack" }]);
+    expect(withDroppedRoles(picked, ratingsOf, new Map(), held).starters).toEqual([KEEPER, { ...BACK, role: "overlappingFullBack" }]);
     const moved = { starters: [KEEPER, { ...BACK, lane: "right" as const }], bench: [] };
-    expect(withDroppedRoles(moved, ratingsOf, held).starters[1]).toEqual({ ...BACK, lane: "right", role: "defensiveFullBack" });
+    expect(withDroppedRoles(moved, ratingsOf, new Map(), held).starters[1]).toEqual({ ...BACK, lane: "right", role: "defensiveFullBack" });
   });
 });

@@ -5,7 +5,7 @@
 // a tie keeps whoever is already starting, then goes by bench order.
 
 import { byPitchOrder, cellKey, playsCell, sameCell, type Cell } from "../../../convex/lineup/pitch";
-import { rolesOfSlot } from "../../../convex/lineup/roles";
+import { rolesFor } from "../../../convex/lineup/roles";
 import { bestRoleIn, droppedStarter, starsIn } from "../../../convex/stars/bestRole";
 import type { EditedLineup, SquadMember, Starter } from "./lineupEdits";
 
@@ -18,7 +18,7 @@ const isOut = ({ availability, unheld }: PickedFrom) => unheld || availability =
 
 /** His stars in the cell, on the role he has the most for there; "?" and "—" below any star. */
 function starsThere(member: PickedFrom, cell: Cell, shape: readonly Cell[]): number {
-  const stars = starsIn(cell, bestRoleIn(cell, rolesOfSlot(cell, shape), member.stars).key, member.stars);
+  const stars = starsIn(cell, bestRoleIn(cell, rolesFor(cell, shape, member.positions), member.stars).key, member.stars);
   return typeof stars === "number" ? stars : -1;
 }
 
@@ -70,7 +70,7 @@ export function quickPick(draft: EditedLineup, shape: readonly Cell[], squad: re
       mostFilled(cells.filter((each) => each !== cell), players.filter((each) => each !== member)) === toFill - 1,
     )!;
     const held = startingIn(cell);
-    picked.push(held?.playerCode === member.playerCode ? held : droppedStarter(member.playerCode, cell, shape, member.stars));
+    picked.push(held?.playerCode === member.playerCode ? held : droppedStarter(member.playerCode, cell, shape, member.stars, member.positions));
     cells = cells.filter((each) => each !== cell);
     players = players.filter((each) => each !== member);
     toFill -= 1;

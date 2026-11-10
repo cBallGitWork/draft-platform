@@ -1,28 +1,31 @@
 import { FIRST_SCORING } from "./firstScoring";
 import type { StoredScoringSet } from "./scoringSetShape";
 
-// The roles' first values (spec/05 Roles; #10): docs/roles-first-values.md, Claude's draft fitted on
-// 5 Nov 2026 (Craig, 26 Oct 2026: "Claude drafts the first numbers; Craig edits them later, by
-// patch"), as the site's scoring holds them. This file is only where they start: they go into the
-// site's set by firstRolesVersion.ts (Craig, 5 Nov 2026: "put roles-first-values.md into the site's
-// set now as the starting rules, taking effect from the next gameweek that hasn't begun, with no
-// letter"), and change by patch after. Each stat the page names is the live feed's own key for it
-// (statCatalogueList.ts); a failed or misplaced count is one of the own stats below.
+// The roles' values (spec/05 Roles; #10, #1445): docs/roles-first-values.md, the mixes redrawn
+// around Sportmonks' stats on 9 and 10 Nov 2026 (#1196), as the site's scoring holds them. Each role
+// scores a plain mix of what it is best at and loses for one bad action (`S05.27`). Every stat is a
+// catalogue stat Sportmonks sends (football/sportmonks/sportmonksStats.ts), or an own stat made of
+// them (`S05.28`): a test holds that. The bars are Claude's draft, each aimed at its slot's target
+// role bonus a start (spec/05's table), and the backtest refits them (`S05.10`). This file is only
+// where they start: they go into the site's set by firstRolesVersion.ts, and change by patch after.
 
 type OwnStat = NonNullable<StoredScoringSet["ownStats"]>[number];
 type RoleScoring = NonNullable<StoredScoringSet["roles"]>[number];
 type RoleSide = RoleScoring["bonus"];
 
-/** The page's counts the feed only sends as a total and the accurate ones: the total less them. */
+/** The page's counts the feed only sends as a total and a share of it: the total less the share.
+ *  Failed launches no role scores now, but a set the first values went into holds it. */
 export const FIRST_ROLE_OWN_STATS: readonly OwnStat[] = [
-  failed("league:failed_long_balls", "Failed long balls", "FLB", "total_long_balls", "accurate_long_balls"),
-  failed("league:failed_crosses", "Failed crosses", "FCR", "total_cross", "accurate_cross"),
-  failed("league:misplaced_passes", "Misplaced passes", "MPS", "total_pass", "accurate_pass"),
-  failed("league:failed_launches", "Failed launches", "FLA", "total_launches", "accurate_launches"),
+  less("league:failed_long_balls", "Failed long balls", "FLB", "total_long_balls", "accurate_long_balls"),
+  less("league:failed_crosses", "Failed crosses", "FCR", "total_cross", "accurate_cross"),
+  less("league:misplaced_passes", "Misplaced passes", "MPS", "total_pass", "accurate_pass"),
+  less("league:failed_launches", "Failed launches", "FLA", "total_launches", "accurate_launches"),
+  // Duels won less aerials won (docs/roles-first-values.md, the ball-winner and the destroyer).
+  less("league:ground_duels_won", "Ground duels won", "GDW", "duel_won", "aerial_won"),
 ];
 
-function failed(stat: string, name: string, shortCode: string, total: string, accurate: string): OwnStat {
-  return { stat, name, shortCode, parts: [{ stat: total, weight: 1 }, { stat: accurate, weight: -1 }] };
+function less(stat: string, name: string, shortCode: string, total: string, share: string): OwnStat {
+  return { stat, name, shortCode, parts: [{ stat: total, weight: 1 }, { stat: share, weight: -1 }] };
 }
 
 /** A side: its three bars, then each stat with its weight (2 × goals is ["goals_scored", 2]). */
@@ -32,206 +35,115 @@ function side(bars: [number, number, number], ...parts: [stat: string, weight: n
 
 const role = (key: string, bonus: RoleSide, cost: RoleSide): RoleScoring => ({ role: key, bonus, cost });
 
+// The page's stats by the catalogue key Sportmonks fills (sportmonksStats.ts).
+const GOALS = "goals_scored";
+const SHOTS = "total_scoring_att";
+const SHOTS_ON_TARGET = "ontarget_scoring_att";
+const BIG_CHANCES_MISSED = "big_chance_missed";
+const BIG_CHANCES_CREATED = "big_chance_created";
+const KEY_PASSES = "total_att_assist";
+const THROUGH_BALLS = "accurate_through_ball";
+const ACCURATE_PASSES = "accurate_pass";
+const ACCURATE_LONG_BALLS = "accurate_long_balls";
+const LONG_BALLS = "total_long_balls";
+const ACCURATE_CROSSES = "accurate_cross";
+const CROSSES = "total_cross";
+const DRIBBLES_WON = "won_contest";
+const FOULS_DRAWN = "was_fouled";
+const AERIALS_WON = "aerial_won";
+const AERIALS_LOST = "aerial_lost";
+const TACKLES = "total_tackle";
+const TACKLES_WON = "won_tackle";
+const LAST_MAN_TACKLES = "last_man_tackle";
+const INTERCEPTIONS = "interception";
+const RECOVERIES = "ball_recovery";
+const CLEARANCES = "total_clearance";
+const BLOCKS = "outfielder_block";
+const SAVES = "saves";
+const SAVES_INSIDE_THE_BOX = "saved_ibox";
+const PENALTIES_SAVED = "penalties_saved";
+const HIGH_CLAIMS = "good_high_claim";
+const PUNCHES = "punches";
+const OFFSIDES = "total_offside";
+const FOULS = "fouls";
+const DISPOSSESSED = "dispossessed";
+const POSSESSION_LOST = "poss_lost_all";
+const DRIBBLED_PAST = "challenge_lost";
+const SHOTS_OFF_TARGET = "shot_off_target";
+const ERRORS_TO_A_SHOT = "error_lead_to_shot";
+const ERRORS_TO_A_GOAL = "error_lead_to_goal";
+const FAILED_LONG_BALLS = "league:failed_long_balls";
+const FAILED_CROSSES = "league:failed_crosses";
+const MISPLACED_PASSES = "league:misplaced_passes";
+const GROUND_DUELS_WON = "league:ground_duels_won";
+
 /** Every role of the default set (lineup/roles.ts), in the page's order. */
 export const FIRST_ROLES: readonly RoleScoring[] = [
-  // Strikers.
-  role("poacher", side([2, 3, 4], ["att_ibox_goal", 2], ["att_ibox_target", 1]), side([1, 4, 7], ["big_chance_missed", 1])),
-  role("targetMan", side([4, 5, 6], ["aerial_won", 1], ["accurate_flick_on", 1], ["accurate_layoffs", 1]), side([5, 8, 11], ["aerial_lost", 1])),
-  role(
-    "inBehindStriker",
-    side([5, 6, 7], ["shot_fastbreak", 2], ["progressive_carries", 1], ["pen_area_entries_open_play", 1], ["fouled_final_third", 1]),
-    side([1, 2, 3], ["total_offside", 1]),
-  ),
-  role("pressingForward", side([2, 3, 4], ["poss_won_att_3rd", 2], ["poss_won_mid_3rd", 1], ["won_tackle", 1]), side([1, 4, 7], ["fouls", 1])),
-  role(
-    "shadowStriker",
-    side([1, 2, 3], ["successful_final_third_entries", 1], ["pen_area_entries", 1], ["attempts_obox", 1]),
-    side([3, 4, 5], ["unsuccessful_touch", 1], ["total_offside", 1]),
-  ),
-  role(
-    "falseNine",
-    side([3, 4, 5], ["accurate_through_ball", 1], ["shot_created", 1], ["progressive_carries", 1], ["big_chance_created", 1]),
-    side([1, 2, 3], ["dispossessed", 1]),
-  ),
-  // Wingers (wide attacking midfield).
-  role("winger", side([3, 4, 5], ["accurate_cross_nocorner", 1], ["won_contest", 1], ["total_att_assist", 1]), side([2, 3, 4], ["dispossessed", 1])),
-  role("dribbler", side([6, 7, 8], ["won_contest", 1], ["progressive_carries", 1], ["fouled_final_third", 1]), side([1, 5, 9], ["dispossessed", 1])),
-  role(
-    "insideForward",
-    side([3, 4, 5], ["ontarget_scoring_att", 1], ["attempts_ibox", 1], ["goals_scored", 2]),
-    side([1, 2, 3], ["big_chance_missed", 1]),
-  ),
-  role(
-    "widePlaymaker",
-    side([7, 8, 9], ["shot_created", 1], ["accurate_through_ball", 1], ["successful_final_third_passes", 1]),
-    side([11, 13, 15], ["poss_lost_all", 1]),
-  ),
-  role(
-    "wideForward",
-    side([2, 3, 4], ["shot_fastbreak", 2], ["pen_area_entries_open_play", 1], ["fouled_final_third", 1]),
-    side([1, 2, 3], ["total_offside", 1]),
-  ),
-  role("pressingWinger", side([1, 2, 3], ["poss_won_att_3rd", 2], ["won_tackle", 1]), side([1, 2, 3], ["fouls", 1])),
-  role(
-    "trackingWinger",
-    side([2, 3, 4], ["won_tackle", 1], ["interception", 1], ["poss_won_mid_3rd", 1], ["poss_won_def_3rd", 1]),
-    side([1, 2, 3], ["fouls", 1], ["challenge_lost", 1]),
-  ),
-  // Attacking midfield, centre.
-  role(
-    "numberTen",
-    side([2, 4, 6], ["total_att_assist", 1], ["big_chance_created", 2], ["accurate_through_ball", 1]),
-    side([1, 2, 3], ["shot_off_target", 1]),
-  ),
-  role(
-    "attackingMidfieldShadowStriker",
-    side([3, 6, 9], ["pen_area_entries", 1], ["ontarget_scoring_att", 2], ["attempts_obox", 1]),
-    side([1, 2, 3], ["total_offside", 1]),
-  ),
-  role(
-    "maverick",
-    side([2, 3, 4], ["total_through_ball", 1], ["accurate_long_balls", 1], ["accurate_chipped_pass", 1], ["ontarget_scoring_att", 1]),
-    side([2, 3, 4], ["unsuccessful_touch", 1]),
-  ),
-  role("carrier", side([3, 5, 7], ["won_contest", 1], ["progressive_carries", 1], ["fouled_final_third", 1]), side([1, 2, 3], ["dispossessed", 1])),
-  role(
-    "pressingTen",
-    side([4, 5, 6], ["poss_won_att_3rd", 2], ["won_tackle", 1], ["ball_recovery", 0.5]),
-    side([2, 3, 4], ["fouls", 1]),
-  ),
-  // Wide midfield.
-  role(
-    "wideMidfielder",
-    side([4, 5, 6], ["ball_recovery", 0.5], ["successful_final_third_passes", 1], ["total_tackle", 1]),
-    side([1, 2, 3], ["fouls", 1]),
-  ),
-  role("defensiveWinger", side([2, 3, 4], ["total_tackle", 1], ["interception", 1], ["outfielder_block", 1]), side([2, 3, 4], ["challenge_lost", 1])),
-  role("wideMidfieldPlaymaker", side([2, 3, 4], ["accurate_long_balls", 1], ["total_att_assist", 1]), side([4, 5, 6], ["league:failed_long_balls", 1])),
-  role(
-    "crosser",
-    side([2, 3, 4], ["accurate_cross", 1], ["total_cross", 0.5], ["big_chance_created", 1]),
-    side([7, 10, 13], ["league:failed_crosses", 1]),
-  ),
-  role("wideMidfieldWinger", side([1, 2, 3], ["won_contest", 1], ["was_fouled", 1], ["accurate_cross", 0.5]), side([1, 2, 3], ["dispossessed", 1])),
-  // Keepers.
-  role(
-    "shotStopper",
-    side([4, 5, 6], ["saves", 1], ["big_chance_saves", 1], ["penalties_saved", 3]),
-    side([1, 2, 3], ["goals_conceded_obox", 1]),
-  ),
-  role(
-    "sweeperKeeper",
-    side([5, 6, 7], ["accurate_keeper_sweeper", 2], ["gk_smother", 2], ["effective_clearance", 1], ["progressive_carries", 1]),
-    side([2, 3, 4], ["error_lead_to_shot", 1], ["error_lead_to_goal", 1]),
-  ),
-  role(
-    "distributor",
-    side([8, 10, 12], ["long_pass_own_to_opp_success", 1], ["fwd_pass", 0.5], ["accurate_keeper_throws", 0.5]),
-    side([11, 13, 15], ["league:failed_launches", 1]),
-  ),
-  role(
-    "commandingKeeper",
-    side([2, 3, 4], ["good_high_claim", 2], ["punches", 1], ["aerial_won", 1], ["dive_catch", 1]),
-    side([2, 3, 4], ["cross_not_claimed", 1], ["goals_conceded_ibox", 1]),
-  ),
-  // Central midfield.
-  role(
-    "boxToBox",
-    side([3, 4, 5], ["pen_area_entries", 1], ["ball_recovery", 0.5], ["won_tackle", 1], ["ontarget_scoring_att", 1]),
-    side([1, 3, 5], ["unsuccessful_touch", 1]),
-  ),
-  role("ballWinner", side([2, 3, 4], ["won_tackle", 1], ["interception", 1], ["poss_won_mid_3rd", 1]), side([1, 2, 3], ["fouls", 1])),
-  role("attackingEight", side([7, 8, 9], ["progressive_carries", 1], ["pen_area_entries", 2], ["won_contest", 1]), side([3, 5, 7], ["dispossessed", 1])),
-  role("midfieldEngine", side([8, 9, 10], ["ball_recovery", 1], ["interception", 1], ["accurate_pass", 0.1]), side([2, 3, 4], ["challenge_lost", 1])),
-  role("lateRunner", side([1, 2, 3], ["ontarget_scoring_att", 1], ["pen_area_entries", 1], ["goals_scored", 2]), side([2, 3, 4], ["big_chance_missed", 1])),
-  // Wing-backs.
-  role(
-    "attackingWingBack",
-    side([2, 3, 4], ["accurate_cross_nocorner", 1], ["pen_area_entries", 1], ["total_att_assist", 1]),
-    side([3, 4, 5], ["dispossessed", 1]),
-  ),
-  role("holdingWingBack", side([3, 4, 5], ["won_tackle", 1], ["interception", 1], ["ball_recovery", 0.5]), side([1, 4, 7], ["challenge_lost", 1])),
+  // Strikers: +0.5 a start.
+  role("poacher", side([2, 3, 4], [GOALS, 2], [SHOTS_ON_TARGET, 1]), side([1, 4, 7], [BIG_CHANCES_MISSED, 1])),
+  role("targetMan", side([4, 6, 8], [AERIALS_WON, 1]), side([5, 8, 11], [AERIALS_LOST, 1])),
+  role("inBehindStriker", side([2, 3, 5], [DRIBBLES_WON, 1], [FOULS_DRAWN, 1]), side([1, 2, 3], [OFFSIDES, 1])),
+  role("pressingForward", side([3, 5, 7], [TACKLES_WON, 1], [INTERCEPTIONS, 1], [RECOVERIES, 1]), side([1, 4, 7], [FOULS, 1])),
+  role("falseNine", side([3, 5, 7], [KEY_PASSES, 1], [THROUGH_BALLS, 1], [DRIBBLES_WON, 1], [ACCURATE_PASSES, 0.1]), side([1, 2, 3], [DISPOSSESSED, 1])),
+  // Wingers (wide attacking midfield): +0.6 a start.
+  role("winger", side([2, 4, 6], [ACCURATE_CROSSES, 1], [DRIBBLES_WON, 1]), side([2, 3, 4], [DISPOSSESSED, 1])),
+  role("dribbler", side([3, 5, 7], [DRIBBLES_WON, 1], [FOULS_DRAWN, 1]), side([2, 4, 6], [DISPOSSESSED, 1])),
+  role("insideForward", side([3, 5, 7], [SHOTS, 1], [SHOTS_ON_TARGET, 1], [GOALS, 2]), side([1, 2, 3], [BIG_CHANCES_MISSED, 1])),
+  role("widePlaymaker", side([1, 2, 4], [KEY_PASSES, 1], [THROUGH_BALLS, 1], [BIG_CHANCES_CREATED, 1]), side([13, 16, 19], [POSSESSION_LOST, 1])),
+  role("pressingWinger", side([3, 5, 7], [TACKLES_WON, 1], [RECOVERIES, 1]), side([1, 2, 3], [FOULS, 1])),
+  role("trackingWinger", side([2, 3, 5], [TACKLES_WON, 1], [INTERCEPTIONS, 1], [BLOCKS, 1], [CLEARANCES, 1]), side([1, 2, 3], [DRIBBLED_PAST, 1])),
+  // Attacking midfield, centre: +0.6 a start.
+  role("numberTen", side([2, 4, 6], [KEY_PASSES, 1], [BIG_CHANCES_CREATED, 2], [THROUGH_BALLS, 1]), side([1, 2, 3], [SHOTS_OFF_TARGET, 1])),
+  role("attackingMidfieldShadowStriker", side([3, 5, 7], [SHOTS, 1], [SHOTS_ON_TARGET, 1], [GOALS, 2]), side([1, 2, 3], [OFFSIDES, 1])),
+  role("carrier", side([2, 4, 6], [DRIBBLES_WON, 1], [FOULS_DRAWN, 1]), side([1, 2, 3], [DISPOSSESSED, 1])),
+  role("pressingTen", side([3, 4, 6], [TACKLES_WON, 1], [INTERCEPTIONS, 1], [RECOVERIES, 0.5]), side([2, 3, 4], [FOULS, 1])),
+  // Wide midfield: +0.8 a start.
+  role("wideMidfielder", side([3, 5, 7], [RECOVERIES, 0.5], [TACKLES, 1], [ACCURATE_CROSSES, 1]), side([1, 2, 3], [FOULS, 1])),
+  role("defensiveWinger", side([2, 3, 4], [TACKLES, 1], [INTERCEPTIONS, 1], [BLOCKS, 1]), side([2, 3, 4], [DRIBBLED_PAST, 1])),
+  role("wideMidfieldPlaymaker", side([2, 3, 4], [ACCURATE_LONG_BALLS, 1], [KEY_PASSES, 1]), side([4, 5, 6], [FAILED_LONG_BALLS, 1])),
+  role("crosser", side([3, 4, 6], [ACCURATE_CROSSES, 1], [CROSSES, 0.5]), side([7, 10, 13], [FAILED_CROSSES, 1])),
+  // Keepers: +0.9 a start.
+  role("shotStopper", side([4, 6, 8], [SAVES, 1], [SAVES_INSIDE_THE_BOX, 1], [PENALTIES_SAVED, 3]), side([1, 2, 3], [ERRORS_TO_A_GOAL, 1])),
+  role("sweeperKeeper", side([1, 2, 3], [INTERCEPTIONS, 1], [TACKLES_WON, 1], [LAST_MAN_TACKLES, 1], [CLEARANCES, 1]), side([1, 2, 3], [ERRORS_TO_A_SHOT, 1])),
+  role("distributor", side([10, 12, 14], [ACCURATE_LONG_BALLS, 1], [ACCURATE_PASSES, 0.2]), side([9, 12, 15], [FAILED_LONG_BALLS, 1])),
+  role("commandingKeeper", side([1, 2, 4], [HIGH_CLAIMS, 1], [PUNCHES, 1]), side([1, 2, 3], [AERIALS_LOST, 1])),
+  // Central midfield: +1.0 a start.
+  role("boxToBox", side([3, 5, 7], [RECOVERIES, 0.5], [TACKLES_WON, 1], [SHOTS, 1]), side([1, 3, 5], [DISPOSSESSED, 1])),
+  role("ballWinner", side([4, 6, 8], [TACKLES_WON, 1], [INTERCEPTIONS, 1], [GROUND_DUELS_WON, 1]), side([1, 2, 3], [FOULS, 1])),
+  role("attackingEight", side([1, 2, 4], [DRIBBLES_WON, 1], [KEY_PASSES, 1]), side([2, 3, 4], [DISPOSSESSED, 1])),
+  role("midfieldEngine", side([8, 9, 10], [RECOVERIES, 1], [INTERCEPTIONS, 1], [ACCURATE_PASSES, 0.1]), side([2, 3, 4], [DRIBBLED_PAST, 1])),
+  // Wing-backs: +1.0 a start.
+  role("attackingWingBack", side([2, 3, 4], [ACCURATE_CROSSES, 1], [KEY_PASSES, 1], [DRIBBLES_WON, 1]), side([3, 4, 5], [DISPOSSESSED, 1])),
+  role("holdingWingBack", side([3, 4, 5], [TACKLES_WON, 1], [INTERCEPTIONS, 1], [RECOVERIES, 0.5]), side([1, 4, 7], [DRIBBLED_PAST, 1])),
   role(
     "completeWingBack",
-    side([3, 4, 5], ["progressive_carries", 1], ["accurate_cross", 1], ["ball_recovery", 0.5]),
-    side([1, 2, 3], ["unsuccessful_touch", 1]),
+    side([3, 4, 5], [ACCURATE_CROSSES, 1], [DRIBBLES_WON, 1], [TACKLES_WON, 1], [INTERCEPTIONS, 1]),
+    side([14, 17, 20], [POSSESSION_LOST, 1]),
   ),
-  role(
-    "invertedWingBack",
-    side([5, 6, 7], ["accurate_pass", 0.1], ["successful_final_third_passes", 0.5], ["won_contest", 1]),
-    side([1, 2, 3], ["fouls", 1]),
-  ),
-  role(
-    "goalscoringWingBack",
-    side([3, 4, 5], ["ontarget_scoring_att", 1], ["touches_in_opp_box", 1], ["pen_area_entries", 1], ["goals_scored", 2]),
-    side([2, 3, 4], ["big_chance_missed", 1]),
-  ),
-  // Full-backs.
-  role(
-    "overlappingFullBack",
-    side([3, 4, 5], ["accurate_cross", 2], ["total_cross", 1], ["won_contest", 1]),
-    side([1, 5, 9], ["dispossessed", 1]),
-  ),
-  role(
-    "underlappingFullBack",
-    side([5, 6, 7], ["pen_area_entries", 1], ["progressive_carries", 1], ["final_third_entries", 1]),
-    side([1, 3, 5], ["unsuccessful_touch", 1], ["total_offside", 1]),
-  ),
-  role("invertedFullBack", side([6, 7, 8], ["accurate_pass", 0.1], ["successful_final_third_passes", 0.5]), side([11, 12, 13], ["league:misplaced_passes", 1])),
-  role(
-    "playmakingFullBack",
-    side([2, 3, 4], ["long_pass_own_to_opp_success", 1], ["accurate_long_balls", 1], ["big_chance_created", 2]),
-    side([2, 3, 4], ["league:failed_long_balls", 1]),
-  ),
-  role(
-    "defensiveFullBack",
-    side([5, 6, 7], ["won_tackle", 1], ["interception", 1], ["effective_clearance", 1]),
-    side([3, 4, 5], ["challenge_lost", 1]),
-  ),
-  // Defensive midfield.
-  role("metronome", side([7, 8, 9], ["accurate_pass", 0.1], ["fwd_pass", 0.2]), side([8, 9, 10], ["league:misplaced_passes", 1])),
-  role(
-    "quarterback",
-    side([8, 9, 10], ["long_pass_own_to_opp_success", 1], ["accurate_long_balls", 1], ["accurate_chipped_pass", 1]),
-    side([6, 7, 8], ["league:failed_long_balls", 1]),
-  ),
-  role(
-    "halfBack",
-    side([3, 5, 7], ["effective_clearance", 1], ["aerial_won", 1], ["poss_won_def_3rd", 1]),
-    side([1, 2, 3], ["error_lead_to_shot", 1], ["error_lead_to_goal", 1]),
-  ),
-  role("engine", side([10, 11, 12], ["ball_recovery", 1], ["interception", 1], ["accurate_pass", 0.1]), side([3, 5, 7], ["challenge_lost", 1])),
-  role("tower", side([3, 4, 5], ["aerial_won", 1], ["effective_head_clearance", 1], ["head_pass", 1]), side([1, 5, 9], ["aerial_lost", 1])),
-  role("destroyer", side([6, 7, 8], ["won_tackle", 2], ["duel_won", 1]), side([5, 6, 7], ["fouls", 1])),
-  // Centre-backs.
-  role("stopper", side([4, 5, 6], ["won_tackle", 1], ["aerial_won", 1], ["interception", 1]), side([3, 4, 5], ["challenge_lost", 1])),
-  role(
-    "ballPlayingDefender",
-    side([10, 11, 12], ["long_pass_own_to_opp_success", 1], ["fwd_pass", 0.2], ["accurate_long_balls", 1]),
-    side([7, 8, 9], ["league:failed_long_balls", 1]),
-  ),
-  role(
-    "noNonsenseCentreBack",
-    side([9, 10, 11], ["effective_clearance", 1], ["effective_head_clearance", 1], ["outfielder_block", 1]),
-    side([1, 2, 3], ["error_lead_to_shot", 1], ["error_lead_to_goal", 1]),
-  ),
-  role(
-    "attackingCentreBack",
-    side([5, 6, 7], ["att_hd_total", 1], ["pen_area_entries", 1], ["progressive_carries", 1]),
-    side([1, 2, 3], ["dispossessed", 1]),
-  ),
-  role(
-    "sweeper",
-    side([4, 5, 6], ["interception", 1], ["ball_recovery", 1], ["clearance_off_line", 3]),
-    side([1, 2, 3], ["error_lead_to_shot", 1], ["error_lead_to_goal", 1]),
-  ),
-  role(
-    "libero",
-    side([11, 13, 15], ["progressive_carries", 1], ["accurate_pass", 0.1], ["final_third_entries", 1]),
-    side([2, 3, 4], ["unsuccessful_touch", 1]),
-  ),
+  role("invertedWingBack", side([3, 4, 5], [ACCURATE_PASSES, 0.1], [KEY_PASSES, 1]), side([1, 2, 3], [FOULS, 1])),
+  role("goalscoringWingBack", side([1, 2, 4], [SHOTS, 1], [SHOTS_ON_TARGET, 1], [GOALS, 2]), side([1, 2, 3], [BIG_CHANCES_MISSED, 1])),
+  // Full-backs: +1.1 a start.
+  role("overlappingFullBack", side([3, 4, 5], [ACCURATE_CROSSES, 2], [CROSSES, 1], [DRIBBLES_WON, 1]), side([1, 5, 9], [DISPOSSESSED, 1])),
+  role("invertedFullBack", side([4, 5, 6], [ACCURATE_PASSES, 0.1]), side([11, 12, 13], [MISPLACED_PASSES, 1])),
+  role("playmakingFullBack", side([2, 3, 4], [ACCURATE_LONG_BALLS, 1], [KEY_PASSES, 1]), side([2, 3, 4], [FAILED_LONG_BALLS, 1])),
+  role("defensiveFullBack", side([5, 6, 7], [TACKLES_WON, 1], [INTERCEPTIONS, 1], [CLEARANCES, 1], [BLOCKS, 1]), side([3, 4, 5], [DRIBBLED_PAST, 1])),
+  // Defensive midfield: +1.1 a start.
+  role("metronome", side([4, 5, 6], [ACCURATE_PASSES, 0.1]), side([8, 9, 10], [MISPLACED_PASSES, 1])),
+  role("quarterback", side([3, 4, 5], [ACCURATE_LONG_BALLS, 1]), side([6, 7, 8], [FAILED_LONG_BALLS, 1])),
+  // The third centre-back, under the half-back's key, which saved lineups hold (lineup/roles.ts).
+  role("halfBack", side([3, 5, 7], [CLEARANCES, 1], [BLOCKS, 1], [INTERCEPTIONS, 1]), side([1, 2, 3], [ERRORS_TO_A_SHOT, 1])),
+  role("engine", side([10, 11, 12], [RECOVERIES, 1], [INTERCEPTIONS, 1], [ACCURATE_PASSES, 0.1]), side([3, 5, 7], [DRIBBLED_PAST, 1])),
+  role("tower", side([2, 4, 6], [AERIALS_WON, 1]), side([2, 4, 6], [AERIALS_LOST, 1])),
+  role("destroyer", side([5, 7, 9], [TACKLES_WON, 2], [GROUND_DUELS_WON, 1]), side([5, 6, 7], [FOULS, 1])),
+  // Centre-backs: +1.2 a start.
+  role("stopper", side([3, 4, 6], [TACKLES_WON, 1], [BLOCKS, 1], [AERIALS_WON, 1]), side([3, 4, 5], [DRIBBLED_PAST, 1])),
+  role("ballPlayingDefender", side([6, 8, 10], [ACCURATE_LONG_BALLS, 1], [ACCURATE_PASSES, 0.1]), side([7, 8, 9], [FAILED_LONG_BALLS, 1])),
+  role("noNonsenseCentreBack", side([7, 9, 11], [CLEARANCES, 1], [LONG_BALLS, 1]), side([1, 2, 3], [ERRORS_TO_A_SHOT, 1])),
+  role("attackingCentreBack", side([2, 4, 6], [SHOTS, 2], [GOALS, 3]), side([1, 2, 3], [DISPOSSESSED, 1])),
+  role("sweeper", side([5, 7, 9], [RECOVERIES, 1], [INTERCEPTIONS, 1], [LAST_MAN_TACKLES, 1]), side([1, 2, 3], [DRIBBLED_PAST, 1])),
+  role("libero", side([4, 5, 6], [DRIBBLES_WON, 1], [ACCURATE_PASSES, 0.1]), side([1, 2, 3], [DISPOSSESSED, 1])),
 ];
 
-/** The first scoring with these values in it, as firstRolesVersion.ts first put them into the
- *  site's set: what the Tactics preview and its tests price a role card under (#848). */
+/** The first scoring with these values in it, as firstRolesVersion.ts puts them into a new
+ *  deployment's set: what the Tactics preview and its tests price a role card under (#848). */
 export const FIRST_SCORING_WITH_ROLES: StoredScoringSet = { ...FIRST_SCORING, ownStats: [...FIRST_ROLE_OWN_STATS], roles: [...FIRST_ROLES] };

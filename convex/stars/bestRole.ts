@@ -3,7 +3,8 @@
 // does without loading the scorer.
 
 import type { Cell } from "../lineup/pitch";
-import { rolesOfSlot, type Formation, type Role } from "../lineup/roles";
+import { rolesFor, rolesOfSlot, type Formation, type Role } from "../lineup/roles";
+import type { Position } from "../positions/positionTables";
 import { NO_DATA, type RoleStars, type Stars } from "./starsShape";
 
 /** His stars for a role in a cell's area: "—" where he holds no rating for it. */
@@ -23,19 +24,25 @@ export function bestRoleIn(cell: Cell, roles: readonly Role[], ratings: readonly
   return best;
 }
 
-/** The role a player dropped into this slot of this formation (the cells the eleven stand in once
- *  he is there) is saved on: his best-star role's key, or undefined for the slot's first, which a
- *  starter with none given plays (roles.ts's roleIn). Saved when he is dropped, never worked out
- *  when his points are, so a change of stars never changes his points. */
-export function droppedRole(cell: Cell, formation: Formation, ratings: readonly RoleStars[]): string | undefined {
-  const roles = rolesOfSlot(cell, formation);
-  const best = bestRoleIn(cell, roles, ratings);
-  return best === roles[0] ? undefined : best.key;
+/** The role a player with these positions dropped into this slot of this formation (the cells the
+ *  eleven stand in once he is there) is saved on: his best-star role among those he may take
+ *  (roles.ts's rolesFor), its key, or undefined for the slot's first, which a starter with none
+ *  given plays (roles.ts's roleIn). Saved when he is dropped, never worked out when his points are,
+ *  so a change of stars never changes his points. */
+export function droppedRole(cell: Cell, formation: Formation, ratings: readonly RoleStars[], positions: readonly Position[]): string | undefined {
+  const best = bestRoleIn(cell, rolesFor(cell, formation, positions), ratings);
+  return best === rolesOfSlot(cell, formation)[0] ? undefined : best.key;
 }
 
 /** The starter he is, dropped into this slot of this formation: its cell, and the role droppedRole
  *  saves, if any. */
-export function droppedStarter(playerCode: number, { area, lane }: Cell, formation: Formation, ratings: readonly RoleStars[]): Cell & { playerCode: number; role?: string } {
-  const role = droppedRole({ area, lane }, formation, ratings);
+export function droppedStarter(
+  playerCode: number,
+  { area, lane }: Cell,
+  formation: Formation,
+  ratings: readonly RoleStars[],
+  positions: readonly Position[],
+): Cell & { playerCode: number; role?: string } {
+  const role = droppedRole({ area, lane }, formation, ratings, positions);
   return { playerCode, area, lane, ...(role !== undefined && { role }) };
 }

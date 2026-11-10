@@ -19,20 +19,30 @@ const BACK_THREE = presetNamed("3-5-2").cells;
 const BACK_TWO = presetNamed("2-3-5").cells;
 const names = (roles: readonly { name: string }[]) => roles.map(({ name }) => name);
 
-describe("the default set (spec/05 Roles, as merged 5 Nov 2026)", () => {
-  // spec/05's list, position by position, in its order.
+describe("the default set (spec/05 Roles `S05.35`, redrawn on #1196, 9 and 10 Nov 2026)", () => {
+  // spec/05's list, position by position, in its order (docs/roles-first-values.md).
   const SPEC_LIST: Record<SlotPosition, readonly string[]> = {
     GK: ["Shot-stopper", "Sweeper keeper", "Distributor", "Commanding keeper"],
-    FB: ["Overlapping full-back", "Underlapping full-back", "Inverted full-back", "Playmaking full-back", "Defensive full-back"],
+    FB: ["Overlapping full-back", "Inverted full-back", "Playmaking full-back", "Defensive full-back"],
     WB: ["Attacking wing-back", "Holding wing-back", "Complete wing-back", "Inverted wing-back", "Goalscoring wing-back"],
     CB: ["Stopper", "Ball-playing centre-back", "No-nonsense centre-back", "Attacking centre-back", "Sweeper", "Libero"],
-    CDM: ["Metronome", "Quarterback", "Half-back", "Engine", "Tower", "Destroyer"],
-    CM: ["Box-to-box", "Ball-winner", "Attacking 8", "Engine", "Late runner"],
-    WM: ["Wide workhorse", "Defensive winger", "Wide playmaker", "Crosser", "Touchline winger"],
-    CAM: ["Number 10", "Shadow striker", "Maverick", "Carrier", "Pressing 10"],
-    W: ["Touchline winger", "Dribbler", "Inside forward", "Wide playmaker", "Wide forward", "Pressing winger", "Tracking winger"],
-    ST: ["Poacher", "Target man", "In-behind striker", "Pressing forward", "Shadow striker", "False 9"],
+    CDM: ["Metronome", "Quarterback", "Third centre-back", "Engine", "Tower", "Destroyer"],
+    CM: ["Box-to-box", "Ball-winner", "Attacking 8", "Engine"],
+    WM: ["Wide workhorse", "Defensive winger", "Wide playmaker", "Crosser"],
+    CAM: ["Number 10", "Shadow striker", "Carrier", "Pressing 10"],
+    W: ["Touchline winger", "Dribbler", "Inside forward", "Wide playmaker", "Pressing winger", "Tracking winger"],
+    ST: ["Poacher", "Target man", "In-behind striker", "Pressing forward", "False 9"],
   };
+
+  // S05.30
+  test("the sweeper keeper and the libero are marked not tested, and no other role", () => {
+    expect(everyRole.filter(({ notTested }) => notTested).map(({ key }) => key)).toEqual(["sweeperKeeper", "libero"]);
+  });
+
+  // S05.31
+  test("there is no set-piece role", () => {
+    expect(everyRole.some(({ name, rewards }) => /set.piece|corner|free kick/i.test([name, ...rewards].join(" ")))).toBe(false);
+  });
 
   test("each position holds spec/05's roles in its order, the four keeper roles among them", () => {
     expect(Object.fromEntries(Object.entries(DEFAULT_ROLES).map(([position, roles]) => [position, names(roles)]))).toEqual(SPEC_LIST);
@@ -82,7 +92,7 @@ describe("what a slot offers", () => {
     expect(names(rolesOfSlot({ area: "defensiveMidfield", lane: "right" }, BACK_FOUR))).toEqual(names(DEFAULT_ROLES.WB));
     // Wide midfield offers no wing-back role (Craig, 26 Oct 2026).
     expect(names(rolesOfSlot({ area: "midfield", lane: "left" }, BACK_FOUR))).toEqual(names(DEFAULT_ROLES.WM));
-    expect(rolesOfSlot({ area: "attack", lane: "right" }, BACK_FOUR)).toHaveLength(6);
+    expect(rolesOfSlot({ area: "attack", lane: "right" }, BACK_FOUR)).toHaveLength(5);
   });
 
   test("every cell of the pitch offers at least one, and with a back three, every role its position holds", () => {
@@ -165,7 +175,7 @@ describe("a lineup refused for a role its slot doesn't offer", () => {
 
   test("one his slot offers stands", () => {
     expect(leftBack).toMatchObject({ area: "defence", lane: "left" });
-    expect(lineupProblems(withRole("underlappingFullBack"), positions, openLimits())).toEqual([]);
+    expect(lineupProblems(withRole("invertedFullBack"), positions, openLimits())).toEqual([]);
   });
 
   test("one it doesn't is a problem, said in words", () => {
@@ -211,16 +221,21 @@ describe("a role removed from the set (spec/05 Roles; #841; Craig, 31 Oct 2026)"
   // new role's key is added here.
   const OFFERED_ROLE_KEYS: Record<SlotPosition, readonly string[]> = {
     GK: ["shotStopper", "sweeperKeeper", "distributor", "commandingKeeper"],
-    FB: ["overlappingFullBack", "underlappingFullBack", "invertedFullBack", "playmakingFullBack", "defensiveFullBack"],
+    FB: ["overlappingFullBack", "invertedFullBack", "playmakingFullBack", "defensiveFullBack"],
     CB: ["stopper", "ballPlayingDefender", "noNonsenseCentreBack", "attackingCentreBack", "sweeper", "libero"],
     WB: ["attackingWingBack", "holdingWingBack", "completeWingBack", "invertedWingBack", "goalscoringWingBack"],
+    // The half-back is the third centre-back, under the key saved lineups hold (#1196).
     CDM: ["metronome", "quarterback", "halfBack", "engine", "tower", "destroyer"],
-    WM: ["wideMidfielder", "defensiveWinger", "wideMidfieldPlaymaker", "crosser", "wideMidfieldWinger"],
-    CM: ["boxToBox", "ballWinner", "attackingEight", "midfieldEngine", "lateRunner"],
-    W: ["winger", "dribbler", "insideForward", "widePlaymaker", "wideForward", "pressingWinger", "trackingWinger"],
-    CAM: ["numberTen", "attackingMidfieldShadowStriker", "maverick", "carrier", "pressingTen"],
-    ST: ["poacher", "targetMan", "inBehindStriker", "pressingForward", "shadowStriker", "falseNine"],
+    WM: ["wideMidfielder", "defensiveWinger", "wideMidfieldPlaymaker", "crosser"],
+    CM: ["boxToBox", "ballWinner", "attackingEight", "midfieldEngine"],
+    W: ["winger", "dribbler", "insideForward", "widePlaymaker", "pressingWinger", "trackingWinger"],
+    CAM: ["numberTen", "attackingMidfieldShadowStriker", "carrier", "pressingTen"],
+    ST: ["poacher", "targetMan", "inBehindStriker", "pressingForward", "falseNine"],
   };
+
+  test("the roles cut on #1196 are no slot's now", () => {
+    for (const cut of ["underlappingFullBack", "wideMidfieldWinger", "lateRunner", "wideForward", "maverick", "shadowStriker"]) expect(isRole(cut), cut).toBe(false);
+  });
 
   test("every key offered is pinned here, so none goes unnoticed", () => {
     const offered = Object.fromEntries(Object.entries(DEFAULT_ROLES).map(([position, roles]) => [position, roles.map(({ key }) => key)]));

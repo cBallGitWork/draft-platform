@@ -10,7 +10,7 @@ import { ALL_CELLS, AREAS, byPitchOrder, cellKey, LANES, playsCell, positionOfSl
 import { reconciled, type LineupRules } from "../../../convex/lineup/lineup";
 import type { Position } from "../../../convex/positions/positionTables";
 import type { OpenTactics } from "../../../convex/lineup/tactics";
-import { everyRoleOf, offersRole, roleIn, rolesOfSlot, type Formation, type Role } from "../../../convex/lineup/roles";
+import { everyRoleOf, offersRole, roleIn, rolesOfSlot, takesRole, type Formation, type Role } from "../../../convex/lineup/roles";
 import { bestRoleIn, droppedStarter, starsIn } from "../../../convex/stars/bestRole";
 import type { InstructionPair, Side } from "../../../convex/lineup/instructions";
 import type { RoleStars, Stars } from "../../../convex/stars/starsShape";
@@ -34,10 +34,22 @@ export interface EditedLineup {
  *  Roles). */
 export type RatingsOf = (playerCode: number) => readonly RoleStars[];
 
+/** Each squad player's positions, which pick the roles he may take (spec/05 `S05.29`). */
+export type PositionsOf = (playerCode: number) => readonly Position[];
+
+/** Each player's positions as the squad holds them. */
+export const positionsIn =
+  (squad: ReadonlyMap<number, Pick<SquadMember, "positions">>): PositionsOf =>
+  (playerCode) =>
+    squad.get(playerCode)?.positions ?? [];
+
+/** No positions known: every role a slot offers may be taken (roles.ts's takesRole). */
+const ANY_ROLE: PositionsOf = () => [];
+
 /** A player dropped into `cell` of `formation` (the cells the eleven stand in once he is there), on
- *  the role he has the most stars for there (spec/05 Roles). */
-const droppedInto = (playerCode: number, cell: Cell, formation: Formation, ratingsOf: RatingsOf): Starter =>
-  droppedStarter(playerCode, cell, formation, ratingsOf(playerCode));
+ *  the role he has the most stars for there among those he may take (spec/05 Roles). */
+const droppedInto = (playerCode: number, cell: Cell, formation: Formation, ratingsOf: RatingsOf, positionsOf: PositionsOf): Starter =>
+  droppedStarter(playerCode, cell, formation, ratingsOf(playerCode), positionsOf(playerCode));
 
 /** The lineup the screen opens on: the one held for the gameweek, its first until the manager
  *  saves one (spec/05), with its instructions in force, on its classic while the league still
@@ -75,15 +87,15 @@ export const starts = (draft: EditedLineup, playerCode: number) => draft.starter
 
 /** Two players swapped (spec/05, Moving players): starter for starter, each in the other's cell, or
  *  a bench player for a starter, the starter taking his place in the bench order. Each lands on the
- *  role he has the most stars for in his new slot. Two on the bench throws: the bench is put in
- *  order, not swapped. */
-export function swapped(draft: EditedLineup, one: number, other: number, ratingsOf: RatingsOf): EditedLineup {
+ *  role he has the most stars for in his new slot, among those his positions take. Two on the
+ *  bench throws: the bench is put in order, not swapped. */
+export function swapped(draft: EditedLineup, one: number, other: number, ratingsOf: RatingsOf, positionsOf: PositionsOf = ANY_ROLE): EditedLineup {
   if (!starts(draft, one) && !starts(draft, other)) throw new Error(`Players ${one} and ${other} are both on the bench: a swap takes a starter`);
   const swap = (playerCode: number) => (playerCode === one ? other : playerCode === other ? one : playerCode);
   return {
     ...draft,
     starters: draft.starters.map((starter) =>
-      swap(starter.playerCode) === starter.playerCode ? starter : droppedInto(swap(starter.playerCode), starter, draft.starters, ratingsOf),
+      swap(starter.playerCode) === starter.playerCode ? starter : droppedInto(swap(starter.playerCode), starter, draft.starters, ratingsOf, positionsOf),
     ),
     bench: draft.bench.map(swap),
   };
@@ -105,10 +117,10 @@ export interface Landing {
  *  players: "with his stars there"; Craig, 7 Nov 2026, #11): the picked-up player in a lit
  *  starter's slot, or a lit bench player in the picked-up starter's, on the role he has the most
  *  stars for there. Null where neither comes onto the pitch in another's slot (two on the bench). */
-export function landingOf(draft: EditedLineup, picked: number, other: number, ratingsOf: RatingsOf): Landing | null {
+export function landingOf(draft: EditedLineup, picked: number, other: number, ratingsOf: RatingsOf, positionsOf: PositionsOf = ANY_ROLE): Landing | null {
   const lander = starts(draft, other) ? picked : starts(draft, picked) ? other : null;
   if (lander === null) return null;
-  const landed = swapped(draft, picked, other, ratingsOf).starters.find((starter) => starter.playerCode === lander)!;
+  const landed = swapped(draft, picked, other, ratingsOf, positionsOf).starters.find((starter) => starter.playerCode === lander)!;
   const role = roleIn(landed, landed.role);
   return { playerCode: lander, role, stars: starsIn(landed, role.key, ratingsOf(lander)) };
 }
@@ -168,7 +180,9 @@ export function reshaped(draft: EditedLineup, cells: readonly Cell[], { position
     free.splice(free.indexOf(cell), 1);
     // He keeps the role he plays where the new slot offers it too, given or his old slot's first.
     const playing = roleIn(starter, starter.role).key;
-    if (!offersRole(cell, playing, cells)) starters.push(droppedInto(starter.playerCode, cell, cells, ratingsOf));
+    if (!offersRole(cell, playing, cells) || !takesRole(positionsOf(starter.playerCode), playing)) {
+      starters.push(droppedInto(starter.playerCode, cell, cells, ratingsOf, positionsOf));
+    }
     else {
       const role = starter.role ?? (playing === rolesOfSlot(cell, cells)[0].key ? undefined : playing);
       starters.push({ playerCode: starter.playerCode, area: cell.area, lane: cell.lane, ...(role !== undefined && { role }) });
@@ -193,7 +207,7 @@ export function reshaped(draft: EditedLineup, cells: readonly Cell[], { position
     if (cell === undefined) bench.push(playerCode);
     else {
       free.splice(free.indexOf(cell), 1);
-      starters.push(droppedInto(playerCode, cell, cells, ratingsOf));
+      starters.push(droppedInto(playerCode, cell, cells, ratingsOf, positionsOf));
     }
   }
   return { starters, bench };
@@ -220,7 +234,7 @@ const cellOfPosition = (position: Position): Cell | undefined => ALL_CELLS.find(
  *  that has a slot. */
 export function benchBestRole({ positions, stars }: Pick<SquadMember, "positions" | "stars">) {
   const cell = positions.map(cellOfPosition).find((each) => each !== undefined);
-  return cell === undefined ? undefined : { cell, role: bestRoleIn(cell, everyRoleOf(cell), stars) };
+  return cell === undefined ? undefined : { cell, role: bestRoleIn(cell, everyRoleOf(cell).filter(({ key }) => takesRole(positions, key)), stars) };
 }
 
 /** Where a player stands in the lineup, for his panel: his slot and the cells the eleven stand in

@@ -16,16 +16,27 @@ const starterOn = (result: ReturnType<typeof subbed>, playerCode: number) => res
 
 describe("a sub who comes on in his own area", () => {
   test("plays the role he had the most stars for there at the deadline", () => {
-    const { lineup, positions } = withBench(["CAM"]);
+    // A winger never plays up front (spec/05 `S05.29`), so he comes on in his own area.
+    const { lineup, positions } = withBench(["W"]);
     const result = subbed(lineup, positions, plays(lineup, [STRIKER]), undefined, SHADOW_AT_DEADLINE);
 
     expect(starterOn(result, FIRST)).toEqual({ playerCode: FIRST, ...NUMBER_TEN_SLOT, role: "attackingMidfieldShadowStriker" });
   });
 
   test("with no stars kept at the deadline, a gameweek locked before they were, plays the slot's first role", () => {
-    const { lineup, positions } = withBench(["CAM"]);
+    const { lineup, positions } = withBench(["W"]);
     expect(starterOn(subbed(lineup, positions, plays(lineup, [STRIKER])), FIRST)).toEqual({ playerCode: FIRST, ...NUMBER_TEN_SLOT });
   });
+});
+
+// S05.29
+test("a CAM into the striker's empty slot plays false 9, the one attack role he may take", () => {
+  const { lineup: plain, positions } = withBench(["CAM"]);
+  const lineup = { ...plain, starters: plain.starters.map((starter) => (starter.playerCode === STRIKER ? { ...starter, role: "targetMan" } : starter)) };
+
+  const result = subbed(lineup, positions, plays(lineup, [STRIKER]));
+  expect(result.substitutions).toMatchObject([{ on: FIRST, into: "theSlot" }]);
+  expect(starterOn(result, FIRST)).toEqual({ playerCode: FIRST, ...STRIKERS_CELL, role: "falseNine" });
 });
 
 test("a sub into the empty slot takes its role, whatever his stars", () => {

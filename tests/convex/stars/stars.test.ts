@@ -88,17 +88,20 @@ describe("the roles a player is rated for", () => {
     expect(keysIn(["WB"], "defensiveMidfield")).toEqual([...DEFAULT_ROLES.WB, ...DEFAULT_ROLES.CDM].map((role) => role.key));
   });
 
-  test("a shadow striker is rated apart at number 10 and up front, each priced in its own area", () => {
+  test("a wide playmaker is rated apart in wide midfield and out wide in attacking midfield, each priced in its own area", () => {
     // Two roles of one name, each with its own key, as each scores for its own stats (#989).
-    const shadow = ratedRoles(["SS"]).filter((rated) => ["attackingMidfieldShadowStriker", "shadowStriker"].includes(rated.role));
-    expect(shadow.map((rated) => [rated.area, rated.role])).toEqual([
-      ["attackingMidfield", "attackingMidfieldShadowStriker"],
-      ["attack", "shadowStriker"],
+    const wide = ratedRoles(["W"]).filter((rated) => ["wideMidfieldPlaymaker", "widePlaymaker"].includes(rated.role));
+    expect(wide.map((rated) => [rated.area, rated.role, rated.cell])).toEqual([
+      ["midfield", "wideMidfieldPlaymaker", { area: "midfield", lane: "left" }],
+      ["attackingMidfield", "widePlaymaker", { area: "attackingMidfield", lane: "left" }],
     ]);
-    expect(shadow.map((rated) => rated.cell)).toEqual([
-      { area: "attackingMidfield", lane: "leftCentre" },
-      { area: "attack", lane: "left" },
-    ]);
+  });
+
+  // S05.29
+  test("only for the roles he may take: a CAM up front for the false 9 alone, the pressing winger for a W alone", () => {
+    expect(ratedRoles(["CAM"]).filter((rated) => rated.area === "attack").map((rated) => rated.role)).toEqual(["falseNine"]);
+    expect(ratedRoles(["W"]).some((rated) => rated.role === "pressingWinger")).toBe(true);
+    expect(ratedRoles(["WM"]).some((rated) => rated.role === "pressingWinger")).toBe(false);
   });
 
   test("none for a player with no position yet", () => {

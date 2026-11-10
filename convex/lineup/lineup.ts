@@ -6,7 +6,7 @@
 // as illegal. It is reported alone, so a caller can set it aside; the rule is #23's to keep.
 
 import { AREAS, cellKey, LANES, playsCell, type Area, type Cell, type Lane } from "./pitch";
-import { BACK_THREE, centreBacksIn, everyRoleOf, isRole, needsBackThree } from "./roles";
+import { BACK_THREE, centreBacksIn, everyRoleOf, isRole, needsBackThree, roleIn, takesRole } from "./roles";
 import type { Position } from "../positions/positionTables";
 
 /** A football side's eleven: the product's rule, not a league's. */
@@ -61,7 +61,9 @@ export type LineupProblem =
   | { kind: "belowMinimum"; area: Area; starterCount: number; minimum: number }
   | { kind: "roleNotOffered"; playerCode: PlayerCode; area: Area; lane: Lane; role: string }
   /** A sweeper or libero with fewer than three centre-backs (spec/05 The pitch). */
-  | { kind: "noBackThree"; playerCode: PlayerCode; role: string; centreBacks: number };
+  | { kind: "noBackThree"; playerCode: PlayerCode; role: string; centreBacks: number }
+  /** A role his positions can't take, such as a striker's for a CAM up front (spec/05 `S05.29`). */
+  | { kind: "roleNotHis"; playerCode: PlayerCode; role: string; positions: readonly Position[] };
 
 const isArea = (area: string): area is Area => (AREAS as readonly string[]).includes(area);
 const isLane = (lane: string): lane is Lane => (LANES as readonly string[]).includes(lane);
@@ -108,6 +110,8 @@ export function lineupProblems(lineup: Lineup, positions: PlayerPositions, rules
     if (playerPositions === undefined) problems.push({ kind: "positionsUnknown", playerCode });
     else if (!playsCell(playerPositions, { area, lane })) {
       problems.push({ kind: "outsideHisAreas", playerCode, area, lane, positions: playerPositions });
+    } else if (!takesRole(playerPositions, roleIn({ area, lane }, role).key)) {
+      problems.push({ kind: "roleNotHis", playerCode, role: roleIn({ area, lane }, role).key, positions: playerPositions });
     }
   }
   for (const cell of standing.values()) {

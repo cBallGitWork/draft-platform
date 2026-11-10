@@ -12,7 +12,7 @@ import { NextMatches } from "../SquadCells";
 import { statusNotSettledLabel } from "../words";
 import { markOf } from "./focusMarks";
 import { PositionMarks, positionMarksOf } from "./positionMarks";
-import { benchBestRole, landingOf, startersInOrder, type EditedLineup, type Landing, type RatingsOf, type SquadMember, type Starter } from "./lineupEdits";
+import { benchBestRole, landingOf, positionsIn, startersInOrder, type EditedLineup, type Landing, type RatingsOf, type SquadMember, type Starter } from "./lineupEdits";
 import { startDrag, type Moving } from "./pitch/Pitch";
 import {
   BEST_ROLE_HEAD,
@@ -83,7 +83,7 @@ export function SelectionTable({
   };
   /** A bench player's swap for the starter picked up, where he is lit; null otherwise. */
   const landingOn = (playerCode: number) =>
-    pickedStarts && moving.reach?.players.includes(playerCode) ? landingOf(draft, picked.playerCode, playerCode, ratingsOf) : null;
+    pickedStarts && moving.reach?.players.includes(playerCode) ? landingOf(draft, picked.playerCode, playerCode, ratingsOf, positionsIn(squad)) : null;
   const row = (playerCode: number, place: StarterPlace | { benchIndex: number }) => (
     <SelectionRow
       key={playerCode}
