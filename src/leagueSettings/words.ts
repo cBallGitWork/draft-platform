@@ -124,6 +124,22 @@ export const teamOrderFailedWords = failedWords(unmovedOutcome);
 
 export const savedWords = (gameweek: number) => savedFromWords("The new settings apply", gameweek, ", and the league has a letter saying so");
 
+/** The scoring start (spec/04, After the draft; Craig, 5 Nov 2026, on #1097), on Fixtures (#1190),
+ *  saved at once, apart from the settings' Save, as it isn't one of the league's rules rows. */
+export const scoringStartLabel = "Scoring starts in";
+export const scoringStartHint = "Earlier gameweeks score nothing and have no head-to-heads.";
+export const savesAtOnceWords = "A change saves at once.";
+/** The picker's choice while none is set. */
+export const noScoringStartWords = "Not set";
+export const noScoringStartHint = "Not set: every ticked gameweek scores until the draft ends, which sets it to the next gameweek.";
+export const scoringStartFixedAfter = (deadline: string) => `Fixed after ${deadline}.`;
+export const scoringStartFixedWords = (deadline: string) => `Fixed: its deadline, ${deadline}, has passed.`;
+export const noScoringStartChoicesWords = "No ticked gameweek with a known deadline is still to begin, so scoring can't start in one.";
+export const scoringStartLoadingWords = "Loading the scoring start…";
+/** What a failed change leaves, live or in the preview. */
+export const unchangedStartOutcome = "the scoring start didn't change";
+export const scoringStartFailedWords = failedWords(unchangedStartOutcome);
+
 /** What a failed save leaves, live or in the preview. */
 export const unsavedOutcome = "the settings didn't change";
 export const saveFailedWords = failedWords(unsavedOutcome);

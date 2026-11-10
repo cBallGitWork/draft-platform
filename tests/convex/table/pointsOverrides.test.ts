@@ -1,4 +1,3 @@
-import { ConvexError } from "convex/values";
 import { expect, test } from "vitest";
 import { api, internal } from "../../../convex/_generated/api";
 import type { TableNames } from "../../../convex/_generated/dataModel";
@@ -30,7 +29,7 @@ import {
 import { fullTimeRecords, lockMatch, storeLeague } from "../../support/convex/gameweekScoresMatch.harness";
 import { actingAs, ADMIN, COMMISSIONER } from "../../support/convex/leagues.harness";
 import { EVERTON_CLUB, HULL_CITY, HULL_EVERTON, mergedHullEverton } from "../../support/convex/matchStats.harness";
-import { EMOJI } from "../../support/convex/test.harness";
+import { EMOJI, expectRefused } from "../../support/convex/test.harness";
 
 // A commissioner overrides one player's points for one match, with a reason (#32; spec/14, Changes
 // and corrections): the table, the matchup and the stored scores all take it, and the whole league
@@ -81,16 +80,6 @@ const everythingElse = ({ t }: ScoresLeague) =>
     for (const table of Object.keys(schema.tables) as TableNames[]) if (!writes.includes(table)) rows[table] = await ctx.db.query(table).collect();
     return rows;
   });
-
-const refusalOf = async (call: Promise<unknown>) => {
-  try {
-    await call;
-  } catch (error) {
-    if (error instanceof ConvexError) return error.data as string;
-    throw error;
-  }
-  return null;
-};
 
 test("an override changes the player's points, the team's total and the head-to-head, and files one letter; nothing else moves", async () => {
   const league = await storedLeague();
@@ -154,27 +143,27 @@ test("a manager who doesn't run the league is refused, and nothing changes", asy
   const league = await storedLeague();
   const before = await tablePoints(league);
 
-  expect(await refusalOf(overrides(league, ANN))).toBe(refusals.notRunner);
+  await expectRefused(overrides(league, ANN), refusals.notRunner);
   expect(await league.t.run((ctx) => ctx.db.query("pointsOverrides").collect())).toEqual([]);
   expect(await tablePoints(league)).toEqual(before);
 });
 
 test("an override is refused with a reason when it can't be sound", async () => {
   const league = await storedLeague();
-  const refusalFor = (override: Override) => refusalOf(overrides(league, COMMISSIONER, override));
+  const attempt = (override: Override) => overrides(league, COMMISSIONER, override);
 
-  expect(await refusalFor({ reason: "  " })).toBe(overrideRefusals.blankReason);
-  expect(await refusalFor({ reason: "x".repeat(OVERRIDE_REASON_MAX + 1) })).toBe(overrideRefusals.reasonTooLong);
-  expect(await refusalFor({ fixtureCode: NOBODY })).toBe(overrideRefusals.noMatch);
-  expect(await refusalFor({ playerCode: NOBODY })).toBe(refusals.noPlayer);
-  expect(await refusalFor({ points: 0.05 })).toBe(overrideRefusals.notPoints);
-  expect(await refusalFor({ points: Number.POSITIVE_INFINITY })).toBe(overrideRefusals.notPoints);
-  expect(await refusalFor({ points: OVERRIDE_POINTS_MOST + 1 })).toBe(overrideRefusals.outOfRange);
-  expect(await refusalFor({ points: -OVERRIDE_POINTS_MOST - 1 })).toBe(overrideRefusals.outOfRange);
+  await expectRefused(attempt({ reason: "  " }), overrideRefusals.blankReason);
+  await expectRefused(attempt({ reason: "x".repeat(OVERRIDE_REASON_MAX + 1) }), overrideRefusals.reasonTooLong);
+  await expectRefused(attempt({ fixtureCode: NOBODY }), overrideRefusals.noMatch);
+  await expectRefused(attempt({ playerCode: NOBODY }), refusals.noPlayer);
+  await expectRefused(attempt({ points: 0.05 }), overrideRefusals.notPoints);
+  await expectRefused(attempt({ points: Number.POSITIVE_INFINITY }), overrideRefusals.notPoints);
+  await expectRefused(attempt({ points: OVERRIDE_POINTS_MOST + 1 }), overrideRefusals.outOfRange);
+  await expectRefused(attempt({ points: -OVERRIDE_POINTS_MOST - 1 }), overrideRefusals.outOfRange);
   expect(overrideRefusals.outOfRange).toBe(`An override is from −${OVERRIDE_POINTS_MOST} to ${OVERRIDE_POINTS_MOST} points.`);
   // A man of a club not in the match, and named on neither sheet.
   await league.t.run((ctx) => ctx.db.insert("players", { code: NOBODY, name: "Elsewhere", fullName: "Elsewhere", clubCode: 1 }));
-  expect(await refusalFor({ playerCode: NOBODY })).toBe(overrideRefusals.notInMatch("Elsewhere"));
+  await expectRefused(attempt({ playerCode: NOBODY }), overrideRefusals.notInMatch("Elsewhere"));
   expect(await league.t.run((ctx) => ctx.db.query("pointsOverrides").collect())).toEqual([]);
 });
 
@@ -194,7 +183,7 @@ test(`a reason of ${OVERRIDE_REASON_MAX} characters is let in when each is an em
   expect((await league.t.run((ctx) => ctx.db.query("pointsOverrides").collect())).map((row) => ({ points: row.points, reason: row.reason }))).toEqual([
     { points: OVERRIDDEN, reason },
   ]);
-  expect(await refusalOf(overrides(league, COMMISSIONER, { reason: reason + EMOJI }))).toBe(overrideRefusals.reasonTooLong);
+  await expectRefused(overrides(league, COMMISSIONER, { reason: reason + EMOJI }), overrideRefusals.reasonTooLong);
 });
 
 test("a match still inside its corrections window can be overridden, and the override stands over a later correction (S14.2, S14.4)", async () => {
@@ -245,9 +234,9 @@ test("removing an override puts his scored points back everywhere, and the leagu
 test("removing an override is refused where none is held, or by a manager who doesn't run the league", async () => {
   const league = await storedLeague();
   const name = await nameOf(league, HULL_SCORER);
-  expect(await refusalOf(removes(league, COMMISSIONER))).toBe(overrideRefusals.noOverride(name));
+  await expectRefused(removes(league, COMMISSIONER), overrideRefusals.noOverride(name));
   await overrides(league, COMMISSIONER);
-  expect(await refusalOf(removes(league, ANN))).toBe(refusals.notRunner);
+  await expectRefused(removes(league, ANN), refusals.notRunner);
   expect(await league.t.run((ctx) => ctx.db.query("pointsOverrides").collect())).toHaveLength(1);
 });
 

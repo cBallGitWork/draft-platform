@@ -9,6 +9,7 @@ import { deadlineOf, leagueDeadlines } from "../gameweeks/leagueDeadlines";
 import { thisGameweekOf } from "../gameweeks/nextGameweek";
 import { takeAllOrThrow } from "../shared/cappedRead";
 import { GAMEWEEK_MATCHES_MOST } from "../shared/fixtures";
+import { groupedBy } from "../shared/groupedBy";
 import { DAY_MS } from "../shared/time";
 import { LIVE_WINDOW_MS } from "../stats/liveStats";
 import { commentary, type MatchupCommentary } from "../matchup/matchupShape";
@@ -163,11 +164,8 @@ async function matchdayOf(ctx: QueryCtx, league: Doc<"leagues">, season: SeasonR
     NEAR_MATCHES_MOST,
     `More than ${NEAR_MATCHES_MOST} matches kick off near ${now}, so league home's matchday would be cut short`,
   );
-  const byGameweek = new Map<number, Doc<"fixtures">[]>();
-  for (const fixture of near) {
-    if (fixture.droppedAt !== undefined || fixture.gameweek === null) continue;
-    byGameweek.set(fixture.gameweek, [...(byGameweek.get(fixture.gameweek) ?? []), fixture]);
-  }
+  const inPlay = near.filter((fixture): fixture is Doc<"fixtures"> & { gameweek: number } => fixture.droppedAt === undefined && fixture.gameweek !== null);
+  const byGameweek = groupedBy(inPlay, ({ gameweek }) => gameweek);
   for (const [gameweek, fixtures] of [...byGameweek].toSorted(([one], [other]) => one - other)) {
     const matches = await Promise.all(
       fixtures.map(async ({ code, kickoff }) => ({ fixtureCode: code, kickoff, fullTimeAt: (await statusOf(ctx, code))?.fullTimeAt ?? null })),

@@ -19,3 +19,5 @@ coverage/
 # Builders write pull request bodies to files.
 /pr-body-*.md
 /.pr-body-*.md
+# and their Open rules comments.
+/.open-rules*.md

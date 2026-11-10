@@ -1,4 +1,3 @@
-import { ConvexError } from "convex/values";
 import { expect, test } from "vitest";
 import { api } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
@@ -21,6 +20,7 @@ import {
 import { fullTimeRecords, lockMatch, storeLeague } from "../../support/convex/gameweekScoresMatch.harness";
 import { actingAs, ADMIN, COMMISSIONER } from "../../support/convex/leagues.harness";
 import { HULL_EVERTON } from "../../support/convex/matchStats.harness";
+import { expectRefused } from "../../support/convex/test.harness";
 
 // A commissioner sets a team's total in a gameweek, with a reason (#903; spec/14 S14.2-S14.5):
 // the head-to-head and the table follow it, it stands over the gameweek's player overrides and a
@@ -62,16 +62,6 @@ async function everywhere(league: ScoresLeague) {
 }
 const teamNameOf = async ({ t, annsTeam }: ScoresLeague) => (await t.run((ctx) => ctx.db.get("teams", annsTeam)))!.name;
 const lastLetter = async ({ t }: ScoresLeague) => (await t.run((ctx) => ctx.db.query("letters").collect())).at(-1)!;
-
-const refusalOf = async (call: Promise<unknown>) => {
-  try {
-    await call;
-  } catch (error) {
-    if (error instanceof ConvexError) return error.data as string;
-    throw error;
-  }
-  return null;
-};
 
 test("a team's override sets its gameweek total: the head-to-head, the table and the stored score follow, and the league is told why (S14.3)", async () => {
   const league = await storedLeague();
@@ -144,14 +134,15 @@ test("removing a team's override puts its scored total back everywhere, and the 
 
 test("a team's override is refused with a reason when it can't be sound, and nothing changes", async () => {
   const league = await storedLeague();
-  const refusalFor = (override: TeamOverride, by = COMMISSIONER) => refusalOf(overridesTeam(league, by, override));
+  const attempt = (override: TeamOverride, by = COMMISSIONER) => overridesTeam(league, by, override);
 
-  expect(await refusalFor({}, ANN)).toBe(refusals.notRunner);
-  expect(await refusalFor({ reason: " " })).toBe(overrideRefusals.blankReason);
-  expect(await refusalFor({ gameweek: GAMEWEEK + 1 })).toBe(overrideRefusals.notBegun(GAMEWEEK + 1));
-  expect(await refusalFor({ points: 0.05 })).toBe(overrideRefusals.notPoints);
-  expect(await refusalFor({ points: TEAM_OVERRIDE_POINTS_MOST + 1 })).toBe(teamOverrideRefusals.outOfRange);
-  expect(await refusalOf(removesTeam(league, COMMISSIONER))).toBe(teamOverrideRefusals.noOverride(await teamNameOf(league), GAMEWEEK));
+  await expectRefused(attempt({}, ANN), refusals.notRunner);
+  await expectRefused(attempt({ reason: " " }), overrideRefusals.blankReason);
+  await expectRefused(attempt({ gameweek: GAMEWEEK + 1 }), overrideRefusals.notBegun(GAMEWEEK + 1));
+  await expectRefused(attempt({ points: 0.05 }), overrideRefusals.notPoints);
+  await expectRefused(attempt({ points: TEAM_OVERRIDE_POINTS_MOST + 1 }), teamOverrideRefusals.outOfRange);
+  const name = await teamNameOf(league);
+  await expectRefused(removesTeam(league, COMMISSIONER), teamOverrideRefusals.noOverride(name, GAMEWEEK));
   expect(await league.t.run((ctx) => ctx.db.query("teamOverrides").collect())).toEqual([]);
   expect((await everywhere(league)).table).toEqual([HULL_POINTS, EVERTON_POINTS]);
 });

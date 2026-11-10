@@ -42,7 +42,7 @@ export function previewApp(): ReactNode | null {
       scoring={previewScoringFor(session)}
       leagueSettings={previewLeagueSettings}
       table={previewTable}
-      scouting={previewScouting}
+      scouting={{ ...previewScouting, useCardAction: previewPlayerCard.useCardAction, useWaiverChanges: previewPlayerCard.useWaiverChanges }}
       playerCard={previewPlayerCard}
       home={previewHome}
       myTeam={previewMyTeam}

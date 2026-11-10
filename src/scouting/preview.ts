@@ -2,15 +2,20 @@
 // stats added up for each, filtered and sorted by the server's own rule (listOf).
 
 import type { ListedPlayer } from "../../convex/scouting/playersList";
-import { listOf, shownStat } from "../../convex/scouting/playersOrder";
+import { mainArea, per90FiguresIn, per90PanelOf, totalOf } from "../../convex/scouting/per90Figures";
+import { cardOpensAt } from "../../convex/playerCard/cardPoints";
+import { MINUTES_STAT } from "../../convex/stats/matchRecords";
+import { proLeague } from "../shared/preview";
+import { listFigures, listOf, NO_FIGURES, shownStat } from "../../convex/scouting/playersOrder";
 import { withOwnStats } from "../../convex/scoring/ownStats";
 import { OWN_STAT_PREFIX } from "../../convex/scoring/statCatalogue";
 import type { Stats } from "../../convex/stats/statTotals";
 import { DAY_MS } from "../../convex/shared/time";
 import { listedFromScouting, queueInPreview, setPreviewShortlisted } from "../draft/previewLists";
+import { previewClaims } from "../myTeam/claims/preview";
 import { previewScouts } from "./scouts/preview";
 import { previewShortlistOf } from "./shortlist/preview";
-import type { ScoutingSeam } from "./seam";
+import type { ScoutingSeam, WaiverActionSeam } from "./seam";
 
 export const ARSENAL = { code: 3, name: "Arsenal", shortName: "ARS" };
 export const CHELSEA = { code: 8, name: "Chelsea", shortName: "CHE" };
@@ -25,6 +30,7 @@ const player = (code: number, name: string, fullName: string, club: ListedPlayer
   ownerTeamName,
   onWaivers: null,
   seasonPoints: null,
+  figures: NO_FIGURES,
   stat: null,
 });
 
@@ -58,8 +64,9 @@ const PREVIEW_SET = {
   wholePointsOnly: false,
   ownStats: [{ stat: `${OWN_STAT_PREFIX}goal_involvements`, name: "Goal involvements", shortCode: "GI", parts: [{ stat: "goals_scored", weight: 1 }, { stat: "assists", weight: 1 }] }],
 };
-/** Matches this season, the same for everyone in the preview. */
-const PREVIEW_MATCHES = 9;
+const previewPlayer = (playerCode: number) => previewPlayers.find(({ code }) => code === playerCode)!;
+/** A preview player as the per-90 figures weigh him (per90Figures.ts). */
+const weighed = (player: ListedPlayer) => ({ area: mainArea(player.positions), totals: withOwnStats(previewTotals[player.code] ?? {}, PREVIEW_SET) });
 
 /** Rice and Salah are on the preview manager's shortlist to begin with, and feed his draft queue. */
 const SHORTLISTED = [2, 6];
@@ -72,17 +79,34 @@ const addToQueue = async (_leagueId: unknown, playerCode: number) => {
   return null;
 };
 
-export const previewScouting: ScoutingSeam = {
+/** Scouting's own part of the preview; the app adds the player card's pickup and claim
+ *  (src/app/previewApp.tsx), whose preview reads these players. */
+export const previewScouting: Omit<ScoutingSeam, keyof WaiverActionSeam> = {
   ...previewShortlist,
   ...previewScouts,
+  usePendingClaims: previewClaims.usePendingClaims,
   useAddToQueue: () => addToQueue,
-  useComparison: (_leagueId, codes) =>
-    codes?.map((code) => ({ ...previewPlayers.find((each) => each.code === code)!, matches: PREVIEW_MATCHES, stats: previewTotals[code] ?? {} })),
+  useComparison: (_leagueId, codes, stat) => {
+    if (codes === null) return undefined;
+    const area = mainArea(previewPlayer(codes[0]).positions);
+    return codes.map((code) => {
+      const totals = weighed(previewPlayer(code)).totals;
+      const figures = area === null ? [] : per90FiguresIn(area, totals, previewPlayers.map(weighed), stat);
+      return { ...previewPlayer(code), minutes: totalOf(totals, MINUTES_STAT), figures };
+    });
+  },
+  usePer90: (_leagueId, playerCode, stat) => per90PanelOf(weighed(previewPlayer(playerCode)), previewPlayers.map(weighed), stat),
+  // The preview manager's player at the same main position, as the server picks him with no lineup to read.
+  useYourPlayer: (_leagueId, playerCode) => {
+    const main = cardOpensAt(previewPlayer(playerCode).positions);
+    const yours = previewPlayers.find((each) => each.ownerTeamName === proLeague.teamName && each.code !== playerCode && main !== null && cardOpensAt(each.positions) === main);
+    return { player: yours === undefined || main === null ? null : { position: main, code: yours.code, name: yours.name }, squadFull: false };
+  },
   usePlayersList: (_leagueId, filters, sort, stat) => ({
     clubs: [ARSENAL, CHELSEA, LIVERPOOL],
     ownStats: PREVIEW_SET.ownStats.map(({ stat, name, shortCode }) => ({ stat, name, shortCode })),
     players: listOf(
-      previewPlayers.map((player) => ({ ...player, stat: shownStat(withOwnStats(previewTotals[player.code] ?? {}, PREVIEW_SET), stat) })),
+      previewPlayers.map((player) => ({ ...player, figures: listFigures(previewTotals[player.code]), stat: shownStat(withOwnStats(previewTotals[player.code] ?? {}, PREVIEW_SET), stat) })),
       filters,
       sort,
     ),

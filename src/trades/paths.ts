@@ -3,6 +3,7 @@
 
 import type { Id } from "../../convex/_generated/dataModel";
 import { TRADES_NEW_PATH } from "../frame/menu";
+import { idOf } from "../shared/search";
 
 /** The address's search: the offer a counter answers. */
 export type NewOfferSearch = { counter?: Id<"tradeOffers"> };
@@ -17,10 +18,5 @@ export const counterLink = (offerId: Id<"tradeOffers">) => ({
 export function newOfferSearchOf({
   counter,
 }: Record<string, unknown>): NewOfferSearch {
-  return {
-    counter:
-      typeof counter === "string" && counter !== ""
-        ? (counter as Id<"tradeOffers">)
-        : undefined,
-  };
+  return { counter: idOf<"tradeOffers">(counter) };
 }

@@ -6,7 +6,7 @@ import { screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
 import type { Cell } from "../../../../convex/lineup/pitch";
-import { BENCH_TITLE, refusalWords, roleLabel, swapLabel } from "../../../../src/myTeam/tactics/words";
+import { BENCH_TITLE, refusalWords, swapLabel } from "../../../../src/myTeam/tactics/words";
 import { openTactics } from "../../../support/src/tactics.harness";
 import {
   ARRIZABALAGA,
@@ -25,8 +25,12 @@ import {
   drag,
   member,
   openedPitch,
+  pickRole,
   pickUp,
   pitch,
+  roleButton,
+  rolesOnCard,
+  roleShown,
   rowOf,
   swap,
   type Member,
@@ -129,9 +133,9 @@ describe("a back five's centre-backs (Craig, 1 Nov 2026: \"make sure we allow th
   it("the one moved into the middle can take a sweeper role, a centre-back role in a back three or more", async () => {
     await openedPitch({ tactics: FIVE });
     await swap(SALIBA, GABRIEL);
-    const picker = screen.getByRole<HTMLSelectElement>("combobox", { name: roleLabel(SALIBA.name) });
-    expect(Array.from(picker.options).map((option) => option.value)).toEqual(expect.arrayContaining(["sweeper", "libero"]));
-    await userEvent.selectOptions(picker, "sweeper");
-    expect(picker.value).toBe("sweeper");
+    await userEvent.click(roleButton(SALIBA.name));
+    expect(rolesOnCard(SALIBA.name)).toEqual(expect.arrayContaining(["Sweeper", "Libero"]));
+    await pickRole(SALIBA.name, "Sweeper");
+    expect(roleShown(SALIBA.name)).toBe("Sweeper");
   });
 });

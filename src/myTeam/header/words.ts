@@ -2,14 +2,13 @@
 // place for Craig to change in the pull request.
 
 import { DAY_MS, HOUR_MS, MINUTE_MS } from "../../../convex/shared/time";
-import { LOCALE } from "../../../convex/shared/moments";
 import { figureWords, gameweekShort, gameweekWords, scoreWords } from "../../shared/words";
 import { byeWords, leagueAverageWords } from "../words";
 import { resultOf, type Result } from "../../../convex/table/standings";
 import type { TeamGame } from "./teamStanding";
 
 export { liveWords, noFigureWords, versusWords, whenWords } from "../words";
-export { gameweekShort } from "../../shared/words";
+export { gameweekShort, placeWords } from "../../shared/words";
 
 /** The band's heads over each reading. */
 export const deadlineHead = (gameweek: number) => `${gameweekShort(gameweek)} deadline`;
@@ -46,9 +45,5 @@ export const lastGameWords = ({ against, score }: TeamGame & { score: NonNullabl
   return score.provisional ? line : `${LAST_RESULT_WORDS[resultOf(score.team, score.opponent)]} ${line}`;
 };
 
-const ordinals = new Intl.PluralRules(LOCALE, { type: "ordinal" });
-const ORDINAL_ENDS: Record<Intl.LDMLPluralRule, string> = { zero: "th", one: "st", two: "nd", few: "rd", many: "th", other: "th" };
-/** A place in the table: "1st", "22nd". */
-export const placeWords = (place: number) => `${place}${ORDINAL_ENDS[ordinals.select(place)]}`;
 /** Points, short as the band says them: "18 pts". */
 export const pointsShort = (points: number) => `${figureWords(points)} pts`;

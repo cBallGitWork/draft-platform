@@ -28,7 +28,9 @@ Each with the questions its grill starts from. The questions are Claude's.
 
 **Status chips' data**: the squad table, the player card (`docs/design/plate.md`, Tables and panels).
 - Craig wants CM's chips after a name (1 Nov 2026: "i like a CM like red/yellow cross/card for
-  suspension etc"). Which FPL statuses each chip reads: injured, suspended, a knock.
+  suspension etc"). Which of Sportmonks' injury and suspension statuses each chip reads: injured,
+  suspended, a knock. Sportmonks replaces FPL's news (Craig, 9 Nov 2026, on #1196: "ive heard its
+  not great but lets see"), judged in the trial.
 - "One booking from a ban" needs the competition's yellow-card thresholds, held per competition as
   data, and a count of each player's bookings. Wanted now, or after the beta?
 
@@ -50,11 +52,6 @@ competition, not the design plate (`docs/design/plate.md`).
   redrafts that "do not affect the current league standings"
   (premierleague.com/en/news/4363847).
 
-**Our own gameweeks, not FPL's** (Craig, 22 Oct: "think we need to make our own gameweeks at
-somepoint").
-- A league's gameweek begins at its own deadline already (`spec/13` Gameweeks); what an own
-  gameweek is beyond that, and how it maps to FPL's rounds.
-
 **Makeshift positions, after the rest is built** (Craig, 24-25 Oct 2026; SPEC.md, Later). For now
 a player fills only his own areas, and only a keeper plays in goal, both ways (`spec/05`).
 - What it must stop: "we want to stop people just playing players in good teams at the back to get
@@ -66,7 +63,7 @@ a player fills only his own areas, and only a keeper plays in goal, both ways (`
   position, only part of the gap. Craig took these as starting points (25 Oct 2026): his own
   position's price is the best of his positions ("some players will have multi roles"); where the
   slot's priced lower, he gets the slot's lower price; he is natural where the real team sheet put him
-  (`docs/pl-match-stats.md`); a sub counts by his own positions; auto-subs take the first bench
+  (Sportmonks' lineups: formation position, detailed position; Craig, 9 Nov 2026, on #1196); a sub counts by his own positions; auto-subs take the first bench
   player who can play the area, as now. Other punishments for an extreme shape wait until it plays.
 - It reopens three answers: scoring by the slot (`spec/14`), no out-of-position penalty
   (`spec/05`), the areas each position can play (`spec/06`). The site owns it (`spec/14`).
@@ -120,10 +117,11 @@ override's place are settled in `spec/14` (Craig, 7 Nov 2026; #903). Still open:
 
 **Who's doubtful, on Tactics**: "obv we need that for tactics too" (Craig, 1 Nov 2026, on
 Continue taking a manager to Tactics before the deadline so he can adjust his lineup).
-- What marks a doubtful or out player: FPL's chance of playing (held per player), its reason
-  ("Back injury - Unknown return date"), a blank gameweek, or all three.
+- What marks a doubtful or out player: Sportmonks' injuries and suspensions (in place of FPL's
+  chance of playing, Craig, 9 Nov 2026, on #1196), a blank gameweek, or both.
 - Where it shows: the pitch's starters, the bench, the squad list, or all of them.
-- Whether its levels (75%, 50%, 25%, out) each look different, and what a phone shows.
+- Whether its levels each look different, once the trial shows what levels Sportmonks sends, and
+  what a phone shows.
 
 **Formation descriptions**: the formation window shows each formation's and each classic side's
 description, and the Guide would too.
@@ -162,10 +160,8 @@ Table).
 - What "Your lineup" says (the picture: "Saka doubtful"), and whether a box opens anything.
 - Claims close needs waivers (`spec/08`), not built yet.
 
-**Mail's Needs you tab on Home**: the Mail panel splits Needs you (3) | All.
-- Which letters need a manager: a lineup to set, a trade offer, a claim's result. Is it the same
-  list Continue walks through (`spec/12`, The frame)?
-- Whether Mail itself gets the tab too.
+**Mail's Needs you and Continue**: which letters need you is settled (`spec/16`). Is it the same
+list Continue walks through (`spec/12`, The frame)?
 
 **The Premier League on Home**: "does home need some of the live footie too?" (Craig, 1 Nov 2026).
 The picture lists this gameweek's matches with your players and your opponent's in each.
@@ -175,7 +171,8 @@ The picture lists this gameweek's matches with your players and your opponent's 
 
 **Your squad news on Home**: the picture lists your players who are injured, suspended, doubtful or
 a booking from a ban.
-- Which FPL statuses it reads, as Status chips' data and Who's doubtful, on Tactics (above) ask.
+- Which of Sportmonks' injury and suspension statuses it reads, as Status chips' data and Who's
+  doubtful, on Tactics (above) ask.
 - Only your squad, or your starters first.
 
 **Run the league**: a to-do list for the commissioner and co-commissioner on Home. Craig said "ok"
@@ -260,8 +257,30 @@ ai-carling-premiership match logs; the numbers there come from FotMob and Sofasc
     change mid-season, and whether the admin can override it.
   - Classic's lines against `spec/06`'s "the same in every league": a new rule on top of the
     positions, or a change to them.
-  - The rates checked again against the Premier League feed once it's recorded, and whether that
-    feed sends recoveries and blocked shots.
+  - The rates checked again against Sportmonks' stats, and whether it sends recoveries and
+    blocked shots in all five leagues.
+
+**The roles, redesigned around Sportmonks' stats**: roles (`spec/05`), the role card, scoring
+(`spec/14`). Sportmonks is the one feed, with the same stats and scoring in every league: "which
+is good but we want a universal experience" (Craig, 9 Nov 2026, on #1196). The roles are
+redesigned around the stats Sportmonks has in all five leagues, in a grill of their own. A richer
+feed (StatsBomb, Opta, Sportradar) comes only later, if the redesigned roles feel flat.
+- Which of each role's stats Sportmonks doesn't send in all five leagues, and what each role
+  scores in their place.
+- The set-piece lists are dropped: "we didthced set piece taker (unless its a role)" (Craig,
+  9 Nov 2026, on #1196). Is a set-piece duty (penalties, free kicks, corners) a role, and which
+  stats would score it?
+- The backtest after: ai-carling's past seasons, matched to Sportmonks players through FPL's code
+  ("sure", Craig, 9 Nov 2026), rerun on the redesigned roles. Which seasons, and what it must show
+  before the roles are set.
+
+**In-box role stats**: roles (`spec/05`), the role card.
+- `spec/05`'s poacher scores "1 goal in box, 1 shot on target in box". Sportmonks gives no in-box
+  split for shots or goals, only for saves. Craig: "would need a feed similar for each league in
+  that case" (9 Nov 2026, on #1196): an in-box stat needs a source that has it for all five leagues.
+- Questions for the grill: whether the Sportmonks trial's events or ball positions can give the
+  split; if not, plain shots on target and goals in its place, or the roles that use it marked
+  not tested until a feed has it.
 
 ## Suggested, not yet picked
 
@@ -269,7 +288,8 @@ ai-carling-premiership match logs; the numbers there come from FotMob and Sofasc
 |---|---|
 | History | Past seasons, champions, league records; where awards live after Mail files them |
 | The manager's profile | A record across every league on the platform |
-| Where fixture difficulty comes from | The screens show it (plate.md, Fixture difficulty) but nothing holds it. FPL's fixtures feed carries a difficulty per side (`team_h_difficulty`, `team_a_difficulty` in `tests/support/recorded/fpl-fixtures.json`), which no table stores today; using it, or our own measure, is Craig's call, as FPL is a feed, never the rulebook. Until then its cells are placeholders |
+| Where fixture difficulty comes from | The screens show it (plate.md, Fixture difficulty) but nothing holds it. FPL's fixtures feed carried a difficulty per side, but Sportmonks replaces FPL (Craig, 9 Nov 2026, on #1196); a Sportmonks measure, if it has one, or our own is Craig's call. Until then its cells are placeholders |
+| Where the player card's portrait comes from (`spec/12`) | Craig picked FPL's own photos (7 Nov 2026: "a"), waiting on #79. Sportmonks replaces FPL (Craig, 9 Nov 2026, on #1196: "stop with fpl and prem, thats not scalable") and #79 now checks Sportmonks' licence, so the photos' source is open: Sportmonks' own, if its licence allows them, our own drawn portraits, or none is Craig's call |
 | What each category counts | Every manager can read the scoring on Player scoring (`spec/14`); a glossary there of what each category counts |
 | Your account | Display name, email preferences, your leagues; leaving a league; deleting the account |
 | Match rating and Man of the Match | CM's Av R and MoM: a 1–10 rating from his points against his area; MoM the top scorer in each head-to-head |

@@ -20,8 +20,9 @@ performance and news". After the mini beta. It must hold for many leagues, up to
 
 ## Where notes show
 
-- The player card's News: FPL's injury news and chance of playing (`spec/12`), and his three
-  latest notes, newest first.
+- The player card's News: his injuries and suspensions from Sportmonks, judged in the trial
+  (`spec/20`; Craig, 9 Nov 2026, on #1196: "ive heard its not great but lets see"; `spec/12`), and
+  his three latest notes, newest first. `S21.1`
 - Mail: a letter for each real-news note about a player in your squad. Not your next opponent's
   players, and not match notes (`spec/16`).
 
