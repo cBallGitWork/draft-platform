@@ -19,7 +19,8 @@ const BACK_THREE = presetNamed("3-5-2").cells;
 const BACK_TWO = presetNamed("2-3-5").cells;
 const names = (roles: readonly { name: string }[]) => roles.map(({ name }) => name);
 
-describe("the default set (spec/05 Roles `S05.35`, redrawn on #1196, 9 and 10 Nov 2026)", () => {
+// Redrawn on #1196, 9 and 10 Nov 2026 (`S05.35`): the describe keeps its name so its tests are kept.
+describe("the default set (spec/05 Roles, as merged 5 Nov 2026)", () => {
   // spec/05's list, position by position, in its order (docs/roles-first-values.md).
   const SPEC_LIST: Record<SlotPosition, readonly string[]> = {
     GK: ["Shot-stopper", "Sweeper keeper", "Distributor", "Commanding keeper"],

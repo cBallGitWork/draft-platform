@@ -1,6 +1,6 @@
 import { expect, test } from "vitest";
 import { internal } from "../../../convex/_generated/api";
-import type { Id } from "../../../convex/_generated/dataModel";
+import type { Doc, Id } from "../../../convex/_generated/dataModel";
 import { FIRST_ROLE_OWN_STATS, FIRST_ROLES } from "../../../convex/scoring/draftedRoleAdjustments";
 import { FIRST_SCORING } from "../../../convex/scoring/firstScoring";
 import type { StoredScoringSet } from "../../../convex/scoring/scoringSetShape";
@@ -35,10 +35,10 @@ async function holdLeague() {
   const leagueId = await adminCreatesLeague(t);
   const [annsTeam, bobsTeam] = await addManagers(t, leagueId, MANAGERS.slice(0, 2));
   // Ann's lineup in force since gameweek 5; Bob saved one for gameweek 10.
-  const lineup = (teamId: Id<"teams">, fromGameweek: number, starters: { playerCode: number; area: string; lane: string; role?: string }[]) =>
+  const lineup = (teamId: Id<"teams">, fromGameweek: number, starters: Doc<"lineups">["starters"]) =>
     t.run(async (ctx) => {
       await ctx.db.query("lineups").collect().then((rows) => Promise.all(rows.filter((row) => row.teamId === teamId).map((row) => ctx.db.delete("lineups", row._id))));
-      await ctx.db.insert("lineups", { leagueId, teamId, fromGameweek, starters: starters as never, bench: [] });
+      await ctx.db.insert("lineups", { leagueId, teamId, fromGameweek, starters, bench: [] });
     });
   await lineup(annsTeam, 5, [{ playerCode: 1, ...CENTRE_MIDFIELD, role: "lateRunner" }, { playerCode: 2, ...LEFT_BACK, role: "invertedFullBack" }]);
   await lineup(bobsTeam, 10, [{ playerCode: 3, ...STRIKER, role: "shadowStriker" }]);
