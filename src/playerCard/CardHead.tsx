@@ -97,7 +97,7 @@ function Figures({ leagueId, card, shown, seam }: FiguresProps) {
   const { seasonPoints, aMatch, minutes, lastFive } = seasonFigures(card.matches, shown);
   const figure = (value: number | null) => (value === null ? noFigureWords : figureWords(value));
   return (
-    <dl className="flex gap-6 border-l border-plate-rule pl-6">
+    <dl className="flex flex-wrap gap-x-6 gap-y-2 border-l border-plate-rule pl-6">
       <Figure label={figureLabels.seasonPoints}>{figure(seasonPoints)}</Figure>
       <Figure label={figureLabels.aMatch}>{figure(aMatch)}</Figure>
       <Rank leagueId={leagueId} card={card} shown={shown} seam={seam} />
