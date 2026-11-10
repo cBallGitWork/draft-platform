@@ -121,7 +121,7 @@ describe("the fixtures", () => {
 // Each gameweek carries the league's own deadline, and the fixtures open on the first it hasn't
 // locked (#139): never FPL's (Craig, 22 Oct 2026: "ours, we arent fpl so stop copying them").
 describe("each gameweek's deadline", () => {
-  /** The first rules' deadline: 90 minutes before the first kickoff, as FPL's. */
+  /** The first rules' deadline: 15 minutes before the first kickoff. */
   const FIRST_MINUTES = FIRST_RULES.deadline.minutesBeforeFirstKickoff;
   /** Gameweek 9's one match kicks off holdGameweeks' default time from now, each next a week on. */
   const kickoffOf = (gameweek: number) => Date.now() + KICKS_OFF_IN + (gameweek - 9) * WEEK_MS;

@@ -1,4 +1,4 @@
-import { FPL_DEADLINE_RULE } from "../gameweeks/deadline";
+import { DEFAULT_DEADLINE_RULE } from "../gameweeks/deadline";
 import type { DraftRules, LeagueRules, TradeRules } from "./leagueRulesShape";
 import { AREAS, type Area } from "../lineup/pitch";
 import { FIRST_INSTRUCTIONS, type Instruction } from "../lineup/instructions";
@@ -78,7 +78,7 @@ export const FIRST_RULES: LeagueRules = {
     ...(instructions !== undefined && { instructions: { ...instructions } }),
   })),
   classics: firstClassics(),
-  deadline: { ...FPL_DEADLINE_RULE },
+  deadline: { ...DEFAULT_DEADLINE_RULE },
   doubleGameweek: "bothMatches",
   // A starting value (spec/01): the doc's live tie-breaks, "none; highest seed", are a matchup's and a playoff's, not
   // the standings' these are; it has no standings value.

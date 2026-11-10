@@ -16,7 +16,7 @@ const [ANN, BOB, CAT, DAN] = MANAGERS;
 const PLAYED = 5;
 /** A gameweek not yet begun, which the commissioner can still tick or untick. */
 const FUTURE = PLAYED + 3;
-/** How long after the league is made gameweek 1 kicks off: its deadline, 90 minutes before, falls
+/** How long after the league is made gameweek 1 kicks off: its deadline, 15 minutes before, falls
  *  after the league is made. Each next gameweek kicks off a week on. */
 const KICKS_OFF_IN = 2 * HOUR_MS;
 

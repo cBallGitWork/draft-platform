@@ -31,8 +31,8 @@ const NEXT = 11;
 let t: TestConvex;
 let leagueId: Id<"leagues">;
 let start: number;
-/** A gameweek's deadline under the first rules, 90 minutes before its one match: a week apart,
- *  from the clock's start, however the clock moves. FPL's is held at the same time, as feed data. */
+/** A gameweek's deadline under the first rules, 15 minutes before its one match: a week apart,
+ *  from the clock's start, however the clock moves. */
 const deadlineOf = (gameweek: number) => start + (gameweek - NEXT) * WEEK_MS + HOUR_MS;
 /** A deadline earlier than the first rules', in minutes before the first kickoff. */
 const THREE_HOURS = 180;
@@ -136,7 +136,7 @@ describe("once a gameweek has begun", () => {
     expect(await gameweekEvents()).toHaveLength(1);
   });
 
-  test("it begins at its deadline, not before: the first rules' 90 minutes, equal to FPL's", async () => {
+  test("it begins at its deadline, not before: the first rules' 15 minutes", async () => {
     await holdGameweeks();
     vi.setSystemTime(deadlineOf(NEXT) - 1);
     await setUsedBy(COMMISSIONER, NEXT, false);

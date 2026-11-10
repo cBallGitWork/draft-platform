@@ -180,6 +180,7 @@ import type * as positions_positionTables from "../positions/positionTables.js";
 import type * as positions_positionWarnings from "../positions/positionWarnings.js";
 import type * as positions_positions from "../positions/positions.js";
 import type * as positions_positionsSync from "../positions/positionsSync.js";
+import type * as rules_deadlineDefaultBackfill from "../rules/deadlineDefaultBackfill.js";
 import type * as rules_firstRules from "../rules/firstRules.js";
 import type * as rules_formatLock from "../rules/formatLock.js";
 import type * as rules_leagueRules from "../rules/leagueRules.js";
@@ -520,6 +521,7 @@ declare const fullApi: ApiFromModules<{
   "positions/positionWarnings": typeof positions_positionWarnings;
   "positions/positions": typeof positions_positions;
   "positions/positionsSync": typeof positions_positionsSync;
+  "rules/deadlineDefaultBackfill": typeof rules_deadlineDefaultBackfill;
   "rules/firstRules": typeof rules_firstRules;
   "rules/formatLock": typeof rules_formatLock;
   "rules/leagueRules": typeof rules_leagueRules;
