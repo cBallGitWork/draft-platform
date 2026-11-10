@@ -91,6 +91,11 @@ test("each squad names its manager and its auto team, and whether its manager sw
   ]);
 });
 
+test("a manager is never sent another manager's email, only those who run the league are", async () => {
+  const squads = await (await as(ANN)).squads();
+  expect(squads.map(({ managerEmail }) => managerEmail)).toEqual([null, null, null, null]);
+});
+
 describe("a player is on one team in a league at most", () => {
   test("assigning one already on a team is refused, saying where he is", async () => {
     const commissioner = await as(COMMISSIONER);
