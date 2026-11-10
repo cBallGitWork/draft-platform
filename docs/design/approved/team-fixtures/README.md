@@ -50,8 +50,7 @@ opponent in a card beside the list. Their organisation, never their colours.
 
 ## Not drawn
 
-- A total-points league has no fixtures: the tab shows Results' scores by gameweek only once that
-  is asked for; until then it says the league plays no fixtures.
+- A total-points league plays no fixtures: what this tab shows there is still to settle.
 - A gameweek with two games, or the odd team out playing the league average, is two rows or one
   "League average" row, as on the approved `table` picture.
 
