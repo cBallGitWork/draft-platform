@@ -12,7 +12,7 @@ import { teamFixturesOf } from "../table/drawnTable";
 import { previewIdOf, previewScored, previewTable, previewTeams } from "../table/preview";
 import { previewSquad, previewTactics } from "./tactics/preview";
 import { previewClaims } from "./claims/preview";
-import type { MyTeamSeam, TeamSquad, TeamTransactions } from "./seam";
+import type { MyAutoTeam, MyTeamSeam, TeamSquad, TeamTransactions } from "./seam";
 
 const [previewTeam, otherTeam] = previewTeams;
 const fixtures = teamFixturesOf(previewTeams, previewTeam, previewScored);
@@ -108,6 +108,8 @@ const squad: TeamSquad = {
 
 /** The preview holds no server: a number changed there is taken, and goes when the page reloads. */
 const previewNumbers = { set: async () => null };
+const previewAutoTeam: MyAutoTeam = { teamId: previewIdOf(previewTeam), on: false, endsAfter: null };
+const previewAutoTeamChanges = { set: async () => null };
 
 export const previewMyTeam: MyTeamSeam = {
   ...previewTactics,
@@ -123,4 +125,7 @@ export const previewMyTeam: MyTeamSeam = {
   }),
   useSquadNumbers: () => previewNumbers,
   useLatestMail: () => previewLatestMail,
+  // Off, as the approved picture draws it; the preview holds no server, so a switch goes nowhere.
+  useMyAutoTeam: () => previewAutoTeam,
+  useAutoTeamChanges: () => previewAutoTeamChanges,
 };

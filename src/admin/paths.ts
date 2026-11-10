@@ -4,6 +4,8 @@ export const ADMIN_PATH = "/admin";
 export const ADMIN_FEEDS_PATH = `${ADMIN_PATH}/feeds`;
 /** The dashboard's Feedback tab (#357, spec/15 The admin): what managers sent. */
 export const ADMIN_FEEDBACK_PATH = `${ADMIN_PATH}/feedback`;
+/** The dashboard's Availability tab (#1209, spec/06 Availability): setting a player's by hand. */
+export const ADMIN_AVAILABILITY_PATH = `${ADMIN_PATH}/availability`;
 
 /** Where the dashboard sends the admin to read up on a player: a web search on one site each. */
 const WEB_SEARCH_URL = "https://www.google.com/search";

@@ -7,7 +7,7 @@ import type { LeagueRules } from "../../../convex/rules/leagueRulesShape";
 import { SECOND_MS } from "../../../convex/shared/time";
 import { ARSENAL, CHELSEA, insertClubs, insertPlayers, type HeldPlayer } from "../../support/convex/footballRows.harness";
 import { changeEveryRules, HELD_FIRST_RULES } from "../../support/convex/leagueRules.harness";
-import { actingAs, addManagers, adminCreatesLeague, COMMISSIONER, MANAGERS, type TestConvex } from "../../support/convex/leagues.harness";
+import { actingAs, addManager, addManagers, adminCreatesLeague, COMMISSIONER, MANAGERS, OUTSIDER, type TestConvex } from "../../support/convex/leagues.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
 import { elapse } from "../../support/convex/test.harness";
 
@@ -292,5 +292,16 @@ describe("a team with no manager", () => {
     await pass(1);
     expect(await picked()).toHaveLength(3);
     expect(await timeouts()).toEqual([{ teamId: teams[1], count: 1 }]);
+  });
+
+  test("handed on by a manager who was on auto-pick starts off it too, his timeouts gone", async () => {
+    await setRules({ size: { minimum: 1, maximum: 3 } });
+    await (await as(BOB)).mutation(api.draft.autoPickSwitch.turnOn, { leagueId });
+    expect(await timeouts()).toEqual([{ teamId: teams[1], count: 0, autoPick: "chosen" }]);
+
+    await (await as(BOB)).mutation(api.leagues.teams.leave, { leagueId });
+    await addManager(t, leagueId, OUTSIDER, teams[1]);
+
+    expect(await timeouts()).toEqual([{ teamId: teams[1], count: 0 }]);
   });
 });

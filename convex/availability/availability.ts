@@ -1,8 +1,10 @@
 import { v, type Infer } from "convex/values";
 import { mutation, query, type QueryCtx } from "../_generated/server";
 import { adminOf } from "../shared/leagueAccess";
-import { heldPlayerByCode } from "../shared/players";
-import { availability } from "../schema";
+import { clubByCode, heldPlayerByCode } from "../shared/players";
+import { positionsNow, type PositionsNow } from "../positions/playerPositions";
+import { EVERY_LEAGUE } from "../positions/positionSettings";
+import { availability, position } from "../schema";
 
 // A player's availability (spec/06, Availability): out, doubtful or available, our own, so it
 // scales past the Premier League. The feed fills it through the football layer (for the Premier
@@ -40,6 +42,46 @@ export const ofPlayer = query({
   handler: async (ctx, { code }) => {
     await adminOf(ctx);
     return availabilityOf(ctx, code);
+  },
+});
+
+/** A player as the admin dashboard's Availability tab shows him (the approved auto-team picture):
+ *  his name, club and positions, what the feed says and what the admin set, null for none. */
+const adminRow = v.object({
+  code: v.number(),
+  name: v.string(),
+  clubShortName: v.string(),
+  positions: v.array(position),
+  feed: availability,
+  set: v.union(availability, v.null()),
+});
+export type AvailabilityRow = Infer<typeof adminRow>;
+
+async function adminRowOf(ctx: QueryCtx, code: number, positionsOf: PositionsNow): Promise<AvailabilityRow> {
+  const player = await heldPlayerByCode(ctx, code, `No player with code ${code} is held, so his availability can't be shown`);
+  const { feed, set } = await availabilityOf(ctx, code);
+  return { code, name: player.name, clubShortName: (await clubByCode(ctx, player.clubCode)).shortName, positions: await positionsOf(code), feed, set };
+}
+
+/** Every player the admin has set by hand over the feed, by name, for the Availability tab. */
+export const setByHand = query({
+  args: {},
+  returns: v.array(adminRow),
+  handler: async (ctx) => {
+    await adminOf(ctx);
+    const positionsOf = await positionsNow(ctx, EVERY_LEAGUE);
+    const rows = await Promise.all((await ctx.db.query("availabilitySettings").collect()).map(({ code }) => adminRowOf(ctx, code, positionsOf)));
+    return rows.sort((one, other) => one.name.localeCompare(other.name));
+  },
+});
+
+/** One player for the Availability tab's panel, set by hand or not. */
+export const forAdmin = query({
+  args: { code: v.number() },
+  returns: adminRow,
+  handler: async (ctx, { code }) => {
+    await adminOf(ctx);
+    return adminRowOf(ctx, code, await positionsNow(ctx, EVERY_LEAGUE));
   },
 });
 

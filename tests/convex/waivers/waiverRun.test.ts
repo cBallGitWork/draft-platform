@@ -203,3 +203,18 @@ describe("the cron", () => {
     expect(await w.stateOf(PALMER)).toMatchObject({ kind: "onWaivers" });
   });
 });
+
+describe("a run the cron starts late", () => {
+  test("takes players by its run time: one whose 24 hours end after it waits for the next run", async () => {
+    const at = Date.now() + MINUTE_MS;
+    await w.onWaivers([SAKA], at);
+    await w.onWaivers([PALMER], at + MINUTE_MS);
+    await w.claim(BOB, PALMER);
+    vi.setSystemTime(at + 4 * MINUTE_MS);
+    await w.t.mutation(internal.waivers.waiverRun.run, { leagueId: w.leagueId, at });
+
+    expect(await w.stateOf(SAKA)).toEqual({ kind: "freeAgent" });
+    expect(await w.stateOf(PALMER)).toMatchObject({ kind: "onWaivers" });
+    expect(await w.pending(BOB)).toHaveLength(1);
+  });
+});

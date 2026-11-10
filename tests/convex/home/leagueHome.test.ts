@@ -55,7 +55,9 @@ describe("the glance", () => {
     const home = (await read())!;
     const fixtures = (await (await actingAs(t, ANN)).query(api.table.leagueTable.ofLeague, { leagueId }))!.gameweeks[0];
 
-    expect(home.thisGameweek).toEqual({ gameweek: fixtures.gameweek, fixtures: fixtures.fixtures, byes: fixtures.byes });
+    // The table's carry each opponent's id too, for the commissioner's fixture swap.
+    const withoutOpponentIds = fixtures.fixtures.map(({ opponentId: _, ...fixture }) => fixture);
+    expect(home.thisGameweek).toEqual({ gameweek: fixtures.gameweek, fixtures: withoutOpponentIds, byes: fixtures.byes });
     expect(home.thisGameweek?.fixtures.every((fixture) => fixture.points === null)).toBe(true);
   });
 

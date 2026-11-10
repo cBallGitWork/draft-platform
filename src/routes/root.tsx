@@ -33,7 +33,7 @@ import { SIGN_IN_PATH } from "../signIn/paths";
 import { SignInPage } from "../signIn/SignInPage";
 import { linkProblemWords, type LinkProblem } from "../signIn/words";
 import type { SquadsSeam } from "../squads/seam";
-import type { TableSeam } from "../table/seam";
+import type { TableScreenSeam } from "../table/seam";
 import type { TradesSeam } from "../trades/seam";
 
 // The routes' root (src/routes/router.tsx assembles the tree): the context every route reads, the guards,
@@ -54,7 +54,7 @@ export type ShellContext = {
   squads: SquadsSeam;
   scoring: ScoringSeam;
   leagueSettings: LeagueSettingsSeam;
-  table: TableSeam;
+  table: TableScreenSeam;
   scouting: ScoutingSeam;
   playerCard: PlayerCardSeam;
   home: HomeSeam;

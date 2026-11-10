@@ -6,8 +6,21 @@ import { useMinute } from "../shared/useMinute";
 import { liveTactics } from "./tactics/liveTactics";
 import { liveClaims } from "./claims/liveClaims";
 import { liveTable } from "../table/liveTable";
-import type { MyTeamSeam, SquadNumberChanges } from "./seam";
+import { changeFailedWords } from "../shared/words";
+import type { AutoTeamChanges, MyTeamSeam, SquadNumberChanges } from "./seam";
 import { numberFailedWords } from "./squad/words";
+
+/** Switching a team's auto team, through Convex: My team's and Squads' seams both use it. */
+export function useLiveAutoTeamChanges(): AutoTeamChanges {
+  const set = useMutation(api.lineup.autoTeam.set);
+  return useMemo<AutoTeamChanges>(
+    () => ({
+      set: (leagueId, teamId, on, endsAfter) =>
+        refusalOf(() => set({ leagueId, teamId, on, ...(endsAfter === undefined ? {} : { endsAfter }) }), "Switching the auto team", changeFailedWords),
+    }),
+    [set],
+  );
+}
 
 /** My team's seam filled in by Convex. */
 export const liveMyTeam: MyTeamSeam = {
@@ -28,4 +41,6 @@ export const liveMyTeam: MyTeamSeam = {
       [set],
     );
   },
+  useMyAutoTeam: (leagueId) => useQuery(api.lineup.autoTeam.ofMyTeam, { leagueId }),
+  useAutoTeamChanges: useLiveAutoTeamChanges,
 };

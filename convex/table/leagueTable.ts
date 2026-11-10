@@ -9,6 +9,7 @@ import { scheduleOf } from "./playedFixtures";
 import { leagueScores } from "../gameweekScorer/gameweekScores";
 import { leagueTableFrom, pointsOf, tableOf } from "./sentTables";
 import { shownDeadline } from "../gameweeks/usedGameweeks";
+import { onAutoTeam } from "../trades/tradeShut";
 
 // The league's fixtures and table (#33; spec/09, spec/12 "table and fixtures"), for anyone with a
 // part in it. Each gameweek the league has begun has its fixtures as stored once it began, none in
@@ -35,6 +36,7 @@ export const scoredFixture = v.object({
   /** Each side's points, the average's for the league's average; null until the gameweek is scored. */
   points: v.union(v.object({ team: v.number(), opponent: v.number() }), v.null()),
 });
+export type ScoredFixture = Infer<typeof scoredFixture>;
 
 /** A team's points in a gameweek scored (gameweekScores.ts's TeamGameweekTotal). */
 const teamResult = v.object({
@@ -49,7 +51,9 @@ const gameweekFixtures = v.object({
   /** The league's own deadline, under the rule in force in the gameweek (#139); the fixtures
    *  open on the first gameweek it hasn't locked. */
   deadline: shownDeadline,
-  fixtures: v.array(scoredFixture),
+  /** Each with its opponent's own id too, null for the league's average: a commissioner's fixture
+   *  swap names both sides of each game (spec/09, Fixture edits). */
+  fixtures: v.array(v.object({ ...scoredFixture.fields, opponentId: v.union(v.id("teams"), v.null()) })),
   /** The teams with a bye, in a league whose odd team out has one: one a game. */
   byes: v.array(v.string()),
 });
@@ -65,6 +69,8 @@ const tableRow = v.object({
   pointsAgainst: v.number(),
   difference: v.number(),
   points: v.number(),
+  /** Whether the team is on the auto team now (spec/09: the table marks it; trades/tradeShut.ts). */
+  onAutoTeam: v.boolean(),
 });
 
 export const leagueTable = v.object({
@@ -97,7 +103,8 @@ export async function standingsOf(ctx: QueryCtx, league: Doc<"leagues">, season:
   const { scores: results, unscored } = await leagueScores(ctx, league, season, teamIds);
   const scores = pointsOf(results);
   const table = tableOf(rules.format, teamIds, schedule, scores, rules.tieBreaks);
-  return { rules, teamIds, schedule, results, unscored, scores, table, named };
+  const autoTeams = new Set(teams.filter(onAutoTeam).map((team) => team._id));
+  return { rules, teamIds, schedule, results, unscored, scores, table, named, autoTeams };
 }
 
 /** The league's fixtures by gameweek and its table. */
@@ -107,8 +114,8 @@ export const ofLeague = query({
   handler: async (ctx, { leagueId }) => {
     const { league } = await memberOf(ctx, leagueId);
     const season = await seasonRules(ctx, leagueId);
-    const { rules, schedule, results, unscored, table, named } = await standingsOf(ctx, league, season);
+    const { rules, schedule, results, unscored, table, named, autoTeams } = await standingsOf(ctx, league, season);
     const deadlineIn = deadlineOf(await leagueDeadlines(ctx, leagueId));
-    return leagueTableFrom({ format: rules.format, schedule, results, unscored, table, deadlineOf: deadlineIn, named });
+    return leagueTableFrom({ format: rules.format, schedule, results, unscored, table, deadlineOf: deadlineIn, named, autoTeams });
   },
 });

@@ -60,9 +60,11 @@ export const draftTables = {
         fullClock: v.optional(v.literal(true)),
       }),
     ),
-    /** The pick time the commissioner set while the draft was paused (#1095), in seconds, which this
-     *  draft runs on at once, not waiting for the league's rules change to reach a gameweek (Craig,
-     *  5 Nov 2026). Absent until he sets one. ../draft/draftPickTime.ts writes it. */
+    /** The pick time this draft runs on, in seconds: the league's latest when it started (#1439), or
+     *  the one the commissioner set since while it was paused (#1095), which it runs on at once, not
+     *  waiting for the league's rules change to reach a gameweek (Craig, 5 Nov 2026). Absent before
+     *  the start, and from a draft started before #1439 until he sets one. ../draft/draftStart.ts
+     *  and ../draft/draftPickTime.ts write it. */
     pickSeconds: v.optional(v.number()),
     /** Each team whose clock has run out (spec/04, Auto-pick; #1136): its timeouts across the whole
      *  draft, and, once they reach the league's limit, `autoPick`: "fullClock" while its first pick

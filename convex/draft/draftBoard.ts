@@ -2,11 +2,11 @@ import { v, type Infer } from "convex/values";
 import { query } from "../_generated/server";
 import { positionsNow } from "../positions/playerPositions";
 import { draftRulesOf } from "../rules/firstRules";
+import { latestRules } from "../rules/rulesHistory";
 import { position } from "../schema/positions";
 import { memberOf } from "../shared/leagueAccess";
 import { clubsByCode, playerByCode } from "../shared/players";
 import { draftIsLive, draftOf } from "./draftRow";
-import { rulesInForceAt } from "./draftStart";
 import { isOnAutoPick } from "./draftTimeouts";
 
 // The draft room's reads (spec/04, The draft room; #1098), beside the draft's own (draftStart.ts
@@ -31,7 +31,8 @@ const draftBoard = v.object({
   picks: v.array(boardPick),
   /** The caller's team, null for a commissioner who runs none. */
   yourTeamId: v.union(v.id("teams"), v.null()),
-  /** The league's pick time at `now`, in seconds: null for a league with no rules (before #25). */
+  /** The draft's pick time, in seconds: its own once it has started, else the league's latest; null
+   *  for a league with no rules (before #25). */
   pickSeconds: v.union(v.number(), v.null()),
   /** The caller's own team's auto-pick (#1100): whether it is on it, its timeouts so far, and how
    *  many put it on auto-pick (null: never, or a league with no rules); null for a caller who runs
@@ -45,11 +46,13 @@ const draftBoard = v.object({
 export type DraftBoard = Infer<typeof draftBoard>;
 
 /** The board as everyone in the league reads it: every pick made, first first, the caller's team,
- *  the league's pick time at `now`, the screen's minute, and the picks traded, as a query must not read the clock. */
+ *  the draft's pick time and timeout limit, the league's latest (#1439), and the picks traded.
+ *  `now`, the screen's minute, no longer moves anything here: it stays until the draft room's seam
+ *  drops it. */
 export const ofLeague = query({
   args: { leagueId: v.id("leagues"), now: v.number() },
   returns: draftBoard,
-  handler: async (ctx, { leagueId, now }) => {
+  handler: async (ctx, { leagueId }) => {
     const { team } = await memberOf(ctx, leagueId);
     const rows = await ctx.db
       .query("draftPicks")
@@ -67,7 +70,8 @@ export const ofLeague = query({
         return { ...made, player: { code: player.code, name: player.name, clubShortName: club.shortName, position: positions[0] ?? null } };
       }),
     );
-    const draftRules = draftRulesOf(await rulesInForceAt(ctx, leagueId, now));
+    // The draft's rules, the league's latest (#1439), and its own pick time once it has one.
+    const draftRules = draftRulesOf(await latestRules(ctx, leagueId));
     const draft = await draftOf(ctx, leagueId);
     let yourAutoPick: DraftBoard["yourAutoPick"] = null;
     if (team) {
@@ -75,7 +79,7 @@ export const ofLeague = query({
       const count = timeouts?.find(({ teamId }) => teamId === team._id)?.count ?? 0;
       yourAutoPick = { on: isOnAutoPick(timeouts, team._id), timeouts: count, limit: draftRules.timeoutsBeforeAutoPick };
     }
-    return { picks, yourTeamId: team?._id ?? null, pickSeconds: draftRules.pickSeconds, yourAutoPick, tradedPicks: draft?.tradedPicks ?? [] };
+    return { picks, yourTeamId: team?._id ?? null, pickSeconds: draft?.pickSeconds ?? draftRules.pickSeconds, yourAutoPick, tradedPicks: draft?.tradedPicks ?? [] };
   },
 });
 

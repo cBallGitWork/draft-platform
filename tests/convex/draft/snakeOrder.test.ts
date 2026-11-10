@@ -1,5 +1,5 @@
 import { describe, expect, test } from "vitest";
-import { pickOnTheClock, snakeOrder } from "../../../convex/draft/snakeOrder";
+import { pickOnTheClock, picksLeftFor, snakeOrder } from "../../../convex/draft/snakeOrder";
 
 // The order of a draft's picks (spec/04, The picks; #1088): snake only, each round the other way
 // from the one before.
@@ -71,5 +71,14 @@ describe("a traded pick on the clock (#1096)", () => {
     // C goes first now: its round-1 pick is pick 1, and A's round-2 pick is pick 5, both still traded.
     expect(pickOnTheClock(["C", "A", "B"], 2, 0, traded)).toEqual({ pick: 1, round: 1, team: "A", via: "C" });
     expect(pickOnTheClock(["C", "A", "B"], 2, 4, traded)).toEqual({ pick: 5, round: 2, team: "C", via: "A" });
+  });
+
+  test("its owner's picks left count it, and the team that traded it away is one short", () => {
+    expect(picksLeftFor(["A", "B", "C"], 2, 0, traded, "A")).toBe(2);
+    // After pick 1, A's only pick left is C's round-1 pick; C still has two, both in round 2.
+    expect(picksLeftFor(["A", "B", "C"], 2, 1, traded, "A")).toBe(1);
+    expect(picksLeftFor(["A", "B", "C"], 2, 3, traded, "A")).toBe(0);
+    expect(picksLeftFor(["A", "B", "C"], 2, 3, traded, "C")).toBe(2);
+    expect(picksLeftFor(["A", "B", "C"], 2, 3, [], "A")).toBe(1);
   });
 });

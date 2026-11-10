@@ -5,13 +5,12 @@ import { positionsNow } from "../positions/playerPositions";
 import { latestRules } from "../rules/rulesHistory";
 import { memberOf } from "../shared/leagueAccess";
 import { currentClubs, currentPlayersAt } from "../shared/players";
-import { squadOf } from "../squads/squadPlace";
 import { newestSeasonWithTotals, seasonTotals } from "../stats/seasonStats";
 import type { Stats } from "../stats/statTotals";
 import { autoPickOrder } from "./autoPickOrder";
 import { squadRulesOf, undraftedIn, whyNotLegalFor } from "./draftPicks";
 import { draftRanking } from "./draftRanking";
-import { draftOf, turnNow } from "./draftRow";
+import { draftOf, picksLeftOf, turnNow } from "./draftRow";
 import { lastPricedSeason, lastSeasonPoints } from "./lastSeasonPoints";
 
 // The draft room's players list's figures (spec/04, The draft room; #1099). The list itself is
@@ -45,8 +44,7 @@ export const greyedOut = query({
     const draft = await draftOf(ctx, leagueId);
     const started = draft?.started;
     if (!team || draft === null || started === undefined || (await turnNow(ctx, draft)) === null) return [];
-    // Squads are empty when the draft starts (spec/04, The picks), so each player in it is a pick made.
-    const picksLeft = started.rounds - (await squadOf(ctx, team._id)).length;
+    const picksLeft = await picksLeftOf(ctx, draft, started, team._id);
     const why = await whyNotLegalFor(ctx, leagueId, started, team._id, picksLeft, await undraftedIn(ctx, leagueId));
     const players = await everyPlayerNow(ctx);
     const greyed = await Promise.all(players.map(async (player) => ({ code: player.code, reason: await why(player) })));

@@ -2,6 +2,7 @@ import { useMutation, useQuery } from "convex/react";
 import { useMemo } from "react";
 import { api } from "../../convex/_generated/api";
 import { refusalOf } from "../shared/refusal";
+import { useLiveAutoTeamChanges } from "../myTeam/liveMyTeam";
 import type { SquadsSeam } from "./seam";
 import { squadChangeFailedWords } from "./words";
 
@@ -20,6 +21,7 @@ export function useLiveSquads(): SquadsSeam {
   const assign = useMutation(api.squads.squads.assign);
   const move = useMutation(api.squads.squads.move);
   const release = useMutation(api.squads.squads.release);
+  const autoTeams = useLiveAutoTeamChanges();
   return useMemo(
     () => ({
       useSquads,
@@ -27,7 +29,8 @@ export function useLiveSquads(): SquadsSeam {
       assign: (leagueId, playerCode, teamId) => refusalOf(() => assign({ leagueId, playerCode, teamId }), "Assigning a player", squadChangeFailedWords),
       move: (leagueId, playerCode, teamId) => refusalOf(() => move({ leagueId, playerCode, teamId }), "Moving a player", squadChangeFailedWords),
       release: (leagueId, playerCode) => refusalOf(() => release({ leagueId, playerCode }), "Releasing a player", squadChangeFailedWords),
+      switchAutoTeam: (leagueId, teamId, on) => autoTeams.set(leagueId, teamId, on),
     }),
-    [assign, move, release],
+    [assign, move, release, autoTeams],
   );
 }

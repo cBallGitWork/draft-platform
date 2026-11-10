@@ -3,7 +3,7 @@ import { api } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
 import type { UndraftedGoTo } from "../../../convex/draft/draftRules";
 import { ARSENAL, insertClubs, insertPlayers, type HeldPlayer } from "../../support/convex/footballRows.harness";
-import { changeEveryRules } from "../../support/convex/leagueRules.harness";
+import { changeEveryRules, holdGameweeks } from "../../support/convex/leagueRules.harness";
 import { actingAs, addManagers, adminCreatesLeague, COMMISSIONER, MANAGERS, type TestConvex } from "../../support/convex/leagues.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
 
@@ -29,13 +29,15 @@ beforeEach(async () => {
   });
 });
 
-/** A one-round draft with the undrafted going to `goTo`: Ann and Bob each pick one, leaving LEFT. */
-async function draftLeaving(goTo: UndraftedGoTo) {
+/** A one-round draft with the undrafted going to `goTo`: Ann and Bob each pick one, leaving LEFT.
+ *  `beforeStart` runs once the rules are set, before the draft starts. */
+async function draftLeaving(goTo: UndraftedGoTo, beforeStart?: () => Promise<void>) {
   await changeEveryRules(t, leagueId, (rules) => ({
     ...rules,
     squad: { size: { minimum: 1, maximum: 1 }, minimumByArea: null, maxPerClub: null },
     draft: { ...rules.draft!, undrafted: goTo },
   }));
+  await beforeStart?.();
   await (await actingAs(t, COMMISSIONER)).mutation(api.draft.draftStart.start, { leagueId });
   await (await actingAs(t, ANN)).mutation(api.draft.draftPicks.makePick, { leagueId, playerCode: A1 });
   await (await actingAs(t, BOB)).mutation(api.draft.draftPicks.makePick, { leagueId, playerCode: A2 });
@@ -51,5 +53,15 @@ test("go on waivers for the next run when the league's setting says waivers", as
 
 test("are free agents when it says free agents", async () => {
   await draftLeaving("freeAgents");
+  expect(await stateOf(LEFT)).toEqual({ kind: "freeAgent" });
+});
+
+test("mid-season, go where the last setting typed says, a change waiting for the next gameweek (#1439)", async () => {
+  await holdGameweeks(t, { next: 5 });
+  await draftLeaving("waivers", async () => {
+    const [newest] = await t.run((ctx) => ctx.db.query("leagueRules").withIndex("by_leagueId_and_fromGameweek", (q) => q.eq("leagueId", leagueId)).order("desc").take(1));
+    const rules = { ...newest.rules, draft: { ...newest.rules.draft!, undrafted: "freeAgents" as const } };
+    await t.run((ctx) => ctx.db.insert("leagueRules", { leagueId, fromGameweek: 5, rules }));
+  });
   expect(await stateOf(LEFT)).toEqual({ kind: "freeAgent" });
 });

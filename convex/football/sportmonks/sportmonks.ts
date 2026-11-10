@@ -102,7 +102,7 @@ function shortNameOf(team: RawTeam): string {
 }
 
 /** The payloads as the seam's records: each club, each squad's men (a man in two squads once,
- *  under the club listed last), each round as a gameweek and each match under its round's number. */
+ *  under the club listed last), each round as a gameweek (rounds sharing a number as one) and each match under its round's number. */
 export function mapSportmonks({ league, teams, schedule }: SportmonksPayloads): Football {
   if (!league.currentseason) throw new Error(`${SPORTMONKS} sent no current season`);
   const season = seasonStart(league.currentseason);
@@ -116,22 +116,22 @@ export function mapSportmonks({ league, teams, schedule }: SportmonksPayloads): 
       players.set(id, { code: id, name: display_name ?? common_name ?? name, fullName: name, clubCode: team.id });
     }
   }
-  const gameweeks: Infer<typeof gameweekRecord>[] = [];
+  // By round number: after the Scottish split two stages each hold a round 34, one gameweek here.
+  const firstKickoffs = new Map<number, number>();
   const fixtures: Football["fixtures"] = [];
   const matches: RawFixture[] = [];
   for (const round of schedule.flatMap((stage) => stage.rounds ?? [])) {
     const number = roundNumber(round);
-    const kickoffs: number[] = [];
     for (const match of round.fixtures ?? []) {
       const kickoff = kickoffOf(match);
-      if (kickoff !== null) kickoffs.push(kickoff);
+      if (kickoff !== null) firstKickoffs.set(number, Math.min(kickoff, firstKickoffs.get(number) ?? kickoff));
       const { home, away } = sides(match);
       fixtures.push({ code: match.id, gameweek: number, homeClubCode: home, awayClubCode: away, kickoff });
       matches.push(match);
     }
-    // Sportmonks has no deadline: a round's is its first kickoff, as a league works its own out.
-    if (kickoffs.length > 0) gameweeks.push({ season, number, deadline: Math.min(...kickoffs) });
   }
+  // Sportmonks has no deadline: a round's is its first kickoff, as a league works its own out.
+  const gameweeks: Infer<typeof gameweekRecord>[] = [...firstKickoffs].map(([number, deadline]) => ({ season, number, deadline }));
   return {
     clubs,
     players: [...players.values()],

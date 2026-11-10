@@ -14,6 +14,9 @@ const squads: SquadWithWarnings[] = [
     // A squad row the football sync no longer holds a player for (#323).
     unheld: [9999],
     warnings: [],
+    // No manager, so on the auto team until it is handed on (the approved picture's Hull Hearts).
+    managerEmail: null,
+    autoTeam: { on: true, endsAfter: null, byManager: false },
   },
   {
     teamId: "preview-team-2" as SquadWithWarnings["teamId"],
@@ -21,6 +24,9 @@ const squads: SquadWithWarnings[] = [
     players: Array.from({ length: 15 }, (_, i) => player(100 + i, `Player ${i + 1}`, ["ARS", "CHE", "LIV"][i % 3])),
     unheld: [],
     warnings: [{ kind: "overMaximum", players: 15, maximum: 14 }],
+    // Its manager's own switch, until a gameweek (the approved picture's Rovers XI).
+    managerEmail: "sam@example.com",
+    autoTeam: { on: true, endsAfter: 12, byManager: true },
   },
 ];
 
@@ -36,4 +42,5 @@ export const previewSquads: SquadsSeam = {
   assign: previewSays("no player was assigned"),
   move: previewSays("no player was moved"),
   release: previewSays("no player was released"),
+  switchAutoTeam: previewSays("no auto team was switched"),
 };

@@ -166,6 +166,26 @@ describe("the report", () => {
     await elapse(t, CLAUDE_RETRY_MS);
     expect(await ann.mine()).toMatchObject({ out: [], reports: [{ name: "Scorer" }] });
   });
+  test("a brief that can't be read is a failed write too: the scout stays out with the failure kept, and is tried again", async () => {
+    silenceConsoleError();
+    const ann = await as(ANN);
+    await ann.send(SCORER.code);
+    // His club's row gone: the brief throws reading it.
+    const club = await t.run(async (ctx) => {
+      const player = (await ctx.db.query("players").withIndex("by_code", (q) => q.eq("code", SCORER.code)).unique())!;
+      const held = (await ctx.db.query("clubs").withIndex("by_code", (q) => q.eq("code", player.clubCode)).unique())!;
+      await ctx.db.delete("clubs", held._id);
+      const { _id, _creationTime, ...row } = held;
+      return row;
+    });
+    await dayPasses();
+    expect((await ann.mine())?.out).toHaveLength(1);
+    expect((await t.run((ctx) => ctx.db.query("scouts").collect()))[0].lastFailure).toBeDefined();
+
+    await t.run((ctx) => ctx.db.insert("clubs", club));
+    await elapse(t, CLAUDE_RETRY_MS);
+    expect(await ann.mine()).toMatchObject({ out: [], reports: [{ name: "Scorer" }] });
+  });
 });
 
 describe("no other team can tell whom a manager scouts", () => {

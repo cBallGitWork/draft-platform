@@ -19,10 +19,16 @@ const convex = vi.hoisted(() => ({
   approveClub: vi.fn(),
   setChangeThresholds: vi.fn(),
   setClubColours: vi.fn(),
+  forAdmin: vi.fn(),
+  setAvailability: vi.fn(),
 }));
 vi.mock("convex/react", async () =>
   (await import("../../support/src/convexReact.harness")).fakeConvexReact({
-    queries: { "positions/playerPositions:find": convex.find, "admin/feeds:feeds": convex.feeds },
+    queries: {
+      "positions/playerPositions:find": convex.find,
+      "admin/feeds:feeds": convex.feeds,
+      "availability/availability:forAdmin": convex.forAdmin,
+    },
     mutations: {
       "positions/playerPositions:approvePlayer": convex.approvePlayer,
       "positions/playerPositions:approveClub": convex.approveClub,
@@ -31,6 +37,7 @@ vi.mock("convex/react", async () =>
       "positions/positionSettings:setApproveMode": vi.fn(),
       "positions/positionSettings:setChangeThresholds": convex.setChangeThresholds,
       "football/clubKits:set": convex.setClubColours,
+      "availability/availability:set": convex.setAvailability,
     },
   }),
 );
@@ -78,6 +85,21 @@ test("a club's colours go to football/clubKits:set", async () => {
   const colours = { primary: "#D71920", secondary: "#FFFFFF", pattern: "stripes" as const };
   expect(await seam().setClubColours(999, colours)).toBeNull();
   expect(convex.setClubColours).toHaveBeenCalledWith({ code: 999, ...colours });
+});
+
+test("a player's availability is asked of availability/availability:forAdmin, and no player asks nothing", () => {
+  renderHook(() => useLiveAdmin().useAvailabilityOf(5));
+  expect(convex.forAdmin).toHaveBeenLastCalledWith({ code: 5 });
+  renderHook(() => useLiveAdmin().useAvailabilityOf(null));
+  expect(convex.forAdmin).toHaveBeenLastCalledWith("skip");
+});
+
+test("an availability set by hand, or given back to the feed, goes to availability/availability:set", async () => {
+  convex.setAvailability.mockResolvedValue(null);
+  expect(await seam().setAvailability(5, "out")).toBeNull();
+  expect(convex.setAvailability).toHaveBeenLastCalledWith({ code: 5, availability: "out" });
+  expect(await seam().setAvailability(5, null)).toBeNull();
+  expect(convex.setAvailability).toHaveBeenLastCalledWith({ code: 5, availability: null });
 });
 
 test("a change the server refuses resolves with the server's own words", async () => {

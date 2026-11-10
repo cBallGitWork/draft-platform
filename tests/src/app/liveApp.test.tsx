@@ -60,10 +60,10 @@ vi.mock("convex/react", async () => {
             ["joining/inviteLink:switchOff", "joining/joinRequests:approve", "joining/joinRequests:refuseRequest", "joining/joinRequests:ask"],
             ["positions/playerPositions:approvePlayer", "positions/playerPositions:approveClub", "positions/playerPositions:setPosition"],
             ["positions/playerPositions:removePosition", "positions/positionSettings:setApproveMode", "positions/positionSettings:setChangeThresholds"],
-            ["squads/squads:assign", "squads/squads:move", "squads/squads:release"],
+            ["squads/squads:assign", "squads/squads:move", "squads/squads:release", "lineup/autoTeam:set"],
             ["scoring/siteScoring:fix", "scoring/siteScoring:saveDraft", "scoring/siteScoring:announce", "scoring/siteScoring:withdraw"],
             ["rules/leagueSettings:changeSettings", "draft/draftOrder:setTeamOrder", "draft/draftOrder:drawTeamOrder", "gameweeks/scoringStart:setScoringStart"],
-            ["feedback/feedback:send", "football/clubKits:set"],
+            ["feedback/feedback:send", "football/clubKits:set", "availability/availability:set"],
             ["scoring/patchNotes:dismissBanner"],
           ]
             .flat()

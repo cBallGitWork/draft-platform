@@ -7,6 +7,7 @@ import { fileEvent, recordEvent } from "../mail/letters";
 import { latestRules } from "../rules/rulesHistory";
 import { managerOf, refuse, refusals } from "../shared/leagueAccess";
 import { playerByCode } from "../shared/players";
+import { tellShortlisters } from "../scouting/shortlist";
 import { placeOf } from "../squads/squadPlace";
 import { inWaiverLock } from "./waiverLock";
 import { windowOpen } from "./waiverOrder";
@@ -39,7 +40,7 @@ export const pickUp = mutation({
   args: { leagueId: v.id("leagues"), playerCode: v.number(), dropCode: v.union(v.number(), v.null()) },
   returns: v.null(),
   handler: async (ctx, { leagueId, playerCode, dropCode }) => {
-    const { email, team } = await managerOf(ctx, leagueId);
+    const { email, league, team } = await managerOf(ctx, leagueId);
     if (!(await draftIsOver(ctx, leagueId))) refuse(pickUpRefusals.notDrafted);
     const now = Date.now();
     const deadlines = await leagueDeadlines(ctx, leagueId);
@@ -63,6 +64,7 @@ export const pickUp = mutation({
       dropped = { playerCode: drop.place.playerCode, playerName: drop.player.name, toWaivers };
       await fileEvent(ctx, leagueId, email, { kind: "playerDropped", ...dropped, ...onTeam });
       await closeOffersHolding(ctx, leagueId, team._id, [dropped.playerCode]);
+      await tellShortlisters(ctx, league, drop.player, team, email, { released: false, toWaivers });
     }
     await ctx.db.insert("squadPlayers", { leagueId, teamId: team._id, playerCode, pickedUpAt: now });
     await recordEvent(ctx, leagueId, email, { kind: "playerPickedUp", playerCode, playerName: player.name, ...onTeam, dropped });

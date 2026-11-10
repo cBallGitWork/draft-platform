@@ -7,6 +7,7 @@ import { fileEvent } from "../mail/letters";
 import { positionsNow } from "../positions/playerPositions";
 import { draftRulesOf } from "../rules/firstRules";
 import type { LeagueRules } from "../rules/leagueRulesShape";
+import { latestRules } from "../rules/rulesHistory";
 import { managerOf, refuse, refusals, runnerOf, teamIn, teamsOf } from "../shared/leagueAccess";
 import { currentClubs, currentPlayersAt, heldPlayerByCode, playerByCode } from "../shared/players";
 import { placeOf, squadOf } from "../squads/squadPlace";
@@ -17,7 +18,7 @@ import { tellDraftOver, tellPickedFor, tellScoringStartMoved, tellUpNext } from 
 import { startAfterDraft } from "../gameweeks/scoringStart";
 import { listsOf } from "./draftLists";
 import { draftRanking } from "./draftRanking";
-import { draftOf, turnNow, type StartedDraft, type Turn } from "./draftRow";
+import { draftOf, picksLeftOf, turnNow, type StartedDraft, type Turn } from "./draftRow";
 import { rulesInForceAt } from "./draftStart";
 import { afterTimeout, choseAutoPick, isOnAutoPick } from "./draftTimeouts";
 import { lastSeasonPoints } from "./lastSeasonPoints";
@@ -95,12 +96,12 @@ export async function whyNotLegalFor(
 async function legalForTurn(
   ctx: QueryCtx,
   leagueId: Id<"leagues">,
+  draft: Doc<"drafts">,
   started: StartedDraft,
   turn: Turn,
   undrafted: readonly Doc<"players">[],
 ): Promise<(player: Doc<"players">) => Promise<boolean>> {
-  // Each team picks once a round, so this round's pick is its (round)th: rounds - round + 1 are left.
-  const why = await whyNotLegalFor(ctx, leagueId, started, turn.team, started.rounds - turn.round + 1, undrafted);
+  const why = await whyNotLegalFor(ctx, leagueId, started, turn.team, await picksLeftOf(ctx, draft, started, turn.team), undrafted);
   return async (player) => (await why(player)) === null;
 }
 
@@ -114,11 +115,14 @@ async function pickable(ctx: QueryCtx, leagueId: Id<"leagues">, playerCode: numb
   return player;
 }
 
-/** The league's draft rules now: a change the commissioner makes reaches the next clock. */
-const draftRulesNow = async (ctx: QueryCtx, leagueId: Id<"leagues">) => draftRulesOf(await rulesInForceAt(ctx, leagueId, Date.now()));
+/** The league's draft rules now, its latest, a change waiting for a later gameweek among them: a
+ *  change the commissioner makes reaches the next clock, and a mid-season draft runs on the timeout
+ *  limit and undrafted-players setting last typed (Craig, 10 Nov 2026, on #1439: "Last typed"). */
+const draftRulesNow = async (ctx: QueryCtx, leagueId: Id<"leagues">) => draftRulesOf(await latestRules(ctx, leagueId));
 
-/** The draft's pick time now, in seconds: the one the commissioner set while it was paused, which
- *  reaches it at once (draftCommissioner.ts; #1095), or else the league's in force now. */
+/** The draft's pick time now, in seconds: the one it started on, or the commissioner set since while
+ *  it was paused, which reaches it at once (draftCommissioner.ts; #1095); for a draft started before
+ *  #1439 with neither, the league's latest. */
 export async function pickSecondsNow(ctx: QueryCtx, leagueId: Id<"leagues">): Promise<number> {
   return (await draftOf(ctx, leagueId))?.pickSeconds ?? (await draftRulesNow(ctx, leagueId)).pickSeconds;
 }
@@ -165,7 +169,7 @@ export const makePick = mutation({
     const { draft, started, turn } = await liveTurn(ctx, leagueId);
     if (draft.clock?.paused !== undefined) refuse(pickRefusals.paused);
     if (turn.team !== team._id) refuse(pickRefusals.notYourTurn((await teamIn(ctx, leagueId, turn.team)).name));
-    const player = await legalPick(ctx, leagueId, started, turn, playerCode);
+    const player = await legalPick(ctx, leagueId, draft, started, turn, playerCode);
     if (draft.clock?.job !== undefined) await ctx.scheduler.cancel(draft.clock.job);
     await placePick(ctx, league, turn, team, player, email);
     return null;
@@ -183,9 +187,9 @@ async function liveTurn(ctx: QueryCtx, leagueId: Id<"leagues">): Promise<{ draft
 
 /** The player the team on the clock picks, or the refusal: he isn't there to take, or would break
  *  the team's squad rules. */
-async function legalPick(ctx: QueryCtx, leagueId: Id<"leagues">, started: StartedDraft, turn: Turn, playerCode: number): Promise<Doc<"players">> {
+async function legalPick(ctx: QueryCtx, leagueId: Id<"leagues">, draft: Doc<"drafts">, started: StartedDraft, turn: Turn, playerCode: number): Promise<Doc<"players">> {
   const player = await pickable(ctx, leagueId, playerCode);
-  if (!(await (await legalForTurn(ctx, leagueId, started, turn, await undraftedIn(ctx, leagueId)))(player))) refuse(pickRefusals.breaksSquadRules(player.name));
+  if (!(await (await legalForTurn(ctx, leagueId, draft, started, turn, await undraftedIn(ctx, leagueId)))(player))) refuse(pickRefusals.breaksSquadRules(player.name));
   return player;
 }
 
@@ -202,7 +206,7 @@ export const pickFor = mutation({
     const { email, league } = await runnerOf(ctx, leagueId);
     const { draft, started, turn } = await liveTurn(ctx, leagueId);
     const team = await teamIn(ctx, leagueId, turn.team);
-    const player = await legalPick(ctx, leagueId, started, turn, playerCode);
+    const player = await legalPick(ctx, leagueId, draft, started, turn, playerCode);
     if (draft.clock?.job !== undefined) await ctx.scheduler.cancel(draft.clock.job);
     await placePick(ctx, league, turn, team, player, email, { pausedAt: draft.clock?.paused === undefined ? undefined : Date.now() });
     await tellPickedFor(ctx, league, email, { pick: turn.pick, playerName: player.name, teamName: team.name });
@@ -213,9 +217,9 @@ export const pickFor = mutation({
 /** The player auto-pick takes for the team on the clock: the first in its order (autoPickOrder.ts)
  *  still in the Premier League, held by no team in the league, whom the team may legally take. None
  *  is an error: greying out always leaves a legal pick (#1090). */
-async function autoPickFor(ctx: QueryCtx, leagueId: Id<"leagues">, started: StartedDraft, turn: Turn): Promise<Doc<"players">> {
+async function autoPickFor(ctx: QueryCtx, leagueId: Id<"leagues">, draft: Doc<"drafts">, started: StartedDraft, turn: Turn): Promise<Doc<"players">> {
   const players = await undraftedIn(ctx, leagueId);
-  const legal = await legalForTurn(ctx, leagueId, started, turn, players);
+  const legal = await legalForTurn(ctx, leagueId, draft, started, turn, players);
   const lists = await listsOf(ctx, turn.team);
   const order = autoPickOrder(
     players,
@@ -254,7 +258,7 @@ export const autoPick = internalMutation({
       await scheduleAutoPick(ctx, draft, { ...draft.clock, job: undefined }, team);
       return null;
     }
-    const player = await autoPickFor(ctx, leagueId, started, turn);
+    const player = await autoPickFor(ctx, leagueId, draft, started, turn);
     let timeout: Placed["timeout"];
     // A manager who chose auto-pick keeps his count as it is (Craig, 5 Nov 2026, on #1100).
     if (team.managerEmail !== undefined && !choseAutoPick(draft.timeouts, team._id)) {

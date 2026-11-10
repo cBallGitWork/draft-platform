@@ -1,12 +1,13 @@
 // The admin's dashboard in the preview (src/app/preview.ts): a new signing, a man whose starts wait, a
 // position flagged and one removed, four clubs, one with no colours yet, and a search that finds one player with positions
 // from all three sources, one of them flagged. On the feeds page, FPL's sync late, match stats
-// failing, a match behind and a correction after the lock.
+// failing, a match behind and a correction after the lock. On the Availability tab, three players
+// set by hand over the feed, and the one a search finds, set by none (the approved auto-team picture).
 
 import { FIRST_THRESHOLDS } from "../../convex/positions/positionChanges";
 import { HOUR_MS, MINUTE_MS } from "../../convex/shared/time";
 import { previewSays } from "../shared/preview";
-import type { AdminSeam, FeedsReport, PositionsQueue } from "./seam";
+import type { AdminSeam, AvailabilityRow, FeedsReport, PositionsQueue } from "./seam";
 
 const queue: PositionsQueue = {
   newSignings: [{ code: 1, name: "Steur", fullName: "Jacob Steur", clubCode: 4, label: "Centre Central Midfielder" }],
@@ -53,6 +54,13 @@ const feeds: FeedsReport = {
   ],
 };
 
+const setByHand: AvailabilityRow[] = [
+  { code: 5, name: "Saka", clubShortName: "ARS", positions: ["W"], feed: "doubtful", set: "available" },
+  { code: 6, name: "Tonali", clubShortName: "NEW", positions: ["CM"], feed: "available", set: "out" },
+  { code: 8, name: "Watkins", clubShortName: "AVL", positions: ["ST"], feed: "out", set: "doubtful" },
+];
+const woltemade: AvailabilityRow = { code: 3, name: "Woltemade", clubShortName: "NEW", positions: ["ST", "CAM", "SS"], feed: "available", set: null };
+
 export const previewAdmin: AdminSeam = {
   useQueue: () => queue,
   useFoundPlayers: (text) =>
@@ -72,6 +80,8 @@ export const previewAdmin: AdminSeam = {
         ]
       : [],
   useFeeds: () => feeds,
+  useSetByHand: () => setByHand,
+  useAvailabilityOf: (code) => [...setByHand, woltemade].find((row) => row.code === code),
   approvePlayer: previewSays("nobody was approved"),
   approveClub: previewSays("no club was approved"),
   setPosition: previewSays("no position was set"),
@@ -79,4 +89,5 @@ export const previewAdmin: AdminSeam = {
   setApproveMode: previewSays("how starts count didn't change"),
   setChangeThresholds: previewSays("the thresholds didn't change"),
   setClubColours: previewSays("no club's colours changed"),
+  setAvailability: previewSays("no player's availability changed"),
 };

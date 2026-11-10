@@ -26,6 +26,7 @@ names the [plate.md](../../docs/design/plate.md) section it draws; the values ar
 - `StarRating.tsx`: a player's stars for a role, in half-star steps, or "?" and "—" unrated (Marks: Stars).
 - `ClubName.tsx`: a club's name, or its three letters (`ClubShort`), and its mark (`ClubMark`): its crest, or its two colours where that won't load (Marks: A club's mark).
 - `StatBox.tsx`: the stat box, every stat of the catalogue and the site's own, as a box or a title-bar button (Controls), on Scouting and the draft room.
+- `AutoTeamChip.tsx`: a team on the auto team, the event chip after its name, its hover saying what it does (Colour roles: event), on the table and the matchup.
 - `Placeholder.tsx`: data not held yet, a 1px muted outline in its place and size, its hover saying what will show (Marks: A placeholder).
 
 ## Utilities in controls.css

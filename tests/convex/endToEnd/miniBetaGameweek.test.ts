@@ -130,6 +130,7 @@ test("the four-team league plays gameweek 6 end to end: live, provisional, then 
       pointsAgainst,
       difference: inTenths(pointsFor - pointsAgainst),
       points: { won: MATCHUP_POINTS.win, drawn: MATCHUP_POINTS.draw, lost: MATCHUP_POINTS.loss }[result],
+      onAutoTeam: false,
     };
   };
   const byTeam = (one: { teamId: string }, other: { teamId: string }) => one.teamId.localeCompare(other.teamId);

@@ -3,7 +3,7 @@ import { api } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
 import { refusals } from "../../../convex/shared/leagueAccess";
 import { SECOND_MS } from "../../../convex/shared/time";
-import { changeEveryRules, HELD_FIRST_RULES } from "../../support/convex/leagueRules.harness";
+import { changeEveryRules, changeRules, HELD_FIRST_RULES, holdGameweeks, rulesWith } from "../../support/convex/leagueRules.harness";
 import { actingAs, addManagers, adminCreatesLeague, COMMISSIONER, MANAGERS, type TestConvex } from "../../support/convex/leagues.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
 
@@ -67,5 +67,19 @@ describe("the pick time before the start", () => {
     await start();
     const startedAt = Date.now();
     expect(await read()).toMatchObject({ clock: { startsAt: startedAt, endsAt: startedAt + 60 * SECOND_MS } });
+  });
+
+  test("mid-season, the draft starts on the last pick time and timeout limit typed, not those in force (#1439)", async () => {
+    await holdGameweeks(t, { next: 5 });
+    const squad = { size: { minimum: 11, maximum: 11 }, minimumByArea: null, maxPerClub: null };
+    const draft = { ...HELD_FIRST_RULES.draft!, pickSeconds: 45, timeoutsBeforeAutoPick: 3 };
+    expect(await changeRules(t, leagueId, rulesWith({ squad, draft }))).toBe(5);
+    expect(await changeRules(t, leagueId, rulesWith({ squad, draft: { ...draft, pickSeconds: 60, timeoutsBeforeAutoPick: 1 } }))).toBe(5);
+    await start();
+    const startedAt = Date.now();
+
+    expect(await read()).toMatchObject({ clock: { startsAt: startedAt, endsAt: startedAt + 60 * SECOND_MS } });
+    expect(await panel()).toMatchObject({ pickSeconds: 60 });
+    expect(await (await as(ANN)).query(api.draft.draftBoard.ofLeague, { leagueId, now: Date.now() })).toMatchObject({ pickSeconds: 60, yourAutoPick: { limit: 1 } });
   });
 });
