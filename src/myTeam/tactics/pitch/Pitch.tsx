@@ -12,7 +12,7 @@ import { RoleRuns } from "./RoleRuns";
 import { PITCH_ASPECT } from "./pitchMarkings";
 import { cellGridOf, EVEN_ROWS, ROWS_DRAWN, rowLayoutOf } from "./rowLayout";
 import { StarRating } from "../../../ui/StarRating";
-import { landingOf, standingIn, type EditedLineup, type Landing, type RatingsOf, type SquadMember } from "../lineupEdits";
+import { landingOf, positionsIn, standingIn, type EditedLineup, type Landing, type RatingsOf, type SquadMember } from "../lineupEdits";
 import type { DropTarget, Reach } from "../swaps";
 import { emptySlotLabel, landingSubject, pitchLabel, playerOnPitchLabel, swapLabel } from "../words";
 
@@ -88,7 +88,7 @@ export function Pitch({
   const isSlot = (cell: Cell) => slots.some((slot) => sameCell(slot, cell));
   /** The swap a lit player shows; null on one who isn't lit. */
   const landingOn = (playerCode: number) =>
-    picked === null || reach === null || !reach.players.includes(playerCode) ? null : landingOf(draft, picked.playerCode, playerCode, ratingsOf);
+    picked === null || reach === null || !reach.players.includes(playerCode) ? null : landingOf(draft, picked.playerCode, playerCode, ratingsOf, positionsIn(squad));
   const rows = rowLayoutOf([...draft.starters, ...slots]);
   return (
     <div role="group" aria-label={pitchLabel} style={cellGridOf(rows)} className="pitch relative mx-auto grid">

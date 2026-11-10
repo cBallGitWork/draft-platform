@@ -10,10 +10,11 @@ import { FIRST_SCORING_WITH_ROLES } from "../../../../convex/scoring/draftedRole
 import { categoryName } from "../../../../convex/scoring/categories";
 import { scoreMatch } from "../../../../convex/scoring/scoring";
 import { ROLE_CHIP_MARK } from "../../../../src/myTeam/tactics/pitch/Pitch";
-import { cancelWords, lastSeasonWords, noMatchesWords, playAsWords, showMatchLabel } from "../../../../src/myTeam/tactics/roleCard/words";
+import { cancelWords, lastSeasonWords, noMatchesWords, notTestedWords, playAsWords, showMatchLabel } from "../../../../src/myTeam/tactics/roleCard/words";
 import { CHELSEA } from "../../../support/convex/footballRows.harness";
 import {
   HAVERTZ,
+  RAYA,
   SALIBA,
   SAVED,
   STARTERS,
@@ -45,6 +46,22 @@ describe("the role card (#848)", () => {
     expect(rolesOnCard(SALIBA.name)).toEqual(rolesOfSlot(SALIBAS_CELL, STARTERS).map(({ name }) => name));
     expect(roleRow(SALIBA.name, "Stopper").getAttribute("aria-current")).toBe("true");
     expect(within(roleCard(SALIBA.name)).getByRole("button", { name: playAsWords("Stopper") })).toBeTruthy();
+  });
+
+  // S05.29
+  it("offers only the roles he may take: a CAM up front, the false 9 alone", async () => {
+    const cam = { ...HAVERTZ, positions: ["CAM" as const] };
+    await openedPitch({ tactics: { ...SAVED, squad: SAVED.squad.map((each) => (each.playerCode === HAVERTZ.playerCode ? cam : each)) } });
+    await userEvent.click(roleButton(HAVERTZ.name));
+    expect(rolesOnCard(HAVERTZ.name)).toEqual(["False 9"]);
+  });
+
+  // S05.30
+  it("marks the sweeper keeper not tested, and no role a real read has shown", async () => {
+    await openedPitch();
+    await userEvent.click(roleButton(RAYA.name));
+    expect(roleRow(RAYA.name, "Sweeper keeper").textContent).toContain(notTestedWords);
+    expect(roleRow(RAYA.name, "Shot-stopper").textContent).not.toContain(notTestedWords);
   });
 
   it("opens from his role on the pitch, while a tap on the rest of him opens his panel", async () => {

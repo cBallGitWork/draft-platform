@@ -27,7 +27,8 @@ const SPEC_AREAS: Record<WholeAreaPosition, Area[]> = {
   // "Every CDM can play CM" (Craig, 1 Nov 2026).
   CDM: ["defensiveMidfield", "midfield"],
   CM: ["midfield"],
-  CAM: ["attackingMidfield"],
+  // Up front as false 9 only (`S06.6`; roles.ts's takesRole): "any AM" (Craig, 9 Nov 2026, on #1196).
+  CAM: ["attackingMidfield", "attack"],
   SS: ["attackingMidfield", "attack"],
   ST: ["attack"],
 };

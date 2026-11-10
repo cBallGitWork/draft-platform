@@ -60,5 +60,7 @@ export function problemWords(problem: LineupProblem, nameOf: NameOf): string {
       return `The league starts at least ${problem.minimum} in ${AREA_WORDS[problem.area]}; this lineup starts ${problem.starterCount} there.`;
     case "noBackThree":
       return `${nameOf(problem.playerCode)} can play ${roleName(problem.role)} only with ${BACK_THREE} or more centre-backs; this lineup has ${problem.centreBacks}.`;
+    case "roleNotHis":
+      return `${nameOf(problem.playerCode)} plays ${problem.positions.join(", ")}, so he can't play ${roleName(problem.role)}.`;
   }
 }

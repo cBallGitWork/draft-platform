@@ -5,8 +5,9 @@ import { categoryName } from "../scoring/categories";
 import { scoreMatch } from "../scoring/scoring";
 import type { ScoringSet } from "../scoring/scoringSet";
 import { MINUTES_STAT } from "../stats/matchRecords";
+import type { Position } from "../positions/positionTables";
 import type { Cell } from "./pitch";
-import { rolesOfSlot, type Formation } from "./roles";
+import { rolesFor, type Formation } from "./roles";
 
 // The role card's shape and pricing (spec/05 Roles; #848), apart from its query (roleCard.ts) so the
 // preview and the screen's tests build a card as the server does. Every match is priced at the
@@ -26,6 +27,9 @@ const cardRole = v.object({
    *  set scores no such role. */
   rewards: v.array(v.string()),
   punishes: v.array(v.string()),
+  /** Marked not tested until a real Sportmonks read shows its stats for his position (spec/05
+   *  `S05.30`). */
+  notTested: v.boolean(),
 });
 
 /** One of his matches priced under each role. */
@@ -55,10 +59,11 @@ export type CardMatch = Infer<typeof cardMatch>;
 /** A match to price: what he did, the set it is priced under, and what the card shows of it. */
 export type MatchToPrice = Pick<CardMatch, "gameweek" | "pastSeason" | "opponent"> & { stats: Record<string, number>; set: ScoringSet };
 
-/** The slot's roles as the card lists them, what each rewards and punishes read from `set`. */
-export function cardRolesOf(cell: Cell, formation: Formation, set: ScoringSet): RoleCard["roles"] {
+/** The slot's roles a player with these positions may take (spec/05 `S05.29`) as the card lists
+ *  them, what each rewards and punishes read from `set`. */
+export function cardRolesOf(cell: Cell, formation: Formation, positions: readonly Position[], set: ScoringSet): RoleCard["roles"] {
   const named = (parts: readonly { stat: string }[]) => parts.map(({ stat }) => categoryName(stat, set.ownStats));
-  return rolesOfSlot(cell, formation).map(({ key, name, description, rewards, costs }) => {
+  return rolesFor(cell, formation, positions).map(({ key, name, description, rewards, costs, notTested }) => {
     const scored = set.roles?.find((each) => each.role === key);
     return {
       key,
@@ -66,6 +71,7 @@ export function cardRolesOf(cell: Cell, formation: Formation, set: ScoringSet): 
       description,
       rewards: scored === undefined ? [...rewards] : named(scored.bonus.parts),
       punishes: scored === undefined ? [...costs] : named(scored.cost.parts),
+      notTested,
     };
   });
 }

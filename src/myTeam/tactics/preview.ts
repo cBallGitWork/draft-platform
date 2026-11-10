@@ -157,7 +157,8 @@ export const previewTactics: TacticsSeam = {
   useTactics: () => useSyncExternalStore(subscribe, () => tactics),
   useRoleCard: (_leagueId, playerCode, cell, formation) =>
     useMemo(() => {
-      const roles = cardRolesOf(cell, formation, ROLE_SET);
+      const positions = squad.find((member) => member.playerCode === playerCode)?.positions ?? [];
+      const roles = cardRolesOf(cell, formation, positions, ROLE_SET);
       return { roles, matches: previewMatches(playerCode).map((match) => pricedMatch(match, cell, roles.map(({ key }) => key))) };
       // A cell and a formation are new objects each render: their contents say whether the card changes.
       // eslint-disable-next-line react-hooks/exhaustive-deps

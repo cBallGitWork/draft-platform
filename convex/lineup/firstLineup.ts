@@ -55,12 +55,17 @@ export function firstLineup(
  *  onto the pitch is a drop): one still in the cell `held` has him in keeps the role he had there;
  *  anyone placed anew, or whose role the new shape no longer offers (a sweeper with two centre-backs
  *  left), starts on his best-star role (stars/bestRole.ts). */
-export function withDroppedRoles(picked: FirstLineup, ratingsOf: (playerCode: number) => readonly RoleStars[], held: readonly FirstStarter[] = []): FirstLineup {
+export function withDroppedRoles(
+  picked: FirstLineup,
+  ratingsOf: (playerCode: number) => readonly RoleStars[],
+  positions: PlayerPositions,
+  held: readonly FirstStarter[] = [],
+): FirstLineup {
   const formation = picked.starters;
   const starters = picked.starters.map((starter) => {
     const before = held.find((each) => each.playerCode === starter.playerCode && sameCell(each, starter));
     if (before !== undefined && (before.role === undefined || offersRole(before, before.role, formation) || !isRole(before.role))) return before;
-    return droppedStarter(starter.playerCode, starter, formation, ratingsOf(starter.playerCode));
+    return droppedStarter(starter.playerCode, starter, formation, ratingsOf(starter.playerCode), positions.get(starter.playerCode) ?? []);
   });
   return { starters, bench: picked.bench };
 }

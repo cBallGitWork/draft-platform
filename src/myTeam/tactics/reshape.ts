@@ -3,8 +3,8 @@
 // a classic and a saved plan all reshape the pitch through it.
 
 import { AREAS, byPitchOrder, LANES, playsCell, type Cell } from "../../../convex/lineup/pitch";
-import { offersRole, roleIn, rolesOfSlot } from "../../../convex/lineup/roles";
-import { droppedInto, starts, startersInOrder, type EditedLineup, type MoveRules, type RatingsOf, type Starter } from "./lineupEdits";
+import { offersRole, roleIn, rolesOfSlot, takesRole } from "../../../convex/lineup/roles";
+import { droppedInto, starts, startersInOrder, type EditedLineup, type MoveRules, type PositionsOf, type RatingsOf, type Starter } from "./lineupEdits";
 import { matched } from "./matching";
 
 /** The lineup reshaped to a preset's cells (spec/05; Craig, 26 Oct and 1 Nov 2026): each starter,
@@ -34,10 +34,11 @@ const byNearness = (starter: Cell) => (one: Cell, other: Cell) => {
 };
 
 /** A starter moved into `cell` of `cells`: he keeps the role he plays where the new slot offers it
- *  too, given or his old slot's first, and starts on his best-star role there where it doesn't. */
-function movedInto(starter: Starter, cell: Cell, cells: readonly Cell[], ratingsOf: RatingsOf): Starter {
+ *  too and he may take it (S05.29), given or his old slot's first, and starts on his best-star role
+ *  there among those he may take where not. */
+function movedInto(starter: Starter, cell: Cell, cells: readonly Cell[], ratingsOf: RatingsOf, positionsOf: PositionsOf): Starter {
   const playing = roleIn(starter, starter.role).key;
-  if (!offersRole(cell, playing, cells)) return droppedInto(starter.playerCode, cell, cells, ratingsOf);
+  if (!offersRole(cell, playing, cells) || !takesRole(positionsOf(starter.playerCode), playing)) return droppedInto(starter.playerCode, cell, cells, ratingsOf, positionsOf);
   const role = starter.role ?? (playing === rolesOfSlot(cell, cells)[0].key ? undefined : playing);
   return { playerCode: starter.playerCode, area: cell.area, lane: cell.lane, ...(role !== undefined && { role }) };
 }
@@ -56,7 +57,7 @@ function bestFit(draft: EditedLineup, cells: readonly Cell[], { positionsOf }: P
   const starters = players.flatMap((player) => {
     const cell = cellOf.get(player);
     if (cell === undefined) return [];
-    return [player.starter === undefined ? droppedInto(player.playerCode, cell, cells, ratingsOf) : movedInto(player.starter, cell, cells, ratingsOf)];
+    return [player.starter === undefined ? droppedInto(player.playerCode, cell, cells, ratingsOf, positionsOf) : movedInto(player.starter, cell, cells, ratingsOf, positionsOf)];
   });
   return { starters, bench: players.filter((player) => !cellOf.has(player)).map(({ playerCode }) => playerCode) };
 }
@@ -71,7 +72,7 @@ function ownAreaFirst(draft: EditedLineup, cells: readonly Cell[], { positionsOf
       .toSorted(byNearness(starter))[0];
   const moveInto = (starter: Starter, cell: Cell) => {
     free.splice(free.indexOf(cell), 1);
-    starters.push(movedInto(starter, cell, cells, ratingsOf));
+    starters.push(movedInto(starter, cell, cells, ratingsOf, positionsOf));
   };
   // His own area first for everyone, so no one moved across takes a cell its own player needed.
   const unplaced: Starter[] = [];
@@ -92,7 +93,7 @@ function ownAreaFirst(draft: EditedLineup, cells: readonly Cell[], { positionsOf
     if (cell === undefined) bench.push(playerCode);
     else {
       free.splice(free.indexOf(cell), 1);
-      starters.push(droppedInto(playerCode, cell, cells, ratingsOf));
+      starters.push(droppedInto(playerCode, cell, cells, ratingsOf, positionsOf));
     }
   }
   return { starters, bench };

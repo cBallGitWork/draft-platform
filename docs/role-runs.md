@@ -5,6 +5,11 @@ the rough first runs copied from FM's nearest role. Craig: "Yes, research them" 
 1 Nov 2026). The runs and descriptions live with the roles in `convex/lineup/roles.ts`; this file
 is why each one goes where it does, for Craig to refine by patch.
 
+Superseded in part by the roles redrawn around Sportmonks' stats (#1445, spec/05 S05.35): the
+underlapping full-back, the wide-midfield touchline winger, the late runner, the wide forward and
+the shadow striker were cut, and the half-back renamed. Their rows below are kept as the research
+behind them; `convex/lineup/roles.ts` holds the roles that are offered.
+
 How it was done: for each role, what the role is in FM's role guides (its duty and its "moves into
 channels", "gets further forward", "roams" instructions), what the real players the role is named
 for do in Premier League matches (heat maps and the usual coaching descriptions), and where on our

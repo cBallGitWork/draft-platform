@@ -65,7 +65,8 @@ const PLAYABLE_CELLS: Record<Position, readonly Cell[]> = {
   CM: wholeArea("midfield"),
   // The two wide midfield rows share their wide men: "yes" (Craig, 1 Nov 2026; #1025).
   WM: [...wholeArea("midfield"), ...cellsOf("attackingMidfield", WIDE_LANES)],
-  CAM: wholeArea("attackingMidfield"),
+  // Up front as false 9 only (spec/06 `S06.6`; roles.ts's takesRole): "any AM" (Craig, 9 Nov 2026, on #1196).
+  CAM: [...wholeArea("attackingMidfield"), ...wholeArea("attack")],
   W: [...cellsOf("midfield", WIDE_LANES), ...wholeArea("attackingMidfield")],
   SS: [...wholeArea("attackingMidfield"), ...wholeArea("attack")],
   ST: wholeArea("attack"),

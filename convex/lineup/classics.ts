@@ -50,7 +50,7 @@ export const DEFAULT_CLASSICS: readonly Classic[] = [
     "1995-96, Keegan",
     "Crosses from both flanks for the strikers to head; a centre-back and both central midfielders attack.",
     "4-4-2",
-    ["shotStopper", "overlappingFullBack", "attackingCentreBack", "stopper", "overlappingFullBack", "crosser", "attackingEight", "lateRunner", "crosser", "targetMan", "poacher"],
+    ["shotStopper", "overlappingFullBack", "attackingCentreBack", "stopper", "overlappingFullBack", "crosser", "attackingEight", "boxToBox", "crosser", "targetMan", "poacher"],
     { attacking: "getItWide", defensive: "holdAHighLine" },
   ),
   classic(
@@ -83,7 +83,7 @@ export const DEFAULT_CLASSICS: readonly Classic[] = [
     "1988-89, Sacchi",
     "Zonal pressing in a compact block, a high line, and Gullit and Van Basten up front.",
     "4-4-2",
-    ["shotStopper", "overlappingFullBack", "ballPlayingDefender", "stopper", "defensiveFullBack", "wideMidfieldWinger", "attackingEight", "ballWinner", "defensiveWinger", "poacher", "shadowStriker"],
+    ["shotStopper", "overlappingFullBack", "ballPlayingDefender", "stopper", "defensiveFullBack", "wideMidfielder", "attackingEight", "ballWinner", "defensiveWinger", "poacher", "falseNine"],
     { attacking: "playOutFromTheBack", defensive: "pressHigh" },
   ),
   classic(

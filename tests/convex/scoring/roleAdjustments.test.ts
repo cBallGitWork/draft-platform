@@ -145,10 +145,10 @@ test("a patch that changes a role says so in its notes, bars and mix", () => {
 
 test("two roles of one name are told apart in patch notes by their position", () => {
   const winger = (role: string) => ({ ...TARGET_MAN, role });
-  const both = structuredClone({ ...FIRST_SCORING, roles: [winger("wideMidfieldWinger"), winger("winger")] }) as StoredScoringSet;
+  const both = structuredClone({ ...FIRST_SCORING, roles: [winger("wideMidfieldPlaymaker"), winger("widePlaymaker")] }) as StoredScoringSet;
   expect(scoringChanges(FIRST_SCORING, both)).toEqual([
-    "Touchline winger (wide midfield): now +1 at 4, +2 at 5, +3 at 6 of Aerial won; −1 at 5, −2 at 8, −3 at 11 of Aerial lost",
-    "Touchline winger (attacking midfield, wide): now +1 at 4, +2 at 5, +3 at 6 of Aerial won; −1 at 5, −2 at 8, −3 at 11 of Aerial lost",
+    "Wide playmaker (wide midfield): now +1 at 4, +2 at 5, +3 at 6 of Aerial won; −1 at 5, −2 at 8, −3 at 11 of Aerial lost",
+    "Wide playmaker (attacking midfield, wide): now +1 at 4, +2 at 5, +3 at 6 of Aerial won; −1 at 5, −2 at 8, −3 at 11 of Aerial lost",
   ]);
 });
 

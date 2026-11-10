@@ -6,6 +6,7 @@ import { managerOf } from "../shared/leagueAccess";
 import { clubsByCode, playerByCode } from "../shared/players";
 import { isWhole, MINUTES_STAT, statValue } from "../stats/matchRecords";
 import { seasonRecords } from "../stats/seasonRecords";
+import { heldPositionsOf } from "./lineups";
 import { cellShape } from "./pitchShape";
 import { cardRolesOf, pricedMatch, ROLE_CARD_MATCHES, roleCardShape, type MatchToPrice } from "./roleCardShape";
 
@@ -25,7 +26,8 @@ export const forSlot = query({
   returns: roleCardShape,
   handler: async (ctx, { leagueId, playerCode, cell, formation, now }) => {
     await managerOf(ctx, leagueId);
-    const roles = cardRolesOf(cell, formation, await siteScoringAt(ctx, now));
+    const positions = (await heldPositionsOf(ctx, leagueId, [playerCode])).get(playerCode) ?? [];
+    const roles = cardRolesOf(cell, formation, positions, await siteScoringAt(ctx, now));
     const matches = await lastMatchesPlayed(ctx, playerCode, now);
     return { roles, matches: matches.map((match) => pricedMatch(match, cell, roles.map(({ key }) => key))) };
   },

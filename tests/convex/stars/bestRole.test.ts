@@ -40,17 +40,27 @@ describe("the role he is saved on when dropped", () => {
   const FOUR_FOUR_TWO = cellsOf("4-4-2");
 
   test("his best role's key", () => {
-    expect(droppedRole(STRIKER, FOUR_FOUR_TWO, [up(TARGET_MAN.key, 4)])).toBe(TARGET_MAN.key);
+    expect(droppedRole(STRIKER, FOUR_FOUR_TWO, [up(TARGET_MAN.key, 4)], ["ST"])).toBe(TARGET_MAN.key);
   });
 
   test("none for the slot's first, which a starter with none given plays", () => {
-    expect(droppedRole(STRIKER, FOUR_FOUR_TWO, [up(POACHER.key, 5)])).toBeUndefined();
-    expect(droppedRole(STRIKER, FOUR_FOUR_TWO, [])).toBeUndefined();
+    expect(droppedRole(STRIKER, FOUR_FOUR_TWO, [up(POACHER.key, 5)], ["ST"])).toBeUndefined();
+    expect(droppedRole(STRIKER, FOUR_FOUR_TWO, [], ["ST"])).toBeUndefined();
   });
 
   test("a centre-back best as a sweeper starts on it only in a back three", () => {
     const sweeperBest = [up("sweeper", 5, "defence"), up("noNonsenseCentreBack", 3, "defence")];
-    expect(droppedRole(CENTRE_BACK, cellsOf("3-5-2"), sweeperBest)).toBe("sweeper");
-    expect(droppedRole({ area: "defence", lane: "leftCentre" }, FOUR_FOUR_TWO, sweeperBest)).toBe("noNonsenseCentreBack");
+    expect(droppedRole(CENTRE_BACK, cellsOf("3-5-2"), sweeperBest, ["CB"])).toBe("sweeper");
+    expect(droppedRole({ area: "defence", lane: "leftCentre" }, FOUR_FOUR_TWO, sweeperBest, ["CB"])).toBe("noNonsenseCentreBack");
+  });
+
+  // S05.29
+  test("only among the roles he may take: a CAM up front is a false 9, whatever his stars", () => {
+    expect(droppedRole(STRIKER, FOUR_FOUR_TWO, [up(POACHER.key, 5)], ["CAM"])).toBe("falseNine");
+    expect(droppedRole(STRIKER, FOUR_FOUR_TWO, [up(POACHER.key, 5)], ["CAM", "SS"])).toBeUndefined();
+    const wide = { area: "attackingMidfield", lane: "left" } as const;
+    const pressingBest = [up("pressingWinger", 5, "attackingMidfield"), up("dribbler", 2, "attackingMidfield")];
+    expect(droppedRole(wide, cellsOf("4-2-3-1"), pressingBest, ["WM"])).toBe("dribbler");
+    expect(droppedRole(wide, cellsOf("4-2-3-1"), pressingBest, ["W"])).toBe("pressingWinger");
   });
 });

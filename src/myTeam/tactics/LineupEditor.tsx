@@ -108,13 +108,13 @@ export function LineupEditor({ league, teamName, tactics, seam, opened, now }: E
     onPick: (playerCode) => setPickedCode((current) => (current === playerCode ? null : playerCode)),
     onGrab: setPickedCode,
     onSwap: (playerCode) => {
-      if (picked !== null) change(swapped(draft, picked.playerCode, playerCode, ratingsOf), picked.playerCode);
+      if (picked !== null) change(swapped(draft, picked.playerCode, playerCode, ratingsOf, rules.positionsOf), picked.playerCode);
     },
     // A refused drop says why in the line under the toolbar (spec/05; Craig, 4 Nov 2026).
     onDrop: (target) => {
       if (picked === null) return;
       const outcome = dropOutcome(draft, picked.playerCode, target, rules);
-      if ("swapWith" in outcome) change(swapped(draft, picked.playerCode, outcome.swapWith, ratingsOf), picked.playerCode);
+      if ("swapWith" in outcome) change(swapped(draft, picked.playerCode, outcome.swapWith, ratingsOf, rules.positionsOf), picked.playerCode);
       else edits.refuse(refusalWords(outcome.refusal, (playerCode) => squad.get(playerCode)!.name));
     },
     onDragEnd: () => setPickedCode(null),
