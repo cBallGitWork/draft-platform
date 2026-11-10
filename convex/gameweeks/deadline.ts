@@ -17,9 +17,9 @@ export interface DeadlineRule {
   minutesBeforeFirstKickoff: number;
 }
 
-/** FPL's own rule, and every league's default: 90 minutes before the first kickoff. It held for
- *  all 38 gameweeks of 2026/27 in FPL's data of 20 Oct 2026. */
-export const FPL_DEADLINE_RULE: DeadlineRule = { minutesBeforeFirstKickoff: 90 };
+/** Every new league's default: 15 minutes before the first kickoff (spec/03 S03.3, spec/05 S05.20;
+ *  Craig, on #1196: "we dont use fpls time, its 15 minutes"). */
+export const DEFAULT_DEADLINE_RULE: DeadlineRule = { minutesBeforeFirstKickoff: 15 };
 
 /** The league's own deadline in a gameweek, or null while none is known. */
 export type DeadlineOf = (gameweek: number) => number | null;

@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, test, vi } from "vitest";
 import { api } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
-import { FPL_DEADLINE_RULE } from "../../../convex/gameweeks/deadline";
+import { DEFAULT_DEADLINE_RULE } from "../../../convex/gameweeks/deadline";
 import { GAMEWEEKS } from "../../../convex/gameweeks/usedGameweeks";
 import { LINEUP_DUE_BEFORE_DEADLINE_MS } from "../../../convex/lineup/lineupLimits";
 import { refusals } from "../../../convex/shared/leagueAccess";
@@ -33,7 +33,7 @@ const isDue = async (email: string) => (await actingAs(t, email)).query(api.line
 /** `email` opens the Tactics tab, showing `gameweek` (the next, unless a test says). */
 const opensTactics = async (email: string, gameweek = NEXT) => (await actingAs(t, email)).mutation(api.lineup.lineupDue.openedTactics, { leagueId, gameweek });
 /** The next gameweek's league deadline, as holdGameweeks sets its kickoff, under the first rules. */
-const nextDeadline = () => Date.now() + KICKS_OFF_IN - FPL_DEADLINE_RULE.minutesBeforeFirstKickoff * MINUTE_MS;
+const nextDeadline = () => Date.now() + KICKS_OFF_IN - DEFAULT_DEADLINE_RULE.minutesBeforeFirstKickoff * MINUTE_MS;
 const clockTo = (time: number) => vi.advanceTimersByTime(time - Date.now());
 /** The gameweek ANN's team last opened Tactics in, null before any (t.run gives undefined back as null). */
 const openedIn = () => t.run(async (ctx) => (await ctx.db.get("teams", annsTeam))!.tacticsOpenedInGameweek ?? null);

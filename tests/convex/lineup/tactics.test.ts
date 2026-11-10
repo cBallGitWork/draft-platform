@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, test, vi } from "vitest";
 import { api } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
-import { FPL_DEADLINE_RULE } from "../../../convex/gameweeks/deadline";
+import { DEFAULT_DEADLINE_RULE } from "../../../convex/gameweeks/deadline";
 import { GAMEWEEKS } from "../../../convex/gameweeks/usedGameweeks";
 import { pickFirstLineupAgain } from "../../../convex/lineup/lineups";
 import { refusals } from "../../../convex/shared/leagueAccess";
@@ -44,7 +44,7 @@ beforeEach(async () => {
 
 const tacticsOf = async (email: string) => (await actingAs(t, email)).query(api.lineup.tactics.ofMyTeam, { leagueId, now: Date.now() });
 /** The next gameweek's kickoff, as holdGameweeks sets it, less the first rules' deadline. */
-const nextDeadline = () => Date.now() + KICKS_OFF_IN - FPL_DEADLINE_RULE.minutesBeforeFirstKickoff * MINUTE_MS;
+const nextDeadline = () => Date.now() + KICKS_OFF_IN - DEFAULT_DEADLINE_RULE.minutesBeforeFirstKickoff * MINUTE_MS;
 
 describe("the lineup to set", () => {
   test("is the next gameweek's, with its league deadline, the league's limits and presets, and the squad", async () => {

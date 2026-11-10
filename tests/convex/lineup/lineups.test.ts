@@ -7,7 +7,7 @@ import { DEFAULT_ROLES } from "../../../convex/lineup/roles";
 import { refusals } from "../../../convex/shared/leagueAccess";
 import { FIRST_GAMEWEEK, GAMEWEEKS } from "../../../convex/gameweeks/usedGameweeks";
 import { MINUTE_MS, WEEK_MS } from "../../../convex/shared/time";
-import { FPL_DEADLINE_RULE } from "../../../convex/gameweeks/deadline";
+import { DEFAULT_DEADLINE_RULE } from "../../../convex/gameweeks/deadline";
 import { holdGameweeks, holdGameweeksPastTheSeason, holdMatchState, KICKS_OFF_IN, rulesWith, setUsed } from "../../support/convex/leagueRules.harness";
 import { expectRefused } from "../../support/convex/test.harness";
 import { COMMISSIONER, MANAGERS, actingAs, addManagers, adminCreatesLeague, type TestConvex } from "../../support/convex/leagues.harness";
@@ -115,7 +115,7 @@ describe("a saved lineup", () => {
   test("saved once the deadline has passed is from the gameweek after, and the begun one keeps the old", async () => {
     const ann = await as(ANN);
     await ann.save(FOUR_FOUR_TWO);
-    vi.advanceTimersByTime(KICKS_OFF_IN - FPL_DEADLINE_RULE.minutesBeforeFirstKickoff * MINUTE_MS);
+    vi.advanceTimersByTime(KICKS_OFF_IN - DEFAULT_DEADLINE_RULE.minutesBeforeFirstKickoff * MINUTE_MS);
 
     expect(await ann.save(REVERSED_BENCH)).toBe(NEXT + 1);
     expect(await ann.mine(NEXT)).toEqual(saved(FOUR_FOUR_TWO, NEXT));
@@ -153,7 +153,7 @@ describe("a saved lineup", () => {
   test("is refused through a gameweek the league doesn't play, from its deadline until its last match is over (spec/13)", async () => {
     await setUsed(t, leagueId, NEXT, false);
     expect(await (await as(ANN)).save(FOUR_FOUR_TWO)).toBe(NEXT);
-    vi.advanceTimersByTime(KICKS_OFF_IN - FPL_DEADLINE_RULE.minutesBeforeFirstKickoff * MINUTE_MS);
+    vi.advanceTimersByTime(KICKS_OFF_IN - DEFAULT_DEADLINE_RULE.minutesBeforeFirstKickoff * MINUTE_MS);
     await expectRefused((await as(ANN)).save(REVERSED_BENCH), lineupRefusals.unplayedGameweek);
 
     await holdMatchState(t, NEXT, "fullTime");

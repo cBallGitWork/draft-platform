@@ -180,8 +180,8 @@ describe("a run elsewhere", () => {
 describe("only between gameweeks", () => {
   test("starts since the league's last deadline warn of nothing until the next has passed, and count from the gameweek after it", async () => {
     // Centre back and full back in turn long ago, then three more at full back since gameweek 8's
-    // deadline, a day and a half ago (holdGameweeks: gameweek 9's falls in six days, less FPL's 90
-    // minutes).
+    // deadline, a day and a half ago (holdGameweeks: gameweek 9's falls in six days, less the
+    // league's 15 minutes).
     const sinceLastDeadline = Date.now() - 12 * HOUR_MS;
     const inTurn = [CENTRE_BACK, RIGHT_BACK, CENTRE_BACK, RIGHT_BACK, CENTRE_BACK, RIGHT_BACK];
     await barnesOn(annsTeam, [...played(...inTurn), ...startsFrom(sinceLastDeadline / DAY_MS, ...times(RIGHT_BACK, 3))]);

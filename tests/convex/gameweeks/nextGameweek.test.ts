@@ -18,7 +18,7 @@ const matches = [
 /** No deadline recorded as passed yet. */
 const NOTHING_PASSED: ReadonlyMap<number, number> = new Map();
 const minutesBefore = (minutesBeforeFirstKickoff: number) => (): DeadlineRule => ({ minutesBeforeFirstKickoff });
-/** FPL's 90 minutes, the first rules' default: as a league's own rule, not FPL's deadline. */
+/** FPL's 90 minutes, as a league's own rule, not FPL's deadline. */
 const NINETY = 90;
 const ninetyMinutes = minutesBefore(NINETY);
 const ninetyBefore = (kickoff: number) => kickoff - NINETY * MINUTE_MS;
