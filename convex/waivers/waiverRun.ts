@@ -167,11 +167,13 @@ async function runWaivers(ctx: MutationCtx, leagueId: Id<"leagues">, at: number)
     WAIVER_PLAYERS_READ_MOST,
     `League ${leagueId} has more than ${WAIVER_PLAYERS_READ_MOST} players on waivers, so its run can't read them all`,
   );
-  const due = onWaivers.filter(({ claimableFrom }) => claimableFrom <= now);
+  // By the run's own time, not the moment it executes: the cron may fire minutes late, and a player
+  // whose 24 hours end in those minutes is the next run's, as his claims were told (spec/08).
+  const due = onWaivers.filter(({ claimableFrom }) => claimableFrom <= at);
   const run: Run = { league, squadRules: season.latest.squad, deadlines, now, claimable: new Map(due.map((row) => [row.playerCode, row])) };
   // A run tries every claim but those for a player whose 24 hours aren't up: one for a player no
   // longer on waivers at all, taken by the commissioner say, fails as another team's.
-  const waiting = new Set(onWaivers.filter(({ claimableFrom }) => claimableFrom > now).map(({ playerCode }) => playerCode));
+  const waiting = new Set(onWaivers.filter(({ claimableFrom }) => claimableFrom > at).map(({ playerCode }) => playerCode));
   const queues = new Map<Id<"teams">, Doc<"waiverClaims">[]>();
   for (const claim of await leagueClaims(ctx, leagueId)) {
     if (!waiting.has(claim.playerCode)) queues.set(claim.teamId, [...(queues.get(claim.teamId) ?? []), claim]);

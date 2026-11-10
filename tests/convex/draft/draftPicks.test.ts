@@ -160,6 +160,30 @@ describe("a pick is refused", () => {
     expect(await read()).toMatchObject({ status: "over" });
   });
 
+  test("by the picks the team holds, not the round: a team with two picks in round 1 makes its last there, and the other its first in round 2", async () => {
+    await setSquadRules({ minimumByArea: { ...NO_AREA_MINIMUMS, goalkeeper: 1 } });
+    // Ann's round-2 pick is Cat's, and Cat's round-1 pick is Ann's: Ann picks 1st and 3rd, Cat 4th and 6th.
+    await start();
+    await t.run(async (ctx) => {
+      const draft = (await ctx.db.query("drafts").withIndex("by_leagueId", (q) => q.eq("leagueId", leagueId)).unique())!;
+      await ctx.db.patch("drafts", draft._id, {
+        tradedPicks: [
+          { round: 2, teamId: teams[0], ownerId: teams[2] },
+          { round: 1, teamId: teams[2], ownerId: teams[0] },
+        ],
+      });
+    });
+    await pick(ANN, A1);
+    await pick(BOB, A2);
+
+    await expectRefused(pick(ANN, A3), pickRefusals.breaksSquadRules("Player 103"));
+    await pick(ANN, K1);
+    await pick(CAT, A3);
+    await pick(BOB, K2);
+    await pick(CAT, K3);
+    expect(await read()).toMatchObject({ status: "over" });
+  });
+
   test("when it would leave no legal finish from the players still undrafted", async () => {
     // Every keeper left plays for Chelsea: Ann at Chelsea's maximum could never pick one.
     await setSquadRules({ maxPerClub: 1, minimumByArea: { ...NO_AREA_MINIMUMS, goalkeeper: 1 } });

@@ -77,15 +77,13 @@ export const write = internalAction({
   args: { scoutId: v.id("scouts") },
   returns: v.null(),
   handler: async (ctx, { scoutId }) => {
-    const facts = await ctx.runQuery(internal.scouting.scoutReports.brief, { scoutId, now: Date.now() });
-    if (facts === null) return null;
-    if (facts.kind === "gone") {
-      await ctx.runMutation(internal.scouting.scoutReports.comeBack, { scoutId, text: null });
-      return null;
-    }
-    let text: string;
+    let text: string | null;
     try {
-      text = await writeWithClaude({ system: REPORT_SYSTEM, prompt: facts.prompt, maxTokens: REPORT_MAX_TOKENS });
+      // The brief is read inside the try: one that throws is a failed write too, kept and tried again,
+      // never a scout left out for good.
+      const facts = await ctx.runQuery(internal.scouting.scoutReports.brief, { scoutId, now: Date.now() });
+      if (facts === null) return null;
+      text = facts.kind === "gone" ? null : await writeWithClaude({ system: REPORT_SYSTEM, prompt: facts.prompt, maxTokens: REPORT_MAX_TOKENS });
     } catch (error) {
       const failure = logFailure(`Scout ${scoutId}'s report wasn't written; trying again in ${CLAUDE_RETRY_MS / MINUTE_MS} minutes`, error);
       await ctx.runMutation(internal.scouting.scoutReports.failed, { scoutId, failure });

@@ -184,3 +184,24 @@ describe("a team with no manager", () => {
 });
 
 const teamNameOf = () => t.run(async (ctx) => (await ctx.db.get("teams", annsTeam))!.name);
+
+describe("the team's instructions", () => {
+  test("carry on into the lineup the auto team saves for a later gameweek: it only touches the lineup", async () => {
+    const instructions = { attacking: "shootOnSight", defensive: "pressHigh" };
+    await t.run(async (ctx) => {
+      const saved = (await ctx.db.query("lineups").withIndex("by_leagueId_and_teamId_and_fromGameweek", (q) => q.eq("leagueId", leagueId).eq("teamId", annsTeam).eq("fromGameweek", NEXT)).unique())!;
+      await ctx.db.patch("lineups", saved._id, { instructions });
+    });
+    await switches(ANN, true);
+    await passDeadline();
+    await setAvailability(OUT_MIDFIELDER, "out");
+    await passWeekOn();
+
+    expect(await startersIn(NEXT + 1)).not.toContain(OUT_MIDFIELDER);
+    const rows = await t.run((ctx) => ctx.db.query("lineups").withIndex("by_leagueId_and_teamId_and_fromGameweek", (q) => q.eq("leagueId", leagueId).eq("teamId", annsTeam).gte("fromGameweek", NEXT)).collect());
+    expect(rows.map(({ fromGameweek, instructions: kept }) => ({ fromGameweek, kept }))).toEqual([
+      { fromGameweek: NEXT, kept: instructions },
+      { fromGameweek: NEXT + 1, kept: instructions },
+    ]);
+  });
+});
