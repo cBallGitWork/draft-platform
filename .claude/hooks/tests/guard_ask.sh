@@ -48,13 +48,39 @@ fails_loudly "questions is str" guard_ask.py '{"tool_name":"AskUserQuestion","to
 six='{"tool_name":"AskUserQuestion","tool_input":{"questions":[{"header":"A","question":"Which day does the draft open?"},{"header":"B","question":"How many rounds with no maximum?"},{"header":"C","question":"Who picks for a team that left?"},{"header":"D","question":"Does a cameo count?"},{"header":"E","question":"What goes in the subtitle?"},{"header":"F","question":"Which crest set?"}]}}'
 check deny guard_ask.py "$six"
 says "at most 5 in one batch" guard_ask.py "$six"
-# a question is asked once: the same words again within a week are refused, a new question isn't
-check allow guard_ask.py "$(ask "Draft order (#1130): where does the Draw at random button sit?")"
-check deny guard_ask.py "$(ask "Draft order (#1130): where does the Draw at random button sit?")"
+# a question is asked once Craig answers it: the same words again within a week are refused, a new one isn't
+answered() { # question answer: the PostToolUse payload of an AskUserQuestion Craig answered ("" for no answer)
+  "$jq" -nc --arg q "$1" --arg a "$2" '{hook_event_name:"PostToolUse",tool_name:"AskUserQuestion",
+    tool_input:{questions:[{header:"H",question:$q,options:[]}]},tool_response:{answers:{($q):$a}}}'; }
+order="Draft order (#1130): where does the Draw at random button sit?"
+check allow guard_ask.py "$(ask "$order")"
+check allow guard_ask.py "$(ask "$order")"  # asked but not answered (refused, or met with a message): not a repeat
+silent guard_ask.py "$(answered "$order" "Under the list")"
+check deny guard_ask.py "$(ask "$order")"
 says "Already asked" guard_ask.py "$(ask "draft order (#1130): where does the draw at random button sit")"  # words, not case or marks
 check allow guard_ask.py "$(ask "Draft order (#1130): can the commissioner redraw it?")"
-# one call's hooks can run twice: the same call is never a repeat of itself, another call still is
-asked_by() { "$jq" -nc --arg q "$1" --arg id "$2" '{tool_name:"AskUserQuestion",tool_use_id:$id,tool_input:{questions:[{header:"H",question:$q,options:[]}]}}'; }
-check allow guard_ask.py "$(asked_by "Lineup check (#23): does it list each out-of-position starter?" toolu_1)"
-check allow guard_ask.py "$(asked_by "Lineup check (#23): does it list each out-of-position starter?" toolu_1)"
-check deny guard_ask.py "$(asked_by "Lineup check (#23): does it list each out-of-position starter?" toolu_2)"
+# a result with no answer, or no answers at all, records nothing
+lineup="Lineup check (#23): does it list each out-of-position starter?"
+silent guard_ask.py "$(answered "$lineup" "")"
+silent guard_ask.py "$("$jq" -nc --arg q "$lineup" '{hook_event_name:"PostToolUse",tool_name:"AskUserQuestion",
+  tool_input:{questions:[{header:"H",question:$q}]},tool_response:"The user sent a message instead"}')"
+check allow guard_ask.py "$(ask "$lineup")"
+check allow guard_ask.py "$(ask "$lineup")"  # one call's hooks can run twice: still not a repeat
+# the full shape Claude Code sends (tool_response as a session transcript recorded an answered
+# AskUserQuestion's result, 9 Nov 2026: {questions, answers}, answers keyed on each question's words)
+crests="Crest set (#1035): club crests or plain shirts?"
+real=$("$jq" -nc --arg q "$crests" '{session_id:"s",transcript_path:"/t.jsonl",cwd:"/p",permission_mode:"default",
+  hook_event_name:"PostToolUse",tool_name:"AskUserQuestion",tool_use_id:"toolu_1",
+  tool_input:{questions:[{question:$q,header:"Crests",multiSelect:false,
+    options:[{label:"Crests",description:"Real club crests"},{label:"Shirts",description:"Plain shirts"}]}]},
+  tool_response:{questions:[{question:$q,header:"Crests",multiSelect:false,
+    options:[{label:"Crests",description:"Real club crests"},{label:"Shirts",description:"Plain shirts"}]}],
+    answers:{($q):"Crests"}}}')
+silent guard_ask.py "$real"
+check deny guard_ask.py "$(ask "$crests")"
+# a result whose shape changed (no answers dict) is said on stderr, never recorded in silence
+odd=$("$jq" -nc --arg q "Which kit colour?" '{hook_event_name:"PostToolUse",tool_name:"AskUserQuestion",
+  tool_input:{questions:[{header:"H",question:$q}]},tool_response:{questions:[],replies:{($q):"Red"}}}')
+err=$(printf '%s' "$odd" | "$hooks/guard_ask.py" 2>&1 >/dev/null)
+printf '%s' "$err" | grep -qF "no answers dict" || fail "guard_ask.py: expected a stderr line for a result with no answers: $err"
+check allow guard_ask.py "$(ask "Which kit colour?")"
