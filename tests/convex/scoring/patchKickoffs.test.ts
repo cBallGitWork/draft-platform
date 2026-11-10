@@ -5,7 +5,7 @@ import { DAY_MS, HOUR_MS } from "../../../convex/shared/time";
 import { holdGameweeks } from "../../support/convex/leagueRules.harness";
 import { pendingJobs } from "../../support/convex/test.harness";
 import { ADMIN } from "../../support/convex/leagues.harness";
-import { EDITED, EDITED_AGAIN, fixAs, inGameweek, kickoffOf, patch, t, useSiteScoringDeployment, viewAs } from "../../support/convex/siteScoring.harness";
+import { EDITED, EDITED_AGAIN, fixAs, inGameweek, kickoffOf, patch, siteDeadlineOf, t, useSiteScoringDeployment, viewAs } from "../../support/convex/siteScoring.harness";
 
 // What an announced patch does when its gameweek's schedule changes (Craig, 1 Nov 2026, on #901):
 // a first kickoff moving later takes the patch's start with it, and a gameweek with no kickoff
@@ -25,38 +25,38 @@ beforeEach(() => holdGameweeks(t, { next: 9 }));
 
 describe("a waiting patch whose gameweek's first kickoff moves", () => {
   test("#901 Done: later, moves with it, and its gameweek still plays it", async () => {
-    await patch(EDITED, kickoffOf(GAMEWEEK));
-    const later = kickoffOf(GAMEWEEK) + DAY_MS;
+    await patch(EDITED, siteDeadlineOf(GAMEWEEK));
+    const later = siteDeadlineOf(GAMEWEEK) + DAY_MS;
 
-    await moveOpener(GAMEWEEK, later);
+    await moveOpener(GAMEWEEK, kickoffOf(GAMEWEEK) + DAY_MS);
 
     expect(await takesEffectAt()).toEqual([later]);
     expect((await viewAs(ADMIN)).versions[0]).toMatchObject({ fromGameweek: GAMEWEEK });
     expect(await inGameweek(GAMEWEEK - 1)).toEqual(FIRST_SCORING);
     expect(await inGameweek(GAMEWEEK)).toEqual(EDITED);
-    expect(await refreshTimes()).toEqual([kickoffOf(GAMEWEEK), later]);
+    expect(await refreshTimes()).toEqual([siteDeadlineOf(GAMEWEEK), later]);
   });
 
   test("earlier, stays where it was", async () => {
-    await patch(EDITED, kickoffOf(GAMEWEEK));
+    await patch(EDITED, siteDeadlineOf(GAMEWEEK));
 
     await moveOpener(GAMEWEEK, kickoffOf(GAMEWEEK) - DAY_MS);
 
-    expect(await takesEffectAt()).toEqual([kickoffOf(GAMEWEEK)]);
+    expect(await takesEffectAt()).toEqual([siteDeadlineOf(GAMEWEEK)]);
   });
 
   test("later than the next patch's moment, moves no further than it, so the two keep their order", async () => {
-    await patch(EDITED, kickoffOf(GAMEWEEK));
-    await patch(EDITED_AGAIN, kickoffOf(GAMEWEEK + 1));
+    await patch(EDITED, siteDeadlineOf(GAMEWEEK));
+    await patch(EDITED_AGAIN, siteDeadlineOf(GAMEWEEK + 1));
 
     await moveOpener(GAMEWEEK, kickoffOf(GAMEWEEK + 1) + DAY_MS);
 
-    expect(await takesEffectAt()).toEqual([kickoffOf(GAMEWEEK + 1), kickoffOf(GAMEWEEK + 1)]);
+    expect(await takesEffectAt()).toEqual([siteDeadlineOf(GAMEWEEK + 1), siteDeadlineOf(GAMEWEEK + 1)]);
     expect(await inGameweek(GAMEWEEK + 1)).toEqual(EDITED_AGAIN);
   });
 
   test("announced at a moment no gameweek starts at, it has no gameweek to follow", async () => {
-    const between = kickoffOf(GAMEWEEK) - HOUR_MS;
+    const between = siteDeadlineOf(GAMEWEEK) - HOUR_MS;
     await patch(EDITED, between);
 
     await moveOpener(GAMEWEEK, kickoffOf(GAMEWEEK) + DAY_MS);
@@ -64,9 +64,9 @@ describe("a waiting patch whose gameweek's first kickoff moves", () => {
     expect(await takesEffectAt()).toEqual([between]);
   });
 
-  test("dropped from the feed, the gameweek's next match is its first kickoff, and the patch follows it", async () => {
+  test("dropped from the feed, the gameweek's next match is its first kickoff, and the patch follows its deadline", async () => {
     await t.mutation(internal.football.footballSync.upsertFixtures, { rows: [{ ...opener(GAMEWEEK, kickoffOf(GAMEWEEK) + DAY_MS), code: 100 }] });
-    await patch(EDITED, kickoffOf(GAMEWEEK));
+    await patch(EDITED, siteDeadlineOf(GAMEWEEK));
     const heldCodes = await t.run(async (ctx) => (await ctx.db.query("fixtures").collect()).map(({ code }) => code));
 
     await t.mutation(internal.football.footballSync.markDropped, {
@@ -76,13 +76,13 @@ describe("a waiting patch whose gameweek's first kickoff moves", () => {
       paginationOpts: { numItems: heldCodes.length, cursor: null },
     });
 
-    expect(await takesEffectAt()).toEqual([kickoffOf(GAMEWEEK) + DAY_MS]);
+    expect(await takesEffectAt()).toEqual([siteDeadlineOf(GAMEWEEK) + DAY_MS]);
   });
 });
 
 describe("a gameweek with no kickoff time yet", () => {
   test("#901 Done: plays the rules in force while a patch waits, not the patch", async () => {
-    await patch(EDITED, kickoffOf(GAMEWEEK));
+    await patch(EDITED, siteDeadlineOf(GAMEWEEK));
 
     await moveOpener(GAMEWEEK + 1, null);
 

@@ -20,6 +20,7 @@ import {
   fixAs,
   inGameweek,
   kickoffOf,
+  siteDeadlineOf,
   names,
   NOTICE,
   patch,
@@ -52,7 +53,7 @@ describe("reading it", () => {
       versions: [],
       draft: null,
       // From 10, 7 days away (siteScoringDraftPatch.test.ts).
-      patchGameweeks: expect.arrayContaining([{ gameweek: 10, takesEffectAt: kickoffOf(10) }]),
+      patchGameweeks: expect.arrayContaining([{ gameweek: 10, takesEffectAt: siteDeadlineOf(10) }]),
     });
     for (const gameweek of SEASON_GAMEWEEKS) expect(await inGameweek(gameweek)).toEqual(FIRST_SCORING);
   });

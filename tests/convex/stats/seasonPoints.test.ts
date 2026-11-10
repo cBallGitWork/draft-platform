@@ -3,6 +3,7 @@ import { api, internal } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
 import type { ScoringSet } from "../../../convex/scoring/scoringSet";
 import type { StoredScoringSet } from "../../../convex/scoring/scoringSetShape";
+import { siteDeadline } from "../../../convex/scoring/siteVersions";
 import { inTenths } from "../../../convex/scoring/values";
 import { WEEK_MS } from "../../../convex/shared/time";
 import { PLAYERS_PAGE } from "../../../convex/stats/matchRecords";
@@ -119,7 +120,7 @@ test("each match is priced under the site's set in force in its gameweek: a patc
     ...EXAMPLE_SET,
     rules: EXAMPLE_SET.rules.map((rule) => (rule.stat === "goals_scored" ? { ...rule, values: { all: 9 } } : rule)),
   } as ScoringSet;
-  await league.t.run((ctx) => holdSiteScoring(ctx, { scoring: structuredClone(PATCHED) as StoredScoringSet, kind: "fix", season: 2026, number: 1, at: GW2.kickoff }));
+  await league.t.run((ctx) => holdSiteScoring(ctx, { scoring: structuredClone(PATCHED) as StoredScoringSet, kind: "fix", season: 2026, number: 1, at: siteDeadline(GW2.kickoff) }));
   await refresh(league);
 
   expect(at(SAKA_GW2, "W", PATCHED)).not.toBe(at(SAKA_GW2, "W"));
