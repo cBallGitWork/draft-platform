@@ -34,7 +34,7 @@ WRAP_UP_ASK = "ask"
 MOST_PER_BATCH = 5  # questions in one AskUserQuestion: Craig answers one short batch, not a quiz
 ASKED_DIR = Path(tempfile.gettempdir()) / "draft-asked"  # each question Craig answered, by its hash, across sessions
 ANSWERED_EVENT = "PostToolUse"
-ANSWERS = "answers"  # AskUserQuestion's result: each question's words with Craig's answer
+ANSWERS = "answers"  # AskUserQuestion's result, {questions, answers}: each question's words with Craig's answer
 ASK_ONCE_DAYS = 7  # a question asked within this many days isn't asked again (#1150 was asked four times)
 
 # words that ask Craig's leave rather than his view
@@ -123,8 +123,12 @@ def record_answered(payload):
     if field(payload, "tool_name", str, "") != ASK_TOOL:
         return
     response = payload.get("tool_response")
-    answers = response.get(ANSWERS) if isinstance(response, dict) else None
+    if not isinstance(response, dict):
+        return  # Craig met the questions with a message instead of answers: nothing was answered
+    answers = response.get(ANSWERS)
     if not isinstance(answers, dict):
+        print(f"guard_ask.py: AskUserQuestion's result has no {ANSWERS} dict (keys: {sorted(response)}), "
+              "so no question was recorded as asked.", file=sys.stderr)
         return
     answered = {normal(str(q)) for q, a in answers.items() if str(a or "").strip()}
     for text in ask_texts(field(payload, "tool_input", dict, {})):
@@ -132,8 +136,9 @@ def record_answered(payload):
             try:
                 ASKED_DIR.mkdir(exist_ok=True)
                 mark_of(text).write_text(text, encoding="utf-8")
-            except OSError:
-                pass
+            except OSError as error:
+                print(f"guard_ask.py: couldn't record an answered question ({error}), so it can be asked again.",
+                      file=sys.stderr)
 
 
 def decide(payload):

@@ -66,3 +66,21 @@ silent guard_ask.py "$("$jq" -nc --arg q "$lineup" '{hook_event_name:"PostToolUs
   tool_input:{questions:[{header:"H",question:$q}]},tool_response:"The user sent a message instead"}')"
 check allow guard_ask.py "$(ask "$lineup")"
 check allow guard_ask.py "$(ask "$lineup")"  # one call's hooks can run twice: still not a repeat
+# the full shape Claude Code sends (tool_response as a session transcript recorded an answered
+# AskUserQuestion's result, 9 Nov 2026: {questions, answers}, answers keyed on each question's words)
+crests="Crest set (#1035): club crests or plain shirts?"
+real=$("$jq" -nc --arg q "$crests" '{session_id:"s",transcript_path:"/t.jsonl",cwd:"/p",permission_mode:"default",
+  hook_event_name:"PostToolUse",tool_name:"AskUserQuestion",tool_use_id:"toolu_1",
+  tool_input:{questions:[{question:$q,header:"Crests",multiSelect:false,
+    options:[{label:"Crests",description:"Real club crests"},{label:"Shirts",description:"Plain shirts"}]}]},
+  tool_response:{questions:[{question:$q,header:"Crests",multiSelect:false,
+    options:[{label:"Crests",description:"Real club crests"},{label:"Shirts",description:"Plain shirts"}]}],
+    answers:{($q):"Crests"}}}')
+silent guard_ask.py "$real"
+check deny guard_ask.py "$(ask "$crests")"
+# a result whose shape changed (no answers dict) is said on stderr, never recorded in silence
+odd=$("$jq" -nc --arg q "Which kit colour?" '{hook_event_name:"PostToolUse",tool_name:"AskUserQuestion",
+  tool_input:{questions:[{header:"H",question:$q}]},tool_response:{questions:[],replies:{($q):"Red"}}}')
+err=$(printf '%s' "$odd" | "$hooks/guard_ask.py" 2>&1 >/dev/null)
+printf '%s' "$err" | grep -qF "no answers dict" || fail "guard_ask.py: expected a stderr line for a result with no answers: $err"
+check allow guard_ask.py "$(ask "Which kit colour?")"

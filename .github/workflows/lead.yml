@@ -303,11 +303,15 @@ jobs:
           # starts the lead that is a loop (5 Nov 2026: #1096 waits on #383). It waits on the board instead, unless it was
           # answered after its last such run: Craig's answer filed on it, or its rules:open taken off, which is what a
           # stopped build waited on (9 Nov 2026: #990 and #1028 had every rule answered and still sat a day)
-          answered_since() { # issue time: true if an answer came after time
-            gh api "repos/$GH_REPO/issues/$1/timeline" --paginate | jq -se --arg t "$2" '[.[][] | select((.created_at // "") > $t)
+          answered_since() { # issue time: true if an answer came after time; a failed read is said and counts as not answered
+            local timeline
+            if ! timeline=$(gh api "repos/$GH_REPO/issues/$1/timeline" --paginate); then
+              echo "::warning::couldn't read #$1's timeline, so it stays stopped this run" >&2; return 1
+            fi
+            jq -se --arg t "$2" '[.[][] | select((.created_at // "") > $t)
               | select((.event == "unlabeled" and .label.name == "rules:open")
                        or (.event == "commented" and .actor.login == env.OWNER and ((.body // "") | test("^Craig.s answer"))))]
-              | length > 0' > /dev/null
+              | length > 0' <<<"$timeline" > /dev/null
           }
           stopped=$(gh run list --workflow claude-build.yml --event workflow_dispatch --status completed --limit 100 \
                       --created ">=$(date -u -d "$STOPPED_HOURS hours ago" +%FT%TZ)" --json displayTitle,createdAt \
