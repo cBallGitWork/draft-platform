@@ -53,18 +53,19 @@ async function anyoneHeld(ctx: QueryCtx, leagueId: Id<"leagues">): Promise<boole
 
 /** Why the league's draft can't start now, or be given a date; otherwise what it starts with: its
  *  teams; its rounds and the squad rules its picks follow, the league's latest, a waiting change's
- *  among them (Craig, 7 Nov 2026, on #1130); and its pick clock, the rules' in force now. */
+ *  among them (Craig, 7 Nov 2026, on #1130); and its pick time, the latest's too, so a mid-season
+ *  draft starts on the last one typed (Craig, 10 Nov 2026, on #1439: "Last typed"). */
 async function startable(
   ctx: MutationCtx,
   leagueId: Id<"leagues">,
 ): Promise<{ refusal: string } | { refusal: null; teams: Doc<"teams">[]; rounds: number; squad: LeagueRules["squad"]; pickSeconds: number }> {
   const teams = await teamsOf(ctx, leagueId);
   if (teams.length < DRAFT_FEWEST_TEAMS) return { refusal: draftStartRefusals.tooFewTeams };
-  const [rules, latest] = await Promise.all([rulesInForceAt(ctx, leagueId, Date.now()), latestRules(ctx, leagueId)]);
+  const latest = await latestRules(ctx, leagueId);
   const rounds = roundsOf(latest);
   if (rounds === null) return { refusal: draftStartRefusals.noSquadSize };
   if (await anyoneHeld(ctx, leagueId)) return { refusal: draftStartRefusals.squadsNotEmpty };
-  return { refusal: null, teams, rounds, squad: latest.squad, pickSeconds: draftRulesOf(rules).pickSeconds };
+  return { refusal: null, teams, rounds, squad: latest.squad, pickSeconds: draftRulesOf(latest).pickSeconds };
 }
 
 /** Writes the draft's date and its scheduled start, or neither for null, cancelling any start
@@ -84,10 +85,11 @@ async function begin(ctx: MutationCtx, league: Doc<"leagues">, draft: Doc<"draft
   const can = await startable(ctx, league._id);
   if (can.refusal !== null) return can.refusal;
   const started = { at: Date.now(), teamIds: draftOrderOf(can.teams, league.draftOrder).map((team) => team._id), rounds: can.rounds, squad: can.squad };
-  if (draft === null) await ctx.db.insert("drafts", { leagueId: league._id, started });
-  else await ctx.db.patch("drafts", draft._id, { started, startsAt: undefined, startJob: undefined });
+  const pickSeconds = can.pickSeconds;
+  if (draft === null) await ctx.db.insert("drafts", { leagueId: league._id, started, pickSeconds });
+  else await ctx.db.patch("drafts", draft._id, { started, pickSeconds, startsAt: undefined, startJob: undefined });
   await closePickTrades(ctx, league._id);
-  const first = await startClock(ctx, league._id, 0, started.at, can.pickSeconds);
+  const first = await startClock(ctx, league._id, 0, started.at, pickSeconds);
   if (first !== null) await tellUpNext(ctx, league, first);
   return null;
 }

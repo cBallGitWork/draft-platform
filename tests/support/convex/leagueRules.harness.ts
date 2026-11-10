@@ -45,9 +45,15 @@ export const changeEveryRules = (t: TestConvex, leagueId: Id<"leagues">, change:
     }
   });
 
-/** The league's pick clock set to `pickSeconds` at once (changeEveryRules). */
-export const setPickSeconds = (t: TestConvex, leagueId: Id<"leagues">, pickSeconds: number) =>
-  changeEveryRules(t, leagueId, (rules) => ({ ...rules, draft: { ...HELD_FIRST_RULES.draft!, pickSeconds } }));
+/** The league's pick clock set to `pickSeconds` at once (changeEveryRules), and a started draft's
+ *  own too, as a change reaching a live draft writes it (draftPickTime.ts; #1439). */
+export async function setPickSeconds(t: TestConvex, leagueId: Id<"leagues">, pickSeconds: number): Promise<void> {
+  await changeEveryRules(t, leagueId, (rules) => ({ ...rules, draft: { ...HELD_FIRST_RULES.draft!, pickSeconds } }));
+  await t.run(async (ctx) => {
+    const draft = await ctx.db.query("drafts").withIndex("by_leagueId", (q) => q.eq("leagueId", leagueId)).unique();
+    if (draft?.started !== undefined) await ctx.db.patch("drafts", draft._id, { pickSeconds });
+  });
+}
 
 /** Sets whether the league plays a gameweek, by `by` (the commissioner unless a test says).
  *  Returns the mutation's promise. */
