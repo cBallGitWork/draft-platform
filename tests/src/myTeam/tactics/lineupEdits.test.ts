@@ -8,13 +8,13 @@ import type { Position } from "../../../../convex/positions/positionTables";
 import {
   benchedAt,
   openingLineup,
-  reshaped,
   sameLineup,
   shownLineup,
   swapped,
   withRole,
   type RatingsOf,
 } from "../../../../src/myTeam/tactics/lineupEdits";
+import { reshaped } from "../../../../src/myTeam/tactics/reshape";
 import type { RoleStars } from "../../../../convex/stars/starsShape";
 
 const KEEPER = { playerCode: 1, area: "goalkeeper", lane: "centre" } as const;

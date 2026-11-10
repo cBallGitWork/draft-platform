@@ -1,5 +1,5 @@
 // The most of a shape's cells its players can fill between them, each in a cell he plays: a
-// preset's best fit (./lineupEdits.ts `reshaped`) and Quick Pick's count (./quickPick.ts) both
+// preset's best fit (./reshape.ts `reshaped`) and Quick Pick's count (./quickPick.ts) both
 // read it. Pure.
 
 import { cellKey, type Cell } from "../../../convex/lineup/pitch";

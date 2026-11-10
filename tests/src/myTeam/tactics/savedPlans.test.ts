@@ -3,7 +3,8 @@ import { positionOfSlot, sameCell, type Cell } from "../../../../convex/lineup/p
 import { DEFAULT_PRESETS } from "../../../../convex/lineup/presets";
 import { DEFAULT_ROLES, rolesOfSlot } from "../../../../convex/lineup/roles";
 import type { Position } from "../../../../convex/positions/positionTables";
-import { reshaped, swapped, type EditedLineup } from "../../../../src/myTeam/tactics/lineupEdits";
+import { swapped, type EditedLineup } from "../../../../src/myTeam/tactics/lineupEdits";
+import { reshaped } from "../../../../src/myTeam/tactics/reshape";
 import { loadedPlan, planSlotsOf, presetOfPlan, type Plan } from "../../../../src/myTeam/tactics/savedPlans";
 
 // Saved plans (spec/05, Saved plans; #992): saving keeps the formation and every slot's role, never
