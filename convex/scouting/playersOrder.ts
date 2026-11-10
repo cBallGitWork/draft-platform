@@ -67,8 +67,8 @@ function sortedPlayers(players: readonly ListedPlayer[], { by, descending }: Pla
         return direction * byName(one, other);
       case "club":
         return direction * one.club.shortName.localeCompare(other.club.shortName) || byName(one, other);
-      case "seasonPoints":
-        return compareFigures(one.seasonPoints, other.seasonPoints, direction) || byName(one, other);
+      case "points":
+        return compareFigures(one.points, other.points, direction) || byName(one, other);
       case "stat":
         return compareFigures(one.stat, other.stat, direction) || byName(one, other);
       default:

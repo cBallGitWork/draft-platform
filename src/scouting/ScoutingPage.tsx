@@ -9,7 +9,7 @@ import { ComparePanel } from "./ComparePanel";
 import { Filters } from "./Filters";
 import { PlayersTable, type ListSort, type ListSortColumn } from "./PlayersTable";
 import { SelectedPlayer } from "./SelectedPlayer";
-import type { ListedPlayer, PlayersFilters, ScoutingSeam } from "./seam";
+import type { ListedPlayer, Period, PlayersFilters, ScoutingSeam } from "./seam";
 import { OpenReport, ScoutsPanel, type TeamReport } from "./scouts/ScoutsPanel";
 import { ShortlistPanel } from "./shortlist/ShortlistPanel";
 import { loadingWords, noneMatchWords, PLAYERS_TITLE, SCOUTING_TABS, SCOUTING_TITLE, scoutingTabsLabel, scoutingTabWords, type ScoutingTab } from "./words";
@@ -19,9 +19,11 @@ const OPENING_FILTERS: PlayersFilters = { availability: "freeAgents", position: 
 /** The list opens by name: no player has season points to rank by until matches are scored (#29).
  *  A head pressed first sorts names A to Z and figures most first. */
 const OPENING_SORT: ListSort = { by: "name", descending: false };
+/** The figures open over the season, the period every player has played in. */
+const OPENING_PERIOD: Period = "season";
 const FIRST_DESCENDING: Record<ListSortColumn, boolean> = {
   name: false,
-  seasonPoints: true,
+  points: true,
   stat: true,
   minutes: true,
   goals: true,
@@ -43,7 +45,8 @@ export function ScoutingPage({ league, seam }: { league: LeagueSummary; seam: Sc
 }
 
 /** The Players tab, as the approved picture lays it out: every Premier League player, filtered by
- *  who holds him, his position and his club, any stat shown as a season total, and sorted by a
+ *  who holds him, his position and his club, its figures and any stat shown over the season or the
+ *  last 4 or 6 gameweeks, and sorted by a
  *  column's head, all on the server, and found by name here. A row selects him: his panel opens at
  *  the top of the right column, over the manager's shortlist and his team's scouts, whose reports
  *  open there too. Compare with another… then a second row puts the two side by side. */
@@ -53,7 +56,8 @@ function PlayersTab({ league, seam }: { league: LeagueSummary; seam: ScoutingSea
   const [stat, setStat] = useState<CatalogueStat | null>(null);
   const [name, find] = useState("");
   // While a changed filter or sort loads, the last list stays up, so the club filter keeps its clubs.
-  const list = useLastLoaded(seam.usePlayersList(league.leagueId, filters, sort, stat?.stat ?? null));
+  const [period, choosePeriod] = useState<Period>(OPENING_PERIOD);
+  const list = useLastLoaded(seam.usePlayersList(league.leagueId, filters, sort, stat?.stat ?? null, period));
   const shortlist = seam.useShortlist(league.leagueId);
   const shortlisted = new Set((shortlist ?? []).map(({ code }) => code));
   const [selected, setSelected] = useState<ListedPlayer | null>(null);
@@ -63,7 +67,7 @@ function PlayersTab({ league, seam }: { league: LeagueSummary; seam: ScoutingSea
   const [withYours, setWithYours] = useState(false);
   // The scout's report opened from the Scouts panel, read at the top of the right column.
   const [reading, setReading] = useState<TeamReport | null>(null);
-  const comparison = seam.useComparison(league.leagueId, compared, stat?.stat ?? null);
+  const comparison = seam.useComparison(league.leagueId, compared, stat?.stat ?? null, period);
   const compareTwo = (first: number, second: number, yours: boolean) => {
     setCompared([first, second]);
     setWithYours(yours);
@@ -102,6 +106,8 @@ function PlayersTab({ league, seam }: { league: LeagueSummary; seam: ScoutingSea
           name={name}
           find={find}
           count={players?.length}
+          period={period}
+          choosePeriod={choosePeriod}
         />
         {players === undefined ? (
           <Loading className="px-3 py-2">{loadingWords}</Loading>
@@ -112,6 +118,8 @@ function PlayersTab({ league, seam }: { league: LeagueSummary; seam: ScoutingSea
             leagueId={league.leagueId}
             players={players}
             pointsSeason={list?.pointsSeason ?? null}
+            period={period}
+            periodGameweeks={list?.periodGameweeks ?? []}
             stat={stat}
             withStatus={filters.availability === "all" || filters.availability === "owned"}
             shortlisted={shortlisted}
@@ -130,6 +138,7 @@ function PlayersTab({ league, seam }: { league: LeagueSummary; seam: ScoutingSea
             leagueId={league.leagueId}
             player={shownSelected}
             pointsSeason={list?.pointsSeason ?? null}
+            period={period}
             stat={stat}
             shortlisted={shortlisted.has(shownSelected.code)}
             comparing={comparing}
@@ -148,6 +157,7 @@ function PlayersTab({ league, seam }: { league: LeagueSummary; seam: ScoutingSea
             leagueId={league.leagueId}
             comparison={comparison}
             pointsSeason={list?.pointsSeason ?? null}
+            period={period}
             stat={stat}
             yours={withYours}
             ownTeamName={league.teamName}

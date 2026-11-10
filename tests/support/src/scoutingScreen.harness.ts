@@ -21,6 +21,7 @@ const player = (code: number, name: string, club: ListedPlayer["club"], position
   ownerTeamName,
   onWaivers: null,
   seasonPoints: null,
+  points: null,
   figures: NO_FIGURES,
   stat: null,
 });

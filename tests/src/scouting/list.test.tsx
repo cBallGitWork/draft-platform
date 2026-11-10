@@ -62,7 +62,7 @@ describe("the list", () => {
   it("opens on free agents by name, as none has season points yet, and says how many", async () => {
     const app = openScouting();
     await screen.findByRole("table");
-    expect(lastAsk(app).slice(1)).toEqual([{ availability: "freeAgents", position: null, clubCode: null }, { by: "name", descending: false }, null]);
+    expect(lastAsk(app).slice(1)).toEqual([{ availability: "freeAgents", position: null, clubCode: null }, { by: "name", descending: false }, null, "season"]);
     expect((screen.getByRole("radio", { name: availabilityWords.freeAgents }) as HTMLInputElement).checked).toBe(true);
     expect(namesShown()).toEqual(["Rice"]);
     expect(screen.getByText(countWords(1))).toBeTruthy();
@@ -103,7 +103,7 @@ describe("the list", () => {
   });
 
   it("before the new season's first match, heads the points with last season's ('Pts 25/26'), a newcomer's '—' saying why (#956)", async () => {
-    await openOnAll({ ...HELD, players: HELD.players!.map((player) => ({ ...player, seasonPoints: player.name === "Rice" ? 180 : null })), pointsSeason: 2025 });
+    await openOnAll({ ...HELD, players: HELD.players!.map((player) => ({ ...player, points: player.name === "Rice" ? 180 : null })), pointsSeason: 2025 });
     const head = columnHeadIn(table(), seasonPointsColumn(2025));
     expect(head.textContent).toContain("Pts 25/26");
     expect(within(rowOf("Rice")).getAllByRole("cell").at(-4)!.textContent).toBe("180");

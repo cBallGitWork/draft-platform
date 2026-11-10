@@ -42,7 +42,7 @@ test("before the first match is priced, each player's points are last season's a
 });
 
 test("sorted by points, a newcomer goes below every figure, 0 included, either way", async () => {
-  const names = async (descending: boolean) => (await list(league, { by: "seasonPoints", descending })).players.map((player) => player.name);
+  const names = async (descending: boolean) => (await list(league, { by: "points", descending })).players.map((player) => player.name);
   expect(await names(true)).toEqual(["Rice", "Saka", "Palmer"]);
   expect(await names(false)).toEqual(["Saka", "Rice", "Palmer"]);
 });

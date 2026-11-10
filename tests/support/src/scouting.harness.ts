@@ -39,6 +39,9 @@ export type ScoutingData = {
   yours?: YourPlayer;
 };
 
+/** The gameweeks the fake server says each short period counts: 9 have finished. */
+export const PERIOD_GAMEWEEKS_SHOWN = { last4: [6, 7, 8, 9], last6: [4, 5, 6, 7, 8, 9] };
+
 export function fakeScouting({ clubs = [], ownStats = [], players = [], totals = {}, pointsSeason = null, loading = false, comparing = false, shortlist, scouts, actions, claims = [], yours = null }: ScoutingData = {}) {
   const addToQueue = vi.fn<ReturnType<ScoutingSeam["useAddToQueue"]>>(async () => shortlist?.refusal ?? null);
   const playerOf = (playerCode: number) => players.find(({ code }) => code === playerCode)!;
@@ -53,10 +56,17 @@ export function fakeScouting({ clubs = [], ownStats = [], players = [], totals =
     ...fakeScouts(scouts),
     useAddToQueue: () => addToQueue,
     addToQueue,
-    usePlayersList: vi.fn<ScoutingSeam["usePlayersList"]>((_leagueId, filters, sort, stat) =>
+    // The totals are the same over every period; a test of the period reads what the screen asks.
+    usePlayersList: vi.fn<ScoutingSeam["usePlayersList"]>((_leagueId, filters, sort, stat, period) =>
       loading
         ? undefined
-        : { clubs, ownStats, players: listOf(players.map((player) => ({ ...player, stat: shownStat(totals[player.code], stat) })), filters, sort), pointsSeason },
+        : {
+            clubs,
+            ownStats,
+            players: listOf(players.map((player) => ({ ...player, stat: shownStat(totals[player.code], stat) })), filters, sort),
+            pointsSeason,
+            periodGameweeks: period === undefined || period === "season" ? [] : PERIOD_GAMEWEEKS_SHOWN[period],
+          },
     ),
     // Both players' per-90 figures by the first's area, as the server weighs them (per90FiguresIn).
     useComparison: vi.fn<ScoutingSeam["useComparison"]>((_leagueId, codes, stat) => {
