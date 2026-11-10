@@ -168,15 +168,15 @@ and how they score from Craig, 4 Nov 2026.
   | attacking | Play out from the back | the keeper's and defenders' passing | errors leading to a shot or goal | any shape |
   | | Boot it to the big man | headed goals, forwards' aerials won | the back line's failed long balls | one up top, no wingers |
   | | Get it wide | crosses | failed crosses | wide players or wing-backs on both flanks |
-  | | Shoot on sight | goals and shots on target from outside the box | long shots off target or blocked | any shape |
+  | | Shoot on sight | shots, any range | shots off target | any shape |
   | | Gung-ho | goals and assists | goals conceded | two at the back |
-  | defensive | Press high | possession won high and in midfield | fouls | three or more in midfield or attack |
-  | | Hold a high line | defenders' offsides won and interceptions | goals conceded | a back three or four |
+  | defensive | Press high | the front three's tackles won and interceptions | fouls | three up front |
   | | Clear it | defenders' clearances and blocks | defenders losing the ball | any shape |
   | | Get stuck in | tackles and duels won | cards and fouls | any shape |
   | | Keep it tight early | a clean sheet at half-time | goals let in before half-time | any shape |
   | | Park the bus | the keeper's and defenders' clean sheets | goals and assists | five at the back |
 
+- Where Sportmonks sends no stat for an instruction, it scores what Sportmonks does send or goes for now (Craig, 10 Nov 2026): Press high scores the front three's tackles won and interceptions, in a shape with three up front ("press high could just be the front 3", 9 Nov 2026, on #1196); Shoot on sight scores shots of any range, with shots off target its cost; Hold a high line goes until Sportmonks sends offsides won. `S05.37`
 - A formation offers every instruction its shape allows, so the shape decides the list: "we have
   to block it from certain formations". Each formation has a default attacking and a default
   defensive instruction.

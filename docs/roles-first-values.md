@@ -151,10 +151,9 @@ random XIs in the shape shown, with the best and worst tenth of XIs after it.
 | Play out from the back | GK/DEF +1 per 30 accurate passes; errors leading to a shot or goal −3 each | 4-4-2 | +0.21 (+4 / -4) | Manchester City, Nottingham Forest, Fulham |
 | Boot it to the big man | headed goals +2; ATT +1 per 2 aerials won; GK/DEF −1 per 8 failed long balls | 5-4-1 | -0.44 (+1 / -2) | Brentford, Brighton Hove Albion, Everton |
 | Get it wide | +1 per accurate cross; −1 per 2 failed crosses | 4-4-2 | -0.44 (+2 / -3) | Ipswich Town, Manchester City, Newcastle United |
-| Shoot on sight | long-range goals +2, long shots on target +1; −1 per 2 long shots off target or blocked | 4-4-2 | +0.61 (+3 / -1) | Chelsea, Manchester United, Brighton Hove Albion |
+| Shoot on sight | +1 per shot, any range; −1 per 2 shots off target (Craig, 10 Nov 2026; to be refitted) | 4-4-2 | not fitted | not fitted |
 | Gung-ho | goals and assists +1; GK/DEF −1 per 2 goals conceded | 2-3-5 | +1.61 (+4 / -1) | Brighton Hove Albion, Manchester City, Arsenal |
-| Press high | ATT/MID +1 per possession won in the attacking third, +1 per 2 won in midfield; −1 per foul | 4-4-2 | +0.17 (+5 / -4) | Everton, Chelsea, AFC Bournemouth |
-| Hold a high line | DEF +1 per 2 offsides won and interceptions, up to 3; GK/DEF −1 per 2 goals conceded | 4-4-2 | -0.35 (+2 / -3) | Leeds United, Brighton Hove Albion, Arsenal |
+| Press high | the front three: +1 per 2 tackles won and interceptions; −1 per foul (Craig, 10 Nov 2026; to be refitted) | 4-3-3 | not fitted | not fitted |
 | Clear it | DEF +1 per 3 clearances and blocks; −1 per 6 possession lost | 4-4-2 | +0.03 (+4 / -3) | Coventry City, Ipswich Town, Newcastle United |
 | Get stuck in | +1 per 5 tackles and duels won; yellow −2, red −5, −1 per 2 fouls | 4-4-2 | -0.28 (+5 / -5) | Everton, Arsenal, Crystal Palace |
 | Keep it tight early | +1 if his club kept a clean sheet at half-time; −1 per goal his club let in before half-time; starters only (Craig, 9 Nov 2026, on #990) | 4-4-2 | +0.49 (+5 / -5) | Everton, Leeds United, Tottenham Hotspur |

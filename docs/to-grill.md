@@ -260,14 +260,6 @@ ai-carling-premiership match logs; the numbers there come from FotMob and Sofasc
   - The rates checked again against Sportmonks' stats, and whether it sends recoveries and
     blocked shots in all five leagues.
 
-**Team instructions whose stats Sportmonks lacks**: team instructions (`spec/05`). Press high
-counts possession won in the attacking third and midfield, Shoot on sight long-range shots, and
-Hold a high line offsides won; Sportmonks sends none of them per player.
-- Press high: "press high could just be the front 3 in a free (or other formations where its
-  sutiable" (Craig, 9 Nov 2026, on #1196). Which players it scores, in which shapes, and on which
-  stats.
-- Shoot on sight and Hold a high line: what each scores in place of its missing stat.
-
 ## Suggested, not yet picked
 
 | What | Why |
