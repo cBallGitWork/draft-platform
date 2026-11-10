@@ -177,7 +177,7 @@ export function withOwnTotals(totals: Stats | undefined, stat: string | null, se
 }
 
 /** The current players at these clubs, at most LISTED_PLAYERS_MOST of them. */
-async function currentPlayersOf(ctx: QueryCtx, clubs: readonly Doc<"clubs">[]): Promise<Doc<"players">[]> {
+export async function currentPlayersOf(ctx: QueryCtx, clubs: readonly Doc<"clubs">[]): Promise<Doc<"players">[]> {
   const players = (await Promise.all(clubs.map((each) => currentPlayersAt(ctx, each.code)))).flat();
   if (players.length > LISTED_PLAYERS_MOST) {
     throw new Error(`More than ${LISTED_PLAYERS_MOST} players are held as current, so the list would be cut short`);

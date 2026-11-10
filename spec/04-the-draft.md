@@ -77,9 +77,12 @@ Feature 4 of [SPEC.md](../SPEC.md). Only Craig's answers.
 - A drafted player who leaves his fantasy league's competition brings his team nothing in return.
   He stays on his manager's team, scoring nothing and shown as "left", until his manager drops him
   (Craig, 9 Nov 2026, on #1196). `S04.6`
-- A league drafts only from its own competition's players: in the beta, a Premier League league
-  drafts Premier League players and a Scottish Premiership league drafts Scottish Premiership
-  players, and no player is in both (Craig, 9 Nov 2026, on #1196). `S04.7`
+- A league plays one or more competitions and drafts from the players of the ones it picked, each
+  player on one team only: "we said we can mix and match", "one from the competitions picked, and
+  its 1 player to one team" (Craig, 10 Nov 2026, in chat, on #1196). Who picks them is still open.
+  `S04.10`
+- A league drafts only from its own competition's players, no player in both (Craig, 9 Nov 2026, on
+  #1196). Replaced by `S04.10`, a league mixing competitions (Craig, 10 Nov 2026). `S04.7 withdrawn`
 - A traded pick shows on the board under the team that owns it now, marked "via" the team it came
   from (Craig, 4 Nov 2026, "yes" to Claude's recommendation).
 - A pick trade is one pick for one pick: "nah dont allow uneven picks, teams just need to figure

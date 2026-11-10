@@ -14,7 +14,7 @@ import { ScoutReport } from "./ScoutReport";
 import { Season, usePricedAt } from "./SeasonPanel";
 import {
   CAPTAIN_TITLE,
-  captainLabels,
+  captainLabel,
   chanceWords,
   difficultyNotRatedWords,
   hintNotHeldLabel,
@@ -33,7 +33,7 @@ import {
 
 /** A player's card (spec/12, The player card), its own page, for anyone in the league, laid out to
  *  its approved picture: his head across the top; down the left, FPL's news and his role fit; in the
- *  middle, this season's game log, his club's next fixtures and the captain and set-piece hints;
+ *  middle, this season's game log, his club's next fixtures and the club captain hint;
  *  down the right, the selected match's breakdown and his team's scout reports (#375). Whoever
  *  `runs` the league overrides a match's points from the breakdown (#32). */
 export function PlayerCardPage({ league, runs, playerCode, seam }: { league: LeagueSummary; runs: boolean; playerCode: number; seam: PlayerCardSeam }) {
@@ -68,7 +68,7 @@ function Card({ league, runs, card, seam }: { league: LeagueSummary; runs: boole
         <div className="flex min-w-0 flex-col gap-2">
           <Season card={card} pricedAt={pricedAt} selected={selected?.fixtureCode ?? null} select={pick} />
           <NextFixtures card={card} />
-          <CaptainAndSetPieces />
+          <ClubCaptain />
         </div>
         <div className="flex flex-col gap-2">
           {selected !== undefined && (
@@ -124,19 +124,15 @@ function NextFixtures({ card }: { card: PlayerCard }) {
   );
 }
 
-/** The captain and set-piece hints (spec/17), placeholders until they come after the mini beta. */
-function CaptainAndSetPieces() {
+/** The club captain hint (spec/17 `S17.7`), a placeholder until it comes after the mini beta. */
+function ClubCaptain() {
   return (
     <Panel title={CAPTAIN_TITLE}>
       <dl className="grid grid-cols-facts items-center gap-x-6 gap-y-2 p-3">
-        {Object.values(captainLabels).map((label) => (
-          <div key={label} className="contents">
-            <dt className="text-soft">{label}</dt>
-            <dd>
-              <Placeholder label={hintNotHeldLabel(label)} className="h-5 w-40" />
-            </dd>
-          </div>
-        ))}
+        <dt className="text-soft">{captainLabel}</dt>
+        <dd>
+          <Placeholder label={hintNotHeldLabel(captainLabel)} className="h-5 w-40" />
+        </dd>
       </dl>
     </Panel>
   );

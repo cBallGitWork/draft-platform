@@ -8,6 +8,7 @@ import { cardOpensAt } from "../../convex/playerCard/cardPoints";
 import { MINUTES_STAT } from "../../convex/stats/matchRecords";
 import { proLeague } from "../shared/preview";
 import { listFigures, listOf, NO_FIGURES, shownStat } from "../../convex/scouting/playersOrder";
+import { raceOrder } from "../../convex/scouting/raceOrder";
 import { withOwnStats } from "../../convex/scoring/ownStats";
 import { OWN_STAT_PREFIX } from "../../convex/scoring/statCatalogue";
 import type { Stats } from "../../convex/stats/statTotals";
@@ -16,7 +17,8 @@ import { listedFromScouting, queueInPreview, setPreviewShortlisted } from "../dr
 import { previewClaims } from "../myTeam/claims/preview";
 import { previewScouts } from "./scouts/preview";
 import { previewShortlistOf } from "./shortlist/preview";
-import type { Period, ScoutingSeam, WaiverActionSeam } from "./seam";
+import { previewIdOf, previewTeams } from "../table/preview";
+import type { Period, ScoutingSeam, StatRace, WaiverActionSeam } from "./seam";
 
 export const ARSENAL = { code: 3, name: "Arsenal", shortName: "ARS" };
 export const CHELSEA = { code: 8, name: "Chelsea", shortName: "CHE" };
@@ -107,6 +109,23 @@ const addToQueue = async (_leagueId: unknown, playerCode: number) => {
   return null;
 };
 
+/** The stat race's teams (#800): the preview league's, each with made-up season totals in the first
+ *  set's categories, a league that began at gameweek 1. */
+const RACE_CATEGORIES = ["goals_scored", "assists", "clean_sheets", "goals_conceded", "saves", "penalties_saved", "penalties_missed", "yellow_cards", "red_cards", "own_goals"];
+const raceTotals = (teamIndex: number): Stats =>
+  Object.fromEntries(RACE_CATEGORIES.map((stat, index) => [stat, (teamIndex * 7 + index * 5) % 23]));
+const previewRace = (stat: string): StatRace => ({
+  categories: RACE_CATEGORIES,
+  since: null,
+  teams: raceOrder(
+    previewTeams.map((name, index) => {
+      const stats = raceTotals(index);
+      return { teamId: previewIdOf(name), name, stats, stat: stats[stat] ?? 0 };
+    }),
+    true,
+  ),
+});
+
 /** Scouting's own part of the preview; the app adds the player card's pickup and claim
  *  (src/app/previewApp.tsx), whose preview reads these players. */
 export const previewScouting: Omit<ScoutingSeam, keyof WaiverActionSeam> = {
@@ -145,4 +164,5 @@ export const previewScouting: Omit<ScoutingSeam, keyof WaiverActionSeam> = {
     pointsSeason: null,
     periodGameweeks: PREVIEW_PERIOD_GAMEWEEKS[period],
   }),
+  useStatRace: (_leagueId, stat) => previewRace(stat),
 };

@@ -229,6 +229,39 @@ describe("a pick offer (#1096)", () => {
   });
 });
 
+describe("from a player card's Offer a trade (#1027)", () => {
+  const fromCard = (team: string, player: number, trades: TradesData = {}) =>
+    openNewOffer(trades, `${TRADES_NEW_PATH}?team=${team}&player=${player}`);
+  /** Team 3's one player, whose card the offer comes from. */
+  const WISSA = { ...JAMES, code: 1009, name: "Wissa" };
+  const third = screenTeam("team-3" as never, "Team 3", [WISSA]);
+  const ticked = () => screen.getByRole<HTMLInputElement>("checkbox", { name: tickLabel(WISSA.name) }).checked;
+
+  it("opens with his owner chosen and him asked for, so only what you give is added", async () => {
+    const app = fromCard("team-3", WISSA.code, { view: { ...quietTrades, teams: [...quietTrades.teams, third] } });
+    const picker = await screen.findByRole<HTMLSelectElement>("combobox", { name: partnerLabel });
+    expect(picker.value).toBe("team-3");
+    expect(picker.disabled).toBe(false);
+    expect(ticked()).toBe(true);
+    await tick("Team 1", SAKA.name);
+    await userEvent.click(screen.getByRole("button", { name: sendOfferWords }));
+    expect(app.trades.offer).toHaveBeenCalledWith(league.leagueId, "team-3", { gives: [SAKA.code], gets: [WISSA.code], note: null });
+  });
+
+  it("chooses his owner but ticks nobody when he is held in a trade under review", async () => {
+    const held = { ...third, players: [{ ...WISSA, held: true }] };
+    fromCard("team-3", WISSA.code, { view: { ...quietTrades, teams: [...quietTrades.teams, held] } });
+    expect((await screen.findByRole<HTMLSelectElement>("combobox", { name: partnerLabel })).value).toBe("team-3");
+    expect(ticked()).toBe(false);
+  });
+
+  it("opens as a plain new offer when the team named can't be traded with", async () => {
+    fromCard("team-gone", WISSA.code);
+    expect((await screen.findByRole<HTMLSelectElement>("combobox", { name: partnerLabel })).value).toBe(THEIR_TEAM);
+    expect(screen.getAllByRole<HTMLInputElement>("checkbox").every((box) => !box.checked)).toBe(true);
+  });
+});
+
 describe("a counter", () => {
   it("is filled with the offer it answers, its team fixed, and sent as a counter", async () => {
     const app = openNewOffer(

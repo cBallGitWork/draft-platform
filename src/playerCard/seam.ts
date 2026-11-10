@@ -2,13 +2,15 @@
 // (livePlayerCard.ts); the preview and the tests hand the screen their own.
 
 import type { Id } from "../../convex/_generated/dataModel";
+import type { SlotPosition } from "../../convex/lineup/pitch";
 import type { PlayedMatch, PlayerCard } from "../../convex/playerCard/playerCard";
+import type { PositionRank } from "../../convex/playerCard/positionRank";
 import type { CardAction } from "../../convex/waivers/waivers";
 import type { Change } from "../shared/refusal";
 import type { ScoutsSeam } from "../scouting/scouts/seam";
 import type { ShortlistSeam } from "../scouting/shortlist/seam";
 
-export type { CardAction, PlayedMatch, PlayerCard };
+export type { CardAction, PlayedMatch, PlayerCard, PositionRank };
 
 /** One player's points in one match, set by whoever runs the league (#32). */
 export type PointsOverride = { fixtureCode: number; playerCode: number; points: number; reason: string };
@@ -30,6 +32,9 @@ export type PlayerCardSeam = ShortlistSeam & ScoutsSeam & {
   useWaiverChanges(): WaiverChanges;
   /** His card at `now`, live (a hook): undefined while it loads, null for a code no feed holds. */
   usePlayerCard(leagueId: Id<"leagues">, playerCode: number, now: number): PlayerCard | null | undefined;
+  /** His rank at `position`, the one the card's switch is on, live (a hook): undefined while it
+   *  loads, or with no position to rank him at (#1027). */
+  usePositionRank(leagueId: Id<"leagues">, playerCode: number, position: SlotPosition | null): PositionRank | undefined;
   /** Overriding a player's points in a match (a hook). */
   useOverride(): (leagueId: Id<"leagues">, override: PointsOverride) => Change;
   /** Removing his override in a match, so he scores what his record does again (a hook; #903). */

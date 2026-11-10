@@ -19,10 +19,15 @@ export const ownedByWords = "Owned by";
 export const chanceWords = (percent: number) => `${percent}% chance of playing next round`;
 /** His figures beside his name, at the position the switch is on (spec/12 S12.1; #1027). */
 export const figureLabels = { seasonPoints: "Base points", aMatch: "A match", minutes: "Minutes", lastFive: "Last 5" } as const;
+/** His rank among every player holding the position the switch is on (Craig, 9 Nov 2026, on
+ *  #1027): "Rank at CAM", "4th of 38". */
+export const rankLabel = (position: string | null) => (position === null ? "Rank" : `Rank at ${position}`);
+export const rankOfWords = (of: number) => `of ${figureWords(of)}`;
+export { placeWords } from "../shared/words";
 /** The placeholders the card keeps in their places until their data comes (the README's table). */
 export const portraitLabel = "His portrait: waiting on FPL's terms for its photos";
+/** Opens Trades' New offer with his owner chosen and him asked for (Craig, 9 Nov 2026, on #1027). */
 export const offerTradeWords = "Offer a trade";
-export const tradeNotBuiltLabel = "Offer a trade: trades aren't built yet";
 
 /** The left column: FPL's news on him, his news notes, and his role fit. */
 export const NEWS_TITLE = "News";
@@ -30,9 +35,10 @@ export const noNewsWords = "No news on him.";
 export const newsNotesLabel = "His news notes: the news job isn't built yet";
 export const ROLE_FIT_TITLE = "Role fit";
 export const roleFitLabel = "Role fit: comes with scouts";
-/** Under the game log: the captain and set-piece hints (spec/17, after the mini beta). */
-export const CAPTAIN_TITLE = "Captain and set pieces";
-export const captainLabels = { captain: "Club captain", setPieces: "Set pieces" } as const;
+/** Under the game log: the club captain hint (spec/17 `S17.7`, after the mini beta). Set-piece
+ *  hints are dropped (`S05.24`). */
+export const CAPTAIN_TITLE = "Captain";
+export const captainLabel = "Club captain";
 export const hintNotHeldLabel = (what: string) => `${what}: comes after the mini beta`;
 
 /** This season's matches, as a game log. */

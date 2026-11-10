@@ -172,6 +172,7 @@ import type * as pastSeasons_pastSeasonRows from "../pastSeasons/pastSeasonRows.
 import type * as pastSeasons_pastStatColumns from "../pastSeasons/pastStatColumns.js";
 import type * as playerCard_cardPoints from "../playerCard/cardPoints.js";
 import type * as playerCard_playerCard from "../playerCard/playerCard.js";
+import type * as playerCard_positionRank from "../playerCard/positionRank.js";
 import type * as positions_playerPositions from "../positions/playerPositions.js";
 import type * as positions_positionChanges from "../positions/positionChanges.js";
 import type * as positions_positionSettings from "../positions/positionSettings.js";
@@ -245,6 +246,7 @@ import type * as scouting_period from "../scouting/period.js";
 import type * as scouting_periods from "../scouting/periods.js";
 import type * as scouting_playersList from "../scouting/playersList.js";
 import type * as scouting_playersOrder from "../scouting/playersOrder.js";
+import type * as scouting_raceOrder from "../scouting/raceOrder.js";
 import type * as scouting_scoutReports from "../scouting/scoutReports.js";
 import type * as scouting_scoutWords from "../scouting/scoutWords.js";
 import type * as scouting_scouts from "../scouting/scouts.js";
@@ -513,6 +515,7 @@ declare const fullApi: ApiFromModules<{
   "pastSeasons/pastStatColumns": typeof pastSeasons_pastStatColumns;
   "playerCard/cardPoints": typeof playerCard_cardPoints;
   "playerCard/playerCard": typeof playerCard_playerCard;
+  "playerCard/positionRank": typeof playerCard_positionRank;
   "positions/playerPositions": typeof positions_playerPositions;
   "positions/positionChanges": typeof positions_positionChanges;
   "positions/positionSettings": typeof positions_positionSettings;
@@ -586,6 +589,7 @@ declare const fullApi: ApiFromModules<{
   "scouting/periods": typeof scouting_periods;
   "scouting/playersList": typeof scouting_playersList;
   "scouting/playersOrder": typeof scouting_playersOrder;
+  "scouting/raceOrder": typeof scouting_raceOrder;
   "scouting/scoutReports": typeof scouting_scoutReports;
   "scouting/scoutWords": typeof scouting_scoutWords;
   "scouting/scouts": typeof scouting_scouts;
