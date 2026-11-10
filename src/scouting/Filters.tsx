@@ -5,8 +5,21 @@ import { Choice } from "../ui/Choice";
 import { StatBox } from "../ui/StatBox";
 import { POSITION_NAMES } from "../shared/words";
 import type { Availability, PlayersFilters, PlayersList } from "./seam";
-import { availabilityLabel, availabilityWords, clubLabel, everyClubWords, everyPositionWords, noStatWords, positionLabel, statLabel } from "./words";
+import {
+  availabilityLabel,
+  availabilityWords,
+  clubLabel,
+  countWords,
+  everyClubWords,
+  everyPositionWords,
+  nameLabel,
+  namePlaceholder,
+  noStatWords,
+  positionLabel,
+  statLabel,
+} from "./words";
 
+const NAME_ID = "players-name";
 const POSITION_ID = "players-position";
 const CLUB_ID = "players-club";
 const STAT_ID = "players-stat";
@@ -15,7 +28,9 @@ const EVERY = "";
 
 const AVAILABILITIES: readonly Availability[] = ["all", "freeAgents", "onWaivers", "owned"];
 
-/** The players list's filters: who holds him, his position and his club, and the stat shown. */
+/** The players list's filters, as the approved picture lays them out: who holds him, how many the
+ *  view keeps and the name box on the first row; his position, his club and the stat shown on the
+ *  second. */
 export function Filters({
   filters,
   clubs,
@@ -23,6 +38,9 @@ export function Filters({
   ownStats,
   stat,
   show,
+  name,
+  find,
+  count,
 }: {
   filters: PlayersFilters;
   clubs: PlayersList["clubs"] | undefined;
@@ -30,17 +48,31 @@ export function Filters({
   ownStats: PlayersList["ownStats"] | undefined;
   stat: CatalogueStat | null;
   show: (chosen: CatalogueStat | null) => void;
+  /** What the name box holds, and a change to it. */
+  name: string;
+  find: (name: string) => void;
+  /** How many players the list keeps, or undefined while it loads. */
+  count: number | undefined;
 }) {
   return (
     <div className={PANEL_BODY}>
-      <Choice
-        label={availabilityLabel}
-        name="players-availability"
-        options={AVAILABILITIES}
-        words={availabilityWords}
-        chosen={filters.availability}
-        onChoose={(availability) => filterBy({ availability })}
-      />
+      <div className="flex flex-wrap items-center gap-3">
+        <Choice
+          label={availabilityLabel}
+          name="players-availability"
+          options={AVAILABILITIES}
+          words={availabilityWords}
+          chosen={filters.availability}
+          onChoose={(availability) => filterBy({ availability })}
+        />
+        {count !== undefined && <span className="text-soft">{countWords(count)}</span>}
+        <span className="ml-auto flex items-center gap-2">
+          <label htmlFor={NAME_ID} className="text-soft">
+            {nameLabel}
+          </label>
+          <input id={NAME_ID} type="search" value={name} placeholder={namePlaceholder} onChange={(event) => find(event.target.value)} className="text-box w-full lg:w-44" />
+        </span>
+      </div>
       <div className="flex flex-wrap gap-3">
         <span className="flex items-center gap-2">
           <label htmlFor={POSITION_ID} className="text-soft">

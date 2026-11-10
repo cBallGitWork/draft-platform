@@ -86,7 +86,7 @@ export function TeamInstructionsWidget({
  *  name, a link to its own matchup, with his place, points and form, both in a gameweek of two
  *  games, and "—" where the team has none, before the fixtures are drawn (#849; Craig, 6 Nov
  *  2026). None in total points, or before the league's table has loaded. */
-export function OpponentWidget({ table, teamName, gameweek }: { table: LeagueTable | null | undefined; teamName: string; gameweek: number }) {
+export function OpponentWidget({ table, teamName, gameweek }: { table: LeagueTable | undefined; teamName: string; gameweek: number }) {
   if (!table || table.format !== "headToHead") return null;
   const own = standingOf(table, teamName);
   if (own === null) return null;

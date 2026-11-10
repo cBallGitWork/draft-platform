@@ -33,14 +33,23 @@ export function inForce(history: readonly RulesRow[], gameweek: number): RulesRo
   return history.findLast((row) => row.fromGameweek <= gameweek);
 }
 
-/** The league's latest rules, a waiting change's among them, or null for a league made before #25:
- *  what the squad's warnings read (#31), as a change of squad limits is best known at once. */
-export async function latestRules(ctx: QueryCtx, leagueId: Id<"leagues">): Promise<LeagueRules | null> {
-  return (await historyOf(ctx, leagueId)).at(-1)?.rules ?? null;
+/** The newest row of the league's history. Throws for a league with none: every league is given
+ *  its rules when it is made (leagueRules.ts, `giveDefaultRules`), and #147 checked each deployment
+ *  holds no league without them. */
+export function newestRow(history: readonly RulesRow[], leagueId: Id<"leagues">): RulesRow {
+  const row = history.at(-1);
+  if (row === undefined) throw new Error(`League ${leagueId} has no rules`);
+  return row;
 }
 
-/** The rules in force in this gameweek, from the league's history. Throws if none is, which only a
- *  league made before #25 can have. */
+/** The league's latest rules, a waiting change's among them: what the squad's warnings read (#31),
+ *  as a change of squad limits is best known at once. */
+export async function latestRules(ctx: QueryCtx, leagueId: Id<"leagues">): Promise<LeagueRules> {
+  return newestRow(await historyOf(ctx, leagueId), leagueId).rules;
+}
+
+/** The rules in force in this gameweek, from the league's history. Throws if none is, which no
+ *  gameweek from the first can have. */
 function rulesInForce(history: readonly RulesRow[], leagueId: Id<"leagues">, gameweek: number): LeagueRules {
   const row = inForce(history, gameweek);
   if (row === undefined) throw new Error(`League ${leagueId} has no rules for gameweek ${gameweek}`);
@@ -51,11 +60,9 @@ function rulesInForce(history: readonly RulesRow[], leagueId: Id<"leagues">, gam
  *  force in each gameweek. */
 export type SeasonRules = { latest: LeagueRules; inGameweek: (gameweek: number) => LeagueRules };
 
-/** The league's SeasonRules from one read of its history, as the fixtures read them (#266). Null
- *  for a league made before #25. */
-export async function seasonRules(ctx: QueryCtx, leagueId: Id<"leagues">): Promise<SeasonRules | null> {
+/** The league's SeasonRules from one read of its history, as the fixtures read them (#266). */
+export async function seasonRules(ctx: QueryCtx, leagueId: Id<"leagues">): Promise<SeasonRules> {
   const history = await historyOf(ctx, leagueId);
-  const latest = history.at(-1);
-  if (latest === undefined) return null;
+  const latest = newestRow(history, leagueId);
   return { latest: latest.rules, inGameweek: (gameweek) => rulesInForce(history, leagueId, gameweek) };
 }

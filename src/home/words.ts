@@ -1,8 +1,7 @@
 // What league home says, in one place for Craig to change in the pull request.
 
 import { TOP_ROWS } from "../../convex/home/glance";
-import { fewestTeamsWords, gameweekShort, noHeadToHeadsTotalPointsWords } from "../shared/words";
-import { placeWords } from "../myTeam/header/words";
+import { fewestTeamsWords, gameweekShort, noHeadToHeadsTotalPointsWords, placeWords } from "../shared/words";
 import { columns as tableColumns } from "../table/words";
 import type { LeagueHome, NewsMove } from "./seam";
 
@@ -10,7 +9,6 @@ export { figureWords, gameweekShort, gameweekWords, versusWords, whenWords } fro
 export { leagueAverageWords, noResultsWords, TABLE_TITLE } from "../table/words";
 
 export const loadingWords = "Loading league home…";
-export const noRulesWords = "This league was made before leagues had rules, so it has no table or fixtures to show.";
 
 /** What a placeholder holds until its data or its grill comes (plate.md, Marks: A placeholder). */
 export const toComeLabel = (what: string) => `${what}: still to come`;

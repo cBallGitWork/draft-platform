@@ -34,7 +34,6 @@ type TeamId = Id<"teams">;
 
 /** Why an override was refused, as the commissioner is told it. */
 export const overrideRefusals = {
-  noRules: "This league was made before leagues had rules, so it has no scores to override.",
   noMatch: "There's no such match this season.",
   notBegun: (gameweek: number) => `Gameweek ${gameweek} hasn't begun for this league, so it has no points to override.`,
   notInMatch: (name: string) => `${name} wasn't in that match.`,
@@ -123,7 +122,7 @@ interface OverriddenMatch {
  *  he can't be overridden there. */
 async function overridable(ctx: MutationCtx, leagueId: Id<"leagues">, fixtureCode: number, playerCode: number) {
   const { email: by, league } = await runnerOf(ctx, leagueId);
-  const season = (await seasonRules(ctx, leagueId)) ?? refuse(overrideRefusals.noRules);
+  const season = await seasonRules(ctx, leagueId);
   const fixture = await fixtureByCode(ctx, fixtureCode);
   if (fixture === null || fixture.droppedAt !== undefined || fixture.gameweek === null) refuse(overrideRefusals.noMatch);
   const { gameweek } = fixture;

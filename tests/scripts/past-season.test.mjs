@@ -2,7 +2,7 @@ import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 import { expect, test } from "vitest";
 import { PAST_ROWS_ADDED_MOST } from "../../convex/pastSeasons/pastSeasonLimits.ts";
-import { PYTHON, READ_LOG, REPRICE, SEASONS, loadPastSeason } from "../../scripts/past-season.mjs";
+import { PYTHON, READ_LOG, REPRICE, SEASONS, loadPastSeason, parseJson } from "../../scripts/past-season.mjs";
 import { REPO_ROOT } from "../support/scripts/repoRoot.mjs";
 
 // The copy run on the sample in tests/support/scripts/aiCarling/ (laid out as ai-carling is), with
@@ -93,12 +93,12 @@ test("a log whose sizes aren't the planned ones stops the run before anything is
   expect(calls.some((call) => call.command === CONVEX)).toBe(false);
 });
 
-test("the copy knows spec/14's five seasons, each from its own log, an older one checked on its 380 matches", () => {
+test("the copy knows spec/14's five seasons, each from its own log, an older one checked on the matches FPL gives minutes for", () => {
   expect(Object.keys(SEASONS)).toEqual(["2021", "2022", "2023", "2024", "2025"]);
   expect(SEASONS[2021].log).toBe("data/match_logs/player_match_log/season=21-22/player_match_log.parquet");
   expect(SEASONS[2024].log).toBe("data/match_logs/player_match_log/season=24-25/player_match_log.parquet");
   expect(SEASONS[2025].log).toBe("data/match_logs/player_match_log/season=25-26/player_match_log.parquet");
-  expect(SEASONS[2022].counts).toEqual({ matches: 380 });
+  expect([2021, 2022, 2023, 2024].map((season) => SEASONS[season].counts)).toEqual([{ matches: 345 }, { matches: 353 }, { matches: 367 }, { matches: 375 }]);
 });
 
 test("an older season loads from the FPL list named with --players, checked only on its matches", async () => {
@@ -134,4 +134,10 @@ test("a failed write stops the run with what the CLI said", async () => {
   const exec = async (command) =>
     command === CONVEX ? { code: 1, stdout: "", stderr: "not signed in" } : { code: 0, stdout: await readFile(join(FROM, "playerMatchLog.sample.json"), "utf8"), stderr: "" };
   await expect(run(exec)).rejects.toThrow("failed (exit 1): not signed in");
+});
+
+test("an older season's FPL list, written by Python with a bare NaN for a missing number, reads it as null", () => {
+  expect(parseJson('[{"code": 1, "element_type": 2, "corners_order": NaN, "name": "NaN"}]')).toEqual([
+    { code: 1, element_type: 2, corners_order: null, name: "NaN" },
+  ]);
 });

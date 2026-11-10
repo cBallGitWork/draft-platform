@@ -6,6 +6,7 @@ import { THRESHOLD_STEP_READS_MOST, THRESHOLD_STEPS_A_ROW, THRESHOLD_STEPS_MOST,
 import { LIVE_WINDOW_MS } from "../../../convex/stats/liveStats";
 import { MINUTE_MS } from "../../../convex/shared/time";
 import { FIRST_ROLE_OWN_STATS, FIRST_ROLES } from "../../../convex/scoring/draftedRoleAdjustments";
+import { FIRST_INSTRUCTION_SCORING } from "../../../convex/scoring/draftedInstructionScoring";
 import { withOwnStats } from "../../../convex/scoring/ownStats";
 import { STAT_CATALOGUE } from "../../../convex/scoring/statCatalogueList";
 import type { MatchStats } from "../../../convex/scoring/values";
@@ -101,6 +102,12 @@ test("a stat some role in the set adjusts is a step each time its count moves, t
 test("a role-adjusted stat is a step before its rule's minimum minutes; a goal still never is", () => {
   expect(thresholdSteps({ minutes: 30, clean_sheets: 0 }, { minutes: 31, clean_sheets: 1 }, WITH_ROLES)).toEqual([{ stat: "clean_sheets", from: 0, to: 1 }]);
   expect(thresholdSteps({ minutes: 30 }, { minutes: 31, goals_scored: 1 }, WITH_ROLES)).toEqual([]);
+});
+
+test("a stat some team instruction scores is a step each time its count moves, though no rule or role prices it (#990)", () => {
+  const instructed: ScoringSet = { ...SET, ownStats: [...FIRST_ROLE_OWN_STATS], instructions: [...FIRST_INSTRUCTION_SCORING] };
+  expect(thresholdSteps({ minutes: 45 }, { minutes: 46, clean_sheet_half_time: 1 }, instructed)).toEqual([{ stat: "clean_sheet_half_time", from: 0, to: 1 }]);
+  expect(thresholdSteps({ minutes: 45 }, { minutes: 46, clean_sheet_half_time: 1 }, SET)).toEqual([]);
 });
 
 // The cap on one match's steps, measured (#871; Craig, 1 Nov 2026: "measure first"). A recorded

@@ -157,7 +157,7 @@ random XIs in the shape shown, with the best and worst tenth of XIs after it.
 | Hold a high line | DEF +1 per 2 offsides won and interceptions, up to 3; GK/DEF −1 per 2 goals conceded | 4-4-2 | -0.35 (+2 / -3) | Leeds United, Brighton Hove Albion, Arsenal |
 | Clear it | DEF +1 per 3 clearances and blocks; −1 per 6 possession lost | 4-4-2 | +0.03 (+4 / -3) | Coventry City, Ipswich Town, Newcastle United |
 | Get stuck in | +1 per 5 tackles and duels won; yellow −2, red −5, −1 per 2 fouls | 4-4-2 | -0.28 (+5 / -5) | Everton, Arsenal, Crystal Palace |
-| Keep it tight early | +1 if his club kept a clean sheet at half-time with him on; −1 per goal his club let in before half-time | 4-4-2 | +0.49 (+5 / -5) | Everton, Leeds United, Tottenham Hotspur |
+| Keep it tight early | +1 if his club kept a clean sheet at half-time; −1 per goal his club let in before half-time; starters only (Craig, 9 Nov 2026, on #990) | 4-4-2 | +0.49 (+5 / -5) | Everton, Leeds United, Tottenham Hotspur |
 | Park the bus | GK/DEF clean sheet +1; goals and assists −1 (all players) | 5-4-1 | -0.22 (+2 / -3) | Leeds United, Arsenal, Fulham |
 
 - Gung-ho nets +1.6 for a 2-3-5, the closest any fit came. That wins back about half of what

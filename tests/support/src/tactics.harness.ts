@@ -4,6 +4,8 @@ import { useSyncExternalStore } from "react";
 import { vi } from "vitest";
 import { classicsOf, FIRST_RULES, instructionsOf } from "../../../convex/rules/firstRules";
 import { firstPairFor } from "../../../convex/lineup/instructions";
+import { cardRolesOf, pricedMatch, type MatchToPrice } from "../../../convex/lineup/roleCardShape";
+import { FIRST_SCORING_WITH_ROLES } from "../../../convex/scoring/draftedRoleAdjustments";
 import type { LineupChanges, OpenTactics, Plan, PlanChanges, Tactics, TacticsSeam } from "../../../src/myTeam/tactics/seam";
 
 /** The gameweek the fake server sets a lineup for, unless a test says. */
@@ -33,10 +35,20 @@ export const openTactics = (change: Partial<OpenTactics> = {}): OpenTactics => (
  *  answers, the gameweek it saved from (the tactics' by default) or the words refusing it; and
  *  whether that answer is held back until the test lets it go (`letSaveGo`), as a slow server's;
  *  the saved plans, or nothing yet while they load (`plansLoading`). */
-export type TacticsData = { tactics?: Tactics; saveAnswer?: number | string; saveHeld?: boolean; plans?: readonly Plan[]; plansLoading?: boolean; planAnswer?: string | null };
+export type TacticsData = {
+  tactics?: Tactics;
+  saveAnswer?: number | string;
+  saveHeld?: boolean;
+  plans?: readonly Plan[];
+  plansLoading?: boolean;
+  planAnswer?: string | null;
+  /** Every player's last matches played, which his role card prices as the server does (#848):
+   *  none unless a test says. */
+  cardMatches?: readonly MatchToPrice[];
+};
 
 export function fakeTactics(
-  { tactics = openTactics(), saveAnswer = TACTICS_GAMEWEEK, saveHeld = false, plans = [], plansLoading = false, planAnswer = null }: TacticsData,
+  { tactics = openTactics(), saveAnswer = TACTICS_GAMEWEEK, saveHeld = false, plans = [], plansLoading = false, planAnswer = null, cardMatches = [] }: TacticsData,
   loading: boolean,
 ) {
   let letGo: (() => void) | null = null;
@@ -87,6 +99,11 @@ export function fakeTactics(
     },
     useLineupChanges: vi.fn<TacticsSeam["useLineupChanges"]>(() => changes),
     useTacticsOpened: vi.fn<TacticsSeam["useTacticsOpened"]>(),
+    useRoleCard: vi.fn<TacticsSeam["useRoleCard"]>((_leagueId, _playerCode, cell, formation) => {
+      if (loading) return undefined;
+      const roles = cardRolesOf(cell, formation, FIRST_SCORING_WITH_ROLES);
+      return { roles, matches: cardMatches.map((match) => pricedMatch(match, cell, roles.map(({ key }) => key))) };
+    }),
     usePlans: vi.fn<TacticsSeam["usePlans"]>(() => useSyncExternalStore(subscribe, () => (loading || plansLoading ? undefined : heldPlans))),
     usePlanChanges: vi.fn<TacticsSeam["usePlanChanges"]>(() => planChanges),
     lineupChanges: changes,

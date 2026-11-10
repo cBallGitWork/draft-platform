@@ -77,7 +77,7 @@ export const quietNews: LeagueNews = {
 /** What the fake server holds: league home, null for a league with no rules, or nothing yet while
  *  it loads; its recaps, by gameweek; the News tab's pages, by what each asks; and the newest
  *  letters, none unless `mail` says. */
-export type HomeData = { leagueHome?: LeagueHome | null; loading?: boolean; recaps?: readonly Recap[]; news?: (asked: NewsAsked) => LeagueNews; mail?: LatestMail | null };
+export type HomeData = { leagueHome?: LeagueHome; loading?: boolean; recaps?: readonly Recap[]; news?: (asked: NewsAsked) => LeagueNews; mail?: LatestMail | null };
 
 export function fakeHome({ leagueHome = quietHome, loading = false, recaps = [], news = () => quietNews, mail = { letters: [], unread: 0 } }: HomeData = {}) {
   return {

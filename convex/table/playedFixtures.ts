@@ -137,16 +137,14 @@ async function scheduleAround(
  *  (leagueDeadlines.ts's `leagueDeadlines`), and isn't stored yet: as `scheduleOf` reads it now, edits and all, when the league
  *  plays it head-to-head, and with no fixtures when it began before the league was made, is
  *  played as total points, or has fewer than two teams to draw. A gameweek already stored is left
- *  as it is, so storing again does no harm. Null rules are a league made before #25, which has no
- *  fixtures to store. */
+ *  as it is, so storing again does no harm. */
 export async function storeBegunFixtures(
   ctx: MutationCtx,
   league: Doc<"leagues">,
-  rules: RulesInForce | null,
+  rules: RulesInForce,
   deadlines: LeagueDeadlines,
   now: number,
 ): Promise<void> {
-  if (rules === null) return;
   const stored = await storedFixturesOf(ctx, league._id);
   const deadlineIn = deadlineOf(deadlines);
   const toStore = scoredGameweeksOf(league).flatMap((gameweek) => {

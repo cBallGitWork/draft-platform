@@ -19,11 +19,17 @@ Feature 14 of [SPEC.md](../SPEC.md). Only Craig's answers, from `/grill scoring 
 
 ## The catalogue
 
-- Every stat the two free feeds give per player per match (confirmed by #7), each with a plain name
+- Every stat the football data's feed gives per player per match, each with a plain name
   and a short code. The site's set can score any of them; roles (`spec/05`) draw on the same list.
   The names and codes are written with the first scoring set (`/grill match stats`, 20 Oct 2026).
   For now they are placeholders copied from the feeds' own names, for Craig to refine later (21 Oct
-  2026).
+  2026). Reworded as `S14.17`, as Sportmonks is now the one feed (Craig, 9 Nov 2026, on #1196).
+  `S14.15 withdrawn`
+- Every stat in Sportmonks' own list of per-player match stats, the football data's feed (Craig,
+  9 Nov 2026, on #1196), each with a plain name and a short code. The site's set can score any of
+  them; roles (`spec/05`) draw on the same list. The names and codes are written with the first
+  scoring set (`/grill match stats`, 20 Oct 2026). For now they are placeholders copied from the
+  feed's own names, for Craig to refine later (21 Oct 2026). `S14.17`
 - No FPL bonus points.
 
 ## How a rule scores
@@ -138,10 +144,10 @@ change is good".
 - On Announce the lab runs once more by itself, on exactly the announced draft, and those numbers
   go in the patch notes: "5 a" (Craig, 6 Nov 2026, on #843). `S14.12`
 - Past seasons: "not much data this season, might need last". The five seasons 2021/22 to 2025/26
-  from ai-carling-premiership, copied once into our own data by a script, keyed by each player's
-  FPL `code`. They hold FPL's stats and FotMob's, SofaScore's and Understat's, not the Premier
-  League's own, so each category takes its nearest column, and one with none is marked "not
-  tested" in the lab and the patch notes.
+  from ai-carling-premiership, copied once into our own data by a script, stay, each player matched
+  to his Sportmonks player through his FPL `code`: "sure" (Craig, 9 Nov 2026, on #1196). They hold
+  FPL's stats and FotMob's, SofaScore's and Understat's, not Sportmonks', so each category takes
+  its nearest column, and one with none is marked "not tested" in the lab and the patch notes. `S14.16`
 - A role or team instruction whose stats weren't copied from the past seasons is listed as "not
   tested", naming its missing stats, with no average and no flag, in the lab and the patch notes
   (Craig, 7 Nov 2026, on #843: "a"). `S14.13`

@@ -6909,13 +6909,13 @@
                       }
                     ]
                   },
-                  "optional": true
+                  "optional": false
                 },
                 "gamesPerGameweek": {
                   "fieldType": {
                     "type": "number"
                   },
-                  "optional": true
+                  "optional": false
                 },
                 "waivers": {
                   "fieldType": {
@@ -11472,13 +11472,13 @@
                       }
                     ]
                   },
-                  "optional": true
+                  "optional": false
                 },
                 "gamesPerGameweek": {
                   "fieldType": {
                     "type": "number"
                   },
-                  "optional": true
+                  "optional": false
                 },
                 "waivers": {
                   "fieldType": {
@@ -25506,6 +25506,210 @@
               }
             },
             "optional": true
+          }
+        }
+      }
+    },
+    {
+      "tableName": "closedTradeOffers",
+      "indexes": [
+        {
+          "indexDescriptor": "by_leagueId",
+          "fields": [
+            "leagueId"
+          ]
+        },
+        {
+          "indexDescriptor": "by_fromTeamId_and_closedAt",
+          "fields": [
+            "fromTeamId",
+            "closedAt"
+          ]
+        },
+        {
+          "indexDescriptor": "by_toTeamId_and_closedAt",
+          "fields": [
+            "toTeamId",
+            "closedAt"
+          ]
+        }
+      ],
+      "stagedDbIndexes": [],
+      "searchIndexes": [],
+      "stagedSearchIndexes": [],
+      "vectorIndexes": [],
+      "stagedVectorIndexes": [],
+      "documentType": {
+        "type": "object",
+        "value": {
+          "leagueId": {
+            "fieldType": {
+              "type": "id",
+              "tableName": "leagues"
+            },
+            "optional": false
+          },
+          "fromTeamId": {
+            "fieldType": {
+              "type": "id",
+              "tableName": "teams"
+            },
+            "optional": false
+          },
+          "toTeamId": {
+            "fieldType": {
+              "type": "id",
+              "tableName": "teams"
+            },
+            "optional": false
+          },
+          "gives": {
+            "fieldType": {
+              "type": "array",
+              "value": {
+                "type": "number"
+              }
+            },
+            "optional": false
+          },
+          "gets": {
+            "fieldType": {
+              "type": "array",
+              "value": {
+                "type": "number"
+              }
+            },
+            "optional": false
+          },
+          "picks": {
+            "fieldType": {
+              "type": "object",
+              "value": {
+                "gives": {
+                  "fieldType": {
+                    "type": "object",
+                    "value": {
+                      "round": {
+                        "fieldType": {
+                          "type": "number"
+                        },
+                        "optional": false
+                      },
+                      "teamId": {
+                        "fieldType": {
+                          "type": "id",
+                          "tableName": "teams"
+                        },
+                        "optional": false
+                      }
+                    }
+                  },
+                  "optional": false
+                },
+                "gets": {
+                  "fieldType": {
+                    "type": "object",
+                    "value": {
+                      "round": {
+                        "fieldType": {
+                          "type": "number"
+                        },
+                        "optional": false
+                      },
+                      "teamId": {
+                        "fieldType": {
+                          "type": "id",
+                          "tableName": "teams"
+                        },
+                        "optional": false
+                      }
+                    }
+                  },
+                  "optional": false
+                }
+              }
+            },
+            "optional": true
+          },
+          "note": {
+            "fieldType": {
+              "type": "string"
+            },
+            "optional": true
+          },
+          "by": {
+            "fieldType": {
+              "type": "string"
+            },
+            "optional": false
+          },
+          "madeAt": {
+            "fieldType": {
+              "type": "number"
+            },
+            "optional": false
+          },
+          "closedAt": {
+            "fieldType": {
+              "type": "number"
+            },
+            "optional": false
+          },
+          "why": {
+            "fieldType": {
+              "type": "union",
+              "value": [
+                {
+                  "type": "literal",
+                  "value": "withdrawn"
+                },
+                {
+                  "type": "literal",
+                  "value": "rejected"
+                },
+                {
+                  "type": "literal",
+                  "value": "countered"
+                },
+                {
+                  "type": "literal",
+                  "value": "deadline"
+                },
+                {
+                  "type": "literal",
+                  "value": "tradeDeadline"
+                },
+                {
+                  "type": "literal",
+                  "value": "unusedGameweek"
+                },
+                {
+                  "type": "literal",
+                  "value": "draftStarted"
+                },
+                {
+                  "type": "literal",
+                  "value": "pickTraded"
+                },
+                {
+                  "type": "literal",
+                  "value": "autoTeam"
+                },
+                {
+                  "type": "literal",
+                  "value": "playerLeft"
+                },
+                {
+                  "type": "literal",
+                  "value": "blocked"
+                },
+                {
+                  "type": "literal",
+                  "value": "failed"
+                }
+              ]
+            },
+            "optional": false
           }
         }
       }

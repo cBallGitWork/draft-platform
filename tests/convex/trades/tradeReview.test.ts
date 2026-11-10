@@ -69,7 +69,7 @@ describe("with no review", () => {
   });
 
   test("closes every other open offer holding one of its players, with a letter to both of its managers", async () => {
-    const other = await w.offer(CAT, w.bobsTeam, [RICE], [SAKA]);
+    await w.offer(CAT, w.bobsTeam, [RICE], [SAKA]);
     await annTradesForSaka();
 
     expect(await w.offers()).toEqual([]);
@@ -77,7 +77,6 @@ describe("with no review", () => {
       subject: "The trade between Team 3 and Team 2 is closed",
       body: `${nameOf(SAKA)} left Team 2's squad. The offer was: Team 3 give ${nameOf(RICE)}; Team 2 give ${nameOf(SAKA)}.`,
     });
-    expect(other.offerId).toBeDefined();
   });
 });
 
@@ -228,7 +227,7 @@ describe("open offers close", () => {
 
   test("when a team in it goes on the auto team, but a trade in review finishes it", async () => {
     await w.tradesAre({ review: "veto", deadline: null });
-    const open = await w.offer(CAT, w.bobsTeam, [RICE], [PALMER]);
+    await w.offer(CAT, w.bobsTeam, [RICE], [PALMER]);
     const inReview = await annTradesForSaka();
     await (await actingAs(w.t, BOB)).mutation(api.lineup.autoTeam.set, { leagueId: w.leagueId, teamId: w.bobsTeam, on: true });
 
@@ -236,7 +235,6 @@ describe("open offers close", () => {
     expect(await w.lettersTo(CAT)).toContainEqual(expect.objectContaining({ body: expect.stringMatching(/^Team 2 went on the auto team/) }));
     await w.reviewEnds(inReview);
     expect(await squadOf(w.annsTeam)).toContain(SAKA);
-    expect(open.offerId).toBeDefined();
   });
 
   test("once the trade deadline's gameweek is over, and no trade is offered after; a trade in review finishes it", async () => {

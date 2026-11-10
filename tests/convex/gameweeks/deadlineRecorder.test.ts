@@ -3,6 +3,7 @@ import { internal } from "../../../convex/_generated/api";
 import { gameweekRefusals } from "../../../convex/gameweeks/leagueGameweeks";
 import { LEAGUES_READ_MOST } from "../../../convex/shared/cappedRead";
 import { FIRST_RULES } from "../../../convex/rules/firstRules";
+import { FIRST_GAMEWEEK } from "../../../convex/gameweeks/usedGameweeks";
 import { HOUR_MS, MINUTE_MS } from "../../../convex/shared/time";
 import { adminCreatesLeague, COMMISSIONER } from "../../support/convex/leagues.harness";
 import { changeRules, giveDeadlineRule } from "../../support/convex/leagueRules.harness";
@@ -123,13 +124,19 @@ describe("a postponed first match", () => {
 });
 
 describe(`more than ${LEAGUES_READ_MOST} leagues`, () => {
-  /** `count` more leagues, written straight in, with no rules. */
+  /** `count` more leagues, written straight in, each with the first rules, as every league has. */
   const holdLeagues = (count: number) =>
     t.run(async (ctx) => {
-      for (let index = 0; index < count; index += 1) await ctx.db.insert("leagues", { name: `League ${index}`, maxTeams: 4, commissionerEmail: COMMISSIONER });
+      for (let index = 0; index < count; index += 1) {
+        const held = await ctx.db.insert("leagues", { name: `League ${index}`, maxTeams: 4, commissionerEmail: COMMISSIONER });
+        await ctx.db.insert("leagueRules", { leagueId: held, fromGameweek: FIRST_GAMEWEEK, rules: FIRST_RULES });
+      }
     });
 
-  test(`with ${LEAGUES_READ_MOST} held the recording runs; one more fails it loudly rather than skip a league`, async () => {
+  /** Each held league's rules are read and its fixtures stored, so the run is slow. */
+  const MANY_LEAGUES_MS = 60_000;
+
+  test(`with ${LEAGUES_READ_MOST} held the recording runs; one more fails it loudly rather than skip a league`, { timeout: MANY_LEAGUES_MS }, async () => {
     await holdLeagues(LEAGUES_READ_MOST - 1);
     vi.setSystemTime(deadlineBefore(OPENER));
     await recordPassed();

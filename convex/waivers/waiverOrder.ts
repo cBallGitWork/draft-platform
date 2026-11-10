@@ -3,7 +3,7 @@ import type { Doc, Id } from "../_generated/dataModel";
 import { query, type MutationCtx, type QueryCtx } from "../_generated/server";
 import { draftOrderOf } from "../draft/draftOrder";
 import { draftIsOver } from "../draft/draftRow";
-import type { LeagueDeadlines } from "../gameweeks/deadline";
+import { nextDeadline, type LeagueDeadlines } from "../gameweeks/deadline";
 import { leagueDeadlines } from "../gameweeks/leagueDeadlines";
 import { WAIVER_ORDERS, type LeagueRules } from "../rules/leagueRulesShape";
 import { seasonRules, type SeasonRules } from "../rules/rulesHistory";
@@ -133,13 +133,6 @@ export async function windowOpen(ctx: QueryCtx, leagueId: Id<"leagues">, deadlin
   return deadline !== null && madeAt !== undefined && madeAt > deadline;
 }
 
-/** The next deadline after `now`, or null with none set. Pure. */
-function nextDeadline(deadlines: LeagueDeadlines, now: number): { gameweek: number; at: number } | null {
-  let next: { gameweek: number; at: number } | null = null;
-  for (const [gameweek, at] of deadlines) if (at !== null && at > now && (next === null || at < next.at)) next = { gameweek, at };
-  return next;
-}
-
 const waiversView = v.object({
   type: v.union(...WAIVER_ORDERS.map((each) => v.literal(each))),
   /** Every team, first in the order first, with its place and points in the table. */
@@ -159,14 +152,13 @@ export type WaiversView = Infer<typeof waiversView>;
 
 /** The league's waivers at `now`, for anyone in it (Craig, 6 Nov 2026, on #1200: "Everyone sees
  *  the whole order"): the waiver order with each team's table place, the next runs and the free
- *  agent window. Null for a league made before rules were held, which has no waivers. */
+ *  agent window. */
 export const ofLeague = query({
   args: { leagueId: v.id("leagues"), now: v.number() },
-  returns: v.union(waiversView, v.null()),
-  handler: async (ctx, { leagueId, now }): Promise<WaiversView | null> => {
+  returns: waiversView,
+  handler: async (ctx, { leagueId, now }): Promise<WaiversView> => {
     const { league, team } = await memberOf(ctx, leagueId);
     const season = await seasonRules(ctx, leagueId);
-    if (season === null) return null;
     const deadlines = await leagueDeadlines(ctx, leagueId);
     const order = await orderNow(ctx, league, season, latestBegun(deadlines, now));
     const table = await waiverTable(ctx, league, season, await draftOrderIn(ctx, league));

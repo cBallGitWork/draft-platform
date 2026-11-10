@@ -5,7 +5,7 @@ import { internalAction, internalMutation, internalQuery, type MutationCtx } fro
 import { positionOfSlot } from "../lineup/pitch";
 import { roleIn, roleName } from "../lineup/roles";
 import { fileLetter } from "../mail/letters";
-import { writeWithClaude } from "../outbound/claude";
+import { CLAUDE_RETRY_MS, writeWithClaude } from "../outbound/claude";
 import { nextFixtures, seasonMatches } from "../playerCard/playerCard";
 import { positionsNow } from "../positions/playerPositions";
 import { logFailure } from "../shared/errors";
@@ -19,10 +19,6 @@ import { playerLeftLetter, REPORT_MAX_TOKENS, REPORT_SYSTEM, reportInLetter, rep
 // scout is free again and Mail tells the manager it is in, and nothing more. A player who left the
 // Premier League while the scout was out gets no report: the scout comes back free, and Mail says
 // so (Craig, 6 Nov 2026, on #375).
-
-/** How long after a failed write it is tried again. The scout stays out meanwhile, and every
- *  failure is logged and kept on his row, so a lasting one (no API key, say) shows. */
-export const REPORT_RETRY_MS = 30 * MINUTE_MS;
 
 const briefOrGone = v.union(
   v.null(),
@@ -76,7 +72,7 @@ export const brief = internalQuery({
 
 /** Writes the scout's report when his 24 hours are up (scheduled by scouts.ts's `send`): Claude
  *  writes it from `brief`, and it lands; or the player has left, and the scout comes back with none.
- *  A failed write is logged, kept on the scout's row and tried again REPORT_RETRY_MS later. */
+ *  A failed write is logged, kept on the scout's row and tried again CLAUDE_RETRY_MS later. */
 export const write = internalAction({
   args: { scoutId: v.id("scouts") },
   returns: v.null(),
@@ -91,7 +87,7 @@ export const write = internalAction({
     try {
       text = await writeWithClaude({ system: REPORT_SYSTEM, prompt: facts.prompt, maxTokens: REPORT_MAX_TOKENS });
     } catch (error) {
-      const failure = logFailure(`Scout ${scoutId}'s report wasn't written; trying again in ${REPORT_RETRY_MS / MINUTE_MS} minutes`, error);
+      const failure = logFailure(`Scout ${scoutId}'s report wasn't written; trying again in ${CLAUDE_RETRY_MS / MINUTE_MS} minutes`, error);
       await ctx.runMutation(internal.scouting.scoutReports.failed, { scoutId, failure });
       return null;
     }
@@ -118,7 +114,7 @@ export const comeBack = internalMutation({
   },
 });
 
-/** Keeps a failed write on the scout's row and tries again REPORT_RETRY_MS later. */
+/** Keeps a failed write on the scout's row and tries again CLAUDE_RETRY_MS later. */
 export const failed = internalMutation({
   args: { scoutId: v.id("scouts"), failure: v.string() },
   returns: v.null(),
@@ -126,7 +122,7 @@ export const failed = internalMutation({
     const scout = await ctx.db.get("scouts", scoutId);
     if (scout === null || scout.state !== "out") return null;
     await ctx.db.patch("scouts", scoutId, { failedTries: (scout.failedTries ?? 0) + 1, lastFailure: failure });
-    await ctx.scheduler.runAfter(REPORT_RETRY_MS, internal.scouting.scoutReports.write, { scoutId });
+    await ctx.scheduler.runAfter(CLAUDE_RETRY_MS, internal.scouting.scoutReports.write, { scoutId });
     return null;
   },
 });

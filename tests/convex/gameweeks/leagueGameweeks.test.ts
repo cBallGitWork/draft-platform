@@ -200,13 +200,4 @@ describe("what can't be ticked", () => {
     const shown = await (await actingAs(t, COMMISSIONER)).query(api.gameweeks.leagueGameweeks.ofLeague, { leagueId });
     expect(shown[29]).toEqual({ gameweek: 30, used: true, deadline: null });
   });
-
-  test("a league made before rules were held has no deadline, and is told that, not that a kickoff is missing", async () => {
-    await holdGameweeks();
-    await t.run(async (ctx) => {
-      for await (const row of ctx.db.query("leagueRules")) await ctx.db.delete("leagueRules", row._id);
-    });
-    await expectRefused(setUsedBy(COMMISSIONER, NEXT, false), gameweekRefusals.noRules);
-    expect(await unusedGameweeks()).toBeUndefined();
-  });
 });

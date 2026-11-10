@@ -12,12 +12,14 @@ import { setOf, siteVersions, versionName } from "./siteVersions";
 // that hasn't begun, no letter, changed by patch after that"), as firstRolesVersion.ts did the
 // roles'. It adds a version to the site's set as it stands, its rules and roles untouched, taking
 // effect now, so as a fix it never reaches a gameweek already begun (siteVersions.ts). Run it once
-// on each deployment; run again once the set scores instructions, it does nothing.
+// on each deployment, and again when an instruction joins the first values (Keep it tight early
+// did, once records held the half-time score): it adds only those the set doesn't score yet, the
+// rest as the set holds them, and once it scores every one it does nothing.
 //   npx convex run scoring/firstInstructionsVersion:addFirstInstructions
 //   npx convex run --prod scoring/firstInstructionsVersion:addFirstInstructions
 
 /** Adds the version, returning its name and the first gameweek it reaches, or null when the site's
- *  set already scores instructions. Throws while a patch waits to take effect, as that patch was
+ *  set already scores every first instruction. Throws while a patch waits to take effect, as that patch was
  *  made without them and would drop them: run it once the patch has taken effect. */
 export const addFirstInstructions = internalMutation({
   args: {},
@@ -30,11 +32,13 @@ export const addFirstInstructions = internalMutation({
       throw new Error(`version ${versionName(latest)} waits to take effect and was made without the instructions, so they weren't added`);
     }
     const set = setOf(latest);
-    if ((set.instructions ?? []).length > 0) return null;
+    const scored = new Set((set.instructions ?? []).map(({ instruction }) => instruction));
+    const missing = FIRST_INSTRUCTION_SCORING.filter(({ instruction }) => !scored.has(instruction));
+    if (missing.length === 0) return null;
     // Failed long balls and crosses are own stats the roles brought in; a set without them gets them.
     const held = new Set((set.ownStats ?? []).map(({ stat }) => stat));
     const ownStats = [...(set.ownStats ?? []), ...FIRST_ROLE_OWN_STATS.filter(({ stat }) => !held.has(stat))];
-    const scoring = { ...set, ownStats, instructions: [...FIRST_INSTRUCTION_SCORING] };
+    const scoring = { ...set, ownStats, instructions: [...(set.instructions ?? []), ...missing] };
     validateScoringSet(scoring);
     checkOwnStatsAgainstCatalogue(scoring.ownStats);
     const { name, fromGameweek } = await addVersion(ctx, history, { scoring, kind: "fix", takesEffectAt: now }, null);

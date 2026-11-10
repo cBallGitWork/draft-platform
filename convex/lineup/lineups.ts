@@ -143,12 +143,10 @@ export async function nextOpenGameweek(ctx: QueryCtx, leagueId: Id<"leagues">, s
   return nextGameweek(gameweeks, matches, (gameweek) => season.inGameweek(gameweek).deadline, await fixedDeadlinesOf(ctx, leagueId), now);
 }
 
-/** The gameweek a save now goes to, or why there is none: a league made before rules were held
- *  can't date one, and once every gameweek the league plays has begun its season is over, so one
- *  that ends early is over after its last (spec/13, Gameweeks). Each caller says what
- *  either means for it. */
+/** The gameweek a save now goes to, or why there is none: once every gameweek the league plays
+ *  has begun its season is over, so one that ends early is over after its last (spec/13,
+ *  Gameweeks). Each caller says what that means for it. */
 export type SaveGameweek =
-  | { kind: "noRules" }
   | { kind: "seasonOver" }
   | { kind: "open"; season: SeasonRules; gameweek: number };
 
@@ -156,7 +154,6 @@ export type SaveGameweek =
  *  dated by. */
 export async function saveGameweekOf(ctx: QueryCtx, leagueId: Id<"leagues">, now: number): Promise<SaveGameweek> {
   const season = await seasonRules(ctx, leagueId);
-  if (season === null) return { kind: "noRules" };
   const gameweek = await nextOpenGameweek(ctx, leagueId, season, now);
   const league = await ctx.db.get("leagues", leagueId);
   if (league === null || gameweek > lastPlayedGameweek(league)) return { kind: "seasonOver" };
@@ -183,7 +180,6 @@ export const save = mutation({
     const { league, team } = await managerOf(ctx, leagueId);
     const now = Date.now();
     const next = await saveGameweekOf(ctx, leagueId, now);
-    if (next.kind === "noRules") refuse(lineupRefusals.noRules);
     if (next.kind === "seasonOver") refuse(lineupRefusals.seasonOver);
     // Lineups are locked through a gameweek the league doesn't play (spec/13, Gameweeks).
     if (await inUnplayedGameweek(ctx, league, await leagueDeadlines(ctx, leagueId), now)) refuse(lineupRefusals.unplayedGameweek);

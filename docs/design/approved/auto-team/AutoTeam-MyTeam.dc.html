@@ -1,0 +1,407 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Tactics, A9a, points at the right</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo+Narrow:wght@400;600;700&family=Archivo:wdth,wght@125,800&display=swap">
+<style>
+body{margin:0;background:#1b1916}
+a{color:#ffffff;text-decoration:none}a:hover{text-decoration:underline;text-decoration-color:#6bfdfa}
+button{font-family:inherit;border-radius:0;cursor:pointer}
+button:focus-visible,a:focus-visible,input:focus-visible{outline:2px solid #6bfdfa;outline-offset:2px}
+.disp{font-family:'Archivo','Archivo Narrow',sans-serif;font-weight:800;font-stretch:125%}
+.lnk{background:none;border:0;padding:0;color:#ffffff;font-size:13px;line-height:20px;text-align:left}
+.lnk:hover{text-decoration:underline;text-decoration-color:#6bfdfa}
+.sq td{height:28px;padding:0 6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sq th{height:24px;padding:0 6px;text-align:left;font-weight:600;color:#111214;background:#b9bcc4;white-space:nowrap}
+.chip{display:inline-block;min-width:30px;padding:0 3px;box-sizing:border-box;text-align:center;font-size:11px;line-height:18px;font-weight:700}
+.smp{border:1px dashed #111214;padding:0 3px;margin:0 -4px}
+.smpd{border:1px dashed #a1a5ab;padding:0 3px;margin:0 -4px}
+.tag{display:inline-block;padding:0 3px;font-size:10px;line-height:13px;font-weight:600;border:1px dashed currentColor}
+.sec{height:32px;padding:0 12px;background:#2a1f86;color:#ffffff;border:1px solid #caced4;font-size:13px;display:flex;align-items:center;gap:6px}
+@media (hover: hover){.sec:hover{background:#3529a8;border-color:#ffffff}}
+</style>
+</helmet>
+<div style="min-height: 1030px; background-color: #1b1916; background-image: radial-gradient(ellipse 90% 60% at 50% 0%, rgba(70, 96, 84, 0.22), rgba(70, 96, 84, 0) 70%); font-family: 'Archivo Narrow', 'Arial Narrow', sans-serif; font-size: 13px; line-height: 20px; color: #ffffff; font-variant-numeric: tabular-nums">
+
+<header style="background: #173a94; box-shadow: inset 0 2px 0 #4a6cc8, inset 0 -2px 0 #001a5e; display: flex; flex-wrap: wrap; align-items: stretch; min-height: 44px; padding: 0 16px">
+  <div class="disp" style="display: flex; align-items: center; font-size: 15px; padding-right: 16px">Draft Manager</div>
+  <button style="display: flex; align-items: center; gap: 8px; background: none; border: 0; border-left: 1px solid #001a5e; border-right: 1px solid #001a5e; color: #ffffff; font-size: 13px; padding: 0 12px">
+    <span style="color: #caced4">League:</span><span style="font-weight: 600">Tim Hortons Pro League</span>
+    <svg width="10" height="6" viewBox="0 0 10 6" aria-hidden="true"><path d="M0 0 L10 0 L5 6 Z" fill="#ffffff"></path></svg>
+  </button>
+  <nav aria-label="Main" style="display: flex; align-items: stretch">
+    <a href="#" style="display: flex; align-items: center; padding: 0 12px; color: #caced4; border-right: 1px solid #001a5e; font-size: 15px">Home</a>
+    <a href="#" aria-current="page" style="display: flex; align-items: center; padding: 0 12px; color: #ffffff; font-weight: 600; border-right: 1px solid #001a5e; font-size: 15px; box-shadow: inset 0 -3px 0 #6bfdfa">My team</a>
+    <a href="#" style="display: flex; align-items: center; padding: 0 12px; color: #caced4; border-right: 1px solid #001a5e; font-size: 15px">Matchup</a>
+    <a href="#" style="display: flex; align-items: center; padding: 0 12px; color: #caced4; border-right: 1px solid #001a5e; font-size: 15px">Table</a>
+    <a href="#" style="display: flex; align-items: center; padding: 0 12px; color: #caced4; border-right: 1px solid #001a5e; font-size: 15px">Scouting</a>
+    <a href="#" style="display: flex; align-items: center; padding: 0 12px; color: #caced4; border-right: 1px solid #001a5e; font-size: 15px">Trades</a>
+    <a href="#" style="display: flex; align-items: center; padding: 0 12px; color: #caced4; border-right: 1px solid #001a5e; font-size: 15px">Premier League</a>
+    <a href="#" style="display: flex; align-items: center; gap: 6px; padding: 0 12px; color: #caced4; border-right: 1px solid #001a5e; font-size: 15px">Mail <span style="background: #ff9b3d; color: #111214; font-size: 13px; font-weight: 700; padding: 0 5px; line-height: 18px">3</span></a>
+  </nav>
+  <div style="margin-left: auto; display: flex; align-items: center; gap: 12px">
+    <button aria-label="Continue: 3 unread letters" style="height: 32px; padding: 0 16px; background: #ffffff; color: #111214; border: 0; box-shadow: inset 0 2px 0 #ffffff, inset 0 -2px 0 #b9bcc4; font-size: 15px; font-weight: 600">Continue</button>
+    <button class="lnk">Sign out</button>
+  </div>
+</header>
+
+<main style="max-width: 1440px; margin: 0 auto; padding: 8px 16px 16px; box-sizing: border-box; display: flex; flex-direction: column; gap: 8px">
+
+  <div style="background: #2a1f86; box-shadow: inset 0 2px 0 #6a5fe0, inset 0 -2px 0 #110a4a; display: flex; flex-wrap: wrap; align-items: stretch; gap: 0 16px; padding: 0 0 0 16px; min-height: 52px">
+    <h1 class="disp" style="margin: 0; font-size: 26px; line-height: 32px; align-self: center">Saka Potatoes</h1>
+    <div aria-label="Gameweek 9" style="margin-left: auto; display: flex; flex-wrap: wrap; align-items: stretch">
+      <div style="display: flex; flex-direction: column; justify-content: center; padding: 4px 16px; border-left: 1px solid #110a4a">
+        <span style="color: #caced4">GW9 deadline</span>
+        <span style="display: flex; gap: 6px; align-items: baseline; font-size: 15px"><span>Tue 3 Nov 11:00</span><span style="color: #6bfdfa; font-weight: 600">in 1d 17h</span></span>
+      </div>
+      <a href="#" aria-label="GW9 opponent Kroos Control: open the matchup" style="display: flex; flex-direction: column; justify-content: center; padding: 4px 16px; border-left: 1px solid #110a4a">
+        <span style="color: #caced4">v</span>
+        <span style="display: flex; align-items: center; gap: 6px"><span class="disp" style="font-size: 15px">Kroos Control</span><svg width="6" height="10" viewBox="0 0 6 10" aria-hidden="true"><path d="M0 0 L6 5 L0 10 Z" fill="#ffffff"></path></svg></span>
+      </a>
+      <div style="display: flex; flex-direction: column; justify-content: center; padding: 4px 16px; border-left: 1px solid #110a4a">
+        <span style="display: flex; align-items: center; gap: 4px; color: #caced4">GW8<sc-if value="{{ tags }}" hint-placeholder-val="{{ true }}"><span class="tag" style="color: #caced4">sample</span></sc-if></span>
+        <span style="font-size: 15px">Won <span style="color: #ffe600; font-weight: 700">54–41</span> v Rovers XI</span>
+      </div>
+      <div style="display: flex; flex-direction: column; justify-content: center; padding: 4px 16px; border-left: 1px solid #110a4a">
+        <span style="color: #caced4">Form</span>
+        <span aria-label="Form, latest last: won, won, lost, won, drawn" style="display: flex; gap: 2px"><sc-for list="{{ form }}" as="f" hint-placeholder-count="5"><span style="width: 18px; height: 20px; text-align: center; background: #050608; color: #ffe600; font-weight: 700">{{f}}</span></sc-for></span>
+      </div>
+      <div style="display: flex; flex-direction: column; justify-content: center; padding: 4px 16px; border-left: 1px solid #110a4a">
+        <span style="display: flex; align-items: center; gap: 4px; color: #caced4">Table<sc-if value="{{ tags }}" hint-placeholder-val="{{ true }}"><span class="tag" style="color: #caced4">sample</span></sc-if></span>
+        <span style="font-size: 15px">2nd, <span style="color: #ffe600; font-weight: 700">18</span> pts</span>
+      </div>
+      <div style="position: relative; display: flex; flex-direction: column; justify-content: center; padding: 4px 16px; border-left: 1px solid #110a4a; background: #3529a8"><span style="color: #caced4">Auto team</span><button aria-expanded="true" style="background: none; border: 0; padding: 0; color: #ffffff; font-size: 15px; text-align: left">Off ▾</button><div role="dialog" aria-label="Auto team" style="position: absolute; top: 100%; right: 0; z-index: 5; width: 380px; margin-top: 4px; background: #1a1b1f; box-shadow: 0 0 0 1px #34363c, 0 8px 24px rgba(0,0,0,0.5)"><div style="background: #2a1f86; box-shadow: inset 0 2px 0 #6a5fe0, inset 0 -2px 0 #110a4a; height: 36px; display: flex; align-items: center; gap: 8px; padding: 0 12px"><h2 style="margin: 0; font-size: 15px; font-weight: 700">Auto team</h2><span style="margin-left: auto; color: #caced4"></span></div><p style="margin: 0; padding: 12px 12px 4px; color: #caced4">Keeps your last lineup, swapping a starter who is out for the first bench player who fits. No claims, drops or trades.</p><div style="padding: 8px 12px; display: flex; flex-direction: column; gap: 4px"><label style="display: flex; align-items: center; gap: 8px; min-height: 44px"><span role="radio" aria-checked="true" style="width: 20px; height: 20px; border-radius: 50%; background: #050608; box-shadow: inset 0 2px 0 #050608, inset 0 -2px 0 #34363c, 0 0 0 1px #caced4; display: inline-flex; align-items: center; justify-content: center"><span style="width: 10px; height: 10px; border-radius: 50%; background: #ffffff"></span></span><span>Until the end of</span><span aria-label="Auto team ends after gameweek" style="display: inline-flex; align-items: center; justify-content: space-between; width: 100px; height: 32px; padding: 0 10px; box-sizing: border-box; background: #050608; box-shadow: inset 0 2px 0 #050608, inset 0 -2px 0 #34363c, 0 0 0 1px #caced4; color: #ffffff">GW13<span aria-hidden="true">▾</span></span></label><label style="display: flex; align-items: center; gap: 8px; min-height: 44px"><span role="radio" aria-checked="false" style="width: 20px; height: 20px; border-radius: 50%; background: #050608; box-shadow: inset 0 2px 0 #050608, inset 0 -2px 0 #34363c, 0 0 0 1px #caced4"></span><span style="color: #caced4">Until I switch it off</span></label></div><div style="display: flex; justify-content: flex-end; gap: 8px; padding: 12px; box-shadow: inset 0 1px 0 #111214"><button style="height: 32px; padding: 0 12px; background: #2a1f86; box-shadow: inset 0 0 0 1px #caced4; border: 0; color: #ffffff; font-weight: 600">Cancel</button><button style="height: 32px; padding: 0 16px; background: #ffffff; color: #111214; border: 0; box-shadow: inset 0 2px 0 #ffffff, inset 0 -2px 0 #b9bcc4; font-weight: 600">Switch on</button></div></div></div>
+    </div>
+  </div>
+  <div style="display: flex; flex-direction: column; background: rgba(40, 34, 29, 0.9); box-shadow: inset 0 1px 0 #34363c">
+    <nav aria-label="Section" style="display: flex; height: 36px">
+      <a href="#" aria-current="page" style="display: flex; align-items: center; padding: 0 16px; font-weight: 600; box-shadow: inset 0 -2px 0 #6bfdfa; border-right: 1px solid #111214">Tactics</a>
+      <a href="#" style="display: flex; align-items: center; padding: 0 16px; color: #caced4; border-right: 1px solid #111214">Squad</a>
+      <a href="#" style="display: flex; align-items: center; padding: 0 16px; color: #caced4; border-right: 1px solid #111214">Fixtures</a>
+      <a href="#" style="display: flex; align-items: center; padding: 0 16px; color: #caced4; border-right: 1px solid #111214">Transactions</a>
+    </nav>
+
+    <div role="toolbar" aria-label="Shape and actions" style="display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; padding: 8px 12px; border-top: 1px solid #111214">
+      <div role="radiogroup" aria-label="Formation: most used" style="display: flex; align-items: center; gap: 8px">
+        <span style="color: #caced4">Formation</span>
+        <span style="display: flex">
+          <sc-for list="{{ quickShapes }}" as="q" hint-placeholder-count="5"><button role="radio" aria-checked="{{q.checked}}" style="height: 32px; min-width: 58px; padding: 0 8px; border: 0; border-right: 1px solid #110a4a; font-size: 13px; background: {{q.bg}}; color: {{q.ink}}; font-weight: {{q.weight}}; box-shadow: {{q.bevel}}">{{q.name}}</button></sc-for>
+        </span>
+        <button aria-haspopup="dialog" class="sec">All formations<svg width="6" height="10" viewBox="0 0 6 10" aria-hidden="true"><path d="M0 0 L6 5 L0 10 Z" fill="#ffffff"></path></svg></button>
+      </div>
+      <div style="display: flex; align-items: center; gap: 8px; padding-left: 16px; border-left: 1px solid #111214">
+        <span style="color: #caced4">Team tactic</span>
+        <button aria-haspopup="listbox" style="height: 32px; padding: 0 10px; background: #111214; color: #ffffff; border: 0; box-shadow: inset 0 0 0 1px #ff6ad5; font-size: 13px; font-weight: 600; display: flex; align-items: center; gap: 8px"><svg role="img" aria-label="Team tactic: Double pivot screen" width="10" height="10" viewBox="0 0 10 10" style="flex: none"><path d="M5 0 L10 5 L5 10 L0 5 Z" fill="#ff6ad5"></path></svg>Double pivot screen<svg width="10" height="6" viewBox="0 0 10 6" aria-hidden="true"><path d="M0 0 L10 0 L5 6 Z" fill="#ffffff"></path></svg></button>
+      </div>
+      <div role="radiogroup" aria-label="Saved set-ups" style="display: flex; align-items: center; gap: 8px; padding-left: 16px; border-left: 1px solid #111214">
+        <span style="color: #caced4">Presets</span>
+        <span style="display: flex">
+          <sc-for list="{{ saved }}" as="q" hint-placeholder-count="3"><button role="radio" aria-checked="{{q.checked}}" title="{{q.title}}" style="height: 32px; padding: 0 10px; border: 0; border-right: 1px solid #110a4a; font-size: 13px; display: flex; align-items: center; gap: 6px; background: {{q.bg}}; color: {{q.ink}}; box-shadow: {{q.bevel}}"><span style="font-weight: 700">{{q.letter}}</span><span style="font-weight: {{q.weight}}">{{q.name}}</span></button></sc-for>
+        </span>
+        <button class="sec" aria-haspopup="dialog" title="Save the formation and each slot's role as a preset">Save preset…</button>
+        <sc-if value="{{ tags }}" hint-placeholder-val="{{ true }}"><span class="tag" style="color: #caced4">sample</span></sc-if>
+      </div>
+      <div style="margin-left: auto; display: flex; align-items: center; gap: 8px">
+        <button class="sec">Undo</button>
+        <button class="sec">Quick Pick</button>
+      </div>
+    </div>
+
+  </div>
+
+  <div style="display: flex; flex-wrap: wrap; gap: 8px; align-items: flex-start">
+
+    <div style="flex: 0 0 356px; max-width: 100%; display: flex; flex-direction: column; gap: 8px">
+    <section aria-labelledby="a3-pitch" style="box-sizing: border-box; background: rgba(40, 34, 29, 0.9); display: flex; flex-direction: column">
+      <div style="height: 32px; background: #2a1f86; box-shadow: inset 0 2px 0 #6a5fe0, inset 0 -2px 0 #110a4a; display: flex; align-items: center; justify-content: space-between; padding: 0 8px 0 12px">
+        <h2 id="a3-pitch" style="margin: 0; font-size: 15px; line-height: 20px; font-weight: 700">Pitch <span style="font-weight: 400; color: #caced4">4-2-3-1</span></h2><span style="display: flex; align-items: center; gap: 6px; margin-left: 10px; margin-right: auto; color: #ffffff"><svg role="img" aria-label="Team tactic: Double pivot screen" width="10" height="10" viewBox="0 0 10 10" style="flex: none"><path d="M5 0 L10 5 L5 10 L0 5 Z" fill="#ff6ad5"></path></svg>Double pivot screen</span>
+        <label style="display: flex; align-items: center; gap: 8px; cursor: pointer">
+          <input type="checkbox" checked style="position: absolute; opacity: 0; width: 1px; height: 1px">
+          <span aria-hidden="true" style="width: 20px; height: 20px; box-sizing: border-box; background: #050608; border: 1px solid #caced4; box-shadow: inset 0 2px 0 #050608, inset 0 -2px 0 #34363c; display: flex; align-items: center; justify-content: center"><svg width="12" height="12" viewBox="0 0 14 14"><path d="M2 7.5 L5.5 11 L12 3" fill="none" stroke="#ffffff" stroke-width="2.5" stroke-linecap="square"></path></svg></span>
+          <span>Runs</span>
+        </label>
+      </div>
+      <div style="padding: 8px; flex: 1 1 auto; display: flex; align-items: flex-start">
+        <div style="position: relative; width: 340px; height: 525px">
+          <svg viewBox="0 0 68 105" preserveAspectRatio="none" aria-hidden="true" style="position: absolute; left: 0; top: 0; width: 100%; height: 100%">
+            <rect x="0" y="0" width="68" height="17.5" fill="#2f8535"></rect>
+            <rect x="0" y="17.5" width="68" height="17.5" fill="#276f2c"></rect>
+            <rect x="0" y="35" width="68" height="17.5" fill="#2f8535"></rect>
+            <rect x="0" y="52.5" width="68" height="17.5" fill="#276f2c"></rect>
+            <rect x="0" y="70" width="68" height="17.5" fill="#2f8535"></rect>
+            <rect x="0" y="87.5" width="68" height="17.5" fill="#276f2c"></rect>
+            <g fill="none" stroke="#e6f2e6">
+              <rect x="0.15" y="0.15" width="67.7" height="104.7" stroke-width="2" vector-effect="non-scaling-stroke"></rect>
+              <line x1="0" y1="52.5" x2="68" y2="52.5" stroke-width="2" vector-effect="non-scaling-stroke"></line>
+              <circle cx="34" cy="52.5" r="9.15" stroke-width="2" vector-effect="non-scaling-stroke"></circle>
+              <rect x="13.84" y="0" width="40.32" height="16.5" stroke-width="2" vector-effect="non-scaling-stroke"></rect>
+              <rect x="24.84" y="0" width="18.32" height="5.5" stroke-width="2" vector-effect="non-scaling-stroke"></rect>
+              <path d="M 26.688 16.5 A 9.15 9.15 0 0 0 41.312 16.5" stroke-width="2" vector-effect="non-scaling-stroke"></path>
+              <rect x="13.84" y="88.5" width="40.32" height="16.5" stroke-width="2" vector-effect="non-scaling-stroke"></rect>
+              <rect x="24.84" y="99.5" width="18.32" height="5.5" stroke-width="2" vector-effect="non-scaling-stroke"></rect>
+              <path d="M 26.688 88.5 A 9.15 9.15 0 0 1 41.312 88.5" stroke-width="2" vector-effect="non-scaling-stroke"></path>
+            </g>
+            <g fill="#e6f2e6"><circle cx="34" cy="52.5" r="0.5"></circle><circle cx="34" cy="11" r="0.7"></circle><circle cx="34" cy="94" r="0.7"></circle></g>
+          </svg>
+          <svg width="340" height="525" viewBox="0 0 340 525" aria-hidden="true" style="position: absolute; left: 0; top: 0">
+            <sc-for list="{{ runs }}" as="r" hint-placeholder-count="4">
+              <path d="{{r.d}}" fill="none" stroke="#ffffff" stroke-width="2" stroke-dasharray="5 4"></path>
+              <polygon points="{{r.head}}" fill="#ffffff"></polygon>
+            </sc-for>
+          </svg>
+          <sc-for list="{{ starters }}" as="p" hint-placeholder-count="11">
+            <div style="position: absolute; left: {{p.left}}px; top: {{p.top}}px; width: {{p.cw}}px; display: flex; flex-direction: column; outline: {{p.mark}}; outline-offset: 2px">
+              <button aria-label="{{p.pickLabel}}" style="background: none; border: 0; padding: 0; color: #ffffff; display: flex; flex-direction: column; align-items: stretch">
+                <span style="position: relative; display: flex; justify-content: center; height: 26px">
+                  <svg width="26" height="26" viewBox="0 0 40 40" aria-hidden="true"><path d="M13 4 L7 7 L2 13 L7 18 L10 16 L10 37 L30 37 L30 16 L33 18 L38 13 L33 7 L27 4 Q20 10 13 4 Z" style="fill: {{p.shirt}}; stroke: {{p.ink}}; stroke-width: 1.5"></path><text x="20" y="29" text-anchor="middle" style="fill: {{p.ink}}; font-family: 'Archivo Narrow', sans-serif; font-size: 14px; font-weight: 700">{{p.no}}</text></svg>
+                  <sc-if value="{{ p.isYellow }}" hint-placeholder-val="{{ false }}"><svg role="img" aria-label="One booking from a ban" width="8" height="11" viewBox="0 0 9 12" style="position: absolute; right: 10px; top: 1px"><rect x="0.5" y="0.5" width="8" height="11" fill="#f2c200" stroke="#111214"></rect></svg></sc-if><sc-if value="{{ p.doubt }}" hint-placeholder-val="{{ false }}"><span role="img" aria-label="Doubt" title="Doubt" style="position: absolute; right: 8px; top: 2px; width: 10px; height: 10px; background: #ff9b3d; display: flex; align-items: center; justify-content: center"><span style="width: 2px; height: 6px; background: #111214"></span></span></sc-if>
+                </span>
+                <span style="position: relative; background: #050608; display: flex; align-items: baseline; justify-content: center; gap: 3px; padding: 0 3px; height: 18px">
+                  <span style="font-size: 12px; line-height: 18px; font-weight: 700; color: #caced4">{{p.label}}</span>
+                  <span style="font-size: 13px; line-height: 18px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">{{p.name}}</span><sc-if value="{{ p.tt }}" hint-placeholder-val="{{ false }}"><span style="position: absolute; right: -5px; top: -5px; display: flex; padding: 1px; background: #050608"><svg role="img" aria-label="Team tactic: Double pivot screen" width="9" height="9" viewBox="0 0 10 10" style="flex: none"><path d="M5 0 L10 5 L5 10 L0 5 Z" fill="#ff6ad5"></path></svg></span></sc-if>
+                </span>
+              </button>
+              <button aria-haspopup="menu" aria-label="{{p.roleLabel}}" style="height: 30px; border: 0; padding: 0 4px; background: {{p.lineBg}}; color: {{p.lineInk}}; font-size: 12px; line-height: 14px; font-weight: 600; text-align: center; overflow: hidden">{{p.role}} <svg width="7" height="4" viewBox="0 0 10 6" aria-hidden="true" style="vertical-align: 2px"><path d="M0 0 L10 0 L5 6 Z" style="fill: {{p.lineInk}}"></path></svg></button>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+    </section>
+      <section aria-labelledby="a6-lc" style="background: rgba(40, 34, 29, 0.9); display: flex; flex-direction: column">
+        <div style="min-height: 32px; background: #2a1f86; box-shadow: inset 0 2px 0 #6a5fe0, inset 0 -2px 0 #110a4a; display: flex; align-items: center; gap: 8px; padding: 0 12px"><h2 id="a6-lc" style="margin: 0; font-size: 15px; line-height: 20px; font-weight: 700">Lineup check</h2><span style="color: #caced4">4 to look at</span><sc-if value="{{ tags }}" hint-placeholder-val="{{ true }}"><span class="tag" style="color: #ff9b3d; margin-left: auto">Idea, sample</span></sc-if></div>
+          <div style="min-height: 36px; display: grid; grid-template-columns: 14px minmax(0, 1fr) auto; gap: 8px; align-items: center; padding: 0 12px; border-bottom: 1px solid #111214"><span role="img" aria-label="Doubt" style="width: 11px; height: 11px; background: #ff9b3d; display: flex; align-items: center; justify-content: center"><span style="width: 2px; height: 7px; background: #111214"></span></span><span><span style="font-weight: 600">Saka</span> <span style="color: #a1a5ab">W, starting</span></span><span style="color: #ff9b3d">Doubt, 75%</span></div>
+          <div style="min-height: 36px; display: grid; grid-template-columns: 14px minmax(0, 1fr) auto; gap: 8px; align-items: center; padding: 0 12px; border-bottom: 1px solid #111214"><svg role="img" aria-label="One booking from a ban" width="9" height="12" viewBox="0 0 9 12"><rect x="0.5" y="0.5" width="8" height="11" fill="#f2c200" stroke="#111214"></rect></svg><span><span style="font-weight: 600">Caicedo</span> <span style="color: #a1a5ab">CDM, starting</span></span><span style="color: #ffffff">One booking from a ban</span></div>
+          <div style="min-height: 36px; display: grid; grid-template-columns: 14px minmax(0, 1fr) auto; gap: 8px; align-items: center; padding: 0 12px; border-bottom: 1px solid #111214"><svg role="img" aria-label="Injured" width="12" height="12" viewBox="0 0 12 12"><rect x="0" y="0" width="12" height="12" fill="#ffffff"></rect><path d="M4.5 1.5 H7.5 V4.5 H10.5 V7.5 H7.5 V10.5 H4.5 V7.5 H1.5 V4.5 H4.5 Z" fill="#d4203a"></path></svg><span><span style="font-weight: 600">Watkins</span> <span style="color: #a1a5ab">S4, bench</span></span><span style="color: #ffffff">Injured</span></div>
+          <div style="min-height: 36px; display: grid; grid-template-columns: 14px minmax(0, 1fr) auto; gap: 8px; align-items: center; padding: 0 12px; border-bottom: 1px solid #111214"><svg role="img" aria-label="Suspended" width="9" height="12" viewBox="0 0 9 12"><rect x="0.5" y="0.5" width="8" height="11" fill="#d4203a" stroke="#111214"></rect></svg><span><span style="font-weight: 600">Tonali</span> <span style="color: #a1a5ab">S7, bench</span></span><span style="color: #ffffff">Suspended</span></div>
+      </section>
+    </div>
+
+    <section aria-labelledby="a3-squad" style="flex: 999 1 600px; min-width: 0; background: rgba(40, 34, 29, 0.9)">
+      <div style="height: 32px; background: #2a1f86; box-shadow: inset 0 2px 0 #6a5fe0, inset 0 -2px 0 #110a4a; display: flex; align-items: center; justify-content: space-between; padding: 0 12px">
+        <h2 id="a3-squad" style="margin: 0; font-size: 15px; line-height: 20px; font-weight: 700">Selection</h2>
+        <span style="display: flex; align-items: center; gap: 8px; color: #caced4"><sc-if value="{{ tags }}" hint-placeholder-val="{{ true }}"><span class="tag" style="color: #caced4">sample: dashed heads</span></sc-if>11 starting, 9 on the bench</span>
+      </div>
+      <div style="overflow-x: auto">
+        <table class="sq" aria-label="Your selection: the eleven, then the bench in order" style="width: 100%; min-width: 640px; border-collapse: collapse; table-layout: fixed">
+          <colgroup><col style="width: 80px"><col style="width: 170px"><col style="width: 80px"><col style="width: 90px"><col><col style="width: 58px"><col style="width: 46px"></colgroup>
+          <thead><tr>
+            <th>Pos</th><th>Player</th><th><span class="{{smp}}">Next</span></th><th><span class="{{smp}}">Role fit</span></th><th>Role</th><th style="text-align: right"><span class="{{smp}}">Season</span></th><th style="text-align: right"><span class="{{smp}}">Last</span></th>
+          </tr></thead>
+          <tbody>
+            <sc-for list="{{ starters }}" as="p" hint-placeholder-count="11">
+              <tr aria-selected="{{p.selected}}" style="border-bottom: 1px solid #111214; background: {{p.rowBg}}">
+                <td style="box-shadow: {{p.rowEdge}}"><span style="display: flex; gap: 2px; align-items: center"><span style="width: 24px; flex: none; color: #a1a5ab; font-weight: 700">{{p.order}}</span><sc-for list="{{ p.chips }}" as="c" hint-placeholder-count="2"><span class="chip" style="background: {{c.bg}}; color: {{c.ink}}">{{c.pos}}</span></sc-for></span></td>
+                <td><a href="#" style="font-size: 15px; font-weight: 600">{{p.name}}</a> <span style="color: #a1a5ab">{{p.club}}</span><sc-if value="{{ p.isDoubt }}" hint-placeholder-val="{{ false }}"><span role="img" aria-label="Doubt" title="Doubt" style="display: inline-flex; vertical-align: -1px; margin-left: 6px; width: 11px; height: 11px; background: #ff9b3d; align-items: center; justify-content: center"><span style="width: 2px; height: 7px; background: #111214"></span></span></sc-if><sc-if value="{{ p.isInjured }}" hint-placeholder-val="{{ false }}"><svg role="img" aria-label="Injured, out" width="12" height="12" viewBox="0 0 12 12" style="vertical-align: -1px; margin-left: 6px"><rect x="0" y="0" width="12" height="12" fill="#ffffff"></rect><path d="M4.5 1.5 H7.5 V4.5 H10.5 V7.5 H7.5 V10.5 H4.5 V7.5 H1.5 V4.5 H4.5 Z" fill="#d4203a"></path></svg></sc-if><sc-if value="{{ p.isYellow }}" hint-placeholder-val="{{ false }}"><svg role="img" aria-label="One booking from a ban" width="9" height="12" viewBox="0 0 9 12" style="vertical-align: -1px; margin-left: 6px"><rect x="0.5" y="0.5" width="8" height="11" fill="#f2c200" stroke="#111214"></rect></svg></sc-if><sc-if value="{{ p.isRed }}" hint-placeholder-val="{{ false }}"><svg role="img" aria-label="Suspended" width="9" height="12" viewBox="0 0 9 12" style="vertical-align: -1px; margin-left: 6px"><rect x="0.5" y="0.5" width="8" height="11" fill="#d4203a" stroke="#111214"></rect></svg></sc-if></td>
+                <td style="padding: 0 1px 0 0"><span role="img" aria-label="{{p.oppLabel}}" title="{{p.oppLabel}}" style="display: block; height: 27px; background: {{p.diffBg}}; color: {{p.diffInk}}; font-weight: 600; padding: 0 6px; line-height: 27px">{{p.opp}}</span></td>
+                <td><span role="img" aria-label="Role fit {{p.stars}} of 5" style="display: flex; gap: 1px"><sc-for list="{{ p.starList }}" as="s" hint-placeholder-count="5"><svg width="11" height="11" viewBox="0 0 10 10" aria-hidden="true"><path d="M5 0.6 L6.3 3.6 L9.6 3.8 L7 5.9 L7.9 9.2 L5 7.4 L2.1 9.2 L3 5.9 L0.4 3.8 L3.7 3.6 Z" style="fill: {{s.fill}}; stroke: {{s.stroke}}; stroke-width: 0.8"></path></svg></sc-for></span></td>
+                <td style="white-space: nowrap"><button class="lnk" aria-haspopup="menu" aria-label="{{p.roleLabel}}" style="display: inline-flex; align-items: center; gap: 6px; max-width: 100%; font-size: 15px"><span style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis">{{p.role}}</span><svg width="9" height="6" viewBox="0 0 10 6" aria-hidden="true" style="flex: none"><path d="M0 0 L10 0 L5 6 Z" fill="#caced4"></path></svg></button><sc-if value="{{ p.tt }}" hint-placeholder-val="{{ false }}"><span style="display: inline-flex; margin-left: 4px"><svg role="img" aria-label="Team tactic: Double pivot screen" width="10" height="10" viewBox="0 0 10 10" style="flex: none"><path d="M5 0 L10 5 L5 10 L0 5 Z" fill="#ff6ad5"></path></svg></span></sc-if></td>
+                <td style="text-align: right; color: #ffe600; font-weight: 700">{{p.season}}</td>
+                <td style="text-align: right; color: #ffe600; font-weight: 700">{{p.last}}</td>
+              </tr>
+            </sc-for>
+            <tr><th style="background: #2a1f86; color: #ffffff; box-shadow: inset 0 2px 0 #6a5fe0, inset 0 -2px 0 #110a4a; font-weight: 700">Bench</th><th style="background: #2a1f86; color: #ffffff; box-shadow: inset 0 2px 0 #6a5fe0, inset 0 -2px 0 #110a4a; font-weight: 700"></th><th style="background: #2a1f86; color: #ffffff; box-shadow: inset 0 2px 0 #6a5fe0, inset 0 -2px 0 #110a4a; font-weight: 700"></th><th style="background: #2a1f86; color: #ffffff; box-shadow: inset 0 2px 0 #6a5fe0, inset 0 -2px 0 #110a4a; font-weight: 700"></th><th style="background: #2a1f86; color: #ffffff; box-shadow: inset 0 2px 0 #6a5fe0, inset 0 -2px 0 #110a4a; font-weight: 700">Best role</th><th style="background: #2a1f86; color: #ffffff; box-shadow: inset 0 2px 0 #6a5fe0, inset 0 -2px 0 #110a4a; font-weight: 700; text-align: right"></th><th style="background: #2a1f86; color: #ffffff; box-shadow: inset 0 2px 0 #6a5fe0, inset 0 -2px 0 #110a4a; font-weight: 700; text-align: right"></th></tr>
+            <sc-for list="{{ bench9 }}" as="p" hint-placeholder-count="9">
+              <tr aria-selected="{{p.selected}}" style="border-bottom: 1px solid #111214; background: {{p.rowBg}}; box-shadow: {{p.rowEdge}}">
+                <td><span style="display: flex; gap: 2px; align-items: center"><span style="width: 24px; flex: none; color: #a1a5ab; font-weight: 700">{{p.order}}</span><sc-for list="{{ p.chips }}" as="c" hint-placeholder-count="2"><span class="chip" style="background: {{c.bg}}; color: {{c.ink}}">{{c.pos}}</span></sc-for></span></td>
+                <td><a href="#" style="font-size: 15px; font-weight: 600; color: #a1a5ab">{{p.name}}</a> <span style="color: #a1a5ab">{{p.club}}</span><sc-if value="{{ p.isDoubt }}" hint-placeholder-val="{{ false }}"><span role="img" aria-label="Doubt" title="Doubt" style="display: inline-flex; vertical-align: -1px; margin-left: 6px; width: 11px; height: 11px; background: #ff9b3d; align-items: center; justify-content: center"><span style="width: 2px; height: 7px; background: #111214"></span></span></sc-if><sc-if value="{{ p.isInjured }}" hint-placeholder-val="{{ false }}"><svg role="img" aria-label="Injured, out" width="12" height="12" viewBox="0 0 12 12" style="vertical-align: -1px; margin-left: 6px"><rect x="0" y="0" width="12" height="12" fill="#ffffff"></rect><path d="M4.5 1.5 H7.5 V4.5 H10.5 V7.5 H7.5 V10.5 H4.5 V7.5 H1.5 V4.5 H4.5 Z" fill="#d4203a"></path></svg></sc-if><sc-if value="{{ p.isYellow }}" hint-placeholder-val="{{ false }}"><svg role="img" aria-label="One booking from a ban" width="9" height="12" viewBox="0 0 9 12" style="vertical-align: -1px; margin-left: 6px"><rect x="0.5" y="0.5" width="8" height="11" fill="#f2c200" stroke="#111214"></rect></svg></sc-if><sc-if value="{{ p.isRed }}" hint-placeholder-val="{{ false }}"><svg role="img" aria-label="Suspended" width="9" height="12" viewBox="0 0 9 12" style="vertical-align: -1px; margin-left: 6px"><rect x="0.5" y="0.5" width="8" height="11" fill="#d4203a" stroke="#111214"></rect></svg></sc-if></td>
+                <td style="padding: 0 1px 0 0"><span role="img" aria-label="{{p.oppLabel}}" title="{{p.oppLabel}}" style="display: block; height: 27px; background: {{p.diffBg}}; color: {{p.diffInk}}; font-weight: 600; padding: 0 6px; line-height: 27px">{{p.opp}}</span></td>
+                <td><span role="img" aria-label="Best role fit {{p.stars}} of 5" style="display: flex; gap: 1px"><sc-for list="{{ p.starList }}" as="s" hint-placeholder-count="5"><svg width="11" height="11" viewBox="0 0 10 10" aria-hidden="true"><path d="M5 0.6 L6.3 3.6 L9.6 3.8 L7 5.9 L7.9 9.2 L5 7.4 L2.1 9.2 L3 5.9 L0.4 3.8 L3.7 3.6 Z" style="fill: {{s.fill}}; stroke: {{s.stroke}}; stroke-width: 0.8"></path></svg></sc-for></span></td>
+                <td style="color: #a1a5ab">{{p.best}}</td>
+                <td style="text-align: right; color: #ffe600; font-weight: 700">{{p.season}}</td>
+                <td style="text-align: right; color: #ffe600; font-weight: 700">{{p.last}}</td>
+              </tr>
+            </sc-for>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <div style="flex: 0 0 288px; max-width: 100%; display: flex; flex-direction: column; gap: 8px">
+      <sc-if value="{{ picked }}" hint-placeholder-val="{{ true }}">
+      <aside aria-labelledby="a3-panel" style="background: rgba(40, 34, 29, 0.9); display: flex; flex-direction: column">
+        <div style="min-height: 32px; background: #2a1f86; box-shadow: inset 0 2px 0 #6a5fe0, inset 0 -2px 0 #110a4a; display: flex; align-items: center; gap: 8px; padding: 0 0 0 12px">
+          <h2 id="a3-panel" style="margin: 0; font-size: 15px; line-height: 20px; font-weight: 700">{{pp.name}}</h2>
+          <span style="color: #caced4">{{pp.where}}</span>
+          <button aria-label="Close: back to Gameweek 9" style="margin-left: auto; width: 32px; height: 32px; background: none; border: 0; display: flex; align-items: center; justify-content: center"><svg width="12" height="12" viewBox="0 0 14 14" aria-hidden="true"><path d="M1 1 L13 13 M13 1 L1 13" stroke="#ffffff" stroke-width="2"></path></svg></button>
+        </div>
+        <div style="display: flex; align-items: center; gap: 8px; padding: 8px 12px; border-bottom: 1px solid #111214">
+          <span class="chip" style="min-width: 0; padding: 0 6px; background: {{pp.chipBg}}; color: {{pp.chipInk}}; box-shadow: inset 0 0 0 1px {{pp.chipEdge}}">{{pp.status}}</span>
+          <span>{{pp.news}}</span>
+          <sc-if value="{{ tags }}" hint-placeholder-val="{{ true }}"><span class="tag" style="color: #caced4; margin-left: auto">sample</span></sc-if>
+        </div>
+        <div role="radiogroup" aria-label="{{pp.name}}'s role: every role the slot offers" style="display: flex; flex-direction: column">
+          <div style="height: 24px; display: flex; align-items: center; justify-content: space-between; padding: 0 12px; background: #b9bcc4; color: #111214; font-weight: 600"><span>Role, {{pp.slot}} slot</span><span>Points per action</span></div>
+          <sc-for list="{{ menuRoles }}" as="m" hint-placeholder-count="2">
+            <button role="radio" aria-checked="{{m.checked}}" style="width: 100%; display: grid; grid-template-columns: minmax(0, 1fr) auto; grid-template-rows: 20px 20px; column-gap: 8px; align-items: center; padding: 6px 12px; border: 0; border-bottom: 1px solid #111214; text-align: left; color: #ffffff; font-size: 13px; background: {{m.bg}}; box-shadow: {{m.bevel}}">
+              <span style="grid-column: 1; grid-row: 1; font-size: 15px; font-weight: 600">{{m.name}} <span style="font-weight: 400; color: #a1a5ab; font-size: 13px">{{m.now}}</span></span>
+              <span role="img" aria-label="Role fit {{m.stars}} of 5" style="grid-column: 2; grid-row: 1; display: flex; gap: 1px; justify-content: flex-end"><sc-for list="{{ m.starList }}" as="s" hint-placeholder-count="5"><svg width="11" height="11" viewBox="0 0 10 10" aria-hidden="true"><path d="M5 0.6 L6.3 3.6 L9.6 3.8 L7 5.9 L7.9 9.2 L5 7.4 L2.1 9.2 L3 5.9 L0.4 3.8 L3.7 3.6 Z" style="fill: {{s.fill}}; stroke: {{s.stroke}}; stroke-width: 0.8"></path></svg></sc-for></span>
+              <span style="grid-column: 1 / 3; grid-row: 2; display: grid; grid-template-columns: 30px 82px 30px minmax(0, 1fr); column-gap: 4px"><span style="text-align: right; color: #ffe600; font-weight: 700">{{m.plus}}</span><span>per {{m.plusStat}}</span><span style="text-align: right; color: #ffe600; font-weight: 700">{{m.minus}}</span><span>per {{m.minusStat}}</span></span>
+            </button>
+          </sc-for>
+          <sc-if value="{{ pp.tt }}" hint-placeholder-val="{{ false }}"><div style="display: flex; align-items: center; gap: 8px; padding: 8px 12px; border-bottom: 1px solid #111214"><svg role="img" aria-label="Team tactic: Double pivot screen" width="10" height="10" viewBox="0 0 10 10" style="flex: none"><path d="M5 0 L10 5 L5 10 L0 5 Z" fill="#ff6ad5"></path></svg><span>Team tactic</span><span><span style="color: #ffe600; font-weight: 700">+0.5</span> per tackle won</span></div></sc-if>
+          <div style="padding: 4px 12px"><button class="lnk" aria-haspopup="dialog">More about roles</button></div>
+        </div>
+        <dl style="margin: 0; display: grid; grid-template-columns: 72px minmax(0, 1fr); align-items: center; row-gap: 8px; column-gap: 8px; padding: 8px 12px; border-top: 1px solid #111214">
+          <dt style="color: #a1a5ab">Plays</dt>
+          <dd style="margin: 0; display: flex; gap: 2px"><sc-for list="{{ pp.chips }}" as="c" hint-placeholder-count="1"><span class="chip" style="background: {{c.bg}}; color: {{c.ink}}">{{c.pos}}</span></sc-for></dd>
+          <dt style="color: #a1a5ab"><span class="{{smpPanel}}">Next 3</span></dt>
+          <dd style="margin: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 2px"><sc-for list="{{ next3 }}" as="n" hint-placeholder-count="3"><span role="img" aria-label="{{n.label}}" title="{{n.label}}" style="height: 24px; background: {{n.bg}}; color: {{n.ink}}; font-weight: 600; text-align: center; line-height: 24px">{{n.opp}}</span></sc-for></dd>
+          <dt style="color: #a1a5ab; line-height: 16px">Last 5 in role</dt>
+          <dd style="margin: 0; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 2px">
+            <sc-for list="{{ last5 }}" as="l" hint-placeholder-count="5"><span role="img" aria-label="{{l.label}}" title="{{l.label}}" style="height: 24px; box-sizing: border-box; border: {{l.border}}; background: {{l.bg}}; color: #ffe600; font-weight: 700; text-align: center; line-height: 22px">{{l.pts}}</span></sc-for>
+          </dd>
+          <dt style="color: #a1a5ab"><span class="{{smpPanel}}">Points</span></dt>
+          <dd style="margin: 0; display: flex; gap: 16px; align-items: baseline"><span><span style="color: #a1a5ab">Last</span> <span style="color: #ffe600; font-weight: 700; font-size: 15px">{{pp.last}}</span></span><span><span style="color: #a1a5ab">Season</span> <span style="color: #ffe600; font-weight: 700; font-size: 15px">{{pp.season}}</span></span></dd>
+        </dl>
+        <div style="display: flex; flex-wrap: wrap; gap: 8px; align-items: center; padding: 8px 12px 12px; border-top: 1px solid #111214">
+          <button class="sec">Move</button>
+          <a href="#" style="margin-left: auto; display: flex; align-items: center; gap: 6px">Player card<svg width="6" height="10" viewBox="0 0 6 10" aria-hidden="true"><path d="M0 0 L6 5 L0 10 Z" fill="#ffffff"></path></svg></a>
+        </div>
+      </aside>
+      </sc-if>
+      <sc-if value="{{ pickedBench }}" hint-placeholder-val="{{ false }}">
+      <aside aria-label="Mbeumo" style="background: rgba(40, 34, 29, 0.9); display: flex; flex-direction: column">
+        <div style="min-height: 32px; background: #2a1f86; box-shadow: inset 0 2px 0 #6a5fe0, inset 0 -2px 0 #110a4a; display: flex; align-items: center; gap: 8px; padding: 0 0 0 12px">
+          <h2 style="margin: 0; font-size: 15px; line-height: 20px; font-weight: 700">Mbeumo</h2>
+          <span style="color: #caced4">MUN, bench S3</span>
+          <button aria-label="Close" style="margin-left: auto; width: 32px; height: 32px; background: none; border: 0; display: flex; align-items: center; justify-content: center"><svg width="12" height="12" viewBox="0 0 14 14" aria-hidden="true"><path d="M1 1 L13 13 M13 1 L1 13" stroke="#ffffff" stroke-width="2"></path></svg></button>
+        </div>
+        <dl style="margin: 0; display: grid; grid-template-columns: 72px minmax(0, 1fr); align-items: center; row-gap: 8px; column-gap: 8px; padding: 8px 12px">
+          <dt style="color: #a1a5ab">Plays</dt>
+          <dd style="margin: 0; display: flex; gap: 2px"><span class="chip" style="background: #9a3db8; color: #ffffff">W</span><span class="chip" style="background: #f28c8c; color: #111214">ST</span></dd>
+          <dt style="color: #a1a5ab">Best role</dt>
+          <dd style="margin: 0">Inside forward</dd>
+          <dt style="color: #a1a5ab"><span class="{{smpPanel}}">Next 3</span></dt>
+          <dd style="margin: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 2px"><span style="height: 24px; background: #8c1236; color: #ffffff; font-weight: 600; text-align: center; line-height: 24px">NEW (A)</span><span style="height: 24px; background: #8a90a0; color: #08090b; font-weight: 600; text-align: center; line-height: 24px">BOU (H)</span><span style="height: 24px; background: #8a90a0; color: #08090b; font-weight: 600; text-align: center; line-height: 24px">FUL (A)</span></dd>
+          <dt style="color: #a1a5ab"><span class="{{smpPanel}}">Points</span></dt>
+          <dd style="margin: 0; display: flex; gap: 16px; align-items: baseline"><span><span style="color: #a1a5ab">Last</span> <span style="color: #ffe600; font-weight: 700; font-size: 15px">9</span></span><span><span style="color: #a1a5ab">Season</span> <span style="color: #ffe600; font-weight: 700; font-size: 15px">49</span></span></dd>
+        </dl>
+        <div style="display: flex; flex-wrap: wrap; gap: 8px; align-items: center; padding: 8px 12px 12px; border-top: 1px solid #111214">
+          <span style="width: 100%; color: #a1a5ab">Bench order: 3rd of 4</span>
+          <button class="sec" aria-label="Move Mbeumo up the bench">Up</button>
+          <button class="sec" aria-label="Move Mbeumo down the bench">Down</button>
+          <button class="sec">Move</button>
+          <a href="#" style="margin-left: auto; display: flex; align-items: center; gap: 6px">Player card<svg width="6" height="10" viewBox="0 0 6 10" aria-hidden="true"><path d="M0 0 L6 5 L0 10 Z" fill="#ffffff"></path></svg></a>
+        </div>
+      </aside>
+      </sc-if>
+      <section aria-labelledby="a8-tt" style="background: rgba(40, 34, 29, 0.9); display: flex; flex-direction: column; box-shadow: inset 0 0 0 1px #ff6ad5">
+        <div style="min-height: 32px; background: #2a1f86; box-shadow: inset 0 2px 0 #6a5fe0, inset 0 -2px 0 #110a4a; display: flex; align-items: center; gap: 8px; padding: 0 12px"><h2 id="a8-tt" style="margin: 0; font-size: 15px; line-height: 20px; font-weight: 700">Team tactic</h2><span style="color: #caced4">4-2-3-1 unlocks</span><sc-if value="{{ tags }}" hint-placeholder-val="{{ true }}"><span class="tag" style="color: #caced4; margin-left: auto">Sample</span></sc-if></div>
+        <div role="radiogroup" aria-label="Team tactic">
+          <button role="radio" aria-checked="true" style="width: 100%; display: flex; flex-direction: column; align-items: flex-start; gap: 4px; padding: 10px 12px; border: 0; border-bottom: 1px solid #111214; text-align: left; color: #ffffff; background: #111214; box-shadow: inset 3px 0 0 #ff6ad5">
+            <span style="display: flex; align-items: center; gap: 8px; font-size: 20px; line-height: 24px; font-weight: 700"><svg role="img" aria-label="Team tactic: Double pivot screen" width="12" height="12" viewBox="0 0 10 10" style="flex: none"><path d="M5 0 L10 5 L5 10 L0 5 Z" fill="#ff6ad5"></path></svg>Double pivot screen</span>
+            <span style="font-size: 15px">Defensive mids <span style="color: #ffe600; font-weight: 700">+0.5</span> per tackle won</span>
+            <span style="color: #caced4">Affects Caicedo, Rice</span>
+          </button>
+          <button role="radio" aria-checked="false" style="width: 100%; display: flex; flex-direction: column; align-items: flex-start; gap: 2px; padding: 6px 12px; border: 0; border-bottom: 1px solid #111214; text-align: left; color: #ffffff; font-size: 13px; background: transparent"><span style="font-weight: 600">Free number 10</span><span>Attacking mid <span style="color: #ffe600; font-weight: 700">+0.5</span> per chance made</span></button>
+        </div>
+        <p style="margin: 0; padding: 8px 12px 10px; color: #a1a5ab">Penalty: none, a back four.</p>
+      </section>
+      <section aria-labelledby="a6-opp" style="background: rgba(40, 34, 29, 0.9); display: flex; flex-direction: column">
+        <div style="min-height: 32px; background: #2a1f86; box-shadow: inset 0 2px 0 #6a5fe0, inset 0 -2px 0 #110a4a; display: flex; align-items: center; gap: 8px; padding: 0 12px"><h2 id="a6-opp" style="margin: 0; font-size: 15px; line-height: 20px; font-weight: 700">GW9 opponent</h2><sc-if value="{{ tags }}" hint-placeholder-val="{{ true }}"><span class="tag" style="color: #caced4; margin-left: auto">sample</span></sc-if></div>
+        <a href="#" aria-label="Kroos Control: open the matchup" style="display: flex; align-items: center; gap: 8px; padding: 10px 12px 4px"><span class="disp" style="font-size: 15px">Kroos Control</span><svg width="6" height="10" viewBox="0 0 6 10" aria-hidden="true"><path d="M0 0 L6 5 L0 10 Z" fill="#ffffff"></path></svg></a>
+        <div style="display: grid; grid-template-columns: 64px minmax(0, 1fr); gap: 6px 8px; align-items: center; padding: 4px 12px 12px">
+          <span style="color: #a1a5ab">Table</span><span>3rd, <span style="color: #ffe600; font-weight: 700">17</span> pts</span>
+          <span style="color: #a1a5ab">Form</span><span aria-label="Their form, latest last: won, lost, won, won, drawn" style="display: flex; gap: 2px"><sc-for list="{{ oppForm }}" as="f" hint-placeholder-count="5"><span style="width: 18px; height: 20px; text-align: center; background: #050608; color: #ffe600; font-weight: 700">{{f}}</span></sc-for></span>
+        </div>
+      </section>
+
+    </div>
+
+  </div>
+</main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"look":{"editor":"enum","options":["plate","team"],"default":"plate"},"tags":{"editor":"boolean","default":false},"selected":{"editor":"enum","options":["Saka","Caicedo","none","Mbeumo"],"default":"none"},"$preview":{"width":1440,"height":1030}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const look = this.props.look ?? 'plate';
+    const tags = this.props.tags ?? true;
+    const sel = this.props.selected ?? 'Saka';
+    const picked = sel === 'Saka' || sel === 'Caicedo';
+    const pickedBench = sel === 'Mbeumo';
+    const STAT4 = { Saka: 'doubt', Watkins: 'injured', Caicedo: 'yellow', Tonali: 'red' };
+    const cm = (n) => ({ isDoubt: STAT4[n] === 'doubt', isInjured: STAT4[n] === 'injured', isYellow: STAT4[n] === 'yellow', isRed: STAT4[n] === 'red' });
+    const BANDS = { plate: { band: '#2a1f86', bandL: '#6a5fe0', bandD: '#110a4a' }, team: { band: '#6b2fa3', bandL: '#8d55c8', bandD: '#3f1566' } };
+    const t = BANDS[look] || BANDS.plate;
+    const CLUB = { EVE: ['#003399', '#FFFFFF'], MCI: ['#6CABDD', '#1C2C5B'], ARS: ['#E50107', '#FFFFFF'], LIV: ['#C8102E', '#00B2A9'], TOT: ['#FFFFFF', '#132257'], CHE: ['#034694', '#FFFFFF'], AVL: ['#670E36', '#95BFE5'], CRY: ['#1B458F', '#C4122E'], NFO: ['#DD0000', '#FFFFFF'], MUN: ['#DA291C', '#FBE122'] };
+    const LINE = { goalkeeper: ['#e3cf98', '#111214', 'GK', 'Goalkeeper'], defence: ['#2f6bd8', '#ffffff', 'D', 'Defence'], defensiveMidfield: ['#4e6b45', '#ffffff', 'DM', 'Defensive midfield'], midfield: ['#41c3ae', '#111214', 'M', 'Midfield'], attackingMidfield: ['#9a3db8', '#ffffff', 'AM', 'Attacking midfield'], attack: ['#f28c8c', '#111214', 'ST', 'Attack'] };
+    const POS_LINE = { GK: 'goalkeeper', CB: 'defence', FB: 'defence', WB: 'defence', SW: 'defence', CDM: 'defensiveMidfield', CM: 'midfield', WM: 'midfield', CAM: 'attackingMidfield', W: 'attackingMidfield', ST: 'attack' };
+    const chipsOf = (list) => list.map((pos) => ({ pos, bg: LINE[POS_LINE[pos]][0], ink: LINE[POS_LINE[pos]][1] }));
+    const DIFF = [null, ['#57e08a', '#04130a', 'very easy'], ['#93b83a', '#0c1a06', 'easy'], ['#8a90a0', '#08090b', 'average'], ['#c9304f', '#ffffff', 'hard'], ['#8c1236', '#ffffff', 'very hard']];
+    const lum = (h) => [1, 3, 5].map((i) => { const c = parseInt(h.slice(i, i + 2), 16) / 255; return c <= 0.04045 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4); }).reduce((s, c, i) => s + c * [0.2126, 0.7152, 0.0722][i], 0);
+    const con = (a, b) => { const x = lum(a), y = lum(b); return (Math.max(x, y) + 0.05) / (Math.min(x, y) + 0.05); };
+    const kit = (club, gk) => { const shirt = CLUB[club][gk ? 1 : 0]; return { shirt, ink: con(shirt, '#111214') >= con(shirt, '#ffffff') ? '#111214' : '#ffffff' }; };
+    const fixture = (o, d) => { const [team, side] = o.split(' '); return { opp: o, oppLabel: 'Opponent ' + team + ', ' + (side === '(H)' ? 'home' : 'away') + ', difficulty ' + d + ' of 5, ' + DIFF[d][2], diffBg: DIFF[d][0], diffInk: DIFF[d][1] }; };
+    const starList = (n) => [1, 2, 3, 4, 5].map((i) => ({ fill: i <= n ? '#ffe600' : 'transparent', stroke: i <= n ? '#ffe600' : '#a1a5ab' }));
+    const STATUS = { doubt: ['Doubt', '#2a1d10', '#ff9b3d', 'Doubt'], out: ['Out', '#ff9b3d', '#111214', 'Injured, out'] };
+    const status = (s) => s ? { hasStatus: true, statusLabel: STATUS[s][3] + ', details in his panel', markW: s === 'out' ? 6 : 2, markH: s === 'out' ? 2 : 6 } : { hasStatus: false };
+    const STAT = { saves: 'save', accurate_long_balls: 'long ball', clearances_blocks_interceptions: 'clear/block/int', accurate_cross: 'cross', effective_clearance: 'clearance', won_tackle: 'tackle won', total_scoring_att: 'shot', big_chance_created: 'big chance', goals_scored: 'goal' };
+    const EFFECT = { 'Shot-stopper': ['saves', 0.5, 'accurate_long_balls', -0.5], 'Defensive full-back': ['clearances_blocks_interceptions', 0.5, 'accurate_cross', -0.5], 'Stopper': ['effective_clearance', 0.5, 'accurate_long_balls', -0.5], 'Anchor': ['won_tackle', 0.5, 'total_scoring_att', -0.5], 'Deep playmaker': ['accurate_long_balls', 0.5, 'won_tackle', -0.5], 'Inside forward': ['total_scoring_att', 0.5, 'accurate_cross', -0.5], 'Winger': ['accurate_cross', 1, 'total_scoring_att', -0.5], 'Number 10': ['big_chance_created', 1, 'total_scoring_att', -0.5], 'Poacher': ['goals_scored', 1, 'total_scoring_att', -0.5] };
+    const sign = (n) => (n > 0 ? '+' : '−') + Math.abs(n);
+    const effect = (role) => { const [a, x, b, y] = EFFECT[role]; return { plus: sign(x), plusStat: STAT[a], minus: sign(y), minusStat: STAT[b], effectLabel: role + ': ' + sign(x) + ' per ' + STAT[a] + ', ' + sign(y) + ' per ' + STAT[b] }; };
+    const LANE = { left: 0, leftCentre: 1, centre: 2, rightCentre: 3, right: 4 };
+    const ROW = { attack: 0, attackingMidfield: 1, midfield: 2, defensiveMidfield: 3, defence: 4, goalkeeper: 5 };
+    const W = 340, H = 525;
+    const cw = () => 78;
+    const STARTERS = [
+      ['Pickford', 'EVE', 1, 'goalkeeper', 'centre', 'GK', 'Shot-stopper', 'SHS', 'IPS (A)', ['GK'], 2, 4, null, 6, 41],
+      ['Gvardiol', 'MCI', 2, 'defence', 'left', 'FB', 'Defensive full-back', 'DFB', 'COV (H)', ['CB', 'FB'], 1, 3, null, 2, 28],
+      ['Gabriel', 'ARS', 3, 'defence', 'leftCentre', 'CB', 'Stopper', 'STP', 'FUL (H)', ['CB'], 3, 5, null, 9, 52],
+      ['Van Dijk', 'LIV', 4, 'defence', 'rightCentre', 'CB', 'Stopper', 'STP', 'BOU (A)', ['CB'], 4, 4, null, 6, 47],
+      ['Porro', 'TOT', 5, 'defence', 'right', 'FB', 'Defensive full-back', 'DFB', 'HUL (H)', ['FB', 'WB'], 1, 5, null, 12, 61],
+      ['Caicedo', 'CHE', 6, 'defensiveMidfield', 'leftCentre', 'CDM', 'Anchor', 'ANC', 'LEE (A)', ['CDM', 'CM'], 2, 5, null, 7, 44],
+      ['Rice', 'ARS', 7, 'defensiveMidfield', 'rightCentre', 'CDM', 'Anchor', 'ANC', 'FUL (H)', ['CDM', 'CM'], 3, 4, null, 5, 39],
+      ['Rogers', 'AVL', 8, 'attackingMidfield', 'left', 'W', 'Inside forward', 'IF', 'BHA (H)', ['W', 'CAM'], 4, 3, null, 3, 30],
+      ['Palmer', 'CHE', 9, 'attackingMidfield', 'centre', 'CAM', 'Number 10', 'N10', 'LEE (A)', ['CAM', 'W'], 2, 5, null, 15, 78],
+      ['Saka', 'ARS', 10, 'attackingMidfield', 'right', 'W', 'Inside forward', 'IF', 'FUL (H)', ['W'], 3, 4, 'doubt', 8, 55],
+      ['Haaland', 'MCI', 11, 'attack', 'centre', 'ST', 'Poacher', 'PCH', 'COV (H)', ['ST'], 1, 5, null, 13, 82]
+    ];
+    const starters = STARTERS.map(([name, club, no, area, lane, label, role, code, o, positions, d, stars, st, last, season]) => {
+      const k = kit(club, area === 'goalkeeper');
+      const cx = area === 'defence' ? ({ left: 0, leftCentre: 1, rightCentre: 2, right: 3 }[lane] + 0.5) * (W / 4) : (LANE[lane] + 0.5) * (W / 5), cy = (ROW[area] + 0.5) * (H / 6);
+      const others = positions.filter((p) => p !== label);
+      const me = picked && name === sel, swap = false;
+      return Object.assign({ tt: name === 'Caicedo' || name === 'Rice', chips: chipsOf([label]), order: '', name, club, no, label, role, code, shirt: k.shirt, ink: k.ink, lineBg: LINE[area][0], lineInk: LINE[area][1], left: Math.max(0, Math.min(W - cw(area), Math.round(cx - cw(area) / 2))), cw: cw(area), top: Math.round(cy - 30), also: others.length ? 'also ' + others.join(', ') : '', stars, starList: starList(stars), last, season, doubt: st === 'doubt', selected: me ? 'true' : 'false', rowBg: me ? '#050608' : 'transparent', rowEdge: me ? 'inset 3px 0 0 #6bfdfa' : 'none', mark: me ? '2px solid #ffffff' : swap ? '2px dashed #e6f2e6' : 'none', moveWord: swap ? 'Swap' : 'Move', moveWeight: swap ? 700 : 400, pickLabel: name + ', ' + label + ': pick him up', roleLabel: name + "'s role, " + label + ' slot: ' + role + '. Change it' }, fixture(o, d), status(st), effect(role), cm(name));
+    });
+    const BEST = { Henderson: 'Shot-stopper', Murillo: 'Stopper', Mbeumo: 'Inside forward', Watkins: 'Poacher', Kerkez: 'Attacking full-back', Andersen: 'Ball-playing defender', Tonali: 'Box-to-box', Kudus: 'Winger', 'João Pedro': 'Pressing forward' };
+    const BENCH = [
+      ['S1', 'Henderson', 'CRY', 'SUN (A)', ['GK'], 3, 3, null, 2, 22, '#a1a5ab', '#ffffff'],
+      ['S2', 'Murillo', 'NFO', 'BRE (H)', ['CB'], 2, 4, null, 1, 19, '#ffffff', '#ffffff'],
+      ['S3', 'Mbeumo', 'MUN', 'NEW (A)', ['W', 'ST'], 5, 4, null, 9, 49, '#ffffff', '#ffffff'],
+      ['S4', 'Watkins', 'AVL', 'BHA (H)', ['ST'], 4, 4, 'out', 4, 40, '#ffffff', '#a1a5ab']
+    ];
+    const bench = BENCH.map(([order, name, club, o, positions, d, stars, st, last, season, upInk, downInk]) => Object.assign({ order, name, club, chips: chipsOf(positions), stars, starList: starList(stars), last, season, upInk, downInk, best: BEST[name], selected: pickedBench && name === 'Mbeumo' ? 'true' : 'false', rowBg: pickedBench && name === 'Mbeumo' ? '#050608' : 'transparent', rowEdge: pickedBench && name === 'Mbeumo' ? 'inset 3px 0 0 #6bfdfa' : 'none', out: st === 'out', moveWord: picked && name === 'Mbeumo' ? 'Swap' : 'Move', moveWeight: picked && name === 'Mbeumo' ? 700 : 400 }, fixture(o, d), status(st), cm(name)));
+    // Runs start at a card's edge and end in open grass, so no line crosses a card.
+    const run = (x1, y1, x2, y2) => { const a = Math.atan2(y2 - y1, x2 - x1), L = 8, w = 4.5; const bx = x2 - L * Math.cos(a), by = y2 - L * Math.sin(a); const f = (n) => Math.round(n * 10) / 10; return { d: 'M ' + x1 + ' ' + y1 + ' L ' + f(bx) + ' ' + f(by), head: [x2, y2, f(bx + w * Math.sin(a)), f(by - w * Math.cos(a)), f(bx - w * Math.sin(a)), f(by + w * Math.cos(a))].reduce((s, v, i) => s + (i % 2 ? ',' : ' ') + v, '').trim() }; };
+    const runs = [run(50, 99, 104, 56), run(290, 99, 236, 56), run(158, 99, 136, 82), run(204, 30, 232, 8)];
+    const lineKey = ['goalkeeper', 'defence', 'defensiveMidfield', 'midfield', 'attackingMidfield', 'attack'].map((a) => ({ bg: LINE[a][0], ink: LINE[a][1], code: LINE[a][2], name: LINE[a][3] }));
+    const isC = sel === 'Caicedo';
+    const menuRoles = (isC ? [['ANC', 'Anchor', 'now', 5, true], ['DLP', 'Deep playmaker', '', 4, false]] : [['IF', 'Inside forward', 'now', 4, true], ['WNG', 'Winger', '', 3, false]]).map(([code, name, now, stars, on]) => Object.assign({ code, name, now, stars, starList: starList(stars), checked: on ? 'true' : 'false', bg: on ? '#111214' : 'transparent', bevel: on ? 'inset 3px 0 0 #6bfdfa' : 'none' }, effect(name)));
+    const key = (on) => on ? { bg: '#111214', ink: '#ffffff', weight: 600, bevel: 'inset 0 2px 0 #110a4a, inset 0 -2px 0 #6a5fe0', checked: 'true' } : { bg: '#2a1f86', ink: '#caced4', weight: 400, bevel: 'inset 0 2px 0 #6a5fe0, inset 0 -2px 0 #110a4a', checked: 'false' };
+    const quickShapes = ['4-4-2', '4-3-3', '4-2-3-1', '3-5-2', '4-4-1-1'].map((name) => Object.assign({ name }, key(name === '4-2-3-1')));
+    const saved = [['4-2-3-1 balanced', 'Your 4-2-3-1 and its roles'], ['4-3-3 press', '4-3-3, pressing forward up top'], ['5-3-2 sit deep', '5-3-2, stoppers and an anchor']].map(([name, title], i) => Object.assign({ letter: '', name, title: name + ': ' + title + '. Formation and roles, never players' }, key(i === 0)));
+    const next3 = (isC ? [['LEE (A)', 2], ['MCI (H)', 4], ['SUN (H)', 2]] : [['FUL (H)', 3], ['LIV (A)', 4], ['BRE (H)', 2]]).map(([o, d]) => { const f = fixture(o, d); return { opp: o, label: f.oppLabel, bg: f.diffBg, ink: f.diffInk }; });
+    const last5 = [6, 2, 9, 3, 8].map((pts, i) => tags ? { pts: '', label: 'Points as Inside forward, ' + (5 - i) + ' gameweeks ago: not held yet', border: '1px solid #a1a5ab', bg: 'transparent' } : { pts, label: pts + ' points as Inside forward, ' + (5 - i) + ' gameweeks ago', border: '0 none', bg: '#050608' });
+    const OPP = [['GK', 'Raya', 'ARS', 'FUL (H)', 3], ['FB', 'Hall', 'NEW', 'MUN (H)', 4], ['CB', 'Saliba', 'ARS', 'FUL (H)', 3], ['CB', 'Dias', 'MCI', 'COV (H)', 1], ['FB', 'Gusto', 'CHE', 'LEE (A)', 2], ['CM', 'Gravenberch', 'LIV', 'BOU (A)', 4], ['CM', 'Mac Allister', 'LIV', 'BOU (A)', 4], ['CM', 'Wharton', 'CRY', 'SUN (A)', 3], ['W', 'Gordon', 'NEW', 'MUN (H)', 4], ['W', 'Salah', 'LIV', 'BOU (A)', 4], ['ST', 'Wood', 'NFO', 'BRE (H)', 2]];
+    const oppXI = OPP.map(([pos, name, club, o, d]) => { const f = fixture(o, d); return { pos, name, club, opp: o, label: name + ': ' + f.oppLabel, bg: LINE[POS_LINE[pos]][0], ink: LINE[POS_LINE[pos]][1], dbg: f.diffBg, dink: f.diffInk }; });
+    const RES = [['S5', 'Kerkez', 'LIV', 'BOU (A)', ['FB'], 4, 3, '#a1a5ab', '#ffffff'], ['S6', 'Andersen', 'FUL', 'ARS (A)', ['CB'], 5, 3, '#ffffff', '#ffffff'], ['S7', 'Tonali', 'NEW', 'MUN (H)', ['CDM', 'CM'], 4, 4, '#ffffff', '#ffffff'], ['S8', 'Kudus', 'TOT', 'HUL (H)', ['W'], 1, 3, '#ffffff', '#ffffff'], ['S9', 'João Pedro', 'CHE', 'LEE (A)', ['ST'], 2, 4, '#ffffff', '#a1a5ab']];
+    const reserves = RES.map(([order, name, club, o, positions, d, stars, upInk, downInk]) => Object.assign(cm(name), { best: BEST[name], order, name, club, chips: chipsOf(positions), stars, starList: starList(stars), upInk, downInk }, fixture(o, d)));
+    const GW8 = [1, 0.5, 1.5, 0, 0.5, 1, -0.5, -1.5, 1, 0.5, 2.5];
+    const roleGW = starters.map((p, i) => ({ name: p.name, role: p.role, code: p.code, bg: p.lineBg, ink: p.lineInk, pts: GW8[i] === 0 ? '0' : sign(GW8[i]) }));
+    const LS = { Kerkez: [2, 24], Andersen: [1, 18], Tonali: [5, 31], Kudus: [3, 27], 'João Pedro': [6, 35] };
+    const bench9 = bench.concat(reserves.map((r) => Object.assign(r, { last: LS[r.name][0], season: LS[r.name][1], selected: 'false', rowBg: 'transparent', rowEdge: 'none' })));
+    bench9.forEach((b) => { b.chips = b.chips.slice(0, 1); });
+    const pp = isC ? { name: 'Caicedo', where: 'CHE, CDM left', slot: 'CDM', status: 'Booked 4', news: 'One booking from a ban', chipBg: '#f2c200', chipInk: '#111214', chipEdge: '#f2c200', chips: chipsOf(['CDM', 'CM']), last: 7, season: 44, tt: true } : { name: 'Saka', where: 'ARS, W right', slot: 'W', status: 'Doubt', news: 'Knock, 75% chance of playing', chipBg: '#2a1d10', chipInk: '#ff9b3d', chipEdge: '#ff9b3d', chips: chipsOf(['W']), last: 8, season: 55, tt: false };
+    return { pp, bench9, reserves, roleGW, t, tags, smp: tags ? 'smp' : '', smpPanel: tags ? 'smpd' : '', picked, pickedBench, notPicked: !picked, next3, last5, oppXI, oppForm: ['W', 'L', 'W', 'W', 'D'], menuRoles, runs, quickShapes, saved, starters, bench, lineKey, form: ['W', 'W', 'L', 'W', 'D'] };
+  }
+}
+</script>
+</body>
+</html>

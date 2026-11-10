@@ -2,6 +2,7 @@
 // Convex fills it in live (liveSettings.ts); the preview and the tests hand the screen their own.
 
 import type { Id } from "../../convex/_generated/dataModel";
+import type { ScoringStartView } from "../../convex/gameweeks/scoringStart";
 import type { LeagueSettings } from "../../convex/rules/leagueSettingsPart";
 import type { Revision, RulesView } from "../rules/rulesEdits";
 import type { Change } from "../shared/refusal";
@@ -10,8 +11,8 @@ import type { ClaimsSeam } from "../myTeam/claims/seam";
 export type SettingsView = RulesView<LeagueSettings>;
 
 export type LeagueSettingsSeam = {
-  /** Live (a hook): undefined while it loads, null for a league made before leagues held rules. */
-  useSettings(leagueId: Id<"leagues">): SettingsView | null | undefined;
+  /** Live (a hook): undefined while it loads. */
+  useSettings(leagueId: Id<"leagues">): SettingsView | undefined;
   /** Saves the settings, edited from the rules `revision` names: resolves with the gameweek they
    *  take effect from, or the words saying why not. It never rejects. */
   save(leagueId: Id<"leagues">, settings: LeagueSettings, revision: Revision): Promise<number | string>;
@@ -23,6 +24,11 @@ export type LeagueSettingsSeam = {
   /** Draws the draft order at random from the league's teams now and saves it: resolves with null
    *  once saved, or the words saying why not. It never rejects. */
   drawTeamOrder(leagueId: Id<"leagues">): Change;
+  /** Live (a hook): the league's scoring start and its ticked gameweeks; undefined while it loads. */
+  useScoringStart(leagueId: Id<"leagues">): ScoringStartView | undefined;
+  /** Sets the gameweek scoring starts in: resolves with null once saved, or the words saying why
+   *  not. It never rejects. */
+  setScoringStart(leagueId: Id<"leagues">, gameweek: number): Change;
   /** The waiver order and the runs, as My team's Transactions tab reads them (#1200). */
   useWaivers: ClaimsSeam["useWaivers"];
 };

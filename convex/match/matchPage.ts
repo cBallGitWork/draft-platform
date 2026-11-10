@@ -6,6 +6,7 @@ import { heldTeamSheetsOf } from "../football/matchTeamSheets";
 import { heldTeamStatsOf } from "../football/matchTeamStats";
 import { scoreOf, scoreOnly } from "../football/matchScores";
 import { commentary, type MatchupCommentary } from "../matchup/matchupShape";
+import { vidiprinterTeam } from "../matchup/instructionLines";
 import { shownLine, vidiprinter, type VidiprinterPlayer } from "../matchup/vidiprinter";
 import { positionsNow } from "../positions/playerPositions";
 import { seasonRules } from "../rules/rulesHistory";
@@ -166,8 +167,6 @@ async function pricedOrProblem(
  *  scores in his old team's lineup, and his points are his slot's in whichever lineup holds him. */
 async function priced(ctx: QueryCtx, league: Doc<"leagues">, fixture: Doc<"fixtures">, { gameweek, teams, lineups }: DeadlineLineups, named: readonly NamedMan[]): Promise<Priced> {
   const season = await seasonRules(ctx, league._id);
-  // A league made before rules were held has no scoring (#25).
-  if (season === null) return unpriced(null);
   const reads = await leagueReads(ctx, league, season);
   const teamIds = teams.map((team) => team._id);
   const inThisMatch = new Set(named.map(({ playerCode }) => playerCode));
@@ -182,7 +181,7 @@ async function priced(ctx: QueryCtx, league: Doc<"leagues">, fixture: Doc<"fixtu
       if (inMatch === null) continue;
       result.slots.set(slot.playerCode, { points: inMatch.points, counts: slot.counts });
       const { name } = await heldPlayer(ctx, fixture.code, slot.playerCode);
-      result.players.set(slot.playerCode, { name, cell: slot.cell, role: slot.role, inLineup: true, inMatch: inMatchOf(slot, scored.matchesOf.get(slot.playerCode) ?? []) });
+      result.players.set(slot.playerCode, { name, cell: slot.cell, role: slot.role, inLineup: true, inMatch: inMatchOf(slot, scored.matchesOf.get(slot.playerCode) ?? []), team: vidiprinterTeam(scored) });
     }
   }
   return result;
@@ -209,7 +208,7 @@ async function menOf(
       const positions = await positionsOfNow(playerCode);
       const owned = owners.has(playerCode);
       const unownedMan = owned ? null : unownedPoints(playerCode, positions);
-      if (unownedMan?.lines) unowned.set(playerCode, { name: player.name, role: undefined, inLineup: false, ...unownedMan.lines });
+      if (unownedMan?.lines) unowned.set(playerCode, { name: player.name, role: undefined, inLineup: false, team: undefined, ...unownedMan.lines });
       const slot = unownedMan === null ? slots.get(playerCode) : { points: unownedMan.points, counts: false };
       return {
         playerCode,

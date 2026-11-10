@@ -8,6 +8,7 @@ import type { leagueEvent, siteScoringKind } from "../schema";
 import { overrideLetterWords } from "./overrideLetterWords";
 import { claimedBody, onWaiversWords, pickedUpBody } from "./waiverLetterWords";
 import type { TellMoment } from "./letterMoments";
+import type { Words } from "./letterShape";
 
 // What the letters Mail files about a league's events say (spec/15: nothing changes quietly), in
 // one place for Craig to change. Each names who did it: an email, or `adminByline`.
@@ -16,7 +17,6 @@ export const adminByline = "The admin";
 
 type LeagueEvent = Infer<typeof leagueEvent>;
 type SiteScoringKind = Infer<typeof siteScoringKind>;
-type Words = { subject: string; body: string };
 
 const handOn = "The team stays, for the commissioner to hand to someone new.";
 const inPlaceOf = (replaced: string | null) => (replaced === null ? "" : ` in place of ${replaced}`);

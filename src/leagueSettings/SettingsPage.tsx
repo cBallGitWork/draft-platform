@@ -2,7 +2,7 @@ import type { LeagueSummary } from "../../convex/leagues/myLeagues";
 import { AREAS, type Area } from "../../convex/lineup/pitch";
 import type { LeagueSettings } from "../../convex/rules/leagueSettingsPart";
 import { ODD_TEAM_OUTS } from "../../convex/table/roundRobin";
-import { Loading, PANEL_BODY, PageSection, Panel, PanelNote } from "../ui/Panel";
+import { Loading, PANEL_BODY, PageSection, Panel } from "../ui/Panel";
 import { LeagueHeading } from "../leagues/LeagueLinks";
 import { Choice } from "../ui/Choice";
 import { useRulesEdits } from "../rules/rulesEdits";
@@ -12,6 +12,7 @@ import { TickBox } from "../ui/TickBox";
 import { AREA_WORDS } from "../shared/words";
 import { DraftPanel } from "./DraftPanel";
 import { NumberRow } from "./NumberRow";
+import { ScoringStartRow } from "./ScoringStartRow";
 import type { LeagueSettingsSeam, SettingsView } from "./seam";
 import { TeamOrderPanel } from "./TeamOrderPanel";
 import { TradesPanel } from "./TradesPanel";
@@ -37,7 +38,6 @@ import {
   gamesHint,
   gamesLabel,
   loadingWords,
-  noRulesWords,
   noSquadSizeWords,
   oddTeamOutLabel,
   oddTeamOutWords,
@@ -72,8 +72,6 @@ export function SettingsPage({ league, seam }: { league: LeagueSummary; seam: Le
       </PageSection>
       {view === undefined ? (
         <Loading>{loadingWords}</Loading>
-      ) : view === null ? (
-        <PanelNote>{noRulesWords}</PanelNote>
       ) : (
         <Editor league={league} seam={seam} view={view} />
       )}
@@ -92,6 +90,7 @@ function Editor({ league, seam, view }: { league: LeagueSummary; seam: LeagueSet
       <BoxRefusalContext value={rulesEdits.boxRefusal}>
         <Panel title={fixturesTitle}>
           <div className={PANEL_BODY}>
+            <ScoringStartRow leagueId={league.leagueId} seam={seam} />
             <Choice
               label={oddTeamOutLabel}
               name={ODD_TEAM_OUT_CHOICE}

@@ -17,9 +17,8 @@ export type OverriddenTeam = { gameweek: number; teamId: Id<"teams"> };
 export type TeamOverride = OverriddenTeam & { points: number; reason: string };
 
 export type MatchupSeam = {
-  /** The matchup at the minute `now`, live (a hook): undefined while it loads, null for a league
-   *  made before rules were held. */
-  useMatchup(leagueId: Id<"leagues">, now: number, asked: MatchupAsked): Matchup | null | undefined;
+  /** The matchup at the minute `now`, live (a hook): undefined while it loads. */
+  useMatchup(leagueId: Id<"leagues">, now: number, asked: MatchupAsked): Matchup | undefined;
   /** Setting a team's total for a gameweek (a hook; spec/14 S14.3, S14.6). */
   useOverrideTeam(): (leagueId: Id<"leagues">, override: TeamOverride) => Change;
   /** Removing it, so the team scores its worked-out total again (a hook; S14.5). */

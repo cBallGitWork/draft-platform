@@ -10,6 +10,7 @@ import { inMatchOf, scoredByMatch } from "../gameweekScorer/teamGameweek";
 import { inTenths } from "../scoring/values";
 import { signedWords } from "../shared/numberWords";
 import { thresholdStepsOf } from "../stats/thresholdSteps";
+import { vidiprinterTeam } from "./instructionLines";
 import { shownLine, vidiprinter, type PricedLine, type VidiprinterLine, type VidiprinterMatch, type VidiprinterPlayer } from "./vidiprinter";
 
 // The commentary of the matches some teams' men play in, read and priced for them (vidiprinter.ts):
@@ -68,7 +69,7 @@ export async function readCommentary(
       if (countingOnly && !slot.counts) continue;
       const his = scored.matchesOf.get(slot.playerCode) ?? [];
       for (const match of his) if (fixtureCodes === undefined || fixtureCodes.has(match.fixture.code)) matches.set(match.fixture.code, match);
-      players.set(slot.playerCode, { name: await reads.name(slot.playerCode), cell: slot.cell, role: slot.role, inLineup: true, inMatch: inMatchOf(slot, his) });
+      players.set(slot.playerCode, { name: await reads.name(slot.playerCode), cell: slot.cell, role: slot.role, inLineup: true, inMatch: inMatchOf(slot, his), team: vidiprinterTeam(scored) });
       if (slot.counts) counts.set(slot.playerCode, new Set(scoredByMatch(slot, his).flatMap(({ match, counted }) => (counted ? [match.fixture.code] : []))));
     }
   }

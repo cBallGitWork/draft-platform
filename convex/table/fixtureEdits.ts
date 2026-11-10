@@ -22,7 +22,6 @@ type Game = Fixture<TeamId>;
 
 /** Why an edit was refused, as the commissioner is told it. */
 export const fixtureEditRefusals = {
-  noRules: "This league was made before leagues had rules, so it has no fixtures to edit.",
   notHeadToHead: (gameweek: number) => `Gameweek ${gameweek} has no head-to-head fixtures to edit.`,
   begun: (gameweek: number) => `Gameweek ${gameweek} has begun: its fixtures are fixed.`,
   noGame: (gameweek: number) => `That game isn't in gameweek ${gameweek}.`,
@@ -77,7 +76,7 @@ export const swap = mutation({
   returns: v.null(),
   handler: async (ctx, { leagueId, gameweek, one, other }) => {
     const { email: by, league } = await runnerOf(ctx, leagueId);
-    const season = (await seasonRules(ctx, leagueId)) ?? refuse(fixtureEditRefusals.noRules);
+    const season = await seasonRules(ctx, leagueId);
     const now = Date.now();
     if (isLocked(deadlineOf(await leagueDeadlines(ctx, leagueId))(gameweek), now)) refuse(fixtureEditRefusals.begun(gameweek));
     const drawn = await drawnGameweek(ctx, league, season, gameweek);

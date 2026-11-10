@@ -58,12 +58,13 @@ export function leagueClaims(ctx: QueryCtx, leagueId: Id<"leagues">): Promise<Do
   );
 }
 
+/** The log line for a claim naming a player the football sync doesn't hold. */
+const unheldClaimWords = (playerCode: number) => `A waiver claim names player ${playerCode}, whom the football sync doesn't hold`;
+
 /** The name of a player a claim names, to claim or to drop: one is put in only for players the
  *  football sync holds, and it never deletes one. */
 export async function claimedName(ctx: QueryCtx, playerCode: number): Promise<string> {
-  const player = await playerByCode(ctx, playerCode);
-  if (player === null) throw new Error(`A waiver claim names player ${playerCode}, whom the football sync doesn't hold`);
-  return player.name;
+  return (await heldPlayerByCode(ctx, playerCode, unheldClaimWords(playerCode))).name;
 }
 
 /** The manager claims a player on waivers, last of his claims, naming who he drops if it succeeds,
@@ -197,9 +198,9 @@ export const pending = query({
     const codes = [...new Set(claims.flatMap(({ claim }) => (claim.dropCode === null ? [claim.playerCode] : [claim.playerCode, claim.dropCode])))];
     const positionsOf = await positionsNow(ctx, leagueId);
     const seasonPointsOf = await seasonPointsIn(ctx, leagueId, codes);
-    const runs = (await latestRules(ctx, leagueId))?.waivers.runs ?? [];
+    const runs = (await latestRules(ctx, leagueId)).waivers.runs;
     const described = async (playerCode: number) => {
-      const player = await heldPlayerByCode(ctx, playerCode, `A waiver claim names player ${playerCode}, whom the football sync doesn't hold`);
+      const player = await heldPlayerByCode(ctx, playerCode, unheldClaimWords(playerCode));
       const positions = await positionsOf(playerCode);
       return { playerCode, playerName: player.name, positions, club: clubOf(await clubByCode(ctx, player.clubCode)), seasonPoints: seasonPointsOf(playerCode, positions) };
     };

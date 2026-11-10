@@ -54,3 +54,16 @@ The same seven run on the live site and on development:
 - the positions sync, daily at 06:00 UK time, with the same late warning and failure email as
   the others (`spec/06`; Craig, 5 Nov 2026, #1194);
 - clearing old run logs, daily.
+
+## Moving to Sportmonks
+
+Sportmonks replaces FPL's and the Premier League's feeds (Craig, 9 Nov 2026, on #1196: "stop with
+fpl and prem, thats not scalable").
+
+- The 14-day paid trial starts only after #1391 has read a live Scottish match, on a Friday after
+  the international break, so two weekends fall inside it. `S20.3`
+- During the trial, the Premier League runs on Sportmonks beside FPL for one gameweek, with every
+  player's points compared, before the switch. `S20.4`
+- The FPL and Premier League code is removed only after that comparison and the switch. `S20.5`
+- The terms check (#79) checks that Sportmonks' licence allows a public fantasy game, in place of
+  FPL's and the Premier League's terms. `S20.6`

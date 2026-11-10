@@ -1,12 +1,11 @@
-import { v } from "convex/values";
+import { v, type Infer } from "convex/values";
 import type { Doc } from "../_generated/dataModel";
-import { mutation, type MutationCtx } from "../_generated/server";
-import { latestRules } from "../rules/rulesHistory";
+import { mutation, query, type MutationCtx } from "../_generated/server";
 import { refuse, runnerOf } from "../shared/leagueAccess";
 import { isLocked, type DeadlineOf } from "./deadline";
 import { deadlineOf, leagueDeadlines } from "./leagueDeadlines";
 import { nextByDeadlines } from "./nextGameweek";
-import { isGameweek, isGameweekUsed, noSuchGameweek, usedGameweeksOf } from "./usedGameweeks";
+import { isGameweek, isGameweekUsed, noSuchGameweek, shownDeadline, usedGameweeksOf } from "./usedGameweeks";
 
 // The league's scoring start (spec/04, After the draft; #1097): "scoring starts in gameweek N", set
 // by the commissioner, defaulting to the next gameweek after the draft ends; squads and lineups
@@ -24,7 +23,6 @@ export const scoringStartRefusals = {
   unticked: (gameweek: number) => `Gameweek ${gameweek} isn't one the league plays, so scoring can't start in it. Tick it first.`,
   begun: (gameweek: number) => `Gameweek ${gameweek} has begun, so scoring can't start in it.`,
   fixed: (gameweek: number) => `Scoring started in gameweek ${gameweek}, whose deadline has passed, so it can't move.`,
-  noRules: "This league has no rules yet, so it has no deadline, and its scoring start can't be set. It was made before leagues held their rules.",
   noDeadline: (gameweek: number) =>
     `The app doesn't have a kickoff time for gameweek ${gameweek} yet, so it can't tell whether it has begun. Try again once the season's matches have arrived.`,
 } as const;
@@ -32,6 +30,30 @@ export const scoringStartRefusals = {
 /** Whether the league's scoring start has passed its deadline, so it's fixed. */
 const isFixed = (league: Doc<"leagues">, deadlineIn: DeadlineOf, now: number) =>
   league.scoringStart !== undefined && isLocked(deadlineIn(league.scoringStart), now);
+
+const scoringStartView = v.object({
+  /** The gameweek scoring starts in, or null for none set: every ticked gameweek scores. */
+  start: v.union(v.number(), v.null()),
+  /** The league's ticked gameweeks, each with its deadline (null while its kickoff isn't known). */
+  ticked: v.array(v.object({ gameweek: v.number(), deadline: shownDeadline })),
+});
+export type ScoringStartView = Infer<typeof scoringStartView>;
+
+/** The league's scoring start and the ticked gameweeks it can be set to, for League settings
+ *  (#1190). Which have begun is for the screen to work out from their deadlines: a query doesn't
+ *  read the clock. */
+export const ofLeague = query({
+  args: { leagueId: v.id("leagues") },
+  returns: scoringStartView,
+  handler: async (ctx, { leagueId }) => {
+    const { league } = await runnerOf(ctx, leagueId);
+    const deadlineIn = deadlineOf(await leagueDeadlines(ctx, leagueId));
+    return {
+      start: league.scoringStart ?? null,
+      ticked: usedGameweeksOf(league).map((gameweek) => ({ gameweek, deadline: deadlineIn(gameweek) })),
+    };
+  },
+});
 
 /** Sets the gameweek the league's scoring starts in: a ticked one not begun, while the start
  *  already set hasn't passed its deadline. */
@@ -41,7 +63,6 @@ export const setScoringStart = mutation({
   handler: async (ctx, { leagueId, gameweek }) => {
     const { league } = await runnerOf(ctx, leagueId);
     if (!isGameweek(gameweek)) refuse(scoringStartRefusals.notAGameweek(gameweek));
-    if ((await latestRules(ctx, leagueId)) === null) refuse(scoringStartRefusals.noRules);
     const deadlineIn = deadlineOf(await leagueDeadlines(ctx, leagueId));
     const now = Date.now();
     if (isFixed(league, deadlineIn, now)) refuse(scoringStartRefusals.fixed(league.scoringStart!));

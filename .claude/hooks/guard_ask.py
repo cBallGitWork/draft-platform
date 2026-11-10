@@ -8,7 +8,11 @@ when its words match the kind's topic and also ask leave ("shall I", "OK to"). A
 truly is his (a product rule no spec file settles, a look call the picture doesn't settle, a
 one-way door once real leagues exist) gets through, since it asks what should happen, not whether
 Claude may. An unreadable payload is reported on stderr and the question goes ahead: blocking
-would stop every question to Craig. Stdlib only, Python 3.9+.
+would stop every question to Craig. A question counts as asked only once Craig answered it: the
+PostToolUse run records each answered question, and the PreToolUse run refuses one recorded within
+ASK_ONCE_DAYS. A refused call, or one Craig met with a message instead of answers, records nothing
+(9 Nov 2026: such questions were logged at PreToolUse and could never be asked again). Stdlib only,
+Python 3.9+.
 """
 
 from __future__ import annotations
@@ -28,7 +32,9 @@ ASK_TOOL = "AskUserQuestion"
 WRAP_UP_TOOL = "mcp__ccd_turn__wrap_up"
 WRAP_UP_ASK = "ask"
 MOST_PER_BATCH = 5  # questions in one AskUserQuestion: Craig answers one short batch, not a quiz
-ASKED_DIR = Path(tempfile.gettempdir()) / "draft-asked"  # each question asked, by its hash, across sessions
+ASKED_DIR = Path(tempfile.gettempdir()) / "draft-asked"  # each question Craig answered, by its hash, across sessions
+ANSWERED_EVENT = "PostToolUse"
+ANSWERS = "answers"  # AskUserQuestion's result, {questions, answers}: each question's words with Craig's answer
 ASK_ONCE_DAYS = 7  # a question asked within this many days isn't asked again (#1150 was asked four times)
 
 # words that ask Craig's leave rather than his view
@@ -92,23 +98,47 @@ def normal(text):
     return " ".join(re.sub(r"[^a-z0-9 ]", " ", text.lower()).split())
 
 
-def asked_before(text, call):
-    """True if this question (its words, not its header) was asked within ASK_ONCE_DAYS by another call;
-    records it otherwise. The mark holds the asking call's tool_use_id, since Claude Code can run a
-    call's PreToolUse hooks twice: on 6 Nov 2026 the second run found the first run's marks and refused
-    a question never asked before. With no id, every run is its own call."""
-    mark = ASKED_DIR / hashlib.sha256(normal(text).encode()).hexdigest()[:24]
+def ask_texts(tool_input):
+    """Each AskUserQuestion question's own words, without its header: what a repeat is judged on."""
+    texts = (str(item.get("question") or "").strip() for item in field(tool_input, "questions", list, [])
+             if isinstance(item, dict))
+    return [t for t in texts if t]
+
+
+def mark_of(text):
+    return ASKED_DIR / hashlib.sha256(normal(text).encode()).hexdigest()[:24]
+
+
+def asked_before(text):
+    """True if Craig answered this question within ASK_ONCE_DAYS. Only reads, so a call's PreToolUse hooks
+    running twice (6 Nov 2026) can't make a question a repeat of itself."""
     try:
-        if time.time() - mark.stat().st_mtime < ASK_ONCE_DAYS * 86400:
-            return not call or mark.read_text(encoding="utf-8") != call
+        return time.time() - mark_of(text).stat().st_mtime < ASK_ONCE_DAYS * 86400
     except OSError:
-        pass
-    try:
-        ASKED_DIR.mkdir(exist_ok=True)
-        mark.write_text(call, encoding="utf-8")
-    except OSError:
-        pass
-    return False
+        return False
+
+
+def record_answered(payload):
+    """On PostToolUse: records each question the result holds an answer for. Nothing else counts as asked."""
+    if field(payload, "tool_name", str, "") != ASK_TOOL:
+        return
+    response = payload.get("tool_response")
+    if not isinstance(response, dict):
+        return  # Craig met the questions with a message instead of answers: nothing was answered
+    answers = response.get(ANSWERS)
+    if not isinstance(answers, dict):
+        print(f"guard_ask.py: AskUserQuestion's result has no {ANSWERS} dict (keys: {sorted(response)}), "
+              "so no question was recorded as asked.", file=sys.stderr)
+        return
+    answered = {normal(str(q)) for q, a in answers.items() if str(a or "").strip()}
+    for text in ask_texts(field(payload, "tool_input", dict, {})):
+        if normal(text) in answered:
+            try:
+                ASKED_DIR.mkdir(exist_ok=True)
+                mark_of(text).write_text(text, encoding="utf-8")
+            except OSError as error:
+                print(f"guard_ask.py: couldn't record an answered question ({error}), so it can be asked again.",
+                      file=sys.stderr)
 
 
 def decide(payload):
@@ -124,8 +154,7 @@ def decide(payload):
         if kind:
             found.append(Settled(text, kind))
     if not found and tool == ASK_TOOL:
-        call = field(payload, "tool_use_id", str, "")
-        repeats = [t for t in asked if asked_before(t.split(" ", 1)[-1] if " " in t else t, call)]
+        repeats = [t for t in ask_texts(field(payload, "tool_input", dict, {})) if asked_before(t)]
         if repeats:
             return (f"Already asked in the last {ASK_ONCE_DAYS} days: \"{repeats[0][:120]}\". Read the answer on its "
                     "issue or the PM dashboard (file-answers-before-asking), and ask only what's new.")
@@ -140,7 +169,11 @@ def decide(payload):
 
 def main():
     try:
-        reason = decide(read_payload())
+        payload = read_payload()
+        if field(payload, "hook_event_name", str, "") == ANSWERED_EVENT:
+            record_answered(payload)
+            return 0
+        reason = decide(payload)
     except BadPayload as error:
         return report(error, "the question wasn't checked against Craig's standing answers")
     if reason:

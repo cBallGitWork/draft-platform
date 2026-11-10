@@ -8,9 +8,9 @@ import { describe, expect, it } from "vitest";
 import { DEFAULT_CLASSICS } from "../../../../convex/lineup/classics";
 import { sameCell } from "../../../../convex/lineup/pitch";
 import { applyWords, CLASSICS, classicTitleWords, inUseWords, WINDOW_TITLE } from "../../../../src/myTeam/tactics/formationWindow/words";
-import { allFormationsWords, customWords, instructionLabel, pitchTitle, roleLabel } from "../../../../src/myTeam/tactics/words";
+import { allFormationsWords, customWords, instructionLabel, pitchTitle } from "../../../../src/myTeam/tactics/words";
 import { league } from "../../../support/src/shell.harness";
-import { IN_A_442, openedPitch, pickFormation } from "../../../support/src/tacticsScreen.harness";
+import { IN_A_442, openedPitch, pickFormation, pickRole, roleShown } from "../../../support/src/tacticsScreen.harness";
 
 const keegans = DEFAULT_CLASSICS.find(({ name }) => name === "Keegan's Newcastle")!;
 
@@ -56,11 +56,11 @@ describe("a classic (spec/05; #991)", () => {
   it("becomes custom once a role changes, and picking it again resets every role", async () => {
     await openedPitch(IN_A_442);
     await pickClassic(keegans.name);
-    await userEvent.selectOptions(screen.getByRole("combobox", { name: roleLabel("Player 1") }), "commandingKeeper");
+    await pickRole("Player 1", "Commanding keeper");
     expect(pitchHeading(customWords(keegans.name))).toBeTruthy();
     await pickClassic(keegans.name);
     expect(pitchHeading(keegans.name)).toBeTruthy();
-    expect(screen.getByRole<HTMLSelectElement>("combobox", { name: roleLabel("Player 1") }).value).toBe("shotStopper");
+    expect(roleShown("Player 1")).toBe("Shot-stopper");
   });
 
   it("sets its two team instructions, saved with it, and becomes custom once one changes", async () => {

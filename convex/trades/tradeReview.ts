@@ -21,7 +21,7 @@ import { managerOf, memberOf, refuse, teamsOf } from "../shared/leagueAccess";
 import { placeOf, squadOf } from "../squads/squadPlace";
 import { limitsBroken } from "../squads/squads";
 import { newlyBroken } from "../waivers/waiverRun";
-import { closeOffersHolding, leagueOf, managersOf, tradedName, tradeWordsOf } from "./tradeClose";
+import { closeOffersHolding, endOffer, leagueOf, managersOf, tradedName, tradeWordsOf } from "./tradeClose";
 import { REVIEW_MS } from "./tradeLimits";
 import { movePicks } from "./tradePicks";
 import { onAutoTeam } from "./tradeShut";
@@ -61,7 +61,7 @@ async function squadsAfter(ctx: QueryCtx, offer: Pick<Doc<"tradeOffers">, "fromT
  *  newly or further, which warn but don't stop it (spec/08, as an assignment's, spec/15). Refused
  *  past the platform's most in a squad. */
 export async function tradeWarnings(ctx: QueryCtx, leagueId: Id<"leagues">, offer: Parameters<typeof squadsAfter>[1]) {
-  const squad = (await latestRules(ctx, leagueId))?.squad ?? null;
+  const squad = (await latestRules(ctx, leagueId)).squad;
   return Promise.all(
     (await squadsAfter(ctx, offer)).map(async ({ teamId, codes }) => {
       if (codes.length > MOST_IN_SQUAD) refuse(reviewRefusals.squadFull);
@@ -85,7 +85,7 @@ async function votersOn(ctx: QueryCtx, offer: Doc<"tradeOffers">): Promise<strin
  *  co-commissioner is in it too). */
 export async function reviewerOf(ctx: QueryCtx, league: Doc<"leagues">, offer: Doc<"tradeOffers">): Promise<ReviewWords | null> {
   const rules = await latestRules(ctx, league._id);
-  const review = rules === null ? "none" : tradeRulesOf(rules).review;
+  const { review } = tradeRulesOf(rules);
   if (review !== "veto") return review === "vote" ? { kind: "vote" } : null;
   const inIt = new Set(await managersOf(ctx, offer));
   const by = [league.commissionerEmail, league.coCommissionerEmail].find((email) => email !== undefined && !inIt.has(email));
@@ -138,7 +138,7 @@ async function cantMake(ctx: QueryCtx, offer: Doc<"tradeOffers">, watched: boole
 
 /** Closes the trade unmade, telling both managers why. */
 async function failTrade(ctx: MutationCtx, offer: Doc<"tradeOffers">, words: TradeWords, failed: TradeFailed): Promise<void> {
-  await ctx.db.delete("tradeOffers", offer._id);
+  await endOffer(ctx, offer, "failed");
   await fileLetter(ctx, await leagueOf(ctx, offer.leagueId), await managersOf(ctx, offer), tradeFailedLetter(words, failed));
 }
 
@@ -196,7 +196,7 @@ async function blockTrade(ctx: MutationCtx, offer: Doc<"tradeOffers">, review: R
   const league = await leagueOf(ctx, offer.leagueId);
   const words = await tradeWordsOf(ctx, offer);
   if (offer.review !== undefined) await ctx.scheduler.cancel(offer.review.scheduledId);
-  await ctx.db.delete("tradeOffers", offer._id);
+  await endOffer(ctx, offer, "blocked");
   await fileLetter(ctx, league, await wholeLeague(ctx, league), tradeBlockedLetter(words, review), by);
 }
 
@@ -261,8 +261,11 @@ export const makeAtReviewEnd = internalMutation({
  *  throw rolled its writes back, so nobody has moved. */
 async function closeUnmade(ctx: MutationCtx, offer: Doc<"tradeOffers">, error: unknown): Promise<void> {
   console.error(`Trade offer ${offer._id} couldn't be made at its review's end, so it closed:`, error);
-  const words = await tradeWordsOf(ctx, offer).catch(() => null);
-  if (words === null) await ctx.db.delete("tradeOffers", offer._id);
+  const words = await tradeWordsOf(ctx, offer).catch((wordsError: unknown) => {
+    console.error(`Trade offer ${offer._id}'s words couldn't be read, so it closed with no letters:`, wordsError);
+    return null;
+  });
+  if (words === null) await endOffer(ctx, offer, "failed");
   else await failTrade(ctx, offer, words, { why: "error" });
 }
 

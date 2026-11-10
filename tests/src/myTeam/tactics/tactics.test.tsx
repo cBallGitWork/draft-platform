@@ -20,7 +20,6 @@ import {
   selectionTableLabel,
   startingWords,
   tacticsLoadingWords,
-  tacticsNoRulesWords,
 } from "../../../../src/myTeam/tactics/words";
 import { deadlineHead, noDeadlineWords } from "../../../../src/myTeam/header/words";
 import { whenWords } from "../../../../src/shared/words";
@@ -58,7 +57,6 @@ describe("reaching it", () => {
   });
 
   it.each([
-    ["a league made before rules", { kind: "noRules" } as const, tacticsNoRulesWords],
     ["a season whose every gameweek has begun", { kind: "seasonOver" } as const, seasonOverWords],
   ])("says why there's no lineup to set, for %s", async (_, tactics, words) => {
     openTacticsTab({ tactics });
@@ -138,12 +136,12 @@ describe("the lineup held", () => {
     openTacticsTab();
     await screen.findByRole("table", { name: selectionTableLabel });
     expect(squadRows()).toEqual([
-      // Each starter's slot chip, then role picker, name, club, role fit ("—": no stars held here)
+      // Each starter's slot chip, then his Role ▾, name, club, role fit ("—": no stars held here)
       // and next fixture (none held here, so empty).
-      "GKShot-stopperSweeper keeperDistributorCommanding keeperRayaARS—",
-      "CBStopperBall-playing centre-backNo-nonsense centre-backAttacking centre-backSalibaARS—",
-      "CMBox-to-boxBall-winnerAttacking 8EngineLate runnerRiceARS—",
-      "STPoacherTarget manIn-behind strikerPressing forwardShadow strikerFalse 9HavertzARS—",
+      "GKShot-stopper▾RayaARS—",
+      "CBStopper▾SalibaARS—",
+      "CMBox-to-box▾RiceARS—",
+      "STPoacher▾HavertzARS—",
       // Each bench player's place and main position, his best role there, and his stars for it.
       BENCH_TITLE, "S1GKShot-stopperArrizabalagaARS—", "S2FBOverlapping full-backWhiteARS—"]);
   });

@@ -1,9 +1,10 @@
 // Trades' tests' fake seam (shell.harness.tsx hands it to the app): the manager's Team 1, Team 2
-// to trade with, nothing offered unless a test says.
+// to trade with, nothing offered or closed unless a test says.
 
 import { vi } from "vitest";
 import type { Id } from "../../../convex/_generated/dataModel";
 import type {
+  ClosedOffer,
   ScreenOffer,
   ScreenTeam,
   TradedPlayer,
@@ -87,7 +88,23 @@ export const quietTrades: TradesView = {
     screenTeam(THEIR_TEAM, "Team 2", [PALMER, JAMES]),
   ],
   offers: [],
+  closed: [],
 };
+
+/** Team 2's offer to Team 1, Palmer for Saka, which Team 1 rejected, unless `rest` says. */
+export const closedOffer = (rest: Partial<ClosedOffer> = {}): ClosedOffer => ({
+  closedId: "closed-1" as Id<"closedTradeOffers">,
+  fromTeamId: THEIR_TEAM,
+  fromTeamName: "Team 2",
+  toTeamId: MY_TEAM,
+  toTeamName: "Team 1",
+  gives: [PALMER],
+  gets: [SAKA],
+  picks: null,
+  closedAt: Date.parse("2026-11-01T12:00:00Z"),
+  why: "rejected",
+  ...rest,
+});
 
 /** What the fake server holds: the Trades view, or nothing yet while it loads; and the refusal each
  *  change answers with (null: made). */

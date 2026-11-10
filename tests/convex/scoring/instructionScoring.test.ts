@@ -72,15 +72,27 @@ describe("an instruction's line", () => {
     expect(scored.total).toBe(scoreMatch(record, SET, MIDFIELD).total! + 3);
   });
 
-  test("an instruction the set doesn't score gives no line: Keep it tight early waits for the half-time score", () => {
-    expect(scoreMatch({ minutes: 90 }, SET, MIDFIELD, undefined, picks("keepItTightEarly")).instructions).toBeUndefined();
+  test("an instruction the set doesn't score gives no line", () => {
+    const without = { ...SET, instructions: SET.instructions!.filter(({ instruction }) => instruction !== "getStuckIn") };
+    expect(scoreMatch({ minutes: 90, won_tackle: 5 }, without, MIDFIELD, undefined, picks("getStuckIn")).instructions).toBeUndefined();
   });
 
-  test("the first values score every instruction of the first set but Keep it tight early, and the set holding them is sound", () => {
+  test("Keep it tight early: +1 for his club's clean sheet at half-time, −1 a goal let in before it, for any slot", () => {
+    const tight = (record: Record<string, number>, cell: typeof MIDFIELD | typeof STRIKER | typeof KEEPER) =>
+      scoreMatch({ minutes: 90, ...record }, SET, cell, undefined, picks("keepItTightEarly")).instructions?.[0];
+    expect(tight({ clean_sheet_half_time: 1, goals_conceded_half_time: 0 }, STRIKER)).toEqual({
+      instruction: "keepItTightEarly",
+      points: 1,
+      lines: [{ points: 1, stats: [{ stat: "clean_sheet_half_time", actions: 1 }] }],
+    });
+    expect(tight({ clean_sheet_half_time: 0, goals_conceded_half_time: 2 }, KEEPER)?.points).toBe(-2);
+    // A bench man's record holds no half-time stats (plMatch.ts), so he scores nothing from it.
+    expect(tight({}, MIDFIELD)).toEqual({ instruction: "keepItTightEarly", points: 0, lines: [] });
+  });
+
+  test("the first values score every instruction of the first set, and the set holding them is sound", () => {
     expect(() => validateScoringSet(SET)).not.toThrow();
-    expect(FIRST_INSTRUCTION_SCORING.map(({ instruction }) => instruction)).toEqual(
-      FIRST_INSTRUCTIONS.map(({ key }) => key).filter((key) => key !== "keepItTightEarly"),
-    );
+    expect(FIRST_INSTRUCTION_SCORING.map(({ instruction }) => instruction)).toEqual(FIRST_INSTRUCTIONS.map(({ key }) => key));
   });
 });
 

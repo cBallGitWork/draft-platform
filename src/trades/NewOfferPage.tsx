@@ -30,7 +30,6 @@ import {
   squadAfterWords,
   squadCountWords,
   theirSquadWords,
-  THEIR_SQUAD_TITLE,
   toTeamWords,
   TRADES_TITLE,
   tradesLoadingWords,
@@ -38,7 +37,6 @@ import {
   youGiveWords,
   YOUR_COUNTER_TITLE,
   YOUR_OFFER_TITLE,
-  YOUR_SQUAD_TITLE,
   yourSquadWords,
 } from "./words";
 
@@ -178,7 +176,7 @@ function NewOffer({
       {view.shut !== null && <Notice>{shutWords[view.shut]}</Notice>}
       <div className="grid items-start gap-2 lg:grid-cols-new-offer">
         <Panel
-          title={YOUR_SQUAD_TITLE}
+          title={yourSquadWords}
           aside={
             <span className="text-soft">
               {squadCountWords(mine.players.length, view.squadMaximum)}
@@ -193,7 +191,7 @@ function NewOffer({
           />
         </Panel>
         <Panel
-          title={THEIR_SQUAD_TITLE}
+          title={theirSquadWords}
           aside={
             <PartnerPicker
               partners={partners}

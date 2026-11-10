@@ -9,6 +9,7 @@ import { deadlineOf, leagueDeadlines } from "../gameweeks/leagueDeadlines";
 import { thisGameweekOf } from "../gameweeks/nextGameweek";
 import { takeAllOrThrow } from "../shared/cappedRead";
 import { GAMEWEEK_MATCHES_MOST } from "../shared/fixtures";
+import { groupedBy } from "../shared/groupedBy";
 import { DAY_MS } from "../shared/time";
 import { LIVE_WINDOW_MS } from "../stats/liveStats";
 import { commentary, type MatchupCommentary } from "../matchup/matchupShape";
@@ -107,15 +108,13 @@ async function latestSquadMoves(ctx: QueryCtx, leagueId: Id<"leagues">): Promise
     });
 }
 
-/** League home's first slice, or null for a league made before rules were held (#25), which has no
- *  format to draw a table by. */
+/** League home's first slice. */
 export const ofLeague = query({
   args: { leagueId: v.id("leagues"), now: v.number() },
-  returns: v.union(leagueHome, v.null()),
+  returns: leagueHome,
   handler: async (ctx, { leagueId, now }) => {
     const { league, team } = await memberOf(ctx, leagueId);
     const season = await seasonRules(ctx, leagueId);
-    if (season === null) return null;
     const { rules, teamIds, schedule, results, scores, table, named } = await standingsOf(ctx, league, season);
     const current = thisGameweekOf(schedule, deadlineOf(await leagueDeadlines(ctx, leagueId)), now);
     const form = formOf(teamIds, schedule, scores);
@@ -163,11 +162,8 @@ async function matchdayOf(ctx: QueryCtx, league: Doc<"leagues">, season: SeasonR
     NEAR_MATCHES_MOST,
     `More than ${NEAR_MATCHES_MOST} matches kick off near ${now}, so league home's matchday would be cut short`,
   );
-  const byGameweek = new Map<number, Doc<"fixtures">[]>();
-  for (const fixture of near) {
-    if (fixture.droppedAt !== undefined || fixture.gameweek === null) continue;
-    byGameweek.set(fixture.gameweek, [...(byGameweek.get(fixture.gameweek) ?? []), fixture]);
-  }
+  const inPlay = near.filter((fixture): fixture is Doc<"fixtures"> & { gameweek: number } => fixture.droppedAt === undefined && fixture.gameweek !== null);
+  const byGameweek = groupedBy(inPlay, ({ gameweek }) => gameweek);
   for (const [gameweek, fixtures] of [...byGameweek].toSorted(([one], [other]) => one - other)) {
     const matches = await Promise.all(
       fixtures.map(async ({ code, kickoff }) => ({ fixtureCode: code, kickoff, fullTimeAt: (await statusOf(ctx, code))?.fullTimeAt ?? null })),
