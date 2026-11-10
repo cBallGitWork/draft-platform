@@ -33,6 +33,7 @@ import { rebuildIfNoneKept } from "../stats/seasonRebuilds";
 import { putNewPlayersOnWaivers } from "../waivers/waiverPlayers";
 import { heldGameweek, heldSeason } from "../gameweeks/seasonGameweeks";
 import { followKickoffs } from "../scoring/patchKickoffs";
+import { inKickoffOrder, placeInWindows } from "../gameweeks/roundStarts";
 
 // Issue #21: the real Premier League's clubs, players, fixtures and gameweeks, copied in from the
 // football layer, and each match's score (#49, matchScores.ts). crons.ts runs it on a schedule;
@@ -82,7 +83,8 @@ export const run = internalAction({
           // Between seasons FPL sends no fixtures: last season's are left as they are, none marked (#66).
           fixtures: football.betweenSeasons
             ? NO_WRITES
-            : await syncTable(ctx, "fixtures", internal.football.footballSync.upsertFixtures, football.fixtures, ranAt),
+            : // Earliest first: each round's first kickoff is in the first batch naming it (#1416).
+              await syncTable(ctx, "fixtures", internal.football.footballSync.upsertFixtures, inKickoffOrder(football.fixtures), ranAt),
           ...(football.betweenSeasons && { betweenSeasons: true as const }),
           scores: await writeScores(ctx, "fpl", ranAt, football.scores),
         };
@@ -122,9 +124,11 @@ export const upsertPlayers = internalMutation({
 export const upsertFixtures = internalMutation({
   args: { rows: v.array(fixtureRecord) },
   returns: upserted,
-  handler: async (ctx, { rows }): Promise<Upserted> => {
+  handler: async (ctx, { rows: sent }): Promise<Upserted> => {
     // In the same transaction as the kickoffs it may move (#150, deadlineRecorder.ts).
     await recordPassedDeadlines(ctx);
+    // Each match is held in the gameweek its kickoff falls in, never the feed's round (#1416).
+    const rows = await placeInWindows(ctx, sent, Date.now());
     const moved: WithoutSystemFields<Doc<"fixtures">>[] = [];
     const upserted = await upsertEach(ctx, "fixtures", rows, (row) => fixtureByCode(ctx, row.code), (held, row) => {
       if (held.gameweek !== row.gameweek || held.droppedAt !== undefined) moved.push(row);

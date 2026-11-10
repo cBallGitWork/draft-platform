@@ -31,6 +31,16 @@ export const gameweekTables = {
     firstKickoff: v.number(),
     recordedAt: v.number(),
   }).index("by_season_and_gameweek", ["season", "gameweek"]),
+  /** A feed's round's first kickoff as first seen (#1416): gameweek N is the date window from round
+   *  N's to round N+1's (spec/05 S05.22), so a later move never changes it. One row a season and
+   *  round, site-wide, written by gameweeks/roundStarts.ts before the sync writes the matches. */
+  roundStarts: defineTable({
+    /** The year the season starts, as shared/time.ts's `seasonStartYear`. */
+    season: v.number(),
+    round: v.number(),
+    firstKickoff: v.number(),
+    recordedAt: v.number(),
+  }).index("by_season_and_round", ["season", "round"]),
   /** The one deadline alarm pending, site-wide (#1329): at most one row, written only by
    *  deadlineRecorder.ts's `setDeadlineAlarm`, so it cancels or keeps the alarm by its id rather
    *  than scanning every scheduled function Convex keeps. */
