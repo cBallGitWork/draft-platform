@@ -1,143 +1,143 @@
 # Roles and team instructions: the first values
 
-Claude's first values for the roles and team instructions in `spec/05`, fitted on 5 Nov 2026 to
-the live feed's stats for 26/27 gameweeks 1 to 9. They are the site's scoring, which Craig edits
-by patch (`spec/14`); this page is the starting point, never the rule. The rules (whole points by
+Claude's first values for the roles and team instructions in `spec/05`. The roles were redrawn
+around Sportmonks' stats on 9 and 10 Nov 2026 (#1196); the team instructions were fitted on 5 Nov
+2026 to the live feed's stats for 26/27 gameweeks 1 to 9. They are the site's scoring, which Craig
+edits by patch (`spec/14`); this page is the starting point, never the rule. The rules (whole points by
 thresholds, the ±3 cap, each slot's target) are in `spec/05`.
 
 **Contents:** [How to read it](#how-to-read-it) · [Strikers](#strikers) · [Wingers (wide attacking midfield)](#wingers-wide-attacking-midfield) · [Attacking midfield, centre](#attacking-midfield-centre) · [Wide midfield](#wide-midfield) · [Keepers](#keepers) · [Central midfield](#central-midfield) · [Wing-backs](#wing-backs) · [Full-backs](#full-backs) · [Defensive midfield](#defensive-midfield) · [Centre-backs](#centre-backs) · [Team instructions](#team-instructions)
 
 ## How to read it
 
-- **Bonus**: the stat mix a role earns for, and its bars: "+1 at 4 · +2 at 5 · +3 at 6" means 4 of it
-  in a match earns +1, 5 earns +2, 6 or more +3.
-- **Cost**: the one bad action it loses for, with its bars, down to −3.
-- **Avg**: the role's average points a start over the slot's real starts, against the slot's target.
-- **Suits most / least**: players with 4 or more starts in the slot, by average a start.
+- **Bonus**: the plain mix of Sportmonks' stats the role is best at (`spec/05` S05.27). Its bars
+  are drawn when the mixes are built, as the first values were (S05.3), then the backtest refits
+  them (S05.10).
+- **Cost**: the one bad action it loses for, down to −3.
+- **Suits most**: Premier League starts in 2024/25 and 2025/26 from ai-carling's match log, ranked
+  by the bonus averaged per start, 10 or more starts in the slot; strikers are centre-forwards and
+  second strikers only. Examples, never the rule. A stat marked * isn't in that log, so the
+  examples are ranked without it; the role keeps it (S05.28).
+- The mixes replace the ones fitted on 5 Nov 2026 to the old feeds (Craig, 9 and 10 Nov 2026, on
+  #1196). Costs and mixes Craig didn't name one by one are Claude's draft, edited by patch.
 
 ## Strikers
 
 Target role bonus: +0.5 a start.
 
-| role | bonus | cost | avg | suits most | suits least |
-|---|---|---|---|---|---|
-| Poacher | 2 × goals in box + shots on target in box (+1 at 2 · +2 at 3 · +3 at 4) | big chances missed (−1 at 1 · −2 at 4 · −3 at 7) | +0.36 | Haaland Erling, Junqueira De Jesus Joao Pedro, Isak Alexander | Wissa Yoane, Garcia Gonzalo, Delap Liam |
-| Target man | aerials won + accurate flick-ons + accurate layoffs (+1 at 4 · +2 at 5 · +3 at 6) | aerials lost (−1 at 5 · −2 at 8 · −3 at 11) | +0.63 | Junqueira De Jesus Joao Pedro, Calvert-Lewin Dominic, Brobbey Brian | Santos Carneiro Da Cunha Matheus, Jackson Nicolas, Haaland Erling |
-| In-behind striker | 2 × counter-attack shots + progressive carries + open-play box entries + fouled in final third (+1 at 5 · +2 at 6 · +3 at 7) | offsides (−1 at 1 · −2 at 2 · −3 at 3) | +0.39 | Santos Carneiro Da Cunha Matheus, Junqueira De Jesus Joao Pedro, Wissa Yoane | Calvert-Lewin Dominic, Brobbey Brian, Isak Alexander |
-| Pressing forward | 2 × poss won att 3rd + poss won mid 3rd + tackles won (+1 at 2 · +2 at 3 · +3 at 4) | fouls (−1 at 1 · −2 at 4 · −3 at 7) | +0.63 | Kostoulas Charalampos, De Lima Barbosa Francisco Evanilson, Haaland Erling | Wissa Yoane, Havertz Kai, Garcia Gonzalo |
-| Shadow striker | successful final third entries + pen area entries + shots from outside the box (+1 at 1 · +2 at 2 · +3 at 3) | heavy touches + offsides (−1 at 3 · −2 at 4 · −3 at 5) | +0.48 | Santos Carneiro Da Cunha Matheus, Wissa Yoane, Mcburnie Oli | Strand Larsen Jørgen, Calvert-Lewin Dominic, Barry Thierno |
-| False 9 | through balls + shots created + progressive carries + big chances created (+1 at 3 · +2 at 4 · +3 at 5) | dispossessed (−1 at 1 · −2 at 2 · −3 at 3) | +0.47 | Wissa Yoane, Havertz Kai, Santos Carneiro Da Cunha Matheus | Barry Thierno, Isak Alexander, Strand Larsen Jørgen |
+| role | bonus | cost | suits most |
+|---|---|---|---|
+| Poacher | 2 × goals + shots on target | big chances missed | Haaland, Šeško, Isak |
+| Target man | aerials won | aerials lost | Arokodare, Muniz, Barry |
+| In-behind striker | dribbles won + fouls drawn | offsides | João Pedro, Delap, Cunha |
+| Pressing forward | tackles won + interceptions + recoveries | fouls | Merino, Cunha, Thiago |
+| False 9 | key passes + through balls* + dribbles won + accurate passes ÷ 10 | dispossessed | Cunha, Ekitiké, João Pedro |
 
 ## Wingers (wide attacking midfield)
 
 Target role bonus: +0.6 a start.
 
-| role | bonus | cost | avg | suits most | suits least |
-|---|---|---|---|---|---|
-| Touchline winger | accurate crosses (not corners) + take-ons won + chances created (+1 at 3 · +2 at 4 · +3 at 5) | dispossessed (−1 at 2 · −2 at 3 · −3 at 4) | +0.53 | Moreira De Oliveira Savio, George Tyrique, Rashford Marcus | Tavernier Marcus, Mcginn John, Schade Kevin |
-| Dribbler | take-ons won + progressive carries + fouled in final third (+1 at 6 · +2 at 7 · +3 at 8) | dispossessed (−1 at 1 · −2 at 5 · −3 at 9) | +0.64 | Saka Bukayo, Moreira De Oliveira Savio, Rashford Marcus | Maeda Daizen, Murphy Jacob, Mcginn John |
-| Inside forward | shots on target + shots in the box + 2 × goals (+1 at 3 · +2 at 4 · +3 at 5) | big chances missed (−1 at 1 · −2 at 2 · −3 at 3) | +0.48 | Schade Kevin, Tavernier Marcus, Mbeumo Bryan | Meunier Thomas, Johnson Brennan, Barcola Bradley |
-| Wide playmaker | shots created + through balls + final third passes (+1 at 7 · +2 at 8 · +3 at 9) | possession lost (−1 at 11 · −2 at 13 · −3 at 15) | +0.66 | Diallo Amad, Mbeumo Bryan, George Tyrique | Ouattara Dango, Schade Kevin, Fatawu Abdul |
-| Wide forward | 2 × counter-attack shots + open-play box entries + fouled in final third (+1 at 2 · +2 at 3 · +3 at 4) | offsides (−1 at 1 · −2 at 2 · −3 at 3) | +0.62 | Iwobi Alex, Moreira De Oliveira Savio, Tzolis Christos | Anthony Jaidon, Hemmings George, Johnson Brennan |
-| Pressing winger | 2 × poss won att 3rd + tackles won (+1 at 1 · +2 at 2 · +3 at 3) | fouls (−1 at 1 · −2 at 2 · −3 at 3) | +0.46 | Tavernier Marcus, Mbeumo Bryan, Schade Kevin | Hemmings George, Mcginn John, Munoz Victor |
-| Tracking winger | tackles won + interceptions + poss won in mid and def 3rd (+1 at 2 · +2 at 3 · +3 at 4) | fouls + dribbled past (−1 at 1 · −2 at 2 · −3 at 3) | +0.66 | Iwobi Alex, Diallo Amad, Ouattara Dango | Anthony Jaidon, Maeda Daizen, Elanga Anthony |
+| role | bonus | cost | suits most |
+|---|---|---|---|
+| Touchline winger | accurate crosses + dribbles won | dispossessed | Doku, Kudus, Tel |
+| Dribbler | dribbles won + fouls drawn | dispossessed | Doku, Dibling, Grealish |
+| Inside forward | shots + shots on target + 2 × goals | big chances missed | Salah, Semenyo, Cunha |
+| Wide playmaker | key passes + through balls* + big chances created | possession lost | Saka, Luis Díaz, Salah |
+| Pressing winger (W only) | tackles won + recoveries | fouls | Ndiaye, Tavernier, J. Ayew |
+| Tracking winger | tackles won + interceptions + blocks + clearances | dribbled past | Le Fée, Ouattara, Gómez |
 
 ## Attacking midfield, centre
 
 Target role bonus: +0.6 a start.
 
-| role | bonus | cost | avg | suits most | suits least |
-|---|---|---|---|---|---|
-| Number 10 | chances created + 2 × big chances created + through balls (+1 at 2 · +2 at 4 · +3 at 6) | shots off target (−1 at 1 · −2 at 2 · −3 at 3) | +0.49 | Dewsbury-Hall Kiernan, Ødegaard Martin, Pino Santos Yeremy | Enciso Julio, Buendia Stati Emiliano, Ayari Yasin |
-| Shadow striker | box entries + 2 × shots on target + shots from outside the box (+1 at 3 · +2 at 6 · +3 at 9) | offsides (−1 at 1 · −2 at 2 · −3 at 3) | +0.68 | Borges Fernandes Bruno, Cherki Rayan, Dewsbury-Hall Kiernan | Ndoye Dan, Willock Joe, Kamada Daichi |
-| Maverick | through balls tried + accurate long balls + accurate chipped passes + shots on target (+1 at 2 · +2 at 3 · +3 at 4) | heavy touches (−1 at 2 · −2 at 3 · −3 at 4) | +0.58 | Cherki Rayan, Borges Fernandes Bruno, Dewsbury-Hall Kiernan | Willock Joe, Ndoye Dan, Rudoni Jack |
-| Carrier | take-ons won + progressive carries + fouled in final third (+1 at 3 · +2 at 5 · +3 at 7) | dispossessed (−1 at 1 · −2 at 2 · −3 at 3) | +0.52 | King Josh, Rogers Morgan, Ødegaard Martin | Willock Joe, Ayari Yasin, Buendia Stati Emiliano |
-| Pressing 10 | 2 × poss won att 3rd + tackles won + ½ recoveries (+1 at 4 · +2 at 5 · +3 at 6) | fouls (−1 at 2 · −2 at 3 · −3 at 4) | +0.53 | Enciso Julio, Dewsbury-Hall Kiernan, Rogers Morgan | Cherki Rayan, Ndoye Dan, Willock Joe |
+| role | bonus | cost | suits most |
+|---|---|---|---|
+| Number 10 | key passes + 2 × big chances created + through balls* | shots off target | Cherki, B. Fernandes, De Bruyne |
+| Shadow striker | shots + shots on target + 2 × goals | offsides | Cunha, Palmer, Eze |
+| Carrier | dribbles won + fouls drawn | dispossessed | Cunha, Cherki, Mané |
+| Pressing 10 | tackles won + interceptions + ½ recoveries | fouls | Le Fée, Amad, M. Fernandes |
 
 ## Wide midfield
 
 Target role bonus: +0.8 a start.
 
-| role | bonus | cost | avg | suits most | suits least |
-|---|---|---|---|---|---|
-| Wide workhorse | ½ recoveries + passes into final third + tackles (+1 at 4 · +2 at 5 · +3 at 6) | fouls (−1 at 1 · −2 at 2 · −3 at 3) | +0.93 | Mcneil Dwight 21-22, Nunes Matheus 22-23, Mcneil Dwight 23-24 | Koleosho Luca 23-24, Moreira De Oliveira Savio 24-25, Emmanuel Dennis 21-22 |
-| Defensive winger | tackles + interceptions + blocks (+1 at 2 · +2 at 3 · +3 at 4) | dribbled past (−1 at 2 · −2 at 3 · −3 at 4) | +0.76 | Nunes Matheus 22-23, Garner James 23-24, Maddison James 22-23 | Bruun Larsen Jacob 23-24, Koleosho Luca 23-24, Elyounoussi Mohamed 21-22 |
-| Wide playmaker | accurate long balls + key passes (+1 at 2 · +2 at 3 · +3 at 4) | failed long balls (−1 at 4 · −2 at 5 · −3 at 6) | +0.95 | Maddison James 22-23, Iwobi Alex 22-23, Moreira De Oliveira Savio 24-25 | Koleosho Luca 23-24, Anthony Jaidon 25-26, Gudmundsson Johann Berg 21-22 |
-| Crosser | accurate crosses + ½ crosses attempted + big chances created (+1 at 2 · +2 at 3 · +3 at 4) | failed crosses (−1 at 7 · −2 at 10 · −3 at 13) | +0.92 | Townsend Andros 21-22, Mcneil Dwight 23-24, Garner James 23-24 | Elyounoussi Mohamed 21-22, Buendia Stati Emiliano 22-23, Barnes Harvey 22-23 |
-| Touchline winger | take-ons won + times fouled + ½ accurate crosses (+1 at 1 · +2 at 2 · +3 at 3) | dispossessed (−1 at 1 · −2 at 2 · −3 at 3) | +0.78 | Townsend Andros 21-22, Summerville Crysencio 25-26, Ouattara Dango 22-23 | Anthony Jaidon 22-23, Elyounoussi Mohamed 22-23, Iwobi Alex 21-22 |
+| role | bonus | cost | suits most |
+|---|---|---|---|
+| Wide workhorse | ½ recoveries + tackles + accurate crosses | fouls | Bowen, Summerville, Anthony |
+| Defensive winger | tackles + interceptions + blocks | dribbled past | Summerville, Bowen, Anthony |
+| Wide playmaker | accurate long balls + key passes | failed long balls | Savinho, Bowen, Doku |
+| Crosser | accurate crosses + ½ crosses | failed crosses | Bowen, Savinho, Summerville |
 
 ## Keepers
 
 Target role bonus: +0.9 a start.
 
-| role | bonus | cost | avg | suits most | suits least |
-|---|---|---|---|---|---|
-| Shot-stopper | saves + big-chance saves + 3 × penalty saves (+1 at 4 · +2 at 5 · +3 at 6) | goals let in from outside the box (−1 at 1 · −2 at 2 · −3 at 3) | +0.76 | Tzolakis Konstantinos, Martinez Romero Emiliano, Henderson Dean | Walton Christian, Roefs Robin, Rushworth Carl |
-| Sweeper keeper | 2 × sweeps off his line + 2 × smothers + clearances + progressive carries (+1 at 5 · +2 at 6 · +3 at 7) | errors leading to a shot or goal (−1 at 2 · −2 at 3 · −3 at 4) | +1.04 | Pickford Jordan, Scherpen Kjell, Hornicek Lukas | Verbruggen Bart, Donnarumma Gianluigi, Leno Bernd |
-| Distributor | passes into their half + ½ forward passes + ½ accurate throws (+1 at 8 · +2 at 10 · +3 at 12) | failed launches (−1 at 11 · −2 at 13 · −3 at 15) | +1.01 | Rushworth Carl, Trafford James, Kelleher Caoimhin | Leno Bernd, Lammens Senne, Kinsky Antonin |
-| Commanding keeper | 2 × crosses claimed + punches + aerials won + diving catches (+1 at 2 · +2 at 3 · +3 at 4) | crosses dropped + goals let in inside the box (−1 at 2 · −2 at 3 · −3 at 4) | +0.78 | Tzolakis Konstantinos, Trafford James, Raya Martin David | Verbruggen Bart, Becker Alisson, Sels Matz |
+| role | bonus | cost | suits most |
+|---|---|---|---|
+| Shot-stopper | saves + saves inside the box + 3 × penalties saved | errors leading to a goal | Flekken, Murić, Fabiański |
+| Sweeper keeper (not tested) | interceptions + tackles won + last-man tackles* + clearances | errors leading to a shot | Bayındır, Kinský, Johnstone |
+| Distributor | accurate long balls + accurate passes ÷ 5 | failed long balls | Flekken, Pickford, Johnstone |
+| Commanding keeper | high claims + punches | aerials lost | Murić, Palmer, Roefs |
 
 ## Central midfield
 
 Target role bonus: +1.0 a start.
 
-| role | bonus | cost | avg | suits most | suits least |
-|---|---|---|---|---|---|
-| Box-to-box | box entries + ½ recoveries + tackles won + shots on target (+1 at 3 · +2 at 4 · +3 at 5) | heavy touches (−1 at 1 · −2 at 3 · −3 at 5) | +0.91 | Kamada Daichi, Bentancur Rodrigo, Mainoo Kobbie | Yirenkyi Caleb, Crooks Matt, Lewis-Skelly Myles |
-| Ball-winner | tackles won + interceptions + poss won in midfield (+1 at 2 · +2 at 3 · +3 at 4) | fouls (−1 at 1 · −2 at 2 · −3 at 3) | +0.99 | Scott Alex, Tielemans Youri, Kamada Daichi | Gonzalez Iglesias Nico, Lewis-Skelly Myles, Crooks Matt |
-| Attacking 8 | progressive carries + 2 × box entries + take-ons won (+1 at 7 · +2 at 8 · +3 at 9) | dispossessed (−1 at 3 · −2 at 5 · −3 at 7) | +1.12 | Rice Declan, Mainoo Kobbie, Xhaka Granit | Caicedo Corozo Moises, Ao Tanaka, Andres Baixauli Jose Maria |
-| Engine | recoveries + interceptions + accurate passes ÷ 10 (+1 at 8 · +2 at 9 · +3 at 10) | dribbled past (−1 at 2 · −2 at 3 · −3 at 4) | +1.13 | Adams Tyler, Palacios Exequiel, Mainoo Kobbie | Ao Tanaka, Slater Regan, Crooks Matt |
-| Late runner | shots on target + box entries + 2 × goals (+1 at 1 · +2 at 2 · +3 at 3) | big chances missed (−1 at 2 · −2 at 3 · −3 at 4) | +1.14 | Fernandez Enzo, Mcatee James, Xhaka Granit | Crooks Matt, Caicedo Corozo Moises, Yirenkyi Caleb |
+| role | bonus | cost | suits most |
+|---|---|---|---|
+| Box-to-box | ½ recoveries + tackles won + shots | dispossessed | B. Fernandes, Baleba, João Gomes |
+| Ball-winner | tackles won + interceptions + ground duels won (duels won − aerials won) | fouls | João Gomes, Damsgaard, Ugarte |
+| Attacking 8 | dribbles won + key passes | dispossessed | Foden, Kulusevski, B. Fernandes |
+| Engine | recoveries + interceptions + accurate passes ÷ 10 | dribbled past | B. Fernandes, Baleba, N. González |
 
 ## Wing-backs
 
 Target role bonus: +1.0 a start.
 
-| role | bonus | cost | avg | suits most | suits least |
-|---|---|---|---|---|---|
-| Attacking wing-back | accurate crosses (not corners) + box entries + chances created (+1 at 2 · +2 at 3 · +3 at 4) | dispossessed (−1 at 3 · −2 at 4 · −3 at 5) | +1.10 | Robertson Andrew, Williams Neco, Maitland-Niles Ainsley | Kadıoglu Ferdi, Coyle Lewie, Araujo Ronald |
-| Holding wing-back | tackles won + interceptions + ½ recoveries (+1 at 3 · +2 at 4 · +3 at 5) | dribbled past (−1 at 1 · −2 at 4 · −3 at 7) | +0.86 | Gvardiol Josko, Dalot Teixeira Diogo, Hall Lewis | Davis Leif, Hato Jorrel, Bogle Jayden |
-| Complete wing-back | progressive carries + accurate crosses + ½ recoveries (+1 at 3 · +2 at 4 · +3 at 5) | heavy touches (−1 at 1 · −2 at 2 · −3 at 3) | +0.97 | Maitland-Niles Ainsley, Gvardiol Josko, Shaw Luke | Lomba Neto Pedro, Munoz Mejia Daniel, Hato Jorrel |
-| Inverted wing-back | accurate passes ÷ 10 + ½ final third passes + take-ons won (+1 at 5 · +2 at 6 · +3 at 7) | fouls (−1 at 1 · −2 at 2 · −3 at 3) | +0.85 | Robertson Andrew, Shaw Luke, White Benjamin | Cash Matty, Smith Adam, Gudmundsson Gabriel |
-| Goalscoring wing-back | shots on target + touches in opp box + box entries + 2 × goals (+1 at 3 · +2 at 4 · +3 at 5) | big chances missed (−1 at 2 · −2 at 3 · −3 at 4) | +1.04 | Lomba Neto Pedro, Munoz Mejia Daniel, Robertson Andrew | Maitland-Niles Ainsley, Kadıoglu Ferdi, Yoro Leny |
+| role | bonus | cost | suits most |
+|---|---|---|---|
+| Attacking wing-back | accurate crosses + key passes + dribbles won | dispossessed | Amad, Hugo Bueno, Aït-Nouri |
+| Holding wing-back | tackles won + interceptions + ½ recoveries | dribbled past | Wan-Bissaka, Muñoz, Hugo Bueno |
+| Complete wing-back | accurate crosses + dribbles won + tackles won + interceptions | possession lost | Hugo Bueno, Wan-Bissaka, Aït-Nouri |
+| Inverted wing-back | accurate passes ÷ 10 + key passes | fouls | Amad, Walker-Peters, Aït-Nouri |
+| Goalscoring wing-back | shots + shots on target + 2 × goals | big chances missed | Amad, Muñoz, Aït-Nouri |
 
 ## Full-backs
 
 Target role bonus: +1.1 a start.
 
-| role | bonus | cost | avg | suits most | suits least |
-|---|---|---|---|---|---|
-| Overlapping full-back | 2 × accurate crosses + crosses attempted + take-ons won (+1 at 3 · +2 at 4 · +3 at 5) | dispossessed (−1 at 1 · −2 at 5 · −3 at 9) | +0.96 | Giles Ryan, Robinson Antonee, Dasilva Jay | Gray Archie, Nunes Matheus, Yoro Leny |
-| Underlapping full-back | box entries + progressive carries + final third entries (+1 at 5 · +2 at 6 · +3 at 7) | heavy touches + offsides (−1 at 1 · −2 at 3 · −3 at 5) | +1.16 | Shaw Luke, Hall Lewis, Van Ewijk Milan | White Benjamin, Mandava Reinildo, Araujo Ronald |
-| Inverted full-back | accurate passes ÷ 10 + ½ final third passes (+1 at 6 · +2 at 7 · +3 at 8) | misplaced passes (−1 at 11 · −2 at 12 · −3 at 13) | +1.06 | Ouattara Abdoul, Robertson Andrew, Robinson Antonee | Dedic Amar, Araujo Ronald, O'Shea Dara |
-| Playmaking full-back | long passes into their half + accurate long balls + 2 × big chances created (+1 at 2 · +2 at 3 · +3 at 4) | failed long balls (−1 at 2 · −2 at 3 · −3 at 4) | +1.07 | Maitland-Niles Ainsley, Yoro Leny, Dasilva Jay | Mandava Reinildo, Castagne Timothy, O'Shea Dara |
-| Defensive full-back | tackles won + interceptions + clearances (+1 at 5 · +2 at 6 · +3 at 7) | dribbled past (−1 at 3 · −2 at 4 · −3 at 5) | +1.01 | Mukiele Nordi, Hall Lewis, Yoro Leny | Coyle Lewie, Dasilva Jay, Lewis-Potter Keane |
+| role | bonus | cost | suits most |
+|---|---|---|---|
+| Overlapping full-back | 2 × accurate crosses + crosses + dribbles won | dispossessed | Porro, Trippier, Alexander-Arnold |
+| Inverted full-back | accurate passes ÷ 10 | misplaced passes | Matheus Nunes, Gvardiol, Rico Lewis |
+| Playmaking full-back | accurate long balls + key passes | failed long balls | Alexander-Arnold, Porro, Young |
+| Defensive full-back | tackles won + interceptions + clearances + blocks | dribbled past | Robinson, Scarles, Hincapié |
 
 ## Defensive midfield
 
 Target role bonus: +1.1 a start.
 
-| role | bonus | cost | avg | suits most | suits least |
-|---|---|---|---|---|---|
-| Metronome | accurate passes ÷ 10 + forward passes ÷ 5 (+1 at 7 · +2 at 8 · +3 at 9) | misplaced passes (−1 at 8 · −2 at 9 · −3 at 10) | +1.14 | Mainoo Kobbie, Palacios Exequiel, Tielemans Youri | Yirenkyi Caleb, Janelt Vitaly, Scott Alex |
-| Quarterback | long passes into their half + accurate long balls + accurate chipped passes (+1 at 8 · +2 at 9 · +3 at 10) | failed long balls (−1 at 6 · −2 at 7 · −3 at 8) | +0.97 | Xhaka Granit, Fernandez Enzo, Rice Declan | Gravenberch Ryan, Andres Baixauli Jose Maria, Yirenkyi Caleb |
-| Half-back | clearances + aerials won + poss won in own third (+1 at 3 · +2 at 5 · +3 at 7) | errors leading to a shot or goal (−1 at 1 · −2 at 2 · −3 at 3) | +1.10 | Kamara Boubacar, Mac Allister Alexis, Sangare Mamadou | Tonali Sandro, Gomes Joao, Lewis-Skelly Myles |
-| Engine | recoveries + interceptions + accurate passes ÷ 10 (+1 at 10 · +2 at 11 · +3 at 12) | dribbled past (−1 at 3 · −2 at 5 · −3 at 7) | +0.98 | Mainoo Kobbie, Palacios Exequiel, Scott Alex | Sadiki Noah, Gomes Joao, Fernandez Enzo |
-| Tower | aerials won + headed clearances + headed passes (+1 at 3 · +2 at 4 · +3 at 5) | aerials lost (−1 at 1 · −2 at 5 · −3 at 9) | +0.99 | Adams Tyler, Xhaka Granit, Nascimento Dos Santos Andrey | Sadiki Noah, Mainoo Kobbie, Gomes Joao |
-| Destroyer | 2 × tackles won + duels won (+1 at 6 · +2 at 7 · +3 at 8) | fouls (−1 at 5 · −2 at 6 · −3 at 7) | +1.23 | Bentancur Rodrigo, Scott Alex, Anderson Elliot | Miley Lewis, Grimes Matt, Lewis-Skelly Myles |
+| role | bonus | cost | suits most |
+|---|---|---|---|
+| Metronome | accurate passes ÷ 10 | misplaced passes | Rodri, Gündoğan, Curtis Jones |
+| Quarterback | accurate long balls | failed long balls | Rodri, Xhaka, Casemiro |
+| Third centre-back | clearances + blocks + interceptions | errors leading to a shot | Casemiro, Bentancur, Onana |
+| Engine | recoveries + interceptions + accurate passes ÷ 10 | dribbled past | Rodri, Anderson, Caicedo |
+| Tower | aerials won | aerials lost | Souček, Zubimendi, Rodri |
+| Destroyer | 2 × tackles won + ground duels won | fouls | Palhinha, Iroegbunam, Anderson |
 
 ## Centre-backs
 
 Target role bonus: +1.2 a start.
 
-| role | bonus | cost | avg | suits most | suits least |
-|---|---|---|---|---|---|
-| Stopper | tackles won + aerials won + interceptions (+1 at 4 · +2 at 5 · +3 at 6) | dribbled past (−1 at 3 · −2 at 4 · −3 at 5) | +1.28 | Tarkowski James, Ballard Daniel, Fofana Wesley | Mings Tyrone, Danso Kevin, Torres Pau |
-| Ball-playing CB | long passes into their half + forward passes ÷ 5 + accurate long balls (+1 at 10 · +2 at 11 · +3 at 12) | failed long balls (−1 at 7 · −2 at 8 · −3 at 9) | +1.20 | Van Hecke Jan Paul, Van De Ven Micky, Dunk Lewis | Torres Pau, Acheampong Josh, Milenkovic Nikola |
-| No-nonsense CB | clearances + headed clearances + blocks (+1 at 9 · +2 at 10 · +3 at 11) | errors leading to a shot or goal (−1 at 1 · −2 at 2 · −3 at 3) | +1.18 | Thomas Bobby, Richards Chris, Ballard Daniel | Justin James, Jacquet Jeremy, Torres Pau |
-| Attacking CB | headed shots + box entries + progressive carries (+1 at 5 · +2 at 6 · +3 at 7) | dispossessed (−1 at 1 · −2 at 2 · −3 at 3) | +1.19 | Van Hecke Jan Paul, Thiaw Malick, Maguire Harry | Mendy Nobel, Acheampong Josh, Egan John |
-| Sweeper | interceptions + recoveries + 3 × clearances off the line (+1 at 4 · +2 at 5 · +3 at 6) | errors leading to a shot or goal (−1 at 1 · −2 at 2 · −3 at 3) | +1.25 | Diop Issa, Tarkowski James, Costa Dos Santos Murillo | Pinnock Ethan, Botman Sven, Mings Tyrone |
-| Libero | progressive carries + accurate passes ÷ 10 + final third entries (+1 at 11 · +2 at 13 · +3 at 15) | heavy touches (−1 at 2 · −2 at 3 · −3 at 4) | +1.23 | Van De Ven Micky, Van Dijk Virgil, Dos Santos Gato Alves Dias Ruben | Pinnock Ethan, Mendy Nobel, Egan John |
+| role | bonus | cost | suits most |
+|---|---|---|---|
+| Stopper | tackles won + blocks + aerials won | dribbled past | Hill, Tarkowski, O'Shea |
+| Ball-playing CB | accurate long balls + accurate passes ÷ 10 | failed long balls | Andersen, van Dijk, Dias |
+| No-nonsense CB | clearances + long balls | errors leading to a shot | Andersen, Senesi, Huijsen |
+| Attacking CB | 2 × shots + 3 × goals | dispossessed | Schär, Keane, Ballard |
+| Sweeper | recoveries + interceptions + last-man tackles* | dribbled past | Agbadou, Khusanov, Senesi |
+| Libero (not tested) | dribbles won + accurate passes ÷ 10 | dispossessed | Dias, Dunk, Akanji |
 
 ## Team instructions
 
