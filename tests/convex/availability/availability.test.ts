@@ -76,6 +76,22 @@ test("the feed's availability moves under the admin's setting, which still wins"
   expect(await availabilityOf(t, SAKA)).toEqual({ availability: "out", feed: "doubtful", set: "out" });
 });
 
+test("the Availability tab lists every player set by hand, by name, with his club, positions, the feed's and the admin's", async () => {
+  const t = await synced();
+  const admin = await asAdmin(t);
+  await admin.mutation(api.availability.availability.set, { code: SALIBA, availability: "doubtful" });
+  await admin.mutation(api.availability.availability.set, { code: HAALAND, availability: "available" });
+
+  const rows = await admin.query(api.availability.availability.setByHand, {});
+  expect(rows.map(({ code, feed, set }) => [code, feed, set])).toEqual([
+    [HAALAND, "doubtful", "available"],
+    [SALIBA, "out", "doubtful"],
+  ]);
+  expect(rows[0]).toMatchObject({ name: "Haaland", clubShortName: "MCI" });
+  expect(rows[0].positions.length).toBeGreaterThan(0);
+  expect(await admin.query(api.availability.availability.forAdmin, { code: SAKA })).toMatchObject({ code: SAKA, name: "Saka", clubShortName: "ARS", feed: "available", set: null });
+});
+
 test("clearing a player the admin never set changes nothing", async () => {
   const t = await synced();
 

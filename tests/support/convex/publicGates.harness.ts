@@ -52,8 +52,10 @@ export const GATE_REFUSALS = new Set<string>(
 export const gates: Record<string, Gate> = {
   "admin/feeds:feeds": "admin",
   "auth:isAuthenticated": "open",
+  "availability/availability:forAdmin": "admin",
   "availability/availability:ofPlayer": "admin",
   "availability/availability:set": "admin",
+  "availability/availability:setByHand": "admin",
   "balanceLab/balanceLabRun:run": "admin",
   "auth:signOut": "open",
   "draft/autoPickSwitch:takeControlBack": "manager",
