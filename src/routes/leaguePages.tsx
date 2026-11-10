@@ -3,9 +3,10 @@ import { createRoute, redirect, useParams } from "@tanstack/react-router";
 import type { Id } from "../../convex/_generated/dataModel";
 import type { LeagueSummary } from "../../convex/leagues/myLeagues";
 import { AdminPage } from "../admin/AdminPage";
+import { AvailabilityTab } from "../admin/AvailabilityTab";
 import { FeedbackTab } from "../admin/FeedbackTab";
 import { FeedsPage } from "../admin/FeedsPage";
-import { ADMIN_FEEDBACK_PATH, ADMIN_FEEDS_PATH, ADMIN_PATH } from "../admin/paths";
+import { ADMIN_AVAILABILITY_PATH, ADMIN_FEEDBACK_PATH, ADMIN_FEEDS_PATH, ADMIN_PATH } from "../admin/paths";
 import { FeedbackPage } from "../feedback/FeedbackPage";
 import { FEEDBACK_PATH } from "../feedback/paths";
 import { MAIL_PATH, SCOUTING_PATH } from "../frame/menu";
@@ -207,6 +208,7 @@ function adminPage<Seam extends keyof AdminSeams, Path extends string>(path: Pat
 const adminRoute = adminPage(ADMIN_PATH, "admin", AdminPage); // The admin's dashboard (#87)
 const adminFeedsRoute = adminPage(ADMIN_FEEDS_PATH, "admin", FeedsPage); // Its feeds tab (#35)
 const adminFeedbackRoute = adminPage(ADMIN_FEEDBACK_PATH, "feedback", FeedbackTab); // Its Feedback tab (#357)
+const adminAvailabilityRoute = adminPage(ADMIN_AVAILABILITY_PATH, "admin", AvailabilityTab); // Its Availability tab (#1209)
 
 // Joining a league (#73): a league's invites and join requests, for its runners, and its invite
 // link, which a signed-out visitor reaches through sign-in.
@@ -229,4 +231,4 @@ const joinRoute = createRoute({
   },
 });
 
-export const leaguePagesChildren = [leaguesRoute, newLeagueRoute, mailRoute, invitesRoute, joinRoute, gameweeksRoute, squadsRoute, scoringRoute, playerCardRoute, otherTeamRoute, settingsRoute, adminRoute, adminFeedsRoute, adminFeedbackRoute, feedbackRoute, patchNotesRoute];
+export const leaguePagesChildren = [leaguesRoute, newLeagueRoute, mailRoute, invitesRoute, joinRoute, gameweeksRoute, squadsRoute, scoringRoute, playerCardRoute, otherTeamRoute, settingsRoute, adminRoute, adminFeedsRoute, adminFeedbackRoute, adminAvailabilityRoute, feedbackRoute, patchNotesRoute];

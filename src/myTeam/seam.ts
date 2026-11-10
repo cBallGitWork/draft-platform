@@ -14,6 +14,15 @@ import type { TableSeam } from "../table/seam";
 
 export type { OtherSquad, TeamFixtures, TeamSquad, TeamTransactions };
 
+/** The manager's own team's auto team (spec/09): its id, on or off, and the gameweek it ends after. */
+export type MyAutoTeam = { teamId: Id<"teams">; on: boolean; endsAfter: number | null };
+
+/** Switching a team's auto team: its manager's own on My team, any team's on Squads. */
+export type AutoTeamChanges = {
+  /** On, until after `endsAfter` if given (its manager alone names one), or off. */
+  set(leagueId: Id<"leagues">, teamId: Id<"teams">, on: boolean, endsAfter?: number): Change;
+};
+
 export type SquadNumberChanges = {
   /** Gives one of the manager's own players `number`, or null to take it away (#13). */
   set(leagueId: Id<"leagues">, playerCode: number, number: number | null): Change;
@@ -33,4 +42,8 @@ export type MyTeamSeam = TacticsSeam & TableSeam & SquadSeam & ClaimsSeam & {
   useOtherSquad(leagueId: Id<"leagues">, teamId: Id<"teams">): OtherSquad | undefined;
   /** The changes to its squad numbers (a hook). */
   useSquadNumbers(): SquadNumberChanges;
+  /** Its auto team, for the header band, live (a hook): undefined while it loads. */
+  useMyAutoTeam(leagueId: Id<"leagues">): MyAutoTeam | undefined;
+  /** Switching it (a hook). */
+  useAutoTeamChanges(): AutoTeamChanges;
 };

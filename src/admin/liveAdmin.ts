@@ -13,6 +13,11 @@ const useFeeds: AdminSeam["useFeeds"] = () => {
   return useQuery(api.admin.feeds.feeds, { now });
 };
 
+const useSetByHand: AdminSeam["useSetByHand"] = () => useQuery(api.availability.availability.setByHand, {});
+
+/** No player asks the server nothing. */
+const useAvailabilityOf: AdminSeam["useAvailabilityOf"] = (code) => useQuery(api.availability.availability.forAdmin, code === null ? "skip" : { code });
+
 /** Blank text asks the server nothing, and finds no one. */
 const useFoundPlayers: AdminSeam["useFoundPlayers"] = (text) => {
   const blank = !text.trim();
@@ -30,11 +35,14 @@ export function useLiveAdmin(): AdminSeam {
   const setApproveMode = useMutation(api.positions.positionSettings.setApproveMode);
   const setChangeThresholds = useMutation(api.positions.positionSettings.setChangeThresholds);
   const setClubColours = useMutation(api.football.clubKits.set);
+  const setAvailability = useMutation(api.availability.availability.set);
   return useMemo(
     () => ({
       useQueue,
       useFoundPlayers,
       useFeeds,
+      useSetByHand,
+      useAvailabilityOf,
       approvePlayer: (code) => refusalOf(() => approvePlayer({ code }), "Approving a player", changeFailedWords),
       approveClub: (clubCode) => refusalOf(() => approveClub({ clubCode }), "Approving a club", changeFailedWords),
       setPosition: (code, position) => refusalOf(() => setPosition({ code, position }), "Setting a position", changeFailedWords),
@@ -42,7 +50,8 @@ export function useLiveAdmin(): AdminSeam {
       setApproveMode: (approveMode) => refusalOf(() => setApproveMode({ approveMode }), "Changing the approve mode", changeFailedWords),
       setChangeThresholds: (thresholds) => refusalOf(() => setChangeThresholds(thresholds), "Changing the thresholds", changeFailedWords),
       setClubColours: (code, colours) => refusalOf(() => setClubColours({ code, ...colours }), "Setting a club's colours", changeFailedWords),
+      setAvailability: (code, availability) => refusalOf(() => setAvailability({ code, availability }), "Setting a player's availability", changeFailedWords),
     }),
-    [approvePlayer, approveClub, setPosition, removePosition, setApproveMode, setChangeThresholds, setClubColours],
+    [approvePlayer, approveClub, setPosition, removePosition, setApproveMode, setChangeThresholds, setClubColours, setAvailability],
   );
 }

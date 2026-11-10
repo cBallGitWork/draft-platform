@@ -2,7 +2,7 @@
 // tests/src/smokeScreens.test.ts can fail a route none of them reaches.
 
 import { joinPath } from "../../../convex/joining/joiningShared";
-import { ADMIN_FEEDBACK_PATH, ADMIN_FEEDS_PATH, ADMIN_PATH } from "../../../src/admin/paths";
+import { ADMIN_AVAILABILITY_PATH, ADMIN_FEEDBACK_PATH, ADMIN_FEEDS_PATH, ADMIN_PATH } from "../../../src/admin/paths";
 import { ADMIN_TITLE } from "../../../src/admin/words";
 import { FEEDBACK_PATH } from "../../../src/feedback/paths";
 import { FEEDBACK_TITLE } from "../../../src/feedback/words";
@@ -108,4 +108,5 @@ export const BUILT_SCREENS: readonly BuiltScreen[] = [
   ["admin", ADMIN_PATH, ADMIN_TITLE],
   ["admin", ADMIN_FEEDS_PATH, ADMIN_TITLE],
   ["admin", ADMIN_FEEDBACK_PATH, ADMIN_TITLE],
+  ["admin", ADMIN_AVAILABILITY_PATH, ADMIN_TITLE],
 ];

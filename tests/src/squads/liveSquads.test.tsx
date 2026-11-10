@@ -17,11 +17,17 @@ const convex = vi.hoisted(() => ({
   assign: vi.fn(),
   move: vi.fn(),
   release: vi.fn(),
+  switchAutoTeam: vi.fn(),
 }));
 vi.mock("convex/react", async () =>
   (await import("../../support/src/convexReact.harness")).fakeConvexReact({
     queries: { "squads/squads:squads": convex.squads, "squads/squads:findPlayers": convex.findPlayers },
-    mutations: { "squads/squads:assign": convex.assign, "squads/squads:move": convex.move, "squads/squads:release": convex.release },
+    mutations: {
+      "squads/squads:assign": convex.assign,
+      "squads/squads:move": convex.move,
+      "squads/squads:release": convex.release,
+      "lineup/autoTeam:set": convex.switchAutoTeam,
+    },
   }),
 );
 
@@ -58,6 +64,12 @@ test.each([
   for (const other of changeNames.filter((n) => n !== name)) {
     expect(convex[other]).not.toHaveBeenCalled();
   }
+});
+
+test("switching a team's auto team calls lineup/autoTeam:set with no end gameweek", async () => {
+  convex.switchAutoTeam.mockResolvedValue(null);
+  expect(await seam().switchAutoTeam(A_LEAGUE_ID, teamId, true)).toBeNull();
+  expect(convex.switchAutoTeam).toHaveBeenCalledExactlyOnceWith({ leagueId: A_LEAGUE_ID, teamId, on: true });
 });
 
 test("a change the server refuses resolves with the server's own words", async () => {

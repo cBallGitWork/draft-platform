@@ -45,5 +45,17 @@ export const lastGameWords = ({ against, score }: TeamGame & { score: NonNullabl
   return score.provisional ? line : `${LAST_RESULT_WORDS[resultOf(score.team, score.opponent)]} ${line}`;
 };
 
+/** The band's Auto team reading and its panel (spec/09, The auto team; docs/design/approved/auto-team/). */
+export { autoTeamWords as autoTeamHead, autoTeamWhatWords } from "../../shared/words";
+export const autoTeamStateWords = ({ on, endsAfter }: { on: boolean; endsAfter: number | null }) =>
+  !on ? "Off" : endsAfter === null ? "On" : `On, to ${gameweekShort(endsAfter)}`;
+export const untilEndOfWords = "Until the end of";
+export const endGameweekLabel = "The gameweek it ends after";
+export const untilSwitchedOffWords = "Until I switch it off";
+export const switchOnWords = "Switch on";
+export const switchOffWords = "Switch off";
+/** When a switch failed before the server could say why. */
+export { cancelWords, changeFailedWords as switchFailedWords } from "../../shared/words";
+
 /** Points, short as the band says them: "18 pts". */
 export const pointsShort = (points: number) => `${figureWords(points)} pts`;

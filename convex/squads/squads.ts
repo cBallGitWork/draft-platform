@@ -2,7 +2,7 @@ import { v, type Infer } from "convex/values";
 import type { Doc, Id } from "../_generated/dataModel";
 import { draftIsLive } from "../draft/draftRow";
 import { mutation, query, type QueryCtx } from "../_generated/server";
-import { memberOf, refuse, refusals, runnerOf, teamIn, teamsOf } from "../shared/leagueAccess";
+import { memberOf, powersIn, refuse, refusals, runnerOf, teamIn, teamsOf } from "../shared/leagueAccess";
 import { recordEvent } from "../mail/letters";
 import { tellShortlisters } from "../scouting/shortlist";
 import { clubByCode, playerByCode, playersNamed } from "../shared/players";
@@ -18,6 +18,7 @@ import { heldOrNot, ownerOf, placeOf, squadOf, unheldCodes } from "./squadPlace"
 import { pickFirstLineupAgain } from "../lineup/lineups";
 import { offWaivers } from "../waivers/waiverPlayers";
 import { closeOffersHolding } from "../trades/tradeClose";
+import { onAutoTeam } from "../trades/tradeShut";
 
 // Assigning players (#31, spec/15): the league's commissioners and the admin put any player on any
 // team, one at a time, move him between teams, or release him to free agency. Each files a Mail
@@ -152,6 +153,12 @@ const squadWithWarnings = v.object({
   players: v.array(squadPlayer),
   unheld: unheldCodes,
   warnings: v.array(squadWarning),
+  /** Its manager, by email, or null while it has none (spec/13). Only those who run the league
+   *  are sent it: to anyone else it is always null, so managers never see one another's emails. */
+  managerEmail: v.union(v.string(), v.null()),
+  /** Its auto team (spec/09; trades/tradeShut.ts): on or off, the gameweek it ends after if its
+   *  manager named one, and whether its manager switched it on himself. */
+  autoTeam: v.object({ on: v.boolean(), endsAfter: v.union(v.number(), v.null()), byManager: v.boolean() }),
 });
 export type SquadWithWarnings = Infer<typeof squadWithWarnings>;
 
@@ -161,7 +168,8 @@ export const squads = query({
   args: { leagueId: v.id("leagues") },
   returns: v.array(squadWithWarnings),
   handler: async (ctx, { leagueId }) => {
-    await memberOf(ctx, leagueId);
+    const { email, league } = await memberOf(ctx, leagueId);
+    const seesEmails = powersIn(league, email).runs;
     const rules = await latestRules(ctx, leagueId);
     const positionsOfNow = await positionsNow(ctx, leagueId);
     const shortNameOf = readOnce(async (clubCode: number) => (await clubByCode(ctx, clubCode)).shortName);
@@ -183,7 +191,10 @@ export const squads = query({
           : [];
         players.sort((one, other) => one.name.localeCompare(other.name));
         const warnings = squadWarnings(squad.length, players, playersAreas, rules?.squad ?? null);
-        return { teamId: team._id, teamName: team.name, players, unheld, warnings };
+        const byManager = team.managerEmail !== undefined && team.autoTeam?.by === team.managerEmail;
+        const autoTeam = { on: onAutoTeam(team), endsAfter: team.autoTeam?.endsAfter ?? null, byManager };
+        const managerEmail = seesEmails ? (team.managerEmail ?? null) : null;
+        return { teamId: team._id, teamName: team.name, players, unheld, warnings, managerEmail, autoTeam };
       }),
     );
   },

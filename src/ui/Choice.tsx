@@ -8,6 +8,7 @@ export function Choice<Option extends string>({
   chosen,
   onChoose,
   labelShown = true,
+  disabled = false,
 }: {
   label: string;
   name: string;
@@ -19,6 +20,9 @@ export function Choice<Option extends string>({
   /** False where what sits beside the keys already says it, such as a panel's title (the Squad
    *  tab's views): the label is then for screen readers only. */
   labelShown?: boolean;
+  /** True where it can't change now, such as while a change is on its way, or a team with no
+   *  manager, locked on the auto team. */
+  disabled?: boolean;
 }) {
   const labelId = `${name}-label`;
   return (
@@ -29,7 +33,7 @@ export function Choice<Option extends string>({
       <span className="flex flex-wrap">
         {options.map((option) => (
           <label key={option} className="key">
-            <input type="radio" name={name} className="sr-only" checked={chosen === option} onChange={() => onChoose(option)} />
+            <input type="radio" name={name} className="sr-only" checked={chosen === option} disabled={disabled} onChange={() => onChoose(option)} />
             {typeof words === "function" ? words(option) : words[option]}
           </label>
         ))}

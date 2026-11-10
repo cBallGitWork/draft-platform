@@ -161,11 +161,21 @@ describe("each gameweek's deadline", () => {
 
 test("the table has every team on nothing, in the order they were made, until matchups are scored", async () => {
   const [annTeam, bobTeam] = await addManagers(t, leagueId, [ANN, BOB]);
-  const nothing = { played: 0, won: 0, drawn: 0, lost: 0, pointsFor: 0, pointsAgainst: 0, difference: 0, points: 0 };
+  const nothing = { played: 0, won: 0, drawn: 0, lost: 0, pointsFor: 0, pointsAgainst: 0, difference: 0, points: 0, onAutoTeam: false };
   expect((await read())?.table).toEqual([
     { teamId: annTeam, teamName: "Team 1", ...nothing },
     { teamId: bobTeam, teamName: "Team 2", ...nothing },
   ]);
+});
+
+test("the table marks a team on the auto team, switched on by a person or with no manager (spec/09)", async () => {
+  const [annTeam, bobTeam, catTeam] = await addManagers(t, leagueId, [ANN, BOB, CAT]);
+  await t.run(async (ctx) => {
+    await ctx.db.patch("teams", annTeam, { autoTeam: { by: ANN } });
+    await ctx.db.patch("teams", catTeam, { managerEmail: undefined });
+  });
+  const marked = new Map((await read())!.table.map((row) => [row.teamId, row.onAutoTeam]));
+  expect([marked.get(annTeam), marked.get(bobTeam), marked.get(catTeam)]).toEqual([true, false, true]);
 });
 
 test("a league with no rules fails loudly, never draws an empty table (#147)", async () => {
@@ -185,7 +195,9 @@ test("before any gameweek begins, each fixture has its teams and no points, and 
     ["Team 3", catTeam],
   ]);
   const [first] = league.gameweeks;
-  expect(first.fixtures).toEqual(first.fixtures.map(({ team, opponent }) => ({ teamId: idOf.get(team), game: 1, team, opponent, points: null })));
+  expect(first.fixtures).toEqual(
+    first.fixtures.map(({ team, opponent }) => ({ teamId: idOf.get(team), game: 1, team, opponent, opponentId: opponent === null ? null : idOf.get(opponent), points: null })),
+  );
   expect(first.fixtures.flatMap(({ team, opponent }) => [team, opponent]).toSorted()).toEqual(["Team 1", "Team 2", "Team 3", null]);
   expect(league.results).toEqual([]);
   expect(league.unscored).toEqual([]);

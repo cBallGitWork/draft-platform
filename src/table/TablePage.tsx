@@ -2,12 +2,13 @@ import { useState } from "react";
 import type { LeagueSummary } from "../../convex/leagues/myLeagues";
 import { FormChips } from "../myTeam/header/FormChips";
 import { standingOf } from "../myTeam/header/teamStanding";
+import { AutoTeamChip } from "../ui/AutoTeamChip";
 import { cellClassOf, ColumnHeads } from "../ui/ColumnHeads";
 import { Loading, PAGE_STACK, PageSection, Panel, PANEL_COLUMNS, PanelNote } from "../ui/Panel";
 import { PlateTabs } from "../ui/PlateTabs";
 import { CupBracket } from "./CupBracket";
 import { FixturesPanel } from "./FixturesPanel";
-import type { LeagueTable, TableSeam } from "./seam";
+import type { LeagueTable, TableScreenSeam } from "./seam";
 import {
   afterWords,
   columns,
@@ -48,7 +49,7 @@ const cellClasses = (column: Column) => cellClassOf(column === "team" || column 
  *  it. Head-to-head: League and Cup tabs on the title plate, the competition on the left and the
  *  fixtures of one gameweek at a time on the right, kept as the tabs switch. Total points: the
  *  table alone, titled Table. */
-export function TablePage({ league, seam }: { league: LeagueSummary; seam: TableSeam }) {
+export function TablePage({ league, seam }: { league: LeagueSummary; seam: TableScreenSeam }) {
   const leagueTable = seam.useLeagueTable(league.leagueId);
   const [competition, choose] = useState<Competition>("league");
   const totalPoints = leagueTable?.format === "totalPoints";
@@ -60,7 +61,7 @@ export function TablePage({ league, seam }: { league: LeagueSummary; seam: Table
       ) : (
         <div className={totalPoints ? PANEL_COLUMNS : "grid items-start gap-2 lg:grid-cols-table"}>
           {totalPoints || competition === "league" ? <StandingsPanel leagueTable={leagueTable} mine={league.teamName} /> : <CupBracket />}
-          {!totalPoints && <FixturesPanel leagueTable={leagueTable} mine={league.teamName} />}
+          {!totalPoints && <FixturesPanel league={league} seam={seam} leagueTable={leagueTable} />}
         </div>
       )}
     </PageSection>
@@ -121,7 +122,10 @@ function TableCell({ column, row, position, mine, leagueTable }: { column: Colum
       return (
         <th scope="row" className={`${className} text-lead font-semibold`}>
           {mine && <span className="sr-only">{yourTeamWords}: </span>}
-          {row.teamName}
+          <span className="flex items-center gap-2">
+            {row.teamName}
+            {row.onAutoTeam && <AutoTeamChip />}
+          </span>
         </th>
       );
     case "difference":

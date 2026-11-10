@@ -6,10 +6,12 @@ import { useMinute } from "../../shared/useMinute";
 import { nextGlyph } from "../../shared/words";
 import { PageSection } from "../../ui/Panel";
 import type { MyTeamSeam } from "../seam";
+import { AutoTeamSwitch } from "./AutoTeamSwitch";
 import { FormChips } from "./FormChips";
 import { gamesIn, standingOf, type Standing, type TeamGame } from "./teamStanding";
 import {
   againstWords,
+  autoTeamHead,
   countdownWords,
   deadlineHead,
   formHead,
@@ -28,7 +30,8 @@ import {
 
 // My team's header band, one on every My team tab (the approved Tactics picture; FM's team meters
 // across the header): the team's name on the page's plate, then the next deadline and its
-// countdown, the opponent then, the last result, the form and the table place. Each reading shows
+// countdown, the opponent then, the last result, the form, the table place and the auto team's
+// switch (AutoTeamSwitch.tsx, the approved auto-team picture). Each reading shows
 // once its data has loaded, and only where the league has it: no opponent or form in total points.
 // While the table loads its readings wait.
 // The Tactics and Squad tabs both wrap their page in it.
@@ -98,6 +101,9 @@ function TeamMeters({ league, teamName, seam }: { league: LeagueSummary; teamNam
           {placeWords(standing.place)}, <span className="text-figure">{pointsShort(standing.points)}</span>
         </Meter>
       )}
+      <Meter head={autoTeamHead}>
+        <AutoTeamSwitch league={league} seam={seam} firstGameweek={open?.gameweek ?? null} />
+      </Meter>
     </dl>
   );
 }

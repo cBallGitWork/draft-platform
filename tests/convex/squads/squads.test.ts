@@ -78,6 +78,24 @@ test("#31 Done: four teams of 15 can be filled, and each squad says it's over th
   for (const team of squads) expect(team.warnings).toContainEqual({ kind: "overMaximum", players: 15, maximum: 14 });
 });
 
+test("each squad names its manager and its auto team, and whether its manager switched it on (spec/09)", async () => {
+  await (await actingAs(t, ANN)).mutation(api.lineup.autoTeam.set, { leagueId, teamId: teams[0], on: true });
+  await (await actingAs(t, COMMISSIONER)).mutation(api.lineup.autoTeam.set, { leagueId, teamId: teams[1], on: true });
+  await (await actingAs(t, CAT)).mutation(api.leagues.teams.leave, { leagueId });
+  const squads = await (await as(COMMISSIONER)).squads();
+  expect(squads.map(({ managerEmail, autoTeam }) => [managerEmail, autoTeam])).toEqual([
+    [ANN, { on: true, endsAfter: null, byManager: true }],
+    [BOB, { on: true, endsAfter: null, byManager: false }],
+    [null, { on: true, endsAfter: null, byManager: false }],
+    [DAN, { on: false, endsAfter: null, byManager: false }],
+  ]);
+});
+
+test("a manager is never sent another manager's email, only those who run the league are", async () => {
+  const squads = await (await as(ANN)).squads();
+  expect(squads.map(({ managerEmail }) => managerEmail)).toEqual([null, null, null, null]);
+});
+
 describe("a player is on one team in a league at most", () => {
   test("assigning one already on a team is refused, saying where he is", async () => {
     const commissioner = await as(COMMISSIONER);

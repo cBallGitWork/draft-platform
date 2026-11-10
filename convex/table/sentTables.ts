@@ -2,8 +2,8 @@ import type { Id } from "../_generated/dataModel";
 import type { DeadlineOf } from "../gameweeks/deadline";
 import type { LeagueRules } from "../rules/leagueRulesShape";
 import type { TeamGameweekTotal } from "../gameweekScorer/gameweekScores";
-import type { LeagueTable } from "./leagueTable";
-import { namedFixture, type GameweekFixtures } from "./roundRobin";
+import type { LeagueTable, ScoredFixture } from "./leagueTable";
+import { LEAGUE_AVERAGE, namedFixture, type GameweekFixtures } from "./roundRobin";
 import { headToHeadTable, teamsInGameweek, totalPointsTable, type GameweekScores, type TableRow, type TieBreak } from "./standings";
 import type { TeamFixtures } from "./teamFixtures";
 import { BYE, gameNumberAt, gameScore, gamesOf } from "./teamGames";
@@ -46,6 +46,7 @@ export function leagueTableFrom({
   table,
   deadlineOf,
   named,
+  autoTeams,
 }: {
   format: LeagueRules["format"];
   schedule: readonly GameweekFixtures<TeamId>[];
@@ -54,16 +55,21 @@ export function leagueTableFrom({
   table: readonly TableRow<TeamId>[];
   deadlineOf: DeadlineOf;
   named: (teamId: TeamId) => string;
+  /** The teams on the auto team now, which the table marks (spec/09). */
+  autoTeams: ReadonlySet<TeamId>;
 }): LeagueTable {
   return {
     format,
     gameweeks: schedule.map((drawn) => ({
       gameweek: drawn.gameweek,
       deadline: deadlineOf(drawn.gameweek),
-      fixtures: scoredFixtures(drawn, results, named),
+      fixtures: scoredFixtures(drawn, results, named).map((each, index) => {
+        const { opponent } = drawn.fixtures[index];
+        return { ...each, opponentId: opponent === LEAGUE_AVERAGE ? null : opponent };
+      }),
       byes: drawn.byes.map(named),
     })),
-    table: table.map(({ team, ...row }) => ({ teamId: team, teamName: named(team), ...row })),
+    table: table.map(({ team, ...row }) => ({ teamId: team, teamName: named(team), ...row, onAutoTeam: autoTeams.has(team) })),
     results: [...results].map(([gameweek, teamScores]) => ({
       gameweek,
       teams: [...teamScores].map(([teamId, result]) => ({ teamId, teamName: named(teamId), ...result })),
@@ -74,7 +80,7 @@ export function leagueTableFrom({
 
 /** The gameweek's fixtures, each with both sides' points once the gameweek is scored, live until
  *  final: the table's and league home's. */
-export function scoredFixtures(drawn: GameweekFixtures<TeamId>, results: Results, named: (teamId: TeamId) => string): LeagueTable["gameweeks"][number]["fixtures"] {
+export function scoredFixtures(drawn: GameweekFixtures<TeamId>, results: Results, named: (teamId: TeamId) => string): ScoredFixture[] {
   const scored = results.get(drawn.gameweek);
   return drawn.fixtures.map((each, index) => {
     const score = scored === undefined ? null : gameScore(teamsInGameweek(drawn), scored, drawn.gameweek, each.team, each.opponent);

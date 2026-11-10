@@ -51,7 +51,9 @@ beforeEach(async () => {
       ...changesTo({ admin: caller, ann: caller, commissioner: caller }, rows),
       "admin/feeds:feeds": () => caller.query(api.admin.feeds.feeds, { now }),
       "auth:isAuthenticated": () => caller.query(api.auth.isAuthenticated, {}),
+      "availability/availability:forAdmin": () => caller.query(api.availability.availability.forAdmin, { code: SOME_CODE }),
       "availability/availability:ofPlayer": () => caller.query(api.availability.availability.ofPlayer, { code: SOME_CODE }),
+      "availability/availability:setByHand": () => caller.query(api.availability.availability.setByHand, {}),
       "availability/availability:set": () => caller.mutation(api.availability.availability.set, { code: SOME_CODE, availability: null }),
       "auth:signOut": () => caller.action(api.auth.signOut, {}),
       "balanceLab/balanceLabRun:run": () => caller.action(api.balanceLab.balanceLabRun.run, { draftSavedAt: now }),
@@ -90,6 +92,7 @@ beforeEach(async () => {
       "lineup/lineupDue:isDue": async () => (await caller.query(api.lineup.lineupDue.isDue, { leagueId, now })) || null,
       "lineup/roleCard:forSlot": () =>
         caller.query(api.lineup.roleCard.forSlot, { leagueId, playerCode: SOME_CODE, cell: { area: "goalkeeper", lane: "centre" }, formation: [], now }),
+      "lineup/autoTeam:ofMyTeam": () => caller.query(api.lineup.autoTeam.ofMyTeam, { leagueId }),
       "lineup/savedPlans:mine": () => caller.query(api.lineup.savedPlans.mine, { leagueId }),
       "lineup/tactics:ofMyTeam":() => caller.query(api.lineup.tactics.ofMyTeam, { leagueId, now }),
       "mail/mail:latest": () => caller.query(api.mail.mail.latest, {}),
