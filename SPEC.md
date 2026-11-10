@@ -229,7 +229,7 @@ follows it; tables and fields already saved keep their names.
 | starter | a player in the lineup's eleven | |
 | bench | the lineup's players who don't start, in the order auto-subs use | |
 | draft league | a league on the platform, such as the Tim Hortons Pro League; on screen, "draft league" wherever the Premier League could be meant. "League" alone in the spec means one | fantasy league |
-| Premier League | the real competition, and the menu section of that name | league (alone) |
+| Premier League | the real competition; its menu section is Football (10 Nov 2026) | league (alone) |
 | match | a real Premier League match | |
 | fixture | a real Premier League match, never a league's head-to-head | |
 | matchup | a head-to-head between two teams in one gameweek; also "a game in a gameweek" (Craig, 8 Nov 2026) | match, fixture |
