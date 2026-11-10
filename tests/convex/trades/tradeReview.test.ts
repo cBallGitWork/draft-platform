@@ -167,6 +167,30 @@ describe("under a league vote", () => {
     expect(await w.lettersTo(ANN)).toContainEqual(expect.objectContaining({ body: expect.stringMatching(/^Most of the managers voted against it, so nobody moves\./) }));
   });
 
+  test("an Against can be taken back until the review ends, in case of a typo (Craig, 10 Nov 2026)", async () => {
+    const offerId = await annTradesForSaka();
+    await expectRefused(w.takeBack(CAT, offerId), reviewRefusals.notVoted);
+    await w.against(CAT, offerId);
+    await w.against(DAN, offerId);
+    await w.takeBack(DAN, offerId);
+    await expectRefused(w.takeBack(ANN, offerId), reviewRefusals.notYourVote);
+    await w.reviewEnds(offerId);
+
+    expect(await squadOf(w.annsTeam)).toContain(SAKA);
+    await expectRefused(w.takeBack(CAT, offerId), reviewRefusals.notInReview);
+  });
+
+  test("a vote taken back can be cast again", async () => {
+    const offerId = await annTradesForSaka();
+    await w.against(CAT, offerId);
+    await w.takeBack(CAT, offerId);
+    await w.against(CAT, offerId);
+    await w.against(DAN, offerId);
+    await w.reviewEnds(offerId);
+
+    expect(await squadOf(w.bobsTeam)).toContain(SAKA);
+  });
+
   test("a manager on the auto team doesn't vote, and most is of those still playing (31 Oct 2026)", async () => {
     const offerId = await annTradesForSaka();
     await w.against(CAT, offerId);

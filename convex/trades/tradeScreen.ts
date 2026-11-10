@@ -1,13 +1,13 @@
 import { v, type Infer } from "convex/values";
 import type { Doc, Id } from "../_generated/dataModel";
-import { query } from "../_generated/server";
+import { query, type QueryCtx } from "../_generated/server";
 import { leagueDeadlines } from "../gameweeks/leagueDeadlines";
 import { nextDeadline } from "../gameweeks/deadline";
-import { positionsNow } from "../positions/playerPositions";
+import { positionsNow, type PositionsNow } from "../positions/playerPositions";
 import { positionRank } from "../positions/positionTables";
 import { latestRules } from "../rules/rulesHistory";
 import { managerOf, teamsOf } from "../shared/leagueAccess";
-import { clubsByCode } from "../shared/players";
+import { clubsByCode, type Clubs } from "../shared/players";
 import { closedOffer, closedOffersOf, type ClosedOffer } from "./closedOffers";
 import { shownPlayer, tradedPlayer, tradedShown, type TradedPlayer } from "./tradedPlayers";
 import { squadOf } from "../squads/squadPlace";
@@ -100,6 +100,30 @@ export const missingPlayerLog = (teamName: string, code: number) =>
 const byPositionThenName = (one: TradedPlayer, other: TradedPlayer) =>
   positionRank(one.position) - positionRank(other.position) ||
   one.name.localeCompare(other.name);
+
+/** An offer's players each way and its picks, as the screen shows them. */
+export async function termsShown(
+  ctx: QueryCtx,
+  offer: Doc<"tradeOffers">,
+  positionsOf: PositionsNow,
+  clubOf: Clubs,
+) {
+  const shown = (codes: readonly number[]) =>
+    Promise.all(
+      codes.map((code) => tradedShown(ctx, code, positionsOf, clubOf)),
+    );
+  return {
+    gives: await shown(offer.gives),
+    gets: await shown(offer.gets),
+    picks:
+      offer.picks === undefined
+        ? null
+        : {
+            gives: await pickName(ctx, offer.picks.gives),
+            gets: await pickName(ctx, offer.picks.gets),
+          },
+  };
+}
 
 /** Who reviews the offer under `review`, as the screen names them. */
 function reviewerNamed(
@@ -195,30 +219,13 @@ export const ofMyTeam = query({
           offer.review === undefined
             ? await reviewerOf(ctx, league, offer)
             : offer.review.reviewer;
-        const picks =
-          offer.picks === undefined
-            ? null
-            : {
-                gives: await pickName(ctx, offer.picks.gives),
-                gets: await pickName(ctx, offer.picks.gets),
-              };
         return {
           offerId: offer._id,
           fromTeamId: offer.fromTeamId,
           fromTeamName: nameOf(offer.fromTeamId),
           toTeamId: offer.toTeamId,
           toTeamName: nameOf(offer.toTeamId),
-          gives: await Promise.all(
-            offer.gives.map((code) =>
-              tradedShown(ctx, code, positionsOf, clubOf),
-            ),
-          ),
-          gets: await Promise.all(
-            offer.gets.map((code) =>
-              tradedShown(ctx, code, positionsOf, clubOf),
-            ),
-          ),
-          picks,
+          ...(await termsShown(ctx, offer, positionsOf, clubOf)),
           note: offer.note ?? null,
           madeAt: offer.madeAt,
           closes:

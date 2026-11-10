@@ -18,13 +18,12 @@ import {
 import { tradeRulesOf } from "../rules/firstRules";
 import { latestRules } from "../rules/rulesHistory";
 import { managerOf, memberOf, refuse, teamsOf } from "../shared/leagueAccess";
-import { placeOf, squadOf } from "../squads/squadPlace";
-import { limitsBroken } from "../squads/squads";
-import { newlyBroken } from "../waivers/waiverRun";
+import { placeOf } from "../squads/squadPlace";
 import { closeOffersHolding, endOffer, leagueOf, managersOf, tradedName, tradeWordsOf } from "./tradeClose";
 import { REVIEW_MS } from "./tradeLimits";
 import { movePicks } from "./tradePicks";
 import { onAutoTeam } from "./tradeShut";
+import { squadFullRefusal, squadsAfter, tradeWarnings } from "./tradeSquads";
 
 // A trade's review and its move (spec/08 Trades; #383). Accepted, a trade goes through at once in
 // a league with no review. Under a commissioner veto, the commissioner has 24 hours to block it;
@@ -42,39 +41,12 @@ export const reviewRefusals = {
   notYourBlock: "Only the person reviewing that trade can block it.",
   notYourVote: "Only the managers of the other teams still playing can vote on that trade.",
   votedAlready: "You have voted against that trade already.",
-  squadFull: `A team holds at most ${MOST_IN_SQUAD} players.`,
+  notVoted: "You haven't voted against that trade.",
+  squadFull: squadFullRefusal,
 };
 
-/** Each team's squad as it would be once the trade is made, by code. */
-async function squadsAfter(ctx: QueryCtx, offer: Pick<Doc<"tradeOffers">, "fromTeamId" | "toTeamId" | "gives" | "gets">) {
-  const after = async (teamId: Id<"teams">, out: readonly number[], into: readonly number[]) => [
-    ...(await squadOf(ctx, teamId)).map((row) => row.playerCode).filter((code) => !out.includes(code)),
-    ...into,
-  ];
-  return [
-    { teamId: offer.fromTeamId, codes: await after(offer.fromTeamId, offer.gives, offer.gets) },
-    { teamId: offer.toTeamId, codes: await after(offer.toTeamId, offer.gets, offer.gives) },
-  ];
-}
-
-/** The league's squad limits each team's squad would be pushed past once the trade is made, broken
- *  newly or further, which warn but don't stop it (spec/08, as an assignment's, spec/15). Refused
- *  past the platform's most in a squad. */
-export async function tradeWarnings(ctx: QueryCtx, leagueId: Id<"leagues">, offer: Parameters<typeof squadsAfter>[1]) {
-  const squad = (await latestRules(ctx, leagueId)).squad;
-  return Promise.all(
-    (await squadsAfter(ctx, offer)).map(async ({ teamId, codes }) => {
-      if (codes.length > MOST_IN_SQUAD) refuse(reviewRefusals.squadFull);
-      const team = await ctx.db.get("teams", teamId);
-      const now = (await squadOf(ctx, teamId)).map((row) => row.playerCode);
-      const [before, after] = await Promise.all([limitsBroken(ctx, leagueId, now, squad), limitsBroken(ctx, leagueId, codes, squad)]);
-      return { teamId, teamName: team?.name ?? "", warnings: newlyBroken(before, after) };
-    }),
-  );
-}
-
 /** The managers who vote on a trade: those of the other teams, but not one on the auto team. */
-async function votersOn(ctx: QueryCtx, offer: Doc<"tradeOffers">): Promise<string[]> {
+export async function votersOn(ctx: QueryCtx, offer: Doc<"tradeOffers">): Promise<string[]> {
   return (await teamsOf(ctx, offer.leagueId)).flatMap((team) =>
     team._id === offer.fromTeamId || team._id === offer.toTeamId || onAutoTeam(team) || team.managerEmail === undefined ? [] : [team.managerEmail],
   );
@@ -221,17 +193,38 @@ export const block = mutation({
   },
 });
 
+/** The caller, the trade's Against votes and a way to set them, if the caller may vote on it. */
+async function voteOf(ctx: MutationCtx, leagueId: Id<"leagues">, offerId: Id<"tradeOffers">) {
+  const { email } = await managerOf(ctx, leagueId);
+  const offer = await inReview(ctx, leagueId, offerId);
+  const { reviewer } = offer.review;
+  if (reviewer.kind !== "vote" || !(await votersOn(ctx, offer)).includes(email)) refuse(reviewRefusals.notYourVote);
+  const setAgainst = (against: string[]) =>
+    ctx.db.patch("tradeOffers", offer._id, { review: { ...offer.review, reviewer: { ...reviewer, against } } });
+  return { email, against: reviewer.against, setAgainst };
+}
+
 /** Under a vote, a manager of another team still playing votes against the trade. */
 export const against = mutation({
   args: { leagueId: v.id("leagues"), offerId: v.id("tradeOffers") },
   returns: v.null(),
   handler: async (ctx, { leagueId, offerId }) => {
-    const { email } = await managerOf(ctx, leagueId);
-    const offer = await inReview(ctx, leagueId, offerId);
-    const { reviewer } = offer.review;
-    if (reviewer.kind !== "vote" || !(await votersOn(ctx, offer)).includes(email)) refuse(reviewRefusals.notYourVote);
-    if (reviewer.against.includes(email)) refuse(reviewRefusals.votedAlready);
-    await ctx.db.patch("tradeOffers", offer._id, { review: { ...offer.review, reviewer: { ...reviewer, against: [...reviewer.against, email] } } });
+    const { email, against, setAgainst } = await voteOf(ctx, leagueId, offerId);
+    if (against.includes(email)) refuse(reviewRefusals.votedAlready);
+    await setAgainst([...against, email]);
+    return null;
+  },
+});
+
+/** Under a vote, a manager takes his Against back until the review's 24 hours are up, in case of a
+ *  typo (Craig, 10 Nov 2026, on #383). Once they are, the trade is no longer in review. */
+export const takeBack = mutation({
+  args: { leagueId: v.id("leagues"), offerId: v.id("tradeOffers") },
+  returns: v.null(),
+  handler: async (ctx, { leagueId, offerId }) => {
+    const { email, against, setAgainst } = await voteOf(ctx, leagueId, offerId);
+    if (!against.includes(email)) refuse(reviewRefusals.notVoted);
+    await setAgainst(against.filter((each) => each !== email));
     return null;
   },
 });
