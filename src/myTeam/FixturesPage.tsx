@@ -179,7 +179,7 @@ function Opponent({ against, table, leagueId }: { against: Game["against"]; tabl
       const teamId = table?.table.find((row) => row.teamName === against.teamName)?.teamId;
       if (teamId === undefined) return against.teamName;
       return (
-        <Link to={otherTeamPath(leagueId, teamId)} className="inline-flex min-h-tap items-center lg:min-h-0">
+        <Link to={otherTeamPath(leagueId, teamId)} className="inline-flex min-h-tap min-w-tap items-center lg:min-h-0 lg:min-w-0">
           {against.teamName}
         </Link>
       );
