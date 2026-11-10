@@ -23247,6 +23247,52 @@
       }
     },
     {
+      "tableName": "roundStarts",
+      "indexes": [
+        {
+          "indexDescriptor": "by_season_and_round",
+          "fields": [
+            "season",
+            "round"
+          ]
+        }
+      ],
+      "stagedDbIndexes": [],
+      "searchIndexes": [],
+      "stagedSearchIndexes": [],
+      "vectorIndexes": [],
+      "stagedVectorIndexes": [],
+      "documentType": {
+        "type": "object",
+        "value": {
+          "season": {
+            "fieldType": {
+              "type": "number"
+            },
+            "optional": false
+          },
+          "round": {
+            "fieldType": {
+              "type": "number"
+            },
+            "optional": false
+          },
+          "firstKickoff": {
+            "fieldType": {
+              "type": "number"
+            },
+            "optional": false
+          },
+          "recordedAt": {
+            "fieldType": {
+              "type": "number"
+            },
+            "optional": false
+          }
+        }
+      }
+    },
+    {
       "tableName": "deadlineAlarms",
       "indexes": [],
       "stagedDbIndexes": [],

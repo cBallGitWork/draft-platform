@@ -62,17 +62,22 @@ describe("the alarm at the next deadline", () => {
     expect((await rows()).map((row) => row.scheduledId)).toEqual([alarm._id]);
   });
 
-  test("a kickoff moved an hour earlier cancels the alarm set for the old deadline: one is left pending, at the new one", async () => {
+  // Moved earlier, an opener leaves for the gameweek before: its window keeps its first scheduled
+  // start (#1416). Moved later, it stays, and the deadline follows the first kickoff as it stands.
+  test("a gameweek's opener moved an hour later cancels the alarm set for the old deadline: one is left pending, at the new one", async () => {
     const stale = soonestToCome();
     expect(await pendingAlarms()).toEqual([stale]);
     const moved = recordedSeason();
     const opener = moved.fixtures.find((fixture) => fixture.kickoff_time !== null && deadlineBefore(Date.parse(fixture.kickoff_time)) === stale)!;
-    opener.kickoff_time = new Date(Date.parse(opener.kickoff_time!) - HOUR_MS).toISOString();
-    expect(stale - HOUR_MS).toBeGreaterThan(Date.now());
+    opener.kickoff_time = new Date(Date.parse(opener.kickoff_time!) + HOUR_MS).toISOString();
+    const firstKickoff = Math.min(
+      ...moved.fixtures.flatMap((fixture) => (fixture.event === opener.event && fixture.kickoff_time !== null ? [Date.parse(fixture.kickoff_time)] : [])),
+    );
+    expect(deadlineBefore(firstKickoff)).toBeGreaterThan(stale);
 
     await syncWith(t, moved);
 
-    expect(await pendingAlarms()).toEqual([stale - HOUR_MS]);
+    expect(await pendingAlarms()).toEqual([deadlineBefore(firstKickoff)]);
   });
 
   test("once no deadline is to come, no alarm is left pending", async () => {
