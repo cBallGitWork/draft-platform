@@ -102,6 +102,7 @@ beforeEach(async () => {
       "match/matchPage:ofMatch": () => caller.query(api.match.matchPage.ofMatch, { leagueId, now, fixtureCode: SOME_CODE }),
       "matchup/matchup:ofTeam": () => caller.query(api.matchup.matchup.ofTeam, { leagueId, now }),
       "playerCard/playerCard:card": () => caller.query(api.playerCard.playerCard.card, { leagueId, playerCode: SOME_CODE, now }),
+      "playerCard/positionRank:atPosition": () => caller.query(api.playerCard.positionRank.atPosition, { leagueId, playerCode: SOME_CODE, position: "CB" }),
       "positions/playerPositions:approveClub": () => caller.mutation(api.positions.playerPositions.approveClub, { clubCode: SOME_CODE }),
       "positions/playerPositions:approvePlayer": () => caller.mutation(api.positions.playerPositions.approvePlayer, { code: SOME_CODE }),
       "positions/playerPositions:find": () => caller.query(api.positions.playerPositions.find, { text: SOME_TEXT }),

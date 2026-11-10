@@ -15,6 +15,8 @@ export const livePlayerCard: PlayerCardSeam = {
   ...liveScouts,
   usePlayerCard: (leagueId, playerCode, now) => useQuery(api.playerCard.playerCard.card, { leagueId, playerCode, now }),
   useCardAction: (leagueId, playerCode) => useQuery(api.waivers.waivers.cardActionOn, { leagueId, playerCode }),
+  usePositionRank: (leagueId, playerCode, position) =>
+    useQuery(api.playerCard.positionRank.atPosition, position === null ? "skip" : { leagueId, playerCode, position }),
   useWaiverChanges: function useWaiverChanges() {
     const drop = useMutation(api.waivers.waivers.drop);
     const putIn = useMutation(api.waivers.waiverClaims.putIn);

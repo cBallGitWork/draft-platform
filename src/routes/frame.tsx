@@ -145,7 +145,7 @@ const matchRoute = createRoute({
 });
 
 // Trades (#383; docs/design/approved/trades): the Offers tab, and New offer, which a counter opens
-// filled with the offer it answers.
+// filled with the offer it answers, and a player card's Offer a trade with him asked for (#1027).
 const tradesRoute = leaguePage(TRADES_PATH, "trades", OffersPage);
 const newOfferRoute = createRoute({
   getParentRoute: () => frameRoute,
@@ -153,8 +153,10 @@ const newOfferRoute = createRoute({
   validateSearch: newOfferSearchOf,
   component: function NewOffer() {
     const { session, trades } = newOfferRoute.useRouteContext();
-    const { counter } = newOfferRoute.useSearch();
-    return <CurrentLeague session={session} page={(league) => <NewOfferPage league={league} seam={trades} counter={counter} />} />;
+    const { counter, team, player } = newOfferRoute.useSearch();
+    return (
+      <CurrentLeague session={session} page={(league) => <NewOfferPage league={league} seam={trades} counter={counter} asked={{ team, player }} />} />
+    );
   },
 });
 

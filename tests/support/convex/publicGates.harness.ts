@@ -142,6 +142,7 @@ export const gates: Record<string, Gate> = {
   "match/matchPage:ofMatch": "member",
   "matchup/matchup:ofTeam": "member",
   "playerCard/playerCard:card": "member",
+  "playerCard/positionRank:atPosition": "member",
   "positions/playerPositions:approveClub": "admin",
   "positions/playerPositions:approvePlayer": "admin",
   "positions/playerPositions:find": "admin",
