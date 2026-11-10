@@ -46,9 +46,9 @@ approved its rows (6 Nov 2026, #454).
   252 of FPL's 942 Premier League assists, "It's 30%" (Craig, 10 Nov 2026). The commentary's
   assist line and the match page's assist mark follow the same rule (Craig, 10 Nov 2026). `S07.11`
 - Sportmonks sends the last pass and penalties won, but not the rebound, free-kick or own-goal
-  kinds. We ask Sportmonks first whether a plan or add-on sends them; until then the last pass and
-  penalties won count. Adding them by hand isn't the answer: "I still have to check every goal"
-  (Craig, 10 Nov 2026). `S07.12`
+  kinds, and won't add them: "They won't do that" (Craig, 10 Nov 2026). Until another source is
+  settled, the last pass and penalties won count. Adding them by hand isn't the answer: "I still
+  have to check every goal" (Craig, 10 Nov 2026). `S07.12`
 - At the switch to Sportmonks (`spec/20`), the two answers above that name both feeds (`S07.1`'s
   "both feeds" and `S07.5`'s split) are withdrawn: one feed sends every stat, so a match stops
   being provisional once it has sent every player who played (Craig, 9 Nov 2026, on #1196). `S07.10`
