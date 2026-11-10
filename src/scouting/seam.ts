@@ -5,13 +5,15 @@ import type { Id } from "../../convex/_generated/dataModel";
 import type { Comparison } from "../../convex/scouting/compare";
 import type { Per90Panel } from "../../convex/scouting/per90";
 import type { PlayersFilters, PlayersList, PlayersSort } from "../../convex/scouting/playersList";
+import type { StatRace } from "../../convex/scouting/statRace";
 import type { YourPlayer } from "../../convex/scouting/yourPlayer";
 import type { ClaimsSeam } from "../myTeam/claims/seam";
 import type { PlayerCardSeam } from "../playerCard/seam";
 import type { ScoutsSeam } from "./scouts/seam";
 import type { QueueFromShortlist, ShortlistSeam } from "./shortlist/seam";
 
-export type { Comparison, Per90Panel, PlayersFilters, PlayersList, PlayersSort, YourPlayer };
+export type { Comparison, Per90Panel, PlayersFilters, PlayersList, PlayersSort, StatRace, YourPlayer };
+export type { RacingTeam } from "../../convex/scouting/statRace";
 export type { ComparedPlayer } from "../../convex/scouting/compare";
 export type { Availability, ListedPlayer, SortColumn } from "../../convex/scouting/playersList";
 
@@ -38,4 +40,8 @@ export type ScoutingSeam = ShortlistSeam & QueueFromShortlist & ScoutsSeam & Wai
    *  club filter and the site set's own stats for the stat box, live (a hook):
    *  undefined while they load. */
   usePlayersList(leagueId: Id<"leagues">, filters: PlayersFilters, sort: PlayersSort, stat: string | null): PlayersList | undefined;
+  /** The stat race (#800): every team's season totals, most of `stat` (a catalogue key) first, the
+   *  scoring categories and where a mid-season league's totals start, live (a hook): undefined
+   *  while it loads. */
+  useStatRace(leagueId: Id<"leagues">, stat: string): StatRace | undefined;
 };

@@ -27,4 +27,5 @@ export const liveScouting: ScoutingSeam = {
   useYourPlayer: (leagueId, playerCode, now) => useQuery(api.scouting.yourPlayer.at, { leagueId, playerCode, now }),
   usePer90: (leagueId, playerCode, stat) => useQuery(api.scouting.per90.figures, { leagueId, playerCode, stat }),
   usePlayersList: (leagueId, filters, sort, stat) => useQuery(api.scouting.playersList.list, { leagueId, filters, sort, stat }),
+  useStatRace: (leagueId, stat) => useQuery(api.scouting.statRace.teams, { leagueId, stat, descending: true }),
 };

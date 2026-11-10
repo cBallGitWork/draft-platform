@@ -17,6 +17,26 @@ export const SCOUTING_TABS = ["players", "statRace"] as const;
 export type ScoutingTab = (typeof SCOUTING_TABS)[number];
 export const scoutingTabWords: Record<ScoutingTab, string> = { players: PLAYERS_TITLE, statRace: "Stat race" };
 export const scoutingTabsLabel = "Scouting's views";
+
+/** The stat race (#800, spec/19 The stat race; the approved picture). */
+export const STAT_RACE_TITLE = scoutingTabWords.statRace;
+export const rankByLabel = "Rank by";
+export const countsWhatCountedWords = "Counts what counted: each team's starters, and bench players only in matches they came on.";
+/** Where a league drafted mid-season's totals start (Craig, 6 Nov 2026, on #800). */
+export const sinceWords = (gameweek: number) => `Since GW${gameweek}`;
+export const raceLoadingWords = "Loading the stat race…";
+export const raceColumns = {
+  rank: { short: "#", long: "Rank" },
+  team: { short: "Team", long: "Team" },
+} as const;
+/** The chosen team's panel: every category, with its total and its rank. */
+export const everyCategoryWords = "every category";
+export const categoryColumns = {
+  category: { short: "Category", long: "Category" },
+  total: { short: "Total", long: "Season total" },
+  rank: { short: "Rank", long: "Rank in the league" },
+} as const;
+export const rankWords = (rank: number, teams: number) => `${rank} of ${teams}`;
 export const loadingWords = "Loading the players…";
 
 /** The name box over the list (the approved picture). */

@@ -12,6 +12,7 @@ import { SelectedPlayer } from "./SelectedPlayer";
 import type { ListedPlayer, PlayersFilters, ScoutingSeam } from "./seam";
 import { OpenReport, ScoutsPanel, type TeamReport } from "./scouts/ScoutsPanel";
 import { ShortlistPanel } from "./shortlist/ShortlistPanel";
+import { StatRaceTab } from "./statRace/StatRaceTab";
 import { loadingWords, noneMatchWords, PLAYERS_TITLE, SCOUTING_TABS, SCOUTING_TITLE, scoutingTabsLabel, scoutingTabWords, type ScoutingTab } from "./words";
 
 /** The list opens on free agents (the approved picture's README: "The list opens on free agents"). */
@@ -30,14 +31,13 @@ const FIRST_DESCENDING: Record<ListSortColumn, boolean> = {
 };
 
 /** Scouting (spec/19), for anyone in the league, under Players and Stat race tabs on its title
- *  plate (the approved picture). The Stat race tab is #800's build: until it lands, it shows the
- *  plate alone. */
+ *  plate (the approved picture): the players, or every team's season totals in the stat race. */
 export function ScoutingPage({ league, seam }: { league: LeagueSummary; seam: ScoutingSeam }) {
   const [tab, choose] = useState<ScoutingTab>("players");
   const tabs = <PlateTabs label={scoutingTabsLabel} tabs={SCOUTING_TABS} words={scoutingTabWords} chosen={tab} choose={choose} />;
   return (
     <PageSection title={SCOUTING_TITLE} aside={tabs} className={PAGE_STACK}>
-      {tab === "players" && <PlayersTab league={league} seam={seam} />}
+      {tab === "players" ? <PlayersTab league={league} seam={seam} /> : <StatRaceTab league={league} seam={seam} />}
     </PageSection>
   );
 }
