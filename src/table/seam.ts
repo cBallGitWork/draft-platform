@@ -9,9 +9,8 @@ import type { Change } from "../shared/refusal";
 export type { LeagueTable };
 
 export type TableSeam = {
-  /** The league's fixtures and table, live (a hook): undefined while they load, null for a league
-   *  made before rules were held. */
-  useLeagueTable(leagueId: Id<"leagues">): LeagueTable | null | undefined;
+  /** The league's fixtures and table, live (a hook): undefined while they load. */
+  useLeagueTable(leagueId: Id<"leagues">): LeagueTable | undefined;
 };
 
 /** A side of a game: a team, or the league's average. */

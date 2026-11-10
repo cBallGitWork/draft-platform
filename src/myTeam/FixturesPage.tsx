@@ -14,7 +14,6 @@ import {
   leagueAverageWords,
   noFigureWords,
   noFixturesWords,
-  noRulesWords,
   noTeamWords,
   provisionalWords,
   totalPointsWords,
@@ -41,7 +40,6 @@ export function FixturesPage({ league, seam }: { league: LeagueSummary; seam: My
 function TeamFixturesBody({ league, seam }: { league: LeagueSummary; seam: MyTeamSeam }) {
   const fixtures = seam.useTeamFixtures(league.leagueId);
   if (fixtures === undefined) return <Loading className="px-3 py-2">{fixturesLoadingWords}</Loading>;
-  if (fixtures === null) return <PanelNote>{noRulesWords}</PanelNote>;
   if (fixtures.format === "totalPoints") return <PanelNote>{totalPointsWords}</PanelNote>;
   if (fixtures.games.length === 0) return <PanelNote>{noFixturesWords}</PanelNote>;
   const live = fixtures.games.some((game) => game.score?.provisional);

@@ -2,7 +2,7 @@ import type { LeagueSummary } from "../../convex/leagues/myLeagues";
 import { AREAS, type Area } from "../../convex/lineup/pitch";
 import type { LeagueSettings } from "../../convex/rules/leagueSettingsPart";
 import { ODD_TEAM_OUTS } from "../../convex/table/roundRobin";
-import { Loading, PANEL_BODY, PageSection, Panel, PanelNote } from "../ui/Panel";
+import { Loading, PANEL_BODY, PageSection, Panel } from "../ui/Panel";
 import { LeagueHeading } from "../leagues/LeagueLinks";
 import { Choice } from "../ui/Choice";
 import { useRulesEdits } from "../rules/rulesEdits";
@@ -38,7 +38,6 @@ import {
   gamesHint,
   gamesLabel,
   loadingWords,
-  noRulesWords,
   noSquadSizeWords,
   oddTeamOutLabel,
   oddTeamOutWords,
@@ -73,8 +72,6 @@ export function SettingsPage({ league, seam }: { league: LeagueSummary; seam: Le
       </PageSection>
       {view === undefined ? (
         <Loading>{loadingWords}</Loading>
-      ) : view === null ? (
-        <PanelNote>{noRulesWords}</PanelNote>
       ) : (
         <Editor league={league} seam={seam} view={view} />
       )}

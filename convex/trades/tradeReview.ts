@@ -61,7 +61,7 @@ async function squadsAfter(ctx: QueryCtx, offer: Pick<Doc<"tradeOffers">, "fromT
  *  newly or further, which warn but don't stop it (spec/08, as an assignment's, spec/15). Refused
  *  past the platform's most in a squad. */
 export async function tradeWarnings(ctx: QueryCtx, leagueId: Id<"leagues">, offer: Parameters<typeof squadsAfter>[1]) {
-  const squad = (await latestRules(ctx, leagueId))?.squad ?? null;
+  const squad = (await latestRules(ctx, leagueId)).squad;
   return Promise.all(
     (await squadsAfter(ctx, offer)).map(async ({ teamId, codes }) => {
       if (codes.length > MOST_IN_SQUAD) refuse(reviewRefusals.squadFull);
@@ -85,7 +85,7 @@ async function votersOn(ctx: QueryCtx, offer: Doc<"tradeOffers">): Promise<strin
  *  co-commissioner is in it too). */
 export async function reviewerOf(ctx: QueryCtx, league: Doc<"leagues">, offer: Doc<"tradeOffers">): Promise<ReviewWords | null> {
   const rules = await latestRules(ctx, league._id);
-  const review = rules === null ? "none" : tradeRulesOf(rules).review;
+  const { review } = tradeRulesOf(rules);
   if (review !== "veto") return review === "vote" ? { kind: "vote" } : null;
   const inIt = new Set(await managersOf(ctx, offer));
   const by = [league.commissionerEmail, league.coCommissionerEmail].find((email) => email !== undefined && !inIt.has(email));

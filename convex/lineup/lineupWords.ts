@@ -16,7 +16,6 @@ const isNot = (names: readonly string[]) => (names.length === 1 ? "isn't" : "are
 
 /** Why a lineup can't be saved, as the manager is told it. */
 export const lineupRefusals = {
-  noRules: "This league has no rules yet, so it has no deadline and no area limits to set a lineup under. It was made before leagues held their rules.",
   seasonOver: "Every gameweek this league plays has begun, so there's no gameweek left to set a lineup for.",
   unplayedGameweek: "Lineups are locked through a gameweek the league doesn't play, until its last match is over.",
   notInSquad: (names: readonly string[]) => `${andListWords(names)} ${isNot(names)} in your squad.`,

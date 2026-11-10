@@ -1,7 +1,7 @@
 import { v } from "convex/values";
 import { mutation, query } from "../_generated/server";
 import { refuse } from "../shared/leagueAccess";
-import { draftRulesOf, drawRulesOf, tradeRulesOf } from "./firstRules";
+import { draftRulesOf, tradeRulesOf } from "./firstRules";
 import { sortedJson } from "../shared/sortedJson";
 import { changeLatest, editorView, editorViewOf, revisionShape } from "./leagueRules";
 import type { LeagueRules } from "./leagueRulesShape";
@@ -35,17 +35,16 @@ export const changeSettings = mutation({
   handler: (ctx, { leagueId, settings, revision }) => changeLatest(ctx, leagueId, revision, (latest) => withLeagueSettings(latest, settings)),
 });
 
-/** The rules with these settings. A draw setting, the draft's or the trades', is written only if it differs
- *  from what the league plays by, so rules saved before it was a rule don't read as changing it.
+/** The rules with these settings. The draft's or the trades' is written only if it differs from
+ *  what the league plays by, so rules saved before it was a rule don't read as changing it.
  *  Refused if the settings would add or take away the squad size limit. */
 function withLeagueSettings(rules: LeagueRules, settings: LeagueSettings): LeagueRules {
-  const playedBy = drawRulesOf(rules);
   const { size } = rules.squad;
   if ((size === null) !== (settings.squadMaximum === null)) refuse(settingsRefusals.squadSizeFixed);
   return {
     ...rules,
-    ...(settings.oddTeamOut !== playedBy.oddTeamOut && { oddTeamOut: settings.oddTeamOut }),
-    ...(settings.gamesPerGameweek !== playedBy.gamesPerGameweek && { gamesPerGameweek: settings.gamesPerGameweek }),
+    oddTeamOut: settings.oddTeamOut,
+    gamesPerGameweek: settings.gamesPerGameweek,
     ...(sortedJson(settings.draft) !== sortedJson(draftRulesOf(rules)) && { draft: settings.draft }),
     ...(sortedJson(settings.trades) !== sortedJson(tradeRulesOf(rules)) && { trades: settings.trades }),
     waivers: settings.waivers,

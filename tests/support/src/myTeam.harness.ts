@@ -16,20 +16,20 @@ import type { ClaimChanges, PendingClaim, WaiversView } from "../../../src/myTea
 export const MY_TEAM_ID = idOf("Team 1");
 
 export type MyTeamData = TacticsData & {
-  fixtures?: TeamFixtures | null;
+  fixtures?: TeamFixtures;
   transactions?: TeamTransactions;
   squad?: TeamSquad;
   /** Another team's squad, read-only, whichever team is asked for. */
   otherSquad?: OtherSquad;
   /** The league's table and fixtures, which the header band reads; null for a league with no rules. */
-  leagueTable?: LeagueTable | null;
+  leagueTable?: LeagueTable;
   /** What setting a squad number answers: null once made, or the words why not. */
   numberAnswer?: string | null;
   /** The newest letters for the Squad tab's Mail widget, and the unread count. */
   mail?: LatestMail;
   /** The pending claims the caller sees, and the league's waiver order, runs and window (#1200). */
   claims?: PendingClaim[];
-  waivers?: WaiversView | null;
+  waivers?: WaiversView;
   /** What each change to a claim answers: null once made, or the words why not. */
   claimAnswer?: string | null;
   /** The team's auto team: off by default. */
@@ -49,7 +49,7 @@ export function fakeMyTeam({
   otherSquad = { teamName: "Team 2", players: [] },
   numberAnswer = null,
   mail = { letters: [], unread: 0 },
-  leagueTable = null,
+  leagueTable = undefined,
   claims = [],
   waivers = NO_WAIVERS,
   claimAnswer = null,

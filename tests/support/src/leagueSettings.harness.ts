@@ -20,15 +20,14 @@ export const TEAMS_IN_ORDER: TeamInOrder[] = ["Saka Potatoes", "Kroos Control", 
   name,
 }));
 
-/** What the fake server holds: the settings as `view` says, the first rules' by default; null for
- *  a league with no rules; `loading` keeps them on their way (undefined). `teamOrder` is the
- *  draft order, TEAMS_IN_ORDER by default; `draftStarted` fixes it. */
+/** What the fake server holds: the settings as `view` says, the first rules' by default; `loading`
+ *  keeps them on their way (undefined). `teamOrder` is the draft order, TEAMS_IN_ORDER by default; `draftStarted` fixes it. */
 export type LeagueSettingsData = {
-  view?: SettingsView | null;
+  view?: SettingsView;
   loading?: boolean;
   teamOrder?: TeamInOrder[];
   draftStarted?: boolean;
-  waivers?: WaiversView | null;
+  waivers?: WaiversView;
   /** The scoring start and the ticked gameweeks: none set and none ticked unless a test says. */
   scoringStart?: ScoringStartView;
 };

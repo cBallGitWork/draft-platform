@@ -7,7 +7,6 @@ import { fewestTeamsWords } from "../shared/words";
 import type { TeamTransactions } from "./seam";
 
 export { figureWords, liveWords, noFigureWords, noTeamWords, shortThenLongName, versusWords, whenWords } from "../shared/words";
-export const noRulesWords = "This league was made before leagues had rules, so it has no fixtures to draw.";
 
 // What the Squad and Tactics tabs' tables and panels both say (#1042).
 

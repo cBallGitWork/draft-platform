@@ -262,11 +262,4 @@ describe("a lineup refused, with the reason", () => {
     });
     await expectRefused((await as(ANN)).save(FOUR_FOUR_TWO), "The league starts at least 3 in Attack; this lineup starts 2 there.");
   });
-
-  test("a league with no rules, made before leagues held them", async () => {
-    await t.run(async (ctx) => {
-      for (const row of await ctx.db.query("leagueRules").collect()) await ctx.db.delete("leagueRules", row._id);
-    });
-    await expectRefused((await as(ANN)).save(FOUR_FOUR_TWO), lineupRefusals.noRules);
-  });
 });

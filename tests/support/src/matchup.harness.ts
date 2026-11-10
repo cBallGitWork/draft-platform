@@ -40,7 +40,7 @@ export function liveMatchup(first: Matchup | undefined) {
 /** What the fake server holds: the matchup, null for a league with no rules, nothing yet while it
  *  loads, or a `live` one the test moves on. A league in total points by default. And what it says
  *  to a team override or its removal: null when it makes it. */
-export type MatchupData = { matchup?: Matchup | null; loading?: boolean; live?: ReturnType<typeof liveMatchup>; overrideRefusal?: string | null };
+export type MatchupData = { matchup?: Matchup; loading?: boolean; live?: ReturnType<typeof liveMatchup>; overrideRefusal?: string | null };
 
 export function fakeMatchup({ matchup = { kind: "totalPoints" }, loading = false, live, overrideRefusal = null }: MatchupData = {}) {
   const overrideTeam = vi.fn<ReturnType<MatchupSeam["useOverrideTeam"]>>(() => Promise.resolve(overrideRefusal));

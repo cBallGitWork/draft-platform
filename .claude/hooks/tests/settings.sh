@@ -12,6 +12,7 @@ wiring=(  # event|matcher|script, the matcher empty where the entry has none
   'PreToolUse|SendMessage|mcp__ccd_session__.*|mcp__ccd_session_mgmt__send_message|guard_sessions.py'
   'UserPromptSubmit||last_prompt.py'
   'PostToolUse|Write|Edit|line_ceiling.py'
+  'PostToolUse|AskUserQuestion|guard_ask.py'
   'UserPromptSubmit||context_size.py'
 )
 

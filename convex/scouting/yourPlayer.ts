@@ -47,7 +47,7 @@ export const at = query({
     const { team } = await memberOf(ctx, leagueId);
     if (team === undefined) return null;
     const { held } = await heldOrNot(ctx, await squadOf(ctx, team._id));
-    const maximum = (await latestRules(ctx, leagueId))?.squad.size?.maximum ?? MOST_IN_SQUAD;
+    const maximum = (await latestRules(ctx, leagueId)).squad.size?.maximum ?? MOST_IN_SQUAD;
     const squadFull = held.length >= maximum;
     const positionsOf = await positionsNow(ctx, leagueId);
     const main = cardOpensAt(await positionsOf(playerCode));

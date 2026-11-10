@@ -10,6 +10,6 @@ export const UNDRAFTED_GO_TO = ["waivers", "freeAgents"] as const;
 export type UndraftedGoTo = (typeof UNDRAFTED_GO_TO)[number];
 
 /** The draft's rounds under these rules: the squad's most players, or null with no squad size
- *  limit, or no rules (a league made before #25). draftStart.ts starts the draft with the latest
+ *  limit. draftStart.ts starts the draft with the latest
  *  rules', and a pick trade (../trades/tradePicks.ts) trades a pick in one of them. */
-export const roundsOf = (rules: LeagueRules | null): number | null => rules?.squad.size?.maximum ?? null;
+export const roundsOf = (rules: LeagueRules): number | null => rules.squad.size?.maximum ?? null;

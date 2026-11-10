@@ -41,11 +41,11 @@ describe("who may read it", () => {
     await expectRefused(read(OUTSIDER), refusals.notInLeague);
   });
 
-  test("a league made before rules were held has none to show", async () => {
+  test("a league with no rules fails loudly, never shows an empty home (#147)", async () => {
     await t.run(async (ctx) => {
       for (const row of await ctx.db.query("leagueRules").collect()) await ctx.db.delete("leagueRules", row._id);
     });
-    expect(await read()).toBeNull();
+    await expect(read()).rejects.toThrow("has no rules");
   });
 });
 

@@ -84,6 +84,20 @@ describe("a past season's rows", () => {
     expect(row?.match?.stats.minutes).toBe(20);
   });
 
+  test("a feed that leaves its 0s out gives 0 for a missing stat where it covered the match, and nothing where it didn't", () => {
+    const row = SAMPLE_LOG.find((each) => each.person_root_id === "keeper-one")!;
+    const covered = statsIn({ ...row, sofascore_minutes: 90, fotmob_minutes: 90, sofascore_won_tackle: 3 });
+    expect(covered).toMatchObject({ won_tackle: 3, big_chance_missed: 0, total_tackle: 0, won_contest: 0 });
+    const uncovered = statsIn({ ...row, sofascore_minutes: null, fotmob_minutes: null });
+    expect(uncovered).not.toHaveProperty("won_tackle");
+    expect(uncovered).not.toHaveProperty("won_contest");
+  });
+
+  test("an FPL stat stays absent when missing, even where FPL gave minutes", () => {
+    const row = SAMPLE_LOG.find((each) => each.person_root_id === "keeper-one")!;
+    expect(statsIn({ ...row, sofascore_minutes: 90, fpl_defensive_contribution: null })).not.toHaveProperty("defensive_contribution");
+  });
+
   test("a start the log gives no position for is kept as null", () => {
     const row = sampleRows().find((each) => each.playerCode === 100004 && each.match?.kickoff === KICKOFF_A);
     expect(row?.match?.startingPosition).toBeNull();
@@ -161,8 +175,23 @@ describe("the copy stops, naming him, rather than guess", () => {
   });
 
   test("an FPL player in none of FPL's four positions", () => {
-    expect(() => fplPositionsByCode({ elements: [{ code: 1, element_type: 5 }] })).toThrow("FPL player 1 has position 5");
+    expect(() => fplPositionsByCode({ elements: [{ code: 1, element_type: 6 }] })).toThrow("FPL player 1 has position 6");
   });
+});
+
+test("an older season's FPL list, its players alone with no bootstrap around them, gives the same positions", () => {
+  expect(fplPositionsByCode((SAMPLE_BOOTSTRAP as { elements: unknown[] }).elements)).toEqual(positions);
+});
+
+test("2024/25's managers in FPL's list are no players, so they get no position", () => {
+  expect(fplPositionsByCode([{ code: 1, element_type: 5 }, { code: 2, element_type: 2 }])).toEqual(new Map([[2, 2]]));
+});
+
+test("a man only on the bench who isn't in the season's FPL list is left out, and the rest is kept", () => {
+  const benchOnly = SAMPLE_LOG.filter((row) => row.competition === "premier_league" && !playedIn(row)).map((row) => ({ ...row, person_root_id: "keeper-one" }));
+  expect(benchOnly.length).toBeGreaterThan(0);
+  const withoutKeeper = new Map([...positions].filter(([code]) => code !== 100001));
+  expect(pastSeasonRows(SAMPLE_SEASON, benchOnly, codes, withoutKeeper)).toEqual([]);
 });
 
 test("a kickoff the log gives with no zone is read as UTC", () => {

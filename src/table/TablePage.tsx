@@ -19,7 +19,6 @@ import {
   figureWords,
   loadingWords,
   noResultsWords,
-  noRulesWords,
   provisionalWords,
   TABLE_PAGE_TITLE,
   TABLE_TITLE,
@@ -59,8 +58,6 @@ export function TablePage({ league, seam }: { league: LeagueSummary; seam: Table
     <PageSection title={totalPoints ? TOTAL_POINTS_PAGE_TITLE : TABLE_PAGE_TITLE} aside={tabs} className={PAGE_STACK}>
       {leagueTable === undefined ? (
         <Loading>{loadingWords}</Loading>
-      ) : leagueTable === null ? (
-        <p className="text-muted">{noRulesWords}</p>
       ) : (
         <div className={totalPoints ? PANEL_COLUMNS : "grid items-start gap-2 lg:grid-cols-table"}>
           {totalPoints || competition === "league" ? <StandingsPanel leagueTable={leagueTable} mine={league.teamName} /> : <CupBracket />}

@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, test } from "vitest";
 import { api } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
 import { refusals } from "../../../convex/shared/leagueAccess";
-import { changeRules, giveDeadlineRule, holdGameweeks, KICKS_OFF_IN, moveFplDeadline, rulesWith, savedBeforeTheyWereRules } from "../../support/convex/leagueRules.harness";
+import { changeRules, giveDeadlineRule, holdGameweeks, KICKS_OFF_IN, moveFplDeadline, rulesWith } from "../../support/convex/leagueRules.harness";
 import { expectRefused } from "../../support/convex/test.harness";
 import { MINUTE_MS, WEEK_MS } from "../../../convex/shared/time";
 import { ADMIN, actingAs, addManagers, adminCreatesLeague, COMMISSIONER, MANAGERS, OUTSIDER, type TestConvex } from "../../support/convex/leagues.harness";
@@ -50,14 +50,6 @@ describe("the fixtures", () => {
     const [first] = league!.gameweeks;
     expect(first.fixtures.map((fixture) => fixture.opponent === null)).toEqual([false, true]);
     expect(first.byes).toEqual([]);
-  });
-
-  test("rules saved before the odd team out and games a gameweek were rules are drawn by the first rules' values (#147)", async () => {
-    await addManagers(t, leagueId, [ANN, BOB, CAT]);
-    const asFirstRules = await read();
-    await savedBeforeTheyWereRules(t, leagueId);
-
-    expect(await read()).toEqual(asFirstRules);
   });
 
   test("with byes, the team left over plays nobody", async () => {
@@ -186,12 +178,12 @@ test("the table marks a team on the auto team, switched on by a person or with n
   expect([marked.get(annTeam), marked.get(bobTeam), marked.get(catTeam)]).toEqual([true, false, true]);
 });
 
-test("a league made before rules were held has no fixtures or table to draw", async () => {
+test("a league with no rules fails loudly, never draws an empty table (#147)", async () => {
   await addManagers(t, leagueId, [ANN, BOB]);
   await t.run(async (ctx) => {
     for await (const row of ctx.db.query("leagueRules")) await ctx.db.delete("leagueRules", row._id);
   });
-  expect(await read()).toBeNull();
+  await expect(read()).rejects.toThrow("has no rules");
 });
 
 test("before any gameweek begins, each fixture has its teams and no points, and nothing is scored or unscored", async () => {

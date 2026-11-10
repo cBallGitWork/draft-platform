@@ -43,7 +43,7 @@ type TeamId = Id<"teams">;
 type Game = Infer<typeof game>;
 type Opponent = Exclude<Against<TeamId>, { kind: typeof BYE }>;
 
-/** One team's head-to-head in a gameweek, or null for a league made before rules were held (#25).
+/** One team's head-to-head in a gameweek.
  *  The team is the caller's own unless one is named; the gameweek is the latest begun, or before
  *  any, the first, unless one is named; the game, in a league playing more than one a gameweek, is
  *  its number among the team's that gameweek as drawn, the first unless one is named or when the
@@ -56,11 +56,10 @@ export const ofTeam = query({
     gameweek: v.optional(v.number()),
     game: v.optional(v.number()),
   },
-  returns: v.union(matchup, v.null()),
+  returns: matchup,
   handler: async (ctx, { leagueId, now, teamId, gameweek: asked, game: askedGame }) => {
     const { league, team: own } = await memberOf(ctx, leagueId);
     const season = await seasonRules(ctx, leagueId);
-    if (season === null) return null;
     if (season.latest.format === "totalPoints") return { kind: "totalPoints" as const };
     const team = teamId === undefined ? own : await teamIn(ctx, leagueId, teamId);
     if (team === undefined) return { kind: "noTeam" as const };

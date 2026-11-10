@@ -198,7 +198,7 @@ export const pending = query({
     const codes = [...new Set(claims.flatMap(({ claim }) => (claim.dropCode === null ? [claim.playerCode] : [claim.playerCode, claim.dropCode])))];
     const positionsOf = await positionsNow(ctx, leagueId);
     const seasonPointsOf = await seasonPointsIn(ctx, leagueId, codes);
-    const runs = (await latestRules(ctx, leagueId))?.waivers.runs ?? [];
+    const runs = (await latestRules(ctx, leagueId)).waivers.runs;
     const described = async (playerCode: number) => {
       const player = await heldPlayerByCode(ctx, playerCode, unheldClaimWords(playerCode));
       const positions = await positionsOf(playerCode);

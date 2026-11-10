@@ -59,7 +59,7 @@ export const save = mutation({
     if (!eleven || !cells.every(isOnPitch)) refuse(planRefusals.notEleven);
     const slots = cells.map((cell, index) => ({ ...cell, role: roleIn(cell, sent[index].role).key }));
     if (instructions !== undefined) {
-      const set = instructionsOf((await latestRules(ctx, leagueId)) ?? {});
+      const set = instructionsOf(await latestRules(ctx, leagueId));
       const refusal = pairRefusal(instructions, cells, set);
       if (refusal !== null) refuse(pairRefusalWords(refusal, set));
     }

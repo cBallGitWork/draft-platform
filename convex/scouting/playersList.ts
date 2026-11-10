@@ -184,7 +184,7 @@ async function ownersIn(ctx: QueryCtx, leagueId: Id<"leagues">): Promise<Map<num
 
 /** Each player on the league's waivers, by his code, with the run that can first take him. */
 async function onWaiversIn(ctx: QueryCtx, leagueId: Id<"leagues">): Promise<Map<number, { firstRunAt: number | null }>> {
-  const runs = (await latestRules(ctx, leagueId))?.waivers.runs ?? [];
+  const runs = (await latestRules(ctx, leagueId)).waivers.runs;
   const onWaivers = await takeAllOrThrow(
     ctx.db.query("waiverPlayers").withIndex("by_leagueId_and_playerCode", (q) => q.eq("leagueId", leagueId)),
     WAIVER_PLAYERS_READ_MOST,

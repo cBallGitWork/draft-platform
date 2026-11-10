@@ -11,8 +11,8 @@ import type { ClaimsSeam } from "../myTeam/claims/seam";
 export type SettingsView = RulesView<LeagueSettings>;
 
 export type LeagueSettingsSeam = {
-  /** Live (a hook): undefined while it loads, null for a league made before leagues held rules. */
-  useSettings(leagueId: Id<"leagues">): SettingsView | null | undefined;
+  /** Live (a hook): undefined while it loads. */
+  useSettings(leagueId: Id<"leagues">): SettingsView | undefined;
   /** Saves the settings, edited from the rules `revision` names: resolves with the gameweek they
    *  take effect from, or the words saying why not. It never rejects. */
   save(leagueId: Id<"leagues">, settings: LeagueSettings, revision: Revision): Promise<number | string>;

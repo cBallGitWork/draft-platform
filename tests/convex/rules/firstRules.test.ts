@@ -78,10 +78,7 @@ test.each(NO_DEFENSIVE_CONTRIBUTION)("the first scoring set gives nothing for de
   expect(scoreMatch({ minutes: 90, defensive_contribution: count }, FIRST_SCORING, centreOf(area)).total).toBe(2);
 });
 
-test("the team left over plays the league's average, one game a gameweek, in the first rules and in rules saved before those were rules", () => {
-  const firstDraw = { oddTeamOut: "leagueAverage", gamesPerGameweek: 1 };
-  expect(drawRulesOf(FIRST_RULES)).toEqual(firstDraw);
-  const { oddTeamOut: _odd, gamesPerGameweek: _games, ...savedBefore } = FIRST_RULES;
-  expect(drawRulesOf(savedBefore)).toEqual(firstDraw);
+test("the team left over plays the league's average, one game a gameweek, in the first rules", () => {
+  expect(drawRulesOf(FIRST_RULES)).toEqual({ oddTeamOut: "leagueAverage", gamesPerGameweek: 1 });
   expect(drawRulesOf({ ...FIRST_RULES, oddTeamOut: "bye", gamesPerGameweek: 2 })).toEqual({ oddTeamOut: "bye", gamesPerGameweek: 2 });
 });

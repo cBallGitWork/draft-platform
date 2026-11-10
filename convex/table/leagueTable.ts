@@ -107,15 +107,13 @@ export async function standingsOf(ctx: QueryCtx, league: Doc<"leagues">, season:
   return { rules, teamIds, schedule, results, unscored, scores, table, named, autoTeams };
 }
 
-/** The league's fixtures by gameweek and its table, or null for a league made before rules were
- *  held (#25), which has no format to draw them by. */
+/** The league's fixtures by gameweek and its table. */
 export const ofLeague = query({
   args: { leagueId: v.id("leagues") },
-  returns: v.union(leagueTable, v.null()),
+  returns: leagueTable,
   handler: async (ctx, { leagueId }) => {
     const { league } = await memberOf(ctx, leagueId);
     const season = await seasonRules(ctx, leagueId);
-    if (season === null) return null;
     const { rules, schedule, results, unscored, table, named, autoTeams } = await standingsOf(ctx, league, season);
     const deadlineIn = deadlineOf(await leagueDeadlines(ctx, leagueId));
     return leagueTableFrom({ format: rules.format, schedule, results, unscored, table, deadlineOf: deadlineIn, named, autoTeams });

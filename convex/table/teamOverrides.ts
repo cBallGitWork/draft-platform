@@ -74,7 +74,7 @@ interface OverriddenTeam {
 async function overridableTeam(ctx: MutationCtx, leagueId: Id<"leagues">, gameweek: number, teamId: Id<"teams">): Promise<OverriddenTeam> {
   const { email: by, league } = await runnerOf(ctx, leagueId);
   const team = await teamIn(ctx, leagueId, teamId);
-  const season = (await seasonRules(ctx, leagueId)) ?? refuse(overrideRefusals.noRules);
+  const season = await seasonRules(ctx, leagueId);
   if (!(await begunGameweeks(ctx, league)).includes(gameweek)) refuse(overrideRefusals.notBegun(gameweek));
   const reads = await leagueReads(ctx, league, season);
   const total = async () => (await (await workedOutGameweek(ctx, reads, gameweek, [teamId])).pointsOf(teamId)).points;

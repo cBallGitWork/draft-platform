@@ -49,15 +49,13 @@ export const teamFixtures = v.object({
 });
 export type TeamFixtures = Infer<typeof teamFixtures>;
 
-/** The caller's team's games in the league, or null for a league made before rules were held
- *  (#25), which has no format to draw them by. Refused for anyone who runs no team in it. */
+/** The caller's team's games in the league. Refused for anyone who runs no team in it. */
 export const ofMyTeam = query({
   args: { leagueId: v.id("leagues") },
-  returns: v.union(teamFixtures, v.null()),
+  returns: teamFixtures,
   handler: async (ctx, { leagueId }) => {
     const { league, team } = await managerOf(ctx, leagueId);
     const season = await seasonRules(ctx, leagueId);
-    if (season === null) return null;
     // As the table reads it: the format is the latest rules', the draw each gameweek's own.
     const { rules, schedule, results, unscored, named } = await standingsOf(ctx, league, season);
     const deadlineIn = deadlineOf(await leagueDeadlines(ctx, leagueId));
