@@ -47,7 +47,7 @@ export const scheduleTableLabel = (teamName: string) => `${teamName}'s schedule`
 export const scheduleGameweekWords = (gameweek: number) => ({ short: `GW${gameweek}`, long: `Gameweek ${gameweek}` });
 /** A blank week's cell: his club has no match in it. */
 export const blankWeekWords = "No match this gameweek";
-export const noScheduleWords = "No gameweek left to set: the season is over, or the league has no rules yet.";
+export const noScheduleWords = "No gameweek left to set: the season is over.";
 
 /** The Rules view (#1006): one row per limit, each naming the players it counts. */
 export const rulesTableLabel = (teamName: string) => `${teamName}'s squad against the league's limits`;
@@ -135,7 +135,7 @@ export const elevenAsideWords = "season pts";
 export const elevenPitchLabel = "Your eleven on the pitch, attack at the top, with season points";
 export const elevenPlayerLabel = (name: string, points: string) => `${name}, ${points} points this season`;
 export const elevenBenchLabel = "The bench, in order";
-export const noLineupWords = "No lineup to set: every gameweek has begun, or the league has no rules yet.";
+export const noLineupWords = "No lineup to set: every gameweek has begun.";
 export const setLineupWords = "Set lineup";
 
 /** The Mail widget: the newest letters, each opened in Mail. */

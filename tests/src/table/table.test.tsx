@@ -23,7 +23,6 @@ import {
   leagueAverageWords,
   loadingWords,
   noResultsWords,
-  noRulesWords,
   provisionalWords,
   scoreWords,
   unscoredWords,
@@ -69,11 +68,6 @@ describe("reaching it", () => {
   it("says so while it loads", async () => {
     openTable({ loading: true });
     expect((await screen.findByRole("status")).textContent).toBe(loadingWords);
-  });
-
-  it("says why a league made before rules has none", async () => {
-    openTable({ leagueTable: null });
-    expect(await screen.findByText(noRulesWords)).toBeTruthy();
   });
 });
 

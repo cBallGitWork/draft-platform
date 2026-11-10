@@ -30,8 +30,7 @@ import {
 // across the header): the team's name on the page's plate, then the next deadline and its
 // countdown, the opponent then, the last result, the form and the table place. Each reading shows
 // once its data has loaded, and only where the league has it: no opponent or form in total points.
-// While the table loads its readings wait; a league with no rules has none, and the tab under the
-// band says why (the Tactics tab: "made before leagues had rules").
+// While the table loads its readings wait.
 // The Tactics and Squad tabs both wrap their page in it.
 
 /** A tab's page under My team's header band: `children` is the tab's own. */

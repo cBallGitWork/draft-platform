@@ -143,13 +143,6 @@ describe("the lineup to set", () => {
 });
 
 describe("no lineup to set", () => {
-  test("for a league made before rules were held", async () => {
-    await t.run(async (ctx) => {
-      for (const row of await ctx.db.query("leagueRules").collect()) await ctx.db.delete("leagueRules", row._id);
-    });
-    expect(await tacticsOf(ANN)).toEqual({ kind: "noRules" });
-  });
-
   test("once every gameweek has begun", async () => {
     vi.advanceTimersByTime((GAMEWEEKS - NEXT + 1) * WEEK_MS);
     expect(await tacticsOf(ANN)).toEqual({ kind: "seasonOver" });

@@ -9,9 +9,8 @@ import type { DrawRules, OddTeamOut } from "../table/roundRobin";
 // The first rules a deployment gives a new league (#25), used once: the first league created
 // copies them into the admin's default rules row (`defaultLeagueRules`), and every league after
 // copies that row, which the admin edits (leagueRules.ts says how). Once that row exists, nothing
-// reads this file but `drawRulesOf`, `draftRulesOf`, `tradeRulesOf`, `instructionsOf` and
-// `classicsOf`, for rules saved before the odd team out, games a gameweek, the draft, trades, the
-// team instructions and the classics were among them. The scoring is not a league's rule but the
+// reads this file but `draftRulesOf`, `tradeRulesOf`, `instructionsOf` and `classicsOf`, for rules
+// saved before the draft, trades, the team instructions and the classics were among them. The scoring is not a league's rule but the
 // site's (spec/14, Who owns it): ../scoring/firstScoring.ts holds the first set.
 //
 // Only the presets, the team instructions, the deadline, the double-gameweek rule, the odd team
@@ -54,12 +53,8 @@ const FIRST_TRADE_RULES: TradeRules = { review: "veto", deadline: null };
 /** How the league's trades run: the first rules' for rules saved before #383 made it a rule. */
 export const tradeRulesOf = (rules: LeagueRules): TradeRules => rules.trades ?? FIRST_TRADE_RULES;
 
-/** How the league's round robin is drawn: the first rules' odd team out and games a gameweek, for
- *  rules saved before #33 and #130 made them rules. */
-export const drawRulesOf = (rules: LeagueRules): DrawRules => ({
-  oddTeamOut: rules.oddTeamOut ?? FIRST_ODD_TEAM_OUT,
-  gamesPerGameweek: rules.gamesPerGameweek ?? FIRST_GAMES_PER_GAMEWEEK,
-});
+/** How the league's round robin is drawn: its odd team out and games a gameweek. */
+export const drawRulesOf = ({ oddTeamOut, gamesPerGameweek }: LeagueRules): DrawRules => ({ oddTeamOut, gamesPerGameweek });
 
 /** The team instructions a league picks from: the first rules' for rules saved before #990 made
  *  them rules. */

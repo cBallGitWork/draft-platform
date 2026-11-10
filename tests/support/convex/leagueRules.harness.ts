@@ -50,17 +50,6 @@ export const changeEveryRules = (t: TestConvex, leagueId: Id<"leagues">, change:
 export const setPickSeconds = (t: TestConvex, leagueId: Id<"leagues">, pickSeconds: number) =>
   changeEveryRules(t, leagueId, (rules) => ({ ...rules, draft: { ...HELD_FIRST_RULES.draft!, pickSeconds } }));
 
-/** Rewrites the league's rules rows as rules saved before #33 and #130 made the odd team out and
- *  games a gameweek rules: without them. */
-export const savedBeforeTheyWereRules = (t: TestConvex, leagueId: Id<"leagues">) =>
-  t.run(async (ctx) => {
-    const rows = await ctx.db.query("leagueRules").withIndex("by_leagueId_and_fromGameweek", (q) => q.eq("leagueId", leagueId)).collect();
-    for (const row of rows) {
-      const { oddTeamOut: _odd, gamesPerGameweek: _games, ...older } = row.rules;
-      await ctx.db.patch("leagueRules", row._id, { rules: older });
-    }
-  });
-
 /** Sets whether the league plays a gameweek, by `by` (the commissioner unless a test says).
  *  Returns the mutation's promise. */
 export const setUsed = async (t: TestConvex, leagueId: Id<"leagues">, gameweek: number, used: boolean, by = COMMISSIONER) =>

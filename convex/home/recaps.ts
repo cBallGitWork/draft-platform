@@ -60,7 +60,7 @@ export const brief = internalQuery({
     if (recap === null || recap.state !== "writing") return null;
     const league = await ctx.db.get("leagues", recap.leagueId);
     const season = await seasonRules(ctx, recap.leagueId);
-    if (league === null || season === null) throw new Error(`Recap ${recapId}'s league ${recap.leagueId} doesn't exist or has no rules`);
+    if (league === null) throw new Error(`Recap ${recapId}'s league ${recap.leagueId} doesn't exist`);
     const { gameweek } = recap;
     const { rules, teamIds, schedule, results, named } = await standingsOf(ctx, league, season);
     const scored = results.get(gameweek);
@@ -222,7 +222,6 @@ export const ofGameweek = query({
     const recap = await recapOf(ctx, leagueId, gameweek);
     if (recap === null || recap.state !== "written") return null;
     const season = await seasonRules(ctx, leagueId);
-    if (season === null) return shown(recap, null);
     const teamIds = (await teamsOf(ctx, leagueId)).map((team) => team._id);
     const inGameweek = await tableGameweek(ctx, await leagueReads(ctx, league, season), gameweek, teamIds);
     const held = new Set(teamIds);

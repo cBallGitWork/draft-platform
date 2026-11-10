@@ -32,7 +32,6 @@ import {
   noHeadToHeadsWords,
   noMatchdayLinesWords,
   noResultsWords,
-  noRulesWords,
   partTableWords,
   recordWords,
   TABLE_TITLE,
@@ -83,8 +82,6 @@ export function HomePage({ league, seam }: { league: LeagueSummary; seam: HomeSe
     <PageSection title={title} className="flex flex-col gap-2">
       {home === undefined ? (
         <Loading>{loadingWords}</Loading>
-      ) : home === null ? (
-        <p className="text-muted">{noRulesWords}</p>
       ) : (
         <>
           {gameweek !== null && <DeadlineStrip gameweek={gameweek} />}

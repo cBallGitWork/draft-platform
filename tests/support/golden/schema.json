@@ -6909,13 +6909,13 @@
                       }
                     ]
                   },
-                  "optional": true
+                  "optional": false
                 },
                 "gamesPerGameweek": {
                   "fieldType": {
                     "type": "number"
                   },
-                  "optional": true
+                  "optional": false
                 },
                 "waivers": {
                   "fieldType": {
@@ -11472,13 +11472,13 @@
                       }
                     ]
                   },
-                  "optional": true
+                  "optional": false
                 },
                 "gamesPerGameweek": {
                   "fieldType": {
                     "type": "number"
                   },
-                  "optional": true
+                  "optional": false
                 },
                 "waivers": {
                   "fieldType": {

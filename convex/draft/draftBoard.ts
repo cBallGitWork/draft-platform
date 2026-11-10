@@ -67,16 +67,15 @@ export const ofLeague = query({
         return { ...made, player: { code: player.code, name: player.name, clubShortName: club.shortName, position: positions[0] ?? null } };
       }),
     );
-    const rules = await rulesInForceAt(ctx, leagueId, now);
-    const draftRules = rules === null ? null : draftRulesOf(rules);
+    const draftRules = draftRulesOf(await rulesInForceAt(ctx, leagueId, now));
     const draft = await draftOf(ctx, leagueId);
     let yourAutoPick: DraftBoard["yourAutoPick"] = null;
     if (team) {
       const timeouts = draft?.timeouts;
       const count = timeouts?.find(({ teamId }) => teamId === team._id)?.count ?? 0;
-      yourAutoPick = { on: isOnAutoPick(timeouts, team._id), timeouts: count, limit: draftRules?.timeoutsBeforeAutoPick ?? null };
+      yourAutoPick = { on: isOnAutoPick(timeouts, team._id), timeouts: count, limit: draftRules.timeoutsBeforeAutoPick };
     }
-    return { picks, yourTeamId: team?._id ?? null, pickSeconds: draftRules?.pickSeconds ?? null, yourAutoPick, tradedPicks: draft?.tradedPicks ?? [] };
+    return { picks, yourTeamId: team?._id ?? null, pickSeconds: draftRules.pickSeconds, yourAutoPick, tradedPicks: draft?.tradedPicks ?? [] };
   },
 });
 

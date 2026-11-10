@@ -68,11 +68,9 @@ export async function rescoreGameweek(ctx: MutationCtx, league: Doc<"leagues">, 
 
 /** Scores the league as the table does, and stores each team's points worked out that are final:
  *  the whole gameweek afresh when its matches have changed since it was stored, else only the
- *  teams added since, leaving the rest as stored. A league made before rules were held has no
- *  table to store. */
+ *  teams added since, leaving the rest as stored. */
 async function storeFinal(ctx: MutationCtx, league: Doc<"leagues">): Promise<number[]> {
   const season = await seasonRules(ctx, league._id);
-  if (season === null) return [];
   const teamIds = (await teamsOf(ctx, league._id)).map((team) => team._id);
   const { scores, finalUnstored } = await leagueScores(ctx, league, season, teamIds);
   const storedAt = Date.now();

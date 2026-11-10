@@ -70,7 +70,7 @@ export const atDeadline = internalMutation({
   handler: async (ctx, { leagueId, gameweek }) => {
     const league = await ctx.db.get("leagues", leagueId);
     const season = await seasonRules(ctx, leagueId);
-    if (league === null || season === null) return null;
+    if (league === null) return null;
     const rules = season.inGameweek(gameweek);
     const teams = await teamsOf(ctx, leagueId);
     const lineups = await lineupsInGameweek(ctx, leagueId, teams.map((team) => team._id), gameweek);

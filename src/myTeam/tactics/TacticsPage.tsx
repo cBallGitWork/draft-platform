@@ -4,7 +4,7 @@ import { useMinute } from "../../shared/useMinute";
 import { TeamPage } from "../header/TeamHeader";
 import { LineupEditor } from "./LineupEditor";
 import type { MyTeamSeam } from "../seam";
-import { seasonOverWords, TACTICS_TITLE, tacticsLoadingWords, tacticsNoRulesWords } from "./words";
+import { seasonOverWords, TACTICS_TITLE, tacticsLoadingWords } from "./words";
 import { noTeamWords } from "../words";
 
 /** My team's Tactics tab (#14; spec/12, My team; spec/05; the approved Tactics picture): under My
@@ -33,7 +33,6 @@ function TacticsBody({ league, teamName, seam, selected }: { league: LeagueSumma
     </TeamPage>
   );
   if (tactics === undefined) return note(tacticsLoadingWords);
-  if (tactics.kind === "noRules") return note(tacticsNoRulesWords);
   if (tactics.kind === "seasonOver") return note(seasonOverWords);
   return (
     <TeamPage league={league} teamName={teamName} seam={seam}>

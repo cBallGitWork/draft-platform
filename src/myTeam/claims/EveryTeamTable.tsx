@@ -11,7 +11,7 @@ import { claimColumns, everyTeamTableLabel, noRunWords, runShort, teamGroupWords
 
 const COLUMNS = ["rank", "positions", "claim", "run", "drop"] as const;
 
-export function EveryTeamTable({ claims, waivers }: { claims: readonly PendingClaim[]; waivers: WaiversView | null | undefined }) {
+export function EveryTeamTable({ claims, waivers }: { claims: readonly PendingClaim[]; waivers: WaiversView | undefined }) {
   const order = waivers?.teams.map(({ teamId }) => teamId) ?? [];
   const placeOf = (teamId: Id<"teams">) => {
     const at = order.indexOf(teamId);
