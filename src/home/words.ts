@@ -1,8 +1,7 @@
 // What league home says, in one place for Craig to change in the pull request.
 
 import { TOP_ROWS } from "../../convex/home/glance";
-import { fewestTeamsWords, gameweekShort, noHeadToHeadsTotalPointsWords } from "../shared/words";
-import { placeWords } from "../myTeam/header/words";
+import { fewestTeamsWords, gameweekShort, noHeadToHeadsTotalPointsWords, placeWords } from "../shared/words";
 import { columns as tableColumns } from "../table/words";
 import type { LeagueHome, NewsMove } from "./seam";
 

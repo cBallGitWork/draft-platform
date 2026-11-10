@@ -128,6 +128,9 @@ export interface TeamInGameweek {
   /** The league's team instructions in force in the gameweek, which name its men's instruction
    *  lines (spec/05: "Park the bus: clean sheet +1"). */
   instructions: readonly Instruction[];
+  /** What the team adds to its men's points, as its slots were scored by it (`teamScoring`): the
+   *  commentary prices its instructions' moves by it. Undefined for a team with no lineup. */
+  scoring: TeamScoring | undefined;
 }
 
 /** The team's gameweek: its lineup, auto-subs from who played, then scoreTeam. */
@@ -160,6 +163,7 @@ export async function teamInGameweek(reads: LeagueReads, inputs: GameweekInputs,
   const subs = autoSubs(lineup, positions, plays, { areaLimits: rules.areaLimits }, held.vacated, (code) => keptStars?.get(code) ?? []);
   const departed = new Set(held.vacated.map(({ playerCode }) => playerCode));
   const formation = presetNameOf([...held.starters, ...held.vacated], rules.presets);
+  const scoring = teamScoring(held, inputs, formation);
   const team = scoreTeam({
     lineup,
     matches: playerMatches,
@@ -174,9 +178,9 @@ export async function teamInGameweek(reads: LeagueReads, inputs: GameweekInputs,
       role: subs.lineup.starters.find((starter) => starter.playerCode === on)?.role,
     })),
     benchCells: new Map(lineup.bench.map((code) => [code, benchCell(positions.get(code)!)])),
-    team: teamScoring(held, inputs, formation),
+    team: scoring,
   });
-  return { team, autoSubs: subs, matchesOf, formation, instructions: instructionsOf(rules) };
+  return { team, autoSubs: subs, matchesOf, formation, instructions: instructionsOf(rules), scoring };
 }
 
 /** What the team adds to its men's points (spec/05, Team instructions; #990), from its lineup as it

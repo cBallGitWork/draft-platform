@@ -156,6 +156,15 @@ const weekdayTimeFormat = new Intl.DateTimeFormat(LOCALE, { weekday: "short", ho
 /** A time within the week, in the viewer's own zone: "Thu 18:00", a kickoff or a waiver run. */
 export const weekdayTimeWords = (at: number) => weekdayTimeFormat.format(at);
 
+const ordinals = new Intl.PluralRules(LOCALE, { type: "ordinal" });
+const ORDINAL_ENDS: Record<Intl.LDMLPluralRule, string> = { zero: "th", one: "st", two: "nd", few: "rd", many: "th", other: "th" };
+/** A place in a table or an order: "1st", "22nd", "13th" (My team, league home, the draft). */
+export const placeWords = (place: number) => `${place}${ORDINAL_ENDS[ordinals.select(place)]}`;
+
+/** Said to someone who runs no team in the league, such as a commissioner who doesn't play, on
+ *  My team's tabs and the trade pages alike. */
+export const noTeamWords = "You don't run a team in this league.";
+
 /** The "Find a player" panel, on the admin's dashboard and the squads page alike; each says its own hint. */
 export const findTitle = "Find a player";
 export const findLabel = "Name";

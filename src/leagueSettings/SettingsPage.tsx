@@ -12,6 +12,7 @@ import { TickBox } from "../ui/TickBox";
 import { AREA_WORDS } from "../shared/words";
 import { DraftPanel } from "./DraftPanel";
 import { NumberRow } from "./NumberRow";
+import { ScoringStartRow } from "./ScoringStartRow";
 import type { LeagueSettingsSeam, SettingsView } from "./seam";
 import { TeamOrderPanel } from "./TeamOrderPanel";
 import { TradesPanel } from "./TradesPanel";
@@ -89,6 +90,7 @@ function Editor({ league, seam, view }: { league: LeagueSummary; seam: LeagueSet
       <BoxRefusalContext value={rulesEdits.boxRefusal}>
         <Panel title={fixturesTitle}>
           <div className={PANEL_BODY}>
+            <ScoringStartRow leagueId={league.leagueId} seam={seam} />
             <Choice
               label={oddTeamOutLabel}
               name={ODD_TEAM_OUT_CHOICE}

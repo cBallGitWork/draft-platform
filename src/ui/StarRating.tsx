@@ -20,8 +20,20 @@ export const unsureGlyph = "?";
 export const unsureLabel = (subject: string) => `${subject}: we aren't sure yet, he has played fewer than ${LEAST_MATCHES_RATED} matches`;
 export const noDataLabel = (subject: string) => `${subject}: no matches yet`;
 
-/** `subject` names what the stars rate ("Role fit", "Anchor"), for the label and the hover. */
-export function StarRating({ stars, subject }: { stars: Stars; subject: string }) {
+/** One star in the derived colour after a shortlisted player's name (Scouting's approved picture),
+ *  named by `label`. */
+export function ShortlistStar({ label }: { label: string }) {
+  return (
+    <svg role="img" aria-label={label} viewBox={`0 0 ${STAR_SIZE} ${STAR_SIZE}`} className="inline-block h-star w-star shrink-0 align-middle">
+      <title>{label}</title>
+      <polygon points={STAR_POINTS} className="fill-derived stroke-derived" strokeWidth={0.8} />
+    </svg>
+  );
+}
+
+/** `subject` names what the stars rate ("Role fit", "Anchor"), for the label and the hover; `size`
+ *  the set's height and width, a table's by default. */
+export function StarRating({ stars, subject, size = "h-star w-stars" }: { stars: Stars; subject: string; size?: string }) {
   const clipId = useId();
   if (stars === UNSURE || stars === NO_DATA) {
     const label = stars === UNSURE ? unsureLabel(subject) : noDataLabel(subject);
@@ -33,7 +45,7 @@ export function StarRating({ stars, subject }: { stars: Stars; subject: string }
   }
   const label = starsLabel(subject, stars);
   return (
-    <svg role="img" aria-label={label} viewBox={`0 0 ${MOST_STARS * STAR_SIZE} ${STAR_SIZE}`} className="inline-block h-star w-stars max-w-full shrink-0 align-middle">
+    <svg role="img" aria-label={label} viewBox={`0 0 ${MOST_STARS * STAR_SIZE} ${STAR_SIZE}`} className={`inline-block max-w-full shrink-0 align-middle ${size}`}>
       <title>{label}</title>
       <clipPath id={clipId}>
         <rect width={stars * STAR_SIZE} height={STAR_SIZE} />

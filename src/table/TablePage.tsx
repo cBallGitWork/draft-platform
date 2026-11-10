@@ -4,6 +4,7 @@ import { FormChips } from "../myTeam/header/FormChips";
 import { standingOf } from "../myTeam/header/teamStanding";
 import { cellClassOf, ColumnHeads } from "../ui/ColumnHeads";
 import { Loading, PAGE_STACK, PageSection, Panel, PANEL_COLUMNS, PanelNote } from "../ui/Panel";
+import { PlateTabs } from "../ui/PlateTabs";
 import { CupBracket } from "./CupBracket";
 import { FixturesPanel } from "./FixturesPanel";
 import type { LeagueTable, TableSeam } from "./seam";
@@ -66,21 +67,9 @@ export function TablePage({ league, seam }: { league: LeagueSummary; seam: Table
   );
 }
 
-const TAB =
-  "min-h-tap border-l border-plate-rule px-4 font-semibold text-soft first:border-l-0 hover:text-fact " +
-  "aria-pressed:text-fact aria-pressed:shadow-tab-active lg:min-h-bar-control";
-
 /** League and Cup, butted on the title plate after the title (the approved picture). */
 function CompetitionTabs({ chosen, choose }: { chosen: Competition; choose: (competition: Competition) => void }) {
-  return (
-    <span role="group" aria-label={competitionsLabel} className="ml-6 flex grow self-stretch">
-      {COMPETITIONS.map((competition) => (
-        <button key={competition} type="button" aria-pressed={chosen === competition} onClick={() => choose(competition)} className={TAB}>
-          {competitionWords[competition]}
-        </button>
-      ))}
-    </span>
-  );
+  return <PlateTabs label={competitionsLabel} tabs={COMPETITIONS} words={competitionWords} chosen={chosen} choose={choose} />;
 }
 
 /** The gameweek the table counts up to, or Provisional while a live gameweek's points may move. */

@@ -83,6 +83,7 @@ test("compare shows the same last-season figures", async () => {
   const compared = await (await actingAs(league.t, ANN)).query(api.scouting.compare.players, {
     leagueId: league.leagueId,
     codes: [RICE.code, PALMER.code],
+    stat: null,
   });
   expect(compared.map((player) => player.seasonPoints)).toEqual([180, null]);
 });

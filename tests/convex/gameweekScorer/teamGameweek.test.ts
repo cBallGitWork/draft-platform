@@ -41,6 +41,7 @@ const scored: TeamInGameweek = {
   autoSubs: {} as AutoSubs,
   formation: null,
   instructions: [],
+  scoring: undefined,
   matchesOf: new Map([
     [DOUBLE_MAN, [held(FIRST_FIXTURE), held(SECOND_FIXTURE)]],
     [SINGLE_MAN, [held(SECOND_FIXTURE)]],

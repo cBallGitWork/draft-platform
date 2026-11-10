@@ -26,10 +26,12 @@ each league's **commissioner**.
   on admin"; the admin owning them leaves room for real shirt packs and away kits later).
 - Reads managers' feedback: a Feedback link in the top bar opens one text box, and what is sent
   lands in a list on the admin dashboard, with no email (25 Oct 2026).
-- A feeds page: when FPL's and the Premier League's data last arrived, and whether scoring is
-  behind. A feed that stops silently is the failure to catch. A feed or sync that fails also
-  emails the admin, at most once a day for each feed (24 Oct 2026). The page also shows a stat
-  correction that arrives after a match's points have locked ([7](07-scoring.md#match-stats)).
+- A feeds page: when Sportmonks' data last arrived, and whether scoring is behind. Sportmonks
+  replaces FPL's and the Premier League's feeds (Craig, 9 Nov 2026, on #1196: "stop with fpl and
+  prem, thats not scalable"). A feed that stops silently is the failure to catch. A feed or sync
+  that fails also emails the admin, at most once a day for each feed (24 Oct 2026). The page also
+  shows a stat correction that arrives after a match's points have locked
+  ([7](07-scoring.md#match-stats)). `S15.2`
 - A match's score problems show on the feeds page and are emailed to the admin, as well as on its
   run row: "a and b" (Craig, 7 Nov 2026, on #904). `S15.1`
 - One league whose rules are broken never stops the football feed for the other leagues: it is
@@ -69,7 +71,9 @@ How invites, the invite link and join requests work in detail is in
 - The league's squad limits warn but don't block.
 - A squad holding a player the football data no longer has: a notice says the data is broken, and
   his row stays, as an error message (Craig, 31 Oct 2026, #323: "b but dont hide the row, mabe an
-  error message. easier to spot/debug").
+  error message. easier to spot/debug"). A player who has left his fantasy league's competition is
+  not broken data: he stays on his manager's team, scoring nothing and shown as "left", until his
+  manager drops him (Craig, 9 Nov 2026, on #1196). `S15.3`
 
 ## The mini beta
 

@@ -4,8 +4,11 @@
 // bench included, on the matchup; every man in the match on the match page, owned or not. A goal,
 // an assist, a card or an own goal shows the points it moves; a threshold line shows any other
 // movement of his points, up or down ("~58' Rice: 3 key passes, +1", "~71' Saliba: 2 goals
-// conceded, −1"; thresholdSteps.ts); the full-time line lists the lineups' men who played, with
-// their points in the match. Priced by the slot and role each man is priced at, under the site's
+// conceded, −1"; thresholdSteps.ts); a move of his team's instructions has its own line, just
+// above the one that moved it ("~71' Rice: Get stuck in", +1; instructionLines.ts), so a goal
+// gets one more line per instruction it moves, uncapped: each man has at most his team's two; the
+// full-time line lists the lineups' men who played, with their points in the match. Priced by the
+// slot and role each man is priced at, under the site's
 // set in force in the gameweek, which never changes once the gameweek has begun (spec/14), so a
 // past matchup's lines keep the points they showed. Pure: matchup.ts and matchPage.ts read what
 // it needs.
@@ -16,8 +19,10 @@ import type { Infer } from "convex/values";
 import type { Doc } from "../_generated/dataModel";
 import { FEED_TYPE, withFullTimePoints } from "../football/commentary";
 import type { InMatch } from "../gameweekScorer/teamGameweek";
+import type { Instruction } from "../lineup/instructions";
 import type { Cell } from "../lineup/pitch";
-import { roleTotal, scoreMatch } from "../scoring/scoring";
+import { roleTotal, scoreMatch, type TeamScoring } from "../scoring/scoring";
+import { instructionLines, instructionStep } from "./instructionLines";
 import type { ScoringSet } from "../scoring/scoringSet";
 import { inTenths, type MatchStats } from "../scoring/values";
 import { categoryName } from "../scoring/categories";
@@ -54,6 +59,15 @@ export interface VidiprinterPlayer {
    *  man in none is priced as his player card opens on him (match/unownedPoints.ts). */
   inLineup: boolean;
   inMatch: InMatch;
+  /** His team's instructions, each move of which has its own line; undefined for a man in no
+   *  lineup, or a team with none. Not optional, for the same reason as `role`. */
+  team: VidiprinterTeam | undefined;
+}
+
+/** A lineup's team instructions as its lines price them, with the league's, which name them. */
+export interface VidiprinterTeam {
+  scoring: TeamScoring;
+  instructions: readonly Instruction[];
 }
 
 export interface VidiprinterLine {
@@ -132,8 +146,13 @@ function placedOf(match: VidiprinterMatch, players: ReadonlyMap<PlayerCode, Vidi
   let at = kickoff - LINEUPS_OUT_BEFORE_KICKOFF_MS;
   match.lines.toReversed().forEach((stored, index) => {
     at = Math.max(at, atMinute(kickoff, stored.minute ?? null, stored.addedMinute ?? null));
-    const line = { key: `${match.fixtureCode}:${stored.sourceId}`, ...priced(stored, match.fixtureCode, players, set, counted) };
-    placed.push({ line, at, kickoff, order: match.lines.length - index });
+    const key = `${match.fixtureCode}:${stored.sourceId}`;
+    const instructed: PricedLine[] = [];
+    const line = { key, ...priced(stored, match.fixtureCode, players, set, counted, instructed) };
+    const order = match.lines.length - index;
+    // Each instruction it moved has its own line just above it: what it led to.
+    for (const each of instructed) placed.push({ line: { ...each, key: `${key}${each.key}` }, at, kickoff, order: order - 0.5 });
+    placed.push({ line, at, kickoff, order });
   });
   for (const line of thresholdLines(match, players, set)) {
     // A step with no clock read sorts at its match's kickoff, never before the lineups.
@@ -143,13 +162,15 @@ function placedOf(match: VidiprinterMatch, players: ReadonlyMap<PlayerCode, Vidi
 }
 
 /** A stored line with its worth: the full-time line with the lineups' men's points in the match,
- *  a goal, an assist, a card or an own goal with the points it moves. */
+ *  a goal, an assist, a card or an own goal with the points it moves, its team instructions' moves
+ *  apart, each put in `instructed` with a key to follow the line's. */
 function priced(
   stored: StoredLine,
   fixtureCode: number,
   players: ReadonlyMap<PlayerCode, VidiprinterPlayer>,
   set: ScoringSet,
   counted: Map<string, number>,
+  instructed: PricedLine[],
 ): Omit<PricedLine, "key"> {
   if (stored.type === FEED_TYPE.matchEnds) {
     const played = fullTimePoints(fixtureCode, players);
@@ -167,6 +188,9 @@ function priced(
     // Not a man it is priced for, or his record not yet whole: nothing to price him by yet. The
     // line shows unpriced until a read brings it, as his slot shows "—".
     if (player === undefined || stats === null) return [];
+    const when = stored.minute == null ? "" : `${stored.minute}${stored.addedMinute ? `+${stored.addedMinute}` : ""}' `;
+    const moved = { before: { ...stats, [stat]: nth - 1 }, after: { ...stats, [stat]: nth } };
+    instructed.push(...instructionLines(moved, { key: `:${stat}:${nth}`, when, fixtureCode, playerCode: code }, player, set));
     const points = inTenths(totalWith(stats, stat, nth, player, set) - totalWith(stats, stat, nth - 1, player, set));
     return points === 0 ? [] : [{ playerCode: code, name: player.name, points }];
   });
@@ -203,17 +227,21 @@ function thresholdLines(match: VidiprinterMatch, players: ReadonlyMap<PlayerCode
     const last = lastShown.get(key);
     if (player === undefined || (last !== undefined && last.from === step.from && last.to === step.to)) return [];
     const points = inTenths(stepPoints(step, set, player.cell) + roleStep(step, match.fixtureCode, player, set));
-    if (points === 0) return [];
-    lastShown.set(key, step);
     const when = step.minute === null ? "" : `~${step.minute}' `;
+    const lineKey = `${match.fixtureCode}:step:${index}`;
+    const instructed = instructionStep(step, { key: lineKey, when, fixtureCode: match.fixtureCode, playerCode: step.playerCode }, player, set);
+    if (points === 0 && instructed.length === 0) return [];
+    lastShown.set(key, step);
     const text = `${when}${player.name}: ${step.to} ${statWords(step.stat, set)}`;
     const line: PricedLine = {
-      key: `${match.fixtureCode}:step:${index}`,
+      key: lineKey,
       text,
       points: worth([{ name: player.name, points }], 1),
       priced: { fixtureCode: match.fixtureCode, about: [step.playerCode], moves: [{ playerCode: step.playerCode, points }] },
     };
-    return [{ line, minute: step.minute }];
+    // The step's own line only where it moved his points by its rules or role; each instruction it
+    // moved just above it, as a goal's or a card's are.
+    return [...instructed, ...(points === 0 ? [] : [line])].map((each) => ({ line: each, minute: step.minute }));
   });
 }
 

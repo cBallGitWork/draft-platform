@@ -6,16 +6,15 @@ import { NOTE_MOST, REVIEW_MS } from "../../convex/trades/tradeLimits";
 import { HOUR_MS } from "../../convex/shared/time";
 import type { TradesView } from "../../convex/trades/tradeScreen";
 import { changeFailedWords } from "../shared/words";
-import type { Reviewer } from "./seam";
+import type { ClosedOffer, Reviewer } from "./seam";
 
-export { whenWords } from "../shared/words";
+export { dayWords, noTeamWords, whenWords } from "../shared/words";
 export { warningWords } from "../squads/words";
 export { NOTE_MOST, pickWords };
 export { viaWords } from "../draft/words";
 
 export const TRADES_TITLE = "Trades";
 export const tradesLoadingWords = "Loading your trades…";
-export const noTeamWords = "You don't run a team in this league.";
 export const tradeFailedWords = changeFailedWords;
 
 /** Why no trade can be offered or accepted now (convex/trades/tradeShut.ts). */
@@ -37,6 +36,8 @@ export const offersColumns = {
   waiting: { short: "Waiting on", long: "Who the offer is waiting on" },
   closes: { short: "Closes", long: "When it closes, or its review ends" },
 } as const;
+/** The Offers table's groups; "In review" also marks a squad's player or pick held in a trade
+ *  under review, on the New offer tab. */
 export const groupWords = {
   toYou: "To you",
   fromYou: "From you",
@@ -51,6 +52,51 @@ export const reviewerWords: Record<Reviewer, string> = {
   coCommissioner: "The co-commissioner",
   vote: "A league vote",
 };
+
+// The Closed offers panel: those that ended this season without going through, newest first.
+export const CLOSED_TITLE = "Closed offers";
+export const thisSeasonWords = "This season";
+export const closedTableLabel = "Your closed trade offers";
+export const closedColumns = {
+  with: { short: "With", long: "The team the offer was with" },
+  get: { short: "You get", long: "What you would have got" },
+  give: { short: "You give", long: "What you would have given" },
+  closed: { short: "Closed", long: "Why it closed" },
+  when: { short: "When", long: "When it closed" },
+} as const;
+export const noClosedWords = "No closed offers this season.";
+export const olderWords = "Older ›";
+
+/** Why an offer closed, from the manager's side: `you` when his team is the one that acted. */
+export function closedWhyWords(why: ClosedOffer["why"], you: boolean): string {
+  const who = you ? "You" : "They";
+  switch (why) {
+    case "withdrawn":
+      return `${who} withdrew it`;
+    case "rejected":
+      return `${who} rejected it`;
+    case "countered":
+      return `${who} countered it`;
+    case "deadline":
+      return "Unanswered by the deadline";
+    case "tradeDeadline":
+      return "Trade deadline passed";
+    case "unusedGameweek":
+      return "Trades locked through an unplayed gameweek";
+    case "draftStarted":
+      return "The draft started";
+    case "pickTraded":
+      return "Its pick was traded";
+    case "autoTeam":
+      return "A team went on the auto team";
+    case "playerLeft":
+      return "A player left his squad";
+    case "blocked":
+      return "Blocked in review";
+    case "failed":
+      return "Couldn't go through";
+  }
+}
 
 // The selected offer's panel.
 export const offerToYouTitle = (teamName: string) => `${teamName}'s offer`;
@@ -107,8 +153,6 @@ export const rejectYesWords = "Reject it";
 export const rejectNoWords = "Keep it";
 
 // The New offer tab.
-export const YOUR_SQUAD_TITLE = "Your squad";
-export const THEIR_SQUAD_TITLE = "Their squad";
 export const YOUR_OFFER_TITLE = "Your offer";
 export const YOUR_COUNTER_TITLE = "Your counter";
 export const squadCountWords = (count: number, maximum: number | null) =>
@@ -122,7 +166,6 @@ export const squadColumns = {
   player: { short: "Player", long: "Player" },
 } as const;
 export const tickLabel = (playerName: string) => `Trade ${playerName}`;
-export const heldWords = "In review";
 /** The Picks block under each squad on the New offer tab (#1096; the approved trades README,
  *  Picks): the draft picks a team holds before the draft, one for one and nothing else (spec/04). */
 export const PICKS_TITLE = "Picks";

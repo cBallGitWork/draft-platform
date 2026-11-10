@@ -8,7 +8,7 @@ import { leagueReads } from "../gameweekScorer/teamGameweek";
 import { GAMEWEEKS } from "../gameweeks/usedGameweeks";
 import { leagueAverageWords } from "../mail/letterWords";
 import { fileLetter, wholeLeague } from "../mail/letters";
-import { writeWithClaude } from "../outbound/claude";
+import { CLAUDE_RETRY_MS, writeWithClaude } from "../outbound/claude";
 import { seasonRules } from "../rules/rulesHistory";
 import { recapTeamPoints } from "../schema/recaps";
 import { takeAllOrThrow } from "../shared/cappedRead";
@@ -29,9 +29,8 @@ import { RECAP_MAX_TOKENS, RECAP_PLAYERS, RECAP_SYSTEM, recapPrompt, recapUpLett
 // matchday mode begins, and Read the recap opens it whole. It is written once and never rewritten:
 // a score that changes after puts a line under it, linking to that matchup (Craig, 6 Nov 2026).
 
-/** How long after a failed write it is tried again, and the most tries, a day's worth: each failure
- *  is logged and kept on the recap's row, so a lasting one (no API key, say) shows. */
-export const RECAP_RETRY_MS = 30 * MINUTE_MS;
+/** The most tries at writing a recap, a day's worth at CLAUDE_RETRY_MS apart: each failure is
+ *  logged and kept on the recap's row, so a lasting one (no API key, say) shows. */
 export const RECAP_TRIES_MOST = 48;
 
 type TeamId = Id<"teams">;
@@ -106,7 +105,7 @@ export function performersOf(starters: readonly RecapPlayer[]): { topPerformers:
 }
 
 /** Writes the recap (scheduled by `startRecap`): Claude writes it from `brief`, and it lands. A
- *  failed write is logged, kept on the recap's row and tried again RECAP_RETRY_MS later, up to
+ *  failed write is logged, kept on the recap's row and tried again CLAUDE_RETRY_MS later, up to
  *  RECAP_TRIES_MOST tries. */
 export const write = internalAction({
   args: { recapId: v.id("recaps") },
@@ -118,7 +117,7 @@ export const write = internalAction({
       if (facts === null) return null;
       written = { text: await writeWithClaude({ system: RECAP_SYSTEM, prompt: facts.prompt, maxTokens: RECAP_MAX_TOKENS }), teamPoints: facts.teamPoints };
     } catch (error) {
-      const failure = logFailure(`Recap ${recapId} wasn't written; trying again in ${RECAP_RETRY_MS / MINUTE_MS} minutes`, error);
+      const failure = logFailure(`Recap ${recapId} wasn't written; trying again in ${CLAUDE_RETRY_MS / MINUTE_MS} minutes`, error);
       await ctx.runMutation(internal.home.recaps.failed, { recapId, failure });
       return null;
     }
@@ -142,7 +141,7 @@ export const landed = internalMutation({
   },
 });
 
-/** Keeps a failed write on the recap's row and tries again RECAP_RETRY_MS later, while tries are
+/** Keeps a failed write on the recap's row and tries again CLAUDE_RETRY_MS later, while tries are
  *  left. */
 export const failed = internalMutation({
   args: { recapId: v.id("recaps"), failure: v.string() },
@@ -152,7 +151,7 @@ export const failed = internalMutation({
     if (recap === null || recap.state !== "writing") return null;
     const failedTries = (recap.failedTries ?? 0) + 1;
     await ctx.db.patch("recaps", recapId, { failedTries, lastFailure: failure });
-    if (failedTries < RECAP_TRIES_MOST) await ctx.scheduler.runAfter(RECAP_RETRY_MS, internal.home.recaps.write, { recapId });
+    if (failedTries < RECAP_TRIES_MOST) await ctx.scheduler.runAfter(CLAUDE_RETRY_MS, internal.home.recaps.write, { recapId });
     return null;
   },
 });

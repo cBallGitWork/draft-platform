@@ -7,6 +7,7 @@ import { expect } from "@playwright/test";
 import { proLeague } from "../../src/shared/preview";
 import { playerCardPath } from "../../src/playerCard/paths";
 import { SCOUTING_PATH } from "../../src/frame/menu";
+import { availabilityWords } from "../../src/scouting/words";
 import { breakdownLabel, claimWords, confirmDropWords, dropWords, logViews, pickUpWords, postponedWords, SEASON_TITLE, whoGoesLabel } from "../../src/playerCard/words";
 import { test } from "../support/smoke/errorsTest";
 
@@ -19,6 +20,8 @@ const JAMES = 5;
 test.describe("the player card, on the dev server's preview", { tag: "@dev" }, () => {
   test("opens from Scouting, switches its game log to every stat and shows a match's breakdown (#1027)", async ({ page }) => {
     await page.goto(`${SCOUTING_PATH}?preview=manager`);
+    // Scouting opens on free agents (#1028); Palmer is owned.
+    await page.getByText(availabilityWords.all, { exact: true }).click();
     await page.getByRole("link", { name: "Palmer" }).click();
     await expect(page.getByRole("heading", { level: 1, name: "Cole Palmer" })).toBeVisible();
 

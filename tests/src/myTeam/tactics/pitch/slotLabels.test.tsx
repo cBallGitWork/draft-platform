@@ -56,9 +56,10 @@ describe("the pitch's slot labels", () => {
     expect(blockIn(STRIKER).textContent).toContain(`ST ${STRIKER.player.name}`);
   });
 
-  it.each(["sweeper", "libero"])("shows a centre-back on %s as CB, under his role", async (role) => {
+  it.each(["sweeper", "libero"])("shows a centre-back on %s as CB, under his role's chip (#845)", async (role) => {
     await openedPitch(everySlot(role));
     expect(labelOf(MIDDLE_CB)).toBe("CB");
-    expect(blockIn(MIDDLE_CB).textContent).toMatch(role === "sweeper" ? /Sweeper/ : /Libero/);
+    // The chip shows the role's code, its name on hover.
+    expect(blockIn(MIDDLE_CB).querySelector("abbr")?.title).toMatch(role === "sweeper" ? /Sweeper/ : /Libero/);
   });
 });

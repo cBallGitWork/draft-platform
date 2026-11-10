@@ -21,6 +21,8 @@ export const liveTactics: TacticsSeam = {
     );
   },
   usePlans: (leagueId) => useQuery(api.lineup.savedPlans.mine, { leagueId }),
+  useRoleCard: (leagueId, playerCode, cell, formation, now) =>
+    useQuery(api.lineup.roleCard.forSlot, { leagueId, playerCode, cell, formation: formation.map(({ area, lane }) => ({ area, lane })), now }),
   usePlanChanges: () => {
     const save = useMutation(api.lineup.savedPlans.save);
     const remove = useMutation(api.lineup.savedPlans.remove);

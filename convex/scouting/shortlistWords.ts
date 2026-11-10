@@ -1,10 +1,9 @@
 import { andListWords } from "../shared/moments";
+import type { Words } from "../mail/letterShape";
 import { onWaiversWords } from "../mail/waiverLetterWords";
 
 // What the letters to a manager about a player on his shortlist say (spec/16, spec/19 The
 // shortlist; #374), in one place for Craig to change: released, dropped, or clearing waivers.
-
-type Words = { subject: string; body: string };
 
 /** To a manager whose shortlist holds a player just released to free agency, released by `who`. */
 export function shortlistedReleasedLetter(playerName: string, teamName: string, who: string): Words {

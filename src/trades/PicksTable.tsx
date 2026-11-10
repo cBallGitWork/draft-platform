@@ -1,7 +1,7 @@
 import { TickBox } from "../ui/TickBox";
 import type { ScreenTeam, TradePick } from "./seam";
 import {
-  heldWords,
+  groupWords,
   pickRoundWords,
   pickTickLabel,
   PICKS_TITLE,
@@ -73,7 +73,7 @@ export function PicksTable({
                   )}
                   {pick.held && (
                     <span className="bg-head px-1 text-ground">
-                      {heldWords}
+                      {groupWords.inReview}
                     </span>
                   )}
                 </span>

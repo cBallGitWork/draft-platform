@@ -1,4 +1,5 @@
-import { v } from "convex/values";
+import { v, type Infer } from "convex/values";
+import type { closedWhy } from "../schema/trades";
 import type { Doc, Id } from "../_generated/dataModel";
 import { internalMutation, type MutationCtx, type QueryCtx } from "../_generated/server";
 import { leagueDeadlines } from "../gameweeks/leagueDeadlines";
@@ -9,7 +10,7 @@ import type { TradePick } from "./tradePicks";
 import { takeAllOrThrow } from "../shared/cappedRead";
 import type { LeagueDeadlines } from "../gameweeks/deadline";
 import { groupedBy } from "../shared/groupedBy";
-import { playerByCode } from "../shared/players";
+import { heldPlayerByCode } from "../shared/players";
 import { deadlinePassedSince } from "../waivers/waiverLock";
 import { onAutoTeam, tradesShut, type TradesShut } from "./tradeShut";
 
@@ -38,12 +39,13 @@ export function leagueOffers(ctx: QueryCtx, leagueId: Id<"leagues">): Promise<Do
   );
 }
 
+/** The log line for an offer naming a player the football sync doesn't hold. */
+export const unheldTradedWords = (playerCode: number) => `A trade offer names player ${playerCode}, whom the football sync doesn't hold`;
+
 /** A player's name, as a trade's letters name him: an offer names only players the football sync
  *  holds, and it never deletes one. */
 export async function tradedName(ctx: QueryCtx, playerCode: number): Promise<string> {
-  const player = await playerByCode(ctx, playerCode);
-  if (player === null) throw new Error(`A trade offer names player ${playerCode}, whom the football sync doesn't hold`);
-  return player.name;
+  return (await heldPlayerByCode(ctx, playerCode, unheldTradedWords(playerCode))).name;
 }
 
 /** The offer as its letters name it. */
@@ -84,10 +86,30 @@ export async function leagueOf(ctx: QueryCtx, leagueId: Id<"leagues">): Promise<
   return league;
 }
 
+/** Ends an offer that didn't go through: it leaves the open offers and is kept, with why, for the
+ *  Trades screen's Closed offers. Its letters are the caller's. */
+export async function endOffer(ctx: MutationCtx, offer: Doc<"tradeOffers">, why: Infer<typeof closedWhy>): Promise<void> {
+  await ctx.db.delete("tradeOffers", offer._id);
+  const { leagueId, fromTeamId, toTeamId, gives, gets, picks, note, by, madeAt } = offer;
+  await ctx.db.insert("closedTradeOffers", {
+    leagueId,
+    fromTeamId,
+    toTeamId,
+    gives,
+    gets,
+    ...(picks === undefined ? {} : { picks }),
+    ...(note === undefined ? {} : { note }),
+    by,
+    madeAt,
+    closedAt: Date.now(),
+    why,
+  });
+}
+
 /** Closes an open offer, telling both managers why: the copy to `by`, who closed it, filed read. */
 export async function closeOffer(ctx: MutationCtx, offer: Doc<"tradeOffers">, closed: OfferClosed, by?: string): Promise<void> {
   const words = await tradeWordsOf(ctx, offer);
-  await ctx.db.delete("tradeOffers", offer._id);
+  await endOffer(ctx, offer, closed.why);
   await fileLetter(ctx, await leagueOf(ctx, offer.leagueId), await managersOf(ctx, offer), offerClosedLetter(words, closed), by);
 }
 

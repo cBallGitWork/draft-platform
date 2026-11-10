@@ -1,8 +1,7 @@
 import { beforeEach, describe, expect, test, vi } from "vitest";
 import { api, internal } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
-import { WRITING_MODEL } from "../../../convex/outbound/claude";
-import { REPORT_RETRY_MS } from "../../../convex/scouting/scoutReports";
+import { CLAUDE_RETRY_MS, WRITING_MODEL } from "../../../convex/outbound/claude";
 import { SCOUT_TRIP_MS } from "../../../convex/scouting/scouts";
 import { playerLeftLetter, REPORT_SYSTEM, reportInLetter, scoutRefusals } from "../../../convex/scouting/scoutWords";
 import { refusals } from "../../../convex/shared/leagueAccess";
@@ -164,7 +163,7 @@ describe("the report", () => {
     await dayPasses();
     expect((await ann.mine())?.out).toHaveLength(1);
     claude.failing = false;
-    await elapse(t, REPORT_RETRY_MS);
+    await elapse(t, CLAUDE_RETRY_MS);
     expect(await ann.mine()).toMatchObject({ out: [], reports: [{ name: "Scorer" }] });
   });
 });

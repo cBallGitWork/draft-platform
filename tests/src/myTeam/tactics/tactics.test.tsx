@@ -136,12 +136,12 @@ describe("the lineup held", () => {
     openTacticsTab();
     await screen.findByRole("table", { name: selectionTableLabel });
     expect(squadRows()).toEqual([
-      // Each starter's slot chip, then role picker, name, club, role fit ("—": no stars held here)
+      // Each starter's slot chip, then his Role ▾, name, club, role fit ("—": no stars held here)
       // and next fixture (none held here, so empty).
-      "GKShot-stopperSweeper keeperDistributorCommanding keeperRayaARS—",
-      "CBStopperBall-playing centre-backNo-nonsense centre-backAttacking centre-backSalibaARS—",
-      "CMBox-to-boxBall-winnerAttacking 8EngineLate runnerRiceARS—",
-      "STPoacherTarget manIn-behind strikerPressing forwardShadow strikerFalse 9HavertzARS—",
+      "GKShot-stopper▾RayaARS—",
+      "CBStopper▾SalibaARS—",
+      "CMBox-to-box▾RiceARS—",
+      "STPoacher▾HavertzARS—",
       // Each bench player's place and main position, his best role there, and his stars for it.
       BENCH_TITLE, "S1GKShot-stopperArrizabalagaARS—", "S2FBOverlapping full-backWhiteARS—"]);
   });

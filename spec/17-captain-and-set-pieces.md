@@ -18,22 +18,29 @@ takers` (16 Oct 2026). It sits on tactics ([5](05-tactics.md)).
 
 ## Set-piece takers
 
+Dropped 9 Nov 2026 (#1196): "we didthced set piece taker (unless its a role)" (Craig). The four
+answers below stay for the record.
+
 - Penalties, free kicks and corners each have a set-piece list: the manager's order of up to three
-  of his players, pre-filled from FPL's order for that duty.
+  of his players, pre-filled from FPL's order for that duty. Dropped with the set-piece lists.
+  `S17.1 withdrawn`
 - A bench player can be on a list (a manager benches a player carrying a knock). He takes the duty
-  only if an auto-sub brings him into the eleven.
-- The first on the list who plays holds the duty for the whole match, and only he earns its adjustment.
-  If no one on the list plays, no one earns it.
+  only if an auto-sub brings him into the eleven. Dropped with the set-piece lists.
+  `S17.2 withdrawn`
+- The first on the list who plays holds the duty for the whole match, and only he earns its
+  adjustment. If no one on the list plays, no one earns it. Dropped with the set-piece lists.
+  `S17.3 withdrawn`
 - A taker earns role-style adjustments, give and take, set by the site and changed by patch like
-  roles' (`spec/14`, 25 Oct 2026; "maybe we dont use first"): the penalty taker per
-  penalty scored and missed; the free-kick taker for free-kick goals and set-piece chances; the
-  corner taker for corners into the box and set-piece assists. These are per-match stats the
-  Premier League's feed already gives, so they are categories already (`spec/14`).
+  roles' (`spec/14`, 25 Oct 2026; "maybe we dont use first"): the penalty taker per penalty scored
+  and missed; the free-kick taker for free-kick goals and set-piece chances; the corner taker for
+  corners into the box and set-piece assists. Dropped with the set-piece lists.
+  `S17.4 withdrawn`
+- A set-piece duty can come back only as a role (Craig, 9 Nov 2026, on #1196). `S17.5`
 
 ## Both
 
-- One player can be captain and hold several duties. All of it stacks on his role's adjustments.
-- The club captain and FPL's takers show as hints on the player card and in the picker, as stars
-  do. They never change points.
-- The deadline locks the captain, the vice-captain and the lists with the rest of the lineup
-  (`spec/05`).
+- The captain's adjustments stack on his role's adjustments. `S17.6`
+- The club captain, from Sportmonks' lineups, shows as a hint on the player card and in the
+  picker, as stars do. It never changes points (Craig, 9 Nov 2026, on #1196). `S17.7`
+- The deadline locks the captain and the vice-captain with the rest of the lineup (`spec/05`).
+  `S17.8`

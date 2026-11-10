@@ -1,11 +1,11 @@
-import { v } from "convex/values";
+import { v, type Infer } from "convex/values";
 import type { Doc } from "../_generated/dataModel";
-import { mutation, type MutationCtx } from "../_generated/server";
+import { mutation, query, type MutationCtx } from "../_generated/server";
 import { refuse, runnerOf } from "../shared/leagueAccess";
 import { isLocked, type DeadlineOf } from "./deadline";
 import { deadlineOf, leagueDeadlines } from "./leagueDeadlines";
 import { nextByDeadlines } from "./nextGameweek";
-import { isGameweek, isGameweekUsed, noSuchGameweek, usedGameweeksOf } from "./usedGameweeks";
+import { isGameweek, isGameweekUsed, noSuchGameweek, shownDeadline, usedGameweeksOf } from "./usedGameweeks";
 
 // The league's scoring start (spec/04, After the draft; #1097): "scoring starts in gameweek N", set
 // by the commissioner, defaulting to the next gameweek after the draft ends; squads and lineups
@@ -30,6 +30,30 @@ export const scoringStartRefusals = {
 /** Whether the league's scoring start has passed its deadline, so it's fixed. */
 const isFixed = (league: Doc<"leagues">, deadlineIn: DeadlineOf, now: number) =>
   league.scoringStart !== undefined && isLocked(deadlineIn(league.scoringStart), now);
+
+const scoringStartView = v.object({
+  /** The gameweek scoring starts in, or null for none set: every ticked gameweek scores. */
+  start: v.union(v.number(), v.null()),
+  /** The league's ticked gameweeks, each with its deadline (null while its kickoff isn't known). */
+  ticked: v.array(v.object({ gameweek: v.number(), deadline: shownDeadline })),
+});
+export type ScoringStartView = Infer<typeof scoringStartView>;
+
+/** The league's scoring start and the ticked gameweeks it can be set to, for League settings
+ *  (#1190). Which have begun is for the screen to work out from their deadlines: a query doesn't
+ *  read the clock. */
+export const ofLeague = query({
+  args: { leagueId: v.id("leagues") },
+  returns: scoringStartView,
+  handler: async (ctx, { leagueId }) => {
+    const { league } = await runnerOf(ctx, leagueId);
+    const deadlineIn = deadlineOf(await leagueDeadlines(ctx, leagueId));
+    return {
+      start: league.scoringStart ?? null,
+      ticked: usedGameweeksOf(league).map((gameweek) => ({ gameweek, deadline: deadlineIn(gameweek) })),
+    };
+  },
+});
 
 /** Sets the gameweek the league's scoring starts in: a ticked one not begun, while the start
  *  already set hasn't passed its deadline. */

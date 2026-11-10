@@ -74,8 +74,12 @@ Feature 4 of [SPEC.md](../SPEC.md). Only Craig's answers.
   (Craig, 4 Nov 2026, on #1087).
 - Picks in the current draft can be traded in every league, before the draft starts only (Craig,
   2 Nov 2026).
-- A drafted player who leaves the Premier League brings his team nothing in return (Craig,
-  20 Oct 2026). He keeps his place in the squad, shown as not available, like an FPL red flag.
+- A drafted player who leaves his fantasy league's competition brings his team nothing in return.
+  He stays on his manager's team, scoring nothing and shown as "left", until his manager drops him
+  (Craig, 9 Nov 2026, on #1196). `S04.6`
+- A league drafts only from its own competition's players: in the beta, a Premier League league
+  drafts Premier League players and a Scottish Premiership league drafts Scottish Premiership
+  players, and no player is in both (Craig, 9 Nov 2026, on #1196). `S04.7`
 - A traded pick shows on the board under the team that owns it now, marked "via" the team it came
   from (Craig, 4 Nov 2026, "yes" to Claude's recommendation).
 - A pick trade is one pick for one pick: "nah dont allow uneven picks, teams just need to figure
@@ -148,14 +152,15 @@ Feature 4 of [SPEC.md](../SPEC.md). Only Craig's answers.
   won't do alone, since players join the league each season (Craig, 2 Nov 2026).
 - With no ranking uploaded, auto-pick falls back to last season's points under the site's scoring
   (`spec/14`), newcomers last by name (Craig, 2 Nov 2026).
-- The ranking file is a CSV of `code,rank`, `code` the player's FPL code. No two players share a
+- The ranking file is a CSV of a player and a rank, each player keyed on his Sportmonks player
+  id, not FPL's code (Craig, 9 Nov 2026, on #1196). No two players share a
   rank; gaps are fine (1, 2, 5); a player left out falls back to last season's points; a bad row
   refuses the whole file, with every bad row listed and the old ranking kept (Craig, 4 Nov 2026,
-  on #1093, "your suggestions 1 to 5 stand").
+  on #1093, "your suggestions 1 to 5 stand"). `S04.8`
 - "remember that new plahyers will be added/removed and drafts can take place mid season" (Craig,
-  4 Nov 2026, on #1093). So a code for a player no longer in the game is skipped and listed as
+  4 Nov 2026, on #1093). So an id for a player no longer in the game is skipped and listed as
   skipped, not a bad row; a player added after the upload falls back like any unranked player; and
-  nothing assumes the draft is in pre-season.
+  nothing assumes the draft is in pre-season. `S04.9`
 - The ranking's admin panel comes later: "Server now, panel later" (Craig, 4 Nov 2026, on #1093).
 
 ## The draft room

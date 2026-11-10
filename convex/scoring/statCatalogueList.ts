@@ -136,6 +136,8 @@ export const STAT_CATALOGUE: readonly CatalogueStat[] = [
   { stat: "blocked_scoring_att", name: "Blocked scoring att", shortCode: "BSA" },
   { stat: "carries", name: "Carries", shortCode: "C" },
   { stat: "challenge_lost", name: "Challenge lost", shortCode: "CL" },
+  // Worked out from the half-time score, a starter's only (plMatch.ts's HALF_TIME_STATS; #990).
+  { stat: "clean_sheet_half_time", name: "Clean sheet at half-time", shortCode: "CSHT" },
   { stat: "clean_sheets", name: "Clean sheets", shortCode: "CS" },
   { stat: "clearance_off_line", name: "Clearance off line", shortCode: "COL" },
   { stat: "clearances_blocks_interceptions", name: "Clearances blocks interceptions", shortCode: "CBI" },
@@ -178,6 +180,7 @@ export const STAT_CATALOGUE: readonly CatalogueStat[] = [
   { stat: "goal_fastbreak", name: "Goal fastbreak", shortCode: "GF" },
   { stat: "goal_kicks", name: "Goal kicks", shortCode: "GK" },
   { stat: "goals_conceded", name: "Goals conceded", shortCode: "GC" },
+  { stat: "goals_conceded_half_time", name: "Goals conceded by half-time", shortCode: "GCHT" },
   { stat: "goals_conceded_ibox", name: "Goals conceded ibox", shortCode: "GCI" },
   { stat: "goals_conceded_obox", name: "Goals conceded obox", shortCode: "GCO" },
   { stat: "goals_openplay", name: "Goals openplay", shortCode: "GO" },

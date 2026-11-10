@@ -69,3 +69,11 @@ export function leagueDeadline(
 export function isLocked(deadline: number | null, now: number): boolean {
   return deadline !== null && now >= deadline;
 }
+
+/** The first deadline after `from`, with its gameweek, or null with none set: when an offer made
+ *  then closes unanswered, and the waiver window's next deadline. Pure. */
+export function nextDeadline(deadlines: LeagueDeadlines, from: number): { gameweek: number; at: number } | null {
+  let next: { gameweek: number; at: number } | null = null;
+  for (const [gameweek, at] of deadlines) if (at !== null && at > from && (next === null || at < next.at)) next = { gameweek, at };
+  return next;
+}
