@@ -32,7 +32,7 @@ export const LEAGUE_OVERRIDES_MOST = 1000;
 type SetIn = (gameweek: number) => StoredScoringSet;
 
 /** His base points in one match at `position`, or null while his whole record hasn't arrived. */
-const matchPointsAt = (record: Doc<"playerMatchStats">, set: StoredScoringSet, position: Position) =>
+export const matchPointsAt = (record: Doc<"playerMatchStats">, set: StoredScoringSet, position: Position) =>
   basePoints(statsIfWhole(record), set, [position])[0].total;
 
 /** His matches' base points added up at each position, by position: what each would give him at

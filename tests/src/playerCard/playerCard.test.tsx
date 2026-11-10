@@ -17,6 +17,7 @@ import type { PlayerCard } from "../../../src/playerCard/seam";
 import {
   backWords,
   CAPTAIN_TITLE,
+  captainLabel,
   chanceWords,
   dropWords,
   figureLabels,
@@ -54,7 +55,7 @@ import { squadWithWarnings } from "../../support/src/squads.harness";
 const headOf = async (card: PlayerCard = SAKA) => within(await screen.findByRole("region", { name: card.fullName }));
 
 /** His row on Scouting's list. */
-const listed = ({ code, name, fullName, club, positions, ownerTeamName }: PlayerCard): ListedPlayer => ({ code, name, fullName, club, positions, ownerTeamName, onWaivers: null, seasonPoints: null, figures: NO_FIGURES, stat: null });
+const listed = ({ code, name, fullName, club, positions, ownerTeamName }: PlayerCard): ListedPlayer => ({ code, name, fullName, club, positions, ownerTeamName, onWaivers: null, seasonPoints: null, points: null, figures: NO_FIGURES, stat: null });
 
 describe("reaching it", () => {
   it("a player's name on Scouting opens his card, and Back returns to Scouting", async () => {
@@ -255,11 +256,19 @@ describe("the card's head (#1027)", () => {
     expect(head.getByText(figureLabels.minutes).nextElementSibling!.textContent).toBe(noFigureWords);
   });
 
-  it("keeps the portrait, a news note, role fit and the captain and set-piece hints in their places as placeholders", async () => {
+  it("keeps the portrait, a news note, role fit and the club captain hint (S17.7) in their places as placeholders", async () => {
     openCard();
     expect((await headOf()).getByRole("img", { name: portraitLabel })).toBeTruthy();
     expect(within(screen.getByRole("region", { name: NEWS_TITLE })).getByRole("img", { name: newsNotesLabel })).toBeTruthy();
     expect(within(screen.getByRole("region", { name: ROLE_FIT_TITLE })).getByRole("img", { name: roleFitLabel })).toBeTruthy();
-    expect(within(screen.getByRole("region", { name: CAPTAIN_TITLE })).getAllByRole("img")).toHaveLength(2);
+    const captain = within(screen.getByRole("region", { name: CAPTAIN_TITLE }));
+    expect(captain.getByText(captainLabel)).toBeTruthy();
+    expect(captain.getAllByRole("img")).toHaveLength(1);
+  });
+
+  it("shows no set-piece hint: set-piece duties come back only as roles (S05.24)", async () => {
+    openCard();
+    await headOf();
+    expect(screen.queryByText(/set pieces/i)).toBeNull();
   });
 });

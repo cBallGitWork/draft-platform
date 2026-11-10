@@ -34,11 +34,11 @@ test("it is undefined while loading", () => {
 test("it asks scouting/compare:players for the two codes, and hands on what comes back", () => {
   const comparison = [{ code: 1 }, { code: 2 }];
   convex.compare.mockReturnValue(comparison);
-  expect(renderHook(() => liveScouting.useComparison(A_LEAGUE_ID, [1, 2], stat)).result.current).toBe(comparison);
-  expect(convex.compare).toHaveBeenCalledWith({ leagueId: A_LEAGUE_ID, codes: [1, 2], stat });
+  expect(renderHook(() => liveScouting.useComparison(A_LEAGUE_ID, [1, 2], stat, "last6")).result.current).toBe(comparison);
+  expect(convex.compare).toHaveBeenCalledWith({ leagueId: A_LEAGUE_ID, codes: [1, 2], stat, period: "last6" });
 });
 
 test("with no codes it skips the query", () => {
-  expect(renderHook(() => liveScouting.useComparison(A_LEAGUE_ID, null, null)).result.current).toBeUndefined();
+  expect(renderHook(() => liveScouting.useComparison(A_LEAGUE_ID, null, null, "season")).result.current).toBeUndefined();
   expect(convex.compare).toHaveBeenCalledWith("skip");
 });

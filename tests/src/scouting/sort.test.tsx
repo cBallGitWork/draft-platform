@@ -62,7 +62,7 @@ describe("the sort asks the server", () => {
   it("by season points, the most first", async () => {
     const app = await openOnAll();
     await userEvent.click(await screen.findByRole("button", { name: sortLabelOf(columns.seasonPoints) }));
-    expect(lastAsk(app)[2]).toEqual({ by: "seasonPoints", descending: true });
+    expect(lastAsk(app)[2]).toEqual({ by: "points", descending: true });
   });
 });
 
@@ -87,7 +87,7 @@ describe("any stat, as a season total", () => {
   it("a stat chosen is asked for and sorted by, the most first, in a column headed by its short code", async () => {
     const app = await openWithTotals();
     await chooseStat(GOALS.name);
-    expect(lastAsk(app).slice(2)).toEqual([{ by: "stat", descending: true }, GOALS.stat]);
+    expect(lastAsk(app).slice(2, 4)).toEqual([{ by: "stat", descending: true }, GOALS.stat]);
     expect(namesShown()).toEqual(["Palmer", "Rice", "Saka"]);
     expect(statCells()).toEqual(["5", "2", "0"]);
     const head = screen.getByRole("button", { name: sortLabelOf(GOALS_HEAD) });
@@ -115,7 +115,7 @@ describe("any stat, as a season total", () => {
     const app = await openWithTotals();
     await chooseStat(GOALS.name);
     await userEvent.click(screen.getByRole("button", { name: sortLabelOf(columns.name) }));
-    expect(lastAsk(app).slice(2)).toEqual([{ by: "name", descending: false }, GOALS.stat]);
+    expect(lastAsk(app).slice(2, 4)).toEqual([{ by: "name", descending: false }, GOALS.stat]);
     expect(statCells()).toEqual(["5", "2", "0"]);
   });
 
@@ -129,7 +129,7 @@ describe("any stat, as a season total", () => {
     expect(within(groups[1]).getAllByRole("option").map((option) => option.textContent)).toEqual(STAT_CATALOGUE.map((each) => each.name));
 
     await chooseStat(OWN.name);
-    expect(lastAsk(app).slice(2)).toEqual([{ by: "stat", descending: true }, OWN.stat]);
+    expect(lastAsk(app).slice(2, 4)).toEqual([{ by: "stat", descending: true }, OWN.stat]);
     expect(statCells()).toEqual(["3", "1.5", "0"]);
     expect(screen.getByRole("button", { name: sortLabelOf({ short: OWN.shortCode, long: OWN.name }) })).toBeTruthy();
   });
@@ -138,7 +138,7 @@ describe("any stat, as a season total", () => {
     const app = await openWithTotals();
     await chooseStat(GOALS.name);
     await chooseStat(noStatWords);
-    expect(lastAsk(app).slice(2)).toEqual([{ by: "name", descending: false }, null]);
+    expect(lastAsk(app).slice(2, 4)).toEqual([{ by: "name", descending: false }, null]);
     expect(screen.queryByRole("button", { name: sortLabelOf(GOALS_HEAD) })).toBeNull();
   });
 });

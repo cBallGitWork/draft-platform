@@ -48,7 +48,7 @@ describe("selecting a player", () => {
     const panel = panelOf("CDM");
     expect(within(panel).getByText("Rice")).toBeTruthy();
     expect(factIn(panel, panelSeasonPointsWords).textContent).toBe("42");
-    expect(factIn(panel, panelMinutesWords).textContent).toBe("540");
+    expect(factIn(panel, panelMinutesWords("season")).textContent).toBe("540");
     expect(rowOf("Rice").getAttribute("aria-current")).toBe("true");
   });
 
@@ -102,7 +102,7 @@ describe("his figures per 90", () => {
     await openOnAll({ ...HELD, totals: TOTALS });
     await userEvent.click(rowOf("Palmer"));
     const panel = panelOf("CAM");
-    expect(within(panel).getByText(per90Words)).toBeTruthy();
+    expect(within(panel).getByText(per90Words("season"))).toBeTruthy();
     expect(within(panel).getByText(versusWords("attackingMidfield"))).toBeTruthy();
     const goals = rowIn(panel, PER90_STAT_NAMES.goals_scored);
     expect(within(goals).getAllByRole("cell").map((cell) => cell.textContent)).toEqual(["1", "", "100"]);
@@ -124,7 +124,7 @@ describe("his figures per 90", () => {
     const app = await openOnAll({ ...HELD, totals: TOTALS });
     await userEvent.selectOptions(screen.getByRole("combobox", { name: statLabel }), "Saves");
     await userEvent.click(rowOf("Palmer"));
-    expect(app.scouting.usePer90.mock.lastCall).toEqual([league.leagueId, PALMER.code, "saves"]);
+    expect(app.scouting.usePer90.mock.lastCall).toEqual([league.leagueId, PALMER.code, "saves", "season"]);
     expect(within(panelOf("CAM")).getByRole("rowheader", { name: PER90_STAT_NAMES.saves })).toBeTruthy();
   });
 });

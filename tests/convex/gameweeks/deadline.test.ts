@@ -1,10 +1,5 @@
 import { describe, expect, test } from "vitest";
-import {
-  FPL_DEADLINE_RULE,
-  isLocked,
-  leagueDeadline,
-  type DeadlineRule,
-} from "../../../convex/gameweeks/deadline";
+import { DEFAULT_DEADLINE_RULE, isLocked, leagueDeadline, type DeadlineRule } from "../../../convex/gameweeks/deadline";
 import { mapFpl } from "../../../convex/football/fpl/fpl";
 import { recordedSeason } from "../../support/recorded/fpl.payloads";
 import { DAY_MS, HOUR_MS, MINUTE_MS } from "../../../convex/shared/time";
@@ -19,6 +14,13 @@ const NOTHING_RECORDED = null;
 function minutesBefore(minutesBeforeFirstKickoff: number): DeadlineRule {
   return { minutesBeforeFirstKickoff };
 }
+
+/** FPL's own timing, 90 minutes before the first kickoff: feed data, never a league's default. */
+const FPL_TIMING = minutesBefore(90);
+
+test("a league's default deadline is 15 minutes before the first kickoff, not FPL's 90 (S03.3, S05.20)", () => {
+  expect(DEFAULT_DEADLINE_RULE).toEqual(minutesBefore(15));
+});
 
 /** FPL's own deadline for a gameweek, as recorded. */
 function fplDeadline(gameweekNumber: number): number {
@@ -35,15 +37,15 @@ describe("from the recorded 2026/27 season", () => {
       deadline: leagueDeadline(number, season.fixtures, rule, NOTHING_RECORDED),
     }));
 
-  test("FPL's rule gives FPL's own deadline for every gameweek", () => {
+  test("FPL's 90 minutes give FPL's own deadline for every gameweek", () => {
     expect(season.gameweeks).toHaveLength(GAMEWEEKS);
 
-    expect(deadlinesUnder(FPL_DEADLINE_RULE)).toEqual(season.gameweeks.map(({ number, deadline }) => ({ number, deadline })));
+    expect(deadlinesUnder(FPL_TIMING)).toEqual(season.gameweeks.map(({ number, deadline }) => ({ number, deadline })));
   });
 
   test("a league with its own rule gets its own deadline for every gameweek, not FPL's", () => {
     const LEAGUE_MINUTES = 60;
-    const later = (FPL_DEADLINE_RULE.minutesBeforeFirstKickoff - LEAGUE_MINUTES) * MINUTE_MS;
+    const later = (FPL_TIMING.minutesBeforeFirstKickoff - LEAGUE_MINUTES) * MINUTE_MS;
     const laterThanFpl = season.gameweeks.map(({ number, deadline }) => ({ number, deadline: deadline + later }));
 
     expect(deadlinesUnder(minutesBefore(LEAGUE_MINUTES))).toEqual(laterThanFpl);
@@ -63,7 +65,7 @@ describe("from the recorded 2026/27 season", () => {
       doubled.filter((fixture) => fixture.gameweek === DOUBLE_GAMEWEEK && plays(clubCode, fixture)).length;
     expect([rearranged.homeClubCode, rearranged.awayClubCode].map(matchCount)).toEqual([2, 2]);
 
-    expect(leagueDeadline(DOUBLE_GAMEWEEK, doubled, FPL_DEADLINE_RULE, NOTHING_RECORDED)).toBe(
+    expect(leagueDeadline(DOUBLE_GAMEWEEK, doubled, FPL_TIMING, NOTHING_RECORDED)).toBe(
       fplDeadline(DOUBLE_GAMEWEEK),
     );
   });

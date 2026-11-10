@@ -3,7 +3,7 @@ import type { Area } from "../../convex/lineup/pitch";
 import type { CatalogueStat } from "../../convex/scoring/statCatalogueList";
 import { Loading } from "../ui/Panel";
 import { statFigure } from "../shared/figures";
-import type { ScoutingSeam } from "./seam";
+import type { Period, ScoutingSeam } from "./seam";
 import { loadingPer90Words, noFigureWords, PER90_STAT_NAMES, notRankedWords, per90Words, percentileLabel, versusWords } from "./words";
 
 /** A per-90 stat's name: an area's stats by the panel's own names; `stat`, the list's, maybe one of
@@ -21,7 +21,7 @@ export function PercentileBar({ percentile, area }: { percentile: number | null;
   );
 }
 
-/** The selected player's figures per 90 over the season (the approved picture): a head row naming
+/** The selected player's figures per 90 over the list's period (the approved picture): a head row naming
  *  whom he is ranked against, then a row a stat with his figure to two places, a bar as long as his percentile
  *  (hover gives it) and the percentile itself; "—" with no minutes, and no bar while he has too few
  *  minutes to be ranked. `stat` is the list's, which joins them. */
@@ -29,14 +29,16 @@ export function Per90Figures({
   leagueId,
   playerCode,
   stat,
+  period,
   seam,
 }: {
   leagueId: Id<"leagues">;
   playerCode: number;
   stat: CatalogueStat | null;
+  period: Period;
   seam: ScoutingSeam;
 }) {
-  const panel = seam.usePer90(leagueId, playerCode, stat?.stat ?? null);
+  const panel = seam.usePer90(leagueId, playerCode, stat?.stat ?? null, period);
   const nameOf = per90StatName(stat);
   if (panel === undefined) return <Loading className="px-3 py-1">{loadingPer90Words}</Loading>;
   const { area, ranked, figures } = panel;
@@ -46,7 +48,7 @@ export function Per90Figures({
       <thead>
         <tr className="border-t border-panel-rule">
           <th scope="col" className="px-3 py-1 text-left font-normal text-soft">
-            {per90Words}
+            {per90Words(period)}
           </th>
           <th scope="col" colSpan={3} className="px-3 py-1 text-right font-normal text-soft">
             {ranked ? versusWords(area) : notRankedWords}

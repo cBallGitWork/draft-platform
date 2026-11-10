@@ -68,6 +68,7 @@ test("every Premier League player now is listed, with his club, positions and ow
     ownerTeamName: await teamName(t, teams[0]),
     onWaivers: null,
     seasonPoints: null,
+    points: null,
     figures: NO_FIGURES,
     stat: null,
   });
@@ -135,12 +136,13 @@ describe("the sort", () => {
   });
 
   test("by season points, all null before scoring, falls back to the name", async () => {
-    expect(await namesListed({}, { by: "seasonPoints", descending: true })).toEqual(["Mbeumo", "Palmer", "Rice", "Saka"]);
+    expect(await namesListed({}, { by: "points", descending: true })).toEqual(["Mbeumo", "Palmer", "Rice", "Saka"]);
   });
 });
 
 describe("sorting by a figure", () => {
-  const withPoints = (name: string, code: number, seasonPoints: number | null): ListedPlayer => ({
+  // His season points stay as they are: the list sorts by his points over the period.
+  const withPoints = (name: string, code: number, points: number | null): ListedPlayer => ({
     code,
     name,
     fullName: name,
@@ -148,12 +150,13 @@ describe("sorting by a figure", () => {
     positions: [],
     ownerTeamName: null,
     onWaivers: null,
-    seasonPoints,
+    seasonPoints: null,
+    points,
     figures: NO_FIGURES,
     stat: null,
   });
   const players = [withPoints("Ann", 1, 4), withPoints("Bea", 2, null), withPoints("Cal", 3, 12), withPoints("Dee", 4, 4)];
-  const order = (descending: boolean) => listOf(players, ALL, { by: "seasonPoints", descending }).map((player) => player.name);
+  const order = (descending: boolean) => listOf(players, ALL, { by: "points", descending }).map((player) => player.name);
 
   test("most first, a tie by name, a null last", () => {
     expect(order(true)).toEqual(["Cal", "Ann", "Dee", "Bea"]);

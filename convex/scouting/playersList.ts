@@ -7,8 +7,9 @@ import { clubRecord, position } from "../schema";
 import { takeAllOrThrow } from "../shared/cappedRead";
 import { memberOf, teamsOf } from "../shared/leagueAccess";
 import { clubOf, currentClubs, currentPlayersAt } from "../shared/players";
-import { newestSeasonWithTotals, seasonTotals } from "../stats/seasonStats";
 import type { Stats } from "../stats/statTotals";
+import { periodPointsIn, periodTotals } from "./period";
+import { period } from "./periods";
 import { listFigures, listOf, shownStat } from "./playersOrder";
 import { shownSeasonPoints } from "./shownSeasonPoints";
 import { withOwnStats } from "../scoring/ownStats";
@@ -31,6 +32,9 @@ import { firstRunFrom } from "../waivers/waiverTimes";
 // records are written (seasonStats.ts), for the newest season with any: last season's until the
 // new one's first match (#647). An own stat's total is worked out from those totals as a match's
 // is from its record (ownStats.ts), by the site's latest set, the one Player scoring shows.
+// The figures, the shown stat and the Pts column follow the list's period (period.ts; #1028, story
+// 3): the season, or the last 4 or 6 finished gameweeks. His season points stay beside them, for
+// his panel.
 
 /** The most players the list reads: the Premier League's 20 squads as FPL lists them, a few dozen
  *  a club, with room. Each costs one read of his positions row, so a full list stays far inside a
@@ -49,9 +53,9 @@ export type Availability = Infer<typeof availability>;
 const listFigure = v.union(v.literal("minutes"), v.literal("goals"), v.literal("assists"), v.literal("shotsOnTarget"));
 export type ListFigure = Infer<typeof listFigure>;
 
-/** What the list can be sorted by: "stat" is the shown stat's season total, and each list figure
- *  its own. */
-const sortColumn = v.union(v.literal("name"), v.literal("club"), v.literal("seasonPoints"), v.literal("stat"), listFigure);
+/** What the list can be sorted by: "points" is his points over the period, "stat" the shown stat's
+ *  total over it, and each list figure its own. */
+const sortColumn = v.union(v.literal("name"), v.literal("club"), v.literal("points"), v.literal("stat"), listFigure);
 export type SortColumn = Infer<typeof sortColumn>;
 
 const filters = v.object({
@@ -81,9 +85,13 @@ const listedPlayer = v.object({
    *  (seasonPoints.ts), or null ("—") while none of his matches is priced; before the new season's
    *  first match, last season's, null for a newcomer (shownSeasonPoints.ts). */
   seasonPoints: v.union(v.number(), v.null()),
-  /** His season totals of the list's own figures (LIST_FIGURES), 0 for each he hasn't. */
+  /** His points over the list's period, the Pts column: his season points over the season; over
+   *  the last few gameweeks, his matches there priced as his card prices them (period.ts), null
+   *  ("—") with none priced. */
+  points: v.union(v.number(), v.null()),
+  /** His totals over the period of the list's own figures (LIST_FIGURES), 0 for each he hasn't. */
   figures: v.object({ minutes: v.number(), goals: v.number(), assists: v.number(), shotsOnTarget: v.number() }),
-  /** His season total of the shown stat, 0 if he hasn't played; null with no stat shown. */
+  /** His total of the shown stat over the period, 0 if he hasn't played; null with no stat shown. */
   stat: v.union(v.number(), v.null()),
 });
 export type ListedPlayer = Infer<typeof listedPlayer>;
@@ -100,17 +108,21 @@ const playersList = v.object({
   /** The season the points are from while they are last season's, by the year it starts, for the
    *  head to name ("Pts 25/26"); null while they are this season's. */
   pointsSeason: v.union(v.number(), v.null()),
+  /** The gameweeks the period counts, in order: none for the season, and fewer than it names while
+   *  fewer have finished. */
+  periodGameweeks: v.array(v.number()),
 });
 export type PlayersList = Infer<typeof playersList>;
 
 /** Every club now, and the players the filters keep in the sort's order (`listOf`), each with his
- *  season total of `stat` when one is shown (a catalogue stat's key, an own stat's of the site's
- *  latest set, or null), and that set's own stats. Only the chosen club's players are read. Anyone
+ *  figures over `period` (the season when left out) and his total there of `stat` when one is
+ *  shown (a catalogue stat's key, an own stat's of the site's latest set, or null), and that set's
+ *  own stats. Only the chosen club's players are read. Anyone
  *  not in the league is refused, as is a stat neither holds, or a sort by the stat with none shown. */
 export const list = query({
-  args: { leagueId: v.id("leagues"), filters, sort, stat: v.union(v.string(), v.null()) },
+  args: { leagueId: v.id("leagues"), filters, sort, stat: v.union(v.string(), v.null()), period: v.optional(period) },
   returns: playersList,
-  handler: async (ctx, { leagueId, filters, sort, stat }) => {
+  handler: async (ctx, { leagueId, filters, sort, stat, period = "season" }) => {
     await memberOf(ctx, leagueId);
     const set = setOf((await siteVersions(ctx)).at(-1));
     const ownStats = (set.ownStats ?? []).map(({ stat, name, shortCode }) => ({ stat, name, shortCode }));
@@ -123,8 +135,9 @@ export const list = query({
     const onWaiversOf = await onWaiversIn(ctx, leagueId);
     const positionsOfNow = await positionsNow(ctx, leagueId);
     const { lastSeason, pointsOf } = await shownSeasonPoints(ctx, leagueId);
-    const season = await newestSeasonWithTotals(ctx);
-    const totals = season === null ? new Map<number, Stats>() : await seasonTotals(ctx, season);
+    const over = await periodTotals(ctx, period);
+    const { totals } = over;
+    const periodPointsOf = period === "season" ? pointsOf : await periodPointsIn(ctx, leagueId, over);
     const listedClubOf = new Map(clubs.map((each) => [each.code, clubOf(each)]));
 
     const rows = await Promise.all(
@@ -139,12 +152,13 @@ export const list = query({
           ownerTeamName: ownerOf.get(player.code) ?? null,
           onWaivers: onWaiversOf.get(player.code) ?? null,
           seasonPoints: pointsOf(player.code, positions),
+          points: periodPointsOf(player.code, positions),
           figures: listFigures(totals.get(player.code)),
           stat: shownStat(withOwnTotals(totals.get(player.code), stat, set), stat),
         };
       }),
     );
-    return { clubs: [...listedClubOf.values()], ownStats, players: listOf(rows, filters, sort), pointsSeason: lastSeason };
+    return { clubs: [...listedClubOf.values()], ownStats, players: listOf(rows, filters, sort), pointsSeason: lastSeason, periodGameweeks: over.gameweeks };
   },
 });
 

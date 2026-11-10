@@ -90,7 +90,7 @@ describe("what a player's season points are", () => {
   });
 
   test("the list sorts by them, most first", async () => {
-    const order = (await list(league, { by: "seasonPoints", descending: true })).players.map((player) => player.code);
+    const order = (await list(league, { by: "points", descending: true })).players.map((player) => player.code);
     const expected = [...(await pointsListed(league)).entries()].toSorted(([, one], [, other]) => other! - one!).map(([code]) => code);
     expect(order).toEqual(expected);
   });

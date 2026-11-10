@@ -4,7 +4,7 @@
 import { vi } from "vitest";
 import { api } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
-import { FPL_DEADLINE_RULE } from "../../../convex/gameweeks/deadline";
+import { DEFAULT_DEADLINE_RULE } from "../../../convex/gameweeks/deadline";
 import { recordPassedDeadlines } from "../../../convex/gameweeks/deadlineRecorder";
 import { pickFirstLineupAgain } from "../../../convex/lineup/lineups";
 import type { Position } from "../../../convex/positions/positionTables";
@@ -55,7 +55,7 @@ export const holdSquad = async (
 
 /** Past gameweek NEXT's deadline, as holdGameweeks sets it, recorded as the football sync records it. */
 export const passNextDeadline = async (t: TestConvex) => {
-  vi.advanceTimersByTime(KICKS_OFF_IN - FPL_DEADLINE_RULE.minutesBeforeFirstKickoff * MINUTE_MS);
+  vi.advanceTimersByTime(KICKS_OFF_IN - DEFAULT_DEADLINE_RULE.minutesBeforeFirstKickoff * MINUTE_MS);
   await t.run((ctx) => recordPassedDeadlines(ctx));
 };
 

@@ -31,8 +31,9 @@ xG isn't needed. Its free plan's Scottish Premiership is read first (#1391), bef
 paid trial and the switch ([spec/20](spec/20-going-live.md)).
 
 The beta plays on the Premier League and the Scottish Premiership, "so we can handle multi
-leagues" (Craig, 9 Nov 2026, on #1196). Each draft league drafts only from its own competition's
-players, and no player is shared between the two.
+leagues" (Craig, 9 Nov 2026, on #1196). A league plays one or more of them and drafts
+from those it picked, each player on one team only (Craig, 10 Nov 2026, on #1196: "we can mix and
+match").
 
 ## Features
 
