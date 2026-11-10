@@ -1,6 +1,6 @@
 // The competitions Sportmonks is read for (#1414): a list held as data, seeded with the beta's two,
 // each that is on read in its own run, every row naming its competition, and one the plan refuses
-// failing alone while the others still read.
+// failing alone while the others still read, its own row on the feeds page (S15.2).
 
 import { expect, test, vi } from "vitest";
 import { internal } from "../../../../convex/_generated/api";
