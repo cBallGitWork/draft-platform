@@ -172,6 +172,7 @@ import type * as pastSeasons_pastSeasonRows from "../pastSeasons/pastSeasonRows.
 import type * as pastSeasons_pastStatColumns from "../pastSeasons/pastStatColumns.js";
 import type * as playerCard_cardPoints from "../playerCard/cardPoints.js";
 import type * as playerCard_playerCard from "../playerCard/playerCard.js";
+import type * as playerCard_positionRank from "../playerCard/positionRank.js";
 import type * as positions_playerPositions from "../positions/playerPositions.js";
 import type * as positions_positionChanges from "../positions/positionChanges.js";
 import type * as positions_positionSettings from "../positions/positionSettings.js";
@@ -512,6 +513,7 @@ declare const fullApi: ApiFromModules<{
   "pastSeasons/pastStatColumns": typeof pastSeasons_pastStatColumns;
   "playerCard/cardPoints": typeof playerCard_cardPoints;
   "playerCard/playerCard": typeof playerCard_playerCard;
+  "playerCard/positionRank": typeof playerCard_positionRank;
   "positions/playerPositions": typeof positions_playerPositions;
   "positions/positionChanges": typeof positions_positionChanges;
   "positions/positionSettings": typeof positions_positionSettings;

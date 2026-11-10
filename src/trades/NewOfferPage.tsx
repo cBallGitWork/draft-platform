@@ -13,7 +13,7 @@ import {
 } from "../ui/Panel";
 import { NoteBox, PartnerPicker } from "./OfferControls";
 import { Fact, OfferSide } from "./OfferParts";
-import { sidesOf } from "./offerSides";
+import { askedOf, counterOf, type Asked, type Countered, type Start } from "./offerStart";
 import { pickNamed, useOfferTicks } from "./offerTicks";
 import { PicksTable } from "./PicksTable";
 import type { ScreenTeam, TradeChanges, TradesSeam, TradesView } from "./seam";
@@ -43,15 +43,19 @@ import {
 /** Trades' New offer tab (#383; docs/design/approved/trades/1440-new.png): both squads side by side
  *  with ticks, each with its Picks block under it before the draft (#1096), the team to trade with
  *  picked in Their squad's plate, and the offer summed up on the
- *  right with a one-line note. `counter` names an offer to the manager it answers, filling it in. */
+ *  right with a one-line note. `counter` names an offer to the manager it answers, filling it in;
+ *  `asked`, from a player card's Offer a trade, the team to trade with and their player he asks
+ *  for (#1027). */
 export function NewOfferPage({
   league,
   seam,
   counter,
+  asked = {},
 }: {
   league: LeagueSummary;
   seam: TradesSeam;
   counter?: Id<"tradeOffers">;
+  asked?: Asked;
 }) {
   if (league.teamName === null) {
     return (
@@ -60,17 +64,19 @@ export function NewOfferPage({
       </PageSection>
     );
   }
-  return <Loaded leagueId={league.leagueId} seam={seam} counter={counter} />;
+  return <Loaded leagueId={league.leagueId} seam={seam} counter={counter} asked={asked} />;
 }
 
 function Loaded({
   leagueId,
   seam,
   counter,
+  asked,
 }: {
   leagueId: Id<"leagues">;
   seam: TradesSeam;
   counter?: Id<"tradeOffers">;
+  asked: Asked;
 }) {
   const view = seam.useTrades(leagueId);
   const changes = seam.useTradeChanges();
@@ -81,40 +87,17 @@ function Loaded({
       </PageSection>
     );
   }
+  const countered = counterOf(view, counter);
   return (
     <NewOffer
-      key={counter ?? "new"}
+      key={counter ?? `${asked.team ?? "new"} ${asked.player ?? ""}`}
       leagueId={leagueId}
       view={view}
       changes={changes}
-      counter={counterOf(view, counter)}
+      counter={countered}
+      start={countered ?? askedOf(view, asked)}
     />
   );
-}
-
-/** The offer to the manager that a counter answers, from his side: the team, and the codes he
- *  gives and gets. Null for a new offer, or one he can't counter. */
-type Countered = {
-  offerId: Id<"tradeOffers">;
-  teamId: Id<"teams">;
-  gives: number[];
-  gets: number[];
-};
-
-function counterOf(
-  view: TradesView,
-  offerId: Id<"tradeOffers"> | undefined,
-): Countered | null {
-  const offer = view.offers.find((each) => each.offerId === offerId);
-  if (offer === undefined) return null;
-  const sides = sidesOf(offer, view.myTeamId);
-  if (sides.group !== "toYou" || offer.picks !== null) return null;
-  return {
-    offerId: offer.offerId,
-    teamId: sides.otherTeamId,
-    gives: sides.youGive.map(({ code }) => code),
-    gets: sides.youGet.map(({ code }) => code),
-  };
 }
 
 function NewOffer({
@@ -122,21 +105,23 @@ function NewOffer({
   view,
   changes,
   counter,
+  start,
 }: {
   leagueId: Id<"leagues">;
   view: TradesView;
   changes: TradeChanges;
   counter: Countered | null;
+  start: Start | null;
 }) {
   const navigate = useNavigate();
   const [mine, ...others] = view.teams;
   const partners = others.filter((team) => !team.onAutoTeam);
   const [partnerId, setPartnerId] = useState<Id<"teams"> | null>(
-    counter?.teamId ?? partners[0]?.teamId ?? null,
+    start?.teamId ?? partners[0]?.teamId ?? null,
   );
   const ticks = useOfferTicks({
-    gives: counter?.gives ?? [],
-    gets: counter?.gets ?? [],
+    gives: start?.gives ?? [],
+    gets: start?.gets ?? [],
   });
   const [note, setNote] = useState("");
   const [busy, setBusy] = useState(false);
