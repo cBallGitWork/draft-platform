@@ -3,10 +3,15 @@ import { internal } from "../_generated/api";
 import type { Doc, Id } from "../_generated/dataModel";
 import { internalMutation, type QueryCtx } from "../_generated/server";
 import { heldFixtures } from "../gameweekScorer/heldMatches";
+import { namedCodes } from "../lineup/lineup";
 import { lineupsInGameweek } from "../lineup/lineups";
+import { positionsNow, type PositionsNow } from "../positions/playerPositions";
+import type { Position } from "../positions/positionTables";
 import { LEAGUES_READ_MOST, takeAllOrThrow } from "../shared/cappedRead";
 import { logFailure } from "../shared/errors";
 import { teamsOf } from "../shared/leagueAccess";
+import { playerByCode } from "../shared/players";
+import { readOnce } from "../shared/readOnce";
 import { MOST_TEAMS } from "../leagues/leagueLimits";
 import { statusOf } from "../stats/matchStats";
 import { starsOfPlayers } from "./playerStars";
@@ -17,12 +22,18 @@ import type { RoleStars } from "./starsShape";
 // again never moves it. When a league's deadline is recorded (deadlineRecorder.ts), each team's
 // bench as it stood then is kept with its stars.
 //
+// The same row keeps each man the lineup named, with his club and positions then (#1540): "a
+// position change counts from each league's own deadline" (spec/06, When positions change), so
+// scoring a begun gameweek reads him as he stood then (teamGameweek.ts), and a position lost or a
+// club changed weeks later never re-works its auto-subs, nor gives him his new club's match in it.
+//
 // With no copy kept, a sub plays the slot's first role: a stable fallback, which no change of stars
-// moves. So it is for a gameweek locked before this was built, for a player who joined the bench
-// after the deadline (the copy names only those on it then), and for one whose keeping failed. A
-// failed keeping is logged, and each recording after tries again (`keepMissing`) for the league's
-// latest begun gameweek, until one of its matches locks: stars move only when a match locks or the
-// scoring changes, so a copy kept before then is the deadline's.
+// moves, and a man is read with his club and positions now. So it is for a gameweek locked before
+// this was built, for a player who joined the lineup after the deadline (the copy names only those
+// in it then), and for one whose keeping failed. A failed keeping is logged, and each recording
+// after tries again (`keepMissing`) for the league's latest begun gameweek, until one of its
+// matches locks: stars move only when a match locks or the scoring changes, so a copy kept before
+// then is the deadline's.
 //
 // Cost: one row a team a gameweek, each holding its bench players' rated roles: a few kilobytes,
 // growing with teams and gameweeks. Scoring a league's gameweek reads its teams' rows, one a team;
@@ -40,10 +51,12 @@ export const storeLeague = internalMutation({
     try {
       rows = [];
       const teamIds = (await teamsOf(ctx, leagueId)).map((team) => team._id);
+      const playerNow = playerReader(ctx, await positionsNow(ctx, leagueId));
       for (const [teamId, held] of await lineupsInGameweek(ctx, leagueId, teamIds, gameweek)) {
         const stars = await starsOfPlayers(ctx, held.bench);
         const bench = held.bench.map((playerCode) => ({ playerCode, stars: stars.get(playerCode)!.filter((rating) => typeof rating.stars === "number") }));
-        rows.push({ leagueId, gameweek, teamId, bench });
+        const players = await Promise.all(namedCodes(held).map(async (playerCode) => ({ playerCode, ...(await playerNow(playerCode)) })));
+        rows.push({ leagueId, gameweek, teamId, bench, players });
       }
     } catch (error: unknown) {
       logFailure(`League ${leagueId}'s stars at gameweek ${gameweek}'s deadline weren't kept, so its auto-subs play the slot's first role until they are`, error);
@@ -94,14 +107,44 @@ function keptRows(ctx: QueryCtx, leagueId: Id<"leagues">, gameweek: number, team
   );
 }
 
-/** Each team's bench players' stars kept at the league's deadline for `gameweek`, or only
- *  `teamId`'s when given: none for a team or player with no copy kept. */
-export async function deadlineStarsIn(
+/** A man a lineup names, as scoring reads him: his club, null for one the football sync doesn't
+ *  hold, and his positions. */
+export interface LineupPlayer {
+  clubCode: number | null;
+  positions: Position[];
+}
+
+/** Each player's club and positions now, read once however often he is asked for. */
+export function playerReader(ctx: QueryCtx, positionsOfNow: PositionsNow): (code: number) => Promise<LineupPlayer> {
+  return readOnce(async (code: number): Promise<LineupPlayer> => {
+    const held = await playerByCode(ctx, code);
+    return { clubCode: held?.clubCode ?? null, positions: await positionsOfNow(code) };
+  });
+}
+
+/** What a team's row keeps from the deadline: its bench players' stars, and each man its lineup
+ *  named as he stood then (none in a row kept before #1540). */
+export interface KeptAtDeadline {
+  stars: ReadonlyMap<number, RoleStars[]>;
+  players: ReadonlyMap<number, LineupPlayer>;
+}
+
+/** What each team's row keeps from the league's deadline for `gameweek`, or only `teamId`'s when
+ *  given: none for a team with no copy kept. */
+export async function keptAtDeadline(
   ctx: QueryCtx,
   leagueId: Id<"leagues">,
   gameweek: number,
   teamId?: Id<"teams">,
-): Promise<Map<Id<"teams">, Map<number, RoleStars[]>>> {
+): Promise<Map<Id<"teams">, KeptAtDeadline>> {
   const rows = await keptRows(ctx, leagueId, gameweek, teamId);
-  return new Map(rows.map((row) => [row.teamId, new Map(row.bench.map(({ playerCode, stars }) => [playerCode, stars]))]));
+  return new Map(
+    rows.map((row) => [
+      row.teamId,
+      {
+        stars: new Map(row.bench.map(({ playerCode, stars }) => [playerCode, stars])),
+        players: new Map((row.players ?? []).map(({ playerCode, clubCode, positions }) => [playerCode, { clubCode, positions }])),
+      },
+    ]),
+  );
 }

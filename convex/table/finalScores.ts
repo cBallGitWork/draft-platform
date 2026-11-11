@@ -16,8 +16,9 @@ import { startRecap } from "../home/recaps";
 // never holds up a lock or another league.
 //
 // A stored score can still go stale if the code that scores changes (a bug fixed in scoring, say),
-// the admin corrects a player's positions after the gameweek (auto-subs read positions as they are
-// when it is stored), or a commissioner overrides a player's points for a match (spec/14, #32).
+// or a commissioner overrides a player's points for a match (spec/14, #32). A player's positions or
+// club changed after the deadline never reach it: auto-subs read him as he stood then
+// (deadlineStars.ts, #1540), save in a gameweek kept before that, which reads him as he is now.
 // `rescore` is that path: it drops a gameweek's stored scores and stores them again from the
 // records; an override calls `rescoreGameweek` itself, in its own transaction.
 

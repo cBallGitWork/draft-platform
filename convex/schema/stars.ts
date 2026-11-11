@@ -1,6 +1,7 @@
 import { defineTable } from "convex/server";
 import { v } from "convex/values";
 import { roleStarsShape } from "../stars/starsShape";
+import { position } from "./positions";
 
 export const starsTables = {
   /** Stars (#11, spec/05 Roles): one row a player with a counted match and positions, refreshed as
@@ -15,11 +16,15 @@ export const starsTables = {
   /** Each bench player's stars as they stood at a league's deadline for a gameweek (Craig, 1 Nov
    *  2026; stars/deadlineStars.ts): what picks the role of an auto-sub who comes on in his own area,
    *  so scoring the gameweek again never moves it. One row a league, gameweek and team; only his
-   *  ratings with stars, since "?" and "—" pick nothing. */
+   *  ratings with stars, since "?" and "—" pick nothing. With them, each man the lineup named, his
+   *  club (null for one the football sync didn't hold) and positions then (#1540), which scoring a
+   *  begun gameweek reads, so a later change of either never re-works its auto-subs. A row kept
+   *  before #1540 has none. */
   deadlineStars: defineTable({
     leagueId: v.id("leagues"),
     gameweek: v.number(),
     teamId: v.id("teams"),
     bench: v.array(v.object({ playerCode: v.number(), stars: v.array(roleStarsShape) })),
+    players: v.optional(v.array(v.object({ playerCode: v.number(), clubCode: v.union(v.number(), v.null()), positions: v.array(position) }))),
   }).index("by_leagueId_and_gameweek_and_teamId", ["leagueId", "gameweek", "teamId"]),
 };
