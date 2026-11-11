@@ -2,6 +2,7 @@ import { useMutation, useQuery } from "convex/react";
 import { useCallback, useMemo } from "react";
 import { api } from "../../convex/_generated/api";
 import { listOf, withFirstRuns } from "../../convex/scouting/playersOrder";
+import { mostFirst } from "../../convex/scouting/raceOrder";
 import { listChangeFailedWords } from "../draft/words";
 import { liveClaims } from "../myTeam/claims/liveClaims";
 import { livePlayerCard } from "../playerCard/livePlayerCard";
@@ -45,5 +46,5 @@ export const liveScouting: ScoutingSeam = {
       return { ...listed, kept: kept === null ? null : withFirstRuns([kept], runs)[0] };
     }, [loaded, runs, filters, sort, keep]);
   },
-  useStatRace: (leagueId, stat) => useQuery(api.scouting.statRace.teams, { leagueId, stat, descending: true }),
+  useStatRace: (leagueId, stat) => useQuery(api.scouting.statRace.teams, { leagueId, stat, descending: mostFirst(stat) }),
 };

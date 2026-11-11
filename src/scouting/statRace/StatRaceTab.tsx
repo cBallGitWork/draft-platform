@@ -5,7 +5,7 @@ import {
   categoryName,
   categoryShortCode,
 } from "../../../convex/scoring/categories";
-import { rankAmong } from "../../../convex/scouting/raceOrder";
+import { mostFirst, rankAmong } from "../../../convex/scouting/raceOrder";
 import { cellClassOf, ColumnHeads } from "../../ui/ColumnHeads";
 import { Loading, Panel } from "../../ui/Panel";
 import { useLastLoaded } from "../../shared/useLastLoaded";
@@ -152,7 +152,7 @@ function RaceTable({
           classOf={cellClasses}
           sort={{
             by: stat,
-            descending: true,
+            descending: mostFirst(stat),
             sortable: race.categories,
             sortBy: rankBy,
           }}
@@ -168,7 +168,7 @@ function RaceTable({
                 className="border-t border-panel-rule aria-current:shadow-current-edge"
               >
                 <td className={`${cellClasses("rank")} text-soft`}>
-                  {rankAmong(team.stat, totals)}
+                  {rankAmong(stat, team.stat, totals)}
                 </td>
                 <th scope="row" className={cellClasses("team")}>
                   <button
@@ -214,6 +214,7 @@ function TeamPanel({ team, race }: { team: RacingTeam; race: StatRace }) {
           {race.categories.map((category) => {
             const total = team.stats[category] ?? 0;
             const rank = rankAmong(
+              category,
               total,
               race.teams.map((each) => each.stats[category] ?? 0),
             );
