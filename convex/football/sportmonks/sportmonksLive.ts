@@ -112,7 +112,7 @@ export const writeMatch = internalMutation({
   args: { score: scoreRead, men: v.array(sportmonksLineupMan), events: v.array(sportmonksEvent), readAt: v.number() },
   returns: v.null(),
   handler: async (ctx, { score, men, events, readAt }) => {
-    await writeScore(ctx, score, readAt);
+    await writeScore(ctx, score, readAt, "live");
     const { fixtureCode } = score;
     const held = await ctx.db
       .query("sportmonksMatches")

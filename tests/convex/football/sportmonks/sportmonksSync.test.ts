@@ -5,6 +5,8 @@
 import { expect, test, vi } from "vitest";
 import { internal } from "../../../../convex/_generated/api";
 import { scheduleUrl, SPORTMONKS_TOKEN_ENV } from "../../../../convex/football/sportmonks/sportmonks";
+import { writeScore } from "../../../../convex/football/sportmonks/sportmonksSync";
+import type { ScoreRead } from "../../../../convex/football/scoreReads";
 import { freshConvex, silenceConsoleError } from "../../../support/convex/test.harness";
 import { SM, sportmonksLiveRead, sportmonksSeason } from "../../../support/recorded/sportmonks.payloads";
 import { fakeSportmonks, LIVE_NOW, REFUSED, SEASON_ID, sync, syncs, ticks, useSportmonks, WRITES } from "../../../support/convex/sportmonks.harness";
@@ -117,4 +119,38 @@ test("a match the live read leaves out fails on its own in the tick's row", asyn
 
   const [row] = await ticks(t);
   expect(row.outcome).toEqual({ ok: true, matches: [{ fixtureCode: SM.oldFirm, ok: false, error: `Sportmonks sent no match ${SM.oldFirm}` }] });
+});
+
+// Two readers write a match's score (#1546), by matchScores.ts's rule, and the six-hourly read,
+// which sends a live match with no minute, never blanks the minute the tick wrote.
+type Convex = ReturnType<typeof freshConvex>;
+const oldFirmLive: ScoreRead = { fixtureCode: SM.oldFirm, state: "live", homeGoals: 2, awayGoals: 1, minutes: null, clockLabel: null };
+const writeAs = (t: Convex, reader: "sync" | "live", read: ScoreRead, readAt: number) => t.run((ctx) => writeScore(ctx, read, readAt, reader));
+const oldFirmScore = (t: Convex) =>
+  t.run((ctx) => ctx.db.query("sportmonksScores").withIndex("by_fixtureCode", (q) => q.eq("fixtureCode", SM.oldFirm)).unique());
+
+test("the six-hourly read during a match keeps the minute the tick wrote", async () => {
+  const t = freshConvex();
+  await writeAs(t, "live", { ...oldFirmLive, minutes: 67 }, LIVE_NOW);
+  expect(await writeAs(t, "sync", oldFirmLive, LIVE_NOW + 1)).toBe(false);
+  await writeAs(t, "sync", { ...oldFirmLive, homeGoals: 3 }, LIVE_NOW + 2);
+
+  expect(await oldFirmScore(t)).toMatchObject({ state: "live", homeGoals: 3, minutes: 67, readAt: LIVE_NOW + 2, reader: "sync" });
+});
+
+test("a six-hourly read older than the tick's full time, or newer but still live, never sets the match back to live", async () => {
+  const t = freshConvex();
+  await writeAs(t, "live", { ...oldFirmLive, state: "fullTime", minutes: 90 }, LIVE_NOW);
+  expect(await writeAs(t, "sync", oldFirmLive, LIVE_NOW - 1)).toBe(false);
+  expect(await writeAs(t, "sync", oldFirmLive, LIVE_NOW + 1)).toBe(false);
+
+  expect(await oldFirmScore(t)).toMatchObject({ state: "fullTime", minutes: 90, reader: "live" });
+});
+
+test("a reader may move its own read back a state, as for a match abandoned and reset", async () => {
+  const t = freshConvex();
+  await writeAs(t, "sync", oldFirmLive, LIVE_NOW);
+  expect(await writeAs(t, "sync", { ...oldFirmLive, state: "upcoming", homeGoals: null, awayGoals: null }, LIVE_NOW + 1)).toBe(true);
+
+  expect(await oldFirmScore(t)).toMatchObject({ state: "upcoming", minutes: null });
 });

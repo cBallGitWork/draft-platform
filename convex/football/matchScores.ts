@@ -77,10 +77,15 @@ async function upsertScore(ctx: MutationCtx, sent: HeldScore): Promise<boolean> 
   return true;
 }
 
-/** The read is no older than the held one, and does not move the other feed's state back. */
-function wins(sent: HeldScore, held: HeldScore): boolean {
+/** A read of a match's state, when, and by which feed; none for a score held before its feed was kept. */
+type StateRead = { state: State; readAt: number; feed?: string };
+
+/** The read is no older than the held one, and does not move the other feed's state back. Shared
+ *  with Sportmonks' two readers (sportmonks/sportmonksSync.ts writeScore). */
+export function wins(sent: StateRead, held: StateRead): boolean {
   if (sent.readAt < held.readAt) return false;
-  return sent.feed === held.feed || STATE_ORDER[sent.state] >= STATE_ORDER[held.state];
+  const sameFeed = sent.feed !== undefined && sent.feed === held.feed;
+  return sameFeed || STATE_ORDER[sent.state] >= STATE_ORDER[held.state];
 }
 
 function sameScore(sent: ScoreRead, held: ScoreRead): boolean {
