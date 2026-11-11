@@ -5,7 +5,6 @@ import { PICK_GAP_MS } from "../../../convex/draft/draftClock";
 import { UP_NEXT_EMAIL_OVER_MS } from "../../../convex/draft/draftLetters";
 import { draftOf } from "../../../convex/draft/draftRow";
 import { draftStartRefusals } from "../../../convex/draft/draftStart";
-import { dayOf, EMAILS_PER_DAY } from "../../../convex/outbound/emailLimit";
 import { momentIn } from "../../../convex/shared/moments";
 import { letterAsRead } from "../../../convex/mail/letterMoments";
 import { DAY_MS, SECOND_MS } from "../../../convex/shared/time";
@@ -13,7 +12,7 @@ import { draftSteps, midfielder } from "../../support/convex/draft.harness";
 import { ARSENAL, insertClubs, insertPlayers } from "../../support/convex/footballRows.harness";
 import { changeEveryRules, HELD_FIRST_RULES, holdGameweeks } from "../../support/convex/leagueRules.harness";
 import { addManagers, adminCreatesLeague, COMMISSIONER, MANAGERS, type TestConvex } from "../../support/convex/leagues.harness";
-import { fakeResend, signInDeployment, type SentEmail } from "../../support/convex/signIn.harness";
+import { fakeResend, signInDeployment, spendTodaysEmails, type SentEmail } from "../../support/convex/signIn.harness";
 
 // The draft's letters (spec/04, Mail; #1102), Craig's "Up next + draft over" (4 Nov 2026): the
 // manager whose pick's clock starts is told he is up next, by email too when the clock is over 10
@@ -157,11 +156,7 @@ describe("the email", () => {
   test("isn't sent once the day's emails are gone, and is logged; the letter still goes", async () => {
     await setPickSeconds(UP_NEXT_EMAIL_OVER_MS / SECOND_MS + 1);
     await as(COMMISSIONER);
-    await t.run(async (ctx) => {
-      const today = await ctx.db.query("emailSends").withIndex("by_day", (q) => q.eq("day", dayOf(Date.now()))).unique();
-      if (today === null) await ctx.db.insert("emailSends", { day: dayOf(Date.now()), count: EMAILS_PER_DAY });
-      else await ctx.db.patch("emailSends", today._id, { count: EMAILS_PER_DAY });
-    });
+    await spendTodaysEmails(t);
     const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
     await start();
     await pass(0);

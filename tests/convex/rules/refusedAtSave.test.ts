@@ -6,7 +6,7 @@ import type { LeagueRules } from "../../../convex/rules/leagueRulesShape";
 import type { StoredScoringSet } from "../../../convex/scoring/scoringSetShape";
 import { LEAGUE_NAME_MAX } from "../../../convex/leagues/leagueLimits";
 import { refusals } from "../../../convex/shared/leagueAccess";
-import { changeRules, HELD_FIRST_RULES, rulesWith } from "../../support/convex/leagueRules.harness";
+import { changeRules, HELD_FIRST_RULES, latestRules, rulesWith } from "../../support/convex/leagueRules.harness";
 import { expectRefused } from "../../support/convex/test.harness";
 import { ADMIN, actingAs, adminCreatesLeague, COMMISSIONER, leagueRow, type TestConvex } from "../../support/convex/leagues.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
@@ -23,8 +23,7 @@ beforeEach(async () => {
 });
 
 const change = (leagueId: Id<"leagues">, rules: LeagueRules) => changeRules(t, leagueId, rules);
-const latestRules = async (leagueId: Id<"leagues">) =>
-  (await (await actingAs(t, COMMISSIONER)).query(api.rules.leagueRules.latest, { leagueId }))?.rules;
+const rulesNow = async (leagueId: Id<"leagues">) => (await latestRules(t, leagueId))?.rules;
 const setMaxTeams = async (leagueId: Id<"leagues">, maxTeams: number) =>
   (await actingAs(t, COMMISSIONER)).mutation(api.leagues.leagues.setMaxTeams, { leagueId, maxTeams });
 const createLeague = async (name: string, maxTeams = 4) =>
@@ -37,7 +36,7 @@ describe("games a gameweek, no more than the league's teams can play", () => {
     const leagueId = await adminCreatesLeague(t, 4);
     await expectRefused(change(leagueId, rulesWith({ gamesPerGameweek: 5 })), FIVE_WITH_FOUR);
     await change(leagueId, rulesWith({ gamesPerGameweek: 3 }));
-    expect((await latestRules(leagueId))?.gamesPerGameweek).toBe(3);
+    expect((await rulesNow(leagueId))?.gamesPerGameweek).toBe(3);
   });
 
   test("with an odd number of teams, the refusal counts the game of the team left over", async () => {
@@ -86,9 +85,9 @@ test("a squad maximum of 26 is refused naming 25, and nothing is saved; 25 is sa
   const withMaximum = (maximum: number) => rulesWith({ squad: { ...FIRST_RULES.squad, size: { minimum: 15, maximum } } });
 
   await expectRefused(change(leagueId, withMaximum(26)), "The squad's maximum, 26, is above 25, a Premier League squad.");
-  expect(await latestRules(leagueId)).toEqual(HELD_FIRST_RULES);
+  expect(await rulesNow(leagueId)).toEqual(HELD_FIRST_RULES);
   await change(leagueId, withMaximum(25));
-  expect((await latestRules(leagueId))?.squad.size).toEqual({ minimum: 15, maximum: 25 });
+  expect((await rulesNow(leagueId))?.squad.size).toEqual({ minimum: 15, maximum: 25 });
 });
 
 test("an own stat named as a catalogue stat is, case aside, is refused from the rules editor (#212)", async () => {
