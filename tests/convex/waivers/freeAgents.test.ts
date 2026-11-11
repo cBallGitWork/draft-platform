@@ -116,7 +116,7 @@ describe("outside the window", () => {
     expect(await w.squadCodes(w.bobsTeam)).toContain(SAKA);
   });
 
-  test("a free agent nobody picks up goes back on waivers at the deadline, and the next run hands him out by the waiver order (#1478)", async () => {
+  test("a free agent nobody picks up goes back on waivers at the deadline, and the next run hands him out by the waiver order (#1478, S08.13)", async () => {
     await w.runWaivers();
     expect(await w.stateOf(SAKA)).toEqual({ kind: "freeAgent" });
     await passNextDeadline(w.t);
@@ -140,7 +140,7 @@ describe("outside the window", () => {
     expect(await w.squadCodes(w.bobsTeam)).toContain(RICE);
   });
 
-  test("a player dropped onto waivers before the deadline keeps his own time on them (#1478)", async () => {
+  test("a player dropped onto waivers before the deadline keeps his own time on them (#1478, S08.13)", async () => {
     await w.runWaivers();
     await (await actingAs(w.t, ANN)).mutation(api.waivers.waivers.drop, { leagueId: w.leagueId, playerCode: ANNS_FIRST_DROP });
     const claimableFrom = Date.now() + WAIVER_MS;
