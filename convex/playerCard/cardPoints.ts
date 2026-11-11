@@ -6,7 +6,7 @@
 // and their tests price alike.
 
 import { ALL_CELLS, playsCell, positionOfSlot, SLOT_POSITIONS, type Cell, type SlotPosition } from "../lineup/pitch";
-import { positionRank, type Position } from "../positions/positionTables";
+import { POSITIONS, positionRank, type Position } from "../positions/positionTables";
 import { scoreMatch, type MatchPoints } from "../scoring/scoring";
 import type { MatchStats } from "../scoring/values";
 import { categoryName, categoryShortCode } from "../scoring/categories";
@@ -71,6 +71,20 @@ export function basePoints(record: MatchStats | null, set: ScoringSet, positions
   const pricedAt = cardPositions(positions);
   if (pricedAt.length === 0) return [cardPoints(record, set, positions)];
   return pricedAt.map((position) => pointsAt(record, set, position));
+}
+
+/** His matches' base points added up at each position, by position: what each would give him at
+ *  it. A match whose stats are null (his whole record hasn't arrived) adds nothing, and a player
+ *  with no match has none. The season rows' sums, this season's and last's. */
+export function pointsAtEveryPosition(matches: Iterable<{ stats: MatchStats | null; set: ScoringSet }>): Record<string, number> {
+  const sums: Record<string, number> = {};
+  for (const { stats, set } of matches) {
+    for (const position of POSITIONS) {
+      const points = basePoints(stats, set, [position])[0].total;
+      if (points !== null) sums[position] = (sums[position] ?? 0) + points;
+    }
+  }
+  return sums;
 }
 
 /** The one position basePoints prices him at where his card opens: the first of cardPositions, or,
