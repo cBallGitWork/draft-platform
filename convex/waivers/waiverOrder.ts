@@ -11,7 +11,7 @@ import { memberOf, teamsOf } from "../shared/leagueAccess";
 import { standingsOf } from "../table/leagueTable";
 import { tableOf } from "../table/sentTables";
 import type { TableRow } from "../table/standings";
-import { inWaiverLock, latestBegun, latestEnded, mayFallInLock } from "./waiverLock";
+import { latestBegun, latestEnded, mayFallInLock, runAhead, underWayIn } from "./waiverLock";
 import { firstRunFrom } from "./waiverTimes";
 
 // The waiver order (#1198, spec/08 Waivers and free agency): who a run tries first. Its starting
@@ -157,7 +157,7 @@ const waiversView = v.object({
   drafted: v.boolean(),
   /** The next time each of the league's runs is made, soonest first, UK time as the rules set it,
    *  with the gameweek whose lock it may fall in, so be skipped, or null when it surely won't. */
-  runs: v.array(v.object({ at: v.number(), skippedIf: v.union(v.number(), v.null()) })),
+  runs: v.array(runAhead),
   /** Whether it is in the lock, from a deadline until the gameweek's last match is over. */
   locked: v.boolean(),
   /** Whether free agents can be picked up now, the lock aside. */
@@ -188,8 +188,8 @@ export const ofLeague = query({
     const table = await waiverTable(ctx, league, season, await draftOrderIn(ctx, league), ended);
     const order = await orderNow(ctx, league, season, ended, table);
     const names = new Map((await teamsOf(ctx, leagueId)).map(({ _id, name }) => [_id, name]));
-    const locked = await inWaiverLock(ctx, deadlines, now);
-    const underWay = locked ? latestBegun(deadlines, now) : null;
+    const underWay = await underWayIn(ctx, deadlines, now);
+    const locked = underWay !== null;
     const runs = season.latest.waivers.runs
       .flatMap((run) => firstRunFrom([run], now) ?? [])
       .sort((one, other) => one - other)

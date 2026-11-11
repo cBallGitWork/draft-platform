@@ -43,7 +43,7 @@ function YourClaim({ leagueId, playerCode, seam }: { leagueId: Id<"leagues">; pl
   const rank = group.claims.findIndex(({ claim }) => claim.playerCode === playerCode) + 1;
   return (
     <Link to={MY_TEAM_TRANSACTIONS_PATH} className="inline-flex min-h-tap items-center text-event lg:min-h-0">
-      {yourClaimWords(rank, group.runAt)}
+      {yourClaimWords(rank, group.run)}
     </Link>
   );
 }
@@ -116,7 +116,7 @@ export function SelectedPlayer({
         <ClubMark code={player.club.code} />
         <ClubShort club={player.club} />
       </span>
-      <span className="font-normal">{player.onWaivers === null ? <OwnerName teamName={player.ownerTeamName} /> : onWaiversWords(player.onWaivers.firstRunAt)}</span>
+      <span className="font-normal">{player.onWaivers === null ? <OwnerName teamName={player.ownerTeamName} /> : onWaiversWords(player.onWaivers.firstRun)}</span>
     </span>
   );
   const closeButton = (
