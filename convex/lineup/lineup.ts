@@ -131,7 +131,7 @@ export function lineupProblems(lineup: Lineup, positions: PlayerPositions, rules
 }
 
 /** A starter out of his positions: what losing one leaves (spec/06, When positions change). */
-const OUT_OF_POSITION: readonly LineupProblem["kind"][] = ["outsideHisAreas", "roleNotHis"];
+export const OUT_OF_POSITION: readonly LineupProblem["kind"][] = ["outsideHisAreas", "roleNotHis"];
 
 /** The lineup in force before a save: its gameweek, its starters, and who it was saved with out of
  *  position. */

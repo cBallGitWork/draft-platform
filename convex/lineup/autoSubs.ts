@@ -5,6 +5,7 @@
 
 import type { Position } from "../positions/positionTables";
 import {
+  OUT_OF_POSITION,
   STARTER_COUNT,
   lineupProblems,
   type Lineup,
@@ -246,6 +247,13 @@ function shortfall(problem: LineupProblem): number {
   }
 }
 
+/** A sweeper or libero short of a back three: standing for auto-subs, never set aside by a save. */
+const NO_BACK_THREE: LineupProblem["kind"] = "noBackThree";
+
+/** The kinds a lineup may stand with: a starter out of position, as a save sets aside, and a back
+ *  three a sub left short. */
+const STANDING_KINDS: readonly LineupProblem["kind"][] = [...OUT_OF_POSITION, NO_BACK_THREE];
+
 /** A lineup that may stand, minus a starter outside his areas or on a role his positions no longer
  *  take: one who lost a position after he was placed stays in his slot, on his role, for the
  *  gameweek (spec/06), and lineup.ts reports it alone so a caller can set it aside. A sub is only
@@ -253,7 +261,7 @@ function shortfall(problem: LineupProblem): number {
  *  fewer than three centre-backs by a sub elsewhere keeps his role (roles.ts's roleIn): which roles
  *  a formation offers is the manager's pick, never a reason to refuse a sub. */
 export function standingProblems(lineup: Lineup, positions: PlayerPositions, rules: LineupRules) {
-  return lineupProblems(lineup, positions, rules).filter((problem) => !["outsideHisAreas", "roleNotHis", "noBackThree"].includes(problem.kind));
+  return lineupProblems(lineup, positions, rules).filter((problem) => !STANDING_KINDS.includes(problem.kind));
 }
 
 /** A starter's cell, once standingProblems has refused any cell that doesn't exist. */
