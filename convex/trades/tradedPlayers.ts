@@ -4,7 +4,7 @@ import type { QueryCtx } from "../_generated/server";
 import type { PositionsNow } from "../positions/playerPositions";
 import { clubRecord, position } from "../schema";
 import { playerByCode, type Clubs } from "../shared/players";
-import { unheldTradedWords } from "./tradeClose";
+import { unheldTradedWords } from "./tradeWords";
 
 // A player in a trade as the Trades screen shows him (#383; docs/design/approved/trades): name,
 // main position and club only. Split from tradeScreen.ts, so its open offers and closedOffers.ts's

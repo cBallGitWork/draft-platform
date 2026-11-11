@@ -11,7 +11,8 @@ import { managerOf, refuse, refusals, signedInEmail, teamIn, teamOf } from "../s
 import { playerByCode } from "../shared/players";
 import { placeOf } from "../squads/squadPlace";
 import { squadWarning } from "../squads/squads";
-import { closeOffer, deadlinePassed, endOffer, heldInReview, leagueOffers, tradedName, tradeWordsOf } from "./tradeClose";
+import { closeOffer, deadlinePassed, endOffer, heldInReview, leagueOffers } from "./tradeClose";
+import { tradedName, tradeWordsOf } from "./tradeWords";
 import { startReview } from "./tradeReview";
 import { tradeWarnings } from "./tradeSquads";
 import { NOTE_MOST } from "./tradeLimits";

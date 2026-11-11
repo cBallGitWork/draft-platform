@@ -18,7 +18,8 @@ import {
 import { leagueDeadlines } from "../gameweeks/leagueDeadlines";
 import { managerOf, memberOf, refuse, teamIn } from "../shared/leagueAccess";
 import { placeOf } from "../squads/squadPlace";
-import { closeOffersHolding, endOffer, leagueOf, managersOf, tradedName, tradedSideOf, tradeWordsOf } from "./tradeClose";
+import { closeOffersHolding, endOffer } from "./tradeClose";
+import { leagueOf, managersOf, tradedName, tradedSideOf, tradeWordsOf } from "./tradeWords";
 import { REVIEW_MS } from "./tradeLimits";
 import { movePicks } from "./tradePicks";
 import { reviewerOf, votersOn } from "./tradeReviewers";

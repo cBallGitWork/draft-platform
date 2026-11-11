@@ -3,7 +3,7 @@ import type { Doc, Id } from "../_generated/dataModel";
 import type { QueryCtx } from "../_generated/server";
 import { closedWhy } from "../schema/trades";
 import { seasonStartAt } from "../shared/time";
-import { pickName } from "./tradeClose";
+import { pickName } from "./tradeWords";
 import { namedPicks, teamNameIn, tradedPlayer, type TradedPlayer } from "./tradedPlayers";
 
 // The Trades screen's Closed offers (#383; docs/design/approved/trades: "Closed offers lists
