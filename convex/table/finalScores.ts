@@ -11,8 +11,8 @@ import { startRecap } from "../home/recaps";
 // Stores each team's points in a gameweek once they are final (#418), so the table reads them
 // rather than scoring the whole season on every read. Final means every match in the gameweek has
 // locked: after the lock "a correction doesn't change points" (spec/07). A match moved into or out
-// of it later reopens it (gameweekScores.ts says how). Each match's lock (matchStats.ts) asks every
-// league to store what is newly final, in its own transaction, so a league that can't be scored
+// of it later reopens it (gameweekScores.ts says how). The lock of a gameweek's last match
+// (matchStats.ts, #1547) asks every league to store what is newly final, in its own transaction, so a league that can't be scored
 // never holds up a lock or another league.
 //
 // A stored score can still go stale if the code that scores changes (a bug fixed in scoring, say),
