@@ -91,8 +91,11 @@ export const RUNS_TITLE = "Runs";
 export const ukTimeWords = "UK time";
 export const nextRunWords = "Next";
 export const freeAgentsWords = "Free agents";
-/** When free agents can be picked up. */
-export const windowWords = ({ open, locked, firstRun, gameweek }: { open: boolean; locked: boolean; firstRun: number | null; gameweek: number | null }) => {
+/** Free agents before the league's draft is over (S08.1), matching `claimsNotOpenWords`. */
+export const freeAgentsNotOpenWords = "Open once the league's draft is over";
+/** When free agents can be picked up: never before the league's draft is over (S08.1). */
+export const windowWords = ({ drafted, open, locked, firstRun, gameweek }: { drafted: boolean; open: boolean; locked: boolean; firstRun: number | null; gameweek: number | null }) => {
+  if (!drafted) return freeAgentsNotOpenWords;
   const to = gameweek === null ? "" : ` to the GW${gameweek} deadline`;
   if (open && !locked) return `Open${to}`;
   if (locked) return "From the first run after the gameweek's last match";

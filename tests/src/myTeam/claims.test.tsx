@@ -21,11 +21,17 @@ import {
   dragHandleLabel,
   everyTeamTableLabel,
   failsIfWords,
+  freeAgentsNotOpenWords,
+  freeAgentsWords,
   moveDownWords,
   moveUpWords,
+  nextRunWords,
   runGroupWords,
+  runWords,
+  RUNS_TITLE,
   selectClaimLabel,
   WAIVER_ORDER_TITLE,
+  windowWords,
   withdrawWords,
 } from "../../../src/myTeam/claims/words";
 import type { TeamSquad } from "../../../src/myTeam/seam";
@@ -119,6 +125,33 @@ describe("before the league's draft is over (S08.1)", () => {
     open({ waivers: { ...NO_WAIVERS, drafted: false } });
     expect(await screen.findByText(claimsNotOpenWords)).toBeTruthy();
     expect(screen.queryByRole("img", { name: dragHandleLabel("Eze") })).toBeNull();
+  });
+
+  const runs = async (waivers: WaiversView) => {
+    open({ waivers });
+    return within(await screen.findByRole("region", { name: RUNS_TITLE })).getAllByRole("listitem").map((row) => row.textContent);
+  };
+
+  it("before the season, says free agency opens once it is, marking no run Next", async () => {
+    expect(await runs({ ...NO_WAIVERS, drafted: false, windowOpen: true, runs: [WED], nextDeadline: { gameweek: 1, at: THU } })).toEqual([
+      runWords(WED),
+      `${freeAgentsWords}${freeAgentsNotOpenWords}`,
+    ]);
+  });
+
+  it("mid-season, says the same rather than the next run's time", async () => {
+    expect(await runs({ ...NO_WAIVERS, drafted: false, runs: [WED, THU], nextDeadline: { gameweek: 12, at: THU } })).toEqual([
+      runWords(WED),
+      runWords(THU),
+      `${freeAgentsWords}${freeAgentsNotOpenWords}`,
+    ]);
+  });
+
+  it("once it is, marks the first run Next and says when free agency opens", async () => {
+    expect(await runs({ ...NO_WAIVERS, runs: [WED], nextDeadline: { gameweek: 12, at: THU } })).toEqual([
+      `${runWords(WED)}${nextRunWords}`,
+      `${freeAgentsWords}${windowWords({ drafted: true, open: false, locked: false, firstRun: WED, gameweek: 12 })}`,
+    ]);
   });
 });
 
