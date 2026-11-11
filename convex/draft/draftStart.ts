@@ -22,7 +22,9 @@ import { pickOnTheClock } from "./snakeOrder";
 // its rounds are the squad's most players; a date can't be set without them either, and must be in
 // the future. A date that comes when the league can't start stays waiting, as an unset date does
 // (Craig, 4 Nov 2026, on #1089). Starting fixes the order: the draft order then (draftOrder.ts),
-// and no team can join after (../leagues/teams.ts). It waits until every squad is empty. Its rounds,
+// and no team can join after (../leagues/teams.ts). It waits until every squad is empty, though a
+// date can be set before they are, as the commissioner may release players first (Craig, 11 Nov
+// 2026, on #1459). Its rounds,
 // and the squad rules its picks follow, are the league's latest, a change waiting for a later
 // gameweek among them: "the squad size is what indicates the draft size" (Craig, 7 Nov 2026, on
 // #1130, replacing #1090's "in force when it starts"). Starting closes every pick trade still open
@@ -52,7 +54,8 @@ async function anyoneHeld(ctx: QueryCtx, leagueId: Id<"leagues">): Promise<boole
   return (await ctx.db.query("squadPlayers").withIndex("by_leagueId_and_playerCode", (q) => q.eq("leagueId", leagueId)).first()) !== null;
 }
 
-/** Why the league's draft can't start now, or be given a date; otherwise what it starts with: its
+/** Why the league's draft can't be given a date, or start now but for its squads (`begin` checks
+ *  those); otherwise what it starts with: its
  *  teams; its rounds and the squad rules its picks follow, the league's latest, a waiting change's
  *  among them (Craig, 7 Nov 2026, on #1130); and its pick time, the latest's too, so a mid-season
  *  draft starts on the last one typed (Craig, 10 Nov 2026, on #1439: "Last typed"). */
@@ -65,7 +68,6 @@ async function startable(
   const latest = await latestRules(ctx, leagueId);
   const rounds = roundsOf(latest);
   if (rounds === null) return { refusal: draftStartRefusals.noSquadSize };
-  if (await anyoneHeld(ctx, leagueId)) return { refusal: draftStartRefusals.squadsNotEmpty };
   return { refusal: null, teams, rounds, squad: latest.squad, pickSeconds: draftRulesOf(latest).pickSeconds };
 }
 
@@ -85,6 +87,7 @@ async function begin(ctx: MutationCtx, league: Doc<"leagues">, draft: Doc<"draft
   if (draft?.started !== undefined) return draftStartRefusals.started;
   const can = await startable(ctx, league._id);
   if (can.refusal !== null) return can.refusal;
+  if (await anyoneHeld(ctx, league._id)) return draftStartRefusals.squadsNotEmpty;
   const started = { at: Date.now(), teamIds: draftOrderOf(can.teams, league.draftOrder).map((team) => team._id), rounds: can.rounds, squad: can.squad };
   const pickSeconds = can.pickSeconds;
   if (draft === null) await ctx.db.insert("drafts", { leagueId: league._id, started, pickSeconds });
@@ -98,7 +101,8 @@ async function begin(ctx: MutationCtx, league: Doc<"leagues">, draft: Doc<"draft
 
 /** The commissioner sets the date the draft starts, or clears it with null, so the draft waits for
  *  him to press start. Refused once it has started, for a date not in the future, and for a league
- *  the draft couldn't start in. */
+ *  the draft couldn't start in, but for its squads: one still holding players can be emptied before
+ *  the date comes (Craig, 11 Nov 2026, on #1459). */
 export const setStart = mutation({
   args: { leagueId: v.id("leagues"), startsAt: v.union(v.number(), v.null()) },
   returns: v.null(),
