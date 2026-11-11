@@ -74,7 +74,7 @@ it("the right column opens on the manager's own team, every category with its ra
   expect(screen.queryByRole("region", { name: league.teamName! })).toBeNull();
 });
 
-it("a stat where fewer is better ranks the team with fewest 1st, in the table and the team's panel (#1608)", async () => {
+it("a stat where fewer is better ranks the team with fewest 1st, in the table and the team's panel (#1608, S19.1)", async () => {
   await openRace({ ...RACE, teams: [...RACE.teams, team("Red Army", { red_cards: 3 })] });
 
   await userEvent.selectOptions(within(racePanel()).getByLabelText(rankByLabel), categoryName("red_cards"));

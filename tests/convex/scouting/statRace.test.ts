@@ -49,7 +49,7 @@ test("fewest first when asked, and ties fall back to the team's name", async () 
   ]);
 });
 
-test("the stats where fewer is better rank the team with fewest 1st, the rest the team with most (#1608)", () => {
+test("the stats where fewer is better rank the team with fewest 1st, the rest the team with most (#1608, S19.1)", () => {
   const totals = [3, 0, 0, 1];
   for (const stat of ["red_cards", "yellow_cards", "own_goals", "goals_conceded", "penalties_missed"]) {
     expect(mostFirst(stat)).toBe(false);
