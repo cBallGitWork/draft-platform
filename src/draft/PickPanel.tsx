@@ -1,6 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import { useId } from "react";
 import type { Id } from "../../convex/_generated/dataModel";
+import { cardOpensAt } from "../../convex/playerCard/cardPoints";
 import { playerCardPath } from "../playerCard/paths";
 import { ClubShort } from "../ui/ClubName";
 import type { ListedPlayer } from "../scouting/seam";
@@ -98,7 +99,7 @@ export function PickPanel({
   const blocked = whyNotWords(player, whyNot);
   const undoLeft = useUndoLeft(undo);
   const canPick = turn.kind === "yours" && blocked === null && !change.busy;
-  const main = player.positions[0];
+  const main = cardOpensAt(player.positions);
   const title = (
     <>
       {player.name}
@@ -184,7 +185,7 @@ export function PickPanel({
               </dd>
             </>
           )}
-          {squad !== null && main !== undefined && (
+          {squad !== null && main !== null && (
             <>
               <dt className="text-soft">{yourSquadHead}</dt>
               <dd>{yourSquadWords(main, squad.atPosition, player.club.shortName, squad.atClub, squad.maxPerClub)}</dd>

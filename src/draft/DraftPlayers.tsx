@@ -1,5 +1,6 @@
 import { useState } from "react";
 import type { Id } from "../../convex/_generated/dataModel";
+import { cardOpensAt } from "../../convex/playerCard/cardPoints";
 import type { Position } from "../../convex/positions/positionTables";
 import type { CatalogueStat } from "../../convex/scoring/statCatalogueList";
 import { ClubShort } from "../ui/ClubName";
@@ -189,8 +190,10 @@ function PlayerRow({
       {shown.map((column) => {
         const className = cellClasses(column);
         switch (column) {
-          case "positions":
-            return <td key={column} className={className}>{player.positions[0] !== undefined && <PositionChip label={player.positions[0]} dimmed={greyed} />}</td>;
+          case "positions": {
+            const main = cardOpensAt(player.positions);
+            return <td key={column} className={className}>{main !== null && <PositionChip label={main} dimmed={greyed} />}</td>;
+          }
           case "name":
             return (
               <th key={column} scope="row" title={player.fullName} className={`${className} font-normal whitespace-nowrap`}>

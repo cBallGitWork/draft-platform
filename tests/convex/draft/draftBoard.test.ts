@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, test } from "vitest";
 import { api } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
+import { cardOpensAt } from "../../../convex/playerCard/cardPoints";
 import { refusals } from "../../../convex/shared/leagueAccess";
 import { ARSENAL, CHELSEA, insertClubs, insertPlayers, type HeldPlayer } from "../../support/convex/footballRows.harness";
 import { expectRefused } from "../../support/convex/test.harness";
@@ -19,6 +20,8 @@ const [ANN, BOB] = MANAGERS;
 
 const SAKA: HeldPlayer = { code: 101, name: "Saka", fullName: "Bukayo Saka", clubCode: ARSENAL.code, positions: ["W"] };
 const PALMER: HeldPlayer = { code: 201, name: "Palmer", fullName: "Cole Palmer", clubCode: CHELSEA.code, positions: ["CAM"] };
+/** A striker the admin has also given support striker, SS first (#1790). */
+const JACKSON: HeldPlayer = { code: 202, name: "Jackson", fullName: "Nicolas Jackson", clubCode: CHELSEA.code, positions: ["SS", "ST"] };
 
 const as = (email: string) => actingAs(t, email);
 const board = async (email: string) => (await as(email)).query(api.draft.draftBoard.ofLeague, { leagueId });
@@ -36,7 +39,7 @@ beforeEach(async () => {
   teams = await addManagers(t, leagueId, [ANN, BOB]);
   await t.run(async (ctx) => {
     await insertClubs(ctx, [ARSENAL, CHELSEA]);
-    await insertPlayers(ctx, [SAKA, PALMER]);
+    await insertPlayers(ctx, [SAKA, PALMER, JACKSON]);
     for (const row of await ctx.db.query("leagueRules").withIndex("by_leagueId_and_fromGameweek", (q) => q.eq("leagueId", leagueId)).collect()) {
       await ctx.db.patch("leagueRules", row._id, { rules: { ...row.rules!, squad: { size: { minimum: 1, maximum: 1 }, minimumByArea: null, maxPerClub: null } } });
     }
@@ -58,6 +61,14 @@ describe("the board", () => {
       { pick: 1, teamId: teams[0], auto: false, player: { code: SAKA.code, name: "Saka", clubShortName: "ARS", position: "W" } },
       { pick: 2, teamId: teams[1], auto: false, player: { code: PALMER.code, name: "Palmer", clubShortName: "CHE", position: "CAM" } },
     ]);
+  });
+
+  test("names a pick's main position as his card and Scouting do, skipping an unpriced SS for his ST (#1790)", async () => {
+    await (await as(COMMISSIONER)).mutation(api.draft.draftStart.start, { leagueId });
+    await pick(ANN, JACKSON.code);
+
+    expect(cardOpensAt(JACKSON.positions)).toBe("ST");
+    expect((await board(ANN)).picks[0].player).toMatchObject({ code: JACKSON.code, position: cardOpensAt(JACKSON.positions) });
   });
 
   test("is refused to anyone outside the league", async () => {
