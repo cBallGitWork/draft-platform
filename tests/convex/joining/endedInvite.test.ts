@@ -8,6 +8,7 @@ import { asCommissioner, invite, openLastLinkTo } from "../../support/convex/joi
 import { deletes } from "../../support/convex/leagueDeletion.harness";
 import { COMMISSIONER, LEAGUE_NAME, MANAGERS, actingAs, addManagers, adminCreatesLeague, teamsIn, type TestConvex } from "../../support/convex/leagues.harness";
 import { ask, fakeResend, signInDeployment, type SentEmail } from "../../support/convex/signIn.harness";
+import { silenceConsoleWarn } from "../../support/convex/test.harness";
 
 // What became of an invite that let someone sign in but not join (spec/13, Joining): "Your invite
 // to <league> expired / was cancelled / couldn't be used: <reason>" (Craig, 22 Oct 2026).
@@ -91,7 +92,7 @@ describe("nothing to tell", () => {
   });
 
   test("reading as many invites as it reads at once says so, so the older ones aren't ignored silently", async () => {
-    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+    const warn = silenceConsoleWarn();
     await t.run(async (ctx) => {
       for (let i = 0; i < INVITES_TO_ONE_EMAIL_READ; i += 1) {
         await ctx.db.insert("invites", { leagueId, email: ANN, invitedBy: COMMISSIONER, expiresAt: Date.now() + i, delivery: "sent" });

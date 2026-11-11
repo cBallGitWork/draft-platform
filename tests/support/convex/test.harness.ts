@@ -113,4 +113,4 @@ export async function expectRefused(attempt: Promise<unknown>, reason: string, l
 
 // Vitest loads the setup file and this import as one module, so the flag this sets reaches the
 // guard. Were they ever two copies, every silenced test would fail loudly, not pass quietly.
-export { silenceConsoleError } from "../console.setup";
+export { silenceConsoleError, silenceConsoleWarn } from "../console.setup";

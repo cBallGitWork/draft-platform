@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, test, vi } from "vitest";
+import { beforeEach, describe, expect, test } from "vitest";
 import { api } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
 import { PICK_GAP_MS } from "../../../convex/draft/draftClock";
@@ -13,6 +13,7 @@ import { ARSENAL, insertClubs, insertPlayers } from "../../support/convex/footba
 import { changeEveryRules, HELD_FIRST_RULES, holdGameweeks } from "../../support/convex/leagueRules.harness";
 import { addManagers, adminCreatesLeague, COMMISSIONER, MANAGERS, type TestConvex } from "../../support/convex/leagues.harness";
 import { fakeResend, signInDeployment, spendTodaysEmails, type SentEmail } from "../../support/convex/signIn.harness";
+import { silenceConsoleWarn } from "../../support/convex/test.harness";
 
 // The draft's letters (spec/04, Mail; #1102), Craig's "Up next + draft over" (4 Nov 2026): the
 // manager whose pick's clock starts is told he is up next, by email too when the clock is over 10
@@ -157,7 +158,7 @@ describe("the email", () => {
     await setPickSeconds(UP_NEXT_EMAIL_OVER_MS / SECOND_MS + 1);
     await as(COMMISSIONER);
     await spendTodaysEmails(t);
-    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+    const warn = silenceConsoleWarn();
     await start();
     await pass(0);
 
@@ -271,7 +272,7 @@ describe("a start date the draft can't start on", () => {
     await (await as(COMMISSIONER)).mutation(api.draft.draftStart.setStart, { leagueId, startsAt });
     await changeEveryRules(t, leagueId, (rules) => ({ ...rules, squad: { ...rules.squad, size: null } }));
     const before = (await letters()).length;
-    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+    const warn = silenceConsoleWarn();
     await pass(DAY_MS);
 
     expect(warn).toHaveBeenCalledWith(expect.stringContaining(`draft didn't start at its date, and waits for its commissioner: ${draftStartRefusals.noSquadSize}`));

@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, test, vi } from "vitest";
+import { beforeEach, describe, expect, test } from "vitest";
 import { api } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
 import { draftOrderRefusals } from "../../../convex/draft/draftOrder";
@@ -7,7 +7,7 @@ import { refusals } from "../../../convex/shared/leagueAccess";
 import { DAY_MS, HOUR_MS, MINUTE_MS, SECOND_MS } from "../../../convex/shared/time";
 import { SAKA } from "../../support/convex/footballRows.harness";
 import { changeRules, HELD_FIRST_RULES, holdGameweeks, rulesWith } from "../../support/convex/leagueRules.harness";
-import { elapse, expectRefused, everyJobRuns } from "../../support/convex/test.harness";
+import { elapse, expectRefused, everyJobRuns, silenceConsoleWarn } from "../../support/convex/test.harness";
 import { invitesPage } from "../../support/convex/joining.harness";
 import { actingAs, addManager, addManagers, adminCreatesLeague, COMMISSIONER, MANAGERS, OUTSIDER, type TestConvex } from "../../support/convex/leagues.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
@@ -226,7 +226,7 @@ describe("a start date", () => {
     test("leaves the draft waiting, its date cleared, if a squad still holds one when it comes", async () => {
       await holdSaka();
       await setStart(Date.now() + DAY_MS);
-      const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+      const warn = silenceConsoleWarn();
 
       await pass(DAY_MS);
       expect(await read()).toMatchObject({ status: "waiting", startsAt: null });
