@@ -9,7 +9,8 @@ import { adminCreatesLeague, type TestConvex } from "../../support/convex/league
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
 
 // The gameweek a save goes to is the one the league's own deadlines, which every screen shows, mark
-// as next (#1764): never worked out from another list of the season's gameweeks.
+// as next (#1764): never worked out from another list of the season's gameweeks. One deadline a
+// gameweek, the league's own (S05.25, S05.20).
 
 let t: TestConvex;
 beforeEach(async () => {
