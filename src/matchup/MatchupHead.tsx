@@ -1,6 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import type { ReactNode } from "react";
-import type { MatchupSide } from "../../convex/matchup/matchupShape";
+import { FIRST_GAME, type MatchupSide } from "../../convex/matchup/matchupShape";
 import type { Matchup } from "./seam";
 import { matchupLink } from "./paths";
 import { sideName } from "./SidePanel";
@@ -42,7 +42,7 @@ export function GameSwitch({ matchup: { teamId, games, gameNumber }, gameweek }:
   return (
     <nav aria-label={GAME_SWITCH_LABEL} className="flex flex-wrap justify-center">
       {games.map((against, index) => {
-        const number = index + 1;
+        const number = FIRST_GAME + index;
         const words = gameSwitchWords(number, against.kind === "bye" ? null : against.kind === "team" ? against.teamName : leagueAverageWords);
         return number === gameNumber ? (
           <span key={number} aria-current="page" className={`${switchClasses} bg-name-plate text-fact shadow-subtab-active`}>

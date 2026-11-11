@@ -17,7 +17,7 @@ import type { SlotPoints } from "../scoring/teamPoints";
 import { instructionLinesOf, namedCategoriesOf, roleLineOf } from "../scoring/breakdownShape";
 import { siteVersionByGameweek } from "../scoring/siteVersions";
 import { matchupTeam } from "./matchupGameweek";
-import { heldMatchup, type HeldGame, type HeldTeamsCommentary, type MatchBreakdown, type MatchupBenchSlot, type MatchupSide, type MatchupSlot, type MatchupStarter, type SlotStatus } from "./matchupShape";
+import { FIRST_GAME, heldMatchup, type HeldGame, type HeldTeamsCommentary, type MatchBreakdown, type MatchupBenchSlot, type MatchupSide, type MatchupSlot, type MatchupStarter, type SlotStatus } from "./matchupShape";
 import { commentaryReads, readCommentary, type CommentaryReads } from "./readCommentary";
 import { byKickoff, byKickoffOrder, namedMatch, placeOf, pricedRole, shirtOf } from "./slotParts";
 import { findClubByCode } from "../shared/players";
@@ -119,9 +119,6 @@ async function gameOf(
     return { kind: "unscored", opponent, reason };
   }
 }
-
-/** The first of a team's games in a gameweek, as the address and the switch number them. */
-const FIRST_GAME = 1;
 
 /** A team `gameweek`'s fixtures name; one not in the league is a bug, so it throws. */
 const fixtureTeamIn = (teams: readonly Doc<"teams">[], gameweek: number) => (teamId: TeamId) => {

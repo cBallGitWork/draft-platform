@@ -31,6 +31,13 @@ describe("the game switch", () => {
     expect(app.matchup.useMatchup).toHaveBeenLastCalledWith(league.leagueId, expect.any(Number), { teamId: "team-Team 1", gameweek: 6, game: 2 });
   });
 
+  it("links to the first game with no game in the address, as every other link to it (#1771)", async () => {
+    openMatchup({ matchup: headToHead(scored, { games: TWO_GAMES, gameNumber: 2 }) });
+    const gameSwitch = await screen.findByRole("navigation", { name: GAME_SWITCH_LABEL });
+    const href = within(gameSwitch).getByRole("link", { name: gameSwitchWords(1, "Team 2") }).getAttribute("href") ?? "";
+    expect(new URL(href, "http://localhost").searchParams.has("game")).toBe(false);
+  });
+
   it("shows before the deadline too, and names a bye", async () => {
     openMatchup({ matchup: headToHead({ kind: "notBegun", opponent: { kind: "team", teamName: "Team 3" } }, { games: [TWO_GAMES[1], { kind: "bye" }] }) });
     const gameSwitch = await screen.findByRole("navigation", { name: GAME_SWITCH_LABEL });

@@ -9,6 +9,10 @@ import { BYE } from "../table/teamGames";
 
 // What the matchup query sends (matchup.ts; #34): one team's head-to-head in one gameweek.
 
+/** The first of a team's games in a gameweek, as the address and the switch number them. Kept in
+ *  this pure module, not the query's, so the browser's matchup links share it (#1771). */
+export const FIRST_GAME = 1;
+
 // Each status but noMatch names the match it is about by FPL's fixture code, so it opens that
 // match's page (spec/10, The match page).
 const slotStatus = v.union(

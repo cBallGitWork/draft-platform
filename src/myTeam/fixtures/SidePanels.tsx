@@ -70,7 +70,7 @@ export function NextGamePanel({ teamId, game, table, now }: { teamId: Id<"teams"
           </Fact>
         )}
       </dl>
-      <MoreLink {...matchupLink(teamId, game.gameweek, game.game === 1 ? undefined : game.game)}>{matchupMoreWords}</MoreLink>
+      <MoreLink {...matchupLink(teamId, game.gameweek, game.game)}>{matchupMoreWords}</MoreLink>
     </Panel>
   );
 }
