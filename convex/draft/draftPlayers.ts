@@ -1,14 +1,14 @@
 import { v, type Infer } from "convex/values";
-import type { Doc, Id } from "../_generated/dataModel";
+import type { Id } from "../_generated/dataModel";
 import { query, type QueryCtx } from "../_generated/server";
 import { positionsNow } from "../positions/playerPositions";
 import { latestRules } from "../rules/rulesHistory";
 import { memberOf, runnerOf } from "../shared/leagueAccess";
-import { currentClubs, currentPlayersAt } from "../shared/players";
 import { newestSeasonWithTotals, seasonTotals } from "../stats/seasonStats";
 import type { Stats } from "../stats/statTotals";
 import { autoPickOrder } from "./autoPickOrder";
-import { squadRulesOf, undraftedIn, whyNotLegalFor } from "./draftPicks";
+import { squadRulesOf, whyNotLegalFor } from "./draftPicks";
+import { everyPlayerNow, undraftedIn } from "./undrafted";
 import { draftRanking } from "./draftRanking";
 import { draftOf, picksLeftOf, turnNow, type Turn } from "./draftRow";
 import { lastPricedSeason, lastSeasonPoints } from "./lastSeasonPoints";
@@ -27,11 +27,6 @@ const notLegal = v.union(v.literal("squadFull"), v.literal("clubFull"), v.litera
 
 const greyedPlayer = v.object({ code: v.number(), reason: notLegal });
 export type GreyedPlayer = Infer<typeof greyedPlayer>;
-
-/** Every Premier League player now. */
-async function everyPlayerNow(ctx: QueryCtx): Promise<Doc<"players">[]> {
-  return (await Promise.all((await currentClubs(ctx)).map(({ code }) => currentPlayersAt(ctx, code)))).flat();
-}
 
 /** Every Premier League player now whom the caller's team may not take as its next pick, with why,
  *  while the draft is live. None before it starts, once it is over, or for a commissioner who runs
@@ -68,7 +63,7 @@ async function greyedFor(ctx: QueryCtx, leagueId: Id<"leagues">, teamOf: (turn: 
   if (draft === null || started === undefined || turn === null) return [];
   const teamId = teamOf(turn);
   const picksLeft = await picksLeftOf(ctx, draft, started, teamId);
-  const why = await whyNotLegalFor(ctx, leagueId, started, teamId, picksLeft, await undraftedIn(ctx, leagueId));
+  const why = await whyNotLegalFor(ctx, leagueId, started, teamId, picksLeft, await undraftedIn(ctx, leagueId), await positionsNow(ctx, leagueId));
   const players = await everyPlayerNow(ctx);
   const greyed = await Promise.all(players.map(async (player) => ({ code: player.code, reason: await why(player) })));
   return greyed.flatMap(({ code, reason }) => (reason === null ? [] : [{ code, reason }]));
@@ -120,9 +115,8 @@ const overviewOf = (stats: Stats): RoomFigure["overview"] => {
  *  squad against. No pick moves any of it, so a pick doesn't run it again. Refused to anyone
  *  outside the league. */
 export const figures = query({
-  // `now`, the screen's minute, no longer moves anything here: it stays until the draft room's seam
-  // drops it, as that screen's change.
-  args: { leagueId: v.id("leagues"), now: v.number() },
+  // No minute: one would reload the room's figures as the minute turns (#1531).
+  args: { leagueId: v.id("leagues") },
   returns: roomFigures,
   handler: async (ctx, { leagueId }) => {
     await memberOf(ctx, leagueId);

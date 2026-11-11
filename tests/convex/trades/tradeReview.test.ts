@@ -52,7 +52,7 @@ describe("with no review", () => {
     expect(await squadOf(w.annsTeam)).not.toContain(ANNS_FIRST_DROP);
     expect(await squadOf(w.bobsTeam)).toEqual(expect.arrayContaining([PALMER, ANNS_FIRST_DROP]));
     expect(await w.offers()).toEqual([]);
-    expect((await eventsIn(w.t, w.leagueId)).filter((event) => event.kind === "playerMoved")).toEqual([
+    expect((await eventsIn(w.t, w.leagueId)).filter((event) => event.kind === "playerTraded")).toEqual([
       expect.objectContaining({ playerCode: ANNS_FIRST_DROP, teamId: w.bobsTeam, fromTeamId: w.annsTeam, by: BOB }),
       expect.objectContaining({ playerCode: SAKA, teamId: w.annsTeam, fromTeamId: w.bobsTeam, by: BOB }),
     ]);

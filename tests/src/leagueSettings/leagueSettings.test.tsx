@@ -142,4 +142,16 @@ describe("while the server answers, or has nothing", () => {
     await openedSettings({ loading: true });
     expect(screen.getByRole("status").textContent).toBe(loadingWords);
   });
+
+  it("keeps an unsaved edit while the next minute's settings load (#1534)", async () => {
+    const app = await openedSettings();
+    await setGames("2");
+    app.leagueSettings.useSettings.mockReturnValue(undefined);
+    app.becomes({ ...commissioner });
+    await waitFor(() => expect(app.leagueSettings.useSettings).toHaveLastReturnedWith(undefined));
+
+    expect(screen.queryByText(loadingWords)).toBeNull();
+    expect(gamesBox().value).toBe("2");
+    expect(saveButton().disabled).toBe(false);
+  });
 });

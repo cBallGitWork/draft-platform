@@ -7,6 +7,7 @@ import { LeagueHeading } from "../leagues/LeagueLinks";
 import { Choice } from "../ui/Choice";
 import { useRulesEdits, type RulesEdits } from "../rules/rulesEdits";
 import { useDraftStartEdit, type DraftStartEdit } from "./DraftStartRow";
+import { useLastLoaded } from "../shared/useLastLoaded";
 import { SaveBar } from "../rules/SaveBar";
 import { BoxRefusalContext } from "../rules/blank";
 import { TickBox } from "../ui/TickBox";
@@ -67,7 +68,9 @@ const ODD_TEAM_OUT_CHOICE = "odd-team-out";
  *  the draft runs and when it starts (spec/04; #1087, #1476), how trades run (spec/08; #383) and how waivers do, beside the
  *  waiver order (spec/08; #1200), with the commissioner's draft order, which saves at once. */
 export function SettingsPage({ league, seam }: { league: LeagueSummary; seam: LeagueSettingsSeam }) {
-  const view = seam.useSettings(league.leagueId);
+  // The settings are asked again each minute (liveSettings.ts), and the next minute's load mustn't
+  // unmount the editor and throw its unsaved edits away; another league's loads afresh.
+  const view = useLastLoaded(seam.useSettings(league.leagueId), league.leagueId);
   return (
     <div className="flex max-w-3xl flex-col gap-2">
       <PageSection title={SETTINGS_TITLE} className="bg-panel">

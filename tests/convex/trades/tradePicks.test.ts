@@ -8,7 +8,7 @@ import { pickRefusals } from "../../../convex/trades/tradePicks";
 import { REVIEW_MS } from "../../../convex/trades/tradeLimits";
 import { ARSENAL, insertClubs, insertPlayers, type HeldPlayer } from "../../support/convex/footballRows.harness";
 import { changeEveryRules } from "../../support/convex/leagueRules.harness";
-import { actingAs, addManagers, adminCreatesLeague, COMMISSIONER, MANAGERS, type TestConvex } from "../../support/convex/leagues.harness";
+import { actingAs, addManagers, adminCreatesLeague, COMMISSIONER, eventsIn, MANAGERS, type TestConvex } from "../../support/convex/leagues.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
 import { expectRefused } from "../../support/convex/test.harness";
 import { lettersTo } from "../../support/convex/waivers.harness";
@@ -39,7 +39,7 @@ const offerPicks = async (email: string, toTeamId: Id<"teams">, gives: { round: 
 const accept = async (email: string, offerId: Id<"tradeOffers">) => (await as(email)).mutation(api.trades.tradeOffers.accept, { leagueId, offerId });
 const start = async () => (await as(COMMISSIONER)).mutation(api.draft.draftStart.start, { leagueId });
 const onTheClock = async () => {
-  const draft = await (await as(COMMISSIONER)).query(api.draft.draftStart.ofLeague, { leagueId, now: Date.now() });
+  const draft = await (await as(COMMISSIONER)).query(api.draft.draftStart.ofLeague, { leagueId });
   return draft.status === "live" ? { pick: draft.onTheClock.pick, teamId: draft.onTheClock.teamId } : null;
 };
 const makePick = async (email: string, playerCode: number) => (await as(email)).mutation(api.draft.draftPicks.makePick, { leagueId, playerCode });
@@ -88,10 +88,10 @@ describe("a pick swap", () => {
 
   test("is on the board's read for the whole league, each pick with its team and its owner now", async () => {
     const { offerId } = await offerPicks(ANN, bob, pickOf(ann, 1), pickOf(bob, 2));
-    expect((await (await as(CAT)).query(api.draft.draftBoard.ofLeague, { leagueId, now: Date.now() })).tradedPicks).toEqual([]);
+    expect((await (await as(CAT)).query(api.draft.draftBoard.ofLeague, { leagueId })).tradedPicks).toEqual([]);
     await accept(BOB, offerId);
 
-    expect((await (await as(CAT)).query(api.draft.draftBoard.ofLeague, { leagueId, now: Date.now() })).tradedPicks).toEqual([
+    expect((await (await as(CAT)).query(api.draft.draftBoard.ofLeague, { leagueId })).tradedPicks).toEqual([
       { round: 1, teamId: ann, ownerId: bob },
       { round: 2, teamId: bob, ownerId: ann },
     ]);
@@ -108,6 +108,9 @@ describe("a pick swap", () => {
       { round: 2, teamId: ann, held: false },
     ]);
     const { offerId } = await offerPicks(ANN, bob, pickOf(ann, 1), pickOf(bob, 2));
+    // The open offer carries its picks for a counter to start with (#1471).
+    const open = await (await as(BOB)).query(api.trades.tradeScreen.ofMyTeam, { leagueId, now: Date.now() });
+    expect(open.offers[0].pickTerms).toEqual({ gives: pickOf(ann, 1), gets: pickOf(bob, 2) });
     await accept(BOB, offerId);
     const inReview = await picksOn(CAT);
     expect(inReview.get(ann)?.[0]).toEqual({ round: 1, teamId: ann, held: true });
@@ -154,6 +157,20 @@ describe("a pick swap", () => {
     });
   });
 
+  test("is filed as one trade, each pick named by the team whose pick it is, so the screens list it (#1491)", async () => {
+    const { offerId } = await offerPicks(ANN, bob, pickOf(ann, 1), pickOf(bob, 2));
+    await accept(BOB, offerId);
+    expect((await eventsIn(t, leagueId)).filter((event) => event.kind === "tradeMade")).toEqual([
+      expect.objectContaining({
+        by: BOB,
+        fromTeamId: ann,
+        toTeamId: bob,
+        gives: { players: [], picks: [{ round: 1, teamId: ann, teamName: await teamName(ann) }] },
+        gets: { players: [], picks: [{ round: 2, teamId: bob, teamName: await teamName(bob) }] },
+      }),
+    ]);
+  });
+
   test("can be traded on, and a pick back with its own team is its own again", async () => {
     const first = await offerPicks(ANN, bob, pickOf(ann, 1), pickOf(bob, 1));
     await accept(BOB, first.offerId);
@@ -195,6 +212,14 @@ describe("a pick offer is refused", () => {
     await expectRefused(offerPicks(ANN, bob, pickOf(cat, 1), pickOf(bob, 1)), pickRefusals.notHeld(`the ${catsTeam} round 1 pick`, await teamName(ann)));
     await expectRefused(offerPicks(ANN, bob, pickOf(ann, 1), pickOf(cat, 1)), pickRefusals.notHeld(`the ${catsTeam} round 1 pick`, bobsTeam));
     await expectRefused(offerPicks(ANN, bob, pickOf(ann, 3), pickOf(bob, 1)), pickRefusals.noRound(2));
+  });
+
+  test("while the same pick swap is open to the same team, but a swap of other picks is its own offer (#1539)", async () => {
+    await offerPicks(ANN, bob, pickOf(ann, 1), pickOf(bob, 1));
+    await expectRefused(offerPicks(ANN, bob, pickOf(ann, 1), pickOf(bob, 1)), offerRefusals.alreadyOffered(await teamName(bob)));
+    await offerPicks(ANN, bob, pickOf(ann, 1), pickOf(bob, 2));
+    await offerPicks(ANN, bob, pickOf(ann, 2), pickOf(bob, 1));
+    expect(await offers()).toHaveLength(3);
   });
 
   test("to accept while its pick is in another trade under review", async () => {

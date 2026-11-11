@@ -4,14 +4,15 @@ import { query, type QueryCtx } from "../_generated/server";
 import { pinnedLetter } from "../schema";
 import { takeAllOrThrow, takeShown } from "../shared/cappedRead";
 import { memberOf, teamsOf } from "../shared/leagueAccess";
-import { isSquadMove, newestFirst, SQUAD_MOVES } from "../squads/squadPlace";
+import { tradedSide } from "../schema/squads";
+import { isListedMove, LISTED_MOVES, newestFirst, playerMoveKind } from "../squads/squadPlace";
 
 // League home's News tab (#1356; spec/12, League home; docs/design/approved/home/, The News tab):
 // every team's completed moves, newest first, over the whole season, from the squad events Mail and
 // My team's Transactions read. Pending claims are never events, and a failed claim or a blocked
 // trade files none, so they never show; a commissioner action that isn't a squad move is only his
-// letter. Trades join once they are built: until then a trade's players are its moves. For anyone
-// with a part in the league.
+// letter. A trade that went through is one row (#1491); one made before that shows as its players'
+// moves. For anyone with a part in the league.
 //
 // Paged, never read whole: each call reads up to NEWS_READ_OF_EACH_KIND of each kind older than its
 // cursor, by the league's kind-and-time index, and returns those it has read every row down to.
@@ -25,7 +26,7 @@ export const NEWS_READ_OF_EACH_KIND = 100;
  *  More throws, never a silent cut. */
 const SAME_INSTANT_MOST = 200;
 
-const squadMoveKind = v.union(...SQUAD_MOVES.map((kind) => v.literal(kind)));
+const squadMoveKind = v.union(...LISTED_MOVES.map((kind) => v.literal(kind)));
 type SquadMoveKind = Infer<typeof squadMoveKind>;
 
 /** Where a page ends: the oldest move it read every move down to. The next page starts below it. */
@@ -34,11 +35,11 @@ type NewsCursor = Infer<typeof newsCursor>;
 
 const newsPlayer = v.object({ playerCode: v.number(), playerName: v.string() });
 
-const newsMove = v.object({
+const playerNewsMove = v.object({
   at: v.number(),
   /** When it was filed, which orders two moves at the same instant. */
   filed: v.number(),
-  kind: squadMoveKind,
+  kind: playerMoveKind,
   teamId: v.id("teams"),
   teamName: v.string(),
   /** The player who joined the team, if one did. */
@@ -52,6 +53,23 @@ const newsMove = v.object({
   fromTeamId: v.union(v.id("teams"), v.null()),
   fromTeamName: v.union(v.string(), v.null()),
 });
+
+/** A trade that went through, as one row (#1491): the offering team and what it gave, the team it
+ *  went to and what came back, as named then. */
+const tradeNewsMove = v.object({
+  at: v.number(),
+  filed: v.number(),
+  kind: v.literal("tradeMade"),
+  teamId: v.id("teams"),
+  teamName: v.string(),
+  otherTeamId: v.id("teams"),
+  otherTeamName: v.string(),
+  /** What the offering team gave, and what it got back. */
+  gives: tradedSide,
+  gets: tradedSide,
+});
+
+const newsMove = v.union(playerNewsMove, tradeNewsMove);
 export type NewsMove = Infer<typeof newsMove>;
 
 export const leagueNews = v.object({
@@ -100,7 +118,11 @@ async function kindBelow(ctx: QueryCtx, leagueId: Id<"leagues">, kind: SquadMove
 /** The move as the News tab lists it. */
 function moveOf({ _id, _creationTime, at, event }: Row): NewsMove {
   // Only squad moves were read; any other is a bug in the read.
-  if (!isSquadMove(event)) throw new Error(`League event ${_id} is a ${event.kind}, not a squad move`);
+  if (!isListedMove(event)) throw new Error(`League event ${_id} is a ${event.kind}, not a listed squad move`);
+  if (event.kind === "tradeMade") {
+    const { kind, fromTeamId, fromTeamName, toTeamId, toTeamName, gives, gets } = event;
+    return { at, filed: _creationTime, kind, teamId: fromTeamId, teamName: fromTeamName, otherTeamId: toTeamId, otherTeamName: toTeamName, gives, gets };
+  }
   const player = { playerCode: event.playerCode, playerName: event.playerName };
   const done = { at, filed: _creationTime, kind: event.kind, teamId: event.teamId, teamName: event.teamName, fromTeamId: null, fromTeamName: null };
   switch (event.kind) {
@@ -129,7 +151,11 @@ function moveOf({ _id, _creationTime, at, event }: Row): NewsMove {
  *  move's row already names him, so his drop has no row of its own, as it has no letter. */
 const madeFor = (drop: NewsMove, joining: readonly NewsMove[]) =>
   drop.kind === "playerDropped" &&
-  joining.some((move) => move.at === drop.at && move.teamId === drop.teamId && move.left?.playerCode === drop.left?.playerCode && (move.kind === "playerClaimed" || move.kind === "playerPickedUp"));
+  joining.some((move) => (move.kind === "playerClaimed" || move.kind === "playerPickedUp") && move.at === drop.at && move.teamId === drop.teamId && move.left?.playerCode === drop.left?.playerCode);
+
+/** Whether the move names the team: the one a player joined or left, the one a move took him from,
+ *  or either side of a trade. */
+const names = (move: NewsMove, teamId: Id<"teams">) => move.teamId === teamId || (move.kind === "tradeMade" ? move.otherTeamId : move.fromTeamId) === teamId;
 
 /** The claims and pickups at the instant of a page's cursor, already shown above it, whose drops may
  *  sit below it. */
@@ -151,7 +177,7 @@ export const ofLeague = query({
   returns: leagueNews,
   handler: async (ctx, { leagueId, before, teamId, kind }) => {
     const { league } = await memberOf(ctx, leagueId);
-    const kinds = kind === null ? SQUAD_MOVES : [kind];
+    const kinds = kind === null ? LISTED_MOVES : [kind];
     const ofEachKind = await Promise.all(kinds.map((each) => kindBelow(ctx, leagueId, each, before)));
     // Every move at or above the newest of the cut kinds' last rows has been read: the page ends there.
     const ends = ofEachKind.flatMap(({ rows, more }) => (more ? [rows.at(-1)!] : [])).toSorted(newestFirst);
@@ -162,7 +188,7 @@ export const ofLeague = query({
       .toSorted(newestFirst)
       .map(moveOf);
     const joining = [...read, ...(await joiningAt(ctx, leagueId, before))];
-    const shown = read.filter((move) => !madeFor(move, joining) && (teamId === null || move.teamId === teamId || move.fromTeamId === teamId));
+    const shown = read.filter((move) => !madeFor(move, joining) && (teamId === null || names(move, teamId)));
     const cut = shown.length > NEWS_PAGE;
     const moves = shown.slice(0, NEWS_PAGE);
     const last = moves.at(-1);

@@ -3,6 +3,7 @@ import { api } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
 import { PICK_GAP_MS } from "../../../convex/draft/draftClock";
 import { UP_NEXT_EMAIL_OVER_MS } from "../../../convex/draft/draftLetters";
+import { draftOf } from "../../../convex/draft/draftRow";
 import { draftStartRefusals } from "../../../convex/draft/draftStart";
 import { dayOf, EMAILS_PER_DAY } from "../../../convex/outbound/emailLimit";
 import { momentIn } from "../../../convex/shared/moments";
@@ -103,6 +104,29 @@ describe("you're up next", () => {
     await t.run((ctx) => ctx.db.patch("teams", teams[0], { managerEmail: undefined }));
     const before = (await letters()).length;
     await start();
+
+    expect(await lettersSince(before)).toEqual([]);
+  });
+
+  // Craig, 11 Nov 2026, on #1485: when the draft picks for him at once there is nothing for him to do.
+  test("goes to no one, by letter or email, whose manager chose auto-pick, as his pick is made at once", async () => {
+    await setPickSecondsOf(t, leagueId, UP_NEXT_EMAIL_OVER_MS / SECOND_MS + 1);
+    await (await as(ANN)).mutation(api.draft.autoPickSwitch.turnOn, { leagueId });
+    await start();
+    await pass(0);
+
+    expect((await letters()).filter(({ to, subject }) => to === ANN && subject === UP_NEXT)).toEqual([]);
+    expect(upNextEmails().filter(({ to }) => to === ANN)).toEqual([]);
+  });
+
+  test("goes to no one whose team is on auto-pick past its first pick there", async () => {
+    await start();
+    await t.run(async (ctx) => {
+      const draft = await draftOf(ctx, leagueId);
+      await ctx.db.patch("drafts", draft!._id, { timeouts: [{ teamId: teams[1], count: 2, autoPick: "atOnce" }] });
+    });
+    const before = (await letters()).length;
+    await pick(ANN, A1);
 
     expect(await lettersSince(before)).toEqual([]);
   });

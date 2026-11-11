@@ -1,15 +1,16 @@
 import { v } from "convex/values";
+import { internal } from "../_generated/api";
 import type { Doc, Id } from "../_generated/dataModel";
 import { internalMutation, mutation, type MutationCtx, type QueryCtx } from "../_generated/server";
 import { areasOf } from "../lineup/pitch";
 import { pickFirstLineupAgain, saveFirstLineup } from "../lineup/lineups";
 import { fileEvent } from "../mail/letters";
-import { positionsNow } from "../positions/playerPositions";
+import { positionsNow, type PositionsNow } from "../positions/playerPositions";
 import { draftRulesOf } from "../rules/firstRules";
 import type { LeagueRules } from "../rules/leagueRulesShape";
 import { latestRules } from "../rules/rulesHistory";
 import { managerOf, refuse, refusals, runnerOf, teamIn, teamsOf } from "../shared/leagueAccess";
-import { currentClubs, currentPlayersAt, heldPlayerByCode, playerByCode } from "../shared/players";
+import { heldPlayerByCode, playerByCode } from "../shared/players";
 import { placeOf, squadOf } from "../squads/squadPlace";
 import { squadRefusals } from "../squads/squads";
 import { autoPickOrder } from "./autoPickOrder";
@@ -18,12 +19,14 @@ import { tellDraftOver, tellPickedFor, tellScoringStartMoved, tellUpNext } from 
 import { startAfterDraft } from "../gameweeks/scoringStart";
 import { listsOf } from "./draftLists";
 import { draftRanking } from "./draftRanking";
-import { draftOf, picksLeftOf, turnNow, type StartedDraft, type Turn } from "./draftRow";
+import type { Position } from "../positions/positionTables";
+import { draftedPositionsIn, draftOf, picksLeftOf, turnNow, type StartedDraft, type Turn } from "./draftRow";
 import { rulesInForceAt } from "./draftStart";
 import { afterTimeout, choseAutoPick, isOnAutoPick } from "./draftTimeouts";
 import { lastSeasonPoints } from "./lastSeasonPoints";
 import { whyNotLegal, type DraftPlayer, type NotLegal } from "./legalPlayers";
-import { offWaivers, putOnWaivers } from "../waivers/waiverPlayers";
+import { offWaivers } from "../waivers/waiverPlayers";
+import { undraftedIn } from "./undrafted";
 
 // Making a pick (spec/04, The picks; #1090). The manager whose team is on the clock picks a player
 // it may legally take (legalPlayers.ts, under the squad rules the draft started under, leaving a
@@ -48,6 +51,7 @@ export const pickRefusals = {
   over: "The draft is over.",
   paused: "The draft is paused.",
   notYourTurn: (teamName: string) => `It isn't your pick: ${teamName} is on the clock.`,
+  alreadyPicked: (teamName: string) => `${teamName} has already picked.`,
   taken: (name: string, teamName: string) => `${name} is already on ${teamName}.`,
   breaksSquadRules: (name: string) => `${name} would leave your squad unable to meet the league's squad rules.`,
   notOnAutoPick: "You aren't on auto-pick.",
@@ -62,16 +66,10 @@ export async function squadRulesOf(ctx: QueryCtx, leagueId: Id<"leagues">, start
   return started.squad ?? (await rulesInForceAt(ctx, leagueId, started.at)).squad;
 }
 
-/** The players still undrafted in the league: in the Premier League now and held by no team. */
-export async function undraftedIn(ctx: QueryCtx, leagueId: Id<"leagues">): Promise<Doc<"players">[]> {
-  const players = (await Promise.all((await currentClubs(ctx)).map(({ code }) => currentPlayersAt(ctx, code)))).flat();
-  const places = await Promise.all(players.map(({ code }) => placeOf(ctx, leagueId, code)));
-  return players.filter((_, index) => places[index] === null);
-}
-
 /** Why `teamId` may not take a player as its next pick, under the squad rules the draft started
  *  under, with `picksLeft` picks still to make counting this one and a legal finish from the
- *  `undrafted`; null when it may. The pick and the draft room's greyed-out list both ask it. */
+ *  `undrafted`; null when it may, each player's positions read through `positionsOf`. The pick and
+ *  the draft room's greyed-out list both ask it. */
 export async function whyNotLegalFor(
   ctx: QueryCtx,
   leagueId: Id<"leagues">,
@@ -79,15 +77,20 @@ export async function whyNotLegalFor(
   teamId: Id<"teams">,
   picksLeft: number,
   undrafted: readonly Doc<"players">[],
+  positionsOf: PositionsNow,
 ): Promise<(player: Doc<"players">) => Promise<NotLegal | null>> {
-  const positionsOf = await positionsNow(ctx, leagueId);
-  const asDraftPlayer = async ({ clubCode, code }: Doc<"players">): Promise<DraftPlayer> => ({ clubCode, areas: areasOf(await positionsOf(code)) });
+  const asDraftPlayer = async ({ clubCode, code }: Doc<"players">, positions?: Position[]): Promise<DraftPlayer> => ({
+    clubCode,
+    areas: areasOf(positions ?? (await positionsOf(code))),
+  });
+  // His squad counts each player it drafted at the positions he had then (#1484).
+  const drafted = await draftedPositionsIn(ctx, leagueId);
   const squad = await Promise.all(
     (await squadOf(ctx, teamId)).map(async ({ playerCode }) =>
-      asDraftPlayer(await heldPlayerByCode(ctx, playerCode, `Player ${playerCode}, drafted by team ${teamId}, isn't in the football data`)),
+      asDraftPlayer(await heldPlayerByCode(ctx, playerCode, `Player ${playerCode}, drafted by team ${teamId}, isn't in the football data`), drafted.get(playerCode)),
     ),
   );
-  const why = whyNotLegal(squad, picksLeft, await squadRulesOf(ctx, leagueId, started), await Promise.all(undrafted.map(asDraftPlayer)));
+  const why = whyNotLegal(squad, picksLeft, await squadRulesOf(ctx, leagueId, started), await Promise.all(undrafted.map((each) => asDraftPlayer(each))));
   return async (player) => why(await asDraftPlayer(player));
 }
 
@@ -100,8 +103,9 @@ async function legalForTurn(
   started: StartedDraft,
   turn: Turn,
   undrafted: readonly Doc<"players">[],
+  positionsOf: PositionsNow,
 ): Promise<(player: Doc<"players">) => Promise<boolean>> {
-  const why = await whyNotLegalFor(ctx, leagueId, started, turn.team, await picksLeftOf(ctx, draft, started, turn.team), undrafted);
+  const why = await whyNotLegalFor(ctx, leagueId, started, turn.team, await picksLeftOf(ctx, draft, started, turn.team), undrafted, positionsOf);
   return async (player) => (await why(player)) === null;
 }
 
@@ -136,12 +140,14 @@ type Placed = { auto?: true; timeout?: Doc<"draftPicks">["timeout"]; pausedAt?: 
  *  pick's clock starts PICK_GAP_MS from now, its manager told he is up next; after the last pick,
  *  each team's lineup is saved as its picks left it (lineups.ts `saveFirstLineup`; #1040), the
  *  league's scoring start is set (scoringStart.ts `startAfterDraft`; #1097), the players nobody
- *  drafted go on waivers for the next run if its draft setting says so (#1197), and the whole league
+ *  drafted go on waivers for the next run if its draft setting says so (#1197), in a job of their
+ *  own so the last pick stays clear of Convex's read limit (#1532), and the whole league
  *  is told the draft is over (draftLetters.ts), the commissioner too when the start moved. */
 async function placePick(ctx: MutationCtx, league: Doc<"leagues">, turn: Turn, team: Doc<"teams">, player: Doc<"players">, by: string, { auto, timeout, pausedAt }: Placed = {}): Promise<void> {
   const leagueId = league._id;
   const now = Date.now();
-  await ctx.db.insert("draftPicks", { leagueId, pick: turn.pick, teamId: team._id, playerCode: player.code, at: now, ...(auto && { auto }), ...(timeout && { timeout }) });
+  const positions = await (await positionsNow(ctx, leagueId))(player.code);
+  await ctx.db.insert("draftPicks", { leagueId, pick: turn.pick, teamId: team._id, playerCode: player.code, at: now, positions, ...(auto && { auto }), ...(timeout && { timeout }) });
   await ctx.db.insert("squadPlayers", { leagueId, teamId: team._id, playerCode: player.code });
   await offWaivers(ctx, leagueId, player.code);
   await fileEvent(ctx, leagueId, by, { kind: "playerAssigned", playerCode: player.code, playerName: player.name, teamId: team._id, teamName: team.name });
@@ -150,7 +156,7 @@ async function placePick(ctx: MutationCtx, league: Doc<"leagues">, turn: Turn, t
   if (next === null) {
     for (const drafted of await teamsOf(ctx, leagueId)) await saveFirstLineup(ctx, leagueId, drafted._id);
     if ((await draftRulesNow(ctx, leagueId)).undrafted === "waivers") {
-      for (const { code } of await undraftedIn(ctx, leagueId)) await putOnWaivers(ctx, leagueId, code, now);
+      await ctx.scheduler.runAfter(0, internal.draft.undrafted.putUndraftedOnWaivers, { leagueId, claimableFrom: now });
     }
     const moved = await startAfterDraft(ctx, league, now);
     await tellDraftOver(ctx, league, turn.pick);
@@ -189,7 +195,8 @@ async function liveTurn(ctx: QueryCtx, leagueId: Id<"leagues">): Promise<{ draft
  *  the team's squad rules. */
 async function legalPick(ctx: QueryCtx, leagueId: Id<"leagues">, draft: Doc<"drafts">, started: StartedDraft, turn: Turn, playerCode: number): Promise<Doc<"players">> {
   const player = await pickable(ctx, leagueId, playerCode);
-  if (!(await (await legalForTurn(ctx, leagueId, draft, started, turn, await undraftedIn(ctx, leagueId)))(player))) refuse(pickRefusals.breaksSquadRules(player.name));
+  const legal = await legalForTurn(ctx, leagueId, draft, started, turn, await undraftedIn(ctx, leagueId), await positionsNow(ctx, leagueId));
+  if (!(await legal(player))) refuse(pickRefusals.breaksSquadRules(player.name));
   return player;
 }
 
@@ -197,15 +204,18 @@ async function legalPick(ctx: QueryCtx, leagueId: Id<"leagues">, draft: Doc<"dra
  *  a manger hops on a flight or something" (Craig, 5 Nov 2026; #1095). It is filed as his, never
  *  counts as that team's timeout, and the whole league is told (draftLetters.ts). While the draft is
  *  paused it stays paused, and the next pick's clock starts when he resumes (Craig, 5 Nov 2026).
- *  Refused to anyone who doesn't run the league, before the draft starts, once it is over, and for a
- *  player who isn't there to take or would break the team's squad rules. */
+ *  Refused to anyone who doesn't run the league, before the draft starts, once it is over, for a
+ *  player who isn't there to take or would break the team's squad rules, and when the team he picks
+ *  for is no longer on the clock: it picked, or was picked for, before his pick arrived, so his pick
+ *  never lands on the next team (Craig, 11 Nov 2026, on #1477). */
 export const pickFor = mutation({
-  args: { leagueId: v.id("leagues"), playerCode: v.number() },
+  args: { leagueId: v.id("leagues"), teamId: v.id("teams"), playerCode: v.number() },
   returns: v.null(),
-  handler: async (ctx, { leagueId, playerCode }) => {
+  handler: async (ctx, { leagueId, teamId, playerCode }) => {
     const { email, league } = await runnerOf(ctx, leagueId);
     const { draft, started, turn } = await liveTurn(ctx, leagueId);
-    const team = await teamIn(ctx, leagueId, turn.team);
+    const team = await teamIn(ctx, leagueId, teamId);
+    if (turn.team !== team._id) refuse(pickRefusals.alreadyPicked(team.name));
     const player = await legalPick(ctx, leagueId, draft, started, turn, playerCode);
     if (draft.clock?.job !== undefined) await ctx.scheduler.cancel(draft.clock.job);
     await placePick(ctx, league, turn, team, player, email, { pausedAt: draft.clock?.paused === undefined ? undefined : Date.now() });
@@ -219,13 +229,14 @@ export const pickFor = mutation({
  *  is an error: greying out always leaves a legal pick (#1090). */
 async function autoPickFor(ctx: QueryCtx, leagueId: Id<"leagues">, draft: Doc<"drafts">, started: StartedDraft, turn: Turn): Promise<Doc<"players">> {
   const players = await undraftedIn(ctx, leagueId);
-  const legal = await legalForTurn(ctx, leagueId, draft, started, turn, players);
+  const positionsOf = await positionsNow(ctx, leagueId);
+  const legal = await legalForTurn(ctx, leagueId, draft, started, turn, players, positionsOf);
   const lists = await listsOf(ctx, turn.team);
   const order = autoPickOrder(
     players,
     { queue: lists?.queue ?? [], doNotDraft: lists?.doNotDraft ?? [] },
     (await draftRanking(ctx))?.players.map(({ code }) => code) ?? [],
-    await lastSeasonPoints(ctx, await positionsNow(ctx, leagueId)),
+    await lastSeasonPoints(ctx, positionsOf),
   );
   const byCode = new Map(players.map((player) => [player.code, player]));
   for (const code of order) {

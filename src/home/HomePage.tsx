@@ -10,6 +10,7 @@ import { Vidiprinter } from "../matchup/Vidiprinter";
 import { FormChips } from "../myTeam/header/FormChips";
 import { MailWidget } from "../myTeam/squad/MailWidget";
 import type { LatestMail } from "../myTeam/squad/seam";
+import { useLastLoaded } from "../shared/useLastLoaded";
 import { useMinute } from "../shared/useMinute";
 import { NewsPanel } from "./NewsPanel";
 import { PanelLink } from "./PanelLink";
@@ -64,7 +65,9 @@ const cellClasses = (column: Column) =>
  *  centre; and on the right, the Vidiprinter while a matchday is open (1440-locked.png), the
  *  latest recap, and the panels still to come, each in its place. */
 export function HomePage({ league, seam }: { league: LeagueSummary; seam: HomeSeam }) {
-  const home = seam.useLeagueHome(league.leagueId, useMinute());
+  // The minute is in the query's arguments, and league home mustn't blank every minute (nor its
+  // Mail panel's choice reset); another league's loads afresh.
+  const home = useLastLoaded(seam.useLeagueHome(league.leagueId, useMinute()), league.leagueId);
   const mail = seam.useLatestMail();
   const gameweek = home?.thisGameweek?.gameweek ?? null;
   const title = (

@@ -42,7 +42,6 @@ export function PickRoom({
   draft,
   board,
   onTheClock,
-  now,
   children,
 }: {
   leagueId: Id<"leagues">;
@@ -50,13 +49,12 @@ export function PickRoom({
   draft: DraftState;
   board: DraftBoard;
   onTheClock: OnTheClock | null;
-  now: number;
   /** The column's foot: the commissioner's panel, for whoever runs the league, given the selected
    *  player, whom his Pick for takes, and how to let him go once picked. */
   children?: (selected: ListedPlayer | null, unselect: () => void) => ReactNode;
 }) {
   const greyed = seam.useGreyedOut(leagueId);
-  const figures = seam.useFigures(leagueId, now);
+  const figures = seam.useFigures(leagueId);
   const lists = seam.useLists(leagueId);
   const changes = seam.useDraftChanges();
   const listChanges = seam.useListChanges();

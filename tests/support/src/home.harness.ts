@@ -49,7 +49,7 @@ export const quietHome: LeagueHome = {
 export const gameweekOneRecap: Recap = { gameweek: 1, text: "Team 1 beat Team 2.\nSaka scored 15.", writtenAt: Date.parse("2026-10-27T09:00:00Z"), changedTeamId: null };
 
 /** A move on the News tab, at `at`, of `team`: Saka joining it unless `rest` says otherwise. */
-export const newsMove = (at: number, teamName: string, rest: Partial<NewsMove> = {}): NewsMove => ({
+export const newsMove = (at: number, teamName: string, rest: Partial<Exclude<NewsMove, { kind: "tradeMade" }>> = {}): NewsMove => ({
   at,
   filed: at,
   kind: "playerAssigned",

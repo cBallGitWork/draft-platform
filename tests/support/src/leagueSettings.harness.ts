@@ -47,7 +47,7 @@ export function fakeLeagueSettings({
   waivers = NO_WAIVERS,
   claims = [],
   claimsLoading = false,
-  scoringStart = { start: null, ticked: [] },
+  scoringStart = { start: null, ticked: [], seasonBegun: false },
   draftStart = { startsAt: null, started: false },
 }: LeagueSettingsData = {}) {
   return {

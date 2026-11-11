@@ -9,12 +9,12 @@ import { managerOf, refuse, refusals, teamIn } from "../shared/leagueAccess";
 import { playerByCode } from "../shared/players";
 import { placeOf } from "../squads/squadPlace";
 import { squadWarning } from "../squads/squads";
-import { closeOffer, deadlinePassed, endOffer, leagueOffers, reviewHolding, tradeWordsOf } from "./tradeClose";
+import { closeOffer, deadlinePassed, endOffer, heldInReview, leagueOffers, tradeWordsOf } from "./tradeClose";
 import { startReview } from "./tradeReview";
 import { tradeWarnings } from "./tradeSquads";
 import { NOTE_MOST } from "./tradeLimits";
-import { checkPicks, checkPicksFree, type TradePicks } from "./tradePicks";
-import { onAutoTeam, tradesShut } from "./tradeShut";
+import { checkPicks, checkPicksFree, samePick, type TradePicks } from "./tradePicks";
+import { offerCloses, onAutoTeam, tradeDeadlineInForce, tradesShut } from "./tradeShut";
 
 // A trade's offer (spec/08 Trades; #383): a manager offers another any mix of players on either
 // side, in any numbers, with a one-line note. The other manager accepts, rejects or counters with
@@ -38,6 +38,7 @@ export const offerRefusals = {
   notYoursToWithdraw: "That offer isn't one you made.",
   closed: "That offer is closed.",
   held: (playerName: string) => `${playerName} is in another trade under review.`,
+  alreadyOffered: (teamName: string) => `You've already offered ${teamName} this trade.`,
 };
 
 const teamWarnings = v.array(v.object({ teamId: v.id("teams"), teamName: v.string(), warnings: v.array(squadWarning) }));
@@ -94,6 +95,14 @@ async function checkSides(ctx: QueryCtx, leagueId: Id<"leagues">, from: Doc<"tea
   ]);
 }
 
+/** Whether the held offer is the same trade between the same teams: the same players each way, in
+ *  any order, and the same picks, whatever its note (#1539). */
+function sameTrade(held: Doc<"tradeOffers">, from: Id<"teams">, to: Id<"teams">, { gives, gets, picks }: Omit<OfferTerms, "note">): boolean {
+  const samePlayers = (one: readonly number[], other: readonly number[]) => one.length === other.length && one.every((code) => other.includes(code));
+  const samePicks = held.picks === undefined || picks === undefined ? held.picks === picks : samePick(held.picks.gives, picks.gives) && samePick(held.picks.gets, picks.gets);
+  return held.fromTeamId === from && held.toTeamId === to && samePlayers(held.gives, gives) && samePlayers(held.gets, gets) && samePicks;
+}
+
 /** Makes an offer from `from` to `to`, with both managers' letter, after every check. */
 async function makeOffer(
   ctx: MutationCtx,
@@ -108,6 +117,9 @@ async function makeOffer(
   const now = Date.now();
   await checkOpen(ctx, league, [from, to], now);
   await checkSides(ctx, league._id, from, to, { gives, gets, picks });
+  if ((await leagueOffers(ctx, league._id)).some((held) => sameTrade(held, from._id, to._id, { gives, gets, picks }))) {
+    refuse(offerRefusals.alreadyOffered(to.name));
+  }
   const kept = keptNote(note);
   const offer = {
     leagueId: league._id,
@@ -123,7 +135,10 @@ async function makeOffer(
   const warnings = await tradeWarnings(ctx, league._id, offer);
   const offerId = await ctx.db.insert("tradeOffers", offer);
   const words = await tradeWordsOf(ctx, offer);
-  await fileLetter(ctx, league, [to.managerEmail, by].filter((email) => email !== undefined), offerLetter(words, by, countered), by);
+  const deadlines = await leagueDeadlines(ctx, league._id);
+  const closes = offerCloses(deadlines, now, await tradeDeadlineInForce(ctx, league._id, deadlines, now));
+  const lastMatchOf = closes !== null && closes.at === null ? closes.gameweek : null;
+  await fileLetter(ctx, league, [to.managerEmail, by].filter((email) => email !== undefined), offerLetter(words, by, countered, lastMatchOf), by);
   return { offerId, warnings };
 }
 
@@ -167,8 +182,9 @@ export const accept = mutation({
     await checkOpen(ctx, league, [from, team], Date.now());
     await checkSides(ctx, leagueId, from, team, offer);
     await checkPicksFree(ctx, offer);
+    const held = await heldInReview(ctx, leagueId);
     for (const code of [...offer.gives, ...offer.gets]) {
-      if ((await reviewHolding(ctx, leagueId, code)) !== null) {
+      if (held.has(code)) {
         refuse(offerRefusals.held((await playerByCode(ctx, code))?.name ?? "A player"));
       }
     }

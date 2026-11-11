@@ -23,19 +23,19 @@ export type DraftChanges = {
 
 /** The players list is Scouting's (spec/04, The draft room), read the same way. */
 export type DraftSeam = Pick<ScoutingSeam, "usePlayersList"> & {
-  /** The league's draft at the minute `now`, live (a hook): undefined while it loads. */
-  useDraft(leagueId: Id<"leagues">, now: number): DraftState | undefined;
-  /** The board's picks, the reader's team and the pick time at the minute `now`, live (a hook):
-   *  undefined while they load. */
-  useBoard(leagueId: Id<"leagues">, now: number): DraftBoard | undefined;
+  /** The league's draft, live (a hook): undefined while it loads. */
+  useDraft(leagueId: Id<"leagues">): DraftState | undefined;
+  /** The board's picks, the reader's team and the pick time, live (a hook): undefined while they
+   *  load. */
+  useBoard(leagueId: Id<"leagues">): DraftBoard | undefined;
   /** Whether the draft room is in the menu, live (a hook): undefined while it loads. */
   useInMenu(leagueId: Id<"leagues">): boolean | undefined;
   /** The players the reader's team can't take as its next pick, and why, live (a hook): undefined
    *  while they load. */
   useGreyedOut(leagueId: Id<"leagues">): readonly GreyedPlayer[] | undefined;
   /** Every player's place on the site's ranking, last season's points and the overview's stats,
-   *  and the club maximum, at the minute `now`, live (a hook): undefined while they load. */
-  useFigures(leagueId: Id<"leagues">, now: number): RoomFigures | undefined;
+   *  and the club maximum, live (a hook): undefined while they load. */
+  useFigures(leagueId: Id<"leagues">): RoomFigures | undefined;
   /** The changes the room makes (a hook). */
   useDraftChanges(): DraftChanges;
   /** The reader's own queue and do-not-draft list, live (a hook): undefined while they load, null
@@ -83,6 +83,7 @@ export type CommissionerChanges = {
   setPickTime(leagueId: Id<"leagues">, pickSeconds: number): Change;
   /** "I'll pick for" a team with no manager, or, with `marked` false, stop. */
   markForCommissioner(leagueId: Id<"leagues">, teamId: Id<"teams">, marked: boolean): Change;
-  /** The team on the clock, managed or not, takes the player with this code, filed as his. */
-  pickFor(leagueId: Id<"leagues">, playerCode: number): Change;
+  /** The team on the clock, managed or not, takes the player with this code, filed as his; refused
+   *  once `teamId` is no longer on the clock, so it never lands on the next team (#1477). */
+  pickFor(leagueId: Id<"leagues">, teamId: Id<"teams">, playerCode: number): Change;
 };

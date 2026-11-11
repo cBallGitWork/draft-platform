@@ -1,11 +1,13 @@
 // What league home says, in one place for Craig to change in the pull request.
 
 import { TOP_ROWS } from "../../convex/home/glance";
-import { fewestTeamsWords, gameweekShort, noHeadToHeadsTotalPointsWords, placeWords } from "../shared/words";
+import { andListWords } from "../../convex/shared/moments";
+import { fewestTeamsWords, gameweekShort, noHeadToHeadsTotalPointsWords, placeWords, tradedNames } from "../shared/words";
 import { columns as tableColumns } from "../table/words";
 import type { LeagueHome, NewsMove } from "./seam";
 
-export { figureWords, gameweekShort, gameweekWords, versusWords, whenWords } from "../shared/words";
+export { figureWords, gameweekShort, gameweekWords, tradedNames, versusWords, whenWords, withTeamWords } from "../shared/words";
+export { andListWords };
 export { leagueAverageWords, noResultsWords, TABLE_TITLE } from "../table/words";
 
 export const loadingWords = "Loading league home…";
@@ -111,6 +113,7 @@ export const newsKindWords = {
   playerDropped: "Drop",
   playerClaimed: "Claim",
   playerPickedUp: "Free agent",
+  tradeMade: "Trade",
 } as const satisfies Record<NewsMove["kind"], string>;
 export const fromTeamWords = (teamName: string) => `From ${teamName}`;
 /** The selected move's detail: who got whom, who let whom go, and where he went. */
@@ -120,8 +123,13 @@ export const leftToWords = (toWaivers: boolean) => (toWaivers ? "Onto waivers" :
 
 export const noMovesWords = "No player has joined or left a squad yet.";
 type SquadMove = LeagueHome["squadMoves"][number];
-/** A squad move in a line: "Saka joined Kroos Control". */
-export function moveWords({ kind, playerName, teamName, fromTeamName }: SquadMove): string {
+/** A squad move in a line: "Saka joined Kroos Control", or a trade as one: "Lions traded Saka to
+ *  Tigers for Palmer and Rice" (#1491). */
+export function moveWords(move: SquadMove): string {
+  if (move.kind === "tradeMade") {
+    return `${move.fromTeamName} traded ${andListWords(tradedNames(move.gives))} to ${move.toTeamName} for ${andListWords(tradedNames(move.gets))}`;
+  }
+  const { kind, playerName, teamName, fromTeamName } = move;
   switch (kind) {
     case "playerAssigned":
       return `${playerName} joined ${teamName}`;

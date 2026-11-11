@@ -29,7 +29,7 @@ const [ANN, BOB] = MANAGERS;
 const setPickSeconds = (pickSeconds: number) => setPickSecondsOf(t, leagueId, pickSeconds);
 
 const as = (email: string) => actingAs(t, email);
-const read = async () => (await as(COMMISSIONER)).query(api.draft.draftStart.ofLeague, { leagueId, now: Date.now() });
+const read = async () => (await as(COMMISSIONER)).query(api.draft.draftStart.ofLeague, { leagueId });
 const start = async () => (await as(COMMISSIONER)).mutation(api.draft.draftStart.start, { leagueId });
 const pause = async (email = COMMISSIONER) => (await as(email)).mutation(api.draft.draftPause.pause, { leagueId });
 const resume = async (email = COMMISSIONER) => (await as(email)).mutation(api.draft.draftPause.resume, { leagueId });
@@ -173,5 +173,63 @@ describe("resuming", () => {
     await resume();
     await pass(PICK_GAP_MS);
     expect(await pickCount()).toBe(2);
+  });
+});
+
+// Deleting the league pauses its live draft, and an undo leaves it paused for the commissioner to
+// resume (Craig, 11 Nov 2026, on #1486: "Accept all").
+describe("when its league is deleted", () => {
+  const deleteLeague = async () => (await as(COMMISSIONER)).mutation(api.leagues.leagueDeletion.deleteLeague, { leagueId });
+  const undo = async () => (await as(COMMISSIONER)).mutation(api.leagues.leagueDeletion.undo, { leagueId });
+  const lettersTo = (email: string) => t.run(async (ctx) => (await ctx.db.query("letters").collect()).filter((row) => row.to === email).length);
+
+  test("the draft pauses, keeps its time left, picks nothing and tells no manager", async () => {
+    const startedAt = Date.now();
+    await start();
+    await pass(PICK_MS - 30 * SECOND_MS);
+    const [annLetters, bobLetters] = [await lettersTo(ANN), await lettersTo(BOB)];
+    await deleteLeague();
+    await pass(PICK_MS * 100);
+
+    expect(await pickCount()).toBe(0);
+    await undo();
+    expect(await read()).toMatchObject({ onTheClock: { pick: 1 }, clock: { startsAt: startedAt, endsAt: startedAt + PICK_MS } });
+    expect(await read()).toHaveProperty("clock.pausedAt");
+    expect([await lettersTo(ANN), await lettersTo(BOB)]).toEqual([annLetters, bobLetters]);
+  });
+
+  test("an undo leaves it paused until the commissioner resumes, on the time it had left", async () => {
+    await start();
+    await pass(PICK_MS - 30 * SECOND_MS);
+    await deleteLeague();
+    await undo();
+    await pass(PICK_MS * 10);
+    expect(await pickCount()).toBe(0);
+
+    await resume();
+    await pass(30 * SECOND_MS);
+    expect(await pickCount()).toBe(1);
+  });
+
+  test("a draft already paused stays paused as it was", async () => {
+    await start();
+    await pause();
+    const before = await read();
+    await deleteLeague();
+    await undo();
+
+    expect(await read()).toEqual(before);
+  });
+
+  test("a draft not yet started, or over, is left alone", async () => {
+    await deleteLeague();
+    await undo();
+    await start();
+    for (let made = 0; made < 4; made++) await pass(PICK_MS + PICK_GAP_MS);
+    await deleteLeague();
+    await undo();
+
+    expect(await pickCount()).toBe(4);
+    expect(await read()).not.toHaveProperty("clock.pausedAt");
   });
 });

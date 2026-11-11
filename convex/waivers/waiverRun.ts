@@ -20,7 +20,7 @@ import { playerByCode } from "../shared/players";
 import { MINUTE_MS } from "../shared/time";
 import { placeOf, squadOf } from "../squads/squadPlace";
 import { limitsBroken, type SquadWarning } from "../squads/squads";
-import { closeOffersHolding, reviewHolding } from "../trades/tradeClose";
+import { closeOffersHolding, heldInReview } from "../trades/tradeClose";
 import { claimedName, leagueClaims } from "./waiverClaims";
 import { inWaiverLock, latestEnded } from "./waiverLock";
 import { waiverOrderOf, waiverOrderRow, winnersNow, withWinnersLast, wonBy } from "./waiverOrder";
@@ -101,17 +101,19 @@ type Run = {
   at: number;
   /** The players this run may take, by code: on waivers with their 24 hours up, and not yet taken. */
   claimable: Map<number, Doc<"waiverPlayers">>;
+  /** The players in a trade in review, by code, read once for the run: none can be dropped. */
+  held: Set<number>;
 };
 
 /** Tries the claim for its team, making it if it stands. */
 async function tryClaim(ctx: MutationCtx, run: Run, claim: Doc<"waiverClaims">): Promise<Tried> {
-  const { league, squadRules, deadlines, now, at, claimable } = run;
+  const { league, squadRules, deadlines, now, at, claimable, held } = run;
   const onWaivers = claimable.get(claim.playerCode);
   if (onWaivers === undefined) return { won: false, why: (await placeOf(ctx, league._id, claim.playerCode))?.teamId === claim.teamId ? null : "ahead" };
   if ((await playerByCode(ctx, claim.playerCode))?.droppedAt !== undefined) return { won: false, why: "playerGone" };
   const drop = claim.dropCode === null ? null : await placeOf(ctx, league._id, claim.dropCode);
   if (claim.dropCode !== null && drop?.teamId !== claim.teamId) return { won: false, why: "dropGone" };
-  if (claim.dropCode !== null && (await reviewHolding(ctx, league._id, claim.dropCode)) !== null) return { won: false, why: "dropHeld" };
+  if (claim.dropCode !== null && held.has(claim.dropCode)) return { won: false, why: "dropHeld" };
   if (await joiningBreaksLimits(ctx, league._id, claim.teamId, claim.playerCode, claim.dropCode, squadRules)) return { won: false, why: "limits" };
 
   claimable.delete(claim.playerCode);
@@ -176,7 +178,15 @@ async function runWaivers(ctx: MutationCtx, leagueId: Id<"leagues">, at: number)
   // By the run's own time, not the moment it executes: the cron may fire minutes late, and a player
   // whose 24 hours end in those minutes is the next run's, as his claims were told (spec/08).
   const due = onWaivers.filter(({ claimableFrom }) => claimableFrom <= at);
-  const run: Run = { league, squadRules: season.latest.squad, deadlines, now, at, claimable: new Map(due.map((row) => [row.playerCode, row])) };
+  const run: Run = {
+    league,
+    squadRules: season.latest.squad,
+    deadlines,
+    now,
+    at,
+    claimable: new Map(due.map((row) => [row.playerCode, row])),
+    held: await heldInReview(ctx, league._id),
+  };
   // A run tries every claim but those for a player whose 24 hours aren't up: one for a player no
   // longer on waivers at all, taken by the commissioner say, fails as another team's, or quietly
   // if its own team holds him.

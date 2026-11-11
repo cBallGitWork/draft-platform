@@ -19,9 +19,9 @@ import { pickOnTheClock } from "./snakeOrder";
 /** How long after a pick the next pick's clock starts (Craig, 4 Nov 2026: "Yes, clock waits"). */
 export const PICK_GAP_MS = 10 * SECOND_MS;
 
-/** The pick a clock was started for: its number and round, its team, and when its clock starts and
- *  runs out. */
-export type Clocked = { pick: number; round: number; team: Doc<"teams">; startsAt: number; endsAt: number };
+/** The pick a clock was started for: its number and round, its team, when its clock starts and
+ *  runs out, and `atOnce` when the draft picks for the team as it starts (`picksAtClockStart`). */
+export type Clocked = { pick: number; round: number; team: Doc<"teams">; startsAt: number; endsAt: number; atOnce: boolean };
 
 /** How a clock starts besides its time: `fullClock` for a pick the commissioner's undo put back,
  *  which the draft makes only when its clock runs out, and `pausedAt` for one put on the clock while
@@ -56,7 +56,7 @@ export async function startClock(
   } else {
     await scheduleAutoPick(ctx, draft, clock, team);
   }
-  return { pick: turn.pick, round: turn.round, team, startsAt, endsAt };
+  return { pick: turn.pick, round: turn.round, team, startsAt, endsAt, atOnce: picksAtClockStart(draft, clock, team) };
 }
 
 /** A draft's pick clock, as its row holds it. */

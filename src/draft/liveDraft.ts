@@ -11,11 +11,11 @@ import { listChangeFailedWords, pickFailedWords } from "./words";
  *  (convex/draft/); any other failure is logged and said plainly. */
 export const liveDraft: DraftSeam = {
   usePlayersList: liveScouting.usePlayersList,
-  useDraft: (leagueId, now) => useQuery(api.draft.draftStart.ofLeague, { leagueId, now }),
-  useBoard: (leagueId, now) => useQuery(api.draft.draftBoard.ofLeague, { leagueId, now }),
+  useDraft: (leagueId) => useQuery(api.draft.draftStart.ofLeague, { leagueId }),
+  useBoard: (leagueId) => useQuery(api.draft.draftBoard.ofLeague, { leagueId }),
   useInMenu: (leagueId) => useQuery(api.draft.draftBoard.inMenu, { leagueId }),
   useGreyedOut: (leagueId) => useQuery(api.draft.draftPlayers.greyedOut, { leagueId }),
-  useFigures: (leagueId, now) => useQuery(api.draft.draftPlayers.figures, { leagueId, now }),
+  useFigures: (leagueId) => useQuery(api.draft.draftPlayers.figures, { leagueId }),
   useLists: (leagueId) => useQuery(api.draft.draftLists.mine, { leagueId }),
   useDraftChanges: () => {
     const makePick = useMutation(api.draft.draftPicks.makePick);
@@ -61,7 +61,7 @@ export const liveDraft: DraftSeam = {
         undo: (leagueId) => refusalOf(() => undo({ leagueId }), "Undoing the last pick", commissionerFailedWords),
         setPickTime: (leagueId, pickSeconds) => refusalOf(() => setPickTime({ leagueId, pickSeconds }), "Setting the pick time", commissionerFailedWords),
         markForCommissioner: (leagueId, teamId, marked) => refusalOf(() => mark({ leagueId, teamId, marked }), "Marking a team to pick for", commissionerFailedWords),
-        pickFor: (leagueId, playerCode) => refusalOf(() => pickFor({ leagueId, playerCode }), "Picking for the team on the clock", pickFailedWords),
+        pickFor: (leagueId, teamId, playerCode) => refusalOf(() => pickFor({ leagueId, teamId, playerCode }), "Picking for the team on the clock", pickFailedWords),
       }),
       [start, pause, resume, undo, setPickTime, mark, pickFor],
     );

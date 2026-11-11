@@ -143,6 +143,8 @@ export const noScoringStartWords = "Not set";
 export const noScoringStartHint = "Not set: every ticked gameweek scores until the draft ends, which sets it to the next gameweek.";
 export const scoringStartFixedAfter = (deadline: string) => `Fixed after ${deadline}.`;
 export const scoringStartFixedWords = (deadline: string) => `Fixed: its deadline, ${deadline}, has passed.`;
+/** None set in a league that has already scored a gameweek, so none set is fixed (#1588). */
+export const seasonBegunStartHint = "Fixed: the league has already scored a gameweek, so every ticked gameweek scores.";
 export const noScoringStartChoicesWords = "No ticked gameweek with a known deadline is still to begin, so scoring can't start in one.";
 export const scoringStartLoadingWords = "Loading the scoring start…";
 /** What a failed change leaves, live or in the preview. */

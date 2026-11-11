@@ -138,7 +138,7 @@ describe("the letters", () => {
       { kind: "playerClaimed", playerCode: SAKA, teamId: w.annsTeam, by: ANN },
     ]);
     const { transactions } = await (await actingAs(w.t, ANN)).query(api.squads.teamTransactions.ofMyTeam, { leagueId: w.leagueId });
-    expect(transactions.map(({ kind, playerCode }) => [kind, playerCode])).toEqual(
+    expect(transactions.map((move) => [move.kind, "playerCode" in move ? move.playerCode : null])).toEqual(
       expect.arrayContaining([
         ["claimed", SAKA],
         ["dropped", ANNS_FIRST_DROP],

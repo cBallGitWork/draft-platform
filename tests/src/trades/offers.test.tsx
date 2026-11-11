@@ -14,6 +14,7 @@ import {
 import { mainMenuLabel } from "../../../src/frame/words";
 import {
   acceptWords,
+  afterLastMatchWords,
   counterWords,
   groupWords,
   noOffersWords,
@@ -142,6 +143,17 @@ describe("an offer to you", () => {
     );
   });
 
+  it("made in the trade deadline's gameweek, closes after its last match, in its row and its panel (#1492)", async () => {
+    openOffers(withOffers(screenOffer({ closes: { gameweek: 20, at: null } })));
+    const words = afterLastMatchWords(20);
+    expect(words).toBe("After GW20's last match");
+    const table = await screen.findByRole("table", { name: offersTableLabel });
+    expect(within(table).getAllByRole("row")[2].textContent).toContain(words);
+    expect((await panel(offerToYouTitle("Team 2"))).textContent).toContain(
+      words,
+    );
+  });
+
   it("is accepted, and a refusal says why", async () => {
     const app = openOffers({
       ...withOffers(screenOffer()),
@@ -174,6 +186,20 @@ describe("an offer to you", () => {
     );
     expect(app.path()).toBe(TRADES_NEW_PATH);
     expect(app.search()).toContain("counter=offer-1");
+  });
+
+  it("is countered when it is a pick offer too (#1471)", async () => {
+    openOffers(
+      withOffers(
+        screenOffer({
+          gives: [],
+          gets: [],
+          picks: { gives: "Team 2's round 2 pick", gets: "Team 1's round 3 pick" },
+          pickTerms: { gives: { round: 2, teamId: THEIR_TEAM }, gets: { round: 3, teamId: MY_TEAM } },
+        }),
+      ),
+    );
+    expect(await screen.findByRole("link", { name: counterWords })).toBeTruthy();
   });
 
   it("warns of a limit it would push your squad past", async () => {

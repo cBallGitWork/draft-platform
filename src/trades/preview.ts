@@ -83,6 +83,7 @@ const offer = (
   gives,
   gets,
   picks: null,
+  pickTerms: null,
   note: null,
   madeAt: now - DAY_MS,
   closes: { gameweek: 10, at: now + 5 * DAY_MS },

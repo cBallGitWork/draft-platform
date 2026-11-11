@@ -1,5 +1,6 @@
 import type { Doc, Id } from "../_generated/dataModel";
 import type { QueryCtx } from "../_generated/server";
+import type { Position } from "../positions/positionTables";
 import { pickOnTheClock, picksLeftFor } from "./snakeOrder";
 
 // A league's draft row (../schema/draft.ts's `drafts`; spec/04, Starting it; #1089), read: by the
@@ -29,6 +30,17 @@ export function lastPickIn(ctx: QueryCtx, leagueId: Id<"leagues">): Promise<Doc<
 /** How many picks the league's draft has made (draftPicks.ts): its last pick's number, or 0. */
 export async function picksMadeIn(ctx: QueryCtx, leagueId: Id<"leagues">): Promise<number> {
   return (await lastPickIn(ctx, leagueId))?.pick ?? 0;
+}
+
+/** The positions each player the league's draft has taken had when he was drafted, by his code: the
+ *  rest of the draft counts him at them, so a position he loses since can't leave his team with no
+ *  legal pick (Craig, 11 Nov 2026, on #1484). A pick made before #1484 kept none, and is left out. */
+export async function draftedPositionsIn(ctx: QueryCtx, leagueId: Id<"leagues">): Promise<Map<number, Position[]>> {
+  const picks = await ctx.db
+    .query("draftPicks")
+    .withIndex("by_leagueId_and_pick", (q) => q.eq("leagueId", leagueId))
+    .collect();
+  return new Map(picks.flatMap(({ playerCode, positions }) => (positions === undefined ? [] : [[playerCode, positions] as const])));
 }
 
 /** Whether the league's draft has started. */

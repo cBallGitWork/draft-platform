@@ -14,10 +14,9 @@ const useTeamOrder: LeagueSettingsSeam["useTeamOrder"] = (leagueId) => useQuery(
 
 const useScoringStart: LeagueSettingsSeam["useScoringStart"] = (leagueId) => useQuery(api.gameweeks.scoringStart.ofLeague, { leagueId });
 
-/** The draft's date while it waits; one under way or over has started. The query's `now` moves
- *  nothing (draftStart.ts), so it is the screen's minute, as the draft room's is. */
+/** The draft's date while it waits; one under way or over has started. */
 const useDraftStart: LeagueSettingsSeam["useDraftStart"] = (leagueId) => {
-  const draft = useQuery(api.draft.draftStart.ofLeague, { leagueId, now: useMinute() });
+  const draft = useQuery(api.draft.draftStart.ofLeague, { leagueId });
   if (draft === undefined) return undefined;
   return draft.status === "waiting" ? { startsAt: draft.startsAt, started: false } : { startsAt: null, started: true };
 };

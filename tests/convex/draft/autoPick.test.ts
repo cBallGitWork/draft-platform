@@ -192,7 +192,7 @@ describe("taking control back", () => {
 
 describe("turning auto-pick on himself", () => {
   const turnOn = async (email: string) => (await as(email)).mutation(api.draft.autoPickSwitch.turnOn, { leagueId });
-  const board = async (email: string) => (await as(email)).query(api.draft.draftBoard.ofLeague, { leagueId, now: Date.now() });
+  const board = async (email: string) => (await as(email)).query(api.draft.draftBoard.ofLeague, { leagueId });
 
   test("before the draft starts: his first pick is made at once, and his count stays 0", async () => {
     await lists(teams[0], [ZOLA]);

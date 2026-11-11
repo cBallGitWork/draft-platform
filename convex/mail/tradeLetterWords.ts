@@ -31,14 +31,17 @@ function sides({ fromTeamName, toTeamName, gives, gets }: TradeWords): string {
 
 const noteWords = ({ note }: TradeWords) => (note === null ? "" : ` The note: "${note}"`);
 
-/** To both managers when an offer is made, or a counter that closes the one before it. */
-export function offerLetter(trade: TradeWords, who: string, countered: boolean): Words {
+/** To both managers when an offer is made, or a counter that closes the one before it.
+ *  `lastMatchOf` is the trade deadline's gameweek when the offer is made in it, so it closes once
+ *  that gameweek's last match is over, not at the next deadline (S08.9, #1492); null otherwise. */
+export function offerLetter(trade: TradeWords, who: string, countered: boolean, lastMatchOf: number | null): Words {
   const made = countered
     ? `${who} countered ${trade.toTeamName}'s offer with this one for ${trade.fromTeamName}, which closes the old offer: ${sides(trade)}`
     : `${who} offered ${trade.toTeamName} a trade for ${trade.fromTeamName}: ${sides(trade)}`;
+  const closes = lastMatchOf === null ? "at the next deadline" : `after GW${lastMatchOf}'s last match`;
   return {
     subject: `${trade.fromTeamName} offered ${trade.toTeamName} a trade`,
-    body: `${made}${noteWords(trade)} ${trade.toTeamName} can accept, reject or counter it; unanswered, it closes at the next deadline.`,
+    body: `${made}${noteWords(trade)} ${trade.toTeamName} can accept, reject or counter it; unanswered, it closes ${closes}.`,
   };
 }
 

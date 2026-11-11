@@ -12,7 +12,7 @@ import { squadAt, squadMovesSince, squadOf, type SquadMovesSince } from "../squa
 import { playerByCode } from "../shared/players";
 import { positionsNow } from "../positions/playerPositions";
 import { placementShape } from "../schema";
-import { lineupProblems, namedCodes, reconciled, type PlayerPositions } from "./lineup";
+import { lineupProblems, namedCodes, reconciled, withUnmovedSetAside, type PlayerPositions } from "./lineup";
 import { firstLineup, keptOnBenchOf, withDroppedRoles } from "./firstLineup";
 import { starsOfPlayers } from "../stars/playerStars";
 import type { Area, Lane } from "./pitch";
@@ -172,7 +172,8 @@ async function namesOf(ctx: QueryCtx, playerCodes: Iterable<number>): Promise<Ma
 /** The caller saves their own team's lineup for the next gameweek not yet begun, and it rolls
  *  over from there; a second save before the same deadline replaces the first. Returns that
  *  gameweek. Refused, with every reason, if a player isn't in the squad, a squad player is left
- *  out, or the lineup can't stand under the league's rules in force in that gameweek. */
+ *  out, or the lineup can't stand under the league's rules in force in that gameweek, short of a
+ *  starter who lost a position left where he stood (lineup.ts `withUnmovedSetAside`). */
 export const save = mutation({
   args: { leagueId: v.id("leagues"), lineup: sentLineup },
   returns: v.number(),
@@ -196,7 +197,9 @@ export const save = mutation({
 
     const positions = await heldPositionsOf(ctx, leagueId, lineup.starters.map(({ playerCode }) => playerCode));
     const rules = season.inGameweek(fromGameweek);
-    const problems = lineupProblems(lineup, positions, rules);
+    const existing = await rowInForce(ctx, leagueId, team._id, fromGameweek);
+    // A starter who lost a position and is left where he stood doesn't stop the rest saving (#1589).
+    const { problems, kept: keptOutOfPosition } = withUnmovedSetAside(lineupProblems(lineup, positions, rules), lineup.starters, existing, fromGameweek);
     if (problems.length > 0) refuse(problems.map((problem) => problemWords(problem, nameOf)).join(" "));
     // lineupProblems refused any cell not on the pitch, so every starter's is one.
     const cells = lineup.starters.map(({ area, lane }) => ({ area: area as Area, lane: lane as Lane }));
@@ -219,9 +222,8 @@ export const save = mutation({
       if (held === undefined) refuse(lineupRefusals.noSuchClassic(classic));
       if (!inClassicShape(starters, held)) refuse(lineupRefusals.notInClassicShape(classic));
     }
-    const existing = await rowInForce(ctx, leagueId, team._id, fromGameweek);
     // The manager's own from here: no squad change picks it again.
-    const kept = { starters, bench: lineup.bench, classic, instructions };
+    const kept = { starters, bench: lineup.bench, classic, instructions, keptOutOfPosition: keptOutOfPosition.length > 0 ? keptOutOfPosition : undefined };
     if (existing?.fromGameweek !== fromGameweek) await ctx.db.insert("lineups", { leagueId, teamId: team._id, fromGameweek, ...kept });
     else await ctx.db.patch("lineups", existing._id, { ...kept, firstLineup: undefined });
     return fromGameweek;

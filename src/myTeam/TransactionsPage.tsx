@@ -20,8 +20,12 @@ import {
   transactionsLoadingWords,
   transactionsTableLabel,
   TRANSACTIONS_TITLE,
+  tradedInWords,
+  tradedOutWords,
+  tradedPickWords,
   transactionWords,
   whenWords,
+  withTeamWords,
 } from "./words";
 
 type Column = keyof typeof transactionColumns;
@@ -78,6 +82,7 @@ function TransactionsBody({ league, teamName, seam }: { league: LeagueSummary; t
             selected={selected?.claimId ?? null}
             onSelect={select}
             onReorder={(ids) => void change.run(() => changes.rank(leagueId, ids))}
+            busy={change.busy}
           />
         )}
         <Panel title={HISTORY_TITLE} aside={<span className="text-soft">{newestFirstWords}</span>}>
@@ -131,19 +136,63 @@ function TransactionsTable({ leagueId, teamName, transactions }: { leagueId: Id<
     <table aria-label={transactionsTableLabel(teamName)} className="w-full border-collapse">
       <ColumnHeads columns={transactionColumns} shown={COLUMNS} classOf={(column) => `px-3 text-left ${column === "by" ? DESK_ONLY_CELL : ""}`} />
       <tbody>
-        {transactions.map((transaction) => (
-          <tr key={`${transaction.at}-${transaction.playerCode}-${transaction.kind}`} className="border-t border-panel-rule">
-            <td className="px-3 whitespace-nowrap">{whenWords(transaction.at)}</td>
-            <th scope="row" className="px-3 text-left text-lead font-semibold">
-              <Link to={playerCardPath(leagueId, transaction.playerCode)} className="inline-flex min-h-tap min-w-tap items-center">
-                {transaction.playerName}
-              </Link>
-            </th>
-            <td className="px-3">{transactionWords(transaction)}</td>
-            <td className={`px-3 text-muted ${DESK_ONLY_CELL}`}>{transaction.by}</td>
-          </tr>
-        ))}
+        {transactions.map((transaction) =>
+          transaction.kind === "traded" ? (
+            <TradeRow key={`${transaction.at}-traded-${transaction.otherTeamName}`} leagueId={leagueId} trade={transaction} />
+          ) : (
+            <tr key={`${transaction.at}-${transaction.playerCode}-${transaction.kind}`} className="border-t border-panel-rule">
+              <td className="px-3 whitespace-nowrap">{whenWords(transaction.at)}</td>
+              <th scope="row" className="px-3 text-left text-lead font-semibold">
+                <Link to={playerCardPath(leagueId, transaction.playerCode)} className="inline-flex min-h-tap min-w-tap items-center">
+                  {transaction.playerName}
+                </Link>
+              </th>
+              <td className="px-3">{transactionWords(transaction)}</td>
+              <td className={`px-3 text-muted ${DESK_ONLY_CELL}`}>{transaction.by}</td>
+            </tr>
+          ),
+        )}
       </tbody>
     </table>
+  );
+}
+
+type Trade = Extract<TeamTransactions["transactions"][number], { kind: "traded" }>;
+
+/** A trade that went through, as one row (#1491; the team-transactions picture): each player or
+ *  pick it brought in, then each it sent, one line each, and the other team in By. */
+function TradeRow({ leagueId, trade }: { leagueId: Id<"leagues">; trade: Trade }) {
+  const lines = (side: Trade["in"], words: string) => [
+    ...side.players.map(({ playerCode, playerName }) => ({
+      key: `player-${playerCode}`,
+      name: (
+        <Link to={playerCardPath(leagueId, playerCode)} className="inline-flex min-h-tap min-w-tap items-center">
+          {playerName}
+        </Link>
+      ),
+      words,
+    })),
+    ...side.picks.map(({ round, teamId, teamName }) => ({ key: `pick-${teamId}-${round}`, name: tradedPickWords(round, teamName), words })),
+  ];
+  const all = [...lines(trade.in, tradedInWords), ...lines(trade.out, tradedOutWords)];
+  return (
+    <tr className="border-t border-panel-rule">
+      <td className="px-3 whitespace-nowrap">{whenWords(trade.at)}</td>
+      <th scope="row" className="px-3 text-left text-lead font-semibold">
+        {all.map(({ key, name }) => (
+          <span key={key} className="flex min-h-tap items-center">
+            {name}
+          </span>
+        ))}
+      </th>
+      <td className="px-3">
+        {all.map(({ key, words }) => (
+          <span key={key} className="flex min-h-tap items-center">
+            {words}
+          </span>
+        ))}
+      </td>
+      <td className={`px-3 text-muted ${DESK_ONLY_CELL}`}>{withTeamWords(trade.otherTeamName)}</td>
+    </tr>
   );
 }

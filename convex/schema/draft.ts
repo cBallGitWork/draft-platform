@@ -1,6 +1,7 @@
 import { defineTable } from "convex/server";
 import { v } from "convex/values";
 import { leagueRulesShape } from "../rules/leagueRulesShape";
+import { position } from "./positions";
 import { tradePick } from "./trades";
 
 /** A player in the admin's ranking: his FPL code, and his rank, 1 the best. */
@@ -107,7 +108,10 @@ export const draftTables = {
    *  marks a pick the draft made when a managed team's clock ran out, and whether that timeout put
    *  the team on auto-pick, so the commissioner's undo (#1095) can take the timeout back off. `auto`
    *  marks every pick the draft made for a team (#1100), which the board shows; picks made before
-   *  #1100 lack it, and there `timeout` alone marks one. */
+   *  #1100 lack it, and there `timeout` alone marks one. `positions` are the player's when he was
+   *  drafted, which the rest of the draft counts him at, a change since showing only after it
+   *  (Craig, 11 Nov 2026, on #1484); picks made before #1484 lack them, and there his positions now
+   *  count. */
   draftPicks: defineTable({
     leagueId: v.id("leagues"),
     pick: v.number(),
@@ -116,5 +120,6 @@ export const draftTables = {
     at: v.number(),
     timeout: v.optional(v.object({ putOnAutoPick: v.boolean() })),
     auto: v.optional(v.literal(true)),
+    positions: v.optional(v.array(position)),
   }).index("by_leagueId_and_pick", ["leagueId", "pick"]),
 };

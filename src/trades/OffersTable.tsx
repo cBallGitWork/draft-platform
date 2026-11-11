@@ -5,6 +5,7 @@ import { OFFER_GROUPS, type OfferSides } from "./offerSides";
 import type { ScreenOffer, TradeToReview } from "./seam";
 import { TradedSide } from "./TradedPlayer";
 import {
+  afterLastMatchWords,
   betweenWords,
   groupWords,
   offersColumns,
@@ -184,7 +185,14 @@ function OfferRow({
         : offer.reviewer === null
           ? null
           : reviewerWords[offer.reviewer];
-  const closes = offer.reviewEndsAt ?? offer.closes?.at ?? null;
+  const closes =
+    offer.reviewEndsAt !== null
+      ? whenWords(offer.reviewEndsAt)
+      : offer.closes === null
+        ? null
+        : offer.closes.at === null
+          ? afterLastMatchWords(offer.closes.gameweek)
+          : whenWords(offer.closes.at);
   return (
     <OffersRow
       offerId={offer.offerId}
@@ -200,7 +208,7 @@ function OfferRow({
       </td>
       <td className={CELL}>{waitingOn}</td>
       <td className={`${CELL} text-derived`}>
-        {closes === null ? null : whenWords(closes)}
+        {closes}
       </td>
     </OffersRow>
   );

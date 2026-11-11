@@ -36,7 +36,7 @@ const tradePicks = async (email: string, toEmail: string, toTeamId: Id<"teams">,
 const cutToOne = () => changeEveryRules(t, leagueId, (rules) => ({ ...rules, squad: { ...rules.squad, size: { minimum: 1, maximum: 1 } } }));
 const start = async () => (await as(COMMISSIONER)).mutation(api.draft.draftStart.start, { leagueId });
 const onTheClock = async () => {
-  const draft = await (await as(COMMISSIONER)).query(api.draft.draftStart.ofLeague, { leagueId, now: Date.now() });
+  const draft = await (await as(COMMISSIONER)).query(api.draft.draftStart.ofLeague, { leagueId });
   return draft.status === "live" ? { pick: draft.onTheClock.pick, teamId: draft.onTheClock.teamId } : null;
 };
 const makePick = async (email: string, playerCode: number) => (await as(email)).mutation(api.draft.draftPicks.makePick, { leagueId, playerCode });

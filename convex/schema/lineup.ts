@@ -34,6 +34,10 @@ export const lineupTables = {
     /** The team's attacking and defensive instruction by key (spec/05, Team instructions; #990);
      *  absent until its manager picks: the formation's defaults (lineup/instructions.ts). */
     instructions: v.optional(instructionPairShape),
+    /** The starters its manager saved it with out of position, left where they stood after losing
+     *  one (lineup/lineup.ts `withUnmovedSetAside`; #1589): a save after this row's gameweek must
+     *  move them. Absent when none. */
+    keptOutOfPosition: v.optional(v.array(v.number())),
   }).index("by_leagueId_and_teamId_and_fromGameweek", ["leagueId", "teamId", "fromGameweek"]),
   /** Each team's saved plans (spec/05, Saved plans; #992): a formation and every slot's role, by
    *  name, never players. lineup/savedPlans.ts writes and reads them. */

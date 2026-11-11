@@ -15,11 +15,14 @@ import {
   type TradeFailed,
   type TradeWords,
 } from "../mail/tradeLetterWords";
+import type { LeagueDeadlines } from "../gameweeks/deadline";
+import { leagueDeadlines } from "../gameweeks/leagueDeadlines";
 import { tradeRulesOf } from "../rules/firstRules";
-import { latestRules } from "../rules/rulesHistory";
+import { rulesSinceBegun } from "../rules/rulesHistory";
+import { latestBegun } from "../waivers/waiverLock";
 import { managerOf, memberOf, refuse, teamsOf } from "../shared/leagueAccess";
 import { placeOf } from "../squads/squadPlace";
-import { closeOffersHolding, endOffer, leagueOf, managersOf, tradedName, tradeWordsOf } from "./tradeClose";
+import { closeOffersHolding, endOffer, leagueOf, managersOf, tradedName, tradedSideOf, tradeWordsOf } from "./tradeClose";
 import { REVIEW_MS } from "./tradeLimits";
 import { movePicks } from "./tradePicks";
 import { onAutoTeam } from "./tradeShut";
@@ -32,10 +35,11 @@ import { squadFullRefusal, squadsAfter, tradeWarnings } from "./tradeSquads";
 // and it is blocked only if most of them vote against; a voter can take his Against back until the
 // 24 hours are up (`takeBack`; Craig, 10 Nov 2026). Either way the reviewers get a Mail letter
 // to act on, a blocked trade files a letter to the whole league, and one that clears review the
-// usual trade letter. Once through, its players move at once: the commissioner's own move
-// (../squads/squads.ts `move`) is filed for each, and a gameweek already under way keeps their
-// points with the old team, as that move does. Any other open offer holding one of them closes. A
-// pick trade's picks change owner instead (tradePicks.ts; #1096).
+// usual trade letter. Once through, the trade is filed as one `tradeMade`, which the screens list
+// (#1491), and its players move at once, each filed as a `playerTraded` for the squads' history; a
+// gameweek already under way keeps their points with the old team, as the commissioner's move
+// does. Any other open offer holding one of them closes. A pick trade's picks change owner instead
+// (tradePicks.ts; #1096).
 
 export const reviewRefusals = {
   notInReview: "That trade isn't in review.",
@@ -53,12 +57,11 @@ export async function votersOn(ctx: QueryCtx, offer: Doc<"tradeOffers">): Promis
   );
 }
 
-/** Who reviews the trade under the league's rules, or null for nobody: the commissioner under a
- *  veto, the co-commissioner when he is in it, or a vote when there is none (or the
- *  co-commissioner is in it too). */
-export async function reviewerOf(ctx: QueryCtx, league: Doc<"leagues">, offer: Doc<"tradeOffers">): Promise<ReviewWords | null> {
-  const rules = await latestRules(ctx, league._id);
-  const { review } = tradeRulesOf(rules);
+/** Who reviews the trade under the league's rules in force at `now`, not a change waiting for the
+ *  next gameweek (#1473), or null for nobody: the commissioner under a veto, the co-commissioner
+ *  when he is in it, or a vote when there is none (or the co-commissioner is in it too). */
+export async function reviewerOf(ctx: QueryCtx, league: Doc<"leagues">, offer: Doc<"tradeOffers">, deadlines: LeagueDeadlines, now: number): Promise<ReviewWords | null> {
+  const { review } = tradeRulesOf(await rulesSinceBegun(ctx, league._id, latestBegun(deadlines, now)));
   if (review !== "veto") return review === "vote" ? { kind: "vote" } : null;
   const inIt = new Set(await managersOf(ctx, offer));
   const by = [league.commissionerEmail, league.coCommissionerEmail].find((email) => email !== undefined && !inIt.has(email));
@@ -68,7 +71,7 @@ export async function reviewerOf(ctx: QueryCtx, league: Doc<"leagues">, offer: D
 /** The accepted offer goes into review, or through at once with none. */
 export async function startReview(ctx: MutationCtx, offer: Doc<"tradeOffers">, acceptedBy: string): Promise<void> {
   const league = await leagueOf(ctx, offer.leagueId);
-  const review = await reviewerOf(ctx, league, offer);
+  const review = await reviewerOf(ctx, league, offer, await leagueDeadlines(ctx, league._id), Date.now());
   if (review === null) {
     await goThrough(ctx, offer, acceptedBy, true);
     return;
@@ -129,14 +132,23 @@ async function goThrough(ctx: MutationCtx, offer: Doc<"tradeOffers">, by: string
     return;
   }
   await ctx.db.delete("tradeOffers", offer._id);
+  const [from, to] = await Promise.all([ctx.db.get("teams", offer.fromTeamId), ctx.db.get("teams", offer.toTeamId)]);
+  if (from === null || to === null) throw new Error(`Trade offer ${offer._id} is between teams that no longer exist`);
+  await fileEvent(ctx, league._id, by, {
+    kind: "tradeMade",
+    fromTeamId: from._id,
+    fromTeamName: from.name,
+    toTeamId: to._id,
+    toTeamName: to.name,
+    gives: await tradedSideOf(ctx, offer.gives, offer.picks?.gives),
+    gets: await tradedSideOf(ctx, offer.gets, offer.picks?.gets),
+  });
   if (offer.picks !== undefined) {
     await movePicks(ctx, offer, offer.picks);
     await fileLetter(ctx, league, await wholeLeague(ctx, league), tradeMadeLetter(words, []), watched ? by : undefined);
     return;
   }
   const warnings = await tradeWarnings(ctx, league._id, offer);
-  const [from, to] = await Promise.all([ctx.db.get("teams", offer.fromTeamId), ctx.db.get("teams", offer.toTeamId)]);
-  if (from === null || to === null) throw new Error(`Trade offer ${offer._id} is between teams that no longer exist`);
   const moves = [
     ...offer.gives.map((playerCode) => ({ playerCode, out: from, into: to })),
     ...offer.gets.map((playerCode) => ({ playerCode, out: to, into: from })),
@@ -148,7 +160,7 @@ async function goThrough(ctx: MutationCtx, offer: Doc<"tradeOffers">, by: string
     // numbers), and never its free-agent pickup, so its drop sends him to waivers (#1479).
     await ctx.db.patch("squadPlayers", place._id, { teamId: into._id, number: undefined, pickedUpAt: undefined });
     await fileEvent(ctx, league._id, by, {
-      kind: "playerMoved",
+      kind: "playerTraded",
       playerCode,
       playerName: await tradedName(ctx, playerCode),
       teamId: into._id,
