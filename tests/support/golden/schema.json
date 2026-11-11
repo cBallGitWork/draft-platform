@@ -4840,6 +4840,44 @@
                         "type": "boolean"
                       },
                       "optional": false
+                    },
+                    "startMovedTo": {
+                      "fieldType": {
+                        "type": "number"
+                      },
+                      "optional": true
+                    }
+                  }
+                },
+                {
+                  "type": "object",
+                  "value": {
+                    "kind": {
+                      "fieldType": {
+                        "type": "literal",
+                        "value": "scoringStartSet"
+                      },
+                      "optional": false
+                    },
+                    "from": {
+                      "fieldType": {
+                        "type": "union",
+                        "value": [
+                          {
+                            "type": "number"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      "optional": false
+                    },
+                    "to": {
+                      "fieldType": {
+                        "type": "number"
+                      },
+                      "optional": false
                     }
                   }
                 },

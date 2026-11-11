@@ -68,7 +68,15 @@ export function eventLetter(event: LeagueEvent, who: string, tell: TellMoment): 
     case "gameweekUsed":
       return event.used
         ? { subject: `Gameweek ${event.gameweek} counts again`, body: `${who} made gameweek ${event.gameweek} count for the league again.` }
-        : { subject: `Gameweek ${event.gameweek} won't count`, body: `${who} took gameweek ${event.gameweek} out of the league's season.` };
+        : {
+            subject: `Gameweek ${event.gameweek} won't count`,
+            body: `${who} took gameweek ${event.gameweek} out of the league's season.${event.startMovedTo === undefined ? "" : ` ${startsInWords(event.startMovedTo, event.gameweek)}`}`,
+          };
+    case "scoringStartSet":
+      return {
+        subject: `Scoring starts in gameweek ${event.to}`,
+        body: `${who} set the gameweek the league's scoring starts in. ${startsInWords(event.to, event.from)}`,
+      };
     case "invited":
       return { subject: `${event.email} was invited`, body: `${who} invited ${event.email} to manage ${forTeam(event.teamName)}.` };
     case "inviteResent":
@@ -133,6 +141,13 @@ export function eventLetter(event: LeagueEvent, who: string, tell: TellMoment): 
     case "autoTeamSwitched":
       return autoTeamSwitchedWords(event, who);
   }
+}
+
+/** What a scoring start set or moved means for the league: scoring starts in `to`, not `from` (null
+ *  while none was set, when every ticked gameweek scored), and the gameweeks before it score nothing. */
+function startsInWords(to: number, from: number | null): string {
+  const instead = from === null ? "" : `, not ${from}`;
+  return `Scoring starts in gameweek ${to}${instead}: squads and lineups count from its deadline, and the gameweeks before it score nothing.`;
 }
 
 /** The league's average, as a letter about the fixtures names it. */

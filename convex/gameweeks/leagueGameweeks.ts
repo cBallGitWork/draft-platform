@@ -58,7 +58,8 @@ export const setUsed = mutation({
     if (isGameweekUsed(league, gameweek) === used) return null;
     const scoringStart = used ? league.scoringStart : startAfterUntick(league, gameweek);
     await ctx.db.patch("leagues", leagueId, { unusedGameweeks: unusedAfter(league, gameweek, used), scoringStart });
-    await recordEvent(ctx, leagueId, email, { kind: "gameweekUsed", gameweek, used });
+    const moved = scoringStart === league.scoringStart ? {} : { startMovedTo: scoringStart };
+    await recordEvent(ctx, leagueId, email, { kind: "gameweekUsed", gameweek, used, ...moved });
     return null;
   },
 });

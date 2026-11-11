@@ -89,6 +89,7 @@ function takenOut(event: LeagueEvent): string[] {
     case "deletionStarted":
     case "deletionUndone":
     case "gameweekUsed":
+    case "scoringStartSet":
     case "invited":
     case "inviteResent":
     case "inviteCancelled":

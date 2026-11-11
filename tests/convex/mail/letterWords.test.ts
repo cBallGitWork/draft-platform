@@ -20,6 +20,13 @@ const LETTERS: [Infer<typeof leagueEvent>, string, string][] = [
   [{ kind: "deletionUndone", name: "Sunday League" }, "Sunday League is no longer being deleted", "undid deleting"],
   [{ kind: "gameweekUsed", gameweek: 12, used: false }, "Gameweek 12 won't count", "took gameweek 12 out"],
   [{ kind: "gameweekUsed", gameweek: 12, used: true }, "Gameweek 12 counts again", "count for the league again"],
+  [
+    { kind: "gameweekUsed", gameweek: 9, used: false, startMovedTo: 10 },
+    "Gameweek 9 won't count",
+    "out of the league's season. Scoring starts in gameweek 10, not 9: squads and lineups count from its deadline, and the gameweeks before it score nothing.",
+  ],
+  [{ kind: "scoringStartSet", from: 9, to: 12 }, "Scoring starts in gameweek 12", "Scoring starts in gameweek 12, not 9: squads and lineups count"],
+  [{ kind: "scoringStartSet", from: null, to: 5 }, "Scoring starts in gameweek 5", "Scoring starts in gameweek 5: squads"],
   [{ kind: "invited", email: ANN, teamId: null, teamName: null }, `${ANN} was invited`, "to manage a new team"],
   [{ kind: "inviteResent", email: ANN, teamId: TEAM, teamName: "Saka Potatoes" }, `${ANN}'s invite was sent again`, "Saka Potatoes"],
   [{ kind: "inviteCancelled", email: ANN, teamId: null, teamName: null }, `${ANN}'s invite was cancelled`, "cancelled"],
