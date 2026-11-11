@@ -49,7 +49,7 @@ export const competitionsLabel = "Competition";
 export const TOTAL_POINTS_PAGE_TITLE = TABLE_TITLE;
 
 /** On the table's plate: the last gameweek it counts, while none is live. */
-export const afterWords = (gameweek: number) => `After GW${gameweek}`;
+export const afterWords = (gameweek: number) => `After ${gameweekShort(gameweek)}`;
 
 /** At the page plate's far end (the approved pictures): the season, then the last gameweek the
  *  table counts, or the gameweek being played while one is live: "2026/27, after GW9",

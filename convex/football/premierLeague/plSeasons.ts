@@ -25,7 +25,6 @@ export function labelStartYear(label: string): number | null {
   return found === null ? null : Number(found[1]);
 }
 
-
 /** Why a run read nothing: the Premier League lists no season, or more than one, starting in
  *  `startYear`, looked for as FPL is on `fplSeason`. */
 export function plSeasonMissing(startYear: number, fplSeason: number, listed = 0): string {
