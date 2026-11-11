@@ -66,6 +66,25 @@ test("the recap leaves at the moment ofLeague sends with it", () => {
   expect(result.current?.recap).toBeNull();
 });
 
+test("the home keeps its place while a new gameweek's read or the matchday's new matches load", () => {
+  convex.clockOf.mockReturnValue({ gameweek: 1, matchday: { gameweek: 1, fixtureCodes: [7] } });
+  convex.ofLeague.mockReturnValue(heldHome);
+  convex.matchdayOf.mockReturnValue({ kind: "read", lines: [], delayedFrom: Infinity });
+  const { result, rerender } = renderHook(({ minute }) => liveHome.useLeagueHome(A_LEAGUE_ID, minute), { initialProps: { minute: now } });
+  const before = result.current;
+  expect(before?.matchday).toEqual({ gameweek: 1, commentary: { kind: "read", lines: [], delayed: false } });
+
+  convex.clockOf.mockReturnValue({ gameweek: 1, matchday: { gameweek: 1, fixtureCodes: [7, 9] } });
+  convex.matchdayOf.mockReturnValue(undefined);
+  rerender({ minute: now + 60_000 });
+  expect(result.current).toEqual(before);
+
+  convex.clockOf.mockReturnValue({ gameweek: 2, matchday: null });
+  convex.ofLeague.mockReturnValue(undefined);
+  rerender({ minute: now + 120_000 });
+  expect(result.current).toEqual({ ...before, matchday: null });
+});
+
 test("its News asks home/leagueNews:ofLeague with the league, the page and the filters, and hands on what comes back", () => {
   const asked = { before: { at: 2, filed: 1 }, teamId: null, kind: "playerDropped" as const };
   convex.news.mockReturnValue(quietNews);
