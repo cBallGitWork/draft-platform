@@ -25,8 +25,8 @@ import { OffersPage } from "../trades/OffersPage";
 import { newOfferSearchOf, offersSearchOf } from "../trades/paths";
 import { CODE_DIGITS, LANDING_PATH, frameRoute, type ShellContext } from "./root";
 
-// The pages under root.tsx's frameRoute, for anyone in a league, in its frame; and a placeholder for
-// each menu page not built yet. Each league page is the current league's (CurrentLeague.tsx),
+// The pages under root.tsx's frameRoute, for anyone in a league, in its frame: every menu page but
+// Mail, whose route is with the league pages (leaguePages.tsx). Each league page is the current league's (CurrentLeague.tsx),
 // so a switch to another league starts it afresh.
 
 // A signed-in manager lands on My team (spec/12).

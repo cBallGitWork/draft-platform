@@ -12,7 +12,7 @@ import { ERROR_PAGE_TITLE, readFailedWords, retryWords, signOutWords } from "../
 import { READ_FAILED_LOG } from "../../../src/frame/ReadFailed";
 import { LEAGUES_PATH } from "../../../src/leagues/paths";
 import { LEAGUES_TITLE } from "../../../src/leagues/words";
-import { LiveApp, takeLinkCode } from "../../../src/app/liveApp";
+import { LINK_CHECK_FAILED_LOG, LiveApp, takeLinkCode } from "../../../src/app/liveApp";
 import { NO_CONVEX_URL } from "../../../src/shared/words";
 import { SIGN_IN_PATH } from "../../../src/signIn/paths";
 import { askFailedWords, linkProblemWords, replyWords, signInWords, waitingWords } from "../../../src/signIn/words";
@@ -151,7 +151,7 @@ test("a link that can't be checked says so, and the error is logged", async () =
   openAt("/?code=some-code");
 
   expect((await screen.findByRole("alert")).textContent).toBe(linkProblemWords.unchecked);
-  expect(logged).toHaveBeenCalledWith("Checking a sign-in link failed:", expect.any(Error));
+  expect(logged).toHaveBeenCalledWith(LINK_CHECK_FAILED_LOG,expect.any(Error));
 });
 
 test("signed in, in no league, the app opens on the leagues page", async () => {

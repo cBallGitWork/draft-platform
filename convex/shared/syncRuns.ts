@@ -1,9 +1,9 @@
 import type { Every } from "./feedSchedule";
 import { DAY_MS } from "./time";
 
-// Numbers the syncs and probes share. The run code is not shared: footballSync, positionsSync,
-// matchStats, liveStats and feeds each keep their own run table and read it back with their own
-// `latest`.
+// Numbers the feeds' runs share: each sync, tick and check keeps its own run table
+// (shared/feedSchedule.ts's FEED_RUN_TABLES), reads it back with its own `latest` query where it has
+// one, and admin/runLogs.ts prunes them all.
 
 /** How many run rows each `latest` returns. */
 export const LATEST_RUNS = 5;

@@ -8,8 +8,9 @@ import { PRUNE_EVERY } from "./shared/syncRuns";
 import { OFFER_CHECK_EVERY } from "./trades/tradeClose";
 import { WAIVER_CHECK_EVERY } from "./waivers/waiverRun";
 
-// The seven timed jobs, the same on the live site and on development (spec/20, "Timed jobs"), and the
-// build pipeline's wake-up for the lead, the last below.
+// The timed jobs, the same on the live site and on development: spec/20's seven ("Timed jobs"), the
+// three Sportmonks reads after them, which spec/20's list doesn't name yet, and the build
+// pipeline's wake-up for the lead, the last below.
 const crons = cronJobs();
 /** A sync's argument when its cron starts it, so its run row says so. */
 const BY_CRON = { trigger: CRON_TRIGGER } as const;
