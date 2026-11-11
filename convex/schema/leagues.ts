@@ -106,7 +106,10 @@ export const leagueEvent = v.union(
   v.object({ kind: v.literal("maxTeamsChanged"), from: v.number(), to: v.number() }),
   v.object({ kind: v.literal("deletionStarted"), name: v.string(), deletesAt: v.number() }),
   v.object({ kind: v.literal("deletionUndone"), name: v.string() }),
-  v.object({ kind: v.literal("gameweekUsed"), gameweek: v.number(), used: v.boolean() }),
+  /** `startMovedTo`: the gameweek scoring starts in now, when unticking the start moved it (#1548). */
+  v.object({ kind: v.literal("gameweekUsed"), gameweek: v.number(), used: v.boolean(), startMovedTo: v.optional(v.number()) }),
+  /** The commissioner set the gameweek scoring starts in (#1548): `from` is null while none was set. */
+  v.object({ kind: v.literal("scoringStartSet"), from: v.union(v.number(), v.null()), to: v.number() }),
   ...joiningEvents,
   /** `changed` names the parts of LeagueRules that changed, such as "deadline". Events filed
    *  before the scoring became the site's (#354) may name "scoring" too, with `categories`, the
