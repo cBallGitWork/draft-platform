@@ -18,7 +18,7 @@ import { heldOrNot, ownerOf, placeOf, squadOf, unheldCodes } from "./squadPlace"
 import { pickFirstLineupAgain } from "../lineup/lineups";
 import { offWaivers } from "../waivers/waiverPlayers";
 import { closeOffersHolding } from "../trades/tradeClose";
-import { onAutoTeam } from "../trades/tradeShut";
+import { switchOf } from "../lineup/autoTeam";
 
 // Assigning players (#31, spec/15): the league's commissioners and the admin put any player on any
 // team, one at a time, move him between teams, or release him to free agency. Each files a Mail
@@ -193,7 +193,7 @@ export const squads = query({
         players.sort((one, other) => one.name.localeCompare(other.name));
         const warnings = squadWarnings(squad.length, players, playersAreas, rules?.squad ?? null);
         const byManager = team.managerEmail !== undefined && team.autoTeam?.by === team.managerEmail;
-        const autoTeam = { on: onAutoTeam(team), endsAfter: team.autoTeam?.endsAfter ?? null, byManager };
+        const autoTeam = { ...switchOf(team), byManager };
         const managerEmail = seesEmails ? (team.managerEmail ?? null) : null;
         return { teamId: team._id, teamName: team.name, players, unheld, warnings, managerEmail, autoTeam };
       }),

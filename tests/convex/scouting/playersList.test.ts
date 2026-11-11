@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, test } from "vitest";
+import { api } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
 import type { Position } from "../../../convex/positions/positionTables";
 import {
@@ -7,7 +8,7 @@ import {
   type PlayersFilters,
   type PlayersSort,
 } from "../../../convex/scouting/playersList";
-import { ALL, BY_NAME, playersListed } from "../../support/convex/playersList.harness";
+import { ALL, BY_NAME, playersListed, serverList } from "../../support/convex/playersList.harness";
 import { listOf, NO_FIGURES } from "../../../convex/scouting/playersOrder";
 import { FPL_SEASON } from "../../support/recorded/plSeasons.payloads";
 import { refusals } from "../../../convex/shared/leagueAccess";
@@ -98,7 +99,15 @@ describe("the filters", () => {
     expect(await namesListed({ availability: "onWaivers" })).toEqual(["Mbeumo"]);
     expect(await namesListed({ availability: "freeAgents" })).toEqual(["Rice"]);
     const mbeumo = (await listAs(ANN)).players.find((player) => player.code === MBEUMO.code);
-    expect(mbeumo?.onWaivers).toEqual({ firstRunAt: Date.UTC(2027, 0, 14, 18, 0) });
+    expect(mbeumo?.onWaivers).toEqual({ firstRun: { at: Date.UTC(2027, 0, 14, 18, 0), skippedIf: null } });
+  });
+
+  test("the run that can first take him is asked apart, at the minute, so the list never reads it (#1467)", async () => {
+    await t.run((ctx) => ctx.db.insert("waiverPlayers", { leagueId, playerCode: MBEUMO.code, claimableFrom: Date.UTC(2027, 0, 13, 19, 0) }));
+    const runs = await (await actingAs(t, ANN)).query(api.scouting.playersList.firstRuns, { leagueId, now: Date.UTC(2027, 0, 15, 12, 0) });
+    // By Friday noon, Thursday's run has gone without taking him, so the next is Wednesday's.
+    expect(runs).toEqual([{ playerCode: MBEUMO.code, firstRun: { at: Date.UTC(2027, 0, 20, 18, 0), skippedIf: null } }]);
+    expect((await serverList(await actingAs(t, ANN), { leagueId, clubCode: null, stat: null })).players.find(({ code }) => code === MBEUMO.code)?.onWaivers).toEqual({ claimableFrom: Date.UTC(2027, 0, 13, 19, 0) });
   });
 
   test("by position: a player with it among his positions", async () => {

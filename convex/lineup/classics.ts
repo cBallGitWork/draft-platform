@@ -6,7 +6,7 @@
 // is held with its rules (leagueRulesShape.ts), and its rules check says a classic is sound
 // (leagueRulesCheck.ts).
 
-import { sameCell, type Cell } from "./pitch";
+import { sameCell, sameShape, type Cell } from "./pitch";
 import { DEFAULT_PRESETS } from "./presets";
 import type { InstructionPair } from "./instructions";
 
@@ -123,5 +123,4 @@ export function standsAsClassic<Starter extends Cell>(starters: readonly Starter
 }
 
 /** Whether the cells are exactly the classic's, in any order: its shape never changes (spec/05). */
-export const inClassicShape = (cells: readonly Cell[], { cells: slots }: Classic): boolean =>
-  cells.length === slots.length && slots.every((slot) => cells.some((cell) => sameCell(cell, slot)));
+export const inClassicShape = (cells: readonly Cell[], { cells: slots }: Classic): boolean => sameShape(slots, cells);

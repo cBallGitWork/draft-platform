@@ -1,4 +1,5 @@
 import { sortedJson } from "../shared/sortedJson";
+import { PRICINGS } from "./priced";
 import type { StoredScoringSet } from "./scoringSetShape";
 
 // A fix carried into the draft patch (spec/14, Changes and corrections; Craig, 6 Nov 2026, on #368:
@@ -16,7 +17,6 @@ const isRecord = (value: Json): value is Record<string, Json> => typeof value ==
 const same = (one: Json, other: Json) => sortedJson(one) === sortedJson(other);
 
 /** What kind of value a record is: a rule's shape, and how a value is priced. */
-const PRICINGS = ["all", "byArea", "byPosition"];
 const kindOf = (record: Record<string, Json>) => sortedJson([record.shape, PRICINGS.filter((key) => key in record)]);
 const sameKind = (...records: Record<string, Json>[]) => records.every((record) => kindOf(record) === kindOf(records[0]));
 

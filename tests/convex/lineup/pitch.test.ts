@@ -9,6 +9,7 @@ import {
   playsCell,
   positionOfSlot,
   sameCell,
+  sameShape,
   SLOT_POSITIONS,
   type Area,
   type Cell,
@@ -113,4 +114,15 @@ test("two cells are the same only when both their area and their lane are, and a
 
 test("the pitch's order sorts the cells back to front, then left to right, as ALL_CELLS lists them", () => {
   expect(ALL_CELLS.toReversed().sort(byPitchOrder)).toEqual(ALL_CELLS);
+});
+
+test("two sets of cells make the same shape when they hold the same cells in any order, and no other", () => {
+  const shape: Cell[] = [
+    { area: "goalkeeper", lane: "centre" },
+    { area: "defence", lane: "left" },
+    { area: "attack", lane: "centre" },
+  ];
+  expect(sameShape(shape, shape.toReversed())).toBe(true);
+  expect(sameShape(shape, shape.slice(1))).toBe(false);
+  expect(sameShape(shape, [...shape.slice(1), { area: "midfield", lane: "centre" }])).toBe(false);
 });

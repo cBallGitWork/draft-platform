@@ -4,12 +4,12 @@ import { DEFAULT_PRESETS, presetNameOf } from "../../../convex/lineup/presets";
 import { FIRST_INSTRUCTIONS, pairRefusal } from "../../../convex/lineup/instructions";
 import { offersRole } from "../../../convex/lineup/roles";
 import { classicsOf, FIRST_RULES } from "../../../convex/rules/firstRules";
+import { KEEGANS } from "../../support/convex/lineup.harness";
 
 // The classics every league starts with (spec/05, The pitch; #991): Craig's three and the
 // formation picture's other five (Craig, 6 Nov 2026: "Eight to start"), each on one of the league's
 // presets ("Yes, one of ours"), with a role for every slot and one instruction a side.
 
-const keegans = DEFAULT_CLASSICS.find(({ name }) => name === "Keegan's Newcastle")!;
 const roleOf = ({ role }: { role: string }) => role;
 
 describe("the first classics", () => {
@@ -47,17 +47,17 @@ describe("the first classics", () => {
 
 describe("a lineup on a classic", () => {
   test("stands as it was picked while every slot keeps its role", () => {
-    expect(standsAsClassic(keegans.cells, keegans, roleOf)).toBe(true);
+    expect(standsAsClassic(KEEGANS.cells, KEEGANS, roleOf)).toBe(true);
   });
 
   test("is custom once one role changes (spec/05: 'when a change is made it becomes custom')", () => {
-    const changed = keegans.cells.map((slot, index) => (index === 1 ? { ...slot, role: "defensiveFullBack" } : slot));
-    expect(standsAsClassic(changed, keegans, roleOf)).toBe(false);
+    const changed = KEEGANS.cells.map((slot, index) => (index === 1 ? { ...slot, role: "defensiveFullBack" } : slot));
+    expect(standsAsClassic(changed, KEEGANS, roleOf)).toBe(false);
   });
 
   test("is custom once a slot is left empty, and stays in its shape only with every cell", () => {
-    expect(standsAsClassic(keegans.cells.slice(1), keegans, roleOf)).toBe(false);
-    expect(inClassicShape(keegans.cells.slice(1), keegans)).toBe(false);
-    expect(inClassicShape(keegans.cells.toReversed(), keegans)).toBe(true);
+    expect(standsAsClassic(KEEGANS.cells.slice(1), KEEGANS, roleOf)).toBe(false);
+    expect(inClassicShape(KEEGANS.cells.slice(1), KEEGANS)).toBe(false);
+    expect(inClassicShape(KEEGANS.cells.toReversed(), KEEGANS)).toBe(true);
   });
 });

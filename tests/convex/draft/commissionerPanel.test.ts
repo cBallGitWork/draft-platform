@@ -82,4 +82,17 @@ describe("the pick time before the start", () => {
     expect(await panel()).toMatchObject({ pickSeconds: 60 });
     expect(await (await as(ANN)).query(api.draft.draftBoard.ofLeague, { leagueId })).toMatchObject({ pickSeconds: 60, yourAutoPick: { limit: 1 } });
   });
+
+  test("for a draft started before #1439 with no pick time of its own, shows the latest the clock runs on, as the board does (#1572)", async () => {
+    await start();
+    await pause();
+    await holdGameweeks(t, { next: 5 });
+    const squad = { size: { minimum: 11, maximum: 11 }, minimumByArea: null, maxPerClub: null };
+    expect(await changeRules(t, leagueId, rulesWith({ squad, draft: { ...HELD_FIRST_RULES.draft!, pickSeconds: 45 } }))).toBe(5);
+    const draftId = (await t.run((ctx) => ctx.db.query("drafts").withIndex("by_leagueId", (q) => q.eq("leagueId", leagueId)).unique()))!._id;
+    await t.run((ctx) => ctx.db.patch("drafts", draftId, { pickSeconds: undefined }));
+
+    expect(await panel()).toMatchObject({ pickSeconds: 45 });
+    expect(await (await as(ANN)).query(api.draft.draftBoard.ofLeague, { leagueId })).toMatchObject({ pickSeconds: 45 });
+  });
 });

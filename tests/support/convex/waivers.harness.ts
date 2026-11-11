@@ -70,7 +70,8 @@ export async function waiverLeague() {
       }),
     claim: async (email: string, playerCode: number, dropCode: number | null = null) =>
       (await actingAs(t, email)).mutation(api.waivers.waiverClaims.putIn, { leagueId, playerCode, dropCode }),
-    pending: async (email: string) => (await actingAs(t, email)).query(api.waivers.waiverClaims.pending, { leagueId }),
+    /** `email`'s pending claims, as at `now` (the test's clock unless given). */
+    pending: async (email: string, now = Date.now()) => (await actingAs(t, email)).query(api.waivers.waiverClaims.pending, { leagueId, now }),
     stateOf: async (playerCode: number) => (await actingAs(t, BOB)).query(api.waivers.waivers.stateOf, { leagueId, playerCode }),
     squadCodes: (teamId: Id<"teams">) =>
       t.run(async (ctx) => (await ctx.db.query("squadPlayers").withIndex("by_teamId", (q) => q.eq("teamId", teamId)).collect()).map(({ playerCode }) => playerCode)),

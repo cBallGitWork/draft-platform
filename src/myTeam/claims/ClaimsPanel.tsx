@@ -6,7 +6,7 @@ import { Choice } from "../../ui/Choice";
 import { ColumnHeads } from "../../ui/ColumnHeads";
 import { Panel, PanelNote } from "../../ui/Panel";
 import { figureWords, noFigureWords } from "../words";
-import { byRun, clashOf, movedOnto } from "./claimGroups";
+import { byRun, clashOf, groupOf, movedOnto } from "./claimGroups";
 import { Chip, claimCellClass, DropCell, GROUP_ROW, PlayerName } from "./ClaimCells";
 import { EveryTeamTable } from "./EveryTeamTable";
 import type { PendingClaim, WaiversView } from "./seam";
@@ -127,10 +127,10 @@ function MineTable({
     <table aria-label={claimsTableLabel} className="w-full border-collapse">
       <ColumnHeads columns={claimColumns} shown={shown} classOf={claimCellClass} />
       {byRun(claims).map((group) => (
-        <tbody key={group.runAt ?? "none"}>
+        <tbody key={groupOf(group)}>
           <tr className={GROUP_ROW}>
             <th scope="rowgroup" colSpan={shown.length} className="px-3 py-1 text-left">
-              <span className="font-semibold text-lead">{runGroupWords(group.runAt)}</span> <span className="text-soft">{claimsInWords(group.claims.length)}</span>
+              <span className="font-semibold text-lead">{runGroupWords(group.run)}</span> <span className="text-soft">{claimsInWords(group.claims.length)}</span>
             </th>
           </tr>
           {group.claims.map((claim, index) => (

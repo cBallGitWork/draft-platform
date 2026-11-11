@@ -5,7 +5,8 @@ import { refuse, runnerOf } from "../shared/leagueAccess";
 import { SECOND_MS } from "../shared/time";
 import { startClock } from "./draftClock";
 import { tellPaused } from "./draftLetters";
-import { pickRefusals, pickSecondsNow } from "./draftPicks";
+import { pickSecondsNow } from "./draftPickTime";
+import { pickRefusals } from "./draftPicks";
 import { draftOf, draftIsLive } from "./draftRow";
 
 // Pausing and resuming the draft (spec/04, The commissioner; #1135). The commissioner pauses and

@@ -69,6 +69,17 @@ export async function rulesInGameweek(ctx: QueryCtx, leagueId: Id<"leagues">, ga
   return season.inGameweek(gameweek);
 }
 
+/** rulesInGameweek, run on the test's deployment. */
+export const rulesIn = (t: TestConvex, leagueId: Id<"leagues">, gameweek: number) => t.run((ctx) => rulesInGameweek(ctx, leagueId, gameweek));
+
+/** The league's latest rules as `email` (the commissioner unless a test says) reads them. */
+export const latestRules = async (t: TestConvex, leagueId: Id<"leagues">, email = COMMISSIONER) =>
+  (await actingAs(t, email)).query(api.rules.leagueRules.latest, { leagueId });
+
+/** The gameweek next to begin in a rules test, so the one a change takes effect from: what it
+ *  passes holdGameweeks as `next`. */
+export const NEXT = 9;
+
 /** The first rules, played as total points. */
 export const TOTAL_POINTS = rulesWith({ format: "totalPoints" });
 
