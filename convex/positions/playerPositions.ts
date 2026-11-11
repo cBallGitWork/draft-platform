@@ -234,6 +234,7 @@ export async function heldRow(ctx: MutationCtx, code: number): Promise<Row> {
   const row = await findRow(ctx, code);
   if (row !== null) return row;
   const id = await ctx.db.insert("playerPositions", { code, ...EMPTY_ROW });
+  await keepScoutingPlayer(ctx, code);
   return (await ctx.db.get("playerPositions", id))!;
 }
 

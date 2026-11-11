@@ -99,3 +99,21 @@ test("two rows are the same whatever their fields' order, an absent field and an
   expect(sameValue({ a: 1 }, { a: 2 })).toBe(false);
   expect(sameValue({ a: [1, 2] }, { a: [2, 1] })).toBe(false);
 });
+
+// Every write to a row the copy comes from must keep the copy in step, or Scouting shows a stale
+// player with no error. These are the modules that write those tables, each calling the keep; the
+// football sync writes `players` through its tables' shared upsert and drop, so it is named by
+// hand. A new writer fails here until it keeps the copy and is added.
+const SOURCE_WRITERS = ["football/footballSync.ts", "positions/playerPositions.ts", "stats/seasonStats.ts"];
+const SOURCE_WRITE = /\.(insert|patch|replace|delete)\(\s*"(players|playerPositions|playerSeasonStats)"/;
+const convexModules = import.meta.glob<string>(["../../../convex/**/*.ts", "!../../../convex/_generated/**"], { query: "?raw", import: "default", eager: true });
+
+test("every module that writes players, positions or season totals keeps the Scouting copy in step", () => {
+  const modules = Object.entries(convexModules).map(([path, source]) => ({ path: path.replace("../../../convex/", ""), source }));
+  const writers = modules.filter(({ source }) => SOURCE_WRITE.test(source)).map(({ path }) => path);
+  expect(writers).toEqual(expect.arrayContaining(["positions/playerPositions.ts", "stats/seasonStats.ts"]));
+  expect(writers.filter((path) => !SOURCE_WRITERS.includes(path))).toEqual([]);
+  for (const path of SOURCE_WRITERS) {
+    expect(modules.find((module) => module.path === path)?.source, `${path} must call keepScoutingPlayer(s)`).toMatch(/keepScoutingPlayers?\(/);
+  }
+});
