@@ -1,3 +1,4 @@
+import { keyedByCount } from "../shared/groupedBy";
 import { sortedJson } from "../shared/sortedJson";
 import { PRICINGS } from "./priced";
 import type { StoredScoringSet } from "./scoringSetShape";
@@ -6,7 +7,7 @@ import type { StoredScoringSet } from "./scoringSetShape";
 // "the fix changes the live scoring at once and the same value in the draft, unless the draft
 // already changes that value"). A value is any one setting of the set: whole points only, one
 // category's value for an area or a position, its limit, its bands, an own stat. Categories and
-// own stats are matched by their stat, a role by its role and a team instruction by its
+// own stats are matched by their stat (a second category for one stat by its count), a role by its role and a team instruction by its
 // instruction, wherever they sit in the list. A category whose shape the
 // fix and the draft both change, or a value the fix prices one way and the draft another (for all,
 // by area, by position), is one value, so the draft's is kept whole.
@@ -53,9 +54,11 @@ function carry(live: Json, fixed: Json, draft: Json): Json {
   return draft;
 }
 
-/** A list's entries carried by `key`: the draft's in its order, then any the fix added. */
+/** A list's entries carried by `key`: the draft's in its order, then any the fix added. A second
+ *  category for one stat (per action plus a threshold bonus) is matched by its count, so a fix
+ *  keeps both (Craig, 11 Nov 2026, on #1616). */
 function carryList(key: string, live: Record<string, Json>[], fixed: Record<string, Json>[], draft: Record<string, Json>[]): Json[] {
-  const byStat = (list: Record<string, Json>[]) => new Map(list.map((entry) => [entry[key] as string, entry]));
+  const byStat = (list: Record<string, Json>[]) => keyedByCount(list, (entry) => entry[key] as string);
   const [liveOf, fixedOf, draftOf] = [byStat(live), byStat(fixed), byStat(draft)];
   const stats = [...new Set([...draftOf.keys(), ...fixedOf.keys()])];
   return stats.flatMap((stat) => {
