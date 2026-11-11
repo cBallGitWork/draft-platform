@@ -33,10 +33,13 @@ export const seasonGameweeks = (count: number): number[] => Array.from({ length:
  *  `scoringStart`, absent while it scores every ticked gameweek. */
 export type WithUnusedGameweeks = { unusedGameweeks?: readonly number[]; scoringStart?: number };
 
-/** Whether this is one of a season of `count` gameweeks, and what to say when it isn't. */
+/** Whether this is one of a season of `count` gameweeks, and what to say when it isn't: a count of
+ *  0 is a season with no gameweeks held yet, before the first feed sync, so it has none. */
 export const isGameweek = (gameweek: number, count: number) => Number.isInteger(gameweek) && gameweek >= FIRST_GAMEWEEK && gameweek <= count;
 export const noSuchGameweek = (gameweek: number, count: number) =>
-  `There's no gameweek ${gameweek}: this season has gameweeks ${FIRST_GAMEWEEK} to ${count}.`;
+  count < FIRST_GAMEWEEK
+    ? `There's no gameweek ${gameweek} yet: this season's gameweeks haven't arrived from the feed.`
+    : `There's no gameweek ${gameweek}: this season has gameweeks ${FIRST_GAMEWEEK} to ${count}.`;
 
 /** Whether the league plays this gameweek of its season of `count`. Asking of a gameweek the
  *  season doesn't have is a bug in the caller, so it throws. */

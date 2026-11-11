@@ -18,7 +18,7 @@ export type Drawn = Partial<DrawRules> & {
   /** What the order is drawn from, as the league's id is on the server. */
   seed?: string;
   format?: LeagueTable["format"];
-  /** The gameweeks the league plays: all 38 by default. */
+  /** The gameweeks the league plays: every one its season has by default (#1618). */
   gameweeks?: readonly number[];
   /** The league's own deadline for each gameweek: none known by default. */
   deadlineOf?: DeadlineOf;

@@ -27,6 +27,10 @@ describe("isGameweekUsed", () => {
       "There's no gameweek 35: this season has gameweeks 1 to 34.",
     );
   });
+
+  test("a season with no gameweeks held yet has none, and says they haven't arrived, never '1 to 0' (#1618)", () => {
+    expect(() => isGameweekUsed({}, 1, 0)).toThrow("There's no gameweek 1 yet: this season's gameweeks haven't arrived from the feed.");
+  });
 });
 
 describe("usedGameweeksOf", () => {
