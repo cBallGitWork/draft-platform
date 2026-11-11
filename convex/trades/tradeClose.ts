@@ -21,7 +21,8 @@ import { onAutoTeam, tradesShut, type TradesShut } from "./tradeShut";
 // team; and the moment one of its players leaves his squad, by a drop, a claim, a pickup, the
 // commissioner or another trade (Craig, 6 Nov 2026). A trade already accepted and in review isn't
 // closed by any of these: it finishes its review (tradeReview.ts). Its players are held meanwhile:
-// they can't be dropped, and an accepted trade can't take them.
+// they can't be dropped, and an accepted trade can't take them. Nothing closes while the league is
+// frozen for deletion; an offer due meanwhile closes at the cron's first check after an undo (#1493).
 
 /** How often the cron closes the offers whose deadline has passed: Claude's choice, so an offer
  *  closes at most this late, and is refused as closed meanwhile. */
@@ -197,7 +198,8 @@ export const closeDue = internalMutation({
     );
     for (const [leagueId, open] of byLeague) {
       const league = await ctx.db.get("leagues", leagueId);
-      if (league === null) continue;
+      // A league frozen for deletion closes nothing: its offers due wait for an undo (#1493).
+      if (league === null || league.deletion !== undefined) continue;
       const deadlines = await leagueDeadlines(ctx, leagueId);
       const shut = await tradesShut(ctx, league, deadlines, now);
       for (const offer of open) {
