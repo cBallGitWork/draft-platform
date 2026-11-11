@@ -138,12 +138,9 @@ describe("the letters", () => {
       { kind: "playerClaimed", playerCode: SAKA, teamId: w.annsTeam, by: ANN },
     ]);
     const { transactions } = await (await actingAs(w.t, ANN)).query(api.squads.teamTransactions.ofMyTeam, { leagueId: w.leagueId });
-    expect(transactions.map((move) => [move.kind, "playerCode" in move ? move.playerCode : null])).toEqual(
-      expect.arrayContaining([
-        ["claimed", SAKA],
-        ["dropped", ANNS_FIRST_DROP],
-      ]),
-    );
+    // The team's tab lists the claim as one row, naming who went under Out (#1031).
+    expect(transactions).toContainEqual(expect.objectContaining({ kind: "claimed", playerCode: SAKA, dropped: expect.objectContaining({ playerCode: ANNS_FIRST_DROP }) }));
+    expect(transactions.some((move) => move.kind === "dropped")).toBe(false);
   });
 });
 
