@@ -36,7 +36,7 @@ export const STAR_CUTS: readonly { stars: number; fewerAbove: number }[] = [
 export const LOWEST_STARS = 0.5;
 
 /** A role to rate in an area, and the cell it is priced in there. */
-export interface RatedRole {
+interface RatedRole {
   area: Area;
   role: string;
   cell: Cell;

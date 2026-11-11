@@ -6,7 +6,7 @@ import { settingsRefusals } from "../../../convex/rules/leagueSettings";
 import type { LeagueSettings } from "../../../convex/rules/leagueSettingsPart";
 import { refusals } from "../../../convex/shared/leagueAccess";
 import { WEEK_MS } from "../../../convex/shared/time";
-import { HELD_FIRST_RULES, holdGameweeks, NO_AREA_MINIMUMS, rulesInGameweek, rulesRevision } from "../../support/convex/leagueRules.harness";
+import { HELD_FIRST_RULES, holdGameweeks, NEXT, NO_AREA_MINIMUMS, rulesIn, rulesRevision } from "../../support/convex/leagueRules.harness";
 import { expectRefused } from "../../support/convex/test.harness";
 import { actingAs, addManagers, adminCreatesLeague, COMMISSIONER, CO_COMMISSIONER, eventsIn, lastEventAt, MANAGERS, type TestConvex } from "../../support/convex/leagues.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
@@ -15,8 +15,6 @@ import { fakeResend, signInDeployment } from "../../support/convex/signIn.harnes
 // (spec/03; #341), read and changed as any part of the rules is: from the next gameweek, with a letter, and never over someone else's
 // save.
 
-/** The gameweek next to begin, so the one a change takes effect from. */
-const NEXT = 9;
 /** Long enough ago that no gameweek had begun. */
 const SEASON_SO_FAR = NEXT * WEEK_MS;
 
@@ -50,7 +48,6 @@ const change = async (settings: LeagueSettings, email = COMMISSIONER, revision?:
     settings,
     revision: revision === undefined ? await rulesRevision(t, leagueId) : revision,
   });
-const inGameweek = (gameweek: number) => t.run((ctx) => rulesInGameweek(ctx, leagueId, gameweek));
 
 describe("reading them", () => {
   test("gives the settings the draw plays by, the row they're from and the next gameweek a change would take effect from", async () => {
@@ -67,8 +64,8 @@ describe("changing them", () => {
   test("applies from the next gameweek only, keeps the rest of the rules, and files one letter", async () => {
     expect(await change({ ...FIRST, oddTeamOut: "bye", gamesPerGameweek: 2 })).toBe(NEXT);
 
-    expect(await inGameweek(NEXT - 1)).toEqual(HELD_FIRST_RULES);
-    expect(await inGameweek(NEXT)).toEqual({ ...HELD_FIRST_RULES, oddTeamOut: "bye", gamesPerGameweek: 2 });
+    expect(await rulesIn(t, leagueId, NEXT - 1)).toEqual(HELD_FIRST_RULES);
+    expect(await rulesIn(t, leagueId, NEXT)).toEqual({ ...HELD_FIRST_RULES, oddTeamOut: "bye", gamesPerGameweek: 2 });
     expect((await eventsIn(t, leagueId)).filter((event) => event.kind === "rulesChanged")).toEqual([
       { by: COMMISSIONER, kind: "rulesChanged", fromGameweek: NEXT, changed: ["oddTeamOut", "gamesPerGameweek"] },
     ]);
@@ -79,7 +76,7 @@ describe("changing them", () => {
       change({ ...FIRST, gamesPerGameweek: games }),
       `The head-to-head games each team plays a gameweek must be a whole number, 1 or more, not ${games}.`,
     );
-    expect(await inGameweek(NEXT)).toEqual(HELD_FIRST_RULES);
+    expect(await rulesIn(t, leagueId, NEXT)).toEqual(HELD_FIRST_RULES);
   });
 
   test("more games a gameweek than the league's teams have opponents for is refused, and saves nothing", async () => {
@@ -87,7 +84,7 @@ describe("changing them", () => {
       change({ ...FIRST, gamesPerGameweek: 10 }),
       "With 4 teams, a team can play at most 3 games a gameweek, not 10: one against each of the other 3.",
     );
-    expect(await inGameweek(NEXT)).toEqual(HELD_FIRST_RULES);
+    expect(await rulesIn(t, leagueId, NEXT)).toEqual(HELD_FIRST_RULES);
   });
 
   test("rules saved before that refusal, with more games than rounds, play as many as the round robin has", async () => {
@@ -127,7 +124,7 @@ describe("changing them", () => {
 
     const reason = rulesRefusals.changedSince(CO_COMMISSIONER, await lastEventAt(t, leagueId), undefined);
     await expectRefused(change({ ...FIRST, oddTeamOut: "bye", gamesPerGameweek: 3 }, COMMISSIONER, opened), reason);
-    expect((await inGameweek(NEXT)).gamesPerGameweek).toBe(2);
+    expect((await rulesIn(t, leagueId, NEXT)).gamesPerGameweek).toBe(2);
     expect(await eventsIn(t, leagueId)).toEqual(events);
   });
 
@@ -144,8 +141,8 @@ describe("the squad's make-up (#341)", () => {
   test("saves the maximum, the minimums by area and the club maximum from the next gameweek, keeping the least squad size, with a letter", async () => {
     await change({ ...FIRST, squadMaximum: 25, minimumByArea: MINIMUMS, maxPerClub: 3 });
 
-    expect((await inGameweek(NEXT)).squad).toEqual({ size: { minimum: SIZE.minimum, maximum: 25 }, minimumByArea: MINIMUMS, maxPerClub: 3 });
-    expect((await inGameweek(NEXT - 1)).squad).toEqual(HELD_FIRST_RULES.squad);
+    expect((await rulesIn(t, leagueId, NEXT)).squad).toEqual({ size: { minimum: SIZE.minimum, maximum: 25 }, minimumByArea: MINIMUMS, maxPerClub: 3 });
+    expect((await rulesIn(t, leagueId, NEXT - 1)).squad).toEqual(HELD_FIRST_RULES.squad);
     expect((await eventsIn(t, leagueId)).at(-1)).toMatchObject({ kind: "rulesChanged", changed: ["squad"] });
     expect((await read())?.part).toEqual({ ...FIRST, squadMaximum: 25, minimumByArea: MINIMUMS, maxPerClub: 3 });
   });
@@ -154,7 +151,7 @@ describe("the squad's make-up (#341)", () => {
     await change({ ...FIRST, minimumByArea: MINIMUMS, maxPerClub: 3 });
     await change(FIRST);
 
-    expect((await inGameweek(NEXT)).squad).toEqual(HELD_FIRST_RULES.squad);
+    expect((await rulesIn(t, leagueId, NEXT)).squad).toEqual(HELD_FIRST_RULES.squad);
   });
 
   test.each([
@@ -169,7 +166,7 @@ describe("the squad's make-up (#341)", () => {
     ["a club maximum of 0", { maxPerClub: 0 }, "The most players from one club must be a whole number, 1 or more, not 0."],
   ])("refuses %s with the reason, and saves nothing", async (_, settings, reason) => {
     await expectRefused(change({ ...FIRST, ...settings }), reason);
-    expect(await inGameweek(NEXT)).toEqual(HELD_FIRST_RULES);
+    expect(await rulesIn(t, leagueId, NEXT)).toEqual(HELD_FIRST_RULES);
   });
 
   describe("for rules with no squad size limit", () => {
@@ -184,7 +181,7 @@ describe("the squad's make-up (#341)", () => {
       expect((await read())?.part.squadMaximum).toBeNull();
       await change({ ...FIRST, squadMaximum: null, maxPerClub: 2 });
 
-      expect((await inGameweek(NEXT)).squad).toEqual({ size: null, minimumByArea: null, maxPerClub: 2 });
+      expect((await rulesIn(t, leagueId, NEXT)).squad).toEqual({ size: null, minimumByArea: null, maxPerClub: 2 });
     });
 
     test("refuses a maximum, as the screen can't add a limit", async () => {
@@ -194,7 +191,7 @@ describe("the squad's make-up (#341)", () => {
 
   test("refuses no maximum for rules with a squad size limit, as the screen can't take one away", async () => {
     await expectRefused(change({ ...FIRST, squadMaximum: null }), settingsRefusals.squadSizeFixed);
-    expect(await inGameweek(NEXT)).toEqual(HELD_FIRST_RULES);
+    expect(await rulesIn(t, leagueId, NEXT)).toEqual(HELD_FIRST_RULES);
   });
 });
 
@@ -209,8 +206,8 @@ describe("the draft (#1087)", () => {
     const draft = { pickSeconds: 8 * 60 * 60, timeoutsBeforeAutoPick: null, undrafted: "freeAgents" } as const;
     await change({ ...FIRST, draft });
 
-    expect((await inGameweek(NEXT)).draft).toEqual(draft);
-    expect((await inGameweek(NEXT - 1)).draft).toEqual(DRAFT);
+    expect((await rulesIn(t, leagueId, NEXT)).draft).toEqual(draft);
+    expect((await rulesIn(t, leagueId, NEXT - 1)).draft).toEqual(DRAFT);
     expect((await eventsIn(t, leagueId)).at(-1)).toMatchObject({ kind: "rulesChanged", changed: ["draft"] });
     expect((await read())?.part.draft).toEqual(draft);
   });
@@ -223,7 +220,7 @@ describe("the draft (#1087)", () => {
   ])("saves a pick clock or timeouts at the edge: %s", async (_, setting) => {
     await change({ ...FIRST, draft: { ...DRAFT, ...setting } });
 
-    expect((await inGameweek(NEXT)).draft).toEqual({ ...DRAFT, ...setting });
+    expect((await rulesIn(t, leagueId, NEXT)).draft).toEqual({ ...DRAFT, ...setting });
   });
 
   test.each([
@@ -235,7 +232,7 @@ describe("the draft (#1087)", () => {
     ["a fractional count of timeouts", { timeoutsBeforeAutoPick: 2.5 }, "The timeouts before auto-pick must be a whole number from 1 to 15, not 2.5."],
   ])("refuses %s with the reason, and saves nothing", async (_, setting, reason) => {
     await expectRefused(change({ ...FIRST, draft: { ...DRAFT, ...setting } }), reason);
-    expect(await inGameweek(NEXT)).toEqual(HELD_FIRST_RULES);
+    expect(await rulesIn(t, leagueId, NEXT)).toEqual(HELD_FIRST_RULES);
   });
 
   test("is refused to a manager", async () => {
@@ -260,14 +257,14 @@ describe("the draft (#1087)", () => {
     test("a change to another setting writes no draft settings and names none in its letter", async () => {
       await change({ ...FIRST, gamesPerGameweek: 2 });
 
-      expect((await inGameweek(NEXT)).draft).toBeUndefined();
+      expect((await rulesIn(t, leagueId, NEXT)).draft).toBeUndefined();
       expect((await eventsIn(t, leagueId)).at(-1)).toMatchObject({ kind: "rulesChanged", changed: ["gamesPerGameweek"] });
     });
 
     test("a change to the draft writes it", async () => {
       await change({ ...FIRST, draft: { ...DRAFT, pickSeconds: 30 } });
 
-      expect((await inGameweek(NEXT)).draft).toEqual({ ...DRAFT, pickSeconds: 30 });
+      expect((await rulesIn(t, leagueId, NEXT)).draft).toEqual({ ...DRAFT, pickSeconds: 30 });
     });
   });
 });

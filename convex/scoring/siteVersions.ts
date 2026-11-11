@@ -23,7 +23,7 @@ export const SITE_SCORING_VERSIONS_MOST = 200;
  *  default deadline, 15 minutes before the gameweek's first kickoff, whatever deadline a league sets
  *  (spec/14 S14.1; Craig, 10 Nov 2026, on #902: "one site deadline"). So every league scores a
  *  gameweek under the same version, and none lands after the gameweek's default lock. */
-export const SITE_DEADLINE_RULE = DEFAULT_DEADLINE_RULE;
+const SITE_DEADLINE_RULE = DEFAULT_DEADLINE_RULE;
 
 /** The site's deadline for a gameweek whose first kickoff is `firstKickoff`. */
 export function siteDeadline(firstKickoff: number): number {
@@ -79,7 +79,7 @@ export async function siteScoringByGameweek(ctx: QueryCtx): Promise<(gameweek: n
 
 /** The scoring a gameweek was scored under: its set, and its version's name, null for the first
  *  set (spec/14, On screen: a breakdown says the version it was scored under). */
-export interface VersionInForce {
+interface VersionInForce {
   set: StoredScoringSet;
   name: string | null;
 }

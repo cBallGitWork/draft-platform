@@ -66,7 +66,7 @@ export interface RolePoints {
   sides: RoleSidePoints[];
 }
 
-export interface RoleSidePoints {
+interface RoleSidePoints {
   side: "bonus" | "cost";
   points: number;
   lines: { stat: string; actions: number }[];
@@ -235,7 +235,7 @@ function sum(numbers: readonly number[]): number {
 /** A player's gameweek. Provisional while any of his matches' records hasn't arrived: the points
  *  are those of the matches that have, and null while none has. A match still live or inside its
  *  correction window is provisional too, which is the match's own state (spec/07), not this. */
-export interface GameweekPoints {
+interface GameweekPoints {
   points: number | null;
   provisional: boolean;
 }

@@ -103,7 +103,7 @@ function validateMinutes(minutes: unknown, where: string): void {
 }
 
 /** A number of points: a number, in tenths, and whole when the set counts whole points only. */
-export function requirePoints(value: unknown, what: string, wholePointsOnly: boolean): void {
+function requirePoints(value: unknown, what: string, wholePointsOnly: boolean): void {
   requireNumber(value, what);
   if (wholePointsOnly && !Number.isInteger(value)) {
     throw new UnsoundScoring(`${what} ${value}, but the set counts whole points only`);

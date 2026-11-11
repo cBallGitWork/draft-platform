@@ -15,6 +15,8 @@ import { NO_DATA, roleStarsShape, type RoleStars } from "./starsShape";
 // shown them only for his own squad and the players his scouts have reported on, for the season
 // (spec/19, Role stars), and for any player his team has held this season, who stays shown once
 // he has left it (Craig, 6 Nov 2026, on #375). Everyone else's are hidden: null.
+// No screen calls ofPlayer or ofPlayers yet (the 11 Nov review, #1574): they stay for #375's hiding
+// to wire in, not removed.
 
 /** The most players one read asks for: a squad's, or a page of Scouting's list, with room. More is
  *  refused, never a silent cut. */

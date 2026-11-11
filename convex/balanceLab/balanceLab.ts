@@ -24,7 +24,7 @@ import type { LabInstruction, LabReport, LabRole } from "./labReportShape";
 
 /** Each slot's target role bonus a start (spec/05 Roles: half its gap in base points to strikers,
  *  plus 0.5 for every slot; Craig, 4 Nov 2026). */
-export const ROLE_TARGETS: Readonly<Record<SlotPosition, number>> = {
+const ROLE_TARGETS: Readonly<Record<SlotPosition, number>> = {
   ST: 0.5,
   W: 0.6,
   CAM: 0.6,
