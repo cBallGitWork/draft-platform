@@ -97,13 +97,15 @@ type Run = {
   squadRules: LeagueRules["squad"];
   deadlines: LeagueDeadlines;
   now: number;
+  /** The run's own time, which a claim's drop starts its 24 hours from (#1481). */
+  at: number;
   /** The players this run may take, by code: on waivers with their 24 hours up, and not yet taken. */
   claimable: Map<number, Doc<"waiverPlayers">>;
 };
 
 /** Tries the claim for its team, making it if it stands. */
 async function tryClaim(ctx: MutationCtx, run: Run, claim: Doc<"waiverClaims">): Promise<Tried> {
-  const { league, squadRules, deadlines, now, claimable } = run;
+  const { league, squadRules, deadlines, now, at, claimable } = run;
   const onWaivers = claimable.get(claim.playerCode);
   if (onWaivers === undefined) return { won: false, why: (await placeOf(ctx, league._id, claim.playerCode))?.teamId === claim.teamId ? null : "ahead" };
   if ((await playerByCode(ctx, claim.playerCode))?.droppedAt !== undefined) return { won: false, why: "playerGone" };
@@ -114,7 +116,7 @@ async function tryClaim(ctx: MutationCtx, run: Run, claim: Doc<"waiverClaims">):
 
   claimable.delete(claim.playerCode);
   await ctx.db.delete("waiverPlayers", onWaivers._id);
-  const toWaivers = drop === null ? null : await dropFromSquad(ctx, drop, deadlines, now);
+  const toWaivers = drop === null ? null : await dropFromSquad(ctx, drop, deadlines, now, at);
   await ctx.db.insert("squadPlayers", { leagueId: league._id, teamId: claim.teamId, playerCode: claim.playerCode });
   return { won: true, toWaivers };
 }
@@ -174,7 +176,7 @@ async function runWaivers(ctx: MutationCtx, leagueId: Id<"leagues">, at: number)
   // By the run's own time, not the moment it executes: the cron may fire minutes late, and a player
   // whose 24 hours end in those minutes is the next run's, as his claims were told (spec/08).
   const due = onWaivers.filter(({ claimableFrom }) => claimableFrom <= at);
-  const run: Run = { league, squadRules: season.latest.squad, deadlines, now, claimable: new Map(due.map((row) => [row.playerCode, row])) };
+  const run: Run = { league, squadRules: season.latest.squad, deadlines, now, at, claimable: new Map(due.map((row) => [row.playerCode, row])) };
   // A run tries every claim but those for a player whose 24 hours aren't up: one for a player no
   // longer on waivers at all, taken by the commissioner say, fails as another team's, or quietly
   // if its own team holds him.
