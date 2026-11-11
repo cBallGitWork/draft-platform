@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, test, vi } from "vitest";
 import { api } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
-import { GAMEWEEKS } from "../../../convex/gameweeks/usedGameweeks";
+import { PL_GAMEWEEKS } from "../../support/convex/footballRows.harness";
 import { refusals } from "../../../convex/shared/leagueAccess";
 import { HOUR_MS, WEEK_MS } from "../../../convex/shared/time";
 import { changeRules, holdGameweeks, rulesWith } from "../../support/convex/leagueRules.harness";
@@ -48,11 +48,12 @@ describe("who may read it", () => {
 
 describe("the games", () => {
   test("are in gameweek order, one a gameweek, against the others and the league's average in turn", async () => {
+    await holdGameweeks(t, { next: 1 });
     await addManagers(t, leagueId, [ANN, BOB, CAT]);
     const { games, format } = (await read())!;
 
     expect(format).toBe("headToHead");
-    expect(games.map(({ gameweek }) => gameweek)).toEqual(Array.from({ length: GAMEWEEKS }, (_, index) => index + 1));
+    expect(games.map(({ gameweek }) => gameweek)).toEqual(Array.from({ length: PL_GAMEWEEKS }, (_, index) => index + 1));
     // Three teams' round robin has three rounds: Ann meets Bob, Cat and the league's average once each.
     expect(games.slice(0, 3).map(opponentOf).toSorted()).toEqual(["Team 2", "Team 3", "leagueAverage"]);
   });
@@ -76,6 +77,7 @@ describe("the games", () => {
   });
 
   test("with byes, the team sits one out instead of meeting the league's average", async () => {
+    await holdGameweeks(t, { next: 1 });
     await addManagers(t, leagueId, [ANN, BOB, CAT]);
     await changeRulesTo({ oddTeamOut: "bye" });
     const kinds = (await read())!.games.slice(0, 3).map(({ against }) => against.kind);
@@ -83,14 +85,16 @@ describe("the games", () => {
   });
 
   test("with two games a gameweek, there are two in each", async () => {
+    await holdGameweeks(t, { next: 1 });
     await addManagers(t, leagueId, [ANN, BOB, CAT, DAN]);
     await changeRulesTo({ gamesPerGameweek: 2 });
     const games = (await read())!.games;
-    expect(games).toHaveLength(2 * GAMEWEEKS);
-    expect(new Set(games.map(({ gameweek }) => gameweek)).size).toBe(GAMEWEEKS);
+    expect(games).toHaveLength(2 * PL_GAMEWEEKS);
+    expect(new Set(games.map(({ gameweek }) => gameweek)).size).toBe(PL_GAMEWEEKS);
   });
 
   test("with two games a gameweek, each game's number opens its own matchup, the table's fixtures numbering them alike (#913)", async () => {
+    await holdGameweeks(t, { next: 1 });
     await addManagers(t, leagueId, [ANN, BOB, CAT, DAN]);
     await changeRulesTo({ gamesPerGameweek: 2 });
     const mine = (await read())!;

@@ -4,6 +4,7 @@ import type { Id } from "../../../convex/_generated/dataModel";
 import { refusals } from "../../../convex/shared/leagueAccess";
 import { squadNumberRefusals } from "../../../convex/squads/squadNumbers";
 import { deletes } from "../../support/convex/leagueDeletion.harness";
+import { holdGameweeks } from "../../support/convex/leagueRules.harness";
 import { expectRefused } from "../../support/convex/test.harness";
 import { COMMISSIONER, MANAGERS, actingAs, addManagers, adminCreatesLeague, type TestConvex } from "../../support/convex/leagues.harness";
 import { ARSENAL, insertClubs } from "../../support/convex/footballRows.harness";
@@ -24,6 +25,8 @@ beforeEach(async () => {
   t = await signInDeployment();
   fakeResend();
   leagueId = await adminCreatesLeague(t);
+  // A season to come, so the pitch has a gameweek to set (#1618).
+  await holdGameweeks(t, { next: 1 });
   [annsTeam, bobsTeam] = await addManagers(t, leagueId, [ANN, BOB]);
   await t.run(async (ctx) => {
     await insertClubs(ctx, [ARSENAL]);

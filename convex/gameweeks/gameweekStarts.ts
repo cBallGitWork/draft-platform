@@ -1,12 +1,12 @@
 import type { MutationCtx, QueryCtx } from "../_generated/server";
 import { seasonStartYear } from "../shared/time";
 import type { ScheduledMatch } from "./deadline";
-import { GAMEWEEKS } from "./usedGameweeks";
+import { GAMEWEEKS_MOST } from "./usedGameweeks";
 
 // Each gameweek's first kickoff, once passed, kept where it fell even if that match then leaves the
 // gameweek (#414), as a passed deadline is (#150). The site's scoring version for a gameweek hangs
 // on it (siteVersions.ts). deadlineRecorder.ts records it before every write that can move a kickoff.
-// FPL numbers each season's gameweeks 1 to 38 again, so it is kept by season and read for the
+// Each season's gameweeks are numbered from 1 again, so it is kept by season and read for the
 // season of the matches held.
 
 /** Each gameweek's earliest kickoff among `matches`, by gameweek: none for a gameweek with no
@@ -49,7 +49,7 @@ export async function gameweekStartsOf(ctx: QueryCtx, matches: readonly Schedule
   const rows = await ctx.db
     .query("gameweekStarts")
     .withIndex("by_season_and_gameweek", (q) => q.eq("season", season))
-    // Never more: `recordGameweekStarts` writes one row a season and gameweek, of FPL's 38.
-    .take(GAMEWEEKS);
+    // Never more: `recordGameweekStarts` writes one row a season and gameweek.
+    .take(GAMEWEEKS_MOST);
   return new Map(rows.map((row) => [row.gameweek, row.firstKickoff]));
 }

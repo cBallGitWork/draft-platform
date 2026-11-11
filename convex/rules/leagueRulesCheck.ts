@@ -5,7 +5,7 @@ import { pairRefusal, SIDES, type Instruction } from "../lineup/instructions";
 import { offersRole } from "../lineup/roles";
 import { instructionsOf } from "./firstRules";
 import type { DraftRules, LeagueRules, TradeRules } from "./leagueRulesShape";
-import { FIRST_GAMEWEEK, GAMEWEEKS } from "../gameweeks/usedGameweeks";
+import { FIRST_GAMEWEEK } from "../gameweeks/usedGameweeks";
 import { PICK_SECONDS_FEWEST, PICK_SECONDS_MOST, TIMEOUTS_FEWEST, TIMEOUTS_MOST } from "../draft/draftLimits";
 import { MOST_IN_SQUAD } from "../leagues/leagueLimits";
 import { roundsInARoundRobin } from "../table/roundRobin";
@@ -18,9 +18,10 @@ import { roundsInARoundRobin } from "../table/roundRobin";
 /** Why rules can't be saved, told apart from a bug, which is never shown as a reason. */
 export class UnsoundRules extends Error {}
 
-/** Throws the first reason these rules can't be saved. Given the league's maximum teams, also
- *  that that many can play its games a gameweek. */
-export function checkLeagueRules(rules: LeagueRules, maxTeams?: number): void {
+/** Throws the first reason these rules can't be saved, in a season of `seasonGameweeks` gameweeks
+ *  (seasonGameweeks.ts's `seasonGameweekCount`). Given the league's maximum teams, also that that
+ *  many can play its games a gameweek. */
+export function checkLeagueRules(rules: LeagueRules, seasonGameweeks: number, maxTeams?: number): void {
   checkSquad(rules.squad);
   checkAreaLimits(rules.areaLimits);
   checkPresets(rules.presets, rules.areaLimits);
@@ -32,12 +33,12 @@ export function checkLeagueRules(rules: LeagueRules, maxTeams?: number): void {
   if (maxTeams !== undefined) checkGamesFor(rules.gamesPerGameweek, maxTeams);
   checkWaivers(rules.waivers);
   if (rules.draft !== undefined) checkDraft(rules.draft);
-  if (rules.trades !== undefined) checkTrades(rules.trades);
+  if (rules.trades !== undefined) checkTrades(rules.trades, seasonGameweeks);
 }
 
 /** A trade deadline, if any, is a gameweek of the season. */
-function checkTrades({ deadline }: TradeRules): void {
-  if (deadline !== null) checkWholeNumberWithin(deadline, "The trade deadline's gameweek", FIRST_GAMEWEEK, GAMEWEEKS);
+function checkTrades({ deadline }: TradeRules, seasonGameweeks: number): void {
+  if (deadline !== null) checkWholeNumberWithin(deadline, "The trade deadline's gameweek", FIRST_GAMEWEEK, seasonGameweeks);
 }
 
 /** The pick clock and timeouts within Craig's limits (../draft/draftLimits.ts). */

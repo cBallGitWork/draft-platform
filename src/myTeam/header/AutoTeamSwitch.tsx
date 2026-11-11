@@ -1,6 +1,5 @@
 import { useId, useState } from "react";
 import type { LeagueSummary } from "../../../convex/leagues/myLeagues";
-import { GAMEWEEKS } from "../../../convex/gameweeks/usedGameweeks";
 import { menuGlyph } from "../../shared/words";
 import { Panel, PANEL_BODY, Problem } from "../../ui/Panel";
 import type { MyAutoTeam, MyTeamSeam } from "../seam";
@@ -61,7 +60,7 @@ function AutoTeamPanel({
 }) {
   const changes = seam.useAutoTeamChanges();
   const [until, setUntil] = useState<Until>(firstGameweek === null ? "off" : "gameweek");
-  const [endsAfter, setEndsAfter] = useState(firstGameweek ?? GAMEWEEKS);
+  const [endsAfter, setEndsAfter] = useState(firstGameweek ?? autoTeam.lastGameweek);
   const [problem, setProblem] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const name = useId();
@@ -95,7 +94,7 @@ function AutoTeamPanel({
                   }}
                   className="text-box"
                 >
-                  {Array.from({ length: GAMEWEEKS - firstGameweek + 1 }, (_, index) => firstGameweek + index).map((gameweek) => (
+                  {Array.from({ length: autoTeam.lastGameweek - firstGameweek + 1 }, (_, index) => firstGameweek + index).map((gameweek) => (
                     <option key={gameweek} value={gameweek}>
                       {gameweekShort(gameweek)}
                     </option>

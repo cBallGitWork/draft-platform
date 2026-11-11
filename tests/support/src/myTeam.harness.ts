@@ -6,6 +6,7 @@ import type { AutoTeamChanges, MyAutoTeam, MyTeamSeam, OtherSquad, SquadNumberCh
 import { idOf } from "../../../src/table/drawnTable";
 import type { LeagueTable } from "../../../src/table/seam";
 import { fakeTactics, type TacticsData } from "./tactics.harness";
+import { PL_GAMEWEEKS } from "../convex/footballRows.harness";
 import type { LatestMail } from "../../../src/myTeam/squad/seam";
 import type { ClaimChanges, PendingClaim, WaiversView } from "../../../src/myTeam/claims/seam";
 
@@ -33,7 +34,7 @@ export type MyTeamData = TacticsData & {
   /** What each change to a claim answers: null once made, or the words why not. */
   claimAnswer?: string | null;
   /** The team's auto team: off by default. */
-  autoTeam?: Omit<MyAutoTeam, "teamId">;
+  autoTeam?: Omit<MyAutoTeam, "teamId" | "lastGameweek">;
   /** What switching it answers: null once made, or the words why not. */
   autoTeamAnswer?: string | null;
   loading?: boolean;
@@ -90,7 +91,7 @@ export function fakeMyTeam({
     useWaivers: vi.fn<MyTeamSeam["useWaivers"]>(() => (loading ? undefined : waivers)),
     useClaimChanges: () => claimChanges,
     claimChanges,
-    useMyAutoTeam: vi.fn<MyTeamSeam["useMyAutoTeam"]>(() => (loading ? undefined : { teamId: MY_TEAM_ID, ...autoTeam })),
+    useMyAutoTeam: vi.fn<MyTeamSeam["useMyAutoTeam"]>(() => (loading ? undefined : { teamId: MY_TEAM_ID, ...autoTeam, lastGameweek: PL_GAMEWEEKS })),
     useAutoTeamChanges: () => autoTeamChanges,
     autoTeamChanges,
   };

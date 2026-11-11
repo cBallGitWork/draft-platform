@@ -8,7 +8,8 @@ import { drawFixtures, type DrawRules } from "../../convex/table/roundRobin";
 import { FIRST_RULES } from "../../convex/rules/firstRules";
 import type { GameweekScores, TieBreak } from "../../convex/table/standings";
 import type { DeadlineOf } from "../../convex/gameweeks/deadline";
-import { SEASON_GAMEWEEKS } from "../../convex/gameweeks/usedGameweeks";
+import { seasonGameweeks } from "../../convex/gameweeks/usedGameweeks";
+import { previewSeasonGameweeks } from "../shared/preview";
 import type { TeamFixtures } from "../../convex/table/teamFixtures";
 import { leagueTableFrom, pointsOf, tableOf, teamFixturesFrom, type Results } from "../../convex/table/sentTables";
 import type { LeagueTable } from "./seam";
@@ -37,7 +38,7 @@ export const idOf = (team: string) => `${ID_PREFIX}${team}` as Id<"teams">;
 const named = (teamId: Id<"teams">) => teamId.slice(ID_PREFIX.length);
 
 /** The draw's defaults, as the server's would be for a league with no rule changed. */
-const DRAW_DEFAULTS = { oddTeamOut: "leagueAverage", gamesPerGameweek: 1, seed: "preview-league", gameweeks: SEASON_GAMEWEEKS } as const;
+const DRAW_DEFAULTS = { oddTeamOut: "leagueAverage", gamesPerGameweek: 1, seed: "preview-league", gameweeks: seasonGameweeks(previewSeasonGameweeks) } as const;
 
 /** What the server reads for teams with these names, made in this order, as `drawn` says: the
  *  format, the teams, the head-to-head schedule (none in total points), each team's points in each

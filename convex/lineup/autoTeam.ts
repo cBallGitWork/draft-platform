@@ -2,7 +2,7 @@ import { v, type Infer } from "convex/values";
 import type { Doc, Id } from "../_generated/dataModel";
 import { internalMutation, mutation, query, type MutationCtx } from "../_generated/server";
 import { availabilityOf } from "../availability/availability";
-import { GAMEWEEKS } from "../gameweeks/usedGameweeks";
+import { seasonGameweekCount } from "../gameweeks/seasonGameweeks";
 import { fileLetter, recordEvent, wholeLeague } from "../mail/letters";
 import { seasonRules } from "../rules/rulesHistory";
 import { logFailure } from "../shared/errors";
@@ -163,14 +163,14 @@ export type AutoTeamSwitch = Infer<typeof autoTeamSwitch>;
 /** A team's switch: on while a person switched it on or it has no manager (trades/tradeShut.ts). */
 export const switchOf = (team: Doc<"teams">): AutoTeamSwitch => ({ on: onAutoTeam(team), endsAfter: team.autoTeam?.endsAfter ?? null });
 
-/** The caller's team's auto team, for My team's header band (spec/09). Refused for anyone who
- *  runs no team in the league. */
+/** The caller's team's auto team, for My team's header band (spec/09), with the season's last
+ *  gameweek, the latest it can end after (#1618). Refused for anyone who runs no team in the league. */
 export const ofMyTeam = query({
   args: { leagueId: v.id("leagues") },
-  returns: v.object({ teamId: v.id("teams"), ...autoTeamSwitch.fields }),
+  returns: v.object({ teamId: v.id("teams"), ...autoTeamSwitch.fields, lastGameweek: v.number() }),
   handler: async (ctx, { leagueId }) => {
     const { team } = await managerOf(ctx, leagueId);
-    return { teamId: team._id, ...switchOf(team) };
+    return { teamId: team._id, ...switchOf(team), lastGameweek: await seasonGameweekCount(ctx) };
   },
 });
 
@@ -180,7 +180,8 @@ async function checkEndsAfter(ctx: MutationCtx, leagueId: Id<"leagues">, endsAft
   if (!isManager) refuse(autoTeamRefusals.endsAfterOnlyManager);
   const next = await saveGameweekOf(ctx, leagueId, Date.now());
   if (next.kind !== "open") refuse(autoTeamRefusals.noGameweekToEnd);
-  if (!Number.isInteger(endsAfter) || endsAfter < next.gameweek || endsAfter > GAMEWEEKS) {
-    refuse(autoTeamRefusals.endsAfterOutOfRange(next.gameweek, GAMEWEEKS));
+  const last = await seasonGameweekCount(ctx);
+  if (!Number.isInteger(endsAfter) || endsAfter < next.gameweek || endsAfter > last) {
+    refuse(autoTeamRefusals.endsAfterOutOfRange(next.gameweek, last));
   }
 }

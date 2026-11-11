@@ -36,7 +36,7 @@ export function GameweeksPage({ league, view }: { league: LeagueSummary; view: L
     setSending(null);
   }
 
-  const plays = playsWords(league.name);
+  const plays = playsWords(league.name, gameweeks?.length ?? 0);
   return (
     <PageSection title={GAMEWEEKS_TITLE} className="max-w-3xl bg-panel">
       <div className="flex flex-col gap-2 px-3 py-2">

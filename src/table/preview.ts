@@ -3,7 +3,7 @@
 
 import { DAY_MS, WEEK_MS } from "../../convex/shared/time";
 import { usedGameweeksOf } from "../../convex/gameweeks/usedGameweeks";
-import { previewChristmasBreak, previewSays } from "../shared/preview";
+import { previewChristmasBreak, previewSays, previewSeasonGameweeks } from "../shared/preview";
 import type { Id } from "../../convex/_generated/dataModel";
 import type { TableScreenSeam } from "./seam";
 import { leagueTableOf, type Drawn } from "./drawnTable";
@@ -15,7 +15,7 @@ export const previewTeams = ["Saka Potatoes", "Team 2", "Kroos Control", "Pique 
 /** A preview team's made-up id, from its name: League home's and the matchup's previews use it. */
 export const previewIdOf = (team: string) => `preview-${team}` as Id<"teams">;
 export const previewSeason = {
-  gameweeks: usedGameweeksOf({ unusedGameweeks: previewChristmasBreak }),
+  gameweeks: usedGameweeksOf({ unusedGameweeks: previewChristmasBreak }, previewSeasonGameweeks),
   deadlineOf: (gameweek: number) => firstDeadline + (gameweek - 1) * WEEK_MS,
 } satisfies Drawn;
 /** The gameweeks begun, scored with made-up points; the last still live, and Team 2 never saving a lineup. */

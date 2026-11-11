@@ -1,6 +1,7 @@
 import type { QueryCtx } from "../_generated/server";
 import { scoreOf } from "../football/matchScores";
 import { isLocked, type LeagueDeadlines } from "../gameweeks/deadline";
+import { seasonGameweekCount } from "../gameweeks/seasonGameweeks";
 import { isGameweekUsed, type WithUnusedGameweeks } from "../gameweeks/usedGameweeks";
 import { gameweekFixtures } from "../shared/fixtures";
 
@@ -51,7 +52,7 @@ export function mayFallInLock(deadlines: LeagueDeadlines, underWay: number | nul
  *  (../trades/tradeShut.ts) and lineup saves (../lineup/lineups.ts) read this. */
 export async function inUnplayedGameweek(ctx: QueryCtx, league: WithUnusedGameweeks, deadlines: LeagueDeadlines, now: number): Promise<boolean> {
   const gameweek = latestBegun(deadlines, now);
-  return gameweek !== null && !isGameweekUsed(league, gameweek) && (await gameweekUnderWay(ctx, gameweek));
+  return gameweek !== null && !isGameweekUsed(league, gameweek, await seasonGameweekCount(ctx)) && (await gameweekUnderWay(ctx, gameweek));
 }
 
 /** Whether a gameweek has a match not yet at full time, or with no score read yet: it is under way

@@ -3,6 +3,7 @@ import { FIRST_RULES } from "../../../convex/rules/firstRules";
 import { checkLeagueRules } from "../../../convex/rules/leagueRulesCheck";
 import type { LeagueRules } from "../../../convex/rules/leagueRulesShape";
 import { NO_AREA_MINIMUMS, rulesWith } from "../../support/convex/leagueRules.harness";
+import { PL_GAMEWEEKS } from "../../support/convex/footballRows.harness";
 import { ODD_TEAM_OUTS } from "../../../convex/table/roundRobin";
 import { everyArea } from "../../support/convex/scoring.example";
 import { MOST_IN_SQUAD } from "../../../convex/leagues/leagueLimits";
@@ -17,22 +18,32 @@ const limits = FIRST_RULES.areaLimits;
 const keegans = FIRST_RULES.classics!.find(({ name }) => name === "Keegan's Newcastle")!;
 const FRIDAY_9_05 = { day: "friday", hour: 9, minute: 5 } as const;
 
+/** The rules checked in the tests' Premier League season. */
+const check = (rules: LeagueRules, maxTeams?: number) => checkLeagueRules(rules, PL_GAMEWEEKS, maxTeams);
+
+test("a trade deadline is one of the season's gameweeks, however many it has (#1618)", () => {
+  const deadlineIn = (deadline: number) => rulesWith({ trades: { review: "veto", deadline } });
+  expect(() => checkLeagueRules(deadlineIn(34), 34)).not.toThrow();
+  expect(() => checkLeagueRules(deadlineIn(35), 34)).toThrow(new Error("The trade deadline's gameweek must be a whole number from 1 to 34, not 35."));
+  expect(() => check(deadlineIn(38))).not.toThrow();
+});
+
 test("the first rules are sound", () => {
-  expect(() => checkLeagueRules(FIRST_RULES)).not.toThrow();
+  expect(() => check(FIRST_RULES)).not.toThrow();
 });
 
 test("no squad limits, no club limit, no presets and no tie-breaks are all sound", () => {
   // With no presets, no classic has one to stand in, so there are none.
   const free = rulesWith({ squad: { size: null, minimumByArea: null, maxPerClub: null }, presets: [], classics: [], tieBreaks: [] });
-  expect(() => checkLeagueRules(free)).not.toThrow();
+  expect(() => check(free)).not.toThrow();
 });
 
 test.each(ODD_TEAM_OUTS)("the team left over playing %s is sound", (oddTeamOut) => {
-  expect(() => checkLeagueRules(rulesWith({ oddTeamOut }))).not.toThrow();
+  expect(() => check(rulesWith({ oddTeamOut }))).not.toThrow();
 });
 
 test.each([1, 2, 4])("%i head-to-head games a gameweek is sound", (gamesPerGameweek) => {
-  expect(() => checkLeagueRules(rulesWith({ gamesPerGameweek }))).not.toThrow();
+  expect(() => check(rulesWith({ gamesPerGameweek }))).not.toThrow();
 });
 
 describe.each<[string, Partial<LeagueRules>, string]>([
@@ -201,13 +212,13 @@ describe.each<[string, Partial<LeagueRules>, string]>([
   ],
 ])("%s", (_name, change, reason) => {
   test("is refused with the reason", () => {
-    expect(() => checkLeagueRules(rulesWith(change))).toThrow(new Error(reason));
+    expect(() => check(rulesWith(change))).toThrow(new Error(reason));
   });
 });
 
 test("a squad maximum of 25, a Premier League squad, is sound (spec/03)", () => {
   expect(MOST_IN_SQUAD).toBe(25);
-  expect(() => checkLeagueRules(rulesWith({ squad: { ...FIRST_RULES.squad, size: { minimum: 15, maximum: 25 } } }))).not.toThrow();
+  expect(() => check(rulesWith({ squad: { ...FIRST_RULES.squad, size: { minimum: 15, maximum: 25 } } }))).not.toThrow();
 });
 
 describe("games a gameweek, in a league of so many teams (Craig, 22 Oct 2026)", () => {
@@ -220,13 +231,13 @@ describe("games a gameweek, in a league of so many teams (Craig, 22 Oct 2026)", 
     [20, "at most 19 games a gameweek, not 20: one against each of the other 19."],
   ])("with %i teams, a team can play %s", (maxTeams, reason) => {
     const most = maxTeams % 2 === 0 ? maxTeams - 1 : maxTeams;
-    expect(() => checkLeagueRules(rulesWith({ gamesPerGameweek: most }), maxTeams)).not.toThrow();
-    expect(() => checkLeagueRules(rulesWith({ gamesPerGameweek: most + 1 }), maxTeams)).toThrow(
+    expect(() => check(rulesWith({ gamesPerGameweek: most }), maxTeams)).not.toThrow();
+    expect(() => check(rulesWith({ gamesPerGameweek: most + 1 }), maxTeams)).toThrow(
       new Error(`With ${maxTeams} teams, a team can play ${reason}`),
     );
   });
 
   test("the admin's defaults, for no league, aren't checked against one", () => {
-    expect(() => checkLeagueRules(rulesWith({ gamesPerGameweek: 30 }))).not.toThrow();
+    expect(() => check(rulesWith({ gamesPerGameweek: 30 }))).not.toThrow();
   });
 });

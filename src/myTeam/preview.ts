@@ -8,6 +8,7 @@ import { adminByline } from "../../convex/mail/letterWords";
 import { DAY_MS, HOUR_MS, WEEK_MS } from "../../convex/shared/time";
 import { squadLimits } from "../../convex/squads/squadLimits";
 import { previewLatestMail } from "../mail/preview";
+import { previewSeasonGameweeks } from "../shared/preview";
 import { teamFixturesOf } from "../table/drawnTable";
 import { previewIdOf, previewScored, previewTable, previewTeams } from "../table/preview";
 import { previewSquad, previewTactics } from "./tactics/preview";
@@ -108,7 +109,7 @@ const squad: TeamSquad = {
 
 /** The preview holds no server: a number changed there is taken, and goes when the page reloads. */
 const previewNumbers = { set: async () => null };
-const previewAutoTeam: MyAutoTeam = { teamId: previewIdOf(previewTeam), on: false, endsAfter: null };
+const previewAutoTeam: MyAutoTeam = { teamId: previewIdOf(previewTeam), on: false, endsAfter: null, lastGameweek: previewSeasonGameweeks };
 const previewAutoTeamChanges = { set: async () => null };
 
 export const previewMyTeam: MyTeamSeam = {

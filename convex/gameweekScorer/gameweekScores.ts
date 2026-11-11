@@ -1,6 +1,7 @@
 import type { Doc, Id } from "../_generated/dataModel";
 import type { QueryCtx } from "../_generated/server";
 import { passedDeadlinesOf } from "../gameweeks/passedDeadlines";
+import { seasonGameweekCount } from "../gameweeks/seasonGameweeks";
 import { isGameweekScored } from "../gameweeks/usedGameweeks";
 import type { StoredScoringSet } from "../scoring/scoringSetShape";
 import type { SeasonRules } from "../rules/rulesHistory";
@@ -72,8 +73,9 @@ interface LeagueScores {
  *  from its scoring start on: the gameweeks it scores. */
 export async function begunGameweeks(ctx: QueryCtx, league: Doc<"leagues">): Promise<number[]> {
   const passed = await passedDeadlinesOf(ctx, league._id);
+  const count = await seasonGameweekCount(ctx);
   return [...passed]
-    .filter(([gameweek, deadline]) => deadline >= league._creationTime && isGameweekScored(league, gameweek))
+    .filter(([gameweek, deadline]) => deadline >= league._creationTime && isGameweekScored(league, gameweek, count))
     .map(([gameweek]) => gameweek)
     .sort((one, other) => one - other);
 }
