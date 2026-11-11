@@ -2,7 +2,8 @@ import { beforeEach, expect, test } from "vitest";
 import { api } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
 import type { UndraftedGoTo } from "../../../convex/draft/draftRules";
-import { ARSENAL, insertClubs, insertPlayers, type HeldPlayer } from "../../support/convex/footballRows.harness";
+import { midfielder } from "../../support/convex/draft.harness";
+import { ARSENAL, insertClubs, insertPlayers } from "../../support/convex/footballRows.harness";
 import { changeEveryRules, holdGameweeks } from "../../support/convex/leagueRules.harness";
 import { actingAs, addManagers, adminCreatesLeague, COMMISSIONER, MANAGERS, type TestConvex } from "../../support/convex/leagues.harness";
 import { pickGapPasses } from "../../support/convex/pickWindow.harness";
@@ -14,7 +15,6 @@ import { waiverStateOf } from "../../support/convex/waivers.harness";
 // to the free agents when it says so.
 
 const [ANN, BOB] = MANAGERS;
-const player = (code: number): HeldPlayer => ({ code, name: `Player ${code}`, fullName: `Player ${code}`, clubCode: ARSENAL.code, positions: ["CM"] });
 const [A1, A2, LEFT] = [101, 102, 103];
 
 let t: TestConvex;
@@ -27,7 +27,7 @@ beforeEach(async () => {
   await addManagers(t, leagueId, [ANN, BOB]);
   await t.run(async (ctx) => {
     await insertClubs(ctx, [ARSENAL]);
-    await insertPlayers(ctx, [A1, A2, LEFT].map(player));
+    await insertPlayers(ctx, [A1, A2, LEFT].map((code) => midfielder(code)));
   });
 });
 
