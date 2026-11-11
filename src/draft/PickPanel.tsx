@@ -14,6 +14,7 @@ import { whyNotWords } from "./DraftPlayers";
 import type { DraftChanges, DraftList, DraftListChanges, DraftLists, GreyedPlayer, RoomFigure } from "./seam";
 import {
   addToQueueWords,
+  allPickedWords,
   closePanelLabel,
   DO_NOT_DRAFT_TITLE,
   draftPlayerWords,
@@ -45,15 +46,15 @@ import {
 // with the time left (the picture's interaction notes; spec/04, The draft room; #1458), so the panel
 // stays open once he picks.
 
-/** Where the reader's pick stands: his, on the clock at `slot`; another team's; paused; or not yet
- *  started (or over). */
-export type YourTurn = { kind: "yours"; slot: string; onTheClock: OnTheClock } | { kind: "notYours" | "paused" | "notStarted" };
+/** Where the reader's pick stands: his, on the clock at `slot`; another team's; paused; every pick
+ *  made, in the 10 seconds before the draft ends (#1458); or not yet started (or over). */
+export type YourTurn = { kind: "yours"; slot: string; onTheClock: OnTheClock } | { kind: "notYours" | "paused" | "allPicked" | "notStarted" };
 
 /** How many of the player's main position and of his club the reader's squad holds, and the most
  *  of one club it may (null for no limit); null for a reader who runs no team. */
 export type YourSquad = { atPosition: number; atClub: number; maxPerClub: number | null } | null;
 
-const NOT_NOW_WORDS = { notYours: notYourPickWords, paused: pausedPickWords, notStarted: notStartedPickWords } as const;
+const NOT_NOW_WORDS = { notYours: notYourPickWords, paused: pausedPickWords, allPicked: allPickedWords, notStarted: notStartedPickWords } as const;
 
 const LIST_BUTTONS: readonly { list: DraftList; words: string }[] = [
   { list: "queue", words: addToQueueWords },

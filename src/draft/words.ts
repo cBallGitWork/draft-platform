@@ -170,6 +170,7 @@ export const leftSuffixWords = " left";
 export const undoMyPickWords = "Undo";
 export const notYourPickWords = "Not your pick";
 export const pausedPickWords = "The draft is paused";
+export const allPickedWords = "Every pick is made";
 export const notStartedPickWords = "The draft hasn't started";
 export const takenWords = (teamName: string) => `On ${teamName}`;
 export const playsHead = "Plays";

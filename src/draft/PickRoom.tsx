@@ -19,6 +19,7 @@ import { slotWords } from "./words";
 
 /** Where the reader's pick stands in the draft. */
 function yourTurn(draft: DraftState, board: DraftBoard, onTheClock: OnTheClock | null): YourTurn {
+  if (draft.status === "ending") return { kind: "allPicked" };
   if (draft.status !== "live" || onTheClock === null) return { kind: "notStarted" };
   if (draft.clock?.pausedAt !== undefined) return { kind: "paused" };
   if (board.yourTeamId === null || draft.onTheClock.teamId !== board.yourTeamId) return { kind: "notYours" };

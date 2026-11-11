@@ -210,8 +210,8 @@ async function legalPick(ctx: QueryCtx, leagueId: Id<"leagues">, draft: Doc<"dra
  *  counts as that team's timeout, and the whole league is told (draftLetters.ts). While the draft is
  *  paused it stays paused, and the next pick's clock starts when he resumes (Craig, 5 Nov 2026).
  *  Refused to anyone who doesn't run the league, before the draft starts, once every pick is made,
- *  while a manager can still undo the last pick, for a player who isn't there to take or would break the team's squad rules, and when the team he picks
- *  for is no longer on the clock: it picked, or was picked for, before his pick arrived, so his pick
+ *  while a manager can still undo the last pick, for a player who isn't there to take or would
+ *  break the team's squad rules, and when the team he picks for is no longer on the clock: it picked, or was picked for, before his pick arrived, so his pick
  *  never lands on the next team (Craig, 11 Nov 2026, on #1477). */
 export const pickFor = mutation({
   args: { leagueId: v.id("leagues"), teamId: v.id("teams"), playerCode: v.number() },

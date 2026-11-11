@@ -12,7 +12,7 @@ import { NO_FIGURES } from "../../../convex/scouting/playersOrder";
 import { MINUTE_MS, SECOND_MS } from "../../../convex/shared/time";
 import { DRAFT_PATH } from "../../../src/frame/menu";
 import type { DraftState } from "../../../src/draft/seam";
-import { draftPlayerWords, PLAYERS_TITLE, selectLabel, undoMyPickWords } from "../../../src/draft/words";
+import { allPickedWords, draftPlayerWords, PLAYERS_TITLE, selectLabel, undoMyPickWords } from "../../../src/draft/words";
 import { draftOrder, YOUR_TEAM, type DraftData } from "../../support/src/draft.harness";
 import { manager, openApp } from "../../support/src/shell.harness";
 
@@ -86,5 +86,14 @@ describe("the Undo button", () => {
     const ending: DraftState = { status: "ending", startedAt: 0, rounds: 2, order: draftOrder, picksMade: 6, endsAt: Date.now() + 5 * SECOND_MS, pausedAt: undefined, ownPickBy: YOUR_TEAM };
     await openDraft({ draft: ending });
     expect(undoButton()!.textContent).toMatch(/^Undo0:0[45] left$/);
+  });
+
+  it("leaves everyone else's Draft button saying every pick is made while the draft ends", async () => {
+    const ending: DraftState = { status: "ending", startedAt: 0, rounds: 2, order: draftOrder, picksMade: 6, endsAt: Date.now() + 5 * SECOND_MS, pausedAt: undefined, ownPickBy: draftOrder[0].teamId };
+    await openDraft({ draft: ending });
+    expect(undoButton()).toBeNull();
+    const button = screen.getByRole("button", { name: draftPlayerWords(SAKA.name) });
+    expect(button).toHaveProperty("disabled", true);
+    expect(within(button).getByText(allPickedWords)).toBeTruthy();
   });
 });
