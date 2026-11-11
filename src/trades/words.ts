@@ -208,7 +208,9 @@ export const pickTickLabel = (round: number, teamName: string) =>
   `Trade ${pickWords(round, teamName)}`;
 /** One pick ticked, and none on the other side yet: a pick trade is one pick each way. */
 export const onePickEachWords = "Tick a pick on the other side too.";
-export const noteLabel = "Note, one line";
+/** The picture says "Note, one line"; the Glossary avoids "line" (it means an area of the pitch),
+ *  so the label takes spec/08's own "one-line note". */
+export const noteLabel = "One-line note";
 export const sendOfferWords = "Send offer";
 export const sendCounterWords = "Send counter";
 export const clearWords = "Clear";
