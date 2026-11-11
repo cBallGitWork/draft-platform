@@ -4,6 +4,7 @@ import type { Id } from "../../../convex/_generated/dataModel";
 import { DAY_MS } from "../../../convex/shared/time";
 import { dropRefusals } from "../../../convex/waivers/waivers";
 import { WAIVER_MS } from "../../../convex/waivers/waiverLimits";
+import { playerLeaves } from "../../support/convex/draftLists.harness";
 import { holdGameweeks } from "../../support/convex/leagueRules.harness";
 import { actingAs, addManagers, adminCreatesLeague, COMMISSIONER, eventsIn, MANAGERS, type TestConvex } from "../../support/convex/leagues.harness";
 import { holdPlayers, holdSquad, nameOf, passNextDeadline, SQUAD, squadMoves } from "../../support/convex/lineupSquad.harness";
@@ -203,6 +204,12 @@ describe("the player card's action (#1200)", () => {
     await holdPlayers(t, [FREE_AGENT]);
     expect(await actionOn(ANN, FREE_AGENT)).toEqual({ kind: "pickUp", squad: annsSquad() });
     expect(await actionOn(BOB, FREE_AGENT)).toEqual({ kind: "pickUp", squad: [] });
+  });
+
+  test("is nothing for an unowned player who has left the Premier League: he is no free agent (#1469)", async () => {
+    await holdPlayers(t, [FREE_AGENT]);
+    await playerLeaves(t, FREE_AGENT);
+    expect(await actionOn(ANN, FREE_AGENT)).toEqual({ kind: "none" });
   });
 
   test("is a claim for a player on waivers, saying the run that can first take him", async () => {
