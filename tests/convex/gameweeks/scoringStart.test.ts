@@ -97,7 +97,7 @@ describe("the commissioner sets it", () => {
     await expectRefused(setStart(5), scoringStartRefusals.fixed(3));
   });
 
-  test("never once the league, with none set, has scored a gameweek: its earlier results stay (#1588)", async () => {
+  test("never once the league, with none set, has scored a gameweek: its earlier results stay (#1588, S04.12)", async () => {
     playUpTo(2);
     await t.run((ctx) => recordPassedDeadlines(ctx));
 

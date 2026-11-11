@@ -251,6 +251,9 @@ Feature 4 of [SPEC.md](../SPEC.md). Only Craig's answers.
   - A league with no start set scores every ticked gameweek, as before, so no score moves; the
     rule applies once a league sets it, or when a draft ends after it ships: "No start = every
     ticked GW".
+  - A league with no start set that has already scored a gameweek can't set one: its start is
+    fixed, the same way a set start is fixed once its deadline passes: "Refuse it. Once a league
+    has scored a gameweek its scoring start is fixed" (Craig, 11 Nov 2026, on #1588). `S04.12`
 
 - In keeper and dynasty leagues, next season's draft is every player who was not kept, in the
   league's draft order.
