@@ -4,7 +4,7 @@ import { FIRST_INSTRUCTION_SCORING } from "../../../convex/scoring/draftedInstru
 import { FIRST_ROLE_OWN_STATS, FIRST_ROLES } from "../../../convex/scoring/draftedRoleAdjustments";
 import { FIRST_SCORING } from "../../../convex/scoring/firstScoring";
 import { holdGameweeks } from "../../support/convex/leagueRules.harness";
-import { holdSiteScoring, inGameweek, NOTICE, patch, t, TODAY, useSiteScoringDeployment, versions, EDITED } from "../../support/convex/siteScoring.harness";
+import { holdSiteScoring, inGameweek, lettersCount, NOTICE, patch, t, TODAY, useSiteScoringDeployment, versions, EDITED } from "../../support/convex/siteScoring.harness";
 
 // The team instructions' first values go into the site's set as the roles' did (#990; Craig, 9 Nov
 // 2026: "as roles: into the site's set from the next gameweek that hasn't begun, no letter, changed
@@ -13,7 +13,7 @@ import { holdSiteScoring, inGameweek, NOTICE, patch, t, TODAY, useSiteScoringDep
 useSiteScoringDeployment();
 
 const addFirstInstructions = () => t.mutation(internal.scoring.firstInstructionsVersion.addFirstInstructions, {});
-const letters = () => t.run(async (ctx) => (await ctx.db.query("letters").collect()).length);
+const letters = () => lettersCount(t);
 
 test("they score from the next gameweek not begun, the gameweeks before keeping their set, with no letter", async () => {
   await holdGameweeks(t, { next: 9 });

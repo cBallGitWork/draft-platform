@@ -6,7 +6,7 @@ import { siteScoringRefusals } from "../../../convex/scoring/siteScoring";
 import { expectRefused } from "../../support/convex/test.harness";
 import { ADMIN } from "../../support/convex/leagues.harness";
 import { TACKLES_AND_CLEARANCES } from "../../support/convex/scoring.example";
-import { draftSavedAt, EDITED, fixAs, saveDraftAs, useSiteScoringDeployment, versions } from "../../support/convex/siteScoring.harness";
+import { draftSavedAt, EDITED, fixAs, saveDraftAs, setOf, useSiteScoringDeployment, versions } from "../../support/convex/siteScoring.harness";
 
 // Saving the site's scoring refuses an unsound set with the reason, and only that (#354): a
 // bug in the check is the bug it is, never shown to the admin as a reason. Each case below is one
@@ -22,7 +22,6 @@ vi.mock("../../../convex/scoring/ownStats", async (actual) => {
 useSiteScoringDeployment();
 
 type Rule = StoredScoringSet["rules"][number];
-const setOf = (...rules: Rule[]): StoredScoringSet => ({ rules, wholePointsOnly: false });
 const tackles = (rule: Partial<Extract<Rule, { shape: "perAction" }>> = {}): Rule => ({ shape: "perAction", stat: "tackles", values: { all: 1 }, ...rule });
 const tackling = { parts: [{ stat: "tackles", weight: 1 }], bars: [1] };
 const anchor = (parts: { stat: string; weight: number }[]) => ({ role: "anchor", bonus: { parts, bars: [1] }, cost: tackling });

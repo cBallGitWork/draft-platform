@@ -3,7 +3,7 @@ import { internal } from "../../../convex/_generated/api";
 import { FIRST_ROLE_OWN_STATS, FIRST_ROLES } from "../../../convex/scoring/draftedRoleAdjustments";
 import { FIRST_SCORING } from "../../../convex/scoring/firstScoring";
 import { holdGameweeks } from "../../support/convex/leagueRules.harness";
-import { EDITED, holdSiteScoring, inGameweek, NOTICE, patch, t, TODAY, useSiteScoringDeployment, versions } from "../../support/convex/siteScoring.harness";
+import { EDITED, holdSiteScoring, inGameweek, lettersCount, NOTICE, patch, t, TODAY, useSiteScoringDeployment, versions } from "../../support/convex/siteScoring.harness";
 
 // The roles' first values go into the site's set (#10; Craig, 5 Nov 2026: "taking effect from the
 // next gameweek that hasn't begun, with no letter. Later changes go by patch").
@@ -11,7 +11,7 @@ import { EDITED, holdSiteScoring, inGameweek, NOTICE, patch, t, TODAY, useSiteSc
 useSiteScoringDeployment();
 
 const addFirstRoles = () => t.mutation(internal.scoring.firstRolesVersion.addFirstRoles, {});
-const letters = () => t.run(async (ctx) => (await ctx.db.query("letters").collect()).length);
+const letters = () => lettersCount(t);
 
 // S05.3
 test("they score from the next gameweek not begun, the gameweeks before keeping their set, with no letter", async () => {
