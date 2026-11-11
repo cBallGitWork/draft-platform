@@ -6,7 +6,7 @@ import { SHORTLIST_MOST } from "../../../convex/scouting/shortlist";
 import { shortlistRefusals } from "../../../convex/scouting/shortlistWords";
 import { refusals } from "../../../convex/shared/leagueAccess";
 import { ADMIN, COMMISSIONER, MANAGERS, actingAs, addManagers, adminCreatesLeague, type TestConvex } from "../../support/convex/leagues.harness";
-import { ARSENAL, CHELSEA, GONE, insertClubs, insertDroppedPlayer } from "../../support/convex/footballRows.harness";
+import { ARSENAL, CHELSEA, GONE, UNHELD, insertClubs, insertDroppedPlayer } from "../../support/convex/footballRows.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
 import { expectRefused } from "../../support/convex/test.harness";
 
@@ -17,7 +17,6 @@ import { expectRefused } from "../../support/convex/test.harness";
 const [ANN, BOB, CAT] = MANAGERS;
 const SAKA = { code: 1001, name: "Saka", fullName: "Bukayo Saka", clubCode: ARSENAL.code };
 const PALMER = { code: 1002, name: "Palmer", fullName: "Cole Palmer", clubCode: CHELSEA.code };
-const NO_SUCH_PLAYER = 9999;
 
 let t: TestConvex;
 let leagueId: Id<"leagues">;
@@ -100,7 +99,7 @@ describe("a manager's own shortlist", () => {
   });
 
   test.each([
-    ["no such player", NO_SUCH_PLAYER, refusals.noPlayer],
+    ["no such player", UNHELD, refusals.noPlayer],
     ["a player who has left the Premier League", GONE.code, shortlistRefusals.playerGone("Gone")],
   ])("refuses %s", async (_what, code, refusal) => {
     await expectRefused((await as(ANN)).add(code), refusal);

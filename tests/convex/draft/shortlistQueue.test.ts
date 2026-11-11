@@ -3,7 +3,8 @@ import type { Id } from "../../../convex/_generated/dataModel";
 import { DRAFT_LIST_MOST } from "../../../convex/draft/draftLimits";
 import { draftListRefusals } from "../../../convex/draft/draftLists";
 import { refusals } from "../../../convex/shared/leagueAccess";
-import { ANN, BOB, NO_SUCH_PLAYER, ODEGAARD, PALMER, SAKA, listsAs, listsLeague, manyPlayers, namesOn as namesIn, playerLeaves } from "../../support/convex/draftLists.harness";
+import { ANN, BOB, ODEGAARD, PALMER, SAKA, listsAs, listsLeague, manyPlayers, namesOn as namesIn, playerLeaves } from "../../support/convex/draftLists.harness";
+import { UNHELD } from "../../support/convex/footballRows.harness";
 import { ADMIN, COMMISSIONER, type TestConvex } from "../../support/convex/leagues.harness";
 import { expectRefused } from "../../support/convex/test.harness";
 
@@ -46,7 +47,7 @@ describe("one shortlisted player at a time", () => {
   test("refuses a player not on the shortlist, or no such player", async () => {
     const ann = await annShortlisting([SAKA.code]);
     await expectRefused(ann.queueFromShortlist(PALMER.code), draftListRefusals.notShortlisted("Palmer"));
-    await expectRefused(ann.queueFromShortlist(NO_SUCH_PLAYER), refusals.noPlayer);
+    await expectRefused(ann.queueFromShortlist(UNHELD), refusals.noPlayer);
     expect((await namesOn(ANN))?.queue).toEqual([]);
   });
 });

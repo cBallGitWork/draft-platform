@@ -4,8 +4,8 @@ import { DRAFT_LIST_MOST } from "../../../convex/draft/draftLimits";
 import { api } from "../../../convex/_generated/api";
 import { draftListRefusals, listsOf } from "../../../convex/draft/draftLists";
 import { refusals } from "../../../convex/shared/leagueAccess";
-import { ANN, BOB, NO_SUCH_PLAYER, ODEGAARD, PALMER, SAKA, listsAs, listsLeague, manyPlayers, namesOn as namesIn, playerLeaves } from "../../support/convex/draftLists.harness";
-import { ARSENAL, CHELSEA, GONE } from "../../support/convex/footballRows.harness";
+import { ANN, BOB, ODEGAARD, PALMER, SAKA, listsAs, listsLeague, manyPlayers, namesOn as namesIn, playerLeaves } from "../../support/convex/draftLists.harness";
+import { ARSENAL, CHELSEA, GONE, UNHELD } from "../../support/convex/footballRows.harness";
 import { ADMIN, COMMISSIONER, MANAGERS, actingAs, addManager, addManagers, adminCreatesLeague, type TestConvex } from "../../support/convex/leagues.harness";
 import { expectRefused } from "../../support/convex/test.harness";
 
@@ -68,7 +68,7 @@ describe("a manager's own queue", () => {
     await expectRefused(ann.move(SAKA.code, 1), draftListRefusals.notQueued("Saka"));
     await ann.queue(PALMER.code);
     await expectRefused(ann.move(SAKA.code, 1), draftListRefusals.notQueued("Saka"));
-    await expectRefused(ann.move(NO_SUCH_PLAYER, 1), refusals.noPlayer);
+    await expectRefused(ann.move(UNHELD, 1), refusals.noPlayer);
   });
 
   test("a player removed is off it, the rest keeping their order; removing one not on it changes nothing", async () => {
@@ -135,7 +135,7 @@ describe("both lists", () => {
   });
 
   test.each([
-    ["no such player", NO_SUCH_PLAYER, refusals.noPlayer],
+    ["no such player", UNHELD, refusals.noPlayer],
     ["a player who has left the Premier League", GONE.code, draftListRefusals.playerGone("Gone")],
   ])("refuse %s", async (_what, code, refusal) => {
     await expectRefused((await as(ANN)).queue(code), refusal);

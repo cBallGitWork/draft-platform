@@ -45,6 +45,10 @@ export function freshConvex(atConvexLimits = false): TestConvex {
  *  on CI's runner, so the margin is wide; it stays under npm test's whole-run deadline. */
 export const ROWS_TO_THE_CAP = { timeout: 120_000 };
 
+/** Where a cap-walking test's made-up player and match codes start: codes no recorded player or
+ *  match uses, so `MADE_UP_CODES + i` never meets a real one. */
+export const MADE_UP_CODES = 900_000;
+
 /** A test that runs a whole sync or a replay through convex-test: a few seconds alone, too near
  *  vitest's 5s default on a busy core, so it gets 30s. */
 export const SLOW_TEST = { timeout: 30_000 };
