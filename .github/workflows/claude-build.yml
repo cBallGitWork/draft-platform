@@ -172,6 +172,7 @@ jobs:
       # no turn, no model usage: on 3 Nov 2026 both failed builds had `"modelUsage": {}` after about 0.5 s, or an error
       # naming authentication), it finished past --max-turns, or it started and failed.
       - id: decide
+        name: Say why a failed build failed
         if: steps.gate.outputs.go == 'true'
         env:
           OUTCOME: ${{ steps.subscription.outcome }}
