@@ -14,7 +14,8 @@ import { slotWords } from "./words";
 // right-hand column, the selected player's panel on top, where the reader makes his pick while he
 // is on the clock, then his queue, do-not-draft list and auto-pick until the draft is over (#1100).
 // The column keeps its width with no player selected, so the list doesn't move; the commissioner's
-// panel, passed in as `children`, sits at its foot (#1101).
+// panel, passed in as `children`, sits at its foot (#1101), its Pick for taking the selected player
+// for the team on the clock (#1475).
 
 /** Where the reader's pick stands in the draft. */
 function yourTurn(draft: DraftState, board: DraftBoard, onTheClock: OnTheClock | null): YourTurn {
@@ -50,8 +51,9 @@ export function PickRoom({
   board: DraftBoard;
   onTheClock: OnTheClock | null;
   now: number;
-  /** The column's foot: the commissioner's panel, for whoever runs the league. */
-  children?: ReactNode;
+  /** The column's foot: the commissioner's panel, for whoever runs the league, given the selected
+   *  player, whom his Pick for takes, and how to let him go once picked. */
+  children?: (selected: ListedPlayer | null, unselect: () => void) => ReactNode;
 }) {
   const greyed = seam.useGreyedOut(leagueId);
   const figures = seam.useFigures(leagueId, now);
@@ -97,7 +99,7 @@ export function PickRoom({
             <AutoPickPanel leagueId={leagueId} board={board} teams={draft.order.length} seam={seam} />
           </>
         )}
-        {children}
+        {children?.(selected, () => setSelected(null))}
       </div>
     </div>
   );

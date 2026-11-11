@@ -1,16 +1,16 @@
 import { v, type Infer } from "convex/values";
-import type { Doc } from "../_generated/dataModel";
+import type { Doc, Id } from "../_generated/dataModel";
 import { query, type QueryCtx } from "../_generated/server";
 import { positionsNow } from "../positions/playerPositions";
 import { latestRules } from "../rules/rulesHistory";
-import { memberOf } from "../shared/leagueAccess";
+import { memberOf, runnerOf } from "../shared/leagueAccess";
 import { currentClubs, currentPlayersAt } from "../shared/players";
 import { newestSeasonWithTotals, seasonTotals } from "../stats/seasonStats";
 import type { Stats } from "../stats/statTotals";
 import { autoPickOrder } from "./autoPickOrder";
 import { squadRulesOf, undraftedIn, whyNotLegalFor } from "./draftPicks";
 import { draftRanking } from "./draftRanking";
-import { draftOf, picksLeftOf, turnNow } from "./draftRow";
+import { draftOf, picksLeftOf, turnNow, type Turn } from "./draftRow";
 import { lastPricedSeason, lastSeasonPoints } from "./lastSeasonPoints";
 
 // The draft room's players list's figures (spec/04, The draft room; #1099). The list itself is
@@ -18,7 +18,8 @@ import { lastPricedSeason, lastSeasonPoints } from "./lastSeasonPoints";
 // - its legal flag: which players the reader's team can't take as its next pick, and why, so the
 //   list greys them out in their place ("yes" to Claude's recommendation, 4 Nov 2026) and his Draft
 //   button can't be pressed. The rule is the pick's own (draftPicks.ts `whyNotLegalFor`,
-//   legalPlayers.ts), so the list and the pick never disagree;
+//   legalPlayers.ts), so the list and the pick never disagree; and for the commissioner, the same
+//   for the team on the clock, which his "Pick for <team>" is greyed by (#1475);
 // - each player's place on the site's ranking, last season's points and the overview's stats, as
 //   the approved draft room picture's columns have them.
 
@@ -41,16 +42,37 @@ export const greyedOut = query({
   returns: v.array(greyedPlayer),
   handler: async (ctx, { leagueId }) => {
     const { team } = await memberOf(ctx, leagueId);
-    const draft = await draftOf(ctx, leagueId);
-    const started = draft?.started;
-    if (!team || draft === null || started === undefined || (await turnNow(ctx, draft)) === null) return [];
-    const picksLeft = await picksLeftOf(ctx, draft, started, team._id);
-    const why = await whyNotLegalFor(ctx, leagueId, started, team._id, picksLeft, await undraftedIn(ctx, leagueId));
-    const players = await everyPlayerNow(ctx);
-    const greyed = await Promise.all(players.map(async (player) => ({ code: player.code, reason: await why(player) })));
-    return greyed.flatMap(({ code, reason }) => (reason === null ? [] : [{ code, reason }]));
+    return team ? await greyedFor(ctx, leagueId, () => team._id) : [];
   },
 });
+
+/** Every Premier League player now whom the team on the clock may not take, with why: the
+ *  commissioner's "Pick for <team>" is greyed by that team's squad rules, not his own (Craig, 5 Nov
+ *  2026, on #1101). None before the draft starts or once it is over. Refused to anyone who doesn't
+ *  run the league. */
+export const greyedOnTheClock = query({
+  args: { leagueId: v.id("leagues") },
+  returns: v.array(greyedPlayer),
+  handler: async (ctx, { leagueId }) => {
+    await runnerOf(ctx, leagueId);
+    return await greyedFor(ctx, leagueId, (turn) => turn.team);
+  },
+});
+
+/** The players the team `teamOf` names may not take as its next pick, with why, while the draft is
+ *  live; none before it starts or once it is over. */
+async function greyedFor(ctx: QueryCtx, leagueId: Id<"leagues">, teamOf: (turn: Turn) => Id<"teams">): Promise<GreyedPlayer[]> {
+  const draft = await draftOf(ctx, leagueId);
+  const started = draft?.started;
+  const turn = draft === null ? null : await turnNow(ctx, draft);
+  if (draft === null || started === undefined || turn === null) return [];
+  const teamId = teamOf(turn);
+  const picksLeft = await picksLeftOf(ctx, draft, started, teamId);
+  const why = await whyNotLegalFor(ctx, leagueId, started, teamId, picksLeft, await undraftedIn(ctx, leagueId));
+  const players = await everyPlayerNow(ctx);
+  const greyed = await Promise.all(players.map(async (player) => ({ code: player.code, reason: await why(player) })));
+  return greyed.flatMap(({ code, reason }) => (reason === null ? [] : [{ code, reason }]));
+}
 
 /** The draft room's overview (spec/04, The draft room: "a easy to see view first"; the approved
  *  picture's MP, G, A and CS): each by the catalogue stat's key whose season total it shows. */

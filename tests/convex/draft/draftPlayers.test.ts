@@ -98,6 +98,32 @@ describe("the players a team can't take", () => {
   });
 });
 
+describe("the players the team on the clock can't take, for the commissioner's Pick for (#1475)", () => {
+  const greyedOnTheClock = async (email: string) => (await as(email)).query(api.draft.draftPlayers.greyedOnTheClock, { leagueId });
+
+  test("are none before the draft starts", async () => {
+    await setSquadRules({ maxPerClub: 1 });
+    expect(await greyedOnTheClock(COMMISSIONER)).toEqual([]);
+  });
+
+  test("follow the team on the clock's squad rules, not the commissioner's", async () => {
+    await setSquadRules({ maxPerClub: 1 });
+    await start();
+    await pick(ANN, ARSENAL_MID.code);
+    // Bob is on the clock, twice by the snake: his squad, not Ann's, greys the list.
+    expect(await greyedOnTheClock(COMMISSIONER)).toEqual([]);
+    await pick(BOB, CHELSEA_MID.code);
+    expect(byCode(await greyedOnTheClock(COMMISSIONER))).toEqual([
+      { code: CHELSEA_MID.code, reason: "clubFull" },
+      { code: CHELSEA_KEEPER.code, reason: "clubFull" },
+    ]);
+  });
+
+  test("are refused to a manager who doesn't run the league", async () => {
+    await expectRefused(greyedOnTheClock(ANN), refusals.notRunner);
+  });
+});
+
 describe("the draft room's figures", () => {
   const figuresOf = async (email: string) => (await as(email)).query(api.draft.draftPlayers.figures, { leagueId, now: Date.now() });
   const byCodeOf = <Figure extends { code: number }>(figures: { players: Figure[] }) => new Map(figures.players.map((each) => [each.code, each]));

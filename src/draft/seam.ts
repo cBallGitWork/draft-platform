@@ -46,6 +46,9 @@ export type DraftSeam = Pick<ScoutingSeam, "usePlayersList"> & {
   /** For whoever runs the league only: the commissioner panel's pick time and the teams with no
    *  manager at the minute `now`, live (a hook): undefined while they load. */
   useCommissioner(leagueId: Id<"leagues">, now: number): CommissionerView | undefined;
+  /** For whoever runs the league only: the players the team on the clock can't take as its pick,
+   *  and why, live (a hook): undefined while they load. */
+  useGreyedOnTheClock(leagueId: Id<"leagues">): readonly GreyedPlayer[] | undefined;
   /** The commissioner's changes to the draft (a hook). */
   useCommissionerChanges(): CommissionerChanges;
 };
@@ -80,4 +83,6 @@ export type CommissionerChanges = {
   setPickTime(leagueId: Id<"leagues">, pickSeconds: number): Change;
   /** "I'll pick for" a team with no manager, or, with `marked` false, stop. */
   markForCommissioner(leagueId: Id<"leagues">, teamId: Id<"teams">, marked: boolean): Change;
+  /** The team on the clock, managed or not, takes the player with this code, filed as his. */
+  pickFor(leagueId: Id<"leagues">, playerCode: number): Change;
 };
