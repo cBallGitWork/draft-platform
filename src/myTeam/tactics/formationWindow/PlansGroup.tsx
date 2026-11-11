@@ -11,7 +11,7 @@ import {
   replaceQuestion,
   replaceWords,
   savePresetLine,
-  savePresetName,
+  savePresetWords,
   saveWords,
 } from "./words";
 
@@ -84,7 +84,7 @@ export function PlansGroup({
         />
       ) : (
         <button type="button" onClick={() => setSaving(true)} className="min-h-tile p-2 text-left shadow-bevel-panel">
-          <span className="block text-tile font-semibold">{savePresetName}</span>
+          <span className="block text-tile font-semibold">{savePresetWords}</span>
           <span className="block text-soft">{savePresetLine}</span>
         </button>
       )}
