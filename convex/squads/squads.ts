@@ -209,14 +209,30 @@ export async function limitsBroken(
   playerCodes: readonly number[],
   squad: LeagueRules["squad"] | null,
 ): Promise<SquadWarning[]> {
-  if (squad === null) return [];
+  return (await limitsReader(ctx, leagueId, squad))(playerCodes);
+}
+
+/** The squad limits a squad of these players would break, `limitsBroken` for many squads. */
+export type LimitsBroken = (playerCodes: readonly number[]) => Promise<SquadWarning[]>;
+
+/** `limitsBroken` kept for many squads: each player's club and positions read once, however many
+ *  squads ask after him (#1538), so a waiver run trying every claim stays clear of Convex's read
+ *  limit. A caller that changes a player's club or positions takes a new reader to read them again. */
+export async function limitsReader(ctx: QueryCtx, leagueId: Id<"leagues">, squad: LeagueRules["squad"] | null): Promise<LimitsBroken> {
+  if (squad === null) return async () => [];
   const positionsOfNow = await positionsNow(ctx, leagueId);
   const shortNameOf = readOnce(async (clubCode: number) => (await clubByCode(ctx, clubCode)).shortName);
-  // Clubs are read only for a league with a club maximum, and positions for one with area minimums.
-  const players = squad.maxPerClub === null ? [] : (await Promise.all(playerCodes.map((code) => playerByCode(ctx, code)))).filter((player) => player !== null);
-  const clubs = await Promise.all(players.map(async ({ clubCode }) => ({ clubShortName: await shortNameOf(clubCode) })));
-  const playersAreas = squad.minimumByArea ? await Promise.all(playerCodes.map(async (code) => areasOf(await positionsOfNow(code)))) : [];
-  return squadWarnings(playerCodes.length, clubs, playersAreas, squad);
+  // A player the football sync doesn't hold has no club.
+  const clubOf = readOnce(async (code: number) => {
+    const player = await playerByCode(ctx, code);
+    return player === null ? null : { clubShortName: await shortNameOf(player.clubCode) };
+  });
+  return async (playerCodes) => {
+    // Clubs are read only for a league with a club maximum, and positions for one with area minimums.
+    const clubs = squad.maxPerClub === null ? [] : (await Promise.all(playerCodes.map(clubOf))).filter((club) => club !== null);
+    const playersAreas = squad.minimumByArea ? await Promise.all(playerCodes.map(async (code) => areasOf(await positionsOfNow(code)))) : [];
+    return squadWarnings(playerCodes.length, clubs, playersAreas, squad);
+  };
 }
 
 /** The league's squad limits a squad of `playerCount` players breaks (spec/03, Squad make-up),
