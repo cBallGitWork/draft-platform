@@ -73,6 +73,9 @@ describe("the Tactics tab's GW opponent widget", () => {
     for (const links of [within(widget).getAllByRole("link"), within(meter(versusWords) as HTMLElement).getAllByRole("link")]) {
       expect(links.map((link) => link.textContent)).toEqual(names.map((name) => expect.stringContaining(name)));
       for (const link of links) expect(link.getAttribute("href")).toContain(MATCHUP_PATH);
+      const [first, second] = links.map((link) => link.getAttribute("href")!);
+      expect(second).not.toBe(first);
+      expect(new URLSearchParams(second.split("?")[1]).get("game")).toBe("2");
     }
     expect(within(widget).getAllByText(formHead)).toHaveLength(2);
   });
