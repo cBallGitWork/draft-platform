@@ -169,7 +169,7 @@ function shortlistersOf(ctx: QueryCtx, leagueId: Id<"leagues">, code: number): P
 
 /** Cleared players read one by one up to this many, each a query of at most MOST_TEAMS rows; past
  *  it, one read of the whole league's shortlists, at most MOST_TEAMS * SHORTLIST_MOST rows, so a
- *  run clearing a big pool (up to waiverRun.ts's WAIVER_PLAYERS_READ_MOST) stays inside Convex's
+ *  run clearing a big pool (up to waiverPlayers.ts's WAIVER_PLAYERS_READ_MOST) stays inside Convex's
  *  queries a transaction (#1568). */
 export const CLEARED_READ_ONE_BY_ONE_MOST = SHORTLIST_MOST;
 
