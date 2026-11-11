@@ -122,7 +122,7 @@ async function makeOffer(
   };
   const warnings = await tradeWarnings(ctx, league._id, offer);
   const offerId = await ctx.db.insert("tradeOffers", offer);
-  const words = await tradeWordsOf(ctx, { ...offer, _id: offerId, _creationTime: now });
+  const words = await tradeWordsOf(ctx, offer);
   await fileLetter(ctx, league, [to.managerEmail, by].filter((email) => email !== undefined), offerLetter(words, by, countered), by);
   return { offerId, warnings };
 }

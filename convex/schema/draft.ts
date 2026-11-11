@@ -1,6 +1,7 @@
 import { defineTable } from "convex/server";
 import { v } from "convex/values";
 import { leagueRulesShape } from "../rules/leagueRulesShape";
+import { tradePick } from "./trades";
 
 /** A player in the admin's ranking: his FPL code, and his rank, 1 the best. */
 export const rankedPlayer = v.object({ code: v.number(), rank: v.number() });
@@ -42,6 +43,13 @@ export const draftTables = {
      *  Absent until a pick is traded, which makes this row if the league has none yet.
      *  ../trades/tradePicks.ts writes it, and it can't change once the draft starts. */
     tradedPicks: v.optional(v.array(v.object({ round: v.number(), teamId: v.id("teams"), ownerId: v.id("teams") }))),
+    /** Each pick trade that went through before the draft started (#1457), first made first: the
+     *  team that offered it, the team it was to, and the pick each gave. When the draft starts, a
+     *  trade with a pick in a round a squad-size cut removed is undone, as is a later one trading on
+     *  a pick that went back, and `tradedPicks` is played again from the rest (Craig, 11 Nov 2026,
+     *  on #1457). Absent until a pick is traded, and from drafts whose trades went through before
+     *  #1457. ../trades/tradePicks.ts writes it. */
+    pickTrades: v.optional(v.array(v.object({ fromTeamId: v.id("teams"), toTeamId: v.id("teams"), picks: v.object({ gives: tradePick, gets: tradePick }) }))),
     /** The pick on the clock (spec/04, The picks; #1091): its number, when its clock starts, 10
      *  seconds after the pick before it, and when it runs out, and the scheduled job that makes the
      *  pick for its team then, or as its clock starts for a team with no manager. Absent before the

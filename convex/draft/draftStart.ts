@@ -7,7 +7,7 @@ import { draftRulesOf } from "../rules/firstRules";
 import { historyOf, inForce, latestRules, seasonRules } from "../rules/rulesHistory";
 import type { LeagueRules } from "../rules/leagueRulesShape";
 import { memberOf, refuse, runnerOf, teamsOf } from "../shared/leagueAccess";
-import { closePickTrades } from "../trades/tradePicks";
+import { closePickTrades, undoCutTrades } from "../trades/tradePicks";
 import { startClock } from "./draftClock";
 import { tellNotStarted, tellUpNext } from "./draftLetters";
 import { DRAFT_FEWEST_TEAMS } from "./draftLimits";
@@ -26,7 +26,8 @@ import { pickOnTheClock } from "./snakeOrder";
 // and the squad rules its picks follow, are the league's latest, a change waiting for a later
 // gameweek among them: "the squad size is what indicates the draft size" (Craig, 7 Nov 2026, on
 // #1130, replacing #1090's "in force when it starts"). Starting closes every pick trade still open
-// or in review, unmade (#1096; Craig, 8 Nov 2026), as picks are traded only before it.
+// or in review, unmade (#1096; Craig, 8 Nov 2026), as picks are traded only before it, and undoes
+// each pick trade with a pick in a round a squad-size cut removed (#1457; Craig, 11 Nov 2026).
 
 /** Why the draft's start is refused, in the words the commissioner is shown. */
 export const draftStartRefusals = {
@@ -89,6 +90,7 @@ async function begin(ctx: MutationCtx, league: Doc<"leagues">, draft: Doc<"draft
   if (draft === null) await ctx.db.insert("drafts", { leagueId: league._id, started, pickSeconds });
   else await ctx.db.patch("drafts", draft._id, { started, pickSeconds, startsAt: undefined, startJob: undefined });
   await closePickTrades(ctx, league._id);
+  await undoCutTrades(ctx, league, can.rounds);
   const first = await startClock(ctx, league._id, 0, started.at, pickSeconds);
   if (first !== null) await tellUpNext(ctx, league, first);
   return null;
