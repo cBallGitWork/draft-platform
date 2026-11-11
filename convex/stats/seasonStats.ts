@@ -5,7 +5,8 @@ import { internalMutation, type MutationCtx, type QueryCtx } from "../_generated
 import { seasonStartYear } from "../shared/time";
 import { takeAllOrThrow } from "../shared/cappedRead";
 import { fixtureByCode } from "../shared/fixtures";
-import { isWhole, PLAYERS_PAGE, SEASON_PLAYERS_MOST, type PlayerMatchRecord } from "./matchRecords";
+import { isWhole, SEASON_PLAYERS_MOST, type PlayerMatchRecord } from "./matchRecords";
+import { eachPlayerPage, seasonRowOf } from "./seasonRebuilds";
 import { playerRecords } from "./seasonRecords";
 import { addStats, sumStats, type Stats } from "./statTotals";
 import { readOnce } from "../shared/readOnce";
@@ -38,13 +39,6 @@ export function seasonOfFixture({ code, kickoff }: Pick<Doc<"fixtures">, "code" 
   return seasonStartYear(kickoff);
 }
 
-function totalsRow(ctx: QueryCtx, season: number, playerCode: number) {
-  return ctx.db
-    .query("playerSeasonStats")
-    .withIndex("by_season_and_playerCode", (q) => q.eq("season", season).eq("playerCode", playerCode))
-    .unique();
-}
-
 /** What a record adds to his totals: its stats once whole, nothing before. */
 export const countedStats = (record: Pick<PlayerMatchRecord, "played" | "arrived" | "stats">): Stats => (isWhole(record) ? record.stats : {});
 
@@ -57,7 +51,7 @@ export async function moveSeasonTotals(ctx: MutationCtx, changes: readonly Recor
   const seasonOf = matchSeasons(ctx);
   for (const { playerCode, fixtureCode, before, after } of changes) {
     const season = await seasonOf(fixtureCode);
-    const row = await totalsRow(ctx, season, playerCode);
+    const row = await seasonRowOf(ctx, "playerSeasonStats", season, playerCode);
     if (row === null && before !== undefined && Object.keys(before).length > 0) {
       await rebuildPlayer(ctx, playerCode, seasonOf);
       continue;
@@ -82,7 +76,7 @@ export async function seasonTotals(ctx: QueryCtx, season: number): Promise<Map<n
 
 /** One player's totals for `season`: nothing counted while he has no row. */
 export async function playerSeasonTotals(ctx: QueryCtx, season: number, playerCode: number): Promise<Stats> {
-  return (await totalsRow(ctx, season, playerCode))?.stats ?? {};
+  return (await seasonRowOf(ctx, "playerSeasonStats", season, playerCode))?.stats ?? {};
 }
 
 /** The newest season any player has totals in, or null with none held. A season's first row is
@@ -104,11 +98,12 @@ export const rebuild = internalMutation({
   args: { cursor: v.union(v.string(), v.null()) },
   returns: v.null(),
   handler: async (ctx, { cursor }) => {
-    const page = await ctx.db.query("players").paginate({ numItems: PLAYERS_PAGE, cursor });
     const seasonOf = matchSeasons(ctx);
-    for (const player of page.page) await rebuildPlayer(ctx, player.code, seasonOf);
-    if (!page.isDone) await ctx.scheduler.runAfter(0, internal.stats.seasonStats.rebuild, { cursor: page.continueCursor });
-    else await ctx.scheduler.runAfter(0, internal.stats.seasonPoints.rebuild, { cursor: null });
+    const rebuildPage = async (playerCodes: number[]) => {
+      for (const playerCode of playerCodes) await rebuildPlayer(ctx, playerCode, seasonOf);
+    };
+    const lastPage = await eachPlayerPage(ctx, cursor, rebuildPage, internal.stats.seasonStats.rebuild);
+    if (lastPage) await ctx.scheduler.runAfter(0, internal.stats.seasonPoints.rebuild, { cursor: null });
     return null;
   },
 });
@@ -125,7 +120,7 @@ async function rebuildPlayer(ctx: MutationCtx, playerCode: number, seasonOf: (fi
   for (const record of records) seasoned.push({ season: await seasonOf(record.fixtureCode), stats: countedStats(record) });
   for (const [season, each] of groupedBy(seasoned, ({ season }) => season)) {
     const stats = sumStats(each.map((one) => one.stats));
-    const row = await totalsRow(ctx, season, playerCode);
+    const row = await seasonRowOf(ctx, "playerSeasonStats", season, playerCode);
     if (row !== null) await ctx.db.replace("playerSeasonStats", row._id, { season, playerCode, stats });
     else if (Object.keys(stats).length > 0) await ctx.db.insert("playerSeasonStats", { season, playerCode, stats });
   }

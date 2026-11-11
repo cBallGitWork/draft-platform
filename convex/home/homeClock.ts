@@ -10,7 +10,7 @@ import { GAMEWEEK_MATCHES_MOST } from "../shared/fixtures";
 import { groupedBy } from "../shared/groupedBy";
 import { memberOf } from "../shared/leagueAccess";
 import { DAY_MS } from "../shared/time";
-import { LIVE_WINDOW_MS } from "../stats/liveStats";
+import { LIVE_WINDOW_MS } from "../shared/dueMatches";
 import { statusOf } from "../stats/matchStats";
 import { scheduleOf } from "../table/playedFixtures";
 import { matchdayAt } from "./matchday";
