@@ -138,7 +138,7 @@ export function SelectedPlayer({
           )}
         </div>
         <div className={FACT_ROW}>
-          <dt className="text-soft">{panelMinutesWords(period)}</dt>
+          <dt className="text-soft">{panelMinutesWords(period, pointsSeason)}</dt>
           <dd className="font-bold text-figure">{figureWords(player.figures.minutes)}</dd>
         </div>
         <div className={FACT_ROW}>
