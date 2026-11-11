@@ -23,7 +23,7 @@ import { closeOffersHolding, endOffer } from "./tradeClose";
 import { leagueOf, managersOf, tradedName, tradedSideOf, tradeWordsOf } from "./tradeWords";
 import { REVIEW_MS } from "./tradeLimits";
 import { movePicks } from "./tradePicks";
-import { reviewerOf, votersOn } from "./tradeReviewers";
+import { reviewerOf, reviewersOf, storedReviewer, votersOn } from "./tradeReviewers";
 import { squadFullRefusal, squadsAfter, tradeWarnings } from "./tradeSquads";
 
 // A trade's review and its move (spec/08 Trades; #383). Accepted, a trade goes through at once in
@@ -53,7 +53,7 @@ export const reviewRefusals = {
 export async function startReview(ctx: MutationCtx, offer: Doc<"tradeOffers">, acceptedBy: string): Promise<void> {
   const league = await leagueOf(ctx, offer.leagueId);
   const review = await reviewerOf(ctx, league, offer, await leagueDeadlines(ctx, league._id), Date.now());
-  const reviewers = review === null ? [] : review.kind === "veto" ? [review.by] : await votersOn(ctx, offer);
+  const reviewers = review === null ? [] : await reviewersOf(ctx, offer, review);
   // A vote nobody may cast goes through at once, as with no review (Craig, 11 Nov 2026, on #1607).
   if (review === null || reviewers.length === 0) {
     await goThrough(ctx, offer, acceptedBy, true);
@@ -61,8 +61,7 @@ export async function startReview(ctx: MutationCtx, offer: Doc<"tradeOffers">, a
   }
   const endsAt = Date.now() + REVIEW_MS;
   const scheduledId = await ctx.scheduler.runAt(endsAt, internal.trades.tradeReview.finish, { offerId: offer._id });
-  const reviewer = review.kind === "veto" ? review : { kind: "vote" as const, against: [] };
-  await ctx.db.patch("tradeOffers", offer._id, { review: { acceptedBy, endsAt, scheduledId, reviewer } });
+  await ctx.db.patch("tradeOffers", offer._id, { review: { acceptedBy, endsAt, scheduledId, reviewer: storedReviewer(review) } });
   const words = await tradeWordsOf(ctx, offer);
   await fileLetter(ctx, league, await managersOf(ctx, offer), (tell) => acceptedLetter(words, review, endsAt, tell), acceptedBy);
   await fileLetter(ctx, league, reviewers, (tell) => reviewLetter(words, review, endsAt, tell));
