@@ -3,9 +3,9 @@
 import type { Area } from "../../convex/lineup/pitch";
 import { RANKED_MINUTES } from "../../convex/scouting/per90Figures";
 import { PERIOD_GAMEWEEKS } from "../../convex/scouting/periods";
-import { lastSeasonPointsColumn, seasonShortWords } from "../draft/words";
+import { lastSeasonPointsColumn } from "../draft/words";
 import { afterLastMatchWords, runNameWords, type FirstRun } from "../myTeam/claims/words";
-import { STAT_WORD, weekdayTimeWords } from "../shared/words";
+import { seasonShortWords, STAT_WORD, weekdayTimeWords } from "../shared/words";
 import type { Availability, Period } from "./seam";
 
 export { figureWords, freeAgentWords, noFigureWords } from "../shared/words";

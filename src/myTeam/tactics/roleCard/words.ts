@@ -1,8 +1,7 @@
 // What the role card says (the approved role card, Role card B1; spec/05 Roles; #848), in one place
 // for Craig to change in the pull request.
 
-import { seasonShortWords } from "../../../draft/words";
-import { listSeparator, signedWords } from "../../../shared/words";
+import { listSeparator, seasonShortWords, signedWords } from "../../../shared/words";
 import { gameweekShort } from "../../header/words";
 
 export { cancelWords } from "../formationWindow/words";
