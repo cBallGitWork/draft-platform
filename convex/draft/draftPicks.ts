@@ -12,7 +12,7 @@ import { heldPlayerByCode, playerByCode } from "../shared/players";
 import { placeOf, squadOf } from "../squads/squadPlace";
 import { squadRefusals } from "../squads/squads";
 import { autoPickOrder } from "./autoPickOrder";
-import { autoPickAt, PICK_GAP_MS, picksAtClockStart, scheduleAutoPick, startClock } from "./draftClock";
+import { autoPickAt, cancelClockJob, PICK_GAP_MS, picksAtClockStart, scheduleAutoPick, startClock } from "./draftClock";
 import { tellPickedFor, tellUpNext } from "./draftLetters";
 import { listsOf } from "./draftLists";
 import { draftRulesNow, pickSecondsNow } from "./draftPickTime";
@@ -166,7 +166,7 @@ export const makePick = mutation({
     if (undoWindowOpen(draft, await lastPickIn(ctx, leagueId), now)) refuse(pickRefusals.undoing);
     const player = await legalPick(ctx, leagueId, draft, started, turn, playerCode);
     const own = { leftMs: leftOnTheClock(draft, now) };
-    if (draft.clock?.job !== undefined) await ctx.scheduler.cancel(draft.clock.job);
+    await cancelClockJob(ctx, draft.clock);
     await placePick(ctx, league, turn, team, player, email, { own });
     return null;
   },
@@ -208,7 +208,7 @@ export const pickFor = mutation({
     if (turn.team !== team._id) refuse(pickRefusals.alreadyPicked(team.name));
     if (undoWindowOpen(draft, await lastPickIn(ctx, leagueId), Date.now())) refuse(pickRefusals.undoing);
     const player = await legalPick(ctx, leagueId, draft, started, turn, playerCode);
-    if (draft.clock?.job !== undefined) await ctx.scheduler.cancel(draft.clock.job);
+    await cancelClockJob(ctx, draft.clock);
     await placePick(ctx, league, turn, team, player, email, { pausedAt: draft.clock?.paused === undefined ? undefined : Date.now() });
     await tellPickedFor(ctx, league, email, { pick: turn.pick, playerName: player.name, teamName: team.name });
     return null;
