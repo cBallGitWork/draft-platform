@@ -39,7 +39,7 @@ const offerPicks = async (email: string, toTeamId: Id<"teams">, gives: { round: 
 const accept = async (email: string, offerId: Id<"tradeOffers">) => (await as(email)).mutation(api.trades.tradeOffers.accept, { leagueId, offerId });
 const start = async () => (await as(COMMISSIONER)).mutation(api.draft.draftStart.start, { leagueId });
 const onTheClock = async () => {
-  const draft = await (await as(COMMISSIONER)).query(api.draft.draftStart.ofLeague, { leagueId, now: Date.now() });
+  const draft = await (await as(COMMISSIONER)).query(api.draft.draftStart.ofLeague, { leagueId });
   return draft.status === "live" ? { pick: draft.onTheClock.pick, teamId: draft.onTheClock.teamId } : null;
 };
 const makePick = async (email: string, playerCode: number) => (await as(email)).mutation(api.draft.draftPicks.makePick, { leagueId, playerCode });
@@ -88,10 +88,10 @@ describe("a pick swap", () => {
 
   test("is on the board's read for the whole league, each pick with its team and its owner now", async () => {
     const { offerId } = await offerPicks(ANN, bob, pickOf(ann, 1), pickOf(bob, 2));
-    expect((await (await as(CAT)).query(api.draft.draftBoard.ofLeague, { leagueId, now: Date.now() })).tradedPicks).toEqual([]);
+    expect((await (await as(CAT)).query(api.draft.draftBoard.ofLeague, { leagueId })).tradedPicks).toEqual([]);
     await accept(BOB, offerId);
 
-    expect((await (await as(CAT)).query(api.draft.draftBoard.ofLeague, { leagueId, now: Date.now() })).tradedPicks).toEqual([
+    expect((await (await as(CAT)).query(api.draft.draftBoard.ofLeague, { leagueId })).tradedPicks).toEqual([
       { round: 1, teamId: ann, ownerId: bob },
       { round: 2, teamId: bob, ownerId: ann },
     ]);

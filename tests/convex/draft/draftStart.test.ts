@@ -29,7 +29,7 @@ beforeEach(async () => {
 const ROUNDS = HELD_FIRST_RULES.squad.size!.maximum;
 
 const as = (email = COMMISSIONER) => actingAs(t, email);
-const read = async (email = COMMISSIONER) => (await as(email)).query(api.draft.draftStart.ofLeague, { leagueId, now: Date.now() });
+const read = async (email = COMMISSIONER) => (await as(email)).query(api.draft.draftStart.ofLeague, { leagueId });
 const start = async (email = COMMISSIONER) => (await as(email)).mutation(api.draft.draftStart.start, { leagueId });
 const setStart = async (startsAt: number | null) => (await as()).mutation(api.draft.draftStart.setStart, { leagueId, startsAt });
 const draw = async () => (await as()).mutation(api.draft.draftOrder.drawTeamOrder, { leagueId });

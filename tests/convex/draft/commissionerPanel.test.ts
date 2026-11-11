@@ -19,7 +19,7 @@ const PICK_SECONDS = 30;
 
 const as = (email: string) => actingAs(t, email);
 const panel = async (email = COMMISSIONER) => (await as(email)).query(api.draft.draftCommissioner.panel, { leagueId, now: Date.now() });
-const read = async () => (await as(COMMISSIONER)).query(api.draft.draftStart.ofLeague, { leagueId, now: Date.now() });
+const read = async () => (await as(COMMISSIONER)).query(api.draft.draftStart.ofLeague, { leagueId });
 const start = async () => (await as(COMMISSIONER)).mutation(api.draft.draftStart.start, { leagueId });
 const pause = async () => (await as(COMMISSIONER)).mutation(api.draft.draftPause.pause, { leagueId });
 const setPickTime = async (pickSeconds: number) => (await as(COMMISSIONER)).mutation(api.draft.draftCommissioner.setPickTime, { leagueId, pickSeconds });
@@ -80,6 +80,6 @@ describe("the pick time before the start", () => {
 
     expect(await read()).toMatchObject({ clock: { startsAt: startedAt, endsAt: startedAt + 60 * SECOND_MS } });
     expect(await panel()).toMatchObject({ pickSeconds: 60 });
-    expect(await (await as(ANN)).query(api.draft.draftBoard.ofLeague, { leagueId, now: Date.now() })).toMatchObject({ pickSeconds: 60, yourAutoPick: { limit: 1 } });
+    expect(await (await as(ANN)).query(api.draft.draftBoard.ofLeague, { leagueId })).toMatchObject({ pickSeconds: 60, yourAutoPick: { limit: 1 } });
   });
 });

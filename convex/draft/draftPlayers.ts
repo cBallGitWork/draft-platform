@@ -120,9 +120,8 @@ const overviewOf = (stats: Stats): RoomFigure["overview"] => {
  *  squad against. No pick moves any of it, so a pick doesn't run it again. Refused to anyone
  *  outside the league. */
 export const figures = query({
-  // `now`, the screen's minute, no longer moves anything here: it stays until the draft room's seam
-  // drops it, as that screen's change.
-  args: { leagueId: v.id("leagues"), now: v.number() },
+  // No minute: one would reload the room's figures as the minute turns (#1531).
+  args: { leagueId: v.id("leagues") },
   returns: roomFigures,
   handler: async (ctx, { leagueId }) => {
     await memberOf(ctx, leagueId);
