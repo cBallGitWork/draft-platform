@@ -42,7 +42,7 @@ export function gameweekPlay(matches: readonly MatchPlayed[]): GameweekPlay {
   return matches.every((match) => match.finished || match.postponed) ? "didNotPlay" : "stillToPlay";
 }
 
-export interface AutoSub {
+interface AutoSub {
   /** The starter who didn't play, or who left the squad and left his slot empty. */
   off: PlayerCode;
   on: PlayerCode;

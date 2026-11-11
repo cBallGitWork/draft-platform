@@ -34,7 +34,7 @@ export interface BackLineScoring {
 export const TWO_AT_THE_BACK: BackLineScoring = { cleanSheet: 3, goalConceded: -1 };
 
 /** The first back line a shape gets: two at the back's, for a defence row of two; else none. */
-export function firstBackLineFor(cells: readonly Cell[]): BackLineScoring | null {
+function firstBackLineFor(cells: readonly Cell[]): BackLineScoring | null {
   return cells.filter((cell) => cell.area === "defence").length === 2 ? { ...TWO_AT_THE_BACK } : null;
 }
 

@@ -25,7 +25,7 @@ import { position as positionArg } from "../schema";
 
 /** One of a manager's players' positions changing: flagged by a run of starts elsewhere, lost to
  *  a longer one, or taken away by the admin. */
-export type PositionNews = {
+type PositionNews = {
   playerName: string;
   position: Position;
   /** The gameweek it counts from: the next his manager can set a lineup for. */
@@ -164,7 +164,7 @@ export async function knownOnJoining(ctx: MutationCtx, leagueId: Id<"leagues">, 
 /** Tells whoever owns him in each league that the admin took `position` away (Craig, 5 Nov 2026,
  *  on #23: the same letter, and he keeps his slot that gameweek): only where he held it, as the
  *  league's own deadlines judge it. Call before the removal is saved. */
-export async function warnOfAdminRemoval(ctx: MutationCtx, playerCode: number, position: Position): Promise<void> {
+async function warnOfAdminRemoval(ctx: MutationCtx, playerCode: number, position: Position): Promise<void> {
   // Read once, and only once a league has him: most leagues don't.
   let schedule: HeldSchedule | undefined;
   for (const league of await everyLeague(ctx, UNWARNED)) {

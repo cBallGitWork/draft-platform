@@ -135,7 +135,7 @@ const OUT_OF_POSITION: readonly LineupProblem["kind"][] = ["outsideHisAreas", "r
 
 /** The lineup in force before a save: its gameweek, its starters, and who it was saved with out of
  *  position. */
-export interface LineupInForce {
+interface LineupInForce {
   fromGameweek: number;
   starters: readonly Placement[];
   keptOutOfPosition?: readonly PlayerCode[];
@@ -176,7 +176,7 @@ function sameSlot(now: Placement, before: Placement): boolean {
 
 /** A lineup read against the squad (spec/05, The deadline and Auto-subs): the server's for a saved
  *  one (lineups.ts), and the Tactics screen's for the manager's edit, so the two never differ. */
-export interface Reconciled<Starter extends Pick<Placement, "playerCode">> {
+interface Reconciled<Starter extends Pick<Placement, "playerCode">> {
   lineup: { starters: Starter[]; bench: PlayerCode[] };
   /** Who dropped out of it for leaving the squad, starters and bench alike. */
   leftSquad: PlayerCode[];

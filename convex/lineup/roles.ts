@@ -12,7 +12,7 @@ import { positionOfSlot, type Cell, type SlotPosition } from "./pitch";
 /** A point of a run, in metres from the player's place: forward toward the goal he attacks (back
  *  is negative), and across toward the middle of the pitch (out wide is negative; in the centre
  *  lane, toward his right), so one run serves a role on either side. */
-export interface RunPoint {
+interface RunPoint {
   forward: number;
   across: number;
 }

@@ -88,7 +88,7 @@ const PRESSING_ROWS: readonly Area[] = ["midfield", "attackingMidfield", "attack
 const WINGER_ROWS: readonly Area[] = ["attackingMidfield", "attack"];
 
 /** Whether a formation, the cells its eleven stand in, has what an instruction needs. */
-export function shapeAllows(needs: ShapeNeed, cells: readonly Cell[]): boolean {
+function shapeAllows(needs: ShapeNeed, cells: readonly Cell[]): boolean {
   const back = inArea(cells, "defence").length;
   switch (needs) {
     case "anyShape":
@@ -120,7 +120,7 @@ export function offeredOn(side: Side, cells: readonly Cell[], set: readonly Inst
 }
 
 /** A preset as this module reads it: its cells and, once the league holds it, its default pair. */
-export interface PresetDefaults {
+interface PresetDefaults {
   cells: readonly Cell[];
   instructions?: InstructionPair;
 }

@@ -12,7 +12,7 @@ import { DEFAULT_PRESETS } from "./presets";
 import type { InstructionPair } from "./instructions";
 
 /** One of a classic formation's slots and the role it sets there (roles.ts). */
-export type ClassicFormationSlot = Cell & { role: string };
+type ClassicFormationSlot =Cell & { role: string };
 
 export interface ClassicFormation {
   /** As managers say it, such as "Keegan's Newcastle": a lineup is saved with it. */
