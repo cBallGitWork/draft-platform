@@ -8,7 +8,8 @@ import { leagueSeasonsUrl, lineupsUrl, POSITIONS_SQUAD_INCLUDES, scheduleUrl, se
 import { NO_STARTERS_LOG, REGULAR_STARTS } from "../../../../convex/football/sportmonks/sportmonksPositionsSync";
 import type { RawFixture } from "../../../../convex/football/sportmonks/sportmonksRaw";
 import { DAY_MS } from "../../../../convex/shared/time";
-import { freshConvex, silenceConsoleError, type TestConvex } from "../../../support/convex/test.harness";
+import { CRON_TRIGGER, PING_URL_ENV } from "../../../../convex/heartbeats/heartbeat";
+import { freshConvex, pendingJobs, silenceConsoleError, type TestConvex } from "../../../support/convex/test.harness";
 import { LINEUPS, sportmonksLineupsMatch } from "../../../support/recorded/sportmonksLineups.payloads";
 
 const TOKEN = "test-token";
@@ -124,6 +125,20 @@ test("a refused read is a failed run on record, and nothing is filed", async () 
   const [run] = await runs(t);
   expect(run.outcome).toMatchObject({ ok: false, error: expect.stringContaining("answered 403") });
   expect(await t.run((ctx) => ctx.db.query("sportmonksLineupsRead").collect())).toEqual([]);
+});
+
+// The daily read's heartbeat (#1554): pinged once the cron's last run is done, never by hand.
+test("the cron's run that leaves no match to read schedules the heartbeat; a run by hand none", async () => {
+  vi.stubEnv(PING_URL_ENV, "https://hc-ping.com/ping-key");
+  const beat = internal.heartbeats.heartbeat.beat;
+  const byHand = freshConvex();
+  await read(byHand);
+  expect(await pendingJobs(byHand, beat)).toEqual([]);
+
+  const t = freshConvex();
+  vi.stubGlobal("fetch", fakeSportmonks());
+  await t.action(internal.football.sportmonks.sportmonksPositionsSync.run, { trigger: CRON_TRIGGER });
+  expect((await pendingJobs(t, beat)).map((job) => job.args)).toEqual([[{ check: "sportmonksPositions" }]]);
 });
 
 test("where the deployment has no token, a run reads nothing and writes no row", async () => {
