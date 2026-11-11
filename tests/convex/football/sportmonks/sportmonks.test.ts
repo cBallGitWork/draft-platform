@@ -20,10 +20,10 @@ test("the season maps to the seam: clubs, each squad's men by Sportmonks' id, ro
     { code: SM.hearts, name: "Heart of Midlothian", shortName: "HEA" },
   ]);
   expect(football.players).toEqual([
-    { code: SM.schmeichel, name: "Kasper Schmeichel", fullName: "Kasper Schmeichel", clubCode: SM.celtic },
+    { code: SM.schmeichel, name: "Kasper Schmeichel", fullName: "Kasper Schmeichel", clubCode: SM.celtic, availability: "out", news: "Hamstring Injury - Expected back 22 Nov" },
     // No display name: the common one stands in.
-    { code: SM.kyogo, name: "Kyogo", fullName: "Kyogo Furuhashi", clubCode: SM.celtic },
-    { code: SM.tavernier, name: "James Tavernier", fullName: "James Tavernier", clubCode: SM.rangers },
+    { code: SM.kyogo, name: "Kyogo", fullName: "Kyogo Furuhashi", clubCode: SM.celtic, availability: "available", news: "" },
+    { code: SM.tavernier, name: "James Tavernier", fullName: "James Tavernier", clubCode: SM.rangers, availability: "out", news: "Red Card Suspension" },
   ]);
   expect(football.gameweeks).toEqual([
     { season: 2026, number: 11, deadline: Date.parse("2026-11-01T15:00:00Z") },
@@ -44,6 +44,28 @@ test("the season maps to the seam: clubs, each squad's men by Sportmonks' id, ro
     ],
     problems: [],
   });
+});
+
+test("an open injury or suspension is out, with its name and expected return where sent; a finished one is not (#1420)", () => {
+  const byCode = new Map(mapSportmonks(sportmonksSeason()).players.map((man) => [man.code, man]));
+
+  // An open injury with a return date.
+  expect(byCode.get(SM.schmeichel)).toMatchObject({ availability: "out", news: "Hamstring Injury - Expected back 22 Nov" });
+  // A finished injury keeps no one out.
+  expect(byCode.get(SM.kyogo)).toMatchObject({ availability: "available", news: "" });
+  // An open suspension with no return date sent.
+  expect(byCode.get(SM.tavernier)).toMatchObject({ availability: "out", news: "Red Card Suspension" });
+});
+
+test("of a man's two open sidelines the one ending last names him, and one with no type falls back on its category", () => {
+  const payloads = sportmonksSeason();
+  const [celtic] = payloads.teams;
+  const extra = (id: number, end_date: string | null, type: { id: number; name: string } | null) => ({ id, player_id: SM.kyogo, category: "injury", end_date, completed: false, type });
+  celtic.sidelined = [extra(911, "2026-12-01", { id: 1, name: "Knee Injury" }), extra(912, "2026-11-20", { id: 2, name: "Illness" })];
+  expect(mapSportmonks(payloads).players.find(({ code }) => code === SM.kyogo)).toMatchObject({ availability: "out", news: "Knee Injury - Expected back 1 Dec" });
+
+  celtic.sidelined.push(extra(913, null, null));
+  expect(mapSportmonks(payloads).players.find(({ code }) => code === SM.kyogo)).toMatchObject({ availability: "out", news: "injury" });
 });
 
 test("rounds sharing a number across stages, as after the Scottish split, are one gameweek with the earliest kickoff", () => {
