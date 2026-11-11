@@ -30,7 +30,8 @@ import { squadFullRefusal, squadsAfter, tradeWarnings } from "./tradeSquads";
 // a trade he is in goes to the co-commissioner, or to a league vote if there is none. Under a
 // league vote, the managers of the other teams still playing (not on the auto team) have 24 hours,
 // and it is blocked only if most of them vote against; a voter can take his Against back until the
-// 24 hours are up (`takeBack`; Craig, 10 Nov 2026). Either way the reviewers get a Mail letter
+// 24 hours are up (`takeBack`; Craig, 10 Nov 2026); with none of them, it goes through at once
+// (Craig, 11 Nov 2026, on #1607). Either way the reviewers get a Mail letter
 // to act on, a blocked trade files a letter to the whole league, and one that clears review the
 // usual trade letter. Once through, the trade is filed as one `tradeMade`, which the screens list
 // (#1491), and its players move at once, each filed as a `playerTraded` for the squads' history; a
@@ -51,7 +52,9 @@ export const reviewRefusals = {
 export async function startReview(ctx: MutationCtx, offer: Doc<"tradeOffers">, acceptedBy: string): Promise<void> {
   const league = await leagueOf(ctx, offer.leagueId);
   const review = await reviewerOf(ctx, league, offer, await leagueDeadlines(ctx, league._id), Date.now());
-  if (review === null) {
+  const reviewers = review === null ? [] : review.kind === "veto" ? [review.by] : await votersOn(ctx, offer);
+  // A vote nobody may cast goes through at once, as with no review (Craig, 11 Nov 2026, on #1607).
+  if (review === null || reviewers.length === 0) {
     await goThrough(ctx, offer, acceptedBy, true);
     return;
   }
@@ -61,7 +64,6 @@ export async function startReview(ctx: MutationCtx, offer: Doc<"tradeOffers">, a
   await ctx.db.patch("tradeOffers", offer._id, { review: { acceptedBy, endsAt, scheduledId, reviewer } });
   const words = await tradeWordsOf(ctx, offer);
   await fileLetter(ctx, league, await managersOf(ctx, offer), (tell) => acceptedLetter(words, review, endsAt, tell), acceptedBy);
-  const reviewers = review.kind === "veto" ? [review.by] : await votersOn(ctx, offer);
   await fileLetter(ctx, league, reviewers, (tell) => reviewLetter(words, review, endsAt, tell));
 }
 
