@@ -4,6 +4,7 @@ import type { Id } from "../../../convex/_generated/dataModel";
 import { positionOfSlot } from "../../../convex/lineup/pitch";
 import { playerCardPath } from "../../playerCard/paths";
 import { useChange } from "../../shared/useChange";
+import { MoreLink } from "../../ui/MoreLink";
 import { Panel, Problem } from "../../ui/Panel";
 import { Placeholder } from "../../ui/Placeholder";
 import type { SquadNumberChanges } from "../seam";
@@ -27,7 +28,6 @@ import {
   gameweekWords,
   gameweekRowWords,
   lastWords,
-  nextGlyph,
   noFigureWords,
   panelPlateWords,
   panelRows,
@@ -125,9 +125,7 @@ export function PlayerPanel({
         <Link {...tacticsLink(player.code)} className="secondary-action lg:min-h-0 lg:py-1">
           {setRoleWords}
         </Link>
-        <Link to={playerCardPath(leagueId, player.code)} className="flex min-h-tap items-center font-semibold">
-          {playerCardWords} <span aria-hidden="true">&nbsp;{nextGlyph}</span>
-        </Link>
+        <MoreLink to={playerCardPath(leagueId, player.code)}>{playerCardWords}</MoreLink>
       </div>
     </Panel>
   );

@@ -2,6 +2,7 @@ import { Link } from "@tanstack/react-router";
 import { cellKey, GOALKEEPER_AREA, LANES, sameCell } from "../../../convex/lineup/pitch";
 import { presetNameOf } from "../../../convex/lineup/presets";
 import { MY_TEAM_PATH } from "../../frame/menu";
+import { NextGlyph } from "../../ui/MoreLink";
 import { Panel, PanelNote } from "../../ui/Panel";
 import { PitchLines } from "../tactics/pitch/PitchLines";
 import { Shirt } from "../tactics/pitch/Pitch";
@@ -17,7 +18,6 @@ import {
   elevenPitchLabel,
   elevenPlayerLabel,
   figureWords,
-  nextGlyph,
   noFigureWords,
   noLineupWords,
   setLineupWords,
@@ -51,8 +51,9 @@ export function YourEleven({ tactics, players, selected }: { tactics: Tactics | 
         </div>
       )}
       <div className="px-2 pb-2">
-        <Link to={MY_TEAM_PATH} className="action justify-center">
-          {setLineupWords} <span aria-hidden="true">&nbsp;{nextGlyph}</span>
+        <Link to={MY_TEAM_PATH} className="action justify-center gap-1">
+          {setLineupWords}
+          <NextGlyph />
         </Link>
       </div>
     </Panel>

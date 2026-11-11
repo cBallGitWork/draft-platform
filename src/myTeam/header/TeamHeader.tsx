@@ -4,7 +4,7 @@ import type { LeagueSummary } from "../../../convex/leagues/myLeagues";
 import { gameModeOf } from "../../../convex/rules/gameMode";
 import { matchupLink } from "../../matchup/paths";
 import { useMinute } from "../../shared/useMinute";
-import { nextGlyph } from "../../shared/words";
+import { NextGlyph } from "../../ui/MoreLink";
 import { PageSection } from "../../ui/Panel";
 import type { MyTeamSeam } from "../seam";
 import { AutoTeamSwitch } from "./AutoTeamSwitch";
@@ -129,7 +129,8 @@ export function OpponentLink({ game, teamId }: { game: TeamGame; teamId: Standin
   if (game.against.kind === "bye") return <span className="text-muted">{name}</span>;
   return (
     <Link {...matchupLink(teamId, game.gameweek)} className="inline-flex min-h-tap items-center gap-1 display-face lg:min-h-0">
-      {name} <span aria-hidden="true">{nextGlyph}</span>
+      {name}
+      <NextGlyph />
     </Link>
   );
 }
