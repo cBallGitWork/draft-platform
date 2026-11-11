@@ -34,7 +34,8 @@ type Transaction = TeamTransactions["transactions"][number];
 type Line = { key: string; name: ReactNode };
 
 const COLUMNS = ["when", "kind", "in", "out", "by"] as const;
-const LINE = "flex min-h-tap items-center";
+/** One line in a cell: the tap's height on the phone, the picture's 28px row on the desk. */
+const LINE = "flex min-h-tap items-center lg:min-h-row";
 
 export function HistoryPanel({ leagueId, teamName, found }: { leagueId: Id<"leagues">; teamName: string; found: TeamTransactions | undefined }) {
   const [show, setShow] = useState<HistoryShow>("all");
@@ -111,7 +112,7 @@ function linesOf(leagueId: Id<"leagues">, transaction: Transaction): { inLines: 
   const player = (playerCode: number, playerName: string): Line => ({
     key: `player-${playerCode}`,
     name: (
-      <Link to={playerCardPath(leagueId, playerCode)} className="inline-flex min-h-tap min-w-tap items-center">
+      <Link to={playerCardPath(leagueId, playerCode)} className="inline-flex min-h-tap min-w-tap items-center lg:min-h-row lg:min-w-0">
         {playerName}
       </Link>
     ),
