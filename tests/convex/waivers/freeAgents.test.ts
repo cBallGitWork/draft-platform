@@ -24,8 +24,11 @@ const pickUp = (email: string, playerCode: number, dropCode: number | null = nul
 /** The waiver cron's check, and what it starts now: never a later timer, so the clock stays put. */
 const cronRuns = async () => {
   await w.t.mutation(internal.waivers.waiverRun.runDue, {});
-  vi.advanceTimersByTime(0);
-  await w.t.finishInProgressScheduledFunctions();
+  // Two hops: the cron asks each league (#1762), and the league starts what is due in it.
+  for (const _hop of [1, 2]) {
+    vi.advanceTimersByTime(0);
+    await w.t.finishInProgressScheduledFunctions();
+  }
 };
 
 /** Gameweek NEXT's deadline, once it has passed. */
