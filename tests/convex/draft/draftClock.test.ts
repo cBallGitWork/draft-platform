@@ -9,6 +9,7 @@ import { ARSENAL, CHELSEA, insertClubs, insertPlayers } from "../../support/conv
 import { changeEveryRules } from "../../support/convex/leagueRules.harness";
 import { addManagers, adminCreatesLeague, COMMISSIONER, eventsIn, MANAGERS, type TestConvex } from "../../support/convex/leagues.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
+import { teamNumbered } from "../../../convex/leagues/teams";
 
 // The pick clock (spec/04, The picks; #1091): each pick runs on the league's pick time, the first
 // from the start and each after 10 seconds from the pick before; when a clock runs out the draft
@@ -63,7 +64,7 @@ describe("the clock", () => {
     const at = Date.now();
     expect(await picks()).toEqual([{ pick: 1, teamId: teams[0], playerCode: A1, at }]);
     expect((await eventsIn(t, leagueId)).filter(({ kind }) => kind === "playerAssigned")).toEqual([
-      { by: ANN, kind: "playerAssigned", playerCode: A1, playerName: "Player 101", teamId: teams[0], teamName: "Team 1" },
+      { by: ANN, kind: "playerAssigned", playerCode: A1, playerName: "Player 101", teamId: teams[0], teamName: teamNumbered(1) },
     ]);
     expect(await read()).toMatchObject({ onTheClock: { pick: 2, teamId: teams[1] }, clock: { startsAt: at + PICK_GAP_MS, endsAt: at + PICK_GAP_MS + FIRST_PICK_MS } });
   });

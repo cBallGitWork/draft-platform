@@ -11,6 +11,7 @@ import { actingAs, addManagers, adminCreatesLeague, COMMISSIONER, TEST_LEAGUE_TE
 import { nameOf } from "../../support/convex/lineupSquad.harness";
 import { expectRefused, pendingJobs } from "../../support/convex/test.harness";
 import { ANN, ANNS_FIRST_DROP, BOB, CAT, PALMER, RICE, SAKA, tradeLeague, type TradeLeague } from "../../support/convex/trades.harness";
+import { teamNumbered } from "../../../convex/leagues/teams";
 
 // A trade's offer (#383, spec/08 Trades): any mix of players on either side with a one-line note;
 // the other manager accepts, rejects or counters, which closes the old offer; the one who made it
@@ -59,8 +60,8 @@ describe("an offer", () => {
   test.each([
     ["no players", [], [], offerRefusals.noPlayers],
     ["a player twice", [ANNS_FIRST_DROP, ANNS_FIRST_DROP], [], offerRefusals.twice],
-    ["a player of theirs as his own", [SAKA], [], offerRefusals.notOnTeam(nameOf(SAKA), "Team 1")],
-    ["a player not on their team", [], [RICE], offerRefusals.notOnTeam(nameOf(RICE), "Team 2")],
+    ["a player of theirs as his own", [SAKA], [], offerRefusals.notOnTeam(nameOf(SAKA), teamNumbered(1))],
+    ["a player not on their team", [], [RICE], offerRefusals.notOnTeam(nameOf(RICE), teamNumbered(2))],
   ])("is refused with %s", async (_, gives, gets, reason) => {
     await expectRefused(w.offer(ANN, w.bobsTeam, gives, gets), reason);
     expect(await w.offers()).toEqual([]);
@@ -81,15 +82,15 @@ describe("an offer", () => {
   test("warns only of a limit it would push a squad past, newly or further, but is made", async () => {
     const { warnings } = await w.offer(ANN, w.catsTeam, [], [RICE]);
     expect(warnings).toEqual([
-      { teamId: w.annsTeam, teamName: "Team 1", warnings: [] },
-      { teamId: w.catsTeam, teamName: "Team 3", warnings: [{ kind: "underMinimum", players: 0, minimum: 11 }] },
+      { teamId: w.annsTeam, teamName: teamNumbered(1), warnings: [] },
+      { teamId: w.catsTeam, teamName: teamNumbered(3), warnings: [{ kind: "underMinimum", players: 0, minimum: 11 }] },
     ]);
     expect(await w.offers()).toHaveLength(1);
   });
 
   test("is refused while the same trade between the same teams is open, whatever its order or note (#1539)", async () => {
     await w.offer(ANN, w.bobsTeam, [ANNS_FIRST_DROP], [SAKA, PALMER], "First go");
-    await expectRefused(w.offer(ANN, w.bobsTeam, [ANNS_FIRST_DROP], [PALMER, SAKA], "Second go"), offerRefusals.alreadyOffered("Team 2"));
+    await expectRefused(w.offer(ANN, w.bobsTeam, [ANNS_FIRST_DROP], [PALMER, SAKA], "Second go"), offerRefusals.alreadyOffered(teamNumbered(2)));
     expect(await w.offers()).toHaveLength(1);
 
     // A different trade, or the same one the other way, is an offer of its own.
@@ -126,8 +127,8 @@ describe("an offer", () => {
 
   test("goes to no team on the auto team, nor from one (spec/09)", async () => {
     await (await actingAs(w.t, CAT)).mutation(api.lineup.autoTeam.set, { leagueId: w.leagueId, teamId: w.catsTeam, on: true });
-    await expectRefused(w.offer(ANN, w.catsTeam, [], [RICE]), offerRefusals.autoTeam("Team 3"));
-    await expectRefused(w.offer(CAT, w.annsTeam, [RICE], []), offerRefusals.autoTeam("Team 3"));
+    await expectRefused(w.offer(ANN, w.catsTeam, [], [RICE]), offerRefusals.autoTeam(teamNumbered(3)));
+    await expectRefused(w.offer(CAT, w.annsTeam, [RICE], []), offerRefusals.autoTeam(teamNumbered(3)));
   });
 });
 

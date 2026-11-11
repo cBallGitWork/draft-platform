@@ -9,6 +9,7 @@ import { ADMIN, COMMISSIONER, MANAGERS, actingAs, addManagers, adminCreatesLeagu
 import { ARSENAL, CHELSEA, GONE, UNHELD, insertClubs, insertDroppedPlayer } from "../../support/convex/footballRows.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
 import { expectRefused } from "../../support/convex/test.harness";
+import { teamNumbered } from "../../../convex/leagues/teams";
 
 // The shortlist (#374, spec/19 The shortlist): a manager's own list of players for the season, per
 // league, private to the team; and the Mail letter to each manager whose shortlist holds a player
@@ -55,7 +56,7 @@ describe("a manager's own shortlist", () => {
     await ann.add(SAKA.code);
     await ann.add(PALMER.code);
     expect(await ann.mine()).toEqual([
-      { code: PALMER.code, name: "Palmer", fullName: "Cole Palmer", club: CHELSEA, ownerTeamName: "Team 2", gone: false },
+      { code: PALMER.code, name: "Palmer", fullName: "Cole Palmer", club: CHELSEA, ownerTeamName: teamNumbered(2), gone: false },
       { code: SAKA.code, name: "Saka", fullName: "Bukayo Saka", club: ARSENAL, ownerTeamName: null, gone: false },
     ]);
   });
@@ -148,7 +149,7 @@ describe("a shortlisted player released", () => {
     await (await actingAs(t, COMMISSIONER)).mutation(api.squads.squads.assign, { leagueId, playerCode: SAKA.code, teamId: teams[2] });
     await (await actingAs(t, by)).mutation(api.squads.squads.release, { leagueId, playerCode: SAKA.code });
   };
-  const subject = shortlistedReleasedLetter("Saka", "Team 3", COMMISSIONER).subject;
+  const subject = shortlistedReleasedLetter("Saka", teamNumbered(3), COMMISSIONER).subject;
   const shortlistLetters = async (email: string) => (await (await as(email)).letters()).filter((letter) => letter.subject === subject);
 
   test("files a letter to each manager whose shortlist holds him, and to no one else", async () => {
@@ -156,7 +157,7 @@ describe("a shortlisted player released", () => {
     await (await as(BOB)).add(SAKA.code);
     await release();
     expect(await shortlistLetters(ANN)).toEqual([
-      expect.objectContaining({ ...shortlistedReleasedLetter("Saka", "Team 3", COMMISSIONER), leagueName: expect.any(String), read: false }),
+      expect.objectContaining({ ...shortlistedReleasedLetter("Saka", teamNumbered(3), COMMISSIONER), leagueName: expect.any(String), read: false }),
     ]);
     expect(await shortlistLetters(BOB)).toHaveLength(1);
     expect(await shortlistLetters(CAT)).toEqual([]);
@@ -166,7 +167,7 @@ describe("a shortlisted player released", () => {
   test("names the admin as the admin", async () => {
     await (await as(ANN)).add(SAKA.code);
     await release(ADMIN);
-    const adminSubject = shortlistedReleasedLetter("Saka", "Team 3", "The admin");
+    const adminSubject = shortlistedReleasedLetter("Saka", teamNumbered(3), "The admin");
     expect((await (await as(ANN)).letters()).find((letter) => letter.subject === adminSubject.subject)).toMatchObject(adminSubject);
   });
 

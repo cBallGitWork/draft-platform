@@ -18,6 +18,7 @@ import { deletes } from "../../support/convex/leagueDeletion.harness";
 import { COMMISSIONER, LEAGUE_NAME, MANAGERS, actingAs, addManagers, adminCreatesLeague, eventsIn, teamsIn, type TestConvex } from "../../support/convex/leagues.harness";
 import { fakeResend, signInDeployment, spendTodaysEmails, type SentEmail } from "../../support/convex/signIn.harness";
 import { expectRefused, silenceConsoleError } from "../../support/convex/test.harness";
+import { teamNumbered } from "../../../convex/leagues/teams";
 
 // Join requests and the commissioner's page of them (#73 stories 3 and 4; spec/13 Joining,
 // spec/15 Joining a league).
@@ -64,11 +65,11 @@ describe("a join request", () => {
     await t.finishAllScheduledFunctions(vi.runAllTimers);
 
     const [team] = await teamsIn(t, leagueId);
-    expect(team).toMatchObject({ name: "Team 1", managerEmail: ANN });
-    expect((await eventsIn(t, leagueId)).at(-1)).toEqual({ by: COMMISSIONER, kind: "joinRequestApproved", email: ANN, teamId: team._id, teamName: "Team 1" });
+    expect(team).toMatchObject({ name: teamNumbered(1), managerEmail: ANN });
+    expect((await eventsIn(t, leagueId)).at(-1)).toEqual({ by: COMMISSIONER, kind: "joinRequestApproved", email: ANN, teamId: team._id, teamName: teamNumbered(1) });
     expect(lastEmailTo(sent, ANN)).toMatchObject({ subject: `You're in ${LEAGUE_NAME} on Fantasy Draft Manager, Sunday 1 November at 14:32 GMT` });
     expect(lastEmailTo(sent, ANN).text).toContain("you run Team 1");
-    expect(await joinPageFor(ANN)).toEqual({ leagueName: LEAGUE_NAME, standing: "inLeague", teamName: "Team 1" });
+    expect(await joinPageFor(ANN)).toEqual({ leagueName: LEAGUE_NAME, standing: "inLeague", teamName: teamNumbered(1) });
     expect(await waitingRequests()).toEqual([]);
   });
 
@@ -137,8 +138,8 @@ describe("the commissioner's page", () => {
     expect(await invitesPage(t, leagueId)).toMatchObject({
       leagueName: LEAGUE_NAME,
       teams: [
-        { name: "Team 1", managerEmail: null },
-        { name: "Team 2", managerEmail: BOB },
+        { name: teamNumbered(1), managerEmail: null },
+        { name: teamNumbered(2), managerEmail: BOB },
       ],
       hasRoom: true,
       linkToken: token,

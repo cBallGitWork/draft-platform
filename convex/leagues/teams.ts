@@ -36,7 +36,7 @@ import { clearDraftLists } from "../draft/draftLists";
 const nameKey = (name: string) => name.trim().toLowerCase();
 
 /** A new team's name until its manager renames it: "Team 3". */
-const teamNumbered = (number: number) => `Team ${number}`;
+export const teamNumbered = (number: number) => `Team ${number}`;
 
 /** The first "Team N" free in the league, from the new team's own number. */
 function startingName(teams: Doc<"teams">[], number: number): string {

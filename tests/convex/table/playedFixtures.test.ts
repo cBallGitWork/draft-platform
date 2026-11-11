@@ -6,6 +6,7 @@ import { HOUR_MS, WEEK_MS } from "../../../convex/shared/time";
 import { changeRules, holdGameweeks, rulesWith, setUsed } from "../../support/convex/leagueRules.harness";
 import { actingAs, addManager, addManagers, adminCreatesLeague, MANAGERS, type TestConvex } from "../../support/convex/leagues.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
+import { teamNumbered } from "../../../convex/leagues/teams";
 
 // A gameweek's fixtures are stored once it begins, and read as stored ever after (#137; spec/13,
 // Gameweeks: "a change reshuffles only fixtures not yet played"; Craig, 22 Oct 2026: "A played
@@ -170,8 +171,8 @@ describe("a gameweek played keeps its fixtures", () => {
 
     expect(played(after)).toEqual(played(before));
     const teamsPlaying = (gameweeks: Gameweeks) => gameweeks.flatMap(({ fixtures }) => fixtures.flatMap(({ team, opponent }) => [team, opponent]));
-    expect(teamsPlaying(played(after))).not.toContain("Team 4");
-    expect(teamsPlaying(toCome(after))).toContain("Team 4");
+    expect(teamsPlaying(played(after))).not.toContain(teamNumbered(4));
+    expect(teamsPlaying(toCome(after))).toContain(teamNumbered(4));
   });
 });
 

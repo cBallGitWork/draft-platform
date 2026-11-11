@@ -7,12 +7,13 @@ import { refusals } from "../../../convex/shared/leagueAccess";
 import { actingAs, OUTSIDER } from "../../support/convex/leagues.harness";
 import { expectRefused } from "../../support/convex/test.harness";
 import { ANN, ANNS_TEAM, BOBS_TEAM, CAT, scoresLeague, type ScoresLeague } from "../../support/convex/gameweekScores.harness";
+import { teamNumbered } from "../../../convex/leagues/teams";
 
 // Scouting's stat race (#800, spec/19 The stat race): every team in the league with its season
 // totals, ranked by the stat the manager picks. Totals are written here as teamSeasonStats.ts
 // keeps them, so this tests only the read.
 
-const CATS_TEAM = "Team 3";
+const CATS_TEAM = teamNumbered(3);
 
 async function withTotals(league: ScoresLeague) {
   await league.t.run(async (ctx) => {

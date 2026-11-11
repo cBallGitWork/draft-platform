@@ -6,6 +6,7 @@ import { INVITE_LIFETIME_MS } from "../../../convex/joining/joiningShared";
 import { COMMISSIONER, MANAGERS, actingAs, adminCreatesLeague, teamsIn, type TestConvex } from "../../support/convex/leagues.harness";
 import { UNLISTED, ask, fakeResend, signInDeployment, type SentEmail } from "../../support/convex/signIn.harness";
 import { expectRefused } from "../../support/convex/test.harness";
+import { teamNumbered } from "../../../convex/leagues/teams";
 
 // #73's Done line, end to end: "A league of four fills from two emailed invites and two approved
 // link requests; a refused request, an expired invite and a replaced link let no one in."
@@ -47,9 +48,9 @@ test("a league of four fills from two invites and two approved requests, and no 
   await commissioner.mutation(api.joining.joinRequests.refuseRequest, { requestId: refused });
 
   expect((await teamsIn(t, leagueId)).map(({ name, managerEmail }) => ({ name, managerEmail }))).toEqual([
-    { name: "Team 1", managerEmail: ANN },
-    { name: "Team 2", managerEmail: BOB },
-    { name: "Team 3", managerEmail: CAT },
-    { name: "Team 4", managerEmail: DAN },
+    { name: teamNumbered(1), managerEmail: ANN },
+    { name: teamNumbered(2), managerEmail: BOB },
+    { name: teamNumbered(3), managerEmail: CAT },
+    { name: teamNumbered(4), managerEmail: DAN },
   ]);
 });

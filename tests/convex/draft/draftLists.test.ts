@@ -9,6 +9,7 @@ import { ANN, BOB, ODEGAARD, PALMER, SAKA, listsAs, listsLeague, manyPlayers, na
 import { ARSENAL, CHELSEA, GONE, UNHELD } from "../../support/convex/footballRows.harness";
 import { ADMIN, COMMISSIONER, MANAGERS, actingAs, addManager, addManagers, adminCreatesLeague, type TestConvex } from "../../support/convex/leagues.harness";
 import { expectRefused } from "../../support/convex/test.harness";
+import { teamNumbered } from "../../../convex/leagues/teams";
 
 // A manager's draft queue and do-not-draft list (#1092, spec/04 The queue and the ranking): the
 // team's, private to it, no player on both, 250 each, and changeable between picks once the draft
@@ -36,7 +37,7 @@ describe("a manager's own queue", () => {
     await ann.queue(PALMER.code);
     expect((await ann.mine())?.queue).toEqual([
       { code: SAKA.code, name: "Saka", fullName: "Bukayo Saka", club: ARSENAL, ownerTeamName: null, gone: false, position: null },
-      { code: PALMER.code, name: "Palmer", fullName: "Cole Palmer", club: CHELSEA, ownerTeamName: "Team 2", gone: false, position: null },
+      { code: PALMER.code, name: "Palmer", fullName: "Cole Palmer", club: CHELSEA, ownerTeamName: teamNumbered(2), gone: false, position: null },
     ]);
   });
 
@@ -113,7 +114,7 @@ describe("both lists", () => {
     await ann.unqueue(PALMER.code);
     await ann.rule(PALMER.code);
     expect(await namesOn(ANN)).toEqual({ queue: ["Ødegaard", "Saka"], doNotDraft: ["Palmer"] });
-    expect((await ann.mine())?.queue[1]).toMatchObject({ name: "Saka", ownerTeamName: "Team 2" });
+    expect((await ann.mine())?.queue[1]).toMatchObject({ name: "Saka", ownerTeamName: teamNumbered(2) });
   });
 
   test("a player who leaves the Premier League after he was added stays, marked gone", async () => {

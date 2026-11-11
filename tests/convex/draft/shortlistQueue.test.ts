@@ -7,6 +7,7 @@ import { ANN, BOB, ODEGAARD, PALMER, SAKA, listsAs, listsLeague, manyPlayers, na
 import { UNHELD } from "../../support/convex/footballRows.harness";
 import { ADMIN, COMMISSIONER, type TestConvex } from "../../support/convex/leagues.harness";
 import { expectRefused } from "../../support/convex/test.harness";
+import { teamNumbered } from "../../../convex/leagues/teams";
 
 // The shortlist feeding the draft queue (#1137, spec/04 line 46, spec/19 The shortlist): a player
 // at a time, or the whole shortlist at the bottom in name order, as many as fit (Craig, 4 Nov 2026).
@@ -88,7 +89,7 @@ describe("either way", () => {
   test("a player already on a team never goes in: one at a time says he's taken, the whole list skips him", async () => {
     const ann = await annShortlisting([SAKA.code, PALMER.code]);
     await t.run((ctx) => ctx.db.insert("squadPlayers", { leagueId, teamId: teams[1], playerCode: SAKA.code }));
-    await expectRefused(ann.queueFromShortlist(SAKA.code), draftListRefusals.taken("Saka", "Team 2"));
+    await expectRefused(ann.queueFromShortlist(SAKA.code), draftListRefusals.taken("Saka", teamNumbered(2)));
     expect(await ann.queueShortlist()).toEqual({ added: 1, leftOut: 0 });
     expect((await namesOn(ANN))?.queue).toEqual(["Palmer"]);
   });

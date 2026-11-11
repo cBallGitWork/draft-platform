@@ -12,6 +12,7 @@ import { draftSteps } from "../../support/convex/draft.harness";
 import { addManagers, ADMIN, adminCreatesLeague, COMMISSIONER, eventsIn, MANAGERS, type TestConvex } from "../../support/convex/leagues.harness";
 import { pickGapPasses } from "../../support/convex/pickWindow.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
+import { teamNumbered } from "../../../convex/leagues/teams";
 
 // Making a pick (spec/04, The picks; #1090): the manager on the clock picks a legal player, who
 // joins his squad; a pick out of turn or breaking the squad's rules is refused; the turn runs the
@@ -113,7 +114,7 @@ describe("a full draft", () => {
     await pick(ANN, A1);
 
     expect((await eventsIn(t, leagueId)).filter(({ kind }) => kind === "playerAssigned")).toEqual([
-      { by: ANN, kind: "playerAssigned", playerCode: A1, playerName: "Player 101", teamId: teams[0], teamName: "Team 1" },
+      { by: ANN, kind: "playerAssigned", playerCode: A1, playerName: "Player 101", teamId: teams[0], teamName: teamNumbered(1) },
     ]);
   });
 });
@@ -125,7 +126,7 @@ describe("a pick is refused", () => {
 
   test("out of turn, naming the team on the clock, and nothing is written", async () => {
     await start();
-    await expectRefused(pick(BOB, A1), pickRefusals.notYourTurn("Team 1"));
+    await expectRefused(pick(BOB, A1), pickRefusals.notYourTurn(teamNumbered(1)));
     expect(await read()).toMatchObject({ picksMade: 0 });
     expect((await squadsNow()).flatMap(({ players }) => players)).toEqual([]);
   });
@@ -138,7 +139,7 @@ describe("a pick is refused", () => {
   test("for a player already drafted", async () => {
     await start();
     await pick(ANN, A1);
-    await expectRefused(pick(BOB, A1), pickRefusals.taken("Player 101", "Team 1"));
+    await expectRefused(pick(BOB, A1), pickRefusals.taken("Player 101", teamNumbered(1)));
   });
 
   test("for a player who has left the Premier League, or none at all", async () => {

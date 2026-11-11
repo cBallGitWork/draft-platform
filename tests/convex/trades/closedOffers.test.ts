@@ -5,6 +5,7 @@ import { seasonStartAt } from "../../../convex/shared/time";
 import { actingAs, COMMISSIONER } from "../../support/convex/leagues.harness";
 import { nameOf } from "../../support/convex/lineupSquad.harness";
 import { ANN, ANNS_FIRST_DROP, BOB, CAT, PALMER, RICE, SAKA, tradeLeague, type TradeLeague } from "../../support/convex/trades.harness";
+import { teamNumbered } from "../../../convex/leagues/teams";
 
 // The Trades screen's Closed offers (#383; docs/design/approved/trades): each offer that ended this
 // season without going through, rejected, countered, withdrawn, closed, blocked or unmade, kept with
@@ -35,9 +36,9 @@ describe("closed offers", () => {
     expect(closed.map(({ why }) => why)).toEqual(["withdrawn", "countered", "rejected"]);
     expect(closed[2]).toMatchObject({
       fromTeamId: w.annsTeam,
-      fromTeamName: "Team 1",
+      fromTeamName: teamNumbered(1),
       toTeamId: w.bobsTeam,
-      toTeamName: "Team 2",
+      toTeamName: teamNumbered(2),
       gives: [expect.objectContaining({ code: ANNS_FIRST_DROP })],
       gets: [expect.objectContaining({ code: SAKA })],
       picks: null,

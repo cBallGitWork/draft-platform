@@ -11,6 +11,7 @@ import { elapse, expectRefused } from "../../support/convex/test.harness";
 import { invitesPage } from "../../support/convex/joining.harness";
 import { actingAs, addManager, addManagers, adminCreatesLeague, COMMISSIONER, MANAGERS, OUTSIDER, type TestConvex } from "../../support/convex/leagues.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
+import { teamNumbered } from "../../../convex/leagues/teams";
 
 // Starting the draft (spec/04, Starting it; #1089): on the commissioner's date or when he presses
 // start, with the teams there, at least 2, in a league with a squad size limit; in the draft order
@@ -59,9 +60,9 @@ describe("before it starts", () => {
       startsAt: null,
       rounds: ROUNDS,
       order: [
-        { teamId: teams[0], name: "Team 1" },
-        { teamId: teams[1], name: "Team 2" },
-        { teamId: teams[2], name: "Team 3" },
+        { teamId: teams[0], name: teamNumbered(1) },
+        { teamId: teams[1], name: teamNumbered(2) },
+        { teamId: teams[2], name: teamNumbered(3) },
       ],
     });
   });
@@ -87,12 +88,12 @@ describe("pressing start", () => {
       startedAt: now,
       rounds: ROUNDS,
       order: [
-        { teamId: teams[0], name: "Team 1" },
-        { teamId: teams[1], name: "Team 2" },
-        { teamId: teams[2], name: "Team 3" },
+        { teamId: teams[0], name: teamNumbered(1) },
+        { teamId: teams[1], name: teamNumbered(2) },
+        { teamId: teams[2], name: teamNumbered(3) },
       ],
       picksMade: 0,
-      onTheClock: { pick: 1, round: 1, teamId: teams[0], name: "Team 1" },
+      onTheClock: { pick: 1, round: 1, teamId: teams[0], name: teamNumbered(1) },
       clock: { startsAt: now, endsAt: now + HELD_FIRST_RULES.draft!.pickSeconds * SECOND_MS },
       ownPickBy: null,
     });
