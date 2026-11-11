@@ -161,6 +161,26 @@ describe("answering an offer", () => {
   });
 });
 
+describe("while the draft is live (#1482, S08.7)", () => {
+  /** The league's draft given `rounds`: two leave a pick on the clock, none is a draft over. */
+  const draftRounds = (rounds: number) =>
+    w.t.run(async (ctx) => {
+      const draft = await ctx.db.query("drafts").withIndex("by_leagueId", (q) => q.eq("leagueId", w.leagueId)).unique();
+      await ctx.db.patch("drafts", draft!._id, { started: { ...draft!.started!, rounds } });
+    });
+
+  test("a player offer is refused, and an offer made before it can't be accepted, until the last pick", async () => {
+    const { offerId } = await w.offer(ANN, w.bobsTeam, [ANNS_FIRST_DROP], [SAKA]);
+    await draftRounds(2);
+    await expectRefused(w.offer(ANN, w.catsTeam, [], [RICE]), offerRefusals.draftLive);
+    await expectRefused(w.accept(BOB, offerId), offerRefusals.draftLive);
+
+    await draftRounds(0);
+    await w.offer(ANN, w.catsTeam, [], [RICE]);
+    expect(await w.offers()).toHaveLength(2);
+  });
+});
+
 describe("the churn rule (#1479, S08.6)", () => {
   test("a free agent Ann just picked up, traded to Bob and dropped by him before the deadline, goes on waivers", async () => {
     await w.tradesAre({ review: "none", deadline: null });
