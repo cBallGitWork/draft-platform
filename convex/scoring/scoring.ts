@@ -86,7 +86,7 @@ interface Slot {
  * Points are kept in tenths, so 0.1 three times is 0.3, never 0.30000000000000004.
  */
 export function scoreMatch(record: MatchStats | null, set: ScoringSet, cell: Cell, role?: string, team?: TeamScoring): MatchPoints {
-  validateScoringSet(set);
+  checkedOnce(set);
   if (!AREAS.includes(cell.area)) throw new Error(`${showValue(cell.area)} is not one of the pitch's six areas`);
   if (!LANES.includes(cell.lane)) throw new Error(`${showValue(cell.lane)} is not one of the pitch's five lanes`);
   if (record === null) {
@@ -108,6 +108,16 @@ export function scoreMatch(record: MatchStats | null, set: ScoringSet, cell: Cel
   const instructed = (team?.instructions ?? []).flatMap((key) => instructionPoints(record, set, key, slot.position, minutes) ?? []);
   const total = inTenths(base + (adjusted?.points ?? 0) + sum(instructed.map(({ points }) => points)));
   return { total, categories, ...(adjusted !== undefined && { role: adjusted }), ...(instructed.length > 0 && { instructions: instructed }) };
+}
+
+/** Sets already checked, by the object read: a page of players scores every match under one set,
+ *  and checking it was nine tenths of the time (#1574). A set read is never changed after. */
+const CHECKED_SETS = new WeakSet<ScoringSet>();
+
+function checkedOnce(set: ScoringSet): void {
+  if (CHECKED_SETS.has(set)) return;
+  validateScoringSet(set);
+  CHECKED_SETS.add(set);
 }
 
 /** What `role` gives a man with this record under `set`, own stats worked out: 0 for no role, or
