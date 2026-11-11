@@ -4,7 +4,7 @@
 import { MINUTES_STAT } from "../stats/matchRecords";
 import { withOwnStats } from "./ownStats";
 import { AREAS, LANES, positionOfSlot, type Cell, type SlotPosition } from "../lineup/pitch";
-import { priceFor, type Priced } from "./priced";
+import { priceFor, pricingOf, type Priced } from "./priced";
 import { validateScoringSet, type Area, type Band, type RoleSide, type ScoringRule, type ScoringSet } from "./scoringSet";
 import { backLineAt, instructionPoints, withBackLine, type InstructionPoints, type TeamScoring } from "./teamScoring";
 import { DOUBLE_GAMEWEEK_RULES, inTenths, showValue, statIn, weighedCount, type DoubleGameweekRule, type MatchStats } from "./values";
@@ -184,9 +184,14 @@ export function rulePointsIn(rule: ScoringRule, cell: Cell, actions: number, min
 type Price = <Value>(priced: Priced<Value>) => Value;
 
 function pricedBy(values: Priced<unknown>, slot: Slot): PricedBy {
-  if ("all" in values) return { by: "all" };
-  if ("byArea" in values) return { by: "area", area: slot.area };
-  return { by: "position", position: slot.position };
+  switch (pricingOf(values)) {
+    case "all":
+      return { by: "all" };
+    case "byArea":
+      return { by: "area", area: slot.area };
+    case "byPosition":
+      return { by: "position", position: slot.position };
+  }
 }
 
 /** The rule's value at the slot: for a band rule, the bands he earned of it. */

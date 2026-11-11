@@ -1,11 +1,9 @@
 import { v } from "convex/values";
 import { internalMutation } from "../_generated/server";
 import { FIRST_INSTRUCTION_SCORING } from "./draftedInstructionScoring";
-import { FIRST_ROLE_OWN_STATS } from "./draftedRoleAdjustments";
-import { checkOwnStatsAgainstCatalogue } from "./ownStats";
-import { validateScoringSet } from "./scoringSet";
-import { addVersion } from "./siteScoring";
-import { setOf, siteVersions, versionName } from "./siteVersions";
+import { latestInForce, withFirstOwnStats } from "./firstRolesVersion";
+import { addVersion, checkScoringSet } from "./siteScoring";
+import { setOf } from "./siteVersions";
 
 // The one-off that puts the team instructions' first values (draftedInstructionScoring.ts) into the
 // site's scoring set (#990; Craig, 9 Nov 2026: "as roles: into the site's set from the next gameweek
@@ -25,23 +23,15 @@ export const addFirstInstructions = internalMutation({
   args: {},
   returns: v.union(v.null(), v.object({ name: v.string(), fromGameweek: v.number() })),
   handler: async (ctx) => {
-    const history = await siteVersions(ctx);
-    const latest = history.at(-1);
-    const now = Date.now();
-    if (latest !== undefined && latest.takesEffectAt > now) {
-      throw new Error(`version ${versionName(latest)} waits to take effect and was made without the instructions, so they weren't added`);
-    }
-    const set = setOf(latest);
+    const { history, version } = await latestInForce(ctx, "the instructions");
+    const set = setOf(version);
     const scored = new Set((set.instructions ?? []).map(({ instruction }) => instruction));
     const missing = FIRST_INSTRUCTION_SCORING.filter(({ instruction }) => !scored.has(instruction));
     if (missing.length === 0) return null;
     // Failed long balls and crosses are own stats the roles brought in; a set without them gets them.
-    const held = new Set((set.ownStats ?? []).map(({ stat }) => stat));
-    const ownStats = [...(set.ownStats ?? []), ...FIRST_ROLE_OWN_STATS.filter(({ stat }) => !held.has(stat))];
-    const scoring = { ...set, ownStats, instructions: [...(set.instructions ?? []), ...missing] };
-    validateScoringSet(scoring);
-    checkOwnStatsAgainstCatalogue(scoring.ownStats);
-    const { name, fromGameweek } = await addVersion(ctx, history, { scoring, kind: "fix", takesEffectAt: now }, null);
+    const scoring = { ...set, ownStats: withFirstOwnStats(set), instructions: [...(set.instructions ?? []), ...missing] };
+    checkScoringSet(scoring);
+    const { name, fromGameweek } = await addVersion(ctx, history, { scoring, kind: "fix", takesEffectAt: Date.now() }, null);
     return { name, fromGameweek };
   },
 });

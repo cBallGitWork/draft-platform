@@ -93,6 +93,11 @@ export function positionOfSlot({ area, lane }: Cell): SlotPosition {
   return SLOT_POSITION_BY_AREA[area][WIDE_LANES.includes(lane) ? "wide" : "centre"];
 }
 
+/** The area each slot position plays in: each is in exactly one (spec/14's table). */
+export const AREA_OF_POSITION: Readonly<Record<SlotPosition, Area>> = Object.fromEntries(
+  AREAS.flatMap((area) => Object.values(SLOT_POSITION_BY_AREA[area]).map((position) => [position, area])),
+) as Record<SlotPosition, Area>;
+
 /** The areas a player with these positions plays any cell of, back to front: a wing back's are
  *  defence and both midfield rows his wide lanes reach. */
 export function areasOf(positions: readonly Position[]): Area[] {
