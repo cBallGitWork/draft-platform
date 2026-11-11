@@ -24141,6 +24141,15 @@
               }
             },
             "optional": true
+          },
+          "keptOutOfPosition": {
+            "fieldType": {
+              "type": "array",
+              "value": {
+                "type": "number"
+              }
+            },
+            "optional": true
           }
         }
       }
