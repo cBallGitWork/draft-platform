@@ -16,6 +16,7 @@ import {
   scoringStartHint,
   scoringStartLabel,
   scoringStartLoadingWords,
+  seasonBegunStartHint,
 } from "./words";
 
 const HINT_ID = "settings-scoring-start-hint";
@@ -24,7 +25,8 @@ const NOT_SET = "";
 
 /** "Scoring starts in gameweek N" (spec/04, After the draft; Craig, 5 Nov 2026, on #1097; #1190):
  *  a picker offering only the ticked gameweeks not begun, saved at once, apart from the settings'
- *  Save. Once the start's deadline passes it's fixed, and shows as words. */
+ *  Save. Once the start's deadline passes it's fixed, and shows as words; so is none set once the
+ *  league has scored a gameweek (Craig, 11 Nov 2026, on #1588). */
 export function ScoringStartRow({ leagueId, seam }: { leagueId: Id<"leagues">; seam: LeagueSettingsSeam }) {
   const view = seam.useScoringStart(leagueId);
   const saving = useChange();
@@ -33,6 +35,7 @@ export function ScoringStartRow({ leagueId, seam }: { leagueId: Id<"leagues">; s
   if (view === undefined) return <Loading>{scoringStartLoadingWords}</Loading>;
   const now = Date.now();
   const startDeadline = view.ticked.find(({ gameweek }) => gameweek === view.start)?.deadline ?? null;
+  const fixedAtNone = view.start === null && view.seasonBegun;
   const fixed = view.start !== null && isLocked(startDeadline, now);
   const choices = choicesOf(view, now);
   return (
@@ -43,6 +46,8 @@ export function ScoringStartRow({ leagueId, seam }: { leagueId: Id<"leagues">; s
         </span>
         {fixed ? (
           <span className="font-semibold">{gameweekShort(view.start!)}</span>
+        ) : fixedAtNone ? (
+          <span className="font-semibold">{noScoringStartWords}</span>
         ) : choices.length === 0 && view.start === null ? (
           <span>{noScoringStartChoicesWords}</span>
         ) : (
@@ -68,7 +73,7 @@ export function ScoringStartRow({ leagueId, seam }: { leagueId: Id<"leagues">; s
         )}
       </div>
       <p id={HINT_ID} className="text-muted">
-        {hintOf(view.start, startDeadline, fixed)}
+        {fixedAtNone ? seasonBegunStartHint : hintOf(view.start, startDeadline, fixed)}
       </p>
       <Problem problem={saving.problem} />
     </div>

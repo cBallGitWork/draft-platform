@@ -45,7 +45,7 @@ export function fakeLeagueSettings({
   waivers = NO_WAIVERS,
   claims = [],
   claimsLoading = false,
-  scoringStart = { start: null, ticked: [] },
+  scoringStart = { start: null, ticked: [], seasonBegun: false },
 }: LeagueSettingsData = {}) {
   return {
     useSettings: vi.fn<LeagueSettingsSeam["useSettings"]>(() => (loading ? undefined : view)),

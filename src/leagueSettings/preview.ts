@@ -17,6 +17,7 @@ const teamOrder = { teams: previewTeams.map((name) => ({ teamId: previewIdOf(nam
 const scoringStart = {
   start: Math.max(...previewChristmasBreak) + 1,
   ticked: previewSeason.filter(({ used }) => used).map(({ gameweek, deadline }) => ({ gameweek, deadline })),
+  seasonBegun: false,
 };
 
 export const previewLeagueSettings: LeagueSettingsSeam = {
