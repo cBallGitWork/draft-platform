@@ -17,7 +17,7 @@ import type { SeasonRules } from "../rules/rulesHistory";
 import type { MatchPoints } from "../scoring/scoring";
 import type { MatchStats } from "../scoring/values";
 import { siteScoringByGameweek } from "../scoring/siteVersions";
-import { validateScoringSet } from "../scoring/scoringSet";
+import { checkedOnce } from "../scoring/scoringSet";
 import { scoreTeam, type PlayerMatch, type SlotPoints, type TeamPoints } from "../scoring/teamPoints";
 import { MINUTES_STAT, statsIfWhole } from "../stats/matchRecords";
 import { heldMatches, isFinished, isMatchFinal, isPostponed, playsIn, teamOverridesIn, type HeldMatch } from "./heldMatches";
@@ -94,7 +94,7 @@ export async function gameweekInputs(
  *  league's rules then. */
 export function rulesIn(reads: LeagueReads, gameweek: number) {
   const set = reads.setIn(gameweek);
-  validateScoringSet(set);
+  checkedOnce(set);
   const rules = reads.season.inGameweek(gameweek);
   return { set: playedSet(set, gameModeOf(rules)), rules };
 }
