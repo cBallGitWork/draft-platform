@@ -2,6 +2,7 @@ import { v, type Infer } from "convex/values";
 import type { Id } from "../_generated/dataModel";
 import { query, type QueryCtx } from "../_generated/server";
 import { positionsNow } from "../positions/playerPositions";
+import { ASSISTS, CLEAN_SHEETS, GOALS } from "../scoring/statKeys";
 import { memberOf, runnerOf } from "../shared/leagueAccess";
 import { newestSeasonWithTotals, seasonTotals } from "../stats/seasonStats";
 import type { Stats } from "../stats/statTotals";
@@ -70,7 +71,7 @@ async function greyedFor(ctx: QueryCtx, leagueId: Id<"leagues">, teamOf: (turn: 
 
 /** The draft room's overview (spec/04, The draft room: "a easy to see view first"; the approved
  *  picture's MP, G, A and CS): each by the catalogue stat's key whose season total it shows. */
-export const OVERVIEW_STATS = { appearances: "appearances", goals: "goals_scored", assists: "assists", cleanSheets: "clean_sheets" } as const;
+export const OVERVIEW_STATS = { appearances: "appearances", goals: GOALS, assists: ASSISTS, cleanSheets: CLEAN_SHEETS } as const;
 export type OverviewStat = keyof typeof OVERVIEW_STATS;
 
 const overview = v.object({ appearances: v.number(), goals: v.number(), assists: v.number(), cleanSheets: v.number() });

@@ -9,7 +9,7 @@ import { managerOf } from "../shared/leagueAccess";
 import { clubsByCode, type Clubs } from "../shared/players";
 import { begunGameweeks } from "../gameweekScorer/gameweekScores";
 import { scoredMatches } from "../gameweekScorer/scoredMatches";
-import { EVENT_STATS, MINUTES_STAT } from "../stats/matchRecords";
+import { CLEAN_SHEETS, EVENT_STATS, MINUTES_STAT, SAVES } from "../stats/matchRecords";
 import { newestSeasonWithTotals, playerSeasonTotals } from "../stats/seasonStats";
 import type { Stats } from "../stats/statTotals";
 import { heldOrNot, squadOf, unheldCodes } from "./squadPlace";
@@ -37,8 +37,8 @@ export const SQUAD_STATS = {
   minutes: MINUTES_STAT,
   goals: EVENT_STATS.goals,
   assists: EVENT_STATS.assists,
-  cleanSheets: "clean_sheets",
-  saves: "saves",
+  cleanSheets: CLEAN_SHEETS,
+  saves: SAVES,
   yellowCards: EVENT_STATS.yellowCards,
   redCards: EVENT_STATS.redCards,
 } as const;

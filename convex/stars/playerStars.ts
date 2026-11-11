@@ -56,7 +56,7 @@ export async function starsOfPlayers(ctx: QueryCtx, playerCodes: readonly number
 /** The players whose stars the team is shown in the season `now` falls in: its squad, every player
  *  a squad move put on or took off it this season, and every player its scouts reported on this
  *  season. None for no team (a commissioner who runs none), who has no squad or scouts. */
-export async function starsShownTo(ctx: QueryCtx, leagueId: Id<"leagues">, team: Doc<"teams"> | undefined, now: number): Promise<Set<number>> {
+async function starsShownTo(ctx: QueryCtx, leagueId: Id<"leagues">, team: Doc<"teams"> | undefined, now: number): Promise<Set<number>> {
   if (team === undefined) return new Set();
   const shown = await scoutedThisSeason(ctx, team._id, now);
   for (const { playerCode } of await squadOf(ctx, team._id)) shown.add(playerCode);

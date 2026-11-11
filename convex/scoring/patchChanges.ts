@@ -5,6 +5,7 @@ import type { StoredScoringSet } from "./scoringSetShape";
 import { categoryName } from "./categories";
 import { priceFor, type Priced } from "./priced";
 import type { Band, InstructionLine, PointsLimit, RoleSide } from "./scoringSet";
+import type { WeighedStat } from "./values";
 import { groupedBy, keyedByCount } from "../shared/groupedBy";
 import { figureWords, MINUS_SIGN, signedWords } from "../shared/numberWords";
 
@@ -143,7 +144,7 @@ export function scoringChanges(before: StoredScoringSet, after: StoredScoringSet
 
 /** Weighed stats added up, as a role's side and an instruction's line count them: "2 × Goals in
  *  box + Shots on target in box". */
-const partsWords = (parts: readonly { stat: string; weight: number }[], set: StoredScoringSet) =>
+const partsWords = (parts: readonly WeighedStat[], set: StoredScoringSet) =>
   parts.map(({ stat, weight }) => `${weight === 1 ? "" : `${figureWords(weight)} × `}${categoryName(stat, set.ownStats)}`).join(" + ");
 
 /** One line for each role whose scoring changed, named as managers say it, each side's bars and

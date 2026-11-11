@@ -32,7 +32,7 @@ type PlayerCode = number;
 /** One man's total of one stat moving his points under some slot's pricing, as a read showed it.
  *  `from` and `to` are equal where only his minutes moved: they passed a rule's minimum, as a
  *  clean sheet's (stepPoints). */
-export interface ThresholdStep {
+interface ThresholdStep {
   stat: string;
   from: number;
   to: number;
@@ -78,11 +78,11 @@ function statPoints(rules: readonly ScoringRule[], cell: Cell, actions: number, 
 }
 
 /** Each stat whose points from `before` to `after` change, up or down, at some cell or in some
- *  role: one step a stat, however many rules price it. A role's adjustment is flat per action with
- *  no minimum minutes (scoring.ts), so any move in the count of a stat some role or team
- *  instruction in the set adjusts is a step, though no rule prices it or its rule's minimum minutes
- *  aren't yet met (#868, #990). His
- *  minutes are judged as each read shows them, so a clean sheet he now has the minutes for is a
+ *  role: one step a stat, however many rules price it. A role scores by bars of a weighed count
+ *  (scoring.ts) and a team instruction by each whole `every` (teamScoring.ts), neither of which a
+ *  single cell's rule pricing can see, so any move in the count of a stat some role or team
+ *  instruction in the set adjusts is a step, stored and priced on read, though no rule prices it
+ *  or its rule's minimum minutes aren't yet met (#868, #990). His minutes are judged as each read shows them, so a clean sheet he now has the minutes for is a
  *  step though its count stayed 1. A step whose count stayed put while his minutes fell (a feed's
  *  correction) isn't stored: priced on read, it would show the wrong way round. */
 export function thresholdSteps(before: MatchStats, after: MatchStats, set: ScoringSet): ThresholdStep[] {
