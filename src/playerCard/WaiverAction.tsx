@@ -22,15 +22,21 @@ const WHO_GOES_ID = "waiver-who-goes";
  *  that can first take him; Pick up for a free agent; the last two naming who goes, or nobody.
  *  Nothing for another team's player, for someone who runs no team, nor while it loads. Whether the
  *  change is open now is the server's to say, so a refusal says why. Scouting's selected player's
- *  panel offers it too. */
+ *  panel offers it too, and Scouting's compare its claim or pickup alone, with who goes `fixed`. */
 export function WaiverAction({
   leagueId,
   card,
   seam,
+  fixed,
+  className = "",
 }: {
   leagueId: Id<"leagues">;
   card: Pick<PlayerCard, "code" | "name">;
   seam: Pick<PlayerCardSeam, "useCardAction" | "useWaiverChanges">;
+  /** Who goes, fixed rather than chosen: `drops` when he is in the manager's squad, else nobody;
+   *  the button says it (`label`), and Drop isn't offered. */
+  fixed?: { drops: { code: number; name: string } | null; label: (kind: "claim" | "pickUp", dropName: string | null) => string };
+  className?: string;
 }) {
   const action = seam.useCardAction(leagueId, card.code);
   const changes = seam.useWaiverChanges();
@@ -38,11 +44,12 @@ export function WaiverAction({
   const [confirming, setConfirming] = useState(false);
   const [choice, setChoice] = useState<{ kind: CardAction["kind"]; code: number | null }>({ kind: "none", code: null });
   const [claimed, setClaimed] = useState(false);
-  if (action === undefined || action.kind === "none") return null;
+  if (action === undefined || action.kind === "none" || (fixed !== undefined && action.kind === "drop")) return null;
   // A choice made for a claim is dropped once the player turns free agent, and the other way round.
   const kind = action.kind;
-  const whoGoes = choice.kind === kind ? choice.code : null;
   const setWhoGoes = (code: number | null) => setChoice({ kind, code });
+  const fixedDrops = action.kind !== "drop" && action.squad.some(({ playerCode }) => playerCode === fixed?.drops?.code) ? (fixed?.drops ?? null) : null;
+  const whoGoes = fixed !== undefined ? (fixedDrops?.code ?? null) : choice.kind === kind ? choice.code : null;
 
   function keep() {
     setConfirming(false);
@@ -58,7 +65,7 @@ export function WaiverAction({
   }
 
   return (
-    <div className="flex flex-col gap-1">
+    <div className={`flex flex-col gap-1 ${className}`}>
       <Problem problem={change.problem} />
       {action.kind === "drop" ? (
         <div className="flex flex-wrap items-center gap-2">
@@ -82,10 +89,14 @@ export function WaiverAction({
         <>
           <Status words={claimed ? claimedDoneWords : null} className="text-derived" />
           <div className="flex flex-wrap items-center gap-2">
-            {action.kind === "claim" && <span className="text-soft">{onWaiversUntilWords(action.firstRunAt)}</span>}
-            <WhoGoes squad={action.squad} whoGoes={whoGoes} choose={setWhoGoes} />
+            {fixed === undefined && (
+              <>
+                {action.kind === "claim" && <span className="text-soft">{onWaiversUntilWords(action.firstRunAt)}</span>}
+                <WhoGoes squad={action.squad} whoGoes={whoGoes} choose={setWhoGoes} />
+              </>
+            )}
             <button type="button" disabled={change.busy} onClick={() => void claimOrPickUp(action.kind)} className="action">
-              {action.kind === "claim" ? claimWords : pickUpWords}
+              {fixed !== undefined ? fixed.label(action.kind, fixedDrops?.name ?? null) : action.kind === "claim" ? claimWords : pickUpWords}
             </button>
           </div>
         </>

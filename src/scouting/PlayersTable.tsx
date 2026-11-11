@@ -9,14 +9,14 @@ import { cellClassOf, ColumnHeads, type ColumnWords } from "../ui/ColumnHeads";
 import { OwnerName } from "../ui/OwnerName";
 import { ClubMark, ClubShort } from "../ui/ClubName";
 import { statFigure } from "../shared/figures";
+import { PointsFigure } from "./PointsFigure";
 import type { ListedPlayer, Period, PlayersSort, SortColumn } from "./seam";
 import {
   columns,
   figureWords,
   noFigureWords,
   noPeriodPointsWords,
-  noPointsYetWords,
-  notLastSeasonWords,
+  noSeasonPointsWords,
   onWaiversWords,
   periodColumns,
   seasonColumns,
@@ -78,7 +78,7 @@ export function PlayersTable({
   select: (player: ListedPlayer) => void;
 }) {
   const shown: readonly Column[] = ["positions", "name", ...(withStatus ? (["owner"] as const) : []), ...FIGURES, ...(stat === null ? [] : (["stat"] as const))];
-  const noPointsWords = period !== "season" ? noPeriodPointsWords : pointsSeason === null ? noPointsYetWords : notLastSeasonWords;
+  const noPointsWords = period !== "season" ? noPeriodPointsWords : noSeasonPointsWords(pointsSeason);
   return (
     <table className="w-full border-collapse">
       <ColumnHeads
@@ -161,13 +161,7 @@ function PlayerCell({
         </td>
       );
     case "points":
-      return player.points === null ? (
-        <td title={noPointsWords} className={`${className} text-muted`}>
-          {noFigureWords}
-        </td>
-      ) : (
-        <td className={`${className} font-bold text-figure`}>{figureWords(player.points)}</td>
-      );
+      return <PointsFigure as="td" points={player.points} why={noPointsWords} className={className} />;
     case "stat":
       return <td className={`${className} font-bold text-figure`}>{player.stat === null ? noFigureWords : statFigure(player.stat)}</td>;
     default:

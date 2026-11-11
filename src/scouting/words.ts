@@ -180,6 +180,8 @@ export function seasonColumns(lastSeason: number | null) {
 export const noPointsYetWords = "No points yet: none of his matches is scored.";
 export const notLastSeasonWords = "No points: he isn't in last season's data.";
 export const noPeriodPointsWords = "No points: none of his matches in these gameweeks is scored.";
+/** Why a player's season points are "—": none priced yet, or not in last season's data. */
+export const noSeasonPointsWords = (pointsSeason: number | null) => (pointsSeason === null ? noPointsYetWords : notLastSeasonWords);
 export const noRoleFitYetWords = "No role fit yet: it waits on stars and scouts.";
 
 /** Two players side by side (spec/19, The players list); "with your player" when the second is the
