@@ -218,12 +218,8 @@ const LAST_MINUTE = 59;
 function checkWaivers({ runs }: LeagueRules["waivers"]): void {
   if (runs.length === 0) throw new UnsoundRules("Waivers need a time to run, once a week or more.");
   for (const { hour, minute } of runs) {
-    if (!Number.isInteger(hour) || hour < 0 || hour > LAST_HOUR) {
-      throw new UnsoundRules(`A waiver run's hour is a whole number from 0 to ${LAST_HOUR}, not ${hour}.`);
-    }
-    if (!Number.isInteger(minute) || minute < 0 || minute > LAST_MINUTE) {
-      throw new UnsoundRules(`A waiver run's minute is a whole number from 0 to ${LAST_MINUTE}, not ${minute}.`);
-    }
+    checkWholeNumberWithin(hour, "A waiver run's hour", 0, LAST_HOUR);
+    checkWholeNumberWithin(minute, "A waiver run's minute", 0, LAST_MINUTE);
   }
   checkNoneTwice(
     runs.map(({ day, hour, minute }) => `${day} at ${hour}:${String(minute).padStart(2, "0")}`),
