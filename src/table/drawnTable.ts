@@ -18,6 +18,8 @@ export type Drawn = Partial<DrawRules> & {
   /** What the order is drawn from, as the league's id is on the server. */
   seed?: string;
   format?: LeagueTable["format"];
+  /** The year the season starts, as the server reads it from the matches held: none by default. */
+  season?: LeagueTable["season"];
   /** The gameweeks the league plays: every one its season has by default (#1618). */
   gameweeks?: readonly number[];
   /** The league's own deadline for each gameweek: none known by default. */
@@ -62,7 +64,7 @@ export function leagueTableOf(teamNames: string[], drawn: Drawn = {}): LeagueTab
   const inputs = inputsOf(teamNames, drawn);
   const { format, teamIds, schedule, results } = inputs;
   const table = tableOf(format, teamIds, schedule, pointsOf(results), drawn.tieBreaks ?? FIRST_RULES.tieBreaks);
-  return leagueTableFrom({ ...inputs, table, autoTeams: new Set((drawn.autoTeams ?? []).map(idOf)) });
+  return leagueTableFrom({ ...inputs, season: drawn.season ?? null, table, autoTeams: new Set((drawn.autoTeams ?? []).map(idOf)) });
 }
 
 /** My team's fixtures for `teamName`, one of `teamNames`, in the same draw and scores as `leagueTableOf`'s. */

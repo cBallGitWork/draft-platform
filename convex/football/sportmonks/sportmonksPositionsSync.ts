@@ -3,7 +3,7 @@ import { internal } from "../../_generated/api";
 import { internalAction, internalMutation, internalQuery, type ActionCtx } from "../../_generated/server";
 import { outcomeOf } from "../../shared/errors";
 import { emailIfFailed } from "../../admin/feedFailureEmails";
-import { CRON_TRIGGER } from "../../heartbeats/heartbeat";
+import { CRON_TRIGGER, scheduleHeartbeat } from "../../heartbeats/heartbeat";
 import { londonHour } from "../../shared/moments";
 import { BATCH_SIZE, LATEST_RUNS } from "../../shared/syncRuns";
 import { DAILY_RUN_UK_HOUR } from "../../positions/positionsSync";
@@ -69,8 +69,12 @@ export const run = internalAction({
       console.error(`Sportmonks positions: ${JSON.stringify({ unknownFormations: outcome.unknownFormations, unknownLabels: outcome.unknownLabels })}`);
     }
     await ctx.runMutation(internal.football.sportmonks.sportmonksPositionsSync.record, { trigger, ranAt, outcome });
-    if (trigger === CRON_TRIGGER && outcome.ok && outcome.matchesLeft > 0) {
+    if (trigger !== CRON_TRIGGER) return null;
+    if (outcome.ok && outcome.matchesLeft > 0) {
       await ctx.scheduler.runAfter(0, internal.football.sportmonks.sportmonksPositionsSync.run, { trigger });
+    } else {
+      // The cron's last run: the daily read's heartbeat. With no token, nothing is read or pinged.
+      await scheduleHeartbeat(ctx, "sportmonksPositions");
     }
     return null;
   },

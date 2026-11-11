@@ -30,6 +30,8 @@ export const CHECK_SLUGS = {
   tradeOffers: "trade-offers",
   sportmonksSync: "sportmonks-sync",
   sportmonksLiveTick: "sportmonks-live-tick",
+  positionsSync: "positions-sync",
+  sportmonksPositions: "sportmonks-positions",
 } as const;
 export type Check = keyof typeof CHECK_SLUGS;
 const checkValidator = v.union(...(Object.keys(CHECK_SLUGS) as Check[]).map((check) => v.literal(check)));
@@ -71,8 +73,9 @@ export async function withHeartbeat<Result>(check: Check | null, work: () => Pro
 }
 
 /** For a job that is a mutation, which can't fetch: the ping is scheduled for once its writes
- *  commit, so a mutation that throws sends none, and Healthchecks sees the missed beat. */
-export async function scheduleHeartbeat(ctx: MutationCtx, check: Check): Promise<void> {
+ *  commit, so a mutation that throws sends none, and Healthchecks sees the missed beat. A job run
+ *  over several actions, each starting the next, schedules it from its last. */
+export async function scheduleHeartbeat(ctx: Pick<MutationCtx, "scheduler">, check: Check): Promise<void> {
   if (pingUrl(check, false) === null) return;
   await ctx.scheduler.runAfter(0, internal.heartbeats.heartbeat.beat, { check });
 }

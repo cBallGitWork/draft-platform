@@ -31,6 +31,9 @@ agent: "keep waivers since its known for draft" (Craig asked; yes).
     starting order.
 - Waivers run Wednesday and Thursday at 18:00 UK time, every new league's default "for now"; the
   commissioner can change it (`spec/03`).
+  - Changed run times count only from the next one still ahead, so a new time already gone this
+    week never runs at once: runs only happen at times managers were shown (Craig, 11 Nov 2026,
+    #1468). `S08.10`
 - Both runs work alike: every player whose 24 hours are up is claimed in order. A drop on Tuesday
   at 10:00 makes Wednesday's run; one after 18:00 on Tuesday makes Thursday's.
 - The window: from the first waiver run after a gameweek to the next deadline, when players are free

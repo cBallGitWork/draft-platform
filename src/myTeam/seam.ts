@@ -15,8 +15,8 @@ import type { TableSeam } from "../table/seam";
 export type { OtherSquad, TeamFixtures, TeamSquad, TeamTransactions };
 
 /** The manager's own team's auto team (spec/09): its id, on or off, the gameweek it ends after, and
- *  the season's last gameweek, the latest it can end after (#1618). */
-export type MyAutoTeam = { teamId: Id<"teams">; on: boolean; endsAfter: number | null; lastGameweek: number };
+ *  the gameweeks he may name for it to end after: those the league plays, from the next not begun. */
+export type MyAutoTeam = { teamId: Id<"teams">; on: boolean; endsAfter: number | null; endGameweeks: number[] };
 
 /** Switching a team's auto team: its manager's own on My team, any team's on Squads. */
 export type AutoTeamChanges = {

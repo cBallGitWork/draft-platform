@@ -1,7 +1,7 @@
 // The table and fixtures screen in the preview (src/app/preview.ts): five teams, so one plays the
 // league's average each gameweek, over a season of Saturdays with a Christmas break unticked.
 
-import { DAY_MS, WEEK_MS } from "../../convex/shared/time";
+import { DAY_MS, seasonStartYear, WEEK_MS } from "../../convex/shared/time";
 import { usedGameweeksOf } from "../../convex/gameweeks/usedGameweeks";
 import { previewChristmasBreak, previewSays, previewSeasonGameweeks } from "../shared/preview";
 import type { Id } from "../../convex/_generated/dataModel";
@@ -15,6 +15,7 @@ export const previewTeams = ["Saka Potatoes", "Team 2", "Kroos Control", "Pique 
 /** A preview team's made-up id, from its name: League home's and the matchup's previews use it. */
 export const previewIdOf = (team: string) => `preview-${team}` as Id<"teams">;
 export const previewSeason = {
+  season: seasonStartYear(firstDeadline),
   gameweeks: usedGameweeksOf({ unusedGameweeks: previewChristmasBreak }, previewSeasonGameweeks),
   deadlineOf: (gameweek: number) => firstDeadline + (gameweek - 1) * WEEK_MS,
 } satisfies Drawn;

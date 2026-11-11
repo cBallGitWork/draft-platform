@@ -60,7 +60,10 @@ Feature 4 of [SPEC.md](../SPEC.md). Only Craig's answers.
   why: "Can't start without a max" (Craig, 5 Nov 2026, on #1088).
 - A team left with no legal pick is an error, not the end of that team's draft: greying out always
   leaves a legal pick (Craig, 4 Nov 2026, on #1090: "ok").
-- The draft can't start until every squad is empty (Craig, 4 Nov 2026, on #1090: "ok").
+- The draft can't start until every squad is empty (Craig, 4 Nov 2026, on #1090: "ok"). A start
+  date can still be set while squads hold players; if they still do when it comes, the draft
+  doesn't start, its date is cleared and the commissioner gets the letter, as with too few teams
+  (Craig, 11 Nov 2026, on #1459: "Accept all"). `S04.13`
 - The rounds are the squad maximum in the latest rules, counting a change waiting for next
   gameweek: "the squad size is what indicates the draft size" (Craig, 7 Nov 2026, on #1130,
   replacing his 4 Nov answer on #1090). The squad rules the draft starts under are that waiting

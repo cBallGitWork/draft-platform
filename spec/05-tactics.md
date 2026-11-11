@@ -25,7 +25,7 @@ Feature 5 of [SPEC.md](../SPEC.md). Only Craig's answers: the first `/grill` and
   indivoduals cells is just getting in the way"; "no limits" (Craig, 4 Nov 2026). It replaces the
   sweeper's cell of 31 Oct 2026, and the role stays: "it's a real role, esp with classic
   formations".
-- Presets only: the shape always comes from a preset or a classic, and no player moves into an
+- Presets only: the shape always comes from a preset or a classic formation, and no player moves into an
   empty cell. "we dont allow users to move the individual pieces around, we have lots of
   formations already"; "i think i just dont like hacing 2 cbs and fb for exampel"; "to me, presets
   just sort all this out" (Craig, 1 Nov 2026). Free placement, Championship Manager style, is
@@ -33,7 +33,7 @@ Feature 5 of [SPEC.md](../SPEC.md). Only Craig's answers: the first `/grill` and
   5-3-2, 5-4-1, 4-5-1, 4-2-2-2, 4-1-2-1-2, 4-3-2-1, 4-1-3-2, 4-2-4, 3-4-2-1, 3-1-4-2, 5-2-3,
   5-3-1-1, 3-6-1, all editable as league rules. Ten of them Craig added (28 Oct 2026): "no basics
   like 4-5-1"; 3-6-1 he added (1 Nov 2026: "also add 3-6-1"). Then, from Craig on 1 Nov 2026
-  ("also formations with 2 at the back"): 2-3-5 and 2-3-2-3.
+  ("also formations with 2 at the back"): 2-3-5 and 2-3-2-3. `S05.38`
 - There are no sweeper or libero presets, and a preset sets no player's role: sweeper and libero
   are centre-back roles only (above). "we made sweeper a role and liberio, ditched sweeper
   formations" (Craig, 5 Nov 2026), dropping the 5(SW)-3-2 and 3(L)-5-2 of 4 Nov 2026.
@@ -43,14 +43,14 @@ Feature 5 of [SPEC.md](../SPEC.md). Only Craig's answers: the first `/grill` and
 - A starter leaves the pitch only by swapping with a bench player, so the eleven stay eleven. A
   refused move says why in the line under the toolbar where "Lineup saved" shows (Craig,
   4 Nov 2026, "yes" to Claude's recommendation).
-- Classics are famous sides' formations, each a league rule like a preset, which the ready-made
-  rules carry. A classic sets its shape, every slot's role and its team instructions, which
+- Classic formations are famous sides' formations, each a league rule like a preset, which the ready-made
+  rules carry. A classic formation sets its shape, every slot's role and its team instructions, which
   Claude drafts and Craig edits (Craig, 1 Nov 2026). They include Keegan's Newcastle
   ("both wide mids whip in crossers, strikers going for hearders, cb and both cms attack"),
-  Barcelona's tiki-taka and Hungary in the 50s.
-- A manager can change a classic's roles or instructions, never its shape. Once he does, it
+  Barcelona's tiki-taka and Hungary in the 50s. `S05.39`
+- A manager can change a classic formation's roles or instructions, never its shape. Once he does, it
   becomes custom (Craig, 1 Nov 2026: "when a change is made it becomes custom, and it can be
-  saved"; then "only preset formations ,but we can still save the strategy").
+  saved"; then "only preset formations ,but we can still save the strategy"). `S05.40`
 - Picking a preset reshapes the pitch and keeps the players: each starter moves to a slot of the
   new shape in his own area, if one is free, and anyone left over goes to the front of the bench.
   (Craig, 26 Oct 2026; #14).
@@ -183,8 +183,8 @@ and how they score from Craig, 4 Nov 2026.
 - Changing formation keeps an instruction the new shape allows. One it blocks switches to the new
   formation's default for that side, and the line under the toolbar says so ("Park the bus needs 5
   at the back: switched to Keep it tight early"): "if you change formation, yuour invlaid tactic
-  auto gets changed to a vlaid one". Loading a plan or picking a classic sets both instructions
-  itself.
+  auto gets changed to a vlaid one". Loading a plan or picking a classic formation sets both instructions
+  itself. `S05.41`
 - An instruction is scored player by player, on each player's own club's real match, for every
   starter and every bench player who comes on. A clean sheet or a goal conceded is his club's
   while he was on the pitch, as in base scoring. It shows as its own line under his role's line on

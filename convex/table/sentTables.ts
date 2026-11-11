@@ -40,6 +40,7 @@ export function tableOf(
  *  `ofLeague` sends them. */
 export function leagueTableFrom({
   format,
+  season,
   schedule,
   results,
   unscored,
@@ -49,6 +50,7 @@ export function leagueTableFrom({
   autoTeams,
 }: {
   format: LeagueRules["format"];
+  season: LeagueTable["season"];
   schedule: readonly GameweekFixtures<TeamId>[];
   results: Results;
   unscored: Unscored;
@@ -60,6 +62,7 @@ export function leagueTableFrom({
 }): LeagueTable {
   return {
     format,
+    season,
     gameweeks: schedule.map((drawn) => ({
       gameweek: drawn.gameweek,
       deadline: deadlineOf(drawn.gameweek),

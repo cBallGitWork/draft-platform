@@ -15,6 +15,7 @@ import {
   FIXTURES_TITLE,
   fixturesListLabel,
   leagueAverageWords,
+  leagueGamesHead,
   liveWords,
   noGameweeksWords,
   pickAnotherWords,
@@ -52,10 +53,11 @@ function openingIndex(gameweeks: readonly Gameweek[], now: number): number {
 /** A side picked to swap: the game it is in, by its place in the gameweek's list, and the side. */
 type Pick = { game: number } & PickedSide;
 
-/** One gameweek's fixtures, the stepper over the gameweeks the league plays, and Live on the plate
- *  while any of the gameweek's points may still move. The commissioner edits a gameweek not yet
- *  begun (spec/09, Fixture edits; the approved auto-team picture): each side is a button, a side
- *  picked then one in another game, and Save swap moves them between their games. */
+/** One gameweek's fixtures under their League head, the stepper over the gameweeks the league
+ *  plays, and Live on the plate while any of the gameweek's points may still move. The
+ *  commissioner edits a gameweek not yet begun (spec/09, Fixture edits; the approved auto-team
+ *  picture): each side is a button, a side picked then one in another game, and Save swap moves
+ *  them between their games. */
 function GameweekFixtures({ league, seam, leagueTable: { gameweeks, results } }: { league: LeagueSummary; seam: TableScreenSeam; leagueTable: LeagueTable }) {
   const now = useMinute();
   const [chosen, choose] = useState(() => openingIndex(gameweeks, Date.now()));
@@ -115,6 +117,7 @@ function GameweekFixtures({ league, seam, leagueTable: { gameweeks, results } }:
   );
   return (
     <Panel title={title} aside={aside}>
+      <h4 className="bg-head px-3 font-semibold text-ground">{leagueGamesHead}</h4>
       <ul aria-label={fixturesListLabel(gameweek)}>
         {fixtures.map((fixture, game) => {
           const { team, opponent } = fixture;

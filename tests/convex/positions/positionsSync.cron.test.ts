@@ -3,13 +3,14 @@
 
 import { expect, test, vi } from "vitest";
 import { internal } from "../../../convex/_generated/api";
-import { CRON_TRIGGER } from "../../../convex/heartbeats/heartbeat";
+import { CRON_TRIGGER, PING_URL_ENV } from "../../../convex/heartbeats/heartbeat";
 import { MATCHES_PER_RUN } from "../../../convex/positions/positionsSync";
 import { FIRST_COPY, heldStarts, pastTheCap, syncPositionsWith } from "../../support/convex/positionsSync.harness";
 import { PLAYER, recordedPositions, SHEET } from "../../support/recorded/positions.payloads";
 import { freshConvex, pendingJobs, silenceConsoleError } from "../../support/convex/test.harness";
 
 const RUN = internal.positions.positionsSync.run;
+const BEAT = internal.heartbeats.heartbeat.beat;
 
 // A new deployment's first 300 matches are read the same morning, not over three days.
 test("the cron's run with matches left starts the next at once, and the next reads the rest", async () => {
@@ -37,6 +38,23 @@ test("the cron's run that could file none of the matches it read waits for the n
   expect(outcome).toMatchObject({ ok: true, matchesRead: MATCHES_PER_RUN, matchesLeft: 2 });
   expect(logged).toHaveBeenCalled();
   expect(await pendingJobs(t, RUN)).toEqual([]);
+}, 30_000);
+
+// The daily sync's heartbeat (#1554): pinged once the cron's last run is done, so a cron that
+// stops firing is a missed beat in Healthchecks.
+test("only the cron's last run schedules the heartbeat, and a run by hand none", async () => {
+  vi.useFakeTimers();
+  vi.stubEnv(PING_URL_ENV, "https://hc-ping.com/ping-key");
+  const t = freshConvex();
+
+  await syncPositionsWith(t, pastTheCap(), undefined, undefined, CRON_TRIGGER);
+  expect(await pendingJobs(t, BEAT)).toEqual([]);
+  await syncPositionsWith(t, pastTheCap(), undefined, undefined, CRON_TRIGGER);
+  expect((await pendingJobs(t, BEAT)).map((job) => job.args)).toEqual([[{ check: "positionsSync" }]]);
+
+  const byHand = freshConvex();
+  await syncPositionsWith(byHand, pastTheCap());
+  expect(await pendingJobs(byHand, BEAT)).toEqual([]);
 }, 30_000);
 
 // 06:00 UK time whatever the clocks: 06:00 UTC in winter, 05:00 UTC in summer.

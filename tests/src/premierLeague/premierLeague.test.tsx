@@ -14,7 +14,6 @@ import {
   dayWords,
   FIXTURES_TITLE,
   fullTime,
-  gameweekWords,
   halfTime,
   kickoffWords,
   liveWords,
@@ -27,7 +26,7 @@ import {
   scoreWords,
   versusWords,
 } from "../../../src/premierLeague/words";
-import { nextGameweekLabel, previousGameweekLabel } from "../../../src/shared/words";
+import { gameweekShort, nextGameweekLabel, previousGameweekLabel } from "../../../src/shared/words";
 import { ARSENAL, CHELSEA, FOREST, plMatch, SPURS, type PremierLeagueData } from "../../support/src/premierLeague.harness";
 import { manager, openApp } from "../../support/src/shell.harness";
 
@@ -78,23 +77,23 @@ describe("reaching it", () => {
 describe("which gameweek it opens on", () => {
   it("opens on the current gameweek: the latest kicked off", async () => {
     const app = openSection({ firstKickoffs: kickoffsTo10 });
-    expect((await stepperHeading()).textContent).toBe(gameweekWords(9));
+    expect((await stepperHeading()).textContent).toBe(gameweekShort(9));
     expect(app.premierLeague.useGameweekMatches).toHaveBeenLastCalledWith(9);
   });
 
   it("before any gameweek has kicked off, opens on the first to come", async () => {
     openSection({ firstKickoffs: [{ gameweek: 1, firstKickoff: Date.now() + DAY_MS }, { gameweek: 2, firstKickoff: Date.now() + WEEK_MS }] });
-    expect((await stepperHeading()).textContent).toBe(gameweekWords(1));
+    expect((await stepperHeading()).textContent).toBe(gameweekShort(1));
   });
 
   it("with no kickoff times held, opens on the season's first", async () => {
     openSection();
-    expect((await stepperHeading()).textContent).toBe(gameweekWords(1));
+    expect((await stepperHeading()).textContent).toBe(gameweekShort(1));
   });
 
   it("once the last gameweek has kicked off, stays on it", async () => {
     openSection({ firstKickoffs: [{ gameweek: PL_GAMEWEEKS, firstKickoff: begun }] });
-    expect((await stepperHeading()).textContent).toBe(gameweekWords(PL_GAMEWEEKS));
+    expect((await stepperHeading()).textContent).toBe(gameweekShort(PL_GAMEWEEKS));
   });
 });
 
@@ -111,12 +110,12 @@ describe("the stepper", () => {
     expect(await matchLines(9)).toEqual([[fullTime.short, "Arsenal", scoreWords(1, 0), "Chelsea"]]);
 
     await userEvent.click(button(nextGameweekLabel));
-    expect((await stepperHeading()).textContent).toBe(gameweekWords(10));
+    expect((await stepperHeading()).textContent).toBe(gameweekShort(10));
     expect(await matchLines(10)).toEqual([[kickoffWords(saturday), "Spurs", versusWords, "Nottingham Forest"]]);
 
     await userEvent.click(button(previousGameweekLabel));
     await userEvent.click(button(previousGameweekLabel));
-    expect((await stepperHeading()).textContent).toBe(gameweekWords(8));
+    expect((await stepperHeading()).textContent).toBe(gameweekShort(8));
     expect(screen.getByText(noMatchesWords(8))).toBeTruthy();
   });
 
@@ -126,16 +125,16 @@ describe("the stepper", () => {
     expect(button(previousGameweekLabel).disabled).toBe(true);
 
     for (let gameweek = 1; gameweek < PL_GAMEWEEKS; gameweek += 1) await userEvent.click(button(nextGameweekLabel));
-    expect((await stepperHeading()).textContent).toBe(gameweekWords(PL_GAMEWEEKS));
+    expect((await stepperHeading()).textContent).toBe(gameweekShort(PL_GAMEWEEKS));
     expect(button(nextGameweekLabel).disabled).toBe(true);
     expect(button(previousGameweekLabel).disabled).toBe(false);
   });
 
   it("stops at the season's own last gameweek, however many it has (#1618)", async () => {
     openSection({ seasonGameweeks: 34, firstKickoffs: [{ gameweek: 33, firstKickoff: begun }] });
-    expect((await stepperHeading()).textContent).toBe(gameweekWords(33));
+    expect((await stepperHeading()).textContent).toBe(gameweekShort(33));
     await userEvent.click(button(nextGameweekLabel));
-    expect((await stepperHeading()).textContent).toBe(gameweekWords(34));
+    expect((await stepperHeading()).textContent).toBe(gameweekShort(34));
     expect(button(nextGameweekLabel).disabled).toBe(true);
   });
 });

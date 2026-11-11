@@ -1,7 +1,7 @@
 // What the league screens say, in one place for Craig to change in the pull request. Why the
 // server refused a change is in convex/shared/leagueAccess.ts (`refusals`), and reaches the screen as is.
 
-import { DELETION_UNDO_HOURS, FEWEST_TEAMS, LEAGUES_SHOWN, MOST_TEAMS } from "../../convex/leagues/leagueLimits";
+import { DELETION_UNDO_HOURS, FEWEST_TEAMS, LEAGUE_NAME_MAX, LEAGUES_SHOWN, MOST_TEAMS } from "../../convex/leagues/leagueLimits";
 import { screenMoment } from "../../convex/shared/moments";
 import type { LeagueSummary } from "../../convex/leagues/myLeagues";
 import type { NoLinkReply } from "../../convex/signIn/signInReplies";
@@ -64,7 +64,9 @@ export const unsentLink = (email: string, reason: string) =>
   `No sign-in link went to ${email}: ${reason}. They can ask for one on the sign-in page.`;
 
 export const maxTeamsHint = `${FEWEST_TEAMS} to ${MOST_TEAMS}. The commissioner can change it later, never below the teams already there.`;
-export const commissionerHint = "If they have no account yet, they're sent a sign-in link.";
+export const leagueNameHint = `Up to ${LEAGUE_NAME_MAX} characters.`;
+/** Under Create the league, true for a commissioner new to the site or not (Craig, 11 Nov 2026, #1498). */
+export const createLeagueHint = "New to the site? We email a link.";
 
 /** When creating failed before the server could say why: the connection, or the server itself. */
 export const createFailedWords = failedWords("the league wasn't made");
