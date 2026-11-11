@@ -34,8 +34,8 @@ const preset = v.object({
  *  which nothing reads (`heldRules` drops it), optional so those rows need no migration. */
 const storedPreset = v.object({ ...preset.fields, centreRole: v.optional(v.string()) });
 
-/** classics.ts's Classic. */
-export const classicShape = v.object({
+/** classics.ts's ClassicFormation. */
+export const classicFormationShape = v.object({
   name: v.string(),
   subtitle: v.string(),
   description: v.string(),
@@ -101,9 +101,10 @@ export const leagueRulesShape = v.object({
   /** Each area's minimum and maximum on the pitch: lineup.ts's LineupRules["areaLimits"]. */
   areaLimits: byArea(limit),
   presets: v.array(preset),
-  /** Absent only from rules saved before #991, which play the first rules'
-   *  (firstRules.ts, `classicsOf`). */
-  classics: v.optional(v.array(classicShape)),
+  /** The league's classic formations, under the key they were first saved with (#1620). Absent
+   *  only from rules saved before #991, which play the first rules' (firstRules.ts,
+   *  `classicFormationsOf`). */
+  classics: v.optional(v.array(classicFormationShape)),
   /** deadline.ts's DeadlineRule. */
   deadline: v.object({ minutesBeforeFirstKickoff: v.number() }),
   /** values.ts's DoubleGameweekRule. */

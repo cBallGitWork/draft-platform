@@ -12,8 +12,9 @@ import { fakeResend, signInDeployment } from "../../support/convex/signIn.harnes
 import { FOUR_FOUR_TWO, holdSquad, NEXT } from "../../support/convex/lineupSquad.harness";
 import { KEEGANS } from "../../support/convex/lineup.harness";
 
-// A lineup saved on a classic (spec/05, The pitch; #991): it keeps the classic's name until its
-// manager picks another formation, and a classic's shape never changes.
+// A lineup saved on a classic formation (spec/05, The pitch; #991): it keeps the classic
+// formation's name, saved as `classic`, until its manager picks another formation, and a classic
+// formation's shape never changes.
 
 const [ANN] = MANAGERS;
 /** The 4-4-2's eleven on Keegan's Newcastle's roles. */
@@ -34,8 +35,8 @@ beforeEach(async () => {
   await holdSquad(t, leagueId, annsTeam);
 });
 
-const save = async (lineup: Lineup, classic?: string) =>
-  (await actingAs(t, ANN)).mutation(api.lineup.lineups.save, { leagueId, lineup: { starters: [...lineup.starters], bench: [...lineup.bench], classic } });
+const save = async (lineup: Lineup, classicFormation?: string) =>
+  (await actingAs(t, ANN)).mutation(api.lineup.lineups.save, { leagueId, lineup: { starters: [...lineup.starters], bench: [...lineup.bench], classic: classicFormation } });
 const mine = () => t.run((ctx) => lineupInGameweek(ctx, leagueId, annsTeam, NEXT));
 
 describe("a lineup saved on a classic", () => {
@@ -56,10 +57,10 @@ describe("a lineup saved on a classic", () => {
   });
 
   test("is refused for a classic the league doesn't hold", async () => {
-    await expectRefused(save(ON_KEEGANS, "Leeds 1972"), lineupRefusals.noSuchClassic("Leeds 1972"));
+    await expectRefused(save(ON_KEEGANS, "Leeds 1972"), lineupRefusals.noSuchClassicFormation("Leeds 1972"));
   });
 
   test("is refused standing in another shape than the classic's", async () => {
-    await expectRefused(save(FOUR_FOUR_TWO, "Hungary in the 50s"), lineupRefusals.notInClassicShape("Hungary in the 50s"));
+    await expectRefused(save(FOUR_FOUR_TWO, "Hungary in the 50s"), lineupRefusals.notInClassicFormationShape("Hungary in the 50s"));
   });
 });
