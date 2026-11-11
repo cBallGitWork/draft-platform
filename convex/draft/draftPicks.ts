@@ -5,6 +5,7 @@ import { areasOf } from "../lineup/pitch";
 import { pickFirstLineupAgain } from "../lineup/lineups";
 import { fileEvent } from "../mail/letters";
 import { positionsNow, type PositionsNow } from "../positions/playerPositions";
+import { knownOnJoining } from "../positions/positionWarnings";
 import type { LeagueRules } from "../rules/leagueRulesShape";
 import { managerOf, refuse, refusals, runnerOf, teamIn } from "../shared/leagueAccess";
 import { heldPlayerByCode, playerByCode } from "../shared/players";
@@ -134,6 +135,7 @@ async function placePick(ctx: MutationCtx, league: Doc<"leagues">, turn: Turn, t
   const positions = await (await positionsNow(ctx, leagueId))(player.code);
   await ctx.db.insert("draftPicks", { leagueId, pick: turn.pick, teamId: team._id, playerCode: player.code, at: now, positions, ...(auto && { auto }), ...(timeout && { timeout }), ...(own && { own }) });
   await ctx.db.insert("squadPlayers", { leagueId, teamId: team._id, playerCode: player.code });
+  await knownOnJoining(ctx, leagueId, team._id, player.code);
   await offWaivers(ctx, leagueId, player.code);
   await fileEvent(ctx, leagueId, by, { kind: "playerAssigned", playerCode: player.code, playerName: player.name, teamId: team._id, teamName: team.name });
   await pickFirstLineupAgain(ctx, leagueId, team._id);

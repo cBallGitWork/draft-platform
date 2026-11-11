@@ -4,6 +4,7 @@ import type { Doc, Id } from "../_generated/dataModel";
 import { internalMutation, mutation, type MutationCtx, type QueryCtx } from "../_generated/server";
 import { MOST_IN_SQUAD } from "../leagues/leagueLimits";
 import { pickFirstLineupAgain } from "../lineup/lineups";
+import { knownOnJoining } from "../positions/positionWarnings";
 import { fileEvent, fileLetter, wholeLeague } from "../mail/letters";
 import {
   acceptedLetter,
@@ -140,6 +141,7 @@ async function goThrough(ctx: MutationCtx, offer: Doc<"tradeOffers">, by: string
     // A new team starts him afresh, as a move does: on no number of its own (spec/05 Squad
     // numbers), and never its free-agent pickup, so its drop sends him to waivers (#1479).
     await ctx.db.patch("squadPlayers", place._id, { teamId: into._id, number: undefined, pickedUpAt: undefined });
+    await knownOnJoining(ctx, league._id, into._id, playerCode);
     await fileEvent(ctx, league._id, by, {
       kind: "playerTraded",
       playerCode,
