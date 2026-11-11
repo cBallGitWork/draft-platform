@@ -16,7 +16,7 @@ import { placementShape } from "../schema";
 import { lineupProblems, namedCodes, reconciled, withUnmovedSetAside, type PlayerPositions } from "./lineup";
 import { firstLineup, keptOnBenchOf, withDroppedRoles } from "./firstLineup";
 import { starsOfPlayers } from "../stars/playerStars";
-import type { Area, Lane } from "./pitch";
+import { heldCell } from "./pitch";
 import { roleIn } from "./roles";
 import { inClassicFormationShape } from "./classics";
 import { classicFormationsOf, instructionsOf } from "../rules/firstRules";
@@ -207,7 +207,7 @@ export const save = mutation({
     const { problems, kept: keptOutOfPosition } = withUnmovedSetAside(lineupProblems(lineup, positions, rules), lineup.starters, existing, fromGameweek);
     if (problems.length > 0) refuse(problems.map((problem) => problemWords(problem, nameOf)).join(" "));
     // lineupProblems refused any cell not on the pitch, so every starter's is one.
-    const cells = lineup.starters.map(({ area, lane }) => ({ area: area as Area, lane: lane as Lane }));
+    const cells = lineup.starters.map(heldCell);
     const set = instructionsOf(rules);
     const refusal = lineup.instructions === undefined ? null : pairRefusal(lineup.instructions, cells, set);
     if (refusal !== null) refuse(pairRefusalWords(refusal, set));
@@ -216,8 +216,8 @@ export const save = mutation({
 
     // lineupProblems refused any role another slot offers; a role removed from the set is saved as
     // the one he plays (#841).
-    const starters = lineup.starters.map(({ role, ...starter }) => {
-      const cell = { area: starter.area as Area, lane: starter.lane as Lane };
+    const starters = lineup.starters.map(({ role, ...starter }, index) => {
+      const cell = cells[index];
       return { ...starter, ...cell, ...(role === undefined ? {} : { role: roleIn(cell, role).key }) };
     });
     // A classic formation's shape never changes (spec/05; #991): its starters stand in its cells.

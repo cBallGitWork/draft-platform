@@ -13,7 +13,7 @@ import {
   type Placement,
   type PlayerPositions,
 } from "./lineup";
-import { ALL_CELLS, AREAS, byPitchOrder, cellKey, GOALKEEPER_AREA, LANES, playsCell, type Area, type Cell, type Lane } from "./pitch";
+import { ALL_CELLS, AREAS, byPitchOrder, cellKey, GOALKEEPER_AREA, heldCell, LANES, playsCell, type Area, type Cell, type Lane } from "./pitch";
 import { roleIn, takesRole } from "./roles";
 import { droppedStarter } from "../stars/bestRole";
 import type { RoleStars } from "../stars/starsShape";
@@ -120,7 +120,7 @@ export function autoSubs(
     positionsOf(weighed, playerCode);
   }
 
-  const absentees = asSaved.starters.filter((starter) => playOf(starter.playerCode) === "didNotPlay").sort((one, other) => byPitchOrder(cellOf(one), cellOf(other)));
+  const absentees = asSaved.starters.filter((starter) => playOf(starter.playerCode) === "didNotPlay").sort((one, other) => byPitchOrder(heldCell(one), heldCell(other)));
   let current = asSaved;
   const substitutions: AutoSub[] = [];
   const unfilled: PlayerCode[] = [];
@@ -151,10 +151,10 @@ function firstLegalSub(
   rules: LineupRules,
   ratingsOf: DeadlineRatings,
 ): { substitution: AutoSub; lineup: Lineup } | undefined {
-  const slot = cellOf(absentee);
+  const slot = heldCell(absentee);
   // The hard rule (spec/05): a wing back plays only the wide lanes of a midfield row, so "can play
   // the slot's area" means can stand in the slot's own cell.
-  const formationNow = lineup.starters.map(cellOf);
+  const formationNow = lineup.starters.map(heldCell);
   for (const playerCode of available) {
     const playerPositions = positionsOf(positions, playerCode);
     if (!playsCell(playerPositions, slot)) continue;
@@ -173,7 +173,7 @@ function firstLegalSub(
   for (const playerCode of available) {
     const playerPositions = positionsOf(positions, playerCode);
     for (const cell of freeCells.filter((free) => playsCell(playerPositions, free))) {
-      const formation = [...lineup.starters.filter((starter) => starter !== absentee).map(cellOf), cell];
+      const formation = [...lineup.starters.filter((starter) => starter !== absentee).map(heldCell), cell];
       const tried = legalSubstitution(lineup, absentee, droppedStarter(playerCode, cell, formation, ratingsOf(playerCode), playerPositions), "hisOwnArea", positions, rules);
       if (tried) return tried;
     }
@@ -203,8 +203,8 @@ function legalSubstitution(
 /** Every outfield cell no other starter stands in, nearest the absentee's first: the fewest areas away,
  *  then the fewest lanes, then the further back and the further left. */
 function freeCellsNearest(lineup: Lineup, absentee: Placement): Cell[] {
-  const [slotArea, slotLane] = pitchOrder(cellOf(absentee));
-  const taken = new Set(lineup.starters.filter((starter) => starter !== absentee).map(cellOf).map(cellKey));
+  const [slotArea, slotLane] = pitchOrder(heldCell(absentee));
+  const taken = new Set(lineup.starters.filter((starter) => starter !== absentee).map(heldCell).map(cellKey));
   const distance = (cell: Cell): number[] => {
     const [area, lane] = pitchOrder(cell);
     return [Math.abs(area - slotArea), Math.abs(lane - slotLane), area, lane];
@@ -254,14 +254,6 @@ function shortfall(problem: LineupProblem): number {
  *  a formation offers is the manager's pick, never a reason to refuse a sub. */
 export function standingProblems(lineup: Lineup, positions: PlayerPositions, rules: LineupRules) {
   return lineupProblems(lineup, positions, rules).filter((problem) => !["outsideHisAreas", "roleNotHis", "noBackThree"].includes(problem.kind));
-}
-
-/** A starter's cell, once standingProblems has refused any cell that doesn't exist. */
-function cellOf(placement: Placement): Cell {
-  const area = AREAS.find((known) => known === placement.area);
-  const lane = LANES.find((known) => known === placement.lane);
-  if (area === undefined || lane === undefined) throw new Error(`No cell ${placement.area}, ${placement.lane}`);
-  return { area, lane };
 }
 
 function positionsOf(positions: PlayerPositions, playerCode: PlayerCode) {

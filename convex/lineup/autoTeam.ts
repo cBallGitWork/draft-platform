@@ -16,7 +16,7 @@ import { autoSubs, standingProblems, type GameweekPlay } from "./autoSubs";
 import { firstLineup, withDroppedRoles, type FirstLineup, type FirstLineupRules } from "./firstLineup";
 import { namedCodes, type Placement, type PlayerPositions } from "./lineup";
 import { heldPositionsOf, lineupsInGameweek, saveGameweekOf, storeAutoTeamLineup, type HeldLineup } from "./lineups";
-import type { Area, Lane } from "./pitch";
+import { heldCell } from "./pitch";
 import { autoTeamLetters, autoTeamRefusals } from "./autoTeamWords";
 
 // The auto team (spec/09, The auto team; #1207), for a manager who stops playing: it sets the
@@ -54,8 +54,7 @@ export function autoTeamLineup(
  *  any other before a sub). */
 const onThePitch = ({ playerCode, area, lane, role }: Placement) => ({
   playerCode,
-  area: area as Area,
-  lane: lane as Lane,
+  ...heldCell({ area, lane }),
   ...(role === undefined ? {} : { role }),
 });
 

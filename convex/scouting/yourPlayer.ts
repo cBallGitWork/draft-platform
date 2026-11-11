@@ -2,7 +2,7 @@ import { v, type Infer } from "convex/values";
 import { query } from "../_generated/server";
 import { MOST_IN_SQUAD } from "../leagues/leagueLimits";
 import { lineupInGameweek, saveGameweekOf } from "../lineup/lineups";
-import { positionOfSlot, type Area, type Lane } from "../lineup/pitch";
+import { heldCell, positionOfSlot } from "../lineup/pitch";
 import { cardOpensAt } from "../playerCard/cardPoints";
 import { positionsNow } from "../positions/playerPositions";
 import { latestRules } from "../rules/rulesHistory";
@@ -59,7 +59,7 @@ export const at = query({
     if (next.kind === "open") {
       const { starters } = await lineupInGameweek(ctx, leagueId, team._id, next.gameweek);
       const starter = starters.find(
-        (each) => each.playerCode !== playerCode && nameOf.has(each.playerCode) && positionOfSlot({ area: each.area as Area, lane: each.lane as Lane }) === main,
+        (each) => each.playerCode !== playerCode && nameOf.has(each.playerCode) && positionOfSlot(heldCell(each)) === main,
       );
       if (starter !== undefined) return { player: named(starter.playerCode), squadFull };
     }
