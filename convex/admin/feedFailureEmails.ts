@@ -1,6 +1,6 @@
 import { v } from "convex/values";
 import { internal } from "../_generated/api";
-import { internalAction, type MutationCtx } from "../_generated/server";
+import { internalAction, internalMutation, type MutationCtx } from "../_generated/server";
 import { failureOf, type RunOutcome } from "./feedState";
 import { sendEmail } from "../outbound/email";
 import { takeTodaysEmail } from "../outbound/emailLimit";
@@ -13,7 +13,8 @@ import { adminEmail } from "../signIn/allowedEmails";
 // The email the admin gets when a feed or sync fails, "at most once a day for each feed" (#319,
 // spec/15). Each feed's record mutation calls `emailIfFailed`, so the email follows a failure
 // however the feed was run. It counts against the day's emails (emailLimit.ts); with none left
-// it isn't sent, the failure is logged, and the next failure tries again.
+// it isn't sent, the failure is logged, and the next failure tries again. An email the service
+// refuses is logged and forgotten too, so it never quiets that feed's next failure (#1569).
 
 /** How long after emailing that a feed failed before its next failure emails again. */
 export const FAILURE_EMAIL_GAP_MS = DAY_MS;
@@ -61,22 +62,42 @@ export async function emailIfFailed(
     console.error(`${feed} failed, but the day's emails are all gone, so the admin wasn't emailed: ${error}`);
     return;
   }
-  if (emailed === null) await ctx.db.insert("feedFailureEmails", { feed, competition, emailedAt: ranAt });
-  else await ctx.db.patch("feedFailureEmails", emailed._id, { emailedAt: ranAt });
-  await ctx.scheduler.runAfter(0, internal.admin.feedFailureEmails.send, { feed, competition: of?.name, ranAt, error });
+  const row =
+    emailed === null ? await ctx.db.insert("feedFailureEmails", { feed, competition, emailedAt: ranAt }) : emailed._id;
+  if (emailed !== null) await ctx.db.patch("feedFailureEmails", row, { emailedAt: ranAt });
+  await ctx.scheduler.runAfter(0, internal.admin.feedFailureEmails.send, { row, feed, competition: of?.name, ranAt, error });
 }
 
 export const send = internalAction({
-  args: { feed: failureEmailKindValidator, competition: v.optional(v.string()), ranAt: v.number(), error: v.string() },
+  args: {
+    row: v.id("feedFailureEmails"),
+    feed: failureEmailKindValidator,
+    competition: v.optional(v.string()),
+    ranAt: v.number(),
+    error: v.string(),
+  },
   returns: v.null(),
-  handler: async (ctx, { feed, competition, ranAt, error }) => {
+  handler: async (ctx, { row, feed, competition, ranAt, error }) => {
     try {
       const admin = adminEmail();
       const zone = (await ctx.runQuery(internal.signIn.timeZone.zoneFor, { email: admin })) ?? undefined;
       await sendEmail(admin, failureEmail(feed, competition ?? null, ranAt, error, zone));
     } catch (sendError) {
       console.error(`The email saying ${feed} failed wasn't sent to the admin:`, sendError);
+      await ctx.runMutation(internal.admin.feedFailureEmails.forgetUnsent, { row, emailedAt: ranAt });
     }
+    return null;
+  },
+});
+
+/** Forgets an email that wasn't sent, so the feed's next failure emails again (#1569): only while
+ *  the row still records that email, never a later one. */
+export const forgetUnsent = internalMutation({
+  args: { row: v.id("feedFailureEmails"), emailedAt: v.number() },
+  returns: v.null(),
+  handler: async (ctx, { row, emailedAt }) => {
+    const emailed = await ctx.db.get("feedFailureEmails", row);
+    if (emailed?.emailedAt === emailedAt) await ctx.db.delete("feedFailureEmails", row);
     return null;
   },
 });
