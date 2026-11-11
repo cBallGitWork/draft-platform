@@ -5,7 +5,7 @@ import { lineupsInGameweek } from "../lineup/lineups";
 import { statusOf } from "../stats/matchStats";
 import { teamOverridesIn } from "./heldMatches";
 import { rulesIn, type GameweekInputs, type LeagueReads } from "./teamGameweek";
-import { deadlineStarsIn } from "../stars/deadlineStars";
+import { keptAtDeadline } from "../stars/deadlineStars";
 
 // One team's gameweek inputs from reads the size of its squad rather than of every match: what a
 // season of a player's card or the Squad tab can afford (#577). The league's scorer
@@ -47,7 +47,7 @@ export async function squadInputs(
     ...ruled,
     matches,
     lineups,
-    deadlineStars: await deadlineStarsIn(ctx, reads.leagueId, gameweek, teamId),
+    kept: await keptAtDeadline(ctx, reads.leagueId, gameweek, teamId),
     teamOverrides: await teamOverridesIn(ctx, reads.leagueId, gameweek),
   };
 }
