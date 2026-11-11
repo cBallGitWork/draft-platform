@@ -89,6 +89,8 @@ jobs:
       - run: node scripts/tests-kept.mjs
       - run: node scripts/spec-ids.mjs
       - run: node scripts/contents-lists.mjs
+      # the studio kit's copies match .studio/kit.json (change them in the studio repo)
+      - run: node scripts/studio-kit.mjs
       - run: .claude/hooks/test.sh
       # the tests that read a doc (spec/07's example tables, SPEC.md's Avoid column, plate.md, flow.md, the ui rules):
       # `unit` is skipped on a docs-only change, so a doc edit that breaks one would merge green and turn every later
