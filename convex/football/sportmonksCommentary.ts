@@ -5,7 +5,7 @@
 // the delay `matchCommentary.ts` stores out. The kick-off and full-time lines are written apart.
 
 import type { ScoreRead } from "./scoreReads";
-import type { SportmonksEvent } from "./sportmonks/sportmonksMatch";
+import { byEventMinute, type SportmonksEvent } from "./sportmonks/sportmonksMatch";
 import { FEED_TYPE, minuteOf, UNLISTED_NAME, type WrittenLine } from "./commentary";
 import { behind, joinedReasons, type CommentaryRead } from "./matchCommentary";
 
@@ -54,14 +54,15 @@ export interface SportmonksCommentary {
 }
 
 /** One match's events as lines, each man named by his Sportmonks player id in `nameById`. An event
- *  sent twice is one line, its newest sending; a man with no name given is `UNLISTED_NAME`. */
+ *  sent twice is one line, its newest sending; a man with no name given is `UNLISTED_NAME`. Events
+ *  in the same minute keep the order the match read stored them in (sportmonksMatch.ts). */
 export function sportmonksCommentary(events: readonly SportmonksEvent[], nameById: ReadonlyMap<number, string>): SportmonksCommentary {
   const byId = new Map<number, SportmonksEvent>();
   for (const event of events) byId.set(event.id, event);
   const named = (id: number | null) => (id === null ? null : (nameById.get(id) ?? UNLISTED_NAME));
   const lines: WrittenLine[] = [];
   const unworded: SportmonksEvent[] = [];
-  for (const event of [...byId.values()].sort(byMinute).reverse()) {
+  for (const event of [...byId.values()].sort(byEventMinute).reverse()) {
     const wording = WORDING[event.typeId];
     if (wording === undefined) {
       unworded.push(event);
@@ -97,11 +98,6 @@ function varWords(man: string, event: SportmonksEvent): string {
   const head = event.playerId === null ? "VAR" : `VAR ${man}`;
   const call = event.addition ?? event.info;
   return call === null ? head : `${head}, ${call.toLowerCase()}`;
-}
-
-/** By minute, then extra minute; within those, as Sportmonks sent them (the sort is stable). */
-function byMinute(a: SportmonksEvent, b: SportmonksEvent): number {
-  return (a.minute ?? 0) - (b.minute ?? 0) || (a.extraMinute ?? 0) - (b.extraMinute ?? 0);
 }
 
 function unwordedReason(events: readonly SportmonksEvent[]): string | null {

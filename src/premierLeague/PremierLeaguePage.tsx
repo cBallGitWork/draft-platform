@@ -8,14 +8,11 @@ import { openingGameweek } from "./openingGameweek";
 import { matchPath } from "./paths";
 import { TablePanel } from "./TablePanel";
 import type { GameweekMatch, PremierLeagueSeam } from "./seam";
+import { MatchState } from "./MatchState";
 import {
-  clockWords,
   dayWords,
   FIXTURES_TITLE,
-  fullTime,
   goalsWords,
-  halfTime,
-  kickoffWords,
   loadingGameweekWords,
   loadingWords,
   matchesListLabel,
@@ -102,7 +99,7 @@ function MatchRow({ match: { fixtureCode, kickoff, home, away, score } }: { matc
   const goals = goalsWords(score);
   return (
     <li className="grid grid-cols-match-row items-center gap-2 border-b border-panel-rule px-3 py-1 text-lead">
-      <MatchState kickoff={kickoff} score={score} />
+      <MatchState kickoff={kickoff} score={score} long={false} />
       <span className="text-right font-semibold">
         <ClubName club={home} />
       </span>
@@ -118,25 +115,4 @@ function MatchRow({ match: { fixtureCode, kickoff, home, away, score } }: { matc
       </span>
     </li>
   );
-}
-
-function MatchState({ kickoff, score }: Pick<GameweekMatch, "kickoff" | "score">) {
-  switch (score?.state) {
-    case "live":
-      return <span className="font-semibold text-derived">{clockWords(score.state, score.clockLabel, score.minutes)}</span>;
-    case "halfTime":
-      return (
-        <abbr title={halfTime.long} className="font-semibold text-derived no-underline">
-          {clockWords(score.state, score.clockLabel, score.minutes)}
-        </abbr>
-      );
-    case "fullTime":
-      return (
-        <abbr title={fullTime.long} className="text-muted no-underline">
-          {fullTime.short}
-        </abbr>
-      );
-    default:
-      return <span className="text-muted">{kickoff === null ? "" : kickoffWords(kickoff)}</span>;
-  }
 }

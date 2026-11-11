@@ -1,12 +1,27 @@
+import { v, type Infer, type PropertyValidators } from "convex/values";
+import type { TableNames } from "../_generated/dataModel";
+import { internalQuery } from "../_generated/server";
 import type { Every } from "./feedSchedule";
 import { DAY_MS } from "./time";
 
-// Numbers the feeds' runs share: each sync, tick and check keeps its own run table
-// (shared/feedSchedule.ts's FEED_RUN_TABLES), reads it back with its own `latest` query where it has
-// one, and admin/runLogs.ts prunes them all.
+// Numbers the feeds' runs share, and the `latest` query each reads its runs back with. Each sync,
+// tick and check keeps its own run table (shared/feedSchedule.ts's FEED_RUN_TABLES), and
+// admin/runLogs.ts prunes them all.
 
 /** How many run rows each `latest` returns. */
 export const LATEST_RUNS = 5;
+
+/** A run table's `latest`: its newest LATEST_RUNS rows, newest first, `fields` being the table's
+ *  own (its schema's run fields). TypeScript can't match a generic table's rows to `fields`, so
+ *  they are cast; `returns` still checks each row as it is sent. */
+export function latestRuns<Table extends TableNames, Fields extends PropertyValidators>(table: Table, fields: Fields) {
+  const returns = v.array(v.object({ _id: v.id(table), _creationTime: v.number(), ...fields }));
+  return internalQuery({
+    args: {},
+    returns,
+    handler: async (ctx) => (await ctx.db.query(table).order("desc").take(LATEST_RUNS)) as unknown as Infer<typeof returns>,
+  });
+}
 
 /** Rows per mutation, upserted or checked for a mark: well inside Convex's per-transaction limits,
  *  and a season's ~700 players in four. */
