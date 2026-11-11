@@ -6,7 +6,7 @@ import { memberOf, teamsOf } from "../shared/leagueAccess";
 import { clubsByCode } from "../shared/players";
 import { leagueOffers } from "./tradeClose";
 import { tradedPlayer } from "./tradedPlayers";
-import { votersOn } from "./tradeReview";
+import { votersOn } from "./tradeReviewers";
 import { termsShown } from "./tradeScreen";
 
 // The trades the caller reviews, for the Offers tab's To review group (#383; Craig, 10 Nov 2026):
