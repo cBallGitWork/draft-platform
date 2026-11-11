@@ -1,11 +1,12 @@
 // His match's clock on the matchup: one clock with the Premier League's pages (spec/10, The
-// matchup, as a live match; #563), "HT" at half-time as they say it (#781).
+// matchup, as a live match; #563), "HT" at half-time as they say it (#781); before he plays, the
+// day alone on his shirt, and on the bench no badge for his match (the approved picture; #1494).
 
 import { screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import { MATCHUP_PATH } from "../../../src/frame/menu";
 import { notCountingLabel, sidePitchLabel, statusLabels } from "../../../src/matchup/words";
-import { halfTime, liveWords } from "../../../src/shared/words";
+import { halfTime, liveWords, weekdayTimeWords, weekdayWords } from "../../../src/shared/words";
 import { headToHead, lineupRows, playing, roleOf, slot, SLOT_MATCH, teamSide } from "../../support/src/matchup.harness";
 import { manager, openApp } from "../../support/src/shell.harness";
 
@@ -39,5 +40,15 @@ describe("his match's clock", () => {
     // Read out in full, as full time is: "Half-time", then the "HT" his shirt shows.
     expect(lineupRows(TEAM)).toEqual([`Phillips, GK ${roleOf("goalkeeper").name}, 0, ${halfTime.long} ${halfTime.short}`]);
     expect(screen.getByText(halfTime.short)).toBeTruthy();
+  });
+
+  it("shows the day alone before he plays, his kickoff's time read out, and no badge for his match on the bench", async () => {
+    const kickoff = Date.UTC(2026, 10, 15, 16, 30);
+    const yetToPlay = { kind: "yetToPlay", fixtureCode: SLOT_MATCH, kickoff } as const;
+    await openLineup([slot("Coyle", { status: yetToPlay })], [slot("Pandur", { area: "goalkeeper", counts: false, status: yetToPlay })]);
+    expect(lineupRows(TEAM)[0]).toContain(`${statusLabels.yetToPlay} ${weekdayTimeWords(kickoff)}`);
+    // Only Coyle's shirt says the day; the bench's tiles carry no badge for their match.
+    expect(screen.getAllByText(weekdayWords(kickoff))).toHaveLength(1);
+    expect(screen.queryByText(weekdayTimeWords(kickoff))).toBeNull();
   });
 });

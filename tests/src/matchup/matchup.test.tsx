@@ -19,6 +19,7 @@ import {
   offWords,
   sidePitchLabel,
   finalWords,
+  gameweekShort,
   gameweekWords,
   leagueAverageWords,
   loadingWords,
@@ -198,6 +199,13 @@ describe("the gameweek stepper", () => {
     openMatchup({ matchup: headToHead({ kind: "bye" }, { gameweek: 5, gameweeks: [5] }) });
     const stepper = await screen.findByRole("navigation", { name: gameweekWords(5) });
     expect(within(stepper).queryAllByRole("link")).toEqual([]);
+  });
+
+  it("shows the gameweek short, as the approved picture's \"GW9\", read out in full", async () => {
+    openMatchup({ matchup: stages.live });
+    const stepper = await screen.findByRole("navigation", { name: gameweekWords(6) });
+    expect(within(stepper).getByRole("heading", { level: 2, name: gameweekWords(6) })).toBeTruthy();
+    expect(within(stepper).getByText(gameweekShort(6))).toBeTruthy();
   });
 });
 

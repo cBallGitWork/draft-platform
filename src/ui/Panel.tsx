@@ -10,21 +10,31 @@ const PANEL_PLATE = "bg-plate px-3 py-1 shadow-bevel-plate";
 const PAGE_TITLE_ID = "page-title";
 
 /** A page's section, labelled by its title plate; `aside`, such as Mail's unread count, sits at the
- *  plate's far end, and `className` is the caller's own (a single panel passes `bg-panel`). */
+ *  plate's far end, and `className` is the caller's own (a single panel passes `bg-panel`).
+ *  `plate={false}` keeps the title for screen readers only, on a page whose approved picture
+ *  draws no title plate (the matchup's: its score band sits straight under the top bar). */
 export function PageSection({
   title,
   aside,
+  plate = true,
   className,
   children,
 }: {
   title: ReactNode;
   aside?: ReactNode;
+  plate?: boolean;
   className?: string;
   children?: ReactNode;
 }) {
   return (
     <section aria-labelledby={PAGE_TITLE_ID} className={className}>
-      <PageTitle aside={aside}>{title}</PageTitle>
+      {plate ? (
+        <PageTitle aside={aside}>{title}</PageTitle>
+      ) : (
+        <h1 id={PAGE_TITLE_ID} className="sr-only">
+          {title}
+        </h1>
+      )}
       {children}
     </section>
   );
