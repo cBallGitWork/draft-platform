@@ -1,5 +1,4 @@
 import { beforeEach, describe, expect, test } from "vitest";
-import { api } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
 import type { QueryCtx } from "../../../convex/_generated/server";
 import { rulesRefusals } from "../../../convex/rules/leagueRules";
@@ -8,9 +7,9 @@ import { heldSchedule } from "../../../convex/gameweeks/leagueDeadlines";
 import { CURRENT_FIXTURES_MOST } from "../../../convex/shared/fixtures";
 import { FIRST_GAMEWEEK, GAMEWEEKS_MOST, seasonGameweeks } from "../../../convex/gameweeks/usedGameweeks";
 import { PL_GAMEWEEKS } from "../../support/convex/footballRows.harness";
-import { changeRules, holdGameweeks, holdGameweeksPastTheSeason, rulesWith, TOTAL_POINTS } from "../../support/convex/leagueRules.harness";
+import { changeRules, holdGameweeks, holdGameweeksPastTheSeason, latestRules, rulesWith, TOTAL_POINTS } from "../../support/convex/leagueRules.harness";
 import { expectRefused, ROWS_TO_THE_CAP } from "../../support/convex/test.harness";
-import { actingAs, adminCreatesLeague, COMMISSIONER, type TestConvex } from "../../support/convex/leagues.harness";
+import { adminCreatesLeague, type TestConvex } from "../../support/convex/leagues.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
 
 // The league's rules reads each have a named cap (#214): past it they throw, never cut short.
@@ -25,7 +24,6 @@ beforeEach(async () => {
 });
 
 const change = (rules = TOTAL_POINTS) => changeRules(t, leagueId, rules);
-const latest = async () => (await actingAs(t, COMMISSIONER)).query(api.rules.leagueRules.latest, { leagueId });
 const countRulesRows = async (ctx: QueryCtx) =>
   (await ctx.db.query("leagueRules").withIndex("by_leagueId_and_fromGameweek", (q) => q.eq("leagueId", leagueId)).collect()).length;
 const rulesRows = () => t.run(countRulesRows);
@@ -42,7 +40,7 @@ test(`a league's rules rows: a change up to ${RULES_CHANGES_MOST} is saved, one 
   await holdRulesRows(RULES_CHANGES_MOST - 1);
   await change();
   expect(await rulesRows()).toBe(RULES_CHANGES_MOST);
-  expect((await latest())?.rules).toEqual(TOTAL_POINTS);
+  expect((await latestRules(t, leagueId))?.rules).toEqual(TOTAL_POINTS);
 
   await expectRefused(change(rulesWith({})), rulesRefusals.tooManyChanges);
   expect(await rulesRows()).toBe(RULES_CHANGES_MOST);
@@ -50,7 +48,7 @@ test(`a league's rules rows: a change up to ${RULES_CHANGES_MOST} is saved, one 
   // Only a row written by hand can pass the most; reading the rules in force from a cut list would
   // read the wrong ones.
   await holdRulesRows(RULES_CHANGES_MOST + 1);
-  await expect(latest()).rejects.toThrow(`more than ${RULES_CHANGES_MOST} rules rows`);
+  await expect(latestRules(t, leagueId)).rejects.toThrow(`more than ${RULES_CHANGES_MOST} rules rows`);
 });
 
 describe("the held schedule", () => {

@@ -35,12 +35,7 @@ beforeEach(async () => {
 });
 
 const squadOf = (teamId: Id<"teams">) => w.squadCodes(teamId);
-/** Ann's first drop for Bob's Saka, accepted by Bob. */
-const annTradesForSaka = async () => {
-  const { offerId } = await w.offer(ANN, w.bobsTeam, [ANNS_FIRST_DROP], [SAKA]);
-  await w.accept(BOB, offerId);
-  return offerId;
-};
+const annTradesForSaka = () => w.annTradesForSaka();
 
 describe("with no review", () => {
   beforeEach(() => w.tradesAre({ review: "none", deadline: null }));

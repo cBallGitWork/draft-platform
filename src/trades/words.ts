@@ -4,7 +4,6 @@
 import { pickWords } from "../../convex/mail/tradeLetterWords";
 import { NOTE_MOST, REVIEW_MS } from "../../convex/trades/tradeLimits";
 import { HOUR_MS } from "../../convex/shared/time";
-import type { TradesView } from "../../convex/trades/tradeScreen";
 import { changeFailedWords } from "../shared/words";
 import type { ClosedOffer, Reviewer } from "./seam";
 
@@ -17,13 +16,9 @@ export const TRADES_TITLE = "Trades";
 export const tradesLoadingWords = "Loading your trades…";
 export const tradeFailedWords = changeFailedWords;
 
-/** Why no trade can be offered or accepted now (convex/trades/tradeShut.ts). */
-export const shutWords: Record<NonNullable<TradesView["shut"]>, string> = {
-  draftLive: "Trades are shut while the draft is live.",
-  tradeDeadline: "The league's trade deadline has passed.",
-  unusedGameweek:
-    "Trades are locked through a gameweek the league doesn't play.",
-};
+/** Why no trade can be offered or accepted now, the same sentence the refusal gives
+ *  (convex/trades/tradeShutWords.ts). */
+export { shutWords } from "../../convex/trades/tradeShutWords";
 
 // The Offers tab.
 export const OFFERS_TITLE = "Offers";

@@ -9,12 +9,12 @@ import { expectRefused } from "../../support/convex/test.harness";
 import { COMMISSIONER, MANAGERS, actingAs, addManagers, adminCreatesLeague, type TestConvex } from "../../support/convex/leagues.harness";
 import { ARSENAL, insertClubs } from "../../support/convex/footballRows.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
+import { SAKA } from "../../support/convex/lineupSquad.harness";
 
 // Squad numbers (#13, spec/05 Squad numbers; Craig, 26 Oct 2026): a manager numbers his own
 // players, 1 to 99, two alike if he likes, and a player who moves starts afresh.
 
 const [ANN, BOB, , , EVE] = MANAGERS;
-const SAKA = 1001;
 const RICE = 1002;
 
 let t: TestConvex;

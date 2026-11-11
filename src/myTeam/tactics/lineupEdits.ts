@@ -6,7 +6,7 @@
 // "Anything that would break the area limits stays unlit"). Presets only: the shape comes from a
 // preset, never a player moved into an empty cell (Craig, 1 Nov 2026; #1022).
 
-import { ALL_CELLS, byPitchOrder, cellKey, positionOfSlot, sameCell, type Cell } from "../../../convex/lineup/pitch";
+import { ALL_CELLS, byPitchOrder, cellKey, positionOfSlot, sameCell, sameShape, type Cell } from "../../../convex/lineup/pitch";
 import { reconciled, type LineupRules } from "../../../convex/lineup/lineup";
 import type { Position } from "../../../convex/positions/positionTables";
 import type { OpenTactics } from "../../../convex/lineup/tactics";
@@ -171,8 +171,7 @@ export const presetInUse = <Shape extends { name: string; cells: readonly Cell[]
 
 /** The league's preset whose shape is these cells, cell for cell, if any. */
 export function presetOfCells<Shape extends { name: string; cells: readonly Cell[] }>(cells: readonly Cell[], presets: readonly Shape[]): Shape | undefined {
-  const standing = new Set(cells.map(cellKey));
-  return presets.find((preset) => preset.cells.length === standing.size && preset.cells.every((cell) => standing.has(cellKey(cell))));
+  return presets.find((preset) => sameShape(preset.cells, cells));
 }
 
 /** The slot a position stands for, the first cell of the pitch whose slot it is: a bench player's

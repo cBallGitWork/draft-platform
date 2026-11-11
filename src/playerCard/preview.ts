@@ -158,7 +158,7 @@ function cardActionOf(playerCode: number): CardAction {
   const player = previewPlayers.find(({ code }) => code === playerCode);
   if (player === undefined) return { kind: "none" };
   if (player.ownerTeamName !== null) return { kind: player.ownerTeamName === OWN_TEAM ? "drop" : "none" };
-  return player.onWaivers === null ? { kind: "pickUp", squad: PREVIEW_SQUAD } : { kind: "claim", firstRunAt: player.onWaivers.firstRunAt, squad: PREVIEW_SQUAD };
+  return player.onWaivers === null ? { kind: "pickUp", squad: PREVIEW_SQUAD } : { kind: "claim", firstRun: player.onWaivers.firstRun, squad: PREVIEW_SQUAD };
 }
 
 export const previewPlayerCard: PlayerCardSeam = {

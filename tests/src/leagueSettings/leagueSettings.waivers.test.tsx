@@ -149,7 +149,7 @@ describe("every team's pending claims, for a commissioner with no team (#1487)",
     yours: false,
     claim: claimed,
     drop: null,
-    runAt: WED,
+    run: { at: WED, skippedIf: null },
   });
   const waivers: WaiversView = {
     ...NO_WAIVERS,

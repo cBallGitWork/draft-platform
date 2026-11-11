@@ -34,6 +34,7 @@ export { position, startRecord, approveMode, changeThresholds, positionsSyncFiel
 export { liveStatsTickFields, sideMatchOutcome, sideRunFields, commentaryLine, sideTeamStats, teamSheetMan } from "./schema/live";
 export { leagueDeletion, pinnedLetter, leagueEvent } from "./schema/leagues";
 export { delivery } from "./schema/joining";
+export { namedPlayer } from "./schema/squads";
 export { siteScoringKind } from "./schema/scoring";
 export { placementShape } from "./schema/lineup";
 export { rankedPlayer } from "./schema/draft";

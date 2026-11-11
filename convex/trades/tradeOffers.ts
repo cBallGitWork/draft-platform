@@ -4,18 +4,21 @@ import { mutation, query, type MutationCtx, type QueryCtx } from "../_generated/
 import { leagueDeadlines } from "../gameweeks/leagueDeadlines";
 import { fileLetter } from "../mail/letters";
 import { offerLetter } from "../mail/tradeLetterWords";
+import { namedPlayer } from "../schema";
 import { tradePick } from "../schema/trades";
 import { leagueOpens } from "../leagues/leagueOpens";
 import { managerOf, refuse, refusals, signedInEmail, teamIn, teamOf } from "../shared/leagueAccess";
 import { playerByCode } from "../shared/players";
 import { placeOf } from "../squads/squadPlace";
 import { squadWarning } from "../squads/squads";
-import { closeOffer, deadlinePassed, endOffer, heldInReview, leagueOffers, tradeWordsOf } from "./tradeClose";
+import { closeOffer, deadlinePassed, endOffer, heldInReview, leagueOffers } from "./tradeClose";
+import { tradedName, tradeWordsOf } from "./tradeWords";
 import { startReview } from "./tradeReview";
 import { tradeWarnings } from "./tradeSquads";
 import { NOTE_MOST } from "./tradeLimits";
 import { checkPicks, checkPicksFree, samePick, type TradePicks } from "./tradePicks";
 import { offerCloses, onAutoTeam, tradeDeadlineInForce, tradesShut } from "./tradeShut";
+import { shutWords } from "./tradeShutWords";
 
 // A trade's offer (spec/08 Trades; #383): a manager offers another any mix of players on either
 // side, in any numbers, with a one-line note. The other manager accepts, rejects or counters with
@@ -25,9 +28,7 @@ import { offerCloses, onAutoTeam, tradeDeadlineInForce, tradesShut } from "./tra
 // offer can instead be one draft pick each way and nothing else (tradePicks.ts; #1096).
 
 export const offerRefusals = {
-  draftLive: "Trades can't be made while the draft is live.",
-  tradeDeadline: "The league's trade deadline has passed.",
-  unusedGameweek: "Trades are locked through a gameweek the league doesn't play.",
+  ...shutWords,
   autoTeam: (teamName: string) => `${teamName} is on the auto team, so it can't trade.`,
   sameTeam: "A trade is between two teams.",
   noPlayers: "Put at least one player in the trade.",
@@ -186,7 +187,7 @@ export const accept = mutation({
     const held = await heldInReview(ctx, leagueId);
     for (const code of [...offer.gives, ...offer.gets]) {
       if (held.has(code)) {
-        refuse(offerRefusals.held((await playerByCode(ctx, code))?.name ?? "A player"));
+        refuse(offerRefusals.held(await tradedName(ctx, code)));
       }
     }
     const warnings = await tradeWarnings(ctx, leagueId, offer);
@@ -231,8 +232,6 @@ export const withdraw = mutation({
     return null;
   },
 });
-
-const namedPlayer = v.object({ playerCode: v.number(), playerName: v.string() });
 
 const shownOffer = v.object({
   offerId: v.id("tradeOffers"),

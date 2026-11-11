@@ -6,7 +6,16 @@ import { recordEvent } from "../mail/letters";
 import { deadlineOf, leagueDeadlines } from "./leagueDeadlines";
 import { startAfterUntick } from "./scoringStart";
 import { seasonGameweekCount } from "./seasonGameweeks";
-import { isGameweek, isGameweekUsed, noSuchGameweek, seasonGameweeks, shownDeadline, unusedAfter } from "./usedGameweeks";
+import {
+  begunRefusal,
+  isGameweek,
+  isGameweekUsed,
+  noKickoffRefusal,
+  noSuchGameweek,
+  seasonGameweeks,
+  shownDeadline,
+  unusedAfter,
+} from "./usedGameweeks";
 
 // The commissioner ticks the gameweeks the league plays, all its season's by default (#74; spec/13,
 // Gameweeks). A gameweek has begun once the league's own deadline for it has passed, under the
@@ -18,9 +27,8 @@ import { isGameweek, isGameweekUsed, noSuchGameweek, seasonGameweeks, shownDeadl
 /** Why a change to the league's gameweeks was refused, as the commissioner is told it. */
 export const gameweekRefusals = {
   notAGameweek: noSuchGameweek,
-  begun: (gameweek: number) => `Gameweek ${gameweek} has begun, so it can't be ticked or unticked.`,
-  noDeadline: (gameweek: number) =>
-    `The app doesn't have a kickoff time for gameweek ${gameweek} yet, so it can't tell when its deadline falls or whether it has begun. Try again once the season's matches have arrived.`,
+  begun: (gameweek: number) => begunRefusal(gameweek, "it can't be ticked or unticked"),
+  noDeadline: (gameweek: number) => noKickoffRefusal(gameweek, "when its deadline falls or whether it has begun"),
 } as const;
 
 const leagueGameweek = v.object({

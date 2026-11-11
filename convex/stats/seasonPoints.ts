@@ -8,7 +8,7 @@ import type { StoredScoringSet } from "../scoring/scoringSetShape";
 import { siteScoringByGameweek } from "../scoring/siteVersions";
 import { inTenths } from "../scoring/values";
 import { takeAllOrThrow } from "../shared/cappedRead";
-import { fixtureByCode, heldSeason } from "../shared/fixtures";
+import { fixtureByCode, heldFixturesSeason } from "../shared/fixtures";
 import { groupedBy } from "../shared/groupedBy";
 import { readOnce } from "../shared/readOnce";
 import { isWhole, SEASON_PLAYERS_MOST, statsIfWhole } from "./matchRecords";
@@ -36,13 +36,13 @@ type SetIn = (gameweek: number) => StoredScoringSet;
 export const matchPointsAt = (record: Doc<"playerMatchStats">, set: StoredScoringSet, position: Position) =>
   basePoints(statsIfWhole(record), set, [position])[0].total;
 
-/** Sets these players' rows for the season of the matches held (heldSeason) afresh from their
+/** Sets these players' rows for the season of the matches held (heldFixturesSeason) afresh from their
  *  records, each match read once: a row while any of his records there is whole, none before. Only
  *  that season's row is read, so a match that left the feed or moved comes off at the next refresh,
  *  and last season's rows are left as they were. */
 export async function refreshSeasonPoints(ctx: MutationCtx, playerCodes: Iterable<number>): Promise<void> {
   const codes = [...new Set(playerCodes)];
-  const season = await heldSeason(ctx);
+  const season = await heldFixturesSeason(ctx);
   if (codes.length === 0 || season === null) return;
   const setIn = await siteScoringByGameweek(ctx);
   const fixtureOf = readOnce((code: number) => fixtureByCode(ctx, code));
@@ -77,7 +77,7 @@ export async function seasonPointsIn(
   leagueId: Id<"leagues">,
   only?: readonly number[],
 ): Promise<SeasonPointsOf> {
-  const season = await heldSeason(ctx);
+  const season = await heldFixturesSeason(ctx);
   if (season === null) return () => null;
   const sums = await sumsIn(ctx, season, only);
   const overrides = await overridesIn(ctx, leagueId, season, only);

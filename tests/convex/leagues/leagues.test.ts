@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, test, vi } from "vitest";
 import { api } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
 import { refusals } from "../../../convex/shared/leagueAccess";
+import { EMAIL_MAX } from "../../../convex/signIn/allowedEmails";
 import { FEWEST_TEAMS, MOST_TEAMS } from "../../../convex/leagues/leagueLimits";
 import {
   ADMIN,
@@ -100,6 +101,12 @@ describe("creating a league", () => {
     const admin = await actingAs(t, ADMIN);
     await expectRefused(admin.mutation(api.leagues.leagues.create, { name: "  ", maxTeams: 4, commissionerEmail: COMMISSIONER }), refusals.blankName);
     await expectRefused(admin.mutation(api.leagues.leagues.create, { name: "L", maxTeams: 4, commissionerEmail: "commish" }), refusals.notEmail("commish"));
+  });
+
+  test("an email longer than any address can be is refused, as sign-in refuses it", async () => {
+    const admin = await actingAs(t, ADMIN);
+    const tooLong = `${"a".repeat(EMAIL_MAX)}@example.com`;
+    await expectRefused(admin.mutation(api.leagues.leagues.create, { name: "L", maxTeams: 4, commissionerEmail: tooLong }), refusals.notEmail(tooLong));
   });
 });
 

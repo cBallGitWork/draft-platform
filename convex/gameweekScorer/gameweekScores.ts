@@ -113,7 +113,7 @@ export interface ScoredGameweek {
 }
 
 /** Scores one gameweek of the league for the `teamIds`. */
-export type GameweekScorer = (gameweek: number, teamIds: readonly TeamId[]) => Promise<ScoredGameweek>;
+type GameweekScorer = (gameweek: number, teamIds: readonly TeamId[]) => Promise<ScoredGameweek>;
 
 /** The league's scorer: what any gameweek's scoring reads (the site's sets, the players, the
  *  stored final scores) is read once, however many gameweeks it scores. A gameweek's stored

@@ -123,12 +123,15 @@ async function gameOf(
 /** The first of a team's games in a gameweek, as the address and the switch number them. */
 const FIRST_GAME = 1;
 
-/** A team's name, for a team `gameweek`'s fixtures name. */
-const nameIn = (teams: readonly Doc<"teams">[], gameweek: number) => (teamId: TeamId) => {
+/** A team `gameweek`'s fixtures name; one not in the league is a bug, so it throws. */
+const fixtureTeamIn = (teams: readonly Doc<"teams">[], gameweek: number) => (teamId: TeamId) => {
   const named = teams.find((each) => each._id === teamId);
   if (named === undefined) throw new Error(`gameweek ${gameweek}'s fixtures name team ${teamId}, which isn't in the league`);
-  return named.name;
+  return named;
 };
+
+/** A team's name, for a team `gameweek`'s fixtures name. */
+const nameIn = (teams: readonly Doc<"teams">[], gameweek: number) => (teamId: TeamId) => fixtureTeamIn(teams, gameweek)(teamId).name;
 
 /** Who a game is against: another team, by name, or the league's average. */
 const opponentOf = (against: Opponent, nameOf: (teamId: TeamId) => string) =>
@@ -183,11 +186,7 @@ class SideScorer {
   }
 
   async opponent(against: Opponent): Promise<MatchupSide> {
-    if (against.kind === "team") {
-      const team = this.teams.find((each) => each._id === against.team);
-      if (team === undefined) throw new Error(`gameweek ${this.gameweek}'s fixtures name team ${against.team}, which isn't in the league`);
-      return this.team(team);
-    }
+    if (against.kind === "team") return this.team(fixtureTeamIn(this.teams, this.gameweek)(against.team));
     // The average of the gameweek's teams' points, as the table counts it.
     const every = await Promise.all(this.averaged.map((teamId) => this.inGameweek.pointsOf(teamId)));
     const sides = new Map(this.averaged.map((teamId, index) => [teamId, every[index]]));
@@ -233,7 +232,7 @@ class SideScorer {
       playerCode,
       name: await this.name(playerCode),
       area: cell.area,
-      ...(await shirtOf(this.ctx, this.leagueId, playerCode, teamId)),
+      ...(await shirtOf(this.ctx, this.leagueId, playerCode, await this.reads.player(playerCode), teamId)),
       points,
       counts,
       provisional,

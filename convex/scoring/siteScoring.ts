@@ -65,8 +65,9 @@ export const siteScoringRefusals = {
 const siteRevisionShape = v.union(v.null(), v.id("siteScoring"));
 
 /** Refuses, with the reason, a set that would score wrong or an own stat named as a catalogue
- *  stat is. Anything else the checks throw is the bug it is, never a refusal. */
-function checkScoringSet(scoring: StoredScoringSet, refusal = siteScoringRefusals.unsound): void {
+ *  stat is. Anything else the checks throw is the bug it is, never a refusal. The one-offs that
+ *  put the first roles and instructions in check theirs with it too. */
+export function checkScoringSet(scoring: StoredScoringSet, refusal = siteScoringRefusals.unsound): void {
   try {
     validateScoringSet(scoring);
     // On saving only: ownStats.ts's validateOwnStats says why.

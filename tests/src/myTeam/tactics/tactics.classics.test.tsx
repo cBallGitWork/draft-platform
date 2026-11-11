@@ -11,8 +11,8 @@ import { applyWords, CLASSICS, classicTitleWords, inUseWords, WINDOW_TITLE } fro
 import { allFormationsWords, customWords, instructionLabel, pitchTitle } from "../../../../src/myTeam/tactics/words";
 import { league } from "../../../support/src/shell.harness";
 import { IN_A_442, openedPitch, pickFormation, pickRole, roleShown } from "../../../support/src/tacticsScreen.harness";
+import { KEEGANS } from "../../../support/convex/lineup.harness";
 
-const keegans = DEFAULT_CLASSICS.find(({ name }) => name === "Keegan's Newcastle")!;
 
 const openClassics = async () => {
   await userEvent.click(screen.getByRole("button", { name: allFormationsWords }));
@@ -33,52 +33,52 @@ describe("a classic (spec/05; #991)", () => {
     const window = await openClassics();
     expect(window.getByRole("button", { name: new RegExp(`^${CLASSICS}`) }).textContent).toBe(`${CLASSICS}${DEFAULT_CLASSICS.length}`);
     expect(window.getAllByRole("radio").map((tile) => tile.getAttribute("aria-label"))).toEqual(DEFAULT_CLASSICS.map(({ name }) => name));
-    const tile = within(window.getByRole("radio", { name: keegans.name }));
+    const tile = within(window.getByRole("radio", { name: KEEGANS.name }));
     expect(tile.getByText("4-4-2")).toBeTruthy();
-    expect(tile.getByText(keegans.subtitle)).toBeTruthy();
-    expect(tile.getByText(keegans.description)).toBeTruthy();
+    expect(tile.getByText(KEEGANS.subtitle)).toBeTruthy();
+    expect(tile.getByText(KEEGANS.description)).toBeTruthy();
     // The first is picked and previewed: its subtitle and formation after its name.
-    expect(window.getByRole("heading", { level: 3, name: `${keegans.name}${classicTitleWords(keegans.subtitle, "4-4-2")}` })).toBeTruthy();
+    expect(window.getByRole("heading", { level: 3, name: `${KEEGANS.name}${classicTitleWords(KEEGANS.subtitle, "4-4-2")}` })).toBeTruthy();
   });
 
   it("sets its shape and every slot's role, saved with its name, and the pitch says so", async () => {
     const app = await openedPitch(IN_A_442);
-    await pickClassic(keegans.name);
-    const starters = IN_A_442.tactics.lineup.starters.map((starter) => ({ ...starter, role: keegans.cells.find((slot) => sameCell(slot, starter))!.role }));
-    expect(app.myTeam.lineupChanges.save).toHaveBeenLastCalledWith(league.leagueId, expect.objectContaining({ classic: keegans.name, starters: expect.arrayContaining(starters) }));
-    expect(pitchHeading(keegans.name)).toBeTruthy();
+    await pickClassic(KEEGANS.name);
+    const starters = IN_A_442.tactics.lineup.starters.map((starter) => ({ ...starter, role: KEEGANS.cells.find((slot) => sameCell(slot, starter))!.role }));
+    expect(app.myTeam.lineupChanges.save).toHaveBeenLastCalledWith(league.leagueId, expect.objectContaining({ classic: KEEGANS.name, starters: expect.arrayContaining(starters) }));
+    expect(pitchHeading(KEEGANS.name)).toBeTruthy();
     // No Formation key is pressed: none is the classic.
     expect(screen.getByRole("radio", { name: "4-4-2" }).getAttribute("aria-checked")).not.toBe("true");
     const window = await openClassics();
-    expect(within(window.getByRole("radio", { name: keegans.name })).getByText(inUseWords)).toBeTruthy();
+    expect(within(window.getByRole("radio", { name: KEEGANS.name })).getByText(inUseWords)).toBeTruthy();
   });
 
   it("becomes custom once a role changes, and picking it again resets every role", async () => {
     await openedPitch(IN_A_442);
-    await pickClassic(keegans.name);
+    await pickClassic(KEEGANS.name);
     await pickRole("Player 1", "Commanding keeper");
-    expect(pitchHeading(customWords(keegans.name))).toBeTruthy();
-    await pickClassic(keegans.name);
-    expect(pitchHeading(keegans.name)).toBeTruthy();
+    expect(pitchHeading(customWords(KEEGANS.name))).toBeTruthy();
+    await pickClassic(KEEGANS.name);
+    expect(pitchHeading(KEEGANS.name)).toBeTruthy();
     expect(roleShown("Player 1")).toBe("Shot-stopper");
   });
 
   it("sets its two team instructions, saved with it, and becomes custom once one changes", async () => {
     const app = await openedPitch(IN_A_442);
-    await pickClassic(keegans.name);
-    expect(app.myTeam.lineupChanges.save.mock.lastCall![1].instructions).toEqual(keegans.instructions);
-    expect(instructionPicker("attacking").value).toBe(keegans.instructions.attacking);
-    expect(instructionPicker("defensive").value).toBe(keegans.instructions.defensive);
+    await pickClassic(KEEGANS.name);
+    expect(app.myTeam.lineupChanges.save.mock.lastCall![1].instructions).toEqual(KEEGANS.instructions);
+    expect(instructionPicker("attacking").value).toBe(KEEGANS.instructions.attacking);
+    expect(instructionPicker("defensive").value).toBe(KEEGANS.instructions.defensive);
     await userEvent.selectOptions(instructionPicker("defensive"), "Get stuck in");
-    expect(pitchHeading(customWords(keegans.name))).toBeTruthy();
-    await pickClassic(keegans.name);
-    expect(pitchHeading(keegans.name)).toBeTruthy();
-    expect(instructionPicker("defensive").value).toBe(keegans.instructions.defensive);
+    expect(pitchHeading(customWords(KEEGANS.name))).toBeTruthy();
+    await pickClassic(KEEGANS.name);
+    expect(pitchHeading(KEEGANS.name)).toBeTruthy();
+    expect(instructionPicker("defensive").value).toBe(KEEGANS.instructions.defensive);
   });
 
   it("is left by picking a formation, each starter keeping his role where the new slot offers it", async () => {
     const app = await openedPitch(IN_A_442);
-    await pickClassic(keegans.name);
+    await pickClassic(KEEGANS.name);
     await pickFormation("4-4-2");
     expect(pitchHeading("4-4-2")).toBeTruthy();
     const sent = app.myTeam.lineupChanges.save.mock.lastCall![1];
