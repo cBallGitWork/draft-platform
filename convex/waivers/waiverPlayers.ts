@@ -13,7 +13,8 @@ import { deadlinePassedSince } from "./waiverLock";
 // Who is on waivers in a league (#1197, spec/08 Waivers and free agency): a row in waiverPlayers
 // (../schema/waivers.ts) each, only while no team holds him. A drop puts him there for at least 24
 // hours; a player new to the Premier League once the league's draft is over, and those nobody
-// drafted when the league's draft setting says waivers (spec/04), go there for the next run.
+// drafted when the league's draft setting says waivers (spec/04), go there for the next run, as
+// does every free agent at a deadline (backOnWaivers.ts, #1478).
 
 /** The player's waiver row in the league, or null while he isn't on waivers. */
 export function waiverRowOf(ctx: QueryCtx, leagueId: Id<"leagues">, playerCode: number): Promise<Doc<"waiverPlayers"> | null> {
@@ -21,6 +22,20 @@ export function waiverRowOf(ctx: QueryCtx, leagueId: Id<"leagues">, playerCode: 
     .query("waiverPlayers")
     .withIndex("by_leagueId_and_playerCode", (q) => q.eq("leagueId", leagueId).eq("playerCode", playerCode))
     .unique();
+}
+
+/** The most players on waivers in one league one read takes: Claude's sizing, far above a week's
+ *  drops and new Premier League players, and above the whole Premier League for those put back at
+ *  a deadline (#1478). Past it a read throws rather than leave some out. */
+export const WAIVER_PLAYERS_READ_MOST = 2000;
+
+/** Every player on the league's waivers, read at once. */
+export function waiverRowsIn(ctx: QueryCtx, leagueId: Id<"leagues">): Promise<Doc<"waiverPlayers">[]> {
+  return takeAllOrThrow(
+    ctx.db.query("waiverPlayers").withIndex("by_leagueId_and_playerCode", (q) => q.eq("leagueId", leagueId)),
+    WAIVER_PLAYERS_READ_MOST,
+    `League ${leagueId} has more than ${WAIVER_PLAYERS_READ_MOST} players on waivers, so they can't all be read`,
+  );
 }
 
 /** Puts the player on the league's waivers, a run taking him from `claimableFrom`, in place of

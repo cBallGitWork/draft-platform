@@ -13,7 +13,7 @@ import { claimFailedLetter, type ClaimFailure } from "../mail/waiverLetterWords"
 import { fileLetter, recordEvent } from "../mail/letters";
 import type { LeagueRules } from "../rules/leagueRulesShape";
 import { historyOf, newestRow, seasonRules } from "../rules/rulesHistory";
-import { everyLeague, takeAllOrThrow } from "../shared/cappedRead";
+import { everyLeague } from "../shared/cappedRead";
 import { tellShortlistersCleared } from "../scouting/shortlist";
 import { teamIn } from "../shared/leagueAccess";
 import { playerByCode } from "../shared/players";
@@ -24,8 +24,8 @@ import { limitsReader, type LimitsBroken, type SquadWarning } from "../squads/sq
 import { heldInReview } from "../trades/tradeClose";
 import { claimedName, leagueClaims } from "./waiverClaims";
 import { latestEnded, runInWaiverLock } from "./waiverLock";
-import { waiverOrderOf, waiverOrderRow, winnersNow, withWinnersLast, wonBy } from "./waiverOrder";
-import { dropAndTell } from "./waiverPlayers";
+import { waiverOrderOf, waiverOrderRow, windowShutSince, winnersNow, withWinnersLast, wonBy } from "./waiverOrder";
+import { dropAndTell, waiverRowsIn } from "./waiverPlayers";
 import { latestRunAt, wasRunTime } from "./waiverTimes";
 
 // The waiver run (#1198, spec/08 Waivers and free agency). At each of the league's run times
@@ -38,16 +38,17 @@ import { latestRunAt, wasRunTime } from "./waiverTimes";
 // limits. A player nobody claims is a free agent straight after, and each manager whose shortlist
 // holds him is told (../scouting/shortlist.ts). A run that falls from the deadline
 // until the gameweek's last match is over, or while the draft is live, is skipped. One internal
-// function, `run`, makes a run, for the cron here and for any later caller.
+// function, `run`, makes a run, for the cron here and for any later caller. At each deadline, as
+// the free agent window shuts, every free agent goes back on waivers, so the next run hands him out
+// by the waiver order (`putBackOnWaivers`; Craig, 11 Nov 2026, #1478).
 
 /** How often the cron looks for a league whose run time has come: Claude's choice, so a run is at
  *  most this late. */
 export const WAIVER_CHECK_EVERY = { minutes: 5 } as const;
 const CHECK_MS = WAIVER_CHECK_EVERY.minutes * MINUTE_MS;
 
-/** The most players on waivers in one league one run reads: Claude's sizing, far above a week's
- *  drops and new Premier League players. Past it the run throws rather than leave some out. */
-export const WAIVER_PLAYERS_READ_MOST = 2000;
+/** A league that has never run waivers runs one only if its time came within this of now. */
+export const FIRST_RUN_WITHIN_MS = 2 * CHECK_MS;
 
 /** Whether the claim's squad breaks a limit the squad before it didn't, or breaks one further:
  *  more over the squad's or a club's maximum, or fewer filling an area's minimum. A claim never
@@ -193,11 +194,7 @@ async function runWaivers(ctx: MutationCtx, leagueId: Id<"leagues">, at: number)
     return;
   }
 
-  const onWaivers = await takeAllOrThrow(
-    ctx.db.query("waiverPlayers").withIndex("by_leagueId_and_playerCode", (q) => q.eq("leagueId", leagueId)),
-    WAIVER_PLAYERS_READ_MOST,
-    `League ${leagueId} has more than ${WAIVER_PLAYERS_READ_MOST} players on waivers, so its run can't read them all`,
-  );
+  const onWaivers = await waiverRowsIn(ctx, leagueId);
   // By the run's own time, not the moment it executes: the cron may fire minutes late, and a player
   // whose 24 hours end in those minutes is the next run's, as his claims were told (spec/08).
   const due = onWaivers.filter(({ claimableFrom }) => claimableFrom <= at);
@@ -274,14 +271,23 @@ export const runDue = internalMutation({
     const leagues = await everyLeague(ctx, "so waivers can't be run in every one");
     for (const league of leagues) {
       if (!leagueOpens(league)) continue;
+      await scheduleBackOnWaivers(ctx, league._id, now);
       const history = await historyOf(ctx, league._id);
       const at = latestRunAt(newestRow(history, league._id).rules.waivers.runs, now);
       if (at === null || !wasRunTime(history, at)) continue;
       const held = await waiverOrderRow(ctx, league._id);
-      if (held === null ? at <= now - 2 * CHECK_MS : at <= held.ranAt) continue;
+      if (held === null ? at <= now - FIRST_RUN_WITHIN_MS : at <= held.ranAt) continue;
       await ctx.scheduler.runAfter(0, internal.waivers.waiverRun.run, { leagueId: league._id, at });
     }
     await scheduleHeartbeat(ctx, "waiverRuns");
     return null;
   },
 });
+
+/** Starts putting the league's free agents back on waivers if its window has shut since a deadline
+ *  they weren't yet put back for, once its draft is over. */
+async function scheduleBackOnWaivers(ctx: MutationCtx, leagueId: Id<"leagues">, now: number): Promise<void> {
+  const shut = await windowShutSince(ctx, leagueId, await leagueDeadlines(ctx, leagueId), now);
+  if (shut === null || (await waiverOrderRow(ctx, leagueId))?.backOnWaivers === shut || !(await draftIsOver(ctx, leagueId))) return;
+  await ctx.scheduler.runAfter(0, internal.waivers.backOnWaivers.putBackOnWaivers, { leagueId, deadline: shut });
+}

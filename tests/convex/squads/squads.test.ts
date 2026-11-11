@@ -11,7 +11,7 @@ import { fakeResend, signInDeployment } from "../../support/convex/signIn.harnes
 import { squadRefusals } from "../../../convex/squads/squads";
 import { CURRENT_CLUBS_MOST } from "../../../convex/shared/players";
 import { expectRefused } from "../../support/convex/test.harness";
-import { squadMoves } from "../../support/convex/lineupSquad.harness";
+import { SAKA, squadMoves } from "../../support/convex/lineupSquad.harness";
 
 // Assigning players (#31, spec/15 Assigning players): the commissioners and the admin put any
 // player on any team, move him, or release him; one team per player in a league; each files a
@@ -25,7 +25,6 @@ const CLUBS = [
 ];
 /** Sixty players, numbered from 1001, spread over the three clubs. */
 const PLAYER_CODES = Array.from({ length: 60 }, (_, i) => 1001 + i);
-const SAKA = 1001;
 
 let t: TestConvex;
 let leagueId: Id<"leagues">;

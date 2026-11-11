@@ -13,17 +13,13 @@ import {
   type Placement,
   type PlayerPositions,
 } from "./lineup";
-import { ALL_CELLS, AREAS, byPitchOrder, cellKey, LANES, playsCell, type Area, type Cell, type Lane } from "./pitch";
+import { ALL_CELLS, AREAS, byPitchOrder, cellKey, GOALKEEPER_AREA, LANES, playsCell, type Area, type Cell, type Lane } from "./pitch";
 import { roleIn, takesRole } from "./roles";
 import { droppedStarter } from "../stars/bestRole";
 import type { RoleStars } from "../stars/starsShape";
 
 /** Players are FPL's season-stable `code`. */
 type PlayerCode = number;
-
-/** Only a keeper plays in goal and he plays only there, so he is replaced only by a keeper and
- *  never comes on for anyone else (spec/05). */
-const GOALKEEPER: Area = "goalkeeper";
 
 /** Whether a player played in the gameweek. Known only once he has: until his last match ends on
  *  0 minutes, he is still to play. */
@@ -169,7 +165,9 @@ function firstLegalSub(
     const tried = legalSubstitution(lineup, absentee, sub, "theSlot", positions, rules);
     if (tried) return tried;
   }
-  if (slot.area === GOALKEEPER) return undefined;
+  // Only a keeper plays in goal and he plays only there, so he is replaced only by a keeper and
+  // never comes on for anyone else (spec/05).
+  if (slot.area === GOALKEEPER_AREA) return undefined;
 
   const freeCells = freeCellsNearest(lineup, absentee);
   for (const playerCode of available) {
@@ -211,7 +209,7 @@ function freeCellsNearest(lineup: Lineup, absentee: Placement): Cell[] {
     const [area, lane] = pitchOrder(cell);
     return [Math.abs(area - slotArea), Math.abs(lane - slotLane), area, lane];
   };
-  return ALL_CELLS.filter((cell) => cell.area !== GOALKEEPER && !taken.has(cellKey(cell)))
+  return ALL_CELLS.filter((cell) => cell.area !== GOALKEEPER_AREA && !taken.has(cellKey(cell)))
     .sort((one, other) => compareInOrder(distance(one), distance(other)));
 }
 

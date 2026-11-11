@@ -7,7 +7,7 @@
 // defence, and Press high's three are counted one row at a time. Pure: the server's save and the
 // Tactics screen both read it, so the two never differ. Scoring an instruction is not here.
 
-import { AREAS, sameCell, type Area, type Cell, type Lane } from "./pitch";
+import { AREAS, sameShape, WIDE_LANES, type Area, type Cell } from "./pitch";
 
 export const SIDES = ["attacking", "defensive"] as const;
 export type Side = (typeof SIDES)[number];
@@ -83,7 +83,6 @@ export function firstPairFor(cells: readonly Cell[]): InstructionPair {
 }
 
 const inArea = (cells: readonly Cell[], area: Area) => cells.filter((cell) => cell.area === area);
-const WIDE: readonly Lane[] = ["left", "right"];
 const ABOVE_DEFENCE: readonly Area[] = AREAS.slice(AREAS.indexOf("defensiveMidfield"));
 const PRESSING_ROWS: readonly Area[] = ["midfield", "attackingMidfield", "attack"];
 const WINGER_ROWS: readonly Area[] = ["attackingMidfield", "attack"];
@@ -95,10 +94,10 @@ export function shapeAllows(needs: ShapeNeed, cells: readonly Cell[]): boolean {
     case "anyShape":
       return true;
     case "oneUpTopNoWingers":
-      return inArea(cells, "attack").length === 1 && !cells.some((cell) => WINGER_ROWS.includes(cell.area) && WIDE.includes(cell.lane));
+      return inArea(cells, "attack").length === 1 && !cells.some((cell) => WINGER_ROWS.includes(cell.area) && WIDE_LANES.includes(cell.lane));
     case "wideOnBothFlanks": {
       const above = cells.filter((cell) => ABOVE_DEFENCE.includes(cell.area));
-      return WIDE.every((lane) => above.some((cell) => cell.lane === lane));
+      return WIDE_LANES.every((lane) => above.some((cell) => cell.lane === lane));
     }
     case "twoAtTheBack":
       return back === 2;
@@ -125,8 +124,6 @@ export interface PresetDefaults {
   cells: readonly Cell[];
   instructions?: InstructionPair;
 }
-
-const sameShape = (one: readonly Cell[], other: readonly Cell[]) => one.length === other.length && one.every((cell) => other.some((each) => sameCell(each, cell)));
 
 /** The formation's default pair: the league's preset of this shape's own, each where it is still
  *  offered; else, for a preset saved before #990 or a shape that is no preset, the first defaults'

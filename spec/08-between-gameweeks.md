@@ -48,6 +48,8 @@ agent: "keep waivers since its known for draft" (Craig asked; yes).
   11 Nov 2026, #1470). `S08.11`
 - A player nobody claims at a run is a free agent straight after it, first come first served, through
   the window.
+- A free agent nobody picks up goes back on waivers at the deadline, so the next run hands him out
+  by the waiver order like any dropped player (Craig, 11 Nov 2026, #1478). `S08.13`
 - Picking up a free agent with a full squad names who goes, and both happen at once: "think of it
   like a trade with the waiver bin" (being dropped).
 - Churning is stopped: a free agent picked up and dropped before the next deadline goes straight

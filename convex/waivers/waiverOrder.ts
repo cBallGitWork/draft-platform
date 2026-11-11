@@ -149,6 +149,14 @@ export async function windowOpen(ctx: QueryCtx, leagueId: Id<"leagues">, deadlin
   return deadline !== null && madeAt !== undefined && madeAt > deadline;
 }
 
+/** The deadline the free agent window has been shut since at `now`, or null while it is open:
+ *  from it until the next made run, every player no team holds is on waivers (#1478). */
+export async function windowShutSince(ctx: QueryCtx, leagueId: Id<"leagues">, deadlines: LeagueDeadlines, now: number): Promise<number | null> {
+  if (await windowOpen(ctx, leagueId, deadlines, now)) return null;
+  const gameweek = latestBegun(deadlines, now);
+  return gameweek === null ? null : (deadlines.get(gameweek) ?? null);
+}
+
 const waiversView = v.object({
   type: v.union(...WAIVER_ORDERS.map((each) => v.literal(each))),
   /** Every team, first in the order first, with its place and points in the table. */

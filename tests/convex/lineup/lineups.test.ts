@@ -14,7 +14,7 @@ import { expectRefused } from "../../support/convex/test.harness";
 import { COMMISSIONER, MANAGERS, actingAs, addManagers, adminCreatesLeague, type TestConvex } from "../../support/convex/leagues.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
 import { FIRST_SUB, REMOVED_ROLE } from "../../support/convex/lineup.harness";
-import { FOUR_FOUR_TWO, holdPlayers, holdSquad, nameOf, SQUAD, STARTERS } from "../../support/convex/lineupSquad.harness";
+import { FOUR_FOUR_TWO, holdPlayers, holdSquad, nameOf, NEXT, SQUAD, STARTERS } from "../../support/convex/lineupSquad.harness";
 import { lineupInGameweek } from "../../../convex/lineup/lineups";
 import { openingLineup, shownLineup } from "../../../src/myTeam/tactics/lineupEdits";
 
@@ -24,7 +24,6 @@ import { openingLineup, shownLineup } from "../../../src/myTeam/tactics/lineupEd
 // begun, as it stood at the deadline for one begun (#415).
 
 const [ANN, BOB, , , EVE] = MANAGERS;
-const NEXT = 9;
 /** A player in the Premier League on no team in the league. */
 const FREE_AGENT = 999;
 /** Bob's player. */

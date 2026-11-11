@@ -25747,6 +25747,12 @@
               "type": "number"
             },
             "optional": true
+          },
+          "backOnWaivers": {
+            "fieldType": {
+              "type": "number"
+            },
+            "optional": true
           }
         }
       }
