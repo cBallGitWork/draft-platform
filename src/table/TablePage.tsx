@@ -1,10 +1,8 @@
 import { useState } from "react";
 import type { LeagueSummary } from "../../convex/leagues/myLeagues";
-import { seasonStartYear } from "../../convex/shared/time";
 import { FormChips } from "../myTeam/header/FormChips";
 import { standingOf } from "../myTeam/header/teamStanding";
 import { tenthsFigure } from "../shared/figures";
-import { useMinute } from "../shared/useMinute";
 import { AutoTeamChip } from "../ui/AutoTeamChip";
 import { cellClassOf, ColumnHeads } from "../ui/ColumnHeads";
 import { Loading, PAGE_STACK, PageSection, Panel, PANEL_COLUMNS, PanelNote } from "../ui/Panel";
@@ -56,12 +54,13 @@ const cellClasses = (column: Column) => cellClassOf(column === "team" || column 
 export function TablePage({ league, seam }: { league: LeagueSummary; seam: TableScreenSeam }) {
   const leagueTable = seam.useLeagueTable(league.leagueId);
   const [competition, choose] = useState<Competition>("league");
-  const now = useMinute();
   const totalPoints = leagueTable?.format === "totalPoints";
   const aside = leagueTable && (
     <>
       {!totalPoints && <CompetitionTabs chosen={competition} choose={choose} />}
-      <span className="self-center text-soft">{seasonLineWords(seasonStartYear(now), latestOf(leagueTable.results))}</span>
+      {leagueTable.season !== null && (
+        <span className="self-center text-soft">{seasonLineWords(leagueTable.season, latestOf(leagueTable.results))}</span>
+      )}
     </>
   );
   return (

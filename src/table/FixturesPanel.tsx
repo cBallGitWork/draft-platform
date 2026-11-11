@@ -54,9 +54,10 @@ function openingIndex(gameweeks: readonly Gameweek[], now: number): number {
 type Pick = { game: number } & PickedSide;
 
 /** One gameweek's fixtures under their League head, the stepper over the gameweeks the league
- *  plays, and Live on the plate while any of the gameweek's points may still move. The commissioner edits a gameweek not yet
- *  begun (spec/09, Fixture edits; the approved auto-team picture): each side is a button, a side
- *  picked then one in another game, and Save swap moves them between their games. */
+ *  plays, and Live on the plate while any of the gameweek's points may still move. The
+ *  commissioner edits a gameweek not yet begun (spec/09, Fixture edits; the approved auto-team
+ *  picture): each side is a button, a side picked then one in another game, and Save swap moves
+ *  them between their games. */
 function GameweekFixtures({ league, seam, leagueTable: { gameweeks, results } }: { league: LeagueSummary; seam: TableScreenSeam; leagueTable: LeagueTable }) {
   const now = useMinute();
   const [chosen, choose] = useState(() => openingIndex(gameweeks, Date.now()));

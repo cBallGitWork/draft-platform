@@ -33,7 +33,9 @@ function glossaryRows(markdown: string): string[][] {
 function avoidedWords(markdown: string): string[] {
   const rows = glossaryRows(markdown);
   const terms = new Set(rows.flatMap(([term = ""]) => term.split(",").map((word) => word.trim().toLowerCase())));
-  const avoid = rows.flatMap(([, , words = ""]) => words.split(/[,;]/).map((word) => word.trim()));
+  // A comma or semicolon inside brackets is part of a note or a quote ("classic alone (\"…, …\",
+  // Craig, 11 Nov 2026)"), never a split between words.
+  const avoid = rows.flatMap(([, , words = ""]) => words.split(/[,;](?![^(]*\))/).map((word) => word.trim()));
   return [...new Set(avoid.filter((word) => word !== "" && !word.includes("(") && !terms.has(word.toLowerCase())))];
 }
 
@@ -65,7 +67,7 @@ describe("the Glossary's Avoid column", () => {
     expect(words).toContain("paid");
     expect(words).toContain("watchlist");
     expect(words).not.toContain("team");
-    expect(words.some((word) => word.includes("("))).toBe(false);
+    expect(words.some((word) => word.includes("(") || word.includes(")"))).toBe(false);
   });
 
   it("finds no avoided word in any words file", () => {

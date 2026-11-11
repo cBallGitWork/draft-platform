@@ -1,9 +1,9 @@
 // What the table and fixtures screen says, in one place for Craig to change in the pull request.
 
 import { andListWords } from "../../convex/shared/moments";
+import { seasonName } from "../../convex/shared/time";
 import { FORM_RESULTS } from "../../convex/table/standings";
 import { menuWords } from "../frame/words";
-import { seasonName } from "../../convex/shared/time";
 import { failedWords, fewestTeamsWords, gameweekShort, gameweekWords, signedWords } from "../shared/words";
 
 export { figureWords, gameweekWords, liveWords, scoreWords, versusWords } from "../shared/words";
