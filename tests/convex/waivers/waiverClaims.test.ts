@@ -4,7 +4,7 @@ import { claimRefusals } from "../../../convex/waivers/waiverClaims";
 import { WAIVER_MS } from "../../../convex/waivers/waiverLimits";
 import { playerLeaves } from "../../support/convex/draftLists.harness";
 import { setUsed } from "../../support/convex/leagueRules.harness";
-import { actingAs, COMMISSIONER } from "../../support/convex/leagues.harness";
+import { actingAs, addManager, COMMISSIONER, MANAGERS } from "../../support/convex/leagues.harness";
 import { nameOf, passNextDeadline } from "../../support/convex/lineupSquad.harness";
 import { expectRefused } from "../../support/convex/test.harness";
 import { ANN, ANNS_FIRST_DROP, ANNS_SECOND_DROP, BOB, NEXT, PALMER, SAKA, waiverLeague, type WaiverLeague } from "../../support/convex/waivers.harness";
@@ -124,6 +124,26 @@ describe("a manager's claims", () => {
     ]);
     expect((await w.pending(BOB)).map(({ teamId }) => teamId)).toEqual([w.bobsTeam]);
     expect((await w.pending(COMMISSIONER)).map(({ teamId }) => teamId)).toEqual([w.annsTeam, w.bobsTeam]);
+  });
+
+  // Craig, 11 Nov 2026, on #1464: withdrawn when the manager goes; the next manager starts with none.
+  test.each(["removed", "leaves"])("are withdrawn when their manager is %s: none is tried, and whoever takes the team on starts with none", async (how) => {
+    await w.onWaivers([SAKA, PALMER]);
+    await w.claim(ANN, SAKA, ANNS_FIRST_DROP);
+    await w.claim(ANN, PALMER, ANNS_SECOND_DROP);
+    await w.claim(BOB, PALMER);
+    const leagueId = w.leagueId;
+    if (how === "removed") await (await actingAs(w.t, COMMISSIONER)).mutation(api.leagues.teams.removeManager, { leagueId, teamId: w.annsTeam });
+    else await (await actingAs(w.t, ANN)).mutation(api.leagues.teams.leave, { leagueId });
+
+    expect((await w.pending(COMMISSIONER)).map(({ teamId }) => teamId)).toEqual([w.bobsTeam]);
+    const dan = MANAGERS[3];
+    await addManager(w.t, leagueId, dan, w.annsTeam);
+    expect(await w.pending(dan)).toEqual([]);
+    await w.runWaivers();
+    expect(await w.stateOf(SAKA)).toEqual({ kind: "freeAgent" });
+    expect(await w.squadCodes(w.annsTeam)).toEqual(expect.arrayContaining([ANNS_FIRST_DROP, ANNS_SECOND_DROP]));
+    expect(await w.stateOf(PALMER)).toMatchObject({ kind: "owned", teamId: w.bobsTeam });
   });
 });
 

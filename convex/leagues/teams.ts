@@ -18,6 +18,7 @@ import {
 import { typedName } from "../shared/typedText";
 import { recordEvent } from "../mail/letters";
 import { closeOffersOfTeam } from "../trades/tradeClose";
+import { withdrawClaimsOfTeam } from "../waivers/waiverClaims";
 import { seasonRules } from "../rules/rulesHistory";
 import { leagueDeadlines } from "../gameweeks/leagueDeadlines";
 import { storeBegunFixtures } from "../table/playedFixtures";
@@ -134,8 +135,10 @@ export const removeManager = mutation({
     if (team.managerEmail === undefined) refuse(refusals.noManager);
     await ctx.db.patch("teams", teamId, { managerEmail: undefined });
     await pickAtOnceIfOnTheClock(ctx, { ...team, managerEmail: undefined });
-    // With no manager it is on the auto team (spec/09), so its open trade offers close (spec/08).
+    // With no manager it is on the auto team (spec/09), so its open trade offers close (spec/08)
+    // and its pending waiver claims are withdrawn (#1464).
     await closeOffersOfTeam(ctx, team);
+    await withdrawClaimsOfTeam(ctx, team);
     await cancelLiveInvites(ctx, leagueId, team.managerEmail);
     await recordEvent(ctx, leagueId, by, { kind: "managerRemoved", email: team.managerEmail, teamId, teamName: team.name });
     return null;
@@ -151,6 +154,7 @@ export const leave = mutation({
     await ctx.db.patch("teams", team._id, { managerEmail: undefined });
     await pickAtOnceIfOnTheClock(ctx, { ...team, managerEmail: undefined });
     await closeOffersOfTeam(ctx, team);
+    await withdrawClaimsOfTeam(ctx, team);
     await cancelLiveInvites(ctx, leagueId, email);
     await recordEvent(ctx, leagueId, email, { kind: "managerLeft", email, teamId: team._id, teamName: team.name });
     return null;

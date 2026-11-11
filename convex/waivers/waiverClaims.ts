@@ -1,6 +1,6 @@
 import { v, type Infer } from "convex/values";
 import type { Doc, Id } from "../_generated/dataModel";
-import { mutation, query, type QueryCtx } from "../_generated/server";
+import { mutation, query, type MutationCtx, type QueryCtx } from "../_generated/server";
 import { draftIsOver } from "../draft/draftRow";
 import { leagueDeadlines } from "../gameweeks/leagueDeadlines";
 import { positionsNow } from "../positions/playerPositions";
@@ -56,6 +56,12 @@ export function leagueClaims(ctx: QueryCtx, leagueId: Id<"leagues">): Promise<Do
     CLAIMS_READ_MOST,
     `League ${leagueId} has more than ${CLAIMS_READ_MOST} claims, so they can't all be read`,
   );
+}
+
+/** Withdraws every pending claim of the team whose manager has just been removed or left, so none
+ *  is tried for a team nobody runs and the next manager starts with none (Craig, 11 Nov 2026, on #1464). */
+export async function withdrawClaimsOfTeam(ctx: MutationCtx, team: Doc<"teams">): Promise<void> {
+  for (const claim of await claimsOf(ctx, team.leagueId, team._id)) await ctx.db.delete("waiverClaims", claim._id);
 }
 
 /** The log line for a claim naming a player the football sync doesn't hold. */
