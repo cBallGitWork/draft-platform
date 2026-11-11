@@ -9,7 +9,7 @@ type Column = keyof typeof squadColumns;
 const COLUMNS = Object.keys(squadColumns) as Column[];
 const HEAD_CLASSES: Record<Column, string> = {
   tick: "w-tap px-2",
-  position: "px-2 text-left",
+  position: "pl-2 text-left",
   player: "w-full px-2 text-left",
 };
 /** A held player's tick box, greyed with his chip and name (the approved picture's Murillo). */
@@ -62,7 +62,7 @@ export function SquadTable({
                   {tickLabel(player.name)}
                 </TickBox>
               </td>
-              <td className="px-2">
+              <td className="pl-2">
                 {player.position === null ? null : (
                   <PositionChip label={player.position} dimmed={player.held} />
                 )}
