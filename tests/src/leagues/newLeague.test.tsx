@@ -1,12 +1,21 @@
 // The admin's "Create a league" (spec/13, Creating a league): its form, and what it says when
 // the league isn't made.
 
-import { screen } from "@testing-library/react";
+import { screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
 import { admin, openApp } from "../../support/src/shell.harness";
+import { ADMIN_PATH } from "../../../src/admin/paths";
+import { ADMIN_TITLE } from "../../../src/admin/words";
 import { LEAGUES_PATH, NEW_LEAGUE_PATH } from "../../../src/leagues/paths";
-import { backToLeaguesWords, LEAGUES_TITLE, newLeagueLabels } from "../../../src/leagues/words";
+import {
+  adminWords,
+  backToLeaguesWords,
+  createLeagueHint,
+  LEAGUES_TITLE,
+  NEW_LEAGUE_TITLE,
+  newLeagueLabels,
+} from "../../../src/leagues/words";
 import { LEAGUE_NAME_MAX } from "../../../convex/leagues/leagueLimits";
 import { refusals } from "../../../convex/shared/leagueAccess";
 
@@ -53,6 +62,26 @@ describe("creating a league", () => {
     await fillIn();
 
     expect((screen.getByRole("button", { name: newLeagueLabels.create }) as HTMLButtonElement).disabled).toBe(true);
+  });
+
+  it("says the name's limit, and under Create the league that a link is emailed, with no line under the email (#1498)", async () => {
+    openApp(NEW_LEAGUE_PATH, admin);
+    const nameBox = await screen.findByRole("textbox", { name: newLeagueLabels.name });
+
+    expect(document.getElementById(nameBox.getAttribute("aria-describedby") ?? "")?.textContent).toBe(`Up to ${LEAGUE_NAME_MAX} characters.`);
+    expect(screen.getByText(createLeagueHint)).toBeTruthy();
+    expect(screen.getByRole("textbox", { name: newLeagueLabels.commissionerEmail }).getAttribute("aria-describedby")).toBeNull();
+  });
+
+  it("titles the page in a panel's plate, with the Admin panel beside the form opening the dashboard and Your leagues", async () => {
+    const app = openApp(NEW_LEAGUE_PATH, admin);
+    expect(await screen.findByRole("heading", { level: 1, name: NEW_LEAGUE_TITLE })).toBeTruthy();
+    const adminPanel = screen.getByRole("region", { name: adminWords });
+
+    expect(within(adminPanel).getByRole("link", { name: ADMIN_TITLE }).getAttribute("href")).toBe(ADMIN_PATH);
+    await userEvent.click(within(adminPanel).getByRole("link", { name: LEAGUES_TITLE }));
+    expect(await screen.findByRole("heading", { level: 1, name: LEAGUES_TITLE })).toBeTruthy();
+    expect(app.path()).toBe(LEAGUES_PATH);
   });
 
   it("goes back to the admin's leagues without making one", async () => {

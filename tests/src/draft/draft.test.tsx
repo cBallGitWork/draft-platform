@@ -56,6 +56,7 @@ function liveDraft(picksMade: number, rounds = 2, paused = false): DraftState {
     rounds,
     order: draftOrder,
     picksMade,
+    ownPickBy: null,
     onTheClock: { pick, round, teamId: team.teamId, name: team.name },
     clock: { startsAt: now - 42 * SECOND_MS, endsAt: now + 48 * SECOND_MS, pausedAt: paused ? now : undefined },
   };

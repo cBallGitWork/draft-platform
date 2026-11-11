@@ -7,7 +7,7 @@ import { ARSENAL, CHELSEA, insertClubs, insertPlayers, type HeldPlayer } from ".
 import { changeEveryRules, HELD_FIRST_RULES } from "../../support/convex/leagueRules.harness";
 import { actingAs, addManagers, adminCreatesLeague, COMMISSIONER, MANAGERS, type TestConvex } from "../../support/convex/leagues.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
-import { elapse } from "../../support/convex/test.harness";
+import { clockRunsTo } from "../../support/convex/test.harness";
 
 // The timeout count (spec/04, Auto-pick; #1136): each clock that runs out on a team with a manager
 // is one of its timeouts, across the whole draft; at the league's number it goes on auto-pick, its
@@ -37,14 +37,16 @@ const as = (email: string) => actingAs(t, email);
 const start = async () => (await as(COMMISSIONER)).mutation(api.draft.draftStart.start, { leagueId });
 const picked = () => t.run(async (ctx) => (await ctx.db.query("draftPicks").collect()).map(({ pick, teamId, at }) => ({ pick, teamId, at })));
 const timeouts = () => t.run(async (ctx) => (await ctx.db.query("drafts").unique())?.timeouts);
-/** Bob picks the first player nobody holds. */
+/** Bob picks the first player nobody holds, as his clock starts if it hasn't yet (#1458). */
 async function bobPicks() {
+  const startsAt = (await t.run((ctx) => ctx.db.query("drafts").unique()))?.clock?.startsAt ?? 0;
+  if (startsAt > Date.now()) await clockRunsTo(t, startsAt);
   const taken = new Set(await t.run(async (ctx) => (await ctx.db.query("draftPicks").collect()).map(({ playerCode }) => playerCode)));
   const code = PLAYERS.find(({ code }) => !taken.has(code))!.code;
   await (await as(BOB)).mutation(api.draft.draftPicks.makePick, { leagueId, playerCode: code });
 }
 /** The clock moves on `ms`, and every pick scheduled by then is made. */
-const pass = (ms: number) => elapse(t, ms);
+const pass = (ms: number) => clockRunsTo(t, Date.now() + ms);
 /** The next clock starts after the gap and runs out. */
 const timeOut = () => pass(PICK_GAP_MS + PICK_MS);
 

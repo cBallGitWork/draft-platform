@@ -13,7 +13,7 @@ import { ARSENAL, insertClubs, insertPlayers, type HeldPlayer } from "../../supp
 import { changeEveryRules, HELD_FIRST_RULES, holdGameweeks, setPickSeconds as setPickSecondsOf } from "../../support/convex/leagueRules.harness";
 import { actingAs, addManagers, adminCreatesLeague, COMMISSIONER, MANAGERS, type TestConvex } from "../../support/convex/leagues.harness";
 import { fakeResend, signInDeployment, type SentEmail } from "../../support/convex/signIn.harness";
-import { elapse } from "../../support/convex/test.harness";
+import { clockRunsTo } from "../../support/convex/test.harness";
 
 // The draft's letters (spec/04, Mail; #1102), Craig's "Up next + draft over" (4 Nov 2026): the
 // manager whose pick's clock starts is told he is up next, by email too when the clock is over 10
@@ -46,7 +46,7 @@ const lettersSince = async (before: number) => (await letters()).slice(before);
 /** The up-next emails sent, leaving out the harness's sign-in links. */
 const upNextEmails = () => sent.filter(({ subject }) => subject === UP_NEXT);
 /** The clock moves on `ms`, and every job scheduled by then runs. */
-const pass = (ms: number) => elapse(t, ms);
+const pass = (ms: number) => clockRunsTo(t, Date.now() + ms);
 
 beforeEach(async () => {
   t = await signInDeployment();
@@ -81,6 +81,10 @@ describe("you're up next", () => {
     const before = (await letters()).length;
     await pick(ANN, A1);
     const at = Date.now();
+    // Only once his 10 seconds to undo it are up (Craig, 11 Nov 2026, on #1458).
+    await pass(PICK_GAP_MS - 1);
+    expect(await lettersSince(before)).toEqual([]);
+    await pass(1);
 
     expect(await lettersSince(before)).toEqual([
       {
@@ -186,8 +190,9 @@ describe("the draft over", () => {
     await pass(PICK_GAP_MS);
     const before = (await letters()).length;
     await pick(ANN, A4);
+    await pass(PICK_GAP_MS);
 
-    const over = { subject: "The draft is over", body: "All 4 picks are made, and every squad is drafted.", read: false };
+    const over ={ subject: "The draft is over", body: "All 4 picks are made, and every squad is drafted.", read: false };
     expect(await lettersSince(before)).toEqual([COMMISSIONER, ANN, BOB].map((to) => ({ to, ...over })));
   });
 
@@ -202,6 +207,7 @@ describe("the draft over", () => {
     }
     const before = (await letters()).length;
     await pick(ANN, A4);
+    await pass(PICK_GAP_MS);
 
     expect((await lettersSince(before)).filter(({ to }) => to === COMMISSIONER).map(({ subject, body }) => ({ subject, body }))).toEqual([
       { subject: "The draft is over", body: "All 4 picks are made, and every squad is drafted." },

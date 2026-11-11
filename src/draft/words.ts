@@ -7,7 +7,7 @@ import { failedWords, placeWords } from "../shared/words";
 
 /** The page's title, its menu tab's too, and the state beside it. */
 export const DRAFT_TITLE = "Draft";
-export const stateWords = { waiting: "Not started", live: "Live", paused: "Paused", over: "Over" } as const;
+export const stateWords = { waiting: "Not started", live: "Live", paused: "Paused", ending: "Ending", over: "Over" } as const;
 export const loadingWords = "Loading the draft…";
 
 /** The header's heads and readings, before the start. */
@@ -165,8 +165,12 @@ export const draftPlayerWords = (name: string) => `Draft ${name}`;
 /** Under the Draft button while the reader is on the clock: "Pick 4.03, 0:48 left". */
 export const pickLeftWords = (slot: string) => `Pick ${slot}, `;
 export const leftSuffixWords = " left";
+/** The Draft button for the 10 seconds after the reader's own pick (spec/04, The draft room;
+ *  #1458): "Undo", and under it "0:07 left". */
+export const undoMyPickWords = "Undo";
 export const notYourPickWords = "Not your pick";
 export const pausedPickWords = "The draft is paused";
+export const allPickedWords = "Every pick is made";
 export const notStartedPickWords = "The draft hasn't started";
 export const takenWords = (teamName: string) => `On ${teamName}`;
 export const playsHead = "Plays";
@@ -183,6 +187,7 @@ export const yourSquadWords = (position: string, atPosition: number, club: strin
   `${position} ${atPosition}, ${club} ${atClub}${maxPerClub === null ? "" : ` of ${maxPerClub}`}`;
 export { playerCardWords } from "../shared/words";
 export const pickFailedWords = "The pick couldn't be made. Try again.";
+export const undoFailedWords = "The pick couldn't be undone. Try again.";
 
 export const noRoundsWords = "The draft's rounds are its squads' most players, and this league's squads have no size limit yet.";
 

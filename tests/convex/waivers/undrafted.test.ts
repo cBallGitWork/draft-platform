@@ -5,8 +5,8 @@ import type { UndraftedGoTo } from "../../../convex/draft/draftRules";
 import { ARSENAL, insertClubs, insertPlayers, type HeldPlayer } from "../../support/convex/footballRows.harness";
 import { changeEveryRules, holdGameweeks } from "../../support/convex/leagueRules.harness";
 import { actingAs, addManagers, adminCreatesLeague, COMMISSIONER, MANAGERS, type TestConvex } from "../../support/convex/leagues.harness";
+import { pickGapPasses } from "../../support/convex/pickWindow.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
-import { clockRunsTo } from "../../support/convex/test.harness";
 
 // The players nobody drafts (#1197; spec/04, The picks, and spec/08): on waivers for the next run
 // once the draft is over when the league's draft setting says waivers, its default, or straight
@@ -41,9 +41,10 @@ async function draftLeaving(goTo: UndraftedGoTo, beforeStart?: () => Promise<voi
   await beforeStart?.();
   await (await actingAs(t, COMMISSIONER)).mutation(api.draft.draftStart.start, { leagueId });
   await (await actingAs(t, ANN)).mutation(api.draft.draftPicks.makePick, { leagueId, playerCode: A1 });
+  await pickGapPasses(t);
   await (await actingAs(t, BOB)).mutation(api.draft.draftPicks.makePick, { leagueId, playerCode: A2 });
-  // The last pick puts them on waivers in a job of its own (#1532).
-  await clockRunsTo(t, Date.now());
+  // The draft ends 10 seconds after the last pick, and puts them on waivers in a job of its own (#1532, #1458).
+  await pickGapPasses(t);
 }
 
 const stateOf = async (playerCode: number) => (await actingAs(t, ANN)).query(api.waivers.waivers.stateOf, { leagueId, playerCode });

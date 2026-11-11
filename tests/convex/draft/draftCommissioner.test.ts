@@ -11,7 +11,7 @@ import { ARSENAL, insertClubs, insertPlayers, type HeldPlayer } from "../../supp
 import { changeEveryRules, changeRules, HELD_FIRST_RULES, rulesWith } from "../../support/convex/leagueRules.harness";
 import { actingAs, addManager, addManagers, adminCreatesLeague, COMMISSIONER, eventsIn, MANAGERS, type TestConvex } from "../../support/convex/leagues.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
-import { elapse } from "../../support/convex/test.harness";
+import { clockRunsTo } from "../../support/convex/test.harness";
 
 // The commissioner running the draft (spec/04, The commissioner; #1095): he undoes the last pick,
 // again and again, the pick put back on a full clock; he picks for any team on the clock; while
@@ -59,7 +59,7 @@ const elevenRounds = () =>
 const subjects = () => t.run(async (ctx) => (await ctx.db.query("letters").collect()).map(({ subject }) => subject));
 const leaveTeam = (teamId: Id<"teams">) => t.run((ctx) => ctx.db.patch("teams", teamId, { managerEmail: undefined }));
 /** The clock moves on `ms`, and every pick scheduled by then is made. */
-const pass = (ms: number) => elapse(t, ms);
+const pass = (ms: number) => clockRunsTo(t, Date.now() + ms);
 
 beforeEach(async () => {
   t = await signInDeployment();
@@ -160,6 +160,7 @@ describe("the commissioner's undo", () => {
     await start();
     await pass(PICK_MS);
     await pick(BOB, P2);
+    await pass(PICK_GAP_MS);
     await pick(BOB, P3);
     await pass(PICK_GAP_MS + PICK_MS);
     await pass(PICK_GAP_MS);
@@ -191,6 +192,7 @@ describe("the commissioner's undo", () => {
     await expect(undo(ANN)).rejects.toThrow(refusals.notRunner);
     for (let made = 1; made < 6; made++) await pass(PICK_GAP_MS + PICK_MS);
     expect(await picked()).toHaveLength(6);
+    await pass(PICK_GAP_MS);
     await expect(undo()).rejects.toThrow(commissionerRefusals.over);
   });
 });

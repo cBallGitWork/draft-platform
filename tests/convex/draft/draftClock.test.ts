@@ -8,7 +8,7 @@ import { ARSENAL, CHELSEA, insertClubs, insertPlayers, type HeldPlayer } from ".
 import { changeEveryRules, HELD_FIRST_RULES, setPickSeconds as setPickSecondsOf } from "../../support/convex/leagueRules.harness";
 import { actingAs, addManagers, adminCreatesLeague, COMMISSIONER, eventsIn, MANAGERS, type TestConvex } from "../../support/convex/leagues.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
-import { elapse } from "../../support/convex/test.harness";
+import { clockRunsTo } from "../../support/convex/test.harness";
 
 // The pick clock (spec/04, The picks; #1091): each pick runs on the league's pick time, the first
 // from the start and each after 10 seconds from the pick before; when a clock runs out the draft
@@ -39,7 +39,7 @@ const picks = () => t.run(async (ctx) => (await ctx.db.query("draftPicks").colle
 const letterCount = () => t.run(async (ctx) => (await ctx.db.query("letters").collect()).length);
 const newLetterSubjects = (after: number) => t.run(async (ctx) => (await ctx.db.query("letters").collect()).slice(after).map(({ subject }) => subject));
 /** The clock moves on `ms`, and every pick scheduled by then is made. */
-const pass = (ms: number) => elapse(t, ms);
+const pass = (ms: number) => clockRunsTo(t, Date.now() + ms);
 
 beforeEach(async () => {
   t = await signInDeployment();
@@ -99,6 +99,7 @@ describe("the clock", () => {
   test("stops once the last pick is made", async () => {
     await start();
     for (let made = 0; made < 4; made++) await pass(PICK_MS + PICK_GAP_MS);
+    await pass(PICK_GAP_MS);
 
     expect(await read()).toMatchObject({ status: "over", picksMade: 4 });
     expect(await t.run((ctx) => ctx.db.query("drafts").unique())).not.toHaveProperty("clock");
@@ -110,6 +111,7 @@ describe("the draft's pick", () => {
     await setSquadRules({ maxPerClub: 1 });
     await start();
     await pick(ANN, A1);
+    await pass(PICK_GAP_MS);
     await pick(BOB, A2);
     await pass(PICK_GAP_MS + PICK_MS);
 
