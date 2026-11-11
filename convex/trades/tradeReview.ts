@@ -144,8 +144,9 @@ async function goThrough(ctx: MutationCtx, offer: Doc<"tradeOffers">, by: string
   for (const { playerCode, out, into } of moves) {
     const place = await placeOf(ctx, league._id, playerCode);
     if (place === null) throw new Error(`Player ${playerCode} left his squad while his trade was made`);
-    // A new team starts him afresh, on no number of its own (spec/05 Squad numbers), as a move does.
-    await ctx.db.patch("squadPlayers", place._id, { teamId: into._id, number: undefined });
+    // A new team starts him afresh, as a move does: on no number of its own (spec/05 Squad
+    // numbers), and never its free-agent pickup, so its drop sends him to waivers (#1479).
+    await ctx.db.patch("squadPlayers", place._id, { teamId: into._id, number: undefined, pickedUpAt: undefined });
     await fileEvent(ctx, league._id, by, {
       kind: "playerMoved",
       playerCode,

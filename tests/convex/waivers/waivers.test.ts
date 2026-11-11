@@ -90,6 +90,14 @@ describe("the churn rule", () => {
     expect(await lastEvent()).toMatchObject({ kind: "playerDropped", playerCode: FREE_AGENT, toWaivers: false });
   });
 
+  test("covers only the team that picked him up: moved by the commissioner, his new team's drop sends him to waivers (#1479, S08.6)", async () => {
+    await pickedUp();
+    await (await squadMoves(t, leagueId, COMMISSIONER)).move(FREE_AGENT, annsTeam);
+    await drop(ANN, FREE_AGENT);
+
+    expect(await stateOf(FREE_AGENT)).toEqual({ kind: "onWaivers", claimableFrom: Date.now() + WAIVER_MS });
+  });
+
   test("once he has been in the squad for a deadline, a drop sends him to waivers", async () => {
     await pickedUp();
     await passNextDeadline(t);

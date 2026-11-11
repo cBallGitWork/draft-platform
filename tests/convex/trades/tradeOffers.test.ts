@@ -4,6 +4,7 @@ import { NOTE_MOST } from "../../../convex/trades/tradeLimits";
 import { offerRefusals } from "../../../convex/trades/tradeOffers";
 import { refusals } from "../../../convex/shared/leagueAccess";
 import { DAY_MS } from "../../../convex/shared/time";
+import { WAIVER_MS } from "../../../convex/waivers/waiverLimits";
 import { actingAs, COMMISSIONER } from "../../support/convex/leagues.harness";
 import { nameOf } from "../../support/convex/lineupSquad.harness";
 import { expectRefused } from "../../support/convex/test.harness";
@@ -157,5 +158,19 @@ describe("answering an offer", () => {
     await w.gameweekEnds(5);
     await w.closeDue();
     expect(await w.offers()).toEqual([]);
+  });
+});
+
+describe("the churn rule (#1479, S08.6)", () => {
+  test("a free agent Ann just picked up, traded to Bob and dropped by him before the deadline, goes on waivers", async () => {
+    await w.tradesAre({ review: "none", deadline: null });
+    await w.t.run(async (ctx) => {
+      const place = await ctx.db.query("squadPlayers").withIndex("by_leagueId_and_playerCode", (q) => q.eq("leagueId", w.leagueId).eq("playerCode", ANNS_FIRST_DROP)).unique();
+      await ctx.db.patch("squadPlayers", place!._id, { pickedUpAt: Date.now() });
+    });
+    await w.accept(BOB, (await w.offer(ANN, w.bobsTeam, [ANNS_FIRST_DROP], [])).offerId);
+    await (await actingAs(w.t, BOB)).mutation(api.waivers.waivers.drop, { leagueId: w.leagueId, playerCode: ANNS_FIRST_DROP });
+
+    expect(await w.stateOf(ANNS_FIRST_DROP)).toEqual({ kind: "onWaivers", claimableFrom: Date.now() + WAIVER_MS });
   });
 });

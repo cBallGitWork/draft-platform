@@ -100,8 +100,9 @@ export const move = mutation({
     if (place.teamId === teamId) refuse(squadRefusals.alreadyThere(player.name, team.name));
     await roomOn(ctx, team);
     const from = await teamIn(ctx, leagueId, place.teamId);
-    // A new team starts him afresh, on no number of its own (spec/05 Squad numbers).
-    await ctx.db.patch("squadPlayers", place._id, { teamId, number: undefined });
+    // A new team starts him afresh: on no number of its own (spec/05 Squad numbers), and never its
+    // free-agent pickup, so its drop sends him to waivers (#1479).
+    await ctx.db.patch("squadPlayers", place._id, { teamId, number: undefined, pickedUpAt: undefined });
     await recordEvent(ctx, leagueId, by, {
       kind: "playerMoved",
       playerCode,

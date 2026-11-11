@@ -47,6 +47,9 @@ agent: "keep waivers since its known for draft" (Craig asked; yes).
   back to being a free agent, never onto waivers, so nobody holds players away from the league.
   Once he has been in the squad for a deadline, a drop sends him to waivers like anyone else.
   Dropping is never restricted: "he can drop him anytime he wants".
+- The churn rule covers only the manager who picked him up: a player who reaches another team by
+  trade or commissioner move goes onto waivers for 24 hours when that team drops him, like any
+  other drop (Craig, 11 Nov 2026, #1479). `S08.6`
 - A player new to the Premier League mid-season goes on waivers for the next run, as players nobody
   drafts do by default (`spec/04`).
 - A claim that would break the squad's limits is refused at the run.
