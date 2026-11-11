@@ -30,7 +30,7 @@ const openPanel = async (state: string) => {
 };
 
 describe("My team's Auto team", () => {
-  it("reads Off, and switches on until the end of the gameweek picked, of those the league plays from the next not begun", async () => {
+  it("reads Off, and switches on until the end of the gameweek picked, from the next not begun", async () => {
     // The league skips the gameweek after next and ends at 30 (#1561).
     const endGameweeks = [TACTICS_GAMEWEEK, ...SEASON_GAMEWEEKS.filter((gameweek) => gameweek > TACTICS_GAMEWEEK + 1 && gameweek <= 30)];
     const app = openTacticsTab({ tactics: SAVED, autoTeam: { on: false, endsAfter: null, endGameweeks } });

@@ -147,7 +147,8 @@ describe("who may switch it", () => {
     expect(await switchOf()).toEqual({ by: ANN, endsAfter: 30 });
   });
 
-  test("its manager reads it on My team: off, then on until the gameweek named, with the gameweeks the league plays to name", async () => {
+  test("its manager reads it on My team: off, then on until the gameweek named", async () => {
+    // With the gameweeks it may end after: those the league plays (#1561).
     await t.run((ctx) => ctx.db.patch("leagues", leagueId, { unusedGameweeks: [NEXT + 1, 37, 38] }));
     const endGameweeks = SEASON_GAMEWEEKS.filter((gameweek) => gameweek >= NEXT && gameweek !== NEXT + 1 && gameweek <= 36);
     const read = async () => (await actingAs(t, ANN)).query(api.lineup.autoTeam.ofMyTeam, { leagueId });
