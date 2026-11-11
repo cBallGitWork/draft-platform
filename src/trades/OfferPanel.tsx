@@ -119,7 +119,9 @@ export function OfferPanel({
             <Fact label={closesWords} derived>
               {closesAtWords(
                 offer.closes,
-                offer.closes === null ? null : whenWords(offer.closes.at),
+                offer.closes === null || offer.closes.at === null
+                  ? null
+                  : whenWords(offer.closes.at),
               )}
             </Fact>
           </>
