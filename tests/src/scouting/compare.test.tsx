@@ -8,6 +8,7 @@ import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
 import { per90Stats } from "../../../convex/scouting/per90Figures";
 import { statFigure } from "../../../src/shared/figures";
+import { freeAgentWords } from "../../../src/shared/words";
 import {
   clearComparisonWords,
   clubLabel,
@@ -19,7 +20,6 @@ import {
   compareWithAnotherWords,
   compareWithYourWords,
   comparingWords,
-  freeAgentWords,
   noFigureWords,
   panelMinutesWords,
   PER90_STAT_NAMES,

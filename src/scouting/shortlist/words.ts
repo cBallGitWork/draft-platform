@@ -3,7 +3,6 @@
 
 import { failedWords } from "../../shared/words";
 
-export { freeAgentWords } from "../../shared/words";
 export { goneWords } from "../../playerCard/words";
 
 export const SHORTLIST_TITLE = "Shortlist";

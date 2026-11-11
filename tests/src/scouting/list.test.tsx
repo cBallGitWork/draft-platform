@@ -14,7 +14,6 @@ import {
   countWords,
   everyClubWords,
   everyPositionWords,
-  freeAgentWords,
   loadingWords,
   noFigureWords,
   noneMatchWords,
@@ -27,7 +26,7 @@ import {
   seasonColumns,
   seasonPointsColumn,
 } from "../../../src/scouting/words";
-import { columnHeadName, POSITION_NAMES } from "../../../src/shared/words";
+import { columnHeadName, freeAgentWords, POSITION_NAMES } from "../../../src/shared/words";
 import { crestUrl } from "../../../src/ui/ClubName";
 import { ARSENAL } from "../../support/convex/footballRows.harness";
 import { columnHeadIn } from "../../support/src/columnHeads";

@@ -5,7 +5,7 @@ import { seasonShortWords } from "../draft/words";
 import { LAST_MATCHES_SHOWN } from "./gameLog";
 import { AREA_WORDS, figureWords, gameweekShort, gameweekWords, signedWords, versusWords, whenWords } from "../shared/words";
 
-export { figureWords, freeAgentWords, noFigureWords } from "../shared/words";
+export { figureWords, noFigureWords } from "../shared/words";
 
 export const backWords = "Back";
 export const loadingWords = "Loading the player…";

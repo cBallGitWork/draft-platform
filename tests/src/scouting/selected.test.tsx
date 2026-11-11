@@ -9,9 +9,9 @@ import { NO_FIGURES } from "../../../convex/scouting/playersOrder";
 import type { Stats } from "../../../convex/stats/statTotals";
 import { pickUpWords } from "../../../src/playerCard/words";
 import { playerCardPath } from "../../../src/playerCard/paths";
+import { freeAgentWords } from "../../../src/shared/words";
 import {
   closePanelLabel,
-  freeAgentWords,
   noFigureWords,
   noPointsYetWords,
   notRankedWords,

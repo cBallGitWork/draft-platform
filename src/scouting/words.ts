@@ -22,7 +22,7 @@ import { noRunWords, runDayWords } from "../myTeam/claims/words";
 import { STAT_WORD, weekdayTimeWords } from "../shared/words";
 import type { Availability, Period } from "./seam";
 
-export { figureWords, freeAgentWords, noFigureWords } from "../shared/words";
+export { figureWords, noFigureWords } from "../shared/words";
 
 export const SCOUTING_TITLE = "Scouting";
 export const PLAYERS_TITLE = "Players";
@@ -131,7 +131,7 @@ export const closePanelLabel = "Close his panel";
 /** His figures per 90 over the period, ranked against the players of his area (the approved
  *  picture: "Per 90, last 6 gameweeks", "vs attacking mids"). */
 export const per90Words = (period: Period) => `Per 90, ${periodWords[period].toLowerCase()}`;
-export const AREA_PLAYERS: Record<Area, string> = {
+const AREA_PLAYERS: Record<Area, string> = {
   goalkeeper: "goalkeepers",
   defence: "defenders",
   defensiveMidfield: "defensive mids",
