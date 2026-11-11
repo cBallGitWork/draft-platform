@@ -168,17 +168,21 @@ export function PickPanel({
         </dl>
         <div className="flex flex-wrap items-center gap-2">
           {lists !== null &&
-            LIST_BUTTONS.map(({ list, words }) => (
-              <button
-                key={list}
-                type="button"
-                disabled={lists === undefined || change.busy || lists[list].some(({ code }) => code === player.code)}
-                onClick={() => void change.run(() => listChanges.add(leagueId, player.code, list))}
-                className="secondary-action"
-              >
-                {words}
-              </button>
-            ))}
+            LIST_BUTTONS.map(({ list, words }) => {
+              // On it already: the action with nothing to do, outlined grey (plate.md, Colour roles).
+              const on = lists?.[list].some(({ code }) => code === player.code) ?? false;
+              return (
+                <button
+                  key={list}
+                  type="button"
+                  disabled={lists === undefined || change.busy || on}
+                  onClick={() => void change.run(() => listChanges.add(leagueId, player.code, list))}
+                  className={on ? "action-idle" : "secondary-action"}
+                >
+                  {words}
+                </button>
+              );
+            })}
           <Link to={playerCardPath(leagueId, player.code)} className="ml-auto inline-flex min-h-tap items-center font-semibold">
             {playerCardWords} ▸
           </Link>
