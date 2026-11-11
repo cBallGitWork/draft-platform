@@ -226,10 +226,13 @@ jobs:
       # The step, not the agent, turns on auto-merge for the pull request the build opened (Craig, 4 Nov 2026: green
       # builder pull requests merge on their own, with no label and nobody running the merge). The merge itself still
       # waits for the required checks and an approval: lane-auto.yml's, or Craig's through Code Owners.
+      # Turned on as the pipeline's own account (BUILD_TOKEN, CBHelper180), so the merge is credited to it: a merge
+      # credited to github-actions left its `Closes #N` issue open (23 of 23 on 11 Nov 2026, #1643), and the one Craig's
+      # account merged closed its issue.
       - name: Turn on auto-merge for the build's pull request
         if: always() && steps.decide.outcome != 'skipped' && env.MODE != 'rules-only'  # a build that opened its pull request and then ran out of turns ends red, and its pull request still merges
         env:
-          GH_TOKEN: ${{ github.token }}
+          GH_TOKEN: ${{ secrets.BUILD_TOKEN || github.token }}
         run: |
           branch=$(git rev-parse --abbrev-ref HEAD)
           # GITHUB_REF_NAME is the branch the run started on: main, or a pipeline branch under test, whose own pull request
