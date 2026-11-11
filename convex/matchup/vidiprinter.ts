@@ -36,7 +36,8 @@ import type { commentaryLine } from "../schema";
 type PlayerCode = number;
 
 type StoredLine = Infer<typeof commentaryLine>;
-export type StoredStep = Pick<Doc<"thresholdSteps">, "playerCode" | "stat" | "from" | "to" | "minutes" | "minute">;
+/** One step as a live read stored it, with that read's clock. */
+export type StoredStep = Doc<"thresholdStepReads">["steps"][number] & Pick<Doc<"thresholdStepReads">, "minute">;
 
 export interface VidiprinterMatch {
   fixtureCode: number;

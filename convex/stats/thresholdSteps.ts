@@ -39,11 +39,6 @@ interface ThresholdStep {
   to: number;
 }
 
-/** The most steps one match held a row a step, as stored before #871 (thresholdSteps): enough for
- *  the first set, about 260 a busy match measured (thresholdSteps.test.ts). Those rows are only
- *  read now. More throws, never a silent cut. Claude's choice. */
-export const THRESHOLD_STEPS_MOST = 1000;
-
 /** The most steps one row holds: well under Convex's 8192 values an array, which a read pricing
  *  every catalogue stat for 40 men would pass. A read showing more takes more rows. */
 export const THRESHOLD_STEPS_A_ROW = 1000;
@@ -125,7 +120,7 @@ function adjustedStats(set: ScoringSet): Set<string> {
  *  at his minutes then, but the before of one whose total didn't move, which was stored because his
  *  minutes passed a rule's minimum. `team` is undefined for a man in no lineup. */
 export function stepPoints(
-  step: Pick<Doc<"thresholdSteps">, "stat" | "from" | "to" | "minutes">,
+  step: Pick<StoredStep, "stat" | "from" | "to" | "minutes">,
   set: ScoringSet,
   cell: Cell,
   team: TeamScoring | undefined,
@@ -179,17 +174,12 @@ export async function storeThresholdSteps(
   return { fixtureCode, ok: true };
 }
 
-/** One match's stored steps, oldest first: those stored a row a step before #871, then the reads'. */
+/** One match's stored steps, oldest first. */
 export async function thresholdStepsOf(ctx: QueryCtx, fixtureCode: number): Promise<StoredStep[]> {
-  const before = await takeAllOrThrow(
-    ctx.db.query("thresholdSteps").withIndex("by_fixtureCode", (q) => q.eq("fixtureCode", fixtureCode)),
-    THRESHOLD_STEPS_MOST,
-    `Match ${fixtureCode} holds more than ${THRESHOLD_STEPS_MOST} threshold steps, so some would be left out`,
-  );
   const reads = await takeAllOrThrow(
     ctx.db.query("thresholdStepReads").withIndex("by_fixtureCode", (q) => q.eq("fixtureCode", fixtureCode)),
     THRESHOLD_STEP_READS_MOST,
     `Match ${fixtureCode} holds more than ${THRESHOLD_STEP_READS_MOST} reads' threshold steps, so some would be left out`,
   );
-  return [...before, ...reads.flatMap(({ minute, steps }) => steps.map((step) => ({ ...step, minute })))];
+  return reads.flatMap(({ minute, steps }) => steps.map((step) => ({ ...step, minute })));
 }
