@@ -63,8 +63,8 @@ async function greyedFor(ctx: QueryCtx, leagueId: Id<"leagues">, teamOf: (turn: 
   if (draft === null || started === undefined || turn === null) return [];
   const teamId = teamOf(turn);
   const picksLeft = await picksLeftOf(ctx, draft, started, teamId);
-  const why = await whyNotLegalFor(ctx, leagueId, started, teamId, picksLeft, await undraftedIn(ctx, leagueId), await positionsNow(ctx, leagueId));
   const players = await everyPlayerNow(ctx);
+  const why = await whyNotLegalFor(ctx, leagueId, started, teamId, picksLeft, await undraftedIn(ctx, leagueId, players), await positionsNow(ctx, leagueId));
   const greyed = await Promise.all(players.map(async (player) => ({ code: player.code, reason: await why(player) })));
   return greyed.flatMap(({ code, reason }) => (reason === null ? [] : [{ code, reason }]));
 }
