@@ -5,15 +5,14 @@ he moved work between them himself. Denies a message to another session (SendMes
 id, or the session tools' send_message) and starting a session from this one (start_session,
 hand_off_to_session). A message to a subagent this session spawned (an agent id, a name) is the
 session's own and goes through. Builds report through GitHub and the PM dashboard, never to a
-session. Stdlib only, Python 3.9+.
+session. A payload it can't read is denied (hook_payload.run_guard). Stdlib only, Python 3.9+.
 """
 
 from __future__ import annotations
 
-import json
 import sys
 
-from hook_payload import BadPayload, field, read_payload, report
+from hook_payload import field, run_guard
 
 SESSION_ID = "local_"
 STARTS = {"mcp__ccd_session__start_session", "mcp__ccd_session__hand_off_to_session"}
@@ -36,17 +35,7 @@ def decide(payload):
 
 
 def main():
-    try:
-        reason = decide(read_payload())
-    except BadPayload as error:
-        return report(error, "the call wasn't checked for a cross-session message")
-    if reason:
-        print(json.dumps({"hookSpecificOutput": {
-            "hookEventName": "PreToolUse",
-            "permissionDecision": "deny",
-            "permissionDecisionReason": reason,
-        }}))
-    return 0
+    return run_guard("one-session", lambda payload: (decide(payload), None))
 
 
 if __name__ == "__main__":

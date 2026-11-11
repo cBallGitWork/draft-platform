@@ -229,6 +229,5 @@ check deny guard_bash.py "$(bash_in "$tmp/sub" 'git push --repo=origin +x')"
 for o in '-o +x' '--push-option +x' '--push-option=+x' '--receive-pack +x' '--exec +x'; do
   check allow guard_bash.py "$(bash_cmd "git push $o origin chore/x")"  # +x is the option's value, no refspec
 done
-for payload in 'not json' '' '[]'; do  # a payload it can't read is denied, never let through unchecked
-  check deny guard_bash.py "$payload"
-done
+denies_unreadable guard_bash.py  # a payload it can't read is denied, never let through unchecked
+says "command is int where str was expected" guard_bash.py '{"tool_name":"Bash","tool_input":{"command":7}}'
