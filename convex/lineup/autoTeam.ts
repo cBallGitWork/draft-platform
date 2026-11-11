@@ -2,6 +2,7 @@ import { v, type Infer } from "convex/values";
 import type { Doc } from "../_generated/dataModel";
 import { internalMutation, mutation, query, type MutationCtx, type QueryCtx } from "../_generated/server";
 import { availabilityOf } from "../availability/availability";
+import { seasonGameweekCount } from "../gameweeks/seasonGameweeks";
 import { usedGameweeksOf } from "../gameweeks/usedGameweeks";
 import { fileLetter, recordEvent, wholeLeague } from "../mail/letters";
 import { seasonRules } from "../rules/rulesHistory";
@@ -163,13 +164,13 @@ export type AutoTeamSwitch = Infer<typeof autoTeamSwitch>;
 /** A team's switch: on while a person switched it on or it has no manager (trades/tradeShut.ts). */
 export const switchOf = (team: Doc<"teams">): AutoTeamSwitch => ({ on: onAutoTeam(team), endsAfter: team.autoTeam?.endsAfter ?? null });
 
-/** The gameweeks an auto team may end after: each the league plays, from the next not yet begun
- *  to the league's last, so a league that ends early offers none after it (spec/13, Gameweeks).
- *  None once its season is over. */
+/** The gameweeks an auto team may end after: each the league plays of its season's own count
+ *  (#1618), from the next not yet begun to the league's last, so a league that ends early offers
+ *  none after it (spec/13, Gameweeks). None once its season is over. */
 async function endGameweeksOf(ctx: QueryCtx, league: Doc<"leagues">, now: number): Promise<number[]> {
   const next = await saveGameweekOf(ctx, league._id, now);
   if (next.kind !== "open") return [];
-  return usedGameweeksOf(league).filter((gameweek) => gameweek >= next.gameweek);
+  return usedGameweeksOf(league, await seasonGameweekCount(ctx)).filter((gameweek) => gameweek >= next.gameweek);
 }
 
 /** The caller's team's auto team, for My team's header band (spec/09), with the gameweeks its

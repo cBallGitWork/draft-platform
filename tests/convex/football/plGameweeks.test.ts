@@ -29,16 +29,29 @@ test("each gameweek's earliest kickoff, in gameweek order, leaving out matches w
     { code: 7, gameweek: 8, kickoff: SATURDAY - HOUR_MS, droppedAt: SATURDAY },
   ]);
 
-  expect(await (await actingAs(t, MANAGER)).query(api.football.plGameweeks.firstKickoffs, {})).toEqual([
-    { gameweek: 8, firstKickoff: SATURDAY },
-    { gameweek: 9, firstKickoff: SATURDAY + WEEK_MS },
-  ]);
+  expect(await (await actingAs(t, MANAGER)).query(api.football.plGameweeks.firstKickoffs, {})).toEqual({
+    // However many gameweeks the season holds (#1618): here the latest a match is in.
+    seasonGameweeks: 10,
+    firstKickoffs: [
+      { gameweek: 8, firstKickoff: SATURDAY },
+      { gameweek: 9, firstKickoff: SATURDAY + WEEK_MS },
+    ],
+  });
+});
+
+test("the season's gameweeks are however many it holds: a 34-gameweek season stops at 34 (#1618)", async () => {
+  const t = freshConvex();
+  await t.run(async (ctx) => {
+    for (let number = 1; number <= 34; number += 1) await ctx.db.insert("gameweeks", { number, deadline: SATURDAY + number * WEEK_MS });
+  });
+
+  expect((await (await actingAs(t, MANAGER)).query(api.football.plGameweeks.firstKickoffs, {})).seasonGameweeks).toBe(34);
 });
 
 test("with no matches held, none", async () => {
   const t = freshConvex();
 
-  expect(await (await actingAs(t, MANAGER)).query(api.football.plGameweeks.firstKickoffs, {})).toEqual([]);
+  expect(await (await actingAs(t, MANAGER)).query(api.football.plGameweeks.firstKickoffs, {})).toEqual({ seasonGameweeks: 0, firstKickoffs: [] });
 });
 
 test("someone signed out is refused them", async () => {

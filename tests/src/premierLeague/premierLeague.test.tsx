@@ -5,7 +5,7 @@
 import { screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
-import { GAMEWEEKS } from "../../../convex/gameweeks/usedGameweeks";
+import { PL_GAMEWEEKS } from "../../support/convex/footballRows.harness";
 import { DAY_MS, HOUR_MS, WEEK_MS } from "../../../convex/shared/time";
 import { MY_TEAM_PATH, PREMIER_LEAGUE_PATH } from "../../../src/frame/menu";
 import { menuWords } from "../../../src/frame/words";
@@ -92,8 +92,8 @@ describe("which gameweek it opens on", () => {
   });
 
   it("once the last gameweek has kicked off, stays on it", async () => {
-    openSection({ firstKickoffs: [{ gameweek: GAMEWEEKS, firstKickoff: begun }] });
-    expect((await stepperHeading()).textContent).toBe(gameweekShort(GAMEWEEKS));
+    openSection({ firstKickoffs: [{ gameweek: PL_GAMEWEEKS, firstKickoff: begun }] });
+    expect((await stepperHeading()).textContent).toBe(gameweekShort(PL_GAMEWEEKS));
   });
 });
 
@@ -124,10 +124,18 @@ describe("the stepper", () => {
     await stepperHeading();
     expect(button(previousGameweekLabel).disabled).toBe(true);
 
-    for (let gameweek = 1; gameweek < GAMEWEEKS; gameweek += 1) await userEvent.click(button(nextGameweekLabel));
-    expect((await stepperHeading()).textContent).toBe(gameweekShort(GAMEWEEKS));
+    for (let gameweek = 1; gameweek < PL_GAMEWEEKS; gameweek += 1) await userEvent.click(button(nextGameweekLabel));
+    expect((await stepperHeading()).textContent).toBe(gameweekShort(PL_GAMEWEEKS));
     expect(button(nextGameweekLabel).disabled).toBe(true);
     expect(button(previousGameweekLabel).disabled).toBe(false);
+  });
+
+  it("stops at the season's own last gameweek, however many it has (#1618)", async () => {
+    openSection({ seasonGameweeks: 34, firstKickoffs: [{ gameweek: 33, firstKickoff: begun }] });
+    expect((await stepperHeading()).textContent).toBe(gameweekShort(33));
+    await userEvent.click(button(nextGameweekLabel));
+    expect((await stepperHeading()).textContent).toBe(gameweekShort(34));
+    expect(button(nextGameweekLabel).disabled).toBe(true);
   });
 });
 

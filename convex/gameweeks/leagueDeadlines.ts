@@ -2,9 +2,9 @@ import type { Id } from "../_generated/dataModel";
 import type { QueryCtx } from "../_generated/server";
 import { leagueDeadline, type DeadlineOf, type LeagueDeadlines, type ScheduledMatch } from "./deadline";
 import { fixedDeadlinesOf } from "./passedDeadlines";
-import { FIRST_GAMEWEEK, GAMEWEEKS, SEASON_GAMEWEEKS } from "./usedGameweeks";
+import { FIRST_GAMEWEEK, GAMEWEEKS_MOST, seasonGameweeks } from "./usedGameweeks";
 import { takeAllOrThrow } from "../shared/cappedRead";
-import { heldSeason } from "./seasonGameweeks";
+import { heldSeason, seasonGameweekCount } from "./seasonGameweeks";
 import { currentFixtures } from "../shared/fixtures";
 import { historyOf, inForce } from "../rules/rulesHistory";
 
@@ -14,20 +14,17 @@ import { historyOf, inForce } from "../rules/rulesHistory";
 export type HeldSchedule = { gameweeks: { number: number }[]; matches: ScheduledMatch[] };
 
 /** The season's gameweeks and matches as held. A gameweek the football layer no longer sends stays,
- *  keeping its last deadline (spec/05, #202); a match it no longer sends goes. Only gameweeks 1 to
- *  38 are read: a row past FPL's 38 can only be written by hand, and a lineup save
- *  or a rules change must not stop on one (#872). */
+ *  keeping its last deadline (spec/05, #202); a match it no longer sends goes. However many the
+ *  season holds are read (#1618), up to more than any season has (`GAMEWEEKS_MOST`). */
 export async function heldSchedule(ctx: QueryCtx): Promise<HeldSchedule> {
   // Only this season's: each season's gameweeks are kept, last season's beside it (#66). At most
   // one row a gameweek number in a season: the football sync keeps one (footballSync.ts's
   // upsertGameweeks), so more is a bug.
   const season = await heldSeason(ctx);
   const seasonRows = await takeAllOrThrow(
-    ctx.db
-      .query("gameweeks")
-      .withIndex("by_season_and_number", (q) => q.eq("season", season).gte("number", FIRST_GAMEWEEK).lte("number", GAMEWEEKS)),
-    GAMEWEEKS,
-    `More than ${GAMEWEEKS} gameweek rows are held for gameweeks ${FIRST_GAMEWEEK} to ${GAMEWEEKS}, so the season's schedule would be cut short`,
+    ctx.db.query("gameweeks").withIndex("by_season_and_number", (q) => q.eq("season", season).gte("number", FIRST_GAMEWEEK)),
+    GAMEWEEKS_MOST,
+    `More than ${GAMEWEEKS_MOST} gameweek rows are held for one season, so its schedule would be cut short`,
   );
   return { gameweeks: seasonRows.map(({ number }) => ({ number })), matches: await scheduledMatches(ctx) };
 }
@@ -38,7 +35,7 @@ export async function scheduledMatches(ctx: QueryCtx): Promise<ScheduledMatch[]>
   return (await currentFixtures(ctx)).map(({ gameweek, kickoff }) => ({ gameweek, kickoff }));
 }
 
-/** The league's own deadline for each of gameweeks 1 to 38: the one recorded once it passed
+/** The league's own deadline for each of the season's gameweeks: the one recorded once it passed
  *  (#150), else the one kept when FPL stopped sending the gameweek (#202), else the one under the rule in force in it. When each begins, for its screens, refusals
  *  and recorder (#138, #139). Null where none of the gameweek's matches has a kickoff time held. */
 export async function leagueDeadlines(ctx: QueryCtx, leagueId: Id<"leagues">): Promise<LeagueDeadlines> {
@@ -60,7 +57,7 @@ export async function leagueDeadlinesIn(
   const history = await historyOf(ctx, leagueId);
   const fixed = await fixedDeadlinesOf(ctx, leagueId);
   return new Map(
-    SEASON_GAMEWEEKS.map((gameweek) => {
+    seasonGameweeks(await seasonGameweekCount(ctx)).map((gameweek) => {
       const row = inForce(history, gameweek);
       const recorded = fixed.get(gameweek) ?? null;
       return [gameweek, row === undefined ? recorded : leagueDeadline(gameweek, matches, row.rules.deadline, recorded)];

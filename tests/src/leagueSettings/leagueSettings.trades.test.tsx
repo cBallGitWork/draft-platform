@@ -5,6 +5,7 @@ import { screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
 import { blankTradeDeadlineWords, tradeDeadlineHint, tradeDeadlineLabel, tradeDeadlineWords, tradeReviewWords } from "../../../src/leagueSettings/words";
+import { PL_GAMEWEEKS } from "../../support/convex/footballRows.harness";
 import { descriptionOf } from "../../support/src/describedBy";
 import { REVISION } from "../../support/src/leagueSettings.harness";
 import { box, fill, FIRST_SETTINGS, openedSettings, save, savedSettings } from "../../support/src/leagueSettingsScreen.harness";
@@ -36,7 +37,7 @@ describe("the trade settings (#383)", () => {
   it("saves a trade deadline turned on and set, its box described by its hint", async () => {
     const app = await openedSettings();
     await userEvent.click(deadlineTick());
-    expect(descriptionOf(box(tradeDeadlineLabel))).toBe(tradeDeadlineHint);
+    expect(descriptionOf(box(tradeDeadlineLabel))).toBe(tradeDeadlineHint(PL_GAMEWEEKS));
     await fill(tradeDeadlineLabel, "30");
     await save();
 

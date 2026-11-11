@@ -6,7 +6,8 @@ import { seasonRules, type SeasonRules } from "../rules/rulesHistory";
 import { heldSchedule, leagueDeadlines, type HeldSchedule } from "../gameweeks/leagueDeadlines";
 import { nextGameweek } from "../gameweeks/nextGameweek";
 import { fixedDeadlinesOf, passedDeadlineOf } from "../gameweeks/passedDeadlines";
-import { GAMEWEEKS, lastPlayedGameweek } from "../gameweeks/usedGameweeks";
+import { seasonGameweekCount } from "../gameweeks/seasonGameweeks";
+import { GAMEWEEKS_MOST, lastPlayedGameweek } from "../gameweeks/usedGameweeks";
 import { inUnplayedGameweek } from "../waivers/waiverLock";
 import { squadAt, squadMovesSince, squadOf, type MovesSinceOf, type SquadMovesSince } from "../squads/squadPlace";
 import { playerByCode } from "../shared/players";
@@ -159,7 +160,7 @@ export async function saveGameweekOf(ctx: QueryCtx, leagueId: Id<"leagues">, now
   const season = await seasonRules(ctx, leagueId);
   const gameweek = await nextOpenGameweek(ctx, leagueId, season, now, schedule);
   const league = await ctx.db.get("leagues", leagueId);
-  if (league === null || gameweek > lastPlayedGameweek(league)) return { kind: "seasonOver" };
+  if (league === null || gameweek > lastPlayedGameweek(league, await seasonGameweekCount(ctx))) return { kind: "seasonOver" };
   return { kind: "open", season, gameweek };
 }
 
@@ -277,7 +278,7 @@ export async function saveFirstLineup(ctx: MutationCtx, leagueId: Id<"leagues">,
     .query("lineups")
     .withIndex("by_leagueId_and_teamId_and_fromGameweek", (q) => q.eq("leagueId", leagueId).eq("teamId", teamId))
     // One row a gameweek at most (`save`).
-    .take(GAMEWEEKS);
+    .take(GAMEWEEKS_MOST);
   const first = rows.filter((row) => row.firstLineup === true);
   for (const row of first) await ctx.db.patch("lineups", row._id, { firstLineup: undefined });
   return first.length > 0;

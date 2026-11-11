@@ -2,6 +2,7 @@ import { v } from "convex/values";
 import { mutation, query } from "../_generated/server";
 import { leagueOpens } from "../leagues/leagueOpens";
 import { deadlineOf, leagueDeadlines } from "../gameweeks/leagueDeadlines";
+import { seasonGameweekCount } from "../gameweeks/seasonGameweeks";
 import { lastPlayedGameweek } from "../gameweeks/usedGameweeks";
 import { managerOf, signedInEmail, teamOf } from "../shared/leagueAccess";
 import { saveGameweekOf } from "./lineups";
@@ -44,7 +45,7 @@ export const openedTactics = mutation({
   returns: v.null(),
   handler: async (ctx, { leagueId, gameweek }) => {
     const { league, team } = await managerOf(ctx, leagueId);
-    if (gameweek > lastPlayedGameweek(league) || team.tacticsOpenedInGameweek === gameweek) return null;
+    if (gameweek > lastPlayedGameweek(league, await seasonGameweekCount(ctx)) || team.tacticsOpenedInGameweek === gameweek) return null;
     const next = await saveGameweekOf(ctx, leagueId, Date.now());
     if (next.kind !== "open" || next.gameweek !== gameweek) return null;
     await ctx.db.patch("teams", team._id, { tacticsOpenedInGameweek: gameweek });
