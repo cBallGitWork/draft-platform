@@ -14,6 +14,7 @@ import { draftOver, noDraft } from "../../support/convex/waivers.harness";
 
 const NEW_COMMISSIONER = "newcommissioner@example.com";
 const BLOCK_IT = "Block the trade between Team 1 and Team 2?";
+const TRADED = "Team 1 and Team 2 traded";
 
 let w: TradeLeague;
 beforeEach(async () => {
@@ -87,6 +88,22 @@ describe("a trade the commissioner is in, reviewed by the co-commissioner,", () 
     expect(await w.subjectsTo(CAT)).toContain("Vote on the trade between Team 1 and Team 2");
     expect(await w.toReview(CAT)).toEqual([expect.objectContaining({ offerId, yours: "against", reviewEndsAt: endsAt })]);
     expect((await offersTab(BOB))[0]).toMatchObject({ reviewer: "vote" });
+  });
+
+  // Today's behaviour, pinned until Craig answers the hand-on case (#1736): S08.15 names only a
+  // trade accepted fresh, which goes through at once with nobody able to vote.
+  test("goes to a vote nobody may cast when he is removed with the others on the auto team, and stays in review until the 24 hours are up", async () => {
+    const endsAt = Date.now() + REVIEW_MS;
+    await (await actingAs(w.t, CAT)).mutation(api.lineup.autoTeam.set, { leagueId: w.leagueId, teamId: w.catsTeam, on: true });
+    await nameCoCommissioner(null, ANN);
+
+    expect(await w.offers()).toEqual([
+      expect.objectContaining({ _id: offerId, review: expect.objectContaining({ endsAt, reviewer: { kind: "vote", against: [] } }) }),
+    ]);
+    expect(await w.subjectsTo(ANN)).not.toContain(TRADED);
+    await w.reviewEnds(offerId);
+    expect(await w.offers()).toEqual([]);
+    expect(await w.subjectsTo(ANN)).toContain(TRADED);
   });
 });
 
