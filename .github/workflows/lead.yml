@@ -287,7 +287,9 @@ jobs:
               | "\(.number):\(.headRefName | capture("^wip/issue-(?<n>[0-9]+)-").n)"' <<<"$prs"); do
             [ "$slots" -gt 0 ] || break
             pr=${row%%:*} n=${row#*:}
-            gh issue view "$n" --json labels --jq '.labels[].name' | grep -qx 'rules:open' && continue
+            # read first, then test, as in 1a: a failed read in a pipe would read as "no open rules" and resume it
+            labels=$(gh issue view "$n" --json labels --jq '.labels[].name')
+            grep -qx 'rules:open' <<<"$labels" && continue
             take "$n" || continue
             dispatch "$n" build; label "$pr" "$RESUMED_LABEL"; slots=$((slots - 1))
           done
