@@ -199,6 +199,7 @@ export const gates: Record<string, Gate> = {
   "table/teamOverrides:removeTeamOverride": "runner",
   "trades/tradeOffers:accept": "manager",
   "trades/tradeOffers:counter": "manager",
+  "trades/tradeOffers:countWaitingForMe": "managerOrNothing",
   "trades/tradeOffers:mine": "manager",
   "trades/tradeOffers:offer": "manager",
   "trades/tradeOffers:reject": "manager",
