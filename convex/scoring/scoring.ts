@@ -4,7 +4,7 @@
 import { MINUTES_STAT } from "../stats/matchRecords";
 import { withOwnStats } from "./ownStats";
 import { AREAS, LANES, positionOfSlot, type Cell, type SlotPosition } from "../lineup/pitch";
-import { priceFor, type Priced } from "./priced";
+import { priceFor, pricingOf, type Priced } from "./priced";
 import { validateScoringSet, type Area, type Band, type RoleSide, type ScoringRule, type ScoringSet } from "./scoringSet";
 import { backLineAt, instructionPoints, withBackLine, type InstructionPoints, type TeamScoring } from "./teamScoring";
 import { DOUBLE_GAMEWEEK_RULES, inTenths, showValue, statIn, weighedCount, type DoubleGameweekRule, type MatchStats } from "./values";
@@ -66,7 +66,7 @@ export interface RolePoints {
   sides: RoleSidePoints[];
 }
 
-export interface RoleSidePoints {
+interface RoleSidePoints {
   side: "bonus" | "cost";
   points: number;
   lines: { stat: string; actions: number }[];
@@ -86,7 +86,7 @@ interface Slot {
  * Points are kept in tenths, so 0.1 three times is 0.3, never 0.30000000000000004.
  */
 export function scoreMatch(record: MatchStats | null, set: ScoringSet, cell: Cell, role?: string, team?: TeamScoring): MatchPoints {
-  validateScoringSet(set);
+  checkedOnce(set);
   if (!AREAS.includes(cell.area)) throw new Error(`${showValue(cell.area)} is not one of the pitch's six areas`);
   if (!LANES.includes(cell.lane)) throw new Error(`${showValue(cell.lane)} is not one of the pitch's five lanes`);
   if (record === null) {
@@ -108,6 +108,16 @@ export function scoreMatch(record: MatchStats | null, set: ScoringSet, cell: Cel
   const instructed = (team?.instructions ?? []).flatMap((key) => instructionPoints(record, set, key, slot.position, minutes) ?? []);
   const total = inTenths(base + (adjusted?.points ?? 0) + sum(instructed.map(({ points }) => points)));
   return { total, categories, ...(adjusted !== undefined && { role: adjusted }), ...(instructed.length > 0 && { instructions: instructed }) };
+}
+
+/** Sets already checked, by the object read: a page of players scores every match under one set,
+ *  and checking it was nine tenths of the time (#1574). A set read is never changed after. */
+const CHECKED_SETS = new WeakSet<ScoringSet>();
+
+function checkedOnce(set: ScoringSet): void {
+  if (CHECKED_SETS.has(set)) return;
+  validateScoringSet(set);
+  CHECKED_SETS.add(set);
 }
 
 /** What `role` gives a man with this record under `set`, own stats worked out: 0 for no role, or
@@ -174,9 +184,14 @@ export function rulePointsIn(rule: ScoringRule, cell: Cell, actions: number, min
 type Price = <Value>(priced: Priced<Value>) => Value;
 
 function pricedBy(values: Priced<unknown>, slot: Slot): PricedBy {
-  if ("all" in values) return { by: "all" };
-  if ("byArea" in values) return { by: "area", area: slot.area };
-  return { by: "position", position: slot.position };
+  switch (pricingOf(values)) {
+    case "all":
+      return { by: "all" };
+    case "byArea":
+      return { by: "area", area: slot.area };
+    case "byPosition":
+      return { by: "position", position: slot.position };
+  }
 }
 
 /** The rule's value at the slot: for a band rule, the bands he earned of it. */
@@ -220,7 +235,7 @@ function sum(numbers: readonly number[]): number {
 /** A player's gameweek. Provisional while any of his matches' records hasn't arrived: the points
  *  are those of the matches that have, and null while none has. A match still live or inside its
  *  correction window is provisional too, which is the match's own state (spec/07), not this. */
-export interface GameweekPoints {
+interface GameweekPoints {
   points: number | null;
   provisional: boolean;
 }

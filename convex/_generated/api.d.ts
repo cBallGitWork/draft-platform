@@ -246,6 +246,7 @@ import type * as scoring_siteScoring from "../scoring/siteScoring.js";
 import type * as scoring_siteVersions from "../scoring/siteVersions.js";
 import type * as scoring_statCatalogue from "../scoring/statCatalogue.js";
 import type * as scoring_statCatalogueList from "../scoring/statCatalogueList.js";
+import type * as scoring_statKeys from "../scoring/statKeys.js";
 import type * as scoring_teamPoints from "../scoring/teamPoints.js";
 import type * as scoring_teamScoring from "../scoring/teamScoring.js";
 import type * as scoring_values from "../scoring/values.js";
@@ -606,6 +607,7 @@ declare const fullApi: ApiFromModules<{
   "scoring/siteVersions": typeof scoring_siteVersions;
   "scoring/statCatalogue": typeof scoring_statCatalogue;
   "scoring/statCatalogueList": typeof scoring_statCatalogueList;
+  "scoring/statKeys": typeof scoring_statKeys;
   "scoring/teamPoints": typeof scoring_teamPoints;
   "scoring/teamScoring": typeof scoring_teamScoring;
   "scoring/values": typeof scoring_values;
