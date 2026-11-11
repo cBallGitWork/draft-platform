@@ -1,10 +1,10 @@
 import { useId, useState, type FormEvent } from "react";
 import type { Id } from "../../convex/_generated/dataModel";
 import { toSeconds, type PickClockUnit } from "../leagueSettings/pickClock";
+import type { ListedPlayer } from "../scouting/seam";
 import type { Change } from "../shared/refusal";
 import { useChange } from "../shared/useChange";
 import { Loading, PANEL_BODY, Panel, Problem } from "../ui/Panel";
-import type { ListedPlayer } from "../scouting/seam";
 import { pickInRoundOf, roundOf } from "./board";
 import { whyNotWords } from "./DraftPlayers";
 import type { DraftBoard, DraftSeam, DraftState } from "./seam";
