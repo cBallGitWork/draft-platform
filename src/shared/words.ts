@@ -161,6 +161,9 @@ export const noHeadToHeadsTotalPointsWords = "The league plays total points, so 
 const weekdayTimeFormat = new Intl.DateTimeFormat(LOCALE, { weekday: "short", hour: "2-digit", minute: "2-digit" });
 /** A time within the week, in the viewer's own zone: "Thu 18:00", a kickoff or a waiver run. */
 export const weekdayTimeWords = (at: number) => weekdayTimeFormat.format(at);
+const weekdayFormat = new Intl.DateTimeFormat(LOCALE, { weekday: "short" });
+/** The day alone, in the viewer's own zone: "Sun", as a matchup tile's badge says a kickoff. */
+export const weekdayWords = (at: number) => weekdayFormat.format(at);
 
 const ordinals = new Intl.PluralRules(LOCALE, { type: "ordinal" });
 const ORDINAL_ENDS: Record<Intl.LDMLPluralRule, string> = { zero: "th", one: "st", two: "nd", few: "rd", many: "th", other: "th" };

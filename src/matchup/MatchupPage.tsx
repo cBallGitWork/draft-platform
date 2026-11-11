@@ -38,7 +38,8 @@ export function MatchupPage({ league, seam, asked }: { league: LeagueSummary; se
   // matchup asked for loads afresh.
   const matchup = useLastLoaded(seam.useMatchup(league.leagueId, useMinute(), asked), `${asked.teamId}/${asked.gameweek}/${asked.game}`);
   return (
-    <PageSection title={MATCHUP_TITLE} className="flex flex-col gap-2">
+    // No title plate: the approved picture's score band sits straight under the top bar.
+    <PageSection title={MATCHUP_TITLE} plate={false} className="flex flex-col gap-2">
       {matchup === undefined ? (
         <Loading>{loadingWords}</Loading>
       ) : matchup.kind === "totalPoints" ? (
