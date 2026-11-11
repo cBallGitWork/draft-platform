@@ -199,7 +199,7 @@ describe("the lock", () => {
     expect(await w.stateOf(SAKA)).toMatchObject({ kind: "owned", teamId: w.bobsTeam });
   });
 
-  test("shuts new claims and a change of drop, but a claim in can still be ranked again or withdrawn (Craig, 11 Nov 2026, on #1590)", async () => {
+  test("shuts new claims and a change of drop, but a claim in can still be ranked again or withdrawn (S08.14)", async () => {
     await w.onWaivers([SAKA, PALMER]);
     const sakaClaim = await w.claim(ANN, SAKA, ANNS_FIRST_DROP);
     const palmerClaim = await w.claim(ANN, PALMER);
