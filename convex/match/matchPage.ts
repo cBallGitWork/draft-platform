@@ -16,7 +16,7 @@ import { siteScoringInGameweek } from "../scoring/siteVersions";
 import { logFailure } from "../shared/errors";
 import { fixtureByCode } from "../shared/fixtures";
 import { memberOf } from "../shared/leagueAccess";
-import { clubByCode, clubOf, heldPlayerByCode } from "../shared/players";
+import { clubByCode, clubOf, playerByCode, unheldPlayerWords } from "../shared/players";
 import { thresholdStepsOf } from "../stats/thresholdSteps";
 import { begunGameweeks, workedOutGameweek } from "../gameweekScorer/gameweekScores";
 import { matchRecordsOf } from "../gameweekScorer/heldMatches";
@@ -196,7 +196,7 @@ async function priced(ctx: QueryCtx, league: Doc<"leagues">, fixture: Doc<"fixtu
       const inMatch = pointsInMatch(scored, slot.playerCode, fixture.code);
       if (inMatch === null) continue;
       result.slots.set(slot.playerCode, { points: inMatch.points, counts: slot.counts });
-      const { name } = await heldPlayer(ctx, fixture.code, slot.playerCode);
+      const name = nameOf(await playerByCode(ctx, slot.playerCode), slot.playerCode);
       result.players.set(slot.playerCode, { name, cell: slot.cell, role: slot.role, inLineup: true, inMatch: inMatchOf(slot, scored.matchesOf.get(slot.playerCode) ?? []), team: vidiprinterTeam(scored) });
     }
   }
@@ -206,7 +206,8 @@ async function priced(ctx: QueryCtx, league: Doc<"leagues">, fixture: Doc<"fixtu
 /** Each man the match names, with his club's side, his owner and his points, in the page's order;
  *  and the men in no lineup (none of `lineupOwners`), as the commentary prices them. His side is by the club his record
  *  holds, the one he played the match for (#502); by his club now before kickoff, as the sheets
- *  hold none, and for a record written before records kept one. */
+ *  hold none, and for a record written before records kept one; none for a man the football data
+ *  has lost whose record kept no club. */
 async function menOf(
   ctx: QueryCtx,
   leagueId: Id<"leagues">,
@@ -220,17 +221,19 @@ async function menOf(
   const unowned = new Map<PlayerCode, VidiprinterPlayer>();
   const men = await Promise.all(
     named.map(async ({ playerCode, started, played, clubCode }) => {
-      const player = await heldPlayer(ctx, fixture.code, playerCode);
+      const player = await playerByCode(ctx, playerCode);
+      const name = nameOf(player, playerCode);
       const positions = await positionsOfNow(playerCode);
       const inLineup = lineupOwners.has(playerCode);
       const unownedMan = inLineup ? null : unownedPoints(playerCode, positions);
-      if (unownedMan?.lines) unowned.set(playerCode, { name: player.name, role: undefined, inLineup: false, team: undefined, ...unownedMan.lines });
+      if (unownedMan?.lines) unowned.set(playerCode, { name, role: undefined, inLineup: false, team: undefined, ...unownedMan.lines });
       const slot = unownedMan === null ? slots.get(playerCode) : { points: unownedMan.points, counts: false };
+      const playedFor = clubCode ?? player?.clubCode;
       return {
         playerCode,
-        name: player.name,
+        name,
         position: positions[0] ?? null,
-        side: sideOf(fixture, clubCode ?? player.clubCode),
+        side: playedFor === undefined ? null : sideOf(fixture, playedFor),
         started,
         played,
         ownerTeamName: owners.get(playerCode)?.name ?? null,
@@ -248,10 +251,10 @@ function sideOf({ homeClubCode, awayClubCode }: Doc<"fixtures">, clubCode: numbe
   return clubCode === awayClubCode ? "away" : null;
 }
 
-/** A man the match names. A record or a sheet's man is kept only for a man FPL lists, so one the
- *  football sync doesn't hold is bad data, and throws. */
-function heldPlayer(ctx: QueryCtx, fixtureCode: number, playerCode: PlayerCode): Promise<Doc<"players">> {
-  return heldPlayerByCode(ctx, playerCode, `match ${fixtureCode} names player ${playerCode}, whom the football sync doesn't hold`);
+/** A man the match names, by name; or, for one the football data has lost, whose saved record stays
+ *  (spec/14 S14.5), the error words every screen gives his row, so the rest of the page still shows. */
+function nameOf(player: Doc<"players"> | null, playerCode: PlayerCode): string {
+  return player === null ? unheldPlayerWords(playerCode) : player.name;
 }
 
 /** The match's stored lines, newest first, priced for the `players` once the gameweek has begun;
