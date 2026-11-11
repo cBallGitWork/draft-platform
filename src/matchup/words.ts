@@ -26,7 +26,7 @@ export const MATCHUP_TITLE = "Matchup";
 export { SCORE_LABEL } from "../shared/words";
 export const loadingWords = "Loading the matchup…";
 export const totalPointsWords = noHeadToHeadsTotalPointsWords;
-export const noTeamWords = "You run no team in this league.";
+export { noTeamWords } from "../shared/words";
 export const noGamesWords = (teamName: string) => `${teamName} has no head-to-heads: fixtures are drawn once the league has ${fewestTeamsWords}.`;
 export const noGameWords = (teamName: string, gameweek: number) => `${teamName} plays no head-to-head in ${gameweekWords(gameweek)}.`;
 export const byeWords = (teamName: string) => `${teamName} has a bye this gameweek.`;
