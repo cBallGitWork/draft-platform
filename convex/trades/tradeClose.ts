@@ -9,7 +9,9 @@ import { fileLetter } from "../mail/letters";
 import { offerClosedLetter, type OfferClosed } from "../mail/tradeLetterWords";
 import { scheduleEveryLeague, takeAllOrThrow } from "../shared/cappedRead";
 import type { LeagueDeadlines } from "../gameweeks/deadline";
+import { MOST_TEAMS } from "../leagues/leagueLimits";
 import { teamIn } from "../shared/leagueAccess";
+import { OFFERS_PER_TEAM_MOST } from "./tradeLimits";
 import { deadlinePassedSince } from "../waivers/waiverLock";
 import { onAutoTeam, tradesShut } from "./tradeShut";
 import type { TradesShut } from "./tradeShutWords";
@@ -28,8 +30,11 @@ import { leagueOf, managersOf, tradedName, tradeWordsOf } from "./tradeWords";
  *  closes at most this late, and is refused as closed meanwhile. */
 export const OFFER_CHECK_EVERY = { minutes: 5 } as const;
 
-/** The most offers open or in review that one read of a league's takes: Claude's sizing. Past it a read throws rather than leave offers out. */
-export const OFFERS_READ_MOST = 1000;
+/** The most offers open or in review that one read of a league's takes: every team at its ceiling
+ *  of open offers (#1609), and as many again for those in review or waiting on the cron after a
+ *  deadline, so drops, pickups, trades and the waiver run never meet it. Past it a read throws
+ *  rather than leave offers out. */
+export const OFFERS_READ_MOST = 2 * MOST_TEAMS * OFFERS_PER_TEAM_MOST;
 
 /** Every offer open or in review in the league. */
 export function leagueOffers(ctx: QueryCtx, leagueId: Id<"leagues">): Promise<Doc<"tradeOffers">[]> {

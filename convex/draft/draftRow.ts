@@ -42,13 +42,24 @@ export async function picksMadeIn(ctx: QueryCtx, leagueId: Id<"leagues">): Promi
 
 /** The positions each player the league's draft has taken had when he was drafted, by his code: the
  *  rest of the draft counts him at them, so a position he loses since can't leave his team with no
- *  legal pick (Craig, 11 Nov 2026, on #1484). A pick made before #1484 kept none, and is left out. */
+ *  legal pick (Craig, 11 Nov 2026, on #1484). */
 export async function draftedPositionsIn(ctx: QueryCtx, leagueId: Id<"leagues">): Promise<Map<number, Position[]>> {
   const picks = await ctx.db
     .query("draftPicks")
     .withIndex("by_leagueId_and_pick", (q) => q.eq("leagueId", leagueId))
     .collect();
-  return new Map(picks.flatMap(({ playerCode, positions }) => (positions === undefined ? [] : [[playerCode, positions] as const])));
+  return new Map(
+    picks.map(({ pick, playerCode, positions }) => {
+      if (positions === undefined) throw new Error(`League ${leagueId}'s pick ${pick} kept no positions: run draft/oldDraftsBackfill once (#1610)`);
+      return [playerCode, positions] as const;
+    }),
+  );
+}
+
+/** The clock of `draft`, live with a pick on it, which always has one (draftClock.ts). */
+export function liveClockOf(draft: Doc<"drafts">): NonNullable<Doc<"drafts">["clock"]> {
+  if (draft.clock === undefined) throw new Error(`League ${draft.leagueId}'s live draft has no clock: run draft/oldDraftsBackfill once (#1610)`);
+  return draft.clock;
 }
 
 /** Whether the league's draft has started. */

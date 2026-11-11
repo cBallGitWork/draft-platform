@@ -6,6 +6,7 @@ import { leagueDeadlines } from "../gameweeks/leagueDeadlines";
 import { positionsNow } from "../positions/playerPositions";
 import { clubRecord, position } from "../schema";
 import { takeAllOrThrow } from "../shared/cappedRead";
+import { MOST_TEAMS } from "../leagues/leagueLimits";
 import { leagueOpens } from "../leagues/leagueOpens";
 import { managerOf, memberOf, powersIn, refuse, refusals, signedInEmail, teamOf, teamsOf } from "../shared/leagueAccess";
 import { clubByCode, clubOf, heldPlayerByCode, playerByCode } from "../shared/players";
@@ -13,6 +14,7 @@ import { placeOf } from "../squads/squadPlace";
 import { squadRefusals } from "../squads/squads";
 import { seasonPointsIn } from "../stats/seasonPoints";
 import { firstRunsIn, inWaiverLock, runAhead } from "./waiverLock";
+import { CLAIMS_PER_TEAM_MOST } from "./waiverLimits";
 import { waiverRowOf } from "./waiverPlayers";
 import { dropRefusals } from "./waivers";
 
@@ -30,13 +32,14 @@ export const claimRefusals = {
   playerGone: squadRefusals.playerGone,
   dropNotYours: dropRefusals.notYours,
   twice: "You have that claim in already.",
+  tooMany: `You have ${CLAIMS_PER_TEAM_MOST} claims in, the most a team can: withdraw one before putting in another.`,
   notYours: "That claim isn't one of your pending claims.",
   claimsChanged: "Your claims changed since you opened them, so their order wasn't saved.",
 };
 
-/** The most claims a league holds that one read takes: Claude's sizing, far above the players on
- *  waivers at once times the teams. Past it a read throws rather than leave claims out. */
-export const CLAIMS_READ_MOST = 2000;
+/** The most claims a league holds that one read takes: every team at its ceiling (#1609), so the
+ *  run never meets it. Past it a read throws rather than leave claims out. */
+export const CLAIMS_READ_MOST = MOST_TEAMS * CLAIMS_PER_TEAM_MOST;
 
 /** The team's pending claims, first first. */
 export function claimsOf(ctx: QueryCtx, leagueId: Id<"leagues">, teamId: Id<"teams">): Promise<Doc<"waiverClaims">[]> {
@@ -72,7 +75,7 @@ export async function claimedName(ctx: QueryCtx, playerCode: number): Promise<st
 }
 
 /** The manager claims a player on waivers, last of his claims, naming who he drops if it succeeds,
- *  if anyone. Its id. */
+ *  if anyone. Its id. Refused while his team has CLAIMS_PER_TEAM_MOST in (Craig, 11 Nov 2026, #1609). */
 export const putIn = mutation({
   args: { leagueId: v.id("leagues"), playerCode: v.number(), dropCode: v.union(v.number(), v.null()) },
   returns: v.id("waiverClaims"),
@@ -86,6 +89,7 @@ export const putIn = mutation({
     await checkDrop(ctx, leagueId, team._id, dropCode);
     const claims = await claimsOf(ctx, leagueId, team._id);
     if (claims.some((claim) => claim.playerCode === playerCode && claim.dropCode === dropCode)) refuse(claimRefusals.twice);
+    if (claims.length >= CLAIMS_PER_TEAM_MOST) refuse(claimRefusals.tooMany);
     const rank = (claims.at(-1)?.rank ?? -1) + 1;
     return await ctx.db.insert("waiverClaims", { leagueId, teamId: team._id, playerCode, dropCode, rank, by: email });
   },

@@ -41,10 +41,16 @@ async function barnesOn(teamId: Id<"teams">, starts: Start[]) {
   await t.run(async (ctx) => {
     const team = (await ctx.db.get("teams", teamId))!;
     await ctx.db.insert("squadPlayers", { leagueId: team.leagueId, teamId, playerCode: BARNES.code });
+  });
+  await barnesPlays(starts);
+}
+
+/** Barnes, CB and FB approved, having started `starts`, unless he has a positions row already. */
+const barnesPlays = (starts: Start[]) =>
+  t.run(async (ctx) => {
     const row = await ctx.db.query("playerPositions").withIndex("by_code", (q) => q.eq("code", BARNES.code)).unique();
     if (row === null) await ctx.db.insert("playerPositions", { code: BARNES.code, starts, approved: ["CB", "FB"], set: [], removed: [] });
   });
-}
 
 const barnesStarted = (starts: Start[]) =>
   t.run(async (ctx) => {
@@ -78,11 +84,12 @@ const recordSync = () =>
     },
   });
 
-/** Each letter to `email` about Barnes, oldest first, as subject, body and league. */
+/** Each letter to `email` about Barnes's positions, oldest first, as subject, body and league: not
+ *  the league's letters of his moves. */
 const lettersTo = (email: string) =>
   t.run(async (ctx) =>
     (await ctx.db.query("letters").withIndex("by_to_and_at", (q) => q.eq("to", email)).collect())
-      .filter(({ subject }) => subject.startsWith("Barnes"))
+      .filter(({ subject }) => /^Barnes (may lose|has lost) /.test(subject))
       .map(({ subject, body, leagueId: from }) => ({ subject, body, leagueId: from })),
   );
 
@@ -153,20 +160,6 @@ describe("a run elsewhere", () => {
     await barnesOn(managerless, movedToFullBack(3));
     await syncRecorded();
     await t.run((ctx) => ctx.db.patch("teams", managerless, { managerEmail: BOB }));
-
-    await syncRecorded();
-
-    expect(await lettersTo(BOB)).toEqual([{ ...flagged(3), leagueId }]);
-  });
-
-  test("a new owner is told what his player's last owner was", async () => {
-    const bobsTeam = await addManager(t, leagueId, BOB);
-    await barnesOn(annsTeam, movedToFullBack(3));
-    await syncRecorded();
-    await t.run(async (ctx) => {
-      const place = await ctx.db.query("squadPlayers").withIndex("by_leagueId_and_playerCode", (q) => q.eq("leagueId", leagueId).eq("playerCode", BARNES.code)).unique();
-      await ctx.db.patch("squadPlayers", place!._id, { teamId: bobsTeam });
-    });
 
     await syncRecorded();
 
@@ -252,5 +245,39 @@ describe("the admin removing a position by hand", () => {
     await elapse(t, 0);
 
     expect(await lettersTo(ANN)).toEqual([]);
+  });
+});
+
+describe("a player joining a team (#1615; Craig, 11 Nov 2026: no letter for what stood before he joined)", () => {
+  test("tells his new manager nothing of a position he had already lost", async () => {
+    await barnesPlays(movedToFullBack(6));
+
+    await (await asAdmin(t)).mutation(api.squads.squads.assign, { leagueId, playerCode: BARNES.code, teamId: annsTeam });
+    await syncRecorded();
+
+    expect(await lettersTo(ANN)).toEqual([]);
+  });
+
+  test("moved to another team, tells its manager nothing his last owner was told", async () => {
+    const bobsTeam = await addManager(t, leagueId, BOB);
+    await barnesOn(annsTeam, movedToFullBack(3));
+    await syncRecorded();
+
+    await (await asAdmin(t)).mutation(api.squads.squads.move, { leagueId, playerCode: BARNES.code, teamId: bobsTeam });
+    await syncRecorded();
+
+    expect(await lettersTo(BOB)).toEqual([]);
+  });
+
+  test("tells his new manager of a step that comes after he joined", async () => {
+    await barnesPlays(movedToFullBack(3));
+    await (await asAdmin(t)).mutation(api.squads.squads.assign, { leagueId, playerCode: BARNES.code, teamId: annsTeam });
+    await syncRecorded();
+    expect(await lettersTo(ANN)).toEqual([]);
+
+    await barnesStarted(movedToFullBack(6));
+    await syncRecorded();
+
+    expect(await lettersTo(ANN)).toEqual([{ ...lost(), leagueId }]);
   });
 });

@@ -69,9 +69,8 @@ export const ofLeague = query({
     const positionsOf = await positionsNow(ctx, leagueId);
     const clubs = clubsByCode(ctx);
     const picks = await Promise.all(
-      rows.map(async ({ pick, teamId, playerCode, auto, timeout }) => {
-        // A pick made before #1100 has no `auto`, and only its `timeout` says the draft made it.
-        const made = { pick, teamId, auto: auto === true || timeout !== undefined };
+      rows.map(async ({ pick, teamId, playerCode, auto }) => {
+        const made = { pick, teamId, auto: auto === true };
         const player = await playerByCode(ctx, playerCode);
         if (player === null) return { ...made, player: null };
         const [club, positions] = await Promise.all([clubs(player.clubCode), positionsOf(player.code)]);
@@ -83,7 +82,7 @@ export const ofLeague = query({
     const draftRules = draftRulesOf(latest);
     const draft = await draftOf(ctx, leagueId);
     const started = draft?.started;
-    const squad = started === undefined ? latest.squad : await squadRulesOf(ctx, leagueId, started);
+    const squad = started === undefined ? latest.squad : squadRulesOf(leagueId, started);
     let yourAutoPick: DraftBoard["yourAutoPick"] = null;
     if (team) {
       const timeouts = draft?.timeouts;

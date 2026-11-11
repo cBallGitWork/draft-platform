@@ -3,6 +3,7 @@ import { mutation } from "../_generated/server";
 import { draftIsOver } from "../draft/draftRow";
 import { leagueDeadlines } from "../gameweeks/leagueDeadlines";
 import { pickFirstLineupAgain } from "../lineup/lineups";
+import { knownOnJoining } from "../positions/positionWarnings";
 import { recordEvent } from "../mail/letters";
 import { latestRules } from "../rules/rulesHistory";
 import { managerOf, refuse, refusals } from "../shared/leagueAccess";
@@ -61,6 +62,7 @@ export const pickUp = mutation({
       dropped = { playerCode: dropPlayer.code, playerName: dropPlayer.name, toWaivers };
     }
     await ctx.db.insert("squadPlayers", { leagueId, teamId: team._id, playerCode, pickedUpAt: now });
+    await knownOnJoining(ctx, leagueId, team._id, playerCode);
     await recordEvent(ctx, leagueId, email, { kind: "playerPickedUp", playerCode, playerName: player.name, ...onTeam, dropped });
     await pickFirstLineupAgain(ctx, leagueId, team._id);
     return null;
