@@ -134,14 +134,24 @@ export function reviewRuleWords(
   return `${who}: ${reviewHours} hours ${once}`;
 }
 
-/** When an open offer closes unanswered: at the next deadline. */
+/** When an offer made in the trade deadline's gameweek closes: its last match has no time known
+ *  ahead, so it shows in words (Craig, 11 Nov 2026, on #1492). */
+export const afterLastMatchWords = (gameweek: number) =>
+  `After GW${gameweek}'s last match`;
+
+/** When an open offer closes unanswered: at the next deadline, or after the trade deadline's
+ *  gameweek's last match. */
 export const closesAtWords = (
-  closes: { gameweek: number; at: number } | null,
+  closes: { gameweek: number; at: number | null } | null,
   when: string | null,
 ) =>
-  closes === null || when === null
+  closes === null
     ? "At the next deadline"
-    : `At the GW${closes.gameweek} deadline, ${when}`;
+    : closes.at === null
+      ? afterLastMatchWords(closes.gameweek)
+      : when === null
+        ? "At the next deadline"
+        : `At the GW${closes.gameweek} deadline, ${when}`;
 
 export const acceptWords = "Accept";
 export const counterWords = "Counter";
