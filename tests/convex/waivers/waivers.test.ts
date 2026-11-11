@@ -9,7 +9,7 @@ import { actingAs, addManagers, adminCreatesLeague, COMMISSIONER, eventsIn, MANA
 import { holdPlayers, holdSquad, nameOf, passNextDeadline, SQUAD, squadMoves } from "../../support/convex/lineupSquad.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
 import { expectRefused } from "../../support/convex/test.harness";
-import { draftOver, lettersTo as lettersToOf } from "../../support/convex/waivers.harness";
+import { draftOver, dropPlayer, lettersTo as lettersToOf, waiverStateOf } from "../../support/convex/waivers.harness";
 
 // A manager's drop and a player's waiver state (#1197, spec/08 Waivers and free agency): a drop
 // goes on waivers for at least 24 hours; a free agent picked up and dropped before the next
@@ -36,8 +36,8 @@ const matchIs = (gameweek: number, state: "live" | "fullTime") =>
     await ctx.db.insert("matchScores", { fixtureCode: gameweek, state, homeGoals: 1, awayGoals: 0, minutes: 90, clockLabel: null, feed: "fpl", readAt: Date.now() });
   });
 
-const drop = async (email: string, playerCode: number) => (await actingAs(t, email)).mutation(api.waivers.waivers.drop, { leagueId, playerCode });
-const stateOf = async (playerCode: number) => (await actingAs(t, BOB)).query(api.waivers.waivers.stateOf, { leagueId, playerCode });
+const drop = (email: string, playerCode: number) => dropPlayer(t, leagueId, email, playerCode);
+const stateOf = (playerCode: number) => waiverStateOf(t, leagueId, playerCode);
 const lastEvent = async () => (await eventsIn(t, leagueId)).at(-1);
 const lettersTo = (email: string) => lettersToOf(t, email);
 

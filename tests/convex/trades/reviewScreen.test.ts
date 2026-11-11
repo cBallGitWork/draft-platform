@@ -15,12 +15,7 @@ beforeEach(async () => {
   w = await tradeLeague();
 });
 
-/** Ann's first drop for Bob's Saka, accepted by Bob. */
-const annTradesForSaka = async () => {
-  const { offerId } = await w.offer(ANN, w.bobsTeam, [ANNS_FIRST_DROP], [SAKA], "Fancy it?");
-  await w.accept(BOB, offerId);
-  return offerId;
-};
+const annTradesForSaka = () => w.annTradesForSaka("Fancy it?");
 
 describe("under a commissioner veto", () => {
   test("the commissioner, with no team of his own, sees the trade to Block, both sides and when the review ends", async () => {
