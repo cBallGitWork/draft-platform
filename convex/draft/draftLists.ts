@@ -2,7 +2,7 @@ import { v, type Infer } from "convex/values";
 import type { Doc, Id } from "../_generated/dataModel";
 import { mutation, query, type MutationCtx, type QueryCtx } from "../_generated/server";
 import { positionsNow } from "../positions/playerPositions";
-import { position } from "../schema/positions";
+import { position } from "../schema";
 import { listedPlayer, listedPlayers, ownTeam, shortlistOf } from "../scouting/shortlist";
 import { memberOf, refuse, refusals, teamIn } from "../shared/leagueAccess";
 import { heldPlayerByCode, playerByCode } from "../shared/players";

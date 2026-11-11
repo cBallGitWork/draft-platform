@@ -1,7 +1,7 @@
 import { v, type Infer } from "convex/values";
 import type { Doc, Id } from "../_generated/dataModel";
 import type { QueryCtx } from "../_generated/server";
-import { closedWhy } from "../schema/trades";
+import { closedWhy } from "../schema";
 import { seasonStartAt } from "../shared/time";
 import { pickName } from "./tradeWords";
 import { namedPicks, teamNameIn, tradedPlayer, type TradedPlayer } from "./tradedPlayers";

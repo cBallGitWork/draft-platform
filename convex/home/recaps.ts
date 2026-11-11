@@ -10,7 +10,7 @@ import { leagueAverageWords } from "../mail/letterWords";
 import { fileLetter, wholeLeague } from "../mail/letters";
 import { CLAUDE_RETRY_MS, writeWithClaude } from "../outbound/claude";
 import { seasonRules } from "../rules/rulesHistory";
-import { recapTeamPoints } from "../schema/recaps";
+import { recapTeamPoints } from "../schema";
 import { takeAllOrThrow } from "../shared/cappedRead";
 import { logFailure } from "../shared/errors";
 import { GAMEWEEK_MATCHES_MOST } from "../shared/fixtures";

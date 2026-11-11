@@ -8,7 +8,7 @@ import type { LeagueHome, NewsMove } from "./seam";
 
 export { figureWords, gameweekShort, gameweekWords, tradedNames, versusWords, whenWords, withTeamWords } from "../shared/words";
 export { andListWords };
-export { leagueAverageWords, noResultsWords, TABLE_TITLE } from "../table/words";
+export { leagueAverageWords, noResultsWords, TABLE_TITLE } from "../shared/words";
 
 export const loadingWords = "Loading league home…";
 
@@ -21,7 +21,7 @@ export const stripLabel = "This gameweek at a glance";
 export const stripBoxes = (gameweek: number) => [`${gameweekShort(gameweek)} locks`, "Your lineup", "Claims close", "Table"] as const;
 
 /** The Mail panel and its Needs you | All switch; which letters need a manager is still to grill. */
-export { MAIL_TITLE } from "../mail/words";
+export { MAIL_TITLE } from "../shared/words";
 export const mailViewLabel = "Show";
 export const mailViews = { needsYou: "Needs you", all: "All" } as const;
 export const needsYouToComeWords = "Which letters need you is still to come.";
@@ -63,13 +63,12 @@ export const partTableWords = (teams: number, withMine: boolean) =>
 /** The table screen's columns (form among them), with won, drawn and lost in one. */
 export const columns = { ...tableColumns, record: { short: "W-D-L", long: "Won, drawn, lost" } } as const;
 export const recordWords = ({ won, drawn, lost }: { won: number; drawn: number; lost: number }) => `${won}-${drawn}-${lost}`;
-export { yourTeamWords } from "../table/words";
-export { formLabel, resultWords } from "../shared/words";
+export { formLabel, resultWords, yourTeamWords } from "../shared/words";
 export const noFormWords = "—";
 export const wholeTableLink = "Whole table and fixtures";
 
 /** The matchday's Vidiprinter, and its words before any line, the matchup's own. */
-export { noCommentaryWords as noMatchdayLinesWords, VIDIPRINTER_TITLE } from "../matchup/words";
+export { noCommentaryWords as noMatchdayLinesWords, VIDIPRINTER_TITLE } from "../shared/words";
 
 /** The chip on the commissioner's latest letter, pinned on top of News. */
 export const LETTER_TITLE = "From the commissioner";

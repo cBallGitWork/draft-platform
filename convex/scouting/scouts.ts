@@ -3,7 +3,7 @@ import type { Doc, Id } from "../_generated/dataModel";
 import { internal } from "../_generated/api";
 import { mutation, query, type QueryCtx } from "../_generated/server";
 import { scoutsPerTeam } from "../admin/platformSettings";
-import { scoutState } from "../schema/scouting";
+import { scoutState } from "../schema";
 import { takeAllOrThrow } from "../shared/cappedRead";
 import { memberOf, refuse } from "../shared/leagueAccess";
 import { playerByCode, unheldPlayerWords } from "../shared/players";

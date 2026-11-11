@@ -2506,57 +2506,6 @@
       }
     },
     {
-      "tableName": "platformSettings",
-      "indexes": [
-        {
-          "indexDescriptor": "by_name",
-          "fields": [
-            "name"
-          ]
-        }
-      ],
-      "stagedDbIndexes": [],
-      "searchIndexes": [],
-      "stagedSearchIndexes": [],
-      "vectorIndexes": [],
-      "stagedVectorIndexes": [],
-      "documentType": {
-        "type": "object",
-        "value": {
-          "name": {
-            "fieldType": {
-              "type": "union",
-              "value": [
-                {
-                  "type": "literal",
-                  "value": "statCorrectionWindowMinutes"
-                },
-                {
-                  "type": "literal",
-                  "value": "scoutsPerTeam"
-                },
-                {
-                  "type": "literal",
-                  "value": "matchdayHoursBefore"
-                },
-                {
-                  "type": "literal",
-                  "value": "matchdayHoursAfter"
-                }
-              ]
-            },
-            "optional": false
-          },
-          "value": {
-            "fieldType": {
-              "type": "number"
-            },
-            "optional": false
-          }
-        }
-      }
-    },
-    {
       "tableName": "matchStatsSyncs",
       "indexes": [],
       "stagedDbIndexes": [],
@@ -3093,6 +3042,57 @@
         "type": "object",
         "value": {
           "kickoff": {
+            "fieldType": {
+              "type": "number"
+            },
+            "optional": false
+          }
+        }
+      }
+    },
+    {
+      "tableName": "platformSettings",
+      "indexes": [
+        {
+          "indexDescriptor": "by_name",
+          "fields": [
+            "name"
+          ]
+        }
+      ],
+      "stagedDbIndexes": [],
+      "searchIndexes": [],
+      "stagedSearchIndexes": [],
+      "vectorIndexes": [],
+      "stagedVectorIndexes": [],
+      "documentType": {
+        "type": "object",
+        "value": {
+          "name": {
+            "fieldType": {
+              "type": "union",
+              "value": [
+                {
+                  "type": "literal",
+                  "value": "statCorrectionWindowMinutes"
+                },
+                {
+                  "type": "literal",
+                  "value": "scoutsPerTeam"
+                },
+                {
+                  "type": "literal",
+                  "value": "matchdayHoursBefore"
+                },
+                {
+                  "type": "literal",
+                  "value": "matchdayHoursAfter"
+                }
+              ]
+            },
+            "optional": false
+          },
+          "value": {
             "fieldType": {
               "type": "number"
             },
