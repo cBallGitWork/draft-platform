@@ -99,16 +99,6 @@ describe("a manager's undo of his own pick", () => {
     expect(await read()).toMatchObject({ status: "live", picksMade: 2, ownPickBy: null });
   });
 
-  test("is offered for the last pick while the draft is ending", async () => {
-    await start();
-    for (const [email, code] of [[ANN, A1], [BOB, A2], [BOB, A3]] as const) {
-      await pick(email, code);
-      await pass(PICK_GAP_MS);
-    }
-    await pick(ANN, A4);
-    expect(await read()).toMatchObject({ status: "ending", ownPickBy: teams[0], endsAt: Date.now() + PICK_GAP_MS });
-  });
-
   test("is refused before the start, once the 10 seconds are up, and for a pick he didn't make himself", async () => {
     await expectRefused(undo(ANN), pickRefusals.notStarted);
     await start();
@@ -217,6 +207,12 @@ describe("the last pick", () => {
     await pick(ANN, A4);
     await pass(PICK_GAP_MS);
     await expect(commissionerUndo()).rejects.toThrow("The draft is over.");
+  });
+
+  test("reads as ending in its 10 seconds, offering its manager's undo to his team", async () => {
+    await firstThree();
+    await pick(ANN, A4);
+    expect(await read()).toMatchObject({ status: "ending", ownPickBy: teams[0], endsAt: Date.now() + PICK_GAP_MS });
   });
 
   test("refuses another pick in its 10 seconds, as every pick is made", async () => {
