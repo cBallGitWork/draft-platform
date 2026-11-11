@@ -1,15 +1,13 @@
 import { v, type Infer } from "convex/values";
 import type { Doc, Id } from "../_generated/dataModel";
 import { mutation, query, type QueryCtx } from "../_generated/server";
-import { draftIsOver } from "../draft/draftRow";
-import { leagueDeadlines } from "../gameweeks/leagueDeadlines";
 import { pickFirstLineupAgain } from "../lineup/lineups";
 import { managerOf, memberOf, refuse, refusals, teamIn } from "../shared/leagueAccess";
 import { playerByCode } from "../shared/players";
 import { namedPlayer } from "../schema";
 import { heldOrNot, placeOf, squadOf } from "../squads/squadPlace";
 import { heldInReview } from "../trades/tradeClose";
-import { firstRunsIn, inWaiverLock, runAhead } from "./waiverLock";
+import { firstRunsIn, runAhead, waiversOpenFor } from "./waiverLock";
 import { dropAndTell, waiverRowOf } from "./waiverPlayers";
 
 // A manager's drop, and a player's waiver state (#1197, spec/08 Waivers and free agency). A drop
@@ -37,10 +35,7 @@ export const drop = mutation({
   returns: v.null(),
   handler: async (ctx, { leagueId, playerCode }) => {
     const { email, league, team } = await managerOf(ctx, leagueId);
-    if (!(await draftIsOver(ctx, leagueId))) refuse(dropRefusals.notDrafted);
-    const now = Date.now();
-    const deadlines = await leagueDeadlines(ctx, leagueId);
-    if (await inWaiverLock(ctx, deadlines, now)) refuse(dropRefusals.locked);
+    const { deadlines, now } = await waiversOpenFor(ctx, leagueId, dropRefusals);
     const player = (await playerByCode(ctx, playerCode)) ?? refuse(refusals.noPlayer);
     const place = await placeToDrop(ctx, leagueId, team._id, player);
     await dropAndTell(ctx, league, team, place, player, email, { deadlines, now, letter: true });

@@ -1,7 +1,5 @@
 import { v } from "convex/values";
 import { mutation } from "../_generated/server";
-import { draftIsOver } from "../draft/draftRow";
-import { leagueDeadlines } from "../gameweeks/leagueDeadlines";
 import { pickFirstLineupAgain } from "../lineup/lineups";
 import { knownOnJoining } from "../positions/positionWarnings";
 import { recordEvent } from "../mail/letters";
@@ -9,7 +7,7 @@ import { latestRules } from "../rules/rulesHistory";
 import { managerOf, refuse, refusals } from "../shared/leagueAccess";
 import { playerByCode } from "../shared/players";
 import { placeOf } from "../squads/squadPlace";
-import { inWaiverLock } from "./waiverLock";
+import { waiversOpenFor } from "./waiverLock";
 import { windowOpen } from "./waiverOrder";
 import { dropAndTell, waiverRowOf } from "./waiverPlayers";
 import { joiningBreaksLimits } from "./waiverRun";
@@ -40,10 +38,7 @@ export const pickUp = mutation({
   returns: v.null(),
   handler: async (ctx, { leagueId, playerCode, dropCode }) => {
     const { email, league, team } = await managerOf(ctx, leagueId);
-    if (!(await draftIsOver(ctx, leagueId))) refuse(pickUpRefusals.notDrafted);
-    const now = Date.now();
-    const deadlines = await leagueDeadlines(ctx, leagueId);
-    if (await inWaiverLock(ctx, deadlines, now)) refuse(pickUpRefusals.locked);
+    const { deadlines, now } = await waiversOpenFor(ctx, leagueId, pickUpRefusals);
     if (!(await windowOpen(ctx, leagueId, deadlines, now))) refuse(pickUpRefusals.notOpen);
     const player = (await playerByCode(ctx, playerCode)) ?? refuse(refusals.noPlayer);
     if ((await placeOf(ctx, leagueId, playerCode)) !== null || (await waiverRowOf(ctx, leagueId, playerCode)) !== null) {
