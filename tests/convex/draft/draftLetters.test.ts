@@ -239,7 +239,7 @@ describe("a pause", () => {
 });
 
 // Craig, 11 Nov 2026, on #1461: told at once, with no deadline, as his clock starts on resume.
-describe("you're up next while the draft is paused", () => {
+describe("you're up next while the draft is paused (Craig, 11 Nov 2026, on #1461, S04.14)", () => {
   const PAUSED_ANN = "Team 1 is up next: round 1, pick 1. The draft is paused; your clock starts when it resumes.";
   const undo = async () => (await as(COMMISSIONER)).mutation(api.draft.draftCommissioner.undoPick, { leagueId });
   const pickFor = async (teamId: Id<"teams">, playerCode: number) =>
