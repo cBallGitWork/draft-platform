@@ -24554,6 +24554,81 @@
             },
             "optional": true
           },
+          "pickTrades": {
+            "fieldType": {
+              "type": "array",
+              "value": {
+                "type": "object",
+                "value": {
+                  "fromTeamId": {
+                    "fieldType": {
+                      "type": "id",
+                      "tableName": "teams"
+                    },
+                    "optional": false
+                  },
+                  "toTeamId": {
+                    "fieldType": {
+                      "type": "id",
+                      "tableName": "teams"
+                    },
+                    "optional": false
+                  },
+                  "picks": {
+                    "fieldType": {
+                      "type": "object",
+                      "value": {
+                        "gives": {
+                          "fieldType": {
+                            "type": "object",
+                            "value": {
+                              "round": {
+                                "fieldType": {
+                                  "type": "number"
+                                },
+                                "optional": false
+                              },
+                              "teamId": {
+                                "fieldType": {
+                                  "type": "id",
+                                  "tableName": "teams"
+                                },
+                                "optional": false
+                              }
+                            }
+                          },
+                          "optional": false
+                        },
+                        "gets": {
+                          "fieldType": {
+                            "type": "object",
+                            "value": {
+                              "round": {
+                                "fieldType": {
+                                  "type": "number"
+                                },
+                                "optional": false
+                              },
+                              "teamId": {
+                                "fieldType": {
+                                  "type": "id",
+                                  "tableName": "teams"
+                                },
+                                "optional": false
+                              }
+                            }
+                          },
+                          "optional": false
+                        }
+                      }
+                    },
+                    "optional": false
+                  }
+                }
+              }
+            },
+            "optional": true
+          },
           "clock": {
             "fieldType": {
               "type": "object",

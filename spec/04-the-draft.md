@@ -94,6 +94,9 @@ Feature 4 of [SPEC.md](../SPEC.md). Only Craig's answers.
 - A pick trade still in review when the draft starts closes without going through, and both
   managers get a letter saying why; any pick offer still open closes the same way (Craig, 8 Nov
   2026, on #1096). `S04.4`
+- When the squad maximum is cut below a round that holds a traded pick, both picks in that trade go
+  back to their old owners when the draft starts (the trade is undone), with the two managers told
+  in Mail (Craig, 11 Nov 2026, on #1457: "Accept all"). `S04.11`
 - Until waivers are built, players nobody drafts go to free agents (Craig, 4 Nov 2026, "yes" to
   Claude's recommendation).
 - Players nobody drafts go to waivers or straight to free agents: a league setting, waivers by

@@ -48,10 +48,13 @@ export async function tradedName(ctx: QueryCtx, playerCode: number): Promise<str
   return (await heldPlayerByCode(ctx, playerCode, unheldTradedWords(playerCode))).name;
 }
 
+/** A trade as its letters read it: an offer, or a pick trade that went through (tradePicks.ts). */
+type TradeTerms = Pick<Doc<"tradeOffers">, "fromTeamId" | "toTeamId" | "gives" | "gets" | "picks" | "note">;
+
 /** The offer as its letters name it. */
-export async function tradeWordsOf(ctx: QueryCtx, offer: Doc<"tradeOffers">): Promise<TradeWords> {
+export async function tradeWordsOf(ctx: QueryCtx, offer: TradeTerms): Promise<TradeWords> {
   const [from, to] = await Promise.all([ctx.db.get("teams", offer.fromTeamId), ctx.db.get("teams", offer.toTeamId)]);
-  if (from === null || to === null) throw new Error(`Trade offer ${offer._id} is between teams that no longer exist`);
+  if (from === null || to === null) throw new Error(`A trade between teams ${offer.fromTeamId} and ${offer.toTeamId} names a team that no longer exists`);
   const { picks } = offer;
   if (picks !== undefined) {
     const [gives, gets] = await Promise.all([pickName(ctx, picks.gives), pickName(ctx, picks.gets)]);
@@ -74,7 +77,7 @@ export async function pickName(ctx: QueryCtx, pick: TradePick): Promise<string> 
 }
 
 /** Both teams' managers, by email: those a trade's own letters go to. */
-export async function managersOf(ctx: QueryCtx, offer: Doc<"tradeOffers">): Promise<string[]> {
+export async function managersOf(ctx: QueryCtx, offer: Pick<TradeTerms, "fromTeamId" | "toTeamId">): Promise<string[]> {
   const teams = await Promise.all([ctx.db.get("teams", offer.fromTeamId), ctx.db.get("teams", offer.toTeamId)]);
   return teams.flatMap((team) => team?.managerEmail ?? []);
 }

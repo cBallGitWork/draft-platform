@@ -76,6 +76,19 @@ export function offerClosedLetter(trade: TradeWords, closed: OfferClosed): Words
   return { subject: `The trade between ${trade.fromTeamName} and ${trade.toTeamName} is closed`, body: `${because} The offer was: ${sides(trade)}` };
 }
 
+/** To both managers when the draft starts and undoes their pick trade (#1457): `pickName`, one of
+ *  its picks, is in a round past the draft's `rounds`, or went back when an earlier trade was undone. */
+export function pickTradeUndoneLetter(trade: TradeWords, pickName: string, undone: { why: "roundCut" | "pickBack" }, rounds: number): Words {
+  const because =
+    undone.why === "roundCut"
+      ? `The draft has ${rounds} rounds, so ${pickName} isn't in it.`
+      : `An earlier trade was undone, so ${pickName} went back to the team that held it before.`;
+  return {
+    subject: `The trade between ${trade.fromTeamName} and ${trade.toTeamName} is undone`,
+    body: `${because} Both picks go back to the teams that held them before the trade. The trade was: ${sides(trade)}`,
+  };
+}
+
 /** Who reviews an accepted trade, as its letters name them. */
 export type ReviewWords = { kind: "veto"; by: string } | { kind: "vote" };
 
