@@ -47,7 +47,7 @@ let leagueId: Id<"leagues">;
 beforeEach(async () => {
   t = await signInDeployment();
   sent = fakeResend();
-  leagueId = await adminCreatesLeague(t, 4);
+  leagueId = await adminCreatesLeague(t);
 });
 
 const managers = async () => (await teamsIn(t, leagueId)).map(({ name, managerEmail }) => ({ name, managerEmail }));

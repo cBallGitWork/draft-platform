@@ -15,7 +15,7 @@ import { joiningRefusals } from "../../../convex/joining/joining";
 import { ROWS_SHOWN } from "../../../convex/joining/joiningShared";
 import { refusals } from "../../../convex/shared/leagueAccess";
 import { deletes } from "../../support/convex/leagueDeletion.harness";
-import { COMMISSIONER, LEAGUE_NAME, MANAGERS, actingAs, addManagers, adminCreatesLeague, eventsIn, teamsIn, type TestConvex } from "../../support/convex/leagues.harness";
+import { COMMISSIONER, LEAGUE_NAME, MANAGERS, actingAs, addManagers, adminCreatesLeague, eventsIn, teamsIn, TEST_LEAGUE_TEAMS, type TestConvex } from "../../support/convex/leagues.harness";
 import { fakeResend, signInDeployment, spendTodaysEmails, type SentEmail } from "../../support/convex/signIn.harness";
 import { expectRefused, silenceConsoleError, everyJobRuns } from "../../support/convex/test.harness";
 
@@ -31,7 +31,7 @@ let token: string;
 beforeEach(async () => {
   t = await signInDeployment();
   sent = fakeResend();
-  leagueId = await adminCreatesLeague(t, 4, LEAGUE_NAME);
+  leagueId = await adminCreatesLeague(t, TEST_LEAGUE_TEAMS, LEAGUE_NAME);
   token = await makeLink(t, leagueId);
 });
 

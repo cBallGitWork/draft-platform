@@ -6,7 +6,7 @@ import { dropRefusals } from "../../../convex/waivers/waivers";
 import { WAIVER_MS } from "../../../convex/waivers/waiverLimits";
 import { playerLeaves } from "../../support/convex/draftLists.harness";
 import { holdGameweeks, holdMatchState } from "../../support/convex/leagueRules.harness";
-import { actingAs, addManagers, adminCreatesLeague, COMMISSIONER, eventsIn, lettersTo as lettersToOf, MANAGERS, type TestConvex } from "../../support/convex/leagues.harness";
+import { actingAs, addManagers, adminCreatesLeague, COMMISSIONER, eventsIn, lettersTo as lettersToOf, MANAGERS, TEST_LEAGUE_TEAMS, type TestConvex } from "../../support/convex/leagues.harness";
 import { holdPlayers, holdSquad, nameOf, passNextDeadline, SQUAD, squadMoves } from "../../support/convex/lineupSquad.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
 import { expectRefused } from "../../support/convex/test.harness";
@@ -125,7 +125,7 @@ describe("players no team holds", () => {
   });
 
   test("a player new to the Premier League once the draft is over goes on waivers for the next run", async () => {
-    const otherLeague = await adminCreatesLeague(t, 4, "Still to draft");
+    const otherLeague = await adminCreatesLeague(t, TEST_LEAGUE_TEAMS, "Still to draft");
     await t.mutation(internal.football.footballSync.upsertPlayers, { rows: [{ code: FREE_AGENT, name: "New", fullName: "New Man", clubCode: 1 }] });
 
     expect(await stateOf(FREE_AGENT)).toEqual({ kind: "onWaivers", claimableFrom: Date.now() });

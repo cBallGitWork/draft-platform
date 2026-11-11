@@ -11,7 +11,7 @@ import { positionLetter } from "../../../convex/positions/positionWarnings";
 import type { Start } from "../../../convex/positions/positions";
 import { DAY_MS, HOUR_MS, WEEK_MS } from "../../../convex/shared/time";
 import { holdGameweeks } from "../../support/convex/leagueRules.harness";
-import { addManager, addManagers, adminCreatesLeague, MANAGERS, type TestConvex } from "../../support/convex/leagues.harness";
+import { addManager, addManagers, adminCreatesLeague, MANAGERS, TEST_LEAGUE_TEAMS, type TestConvex } from "../../support/convex/leagues.harness";
 import { asAdmin } from "../../support/convex/positionsSync.harness";
 import { CENTRE_BACK, movedToFullBack, played, RIGHT_BACK, startsFrom, times } from "../../support/convex/positionStarts.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
@@ -141,9 +141,9 @@ describe("a run elsewhere", () => {
   });
 
   test("is told to whoever owns him in each league, and to nobody for a free agent or a team with no manager", async () => {
-    const otherLeague = await adminCreatesLeague(t, 4, "Other League");
+    const otherLeague = await adminCreatesLeague(t, TEST_LEAGUE_TEAMS, "Other League");
     const [bobsTeam] = await addManagers(t, otherLeague, [BOB]);
-    const thirdLeague = await adminCreatesLeague(t, 4, "Third League");
+    const thirdLeague = await adminCreatesLeague(t, TEST_LEAGUE_TEAMS, "Third League");
     const managerless = await t.run((ctx) => ctx.db.insert("teams", { leagueId: thirdLeague, number: 1, name: "Vacated" }));
     await barnesOn(annsTeam, movedToFullBack(3));
     await barnesOn(bobsTeam, movedToFullBack(3));
@@ -180,7 +180,7 @@ describe("a run elsewhere", () => {
 
 describe("each league warned in a step of its own (#1545)", () => {
   test("the sync keeps its log row and schedules one warning a league, which tell once they run", async () => {
-    const otherLeague = await adminCreatesLeague(t, 4, "Other League");
+    const otherLeague = await adminCreatesLeague(t, TEST_LEAGUE_TEAMS, "Other League");
     await barnesOn(annsTeam, movedToFullBack(3));
 
     await recordSync();

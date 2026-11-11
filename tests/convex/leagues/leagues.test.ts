@@ -16,6 +16,7 @@ import {
   eventsIn,
   leagueRow,
   onTheList,
+  TEST_LEAGUE_TEAMS,
   type TestConvex,
 } from "../../support/convex/leagues.harness";
 import { LISTED, fakeResend, linkNotSentLine, signInDeployment } from "../../support/convex/signIn.harness";
@@ -63,7 +64,7 @@ describe("creating a league", () => {
   test("a commissioner whose only account is from a link that didn't go is sent one", async () => {
     fakeResend(500);
     const logged = silenceConsoleError();
-    await adminCreatesLeague(t, 4, "First");
+    await adminCreatesLeague(t, TEST_LEAGUE_TEAMS, "First");
     expect(logged).toHaveBeenCalledWith(expect.stringContaining(linkNotSentLine(COMMISSIONER)));
     const account = await t.run((ctx) =>
       ctx.db
@@ -75,7 +76,7 @@ describe("creating a league", () => {
     expect(account?.emailVerificationTime).toBeUndefined();
 
     const sent = fakeResend();
-    await adminCreatesLeague(t, 4, "Second");
+    await adminCreatesLeague(t, TEST_LEAGUE_TEAMS, "Second");
     expect(sent.map((email) => email.to)).toEqual([COMMISSIONER]);
   });
 
@@ -156,7 +157,7 @@ describe("the co-commissioner", () => {
   let leagueId: Id<"leagues">;
   beforeEach(async () => {
     fakeResend();
-    leagueId = await adminCreatesLeague(t, 4);
+    leagueId = await adminCreatesLeague(t);
   });
 
   test.each([COMMISSIONER, ADMIN])("%s names one, who is let sign in, and it's filed", async (namer) => {
@@ -239,7 +240,7 @@ describe("naming a new commissioner", () => {
   let leagueId: Id<"leagues">;
   beforeEach(async () => {
     fakeResend();
-    leagueId = await adminCreatesLeague(t, 4);
+    leagueId = await adminCreatesLeague(t);
   });
 
   test("the commissioner hands the league on; it's filed with whom it replaced, the new one is sent a link, and the old one runs it no more", async () => {

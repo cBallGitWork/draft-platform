@@ -8,7 +8,7 @@ import { LEAGUE_NAME_MAX } from "../../../convex/leagues/leagueLimits";
 import { refusals } from "../../../convex/shared/leagueAccess";
 import { changeRules, HELD_FIRST_RULES, latestRules, rulesWith } from "../../support/convex/leagueRules.harness";
 import { expectRefused } from "../../support/convex/test.harness";
-import { ADMIN, actingAs, adminCreatesLeague, COMMISSIONER, leagueRow, type TestConvex } from "../../support/convex/leagues.harness";
+import { ADMIN, actingAs, adminCreatesLeague, COMMISSIONER, leagueRow, TEST_LEAGUE_TEAMS, type TestConvex } from "../../support/convex/leagues.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
 
 // League settings that could be saved and then never met, refused when saved instead, with the
@@ -26,7 +26,7 @@ const change = (leagueId: Id<"leagues">, rules: LeagueRules) => changeRules(t, l
 const rulesNow = async (leagueId: Id<"leagues">) => (await latestRules(t, leagueId))?.rules;
 const setMaxTeams = async (leagueId: Id<"leagues">, maxTeams: number) =>
   (await actingAs(t, COMMISSIONER)).mutation(api.leagues.leagues.setMaxTeams, { leagueId, maxTeams });
-const createLeague = async (name: string, maxTeams = 4) =>
+const createLeague = async (name: string, maxTeams = TEST_LEAGUE_TEAMS) =>
   (await actingAs(t, ADMIN)).mutation(api.leagues.leagues.create, { name, maxTeams, commissionerEmail: COMMISSIONER });
 
 describe("games a gameweek, no more than the league's teams can play", () => {
@@ -58,13 +58,13 @@ describe("games a gameweek, no more than the league's teams can play", () => {
   });
 
   test("a maximum kept or raised is never refused, even under rules saved before the check", async () => {
-    const leagueId = await adminCreatesLeague(t, 4);
+    const leagueId = await adminCreatesLeague(t);
     await t.run(async (ctx) => {
       const row = (await ctx.db.query("leagueRules").collect()).find((each) => each.leagueId === leagueId)!;
       await ctx.db.patch("leagueRules", row._id, { rules: rulesWith({ gamesPerGameweek: 5 }) });
     });
 
-    await setMaxTeams(leagueId, 4);
+    await setMaxTeams(leagueId, TEST_LEAGUE_TEAMS);
     await setMaxTeams(leagueId, 5);
     expect((await leagueRow(t, leagueId))?.maxTeams).toBe(5);
   });

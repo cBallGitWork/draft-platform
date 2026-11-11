@@ -9,7 +9,7 @@ import { SAKA } from "../../support/convex/footballRows.harness";
 import { changeRules, HELD_FIRST_RULES, holdGameweeks, rulesWith } from "../../support/convex/leagueRules.harness";
 import { elapse, expectRefused, everyJobRuns, silenceConsoleWarn } from "../../support/convex/test.harness";
 import { invitesPage } from "../../support/convex/joining.harness";
-import { actingAs, addManager, addManagers, adminCreatesLeague, COMMISSIONER, MANAGERS, OUTSIDER, type TestConvex } from "../../support/convex/leagues.harness";
+import { actingAs, addManager, addManagers, adminCreatesLeague, COMMISSIONER, MANAGERS, OUTSIDER, TEST_LEAGUE_TEAMS, type TestConvex } from "../../support/convex/leagues.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
 
 // Starting the draft (spec/04, Starting it; #1089): on the commissioner's date or when he presses
@@ -41,7 +41,7 @@ const status = async () => (await read()).status;
 const pass = (ms: number) => elapse(t, ms);
 /** A league of its own with one team. */
 async function leagueOfOne() {
-  const lonely = await adminCreatesLeague(t, 4, "Lonely League");
+  const lonely = await adminCreatesLeague(t, TEST_LEAGUE_TEAMS, "Lonely League");
   await addManager(t, lonely, MANAGERS[4]);
   return lonely;
 }
