@@ -6,17 +6,19 @@
 import { standsAsClassic, type Classic } from "../../../convex/lineup/classics";
 import { sameCell } from "../../../convex/lineup/pitch";
 import { roleIn } from "../../../convex/lineup/roles";
-import { presetInUse, type EditedLineup, type MoveRules, type RatingsOf } from "./lineupEdits";
+import { onSetRole, presetInUse, type EditedLineup, type MoveRules, type RatingsOf } from "./lineupEdits";
 import { reshaped } from "./reshape";
 import { customWords } from "./words";
 
 /** The lineup on the classic: reshaped to its cells as a preset is, each starter on the role its
  *  slot sets, whatever he played before, and on its instructions. Picking it again resets every
- *  role and both instructions (Craig, 6 Nov 2026). */
+ *  role and both instructions (Craig, 6 Nov 2026). One who can't take his slot's role (spec/05
+ *  `S05.29`), such as a number 10 on a poacher's slot, starts on his best-star role there instead,
+ *  as a saved plan's does, and the formation reads custom. */
 export function onClassic(draft: EditedLineup, classic: Classic, rules: Pick<MoveRules, "positionsOf">, ratingsOf: RatingsOf): EditedLineup {
   const { starters, bench } = reshaped(draft, classic.cells, rules, ratingsOf);
   return {
-    starters: starters.map((starter) => ({ ...starter, role: classic.cells.find((slot) => sameCell(slot, starter))!.role })),
+    starters: starters.map((starter) => onSetRole(starter, classic.cells.find((slot) => sameCell(slot, starter))!.role, classic.cells, ratingsOf, rules.positionsOf)),
     bench,
     classic: classic.name,
     instructions: { ...classic.instructions },
