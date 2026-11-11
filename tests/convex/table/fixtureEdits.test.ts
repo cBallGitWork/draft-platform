@@ -12,6 +12,7 @@ import { LEAGUE_AVERAGE, type Fixture } from "../../../convex/table/roundRobin";
 import { changeRules, rulesWith, holdGameweeks } from "../../support/convex/leagueRules.harness";
 import { actingAs, addManagers, ADMIN, adminCreatesLeague, COMMISSIONER, MANAGERS, teamName, type TestConvex } from "../../support/convex/leagues.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
+import { expectRefused } from "../../support/convex/test.harness";
 
 // The commissioner swaps a side between two games in a gameweek not yet begun (spec/09, Fixture
 // edits; #1208): every team still plays the same number of games, the league's average swaps like
@@ -123,9 +124,9 @@ describe("four teams", () => {
   test("is refused once its deadline has passed", async () => {
     playUpTo(EDITED);
     const swap = firstTwo(await gamesIn(EDITED));
-    await expect(swaps(COMMISSIONER, ...swap)).rejects.toThrow(fixtureEditRefusals.begun(EDITED));
+    await expectRefused(swaps(COMMISSIONER, ...swap), fixtureEditRefusals.begun(EDITED));
     await t.run((ctx) => recordPassedDeadlines(ctx));
-    await expect(swaps(COMMISSIONER, ...swap)).rejects.toThrow(fixtureEditRefusals.begun(EDITED));
+    await expectRefused(swaps(COMMISSIONER, ...swap), fixtureEditRefusals.begun(EDITED));
   });
 
   test("a rule change that redraws the gameweek replaces the edit", async () => {
@@ -138,7 +139,7 @@ describe("four teams", () => {
 
   test("the admin can make the same edit; a manager can't", async () => {
     const swap = firstTwo(await gamesIn(EDITED));
-    await expect(swaps(ANN, ...swap)).rejects.toThrow(refusals.notRunner);
+    await expectRefused(swaps(ANN, ...swap), refusals.notRunner);
     await swaps(ADMIN, ...swap);
     expect((await lettersAbout(EDITED))[0].body).toMatch(/^The admin swapped/);
   });
@@ -146,9 +147,9 @@ describe("four teams", () => {
   test("refuses a game not in the gameweek, and two picks from one game", async () => {
     const [first, second] = await gamesIn(EDITED);
     const notAGame = { moves: first.team, against: second.team };
-    await expect(swaps(COMMISSIONER, notAGame, firstTwo([first, second])[1])).rejects.toThrow(fixtureEditRefusals.noGame(EDITED));
+    await expectRefused(swaps(COMMISSIONER, notAGame, firstTwo([first, second])[1]), fixtureEditRefusals.noGame(EDITED));
     const [one] = firstTwo([first, second]);
-    await expect(swaps(COMMISSIONER, one, { moves: first.opponent, against: first.team })).rejects.toThrow(fixtureEditRefusals.sameGame);
+    await expectRefused(swaps(COMMISSIONER, one, { moves: first.opponent, against: first.team }), fixtureEditRefusals.sameGame);
   });
 });
 
