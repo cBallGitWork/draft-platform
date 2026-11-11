@@ -4,6 +4,7 @@
 
 import type { WaiverOrderType } from "../../../convex/rules/leagueRulesShape";
 import { LOCALE, LONDON_ZONE } from "../../../convex/shared/moments";
+import type { RunAhead } from "../../../convex/waivers/waiverLock";
 import { placeWords, pointsShort } from "../header/words";
 
 export { placeWords, pointsShort };
@@ -46,7 +47,7 @@ export const runDayWords = (at: number) => ukDay.format(at);
 /** A claim whose player is no longer on waivers, or a league with no run times: no run takes it. */
 export const noRunWords = "No run";
 /** The run that can first take a player, as a claim, the player card or Scouting has it. */
-export type FirstRun ={ at: number; skippedIf: number | null } | null;
+export type FirstRun = RunAhead | null;
 /** When the run that takes him comes, where his first run may fall in `gameweek`'s lock: after its
  *  last match, whose time isn't known ahead (Craig, 11 Nov 2026, on #1467: "after GW12's last
  *  match"). */

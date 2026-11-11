@@ -79,7 +79,7 @@ const listedPlayer = v.object({
   ownerTeamName: v.union(v.string(), v.null()),
   /** While he is on waivers (spec/08), from when a run may take him; null when he isn't. The run
    *  that can first take him moves with the clock, which this list doesn't take, so the browser
-   *  asks it of `waivers.firstRuns` and adds it (`ListedPlayer`, #1467). */
+   *  asks it of `firstRuns` and adds it (`ListedPlayer`, #1467). */
   onWaivers: v.union(v.object({ claimableFrom: v.number() }), v.null()),
   /** His points this season under the site's scoring, as his card adds them up in this league
    *  (seasonPoints.ts), or null ("—") while none of his matches is priced; before the new season's
@@ -237,7 +237,6 @@ async function onWaiversIn(ctx: QueryCtx, leagueId: Id<"leagues">): Promise<Map<
 
 const firstRunOfPlayer = v.object({ playerCode: v.number(), firstRun: v.union(runAhead, v.null()) });
 export type FirstRunOfPlayer = Infer<typeof firstRunOfPlayer>;
-
 
 /** Each player on the league's waivers at `now` with the run that can first take him, still to
  *  come, and the gameweek whose lock it may fall in (#1467), for the list's rows. A query of its
