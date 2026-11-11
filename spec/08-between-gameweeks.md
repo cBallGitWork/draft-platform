@@ -41,6 +41,8 @@ agent: "keep waivers since its known for draft" (Craig asked; yes).
   deadline.
 - From the deadline until the gameweek's last match is over, there are no claims, drops or free
   agent pickups. A run that falls in that time is skipped.
+- A run made late keeps its own check on now, and is skipped if its time fell in the lock (Craig,
+  11 Nov 2026, #1470). `S08.10`
 - A player nobody claims at a run is a free agent straight after it, first come first served, through
   the window.
 - Picking up a free agent with a full squad names who goes, and both happen at once: "think of it
