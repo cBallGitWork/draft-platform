@@ -45,14 +45,15 @@ export function listsOf(ctx: QueryCtx, teamId: Id<"teams">): Promise<Doc<"draftL
 
 /** The queue and do-not-draft list `row` holds, both empty for a team with no row. A fresh object
  *  each time, so a caller may reassign either list. */
-const heldOf = (row: Doc<"draftLists"> | null): { queue: number[]; doNotDraft: number[] } => ({
+type HeldLists = Pick<Doc<"draftLists">, DraftList>;
+const heldOf = (row: Doc<"draftLists"> | null): HeldLists => ({
   queue: row?.queue ?? [],
   doNotDraft: row?.doNotDraft ?? [],
 });
 
 /** The team's queue, first choice first, and do-not-draft list, both empty while its manager has
  *  added to neither. */
-export async function heldListsOf(ctx: QueryCtx, teamId: Id<"teams">): Promise<{ queue: number[]; doNotDraft: number[] }> {
+export async function heldListsOf(ctx: QueryCtx, teamId: Id<"teams">): Promise<HeldLists> {
   return heldOf(await listsOf(ctx, teamId));
 }
 
