@@ -1,6 +1,6 @@
 import { v, type Infer } from "convex/values";
 import { internalMutation, type MutationCtx, type QueryCtx } from "../_generated/server";
-import type { platformSettingName } from "../schema/matchStats";
+import type { platformSettingName } from "../schema";
 import { HOUR_MS, MINUTE_MS } from "../shared/time";
 
 // The platform's own settings, one row each, the admin's to change (spec/15). Until the admin

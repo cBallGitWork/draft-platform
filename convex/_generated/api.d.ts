@@ -213,6 +213,7 @@ import type * as schema_mail from "../schema/mail.js";
 import type * as schema_matchStats from "../schema/matchStats.js";
 import type * as schema_pastSeasons from "../schema/pastSeasons.js";
 import type * as schema_people from "../schema/people.js";
+import type * as schema_platform from "../schema/platform.js";
 import type * as schema_positions from "../schema/positions.js";
 import type * as schema_recaps from "../schema/recaps.js";
 import type * as schema_rules from "../schema/rules.js";
@@ -576,6 +577,7 @@ declare const fullApi: ApiFromModules<{
   "schema/matchStats": typeof schema_matchStats;
   "schema/pastSeasons": typeof schema_pastSeasons;
   "schema/people": typeof schema_people;
+  "schema/platform": typeof schema_platform;
   "schema/positions": typeof schema_positions;
   "schema/recaps": typeof schema_recaps;
   "schema/rules": typeof schema_rules;

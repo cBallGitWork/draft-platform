@@ -1,10 +1,9 @@
 import { v, type Infer } from "convex/values";
 import type { Doc, Id } from "../_generated/dataModel";
 import { query, type QueryCtx } from "../_generated/server";
-import { namedPlayer, pinnedLetter } from "../schema";
+import { namedPlayer, pinnedLetter, tradedSide } from "../schema";
 import { takeAllOrThrow, takeShown } from "../shared/cappedRead";
 import { memberOf, teamsOf } from "../shared/leagueAccess";
-import { tradedSide } from "../schema/squads";
 import { isListedMove, LISTED_MOVES, newestFirst, playerMoveKind } from "../squads/squadPlace";
 
 // League home's News tab (#1356; spec/12, League home; docs/design/approved/home/, The News tab):
