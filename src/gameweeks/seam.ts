@@ -6,7 +6,7 @@ import type { LeagueGameweek } from "../../convex/gameweeks/leagueGameweeks";
 import type { Change } from "../shared/refusal";
 
 export type LeagueGameweeksView = {
-  /** The league's gameweeks, 1 to 38, or undefined while they load. */
+  /** The league's gameweeks, 1 to however many its season has (#1618), or undefined while they load. */
   gameweeks: readonly LeagueGameweek[] | undefined;
   /** Ticks (`used`) or unticks a gameweek. */
   setUsed(gameweek: number, used: boolean): Change;

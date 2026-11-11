@@ -1,12 +1,12 @@
 import { beforeEach, describe, expect, test } from "vitest";
 import type { Id } from "../../../convex/_generated/dataModel";
-import { SEASON_GAMEWEEKS } from "../../../convex/gameweeks/usedGameweeks";
+import { seasonGameweeks } from "../../../convex/gameweeks/usedGameweeks";
 import { DAY_MS, WEEK_MS } from "../../../convex/shared/time";
 import { clubsByCode } from "../../../convex/shared/players";
 import { squadSchedule } from "../../../convex/squads/squadSchedule";
 import { adminCreatesLeague, type TestConvex } from "../../support/convex/leagues.harness";
 import { holdGameweeks, KICKS_OFF_IN } from "../../support/convex/leagueRules.harness";
-import { ARSENAL, CHELSEA, insertClubs } from "../../support/convex/footballRows.harness";
+import { ARSENAL, CHELSEA, insertClubs, PL_GAMEWEEKS } from "../../support/convex/footballRows.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
 
 // The Squad tab's Schedule view (#1006): his club's matches in the next six gameweeks, from the one
@@ -73,7 +73,7 @@ describe("the schedule", () => {
     expect(gameweeks).toEqual([10, 12, 13, 14, 15, 16]);
     expect(byClub.get(ARSENAL.code)!.map(({ gameweek }) => gameweek)).toEqual([10, 12, 12]);
 
-    await t.run((ctx) => ctx.db.patch("leagues", leagueId, { unusedGameweeks: SEASON_GAMEWEEKS.filter((gameweek) => gameweek > 12) }));
+    await t.run((ctx) => ctx.db.patch("leagues", leagueId, { unusedGameweeks: seasonGameweeks(PL_GAMEWEEKS).filter((gameweek) => gameweek > 12) }));
     expect((await scheduleOf()).gameweeks).toEqual([10, 11, 12]);
   });
 

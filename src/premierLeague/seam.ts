@@ -9,8 +9,10 @@ import type { MatchMan, MatchPageData } from "../../convex/match/matchPage";
 
 export type { MatchMan, MatchPageData };
 
-/** A gameweek's first kickoff (football/plGameweeks:firstKickoffs). */
-export type FirstKickoff = FunctionReturnType<typeof api.football.plGameweeks.firstKickoffs>[number];
+/** How many gameweeks the season has, and each one's first kickoff (football/plGameweeks:firstKickoffs). */
+export type PlGameweeks = FunctionReturnType<typeof api.football.plGameweeks.firstKickoffs>;
+/** A gameweek's first kickoff. */
+export type FirstKickoff = PlGameweeks["firstKickoffs"][number];
 /** A match of one gameweek, its clubs and its newest score (football/matchScores:ofGameweek). */
 export type GameweekMatch = FunctionReturnType<typeof api.football.matchScores.ofGameweek>[number];
 /** The Premier League table, and whether a match in it is still being played
@@ -18,8 +20,8 @@ export type GameweekMatch = FunctionReturnType<typeof api.football.matchScores.o
 export type PlStandings = FunctionReturnType<typeof api.football.plStandings.ofSeason>;
 
 export type PremierLeagueSeam = {
-  /** Each gameweek's first kickoff, live (a hook): undefined while they load. */
-  useFirstKickoffs(): FirstKickoff[] | undefined;
+  /** The season's gameweeks and each one's first kickoff, live (a hook): undefined while they load. */
+  useGameweeks(): PlGameweeks | undefined;
   /** One gameweek's matches with their scores, live (a hook): undefined while they load. */
   useGameweekMatches(gameweek: number): GameweekMatch[] | undefined;
   /** One match as the league sees it at `now`, the screen's minute (match/matchPage:ofMatch), live

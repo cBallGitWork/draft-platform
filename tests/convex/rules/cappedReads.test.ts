@@ -6,7 +6,8 @@ import { rulesRefusals } from "../../../convex/rules/leagueRules";
 import { RULES_CHANGES_MOST } from "../../../convex/rules/rulesHistory";
 import { heldSchedule } from "../../../convex/gameweeks/leagueDeadlines";
 import { CURRENT_FIXTURES_MOST } from "../../../convex/shared/fixtures";
-import { FIRST_GAMEWEEK, GAMEWEEKS, SEASON_GAMEWEEKS } from "../../../convex/gameweeks/usedGameweeks";
+import { FIRST_GAMEWEEK, GAMEWEEKS_MOST, seasonGameweeks } from "../../../convex/gameweeks/usedGameweeks";
+import { PL_GAMEWEEKS } from "../../support/convex/footballRows.harness";
 import { changeRules, holdGameweeks, holdGameweeksPastTheSeason, rulesWith, TOTAL_POINTS } from "../../support/convex/leagueRules.harness";
 import { expectRefused, ROWS_TO_THE_CAP } from "../../support/convex/test.harness";
 import { actingAs, adminCreatesLeague, COMMISSIONER, type TestConvex } from "../../support/convex/leagues.harness";
@@ -68,41 +69,40 @@ describe("the held schedule", () => {
     await holdMoreFixtures(1, 1000, DROPPED_AT);
 
     const { matches } = await schedule();
-    expect(matches).toHaveLength(GAMEWEEKS);
+    expect(matches).toHaveLength(PL_GAMEWEEKS);
     expect(matches).not.toContainEqual({ gameweek: FIRST_GAMEWEEK, kickoff: 0 });
   });
 
   test(`reads ${CURRENT_FIXTURES_MOST} current matches, and throws past them rather than cut the schedule short`, async () => {
-    await holdMoreFixtures(CURRENT_FIXTURES_MOST - GAMEWEEKS, 1000);
+    await holdMoreFixtures(CURRENT_FIXTURES_MOST - PL_GAMEWEEKS, 1000);
     expect((await schedule()).matches).toHaveLength(CURRENT_FIXTURES_MOST);
 
     await holdMoreFixtures(1, 2000);
     await expect(schedule()).rejects.toThrow(`More than ${CURRENT_FIXTURES_MOST} matches are held as current`);
   });
 
-  test(`reads the season's ${GAMEWEEKS} gameweeks, a dropped one kept (#202), and throws past them rather than cut the schedule short`, async () => {
+  test(`reads the season's ${PL_GAMEWEEKS} gameweeks, a dropped one kept (#202), and throws past ${GAMEWEEKS_MOST} rather than cut the schedule short`, async () => {
     await t.run(async (ctx) => {
       const first = await ctx.db.query("gameweeks").withIndex("by_season_and_number", (q) => q.eq("season", undefined).eq("number", FIRST_GAMEWEEK)).unique();
       await ctx.db.patch("gameweeks", first!._id, { droppedAt: DROPPED_AT });
     });
     const { gameweeks } = await schedule();
-    expect(gameweeks).toHaveLength(GAMEWEEKS);
+    expect(gameweeks).toHaveLength(PL_GAMEWEEKS);
     expect(gameweeks).toContainEqual({ number: FIRST_GAMEWEEK });
 
-    // Only a row written by hand can pass the football sync's one a gameweek number: a second row
-    // for one of the season's gameweeks throws.
-    await t.run((ctx) => ctx.db.insert("gameweeks", { number: FIRST_GAMEWEEK + 1, deadline: 0 }));
-    await expect(schedule()).rejects.toThrow(`More than ${GAMEWEEKS} gameweek rows are held for gameweeks ${FIRST_GAMEWEEK} to ${GAMEWEEKS}`);
+    // More rows than any season holds can only be written by hand: the read throws.
+    await holdGameweeksPastTheSeason(t, GAMEWEEKS_MOST - PL_GAMEWEEKS + 1);
+    await expect(schedule()).rejects.toThrow(`More than ${GAMEWEEKS_MOST} gameweek rows are held for one season`);
   });
 
-  test(`reads none past the season's ${GAMEWEEKS} gameweeks, so a row written past them never stops it (#872)`, async () => {
+  test("reads a gameweek past the Premier League's 38 as one of the season's, so it never stops the read (#872, #1618)", async () => {
     await holdGameweeksPastTheSeason(t, 2);
-    expect((await schedule()).gameweeks).toEqual(SEASON_GAMEWEEKS.map((number) => ({ number })));
+    expect((await schedule()).gameweeks).toEqual(seasonGameweeks(PL_GAMEWEEKS + 2).map((number) => ({ number })));
   });
 
   test("dropped matches past the most don't count against it", async () => {
     await holdMoreFixtures(CURRENT_FIXTURES_MOST, 1000, DROPPED_AT);
 
-    expect((await schedule()).matches).toHaveLength(GAMEWEEKS);
+    expect((await schedule()).matches).toHaveLength(PL_GAMEWEEKS);
   });
 });

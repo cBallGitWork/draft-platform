@@ -4,7 +4,7 @@
 
 import { DRAFT_FEWEST_TEAMS, PICK_SECONDS_FEWEST, PICK_SECONDS_MOST, TIMEOUTS_FEWEST, TIMEOUTS_MOST } from "../../convex/draft/draftLimits";
 import type { UndraftedGoTo } from "../../convex/draft/draftRules";
-import { FIRST_GAMEWEEK, GAMEWEEKS } from "../../convex/gameweeks/usedGameweeks";
+import { FIRST_GAMEWEEK } from "../../convex/gameweeks/usedGameweeks";
 import { MOST_IN_SQUAD } from "../../convex/leagues/leagueLimits";
 import { STARTER_COUNT } from "../../convex/lineup/lineup";
 import type { Area } from "../../convex/lineup/pitch";
@@ -84,8 +84,9 @@ export const tradeReviewHint =
   `With no one, an accepted trade goes through at once; a review lasts ${hoursWords(REVIEW_MS)}. Under a veto, a trade the commissioner is in goes to the co-commissioner, or to a vote if there is none. Under a vote, it is blocked only if most of the managers still playing vote against it.`;
 export const tradeDeadlineWords = "A trade deadline";
 export const tradeDeadlineLabel = "No trades after gameweek";
-/** Craig, 6 Nov 2026, on #383. */
-export const tradeDeadlineHint = `A gameweek, ${FIRST_GAMEWEEK} to ${GAMEWEEKS}. Trades stop once its last match is over: open offers close, and a trade already in review finishes it.`;
+/** Craig, 6 Nov 2026, on #383; the season's last gameweek is however many it has (#1618). */
+export const tradeDeadlineHint = (seasonGameweeks: number) =>
+  `A gameweek, ${FIRST_GAMEWEEK} to ${seasonGameweeks}. Trades stop once its last match is over: open offers close, and a trade already in review finishes it.`;
 export const blankTradeDeadlineWords = noNumberWords(tradeDeadlineLabel, "turn the trade deadline off");
 
 /** How waivers run (spec/03, spec/08; #1200, the waivers picture's Waivers tab). */

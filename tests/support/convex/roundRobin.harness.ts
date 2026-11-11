@@ -2,6 +2,7 @@
 
 import { drawFixtures, LEAGUE_AVERAGE, type DrawRules, type GameweekFixtures } from "../../../convex/table/roundRobin";
 import { usedGameweeksOf } from "../../../convex/gameweeks/usedGameweeks";
+import { PL_GAMEWEEKS } from "./footballRows.harness";
 
 export const teamsOf = (count: number) => Array.from({ length: count }, (_, index) => `Team ${index + 1}`);
 export const SEED = "league-a";
@@ -39,4 +40,4 @@ export const leftOverIn = ({ fixtures, byes }: GameweekFixtures<string>) => [
 ];
 
 /** A season with a Christmas break and an early end: 33 gameweeks played. */
-export const WITH_GAPS = usedGameweeksOf({ unusedGameweeks: [17, 18, 19, 37, 38] });
+export const WITH_GAPS = usedGameweeksOf({ unusedGameweeks: [17, 18, 19, 37, 38] }, PL_GAMEWEEKS);

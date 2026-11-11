@@ -10,7 +10,8 @@ import type { LeagueRules } from "../../../convex/rules/leagueRulesShape";
 import type { Area } from "../../../convex/lineup/pitch";
 import type { Id } from "../../../convex/_generated/dataModel";
 import { DAY_MS, MINUTE_MS, WEEK_MS } from "../../../convex/shared/time";
-import { FIRST_GAMEWEEK, GAMEWEEKS } from "../../../convex/gameweeks/usedGameweeks";
+import { FIRST_GAMEWEEK } from "../../../convex/gameweeks/usedGameweeks";
+import { PL_GAMEWEEKS } from "./footballRows.harness";
 
 /** The first rules as a league `adminCreatesLeague` makes holds them: with the starting squad
  *  maximum for its size (#316). */
@@ -86,7 +87,7 @@ export async function holdGameweeks(
 ): Promise<void> {
   const kickoffOf = (gameweek: number) => Date.now() + kicksOffIn + (gameweek - next) * WEEK_MS;
   await t.run(async (ctx) => {
-    for (let number = 1; number <= GAMEWEEKS; number += 1) {
+    for (let number = 1; number <= PL_GAMEWEEKS; number += 1) {
       const kickoff = kickoffOf(number);
       const deadline = kickoff - FPL_DEADLINE_MINUTES * MINUTE_MS;
       await ctx.db.insert("gameweeks", { number, deadline });
@@ -104,11 +105,12 @@ export const holdMatchState = (t: TestConvex, gameweek: number, state: "live" | 
     await ctx.db.insert("matchScores", { fixtureCode: gameweek, state, homeGoals: 1, awayGoals: 0, minutes: 90, clockLabel: null, feed: "fpl", readAt: Date.now() });
   });
 
-/** Holds `extra` current gameweek rows past FPL's 38, with no matches: only a row written by hand
- *  can pass it, and no read of the season's schedule may stop on one (#831, #832, #872). */
+/** Holds `extra` current gameweek rows past the tests' season of PL_GAMEWEEKS, with no matches:
+ *  each is one more of the season's (#1618), and no read of its schedule may stop on one under
+ *  GAMEWEEKS_MOST (#831, #832, #872). */
 export const holdGameweeksPastTheSeason = (t: TestConvex, extra: number) =>
   t.run(async (ctx) => {
-    for (let number = GAMEWEEKS + 1; number <= GAMEWEEKS + extra; number += 1) await ctx.db.insert("gameweeks", { number, deadline: 0 });
+    for (let number = PL_GAMEWEEKS + 1; number <= PL_GAMEWEEKS + extra; number += 1) await ctx.db.insert("gameweeks", { number, deadline: 0 });
   });
 
 /** Moves FPL's deadline for a gameweek, as its feed might: feed data, so nothing a league decides

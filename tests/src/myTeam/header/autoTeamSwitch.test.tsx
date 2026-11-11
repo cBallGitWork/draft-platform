@@ -17,7 +17,8 @@ import {
   switchOnWords,
   untilSwitchedOffWords,
 } from "../../../../src/myTeam/header/words";
-import { SEASON_GAMEWEEKS } from "../../../../convex/gameweeks/usedGameweeks";
+import { seasonGameweeks } from "../../../../convex/gameweeks/usedGameweeks";
+import { PL_GAMEWEEKS } from "../../../support/convex/footballRows.harness";
 import { MY_TEAM_ID } from "../../../support/src/myTeam.harness";
 import { league } from "../../../support/src/shell.harness";
 import { TACTICS_GAMEWEEK } from "../../../support/src/tactics.harness";
@@ -32,7 +33,7 @@ const openPanel = async (state: string) => {
 describe("My team's Auto team", () => {
   it("reads Off, and switches on until the end of the gameweek picked, from the next not begun", async () => {
     // The league skips the gameweek after next and ends at 30 (#1561).
-    const endGameweeks = [TACTICS_GAMEWEEK, ...SEASON_GAMEWEEKS.filter((gameweek) => gameweek > TACTICS_GAMEWEEK + 1 && gameweek <= 30)];
+    const endGameweeks = [TACTICS_GAMEWEEK, ...seasonGameweeks(PL_GAMEWEEKS).filter((gameweek) => gameweek > TACTICS_GAMEWEEK + 1 && gameweek <= 30)];
     const app = openTacticsTab({ tactics: SAVED, autoTeam: { on: false, endsAfter: null, endGameweeks } });
     const panel = await openPanel(autoTeamStateWords({ on: false, endsAfter: null }));
     expect(panel.getByText(autoTeamWhatWords)).toBeTruthy();

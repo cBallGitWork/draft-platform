@@ -23,7 +23,7 @@ import { HOUR_MS, MINUTE_MS } from "../../../convex/shared/time";
 import { actingAs, addManagers, adminCreatesLeague, MANAGERS, type TestConvex } from "./leagues.harness";
 import { matchupOf } from "./screenReads.harness";
 import { EVERTON, EVERTON_CLUB, GAMEWEEK, HULL, HULL_CITY, HULL_EVERTON } from "./matchStats.harness";
-import { insertClubs } from "./footballRows.harness";
+import { insertClubs, insertSeasonGameweeks } from "./footballRows.harness";
 import { BELLOUMI, DEWSBURY_HALL, GELHARDT, PHILLIPS, TZOLAKIS } from "./teamPoints.harness";
 import { fakeResend, signInDeployment } from "./signIn.harness";
 import { recordedGw6 } from "../recorded/gw6.payloads";
@@ -116,6 +116,7 @@ export async function scoresLeague({ bobSaves = true, catToo = false } = {}): Pr
   const [annsTeam, bobsTeam, catsTeam] = await addManagers(t, leagueId, catToo ? [ANN, BOB, CAT] : [ANN, BOB]);
   const elements = new Map(recordedGw6().fpl.bootstrap.elements.map((element) => [element.code, element]));
   await t.run(async (ctx) => {
+    await insertSeasonGameweeks(ctx);
     await ctx.db.insert("fixtures", { code: HULL_EVERTON, gameweek: GAMEWEEK, homeClubCode: HULL, awayClubCode: EVERTON, kickoff: LEAGUE_KICKOFF });
     const squads: [Id<"teams">, number, Starter[], number[]][] = [
       [annsTeam, HULL, HULL_STARTERS, HULL_BENCH],
