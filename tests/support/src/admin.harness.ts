@@ -2,7 +2,7 @@
 
 import { vi } from "vitest";
 import { FIRST_THRESHOLDS } from "../../../convex/positions/positionChanges";
-import type { AdminSeam, AvailabilityRow, FeedsReport, FoundPlayerPositions, PositionsQueue } from "../../../src/admin/seam";
+import type { AdminSeam, AvailabilityRow, FeedsReport, FoundPlayerPositions, PlatformSettings, PositionsQueue } from "../../../src/admin/seam";
 
 /** What the fake server holds: the queue, who a search finds, the feeds page's report
  *  (undefined: still loading), and players' availability: `setByHand` lists those set by hand
@@ -15,7 +15,13 @@ export type AdminData = {
   searching?: boolean;
   setByHand?: readonly AvailabilityRow[];
   players?: readonly AvailabilityRow[];
+  /** The site's settings, still on their way while `settingsLoading`. */
+  platformSettings?: PlatformSettings;
+  settingsLoading?: boolean;
 };
+
+/** The site's settings as they stand until the admin sets them. */
+export const FIRST_PLATFORM_SETTINGS: PlatformSettings = { statCorrectionWindowMinutes: 60, scoutsPerTeam: 3, matchdayHoursBefore: 3, matchdayHoursAfter: 2 };
 
 export const EMPTY_QUEUE: PositionsQueue = {
   newSignings: [],
@@ -29,7 +35,17 @@ export const EMPTY_QUEUE: PositionsQueue = {
 
 /** Every change succeeds, unless a test says otherwise; a search finds `found` for any text.
  *  `loading` keeps the queue, and `searching` a search, still on their way (undefined). */
-export function fakeAdmin({ queue = EMPTY_QUEUE, found = [], feeds, loading = false, searching = false, setByHand, players = setByHand ?? [] }: AdminData = {}) {
+export function fakeAdmin({
+  queue = EMPTY_QUEUE,
+  found = [],
+  feeds,
+  loading = false,
+  searching = false,
+  setByHand,
+  players = setByHand ?? [],
+  platformSettings = FIRST_PLATFORM_SETTINGS,
+  settingsLoading = false,
+}: AdminData = {}) {
   return {
     useQueue: vi.fn<AdminSeam["useQueue"]>(() => (loading ? undefined : queue)),
     useFoundPlayers: vi.fn<AdminSeam["useFoundPlayers"]>((text) => (searching ? undefined : text.trim() ? found : [])),
@@ -44,5 +60,7 @@ export function fakeAdmin({ queue = EMPTY_QUEUE, found = [], feeds, loading = fa
     setChangeThresholds: vi.fn<AdminSeam["setChangeThresholds"]>(async () => null),
     setClubColours: vi.fn<AdminSeam["setClubColours"]>(async () => null),
     setAvailability: vi.fn<AdminSeam["setAvailability"]>(async () => null),
+    usePlatformSettings: vi.fn<AdminSeam["usePlatformSettings"]>(() => (settingsLoading ? undefined : platformSettings)),
+    savePlatformSettings: vi.fn<AdminSeam["savePlatformSettings"]>(async () => null),
   };
 }

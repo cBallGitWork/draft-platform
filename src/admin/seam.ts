@@ -1,8 +1,9 @@
 // The seam for the admin's dashboard (#87): what it reads and asks of players' positions, and the
-// feeds page's report (#35). Convex fills it in live (liveAdmin.ts); the preview and the tests hand
+// feeds page's report (#35), and the site's own settings (#1555). Convex fills it in live (liveAdmin.ts); the preview and the tests hand
 // the screen their own.
 
 import type { FeedsReport } from "../../convex/admin/feeds";
+import type { PlatformSettings } from "../../convex/admin/platformSettings";
 import type { Availability, AvailabilityRow } from "../../convex/availability/availability";
 import type { Colours } from "../../convex/football/clubColours";
 import type { FoundPlayerPositions, PositionsQueue } from "../../convex/positions/playerPositions";
@@ -11,7 +12,7 @@ import type { ApproveMode } from "../../convex/positions/positions";
 import type { Position } from "../../convex/positions/positionTables";
 import type { Change } from "../shared/refusal";
 
-export type { Availability, AvailabilityRow, FeedsReport, FoundPlayerPositions, PositionsQueue };
+export type { Availability, AvailabilityRow, FeedsReport, FoundPlayerPositions, PlatformSettings, PositionsQueue };
 
 export type AdminSeam = {
   /** The queue, the clubs and the approve mode, live (a hook): undefined while they load. */
@@ -38,4 +39,8 @@ export type AdminSeam = {
   /** Sets a player's availability by hand over the feed's, or null to go back to the feed's
    *  (spec/06 Availability, #1209). */
   setAvailability(code: number, availability: Availability | null): Change;
+  /** The site's own settings, live (a hook): undefined while they load (spec/15, #1555). */
+  usePlatformSettings(): PlatformSettings | undefined;
+  /** Saves every one of the site's settings together; one refused saves none. */
+  savePlatformSettings(settings: PlatformSettings): Change;
 };

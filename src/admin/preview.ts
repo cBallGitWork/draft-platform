@@ -90,4 +90,6 @@ export const previewAdmin: AdminSeam = {
   setChangeThresholds: previewSays("the thresholds didn't change"),
   setClubColours: previewSays("no club's colours changed"),
   setAvailability: previewSays("no player's availability changed"),
+  usePlatformSettings: () => ({ statCorrectionWindowMinutes: 60, scoutsPerTeam: 3, matchdayHoursBefore: 3, matchdayHoursAfter: 2 }),
+  savePlatformSettings: previewSays("the site's settings didn't change"),
 };
