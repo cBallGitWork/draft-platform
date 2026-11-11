@@ -176,7 +176,7 @@ export const nameOf = ({ t }: ScoresLeague, code: number) =>
   t.run(async (ctx) => (await ctx.db.query("players").withIndex("by_code", (q) => q.eq("code", code)).unique())!.name);
 
 /** The football sync loses `code`'s player row (#810), any match records of his still held. */
-export const losePlayer = ({ t }: ScoresLeague, code: number) =>
+export const losePlayer = ({ t }: Pick<ScoresLeague, "t">, code: number) =>
   t.run(async (ctx) => {
     const player = (await ctx.db.query("players").withIndex("by_code", (q) => q.eq("code", code)).unique())!;
     await ctx.db.delete("players", player._id);

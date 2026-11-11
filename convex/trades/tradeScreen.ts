@@ -5,6 +5,7 @@ import { leagueDeadlines } from "../gameweeks/leagueDeadlines";
 import { positionsNow, type PositionsNow } from "../positions/playerPositions";
 import { positionRank } from "../positions/positionTables";
 import { latestRules } from "../rules/rulesHistory";
+import { squadMaximumOf } from "../rules/squadMaximums";
 import { managerOf, teamsOf } from "../shared/leagueAccess";
 import { clubsByCode, type Clubs } from "../shared/players";
 import { closedOffer, closedOffersOf, type ClosedOffer } from "./closedOffers";
@@ -253,7 +254,7 @@ export const ofMyTeam = query({
     return {
       myTeamId: mine._id,
       shut: await tradesShut(ctx, league, deadlines, now),
-      squadMaximum: rules?.squad.size?.maximum ?? null,
+      squadMaximum: squadMaximumOf(rules),
       teams: shownTeams,
       offers: shownOffers,
       closed: await closedOffersOf(ctx, mine._id, teams, now, (code) =>
