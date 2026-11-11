@@ -34,9 +34,10 @@ export async function publicFunctions(): Promise<Map<string, RegisteredFunction>
   return found;
 }
 
-/** A test's own Convex, empty, on the real schema and functions. */
-export function freshConvex(): TestConvex {
-  return convexTest(schema, modules);
+/** A test's own Convex, empty, on the real schema and functions; with `atConvexLimits`, a function
+ *  that reads or writes past Convex's own per-transaction limits throws, as it would deployed. */
+export function freshConvex(atConvexLimits = false): TestConvex {
+  return convexTest({ schema, modules, transactionLimits: atConvexLimits });
 }
 
 /** Writing hundreds of rows is slow in convex-test, so a test that walks a read up to its cap and

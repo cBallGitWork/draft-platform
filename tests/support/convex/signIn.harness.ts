@@ -30,9 +30,10 @@ async function makePkcs8PrivateKey(): Promise<string> {
 const DEPLOYMENT_MORNING = Date.parse("2026-10-20T09:00:00Z");
 
 /** A deployment with the settings `npx @convex-dev/auth` and Craig put on one, LISTED on the
- *  list, and the clock stopped at `morning`. Vitest undoes it all after the test
- *  (vitest.config.ts, tests/support/test.setup.ts). */
-export async function signInDeployment(morning = DEPLOYMENT_MORNING): Promise<TestConvex> {
+ *  list, and the clock stopped at `morning`; held to Convex's own per-transaction limits with
+ *  `atConvexLimits` (freshConvex). Vitest undoes it all after the test (vitest.config.ts,
+ *  tests/support/test.setup.ts). */
+export async function signInDeployment(morning = DEPLOYMENT_MORNING, atConvexLimits = false): Promise<TestConvex> {
   vi.useFakeTimers({ now: morning });
   vi.stubEnv("SITE_URL", SITE_URL);
   vi.stubEnv("CONVEX_SITE_URL", "https://deployment.example.com");
@@ -42,7 +43,7 @@ export async function signInDeployment(morning = DEPLOYMENT_MORNING): Promise<Te
   vi.stubEnv("AUTH_RESEND_KEY", "re_test_key");
   // Convex Auth logs every store call at INFO; its warnings and errors still show.
   vi.stubEnv("AUTH_LOG_LEVEL", "WARN");
-  const t = freshConvex();
+  const t = freshConvex(atConvexLimits);
   await t.mutation(internal.signIn.allowedEmails.add, { email: LISTED });
   return t;
 }
