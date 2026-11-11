@@ -16,8 +16,9 @@ import { DRAFT_LIST_MOST } from "./draftLimits";
 // nor the commissioner, can tell who is on them. No player is on both: adding him to one takes him
 // off the other. They can be changed at any time, between picks once the draft has started too,
 // and a drafted player stays listed (Craig, 4 Nov 2026); auto-pick skips him (draftPicks.ts; #1094).
-// The shortlist feeds the queue, a player at a time or the whole of it (#1137). Not built yet:
-// emptying them when a draft ends (no draft ends yet).
+// The shortlist feeds the queue, a player at a time or the whole of it (#1137). When a manager goes,
+// auto-pick keeps using both while the team has none; a new manager taking it starts with them
+// empty and never sees the old ones (S04.15; Craig, 11 Nov 2026, on #1606).
 
 const draftList = v.union(v.literal("queue"), v.literal("doNotDraft"));
 type DraftList = "queue" | "doNotDraft";
@@ -40,6 +41,12 @@ export function listsOf(ctx: QueryCtx, teamId: Id<"teams">): Promise<Doc<"draftL
     .query("draftLists")
     .withIndex("by_teamId", (q) => q.eq("teamId", teamId))
     .unique();
+}
+
+/** Empties the team's queue and do-not-draft list, for a new manager taking it over (S04.15). */
+export async function clearDraftLists(ctx: MutationCtx, teamId: Id<"teams">): Promise<void> {
+  const lists = await listsOf(ctx, teamId);
+  if (lists) await ctx.db.delete("draftLists", lists._id);
 }
 
 /** A player on the queue or do-not-draft list: as the shortlist lists him, with his first position
