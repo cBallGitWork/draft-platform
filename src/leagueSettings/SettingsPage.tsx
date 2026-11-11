@@ -2,7 +2,7 @@ import type { LeagueSummary } from "../../convex/leagues/myLeagues";
 import { AREAS, type Area } from "../../convex/lineup/pitch";
 import type { LeagueSettings } from "../../convex/rules/leagueSettingsPart";
 import { ODD_TEAM_OUTS } from "../../convex/table/roundRobin";
-import { Loading, PANEL_BODY, PageSection, Panel } from "../ui/Panel";
+import { Loading, PANEL_BODY, PageSection, Panel, PanelNote } from "../ui/Panel";
 import { LeagueHeading } from "../leagues/LeagueLinks";
 import { Choice } from "../ui/Choice";
 import { useRulesEdits } from "../rules/rulesEdits";
@@ -19,7 +19,9 @@ import { TradesPanel } from "./TradesPanel";
 import { runTwice, WaiversPanel } from "./WaiversPanel";
 import type { WaiverOrderType } from "../../convex/rules/leagueRulesShape";
 import { RunsPanel, WaiverOrderPanel } from "../myTeam/claims/WaiverOrderPanel";
-import { waiverOrderLoadingWords } from "../myTeam/claims/words";
+import { EveryTeamTable } from "../myTeam/claims/EveryTeamTable";
+import type { WaiversView } from "../myTeam/claims/seam";
+import { CLAIMS_TITLE, everyTeamClaimsLoadingWords, noClaimsWords, teamsWithoutClaimsWords, waiverOrderLoadingWords } from "../myTeam/claims/words";
 import {
   areaMinimumLabel,
   areaMinimumsHint,
@@ -110,7 +112,7 @@ function Editor({ league, seam, view }: { league: LeagueSummary; seam: LeagueSet
         <DraftPanel draft={draft.draft} edit={(draftRules) => edit({ ...draft, draft: draftRules })} />
         <TradesPanel trades={draft.trades} edit={(trades) => edit({ ...draft, trades })} />
         <WaiversPanel waivers={draft.waivers} edit={(waivers) => edit({ ...draft, waivers })} />
-        <WaiverOrderBeside leagueId={league.leagueId} seam={seam} type={draft.waivers.order} />
+        <WaiverOrderBeside league={league} seam={seam} type={draft.waivers.order} />
         <SaveBar draft={rulesEdits} savedWords={savedWords} />
       </BoxRefusalContext>
       <TeamOrderPanel leagueId={league.leagueId} seam={seam} />
@@ -119,16 +121,31 @@ function Editor({ league, seam, view }: { league: LeagueSummary; seam: LeagueSet
 }
 
 /** The league's waiver order and its next runs, the order's note following the type about to be
- *  saved: a change starts from today's order, so the order itself stays as it is (#1200). */
-function WaiverOrderBeside({ leagueId, seam, type }: { leagueId: LeagueSummary["leagueId"]; seam: LeagueSettingsSeam; type: WaiverOrderType }) {
-  const waivers = seam.useWaivers(leagueId);
+ *  saved: a change starts from today's order, so the order itself stays as it is (#1200). A
+ *  commissioner with no team, and so no Transactions tab, sees every team's pending claims with
+ *  them (Craig, 11 Nov 2026, on #1487). */
+function WaiverOrderBeside({ league, seam, type }: { league: LeagueSummary; seam: LeagueSettingsSeam; type: WaiverOrderType }) {
+  const waivers = seam.useWaivers(league.leagueId);
   if (waivers === undefined) return <Loading>{waiverOrderLoadingWords}</Loading>;
   if (waivers === null) return null;
   return (
     <>
+      {league.teamName === null && <EveryTeamClaims leagueId={league.leagueId} seam={seam} waivers={waivers} />}
       <WaiverOrderPanel waivers={waivers} type={type} />
       <RunsPanel waivers={waivers} />
     </>
+  );
+}
+
+/** Every team's pending claims, read-only, team by team in the waiver order (EveryTeamTable.tsx). */
+function EveryTeamClaims({ leagueId, seam, waivers }: { leagueId: LeagueSummary["leagueId"]; seam: LeagueSettingsSeam; waivers: WaiversView }) {
+  const claims = seam.usePendingClaims(leagueId);
+  if (claims === undefined) return <Loading>{everyTeamClaimsLoadingWords}</Loading>;
+  const withoutClaims = waivers.teams.length - new Set(claims.map(({ teamId }) => teamId)).size;
+  return (
+    <Panel title={CLAIMS_TITLE} aside={<span className="text-soft">{teamsWithoutClaimsWords(withoutClaims)}</span>}>
+      {claims.length === 0 ? <PanelNote>{noClaimsWords}</PanelNote> : <EveryTeamTable claims={claims} waivers={waivers} />}
+    </Panel>
   );
 }
 

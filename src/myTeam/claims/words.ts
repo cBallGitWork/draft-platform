@@ -16,6 +16,8 @@ export const newestFirstWords = "Newest first";
 export const claimsCountWords = (claims: number) => `${claims}, by run`;
 export const noClaimsWords = "No pending claims.";
 export const claimsLoadingWords = "Loading your claims…";
+/** While League settings' Claims panel loads every team's, for a commissioner with no team (#1487). */
+export const everyTeamClaimsLoadingWords = "Loading every team's claims…";
 export const claimsClosedWords = "Claims are closed until the gameweek's last match is over.";
 export const claimsNotOpenWords = "Claims open once the league's draft is over.";
 export const playersOnWaiversWords = "Players on waivers, in Scouting ›";

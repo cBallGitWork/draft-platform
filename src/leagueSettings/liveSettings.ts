@@ -32,6 +32,7 @@ export function useLiveLeagueSettings(): LeagueSettingsSeam {
       setScoringStart: (leagueId, gameweek) =>
         refusalOf(() => setScoringStart({ leagueId, gameweek }), "Setting the scoring start", scoringStartFailedWords),
       useWaivers: liveClaims.useWaivers,
+      usePendingClaims: liveClaims.usePendingClaims,
     }),
     [changeSettings, setTeamOrder, drawTeamOrder, setScoringStart],
   );
