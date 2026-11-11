@@ -4,7 +4,7 @@ import type { Area } from "../../convex/lineup/pitch";
 import { RANKED_MINUTES } from "../../convex/scouting/per90Figures";
 import { PERIOD_GAMEWEEKS } from "../../convex/scouting/periods";
 import { lastSeasonPointsColumn, seasonShortWords } from "../draft/words";
-import { noRunWords, runDayWords } from "../myTeam/claims/words";
+import { afterLastMatchWords, runNameWords, type FirstRun } from "../myTeam/claims/words";
 import { STAT_WORD, weekdayTimeWords } from "../shared/words";
 import type { Availability, Period } from "./seam";
 
@@ -72,7 +72,8 @@ export const noneMatchWords = "No player matches these filters.";
 
 /** In the owner column, a player on waivers and the run that can first take him, in the viewer's
  *  own zone (Craig, 6 Nov 2026, on #1200): "Waivers, Thu 18:00"; just "Waivers" with no run times. */
-export const onWaiversWords = (firstRunAt: number | null) => (firstRunAt === null ? "Waivers" : `Waivers, ${weekdayTimeWords(firstRunAt)}`);
+export const onWaiversWords = (firstRun: FirstRun) =>
+  firstRun === null ? "Waivers" : `Waivers, ${firstRun.skippedIf !== null ? afterLastMatchWords(firstRun.skippedIf) : weekdayTimeWords(firstRun.at)}`;
 
 /** The list's columns: a short head, and what it stands for (spec/14: dense tables use short codes,
  *  the full name on hover). */
@@ -149,7 +150,8 @@ export const notRankedWords = `Ranked from ${RANKED_MINUTES} minutes`;
 export const loadingPer90Words = "Loading his figures per 90…";
 /** His panel, while the manager's claim on him is pending (Craig, 8 Nov 2026, the waivers
  *  README): "Your claim 2, Wed run", linking to My team's Transactions. */
-export const yourClaimWords = (rank: number, runAt: number | null) => `Your claim ${rank}, ${runAt === null ? noRunWords : `${runDayWords(runAt)} run`}`;
+export const yourClaimWords = (rank: number, run: FirstRun) =>
+  `Your claim ${rank}, ${run !== null && run.skippedIf !== null ? `run ${afterLastMatchWords(run.skippedIf)}` : runNameWords(run)}`;
 export const compareWithAnotherWords = "Compare with another…";
 /** The manager's own player at his main position (Craig, 9 Nov 2026, on #1028, answer 1). */
 export const compareWithYourWords = (position: string, name: string) => `Compare with your ${position}, ${name}`;

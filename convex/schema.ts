@@ -37,7 +37,7 @@ export { position, startRecord, approveMode, changeThresholds, positionsSyncFiel
 export { liveStatsTickFields, sideMatchOutcome, sideRunFields, commentaryLine, sideTeamStats, teamSheetMan } from "./schema/live";
 export { leagueDeletion, pinnedLetter, leagueEvent } from "./schema/leagues";
 export { delivery } from "./schema/joining";
-export { tradedSide, type TradedSide } from "./schema/squads";
+export { namedPlayer, tradedSide, type TradedSide } from "./schema/squads";
 export { tradePick, closedWhy } from "./schema/trades";
 export { recapTeamPoints } from "./schema/recaps";
 export { scoutState } from "./schema/scouting";

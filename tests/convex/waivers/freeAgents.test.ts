@@ -19,8 +19,7 @@ beforeEach(async () => {
   w = await waiverLeague();
 });
 
-const pickUp = async (email: string, playerCode: number, dropCode: number | null = null) =>
-  (await actingAs(w.t, email)).mutation(api.waivers.freeAgents.pickUp, { leagueId: w.leagueId, playerCode, dropCode });
+const pickUp = (email: string, playerCode: number, dropCode: number | null = null) => w.pickUp(email, playerCode, dropCode);
 
 /** The waiver cron's check, and what it starts now: never a later timer, so the clock stays put. */
 const cronRuns = async () => {
@@ -85,7 +84,7 @@ describe("in the window", () => {
 
   test("a free agent picked up and dropped before the next deadline is a free agent again (the churn rule)", async () => {
     await pickUp(BOB, SAKA);
-    await (await actingAs(w.t, BOB)).mutation(api.waivers.waivers.drop, { leagueId: w.leagueId, playerCode: SAKA });
+    await w.drop(BOB, SAKA);
     expect(await w.stateOf(SAKA)).toEqual({ kind: "freeAgent" });
   });
 

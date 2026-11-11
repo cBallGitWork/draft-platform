@@ -10,7 +10,7 @@ import { seasonGameweekCount } from "../gameweeks/seasonGameweeks";
 import { GAMEWEEKS_MOST, lastPlayedGameweek } from "../gameweeks/usedGameweeks";
 import { inUnplayedGameweek } from "../waivers/waiverLock";
 import { squadAt, squadMovesSince, squadOf, type MovesSinceOf, type SquadMovesSince } from "../squads/squadPlace";
-import { playerByCode } from "../shared/players";
+import { lostPlayerName, playerByCode } from "../shared/players";
 import { positionsNow } from "../positions/playerPositions";
 import { placementShape } from "../schema";
 import { lineupProblems, namedCodes, reconciled, withUnmovedSetAside, type PlayerPositions } from "./lineup";
@@ -20,7 +20,7 @@ import type { Area, Lane } from "./pitch";
 import { roleIn } from "./roles";
 import { inClassicShape } from "./classics";
 import { classicsOf, instructionsOf } from "../rules/firstRules";
-import { lineupRefusals, problemWords, unknownPlayerWords } from "./lineupWords";
+import { lineupRefusals, problemWords } from "./lineupWords";
 import { pairRefusal } from "./instructions";
 import { instructionPairShape } from "./instructionsShape";
 import { pairRefusalWords } from "./instructionsWords";
@@ -168,7 +168,7 @@ export async function saveGameweekOf(ctx: QueryCtx, leagueId: Id<"leagues">, now
 async function namesOf(ctx: QueryCtx, playerCodes: Iterable<number>): Promise<Map<number, string>> {
   const names = new Map<number, string>();
   for (const playerCode of playerCodes) {
-    names.set(playerCode, (await playerByCode(ctx, playerCode))?.name ?? unknownPlayerWords(playerCode));
+    names.set(playerCode, (await playerByCode(ctx, playerCode))?.name ?? lostPlayerName(playerCode));
   }
   return names;
 }
@@ -193,7 +193,7 @@ export const save = mutation({
     const squad = await squadCodes(ctx, team._id);
     const named = namedCodes(lineup);
     const names = await namesOf(ctx, new Set([...squad, ...named]));
-    const nameOf = (playerCode: number) => names.get(playerCode) ?? unknownPlayerWords(playerCode);
+    const nameOf = (playerCode: number) => names.get(playerCode) ?? lostPlayerName(playerCode);
     const outsiders = [...new Set(named.filter((playerCode) => !squad.includes(playerCode)))];
     if (outsiders.length > 0) refuse(lineupRefusals.notInSquad(outsiders.map(nameOf)));
     const leftOut = squad.filter((playerCode) => !named.includes(playerCode));

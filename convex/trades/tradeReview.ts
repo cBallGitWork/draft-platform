@@ -16,9 +16,10 @@ import {
   type TradeWords,
 } from "../mail/tradeLetterWords";
 import { leagueDeadlines } from "../gameweeks/leagueDeadlines";
-import { managerOf, memberOf, refuse } from "../shared/leagueAccess";
+import { managerOf, memberOf, refuse, teamIn } from "../shared/leagueAccess";
 import { placeOf } from "../squads/squadPlace";
-import { closeOffersHolding, endOffer, leagueOf, managersOf, tradedName, tradedSideOf, tradeWordsOf } from "./tradeClose";
+import { closeOffersHolding, endOffer } from "./tradeClose";
+import { leagueOf, managersOf, tradedName, tradedSideOf, tradeWordsOf } from "./tradeWords";
 import { REVIEW_MS } from "./tradeLimits";
 import { movePicks } from "./tradePicks";
 import { reviewerOf, votersOn } from "./tradeReviewers";
@@ -80,12 +81,12 @@ async function playerGone(ctx: QueryCtx, offer: Doc<"tradeOffers">) {
 async function cantMake(ctx: QueryCtx, offer: Doc<"tradeOffers">, watched: boolean): Promise<TradeFailed | null> {
   const gone = await playerGone(ctx, offer);
   if (gone !== null) {
-    const team = await ctx.db.get("teams", gone.teamId);
-    return { why: "playerGone", playerName: await tradedName(ctx, gone.playerCode), teamName: team?.name ?? "his team" };
+    const team = await teamIn(ctx, offer.leagueId, gone.teamId);
+    return { why: "playerGone", playerName: await tradedName(ctx, gone.playerCode), teamName: team.name };
   }
   if (watched || offer.picks !== undefined) return null;
   for (const { teamId, codes } of await squadsAfter(ctx, offer)) {
-    if (codes.length > MOST_IN_SQUAD) return { why: "squadFull", teamName: (await ctx.db.get("teams", teamId))?.name ?? "A team" };
+    if (codes.length > MOST_IN_SQUAD) return { why: "squadFull", teamName: (await teamIn(ctx, offer.leagueId, teamId)).name };
   }
   return null;
 }

@@ -9,7 +9,8 @@ import { pickTradeUndoneLetter } from "../mail/tradeLetterWords";
 import { latestRules } from "../rules/rulesHistory";
 import type { tradePick } from "../schema";
 import { refuse, teamIn } from "../shared/leagueAccess";
-import { closeOffer, leagueOffers, managersOf, pickName, tradeWordsOf } from "./tradeClose";
+import { closeOffer, leagueOffers } from "./tradeClose";
+import { managersOf, pickName, tradeWordsOf } from "./tradeWords";
 
 // Draft picks in trades (spec/04, The picks; #1096). Picks in the current draft can be traded in
 // every league, before the draft starts only (Craig, 2 Nov 2026). A traded pick is a team's pick in

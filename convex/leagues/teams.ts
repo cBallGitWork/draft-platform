@@ -133,13 +133,7 @@ export const removeManager = mutation({
     const { email: by } = await runnerOf(ctx, leagueId);
     const team = await teamIn(ctx, leagueId, teamId);
     if (team.managerEmail === undefined) refuse(refusals.noManager);
-    await ctx.db.patch("teams", teamId, { managerEmail: undefined });
-    await pickAtOnceIfOnTheClock(ctx, { ...team, managerEmail: undefined });
-    // With no manager it is on the auto team (spec/09), so its open trade offers close (spec/08)
-    // and its pending waiver claims are withdrawn (#1464).
-    await closeOffersOfTeam(ctx, team);
-    await withdrawClaimsOfTeam(ctx, team);
-    await cancelLiveInvites(ctx, leagueId, team.managerEmail);
+    await vacateTeam(ctx, team, team.managerEmail);
     await recordEvent(ctx, leagueId, by, { kind: "managerRemoved", email: team.managerEmail, teamId, teamName: team.name });
     return null;
   },
@@ -151,15 +145,23 @@ export const leave = mutation({
   returns: v.null(),
   handler: async (ctx, { leagueId }) => {
     const { email, team } = await managerOf(ctx, leagueId);
-    await ctx.db.patch("teams", team._id, { managerEmail: undefined });
-    await pickAtOnceIfOnTheClock(ctx, { ...team, managerEmail: undefined });
-    await closeOffersOfTeam(ctx, team);
-    await withdrawClaimsOfTeam(ctx, team);
-    await cancelLiveInvites(ctx, leagueId, email);
+    await vacateTeam(ctx, team, email);
     await recordEvent(ctx, leagueId, email, { kind: "managerLeft", email, teamId: team._id, teamName: team.name });
     return null;
   },
 });
+
+/** The team loses its manager, `email`, by removal or leaving alike (spec/13, Leaving): a pick of
+ *  its on the clock is made at once, and their live invites to the league are cancelled (#133).
+ *  With no manager it is on the auto team (spec/09), so its open trade offers close (spec/08) and
+ *  its pending waiver claims are withdrawn (#1464). Each caller files its own event after. */
+async function vacateTeam(ctx: MutationCtx, team: Doc<"teams">, email: string): Promise<void> {
+  await ctx.db.patch("teams", team._id, { managerEmail: undefined });
+  await pickAtOnceIfOnTheClock(ctx, { ...team, managerEmail: undefined });
+  await closeOffersOfTeam(ctx, team);
+  await withdrawClaimsOfTeam(ctx, team);
+  await cancelLiveInvites(ctx, team.leagueId, email);
+}
 
 /** spec/04, Auto-pick (S04.5): a team that has just lost its manager while its pick is on the clock is
  *  picked for at once, not at the clock's end, as nobody can pick for it (Craig, 8 Nov 2026:

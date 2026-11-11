@@ -3,8 +3,8 @@ import type { Doc, Id } from "../_generated/dataModel";
 import type { QueryCtx } from "../_generated/server";
 import { closedWhy } from "../schema";
 import { seasonStartAt } from "../shared/time";
-import { pickName } from "./tradeClose";
-import { tradedPlayer, type TradedPlayer } from "./tradedPlayers";
+import { pickName } from "./tradeWords";
+import { namedPicks, teamNameIn, tradedPlayer, type TradedPlayer } from "./tradedPlayers";
 
 // The Trades screen's Closed offers (#383; docs/design/approved/trades: "Closed offers lists
 // rejected, countered, withdrawn and closed ones this season"): the manager's team's offers that
@@ -22,8 +22,7 @@ export const closedOffer = v.object({
   toTeamName: v.string(),
   gives: v.array(tradedPlayer),
   gets: v.array(tradedPlayer),
-  /** A pick trade's picks, each as its letters name it; null for a players' trade. */
-  picks: v.union(v.object({ gives: v.string(), gets: v.string() }), v.null()),
+  picks: namedPicks,
   closedAt: v.number(),
   why: closedWhy,
 });
@@ -56,18 +55,13 @@ export async function closedOffersOf(
     console.warn(`Team ${teamId} has over ${CLOSED_READ_MOST} closed trade offers this season: the oldest aren't shown`);
   }
   const rows = all.slice(0, CLOSED_READ_MOST);
-  const nameOf = (row: Doc<"closedTradeOffers">, id: Id<"teams">) => {
-    const team = teams.find((each) => each._id === id);
-    if (team === undefined) throw new Error(`Closed trade offer ${row._id} names team ${id}, which isn't in its league`);
-    return team.name;
-  };
   return Promise.all(
     rows.map(async (row) => ({
       closedId: row._id,
       fromTeamId: row.fromTeamId,
-      fromTeamName: nameOf(row, row.fromTeamId),
+      fromTeamName: teamNameIn(teams, row.fromTeamId, `Closed trade offer ${row._id}`),
       toTeamId: row.toTeamId,
-      toTeamName: nameOf(row, row.toTeamId),
+      toTeamName: teamNameIn(teams, row.toTeamId, `Closed trade offer ${row._id}`),
       gives: await Promise.all(row.gives.map(shown)),
       gets: await Promise.all(row.gets.map(shown)),
       picks:

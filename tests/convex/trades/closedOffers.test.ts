@@ -3,6 +3,7 @@ import { api } from "../../../convex/_generated/api";
 import { CLOSED_READ_MOST } from "../../../convex/trades/closedOffers";
 import { seasonStartAt } from "../../../convex/shared/time";
 import { actingAs, COMMISSIONER } from "../../support/convex/leagues.harness";
+import { nameOf } from "../../support/convex/lineupSquad.harness";
 import { ANN, ANNS_FIRST_DROP, BOB, CAT, PALMER, RICE, SAKA, tradeLeague, type TradeLeague } from "../../support/convex/trades.harness";
 
 // The Trades screen's Closed offers (#383; docs/design/approved/trades): each offer that ended this
@@ -54,6 +55,17 @@ describe("closed offers", () => {
     await w.accept(BOB, other.offerId);
 
     expect(await closedFor(CAT)).toEqual([expect.objectContaining({ why: "playerLeft", fromTeamId: w.catsTeam })]);
+  });
+
+  test("keeps one a drop closes, its letter filed after the drop's (dropAndTell, #1573)", async () => {
+    await w.offer(ANN, w.bobsTeam, [ANNS_FIRST_DROP], [SAKA]);
+    const before = (await w.subjectsTo(BOB)).length;
+    await w.drop(ANN, ANNS_FIRST_DROP);
+
+    expect(await closedFor(BOB)).toEqual([expect.objectContaining({ why: "playerLeft", fromTeamId: w.annsTeam })]);
+    const filed = (await w.subjectsTo(BOB)).slice(before);
+    expect(filed).toHaveLength(2);
+    expect(filed[0]).toBe(`Team 1 dropped ${nameOf(ANNS_FIRST_DROP)}`);
   });
 
   test("keeps a trade blocked in review, but not one that goes through", async () => {
