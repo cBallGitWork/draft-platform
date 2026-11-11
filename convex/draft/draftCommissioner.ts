@@ -1,13 +1,9 @@
 import { v, type Infer } from "convex/values";
 import { mutation, query } from "../_generated/server";
-import { pickFirstLineupAgain } from "../lineup/lineups";
-import { fileEvent } from "../mail/letters";
 import { draftRulesOf } from "../rules/firstRules";
 import { changeLatest } from "../rules/leagueRules";
 import { historyOf, newestRow } from "../rules/rulesHistory";
 import { refuse, runnerOf, teamIn, teamsOf } from "../shared/leagueAccess";
-import { heldPlayerByCode } from "../shared/players";
-import { placeOf } from "../squads/squadPlace";
 import { startClock } from "./draftClock";
 import { tellUndone, tellUpNext } from "./draftLetters";
 import { liveClock, pauseRefusals } from "./draftPause";
@@ -16,6 +12,7 @@ import { draftIsPaused, pickTimeRefusals } from "./draftPickTime";
 import { draftHasStarted, draftIsLive, draftOf, lastPickIn } from "./draftRow";
 import { rulesInForceAt } from "./draftStart";
 import { afterUndoneTimeout } from "./draftTimeouts";
+import { takeBackPick } from "./pickWindow";
 
 // The commissioner running the draft (spec/04, The commissioner and Auto-pick; #1095), besides
 // pausing it (draftPause.ts) and picking for a team (draftPicks.ts `pickFor`):
@@ -51,15 +48,7 @@ export const undoPick = mutation({
     const { email, league } = await runnerOf(ctx, leagueId);
     const { draft, clock } = await liveClock(ctx, leagueId);
     const last = (await lastPickIn(ctx, leagueId)) ?? refuse(commissionerRefusals.noPick);
-    const team = await teamIn(ctx, leagueId, last.teamId);
-    const player = await heldPlayerByCode(ctx, last.playerCode, `Player ${last.playerCode}, drafted at pick ${last.pick}, isn't in the football data`);
-    const place = await placeOf(ctx, leagueId, last.playerCode);
-    if (place?.teamId !== last.teamId) throw new Error(`League ${leagueId}'s pick ${last.pick} put player ${last.playerCode} on team ${last.teamId}, but he isn't in its squad`);
-
-    await ctx.db.delete("squadPlayers", place._id);
-    await ctx.db.delete("draftPicks", last._id);
-    await fileEvent(ctx, leagueId, email, { kind: "playerReleased", playerCode: player.code, playerName: player.name, teamId: team._id, teamName: team.name });
-    await pickFirstLineupAgain(ctx, leagueId, team._id);
+    const { team, player } = await takeBackPick(ctx, leagueId, last, email);
     if (last.timeout !== undefined) {
       await ctx.db.patch("drafts", draft._id, { timeouts: afterUndoneTimeout(draft.timeouts, team._id, last.timeout.putOnAutoPick) });
     }
