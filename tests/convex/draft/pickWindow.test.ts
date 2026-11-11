@@ -89,6 +89,26 @@ describe("a manager's undo of his own pick", () => {
     expect(await subjectsSince(before)).toEqual([{ to: BOB, subject: UP_NEXT }]);
   });
 
+  test("is offered on the draft room to the team whose manager made the last pick himself, and to no one after the draft's pick", async () => {
+    await start();
+    expect(await read()).toMatchObject({ status: "live", ownPickBy: null });
+    await pick(ANN, A1);
+    expect(await read()).toMatchObject({ status: "live", ownPickBy: teams[0], clock: { startsAt: Date.now() + PICK_GAP_MS } });
+    // Bob's clock runs out, and the draft picks for him.
+    await pass(PICK_GAP_MS + PICK_MS);
+    expect(await read()).toMatchObject({ status: "live", picksMade: 2, ownPickBy: null });
+  });
+
+  test("is offered for the last pick while the draft is ending", async () => {
+    await start();
+    for (const [email, code] of [[ANN, A1], [BOB, A2], [BOB, A3]] as const) {
+      await pick(email, code);
+      await pass(PICK_GAP_MS);
+    }
+    await pick(ANN, A4);
+    expect(await read()).toMatchObject({ status: "ending", ownPickBy: teams[0], endsAt: Date.now() + PICK_GAP_MS });
+  });
+
   test("is refused before the start, once the 10 seconds are up, and for a pick he didn't make himself", async () => {
     await expectRefused(undo(ANN), pickRefusals.notStarted);
     await start();

@@ -54,6 +54,7 @@ const live: DraftState = {
   rounds: 2,
   order: draftOrder,
   picksMade: 1,
+  ownPickBy: null,
   onTheClock: { pick: 2, round: 1, teamId: YOUR_TEAM, name: "Team 2" },
   clock: { startsAt: Date.now(), endsAt: Date.now() + 90 * SECOND_MS, pausedAt: undefined },
 };

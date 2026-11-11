@@ -165,6 +165,9 @@ export const draftPlayerWords = (name: string) => `Draft ${name}`;
 /** Under the Draft button while the reader is on the clock: "Pick 4.03, 0:48 left". */
 export const pickLeftWords = (slot: string) => `Pick ${slot}, `;
 export const leftSuffixWords = " left";
+/** The Draft button for the 10 seconds after the reader's own pick (spec/04, The draft room;
+ *  #1458): "Undo", and under it "0:07 left". */
+export const undoMyPickWords = "Undo";
 export const notYourPickWords = "Not your pick";
 export const pausedPickWords = "The draft is paused";
 export const notStartedPickWords = "The draft hasn't started";
@@ -183,6 +186,7 @@ export const yourSquadWords = (position: string, atPosition: number, club: strin
   `${position} ${atPosition}, ${club} ${atClub}${maxPerClub === null ? "" : ` of ${maxPerClub}`}`;
 export { playerCardWords } from "../shared/words";
 export const pickFailedWords = "The pick couldn't be made. Try again.";
+export const undoFailedWords = "The pick couldn't be undone. Try again.";
 
 export const noRoundsWords = "The draft's rounds are its squads' most players, and this league's squads have no size limit yet.";
 

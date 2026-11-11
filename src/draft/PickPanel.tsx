@@ -9,7 +9,7 @@ import { closeGlyph } from "../shared/words";
 import { useChange } from "../shared/useChange";
 import { PANEL_BODY, Panel, Problem } from "../ui/Panel";
 import { PositionChip } from "../ui/PositionChip";
-import { ClockLeft, type OnTheClock } from "./ClockLeft";
+import { ClockLeft, type OnTheClock, type UndoWindow, useUndoLeft } from "./ClockLeft";
 import { whyNotWords } from "./DraftPlayers";
 import type { DraftChanges, DraftList, DraftListChanges, DraftLists, GreyedPlayer, RoomFigure } from "./seam";
 import {
@@ -29,6 +29,8 @@ import {
   playerCardWords,
   playsHead,
   rankHead,
+  timeLeftWords,
+  undoMyPickWords,
   yourSquadHead,
   yourSquadWords,
 } from "./words";
@@ -39,7 +41,9 @@ import {
 // club the reader's squad holds, and his card a link away. "Add to queue" and "Do not draft" put him
 // on either of the reader's lists, taking him off the other (spec/04, The queue and the ranking;
 // #1474), while the draft isn't over and only for a reader who runs a team; the one for the list he
-// is already on is off.
+// is already on is off. For the 10 seconds after the reader's own pick, the Draft button is Undo
+// with the time left (the picture's interaction notes; spec/04, The draft room; #1458), so the panel
+// stays open once he picks.
 
 /** Where the reader's pick stands: his, on the clock at `slot`; another team's; paused; or not yet
  *  started (or over). */
@@ -65,6 +69,7 @@ export function PickPanel({
   squad,
   whyNot,
   turn,
+  undo,
   changes,
   lists,
   listChanges,
@@ -78,6 +83,8 @@ export function PickPanel({
   squad: YourSquad;
   whyNot: GreyedPlayer["reason"] | undefined;
   turn: YourTurn;
+  /** The 10 seconds to undo the reader's own last pick; null when he has none to undo. */
+  undo: UndoWindow | null;
   changes: DraftChanges;
   /** The reader's queue and do-not-draft list; null for no buttons (no team, or the draft over),
    *  undefined while they load. */
@@ -88,6 +95,7 @@ export function PickPanel({
   const change = useChange();
   const lineId = useId();
   const blocked = whyNotWords(player, whyNot);
+  const undoLeft = useUndoLeft(undo);
   const canPick = turn.kind === "yours" && blocked === null && !change.busy;
   const main = player.positions[0];
   const title = (
@@ -108,28 +116,44 @@ export function PickPanel({
       <div className={PANEL_BODY}>
         {/* The pick's line sits inside the button, under his name, as drawn; the button is named
             by his name alone and described by the line. */}
-        <button
-          type="button"
-          aria-label={draftPlayerWords(player.name)}
-          aria-describedby={lineId}
-          disabled={!canPick}
-          onClick={() => void change.run(() => changes.makePick(leagueId, player.code)).then((made) => made && close())}
-          className="action flex-col justify-center py-3"
-        >
-          <span className="text-title font-bold">{draftPlayerWords(player.name)}</span>
-          <span id={lineId} className="font-normal">
-            {blocked ??
-              (turn.kind === "yours" ? (
-                <>
-                  {pickLeftWords(turn.slot)}
-                  <ClockLeft onTheClock={turn.onTheClock} />
-                  {leftSuffixWords}
-                </>
-              ) : (
-                NOT_NOW_WORDS[turn.kind]
-              ))}
-          </span>
-        </button>
+        {undoLeft !== null ? (
+          <button
+            type="button"
+            aria-describedby={lineId}
+            disabled={change.busy}
+            onClick={() => void change.run(() => changes.undoMyPick(leagueId))}
+            className="action flex-col justify-center py-3"
+          >
+            <span className="text-title font-bold">{undoMyPickWords}</span>
+            <span id={lineId} className="font-normal">
+              <span className="tabular-nums">{timeLeftWords(undoLeft)}</span>
+              {leftSuffixWords}
+            </span>
+          </button>
+        ) : (
+          <button
+            type="button"
+            aria-label={draftPlayerWords(player.name)}
+            aria-describedby={lineId}
+            disabled={!canPick}
+            onClick={() => void change.run(() => changes.makePick(leagueId, player.code))}
+            className="action flex-col justify-center py-3"
+          >
+            <span className="text-title font-bold">{draftPlayerWords(player.name)}</span>
+            <span id={lineId} className="font-normal">
+              {blocked ??
+                (turn.kind === "yours" ? (
+                  <>
+                    {pickLeftWords(turn.slot)}
+                    <ClockLeft onTheClock={turn.onTheClock} />
+                    {leftSuffixWords}
+                  </>
+                ) : (
+                  NOT_NOW_WORDS[turn.kind]
+                ))}
+            </span>
+          </button>
+        )}
         <Problem problem={change.problem} />
         <dl className="grid grid-cols-facts gap-x-3 gap-y-1">
           <dt className="text-soft">{playsHead}</dt>

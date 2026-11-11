@@ -48,6 +48,7 @@ function liveDraft(paused = false): Extract<DraftState, { status: "live" }> {
     startedAt: now - MINUTE_MS,
     rounds: 2,
     order: draftOrder,
+    ownPickBy: null,
     picksMade: 1,
     onTheClock: { pick: 2, round: 1, teamId: draftOrder[1].teamId, name: draftOrder[1].name },
     clock: { startsAt: now - 42 * SECOND_MS, endsAt: now + 48 * SECOND_MS, pausedAt: paused ? now : undefined },
@@ -144,7 +145,7 @@ describe("while it runs", () => {
 
   // The 10 seconds after the last pick, before the draft ends (#1458): no team is on the clock.
   it("still pauses and undoes the last pick while the draft is ending, with no one to pick for", async () => {
-    const ending: DraftState = { status: "ending", startedAt: Date.now() - MINUTE_MS, rounds: 1, order: draftOrder, picksMade: 1, endsAt: Date.now() + 5 * SECOND_MS };
+    const ending: DraftState = { status: "ending", startedAt: Date.now() - MINUTE_MS, rounds: 1, order: draftOrder, picksMade: 1, endsAt: Date.now() + 5 * SECOND_MS, pausedAt: undefined, ownPickBy: null };
     const app = openAs(commissioner, { draft: ending, board: oneTaken });
     await userEvent.click(await button(undoLastWords));
     expect(app.draft.changes.undo).toHaveBeenCalledWith(league.leagueId);

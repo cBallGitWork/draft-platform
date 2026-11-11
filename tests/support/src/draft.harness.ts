@@ -77,7 +77,7 @@ export function fakeDraft({
   greyedOnTheClock = [],
 }: DraftData = {}) {
   const answer = async () => refusal ?? null;
-  const draftChanges = { makePick: vi.fn<DraftChanges["makePick"]>(() => Promise.resolve(pickAnswer)) };
+  const draftChanges = { makePick: vi.fn<DraftChanges["makePick"]>(() => Promise.resolve(pickAnswer)), undoMyPick: vi.fn<DraftChanges["undoMyPick"]>(answer) };
   const commissionerChanges = {
     start: vi.fn<CommissionerChanges["start"]>(answer),
     pause: vi.fn<CommissionerChanges["pause"]>(answer),

@@ -3,7 +3,7 @@ import type { Id } from "../../convex/_generated/dataModel";
 import type { ListedPlayer } from "../scouting/seam";
 import { AutoPickPanel } from "./AutoPickPanel";
 import { pickInRoundOf } from "./board";
-import type { OnTheClock } from "./ClockLeft";
+import type { OnTheClock, UndoWindow } from "./ClockLeft";
 import { DraftPlayers, type WhyNot } from "./DraftPlayers";
 import { PickPanel, type YourSquad, type YourTurn } from "./PickPanel";
 import { QueuePanel } from "./QueuePanel";
@@ -23,6 +23,14 @@ function yourTurn(draft: DraftState, board: DraftBoard, onTheClock: OnTheClock |
   if (draft.clock?.pausedAt !== undefined) return { kind: "paused" };
   if (board.yourTeamId === null || draft.onTheClock.teamId !== board.yourTeamId) return { kind: "notYours" };
   return { kind: "yours", slot: slotWords(draft.onTheClock.round, pickInRoundOf(draft.onTheClock.pick, draft.order.length)), onTheClock };
+}
+
+/** The 10 seconds the reader has to undo the last pick, made by him himself (#1458): until the
+ *  next clock starts or, after the last pick, the draft ends; null for no such pick. */
+function yourUndo(draft: DraftState, board: DraftBoard): UndoWindow | null {
+  if (board.yourTeamId === null || (draft.status !== "live" && draft.status !== "ending") || draft.ownPickBy !== board.yourTeamId) return null;
+  if (draft.status === "ending") return { until: draft.endsAt, pausedAt: draft.pausedAt };
+  return draft.clock === null ? null : { until: draft.clock.startsAt, pausedAt: draft.clock.pausedAt };
 }
 
 /** How many players of `player`'s main position and of his club the reader's picks so far hold. */
@@ -85,6 +93,7 @@ export function PickRoom({
             squad={yourSquad(board, selected)}
             whyNot={whyNot.get(selected.code)}
             turn={yourTurn(draft, board, onTheClock)}
+            undo={yourUndo(draft, board)}
             changes={changes}
             lists={draft.status === "over" ? null : lists}
             listChanges={listChanges}
