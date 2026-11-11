@@ -7,7 +7,7 @@ import { withOwnStats } from "../scoring/ownStats";
 import { rulePointsIn } from "../scoring/scoring";
 import { ANY_BACK_LINE, rulesAt, withBackLine, type TeamScoring } from "../scoring/teamScoring";
 import { inTenths, statIn, type MatchStats } from "../scoring/values";
-import { validateScoringSet, type ScoringRule, type ScoringSet } from "../scoring/scoringSet";
+import { checkedOnce, type ScoringRule, type ScoringSet } from "../scoring/scoringSet";
 import { siteScoringInGameweek } from "../scoring/siteVersions";
 import { takeAllOrThrow } from "../shared/cappedRead";
 import { logFailure } from "../shared/errors";
@@ -160,7 +160,7 @@ export async function storeThresholdSteps(
     // A match not held, or with no gameweek, has no set to price by; the records' own write says so.
     if (fixture === null || fixture.gameweek === null) return { fixtureCode, ok: true };
     const set = await siteScoringInGameweek(ctx, fixture.gameweek);
-    validateScoringSet(set);
+    checkedOnce(set);
     steps = records
       .filter((record) => isWhole(record))
       .flatMap((record) =>
