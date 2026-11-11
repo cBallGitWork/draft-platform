@@ -4,7 +4,7 @@ import type { Doc, Id } from "../_generated/dataModel";
 import { internalMutation, mutation, query, type MutationCtx, type QueryCtx } from "../_generated/server";
 import { nextOpenGameweek } from "../lineup/lineups";
 import { draftRulesOf } from "../rules/firstRules";
-import { historyOf, inForce, latestRules, seasonRules } from "../rules/rulesHistory";
+import { historyOf, inForce, latestRules } from "../rules/rulesHistory";
 import type { LeagueRules } from "../rules/leagueRulesShape";
 import { memberOf, refuse, runnerOf, teamsOf } from "../shared/leagueAccess";
 import { closePickTrades, undoCutTrades } from "../trades/tradePicks";
@@ -44,8 +44,8 @@ export const draftStartRefusals = {
  *  first gameweek begins, that gameweek's; a change waiting for a later gameweek isn't among them.
  *  What the draft's pick clock runs by. */
 export async function rulesInForceAt(ctx: QueryCtx, leagueId: Id<"leagues">, now: number): Promise<LeagueRules> {
-  const [history, season] = await Promise.all([historyOf(ctx, leagueId), seasonRules(ctx, leagueId)]);
-  const underWay = (await nextOpenGameweek(ctx, leagueId, season, now)) - 1;
+  const history = await historyOf(ctx, leagueId);
+  const underWay = (await nextOpenGameweek(ctx, leagueId, now)) - 1;
   return inForce(history, Math.max(underWay, history[0].fromGameweek))!.rules;
 }
 

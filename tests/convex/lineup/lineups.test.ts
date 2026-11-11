@@ -125,6 +125,9 @@ describe("a saved lineup", () => {
   test("is from gameweek 1 before the season's gameweeks have arrived", async () => {
     await t.run(async (ctx) => {
       for (const row of await ctx.db.query("gameweeks").collect()) await ctx.db.delete("gameweeks", row._id);
+      // Their matches are held, and count their gameweeks among the season's (#1618), but none has
+      // kicked off: a save follows the league's deadlines, as its screens do (#1764).
+      for (const row of await ctx.db.query("fixtures").collect()) await ctx.db.patch("fixtures", row._id, { kickoff: row.kickoff! + NEXT * WEEK_MS });
     });
     expect(await (await as(ANN)).save(FOUR_FOUR_TWO)).toBe(FIRST_GAMEWEEK);
   });
