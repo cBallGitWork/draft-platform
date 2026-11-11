@@ -49,8 +49,8 @@ export function JoinPage({ token, joining }: { token: string; joining: JoiningSe
 function League({ page }: { page: NonNullable<JoinPageData> }) {
   return (
     <>
-      <h2 className="text-title display-face">{page.leagueName}</h2>
-      <dl className="grid grid-cols-facts gap-x-6 gap-y-1">
+      <h2 className="text-heading font-bold">{page.leagueName}</h2>
+      <dl className="grid grid-cols-facts gap-x-12 gap-y-1">
         <dt className="text-soft">{joinPageWords.commissioner}</dt>
         <dd className="wrap-anywhere">{page.commissionerEmail}</dd>
         <dt className="text-soft">{joinPageWords.teams}</dt>
