@@ -43,6 +43,7 @@ import type * as draft_lastSeasonPoints from "../draft/lastSeasonPoints.js";
 import type * as draft_legalPlayers from "../draft/legalPlayers.js";
 import type * as draft_rankingFile from "../draft/rankingFile.js";
 import type * as draft_snakeOrder from "../draft/snakeOrder.js";
+import type * as draft_undrafted from "../draft/undrafted.js";
 import type * as feedback_feedback from "../feedback/feedback.js";
 import type * as feedback_feedbackLimits from "../feedback/feedbackLimits.js";
 import type * as football_clubColours from "../football/clubColours.js";
@@ -393,6 +394,7 @@ declare const fullApi: ApiFromModules<{
   "draft/legalPlayers": typeof draft_legalPlayers;
   "draft/rankingFile": typeof draft_rankingFile;
   "draft/snakeOrder": typeof draft_snakeOrder;
+  "draft/undrafted": typeof draft_undrafted;
   "feedback/feedback": typeof feedback_feedback;
   "feedback/feedbackLimits": typeof feedback_feedbackLimits;
   "football/clubColours": typeof football_clubColours;

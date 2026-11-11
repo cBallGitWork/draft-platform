@@ -204,10 +204,19 @@ export type PositionsNow = (code: number) => Promise<Position[]>;
 
 /** Each player's positions now, as the league's own deadlines have them (#895; EVERY_LEAGUE for
  *  what no one league owns), for anyone's screen (a squad's area minimums, #317): none for a player
- *  no feed has named yet. How positions count is read once, here. */
+ *  no feed has named yet. How positions count is read once, here, and each player's row once per
+ *  lookup (#1532): a draft pick asks after the same players several times over, near Convex's read
+ *  limit. A caller that writes a player's positions takes a new lookup to read them again. */
 export async function positionsNow(ctx: QueryCtx, positionsFor: PositionsFor): Promise<PositionsNow> {
   const how = await howPositionsCount(ctx, positionsFor);
-  return (code) => currentPositions(ctx, code, how);
+  const read = new Map<number, Promise<Position[]>>();
+  return (code) => {
+    const known = read.get(code);
+    if (known !== undefined) return known;
+    const positions = currentPositions(ctx, code, how);
+    read.set(code, positions);
+    return positions;
+  };
 }
 
 async function currentPositions(ctx: QueryCtx, code: number, how: HowPositionsCount): Promise<Position[]> {
