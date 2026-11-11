@@ -1,7 +1,7 @@
 import type { Doc, Id } from "../_generated/dataModel";
 import type { QueryCtx } from "../_generated/server";
 import { pickWords, type TradeWords } from "../mail/tradeLetterWords";
-import type { TradedSide } from "../schema/squads";
+import type { TradedSide } from "../schema";
 import { heldPlayerByCode } from "../shared/players";
 import type { TradePick } from "./tradePicks";
 

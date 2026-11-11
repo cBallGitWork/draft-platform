@@ -3,7 +3,7 @@ import { query } from "../_generated/server";
 import { positionsNow } from "../positions/playerPositions";
 import { draftRulesOf } from "../rules/firstRules";
 import { latestRules } from "../rules/rulesHistory";
-import { position } from "../schema/positions";
+import { position } from "../schema";
 import { memberOf } from "../shared/leagueAccess";
 import { clubsByCode, playerByCode } from "../shared/players";
 import { pickSecondsOf } from "./draftPickTime";

@@ -5,12 +5,12 @@ import { DAY_MS } from "../../../convex/shared/time";
 import { dropRefusals } from "../../../convex/waivers/waivers";
 import { WAIVER_MS } from "../../../convex/waivers/waiverLimits";
 import { playerLeaves } from "../../support/convex/draftLists.harness";
-import { holdGameweeks } from "../../support/convex/leagueRules.harness";
-import { actingAs, addManagers, adminCreatesLeague, COMMISSIONER, eventsIn, MANAGERS, type TestConvex } from "../../support/convex/leagues.harness";
+import { holdGameweeks, holdMatchState } from "../../support/convex/leagueRules.harness";
+import { actingAs, addManagers, adminCreatesLeague, COMMISSIONER, eventsIn, lettersTo as lettersToOf, MANAGERS, type TestConvex } from "../../support/convex/leagues.harness";
 import { holdPlayers, holdSquad, nameOf, passNextDeadline, SQUAD, squadMoves } from "../../support/convex/lineupSquad.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
 import { expectRefused } from "../../support/convex/test.harness";
-import { draftOver, dropPlayer, lettersTo as lettersToOf, waiverStateOf } from "../../support/convex/waivers.harness";
+import { draftOver, dropPlayer, waiverStateOf } from "../../support/convex/waivers.harness";
 
 // A manager's drop and a player's waiver state (#1197, spec/08 Waivers and free agency): a drop
 // goes on waivers for at least 24 hours; a free agent picked up and dropped before the next
@@ -30,12 +30,7 @@ let annsTeam: Id<"teams">;
 let bobsTeam: Id<"teams">;
 
 /** The gameweek's one match (holdGameweeks gives each gameweek one, coded by its number) at `state`. */
-const matchIs = (gameweek: number, state: "live" | "fullTime") =>
-  t.run(async (ctx) => {
-    const held = await ctx.db.query("matchScores").withIndex("by_fixtureCode", (q) => q.eq("fixtureCode", gameweek)).unique();
-    if (held !== null) await ctx.db.delete("matchScores", held._id);
-    await ctx.db.insert("matchScores", { fixtureCode: gameweek, state, homeGoals: 1, awayGoals: 0, minutes: 90, clockLabel: null, feed: "fpl", readAt: Date.now() });
-  });
+const matchIs = (gameweek: number, state: "live" | "fullTime") => holdMatchState(t, gameweek, state);
 
 const drop = (email: string, playerCode: number) => dropPlayer(t, leagueId, email, playerCode);
 const stateOf = (playerCode: number) => waiverStateOf(t, leagueId, playerCode);

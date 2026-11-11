@@ -7,7 +7,7 @@ import { HOUR_MS } from "../../../convex/shared/time";
 import { actingAs } from "../../support/convex/leagues.harness";
 import { syncRun } from "../../support/convex/footballSync.harness";
 import { asAdmin } from "../../support/convex/positionsSync.harness";
-import { expectRefused, freshConvex, type TestConvex } from "../../support/convex/test.harness";
+import { expectRefused, freshConvex, SLOW_TEST, type TestConvex } from "../../support/convex/test.harness";
 import { clubCodeOfPlTeam, recordedResults, recordedStandings } from "../../support/recorded/standings.payloads";
 
 // The Premier League table on the section (#50; spec/18, The table): worked out from the held
@@ -74,7 +74,7 @@ function read(t: TestConvex, readAt: number, score: Omit<ScoreRead, "fixtureCode
 }
 
 // 1.4s alone and up to 3.9s on a busy core (27 Oct 2026), too near vitest's 5s; none of it is spare (#473).
-test("a replayed goal moves the table at once, marked provisional, until full time makes it final", { timeout: 30_000 }, async () => {
+test("a replayed goal moves the table at once, marked provisional, until full time makes it final", SLOW_TEST, async () => {
   const t = freshConvex();
   const { payloads, code } = coventrySunderland();
   const run = await syncRun(t, payloads);

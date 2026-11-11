@@ -1,5 +1,5 @@
 import type { Infer } from "convex/values";
-import type { clubColoursRecord, shirtPattern } from "../schema/football";
+import type { clubColoursRecord, shirtPattern } from "../schema";
 
 // Each club's shirt on the pitch (spec/12, My team: "The shirts are our own, drawn in club
 // colours"; plate.md, Marks). The admin owns each club's colours on his dashboard (spec/15, The

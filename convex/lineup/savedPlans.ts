@@ -4,7 +4,7 @@ import { mutation, query, type QueryCtx } from "../_generated/server";
 import { instructionsOf } from "../rules/firstRules";
 import { latestRules } from "../rules/rulesHistory";
 import { managerOf, refuse } from "../shared/leagueAccess";
-import { planSlotShape } from "../schema/lineup";
+import { planSlotShape } from "../schema";
 import { pairRefusal } from "./instructions";
 import { instructionPairShape } from "./instructionsShape";
 import { pairRefusalWords } from "./instructionsWords";

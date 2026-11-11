@@ -3,9 +3,10 @@ import { api } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
 import { PICK_GAP_MS } from "../../../convex/draft/draftClock";
 import { SECOND_MS } from "../../../convex/shared/time";
-import { ARSENAL, CHELSEA, insertClubs, insertPlayers, type HeldPlayer } from "../../support/convex/footballRows.harness";
+import { draftSteps, midfielder } from "../../support/convex/draft.harness";
+import { ARSENAL, CHELSEA, insertClubs, insertPlayers } from "../../support/convex/footballRows.harness";
 import { changeEveryRules, HELD_FIRST_RULES } from "../../support/convex/leagueRules.harness";
-import { actingAs, addManagers, adminCreatesLeague, COMMISSIONER, MANAGERS, type TestConvex } from "../../support/convex/leagues.harness";
+import { addManagers, adminCreatesLeague, COMMISSIONER, MANAGERS, type TestConvex } from "../../support/convex/leagues.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
 import { clockRunsTo } from "../../support/convex/test.harness";
 
@@ -18,8 +19,7 @@ let t: TestConvex;
 let leagueId: Id<"leagues">;
 let teams: Id<"teams">[];
 
-const player = (code: number, club = ARSENAL): HeldPlayer => ({ code, name: `Player ${code}`, fullName: `Player ${code}`, clubCode: club.code, positions: ["CM"] });
-const PLAYERS = [101, 102, 103, 104].map((code) => player(code)).concat([201, 202, 203, 204].map((code) => player(code, CHELSEA)));
+const PLAYERS = [101, 102, 103, 104].map((code) => midfielder(code)).concat([201, 202, 203, 204].map((code) => midfielder(code, CHELSEA)));
 const PICK_SECONDS = 30;
 const PICK_MS = PICK_SECONDS * SECOND_MS;
 const [ANN, BOB] = MANAGERS;
@@ -33,8 +33,7 @@ const setRules = (timeouts: number | null) =>
     draft: { ...HELD_FIRST_RULES.draft!, pickSeconds: PICK_SECONDS, timeoutsBeforeAutoPick: timeouts },
   }));
 
-const as = (email: string) => actingAs(t, email);
-const start = async () => (await as(COMMISSIONER)).mutation(api.draft.draftStart.start, { leagueId });
+const { as, pick, start, pass } = draftSteps(() => ({ t, leagueId }));
 const picked = () => t.run(async (ctx) => (await ctx.db.query("draftPicks").collect()).map(({ pick, teamId, at }) => ({ pick, teamId, at })));
 const timeouts = () => t.run(async (ctx) => (await ctx.db.query("drafts").unique())?.timeouts);
 /** Bob picks the first player nobody holds, as his clock starts if it hasn't yet (#1458). */
@@ -43,10 +42,8 @@ async function bobPicks() {
   if (startsAt > Date.now()) await clockRunsTo(t, startsAt);
   const taken = new Set(await t.run(async (ctx) => (await ctx.db.query("draftPicks").collect()).map(({ playerCode }) => playerCode)));
   const code = PLAYERS.find(({ code }) => !taken.has(code))!.code;
-  await (await as(BOB)).mutation(api.draft.draftPicks.makePick, { leagueId, playerCode: code });
+  await pick(BOB, code);
 }
-/** The clock moves on `ms`, and every pick scheduled by then is made. */
-const pass = (ms: number) => clockRunsTo(t, Date.now() + ms);
 /** The next clock starts after the gap and runs out. */
 const timeOut = () => pass(PICK_GAP_MS + PICK_MS);
 

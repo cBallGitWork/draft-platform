@@ -2,12 +2,13 @@ import { describe, expect, it } from "vitest";
 import { defaultPairOf, FIRST_INSTRUCTIONS, keptOrSwitched, offeredOn, pairRefusal, type Instruction } from "../../../convex/lineup/instructions";
 import { switchedWords } from "../../../convex/lineup/instructionsWords";
 import { DEFAULT_PRESETS } from "../../../convex/lineup/presets";
+import { presetNamed } from "../../support/convex/lineup.harness";
 
 // Team instructions (spec/05, Team instructions; #990): each offered only where the formation's
 // shape allows it, by Craig's answers on #990 (6 Nov 2026), and kept or switched on a change of
 // formation.
 
-const cellsOf = (name: string) => DEFAULT_PRESETS.find((preset) => preset.name === name)!.cells;
+const cellsOf = (name: string) => presetNamed(name).cells;
 const offers = (name: string, key: string) =>
   [...offeredOn("attacking", cellsOf(name), FIRST_INSTRUCTIONS), ...offeredOn("defensive", cellsOf(name), FIRST_INSTRUCTIONS)].some((each) => each.key === key);
 const offeredBy = (key: string) => DEFAULT_PRESETS.filter(({ name }) => offers(name, key)).map(({ name }) => name);

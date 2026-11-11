@@ -159,12 +159,17 @@ describe("the pending claims", () => {
     expect(app.myTeam.claimChanges.rank).toHaveBeenCalledWith(league.leagueId, ["c2", "c1", "c3"]);
   });
 
-  it("while claims are closed, says so in a word, with no handles or buttons", async () => {
-    open({ waivers: { ...NO_WAIVERS, locked: true } });
+  it("in the lock, says new claims are closed and shuts the drop, but a claim in can still be moved or withdrawn (S08.14)", async () => {
+    const app = open({ waivers: { ...NO_WAIVERS, locked: true } });
     expect(await screen.findByText(claimsClosedWords)).toBeTruthy();
-    expect(screen.queryByRole("img", { name: dragHandleLabel("Eze") })).toBeNull();
+    expect(screen.getByRole("img", { name: dragHandleLabel("Eze") })).toBeTruthy();
     await userEvent.click(screen.getByRole("button", { name: selectClaimLabel("Eze") }));
-    expect(screen.queryByRole("button", { name: withdrawWords })).toBeNull();
+    const panel = screen.getByRole("region", { name: claimPanelTitle(made(WED), 2, "Eze") });
+    expect((within(panel).getByRole("combobox") as HTMLSelectElement).disabled).toBe(true);
+    await userEvent.click(within(panel).getByRole("button", { name: moveUpWords }));
+    expect(app.myTeam.claimChanges.rank).toHaveBeenCalledWith(league.leagueId, ["c2", "c1", "c3"]);
+    await userEvent.click(within(panel).getByRole("button", { name: withdrawWords }));
+    expect(app.myTeam.claimChanges.withdraw).toHaveBeenCalledWith(league.leagueId, "c2");
   });
 });
 
@@ -173,6 +178,9 @@ describe("before the league's draft is over (S08.1)", () => {
     open({ waivers: { ...NO_WAIVERS, drafted: false } });
     expect(await screen.findByText(claimsNotOpenWords)).toBeTruthy();
     expect(screen.queryByRole("img", { name: dragHandleLabel("Eze") })).toBeNull();
+    await userEvent.click(screen.getByRole("button", { name: selectClaimLabel("Eze") }));
+    expect(await screen.findByRole("region", { name: claimPanelTitle(made(WED), 2, "Eze") })).toBeTruthy();
+    expect([moveUpWords, withdrawWords].map((name) => screen.queryByRole("button", { name }))).toEqual([null, null]);
   });
 
   const runs = async (waivers: WaiversView) => {

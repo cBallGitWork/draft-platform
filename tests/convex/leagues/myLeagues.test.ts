@@ -4,6 +4,7 @@ import { LEAGUES_SHOWN } from "../../../convex/leagues/leagueLimits";
 import { refusals } from "../../../convex/shared/leagueAccess";
 import {
   ADMIN,
+  accountOf as accountIn,
   actingAs,
   COMMISSIONER,
   CO_COMMISSIONER,
@@ -29,8 +30,7 @@ beforeEach(async () => {
   fakeResend();
 });
 
-/** What signIn/account:signedInAs tells the screens for `email`. */
-const accountOf = async (email: string) => (await (await actingAs(t, email)).query(api.signIn.account.signedInAs, {}))!;
+const accountOf = (email: string) => accountIn(t, email);
 
 describe("a person's leagues", () => {
   test("lists each league they have a part in, with their roles and team, and says they're in a league", async () => {

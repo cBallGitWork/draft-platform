@@ -8,9 +8,9 @@ import { changeFailedWords } from "../shared/words";
 import type { ClosedOffer, Reviewer } from "./seam";
 
 export { dateWords, noTeamWords, whenWords } from "../shared/words";
-export { warningWords } from "../squads/words";
+export { warningWords } from "../shared/words";
 export { NOTE_MOST, pickWords };
-export { viaWords } from "../draft/words";
+export { viaWords } from "../shared/words";
 
 export const TRADES_TITLE = "Trades";
 export const tradesLoadingWords = "Loading your trades…";
