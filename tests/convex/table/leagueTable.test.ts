@@ -5,7 +5,7 @@ import { refusals } from "../../../convex/shared/leagueAccess";
 import { changeRules, giveDeadlineRule, holdGameweeks, KICKS_OFF_IN, moveFplDeadline, rulesWith } from "../../support/convex/leagueRules.harness";
 import { expectRefused } from "../../support/convex/test.harness";
 import { MINUTE_MS, WEEK_MS } from "../../../convex/shared/time";
-import { ADMIN, actingAs, addManagers, adminCreatesLeague, COMMISSIONER, MANAGERS, OUTSIDER, type TestConvex } from "../../support/convex/leagues.harness";
+import { ADMIN, actingAs, addManagers, adminCreatesLeague, COMMISSIONER, MANAGERS, OUTSIDER, TEST_LEAGUE_TEAMS, type TestConvex } from "../../support/convex/leagues.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
 import { PL_GAMEWEEKS } from "../../support/convex/footballRows.harness";
 import { FIRST_RULES } from "../../../convex/rules/firstRules";
@@ -81,7 +81,7 @@ describe("the fixtures", () => {
   test("are the same on every read, drawn from the league's own seed", async () => {
     await holdSeasonToCome();
     await addManagers(t, leagueId, [ANN, BOB, CAT]);
-    const otherLeague = await adminCreatesLeague(t, 4, "Other");
+    const otherLeague = await adminCreatesLeague(t, TEST_LEAGUE_TEAMS, "Other");
     await addManagers(t, otherLeague, [ANN, BOB, CAT]);
     const readOther = async () => (await actingAs(t, ANN)).query(api.table.leagueTable.ofLeague, { leagueId: otherLeague });
 

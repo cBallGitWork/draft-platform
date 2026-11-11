@@ -8,7 +8,7 @@ import { refusals } from "../../../convex/shared/leagueAccess";
 import { WEEK_MS } from "../../../convex/shared/time";
 import { HELD_FIRST_RULES, holdGameweeks, NEXT, NO_AREA_MINIMUMS, rulesIn, rulesRevision } from "../../support/convex/leagueRules.harness";
 import { expectRefused } from "../../support/convex/test.harness";
-import { actingAs, addManagers, adminCreatesLeague, COMMISSIONER, CO_COMMISSIONER, eventsIn, lastEventAt, MANAGERS, type TestConvex } from "../../support/convex/leagues.harness";
+import { actingAs, addManagers, adminCreatesLeague, COMMISSIONER, CO_COMMISSIONER, eventsIn, lastEventAt, MANAGERS, TEST_LEAGUE_TEAMS, type TestConvex } from "../../support/convex/leagues.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
 
 // League settings (Craig, 22 Oct 2026): the odd team out, games a gameweek and the squad's make-up
@@ -104,7 +104,7 @@ describe("changing them", () => {
     // none in those (#282).
     const now = Date.now();
     vi.setSystemTime(now - SEASON_SO_FAR);
-    leagueId = await adminCreatesLeague(t, 4, "Made before the season");
+    leagueId = await adminCreatesLeague(t, TEST_LEAGUE_TEAMS, "Made before the season");
     await addManagers(t, leagueId, MANAGERS.slice(0, 4));
     vi.setSystemTime(now);
     const games = 3;
