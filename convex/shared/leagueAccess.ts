@@ -2,7 +2,7 @@ import { getAuthUserId } from "@convex-dev/auth/server";
 import { ConvexError, v, type Infer } from "convex/values";
 import type { Doc, Id } from "../_generated/dataModel";
 import type { QueryCtx } from "../_generated/server";
-import { adminEmail, EMAIL_MAX, isEmailAddress, normaliseEmail } from "../signIn/allowedEmails";
+import { adminEmail, isEmailAddress, normaliseEmail } from "../signIn/allowedEmails";
 import { FEWEST_TEAMS, LEAGUE_NAME_MAX, MOST_TEAMS, TEAM_NAME_MAX } from "../leagues/leagueLimits";
 import { leagueOpens } from "../leagues/leagueOpens";
 
@@ -48,11 +48,11 @@ export function refuse(reason: string): never {
   throw new ConvexError(reason);
 }
 
-/** A typed email, as every email is stored (`normaliseEmail`), or a refusal: one past `EMAIL_MAX`
- *  is no address, as sign-in counts it (signInLinks.ts). */
+/** A typed email, as every email is stored (`normaliseEmail`), or a refusal when it is no address
+ *  (`isEmailAddress`, which every door in asks). */
 export function namedEmail(typed: string): string {
   const email = normaliseEmail(typed);
-  if (!isEmailAddress(email) || email.length > EMAIL_MAX) refuse(refusals.notEmail(typed));
+  if (!isEmailAddress(email)) refuse(refusals.notEmail(typed));
   return email;
 }
 
