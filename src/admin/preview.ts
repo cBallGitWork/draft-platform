@@ -4,6 +4,7 @@
 // failing, a match behind and a correction after the lock. On the Availability tab, three players
 // set by hand over the feed, and the one a search finds, set by none (the approved auto-team picture).
 
+import { FIRST_PLATFORM_SETTINGS } from "../../convex/admin/platformSettings";
 import { FIRST_THRESHOLDS } from "../../convex/positions/positionChanges";
 import { HOUR_MS, MINUTE_MS } from "../../convex/shared/time";
 import { previewSays } from "../shared/preview";
@@ -90,6 +91,6 @@ export const previewAdmin: AdminSeam = {
   setChangeThresholds: previewSays("the thresholds didn't change"),
   setClubColours: previewSays("no club's colours changed"),
   setAvailability: previewSays("no player's availability changed"),
-  usePlatformSettings: () => ({ statCorrectionWindowMinutes: 60, scoutsPerTeam: 3, matchdayHoursBefore: 3, matchdayHoursAfter: 2 }),
+  usePlatformSettings: () => FIRST_PLATFORM_SETTINGS,
   savePlatformSettings: previewSays("the site's settings didn't change"),
 };

@@ -21,14 +21,14 @@ export const DEFAULT_SCOUTS_PER_TEAM = 3;
 /** Each setting until the admin sets it. League home's matchday mode (spec/12, League home) runs
  *  from this many hours before a matchday's first kickoff to this many after its last final
  *  whistle ("hours the site can tune"). */
-const DEFAULTS: PlatformSettings = {
+export const FIRST_PLATFORM_SETTINGS: PlatformSettings = {
   statCorrectionWindowMinutes: DEFAULT_STAT_CORRECTION_WINDOW_MINUTES,
   scoutsPerTeam: DEFAULT_SCOUTS_PER_TEAM,
   matchdayHoursBefore: 3,
   matchdayHoursAfter: 2,
 };
 
-const NAMES = Object.keys(DEFAULTS) as SettingName[];
+const NAMES = Object.keys(FIRST_PLATFORM_SETTINGS) as SettingName[];
 
 /** Why a setting is refused, as the admin is told it. */
 export const settingRefusals: Record<SettingName, (value: number) => string> = {
@@ -51,7 +51,7 @@ export const settings = query({
   returns: platformSettings,
   handler: async (ctx): Promise<PlatformSettings> => {
     await adminOf(ctx);
-    const values = await Promise.all(NAMES.map(async (name) => (await settingRow(ctx, name))?.value ?? DEFAULTS[name]));
+    const values = await Promise.all(NAMES.map(async (name) => (await settingRow(ctx, name))?.value ?? FIRST_PLATFORM_SETTINGS[name]));
     return Object.fromEntries(NAMES.map((name, i) => [name, values[i]])) as PlatformSettings;
   },
 });
@@ -125,7 +125,7 @@ async function saveAll(ctx: MutationCtx, values: Partial<PlatformSettings>) {
 }
 
 async function valueOf(ctx: QueryCtx, name: SettingName): Promise<number> {
-  return (await settingRow(ctx, name))?.value ?? DEFAULTS[name];
+  return (await settingRow(ctx, name))?.value ?? FIRST_PLATFORM_SETTINGS[name];
 }
 
 function settingRow(ctx: QueryCtx, name: SettingName) {

@@ -1,6 +1,7 @@
 // The admin dashboard's tests' fake seam (shell.harness.tsx hands it to the app).
 
 import { vi } from "vitest";
+import { FIRST_PLATFORM_SETTINGS } from "../../../convex/admin/platformSettings";
 import { FIRST_THRESHOLDS } from "../../../convex/positions/positionChanges";
 import type { AdminSeam, AvailabilityRow, FeedsReport, FoundPlayerPositions, PlatformSettings, PositionsQueue } from "../../../src/admin/seam";
 
@@ -19,10 +20,6 @@ export type AdminData = {
   platformSettings?: PlatformSettings;
   settingsLoading?: boolean;
 };
-
-/** The site's settings as they stand until the admin sets them. */
-export const FIRST_PLATFORM_SETTINGS: PlatformSettings = { statCorrectionWindowMinutes: 60, scoutsPerTeam: 3, matchdayHoursBefore: 3, matchdayHoursAfter: 2 };
-
 export const EMPTY_QUEUE: PositionsQueue = {
   newSignings: [],
   waiting: [],
