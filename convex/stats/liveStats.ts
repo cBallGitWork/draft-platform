@@ -1,10 +1,9 @@
 import { v } from "convex/values";
 import { internalMutation, internalQuery, type QueryCtx } from "../_generated/server";
-import { dueMatch, type DueMatch } from "../shared/dueMatches";
+import { dueMatch, LIVE_WINDOW_MS, type DueMatch } from "../shared/dueMatches";
 import { matchWrites, recordsOf, statusOf, writeRecords } from "./matchStats";
 import { liveStatsTickFields, playerMatchRecord, sideMatchOutcome } from "../schema";
 import { LATEST_RUNS } from "../shared/syncRuns";
-import { HOUR_MS } from "../shared/time";
 import { emailIfFailed } from "../admin/feedFailureEmails";
 import { storeThresholdSteps } from "./thresholdSteps";
 import { FULL_TIME_LINE_WAIT_MS, fullTimeLineMissing } from "../football/matchCommentary";
@@ -12,12 +11,6 @@ import { FULL_TIME_LINE_WAIT_MS, fullTimeLineMissing } from "../football/matchCo
 // Issue #28: the stored side of the live poller. `liveStatsSync.tick` asks `live` which matches
 // are being played, reads them, and hands each one before full time to `upsertLive`; from full
 // time on it goes to `matchStats.upsertMatch`, as the sync's reads do. Each tick is a row.
-
-/** The longest a match is polled after kickoff: 105 minutes of play and half-time, stoppage time,
- *  a delayed kickoff and the minutes after full time while records still arrive. One the Premier
- *  League has not called full time by then is abandoned or its status is stuck, and is left to
- *  `matchStatsSync`. Claude's choice, as long as `scripts/record-match.mjs` records for. */
-export const LIVE_WINDOW_MS = 4 * HOUR_MS;
 
 /** The matches being played at `now`: kicked off within the window, and not yet complete. A match
  *  provisional after full time is still polled, so its last records land within the minute; and

@@ -4,7 +4,7 @@
 // to Monday has three; where two overlap, a late kickoff and the next day's early one, they join
 // into one (Craig, 6 Nov 2026, #387). Pure: leagueHome.ts reads what it needs.
 
-import { LIVE_WINDOW_MS } from "../stats/liveStats";
+import { LIVE_WINDOW_MS } from "../shared/dueMatches";
 import { groupedBy } from "../shared/groupedBy";
 import { londonDay } from "../shared/moments";
 

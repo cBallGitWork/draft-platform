@@ -1,7 +1,7 @@
 import { beforeEach, expect, test, vi } from "vitest";
 import { internal } from "../../../convex/_generated/api";
 import { FPL_BOOTSTRAP_URL, fplLiveUrl } from "../../../convex/football/football";
-import { LIVE_WINDOW_MS } from "../../../convex/stats/liveStats";
+import { LIVE_WINDOW_MS } from "../../../convex/shared/dueMatches";
 import { heldRecords, recordsIn, stagedGw6, stageTime, tickAt } from "../../support/convex/liveStats.harness";
 import {
   FULL_TIME_READ,
