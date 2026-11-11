@@ -1,7 +1,7 @@
 import { v } from "convex/values";
-import type { Doc } from "../_generated/dataModel";
+import type { Doc, Id } from "../_generated/dataModel";
 import { internal } from "../_generated/api";
-import { internalMutation, type MutationCtx } from "../_generated/server";
+import { internalMutation, type MutationCtx, type QueryCtx } from "../_generated/server";
 import { heldSchedule, type HeldSchedule } from "../gameweeks/leagueDeadlines";
 import { saveGameweekOf } from "../lineup/lineups";
 import { adminByline } from "../mail/letterWords";
@@ -11,7 +11,7 @@ import { teamsOf } from "../shared/leagueAccess";
 import { playerByCode, unheldPlayerWords } from "../shared/players";
 import { placeOf, squadOf } from "../squads/squadPlace";
 import { workedOutNow } from "./playerPositions";
-import { howPositionsCount } from "./positionSettings";
+import { howPositionsCount, type HowPositionsCount } from "./positionSettings";
 import type { Position } from "./positionTables";
 import { position as positionArg } from "../schema";
 
@@ -109,8 +109,8 @@ export const warnOfAdminRemovalNow = internalMutation({
 });
 
 /** Each team's players flagged or lost at a position, as the league's own deadlines judge them,
- *  and not yet told to his manager, are told now; a step that no longer stands, or a player gone
- *  from the team, is forgotten, so it is told again if it comes back. A league with no gameweek
+ *  and not yet told to his manager, are told now (those standing as he joined were kept as told
+ *  then: `knownOnJoining`); a step that no longer stands, or a player gone from the team, is forgotten, so it is told again if it comes back. A league with no gameweek
  *  left to set a lineup for tells nothing. */
 async function warnLeague(ctx: MutationCtx, league: Doc<"leagues">): Promise<void> {
   const schedule = await heldSchedule(ctx);
@@ -118,23 +118,13 @@ async function warnLeague(ctx: MutationCtx, league: Doc<"leagues">): Promise<voi
   if (next.kind !== "open") return;
   const how = await howPositionsCount(ctx, league._id, schedule.matches);
   for (const team of await teamsOf(ctx, league._id)) {
-    const told = await ctx.db
-      .query("positionWarnings")
-      .withIndex("by_teamId", (q) => q.eq("teamId", team._id))
-      .take(MOST_WARNINGS_A_TEAM);
+    const told = await toldTo(ctx, team._id);
     const standing = new Set<string>();
     for (const { playerCode } of await squadOf(ctx, team._id)) {
-      const worked = await workedOutNow(ctx, playerCode, how);
-      const changes: PositionChange[] = [
-        ...worked.positions.flatMap(({ position, flaggedElsewhere }) =>
-          flaggedElsewhere === null ? [] : [{ position, step: "flagged" as const, startsElsewhere: flaggedElsewhere }],
-        ),
-        ...worked.removed.map((position) => ({ position, step: "lost" as const })),
-      ];
-      for (const change of changes) {
+      for (const change of await changesOf(ctx, playerCode, how)) {
         const { position, step } = change;
         standing.add(key(playerCode, position, step));
-        if (told.some((each) => key(each.playerCode, each.position, each.step) === key(playerCode, position, step))) continue;
+        if (isTold(told, playerCode, position, step)) continue;
         // Kept only once a letter goes out, so a manager who arrives later is still told.
         if (team.managerEmail === undefined) continue;
         await ctx.db.insert("positionWarnings", { teamId: team._id, playerCode, position, step });
@@ -145,6 +135,28 @@ async function warnLeague(ctx: MutationCtx, league: Doc<"leagues">): Promise<voi
     for (const each of told) {
       if (!standing.has(key(each.playerCode, each.position, each.step))) await ctx.db.delete("positionWarnings", each._id);
     }
+  }
+}
+
+/** The steps a run of starts elsewhere has taken his positions to, as `how` judges them. */
+async function changesOf(ctx: QueryCtx, playerCode: number, how: HowPositionsCount): Promise<PositionChange[]> {
+  const worked = await workedOutNow(ctx, playerCode, how);
+  return [
+    ...worked.positions.flatMap(({ position, flaggedElsewhere }) =>
+      flaggedElsewhere === null ? [] : [{ position, step: "flagged" as const, startsElsewhere: flaggedElsewhere }],
+    ),
+    ...worked.removed.map((position) => ({ position, step: "lost" as const })),
+  ];
+}
+
+/** A player joining `teamId` (drafted, assigned, moved, picked up, claimed or traded): the steps
+ *  his positions already stand at are kept as told to it, with no letter (Craig, 11 Nov 2026, on
+ *  #1615: a position flagged or lost before he joined is known, and his card still shows it). A
+ *  step that comes after is told as ever. */
+export async function knownOnJoining(ctx: MutationCtx, leagueId: Id<"leagues">, teamId: Id<"teams">, playerCode: number): Promise<void> {
+  const told = await toldTo(ctx, teamId);
+  for (const { position, step } of await changesOf(ctx, playerCode, await howPositionsCount(ctx, leagueId))) {
+    if (!isTold(told, playerCode, position, step)) await ctx.db.insert("positionWarnings", { teamId, playerCode, position, step });
   }
 }
 
@@ -173,6 +185,17 @@ export async function warnOfAdminRemoval(ctx: MutationCtx, playerCode: number, p
 const MOST_WARNINGS_A_TEAM = 1000;
 
 const key = (playerCode: number, position: Position, step: Step) => `${playerCode} ${position} ${step}`;
+
+/** The steps the team has been told of. */
+function toldTo(ctx: QueryCtx, teamId: Id<"teams">): Promise<Doc<"positionWarnings">[]> {
+  return ctx.db
+    .query("positionWarnings")
+    .withIndex("by_teamId", (q) => q.eq("teamId", teamId))
+    .take(MOST_WARNINGS_A_TEAM);
+}
+
+const isTold = (told: Doc<"positionWarnings">[], playerCode: number, position: Position, step: Step) =>
+  told.some((each) => key(each.playerCode, each.position, each.step) === key(playerCode, position, step));
 
 async function nameOf(ctx: MutationCtx, playerCode: number): Promise<string> {
   return (await playerByCode(ctx, playerCode))?.name ?? unheldPlayerWords(playerCode);

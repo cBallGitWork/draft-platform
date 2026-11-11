@@ -12,6 +12,7 @@ import { areaShape } from "../lineup/pitchShape";
 import type { LeagueRules } from "../rules/leagueRulesShape";
 import { areasOf, type Area } from "../lineup/pitch";
 import { positionsNow } from "../positions/playerPositions";
+import { knownOnJoining } from "../positions/positionWarnings";
 import { areasShort } from "./areaMinimums";
 import { readOnce } from "../shared/readOnce";
 import { heldOrNot, ownerOf, placeOf, squadOf, unheldCodes } from "./squadPlace";
@@ -81,6 +82,7 @@ export const assign = mutation({
     if (place !== null) refuse(squadRefusals.alreadyOwned(player.name, (await teamIn(ctx, leagueId, place.teamId)).name));
     await roomOn(ctx, team);
     await ctx.db.insert("squadPlayers", { leagueId, teamId, playerCode });
+    await knownOnJoining(ctx, leagueId, teamId, playerCode);
     await offWaivers(ctx, leagueId, playerCode);
     await recordEvent(ctx, leagueId, by, { kind: "playerAssigned", playerCode, playerName: player.name, teamId, teamName: team.name });
     await pickFirstLineupAgain(ctx, leagueId, teamId);
@@ -103,6 +105,7 @@ export const move = mutation({
     // A new team starts him afresh: on no number of its own (spec/05 Squad numbers), and never its
     // free-agent pickup, so its drop sends him to waivers (#1479).
     await ctx.db.patch("squadPlayers", place._id, { teamId, number: undefined, pickedUpAt: undefined });
+    await knownOnJoining(ctx, leagueId, teamId, playerCode);
     await recordEvent(ctx, leagueId, by, {
       kind: "playerMoved",
       playerCode,
