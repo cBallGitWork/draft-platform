@@ -3,10 +3,9 @@ import { api } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
 import { ARSENAL, insertClubs, insertPlayers, type HeldPlayer } from "../../support/convex/footballRows.harness";
 import { changeEveryRules } from "../../support/convex/leagueRules.harness";
-import { addManagers, adminCreatesLeague, MANAGERS, type TestConvex } from "../../support/convex/leagues.harness";
+import { addManagers, adminCreatesLeague, lettersTo, MANAGERS, type TestConvex } from "../../support/convex/leagues.harness";
 import { pickOf, pickTradeSteps } from "../../support/convex/trades.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
-import { lettersTo } from "../../support/convex/waivers.harness";
 
 // A pick trade with a pick in a round a squad-size cut removed (#1457): when the draft starts, the
 // trade is undone, both picks back with the teams that held them before, and both managers are

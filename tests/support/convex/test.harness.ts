@@ -45,6 +45,10 @@ export function freshConvex(atConvexLimits = false): TestConvex {
  *  on CI's runner, so the margin is wide; it stays under npm test's whole-run deadline. */
 export const ROWS_TO_THE_CAP = { timeout: 120_000 };
 
+/** A test that runs a whole sync or a replay through convex-test: a few seconds alone, too near
+ *  vitest's 5s default on a busy core, so it gets 30s. */
+export const SLOW_TEST = { timeout: 30_000 };
+
 /** One character that is two UTF-16 units, for the typed-text limits, which count characters. */
 export const EMOJI = "\u{1F3C6}";
 

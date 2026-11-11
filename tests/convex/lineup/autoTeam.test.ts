@@ -8,7 +8,7 @@ import { lineupInGameweek } from "../../../convex/lineup/lineups";
 import type { Availability } from "../../../convex/availability/availability";
 import { WEEK_MS } from "../../../convex/shared/time";
 import { holdGameweeks } from "../../support/convex/leagueRules.harness";
-import { ADMIN, COMMISSIONER, MANAGERS, actingAs, addManager, addManagers, adminCreatesLeague, type TestConvex } from "../../support/convex/leagues.harness";
+import { ADMIN, COMMISSIONER, MANAGERS, actingAs, addManager, addManagers, adminCreatesLeague, lettersTo, teamName, type TestConvex } from "../../support/convex/leagues.harness";
 import { FIRST_SUB } from "../../support/convex/lineup.harness";
 import { FOUR_FOUR_TWO, holdSquad, NEXT, passNextDeadline, squadMoves } from "../../support/convex/lineupSquad.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
@@ -66,8 +66,7 @@ const passWeekOn = async () => {
 const startersIn = async (gameweek: number) => (await t.run((ctx) => lineupInGameweek(ctx, leagueId, annsTeam, gameweek))).starters.map(({ playerCode }) => playerCode);
 const benchIn = async (gameweek: number) => (await t.run((ctx) => lineupInGameweek(ctx, leagueId, annsTeam, gameweek))).bench;
 const switchOf = () => t.run(async (ctx) => (await ctx.db.get("teams", annsTeam))!.autoTeam ?? null);
-const lettersTo = (email: string) => t.run((ctx) => ctx.db.query("letters").withIndex("by_to_and_at", (q) => q.eq("to", email)).collect());
-const subjectsTo = async (email: string) => (await lettersTo(email)).map((letter) => letter.subject);
+const subjectsTo = async (email: string) => (await lettersTo(t, email)).map((letter) => letter.subject);
 
 describe("switched on by a person", () => {
   test("an out starter is swapped for the first bench player who fits, and a doubtful one is kept", async () => {
@@ -119,7 +118,7 @@ describe("switched on by a person", () => {
     const subjects = await subjectsTo(BOB);
     expect(subjects).toContain(`${name} is on the auto team`);
     expect(subjects).toContain(`${name} is off the auto team`);
-    const on = (await lettersTo(BOB)).find((letter) => letter.subject === `${name} is on the auto team`)!;
+    const on = (await lettersTo(t, BOB)).find((letter) => letter.subject === `${name} is on the auto team`)!;
     expect(on.body).toContain(`until after gameweek ${NEXT + 2}`);
   });
 });
@@ -202,7 +201,7 @@ describe("a team with no manager", () => {
   });
 });
 
-const teamNameOf = () => t.run(async (ctx) => (await ctx.db.get("teams", annsTeam))!.name);
+const teamNameOf = () => teamName(t, annsTeam);
 
 describe("the team's instructions", () => {
   test("carry on into the lineup the auto team saves for a later gameweek: it only touches the lineup", async () => {
