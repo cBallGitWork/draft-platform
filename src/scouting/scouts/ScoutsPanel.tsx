@@ -1,6 +1,5 @@
 import { Link } from "@tanstack/react-router";
 import type { Id } from "../../../convex/_generated/dataModel";
-import { minutesLeftWords } from "../../draft/words";
 import { playerCardPath } from "../../playerCard/paths";
 import { ScoutAction } from "../../playerCard/ScoutAction";
 import { useMinute } from "../../shared/useMinute";
@@ -12,6 +11,7 @@ import {
   earlierReportWords,
   freeScoutWords,
   loadingScoutsWords,
+  minutesLeftWords,
   outOnWords,
   readNamedLabel,
   readWords,
