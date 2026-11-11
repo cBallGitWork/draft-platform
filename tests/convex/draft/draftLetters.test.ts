@@ -238,6 +238,45 @@ describe("a pause", () => {
   });
 });
 
+// Craig, 11 Nov 2026, on #1461: told at once, with no deadline, as his clock starts on resume.
+describe("you're up next while the draft is paused", () => {
+  const PAUSED_ANN = "Team 1 is up next: round 1, pick 1. The draft is paused; your clock starts when it resumes.";
+  const undo = async () => (await as(COMMISSIONER)).mutation(api.draft.draftCommissioner.undoPick, { leagueId });
+  const pickFor = async (teamId: Id<"teams">, playerCode: number) =>
+    (await as(COMMISSIONER)).mutation(api.draft.draftPicks.pickFor, { leagueId, teamId, playerCode });
+
+  test("after the commissioner's undo, goes by letter and email with no deadline, and resuming sends no other", async () => {
+    await setPickSecondsOf(t, leagueId, UP_NEXT_EMAIL_OVER_MS / SECOND_MS + 1);
+    await start();
+    await pick(ANN, A1);
+    await pass(PICK_GAP_MS);
+    await pause();
+    const [before, emailsBefore] = [(await letters()).length, upNextEmails().length];
+    await undo();
+    await pass(0);
+
+    expect((await lettersSince(before)).filter(({ subject }) => subject === UP_NEXT)).toEqual([{ to: ANN, subject: UP_NEXT, body: PAUSED_ANN, read: false }]);
+    expect(upNextEmails().slice(emailsBefore)).toMatchObject([{ to: ANN, subject: UP_NEXT, text: PAUSED_ANN }]);
+
+    const afterUndo = (await letters()).length;
+    await resume();
+    await pass(0);
+    expect(await lettersSince(afterUndo)).toEqual([]);
+    expect(upNextEmails().slice(emailsBefore)).toHaveLength(1);
+  });
+
+  test("after the commissioner's pick for a team, goes to the next manager with no deadline", async () => {
+    await start();
+    await pause();
+    const before = (await letters()).length;
+    await pickFor(teams[0], A1);
+
+    expect((await lettersSince(before)).filter(({ subject }) => subject === UP_NEXT)).toEqual([
+      { to: BOB, subject: UP_NEXT, body: "Team 2 is up next: round 1, pick 2. The draft is paused; your clock starts when it resumes.", read: false },
+    ]);
+  });
+});
+
 describe("a start date the draft can't start on", () => {
   test("files the commissioner a letter saying why, and no one else", async () => {
     const startsAt = Date.now() + DAY_MS;
