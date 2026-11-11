@@ -11,7 +11,8 @@ import { namedRole, roleIn } from "../../convex/lineup/roles";
 import type { MatchBreakdown, TeamsCommentary, MatchupSide, MatchupBenchSlot, MatchupSlot, MatchupStarter } from "../../convex/matchup/matchupShape";
 import { MINUTE_MS } from "../../convex/shared/time";
 import { previewFixtureCode } from "../premierLeague/preview";
-import { previewIdOf, previewSeason, previewTeams } from "../table/preview";
+import { previewGameweek, previewTeamNames } from "../shared/preview";
+import { previewIdOf, previewSeason } from "../table/preview";
 import type { Matchup, MatchupSeam } from "./seam";
 
 /** How long a man's match runs, stoppage time in, and when the second match kicks off. */
@@ -21,13 +22,12 @@ const SECOND_KICKOFF = 30;
 const LAST_MINUTE = SECOND_KICKOFF + MATCH_MINUTES;
 const FINAL_MINUTE = LAST_MINUTE + 2;
 const TICK_MS = 500;
-const GAMEWEEK = 8;
 const startedAt = Date.now();
 
 /** A made-up man: where he stands, his name, which match he plays (0 first, 1 second), and his
  *  points at full time; a keeper with no match minutes didn't play. */
 type Man = [Area, string, 0 | 1, number];
-const [MINE, OPPONENT] = [previewTeams[0], previewTeams[2]];
+const [MINE, OPPONENT] = previewTeamNames;
 const SAKA_POTATOES: { starters: Man[]; bench: Man[] } = {
   starters: [
     ["goalkeeper", "Raya", 0, 0],
@@ -82,7 +82,7 @@ const codeOf = (name: string) => [...name].reduce((code, letter) => code * 31 + 
 function slotAt([area, name, match, finalPoints]: Man, minute: number, onBench: boolean): MatchupSlot {
   const played = minute - match * SECOND_KICKOFF;
   // The Premier League preview's code for the match, whose page every fixture there opens.
-  const fixtureCode = previewFixtureCode(GAMEWEEK, match);
+  const fixtureCode = previewFixtureCode(previewGameweek, match);
   const kickoff = startedAt + match * SECOND_KICKOFF * MINUTE_MS;
   const status: MatchupSlot["status"] =
     played < 0
@@ -268,7 +268,7 @@ function usePreviewMatchup(gameweek: number): Matchup {
 const overrideNothing = () => Promise.resolve(null);
 
 export const previewMatchup: MatchupSeam = {
-  useMatchup: (_leagueId, _now, asked) => usePreviewMatchup(asked.gameweek ?? GAMEWEEK),
+  useMatchup: (_leagueId, _now, asked) => usePreviewMatchup(asked.gameweek ?? previewGameweek),
   useOverrideTeam: () => overrideNothing,
   useRemoveTeamOverride: () => overrideNothing,
 };
