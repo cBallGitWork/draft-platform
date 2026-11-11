@@ -217,7 +217,7 @@ export const ofMyTeam = query({
         ];
         const reviewNow =
           offer.review === undefined
-            ? await reviewerOf(ctx, league, offer)
+            ? await reviewerOf(ctx, league, offer, deadlines, now)
             : offer.review.reviewer;
         return {
           offerId: offer._id,

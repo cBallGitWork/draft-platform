@@ -8,8 +8,8 @@ import { api, internal } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
 import type { TradeRules } from "../../../convex/rules/leagueRulesShape";
 import { REVIEW_MS } from "../../../convex/trades/tradeLimits";
-import { changeEveryRules } from "./leagueRules.harness";
-import { actingAs } from "./leagues.harness";
+import { changeEveryRules, rulesRevision } from "./leagueRules.harness";
+import { actingAs, COMMISSIONER } from "./leagues.harness";
 import { ANN, BOB, CAT, PALMER, RICE, SAKA, waiverLeague } from "./waivers.harness";
 
 export { ANN, BOB, CAT, PALMER, RICE, SAKA };
@@ -44,6 +44,12 @@ export async function tradeLeague() {
     offers,
     /** The league's trade rules, in force at once. */
     tradesAre: (trades: TradeRules) => changeEveryRules(t, leagueId, (rules) => ({ ...rules, trades })),
+    /** The commissioner changes the trade rules in League settings now: from the next gameweek. */
+    tradesChange: async (trades: TradeRules) => {
+      const commissioner = await actingAs(t, COMMISSIONER);
+      const settings = (await commissioner.query(api.rules.leagueSettings.settings, { leagueId, now: Date.now() }))!.part;
+      return commissioner.mutation(api.rules.leagueSettings.changeSettings, { leagueId, settings: { ...settings, trades }, revision: await rulesRevision(t, leagueId) });
+    },
     /** The review's 24 hours pass and its timer fires, as the scheduler fires it. */
     reviewEnds: async (offerId: Id<"tradeOffers">) => {
       vi.setSystemTime(Date.now() + REVIEW_MS);

@@ -43,7 +43,7 @@ export function newestRow(history: readonly RulesRow[], leagueId: Id<"leagues">)
 }
 
 /** The league's latest rules, a waiting change's among them: what the squad's warnings read (#31),
- *  as a change of squad limits is best known at once. */
+ *  as a change of squad limits is best known at once. Trades read `rulesSinceBegun` instead. */
 export async function latestRules(ctx: QueryCtx, leagueId: Id<"leagues">): Promise<LeagueRules> {
   return newestRow(await historyOf(ctx, leagueId), leagueId).rules;
 }
@@ -54,6 +54,16 @@ function rulesInForce(history: readonly RulesRow[], leagueId: Id<"leagues">, gam
   const row = inForce(history, gameweek);
   if (row === undefined) throw new Error(`League ${leagueId} has no rules for gameweek ${gameweek}`);
   return row.rules;
+}
+
+/** The league's rules in force while `begun` is the latest gameweek it has begun, or with none begun
+ *  (null), those its first gameweek starts on; a change waiting for a later gameweek isn't among
+ *  them. What trades read: their review and deadline change from the next gameweek, like any rule
+ *  (spec/03; #25, #1473). */
+export async function rulesSinceBegun(ctx: QueryCtx, leagueId: Id<"leagues">, begun: number | null): Promise<LeagueRules> {
+  const history = await historyOf(ctx, leagueId);
+  const first = (history[0] ?? newestRow(history, leagueId)).fromGameweek;
+  return rulesInForce(history, leagueId, Math.max(begun ?? first, first));
 }
 
 /** The league's rules over the season: its latest, a waiting change's among them, and those in
