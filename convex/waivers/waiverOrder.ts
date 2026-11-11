@@ -21,7 +21,8 @@ import { firstRunFrom } from "./waiverTimes";
 // bottom, that doesnt reset"); under reverse table order it does once a gameweek ends ("the table
 // order resets only fully only when a gameweek ends"), so from a deadline until that gameweek's
 // last match is over the winners stay and the table behind the order is the one the last gameweek
-// ended on (#1480). There is always a table, everyone on 0 at the start; teams level in it go by its own tie-breaks, then by the reverse of the draft order.
+// ended on (#1480). There is always a table, everyone on 0 at the start; teams level in it go by
+// its own tie-breaks, then by the reverse of the draft order.
 // A change of order type applies at once, from today's order (Craig, 6 Nov 2026, on #1200), so
 // nobody jumps the queue by the switch: `switchWaiverOrder` keeps it as the order's start.
 
