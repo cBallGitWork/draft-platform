@@ -65,6 +65,9 @@ export async function elapse(t: TestConvex, ms: number): Promise<void> {
   await t.finishInProgressScheduledFunctions();
 }
 
+/** Runs every scheduled function, and those they schedule, however far off, the clock jumping to each. */
+export const everyJobRuns = (t: TestConvex) => t.finishAllScheduledFunctions(vi.runAllTimers);
+
 /** The scheduled functions still waiting to run, in the order they were scheduled; only those of
  *  `fn` when it is given. */
 export async function pendingJobs(t: TestConvex, fn?: FunctionReference<"mutation" | "action", "internal" | "public">) {

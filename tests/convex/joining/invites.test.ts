@@ -35,7 +35,7 @@ import {
   type SentEmail,
 } from "../../support/convex/signIn.harness";
 import { DAY_MS } from "../../../convex/shared/time";
-import { expectRefused } from "../../support/convex/test.harness";
+import { expectRefused, everyJobRuns } from "../../support/convex/test.harness";
 
 // Emailed invites (#73 stories 1 and 5; spec/13, Joining).
 
@@ -107,7 +107,7 @@ describe("an invite", () => {
   test("files for Mail who invited whom to which team, and who joined it", async () => {
     const inviteId = await invite(t, leagueId, ANN);
     await (await asCommissioner(t)).mutation(api.joining.invites.resend, { inviteId });
-    await t.finishAllScheduledFunctions(vi.runAllTimers);
+    await everyJobRuns(t);
     await openLastLinkTo(t, sent, ANN);
     const teamId = (await teamsIn(t, leagueId))[0]._id;
 
@@ -132,7 +132,7 @@ describe("how long an invite lasts", () => {
     const inviteId = await invite(t, leagueId, ANN);
     vi.advanceTimersByTime(INVITE_LIFETIME_MS + 1);
     await (await asCommissioner(t)).mutation(api.joining.invites.resend, { inviteId });
-    await t.finishAllScheduledFunctions(vi.runAllTimers);
+    await everyJobRuns(t);
 
     expect(emailsTo(sent, ANN)).toHaveLength(2);
     expect((await inviteRow(inviteId))?.expiresAt).toBe(Date.now() + INVITE_LIFETIME_MS);
@@ -250,7 +250,7 @@ describe("past the day's emails (spec/13)", () => {
     expect(emailsTo(sent, ANN)).toEqual([]);
     await expectRefused((await asCommissioner(t)).mutation(api.joining.invites.resend, { inviteId }), joiningRefusals.inviteWaiting);
 
-    await t.finishAllScheduledFunctions(vi.runAllTimers);
+    await everyJobRuns(t);
     expect(new Date(Date.now()).toISOString()).toBe("2026-10-21T00:00:00.000Z");
     expect((await inviteRow(inviteId))?.delivery).toBe("sent");
     expect(emailsTo(sent, ANN)).toHaveLength(1);

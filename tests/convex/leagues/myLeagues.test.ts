@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, test, vi } from "vitest";
+import { beforeEach, describe, expect, test } from "vitest";
 import { api, internal } from "../../../convex/_generated/api";
 import { LEAGUES_SHOWN } from "../../../convex/leagues/leagueLimits";
 import { refusals } from "../../../convex/shared/leagueAccess";
@@ -17,7 +17,7 @@ import {
   type TestConvex,
 } from "../../support/convex/leagues.harness";
 import { ask, fakeResend, linkCode, linkNotSentLine, openLink, signInDeployment } from "../../support/convex/signIn.harness";
-import { expectRefused, silenceConsoleError } from "../../support/convex/test.harness";
+import { expectRefused, silenceConsoleError, everyJobRuns } from "../../support/convex/test.harness";
 
 // "Your leagues" (spec/12): what signIn/account:signedInAs tells the screens of a person's leagues, and
 // #24's Done line end to end.
@@ -142,7 +142,7 @@ describe("a commissioner's sign-in link that didn't go", () => {
     const admin = await actingAs(t, ADMIN);
     const leagueId = await admin.mutation(api.leagues.leagues.create, { name: "L", maxTeams: 4, commissionerEmail: ANN });
     await admin.mutation(api.leagues.leagues.nameCommissioner, { leagueId, email: COMMISSIONER });
-    await t.finishAllScheduledFunctions(vi.runAllTimers);
+    await everyJobRuns(t);
     expect(logged).toHaveBeenCalledWith(expect.stringContaining(linkNotSentLine(ANN)));
     expect(logged).toHaveBeenCalledWith(expect.stringContaining(linkNotSentLine(COMMISSIONER)));
     // Ann's link, sent first, is the last to answer.

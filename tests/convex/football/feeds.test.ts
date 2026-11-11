@@ -27,7 +27,7 @@ import {
   recordedLiveSheets,
   recordedLiveTeamStats,
 } from "../../support/recorded/live.payloads";
-import { elapse, fakeFetch, freshConvex, silenceConsoleError } from "../../support/convex/test.harness";
+import { elapse, fakeFetch, freshConvex, silenceConsoleError, everyJobRuns } from "../../support/convex/test.harness";
 import { MINUTE_MS } from "../../../convex/shared/time";
 
 /** Answers each feed as it answered on 17 Oct 2026, cut down, the Premier League listing `seasons`;
@@ -57,7 +57,7 @@ test("a check scheduled for later runs only when its time comes, and records eac
   expect(await t.query(internal.football.feeds.latest, {})).toEqual([]);
 
   vi.advanceTimersByTime(MINUTE_MS);
-  await t.finishAllScheduledFunctions(vi.runAllTimers);
+  await everyJobRuns(t);
 
   const [row] = await t.query(internal.football.feeds.latest, {});
   expect(row).toMatchObject({

@@ -7,7 +7,7 @@ import { refusals } from "../../../convex/shared/leagueAccess";
 import { DAY_MS, HOUR_MS, MINUTE_MS, SECOND_MS } from "../../../convex/shared/time";
 import { SAKA } from "../../support/convex/footballRows.harness";
 import { changeRules, HELD_FIRST_RULES, holdGameweeks, rulesWith } from "../../support/convex/leagueRules.harness";
-import { elapse, expectRefused } from "../../support/convex/test.harness";
+import { elapse, expectRefused, everyJobRuns } from "../../support/convex/test.harness";
 import { invitesPage } from "../../support/convex/joining.harness";
 import { actingAs, addManager, addManagers, adminCreatesLeague, COMMISSIONER, MANAGERS, OUTSIDER, type TestConvex } from "../../support/convex/leagues.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
@@ -252,7 +252,7 @@ describe("a start date", () => {
   test("set in a league that is then deleted for good starts nothing", async () => {
     await setStart(Date.now() + 2 * DAY_MS);
     await (await as()).mutation(api.leagues.leagueDeletion.deleteLeague, { leagueId });
-    await t.finishAllScheduledFunctions(vi.runAllTimers);
+    await everyJobRuns(t);
 
     expect(await t.run((ctx) => ctx.db.query("drafts").collect())).toEqual([]);
   });

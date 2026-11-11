@@ -17,7 +17,7 @@ import { refusals } from "../../../convex/shared/leagueAccess";
 import { deletes } from "../../support/convex/leagueDeletion.harness";
 import { COMMISSIONER, LEAGUE_NAME, MANAGERS, actingAs, addManagers, adminCreatesLeague, eventsIn, teamsIn, type TestConvex } from "../../support/convex/leagues.harness";
 import { fakeResend, signInDeployment, spendTodaysEmails, type SentEmail } from "../../support/convex/signIn.harness";
-import { expectRefused, silenceConsoleError } from "../../support/convex/test.harness";
+import { expectRefused, silenceConsoleError, everyJobRuns } from "../../support/convex/test.harness";
 
 // Join requests and the commissioner's page of them (#73 stories 3 and 4; spec/13 Joining,
 // spec/15 Joining a league).
@@ -61,7 +61,7 @@ describe("a join request", () => {
     vi.setSystemTime(Date.UTC(2026, 10, 1, 14, 32));
     const requestId = await askToJoin(t, leagueId, token, ANN);
     await (await asCommissioner(t)).mutation(api.joining.joinRequests.approve, { requestId });
-    await t.finishAllScheduledFunctions(vi.runAllTimers);
+    await everyJobRuns(t);
 
     const [team] = await teamsIn(t, leagueId);
     expect(team).toMatchObject({ name: "Team 1", managerEmail: ANN });
@@ -86,7 +86,7 @@ describe("a join request", () => {
     const eventsBefore = await eventsIn(t, leagueId);
     const emailsBefore = sent.length;
     await (await asCommissioner(t)).mutation(api.joining.joinRequests.refuseRequest, { requestId });
-    await t.finishAllScheduledFunctions(vi.runAllTimers);
+    await everyJobRuns(t);
 
     expect(await teamsIn(t, leagueId)).toEqual([]);
     expect(await eventsIn(t, leagueId)).toEqual(eventsBefore);
@@ -109,7 +109,7 @@ describe("a join request", () => {
     fakeResend(500);
     const logged = silenceConsoleError();
     await (await asCommissioner(t)).mutation(api.joining.joinRequests.approve, { requestId });
-    await t.finishAllScheduledFunctions(vi.runAllTimers);
+    await everyJobRuns(t);
 
     const request = await t.run((ctx) => ctx.db.get("joinRequests", requestId));
     expect(request).toMatchObject({ approvedEmail: "notSent", approvedEmailError: "Resend refused the email (500): refused" });
@@ -123,7 +123,7 @@ describe("a join request", () => {
     await finishWhatIsDueNow(t);
     expect(emailsTo(sent, ANN)).toEqual([]);
 
-    await t.finishAllScheduledFunctions(vi.runAllTimers);
+    await everyJobRuns(t);
     expect(emailsTo(sent, ANN)).toHaveLength(1);
   });
 });

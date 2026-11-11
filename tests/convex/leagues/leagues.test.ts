@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, test, vi } from "vitest";
+import { beforeEach, describe, expect, test } from "vitest";
 import { api } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
 import { refusals } from "../../../convex/shared/leagueAccess";
@@ -19,7 +19,7 @@ import {
   type TestConvex,
 } from "../../support/convex/leagues.harness";
 import { LISTED, fakeResend, linkNotSentLine, signInDeployment } from "../../support/convex/signIn.harness";
-import { expectRefused, silenceConsoleError } from "../../support/convex/test.harness";
+import { expectRefused, silenceConsoleError, everyJobRuns } from "../../support/convex/test.harness";
 
 // Creating a league and who runs it (#24 stories 1-3 and 6; spec/13).
 
@@ -246,7 +246,7 @@ describe("naming a new commissioner", () => {
     const sent = fakeResend();
     const commissioner = await actingAs(t, COMMISSIONER);
     await commissioner.mutation(api.leagues.leagues.nameCommissioner, { leagueId, email: MANAGERS[0] });
-    await t.finishAllScheduledFunctions(vi.runAllTimers);
+    await everyJobRuns(t);
 
     expect(sent.map((email) => email.to)).toEqual([MANAGERS[0]]);
     expect((await eventsIn(t, leagueId)).at(-1)).toEqual({
@@ -273,7 +273,7 @@ describe("naming a new commissioner", () => {
     const admin = await actingAs(t, ADMIN);
     const unreached = "unreached@example.com";
     const failedLeague = await admin.mutation(api.leagues.leagues.create, { name: "Failed link", maxTeams: 4, commissionerEmail: unreached });
-    await t.finishAllScheduledFunctions(vi.runAllTimers);
+    await everyJobRuns(t);
     expect(logged).toHaveBeenCalledWith(expect.stringContaining(linkNotSentLine(unreached)));
     expect((await leagueRow(t, failedLeague))?.commissionerLink).toEqual({ email: unreached, reply: "notSent" });
 
