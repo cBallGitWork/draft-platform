@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, test, vi } from "vitest";
 import { api } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
 import { DEFAULT_DEADLINE_RULE } from "../../../convex/gameweeks/deadline";
-import { GAMEWEEKS } from "../../../convex/gameweeks/usedGameweeks";
+import { PL_GAMEWEEKS } from "../../support/convex/footballRows.harness";
 import { pickFirstLineupAgain } from "../../../convex/lineup/lineups";
 import { refusals } from "../../../convex/shared/leagueAccess";
 import { unheldPlayerWords } from "../../../convex/shared/players";
@@ -144,7 +144,7 @@ describe("the lineup to set", () => {
 
 describe("no lineup to set", () => {
   test("once every gameweek has begun", async () => {
-    vi.advanceTimersByTime((GAMEWEEKS - NEXT + 1) * WEEK_MS);
+    vi.advanceTimersByTime((PL_GAMEWEEKS - NEXT + 1) * WEEK_MS);
     expect(await tacticsOf(ANN)).toEqual({ kind: "seasonOver" });
   });
 

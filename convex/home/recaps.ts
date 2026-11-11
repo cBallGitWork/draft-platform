@@ -5,7 +5,7 @@ import { internalAction, internalMutation, internalQuery, query, type MutationCt
 import { matchdayMargins } from "../admin/platformSettings";
 import { tableGameweek, type TeamGameweekTotal } from "../gameweekScorer/gameweekScores";
 import { leagueReads } from "../gameweekScorer/teamGameweek";
-import { GAMEWEEKS } from "../gameweeks/usedGameweeks";
+import { seasonGameweekCount } from "../gameweeks/seasonGameweeks";
 import { leagueAverageWords } from "../mail/letterWords";
 import { fileLetter, wholeLeague } from "../mail/letters";
 import { CLAUDE_RETRY_MS, writeWithClaude } from "../outbound/claude";
@@ -205,7 +205,8 @@ export async function homeRecap(
 /** When the first matchday mode of the next gameweek after `gameweek` with a match on begins:
  *  `beforeMs` before its first kickoff (matchday.ts). Never, with none. */
 async function nextMatchdayStart(ctx: QueryCtx, gameweek: number): Promise<number> {
-  for (let next = gameweek + 1; next <= GAMEWEEKS; next++) {
+  const count = await seasonGameweekCount(ctx);
+  for (let next = gameweek + 1; next <= count; next++) {
     const fixtures = await takeAllOrThrow(
       ctx.db.query("fixtures").withIndex("by_gameweek_and_droppedAt", (q) => q.eq("gameweek", next).eq("droppedAt", undefined)),
       GAMEWEEK_MATCHES_MOST,

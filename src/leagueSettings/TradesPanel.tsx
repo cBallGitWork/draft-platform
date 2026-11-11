@@ -12,8 +12,8 @@ const TRADE_DEADLINE_HINT_ID = "settings-trade-deadline-hint";
 type Trades = LeagueSettings["trades"];
 
 /** How trades run (spec/03, spec/08; #383): who reviews an accepted trade, and the trade deadline,
- *  off by default (Craig, 6 Nov 2026, on #383). */
-export function TradesPanel({ trades, edit }: { trades: Trades; edit: (trades: Trades) => void }) {
+ *  off by default (Craig, 6 Nov 2026, on #383), a gameweek of the season's `seasonGameweeks`. */
+export function TradesPanel({ trades, seasonGameweeks, edit }: { trades: Trades; seasonGameweeks: number; edit: (trades: Trades) => void }) {
   return (
     <Panel title={tradesTitle}>
       <div className={PANEL_BODY}>
@@ -26,7 +26,7 @@ export function TradesPanel({ trades, edit }: { trades: Trades; edit: (trades: T
           <>
             <NumberRow label={tradeDeadlineLabel} hintId={TRADE_DEADLINE_HINT_ID} value={trades.deadline} onChange={(deadline) => edit({ ...trades, deadline })} />
             <p id={TRADE_DEADLINE_HINT_ID} className="text-muted">
-              {tradeDeadlineHint}
+              {tradeDeadlineHint(seasonGameweeks)}
             </p>
           </>
         )}

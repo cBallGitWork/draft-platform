@@ -54,7 +54,7 @@ const inGameweek = (gameweek: number) => t.run((ctx) => rulesInGameweek(ctx, lea
 
 describe("reading them", () => {
   test("gives the settings the draw plays by, the row they're from and the next gameweek a change would take effect from", async () => {
-    expect(await read()).toEqual({ part: FIRST, revision: await rulesRevision(t, leagueId), changesFrom: NEXT });
+    expect(await read()).toEqual({ part: FIRST, revision: await rulesRevision(t, leagueId), changesFrom: NEXT, seasonGameweeks: 38 });
   });
 
   test("is refused to a manager", async () => {
