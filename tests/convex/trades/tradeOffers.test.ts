@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, test } from "vitest";
 import { api } from "../../../convex/_generated/api";
 import { NOTE_MOST } from "../../../convex/trades/tradeLimits";
+import { OFFERS_READ_MOST } from "../../../convex/trades/tradeClose";
 import { offerRefusals } from "../../../convex/trades/tradeOffers";
 import { refusals } from "../../../convex/shared/leagueAccess";
 import { DAY_MS } from "../../../convex/shared/time";
@@ -85,6 +86,24 @@ describe("an offer", () => {
     expect(await w.offers()).toHaveLength(1);
   });
 
+  test("is refused while the same trade between the same teams is open, whatever its order or note (#1539)", async () => {
+    await w.offer(ANN, w.bobsTeam, [ANNS_FIRST_DROP], [SAKA, PALMER], "First go");
+    await expectRefused(w.offer(ANN, w.bobsTeam, [ANNS_FIRST_DROP], [PALMER, SAKA], "Second go"), offerRefusals.alreadyOffered("Team 2"));
+    expect(await w.offers()).toHaveLength(1);
+
+    // A different trade, or the same one the other way, is an offer of its own.
+    await w.offer(ANN, w.bobsTeam, [ANNS_FIRST_DROP], [SAKA]);
+    await w.offer(BOB, w.annsTeam, [SAKA, PALMER], [ANNS_FIRST_DROP]);
+    expect(await w.offers()).toHaveLength(3);
+  });
+
+  test("can be made again once the same one is closed", async () => {
+    const { offerId } = await w.offer(ANN, w.bobsTeam, [ANNS_FIRST_DROP], [SAKA]);
+    await w.withdraw(ANN, offerId);
+    await w.offer(ANN, w.bobsTeam, [ANNS_FIRST_DROP], [SAKA]);
+    expect(await w.offers()).toHaveLength(1);
+  });
+
   test("goes to no team on the auto team, nor from one (spec/09)", async () => {
     await (await actingAs(w.t, CAT)).mutation(api.lineup.autoTeam.set, { leagueId: w.leagueId, teamId: w.catsTeam, on: true });
     await expectRefused(w.offer(ANN, w.catsTeam, [], [RICE]), offerRefusals.autoTeam("Team 3"));
@@ -148,6 +167,23 @@ describe("answering an offer", () => {
     await w.closeDue();
     expect(await w.offers()).toEqual([]);
     expect(await w.lettersTo(BOB)).toContainEqual(expect.objectContaining({ body: expect.stringMatching(/^Nobody answered it by the deadline\./) }));
+  });
+
+  test(`closes at the deadline however many offers other leagues hold, past ${OFFERS_READ_MOST} between them (#1539)`, async () => {
+    await w.offer(ANN, w.bobsTeam, [ANNS_FIRST_DROP], [SAKA]);
+    // Another league's offers, the platform's count past the cap; the league is gone, so none is due.
+    await w.t.run(async (ctx) => {
+      const [{ leagueId, fromTeamId, toTeamId, gives, gets, by, madeAt }] = await ctx.db.query("tradeOffers").collect();
+      const { name, maxTeams, commissionerEmail } = (await ctx.db.get("leagues", leagueId))!;
+      const other = await ctx.db.insert("leagues", { name, maxTeams, commissionerEmail });
+      for (let each = 0; each < OFFERS_READ_MOST; each++) {
+        await ctx.db.insert("tradeOffers", { leagueId: other, fromTeamId, toTeamId, gives, gets, by, madeAt });
+      }
+      await ctx.db.delete("leagues", other);
+    });
+    await w.gameweekEnds(5);
+    await w.closeDue();
+    expect((await w.offers()).filter((offer) => offer.leagueId === w.leagueId)).toEqual([]);
   });
 
   test("an offer made a day before a deadline still closes at it", async () => {

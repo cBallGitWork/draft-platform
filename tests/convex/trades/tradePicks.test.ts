@@ -214,6 +214,14 @@ describe("a pick offer is refused", () => {
     await expectRefused(offerPicks(ANN, bob, pickOf(ann, 3), pickOf(bob, 1)), pickRefusals.noRound(2));
   });
 
+  test("while the same pick swap is open to the same team, but a swap of other picks is its own offer (#1539)", async () => {
+    await offerPicks(ANN, bob, pickOf(ann, 1), pickOf(bob, 1));
+    await expectRefused(offerPicks(ANN, bob, pickOf(ann, 1), pickOf(bob, 1)), offerRefusals.alreadyOffered(await teamName(bob)));
+    await offerPicks(ANN, bob, pickOf(ann, 1), pickOf(bob, 2));
+    await offerPicks(ANN, bob, pickOf(ann, 2), pickOf(bob, 1));
+    expect(await offers()).toHaveLength(3);
+  });
+
   test("to accept while its pick is in another trade under review", async () => {
     await tradesAre({ review: "veto", deadline: null });
     const toBob = await offerPicks(ANN, bob, pickOf(ann, 1), pickOf(bob, 1));

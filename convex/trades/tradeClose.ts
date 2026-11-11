@@ -8,9 +8,8 @@ import { scheduleHeartbeat } from "../heartbeats/heartbeat";
 import { fileLetter } from "../mail/letters";
 import { offerClosedLetter, pickWords, type OfferClosed, type TradeWords } from "../mail/tradeLetterWords";
 import type { TradePick } from "./tradePicks";
-import { takeAllOrThrow } from "../shared/cappedRead";
+import { LEAGUES_READ_MOST, takeAllOrThrow } from "../shared/cappedRead";
 import type { LeagueDeadlines } from "../gameweeks/deadline";
-import { groupedBy } from "../shared/groupedBy";
 import { heldPlayerByCode } from "../shared/players";
 import { deadlinePassedSince } from "../waivers/waiverLock";
 import { onAutoTeam, tradesShut, type TradesShut } from "./tradeShut";
@@ -28,8 +27,7 @@ import { onAutoTeam, tradesShut, type TradesShut } from "./tradeShut";
  *  closes at most this late, and is refused as closed meanwhile. */
 export const OFFER_CHECK_EVERY = { minutes: 5 } as const;
 
-/** The most offers open or in review that one read takes, in a league or across all of them:
- *  Claude's sizing. Past it a read throws rather than leave offers out. */
+/** The most offers open or in review that one read of a league's takes: Claude's sizing. Past it a read throws rather than leave offers out. */
 export const OFFERS_READ_MOST = 1000;
 
 /** Every offer open or in review in the league. */
@@ -157,10 +155,11 @@ export async function closeOffersOfTeam(ctx: MutationCtx, team: Doc<"teams">): P
   }
 }
 
-/** The trade in review holding the player, if one is: he is held until it finishes. */
-export async function reviewHolding(ctx: QueryCtx, leagueId: Id<"leagues">, playerCode: number): Promise<Doc<"tradeOffers"> | null> {
+/** The players, by code, in a trade in review in the league: each is held until it finishes. Read
+ *  once and checked per player, so the league's offers aren't read again for each (#1539). */
+export async function heldInReview(ctx: QueryCtx, leagueId: Id<"leagues">): Promise<Set<number>> {
   const offers = await leagueOffers(ctx, leagueId);
-  return offers.find((offer) => offer.review !== undefined && [...offer.gives, ...offer.gets].includes(playerCode)) ?? null;
+  return new Set(offers.flatMap((offer) => (offer.review === undefined ? [] : [...offer.gives, ...offer.gets])));
 }
 
 /** Why an open offer should be closed at `now`, if it should: the deadline has passed since it was
@@ -181,26 +180,24 @@ async function closingReason(
   return null;
 }
 
-/** The cron's: closes every open offer whose time is up, league by league. */
+/** The cron's: closes every open offer whose time is up, league by league, each league's offers
+ *  read on their own, so the offers cap is each league's, never the platform's (#1539). */
 export const closeDue = internalMutation({
   args: {},
   returns: v.null(),
   handler: async (ctx) => {
     const now = Date.now();
-    const offers = await takeAllOrThrow(
-      ctx.db.query("tradeOffers").withIndex("by_madeAt"),
-      OFFERS_READ_MOST,
-      `More than ${OFFERS_READ_MOST} trade offers are held, so those due can't all be closed`,
+    const leagues = await takeAllOrThrow(
+      ctx.db.query("leagues"),
+      LEAGUES_READ_MOST,
+      `More than ${LEAGUES_READ_MOST} leagues are held, so their trade offers due can't all be closed`,
     );
-    const byLeague = groupedBy(
-      offers.filter((offer) => offer.review === undefined),
-      (offer) => offer.leagueId,
-    );
-    for (const [leagueId, open] of byLeague) {
-      const league = await ctx.db.get("leagues", leagueId);
+    for (const league of leagues) {
       // A league frozen for deletion closes nothing: its offers due wait for an undo (#1493).
-      if (league === null || league.deletion !== undefined) continue;
-      const deadlines = await leagueDeadlines(ctx, leagueId);
+      if (league.deletion !== undefined) continue;
+      const open = (await leagueOffers(ctx, league._id)).filter((offer) => offer.review === undefined);
+      if (open.length === 0) continue;
+      const deadlines = await leagueDeadlines(ctx, league._id);
       const shut = await tradesShut(ctx, league, deadlines, now);
       for (const offer of open) {
         const closed = await closingReason(ctx, offer, shut, deadlines, now);
