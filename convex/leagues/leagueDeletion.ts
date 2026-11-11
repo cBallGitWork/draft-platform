@@ -6,13 +6,15 @@ import { callerEmail, deleterOf, refuse, refusals, seesWhileDeleted } from "../s
 import { DELETION_UNDO_HOURS } from "./leagueLimits";
 import { recordEvent, wholeLeague } from "../mail/letters";
 import { HOUR_MS } from "../shared/time";
+import { pauseForDeletion } from "../draft/draftPause";
 
 // Deleting a league (#75, spec/13, Deleting). For DELETION_UNDO_HOURS it can be undone: it is
 // frozen (leagueAccess's getLeague refuses every change to it), hidden from everyone with a part
 // in it but its commissioner (myLeagues.ts), and nobody is emailed. Its Mail letters, that it is
 // being deleted and that it no longer is, go only to its commissioner and whoever deleted or undid
 // it, as "an undone deletion tells no one" (spec/13; Claude's call on #897, Craig's "your call").
-// Then deleteForGood removes it and every row keyed to it: nothing is archived. Only once it is
+// A live draft pauses as it is deleted, and an undo leaves it paused for its commissioner to resume
+// (draft/draftPause.ts; Craig, 11 Nov 2026, on #1486). Then deleteForGood removes it and every row keyed to it: nothing is archived. Only once it is
 // gone is everyone with a part in it but whoever deleted it emailed (deletionNotices.ts, #320).
 
 /** How long after it is deleted a league is gone for good. */
@@ -214,7 +216,8 @@ async function othersIn(ctx: QueryCtx, league: Doc<"leagues">, by: string): Prom
   return [...new Set(await wholeLeague(ctx, league))].filter((email) => email !== by);
 }
 
-/** The admin or the league's commissioner deletes it, to be gone for good in UNDO_MS. */
+/** The admin or the league's commissioner deletes it, to be gone for good in UNDO_MS, its live
+ *  draft paused. */
 export const deleteLeague = mutation({
   args: { leagueId: v.id("leagues") },
   returns: v.null(),
@@ -223,13 +226,14 @@ export const deleteLeague = mutation({
     const deletesAt = Date.now() + UNDO_MS;
     const scheduledId = await ctx.scheduler.runAt(deletesAt, internal.leagues.leagueDeletion.deleteForGood, { leagueId });
     await ctx.db.patch("leagues", leagueId, { deletion: { by, deletesAt, scheduledId } });
+    await pauseForDeletion(ctx, leagueId);
     await recordEvent(ctx, leagueId, by, { kind: "deletionStarted", name: league.name, deletesAt }, { only: [league.commissionerEmail, by] });
     return null;
   },
 });
 
 /** The league's commissioner or the admin, whichever deleted it, undoes it before it is gone, and
- *  it is as it was. */
+ *  it is as it was, but for a draft its deletion paused, which stays paused until he resumes it. */
 export const undo = mutation({
   args: { leagueId: v.id("leagues") },
   returns: v.null(),
