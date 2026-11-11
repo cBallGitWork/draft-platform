@@ -14,7 +14,7 @@ import { limitsBroken, squadWarning } from "../squads/squads";
 import { newlyBroken } from "../waivers/waiverRun";
 import { leagueOffers, pickName } from "./tradeClose";
 import { pickHolders, tradablePick } from "./tradePicks";
-import { reviewerOf } from "./tradeReview";
+import { reviewerOf } from "./tradeReviewers";
 import { offerCloses, onAutoTeam, tradeDeadlineInForce, tradesShut } from "./tradeShut";
 import { tradePick } from "../schema/trades";
 

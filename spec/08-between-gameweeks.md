@@ -103,6 +103,9 @@ From `/grill trades` (25 Oct 2026).
   the whole league; one that clears review files the usual trade letter (`spec/16`; 31 Oct 2026).
 - Under a veto, a trade the commissioner is in goes to the co-commissioner, or to a league vote
   if there is none (31 Oct 2026).
+- When the commissioner or co-commissioner changes during a review, whoever holds the role now
+  reviews the trade: he gets the review letter with Block in it and sees it in To review, the one
+  who left can't block it, and the 24 hours don't restart (Craig, 11 Nov 2026, #1472). `S08.12`
 - While a team is on the auto team (`spec/09`), no offer goes to or from it, and its open offers
   close when the auto team switches on; a trade already accepted and in review finishes it. Its
   manager doesn't vote: "most of them" is most of the managers still playing (31 Oct 2026).
