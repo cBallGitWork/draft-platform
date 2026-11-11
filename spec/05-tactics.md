@@ -25,7 +25,7 @@ Feature 5 of [SPEC.md](../SPEC.md). Only Craig's answers: the first `/grill` and
   indivoduals cells is just getting in the way"; "no limits" (Craig, 4 Nov 2026). It replaces the
   sweeper's cell of 31 Oct 2026, and the role stays: "it's a real role, esp with classic
   formations".
-- Presets only: the shape always comes from a preset or a classic, and no player moves into an
+- Presets only: the shape always comes from a preset or a classic formation, and no player moves into an
   empty cell. "we dont allow users to move the individual pieces around, we have lots of
   formations already"; "i think i just dont like hacing 2 cbs and fb for exampel"; "to me, presets
   just sort all this out" (Craig, 1 Nov 2026). Free placement, Championship Manager style, is
@@ -43,12 +43,12 @@ Feature 5 of [SPEC.md](../SPEC.md). Only Craig's answers: the first `/grill` and
 - A starter leaves the pitch only by swapping with a bench player, so the eleven stay eleven. A
   refused move says why in the line under the toolbar where "Lineup saved" shows (Craig,
   4 Nov 2026, "yes" to Claude's recommendation).
-- Classics are famous sides' formations, each a league rule like a preset, which the ready-made
-  rules carry. A classic sets its shape, every slot's role and its team instructions, which
+- Classic formations are famous sides' formations, each a league rule like a preset, which the ready-made
+  rules carry. A classic formation sets its shape, every slot's role and its team instructions, which
   Claude drafts and Craig edits (Craig, 1 Nov 2026). They include Keegan's Newcastle
   ("both wide mids whip in crossers, strikers going for hearders, cb and both cms attack"),
   Barcelona's tiki-taka and Hungary in the 50s.
-- A manager can change a classic's roles or instructions, never its shape. Once he does, it
+- A manager can change a classic formation's roles or instructions, never its shape. Once he does, it
   becomes custom (Craig, 1 Nov 2026: "when a change is made it becomes custom, and it can be
   saved"; then "only preset formations ,but we can still save the strategy").
 - Picking a preset reshapes the pitch and keeps the players: each starter moves to a slot of the
@@ -183,7 +183,7 @@ and how they score from Craig, 4 Nov 2026.
 - Changing formation keeps an instruction the new shape allows. One it blocks switches to the new
   formation's default for that side, and the line under the toolbar says so ("Park the bus needs 5
   at the back: switched to Keep it tight early"): "if you change formation, yuour invlaid tactic
-  auto gets changed to a vlaid one". Loading a plan or picking a classic sets both instructions
+  auto gets changed to a vlaid one". Loading a plan or picking a classic formation sets both instructions
   itself.
 - An instruction is scored player by player, on each player's own club's real match, for every
   starter and every bench player who comes on. A clean sheet or a goal conceded is his club's

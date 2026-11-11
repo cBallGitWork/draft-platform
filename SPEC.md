@@ -214,10 +214,11 @@ follows it; tables and fields already saved keep their names.
 | area | a band of the pitch a formation is built from: goalkeeper, defence, defensive midfield, midfield, attacking midfield, attack | line |
 | lane | one of five columns across an area: left, left-centre, centre, right-centre, right | |
 | deadline | the one moment each gameweek that locks every lineup | lock time |
-| formation | how a lineup stands on the pitch's grid: a preset, a classic, or custom | shape |
+| formation | how a lineup stands on the pitch's grid: a preset, a classic formation, or custom | shape |
 | preset | a ready-made formation, such as 4-2-3-1 | |
-| classic | a famous side's formation, with its roles and team instructions, such as Keegan's Newcastle | |
-| custom | a classic the manager has changed | |
+| classic formation | a famous side's formation, with its roles and team instructions, such as Keegan's Newcastle | classic alone ("classic is the game mode, classic isint a formation", Craig, 11 Nov 2026) |
+| classic mode | the kind of game a league plays with tactics off ("the mode is classic mode", Craig, 11 Nov 2026); its rules are to grill (`docs/to-grill.md`) | classic alone |
+| custom | a classic formation the manager has changed | |
 | team instruction | how the whole team plays, one attacking and one defensive, adjusting everyone's scoring | team tactic |
 | plan | a saved formation, its roles and team instructions, never players | saved tactics, saved preset |
 | category | one stat a league can score, such as goals or tackles won | |
