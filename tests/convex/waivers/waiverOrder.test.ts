@@ -15,7 +15,7 @@ describe("the waiver order", () => {
     expect(withWinnersLast(["A", "B"], ["Gone", "A"])).toEqual(["B", "A"]);
   });
 
-  test("under reverse table order the winners go back up once a later gameweek has begun", () => {
+  test("under reverse table order the winners go back up once a later gameweek has ended", () => {
     const held = { winners: ["A"], gameweek: 5 };
     expect(winnersNow("reverseStandings", held, 5)).toEqual(["A"]);
     expect(winnersNow("reverseStandings", held, 6)).toEqual([]);

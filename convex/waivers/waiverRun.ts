@@ -22,7 +22,7 @@ import { placeOf, squadOf } from "../squads/squadPlace";
 import { limitsBroken, type SquadWarning } from "../squads/squads";
 import { closeOffersHolding, reviewHolding } from "../trades/tradeClose";
 import { claimedName, leagueClaims } from "./waiverClaims";
-import { inWaiverLock, latestBegun } from "./waiverLock";
+import { inWaiverLock, latestEnded } from "./waiverLock";
 import { waiverOrderOf, waiverOrderRow, winnersNow, withWinnersLast, wonBy } from "./waiverOrder";
 import { dropFromSquad } from "./waiverPlayers";
 import { latestRunAt } from "./waiverTimes";
@@ -150,7 +150,8 @@ async function runWaivers(ctx: MutationCtx, leagueId: Id<"leagues">, at: number)
   const season = await seasonRules(ctx, leagueId);
   const now = Date.now();
   const deadlines = await leagueDeadlines(ctx, leagueId);
-  const gameweek = latestBegun(deadlines, now);
+  // A run skipped in the lock keeps the winners: they stay at the bottom until the gameweek ends.
+  const gameweek = await latestEnded(ctx, deadlines, now);
   let winners = winnersNow(season.latest.waivers.order, held, gameweek);
   // A skipped run keeps the last made one's moment: the window opens only with a made run.
   const save = (madeAt = held?.madeAt) =>

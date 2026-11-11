@@ -67,6 +67,7 @@ const waivers: WaiversView = {
   windowOpen: false,
   // Saturday 11:00, the deadline after the runs.
   nextDeadline: { gameweek: 10, at: wednesday + 3 * DAY_MS - 7 * HOUR_MS },
+  resetsAfter: 10,
 };
 
 export const previewWaivers = waivers;

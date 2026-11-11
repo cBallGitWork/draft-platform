@@ -39,7 +39,7 @@ export function WaiverOrderPanel({ waivers, type = waivers.type }: { waivers: Wa
           </li>
         ))}
       </ol>
-      <p className="border-t border-panel-rule px-3 py-2 text-muted">{waiverOrderNote(type, waivers.nextDeadline?.gameweek ?? null)}</p>
+      <p className="border-t border-panel-rule px-3 py-2 text-muted">{waiverOrderNote(type, waivers.resetsAfter)}</p>
     </Panel>
   );
 }
