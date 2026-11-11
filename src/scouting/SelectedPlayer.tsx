@@ -7,12 +7,12 @@ import { MY_TEAM_TRANSACTIONS_PATH } from "../frame/menu";
 import { byRun } from "../myTeam/claims/claimGroups";
 import { useMinute } from "../shared/useMinute";
 import { Per90Figures } from "./Per90Figures";
-import { CloseButton, PointsFigure } from "./PointsFigure";
+import { PointsFigure } from "./PointsFigure";
 import { WaiverAction } from "../playerCard/WaiverAction";
 import { playerCardPath } from "../playerCard/paths";
 import { ClubMark, ClubShort } from "../ui/ClubName";
 import { OwnerName } from "../ui/OwnerName";
-import { Panel } from "../ui/Panel";
+import { CloseButton, Panel } from "../ui/Panel";
 import { PositionChip } from "../ui/PositionChip";
 import { ShortlistStar } from "../ui/StarRating";
 import type { ListedPlayer, Period, ScoutingSeam } from "./seam";
@@ -119,7 +119,7 @@ export function SelectedPlayer({
     </span>
   );
   return (
-    <Panel title={title} aside={<CloseButton label={closePanelLabel} close={close} />}>
+    <Panel title={title} aside={<CloseButton label={closePanelLabel} close={close} className="font-bold lg:min-h-0" />}>
       <dl>
         <div className={FACT_ROW}>
           <dt className="text-soft">{panelSeasonPointsWords}</dt>
