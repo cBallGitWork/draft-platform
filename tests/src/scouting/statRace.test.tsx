@@ -74,6 +74,19 @@ it("the right column opens on the manager's own team, every category with its ra
   expect(screen.queryByRole("region", { name: league.teamName! })).toBeNull();
 });
 
+it("a stat where fewer is better ranks the team with fewest 1st, in the table and the team's panel (#1608)", async () => {
+  await openRace({ ...RACE, teams: [...RACE.teams, team("Red Army", { red_cards: 3 })] });
+
+  await userEvent.selectOptions(within(racePanel()).getByLabelText(rankByLabel), categoryName("red_cards"));
+  expect(teamsShown()).toEqual(["Kroos Control", "Rovers XI", league.teamName, "Red Army"]);
+  expect(cellsOf(league.teamName!)[0]).toBe("1");
+  expect(cellsOf("Red Army")[0]).toBe("4");
+
+  await userEvent.click(within(racePanel()).getByRole("button", { name: "Red Army" }));
+  const theirs = screen.getByRole("region", { name: "Red Army" });
+  expect(within(theirs).getAllByRole("row")[3].textContent).toBe(`${categoryName("red_cards")}3${rankWords(4, 4)}`);
+});
+
 it("a league that began after gameweek 1 says where its totals start", async () => {
   await openRace({ ...RACE, since: 10 });
   expect(within(racePanel()).getByText(sinceWords(10))).toBeTruthy();
