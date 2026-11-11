@@ -18,7 +18,6 @@ import {
   claimsNotOpenWords,
   claimsTableLabel,
   claimsViewWords,
-  clashWords,
   dragHandleLabel,
   everyTeamTableLabel,
   failsIfWords,
@@ -27,6 +26,7 @@ import {
   moveDownWords,
   moveUpWords,
   nextRunWords,
+  playerCardWords,
   runGroupWords,
   runWords,
   RUNS_TITLE,
@@ -81,12 +81,21 @@ describe("the pending claims", () => {
     ]);
   });
 
+  it("heads the claimed player In and the drop Out, as the claim panel does (#1031)", async () => {
+    open();
+    const heads = within(await screen.findByRole("table", { name: claimsTableLabel })).getAllByRole("columnheader");
+    expect(heads.map((head) => head.textContent)).toEqual(["", "Rank", "Pos", "In", "Pts", "Out"]);
+  });
+
   it("opens a claim's panel, which changes its drop, keeping its rank, moves it within its run and withdraws it", async () => {
     const app = open();
     await userEvent.click(await screen.findByRole("button", { name: selectClaimLabel("Eze") }));
-    const panel = screen.getByRole("region", { name: claimPanelTitle(WED, 2, "Eze") });
+    const panel = screen.getByRole("region", { name: claimPanelTitle(2) });
 
-    expect(within(panel).getByText(clashWords(1, "Calvert-Lewin"))).toBeTruthy();
+    expect(within(panel).getByText(runGroupWords(WED))).toBeTruthy();
+    expect(within(panel).getByText(failsIfWords(1))).toBeTruthy();
+    expect(within(panel).getByRole("combobox", { name: "Out" })).toBeTruthy();
+    expect(within(panel).getByRole("link", { name: playerCardWords })).toBeTruthy();
     expect((within(panel).getByRole("button", { name: moveDownWords }) as HTMLButtonElement).disabled).toBe(true);
     await userEvent.selectOptions(within(panel).getByRole("combobox"), "Mbeumo");
     expect(app.myTeam.claimChanges.changeDrop).toHaveBeenCalledWith(league.leagueId, "c2", 5);
@@ -146,17 +155,28 @@ describe("the pending claims", () => {
   });
 });
 
+/** The runs panel's rows, with the manager's `claims` in them (none unless given). */
+const runs = async (waivers: WaiversView, claims: PendingClaim[] = []) => {
+  open({ waivers, claims });
+  return within(await screen.findByRole("region", { name: RUNS_TITLE })).getAllByRole("listitem").map((row) => row.textContent);
+};
+
+describe("the runs (#1031)", () => {
+  it("count the manager's claims in each", async () => {
+    expect(await runs({ ...NO_WAIVERS, runs: [made(WED), mayBeSkipped(THU, 12)], windowShuts: { gameweek: 12, at: THU } }, CLAIMS)).toEqual([
+      `${runWords(WED)}2 claims, next`,
+      `${runWords(THU)}1 claim, skipped if GW12 is still on`,
+      `${freeAgentsWords}From Wed 18:00 to the GW12 deadline`,
+    ]);
+  });
+});
+
 describe("before the league's draft is over (S08.1)", () => {
   it("says claims open once it is, with no handles or buttons", async () => {
     open({ waivers: { ...NO_WAIVERS, drafted: false } });
     expect(await screen.findByText(claimsNotOpenWords)).toBeTruthy();
     expect(screen.queryByRole("img", { name: dragHandleLabel("Eze") })).toBeNull();
   });
-
-  const runs = async (waivers: WaiversView) => {
-    open({ waivers });
-    return within(await screen.findByRole("region", { name: RUNS_TITLE })).getAllByRole("listitem").map((row) => row.textContent);
-  };
 
   it("before the season, says free agency opens once it is, marking no run Next", async () => {
     expect(await runs({ ...NO_WAIVERS, drafted: false, windowOpen: true, runs: [made(WED)], windowShuts: { gameweek: 1, at: THU } })).toEqual([
@@ -182,11 +202,6 @@ describe("before the league's draft is over (S08.1)", () => {
 });
 
 describe("a midweek gameweek, its deadline before both runs (#1488)", () => {
-  const runs = async (waivers: WaiversView) => {
-    open({ waivers });
-    return within(await screen.findByRole("region", { name: RUNS_TITLE })).getAllByRole("listitem").map((row) => row.textContent);
-  };
-
   it("marks each run that may fall in its lock, none Next, and free agency from after its last match to the deadline after", async () => {
     expect(await runs({ ...NO_WAIVERS, runs: [mayBeSkipped(WED, 12), mayBeSkipped(THU, 12)], windowShuts: { gameweek: 13, at: THU + 2 * DAY_MS } })).toEqual([
       `${runWords(WED)}${skippedIfWords(12)}`,
@@ -264,7 +279,7 @@ describe("the waiver order", () => {
     });
     const order = within(await screen.findByRole("region", { name: WAIVER_ORDER_TITLE })).getAllByRole("listitem");
 
-    expect(order.map((team) => team.textContent)).toEqual(["1Team 22nd in the table, 3 pts", "2Team 11st in the table, 6 pts"]);
+    expect(order.map((team) => team.textContent)).toEqual(["1Team 22nd, 3 pts", "2Team 11st, 6 pts"]);
     expect(order[1].getAttribute("aria-current")).toBe("true");
   });
 });
