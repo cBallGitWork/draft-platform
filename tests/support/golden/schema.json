@@ -5439,6 +5439,216 @@
                     "kind": {
                       "fieldType": {
                         "type": "literal",
+                        "value": "playerTraded"
+                      },
+                      "optional": false
+                    },
+                    "playerCode": {
+                      "fieldType": {
+                        "type": "number"
+                      },
+                      "optional": false
+                    },
+                    "playerName": {
+                      "fieldType": {
+                        "type": "string"
+                      },
+                      "optional": false
+                    },
+                    "teamId": {
+                      "fieldType": {
+                        "type": "id",
+                        "tableName": "teams"
+                      },
+                      "optional": false
+                    },
+                    "teamName": {
+                      "fieldType": {
+                        "type": "string"
+                      },
+                      "optional": false
+                    },
+                    "fromTeamId": {
+                      "fieldType": {
+                        "type": "id",
+                        "tableName": "teams"
+                      },
+                      "optional": false
+                    },
+                    "fromTeamName": {
+                      "fieldType": {
+                        "type": "string"
+                      },
+                      "optional": false
+                    }
+                  }
+                },
+                {
+                  "type": "object",
+                  "value": {
+                    "kind": {
+                      "fieldType": {
+                        "type": "literal",
+                        "value": "tradeMade"
+                      },
+                      "optional": false
+                    },
+                    "fromTeamId": {
+                      "fieldType": {
+                        "type": "id",
+                        "tableName": "teams"
+                      },
+                      "optional": false
+                    },
+                    "fromTeamName": {
+                      "fieldType": {
+                        "type": "string"
+                      },
+                      "optional": false
+                    },
+                    "toTeamId": {
+                      "fieldType": {
+                        "type": "id",
+                        "tableName": "teams"
+                      },
+                      "optional": false
+                    },
+                    "toTeamName": {
+                      "fieldType": {
+                        "type": "string"
+                      },
+                      "optional": false
+                    },
+                    "gives": {
+                      "fieldType": {
+                        "type": "object",
+                        "value": {
+                          "players": {
+                            "fieldType": {
+                              "type": "array",
+                              "value": {
+                                "type": "object",
+                                "value": {
+                                  "playerCode": {
+                                    "fieldType": {
+                                      "type": "number"
+                                    },
+                                    "optional": false
+                                  },
+                                  "playerName": {
+                                    "fieldType": {
+                                      "type": "string"
+                                    },
+                                    "optional": false
+                                  }
+                                }
+                              }
+                            },
+                            "optional": false
+                          },
+                          "picks": {
+                            "fieldType": {
+                              "type": "array",
+                              "value": {
+                                "type": "object",
+                                "value": {
+                                  "round": {
+                                    "fieldType": {
+                                      "type": "number"
+                                    },
+                                    "optional": false
+                                  },
+                                  "teamId": {
+                                    "fieldType": {
+                                      "type": "id",
+                                      "tableName": "teams"
+                                    },
+                                    "optional": false
+                                  },
+                                  "teamName": {
+                                    "fieldType": {
+                                      "type": "string"
+                                    },
+                                    "optional": false
+                                  }
+                                }
+                              }
+                            },
+                            "optional": false
+                          }
+                        }
+                      },
+                      "optional": false
+                    },
+                    "gets": {
+                      "fieldType": {
+                        "type": "object",
+                        "value": {
+                          "players": {
+                            "fieldType": {
+                              "type": "array",
+                              "value": {
+                                "type": "object",
+                                "value": {
+                                  "playerCode": {
+                                    "fieldType": {
+                                      "type": "number"
+                                    },
+                                    "optional": false
+                                  },
+                                  "playerName": {
+                                    "fieldType": {
+                                      "type": "string"
+                                    },
+                                    "optional": false
+                                  }
+                                }
+                              }
+                            },
+                            "optional": false
+                          },
+                          "picks": {
+                            "fieldType": {
+                              "type": "array",
+                              "value": {
+                                "type": "object",
+                                "value": {
+                                  "round": {
+                                    "fieldType": {
+                                      "type": "number"
+                                    },
+                                    "optional": false
+                                  },
+                                  "teamId": {
+                                    "fieldType": {
+                                      "type": "id",
+                                      "tableName": "teams"
+                                    },
+                                    "optional": false
+                                  },
+                                  "teamName": {
+                                    "fieldType": {
+                                      "type": "string"
+                                    },
+                                    "optional": false
+                                  }
+                                }
+                              }
+                            },
+                            "optional": false
+                          }
+                        }
+                      },
+                      "optional": false
+                    }
+                  }
+                },
+                {
+                  "type": "object",
+                  "value": {
+                    "kind": {
+                      "fieldType": {
+                        "type": "literal",
                         "value": "pointsOverridden"
                       },
                       "optional": false
