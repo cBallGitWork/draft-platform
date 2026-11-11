@@ -86,7 +86,10 @@ export async function joiningBreaksLimits(
   return breaksLimits(before, broken);
 }
 
-type Tried = { won: true; toWaivers: boolean | null } | { won: false; why: ClaimFailure };
+/** A failed claim's `why` is null when its team already holds the player, won by its own earlier
+ *  claim this run or put there by the commissioner: it goes quietly, with no letter (Craig, 11 Nov
+ *  2026, #1465). */
+type Tried = { won: true; toWaivers: boolean | null } | { won: false; why: ClaimFailure | null };
 
 /** Everything a claim at the run is tried against. */
 type Run = {
@@ -102,7 +105,7 @@ type Run = {
 async function tryClaim(ctx: MutationCtx, run: Run, claim: Doc<"waiverClaims">): Promise<Tried> {
   const { league, squadRules, deadlines, now, claimable } = run;
   const onWaivers = claimable.get(claim.playerCode);
-  if (onWaivers === undefined) return { won: false, why: "ahead" };
+  if (onWaivers === undefined) return { won: false, why: (await placeOf(ctx, league._id, claim.playerCode))?.teamId === claim.teamId ? null : "ahead" };
   if ((await playerByCode(ctx, claim.playerCode))?.droppedAt !== undefined) return { won: false, why: "playerGone" };
   const drop = claim.dropCode === null ? null : await placeOf(ctx, league._id, claim.dropCode);
   if (claim.dropCode !== null && drop?.teamId !== claim.teamId) return { won: false, why: "dropGone" };
@@ -117,8 +120,9 @@ async function tryClaim(ctx: MutationCtx, run: Run, claim: Doc<"waiverClaims">):
 }
 
 /** Files what a tried claim did: the drop and the claim as squad moves, the league's letter for
- *  one that won, and its manager's alone for one that failed. */
+ *  one that won, and its manager's alone for one that failed, unless it failed quietly. */
 async function report(ctx: MutationCtx, league: Doc<"leagues">, claim: Doc<"waiverClaims">, tried: Tried): Promise<void> {
+  if (!tried.won && tried.why === null) return;
   const playerName = await claimedName(ctx, claim.playerCode);
   const dropName = claim.dropCode === null ? null : await claimedName(ctx, claim.dropCode);
   if (!tried.won) {
@@ -173,7 +177,8 @@ async function runWaivers(ctx: MutationCtx, leagueId: Id<"leagues">, at: number)
   const due = onWaivers.filter(({ claimableFrom }) => claimableFrom <= at);
   const run: Run = { league, squadRules: season.latest.squad, deadlines, now, claimable: new Map(due.map((row) => [row.playerCode, row])) };
   // A run tries every claim but those for a player whose 24 hours aren't up: one for a player no
-  // longer on waivers at all, taken by the commissioner say, fails as another team's.
+  // longer on waivers at all, taken by the commissioner say, fails as another team's, or quietly
+  // if its own team holds him.
   const waiting = new Set(onWaivers.filter(({ claimableFrom }) => claimableFrom > at).map(({ playerCode }) => playerCode));
   const queues = new Map<Id<"teams">, Doc<"waiverClaims">[]>();
   for (const claim of await leagueClaims(ctx, leagueId)) {

@@ -55,6 +55,8 @@ agent: "keep waivers since its known for draft" (Craig asked; yes).
   only to its manager (`spec/16`).
 - A failed claim's Mail letter says why: another team was ahead, his drop was already gone, or the
   squad's limits.
+- A claim for a player his team already has, won by his own earlier claim in the same run or put
+  there by the commissioner, goes quietly, with no letter (Craig, 11 Nov 2026, #1465). `S08.5`
 - No claim limits per season, week or team ("no limit"), and no can't-drop list.
 - Free agency and waivers open only once the league's draft is over: before it, pickups, drops and
   claims are refused and waiver runs are skipped ("refused until drafted"; Craig, 8 Nov 2026, #1326). `S08.1`
