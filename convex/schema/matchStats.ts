@@ -35,14 +35,6 @@ const matchStatsStatusFields = {
 /** A stat a feed changed after the lock, for the feeds page (spec/15): the locked value and the sent one. */
 export const lateStatChange = v.object({ stat: v.string(), locked: v.number(), sent: v.number() });
 
-/** The platform's own settings, the admin's to change (spec/15). A league's rules are never here. */
-export const platformSettingName = v.union(
-  v.literal("statCorrectionWindowMinutes"),
-  v.literal("scoutsPerTeam"),
-  v.literal("matchdayHoursBefore"),
-  v.literal("matchdayHoursAfter"),
-);
-
 /** What one sync did with one match. */
 export const matchSyncOutcome = v.union(
   v.object({
@@ -104,7 +96,6 @@ export const matchStatsTables = {
     seenAt: v.number(),
     changes: v.array(lateStatChange),
   }).index("by_fixtureCode_and_playerCode", ["fixtureCode", "playerCode"]),
-  platformSettings: defineTable({ name: platformSettingName, value: v.number() }).index("by_name", ["name"]),
   matchStatsSyncs: defineTable(matchStatsSyncFields),
   /** Each player's records added up for a season (#373, seasonStats.ts), so Scouting sorts every
    *  player by any stat without reading a season of records: one row a player and season, kept

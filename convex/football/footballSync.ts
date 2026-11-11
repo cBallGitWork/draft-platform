@@ -8,14 +8,14 @@ import {
 import { v, type Infer, type Value } from "convex/values";
 import { internal } from "../_generated/api";
 import type { Doc } from "../_generated/dataModel";
-import { internalAction, internalMutation, internalQuery, type ActionCtx, type MutationCtx } from "../_generated/server";
+import { internalAction, internalMutation, type ActionCtx, type MutationCtx } from "../_generated/server";
 import { outcomeOf } from "../shared/errors";
 import { CRON_TRIGGER, withHeartbeat } from "../heartbeats/heartbeat";
 import { fixtureByCode } from "../shared/fixtures";
 import { findClubByCode, playerByCode } from "../shared/players";
 import { readFpl } from "./fpl/fpl";
 import { clubRecord, fixtureRecord, footballSyncFields, syncTrigger, gameweekRecord, playerRecord, tableWrites } from "../schema";
-import { BATCH_SIZE, LATEST_RUNS } from "../shared/syncRuns";
+import { BATCH_SIZE, latestRuns } from "../shared/syncRuns";
 import { keepDroppedDeadlines, recordPassedDeadlines } from "../gameweeks/deadlineRecorder";
 import { emailIfFailed } from "../admin/feedFailureEmails";
 import { writeScores } from "./matchScores";
@@ -189,11 +189,7 @@ export const record = internalMutation({
   },
 });
 
-export const latest = internalQuery({
-  args: {},
-  returns: v.array(v.object({ _id: v.id("footballSyncs"), _creationTime: v.number(), ...footballSyncFields })),
-  handler: async (ctx) => ctx.db.query("footballSyncs").order("desc").take(LATEST_RUNS),
-});
+export const latest = latestRuns("footballSyncs", footballSyncFields);
 
 /** One page of `table`'s rows not yet marked dropped, so a row marked by an earlier sync is never
  *  read again. Paging an index on `droppedAt` while marking is safe: a row this page marks leaves

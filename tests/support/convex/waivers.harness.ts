@@ -8,7 +8,7 @@ import type { Id } from "../../../convex/_generated/dataModel";
 import { recordPassedDeadlines } from "../../../convex/gameweeks/deadlineRecorder";
 import { MINUTE_MS, WEEK_MS } from "../../../convex/shared/time";
 import { holdGameweeks, holdMatchState } from "./leagueRules.harness";
-import { actingAs, addManagers, adminCreatesLeague, MANAGERS, teamsIn, type TestConvex } from "./leagues.harness";
+import { actingAs, addManagers, adminCreatesLeague, lettersTo, MANAGERS, teamsIn, type TestConvex } from "./leagues.harness";
 import { holdPlayers, holdSquad, passNextDeadline, SQUAD, SQUAD_CLUB } from "./lineupSquad.harness";
 import { fakeResend, signInDeployment } from "./signIn.harness";
 
@@ -17,10 +17,6 @@ export const [ANN, BOB, CAT] = MANAGERS;
 export const NEXT = 5;
 export const [SAKA, PALMER, RICE] = [9001, 9002, 9003];
 export const [ANNS_FIRST_DROP, ANNS_SECOND_DROP] = [SQUAD[SQUAD.length - 1], SQUAD[SQUAD.length - 2]];
-
-/** The letters `email` has been sent, oldest first, as their subjects and bodies. */
-export const lettersTo = (t: TestConvex, email: string) =>
-  t.run(async (ctx) => (await ctx.db.query("letters").withIndex("by_to_and_at", (q) => q.eq("to", email)).collect()).map(({ subject, body }) => ({ subject, body })));
 
 /** The league's draft over: started with no rounds, so no pick is left on the clock. Free agency
  *  and waivers wait for it (#1326). */

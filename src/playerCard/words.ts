@@ -1,17 +1,16 @@
 // What the player card says, in one place for Craig to change in the pull request.
 
 import type { CategoryWhy, Cut, PricedBy, SlotValue } from "../../convex/scoring/scoring";
-import { seasonShortWords } from "../draft/words";
 import { afterLastMatchWords, type FirstRun } from "../myTeam/claims/words";
 import { LAST_MATCHES_SHOWN } from "./gameLog";
-import { AREA_WORDS, figureWords, gameweekShort, gameweekWords, signedWords, versusWords, whenWords } from "../shared/words";
+import { AREA_WORDS, figureWords, gameweekShort, gameweekWords, seasonShortWords, signedWords, versusWords, whenWords } from "../shared/words";
 
 export { figureWords, noFigureWords } from "../shared/words";
 
 export const backWords = "Back";
 export const loadingWords = "Loading the player…";
 export const noSuchPlayerWords = "No player with that code is held: the link may be wrong.";
-export const goneWords = "No longer in the Premier League.";
+export { noLongerInLeagueWords as goneWords } from "../shared/words";
 
 /** The card's head (the approved picture): his name, his positions, club and owner, his figures
  *  beside them, and his actions. */

@@ -31,7 +31,7 @@ const LEAD_MS = 90 * MINUTE_MS;
 /** Kept on after full time, for late lines and corrected totals. */
 const AFTER_FULL_TIME_MS = 15 * MINUTE_MS;
 /** A match abandoned, or a status that never turns to full time, stops recording here. The same
- *  window as LIVE_WINDOW_MS in convex/stats/liveStats.ts, which plain node can't import: it imports its
+ *  window as LIVE_WINDOW_MS in convex/shared/dueMatches.ts, which plain node can't import: it imports its
  *  neighbours with no extension. tests/scripts/record-match.test.mjs holds the two equal. */
 const GIVE_UP_MS = 4 * HOUR_MS;
 /** Between one read and the next in a poll: politeness, not a rule of the feed. */

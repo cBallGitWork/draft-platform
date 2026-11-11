@@ -1,6 +1,6 @@
 import { describe, expect, test } from "vitest";
 import { matchdayAt, matchdays, type MatchdayMatch } from "../../../convex/home/matchday";
-import { LIVE_WINDOW_MS } from "../../../convex/stats/liveStats";
+import { LIVE_WINDOW_MS } from "../../../convex/shared/dueMatches";
 import { HOUR_MS, MINUTE_MS } from "../../../convex/shared/time";
 
 // League home's matchday mode (spec/12, League home): from 3 hours before a matchday's first

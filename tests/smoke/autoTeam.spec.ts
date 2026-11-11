@@ -8,13 +8,14 @@ import { MY_TEAM_PATH, TABLE_PATH } from "../../src/frame/menu";
 import { autoTeamHead, switchOnWords, untilSwitchedOffWords } from "../../src/myTeam/header/words";
 import { autoTeamWords } from "../../src/shared/words";
 import { editingWords, FIXTURES_TITLE, saveSwapWords, TABLE_TITLE } from "../../src/table/words";
+import { DESK } from "../../scripts/viewports.mjs";
 import { test } from "../support/smoke/errorsTest";
 
 /** The preview's team on the auto team (src/table/preview.ts). */
 const ON_AUTO_TEAM = "Team 2";
 
 test.describe("the auto team, on the dev server's preview", { tag: "@dev" }, () => {
-  test.use({ viewport: { width: 1440, height: 900 } });
+  test.use({ viewport: DESK });
 
   test("My team's switch opens its panel, and Switch on closes it", async ({ page }) => {
     await page.goto(`${MY_TEAM_PATH}?preview=manager`);

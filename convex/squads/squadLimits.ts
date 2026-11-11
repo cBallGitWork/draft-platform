@@ -3,7 +3,7 @@ import { AREAS, areasOf, type Area } from "../lineup/pitch";
 import { areaShape } from "../lineup/pitchShape";
 import type { Position } from "../positions/positionTables";
 import type { LeagueRules } from "../rules/leagueRulesShape";
-import { clubRecord } from "../schema/football";
+import { clubRecord } from "../schema";
 import { minimumsFilled } from "./areaMinimums";
 
 // The Squad tab's Rules view (#1006; spec/12, My team's tabs: "your squad against the league's

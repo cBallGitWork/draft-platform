@@ -12,7 +12,7 @@ import { readEach } from "../scoreReads";
 import type { gameweekRecord, sportmonksCompetition } from "../../schema";
 import { SECOND_MS } from "../../shared/time";
 import { smScoreRead } from "./sportmonksMatch";
-import { SPORTMONKS, type RawFixture, type RawLeague, type RawRound, type RawSeason, type RawSideline, type RawStage, type RawTeam, type SportmonksPayloads } from "./sportmonksRaw";
+import { AWAY, HOME, SPORTMONKS, type RawFixture, type RawLeague, type RawRound, type RawSeason, type RawSideline, type RawStage, type RawTeam, type SportmonksPayloads } from "./sportmonksRaw";
 
 /** The deployment's setting holding Sportmonks' API token. Unset, nothing reads Sportmonks. */
 export const SPORTMONKS_TOKEN_ENV = "SPORTMONKS_API_TOKEN";
@@ -232,8 +232,8 @@ export function kickoffOf(match: RawFixture): number | null {
 /** A match's home and away clubs, by their `meta.location`. */
 function sides(match: RawFixture): { home: number; away: number } {
   const at = (location: string) => match.participants?.find((side) => side.meta?.location === location)?.id;
-  const home = at("home");
-  const away = at("away");
+  const home = at(HOME);
+  const away = at(AWAY);
   if (home === undefined || away === undefined) throw new Error(`${SPORTMONKS} sent match ${match.id} with no home or away club`);
   return { home, away };
 }

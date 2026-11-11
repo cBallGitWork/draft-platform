@@ -8,8 +8,7 @@ import { commentary, heldCommentary, type HeldCommentary } from "../matchup/matc
 import { commentaryReads, readCommentary } from "../matchup/readCommentary";
 import { shownLine } from "../matchup/vidiprinter";
 import { leagueRulesShape } from "../rules/leagueRulesShape";
-import { pinnedLetter } from "../schema";
-import { tradedSide } from "../schema/squads";
+import { pinnedLetter, tradedSide } from "../schema";
 import { isListedMove, LISTED_MOVES, newestFirst, playerMoveKind } from "../squads/squadPlace";
 import { logFailure } from "../shared/errors";
 import { memberOf, teamsOf } from "../shared/leagueAccess";

@@ -16,7 +16,7 @@ import {
 import { MATCHES_PER_RUN, SYNC_FAILED_LOG } from "../../../convex/positions/positionsSync";
 import type { RawPlSquadPlayer } from "../../../convex/football/premierLeague/premierLeague";
 import { NEWCASTLE, PLAYER, recordedPositions, SHEET, UNPLAYED_MATCH } from "../../support/recorded/positions.payloads";
-import { freshConvex, pendingJobs, refusedError, silenceConsoleError } from "../../support/convex/test.harness";
+import { freshConvex, pendingJobs, refusedError, silenceConsoleError, SLOW_TEST } from "../../support/convex/test.harness";
 
 /** The line a run logs when its read of url is refused. */
 function reportedFailure(url: string): string {
@@ -220,7 +220,7 @@ test("a failed read mid-run fails the run, and leaves the matches read before it
   expect(await heldStarts(t, PLAYER.barnes)).toHaveLength(2);
 });
 
-test(`one run reads at most ${MATCHES_PER_RUN} matches' sheets, oldest first, and says how many are left`, async () => {
+test(`one run reads at most ${MATCHES_PER_RUN} matches' sheets, oldest first, and says how many are left`, SLOW_TEST, async () => {
   const t = freshConvex();
 
   const { outcome } = await syncPositionsWith(t, pastTheCap());
@@ -232,4 +232,4 @@ test(`one run reads at most ${MATCHES_PER_RUN} matches' sheets, oldest first, an
   expect(filed).not.toContain(FIRST_COPY + 1);
   // Run by hand, it stays one run.
   expect(await pendingJobs(t, internal.positions.positionsSync.run)).toEqual([]);
-}, 30_000);
+});

@@ -19,12 +19,10 @@ import { signInWords } from "../../src/signIn/words";
 import { squadsPath } from "../../src/squads/paths";
 import { NO_CONVEX_URL } from "../../src/shared/words";
 import { tapsUnderTapSize } from "../../scripts/tap-targets.mjs";
+import { DESK, PHONE } from "../../scripts/viewports.mjs";
 import { BUILT_SCREENS } from "../support/smoke/builtScreens";
 import { test } from "../support/smoke/errorsTest";
 
-/** The phone and the desk, as scripts/shoot.mjs shoots them. */
-const PHONE = { width: 390, height: 844 };
-const DESK = { width: 1440, height: 900 };
 /** The page's and the panel's padding either side of the phone's pitch, at most. */
 const PHONE_GUTTERS = 40;
 /** The preview's bench centre-back, brought on to make a row of five. */

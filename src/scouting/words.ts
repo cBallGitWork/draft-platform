@@ -17,9 +17,9 @@ import {
   SHOTS_ON_TARGET,
   TACKLES_WON,
 } from "../../convex/scoring/statKeys";
-import { lastSeasonPointsColumn, seasonShortWords } from "../draft/words";
+import { lastSeasonPointsColumn } from "../draft/words";
 import { afterLastMatchWords, runNameWords, type FirstRun } from "../myTeam/claims/words";
-import { STAT_WORD, weekdayTimeWords } from "../shared/words";
+import { seasonShortWords, STAT_WORD, weekdayTimeWords } from "../shared/words";
 import type { Availability, Period } from "./seam";
 
 export { figureWords, noFigureWords } from "../shared/words";
