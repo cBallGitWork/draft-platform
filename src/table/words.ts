@@ -3,7 +3,8 @@
 import { andListWords } from "../../convex/shared/moments";
 import { FORM_RESULTS } from "../../convex/table/standings";
 import { menuWords } from "../frame/words";
-import { failedWords, fewestTeamsWords, gameweekWords, signedWords } from "../shared/words";
+import { seasonName } from "../../convex/shared/time";
+import { failedWords, fewestTeamsWords, gameweekShort, gameweekWords, signedWords } from "../shared/words";
 
 export { figureWords, gameweekWords, liveWords, scoreWords, versusWords } from "../shared/words";
 
@@ -49,6 +50,18 @@ export const TOTAL_POINTS_PAGE_TITLE = TABLE_TITLE;
 
 /** On the table's plate: the last gameweek it counts, while none is live. */
 export const afterWords = (gameweek: number) => `After GW${gameweek}`;
+
+/** At the page plate's far end (the approved pictures): the season, then the last gameweek the
+ *  table counts, or the gameweek being played while one is live: "2026/27, after GW9",
+ *  "2026/27, GW10", or the season alone before any result. */
+export const seasonLineWords = (seasonStartYear: number, latest: { gameweek: number; live: boolean } | undefined) =>
+  latest === undefined
+    ? seasonName(seasonStartYear)
+    : `${seasonName(seasonStartYear)}, ${latest.live ? gameweekShort(latest.gameweek) : `after ${gameweekShort(latest.gameweek)}`}`;
+
+/** Over a gameweek's league games in Fixtures (the approved picture); a cup's games follow under
+ *  their own head once cups are built. */
+export const leagueGamesHead = competitionWords.league;
 
 /** The Cup tab until cups are grilled and built (SPEC.md, Later): an empty eight-team bracket. */
 export const CUP_TITLE = "Cup";

@@ -1,11 +1,12 @@
-import { gameweekWords, nextGameweekLabel, nextGlyph, previousGameweekLabel, previousGlyph } from "../shared/words";
+import { gameweekShort, gameweekWords, nextGameweekLabel, nextGlyph, previousGameweekLabel, previousGlyph } from "../shared/words";
 
 // CM's ◄ GW ► stepper (plate.md, Colour roles: stepper), over a list of gameweeks: the league's
 // fixtures (#33) and the Premier League's (#49) step through theirs with it.
 
 const stepClasses = "flex min-w-tap items-center justify-center text-lead font-bold hover:bg-plate disabled:text-muted disabled:hover:bg-stepper";
 
-/** The gameweek shown between the arrows, announced as it changes; an arrow is off at either end. */
+/** The gameweek shown between the arrows as "GW9" (the approved pictures), its full name on hover,
+ *  announced as it changes; an arrow is off at either end. */
 export function GameweekStepper({
   gameweek,
   hasPrevious,
@@ -24,8 +25,8 @@ export function GameweekStepper({
       <button type="button" aria-label={previousGameweekLabel} disabled={!hasPrevious} onClick={onPrevious} className={stepClasses}>
         <span aria-hidden="true">{previousGlyph}</span>
       </button>
-      <h3 aria-live="polite" className="flex grow items-center justify-center text-lead font-bold">
-        {gameweekWords(gameweek)}
+      <h3 aria-live="polite" aria-label={gameweekWords(gameweek)} title={gameweekWords(gameweek)} className="flex grow items-center justify-center text-lead font-bold">
+        {gameweekShort(gameweek)}
       </h3>
       <button type="button" aria-label={nextGameweekLabel} disabled={!hasNext} onClick={onNext} className={stepClasses}>
         <span aria-hidden="true">{nextGlyph}</span>

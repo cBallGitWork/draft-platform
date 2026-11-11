@@ -1,6 +1,9 @@
 import { useState } from "react";
 import type { LeagueSummary } from "../../convex/leagues/myLeagues";
+import { seasonStartYear } from "../../convex/shared/time";
 import { FormChips } from "../myTeam/header/FormChips";
+import { tenthsFigure } from "../shared/figures";
+import { useMinute } from "../shared/useMinute";
 import { standingOf } from "../myTeam/header/teamStanding";
 import { AutoTeamChip } from "../ui/AutoTeamChip";
 import { cellClassOf, ColumnHeads } from "../ui/ColumnHeads";
@@ -20,6 +23,7 @@ import {
   loadingWords,
   noResultsWords,
   provisionalWords,
+  seasonLineWords,
   TABLE_PAGE_TITLE,
   TABLE_TITLE,
   TOTAL_POINTS_PAGE_TITLE,
@@ -52,10 +56,16 @@ const cellClasses = (column: Column) => cellClassOf(column === "team" || column 
 export function TablePage({ league, seam }: { league: LeagueSummary; seam: TableScreenSeam }) {
   const leagueTable = seam.useLeagueTable(league.leagueId);
   const [competition, choose] = useState<Competition>("league");
+  const now = useMinute();
   const totalPoints = leagueTable?.format === "totalPoints";
-  const tabs = leagueTable && !totalPoints ? <CompetitionTabs chosen={competition} choose={choose} /> : undefined;
+  const aside = leagueTable && (
+    <>
+      {!totalPoints && <CompetitionTabs chosen={competition} choose={choose} />}
+      <span className="self-center text-soft">{seasonLineWords(seasonStartYear(now), latestOf(leagueTable.results))}</span>
+    </>
+  );
   return (
-    <PageSection title={totalPoints ? TOTAL_POINTS_PAGE_TITLE : TABLE_PAGE_TITLE} aside={tabs} className={PAGE_STACK}>
+    <PageSection title={totalPoints ? TOTAL_POINTS_PAGE_TITLE : TABLE_PAGE_TITLE} aside={aside} className={PAGE_STACK}>
       {leagueTable === undefined ? (
         <Loading>{loadingWords}</Loading>
       ) : (
@@ -73,11 +83,17 @@ function CompetitionTabs({ chosen, choose }: { chosen: Competition; choose: (com
   return <PlateTabs label={competitionsLabel} tabs={COMPETITIONS} words={competitionWords} chosen={chosen} choose={choose} />;
 }
 
+/** The latest gameweek with results, and whether its points may still move. */
+function latestOf(results: LeagueTable["results"]): { gameweek: number; live: boolean } | undefined {
+  const latest = results.at(-1);
+  return latest && { gameweek: latest.gameweek, live: latest.teams.some((team) => team.provisional) };
+}
+
 /** The gameweek the table counts up to, or Provisional while a live gameweek's points may move. */
 function TableState({ results }: { results: LeagueTable["results"] }) {
-  const latest = results.at(-1);
+  const latest = latestOf(results);
   if (latest === undefined) return null;
-  return latest.teams.some((team) => team.provisional) ? (
+  return latest.live ? (
     <span className="text-event">{provisionalWords}</span>
   ) : (
     <span className="text-soft">{afterWords(latest.gameweek)}</span>
@@ -130,6 +146,9 @@ function TableCell({ column, row, position, mine, leagueTable }: { column: Colum
       );
     case "difference":
       return <td className={className}>{differenceWords(row.difference)}</td>;
+    case "pointsFor":
+    case "pointsAgainst":
+      return <td className={className}>{tenthsFigure(row[column])}</td>;
     case "points":
       return <td className={`${className} font-bold text-figure`}>{figureWords(row.points)}</td>;
     case "form": {

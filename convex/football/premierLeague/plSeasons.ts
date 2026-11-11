@@ -3,6 +3,7 @@
 // the Premier League may list 2027/28 in June while FPL still serves 2026/27, and reads go on with
 // the season FPL is on until FPL switches, then switch the same day (Craig, 6 Nov 2026).
 
+import { seasonName } from "../../shared/time";
 import { getShaped, hasId, plCompSeasonsUrl, type PlSeasons } from "../football";
 
 /** One season in the Premier League's list: its label and its own id for it. */
@@ -24,8 +25,6 @@ export function labelStartYear(label: string): number | null {
   return found === null ? null : Number(found[1]);
 }
 
-/** A season as the short labels write it: "2026/27" for 2026. */
-const seasonName = (startYear: number): string => `${startYear}/${String(startYear + 1).slice(-2)}`;
 
 /** Why a run read nothing: the Premier League lists no season, or more than one, starting in
  *  `startYear`, looked for as FPL is on `fplSeason`. */
