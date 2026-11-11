@@ -10,7 +10,8 @@ import { deadlinePassedSince } from "./waiverLock";
 // Who is on waivers in a league (#1197, spec/08 Waivers and free agency): a row in waiverPlayers
 // (../schema/waivers.ts) each, only while no team holds him. A drop puts him there for at least 24
 // hours; a player new to the Premier League once the league's draft is over, and those nobody
-// drafted when the league's draft setting says waivers (spec/04), go there for the next run.
+// drafted when the league's draft setting says waivers (spec/04), go there for the next run, as
+// does every free agent at a deadline (backOnWaivers.ts, #1478).
 
 /** The player's waiver row in the league, or null while he isn't on waivers. */
 export function waiverRowOf(ctx: QueryCtx, leagueId: Id<"leagues">, playerCode: number): Promise<Doc<"waiverPlayers"> | null> {
