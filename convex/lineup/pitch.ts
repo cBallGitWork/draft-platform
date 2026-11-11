@@ -40,6 +40,12 @@ export const cellKey = ({ area, lane }: Cell): string => `${area}/${lane}`;
 export const sameCell = (one: { area: string; lane: string }, other: { area: string; lane: string }): boolean =>
   one.area === other.area && one.lane === other.lane;
 
+/** Whether two sets of cells make the same formation: as many cells, each of one in the other, in
+ *  any order. The one test a preset's name, its default instructions, a classic's shape and the
+ *  Formation key all read. */
+export const sameShape = (one: readonly Cell[], other: readonly Cell[]): boolean =>
+  one.length === other.length && one.every((cell) => other.some((each) => sameCell(each, cell)));
+
 /** The pitch's order for a sort, ALL_CELLS's: back to front, then left to right. */
 export const byPitchOrder = (one: Cell, other: Cell): number =>
   AREAS.indexOf(one.area) - AREAS.indexOf(other.area) || LANES.indexOf(one.lane) - LANES.indexOf(other.lane);

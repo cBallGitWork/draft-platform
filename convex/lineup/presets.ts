@@ -3,7 +3,7 @@
 // a lineup against it. A league's copy is held with its rules (#25, leagueRules.ts).
 
 import { firstPairFor, type InstructionPair } from "./instructions";
-import { cellsOf, LANES, sameCell, type Area, type Cell, type Lane } from "./pitch";
+import { cellsOf, LANES, sameShape, type Area, type Cell, type Lane } from "./pitch";
 
 export interface Preset {
   /** As managers say it, such as "4-2-3-1". */
@@ -120,5 +120,5 @@ export function presetNameOf(cells: readonly Cell[], presets: readonly Preset[])
 
 /** The first of `presets` whose cells are exactly these, in any order. */
 function presetOf(cells: readonly Cell[], presets: readonly Preset[]): Preset | undefined {
-  return presets.find((each) => each.cells.length === cells.length && each.cells.every((cell) => cells.some((other) => sameCell(cell, other))));
+  return presets.find((each) => sameShape(each.cells, cells));
 }
