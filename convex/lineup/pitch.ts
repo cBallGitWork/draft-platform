@@ -46,7 +46,7 @@ export const sameCell = (one: { area: string; lane: string }, other: { area: str
   one.area === other.area && one.lane === other.lane;
 
 /** Whether two sets of cells make the same formation: as many cells, each of one in the other, in
- *  any order. The one test a preset's name, its default instructions, a classic's shape and the
+ *  any order. The one test a preset's name, its default instructions, a classic formation's shape and the
  *  Formation key all read. */
 export const sameShape = (one: readonly Cell[], other: readonly Cell[]): boolean =>
   one.length === other.length && one.every((cell) => other.some((each) => sameCell(each, cell)));

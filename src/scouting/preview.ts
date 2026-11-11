@@ -8,7 +8,7 @@ import { cardOpensAt } from "../../convex/playerCard/cardPoints";
 import { MINUTES_STAT } from "../../convex/stats/matchRecords";
 import { proLeague } from "../shared/preview";
 import { listFigures, listOf, NO_FIGURES, shownStat } from "../../convex/scouting/playersOrder";
-import { raceOrder } from "../../convex/scouting/raceOrder";
+import { mostFirst, raceOrder } from "../../convex/scouting/raceOrder";
 import { withOwnStats } from "../../convex/scoring/ownStats";
 import { OWN_STAT_PREFIX } from "../../convex/scoring/statCatalogue";
 import type { Stats } from "../../convex/stats/statTotals";
@@ -123,7 +123,7 @@ const previewRace = (stat: string): StatRace => ({
       const stats = raceTotals(index);
       return { teamId: previewIdOf(name), name, stats, stat: stats[stat] ?? 0 };
     }),
-    true,
+    mostFirst(stat),
   ),
 });
 

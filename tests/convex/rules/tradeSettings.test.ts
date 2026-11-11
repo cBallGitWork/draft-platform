@@ -50,7 +50,7 @@ describe("the trades' settings", () => {
   test("rules saved before trades were a rule read the first rules', and a change to another setting writes none", async () => {
     await t.run(async (ctx) => {
       for (const row of await ctx.db.query("leagueRules").collect()) {
-        const { trades: _trades, ...older } = row.rules;
+        const { trades: _trades, ...older } = row.rules!;
         await ctx.db.patch("leagueRules", row._id, { rules: older });
       }
     });

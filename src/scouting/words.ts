@@ -3,12 +3,26 @@
 import type { Area } from "../../convex/lineup/pitch";
 import { RANKED_MINUTES } from "../../convex/scouting/per90Figures";
 import { PERIOD_GAMEWEEKS } from "../../convex/scouting/periods";
+import {
+  ASSISTS,
+  BIG_CHANCES_CREATED,
+  CLEAN_SHEETS,
+  CLEARANCES,
+  GOALS,
+  GOALS_CONCEDED,
+  INTERCEPTIONS,
+  KEY_PASSES,
+  PASSES,
+  SAVES,
+  SHOTS_ON_TARGET,
+  TACKLES_WON,
+} from "../../convex/scoring/statKeys";
 import { lastSeasonPointsColumn } from "../draft/words";
 import { afterLastMatchWords, runNameWords, type FirstRun } from "../myTeam/claims/words";
 import { seasonShortWords, STAT_WORD, weekdayTimeWords } from "../shared/words";
 import type { Availability, Period } from "./seam";
 
-export { figureWords, freeAgentWords, noFigureWords } from "../shared/words";
+export { figureWords, noFigureWords } from "../shared/words";
 
 export const SCOUTING_TITLE = "Scouting";
 export const PLAYERS_TITLE = "Players";
@@ -118,7 +132,7 @@ export const closePanelLabel = "Close his panel";
 /** His figures per 90 over the period, ranked against the players of his area (the approved
  *  picture: "Per 90, last 6 gameweeks", "vs attacking mids"). */
 export const per90Words = (period: Period) => `Per 90, ${periodWords[period].toLowerCase()}`;
-export const AREA_PLAYERS: Record<Area, string> = {
+const AREA_PLAYERS: Record<Area, string> = {
   goalkeeper: "goalkeepers",
   defence: "defenders",
   defensiveMidfield: "defensive mids",
@@ -129,18 +143,18 @@ export const AREA_PLAYERS: Record<Area, string> = {
 /** The panel's own names for the stats it lists per 90, as the picture names them; a stat not here
  *  goes by its catalogue name. */
 export const PER90_STAT_NAMES: Readonly<Record<string, string>> = {
-  goals_scored: "Goals",
-  assists: "Assists",
-  total_att_assist: "Key passes",
-  ontarget_scoring_att: "Shots on target",
-  big_chance_created: "Big chances created",
-  won_tackle: "Tackles won",
-  saves: "Saves",
-  goals_conceded: "Goals conceded",
-  clean_sheets: "Clean sheets",
-  total_pass: "Passes",
-  interception: "Interceptions",
-  total_clearance: "Clearances",
+  [GOALS]: "Goals",
+  [ASSISTS]: "Assists",
+  [KEY_PASSES]: "Key passes",
+  [SHOTS_ON_TARGET]: "Shots on target",
+  [BIG_CHANCES_CREATED]: "Big chances created",
+  [TACKLES_WON]: "Tackles won",
+  [SAVES]: "Saves",
+  [GOALS_CONCEDED]: "Goals conceded",
+  [CLEAN_SHEETS]: "Clean sheets",
+  [PASSES]: "Passes",
+  [INTERCEPTIONS]: "Interceptions",
+  [CLEARANCES]: "Clearances",
 };
 export const versusWords = (area: Area) => `vs ${AREA_PLAYERS[area]}`;
 /** A percentile bar's hover and name: the figure it draws. */
@@ -182,6 +196,8 @@ export function seasonColumns(lastSeason: number | null) {
 export const noPointsYetWords = "No points yet: none of his matches is scored.";
 export const notLastSeasonWords = "No points: he isn't in last season's data.";
 export const noPeriodPointsWords = "No points: none of his matches in these gameweeks is scored.";
+/** Why a player's season points are "—": none priced yet, or not in last season's data. */
+export const noSeasonPointsWords = (pointsSeason: number | null) => (pointsSeason === null ? noPointsYetWords : notLastSeasonWords);
 export const noRoleFitYetWords = "No role fit yet: it waits on stars and scouts.";
 
 /** Two players side by side (spec/19, The players list); "with your player" when the second is the

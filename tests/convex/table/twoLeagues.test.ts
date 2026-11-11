@@ -24,7 +24,7 @@ async function playedUnder(oddTeamOut?: OddTeamOut): Promise<ScoresLeague> {
     await league.t.run(async (ctx) => {
       const { leagueId } = league;
       for (const row of await ctx.db.query("leagueRules").withIndex("by_leagueId_and_fromGameweek", (q) => q.eq("leagueId", leagueId)).collect()) {
-        await ctx.db.patch("leagueRules", row._id, { rules: { ...row.rules, oddTeamOut } });
+        await ctx.db.patch("leagueRules", row._id, { rules: { ...row.rules!, oddTeamOut } });
       }
       // The harness stores gameweek 6 with Cat's team on the league's average; draw it again by these rules.
       for (const row of await ctx.db.query("playedFixtures").withIndex("by_leagueId_and_gameweek", (q) => q.eq("leagueId", leagueId)).collect()) {

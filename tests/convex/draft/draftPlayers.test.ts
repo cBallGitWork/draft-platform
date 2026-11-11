@@ -33,7 +33,7 @@ const setSquadRules = (squad: Partial<LeagueRules["squad"]>) =>
   t.run(async (ctx) => {
     for (const row of await ctx.db.query("leagueRules").withIndex("by_leagueId_and_fromGameweek", (q) => q.eq("leagueId", leagueId)).collect()) {
       await ctx.db.patch("leagueRules", row._id, {
-        rules: { ...row.rules, squad: { size: { minimum: 1, maximum: 2 }, minimumByArea: null, maxPerClub: null, ...squad } },
+        rules: { ...row.rules!, squad: { size: { minimum: 1, maximum: 2 }, minimumByArea: null, maxPerClub: null, ...squad } },
       });
     }
   });

@@ -34,8 +34,8 @@ const preset = v.object({
  *  which nothing reads (`heldRules` drops it), optional so those rows need no migration. */
 const storedPreset = v.object({ ...preset.fields, centreRole: v.optional(v.string()) });
 
-/** classics.ts's Classic. */
-export const classicShape = v.object({
+/** classics.ts's ClassicFormation. */
+export const classicFormationShape = v.object({
   name: v.string(),
   subtitle: v.string(),
   description: v.string(),
@@ -101,9 +101,10 @@ export const leagueRulesShape = v.object({
   /** Each area's minimum and maximum on the pitch: lineup.ts's LineupRules["areaLimits"]. */
   areaLimits: byArea(limit),
   presets: v.array(preset),
-  /** Absent only from rules saved before #991, which play the first rules'
-   *  (firstRules.ts, `classicsOf`). */
-  classics: v.optional(v.array(classicShape)),
+  /** The league's classic formations, under the key they were first saved with (#1620). Absent
+   *  only from rules saved before #991, which play the first rules' (firstRules.ts,
+   *  `classicFormationsOf`). */
+  classics: v.optional(v.array(classicFormationShape)),
   /** deadline.ts's DeadlineRule. */
   deadline: v.object({ minutesBeforeFirstKickoff: v.number() }),
   /** values.ts's DoubleGameweekRule. */
@@ -130,6 +131,12 @@ export const leagueRulesShape = v.object({
 });
 
 export type LeagueRules = Infer<typeof leagueRulesShape>;
+
+/** What a save of the rules stores (#1617): only the parts it changed, each whole, the rest as the
+ *  row before holds them (Craig, 11 Nov 2026: "a save stores only what changed"), so a change of a
+ *  waiver time doesn't copy the formations and classics again. */
+export const rulesChangesShape = leagueRulesShape.partial();
+export type RulesChanges = Infer<typeof rulesChangesShape>;
 
 /** The draft's rules as rows hold them: rows saved between #1087 and #1089 also carry how the draft
  *  order was set, a switch Craig dropped ("Drop it", 4 Nov 2026, on #1089), which nothing reads

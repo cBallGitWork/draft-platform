@@ -18,8 +18,8 @@ import { firstLineup, keptOnBenchOf, withDroppedRoles } from "./firstLineup";
 import { starsOfPlayers } from "../stars/playerStars";
 import type { Area, Lane } from "./pitch";
 import { roleIn } from "./roles";
-import { inClassicShape } from "./classics";
-import { classicsOf, instructionsOf } from "../rules/firstRules";
+import { inClassicFormationShape } from "./classics";
+import { classicFormationsOf, instructionsOf } from "../rules/firstRules";
 import { lineupRefusals, problemWords } from "./lineupWords";
 import { pairRefusal } from "./instructions";
 import { instructionPairShape } from "./instructionsShape";
@@ -44,7 +44,8 @@ import { pairRefusalWords } from "./instructionsWords";
 const sentLineup = v.object({
   starters: v.array(v.object({ playerCode: v.number(), area: v.string(), lane: v.string(), role: v.optional(v.string()) })),
   bench: v.array(v.number()),
-  /** The classic picked, by name, if its shape is the one the starters stand in (#991). */
+  /** The classic formation picked, by name, if its shape is the one the starters stand in (#991):
+   *  `classic`, as rows are saved with it (schema/lineup.ts). */
   classic: v.optional(v.string()),
   /** Its two team instructions (#990); absent from a browser that sends none: the formation's
    *  defaults. */
@@ -65,7 +66,7 @@ export const heldLineupShape = v.object({
   leftSquad: v.array(v.number()),
   joinedBench: v.array(v.number()),
   vacated: v.array(placementShape),
-  /** The classic its manager picked, by name, until he picks another formation (#991). */
+  /** The classic formation its manager picked, by name, until he picks another formation (#991). */
   classic: v.optional(v.string()),
   /** The row's team instructions as its manager picked them (#990); absent until he does. What
    *  stands in force is instructions.ts's `keptOrSwitched`, under the league's rules. */
@@ -219,15 +220,15 @@ export const save = mutation({
       const cell = { area: starter.area as Area, lane: starter.lane as Lane };
       return { ...starter, ...cell, ...(role === undefined ? {} : { role: roleIn(cell, role).key }) };
     });
-    // A classic's shape never changes (spec/05; #991): its starters stand in its cells.
-    const { classic } = lineup;
-    if (classic !== undefined) {
-      const held = classicsOf(rules).find(({ name }) => name === classic);
-      if (held === undefined) refuse(lineupRefusals.noSuchClassic(classic));
-      if (!inClassicShape(starters, held)) refuse(lineupRefusals.notInClassicShape(classic));
+    // A classic formation's shape never changes (spec/05; #991): its starters stand in its cells.
+    const { classic: classicFormation } = lineup;
+    if (classicFormation !== undefined) {
+      const held = classicFormationsOf(rules).find(({ name }) => name === classicFormation);
+      if (held === undefined) refuse(lineupRefusals.noSuchClassicFormation(classicFormation));
+      if (!inClassicFormationShape(starters, held)) refuse(lineupRefusals.notInClassicFormationShape(classicFormation));
     }
     // The manager's own from here: no squad change picks it again.
-    const kept = { starters, bench: lineup.bench, classic, instructions, keptOutOfPosition: keptOutOfPosition.length > 0 ? keptOutOfPosition : undefined };
+    const kept = { starters, bench: lineup.bench, classic: classicFormation, instructions, keptOutOfPosition: keptOutOfPosition.length > 0 ? keptOutOfPosition : undefined };
     if (existing?.fromGameweek !== fromGameweek) await ctx.db.insert("lineups", { leagueId, teamId: team._id, fromGameweek, ...kept });
     else await ctx.db.patch("lineups", existing._id, { ...kept, firstLineup: undefined });
     return fromGameweek;

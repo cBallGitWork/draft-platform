@@ -27,6 +27,7 @@ import { cancelLiveInvites } from "../joining/liveInvites";
 import { draftHasStarted, draftOf } from "../draft/draftRow";
 import { rescheduleIfOnTheClock } from "../draft/draftClock";
 import { afterTakeBack } from "../draft/draftTimeouts";
+import { clearDraftLists } from "../draft/draftLists";
 
 // A league's teams and their managers (#24, spec/13, Teams and Leaving). Each change files an
 // event for Mail (#26). One manager runs one team; a team whose manager goes stays, vacated.
@@ -95,6 +96,8 @@ export async function putOnTeam(
     // And he starts off auto-pick, whatever the manager before him ran up or chose (spec/04, Auto-pick).
     const draft = await draftOf(ctx, league._id);
     if (draft?.timeouts !== undefined) await ctx.db.patch("drafts", draft._id, { timeouts: afterTakeBack(draft.timeouts, vacated._id) });
+    // And with empty lists: auto-pick used the old manager's while the team had none, and he never sees them (S04.15).
+    await clearDraftLists(ctx, vacated._id);
     ({ _id: teamId, name: teamName } = vacated);
   } else {
     // A new team redraws the round robin, so the gameweeks already begun are stored first (#137).

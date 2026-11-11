@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, test } from "vitest";
 import { api, internal } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
-import { NOTE_MOST } from "../../../convex/trades/tradeLimits";
+import { NOTE_MOST, OFFERS_PER_TEAM_MOST } from "../../../convex/trades/tradeLimits";
 import { OFFERS_READ_MOST } from "../../../convex/trades/tradeClose";
 import { offerRefusals } from "../../../convex/trades/tradeOffers";
 import { refusals } from "../../../convex/shared/leagueAccess";
@@ -103,6 +103,25 @@ describe("an offer", () => {
     await w.withdraw(ANN, offerId);
     await w.offer(ANN, w.bobsTeam, [ANNS_FIRST_DROP], [SAKA]);
     expect(await w.offers()).toHaveLength(1);
+  });
+
+  test(`is refused while his team has ${OFFERS_PER_TEAM_MOST} open, until he withdraws one or a deadline closes them (S08.16)`, async () => {
+    // Ann's team holds one short of the ceiling, each offering Cat's team the same trade.
+    await w.t.run(async (ctx) => {
+      for (let each = 1; each < OFFERS_PER_TEAM_MOST; each++) {
+        await ctx.db.insert("tradeOffers", { leagueId: w.leagueId, fromTeamId: w.annsTeam, toTeamId: w.catsTeam, gives: [], gets: [RICE], by: ANN, madeAt: Date.now() });
+      }
+    });
+    const { offerId } = await w.offer(ANN, w.bobsTeam, [ANNS_FIRST_DROP], [SAKA]);
+    await expectRefused(w.offer(ANN, w.bobsTeam, [], [PALMER]), offerRefusals.tooMany);
+    // The ceiling is each team's own: Bob still offers Ann's team a trade.
+    await w.offer(BOB, w.annsTeam, [PALMER], []);
+    await w.withdraw(ANN, offerId);
+    await w.offer(ANN, w.bobsTeam, [], [PALMER]);
+    await expectRefused(w.offer(ANN, w.bobsTeam, [], [SAKA]), offerRefusals.tooMany);
+    // Past a deadline nobody answered them by, they no longer count, the cron yet to close them.
+    await w.gameweekEnds(5);
+    await w.offer(ANN, w.bobsTeam, [], [SAKA]);
   });
 
   test("goes to no team on the auto team, nor from one (spec/09)", async () => {

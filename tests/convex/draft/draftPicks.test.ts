@@ -240,19 +240,6 @@ describe("a drafted player who loses a position mid-draft (#1484)", () => {
   });
 });
 
-test("a draft started before its squad rules were kept picks under the league's in force when it started", async () => {
-  await start();
-  await setSquadRules({ maxPerClub: 1 });
-  await t.run(async (ctx) => {
-    const draft = (await ctx.db.query("drafts").withIndex("by_leagueId", (q) => q.eq("leagueId", leagueId)).unique())!;
-    const { squad: _squad, ...started } = draft.started!;
-    await ctx.db.patch("drafts", draft._id, { started });
-  });
-  for (const [email, code] of [[ANN, A1], [BOB, A2], [CAT, A3]] as const) await pick(email, code);
-
-  await expectRefused(pick(CAT, A4), pickRefusals.breaksSquadRules("Player 104"));
-});
-
 describe("the commissioner's assign, move and release", () => {
   const commissioner = () => as(COMMISSIONER);
   const assign = async (playerCode: number, teamId: Id<"teams">) => (await commissioner()).mutation(api.squads.squads.assign, { leagueId, playerCode, teamId });

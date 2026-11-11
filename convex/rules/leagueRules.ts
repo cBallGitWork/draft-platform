@@ -16,7 +16,7 @@ import { refuseFormatChange } from "./formatLock";
 import { momentIn } from "../shared/moments";
 import { zoneOf } from "../signIn/timeZone";
 import { checkSquadMaximums, squadMaximumBandShape, squadMaximumFor, STARTING_SQUAD_MAXIMUMS, withSquadMaximum, type SquadMaximumBand } from "./squadMaximums";
-import { historyOf, inForce, latestRules, newestRow, RULES_CHANGES_MOST, seasonRules, type RulesRow } from "./rulesHistory";
+import { historyOf, inForce, latestRules, newestRow, RULES_CHANGES_MOST, savedForm, seasonRules, type RulesRow } from "./rulesHistory";
 import { switchWaiverOrder } from "../waivers/waiverOrder";
 import { heldSchedule } from "../gameweeks/leagueDeadlines";
 import { seasonGameweekCount } from "../gameweeks/seasonGameweeks";
@@ -204,7 +204,7 @@ async function changeRules(ctx: MutationCtx, leagueId: Id<"leagues">, email: str
   const before = latestRow === undefined ? null : await seasonRules(ctx, leagueId);
   if (before !== null && before.latest.waivers.order !== rules.waivers.order) await switchWaiverOrder(ctx, league, before, Date.now());
   // A second change before the same deadline is a newer row from the same gameweek: it wins.
-  await ctx.db.insert("leagueRules", { leagueId, fromGameweek, rules });
+  await ctx.db.insert("leagueRules", { leagueId, fromGameweek, ...savedForm(rules, latestRow === undefined ? undefined : changed) });
   await recordEvent(ctx, leagueId, email, { kind: "rulesChanged", fromGameweek, changed });
   return fromGameweek;
 }

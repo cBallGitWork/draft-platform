@@ -5,10 +5,10 @@ import { areasOf } from "../lineup/pitch";
 import { pickFirstLineupAgain } from "../lineup/lineups";
 import { fileEvent } from "../mail/letters";
 import { positionsNow, type PositionsNow } from "../positions/playerPositions";
+import { knownOnJoining } from "../positions/positionWarnings";
 import type { LeagueRules } from "../rules/leagueRulesShape";
 import { managerOf, refuse, refusals, runnerOf, teamIn } from "../shared/leagueAccess";
 import { heldPlayerByCode, playerByCode } from "../shared/players";
-import { SECOND_MS } from "../shared/time";
 import { placeOf, squadOf } from "../squads/squadPlace";
 import { squadRefusals } from "../squads/squads";
 import { autoPickOrder } from "./autoPickOrder";
@@ -18,8 +18,7 @@ import { listsOf } from "./draftLists";
 import { draftRulesNow, pickSecondsNow } from "./draftPickTime";
 import { draftRanking } from "./draftRanking";
 import type { Position } from "../positions/positionTables";
-import { draftedPositionsIn, draftOf, lastPickIn, picksLeftOf, turnNow, undoWindowOpen, type StartedDraft, type Turn } from "./draftRow";
-import { rulesInForceAt } from "./draftStart";
+import { draftedPositionsIn, draftOf, lastPickIn, liveClockOf, picksLeftOf, turnNow, undoWindowOpen, type StartedDraft, type Turn } from "./draftRow";
 import { afterTimeout, choseAutoPick, timeoutEffect } from "./draftTimeouts";
 import { lastSeasonPoints } from "./lastSeasonPoints";
 import { whyNotLegal, type DraftPlayer, type NotLegal } from "./legalPlayers";
@@ -61,11 +60,10 @@ export const pickRefusals = {
 };
 
 /** The squad rules the draft picks under: those it started under, never a change made since (Craig,
- *  4 Nov 2026, on #1090: "Picks follow the squad rules the draft started under"). A draft started
- *  before #1090 kept none, so its are the league's in force when it started; it always has them, as
- *  it can't start without a squad size limit. */
-export async function squadRulesOf(ctx: QueryCtx, leagueId: Id<"leagues">, started: StartedDraft): Promise<LeagueRules["squad"]> {
-  return started.squad ?? (await rulesInForceAt(ctx, leagueId, started.at)).squad;
+ *  4 Nov 2026, on #1090: "Picks follow the squad rules the draft started under"). */
+export function squadRulesOf(leagueId: Id<"leagues">, started: StartedDraft): LeagueRules["squad"] {
+  if (started.squad === undefined) throw new Error(`League ${leagueId}'s draft kept no squad rules: run draft/oldDraftsBackfill once (#1610)`);
+  return started.squad;
 }
 
 /** Why `teamId` may not take a player as its next pick, under the squad rules the draft started
@@ -92,7 +90,7 @@ export async function whyNotLegalFor(
       asDraftPlayer(await heldPlayerByCode(ctx, playerCode, `Player ${playerCode}, drafted by team ${teamId}, isn't in the football data`), drafted.get(playerCode)),
     ),
   );
-  const why = whyNotLegal(squad, picksLeft, await squadRulesOf(ctx, leagueId, started), await Promise.all(undrafted.map((each) => asDraftPlayer(each))));
+  const why = whyNotLegal(squad, picksLeft, squadRulesOf(leagueId, started), await Promise.all(undrafted.map((each) => asDraftPlayer(each))));
   return async (player) => why(await asDraftPlayer(player));
 }
 
@@ -137,6 +135,7 @@ async function placePick(ctx: MutationCtx, league: Doc<"leagues">, turn: Turn, t
   const positions = await (await positionsNow(ctx, leagueId))(player.code);
   await ctx.db.insert("draftPicks", { leagueId, pick: turn.pick, teamId: team._id, playerCode: player.code, at: now, positions, ...(auto && { auto }), ...(timeout && { timeout }), ...(own && { own }) });
   await ctx.db.insert("squadPlayers", { leagueId, teamId: team._id, playerCode: player.code });
+  await knownOnJoining(ctx, leagueId, team._id, player.code);
   await offWaivers(ctx, leagueId, player.code);
   await fileEvent(ctx, leagueId, by, { kind: "playerAssigned", playerCode: player.code, playerName: player.name, teamId: team._id, teamName: team.name });
   await pickFirstLineupAgain(ctx, leagueId, team._id);
@@ -145,10 +144,9 @@ async function placePick(ctx: MutationCtx, league: Doc<"leagues">, turn: Turn, t
 }
 
 /** The time `draft`'s clock has left at `now`, for the pick its manager makes then: all of it before
- *  it starts, and the draft's pick time for a draft started before #1091 with no clock. */
-async function leftOnTheClock(ctx: QueryCtx, leagueId: Id<"leagues">, draft: Doc<"drafts">, now: number): Promise<number> {
-  const clock = draft.clock;
-  if (clock === undefined) return (await pickSecondsNow(ctx, leagueId)) * SECOND_MS;
+ *  it starts. */
+function leftOnTheClock(draft: Doc<"drafts">, now: number): number {
+  const clock = liveClockOf(draft);
   return Math.max(0, clock.endsAt - Math.max(now, clock.startsAt));
 }
 
@@ -167,7 +165,7 @@ export const makePick = mutation({
     const now = Date.now();
     if (undoWindowOpen(draft, await lastPickIn(ctx, leagueId), now)) refuse(pickRefusals.undoing);
     const player = await legalPick(ctx, leagueId, draft, started, turn, playerCode);
-    const own = { leftMs: await leftOnTheClock(ctx, leagueId, draft, now) };
+    const own = { leftMs: leftOnTheClock(draft, now) };
     if (draft.clock?.job !== undefined) await ctx.scheduler.cancel(draft.clock.job);
     await placePick(ctx, league, turn, team, player, email, { own });
     return null;

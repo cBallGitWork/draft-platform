@@ -50,6 +50,12 @@ export function siteVersions(ctx: QueryCtx): Promise<Doc<"siteScoring">[]> {
   );
 }
 
+/** The versions still to take effect after `now`, soonest first, read through the index (#1617):
+ *  what the banner every signed-in page runs looks through, never the whole history. */
+export function versionsWaitingAt(ctx: QueryCtx, now: number) {
+  return ctx.db.query("siteScoring").withIndex("by_takesEffectAt", (q) => q.gt("takesEffectAt", now));
+}
+
 /** A version's set, or the first set when there is no version yet. */
 export function setOf(version: Doc<"siteScoring"> | undefined): StoredScoringSet {
   return version?.scoring ?? FIRST_SCORING;

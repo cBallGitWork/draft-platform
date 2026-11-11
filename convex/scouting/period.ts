@@ -31,7 +31,7 @@ type PeriodMatch = { fixture: Doc<"fixtures">; gameweek: number; records: Doc<"p
 /** Every player's totals over the period, by his code, and the gameweeks it counts (none for the
  *  season, in order otherwise); `matches` are the period's matches, for its points, empty for the
  *  season. `season` is the season the totals are from, null with none held. */
-export interface PeriodTotals {
+interface PeriodTotals {
   season: number | null;
   gameweeks: number[];
   totals: Map<number, Stats>;

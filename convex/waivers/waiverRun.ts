@@ -9,6 +9,7 @@ import { scheduleHeartbeat } from "../heartbeats/heartbeat";
 import { leagueOpens } from "../leagues/leagueOpens";
 import { MOST_IN_SQUAD } from "../leagues/leagueLimits";
 import { pickFirstLineupAgain } from "../lineup/lineups";
+import { knownOnJoining } from "../positions/positionWarnings";
 import { claimFailedLetter, type ClaimFailure } from "../mail/waiverLetterWords";
 import { fileLetter, recordEvent } from "../mail/letters";
 import type { LeagueRules } from "../rules/leagueRulesShape";
@@ -150,6 +151,7 @@ async function tryClaim(ctx: MutationCtx, run: Run, claim: Doc<"waiverClaims">):
       ? null
       : await dropAndTell(ctx, league, await teamIn(ctx, league._id, claim.teamId), drop, { code: drop.playerCode, name: await run.nameOf(drop.playerCode) }, claim.by, told);
   await ctx.db.insert("squadPlayers", { leagueId: league._id, teamId: claim.teamId, playerCode: claim.playerCode });
+  await knownOnJoining(ctx, league._id, claim.teamId, claim.playerCode);
   run.squads.set(claim.teamId, [...squad.filter((code) => code !== claim.dropCode), claim.playerCode]);
   return { won: true, toWaivers };
 }

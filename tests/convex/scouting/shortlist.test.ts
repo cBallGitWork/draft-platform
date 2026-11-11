@@ -2,7 +2,8 @@ import { beforeEach, describe, expect, test } from "vitest";
 import { api } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
 import { shortlistedReleasedLetter } from "../../../convex/scouting/shortlistWords";
-import { SHORTLIST_MOST, shortlistRefusals } from "../../../convex/scouting/shortlist";
+import { SHORTLIST_MOST } from "../../../convex/scouting/shortlist";
+import { shortlistRefusals } from "../../../convex/scouting/shortlistWords";
 import { refusals } from "../../../convex/shared/leagueAccess";
 import { ADMIN, COMMISSIONER, MANAGERS, actingAs, addManagers, adminCreatesLeague, type TestConvex } from "../../support/convex/leagues.harness";
 import { ARSENAL, CHELSEA, GONE, insertClubs, insertDroppedPlayer } from "../../support/convex/footballRows.harness";
@@ -95,7 +96,7 @@ describe("a manager's own shortlist", () => {
         await ctx.db.insert("shortlistPlayers", { leagueId, teamId: teams[0], playerCode: code });
       }
     });
-    await expectRefused((await as(ANN)).add(SAKA.code), shortlistRefusals.full);
+    await expectRefused((await as(ANN)).add(SAKA.code), shortlistRefusals.full(SHORTLIST_MOST));
   });
 
   test.each([

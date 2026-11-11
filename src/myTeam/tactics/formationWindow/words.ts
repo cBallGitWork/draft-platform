@@ -9,10 +9,10 @@ export const YOUR_PRESETS = "Your presets";
 export const yourPresetsLine = "a formation and every slot's role, never players";
 export const FORMATIONS_HEAD = "Formations";
 export const backGroupWords = (back: number) => `Back ${back}`;
-export const CLASSICS = "Classics";
-export const classicsLine = "famous sides, formation and roles";
+export const CLASSIC_FORMATIONS = "Classic formations";
+export const classicFormationsLine = "famous sides, formation and roles";
 /** The marks on a group's heading, saying what in it is sample (the approved formation window). */
-/** The classics' text, Claude's until Craig rewrites it (spec/05, The pitch). */
+/** The classic formations' text, Claude's until Craig rewrites it (spec/05, The pitch). */
 export const sampleTextWords = "text: sample";
 export const savePresetName = "Save preset…";
 export const savePresetLine = "Saves the formation and roles in use now";
@@ -29,11 +29,12 @@ export const costsHead = "Costs";
 /** What a plain formation does when used (spec/05, The pitch). */
 export const appliesWords = (name: string) =>
   `The ${name}. Your players stay, each in a slot of his own area where there is one; anyone without a slot goes to the front of the bench. Each keeps his role where his new slot offers it.`;
-/** What a classic does when used (spec/05, The pitch; #991): its shape, roles and instructions. */
-export const classicAppliesWords = (formation: string) =>
+/** What a classic formation does when used (spec/05, The pitch; #991): its shape, roles and
+ *  instructions. */
+export const classicFormationAppliesWords = (formation: string) =>
   `The ${formation}, all eleven roles and both team instructions, like a preset. Your players stay; anyone without a slot goes to the bench. Change a role or an instruction and it becomes custom.`;
-/** A classic's preview title after its name: "1988-89, Sacchi, 4-4-2". */
-export const classicTitleWords = (subtitle: string, formation: string) => `${subtitle}, ${formation}`;
+/** A classic formation's preview title after its name: "1988-89, Sacchi, 4-4-2". */
+export const classicFormationTitleWords = (subtitle: string, formation: string) => `${subtitle}, ${formation}`;
 export const previewLabel = (name: string) => `${name}: each slot's position and the role it would play`;
 
 /** A saved plan (spec/05, Saved plans; Craig, 6 Nov 2026, #992): its preview's line, what loading
