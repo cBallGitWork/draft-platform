@@ -9,6 +9,7 @@ import { REVIEW_MS } from "../../../convex/trades/tradeLimits";
 import { ARSENAL, insertClubs, insertPlayers, type HeldPlayer } from "../../support/convex/footballRows.harness";
 import { changeEveryRules } from "../../support/convex/leagueRules.harness";
 import { actingAs, addManagers, adminCreatesLeague, COMMISSIONER, eventsIn, MANAGERS, type TestConvex } from "../../support/convex/leagues.harness";
+import { pickGapPasses } from "../../support/convex/pickWindow.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
 import { expectRefused } from "../../support/convex/test.harness";
 import { lettersTo } from "../../support/convex/waivers.harness";
@@ -42,7 +43,11 @@ const onTheClock = async () => {
   const draft = await (await as(COMMISSIONER)).query(api.draft.draftStart.ofLeague, { leagueId });
   return draft.status === "live" ? { pick: draft.onTheClock.pick, teamId: draft.onTheClock.teamId } : null;
 };
-const makePick = async (email: string, playerCode: number) => (await as(email)).mutation(api.draft.draftPicks.makePick, { leagueId, playerCode });
+/** `email` picks, and the pick's 10 seconds to undo it pass. */
+const makePick = async (email: string, playerCode: number) => {
+  await (await as(email)).mutation(api.draft.draftPicks.makePick, { leagueId, playerCode });
+  await pickGapPasses(t);
+};
 const offers = () => t.run((ctx) => ctx.db.query("tradeOffers").collect());
 const teamName = async (teamId: Id<"teams">) => (await t.run((ctx) => ctx.db.get("teams", teamId)))!.name;
 const tradesAre =(trades: TradeRules) => changeEveryRules(t, leagueId, (rules) => ({ ...rules, trades }));
