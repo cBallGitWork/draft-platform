@@ -55,7 +55,7 @@ function PlayersTab({ league, seam }: { league: LeagueSummary; seam: ScoutingSea
   const [sort, setSort] = useState<ListSort>(OPENING_SORT);
   const [stat, setStat] = useState<CatalogueStat | null>(null);
   const [name, find] = useState("");
-  // While a changed filter or sort loads, the last list stays up, so the club filter keeps its clubs.
+  // While a changed club, stat or period loads, the last list stays up, so the club filter keeps its clubs.
   const [period, choosePeriod] = useState<Period>(OPENING_PERIOD);
   const list = useLastLoaded(seam.usePlayersList(league.leagueId, filters, sort, stat?.stat ?? null, period));
   const shortlist = seam.useShortlist(league.leagueId);
