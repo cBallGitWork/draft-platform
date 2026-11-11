@@ -158,7 +158,7 @@ export const set = mutation({
 
 /** A team's auto team as its switch shows it: on or off, and the gameweek it ends after, if its
  *  manager named one. */
-const autoTeamSwitch =v.object({ on: v.boolean(), endsAfter: v.union(v.number(), v.null()) });
+const autoTeamSwitch = v.object({ on: v.boolean(), endsAfter: v.union(v.number(), v.null()) });
 export type AutoTeamSwitch = Infer<typeof autoTeamSwitch>;
 
 /** A team's switch: on while a person switched it on or it has no manager (trades/tradeShut.ts). */

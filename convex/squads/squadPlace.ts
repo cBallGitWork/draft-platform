@@ -103,7 +103,7 @@ export async function heldOrNot(ctx: QueryCtx, rows: readonly Doc<"squadPlayers"
 type LeagueEvent = Infer<typeof leagueEvent>;
 type SquadMove = Extract<LeagueEvent, { kind: (typeof SQUAD_MOVES)[number] }>;
 export const isSquadMove = (event: LeagueEvent): event is SquadMove => (SQUAD_MOVES as readonly string[]).includes(event.kind);
-type ListedMove =Extract<LeagueEvent, { kind: ListedKind }>;
+type ListedMove = Extract<LeagueEvent, { kind: ListedKind }>;
 export const isListedMove = (event: LeagueEvent): event is ListedMove => (LISTED_MOVES as readonly string[]).includes(event.kind);
 /** Whether the squad move took its player off `teamId` for another team: a move or a trade. */
 export const movedOff = (event: SquadMove, teamId: Id<"teams">) => (event.kind === "playerMoved" || event.kind === "playerTraded") && event.fromTeamId === teamId;
