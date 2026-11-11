@@ -9,12 +9,11 @@
 import { AREAS, cellKey, LANES, playsCell, type Area, type Cell, type Lane } from "./pitch";
 import { BACK_THREE, centreBacksIn, everyRoleOf, isRole, needsBackThree, roleIn, takesRole } from "./roles";
 import type { Position } from "../positions/positionTables";
+import type { PlayerCode } from "../shared/players";
 
 /** A football side's eleven: the product's rule, not a league's. */
 export const STARTER_COUNT = 11;
 
-/** Players are FPL's season-stable `code`. */
-type PlayerCode = number;
 
 /** Where a starter stands. Area and lane are plain strings here because a lineup arrives from a
  *  manager's browser: this check is what refuses a cell that doesn't exist. */
