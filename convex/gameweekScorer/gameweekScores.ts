@@ -6,7 +6,7 @@ import type { StoredScoringSet } from "../scoring/scoringSetShape";
 import type { SeasonRules } from "../rules/rulesHistory";
 import { logFailure } from "../shared/errors";
 import { readOnce } from "../shared/readOnce";
-import type { SquadMovesSince } from "../squads/squadPlace";
+import type { MovesSinceOf } from "../squads/squadPlace";
 import { heldFixtures, isMatchFinal } from "./heldMatches";
 import { squadInputs, type PlayerRows } from "./squadInputs";
 import { sameCodes, storedFinalScores, storedScoresIn } from "./storedScores";
@@ -189,7 +189,7 @@ export async function squadGameweek(
   gameweek: number,
   teamId: TeamId,
   rowsOf: (code: number) => Promise<PlayerRows>,
-  movesSinceOf?: (at: number) => Promise<SquadMovesSince>,
+  movesSinceOf?: MovesSinceOf,
 ): Promise<GameweekTeams> {
   const fixtures = await heldFixtures(ctx, gameweek);
   return teamsFrom(reads, await squadInputs(ctx, reads, gameweek, fixtures, teamId, rowsOf, movesSinceOf), new Map());

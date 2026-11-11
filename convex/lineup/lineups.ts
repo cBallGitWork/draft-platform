@@ -8,7 +8,7 @@ import { nextGameweek } from "../gameweeks/nextGameweek";
 import { fixedDeadlinesOf, passedDeadlineOf } from "../gameweeks/passedDeadlines";
 import { GAMEWEEKS, lastPlayedGameweek } from "../gameweeks/usedGameweeks";
 import { inUnplayedGameweek } from "../waivers/waiverLock";
-import { squadAt, squadMovesSince, squadOf, type SquadMovesSince } from "../squads/squadPlace";
+import { squadAt, squadMovesSince, squadOf, type MovesSinceOf, type SquadMovesSince } from "../squads/squadPlace";
 import { playerByCode } from "../shared/players";
 import { positionsNow } from "../positions/playerPositions";
 import { placementShape } from "../schema";
@@ -99,7 +99,7 @@ export async function lineupsInGameweek(
   leagueId: Id<"leagues">,
   teamIds: readonly Id<"teams">[],
   gameweek: number,
-  movesSinceOf: (at: number) => Promise<SquadMovesSince> = (at) => squadMovesSince(ctx, leagueId, at),
+  movesSinceOf: MovesSinceOf = (at) => squadMovesSince(ctx, leagueId, at),
 ): Promise<Map<Id<"teams">, HeldLineup>> {
   const deadline = await passedDeadlineOf(ctx, leagueId, gameweek);
   let movesSince: Promise<SquadMovesSince> | undefined;
