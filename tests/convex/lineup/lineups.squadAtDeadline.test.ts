@@ -6,7 +6,7 @@ import { holdGameweeks } from "../../support/convex/leagueRules.harness";
 import { COMMISSIONER, MANAGERS, actingAs, addManagers, adminCreatesLeague, type TestConvex } from "../../support/convex/leagues.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
 import { FIRST_SUB } from "../../support/convex/lineup.harness";
-import { FOUR_FOUR_TWO, holdPlayers, holdSquad, nameOf, passNextDeadline, SQUAD, squadMoves, STARTERS } from "../../support/convex/lineupSquad.harness";
+import { FOUR_FOUR_TWO, holdPlayers, holdSquad, nameOf, NEXT, passNextDeadline, SQUAD, squadMoves, STARTERS } from "../../support/convex/lineupSquad.harness";
 import { lineupInGameweek, lineupsInGameweek } from "../../../convex/lineup/lineups";
 import { SQUAD_MOVES_READ_MOST, squadMovesFrom } from "../../../convex/squads/squadPlace";
 import { passedDeadlineOf } from "../../../convex/gameweeks/passedDeadlines";
@@ -17,7 +17,6 @@ import { MINUTE_MS } from "../../../convex/shared/time";
 // The rest of storing a lineup is in lineups.test.ts.
 
 const [ANN, BOB] = MANAGERS;
-const NEXT = 9;
 /** A player in the Premier League on no team in the league. */
 const FREE_AGENT = 999;
 /** Bob's player. */

@@ -10,7 +10,7 @@ import { WEEK_MS } from "../../../convex/shared/time";
 import { holdGameweeks } from "../../support/convex/leagueRules.harness";
 import { ADMIN, COMMISSIONER, MANAGERS, actingAs, addManager, addManagers, adminCreatesLeague, type TestConvex } from "../../support/convex/leagues.harness";
 import { FIRST_SUB } from "../../support/convex/lineup.harness";
-import { FOUR_FOUR_TWO, holdSquad, passNextDeadline, squadMoves } from "../../support/convex/lineupSquad.harness";
+import { FOUR_FOUR_TWO, holdSquad, NEXT, passNextDeadline, squadMoves } from "../../support/convex/lineupSquad.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
 
 // The auto team (spec/09, The auto team; #1207): at each deadline it keeps the team's last lineup
@@ -20,7 +20,6 @@ import { fakeResend, signInDeployment } from "../../support/convex/signIn.harnes
 // handed on. Switching it files a letter (spec/16).
 
 const [ANN, BOB] = MANAGERS;
-const NEXT = 9;
 
 /** The 4-4-2's midfielders, each of whom the first bench player, a CM, can stand in for. */
 const [OUT_MIDFIELDER, DOUBTFUL_MIDFIELDER] = FOUR_FOUR_TWO.starters.filter(({ area }) => area === "midfield").map(({ playerCode }) => playerCode);

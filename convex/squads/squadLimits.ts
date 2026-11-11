@@ -63,7 +63,7 @@ function areaLimits(players: readonly LimitPlayer[], minimums: Readonly<Record<A
   }));
 }
 
-/** One row for each club the squad holds a player from, most players first, then by club code. */
+/** One row for each club the squad holds a player from, most players first, then by club short name. */
 function clubLimits(players: readonly LimitPlayer[], maximum: number): SquadLimit[] {
   const byClub = new Map<number, { club: Club; players: number[] }>();
   for (const { code, club } of players) {

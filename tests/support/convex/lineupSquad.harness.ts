@@ -13,6 +13,11 @@ import { KICKS_OFF_IN } from "./leagueRules.harness";
 import { actingAs, type TestConvex } from "./leagues.harness";
 import { filledLineup, presetNamed } from "./lineup.harness";
 
+/** The next gameweek, not yet begun: holdGameweeks' `next` in the lineup and squad tests. */
+export const NEXT = 9;
+/** A player the squad tests assign, release and trade. */
+export const SAKA = 1001;
+
 export const { lineup: FOUR_FOUR_TWO, positions: STARTER_POSITIONS } = filledLineup(presetNamed("4-4-2"));
 export const STARTERS = FOUR_FOUR_TWO.starters.map(({ playerCode }) => playerCode);
 export const SQUAD = [...STARTERS, ...FOUR_FOUR_TWO.bench];

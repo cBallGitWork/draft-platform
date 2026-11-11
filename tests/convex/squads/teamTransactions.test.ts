@@ -9,13 +9,12 @@ import { expectRefused } from "../../support/convex/test.harness";
 import { ADMIN, actingAs, addManagers, adminCreatesLeague, COMMISSIONER, MANAGERS, OUTSIDER, type TestConvex } from "../../support/convex/leagues.harness";
 import { ARSENAL, insertClubs } from "../../support/convex/footballRows.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
-import { squadMoves } from "../../support/convex/lineupSquad.harness";
+import { SAKA, squadMoves } from "../../support/convex/lineupSquad.harness";
 
 // My team's Transactions tab (#366): the manager's team's assignments, moves and releases, newest
 // first, from the league's events, which Mail files letters from.
 
 const [ANN, BOB] = MANAGERS;
-const SAKA = 1001;
 const RICE = 1002;
 
 let t: TestConvex;
