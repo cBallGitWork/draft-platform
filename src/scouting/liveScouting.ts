@@ -1,6 +1,7 @@
 import { useMutation, useQuery } from "convex/react";
-import { useCallback } from "react";
+import { useCallback, useMemo } from "react";
 import { api } from "../../convex/_generated/api";
+import { listOf } from "../../convex/scouting/playersOrder";
 import { listChangeFailedWords } from "../draft/words";
 import { liveClaims } from "../myTeam/claims/liveClaims";
 import { livePlayerCard } from "../playerCard/livePlayerCard";
@@ -26,6 +27,11 @@ export const liveScouting: ScoutingSeam = {
   useComparison: (leagueId, codes, stat, period) => useQuery(api.scouting.compare.players, codes === null ? "skip" : { leagueId, codes: [...codes], stat, period }),
   useYourPlayer: (leagueId, playerCode, now) => useQuery(api.scouting.yourPlayer.at, { leagueId, playerCode, now }),
   usePer90: (leagueId, playerCode, stat, period) => useQuery(api.scouting.per90.figures, { leagueId, playerCode, stat, period }),
-  usePlayersList: (leagueId, filters, sort, stat, period) => useQuery(api.scouting.playersList.list, { leagueId, filters, sort, stat, period }),
+  // Only the club and the period and stat are asked of the server; who holds him, his position and
+  // the order are worked here on the one list loaded, so they never read it again (#1552).
+  usePlayersList: (leagueId, filters, sort, stat, period) => {
+    const loaded = useQuery(api.scouting.playersList.list, { leagueId, clubCode: filters.clubCode, stat, period });
+    return useMemo(() => (loaded === undefined ? undefined : { ...loaded, players: listOf(loaded.players, filters, sort) }), [loaded, filters, sort]);
+  },
   useStatRace: (leagueId, stat) => useQuery(api.scouting.statRace.teams, { leagueId, stat, descending: true }),
 };

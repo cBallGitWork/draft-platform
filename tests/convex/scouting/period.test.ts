@@ -8,6 +8,7 @@ import { inTenths } from "../../../convex/scoring/values";
 import { WEEK_MS } from "../../../convex/shared/time";
 import { COMMISSIONER, MANAGERS, actingAs, addManagers, adminCreatesLeague, type TestConvex } from "../../support/convex/leagues.harness";
 import { ARSENAL, CHELSEA, SAKA, completeRecord, insertClubs, insertPlayers } from "../../support/convex/footballRows.harness";
+import { playersListed } from "../../support/convex/playersList.harness";
 import { at } from "../../support/convex/seasonPoints.harness";
 import { EXAMPLE_SET } from "../../support/convex/scoring.example";
 import { holdSiteScoring } from "../../support/convex/siteScoring.harness";
@@ -62,13 +63,7 @@ const thisSeason = () =>
   });
 
 const listOver = async (period: Period) =>
-  (await actingAs(t, ANN)).query(api.scouting.playersList.list, {
-    leagueId,
-    filters: { availability: "all", position: null, clubCode: null },
-    sort: { by: "name", descending: false },
-    stat: null,
-    period,
-  });
+  playersListed(await actingAs(t, ANN), leagueId, { period });
 const rowOf = async (period: Period, code: number) => (await listOver(period)).players.find((player) => player.code === code)!;
 
 test("over the last 4 finished gameweeks, the list adds up those matches only, a gameweek still being played left out", async () => {
@@ -110,13 +105,7 @@ test("the list sorts by the period's figures", async () => {
   await thisSeason();
   const names = async (period: Period) =>
     (
-      await (await actingAs(t, ANN)).query(api.scouting.playersList.list, {
-        leagueId,
-        filters: { availability: "all", position: null, clubCode: null },
-        sort: { by: "minutes", descending: true },
-        stat: "goals_scored",
-        period,
-      })
+      await playersListed(await actingAs(t, ANN), leagueId, { sort: { by: "minutes", descending: true }, stat: "goals_scored", period })
     ).players.map((player) => [player.name, player.stat]);
   expect(await names("last4")).toEqual([["Saka", 4], ["Palmer", 0]]);
 });

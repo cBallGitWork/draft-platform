@@ -1,5 +1,4 @@
 import { beforeEach, expect, test } from "vitest";
-import { api } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
 import { FIRST_SCORING } from "../../../convex/scoring/firstScoring";
 import { OWN_STAT_PREFIX } from "../../../convex/scoring/statCatalogue";
@@ -9,6 +8,7 @@ import { MANAGERS, actingAs, addManagers, adminCreatesLeague, type TestConvex } 
 import { ARSENAL, CHELSEA, SAKA, insertClubs, insertPlayers } from "../../support/convex/footballRows.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
 import { holdSiteScoring } from "../../support/convex/siteScoring.harness";
+import { BY_NAME, playersListed } from "../../support/convex/playersList.harness";
 
 // Scouting's stat box offers the site set's own stats as well as the feeds' (spec/19, The players
 // list; #910): the list says which, and one shown is each player's season total, worked out from
@@ -22,7 +22,6 @@ const PALMER = { code: 1004, name: "Palmer", fullName: "Cole Palmer", clubCode: 
 const INVOLVEMENTS = { stat: `${OWN_STAT_PREFIX}involvements`, name: "Involvements", shortCode: "INV" };
 const HALF_XG = { stat: `${OWN_STAT_PREFIX}half_xg`, name: "Half xG", shortCode: "HXG" };
 const MOST_FIRST: PlayersSort = { by: "stat", descending: true };
-const BY_NAME: PlayersSort = { by: "name", descending: false };
 
 let t: TestConvex;
 let leagueId: Id<"leagues">;
@@ -41,13 +40,7 @@ beforeEach(async () => {
 });
 
 /** The list as Ann reads it, by `stat` the most first, or by name with none shown. */
-const listAs = async (stat: string | null = null) =>
-  (await actingAs(t, ANN)).query(api.scouting.playersList.list, {
-    leagueId,
-    filters: { availability: "all", position: null, clubCode: null },
-    sort: stat === null ? BY_NAME : MOST_FIRST,
-    stat,
-  });
+const listAs = async (stat: string | null = null) => playersListed(await actingAs(t, ANN), leagueId, { sort: stat === null ? BY_NAME : MOST_FIRST, stat });
 
 /** The site's latest set: the first one with goals less half the xG, and half the xG alone. */
 const holdOwnStats = () =>

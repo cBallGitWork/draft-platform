@@ -129,13 +129,7 @@ beforeEach(async () => {
       "scoring/siteScoring:withdraw": () => caller.mutation(api.scoring.siteScoring.withdraw, { versionId }),
       "scouting/compare:players": () => caller.query(api.scouting.compare.players, { leagueId, codes: [SOME_CODE], stat: null }),
       "scouting/per90:figures": () => caller.query(api.scouting.per90.figures, { leagueId, playerCode: SOME_CODE, stat: null }),
-      "scouting/playersList:list": () =>
-        caller.query(api.scouting.playersList.list, {
-          leagueId,
-          filters: { availability: "all", position: null, clubCode: null },
-          sort: { by: "name", descending: false },
-          stat: null,
-        }),
+      "scouting/playersList:list": () => caller.query(api.scouting.playersList.list, { leagueId, clubCode: null, stat: null }),
       "scouting/scouts:mine": () => caller.query(api.scouting.scouts.mine, { leagueId }),
       "scouting/scouts:onPlayer": () => caller.query(api.scouting.scouts.onPlayer, { leagueId, playerCode: SOME_CODE }),
       "scouting/shortlist:mine": () => caller.query(api.scouting.shortlist.mine, { leagueId }),
