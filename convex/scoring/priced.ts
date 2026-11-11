@@ -13,6 +13,15 @@ export type ByPosition<Value> = Readonly<Record<SlotPosition, Value>>;
  *  the slot he starts in. */
 export type Priced<Value> = { all: Value } | { byArea: ByArea<Value> } | { byPosition: ByPosition<Value> };
 
+/** The three ways a value is priced, coarsest first: each is the key a priced setting holds. */
+export const PRICINGS = ["all", "byArea", "byPosition"] as const;
+export type Pricing = (typeof PRICINGS)[number];
+
+/** How a priced setting is priced. */
+export function pricingOf(priced: Priced<unknown>): Pricing {
+  return "all" in priced ? "all" : "byArea" in priced ? "byArea" : "byPosition";
+}
+
 /** The value a priced setting gives the slot he starts in. */
 export function priceFor<Value>(priced: Priced<Value>, area: Area, position: SlotPosition): Value {
   if ("all" in priced) return priced.all;

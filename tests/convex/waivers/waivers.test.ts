@@ -191,7 +191,8 @@ describe("players no team holds", () => {
 });
 
 describe("the player card's action (#1200)", () => {
-  const actionOn = async (email: string, playerCode: number) => (await actingAs(t, email)).query(api.waivers.waivers.cardActionOn, { leagueId, playerCode });
+  const actionOn = async (email: string, playerCode: number, now = Date.now()) =>
+    (await actingAs(t, email)).query(api.waivers.waivers.cardActionOn, { leagueId, playerCode, now });
   const annsSquad = () => [...SQUAD].map((playerCode) => ({ playerCode, playerName: nameOf(playerCode) })).sort((one, other) => one.playerName.localeCompare(other.playerName));
 
   test("is a drop for the manager's own player, and nothing for another team's", async () => {
@@ -209,10 +210,13 @@ describe("the player card's action (#1200)", () => {
     await drop(ANN, DROPPED);
     const action = await actionOn(BOB, DROPPED);
     const { claimableFrom } = (await stateOf(DROPPED)) as { claimableFrom: number };
-    expect(action).toEqual({ kind: "claim", firstRunAt: expect.any(Number), squad: [] });
-    const firstRunAt = (action as { firstRunAt: number }).firstRunAt;
+    expect(action).toEqual({ kind: "claim", firstRun: expect.objectContaining({ at: expect.any(Number) }), squad: [] });
+    const firstRunAt = (action as { firstRun: { at: number } }).firstRun.at;
     expect(firstRunAt).toBeGreaterThanOrEqual(claimableFrom);
     expect(firstRunAt).toBeLessThan(claimableFrom + 7 * DAY_MS);
+    // Once that run has gone by without taking him, the card names the next (#1467).
+    const later = (await actionOn(BOB, DROPPED, firstRunAt + 1)) as { firstRun: { at: number } };
+    expect(later.firstRun.at).toBeGreaterThan(firstRunAt);
   });
 
   test("is nothing for the commissioner, who runs no team", async () => {

@@ -19,7 +19,7 @@ const testedRole = v.object({
  *  with no average and no flag (Craig, 7 Nov 2026, on #843: "a"). */
 const notTestedRole = v.object({ role: v.string(), slot: v.string(), target: v.number(), missing: v.array(v.string()) });
 
-export const labRoleShape = v.union(testedRole, notTestedRole);
+const labRoleShape = v.union(testedRole, notTestedRole);
 export type LabRole = Infer<typeof labRoleShape>;
 
 /** A team instruction the set scores, "not tested" (#1541): the past seasons' rows don't hold his

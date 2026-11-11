@@ -6,13 +6,11 @@ import { leagueDeadlines } from "../gameweeks/leagueDeadlines";
 import { pickFirstLineupAgain } from "../lineup/lineups";
 import { managerOf, memberOf, refuse, refusals, teamIn } from "../shared/leagueAccess";
 import { playerByCode } from "../shared/players";
-import { latestRules } from "../rules/rulesHistory";
 import { namedPlayer } from "../schema";
 import { heldOrNot, placeOf, squadOf } from "../squads/squadPlace";
 import { heldInReview } from "../trades/tradeClose";
-import { inWaiverLock } from "./waiverLock";
+import { firstRunsIn, inWaiverLock, runAhead } from "./waiverLock";
 import { dropAndTell, waiverRowOf } from "./waiverPlayers";
-import { firstRunFrom } from "./waiverTimes";
 
 // A manager's drop, and a player's waiver state (#1197, spec/08 Waivers and free agency). A drop
 // is a release by the manager: the player leaves the squad, the league is told in Mail, as is each
@@ -88,8 +86,9 @@ const cardAction = v.union(
   v.object({ kind: v.literal("none") }),
   /** He is in the caller's squad. */
   v.object({ kind: v.literal("drop") }),
-  /** On waivers: `firstRunAt` is the run that can first take him, or null with no run times set. */
-  v.object({ kind: v.literal("claim"), firstRunAt: v.union(v.number(), v.null()), squad: v.array(namedPlayer) }),
+  /** On waivers: `firstRun` is the run that can first take him, still to come, and the gameweek
+   *  whose lock it may fall in (waiverLock.ts `firstRunTaking`), or null with no run times set. */
+  v.object({ kind: v.literal("claim"), firstRun: v.union(runAhead, v.null()), squad: v.array(namedPlayer) }),
   v.object({ kind: v.literal("pickUp"), squad: v.array(namedPlayer) }),
 );
 export type CardAction = Infer<typeof cardAction>;
@@ -97,11 +96,11 @@ export type CardAction = Infer<typeof cardAction>;
 /** What the player card offers the caller on this player (spec/12, the player card's actions;
  *  spec/08): drop him from his own squad, claim him off waivers or pick him up as a free agent,
  *  with the caller's squad, by name, to name who goes. Whether the change is open now is the
- *  mutation's to judge, so its refusal says why. */
+ *  mutation's to judge, so its refusal says why. The run that can first take him is as of `now`. */
 export const cardActionOn = query({
-  args: { leagueId: v.id("leagues"), playerCode: v.number() },
+  args: { leagueId: v.id("leagues"), playerCode: v.number(), now: v.number() },
   returns: cardAction,
-  handler: async (ctx, { leagueId, playerCode }): Promise<CardAction> => {
+  handler: async (ctx, { leagueId, playerCode, now }): Promise<CardAction> => {
     const { team } = await memberOf(ctx, leagueId);
     if (!team || (await playerByCode(ctx, playerCode)) === null) return { kind: "none" };
     const place = await placeOf(ctx, leagueId, playerCode);
@@ -110,7 +109,6 @@ export const cardActionOn = query({
     const squad = held.map(({ player }) => ({ playerCode: player.code, playerName: player.name })).sort((one, other) => one.playerName.localeCompare(other.playerName));
     const onWaivers = await waiverRowOf(ctx, leagueId, playerCode);
     if (onWaivers === null) return { kind: "pickUp", squad };
-    const runs = (await latestRules(ctx, leagueId)).waivers.runs;
-    return { kind: "claim", firstRunAt: firstRunFrom(runs, onWaivers.claimableFrom), squad };
+    return { kind: "claim", firstRun: (await firstRunsIn(ctx, leagueId, now))(onWaivers.claimableFrom), squad };
   },
 });

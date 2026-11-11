@@ -1,5 +1,52 @@
 import { FIRST_SCORING } from "./firstScoring";
 import type { StoredScoringSet } from "./scoringSetShape";
+import {
+  ACCURATE_CROSSES,
+  ACCURATE_LAUNCHES,
+  ACCURATE_LONG_BALLS,
+  ACCURATE_PASSES,
+  AERIALS_LOST,
+  AERIALS_WON,
+  BIG_CHANCES_CREATED,
+  BIG_CHANCES_MISSED,
+  BLOCKS,
+  CLEARANCES,
+  CROSSES,
+  DISPOSSESSED,
+  DRIBBLED_PAST,
+  DRIBBLES_WON,
+  DUELS_WON,
+  ERRORS_TO_A_GOAL,
+  ERRORS_TO_A_SHOT,
+  FAILED_CROSSES,
+  FAILED_LAUNCHES,
+  FAILED_LONG_BALLS,
+  FOULS,
+  FOULS_DRAWN,
+  GOALS,
+  GROUND_DUELS_WON,
+  HIGH_CLAIMS,
+  INTERCEPTIONS,
+  KEY_PASSES,
+  LAST_MAN_TACKLES,
+  LAUNCHES,
+  LONG_BALLS,
+  MISPLACED_PASSES,
+  OFFSIDES,
+  PASSES,
+  PENALTIES_SAVED,
+  POSSESSION_LOST,
+  PUNCHES,
+  RECOVERIES,
+  SAVES,
+  SAVES_INSIDE_THE_BOX,
+  SHOTS,
+  SHOTS_OFF_TARGET,
+  SHOTS_ON_TARGET,
+  TACKLES,
+  TACKLES_WON,
+  THROUGH_BALLS,
+} from "./statKeys";
 
 // The roles' values (spec/05 Roles; #10, #1445): docs/roles-first-values.md, the mixes redrawn
 // around Sportmonks' stats on 9 and 10 Nov 2026 (#1196), as the site's scoring holds them. Each role
@@ -16,12 +63,12 @@ type RoleSide = RoleScoring["bonus"];
 /** The page's counts the feed only sends as a total and a share of it: the total less the share.
  *  Failed launches no role scores now, but a set the first values went into holds it. */
 export const FIRST_ROLE_OWN_STATS: readonly OwnStat[] = [
-  less("league:failed_long_balls", "Failed long balls", "FLB", "total_long_balls", "accurate_long_balls"),
-  less("league:failed_crosses", "Failed crosses", "FCR", "total_cross", "accurate_cross"),
-  less("league:misplaced_passes", "Misplaced passes", "MPS", "total_pass", "accurate_pass"),
-  less("league:failed_launches", "Failed launches", "FLA", "total_launches", "accurate_launches"),
+  less(FAILED_LONG_BALLS, "Failed long balls", "FLB", LONG_BALLS, ACCURATE_LONG_BALLS),
+  less(FAILED_CROSSES, "Failed crosses", "FCR", CROSSES, ACCURATE_CROSSES),
+  less(MISPLACED_PASSES, "Misplaced passes", "MPS", PASSES, ACCURATE_PASSES),
+  less(FAILED_LAUNCHES, "Failed launches", "FLA", LAUNCHES, ACCURATE_LAUNCHES),
   // Duels won less aerials won (docs/roles-first-values.md, the ball-winner and the destroyer).
-  less("league:ground_duels_won", "Ground duels won", "GDW", "duel_won", "aerial_won"),
+  less(GROUND_DUELS_WON, "Ground duels won", "GDW", DUELS_WON, AERIALS_WON),
 ];
 
 function less(stat: string, name: string, shortCode: string, total: string, share: string): OwnStat {
@@ -34,48 +81,6 @@ function side(bars: [number, number, number], ...parts: [stat: string, weight: n
 }
 
 const role = (key: string, bonus: RoleSide, cost: RoleSide): RoleScoring => ({ role: key, bonus, cost });
-
-// The page's stats by the catalogue key Sportmonks fills (sportmonksStats.ts).
-const GOALS = "goals_scored";
-const SHOTS = "total_scoring_att";
-const SHOTS_ON_TARGET = "ontarget_scoring_att";
-const BIG_CHANCES_MISSED = "big_chance_missed";
-const BIG_CHANCES_CREATED = "big_chance_created";
-const KEY_PASSES = "total_att_assist";
-const THROUGH_BALLS = "accurate_through_ball";
-const ACCURATE_PASSES = "accurate_pass";
-const ACCURATE_LONG_BALLS = "accurate_long_balls";
-const LONG_BALLS = "total_long_balls";
-const ACCURATE_CROSSES = "accurate_cross";
-const CROSSES = "total_cross";
-const DRIBBLES_WON = "won_contest";
-const FOULS_DRAWN = "was_fouled";
-const AERIALS_WON = "aerial_won";
-const AERIALS_LOST = "aerial_lost";
-const TACKLES = "total_tackle";
-const TACKLES_WON = "won_tackle";
-const LAST_MAN_TACKLES = "last_man_tackle";
-const INTERCEPTIONS = "interception";
-const RECOVERIES = "ball_recovery";
-const CLEARANCES = "total_clearance";
-const BLOCKS = "outfielder_block";
-const SAVES = "saves";
-const SAVES_INSIDE_THE_BOX = "saved_ibox";
-const PENALTIES_SAVED = "penalties_saved";
-const HIGH_CLAIMS = "good_high_claim";
-const PUNCHES = "punches";
-const OFFSIDES = "total_offside";
-const FOULS = "fouls";
-const DISPOSSESSED = "dispossessed";
-const POSSESSION_LOST = "poss_lost_all";
-const DRIBBLED_PAST = "challenge_lost";
-const SHOTS_OFF_TARGET = "shot_off_target";
-const ERRORS_TO_A_SHOT = "error_lead_to_shot";
-const ERRORS_TO_A_GOAL = "error_lead_to_goal";
-const FAILED_LONG_BALLS = "league:failed_long_balls";
-const FAILED_CROSSES = "league:failed_crosses";
-const MISPLACED_PASSES = "league:misplaced_passes";
-const GROUND_DUELS_WON = "league:ground_duels_won";
 
 /** Every role of the default set (lineup/roles.ts), in the page's order. */
 export const FIRST_ROLES: readonly RoleScoring[] = [
