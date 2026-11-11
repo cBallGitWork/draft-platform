@@ -3,9 +3,8 @@
 // It judges a lineup as a manager sets it, on the positions their players hold now. A starter who
 // loses a position after he was placed stays in his slot for the gameweek, only warned (spec/06,
 // When positions change): the deadline, rollover and auto team must not take that outsideHisAreas
-// as illegal. It is reported alone, so a caller can set it aside; the rule is #23's to keep. A
-// save sets it aside for a starter left where he stood, until the next deadline
-// (`withUnmovedSetAside`; #1589).
+// as illegal. It is reported alone, so a caller can set it aside. A save sets it aside for a
+// starter left where he stood, until the next deadline (`withUnmovedSetAside`; spec/06 `S06.7`).
 
 import { AREAS, cellKey, LANES, playsCell, type Area, type Cell, type Lane } from "./pitch";
 import { BACK_THREE, centreBacksIn, everyRoleOf, isRole, needsBackThree, roleIn, takesRole } from "./roles";
@@ -142,9 +141,8 @@ export interface LineupInForce {
   keptOutOfPosition?: readonly PlayerCode[];
 }
 
-/** A save's problems with each starter left out of position where he stood set aside (Craig, 11
- *  Nov 2026, on #1589: "Other changes still save, for that gameweek only: he can change bench
- *  order, roles and other swaps until the next deadline; after that the player must be moved").
+/** A save's problems with each starter left out of position where he stood set aside (spec/06,
+ *  When positions change, `S06.7`).
  *  Left means in the cell and role he holds in the lineup in force; one placed anew is refused.
  *  He is set aside until the deadline after a save first keeps him: `kept` names him for the row
  *  saved, and a lineup in force from an earlier gameweek that kept him refuses him. A manager who

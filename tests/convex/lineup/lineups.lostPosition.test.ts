@@ -56,6 +56,7 @@ const outOfPosition = (lineup: Lineup) => {
 };
 const rowFor = (gameweek: number) => t.run(async (ctx) => (await ctx.db.query("lineups").collect()).find((row) => row.teamId === annsTeam && row.fromGameweek === gameweek));
 
+// Other changes still save for that gameweek only (`S06.7`).
 describe("a starter who lost a position, left where he stands", () => {
   test("doesn't stop another change saving, again and again before the deadline", async () => {
     expect(await save(REVERSED_BENCH)).toBe(NEXT);
