@@ -14,6 +14,7 @@ import {
   commentaryColumnWords,
   commentaryDelayedWords,
   markedLineLabel,
+  minuteColumnWords,
   noCommentaryWords,
   openBreakdownLabel,
   SCORE_LABEL,
@@ -34,7 +35,7 @@ describe("the vidiprinter", () => {
     within(screen.getByRole("list", { name: VIDIPRINTER_TITLE }))
       .getAllByRole("listitem")
       .map((item) => item.textContent);
-  /** The head row over the lines: "Commentary", then each team's short name. */
+  /** The head row over the lines: "Min", "Commentary", then each team's short name. */
   const headRow = () => screen.getByText(commentaryColumnWords).parentElement?.textContent;
   const kickoffLine = commentaryLine("1", "KO HUL v EVE");
 
@@ -58,11 +59,30 @@ describe("the vidiprinter", () => {
     );
     // Each figure sits in its team's column, read out with the team's name; the head row shows
     // the names short.
-    expect(await screen.findByText("52' GOAL Coyle, assist Phillips")).toBeTruthy();
+    expect(await screen.findByText("GOAL Coyle, assist Phillips")).toBeTruthy();
     expect(vidiprinterLines()).toEqual(["~65' Hall: 2 concededKroos Control -1", "~61' Coyle: 60 minutesTeam 1 +1", "52' GOAL Coyle, assist PhillipsTeam 1 +8", "KO HUL v EVE"]);
-    expect(headRow()).toBe(`${commentaryColumnWords}Team 1Kroos C`);
+    expect(headRow()).toBe(`${minuteColumnWords}${commentaryColumnWords}Team 1Kroos C`);
     expect(screen.queryByText("Coyle +5, Phillips +3")).toBeNull();
     expect(screen.queryByText(commentaryDelayedWords)).toBeNull();
+  });
+
+  it("gives each line's minute its own column, KO and FT included, and a line with none an empty one", async () => {
+    const lines = [
+      commentaryLine("5", "FT HUL 1–0 EVE: Coyle 6", { columns: [null, null] }),
+      commentaryLine("4", "45+1' GOAL Coyle", { columns: ["+5", null] }),
+      commentaryLine("3", "~61' Coyle: 60 minutes", { columns: ["+1", null] }),
+      commentaryLine("2", "Lineups out", { columns: [null, null] }),
+      kickoffLine,
+    ];
+    openMatchup({ matchup: scored({ kind: "read", lines, delayed: false }) });
+    const list = await screen.findByRole("list", { name: VIDIPRINTER_TITLE });
+    const minutes = within(list)
+      .getAllByRole("listitem")
+      .map((item) => item.firstElementChild?.textContent?.trim());
+    expect(minutes).toEqual(["FT", "45+1'", "~61'", "", "KO"]);
+    // The words stand apart from the minute, which a screen reader still hears first.
+    expect(screen.getByText("HUL v EVE")).toBeTruthy();
+    expect(vidiprinterLines().at(-1)).toBe("KO HUL v EVE");
   });
 
   it("marks the tapped man's lines with the cyan edge until his breakdown closes", async () => {
@@ -94,7 +114,7 @@ describe("the vidiprinter", () => {
     });
     openMatchup({ matchup: average });
     await screen.findByRole("list", { name: VIDIPRINTER_TITLE });
-    expect(headRow()).toBe(`${commentaryColumnWords}Team 1`);
+    expect(headRow()).toBe(`${minuteColumnWords}${commentaryColumnWords}Team 1`);
     expect(vidiprinterLines()).toEqual(["~61' Coyle: 60 minutesTeam 1 +1"]);
   });
 

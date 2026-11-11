@@ -5,17 +5,17 @@ import { internalAction, internalMutation, internalQuery, query, type MutationCt
 import { matchdayMargins } from "../admin/platformSettings";
 import { tableGameweek, type TeamGameweekTotal } from "../gameweekScorer/gameweekScores";
 import { leagueReads } from "../gameweekScorer/teamGameweek";
-import { GAMEWEEKS } from "../gameweeks/usedGameweeks";
+import { seasonGameweekCount } from "../gameweeks/seasonGameweeks";
 import { leagueAverageWords } from "../mail/letterWords";
 import { fileLetter, wholeLeague } from "../mail/letters";
 import { CLAUDE_RETRY_MS, writeWithClaude } from "../outbound/claude";
 import { seasonRules } from "../rules/rulesHistory";
-import { recapTeamPoints } from "../schema/recaps";
+import { recapTeamPoints } from "../schema";
 import { takeAllOrThrow } from "../shared/cappedRead";
 import { logFailure } from "../shared/errors";
 import { GAMEWEEK_MATCHES_MOST } from "../shared/fixtures";
 import { memberOf, teamsOf } from "../shared/leagueAccess";
-import { playerByCode } from "../shared/players";
+import { lostPlayerName, playerByCode } from "../shared/players";
 import { MINUTE_MS } from "../shared/time";
 import { standingsOf } from "../table/leagueTable";
 import { scoredFixtures } from "../table/sentTables";
@@ -78,7 +78,7 @@ export const brief = internalQuery({
       for (const slot of team.starters) {
         if (!slot.counts || slot.points === null) continue;
         const player = await playerByCode(ctx, slot.playerCode);
-        starters.push({ player: player?.name ?? `Player ${slot.playerCode}`, team: named(teamId), points: slot.points });
+        starters.push({ player: player?.name ?? lostPlayerName(slot.playerCode), team: named(teamId), points: slot.points });
       }
     }
     const { topPerformers, letdowns } = performersOf(starters);
@@ -178,14 +178,17 @@ function shown(recap: Doc<"recaps">, changedTeamId: TeamId | null) {
   return { gameweek: recap.gameweek, text: recap.text!, writtenAt: recap.writtenAt!, changedTeamId };
 }
 
-/** The recap League home shows at `now`: the league's latest written, until the next gameweek's
- *  first matchday mode begins; null with none. `results` are the league's scores, the table's. */
+/** League home's recap as `ofLeague` sends it, which reads no clock (#1550): with the moment it
+ *  leaves, null for never, for the screen to drop it at (home/homeAt.ts). */
+export const heldRecap = shownRecap.extend({ until: v.union(v.number(), v.null()) });
+
+/** The recap League home shows: the league's latest written, until the next gameweek's first
+ *  matchday mode begins; null with none. `results` are the league's scores, the table's. */
 export async function homeRecap(
   ctx: QueryCtx,
   leagueId: Id<"leagues">,
   results: ReadonlyMap<number, ReadonlyMap<TeamId, TeamGameweekTotal>>,
-  now: number,
-): Promise<ReturnType<typeof shown> | null> {
+): Promise<Infer<typeof heldRecap> | null> {
   let latest: Doc<"recaps"> | null = null;
   for await (const recap of ctx.db.query("recaps").withIndex("by_leagueId_and_gameweek", (q) => q.eq("leagueId", leagueId)).order("desc")) {
     if (recap.state === "written") {
@@ -193,14 +196,17 @@ export async function homeRecap(
       break;
     }
   }
-  if (latest === null || now >= (await nextMatchdayStart(ctx, latest.gameweek))) return null;
-  return shown(latest, await changedTeam(latest, async (teamId) => results.get(latest.gameweek)?.get(teamId)));
+  if (latest === null) return null;
+  const until = await nextMatchdayStart(ctx, latest.gameweek);
+  const recap = shown(latest, await changedTeam(latest, async (teamId) => results.get(latest.gameweek)?.get(teamId)));
+  return { ...recap, until: until === Infinity ? null : until };
 }
 
 /** When the first matchday mode of the next gameweek after `gameweek` with a match on begins:
  *  `beforeMs` before its first kickoff (matchday.ts). Never, with none. */
 async function nextMatchdayStart(ctx: QueryCtx, gameweek: number): Promise<number> {
-  for (let next = gameweek + 1; next <= GAMEWEEKS; next++) {
+  const count = await seasonGameweekCount(ctx);
+  for (let next = gameweek + 1; next <= count; next++) {
     const fixtures = await takeAllOrThrow(
       ctx.db.query("fixtures").withIndex("by_gameweek_and_droppedAt", (q) => q.eq("gameweek", next).eq("droppedAt", undefined)),
       GAMEWEEK_MATCHES_MOST,

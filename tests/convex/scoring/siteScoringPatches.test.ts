@@ -7,7 +7,8 @@ import { PATCH_NOTICE_DAYS, siteScoringRefusals } from "../../../convex/scoring/
 import { versionName } from "../../../convex/scoring/siteVersions";
 import { refusals } from "../../../convex/shared/leagueAccess";
 import { HOUR_MS, MINUTE_MS, seasonStartYear } from "../../../convex/shared/time";
-import { SEASON_GAMEWEEKS } from "../../../convex/gameweeks/usedGameweeks";
+import { seasonGameweeks } from "../../../convex/gameweeks/usedGameweeks";
+import { PL_GAMEWEEKS } from "../../support/convex/footballRows.harness";
 import { changeRules, holdGameweeks, rulesInGameweek, rulesWith, TOTAL_POINTS } from "../../support/convex/leagueRules.harness";
 import { expectRefused, pendingJobs } from "../../support/convex/test.harness";
 import { ADMIN, addManagers, adminCreatesLeague, COMMISSIONER, eventsIn, MANAGERS } from "../../support/convex/leagues.harness";
@@ -46,7 +47,7 @@ describe("a draft patch", () => {
     await holdGameweeks(t, { next: 9 });
 
     expect(await saveDraftAs(ADMIN, EDITED)).toBe(TODAY);
-    for (const gameweek of SEASON_GAMEWEEKS) expect(await inGameweek(gameweek)).toEqual(FIRST_SCORING);
+    for (const gameweek of seasonGameweeks(PL_GAMEWEEKS)) expect(await inGameweek(gameweek)).toEqual(FIRST_SCORING);
     expect(await versions()).toBe(0);
     expect(await viewAs(ADMIN)).toMatchObject({ part: FIRST_SCORING, revision: null, draft: { part: EDITED, savedAt: TODAY } });
     expect(await viewAs(COMMISSIONER)).toMatchObject({ draft: null });
@@ -117,10 +118,24 @@ describe("announcing a patch", () => {
     expect(await inGameweek(38)).toEqual(EDITED);
     expect(await draftSavedAt()).toBeNull();
     expect(await viewAs(COMMISSIONER)).toMatchObject({
-      part: EDITED,
+      part: FIRST_SCORING,
       revision: await siteRevision(),
       versions: [{ name: "26_27.1", kind: "patch", takesEffectAt: deadline }],
     });
+  });
+
+  test("#1591 Done: while it waits, Player scoring shows a manager the values in force, and the admin the patch; once in effect, everyone the patch", async () => {
+    const takesEffectAt = TODAY + NOTICE;
+    await patch(EDITED, takesEffectAt);
+
+    expect(await viewAs(COMMISSIONER)).toMatchObject({ part: FIRST_SCORING, canEdit: false });
+    expect(await viewAs(MANAGERS[0])).toMatchObject({ part: FIRST_SCORING, canEdit: false });
+    expect(await viewAs(ADMIN)).toMatchObject({ part: EDITED, canEdit: true });
+
+    vi.setSystemTime(takesEffectAt - 1);
+    expect((await viewAs(COMMISSIONER)).part).toEqual(FIRST_SCORING);
+    vi.setSystemTime(takesEffectAt);
+    expect((await viewAs(COMMISSIONER)).part).toEqual(EDITED);
   });
 
   test("rates every player's stars again the moment it takes effect, as stars price under today's scoring (#11)", async () => {

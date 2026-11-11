@@ -57,7 +57,7 @@ export function SidePitch({ side, picking, runsShown }: { side: TeamSide; pickin
                 const cell = { area, lane };
                 const at = starters.findIndex((starter) => sameCell(starter, cell));
                 if (at === -1) return <li key={cellKey(cell)} aria-hidden="true" />;
-                return <PlayerTile key={cellKey(cell)} man={players[at]} picking={picking} strip className="items-center justify-center p-0.5" />;
+                return <PlayerTile key={cellKey(cell)} man={players[at]} picking={picking} strip className="items-center justify-center p-1" />;
               }),
             )}
           </ul>

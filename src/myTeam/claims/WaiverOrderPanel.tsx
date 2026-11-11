@@ -7,6 +7,7 @@ import {
   pointsShort,
   runWords,
   RUNS_TITLE,
+  skippedIfWords,
   tablePlaceWords,
   ukTimeWords,
   WAIVER_ORDER_TITLE,
@@ -39,22 +40,33 @@ export function WaiverOrderPanel({ waivers, type = waivers.type }: { waivers: Wa
           </li>
         ))}
       </ol>
-      <p className="border-t border-panel-rule px-3 py-2 text-muted">{waiverOrderNote(type, waivers.nextDeadline?.gameweek ?? null)}</p>
+      <p className="border-t border-panel-rule px-3 py-2 text-muted">{waiverOrderNote(type, waivers.resetsAfter)}</p>
     </Panel>
   );
 }
 
 /** The next runs, soonest first, the first marked Next, and when free agency opens; before the
- *  league's draft is over every run is skipped (S08.1), so none is marked Next. */
+ *  league's draft is over every run is skipped (S08.1), so none is marked Next. A run that may fall
+ *  in a gameweek's lock says so in place of Next (#1488). */
 export function RunsPanel({ waivers }: { waivers: WaiversView }) {
-  const window = windowWords({ drafted: waivers.drafted, open: waivers.windowOpen, locked: waivers.locked, firstRun: waivers.runs[0] ?? null, gameweek: waivers.nextDeadline?.gameweek ?? null });
+  const [first] = waivers.runs;
+  const waitsOn = waivers.locked ? waivers.resetsAfter : waivers.windowOpen ? null : (first?.skippedIf ?? null);
+  const window = windowWords({
+    drafted: waivers.drafted,
+    open: waivers.windowOpen,
+    locked: waivers.locked,
+    firstRun: first?.at ?? null,
+    waitsOn,
+    gameweek: waivers.windowShuts?.gameweek ?? null,
+  });
   return (
     <Panel title={RUNS_TITLE} aside={<span className="text-soft">{ukTimeWords}</span>}>
       <ul>
-        {waivers.runs.map((at, index) => (
+        {waivers.runs.map(({ at, skippedIf }, index) => (
           <li key={at} className={ROW}>
             <span className="grow">{runWords(at)}</span>
-            {index === 0 && waivers.drafted && <span className="text-soft">{nextRunWords}</span>}
+            {waivers.drafted && skippedIf !== null && <span className="text-soft">{skippedIfWords(skippedIf)}</span>}
+            {waivers.drafted && skippedIf === null && index === 0 && <span className="text-soft">{nextRunWords}</span>}
           </li>
         ))}
         <li className={ROW}>

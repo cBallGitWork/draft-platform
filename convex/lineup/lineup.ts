@@ -3,7 +3,8 @@
 // It judges a lineup as a manager sets it, on the positions their players hold now. A starter who
 // loses a position after he was placed stays in his slot for the gameweek, only warned (spec/06,
 // When positions change): the deadline, rollover and auto team must not take that outsideHisAreas
-// as illegal. It is reported alone, so a caller can set it aside; the rule is #23's to keep.
+// as illegal. It is reported alone, so a caller can set it aside. A save sets it aside for a
+// starter left where he stood, until the next deadline (`withUnmovedSetAside`; spec/06 `S06.7`).
 
 import { AREAS, cellKey, LANES, playsCell, type Area, type Cell, type Lane } from "./pitch";
 import { BACK_THREE, centreBacksIn, everyRoleOf, isRole, needsBackThree, roleIn, takesRole } from "./roles";
@@ -127,6 +128,50 @@ export function lineupProblems(lineup: Lineup, positions: PlayerPositions, rules
     if (starterCount < minimum) problems.push({ kind: "belowMinimum", area, starterCount, minimum });
   }
   return problems;
+}
+
+/** A starter out of his positions: what losing one leaves (spec/06, When positions change). */
+const OUT_OF_POSITION: readonly LineupProblem["kind"][] = ["outsideHisAreas", "roleNotHis"];
+
+/** The lineup in force before a save: its gameweek, its starters, and who it was saved with out of
+ *  position. */
+export interface LineupInForce {
+  fromGameweek: number;
+  starters: readonly Placement[];
+  keptOutOfPosition?: readonly PlayerCode[];
+}
+
+/** A save's problems with each starter left out of position where he stood set aside (spec/06,
+ *  When positions change, `S06.7`).
+ *  Left means in the cell and role he holds in the lineup in force; one placed anew is refused.
+ *  He is set aside until the deadline after a save first keeps him: `kept` names him for the row
+ *  saved, and a lineup in force from an earlier gameweek that kept him refuses him. A manager who
+ *  saves nothing in the gameweek he lost it gets it from his first save after. */
+export function withUnmovedSetAside(
+  problems: readonly LineupProblem[],
+  starters: readonly Placement[],
+  inForce: LineupInForce | null,
+  gameweek: number,
+): { problems: LineupProblem[]; kept: PlayerCode[] } {
+  const kept: PlayerCode[] = [];
+  const left = problems.filter((problem) => {
+    if (!OUT_OF_POSITION.includes(problem.kind) || !("playerCode" in problem) || inForce === null) return true;
+    const { playerCode } = problem;
+    if (inForce.fromGameweek < gameweek && inForce.keptOutOfPosition?.includes(playerCode)) return true;
+    const now = starters.find((starter) => starter.playerCode === playerCode);
+    const before = inForce.starters.find((starter) => starter.playerCode === playerCode);
+    if (now === undefined || before === undefined || !sameSlot(now, before)) return true;
+    kept.push(playerCode);
+    return false;
+  });
+  return { problems: left, kept };
+}
+
+/** The same cell and the same role in it: a role removed from the set reads as the slot's first. */
+function sameSlot(now: Placement, before: Placement): boolean {
+  if (now.area !== before.area || now.lane !== before.lane || !isArea(now.area) || !isLane(now.lane)) return false;
+  const cell = { area: now.area, lane: now.lane };
+  return roleIn(cell, now.role).key === roleIn(cell, before.role).key;
 }
 
 /** A lineup read against the squad (spec/05, The deadline and Auto-subs): the server's for a saved

@@ -10,7 +10,8 @@ import { seasonRules, type SeasonRules } from "../rules/rulesHistory";
 import { memberOf, teamsOf } from "../shared/leagueAccess";
 import { standingsOf } from "../table/leagueTable";
 import { tableOf } from "../table/sentTables";
-import { inWaiverLock, latestBegun } from "./waiverLock";
+import type { TableRow } from "../table/standings";
+import { latestBegun, latestEnded, mayFallInLock, runAhead, underWayIn } from "./waiverLock";
 import { firstRunFrom } from "./waiverTimes";
 
 // The waiver order (#1198, spec/08 Waivers and free agency): who a run tries first. Its starting
@@ -18,8 +19,10 @@ import { firstRunFrom } from "./waiverTimes";
 // the reverse of the draft order under rotating. Each team that wins a claim goes to the bottom, the
 // latest winner last. Under rotating that never resets ("whoever last made a waiver is at the
 // bottom, that doesnt reset"); under reverse table order it does once a gameweek ends ("the table
-// order resets only fully only when a gameweek ends"). There is always a table, everyone on 0 at
-// the start; teams level in it go by its own tie-breaks, then by the reverse of the draft order.
+// order resets only fully only when a gameweek ends"), so from a deadline until that gameweek's
+// last match is over the winners stay and the table behind the order is the one the last gameweek
+// ended on (#1480). There is always a table, everyone on 0 at the start; teams level in it go by
+// its own tie-breaks, then by the reverse of the draft order.
 // A change of order type applies at once, from today's order (Craig, 6 Nov 2026, on #1200), so
 // nobody jumps the queue by the switch: `switchWaiverOrder` keeps it as the order's start.
 
@@ -50,8 +53,8 @@ export function withWinnersLast<Team>(start: readonly Team[], winners: readonly 
 /** `winners` with `team` as the latest. Pure. */
 export const wonBy = <Team>(winners: readonly Team[], team: Team): Team[] => [...winners.filter((each) => each !== team), team];
 
-/** Which winners still count at a run, with the latest gameweek begun now: under reverse table
- *  order, none once a gameweek has begun since they were written. Pure. */
+/** Which winners still count, with the latest gameweek ended now (waiverLock.ts `latestEnded`):
+ *  under reverse table order, none once a gameweek has ended since they were written. Pure. */
 export function winnersNow<Team>(
   order: LeagueRules["waivers"]["order"],
   held: { winners: readonly Team[]; gameweek: number | null } | null,
@@ -61,8 +64,8 @@ export function winnersNow<Team>(
   return order === "reverseStandings" && held.gameweek !== gameweek ? [] : [...held.winners];
 }
 
-/** The order a switch of type left, if it still stands with the latest gameweek begun `gameweek`:
- *  under rotating for good, under reverse table order until a later gameweek begins. Teams no longer
+/** The order a switch of type left, if it still stands with the latest gameweek ended `gameweek`:
+ *  under rotating for good, under reverse table order until a later gameweek ends. Teams no longer
  *  in the league are passed over, and any not in it go last, in `teams`' order. Pure. */
 export function startingFrom<Team>(
   order: LeagueRules["waivers"]["order"],
@@ -74,23 +77,35 @@ export function startingFrom<Team>(
   return [...start.teams.filter((team) => teams.includes(team)), ...teams.filter((team) => !start.teams.includes(team))];
 }
 
-/** The league's table, top first, teams level after its tie-breaks in the draft order: the table
- *  the waiver order reads. */
-async function waiverTable(ctx: QueryCtx, league: Doc<"leagues">, season: SeasonRules, draftOrder: readonly Id<"teams">[]) {
+type WaiverTable = TableRow<Id<"teams">>[];
+
+/** The league's table as the gameweek `ended` ended, top first, teams level after its tie-breaks
+ *  in the draft order: the table the waiver order reads. A gameweek still under way counts for
+ *  nothing in it, and before any has ended everyone is on 0. */
+async function waiverTable(
+  ctx: QueryCtx,
+  league: Doc<"leagues">,
+  season: SeasonRules,
+  draftOrder: readonly Id<"teams">[],
+  ended: number | null,
+): Promise<WaiverTable> {
   const { rules, schedule, scores } = await standingsOf(ctx, league, season);
-  return tableOf(rules.format, draftOrder, schedule, scores, rules.tieBreaks);
+  const endedScores = new Map([...scores].filter(([gameweek]) => ended !== null && gameweek <= ended));
+  return tableOf(rules.format, draftOrder, schedule, endedScores, rules.tieBreaks);
 }
 
 const draftOrderIn = async (ctx: QueryCtx, league: Doc<"leagues">) => draftOrderOf(await teamsOf(ctx, league._id), league.draftOrder).map(({ _id }) => _id);
 
 /** The league's waiver order at a run before any of its claims are tried, first first, given the
- *  winners that still count and the latest gameweek begun. */
+ *  winners that still count and the latest gameweek ended. `table`, the league's `waiverTable`,
+ *  is read here unless the caller already has it. */
 export async function waiverOrderOf(
   ctx: QueryCtx,
   league: Doc<"leagues">,
   season: SeasonRules,
   winners: readonly Id<"teams">[],
   gameweek: number | null,
+  table?: WaiverTable,
 ): Promise<Id<"teams">[]> {
   const order = season.latest.waivers.order;
   const draftOrder = await draftOrderIn(ctx, league);
@@ -99,21 +114,22 @@ export async function waiverOrderOf(
   if (order === "rotating") return withWinnersLast(draftOrder.toReversed(), winners);
   // Teams still level after the table's tie-breaks keep the order they come in: the draft order,
   // so reversed they go by its reverse.
-  const table = await waiverTable(ctx, league, season, draftOrder);
-  return withWinnersLast(table.map(({ team }) => team).toReversed(), winners);
+  const standings = table ?? (await waiverTable(ctx, league, season, draftOrder, gameweek));
+  return withWinnersLast(standings.map(({ team }) => team).toReversed(), winners);
 }
 
-/** The league's waiver order at `now`, first first, under the rules `season` holds. */
-async function orderNow(ctx: QueryCtx, league: Doc<"leagues">, season: SeasonRules, gameweek: number | null): Promise<Id<"teams">[]> {
+/** The league's waiver order now, first first, under the rules `season` holds, with the latest
+ *  gameweek ended `gameweek`. */
+async function orderNow(ctx: QueryCtx, league: Doc<"leagues">, season: SeasonRules, gameweek: number | null, table?: WaiverTable): Promise<Id<"teams">[]> {
   const winners = winnersNow(season.latest.waivers.order, await waiverOrderRow(ctx, league._id), gameweek);
-  return waiverOrderOf(ctx, league, season, winners, gameweek);
+  return waiverOrderOf(ctx, league, season, winners, gameweek, table);
 }
 
 /** Keeps today's waiver order as the start of the order from now on: called as the commissioner
  *  changes the order type, before the new rules are saved, so `season` is the rules it had. The
  *  winners go into the start, so none count again. */
 export async function switchWaiverOrder(ctx: MutationCtx, league: Doc<"leagues">, season: SeasonRules, now: number): Promise<void> {
-  const gameweek = latestBegun(await leagueDeadlines(ctx, league._id), now);
+  const gameweek = await latestEnded(ctx, await leagueDeadlines(ctx, league._id), now);
   const teams = await orderNow(ctx, league, season, gameweek);
   const start = await waiverStartRow(ctx, league._id);
   if (start === null) await ctx.db.insert("waiverStarts", { leagueId: league._id, teams, gameweek });
@@ -133,20 +149,34 @@ export async function windowOpen(ctx: QueryCtx, leagueId: Id<"leagues">, deadlin
   return deadline !== null && madeAt !== undefined && madeAt > deadline;
 }
 
+/** The deadline the free agent window has been shut since at `now`, or null while it is open:
+ *  from it until the next made run, every player no team holds is on waivers (#1478). */
+export async function windowShutSince(ctx: QueryCtx, leagueId: Id<"leagues">, deadlines: LeagueDeadlines, now: number): Promise<number | null> {
+  if (await windowOpen(ctx, leagueId, deadlines, now)) return null;
+  const gameweek = latestBegun(deadlines, now);
+  return gameweek === null ? null : (deadlines.get(gameweek) ?? null);
+}
+
 const waiversView = v.object({
   type: v.union(...WAIVER_ORDERS.map((each) => v.literal(each))),
   /** Every team, first in the order first, with its place and points in the table. */
   teams: v.array(v.object({ teamId: v.id("teams"), name: v.string(), yours: v.boolean(), tablePlace: v.number(), points: v.number() })),
   /** Whether the league's draft is over: before it, claims, drops and pickups are refused (S08.1). */
   drafted: v.boolean(),
-  /** The next time each of the league's runs is made, soonest first, UK time as the rules set it. */
-  runs: v.array(v.number()),
+  /** The next time each of the league's runs is made, soonest first, UK time as the rules set it,
+   *  with the gameweek whose lock it may fall in, so may be skipped, or null when it surely won't. */
+  runs: v.array(runAhead),
   /** Whether it is in the lock, from a deadline until the gameweek's last match is over. */
   locked: v.boolean(),
   /** Whether free agents can be picked up now, the lock aside. */
   windowOpen: v.boolean(),
-  /** The next deadline, when the window shuts, or null with none set. */
-  nextDeadline: v.union(v.object({ gameweek: v.number(), at: v.number() }), v.null()),
+  /** The deadline that shuts the window open now or next to open, or null with none set: the next
+   *  deadline, unless the window is shut and its first run may fall in that deadline's gameweek's
+   *  lock, when it is the deadline after (#1488). */
+  windowShuts: v.union(v.object({ gameweek: v.number(), at: v.number() }), v.null()),
+  /** The gameweek whose end works the order out again: the one under way in the lock, else the next
+   *  deadline's; null with neither. */
+  resetsAfter: v.union(v.number(), v.null()),
 });
 export type WaiversView = Infer<typeof waiversView>;
 
@@ -160,10 +190,24 @@ export const ofLeague = query({
     const { league, team } = await memberOf(ctx, leagueId);
     const season = await seasonRules(ctx, leagueId);
     const deadlines = await leagueDeadlines(ctx, leagueId);
-    const order = await orderNow(ctx, league, season, latestBegun(deadlines, now));
-    const table = await waiverTable(ctx, league, season, await draftOrderIn(ctx, league));
+    // The table is read once: it orders the teams under reverse table order and gives each its
+    // place and points, so the list reads in order.
+    const ended = await latestEnded(ctx, deadlines, now);
+    const table = await waiverTable(ctx, league, season, await draftOrderIn(ctx, league), ended);
+    const order = await orderNow(ctx, league, season, ended, table);
     const names = new Map((await teamsOf(ctx, leagueId)).map(({ _id, name }) => [_id, name]));
-    const runs = season.latest.waivers.runs.flatMap((run) => firstRunFrom([run], now) ?? []).sort((one, other) => one - other);
+    const underWay = await underWayIn(ctx, deadlines, now);
+    const locked = underWay !== null;
+    const runs = season.latest.waivers.runs
+      .flatMap((run) => firstRunFrom([run], now) ?? [])
+      .sort((one, other) => one - other)
+      .map((at) => ({ at, skippedIf: mayFallInLock(deadlines, underWay, now, at) }));
+    const open = await windowOpen(ctx, leagueId, deadlines, now);
+    const next = nextDeadline(deadlines, now);
+    // Shut, with its first run after the next deadline: the window opens after that gameweek's last
+    // match, and lasts to the deadline after it.
+    const waitsOn = open || locked || runs.length === 0 ? null : runs[0].skippedIf;
+    const waitedDeadline = waitsOn === null ? null : (deadlines.get(waitsOn) ?? null);
     return {
       type: season.latest.waivers.order,
       teams: order.map((teamId) => {
@@ -174,9 +218,10 @@ export const ofLeague = query({
       }),
       drafted: await draftIsOver(ctx, leagueId),
       runs,
-      locked: await inWaiverLock(ctx, deadlines, now),
-      windowOpen: await windowOpen(ctx, leagueId, deadlines, now),
-      nextDeadline: nextDeadline(deadlines, now),
+      locked,
+      windowOpen: open,
+      windowShuts: waitedDeadline === null ? next : nextDeadline(deadlines, waitedDeadline),
+      resetsAfter: underWay ?? next?.gameweek ?? null,
     };
   },
 });

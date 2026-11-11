@@ -5,7 +5,8 @@
 
 import { plTable } from "../../convex/football/plTable";
 import { COMPETITION_TIE_BREAKS } from "../../convex/football/tieBreaks";
-import { SEASON_GAMEWEEKS } from "../../convex/gameweeks/usedGameweeks";
+import { seasonGameweeks } from "../../convex/gameweeks/usedGameweeks";
+import { previewSeasonGameweeks } from "../shared/preview";
 import { DAY_MS, HOUR_MS, WEEK_MS } from "../../convex/shared/time";
 import { previewMatch, previewMatchBeforeKickoff } from "./matchPreview";
 import type { FirstKickoff, GameweekMatch, PremierLeagueSeam } from "./seam";
@@ -82,11 +83,12 @@ function matchesOf(gameweek: number): GameweekMatch[] {
   });
 }
 
-const firstKickoffs: FirstKickoff[] = SEASON_GAMEWEEKS.map((gameweek) => ({
+const SEASON = seasonGameweeks(previewSeasonGameweeks);
+const firstKickoffs: FirstKickoff[] = SEASON.map((gameweek) => ({
   gameweek,
   firstKickoff: startOf(gameweek),
 }));
-const matches = new Map(SEASON_GAMEWEEKS.map((gameweek) => [gameweek, matchesOf(gameweek)]));
+const matches = new Map(SEASON.map((gameweek) => [gameweek, matchesOf(gameweek)]));
 
 /** The table from the made-up results by the server's own rules (plTable.ts): the current
  *  gameweek's live and half-time matches count as they stand, so it is provisional. */
@@ -109,7 +111,7 @@ const standings = {
 };
 
 export const previewPremierLeague: PremierLeagueSeam = {
-  useFirstKickoffs: () => firstKickoffs,
+  useGameweeks: () => ({ seasonGameweeks: previewSeasonGameweeks, firstKickoffs }),
   useGameweekMatches: (gameweek) => matches.get(gameweek) ?? [],
   // Every fixture opens the one recorded match (matchPreview.ts): one to come, as before kickoff.
   useMatch: (_leagueId, _now, fixtureCode) => upcoming.get(fixtureCode) ?? previewMatch,

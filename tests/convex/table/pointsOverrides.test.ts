@@ -6,7 +6,8 @@ import schema from "../../../convex/schema";
 import { inTenths } from "../../../convex/scoring/values";
 import { refusals } from "../../../convex/shared/leagueAccess";
 import { OVERRIDE_POINTS_MOST, OVERRIDE_REASON_MAX } from "../../../convex/table/overrideLimits";
-import { lostPlayerName, overrideRefusals } from "../../../convex/table/pointsOverrides";
+import { overrideRefusals } from "../../../convex/table/pointsOverrides";
+import { lostPlayerName } from "../../../convex/shared/players";
 import { MINUTES_STAT } from "../../../convex/stats/matchRecords";
 import {
   ANN,

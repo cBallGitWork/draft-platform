@@ -3,7 +3,8 @@ import { internal } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
 import { leagueDeadlines } from "../../../convex/gameweeks/leagueDeadlines";
 import { HOUR_MS, MINUTE_MS, WEEK_MS } from "../../../convex/shared/time";
-import { changeEveryRules, giveDeadlineRule, holdGameweeks, KICKS_OFF_IN, rulesInGameweek } from "../../support/convex/leagueRules.harness";
+import type { LeagueRules } from "../../../convex/rules/leagueRulesShape";
+import { changeEveryRules, changeRules, giveDeadlineRule, holdGameweeks, KICKS_OFF_IN, latestRules, NEXT, rulesInGameweek } from "../../support/convex/leagueRules.harness";
 import { adminCreatesLeague, type TestConvex } from "../../support/convex/leagues.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
 
@@ -11,7 +12,6 @@ import { fakeResend, signInDeployment } from "../../support/convex/signIn.harnes
 // not FPL's 90, and the migration moves the alpha leagues made with 90 to 15, keeping a deadline
 // already passed where it fell (S05.25).
 
-const NEXT = 9;
 /** When gameweek NEXT's one match kicks off: KICKS_OFF_IN from the deployment's morning. */
 let kickoff: number;
 let t: TestConvex;
@@ -79,4 +79,21 @@ test("a league whose commissioner chose another time keeps it, and running it ag
   expect(await migrate()).toEqual({ rowsMoved: 0, defaultsMoved: false });
   expect(await minutesOf(chosen, NEXT)).toBe(60);
   expect(await minutesOf(alpha, NEXT)).toBe(15);
+});
+
+test("a rules row holding only its changes moves only when they set 90 (#1617)", async () => {
+  const leagueId = await alphaLeague();
+  const changeTo = async (change: Partial<LeagueRules>) => changeRules(t, leagueId, { ...(await latestRules(t, leagueId))!.rules, ...change });
+  await changeTo({ format: "totalPoints" });
+  await changeTo({ deadline: { minutesBeforeFirstKickoff: 30 } });
+  await changeTo({ deadline: { minutesBeforeFirstKickoff: 90 } });
+
+  expect(await migrate()).toEqual({ rowsMoved: 2, defaultsMoved: true });
+  const rows = await t.run((ctx) => ctx.db.query("leagueRules").withIndex("by_leagueId_and_fromGameweek", (q) => q.eq("leagueId", leagueId)).collect());
+  expect(rows.map((row) => row.rules?.deadline ?? row.changes)).toEqual([
+    { minutesBeforeFirstKickoff: 15 },
+    { format: "totalPoints" },
+    { deadline: { minutesBeforeFirstKickoff: 30 } },
+    { deadline: { minutesBeforeFirstKickoff: 15 } },
+  ]);
 });

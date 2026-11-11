@@ -1,6 +1,6 @@
 import type { Doc, Id } from "../_generated/dataModel";
 import type { QueryCtx } from "../_generated/server";
-import { GAMEWEEKS } from "../gameweeks/usedGameweeks";
+import { GAMEWEEKS_MOST } from "../gameweeks/usedGameweeks";
 import { MOST_TEAMS } from "../leagues/leagueLimits";
 import { takeAllOrThrow } from "../shared/cappedRead";
 import { groupedBy } from "../shared/groupedBy";
@@ -12,8 +12,8 @@ import type { TeamGameweekTotal, TeamScores } from "./gameweekScores";
 
 type TeamId = Id<"teams">;
 
-/** The most final rows a league holds: one for each team in each gameweek. */
-export const FINAL_SCORES_MOST = GAMEWEEKS * MOST_TEAMS;
+/** The most final rows a league holds: one for each team in each gameweek of the longest season. */
+export const FINAL_SCORES_MOST = GAMEWEEKS_MOST * MOST_TEAMS;
 
 /** A gameweek's stored final scores, and the matches they were scored from. */
 interface StoredGameweek {

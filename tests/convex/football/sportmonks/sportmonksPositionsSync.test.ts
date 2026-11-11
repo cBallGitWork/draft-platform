@@ -5,10 +5,11 @@
 import { afterEach, beforeEach, expect, test, vi } from "vitest";
 import { internal } from "../../../../convex/_generated/api";
 import { leagueSeasonsUrl, lineupsUrl, POSITIONS_SQUAD_INCLUDES, scheduleUrl, seasonTeamsUrl, SPORTMONKS_TOKEN_ENV } from "../../../../convex/football/sportmonks/sportmonks";
-import { NO_STARTERS_LOG, REGULAR_STARTS } from "../../../../convex/football/sportmonks/sportmonksPositionsSync";
+import { LINEUPS_WAIT_DAYS, NO_STARTERS_GIVEN_UP_LOG, NO_STARTERS_LOG, REGULAR_STARTS } from "../../../../convex/football/sportmonks/sportmonksPositionsSync";
 import type { RawFixture } from "../../../../convex/football/sportmonks/sportmonksRaw";
 import { DAY_MS } from "../../../../convex/shared/time";
-import { freshConvex, silenceConsoleError, type TestConvex } from "../../../support/convex/test.harness";
+import { CRON_TRIGGER, PING_URL_ENV } from "../../../../convex/heartbeats/heartbeat";
+import { freshConvex, pendingJobs, silenceConsoleError, type TestConvex } from "../../../support/convex/test.harness";
 import { LINEUPS, sportmonksLineupsMatch } from "../../../support/recorded/sportmonksLineups.payloads";
 
 const TOKEN = "test-token";
@@ -105,15 +106,34 @@ test("a run again reads no match it has filed, and adds nothing", async () => {
   expect((await rowOf(t, LINEUPS.celtic433[2]))?.starts).toHaveLength(3);
 });
 
+const lineupsRead = (t: TestConvex) => t.run(async (ctx) => (await ctx.db.query("sportmonksLineupsRead").collect()).map((each) => each.fixtureCode).sort());
+
 test("a played match whose lineups come back with no starters is logged and left to read again", async () => {
+  vi.setSystemTime(KICKOFF + (LINEUPS_WAIT_DAYS - 1) * DAY_MS);
   const t = freshConvex();
   const logged = silenceConsoleError();
   await read(t, fakeSportmonks({ unfiled: LINEUPS.match }));
 
   expect(logged).toHaveBeenCalledWith(`${NO_STARTERS_LOG}: ${LINEUPS.match}`);
-  const filed = await t.run((ctx) => ctx.db.query("sportmonksLineupsRead").collect());
-  expect(filed.map((each) => each.fixtureCode).sort()).toEqual([LINEUPS.match + 1, LINEUPS.match + 2]);
+  expect(await lineupsRead(t)).toEqual([LINEUPS.match + 1, LINEUPS.match + 2]);
   expect((await rowOf(t, LINEUPS.celtic433[2]))?.starts).toHaveLength(2);
+});
+
+test("a played match still with no starters a week after kickoff, such as an awarded one, is marked read with none and logged once", async () => {
+  const t = freshConvex();
+  const logged = silenceConsoleError();
+  await read(t, fakeSportmonks({ unfiled: LINEUPS.match }));
+
+  expect(logged).toHaveBeenCalledTimes(1);
+  expect(logged).toHaveBeenCalledWith(`${NO_STARTERS_GIVEN_UP_LOG}: ${LINEUPS.match}`);
+  expect(await lineupsRead(t)).toEqual([LINEUPS.match, LINEUPS.match + 1, LINEUPS.match + 2]);
+  expect((await rowOf(t, LINEUPS.celtic433[2]))?.starts).toHaveLength(2);
+
+  const fake = await read(t, fakeSportmonks({ unfiled: LINEUPS.match }));
+  expect(fake.mock.calls.map(([url]) => url)).not.toContain(lineupsUrl(playedMatches().map((match) => match.id)));
+  expect(logged).toHaveBeenCalledTimes(1);
+  const [, again] = await runs(t);
+  expect(again.outcome).toMatchObject({ ok: true, matchesRead: 0, matchesLeft: 0 });
 });
 
 test("a refused read is a failed run on record, and nothing is filed", async () => {
@@ -124,6 +144,20 @@ test("a refused read is a failed run on record, and nothing is filed", async () 
   const [run] = await runs(t);
   expect(run.outcome).toMatchObject({ ok: false, error: expect.stringContaining("answered 403") });
   expect(await t.run((ctx) => ctx.db.query("sportmonksLineupsRead").collect())).toEqual([]);
+});
+
+// The daily read's heartbeat (#1554): pinged once the cron's last run is done, never by hand.
+test("the cron's run that leaves no match to read schedules the heartbeat; a run by hand none", async () => {
+  vi.stubEnv(PING_URL_ENV, "https://hc-ping.com/ping-key");
+  const beat = internal.heartbeats.heartbeat.beat;
+  const byHand = freshConvex();
+  await read(byHand);
+  expect(await pendingJobs(byHand, beat)).toEqual([]);
+
+  const t = freshConvex();
+  vi.stubGlobal("fetch", fakeSportmonks());
+  await t.action(internal.football.sportmonks.sportmonksPositionsSync.run, { trigger: CRON_TRIGGER });
+  expect((await pendingJobs(t, beat)).map((job) => job.args)).toEqual([[{ check: "sportmonksPositions" }]]);
 });
 
 test("where the deployment has no token, a run reads nothing and writes no row", async () => {

@@ -8,7 +8,7 @@ import type { Id } from "../../../convex/_generated/dataModel";
 import { recordPassedDeadlines } from "../../../convex/gameweeks/deadlineRecorder";
 import { MINUTE_MS, WEEK_MS } from "../../../convex/shared/time";
 import { holdGameweeks, holdMatchState } from "./leagueRules.harness";
-import { actingAs, addManagers, adminCreatesLeague, MANAGERS, teamsIn, type TestConvex } from "./leagues.harness";
+import { actingAs, addManagers, adminCreatesLeague, lettersTo, MANAGERS, teamsIn, type TestConvex } from "./leagues.harness";
 import { holdPlayers, holdSquad, passNextDeadline, SQUAD, SQUAD_CLUB } from "./lineupSquad.harness";
 import { fakeResend, signInDeployment } from "./signIn.harness";
 
@@ -17,10 +17,6 @@ export const [ANN, BOB, CAT] = MANAGERS;
 export const NEXT = 5;
 export const [SAKA, PALMER, RICE] = [9001, 9002, 9003];
 export const [ANNS_FIRST_DROP, ANNS_SECOND_DROP] = [SQUAD[SQUAD.length - 1], SQUAD[SQUAD.length - 2]];
-
-/** The letters `email` has been sent, oldest first, as their subjects and bodies. */
-export const lettersTo = (t: TestConvex, email: string) =>
-  t.run(async (ctx) => (await ctx.db.query("letters").withIndex("by_to_and_at", (q) => q.eq("to", email)).collect()).map(({ subject, body }) => ({ subject, body })));
 
 /** The league's draft over: started with no rounds, so no pick is left on the clock. Free agency
  *  and waivers wait for it (#1326). */
@@ -35,6 +31,18 @@ export const noDraft = (t: TestConvex, leagueId: Id<"leagues">) =>
     const draft = await ctx.db.query("drafts").withIndex("by_leagueId", (q) => q.eq("leagueId", leagueId)).unique();
     if (draft !== null) await ctx.db.delete("drafts", draft._id);
   });
+
+/** `email` drops `playerCode` from his squad (../../../convex/waivers/waivers.ts). */
+export const dropPlayer = async (t: TestConvex, leagueId: Id<"leagues">, email: string, playerCode: number) =>
+  (await actingAs(t, email)).mutation(api.waivers.waivers.drop, { leagueId, playerCode });
+
+/** `email` picks up the free agent `playerCode`, `dropCode` going for him if anyone. */
+export const pickUpPlayer = async (t: TestConvex, leagueId: Id<"leagues">, email: string, playerCode: number, dropCode: number | null = null) =>
+  (await actingAs(t, email)).mutation(api.waivers.freeAgents.pickUp, { leagueId, playerCode, dropCode });
+
+/** The player's waiver state in the league, as `email` reads it. */
+export const waiverStateOf = async (t: TestConvex, leagueId: Id<"leagues">, playerCode: number, email = BOB) =>
+  (await actingAs(t, email)).query(api.waivers.waivers.stateOf, { leagueId, playerCode });
 
 export async function waiverLeague() {
   const t: TestConvex = await signInDeployment();
@@ -70,8 +78,11 @@ export async function waiverLeague() {
       }),
     claim: async (email: string, playerCode: number, dropCode: number | null = null) =>
       (await actingAs(t, email)).mutation(api.waivers.waiverClaims.putIn, { leagueId, playerCode, dropCode }),
-    pending: async (email: string) => (await actingAs(t, email)).query(api.waivers.waiverClaims.pending, { leagueId }),
-    stateOf: async (playerCode: number) => (await actingAs(t, BOB)).query(api.waivers.waivers.stateOf, { leagueId, playerCode }),
+    /** `email`'s pending claims, as at `now` (the test's clock unless given). */
+    pending: async (email: string, now = Date.now()) => (await actingAs(t, email)).query(api.waivers.waiverClaims.pending, { leagueId, now }),
+    stateOf: (playerCode: number) => waiverStateOf(t, leagueId, playerCode),
+    drop: (email: string, playerCode: number) => dropPlayer(t, leagueId, email, playerCode),
+    pickUp: (email: string, playerCode: number, dropCode: number | null = null) => pickUpPlayer(t, leagueId, email, playerCode, dropCode),
     squadCodes: (teamId: Id<"teams">) =>
       t.run(async (ctx) => (await ctx.db.query("squadPlayers").withIndex("by_teamId", (q) => q.eq("teamId", teamId)).collect()).map(({ playerCode }) => playerCode)),
     lettersTo: (email: string) => lettersTo(t, email),

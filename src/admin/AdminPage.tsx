@@ -5,12 +5,12 @@ import { ClubColours, Uncoloured } from "./ClubColoursPanels";
 import { FindPlayer } from "./FindPositions";
 import { NewSignings, PositionChanges, Waiting } from "./QueuePanels";
 import type { AdminSeam } from "./seam";
-import { ApproveClub, ApproveMode, Thresholds } from "./SettingsPanels";
+import { ApproveClub, ApproveMode, SiteSettings, Thresholds } from "./SettingsPanels";
 import { loadingWords } from "./words";
 /** The admin's dashboard (spec/06 The admin oversees them; spec/15 The admin): the queue of new
  *  signings, starts waiting for him, positions flagged or removed and clubs with no colours;
- *  approving a club whole, setting its colours, how starts count and when positions change; and
- *  correcting any player's positions. Its first tab. */
+ *  approving a club whole, setting its colours, how starts count and when positions change; the
+ *  site's own settings; and correcting any player's positions. Its first tab. */
 export function AdminPage({ seam }: { seam: AdminSeam }) {
   const queue = seam.useQueue();
   const change = useChange();
@@ -32,6 +32,7 @@ export function AdminPage({ seam }: { seam: AdminSeam }) {
             <ClubColours queue={queue} seam={seam} change={change} />
             <ApproveMode queue={queue} seam={seam} change={change} />
             <Thresholds queue={queue} seam={seam} change={change} />
+            <SiteSettings seam={seam} change={change} />
             <FindPlayer seam={seam} change={change} />
           </div>
         </div>

@@ -5,7 +5,21 @@
 import { AREAS, areasOf, cellsOf, LANES, positionOfSlot, SLOT_POSITIONS, type Area } from "../lineup/pitch";
 import { cardOpensAt } from "../playerCard/cardPoints";
 import type { Position } from "../positions/positionTables";
-import { EVENT_STATS, MINUTES_STAT } from "../stats/matchRecords";
+import {
+  ASSISTS,
+  BIG_CHANCES_CREATED,
+  CLEAN_SHEETS,
+  CLEARANCES,
+  GOALS,
+  GOALS_CONCEDED,
+  INTERCEPTIONS,
+  KEY_PASSES,
+  MINUTES_STAT,
+  PASSES,
+  SAVES,
+  SHOTS_ON_TARGET,
+  TACKLES_WON,
+} from "../scoring/statKeys";
 import type { Stats } from "../stats/statTotals";
 
 /** The fewest minutes a player has over the period to be ranked (the approved picture: "270+
@@ -18,9 +32,9 @@ const MATCH_MINUTES = 90;
 /** The stats each area's panel lists per 90 (Craig, 9 Nov 2026, on #1028, answer 3), by the names
  *  the merged record keeps them under (sportmonksStats.ts): the goalkeeper's, the defence's, and
  *  the picture's six for every other area, midfield and attack. */
-const GOALKEEPER_STATS = ["saves", "goals_conceded", "clean_sheets", "total_pass"] as const;
-const DEFENCE_STATS = ["won_tackle", "interception", "total_clearance", "clean_sheets", EVENT_STATS.assists] as const;
-const MIDFIELD_AND_ATTACK_STATS = [EVENT_STATS.goals, EVENT_STATS.assists, "total_att_assist", "ontarget_scoring_att", "big_chance_created", "won_tackle"] as const;
+const GOALKEEPER_STATS = [SAVES, GOALS_CONCEDED, CLEAN_SHEETS, PASSES] as const;
+const DEFENCE_STATS = [TACKLES_WON, INTERCEPTIONS, CLEARANCES, CLEAN_SHEETS, ASSISTS] as const;
+const MIDFIELD_AND_ATTACK_STATS = [GOALS, ASSISTS, KEY_PASSES, SHOTS_ON_TARGET, BIG_CHANCES_CREATED, TACKLES_WON] as const;
 
 /** The stats a player of `area` is shown per 90, then `picked` (the list's stat) as a seventh when
  *  it isn't among them already. */
@@ -86,9 +100,12 @@ export function per90FiguresIn(area: Area, totals: Stats, everyone: Iterable<Wei
   });
 }
 
+/** A percentile's top: the best of a player's peers stands at it. */
+const PERCENTILE_TOP = 100;
+
 /** Where `value` stands among `peers`' figures, as a percentile from 0 to 100: the share of them at
  *  or below it, rounded, so the best of them is 100. Null with no peers. */
 export function percentileOf(value: number, peers: readonly number[]): number | null {
   if (peers.length === 0) return null;
-  return Math.round((100 * peers.filter((peer) => peer <= value).length) / peers.length);
+  return Math.round((PERCENTILE_TOP * peers.filter((peer) => peer <= value).length) / peers.length);
 }

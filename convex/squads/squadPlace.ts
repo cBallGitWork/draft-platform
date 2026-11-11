@@ -2,7 +2,7 @@ import { v, type Infer } from "convex/values";
 import type { Doc, Id } from "../_generated/dataModel";
 import type { QueryCtx } from "../_generated/server";
 import type { leagueEvent } from "../schema";
-import { MOST_IN_SQUAD } from "../leagues/leagueLimits";
+import { MOST_IN_SQUAD, MOST_TEAMS } from "../leagues/leagueLimits";
 import { takeAllOrThrow } from "../shared/cappedRead";
 import { teamsOf } from "../shared/leagueAccess";
 import { playerByCode } from "../shared/players";
@@ -21,6 +21,20 @@ export function placeOf(ctx: QueryCtx, leagueId: Id<"leagues">, playerCode: numb
     .unique();
 }
 
+/** The most squad rows one league holds: every team's squad full. */
+const LEAGUE_SQUAD_ROWS_MOST = MOST_TEAMS * MOST_IN_SQUAD;
+
+/** The codes of every player a team in this league holds, its squad rows read in one range rather
+ *  than a `placeOf` per player (#1532): what the draft reads its undrafted players from. */
+export async function heldCodesIn(ctx: QueryCtx, leagueId: Id<"leagues">): Promise<Set<number>> {
+  const rows = await takeAllOrThrow(
+    ctx.db.query("squadPlayers").withIndex("by_leagueId_and_playerCode", (q) => q.eq("leagueId", leagueId)),
+    LEAGUE_SQUAD_ROWS_MOST,
+    `League ${leagueId} holds more than ${LEAGUE_SQUAD_ROWS_MOST} squad rows, so who is held can't be read`,
+  );
+  return new Set(rows.map(({ playerCode }) => playerCode));
+}
+
 /** Who owns a player in this league: the league's teams read once, then a lookup per player giving
  *  the team that holds him, or null while he is a free agent. A squad row naming a team outside the
  *  league throws: the squads are broken. */
@@ -37,8 +51,15 @@ export async function ownerOf(ctx: QueryCtx, leagueId: Id<"leagues">): Promise<(
 
 /** The league events that change a squad. A commissioner assigns, moves and releases players
  *  (#31), a manager drops them (#1197) and picks up free agents (#1199), and a waiver run gives
- *  them for a claim (#1198); trades join them when built. */
-export const SQUAD_MOVES = ["playerAssigned", "playerMoved", "playerReleased", "playerDropped", "playerClaimed", "playerPickedUp"] as const;
+ *  them for a claim (#1198), and a trade moves them (#383). */
+export const SQUAD_MOVES = ["playerAssigned", "playerMoved", "playerReleased", "playerDropped", "playerClaimed", "playerPickedUp", "playerTraded"] as const;
+
+/** The league events the screens list a team's moves from (My team's Transactions, League home,
+ *  its News tab): every squad move but a trade's players, and each trade as one (#1491). */
+export const LISTED_MOVES = ["playerAssigned", "playerMoved", "playerReleased", "playerDropped", "playerClaimed", "playerPickedUp", "tradeMade"] as const;
+export type ListedKind = (typeof LISTED_MOVES)[number];
+/** A listed move of one player: any but a trade, which the screens list with both its sides. */
+export const playerMoveKind = v.union(...LISTED_MOVES.flatMap((kind) => (kind === "tradeMade" ? [] : [v.literal(kind)])));
 
 /** Whether the move took a player off his team for no other: a release or a drop. */
 const isLeaving = (kind: (typeof SQUAD_MOVES)[number]) => kind === "playerReleased" || kind === "playerDropped";
@@ -78,9 +99,15 @@ export async function heldOrNot(ctx: QueryCtx, rows: readonly Doc<"squadPlayers"
 type LeagueEvent = Infer<typeof leagueEvent>;
 type SquadMove = Extract<LeagueEvent, { kind: (typeof SQUAD_MOVES)[number] }>;
 export const isSquadMove = (event: LeagueEvent): event is SquadMove => (SQUAD_MOVES as readonly string[]).includes(event.kind);
+export type ListedMove = Extract<LeagueEvent, { kind: ListedKind }>;
+export const isListedMove = (event: LeagueEvent): event is ListedMove => (LISTED_MOVES as readonly string[]).includes(event.kind);
+/** Whether the squad move took its player off `teamId` for another team: a move or a trade. */
+export const movedOff = (event: SquadMove, teamId: Id<"teams">) => (event.kind === "playerMoved" || event.kind === "playerTraded") && event.fromTeamId === teamId;
 
 /** A league's squad moves filed at `at` or after, newest first: what `squadAt` undoes. */
 export type SquadMovesSince = Doc<"leagueEvents">[];
+/** The league's squad moves since a moment, as `squadMovesSince` or `squadMovesFrom` reads them. */
+export type MovesSinceOf = (at: number) => Promise<SquadMovesSince>;
 
 /** The league's squad moves filed at `at` or after, newest first. Read once for every team. */
 export async function squadMovesSince(ctx: QueryCtx, leagueId: Id<"leagues">, at: number): Promise<SquadMovesSince> {
@@ -96,6 +123,19 @@ export async function squadMovesSince(ctx: QueryCtx, leagueId: Id<"leagues">, at
     ),
   );
   return movesOfEachKind.flat().toSorted(newestFirst);
+}
+
+/** The league's squad moves since any moment from `earliest` on, the league's read once, from
+ *  `earliest`, and each ask handed its newest-first slice (#1542): a season of gameweeks reads one
+ *  list rather than one for each deadline. A moment before `earliest` throws: it wasn't read. */
+export function squadMovesFrom(ctx: QueryCtx, leagueId: Id<"leagues">, earliest: number): MovesSinceOf {
+  let read: Promise<SquadMovesSince> | undefined;
+  return async (at) => {
+    if (at < earliest) throw new Error(`League ${leagueId}'s squad moves were read from ${earliest}, not from ${at}`);
+    const moves = await (read ??= squadMovesSince(ctx, leagueId, earliest));
+    const end = moves.findIndex((move) => move.at < at);
+    return end === -1 ? moves : moves.slice(0, end);
+  };
 }
 
 /** The team's player codes as its squad stood before `movesSince`: today's squad with each of them
@@ -115,7 +155,7 @@ export async function squadAt(ctx: QueryCtx, teamId: Id<"teams">, movesSince: Sq
       stayed = stayed.filter((code) => code !== playerCode);
       leftSince = leftSince.filter((code) => code !== playerCode);
     }
-    const leftHere = isLeaving(event.kind) ? event.teamId === teamId : event.kind === "playerMoved" && event.fromTeamId === teamId;
+    const leftHere = isLeaving(event.kind) ? event.teamId === teamId : movedOff(event, teamId);
     if (leftHere) {
       if (held) throw new Error(`League event ${_id} took player ${playerCode} off team ${teamId}, but he is in its squad after it`);
       leftSince = [playerCode, ...leftSince];

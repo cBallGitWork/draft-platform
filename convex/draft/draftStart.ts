@@ -7,12 +7,12 @@ import { draftRulesOf } from "../rules/firstRules";
 import { historyOf, inForce, latestRules, seasonRules } from "../rules/rulesHistory";
 import type { LeagueRules } from "../rules/leagueRulesShape";
 import { memberOf, refuse, runnerOf, teamsOf } from "../shared/leagueAccess";
-import { closePickTrades } from "../trades/tradePicks";
+import { closePickTrades, undoCutTrades } from "../trades/tradePicks";
 import { startClock } from "./draftClock";
 import { tellNotStarted, tellUpNext } from "./draftLetters";
 import { DRAFT_FEWEST_TEAMS } from "./draftLimits";
 import { draftOrderOf, teamInOrder, teamOrderOf } from "./draftOrder";
-import { draftOf, picksMadeIn } from "./draftRow";
+import { draftOf, lastPickIn, liveClockOf } from "./draftRow";
 import { roundsOf } from "./draftRules";
 import { pickOnTheClock } from "./snakeOrder";
 
@@ -22,11 +22,14 @@ import { pickOnTheClock } from "./snakeOrder";
 // its rounds are the squad's most players; a date can't be set without them either, and must be in
 // the future. A date that comes when the league can't start stays waiting, as an unset date does
 // (Craig, 4 Nov 2026, on #1089). Starting fixes the order: the draft order then (draftOrder.ts),
-// and no team can join after (../leagues/teams.ts). It waits until every squad is empty. Its rounds,
+// and no team can join after (../leagues/teams.ts). It waits until every squad is empty, though a
+// date can be set before they are, as the commissioner may release players first (Craig, 11 Nov
+// 2026, on #1459). Its rounds,
 // and the squad rules its picks follow, are the league's latest, a change waiting for a later
 // gameweek among them: "the squad size is what indicates the draft size" (Craig, 7 Nov 2026, on
 // #1130, replacing #1090's "in force when it starts"). Starting closes every pick trade still open
-// or in review, unmade (#1096; Craig, 8 Nov 2026), as picks are traded only before it.
+// or in review, unmade (#1096; Craig, 8 Nov 2026), as picks are traded only before it, and undoes
+// each pick trade with a pick in a round a squad-size cut removed (#1457; Craig, 11 Nov 2026).
 
 /** Why the draft's start is refused, in the words the commissioner is shown. */
 export const draftStartRefusals = {
@@ -51,7 +54,8 @@ async function anyoneHeld(ctx: QueryCtx, leagueId: Id<"leagues">): Promise<boole
   return (await ctx.db.query("squadPlayers").withIndex("by_leagueId_and_playerCode", (q) => q.eq("leagueId", leagueId)).first()) !== null;
 }
 
-/** Why the league's draft can't start now, or be given a date; otherwise what it starts with: its
+/** Why the league's draft can't be given a date, or start now but for its squads (`begin` checks
+ *  those); otherwise what it starts with: its
  *  teams; its rounds and the squad rules its picks follow, the league's latest, a waiting change's
  *  among them (Craig, 7 Nov 2026, on #1130); and its pick time, the latest's too, so a mid-season
  *  draft starts on the last one typed (Craig, 10 Nov 2026, on #1439: "Last typed"). */
@@ -64,7 +68,6 @@ async function startable(
   const latest = await latestRules(ctx, leagueId);
   const rounds = roundsOf(latest);
   if (rounds === null) return { refusal: draftStartRefusals.noSquadSize };
-  if (await anyoneHeld(ctx, leagueId)) return { refusal: draftStartRefusals.squadsNotEmpty };
   return { refusal: null, teams, rounds, squad: latest.squad, pickSeconds: draftRulesOf(latest).pickSeconds };
 }
 
@@ -84,11 +87,13 @@ async function begin(ctx: MutationCtx, league: Doc<"leagues">, draft: Doc<"draft
   if (draft?.started !== undefined) return draftStartRefusals.started;
   const can = await startable(ctx, league._id);
   if (can.refusal !== null) return can.refusal;
+  if (await anyoneHeld(ctx, league._id)) return draftStartRefusals.squadsNotEmpty;
   const started = { at: Date.now(), teamIds: draftOrderOf(can.teams, league.draftOrder).map((team) => team._id), rounds: can.rounds, squad: can.squad };
   const pickSeconds = can.pickSeconds;
   if (draft === null) await ctx.db.insert("drafts", { leagueId: league._id, started, pickSeconds });
   else await ctx.db.patch("drafts", draft._id, { started, pickSeconds, startsAt: undefined, startJob: undefined });
   await closePickTrades(ctx, league._id);
+  await undoCutTrades(ctx, league, can.rounds);
   const first = await startClock(ctx, league._id, 0, started.at, pickSeconds);
   if (first !== null) await tellUpNext(ctx, league, first);
   return null;
@@ -96,7 +101,8 @@ async function begin(ctx: MutationCtx, league: Doc<"leagues">, draft: Doc<"draft
 
 /** The commissioner sets the date the draft starts, or clears it with null, so the draft waits for
  *  him to press start. Refused once it has started, for a date not in the future, and for a league
- *  the draft couldn't start in. */
+ *  the draft couldn't start in, but for its squads: one still holding players can be emptied before
+ *  the date comes (Craig, 11 Nov 2026, on #1459). */
 export const setStart = mutation({
   args: { leagueId: v.id("leagues"), startsAt: v.union(v.number(), v.null()) },
   returns: v.null(),
@@ -163,19 +169,33 @@ const onTheClock = v.object({ pick: v.number(), round: v.number(), teamId: v.id(
 /** A pick's clock: when it starts and runs out, and, while the draft is paused (draftPause.ts),
  *  when it was paused, its time left counted from then. */
 const pickClock = v.object({ startsAt: v.number(), endsAt: v.number(), pausedAt: v.optional(v.number()) });
+/** The team whose manager made the draft's last pick himself (pickWindow.ts), or null. */
+const ownPickBy = v.union(v.id("teams"), v.null());
 
 /** The league's draft as everyone in the league reads it: waiting, with its date (null: until the
  *  commissioner presses start), its rounds (null: the league has no squad size limit) and the
  *  draft order now; live, with when it started, its rounds, its order, fixed at the start, how many
- *  picks are made, the pick on the clock and its clock (null in a draft started before #1091, until
- *  its next pick); or over, once every pick is made (draftPicks.ts). A waiting draft's rounds are
- *  those it would start with now. `now`, the screen's minute, no longer moves anything here: it
- *  stays until the draft room's seam drops it, as that screen's change. */
+ *  picks are made, the pick on the clock and its clock; ending, for the 10 seconds after its last
+ *  pick, with when it ends and, while the commissioner has it paused, when he paused it (pickWindow.ts; #1458); or over, once those are up.
+ *  Live or ending, `ownPickBy` is the team whose manager made the last pick himself, which he can
+ *  undo until the next clock starts or the draft ends (null: an auto-pick, the commissioner's, or
+ *  no pick yet). A waiting draft's rounds are those it would start with now. It takes no minute: one would change its args as the
+ *  minute turns and blank the draft room while the new answer loads (#1531). */
 export const ofLeague = query({
-  args: { leagueId: v.id("leagues"), now: v.number() },
+  args: { leagueId: v.id("leagues") },
   returns: v.union(
     v.object({ status: v.literal("waiting"), startsAt: v.union(v.number(), v.null()), rounds: v.union(v.number(), v.null()), order: v.array(teamInOrder) }),
-    v.object({ status: v.literal("live"), startedAt: v.number(), rounds: v.number(), order: v.array(teamInOrder), picksMade: v.number(), onTheClock, clock: v.union(pickClock, v.null()) }),
+    v.object({ status: v.literal("live"), startedAt: v.number(), rounds: v.number(), order: v.array(teamInOrder), picksMade: v.number(), onTheClock, clock: pickClock, ownPickBy }),
+    v.object({
+      status: v.literal("ending"),
+      startedAt: v.number(),
+      rounds: v.number(),
+      order: v.array(teamInOrder),
+      picksMade: v.number(),
+      endsAt: v.number(),
+      pausedAt: v.optional(v.number()),
+      ownPickBy,
+    }),
     v.object({ status: v.literal("over"), startedAt: v.number(), rounds: v.number(), order: v.array(teamInOrder), picksMade: v.number() }),
   ),
   handler: async (ctx, { leagueId }) => {
@@ -192,13 +212,17 @@ export const ofLeague = query({
       if (name === undefined) throw new Error(`League ${leagueId}'s draft names team ${teamId}, which isn't in the league`);
       return { teamId, name };
     });
-    const picksMade = await picksMadeIn(ctx, leagueId);
+    const last = await lastPickIn(ctx, leagueId);
+    const picksMade = last?.pick ?? 0;
     const turn = pickOnTheClock(teamIds, rounds, picksMade, draft.tradedPicks);
     const started = { startedAt: at, rounds, order, picksMade };
+    const ownPickBy = last?.own === undefined ? null : last.teamId;
+    if (turn === null && draft.clock?.closing) return { status: "ending" as const, ...started, endsAt: draft.clock.startsAt, pausedAt: draft.clock.paused?.at, ownPickBy };
     if (turn === null) return { status: "over" as const, ...started };
-    const clock = draft.clock === undefined ? null : { startsAt: draft.clock.startsAt, endsAt: draft.clock.endsAt, pausedAt: draft.clock.paused?.at };
+    const { startsAt, endsAt, paused } = liveClockOf(draft);
+    const clock = { startsAt, endsAt, pausedAt: paused?.at };
     // A traded pick's owner is one of the draft's teams, each named in `order` above.
     const { name } = order.find(({ teamId }) => teamId === turn.team)!;
-    return { status: "live" as const, ...started, onTheClock: { pick: turn.pick, round: turn.round, teamId: turn.team, name }, clock };
+    return { status: "live" as const, ...started, onTheClock: { pick: turn.pick, round: turn.round, teamId: turn.team, name }, clock, ownPickBy };
   },
 });

@@ -1,3 +1,7 @@
+import type { FunctionReference } from "convex/server";
+import type { Doc, Id } from "../_generated/dataModel";
+import type { DatabaseReader, MutationCtx } from "../_generated/server";
+
 /** Every row `query` finds, at most `most` of them; more throws `tooMany`, never a silent cut
  *  (#214). Each table that grows season on season reads through this with its own named cap. */
 export async function takeAllOrThrow<Row>(query: { take(n: number): Promise<Row[]> }, most: number, tooMany: string): Promise<Row[]> {
@@ -19,3 +23,25 @@ export async function takeShown<Row>(query: { take(n: number): Promise<Row[]> },
  *  can stop a run well short of this, and the run then writes nothing. The closed beta has a
  *  handful; the figure is Claude's sizing, not yet Craig's. */
 export const LEAGUES_READ_MOST = 200;
+
+/** Every league, read across the site in one go: past LEAGUES_READ_MOST it throws, saying `why`
+ *  that would matter ("so some would keep no stars", say), never leaving a league out unsaid. Work
+ *  that writes in each league wants `scheduleEveryLeague`, so one league's fault stays its own
+ *  (#1558). */
+export function everyLeague(ctx: { db: DatabaseReader }, why: string): Promise<Doc<"leagues">[]> {
+  return takeAllOrThrow(ctx.db.query("leagues"), LEAGUES_READ_MOST, `More than ${LEAGUES_READ_MOST} leagues are held, ${why}`);
+}
+
+/** `everyLeague`'s twin for work done league by league: schedules `perLeague` for each league
+ *  `wanted` keeps, each in its own transaction once the caller's has saved, so a league whose work
+ *  throws leaves the caller's writes and every other league's standing (#1558). */
+export async function scheduleEveryLeague(
+  ctx: MutationCtx,
+  perLeague: FunctionReference<"mutation", "internal", { leagueId: Id<"leagues"> }>,
+  why: string,
+  wanted: (league: Doc<"leagues">) => boolean | Promise<boolean> = () => true,
+): Promise<void> {
+  for (const league of await everyLeague(ctx, why)) {
+    if (await wanted(league)) await ctx.scheduler.runAfter(0, perLeague, { leagueId: league._id });
+  }
+}

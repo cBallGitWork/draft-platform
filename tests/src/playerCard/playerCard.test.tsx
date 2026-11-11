@@ -22,7 +22,6 @@ import {
   chanceWords,
   dropWords,
   figureLabels,
-  freeAgentWords,
   goneWords,
   LAST_SEASON_TITLE,
   lastSeasonNotHeldWords,
@@ -46,7 +45,7 @@ import { freeScoutsWords, sendScoutWords } from "../../../src/scouting/scouts/wo
 import { addToShortlistWords } from "../../../src/scouting/shortlist/words";
 import { squadsPath } from "../../../src/squads/paths";
 import { crestUrl } from "../../../src/ui/ClubName";
-import { difficultyNotRatedWords, gameweekShort } from "../../../src/shared/words";
+import { difficultyNotRatedWords, freeAgentWords, gameweekShort } from "../../../src/shared/words";
 import { ARSENAL, COVENTRY } from "../../support/convex/footballRows.harness";
 import { HELD, NOT_ARRIVED, openCard, PRICED, RICE, SAKA, SAKA_POTATOES } from "../../support/src/playerCardScreen.harness";
 import { commissioned, league, manager, managerIn, miniBeta, openApp } from "../../support/src/shell.harness";
@@ -235,7 +234,7 @@ describe("the card's head (#1027)", () => {
     expect(head.getAllByRole("button").map((button) => button.textContent)).toEqual([backWords, dropWords]);
   });
 
-  it("his figures beside his name are at the position the switch is on: base points, a match and his last five", async () => {
+  it("his figures beside his name are at the position the switch is on: base points, a match, minutes and his last five", async () => {
     const overridden = { ...PRICED, fixtureCode: 3, gameweek: 1, minutes: 45, override: { points: 2, reason: "A goal given to another" } };
     openCard(SAKA, { cards: [{ ...SAKA, matches: [...SAKA.matches, overridden] }] });
     const head = await headOf();
@@ -244,17 +243,17 @@ describe("the card's head (#1027)", () => {
     // S12.1. At CAM: 12, then the override's 2; the match not yet arrived counts for nothing.
     expect(figure(figureLabels.seasonPoints)).toBe("14");
     expect(figure(figureLabels.aMatch)).toBe("7");
+    expect(figure(figureLabels.minutes)).toBe("135");
     expect(figure(figureLabels.lastFive)).toBe("122");
 
     await userEvent.click(within(screen.getByRole("region", { name: SEASON_TITLE })).getByRole("radio", { name: "W" }));
     expect(figure(figureLabels.seasonPoints)).toBe("13");
   });
 
-  it("holds the approved picture's four figures and no minutes, each no figure while none of his matches' records has arrived", async () => {
+  it("shows no minutes, not 0, while none of his matches' records has arrived", async () => {
     openCard(SAKA, { cards: [{ ...SAKA, matches: [NOT_ARRIVED] }] });
     const head = await headOf();
-    expect(head.getAllByRole("term").map((term) => term.textContent)).toEqual([figureLabels.seasonPoints, figureLabels.aMatch, rankLabel("CAM"), figureLabels.lastFive]);
-    expect(head.getAllByRole("definition").map((figure) => figure.textContent)).toEqual([noFigureWords, noFigureWords, noFigureWords, noFigureWords]);
+    expect(head.getByText(figureLabels.minutes).nextElementSibling!.textContent).toBe(noFigureWords);
   });
 
   it("marks Scouting the top bar's active tab, as the approved picture has it", async () => {

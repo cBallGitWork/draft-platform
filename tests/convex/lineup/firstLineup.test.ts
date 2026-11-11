@@ -3,7 +3,7 @@ import { firstLineup, keptOnBenchOf, withDroppedRoles, type FirstLineup, type Fi
 import type { RoleStars } from "../../../convex/stars/starsShape";
 import { DEFAULT_PRESETS } from "../../../convex/lineup/presets";
 import type { Position } from "../../../convex/positions/positionTables";
-import { openLimits, presetNamed } from "../../support/convex/lineup.harness";
+import { KEEPER_CELL, openLimits, presetNamed } from "../../support/convex/lineup.harness";
 
 // A team's first lineup (spec/05, The pitch; #637, #836): each pick goes onto the pitch as it is
 // made, into the deepest open 4-4-2 slot he can play, or onto the bench in pick order; if the
@@ -20,7 +20,6 @@ const RULES: FirstLineupRules = { ...openLimits(), presets: DEFAULT_PRESETS };
 /** A league with no preset to fall back on: only the 4-4-2's own rule is in play. */
 const NO_FALLBACK: FirstLineupRules = { ...openLimits(), presets: [] };
 
-const KEEPER = { area: "goalkeeper", lane: "centre" } as const;
 const BACK_FOUR = (["left", "leftCentre", "rightCentre", "right"] as const).map((lane) => ({ area: "defence", lane }) as const);
 const FLAT_FOUR = (["left", "leftCentre", "rightCentre", "right"] as const).map((lane) => ({ area: "midfield", lane }) as const);
 const STRIKE_PAIR = (["leftCentre", "rightCentre"] as const).map((lane) => ({ area: "attack", lane }) as const);
@@ -37,7 +36,7 @@ describe("each pick goes onto the 4-4-2 as it is made", () => {
     );
     expect(firstLineup(order, positions, RULES)).toEqual({
       starters: [
-        { playerCode: 2, ...KEEPER },
+        { playerCode: 2, ...KEEPER_CELL },
         ...standing([3, 4, 6, 10], BACK_FOUR),
         ...standing([5, 7, 11, 12], FLAT_FOUR),
         ...standing([1, 8], STRIKE_PAIR),
@@ -116,7 +115,7 @@ describe("a squad that leaves a 4-4-2 slot empty takes the first preset it fills
     expect(firstLineup(order, positions, NO_FALLBACK).starters).toHaveLength(10);
     expect(firstLineup(order, positions, RULES)).toEqual({
       starters: [
-        { playerCode: 1, ...KEEPER },
+        { playerCode: 1, ...KEEPER_CELL },
         ...standing([3, 4, 5, 6], BACK_FOUR),
         ...standing([2, 7, 8, 9], FLAT_FOUR),
         ...standing([10, 11], STRIKE_PAIR),
@@ -164,7 +163,7 @@ describe("a pick benched for having no positions stays there once he has some", 
     const kept = keptOnBenchOf(held, after.order, after.positions);
     expect(kept).toEqual(new Set([2]));
     expect(firstLineup(after.order, after.positions, RULES, kept)).toEqual({
-      starters: [{ playerCode: 1, ...KEEPER }, ...standing([3, 4], BACK_FOUR)],
+      starters: [{ playerCode: 1, ...KEEPER_CELL }, ...standing([3, 4], BACK_FOUR)],
       bench: [2],
     });
     // Kept again on the next change, now a later pick holds a slot he could have had.
@@ -196,7 +195,7 @@ describe("a pick benched for having no positions stays there once he has some", 
 });
 
 describe("each pick goes onto the pitch on his best-star role (spec/05 Roles; #11)", () => {
-  const KEEPER = { playerCode: 1, area: "goalkeeper", lane: "centre" } as const;
+  const KEEPER = { playerCode: 1, ...KEEPER_CELL } as const;
   const BACK = { playerCode: 2, area: "defence", lane: "left" } as const;
   const SWEEPING: RoleStars[] = [{ area: "goalkeeper", role: "sweeperKeeper", stars: 4 }];
   const ATTACKING: RoleStars[] = [{ area: "defence", role: "defensiveFullBack", stars: 4 }];

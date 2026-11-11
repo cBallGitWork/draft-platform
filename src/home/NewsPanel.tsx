@@ -29,7 +29,7 @@ export function NewsPanel({ home: { pinnedLetter, squadMoves } }: { home: League
       ) : (
         <ol>
           {squadMoves.map((move) => (
-            <li key={`${move.at} ${move.kind} ${move.playerName}`} className={ROW}>
+            <li key={`${move.at} ${move.kind} ${moveWords(move)}`} className={ROW}>
               <span className="flex items-baseline justify-between gap-2">
                 <span className={CHIP}>{newsKindWords[move.kind]}</span>
                 <span className="text-soft">{whenWords(move.at)}</span>

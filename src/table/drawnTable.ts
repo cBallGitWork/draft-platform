@@ -8,7 +8,8 @@ import { drawFixtures, type DrawRules } from "../../convex/table/roundRobin";
 import { FIRST_RULES } from "../../convex/rules/firstRules";
 import type { GameweekScores, TieBreak } from "../../convex/table/standings";
 import type { DeadlineOf } from "../../convex/gameweeks/deadline";
-import { SEASON_GAMEWEEKS } from "../../convex/gameweeks/usedGameweeks";
+import { seasonGameweeks } from "../../convex/gameweeks/usedGameweeks";
+import { previewSeasonGameweeks } from "../shared/preview";
 import type { TeamFixtures } from "../../convex/table/teamFixtures";
 import { leagueTableFrom, pointsOf, tableOf, teamFixturesFrom, type Results } from "../../convex/table/sentTables";
 import type { LeagueTable } from "./seam";
@@ -17,7 +18,9 @@ export type Drawn = Partial<DrawRules> & {
   /** What the order is drawn from, as the league's id is on the server. */
   seed?: string;
   format?: LeagueTable["format"];
-  /** The gameweeks the league plays: all 38 by default. */
+  /** The year the season starts, as the server reads it from the matches held: none by default. */
+  season?: LeagueTable["season"];
+  /** The gameweeks the league plays: every one its season has by default (#1618). */
   gameweeks?: readonly number[];
   /** The league's own deadline for each gameweek: none known by default. */
   deadlineOf?: DeadlineOf;
@@ -37,7 +40,7 @@ export const idOf = (team: string) => `${ID_PREFIX}${team}` as Id<"teams">;
 const named = (teamId: Id<"teams">) => teamId.slice(ID_PREFIX.length);
 
 /** The draw's defaults, as the server's would be for a league with no rule changed. */
-const DRAW_DEFAULTS = { oddTeamOut: "leagueAverage", gamesPerGameweek: 1, seed: "preview-league", gameweeks: SEASON_GAMEWEEKS } as const;
+const DRAW_DEFAULTS = { oddTeamOut: "leagueAverage", gamesPerGameweek: 1, seed: "preview-league", gameweeks: seasonGameweeks(previewSeasonGameweeks) } as const;
 
 /** What the server reads for teams with these names, made in this order, as `drawn` says: the
  *  format, the teams, the head-to-head schedule (none in total points), each team's points in each
@@ -61,7 +64,7 @@ export function leagueTableOf(teamNames: string[], drawn: Drawn = {}): LeagueTab
   const inputs = inputsOf(teamNames, drawn);
   const { format, teamIds, schedule, results } = inputs;
   const table = tableOf(format, teamIds, schedule, pointsOf(results), drawn.tieBreaks ?? FIRST_RULES.tieBreaks);
-  return leagueTableFrom({ ...inputs, table, autoTeams: new Set((drawn.autoTeams ?? []).map(idOf)) });
+  return leagueTableFrom({ ...inputs, season: drawn.season ?? null, table, autoTeams: new Set((drawn.autoTeams ?? []).map(idOf)) });
 }
 
 /** My team's fixtures for `teamName`, one of `teamNames`, in the same draw and scores as `leagueTableOf`'s. */

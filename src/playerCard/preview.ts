@@ -4,7 +4,7 @@
 // override on one match.
 
 import type { SlotPosition } from "../../convex/lineup/pitch";
-import { basePoints, cardPositions, logCategories, placeOf } from "../../convex/playerCard/cardPoints";
+import { basePoints, cardPositions, logCategories, rankOfPlayer } from "../../convex/playerCard/cardPoints";
 import { categoryName } from "../../convex/scoring/categories";
 import { FIRST_SCORING } from "../../convex/scoring/firstScoring";
 import type { MatchStats } from "../../convex/scoring/values";
@@ -135,7 +135,7 @@ const cards = new Map(previewPlayers.map((player) => [player.code, cardOf(player
 function rankOf(playerCode: number, position: SlotPosition): PositionRank {
   const holding = [...cards.values()].filter((card) => card.pricedAt.includes(position));
   const points = holding.map((card) => ({ code: card.code, points: seasonFigures(card.matches, card.pricedAt.indexOf(position)).seasonPoints }));
-  return { place: placeOf(points, playerCode), of: holding.length };
+  return { place: rankOfPlayer(points, playerCode), of: holding.length };
 }
 
 /** The preview saves nothing: an override is taken and forgotten, and a drop, a claim or a pickup
@@ -158,7 +158,7 @@ function cardActionOf(playerCode: number): CardAction {
   const player = previewPlayers.find(({ code }) => code === playerCode);
   if (player === undefined) return { kind: "none" };
   if (player.ownerTeamName !== null) return { kind: player.ownerTeamName === OWN_TEAM ? "drop" : "none" };
-  return player.onWaivers === null ? { kind: "pickUp", squad: PREVIEW_SQUAD } : { kind: "claim", firstRunAt: player.onWaivers.firstRunAt, squad: PREVIEW_SQUAD };
+  return player.onWaivers === null ? { kind: "pickUp", squad: PREVIEW_SQUAD } : { kind: "claim", firstRun: player.onWaivers.firstRun, squad: PREVIEW_SQUAD };
 }
 
 export const previewPlayerCard: PlayerCardSeam = {

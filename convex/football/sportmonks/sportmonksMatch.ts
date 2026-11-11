@@ -5,7 +5,7 @@
 import type { Infer } from "convex/values";
 import type { ScoreRead } from "../scoreReads";
 import type { sportmonksEvent, sportmonksLineupMan } from "../../schema";
-import { SPORTMONKS, type RawEvent, type RawFixture } from "./sportmonksRaw";
+import { AWAY, HOME, SM_STATE, SPORTMONKS, type RawEvent, type RawFixture } from "./sportmonksRaw";
 
 export type SportmonksMan = Infer<typeof sportmonksLineupMan>;
 export type SportmonksEvent = Infer<typeof sportmonksEvent>;
@@ -25,22 +25,22 @@ const LINEUP_BENCH = 12;
  *  is not started; one abandoned, cancelled, suspended or stuck is a problem for the run row, as
  *  any state not listed here is, never guessed at. */
 const STATES: Record<number, ScoreRead["state"]> = {
-  1: "upcoming", // NS
-  10: "upcoming", // POSTPONED
-  13: "upcoming", // TBA
-  16: "upcoming", // DELAYED
-  2: "live", // INPLAY_1ST_HALF
-  22: "live", // INPLAY_2ND_HALF
-  6: "live", // INPLAY_ET
-  9: "live", // INPLAY_PENALTIES
-  3: "halfTime", // HT
-  4: "halfTime", // BREAK, before extra time
-  21: "halfTime", // EXTRA_TIME_BREAK
-  25: "halfTime", // PEN_BREAK
-  5: "fullTime", // FT
-  7: "fullTime", // AET
-  8: "fullTime", // FT_PEN
-  17: "fullTime", // AWARDED
+  [SM_STATE.notStarted]: "upcoming",
+  [SM_STATE.postponed]: "upcoming",
+  [SM_STATE.toBeAnnounced]: "upcoming",
+  [SM_STATE.delayed]: "upcoming",
+  [SM_STATE.firstHalf]: "live",
+  [SM_STATE.secondHalf]: "live",
+  [SM_STATE.extraTime]: "live",
+  [SM_STATE.penalties]: "live",
+  [SM_STATE.halfTime]: "halfTime",
+  [SM_STATE.breakBeforeExtraTime]: "halfTime",
+  [SM_STATE.extraTimeBreak]: "halfTime",
+  [SM_STATE.penaltyBreak]: "halfTime",
+  [SM_STATE.fullTime]: "fullTime",
+  [SM_STATE.afterExtraTime]: "fullTime",
+  [SM_STATE.afterPenalties]: "fullTime",
+  [SM_STATE.awarded]: "fullTime",
 };
 
 /** Whether a match in this state is over. */
@@ -66,7 +66,7 @@ export function smScoreRead(match: RawFixture): ScoreRead {
     return score.score.goals;
   };
   const ticking = match.periods?.find((period) => period.ticking === true);
-  return { ...base, homeGoals: goals("home"), awayGoals: goals("away"), minutes: ticking?.minutes ?? null };
+  return { ...base, homeGoals: goals(HOME), awayGoals: goals(AWAY), minutes: ticking?.minutes ?? null };
 }
 
 /** One match as a live read gives it. Each man's stats are Sportmonks' running totals, kept as
@@ -107,9 +107,16 @@ export function mapSportmonksMatch(match: RawFixture): SportmonksMatch {
   return { score: smScoreRead(match), men, events };
 }
 
+/** Events by minute, then extra minute: the order they happened in. Sorting is stable, so events in
+ *  the same minute keep the order they came in. */
+export function byEventMinute(a: Pick<SportmonksEvent, "minute" | "extraMinute">, b: Pick<SportmonksEvent, "minute" | "extraMinute">): number {
+  return (a.minute ?? 0) - (b.minute ?? 0) || (a.extraMinute ?? 0) - (b.extraMinute ?? 0);
+}
+
+/** A raw event's minute and extra minute, as byEventMinute reads them. */
+const minuteOfRaw = (event: RawEvent) => ({ minute: event.minute, extraMinute: event.extra_minute });
+
 /** By minute, then extra minute, then Sportmonks' own order within the minute. */
 function byMinute(a: RawEvent, b: RawEvent): number {
-  return (
-    (a.minute ?? 0) - (b.minute ?? 0) || (a.extra_minute ?? 0) - (b.extra_minute ?? 0) || (a.sort_order ?? 0) - (b.sort_order ?? 0)
-  );
+  return byEventMinute(minuteOfRaw(a), minuteOfRaw(b)) || (a.sort_order ?? 0) - (b.sort_order ?? 0);
 }

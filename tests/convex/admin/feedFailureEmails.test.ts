@@ -136,7 +136,7 @@ describe("a failure that can't be emailed", () => {
     expect(sent).toHaveLength(1);
   });
 
-  test("when the email service refuses it, is logged, and still counts as the day's email for that feed", async () => {
+  test("when the email service refuses it, is logged, and the next failure tries again (#1569)", async () => {
     fakeResend(500);
     const logged = silenceConsoleError();
     await tick(now);
@@ -144,6 +144,25 @@ describe("a failure that can't be emailed", () => {
 
     sent = fakeResend();
     await tick(now + HOUR_MS);
-    expect(sent).toEqual([]);
+    expect(sent.map((email) => email.subject)).toEqual([subjectOf("liveStats")]);
+    await tick(now + 2 * HOUR_MS);
+    expect(sent).toHaveLength(1);
+  });
+
+  test("a refused email for one Sportmonks competition never frees another's (#1569)", async () => {
+    const failed = { ok: false as const, error: ERROR };
+    const sportmonksFails = async (competition: number, ranAt: number) => {
+      await t.mutation(internal.football.sportmonks.sportmonksSync.record, { competition, trigger: "cron", ranAt, outcome: failed });
+      await t.finishAllScheduledFunctions(vi.runAllTimers);
+    };
+    await sportmonksFails(501, now);
+    fakeResend(500);
+    silenceConsoleError();
+    await sportmonksFails(8, now);
+
+    sent = fakeResend();
+    await sportmonksFails(501, now + HOUR_MS);
+    await sportmonksFails(8, now + HOUR_MS);
+    expect(sent.map((email) => email.subject)).toEqual([`${PRODUCT_NAME}: ${FEED_NAMES.sportmonks.name}: Premier League failed`]);
   });
 });

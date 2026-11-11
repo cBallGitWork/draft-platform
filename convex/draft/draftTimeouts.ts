@@ -35,14 +35,29 @@ export function afterTakeBack(timeouts: Timeouts | undefined, teamId: Id<"teams"
   return (timeouts ?? []).map((team) => (team.teamId === teamId ? { teamId, count: 0 } : team));
 }
 
+/** What a timeout did to its team's auto-pick, saved on the pick the draft made (schema/draft.ts
+ *  `draftPicks`): whether it put the team on auto-pick, and whether it moved it from its full-clock
+ *  first pick there to "at once". */
+export type TimeoutEffect = { putOnAutoPick: boolean; movedToAtOnce?: true };
+
+/** What the timeout taking the draft's timeouts from `before` to `after` did to `teamId`'s auto-pick. */
+export function timeoutEffect(before: Timeouts | undefined, after: Timeouts, teamId: Id<"teams">): TimeoutEffect {
+  const was = before?.find((team) => team.teamId === teamId)?.autoPick;
+  const now = after.find((team) => team.teamId === teamId)?.autoPick;
+  return { putOnAutoPick: was === undefined && now !== undefined, ...(was === "fullClock" && now === "atOnce" && { movedToAtOnce: true as const }) };
+}
+
 /** The draft's timeouts once the commissioner undoes a pick the draft made when `teamId`'s clock ran
- *  out: that timeout off its count, and the team off auto-pick if that timeout `putOnAutoPick`
- *  (Craig, 4 Nov 2026: "yes"). A count its manager has since set to 0 by taking control back stays 0. */
-export function afterUndoneTimeout(timeouts: Timeouts | undefined, teamId: Id<"teams">, putOnAutoPick: boolean): Timeouts {
+ *  out: that timeout off its count (Craig, 4 Nov 2026: "yes"), and the team's auto-pick back where
+ *  that timeout found it: off if the timeout put it on, its full-clock pick back if the timeout
+ *  moved it to "at once" (Craig, 11 Nov 2026, on #1463). Auto-pick its manager has since turned on
+ *  himself stays on, and a count he has since set to 0 by taking control back stays 0. */
+export function afterUndoneTimeout(timeouts: Timeouts | undefined, teamId: Id<"teams">, effect: TimeoutEffect): Timeouts {
   return (timeouts ?? []).map((team) => {
     if (team.teamId !== teamId) return team;
     const { autoPick, count } = team;
-    const kept = putOnAutoPick ? undefined : autoPick;
+    const kept =
+      autoPick === "chosen" ? autoPick : effect.putOnAutoPick ? undefined : effect.movedToAtOnce === true && autoPick === "atOnce" ? "fullClock" : autoPick;
     return { teamId, count: Math.max(0, count - 1), ...(kept !== undefined && { autoPick: kept }) };
   });
 }

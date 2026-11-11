@@ -2,11 +2,10 @@
 
 import { countInWords } from "../../convex/shared/numberWords";
 import { NEXT_MATCHES_SHOWN } from "../../convex/squads/squadLimits";
-import { menuWords } from "../frame/words";
-import { fewestTeamsWords } from "../shared/words";
+import { fewestTeamsWords, menuWords } from "../shared/words";
 import type { TeamTransactions } from "./seam";
 
-export { figureWords, liveWords, noFigureWords, noTeamWords, placeWords, shortThenLongName, versusWords, whenWords } from "../shared/words";
+export { figureWords, liveWords, noFigureWords, noTeamWords, placeWords, shortThenLongName, tradedPickWords, versusWords, whenWords, withTeamWords } from "../shared/words";
 
 // What the Squad and Tactics tabs' tables and panels both say (#1042).
 
@@ -48,7 +47,7 @@ export const matchupMoreWords = "Matchup";
 export const SEASON_TITLE = "Season";
 export const tableMoreWords = "Table";
 export const byeWords = "Bye";
-export { leagueAverageWords, provisionalWords, scoreWords, unscoredWords } from "../table/words";
+export { leagueAverageWords, provisionalWords, scoreWords, unscoredWords } from "../shared/words";
 export const totalPointsWords = "The league plays total points, so your team has no head-to-head fixtures.";
 export const noFixturesWords = `No fixtures yet: they're drawn once the league has ${fewestTeamsWords} and a gameweek to play.`;
 
@@ -62,8 +61,9 @@ export const transactionColumns = {
   move: { short: "Move", long: "What happened to him" },
   by: { short: "By", long: "Who made the move" },
 } as const;
+type PlayerTransaction = Exclude<TeamTransactions["transactions"][number], { kind: "traded" }>;
 /** What a transaction did to the team, as its Move cell says it. */
-export function transactionWords({ kind, otherTeamName }: Pick<TeamTransactions["transactions"][number], "kind" | "otherTeamName">): string {
+export function transactionWords({ kind, otherTeamName }: Pick<PlayerTransaction, "kind" | "otherTeamName">): string {
   switch (kind) {
     case "assigned":
       return "Assigned to the team";
@@ -81,6 +81,9 @@ export function transactionWords({ kind, otherTeamName }: Pick<TeamTransactions[
       return "Picked up as a free agent";
   }
 }
+/** A trade's lines in the Move cell (#1491): each player or pick it brought in, then each it sent. */
+export const tradedInWords = "Traded in";
+export const tradedOutWords = "Traded out";
 export const noTransactionsWords = "No transactions yet.";
 /** Said when the league holds more squad moves than the tab reads (convex/squads/teamTransactions.ts). */
 export const transactionsCutWords = "Only the most recent transactions are shown.";

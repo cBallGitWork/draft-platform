@@ -38,10 +38,6 @@ export const moreEventsThanOneRun = (t: TestConvex, leagueId: Id<"leagues">) =>
     }
   });
 
-/** What signIn/account:signedInAs tells the screens for `email`. */
-export const accountOf = async (t: TestConvex, email: string) =>
-  (await (await actingAs(t, email)).query(api.signIn.account.signedInAs, {}))!;
-
 /** The player, match and gameweek `aRowInEveryTable`'s rows name. */
 const A_PLAYER = 1;
 const A_FIXTURE = 1;

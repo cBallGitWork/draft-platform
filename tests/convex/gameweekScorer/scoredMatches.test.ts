@@ -205,7 +205,7 @@ async function doubleGameweek(rule: DoubleGameweekRule, second: (first: Record<s
   const rulesId = (await rulesRevision(league.t, league.leagueId))!;
   await league.t.run(async (ctx) => {
     const held = (await ctx.db.get("leagueRules", rulesId))!;
-    await ctx.db.patch("leagueRules", rulesId, { rules: { ...held.rules, doubleGameweek: rule } });
+    await ctx.db.patch("leagueRules", rulesId, { rules: { ...held.rules!, doubleGameweek: rule } });
     await ctx.db.insert("clubs", { code: SECOND_OPPONENT, name: "Arsenal", shortName: "ARS" });
     await ctx.db.insert("fixtures", { code: SECOND_MATCH, gameweek: GAMEWEEK, homeClubCode: HULL, awayClubCode: SECOND_OPPONENT, kickoff: LEAGUE_KICKOFF + HOUR_MS });
   });

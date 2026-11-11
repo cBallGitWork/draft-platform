@@ -1,5 +1,4 @@
 import { beforeEach, expect, test } from "vitest";
-import { api } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
 import type { PlayersSort } from "../../../convex/scouting/playersList";
 import { NO_FIGURES } from "../../../convex/scouting/playersOrder";
@@ -7,6 +6,7 @@ import { FPL_SEASON } from "../../support/recorded/plSeasons.payloads";
 import { MANAGERS, actingAs, addManagers, adminCreatesLeague, type TestConvex } from "../../support/convex/leagues.harness";
 import { ARSENAL, CHELSEA, SAKA, insertClubs, insertPlayers } from "../../support/convex/footballRows.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
+import { playersListed } from "../../support/convex/playersList.harness";
 
 // Every row of Scouting's list shows his season's minutes, goals, assists and shots on target (the
 // approved picture, #1028), with no stat chosen, and each sorts the list. A stat chosen is
@@ -37,12 +37,7 @@ beforeEach(async () => {
 });
 
 const listAs = async (sort: PlayersSort) =>
-  (await actingAs(t, ANN)).query(api.scouting.playersList.list, {
-    leagueId,
-    filters: { availability: "all", position: null, clubCode: null },
-    sort,
-    stat: null,
-  });
+  playersListed(await actingAs(t, ANN), leagueId, { sort });
 
 test("each row has his season's minutes, goals, assists and shots on target, all 0 for one who hasn't played", async () => {
   const { players } = await listAs({ by: "name", descending: false });

@@ -4,13 +4,14 @@ import type { Id } from "../../../convex/_generated/dataModel";
 import { PICK_GAP_MS } from "../../../convex/draft/draftClock";
 import { commissionerRefusals } from "../../../convex/draft/draftCommissioner";
 import { pickTimeRefusals } from "../../../convex/draft/draftPickTime";
+import { pickRefusals } from "../../../convex/draft/draftPicks";
 import { refusals } from "../../../convex/shared/leagueAccess";
 import { SECOND_MS } from "../../../convex/shared/time";
-import { ARSENAL, insertClubs, insertPlayers, type HeldPlayer } from "../../support/convex/footballRows.harness";
+import { draftSteps, midfielder } from "../../support/convex/draft.harness";
+import { ARSENAL, insertClubs, insertPlayers } from "../../support/convex/footballRows.harness";
 import { changeEveryRules, changeRules, HELD_FIRST_RULES, rulesWith } from "../../support/convex/leagueRules.harness";
-import { actingAs, addManager, addManagers, adminCreatesLeague, COMMISSIONER, eventsIn, MANAGERS, type TestConvex } from "../../support/convex/leagues.harness";
+import { addManager, addManagers, adminCreatesLeague, COMMISSIONER, eventsIn, MANAGERS, type TestConvex } from "../../support/convex/leagues.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
-import { elapse } from "../../support/convex/test.harness";
 
 // The commissioner running the draft (spec/04, The commissioner; #1095): he undoes the last pick,
 // again and again, the pick put back on a full clock; he picks for any team on the clock; while
@@ -21,20 +22,21 @@ let t: TestConvex;
 let leagueId: Id<"leagues">;
 let teams: Id<"teams">[];
 
-const player = (code: number): HeldPlayer => ({ code, name: `Player ${code}`, fullName: `Player ${code}`, clubCode: ARSENAL.code, positions: ["CM"] });
-const MIDS = [101, 102, 103, 104, 105, 106].map(player);
+const MIDS = [101, 102, 103, 104, 105, 106].map((code) => midfielder(code));
 const [P1, P2, P3] = MIDS.map(({ code }) => code);
 const PICK_SECONDS = 30;
 const PICK_MS = PICK_SECONDS * SECOND_MS;
 const [ANN, BOB, CAT] = MANAGERS;
 
-const as = (email: string) => actingAs(t, email);
-const read = async () => (await as(COMMISSIONER)).query(api.draft.draftStart.ofLeague, { leagueId, now: Date.now() });
-const start = async () => (await as(COMMISSIONER)).mutation(api.draft.draftStart.start, { leagueId });
-const pause = async () => (await as(COMMISSIONER)).mutation(api.draft.draftPause.pause, { leagueId });
-const resume = async () => (await as(COMMISSIONER)).mutation(api.draft.draftPause.resume, { leagueId });
-const pick = async (email: string, playerCode: number) => (await as(email)).mutation(api.draft.draftPicks.makePick, { leagueId, playerCode });
-const pickFor = async (playerCode: number, email = COMMISSIONER) => (await as(email)).mutation(api.draft.draftPicks.pickFor, { leagueId, playerCode });
+const { as, read, start, pause, resume, pick, pass, setSquadSize } = draftSteps(() => ({ t, leagueId }));
+/** The commissioner picks for `teamId`, by default the team on the clock as the draft room shows it. */
+const pickFor = async (playerCode: number, email = COMMISSIONER, teamId?: Id<"teams">) =>
+  (await as(email)).mutation(api.draft.draftPicks.pickFor, { leagueId, teamId: teamId ?? (await onTheClock()), playerCode });
+const onTheClock = async () => {
+  const draft = await read();
+  if (draft?.status !== "live") throw new Error("No team is on the clock");
+  return draft.onTheClock.teamId;
+};
 const undo = async (email = COMMISSIONER) => (await as(email)).mutation(api.draft.draftCommissioner.undoPick, { leagueId });
 const setPickTime = async (pickSeconds: number, email = COMMISSIONER) =>
   (await as(email)).mutation(api.draft.draftCommissioner.setPickTime, { leagueId, pickSeconds });
@@ -46,12 +48,9 @@ const squad = (teamId: Id<"teams">) =>
 const timeouts = () => t.run(async (ctx) => (await ctx.db.query("drafts").unique())?.timeouts ?? null);
 const isMarked = (teamId: Id<"teams">) => t.run(async (ctx) => (await ctx.db.get("teams", teamId))?.commissionerPicks === true);
 /** The squad holds 11, enough for the rules a League settings save checks. */
-const elevenRounds = () =>
-  changeEveryRules(t, leagueId, (rules) => ({ ...rules, squad: { size: { minimum: 11, maximum: 11 }, minimumByArea: null, maxPerClub: null } }));
+const elevenRounds = () => setSquadSize(11, 11);
 const subjects = () => t.run(async (ctx) => (await ctx.db.query("letters").collect()).map(({ subject }) => subject));
 const leaveTeam = (teamId: Id<"teams">) => t.run((ctx) => ctx.db.patch("teams", teamId, { managerEmail: undefined }));
-/** The clock moves on `ms`, and every pick scheduled by then is made. */
-const pass = (ms: number) => elapse(t, ms);
 
 beforeEach(async () => {
   t = await signInDeployment();
@@ -152,6 +151,7 @@ describe("the commissioner's undo", () => {
     await start();
     await pass(PICK_MS);
     await pick(BOB, P2);
+    await pass(PICK_GAP_MS);
     await pick(BOB, P3);
     await pass(PICK_GAP_MS + PICK_MS);
     await pass(PICK_GAP_MS);
@@ -183,6 +183,7 @@ describe("the commissioner's undo", () => {
     await expect(undo(ANN)).rejects.toThrow(refusals.notRunner);
     for (let made = 1; made < 6; made++) await pass(PICK_GAP_MS + PICK_MS);
     expect(await picked()).toHaveLength(6);
+    await pass(PICK_GAP_MS);
     await expect(undo()).rejects.toThrow(commissionerRefusals.over);
   });
 });
@@ -216,6 +217,16 @@ describe("the commissioner's pick for a team", () => {
   test("is refused to anyone who doesn't run the league", async () => {
     await start();
     await expect(pickFor(P1, ANN)).rejects.toThrow(refusals.notRunner);
+  });
+
+  test("is refused, changing nothing, once the team he picks for has picked: it never lands on the next team (#1477)", async () => {
+    await start();
+    await pass(PICK_GAP_MS + PICK_MS);
+    const made = await picked();
+    expect(made).toHaveLength(1);
+    await expect(pickFor(P1, COMMISSIONER, teams[0])).rejects.toThrow(pickRefusals.alreadyPicked((await read())!.order![0].name));
+    expect(await picked()).toEqual(made);
+    expect(await read()).toMatchObject({ onTheClock: { pick: 2, teamId: teams[1] } });
   });
 });
 

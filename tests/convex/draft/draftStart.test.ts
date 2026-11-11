@@ -8,6 +8,7 @@ import { DAY_MS, HOUR_MS, MINUTE_MS, SECOND_MS } from "../../../convex/shared/ti
 import { SAKA } from "../../support/convex/footballRows.harness";
 import { changeRules, HELD_FIRST_RULES, holdGameweeks, rulesWith } from "../../support/convex/leagueRules.harness";
 import { elapse, expectRefused } from "../../support/convex/test.harness";
+import { invitesPage } from "../../support/convex/joining.harness";
 import { actingAs, addManager, addManagers, adminCreatesLeague, COMMISSIONER, MANAGERS, OUTSIDER, type TestConvex } from "../../support/convex/leagues.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
 
@@ -29,7 +30,7 @@ beforeEach(async () => {
 const ROUNDS = HELD_FIRST_RULES.squad.size!.maximum;
 
 const as = (email = COMMISSIONER) => actingAs(t, email);
-const read = async (email = COMMISSIONER) => (await as(email)).query(api.draft.draftStart.ofLeague, { leagueId, now: Date.now() });
+const read = async (email = COMMISSIONER) => (await as(email)).query(api.draft.draftStart.ofLeague, { leagueId });
 const start = async (email = COMMISSIONER) => (await as(email)).mutation(api.draft.draftStart.start, { leagueId });
 const setStart = async (startsAt: number | null) => (await as()).mutation(api.draft.draftStart.setStart, { leagueId, startsAt });
 const draw = async () => (await as()).mutation(api.draft.draftOrder.drawTeamOrder, { leagueId });
@@ -48,7 +49,7 @@ async function leagueOfOne() {
 const dropSquadSize = () =>
   t.run(async (ctx) => {
     const row = (await ctx.db.query("leagueRules").withIndex("by_leagueId_and_fromGameweek", (q) => q.eq("leagueId", leagueId)).order("desc").first())!;
-    await ctx.db.patch("leagueRules", row._id, { rules: { ...row.rules, squad: { ...row.rules.squad, size: null } } });
+    await ctx.db.patch("leagueRules", row._id, { rules: { ...row.rules!, squad: { ...row.rules!.squad, size: null } } });
   });
 
 describe("before it starts", () => {
@@ -93,6 +94,7 @@ describe("pressing start", () => {
       picksMade: 0,
       onTheClock: { pick: 1, round: 1, teamId: teams[0], name: "Team 1" },
       clock: { startsAt: now, endsAt: now + HELD_FIRST_RULES.draft!.pickSeconds * SECOND_MS },
+      ownPickBy: null,
     });
   });
 
@@ -130,7 +132,6 @@ describe("pressing start", () => {
   test("is refused while any squad holds a player", async () => {
     await t.run((ctx) => ctx.db.insert("squadPlayers", { leagueId, teamId: teams[1], playerCode: SAKA.code }));
     await expectRefused(start(), draftStartRefusals.squadsNotEmpty);
-    await expectRefused(setStart(Date.now() + DAY_MS), draftStartRefusals.squadsNotEmpty);
     expect(await status()).toBe("waiting");
   });
 
@@ -208,6 +209,31 @@ describe("a start date", () => {
     await expectRefused(setStart(Date.now() + DAY_MS), draftStartRefusals.noSquadSize);
   });
 
+  describe("set while a squad holds a player (Craig, 11 Nov 2026, on #1459, S04.13)", () => {
+    const holdSaka = () => t.run((ctx) => ctx.db.insert("squadPlayers", { leagueId, teamId: teams[1], playerCode: SAKA.code }));
+
+    test("is accepted, and starts the draft if the squads are empty when it comes", async () => {
+      const held = await holdSaka();
+      const startsAt = Date.now() + DAY_MS;
+      await setStart(startsAt);
+      expect(await read()).toMatchObject({ status: "waiting", startsAt });
+
+      await t.run((ctx) => ctx.db.delete("squadPlayers", held));
+      await pass(DAY_MS);
+      expect(await read()).toMatchObject({ status: "live", startedAt: startsAt });
+    });
+
+    test("leaves the draft waiting, its date cleared, if a squad still holds one when it comes", async () => {
+      await holdSaka();
+      await setStart(Date.now() + DAY_MS);
+      const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+
+      await pass(DAY_MS);
+      expect(await read()).toMatchObject({ status: "waiting", startsAt: null });
+      expect(warn).toHaveBeenCalledWith(expect.stringContaining(draftStartRefusals.squadsNotEmpty));
+    });
+  });
+
   test("can't be set or cleared once the draft has started", async () => {
     await start();
     await expectRefused(setStart(Date.now() + DAY_MS), draftStartRefusals.started);
@@ -232,35 +258,6 @@ describe("a start date", () => {
   });
 });
 
-describe("the order drawn at random", () => {
-  test("holds every team once, stays as drawn, and is the order the draft starts in", async () => {
-    await draw();
-    const drawn = await orderOf();
-
-    expect([...drawn].sort()).toEqual([...teams].sort());
-    expect(await orderOf()).toEqual(drawn);
-    await start();
-    expect(await orderOf()).toEqual(drawn);
-  });
-
-  test("puts a team that joins after the draw at the bottom, and isn't drawn again on its own", async () => {
-    await draw();
-    const drawn = await orderOf();
-    const [joined] = await addManagers(t, leagueId, [MANAGERS[3]]);
-
-    expect(await orderOf()).toEqual([...drawn, joined]);
-  });
-
-  test("can be drawn again, or moved by hand, as often as the commissioner likes before the start", async () => {
-    await draw();
-    await draw();
-    await setOrder([teams[1], teams[2], teams[0]]);
-    expect(await orderOf()).toEqual([teams[1], teams[2], teams[0]]);
-    await draw();
-    expect([...(await orderOf())].sort()).toEqual([...teams].sort());
-  });
-});
-
 describe("once it has started", () => {
   beforeEach(() => start());
 
@@ -274,6 +271,10 @@ describe("once it has started", () => {
   test("no new team can join", async () => {
     await expectRefused(addManager(t, leagueId, MANAGERS[3]), refusals.draftStarted);
     await expectRefused((await as()).mutation(api.joining.invites.send, { leagueId, email: MANAGERS[3] }), refusals.draftStarted);
+  });
+
+  test("the invites page offers no new team, though the league has room (#1549)", async () => {
+    expect((await invitesPage(t, leagueId))?.hasRoom).toBe(false);
   });
 
   test("a vacated team can still be handed on", async () => {

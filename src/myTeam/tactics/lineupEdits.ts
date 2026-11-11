@@ -6,7 +6,7 @@
 // "Anything that would break the area limits stays unlit"). Presets only: the shape comes from a
 // preset, never a player moved into an empty cell (Craig, 1 Nov 2026; #1022).
 
-import { ALL_CELLS, byPitchOrder, cellKey, positionOfSlot, sameCell, type Cell } from "../../../convex/lineup/pitch";
+import { ALL_CELLS, byPitchOrder, cellKey, positionOfSlot, sameCell, sameShape, type Cell } from "../../../convex/lineup/pitch";
 import { reconciled, type LineupRules } from "../../../convex/lineup/lineup";
 import type { Position } from "../../../convex/positions/positionTables";
 import type { OpenTactics } from "../../../convex/lineup/tactics";
@@ -22,9 +22,10 @@ export type Starter = Cell & { playerCode: number; role?: string };
 export interface EditedLineup {
   starters: readonly Starter[];
   bench: readonly number[];
-  /** The classic picked, by name, until another formation is (spec/05; #991): every move keeps it,
-   *  and `formationNameOf` says whether it is custom since. */
-  classic?: string;
+  /** The classic formation picked, by name, until another formation is (spec/05; #991): every move
+   *  keeps it, and `formationNameOf` says whether it is custom since. Saved as the lineup's
+   *  `classic`. */
+  classicFormation?: string;
   /** The team's two instructions (spec/05, Team instructions; #990): every move keeps them, and a
    *  preset picked keeps or switches them (convex/lineup/instructions.ts `keptOrSwitched`). */
   instructions?: InstructionPair;
@@ -51,14 +52,20 @@ const ANY_ROLE: PositionsOf = () => [];
 export const droppedInto = (playerCode: number, cell: Cell, formation: Formation, ratingsOf: RatingsOf, positionsOf: PositionsOf): Starter =>
   droppedStarter(playerCode, cell, formation, ratingsOf(playerCode), positionsOf(playerCode));
 
+/** A starter put on the role a classic formation or a saved plan sets for his slot of `formation`, where he
+ *  may take it (spec/05 `S05.29`), else dropped into the slot on his best-star role, as one with no
+ *  role set there is. */
+export const onSetRole = (starter: Starter, role: string | undefined, formation: Formation, ratingsOf: RatingsOf, positionsOf: PositionsOf): Starter =>
+  role !== undefined && takesRole(positionsOf(starter.playerCode), role) ? { ...starter, role } : droppedInto(starter.playerCode, starter, formation, ratingsOf, positionsOf);
+
 /** The lineup the screen opens on: the one held for the gameweek, its first until the manager
- *  saves one (spec/05), with its instructions in force, on its classic while the league still
- *  holds it, so a classic the league has since dropped or renamed never refuses his next save
- *  (#991). */
-export function openingLineup({ lineup, classics, picked }: Pick<OpenTactics, "lineup" | "classics"> & Partial<Pick<OpenTactics, "picked">>): EditedLineup {
-  const { classic } = lineup;
-  const held = classic !== undefined && classics.some(({ name }) => name === classic);
-  return { starters: lineup.starters, bench: lineup.bench, ...(held && { classic }), ...(picked !== undefined && { instructions: picked }) };
+ *  saves one (spec/05), with its instructions in force, on its classic formation while the league
+ *  still holds it, so a classic formation the league has since dropped or renamed never refuses his
+ *  next save (#991). */
+export function openingLineup({ lineup, classicFormations, picked }: Pick<OpenTactics, "lineup" | "classicFormations"> & Partial<Pick<OpenTactics, "picked">>): EditedLineup {
+  const { classic: classicFormation } = lineup;
+  const held = classicFormation !== undefined && classicFormations.some(({ name }) => name === classicFormation);
+  return { starters: lineup.starters, bench: lineup.bench, ...(held && { classicFormation }), ...(picked !== undefined && { instructions: picked }) };
 }
 
 /** The lineup with one side's instruction picked (spec/05, Team instructions), the other kept. */
@@ -144,7 +151,7 @@ export function benchedAt(draft: EditedLineup, playerCode: number, index: number
 export const startersInOrder = (draft: EditedLineup): Starter[] => draft.starters.toSorted(byPitchOrder);
 
 /** Whether two lineups stand the same: the same players in the same cells, the same bench order,
- *  the same instructions, picked from the same classic or none. */
+ *  the same instructions, picked from the same classic formation or none. */
 export function sameLineup(one: EditedLineup, other: EditedLineup): boolean {
   const key = (draft: EditedLineup) =>
     [
@@ -155,7 +162,7 @@ export function sameLineup(one: EditedLineup, other: EditedLineup): boolean {
       draft.instructions?.attacking ?? "",
       draft.instructions?.defensive ?? "",
     ].join(" ");
-  return key(one) === key(other) && one.classic === other.classic;
+  return key(one) === key(other) && one.classicFormation === other.classicFormation;
 }
 
 /** The league's preset whose shape the eleven stand in now, cell for cell, if any: its key is the
@@ -165,8 +172,7 @@ export const presetInUse = <Shape extends { name: string; cells: readonly Cell[]
 
 /** The league's preset whose shape is these cells, cell for cell, if any. */
 export function presetOfCells<Shape extends { name: string; cells: readonly Cell[] }>(cells: readonly Cell[], presets: readonly Shape[]): Shape | undefined {
-  const standing = new Set(cells.map(cellKey));
-  return presets.find((preset) => preset.cells.length === standing.size && preset.cells.every((cell) => standing.has(cellKey(cell))));
+  return presets.find((preset) => sameShape(preset.cells, cells));
 }
 
 /** The slot a position stands for, the first cell of the pitch whose slot it is: a bench player's

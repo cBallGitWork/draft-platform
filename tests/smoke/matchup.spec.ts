@@ -6,6 +6,7 @@
 import { expect } from "@playwright/test";
 import { MATCHUP_PATH } from "../../src/frame/menu";
 import { closeBreakdownLabel, gameweekWords, nextLabel, openBreakdownLabel, VIDIPRINTER_TITLE } from "../../src/matchup/words";
+import { DESK } from "../../scripts/viewports.mjs";
 import { test } from "../support/smoke/errorsTest";
 
 /** The preview's gameweek (src/matchup/preview.ts), and a starter of its opponent's. */
@@ -14,7 +15,7 @@ const OPPONENTS_STRIKER = "Haaland";
 const ELEVEN = 11;
 
 test.describe("the matchup, on the dev server's preview", { tag: "@dev" }, () => {
-  test.use({ viewport: { width: 1440, height: 900 } });
+  test.use({ viewport: DESK });
 
   test("shows both pitches, opens a man's breakdown from his tile, and steps the gameweek", async ({ page }) => {
     await page.goto(`${MATCHUP_PATH}?preview=manager&minute=60`);

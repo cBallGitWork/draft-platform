@@ -3,14 +3,14 @@ import { internal } from "../_generated/api";
 import type { Doc, Id } from "../_generated/dataModel";
 import { internalMutation, type MutationCtx, type QueryCtx } from "../_generated/server";
 import { begunGameweeks } from "../gameweekScorer/gameweekScores";
-import { heldFixtures, isMatchFinal } from "../gameweekScorer/heldMatches";
+import { heldFixtures } from "../gameweekScorer/heldMatches";
 import { sameCodes } from "../gameweekScorer/storedScores";
 import { gameweekInputs, leagueReads, teamInGameweek, type LeagueReads } from "../gameweekScorer/teamGameweek";
 import { MOST_TEAMS } from "../leagues/leagueLimits";
 import { seasonRules } from "../rules/rulesHistory";
-import { LEAGUES_READ_MOST, takeAllOrThrow } from "../shared/cappedRead";
+import { scheduleEveryLeague, takeAllOrThrow } from "../shared/cappedRead";
 import { teamsOf } from "../shared/leagueAccess";
-import { statusOf } from "./matchStats";
+import { allLocked } from "./matchStats";
 import { addStats, type Stats } from "./statTotals";
 import { countedTeamStats } from "./teamCountedStats";
 
@@ -19,8 +19,8 @@ import { countedTeamStats } from "./teamCountedStats";
 // (finalScores.ts, #418): every match in it locked, so no correction changes it (spec/07), and the
 // corrections made in the hour's window before the lock are already in. Each gameweek's share is
 // kept (teamGameweekStats), so a gameweek reopened by a match moved in or out takes away what it
-// added, and is added again once final. A match's lock asks every league to store, as it asks the
-// table; one gameweek is worked out a run, so a season to catch up never outgrows a mutation.
+// added, and is added again once final. The lock of a gameweek's last match asks every league to
+// store, as it asks the table (matchStats.ts, #1547); one gameweek is worked out a run, so a season to catch up never outgrows a mutation.
 // `rebuild` sets a league's totals afresh, after anything that changes who counted in a stored
 // gameweek: an admin's correction to a player's positions (auto-subs read them), say.
 
@@ -33,12 +33,7 @@ export const storeEveryLeague = internalMutation({
   args: {},
   returns: v.null(),
   handler: async (ctx) => {
-    const leagues = await takeAllOrThrow(
-      ctx.db.query("leagues"),
-      LEAGUES_READ_MOST,
-      `More than ${LEAGUES_READ_MOST} leagues are held, so some would have their teams' stats unstored`,
-    );
-    for (const league of leagues) await ctx.scheduler.runAfter(0, internal.stats.teamSeasonStats.storeLeague, { leagueId: league._id });
+    await scheduleEveryLeague(ctx, internal.stats.teamSeasonStats.storeLeague, "so some would have their teams' stats unstored");
     return null;
   },
 });
@@ -115,14 +110,6 @@ async function storeNext(ctx: MutationCtx, league: Doc<"leagues">): Promise<numb
     break;
   }
   return moved;
-}
-
-/** Whether the gameweek holds a match and every one is locked: one with none held (each postponed,
- *  say) is never final, as the table has it (gameweekScores.ts). */
-async function allLocked(ctx: QueryCtx, fixtureCodes: readonly number[]): Promise<boolean> {
-  if (fixtureCodes.length === 0) return false;
-  for (const code of fixtureCodes) if (!isMatchFinal({ status: await statusOf(ctx, code) })) return false;
-  return true;
 }
 
 /** The league's stored shares in the gameweek, by team. */

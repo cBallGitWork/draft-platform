@@ -1,15 +1,14 @@
 import { beforeEach, describe, expect, test, vi } from "vitest";
 import { api, internal } from "../../../convex/_generated/api";
 import { claimFailedLetter } from "../../../convex/mail/waiverLetterWords";
-import { FIRST_RULES } from "../../../convex/rules/firstRules";
-import { MINUTE_MS, WEEK_MS } from "../../../convex/shared/time";
+import { MINUTE_MS } from "../../../convex/shared/time";
 import { WAIVER_MS } from "../../../convex/waivers/waiverLimits";
-import { latestRunAt } from "../../../convex/waivers/waiverTimes";
 import { changeRules, HELD_FIRST_RULES, rulesWith, TOTAL_POINTS } from "../../support/convex/leagueRules.harness";
 import { playerLeaves } from "../../support/convex/draftLists.harness";
-import { actingAs, eventsIn } from "../../support/convex/leagues.harness";
+import type { Id } from "../../../convex/_generated/dataModel";
+import { actingAs, ADMIN, eventsIn } from "../../support/convex/leagues.harness";
 import { nameOf, SQUAD } from "../../support/convex/lineupSquad.harness";
-import { ANN, ANNS_FIRST_DROP, BOB, CAT, NEXT, PALMER, RICE, SAKA, waiverLeague, type WaiverLeague } from "../../support/convex/waivers.harness";
+import { ANN, ANNS_FIRST_DROP, ANNS_SECOND_DROP, BOB, CAT, NEXT, PALMER, RICE, SAKA, waiverLeague, type WaiverLeague } from "../../support/convex/waivers.harness";
 
 // The waiver run (#1198, spec/08 Waivers and free agency): at the league's run times it takes
 // every player whose 24 hours are up in the waiver order, a winner going to the bottom; a claim
@@ -88,6 +87,41 @@ describe("the letters", () => {
     expect(dropGone.body).toContain(`${nameOf(ANNS_FIRST_DROP)} was no longer in your squad to drop.`);
   });
 
+  const assignSaka = async (teamId: Id<"teams">) =>
+    (await actingAs(w.t, ADMIN)).mutation(api.squads.squads.assign, { leagueId: w.leagueId, playerCode: SAKA, teamId });
+
+  test("a claim for a player his own earlier claim won goes quietly, with no letter (#1465, S08.5)", async () => {
+    await w.onWaivers([SAKA]);
+    await w.claim(ANN, SAKA, ANNS_FIRST_DROP);
+    await w.claim(ANN, SAKA, ANNS_SECOND_DROP);
+    await w.runWaivers();
+
+    const squad = await w.squadCodes(w.annsTeam);
+    expect(squad).toEqual(expect.arrayContaining([SAKA, ANNS_SECOND_DROP]));
+    expect(squad).not.toContain(ANNS_FIRST_DROP);
+    expect(await w.pending(ANN)).toEqual([]);
+    expect((await w.lettersTo(ANN)).map(({ body }) => body).join(" ")).not.toContain("ahead of you");
+  });
+
+  test("a claim for a player the commissioner has put in his squad goes quietly, with no letter (#1465)", async () => {
+    await w.onWaivers([SAKA]);
+    await w.claim(BOB, SAKA);
+    await assignSaka(w.bobsTeam);
+    await w.runWaivers();
+
+    expect(await w.pending(BOB)).toEqual([]);
+    expect(await w.lettersTo(BOB)).not.toContainEqual(claimFailedLetter({ playerName: nameOf(SAKA), dropName: null, why: "ahead" }));
+  });
+
+  test("a claim for a player the commissioner has put in another team's squad still fails as another team's", async () => {
+    await w.onWaivers([SAKA]);
+    await w.claim(BOB, SAKA);
+    await assignSaka(w.catsTeam);
+    await w.runWaivers();
+
+    expect(await w.lettersTo(BOB)).toContainEqual(claimFailedLetter({ playerName: nameOf(SAKA), dropName: null, why: "ahead" }));
+  });
+
   test("a claim with a drop names who went, and files both as squad moves", async () => {
     await w.onWaivers([SAKA]);
     await w.claim(ANN, SAKA, ANNS_FIRST_DROP);
@@ -102,7 +136,7 @@ describe("the letters", () => {
       { kind: "playerClaimed", playerCode: SAKA, teamId: w.annsTeam, by: ANN },
     ]);
     const { transactions } = await (await actingAs(w.t, ANN)).query(api.squads.teamTransactions.ofMyTeam, { leagueId: w.leagueId });
-    expect(transactions.map(({ kind, playerCode }) => [kind, playerCode])).toEqual(
+    expect(transactions.map((move) => [move.kind, "playerCode" in move ? move.playerCode : null])).toEqual(
       expect.arrayContaining([
         ["claimed", SAKA],
         ["dropped", ANNS_FIRST_DROP],
@@ -179,31 +213,6 @@ describe("rotating", () => {
   });
 });
 
-describe("the cron", () => {
-  test("runs each league's waivers at its run time, once", async () => {
-    await w.onWaivers([SAKA]);
-    await w.claim(BOB, SAKA);
-    // The league's next run time, within the week, and two minutes past it, with the gameweeks
-    // around it over, so it falls outside the lock.
-    const runTime = latestRunAt(FIRST_RULES.waivers.runs, Date.now() + WEEK_MS)!;
-    for (const gameweek of [NEXT, NEXT + 1]) await w.matchIs(gameweek, "fullTime");
-    vi.setSystemTime(runTime + 2 * MINUTE_MS);
-    const ranAt = () => w.t.run(async (ctx) => (await ctx.db.query("waiverOrders").unique())?.ranAt);
-    const runDue = async () => {
-      await w.t.mutation(internal.waivers.waiverRun.runDue, {});
-      await w.t.finishAllScheduledFunctions(vi.runAllTimers);
-    };
-
-    await runDue();
-    expect(await w.stateOf(SAKA)).toMatchObject({ kind: "owned", teamId: w.bobsTeam });
-    expect(await ranAt()).toBe(runTime);
-
-    await w.onWaivers([PALMER], runTime);
-    await runDue();
-    expect(await w.stateOf(PALMER)).toMatchObject({ kind: "onWaivers" });
-  });
-});
-
 describe("a run the cron starts late", () => {
   test("takes players by its run time: one whose 24 hours end after it waits for the next run", async () => {
     const at = Date.now() + MINUTE_MS;
@@ -216,5 +225,20 @@ describe("a run the cron starts late", () => {
     expect(await w.stateOf(SAKA)).toEqual({ kind: "freeAgent" });
     expect(await w.stateOf(PALMER)).toMatchObject({ kind: "onWaivers" });
     expect(await w.pending(BOB)).toHaveLength(1);
+  });
+
+  test("a claim's drop starts its 24 hours at the run's time, so the next day's run can take him (#1481)", async () => {
+    const at = Date.now() + MINUTE_MS;
+    await w.onWaivers([SAKA], at);
+    await w.claim(ANN, SAKA, ANNS_FIRST_DROP);
+    vi.setSystemTime(at + 3 * MINUTE_MS);
+    await w.t.mutation(internal.waivers.waiverRun.run, { leagueId: w.leagueId, at });
+    expect(await w.stateOf(SAKA)).toMatchObject({ kind: "owned", teamId: w.annsTeam });
+
+    const next = at + WAIVER_MS;
+    await w.claim(BOB, ANNS_FIRST_DROP);
+    vi.setSystemTime(next + MINUTE_MS);
+    await w.t.mutation(internal.waivers.waiverRun.run, { leagueId: w.leagueId, at: next });
+    expect(await w.stateOf(ANNS_FIRST_DROP)).toMatchObject({ kind: "owned", teamId: w.bobsTeam });
   });
 });

@@ -85,7 +85,7 @@ function Back() {
   const canGoBack = useCanGoBack();
   const goBack = () => (canGoBack ? router.history.back() : void router.navigate({ to: SCOUTING_PATH }));
   return (
-    <button type="button" onClick={goBack} className="flex min-h-tap items-center gap-1 text-soft hover:text-fact lg:min-h-0">
+    <button type="button" onClick={goBack} className="flex min-h-tap min-w-tap items-center gap-1 text-soft hover:text-fact lg:min-h-0 lg:min-w-0">
       <svg viewBox="0 0 6 10" aria-hidden="true" className="h-2.5 w-1.5 fill-current">
         <path d="M6 0 L0 5 L6 10 Z" />
       </svg>
@@ -97,15 +97,16 @@ function Back() {
 type FiguresProps = { leagueId: LeagueSummary["leagueId"]; card: PlayerCard; shown: number; seam: PlayerCardSeam };
 
 /** His figures beside his name (spec/12 S12.1; #1027): base points this season, a match, his rank
- *  at the position and his last five matches' points, newest first. */
+ *  at the position, his minutes and his last five matches' points, newest first. */
 function Figures({ leagueId, card, shown, seam }: FiguresProps) {
-  const { seasonPoints, aMatch, lastFive } = seasonFigures(card.matches, shown);
+  const { seasonPoints, aMatch, minutes, lastFive } = seasonFigures(card.matches, shown);
   const figure = (value: number | null) => (value === null ? noFigureWords : figureWords(value));
   return (
     <dl className="flex flex-wrap gap-x-6 gap-y-2 border-l border-plate-rule pl-6">
       <Figure label={figureLabels.seasonPoints}>{figure(seasonPoints)}</Figure>
       <Figure label={figureLabels.aMatch}>{figure(aMatch)}</Figure>
       <Rank leagueId={leagueId} card={card} shown={shown} seam={seam} />
+      <Figure label={figureLabels.minutes}>{figure(minutes)}</Figure>
       <Figure label={figureLabels.lastFive}>
         {lastFive.length === 0 ? (
           noFigureWords

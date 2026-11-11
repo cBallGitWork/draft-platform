@@ -119,7 +119,9 @@ export function OfferPanel({
             <Fact label={closesWords} derived>
               {closesAtWords(
                 offer.closes,
-                offer.closes === null ? null : whenWords(offer.closes.at),
+                offer.closes === null || offer.closes.at === null
+                  ? null
+                  : whenWords(offer.closes.at),
               )}
             </Fact>
           </>
@@ -146,7 +148,7 @@ export function OfferPanel({
                 {acceptWords}
               </button>
             )}
-            {open && offer.picks === null && (
+            {open && (
               <Link
                 {...counterLink(offer.offerId)}
                 className="secondary-action"

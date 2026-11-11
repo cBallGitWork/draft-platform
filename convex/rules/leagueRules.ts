@@ -16,9 +16,10 @@ import { refuseFormatChange } from "./formatLock";
 import { momentIn } from "../shared/moments";
 import { zoneOf } from "../signIn/timeZone";
 import { checkSquadMaximums, squadMaximumBandShape, squadMaximumFor, STARTING_SQUAD_MAXIMUMS, withSquadMaximum, type SquadMaximumBand } from "./squadMaximums";
-import { historyOf, inForce, latestRules, newestRow, RULES_CHANGES_MOST, seasonRules, type RulesRow } from "./rulesHistory";
+import { historyOf, inForce, latestRules, newestRow, RULES_CHANGES_MOST, savedForm, seasonRules, type RulesRow } from "./rulesHistory";
 import { switchWaiverOrder } from "../waivers/waiverOrder";
 import { heldSchedule } from "../gameweeks/leagueDeadlines";
+import { seasonGameweekCount } from "../gameweeks/seasonGameweeks";
 import { pickTimeChanging } from "../draft/draftPickTime";
 
 // A league's rules, held as data (spec/03; #25): a new league copies the admin's default rules, and
@@ -76,8 +77,9 @@ async function refuseStale(ctx: QueryCtx, leagueId: Id<"leagues">, email: string
 
 /** Refuses unsound rules, telling the commissioner or admin why: a league's, of `maxTeams` teams,
  *  or the admin's defaults, which belong to no league. */
-function refuseUnsound(rules: LeagueRules, maxTeams?: number): void {
-  asRefusal(() => checkLeagueRules(rules, maxTeams));
+async function refuseUnsound(ctx: QueryCtx, rules: LeagueRules, maxTeams?: number): Promise<void> {
+  const gameweeks = await seasonGameweekCount(ctx);
+  asRefusal(() => checkLeagueRules(rules, gameweeks, maxTeams));
 }
 
 /** Runs a check of the rules, its UnsoundRules a refusal (in `reworded`'s words, when given) and
@@ -125,7 +127,8 @@ export async function giveDefaultRules(ctx: MutationCtx, leagueId: Id<"leagues">
   const rules = withSquadMaximum(defaults ?? FIRST_RULES, squadMaximumFor(await squadMaximumBands(ctx), maxTeams));
   const games = rules.gamesPerGameweek;
   if (games > roundsInARoundRobin(maxTeams)) refuse(rulesRefusals.defaultGamesTooMany(games, maxTeams));
-  asRefusal(() => checkLeagueRules(rules, maxTeams), (reason) => rulesRefusals.defaultsUnsound(maxTeams, reason));
+  const gameweeks = await seasonGameweekCount(ctx);
+  asRefusal(() => checkLeagueRules(rules, gameweeks, maxTeams), (reason) => rulesRefusals.defaultsUnsound(maxTeams, reason));
   await ctx.db.insert("leagueRules", { leagueId, fromGameweek: FIRST_GAMEWEEK, rules });
 }
 
@@ -188,7 +191,7 @@ async function changeRules(ctx: MutationCtx, leagueId: Id<"leagues">, email: str
   const latestRow = history.at(-1);
   await refuseStale(ctx, leagueId, email, latestRow, loaded);
   const league = await getLeague(ctx, leagueId);
-  refuseUnsound(rules, league.maxTeams);
+  await refuseUnsound(ctx, rules, league.maxTeams);
   const fromGameweek = await takesEffectFrom(ctx, leagueId, history, rules, Date.now());
   if (latestRow !== undefined) await refuseFormatChange(ctx, league, latestRow.rules, rules, fromGameweek);
   const changed = changedParts(latestRow?.rules, rules);
@@ -201,7 +204,7 @@ async function changeRules(ctx: MutationCtx, leagueId: Id<"leagues">, email: str
   const before = latestRow === undefined ? null : await seasonRules(ctx, leagueId);
   if (before !== null && before.latest.waivers.order !== rules.waivers.order) await switchWaiverOrder(ctx, league, before, Date.now());
   // A second change before the same deadline is a newer row from the same gameweek: it wins.
-  await ctx.db.insert("leagueRules", { leagueId, fromGameweek, rules });
+  await ctx.db.insert("leagueRules", { leagueId, fromGameweek, ...savedForm(rules, latestRow === undefined ? undefined : changed) });
   await recordEvent(ctx, leagueId, email, { kind: "rulesChanged", fromGameweek, changed });
   return fromGameweek;
 }
@@ -253,7 +256,7 @@ export const setDefaults = internalMutation({
   args: { rules: leagueRulesShape },
   returns: v.null(),
   handler: async (ctx, { rules }) => {
-    refuseUnsound(rules);
+    await refuseUnsound(ctx, rules);
     await writeDefaults(ctx, rules);
     return null;
   },

@@ -2,21 +2,31 @@ import { v, type Infer } from "convex/values";
 import type { Doc, Id } from "../_generated/dataModel";
 import { query, type QueryCtx } from "../_generated/server";
 import { leagueDeadlines } from "../gameweeks/leagueDeadlines";
-import { nextDeadline } from "../gameweeks/deadline";
 import { positionsNow, type PositionsNow } from "../positions/playerPositions";
 import { positionRank } from "../positions/positionTables";
 import { latestRules } from "../rules/rulesHistory";
 import { managerOf, teamsOf } from "../shared/leagueAccess";
 import { clubsByCode, type Clubs } from "../shared/players";
 import { closedOffer, closedOffersOf, type ClosedOffer } from "./closedOffers";
-import { shownPlayer, tradedPlayer, tradedShown, type TradedPlayer } from "./tradedPlayers";
+import type { ReviewWords } from "../mail/tradeLetterWords";
+import {
+  namedPicks,
+  shownPlayer,
+  teamNameIn,
+  tradedPlayer,
+  tradedShown,
+  type TradedPlayer,
+} from "./tradedPlayers";
+import { tradesShutReason } from "./tradeShutWords";
 import { squadOf } from "../squads/squadPlace";
 import { limitsBroken, squadWarning } from "../squads/squads";
 import { newlyBroken } from "../waivers/waiverRun";
-import { leagueOffers, pickName } from "./tradeClose";
+import { leagueOffers } from "./tradeClose";
+import { pickName } from "./tradeWords";
 import { pickHolders, tradablePick } from "./tradePicks";
-import { reviewerOf } from "./tradeReview";
-import { onAutoTeam, tradesShut } from "./tradeShut";
+import { reviewerOf } from "./tradeReviewers";
+import { offerCloses, onAutoTeam, tradeDeadlineInForce, tradesShut } from "./tradeShut";
+import { tradePick } from "../schema";
 
 // The Trades screen's read (#383; spec/12 Trades, its approved picture docs/design/approved/trades):
 // the offers to and from the manager's team, open or in review, each with when it closes, who it
@@ -42,12 +52,19 @@ const screenOffer = v.object({
   /** The players going from `fromTeamId`, and those coming back. */
   gives: v.array(tradedPlayer),
   gets: v.array(tradedPlayer),
-  /** A pick trade's picks, each as its letters name it; null for a players' trade. */
-  picks: v.union(v.object({ gives: v.string(), gets: v.string() }), v.null()),
+  picks: namedPicks,
+  /** The same picks as offered, `teamId`'s pick in `round`, for a counter to start with (#1471);
+   *  null for a players' trade. */
+  pickTerms: v.union(v.object({ gives: tradePick, gets: tradePick }), v.null()),
   note: v.union(v.string(), v.null()),
   madeAt: v.number(),
-  /** While open, the deadline it closes at unanswered; null while none is known. */
-  closes: v.union(v.object({ gameweek: v.number(), at: v.number() }), v.null()),
+  /** While open, when it closes unanswered: the next deadline, `gameweek`'s at `at`; or, made in the
+   *  trade deadline's gameweek, once that gameweek's last match is over, a time nobody knows ahead,
+   *  so `at` is null (#1492). Null while no deadline is known, and once accepted. */
+  closes: v.union(
+    v.object({ gameweek: v.number(), at: v.union(v.number(), v.null()) }),
+    v.null(),
+  ),
   /** Who would review it once accepted, or reviews it now; null for nobody. */
   reviewer: v.union(reviewer, v.null()),
   /** Null while it is open; once accepted, when its review ends. */
@@ -75,12 +92,7 @@ export type ScreenTeam = Infer<typeof screenTeam>;
 export const tradesView = v.object({
   myTeamId: v.id("teams"),
   /** Why no trade can be offered or accepted now, or null while trades are open (tradeShut.ts). */
-  shut: v.union(
-    v.literal("draftLive"),
-    v.literal("tradeDeadline"),
-    v.literal("unusedGameweek"),
-    v.null(),
-  ),
+  shut: tradesShutReason,
   /** The most players the league's rules let a squad hold; null with no limit, or no rules. */
   squadMaximum: v.union(v.number(), v.null()),
   /** Every team in the league, the manager's own first. */
@@ -128,7 +140,7 @@ export async function termsShown(
 /** Who reviews the offer under `review`, as the screen names them. */
 function reviewerNamed(
   league: Doc<"leagues">,
-  review: { kind: "veto"; by: string } | { kind: "vote" } | null,
+  review: ReviewWords | null,
 ): Reviewer | null {
   if (review === null) return null;
   if (review.kind === "vote") return "vote";
@@ -145,6 +157,7 @@ export const ofMyTeam = query({
     const { league, team: mine } = await managerOf(ctx, leagueId);
     const rules = await latestRules(ctx, leagueId);
     const deadlines = await leagueDeadlines(ctx, leagueId);
+    const tradeDeadline = await tradeDeadlineInForce(ctx, leagueId, deadlines, now);
     const positionsOf = await positionsNow(ctx, leagueId);
     const clubOf = clubsByCode(ctx);
     const offers = await leagueOffers(ctx, leagueId);
@@ -201,14 +214,8 @@ export const ofMyTeam = query({
     );
     const shownOffers = await Promise.all(
       myOffers.map(async (offer) => {
-        const nameOf = (teamId: Id<"teams">) => {
-          const team = teams.find((each) => each._id === teamId);
-          if (team === undefined)
-            throw new Error(
-              `Trade offer ${offer._id} names team ${teamId}, which isn't in its league`,
-            );
-          return team.name;
-        };
+        const nameOf = (teamId: Id<"teams">) =>
+          teamNameIn(teams, teamId, `Trade offer ${offer._id}`);
         const out = offer.fromTeamId === mine._id ? offer.gives : offer.gets;
         const into = offer.fromTeamId === mine._id ? offer.gets : offer.gives;
         const after = [
@@ -217,7 +224,7 @@ export const ofMyTeam = query({
         ];
         const reviewNow =
           offer.review === undefined
-            ? await reviewerOf(ctx, league, offer)
+            ? await reviewerOf(ctx, league, offer, deadlines, now)
             : offer.review.reviewer;
         return {
           offerId: offer._id,
@@ -226,11 +233,12 @@ export const ofMyTeam = query({
           toTeamId: offer.toTeamId,
           toTeamName: nameOf(offer.toTeamId),
           ...(await termsShown(ctx, offer, positionsOf, clubOf)),
+          pickTerms: offer.picks ?? null,
           note: offer.note ?? null,
           madeAt: offer.madeAt,
           closes:
             offer.review === undefined
-              ? nextDeadline(deadlines, offer.madeAt)
+              ? offerCloses(deadlines, offer.madeAt, tradeDeadline)
               : null,
           reviewer: reviewerNamed(league, reviewNow),
           reviewEndsAt: offer.review?.endsAt ?? null,

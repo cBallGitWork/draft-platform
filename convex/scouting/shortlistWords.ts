@@ -3,7 +3,14 @@ import type { Words } from "../mail/letterShape";
 import { onWaiversWords } from "../mail/waiverLetterWords";
 
 // What the letters to a manager about a player on his shortlist say (spec/16, spec/19 The
-// shortlist; #374), in one place for Craig to change: released, dropped, or clearing waivers.
+// shortlist; #374), in one place for Craig to change: released, dropped, or clearing waivers; and
+// its refusals.
+
+export const shortlistRefusals = {
+  playerGone: (name: string) => `${name} has left the Premier League, so he can't be shortlisted.`,
+  /** With `most`, SHORTLIST_MOST (shortlist.ts), passed in so this file needn't import it back. */
+  full: (most: number) => `A shortlist holds at most ${most} players. Take one off first.`,
+};
 
 /** To a manager whose shortlist holds a player just released to free agency, released by `who`. */
 export function shortlistedReleasedLetter(playerName: string, teamName: string, who: string): Words {

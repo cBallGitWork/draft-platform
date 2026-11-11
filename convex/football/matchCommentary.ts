@@ -12,6 +12,7 @@ import { commentaryLines, type CommentaryLine } from "./premierLeague/plCommenta
 import { readPlCommentary, readPlFixture, type RawPlFixture } from "./premierLeague/premierLeague";
 import { plScoreRead, type ScoreRead } from "./scoreReads";
 import { MINUTE_MS } from "../shared/time";
+import { isDelayedAt } from "../matchup/commentaryAt";
 
 // Each live match's commentary, read by the live tick (#28) with its points, written by
 // `commentary.ts` and stored one row a match (#43, spec/10, The commentary). Each read replaces the
@@ -137,9 +138,13 @@ type TimedLine = Pick<CommentaryLineRow, "minute" | "addedMinute" | "type">;
 /** Whether the newest timed line trails the match clock's `minutes` by more than
  *  `COMMENTARY_BEHIND_MINUTES`. A line's minute and the clock count alike, the second half from 45. */
 function trails(lines: readonly TimedLine[], minutes: number): boolean {
+  return minutes - newestMinuteOf(lines) > COMMENTARY_BEHIND_MINUTES;
+}
+
+/** The newest timed line's minute, its added time on; 0 with none. */
+function newestMinuteOf(lines: readonly TimedLine[]): number {
   const newest = lines.find((line) => line.minute != null && line.type !== FEED_TYPE.matchEnds);
-  const newestMinute = (newest?.minute ?? 0) + (newest?.addedMinute ?? 0);
-  return minutes - newestMinute > COMMENTARY_BEHIND_MINUTES;
+  return (newest?.minute ?? 0) + (newest?.addedMinute ?? 0);
 }
 
 /** Whether the held commentary shows as delayed at `now`, the screen's minute: the tick marked it,
@@ -147,11 +152,30 @@ function trails(lines: readonly TimedLine[], minutes: number): boolean {
  *  read to `now`, by more than `COMMENTARY_BEHIND_MINUTES`. The second says so when the tick itself
  *  has stopped, as nothing then reads the stream to mark it (#917). */
 export function delayedAt(held: Doc<"matchCommentary">, score: Doc<"matchScores"> | null, now: number): boolean {
-  if (held.delayed !== null) return true;
-  if (score === null || score.state !== "live" || score.minutes === null) return false;
-  const clock = score.minutes + Math.max(0, Math.floor((now - score.readAt) / MINUTE_MS));
-  return trails(held.lines, clock);
+  return isDelayedAt(delayedFrom(held, score), now);
 }
+
+/** The moment `delayedAt` turns true, so a query can say it without the clock (#1550): always (0)
+ *  once the tick marked it or the newest held line already trails the held score's clock; else, in
+ *  play, the whole minute after the read at which the run-on clock first trails; never (null) while
+ *  the match isn't in play. */
+export function delayedFrom(held: Doc<"matchCommentary">, score: Doc<"matchScores"> | null): number | null {
+  if (held.delayed !== null) return ALWAYS;
+  if (score === null || score.state !== "live" || score.minutes === null) return null;
+  if (trails(held.lines, score.minutes)) return ALWAYS;
+  // The run-on minutes are whole, so the fewest that trail are the next whole number past the gap.
+  const minutesOn = Math.floor(COMMENTARY_BEHIND_MINUTES + newestMinuteOf(held.lines) - score.minutes) + 1;
+  return score.readAt + minutesOn * MINUTE_MS;
+}
+
+/** The earliest of `delayedFrom`'s moments: commentary over several matches is delayed once any is. */
+export function earliestDelay(moments: readonly (number | null)[]): number | null {
+  const given = moments.filter((moment) => moment !== null);
+  return given.length === 0 ? null : Math.min(...given);
+}
+
+/** `delayedFrom`'s "always". */
+const ALWAYS = 0;
 
 /** Each reason a commentary is delayed, as one; null with none. */
 export function joinedReasons(reasons: (string | null)[]): string | null {

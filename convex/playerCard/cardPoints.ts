@@ -6,18 +6,19 @@
 // and their tests price alike.
 
 import { ALL_CELLS, playsCell, positionOfSlot, SLOT_POSITIONS, type Cell, type SlotPosition } from "../lineup/pitch";
-import { positionRank, type Position } from "../positions/positionTables";
+import { POSITIONS, positionRank, type Position } from "../positions/positionTables";
 import { scoreMatch, type MatchPoints } from "../scoring/scoring";
 import type { MatchStats } from "../scoring/values";
 import { categoryName, categoryShortCode } from "../scoring/categories";
 import { priceFor } from "../scoring/priced";
+import { rankAmong } from "../shared/ranks";
 import { MINUTES_STAT } from "../stats/matchRecords";
 import type { ScoringRule, ScoringSet } from "../scoring/scoringSet";
 
 /** How the Squad tab's match was priced: from his slot in a lineup, at his best position, or there
  *  but not counted: a bench player who didn't come on, at his best position, or his other match in
  *  a double gameweek that counts only his best, at his slot (spec/12, Squad). */
-export type ScoredAs = "slot" | "bestPosition" | "notCounted";
+type ScoredAs = "slot" | "bestPosition" | "notCounted";
 
 export interface CardPoints extends MatchPoints {
   scoredAs: ScoredAs;
@@ -71,6 +72,20 @@ export function basePoints(record: MatchStats | null, set: ScoringSet, positions
   const pricedAt = cardPositions(positions);
   if (pricedAt.length === 0) return [cardPoints(record, set, positions)];
   return pricedAt.map((position) => pointsAt(record, set, position));
+}
+
+/** His matches' base points added up at each position, by position: what each would give him at
+ *  it. A match whose stats are null (his whole record hasn't arrived) adds nothing, and a player
+ *  with no match has none. The season rows' sums, this season's and last's. */
+export function pointsAtEveryPosition(matches: Iterable<{ stats: MatchStats | null; set: ScoringSet }>): Record<string, number> {
+  const sums: Record<string, number> = {};
+  for (const { stats, set } of matches) {
+    for (const position of POSITIONS) {
+      const points = basePoints(stats, set, [position])[0].total;
+      if (points !== null) sums[position] = (sums[position] ?? 0) + points;
+    }
+  }
+  return sums;
 }
 
 /** The one position basePoints prices him at where his card opens: the first of cardPositions, or,
@@ -128,10 +143,10 @@ function slotsFor(positions: readonly Position[]): Cell[] {
 }
 
 /** His place among these players' season points, for the card's rank at a position
- *  (positionRank.ts; #1027): one more than how many have more, so ties share the higher place. Null
- *  when he isn't among them or has no points. */
-export function placeOf(players: readonly { code: number; points: number | null }[], playerCode: number): number | null {
+ *  (positionRank.ts; #1027): ties share the higher place (rankAmong). Null when he isn't among them
+ *  or has no points. */
+export function rankOfPlayer(players: readonly { code: number; points: number | null }[], playerCode: number): number | null {
   const his = players.find(({ code }) => code === playerCode)?.points ?? null;
   if (his === null) return null;
-  return 1 + players.filter(({ points }) => points !== null && points > his).length;
+  return rankAmong(his, players.flatMap(({ points }) => (points === null ? [] : [points])));
 }

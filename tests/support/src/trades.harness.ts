@@ -70,6 +70,7 @@ export const screenOffer = (rest: Partial<ScreenOffer> = {}): ScreenOffer => ({
   gives: [PALMER],
   gets: [SAKA],
   picks: null,
+  pickTerms: null,
   note: null,
   madeAt: Date.parse("2026-11-08T16:40:00Z"),
   closes: { gameweek: 10, at: DEADLINE },

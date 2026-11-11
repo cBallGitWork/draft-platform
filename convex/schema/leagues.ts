@@ -54,7 +54,7 @@ const leagueFields = {
   /** Present while the league is being deleted (#75). */
   deletion: v.optional(leagueDeletion),
   /** The gameweeks its commissioner unticked, in order (#74, convex/gameweeks/usedGameweeks.ts). Absent while
-   *  it plays all 38, the default, so a league needs no write to have it. */
+   *  it plays every gameweek its season has (#1618), the default, so a league needs no write to have it. */
   unusedGameweeks: v.optional(v.array(v.number())),
   /** The gameweek its scoring starts in (spec/04, After the draft; convex/gameweeks/scoringStart.ts):
    *  those before it score nothing and have no head-to-head. Absent while it scores every ticked
@@ -106,7 +106,10 @@ export const leagueEvent = v.union(
   v.object({ kind: v.literal("maxTeamsChanged"), from: v.number(), to: v.number() }),
   v.object({ kind: v.literal("deletionStarted"), name: v.string(), deletesAt: v.number() }),
   v.object({ kind: v.literal("deletionUndone"), name: v.string() }),
-  v.object({ kind: v.literal("gameweekUsed"), gameweek: v.number(), used: v.boolean() }),
+  /** `startMovedTo`: the gameweek scoring starts in now, when unticking the start moved it (#1548). */
+  v.object({ kind: v.literal("gameweekUsed"), gameweek: v.number(), used: v.boolean(), startMovedTo: v.optional(v.number()) }),
+  /** The commissioner set the gameweek scoring starts in (#1548): `from` is null while none was set. */
+  v.object({ kind: v.literal("scoringStartSet"), from: v.union(v.number(), v.null()), to: v.number() }),
   ...joiningEvents,
   /** `changed` names the parts of LeagueRules that changed, such as "deadline". Events filed
    *  before the scoring became the site's (#354) may name "scoring" too, with `categories`, the
@@ -198,7 +201,12 @@ export const leagueTables = {
   leagueEvents: defineTable(leagueEventFields)
     .index("by_leagueId_and_at", ["leagueId", "at"])
     // League home's latest squad moves of each kind (spec/12), without reading every other event.
-    .index("by_leagueId_and_kind_and_at", ["leagueId", "event.kind", "at"]),
+    .index("by_leagueId_and_kind_and_at", ["leagueId", "event.kind", "at"])
+    // One team's moves of each kind (My team's Transactions, #1544), by each field a move names a
+    // team in, without reading every other team's: teamIds are unique across leagues.
+    .index("by_teamId_and_kind_and_at", ["event.teamId", "event.kind", "at"])
+    .index("by_fromTeamId_and_kind_and_at", ["event.fromTeamId", "event.kind", "at"])
+    .index("by_toTeamId_and_kind_and_at", ["event.toTeamId", "event.kind", "at"]),
   lastLeagues: defineTable(lastLeagueFields).index("by_email", ["email"]).index("by_leagueId", ["leagueId"]),
   unemailedDeletions: defineTable(unemailedDeletionFields).index("by_at", ["at"]),
 };

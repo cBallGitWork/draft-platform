@@ -83,7 +83,8 @@ export function changesTo(
     "draft/draftPicks:makePick": () => ann.mutation(api.draft.draftPicks.makePick, { leagueId, playerCode: 1 }),
     "draft/autoPickSwitch:takeControlBack": () => ann.mutation(api.draft.autoPickSwitch.takeControlBack, { leagueId }),
     "draft/autoPickSwitch:turnOn": () => ann.mutation(api.draft.autoPickSwitch.turnOn, { leagueId }),
-    "draft/draftPicks:pickFor": () => admin.mutation(api.draft.draftPicks.pickFor, { leagueId, playerCode: 1 }),
+    "draft/draftPicks:pickFor": () => admin.mutation(api.draft.draftPicks.pickFor, { leagueId, teamId: annsTeam._id, playerCode: 1 }),
+    "draft/pickWindow:undoMyPick": () => ann.mutation(api.draft.pickWindow.undoMyPick, { leagueId }),
     "draft/draftCommissioner:undoPick": () => admin.mutation(api.draft.draftCommissioner.undoPick, { leagueId }),
     "draft/draftCommissioner:setPickTime": () => admin.mutation(api.draft.draftCommissioner.setPickTime, { leagueId, pickSeconds: 60 }),
     "draft/draftCommissioner:markForCommissioner": () =>

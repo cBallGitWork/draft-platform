@@ -15,6 +15,8 @@ const useFeeds: AdminSeam["useFeeds"] = () => {
 
 const useSetByHand: AdminSeam["useSetByHand"] = () => useQuery(api.availability.availability.setByHand, {});
 
+const usePlatformSettings: AdminSeam["usePlatformSettings"] = () => useQuery(api.admin.platformSettings.settings, {});
+
 /** No player asks the server nothing. */
 const useAvailabilityOf: AdminSeam["useAvailabilityOf"] = (code) => useQuery(api.availability.availability.forAdmin, code === null ? "skip" : { code });
 
@@ -36,6 +38,7 @@ export function useLiveAdmin(): AdminSeam {
   const setChangeThresholds = useMutation(api.positions.positionSettings.setChangeThresholds);
   const setClubColours = useMutation(api.football.clubKits.set);
   const setAvailability = useMutation(api.availability.availability.set);
+  const savePlatformSettings = useMutation(api.admin.platformSettings.save);
   return useMemo(
     () => ({
       useQueue,
@@ -43,6 +46,7 @@ export function useLiveAdmin(): AdminSeam {
       useFeeds,
       useSetByHand,
       useAvailabilityOf,
+      usePlatformSettings,
       approvePlayer: (code) => refusalOf(() => approvePlayer({ code }), "Approving a player", changeFailedWords),
       approveClub: (clubCode) => refusalOf(() => approveClub({ clubCode }), "Approving a club", changeFailedWords),
       setPosition: (code, position) => refusalOf(() => setPosition({ code, position }), "Setting a position", changeFailedWords),
@@ -51,7 +55,8 @@ export function useLiveAdmin(): AdminSeam {
       setChangeThresholds: (thresholds) => refusalOf(() => setChangeThresholds(thresholds), "Changing the thresholds", changeFailedWords),
       setClubColours: (code, colours) => refusalOf(() => setClubColours({ code, ...colours }), "Setting a club's colours", changeFailedWords),
       setAvailability: (code, availability) => refusalOf(() => setAvailability({ code, availability }), "Setting a player's availability", changeFailedWords),
+      savePlatformSettings: (settings) => refusalOf(() => savePlatformSettings(settings), "Saving the site's settings", changeFailedWords),
     }),
-    [approvePlayer, approveClub, setPosition, removePosition, setApproveMode, setChangeThresholds, setClubColours, setAvailability],
+    [approvePlayer, approveClub, setPosition, removePosition, setApproveMode, setChangeThresholds, setClubColours, setAvailability, savePlatformSettings],
   );
 }

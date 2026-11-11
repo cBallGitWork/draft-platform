@@ -4,8 +4,7 @@ import { andListWords } from "../../../convex/shared/moments";
 import type { Area, Lane } from "../../../convex/lineup/pitch";
 import type { Side } from "../../../convex/lineup/instructions";
 import { AREA_WORDS, LANE_WORDS } from "../../../convex/lineup/pitchWords";
-import { menuWords } from "../../frame/words";
-import { failedWords, listSeparator, timeOfDayWords } from "../../shared/words";
+import { failedWords, listSeparator, menuWords, timeOfDayWords } from "../../shared/words";
 import { gameweekShort } from "../header/words";
 import { benchShort, nextMatchesShort } from "../words";
 import type { MoveRefusal } from "./swaps";
@@ -19,10 +18,10 @@ export const seasonOverWords = "Every gameweek this league plays has begun, so t
 const positionsWords = (positions: readonly string[]) => positions.join(listSeparator);
 
 /** The pitch's panel: its plate names the formation the eleven stand in, where it is a preset or a
- *  classic. */
+ *  classic formation. */
 export const pitchTitle = (formation: string | null) => (formation === null ? "Pitch" : `Pitch ${formation}`);
-/** A classic once its manager has changed a role (spec/05; Craig, 6 Nov 2026). */
-export const customWords = (classic: string) => `${classic} (custom)`;
+/** A classic formation once its manager has changed a role (spec/05; Craig, 6 Nov 2026). */
+export const customWords = (classicFormation: string) => `${classicFormation} (custom)`;
 /** The pitch, named for screen readers, and its cells. */
 export const pitchLabel = "The pitch, attack at the top";
 const cellWords = (area: Area, lane: Lane) => `${AREA_WORDS[area]}, ${LANE_WORDS[lane]}`;

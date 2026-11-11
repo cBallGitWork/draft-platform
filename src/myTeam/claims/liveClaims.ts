@@ -9,8 +9,8 @@ import { claimFailedWords } from "./words";
 /** The claims' seam filled in by Convex. A refusal comes back as the server's own words
  *  (convex/waivers/waiverClaims.ts); any other failure is logged and said plainly. */
 export const liveClaims: ClaimsSeam = {
-  usePendingClaims: (leagueId) => useQuery(api.waivers.waiverClaims.pending, { leagueId }),
   // Asked at the screen's minute, as a query may not read the clock: the next runs move on with it.
+  usePendingClaims: (leagueId) => useQuery(api.waivers.waiverClaims.pending, { leagueId, now: useMinute() }),
   useWaivers: (leagueId) => useQuery(api.waivers.waiverOrder.ofLeague, { leagueId, now: useMinute() }),
   useClaimChanges: function useClaimChanges() {
     const rank = useMutation(api.waivers.waiverClaims.rank);

@@ -6,8 +6,8 @@ import { screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
 import {
-  CLASSICS,
-  classicsLine,
+  CLASSIC_FORMATIONS,
+  classicFormationsLine,
   descriptionPlaceholder,
   gainsPlaceholder,
   inUseWords,
@@ -38,8 +38,8 @@ describe("the formation window", () => {
     await userEvent.click(screen.getByRole("button", { name: `${YOUR_PRESETS}0` }));
     // A manager's own presets are real names now (#992): no sample mark.
     expect(headingOf(YOUR_PRESETS).textContent).toBe(`${YOUR_PRESETS}${yourPresetsLine}`);
-    await userEvent.click(screen.getByRole("button", { name: new RegExp(`^${CLASSICS}`) }));
-    expect(headingOf(CLASSICS).textContent).toBe(`${CLASSICS}${classicsLine}${sampleTextWords}`);
+    await userEvent.click(screen.getByRole("button", { name: new RegExp(`^${CLASSIC_FORMATIONS}`) }));
+    expect(headingOf(CLASSIC_FORMATIONS).textContent).toBe(`${CLASSIC_FORMATIONS}${classicFormationsLine}${sampleTextWords}`);
   });
 
   it("shows the Save preset… tile on Your presets, in place, its line under its name", async () => {

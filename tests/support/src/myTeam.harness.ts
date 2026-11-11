@@ -32,15 +32,15 @@ export type MyTeamData = TacticsData & {
   waivers?: WaiversView;
   /** What each change to a claim answers: null once made, or the words why not. */
   claimAnswer?: string | null;
-  /** The team's auto team: off by default. */
-  autoTeam?: Omit<MyAutoTeam, "teamId">;
+  /** The team's auto team: off by default, with no gameweek to end after unless named. */
+  autoTeam?: Omit<MyAutoTeam, "teamId" | "endGameweeks"> & { endGameweeks?: number[] };
   /** What switching it answers: null once made, or the words why not. */
   autoTeamAnswer?: string | null;
   loading?: boolean;
 };
 
 /** A league's waivers with nobody's claims open to doubt: drafted, out of the lock, no runs. */
-export const NO_WAIVERS: WaiversView = { type: "reverseStandings", teams: [], drafted: true, runs: [], locked: false, windowOpen: false, nextDeadline: null };
+export const NO_WAIVERS: WaiversView = { type: "reverseStandings", teams: [], drafted: true, runs: [], locked: false, windowOpen: false, windowShuts: null, resetsAfter: null };
 
 export function fakeMyTeam({
   fixtures = { teamId: MY_TEAM_ID, teamName: "Team 1", format: "headToHead", games: [], unscored: [] },
@@ -90,7 +90,7 @@ export function fakeMyTeam({
     useWaivers: vi.fn<MyTeamSeam["useWaivers"]>(() => (loading ? undefined : waivers)),
     useClaimChanges: () => claimChanges,
     claimChanges,
-    useMyAutoTeam: vi.fn<MyTeamSeam["useMyAutoTeam"]>(() => (loading ? undefined : { teamId: MY_TEAM_ID, ...autoTeam })),
+    useMyAutoTeam: vi.fn<MyTeamSeam["useMyAutoTeam"]>(() => (loading ? undefined : { teamId: MY_TEAM_ID, endGameweeks: [], ...autoTeam })),
     useAutoTeamChanges: () => autoTeamChanges,
     autoTeamChanges,
   };

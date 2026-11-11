@@ -9,7 +9,7 @@ import { CLAUDE_RETRY_MS, writeWithClaude } from "../outbound/claude";
 import { nextFixtures, seasonMatches } from "../playerCard/playerCard";
 import { positionsNow } from "../positions/playerPositions";
 import { logFailure } from "../shared/errors";
-import { clubsByCode, playerByCode } from "../shared/players";
+import { clubsByCode, hasLeft, playerByCode } from "../shared/players";
 import { MINUTE_MS } from "../shared/time";
 import { starsOfPlayers } from "../stars/playerStars";
 import { playerLeftLetter, REPORT_MAX_TOKENS, REPORT_SYSTEM, reportInLetter, reportPrompt, type ScoutBrief } from "./scoutWords";
@@ -35,7 +35,7 @@ export const brief = internalQuery({
     const scout = await ctx.db.get("scouts", scoutId);
     if (scout === null || scout.state !== "out") return null;
     const player = await playerByCode(ctx, scout.playerCode);
-    if (player === null || player.droppedAt !== undefined) return { kind: "gone" as const };
+    if (player === null || hasLeft(player)) return { kind: "gone" as const };
     const league = await ctx.db.get("leagues", scout.leagueId);
     if (league === null) throw new Error(`Scout ${scoutId}'s league ${scout.leagueId} doesn't exist`);
     const positions = await (await positionsNow(ctx, league._id))(player.code);

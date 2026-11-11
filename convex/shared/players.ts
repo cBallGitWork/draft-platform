@@ -20,6 +20,9 @@ export const CLUB_PLAYERS_MOST = 100;
 /** The most players a search returns: enough to pick from, few enough to read. */
 const FOUND_MOST = 20;
 
+/** Whether the player has left the Premier League: the feed no longer sends him. */
+export const hasLeft = (player: Pick<Doc<"players">, "droppedAt">) => player.droppedAt !== undefined;
+
 /** The clubs in the Premier League now, the ones the feed has dropped left out. */
 export function currentClubs(ctx: QueryCtx): Promise<Doc<"clubs">[]> {
   return takeAllOrThrow(
@@ -73,6 +76,10 @@ export function playerByCode(ctx: QueryCtx, code: number): Promise<Doc<"players"
  *  data gone wrong: a screen keeps it, so the fault is easy to spot, and every other row shows
  *  (Craig, 31 Oct 2026, #323; spec/15 Assigning players). */
 export const unheldPlayerWords = (code: number) => `Error: player ${code} isn't in the football data.`;
+
+/** How a letter, a recap or a lineup's refusal names a man the football data has lost, who has no
+ *  name left to give. A screen's row for him shows `unheldPlayerWords` instead. */
+export const lostPlayerName = (code: number) => `Player ${code}`;
 
 /** The player with `code`. One the football sync doesn't hold is data gone wrong, and throws
  *  `missing`, which each caller words to say where the fault was met (the match, the shortlist).

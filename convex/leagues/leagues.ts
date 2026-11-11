@@ -19,6 +19,7 @@ import { giveDefaultRules, refuseTooFewForGames } from "../rules/leagueRules";
 import { latestRules } from "../rules/rulesHistory";
 import { askForLink, hasOpenedALink } from "../signIn/signInLinks";
 import { signInReply } from "../signIn/signInReplies";
+import { passReviews } from "../trades/tradeReviewers";
 
 // A league, and who runs it (#24, spec/13). Each change files an event for Mail (#26).
 
@@ -74,7 +75,8 @@ export const setMaxTeams = mutation({
   },
 });
 
-/** Hands the league to a new commissioner. Only the commissioner or the admin may. */
+/** Hands the league to a new commissioner. Only the commissioner or the admin may. A trade in
+ *  review goes to whoever reviews it now (`passReviews`). */
 export const nameCommissioner = mutation({
   args: { leagueId: v.id("leagues"), email: v.string() },
   returns: v.null(),
@@ -87,12 +89,14 @@ export const nameCommissioner = mutation({
     await ctx.db.patch("leagues", league._id, { commissionerEmail: email, commissionerLink: undefined });
     await recordEvent(ctx, league._id, by, { kind: "commissionerNamed", email, replaced: league.commissionerEmail });
     await admitCommissioner(ctx, email, league._id);
+    await passReviews(ctx, league._id);
     return null;
   },
 });
 
 /** Names the league's one co-commissioner, replacing any, or with `email` null removes them. Only
- *  the commissioner or the admin may. */
+ *  the commissioner or the admin may. A trade in review goes to whoever reviews it now
+ *  (`passReviews`). */
 export const nameCoCommissioner = mutation({
   args: { leagueId: v.id("leagues"), email: v.union(v.string(), v.null()) },
   returns: v.null(),
@@ -109,6 +113,7 @@ export const nameCoCommissioner = mutation({
     } else if (replaced !== null) {
       await recordEvent(ctx, league._id, by, { kind: "coCommissionerRemoved", email: replaced });
     }
+    await passReviews(ctx, league._id);
     return null;
   },
 });

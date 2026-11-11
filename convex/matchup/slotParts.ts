@@ -3,7 +3,6 @@ import type { QueryCtx } from "../_generated/server";
 import { positionOfSlot } from "../lineup/pitch";
 import { namedRole, roleIn, type Role } from "../lineup/roles";
 import type { SlotPoints } from "../scoring/teamPoints";
-import { playerByCode } from "../shared/players";
 import { shirtNumber } from "../squads/squadNumbers";
 import { placeOf as squadPlaceOf } from "../squads/squadPlace";
 import type { MatchBreakdown, MatchupPlace, MatchupSlot } from "./matchupShape";
@@ -22,14 +21,15 @@ export function pricedRole({ playerCode, cell, role }: SlotPoints): Pick<Role, "
 export const placeOf = ({ cell }: SlotPoints): MatchupPlace => ({ lane: cell.lane, label: positionOfSlot(cell) });
 
 /** His shirt on the matchup's pitch (#1026): his club, whose colours it wears, and the number his
- *  manager gave him while the side's team still holds him, else his club's (squadNumbers.ts). */
+ *  manager gave him while the side's team still holds him, else his club's (squadNumbers.ts).
+ *  `player` is his row as the matchup already read it, null for one the football sync doesn't hold. */
 export async function shirtOf(
   ctx: QueryCtx,
   leagueId: Id<"leagues">,
   playerCode: number,
+  player: Pick<Doc<"players">, "clubCode"> | null,
   teamId: Id<"teams">,
 ): Promise<Pick<MatchupSlot, "clubCode" | "number">> {
-  const player = await playerByCode(ctx, playerCode);
   const place = await squadPlaceOf(ctx, leagueId, playerCode);
   return {
     clubCode: player?.clubCode ?? null,

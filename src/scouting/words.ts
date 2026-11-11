@@ -3,12 +3,26 @@
 import type { Area } from "../../convex/lineup/pitch";
 import { RANKED_MINUTES } from "../../convex/scouting/per90Figures";
 import { PERIOD_GAMEWEEKS } from "../../convex/scouting/periods";
+import {
+  ASSISTS,
+  BIG_CHANCES_CREATED,
+  CLEAN_SHEETS,
+  CLEARANCES,
+  GOALS,
+  GOALS_CONCEDED,
+  INTERCEPTIONS,
+  KEY_PASSES,
+  PASSES,
+  SAVES,
+  SHOTS_ON_TARGET,
+  TACKLES_WON,
+} from "../../convex/scoring/statKeys";
 import { lastSeasonPointsColumn } from "../draft/words";
-import { noRunWords, runDayWords } from "../myTeam/claims/words";
-import { STAT_WORD, weekdayTimeWords } from "../shared/words";
+import { afterLastMatchWords, runNameWords, type FirstRun } from "../myTeam/claims/words";
+import { seasonShortWords, STAT_WORD, weekdayTimeWords } from "../shared/words";
 import type { Availability, Period } from "./seam";
 
-export { figureWords, freeAgentWords, noFigureWords } from "../shared/words";
+export { figureWords, noFigureWords } from "../shared/words";
 
 export const SCOUTING_TITLE = "Scouting";
 export const PLAYERS_TITLE = "Players";
@@ -72,7 +86,8 @@ export const noneMatchWords = "No player matches these filters.";
 
 /** In the owner column, a player on waivers and the run that can first take him, in the viewer's
  *  own zone (Craig, 6 Nov 2026, on #1200): "Waivers, Thu 18:00"; just "Waivers" with no run times. */
-export const onWaiversWords = (firstRunAt: number | null) => (firstRunAt === null ? "Waivers" : `Waivers, ${weekdayTimeWords(firstRunAt)}`);
+export const onWaiversWords = (firstRun: FirstRun) =>
+  firstRun === null ? "Waivers" : `Waivers, ${firstRun.skippedIf !== null ? afterLastMatchWords(firstRun.skippedIf) : weekdayTimeWords(firstRun.at)}`;
 
 /** The list's columns: a short head, and what it stands for (spec/14: dense tables use short codes,
  *  the full name on hover). */
@@ -111,12 +126,13 @@ export const selectPlayerLabel = (name: string) => `Show ${name}'s panel`;
 /** The selected player's panel at the top of the right column (the approved picture). */
 export const panelSeasonPointsWords = "Season points";
 /** His minutes over the period (the approved picture: "Minutes, last 6"). */
-export const panelMinutesWords = (period: Period) => (period === "season" ? "Minutes this season" : `Minutes, last ${PERIOD_GAMEWEEKS[period]}`);
+export const panelMinutesWords = (period: Period, lastSeason: number | null) =>
+  period !== "season" ? `Minutes, last ${PERIOD_GAMEWEEKS[period]}` : lastSeason === null ? columns.minutes.long : `Minutes in ${seasonShortWords(lastSeason)}`;
 export const closePanelLabel = "Close his panel";
 /** His figures per 90 over the period, ranked against the players of his area (the approved
  *  picture: "Per 90, last 6 gameweeks", "vs attacking mids"). */
 export const per90Words = (period: Period) => `Per 90, ${periodWords[period].toLowerCase()}`;
-export const AREA_PLAYERS: Record<Area, string> = {
+const AREA_PLAYERS: Record<Area, string> = {
   goalkeeper: "goalkeepers",
   defence: "defenders",
   defensiveMidfield: "defensive mids",
@@ -127,18 +143,18 @@ export const AREA_PLAYERS: Record<Area, string> = {
 /** The panel's own names for the stats it lists per 90, as the picture names them; a stat not here
  *  goes by its catalogue name. */
 export const PER90_STAT_NAMES: Readonly<Record<string, string>> = {
-  goals_scored: "Goals",
-  assists: "Assists",
-  total_att_assist: "Key passes",
-  ontarget_scoring_att: "Shots on target",
-  big_chance_created: "Big chances created",
-  won_tackle: "Tackles won",
-  saves: "Saves",
-  goals_conceded: "Goals conceded",
-  clean_sheets: "Clean sheets",
-  total_pass: "Passes",
-  interception: "Interceptions",
-  total_clearance: "Clearances",
+  [GOALS]: "Goals",
+  [ASSISTS]: "Assists",
+  [KEY_PASSES]: "Key passes",
+  [SHOTS_ON_TARGET]: "Shots on target",
+  [BIG_CHANCES_CREATED]: "Big chances created",
+  [TACKLES_WON]: "Tackles won",
+  [SAVES]: "Saves",
+  [GOALS_CONCEDED]: "Goals conceded",
+  [CLEAN_SHEETS]: "Clean sheets",
+  [PASSES]: "Passes",
+  [INTERCEPTIONS]: "Interceptions",
+  [CLEARANCES]: "Clearances",
 };
 export const versusWords = (area: Area) => `vs ${AREA_PLAYERS[area]}`;
 /** A percentile bar's hover and name: the figure it draws. */
@@ -148,7 +164,8 @@ export const notRankedWords = `Ranked from ${RANKED_MINUTES} minutes`;
 export const loadingPer90Words = "Loading his figures per 90…";
 /** His panel, while the manager's claim on him is pending (Craig, 8 Nov 2026, the waivers
  *  README): "Your claim 2, Wed run", linking to My team's Transactions. */
-export const yourClaimWords = (rank: number, runAt: number | null) => `Your claim ${rank}, ${runAt === null ? noRunWords : `${runDayWords(runAt)} run`}`;
+export const yourClaimWords = (rank: number, run: FirstRun) =>
+  `Your claim ${rank}, ${run !== null && run.skippedIf !== null ? `run ${afterLastMatchWords(run.skippedIf)}` : runNameWords(run)}`;
 export const compareWithAnotherWords = "Compare with another…";
 /** The manager's own player at his main position (Craig, 9 Nov 2026, on #1028, answer 1). */
 export const compareWithYourWords = (position: string, name: string) => `Compare with your ${position}, ${name}`;
@@ -160,11 +177,27 @@ export const playerCardLinkWords = "Player card ›";
 export const seasonPointsColumn = (lastSeason: number | null) =>
   lastSeason === null ? columns.seasonPoints : lastSeasonPointsColumn(lastSeason);
 
+/** The season figures' heads: as `columns` says them, the points' named by the season and the
+ *  others' hovers too ("Goals in 25/26") while the totals are last season's (spec/19; #1566). */
+export function seasonColumns(lastSeason: number | null) {
+  const figure = (column: "minutes" | "goals" | "assists" | "shotsOnTarget", name: string) =>
+    lastSeason === null ? columns[column] : { short: columns[column].short, long: `${name} in ${seasonShortWords(lastSeason)}` };
+  return {
+    minutes: figure("minutes", "Minutes"),
+    points: seasonPointsColumn(lastSeason),
+    goals: figure("goals", "Goals"),
+    assists: figure("assists", "Assists"),
+    shotsOnTarget: figure("shotsOnTarget", "Shots on target"),
+  };
+}
+
 /** Why a figure isn't there yet: none of his matches is priced, or, before the first match, he
  *  wasn't in last season's data; and role fit waits on role stars and scouts (spec/19, Role stars). */
 export const noPointsYetWords = "No points yet: none of his matches is scored.";
 export const notLastSeasonWords = "No points: he isn't in last season's data.";
 export const noPeriodPointsWords = "No points: none of his matches in these gameweeks is scored.";
+/** Why a player's season points are "—": none priced yet, or not in last season's data. */
+export const noSeasonPointsWords = (pointsSeason: number | null) => (pointsSeason === null ? noPointsYetWords : notLastSeasonWords);
 export const noRoleFitYetWords = "No role fit yet: it waits on stars and scouts.";
 
 /** Two players side by side (spec/19, The players list); "with your player" when the second is the

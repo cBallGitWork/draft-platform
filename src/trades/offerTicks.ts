@@ -17,11 +17,13 @@ export function pickNamed(team: ScreenTeam | null, pick: TradePick | null) {
 export function useOfferTicks(start: {
   gives: readonly number[];
   gets: readonly number[];
+  givePick?: TradePick | null;
+  getPick?: TradePick | null;
 }) {
   const [gives, setGives] = useState<readonly number[]>(start.gives);
   const [gets, setGets] = useState<readonly number[]>(start.gets);
-  const [givePick, setGivePick] = useState<TradePick | null>(null);
-  const [getPick, setGetPick] = useState<TradePick | null>(null);
+  const [givePick, setGivePick] = useState<TradePick | null>(start.givePick ?? null);
+  const [getPick, setGetPick] = useState<TradePick | null>(start.getPick ?? null);
 
   const players =
     (set: (codes: readonly number[]) => void) => (codes: readonly number[]) => {
