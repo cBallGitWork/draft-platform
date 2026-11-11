@@ -8,7 +8,7 @@ import { takeTodaysEmail, waitForTomorrow } from "../outbound/emailLimit";
 import { linkWithToken } from "./inviteLink";
 import { joiningRefusals } from "./joining";
 import { approvedEmail } from "./joiningEmails";
-import { callerEmail, getLeague, refuse, runnerOf, signedInEmail, teamOf } from "../shared/leagueAccess";
+import { callerEmail, getLeague, refuse, runnerOf, signedInEmail, teamOf, teamsOf } from "../shared/leagueAccess";
 import { recordEvent } from "../mail/letters";
 import { delivery } from "../schema";
 import { putOnTeam } from "../leagues/teams";
@@ -27,13 +27,17 @@ function waitingRequestOf(ctx: QueryCtx, leagueId: Id<"leagues">, email: string)
     .first();
 }
 
-/** What the invite link's page shows: whether the person may ask, has asked and waits, or runs a
- *  team in the league already; null once the link no longer works, or while the league is being
- *  deleted (spec/13 hides it then). */
+/** The league the invite link's page names, with who runs it and how full it is, as its approved
+ *  picture shows (#1497). */
+const joinPageLeague = { leagueName: v.string(), commissionerEmail: v.string(), teams: v.number(), maxTeams: v.number() };
+
+/** What the invite link's page shows: the league, and whether the person may ask, has asked and
+ *  waits, or runs a team in the league already; null once the link no longer works, or while the
+ *  league is being deleted (spec/13 hides it then). */
 const joinPageData = v.union(
   v.null(),
-  v.object({ leagueName: v.string(), standing: v.union(v.literal("mayAsk"), v.literal("waiting")) }),
-  v.object({ leagueName: v.string(), standing: v.literal("inLeague"), teamName: v.string() }),
+  v.object({ ...joinPageLeague, standing: v.union(v.literal("mayAsk"), v.literal("waiting")) }),
+  v.object({ ...joinPageLeague, standing: v.literal("inLeague"), teamName: v.string() }),
 );
 export type JoinPageData = Infer<typeof joinPageData>;
 
@@ -46,12 +50,14 @@ export const joinPage = query({
     const link = await linkWithToken(ctx, token);
     const league = link && (await ctx.db.get("leagues", link.leagueId));
     if (!league || !leagueOpens(league)) return null;
+    const teams = await teamsOf(ctx, league._id);
+    const shown = { leagueName: league.name, commissionerEmail: league.commissionerEmail, teams: teams.length, maxTeams: league.maxTeams };
     const email = await signedInEmail(ctx);
-    if (email === null) return { leagueName: league.name, standing: "mayAsk" as const };
-    const team = await teamOf(ctx, league._id, email);
-    if (team) return { leagueName: league.name, standing: "inLeague" as const, teamName: team.name };
+    if (email === null) return { ...shown, standing: "mayAsk" as const };
+    const team = teams.find((each) => each.managerEmail === email);
+    if (team) return { ...shown, standing: "inLeague" as const, teamName: team.name };
     const waiting = await waitingRequestOf(ctx, league._id, email);
-    return { leagueName: league.name, standing: waiting ? ("waiting" as const) : ("mayAsk" as const) };
+    return { ...shown, standing: waiting ? ("waiting" as const) : ("mayAsk" as const) };
   },
 });
 

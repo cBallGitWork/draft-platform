@@ -110,8 +110,14 @@ export const signInToJoinWords = "Sign in to ask to join.";
 export const joinPageWords = {
   title: "Join a league",
   loading: loadingWords,
-  mayAsk: (leagueName: string) => `Ask to join ${leagueName}. Its commissioner approves each request.`,
+  commissioner: "Commissioner",
+  teams: "Teams",
+  /** Follows the "3 of 8" figures, as Your leagues sets them. */
+  teamsAfter: " teams",
   ask: "Ask to join",
+  /** The side panel saying how joining goes, as the approved picture words it. */
+  joiningTitle: "Joining",
+  joining: "The commissioner approves each request. You get an email once you are in.",
   waiting: (leagueName: string) =>
     `Your request to join ${leagueName} is waiting for the commissioner. You'll get an email once it's approved.`,
   inLeague: (leagueName: string, teamName: string) => `You're in ${leagueName}, running ${teamName}.`,
