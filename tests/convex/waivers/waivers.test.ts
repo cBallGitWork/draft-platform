@@ -139,6 +139,47 @@ describe("players no team holds", () => {
     expect(elsewhere).toBeNull();
   });
 
+  describe("a player coming back to the Premier League (#1489, S08.7)", () => {
+    const row = (code: number) => ({ code, name: "Back", fullName: "Back Again", clubCode: 1 });
+    /** The feed stops sending the player, then sends him again. */
+    const leavesAndComesBack = async (code: number) => {
+      await t.run(async (ctx) => {
+        const held = await ctx.db.query("players").withIndex("by_code", (q) => q.eq("code", code)).unique();
+        if (held === null) throw new Error(`player ${code} isn't held`);
+        await ctx.db.patch("players", held._id, { droppedAt: Date.now() - DAY_MS });
+      });
+      await t.mutation(internal.football.footballSync.upsertPlayers, { rows: [row(code)] });
+    };
+
+    test("goes on waivers for the next run, like a first-time arrival", async () => {
+      await holdPlayers(t, [FREE_AGENT]);
+      await leavesAndComesBack(FREE_AGENT);
+
+      expect(await stateOf(FREE_AGENT)).toEqual({ kind: "onWaivers", claimableFrom: Date.now() });
+    });
+
+    test("stays with a team still holding him", async () => {
+      await leavesAndComesBack(DROPPED);
+
+      expect(await stateOf(DROPPED)).toEqual({ kind: "owned", teamId: annsTeam, teamName: "Team 1" });
+    });
+
+    test("keeps a later waiver time he already has", async () => {
+      await drop(ANN, DROPPED);
+      const before = await stateOf(DROPPED);
+      await leavesAndComesBack(DROPPED);
+
+      expect(await stateOf(DROPPED)).toEqual(before);
+    });
+
+    test("sent again with no gap stays a free agent", async () => {
+      await holdPlayers(t, [FREE_AGENT]);
+      await t.mutation(internal.football.footballSync.upsertPlayers, { rows: [row(FREE_AGENT)] });
+
+      expect(await stateOf(FREE_AGENT)).toEqual({ kind: "freeAgent" });
+    });
+  });
+
   test("a dropped player assigned to a team again is off waivers", async () => {
     await drop(ANN, DROPPED);
     const commissioner = await squadMoves(t, leagueId, COMMISSIONER);
