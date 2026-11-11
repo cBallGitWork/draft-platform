@@ -2,6 +2,7 @@ import { v } from "convex/values";
 import type { Doc, Id } from "../_generated/dataModel";
 import { mutation, type MutationCtx, type QueryCtx } from "../_generated/server";
 import { leagueDeadlinesIn, scheduledMatches } from "../gameweeks/leagueDeadlines";
+import type { ScheduledMatch } from "../gameweeks/deadline";
 import { LEAGUES_READ_MOST, takeAllOrThrow } from "../shared/cappedRead";
 import { adminOf, refuse } from "../shared/leagueAccess";
 import { FIRST_THRESHOLDS, type ChangeThresholds } from "./positionChanges";
@@ -29,7 +30,7 @@ export const setApproveMode = mutation({
   handler: async (ctx, { approveMode: mode }) => {
     await adminOf(ctx);
     await saveSettings(ctx, { approveMode: mode });
-    await ctx.runMutation(internal.positions.positionWarnings.warnEveryLeagueNow, {});
+    await ctx.runMutation(internal.positions.positionWarnings.warnEveryLeagueSoon, {});
     return null;
   },
 });
@@ -45,7 +46,7 @@ export const setChangeThresholds = mutation({
     if (!Number.isInteger(removeAfter) || removeAfter <= flagAfter) refuse(thresholdRefusals.removeAfter);
     if (removeAfter > START_WINDOW) refuse(thresholdRefusals.pastWindow);
     await saveSettings(ctx, { flagAfter, removeAfter });
-    await ctx.runMutation(internal.positions.positionWarnings.warnEveryLeagueNow, {});
+    await ctx.runMutation(internal.positions.positionWarnings.warnEveryLeagueSoon, {});
     return null;
   },
 });
@@ -63,20 +64,21 @@ export const EVERY_LEAGUE = "every league";
  *  per league, not once per call: a request's ctx lives only as long as it does. */
 const answeredIn = new WeakMap<QueryCtx, Map<PositionsFor, Promise<HowPositionsCount>>>();
 
-export function howPositionsCount(ctx: QueryCtx, positionsFor: PositionsFor): Promise<HowPositionsCount> {
+/** A caller that has read the season's `matches` already hands them in, so they are read once. */
+export function howPositionsCount(ctx: QueryCtx, positionsFor: PositionsFor, matches?: ScheduledMatch[]): Promise<HowPositionsCount> {
   let answers = answeredIn.get(ctx);
   if (answers === undefined) answeredIn.set(ctx, (answers = new Map()));
   let answer = answers.get(positionsFor);
-  if (answer === undefined) answers.set(positionsFor, (answer = workedOut(ctx, positionsFor)));
+  if (answer === undefined) answers.set(positionsFor, (answer = workedOut(ctx, positionsFor, matches)));
   return answer;
 }
 
-async function workedOut(ctx: QueryCtx, positionsFor: PositionsFor): Promise<HowPositionsCount> {
+async function workedOut(ctx: QueryCtx, positionsFor: PositionsFor, matches?: ScheduledMatch[]): Promise<HowPositionsCount> {
   const settings = await settingsRow(ctx);
   return {
     approveMode: settings?.approveMode ?? FIRST_APPROVE_MODE,
     thresholds: thresholdsOf(settings),
-    judgedBefore: await judgedBefore(ctx, positionsFor),
+    judgedBefore: await judgedBefore(ctx, positionsFor, matches),
   };
 }
 
@@ -94,11 +96,11 @@ function thresholdsOf(settings: Doc<"positionSettings"> | null): ChangeThreshold
  *  passed its deadline. The sync's time stands in for the clock, which a query can't read. Null,
  *  judging every start, before any sync or the league's first deadline (docs/positions.md, When
  *  positions change). For every league, the latest any of them has passed. */
-async function judgedBefore(ctx: QueryCtx, positionsFor: PositionsFor): Promise<number | null> {
+async function judgedBefore(ctx: QueryCtx, positionsFor: PositionsFor, heldMatches?: ScheduledMatch[]): Promise<number | null> {
   const newestSync = await newestGoodSync(ctx);
   if (newestSync === null) return null;
   const leagueIds = positionsFor === EVERY_LEAGUE ? await everyLeagueId(ctx) : [positionsFor];
-  const matches = await scheduledMatches(ctx);
+  const matches = heldMatches ?? (await scheduledMatches(ctx));
   const passed: number[] = [];
   for (const leagueId of leagueIds) {
     for (const deadline of (await leagueDeadlinesIn(ctx, leagueId, matches)).values()) {

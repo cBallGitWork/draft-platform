@@ -15,6 +15,7 @@ import { addManager, addManagers, adminCreatesLeague, MANAGERS, type TestConvex 
 import { asAdmin } from "../../support/convex/positionsSync.harness";
 import { CENTRE_BACK, movedToFullBack, played, RIGHT_BACK, startsFrom, times } from "../../support/convex/positionStarts.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
+import { elapse, pendingJobs } from "../../support/convex/test.harness";
 
 const [ANN, BOB] = MANAGERS;
 /** The gameweek a lineup saved now is from: every one before it has begun. */
@@ -52,8 +53,15 @@ const barnesStarted = (starts: Start[]) =>
     await ctx.db.patch("playerPositions", row!._id, { starts });
   });
 
-/** A good positions sync recorded now, as the sync records one: it warns of what changed. */
-const syncRecorded = () =>
+/** A good positions sync recorded now, as the sync records one, and the warnings it schedules run:
+ *  it warns of what changed. */
+async function syncRecorded() {
+  await recordSync();
+  await elapse(t, 0);
+}
+
+/** A good positions sync recorded now, its warnings left waiting. */
+const recordSync = () =>
   t.mutation(internal.positions.positionsSync.record, {
     trigger: "manual",
     ranAt: Date.now(),
@@ -172,8 +180,36 @@ describe("a run elsewhere", () => {
     expect(await lettersTo(ANN)).toEqual([]);
 
     await (await asAdmin(t)).mutation(api.positions.positionSettings.setChangeThresholds, { flagAfter: 2, removeAfter: 4 });
+    await elapse(t, 0);
 
     expect(await lettersTo(ANN)).toEqual([{ ...positionLetter({ step: "flagged", playerName: "Barnes", position: "CB", fromGameweek: NEXT, startsElsewhere: 2, removeAfter: 4 }), leagueId }]);
+  });
+});
+
+describe("each league warned in a step of its own (#1545)", () => {
+  test("the sync keeps its log row and schedules one warning a league, which tell once they run", async () => {
+    const otherLeague = await adminCreatesLeague(t, 4, "Other League");
+    await barnesOn(annsTeam, movedToFullBack(3));
+
+    await recordSync();
+
+    expect(await t.run((ctx) => ctx.db.query("positionsSyncs").collect())).toHaveLength(1);
+    const jobs = await pendingJobs(t, internal.positions.positionWarnings.warnLeagueSoon);
+    expect(jobs.map(({ args }) => args[0])).toEqual([{ leagueId }, { leagueId: otherLeague }]);
+    expect(await lettersTo(ANN)).toEqual([]);
+
+    await elapse(t, 0);
+    expect(await lettersTo(ANN)).toEqual([{ ...flagged(3), leagueId }]);
+  });
+
+  test("a league deleted before its warning runs tells nothing", async () => {
+    await barnesOn(annsTeam, movedToFullBack(3));
+    await recordSync();
+    await t.run(async (ctx) => ctx.db.delete("leagues", leagueId));
+
+    await elapse(t, 0);
+
+    expect(await lettersTo(ANN)).toEqual([]);
   });
 });
 
@@ -204,6 +240,7 @@ describe("the admin removing a position by hand", () => {
     expect(before.starters.map(({ playerCode }) => playerCode)).toContain(BARNES.code);
 
     await (await asAdmin(t)).mutation(api.positions.playerPositions.removePosition, { code: BARNES.code, position: "CB" });
+    await elapse(t, 0);
 
     expect(await lettersTo(ANN)).toEqual([{ ...positionLetter({ step: "takenByAdmin", playerName: "Barnes", position: "CB", fromGameweek: NEXT }), leagueId }]);
     expect(await t.run((ctx) => lineupInGameweek(ctx, leagueId, annsTeam, NEXT))).toEqual(before);
@@ -213,6 +250,7 @@ describe("the admin removing a position by hand", () => {
     await barnesOn(annsTeam, played(...times(CENTRE_BACK, 5)));
 
     await (await asAdmin(t)).mutation(api.positions.playerPositions.removePosition, { code: BARNES.code, position: "ST" });
+    await elapse(t, 0);
 
     expect(await lettersTo(ANN)).toEqual([]);
   });

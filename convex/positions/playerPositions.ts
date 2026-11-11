@@ -63,7 +63,7 @@ export const approvePlayer = mutation({
   handler: async (ctx, { code }) => {
     await adminOf(ctx);
     await approve(ctx, await heldRow(ctx, code));
-    await ctx.runMutation(internal.positions.positionWarnings.warnEveryLeagueNow, {});
+    await ctx.runMutation(internal.positions.positionWarnings.warnEveryLeagueSoon, {});
     return null;
   },
 });
@@ -77,7 +77,7 @@ export const approveClub = mutation({
     await adminOf(ctx);
     const players = await currentPlayersAt(ctx, clubCode);
     for (const player of players) await approve(ctx, await heldRow(ctx, player.code));
-    await ctx.runMutation(internal.positions.positionWarnings.warnEveryLeagueNow, {});
+    await ctx.runMutation(internal.positions.positionWarnings.warnEveryLeagueSoon, {});
     return players.length;
   },
 });
@@ -103,7 +103,7 @@ export const removePosition = mutation({
     const row = await heldRow(ctx, code);
     await ctx.runMutation(internal.positions.positionWarnings.warnOfAdminRemovalNow, { code, position: taken });
     await ctx.db.patch("playerPositions", row._id, { set: withoutOne(row.set, taken), removed: withOne(row.removed, taken) });
-    await ctx.runMutation(internal.positions.positionWarnings.warnEveryLeagueNow, {});
+    await ctx.runMutation(internal.positions.positionWarnings.warnEveryLeagueSoon, {});
     return null;
   },
 });
