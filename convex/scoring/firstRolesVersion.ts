@@ -10,7 +10,7 @@ import { sortedJson } from "../shared/sortedJson";
 import { FIRST_ROLE_OWN_STATS, FIRST_ROLES } from "./draftedRoleAdjustments";
 import type { StoredScoringSet } from "./scoringSetShape";
 import { addVersion, checkScoringSet } from "./siteScoring";
-import { setOf, siteVersions, versionName } from "./siteVersions";
+import { isWaiting, setOf, siteVersions, versionName } from "./siteVersions";
 
 // The one-offs that put the roles' values (draftedRoleAdjustments.ts) into the site's scoring set.
 // Each adds a version to the site's set as it stands, its rules untouched, taking effect now, so as
@@ -62,7 +62,7 @@ export const addRedrawnRoles = internalMutation({
 export async function latestInForce(ctx: MutationCtx, what: string) {
   const history = await siteVersions(ctx);
   const version = history.at(-1);
-  if (version !== undefined && version.takesEffectAt > Date.now()) {
+  if (version !== undefined && isWaiting(version, Date.now())) {
     throw new Error(`version ${versionName(version)} waits to take effect and was made without ${what}, so they weren't added`);
   }
   return { history, version };

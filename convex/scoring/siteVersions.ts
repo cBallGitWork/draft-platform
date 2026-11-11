@@ -50,8 +50,24 @@ export function siteVersions(ctx: QueryCtx): Promise<Doc<"siteScoring">[]> {
   );
 }
 
+/** A version's moment, all the rule below reads. */
+type Timed = Pick<Doc<"siteScoring">, "takesEffectAt">;
+
+/** Whether `version` still waits to take effect at `now`: its moment is after `now`. One taking
+ *  effect exactly at `now` is in force, never waiting (`inForceAt`). */
+export function isWaiting(version: Timed, now: number): boolean {
+  return version.takesEffectAt > now;
+}
+
+/** The version in force at `at`: the newest in `history` (in the order they take effect) to take
+ *  effect by then, one exactly at `at` included; undefined before any. */
+export function inForceAt<Version extends Timed>(history: readonly Version[], at: number): Version | undefined {
+  return history.findLast((version) => !isWaiting(version, at));
+}
+
 /** The versions still to take effect after `now`, soonest first, read through the index (#1617):
- *  what the banner every signed-in page runs looks through, never the whole history. */
+ *  what the banner every signed-in page runs looks through, never the whole history. The index's
+ *  `gt` is `isWaiting`'s rule, which a query range can't call. */
 export function versionsWaitingAt(ctx: QueryCtx, now: number) {
   return ctx.db.query("siteScoring").withIndex("by_takesEffectAt", (q) => q.gt("takesEffectAt", now));
 }
@@ -65,7 +81,7 @@ export function setOf(version: Doc<"siteScoring"> | undefined): StoredScoringSet
  *  set before any. What stars price every match under, whichever gameweek it was (Craig, 1 Nov
  *  2026: today's scoring, so a patch re-rates everyone). */
 export async function siteScoringAt(ctx: QueryCtx, at: number): Promise<StoredScoringSet> {
-  return setOf((await siteVersions(ctx)).findLast((row) => row.takesEffectAt <= at));
+  return setOf(inForceAt(await siteVersions(ctx), at));
 }
 
 /** The site's scoring set in a gameweek, which every league scores that gameweek's matches by: the
@@ -100,7 +116,7 @@ export async function siteVersionByGameweek(ctx: QueryCtx): Promise<(gameweek: n
   return (gameweek) => {
     const firstKickoff = recordedStarts.get(gameweek) ?? kickoffs.get(gameweek) ?? null;
     const deadline = firstKickoff === null ? null : siteDeadline(firstKickoff);
-    const inForce = deadline === null ? unscheduled : history.findLast((row) => row.takesEffectAt <= deadline);
+    const inForce = deadline === null ? unscheduled : inForceAt(history, deadline);
     return { set: setOf(inForce), name: inForce === undefined ? null : versionName(inForce) };
   };
 }
