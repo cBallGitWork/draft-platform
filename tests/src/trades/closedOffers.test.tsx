@@ -12,7 +12,7 @@ import {
   CLOSED_TITLE,
   closedTableLabel,
   closedWhyWords,
-  dayWords,
+  dateWords,
   noClosedWords,
   olderWords,
   thisSeasonWords,
@@ -56,7 +56,7 @@ describe("closed offers", () => {
     expect(cells[0]).toContain("Palmer");
     expect(cells[1]).toContain("Saka");
     expect(cells[2]).toBe(closedWhyWords("rejected", true));
-    expect(cells[3]).toBe(dayWords(closedOffer().closedAt));
+    expect(cells[3]).toBe(dateWords(closedOffer().closedAt));
     expect(withdrawn.textContent).toContain(closedWhyWords("withdrawn", true));
     expect(within(withdrawn).getAllByRole("cell")[0].textContent).toContain("Saka");
     expect(blocked.textContent).toContain(closedWhyWords("blocked", false));
