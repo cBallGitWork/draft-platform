@@ -1,6 +1,6 @@
 import { instructionName } from "../lineup/instructions";
 import { roleName } from "../lineup/roles";
-import { ALL_CELLS, positionOfSlot, SLOT_POSITIONS, type Area, type SlotPosition } from "../lineup/pitch";
+import { AREA_OF_POSITION, SLOT_POSITIONS, type SlotPosition } from "../lineup/pitch";
 import type { StoredScoringSet } from "./scoringSetShape";
 import { categoryName } from "./categories";
 import { priceFor, type Priced } from "./priced";
@@ -22,17 +22,12 @@ type Rule = StoredScoringSet["rules"][number];
 type OwnStat = NonNullable<StoredScoringSet["ownStats"]>[number];
 type PositionWords = ReadonlyMap<SlotPosition, string>;
 
-/** The area each slot position is played in (spec/14's table), for `priceFor`. */
-const AREA_OF: ReadonlyMap<SlotPosition, Area> = new Map(
-  ALL_CELLS.map((cell) => [positionOfSlot(cell), cell.area] as const),
-);
-
 /** An optional setting not set, such as no points limit. */
 const NONE = "none";
 
 /** What a priced setting gives each position, as words; an optional one not set is NONE. */
 function wordsByPosition<Value>(priced: Priced<Value> | undefined, words: (value: Value) => string): PositionWords {
-  return new Map(SLOT_POSITIONS.map((position) => [position, priced === undefined ? NONE : words(priceFor(priced, AREA_OF.get(position)!, position))]));
+  return new Map(SLOT_POSITIONS.map((position) => [position, priced === undefined ? NONE : words(priceFor(priced, AREA_OF_POSITION[position], position))]));
 }
 
 const bandWords = (bands: readonly Band[]) =>

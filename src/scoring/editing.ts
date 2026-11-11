@@ -2,9 +2,9 @@
 // rule and gives the changed copy, never touching the one it was given. What makes a set sound is
 // the server's (convex/scoring/scoringSet.ts), checked again when it is saved.
 
-import { AREAS, LANES, positionOfSlot, SLOT_POSITIONS, type Area, type SlotPosition } from "../../convex/lineup/pitch";
+import { AREA_OF_POSITION, AREAS, LANES, positionOfSlot, SLOT_POSITIONS, type Area, type SlotPosition } from "../../convex/lineup/pitch";
 import type { StoredScoringSet } from "../../convex/scoring/scoringSetShape";
-import { priceFor, type Priced } from "../../convex/scoring/priced";
+import { priceFor, pricingOf, type Priced, type Pricing } from "../../convex/scoring/priced";
 import type { Band, OwnStat, PointsLimit } from "../../convex/scoring/scoringSet";
 import { OWN_STAT_PREFIX } from "../../convex/scoring/statCatalogue";
 import { holdsBlank } from "../rules/blank";
@@ -19,7 +19,7 @@ export type PerCount = { every: number; points: number };
 export const SHAPES = ["perAction", "perCount", "bands"] as const satisfies readonly Shape[];
 
 /** How finely a rule is priced: the same for all, by area, or by the position of the slot. */
-export type Pricing = "all" | "byArea" | "byPosition";
+export type { Pricing };
 /** A row of a rule's prices: "all", an area or a position. */
 export type PriceKey = "all" | Area | SlotPosition;
 
@@ -38,16 +38,9 @@ const POSITIONS_OF: Record<Area, SlotPosition[]> = Object.fromEntries(
   AREAS.map((area) => [area, [...new Set(LANES.map((lane) => positionOfSlot({ area, lane })))]]),
 ) as Record<Area, SlotPosition[]>;
 
-/** The area each position plays in: each is in exactly one. */
-const AREA_OF = Object.fromEntries(AREAS.flatMap((area) => POSITIONS_OF[area].map((position) => [position, area]))) as Record<SlotPosition, Area>;
-
 /** The rows a rule priced this way has. */
 export function keysOf(pricing: Pricing): readonly PriceKey[] {
   return pricing === "all" ? ["all"] : pricing === "byArea" ? AREAS : SLOT_POSITIONS;
-}
-
-function pricingOf(priced: Priced<unknown>): Pricing {
-  return "all" in priced ? "all" : "byArea" in priced ? "byArea" : "byPosition";
 }
 
 /** A rule's pricing: the finest of its values', its points limit's and its minutes', which the
@@ -61,7 +54,7 @@ export function rulePricing(rule: Rule): Pricing {
 export function valueAt<Value>(priced: Priced<Value>, key: PriceKey): Value {
   if (key === "all") return priceFor(priced, AREAS[0], POSITIONS_OF[AREAS[0]][0]);
   if (isArea(key)) return priceFor(priced, key, POSITIONS_OF[key][0]);
-  return priceFor(priced, AREA_OF[key], key);
+  return priceFor(priced, AREA_OF_POSITION[key], key);
 }
 
 const isArea = (key: PriceKey): key is Area => (AREAS as readonly string[]).includes(key);
@@ -77,7 +70,7 @@ function mostCommon<Value>(values: readonly Value[]): Value {
 /** A priced setting at another pricing: finer copies each value down; coarser keeps the value most
  *  of each group share. */
 export function reprice<Value>(priced: Priced<Value>, to: Pricing): Priced<Value> {
-  const atPosition = (position: SlotPosition) => priceFor(priced, AREA_OF[position], position);
+  const atPosition = (position: SlotPosition) => priceFor(priced, AREA_OF_POSITION[position], position);
   switch (to) {
     case "all":
       return { all: mostCommon(SLOT_POSITIONS.map(atPosition)) };

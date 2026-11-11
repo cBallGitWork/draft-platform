@@ -5,7 +5,7 @@
 import { afterEach, beforeEach, expect, test, vi } from "vitest";
 import { internal } from "../../../../convex/_generated/api";
 import { leagueSeasonsUrl, lineupsUrl, POSITIONS_SQUAD_INCLUDES, scheduleUrl, seasonTeamsUrl, SPORTMONKS_TOKEN_ENV } from "../../../../convex/football/sportmonks/sportmonks";
-import { NO_STARTERS_LOG, REGULAR_STARTS } from "../../../../convex/football/sportmonks/sportmonksPositionsSync";
+import { LINEUPS_WAIT_DAYS, NO_STARTERS_GIVEN_UP_LOG, NO_STARTERS_LOG, REGULAR_STARTS } from "../../../../convex/football/sportmonks/sportmonksPositionsSync";
 import type { RawFixture } from "../../../../convex/football/sportmonks/sportmonksRaw";
 import { DAY_MS } from "../../../../convex/shared/time";
 import { CRON_TRIGGER, PING_URL_ENV } from "../../../../convex/heartbeats/heartbeat";
@@ -106,15 +106,34 @@ test("a run again reads no match it has filed, and adds nothing", async () => {
   expect((await rowOf(t, LINEUPS.celtic433[2]))?.starts).toHaveLength(3);
 });
 
+const lineupsRead = (t: TestConvex) => t.run(async (ctx) => (await ctx.db.query("sportmonksLineupsRead").collect()).map((each) => each.fixtureCode).sort());
+
 test("a played match whose lineups come back with no starters is logged and left to read again", async () => {
+  vi.setSystemTime(KICKOFF + (LINEUPS_WAIT_DAYS - 1) * DAY_MS);
   const t = freshConvex();
   const logged = silenceConsoleError();
   await read(t, fakeSportmonks({ unfiled: LINEUPS.match }));
 
   expect(logged).toHaveBeenCalledWith(`${NO_STARTERS_LOG}: ${LINEUPS.match}`);
-  const filed = await t.run((ctx) => ctx.db.query("sportmonksLineupsRead").collect());
-  expect(filed.map((each) => each.fixtureCode).sort()).toEqual([LINEUPS.match + 1, LINEUPS.match + 2]);
+  expect(await lineupsRead(t)).toEqual([LINEUPS.match + 1, LINEUPS.match + 2]);
   expect((await rowOf(t, LINEUPS.celtic433[2]))?.starts).toHaveLength(2);
+});
+
+test("a played match still with no starters a week after kickoff, such as an awarded one, is marked read with none and logged once", async () => {
+  const t = freshConvex();
+  const logged = silenceConsoleError();
+  await read(t, fakeSportmonks({ unfiled: LINEUPS.match }));
+
+  expect(logged).toHaveBeenCalledTimes(1);
+  expect(logged).toHaveBeenCalledWith(`${NO_STARTERS_GIVEN_UP_LOG}: ${LINEUPS.match}`);
+  expect(await lineupsRead(t)).toEqual([LINEUPS.match, LINEUPS.match + 1, LINEUPS.match + 2]);
+  expect((await rowOf(t, LINEUPS.celtic433[2]))?.starts).toHaveLength(2);
+
+  const fake = await read(t, fakeSportmonks({ unfiled: LINEUPS.match }));
+  expect(fake.mock.calls.map(([url]) => url)).not.toContain(lineupsUrl(playedMatches().map((match) => match.id)));
+  expect(logged).toHaveBeenCalledTimes(1);
+  const [, again] = await runs(t);
+  expect(again.outcome).toMatchObject({ ok: true, matchesRead: 0, matchesLeft: 0 });
 });
 
 test("a refused read is a failed run on record, and nothing is filed", async () => {

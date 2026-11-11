@@ -7,7 +7,7 @@ import { expectRefused } from "../../support/convex/test.harness";
 import { MINUTE_MS, WEEK_MS } from "../../../convex/shared/time";
 import { ADMIN, actingAs, addManagers, adminCreatesLeague, COMMISSIONER, MANAGERS, OUTSIDER, type TestConvex } from "../../support/convex/leagues.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
-import { GAMEWEEKS } from "../../../convex/gameweeks/usedGameweeks";
+import { PL_GAMEWEEKS } from "../../support/convex/footballRows.harness";
 import { FIRST_RULES } from "../../../convex/rules/firstRules";
 
 // The league's fixtures and table (#33), read from its teams, the gameweeks it plays and its
@@ -41,18 +41,23 @@ describe("who may read it", () => {
   });
 });
 
+/** The season's gameweeks held, none begun: the fixtures are drawn over however many it has (#1618). */
+const holdSeasonToCome = () => holdGameweeks(t, { next: 1 });
+
 describe("the fixtures", () => {
   test("three teams: every gameweek the league plays has fixtures, and the team left over plays the league's average by default", async () => {
+    await holdSeasonToCome();
     await addManagers(t, leagueId, [ANN, BOB, CAT]);
     const league = await read();
 
-    expect(league?.gameweeks).toHaveLength(GAMEWEEKS);
+    expect(league?.gameweeks).toHaveLength(PL_GAMEWEEKS);
     const [first] = league!.gameweeks;
     expect(first.fixtures.map((fixture) => fixture.opponent === null)).toEqual([false, true]);
     expect(first.byes).toEqual([]);
   });
 
   test("with byes, the team left over plays nobody", async () => {
+    await holdSeasonToCome();
     await addManagers(t, leagueId, [ANN, BOB, CAT]);
     await changeRulesTo({ oddTeamOut: "bye" });
     const [first] = (await read())!.gameweeks;
@@ -62,15 +67,19 @@ describe("the fixtures", () => {
   });
 
   test("with two games a gameweek, each team plays two every gameweek", async () => {
+    await holdSeasonToCome();
     await addManagers(t, leagueId, [ANN, BOB, CAT, DAN]);
     await changeRulesTo({ gamesPerGameweek: 2 });
-    for (const { fixtures } of (await read())!.gameweeks) {
+    const { gameweeks } = (await read())!;
+    expect(gameweeks).toHaveLength(PL_GAMEWEEKS);
+    for (const { fixtures } of gameweeks) {
       const named = fixtures.flatMap(({ team, opponent }) => [team, opponent]);
       expect(["Team 1", "Team 2", "Team 3", "Team 4"].map((team) => named.filter((each) => each === team).length)).toEqual([2, 2, 2, 2]);
     }
   });
 
   test("are the same on every read, drawn from the league's own seed", async () => {
+    await holdSeasonToCome();
     await addManagers(t, leagueId, [ANN, BOB, CAT]);
     const otherLeague = await adminCreatesLeague(t, 4, "Other");
     await addManagers(t, otherLeague, [ANN, BOB, CAT]);
@@ -81,6 +90,7 @@ describe("the fixtures", () => {
   });
 
   test("a gameweek the league doesn't play has none", async () => {
+    await holdSeasonToCome();
     await addManagers(t, leagueId, [ANN, BOB]);
     await t.run(async (ctx) => {
       await ctx.db.patch("leagues", leagueId, { unusedGameweeks: [2] });
@@ -187,6 +197,7 @@ test("a league with no rules fails loudly, never draws an empty table (#147)", a
 });
 
 test("before any gameweek begins, each fixture has its teams and no points, and nothing is scored or unscored", async () => {
+  await holdSeasonToCome();
   const [annTeam, bobTeam, catTeam] = await addManagers(t, leagueId, [ANN, BOB, CAT]);
   const league = (await read())!;
   const idOf = new Map([

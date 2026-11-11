@@ -146,3 +146,42 @@ describe("never", () => {
     expect(await timeouts()).toEqual([{ teamId: teams[0], count: 3 }]);
   });
 });
+
+// The commissioner's undo of a timed-out pick puts the manager's auto-pick back where that timeout
+// found it, a choice of his own since then left alone (Craig, 11 Nov 2026, on #1463).
+describe("the commissioner's undo", () => {
+  const undo = async () => (await as(COMMISSIONER)).mutation(api.draft.draftCommissioner.undoPick, { leagueId });
+
+  test("of the timeout that moved him to picks made at once gives him back his full-clock pick", async () => {
+    await setRules(2);
+    await start();
+    await pass(PICK_MS);
+    await bobPicks();
+    await bobPicks();
+    await timeOut();
+    await pass(PICK_GAP_MS + PICK_MS);
+    expect(await timeouts()).toEqual([{ teamId: teams[0], count: 3, autoPick: "atOnce" }]);
+
+    await undo();
+    expect(await timeouts()).toEqual([{ teamId: teams[0], count: 2, autoPick: "fullClock" }]);
+    await pass(PICK_MS - 1);
+    expect(await picked()).toHaveLength(4);
+    await pass(1);
+    expect(await picked()).toHaveLength(5);
+    expect(await timeouts()).toEqual([{ teamId: teams[0], count: 3, autoPick: "atOnce" }]);
+  });
+
+  test("keeps the auto-pick he has since turned on himself, and the put-back pick is no timeout", async () => {
+    await setRules(1);
+    await start();
+    await pass(PICK_MS);
+    await (await as(ANN)).mutation(api.draft.autoPickSwitch.takeControlBack, { leagueId });
+    await (await as(ANN)).mutation(api.draft.autoPickSwitch.turnOn, { leagueId });
+
+    await undo();
+    expect(await timeouts()).toEqual([{ teamId: teams[0], count: 0, autoPick: "chosen" }]);
+    await pass(PICK_MS);
+    expect(await picked()).toHaveLength(1);
+    expect(await timeouts()).toEqual([{ teamId: teams[0], count: 0, autoPick: "chosen" }]);
+  });
+});

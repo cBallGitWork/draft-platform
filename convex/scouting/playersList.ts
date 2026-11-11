@@ -2,12 +2,15 @@ import { v, type Infer } from "convex/values";
 import type { Doc, Id } from "../_generated/dataModel";
 import { query, type QueryCtx } from "../_generated/server";
 import { MOST_IN_SQUAD, MOST_TEAMS } from "../leagues/leagueLimits";
-import { positionsNow } from "../positions/playerPositions";
+import { positionsFrom } from "../positions/playerPositions";
+import { howPositionsCount } from "../positions/positionSettings";
 import { clubRecord, position } from "../schema";
 import { takeAllOrThrow } from "../shared/cappedRead";
 import { memberOf, teamsOf } from "../shared/leagueAccess";
-import { clubOf, currentClubs, currentPlayersAt, playerByCode } from "../shared/players";
+import { clubOf, currentClubs, currentPlayersAt } from "../shared/players";
+import { newestSeasonWithTotals } from "../stats/seasonStats";
 import type { Stats } from "../stats/statTotals";
+import { checkScoutingPlayersHeld, currentScoutingPlayersAt, scoutingPlayerByCode, type ScoutingPlayer } from "./scoutingPlayers";
 import { periodPointsIn, periodTotals } from "./period";
 import { period } from "./periods";
 import { listFigures, shownStat } from "./playersOrder";
@@ -16,9 +19,8 @@ import { withOwnStats } from "../scoring/ownStats";
 import type { StoredScoringSet } from "../scoring/scoringSetShape";
 import { setOf, siteVersions } from "../scoring/siteVersions";
 import { CATALOGUE_STATS } from "../scoring/statCatalogue";
-import { latestRules } from "../rules/rulesHistory";
-import { WAIVER_PLAYERS_READ_MOST } from "../waivers/waiverRun";
-import { firstRunFrom } from "../waivers/waiverTimes";
+import { firstRunsIn, runAhead, type RunAhead } from "../waivers/waiverLock";
+import { WAIVER_PLAYERS_READ_MOST } from "../waivers/waiverPlayers";
 
 // Scouting's players list (spec/19, The players list; #373): every Premier League player now, for
 // anyone in the league, whole, so the screen never holds a cut list; the browser filters and sorts
@@ -35,9 +37,11 @@ import { firstRunFrom } from "../waivers/waiverTimes";
 // The figures, the shown stat and the Pts column follow the list's period (period.ts; #1028, story
 // 3): the season, or the last 4 or 6 finished gameweeks. His season points stay beside them, for
 // his panel.
+// Each player is read from his one Scouting row (scoutingPlayers.ts, #1559): his name, club,
+// what his positions are worked out from by the league's settings, and his season's totals.
 
 /** The most players the list reads: the Premier League's 20 squads as FPL lists them, a few dozen
- *  a club, with room. Each costs one read of his positions row, so a full list stays far inside a
+ *  a club, with room. Each costs one read of his Scouting row, so a full list stays far inside a
  *  query's read limits. More throws, never a silent cut. */
 export const LISTED_PLAYERS_MOST = 1200;
 
@@ -78,9 +82,10 @@ const listedPlayer = v.object({
   positions: v.array(position),
   /** The team in this league that owns him, or null for nobody's. */
   ownerTeamName: v.union(v.string(), v.null()),
-  /** While he is on waivers (spec/08), the run that can first take him, or null with no run times
-   *  set (Craig, 6 Nov 2026, on #1200: "Show the run's day and time"); null when he isn't. */
-  onWaivers: v.union(v.object({ firstRunAt: v.union(v.number(), v.null()) }), v.null()),
+  /** While he is on waivers (spec/08), from when a run may take him; null when he isn't. The run
+   *  that can first take him moves with the clock, which this list doesn't take, so the browser
+   *  asks it of `firstRuns` and adds it (`ListedPlayer`, #1467). */
+  onWaivers: v.union(v.object({ claimableFrom: v.number() }), v.null()),
   /** His points this season under the site's scoring, as his card adds them up in this league
    *  (seasonPoints.ts), or null ("—") while none of his matches is priced; before the new season's
    *  first match, last season's, null for a newcomer (shownSeasonPoints.ts). */
@@ -94,7 +99,12 @@ const listedPlayer = v.object({
   /** His total of the shown stat over the period, 0 if he hasn't played; null with no stat shown. */
   stat: v.union(v.number(), v.null()),
 });
-export type ListedPlayer = Infer<typeof listedPlayer>;
+/** A player's row as the server sends it. */
+export type ListedRow = Infer<typeof listedPlayer>;
+/** A player's row as the screens show it: on waivers, with the run that can first take him, still
+ *  to come, or null with no run times set (Craig, 6 Nov 2026, on #1200: "Show the run's day and
+ *  time"). */
+export type ListedPlayer = Omit<ListedRow, "onWaivers"> & { onWaivers: { firstRun: RunAhead | null } | null };
 
 /** One of the site set's own stats (spec/14, Own stats), as the stat box offers it. */
 const offeredOwnStat = v.object({ stat: v.string(), name: v.string(), shortCode: v.string() });
@@ -116,7 +126,10 @@ const playersList = v.object({
    *  he is no longer a Premier League player. Left out when none is asked. */
   kept: v.optional(v.union(listedPlayer, v.null())),
 });
-export type PlayersList = Infer<typeof playersList>;
+/** The list as the server sends it. */
+export type ListedRows = Infer<typeof playersList>;
+/** The list as the screens show it, each on waivers with the run that can first take him. */
+export type PlayersList = Omit<ListedRows, "players" | "kept"> & { players: ListedPlayer[]; kept?: ListedPlayer | null };
 
 /** Every club now, and every current player (only `clubCode`'s when one is chosen, null for every
  *  club), each with his figures over `period` (the season when left out) and his total there of
@@ -129,25 +142,30 @@ export type PlayersList = Infer<typeof playersList>;
 export const list = query({
   args: { leagueId: v.id("leagues"), clubCode: v.union(v.number(), v.null()), stat: v.union(v.string(), v.null()), period: v.optional(period), keep: v.optional(v.number()) },
   returns: playersList,
-  handler: async (ctx, { leagueId, clubCode, stat, period = "season", keep }): Promise<PlayersList> => {
+  handler: async (ctx, { leagueId, clubCode, stat, period = "season", keep }): Promise<ListedRows> => {
     await memberOf(ctx, leagueId);
     const set = setOf((await siteVersions(ctx)).at(-1));
     const ownStats = (set.ownStats ?? []).map(({ stat, name, shortCode }) => ({ stat, name, shortCode }));
     if (stat !== null) checkShownStat(stat, ownStats);
     const clubs = (await currentClubs(ctx)).sort((one, other) => one.name.localeCompare(other.name));
     const listedClubs = clubCode === null ? clubs : clubs.filter((each) => each.code === clubCode);
-    const players = await currentPlayersOf(ctx, listedClubs);
+    const players = await currentScoutingPlayersOf(ctx, listedClubs);
+    if (players.length === 0) await checkScoutingPlayersHeld(ctx);
     const ownerOf = await ownersIn(ctx, leagueId);
     const onWaiversOf = await onWaiversIn(ctx, leagueId);
-    const positionsOfNow = await positionsNow(ctx, leagueId);
+    const how = await howPositionsCount(ctx, leagueId);
     const { lastSeason, pointsOf } = await shownSeasonPoints(ctx, leagueId);
-    const over = await periodTotals(ctx, period);
-    const { totals } = over;
-    const periodPointsOf = period === "season" ? pointsOf : await periodPointsIn(ctx, leagueId, over);
+    // The season's totals are on each player's row; a few gameweeks' are added up from their matches.
+    const over = period === "season" ? null : await periodTotals(ctx, period);
+    const season = over === null ? await newestSeasonWithTotals(ctx) : null;
+    const totalsOf = (player: ScoutingPlayer): Stats | undefined =>
+      over === null ? (player.totals?.season === season ? player.totals.stats : undefined) : over.totals.get(player.code);
+    const periodPointsOf = over === null ? pointsOf : await periodPointsIn(ctx, leagueId, over);
     const listedClubOf = new Map(clubs.map((each) => [each.code, clubOf(each)]));
 
-    const rowOf = async (player: Doc<"players">): Promise<ListedPlayer> => {
-      const positions = await positionsOfNow(player.code);
+    const rowOf = (player: ScoutingPlayer): ListedRow => {
+      const positions = positionsFrom(player.positions, how).positions.map(({ position }) => position);
+      const totals = totalsOf(player);
       return {
         code: player.code,
         name: player.name,
@@ -158,12 +176,12 @@ export const list = query({
         onWaivers: onWaiversOf.get(player.code) ?? null,
         seasonPoints: pointsOf(player.code, positions),
         points: periodPointsOf(player.code, positions),
-        figures: listFigures(totals.get(player.code)),
-        stat: shownStat(withOwnTotals(totals.get(player.code), stat, set), stat),
+        figures: listFigures(totals),
+        stat: shownStat(withOwnTotals(totals, stat, set), stat),
       };
     };
-    const rows = await Promise.all(players.map(rowOf));
-    const listed = { clubs: [...listedClubOf.values()], ownStats, players: rows, pointsSeason: lastSeason, periodGameweeks: over.gameweeks };
+    const rows = players.map(rowOf);
+    const listed = { clubs: [...listedClubOf.values()], ownStats, players: rows, pointsSeason: lastSeason, periodGameweeks: over?.gameweeks ?? [] };
     if (keep === undefined) return listed;
     const kept = rows.find(({ code }) => code === keep) ?? (await keptOutside(ctx, keep, listedClubOf, rowOf));
     return { ...listed, kept };
@@ -176,9 +194,9 @@ async function keptOutside(
   ctx: QueryCtx,
   code: number,
   clubs: ReadonlyMap<number, unknown>,
-  rowOf: (player: Doc<"players">) => Promise<ListedPlayer>,
-): Promise<ListedPlayer | null> {
-  const player = await playerByCode(ctx, code);
+  rowOf: (player: ScoutingPlayer) => ListedRow,
+): Promise<ListedRow | null> {
+  const player = await scoutingPlayerByCode(ctx, code);
   if (player === null || player.droppedAt !== undefined || !clubs.has(player.clubCode)) return null;
   return rowOf(player);
 }
@@ -199,7 +217,15 @@ export function withOwnTotals(totals: Stats | undefined, stat: string | null, se
 
 /** The current players at these clubs, at most LISTED_PLAYERS_MOST of them. */
 export async function currentPlayersOf(ctx: QueryCtx, clubs: readonly Doc<"clubs">[]): Promise<Doc<"players">[]> {
-  const players = (await Promise.all(clubs.map((each) => currentPlayersAt(ctx, each.code)))).flat();
+  return listedAtMost((await Promise.all(clubs.map((each) => currentPlayersAt(ctx, each.code)))).flat());
+}
+
+/** The Scouting rows of the current players at these clubs, at most LISTED_PLAYERS_MOST of them. */
+async function currentScoutingPlayersOf(ctx: QueryCtx, clubs: readonly Doc<"clubs">[]): Promise<ScoutingPlayer[]> {
+  return listedAtMost((await Promise.all(clubs.map((each) => currentScoutingPlayersAt(ctx, each.code)))).flat());
+}
+
+function listedAtMost<Player>(players: Player[]): Player[] {
   if (players.length > LISTED_PLAYERS_MOST) {
     throw new Error(`More than ${LISTED_PLAYERS_MOST} players are held as current, so the list would be cut short`);
   }
@@ -217,13 +243,28 @@ async function ownersIn(ctx: QueryCtx, leagueId: Id<"leagues">): Promise<Map<num
   return new Map(owned.map((row) => [row.playerCode, teamName.get(row.teamId)!]));
 }
 
-/** Each player on the league's waivers, by his code, with the run that can first take him. */
-async function onWaiversIn(ctx: QueryCtx, leagueId: Id<"leagues">): Promise<Map<number, { firstRunAt: number | null }>> {
-  const runs = (await latestRules(ctx, leagueId)).waivers.runs;
+/** Each player on the league's waivers, by his code, with from when a run may take him. */
+async function onWaiversIn(ctx: QueryCtx, leagueId: Id<"leagues">): Promise<Map<number, { claimableFrom: number }>> {
   const onWaivers = await takeAllOrThrow(
     ctx.db.query("waiverPlayers").withIndex("by_leagueId_and_playerCode", (q) => q.eq("leagueId", leagueId)),
     WAIVER_PLAYERS_READ_MOST,
     `More than ${WAIVER_PLAYERS_READ_MOST} players are on waivers in league ${leagueId}, so the list would be cut short`,
   );
-  return new Map(onWaivers.map((row) => [row.playerCode, { firstRunAt: firstRunFrom(runs, row.claimableFrom) }]));
+  return new Map(onWaivers.map((row) => [row.playerCode, { claimableFrom: row.claimableFrom }]));
 }
+
+const firstRunOfPlayer = v.object({ playerCode: v.number(), firstRun: v.union(runAhead, v.null()) });
+export type FirstRunOfPlayer = Infer<typeof firstRunOfPlayer>;
+
+/** Each player on the league's waivers at `now` with the run that can first take him, still to
+ *  come, and the gameweek whose lock it may fall in (#1467), for the list's rows. A query of its
+ *  own, so the minute never reads the list again. Anyone not in the league is refused. */
+export const firstRuns = query({
+  args: { leagueId: v.id("leagues"), now: v.number() },
+  returns: v.array(firstRunOfPlayer),
+  handler: async (ctx, { leagueId, now }): Promise<FirstRunOfPlayer[]> => {
+    await memberOf(ctx, leagueId);
+    const firstRunOf = await firstRunsIn(ctx, leagueId, now);
+    return [...(await onWaiversIn(ctx, leagueId))].map(([playerCode, { claimableFrom }]) => ({ playerCode, firstRun: firstRunOf(claimableFrom) }));
+  },
+});

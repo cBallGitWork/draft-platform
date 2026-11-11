@@ -25,7 +25,7 @@ const newPart = () => ({ stat: CATALOGUE_BY_NAME[0].stat, weight: 1 });
 /** Why an own stat as typed can't be made yet, or null: what the server would refuse as no reason
  *  the admin can act on (a weight left without a number), or refuse anyway (no name). That a name
  *  or short code is a catalogue stat's the server says when the set is saved. */
-export function ownStatProblem(made: OwnStatMade): string | null {
+function ownStatProblem(made: OwnStatMade): string | null {
   if (made.name.trim() === "") return ownStatProblemWords.name;
   if (made.shortCode.trim() === "") return ownStatProblemWords.shortCode;
   if (made.parts.length === 0) return ownStatProblemWords.parts;

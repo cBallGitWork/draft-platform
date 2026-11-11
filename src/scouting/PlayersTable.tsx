@@ -19,7 +19,7 @@ import {
   notLastSeasonWords,
   onWaiversWords,
   periodColumns,
-  seasonPointsColumn,
+  seasonColumns,
   selectPlayerLabel,
   shortlistedLabel,
   statLabel,
@@ -82,7 +82,7 @@ export function PlayersTable({
   return (
     <table className="w-full border-collapse">
       <ColumnHeads
-        columns={{ ...columns, points: seasonPointsColumn(pointsSeason), ...periodColumns(period, periodGameweeks), stat: statHead(stat) }}
+        columns={{ ...columns, ...seasonColumns(pointsSeason), ...periodColumns(period, periodGameweeks), stat: statHead(stat) }}
         shown={shown}
         classOf={cellClasses}
         sort={{ ...sort, sortable: SORTABLE, sortBy }}
@@ -157,7 +157,7 @@ function PlayerCell({
     case "owner":
       return (
         <td className={className}>
-          {player.onWaivers === null ? <OwnerName teamName={player.ownerTeamName} /> : onWaiversWords(player.onWaivers.firstRunAt)}
+          {player.onWaivers === null ? <OwnerName teamName={player.ownerTeamName} /> : onWaiversWords(player.onWaivers.firstRun)}
         </td>
       );
     case "points":

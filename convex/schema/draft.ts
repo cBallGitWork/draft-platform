@@ -111,8 +111,9 @@ export const draftTables = {
     .index("by_leagueId", ["leagueId"]),
   /** A pick made in a league's draft (spec/04, The picks; #1090): its number, from 1, the team that
    *  made it and the player it took. ../draft/draftPicks.ts writes it, with his squad row. `timeout`
-   *  marks a pick the draft made when a managed team's clock ran out, and whether that timeout put
-   *  the team on auto-pick, so the commissioner's undo (#1095) can take the timeout back off. `auto`
+   *  marks a pick the draft made when a managed team's clock ran out, whether that timeout put the
+   *  team on auto-pick, and `movedToAtOnce` when it moved the team from its full-clock pick there to
+   *  "at once" (#1463), so the commissioner's undo (#1095) can put both back. `auto`
    *  marks every pick the draft made for a team (#1100), which the board shows; picks made before
    *  #1100 lack it, and there `timeout` alone marks one. `positions` are the player's when he was
    *  drafted, which the rest of the draft counts him at, a change since showing only after it
@@ -126,7 +127,7 @@ export const draftTables = {
     teamId: v.id("teams"),
     playerCode: v.number(),
     at: v.number(),
-    timeout: v.optional(v.object({ putOnAutoPick: v.boolean() })),
+    timeout: v.optional(v.object({ putOnAutoPick: v.boolean(), movedToAtOnce: v.optional(v.literal(true)) })),
     auto: v.optional(v.literal(true)),
     positions: v.optional(v.array(position)),
     own: v.optional(v.object({ leftMs: v.number() })),

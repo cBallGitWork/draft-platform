@@ -2,6 +2,9 @@ import { beforeEach, describe, expect, test } from "vitest";
 import { api } from "../../../convex/_generated/api";
 import { shortlistedClearedLetter, shortlistedDroppedLetter } from "../../../convex/scouting/shortlistWords";
 import { DAY_MS } from "../../../convex/shared/time";
+import { MOST_TEAMS } from "../../../convex/leagues/leagueLimits";
+import { CLEARED_READ_ONE_BY_ONE_MOST, SHORTLIST_MOST } from "../../../convex/scouting/shortlist";
+import { playerLeaves } from "../../support/convex/draftLists.harness";
 import { actingAs } from "../../support/convex/leagues.harness";
 import { nameOf } from "../../support/convex/lineupSquad.harness";
 import { ANN, ANNS_FIRST_DROP, BOB, CAT, PALMER, RICE, SAKA, waiverLeague, type WaiverLeague } from "../../support/convex/waivers.harness";
@@ -19,7 +22,7 @@ const shortlist = async (email: string, codes: readonly number[]) => {
   const manager = await actingAs(w.t, email);
   for (const playerCode of codes) await manager.mutation(api.scouting.shortlist.add, { leagueId: w.leagueId, playerCode });
 };
-const drop = async (email: string, playerCode: number) => (await actingAs(w.t, email)).mutation(api.waivers.waivers.drop, { leagueId: w.leagueId, playerCode });
+const drop = (email: string, playerCode: number) => w.drop(email, playerCode);
 const dropped = (toWaivers: boolean, who: string, playerCode = ANNS_FIRST_DROP, teamName = "Team 1") =>
   shortlistedDroppedLetter({ playerName: nameOf(playerCode), teamName, toWaivers }, who);
 const shortlistLettersTo = async (email: string) => (await w.lettersTo(email)).filter(({ subject }) => subject.includes("on your shortlist"));
@@ -64,7 +67,7 @@ describe("a shortlisted player dropped for a free agent", () => {
   test("the shortlisting manager is told, as for any drop", async () => {
     await w.runWaivers();
     await shortlist(BOB, [ANNS_FIRST_DROP]);
-    await (await actingAs(w.t, ANN)).mutation(api.waivers.freeAgents.pickUp, { leagueId: w.leagueId, playerCode: SAKA, dropCode: ANNS_FIRST_DROP });
+    await w.pickUp(ANN, SAKA, ANNS_FIRST_DROP);
 
     expect(await shortlistLettersTo(BOB)).toEqual([dropped(true, ANN)]);
   });
@@ -95,6 +98,51 @@ describe("shortlisted players clearing waivers", () => {
         body: `Nobody claimed ${nameOf(SAKA)} at the waiver run. He is a free agent, first come first served, and on your shortlist.`,
       },
     ]);
+  });
+
+  test("a player who has left the Premier League comes off waivers but isn't named a free agent (#1469)", async () => {
+    await w.onWaivers([SAKA, PALMER]);
+    await shortlist(BOB, [SAKA, PALMER]);
+    await w.claim(CAT, SAKA);
+    await playerLeaves(w.t, SAKA);
+    await w.runWaivers();
+
+    expect(await shortlistLettersTo(BOB)).toEqual([shortlistedClearedLetter([nameOf(PALMER)])]);
+    expect(await w.stateOf(SAKA)).not.toMatchObject({ kind: "onWaivers" });
+  });
+
+  test("a shortlist holding only players who have left gets no cleared letter (#1469)", async () => {
+    await w.onWaivers([SAKA]);
+    await shortlist(BOB, [SAKA]);
+    await playerLeaves(w.t, SAKA);
+    await w.runWaivers();
+
+    expect(await shortlistLettersTo(BOB)).toEqual([]);
+  });
+
+  // Codes no real player has, for shortlist rows and waiver rows beside the ones a test names.
+  const otherCodes = (count: number) => Array.from({ length: count }, (_, index) => 900_000 + index);
+
+  test("only the cleared players' shortlist rows are read, however many the league holds (#1568)", async () => {
+    // More rows than the league-wide read may take, so reading them all would throw.
+    const rows = otherCodes(MOST_TEAMS * SHORTLIST_MOST + 1);
+    await w.t.run(async (ctx) => {
+      for (const playerCode of rows) await ctx.db.insert("shortlistPlayers", { leagueId: w.leagueId, teamId: w.bobsTeam, playerCode });
+    });
+    await w.onWaivers([SAKA]);
+    await shortlist(CAT, [SAKA]);
+    await w.runWaivers();
+
+    expect(await shortlistLettersTo(CAT)).toEqual([shortlistedClearedLetter([nameOf(SAKA)])]);
+  });
+
+  test("a run clearing more players than are read one by one files the same letters (#1568)", async () => {
+    await w.onWaivers([SAKA, PALMER, ...otherCodes(CLEARED_READ_ONE_BY_ONE_MOST)]);
+    await shortlist(BOB, [SAKA, PALMER]);
+    await w.runWaivers();
+
+    const names = [nameOf(SAKA), nameOf(PALMER)].sort((one, other) => one.localeCompare(other));
+    expect(await shortlistLettersTo(BOB)).toEqual([shortlistedClearedLetter(names)]);
   });
 
   test("a player whose 24 hours aren't up hasn't cleared: no letter", async () => {

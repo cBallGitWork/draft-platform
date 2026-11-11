@@ -27,7 +27,7 @@ export type ScoringVersion = {
 export type PatchGameweek = { gameweek: number; takesEffectAt: number };
 
 /** The admin's draft patch as saved, and when. */
-export type SavedDraft = { part: Scoring; savedAt: number };
+type SavedDraft = { part: Scoring; savedAt: number };
 
 /** The site's scoring set, the version it is, the gameweek a change saved now would take effect
  *  from, and whether the reader may change it: only the admin may. Every version, oldest first;

@@ -7,6 +7,7 @@ import { changeEveryRules, holdGameweeks } from "../../support/convex/leagueRule
 import { actingAs, addManagers, adminCreatesLeague, COMMISSIONER, MANAGERS, type TestConvex } from "../../support/convex/leagues.harness";
 import { pickGapPasses } from "../../support/convex/pickWindow.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
+import { waiverStateOf } from "../../support/convex/waivers.harness";
 
 // The players nobody drafts (#1197; spec/04, The picks, and spec/08): on waivers for the next run
 // once the draft is over when the league's draft setting says waivers, its default, or straight
@@ -47,7 +48,7 @@ async function draftLeaving(goTo: UndraftedGoTo, beforeStart?: () => Promise<voi
   await pickGapPasses(t);
 }
 
-const stateOf = async (playerCode: number) => (await actingAs(t, ANN)).query(api.waivers.waivers.stateOf, { leagueId, playerCode });
+const stateOf = (playerCode: number) => waiverStateOf(t, leagueId, playerCode, ANN);
 
 test("go on waivers for the next run when the league's setting says waivers", async () => {
   await draftLeaving("waivers");

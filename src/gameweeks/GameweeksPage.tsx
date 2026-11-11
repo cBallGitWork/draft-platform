@@ -23,7 +23,7 @@ import {
 const cellClasses = "px-2 text-left align-middle";
 
 /** The commissioner's gameweeks (spec/13, Gameweeks): a tick for each one the league plays, all
- *  38 by default, until it begins. Each tick is sent as it's made; the server says why one wasn't. */
+ *  of its season's by default (#1618), until it begins. Each tick is sent as it's made; the server says why one wasn't. */
 export function GameweeksPage({ league, view }: { league: LeagueSummary; view: LeagueGameweeksView }) {
   const { gameweeks, setUsed } = view;
   /** Which gameweek's tick is waiting on the server; useChange's own busy can't say which row. */
@@ -36,7 +36,7 @@ export function GameweeksPage({ league, view }: { league: LeagueSummary; view: L
     setSending(null);
   }
 
-  const plays = playsWords(league.name);
+  const plays = playsWords(league.name, gameweeks?.length ?? 0);
   return (
     <PageSection title={GAMEWEEKS_TITLE} className="max-w-3xl bg-panel">
       <div className="flex flex-col gap-2 px-3 py-2">

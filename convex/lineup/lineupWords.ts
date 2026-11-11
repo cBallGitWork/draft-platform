@@ -9,9 +9,6 @@ import { BACK_THREE, roleName } from "./roles";
 /** A player's name, by his code. */
 export type NameOf = (playerCode: number) => string;
 
-/** A player the app holds no row for, which only one who left long ago can be. */
-export const unknownPlayerWords = (playerCode: number) => `Player ${playerCode}`;
-
 const isNot = (names: readonly string[]) => (names.length === 1 ? "isn't" : "aren't");
 
 /** Why a lineup can't be saved, as the manager is told it. */

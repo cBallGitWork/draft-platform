@@ -1,10 +1,10 @@
 import { beforeEach, expect, test } from "vitest";
-import { api } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
 import type { Position } from "../../../convex/positions/positionTables";
 import { MANAGERS, actingAs, addManagers, adminCreatesLeague, teamName, type TestConvex } from "../../support/convex/leagues.harness";
 import { ARSENAL, CHELSEA, GONE, SAKA, insertClubs, insertDroppedPlayer, insertPlayers } from "../../support/convex/footballRows.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
+import { serverList } from "../../support/convex/playersList.harness";
 
 // Scouting's players list keeps the selected player (#1551): asked with his code, it returns his
 // row whatever club is chosen, so his panel follows a pickup, a claim or a drop that takes him out
@@ -34,7 +34,7 @@ beforeEach(async () => {
 
 /** The list as Ann reads it for one club (null for every club), keeping the player with `keep` when given. */
 const listAs = async (clubCode: number | null, keep?: number) =>
-  (await actingAs(t, ANN)).query(api.scouting.playersList.list, { leagueId, clubCode, stat: null, keep });
+  serverList(await actingAs(t, ANN), { leagueId, clubCode, stat: null, keep });
 const rowIn = async (code: number) => (await listAs(null)).players.find((player) => player.code === code);
 
 test("none is asked: there is no kept row", async () => {
