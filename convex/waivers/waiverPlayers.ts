@@ -20,6 +20,20 @@ export function waiverRowOf(ctx: QueryCtx, leagueId: Id<"leagues">, playerCode: 
     .unique();
 }
 
+/** The most players on waivers in one league one read takes: Claude's sizing, far above a week's
+ *  drops and new Premier League players, and above the whole Premier League for those put back at
+ *  a deadline (#1478). Past it a read throws rather than leave some out. */
+export const WAIVER_PLAYERS_READ_MOST = 2000;
+
+/** Every player on the league's waivers, read at once. */
+export function waiverRowsIn(ctx: QueryCtx, leagueId: Id<"leagues">): Promise<Doc<"waiverPlayers">[]> {
+  return takeAllOrThrow(
+    ctx.db.query("waiverPlayers").withIndex("by_leagueId_and_playerCode", (q) => q.eq("leagueId", leagueId)),
+    WAIVER_PLAYERS_READ_MOST,
+    `League ${leagueId} has more than ${WAIVER_PLAYERS_READ_MOST} players on waivers, so they can't all be read`,
+  );
+}
+
 /** Puts the player on the league's waivers, a run taking him from `claimableFrom`, in place of
  *  any time he had there. */
 export async function putOnWaivers(ctx: MutationCtx, leagueId: Id<"leagues">, playerCode: number, claimableFrom: number): Promise<void> {

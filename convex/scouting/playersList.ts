@@ -20,7 +20,7 @@ import type { StoredScoringSet } from "../scoring/scoringSetShape";
 import { setOf, siteVersions } from "../scoring/siteVersions";
 import { CATALOGUE_STATS } from "../scoring/statCatalogue";
 import { latestRules } from "../rules/rulesHistory";
-import { WAIVER_PLAYERS_READ_MOST } from "../waivers/waiverRun";
+import { WAIVER_PLAYERS_READ_MOST } from "../waivers/waiverPlayers";
 import { firstRunFrom } from "../waivers/waiverTimes";
 
 // Scouting's players list (spec/19, The players list; #373): every Premier League player now, for
