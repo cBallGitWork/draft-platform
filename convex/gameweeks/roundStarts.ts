@@ -1,4 +1,5 @@
 import type { MutationCtx, QueryCtx } from "../_generated/server";
+import { takeAllOrThrow } from "../shared/cappedRead";
 import { seasonStartYear } from "../shared/time";
 import type { ScheduledMatch } from "./deadline";
 import { firstKickoffs } from "./gameweekStarts";
@@ -14,8 +15,8 @@ import { firstKickoffs } from "./gameweekStarts";
 // The deadline still follows the gameweek's first kickoff as it stands (spec/03, deadline.ts): only
 // the windows' dates stay as first scheduled.
 
-/** More rounds than any season has, so a read never cuts one off. */
-const ROUNDS_READ_MOST = 100;
+/** More rounds than any season has: a read past it throws rather than cut one off. */
+export const ROUNDS_READ_MOST = 100;
 
 /** Matches by the season their kickoff falls in; one with no kickoff time is in none. */
 function bySeason<Match extends ScheduledMatch>(matches: readonly Match[]): Map<number, Match[]> {
@@ -30,10 +31,11 @@ function bySeason<Match extends ScheduledMatch>(matches: readonly Match[]): Map<
 
 /** Each recorded round's first kickoff in `season`, by round. */
 export async function roundStartsOf(ctx: QueryCtx, season: number): Promise<Map<number, number>> {
-  const rows = await ctx.db
-    .query("roundStarts")
-    .withIndex("by_season_and_round", (q) => q.eq("season", season))
-    .take(ROUNDS_READ_MOST);
+  const rows = await takeAllOrThrow(
+    ctx.db.query("roundStarts").withIndex("by_season_and_round", (q) => q.eq("season", season)),
+    ROUNDS_READ_MOST,
+    `More than ${ROUNDS_READ_MOST} round starts are held for one season, so its latest rounds' first kickoffs would be lost`,
+  );
   return new Map(rows.map((row) => [row.round, row.firstKickoff]));
 }
 
