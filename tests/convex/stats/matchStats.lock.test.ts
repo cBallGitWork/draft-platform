@@ -46,6 +46,43 @@ test("a match's lock asks for its players' stars to be worked out again (#11)", 
   expect((await pendingJobs(t, internal.stars.starsRefresh.refreshMatch)).map((job) => job.args[0])).toEqual([{ fixtureCode: HULL_EVERTON }]);
 });
 
+/** Another match in Hull v Everton's gameweek, locked or still to play: added after the full-time
+ *  read, which would otherwise try to read it from the recorded feeds that don't hold it. */
+const OTHER_MATCH = 999_002;
+async function withOtherMatch(t: TestConvex, locked: boolean) {
+  await t.run(async (ctx) => {
+    await ctx.db.insert("fixtures", { code: OTHER_MATCH, gameweek: GAMEWEEK, homeClubCode: 901, awayClubCode: 902, kickoff: KICKOFF });
+    if (locked) await ctx.db.insert("matchStatsStatus", { fixtureCode: OTHER_MATCH, state: "locked", fullTimeAt: KICKOFF, lockedAt: KICKOFF, lastReadAt: KICKOFF });
+  });
+}
+
+// #1547: a Saturday's earlier locks would only have every league walk its season for nothing.
+test("a lock with another match in its gameweek still to lock asks no league to store, though its stars are still asked for", async () => {
+  const t = await withHullEverton();
+  await syncAt(t, FULL_TIME_READ, recordedGw6());
+  await withOtherMatch(t, false);
+
+  vi.advanceTimersByTime(HOUR_MS);
+  await t.finishInProgressScheduledFunctions();
+
+  expect((await heldMatch(t)).status).toMatchObject({ state: "locked" });
+  expect(await pendingJobs(t, internal.table.finalScores.storeEveryLeague)).toHaveLength(0);
+  expect(await pendingJobs(t, internal.stats.teamSeasonStats.storeEveryLeague)).toHaveLength(0);
+  expect(await pendingJobs(t, internal.stars.starsRefresh.refreshMatch)).toHaveLength(1);
+});
+
+test("the gameweek's last match to lock asks the table and the stat race to store, once each", async () => {
+  const t = await withHullEverton();
+  await syncAt(t, FULL_TIME_READ, recordedGw6());
+  await withOtherMatch(t, true);
+
+  vi.advanceTimersByTime(HOUR_MS);
+  await t.finishInProgressScheduledFunctions();
+
+  expect(await pendingJobs(t, internal.table.finalScores.storeEveryLeague)).toHaveLength(1);
+  expect(await pendingJobs(t, internal.stats.teamSeasonStats.storeEveryLeague)).toHaveLength(1);
+});
+
 test("a match read every ten minutes still locks an hour after the first read found full time", async () => {
   const t = await withHullEverton();
   const readEvery = 10 * MINUTE_MS;
