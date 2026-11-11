@@ -18,7 +18,7 @@ import { shownLine } from "../matchup/vidiprinter";
 import { leagueRulesShape } from "../rules/leagueRulesShape";
 import { pinnedLetter } from "../schema";
 import { tradedSide } from "../schema/squads";
-import { isListedMove, LISTED_MOVES, newestFirst } from "../squads/squadPlace";
+import { isListedMove, LISTED_MOVES, newestFirst, playerMoveKind } from "../squads/squadPlace";
 import { statusOf } from "../stats/matchStats";
 import { logFailure } from "../shared/errors";
 import { memberOf } from "../shared/leagueAccess";
@@ -56,7 +56,7 @@ const homeRow = v.object({
 
 const playerMove = v.object({
   at: v.number(),
-  kind: v.union(...LISTED_MOVES.flatMap((kind) => (kind === "tradeMade" ? [] : [v.literal(kind)]))),
+  kind: playerMoveKind,
   playerName: v.string(),
   teamName: v.string(),
   /** The team he left, on a move; null otherwise. */

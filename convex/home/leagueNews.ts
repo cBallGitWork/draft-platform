@@ -5,7 +5,7 @@ import { pinnedLetter } from "../schema";
 import { takeAllOrThrow, takeShown } from "../shared/cappedRead";
 import { memberOf, teamsOf } from "../shared/leagueAccess";
 import { tradedSide } from "../schema/squads";
-import { isListedMove, LISTED_MOVES, newestFirst } from "../squads/squadPlace";
+import { isListedMove, LISTED_MOVES, newestFirst, playerMoveKind } from "../squads/squadPlace";
 
 // League home's News tab (#1356; spec/12, League home; docs/design/approved/home/, The News tab):
 // every team's completed moves, newest first, over the whole season, from the squad events Mail and
@@ -39,7 +39,7 @@ const playerNewsMove = v.object({
   at: v.number(),
   /** When it was filed, which orders two moves at the same instant. */
   filed: v.number(),
-  kind: v.union(...LISTED_MOVES.flatMap((kind) => (kind === "tradeMade" ? [] : [v.literal(kind)]))),
+  kind: playerMoveKind,
   teamId: v.id("teams"),
   teamName: v.string(),
   /** The player who joined the team, if one did. */

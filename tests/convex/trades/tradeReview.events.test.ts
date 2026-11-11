@@ -4,8 +4,9 @@ import { nameOf } from "../../support/convex/lineupSquad.harness";
 import { ANN, ANNS_FIRST_DROP, BOB, PALMER, SAKA, tradeLeague, type TradeLeague } from "../../support/convex/trades.harness";
 
 // What a trade that goes through files (#1491): the trade as one `tradeMade`, which the screens
-// list, and each of its players as a `playerTraded`, which the squads' history reads; never a
-// commissioner's `playerMoved`, which reads as a move he made.
+// list (My team's Transactions holds the team's trades, `S12.5`), and each of its players as a
+// `playerTraded`, which the squads' history reads; never a commissioner's `playerMoved`, which
+// reads as a move he made.
 
 let w: TradeLeague;
 beforeEach(async () => {

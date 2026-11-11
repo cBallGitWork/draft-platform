@@ -44,6 +44,8 @@ export const SQUAD_MOVES = ["playerAssigned", "playerMoved", "playerReleased", "
  *  its News tab): every squad move but a trade's players, and each trade as one (#1491). */
 export const LISTED_MOVES = ["playerAssigned", "playerMoved", "playerReleased", "playerDropped", "playerClaimed", "playerPickedUp", "tradeMade"] as const;
 export type ListedKind = (typeof LISTED_MOVES)[number];
+/** A listed move of one player: any but a trade, which the screens list with both its sides. */
+export const playerMoveKind = v.union(...LISTED_MOVES.flatMap((kind) => (kind === "tradeMade" ? [] : [v.literal(kind)])));
 
 /** Whether the move took a player off his team for no other: a release or a drop. */
 const isLeaving = (kind: (typeof SQUAD_MOVES)[number]) => kind === "playerReleased" || kind === "playerDropped";
