@@ -15,6 +15,7 @@ import type { Stats } from "../stats/statTotals";
 import { heldOrNot, squadOf, unheldCodes } from "./squadPlace";
 import { shirtNumber } from "./squadNumbers";
 import { latestRules } from "../rules/rulesHistory";
+import { squadMaximumOf } from "../rules/squadMaximums";
 import { NEXT_MATCHES_SHOWN, squadLimit, squadLimits } from "./squadLimits";
 import { scheduledMatch, sidesOf, squadSchedule } from "./squadSchedule";
 
@@ -220,7 +221,7 @@ export const ofMyTeam = query({
       lastGameweek,
       players: rows,
       unheld,
-      squadMaximum: rules?.squad.size?.maximum ?? null,
+      squadMaximum: squadMaximumOf(rules),
       scheduleGameweeks: schedule.gameweeks,
       limits: squadLimits(rows, unheld.length, rules?.squad ?? null),
     };
