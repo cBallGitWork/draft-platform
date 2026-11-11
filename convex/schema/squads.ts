@@ -36,7 +36,7 @@ export const squadTables = {
     number: v.optional(v.number()),
     /** When his manager picked him up as a free agent (#1199): until a deadline has passed since,
      *  a drop sends him straight back to the free agents (spec/08, the churn rule). Absent for any
-     *  other way of joining. */
+     *  other way of joining, and cleared when a trade or move takes him to another team (#1479). */
     pickedUpAt: v.optional(v.number()),
   })
     .index("by_leagueId_and_playerCode", ["leagueId", "playerCode"])
