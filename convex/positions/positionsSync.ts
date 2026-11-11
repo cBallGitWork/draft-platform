@@ -9,7 +9,7 @@ import { heldRow, patchRow } from "./playerPositions";
 import { warnEveryLeague } from "./positionWarnings";
 import { matchSlots, requireFixtureCode, type MatchSlot } from "../football/premierLeague/plMatch";
 import { START_WINDOW, type Start } from "./positions";
-import { labelPositions, placePosition } from "./positionTables";
+import { formationPosition, isDrawn, labelPositions } from "./positionTables";
 import { PL_FULL_TIME, readPlFixture, readPlFixtures, readPlSquad, type RawPlFixture, type RawPlSquadPlayer } from "../football/premierLeague/premierLeague";
 import { positionsSyncFields, startRecord, syncTrigger } from "../schema";
 import { inBatches, latestRuns } from "../shared/syncRuns";
@@ -243,9 +243,10 @@ function matchStartsOf(sheet: RawPlFixture, codeByOpta: ReadonlyMap<string, numb
   }
   noteLabels(namedMen(sheet), codeByOpta, found);
   const kickoff = kickoffOf(sheet);
-  return slots.flatMap(({ started, playerCode, fixtureCode, formation, line, place }) => {
-    if (!started) return [];
-    if (formation !== null && placePosition(formation, line!, place!) === null) found.unknownFormations.add(formation);
+  return slots.flatMap((slot) => {
+    if (!slot.started) return [];
+    if (isDrawn(slot) && formationPosition(slot) === null) found.unknownFormations.add(slot.formation);
+    const { playerCode, fixtureCode, formation, line, place } = slot;
     return [{ playerCode, start: { fixtureCode, kickoff, formation, line, place } }];
   });
 }
