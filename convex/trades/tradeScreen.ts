@@ -2,7 +2,7 @@ import { v, type Infer } from "convex/values";
 import type { Doc, Id } from "../_generated/dataModel";
 import { query, type QueryCtx } from "../_generated/server";
 import { leagueDeadlines } from "../gameweeks/leagueDeadlines";
-import { nextDeadline } from "../gameweeks/deadline";
+import { nextDeadline, type LeagueDeadlines } from "../gameweeks/deadline";
 import { positionsNow, type PositionsNow } from "../positions/playerPositions";
 import { positionRank } from "../positions/positionTables";
 import { latestRules } from "../rules/rulesHistory";
@@ -16,7 +16,7 @@ import { newlyBroken } from "../waivers/waiverRun";
 import { leagueOffers, pickName } from "./tradeClose";
 import { pickHolders, tradablePick } from "./tradePicks";
 import { reviewerOf } from "./tradeReview";
-import { onAutoTeam, tradesShut } from "./tradeShut";
+import { onAutoTeam, tradeDeadlineInForce, tradesShut } from "./tradeShut";
 import { tradePick } from "../schema/trades";
 
 // The Trades screen's read (#383; spec/12 Trades, its approved picture docs/design/approved/trades):
@@ -50,8 +50,13 @@ const screenOffer = v.object({
   pickTerms: v.union(v.object({ gives: tradePick, gets: tradePick }), v.null()),
   note: v.union(v.string(), v.null()),
   madeAt: v.number(),
-  /** While open, the deadline it closes at unanswered; null while none is known. */
-  closes: v.union(v.object({ gameweek: v.number(), at: v.number() }), v.null()),
+  /** While open, when it closes unanswered: the next deadline, `gameweek`'s at `at`; or, made in the
+   *  trade deadline's gameweek, once that gameweek's last match is over, a time nobody knows ahead,
+   *  so `at` is null (#1492). Null while no deadline is known, and once accepted. */
+  closes: v.union(
+    v.object({ gameweek: v.number(), at: v.union(v.number(), v.null()) }),
+    v.null(),
+  ),
   /** Who would review it once accepted, or reviews it now; null for nobody. */
   reviewer: v.union(reviewer, v.null()),
   /** Null while it is open; once accepted, when its review ends. */
@@ -129,6 +134,20 @@ export async function termsShown(
   };
 }
 
+/** When an open offer made at `madeAt` closes unanswered: at the next deadline (spec/08), unless
+ *  trades shut first, once the trade deadline's gameweek's last match is over (Craig, 6 Nov 2026,
+ *  on #383), which has no time known ahead (Craig, 11 Nov 2026, on #1492). Pure. */
+export function offerCloses(
+  deadlines: LeagueDeadlines,
+  madeAt: number,
+  tradeDeadline: number | null,
+): { gameweek: number; at: number | null } | null {
+  const next = nextDeadline(deadlines, madeAt);
+  if (next === null || tradeDeadline === null || next.gameweek <= tradeDeadline)
+    return next;
+  return { gameweek: tradeDeadline, at: null };
+}
+
 /** Who reviews the offer under `review`, as the screen names them. */
 function reviewerNamed(
   league: Doc<"leagues">,
@@ -149,6 +168,7 @@ export const ofMyTeam = query({
     const { league, team: mine } = await managerOf(ctx, leagueId);
     const rules = await latestRules(ctx, leagueId);
     const deadlines = await leagueDeadlines(ctx, leagueId);
+    const tradeDeadline = await tradeDeadlineInForce(ctx, leagueId, deadlines, now);
     const positionsOf = await positionsNow(ctx, leagueId);
     const clubOf = clubsByCode(ctx);
     const offers = await leagueOffers(ctx, leagueId);
@@ -235,7 +255,7 @@ export const ofMyTeam = query({
           madeAt: offer.madeAt,
           closes:
             offer.review === undefined
-              ? nextDeadline(deadlines, offer.madeAt)
+              ? offerCloses(deadlines, offer.madeAt, tradeDeadline)
               : null,
           reviewer: reviewerNamed(league, reviewNow),
           reviewEndsAt: offer.review?.endsAt ?? null,

@@ -14,6 +14,7 @@ import {
 import { mainMenuLabel } from "../../../src/frame/words";
 import {
   acceptWords,
+  afterLastMatchWords,
   counterWords,
   groupWords,
   noOffersWords,
@@ -139,6 +140,17 @@ describe("an offer to you", () => {
     expect(text).toContain("Commissioner veto: 24 hours once you accept");
     expect(text).toContain(
       `At the GW10 deadline, ${whenWords(Date.parse("2026-11-14T11:00:00Z"))}`,
+    );
+  });
+
+  it("made in the trade deadline's gameweek, closes after its last match, in its row and its panel (#1492)", async () => {
+    openOffers(withOffers(screenOffer({ closes: { gameweek: 20, at: null } })));
+    const words = afterLastMatchWords(20);
+    expect(words).toBe("After GW20's last match");
+    const table = await screen.findByRole("table", { name: offersTableLabel });
+    expect(within(table).getAllByRole("row")[2].textContent).toContain(words);
+    expect((await panel(offerToYouTitle("Team 2"))).textContent).toContain(
+      words,
     );
   });
 

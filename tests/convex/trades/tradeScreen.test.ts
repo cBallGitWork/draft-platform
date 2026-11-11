@@ -132,6 +132,21 @@ describe("the Trades screen", () => {
     expect(offer.reviewEndsAt).toBeGreaterThan(Date.now());
   });
 
+  test("an offer made in the trade deadline's gameweek closes after its last match, not at the next deadline (#1492)", async () => {
+    await w.matchIs(NEXT - 1, "live");
+    await w.tradesAre({ review: "veto", deadline: NEXT - 1 });
+    await w.offer(ANN, w.bobsTeam, [ANNS_FIRST_DROP], [SAKA]);
+    const [offer] = (await viewOf(BOB)).offers;
+    expect(offer.closes).toEqual({ gameweek: NEXT - 1, at: null });
+  });
+
+  test("an offer made before the trade deadline's gameweek still closes at the next deadline", async () => {
+    await w.tradesAre({ review: "veto", deadline: NEXT });
+    await w.offer(ANN, w.bobsTeam, [ANNS_FIRST_DROP], [SAKA]);
+    const [offer] = (await viewOf(BOB)).offers;
+    expect(offer.closes).toMatchObject({ gameweek: NEXT, at: expect.any(Number) });
+  });
+
   test("says why trades are shut", async () => {
     await w.tradesAre({ review: "veto", deadline: NEXT - 1 });
     expect((await viewOf(ANN)).shut).toBe("tradeDeadline");

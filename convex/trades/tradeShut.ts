@@ -1,4 +1,4 @@
-import type { Doc } from "../_generated/dataModel";
+import type { Doc, Id } from "../_generated/dataModel";
 import type { QueryCtx } from "../_generated/server";
 import { draftIsLive } from "../draft/draftRow";
 import type { LeagueDeadlines } from "../gameweeks/deadline";
@@ -23,13 +23,20 @@ export async function tradesShut(ctx: QueryCtx, league: Doc<"leagues">, deadline
   if (await draftIsLive(ctx, league._id)) return "draftLive";
   const begun = latestBegun(deadlines, now);
   if (begun === null) return null;
-  const rules = await rulesSinceBegun(ctx, league._id, begun);
-  const tradeDeadline = tradeRulesOf(rules).deadline;
+  const tradeDeadline = await tradeDeadlineInForce(ctx, league._id, deadlines, now);
   if (tradeDeadline !== null && begun >= tradeDeadline) {
     if (begun > tradeDeadline || !(await gameweekUnderWay(ctx, begun))) return "tradeDeadline";
   }
   if (await inUnplayedGameweek(ctx, league, deadlines, now)) return "unusedGameweek";
   return null;
+}
+
+/** The league's trade deadline gameweek in force at `now`, the one in the gameweek begun (#1473);
+ *  null with none set, or before any gameweek has begun. */
+export async function tradeDeadlineInForce(ctx: QueryCtx, leagueId: Id<"leagues">, deadlines: LeagueDeadlines, now: number): Promise<number | null> {
+  const begun = latestBegun(deadlines, now);
+  if (begun === null) return null;
+  return tradeRulesOf(await rulesSinceBegun(ctx, leagueId, begun)).deadline;
 }
 
 /** Whether the team is on the auto team: switched on by a person, or with no manager (spec/09). */
