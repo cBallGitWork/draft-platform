@@ -122,7 +122,7 @@ export { notCountingLabel } from "../shared/words";
 
 /** A player's breakdown for the gameweek, opened by tapping his name (spec/10; #798). */
 export const openBreakdownLabel = (name: string) => `${name}: why his points`;
-export { closeGlyph, playerCardWords } from "../shared/words";
+export { playerCardWords } from "../shared/words";
 export const closeBreakdownLabel = "Close";
 /** One of his matches, opening its page, named by its clubs and score with its clock (the approved
  *  picture's "NFO 1–0 BRE 67'", "NFO 1–0 BRE FT"); before kickoff, "NFO v BRE Sat 15:00". With a

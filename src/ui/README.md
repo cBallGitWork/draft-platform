@@ -12,6 +12,7 @@ names the [plate.md](../../docs/design/plate.md) section it draws; the values ar
 - `Panel.tsx`, `Notice`: a standing warning in the alert strip (Colour roles: alert, event).
 - `Panel.tsx`, `Status`: a live region for a passing word (Colour roles).
 - `Panel.tsx`, `Loading`, `PanelNote`, `LiveNote`: a muted line: loading, a hint, live points (Colour roles: muted).
+- `Panel.tsx`, `CloseButton`: the cross that closes a panel, its full tap area (Shape).
 - `Panel.tsx`, `PANEL_BODY`, `PANEL_LIST_ROW`, `PAGE_STACK`, `PANEL_COLUMNS`: panels' insides and their 8px gaps (Shape).
 - `Panel.tsx`, `TOP_BAR`, `TOP_BAR_ROW`: the top bar's plate and row (Colour roles: bar; Shape).
 - `ColumnHeads.tsx`: a data table's head band, short words with long ones as tooltips (Colour roles: column head).

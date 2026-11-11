@@ -1,4 +1,5 @@
 import { useId, type ReactNode } from "react";
+import { closeGlyph } from "../shared/words";
 
 // The pieces the screens' panels share (plate.md, Shape and Colour roles).
 
@@ -152,6 +153,16 @@ function PanelTitle({
       </Heading>
       {aside}
     </div>
+  );
+}
+
+/** The cross that closes a panel or drops a row, its full tap area and its label saying what it
+ *  closes; `className` is the caller's own, such as its place on the plate or a smaller desktop size. */
+export function CloseButton({ label, close, className }: { label: string; close: () => void; className?: string }) {
+  return (
+    <button type="button" aria-label={label} onClick={close} className={className ? `min-h-tap min-w-tap ${className}` : "min-h-tap min-w-tap"}>
+      <span aria-hidden="true">{closeGlyph}</span>
+    </button>
   );
 }
 
