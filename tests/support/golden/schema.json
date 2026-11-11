@@ -26695,6 +26695,22 @@
               "type": "number"
             },
             "optional": false
+          },
+          "reader": {
+            "fieldType": {
+              "type": "union",
+              "value": [
+                {
+                  "type": "literal",
+                  "value": "sync"
+                },
+                {
+                  "type": "literal",
+                  "value": "live"
+                }
+              ]
+            },
+            "optional": true
           }
         }
       }
