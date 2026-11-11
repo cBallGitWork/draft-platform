@@ -45,6 +45,17 @@ function yourSquad(board: DraftBoard, player: ListedPlayer): YourSquad {
   };
 }
 
+/** The selected player as he stands now: the row he was selected from, on the team that has since
+ *  drafted him, so his panel and Pick for say "On <team>" and refuse him rather than offer a pick
+ *  the server turns down (#1560). His row leaves the list once he is drafted, but his panel stays
+ *  up, for the Undo after the reader's own pick (#1458). */
+export function selectedNow(selected: ListedPlayer, draft: DraftState, board: DraftBoard): ListedPlayer {
+  if (selected.ownerTeamName !== null) return selected;
+  const teamId = board.picks.find(({ player }) => player?.code === selected.code)?.teamId;
+  const team = draft.order.find((each) => each.teamId === teamId);
+  return team === undefined ? selected : { ...selected, ownerTeamName: team.name };
+}
+
 export function PickRoom({
   leagueId,
   seam,
@@ -67,7 +78,8 @@ export function PickRoom({
   const lists = seam.useLists(leagueId);
   const changes = seam.useDraftChanges();
   const listChanges = seam.useListChanges();
-  const [selected, setSelected] = useState<ListedPlayer | null>(null);
+  const [chosen, setSelected] = useState<ListedPlayer | null>(null);
+  const selected = chosen === null ? null : selectedNow(chosen, draft, board);
   const whyNot: WhyNot = useMemo(() => new Map((greyed ?? []).map(({ code, reason }) => [code, reason])), [greyed]);
   const queue = useMemo(() => (lists?.queue ?? []).map(({ code }) => code), [lists]);
   const figureOf = useMemo(() => new Map((figures?.players ?? []).map((figure) => [figure.code, figure])), [figures]);

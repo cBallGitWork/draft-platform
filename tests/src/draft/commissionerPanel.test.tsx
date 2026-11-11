@@ -24,6 +24,7 @@ import {
   selectLabel,
   startNowWords,
   stopPickingForWords,
+  takenWords,
   undoLastWords,
   unmanagedWords,
   whilePausedWords,
@@ -206,6 +207,14 @@ describe("while it runs", () => {
       expect((await pickFor()).hasAttribute("disabled")).toBe(true);
       expect(within(await panel()).getByText(pickForWhyNotWords("Rice", "Team 2", notLegalWords.clubFull))).toBeTruthy();
       expect(app.draft.useGreyedOnTheClock).toHaveBeenCalledWith(league.leagueId);
+    });
+
+    it("is greyed for a selected player another team has since drafted, saying which (#1560)", async () => {
+      const riceTaken = { ...emptyBoard, picks: [{ pick: 1, teamId: draftOrder[0].teamId, auto: false, player: { code: RICE.code, name: "Rice", clubShortName: "ARS", position: "W" as const } }] };
+      openAs(commissioner, { draft: liveDraft(), board: riceTaken, players: [RICE] });
+      await select("Rice");
+      expect((await pickFor()).hasAttribute("disabled")).toBe(true);
+      expect(within(await panel()).getByText(pickForWhyNotWords("Rice", "Team 2", takenWords("Team 1")))).toBeTruthy();
     });
 
     it("says why the pick is refused", async () => {
