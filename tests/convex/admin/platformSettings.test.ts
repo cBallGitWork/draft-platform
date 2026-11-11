@@ -1,11 +1,17 @@
 // The stat-correction window and matchday mode's hours, the admin's to set (spec/07, spec/12,
 // spec/15). How the lock reads the window: tests/convex/stats/matchStats.lock.test.ts.
 
-import { expect, test } from "vitest";
-import { internal } from "../../../convex/_generated/api";
-import { matchdayMargins, statCorrectionWindowMs } from "../../../convex/admin/platformSettings";
+import { expect, test, vi } from "vitest";
+import { api, internal } from "../../../convex/_generated/api";
+import { settingRefusals } from "../../../convex/admin/platformSettingDefaults";
+import { matchdayMargins, scoutsPerTeam, statCorrectionWindowMs } from "../../../convex/admin/platformSettings";
+import { refusals } from "../../../convex/shared/leagueAccess";
 import { HOUR_MS, MINUTE_MS } from "../../../convex/shared/time";
-import { freshConvex } from "../../support/convex/test.harness";
+import { ADMIN, COMMISSIONER, actingAs } from "../../support/convex/leagues.harness";
+import { asAdmin } from "../../support/convex/positionsSync.harness";
+import { expectRefused, freshConvex } from "../../support/convex/test.harness";
+
+const CHANGED = { statCorrectionWindowMinutes: 90, scoutsPerTeam: 2, matchdayHoursBefore: 4, matchdayHoursAfter: 0 };
 
 test("a window set again replaces the one set before", async () => {
   const t = freshConvex();
@@ -37,5 +43,39 @@ test("matchday hours of 1.5 are refused, and nothing is set", async () => {
   await expect(t.mutation(internal.admin.platformSettings.setMatchdayHours, { before: 3, after: 1.5 })).rejects.toThrow(
     "hours after are a whole number, 0 or more, not 1.5",
   );
+  expect(await t.run((ctx) => ctx.db.query("platformSettings").collect())).toEqual([]);
+});
+
+// The admin's dashboard (#1555): every setting shown, the defaults until set, and saved together.
+test("the dashboard shows the defaults until set, then what the admin saved, which the rest of the site reads", async () => {
+  const t = freshConvex();
+  const admin = await asAdmin(t);
+  expect(await admin.query(api.admin.platformSettings.settings, {})).toEqual({
+    statCorrectionWindowMinutes: 60,
+    scoutsPerTeam: 3,
+    matchdayHoursBefore: 3,
+    matchdayHoursAfter: 2,
+  });
+
+  await admin.mutation(api.admin.platformSettings.save, CHANGED);
+  expect(await admin.query(api.admin.platformSettings.settings, {})).toEqual(CHANGED);
+  expect(await t.run((ctx) => statCorrectionWindowMs(ctx))).toBe(90 * MINUTE_MS);
+  expect(await t.run((ctx) => scoutsPerTeam(ctx))).toBe(2);
+  expect(await t.run((ctx) => matchdayMargins(ctx))).toEqual({ beforeMs: 4 * HOUR_MS, afterMs: 0 });
+});
+
+test("one value refused saves none of them, and says which", async () => {
+  const t = freshConvex();
+  const admin = await asAdmin(t);
+  await expectRefused(admin.mutation(api.admin.platformSettings.save, { ...CHANGED, scoutsPerTeam: -1 }), settingRefusals.scoutsPerTeam(-1));
+  expect(await t.run((ctx) => ctx.db.query("platformSettings").collect())).toEqual([]);
+});
+
+test("the settings are the admin's alone to read and save", async () => {
+  const t = freshConvex();
+  vi.stubEnv("ADMIN_EMAIL", ADMIN);
+  const commissioner = await actingAs(t, COMMISSIONER);
+  await expectRefused(commissioner.query(api.admin.platformSettings.settings, {}), refusals.notAdmin);
+  await expectRefused(commissioner.mutation(api.admin.platformSettings.save, CHANGED), refusals.notAdmin);
   expect(await t.run((ctx) => ctx.db.query("platformSettings").collect())).toEqual([]);
 });
