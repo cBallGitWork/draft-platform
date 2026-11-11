@@ -23365,6 +23365,12 @@
             "email",
             "versionId"
           ]
+        },
+        {
+          "indexDescriptor": "by_versionId",
+          "fields": [
+            "versionId"
+          ]
         }
       ],
       "stagedDbIndexes": [],
