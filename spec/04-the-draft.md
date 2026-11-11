@@ -101,7 +101,8 @@ Feature 4 of [SPEC.md](../SPEC.md). Only Craig's answers.
   back to their old owners when the draft starts (the trade is undone), with the two managers told
   in Mail (Craig, 11 Nov 2026, on #1457: "Accept all"). `S04.11`
 - Until waivers are built, players nobody drafts go to free agents (Craig, 4 Nov 2026, "yes" to
-  Claude's recommendation).
+  Claude's recommendation). Done: waivers were built (5 Nov 2026, #1197), so the answer below
+  holds. `S04.16 withdrawn`
 - Players nobody drafts go to waivers or straight to free agents: a league setting, waivers by
   default (Craig, 2 Nov 2026).
 
@@ -137,7 +138,8 @@ Feature 4 of [SPEC.md](../SPEC.md). Only Craig's answers.
   and takes the best legal player by the usual order. Players level on last season's points go A
   to Z by the name the site shows (Palmer before Saka) (Craig, 5 Nov 2026, on #1094).
 - Until last season's points are priced (#1114), the fallback reads dummy staging data: "just make
-  a dummy csv for this, its just staging data currently" (Craig, 5 Nov 2026, on #1094).
+  a dummy csv for this, its just staging data currently" (Craig, 5 Nov 2026, on #1094). Done: last
+  season's points were priced (5 Nov 2026, #1114), and the fallback reads them. `S04.17 withdrawn`
 
 ## The queue and the ranking
 
