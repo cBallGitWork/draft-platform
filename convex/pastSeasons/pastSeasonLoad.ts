@@ -17,7 +17,7 @@ export const clearSeason = internalMutation({
       .withIndex("by_season_and_playerCode", (q) => q.eq("season", season))
       .take(PAST_ROWS_CLEARED + 1);
     const page = rows.slice(0, PAST_ROWS_CLEARED);
-    for (const row of page) await ctx.db.delete(row._id);
+    for (const row of page) await ctx.db.delete("pastPlayerMatchStats", row._id);
     return { deleted: page.length, more: rows.length > PAST_ROWS_CLEARED };
   },
 });

@@ -3,7 +3,7 @@ import { internalMutation, internalQuery, type QueryCtx } from "../_generated/se
 import { dueMatch, LIVE_WINDOW_MS, type DueMatch } from "../shared/dueMatches";
 import { matchWrites, recordsOf, statusOf, writeRecords } from "./matchStats";
 import { liveStatsTickFields, playerMatchRecord, sideMatchOutcome } from "../schema";
-import { LATEST_RUNS } from "../shared/syncRuns";
+import { latestRuns } from "../shared/syncRuns";
 import { emailIfFailed } from "../admin/feedFailureEmails";
 import { storeThresholdSteps } from "./thresholdSteps";
 import { FULL_TIME_LINE_WAIT_MS, fullTimeLineMissing } from "../football/matchCommentary";
@@ -77,8 +77,4 @@ export const recordTick = internalMutation({
   },
 });
 
-export const latest = internalQuery({
-  args: {},
-  returns: v.array(v.object({ _id: v.id("liveStatsTicks"), _creationTime: v.number(), ...liveStatsTickFields })),
-  handler: async (ctx) => ctx.db.query("liveStatsTicks").order("desc").take(LATEST_RUNS),
-});
+export const latest = latestRuns("liveStatsTicks", liveStatsTickFields);

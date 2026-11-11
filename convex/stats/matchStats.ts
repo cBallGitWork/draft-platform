@@ -1,11 +1,11 @@
 import { v, type Infer } from "convex/values";
 import { internal } from "../_generated/api";
 import type { Doc } from "../_generated/dataModel";
-import { internalMutation, internalQuery, type MutationCtx, type QueryCtx } from "../_generated/server";
+import { internalMutation, type MutationCtx, type QueryCtx } from "../_generated/server";
 import { isMatchComplete, isWhole, lockTime, statChanges, type PlayerMatchRecord, type StatChange } from "./matchRecords";
 import { statCorrectionWindowMs } from "../admin/platformSettings";
 import { matchStatsState, matchStatsSyncFields, playerMatchRecord } from "../schema";
-import { LATEST_RUNS } from "../shared/syncRuns";
+import { latestRuns } from "../shared/syncRuns";
 import { emailIfFailed } from "../admin/feedFailureEmails";
 import { countedStats, moveSeasonTotals, type RecordChange } from "./seasonStats";
 import { repriceChanged } from "./seasonPointsQueue";
@@ -152,11 +152,7 @@ async function storeUnseenFrom(ctx: MutationCtx, kickoff: number) {
   else if (kickoff > held.kickoff) await ctx.db.patch("matchStatsUnseenFrom", held._id, { kickoff });
 }
 
-export const latest = internalQuery({
-  args: {},
-  returns: v.array(v.object({ _id: v.id("matchStatsSyncs"), _creationTime: v.number(), ...matchStatsSyncFields })),
-  handler: async (ctx) => ctx.db.query("matchStatsSyncs").order("desc").take(LATEST_RUNS),
-});
+export const latest = latestRuns("matchStatsSyncs", matchStatsSyncFields);
 
 export function statusOf(ctx: QueryCtx, fixtureCode: number) {
   return ctx.db

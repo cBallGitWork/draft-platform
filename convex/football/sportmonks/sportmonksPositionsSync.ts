@@ -6,7 +6,7 @@ import { emailIfFailed } from "../../admin/feedFailureEmails";
 import { CRON_TRIGGER, scheduleHeartbeat } from "../../heartbeats/heartbeat";
 import { londonHour } from "../../shared/moments";
 import { DAY_MS } from "../../shared/time";
-import { BATCH_SIZE, LATEST_RUNS } from "../../shared/syncRuns";
+import { BATCH_SIZE, latestRuns } from "../../shared/syncRuns";
 import { DAILY_RUN_UK_HOUR } from "../../positions/positionsSync";
 import { positionsFromStarts, START_WINDOW } from "../../positions/positions";
 import { position, sportmonksPositionsSyncFields, sportmonksStart, syncTrigger } from "../../schema";
@@ -151,11 +151,7 @@ export const record = internalMutation({
   },
 });
 
-export const latest = internalQuery({
-  args: {},
-  returns: v.array(v.object({ _id: v.id("sportmonksPositionsSyncs"), _creationTime: v.number(), ...sportmonksPositionsSyncFields })),
-  handler: async (ctx) => ctx.db.query("sportmonksPositionsSyncs").order("desc").take(LATEST_RUNS),
-});
+export const latest = latestRuns("sportmonksPositionsSyncs", sportmonksPositionsSyncFields);
 
 /** A season's regulars, for Craig's check of the table (`S06.3`): each man with `REGULAR_STARTS`
  *  or more starts that season, his club now, his starts that season, and the positions his starts
