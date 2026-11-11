@@ -10,6 +10,7 @@ import { ADMIN, actingAs, addManagers, adminCreatesLeague, COMMISSIONER, CO_COMM
 import { ARSENAL, insertClubs } from "../../support/convex/footballRows.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
 import { squadMoves } from "../../support/convex/lineupSquad.harness";
+import { leagueHomeOf } from "../../support/convex/screenReads.harness";
 
 // League home's first slice (#387; spec/12, League home): this gameweek's head-to-heads, the table
 // (whole up to WHOLE_TABLE_MOST teams, else the top TOP_ROWS and the reader's row) with each team's
@@ -27,7 +28,7 @@ beforeEach(async () => {
   leagueId = await adminCreatesLeague(t, 20);
 });
 
-const read = async (email = ANN) => (await actingAs(t, email)).query(api.home.leagueHome.ofLeague, { leagueId, now: Date.now() });
+const read = async (email = ANN) => leagueHomeOf(await actingAs(t, email), leagueId, Date.now());
 const managersNamed = (count: number) => Array.from({ length: count }, (_, i) => `manager${i + 1}@example.com`);
 
 describe("who may read it", () => {

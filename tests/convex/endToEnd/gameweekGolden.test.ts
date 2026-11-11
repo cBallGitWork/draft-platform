@@ -36,7 +36,7 @@ test("recorded gameweek 6, every fielded player's points and every head-to-head 
   const results = [];
   const players = [];
   for (const email of Object.keys(ELEVENS)) {
-    const read = await (await actingAs(t, email)).query(api.matchup.matchup.ofTeam, { leagueId, now: Date.now(), gameweek: GAMEWEEK });
+    const read = await (await actingAs(t, email)).query(api.matchup.matchup.ofTeam, { leagueId, gameweek: GAMEWEEK });
     if (read?.kind !== "headToHead" || read.game.kind !== "scored") throw new Error(`${email}'s matchup isn't scored: ${JSON.stringify(read)}`);
     const { team, opponent } = read.game;
     if (team.kind !== "team" || opponent.kind !== "team") throw new Error(`${email}'s matchup isn't against a team: ${JSON.stringify(read.game)}`);
