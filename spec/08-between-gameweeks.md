@@ -74,6 +74,8 @@ agent: "keep waivers since its known for draft" (Craig asked; yes).
 - A claim for a player his team already has, won by his own earlier claim in the same run or put
   there by the commissioner, goes quietly, with no letter (Craig, 11 Nov 2026, #1465). `S08.5`
 - No claim limits per season, week or team ("no limit"), and no can't-drop list.
+- A team holds at most 300 pending claims and 50 open offers at once; a team at the ceiling is told
+  to withdraw one first (Craig, 11 Nov 2026, #1609). `S08.16`
 - Free agency and waivers open only once the league's draft is over: before it, pickups, drops and
   claims are refused and waiver runs are skipped ("refused until drafted"; Craig, 8 Nov 2026, #1326). `S08.1`
 
