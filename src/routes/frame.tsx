@@ -3,8 +3,7 @@ import { createRoute, redirect } from "@tanstack/react-router";
 import type { LeagueSummary } from "../../convex/leagues/myLeagues";
 import { CurrentLeague } from "./CurrentLeague";
 import { DraftPage } from "../draft/DraftPage";
-import { DRAFT_PATH, HOME_NEWS_PATH, HOME_PATH, MAIL_PATH, MATCHUP_PATH, MY_TEAM_FIXTURES_PATH, MY_TEAM_PATH, MY_TEAM_SQUAD_PATH, MY_TEAM_TRANSACTIONS_PATH, pages, PREMIER_LEAGUE_PATH, SCOUTING_PATH, TABLE_PATH, TRADES_NEW_PATH, TRADES_PATH } from "../frame/menu";
-import { PageNotBuilt } from "../frame/PageNotBuilt";
+import { DRAFT_PATH, HOME_NEWS_PATH, HOME_PATH, MATCHUP_PATH, MY_TEAM_FIXTURES_PATH, MY_TEAM_PATH, MY_TEAM_SQUAD_PATH, MY_TEAM_TRANSACTIONS_PATH, PREMIER_LEAGUE_PATH, SCOUTING_PATH, TABLE_PATH, TRADES_NEW_PATH, TRADES_PATH } from "../frame/menu";
 import { HomePage } from "../home/HomePage";
 import { NewsPage } from "../home/NewsPage";
 import { recapSearchOf, RECAP_PATH } from "../home/paths";
@@ -170,17 +169,4 @@ const newOfferRoute = createRoute({
   },
 });
 
-const builtRoutes = [landingRoute, homeRoute, homeNewsRoute, recapRoute, tableRoute, scoutingRoute, draftRoute, myTeamTacticsRoute, myTeamSquadRoute, myTeamFixturesRoute, myTeamTransactionsRoute, matchupRoute, premierLeagueRoute, matchRoute, tradesRoute, newOfferRoute];
-
-/** Every address with its own screen: each route above, and Mail, whose route is with the league
- *  pages (leaguePages.tsx). Any other menu page gets a placeholder. */
-const built: ReadonlySet<string | undefined> = new Set([...builtRoutes.map((route) => ("path" in route.options ? route.options.path : undefined)), MAIL_PATH]);
-const pageRoutes = pages.filter((page) => !built.has(page.path)).map((page) =>
-  createRoute({
-    getParentRoute: () => frameRoute,
-    path: page.path,
-    component: () => <PageNotBuilt title={page.label} />,
-  }),
-);
-
-export const frameChildren = [...builtRoutes, ...pageRoutes];
+export const frameChildren = [landingRoute, homeRoute, homeNewsRoute, recapRoute, tableRoute, scoutingRoute, draftRoute, myTeamTacticsRoute, myTeamSquadRoute, myTeamFixturesRoute, myTeamTransactionsRoute, matchupRoute, premierLeagueRoute, matchRoute, tradesRoute, newOfferRoute];

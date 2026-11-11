@@ -75,9 +75,3 @@ export const sectionsWith = (draftInMenu: boolean): readonly Section[] =>
 export function sectionAt(pathname: string): Section | undefined {
   return sections.find((section) => pathname === section.path || pathname.startsWith(`${section.path}/`));
 }
-
-/** Every page the menu reaches: each section, and each tab that isn't its section's own page. */
-export const pages: readonly Page[] = sections.flatMap((section) => [
-  { label: section.label, path: section.path },
-  ...section.tabs.filter((tab) => tab.path !== section.path),
-]);
