@@ -35,8 +35,9 @@ import {
 // The Transactions tab's pending claims (#1200; the waivers picture, 1440.png): the manager's own,
 // grouped by run and ranked within each, a row's handle dragging it within its run; a click on a
 // row selects it, its panel opening on the right (ClaimPanel.tsx). The commissioner switches to
-// every team's (EveryTeamTable.tsx). While claims are closed, the panel says so in a word and the
-// handles go (the README's Not drawn).
+// every team's (EveryTeamTable.tsx). While claims are closed, the panel says so in a word; in the
+// lock the handles stay, since a claim in can still be ranked or withdrawn, only new ones shut
+// (Craig, 11 Nov 2026, on #1590), and before the draft is over they go (the README's Not drawn).
 
 const MINE_COLUMNS = ["handle", "rank", "positions", "claim", "points", "drop"] as const;
 
@@ -45,6 +46,12 @@ export function closedWords(waivers: WaiversView | undefined): string | null {
   if (!waivers) return null;
   if (!waivers.drafted) return claimsNotOpenWords;
   return waivers.locked ? claimsClosedWords : null;
+}
+
+/** Whether a claim in can be ranked again or withdrawn: in the lock too, only new claims and a
+ *  change of drop being shut (Craig, 11 Nov 2026, on #1590). */
+export function canRank(waivers: WaiversView | undefined): boolean {
+  return waivers?.drafted !== false;
 }
 
 export function ClaimsPanel({
@@ -90,7 +97,7 @@ export function ClaimsPanel({
       ) : mine.length === 0 ? (
         <PanelNote>{noClaimsWords}</PanelNote>
       ) : (
-        <MineTable claims={mine} open={closed === null} busy={busy} selected={selected} onSelect={onSelect} onReorder={onReorder} />
+        <MineTable claims={mine} open={canRank(waivers)} busy={busy} selected={selected} onSelect={onSelect} onReorder={onReorder} />
       )}
       <p className="px-3 py-2">
         <Link to={SCOUTING_PATH} className="inline-flex min-h-tap items-center lg:min-h-0">

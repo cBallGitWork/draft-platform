@@ -159,12 +159,17 @@ describe("the pending claims", () => {
     expect(app.myTeam.claimChanges.rank).toHaveBeenCalledWith(league.leagueId, ["c2", "c1", "c3"]);
   });
 
-  it("while claims are closed, says so in a word, with no handles or buttons", async () => {
-    open({ waivers: { ...NO_WAIVERS, locked: true } });
+  it("in the lock, says new claims are closed and shuts the drop, but a claim in can still be moved or withdrawn (#1590)", async () => {
+    const app = open({ waivers: { ...NO_WAIVERS, locked: true } });
     expect(await screen.findByText(claimsClosedWords)).toBeTruthy();
-    expect(screen.queryByRole("img", { name: dragHandleLabel("Eze") })).toBeNull();
+    expect(screen.getByRole("img", { name: dragHandleLabel("Eze") })).toBeTruthy();
     await userEvent.click(screen.getByRole("button", { name: selectClaimLabel("Eze") }));
-    expect(screen.queryByRole("button", { name: withdrawWords })).toBeNull();
+    const panel = screen.getByRole("region", { name: claimPanelTitle(made(WED), 2, "Eze") });
+    expect((within(panel).getByRole("combobox") as HTMLSelectElement).disabled).toBe(true);
+    await userEvent.click(within(panel).getByRole("button", { name: moveUpWords }));
+    expect(app.myTeam.claimChanges.rank).toHaveBeenCalledWith(league.leagueId, ["c2", "c1", "c3"]);
+    await userEvent.click(within(panel).getByRole("button", { name: withdrawWords }));
+    expect(app.myTeam.claimChanges.withdraw).toHaveBeenCalledWith(league.leagueId, "c2");
   });
 });
 

@@ -106,7 +106,8 @@ async function ownClaim(ctx: QueryCtx, leagueId: Id<"leagues">, claimId: Id<"wai
   return claim;
 }
 
-/** The manager withdraws one of his pending claims. */
+/** The manager withdraws one of his pending claims: in the lock too, only new claims being shut
+ *  there (Craig, 11 Nov 2026, on #1590), as for `rank`. */
 export const withdraw = mutation({
   args: { leagueId: v.id("leagues"), claimId: v.id("waiverClaims") },
   returns: v.null(),
