@@ -8,7 +8,7 @@ import { sameCodes } from "../gameweekScorer/storedScores";
 import { gameweekInputs, leagueReads, teamInGameweek, type LeagueReads } from "../gameweekScorer/teamGameweek";
 import { MOST_TEAMS } from "../leagues/leagueLimits";
 import { seasonRules } from "../rules/rulesHistory";
-import { LEAGUES_READ_MOST, takeAllOrThrow } from "../shared/cappedRead";
+import { scheduleEveryLeague, takeAllOrThrow } from "../shared/cappedRead";
 import { teamsOf } from "../shared/leagueAccess";
 import { allLocked } from "./matchStats";
 import { addStats, type Stats } from "./statTotals";
@@ -33,12 +33,7 @@ export const storeEveryLeague = internalMutation({
   args: {},
   returns: v.null(),
   handler: async (ctx) => {
-    const leagues = await takeAllOrThrow(
-      ctx.db.query("leagues"),
-      LEAGUES_READ_MOST,
-      `More than ${LEAGUES_READ_MOST} leagues are held, so some would have their teams' stats unstored`,
-    );
-    for (const league of leagues) await ctx.scheduler.runAfter(0, internal.stats.teamSeasonStats.storeLeague, { leagueId: league._id });
+    await scheduleEveryLeague(ctx, internal.stats.teamSeasonStats.storeLeague, "so some would have their teams' stats unstored");
     return null;
   },
 });
