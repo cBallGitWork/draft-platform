@@ -12,9 +12,9 @@ export interface VidiprinterTeams {
 /** CM's vidiprinter (spec/10): every line, newest first, each with what it is worth in the figure
  *  colour, and "Commentary delayed" while the stream falls behind. The matchup's (`teams`) gives
  *  each line's minute its own column and each team its own column of what a line moves its score
- *  by, under a head row, and marks the
- *  tapped man's lines with the current one's cyan edge (the approved picture; #1026); league
- *  home's and the match page's show what a line is worth to the men it names. Each has its own
+ *  by, under a head row, and marks the tapped man's lines with the current one's cyan edge (the
+ *  approved picture; #1026); league home's and the match page's show what a line is worth to the
+ *  men it names. Each has its own
  *  `title` and words for no lines yet; `className` is the caller's place for it in its grid. */
 export function Vidiprinter({
   commentary,

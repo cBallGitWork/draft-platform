@@ -9,7 +9,8 @@ import { autoSubWords, badgeText, figureWords, noFigureWords, notCountingLabel, 
 // points in the figure badge, a white name plate, an orange edge down its left when he came on as
 // an auto-sub, then a strip in his area's colour with his slot's position label and his role. On
 // the bench the same tile, greyed on a grey ground, without the strip or his match's badge, and an
-// orange "Off" on a starter who didn't play and was replaced. A tap opens his breakdown at the top of the centre column (#798).
+// orange "Off" on a starter who didn't play and was replaced. A tap opens his breakdown at the top
+// of the centre column (#798).
 
 /** A man on a tile: a starter, or a bench player, with his slot and role once he stands in one. */
 export type TileMan = MatchupStarter | MatchupBenchSlot;
