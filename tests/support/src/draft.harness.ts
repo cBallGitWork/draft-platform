@@ -37,7 +37,7 @@ export const commissionerView: CommissionerView = { pickSeconds: 90, unmanaged: 
  *  players list's players, those the reader's team can't take, and what a pick answers; the
  *  reader's lists (null for one who runs no team), or else his queue by code from `players`; the
  *  server's refusal of any list or commissioner's change, if it refuses, and what adding the whole
- *  shortlist adds; and the commissioner panel's read. */
+ *  shortlist adds; and the commissioner panel's reads. */
 export type DraftData = {
   draft?: DraftState;
   board?: DraftBoard;
@@ -53,6 +53,8 @@ export type DraftData = {
   refusal?: string;
   shortlistAdded?: { added: number; leftOut: number };
   commissioner?: CommissionerView;
+  /** Those the team on the clock can't take, which the commissioner's Pick for is greyed by. */
+  greyedOnTheClock?: readonly GreyedPlayer[];
 };
 
 /** No player ranked, priced or counted, and no club maximum. */
@@ -72,6 +74,7 @@ export function fakeDraft({
   refusal,
   shortlistAdded = { added: 0, leftOut: 0 },
   commissioner = commissionerView,
+  greyedOnTheClock = [],
 }: DraftData = {}) {
   const answer = async () => refusal ?? null;
   const draftChanges = { makePick: vi.fn<DraftChanges["makePick"]>(() => Promise.resolve(pickAnswer)) };
@@ -82,6 +85,7 @@ export function fakeDraft({
     undo: vi.fn<CommissionerChanges["undo"]>(answer),
     setPickTime: vi.fn<CommissionerChanges["setPickTime"]>(answer),
     markForCommissioner: vi.fn<CommissionerChanges["markForCommissioner"]>(answer),
+    pickFor: vi.fn<CommissionerChanges["pickFor"]>(answer),
   };
   const changes = { ...draftChanges, ...commissionerChanges };
   const listChanges = {
@@ -112,6 +116,7 @@ export function fakeDraft({
     useLists: vi.fn<DraftSeam["useLists"]>(() => (loading ? undefined : yourLists)),
     useDraftChanges: () => draftChanges,
     useCommissioner: vi.fn<DraftSeam["useCommissioner"]>(() => commissioner),
+    useGreyedOnTheClock: vi.fn<DraftSeam["useGreyedOnTheClock"]>(() => greyedOnTheClock),
     useCommissionerChanges: vi.fn<DraftSeam["useCommissionerChanges"]>(() => commissionerChanges),
     changes,
     useListChanges: () => listChanges,

@@ -4,7 +4,9 @@ import { toSeconds, type PickClockUnit } from "../leagueSettings/pickClock";
 import type { Change } from "../shared/refusal";
 import { useChange } from "../shared/useChange";
 import { Loading, PANEL_BODY, Panel, Problem } from "../ui/Panel";
+import type { ListedPlayer } from "../scouting/seam";
 import { pickInRoundOf, roundOf } from "./board";
+import { whyNotWords } from "./DraftPlayers";
 import type { DraftBoard, DraftSeam, DraftState } from "./seam";
 import {
   badPickTimeWords,
@@ -15,6 +17,8 @@ import {
   onlyYouWords,
   pauseWords,
   pickForTeamWords,
+  pickForWhyNotWords,
+  pickForWords,
   pickTimeLabel,
   pickTimeWords,
   resumeWords,
@@ -31,13 +35,31 @@ import {
 // the approved pictures (docs/design/approved/draft-room/), seen only by whoever runs the league.
 // Before the start: start the draft now, "I'll pick for" each team with no manager, and the pick
 // time, which changes League settings' (Craig, 5 Nov 2026, on #1101). While it runs: pause or
-// resume, undo the last pick, and the pick time, changed only while paused. "Pick for <team>" waits
-// for the players list (#1099), and "Change the start" for a home for the start date.
+// resume, undo the last pick, "Pick for <team>", which takes the player selected in the players
+// list for the team on the clock, managed or not (#1475), and the pick time, changed only while
+// paused. "Change the start" waits for a home for the start date.
 
 type Waiting = Extract<DraftState, { status: "waiting" }>;
 type Live = Extract<DraftState, { status: "live" }>;
 
-export function CommissionerPanel({ leagueId, seam, draft, board, now }: { leagueId: Id<"leagues">; seam: DraftSeam; draft: Waiting | Live; board: DraftBoard; now: number }) {
+export function CommissionerPanel({
+  leagueId,
+  seam,
+  draft,
+  board,
+  now,
+  selected,
+  unselect,
+}: {
+  leagueId: Id<"leagues">;
+  seam: DraftSeam;
+  draft: Waiting | Live;
+  board: DraftBoard;
+  now: number;
+  /** The player selected in the room's players list, whom Pick for takes. */
+  selected: ListedPlayer | null;
+  unselect: () => void;
+}) {
   const view = seam.useCommissioner(leagueId, now);
   const changes = seam.useCommissionerChanges();
   const changing = useChange();
@@ -73,17 +95,18 @@ export function CommissionerPanel({ leagueId, seam, draft, board, now }: { leagu
             ))}
           </>
         ) : (
-          <>
-            <div className="flex flex-wrap gap-2">
-              <Action disabled={changing.busy} onClick={() => run(() => (paused ? changes.resume(leagueId) : changes.pause(leagueId)))}>
-                {paused ? resumeWords : pauseWords}
-              </Action>
-              <Action disabled={changing.busy || board.picks.length === 0} onClick={() => run(() => changes.undo(leagueId))}>
-                {undoLastWords}
-              </Action>
-            </div>
-            <LastPick draft={draft} board={board} />
-          </>
+          <LiveActions
+            leagueId={leagueId}
+            seam={seam}
+            draft={draft}
+            board={board}
+            selected={selected}
+            busy={changing.busy}
+            paused={paused}
+            pause={() => run(() => (paused ? changes.resume(leagueId) : changes.pause(leagueId)))}
+            undo={() => run(() => changes.undo(leagueId))}
+            pickFor={(code) => void changing.run(() => changes.pickFor(leagueId, code)).then((made) => made && unselect())}
+          />
         )}
         <PickTime
           seconds={view.pickSeconds}
@@ -94,6 +117,54 @@ export function CommissionerPanel({ leagueId, seam, draft, board, now }: { leagu
         <Problem problem={changing.problem} />
       </div>
     </Panel>
+  );
+}
+
+/** While the draft runs: pause or resume it, undo the last pick, and pick for the team on the clock
+ *  with the selected player, greyed by that team's squad rules, not his own (Craig, 5 Nov 2026, on
+ *  #1101), saying why when that team can't take him; then the last pick. */
+function LiveActions({
+  leagueId,
+  seam,
+  draft,
+  board,
+  selected,
+  busy,
+  paused,
+  pause,
+  undo,
+  pickFor,
+}: {
+  leagueId: Id<"leagues">;
+  seam: DraftSeam;
+  draft: Live;
+  board: DraftBoard;
+  selected: ListedPlayer | null;
+  busy: boolean;
+  paused: boolean;
+  pause: () => void;
+  undo: () => void;
+  pickFor: (playerCode: number) => void;
+}) {
+  const greyed = seam.useGreyedOnTheClock(leagueId);
+  const team = draft.onTheClock.name;
+  const whyNot = selected === null ? null : whyNotWords(selected, greyed?.find(({ code }) => code === selected.code)?.reason);
+  return (
+    <>
+      <div className="flex flex-wrap gap-2">
+        <Action disabled={busy} onClick={pause}>
+          {paused ? resumeWords : pauseWords}
+        </Action>
+        <Action disabled={busy || board.picks.length === 0} onClick={undo}>
+          {undoLastWords}
+        </Action>
+        <Action disabled={busy || selected === null || greyed === undefined || whyNot !== null} onClick={() => selected !== null && pickFor(selected.code)}>
+          {pickForWords(team)}
+        </Action>
+      </div>
+      {selected !== null && whyNot !== null && <p className="text-soft">{pickForWhyNotWords(selected.name, team, whyNot)}</p>}
+      <LastPick draft={draft} board={board} />
+    </>
   );
 }
 

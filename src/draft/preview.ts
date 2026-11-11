@@ -56,7 +56,7 @@ const isBefore = () => new URLSearchParams(window.location.search).get("draft") 
 
 /** The preview changes nothing, and says nothing went wrong. */
 const done = () => Promise.resolve(null);
-const COMMISSIONER_CHANGES: CommissionerChanges = { start: done, pause: done, resume: done, undo: done, setPickTime: done, markForCommissioner: done };
+const COMMISSIONER_CHANGES: CommissionerChanges = { start: done, pause: done, resume: done, undo: done, setPickTime: done, markForCommissioner: done, pickFor: done };
 
 const GREYED: readonly GreyedPlayer[] = [
   { code: 2, reason: "clubFull" },
@@ -99,5 +99,7 @@ export const previewDraft: DraftSeam = {
   ...previewLists,
   // The commissioner panel, for the preview's commissioner session: Dirty Dozen has no manager.
   useCommissioner: () => ({ pickSeconds: 90, unmanaged: [{ teamId: order[9].teamId, name: NAMES[9], marked: false }] }),
+  // Saka Potatoes is on the clock, so Pick for is greyed by its Arsenal maximum too.
+  useGreyedOnTheClock: () => (isBefore() ? [] : GREYED),
   useCommissionerChanges: () => COMMISSIONER_CHANGES,
 };
