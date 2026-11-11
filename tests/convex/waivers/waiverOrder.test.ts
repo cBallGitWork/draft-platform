@@ -1,5 +1,7 @@
 import { describe, expect, test } from "vitest";
 import { winnersNow, withWinnersLast, wonBy } from "../../../convex/waivers/waiverOrder";
+import { DAY_MS, HOUR_MS } from "../../../convex/shared/time";
+import { mayFallInLock } from "../../../convex/waivers/waiverLock";
 import { breaksLimits } from "../../../convex/waivers/waiverRun";
 
 // The waiver order's rules (#1198, spec/08) and a claim against the squad's limits, pure.
@@ -56,5 +58,32 @@ describe("a claim against the squad's limits", () => {
 
   test("a squad under its minimum size is never the claim's doing", () => {
     expect(breaksLimits([under(11)], [under(12)])).toBe(false);
+  });
+});
+
+describe("a run that may fall in a gameweek's lock (#1488)", () => {
+  // GW11 began Saturday and is over; GW12's deadline is Tuesday, GW13's the Saturday after.
+  const [SAT, TUE, WED, NEXT_SAT] = [0, 3, 4, 7].map((day) => day * DAY_MS);
+  const deadlines = new Map([
+    [11, SAT],
+    [12, TUE],
+    [13, NEXT_SAT],
+  ]);
+
+  test("one after the next deadline may be skipped by that gameweek", () => {
+    expect(mayFallInLock(deadlines, null, TUE - HOUR_MS, WED)).toBe(12);
+  });
+
+  test("one before it falls in a gameweek that is over, so is made", () => {
+    expect(mayFallInLock(deadlines, null, SAT + DAY_MS, TUE - HOUR_MS)).toBeNull();
+  });
+
+  test("in the lock, one may be skipped by the gameweek under way, and none is once its last match is over", () => {
+    expect(mayFallInLock(deadlines, 12, WED - HOUR_MS, WED)).toBe(12);
+    expect(mayFallInLock(deadlines, null, WED - HOUR_MS, WED)).toBeNull();
+  });
+
+  test("before any deadline none is", () => {
+    expect(mayFallInLock(deadlines, null, SAT - DAY_MS, SAT - HOUR_MS)).toBeNull();
   });
 });

@@ -11,7 +11,7 @@ import { memberOf, teamsOf } from "../shared/leagueAccess";
 import { standingsOf } from "../table/leagueTable";
 import { tableOf } from "../table/sentTables";
 import type { TableRow } from "../table/standings";
-import { inWaiverLock, latestBegun, latestEnded } from "./waiverLock";
+import { inWaiverLock, latestBegun, latestEnded, mayFallInLock } from "./waiverLock";
 import { firstRunFrom } from "./waiverTimes";
 
 // The waiver order (#1198, spec/08 Waivers and free agency): who a run tries first. Its starting
@@ -155,14 +155,17 @@ const waiversView = v.object({
   teams: v.array(v.object({ teamId: v.id("teams"), name: v.string(), yours: v.boolean(), tablePlace: v.number(), points: v.number() })),
   /** Whether the league's draft is over: before it, claims, drops and pickups are refused (S08.1). */
   drafted: v.boolean(),
-  /** The next time each of the league's runs is made, soonest first, UK time as the rules set it. */
-  runs: v.array(v.number()),
+  /** The next time each of the league's runs is made, soonest first, UK time as the rules set it,
+   *  with the gameweek whose lock it may fall in, so be skipped, or null when it surely won't. */
+  runs: v.array(v.object({ at: v.number(), skippedIf: v.union(v.number(), v.null()) })),
   /** Whether it is in the lock, from a deadline until the gameweek's last match is over. */
   locked: v.boolean(),
   /** Whether free agents can be picked up now, the lock aside. */
   windowOpen: v.boolean(),
-  /** The next deadline, when the window shuts, or null with none set. */
-  nextDeadline: v.union(v.object({ gameweek: v.number(), at: v.number() }), v.null()),
+  /** The deadline that shuts the window open now or next to open, or null with none set: the next
+   *  deadline, unless the window is shut and its first run may fall in that deadline's gameweek's
+   *  lock, when it is the deadline after (#1488). */
+  windowShuts: v.union(v.object({ gameweek: v.number(), at: v.number() }), v.null()),
   /** The gameweek whose end works the order out again: the one under way in the lock, else the next
    *  deadline's; null with neither. */
   resetsAfter: v.union(v.number(), v.null()),
@@ -185,9 +188,18 @@ export const ofLeague = query({
     const table = await waiverTable(ctx, league, season, await draftOrderIn(ctx, league), ended);
     const order = await orderNow(ctx, league, season, ended, table);
     const names = new Map((await teamsOf(ctx, leagueId)).map(({ _id, name }) => [_id, name]));
-    const runs = season.latest.waivers.runs.flatMap((run) => firstRunFrom([run], now) ?? []).sort((one, other) => one - other);
     const locked = await inWaiverLock(ctx, deadlines, now);
+    const underWay = locked ? latestBegun(deadlines, now) : null;
+    const runs = season.latest.waivers.runs
+      .flatMap((run) => firstRunFrom([run], now) ?? [])
+      .sort((one, other) => one - other)
+      .map((at) => ({ at, skippedIf: mayFallInLock(deadlines, underWay, now, at) }));
+    const open = await windowOpen(ctx, leagueId, deadlines, now);
     const next = nextDeadline(deadlines, now);
+    // Shut, with its first run after the next deadline: the window opens after that gameweek's last
+    // match, and lasts to the deadline after it.
+    const waitsOn = open || locked || runs.length === 0 ? null : runs[0].skippedIf;
+    const waitedDeadline = waitsOn === null ? null : (deadlines.get(waitsOn) ?? null);
     return {
       type: season.latest.waivers.order,
       teams: order.map((teamId) => {
@@ -199,9 +211,9 @@ export const ofLeague = query({
       drafted: await draftIsOver(ctx, leagueId),
       runs,
       locked,
-      windowOpen: await windowOpen(ctx, leagueId, deadlines, now),
-      nextDeadline: next,
-      resetsAfter: locked ? latestBegun(deadlines, now) : (next?.gameweek ?? null),
+      windowOpen: open,
+      windowShuts: waitedDeadline === null ? next : nextDeadline(deadlines, waitedDeadline),
+      resetsAfter: underWay ?? next?.gameweek ?? null,
     };
   },
 });

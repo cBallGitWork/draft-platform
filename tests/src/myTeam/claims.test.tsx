@@ -7,6 +7,7 @@ import { fireEvent, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
 import type { Id } from "../../../convex/_generated/dataModel";
+import { DAY_MS } from "../../../convex/shared/time";
 import { MY_TEAM_TRANSACTIONS_PATH } from "../../../src/frame/menu";
 import { pendingClaimsTabLabel, sectionTabsLabel } from "../../../src/frame/words";
 import { TRANSACTIONS_TITLE } from "../../../src/myTeam/words";
@@ -31,7 +32,7 @@ import {
   RUNS_TITLE,
   selectClaimLabel,
   WAIVER_ORDER_TITLE,
-  windowWords,
+  skippedIfWords,
   withdrawWords,
 } from "../../../src/myTeam/claims/words";
 import type { TeamSquad } from "../../../src/myTeam/seam";
@@ -40,7 +41,10 @@ import { MY_TEAM_ID, NO_WAIVERS, type MyTeamData } from "../../support/src/myTea
 import { league, manager, managerIn, openApp } from "../../support/src/shell.harness";
 
 const WED = Date.parse("2026-11-11T18:00:00Z");
-const THU = WED + 24 * 60 * 60 * 1000;
+const THU = WED + DAY_MS;
+/** A run that is surely made, and one that is skipped if `gameweek` is still on at it. */
+const made = (at: number) => ({ at, skippedIf: null });
+const mayBeSkipped = (at: number, gameweek: number) => ({ at, skippedIf: gameweek });
 const club = { code: 1, name: "Arsenal", shortName: "ARS" };
 const player = (playerCode: number, playerName: string) => ({ playerCode, playerName, positions: ["W" as const], club, seasonPoints: 20 });
 const [SEMENYO, EZE, KUDUS, CALVERT_LEWIN, MBEUMO] = [player(1, "Semenyo"), player(2, "Eze"), player(3, "Kudus"), player(4, "Calvert-Lewin"), player(5, "Mbeumo")];
@@ -133,14 +137,14 @@ describe("before the league's draft is over (S08.1)", () => {
   };
 
   it("before the season, says free agency opens once it is, marking no run Next", async () => {
-    expect(await runs({ ...NO_WAIVERS, drafted: false, windowOpen: true, runs: [WED], nextDeadline: { gameweek: 1, at: THU } })).toEqual([
+    expect(await runs({ ...NO_WAIVERS, drafted: false, windowOpen: true, runs: [made(WED)], windowShuts: { gameweek: 1, at: THU } })).toEqual([
       runWords(WED),
       `${freeAgentsWords}${freeAgentsNotOpenWords}`,
     ]);
   });
 
   it("mid-season, says the same rather than the next run's time", async () => {
-    expect(await runs({ ...NO_WAIVERS, drafted: false, runs: [WED, THU], nextDeadline: { gameweek: 12, at: THU } })).toEqual([
+    expect(await runs({ ...NO_WAIVERS, drafted: false, runs: [made(WED), mayBeSkipped(THU, 12)], windowShuts: { gameweek: 12, at: THU } })).toEqual([
       runWords(WED),
       runWords(THU),
       `${freeAgentsWords}${freeAgentsNotOpenWords}`,
@@ -148,9 +152,39 @@ describe("before the league's draft is over (S08.1)", () => {
   });
 
   it("once it is, marks the first run Next and says when free agency opens", async () => {
-    expect(await runs({ ...NO_WAIVERS, runs: [WED], nextDeadline: { gameweek: 12, at: THU } })).toEqual([
+    expect(await runs({ ...NO_WAIVERS, runs: [made(WED)], windowShuts: { gameweek: 12, at: THU } })).toEqual([
       `${runWords(WED)}${nextRunWords}`,
-      `${freeAgentsWords}${windowWords({ drafted: true, open: false, locked: false, firstRun: WED, gameweek: 12 })}`,
+      `${freeAgentsWords}From Wed 18:00 to the GW12 deadline`,
+    ]);
+  });
+});
+
+describe("a midweek gameweek, its deadline before both runs (#1488)", () => {
+  const runs = async (waivers: WaiversView) => {
+    open({ waivers });
+    return within(await screen.findByRole("region", { name: RUNS_TITLE })).getAllByRole("listitem").map((row) => row.textContent);
+  };
+
+  it("marks each run that may fall in its lock, none Next, and free agency from after its last match to the deadline after", async () => {
+    expect(await runs({ ...NO_WAIVERS, runs: [mayBeSkipped(WED, 12), mayBeSkipped(THU, 12)], windowShuts: { gameweek: 13, at: THU + 2 * DAY_MS } })).toEqual([
+      `${runWords(WED)}${skippedIfWords(12)}`,
+      `${runWords(THU)}${skippedIfWords(12)}`,
+      `${freeAgentsWords}From the first run after GW12's last match to the GW13 deadline`,
+    ]);
+    expect(skippedIfWords(12)).toBe("Skipped if GW12 is still on");
+  });
+
+  it("with free agency open until that deadline, still marks the runs after it", async () => {
+    expect(await runs({ ...NO_WAIVERS, windowOpen: true, runs: [mayBeSkipped(WED, 12)], windowShuts: { gameweek: 12, at: WED - DAY_MS } })).toEqual([
+      `${runWords(WED)}${skippedIfWords(12)}`,
+      `${freeAgentsWords}Open to the GW12 deadline`,
+    ]);
+  });
+
+  it("in the lock, names the gameweek under way", async () => {
+    expect(await runs({ ...NO_WAIVERS, locked: true, resetsAfter: 12, runs: [mayBeSkipped(WED, 12)], windowShuts: { gameweek: 13, at: THU + 2 * DAY_MS } })).toEqual([
+      `${runWords(WED)}${skippedIfWords(12)}`,
+      `${freeAgentsWords}From the first run after GW12's last match to the GW13 deadline`,
     ]);
   });
 });

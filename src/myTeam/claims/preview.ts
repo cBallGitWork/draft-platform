@@ -62,11 +62,11 @@ const waivers: WaiversView = {
     .map((name, index) => ({ teamId: previewIdOf(name), name, yours: name === yourTeam, tablePlace: previewTeams.length - index, points: points[index] ?? 0 }))
     .toSorted((one, other) => other.tablePlace - one.tablePlace),
   drafted: true,
-  runs: [wednesday, thursday],
+  runs: [wednesday, thursday].map((at) => ({ at, skippedIf: null })),
   locked: false,
   windowOpen: false,
   // Saturday 11:00, the deadline after the runs.
-  nextDeadline: { gameweek: 10, at: wednesday + 3 * DAY_MS - 7 * HOUR_MS },
+  windowShuts: { gameweek: 10, at: wednesday + 3 * DAY_MS - 7 * HOUR_MS },
   resetsAfter: 10,
 };
 

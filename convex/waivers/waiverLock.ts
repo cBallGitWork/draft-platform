@@ -34,6 +34,17 @@ export async function inWaiverLock(ctx: QueryCtx, deadlines: LeagueDeadlines, no
   return gameweek !== null && (await gameweekUnderWay(ctx, gameweek));
 }
 
+/** The gameweek whose lock a run at `at` may fall in, seen from `now`, or null when it surely
+ *  doesn't (#1488): the latest gameweek begun by `at`, unless that one had begun by `now` and isn't
+ *  `underWay` (the gameweek under way now, null outside the lock), as its last match is then over.
+ *  When a gameweek's last match ends isn't known ahead, so a later one's run is only "may" (Craig,
+ *  11 Nov 2026: "skipped if GW12 is still on"). Pure. */
+export function mayFallInLock(deadlines: LeagueDeadlines, underWay: number | null, now: number, at: number): number | null {
+  const gameweek = latestBegun(deadlines, at);
+  if (gameweek === null) return null;
+  return isLocked(deadlines.get(gameweek) ?? null, now) && gameweek !== underWay ? null : gameweek;
+}
+
 /** Whether the league is at `now` in a gameweek it doesn't play, from that gameweek's deadline
  *  until its last match is over: spec/13, "Lineups, waivers, free agency and trades are locked
  *  through it". The waiver lock already covers that span for waivers and free agency; trades
