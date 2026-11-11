@@ -53,6 +53,8 @@ export const clearDraftStartWords = "Clear";
 export const draftStartHint = `The draft starts itself then. With no date it waits for you to press start in the draft room. A date has to be in the future, with at least ${DRAFT_FEWEST_TEAMS} teams in the league.`;
 export const draftStartedFixedWords = "The draft has started.";
 export const draftStartLoadingWords = "Loading the draft's start…";
+/** The bar once the date alone is saved (#1780): the settings' words name a gameweek, which a date has none of. */
+export const draftStartSavedWords = "Saved.";
 /** What a failed change leaves, live or in the preview. */
 export const unchangedDraftStartOutcome = "the draft's start didn't change";
 export const draftStartFailedWords = failedWords(unchangedDraftStartOutcome);
