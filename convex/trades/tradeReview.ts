@@ -15,8 +15,11 @@ import {
   type TradeFailed,
   type TradeWords,
 } from "../mail/tradeLetterWords";
+import type { LeagueDeadlines } from "../gameweeks/deadline";
+import { leagueDeadlines } from "../gameweeks/leagueDeadlines";
 import { tradeRulesOf } from "../rules/firstRules";
-import { latestRules } from "../rules/rulesHistory";
+import { rulesSinceBegun } from "../rules/rulesHistory";
+import { latestBegun } from "../waivers/waiverLock";
 import { managerOf, memberOf, refuse, teamsOf } from "../shared/leagueAccess";
 import { placeOf } from "../squads/squadPlace";
 import { closeOffersHolding, endOffer, leagueOf, managersOf, tradedName, tradedSideOf, tradeWordsOf } from "./tradeClose";
@@ -54,12 +57,11 @@ export async function votersOn(ctx: QueryCtx, offer: Doc<"tradeOffers">): Promis
   );
 }
 
-/** Who reviews the trade under the league's rules, or null for nobody: the commissioner under a
- *  veto, the co-commissioner when he is in it, or a vote when there is none (or the
- *  co-commissioner is in it too). */
-export async function reviewerOf(ctx: QueryCtx, league: Doc<"leagues">, offer: Doc<"tradeOffers">): Promise<ReviewWords | null> {
-  const rules = await latestRules(ctx, league._id);
-  const { review } = tradeRulesOf(rules);
+/** Who reviews the trade under the league's rules in force at `now`, not a change waiting for the
+ *  next gameweek (#1473), or null for nobody: the commissioner under a veto, the co-commissioner
+ *  when he is in it, or a vote when there is none (or the co-commissioner is in it too). */
+export async function reviewerOf(ctx: QueryCtx, league: Doc<"leagues">, offer: Doc<"tradeOffers">, deadlines: LeagueDeadlines, now: number): Promise<ReviewWords | null> {
+  const { review } = tradeRulesOf(await rulesSinceBegun(ctx, league._id, latestBegun(deadlines, now)));
   if (review !== "veto") return review === "vote" ? { kind: "vote" } : null;
   const inIt = new Set(await managersOf(ctx, offer));
   const by = [league.commissionerEmail, league.coCommissionerEmail].find((email) => email !== undefined && !inIt.has(email));
@@ -69,7 +71,7 @@ export async function reviewerOf(ctx: QueryCtx, league: Doc<"leagues">, offer: D
 /** The accepted offer goes into review, or through at once with none. */
 export async function startReview(ctx: MutationCtx, offer: Doc<"tradeOffers">, acceptedBy: string): Promise<void> {
   const league = await leagueOf(ctx, offer.leagueId);
-  const review = await reviewerOf(ctx, league, offer);
+  const review = await reviewerOf(ctx, league, offer, await leagueDeadlines(ctx, league._id), Date.now());
   if (review === null) {
     await goThrough(ctx, offer, acceptedBy, true);
     return;

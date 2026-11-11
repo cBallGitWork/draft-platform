@@ -3,7 +3,7 @@ import type { QueryCtx } from "../_generated/server";
 import { draftIsLive } from "../draft/draftRow";
 import type { LeagueDeadlines } from "../gameweeks/deadline";
 import { tradeRulesOf } from "../rules/firstRules";
-import { latestRules } from "../rules/rulesHistory";
+import { rulesSinceBegun } from "../rules/rulesHistory";
 import { gameweekUnderWay, inUnplayedGameweek, latestBegun } from "../waivers/waiverLock";
 
 // When no trade is offered or accepted (spec/08 Trades; #383): while the league's draft is live,
@@ -11,7 +11,8 @@ import { gameweekUnderWay, inUnplayedGameweek, latestBegun } from "../waivers/wa
 // passed, which is when that gameweek's last match is over (Craig, 6 Nov 2026); and through a
 // gameweek the league doesn't play, from its deadline until its last match is over (spec/13:
 // "when its international break, we lock everything"). And no offer goes to or from a team on
-// the auto team (spec/09).
+// the auto team (spec/09). The deadline is the one in force in the gameweek begun, never a change
+// still waiting for the next (#1473).
 
 /** Why trades are shut, or null while they are open. */
 export type TradesShut = "draftLive" | "tradeDeadline" | "unusedGameweek" | null;
@@ -21,7 +22,7 @@ export async function tradesShut(ctx: QueryCtx, league: Doc<"leagues">, deadline
   if (await draftIsLive(ctx, league._id)) return "draftLive";
   const begun = latestBegun(deadlines, now);
   if (begun === null) return null;
-  const rules = await latestRules(ctx, league._id);
+  const rules = await rulesSinceBegun(ctx, league._id, begun);
   const tradeDeadline = tradeRulesOf(rules).deadline;
   if (tradeDeadline !== null && begun >= tradeDeadline) {
     if (begun > tradeDeadline || !(await gameweekUnderWay(ctx, begun))) return "tradeDeadline";
