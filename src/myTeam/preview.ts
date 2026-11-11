@@ -108,7 +108,7 @@ const squad: TeamSquad = {
 
 /** The preview holds no server: a number changed there is taken, and goes when the page reloads. */
 const previewNumbers = { set: async () => null };
-const previewAutoTeam: MyAutoTeam = { teamId: previewIdOf(previewTeam), on: false, endsAfter: null };
+const previewAutoTeam: MyAutoTeam = { teamId: previewIdOf(previewTeam), on: false, endsAfter: null, endGameweeks: [] };
 const previewAutoTeamChanges = { set: async () => null };
 
 export const previewMyTeam: MyTeamSeam = {

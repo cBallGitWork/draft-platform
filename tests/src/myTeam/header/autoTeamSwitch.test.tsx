@@ -17,6 +17,7 @@ import {
   switchOnWords,
   untilSwitchedOffWords,
 } from "../../../../src/myTeam/header/words";
+import { SEASON_GAMEWEEKS } from "../../../../convex/gameweeks/usedGameweeks";
 import { MY_TEAM_ID } from "../../../support/src/myTeam.harness";
 import { league } from "../../../support/src/shell.harness";
 import { TACTICS_GAMEWEEK } from "../../../support/src/tactics.harness";
@@ -29,15 +30,18 @@ const openPanel = async (state: string) => {
 };
 
 describe("My team's Auto team", () => {
-  it("reads Off, and switches on until the end of the gameweek picked, from the next not begun", async () => {
-    const app = openTacticsTab({ tactics: SAVED });
+  it("reads Off, and switches on until the end of the gameweek picked, of those the league plays from the next not begun", async () => {
+    // The league skips the gameweek after next and ends at 30 (#1561).
+    const endGameweeks = [TACTICS_GAMEWEEK, ...SEASON_GAMEWEEKS.filter((gameweek) => gameweek > TACTICS_GAMEWEEK + 1 && gameweek <= 30)];
+    const app = openTacticsTab({ tactics: SAVED, autoTeam: { on: false, endsAfter: null, endGameweeks } });
     const panel = await openPanel(autoTeamStateWords({ on: false, endsAfter: null }));
     expect(panel.getByText(autoTeamWhatWords)).toBeTruthy();
 
     const gameweeks = panel.getByRole("combobox", { name: endGameweekLabel });
     const options = within(gameweeks).getAllByRole("option").map((option) => option.textContent);
-    expect(options[0]).toBe(gameweekShort(TACTICS_GAMEWEEK));
-    expect(options.at(-1)).toBe(gameweekShort(38));
+    expect(options).toEqual(endGameweeks.map(gameweekShort));
+    expect(options).not.toContain(gameweekShort(TACTICS_GAMEWEEK + 1));
+    expect(options.at(-1)).toBe(gameweekShort(30));
     await userEvent.selectOptions(gameweeks, String(TACTICS_GAMEWEEK + 4));
     await userEvent.click(panel.getByRole("button", { name: switchOnWords }));
 

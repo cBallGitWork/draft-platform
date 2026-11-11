@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, test, vi } from "vitest";
 import { api } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
 import { recordPassedDeadlines } from "../../../convex/gameweeks/deadlineRecorder";
+import { SEASON_GAMEWEEKS } from "../../../convex/gameweeks/usedGameweeks";
 import { autoTeamLetters, autoTeamRefusals } from "../../../convex/lineup/autoTeamWords";
 import { lineupInGameweek } from "../../../convex/lineup/lineups";
 import type { Availability } from "../../../convex/availability/availability";
@@ -137,11 +138,22 @@ describe("who may switch it", () => {
     await expect(switches(ANN, true, NEXT - 1)).rejects.toThrow(autoTeamRefusals.endsAfterOutOfRange(NEXT, 38));
   });
 
-  test("its manager reads it on My team: off, then on until the gameweek named", async () => {
+  test("in a league that ends early, or unticked a gameweek, it ends after one the league plays (#1561)", async () => {
+    await t.run((ctx) => ctx.db.patch("leagues", leagueId, { unusedGameweeks: [NEXT + 1, 31, 32, 33, 34, 35, 36, 37, 38] }));
+    const outOfRange = autoTeamRefusals.endsAfterOutOfRange(NEXT, 30);
+    await expect(switches(ANN, true, 31)).rejects.toThrow(outOfRange);
+    await expect(switches(ANN, true, NEXT + 1)).rejects.toThrow(outOfRange);
+    await switches(ANN, true, 30);
+    expect(await switchOf()).toEqual({ by: ANN, endsAfter: 30 });
+  });
+
+  test("its manager reads it on My team: off, then on until the gameweek named, with the gameweeks the league plays to name", async () => {
+    await t.run((ctx) => ctx.db.patch("leagues", leagueId, { unusedGameweeks: [NEXT + 1, 37, 38] }));
+    const endGameweeks = SEASON_GAMEWEEKS.filter((gameweek) => gameweek >= NEXT && gameweek !== NEXT + 1 && gameweek <= 36);
     const read = async () => (await actingAs(t, ANN)).query(api.lineup.autoTeam.ofMyTeam, { leagueId });
-    expect(await read()).toEqual({ teamId: annsTeam, on: false, endsAfter: null });
+    expect(await read()).toEqual({ teamId: annsTeam, on: false, endsAfter: null, endGameweeks });
     await switches(ANN, true, NEXT + 2);
-    expect(await read()).toEqual({ teamId: annsTeam, on: true, endsAfter: NEXT + 2 });
+    expect(await read()).toEqual({ teamId: annsTeam, on: true, endsAfter: NEXT + 2, endGameweeks });
   });
 
   test("it can't be switched on twice, nor off while off", async () => {

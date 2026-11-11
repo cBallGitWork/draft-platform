@@ -32,8 +32,8 @@ export type MyTeamData = TacticsData & {
   waivers?: WaiversView;
   /** What each change to a claim answers: null once made, or the words why not. */
   claimAnswer?: string | null;
-  /** The team's auto team: off by default. */
-  autoTeam?: Omit<MyAutoTeam, "teamId">;
+  /** The team's auto team: off by default, with no gameweek to end after unless named. */
+  autoTeam?: Omit<MyAutoTeam, "teamId" | "endGameweeks"> & { endGameweeks?: number[] };
   /** What switching it answers: null once made, or the words why not. */
   autoTeamAnswer?: string | null;
   loading?: boolean;
@@ -90,7 +90,7 @@ export function fakeMyTeam({
     useWaivers: vi.fn<MyTeamSeam["useWaivers"]>(() => (loading ? undefined : waivers)),
     useClaimChanges: () => claimChanges,
     claimChanges,
-    useMyAutoTeam: vi.fn<MyTeamSeam["useMyAutoTeam"]>(() => (loading ? undefined : { teamId: MY_TEAM_ID, ...autoTeam })),
+    useMyAutoTeam: vi.fn<MyTeamSeam["useMyAutoTeam"]>(() => (loading ? undefined : { teamId: MY_TEAM_ID, endGameweeks: [], ...autoTeam })),
     useAutoTeamChanges: () => autoTeamChanges,
     autoTeamChanges,
   };
