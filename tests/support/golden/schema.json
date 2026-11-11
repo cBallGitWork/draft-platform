@@ -19520,6 +19520,32 @@
                     }
                   },
                   "optional": false
+                },
+                "instructions": {
+                  "fieldType": {
+                    "type": "array",
+                    "value": {
+                      "type": "object",
+                      "value": {
+                        "instruction": {
+                          "fieldType": {
+                            "type": "string"
+                          },
+                          "optional": false
+                        },
+                        "missing": {
+                          "fieldType": {
+                            "type": "array",
+                            "value": {
+                              "type": "string"
+                            }
+                          },
+                          "optional": false
+                        }
+                      }
+                    }
+                  },
+                  "optional": true
                 }
               }
             },
