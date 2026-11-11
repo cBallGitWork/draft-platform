@@ -11,6 +11,7 @@
     "dev": "convex dev --start vite",
     "build": "vite build && node scripts/bundle-has-no-preview.mjs",
     "test": "node scripts/with-deadline.mjs 300 vitest run",
+    "test:docs": "vitest run $(grep -rlE '\\.md\\?raw' tests)",
     "typecheck": "tsc --noEmit -p convex && tsc --noEmit -p .",
     "lint": "eslint --max-warnings 0 .",
     "smoke": "playwright test",
