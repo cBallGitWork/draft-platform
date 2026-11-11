@@ -1,10 +1,11 @@
 import { unreadCount } from "../../mail/words";
-import { MAIL_PATH, MY_TEAM_PATH } from "../menu";
+import { MAIL_PATH, MY_TEAM_PATH, TRADES_PATH } from "../menu";
 import { menuWords } from "../words";
 
 // What the top bar tells a signed-in manager: Mail's unread count, and where Continue goes.
-// Mail (#26) feeds the count (src/mail/liveMail.ts) and the server says whether his lineup is due
-// (convex/lineup/lineupDue.ts, #526); liveTopBar.tsx puts them together. Trades aren't built.
+// Mail (#26) feeds the count (src/mail/liveMail.ts); the server says whether his lineup is due
+// (convex/lineup/lineupDue.ts, #526) and how many trade offers wait for his answer
+// (convex/trades/tradeOffers.ts, #1553); liveTopBar.tsx puts them together.
 
 export type NextStep = { path: string; reason: string };
 export type TopBarState = {
@@ -16,9 +17,11 @@ export type TopBarState = {
 };
 
 /** Where Continue goes, in spec/12's order: an unread letter, then a lineup before the deadline
- *  (his Tactics tab, My team's own page); with neither, nowhere. */
-export function nextStep({ unreadMail, lineupDue }: { unreadMail: number; lineupDue: boolean }): NextStep | null {
+ *  (his Tactics tab, My team's own page), then a trade offer waiting for his answer (the Offers
+ *  tab); with none, nowhere. */
+export function nextStep({ unreadMail, lineupDue, offersWaiting }: { unreadMail: number; lineupDue: boolean; offersWaiting: number }): NextStep | null {
   if (unreadMail > 0) return { path: MAIL_PATH, reason: unreadCount(unreadMail) };
   if (lineupDue) return { path: MY_TEAM_PATH, reason: menuWords.tactics };
+  if (offersWaiting > 0) return { path: TRADES_PATH, reason: menuWords.offers };
   return null;
 }
