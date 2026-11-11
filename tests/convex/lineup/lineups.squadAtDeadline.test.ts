@@ -6,7 +6,7 @@ import { holdGameweeks } from "../../support/convex/leagueRules.harness";
 import { COMMISSIONER, MANAGERS, actingAs, addManagers, adminCreatesLeague, type TestConvex } from "../../support/convex/leagues.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
 import { FIRST_SUB } from "../../support/convex/lineup.harness";
-import { FOUR_FOUR_TWO, holdPlayers, holdSquad, nameOf, NEXT, passNextDeadline, SQUAD, squadMoves, STARTERS } from "../../support/convex/lineupSquad.harness";
+import { BOBS, FOUR_FOUR_TWO, FREE_AGENT, holdPlayers, holdSquad, nameOf, NEXT, passNextDeadline, saved, sent, SQUAD, squadMoves, STARTERS } from "../../support/convex/lineupSquad.harness";
 import { lineupInGameweek, lineupsInGameweek } from "../../../convex/lineup/lineups";
 import { SQUAD_MOVES_READ_MOST, squadMovesFrom } from "../../../convex/squads/squadPlace";
 import { passedDeadlineOf } from "../../../convex/gameweeks/passedDeadlines";
@@ -17,10 +17,6 @@ import { MINUTE_MS } from "../../../convex/shared/time";
 // The rest of storing a lineup is in lineups.test.ts.
 
 const [ANN, BOB] = MANAGERS;
-/** A player in the Premier League on no team in the league. */
-const FREE_AGENT = 999;
-/** Bob's player. */
-const BOBS = 998;
 
 let t: TestConvex;
 let leagueId: Id<"leagues">;
@@ -38,9 +34,6 @@ beforeEach(async () => {
   await holdPlayers(t, [FREE_AGENT]);
 });
 
-/** The lineup as a browser sends it. */
-const sent = (lineup: Lineup) => ({ starters: [...lineup.starters], bench: [...lineup.bench] });
-
 const as = async (email: string) => {
   const person = await actingAs(t, email);
   return {
@@ -54,14 +47,6 @@ const teamOf = (email: string): Id<"teams"> => {
   if (email === BOB) return bobsTeam;
   throw new Error(`${email} runs no team in the league`);
 };
-const saved = (lineup: Lineup, fromGameweek: number | null) => ({
-  fromGameweek,
-  starters: lineup.starters,
-  bench: lineup.bench,
-  leftSquad: [],
-  joinedBench: [],
-  vacated: [],
-});
 
 describe("a begun gameweek keeps the squad as it stood at its deadline (#415)", () => {
   const commissioner = () => squadMoves(t, leagueId, COMMISSIONER);

@@ -49,14 +49,18 @@ export async function ownerOf(ctx: QueryCtx, leagueId: Id<"leagues">): Promise<(
   };
 }
 
+/** The squad moves of one player outside a trade, which both lists below hold: a new one must be
+ *  added here, or the screens and the Transactions tab miss it. */
+export const PLAYER_MOVES = ["playerAssigned", "playerMoved", "playerReleased", "playerDropped", "playerClaimed", "playerPickedUp"] as const;
+
 /** The league events that change a squad. A commissioner assigns, moves and releases players
  *  (#31), a manager drops them (#1197) and picks up free agents (#1199), and a waiver run gives
  *  them for a claim (#1198), and a trade moves them (#383). */
-export const SQUAD_MOVES = ["playerAssigned", "playerMoved", "playerReleased", "playerDropped", "playerClaimed", "playerPickedUp", "playerTraded"] as const;
+export const SQUAD_MOVES = [...PLAYER_MOVES, "playerTraded"] as const;
 
 /** The league events the screens list a team's moves from (My team's Transactions, League home,
  *  its News tab): every squad move but a trade's players, and each trade as one (#1491). */
-export const LISTED_MOVES = ["playerAssigned", "playerMoved", "playerReleased", "playerDropped", "playerClaimed", "playerPickedUp", "tradeMade"] as const;
+export const LISTED_MOVES = [...PLAYER_MOVES, "tradeMade"] as const;
 export type ListedKind = (typeof LISTED_MOVES)[number];
 /** A listed move of one player: any but a trade, which the screens list with both its sides. */
 export const playerMoveKind = v.union(...LISTED_MOVES.flatMap((kind) => (kind === "tradeMade" ? [] : [v.literal(kind)])));
