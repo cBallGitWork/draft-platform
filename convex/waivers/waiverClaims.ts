@@ -8,8 +8,8 @@ import { clubRecord, position } from "../schema";
 import { takeAllOrThrow } from "../shared/cappedRead";
 import { MOST_TEAMS } from "../leagues/leagueLimits";
 import { leagueOpens } from "../leagues/leagueOpens";
-import { managerOf, memberOf, powersIn, refuse, refusals, signedInEmail, teamOf, teamsOf } from "../shared/leagueAccess";
-import { clubByCode, clubOf, heldPlayerByCode, playerByCode } from "../shared/players";
+import { managerOf, memberOf, powersIn, refuse, signedInEmail, teamOf, teamsOf } from "../shared/leagueAccess";
+import { clubByCode, clubOf, heldPlayerByCode, playerOrRefuse } from "../shared/players";
 import { placeOf } from "../squads/squadPlace";
 import { squadRefusals } from "../squads/squads";
 import { seasonPointsIn } from "../stats/seasonPoints";
@@ -83,7 +83,7 @@ export const putIn = mutation({
     const { email, team } = await managerOf(ctx, leagueId);
     if (!(await draftIsOver(ctx, leagueId))) refuse(claimRefusals.notDrafted);
     if (await inWaiverLock(ctx, await leagueDeadlines(ctx, leagueId), Date.now())) refuse(claimRefusals.locked);
-    const player = (await playerByCode(ctx, playerCode)) ?? refuse(refusals.noPlayer);
+    const player = await playerOrRefuse(ctx, playerCode);
     if ((await waiverRowOf(ctx, leagueId, playerCode)) === null) refuse(claimRefusals.notOnWaivers(player.name));
     if (player.droppedAt !== undefined) refuse(claimRefusals.playerGone(player.name));
     await checkDrop(ctx, leagueId, team._id, dropCode);
@@ -98,7 +98,7 @@ export const putIn = mutation({
 /** Refused unless a claim's drop, if anyone, is in the team's squad. */
 async function checkDrop(ctx: QueryCtx, leagueId: Id<"leagues">, teamId: Id<"teams">, dropCode: number | null): Promise<void> {
   if (dropCode === null) return;
-  const drop = (await playerByCode(ctx, dropCode)) ?? refuse(refusals.noPlayer);
+  const drop = await playerOrRefuse(ctx, dropCode);
   if ((await placeOf(ctx, leagueId, dropCode))?.teamId !== teamId) refuse(claimRefusals.dropNotYours(drop.name));
 }
 

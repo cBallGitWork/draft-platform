@@ -5,8 +5,8 @@ import { mutation, query, type QueryCtx } from "../_generated/server";
 import { scoutsPerTeam } from "../admin/platformSettings";
 import { scoutState } from "../schema";
 import { takeAllOrThrow } from "../shared/cappedRead";
-import { memberOf, refuse, refusals } from "../shared/leagueAccess";
-import { hasLeft, playerByCode, unheldPlayerWords } from "../shared/players";
+import { memberOf, refuse } from "../shared/leagueAccess";
+import { hasLeft, playerByCode, playerOrRefuse, unheldPlayerWords } from "../shared/players";
 import { DAY_MS, seasonStartAt } from "../shared/time";
 import { ownTeam } from "./shortlist";
 import { scoutRefusals } from "./scoutWords";
@@ -60,7 +60,7 @@ export const send = mutation({
   returns: v.null(),
   handler: async (ctx, { leagueId, playerCode }) => {
     const team = await ownTeam(ctx, leagueId);
-    const player = (await playerByCode(ctx, playerCode)) ?? refuse(refusals.noPlayer);
+    const player = await playerOrRefuse(ctx, playerCode);
     if (hasLeft(player)) refuse(scoutRefusals.playerGone(player.name));
     const out = await scoutsOut(ctx, team._id);
     if (out.some((scout) => scout.playerCode === playerCode)) refuse(scoutRefusals.alreadyOut(player.name));
