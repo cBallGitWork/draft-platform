@@ -6,7 +6,7 @@ import { positionsNow } from "../positions/playerPositions";
 import { clubRecord, position } from "../schema";
 import { takeAllOrThrow } from "../shared/cappedRead";
 import { memberOf, teamsOf } from "../shared/leagueAccess";
-import { clubOf, currentClubs, currentPlayersAt } from "../shared/players";
+import { clubOf, currentClubs, currentPlayersAt, playerByCode } from "../shared/players";
 import type { Stats } from "../stats/statTotals";
 import { periodPointsIn, periodTotals } from "./period";
 import { period } from "./periods";
@@ -111,20 +111,25 @@ const playersList = v.object({
   /** The gameweeks the period counts, in order: none for the season, and fewer than it names while
    *  fewer have finished. */
   periodGameweeks: v.array(v.number()),
+  /** The player asked to be kept, whatever the filters keep: his row as the list would show it, so
+   *  his panel follows a pickup, a claim or a drop that moves him out of the list (#1551); null once
+   *  he is no longer a Premier League player. Left out when none is asked. */
+  kept: v.optional(v.union(listedPlayer, v.null())),
 });
 export type PlayersList = Infer<typeof playersList>;
 
 /** Every club now, and every current player (only `clubCode`'s when one is chosen, null for every
  *  club), each with his figures over `period` (the season when left out) and his total there of
  *  `stat` when one is shown (a catalogue stat's key, an own stat's of the site's latest set, or
- *  null), and that set's own stats. Only the chosen club's players are read. Who holds him and his
- *  position are filtered, and the list sorted, in the browser (`listOf`), so a sort or one of those
- *  filters never reads the list again (#1552). Anyone not in the league is refused, as is a stat
- *  neither holds. */
+ *  null), and that set's own stats, and the row of the player `keep` names (`kept`) whether the
+ *  chosen club holds him or not (#1551). Only the chosen club's players are read, and he besides.
+ *  Who holds him and his position are filtered, and the list sorted, in the browser (`listOf`), so
+ *  a sort or one of those filters never reads the list again (#1552). Anyone not in the league is
+ *  refused, as is a stat neither holds. */
 export const list = query({
-  args: { leagueId: v.id("leagues"), clubCode: v.union(v.number(), v.null()), stat: v.union(v.string(), v.null()), period: v.optional(period) },
+  args: { leagueId: v.id("leagues"), clubCode: v.union(v.number(), v.null()), stat: v.union(v.string(), v.null()), period: v.optional(period), keep: v.optional(v.number()) },
   returns: playersList,
-  handler: async (ctx, { leagueId, clubCode, stat, period = "season" }) => {
+  handler: async (ctx, { leagueId, clubCode, stat, period = "season", keep }): Promise<PlayersList> => {
     await memberOf(ctx, leagueId);
     const set = setOf((await siteVersions(ctx)).at(-1));
     const ownStats = (set.ownStats ?? []).map(({ stat, name, shortCode }) => ({ stat, name, shortCode }));
@@ -141,27 +146,42 @@ export const list = query({
     const periodPointsOf = period === "season" ? pointsOf : await periodPointsIn(ctx, leagueId, over);
     const listedClubOf = new Map(clubs.map((each) => [each.code, clubOf(each)]));
 
-    const rows = await Promise.all(
-      players.map(async (player) => {
-        const positions = await positionsOfNow(player.code);
-        return {
-          code: player.code,
-          name: player.name,
-          fullName: player.fullName,
-          club: listedClubOf.get(player.clubCode)!,
-          positions,
-          ownerTeamName: ownerOf.get(player.code) ?? null,
-          onWaivers: onWaiversOf.get(player.code) ?? null,
-          seasonPoints: pointsOf(player.code, positions),
-          points: periodPointsOf(player.code, positions),
-          figures: listFigures(totals.get(player.code)),
-          stat: shownStat(withOwnTotals(totals.get(player.code), stat, set), stat),
-        };
-      }),
-    );
-    return { clubs: [...listedClubOf.values()], ownStats, players: rows, pointsSeason: lastSeason, periodGameweeks: over.gameweeks };
+    const rowOf = async (player: Doc<"players">): Promise<ListedPlayer> => {
+      const positions = await positionsOfNow(player.code);
+      return {
+        code: player.code,
+        name: player.name,
+        fullName: player.fullName,
+        club: listedClubOf.get(player.clubCode)!,
+        positions,
+        ownerTeamName: ownerOf.get(player.code) ?? null,
+        onWaivers: onWaiversOf.get(player.code) ?? null,
+        seasonPoints: pointsOf(player.code, positions),
+        points: periodPointsOf(player.code, positions),
+        figures: listFigures(totals.get(player.code)),
+        stat: shownStat(withOwnTotals(totals.get(player.code), stat, set), stat),
+      };
+    };
+    const rows = await Promise.all(players.map(rowOf));
+    const listed = { clubs: [...listedClubOf.values()], ownStats, players: rows, pointsSeason: lastSeason, periodGameweeks: over.gameweeks };
+    if (keep === undefined) return listed;
+    const kept = rows.find(({ code }) => code === keep) ?? (await keptOutside(ctx, keep, listedClubOf, rowOf));
+    return { ...listed, kept };
   },
 });
+
+/** The kept player's row when the club filter left him out, read on his own; null when he is no
+ *  longer a Premier League player (dropped, or at no club now). */
+async function keptOutside(
+  ctx: QueryCtx,
+  code: number,
+  clubs: ReadonlyMap<number, unknown>,
+  rowOf: (player: Doc<"players">) => Promise<ListedPlayer>,
+): Promise<ListedPlayer | null> {
+  const player = await playerByCode(ctx, code);
+  if (player === null || player.droppedAt !== undefined || !clubs.has(player.clubCode)) return null;
+  return rowOf(player);
+}
 
 /** Refuses a stat that is neither the catalogue's nor one of `ownStats`. */
 export function checkShownStat(stat: string, ownStats: readonly { stat: string }[]): void {
