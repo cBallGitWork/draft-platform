@@ -21,7 +21,8 @@ import { SPORTMONKS, type RawFixture, type RawLeague, type RawSeason, type RawSt
 // Daily at the positions sync's 06:00 UK time, and a cron's run with matches left carries on at
 // once. Where the deployment has no `SPORTMONKS_API_TOKEN` it reads nothing and writes no row.
 // From the CLI: `npx convex run football/sportmonks/sportmonksPositionsSync:run '{"trigger":"manual"}'`,
-// then `football/sportmonks/sportmonksPositionsSync:regulars '{"season":2025}'` for Craig's check (`S06.3`).
+// then `football/sportmonks/sportmonksPositionsSync:regulars '{"season":<this season's start year>}'`
+// for Craig's check (`S06.3`): only this season's list is right (see `regulars`).
 
 /** The league this read is for: the Scottish Premiership, #1419's. The six-hourly read and the
  *  live tick go over the competitions list (#1414); this read keeps its one league until an issue
@@ -149,7 +150,10 @@ export const latest = internalQuery({
 
 /** A season's regulars, for Craig's check of the table (`S06.3`): each man with `REGULAR_STARTS`
  *  or more starts that season, his club now, his starts that season, and the positions his starts
- *  give him, club by club. The whole table is read: a few hundred rows. */
+ *  give him, club by club. The whole table is read: a few hundred rows.
+ *  Right for this season only: a row keeps a man's newest `START_WINDOW` starts across both
+ *  seasons (`withStart`), so each start he makes this season pushes one of last season's out, and
+ *  last season's list loses its regulars as this season goes on (#1563). */
 export const regulars = internalQuery({
   args: { season: v.number() },
   returns: v.array(
