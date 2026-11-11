@@ -70,8 +70,8 @@ export function autoPickAt(draft: Doc<"drafts">, clock: Clock, team: Doc<"teams"
 }
 
 /** Whether the draft picks for `team` as `clock` starts rather than when it runs out: such a pick
- *  is no timeout (Craig, 4 Nov 2026, on #1091: "A timeout only counts when the clock runs out with
- *  no pick"). */
+ *  is no timeout. Claude's reading of spec/04-the-draft.md, Auto-pick: a timeout is "when his
+ *  clock runs out", and a pick made at once has no clock run out (#1460). */
 export function picksAtClockStart(draft: Doc<"drafts">, clock: Clock, team: Doc<"teams">): boolean {
   return picksAtOnce(draft.timeouts, team) && !clock.fullClock;
 }
