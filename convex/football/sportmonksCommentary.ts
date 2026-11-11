@@ -91,10 +91,12 @@ export function sportmonksCommentaryRead(
   return { lines, delayed: joinedReasons([behind(lines, score), unwordedReason(unworded)]) };
 }
 
-/** "VAR Tavernier, penalty confirmed": the call as Sportmonks words it (`info`), when it does. */
+/** "VAR Baur, goal disallowed": the call as Sportmonks words it, when it does. A real read sends it
+ *  in `addition` with `info` empty (Celtic v Kilmarnock, #1450); the docs show it in `info`. */
 function varWords(man: string, event: SportmonksEvent): string {
   const head = event.playerId === null ? "VAR" : `VAR ${man}`;
-  return event.info === null ? head : `${head}, ${event.info.toLowerCase()}`;
+  const call = event.addition ?? event.info;
+  return call === null ? head : `${head}, ${call.toLowerCase()}`;
 }
 
 /** By minute, then extra minute; within those, as Sportmonks sent them (the sort is stable). */
