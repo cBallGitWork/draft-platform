@@ -8,6 +8,7 @@ import { DAY_MS, HOUR_MS, MINUTE_MS, SECOND_MS } from "../../../convex/shared/ti
 import { SAKA } from "../../support/convex/footballRows.harness";
 import { changeRules, HELD_FIRST_RULES, holdGameweeks, rulesWith } from "../../support/convex/leagueRules.harness";
 import { elapse, expectRefused } from "../../support/convex/test.harness";
+import { invitesPage } from "../../support/convex/joining.harness";
 import { actingAs, addManager, addManagers, adminCreatesLeague, COMMISSIONER, MANAGERS, OUTSIDER, type TestConvex } from "../../support/convex/leagues.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
 
@@ -274,6 +275,10 @@ describe("once it has started", () => {
   test("no new team can join", async () => {
     await expectRefused(addManager(t, leagueId, MANAGERS[3]), refusals.draftStarted);
     await expectRefused((await as()).mutation(api.joining.invites.send, { leagueId, email: MANAGERS[3] }), refusals.draftStarted);
+  });
+
+  test("the invites page offers no new team, though the league has room (#1549)", async () => {
+    expect((await invitesPage(t, leagueId))?.hasRoom).toBe(false);
   });
 
   test("a vacated team can still be handed on", async () => {
