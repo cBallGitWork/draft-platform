@@ -11,7 +11,6 @@ export const FORMATIONS_HEAD = "Formations";
 export const backGroupWords = (back: number) => `Back ${back}`;
 export const CLASSIC_FORMATIONS = "Classic formations";
 export const classicFormationsLine = "famous sides, formation and roles";
-/** The marks on a group's heading, saying what in it is sample (the approved formation window). */
 /** The classic formations' text, Claude's until Craig rewrites it (spec/05, The pitch). */
 export const sampleTextWords = "text: sample";
 export const savePresetName = "Save preset…";
@@ -56,5 +55,5 @@ export const descriptionPlaceholder = (name: string) => `What ${name} does shows
 export const gainsPlaceholder = "What this formation gains shows here once Craig writes it";
 export const losesPlaceholder = "What this formation loses shows here once Craig writes it";
 export const modernPlaceholder = "Modern sides show here once they are chosen";
-export const unlocksPlaceholder = "The team instructions this formation offers show here once they are built";
-export const costsPlaceholder = "What this formation costs shows here once team instructions are built";
+export const unlocksPlaceholder = "The team instructions this formation offers aren't shown here yet";
+export const costsPlaceholder = "What this formation costs isn't shown here yet";
