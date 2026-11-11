@@ -7,7 +7,7 @@ import { instructionsOf } from "./firstRules";
 import type { DraftRules, LeagueRules, TradeRules } from "./leagueRulesShape";
 import { FIRST_GAMEWEEK, GAMEWEEKS } from "../gameweeks/usedGameweeks";
 import { PICK_SECONDS_FEWEST, PICK_SECONDS_MOST, TIMEOUTS_FEWEST, TIMEOUTS_MOST } from "../draft/draftLimits";
-import { MOST_IN_SQUAD } from "../leagues/leagueLimits";
+import { MOST_IN_SQUAD, PREMIER_LEAGUE_CLUBS } from "../leagues/leagueLimits";
 import { roundsInARoundRobin } from "../table/roundRobin";
 
 // What makes a league's rules sound beyond their stored shape (spec/03; #25): each check throws an
@@ -119,7 +119,17 @@ function checkSquad({ size, minimumByArea, maxPerClub }: LeagueRules["squad"]): 
       throw new UnsoundRules(`The squad's minimums by area add up to ${minimums}, more than its maximum size, ${size.maximum}.`);
     }
   }
-  if (maxPerClub !== null) checkWholeNumber(maxPerClub, "The most players from one club", 1);
+  if (maxPerClub !== null) {
+    checkWholeNumber(maxPerClub, "The most players from one club", 1);
+    // A squad the club maximum can't fill would freeze its draft at the pick with no legal player
+    // left: refused when saved, as a squad above 25 is (Craig, 11 Nov 2026, on #1462).
+    const room = maxPerClub * PREMIER_LEAGUE_CLUBS;
+    if (size !== null && size.maximum > room) {
+      throw new UnsoundRules(
+        `The squad's maximum, ${size.maximum}, is more than ${maxPerClub} from each of the ${PREMIER_LEAGUE_CLUBS} clubs can fill, ${room}.`,
+      );
+    }
+  }
 }
 
 function checkPresets(presets: LeagueRules["presets"], limits: Record<Area, AreaLimit>): void {
