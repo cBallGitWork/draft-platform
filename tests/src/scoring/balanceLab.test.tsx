@@ -2,14 +2,15 @@
 // #843): the admin runs it on the saved draft with a button, and an announced patch's notes carry
 // its report.
 
-import { screen } from "@testing-library/react";
+import { cleanup, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
+import type { LabReport } from "../../../convex/balanceLab/labReportShape";
 import { categoryName } from "../../../convex/scoring/categories";
 import { FIRST_SCORING } from "../../../convex/scoring/firstScoring";
 import { PATCH_NOTES_PATH } from "../../../src/patches/paths";
 import type { VersionNotes } from "../../../src/patches/seam";
-import { labTitle, notTestedWords, offTargetWords } from "../../../src/patches/words";
+import { instructionsHint, labTitle, noTeamInstructionsWords, notTestedWords, notTestedYetWords, offTargetWords } from "../../../src/patches/words";
 import { draftTabWords, runLabWords, saveDraftToRunLabWords } from "../../../src/scoring/words";
 import { ADMINS_VIEW, DRAFT_SAVED_AT, LAB_REPORT } from "../../support/src/scoring.harness";
 import { openScoring } from "../../support/src/scoringScreen.harness";
@@ -44,10 +45,34 @@ describe("on the draft patch", () => {
   });
 });
 
-it("an announced patch's notes carry its lab report", async () => {
-  const notes: VersionNotes[] = [{ name: "26_27.1", kind: "patch", announcedAt: 0, takesEffectAt: 0, changes: ["Assists: 3 → 4"], lab: LAB_REPORT }];
+const openNotesWith = async (lab: LabReport) => {
+  const notes: VersionNotes[] = [{ name: "26_27.1", kind: "patch", announcedAt: 0, takesEffectAt: 0, changes: ["Assists: 3 → 4"], lab }];
   openApp(PATCH_NOTES_PATH, manager, { patches: { notes } });
+  await screen.findByRole("heading", { name: labTitle });
+};
 
-  expect(await screen.findByRole("heading", { name: labTitle })).toBeTruthy();
-  expect(screen.getByText(offTargetWords)).toBeTruthy();
+describe("an announced patch's notes", () => {
+  it("carry its lab report", async () => {
+    await openNotesWith(LAB_REPORT);
+    expect(screen.getByText(offTargetWords)).toBeTruthy();
+  });
+
+  it("list each team instruction the set scores as not tested, naming any stat the past seasons lack (#1541)", async () => {
+    await openNotesWith(LAB_REPORT);
+    expect(screen.getByText(instructionsHint)).toBeTruthy();
+    expect(screen.getByRole("rowheader", { name: "Gung-ho" }).closest("tr")?.textContent).toContain(notTestedYetWords);
+    expect(screen.getByRole("rowheader", { name: "Shoot on sight" }).closest("tr")?.textContent).toContain(notTestedWords([categoryName("att_obox_goal")]));
+    expect(screen.queryByText(noTeamInstructionsWords)).toBeNull();
+  });
+
+  it("say the set scores no team instructions only when it scores none, and say nothing of them on a report kept before #1541", async () => {
+    await openNotesWith({ ...LAB_REPORT, instructions: [] });
+    expect(screen.getByText(noTeamInstructionsWords)).toBeTruthy();
+
+    const { instructions: _kept, ...before } = LAB_REPORT;
+    cleanup();
+    await openNotesWith(before);
+    expect(screen.queryByText(noTeamInstructionsWords)).toBeNull();
+    expect(screen.queryByText(instructionsHint)).toBeNull();
+  });
 });
