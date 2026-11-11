@@ -175,8 +175,8 @@ const ownPickBy = v.union(v.id("teams"), v.null());
 /** The league's draft as everyone in the league reads it: waiting, with its date (null: until the
  *  commissioner presses start), its rounds (null: the league has no squad size limit) and the
  *  draft order now; live, with when it started, its rounds, its order, fixed at the start, how many
- *  picks are made, the pick on the clock and its clock; ending, for the 10 seconds after its last pick, with when it ends and, while the
- *  commissioner has it paused, when he paused it (pickWindow.ts; #1458); or over, once those are up.
+ *  picks are made, the pick on the clock and its clock; ending, for the 10 seconds after its last
+ *  pick, with when it ends and, while the commissioner has it paused, when he paused it (pickWindow.ts; #1458); or over, once those are up.
  *  Live or ending, `ownPickBy` is the team whose manager made the last pick himself, which he can
  *  undo until the next clock starts or the draft ends (null: an auto-pick, the commissioner's, or
  *  no pick yet). A waiting draft's rounds are those it would start with now. It takes no minute: one would change its args as the
