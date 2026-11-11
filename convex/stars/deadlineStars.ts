@@ -30,10 +30,10 @@ import type { RoleStars } from "./starsShape";
 // With no copy kept, a sub plays the slot's first role: a stable fallback, which no change of stars
 // moves, and a man is read with his club and positions now. So it is for a gameweek locked before
 // this was built, for a player who joined the lineup after the deadline (the copy names only those
-// in it then), and for one whose keeping failed. A
-// failed keeping is logged, and each recording after tries again (`keepMissing`) for the league's
-// latest begun gameweek, until one of its matches locks: stars move only when a match locks or the
-// scoring changes, so a copy kept before then is the deadline's.
+// in it then), and for one whose keeping failed. A failed keeping is logged, and each recording
+// after tries again (`keepMissing`) for the league's latest begun gameweek, until one of its
+// matches locks: stars move only when a match locks or the scoring changes, so a copy kept before
+// then is the deadline's.
 //
 // Cost: one row a team a gameweek, each holding its bench players' rated roles: a few kilobytes,
 // growing with teams and gameweeks. Scoring a league's gameweek reads its teams' rows, one a team;
