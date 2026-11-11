@@ -8,7 +8,7 @@ import type { TradesView } from "../../convex/trades/tradeScreen";
 import { changeFailedWords } from "../shared/words";
 import type { ClosedOffer, Reviewer } from "./seam";
 
-export { dayWords, noTeamWords, whenWords } from "../shared/words";
+export { dateWords, noTeamWords, whenWords } from "../shared/words";
 export { warningWords } from "../squads/words";
 export { NOTE_MOST, pickWords };
 export { viaWords } from "../draft/words";
@@ -208,9 +208,8 @@ export const pickTickLabel = (round: number, teamName: string) =>
   `Trade ${pickWords(round, teamName)}`;
 /** One pick ticked, and none on the other side yet: a pick trade is one pick each way. */
 export const onePickEachWords = "Tick a pick on the other side too.";
-export const noteLabel = "Note";
+export const noteLabel = "Note, one line";
 export const sendOfferWords = "Send offer";
 export const sendCounterWords = "Send counter";
 export const clearWords = "Clear";
 export const noPartnerWords = "No other team can trade now.";
-export const noneTickedWords = "Tick a player on either side.";

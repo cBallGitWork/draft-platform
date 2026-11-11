@@ -10,8 +10,10 @@ const COLUMNS = Object.keys(squadColumns) as Column[];
 const HEAD_CLASSES: Record<Column, string> = {
   tick: "w-tap px-2",
   position: "px-2 text-left",
-  player: "px-2 text-left",
+  player: "w-full px-2 text-left",
 };
+/** A held player's tick box, greyed with his chip and name (the approved picture's Murillo). */
+const HELD_TICK = "opacity-50";
 
 /** A squad on the New offer tab (docs/design/approved/trades/1440-new.png), a tick on each player:
  *  one held in a trade under review is greyed with "In review" and can't be ticked. */
@@ -43,7 +45,7 @@ export function SquadTable({
               key={player.code}
               className={`h-row border-t border-panel-rule${on ? " bg-name-plate shadow-current-edge" : ""}`}
             >
-              <td className="px-2">
+              <td className={`px-2${player.held ? ` ${HELD_TICK}` : ""}`}>
                 <TickBox
                   checked={on}
                   disabled={player.held}
@@ -65,7 +67,7 @@ export function SquadTable({
                   <PositionChip label={player.position} dimmed={player.held} />
                 )}
               </td>
-              <th scope="row" className="px-2 text-left">
+              <th scope="row" className="w-full px-2 text-left">
                 <span
                   className={`inline-flex items-center gap-2${player.held ? " text-muted" : ""}`}
                 >
