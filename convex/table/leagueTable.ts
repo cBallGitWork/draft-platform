@@ -2,6 +2,7 @@ import { v, type Infer } from "convex/values";
 import type { Doc, Id } from "../_generated/dataModel";
 import { query, type QueryCtx } from "../_generated/server";
 import { memberOf, teamsOf } from "../shared/leagueAccess";
+import { gameModeOf } from "../rules/gameMode";
 import { seasonRules, type SeasonRules } from "../rules/rulesHistory";
 import { deadlineOf, leagueDeadlines } from "../gameweeks/leagueDeadlines";
 import { leagueRulesShape } from "../rules/leagueRulesShape";
@@ -103,7 +104,7 @@ export async function standingsOf(ctx: QueryCtx, league: Doc<"leagues">, season:
   const nameOf = new Map(teams.map((team) => [team._id, team.name]));
   const named = (teamId: Id<"teams">) => nameOf.get(teamId)!;
 
-  const headToHead = rules.format === "headToHead";
+  const headToHead = gameModeOf(rules).hasMatchups;
   const schedule = headToHead ? await scheduleOf(ctx, league, season) : [];
   const { scores: results, unscored } = await leagueScores(ctx, league, season, teamIds);
   const scores = pointsOf(results);

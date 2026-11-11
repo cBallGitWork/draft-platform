@@ -5,6 +5,7 @@ import { deadlineOf } from "../gameweeks/leagueDeadlines";
 import { seasonGameweekCount } from "../gameweeks/seasonGameweeks";
 import { GAMEWEEKS_MOST, isGameweekScored, scoredGameweeksOf } from "../gameweeks/usedGameweeks";
 import { drawRulesOf } from "../rules/firstRules";
+import { gameModeOf } from "../rules/gameMode";
 import type { SeasonRules } from "../rules/rulesHistory";
 import { teamsOf } from "../shared/leagueAccess";
 import { drawFixtures, type GameweekFixtures } from "./roundRobin";
@@ -157,7 +158,7 @@ export async function storeBegunFixtures(
   // skip the draw.
   if (toStore.length === 0) return;
   const noHeadToHeadIn = toStore.flatMap(({ gameweek, deadline }) =>
-    deadline < league._creationTime || rules.inGameweek(gameweek).format !== "headToHead" ? [gameweek] : [],
+    deadline < league._creationTime || !gameModeOf(rules.inGameweek(gameweek)).hasMatchups ? [gameweek] : [],
   );
   // Left out of the draw, as every read will leave them out once they are stored.
   const without = new Set([...withoutHeadToHead(stored), ...noHeadToHeadIn]);

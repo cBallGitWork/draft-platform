@@ -1,6 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import type { ReactNode } from "react";
 import type { LeagueSummary } from "../../../convex/leagues/myLeagues";
+import { gameModeOf } from "../../../convex/rules/gameMode";
 import { matchupLink } from "../../matchup/paths";
 import { useMinute } from "../../shared/useMinute";
 import { nextGlyph } from "../../shared/words";
@@ -69,7 +70,7 @@ function TeamMeters({ league, teamName, seam }: { league: LeagueSummary; teamNam
   const open = tactics?.kind === "open" ? tactics : null;
   const standing = table ? standingOf(table, teamName) : null;
   const next = open !== null && table ? gamesIn(table, teamName, open.gameweek) : [];
-  const headToHead = table?.format === "headToHead";
+  const headToHead = table ? gameModeOf(table).hasMatchups : false;
   return (
     <dl className="flex flex-wrap items-stretch">
       {open !== null && (

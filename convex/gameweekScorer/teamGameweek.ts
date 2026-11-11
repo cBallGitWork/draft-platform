@@ -7,6 +7,7 @@ import { ALL_CELLS, playsCell, type Cell } from "../lineup/pitch";
 import { keptOrSwitched, type Instruction } from "../lineup/instructions";
 import { backLineOf, presetNameOf } from "../lineup/presets";
 import { instructionsOf } from "../rules/firstRules";
+import { gameModeOf, playedSet } from "../rules/gameMode";
 import type { TeamScoring } from "../scoring/scoring";
 import { positionsNow } from "../positions/playerPositions";
 import type { Position } from "../positions/positionTables";
@@ -89,11 +90,13 @@ export async function gameweekInputs(
   };
 }
 
-/** The site's set in force in the gameweek, checked, and the league's rules then. */
+/** The site's set in force in the gameweek, checked, as the league plays it then, and the
+ *  league's rules then. */
 export function rulesIn(reads: LeagueReads, gameweek: number) {
   const set = reads.setIn(gameweek);
   validateScoringSet(set);
-  return { set, rules: reads.season.inGameweek(gameweek) };
+  const rules = reads.season.inGameweek(gameweek);
+  return { set: playedSet(set, gameModeOf(rules)), rules };
 }
 
 /** A team's gameweek, slot by slot, for a screen that shows it so (the matchup, #34) as well as

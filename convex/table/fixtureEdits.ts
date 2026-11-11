@@ -4,6 +4,7 @@ import { mutation } from "../_generated/server";
 import { isLocked } from "../gameweeks/deadline";
 import { deadlineOf, leagueDeadlines } from "../gameweeks/leagueDeadlines";
 import { recordEvent } from "../mail/letters";
+import { gameModeOf } from "../rules/gameMode";
 import { seasonRules } from "../rules/rulesHistory";
 import { refuse, runnerOf, teamsOf } from "../shared/leagueAccess";
 import { drawnGameweek, scheduleOf } from "./playedFixtures";
@@ -81,7 +82,7 @@ export const swap = mutation({
     if (isLocked(deadlineOf(await leagueDeadlines(ctx, leagueId))(gameweek), now)) refuse(fixtureEditRefusals.begun(gameweek));
     const drawn = await drawnGameweek(ctx, league, season, gameweek);
     const current = (await scheduleOf(ctx, league, season)).find((each) => each.gameweek === gameweek);
-    if (drawn === undefined || current === undefined || season.inGameweek(gameweek).format !== "headToHead") {
+    if (drawn === undefined || current === undefined || !gameModeOf(season.inGameweek(gameweek)).hasMatchups) {
       refuse(fixtureEditRefusals.notHeadToHead(gameweek));
     }
     const result = swapSides(current.fixtures, one, other);
