@@ -3,9 +3,11 @@ import { query } from "../_generated/server";
 import { positionsNow } from "../positions/playerPositions";
 import { draftRulesOf } from "../rules/firstRules";
 import { latestRules } from "../rules/rulesHistory";
-import { position } from "../schema/positions";
+import { position } from "../schema";
 import { memberOf } from "../shared/leagueAccess";
 import { clubsByCode, playerByCode } from "../shared/players";
+import { pickSecondsOf } from "./draftPickTime";
+import { squadRulesOf } from "./draftPicks";
 import { draftIsLive, draftOf } from "./draftRow";
 import { isOnAutoPick } from "./draftTimeouts";
 
@@ -42,15 +44,21 @@ const draftBoard = v.object({
    *  and makes now, so the board shows it under its owner, marked "via" `teamId` (spec/04, The
    *  picks). Empty until a pick is traded. */
   tradedPicks: v.array(v.object({ round: v.number(), teamId: v.id("teams"), ownerId: v.id("teams") })),
+  /** The most players of one club a squad may hold under the rules the draft picks by: those it
+   *  started under, or before it starts the league's latest, which it would start under; null for
+   *  no limit. The selected player's panel counts the reader's squad against it. It is here, not in
+   *  draftPlayers.ts `figures`, as this already reads the draft's row, which every pick writes
+   *  (#1537). */
+  maxPerClub: v.union(v.number(), v.null()),
 });
 export type DraftBoard = Infer<typeof draftBoard>;
 
 /** The board as everyone in the league reads it: every pick made, first first, the caller's team,
- *  the draft's pick time and timeout limit, the league's latest (#1439), and the picks traded.
- *  `now`, the screen's minute, no longer moves anything here: it stays until the draft room's seam
- *  drops it. */
+ *  the draft's pick time and timeout limit, the league's latest (#1439), the picks traded, and the
+ *  club maximum.
+ *  It takes no minute, so the draft room doesn't blank as the minute turns (#1531). */
 export const ofLeague = query({
-  args: { leagueId: v.id("leagues"), now: v.number() },
+  args: { leagueId: v.id("leagues") },
   returns: draftBoard,
   handler: async (ctx, { leagueId }) => {
     const { team } = await memberOf(ctx, leagueId);
@@ -61,9 +69,8 @@ export const ofLeague = query({
     const positionsOf = await positionsNow(ctx, leagueId);
     const clubs = clubsByCode(ctx);
     const picks = await Promise.all(
-      rows.map(async ({ pick, teamId, playerCode, auto, timeout }) => {
-        // A pick made before #1100 has no `auto`, and only its `timeout` says the draft made it.
-        const made = { pick, teamId, auto: auto === true || timeout !== undefined };
+      rows.map(async ({ pick, teamId, playerCode, auto }) => {
+        const made = { pick, teamId, auto: auto === true };
         const player = await playerByCode(ctx, playerCode);
         if (player === null) return { ...made, player: null };
         const [club, positions] = await Promise.all([clubs(player.clubCode), positionsOf(player.code)]);
@@ -71,15 +78,18 @@ export const ofLeague = query({
       }),
     );
     // The draft's rules, the league's latest (#1439), and its own pick time once it has one.
-    const draftRules = draftRulesOf(await latestRules(ctx, leagueId));
+    const latest = await latestRules(ctx, leagueId);
+    const draftRules = draftRulesOf(latest);
     const draft = await draftOf(ctx, leagueId);
+    const started = draft?.started;
+    const squad = started === undefined ? latest.squad : squadRulesOf(leagueId, started);
     let yourAutoPick: DraftBoard["yourAutoPick"] = null;
     if (team) {
       const timeouts = draft?.timeouts;
       const count = timeouts?.find(({ teamId }) => teamId === team._id)?.count ?? 0;
       yourAutoPick = { on: isOnAutoPick(timeouts, team._id), timeouts: count, limit: draftRules.timeoutsBeforeAutoPick };
     }
-    return { picks, yourTeamId: team?._id ?? null, pickSeconds: draft?.pickSeconds ?? draftRules.pickSeconds, yourAutoPick, tradedPicks: draft?.tradedPicks ?? [] };
+    return { picks, yourTeamId: team?._id ?? null, pickSeconds: pickSecondsOf(draft, draftRules), yourAutoPick, tradedPicks: draft?.tradedPicks ?? [], maxPerClub: squad?.maxPerClub ?? null };
   },
 });
 

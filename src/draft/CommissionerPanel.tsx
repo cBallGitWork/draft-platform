@@ -1,15 +1,19 @@
+import { Link } from "@tanstack/react-router";
 import { useId, useState, type FormEvent } from "react";
 import type { Id } from "../../convex/_generated/dataModel";
+import { SETTINGS_DRAFT_HASH, settingsPath } from "../leagueSettings/paths";
 import { toSeconds, type PickClockUnit } from "../leagueSettings/pickClock";
 import type { ListedPlayer } from "../scouting/seam";
 import type { Change } from "../shared/refusal";
 import { useChange } from "../shared/useChange";
+import { useLastLoaded } from "../shared/useLastLoaded";
 import { Loading, PANEL_BODY, Panel, Problem } from "../ui/Panel";
 import { pickInRoundOf, roundOf } from "./board";
 import { whyNotWords } from "./DraftPlayers";
 import type { DraftBoard, DraftSeam, DraftState } from "./seam";
 import {
   badPickTimeWords,
+  changeStartWords,
   COMMISSIONER_TITLE,
   lastPickWords,
   loadingWords,
@@ -33,14 +37,16 @@ import {
 
 // The draft room's commissioner panel (spec/04, Starting it and The commissioner; #1101), built to
 // the approved pictures (docs/design/approved/draft-room/), seen only by whoever runs the league.
-// Before the start: start the draft now, "I'll pick for" each team with no manager, and the pick
-// time, which changes League settings' (Craig, 5 Nov 2026, on #1101). While it runs: pause or
-// resume, undo the last pick, "Pick for <team>", which takes the player selected in the players
-// list for the team on the clock, managed or not (#1475), and the pick time, changed only while
-// paused. "Change the start" waits for a home for the start date.
+// Before the start: start the draft now, "Change the start", which opens League settings' draft
+// panel, the start date's one home (Craig, 11 Nov 2026, on #1476), "I'll pick for" each team with
+// no manager, and the pick time, which changes League settings' (Craig, 5 Nov 2026, on #1101).
+// While it runs: pause or resume, undo the last pick, "Pick for <team>", which takes the player
+// selected in the players list for the team on the clock, managed or not (#1475), and the pick
+// time, changed only while paused.
 
 type Waiting = Extract<DraftState, { status: "waiting" }>;
-type Live = Extract<DraftState, { status: "live" }>;
+/** A draft running, or in the 10 seconds after its last pick, when nothing is on the clock (#1458). */
+type Live = Extract<DraftState, { status: "live" | "ending" }>;
 
 export function CommissionerPanel({
   leagueId,
@@ -60,7 +66,9 @@ export function CommissionerPanel({
   selected: ListedPlayer | null;
   unselect: () => void;
 }) {
-  const view = seam.useCommissioner(leagueId, now);
+  // Its read takes the minute, so the last answer stays up while the next loads and a half-typed
+  // pick time survives the minute turning (#1531).
+  const view = useLastLoaded(seam.useCommissioner(leagueId, now), leagueId);
   const changes = seam.useCommissionerChanges();
   const changing = useChange();
   const aside = <span className="text-soft">{onlyYouWords}</span>;
@@ -72,7 +80,7 @@ export function CommissionerPanel({
     );
   }
   const run = (change: () => Change) => void changing.run(change);
-  const paused = draft.status === "live" && draft.clock?.pausedAt !== undefined;
+  const paused = (draft.status === "live" ? draft.clock?.pausedAt : draft.status === "ending" ? draft.pausedAt : undefined) !== undefined;
   return (
     <Panel title={COMMISSIONER_TITLE} aside={aside}>
       <div className={PANEL_BODY}>
@@ -82,6 +90,9 @@ export function CommissionerPanel({
               <Action disabled={changing.busy} onClick={() => run(() => changes.start(leagueId))}>
                 {startNowWords}
               </Action>
+              <Link to={settingsPath(leagueId)} hash={SETTINGS_DRAFT_HASH} className="secondary-action">
+                {changeStartWords}
+              </Link>
               {view.unmanaged.map(({ teamId, name, marked }) => (
                 <Action key={teamId} disabled={changing.busy} onClick={() => run(() => changes.markForCommissioner(leagueId, teamId, !marked))}>
                   {marked ? stopPickingForWords(name) : pickForTeamWords(name)}
@@ -105,7 +116,7 @@ export function CommissionerPanel({
             paused={paused}
             pause={() => run(() => (paused ? changes.resume(leagueId) : changes.pause(leagueId)))}
             undo={() => run(() => changes.undo(leagueId))}
-            pickFor={(code) => void changing.run(() => changes.pickFor(leagueId, draft.onTheClock.teamId, code)).then((made) => made && unselect())}
+            pickFor={(code) => draft.status === "live" && void changing.run(() => changes.pickFor(leagueId, draft.onTheClock.teamId, code)).then((made) => made && unselect())}
           />
         )}
         <PickTime
@@ -147,7 +158,8 @@ function LiveActions({
   pickFor: (playerCode: number) => void;
 }) {
   const greyed = seam.useGreyedOnTheClock(leagueId);
-  const team = draft.onTheClock.name;
+  // No team is on the clock in the 10 seconds after the last pick, so there is no one to pick for.
+  const team = draft.status === "live" ? draft.onTheClock.name : null;
   const whyNot = selected === null ? null : whyNotWords(selected, greyed?.find(({ code }) => code === selected.code)?.reason);
   return (
     <>
@@ -158,11 +170,13 @@ function LiveActions({
         <Action disabled={busy || board.picks.length === 0} onClick={undo}>
           {undoLastWords}
         </Action>
-        <Action disabled={busy || selected === null || greyed === undefined || whyNot !== null} onClick={() => selected !== null && pickFor(selected.code)}>
-          {pickForWords(team)}
-        </Action>
+        {team !== null && (
+          <Action disabled={busy || selected === null || greyed === undefined || whyNot !== null} onClick={() => selected !== null && pickFor(selected.code)}>
+            {pickForWords(team)}
+          </Action>
+        )}
       </div>
-      {selected !== null && whyNot !== null && <p className="text-soft">{pickForWhyNotWords(selected.name, team, whyNot)}</p>}
+      {team !== null && selected !== null && whyNot !== null && <p className="text-soft">{pickForWhyNotWords(selected.name, team, whyNot)}</p>}
       <LastPick draft={draft} board={board} />
     </>
   );

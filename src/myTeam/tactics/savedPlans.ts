@@ -7,9 +7,8 @@
 
 import type { InstructionPair } from "../../../convex/lineup/instructions";
 import { sameCell, type Cell } from "../../../convex/lineup/pitch";
-import { offersRole, roleIn, takesRole } from "../../../convex/lineup/roles";
-import { droppedStarter } from "../../../convex/stars/bestRole";
-import { presetOfCells, type EditedLineup, type MoveRules, type RatingsOf } from "./lineupEdits";
+import { offersRole, roleIn } from "../../../convex/lineup/roles";
+import { onSetRole, presetOfCells, type EditedLineup, type MoveRules, type RatingsOf } from "./lineupEdits";
 import { reshaped } from "./reshape";
 
 /** A saved plan: a formation, each slot's role and both team instructions (#990), by name, never
@@ -43,11 +42,8 @@ export function loadedPlan(
   const shaped = reshaped(draft, formation, rules, ratingsOf);
   const starters = shaped.starters.map((starter) => {
     const slot = plan.slots.find((each) => sameCell(each, starter))!;
-    const positions = rules.positionsOf(starter.playerCode);
     // A slot's role he can't take (spec/05 `S05.29`) goes as one the formation no longer offers does.
-    return keeps(slot) && takesRole(positions, slot.role)
-      ? { ...starter, role: slot.role }
-      : droppedStarter(starter.playerCode, starter, formation, ratingsOf(starter.playerCode), positions);
+    return onSetRole(starter, keeps(slot) ? slot.role : undefined, formation, ratingsOf, rules.positionsOf);
   });
   const { instructions } = plan;
   return { preset, lineup: { starters, bench: shaped.bench, ...(instructions !== undefined && { instructions }) }, rolesLost: plan.slots.filter((slot) => !keeps(slot)).length };

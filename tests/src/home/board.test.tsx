@@ -3,7 +3,7 @@
 // of the centre; and on the right, the recap and the panels still to come, each in its place, folding
 // on its ▾. The head-to-heads, the table and matchday mode are home.test.tsx's.
 
-import { screen, within } from "@testing-library/react";
+import { screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
 import type { Id } from "../../../convex/_generated/dataModel";
@@ -13,6 +13,7 @@ import type { LeagueHome } from "../../../src/home/seam";
 import {
   foldLabel,
   LETTER_TITLE,
+  loadingWords,
   MAIL_TITLE,
   mailViews,
   moreOnNewsLink,
@@ -75,6 +76,18 @@ describe("Mail", () => {
     await userEvent.click(within(mail).getByRole("radio", { name: mailViews.all }));
     await userEvent.click(within(mail).getByRole("link", { name: /Set your lineup/ }));
     expect(app.path()).toBe(MAIL_PATH);
+  });
+
+  it("keeps the board up, and Needs you chosen, while the next minute's league home loads (#1534)", async () => {
+    const app = withHome({}, { mail: { letters: [letter], unread: 1 } });
+    await userEvent.click(within(await panel(MAIL_TITLE)).getByRole("radio", { name: mailViews.needsYou }));
+
+    app.home.useLeagueHome.mockReturnValue(undefined);
+    app.becomes({ ...manager });
+    await waitFor(() => expect(app.home.useLeagueHome).toHaveLastReturnedWith(undefined));
+
+    expect(screen.queryByText(loadingWords)).toBeNull();
+    expect((within(await panel(MAIL_TITLE)).getByRole("radio", { name: mailViews.needsYou }) as HTMLInputElement).checked).toBe(true);
   });
 });
 

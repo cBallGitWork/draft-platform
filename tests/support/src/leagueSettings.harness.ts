@@ -5,11 +5,12 @@ import type { Id } from "../../../convex/_generated/dataModel";
 import type { ScoringStartView } from "../../../convex/gameweeks/scoringStart";
 import { FIRST_RULES } from "../../../convex/rules/firstRules";
 import { leagueSettingsOf } from "../../../convex/rules/leagueSettingsPart";
-import type { LeagueSettingsSeam, SettingsView, TeamInOrder } from "../../../src/leagueSettings/seam";
+import type { DraftStart, LeagueSettingsSeam, SettingsView, TeamInOrder } from "../../../src/leagueSettings/seam";
 import type { Revision } from "../../../src/rules/rulesEdits";
 import { CHANGES_FROM } from "./scoring.harness";
 import type { PendingClaim, WaiversView } from "../../../src/myTeam/claims/seam";
 import { NO_WAIVERS } from "./myTeam.harness";
+import { PL_GAMEWEEKS } from "../convex/footballRows.harness";
 
 /** The rules row the fake server's settings are from. */
 export const REVISION = "rules-1" as Revision;
@@ -23,7 +24,8 @@ export const TEAMS_IN_ORDER: TeamInOrder[] = ["Saka Potatoes", "Kroos Control", 
 /** What the fake server holds: the settings as `view` says, the first rules' by default; `loading`
  *  keeps them on their way (undefined). `teamOrder` is the draft order, TEAMS_IN_ORDER by default; `draftStarted` fixes it. */
 export type LeagueSettingsData = {
-  view?: SettingsView;
+  /** The settings; the season always has PL_GAMEWEEKS gameweeks. */
+  view?: Omit<SettingsView, "seasonGameweeks">;
   loading?: boolean;
   teamOrder?: TeamInOrder[];
   draftStarted?: boolean;
@@ -34,6 +36,8 @@ export type LeagueSettingsData = {
   claimsLoading?: boolean;
   /** The scoring start and the ticked gameweeks: none set and none ticked unless a test says. */
   scoringStart?: ScoringStartView;
+  /** The draft's start: no date and not started unless a test says. */
+  draftStart?: DraftStart;
 };
 
 /** Saving succeeds from CHANGES_FROM, and a draft order at once, unless a test says otherwise. */
@@ -45,16 +49,19 @@ export function fakeLeagueSettings({
   waivers = NO_WAIVERS,
   claims = [],
   claimsLoading = false,
-  scoringStart = { start: null, ticked: [] },
+  scoringStart = { start: null, ticked: [], seasonBegun: false },
+  draftStart = { startsAt: null, started: false },
 }: LeagueSettingsData = {}) {
   return {
-    useSettings: vi.fn<LeagueSettingsSeam["useSettings"]>(() => (loading ? undefined : view)),
+    useSettings: vi.fn<LeagueSettingsSeam["useSettings"]>(() => (loading ? undefined : { ...view, seasonGameweeks: PL_GAMEWEEKS })),
     save: vi.fn<LeagueSettingsSeam["save"]>(async () => CHANGES_FROM),
     useTeamOrder: vi.fn<LeagueSettingsSeam["useTeamOrder"]>(() => ({ teams: teamOrder, started: draftStarted })),
     saveTeamOrder: vi.fn<LeagueSettingsSeam["saveTeamOrder"]>(async () => null),
     drawTeamOrder: vi.fn<LeagueSettingsSeam["drawTeamOrder"]>(async () => null),
     useScoringStart: vi.fn<LeagueSettingsSeam["useScoringStart"]>(() => scoringStart),
     setScoringStart: vi.fn<LeagueSettingsSeam["setScoringStart"]>(async () => null),
+    useDraftStart: vi.fn<LeagueSettingsSeam["useDraftStart"]>(() => draftStart),
+    setDraftStart: vi.fn<LeagueSettingsSeam["setDraftStart"]>(async () => null),
     useWaivers: vi.fn<LeagueSettingsSeam["useWaivers"]>(() => waivers),
     usePendingClaims: vi.fn<LeagueSettingsSeam["usePendingClaims"]>(() => (claimsLoading ? undefined : claims)),
   };

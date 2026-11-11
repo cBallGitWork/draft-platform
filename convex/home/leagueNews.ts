@@ -1,10 +1,9 @@
 import { v, type Infer } from "convex/values";
 import type { Doc, Id } from "../_generated/dataModel";
 import { query, type QueryCtx } from "../_generated/server";
-import { pinnedLetter } from "../schema";
+import { namedPlayer, pinnedLetter, tradedSide } from "../schema";
 import { takeAllOrThrow, takeShown } from "../shared/cappedRead";
 import { memberOf, teamsOf } from "../shared/leagueAccess";
-import { tradedSide } from "../schema/squads";
 import { isListedMove, LISTED_MOVES, newestFirst, playerMoveKind } from "../squads/squadPlace";
 
 // League home's News tab (#1356; spec/12, League home; docs/design/approved/home/, The News tab):
@@ -33,8 +32,6 @@ type SquadMoveKind = Infer<typeof squadMoveKind>;
 const newsCursor = v.object({ at: v.number(), filed: v.number() });
 type NewsCursor = Infer<typeof newsCursor>;
 
-const newsPlayer = v.object({ playerCode: v.number(), playerName: v.string() });
-
 const playerNewsMove = v.object({
   at: v.number(),
   /** When it was filed, which orders two moves at the same instant. */
@@ -43,9 +40,9 @@ const playerNewsMove = v.object({
   teamId: v.id("teams"),
   teamName: v.string(),
   /** The player who joined the team, if one did. */
-  joined: v.union(newsPlayer, v.null()),
+  joined: v.union(namedPlayer, v.null()),
   /** The player who left it, if one did: on a claim or a pickup, the one dropped for him. */
-  left: v.union(newsPlayer, v.null()),
+  left: v.union(namedPlayer, v.null()),
   /** Whether the one who left went onto waivers, rather than back to the free agents; null when
    *  no one left by a drop. */
   toWaivers: v.union(v.boolean(), v.null()),

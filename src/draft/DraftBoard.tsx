@@ -52,7 +52,7 @@ export function DraftBoard({
     );
   }
   const teams = order.length;
-  const current = draft.status === "over" ? rounds : onTheClock === null ? 1 : roundOf(onTheClock.pick, teams);
+  const current = draft.status === "over" || draft.status === "ending" ? rounds : onTheClock === null ? 1 : roundOf(onTheClock.pick, teams);
   const shown = roundsShown(rounds, current, whole);
   const first = shown[0];
   const last = shown[shown.length - 1];

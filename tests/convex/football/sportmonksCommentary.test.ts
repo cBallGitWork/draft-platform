@@ -56,6 +56,28 @@ test("reading the same events again gives no new line, and a resent event replac
   expect(resent.at(-1)).toMatchObject({ sourceId: 502, text: "13' GOAL Kyogo" });
 });
 
+test("a real read's VAR calls, worded in `addition`, keep their call; its goal names the assist", () => {
+  // Events as the dev deployment's real read of Celtic 1-0 Kilmarnock sent them (#1450, 10 Nov 2026).
+  const [baur, yang, nygren, scales, duran] = [37582048, 37563550, 19979885, 123659, 37709508];
+  const names = new Map([[baur, "Baur"], [yang, "Yang"], [nygren, "Nygren"], [scales, "Scales"], [duran, "Durán"]]);
+  const { lines, unworded } = sportmonksCommentary(
+    [
+      event({ id: 158609571, typeId: SM_EVENT_TYPE.goal, minute: 26, playerId: scales, relatedPlayerId: duran, result: "1-0", info: "Left foot shot", addition: "1st Goal" }),
+      event({ id: 158609122, typeId: SM_EVENT_TYPE.var, minute: 15, playerId: baur, addition: "Goal disallowed" }),
+      event({ id: 158612149, typeId: SM_EVENT_TYPE.var, minute: 73, playerId: yang, addition: "Penalty awarded" }),
+      event({ id: 158612120, typeId: SM_EVENT_TYPE.missedPenalty, minute: 76, playerId: nygren, addition: "Goalkeeper save" }),
+    ],
+    names,
+  );
+  expect(lines.map((line) => line.text)).toEqual([
+    "76' PENALTY Nygren, missed",
+    "73' VAR Yang, penalty awarded",
+    "26' GOAL Scales, assist Durán",
+    "15' VAR Baur, goal disallowed",
+  ]);
+  expect(unworded).toEqual([]);
+});
+
 test("a man with no name given is unknown, and a VAR call with no man or words says VAR", () => {
   const { lines } = sportmonksCommentary(
     [

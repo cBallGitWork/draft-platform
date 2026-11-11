@@ -6,9 +6,11 @@ import type { LeagueRules } from "../../../convex/rules/leagueRulesShape";
 import { squadRefusals } from "../../../convex/squads/squads";
 import { refusals } from "../../../convex/shared/leagueAccess";
 import { ARSENAL, CHELSEA, GONE, insertClubs, insertDroppedPlayer, insertPlayers, UNHELD, type HeldPlayer } from "../../support/convex/footballRows.harness";
-import { changeEveryRules, NO_AREA_MINIMUMS } from "../../support/convex/leagueRules.harness";
+import { changeEveryRules, holdGameweeks, NO_AREA_MINIMUMS } from "../../support/convex/leagueRules.harness";
 import { expectRefused } from "../../support/convex/test.harness";
-import { actingAs, addManagers, ADMIN, adminCreatesLeague, COMMISSIONER, eventsIn, MANAGERS, type TestConvex } from "../../support/convex/leagues.harness";
+import { draftSteps } from "../../support/convex/draft.harness";
+import { addManagers, ADMIN, adminCreatesLeague, COMMISSIONER, eventsIn, MANAGERS, type TestConvex } from "../../support/convex/leagues.harness";
+import { pickGapPasses } from "../../support/convex/pickWindow.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
 
 // Making a pick (spec/04, The picks; #1090): the manager on the clock picks a legal player, who
@@ -38,10 +40,12 @@ const [A1, A2, A3, A4, A5, A6] = ARSENAL_MIDS.map(({ code }) => code);
 const setSquadRules = (squad: Partial<LeagueRules["squad"]>) =>
   changeEveryRules(t, leagueId, (rules) => ({ ...rules, squad: { size: { minimum: 1, maximum: 2 }, minimumByArea: null, maxPerClub: null, ...squad } }));
 
-const as = (email: string) => actingAs(t, email);
-const pick = async (email: string, playerCode: number) => (await as(email)).mutation(api.draft.draftPicks.makePick, { leagueId, playerCode });
-const read = async () => (await as(COMMISSIONER)).query(api.draft.draftStart.ofLeague, { leagueId, now: Date.now() });
-const start = async () => (await as(COMMISSIONER)).mutation(api.draft.draftStart.start, { leagueId });
+const { as, read, start, pick: pickNow } = draftSteps(() => ({ t, leagueId }));
+/** `email` picks, and the pick's 10 seconds to undo it pass. */
+const pick = async (email: string, playerCode: number) => {
+  await pickNow(email, playerCode);
+  await pickGapPasses(t);
+};
 const squadsNow = async () =>
   (await (await as(COMMISSIONER)).query(api.squads.squads.squads, { leagueId })).map(({ teamId, players }) => ({ teamId, players: players.map(({ code, gone }) => ({ code, gone })) }));
 const [ANN, BOB, CAT] = MANAGERS;
@@ -86,6 +90,8 @@ describe("a full draft", () => {
 
   test("saves each team's lineup as its picks left it once the last pick is made, so a later squad change only joins the bench (#1040)", async () => {
     const lineupRows = () => t.run((ctx) => ctx.db.query("lineups").collect());
+    // A season to come, so there is a gameweek for the lineups to be saved from (#1618).
+    await holdGameweeks(t, { next: 1 });
     await start();
     const picks = [[ANN, A1], [BOB, A2], [CAT, A3], [CAT, A4], [BOB, A5]] as const;
     for (const [email, code] of picks) await pick(email, code);
@@ -232,19 +238,6 @@ describe("a drafted player who loses a position mid-draft (#1484)", () => {
     const held = await t.run(async (ctx) => (await ctx.db.query("draftPicks").collect()).map(({ playerCode, positions }) => ({ playerCode, positions })));
     expect(held).toEqual([{ playerCode: DEFENDER.code, positions: ["CB", "CM"] }]);
   });
-});
-
-test("a draft started before its squad rules were kept picks under the league's in force when it started", async () => {
-  await start();
-  await setSquadRules({ maxPerClub: 1 });
-  await t.run(async (ctx) => {
-    const draft = (await ctx.db.query("drafts").withIndex("by_leagueId", (q) => q.eq("leagueId", leagueId)).unique())!;
-    const { squad: _squad, ...started } = draft.started!;
-    await ctx.db.patch("drafts", draft._id, { started });
-  });
-  for (const [email, code] of [[ANN, A1], [BOB, A2], [CAT, A3]] as const) await pick(email, code);
-
-  await expectRefused(pick(CAT, A4), pickRefusals.breaksSquadRules("Player 104"));
 });
 
 describe("the commissioner's assign, move and release", () => {

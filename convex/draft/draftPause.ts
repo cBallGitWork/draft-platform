@@ -5,7 +5,8 @@ import { refuse, runnerOf } from "../shared/leagueAccess";
 import { SECOND_MS } from "../shared/time";
 import { startClock } from "./draftClock";
 import { tellPaused } from "./draftLetters";
-import { pickRefusals, pickSecondsNow } from "./draftPicks";
+import { pickSecondsNow } from "./draftPickTime";
+import { pickRefusals } from "./draftPicks";
 import { draftOf, draftIsLive } from "./draftRow";
 
 // Pausing and resuming the draft (spec/04, The commissioner; #1135). The commissioner pauses and
@@ -85,8 +86,9 @@ export const resume = mutation({
     const pickSeconds = await pickSecondsNow(ctx, leagueId);
     const moved = now - clock.paused.at;
     const startsAt = clock.startsAt + moved;
-    // A pick the commissioner's undo put back still runs its full clock (draftCommissioner.ts).
-    const how = { fullClock: clock.fullClock };
+    // A pick the commissioner's undo put back still runs its full clock (draftCommissioner.ts), and
+    // a manager's own pick still holds his "you're up next" for the clock's start (#1458).
+    const how = { fullClock: clock.fullClock, upNext: clock.upNext };
     if (pickSeconds === clock.paused.pickSeconds) {
       await startClock(ctx, leagueId, clock.pick - 1, startsAt, (clock.endsAt - clock.startsAt) / SECOND_MS, how);
     } else {

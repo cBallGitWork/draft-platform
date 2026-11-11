@@ -4,7 +4,7 @@
 import { act, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
-import { GAMEWEEKS } from "../../../convex/gameweeks/usedGameweeks";
+import { PL_GAMEWEEKS } from "../../support/convex/footballRows.harness";
 import { HOUR_MS, MINUTE_MS } from "../../../convex/shared/time";
 import { LEAGUES_PATH } from "../../../src/leagues/paths";
 import { LEAGUES_TITLE } from "../../../src/leagues/words";
@@ -58,10 +58,10 @@ describe("the gameweeks page", () => {
   it("shows all 38 ticked by default, how many the league plays, and each one's deadline", async () => {
     const app = openApp(PAGE, commissioner);
 
-    expect(await isTicked(GAMEWEEKS)).toBe(true);
-    expect(screen.getAllByRole("checkbox")).toHaveLength(GAMEWEEKS);
+    expect(await isTicked(PL_GAMEWEEKS)).toBe(true);
+    expect(screen.getAllByRole("checkbox")).toHaveLength(PL_GAMEWEEKS);
     expect((screen.getAllByRole("checkbox") as HTMLInputElement[]).every((box) => box.checked)).toBe(true);
-    expect(playsLine()).toBe(`${league.name} plays ${GAMEWEEKS} of ${GAMEWEEKS} gameweeks.`);
+    expect(playsLine()).toBe(`${league.name} plays ${PL_GAMEWEEKS} of ${PL_GAMEWEEKS} gameweeks.`);
     expect(within(rowOf(BEGUN + 1)).getByText(whenWords(app.gameweeks.gameweeks[BEGUN].deadline!))).toBeTruthy();
   });
 
@@ -81,7 +81,7 @@ describe("the gameweeks page", () => {
 
     expect(await isTicked(17)).toBe(false);
     expect(await isTicked(19)).toBe(true);
-    expect(playsLine()).toBe(`${league.name} plays ${GAMEWEEKS - 2} of ${GAMEWEEKS} gameweeks.`);
+    expect(playsLine()).toBe(`${league.name} plays ${PL_GAMEWEEKS - 2} of ${PL_GAMEWEEKS} gameweeks.`);
   });
 
   it("unticking a gameweek asks for it to be left out", async () => {

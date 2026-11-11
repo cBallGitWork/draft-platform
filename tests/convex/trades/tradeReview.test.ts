@@ -35,12 +35,7 @@ beforeEach(async () => {
 });
 
 const squadOf = (teamId: Id<"teams">) => w.squadCodes(teamId);
-/** Ann's first drop for Bob's Saka, accepted by Bob. */
-const annTradesForSaka = async () => {
-  const { offerId } = await w.offer(ANN, w.bobsTeam, [ANNS_FIRST_DROP], [SAKA]);
-  await w.accept(BOB, offerId);
-  return offerId;
-};
+const annTradesForSaka = () => w.annTradesForSaka();
 
 describe("with no review", () => {
   beforeEach(() => w.tradesAre({ review: "none", deadline: null }));
@@ -199,6 +194,18 @@ describe("under a league vote", () => {
     await w.reviewEnds(offerId);
 
     expect(await squadOf(w.bobsTeam)).toContain(SAKA);
+  });
+
+  test("with nobody able to vote, an accepted trade goes through at once (Craig, 11 Nov 2026, on #1607; S08.15)", async () => {
+    for (const [email, teamId] of [[CAT, w.catsTeam], [DAN, fourthTeam]] as const) {
+      await (await actingAs(w.t, email)).mutation(api.lineup.autoTeam.set, { leagueId: w.leagueId, teamId, on: true });
+    }
+    await annTradesForSaka();
+
+    expect(await squadOf(w.annsTeam)).toContain(SAKA);
+    expect(await w.offers()).toEqual([]);
+    expect(await pendingJobs(w.t, internal.trades.tradeReview.finish)).toEqual([]);
+    expect(await w.subjectsTo(ANN)).toContain("Team 1 and Team 2 traded");
   });
 
   test("most is more than half of those who may vote", () => {

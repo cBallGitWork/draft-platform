@@ -7,7 +7,7 @@ import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
 import { scoringStartRefusals, type ScoringStartView } from "../../../convex/gameweeks/scoringStart";
 import { HOUR_MS, WEEK_MS } from "../../../convex/shared/time";
-import { noScoringStartChoicesWords, noScoringStartWords, scoringStartLabel } from "../../../src/leagueSettings/words";
+import { noScoringStartChoicesWords, noScoringStartWords, scoringStartLabel, seasonBegunStartHint } from "../../../src/leagueSettings/words";
 import { descriptionOf } from "../../support/src/describedBy";
 import { openedSettings } from "../../support/src/leagueSettingsScreen.harness";
 
@@ -18,7 +18,11 @@ const offered = () => within(picker()).getAllByRole("option").map((option) => op
  *  unticked; 9's kickoff isn't known. */
 function season(start: number | null): ScoringStartView {
   const deadlineOf = (gameweek: number) => Date.now() + HOUR_MS + (gameweek - 6) * WEEK_MS;
-  return { start, ticked: [...[4, 5, 6, 8].map((gameweek) => ({ gameweek, deadline: deadlineOf(gameweek) })), { gameweek: 9, deadline: null }] };
+  return {
+    start,
+    ticked: [...[4, 5, 6, 8].map((gameweek) => ({ gameweek, deadline: deadlineOf(gameweek) })), { gameweek: 9, deadline: null }],
+    seasonBegun: false,
+  };
 }
 
 describe("the scoring start (#1190)", () => {
@@ -58,9 +62,17 @@ describe("the scoring start (#1190)", () => {
   });
 
   it("with none set and every ticked gameweek begun, says there's none to start in", async () => {
-    await openedSettings({ scoringStart: { start: null, ticked: season(null).ticked.slice(0, 2) } });
+    await openedSettings({ scoringStart: { ...season(null), ticked: season(null).ticked.slice(0, 2) } });
 
     expect(screen.queryByRole("combobox", { name: scoringStartLabel })).toBeNull();
     expect(screen.getByText(noScoringStartChoicesWords)).toBeTruthy();
+  });
+
+  it("with none set in a league that has already scored a gameweek, is fixed at none (#1588)", async () => {
+    await openedSettings({ scoringStart: { ...season(null), seasonBegun: true } });
+
+    expect(screen.queryByRole("combobox", { name: scoringStartLabel })).toBeNull();
+    expect(screen.getByText(noScoringStartWords)).toBeTruthy();
+    expect(screen.getByText(seasonBegunStartHint)).toBeTruthy();
   });
 });

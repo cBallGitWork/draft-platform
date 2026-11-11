@@ -35,6 +35,7 @@ import {
   rankHead,
   selectLabel,
   statsLabel,
+  takenWords,
   yourSquadHead,
   yourSquadWords,
 } from "../../../src/draft/words";
@@ -70,12 +71,11 @@ const figure = (code: number, rank: number, lastSeasonPoints: number | null, app
   lastSeasonPoints,
   overview: { appearances, goals: 5, assists: 4, cleanSheets: 0 },
 });
-/** Palmer the site's best, then Saka, then Rice, a newcomer; 2025's points, a club maximum of 2. */
+/** Palmer the site's best, then Saka, then Rice, a newcomer; 2025's points. */
 const FIGURES: RoomFigures = {
   players: [figure(SAKA.code, 2, 180, 36), figure(RICE.code, 3, null), figure(ODEGAARD.code, 4, 140), figure(PALMER.code, 1, 220)],
   lastSeason: 2025,
   statsSeason: 2025,
-  maxPerClub: 2,
 };
 
 /** A live draft's first pick, Team 1's, or the reader's Team 2's second, paused or not. */
@@ -88,6 +88,7 @@ function liveDraft(yours: boolean, paused = false): DraftState {
     rounds: 2,
     order: draftOrder,
     picksMade: yours ? 1 : 0,
+    ownPickBy: null,
     onTheClock: { pick: yours ? 2 : 1, round: 1, teamId: team.teamId, name: team.name },
     clock: { startsAt: now - 42 * SECOND_MS, endsAt: now + 48 * SECOND_MS, pausedAt: paused ? now : undefined },
   };
@@ -183,7 +184,7 @@ describe("the players list", () => {
 
 describe("the selected player's panel", () => {
   it("gives his place on the ranking, last season's points in his games, and what the reader's squad holds", async () => {
-    const board = { ...emptyBoard, picks: [{ pick: 1, teamId: YOUR_TEAM, auto: false, player: { code: 99, name: "Raya", clubShortName: "ARS", position: "GK" as const } }] };
+    const board = { ...emptyBoard, maxPerClub: 2, picks: [{ pick: 1, teamId: YOUR_TEAM, auto: false, player: { code: 99, name: "Raya", clubShortName: "ARS", position: "GK" as const } }] };
     openDraft({ draft: liveDraft(true), board, figures: FIGURES });
     await open(SAKA.name);
     const panel = screen.getByRole("region", { name: `${SAKA.name}${ARSENAL.shortName}` });
@@ -275,6 +276,15 @@ describe("the Draft button", () => {
     await open(SAKA.name);
     expect(draftButton(SAKA.name)).toHaveProperty("disabled", true);
     expect(screen.getByText(pausedPickWords)).toBeTruthy();
+  });
+
+  it("can't be pressed for a selected player another team has since drafted, saying which (#1560)", async () => {
+    // The list still holds the row Saka was selected from; the board has Team 1 taking him since.
+    const board = { ...emptyBoard, picks: [{ pick: 1, teamId: draftOrder[0].teamId, auto: false, player: { code: SAKA.code, name: SAKA.name, clubShortName: "ARS", position: "W" as const } }] };
+    openDraft({ draft: liveDraft(true), board });
+    await open(SAKA.name);
+    expect(draftButton(SAKA.name)).toHaveProperty("disabled", true);
+    expect(within(draftButton(SAKA.name)).getByText(takenWords(draftOrder[0].name))).toBeTruthy();
   });
 
   it("says why the server refused the pick", async () => {

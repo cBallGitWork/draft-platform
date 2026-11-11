@@ -1,4 +1,5 @@
 import { v, type Infer } from "convex/values";
+import type { Doc } from "../_generated/dataModel";
 import { mutation, query, type QueryCtx } from "../_generated/server";
 import { adminOf } from "../shared/leagueAccess";
 import { clubByCode, heldPlayerByCode } from "../shared/players";
@@ -30,8 +31,13 @@ export type PlayerAvailability = Infer<typeof playerAvailability>;
 /** His availability now. A player the football sync doesn't hold is data gone wrong, so it throws. */
 export async function availabilityOf(ctx: QueryCtx, code: number): Promise<PlayerAvailability> {
   const player = await heldPlayerByCode(ctx, code, `No player with code ${code} is held, so he has no availability`);
+  return availabilityFrom(player, await settingOf(ctx, code));
+}
+
+/** His availability from his row and the admin's setting for him, null for none. */
+function availabilityFrom(player: Pick<Doc<"players">, "availability">, setting: Pick<Doc<"availabilitySettings">, "availability"> | null): PlayerAvailability {
   const feed = player.availability ?? UNFLAGGED;
-  const set = (await settingOf(ctx, code))?.availability ?? null;
+  const set = setting?.availability ?? null;
   return { availability: set ?? feed, feed, set };
 }
 
@@ -57,9 +63,15 @@ const adminRow = v.object({
 });
 export type AvailabilityRow = Infer<typeof adminRow>;
 
-async function adminRowOf(ctx: QueryCtx, code: number, positionsOf: PositionsNow): Promise<AvailabilityRow> {
+/** His row for the tab, from the admin's setting for him already read (null for none). */
+async function adminRowOf(
+  ctx: QueryCtx,
+  code: number,
+  setting: Doc<"availabilitySettings"> | null,
+  positionsOf: PositionsNow,
+): Promise<AvailabilityRow> {
   const player = await heldPlayerByCode(ctx, code, `No player with code ${code} is held, so his availability can't be shown`);
-  const { feed, set } = await availabilityOf(ctx, code);
+  const { feed, set } = availabilityFrom(player, setting);
   return { code, name: player.name, clubShortName: (await clubByCode(ctx, player.clubCode)).shortName, positions: await positionsOf(code), feed, set };
 }
 
@@ -70,7 +82,8 @@ export const setByHand = query({
   handler: async (ctx) => {
     await adminOf(ctx);
     const positionsOf = await positionsNow(ctx, EVERY_LEAGUE);
-    const rows = await Promise.all((await ctx.db.query("availabilitySettings").collect()).map(({ code }) => adminRowOf(ctx, code, positionsOf)));
+    const settings = await ctx.db.query("availabilitySettings").collect();
+    const rows = await Promise.all(settings.map((setting) => adminRowOf(ctx, setting.code, setting, positionsOf)));
     return rows.sort((one, other) => one.name.localeCompare(other.name));
   },
 });
@@ -81,7 +94,7 @@ export const forAdmin = query({
   returns: adminRow,
   handler: async (ctx, { code }) => {
     await adminOf(ctx);
-    return adminRowOf(ctx, code, await positionsNow(ctx, EVERY_LEAGUE));
+    return adminRowOf(ctx, code, await settingOf(ctx, code), await positionsNow(ctx, EVERY_LEAGUE));
   },
 });
 

@@ -5,7 +5,7 @@ import { Loading, PageSection, PanelNote } from "../ui/Panel";
 import { useChange } from "../shared/useChange";
 import { byRun, clashOf, movedBy } from "./claims/claimGroups";
 import { ClaimPanel } from "./claims/ClaimPanel";
-import { ClaimsPanel, closedWords } from "./claims/ClaimsPanel";
+import { canRank, ClaimsPanel, closedWords } from "./claims/ClaimsPanel";
 import { RunsPanel, WaiverOrderPanel } from "./claims/WaiverOrderPanel";
 import { claimsLoadingWords, waiverOrderLoadingWords } from "./claims/words";
 import { HistoryPanel } from "./HistoryPanel";
@@ -78,6 +78,7 @@ function TransactionsBody({ league, teamName, seam }: { league: LeagueSummary; t
             clash={clashOf(group, index)}
             squad={squad?.players.map(({ code, name }) => ({ code, name })) ?? []}
             open={open}
+            canRank={canRank(waivers)}
             change={change}
             canMove={{ up: movedBy(mine, selected.claimId, -1) !== null, down: movedBy(mine, selected.claimId, 1) !== null }}
             onMove={(step) => {

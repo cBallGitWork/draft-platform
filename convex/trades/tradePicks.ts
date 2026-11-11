@@ -7,9 +7,10 @@ import { pickOwner, type TradedPick } from "../draft/snakeOrder";
 import { fileLetter } from "../mail/letters";
 import { pickTradeUndoneLetter } from "../mail/tradeLetterWords";
 import { latestRules } from "../rules/rulesHistory";
-import type { tradePick } from "../schema/trades";
+import type { tradePick } from "../schema";
 import { refuse, teamIn } from "../shared/leagueAccess";
-import { closeOffer, leagueOffers, managersOf, pickName, tradeWordsOf } from "./tradeClose";
+import { closeOffer, leagueOffers } from "./tradeClose";
+import { managersOf, pickName, tradeWordsOf } from "./tradeWords";
 
 // Draft picks in trades (spec/04, The picks; #1096). Picks in the current draft can be traded in
 // every league, before the draft starts only (Craig, 2 Nov 2026). A traded pick is a team's pick in
@@ -41,7 +42,8 @@ export async function tradedPicksIn(ctx: QueryCtx, leagueId: Id<"leagues">) {
   return (await draftOf(ctx, leagueId))?.tradedPicks ?? [];
 }
 
-const samePick = (one: TradePick, other: TradePick) => one.round === other.round && one.teamId === other.teamId;
+/** Whether two picks are one: the same round of the same team's. */
+export const samePick = (one: TradePick, other: TradePick) => one.round === other.round && one.teamId === other.teamId;
 
 /** The offer's picks, both of them. */
 const picksIn = (offer: Doc<"tradeOffers">): TradePick[] => (offer.picks === undefined ? [] : [offer.picks.gives, offer.picks.gets]);

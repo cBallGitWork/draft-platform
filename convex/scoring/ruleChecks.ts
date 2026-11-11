@@ -2,6 +2,7 @@
 // points limit and minimum minutes, each priced one way; and the check that a number is points.
 
 import { AREAS, SLOT_POSITIONS } from "../lineup/pitch";
+import { PRICINGS } from "./priced";
 import type { Band, ScoringRule } from "./scoringSet";
 import { inTenths, isObject, requireNumber, showValue, UnsoundScoring } from "./values";
 
@@ -43,7 +44,7 @@ type CheckPoints = (value: unknown, what: string) => void;
 /** Checks a priced setting has exactly one way of pricing, and a good value everywhere it says. */
 function validatePriced(priced: unknown, named: string, what: string, check: (value: unknown, where: string) => void): void {
   if (!isObject(priced)) throw new UnsoundScoring(`${named} has no ${what}`);
-  const ways = ["all", "byArea", "byPosition"].filter((way) => Object.hasOwn(priced, way));
+  const ways = PRICINGS.filter((way) => Object.hasOwn(priced, way));
   if (ways.length !== 1) {
     throw new UnsoundScoring(`${named} must be priced one way, the same for all, by area or by position, not ${ways.length}`);
   }
@@ -102,7 +103,7 @@ function validateMinutes(minutes: unknown, where: string): void {
 }
 
 /** A number of points: a number, in tenths, and whole when the set counts whole points only. */
-export function requirePoints(value: unknown, what: string, wholePointsOnly: boolean): void {
+function requirePoints(value: unknown, what: string, wholePointsOnly: boolean): void {
   requireNumber(value, what);
   if (wholePointsOnly && !Number.isInteger(value)) {
     throw new UnsoundScoring(`${what} ${value}, but the set counts whole points only`);

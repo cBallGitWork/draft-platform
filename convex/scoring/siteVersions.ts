@@ -4,7 +4,8 @@ import { DEFAULT_DEADLINE_RULE } from "../gameweeks/deadline";
 import { firstKickoffs, gameweekStartsOf } from "../gameweeks/gameweekStarts";
 import { scheduledMatches } from "../gameweeks/leagueDeadlines";
 import { nextGameweek } from "../gameweeks/nextGameweek";
-import { SEASON_GAMEWEEKS } from "../gameweeks/usedGameweeks";
+import { seasonGameweekCount } from "../gameweeks/seasonGameweeks";
+import { seasonGameweeks } from "../gameweeks/usedGameweeks";
 import { takeAllOrThrow } from "../shared/cappedRead";
 import { MINUTE_MS } from "../shared/time";
 import { FIRST_SCORING } from "./firstScoring";
@@ -22,7 +23,7 @@ export const SITE_SCORING_VERSIONS_MOST = 200;
  *  default deadline, 15 minutes before the gameweek's first kickoff, whatever deadline a league sets
  *  (spec/14 S14.1; Craig, 10 Nov 2026, on #902: "one site deadline"). So every league scores a
  *  gameweek under the same version, and none lands after the gameweek's default lock. */
-export const SITE_DEADLINE_RULE = DEFAULT_DEADLINE_RULE;
+const SITE_DEADLINE_RULE = DEFAULT_DEADLINE_RULE;
 
 /** The site's deadline for a gameweek whose first kickoff is `firstKickoff`. */
 export function siteDeadline(firstKickoff: number): number {
@@ -47,6 +48,12 @@ export function siteVersions(ctx: QueryCtx): Promise<Doc<"siteScoring">[]> {
     SITE_SCORING_VERSIONS_MOST,
     `The site holds more than ${SITE_SCORING_VERSIONS_MOST} scoring versions, so the one in force can't be known`,
   );
+}
+
+/** The versions still to take effect after `now`, soonest first, read through the index (#1617):
+ *  what the banner every signed-in page runs looks through, never the whole history. */
+export function versionsWaitingAt(ctx: QueryCtx, now: number) {
+  return ctx.db.query("siteScoring").withIndex("by_takesEffectAt", (q) => q.gt("takesEffectAt", now));
 }
 
 /** A version's set, or the first set when there is no version yet. */
@@ -78,7 +85,7 @@ export async function siteScoringByGameweek(ctx: QueryCtx): Promise<(gameweek: n
 
 /** The scoring a gameweek was scored under: its set, and its version's name, null for the first
  *  set (spec/14, On screen: a breakdown says the version it was scored under). */
-export interface VersionInForce {
+interface VersionInForce {
   set: StoredScoringSet;
   name: string | null;
 }
@@ -117,9 +124,9 @@ function versionInForceUnscheduled(
 
 /** The first gameweek a version taking effect at `at` reaches: the first whose site deadline is at
  *  or after it, as `siteScoringInGameweek` reads it, after the last whose deadline came before it (a
- *  postponed gameweek behind one is passed over, #413). Once all of the season's 1 to 38 have
- *  kicked off, 39 (`nextGameweek`). It counts the season's gameweeks, never the held gameweek rows,
- *  whose read throws past FPL's 38 (#832). */
+ *  postponed gameweek behind one is passed over, #413). Once all of the season's gameweeks have
+ *  kicked off, the one after its last (`nextGameweek`). It counts the season's gameweeks (#1618),
+ *  never reads the held gameweek rows, whose read throws past `GAMEWEEKS_MOST` (#832). */
 export async function firstGameweekFrom(ctx: QueryCtx, at: number): Promise<number> {
   return (await firstGameweekFromAny(ctx))(at);
 }
@@ -128,7 +135,7 @@ export async function firstGameweekFrom(ctx: QueryCtx, at: number): Promise<numb
 export async function firstGameweekFromAny(ctx: QueryCtx): Promise<(at: number) => number> {
   const matches = await scheduledMatches(ctx);
   const passed = siteDeadlines(await gameweekStartsOf(ctx, matches));
-  const gameweeks = SEASON_GAMEWEEKS.map((number) => ({ number }));
+  const gameweeks = seasonGameweeks(await seasonGameweekCount(ctx)).map((number) => ({ number }));
   // nextGameweek counts a gameweek begun at its deadline; a version taking effect then still reaches it.
   return (at) => nextGameweek(gameweeks, matches, () => SITE_DEADLINE_RULE, passed, at - 1);
 }

@@ -2,7 +2,7 @@ import { v, type Infer } from "convex/values";
 import { query } from "../_generated/server";
 import { slotPosition } from "../lineup/pitchShape";
 import { positionsNow } from "../positions/playerPositions";
-import { placeOf } from "./cardPoints";
+import { rankOfPlayer } from "./cardPoints";
 import { currentPlayersOf } from "../scouting/playersList";
 import { shownSeasonPoints } from "../scouting/shownSeasonPoints";
 import { memberOf } from "../shared/leagueAccess";
@@ -36,6 +36,6 @@ export const atPosition = query({
     const { pointsOf } = await shownSeasonPoints(ctx, leagueId);
     const holding = await Promise.all(players.map(async ({ code }) => ({ code, holds: (await positionsOf(code)).includes(position) })));
     const points = holding.filter(({ holds }) => holds).map(({ code }) => ({ code, points: pointsOf(code, [position]) }));
-    return { place: placeOf(points, playerCode), of: points.length };
+    return { place: rankOfPlayer(points, playerCode), of: points.length };
   },
 });

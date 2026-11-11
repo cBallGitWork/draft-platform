@@ -13,6 +13,7 @@ import { LEAGUES_TITLE } from "../../../src/leagues/words";
 import type { Revision } from "../../../src/rules/rulesEdits";
 import { discardWords, gameweekWords, loadLatestWords, overtakenWords, unchangedWords } from "../../../src/rules/words";
 import { SCORING_TITLE } from "../../../src/scoring/words";
+import { PL_GAMEWEEKS } from "../../support/convex/footballRows.harness";
 import { REVISION } from "../../support/src/leagueSettings.harness";
 import { box, fill, FIRST_SETTINGS, openedSettings, openSettings, save, saveButton, savedSettings, SETTINGS_PAGE } from "../../support/src/leagueSettingsScreen.harness";
 import { CHANGES_FROM } from "../../support/src/scoring.harness";
@@ -125,7 +126,7 @@ describe("editing them", () => {
 it("keeps the edits when someone else saves, says so, and loads the latest on asking", async () => {
   const app = await openedSettings();
   await setGames("2");
-  const theirs: SettingsView = { part: { ...FIRST_SETTINGS, oddTeamOut: "bye", gamesPerGameweek: 3 }, revision: "rules-2" as Revision, changesFrom: CHANGES_FROM };
+  const theirs: SettingsView = { part: { ...FIRST_SETTINGS, oddTeamOut: "bye", gamesPerGameweek: 3 }, revision: "rules-2" as Revision, changesFrom: CHANGES_FROM, seasonGameweeks: PL_GAMEWEEKS };
   app.leagueSettings.useSettings.mockReturnValue(theirs);
   app.becomes({ ...commissioner });
   await waitFor(() => expect(app.leagueSettings.useSettings).toHaveLastReturnedWith(theirs));
@@ -141,5 +142,17 @@ describe("while the server answers, or has nothing", () => {
   it("says the settings are loading, to screen readers too", async () => {
     await openedSettings({ loading: true });
     expect(screen.getByRole("status").textContent).toBe(loadingWords);
+  });
+
+  it("keeps an unsaved edit while the next minute's settings load (#1534)", async () => {
+    const app = await openedSettings();
+    await setGames("2");
+    app.leagueSettings.useSettings.mockReturnValue(undefined);
+    app.becomes({ ...commissioner });
+    await waitFor(() => expect(app.leagueSettings.useSettings).toHaveLastReturnedWith(undefined));
+
+    expect(screen.queryByText(loadingWords)).toBeNull();
+    expect(gamesBox().value).toBe("2");
+    expect(saveButton().disabled).toBe(false);
   });
 });

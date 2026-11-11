@@ -41,6 +41,7 @@ const draft: DraftState = {
   rounds: ROUNDS,
   order,
   picksMade: picks.length,
+  ownPickBy: null,
   onTheClock: { pick: 33, round: 4, teamId: YOURS, name: NAMES[7] },
   clock: { startsAt: startedAt - 42 * SECOND_MS, endsAt: startedAt + 48 * SECOND_MS, pausedAt: undefined },
 };
@@ -63,7 +64,7 @@ const GREYED: readonly GreyedPlayer[] = [
   { code: 3, reason: "clubFull" },
 ];
 /** The preview's pick is made at once, and changes nothing. */
-const PREVIEW_CHANGES: DraftChanges = { makePick: done };
+const PREVIEW_CHANGES: DraftChanges = { makePick: done, undoMyPick: done };
 
 /** Scouting's preview players' figures, by code: rank, 25/26's points, and MP, G, A and CS. */
 const FIGURES: readonly [number, number, number | null, number, number, number, number][] = [
@@ -84,12 +85,11 @@ const figures: RoomFigures = {
   })),
   lastSeason: 2025,
   statsSeason: 2025,
-  maxPerClub: 2,
 };
 
 export const previewDraft: DraftSeam = {
   useDraft: () => (isBefore() ? before : draft),
-  useBoard: () => ({ picks: isBefore() ? [] : picks, yourTeamId: YOURS, pickSeconds: 90, yourAutoPick: usePreviewAutoPick(), tradedPicks: TRADED }),
+  useBoard: () => ({ picks: isBefore() ? [] : picks, yourTeamId: YOURS, pickSeconds: 90, yourAutoPick: usePreviewAutoPick(), tradedPicks: TRADED, maxPerClub: 2 }),
   useInMenu: () => true,
   // Scouting's preview players; Saka Potatoes is at its Arsenal maximum, so Rice and Raya are greyed.
   usePlayersList: previewScouting.usePlayersList,

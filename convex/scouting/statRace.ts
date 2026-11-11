@@ -6,6 +6,7 @@ import { CATALOGUE_STATS, checkCatalogueStat } from "../scoring/statCatalogue";
 import { setOf, siteVersions } from "../scoring/siteVersions";
 import { memberOf, teamsOf } from "../shared/leagueAccess";
 import { raceOrder } from "./raceOrder";
+import { MINUTES_STAT } from "../stats/matchRecords";
 import type { Stats } from "../stats/statTotals";
 import { teamTotals } from "../stats/teamSeasonTotals";
 
@@ -27,7 +28,7 @@ const racingTeam = v.object({
 export type RacingTeam = Infer<typeof racingTeam>;
 
 /** Minutes are scored (appearance points) but never raced: the approved picture leaves them out. */
-const NOT_RACED: ReadonlySet<string> = new Set(["minutes"]);
+const NOT_RACED: ReadonlySet<string> = new Set([MINUTES_STAT]);
 
 const statRace = v.object({
   /** The scoring categories, by the stat's key: each catalogue stat the site's scoring set scores

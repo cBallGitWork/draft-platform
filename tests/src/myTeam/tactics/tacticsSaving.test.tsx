@@ -189,4 +189,20 @@ describe("the squad changing under an edit", () => {
     expect(within(pitch()).queryByRole("button", { name: new RegExp(`^${WHITE.name},`) })).toBeNull();
     expect(benchOrder()).toEqual([ARRIZABALAGA.name, SALIBA.name, SAKA.name]);
   });
+
+  it("saves an Undo back past the change as the pitch shows it, never naming a player who left (#1562)", async () => {
+    const app = await openedPitch();
+    await whiteForSaliba();
+    await swap(ARRIZABALAGA, RAYA);
+
+    const SAKA = member(7, "Saka", ["W"]);
+    act(() => app.myTeam.serverHolds(openTactics({ ...SAVED, squad: [...SQUAD.filter((each) => each !== WHITE), SAKA] })));
+    await userEvent.click(undo());
+
+    const sent = app.myTeam.lineupChanges.save.mock.lastCall?.[1];
+    const named = [...(sent?.starters.map((starter) => starter.playerCode) ?? []), ...(sent?.bench ?? [])];
+    expect(named).not.toContain(WHITE.playerCode);
+    expect(sent?.bench.at(-1)).toBe(SAKA.playerCode);
+    expect(within(pitch()).queryByRole("button", { name: new RegExp(`^${WHITE.name},`) })).toBeNull();
+  });
 });

@@ -1,4 +1,4 @@
-import { v, type Infer, type Validator } from "convex/values";
+import { v, type GenericValidator, type Infer, type Validator } from "convex/values";
 import { playingState } from "../football/matchScores";
 import { shownDeadline } from "../gameweeks/usedGameweeks";
 import { areaShape, laneShape, slotPosition } from "../lineup/pitchShape";
@@ -154,61 +154,86 @@ const commentaryLine = v.object({ key: v.string(), text: v.string(), points: v.u
  *  commentary is delayed ("Commentary delayed"); or why it can't be read, while the scores still
  *  show. */
 const commentaryOf = <Line extends Validator<Infer<typeof commentaryLine>, "required", string>>(line: Line) =>
-  v.union(v.object({ kind: v.literal("read"), lines: v.array(line), delayed: v.boolean() }), v.object({ kind: v.literal("unread"), reason: v.string() }));
+  v.union(v.object({ kind: v.literal("read"), lines: v.array(line), delayed: v.boolean() }), unreadCommentary);
+
+/** Commentary as a query sends it, which may not read the clock (#1550): in place of `delayed`, the
+ *  moment it is delayed from (matchCommentary.ts's `delayedFrom`), 0 for already and null for not;
+ *  the screen says whether it is at its minute (commentaryAt.ts). */
+const heldCommentaryOf = <Line extends Validator<Infer<typeof commentaryLine>, "required", string>>(line: Line) =>
+  v.union(v.object({ kind: v.literal("read"), lines: v.array(line), delayedFrom: v.union(v.number(), v.null()) }), unreadCommentary);
+
+const unreadCommentary = v.object({ kind: v.literal("unread"), reason: v.string() });
 
 /** League home's and the match page's commentary (spec/10, spec/12). */
 export const commentary = commentaryOf(commentaryLine);
 export type MatchupCommentary = Infer<typeof commentary>;
+export const heldCommentary = heldCommentaryOf(commentaryLine);
+export type HeldCommentary = Infer<typeof heldCommentary>;
 
 /** The matchup's commentary (spec/10): every line of every match with either lineup's men in it,
  *  each with the men it is about, whose lines a tapped man's cyan bar marks, and a column for each
  *  side, team then opponent, of what it moves that team's score by (readCommentary.ts; the approved
  *  picture's "Saka P / Kroos C"). The league's average has no column. */
-export const teamsCommentary = commentaryOf(
-  commentaryLine.extend({ about: v.array(v.number()), columns: v.array(v.union(v.string(), v.null())) }),
-);
+const teamsLine = commentaryLine.extend({ about: v.array(v.number()), columns: v.array(v.union(v.string(), v.null())) });
+export const teamsCommentary = commentaryOf(teamsLine);
 export type TeamsCommentary = Infer<typeof teamsCommentary>;
+const heldTeamsCommentary = heldCommentaryOf(teamsLine);
+export type HeldTeamsCommentary = Infer<typeof heldTeamsCommentary>;
 
-export const game = v.union(
-  /** The team plays nobody in the gameweek: one begun before it joined, say. */
-  v.object({ kind: v.literal("none") }),
-  v.object({ kind: v.literal(BYE) }),
-  /** Before the deadline: who it meets, and no lineup yet. */
-  v.object({ kind: v.literal("notBegun"), opponent }),
-  /** Begun, but it can't be scored (#287), and why. */
-  v.object({ kind: v.literal("unscored"), opponent, reason: v.string() }),
-  /** The team on the left, its opponent on the right. */
-  v.object({
-    kind: v.literal("scored"),
-    team: side,
-    opponent: side,
-    commentary: teamsCommentary,
-    /** The version of the site's scoring the gameweek is scored under, null for the first set: a
-     *  breakdown's last line (spec/14, On screen). */
-    version: v.union(v.string(), v.null()),
-  }),
-);
+/** A game, its commentary `commentary`: on screen, or held as `ofTeam` sends it. */
+const gameWith = <Commentary extends GenericValidator>(commentary: Commentary) =>
+  v.union(
+    /** The team plays nobody in the gameweek: one begun before it joined, say. */
+    v.object({ kind: v.literal("none") }),
+    v.object({ kind: v.literal(BYE) }),
+    /** Before the deadline: who it meets, and no lineup yet. */
+    v.object({ kind: v.literal("notBegun"), opponent }),
+    /** Begun, but it can't be scored (#287), and why. */
+    v.object({ kind: v.literal("unscored"), opponent, reason: v.string() }),
+    /** The team on the left, its opponent on the right. */
+    v.object({
+      kind: v.literal("scored"),
+      team: side,
+      opponent: side,
+      commentary,
+      /** The version of the site's scoring the gameweek is scored under, null for the first set: a
+       *  breakdown's last line (spec/14, On screen). */
+      version: v.union(v.string(), v.null()),
+    }),
+  );
 
-export const matchup = v.union(
-  v.object({ kind: v.literal("totalPoints") }),
-  /** The caller runs no team and named none. */
-  v.object({ kind: v.literal("noTeam") }),
-  v.object({
-    kind: v.literal("headToHead"),
-    teamId: v.id("teams"),
-    teamName: v.string(),
-    /** Every gameweek the team plays a head-to-head or has a bye in, for the stepper. */
-    gameweeks: v.array(v.number()),
-    /** Null while the team plays no head-to-head gameweek at all (fewer than two teams, say). */
-    gameweek: v.union(v.number(), v.null()),
-    deadline: shownDeadline,
-    /** Which of the team's games in the gameweek this is, from 1, as drawn (#521). */
-    gameNumber: v.number(),
-    /** Each of the team's games in the gameweek, as drawn, for the switch between them in a league
-     *  playing more than one a gameweek: who each is against, or a bye. Empty with no gameweek. */
-    games: v.array(v.union(opponent, v.object({ kind: v.literal(BYE) }))),
-    game,
-  }),
-);
+export const game = gameWith(teamsCommentary);
+const heldGame = gameWith(heldTeamsCommentary);
+export type HeldGame = Infer<typeof heldGame>;
+
+/** A matchup, its game `game`: on screen, or held as `ofTeam` sends it. */
+const matchupWith = <Game extends GenericValidator>(game: Game) =>
+  v.union(
+    v.object({ kind: v.literal("totalPoints") }),
+    /** The caller runs no team and named none. */
+    v.object({ kind: v.literal("noTeam") }),
+    v.object({
+      kind: v.literal("headToHead"),
+      teamId: v.id("teams"),
+      teamName: v.string(),
+      /** Every gameweek the team plays a head-to-head or has a bye in, for the stepper. */
+      gameweeks: v.array(v.number()),
+      /** Null while the team plays no head-to-head gameweek at all (fewer than two teams, say). */
+      gameweek: v.union(v.number(), v.null()),
+      deadline: shownDeadline,
+      /** Which of the team's games in the gameweek this is, from 1, as drawn (#521). */
+      gameNumber: v.number(),
+      /** Each of the team's games in the gameweek, as drawn, for the switch between them in a league
+       *  playing more than one a gameweek: who each is against, or a bye. Empty with no gameweek. */
+      games: v.array(v.union(opponent, v.object({ kind: v.literal(BYE) }))),
+      game,
+    }),
+  );
+
+/** The matchup on screen. */
+export const matchup = matchupWith(game);
 export type Matchup = Infer<typeof matchup>;
+/** The matchup as `ofTeam` sends it, its commentary held (`heldCommentaryOf`). */
+export const heldMatchup = matchupWith(heldGame);
+export type HeldMatchup = Infer<typeof heldMatchup>;
 

@@ -4,6 +4,7 @@ import type { Doc, Id } from "../_generated/dataModel";
 import { internalMutation, mutation, type MutationCtx, type QueryCtx } from "../_generated/server";
 import { MOST_IN_SQUAD } from "../leagues/leagueLimits";
 import { pickFirstLineupAgain } from "../lineup/lineups";
+import { knownOnJoining } from "../positions/positionWarnings";
 import { fileEvent, fileLetter, wholeLeague } from "../mail/letters";
 import {
   acceptedLetter,
@@ -15,14 +16,14 @@ import {
   type TradeFailed,
   type TradeWords,
 } from "../mail/tradeLetterWords";
-import { tradeRulesOf } from "../rules/firstRules";
-import { latestRules } from "../rules/rulesHistory";
-import { managerOf, memberOf, refuse, teamsOf } from "../shared/leagueAccess";
+import { leagueDeadlines } from "../gameweeks/leagueDeadlines";
+import { managerOf, memberOf, refuse, teamIn } from "../shared/leagueAccess";
 import { placeOf } from "../squads/squadPlace";
-import { closeOffersHolding, endOffer, leagueOf, managersOf, tradedName, tradedSideOf, tradeWordsOf } from "./tradeClose";
+import { closeOffersHolding, endOffer } from "./tradeClose";
+import { leagueOf, managersOf, tradedName, tradedSideOf, tradeWordsOf } from "./tradeWords";
 import { REVIEW_MS } from "./tradeLimits";
 import { movePicks } from "./tradePicks";
-import { onAutoTeam } from "./tradeShut";
+import { reviewerOf, votersOn } from "./tradeReviewers";
 import { squadFullRefusal, squadsAfter, tradeWarnings } from "./tradeSquads";
 
 // A trade's review and its move (spec/08 Trades; #383). Accepted, a trade goes through at once in
@@ -30,8 +31,9 @@ import { squadFullRefusal, squadsAfter, tradeWarnings } from "./tradeSquads";
 // a trade he is in goes to the co-commissioner, or to a league vote if there is none. Under a
 // league vote, the managers of the other teams still playing (not on the auto team) have 24 hours,
 // and it is blocked only if most of them vote against; a voter can take his Against back until the
-// 24 hours are up (`takeBack`; Craig, 10 Nov 2026). Either way the reviewers get a Mail letter
-// to act on, a blocked trade files a letter to the whole league, and one that clears review the
+// 24 hours are up (`takeBack`; Craig, 10 Nov 2026); with none of them, it goes through at once
+// (S08.15; Craig, 11 Nov 2026, on #1607). Either way the reviewers get a Mail letter to act on, a
+// blocked trade files a letter to the whole league, and one that clears review the
 // usual trade letter. Once through, the trade is filed as one `tradeMade`, which the screens list
 // (#1491), and its players move at once, each filed as a `playerTraded` for the squads' history; a
 // gameweek already under way keeps their points with the old team, as the commissioner's move
@@ -47,30 +49,13 @@ export const reviewRefusals = {
   squadFull: squadFullRefusal,
 };
 
-/** The managers who vote on a trade: those of the other teams, but not one on the auto team. */
-export async function votersOn(ctx: QueryCtx, offer: Doc<"tradeOffers">): Promise<string[]> {
-  return (await teamsOf(ctx, offer.leagueId)).flatMap((team) =>
-    team._id === offer.fromTeamId || team._id === offer.toTeamId || onAutoTeam(team) || team.managerEmail === undefined ? [] : [team.managerEmail],
-  );
-}
-
-/** Who reviews the trade under the league's rules, or null for nobody: the commissioner under a
- *  veto, the co-commissioner when he is in it, or a vote when there is none (or the
- *  co-commissioner is in it too). */
-export async function reviewerOf(ctx: QueryCtx, league: Doc<"leagues">, offer: Doc<"tradeOffers">): Promise<ReviewWords | null> {
-  const rules = await latestRules(ctx, league._id);
-  const { review } = tradeRulesOf(rules);
-  if (review !== "veto") return review === "vote" ? { kind: "vote" } : null;
-  const inIt = new Set(await managersOf(ctx, offer));
-  const by = [league.commissionerEmail, league.coCommissionerEmail].find((email) => email !== undefined && !inIt.has(email));
-  return by === undefined ? { kind: "vote" } : { kind: "veto", by };
-}
-
 /** The accepted offer goes into review, or through at once with none. */
 export async function startReview(ctx: MutationCtx, offer: Doc<"tradeOffers">, acceptedBy: string): Promise<void> {
   const league = await leagueOf(ctx, offer.leagueId);
-  const review = await reviewerOf(ctx, league, offer);
-  if (review === null) {
+  const review = await reviewerOf(ctx, league, offer, await leagueDeadlines(ctx, league._id), Date.now());
+  const reviewers = review === null ? [] : review.kind === "veto" ? [review.by] : await votersOn(ctx, offer);
+  // A vote nobody may cast goes through at once, as with no review (Craig, 11 Nov 2026, on #1607).
+  if (review === null || reviewers.length === 0) {
     await goThrough(ctx, offer, acceptedBy, true);
     return;
   }
@@ -80,7 +65,6 @@ export async function startReview(ctx: MutationCtx, offer: Doc<"tradeOffers">, a
   await ctx.db.patch("tradeOffers", offer._id, { review: { acceptedBy, endsAt, scheduledId, reviewer } });
   const words = await tradeWordsOf(ctx, offer);
   await fileLetter(ctx, league, await managersOf(ctx, offer), (tell) => acceptedLetter(words, review, endsAt, tell), acceptedBy);
-  const reviewers = review.kind === "veto" ? [review.by] : await votersOn(ctx, offer);
   await fileLetter(ctx, league, reviewers, (tell) => reviewLetter(words, review, endsAt, tell));
 }
 
@@ -100,12 +84,12 @@ async function playerGone(ctx: QueryCtx, offer: Doc<"tradeOffers">) {
 async function cantMake(ctx: QueryCtx, offer: Doc<"tradeOffers">, watched: boolean): Promise<TradeFailed | null> {
   const gone = await playerGone(ctx, offer);
   if (gone !== null) {
-    const team = await ctx.db.get("teams", gone.teamId);
-    return { why: "playerGone", playerName: await tradedName(ctx, gone.playerCode), teamName: team?.name ?? "his team" };
+    const team = await teamIn(ctx, offer.leagueId, gone.teamId);
+    return { why: "playerGone", playerName: await tradedName(ctx, gone.playerCode), teamName: team.name };
   }
   if (watched || offer.picks !== undefined) return null;
   for (const { teamId, codes } of await squadsAfter(ctx, offer)) {
-    if (codes.length > MOST_IN_SQUAD) return { why: "squadFull", teamName: (await ctx.db.get("teams", teamId))?.name ?? "A team" };
+    if (codes.length > MOST_IN_SQUAD) return { why: "squadFull", teamName: (await teamIn(ctx, offer.leagueId, teamId)).name };
   }
   return null;
 }
@@ -157,6 +141,7 @@ async function goThrough(ctx: MutationCtx, offer: Doc<"tradeOffers">, by: string
     // A new team starts him afresh, as a move does: on no number of its own (spec/05 Squad
     // numbers), and never its free-agent pickup, so its drop sends him to waivers (#1479).
     await ctx.db.patch("squadPlayers", place._id, { teamId: into._id, number: undefined, pickedUpAt: undefined });
+    await knownOnJoining(ctx, league._id, into._id, playerCode);
     await fileEvent(ctx, league._id, by, {
       kind: "playerTraded",
       playerCode,

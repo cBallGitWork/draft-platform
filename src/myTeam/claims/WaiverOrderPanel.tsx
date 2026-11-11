@@ -48,7 +48,7 @@ export function WaiverOrderPanel({ waivers, type = waivers.type }: { waivers: Wa
  *  league's draft is over every run is skipped (S08.1), so none is marked Next. A run that may fall
  *  in a gameweek's lock says so in place of Next (#1488). On My team's Transactions tab each run
  *  counts the manager's `claims` in it (#1031). */
-export function RunsPanel({ waivers, claims = [] }: { waivers: WaiversView; claims?: readonly Pick<PendingClaim, "runAt">[] }) {
+export function RunsPanel({ waivers, claims = [] }: { waivers: WaiversView; claims?: readonly Pick<PendingClaim, "run">[] }) {
   const [first] = waivers.runs;
   const waitsOn = waivers.locked ? waivers.resetsAfter : waivers.windowOpen ? null : (first?.skippedIf ?? null);
   const window = windowWords({
@@ -64,7 +64,7 @@ export function RunsPanel({ waivers, claims = [] }: { waivers: WaiversView; clai
       <ul>
         {waivers.runs.map(({ at, skippedIf }, index) => {
           const note = runNoteWords({
-            claims: claims.filter(({ runAt }) => runAt === at).length,
+            claims: claims.filter(({ run }) => run?.at === at).length,
             next: waivers.drafted && skippedIf === null && index === 0,
             skippedIf: waivers.drafted ? skippedIf : null,
           });

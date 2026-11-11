@@ -1,7 +1,7 @@
 import type { Infer } from "convex/values";
 import type { Doc, Id } from "../_generated/dataModel";
 import type { MutationCtx, QueryCtx } from "../_generated/server";
-import { LEAGUES_READ_MOST, takeAllOrThrow } from "../shared/cappedRead";
+import { everyLeague } from "../shared/cappedRead";
 import { isAdmin, teamsOf } from "../shared/leagueAccess";
 import { adminByline, eventLetter } from "./letterWords";
 import { marking, type TellMoment } from "./letterMoments";
@@ -57,11 +57,7 @@ export async function fileLetter(
  *  read. Past LEAGUES_READ_MOST leagues it throws, and the change it reports with it, never
  *  reaching only some. */
 export async function fileSiteLetter(ctx: MutationCtx, letter: Written, by: string): Promise<void> {
-  const leagues = await takeAllOrThrow(
-    ctx.db.query("leagues"),
-    LEAGUES_READ_MOST,
-    `More than ${LEAGUES_READ_MOST} leagues are held, so a letter from the site can't reach everyone in them`,
-  );
+  const leagues = await everyLeague(ctx, "so a letter from the site can't reach everyone in them");
   const everyone = new Set((await Promise.all(leagues.map((league) => wholeLeague(ctx, league)))).flat());
   const at = Date.now();
   const copy = filed(letter);
@@ -89,6 +85,7 @@ function takenOut(event: LeagueEvent): string[] {
     case "deletionStarted":
     case "deletionUndone":
     case "gameweekUsed":
+    case "scoringStartSet":
     case "invited":
     case "inviteResent":
     case "inviteCancelled":

@@ -4,9 +4,7 @@
 // My team's tabs are R3·1's; a section gets tabs when its screen is grilled, and until then has no
 // second row.
 
-import { DRAFT_TITLE } from "../draft/words";
-import { MAIL_TITLE } from "../mail/words";
-import { menuWords } from "./words";
+import { DRAFT_TITLE, MAIL_TITLE, menuWords } from "../shared/words";
 
 type Page = { label: string; path: string };
 export type Section = Page & { tabs: readonly Page[] };

@@ -1,6 +1,5 @@
 import { useId, useState } from "react";
 import type { LeagueSummary } from "../../../convex/leagues/myLeagues";
-import { GAMEWEEKS } from "../../../convex/gameweeks/usedGameweeks";
 import { menuGlyph } from "../../shared/words";
 import { Panel, PANEL_BODY, Problem } from "../../ui/Panel";
 import type { MyAutoTeam, MyTeamSeam } from "../seam";
@@ -22,9 +21,10 @@ import {
 // until the end of a gameweek, from the next not begun, or until the manager switches it off
 // ("like CM's holiday"); on, it switches it off.
 
-/** The reading's value: a button opening the panel. `firstGameweek` is the next gameweek not
- *  begun, or null when none is left, so no end can be named. */
-export function AutoTeamSwitch({ league, seam, firstGameweek }: { league: LeagueSummary; seam: MyTeamSeam; firstGameweek: number | null }) {
+/** The reading's value: a button opening the panel. Its drop-down lists the gameweeks the league
+ *  plays, from the next not begun to its last (`endGameweeks`), so a league that ends early offers
+ *  none after it (spec/13, Gameweeks); with none left, no end can be named. */
+export function AutoTeamSwitch({ league, seam }: { league: LeagueSummary; seam: MyTeamSeam }) {
   const autoTeam = seam.useMyAutoTeam(league.leagueId);
   const [open, setOpen] = useState(false);
   const panelId = useId();
@@ -36,7 +36,7 @@ export function AutoTeamSwitch({ league, seam, firstGameweek }: { league: League
       </button>
       {open && (
         <div id={panelId} className="absolute top-full right-0 z-10 w-auto-team-panel bg-panel-solid font-normal shadow-bevel-panel">
-          <AutoTeamPanel league={league} seam={seam} autoTeam={autoTeam} firstGameweek={firstGameweek} close={() => setOpen(false)} />
+          <AutoTeamPanel league={league} seam={seam} autoTeam={autoTeam} close={() => setOpen(false)} />
         </div>
       )}
     </span>
@@ -46,22 +46,12 @@ export function AutoTeamSwitch({ league, seam, firstGameweek }: { league: League
 /** Until when, as the panel's choice holds it: the end of a gameweek, or until switched off. */
 type Until = "gameweek" | "off";
 
-function AutoTeamPanel({
-  league,
-  seam,
-  autoTeam,
-  firstGameweek,
-  close,
-}: {
-  league: LeagueSummary;
-  seam: MyTeamSeam;
-  autoTeam: MyAutoTeam;
-  firstGameweek: number | null;
-  close: () => void;
-}) {
+function AutoTeamPanel({ league, seam, autoTeam, close }: { league: LeagueSummary; seam: MyTeamSeam; autoTeam: MyAutoTeam; close: () => void }) {
   const changes = seam.useAutoTeamChanges();
-  const [until, setUntil] = useState<Until>(firstGameweek === null ? "off" : "gameweek");
-  const [endsAfter, setEndsAfter] = useState(firstGameweek ?? GAMEWEEKS);
+  const { endGameweeks } = autoTeam;
+  const firstGameweek = endGameweeks[0];
+  const [until, setUntil] = useState<Until>(firstGameweek === undefined ? "off" : "gameweek");
+  const [endsAfter, setEndsAfter] = useState(firstGameweek);
   const [problem, setProblem] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const name = useId();
@@ -80,7 +70,7 @@ function AutoTeamPanel({
         <p>{autoTeamWhatWords}</p>
         {!autoTeam.on && (
           <div role="radiogroup" aria-label={autoTeamHead} className="flex flex-col gap-1">
-            {firstGameweek !== null && (
+            {firstGameweek !== undefined && (
               <span className="flex min-h-tap items-center gap-3">
                 <label className="flex cursor-pointer items-center gap-3">
                   <input type="radio" name={name} className="radio-well" checked={until === "gameweek"} onChange={() => setUntil("gameweek")} />
@@ -95,7 +85,7 @@ function AutoTeamPanel({
                   }}
                   className="text-box"
                 >
-                  {Array.from({ length: GAMEWEEKS - firstGameweek + 1 }, (_, index) => firstGameweek + index).map((gameweek) => (
+                  {endGameweeks.map((gameweek) => (
                     <option key={gameweek} value={gameweek}>
                       {gameweekShort(gameweek)}
                     </option>

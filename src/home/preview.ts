@@ -5,12 +5,13 @@
 
 import { shownRows } from "../../convex/home/glance";
 import { thisGameweekOf } from "../../convex/gameweeks/nextGameweek";
-import { SEASON_GAMEWEEKS } from "../../convex/gameweeks/usedGameweeks";
+import { seasonGameweeks } from "../../convex/gameweeks/usedGameweeks";
 import { DAY_MS, HOUR_MS, WEEK_MS } from "../../convex/shared/time";
 import { drawFixtures, namedFixture } from "../../convex/table/roundRobin";
 import { formOf, headToHeadTable, teamsInGameweek } from "../../convex/table/standings";
 import { gameNumberAt, gameScore } from "../../convex/table/teamGames";
 import { previewLatestMail } from "../mail/preview";
+import { previewSeasonGameweeks } from "../shared/preview";
 import { previewIdOf } from "../table/preview";
 import type { Id } from "../../convex/_generated/dataModel";
 import type { HomeSeam, LeagueHome, LeagueNews, NewsAsked, NewsMove } from "./seam";
@@ -39,7 +40,7 @@ const SCORED = 6;
 export const PREVIEW_RECAP_GAMEWEEK = SCORED;
 const firstDeadline = Date.now() - SCORED * WEEK_MS + DAY_MS;
 
-const schedule = drawFixtures(TEAMS, SEASON_GAMEWEEKS, () => ({ oddTeamOut: "leagueAverage", gamesPerGameweek: 1 }), "preview-home");
+const schedule = drawFixtures(TEAMS, seasonGameweeks(previewSeasonGameweeks), () => ({ oddTeamOut: "leagueAverage", gamesPerGameweek: 1 }), "preview-home");
 /** Made-up scores: each team's points a gameweek, from its place in TEAMS and the gameweek. */
 const scores = new Map(
   Array.from({ length: SCORED }, (_, i) => [i + 1, new Map(TEAMS.map((team, place) => [team, 30 + ((place * 7 + (i + 1) * 13) % 40)]))]),

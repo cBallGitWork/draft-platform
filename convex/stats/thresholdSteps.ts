@@ -48,7 +48,7 @@ export const THRESHOLD_STEPS_MOST = 1000;
 export const THRESHOLD_STEPS_A_ROW = 1000;
 
 /** The most rows of steps one match holds (#871). A row is a live read's, and the live tick reads a
- *  match once a minute for at most LIVE_WINDOW_MS (4 hours, liveStats.ts) from kick-off: 240 reads,
+ *  match once a minute for at most LIVE_WINDOW_MS (4 hours, shared/dueMatches.ts) from kick-off: 240 reads,
  *  and only one that showed a step stores a row. Doubled for runs by hand and a read past
  *  THRESHOLD_STEPS_A_ROW. Measured over the recorded team stats (thresholdSteps.test.ts): a busy
  *  match's steps under the roles' first values, about 3,550, fit these rows, and a double

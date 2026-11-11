@@ -20,7 +20,8 @@ under it, and the rest set later. Its organisation, never its colours.
 - League name: up to 30 characters (`spec/13`, Creating a league).
 - Maximum teams: 2 to 20 (`spec/13`).
 - Commissioner's email: who runs it; one with no account gets a sign-in link (`spec/13`).
-- Create the league: makes it and emails the commissioner.
+- Create the league: makes it and emails the commissioner. The line under it reads "New to the
+  site? We email a link." in place of the picture's line (Craig, 11 Nov 2026, #1498).
 - Back to your leagues: back to Your leagues, nothing made.
 - The Admin panel: Admin dashboard opens the admin dashboard; Your leagues opens Your leagues.
 

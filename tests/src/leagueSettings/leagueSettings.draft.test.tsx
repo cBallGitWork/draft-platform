@@ -1,15 +1,20 @@
-// League settings' draft (#1087): the pick clock, the timeouts before auto-pick and where undrafted
-// players go, saved with the rest; and the draft order, saved a move or a random draw at a time,
+// League settings' draft (#1087): its start date (#1476), the pick clock, the timeouts before
+// auto-pick and where undrafted players go, saved with the rest; and the draft order, saved a move or a random draw at a time,
 // with no switch between random and the commissioner's (Craig, 4 Nov 2026, on #1089: "Drop it").
 
-import { screen, waitFor, within } from "@testing-library/react";
+import { cleanup, fireEvent, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
 import { draftOrderRefusals } from "../../../convex/draft/draftOrder";
+import { draftStartRefusals } from "../../../convex/draft/draftStart";
+import { discardWords } from "../../../src/rules/words";
 import {
   autoPickWords,
   blankPickClockWords,
   blankTimeoutsWords,
+  clearDraftStartWords,
+  draftStartedFixedWords,
+  draftStartLabel,
   draftStartedWords,
   drawOrderWords,
   moveDownLabel,
@@ -23,7 +28,8 @@ import {
   undraftedWords,
 } from "../../../src/leagueSettings/words";
 import { REVISION, TEAMS_IN_ORDER } from "../../support/src/leagueSettings.harness";
-import { box, fill, FIRST_SETTINGS, openedSettings, save, savedSettings } from "../../support/src/leagueSettingsScreen.harness";
+import { box, fill, FIRST_SETTINGS, openedSettings, save, saveButton, savedSettings } from "../../support/src/leagueSettingsScreen.harness";
+import { league } from "../../support/src/shell.harness";
 import { CHANGES_FROM } from "../../support/src/scoring.harness";
 
 const radio = (name: string) => screen.getByRole("radio", { name }) as HTMLInputElement;
@@ -101,6 +107,82 @@ describe("the draft settings (#1087)", () => {
     await save();
 
     expect((await screen.findByRole("alert")).textContent).toBe(refusal);
+  });
+});
+
+describe("the draft's start date (#1476)", () => {
+  /** Sat 15 Aug 2037 at 19:00 in the viewer's own zone, as the date box holds it. */
+  const SATURDAY = "2037-08-15T19:00";
+  const SUNDAY = "2037-08-16T19:00";
+  const dateBox = () => screen.getByLabelText(draftStartLabel) as HTMLInputElement;
+  const clearButton = () => screen.queryByRole("button", { name: clearDraftStartWords });
+  const typeDate = (value: string) => fireEvent.change(dateBox(), { target: { value } });
+  const setFor = (value: string) => ({ draftStart: { startsAt: new Date(value).getTime(), started: false } });
+
+  it("shows the date set, in the viewer's own zone, with Clear; with none, an empty box and no Clear", async () => {
+    await openedSettings(setFor(SATURDAY));
+    expect(dateBox().value).toBe(SATURDAY);
+    expect(clearButton()).toBeTruthy();
+
+    cleanup();
+    await openedSettings();
+    expect(dateBox().value).toBe("");
+    expect(clearButton()).toBeNull();
+  });
+
+  it("saves a new date with the settings' Save, leaving the settings unsaved when they haven't changed", async () => {
+    const app = await openedSettings(setFor(SATURDAY));
+    expect(saveButton().disabled).toBe(true);
+    typeDate(SUNDAY);
+    await save();
+
+    expect(app.leagueSettings.setDraftStart).toHaveBeenCalledExactlyOnceWith(league.leagueId, new Date(SUNDAY).getTime());
+    expect(app.leagueSettings.save).not.toHaveBeenCalled();
+  });
+
+  it("clears the date, so the draft waits for the commissioner to press start", async () => {
+    const app = await openedSettings(setFor(SATURDAY));
+    await userEvent.click(clearButton()!);
+    expect(dateBox().value).toBe("");
+    await save();
+
+    expect(app.leagueSettings.setDraftStart).toHaveBeenCalledExactlyOnceWith(league.leagueId, null);
+  });
+
+  it("saves a date and the settings together", async () => {
+    const app = await openedSettings();
+    typeDate(SUNDAY);
+    await userEvent.click(radio(undraftedWords.freeAgents));
+    await save();
+
+    expect(app.leagueSettings.setDraftStart).toHaveBeenCalledExactlyOnceWith(league.leagueId, new Date(SUNDAY).getTime());
+    expect(savedSettings(app).draft.undrafted).toBe("freeAgents");
+  });
+
+  it("says why a date is refused, and saves no settings with it", async () => {
+    const app = await openedSettings();
+    app.leagueSettings.setDraftStart.mockResolvedValueOnce(draftStartRefusals.tooFewTeams);
+    typeDate(SUNDAY);
+    await userEvent.click(radio(undraftedWords.freeAgents));
+    await save();
+
+    expect((await screen.findByRole("alert")).textContent).toBe(draftStartRefusals.tooFewTeams);
+    expect(app.leagueSettings.save).not.toHaveBeenCalled();
+  });
+
+  it("Discard puts the date back", async () => {
+    await openedSettings(setFor(SATURDAY));
+    typeDate(SUNDAY);
+    await userEvent.click(screen.getByRole("button", { name: discardWords }));
+
+    expect(dateBox().value).toBe(SATURDAY);
+  });
+
+  it("once the draft has started, says so, with no box", async () => {
+    await openedSettings({ draftStart: { startsAt: null, started: true } });
+
+    expect(screen.getByText(draftStartedFixedWords)).toBeTruthy();
+    expect(screen.queryByLabelText(draftStartLabel)).toBeNull();
   });
 });
 

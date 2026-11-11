@@ -1,8 +1,8 @@
 import { describe, expect, test } from "vitest";
 import { DEFAULT_ROLES } from "../../../convex/lineup/roles";
-import { DEFAULT_PRESETS } from "../../../convex/lineup/presets";
 import { bestRoleIn, droppedRole } from "../../../convex/stars/bestRole";
 import { NO_DATA, UNSURE, type RoleStars } from "../../../convex/stars/starsShape";
+import { presetNamed } from "../../support/convex/lineup.harness";
 
 // The role a player dropped into a slot starts on (spec/05 Roles; Craig, 1 Nov 2026): his most
 // stars there among the roles it offers, the slot's first on a tie or with none.
@@ -12,7 +12,7 @@ const NUMBER_TEN = { area: "attackingMidfield", lane: "centre" } as const;
 const CENTRE_BACK = { area: "defence", lane: "centre" } as const;
 const [POACHER, TARGET_MAN, PRESSING_FORWARD] = DEFAULT_ROLES.ST;
 const up = (role: string, stars: RoleStars["stars"], area: RoleStars["area"] = "attack"): RoleStars => ({ area, role, stars });
-const cellsOf = (name: string) => DEFAULT_PRESETS.find((preset) => preset.name === name)!.cells;
+const cellsOf = (name: string) => presetNamed(name).cells;
 
 describe("his best role in a slot", () => {
   test("the one he has the most stars for", () => {

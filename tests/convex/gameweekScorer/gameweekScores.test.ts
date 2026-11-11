@@ -6,6 +6,7 @@ import { DAY_MS } from "../../../convex/shared/time";
 import { positionsSyncRanOnDay } from "../../support/convex/positionsSync.harness";
 import { CENTRE_BACK, played, RIGHT_BACK, startsFrom, times } from "../../support/convex/positionStarts.harness";
 import { actingAs, COMMISSIONER } from "../../support/convex/leagues.harness";
+import { leagueHomeOf } from "../../support/convex/screenReads.harness";
 import { inTenths } from "../../../convex/scoring/values";
 import { mergedHullEverton } from "../../support/convex/matchStats.harness";
 import { silenceConsoleError } from "../../support/convex/test.harness";
@@ -159,7 +160,7 @@ test("a total-points league has each team's gameweek in its results, and ranks b
   const league = await scoresLeague();
   await league.t.run(async (ctx) => {
     for (const row of await ctx.db.query("leagueRules").withIndex("by_leagueId_and_fromGameweek", (q) => q.eq("leagueId", league.leagueId)).collect()) {
-      await ctx.db.patch("leagueRules", row._id, { rules: { ...row.rules, format: "totalPoints" } });
+      await ctx.db.patch("leagueRules", row._id, { rules: { ...row.rules!, format: "totalPoints" } });
     }
   });
   await fullTimeRecords(league);
@@ -178,7 +179,7 @@ test("league home's table and form read the same scores as the table", async () 
   const league = await scoresLeague();
   await fullTimeRecords(league);
   await lockMatch(league);
-  const home = await (await actingAs(league.t, ANN)).query(api.home.leagueHome.ofLeague, { leagueId: league.leagueId, now: Date.now() });
+  const home = await leagueHomeOf(await actingAs(league.t, ANN), league.leagueId, Date.now());
 
   expect(home!.table.map(({ teamName, played, won, lost, points, form }) => ({ teamName, played, won, lost, points, form }))).toEqual([
     { teamName: "Team 2", played: 1, won: 1, lost: 0, points: 3, form: ["won"] },

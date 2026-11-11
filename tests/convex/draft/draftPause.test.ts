@@ -6,11 +6,11 @@ import { pauseRefusals } from "../../../convex/draft/draftPause";
 import { pickRefusals } from "../../../convex/draft/draftPicks";
 import { refusals } from "../../../convex/shared/leagueAccess";
 import { SECOND_MS } from "../../../convex/shared/time";
-import { ARSENAL, insertClubs, insertPlayers, type HeldPlayer } from "../../support/convex/footballRows.harness";
-import { changeEveryRules, HELD_FIRST_RULES, setPickSeconds as setPickSecondsOf } from "../../support/convex/leagueRules.harness";
-import { actingAs, addManagers, adminCreatesLeague, COMMISSIONER, MANAGERS, type TestConvex } from "../../support/convex/leagues.harness";
+import { draftSteps, midfielder } from "../../support/convex/draft.harness";
+import { ARSENAL, insertClubs, insertPlayers } from "../../support/convex/footballRows.harness";
+import { HELD_FIRST_RULES } from "../../support/convex/leagueRules.harness";
+import { addManagers, adminCreatesLeague, COMMISSIONER, MANAGERS, type TestConvex } from "../../support/convex/leagues.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
-import { elapse } from "../../support/convex/test.harness";
 
 // Pausing and resuming the draft (spec/04, The commissioner; #1135): a pause keeps the time left,
 // the 10 seconds before the next clock freeze too, a paused clock never fires, and a pick time
@@ -20,23 +20,13 @@ let t: TestConvex;
 let leagueId: Id<"leagues">;
 let teams: Id<"teams">[];
 
-const player = (code: number): HeldPlayer => ({ code, name: `Player ${code}`, fullName: `Player ${code}`, clubCode: ARSENAL.code, positions: ["CM"] });
-const MIDS = [101, 102, 103, 104].map(player);
+const MIDS = [101, 102, 103, 104].map((code) => midfielder(code));
 const [A1] = MIDS.map(({ code }) => code);
 const PICK_MS = HELD_FIRST_RULES.draft!.pickSeconds * SECOND_MS;
 const [ANN, BOB] = MANAGERS;
 
-const setPickSeconds = (pickSeconds: number) => setPickSecondsOf(t, leagueId, pickSeconds);
-
-const as = (email: string) => actingAs(t, email);
-const read = async () => (await as(COMMISSIONER)).query(api.draft.draftStart.ofLeague, { leagueId, now: Date.now() });
-const start = async () => (await as(COMMISSIONER)).mutation(api.draft.draftStart.start, { leagueId });
-const pause = async (email = COMMISSIONER) => (await as(email)).mutation(api.draft.draftPause.pause, { leagueId });
-const resume = async (email = COMMISSIONER) => (await as(email)).mutation(api.draft.draftPause.resume, { leagueId });
-const pick = async (email: string, playerCode: number) => (await as(email)).mutation(api.draft.draftPicks.makePick, { leagueId, playerCode });
+const { as, read, start, pause, resume, pick, pass, setPickSeconds, setSquadSize } = draftSteps(() => ({ t, leagueId }));
 const pickCount = () => t.run(async (ctx) => (await ctx.db.query("draftPicks").collect()).length);
-/** The clock moves on `ms`, and every pick scheduled by then is made. */
-const pass = (ms: number) => elapse(t, ms);
 
 beforeEach(async () => {
   t = await signInDeployment();
@@ -47,7 +37,7 @@ beforeEach(async () => {
     await insertClubs(ctx, [ARSENAL]);
     await insertPlayers(ctx, MIDS);
   });
-  await changeEveryRules(t, leagueId, (rules) => ({ ...rules, squad: { size: { minimum: 1, maximum: 2 }, minimumByArea: null, maxPerClub: null } }));
+  await setSquadSize(2);
 });
 
 describe("a pause", () => {
@@ -89,6 +79,7 @@ describe("a pause", () => {
     await expect(pause()).rejects.toThrow(pauseRefusals.alreadyPaused);
     await resume();
     for (let made = 0; made < 4; made++) await pass(PICK_MS + PICK_GAP_MS);
+    await pass(PICK_GAP_MS);
     await expect(pause()).rejects.toThrow(pauseRefusals.over);
   });
 });
@@ -226,6 +217,7 @@ describe("when its league is deleted", () => {
     await undo();
     await start();
     for (let made = 0; made < 4; made++) await pass(PICK_MS + PICK_GAP_MS);
+    await pass(PICK_GAP_MS);
     await deleteLeague();
     await undo();
 

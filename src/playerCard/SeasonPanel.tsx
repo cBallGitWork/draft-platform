@@ -43,7 +43,7 @@ export function usePricedAt(card: PlayerCard) {
   const shown = chosen === undefined ? 0 : card.pricedAt.indexOf(chosen);
   return { chosen, choose, shown };
 }
-export type PricedAt = ReturnType<typeof usePricedAt>;
+type PricedAt = ReturnType<typeof usePricedAt>;
 
 /** A stat's column: its key, and its head's words. */
 type StatColumn = { stat: string; words: ColumnWords };

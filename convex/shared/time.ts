@@ -22,6 +22,9 @@ export function seasonStartYear(at: number): number {
   return date.getUTCFullYear() - (date.getUTCMonth() < JULY ? 1 : 0);
 }
 
+/** A season as the short labels write it: "2026/27" for 2026. */
+export const seasonName = (startYear: number): string => `${startYear}/${String(startYear + 1).slice(-2)}`;
+
 /** When the season `at` falls in began: 1 July of `seasonStartYear`, UTC. */
 export const seasonStartAt = (at: number): number => Date.UTC(seasonStartYear(at), JULY, 1);
 

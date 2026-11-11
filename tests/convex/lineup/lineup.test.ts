@@ -1,5 +1,6 @@
 import { describe, expect, test } from "vitest";
-import { lineupProblems, namedCodes, type Lineup, type Placement } from "../../../convex/lineup/lineup";
+import { lineupProblems, namedCodes, withUnmovedSetAside, type Lineup, type LineupProblem, type Placement } from "../../../convex/lineup/lineup";
+import { everyRoleOf } from "../../../convex/lineup/roles";
 import { FIRST_SUB, filledLineup, openLimits, presetNamed, withPositions } from "../../support/convex/lineup.harness";
 import type { Area, Lane } from "../../../convex/lineup/pitch";
 
@@ -212,4 +213,30 @@ test("a lineup names its starters' codes in order, then the bench", () => {
     bench: [9, 1],
   };
   expect(namedCodes(lineup)).toStrictEqual([7, 3, 9, 1]);
+});
+
+describe("a save sets aside a starter who lost a position, left where he stood (#1589)", () => {
+  const strikerAt = fourFourTwo.starters.find(({ playerCode }) => playerCode === STRIKER)!;
+  const [firstRole, secondRole] = everyRoleOf({ area: strikerAt.area as Area, lane: strikerAt.lane as Lane });
+  const withRole = (role: string): Placement[] => fourFourTwo.starters.map((starter) => (starter.playerCode === STRIKER ? { ...starter, role } : starter));
+  const roleNotHis: LineupProblem = { kind: "roleNotHis", playerCode: STRIKER, role: firstRole.key, positions: ["CAM"] };
+  const GAMEWEEK = 9;
+
+  test("in the cell and role he holds in the lineup in force, until a gameweek after one that kept him", () => {
+    const inForce = { fromGameweek: GAMEWEEK - 1, starters: withRole(firstRole.key) };
+    expect(withUnmovedSetAside([roleNotHis], withRole(firstRole.key), inForce, GAMEWEEK)).toEqual({ problems: [], kept: [STRIKER] });
+    // Saved again before the same deadline.
+    const keptThisGameweek = { ...inForce, fromGameweek: GAMEWEEK, keptOutOfPosition: [STRIKER] };
+    expect(withUnmovedSetAside([roleNotHis], withRole(firstRole.key), keptThisGameweek, GAMEWEEK).kept).toEqual([STRIKER]);
+    const keptBefore = { ...inForce, keptOutOfPosition: [STRIKER] };
+    expect(withUnmovedSetAside([roleNotHis], withRole(firstRole.key), keptBefore, GAMEWEEK).problems).toEqual([roleNotHis]);
+  });
+
+  test("never once given another role, nor with no lineup in force, nor any other problem", () => {
+    const inForce = { fromGameweek: GAMEWEEK, starters: withRole(firstRole.key) };
+    expect(withUnmovedSetAside([roleNotHis], withRole(secondRole.key), inForce, GAMEWEEK).problems).toEqual([roleNotHis]);
+    expect(withUnmovedSetAside([roleNotHis], withRole(firstRole.key), null, GAMEWEEK).problems).toEqual([roleNotHis]);
+    const twice: LineupProblem = { kind: "playerTwice", playerCode: STRIKER };
+    expect(withUnmovedSetAside([twice], fourFourTwo.starters, { fromGameweek: GAMEWEEK, starters: fourFourTwo.starters }, GAMEWEEK).problems).toEqual([twice]);
+  });
 });

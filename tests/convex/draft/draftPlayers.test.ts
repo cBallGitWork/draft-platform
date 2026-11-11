@@ -7,6 +7,7 @@ import { ARSENAL, CHELSEA, insertClubs, insertPlayers, type HeldPlayer } from ".
 import { changeRules, HELD_FIRST_RULES, holdGameweeks, NO_AREA_MINIMUMS, rulesWith } from "../../support/convex/leagueRules.harness";
 import { expectRefused } from "../../support/convex/test.harness";
 import { actingAs, addManagers, adminCreatesLeague, COMMISSIONER, MANAGERS, OUTSIDER, type TestConvex } from "../../support/convex/leagues.harness";
+import { pickGapPasses } from "../../support/convex/pickWindow.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
 
 // The draft room's players list's legal flag (spec/04, The draft room; #1099): the players the
@@ -32,7 +33,7 @@ const setSquadRules = (squad: Partial<LeagueRules["squad"]>) =>
   t.run(async (ctx) => {
     for (const row of await ctx.db.query("leagueRules").withIndex("by_leagueId_and_fromGameweek", (q) => q.eq("leagueId", leagueId)).collect()) {
       await ctx.db.patch("leagueRules", row._id, {
-        rules: { ...row.rules, squad: { size: { minimum: 1, maximum: 2 }, minimumByArea: null, maxPerClub: null, ...squad } },
+        rules: { ...row.rules!, squad: { size: { minimum: 1, maximum: 2 }, minimumByArea: null, maxPerClub: null, ...squad } },
       });
     }
   });
@@ -40,7 +41,11 @@ const setSquadRules = (squad: Partial<LeagueRules["squad"]>) =>
 const as = (email: string) => actingAs(t, email);
 const greyedOut = async (email: string) => (await as(email)).query(api.draft.draftPlayers.greyedOut, { leagueId });
 const start = async () => (await as(COMMISSIONER)).mutation(api.draft.draftStart.start, { leagueId });
-const pick = async (email: string, playerCode: number) => (await as(email)).mutation(api.draft.draftPicks.makePick, { leagueId, playerCode });
+/** `email` picks, and the pick's 10 seconds to undo it pass. */
+const pick = async (email: string, playerCode: number) => {
+  await (await as(email)).mutation(api.draft.draftPicks.makePick, { leagueId, playerCode });
+  await pickGapPasses(t);
+};
 const byCode = (greyed: { code: number }[]) => [...greyed].sort((one, other) => one.code - other.code);
 
 beforeEach(async () => {
@@ -125,7 +130,10 @@ describe("the players the team on the clock can't take, for the commissioner's P
 });
 
 describe("the draft room's figures", () => {
-  const figuresOf = async (email: string) => (await as(email)).query(api.draft.draftPlayers.figures, { leagueId, now: Date.now() });
+  const figuresOf = async (email: string) => (await as(email)).query(api.draft.draftPlayers.figures, { leagueId });
+  /** The club maximum is the board's, which already reads the draft's row, so a pick never reruns
+   *  the figures (#1537). */
+  const clubMaximumOf = async (email: string) => (await (await as(email)).query(api.draft.draftBoard.ofLeague, { leagueId })).maxPerClub;
   const byCodeOf = <Figure extends { code: number }>(figures: { players: Figure[] }) => new Map(figures.players.map((each) => [each.code, each]));
 
   test("rank the admin's ranking first, then last season's points, newcomers last, with each one's overview", async () => {
@@ -147,10 +155,10 @@ describe("the draft room's figures", () => {
 
   test("give the club maximum the draft picks by: the league's before the start, the one it started under after", async () => {
     await setSquadRules({ maxPerClub: 1 });
-    expect((await figuresOf(ANN)).maxPerClub).toBe(1);
+    expect((await clubMaximumOf(ANN))).toBe(1);
     await start();
     await setSquadRules({ maxPerClub: 2 });
-    expect((await figuresOf(ANN)).maxPerClub).toBe(1);
+    expect((await clubMaximumOf(ANN))).toBe(1);
   });
 
   test("before the start, give the club maximum of a change waiting for the next gameweek, which the draft would start under (#1130, S04.1)", async () => {
@@ -158,7 +166,7 @@ describe("the draft room's figures", () => {
     expect(HELD_FIRST_RULES.squad.maxPerClub).not.toBe(1);
     expect(await changeRules(t, leagueId, rulesWith({ squad: { ...HELD_FIRST_RULES.squad, maxPerClub: 1 } }))).toBe(5);
 
-    expect((await figuresOf(ANN)).maxPerClub).toBe(1);
+    expect((await clubMaximumOf(ANN))).toBe(1);
   });
 
   test("are refused to anyone outside the league", async () => {

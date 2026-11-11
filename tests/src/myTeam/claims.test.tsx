@@ -21,6 +21,7 @@ import {
   dragHandleLabel,
   everyTeamTableLabel,
   failsIfWords,
+  freePlaceWords,
   freeAgentsNotOpenWords,
   freeAgentsWords,
   moveDownWords,
@@ -49,14 +50,14 @@ const club = { code: 1, name: "Arsenal", shortName: "ARS" };
 const player = (playerCode: number, playerName: string) => ({ playerCode, playerName, positions: ["W" as const], club, seasonPoints: 20 });
 const [SEMENYO, EZE, KUDUS, CALVERT_LEWIN, MBEUMO] = [player(1, "Semenyo"), player(2, "Eze"), player(3, "Kudus"), player(4, "Calvert-Lewin"), player(5, "Mbeumo")];
 
-const claim = (id: string, claimed: PendingClaim["claim"], drop: PendingClaim["drop"], runAt: number, team = "Team 1"): PendingClaim => ({
+const claim = (id: string, claimed: PendingClaim["claim"], drop: PendingClaim["drop"], run: number | PendingClaim["run"], team = "Team 1"): PendingClaim => ({
   claimId: id as Id<"waiverClaims">,
   teamId: team === "Team 1" ? MY_TEAM_ID : idOf(team),
   teamName: team,
   yours: team === "Team 1",
   claim: claimed,
   drop,
-  runAt,
+  run: typeof run === "number" ? made(run) : run,
 });
 const CLAIMS = [claim("c1", SEMENYO, CALVERT_LEWIN, WED), claim("c2", EZE, CALVERT_LEWIN, WED), claim("c3", KUDUS, MBEUMO, THU)];
 const squad = { teamName: "Team 1", lastGameweek: null, players: [{ code: 4, name: "Calvert-Lewin" }, { code: 5, name: "Mbeumo" }], unheld: [], squadMaximum: null, scheduleGameweeks: [], limits: [] } as unknown as TeamSquad;
@@ -73,10 +74,10 @@ describe("the pending claims", () => {
     open();
 
     expect(await claimRows()).toEqual([
-      `${runGroupWords(WED)} 2 claims`,
+      `${runGroupWords(made(WED))} 2 claims`,
       "⋮⋮1WSemenyoARS20WCalvert-LewinARS",
       `⋮⋮2WEzeARS20WCalvert-LewinARS${failsIfWords(1)}`,
-      `${runGroupWords(THU)} 1 claim`,
+      `${runGroupWords(made(THU))} 1 claim`,
       "⋮⋮1WKudusARS20WMbeumoARS",
     ]);
   });
@@ -92,7 +93,7 @@ describe("the pending claims", () => {
     await userEvent.click(await screen.findByRole("button", { name: selectClaimLabel("Eze") }));
     const panel = screen.getByRole("region", { name: claimPanelTitle(2) });
 
-    expect(within(panel).getByText(runGroupWords(WED))).toBeTruthy();
+    expect(within(panel).getByText(runGroupWords(made(WED)))).toBeTruthy();
     expect(within(panel).getByText(failsIfWords(1))).toBeTruthy();
     expect(within(panel).getByRole("combobox", { name: "Out" })).toBeTruthy();
     expect(within(panel).getByRole("link", { name: playerCardWords })).toBeTruthy();
@@ -146,12 +147,37 @@ describe("the pending claims", () => {
     expect(app.myTeam.claimChanges.rank).toHaveBeenCalledTimes(2);
   });
 
-  it("while claims are closed, says so in a word, with no handles or buttons", async () => {
-    open({ waivers: { ...NO_WAIVERS, locked: true } });
+  it("puts claims whose first run may fall in a gameweek's lock in one group after its last match, so they rank against each other and the clash shows (#1467)", async () => {
+    // Wednesday's run may be skipped, so Thursday's may try Semenyo's claim as well as Kudus's.
+    const claims = [claim("c1", SEMENYO, MBEUMO, mayBeSkipped(WED, 12)), claim("c2", KUDUS, MBEUMO, mayBeSkipped(THU, 12)), claim("c3", EZE, null, THU + 7 * DAY_MS)];
+    const app = open({ claims });
+
+    expect(await claimRows()).toEqual([
+      `${runGroupWords(mayBeSkipped(WED, 12))} 2 claims`,
+      "⋮⋮1WSemenyoARS20WMbeumoARS",
+      `⋮⋮2WKudusARS20WMbeumoARS${failsIfWords(1)}`,
+      `${runGroupWords(made(THU + 7 * DAY_MS))} 1 claim`,
+      `⋮⋮1WEzeARS20${freePlaceWords}`,
+    ]);
+    expect(runGroupWords(mayBeSkipped(WED, 12))).toBe("Run after GW12's last match");
+    await userEvent.click(screen.getByRole("button", { name: selectClaimLabel("Kudus") }));
+    const panel = screen.getByRole("region", { name: claimPanelTitle(2) });
+    expect(within(panel).getByText(runGroupWords(mayBeSkipped(THU, 12)))).toBeTruthy();
+    await userEvent.click(within(panel).getByRole("button", { name: moveUpWords }));
+    expect(app.myTeam.claimChanges.rank).toHaveBeenCalledWith(league.leagueId, ["c2", "c1", "c3"]);
+  });
+
+  it("in the lock, says new claims are closed and shuts the drop, but a claim in can still be moved or withdrawn (S08.14)", async () => {
+    const app = open({ waivers: { ...NO_WAIVERS, locked: true } });
     expect(await screen.findByText(claimsClosedWords)).toBeTruthy();
-    expect(screen.queryByRole("img", { name: dragHandleLabel("Eze") })).toBeNull();
+    expect(screen.getByRole("img", { name: dragHandleLabel("Eze") })).toBeTruthy();
     await userEvent.click(screen.getByRole("button", { name: selectClaimLabel("Eze") }));
-    expect(screen.queryByRole("button", { name: withdrawWords })).toBeNull();
+    const panel = screen.getByRole("region", { name: claimPanelTitle(2) });
+    expect((within(panel).getByRole("combobox") as HTMLSelectElement).disabled).toBe(true);
+    await userEvent.click(within(panel).getByRole("button", { name: moveUpWords }));
+    expect(app.myTeam.claimChanges.rank).toHaveBeenCalledWith(league.leagueId, ["c2", "c1", "c3"]);
+    await userEvent.click(within(panel).getByRole("button", { name: withdrawWords }));
+    expect(app.myTeam.claimChanges.withdraw).toHaveBeenCalledWith(league.leagueId, "c2");
   });
 });
 
@@ -176,6 +202,9 @@ describe("before the league's draft is over (S08.1)", () => {
     open({ waivers: { ...NO_WAIVERS, drafted: false } });
     expect(await screen.findByText(claimsNotOpenWords)).toBeTruthy();
     expect(screen.queryByRole("img", { name: dragHandleLabel("Eze") })).toBeNull();
+    await userEvent.click(screen.getByRole("button", { name: selectClaimLabel("Eze") }));
+    expect(await screen.findByRole("region", { name: claimPanelTitle(2) })).toBeTruthy();
+    expect([moveUpWords, withdrawWords].map((name) => screen.queryByRole("button", { name }))).toEqual([null, null]);
   });
 
   it("before the season, says free agency opens once it is, marking no run Next", async () => {

@@ -3,9 +3,10 @@ import { internal } from "../../_generated/api";
 import { internalAction, internalMutation, internalQuery, type ActionCtx } from "../../_generated/server";
 import { outcomeOf } from "../../shared/errors";
 import { emailIfFailed } from "../../admin/feedFailureEmails";
-import { CRON_TRIGGER } from "../../heartbeats/heartbeat";
+import { CRON_TRIGGER, scheduleHeartbeat } from "../../heartbeats/heartbeat";
 import { londonHour } from "../../shared/moments";
-import { BATCH_SIZE, LATEST_RUNS } from "../../shared/syncRuns";
+import { DAY_MS } from "../../shared/time";
+import { BATCH_SIZE, latestRuns } from "../../shared/syncRuns";
 import { DAILY_RUN_UK_HOUR } from "../../positions/positionsSync";
 import { positionsFromStarts, START_WINDOW } from "../../positions/positions";
 import { position, sportmonksPositionsSyncFields, sportmonksStart, syncTrigger } from "../../schema";
@@ -21,7 +22,8 @@ import { SPORTMONKS, type RawFixture, type RawLeague, type RawSeason, type RawSt
 // Daily at the positions sync's 06:00 UK time, and a cron's run with matches left carries on at
 // once. Where the deployment has no `SPORTMONKS_API_TOKEN` it reads nothing and writes no row.
 // From the CLI: `npx convex run football/sportmonks/sportmonksPositionsSync:run '{"trigger":"manual"}'`,
-// then `football/sportmonks/sportmonksPositionsSync:regulars '{"season":2025}'` for Craig's check (`S06.3`).
+// then `football/sportmonks/sportmonksPositionsSync:regulars '{"season":<this season's start year>}'`
+// for Craig's check (`S06.3`): only this season's list is right (see `regulars`).
 
 /** The league this read is for: the Scottish Premiership, #1419's. The six-hourly read and the
  *  live tick go over the competitions list (#1414); this read keeps its one league until an issue
@@ -41,6 +43,14 @@ export const SPORTMONKS_POSITIONS_FAILED_LOG = "Sportmonks positions read failed
 
 /** What the log says, before the matches' ids, when played matches came back with no starters. */
 export const NO_STARTERS_LOG = "Sportmonks positions: played matches with no starters yet, left to read again";
+
+/** Days after kickoff a played match with no starters is still read again: by then Sportmonks has
+ *  filed what it will, and an awarded or walkover match never has lineups (#1564). */
+export const LINEUPS_WAIT_DAYS = 7;
+
+/** What the log says, once, before the matches' ids, when played matches past `LINEUPS_WAIT_DAYS`
+ *  with no starters are marked read with none. */
+export const NO_STARTERS_GIVEN_UP_LOG = `Sportmonks positions: played matches with no starters ${LINEUPS_WAIT_DAYS} days after kickoff, marked read with none`;
 
 type Synced = Omit<Extract<Infer<typeof sportmonksPositionsSyncFields.outcome>, { ok: true }>, "ok">;
 const filedMatch = v.object({ fixtureCode: v.number(), starts: v.array(v.object({ playerCode: v.number(), start: sportmonksStart })) });
@@ -69,8 +79,12 @@ export const run = internalAction({
       console.error(`Sportmonks positions: ${JSON.stringify({ unknownFormations: outcome.unknownFormations, unknownLabels: outcome.unknownLabels })}`);
     }
     await ctx.runMutation(internal.football.sportmonks.sportmonksPositionsSync.record, { trigger, ranAt, outcome });
-    if (trigger === CRON_TRIGGER && outcome.ok && outcome.matchesLeft > 0) {
+    if (trigger !== CRON_TRIGGER) return null;
+    if (outcome.ok && outcome.matchesLeft > 0) {
       await ctx.scheduler.runAfter(0, internal.football.sportmonks.sportmonksPositionsSync.run, { trigger });
+    } else {
+      // The cron's last run: the daily read's heartbeat. With no token, nothing is read or pinged.
+      await scheduleHeartbeat(ctx, "sportmonksPositions");
     }
     return null;
   },
@@ -137,15 +151,14 @@ export const record = internalMutation({
   },
 });
 
-export const latest = internalQuery({
-  args: {},
-  returns: v.array(v.object({ _id: v.id("sportmonksPositionsSyncs"), _creationTime: v.number(), ...sportmonksPositionsSyncFields })),
-  handler: async (ctx) => ctx.db.query("sportmonksPositionsSyncs").order("desc").take(LATEST_RUNS),
-});
+export const latest = latestRuns("sportmonksPositionsSyncs", sportmonksPositionsSyncFields);
 
 /** A season's regulars, for Craig's check of the table (`S06.3`): each man with `REGULAR_STARTS`
  *  or more starts that season, his club now, his starts that season, and the positions his starts
- *  give him, club by club. The whole table is read: a few hundred rows. */
+ *  give him, club by club. The whole table is read: a few hundred rows.
+ *  Right for this season only: a row keeps a man's newest `START_WINDOW` starts across both
+ *  seasons (`withStart`), so each start he makes this season pushes one of last season's out, and
+ *  last season's list loses its regulars as this season goes on (#1563). */
 export const regulars = internalQuery({
   args: { season: v.number() },
   returns: v.array(
@@ -206,16 +219,22 @@ async function readPositions(ctx: ActionCtx, token: string): Promise<Synced> {
   const unread = new Set(await ctx.runQuery(internal.football.sportmonks.sportmonksPositionsSync.unreadMatches, { fixtureCodes: played.map((match) => match.id) }));
   const toRead = played.filter((match) => unread.has(match.id)).sort((a, b) => a.kickoff - b.kickoff);
   const reading = toRead.slice(0, MATCHES_PER_RUN).map((match) => match.id);
+  const kickoffs = new Map(played.map((match) => [match.id, match.kickoff]));
+  const waitedUntil = Date.now() - LINEUPS_WAIT_DAYS * DAY_MS;
   const unknownFormations = new Set<string>();
   let startsAdded = 0;
   for (let at = 0; at < reading.length; at += MULTI_FIXTURES_MAX) {
     const { data: matches } = await getData<RawFixture[]>(lineupsUrl(reading.slice(at, at + MULTI_FIXTURES_MAX)), token);
     const read = matches.map((match) => ({ fixtureCode: match.id, starts: matchStarts(match, seasonOf.get(match.id)!) }));
     // A played match with no starters is Sportmonks not yet filing its lineups: left unread, so a
-    // later run reads it again, and logged.
+    // later run reads it again, and logged. Past `LINEUPS_WAIT_DAYS` it never will (an awarded
+    // match, or one Sportmonks holds none for): marked read with no starts, and logged that once.
     const empty = read.filter(({ starts }) => starts.length === 0).map(({ fixtureCode }) => fixtureCode);
-    if (empty.length > 0) console.error(`${NO_STARTERS_LOG}: ${empty.join(", ")}`);
-    const filed = read.filter(({ starts }) => starts.length > 0);
+    const givenUp = new Set(empty.filter((fixtureCode) => (kickoffs.get(fixtureCode) ?? 0) < waitedUntil));
+    const waiting = empty.filter((fixtureCode) => !givenUp.has(fixtureCode));
+    if (waiting.length > 0) console.error(`${NO_STARTERS_LOG}: ${waiting.join(", ")}`);
+    if (givenUp.size > 0) console.error(`${NO_STARTERS_GIVEN_UP_LOG}: ${[...givenUp].join(", ")}`);
+    const filed = read.filter(({ fixtureCode, starts }) => starts.length > 0 || givenUp.has(fixtureCode));
     for (const { starts } of filed) positionsFromStarts(starts.map((each) => each.start)).unknownFormations.forEach((formation) => unknownFormations.add(formation));
     startsAdded += await ctx.runMutation(internal.football.sportmonks.sportmonksPositionsSync.recordStarts, { matches: filed });
   }

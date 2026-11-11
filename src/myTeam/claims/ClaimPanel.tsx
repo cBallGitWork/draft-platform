@@ -12,7 +12,8 @@ import { claimInLabel, claimPanelTitle, dropLabel, dropNobodyWords, moveDownWord
 // the plate), at the top of the Transactions tab's right-hand column: In, the claimed player, with
 // his player card; Out, the drop picker, a change keeping the claim's rank (Craig, 6 Nov 2026); the
 // "Fails if claim 1 wins" chip, where an earlier claim in the run drops the same player; Move up,
-// Move down and Withdraw. While claims are closed the controls go.
+// Move down and Withdraw. While claims are closed the Out picker is shut; Move and Withdraw stay in
+// the lock, going only before the draft is over (Craig, 11 Nov 2026, on #1590).
 
 /** A player the Drop picker offers: one of the manager's squad. */
 export type SquadPlayer = { code: number; name: string };
@@ -24,6 +25,7 @@ export function ClaimPanel({
   clash,
   squad,
   open,
+  canRank,
   change,
   canMove,
   onMove,
@@ -37,7 +39,10 @@ export function ClaimPanel({
   /** The earlier claim in its run dropping the same player: its rank. */
   clash: number | null;
   squad: readonly SquadPlayer[];
+  /** A change of drop can be made: not while claims are closed. */
   open: boolean;
+  /** Move and Withdraw can be used: in the lock too, never before the draft is over. */
+  canRank: boolean;
   change: Changing;
   canMove: { up: boolean; down: boolean };
   onMove(step: -1 | 1): void;
@@ -48,7 +53,7 @@ export function ClaimPanel({
   // The drop he names is offered even if he has left the squad since, so the picker shows it.
   const offered = claim.drop === null || squad.some(({ code }) => code === claim.drop?.playerCode) ? squad : [...squad, { code: claim.drop.playerCode, name: claim.drop.playerName }];
   return (
-    <Panel title={claimPanelTitle(rank)} aside={<span className="text-soft">{runGroupWords(claim.runAt)}</span>}>
+    <Panel title={claimPanelTitle(rank)} aside={<span className="text-soft">{runGroupWords(claim.run)}</span>}>
       <div className="flex flex-col gap-2 p-3">
         <p className="flex items-center gap-3">
           <span className="w-12 text-soft">{claimInLabel}</span>
@@ -83,7 +88,7 @@ export function ClaimPanel({
             <FailsChip clash={clash} />
           </p>
         )}
-        {open && (
+        {canRank && (
           <p className="flex flex-wrap gap-2 pl-15">
             <button type="button" className="secondary-action" disabled={change.busy || !canMove.up} onClick={() => onMove(-1)}>
               {moveUpWords}

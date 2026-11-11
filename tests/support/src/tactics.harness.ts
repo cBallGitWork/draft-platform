@@ -2,7 +2,7 @@
 
 import { useSyncExternalStore } from "react";
 import { vi } from "vitest";
-import { classicsOf, FIRST_RULES, instructionsOf } from "../../../convex/rules/firstRules";
+import { classicFormationsOf, FIRST_RULES, instructionsOf } from "../../../convex/rules/firstRules";
 import { firstPairFor } from "../../../convex/lineup/instructions";
 import { cardRolesOf, pricedMatch, type MatchToPrice } from "../../../convex/lineup/roleCardShape";
 import { FIRST_SCORING_WITH_ROLES } from "../../../convex/scoring/draftedRoleAdjustments";
@@ -23,7 +23,7 @@ export const openTactics = (change: Partial<OpenTactics> = {}): OpenTactics => (
   deadline: null,
   areaLimits: FIRST_RULES.areaLimits,
   presets: FIRST_RULES.presets,
-  classics: classicsOf(FIRST_RULES),
+  classicFormations: classicFormationsOf(FIRST_RULES),
   instructions: [...instructionsOf(FIRST_RULES)],
   picked: OPEN_PICKED,
   squad: [],

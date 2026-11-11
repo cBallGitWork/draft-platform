@@ -2,8 +2,7 @@
 
 import { countInWords } from "../../convex/shared/numberWords";
 import { NEXT_MATCHES_SHOWN } from "../../convex/squads/squadLimits";
-import { menuWords } from "../frame/words";
-import { fewestTeamsWords, withTeamWords } from "../shared/words";
+import { fewestTeamsWords, menuWords, withTeamWords } from "../shared/words";
 import type { TeamTransactions } from "./seam";
 
 export { dateWords, figureWords, liveWords, noFigureWords, noTeamWords, placeWords, shortThenLongName, tradedPickWords, versusWords, whenWords, withTeamWords } from "../shared/words";
@@ -48,7 +47,7 @@ export const matchupMoreWords = "Matchup";
 export const SEASON_TITLE = "Season";
 export const tableMoreWords = "Table";
 export const byeWords = "Bye";
-export { leagueAverageWords, provisionalWords, scoreWords, unscoredWords } from "../table/words";
+export { leagueAverageWords, provisionalWords, scoreWords, unscoredWords } from "../shared/words";
 export const totalPointsWords = "The league plays total points, so your team has no head-to-head fixtures.";
 export const noFixturesWords = `No fixtures yet: they're drawn once the league has ${fewestTeamsWords} and a gameweek to play.`;
 

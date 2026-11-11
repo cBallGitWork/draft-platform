@@ -3,7 +3,8 @@ import { api, internal } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
 import type { Lineup } from "../../../convex/lineup/lineup";
 import { leagueDeadlines } from "../../../convex/gameweeks/leagueDeadlines";
-import { SEASON_GAMEWEEKS } from "../../../convex/gameweeks/usedGameweeks";
+import { seasonGameweeks } from "../../../convex/gameweeks/usedGameweeks";
+import { PL_GAMEWEEKS } from "../../support/convex/footballRows.harness";
 import { BATCH_SIZE } from "../../../convex/shared/syncRuns";
 import { holdGameweeks } from "../../support/convex/leagueRules.harness";
 import { actingAs, addManagers, adminCreatesLeague, MANAGERS, type TestConvex } from "../../support/convex/leagues.harness";
@@ -36,7 +37,7 @@ const deadlineOf = (gameweek: number) => t.run(async (ctx) => (await leagueDeadl
 async function fplStopsSending(gameweek: number): Promise<void> {
   await t.mutation(internal.football.footballSync.markDropped, {
     table: "gameweeks",
-    sentKeys: SEASON_GAMEWEEKS.filter((each) => each !== gameweek),
+    sentKeys: seasonGameweeks(PL_GAMEWEEKS).filter((each) => each !== gameweek),
     droppedAt: Date.now(),
     paginationOpts: { cursor: null, numItems: BATCH_SIZE },
   });

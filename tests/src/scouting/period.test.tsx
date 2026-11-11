@@ -43,7 +43,7 @@ describe("the Period picker", () => {
     await choosePeriod(periodWords.last4);
     await userEvent.click(rowOf("Saka"));
     const panel = screen.getByRole("region", { name: /^W/ });
-    expect(within(panel).getByText(panelMinutesWords("last4"))).toBeTruthy();
+    expect(within(panel).getByText(panelMinutesWords("last4", null))).toBeTruthy();
     expect(within(panel).getByText(per90Words("last4"))).toBeTruthy();
     expect(app.scouting.usePer90.mock.lastCall![3]).toBe("last4");
     await userEvent.click(within(panel).getByRole("button", { name: compareWithAnotherWords }));

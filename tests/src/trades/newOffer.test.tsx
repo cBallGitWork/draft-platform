@@ -99,11 +99,12 @@ describe("a new offer", () => {
     const table = await screen.findByRole("table", {
       name: squadTableLabel("Team 1"),
     });
-    expect(
-      within(table).getByRole<HTMLInputElement>("checkbox", {
-        name: tickLabel(SAKA.name),
-      }).disabled,
-    ).toBe(true);
+    const tick = within(table).getByRole<HTMLInputElement>("checkbox", {
+      name: tickLabel(SAKA.name),
+    });
+    expect(tick.disabled).toBe(true);
+    // Its tick box is dimmed with his chip and name, as the approved picture's Murillo (#1495).
+    expect(tick.closest("td")?.className).toContain("opacity-50");
     expect(within(table).getByText(groupWords.inReview)).toBeTruthy();
   });
 

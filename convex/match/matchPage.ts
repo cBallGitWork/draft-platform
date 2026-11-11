@@ -12,6 +12,7 @@ import { positionsNow } from "../positions/playerPositions";
 import { seasonRules } from "../rules/rulesHistory";
 import { clubRecord, position, scoreRead, sideTeamStats } from "../schema";
 import type { ScoringSet } from "../scoring/scoringSet";
+import { siteScoringInGameweek } from "../scoring/siteVersions";
 import { logFailure } from "../shared/errors";
 import { fixtureByCode } from "../shared/fixtures";
 import { memberOf } from "../shared/leagueAccess";
@@ -31,8 +32,8 @@ import { unownedPointsOf, type UnownedPricer } from "./unownedPoints";
 // "Commentary delayed" while the stream falls behind. A man's points are his slot's in the lineup
 // that holds him, worked out by the league's gameweek scorer (gameweekScores.ts) as the matchup and
 // the table work them, so the three never disagree; only once the league's gameweek has begun, as
-// the matchup shows lineups only then. A man in no lineup shows his card's points, counted for no
-// team, and his lines are priced there (unownedPoints.ts).
+// the matchup shows lineups only then. A man in no lineup, and before then every man, shows his
+// card's points, counted for no team, and his lines are priced there (unownedPoints.ts; #1533).
 //
 // The men come from the match's records, which the live poller writes from kickoff (#28); before
 // any, from the team sheets it reads in the hour before kickoff (football/matchTeamSheets.ts). The
@@ -59,8 +60,8 @@ const matchMan = v.object({
   ownerTeamName: v.union(v.string(), v.null()),
   /** His points in this match from his slot in the lineup that holds him, which once the gameweek
    *  has begun is his team's at the deadline, not always his owner's now; for a man in no lineup,
-   *  as his card opens on him (basePoints). Null ("—") before the gameweek begins, or while his
-   *  record hasn't arrived. */
+   *  and for every man before the league's gameweek begins, as his card opens on him (basePoints).
+   *  Null ("—") while his record hasn't arrived or the match can't be priced. */
   points: v.union(v.number(), v.null()),
   /** Whether those points count: false for a bench man who didn't come on, as the matchup greys,
    *  and for a man in no lineup, whose points count for no team, though the page shows his plainly
@@ -102,11 +103,13 @@ export const ofMatch = query({
     const begunGameweek = await begunGameweekOf(ctx, league, fixture);
     const deadlineLineups = begunGameweek === null ? null : await deadlineLineupsOf(ctx, leagueId, begunGameweek);
     const owners = await matchOwnersOf(ctx, leagueId, deadlineLineups, named.map(({ playerCode }) => playerCode));
-    const priced = deadlineLineups === null ? unpriced(null) : await pricedOrProblem(ctx, league, fixture, deadlineLineups, named);
-    const unownedPoints = await unownedPointsOf(ctx, leagueId, fixtureCode, records, owners, priced.set);
+    const priced = deadlineLineups === null ? await cardPricedOrProblem(ctx, league, fixture) : await pricedOrProblem(ctx, league, fixture, deadlineLineups, named);
+    // Before the gameweek begins no lineup holds anyone, so every man is priced as his card opens.
+    const lineupOwners = deadlineLineups === null ? new Map<PlayerCode, Doc<"teams">>() : owners;
+    const unownedPoints = await unownedPointsOf(ctx, leagueId, fixtureCode, records, lineupOwners, priced.set);
     const held = await scoreOf(ctx, fixtureCode);
     const teamStats = await heldTeamStatsOf(ctx, fixtureCode);
-    const { men, unowned } = await menOf(ctx, leagueId, fixture, named, owners, priced, unownedPoints);
+    const { men, unowned } = await menOf(ctx, leagueId, fixture, named, { owners, lineupOwners }, priced, unownedPoints);
     return {
       fixtureCode,
       gameweek: fixture.gameweek,
@@ -135,8 +138,9 @@ async function begunGameweekOf(ctx: QueryCtx, league: Doc<"leagues">, { gameweek
 }
 
 /** What the league's lineups make of the match: each lineup man's points in it, and how the
- *  commentary prices them, under the gameweek's set. Empty, with no set, before the gameweek has
- *  begun. */
+ *  commentary prices them, under the gameweek's set. Empty before the gameweek has begun, when the
+ *  set is the site's that gameweek, which every man's card prices him under; no set for a match no
+ *  gameweek holds. */
 interface Priced {
   slots: Map<PlayerCode, { points: number | null; counts: boolean }>;
   players: Map<PlayerCode, VidiprinterPlayer>;
@@ -157,6 +161,18 @@ async function pricedOrProblem(
 ): Promise<Priced> {
   try {
     return await priced(ctx, league, fixture, deadlineLineups, named);
+  } catch (error) {
+    return unpriced(logFailure(`League ${league._id} (${league.name}) can't price match ${fixture.code}`, error));
+  }
+}
+
+/** The match before the league has begun its gameweek (#1533; spec/10, The match page: "Every
+ *  player shows his live points ... His points are the ones his player card opens on"): no lineup
+ *  priced, under the site's set in that gameweek; or why that set can't be read. */
+async function cardPricedOrProblem(ctx: QueryCtx, league: Doc<"leagues">, fixture: Doc<"fixtures">): Promise<Priced> {
+  if (fixture.gameweek === null) return unpriced(null);
+  try {
+    return { ...unpriced(null), set: await siteScoringInGameweek(ctx, fixture.gameweek) };
   } catch (error) {
     return unpriced(logFailure(`League ${league._id} (${league.name}) can't price match ${fixture.code}`, error));
   }
@@ -188,7 +204,7 @@ async function priced(ctx: QueryCtx, league: Doc<"leagues">, fixture: Doc<"fixtu
 }
 
 /** Each man the match names, with his club's side, his owner and his points, in the page's order;
- *  and the men in no lineup, as the commentary prices them. His side is by the club his record
+ *  and the men in no lineup (none of `lineupOwners`), as the commentary prices them. His side is by the club his record
  *  holds, the one he played the match for (#502); by his club now before kickoff, as the sheets
  *  hold none, and for a record written before records kept one. */
 async function menOf(
@@ -196,7 +212,7 @@ async function menOf(
   leagueId: Id<"leagues">,
   fixture: Doc<"fixtures">,
   named: readonly NamedMan[],
-  owners: Map<PlayerCode, Doc<"teams">>,
+  { owners, lineupOwners }: { owners: Map<PlayerCode, Doc<"teams">>; lineupOwners: Map<PlayerCode, Doc<"teams">> },
   { slots }: Priced,
   unownedPoints: UnownedPricer,
 ): Promise<{ men: MatchMan[]; unowned: Map<PlayerCode, VidiprinterPlayer> }> {
@@ -206,8 +222,8 @@ async function menOf(
     named.map(async ({ playerCode, started, played, clubCode }) => {
       const player = await heldPlayer(ctx, fixture.code, playerCode);
       const positions = await positionsOfNow(playerCode);
-      const owned = owners.has(playerCode);
-      const unownedMan = owned ? null : unownedPoints(playerCode, positions);
+      const inLineup = lineupOwners.has(playerCode);
+      const unownedMan = inLineup ? null : unownedPoints(playerCode, positions);
       if (unownedMan?.lines) unowned.set(playerCode, { name: player.name, role: undefined, inLineup: false, team: undefined, ...unownedMan.lines });
       const slot = unownedMan === null ? slots.get(playerCode) : { points: unownedMan.points, counts: false };
       return {

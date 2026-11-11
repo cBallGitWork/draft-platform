@@ -6,7 +6,8 @@ import { internalAction, internalMutation, type ActionCtx, type MutationCtx, typ
 import { outcomeOf } from "../../shared/errors";
 import { CRON_TRIGGER, withHeartbeat } from "../../heartbeats/heartbeat";
 import { emailIfFailed } from "../../admin/feedFailureEmails";
-import { clubRecord, fixtureRecord, gameweekRecord, playerRecord, scoreRead, sportmonksSyncFields, syncTrigger, tableWrites } from "../../schema";
+import { clubRecord, fixtureRecord, gameweekRecord, playerRecord, scoreRead, sportmonksReader, sportmonksSyncFields, syncTrigger, tableWrites } from "../../schema";
+import { isPlaying, wins } from "../matchScores";
 import { keyOf, sameFields } from "../footballSync";
 import { readSportmonks, SEEDED_COMPETITIONS, sportmonksToken, type SportmonksCompetition } from "./sportmonks";
 
@@ -123,7 +124,7 @@ export const writeScores = internalMutation({
   args: { reads: v.array(scoreRead), readAt: v.number() },
   returns: v.number(),
   handler: async (ctx, { reads, readAt }) => {
-    const written = await Promise.all(reads.map((read) => writeScore(ctx, read, readAt)));
+    const written = await Promise.all(reads.map((read) => writeScore(ctx, read, readAt, "sync")));
     return written.filter(Boolean).length;
   },
 });
@@ -153,16 +154,26 @@ export function scoreOf(ctx: QueryCtx, fixtureCode: number): Promise<Doc<"sportm
     .unique();
 }
 
-/** One read over the match's held score; false when it changed nothing. The newest read wins:
- *  Sportmonks is the only feed writing these. */
-export async function writeScore(ctx: MutationCtx, read: Infer<typeof scoreRead>, readAt: number): Promise<boolean> {
+/** One read over the match's held score; false when it changed nothing. Two readers write these,
+ *  so matchScores.ts's rule holds (#1546): a read older than the held one is refused, a reader
+ *  never moves a match back a state the other moved it on to, and a match being played keeps its
+ *  held minute when the read has none, as the six-hourly read, asking for no periods, never has. */
+export async function writeScore(
+  ctx: MutationCtx,
+  read: Infer<typeof scoreRead>,
+  readAt: number,
+  reader: Infer<typeof sportmonksReader>,
+): Promise<boolean> {
   const held = await scoreOf(ctx, read.fixtureCode);
   if (held === null) {
-    await ctx.db.insert("sportmonksScores", { ...read, readAt });
+    await ctx.db.insert("sportmonksScores", { ...read, readAt, reader });
     return true;
   }
-  if (sameFields(read, held)) return false;
-  await ctx.db.patch("sportmonksScores", held._id, { ...read, readAt });
+  if (!wins({ ...read, readAt, feed: reader }, { ...held, feed: held.reader })) return false;
+  const keepsMinute = read.minutes === null && isPlaying(read.state) && isPlaying(held.state);
+  const sent = keepsMinute ? { ...read, minutes: held.minutes } : read;
+  if (sameFields(sent, held)) return false;
+  await ctx.db.patch("sportmonksScores", held._id, { ...sent, readAt, reader });
   return true;
 }
 

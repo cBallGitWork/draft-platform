@@ -65,6 +65,22 @@ describe("carrying a fix into the draft", () => {
     expect(cleanSheets(carryFix(FIRST_SCORING, fixed, draft))).toEqual(cleanSheets(draft));
   });
 
+  test("two categories for one stat both survive a fix, each matched to its own (Craig, 11 Nov 2026, on #1616)", () => {
+    const hatTrick: Rule = { shape: "bands", stat: "goals_scored", stack: false, values: { all: [{ atLeast: 3, points: 5 }] } } as Rule;
+    const live: StoredScoringSet = { ...structuredClone(FIRST_SCORING), rules: [...structuredClone(FIRST_SCORING.rules), hatTrick] };
+    const fixed = withRule(live, "assists", assistsAt(4));
+    const draft: StoredScoringSet = {
+      ...structuredClone(live),
+      rules: live.rules.map((rule) => (rule === live.rules.at(-1) ? { ...hatTrick, values: { all: [{ atLeast: 3, points: 8 }] } } : structuredClone(rule))) as Rule[],
+    };
+
+    const carried = carryFix(live, fixed, draft);
+    const goals = carried.rules.filter((rule) => rule.stat === "goals_scored");
+    expect(goals).toEqual(draft.rules.filter((rule) => rule.stat === "goals_scored"));
+    expect(goals).toHaveLength(2);
+    expect(carried.rules.find((rule) => rule.stat === "assists")).toEqual(fixed.rules.find((rule) => rule.stat === "assists"));
+  });
+
   test("a fix that changes nothing leaves the draft as it is", () => {
     const draft = withRule(FIRST_SCORING, "assists", assistsAt(5));
 

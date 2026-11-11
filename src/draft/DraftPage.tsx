@@ -4,7 +4,7 @@ import { screenMoment } from "../../convex/shared/moments";
 import { SECOND_MS } from "../../convex/shared/time";
 import type { LeagueSummary } from "../../convex/leagues/myLeagues";
 import { useMinute } from "../shared/useMinute";
-import { Loading, PageSection } from "../ui/Panel";
+import { Loading, PAGE_STACK, PageSection } from "../ui/Panel";
 import { Placeholder } from "../ui/Placeholder";
 import { pickMakers, picksOf, pickInRoundOf, roundOf } from "./board";
 import { ClockLeft, type OnTheClock } from "./ClockLeft";
@@ -48,9 +48,11 @@ type Live = Extract<DraftState, { status: "live" }>;
 type Waiting = Extract<DraftState, { status: "waiting" }>;
 
 export function DraftPage({ league, seam }: { league: LeagueSummary; seam: DraftSeam }) {
+  // The minute is for the waiting countdown and the commissioner panel only: the room's own reads
+  // take none, so the page doesn't blank to Loading as it turns (#1531).
   const now = useMinute();
-  const draft = seam.useDraft(league.leagueId, now);
-  const board = seam.useBoard(league.leagueId, now);
+  const draft = seam.useDraft(league.leagueId);
+  const board = seam.useBoard(league.leagueId);
   if (draft === undefined || board === undefined) {
     return (
       <PageSection title={DRAFT_TITLE}>
@@ -61,9 +63,10 @@ export function DraftPage({ league, seam }: { league: LeagueSummary; seam: Draft
   // The pick on the clock's own time, which the league's may have changed since it started.
   const onTheClock: OnTheClock | null =
     draft.status === "live"
-      ? { pick: draft.onTheClock.pick, clock: draft.clock, pickSeconds: draft.clock === null ? board.pickSeconds : (draft.clock.endsAt - draft.clock.startsAt) / SECOND_MS }
+      ? { pick: draft.onTheClock.pick, clock: draft.clock, pickSeconds: (draft.clock.endsAt - draft.clock.startsAt) / SECOND_MS }
       : null;
-  const state = draft.status === "live" && draft.clock?.pausedAt !== undefined ? stateWords.paused : stateWords[draft.status];
+  const pausedAt = draft.status === "live" ? draft.clock.pausedAt : draft.status === "ending" ? draft.pausedAt : undefined;
+  const state = pausedAt !== undefined ? stateWords.paused : stateWords[draft.status];
   const title = (
     <>
       {DRAFT_TITLE} <span className="ml-2 align-middle text-lead font-semibold">{state}</span>
@@ -76,10 +79,9 @@ export function DraftPage({ league, seam }: { league: LeagueSummary; seam: Draft
       <WaitingFacts draft={draft} board={board} now={now} />
     ) : undefined;
   return (
-    // Full width, unlike PAGE_STACK: the approved picture runs the board across the page.
-    <PageSection title={title} aside={facts} className="flex flex-col gap-2">
+    <PageSection title={title} aside={facts} className={PAGE_STACK}>
       <DraftBoard draft={draft} picks={board.picks} tradedPicks={board.tradedPicks} yourTeamId={board.yourTeamId} onTheClock={onTheClock} />
-      <PickRoom leagueId={league.leagueId} seam={seam} draft={draft} board={board} onTheClock={onTheClock} now={now}>
+      <PickRoom leagueId={league.leagueId} seam={seam} draft={draft} board={board} onTheClock={onTheClock}>
         {(selected, unselect) =>
           league.powers.runs &&
           draft.status !== "over" && <CommissionerPanel leagueId={league.leagueId} seam={seam} draft={draft} board={board} now={now} selected={selected} unselect={unselect} />
@@ -125,13 +127,11 @@ function LiveFacts({ draft, board, onTheClock }: { draft: Live; board: Board; on
       <Fact head={onTheClockHead} underlined={yours}>
         <span className="display-face">{yours ? yourTeamWords(name) : name}</span>
       </Fact>
-      {onTheClock.pickSeconds !== null && (
-        <Fact head={clockAPickHead(onTheClock.pickSeconds)}>
-          <span className="text-title text-derived">
-            <ClockLeft onTheClock={onTheClock} />
-          </span>
-        </Fact>
-      )}
+      <Fact head={clockAPickHead(onTheClock.pickSeconds)}>
+        <span className="text-title text-derived">
+          <ClockLeft onTheClock={onTheClock} />
+        </span>
+      </Fact>
       {upcoming.length > 0 && <Fact head={nextHead}>{nextWords(upcoming)}</Fact>}
       {yourNext !== undefined && (
         <Fact head={yourNextHead(yours)}>

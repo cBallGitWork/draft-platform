@@ -14,7 +14,6 @@ import {
   countWords,
   everyClubWords,
   everyPositionWords,
-  freeAgentWords,
   loadingWords,
   noFigureWords,
   noneMatchWords,
@@ -24,9 +23,10 @@ import {
   onWaiversWords,
   positionLabel,
   SCOUTING_TITLE,
+  seasonColumns,
   seasonPointsColumn,
 } from "../../../src/scouting/words";
-import { columnHeadName, POSITION_NAMES } from "../../../src/shared/words";
+import { columnHeadName, freeAgentWords, POSITION_NAMES } from "../../../src/shared/words";
 import { crestUrl } from "../../../src/ui/ClubName";
 import { ARSENAL } from "../../support/convex/footballRows.harness";
 import { columnHeadIn } from "../../support/src/columnHeads";
@@ -62,7 +62,7 @@ describe("the list", () => {
   it("opens on free agents by name, as none has season points yet, and says how many", async () => {
     const app = openScouting();
     await screen.findByRole("table");
-    expect(lastAsk(app).slice(1)).toEqual([{ availability: "freeAgents", position: null, clubCode: null }, { by: "name", descending: false }, null, "season"]);
+    expect(lastAsk(app).slice(1)).toEqual([{ availability: "freeAgents", position: null, clubCode: null }, { by: "name", descending: false }, null, "season", undefined]);
     expect((screen.getByRole("radio", { name: availabilityWords.freeAgents }) as HTMLInputElement).checked).toBe(true);
     expect(namesShown()).toEqual(["Rice"]);
     expect(screen.getByText(countWords(1))).toBeTruthy();
@@ -110,6 +110,18 @@ describe("the list", () => {
     expect(within(rowOf("Saka")).getAllByRole("cell").at(-4)!.getAttribute("title")).toBe(notLastSeasonWords);
   });
 
+  it("before the new season's first match, the figures' hovers name last season too, not 'this season' (#1566)", async () => {
+    await openOnAll({ ...HELD, pointsSeason: 2025 });
+    const heads = seasonColumns(2025);
+    expect([heads.minutes.long, heads.goals.long, heads.assists.long, heads.shotsOnTarget.long]).toEqual([
+      "Minutes in 25/26",
+      "Goals in 25/26",
+      "Assists in 25/26",
+      "Shots on target in 25/26",
+    ]);
+    for (const head of [heads.minutes, heads.goals, heads.assists, heads.shotsOnTarget]) expect(columnHeadIn(table(), head)).toBeTruthy();
+  });
+
   it("heads each column with a short code, named by it and its full name, which shows on hover", async () => {
     await openOnAll();
     const shown = [columns.positions, columns.name, columns.owner, columns.minutes, columns.seasonPoints, columns.goals, columns.assists, columns.shotsOnTarget];
@@ -151,14 +163,16 @@ describe("the filters ask the server", () => {
   });
 
   it("on waivers keeps those on waivers, All's Status saying the run that can first take him, and free agents leaves them out (#1200)", async () => {
-    const firstRunAt = Date.parse("2026-11-12T18:00:00Z");
-    const james = { ...RICE, code: 9, name: "James", onWaivers: { firstRunAt } };
+    const firstRun = { at: Date.parse("2026-11-12T18:00:00Z"), skippedIf: null };
+    const james = { ...RICE, code: 9, name: "James", onWaivers: { firstRun } };
     openScouting({ ...HELD, players: [...HELD.players!, james] });
     await userEvent.click(await screen.findByRole("radio", { name: availabilityWords.onWaivers }));
     expect(namesShown()).toEqual(["James"]);
     await userEvent.click(screen.getByRole("radio", { name: availabilityWords.all }));
-    expect(rowOf("James").textContent).toContain(onWaiversWords(firstRunAt));
-    expect(onWaiversWords(firstRunAt)).toMatch(/^Waivers, Thu \d\d:\d\d$/);
+    expect(rowOf("James").textContent).toContain(onWaiversWords(firstRun));
+    expect(onWaiversWords(firstRun)).toMatch(/^Waivers, Thu \d\d:\d\d$/);
+    // One that may fall in a gameweek's lock waits on its last match (#1467).
+    expect(onWaiversWords({ ...firstRun, skippedIf: 12 })).toBe("Waivers, after GW12's last match");
 
     await userEvent.click(screen.getByRole("radio", { name: availabilityWords.freeAgents }));
     expect(namesShown()).toEqual(["Rice"]);

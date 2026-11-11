@@ -104,6 +104,9 @@ export const sportmonksPositionsSyncFields = {
   ),
 };
 
+/** Which Sportmonks read gave a match's held score: the six-hourly sync's or the live tick's. */
+export const sportmonksReader = v.union(v.literal("sync"), v.literal("live"));
+
 export const sportmonksTables = {
   sportmonksCompetitions: defineTable(sportmonksCompetition).index("by_competition", ["competition"]),
   sportmonksClubs: defineTable(clubRecord.extend({ droppedAt, competition })).index("by_code", ["code"]).index("by_competition", ["competition"]),
@@ -114,8 +117,9 @@ export const sportmonksTables = {
     .index("by_competition", ["competition"]),
   // A round is keyed on its competition, season and number: two competitions both have a round 1.
   sportmonksRounds: defineTable(gameweekRecord.extend({ droppedAt, competition })).index("by_competition", ["competition"]),
-  /** Each match's newest score and clock, from the six-hourly read or the live one. */
-  sportmonksScores: defineTable(scoreRead.extend({ readAt: v.number() })).index("by_fixtureCode", ["fixtureCode"]),
+  /** Each match's newest score and clock, from the six-hourly read or the live one, and which
+   *  gave it: missing only on a score held before #1546. */
+  sportmonksScores: defineTable(scoreRead.extend({ readAt: v.number(), reader: v.optional(sportmonksReader) })).index("by_fixtureCode", ["fixtureCode"]),
   /** Each match's lineups and events as the newest live read gave them, replaced whole by each. */
   sportmonksMatches: defineTable({
     fixtureCode: v.number(),

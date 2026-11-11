@@ -3,7 +3,7 @@ import type { Id } from "../_generated/dataModel";
 import { internalMutation, type QueryCtx } from "../_generated/server";
 import { draftIsLive, draftOf } from "../draft/draftRow";
 import { FINAL_SCORES_MOST } from "../gameweekScorer/storedScores";
-import { LEAGUES_READ_MOST, takeAllOrThrow } from "../shared/cappedRead";
+import { everyLeague, takeAllOrThrow } from "../shared/cappedRead";
 import { teamsOf } from "../shared/leagueAccess";
 import { squadOf } from "../squads/squadPlace";
 import { pickFirstLineupAgain, saveFirstLineup } from "./lineups";
@@ -44,11 +44,7 @@ export const saveTeamsTheirLineup = internalMutation({
   args: {},
   returns: v.object({ teamsGiven: v.array(v.id("teams")), teamsSaved: v.array(v.id("teams")), scoresUnmarked: v.number() }),
   handler: async (ctx) => {
-    const leagues = await takeAllOrThrow(
-      ctx.db.query("leagues"),
-      LEAGUES_READ_MOST,
-      `More than ${LEAGUES_READ_MOST} leagues are held, so some teams would be left without a lineup`,
-    );
+    const leagues = await everyLeague(ctx, "so some teams would be left without a lineup");
     const teamsGiven: Id<"teams">[] = [];
     const teamsSaved: Id<"teams">[] = [];
     let scoresUnmarked = 0;

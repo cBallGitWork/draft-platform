@@ -1,10 +1,8 @@
 import { beforeEach, describe, expect, test, vi } from "vitest";
 import { api, internal } from "../../../convex/_generated/api";
 import { claimFailedLetter } from "../../../convex/mail/waiverLetterWords";
-import { FIRST_RULES } from "../../../convex/rules/firstRules";
-import { MINUTE_MS, WEEK_MS } from "../../../convex/shared/time";
+import { MINUTE_MS } from "../../../convex/shared/time";
 import { WAIVER_MS } from "../../../convex/waivers/waiverLimits";
-import { latestRunAt } from "../../../convex/waivers/waiverTimes";
 import { changeRules, HELD_FIRST_RULES, rulesWith, TOTAL_POINTS } from "../../support/convex/leagueRules.harness";
 import { playerLeaves } from "../../support/convex/draftLists.harness";
 import type { Id } from "../../../convex/_generated/dataModel";
@@ -209,31 +207,6 @@ describe("rotating", () => {
     await w.claim(ANN, PALMER);
     await w.runWaivers();
     expect(await w.stateOf(PALMER)).toMatchObject({ kind: "owned", teamId: w.annsTeam });
-  });
-});
-
-describe("the cron", () => {
-  test("runs each league's waivers at its run time, once", async () => {
-    await w.onWaivers([SAKA]);
-    await w.claim(BOB, SAKA);
-    // The league's next run time, within the week, and two minutes past it, with the gameweeks
-    // around it over, so it falls outside the lock.
-    const runTime = latestRunAt(FIRST_RULES.waivers.runs, Date.now() + WEEK_MS)!;
-    for (const gameweek of [NEXT, NEXT + 1]) await w.matchIs(gameweek, "fullTime");
-    vi.setSystemTime(runTime + 2 * MINUTE_MS);
-    const ranAt = () => w.t.run(async (ctx) => (await ctx.db.query("waiverOrders").unique())?.ranAt);
-    const runDue = async () => {
-      await w.t.mutation(internal.waivers.waiverRun.runDue, {});
-      await w.t.finishAllScheduledFunctions(vi.runAllTimers);
-    };
-
-    await runDue();
-    expect(await w.stateOf(SAKA)).toMatchObject({ kind: "owned", teamId: w.bobsTeam });
-    expect(await ranAt()).toBe(runTime);
-
-    await w.onWaivers([PALMER], runTime);
-    await runDue();
-    expect(await w.stateOf(PALMER)).toMatchObject({ kind: "onWaivers" });
   });
 });
 

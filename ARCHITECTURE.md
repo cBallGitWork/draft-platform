@@ -222,7 +222,8 @@ Tactics pitch are built with no package, and components, motion, forms and chart
 - League rules are rows, never constants; FPL's own rules can be constants. Each league's are rows
   in `leagueRules`, one from each gameweek they changed in, copied at creation from
   `defaultLeagueRules` (#25), the squad maximum read instead from `squadMaximums` by the league's
-  size (#316). The scoring set moved out of them to the site's scoring (#354, below): a row saved
+  size (#316). A row holds the whole rules or only the parts its save changed, stacked on the row
+  before when read (`savedForm`, `convex/rules/rulesHistory.ts`, #1617). The scoring set moved out of them to the site's scoring (#354, below): a row saved
   before then still carries one, which is ignored (`heldRules` in
   `convex/rules/leagueRulesShape.ts`).
 - The site's scoring (#354-#356): every league plays on one scoring set, which only the admin

@@ -4,7 +4,7 @@ import { internalAction, internalMutation, internalQuery, type ActionCtx, type Q
 import { errorMessage, logFailure } from "../../shared/errors";
 import { withHeartbeat } from "../../heartbeats/heartbeat";
 import { emailIfFailed } from "../../admin/feedFailureEmails";
-import { LIVE_WINDOW_MS } from "../../stats/liveStats";
+import { LIVE_WINDOW_MS } from "../../shared/dueMatches";
 import { scoreRead, sideRunFields, sportmonksEvent, sportmonksLineupMan, sportmonksTickFields, type sideMatchOutcome } from "../../schema";
 import { getData, liveFixturesUrl, MULTI_FIXTURES_MAX, sportmonksToken } from "./sportmonks";
 import { mapSportmonksMatch } from "./sportmonksMatch";
@@ -112,7 +112,7 @@ export const writeMatch = internalMutation({
   args: { score: scoreRead, men: v.array(sportmonksLineupMan), events: v.array(sportmonksEvent), readAt: v.number() },
   returns: v.null(),
   handler: async (ctx, { score, men, events, readAt }) => {
-    await writeScore(ctx, score, readAt);
+    await writeScore(ctx, score, readAt, "live");
     const { fixtureCode } = score;
     const held = await ctx.db
       .query("sportmonksMatches")

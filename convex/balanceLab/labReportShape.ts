@@ -19,8 +19,14 @@ const testedRole = v.object({
  *  with no average and no flag (Craig, 7 Nov 2026, on #843: "a"). */
 const notTestedRole = v.object({ role: v.string(), slot: v.string(), target: v.number(), missing: v.array(v.string()) });
 
-export const labRoleShape = v.union(testedRole, notTestedRole);
+const labRoleShape = v.union(testedRole, notTestedRole);
 export type LabRole = Infer<typeof labRoleShape>;
+
+/** A team instruction the set scores, "not tested" (#1541): the past seasons' rows don't hold his
+ *  club, so no club's XI is formed to take its average on (spec/14 S14.9). `missing` names the
+ *  stats of its lines they weren't copied with (S14.13), empty where every one was. */
+const labInstructionShape = v.object({ instruction: v.string(), missing: v.array(v.string()) });
+export type LabInstruction = Infer<typeof labInstructionShape>;
 
 export const labReportShape = v.object({
   /** The past seasons it ran on, oldest first, each the year it starts. */
@@ -31,5 +37,7 @@ export const labReportShape = v.object({
   startsSkipped: v.number(),
   /** Each role the set scores, slot by slot. */
   roles: v.array(labRoleShape),
+  /** Each team instruction the set scores, in its order; absent on a report kept before #1541. */
+  instructions: v.optional(v.array(labInstructionShape)),
 });
 export type LabReport = Infer<typeof labReportShape>;

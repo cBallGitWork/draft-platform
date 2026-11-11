@@ -1,7 +1,8 @@
 import { useState, type FormEvent } from "react";
 import { useChoiceAmong } from "../shared/useChoiceAmong";
-import { PANEL_BODY, Panel } from "../ui/Panel";
+import { Loading, PANEL_BODY, Panel } from "../ui/Panel";
 import type { PanelProps } from "./panelProps";
+import type { PlatformSettings } from "./seam";
 import {
   approveClubWords,
   clubLabel,
@@ -10,15 +11,19 @@ import {
   modeTitle,
   modeWords,
   removeAfterLabel,
+  saveSiteSettingsWords,
   saveThresholdsWords,
+  siteSettingLabels,
+  siteSettingsLoadingWords,
+  siteSettingsTitle,
   switchModeWords,
   thresholdsTitle,
 } from "./words";
 
 const CLUB_ID = "approve-club";
 
-// Approving a club whole, how starts count (spec/06, The admin oversees them), and when positions
-// change (spec/06, When positions change).
+// Approving a club whole, how starts count (spec/06, The admin oversees them), when positions
+// change (spec/06, When positions change), and the site's own settings (spec/15).
 
 export function ApproveClub({ queue, seam, change }: PanelProps) {
   const [clubCode, choose] = useChoiceAmong(queue.clubs.map((club) => club.code));
@@ -100,5 +105,54 @@ export function Thresholds({ queue, seam, change }: PanelProps) {
         </button>
       </form>
     </Panel>
+  );
+}
+
+const SITE_SETTINGS = Object.keys(siteSettingLabels) as (keyof PlatformSettings)[];
+
+/** The site's own settings (spec/15, #1555): the stat-correction window (spec/07), each team's
+ *  scouts (spec/19) and matchday mode's hours (spec/12), saved together; the server says why a
+ *  value is refused. */
+export function SiteSettings({ seam, change }: Omit<PanelProps, "queue">) {
+  const settings = seam.usePlatformSettings();
+  return (
+    <Panel title={siteSettingsTitle}>
+      {settings === undefined ? (
+        <Loading className="p-3">{siteSettingsLoadingWords}</Loading>
+      ) : (
+        <SiteSettingsForm settings={settings} seam={seam} change={change} />
+      )}
+    </Panel>
+  );
+}
+
+function SiteSettingsForm({ settings, seam, change }: { settings: PlatformSettings } & Omit<PanelProps, "queue">) {
+  const [typed, setTyped] = useState(() => Object.fromEntries(SITE_SETTINGS.map((name) => [name, String(settings[name])])));
+  function save(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const values = Object.fromEntries(SITE_SETTINGS.map((name) => [name, Number(typed[name])])) as PlatformSettings;
+    void change.run(() => seam.savePlatformSettings(values));
+  }
+  return (
+    <form onSubmit={save} className={PANEL_BODY}>
+      {SITE_SETTINGS.map((name) => (
+        <span key={name} className="flex flex-col gap-1">
+          <label htmlFor={name} className="font-semibold">
+            {siteSettingLabels[name]}
+          </label>
+          <input
+            id={name}
+            type="number"
+            required
+            value={typed[name]}
+            onChange={(event) => setTyped({ ...typed, [name]: event.target.value })}
+            className="text-box w-wide-number-box"
+          />
+        </span>
+      ))}
+      <button type="submit" disabled={change.busy} className="secondary-action self-start">
+        {saveSiteSettingsWords}
+      </button>
+    </form>
   );
 }

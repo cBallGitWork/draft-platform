@@ -137,6 +137,32 @@ describe("overriding", () => {
     expect((form.getByLabelText(overrideLabels.reason) as HTMLInputElement).value).toBe("");
   });
 
+  it("opens on the match whose breakdown it sits in, and sends that one (#1535)", async () => {
+    const app = openCard(managerIn(commissioned));
+    const season = within(await screen.findByRole("region", { name: SEASON_TITLE }));
+    await userEvent.click(within(season.getAllByRole("rowheader")[1]).getByRole("button"));
+    await userEvent.click(screen.getByRole("button", { name: OVERRIDE_TITLE }));
+    const form = within(screen.getByRole("form", { name: OVERRIDE_TITLE }));
+
+    expect((form.getByLabelText(overrideLabels.match) as HTMLSelectElement).value).toBe(String(EARLIER.fixtureCode));
+    await userEvent.type(form.getByLabelText(overrideLabels.points), "2");
+    await userEvent.type(form.getByLabelText(overrideLabels.reason), REASON);
+    await userEvent.click(form.getByRole("button", { name: overrideWords }));
+    expect(app.playerCard.override).toHaveBeenCalledWith(league.leagueId, { fixtureCode: EARLIER.fixtureCode, playerCode: SAKA.code, points: 2, reason: REASON });
+  });
+
+  it("follows the match pressed in the game log, opening afresh on it", async () => {
+    openCard(managerIn(commissioned));
+    const season = within(await screen.findByRole("region", { name: SEASON_TITLE }));
+    await userEvent.click(screen.getByRole("button", { name: OVERRIDE_TITLE }));
+    expect((screen.getByLabelText(overrideLabels.match) as HTMLSelectElement).value).toBe(String(MATCH.fixtureCode));
+
+    await userEvent.click(within(season.getAllByRole("rowheader")[1]).getByRole("button"));
+    expect(screen.queryByRole("form", { name: OVERRIDE_TITLE })).toBeNull();
+    await userEvent.click(screen.getByRole("button", { name: OVERRIDE_TITLE }));
+    expect((screen.getByLabelText(overrideLabels.match) as HTMLSelectElement).value).toBe(String(EARLIER.fixtureCode));
+  });
+
   it("describes the points box by the hint, for screen readers", async () => {
     openCard(managerIn(commissioned));
     await userEvent.click(await screen.findByRole("button", { name: OVERRIDE_TITLE }));
@@ -203,7 +229,7 @@ it("a match the league overrode shows the override's points, and why, to everyon
 describe("as the open card changes", () => {
   const LATER: PlayedMatch = { ...MATCH, fixtureCode: 51, gameweek: 5 };
   const seam = fakePlayerCard();
-  const form = (card: PlayerCard) => <OverridePoints leagueId={league.leagueId} card={card} seam={seam} />;
+  const form = (card: PlayerCard) => <OverridePoints leagueId={league.leagueId} card={card} selected={MATCH.fixtureCode} seam={seam} />;
 
   it("is offered once his first match appears", () => {
     const view = render(form({ ...SAKA, matches: [] }));

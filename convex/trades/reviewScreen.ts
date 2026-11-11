@@ -5,8 +5,8 @@ import { positionsNow } from "../positions/playerPositions";
 import { memberOf, teamsOf } from "../shared/leagueAccess";
 import { clubsByCode } from "../shared/players";
 import { leagueOffers } from "./tradeClose";
-import { tradedPlayer } from "./tradedPlayers";
-import { votersOn } from "./tradeReview";
+import { namedPicks, teamNameIn, tradedPlayer } from "./tradedPlayers";
+import { votersOn } from "./tradeReviewers";
 import { termsShown } from "./tradeScreen";
 
 // The trades the caller reviews, for the Offers tab's To review group (#383; Craig, 10 Nov 2026):
@@ -30,8 +30,7 @@ const tradeToReview = v.object({
   /** The players going from the offer's maker, and those coming back. */
   gives: v.array(tradedPlayer),
   gets: v.array(tradedPlayer),
-  /** A pick trade's picks, each as its letters name it; null for a players' trade. */
-  picks: v.union(v.object({ gives: v.string(), gets: v.string() }), v.null()),
+  picks: namedPicks,
   note: v.union(v.string(), v.null()),
   reviewEndsAt: v.number(),
   yours: yourReview,
@@ -58,12 +57,7 @@ export const toReview = query({
   handler: async (ctx, { leagueId }) => {
     const { email } = await memberOf(ctx, leagueId);
     const teams = await teamsOf(ctx, leagueId);
-    const nameOf = (teamId: Id<"teams">) => {
-      const team = teams.find((each) => each._id === teamId);
-      if (team === undefined)
-        throw new Error(`A trade in review names team ${teamId}, which isn't in its league`);
-      return team.name;
-    };
+    const nameOf = (teamId: Id<"teams">) => teamNameIn(teams, teamId, "A trade in review");
     const positionsOf = await positionsNow(ctx, leagueId);
     const clubOf = clubsByCode(ctx);
     const shown: TradeToReview[] = [];
