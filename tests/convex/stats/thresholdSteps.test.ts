@@ -42,6 +42,8 @@ test("a clean sheet is a step when he has it with the minutes for it, and again 
   expect(thresholdSteps({ minutes: 59, clean_sheets: 0 }, { minutes: 61, clean_sheets: 1 }, SET)).toContainEqual({ stat: "clean_sheets", from: 0, to: 1 });
   expect(thresholdSteps({ minutes: 70, clean_sheets: 1, goals_conceded: 0 }, { minutes: 71, clean_sheets: 0, goals_conceded: 1 }, SET)).toEqual([
     { stat: "clean_sheets", from: 1, to: 0 },
+    // The goal itself is one too, for a back line's −1 (#1754).
+    { stat: "goals_conceded", from: 0, to: 1 },
   ]);
   // Before his minutes reach the rule's, a clean sheet's count moves no points.
   expect(thresholdSteps({ minutes: 30, clean_sheets: 0 }, { minutes: 31, clean_sheets: 1 }, SET)).toEqual([]);
@@ -69,6 +71,11 @@ test("a goal, an assist, a card or an own goal is never a step: its own line pri
 test("a point only one slot's pricing scores is a step, for the matchup to price for whoever stands there", () => {
   // Goals conceded take a point off only the keeper and the defence: still a step for every man.
   expect(thresholdSteps({ goals_conceded: 1 }, { goals_conceded: 2 }, SET)).toEqual([{ stat: "goals_conceded", from: 1, to: 2 }]);
+});
+
+test("every goal conceded is a step, though the set's own rule prices only every second: a back line prices each (#1754)", () => {
+  expect(thresholdSteps({ minutes: 70, goals_conceded: 0 }, { minutes: 71, goals_conceded: 1 }, SET)).toEqual([{ stat: "goals_conceded", from: 0, to: 1 }]);
+  expect(thresholdSteps({ minutes: 80, goals_conceded: 2 }, { minutes: 81, goals_conceded: 3 }, SET)).toEqual([{ stat: "goals_conceded", from: 2, to: 3 }]);
 });
 
 test("an own stat is stepped by its own total", () => {
