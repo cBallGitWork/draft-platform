@@ -24,7 +24,7 @@ import { repriceMatches } from "../stats/seasonPointsMoves";
 import { rebuildIfNoneKept } from "../stats/seasonRebuilds";
 import { putNewPlayersOnWaivers } from "../waivers/waiverPlayers";
 import { keepScoutingPlayers } from "../scouting/scoutingPlayers";
-import { heldGameweek, heldSeason } from "../gameweeks/seasonGameweeks";
+import { heldGameweek, heldGameweeksSeason } from "../gameweeks/seasonGameweeks";
 import { followKickoffs } from "../scoring/patchKickoffs";
 import { inKickoffOrder, placeInWindows } from "../gameweeks/roundStarts";
 
@@ -163,7 +163,7 @@ export const markDropped = internalMutation({
     // A gameweek of this season FPL stops sending keeps its last deadline (#202); last season's,
     // left out once FPL sends the new one's, are only marked (#66).
     if (table === "gameweeks") {
-      const season = await heldSeason(ctx);
+      const season = await heldGameweeksSeason(ctx);
       const thisSeason = (dropped as Doc<"gameweeks">[]).filter((held) => held.season === season);
       await keepDroppedDeadlines(ctx, thisSeason.map(({ number }) => number));
     }

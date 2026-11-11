@@ -1,7 +1,7 @@
 import { v, type Infer } from "convex/values";
 import { query } from "../_generated/server";
 import { clubRecord, matchState } from "../schema";
-import { currentFixtures, heldSeason } from "../shared/fixtures";
+import { currentFixtures, heldFixturesSeason } from "../shared/fixtures";
 import { callerEmail } from "../shared/leagueAccess";
 import { clubOf, currentClubs, type Club } from "../shared/players";
 import { isPlaying, scoreOf } from "./matchScores";
@@ -71,7 +71,7 @@ export const ofSeason = query({
       results.push({ ...match, homeGoals: score.homeGoals, awayGoals: score.awayGoals });
     }
     // A club's total the admin set, for a points deduction (#898).
-    const season = await heldSeason(ctx);
+    const season = await heldFixturesSeason(ctx);
     const overrides = new Map<Club, number>();
     for (const [clubCode, points] of season === null ? [] : await seasonPointsOverrides(ctx, season)) {
       const club = byCode.get(clubCode);
