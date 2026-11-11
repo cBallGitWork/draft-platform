@@ -1,5 +1,6 @@
 import { describe, expect, test } from "vitest";
 import { everyArea, EXAMPLE_SET, MINUTES_BANDS, TACKLES_AND_CLEARANCES } from "../../support/convex/scoring.example";
+import { setOf } from "../../support/convex/siteScoring.harness";
 import { checkOwnStatsAgainstCatalogue } from "../../../convex/scoring/ownStats";
 import { validateScoringSet } from "../../../convex/scoring/scoringSet";
 import { inTenths, UnsoundScoring } from "../../../convex/scoring/values";
@@ -16,8 +17,6 @@ test("a good set passes, an area with no bands among it", () => {
   expect(() => validateScoringSet(EXAMPLE_SET)).not.toThrow();
 });
 
-/** A set of these rules, fractions allowed. */
-const setOf = (...rules: unknown[]) => ({ rules, wholePointsOnly: false });
 const goals = (byArea: unknown) => setOf({ shape: "perAction", stat: "goals_scored", values: { byArea } });
 const saves = (byArea: unknown) => setOf({ shape: "perCount", stat: "saves", values: { byArea } });
 const minutes = (bands: unknown, stacking: object = { stack: false }) =>
@@ -29,7 +28,7 @@ test.each([
   ["a rule that is not a rule", setOf(null), "rule 1 of the scoring set is not a rule"],
   [
     "a rule naming no stat",
-    setOf(...goals(everyArea(5)).rules, { shape: "perAction", values: { all: 1 } }),
+    setOf<unknown>(...goals(everyArea(5)).rules, { shape: "perAction", values: { all: 1 } }),
     "rule 2 of the scoring set names no stat",
   ],
   [

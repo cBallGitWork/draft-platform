@@ -1,8 +1,10 @@
 // The stats the site's starting values name (firstScoring.ts, draftedRoleAdjustments.ts,
 // draftedInstructionScoring.ts) and the back line reprices (teamScoring.ts), each typed once (#1574).
-// A catalogue key is the name the feed fills (statCatalogueList.ts); a key starting `league:` is
-// one of the roles' own stats (FIRST_ROLE_OWN_STATS). A rule's stat is data: these only name the
-// ones the code starts from.
+// A catalogue key is the name the feed fills (statCatalogueList.ts); a key starting
+// OWN_STAT_PREFIX is one of the roles' own stats (FIRST_ROLE_OWN_STATS). A rule's stat is data:
+// these only name the ones the code starts from.
+
+import { OWN_STAT_PREFIX } from "./statCatalogue";
 
 export { MINUTES_STAT } from "../stats/matchRecords";
 
@@ -57,8 +59,8 @@ export const ERRORS_TO_A_SHOT = "error_lead_to_shot";
 export const ERRORS_TO_A_GOAL = "error_lead_to_goal";
 
 // The roles' own stats.
-export const FAILED_LONG_BALLS = "league:failed_long_balls";
-export const FAILED_CROSSES = "league:failed_crosses";
-export const MISPLACED_PASSES = "league:misplaced_passes";
-export const FAILED_LAUNCHES = "league:failed_launches";
-export const GROUND_DUELS_WON = "league:ground_duels_won";
+export const FAILED_LONG_BALLS = `${OWN_STAT_PREFIX}failed_long_balls` as const;
+export const FAILED_CROSSES = `${OWN_STAT_PREFIX}failed_crosses` as const;
+export const MISPLACED_PASSES = `${OWN_STAT_PREFIX}misplaced_passes` as const;
+export const FAILED_LAUNCHES = `${OWN_STAT_PREFIX}failed_launches` as const;
+export const GROUND_DUELS_WON = `${OWN_STAT_PREFIX}ground_duels_won` as const;

@@ -8,18 +8,14 @@ import { validateScoringSet, type ScoringSet } from "../../../convex/scoring/sco
 import { TWO_AT_THE_BACK } from "../../../convex/lineup/presets";
 import type { TeamPointsInput } from "../../../convex/scoring/teamPoints";
 import { EXAMPLE_SET } from "../../support/convex/scoring.example";
-import { ATTACK, BELLOUMI, GELHARDT, team } from "../../support/convex/teamPoints.harness";
+import { ATTACK, BELLOUMI, GELHARDT, KEEPER, LEFT_CENTRE_BACK, MIDFIELD, team } from "../../support/convex/teamPoints.harness";
 
 // A team instruction's scoring (#990, spec/05 Team instructions): each line scored player by player
 // on his own club's match, whole points for each whole `every`, only in the slots it names, as its
 // own line on top of his role's; and two at the back's own clean sheet and goals conceded for its
 // keeper and defence slots (Craig, 9 Nov 2026, on #990).
 
-const KEEPER = { area: "goalkeeper", lane: "centre" } as const;
-const CENTRE_BACK = { area: "defence", lane: "leftCentre" } as const;
 const WING_BACK = { area: "defensiveMidfield", lane: "left" } as const;
-const MIDFIELD = { area: "midfield", lane: "centre" } as const;
-const STRIKER = { area: "attack", lane: "centre" } as const;
 
 const SET: ScoringSet = { ...FIRST_SCORING, ownStats: FIRST_ROLE_OWN_STATS, instructions: FIRST_INSTRUCTION_SCORING };
 const picks = (...instructions: string[]): TeamScoring => ({ instructions, backLine: null });
@@ -28,8 +24,8 @@ const TWO_AT_BACK: TeamScoring = { instructions: [], backLine: { formation: "2-3
 describe("an instruction's line", () => {
   test("Park the bus: a defender's clean sheet +1, and a goal and an assist −2, his own line on top of base", () => {
     const record = { minutes: 90, clean_sheets: 1, goals_scored: 1, assists: 1 };
-    const base = scoreMatch(record, SET, CENTRE_BACK);
-    const parked = scoreMatch(record, SET, CENTRE_BACK, undefined, picks("parkTheBus"));
+    const base = scoreMatch(record, SET, LEFT_CENTRE_BACK);
+    const parked = scoreMatch(record, SET, LEFT_CENTRE_BACK, undefined, picks("parkTheBus"));
     expect(parked.instructions).toEqual([
       {
         instruction: "parkTheBus",
@@ -53,11 +49,11 @@ describe("an instruction's line", () => {
   });
 
   test("gives nothing below its minimum minutes: a clean sheet in 45 minutes", () => {
-    expect(scoreMatch({ minutes: 45, clean_sheets: 1 }, SET, CENTRE_BACK, undefined, picks("parkTheBus")).instructions?.[0].points).toBe(0);
+    expect(scoreMatch({ minutes: 45, clean_sheets: 1 }, SET, LEFT_CENTRE_BACK, undefined, picks("parkTheBus")).instructions?.[0].points).toBe(0);
   });
 
   test("whole points for each whole `every`, held to its most: Hold a high line's up to 3", () => {
-    const high = (offsides: number) => scoreMatch({ minutes: 90, offside_provoked: offsides, interception: 1 }, SET, CENTRE_BACK, undefined, picks("holdAHighLine"));
+    const high = (offsides: number) => scoreMatch({ minutes: 90, offside_provoked: offsides, interception: 1 }, SET, LEFT_CENTRE_BACK, undefined, picks("holdAHighLine"));
     expect(high(2).instructions?.[0].points).toBe(1); // 3 counted, one whole 2
     expect(high(9).instructions?.[0].points).toBe(3); // 10 counted would be 5
   });
@@ -78,9 +74,9 @@ describe("an instruction's line", () => {
   });
 
   test("Keep it tight early: +1 for his club's clean sheet at half-time, −1 a goal let in before it, for any slot", () => {
-    const tight = (record: Record<string, number>, cell: typeof MIDFIELD | typeof STRIKER | typeof KEEPER) =>
+    const tight = (record: Record<string, number>, cell: typeof MIDFIELD | typeof ATTACK | typeof KEEPER) =>
       scoreMatch({ minutes: 90, ...record }, SET, cell, undefined, picks("keepItTightEarly")).instructions?.[0];
-    expect(tight({ clean_sheet_half_time: 1, goals_conceded_half_time: 0 }, STRIKER)).toEqual({
+    expect(tight({ clean_sheet_half_time: 1, goals_conceded_half_time: 0 }, ATTACK)).toEqual({
       instruction: "keepItTightEarly",
       points: 1,
       lines: [{ points: 1, stats: [{ stat: "clean_sheet_half_time", actions: 1 }] }],
@@ -120,17 +116,17 @@ describe("two at the back's back line", () => {
   const record = { minutes: 90, clean_sheets: 0, goals_conceded: 3 };
 
   test("costs its keeper and defenders 1 for every goal conceded, on his goals conceded line, priced by the formation", () => {
-    const conceded = (cell: typeof KEEPER | typeof CENTRE_BACK) =>
+    const conceded = (cell: typeof KEEPER | typeof LEFT_CENTRE_BACK) =>
       scoreMatch(record, SET, cell, undefined, TWO_AT_BACK).categories.find((category) => category.stat === "goals_conceded");
-    for (const cell of [KEEPER, CENTRE_BACK]) {
+    for (const cell of [KEEPER, LEFT_CENTRE_BACK]) {
       expect(conceded(cell)).toMatchObject({ points: -3, why: { pricedBy: { by: "formation", formation: "2-3-5" } } });
     }
-    expect(scoreMatch(record, SET, CENTRE_BACK).categories.find((category) => category.stat === "goals_conceded")?.points).toBe(-1);
+    expect(scoreMatch(record, SET, LEFT_CENTRE_BACK).categories.find((category) => category.stat === "goals_conceded")?.points).toBe(-1);
   });
 
   test("makes a clean sheet worth 3, keeping its 60 minutes", () => {
     const sheet = (minutes: number) =>
-      scoreMatch({ minutes, clean_sheets: 1 }, SET, CENTRE_BACK, undefined, TWO_AT_BACK).categories.find((category) => category.stat === "clean_sheets")?.points;
+      scoreMatch({ minutes, clean_sheets: 1 }, SET, LEFT_CENTRE_BACK, undefined, TWO_AT_BACK).categories.find((category) => category.stat === "clean_sheets")?.points;
     expect(sheet(90)).toBe(3);
     expect(sheet(45)).toBe(0);
   });
@@ -138,8 +134,8 @@ describe("two at the back's back line", () => {
   test("leaves every other slot, and every other rule, as the set has it", () => {
     const scored = { minutes: 90, clean_sheets: 1, goals_conceded: 3, goals_scored: 1 };
     expect(scoreMatch(scored, SET, MIDFIELD, undefined, TWO_AT_BACK)).toEqual(scoreMatch(scored, SET, MIDFIELD));
-    expect(scoreMatch(scored, SET, STRIKER, undefined, TWO_AT_BACK)).toEqual(scoreMatch(scored, SET, STRIKER));
-    const goal = (team?: TeamScoring) => scoreMatch(scored, SET, CENTRE_BACK, undefined, team).categories.find((category) => category.stat === "goals_scored");
+    expect(scoreMatch(scored, SET, ATTACK, undefined, TWO_AT_BACK)).toEqual(scoreMatch(scored, SET, ATTACK));
+    const goal = (team?: TeamScoring) => scoreMatch(scored, SET, LEFT_CENTRE_BACK, undefined, team).categories.find((category) => category.stat === "goals_scored");
     expect(goal(TWO_AT_BACK)).toEqual(goal());
   });
 });
