@@ -7,6 +7,7 @@ import { autoTeamLetters, autoTeamRefusals } from "../../../convex/lineup/autoTe
 import { lineupInGameweek } from "../../../convex/lineup/lineups";
 import type { Availability } from "../../../convex/availability/availability";
 import { WEEK_MS } from "../../../convex/shared/time";
+import { PL_GAMEWEEKS } from "../../support/convex/footballRows.harness";
 import { holdGameweeks } from "../../support/convex/leagueRules.harness";
 import { ADMIN, COMMISSIONER, MANAGERS, actingAs, addManager, addManagers, adminCreatesLeague, lettersTo, teamName, type TestConvex } from "../../support/convex/leagues.harness";
 import { FIRST_SUB } from "../../support/convex/lineup.harness";
@@ -133,7 +134,7 @@ describe("who may switch it", () => {
   });
 
   test("the gameweek it ends after is one not yet begun", async () => {
-    await expect(switches(ANN, true, NEXT - 1)).rejects.toThrow(autoTeamRefusals.endsAfterOutOfRange(NEXT, 38));
+    await expect(switches(ANN, true, NEXT - 1)).rejects.toThrow(autoTeamRefusals.endsAfterOutOfRange(NEXT, PL_GAMEWEEKS));
   });
 
   test("in a league that ends early, or unticked a gameweek, it ends after one the league plays (#1561)", async () => {
@@ -148,7 +149,7 @@ describe("who may switch it", () => {
   test("its manager reads it on My team: off, then on until the gameweek named", async () => {
     // With the gameweeks it may end after: those the league plays (#1561).
     await t.run((ctx) => ctx.db.patch("leagues", leagueId, { unusedGameweeks: [NEXT + 1, 37, 38] }));
-    const endGameweeks = seasonGameweeks(38).filter((gameweek) => gameweek >= NEXT && gameweek !== NEXT + 1 && gameweek <= 36);
+    const endGameweeks = seasonGameweeks(PL_GAMEWEEKS).filter((gameweek) => gameweek >= NEXT && gameweek !== NEXT + 1 && gameweek <= 36);
     const read = async () => (await actingAs(t, ANN)).query(api.lineup.autoTeam.ofMyTeam, { leagueId });
     expect(await read()).toEqual({ teamId: annsTeam, on: false, endsAfter: null, endGameweeks });
     await switches(ANN, true, NEXT + 2);

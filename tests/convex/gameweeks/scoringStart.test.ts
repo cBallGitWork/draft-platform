@@ -5,6 +5,7 @@ import { recordPassedDeadlines } from "../../../convex/gameweeks/deadlineRecorde
 import { scoringStartRefusals, startAfterDraft } from "../../../convex/gameweeks/scoringStart";
 import { refusals } from "../../../convex/shared/leagueAccess";
 import { HOUR_MS, WEEK_MS } from "../../../convex/shared/time";
+import { PL_GAMEWEEKS } from "../../support/convex/footballRows.harness";
 import { holdGameweeks, setUsed } from "../../support/convex/leagueRules.harness";
 import { actingAs, addManagers, adminCreatesLeague, COMMISSIONER, eventsIn, leagueRow, MANAGERS, type TestConvex } from "../../support/convex/leagues.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
@@ -87,7 +88,7 @@ describe("the commissioner sets it", () => {
     await expectRefused(setStart(2), scoringStartRefusals.begun(2));
     await setUsed(t, leagueId, 6, false);
     await expectRefused(setStart(6), scoringStartRefusals.unticked(6));
-    await expectRefused(setStart(39), scoringStartRefusals.notAGameweek(39, 38));
+    await expectRefused(setStart(PL_GAMEWEEKS + 1), scoringStartRefusals.notAGameweek(PL_GAMEWEEKS + 1, PL_GAMEWEEKS));
     expect(await scoringStart()).toBeUndefined();
   });
 
