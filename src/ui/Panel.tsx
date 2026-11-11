@@ -161,9 +161,9 @@ export const PANEL_BODY = "flex flex-col gap-2 p-3";
 /** One row of a list in a panel: its lines stacked, ruled off from the next (#292). */
 export const PANEL_LIST_ROW = "flex flex-col gap-1 border-b border-panel-rule px-3 py-2";
 
-/** A page's panels stacked at the page width every multi-panel page shares (#296), and two panels
- *  side by side from `lg` up. */
-export const PAGE_STACK = "flex max-w-6xl flex-col gap-2";
+/** A page's panels stacked across the page's full width, as the 1440 pictures fill it (#296; Craig,
+ *  11 Nov 2026, #1499: "Fill 1440"), and two panels side by side from `lg` up. */
+export const PAGE_STACK = "flex flex-col gap-2";
 export const PANEL_COLUMNS = "grid items-start gap-2 lg:grid-cols-2";
 
 /** The top bar every frame opens with: its plate (plate.md, Shape) and the row its parts sit in,
