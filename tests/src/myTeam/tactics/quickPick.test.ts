@@ -106,12 +106,12 @@ describe("Quick Pick", () => {
     const keeper = { ...player(1, ["GK"], { GK: 2 }), stars: [{ area: "goalkeeper" as const, role: "sweeperKeeper", stars: 5 }] };
     const starter = player(2, ["CB"], { CB: 2 });
     const better = player(3, ["CB"], { CB: 4 });
-    const draft: EditedLineup = { starters: [{ playerCode: 9, ...GOAL }, { playerCode: 2, ...BACK, role: "stopper" }], bench: [7, 3, 1], classic: "Keegan's Newcastle" };
+    const draft: EditedLineup = { starters: [{ playerCode: 9, ...GOAL }, { playerCode: 2, ...BACK, role: "stopper" }], bench: [7, 3, 1], classicFormation: "Keegan's Newcastle" };
     const benchedKeeper = player(9, ["GK"], { GK: 1 });
     const picked = quickPick(draft, [GOAL, BACK], [benchedKeeper, starter, better, keeper, player(7, ["ST"], {})]);
     expect(picked.starters).toContainEqual({ playerCode: 1, ...GOAL, role: "sweeperKeeper" });
     expect(picked.bench).toEqual([9, 2, 7]);
-    expect(picked.classic).toBe("Keegan's Newcastle");
+    expect(picked.classicFormation).toBe("Keegan's Newcastle");
     // A starter who stays where he is keeps the role he was given.
     const kept = quickPick({ starters: [{ playerCode: 1, ...GOAL, role: "shotStopper" }], bench: [] }, [GOAL], [keeper]);
     expect(kept.starters).toEqual([{ playerCode: 1, ...GOAL, role: "shotStopper" }]);

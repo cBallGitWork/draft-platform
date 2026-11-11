@@ -33,7 +33,7 @@ test("the first rules are sound", () => {
 });
 
 test("no squad limits, no club limit, no presets and no tie-breaks are all sound", () => {
-  // With no presets, no classic has one to stand in, so there are none.
+  // With no presets, no classic formation has one to stand in, so there are none.
   const free = rulesWith({ squad: { size: null, minimumByArea: null, maxPerClub: null }, presets: [], classics: [], tieBreaks: [] });
   expect(() => check(free)).not.toThrow();
 });
@@ -145,33 +145,33 @@ describe.each<[string, Partial<LeagueRules>, string]>([
     { presets: [{ ...firstPreset, backLine: { cleanSheet: 3, goalConceded: 1 } }, ...FIRST_RULES.presets.slice(1)] },
     "The preset 4-4-2's goal conceded must be a whole number, 0 or less, not 1.",
   ],
-  // A classic stands in one of the league's presets (Craig, 6 Nov 2026, on #991).
-  ["a classic with no name", { classics: [{ ...keegans, name: " " }] }, "A classic needs a name."],
-  ["two classics of one name", { classics: [keegans, { ...keegans }] }, `Two classics are called "Keegan's Newcastle".`],
+  // A classic formation stands in one of the league's presets (Craig, 6 Nov 2026, on #991).
+  ["a classic formation with no name", { classics: [{ ...keegans, name: " " }] }, "A classic formation needs a name."],
+  ["two classic formations of one name", { classics: [keegans, { ...keegans }] }, `Two classic formations are called "Keegan's Newcastle".`],
   [
-    "a classic whose formation the league has dropped",
+    "a classic formation whose formation the league has dropped",
     { presets: FIRST_RULES.presets.filter(({ name }) => name !== "4-4-2") },
-    "The classic Keegan's Newcastle stands in no formation of the league's.",
+    "The classic formation Keegan's Newcastle stands in no formation of the league's.",
   ],
   [
-    "a classic giving a slot a role it doesn't offer",
+    "a classic formation giving a slot a role it doesn't offer",
     { classics: [{ ...keegans, cells: [{ ...keegans.cells[0], role: "poacher" }, ...keegans.cells.slice(1)] }] },
-    "The classic Keegan's Newcastle gives its goalkeeper centre slot the role poacher, which that slot doesn't offer.",
+    "The classic formation Keegan's Newcastle gives its goalkeeper centre slot the role poacher, which that slot doesn't offer.",
   ],
   [
-    "a classic giving a sweeper to a back four",
+    "a classic formation giving a sweeper to a back four",
     { classics: [{ ...keegans, cells: [keegans.cells[0], { ...keegans.cells[1] }, { ...keegans.cells[2], role: "sweeper" }, ...keegans.cells.slice(3)] }] },
-    "The classic Keegan's Newcastle gives its defence leftCentre slot the role sweeper, which that slot doesn't offer.",
+    "The classic formation Keegan's Newcastle gives its defence leftCentre slot the role sweeper, which that slot doesn't offer.",
   ],
   [
-    "a classic whose defensive instruction is an attacking one",
+    "a classic formation whose defensive instruction is an attacking one",
     { classics: [{ ...keegans, instructions: { attacking: "getItWide", defensive: "gungHo" } }] },
-    "The classic Keegan's Newcastle's defensive instruction, gungHo, isn't one its shape offers.",
+    "The classic formation Keegan's Newcastle's defensive instruction, gungHo, isn't one its shape offers.",
   ],
   [
-    "a classic whose instruction its shape blocks (#990)",
+    "a classic formation whose instruction its shape blocks (#990)",
     { classics: [{ ...keegans, instructions: { attacking: "getItWide", defensive: "parkTheBus" } }] },
-    "The classic Keegan's Newcastle's defensive instruction, parkTheBus, isn't one its shape offers.",
+    "The classic formation Keegan's Newcastle's defensive instruction, parkTheBus, isn't one its shape offers.",
   ],
   [
     "a preset whose default instruction its shape blocks (#990)",

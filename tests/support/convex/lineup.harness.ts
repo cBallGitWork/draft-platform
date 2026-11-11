@@ -4,7 +4,7 @@ import type { AreaLimit, Lineup, LineupRules, PlayerPositions } from "../../../c
 import { AREAS, LANES, type Area } from "../../../convex/lineup/pitch";
 import type { Position } from "../../../convex/positions/positionTables";
 import { DEFAULT_PRESETS, type Preset } from "../../../convex/lineup/presets";
-import { DEFAULT_CLASSICS } from "../../../convex/lineup/classics";
+import { DEFAULT_CLASSIC_FORMATIONS } from "../../../convex/lineup/classics";
 
 /** Every area from none to a full row: limits that refuse nothing. */
 export function openLimits(overrides: Partial<Record<Area, AreaLimit>> = {}): LineupRules {
@@ -32,8 +32,8 @@ const BENCH_SIZE = 4;
 /** The keeper's one cell, in goal's centre lane. */
 export const KEEPER_CELL = { area: "goalkeeper", lane: "centre" } as const;
 
-/** Keegan's Newcastle, one of the classics every league starts with. */
-export const KEEGANS = DEFAULT_CLASSICS.find(({ name }) => name === "Keegan's Newcastle")!;
+/** Keegan's Newcastle, one of the classic formations every league starts with. */
+export const KEEGANS = DEFAULT_CLASSIC_FORMATIONS.find(({ name }) => name === "Keegan's Newcastle")!;
 
 export function presetNamed(name: string): Preset {
   const found = DEFAULT_PRESETS.find((preset) => preset.name === name);
