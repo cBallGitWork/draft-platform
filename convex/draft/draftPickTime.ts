@@ -26,9 +26,13 @@ export const draftRulesNow = async (ctx: QueryCtx, leagueId: Id<"leagues">) => d
 
 /** The pick time of `draft` under the league's latest `draftRules`, in seconds: the one it started
  *  on, or the commissioner set since while it was paused, which reaches it at once
- *  (draftCommissioner.ts; #1095); for no draft, or one started before #1439 with neither, the
- *  latest rules'. The clock, the board and the commissioner's box all read it (#1572). */
-export const pickSecondsOf = (draft: Doc<"drafts"> | null, draftRules: DraftRules): number => draft?.pickSeconds ?? draftRules.pickSeconds;
+ *  (draftCommissioner.ts; #1095); for a draft not started, the latest rules'. The clock, the board
+ *  and the commissioner's box all read it (#1572). */
+export function pickSecondsOf(draft: Doc<"drafts"> | null, draftRules: DraftRules): number {
+  if (draft?.started === undefined) return draftRules.pickSeconds;
+  if (draft.pickSeconds === undefined) throw new Error(`League ${draft.leagueId}'s draft kept no pick time: run draft/oldDraftsBackfill once (#1610)`);
+  return draft.pickSeconds;
+}
 
 /** The draft's pick time now, in seconds (`pickSecondsOf`). */
 export async function pickSecondsNow(ctx: QueryCtx, leagueId: Id<"leagues">): Promise<number> {
