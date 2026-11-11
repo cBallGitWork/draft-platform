@@ -196,7 +196,7 @@ describe("under a league vote", () => {
     expect(await squadOf(w.bobsTeam)).toContain(SAKA);
   });
 
-  test("with nobody able to vote, an accepted trade goes through at once (Craig, 11 Nov 2026, on #1607)", async () => {
+  test("with nobody able to vote, an accepted trade goes through at once (Craig, 11 Nov 2026, on #1607; S08.15)", async () => {
     for (const [email, teamId] of [[CAT, w.catsTeam], [DAN, fourthTeam]] as const) {
       await (await actingAs(w.t, email)).mutation(api.lineup.autoTeam.set, { leagueId: w.leagueId, teamId, on: true });
     }

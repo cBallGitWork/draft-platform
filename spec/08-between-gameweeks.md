@@ -89,6 +89,8 @@ From `/grill trades` (25 Oct 2026).
 - Review: under a commissioner veto, the commissioner has 24 hours to block an accepted trade, or
   it goes through. Under a league vote, the other managers have 24 hours, and it is blocked only if
   most of them vote against.
+- A trade under a league vote with no other manager able to vote, such as a two-team league or one
+  whose other teams are all on the auto team, goes through at once (Craig, 11 Nov 2026, #1607). `S08.15`
 - Once a trade is through, its players move at once. A gameweek already under way keeps their
   points with the old team.
 - A trade deadline is a league setting, off by default: no trades after a gameweek the

@@ -31,8 +31,8 @@ import { squadFullRefusal, squadsAfter, tradeWarnings } from "./tradeSquads";
 // league vote, the managers of the other teams still playing (not on the auto team) have 24 hours,
 // and it is blocked only if most of them vote against; a voter can take his Against back until the
 // 24 hours are up (`takeBack`; Craig, 10 Nov 2026); with none of them, it goes through at once
-// (Craig, 11 Nov 2026, on #1607). Either way the reviewers get a Mail letter
-// to act on, a blocked trade files a letter to the whole league, and one that clears review the
+// (S08.15; Craig, 11 Nov 2026, on #1607). Either way the reviewers get a Mail letter to act on, a
+// blocked trade files a letter to the whole league, and one that clears review the
 // usual trade letter. Once through, the trade is filed as one `tradeMade`, which the screens list
 // (#1491), and its players move at once, each filed as a `playerTraded` for the squads' history; a
 // gameweek already under way keeps their points with the old team, as the commissioner's move
