@@ -101,6 +101,7 @@ env:
   MERGE_CHECK: "main-merged"
   DRY_RUN: ${{ inputs.dry_run == true }}
   CLOSE_DAYS: 2  # how far back the lead looks for a merged pull request whose issue stayed open
+  CLOSE_READ: 200  # the most merged pull requests it reads in that window; it warns on reaching it
   # a builder pull request is any not opened by Craig, as lane-auto.yml has it: builds open theirs as CBHelper180, a user
   # account, since 5 Nov 2026, and an `is_bot` test gave none of them a fix round or a stuck close (7 Nov 2026: 11 sat red)
   OWNER: ${{ github.repository_owner }}
@@ -130,11 +131,16 @@ jobs:
       # line that starts with the closing word counts, as the template writes it; `Part of #N` leaves N open.
       - name: Close the issues merged pull requests closed
         run: |
+          merged=$(gh pr list --state merged --search "merged:>=$(date -u -d "$CLOSE_DAYS days ago" +%F)" --limit "$CLOSE_READ" --json number,body)
+          [ "$(jq length <<< "$merged")" -lt "$CLOSE_READ" ] \
+            || echo "::warning::$CLOSE_READ merged pull requests read, the most this step takes: any older in the window went unchecked"
           # shellcheck disable=SC2016  # the jq filter's \(...) is jq's, not the shell's
-          gh pr list --state merged --search "merged:>=$(date -u -d "$CLOSE_DAYS days ago" +%F)" --limit 200 --json number,body \
-            --jq '.[] | .number as $pr | ((.body // "") | scan("(?m)^\\s*-?\\s*(?:Closes|Fixes|Resolves) #([0-9]+)")) | "\($pr) \(.[0])"' \
+          jq -r '.[] | .number as $pr | ((.body // "") | scan("(?m)^\\s*-?\\s*(?:Closes|Fixes|Resolves) #([0-9]+)")) | "\($pr) \(.[0])"' <<< "$merged" \
           | sort -u | while read -r pr n; do
-              [ "$(gh issue view "$n" --json state --jq .state 2>/dev/null)" = OPEN ] || continue
+              # an issue only, never a pull request (the issues API answers for both), and never one reopened by hand:
+              # an issue never closed has no state reason, a reopened one says "reopened"
+              # shellcheck disable=SC2016  # as above
+              [ "$(gh api "repos/$GH_REPO/issues/$n" --jq 'select(.pull_request | not) | "\(.state) \(.state_reason)"' 2>/dev/null)" = "open null" ] || continue
               echo "Closing #$n: #$pr merged"
               [ "$DRY_RUN" = true ] || gh issue close "$n" --reason completed --comment "Built by #$pr, merged. Closed by the lead: the merge left it open." \
                 || echo "::warning::couldn't close #$n"
