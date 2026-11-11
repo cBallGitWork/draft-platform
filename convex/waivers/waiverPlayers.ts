@@ -28,17 +28,20 @@ export async function putOnWaivers(ctx: MutationCtx, leagueId: Id<"leagues">, pl
 }
 
 /** Takes the player out of his squad for his manager's drop, by itself or for a claim: onto
- *  waivers for WAIVER_MS, unless the churn rule sends him straight back to the free agents, picked
- *  up as one with no deadline passed since (spec/08). Whether he went on waivers. */
+ *  waivers for WAIVER_MS from `waiversFrom`, unless the churn rule sends him straight back to the
+ *  free agents, picked up as one with no deadline passed since (spec/08). A claim's drop counts
+ *  from its run's own time, not the moment the run executes, so a late run's drop still makes the
+ *  next run (Craig, 11 Nov 2026, #1481). Whether he went on waivers. */
 export async function dropFromSquad(
   ctx: MutationCtx,
   place: Doc<"squadPlayers">,
   deadlines: LeagueDeadlines,
   now: number,
+  waiversFrom = now,
 ): Promise<boolean> {
   const churned = place.pickedUpAt !== undefined && !deadlinePassedSince(deadlines, place.pickedUpAt, now);
   await ctx.db.delete("squadPlayers", place._id);
-  if (!churned) await putOnWaivers(ctx, place.leagueId, place.playerCode, now + WAIVER_MS);
+  if (!churned) await putOnWaivers(ctx, place.leagueId, place.playerCode, waiversFrom + WAIVER_MS);
   return !churned;
 }
 

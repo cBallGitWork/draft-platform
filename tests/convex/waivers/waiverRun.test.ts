@@ -253,4 +253,19 @@ describe("a run the cron starts late", () => {
     expect(await w.stateOf(PALMER)).toMatchObject({ kind: "onWaivers" });
     expect(await w.pending(BOB)).toHaveLength(1);
   });
+
+  test("a claim's drop starts its 24 hours at the run's time, so the next day's run can take him (#1481)", async () => {
+    const at = Date.now() + MINUTE_MS;
+    await w.onWaivers([SAKA], at);
+    await w.claim(ANN, SAKA, ANNS_FIRST_DROP);
+    vi.setSystemTime(at + 3 * MINUTE_MS);
+    await w.t.mutation(internal.waivers.waiverRun.run, { leagueId: w.leagueId, at });
+    expect(await w.stateOf(SAKA)).toMatchObject({ kind: "owned", teamId: w.annsTeam });
+
+    const next = at + WAIVER_MS;
+    await w.claim(BOB, ANNS_FIRST_DROP);
+    vi.setSystemTime(next + MINUTE_MS);
+    await w.t.mutation(internal.waivers.waiverRun.run, { leagueId: w.leagueId, at: next });
+    expect(await w.stateOf(ANNS_FIRST_DROP)).toMatchObject({ kind: "owned", teamId: w.bobsTeam });
+  });
 });
