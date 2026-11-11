@@ -5,7 +5,8 @@ import { ODD_TEAM_OUTS } from "../../convex/table/roundRobin";
 import { Loading, PANEL_BODY, PageSection, Panel } from "../ui/Panel";
 import { LeagueHeading } from "../leagues/LeagueLinks";
 import { Choice } from "../ui/Choice";
-import { useRulesEdits } from "../rules/rulesEdits";
+import { useRulesEdits, type RulesEdits } from "../rules/rulesEdits";
+import { useDraftStartEdit, type DraftStartEdit } from "./DraftStartRow";
 import { SaveBar } from "../rules/SaveBar";
 import { BoxRefusalContext } from "../rules/blank";
 import { TickBox } from "../ui/TickBox";
@@ -61,7 +62,7 @@ const ODD_TEAM_OUT_CHOICE = "odd-team-out";
 /** League settings (Craig, 22 Oct 2026), for a league's commissioners and the admin: the rules
  *  that build the league, apart from players' points, saved from the next gameweek with a letter
  *  to the league: the round robin's two (spec/09), the squad's make-up (spec/03; #341), how
- *  the draft runs (spec/04; #1087), how trades run (spec/08; #383) and how waivers do, beside the
+ *  the draft runs and when it starts (spec/04; #1087, #1476), how trades run (spec/08; #383) and how waivers do, beside the
  *  waiver order (spec/08; #1200), with the commissioner's draft order, which saves at once. */
 export function SettingsPage({ league, seam }: { league: LeagueSummary; seam: LeagueSettingsSeam }) {
   const view = seam.useSettings(league.leagueId);
@@ -85,6 +86,8 @@ export function SettingsPage({ league, seam }: { league: LeagueSummary; seam: Le
 function Editor({ league, seam, view }: { league: LeagueSummary; seam: LeagueSettingsSeam; view: SettingsView }) {
   const rulesEdits = useRulesEdits(view, (settings, revision) => seam.save(league.leagueId, settings, revision), blankRefusal);
   const { draft, edit } = rulesEdits;
+  const start = useDraftStartEdit(league.leagueId, seam);
+  const bar = withDraftStart(rulesEdits, start);
   return (
     <div ref={rulesEdits.area} className="flex flex-col gap-2">
       <BoxRefusalContext value={rulesEdits.boxRefusal}>
@@ -107,15 +110,34 @@ function Editor({ league, seam, view }: { league: LeagueSummary; seam: LeagueSet
           </div>
         </Panel>
         <SquadPanel draft={draft} edit={edit} />
-        <DraftPanel draft={draft.draft} edit={(draftRules) => edit({ ...draft, draft: draftRules })} />
+        <DraftPanel draft={draft.draft} edit={(draftRules) => edit({ ...draft, draft: draftRules })} start={start} />
         <TradesPanel trades={draft.trades} edit={(trades) => edit({ ...draft, trades })} />
         <WaiversPanel waivers={draft.waivers} edit={(waivers) => edit({ ...draft, waivers })} />
         <WaiverOrderBeside leagueId={league.leagueId} seam={seam} type={draft.waivers.order} />
-        <SaveBar draft={rulesEdits} savedWords={savedWords} />
+        <SaveBar draft={bar} savedWords={savedWords} />
       </BoxRefusalContext>
       <TeamOrderPanel leagueId={league.leagueId} seam={seam} />
     </div>
   );
+}
+
+/** The bar's edits: the settings and the draft's start date, saved together (Craig, 11 Nov 2026, on
+ *  #1476). The date goes first, as its own change, not a rules row: a refused date, said beside its
+ *  box, stops the save; a refused settings save, said in the bar, leaves the date saved. */
+function withDraftStart(rulesEdits: RulesEdits<LeagueSettings>, start: DraftStartEdit): RulesEdits<LeagueSettings> {
+  return {
+    ...rulesEdits,
+    unchanged: rulesEdits.unchanged && start.unchanged,
+    busy: rulesEdits.busy || start.busy,
+    drop() {
+      rulesEdits.drop();
+      start.drop();
+    },
+    async saveDraft() {
+      if (!start.unchanged && !(await start.save())) return;
+      if (!rulesEdits.unchanged) await rulesEdits.saveDraft();
+    },
+  };
 }
 
 /** The league's waiver order and its next runs, the order's note following the type about to be

@@ -8,7 +8,8 @@ import { expect, test, vi } from "vitest";
 import { FIRST_RULES } from "../../../convex/rules/firstRules";
 import { leagueSettingsOf, type LeagueSettings } from "../../../convex/rules/leagueSettingsPart";
 import { useLiveLeagueSettings } from "../../../src/leagueSettings/liveSettings";
-import { saveFailedWords, scoringStartFailedWords, teamOrderFailedWords } from "../../../src/leagueSettings/words";
+import { draftStartFailedWords, saveFailedWords, scoringStartFailedWords, teamOrderFailedWords } from "../../../src/leagueSettings/words";
+import { draftStartRefusals } from "../../../convex/draft/draftStart";
 import { scoringStartRefusals } from "../../../convex/gameweeks/scoringStart";
 import type { Id } from "../../../convex/_generated/dataModel";
 import { draftOrderRefusals } from "../../../convex/draft/draftOrder";
@@ -24,15 +25,18 @@ const convex = vi.hoisted(() => ({
   drawTeamOrder: vi.fn(),
   scoringStart: vi.fn(),
   setScoringStart: vi.fn(),
+  draft: vi.fn(),
+  setStart: vi.fn(),
 }));
 vi.mock("convex/react", async () =>
   (await import("../../support/src/convexReact.harness")).fakeConvexReact({
-    queries: { "rules/leagueSettings:settings": convex.settings, "draft/draftOrder:teamOrder": convex.teamOrder, "gameweeks/scoringStart:ofLeague": convex.scoringStart },
+    queries: { "rules/leagueSettings:settings": convex.settings, "draft/draftOrder:teamOrder": convex.teamOrder, "gameweeks/scoringStart:ofLeague": convex.scoringStart, "draft/draftStart:ofLeague": convex.draft },
     mutations: {
       "rules/leagueSettings:changeSettings": convex.changeSettings,
       "draft/draftOrder:setTeamOrder": convex.setTeamOrder,
       "draft/draftOrder:drawTeamOrder": convex.drawTeamOrder,
       "gameweeks/scoringStart:setScoringStart": convex.setScoringStart,
+      "draft/draftStart:setStart": convex.setStart,
     },
   }),
 );
@@ -130,4 +134,38 @@ test("setting the scoring start calls gameweeks/scoringStart:setScoringStart, an
   const logged = silenceConsoleError();
   expect(await seam().setScoringStart(A_LEAGUE_ID, 8)).toBe(scoringStartFailedWords);
   expect(logged).toHaveBeenCalledWith("Setting the scoring start failed:", failure);
+});
+
+test("the draft's start is read from draft/draftStart:ofLeague: a waiting draft's date, and any other as started", () => {
+  vi.useFakeTimers({ now: Date.parse("2026-10-22T09:30:42Z") });
+  const startsAt = Date.parse("2026-11-15T19:00:00Z");
+  convex.draft.mockReturnValue({ status: "waiting", startsAt, rounds: 15, order: [] });
+  expect(renderHook(() => useLiveLeagueSettings().useDraftStart(A_LEAGUE_ID)).result.current).toEqual({ startsAt, started: false });
+  expect(convex.draft).toHaveBeenLastCalledWith({ leagueId: A_LEAGUE_ID, now: Date.parse("2026-10-22T09:30:00Z") });
+
+  convex.draft.mockReturnValue({ status: "over", startedAt: startsAt, rounds: 15, order: [], picksMade: 120 });
+  expect(renderHook(() => useLiveLeagueSettings().useDraftStart(A_LEAGUE_ID)).result.current).toEqual({ startsAt: null, started: true });
+
+  convex.draft.mockReturnValue(undefined);
+  expect(renderHook(() => useLiveLeagueSettings().useDraftStart(A_LEAGUE_ID)).result.current).toBeUndefined();
+});
+
+test("setting the draft's start calls draft/draftStart:setStart, and resolves with null, the server's refusal, or the failure said plainly", async () => {
+  const startsAt = Date.parse("2026-11-15T19:00:00Z");
+  convex.setStart.mockResolvedValueOnce(null);
+  expect(await seam().setDraftStart(A_LEAGUE_ID, startsAt)).toBeNull();
+  expect(convex.setStart).toHaveBeenCalledExactlyOnceWith({ leagueId: A_LEAGUE_ID, startsAt });
+
+  convex.setStart.mockResolvedValueOnce(null);
+  expect(await seam().setDraftStart(A_LEAGUE_ID, null)).toBeNull();
+  expect(convex.setStart).toHaveBeenLastCalledWith({ leagueId: A_LEAGUE_ID, startsAt: null });
+
+  convex.setStart.mockRejectedValueOnce(new ConvexError(draftStartRefusals.notAhead));
+  expect(await seam().setDraftStart(A_LEAGUE_ID, startsAt)).toBe(draftStartRefusals.notAhead);
+
+  const failure = new Error("offline");
+  convex.setStart.mockRejectedValueOnce(failure);
+  const logged = silenceConsoleError();
+  expect(await seam().setDraftStart(A_LEAGUE_ID, startsAt)).toBe(draftStartFailedWords);
+  expect(logged).toHaveBeenCalledWith("Setting the draft's start failed:", failure);
 });
