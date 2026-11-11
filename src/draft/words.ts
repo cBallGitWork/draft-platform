@@ -38,6 +38,18 @@ export function timeLeftWords(left: number): string {
     const seconds = Math.ceil(ms / SECOND_MS);
     return `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, "0")}`;
   }
+  return hoursLeftWords(ms);
+}
+
+/** Time left to the minute, for a wait that isn't a clock (a scout's report, #1567): "35m" under an
+ *  hour, then "5h 12m", then "1d 4h". */
+export function minutesLeftWords(left: number): string {
+  const ms = Math.max(0, left);
+  if (ms < HOUR_MS) return `${Math.ceil(ms / MINUTE_MS)}m`;
+  return hoursLeftWords(ms);
+}
+
+function hoursLeftWords(ms: number): string {
   const days = Math.floor(ms / DAY_MS);
   const hours = Math.floor((ms % DAY_MS) / HOUR_MS);
   if (days > 0) return `${days}d ${hours}h`;
