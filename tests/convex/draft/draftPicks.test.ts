@@ -8,7 +8,7 @@ import { refusals } from "../../../convex/shared/leagueAccess";
 import { ARSENAL, CHELSEA, GONE, insertClubs, insertDroppedPlayer, insertPlayers, UNHELD, type HeldPlayer } from "../../support/convex/footballRows.harness";
 import { changeEveryRules, NO_AREA_MINIMUMS } from "../../support/convex/leagueRules.harness";
 import { expectRefused } from "../../support/convex/test.harness";
-import { actingAs, addManagers, adminCreatesLeague, COMMISSIONER, eventsIn, MANAGERS, type TestConvex } from "../../support/convex/leagues.harness";
+import { actingAs, addManagers, ADMIN, adminCreatesLeague, COMMISSIONER, eventsIn, MANAGERS, type TestConvex } from "../../support/convex/leagues.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
 
 // Making a pick (spec/04, The picks; #1090): the manager on the clock picks a legal player, who
@@ -200,6 +200,38 @@ test("picks follow the squad rules the draft started under, not a change made si
   for (const [email, code] of [[ANN, A1], [BOB, A2], [CAT, A3], [CAT, A4]] as const) await pick(email, code);
 
   expect((await squadsNow())[2]).toEqual({ teamId: teams[2], players: [{ code: A3, gone: false }, { code: A4, gone: false }] });
+});
+
+describe("a drafted player who loses a position mid-draft (#1484)", () => {
+  /** A defender who also plays central midfield, at Arsenal, and two who only defend, at Chelsea. */
+  const DEFENDER: HeldPlayer = { ...player(401), positions: ["CB", "CM"] };
+  const [D2, D3] = [402, 403].map((code) => player(code, CHELSEA, "CB"));
+  const removeCentreBack = async () =>
+    (await as(ADMIN)).mutation(api.positions.playerPositions.removePosition, { code: DEFENDER.code, position: "CB" });
+
+  beforeEach(async () => {
+    await t.run((ctx) => insertPlayers(ctx, [DEFENDER, D2, D3]));
+    await setSquadRules({ minimumByArea: { ...NO_AREA_MINIMUMS, goalkeeper: 1, defence: 1 } });
+    await start();
+  });
+
+  test("still counts at the positions he had when drafted, so his team's last pick is never left with none legal", async () => {
+    await pick(ANN, DEFENDER.code);
+    await removeCentreBack();
+    for (const [email, code] of [[BOB, K1], [CAT, K2], [CAT, D2.code], [BOB, D3.code]] as const) await pick(email, code);
+
+    await expectRefused(pick(ANN, A3), pickRefusals.breaksSquadRules("Player 103"));
+    await pick(ANN, K3);
+    expect(await read()).toMatchObject({ status: "over" });
+  });
+
+  test("keeps them on his pick", async () => {
+    await pick(ANN, DEFENDER.code);
+    await removeCentreBack();
+
+    const held = await t.run(async (ctx) => (await ctx.db.query("draftPicks").collect()).map(({ playerCode, positions }) => ({ playerCode, positions })));
+    expect(held).toEqual([{ playerCode: DEFENDER.code, positions: ["CB", "CM"] }]);
+  });
 });
 
 test("a draft started before its squad rules were kept picks under the league's in force when it started", async () => {

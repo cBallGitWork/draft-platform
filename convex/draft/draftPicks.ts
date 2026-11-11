@@ -18,7 +18,8 @@ import { tellDraftOver, tellPickedFor, tellScoringStartMoved, tellUpNext } from 
 import { startAfterDraft } from "../gameweeks/scoringStart";
 import { listsOf } from "./draftLists";
 import { draftRanking } from "./draftRanking";
-import { draftOf, picksLeftOf, turnNow, type StartedDraft, type Turn } from "./draftRow";
+import type { Position } from "../positions/positionTables";
+import { draftedPositionsIn, draftOf, picksLeftOf, turnNow, type StartedDraft, type Turn } from "./draftRow";
 import { rulesInForceAt } from "./draftStart";
 import { afterTimeout, choseAutoPick, isOnAutoPick } from "./draftTimeouts";
 import { lastSeasonPoints } from "./lastSeasonPoints";
@@ -81,13 +82,18 @@ export async function whyNotLegalFor(
   undrafted: readonly Doc<"players">[],
 ): Promise<(player: Doc<"players">) => Promise<NotLegal | null>> {
   const positionsOf = await positionsNow(ctx, leagueId);
-  const asDraftPlayer = async ({ clubCode, code }: Doc<"players">): Promise<DraftPlayer> => ({ clubCode, areas: areasOf(await positionsOf(code)) });
+  const asDraftPlayer = async ({ clubCode, code }: Doc<"players">, positions?: Position[]): Promise<DraftPlayer> => ({
+    clubCode,
+    areas: areasOf(positions ?? (await positionsOf(code))),
+  });
+  // His squad counts each player it drafted at the positions he had then (#1484).
+  const drafted = await draftedPositionsIn(ctx, leagueId);
   const squad = await Promise.all(
     (await squadOf(ctx, teamId)).map(async ({ playerCode }) =>
-      asDraftPlayer(await heldPlayerByCode(ctx, playerCode, `Player ${playerCode}, drafted by team ${teamId}, isn't in the football data`)),
+      asDraftPlayer(await heldPlayerByCode(ctx, playerCode, `Player ${playerCode}, drafted by team ${teamId}, isn't in the football data`), drafted.get(playerCode)),
     ),
   );
-  const why = whyNotLegal(squad, picksLeft, await squadRulesOf(ctx, leagueId, started), await Promise.all(undrafted.map(asDraftPlayer)));
+  const why = whyNotLegal(squad, picksLeft, await squadRulesOf(ctx, leagueId, started), await Promise.all(undrafted.map((each) => asDraftPlayer(each))));
   return async (player) => why(await asDraftPlayer(player));
 }
 
@@ -141,7 +147,8 @@ type Placed = { auto?: true; timeout?: Doc<"draftPicks">["timeout"]; pausedAt?: 
 async function placePick(ctx: MutationCtx, league: Doc<"leagues">, turn: Turn, team: Doc<"teams">, player: Doc<"players">, by: string, { auto, timeout, pausedAt }: Placed = {}): Promise<void> {
   const leagueId = league._id;
   const now = Date.now();
-  await ctx.db.insert("draftPicks", { leagueId, pick: turn.pick, teamId: team._id, playerCode: player.code, at: now, ...(auto && { auto }), ...(timeout && { timeout }) });
+  const positions = await (await positionsNow(ctx, leagueId))(player.code);
+  await ctx.db.insert("draftPicks", { leagueId, pick: turn.pick, teamId: team._id, playerCode: player.code, at: now, positions, ...(auto && { auto }), ...(timeout && { timeout }) });
   await ctx.db.insert("squadPlayers", { leagueId, teamId: team._id, playerCode: player.code });
   await offWaivers(ctx, leagueId, player.code);
   await fileEvent(ctx, leagueId, by, { kind: "playerAssigned", playerCode: player.code, playerName: player.name, teamId: team._id, teamName: team.name });
