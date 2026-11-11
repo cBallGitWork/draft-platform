@@ -12,7 +12,7 @@ import { pickFirstLineupAgain } from "../lineup/lineups";
 import { claimFailedLetter, type ClaimFailure } from "../mail/waiverLetterWords";
 import { fileEvent, fileLetter, recordEvent } from "../mail/letters";
 import type { LeagueRules } from "../rules/leagueRulesShape";
-import { latestRules, seasonRules } from "../rules/rulesHistory";
+import { historyOf, newestRow, seasonRules } from "../rules/rulesHistory";
 import { everyLeague, takeAllOrThrow } from "../shared/cappedRead";
 import { tellShortlisters, tellShortlistersCleared } from "../scouting/shortlist";
 import { teamIn } from "../shared/leagueAccess";
@@ -26,7 +26,7 @@ import { claimedName, leagueClaims } from "./waiverClaims";
 import { latestEnded, runInWaiverLock } from "./waiverLock";
 import { waiverOrderOf, waiverOrderRow, winnersNow, withWinnersLast, wonBy } from "./waiverOrder";
 import { dropFromSquad } from "./waiverPlayers";
-import { latestRunAt } from "./waiverTimes";
+import { latestRunAt, wasRunTime } from "./waiverTimes";
 
 // The waiver run (#1198, spec/08 Waivers and free agency). At each of the league's run times
 // (waiverTimes.ts) every player on waivers whose 24 hours are up is claimed in the waiver order
@@ -264,8 +264,9 @@ export const run = internalMutation({
   },
 });
 
-/** The cron's: starts the run of each league whose latest run time has come and not been run. A
- *  league that has never run waivers runs one only if its time came since the last check or so. */
+/** The cron's: starts the run of each league whose latest run time has come and not been run, if
+ *  it was a run time when it came (`wasRunTime`). A league that has never run waivers runs one
+ *  only if its time came since the last check or so. */
 export const runDue = internalMutation({
   args: {},
   returns: v.null(),
@@ -274,9 +275,9 @@ export const runDue = internalMutation({
     const leagues = await everyLeague(ctx, "so waivers can't be run in every one");
     for (const league of leagues) {
       if (!leagueOpens(league)) continue;
-      const rules = await latestRules(ctx, league._id);
-      const at = latestRunAt(rules.waivers.runs, now);
-      if (at === null) continue;
+      const history = await historyOf(ctx, league._id);
+      const at = latestRunAt(newestRow(history, league._id).rules.waivers.runs, now);
+      if (at === null || !wasRunTime(history, at)) continue;
       const held = await waiverOrderRow(ctx, league._id);
       if (held === null ? at <= now - 2 * CHECK_MS : at <= held.ranAt) continue;
       await ctx.scheduler.runAfter(0, internal.waivers.waiverRun.run, { leagueId: league._id, at });
