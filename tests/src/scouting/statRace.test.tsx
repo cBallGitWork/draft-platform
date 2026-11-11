@@ -44,14 +44,7 @@ it("the Stat race tab ranks every team by goals at first, raw counts in every ca
   expect(cellsOf("Rovers XI")).toEqual(["2", "3", "0", "0"]);
   expect(cellsOf(league.teamName!)).toEqual(["2", "3", "7", "0"]);
   expect(within(racePanel()).getByText(countsWhatCountedWords)).toBeTruthy();
-  expect(app.scouting.useStatRace.mock.lastCall!.slice(0, 2)).toEqual([league.leagueId, null]);
-  expect(within(racePanel()).getByLabelText<HTMLSelectElement>(rankByLabel).value).toBe("goals_scored");
-});
-
-it("opens on whatever category comes first, so a renamed goals stat never breaks the tab", async () => {
-  await openRace({ ...RACE, categories: ["clean_sheets", "goals_scored", "red_cards"] });
-  expect(teamsShown()).toEqual([league.teamName, "Kroos Control", "Rovers XI"]);
-  expect(within(racePanel()).getByLabelText<HTMLSelectElement>(rankByLabel).value).toBe("clean_sheets");
+  expect(app.scouting.useStatRace.mock.lastCall!.slice(0, 2)).toEqual([league.leagueId, "goals_scored"]);
 });
 
 it("Rank by, or a category's head, ranks the teams by that category", async () => {
@@ -79,6 +72,19 @@ it("the right column opens on the manager's own team, every category with its ra
   const theirs = screen.getByRole("region", { name: "Kroos Control" });
   expect(within(theirs).getAllByRole("row")[1].textContent).toBe(`${categoryName("goals_scored")}5${rankWords(1, 3)}`);
   expect(screen.queryByRole("region", { name: league.teamName! })).toBeNull();
+});
+
+it("a stat where fewer is better ranks the team with fewest 1st, in the table and the team's panel (#1608, S19.1)", async () => {
+  await openRace({ ...RACE, teams: [...RACE.teams, team("Red Army", { red_cards: 3 })] });
+
+  await userEvent.selectOptions(within(racePanel()).getByLabelText(rankByLabel), categoryName("red_cards"));
+  expect(teamsShown()).toEqual(["Kroos Control", "Rovers XI", league.teamName, "Red Army"]);
+  expect(cellsOf(league.teamName!)[0]).toBe("1");
+  expect(cellsOf("Red Army")[0]).toBe("4");
+
+  await userEvent.click(within(racePanel()).getByRole("button", { name: "Red Army" }));
+  const theirs = screen.getByRole("region", { name: "Red Army" });
+  expect(within(theirs).getAllByRole("row")[3].textContent).toBe(`${categoryName("red_cards")}3${rankWords(4, 4)}`);
 });
 
 it("a league that began after gameweek 1 says where its totals start", async () => {

@@ -63,9 +63,9 @@ export function DraftPage({ league, seam }: { league: LeagueSummary; seam: Draft
   // The pick on the clock's own time, which the league's may have changed since it started.
   const onTheClock: OnTheClock | null =
     draft.status === "live"
-      ? { pick: draft.onTheClock.pick, clock: draft.clock, pickSeconds: draft.clock === null ? board.pickSeconds : (draft.clock.endsAt - draft.clock.startsAt) / SECOND_MS }
+      ? { pick: draft.onTheClock.pick, clock: draft.clock, pickSeconds: (draft.clock.endsAt - draft.clock.startsAt) / SECOND_MS }
       : null;
-  const pausedAt = draft.status === "live" ? draft.clock?.pausedAt : draft.status === "ending" ? draft.pausedAt : undefined;
+  const pausedAt = draft.status === "live" ? draft.clock.pausedAt : draft.status === "ending" ? draft.pausedAt : undefined;
   const state = pausedAt !== undefined ? stateWords.paused : stateWords[draft.status];
   const title = (
     <>
@@ -127,13 +127,11 @@ function LiveFacts({ draft, board, onTheClock }: { draft: Live; board: Board; on
       <Fact head={onTheClockHead} underlined={yours}>
         <span className="display-face">{yours ? yourTeamWords(name) : name}</span>
       </Fact>
-      {onTheClock.pickSeconds !== null && (
-        <Fact head={clockAPickHead(onTheClock.pickSeconds)}>
-          <span className="text-title text-derived">
-            <ClockLeft onTheClock={onTheClock} />
-          </span>
-        </Fact>
-      )}
+      <Fact head={clockAPickHead(onTheClock.pickSeconds)}>
+        <span className="text-title text-derived">
+          <ClockLeft onTheClock={onTheClock} />
+        </span>
+      </Fact>
       {upcoming.length > 0 && <Fact head={nextHead}>{nextWords(upcoming)}</Fact>}
       {yourNext !== undefined && (
         <Fact head={yourNextHead(yours)}>

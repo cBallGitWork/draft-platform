@@ -8,7 +8,7 @@ import { mainArea, per90FiguresIn, per90PanelOf } from "../../../convex/scouting
 import { listOf, shownStat } from "../../../convex/scouting/playersOrder";
 import { MINUTES_STAT } from "../../../convex/stats/matchRecords";
 import type { Stats } from "../../../convex/stats/statTotals";
-import { raceOrder } from "../../../convex/scouting/raceOrder";
+import { mostFirst, raceOrder } from "../../../convex/scouting/raceOrder";
 import type { PlayersList, RacingTeam, ScoutingSeam, StatRace, YourPlayer } from "../../../src/scouting/seam";
 import type { PendingClaim } from "../../../src/myTeam/claims/seam";
 import type { CardAction } from "../../../src/playerCard/seam";
@@ -88,7 +88,7 @@ export function fakeScouting({ clubs = [], ownStats = [], players = [], totals =
     usePer90: vi.fn<ScoutingSeam["usePer90"]>((_leagueId, playerCode, stat) => per90PanelOf(weighed(playerOf(playerCode)), players.map(weighed), stat)),
     useYourPlayer: vi.fn<ScoutingSeam["useYourPlayer"]>(() => yours),
     useStatRace: vi.fn<ScoutingSeam["useStatRace"]>((_leagueId, stat) =>
-      race === undefined ? undefined : { ...race, teams: raceOrder(race.teams.map((team) => ({ ...team, stat: team.stats[stat ?? race.categories[0]] ?? 0 })), true) },
+      race === undefined ? undefined : { ...race, teams: raceOrder(race.teams.map((team) => ({ ...team, stat: team.stats[stat] ?? 0 })), mostFirst(stat)) },
     ),
   };
 }

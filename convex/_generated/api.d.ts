@@ -11,6 +11,7 @@
 import type * as admin_feedFailureEmails from "../admin/feedFailureEmails.js";
 import type * as admin_feedState from "../admin/feedState.js";
 import type * as admin_feeds from "../admin/feeds.js";
+import type * as admin_platformSettingDefaults from "../admin/platformSettingDefaults.js";
 import type * as admin_platformSettings from "../admin/platformSettings.js";
 import type * as admin_runLogs from "../admin/runLogs.js";
 import type * as admin_sideRuns from "../admin/sideRuns.js";
@@ -41,6 +42,7 @@ import type * as draft_draftStart from "../draft/draftStart.js";
 import type * as draft_draftTimeouts from "../draft/draftTimeouts.js";
 import type * as draft_lastSeasonPoints from "../draft/lastSeasonPoints.js";
 import type * as draft_legalPlayers from "../draft/legalPlayers.js";
+import type * as draft_oldDraftsBackfill from "../draft/oldDraftsBackfill.js";
 import type * as draft_pickWindow from "../draft/pickWindow.js";
 import type * as draft_rankingFile from "../draft/rankingFile.js";
 import type * as draft_snakeOrder from "../draft/snakeOrder.js";
@@ -376,6 +378,7 @@ declare const fullApi: ApiFromModules<{
   "admin/feedFailureEmails": typeof admin_feedFailureEmails;
   "admin/feedState": typeof admin_feedState;
   "admin/feeds": typeof admin_feeds;
+  "admin/platformSettingDefaults": typeof admin_platformSettingDefaults;
   "admin/platformSettings": typeof admin_platformSettings;
   "admin/runLogs": typeof admin_runLogs;
   "admin/sideRuns": typeof admin_sideRuns;
@@ -406,6 +409,7 @@ declare const fullApi: ApiFromModules<{
   "draft/draftTimeouts": typeof draft_draftTimeouts;
   "draft/lastSeasonPoints": typeof draft_lastSeasonPoints;
   "draft/legalPlayers": typeof draft_legalPlayers;
+  "draft/oldDraftsBackfill": typeof draft_oldDraftsBackfill;
   "draft/pickWindow": typeof draft_pickWindow;
   "draft/rankingFile": typeof draft_rankingFile;
   "draft/snakeOrder": typeof draft_snakeOrder;

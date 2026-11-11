@@ -5,6 +5,8 @@ import {
   categoryName,
   categoryShortCode,
 } from "../../../convex/scoring/categories";
+import { GOALS } from "../../../convex/scoring/statKeys";
+import { mostFirst } from "../../../convex/scouting/raceOrder";
 import { rankAmong } from "../../../convex/shared/ranks";
 import { cellClassOf, ColumnHeads } from "../../ui/ColumnHeads";
 import { Loading, Panel } from "../../ui/Panel";
@@ -23,6 +25,8 @@ import {
   STAT_RACE_TITLE,
 } from "../words";
 
+/** The race opens on goals, the first category the site's scoring has always scored. */
+const OPENING_STAT = GOALS;
 const RANK_BY_ID = "stat-race-rank-by";
 
 /** Scouting's Stat race tab (#800, spec/19 The stat race; docs/design/approved/scouting/
@@ -36,11 +40,9 @@ export function StatRaceTab({
   league: LeagueSummary;
   seam: ScoutingSeam;
 }) {
-  // The race opens on the first category (none picked yet), as the server ranks it.
-  const [picked, setStat] = useState<string | null>(null);
+  const [stat, setStat] = useState(OPENING_STAT);
   // While a new ranking loads, the last one stays up.
-  const race = useLastLoaded(seam.useStatRace(league.leagueId, picked));
-  const stat = picked ?? race?.categories[0] ?? "";
+  const race = useLastLoaded(seam.useStatRace(league.leagueId, stat));
   const [selectedId, select] = useState<Id<"teams"> | null>(null);
   const selected =
     race &&
@@ -152,7 +154,7 @@ function RaceTable({
           classOf={cellClasses}
           sort={{
             by: stat,
-            descending: true,
+            descending: mostFirst(stat),
             sortable: race.categories,
             sortBy: rankBy,
           }}
@@ -168,7 +170,7 @@ function RaceTable({
                 className="border-t border-panel-rule aria-current:shadow-current-edge"
               >
                 <td className={`${cellClasses("rank")} text-soft`}>
-                  {rankAmong(team.stat, totals)}
+                  {rankAmong(team.stat, totals, mostFirst(stat))}
                 </td>
                 <th scope="row" className={cellClasses("team")}>
                   <button
@@ -216,6 +218,7 @@ function TeamPanel({ team, race }: { team: RacingTeam; race: StatRace }) {
             const rank = rankAmong(
               total,
               race.teams.map((each) => each.stats[category] ?? 0),
+              mostFirst(category),
             );
             return (
               <tr key={category} className="border-t border-panel-rule">

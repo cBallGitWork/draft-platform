@@ -43,23 +43,22 @@ const statRace = v.object({
 export type StatRace = Infer<typeof statRace>;
 
 /** Every team in the league, most of `stat` first (fewest with `descending` false), ties by name,
- *  and the gameweek its totals start in; with `stat` null, by the first category, as the tab opens.
- *  Anyone not in the league is refused, as is a stat the catalogue doesn't hold. */
+ *  and the gameweek its totals start in. Anyone not in the league is refused, as is a stat the
+ *  catalogue doesn't hold. */
 export const teams = query({
-  args: { leagueId: v.id("leagues"), stat: v.union(v.string(), v.null()), descending: v.boolean() },
+  args: { leagueId: v.id("leagues"), stat: v.string(), descending: v.boolean() },
   returns: statRace,
   handler: async (ctx, { leagueId, stat, descending }) => {
     const { league } = await memberOf(ctx, leagueId);
-    if (stat !== null) checkCatalogueStat(stat);
-    const scored = setOf((await siteVersions(ctx)).at(-1)).rules.map((rule) => rule.stat);
-    const categories = [...new Set(scored)].filter((each) => CATALOGUE_STATS.has(each) && !NOT_RACED.has(each));
-    const ranked = stat ?? categories.at(0);
+    checkCatalogueStat(stat);
     const totals = await teamTotals(ctx, leagueId);
     const rows = (await teamsOf(ctx, leagueId)).map((team) => {
       const stats = catalogueOnly(totals.get(team._id) ?? {});
-      return { teamId: team._id, name: team.name, stats, stat: ranked === undefined ? 0 : (stats[ranked] ?? 0) };
+      return { teamId: team._id, name: team.name, stats, stat: stats[stat] ?? 0 };
     });
     const first = (await begunGameweeks(ctx, league))[0];
+    const scored = setOf((await siteVersions(ctx)).at(-1)).rules.map((rule) => rule.stat);
+    const categories = [...new Set(scored)].filter((each) => CATALOGUE_STATS.has(each) && !NOT_RACED.has(each));
     return { categories, since: first !== undefined && first > FIRST_GAMEWEEK ? first : null, teams: raceOrder(rows, descending) };
   },
 });

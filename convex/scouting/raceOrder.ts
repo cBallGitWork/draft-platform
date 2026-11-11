@@ -2,6 +2,13 @@
 // Scouting's preview ranks its teams by the server's own rule. It imports nothing, so the screens can
 // read it too.
 
+/** The stats where fewer is better, so the team with fewest is 1st (Craig, 11 Nov 2026, on #1608);
+ *  every other stat ranks the team with most 1st. */
+export const FEWEST_FIRST: ReadonlySet<string> = new Set(["red_cards", "yellow_cards", "own_goals", "goals_conceded", "penalties_missed"]);
+
+/** Whether the race in `stat` puts the team with most of it 1st. */
+export const mostFirst = (stat: string) => !FEWEST_FIRST.has(stat);
+
 /** The teams, most of their `stat` first (fewest with `descending` false), ties by name. */
 export function raceOrder<Team extends { name: string; stat: number }>(teams: readonly Team[], descending: boolean): Team[] {
   const direction = descending ? -1 : 1;

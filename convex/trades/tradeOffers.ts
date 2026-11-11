@@ -14,7 +14,7 @@ import { closeOffer, deadlinePassed, endOffer, heldInReview, leagueOffers } from
 import { tradedName, tradeWordsOf } from "./tradeWords";
 import { startReview } from "./tradeReview";
 import { tradeWarnings } from "./tradeSquads";
-import { NOTE_MOST } from "./tradeLimits";
+import { NOTE_MOST, OFFERS_PER_TEAM_MOST } from "./tradeLimits";
 import { checkPicks, checkPicksFree, samePick, type TradePicks } from "./tradePicks";
 import { offerCloses, onAutoTeam, tradeDeadlineInForce, tradesShut } from "./tradeShut";
 import { shutWords } from "./tradeShutWords";
@@ -40,6 +40,7 @@ export const offerRefusals = {
   closed: "That offer is closed.",
   held: (playerName: string) => `${playerName} is in another trade under review.`,
   alreadyOffered: (teamName: string) => `You've already offered ${teamName} this trade.`,
+  tooMany: `You have ${OFFERS_PER_TEAM_MOST} offers open, the most a team can: withdraw one before making another.`,
 };
 
 const teamWarnings = v.array(v.object({ teamId: v.id("teams"), teamName: v.string(), warnings: v.array(squadWarning) }));
@@ -104,7 +105,8 @@ function sameTrade(held: Doc<"tradeOffers">, from: Id<"teams">, to: Id<"teams">,
   return held.fromTeamId === from && held.toTeamId === to && samePlayers(held.gives, gives) && samePlayers(held.gets, gets) && samePicks;
 }
 
-/** Makes an offer from `from` to `to`, with both managers' letter, after every check. */
+/** Makes an offer from `from` to `to`, with both managers' letter, after every check: refused while
+ *  `from` has OFFERS_PER_TEAM_MOST open, unanswered and no deadline since (Craig, 11 Nov 2026, #1609). */
 async function makeOffer(
   ctx: MutationCtx,
   league: Doc<"leagues">,
@@ -118,9 +120,11 @@ async function makeOffer(
   const now = Date.now();
   await checkOpen(ctx, league, [from, to], now);
   await checkSides(ctx, league._id, from, to, { gives, gets, picks });
-  if ((await leagueOffers(ctx, league._id)).some((held) => sameTrade(held, from._id, to._id, { gives, gets, picks }))) {
-    refuse(offerRefusals.alreadyOffered(to.name));
-  }
+  const held = await leagueOffers(ctx, league._id);
+  if (held.some((offer) => sameTrade(offer, from._id, to._id, { gives, gets, picks }))) refuse(offerRefusals.alreadyOffered(to.name));
+  const deadlines = await leagueDeadlines(ctx, league._id);
+  const open = held.filter((offer) => offer.fromTeamId === from._id && offer.review === undefined && !deadlinePassed(offer, deadlines, now));
+  if (open.length >= OFFERS_PER_TEAM_MOST) refuse(offerRefusals.tooMany);
   const kept = keptNote(note);
   const offer = {
     leagueId: league._id,
@@ -136,7 +140,6 @@ async function makeOffer(
   const warnings = await tradeWarnings(ctx, league._id, offer);
   const offerId = await ctx.db.insert("tradeOffers", offer);
   const words = await tradeWordsOf(ctx, offer);
-  const deadlines = await leagueDeadlines(ctx, league._id);
   const closes = offerCloses(deadlines, now, await tradeDeadlineInForce(ctx, league._id, deadlines, now));
   const lastMatchOf = closes !== null && closes.at === null ? closes.gameweek : null;
   await fileLetter(ctx, league, [to.managerEmail, by].filter((email) => email !== undefined), offerLetter(words, by, countered, lastMatchOf), by);

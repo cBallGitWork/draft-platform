@@ -1,6 +1,8 @@
 import { expect, test } from "vitest";
 import { api } from "../../../convex/_generated/api";
 import { FIRST_SCORING } from "../../../convex/scoring/firstScoring";
+import { mostFirst } from "../../../convex/scouting/raceOrder";
+import { rankAmong } from "../../../convex/shared/ranks";
 import { refusals } from "../../../convex/shared/leagueAccess";
 import { actingAs, OUTSIDER } from "../../support/convex/leagues.harness";
 import { expectRefused } from "../../support/convex/test.harness";
@@ -20,7 +22,7 @@ async function withTotals(league: ScoresLeague) {
   });
 }
 
-const raceOf = async ({ t, leagueId }: ScoresLeague, stat: string | null, descending = true, email = ANN) =>
+const raceOf = async ({ t, leagueId }: ScoresLeague, stat: string, descending = true, email = ANN) =>
   (await actingAs(t, email)).query(api.scouting.statRace.teams, { leagueId, stat, descending });
 const race = async (league: ScoresLeague, stat: string, descending = true, email = ANN) => (await raceOf(league, stat, descending, email)).teams;
 
@@ -37,19 +39,6 @@ test("every team is ranked by the stat picked, most first, a team with none of i
   expect(ranked.find((team) => team.name === CATS_TEAM)!.stats).toEqual({});
 });
 
-test("with no stat asked, the teams are ranked by the first category", async () => {
-  const league = await scoresLeague({ catToo: true });
-  await withTotals(league);
-
-  const { categories, teams } = await raceOf(league, null);
-  expect(categories[0]).toBe("goals_scored");
-  expect(teams.map(({ name, stat }) => [name, stat])).toEqual([
-    [BOBS_TEAM, 5],
-    [ANNS_TEAM, 3],
-    [CATS_TEAM, 0],
-  ]);
-});
-
 test("fewest first when asked, and ties fall back to the team's name", async () => {
   const league = await scoresLeague({ catToo: true });
   await withTotals(league);
@@ -59,6 +48,16 @@ test("fewest first when asked, and ties fall back to the team's name", async () 
     [CATS_TEAM, 0],
     [ANNS_TEAM, 1],
   ]);
+});
+
+test("the stats where fewer is better rank the team with fewest 1st, the rest the team with most (#1608, S19.1)", () => {
+  const totals = [3, 0, 0, 1];
+  for (const stat of ["red_cards", "yellow_cards", "own_goals", "goals_conceded", "penalties_missed"]) {
+    expect(mostFirst(stat)).toBe(false);
+    expect(totals.map((total) => rankAmong(total, totals, mostFirst(stat)))).toEqual([4, 1, 1, 3]);
+  }
+  expect(mostFirst("goals_scored")).toBe(true);
+  expect(totals.map((total) => rankAmong(total, totals, mostFirst("goals_scored")))).toEqual([1, 3, 3, 2]);
 });
 
 test("only the catalogue's stats are shown: FPL's own bonus never is", async () => {

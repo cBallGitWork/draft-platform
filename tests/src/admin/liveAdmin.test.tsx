@@ -21,6 +21,8 @@ const convex = vi.hoisted(() => ({
   setClubColours: vi.fn(),
   forAdmin: vi.fn(),
   setAvailability: vi.fn(),
+  platformSettings: vi.fn(),
+  savePlatformSettings: vi.fn(),
 }));
 vi.mock("convex/react", async () =>
   (await import("../../support/src/convexReact.harness")).fakeConvexReact({
@@ -28,6 +30,7 @@ vi.mock("convex/react", async () =>
       "positions/playerPositions:find": convex.find,
       "admin/feeds:feeds": convex.feeds,
       "availability/availability:forAdmin": convex.forAdmin,
+      "admin/platformSettings:settings": convex.platformSettings,
     },
     mutations: {
       "positions/playerPositions:approvePlayer": convex.approvePlayer,
@@ -38,6 +41,7 @@ vi.mock("convex/react", async () =>
       "positions/positionSettings:setChangeThresholds": convex.setChangeThresholds,
       "football/clubKits:set": convex.setClubColours,
       "availability/availability:set": convex.setAvailability,
+      "admin/platformSettings:save": convex.savePlatformSettings,
     },
   }),
 );
@@ -78,6 +82,17 @@ test("new thresholds go to positions/positionSettings:setChangeThresholds", asyn
   convex.setChangeThresholds.mockResolvedValue(null);
   expect(await seam().setChangeThresholds({ flagAfter: 2, removeAfter: 5 })).toBeNull();
   expect(convex.setChangeThresholds).toHaveBeenCalledWith({ flagAfter: 2, removeAfter: 5 });
+});
+
+test("the site's settings are asked of admin/platformSettings:settings, and saved by admin/platformSettings:save", async () => {
+  const settings = { statCorrectionWindowMinutes: 90, scoutsPerTeam: 2, matchdayHoursBefore: 4, matchdayHoursAfter: 0 };
+  convex.platformSettings.mockReturnValue(settings);
+  expect(renderHook(() => useLiveAdmin().usePlatformSettings()).result.current).toBe(settings);
+  expect(convex.platformSettings).toHaveBeenLastCalledWith({});
+
+  convex.savePlatformSettings.mockResolvedValue(null);
+  expect(await seam().savePlatformSettings(settings)).toBeNull();
+  expect(convex.savePlatformSettings).toHaveBeenCalledWith(settings);
 });
 
 test("a club's colours go to football/clubKits:set", async () => {

@@ -18,7 +18,7 @@ import type { ScoringRule, ScoringSet } from "../scoring/scoringSet";
 /** How the Squad tab's match was priced: from his slot in a lineup, at his best position, or there
  *  but not counted: a bench player who didn't come on, at his best position, or his other match in
  *  a double gameweek that counts only his best, at his slot (spec/12, Squad). */
-type ScoredAs ="slot" | "bestPosition" | "notCounted";
+type ScoredAs = "slot" | "bestPosition" | "notCounted";
 
 export interface CardPoints extends MatchPoints {
   scoredAs: ScoredAs;

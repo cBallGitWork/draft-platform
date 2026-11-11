@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, test } from "vitest";
 import { api } from "../../../convex/_generated/api";
 import { HOUR_MS, MINUTE_MS } from "../../../convex/shared/time";
 import { claimRefusals } from "../../../convex/waivers/waiverClaims";
-import { WAIVER_MS } from "../../../convex/waivers/waiverLimits";
+import { CLAIMS_PER_TEAM_MOST, WAIVER_MS } from "../../../convex/waivers/waiverLimits";
 import { playerLeaves } from "../../support/convex/draftLists.harness";
 import { setUsed } from "../../support/convex/leagueRules.harness";
 import { actingAs, addManager, COMMISSIONER, MANAGERS } from "../../support/convex/leagues.harness";
@@ -45,6 +45,22 @@ describe("a manager's claims", () => {
     await w.claim(ANN, SAKA, ANNS_FIRST_DROP);
     await expectRefused(w.claim(ANN, SAKA, ANNS_FIRST_DROP), claimRefusals.twice);
     await w.claim(ANN, SAKA, ANNS_SECOND_DROP);
+  });
+
+  test(`are refused while his team has ${CLAIMS_PER_TEAM_MOST} in, until he withdraws one (S08.16)`, async () => {
+    await w.onWaivers([SAKA, PALMER]);
+    // Ann's team holds one short of the ceiling.
+    await w.t.run(async (ctx) => {
+      for (let rank = 0; rank < CLAIMS_PER_TEAM_MOST - 1; rank++) {
+        await ctx.db.insert("waiverClaims", { leagueId: w.leagueId, teamId: w.annsTeam, playerCode: SAKA, dropCode: 900_000 + rank, rank, by: ANN });
+      }
+    });
+    const palmerClaim = await w.claim(ANN, PALMER);
+    await expectRefused(w.claim(ANN, SAKA), claimRefusals.tooMany);
+    // The ceiling is each team's own: Bob still claims.
+    await w.claim(BOB, SAKA);
+    await (await actingAs(w.t, ANN)).mutation(api.waivers.waiverClaims.withdraw, { leagueId: w.leagueId, claimId: palmerClaim });
+    await w.claim(ANN, SAKA);
   });
 
   test("aren't put in for a player who has left the Premier League", async () => {
