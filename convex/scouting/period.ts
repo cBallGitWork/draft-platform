@@ -22,7 +22,8 @@ import { PERIOD_GAMEWEEKS, type Period } from "./periods";
 // totals (seasonStats.ts), so last season's until the new one's first match. A gameweek is finished
 // once every one of its matches with a kickoff has been read at full time. The season's totals are
 // kept as records are written; a few gameweeks' are added up from their matches' records on read,
-// at most 6 gameweeks of a few dozen records a match.
+// at most 6 gameweeks of a few dozen records a match; each gameweek still to be played costs one
+// status read on the way down to them.
 
 /** One of the period's matches: its gameweek and every record held for it. */
 type PeriodMatch = { fixture: Doc<"fixtures">; gameweek: number; records: Doc<"playerMatchStats">[] };
@@ -62,10 +63,19 @@ async function finishedGameweeks(ctx: QueryCtx, season: number, count: number): 
   const finished: [number, Doc<"fixtures">[]][] = [];
   for (const gameweek of newestFirst) {
     if (finished.length === count) break;
-    const read = await Promise.all(gameweek[1].map((fixture) => statusOf(ctx, fixture.code)));
-    if (read.every((status) => status !== null)) finished.push(gameweek);
+    if (await everyMatchRead(ctx, gameweek[1])) finished.push(gameweek);
   }
   return finished;
+}
+
+/** Whether every one of these matches has been read at full time. The latest kickoff is asked
+ *  first and the walk stops at the first unread match, so a gameweek still to be played costs one
+ *  read, not one a match (#1552). */
+async function everyMatchRead(ctx: QueryCtx, fixtures: readonly Doc<"fixtures">[]): Promise<boolean> {
+  for (const fixture of fixtures.toSorted((one, other) => other.kickoff! - one.kickoff!)) {
+    if ((await statusOf(ctx, fixture.code)) === null) return false;
+  }
+  return true;
 }
 
 /** The season's matches with a kickoff and a gameweek: for the season the feed still sends, only

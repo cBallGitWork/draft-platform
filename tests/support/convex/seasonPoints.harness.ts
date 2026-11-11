@@ -1,4 +1,4 @@
-import { api, internal } from "../../../convex/_generated/api";
+import { internal } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
 import { pointsAt } from "../../../convex/playerCard/cardPoints";
 import type { SlotPosition } from "../../../convex/lineup/pitch";
@@ -9,6 +9,7 @@ import type { StoredScoringSet } from "../../../convex/scoring/scoringSetShape";
 import { WEEK_MS } from "../../../convex/shared/time";
 import { MANAGERS, actingAs, addManagers, adminCreatesLeague, type TestConvex } from "./leagues.harness";
 import { ARSENAL, CHELSEA, SAKA, completeRecord, insertClubs, insertPlayers } from "./footballRows.harness";
+import { BY_NAME, playersListed } from "./playersList.harness";
 import { EXAMPLE_SET } from "./scoring.example";
 import { holdSiteScoring } from "./siteScoring.harness";
 import { fakeResend, signInDeployment } from "./signIn.harness";
@@ -76,8 +77,7 @@ export async function seasonPointsLeague(): Promise<PointsLeague> {
 export const refresh = ({ t }: PointsLeague, playerCodes = ALL_CODES) => t.mutation(internal.stats.seasonPoints.refresh, { playerCodes });
 
 /** Scouting's players list as Ann reads it in `leagueId`. */
-export const list = async ({ t, leagueId }: PointsLeague, sort: PlayersSort = { by: "name", descending: false }) =>
-  (await actingAs(t, ANN)).query(api.scouting.playersList.list, { leagueId, filters: { availability: "all", position: null, clubCode: null }, sort, stat: null });
+export const list = async ({ t, leagueId }: PointsLeague, sort: PlayersSort = BY_NAME) => playersListed(await actingAs(t, ANN), leagueId, { sort });
 
 /** Each listed player's season points, by his code. */
 export const pointsListed = async (league: PointsLeague) => new Map((await list(league)).players.map((player) => [player.code, player.seasonPoints]));

@@ -6,7 +6,7 @@ import { scoringStartRefusals, startAfterDraft } from "../../../convex/gameweeks
 import { refusals } from "../../../convex/shared/leagueAccess";
 import { HOUR_MS, WEEK_MS } from "../../../convex/shared/time";
 import { holdGameweeks, setUsed } from "../../support/convex/leagueRules.harness";
-import { actingAs, addManagers, adminCreatesLeague, COMMISSIONER, leagueRow, MANAGERS, type TestConvex } from "../../support/convex/leagues.harness";
+import { actingAs, addManagers, adminCreatesLeague, COMMISSIONER, eventsIn, leagueRow, MANAGERS, type TestConvex } from "../../support/convex/leagues.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
 import { expectRefused } from "../../support/convex/test.harness";
 
@@ -146,6 +146,25 @@ describe("the commissioner sets it", () => {
     await setStart(5);
     await setUsed(t, leagueId, 6, false);
     expect(await scoringStart()).toBe(5);
+    expect((await eventsIn(t, leagueId)).at(-1)).toEqual({ by: COMMISSIONER, kind: "gameweekUsed", gameweek: 6, used: false });
+  });
+
+  // Every commissioner action files a letter to the whole league (spec/15; #1548).
+  test("setting or moving it is filed for Mail, from none or the start it moved from; setting it again to the same files nothing", async () => {
+    await setStart(9);
+    await setStart(12);
+    await setStart(12);
+    const filed = (await eventsIn(t, leagueId)).filter((event) => event.kind === "scoringStartSet");
+    expect(filed).toEqual([
+      { by: COMMISSIONER, kind: "scoringStartSet", from: null, to: 9 },
+      { by: COMMISSIONER, kind: "scoringStartSet", from: 9, to: 12 },
+    ]);
+  });
+
+  test("unticking it says, in the gameweek's letter, where the start moved to", async () => {
+    await setStart(5);
+    await setUsed(t, leagueId, 5, false);
+    expect((await eventsIn(t, leagueId)).at(-1)).toEqual({ by: COMMISSIONER, kind: "gameweekUsed", gameweek: 5, used: false, startMovedTo: 6 });
   });
 });
 

@@ -125,6 +125,16 @@ describe("answering an offer", () => {
     }
   });
 
+  test("Continue counts the open offers waiting for his answer, not his own nor one accepted (#1553)", async () => {
+    const waiting = async (email: string) => (await actingAs(w.t, email)).query(api.trades.tradeOffers.countWaitingForMe, { leagueId: w.leagueId });
+    const toBob = await w.offer(ANN, w.bobsTeam, [ANNS_FIRST_DROP], [SAKA]);
+    await w.offer(CAT, w.bobsTeam, [RICE], [PALMER]);
+    expect([await waiting(ANN), await waiting(BOB), await waiting(CAT), await waiting(COMMISSIONER)]).toEqual([0, 2, 0, 0]);
+
+    await w.accept(BOB, toBob.offerId);
+    expect(await waiting(BOB)).toBe(1);
+  });
+
   test("only the team it's to answers it", async () => {
     const { offerId } = await w.offer(ANN, w.bobsTeam, [ANNS_FIRST_DROP], [SAKA]);
     await expectRefused(w.reject(ANN, offerId), offerRefusals.notYours);

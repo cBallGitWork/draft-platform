@@ -70,12 +70,11 @@ const figure = (code: number, rank: number, lastSeasonPoints: number | null, app
   lastSeasonPoints,
   overview: { appearances, goals: 5, assists: 4, cleanSheets: 0 },
 });
-/** Palmer the site's best, then Saka, then Rice, a newcomer; 2025's points, a club maximum of 2. */
+/** Palmer the site's best, then Saka, then Rice, a newcomer; 2025's points. */
 const FIGURES: RoomFigures = {
   players: [figure(SAKA.code, 2, 180, 36), figure(RICE.code, 3, null), figure(ODEGAARD.code, 4, 140), figure(PALMER.code, 1, 220)],
   lastSeason: 2025,
   statsSeason: 2025,
-  maxPerClub: 2,
 };
 
 /** A live draft's first pick, Team 1's, or the reader's Team 2's second, paused or not. */
@@ -183,7 +182,7 @@ describe("the players list", () => {
 
 describe("the selected player's panel", () => {
   it("gives his place on the ranking, last season's points in his games, and what the reader's squad holds", async () => {
-    const board = { ...emptyBoard, picks: [{ pick: 1, teamId: YOUR_TEAM, auto: false, player: { code: 99, name: "Raya", clubShortName: "ARS", position: "GK" as const } }] };
+    const board = { ...emptyBoard, maxPerClub: 2, picks: [{ pick: 1, teamId: YOUR_TEAM, auto: false, player: { code: 99, name: "Raya", clubShortName: "ARS", position: "GK" as const } }] };
     openDraft({ draft: liveDraft(true), board, figures: FIGURES });
     await open(SAKA.name);
     const panel = screen.getByRole("region", { name: `${SAKA.name}${ARSENAL.shortName}` });

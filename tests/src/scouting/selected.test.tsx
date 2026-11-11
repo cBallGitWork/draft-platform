@@ -102,6 +102,21 @@ describe("selecting a player", () => {
     expect(factIn(panel, panelMinutesWords("last4")).textContent).toBe("90");
   });
 
+  it("after one who has left, the next selected shows while his list loads", async () => {
+    const app = await openOnAll(WITH_FIGURES);
+    await userEvent.click(await screen.findByRole("button", { name: selectPlayerLabel("Rice") }));
+    // Rice leaves the Premier League: the server keeps nobody and the list drops him.
+    const gone = fakeScouting({ ...WITH_FIGURES, players: WITH_FIGURES.players!.filter(({ code }) => code !== RICE.code) }).usePlayersList;
+    app.scouting.usePlayersList.mockImplementation(gone);
+    await userEvent.selectOptions(screen.getByRole("combobox", { name: periodLabel }), periodWords.last4);
+    expect(screen.queryByRole("region", { name: /^CDM/ })).toBeNull();
+
+    // Saka's list is still loading, so the last one, kept null for Rice, stays up.
+    app.scouting.usePlayersList.mockImplementation((...args) => (args[5] === SAKA.code ? undefined : gone(...args)));
+    await userEvent.click(screen.getByRole("button", { name: selectPlayerLabel("Saka") }));
+    expect(panelOf("W")).toBeTruthy();
+  });
+
   it("his name in the list opens his card, not his panel", async () => {
     const app = openScouting();
     await screen.findByRole("table");

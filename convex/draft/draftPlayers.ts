@@ -2,12 +2,11 @@ import { v, type Infer } from "convex/values";
 import type { Id } from "../_generated/dataModel";
 import { query, type QueryCtx } from "../_generated/server";
 import { positionsNow } from "../positions/playerPositions";
-import { latestRules } from "../rules/rulesHistory";
 import { memberOf, runnerOf } from "../shared/leagueAccess";
 import { newestSeasonWithTotals, seasonTotals } from "../stats/seasonStats";
 import type { Stats } from "../stats/statTotals";
 import { autoPickOrder } from "./autoPickOrder";
-import { squadRulesOf, whyNotLegalFor } from "./draftPicks";
+import { whyNotLegalFor } from "./draftPicks";
 import { everyPlayerNow, undraftedIn } from "./undrafted";
 import { draftRanking } from "./draftRanking";
 import { draftOf, picksLeftOf, turnNow, type Turn } from "./draftRow";
@@ -94,10 +93,6 @@ const roomFigures = v.object({
   lastSeason: v.union(v.number(), v.null()),
   /** The season the overview's totals are from, by the year it starts, or null while none is held. */
   statsSeason: v.union(v.number(), v.null()),
-  /** The most players of one club a squad may hold under the rules the draft picks by: those it
-   *  started under, or before it starts the league's latest, which it would start under; null for
-   *  no limit. */
-  maxPerClub: v.union(v.number(), v.null()),
 });
 export type RoomFigures = Infer<typeof roomFigures>;
 
@@ -111,9 +106,9 @@ const overviewOf = (stats: Stats): RoomFigure["overview"] => {
 };
 
 /** The draft room's figures for every Premier League player now: his place on the site's ranking,
- *  last season's points and the overview's season totals; and the club maximum the panel counts a
- *  squad against. No pick moves any of it, so a pick doesn't run it again. Refused to anyone
- *  outside the league. */
+ *  last season's points and the overview's season totals. It reads nothing a pick or the clock
+ *  writes, so neither runs it again: the club maximum, which needs the draft's row, is the board's
+ *  (draftBoard.ts; #1537). Refused to anyone outside the league. */
 export const figures = query({
   // No minute: one would reload the room's figures as the minute turns (#1531).
   args: { leagueId: v.id("leagues") },
@@ -126,8 +121,6 @@ export const figures = query({
     const rankOf = new Map(autoPickOrder(players, NO_LISTS, ranked, points).map((code, index) => [code, index + 1]));
     const season = await newestSeasonWithTotals(ctx);
     const totals = season === null ? new Map<number, Stats>() : await seasonTotals(ctx, season);
-    const started = (await draftOf(ctx, leagueId))?.started;
-    const squadRules = started === undefined ? (await latestRules(ctx, leagueId)).squad : await squadRulesOf(ctx, leagueId, started);
     return {
       players: players.map(({ code }) => ({
         code,
@@ -137,7 +130,6 @@ export const figures = query({
       })),
       lastSeason: await lastPricedSeason(ctx),
       statsSeason: season,
-      maxPerClub: squadRules?.maxPerClub ?? null,
     };
   },
 });

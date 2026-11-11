@@ -35,12 +35,15 @@ const FIRST_DESCENDING: Record<ListSortColumn, boolean> = {
 /** The selected player as the server now has him, whatever the filters keep (#1551), so a pickup,
  *  claim or drop that moves him out of the list still shows on his panel, with the list's period
  *  figures: the list's kept row, or his row in the list while the kept one is still another's. The
- *  row clicked stands in only until either loads; none once he has left the Premier League. */
+ *  row clicked stands in only until either loads; none once he has left the Premier League. A
+ *  null kept is read as his only once his row is not in the list, since while a newly selected
+ *  player's list loads the last one, kept for whoever was selected before, stays up. */
 function liveSelected(selected: ListedPlayer | null, list: PlayersList | undefined): ListedPlayer | null {
   if (selected === null) return null;
-  if (list?.kept === null) return null;
   if (list?.kept?.code === selected.code) return list.kept;
-  return list?.players.find(({ code }) => code === selected.code) ?? selected;
+  const listed = list?.players.find(({ code }) => code === selected.code);
+  if (listed !== undefined) return listed;
+  return list?.kept === null ? null : selected;
 }
 
 /** Scouting (spec/19), for anyone in the league, under Players and Stat race tabs on its title
@@ -57,8 +60,8 @@ export function ScoutingPage({ league, seam }: { league: LeagueSummary; seam: Sc
 
 /** The Players tab, as the approved picture lays it out: every Premier League player, filtered by
  *  who holds him, his position and his club, its figures and any stat shown over the season or the
- *  last 4 or 6 gameweeks, and sorted by a
- *  column's head, all on the server, and found by name here. A row selects him: his panel opens at
+ *  last 4 or 6 gameweeks, sorted by a column's head and found by name. Only a club, a stat or a
+ *  period chosen reads the list again (#1552). A row selects him: his panel opens at
  *  the top of the right column, over the manager's shortlist and his team's scouts, whose reports
  *  open there too. Compare with another… then a second row puts the two side by side. */
 function PlayersTab({ league, seam }: { league: LeagueSummary; seam: ScoutingSeam }) {
@@ -66,7 +69,7 @@ function PlayersTab({ league, seam }: { league: LeagueSummary; seam: ScoutingSea
   const [sort, setSort] = useState<ListSort>(OPENING_SORT);
   const [stat, setStat] = useState<CatalogueStat | null>(null);
   const [name, find] = useState("");
-  // While a changed filter or sort loads, the last list stays up, so the club filter keeps its clubs.
+  // While a changed club, stat or period loads, the last list stays up, so the club filter keeps its clubs.
   const [period, choosePeriod] = useState<Period>(OPENING_PERIOD);
   // The player clicked, as his row read then; his panel draws him live (`shownSelected`).
   const [selected, setSelected] = useState<ListedPlayer | null>(null);

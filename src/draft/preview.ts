@@ -84,12 +84,11 @@ const figures: RoomFigures = {
   })),
   lastSeason: 2025,
   statsSeason: 2025,
-  maxPerClub: 2,
 };
 
 export const previewDraft: DraftSeam = {
   useDraft: () => (isBefore() ? before : draft),
-  useBoard: () => ({ picks: isBefore() ? [] : picks, yourTeamId: YOURS, pickSeconds: 90, yourAutoPick: usePreviewAutoPick(), tradedPicks: TRADED }),
+  useBoard: () => ({ picks: isBefore() ? [] : picks, yourTeamId: YOURS, pickSeconds: 90, yourAutoPick: usePreviewAutoPick(), tradedPicks: TRADED, maxPerClub: 2 }),
   useInMenu: () => true,
   // Scouting's preview players; Saka Potatoes is at its Arsenal maximum, so Rice and Raya are greyed.
   usePlayersList: previewScouting.usePlayersList,

@@ -54,8 +54,9 @@ export const previewMail: MailSeam = {
 };
 
 const unreadMail = previewLetters.filter((each) => !each.read).length;
-// The preview's lineup locks more than a day off (myTeam/tactics/preview.ts), so it isn't due yet.
-export const previewTopBar: TopBarState = { unreadMail, next: nextStep({ unreadMail, lineupDue: false }) };
+// The preview's lineup locks more than a day off (myTeam/tactics/preview.ts), so it isn't due yet,
+// and no offer waits for him.
+export const previewTopBar: TopBarState = { unreadMail, next: nextStep({ unreadMail, lineupDue: false, offersWaiting: 0 }) };
 
 /** The newest letters a screen's Mail panel shows (My team's Squad tab, League home), and how many
  *  are unread. */

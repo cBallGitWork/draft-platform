@@ -2,6 +2,7 @@ import { v, type Infer } from "convex/values";
 import type { Doc } from "../_generated/dataModel";
 import { mutation, query, type MutationCtx, type QueryCtx } from "../_generated/server";
 import { begunGameweeks } from "../gameweekScorer/gameweekScores";
+import { recordEvent } from "../mail/letters";
 import { refuse, runnerOf } from "../shared/leagueAccess";
 import { isLocked, type DeadlineOf } from "./deadline";
 import { deadlineOf, leagueDeadlines } from "./leagueDeadlines";
@@ -73,7 +74,7 @@ export const setScoringStart = mutation({
   args: { leagueId: v.id("leagues"), gameweek: v.number() },
   returns: v.null(),
   handler: async (ctx, { leagueId, gameweek }) => {
-    const { league } = await runnerOf(ctx, leagueId);
+    const { email, league } = await runnerOf(ctx, leagueId);
     if (!isGameweek(gameweek)) refuse(scoringStartRefusals.notAGameweek(gameweek));
     const deadlineIn = deadlineOf(await leagueDeadlines(ctx, leagueId));
     const now = Date.now();
@@ -83,7 +84,9 @@ export const setScoringStart = mutation({
     const deadline = deadlineIn(gameweek);
     if (deadline === null) refuse(scoringStartRefusals.noDeadline(gameweek));
     if (isLocked(deadline, now)) refuse(scoringStartRefusals.begun(gameweek));
-    if (league.scoringStart !== gameweek) await ctx.db.patch("leagues", leagueId, { scoringStart: gameweek });
+    if (league.scoringStart === gameweek) return null;
+    await ctx.db.patch("leagues", leagueId, { scoringStart: gameweek });
+    await recordEvent(ctx, leagueId, email, { kind: "scoringStartSet", from: league.scoringStart ?? null, to: gameweek });
     return null;
   },
 });

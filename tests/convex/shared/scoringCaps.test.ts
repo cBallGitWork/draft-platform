@@ -5,7 +5,7 @@ import type { MutationCtx, QueryCtx } from "../../../convex/_generated/server";
 import { FIRST_GAMEWEEK } from "../../../convex/gameweeks/usedGameweeks";
 import { seasonRecords } from "../../../convex/stats/seasonRecords";
 import { seasonRules } from "../../../convex/rules/rulesHistory";
-import { OWNED_IN_LEAGUE_MOST, type PlayersFilters, type PlayersSort } from "../../../convex/scouting/playersList";
+import { OWNED_IN_LEAGUE_MOST } from "../../../convex/scouting/playersList";
 import { GAMEWEEK_MATCHES_MOST } from "../../../convex/shared/fixtures";
 import { PLAYER_RECORDS_MOST } from "../../../convex/stats/matchRecords";
 import { LEAGUE_OVERRIDES_MOST } from "../../../convex/stats/seasonPoints";
@@ -37,9 +37,8 @@ async function readsToTheCapThenThrows(cap: number, holdTo: (count: number) => P
   await expect(read()).rejects.toThrow(tooMany);
 }
 
-/** Scouting's players list, every player by name. */
-const everyone: PlayersFilters = { availability: "all", position: null, clubCode: null };
-const byName: PlayersSort = { by: "name", descending: false };
+/** Scouting's players list, every club's players. */
+const everyClub = { clubCode: null, stat: null };
 
 /** A gameweek scoresLeague holds no matches in, for counting from none. */
 const EMPTY_GAMEWEEK = GAMEWEEK + 1;
@@ -203,7 +202,7 @@ test(`a league's overrides for Scouting's season points: ${LEAGUE_OVERRIDES_MOST
       (ctx, index) =>
         ctx.db.insert("pointsOverrides", { leagueId, gameweek: GAMEWEEK, fixtureCode: HULL_EVERTON, playerCode: MADE_UP_CODES + index, points: 0, reason: "", by: ANN, at: 0 }),
     ),
-    () => ann.query(api.scouting.playersList.list, { leagueId, filters: everyone, sort: byName, stat: null }),
+    () => ann.query(api.scouting.playersList.list, { leagueId, ...everyClub }),
     `League ${leagueId} holds more than ${LEAGUE_OVERRIDES_MOST} overrides, so season points would be cut short`,
   );
 });
@@ -257,7 +256,7 @@ test(`the players owned in a league for the players list: ${OWNED_IN_LEAGUE_MOST
       async (ctx) => (await ctx.db.query("squadPlayers").collect()).length,
       (ctx, index) => ctx.db.insert("squadPlayers", { leagueId, teamId: annsTeam, playerCode: MADE_UP_CODES + index }),
     ),
-    () => ann.query(api.scouting.playersList.list, { leagueId, filters: everyone, sort: byName, stat: null }),
+    () => ann.query(api.scouting.playersList.list, { leagueId, ...everyClub }),
     `More than ${OWNED_IN_LEAGUE_MOST} players are owned in league ${leagueId}, so the list would be cut short`,
   );
 });

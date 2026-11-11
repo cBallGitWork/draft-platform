@@ -16,7 +16,7 @@ export const waitingDraft: DraftState = { status: "waiting", startsAt: null, rou
 
 /** No picks yet or traded, the reader's team Team 2, 90 seconds a pick, off auto-pick with no
  *  timeouts of 2. */
-export const emptyBoard: DraftBoard = { picks: [], yourTeamId: YOUR_TEAM, pickSeconds: 90, yourAutoPick: { on: false, timeouts: 0, limit: 2 }, tradedPicks: [] };
+export const emptyBoard: DraftBoard = { picks: [], yourTeamId: YOUR_TEAM, pickSeconds: 90, yourAutoPick: { on: false, timeouts: 0, limit: 2 }, tradedPicks: [], maxPerClub: null };
 
 /** A player on the reader's queue or do-not-draft list, as the server sends him. */
 export const draftListed = (code: number, name: string): DraftLists["queue"][number] => ({
@@ -57,8 +57,8 @@ export type DraftData = {
   greyedOnTheClock?: readonly GreyedPlayer[];
 };
 
-/** No player ranked, priced or counted, and no club maximum. */
-export const noFigures: RoomFigures = { players: [], lastSeason: null, statsSeason: null, maxPerClub: null };
+/** No player ranked, priced or counted. */
+export const noFigures: RoomFigures = { players: [], lastSeason: null, statsSeason: null };
 
 export function fakeDraft({
   draft = waitingDraft,

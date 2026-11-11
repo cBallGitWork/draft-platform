@@ -126,6 +126,9 @@ describe("the players the team on the clock can't take, for the commissioner's P
 
 describe("the draft room's figures", () => {
   const figuresOf = async (email: string) => (await as(email)).query(api.draft.draftPlayers.figures, { leagueId });
+  /** The club maximum is the board's, which already reads the draft's row, so a pick never reruns
+   *  the figures (#1537). */
+  const clubMaximumOf = async (email: string) => (await (await as(email)).query(api.draft.draftBoard.ofLeague, { leagueId })).maxPerClub;
   const byCodeOf = <Figure extends { code: number }>(figures: { players: Figure[] }) => new Map(figures.players.map((each) => [each.code, each]));
 
   test("rank the admin's ranking first, then last season's points, newcomers last, with each one's overview", async () => {
@@ -147,10 +150,10 @@ describe("the draft room's figures", () => {
 
   test("give the club maximum the draft picks by: the league's before the start, the one it started under after", async () => {
     await setSquadRules({ maxPerClub: 1 });
-    expect((await figuresOf(ANN)).maxPerClub).toBe(1);
+    expect((await clubMaximumOf(ANN))).toBe(1);
     await start();
     await setSquadRules({ maxPerClub: 2 });
-    expect((await figuresOf(ANN)).maxPerClub).toBe(1);
+    expect((await clubMaximumOf(ANN))).toBe(1);
   });
 
   test("before the start, give the club maximum of a change waiting for the next gameweek, which the draft would start under (#1130, S04.1)", async () => {
@@ -158,7 +161,7 @@ describe("the draft room's figures", () => {
     expect(HELD_FIRST_RULES.squad.maxPerClub).not.toBe(1);
     expect(await changeRules(t, leagueId, rulesWith({ squad: { ...HELD_FIRST_RULES.squad, maxPerClub: 1 } }))).toBe(5);
 
-    expect((await figuresOf(ANN)).maxPerClub).toBe(1);
+    expect((await clubMaximumOf(ANN))).toBe(1);
   });
 
   test("are refused to anyone outside the league", async () => {
