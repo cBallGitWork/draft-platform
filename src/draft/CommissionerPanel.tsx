@@ -170,7 +170,8 @@ function LiveActions({
 
 function Action({ disabled, onClick, children }: { disabled: boolean; onClick: () => void; children: string }) {
   return (
-    <button type="button" disabled={disabled} onClick={onClick} className="secondary-action">
+    // Greyed, the action with nothing to do (plate.md, Colour roles), as the pick panel's are.
+    <button type="button" disabled={disabled} onClick={onClick} className={disabled ? "action-idle" : "secondary-action"}>
       {children}
     </button>
   );
