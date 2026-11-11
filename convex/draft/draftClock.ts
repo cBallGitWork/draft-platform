@@ -8,7 +8,7 @@ import { pickOnTheClock } from "./snakeOrder";
 
 // The pick clock (spec/04, The picks; #1091). Each pick runs on the league's pick time. The first
 // clock starts with the draft; each after waits 10 seconds from the pick before it, whoever made it
-// (Craig, 4 Nov 2026, on #1091), the window a manager has to undo his own pick (draftPicks.ts
+// (Craig, 4 Nov 2026, on #1091), the window a manager has to undo his own pick (pickWindow.ts
 // `undoMyPick`; #1458), and the draft ends 10 seconds after its last pick. When a clock
 // runs out, the draft picks for the team (draftPicks.ts `autoPick`), whether or not its manager is
 // online. A team with no manager is picked for at once, as its clock starts (Craig, 4 Nov 2026, on
