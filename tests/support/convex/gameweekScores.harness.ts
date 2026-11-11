@@ -21,6 +21,7 @@ import { leagueReads } from "../../../convex/gameweekScorer/teamGameweek";
 import { seasonRules } from "../../../convex/rules/rulesHistory";
 import { HOUR_MS, MINUTE_MS } from "../../../convex/shared/time";
 import { actingAs, addManagers, adminCreatesLeague, MANAGERS, type TestConvex } from "./leagues.harness";
+import { matchupOf } from "./screenReads.harness";
 import { EVERTON, EVERTON_CLUB, GAMEWEEK, HULL, HULL_CITY, HULL_EVERTON } from "./matchStats.harness";
 import { insertClubs } from "./footballRows.harness";
 import { BELLOUMI, DEWSBURY_HALL, GELHARDT, PHILLIPS, TZOLAKIS } from "./teamPoints.harness";
@@ -159,7 +160,7 @@ export const readTable = ({ t, leagueId }: ScoresLeague) => actingAs(t, ANN).the
 
 /** The matchup `email` reads: their own team's in the current gameweek, unless `args` names others. */
 export async function matchupAs({ t, leagueId }: ScoresLeague, email: string, args: { teamId?: Id<"teams">; gameweek?: number } = {}) {
-  return (await actingAs(t, email)).query(api.matchup.matchup.ofTeam, { leagueId, now: Date.now(), ...args });
+  return matchupOf(await actingAs(t, email), leagueId, Date.now(), args);
 }
 
 /** The scored game Ann's matchup shows: in `gameweek`, or the current one when none is named. */
