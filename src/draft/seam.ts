@@ -25,8 +25,8 @@ export type DraftChanges = {
 export type DraftSeam = Pick<ScoutingSeam, "usePlayersList"> & {
   /** The league's draft at the minute `now`, live (a hook): undefined while it loads. */
   useDraft(leagueId: Id<"leagues">, now: number): DraftState | undefined;
-  /** The board's picks, the reader's team and the pick time at the minute `now`, live (a hook):
-   *  undefined while they load. */
+  /** The board's picks, the reader's team, the pick time and the club maximum at the minute `now`,
+   *  live (a hook): undefined while they load. */
   useBoard(leagueId: Id<"leagues">, now: number): DraftBoard | undefined;
   /** Whether the draft room is in the menu, live (a hook): undefined while it loads. */
   useInMenu(leagueId: Id<"leagues">): boolean | undefined;
@@ -34,8 +34,8 @@ export type DraftSeam = Pick<ScoutingSeam, "usePlayersList"> & {
    *  while they load. */
   useGreyedOut(leagueId: Id<"leagues">): readonly GreyedPlayer[] | undefined;
   /** Every player's place on the site's ranking, last season's points and the overview's stats,
-   *  and the club maximum, at the minute `now`, live (a hook): undefined while they load. */
-  useFigures(leagueId: Id<"leagues">, now: number): RoomFigures | undefined;
+   *  live (a hook): undefined while they load. */
+  useFigures(leagueId: Id<"leagues">): RoomFigures | undefined;
   /** The changes the room makes (a hook). */
   useDraftChanges(): DraftChanges;
   /** The reader's own queue and do-not-draft list, live (a hook): undefined while they load, null

@@ -79,7 +79,7 @@ export function DraftPage({ league, seam }: { league: LeagueSummary; seam: Draft
     // Full width, unlike PAGE_STACK: the approved picture runs the board across the page.
     <PageSection title={title} aside={facts} className="flex flex-col gap-2">
       <DraftBoard draft={draft} picks={board.picks} tradedPicks={board.tradedPicks} yourTeamId={board.yourTeamId} onTheClock={onTheClock} />
-      <PickRoom leagueId={league.leagueId} seam={seam} draft={draft} board={board} onTheClock={onTheClock} now={now}>
+      <PickRoom leagueId={league.leagueId} seam={seam} draft={draft} board={board} onTheClock={onTheClock}>
         {(selected, unselect) =>
           league.powers.runs &&
           draft.status !== "over" && <CommissionerPanel leagueId={league.leagueId} seam={seam} draft={draft} board={board} now={now} selected={selected} unselect={unselect} />

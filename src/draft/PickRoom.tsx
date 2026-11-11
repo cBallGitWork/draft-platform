@@ -7,7 +7,7 @@ import type { OnTheClock } from "./ClockLeft";
 import { DraftPlayers, type WhyNot } from "./DraftPlayers";
 import { PickPanel, type YourSquad, type YourTurn } from "./PickPanel";
 import { QueuePanel } from "./QueuePanel";
-import type { DraftBoard, DraftSeam, DraftState, RoomFigures } from "./seam";
+import type { DraftBoard, DraftSeam, DraftState } from "./seam";
 import { slotWords } from "./words";
 
 // Under the board (the approved draft room picture; #1099): the players list, and beside it the
@@ -26,13 +26,13 @@ function yourTurn(draft: DraftState, board: DraftBoard, onTheClock: OnTheClock |
 }
 
 /** How many players of `player`'s main position and of his club the reader's picks so far hold. */
-function yourSquad(board: DraftBoard, player: ListedPlayer, figures: RoomFigures | undefined): YourSquad {
+function yourSquad(board: DraftBoard, player: ListedPlayer): YourSquad {
   if (board.yourTeamId === null) return null;
   const yours = board.picks.flatMap(({ teamId, player: picked }) => (teamId === board.yourTeamId && picked !== null ? [picked] : []));
   return {
     atPosition: yours.filter(({ position }) => position === player.positions[0]).length,
     atClub: yours.filter(({ clubShortName }) => clubShortName === player.club.shortName).length,
-    maxPerClub: figures?.maxPerClub ?? null,
+    maxPerClub: board.maxPerClub,
   };
 }
 
@@ -42,7 +42,6 @@ export function PickRoom({
   draft,
   board,
   onTheClock,
-  now,
   children,
 }: {
   leagueId: Id<"leagues">;
@@ -50,13 +49,12 @@ export function PickRoom({
   draft: DraftState;
   board: DraftBoard;
   onTheClock: OnTheClock | null;
-  now: number;
   /** The column's foot: the commissioner's panel, for whoever runs the league, given the selected
    *  player, whom his Pick for takes, and how to let him go once picked. */
   children?: (selected: ListedPlayer | null, unselect: () => void) => ReactNode;
 }) {
   const greyed = seam.useGreyedOut(leagueId);
-  const figures = seam.useFigures(leagueId, now);
+  const figures = seam.useFigures(leagueId);
   const lists = seam.useLists(leagueId);
   const changes = seam.useDraftChanges();
   const listChanges = seam.useListChanges();
@@ -84,7 +82,7 @@ export function PickRoom({
             figure={figureOf.get(selected.code) ?? null}
             lastSeason={figures?.lastSeason ?? null}
             statsSeason={figures?.statsSeason ?? null}
-            squad={yourSquad(board, selected, figures)}
+            squad={yourSquad(board, selected)}
             whyNot={whyNot.get(selected.code)}
             turn={yourTurn(draft, board, onTheClock)}
             changes={changes}
