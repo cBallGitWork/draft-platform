@@ -62,7 +62,7 @@ describe("the list", () => {
   it("opens on free agents by name, as none has season points yet, and says how many", async () => {
     const app = openScouting();
     await screen.findByRole("table");
-    expect(lastAsk(app).slice(1)).toEqual([{ availability: "freeAgents", position: null, clubCode: null }, { by: "name", descending: false }, null, "season"]);
+    expect(lastAsk(app).slice(1)).toEqual([{ availability: "freeAgents", position: null, clubCode: null }, { by: "name", descending: false }, null, "season", undefined]);
     expect((screen.getByRole("radio", { name: availabilityWords.freeAgents }) as HTMLInputElement).checked).toBe(true);
     expect(namesShown()).toEqual(["Rice"]);
     expect(screen.getByText(countWords(1))).toBeTruthy();

@@ -5,7 +5,8 @@ import { leagueDeadlines } from "../gameweeks/leagueDeadlines";
 import { fileLetter } from "../mail/letters";
 import { offerLetter } from "../mail/tradeLetterWords";
 import { tradePick } from "../schema/trades";
-import { managerOf, refuse, refusals, teamIn } from "../shared/leagueAccess";
+import { leagueOpens } from "../leagues/leagueOpens";
+import { managerOf, refuse, refusals, signedInEmail, teamIn, teamOf } from "../shared/leagueAccess";
 import { playerByCode } from "../shared/players";
 import { placeOf } from "../squads/squadPlace";
 import { squadWarning } from "../squads/squads";
@@ -275,5 +276,19 @@ export const mine = query({
         };
       }),
     );
+  },
+});
+
+/** How many open offers wait for the caller's answer, made to his team and not yet accepted, for
+ *  Continue (spec/12; #1553); none for anyone who runs no team there, or a league that doesn't open. */
+export const countWaitingForMe = query({
+  args: { leagueId: v.id("leagues") },
+  returns: v.number(),
+  handler: async (ctx, { leagueId }) => {
+    const email = await signedInEmail(ctx);
+    const league = await ctx.db.get("leagues", leagueId);
+    const team = email === null || league === null || !leagueOpens(league) ? undefined : await teamOf(ctx, leagueId, email);
+    if (team === undefined) return 0;
+    return (await leagueOffers(ctx, leagueId)).filter((offer) => offer.toTeamId === team._id && offer.review === undefined).length;
   },
 });

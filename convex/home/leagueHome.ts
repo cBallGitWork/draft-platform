@@ -1,33 +1,23 @@
 import { v, type Infer } from "convex/values";
 import type { Doc, Id } from "../_generated/dataModel";
 import { query, type QueryCtx } from "../_generated/server";
-import { matchdayMargins } from "../admin/platformSettings";
 import { begunGameweeks, tableGameweek } from "../gameweekScorer/gameweekScores";
 import { leagueReads } from "../gameweekScorer/teamGameweek";
 import { seasonRules, type SeasonRules } from "../rules/rulesHistory";
-import { deadlineOf, leagueDeadlines } from "../gameweeks/leagueDeadlines";
-import { thisGameweekOf } from "../gameweeks/nextGameweek";
-import { takeAllOrThrow } from "../shared/cappedRead";
-import { GAMEWEEK_MATCHES_MOST } from "../shared/fixtures";
-import { groupedBy } from "../shared/groupedBy";
-import { DAY_MS } from "../shared/time";
-import { LIVE_WINDOW_MS } from "../stats/liveStats";
-import { commentary, type MatchupCommentary } from "../matchup/matchupShape";
+import { commentary, heldCommentary, type HeldCommentary } from "../matchup/matchupShape";
 import { commentaryReads, readCommentary } from "../matchup/readCommentary";
 import { shownLine } from "../matchup/vidiprinter";
 import { leagueRulesShape } from "../rules/leagueRulesShape";
 import { pinnedLetter } from "../schema";
 import { tradedSide } from "../schema/squads";
 import { isListedMove, LISTED_MOVES, newestFirst, playerMoveKind } from "../squads/squadPlace";
-import { statusOf } from "../stats/matchStats";
 import { logFailure } from "../shared/errors";
-import { memberOf } from "../shared/leagueAccess";
+import { memberOf, teamsOf } from "../shared/leagueAccess";
 import { scoredFixture, standingsOf } from "../table/leagueTable";
 import { scoredFixtures } from "../table/sentTables";
 import { formOf, RESULTS } from "../table/standings";
 import { shownRows, TICKER_MOST } from "./glance";
-import { matchdayAt } from "./matchday";
-import { homeRecap, shownRecap } from "./recaps";
+import { heldRecap, homeRecap, shownRecap } from "./recaps";
 
 // League home (spec/12, League home; #387): the glance (this gameweek's head-to-heads, scored once
 // begun, the table and each team's form), the league's latest squad moves from its events (Mail's,
@@ -36,8 +26,10 @@ import { homeRecap, shownRecap } from "./recaps";
 // lines leave with the window; each stays on its matchup (Craig, 6 Nov 2026). For anyone with a
 // part in the league.
 //
-// Whether a gameweek has begun needs the time, and a query must not read the clock: Convex caches a
-// query by its arguments (convex/_generated/ai/guidelines.md). So the screen passes `now`.
+// Which gameweek this is, and whether a matchday is open, needs the time, and a query must not read
+// the clock: Convex caches a query by its arguments (convex/_generated/ai/guidelines.md). So the
+// screen passes `now` to one small query, homeClock.ts's `clockOf`, and these take what it says,
+// with no minute, so they are read again only when their data changes (#1550; homeAt.ts).
 
 const homeRow = v.object({
   position: v.number(),
@@ -126,15 +118,20 @@ async function latestSquadMoves(ctx: QueryCtx, leagueId: Id<"leagues">): Promise
     });
 }
 
-/** League home's first slice. */
+/** League home as `ofLeague` sends it: no matchday, which `matchdayOf` reads, and the recap with the
+ *  moment it leaves (homeAt.ts puts them together at the screen's minute). */
+export const heldLeagueHome = leagueHome.omit("matchday", "recap").extend({ recap: v.union(v.null(), heldRecap) });
+export type HeldLeagueHome = Infer<typeof heldLeagueHome>;
+
+/** League home's first slice, its head-to-heads `gameweek`'s: homeClock.ts's `clockOf` says which. */
 export const ofLeague = query({
-  args: { leagueId: v.id("leagues"), now: v.number() },
-  returns: leagueHome,
-  handler: async (ctx, { leagueId, now }) => {
+  args: { leagueId: v.id("leagues"), gameweek: v.union(v.number(), v.null()) },
+  returns: heldLeagueHome,
+  handler: async (ctx, { leagueId, gameweek }) => {
     const { league, team } = await memberOf(ctx, leagueId);
     const season = await seasonRules(ctx, leagueId);
     const { rules, teamIds, schedule, results, scores, table, named } = await standingsOf(ctx, league, season);
-    const current = thisGameweekOf(schedule, deadlineOf(await leagueDeadlines(ctx, leagueId)), now);
+    const current = gameweek === null ? undefined : schedule.find((each) => each.gameweek === gameweek);
     const form = formOf(teamIds, schedule, scores);
     const mine = team?._id ?? null;
     return {
@@ -159,42 +156,25 @@ export const ofLeague = query({
         mine: row.teamId === mine,
       })),
       teams: teamIds.length,
-      matchday: await matchdayOf(ctx, league, season, teamIds, now),
       squadMoves: await latestSquadMoves(ctx, leagueId),
       pinnedLetter: league.pinnedLetter ?? null,
-      recap: await homeRecap(ctx, leagueId, results, now),
+      recap: await homeRecap(ctx, leagueId, results),
     };
   },
 });
 
-/** The matchday open at `now`, with its Vidiprinter, or null while none is. Read from the matches
- *  kicking off near `now`, not this gameweek's: a gameweek's first matchday opens hours before its
- *  first kickoff, while its deadline, and so the head-to-heads shown, may still be to come. */
-async function matchdayOf(ctx: QueryCtx, league: Doc<"leagues">, season: SeasonRules, teamIds: readonly Id<"teams">[], now: number): Promise<LeagueHome["matchday"]> {
-  const margins = await matchdayMargins(ctx);
-  // Any match whose matchday may be open: up to `beforeMs` to come, or kicked off within the day
-  // before its latest final whistle and `afterMs` (matchday.ts). A window joined across more days
-  // than that would leave its first day's lines out, while staying open.
-  const near = await takeAllOrThrow(
-    ctx.db.query("fixtures").withIndex("by_kickoff", (q) => q.gt("kickoff", now - DAY_MS - LIVE_WINDOW_MS - margins.afterMs).lte("kickoff", now + margins.beforeMs)),
-    NEAR_MATCHES_MOST,
-    `More than ${NEAR_MATCHES_MOST} matches kick off near ${now}, so league home's matchday would be cut short`,
-  );
-  const inPlay = near.filter((fixture): fixture is Doc<"fixtures"> & { gameweek: number } => fixture.droppedAt === undefined && fixture.gameweek !== null);
-  const byGameweek = groupedBy(inPlay, ({ gameweek }) => gameweek);
-  for (const [gameweek, fixtures] of [...byGameweek].toSorted(([one], [other]) => one - other)) {
-    const matches = await Promise.all(
-      fixtures.map(async ({ code, kickoff }) => ({ fixtureCode: code, kickoff, fullTimeAt: (await statusOf(ctx, code))?.fullTimeAt ?? null })),
-    );
-    const open = matchdayAt(matches, margins, now);
-    if (open !== null) return { gameweek, commentary: await vidiprinterOf(ctx, league, season, teamIds, gameweek, new Set(open.fixtureCodes), now) };
-  }
-  return null;
-}
-
-/** The most matches kicking off in the few days around a matchday: a gameweek's, with room. More
- *  throws, never a silent cut. */
-const NEAR_MATCHES_MOST = GAMEWEEK_MATCHES_MOST;
+/** The Vidiprinter of the matchday open in `gameweek`, of its matches `fixtureCodes`: homeClock.ts's
+ *  `clockOf` says which. Its delay is a moment (commentaryAt.ts). */
+export const matchdayOf = query({
+  args: { leagueId: v.id("leagues"), gameweek: v.number(), fixtureCodes: v.array(v.number()) },
+  returns: heldCommentary,
+  handler: async (ctx, { leagueId, gameweek, fixtureCodes }) => {
+    const { league } = await memberOf(ctx, leagueId);
+    const season = await seasonRules(ctx, leagueId);
+    const teamIds = (await teamsOf(ctx, leagueId)).map((team) => team._id);
+    return vidiprinterOf(ctx, league, season, teamIds, gameweek, new Set(fixtureCodes));
+  },
+});
 
 /** The lines of the `fixtureCodes` that move a head-to-head: priced for each lineup's men whose
  *  points count. One that can't be read is logged and says why, while the scores still show. */
@@ -205,14 +185,13 @@ async function vidiprinterOf(
   teamIds: readonly Id<"teams">[],
   gameweek: number,
   fixtureCodes: ReadonlySet<number>,
-  now: number,
-): Promise<MatchupCommentary> {
+): Promise<HeldCommentary> {
   // Before the deadline no lineup is locked, so no line moves a head-to-head yet.
-  if (!(await begunGameweeks(ctx, league)).includes(gameweek)) return { kind: "read", lines: [], delayed: false };
+  if (!(await begunGameweeks(ctx, league)).includes(gameweek)) return { kind: "read", lines: [], delayedFrom: null };
   try {
     const inGameweek = await tableGameweek(ctx, await leagueReads(ctx, league, season), gameweek, teamIds);
-    const { lines, delayed } = await readCommentary(ctx, inGameweek, teamIds, now, commentaryReads(ctx), { countingOnly: true, fixtureCodes });
-    return { kind: "read", lines: lines.filter((line) => line.points !== null).map(shownLine), delayed };
+    const { lines, delayedFrom } = await readCommentary(ctx, inGameweek, teamIds, commentaryReads(ctx), { countingOnly: true, fixtureCodes });
+    return { kind: "read", lines: lines.filter((line) => line.points !== null).map(shownLine), delayedFrom };
   } catch (error) {
     return { kind: "unread", reason: logFailure(`League ${league._id} (${league.name}) can't read gameweek ${gameweek}'s Vidiprinter`, error) };
   }

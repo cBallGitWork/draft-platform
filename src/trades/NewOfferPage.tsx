@@ -20,7 +20,6 @@ import type { ScreenTeam, TradeChanges, TradesSeam, TradesView } from "./seam";
 import { SquadTable } from "./SquadTable";
 import {
   clearWords,
-  noneTickedWords,
   noPartnerWords,
   noTeamWords,
   onePickEachWords,
@@ -238,10 +237,8 @@ function NewOffer({
           </dl>
           <div className="flex flex-col gap-2 p-3">
             <Problem problem={problem} />
-            {!ticked && (
-              <p className="text-muted">
-                {ticks.onePickOnly ? onePickEachWords : noneTickedWords}
-              </p>
+            {!ticked && ticks.onePickOnly && (
+              <p className="text-muted">{onePickEachWords}</p>
             )}
             <span className="flex flex-wrap gap-2">
               <button

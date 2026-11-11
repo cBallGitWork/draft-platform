@@ -1,6 +1,6 @@
 import type { Doc, Id } from "../_generated/dataModel";
 import type { QueryCtx } from "../_generated/server";
-import { delayedAt, heldOf } from "../football/matchCommentary";
+import { delayedFrom, earliestDelay, heldOf } from "../football/matchCommentary";
 import { scoreOf } from "../football/matchScores";
 import { playerByCode, unheldPlayerWords } from "../shared/players";
 import { readOnce } from "../shared/readOnce";
@@ -49,15 +49,15 @@ export interface TeamsLine extends VidiprinterLine {
   columns: (string | null)[];
 }
 
-/** The lines, newest first, and whether any of the matches' commentary is delayed as at `now`. */
+/** The lines, newest first, and the moment any of the matches' commentary is delayed from
+ *  (matchCommentary.ts's `delayedFrom`), so no clock is read. */
 export async function readCommentary(
   ctx: QueryCtx,
   inGameweek: GameweekTeams,
   teamIds: readonly TeamId[],
-  now: number,
   reads: CommentaryReads,
   { countingOnly, fixtureCodes }: CommentaryOf,
-): Promise<{ lines: TeamsLine[]; delayed: boolean }> {
+): Promise<{ lines: TeamsLine[]; delayedFrom: number | null }> {
   const players = new Map<PlayerCode, VidiprinterPlayer>();
   const matches = new Map<number, HeldMatch>();
   const counting: Counting[] = [];
@@ -89,7 +89,7 @@ export async function readCommentary(
     about: line.priced.about,
     columns: counting.map((counts) => columnOf(line, counts)),
   }));
-  return { lines, delayed: held.some(({ row, score }) => row !== null && delayedAt(row, score, now)) };
+  return { lines, delayedFrom: earliestDelay(held.map(({ row, score }) => (row === null ? null : delayedFrom(row, score)))) };
 }
 
 /** Each man whose points count for a team, a starter not subbed off or a sub who came on, and the

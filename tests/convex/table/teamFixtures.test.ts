@@ -102,7 +102,7 @@ describe("the games", () => {
     const games = mine.games.filter(({ gameweek }) => gameweek === firstGameweek);
     expect(games.map(({ game }) => game)).toEqual([1, 2]);
 
-    const matchupOf = async (game?: number) => (await actingAs(t, ANN)).query(api.matchup.matchup.ofTeam, { leagueId, now: Date.now(), gameweek: firstGameweek, game });
+    const matchupOf = async (game?: number) => (await actingAs(t, ANN)).query(api.matchup.matchup.ofTeam, { leagueId, gameweek: firstGameweek, game });
     const opponentIn = async (game?: number) => {
       const read = await matchupOf(game);
       return read?.kind === "headToHead" && read.game.kind === "notBegun" && read.game.opponent.kind === "team" ? read.game.opponent.teamName : null;

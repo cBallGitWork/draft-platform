@@ -7,6 +7,7 @@ import { HOUR_MS, MINUTE_MS, WEEK_MS } from "../../../convex/shared/time";
 import { ANN, BOB, EVERTON_POINTS, GAMEWEEK, HULL_POINTS, LEAGUE_FULL_TIME_READ, scoresLeague, type ScoresLeague } from "../../support/convex/gameweekScores.harness";
 import { fullTimeRecords, lockMatch, storeLeague, WRITTEN_OVER, writeOverAnns } from "../../support/convex/gameweekScoresMatch.harness";
 import { actingAs } from "../../support/convex/leagues.harness";
+import { leagueHomeOf } from "../../support/convex/screenReads.harness";
 import { fakeClaude, fakeReport } from "../../support/convex/scouts.harness";
 import { elapse, pendingJobs, silenceConsoleError } from "../../support/convex/test.harness";
 
@@ -27,7 +28,7 @@ async function finalLeague() {
   return { league, claude };
 }
 
-const homeAt = async ({ t, leagueId }: ScoresLeague, now: number) => (await actingAs(t, ANN)).query(api.home.leagueHome.ofLeague, { leagueId, now });
+const homeAt = async ({ t, leagueId }: ScoresLeague, now: number) => leagueHomeOf(await actingAs(t, ANN), leagueId, now);
 const recapOf = async ({ t, leagueId }: ScoresLeague, gameweek = GAMEWEEK) => (await actingAs(t, BOB)).query(api.home.recaps.ofGameweek, { leagueId, gameweek });
 const lettersTo = ({ t }: ScoresLeague, email: string) => t.run((ctx) => ctx.db.query("letters").withIndex("by_to_and_at", (q) => q.eq("to", email)).collect());
 const AFTER = LEAGUE_FULL_TIME_READ + 3 * HOUR_MS;

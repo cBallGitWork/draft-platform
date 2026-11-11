@@ -1,5 +1,4 @@
 import { beforeEach, describe, expect, test } from "vitest";
-import { api } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
 import type { Position } from "../../../convex/positions/positionTables";
 import {
@@ -8,6 +7,7 @@ import {
   type PlayersFilters,
   type PlayersSort,
 } from "../../../convex/scouting/playersList";
+import { ALL, BY_NAME, playersListed } from "../../support/convex/playersList.harness";
 import { listOf, NO_FIGURES } from "../../../convex/scouting/playersOrder";
 import { FPL_SEASON } from "../../support/recorded/plSeasons.payloads";
 import { refusals } from "../../../convex/shared/leagueAccess";
@@ -19,8 +19,8 @@ import { fakeResend, signInDeployment } from "../../support/convex/signIn.harnes
 import { expectRefused } from "../../support/convex/test.harness";
 
 // Scouting's players list (#373, spec/19 The players list): every Premier League player now, for
-// anyone in the league, filtered by who holds him, his position and his club, and sorted, on the
-// server. Season points are "—" (null) here, with no match priced; what they add up to is
+// anyone in the league, filtered by who holds him, his position and his club, and sorted, as the
+// screen shows it (the server reads the club's; the browser filters and sorts, #1552). Season points are "—" (null) here, with no match priced; what they add up to is
 // tests/convex/stats/seasonPoints.test.ts's.
 
 const [ANN, BOB] = MANAGERS;
@@ -30,8 +30,6 @@ const RICE = { code: 1002, name: "Rice", fullName: "Declan Rice", clubCode: ARSE
 const MBEUMO = { code: 1003, name: "Mbeumo", fullName: "Bryan Mbeumo", clubCode: BRENTFORD.code, positions: ["W", "ST"] as Position[] };
 const PALMER = { code: 1004, name: "Palmer", fullName: "Cole Palmer", clubCode: CHELSEA.code, positions: ["CAM"] as Position[] };
 
-const ALL: PlayersFilters = { availability: "all", position: null, clubCode: null };
-const BY_NAME: PlayersSort = { by: "name", descending: false };
 
 let t: TestConvex;
 let leagueId: Id<"leagues">;
@@ -52,7 +50,7 @@ beforeEach(async () => {
 });
 
 const listAs = async (email: string, filters: Partial<PlayersFilters> = {}, sort: PlayersSort = BY_NAME, stat: string | null = null) =>
-  (await actingAs(t, email)).query(api.scouting.playersList.list, { leagueId, filters: { ...ALL, ...filters }, sort, stat });
+  playersListed(await actingAs(t, email), leagueId, { filters: { ...ALL, ...filters }, sort, stat });
 const namesListed = async (filters: Partial<PlayersFilters> = {}, sort: PlayersSort = BY_NAME) =>
   (await listAs(ANN, filters, sort)).players.map((player) => player.name);
 
@@ -233,10 +231,6 @@ describe("any stat, as a season total (spec/19, sortable by any stat)", () => {
 
   test("a stat the catalogue doesn't hold is refused", async () => {
     await expect(listAs(ANN, {}, BY_NAME, "not_a_stat")).rejects.toThrow("No stat not_a_stat is in the catalogue");
-  });
-
-  test("a sort by the stat with none shown is refused", async () => {
-    await expect(listAs(ANN, {}, { by: "stat", descending: true })).rejects.toThrow("with none shown");
   });
 
   test(`more than ${SEASON_PLAYERS_MOST} players with totals in a season throws, never a silent cut`, async () => {

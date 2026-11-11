@@ -11,6 +11,7 @@ import { pickUpWords } from "../../../src/playerCard/words";
 import { playerCardPath } from "../../../src/playerCard/paths";
 import {
   closePanelLabel,
+  freeAgentWords,
   noFigureWords,
   noPointsYetWords,
   notRankedWords,
@@ -19,6 +20,8 @@ import {
   PER90_STAT_NAMES,
   per90Words,
   percentileLabel,
+  periodLabel,
+  periodWords,
   playerCardLinkWords,
   scoutingTabWords,
   selectPlayerLabel,
@@ -32,7 +35,8 @@ import type { ListedPlayer } from "../../../convex/scouting/playersList";
 import { MY_TEAM_TRANSACTIONS_PATH } from "../../../src/frame/menu";
 import type { PendingClaim } from "../../../src/myTeam/claims/seam";
 import { addToShortlistWords } from "../../../src/scouting/shortlist/words";
-import { HELD, openOnAll, openScouting, PALMER, RICE, rowOf, SAKA } from "../../support/src/scoutingScreen.harness";
+import { fakeScouting } from "../../support/src/scouting.harness";
+import { HELD, lastAsk, openOnAll, openScouting, PALMER, RICE, rowOf, SAKA } from "../../support/src/scoutingScreen.harness";
 import { shortlisted } from "../../support/src/shortlist.harness";
 import { league } from "../../support/src/shell.harness";
 
@@ -79,6 +83,38 @@ describe("selecting a player", () => {
     await userEvent.click(within(panelOf("CDM")).getByRole("button", { name: closePanelLabel }));
     expect(screen.queryByRole("region", { name: /^CDM/ })).toBeNull();
     expect(app.path()).not.toBe(playerCardPath(league.leagueId, RICE.code));
+  });
+
+  it("a pickup that takes him out of the free agents still shows on his panel, with the period's minutes (#1551)", async () => {
+    const app = openScouting(WITH_FIGURES);
+    await userEvent.click(await screen.findByRole("button", { name: selectPlayerLabel("Rice") }));
+    expect(lastAsk(app)[5]).toBe(RICE.code);
+    expect(within(panelOf("CDM")).getByText(freeAgentWords)).toBeTruthy();
+
+    // The server now has Rice on Saka Potatoes, with 90 minutes over the last 4: the free agents list drops him.
+    const pickedUp = WITH_FIGURES.players!.map((player) => (player.code === RICE.code ? { ...player, ownerTeamName: "Saka Potatoes", figures: { ...NO_FIGURES, minutes: 90 } } : player));
+    app.scouting.usePlayersList.mockImplementation(fakeScouting({ ...WITH_FIGURES, players: pickedUp }).usePlayersList);
+    await userEvent.selectOptions(screen.getByRole("combobox", { name: periodLabel }), periodWords.last4);
+    expect(screen.queryByRole("button", { name: selectPlayerLabel("Rice") })).toBeNull();
+    const panel = panelOf("CDM");
+    expect(within(panel).getByText("Saka Potatoes")).toBeTruthy();
+    expect(within(panel).queryByText(freeAgentWords)).toBeNull();
+    expect(factIn(panel, panelMinutesWords("last4")).textContent).toBe("90");
+  });
+
+  it("after one who has left, the next selected shows while his list loads", async () => {
+    const app = await openOnAll(WITH_FIGURES);
+    await userEvent.click(await screen.findByRole("button", { name: selectPlayerLabel("Rice") }));
+    // Rice leaves the Premier League: the server keeps nobody and the list drops him.
+    const gone = fakeScouting({ ...WITH_FIGURES, players: WITH_FIGURES.players!.filter(({ code }) => code !== RICE.code) }).usePlayersList;
+    app.scouting.usePlayersList.mockImplementation(gone);
+    await userEvent.selectOptions(screen.getByRole("combobox", { name: periodLabel }), periodWords.last4);
+    expect(screen.queryByRole("region", { name: /^CDM/ })).toBeNull();
+
+    // Saka's list is still loading, so the last one, kept null for Rice, stays up.
+    app.scouting.usePlayersList.mockImplementation((...args) => (args[5] === SAKA.code ? undefined : gone(...args)));
+    await userEvent.click(screen.getByRole("button", { name: selectPlayerLabel("Saka") }));
+    expect(panelOf("W")).toBeTruthy();
   });
 
   it("his name in the list opens his card, not his panel", async () => {

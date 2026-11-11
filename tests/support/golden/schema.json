@@ -24613,6 +24613,92 @@
               }
             },
             "optional": false
+          },
+          "players": {
+            "fieldType": {
+              "type": "array",
+              "value": {
+                "type": "object",
+                "value": {
+                  "playerCode": {
+                    "fieldType": {
+                      "type": "number"
+                    },
+                    "optional": false
+                  },
+                  "clubCode": {
+                    "fieldType": {
+                      "type": "union",
+                      "value": [
+                        {
+                          "type": "number"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "optional": false
+                  },
+                  "positions": {
+                    "fieldType": {
+                      "type": "array",
+                      "value": {
+                        "type": "union",
+                        "value": [
+                          {
+                            "type": "literal",
+                            "value": "GK"
+                          },
+                          {
+                            "type": "literal",
+                            "value": "CB"
+                          },
+                          {
+                            "type": "literal",
+                            "value": "FB"
+                          },
+                          {
+                            "type": "literal",
+                            "value": "WB"
+                          },
+                          {
+                            "type": "literal",
+                            "value": "CDM"
+                          },
+                          {
+                            "type": "literal",
+                            "value": "CM"
+                          },
+                          {
+                            "type": "literal",
+                            "value": "WM"
+                          },
+                          {
+                            "type": "literal",
+                            "value": "CAM"
+                          },
+                          {
+                            "type": "literal",
+                            "value": "W"
+                          },
+                          {
+                            "type": "literal",
+                            "value": "SS"
+                          },
+                          {
+                            "type": "literal",
+                            "value": "ST"
+                          }
+                        ]
+                      }
+                    },
+                    "optional": false
+                  }
+                }
+              }
+            },
+            "optional": true
           }
         }
       }
