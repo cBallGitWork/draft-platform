@@ -3,10 +3,10 @@ import type { Doc, Id } from "../_generated/dataModel";
 import { internal } from "../_generated/api";
 import { mutation, query, type QueryCtx } from "../_generated/server";
 import { scoutsPerTeam } from "../admin/platformSettings";
-import { scoutState } from "../schema/scouting";
+import { scoutState } from "../schema";
 import { takeAllOrThrow } from "../shared/cappedRead";
-import { memberOf, refuse } from "../shared/leagueAccess";
-import { playerByCode, unheldPlayerWords } from "../shared/players";
+import { memberOf, refuse, refusals } from "../shared/leagueAccess";
+import { hasLeft, playerByCode, unheldPlayerWords } from "../shared/players";
 import { DAY_MS, seasonStartAt } from "../shared/time";
 import { ownTeam } from "./shortlist";
 import { scoutRefusals } from "./scoutWords";
@@ -26,14 +26,14 @@ export const SCOUT_TRIP_MS = DAY_MS;
 const SCOUTS_OUT_READ_MOST = 50;
 
 /** The most reports the team's list shows: its newest. */
-export const REPORTS_SHOWN = 50;
+const REPORTS_SHOWN = 50;
 
 /** The most scouts' trips one team makes in a season that the stars read takes: about one a day
  *  for every scout. Past it the read throws rather than hide stars wrongly. */
 const SEASON_SCOUTS_READ_MOST = 1200;
 
 /** The team's scouts out now. */
-export function scoutsOut(ctx: QueryCtx, teamId: Id<"teams">): Promise<Doc<"scouts">[]> {
+function scoutsOut(ctx: QueryCtx, teamId: Id<"teams">): Promise<Doc<"scouts">[]> {
   return takeAllOrThrow(
     ctx.db.query("scouts").withIndex("by_teamId_and_state", (q) => q.eq("teamId", teamId).eq("state", "out")),
     SCOUTS_OUT_READ_MOST,
@@ -60,8 +60,8 @@ export const send = mutation({
   returns: v.null(),
   handler: async (ctx, { leagueId, playerCode }) => {
     const team = await ownTeam(ctx, leagueId);
-    const player = (await playerByCode(ctx, playerCode)) ?? refuse(scoutRefusals.noSuchPlayer);
-    if (player.droppedAt !== undefined) refuse(scoutRefusals.playerGone(player.name));
+    const player = (await playerByCode(ctx, playerCode)) ?? refuse(refusals.noPlayer);
+    if (hasLeft(player)) refuse(scoutRefusals.playerGone(player.name));
     const out = await scoutsOut(ctx, team._id);
     if (out.some((scout) => scout.playerCode === playerCode)) refuse(scoutRefusals.alreadyOut(player.name));
     const scouts = await scoutsPerTeam(ctx);

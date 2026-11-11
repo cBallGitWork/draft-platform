@@ -2,9 +2,9 @@
 // refused a change is in convex/rules/ (`rulesRefusals`, and leagueRulesCheck.ts's reasons), and
 // reaches the screen as is.
 
-import { PICK_SECONDS_FEWEST, PICK_SECONDS_MOST, TIMEOUTS_FEWEST, TIMEOUTS_MOST } from "../../convex/draft/draftLimits";
+import { DRAFT_FEWEST_TEAMS, PICK_SECONDS_FEWEST, PICK_SECONDS_MOST, TIMEOUTS_FEWEST, TIMEOUTS_MOST } from "../../convex/draft/draftLimits";
 import type { UndraftedGoTo } from "../../convex/draft/draftRules";
-import { FIRST_GAMEWEEK, GAMEWEEKS } from "../../convex/gameweeks/usedGameweeks";
+import { FIRST_GAMEWEEK } from "../../convex/gameweeks/usedGameweeks";
 import { MOST_IN_SQUAD } from "../../convex/leagues/leagueLimits";
 import { STARTER_COUNT } from "../../convex/lineup/lineup";
 import type { Area } from "../../convex/lineup/pitch";
@@ -46,6 +46,16 @@ export const clubMaximumHint = "A whole number, 1 or more.";
 export const blankClubMaximumWords = noNumberWords(clubMaximumLabel, "turn the limit off");
 
 export const draftTitle = "Draft";
+/** The draft's start date (spec/04, Starting it; Craig, 11 Nov 2026, on #1476), saved with the
+ *  rest of the settings. */
+export const draftStartLabel = "Starts";
+export const clearDraftStartWords = "Clear";
+export const draftStartHint = `The draft starts itself then. With no date it waits for you to press start in the draft room. A date has to be in the future, with at least ${DRAFT_FEWEST_TEAMS} teams in the league.`;
+export const draftStartedFixedWords = "The draft has started.";
+export const draftStartLoadingWords = "Loading the draft's start…";
+/** What a failed change leaves, live or in the preview. */
+export const unchangedDraftStartOutcome = "the draft's start didn't change";
+export const draftStartFailedWords = failedWords(unchangedDraftStartOutcome);
 export const pickClockLabel = "Time for each pick";
 export const pickClockUnitLabel = "Time for each pick, in";
 export const pickClockUnitWords: Record<PickClockUnit, string> = { seconds: "Seconds", minutes: "Minutes", hours: "Hours" };
@@ -74,8 +84,9 @@ export const tradeReviewHint =
   `With no one, an accepted trade goes through at once; a review lasts ${hoursWords(REVIEW_MS)}. Under a veto, a trade the commissioner is in goes to the co-commissioner, or to a vote if there is none. Under a vote, it is blocked only if most of the managers still playing vote against it.`;
 export const tradeDeadlineWords = "A trade deadline";
 export const tradeDeadlineLabel = "No trades after gameweek";
-/** Craig, 6 Nov 2026, on #383. */
-export const tradeDeadlineHint = `A gameweek, ${FIRST_GAMEWEEK} to ${GAMEWEEKS}. Trades stop once its last match is over: open offers close, and a trade already in review finishes it.`;
+/** Craig, 6 Nov 2026, on #383; the season's last gameweek is however many it has (#1618). */
+export const tradeDeadlineHint = (seasonGameweeks: number) =>
+  `A gameweek, ${FIRST_GAMEWEEK} to ${seasonGameweeks}. Trades stop once its last match is over: open offers close, and a trade already in review finishes it.`;
 export const blankTradeDeadlineWords = noNumberWords(tradeDeadlineLabel, "turn the trade deadline off");
 
 /** How waivers run (spec/03, spec/08; #1200, the waivers picture's Waivers tab). */
@@ -133,6 +144,8 @@ export const noScoringStartWords = "Not set";
 export const noScoringStartHint = "Not set: every ticked gameweek scores until the draft ends, which sets it to the next gameweek.";
 export const scoringStartFixedAfter = (deadline: string) => `Fixed after ${deadline}.`;
 export const scoringStartFixedWords = (deadline: string) => `Fixed: its deadline, ${deadline}, has passed.`;
+/** None set in a league that has already scored a gameweek, so none set is fixed (#1588). */
+export const seasonBegunStartHint = "Fixed: the league has already scored a gameweek, so every ticked gameweek scores.";
 export const noScoringStartChoicesWords = "No ticked gameweek with a known deadline is still to begin, so scoring can't start in one.";
 export const scoringStartLoadingWords = "Loading the scoring start…";
 /** What a failed change leaves, live or in the preview. */

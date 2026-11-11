@@ -5,6 +5,7 @@ import { asCommissioner, invitesPage, joinPageAs, lastEmailTo, makeLink, openLas
 import { joiningRefusals } from "../../../convex/joining/joining";
 import { joinPath } from "../../../convex/joining/joiningShared";
 import { refusals } from "../../../convex/shared/leagueAccess";
+import { EMAIL_MAX } from "../../../convex/signIn/allowedEmails";
 import { COMMISSIONER, LEAGUE_NAME, MANAGERS, actingAs, addManagers, adminCreatesLeague, eventsIn, onTheList, type TestConvex } from "../../support/convex/leagues.harness";
 import { SITE_URL, UNLISTED, fakeResend, signInDeployment, type SentEmail } from "../../support/convex/signIn.harness";
 import { expectRefused } from "../../support/convex/test.harness";
@@ -39,6 +40,13 @@ describe("the invite link", () => {
     expect(await onTheList(t, UNLISTED)).toBe(true);
     expect(lastEmailTo(sent, UNLISTED).text).toContain(`${SITE_URL}${joinPath(token)}?code=`);
     expect(await openLastLinkTo(t, sent, UNLISTED)).not.toBeNull();
+  });
+
+  test("refuses an email longer than any address can be, as sign-in does, and lists nobody", async () => {
+    const tooLong = `${"a".repeat(EMAIL_MAX)}@example.com`;
+
+    await expectRefused(t.action(api.joining.inviteLink.signInToJoin, { token, email: tooLong }), refusals.notEmail(tooLong));
+    expect(await onTheList(t, tooLong)).toBe(false);
   });
 
   test("switched off, stops working: its page is gone, and it neither signs anyone in nor takes a request", async () => {

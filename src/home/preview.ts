@@ -5,14 +5,33 @@
 
 import { shownRows } from "../../convex/home/glance";
 import { thisGameweekOf } from "../../convex/gameweeks/nextGameweek";
-import { SEASON_GAMEWEEKS } from "../../convex/gameweeks/usedGameweeks";
+import { seasonGameweeks } from "../../convex/gameweeks/usedGameweeks";
 import { DAY_MS, HOUR_MS, WEEK_MS } from "../../convex/shared/time";
 import { drawFixtures, namedFixture } from "../../convex/table/roundRobin";
 import { formOf, headToHeadTable, teamsInGameweek } from "../../convex/table/standings";
 import { gameNumberAt, gameScore } from "../../convex/table/teamGames";
 import { previewLatestMail } from "../mail/preview";
+import { previewSeasonGameweeks } from "../shared/preview";
 import { previewIdOf } from "../table/preview";
+import type { Id } from "../../convex/_generated/dataModel";
 import type { HomeSeam, LeagueHome, LeagueNews, NewsAsked, NewsMove } from "./seam";
+
+/** A trade that went through (#1491): Lingard Franca's Watkins for Expected Toulouse's Rogers and
+ *  Isak, made up. */
+const TRADED = {
+  at: Date.now() - 10 * HOUR_MS,
+  kind: "tradeMade",
+  fromTeamName: "Lingard Franca",
+  toTeamName: "Expected Toulouse",
+  gives: { players: [{ playerCode: 9001, playerName: "Watkins" }], picks: [] },
+  gets: {
+    players: [
+      { playerCode: 9002, playerName: "Rogers" },
+      { playerCode: 9003, playerName: "Isak" },
+    ],
+    picks: [],
+  },
+} as const satisfies LeagueHome["squadMoves"][number];
 
 const TEAMS = ["Saka Potatoes", "Kroos Control", "Lingard Franca", "Neville Wears Prada", "Team 5", "Murder on Zidane's Floor", "Dinamo Kiev Leave", "Haaland Oates", "Expected Toulouse"];
 const MINE = "Saka Potatoes";
@@ -21,7 +40,7 @@ const SCORED = 6;
 export const PREVIEW_RECAP_GAMEWEEK = SCORED;
 const firstDeadline = Date.now() - SCORED * WEEK_MS + DAY_MS;
 
-const schedule = drawFixtures(TEAMS, SEASON_GAMEWEEKS, () => ({ oddTeamOut: "leagueAverage", gamesPerGameweek: 1 }), "preview-home");
+const schedule = drawFixtures(TEAMS, seasonGameweeks(previewSeasonGameweeks), () => ({ oddTeamOut: "leagueAverage", gamesPerGameweek: 1 }), "preview-home");
 /** Made-up scores: each team's points a gameweek, from its place in TEAMS and the gameweek. */
 const scores = new Map(
   Array.from({ length: SCORED }, (_, i) => [i + 1, new Map(TEAMS.map((team, place) => [team, 30 + ((place * 7 + (i + 1) * 13) % 40)]))]),
@@ -73,6 +92,7 @@ const home: LeagueHome = {
   teams: TEAMS.length,
   squadMoves: [
     { at: Date.now() - 2 * HOUR_MS, kind: "playerAssigned", playerName: "Saka", teamName: MINE, fromTeamName: null },
+    TRADED,
     { at: Date.now() - DAY_MS, kind: "playerMoved", playerName: "Palmer", teamName: "Kroos Control", fromTeamName: "Haaland Oates" },
     { at: Date.now() - 3 * DAY_MS, kind: "playerReleased", playerName: "Rice", teamName: "Lingard Franca", fromTeamName: null },
   ],
@@ -91,13 +111,27 @@ const home: LeagueHome = {
 };
 
 /** The News tab's moves (#1356), made up: a page of the newest, and one older page behind it. */
-const newsMove = (hoursAgo: number, kind: NewsMove["kind"], team: string, joined: string | null, left: string | null, rest: Partial<NewsMove> = {}): NewsMove => {
+type PlayerNewsMove = Exclude<NewsMove, { kind: "tradeMade" }>;
+const newsMove = (hoursAgo: number, kind: PlayerNewsMove["kind"], team: string, joined: string | null, left: string | null, rest: Partial<PlayerNewsMove> = {}): NewsMove => {
   const at = Date.now() - hoursAgo * HOUR_MS;
   const player = (name: string | null) => (name === null ? null : { playerCode: name.length * 1000 + hoursAgo, playerName: name });
   return { at, filed: at, kind, teamId: previewIdOf(team), teamName: team, joined: player(joined), left: player(left), toWaivers: null, fromTeamId: null, fromTeamName: null, ...rest };
 };
+const TRADE: NewsMove = {
+  at: TRADED.at,
+  filed: TRADED.at,
+  kind: TRADED.kind,
+  gives: TRADED.gives,
+  gets: TRADED.gets,
+  teamId: previewIdOf(TRADED.fromTeamName),
+  teamName: TRADED.fromTeamName,
+  otherTeamId: previewIdOf(TRADED.toTeamName),
+  otherTeamName: TRADED.toTeamName,
+};
+const namesTeam = (move: NewsMove, teamId: Id<"teams">) => move.teamId === teamId || (move.kind === "tradeMade" ? move.otherTeamId : move.fromTeamId) === teamId;
 const NEWS_MOVES: NewsMove[] = [
   newsMove(3, "playerDropped", "Kroos Control", null, "Kudus", { toWaivers: true }),
+  TRADE,
   newsMove(20, "playerClaimed", MINE, "Mbeumo", "Livramento", { toWaivers: true }),
   newsMove(30, "playerMoved", "Haaland Oates", "Konsa", null, { fromTeamId: previewIdOf(MINE), fromTeamName: MINE }),
   newsMove(50, "playerPickedUp", "Lingard Franca", "Calvert-Lewin", "Kamara", { toWaivers: false }),
@@ -122,6 +156,6 @@ export const previewHome: HomeSeam = {
   useRecap: (_, gameweek) => (gameweek === SCORED ? home.recap : null),
   useLeagueNews: (_, { before, teamId, kind }) => {
     const page = news(before);
-    return { ...page, moves: page.moves.filter((move) => (teamId === null || move.teamId === teamId || move.fromTeamId === teamId) && (kind === null || move.kind === kind)) };
+    return { ...page, moves: page.moves.filter((move) => (teamId === null || namesTeam(move, teamId)) && (kind === null || move.kind === kind)) };
   },
 };

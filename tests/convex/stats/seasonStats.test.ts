@@ -68,6 +68,30 @@ test("a record counts once whole: one the Premier League hasn't sent yet adds no
   expect((await totalsHeld(t)).get(FULL_STATS.coyle.code)!.stats).toEqual((await recordsAddedUp(t)).get(FULL_STATS.coyle.code));
 });
 
+test("a record turning whole with no totals row adds its stats alone, never re-reading his other seasons (#1565)", async () => {
+  const t = await withHullEverton();
+  await syncAt(t, FULL_TIME_READ, withPlReadEmpty(recordedGw6(), FULL_STATS.coyle.pl));
+  const { _id, _creationTime, state: _state, ...held } = (await heldMatch(t)).records.get(FULL_STATS.coyle.code)!;
+  const LAST_SEASON = 9002;
+  await t.run((ctx) =>
+    ctx.db.insert("fixtures", { code: LAST_SEASON, gameweek: GAMEWEEK, homeClubCode: 1, awayClubCode: 2, kickoff: KICKOFF - 365 * 24 * HOUR_MS }),
+  );
+  // A whole record last season, with a last-season row set wrong: a rebuild would put it right.
+  await t.mutation(internal.stats.liveStats.upsertLive, { fixtureCode: LAST_SEASON, minute: null, records: [{ ...held, fixtureCode: LAST_SEASON, arrived: { fpl: true, pl: true } }] });
+  const lastSeason = (await t.run((ctx) => ctx.db.query("playerSeasonStats").collect())).find((row) => row.playerCode === FULL_STATS.coyle.code && row.season === SEASON - 1)!;
+  await t.run((ctx) => ctx.db.patch("playerSeasonStats", lastSeason._id, { stats: { goals_scored: 99 } }));
+  expect((await totalsHeld(t)).get(FULL_STATS.coyle.code)?.season).toBe(SEASON - 1);
+
+  await syncAt(t, FULL_TIME_READ + HOUR_MS / 2, recordedGw6());
+
+  const his = (await t.run((ctx) => ctx.db.query("playerSeasonStats").collect())).filter((row) => row.playerCode === FULL_STATS.coyle.code);
+  const whole = (await t.run((ctx) => ctx.db.query("playerMatchStats").collect())).find(
+    (row) => row.playerCode === FULL_STATS.coyle.code && row.fixtureCode === held.fixtureCode,
+  )!;
+  expect(his.find((row) => row.season === SEASON)!.stats).toEqual(sumStats([countedStats(whole)]));
+  expect(his.find((row) => row.season === SEASON - 1)!.stats).toEqual({ goals_scored: 99 });
+});
+
 test("a correction to a record held before his totals were kept sets them from his records, never below them", async () => {
   const t = await withHullEverton();
   await syncAt(t, FULL_TIME_READ, recordedGw6());

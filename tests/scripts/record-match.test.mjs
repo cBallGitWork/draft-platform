@@ -8,7 +8,7 @@ import { join } from "node:path";
 import { expect, test, vi } from "vitest";
 import { plCommentaryUrl, plFixtureUrl, plTeamStatsUrl } from "../../convex/football/football.ts";
 import { PL_FULL_TIME } from "../../convex/football/premierLeague/premierLeague.ts";
-import { LIVE_WINDOW_MS } from "../../convex/stats/liveStats.ts";
+import { LIVE_WINDOW_MS } from "../../convex/shared/dueMatches.ts";
 import { doneLine, phase, pollReads, record } from "../../scripts/record-match.mjs";
 import { REPO_ROOT } from "../support/scripts/repoRoot.mjs";
 import { IPSWICH_FOREST, KICKOFF } from "../support/scripts/recordMatch.harness.mjs";

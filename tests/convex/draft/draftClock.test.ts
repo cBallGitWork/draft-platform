@@ -4,11 +4,11 @@ import type { Id } from "../../../convex/_generated/dataModel";
 import { PICK_GAP_MS } from "../../../convex/draft/draftClock";
 import type { LeagueRules } from "../../../convex/rules/leagueRulesShape";
 import { SECOND_MS } from "../../../convex/shared/time";
-import { ARSENAL, CHELSEA, insertClubs, insertPlayers, type HeldPlayer } from "../../support/convex/footballRows.harness";
-import { changeEveryRules, HELD_FIRST_RULES, setPickSeconds as setPickSecondsOf } from "../../support/convex/leagueRules.harness";
-import { actingAs, addManagers, adminCreatesLeague, COMMISSIONER, eventsIn, MANAGERS, type TestConvex } from "../../support/convex/leagues.harness";
+import { draftSteps, midfielder } from "../../support/convex/draft.harness";
+import { ARSENAL, CHELSEA, insertClubs, insertPlayers } from "../../support/convex/footballRows.harness";
+import { changeEveryRules, HELD_FIRST_RULES } from "../../support/convex/leagueRules.harness";
+import { addManagers, adminCreatesLeague, COMMISSIONER, eventsIn, MANAGERS, type TestConvex } from "../../support/convex/leagues.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
-import { elapse } from "../../support/convex/test.harness";
 
 // The pick clock (spec/04, The picks; #1091): each pick runs on the league's pick time, the first
 // from the start and each after 10 seconds from the pick before; when a clock runs out the draft
@@ -19,9 +19,8 @@ let t: TestConvex;
 let leagueId: Id<"leagues">;
 let teams: Id<"teams">[];
 
-const player = (code: number, club = ARSENAL): HeldPlayer => ({ code, name: `Player ${code}`, fullName: `Player ${code}`, clubCode: club.code, positions: ["CM"] });
-const ARSENAL_MIDS = [101, 102, 103, 104].map((code) => player(code));
-const CHELSEA_MIDS = [201, 202].map((code) => player(code, CHELSEA));
+const ARSENAL_MIDS = [101, 102, 103, 104].map((code) => midfielder(code));
+const CHELSEA_MIDS = [201, 202].map((code) => midfielder(code, CHELSEA));
 const [A1, A2] =ARSENAL_MIDS.map(({ code }) => code);
 const [C1] = CHELSEA_MIDS.map(({ code }) => code);
 const PICK_MS = HELD_FIRST_RULES.draft!.pickSeconds * SECOND_MS;
@@ -29,17 +28,11 @@ const [ANN, BOB] = MANAGERS;
 
 const setSquadRules = (squad: Partial<LeagueRules["squad"]>) =>
   changeEveryRules(t, leagueId, (rules) => ({ ...rules, squad: { size: { minimum: 1, maximum: 2 }, minimumByArea: null, maxPerClub: null, ...squad } }));
-const setPickSeconds = (pickSeconds: number) => setPickSecondsOf(t, leagueId, pickSeconds);
 
-const as = (email: string) => actingAs(t, email);
-const read = async () => (await as(COMMISSIONER)).query(api.draft.draftStart.ofLeague, { leagueId, now: Date.now() });
-const start = async () => (await as(COMMISSIONER)).mutation(api.draft.draftStart.start, { leagueId });
-const pick = async (email: string, playerCode: number) => (await as(email)).mutation(api.draft.draftPicks.makePick, { leagueId, playerCode });
+const { as, read, start, pause, resume, pick, pass, setPickSeconds } = draftSteps(() => ({ t, leagueId }));
 const picks = () => t.run(async (ctx) => (await ctx.db.query("draftPicks").collect()).map(({ pick, teamId, playerCode, at }) => ({ pick, teamId, playerCode, at })));
 const letterCount = () => t.run(async (ctx) => (await ctx.db.query("letters").collect()).length);
 const newLetterSubjects = (after: number) => t.run(async (ctx) => (await ctx.db.query("letters").collect()).slice(after).map(({ subject }) => subject));
-/** The clock moves on `ms`, and every pick scheduled by then is made. */
-const pass = (ms: number) => elapse(t, ms);
 
 beforeEach(async () => {
   t = await signInDeployment();
@@ -99,6 +92,7 @@ describe("the clock", () => {
   test("stops once the last pick is made", async () => {
     await start();
     for (let made = 0; made < 4; made++) await pass(PICK_MS + PICK_GAP_MS);
+    await pass(PICK_GAP_MS);
 
     expect(await read()).toMatchObject({ status: "over", picksMade: 4 });
     expect(await t.run((ctx) => ctx.db.query("drafts").unique())).not.toHaveProperty("clock");
@@ -110,6 +104,7 @@ describe("the draft's pick", () => {
     await setSquadRules({ maxPerClub: 1 });
     await start();
     await pick(ANN, A1);
+    await pass(PICK_GAP_MS);
     await pick(BOB, A2);
     await pass(PICK_GAP_MS + PICK_MS);
 
@@ -179,12 +174,12 @@ describe("a manager who goes while his pick is on the clock", () => {
 
   test("leaves while the draft is paused: the pick waits for the resume, then is made at once", async () => {
     await start();
-    await (await as(COMMISSIONER)).mutation(api.draft.draftPause.pause, { leagueId });
+    await pause();
     await leave(ANN);
     await pass(PICK_MS);
     expect(await picks()).toEqual([]);
 
-    await (await as(COMMISSIONER)).mutation(api.draft.draftPause.resume, { leagueId });
+    await resume();
     await pass(0);
     expect(await pickedCodes()).toEqual([A1]);
   });

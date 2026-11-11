@@ -9,23 +9,25 @@ import { scheduleHeartbeat } from "../heartbeats/heartbeat";
 import { leagueOpens } from "../leagues/leagueOpens";
 import { MOST_IN_SQUAD } from "../leagues/leagueLimits";
 import { pickFirstLineupAgain } from "../lineup/lineups";
+import { knownOnJoining } from "../positions/positionWarnings";
 import { claimFailedLetter, type ClaimFailure } from "../mail/waiverLetterWords";
-import { fileEvent, fileLetter, recordEvent } from "../mail/letters";
+import { fileLetter, recordEvent } from "../mail/letters";
 import type { LeagueRules } from "../rules/leagueRulesShape";
-import { latestRules, seasonRules } from "../rules/rulesHistory";
-import { LEAGUES_READ_MOST, takeAllOrThrow } from "../shared/cappedRead";
-import { tellShortlisters, tellShortlistersCleared } from "../scouting/shortlist";
+import { historyOf, newestRow, seasonRules } from "../rules/rulesHistory";
+import { everyLeague } from "../shared/cappedRead";
+import { tellShortlistersCleared } from "../scouting/shortlist";
 import { teamIn } from "../shared/leagueAccess";
 import { playerByCode } from "../shared/players";
+import { readOnce } from "../shared/readOnce";
 import { MINUTE_MS } from "../shared/time";
 import { placeOf, squadOf } from "../squads/squadPlace";
-import { limitsBroken, type SquadWarning } from "../squads/squads";
-import { closeOffersHolding, reviewHolding } from "../trades/tradeClose";
+import { limitsReader, type LimitsBroken, type SquadWarning } from "../squads/squads";
+import { heldInReview } from "../trades/tradeClose";
 import { claimedName, leagueClaims } from "./waiverClaims";
-import { inWaiverLock, latestEnded } from "./waiverLock";
-import { waiverOrderOf, waiverOrderRow, winnersNow, withWinnersLast, wonBy } from "./waiverOrder";
-import { dropFromSquad } from "./waiverPlayers";
-import { latestRunAt } from "./waiverTimes";
+import { latestEnded, runInWaiverLock } from "./waiverLock";
+import { waiverOrderOf, waiverOrderRow, windowShutSince, winnersNow, withWinnersLast, wonBy } from "./waiverOrder";
+import { dropAndTell, waiverRowsIn } from "./waiverPlayers";
+import { latestRunAt, wasRunTime } from "./waiverTimes";
 
 // The waiver run (#1198, spec/08 Waivers and free agency). At each of the league's run times
 // (waiverTimes.ts) every player on waivers whose 24 hours are up is claimed in the waiver order
@@ -37,16 +39,17 @@ import { latestRunAt } from "./waiverTimes";
 // limits. A player nobody claims is a free agent straight after, and each manager whose shortlist
 // holds him is told (../scouting/shortlist.ts). A run that falls from the deadline
 // until the gameweek's last match is over, or while the draft is live, is skipped. One internal
-// function, `run`, makes a run, for the cron here and for any later caller.
+// function, `run`, makes a run, for the cron here and for any later caller. At each deadline, as
+// the free agent window shuts, every free agent goes back on waivers, so the next run hands him out
+// by the waiver order (`putBackOnWaivers`; Craig, 11 Nov 2026, #1478).
 
 /** How often the cron looks for a league whose run time has come: Claude's choice, so a run is at
  *  most this late. */
 export const WAIVER_CHECK_EVERY = { minutes: 5 } as const;
 const CHECK_MS = WAIVER_CHECK_EVERY.minutes * MINUTE_MS;
 
-/** The most players on waivers in one league one run reads: Claude's sizing, far above a week's
- *  drops and new Premier League players. Past it the run throws rather than leave some out. */
-export const WAIVER_PLAYERS_READ_MOST = 2000;
+/** A league that has never run waivers runs one only if its time came within this of now. */
+export const FIRST_RUN_WITHIN_MS = 2 * CHECK_MS;
 
 /** Whether the claim's squad breaks a limit the squad before it didn't, or breaks one further:
  *  more over the squad's or a club's maximum, or fewer filling an area's minimum. A claim never
@@ -80,49 +83,86 @@ export async function joiningBreaksLimits(
   squadRules: LeagueRules["squad"] | null,
 ): Promise<boolean> {
   const squad = (await squadOf(ctx, teamId)).map((row) => row.playerCode);
+  return joinBreaks(squad, playerCode, dropCode, await limitsReader(ctx, leagueId, squadRules));
+}
+
+/** `joiningBreaksLimits` for the squad `squad`, its limits read by `limits`. */
+async function joinBreaks(squad: readonly number[], playerCode: number, dropCode: number | null, limits: LimitsBroken): Promise<boolean> {
   const after = [...squad.filter((code) => code !== dropCode), playerCode];
   if (after.length > MOST_IN_SQUAD) return true;
-  const [before, broken] = await Promise.all([limitsBroken(ctx, leagueId, squad, squadRules), limitsBroken(ctx, leagueId, after, squadRules)]);
+  const [before, broken] = await Promise.all([limits(squad), limits(after)]);
   return breaksLimits(before, broken);
 }
 
-type Tried = { won: true; toWaivers: boolean | null } | { won: false; why: ClaimFailure };
+/** A failed claim's `why` is null when its team already holds the player, won by its own earlier
+ *  claim this run or put there by the commissioner: it goes quietly, with no letter (Craig, 11 Nov
+ *  2026, #1465). */
+type Tried = { won: true; toWaivers: boolean | null } | { won: false; why: ClaimFailure | null };
 
 /** Everything a claim at the run is tried against. */
 type Run = {
   league: Doc<"leagues">;
-  squadRules: LeagueRules["squad"];
+  /** The league's squad limits, each player's club and positions read once for the run (#1538). */
+  limits: LimitsBroken;
   deadlines: LeagueDeadlines;
   now: number;
+  /** The run's own time, which a claim's drop starts its 24 hours from (#1481). */
+  at: number;
   /** The players this run may take, by code: on waivers with their 24 hours up, and not yet taken. */
   claimable: Map<number, Doc<"waiverPlayers">>;
+  /** The players in a trade in review, by code, read once for the run: none can be dropped. */
+  held: Set<number>;
+  /** Each team's squad by code, read once for the run at its first claim and kept up as its claims
+   *  win (#1538): nothing else in a run changes a squad. */
+  squads: Map<Id<"teams">, number[]>;
+  /** Each player's row and name, read once for the run however many claims name him (#1538). */
+  playerOf: (code: number) => Promise<Doc<"players"> | null>;
+  nameOf: (code: number) => Promise<string>;
 };
+
+/** The team's squad by code, as the run has it. */
+async function squadInRun(ctx: QueryCtx, run: Run, teamId: Id<"teams">): Promise<number[]> {
+  const kept = run.squads.get(teamId);
+  if (kept !== undefined) return kept;
+  const squad = (await squadOf(ctx, teamId)).map((row) => row.playerCode);
+  run.squads.set(teamId, squad);
+  return squad;
+}
 
 /** Tries the claim for its team, making it if it stands. */
 async function tryClaim(ctx: MutationCtx, run: Run, claim: Doc<"waiverClaims">): Promise<Tried> {
-  const { league, squadRules, deadlines, now, claimable } = run;
+  const { league, limits, deadlines, now, at, claimable, held } = run;
+  const squad = await squadInRun(ctx, run, claim.teamId);
   const onWaivers = claimable.get(claim.playerCode);
-  if (onWaivers === undefined) return { won: false, why: "ahead" };
-  if ((await playerByCode(ctx, claim.playerCode))?.droppedAt !== undefined) return { won: false, why: "playerGone" };
-  const drop = claim.dropCode === null ? null : await placeOf(ctx, league._id, claim.dropCode);
-  if (claim.dropCode !== null && drop?.teamId !== claim.teamId) return { won: false, why: "dropGone" };
-  if (claim.dropCode !== null && (await reviewHolding(ctx, league._id, claim.dropCode)) !== null) return { won: false, why: "dropHeld" };
-  if (await joiningBreaksLimits(ctx, league._id, claim.teamId, claim.playerCode, claim.dropCode, squadRules)) return { won: false, why: "limits" };
+  if (onWaivers === undefined) return { won: false, why: squad.includes(claim.playerCode) ? null : "ahead" };
+  if ((await run.playerOf(claim.playerCode))?.droppedAt !== undefined) return { won: false, why: "playerGone" };
+  if (claim.dropCode !== null && !squad.includes(claim.dropCode)) return { won: false, why: "dropGone" };
+  if (claim.dropCode !== null && held.has(claim.dropCode)) return { won: false, why: "dropHeld" };
+  if (await joinBreaks(squad, claim.playerCode, claim.dropCode, limits)) return { won: false, why: "limits" };
 
   claimable.delete(claim.playerCode);
   await ctx.db.delete("waiverPlayers", onWaivers._id);
-  const toWaivers = drop === null ? null : await dropFromSquad(ctx, drop, deadlines, now);
+  const drop = claim.dropCode === null ? null : await placeOf(ctx, league._id, claim.dropCode);
+  if (claim.dropCode !== null && drop?.teamId !== claim.teamId) throw new Error(`The run has ${claim.dropCode} in team ${claim.teamId}'s squad, but he isn't there`);
+  // The claim's own letter, from `report`, carries the drop: the run made it, so its copies go unread.
+  const told = { deadlines, now, waiversFrom: at, letter: false, unread: true };
+  const toWaivers =
+    drop === null
+      ? null
+      : await dropAndTell(ctx, league, await teamIn(ctx, league._id, claim.teamId), drop, { code: drop.playerCode, name: await run.nameOf(drop.playerCode) }, claim.by, told);
   await ctx.db.insert("squadPlayers", { leagueId: league._id, teamId: claim.teamId, playerCode: claim.playerCode });
+  await knownOnJoining(ctx, league._id, claim.teamId, claim.playerCode);
+  run.squads.set(claim.teamId, [...squad.filter((code) => code !== claim.dropCode), claim.playerCode]);
   return { won: true, toWaivers };
 }
 
-/** Files what a tried claim did: the drop and the claim as squad moves, the league's letter for
- *  one that won, and its manager's alone for one that failed. */
-async function report(ctx: MutationCtx, league: Doc<"leagues">, claim: Doc<"waiverClaims">, tried: Tried): Promise<void> {
-  const playerName = await claimedName(ctx, claim.playerCode);
-  const dropName = claim.dropCode === null ? null : await claimedName(ctx, claim.dropCode);
+/** Files what a tried claim did, its drop told already (`tryClaim`): the claim as a squad move, the
+ *  league's letter for one that won, and its manager's alone for one that failed, unless it failed quietly. */
+async function report(ctx: MutationCtx, { league, nameOf }: Run, claim: Doc<"waiverClaims">, tried: Tried): Promise<void> {
+  const playerName = await nameOf(claim.playerCode);
+  const dropName = claim.dropCode === null ? null : await nameOf(claim.dropCode);
   if (!tried.won) {
-    await fileLetter(ctx, league, [claim.by], claimFailedLetter({ playerName, dropName, why: tried.why }));
+    if (tried.why !== null) await fileLetter(ctx, league, [claim.by], claimFailedLetter({ playerName, dropName, why: tried.why }));
     return;
   }
   const team = await teamIn(ctx, league._id, claim.teamId);
@@ -131,14 +171,7 @@ async function report(ctx: MutationCtx, league: Doc<"leagues">, claim: Doc<"waiv
     claim.dropCode === null || dropName === null || tried.toWaivers === null
       ? null
       : { playerCode: claim.dropCode, playerName: dropName, toWaivers: tried.toWaivers };
-  if (dropped !== null) {
-    await fileEvent(ctx, league._id, claim.by, { kind: "playerDropped", ...dropped, ...onTeam });
-    await closeOffersHolding(ctx, league._id, team._id, [dropped.playerCode]);
-    const player = { code: dropped.playerCode, name: dropped.playerName };
-    await tellShortlisters(ctx, league, player, team, claim.by, { released: false, toWaivers: dropped.toWaivers }, { unread: true });
-  }
   await recordEvent(ctx, league._id, claim.by, { kind: "playerClaimed", playerCode: claim.playerCode, playerName, ...onTeam, dropped }, { unread: true });
-  await pickFirstLineupAgain(ctx, league._id, team._id);
 }
 
 /** Runs the league's waivers for its run time `at`, once: skipped in the lock or until the draft
@@ -158,22 +191,30 @@ async function runWaivers(ctx: MutationCtx, leagueId: Id<"leagues">, at: number)
     held === null
       ? ctx.db.insert("waiverOrders", { leagueId, winners, gameweek, ranAt: at, madeAt })
       : ctx.db.patch("waiverOrders", held._id, { winners, gameweek, ranAt: at, madeAt });
-  if (!(await draftIsOver(ctx, leagueId)) || (await inWaiverLock(ctx, deadlines, now))) {
+  if (!(await draftIsOver(ctx, leagueId)) || (await runInWaiverLock(ctx, deadlines, now, at))) {
     await save();
     return;
   }
 
-  const onWaivers = await takeAllOrThrow(
-    ctx.db.query("waiverPlayers").withIndex("by_leagueId_and_playerCode", (q) => q.eq("leagueId", leagueId)),
-    WAIVER_PLAYERS_READ_MOST,
-    `League ${leagueId} has more than ${WAIVER_PLAYERS_READ_MOST} players on waivers, so its run can't read them all`,
-  );
+  const onWaivers = await waiverRowsIn(ctx, leagueId);
   // By the run's own time, not the moment it executes: the cron may fire minutes late, and a player
   // whose 24 hours end in those minutes is the next run's, as his claims were told (spec/08).
   const due = onWaivers.filter(({ claimableFrom }) => claimableFrom <= at);
-  const run: Run = { league, squadRules: season.latest.squad, deadlines, now, claimable: new Map(due.map((row) => [row.playerCode, row])) };
+  const run: Run = {
+    league,
+    limits: await limitsReader(ctx, league._id, season.latest.squad),
+    deadlines,
+    now,
+    at,
+    claimable: new Map(due.map((row) => [row.playerCode, row])),
+    held: await heldInReview(ctx, league._id),
+    squads: new Map(),
+    playerOf: readOnce((code: number) => playerByCode(ctx, code)),
+    nameOf: readOnce((code: number) => claimedName(ctx, code)),
+  };
   // A run tries every claim but those for a player whose 24 hours aren't up: one for a player no
-  // longer on waivers at all, taken by the commissioner say, fails as another team's.
+  // longer on waivers at all, taken by the commissioner say, fails as another team's, or quietly
+  // if its own team holds him.
   const waiting = new Set(onWaivers.filter(({ claimableFrom }) => claimableFrom > at).map(({ playerCode }) => playerCode));
   const queues = new Map<Id<"teams">, Doc<"waiverClaims">[]>();
   for (const claim of await leagueClaims(ctx, leagueId)) {
@@ -181,6 +222,7 @@ async function runWaivers(ctx: MutationCtx, leagueId: Id<"leagues">, at: number)
   }
 
   let order = await waiverOrderOf(ctx, league, season, winners, gameweek);
+  const wonNow = new Set<Id<"teams">>();
   for (;;) {
     const team = order.find((teamId) => (queues.get(teamId)?.length ?? 0) > 0);
     if (team === undefined) break;
@@ -188,20 +230,29 @@ async function runWaivers(ctx: MutationCtx, leagueId: Id<"leagues">, at: number)
     for (let claim = queue.shift(); claim !== undefined; claim = queue.shift()) {
       const tried = await tryClaim(ctx, run, claim);
       await ctx.db.delete("waiverClaims", claim._id);
-      await report(ctx, league, claim, tried);
+      await report(ctx, run, claim, tried);
       if (tried.won) {
         winners = wonBy(winners, team);
         order = withWinnersLast(order, [team]);
+        wonNow.add(team);
         break;
       }
     }
   }
+  // Each team that won picks its first lineup again once, from its squad after all its claims: the
+  // run is one transaction, so nobody sees a lineup between them, and once per claim won read
+  // too much for a busy run (#1538).
+  for (const teamId of wonNow) await pickFirstLineupAgain(ctx, leagueId, teamId);
   // A claim for a team no longer in the league is never tried: it goes with its team.
   for (const [teamId, queue] of queues) {
     if (!order.includes(teamId)) for (const claim of queue) await ctx.db.delete("waiverClaims", claim._id);
   }
   for (const row of run.claimable.values()) await ctx.db.delete("waiverPlayers", row._id);
-  await tellShortlistersCleared(ctx, league, [...run.claimable.keys()]);
+  // A player who has left the Premier League comes off waivers too, but is never called a free
+  // agent: the cleared letter leaves him out (Craig, 11 Nov 2026, #1469).
+  const freeAgents: number[] = [];
+  for (const code of run.claimable.keys()) if ((await run.playerOf(code))?.droppedAt === undefined) freeAgents.push(code);
+  await tellShortlistersCleared(ctx, league, freeAgents);
   await save(at);
 }
 
@@ -215,28 +266,34 @@ export const run = internalMutation({
   },
 });
 
-/** The cron's: starts the run of each league whose latest run time has come and not been run. A
- *  league that has never run waivers runs one only if its time came since the last check or so. */
+/** The cron's: starts the run of each league whose latest run time has come and not been run, if
+ *  it was a run time when it came (`wasRunTime`). A league that has never run waivers runs one
+ *  only if its time came since the last check or so. */
 export const runDue = internalMutation({
   args: {},
   returns: v.null(),
   handler: async (ctx) => {
     const now = Date.now();
-    const leagues = await takeAllOrThrow(
-      ctx.db.query("leagues"),
-      LEAGUES_READ_MOST,
-      `More than ${LEAGUES_READ_MOST} leagues are held, so waivers can't be run in every one`,
-    );
+    const leagues = await everyLeague(ctx, "so waivers can't be run in every one");
     for (const league of leagues) {
       if (!leagueOpens(league)) continue;
-      const rules = await latestRules(ctx, league._id);
-      const at = latestRunAt(rules.waivers.runs, now);
-      if (at === null) continue;
+      await scheduleBackOnWaivers(ctx, league._id, now);
+      const history = await historyOf(ctx, league._id);
+      const at = latestRunAt(newestRow(history, league._id).rules.waivers.runs, now);
+      if (at === null || !wasRunTime(history, at)) continue;
       const held = await waiverOrderRow(ctx, league._id);
-      if (held === null ? at <= now - 2 * CHECK_MS : at <= held.ranAt) continue;
+      if (held === null ? at <= now - FIRST_RUN_WITHIN_MS : at <= held.ranAt) continue;
       await ctx.scheduler.runAfter(0, internal.waivers.waiverRun.run, { leagueId: league._id, at });
     }
     await scheduleHeartbeat(ctx, "waiverRuns");
     return null;
   },
 });
+
+/** Starts putting the league's free agents back on waivers if its window has shut since a deadline
+ *  they weren't yet put back for, once its draft is over. */
+async function scheduleBackOnWaivers(ctx: MutationCtx, leagueId: Id<"leagues">, now: number): Promise<void> {
+  const shut = await windowShutSince(ctx, leagueId, await leagueDeadlines(ctx, leagueId), now);
+  if (shut === null || (await waiverOrderRow(ctx, leagueId))?.backOnWaivers === shut || !(await draftIsOver(ctx, leagueId))) return;
+  await ctx.scheduler.runAfter(0, internal.waivers.backOnWaivers.putBackOnWaivers, { leagueId, deadline: shut });
+}

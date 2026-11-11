@@ -166,7 +166,11 @@ export function squadForm(matches: readonly PricedMatch[], begun: readonly numbe
 }
 
 /** Where a player's first position falls in POSITIONS, back to front; one with none goes last. */
-export const positionOrder = ({ positions }: Pick<SquadRow, "positions">) => positionRank(positions[0] ?? null);
+const positionOrder = ({ positions }: Pick<SquadRow, "positions">) => positionRank(positions[0] ?? null);
+
+/** The Squad order for a sort: back to front by first position, then by name. */
+export const bySquadOrder = (one: Pick<SquadRow, "positions" | "name">, other: Pick<SquadRow, "positions" | "name">): number =>
+  positionOrder(one) - positionOrder(other) || one.name.localeCompare(other.name);
 
 /** The caller's team's squad at `now`, the screen's minute (a query may not read the clock),
  *  back to front by his first position, then by name. Refused for anyone who runs no team. */
@@ -209,7 +213,7 @@ export const ofMyTeam = query({
       news: player.news || null,
       chanceOfPlaying: player.chanceOfPlaying ?? null,
     }));
-    rows.sort((one, other) => positionOrder(one) - positionOrder(other) || one.name.localeCompare(other.name));
+    rows.sort(bySquadOrder);
     const rules = await latestRules(ctx, leagueId);
     return {
       teamName: team.name,

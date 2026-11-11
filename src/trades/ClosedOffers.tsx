@@ -10,7 +10,7 @@ import {
   closedColumns,
   closedTableLabel,
   closedWhyWords,
-  dayWords,
+  dateWords,
   noClosedWords,
   olderWords,
   thisSeasonWords,
@@ -62,7 +62,7 @@ export function ClosedOffers({
                       <TradedSide players={sides.youGive} pick={sides.pickYouGive} />
                     </td>
                     <td className={CELL}>{closedWhyWords(offer.why, youActed(offer, myTeamId))}</td>
-                    <td className={CELL}>{dayWords(offer.closedAt)}</td>
+                    <td className={CELL}>{dateWords(offer.closedAt)}</td>
                   </tr>
                 );
               })}

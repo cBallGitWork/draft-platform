@@ -68,7 +68,15 @@ export function eventLetter(event: LeagueEvent, who: string, tell: TellMoment): 
     case "gameweekUsed":
       return event.used
         ? { subject: `Gameweek ${event.gameweek} counts again`, body: `${who} made gameweek ${event.gameweek} count for the league again.` }
-        : { subject: `Gameweek ${event.gameweek} won't count`, body: `${who} took gameweek ${event.gameweek} out of the league's season.` };
+        : {
+            subject: `Gameweek ${event.gameweek} won't count`,
+            body: `${who} took gameweek ${event.gameweek} out of the league's season.${event.startMovedTo === undefined ? "" : ` ${startsInWords(event.startMovedTo, event.gameweek)}`}`,
+          };
+    case "scoringStartSet":
+      return {
+        subject: `Scoring starts in gameweek ${event.to}`,
+        body: `${who} set the gameweek the league's scoring starts in. ${startsInWords(event.to, event.from)}`,
+      };
     case "invited":
       return { subject: `${event.email} was invited`, body: `${who} invited ${event.email} to manage ${forTeam(event.teamName)}.` };
     case "inviteResent":
@@ -115,6 +123,10 @@ export function eventLetter(event: LeagueEvent, who: string, tell: TellMoment): 
       return { subject: `${event.teamName} claimed ${event.playerName}`, body: claimedBody(event, who) };
     case "playerPickedUp":
       return { subject: `${event.teamName} picked up ${event.playerName}`, body: pickedUpBody(event, who) };
+    case "playerTraded":
+    case "tradeMade":
+      // A trade's letters are its own (tradeLetterWords.ts), so its events are filed with none.
+      throw new Error(`A ${event.kind} event files no letter: the trade letter says it`);
     case "rulesChanged":
       return {
         subject: `The league's rules change from gameweek ${event.fromGameweek}`,
@@ -129,6 +141,13 @@ export function eventLetter(event: LeagueEvent, who: string, tell: TellMoment): 
     case "autoTeamSwitched":
       return autoTeamSwitchedWords(event, who);
   }
+}
+
+/** What a scoring start set or moved means for the league: scoring starts in `to`, not `from` (null
+ *  while none was set, when every ticked gameweek scored), and the gameweeks before it score nothing. */
+function startsInWords(to: number, from: number | null): string {
+  const instead = from === null ? "" : `, not ${from}`;
+  return `Scoring starts in gameweek ${to}${instead}: squads and lineups count from its deadline, and the gameweeks before it score nothing.`;
 }
 
 /** The league's average, as a letter about the fixtures names it. */
@@ -147,12 +166,14 @@ function swappedBody(event: Extract<LeagueEvent, { kind: "fixturesSwapped" }>, w
 export const matchWords = (home: string, away: string) => `${home} v ${away}`;
 
 /** The draft's letters (spec/04, Mail; #1102). "You're up next" to the manager whose pick's clock
- *  starts, its deadline told with `tell`, in the reader's zone; it is also the email when the clock is long. */
-export function upNextLetter({ round, pick, teamName, endsAt }: { round: number; pick: number; teamName: string; endsAt: number }, tell: TellMoment): Words {
-  return {
-    subject: "You're up next in the draft",
-    body: `${teamName} is on the clock: round ${round}, pick ${pick}. Make your pick by ${tell(endsAt)}, or the draft picks for you.`,
-  };
+ *  starts, its deadline told with `tell`, in the reader's zone; it is also the email when the clock is
+ *  long. `endsAt` is null while the draft is paused: his clock starts when it resumes (#1461). */
+export function upNextLetter({ round, pick, teamName, endsAt }: { round: number; pick: number; teamName: string; endsAt: number | null }, tell: TellMoment): Words {
+  const subject = "You're up next in the draft";
+  if (endsAt === null) {
+    return { subject, body: `${teamName} is up next: round ${round}, pick ${pick}. The draft is paused; your clock starts when it resumes.` };
+  }
+  return { subject, body: `${teamName} is on the clock: round ${round}, pick ${pick}. Make your pick by ${tell(endsAt)}, or the draft picks for you.` };
 }
 
 /** To the whole league once the last pick is made. */

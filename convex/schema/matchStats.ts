@@ -35,14 +35,6 @@ const matchStatsStatusFields = {
 /** A stat a feed changed after the lock, for the feeds page (spec/15): the locked value and the sent one. */
 export const lateStatChange = v.object({ stat: v.string(), locked: v.number(), sent: v.number() });
 
-/** The platform's own settings, the admin's to change (spec/15). A league's rules are never here. */
-export const platformSettingName = v.union(
-  v.literal("statCorrectionWindowMinutes"),
-  v.literal("scoutsPerTeam"),
-  v.literal("matchdayHoursBefore"),
-  v.literal("matchdayHoursAfter"),
-);
-
 /** What one sync did with one match. */
 export const matchSyncOutcome = v.union(
   v.object({
@@ -104,16 +96,15 @@ export const matchStatsTables = {
     seenAt: v.number(),
     changes: v.array(lateStatChange),
   }).index("by_fixtureCode_and_playerCode", ["fixtureCode", "playerCode"]),
-  platformSettings: defineTable({ name: platformSettingName, value: v.number() }).index("by_name", ["name"]),
   matchStatsSyncs: defineTable(matchStatsSyncFields),
   /** Each player's records added up for a season (#373, seasonStats.ts), so Scouting sorts every
    *  player by any stat without reading a season of records: one row a player and season, kept
    *  in step as each record is written. `season` is the year it starts (shared/time.ts's
    *  `seasonStartYear` of the match's kickoff). */
-  playerSeasonStats: defineTable({ season: v.number(), playerCode: v.number(), stats: v.record(v.string(), v.number()) }).index(
-    "by_season_and_playerCode",
-    ["season", "playerCode"],
-  ),
+  playerSeasonStats: defineTable({ season: v.number(), playerCode: v.number(), stats: v.record(v.string(), v.number()) })
+    .index("by_season_and_playerCode", ["season", "playerCode"])
+    // His newest season's, for his Scouting row (scouting/scoutingPlayers.ts, #1559).
+    .index("by_playerCode_and_season", ["playerCode", "season"]),
   /** Each player's base points this season (#525, seasonPoints.ts), so Scouting lists every
    *  player's season points without pricing a season of records: one row a player and season,
    *  set afresh from his records whenever one is written. `points` holds the season's sum at each

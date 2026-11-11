@@ -16,8 +16,9 @@ import {
 } from "../../../../src/myTeam/tactics/lineupEdits";
 import { reshaped } from "../../../../src/myTeam/tactics/reshape";
 import type { RoleStars } from "../../../../convex/stars/starsShape";
+import { KEEPER_CELL } from "../../../support/convex/lineup.harness";
 
-const KEEPER = { playerCode: 1, area: "goalkeeper", lane: "centre" } as const;
+const KEEPER = { playerCode: 1, ...KEEPER_CELL } as const;
 const BACK = { playerCode: 2, area: "defence", lane: "left" } as const;
 const DRAFT = { starters: [KEEPER, BACK], bench: [3, 4] };
 /** No stars: everyone dropped starts on the slot's first role. */
@@ -51,7 +52,7 @@ describe("the same lineup", () => {
 
 it("opens on the lineup the server holds, a team's first until its manager saves one (spec/05)", () => {
   const lineup = { fromGameweek: null, starters: [KEEPER], bench: [7, 5, 6], leftSquad: [], joinedBench: [], vacated: [] };
-  expect(openingLineup({ lineup, classics: [] })).toEqual({ starters: [KEEPER], bench: [7, 5, 6] });
+  expect(openingLineup({ lineup, classicFormations: [] })).toEqual({ starters: [KEEPER], bench: [7, 5, 6] });
 });
 
 describe("a lineup saved on a classic (#991)", () => {
@@ -59,11 +60,11 @@ describe("a lineup saved on a classic (#991)", () => {
   const KEEGANS = { name: "Keegan's Newcastle", subtitle: "", description: "", cells: [], instructions: { attacking: "", defensive: "" } };
 
   it("opens on it while the league holds it", () => {
-    expect(openingLineup({ lineup, classics: [KEEGANS] }).classic).toBe("Keegan's Newcastle");
+    expect(openingLineup({ lineup, classicFormations: [KEEGANS] }).classicFormation).toBe("Keegan's Newcastle");
   });
 
   it("opens on no classic once the league has dropped or renamed it, so his next save stands", () => {
-    expect(openingLineup({ lineup, classics: [{ ...KEEGANS, name: "Keegan's Newcastle 1996" }] })).toEqual({ starters: [KEEPER], bench: [7] });
+    expect(openingLineup({ lineup, classicFormations: [{ ...KEEGANS, name: "Keegan's Newcastle 1996" }] })).toEqual({ starters: [KEEPER], bench: [7] });
   });
 });
 

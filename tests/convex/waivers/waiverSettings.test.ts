@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, test } from "vitest";
 import { api } from "../../../convex/_generated/api";
 import type { LeagueSettings } from "../../../convex/rules/leagueSettingsPart";
 import { refusals } from "../../../convex/shared/leagueAccess";
+import { HOUR_MS } from "../../../convex/shared/time";
 import { changeEveryRules, HELD_FIRST_RULES, rulesInGameweek, rulesRevision } from "../../support/convex/leagueRules.harness";
 import { actingAs, COMMISSIONER, eventsIn } from "../../support/convex/leagues.harness";
 import { expectRefused } from "../../support/convex/test.harness";
@@ -73,10 +74,30 @@ describe("the waiver order", () => {
     // Level on 0 points, the reverse of the draft order: Ann, Bob and Cat drafted first, so go last.
     expect(view?.teams.map(({ teamId }) => teamId)).toEqual(w.teams.toReversed());
     expect(view?.teams.map(({ tablePlace }) => tablePlace)).toEqual(w.teams.map((_, place) => w.teams.length - place));
-    expect(view).toMatchObject({ type: "reverseStandings", drafted: true, locked: false, nextDeadline: { gameweek: NEXT } });
+    expect(view).toMatchObject({ type: "reverseStandings", drafted: true, locked: false, windowShuts: { gameweek: NEXT } });
     expect(view?.teams.filter(({ yours }) => yours).map(({ teamId }) => teamId)).toEqual([w.annsTeam]);
     expect(view?.runs).toHaveLength(2);
-    expect(view?.runs[0]).toBeLessThan(view!.runs[1]);
+    expect(view?.runs[0].at).toBeLessThan(view!.runs[1].at);
+    // Wednesday's and Thursday's, both before NEXT's deadline on Monday, while the gameweek before is over.
+    expect(view?.runs.map(({ skippedIf }) => skippedIf)).toEqual([null, null]);
+  });
+
+  test("with the next deadline before both runs, each may be skipped, and the window lasts to the deadline after (#1488)", async () => {
+    const ofLeague = async (now: number) => (await actingAs(w.t, ANN)).query(api.waivers.waiverOrder.ofLeague, { leagueId: w.leagueId, now });
+    const nextDeadline = (await ofLeague(Date.now())).windowShuts!.at;
+
+    // An hour before NEXT's deadline: the coming Wednesday's and Thursday's runs fall after it.
+    const before = await ofLeague(nextDeadline - HOUR_MS);
+    expect(before.runs.map(({ skippedIf }) => skippedIf)).toEqual([NEXT, NEXT]);
+    expect(before.runs[0].at).toBeGreaterThan(nextDeadline);
+    expect(before).toMatchObject({ locked: false, windowOpen: false, windowShuts: { gameweek: NEXT + 1 } });
+
+    // In its lock they still may be; once its last match is over, they are made.
+    const inLock = await ofLeague(nextDeadline + HOUR_MS);
+    expect(inLock).toMatchObject({ locked: true, windowShuts: { gameweek: NEXT + 1 } });
+    expect(inLock.runs.map(({ skippedIf }) => skippedIf)).toEqual([NEXT, NEXT]);
+    await w.matchIs(NEXT, "fullTime");
+    expect((await ofLeague(nextDeadline + HOUR_MS)).runs.map(({ skippedIf }) => skippedIf)).toEqual([null, null]);
   });
 
   test("from the deadline until the gameweek's last match is over, a winner stays at the bottom and the table is the one the last gameweek ended on (#1480)", async () => {

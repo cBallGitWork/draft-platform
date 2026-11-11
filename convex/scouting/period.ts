@@ -6,7 +6,7 @@ import type { StoredScoringSet } from "../scoring/scoringSetShape";
 import { setOf, siteScoringByGameweek, siteVersions } from "../scoring/siteVersions";
 import { inTenths } from "../scoring/values";
 import { takeAllOrThrow } from "../shared/cappedRead";
-import { CURRENT_FIXTURES_MOST, heldSeason } from "../shared/fixtures";
+import { CURRENT_FIXTURES_MOST, heldFixturesSeason } from "../shared/fixtures";
 import { groupedBy } from "../shared/groupedBy";
 import { JULY } from "../shared/time";
 import { statusOf } from "../stats/matchStats";
@@ -22,7 +22,8 @@ import { PERIOD_GAMEWEEKS, type Period } from "./periods";
 // totals (seasonStats.ts), so last season's until the new one's first match. A gameweek is finished
 // once every one of its matches with a kickoff has been read at full time. The season's totals are
 // kept as records are written; a few gameweeks' are added up from their matches' records on read,
-// at most 6 gameweeks of a few dozen records a match.
+// at most 6 gameweeks of a few dozen records a match; each gameweek still to be played costs one
+// status read on the way down to them.
 
 /** One of the period's matches: its gameweek and every record held for it. */
 type PeriodMatch = { fixture: Doc<"fixtures">; gameweek: number; records: Doc<"playerMatchStats">[] };
@@ -30,7 +31,7 @@ type PeriodMatch = { fixture: Doc<"fixtures">; gameweek: number; records: Doc<"p
 /** Every player's totals over the period, by his code, and the gameweeks it counts (none for the
  *  season, in order otherwise); `matches` are the period's matches, for its points, empty for the
  *  season. `season` is the season the totals are from, null with none held. */
-export interface PeriodTotals {
+interface PeriodTotals {
   season: number | null;
   gameweeks: number[];
   totals: Map<number, Stats>;
@@ -62,10 +63,19 @@ async function finishedGameweeks(ctx: QueryCtx, season: number, count: number): 
   const finished: [number, Doc<"fixtures">[]][] = [];
   for (const gameweek of newestFirst) {
     if (finished.length === count) break;
-    const read = await Promise.all(gameweek[1].map((fixture) => statusOf(ctx, fixture.code)));
-    if (read.every((status) => status !== null)) finished.push(gameweek);
+    if (await everyMatchRead(ctx, gameweek[1])) finished.push(gameweek);
   }
   return finished;
+}
+
+/** Whether every one of these matches has been read at full time. The latest kickoff is asked
+ *  first and the walk stops at the first unread match, so a gameweek still to be played costs one
+ *  read, not one a match (#1552). */
+async function everyMatchRead(ctx: QueryCtx, fixtures: readonly Doc<"fixtures">[]): Promise<boolean> {
+  for (const fixture of fixtures.toSorted((one, other) => other.kickoff! - one.kickoff!)) {
+    if ((await statusOf(ctx, fixture.code)) === null) return false;
+  }
+  return true;
 }
 
 /** The season's matches with a kickoff and a gameweek: for the season the feed still sends, only
@@ -78,7 +88,7 @@ async function seasonFixtures(ctx: QueryCtx, season: number): Promise<Doc<"fixtu
     CURRENT_FIXTURES_MOST,
     `More than ${CURRENT_FIXTURES_MOST} matches are held for the ${season} season, so the period would be cut short`,
   );
-  const sent = season === (await heldSeason(ctx));
+  const sent = season === (await heldFixturesSeason(ctx));
   return held.filter((fixture) => fixture.gameweek !== null && (!sent || fixture.droppedAt === undefined));
 }
 
@@ -88,7 +98,7 @@ async function seasonFixtures(ctx: QueryCtx, season: number): Promise<Doc<"fixtu
  *  override of a match counts in its place (seasonPoints.ts); in an earlier season, under the site's
  *  set as it stands, with no overrides, as last season's points are (shownSeasonPoints.ts). */
 export async function periodPointsIn(ctx: QueryCtx, leagueId: Id<"leagues">, { season, matches }: PeriodTotals): Promise<SeasonPointsOf> {
-  const thisSeason = season !== null && season === (await heldSeason(ctx));
+  const thisSeason = season !== null && season === (await heldFixturesSeason(ctx));
   let setIn: (gameweek: number) => StoredScoringSet;
   if (thisSeason) setIn = await siteScoringByGameweek(ctx);
   else {

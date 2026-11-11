@@ -9,9 +9,6 @@ import { BACK_THREE, roleName } from "./roles";
 /** A player's name, by his code. */
 export type NameOf = (playerCode: number) => string;
 
-/** A player the app holds no row for, which only one who left long ago can be. */
-export const unknownPlayerWords = (playerCode: number) => `Player ${playerCode}`;
-
 const isNot = (names: readonly string[]) => (names.length === 1 ? "isn't" : "aren't");
 
 /** Why a lineup can't be saved, as the manager is told it. */
@@ -21,8 +18,8 @@ export const lineupRefusals = {
   notInSquad: (names: readonly string[]) => `${andListWords(names)} ${isNot(names)} in your squad.`,
   leftOut: (names: readonly string[]) =>
     `${andListWords(names)} ${isNot(names)} in the lineup: every player in your squad starts or sits on the bench.`,
-  noSuchClassic: (name: string) => `This league has no classic called ${name} any more: pick a formation to save your lineup.`,
-  notInClassicShape: (name: string) => `${name} keeps its formation: pick another formation to leave it.`,
+  noSuchClassicFormation: (name: string) => `This league has no classic formation called ${name} any more: pick a formation to save your lineup.`,
+  notInClassicFormationShape: (name: string) => `${name} keeps its formation: pick another formation to leave it.`,
 };
 
 /** How many plans a manager keeps, and how long a plan's name may be (spec/05, Saved plans;

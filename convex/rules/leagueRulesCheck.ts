@@ -1,13 +1,13 @@
 import { STARTER_COUNT, type AreaLimit } from "../lineup/lineup";
 import { AREAS, type Area } from "../lineup/pitch";
-import { inClassicShape } from "../lineup/classics";
+import { inClassicFormationShape } from "../lineup/classics";
 import { pairRefusal, SIDES, type Instruction } from "../lineup/instructions";
 import { offersRole } from "../lineup/roles";
 import { instructionsOf } from "./firstRules";
 import type { DraftRules, LeagueRules, TradeRules } from "./leagueRulesShape";
-import { FIRST_GAMEWEEK, GAMEWEEKS } from "../gameweeks/usedGameweeks";
+import { FIRST_GAMEWEEK } from "../gameweeks/usedGameweeks";
 import { PICK_SECONDS_FEWEST, PICK_SECONDS_MOST, TIMEOUTS_FEWEST, TIMEOUTS_MOST } from "../draft/draftLimits";
-import { MOST_IN_SQUAD } from "../leagues/leagueLimits";
+import { MOST_IN_SQUAD, PREMIER_LEAGUE_CLUBS } from "../leagues/leagueLimits";
 import { roundsInARoundRobin } from "../table/roundRobin";
 
 // What makes a league's rules sound beyond their stored shape (spec/03; #25): each check throws an
@@ -18,26 +18,27 @@ import { roundsInARoundRobin } from "../table/roundRobin";
 /** Why rules can't be saved, told apart from a bug, which is never shown as a reason. */
 export class UnsoundRules extends Error {}
 
-/** Throws the first reason these rules can't be saved. Given the league's maximum teams, also
- *  that that many can play its games a gameweek. */
-export function checkLeagueRules(rules: LeagueRules, maxTeams?: number): void {
+/** Throws the first reason these rules can't be saved, in a season of `seasonGameweeks` gameweeks
+ *  (seasonGameweeks.ts's `seasonGameweekCount`). Given the league's maximum teams, also that that
+ *  many can play its games a gameweek. */
+export function checkLeagueRules(rules: LeagueRules, seasonGameweeks: number, maxTeams?: number): void {
   checkSquad(rules.squad);
   checkAreaLimits(rules.areaLimits);
   checkPresets(rules.presets, rules.areaLimits);
   checkInstructions(instructionsOf(rules), rules.presets);
-  if (rules.classics !== undefined) checkClassics(rules.classics, rules.presets, instructionsOf(rules));
+  if (rules.classics !== undefined) checkClassicFormations(rules.classics, rules.presets, instructionsOf(rules));
   checkWholeNumber(rules.deadline.minutesBeforeFirstKickoff, "The deadline's minutes before the first kickoff", 0);
   checkNoneTwice(rules.tieBreaks, (tieBreak) => `The tie-break ${tieBreak} is listed twice.`);
   checkWholeNumber(rules.gamesPerGameweek, "The head-to-head games each team plays a gameweek", 1);
   if (maxTeams !== undefined) checkGamesFor(rules.gamesPerGameweek, maxTeams);
   checkWaivers(rules.waivers);
   if (rules.draft !== undefined) checkDraft(rules.draft);
-  if (rules.trades !== undefined) checkTrades(rules.trades);
+  if (rules.trades !== undefined) checkTrades(rules.trades, seasonGameweeks);
 }
 
 /** A trade deadline, if any, is a gameweek of the season. */
-function checkTrades({ deadline }: TradeRules): void {
-  if (deadline !== null) checkWholeNumberWithin(deadline, "The trade deadline's gameweek", FIRST_GAMEWEEK, GAMEWEEKS);
+function checkTrades({ deadline }: TradeRules, seasonGameweeks: number): void {
+  if (deadline !== null) checkWholeNumberWithin(deadline, "The trade deadline's gameweek", FIRST_GAMEWEEK, seasonGameweeks);
 }
 
 /** The pick clock and timeouts within Craig's limits (../draft/draftLimits.ts). */
@@ -119,7 +120,17 @@ function checkSquad({ size, minimumByArea, maxPerClub }: LeagueRules["squad"]): 
       throw new UnsoundRules(`The squad's minimums by area add up to ${minimums}, more than its maximum size, ${size.maximum}.`);
     }
   }
-  if (maxPerClub !== null) checkWholeNumber(maxPerClub, "The most players from one club", 1);
+  if (maxPerClub !== null) {
+    checkWholeNumber(maxPerClub, "The most players from one club", 1);
+    // A squad the club maximum can't fill would freeze its draft at the pick with no legal player
+    // left: refused when saved, as a squad above 25 is (Craig, 11 Nov 2026, on #1462).
+    const room = maxPerClub * PREMIER_LEAGUE_CLUBS;
+    if (size !== null && size.maximum > room) {
+      throw new UnsoundRules(
+        `The squad's maximum, ${size.maximum}, is more than ${maxPerClub} from each of the ${PREMIER_LEAGUE_CLUBS} clubs can fill, ${room}.`,
+      );
+    }
+  }
 }
 
 function checkPresets(presets: LeagueRules["presets"], limits: Record<Area, AreaLimit>): void {
@@ -172,25 +183,25 @@ function checkInstructions(set: readonly Instruction[], presets: LeagueRules["pr
   }
 }
 
-/** Each classic named once, standing in one of the league's presets (Craig, 6 Nov 2026: "Yes, one
- *  of ours"), with a role its slot offers in it and one instruction a side its shape offers
- *  (spec/05). */
-function checkClassics(classics: NonNullable<LeagueRules["classics"]>, presets: LeagueRules["presets"], set: readonly Instruction[]): void {
+/** Each classic formation named once, standing in one of the league's presets (Craig, 6 Nov 2026:
+ *  "Yes, one of ours"), with a role its slot offers in it and one instruction a side its shape
+ *  offers (spec/05). */
+function checkClassicFormations(classicFormations: NonNullable<LeagueRules["classics"]>, presets: LeagueRules["presets"], set: readonly Instruction[]): void {
   checkNoneTwice(
-    classics.map((classic) => classic.name.trim()),
-    (name) => `Two classics are called "${name}".`,
+    classicFormations.map((classicFormation) => classicFormation.name.trim()),
+    (name) => `Two classic formations are called "${name}".`,
   );
-  for (const classic of classics) {
-    const { name, cells, instructions } = classic;
-    if (name.trim() === "") throw new UnsoundRules("A classic needs a name.");
-    if (!presets.some((preset) => inClassicShape(preset.cells, classic))) {
-      throw new UnsoundRules(`The classic ${name} stands in no formation of the league's.`);
+  for (const classicFormation of classicFormations) {
+    const { name, cells, instructions } = classicFormation;
+    if (name.trim() === "") throw new UnsoundRules("A classic formation needs a name.");
+    if (!presets.some((preset) => inClassicFormationShape(preset.cells, classicFormation))) {
+      throw new UnsoundRules(`The classic formation ${name} stands in no formation of the league's.`);
     }
     for (const cell of cells) {
-      if (!offersRole(cell, cell.role, cells)) throw new UnsoundRules(`The classic ${name} gives its ${cell.area} ${cell.lane} slot the role ${cell.role}, which that slot doesn't offer.`);
+      if (!offersRole(cell, cell.role, cells)) throw new UnsoundRules(`The classic formation ${name} gives its ${cell.area} ${cell.lane} slot the role ${cell.role}, which that slot doesn't offer.`);
     }
     const refusal = pairRefusal(instructions, cells, set);
-    if (refusal !== null) throw new UnsoundRules(`The classic ${name}'s ${refusal.side} instruction, ${refusal.key}, isn't one its shape offers.`);
+    if (refusal !== null) throw new UnsoundRules(`The classic formation ${name}'s ${refusal.side} instruction, ${refusal.key}, isn't one its shape offers.`);
   }
 }
 

@@ -9,6 +9,7 @@ import type { Position } from "./positionTables";
 import { internal } from "../_generated/api";
 import { approveMode, changeThresholds, clubColoursRecord, position } from "../schema";
 import { heldColours } from "../football/clubKits";
+import { keepScoutingPlayer } from "../scouting/scoutingPlayers";
 
 // Each player's positions (#22): his row holds what the feeds gave (his starts, his label) and the
 // admin's say, and `positionsOf` works his positions out from it on every read, so a change to
@@ -47,7 +48,7 @@ export const ofPlayer = query({
 });
 
 /** His positions now, from his row and how positions count. */
-function positionsFrom(row: RowFields, how: HowPositionsCount): WorkedOutPositions {
+export function positionsFrom(row: RowFields, how: HowPositionsCount): WorkedOutPositions {
   return positionsOf({
     starts: row.starts,
     plLabel: row.plLabel ?? null,
@@ -63,7 +64,7 @@ export const approvePlayer = mutation({
   handler: async (ctx, { code }) => {
     await adminOf(ctx);
     await approve(ctx, await heldRow(ctx, code));
-    await ctx.runMutation(internal.positions.positionWarnings.warnEveryLeagueNow, {});
+    await ctx.runMutation(internal.positions.positionWarnings.warnEveryLeagueSoon, {});
     return null;
   },
 });
@@ -77,7 +78,7 @@ export const approveClub = mutation({
     await adminOf(ctx);
     const players = await currentPlayersAt(ctx, clubCode);
     for (const player of players) await approve(ctx, await heldRow(ctx, player.code));
-    await ctx.runMutation(internal.positions.positionWarnings.warnEveryLeagueNow, {});
+    await ctx.runMutation(internal.positions.positionWarnings.warnEveryLeagueSoon, {});
     return players.length;
   },
 });
@@ -89,7 +90,7 @@ export const setPosition = mutation({
   handler: async (ctx, { code, position: given }) => {
     await adminOf(ctx);
     const row = await heldRow(ctx, code);
-    await ctx.db.patch("playerPositions", row._id, { set: withOne(row.set, given), removed: withoutOne(row.removed, given) });
+    await patchRow(ctx, row, { set: withOne(row.set, given), removed: withoutOne(row.removed, given) });
     return null;
   },
 });
@@ -102,8 +103,8 @@ export const removePosition = mutation({
     await adminOf(ctx);
     const row = await heldRow(ctx, code);
     await ctx.runMutation(internal.positions.positionWarnings.warnOfAdminRemovalNow, { code, position: taken });
-    await ctx.db.patch("playerPositions", row._id, { set: withoutOne(row.set, taken), removed: withOne(row.removed, taken) });
-    await ctx.runMutation(internal.positions.positionWarnings.warnEveryLeagueNow, {});
+    await patchRow(ctx, row, { set: withoutOne(row.set, taken), removed: withOne(row.removed, taken) });
+    await ctx.runMutation(internal.positions.positionWarnings.warnEveryLeagueSoon, {});
     return null;
   },
 });
@@ -204,10 +205,19 @@ export type PositionsNow = (code: number) => Promise<Position[]>;
 
 /** Each player's positions now, as the league's own deadlines have them (#895; EVERY_LEAGUE for
  *  what no one league owns), for anyone's screen (a squad's area minimums, #317): none for a player
- *  no feed has named yet. How positions count is read once, here. */
+ *  no feed has named yet. How positions count is read once, here, and each player's row once per
+ *  lookup (#1532): a draft pick asks after the same players several times over, near Convex's read
+ *  limit. A caller that writes a player's positions takes a new lookup to read them again. */
 export async function positionsNow(ctx: QueryCtx, positionsFor: PositionsFor): Promise<PositionsNow> {
   const how = await howPositionsCount(ctx, positionsFor);
-  return (code) => currentPositions(ctx, code, how);
+  const read = new Map<number, Promise<Position[]>>();
+  return (code) => {
+    const known = read.get(code);
+    if (known !== undefined) return known;
+    const positions = currentPositions(ctx, code, how);
+    read.set(code, positions);
+    return positions;
+  };
 }
 
 async function currentPositions(ctx: QueryCtx, code: number, how: HowPositionsCount): Promise<Position[]> {
@@ -224,6 +234,7 @@ export async function heldRow(ctx: MutationCtx, code: number): Promise<Row> {
   const row = await findRow(ctx, code);
   if (row !== null) return row;
   const id = await ctx.db.insert("playerPositions", { code, ...EMPTY_ROW });
+  await keepScoutingPlayer(ctx, code);
   return (await ctx.db.get("playerPositions", id))!;
 }
 
@@ -234,7 +245,14 @@ function findRow(ctx: QueryCtx, code: number): Promise<Row | null> {
 /** Adds what his starts give him now to what the admin approved before, and confirms his label. */
 async function approve(ctx: MutationCtx, row: Row): Promise<void> {
   const approved = positionsFromStarts(row.starts).positions.reduce(withOne, row.approved);
-  await ctx.db.patch("playerPositions", row._id, { approved, confirmedLabel: row.plLabel });
+  await patchRow(ctx, row, { approved, confirmedLabel: row.plLabel });
+}
+
+/** Writes `fields` to his row, and his Scouting row's copy of it (scoutingPlayers.ts, #1559): every
+ *  write to a positions row is made here. */
+export async function patchRow(ctx: MutationCtx, row: Row, fields: Partial<RowFields>): Promise<void> {
+  await ctx.db.patch("playerPositions", row._id, fields);
+  await keepScoutingPlayer(ctx, row.code);
 }
 
 function withOne(positions: Position[], added: Position): Position[] {

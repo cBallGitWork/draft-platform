@@ -21,7 +21,7 @@ import {
 import { HELD, openCard, RICE, SAKA } from "../../support/src/playerCardScreen.harness";
 import { league, manager } from "../../support/src/shell.harness";
 
-const FIRST_RUN = Date.parse("2026-11-12T18:00:00Z");
+const FIRST_RUN = { at: Date.parse("2026-11-12T18:00:00Z"), skippedIf: null };
 const SQUAD = [
   { playerCode: 2001, playerName: "Mbeumo" },
   { playerCode: 2002, playerName: "Wissa" },
@@ -52,7 +52,7 @@ describe("a player in the manager's squad", () => {
 
 describe("a player on waivers", () => {
   it("says the run that can first take him, and claims him naming who goes", async () => {
-    const app = openCard(RICE, withAction(RICE.code, { kind: "claim", firstRunAt: FIRST_RUN, squad: SQUAD }));
+    const app = openCard(RICE, withAction(RICE.code, { kind: "claim", firstRun: FIRST_RUN, squad: SQUAD }));
     expect(await screen.findByText(onWaiversUntilWords(FIRST_RUN))).toBeTruthy();
     await userEvent.selectOptions(screen.getByLabelText(whoGoesLabel), "Wissa");
     await userEvent.click(screen.getByRole("button", { name: claimWords }));
@@ -62,11 +62,16 @@ describe("a player on waivers", () => {
   });
 
   it("claims him naming nobody, with no squad to name from", async () => {
-    const app = openCard(RICE, withAction(RICE.code, { kind: "claim", firstRunAt: null, squad: [] }));
+    const app = openCard(RICE, withAction(RICE.code, { kind: "claim", firstRun: null, squad: [] }));
     expect(await screen.findByText(onWaiversUntilWords(null))).toBeTruthy();
     expect(screen.queryByLabelText(whoGoesLabel)).toBeNull();
     await userEvent.click(screen.getByRole("button", { name: claimWords }));
     expect(app.playerCard.waiverChanges.claim).toHaveBeenCalledWith(league.leagueId, RICE.code, null);
+  });
+
+  it("whose first run may fall in a gameweek's lock says it comes after that gameweek's last match (#1467)", async () => {
+    openCard(RICE, withAction(RICE.code, { kind: "claim", firstRun: { at: FIRST_RUN.at, skippedIf: 12 }, squad: [] }));
+    expect(await screen.findByText("On waivers: first run after GW12's last match")).toBeTruthy();
   });
 });
 
@@ -82,7 +87,7 @@ describe("a free agent", () => {
   });
 
   it("drops a choice made for a claim once he leaves waivers", async () => {
-    const actions = new Map<number, CardAction>([[RICE.code, { kind: "claim", firstRunAt: FIRST_RUN, squad: SQUAD }]]);
+    const actions = new Map<number, CardAction>([[RICE.code, { kind: "claim", firstRun: FIRST_RUN, squad: SQUAD }]]);
     const app = openCard(RICE, { ...HELD, actions });
     await userEvent.selectOptions(await screen.findByLabelText(whoGoesLabel), "Wissa");
 

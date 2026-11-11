@@ -6,7 +6,7 @@ import type { Doc, Id } from "../_generated/dataModel";
 import { scoutedThisSeason } from "../scouting/scouts";
 import { memberOf, refuse } from "../shared/leagueAccess";
 import { seasonStartAt } from "../shared/time";
-import { isSquadMove, squadMovesSince, squadOf } from "../squads/squadPlace";
+import { isSquadMove, movedOff, squadMovesSince, squadOf } from "../squads/squadPlace";
 import { ratedRoles } from "./stars";
 import { NO_DATA, roleStarsShape, type RoleStars } from "./starsShape";
 
@@ -15,6 +15,8 @@ import { NO_DATA, roleStarsShape, type RoleStars } from "./starsShape";
 // shown them only for his own squad and the players his scouts have reported on, for the season
 // (spec/19, Role stars), and for any player his team has held this season, who stays shown once
 // he has left it (Craig, 6 Nov 2026, on #375). Everyone else's are hidden: null.
+// No screen calls ofPlayer or ofPlayers yet (the 11 Nov review, #1574): they stay for #375's hiding
+// to wire in, not removed.
 
 /** The most players one read asks for: a squad's, or a page of Scouting's list, with room. More is
  *  refused, never a silent cut. */
@@ -60,7 +62,7 @@ export async function starsShownTo(ctx: QueryCtx, leagueId: Id<"leagues">, team:
   for (const { playerCode } of await squadOf(ctx, team._id)) shown.add(playerCode);
   for (const { event } of await squadMovesSince(ctx, leagueId, seasonStartAt(now))) {
     if (!isSquadMove(event)) continue;
-    if (event.teamId === team._id || (event.kind === "playerMoved" && event.fromTeamId === team._id)) shown.add(event.playerCode);
+    if (event.teamId === team._id || movedOff(event, team._id)) shown.add(event.playerCode);
   }
   return shown;
 }

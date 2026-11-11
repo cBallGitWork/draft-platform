@@ -10,6 +10,7 @@ import { DAY_MS } from "../../../convex/shared/time";
 import type { Position } from "../../../convex/positions/positionTables";
 import { refusals } from "../../../convex/shared/leagueAccess";
 import { ADMIN, actingAs, COMMISSIONER } from "../../support/convex/leagues.harness";
+import { PL_GAMEWEEKS } from "../../support/convex/footballRows.harness";
 import { asAdmin, positionsSyncRanOnDay } from "../../support/convex/positionsSync.harness";
 import { CENTRE_BACK, movedToFullBack, played, RIGHT_BACK, startsFrom, times } from "../../support/convex/positionStarts.harness";
 import { expectRefused, freshConvex, type TestConvex } from "../../support/convex/test.harness";
@@ -126,9 +127,12 @@ describe("the queue's position changes", () => {
 });
 
 describe("only between gameweeks", () => {
-  /** A league whose own deadlines passed on `days`, gameweek 1 on the first. */
+  /** A league whose own deadlines passed on `days`, gameweek 1 on the first, in a season of
+   *  PL_GAMEWEEKS (#1618). */
   const leagueWithDeadlines = (t: TestConvex, ...days: number[]) =>
     t.run(async (ctx) => {
+      const last = await ctx.db.query("gameweeks").withIndex("by_season_and_number").order("desc").first();
+      if (last === null || last.number < PL_GAMEWEEKS) await ctx.db.insert("gameweeks", { number: PL_GAMEWEEKS, deadline: 0 });
       const leagueId = await ctx.db.insert("leagues", { name: `League ${days.join("-")}`, maxTeams: 4, commissionerEmail: COMMISSIONER });
       for (const [index, day] of days.entries()) {
         await ctx.db.insert("passedDeadlines", { leagueId, gameweek: index + 1, deadline: day * DAY_MS, recordedAt: day * DAY_MS });

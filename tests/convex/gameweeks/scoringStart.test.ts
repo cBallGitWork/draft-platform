@@ -6,7 +6,7 @@ import { scoringStartRefusals, startAfterDraft } from "../../../convex/gameweeks
 import { refusals } from "../../../convex/shared/leagueAccess";
 import { HOUR_MS, WEEK_MS } from "../../../convex/shared/time";
 import { holdGameweeks, setUsed } from "../../support/convex/leagueRules.harness";
-import { actingAs, addManagers, adminCreatesLeague, COMMISSIONER, leagueRow, MANAGERS, type TestConvex } from "../../support/convex/leagues.harness";
+import { actingAs, addManagers, adminCreatesLeague, COMMISSIONER, eventsIn, leagueRow, MANAGERS, type TestConvex } from "../../support/convex/leagues.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
 import { expectRefused } from "../../support/convex/test.harness";
 
@@ -51,17 +51,19 @@ describe("the gameweeks before it", () => {
     expect(after.map(({ gameweek }) => gameweek)).toEqual(Array.from({ length: 34 }, (_, index) => index + 5));
   });
 
+  // The commissioner can no longer set a start once gameweeks are scored (#1588), so the draft's end
+  // sets it here.
   test("score nothing, even once begun and stored before the start was set", async () => {
     playUpTo(2);
     await t.run((ctx) => recordPassedDeadlines(ctx));
     expect((await table())!.results.map(({ gameweek }) => gameweek)).toEqual([1, 2]);
 
-    await setStart(4);
-    playUpTo(4);
+    await draftEnds();
+    playUpTo(3);
     await t.run((ctx) => recordPassedDeadlines(ctx));
     const read = (await table())!;
-    expect(read.results.map(({ gameweek }) => gameweek)).toEqual([4]);
-    expect(read.gameweeks[0]!.gameweek).toBe(4);
+    expect(read.results.map(({ gameweek }) => gameweek)).toEqual([3]);
+    expect(read.gameweeks[0]!.gameweek).toBe(3);
   });
 
   test("a league with none set scores every ticked gameweek, as before", async () => {
@@ -85,7 +87,7 @@ describe("the commissioner sets it", () => {
     await expectRefused(setStart(2), scoringStartRefusals.begun(2));
     await setUsed(t, leagueId, 6, false);
     await expectRefused(setStart(6), scoringStartRefusals.unticked(6));
-    await expectRefused(setStart(39), scoringStartRefusals.notAGameweek(39));
+    await expectRefused(setStart(39), scoringStartRefusals.notAGameweek(39, 38));
     expect(await scoringStart()).toBeUndefined();
   });
 
@@ -93,6 +95,26 @@ describe("the commissioner sets it", () => {
     await setStart(3);
     playUpTo(3);
     await expectRefused(setStart(5), scoringStartRefusals.fixed(3));
+  });
+
+  test("never once the league, with none set, has scored a gameweek: its earlier results stay (#1588, S04.12)", async () => {
+    playUpTo(2);
+    await t.run((ctx) => recordPassedDeadlines(ctx));
+
+    await expectRefused(setStart(5), scoringStartRefusals.seasonBegun);
+    expect(await scoringStart()).toBeUndefined();
+    expect((await table())!.results.map(({ gameweek }) => gameweek)).toEqual([1, 2]);
+    expect((await (await actingAs(t, COMMISSIONER)).query(api.gameweeks.scoringStart.ofLeague, { leagueId })).seasonBegun).toBe(true);
+  });
+
+  test("a gameweek whose deadline passed before the league was made doesn't fix it", async () => {
+    playUpTo(2);
+    await t.run((ctx) => recordPassedDeadlines(ctx));
+    const later = await adminCreatesLeague(t);
+    await t.run((ctx) => recordPassedDeadlines(ctx));
+
+    await (await actingAs(t, COMMISSIONER)).mutation(api.gameweeks.scoringStart.setScoringStart, { leagueId: later, gameweek: 5 });
+    expect((await leagueRow(t, later))!.scoringStart).toBe(5);
   });
 
   test("a manager can't set it", async () => {
@@ -124,6 +146,25 @@ describe("the commissioner sets it", () => {
     await setStart(5);
     await setUsed(t, leagueId, 6, false);
     expect(await scoringStart()).toBe(5);
+    expect((await eventsIn(t, leagueId)).at(-1)).toEqual({ by: COMMISSIONER, kind: "gameweekUsed", gameweek: 6, used: false });
+  });
+
+  // Every commissioner action files a letter to the whole league (spec/15; #1548).
+  test("setting or moving it is filed for Mail, from none or the start it moved from; setting it again to the same files nothing", async () => {
+    await setStart(9);
+    await setStart(12);
+    await setStart(12);
+    const filed = (await eventsIn(t, leagueId)).filter((event) => event.kind === "scoringStartSet");
+    expect(filed).toEqual([
+      { by: COMMISSIONER, kind: "scoringStartSet", from: null, to: 9 },
+      { by: COMMISSIONER, kind: "scoringStartSet", from: 9, to: 12 },
+    ]);
+  });
+
+  test("unticking it says, in the gameweek's letter, where the start moved to", async () => {
+    await setStart(5);
+    await setUsed(t, leagueId, 5, false);
+    expect((await eventsIn(t, leagueId)).at(-1)).toEqual({ by: COMMISSIONER, kind: "gameweekUsed", gameweek: 5, used: false, startMovedTo: 6 });
   });
 });
 

@@ -9,8 +9,9 @@ import type { Position } from "../../../../convex/positions/positionTables";
 import { NO_DATA } from "../../../../convex/stars/starsShape";
 import { landingOf, swapped, withRole, type MoveRules, type RatingsOf } from "../../../../src/myTeam/tactics/lineupEdits";
 import { canSwap, dropOutcome, reachOf } from "../../../../src/myTeam/tactics/swaps";
+import { KEEPER_CELL } from "../../../support/convex/lineup.harness";
 
-const KEEPER = { playerCode: 1, area: "goalkeeper", lane: "centre" } as const;
+const KEEPER = { playerCode: 1, ...KEEPER_CELL } as const;
 const BACK = { playerCode: 2, area: "defence", lane: "left" } as const;
 const DRAFT = { starters: [KEEPER, BACK], bench: [3, 4] };
 const NO_STARS: RatingsOf = () => [];

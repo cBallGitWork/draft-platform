@@ -6,7 +6,7 @@ import { LEAGUES_SHOWN } from "../../convex/leagues/leagueLimits";
 import { LETTERS_SHOWN, UNREAD_COUNTED } from "../../convex/mail/mailLimits";
 import { dayWords, failedWords, timeOfDayWords } from "../shared/words";
 
-export const MAIL_TITLE = "Mail";
+export { MAIL_TITLE } from "../shared/words";
 export const noLettersWords = "No letters yet.";
 export const loadingWords = "Fetching your Mail…";
 export const unreadWords = "Unread";

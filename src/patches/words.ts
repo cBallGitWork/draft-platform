@@ -4,8 +4,7 @@
 
 import { screenMoment } from "../../convex/shared/moments";
 import { ROLE_TARGET_MARGIN } from "../../convex/balanceLab/balanceLabLimits";
-import { seasonShortWords } from "../draft/words";
-import { failedWords } from "../shared/words";
+import { failedWords, seasonShortWords } from "../shared/words";
 import type { VersionNotes } from "./seam";
 
 export const PATCH_NOTES_TITLE = "Patch notes";
@@ -45,8 +44,16 @@ export const offTargetWords = "Off target";
 export const notTestedWords = (stats: readonly string[]) => `Not tested: no past ${stats.join(", ")}`;
 export const noStartsWords = "No starts";
 export const noRolesWords = "The set scores no roles.";
-/** The site's set holds no team instructions yet (spec/05 Team instructions), so none are checked. */
-export const noTeamInstructionsWords = "Team instructions: none in the site's scoring yet, so none checked.";
+/** The set scores no team instructions (spec/05 Team instructions), so none are checked. */
+export const noTeamInstructionsWords = "The set scores no team instructions.";
+/** Why no team instruction has an average yet (spec/14 S14.9; #1541). */
+export const instructionsHint = "Team instructions: each is averaged on a club's real XI, and the past seasons don't hold each player's club yet, so none is tested.";
+export const instructionColumns = {
+  instruction: { short: "Instruction", long: "Team instruction" },
+  average: { short: "Avg", long: "Average for a whole XI" },
+} as const;
+/** A team instruction whose stats were all copied, still untested as no club's XI is held. */
+export const notTestedYetWords = "Not tested";
 
 /** The banner, from a patch's announcement until it takes effect. */
 export const bannerWords = (name: string, takesEffectAt: number) => `Scoring patch ${name} takes effect on ${screenMoment(takesEffectAt)}.`;

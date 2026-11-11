@@ -15,7 +15,20 @@ export interface RawPlayer {
   detailedposition?: RawPosition | null;
 }
 export interface RawSquadMan { player_id: number; player?: RawPlayer | null }
-export interface RawTeam { id: number; name: string; short_code: string | null; players?: RawSquadMan[] }
+/** What keeps a man out (#1420): an injury or a suspension, its `type` naming it ("Hamstring
+ *  Injury", "Red Card Suspension"). `end_date` is the expected return where Sportmonks sends one;
+ *  `completed` is true once he is back. */
+export interface RawSideline {
+  id: number;
+  player_id: number;
+  /** "injury" or "suspension", as Sportmonks' docs give it. */
+  category?: string | null;
+  /** "2026-11-22". */
+  end_date?: string | null;
+  completed?: boolean | null;
+  type?: { id: number; name: string } | null;
+}
+export interface RawTeam { id: number; name: string; short_code: string | null; players?: RawSquadMan[]; sidelined?: RawSideline[] }
 export interface RawParticipant { id: number; meta?: { location?: string } }
 export interface RawScore { description: string; score: { goals: number; participant: string } }
 export interface RawPeriod { ticking?: boolean; minutes?: number | null }
@@ -71,6 +84,30 @@ export interface SportmonksPayloads {
   teams: RawTeam[];
   schedule: RawStage[];
 }
+
+/** How Sportmonks names a match's sides: a participant's `meta.location`, and a score's `participant`. */
+export const HOME = "home";
+export const AWAY = "away";
+
+/** Sportmonks' match state ids (a fixture's `state_id`), by their v3 names. */
+export const SM_STATE = {
+  notStarted: 1, // NS
+  firstHalf: 2, // INPLAY_1ST_HALF
+  halfTime: 3, // HT
+  breakBeforeExtraTime: 4, // BREAK
+  fullTime: 5, // FT
+  extraTime: 6, // INPLAY_ET
+  afterExtraTime: 7, // AET
+  afterPenalties: 8, // FT_PEN
+  penalties: 9, // INPLAY_PENALTIES
+  postponed: 10, // POSTPONED
+  toBeAnnounced: 13, // TBA
+  delayed: 16, // DELAYED
+  awarded: 17, // AWARDED
+  extraTimeBreak: 21, // EXTRA_TIME_BREAK
+  secondHalf: 22, // INPLAY_2ND_HALF
+  penaltyBreak: 25, // PEN_BREAK
+} as const;
 
 /** What a problem names the feed as. */
 export const SPORTMONKS = "Sportmonks";

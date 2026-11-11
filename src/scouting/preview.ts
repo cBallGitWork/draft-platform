@@ -8,7 +8,7 @@ import { cardOpensAt } from "../../convex/playerCard/cardPoints";
 import { MINUTES_STAT } from "../../convex/stats/matchRecords";
 import { proLeague } from "../shared/preview";
 import { listFigures, listOf, NO_FIGURES, shownStat } from "../../convex/scouting/playersOrder";
-import { raceOrder } from "../../convex/scouting/raceOrder";
+import { mostFirst, raceOrder } from "../../convex/scouting/raceOrder";
 import { withOwnStats } from "../../convex/scoring/ownStats";
 import { OWN_STAT_PREFIX } from "../../convex/scoring/statCatalogue";
 import type { Stats } from "../../convex/stats/statTotals";
@@ -40,7 +40,7 @@ const player = (code: number, name: string, fullName: string, club: ListedPlayer
 
 /** One player on waivers, so the filter and the player card's claim show: a run two days off first
  *  takes him. */
-const onWaivers = (listed: ListedPlayer): ListedPlayer => ({ ...listed, onWaivers: { firstRunAt: Date.now() + 2 * DAY_MS } });
+const onWaivers = (listed: ListedPlayer): ListedPlayer => ({ ...listed, onWaivers: { firstRun: { at: Date.now() + 2 * DAY_MS, skippedIf: null } } });
 
 export const previewPlayers: readonly ListedPlayer[] = [
   player(1, "Saka", "Bukayo Saka", ARSENAL, ["W"], "Saka Potatoes"),
@@ -123,7 +123,7 @@ const previewRace = (stat: string): StatRace => ({
       const stats = raceTotals(index);
       return { teamId: previewIdOf(name), name, stats, stat: stats[stat] ?? 0 };
     }),
-    true,
+    mostFirst(stat),
   ),
 });
 
@@ -151,19 +151,19 @@ export const previewScouting: Omit<ScoutingSeam, keyof WaiverActionSeam> = {
     const yours = previewPlayers.find((each) => each.ownerTeamName === proLeague.teamName && each.code !== playerCode && main !== null && cardOpensAt(each.positions) === main);
     return { player: yours === undefined || main === null ? null : { position: main, code: yours.code, name: yours.name }, squadFull: false };
   },
-  usePlayersList: (_leagueId, filters, sort, stat, period = "season") => ({
-    clubs: [ARSENAL, CHELSEA, LIVERPOOL],
-    ownStats: PREVIEW_SET.ownStats.map(({ stat, name, shortCode }) => ({ stat, name, shortCode })),
-    players: listOf(
-      previewPlayers.map((player) => {
-        const totals = totalsOver(period)[player.code];
-        return { ...player, figures: listFigures(totals), stat: shownStat(withOwnStats(totals ?? {}, PREVIEW_SET), stat) };
-      }),
-      filters,
-      sort,
-    ),
-    pointsSeason: null,
-    periodGameweeks: PREVIEW_PERIOD_GAMEWEEKS[period],
-  }),
+  usePlayersList: (_leagueId, filters, sort, stat, period = "season", keep) => {
+    const rows = previewPlayers.map((player) => {
+      const totals = totalsOver(period)[player.code];
+      return { ...player, figures: listFigures(totals), stat: shownStat(withOwnStats(totals ?? {}, PREVIEW_SET), stat) };
+    });
+    return {
+      clubs: [ARSENAL, CHELSEA, LIVERPOOL],
+      ownStats: PREVIEW_SET.ownStats.map(({ stat, name, shortCode }) => ({ stat, name, shortCode })),
+      players: listOf(rows, filters, sort),
+      pointsSeason: null,
+      periodGameweeks: PREVIEW_PERIOD_GAMEWEEKS[period],
+      ...(keep === undefined ? {} : { kept: rows.find(({ code }) => code === keep) ?? null }),
+    };
+  },
   useStatRace: (_leagueId, stat) => previewRace(stat),
 };

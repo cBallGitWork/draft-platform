@@ -1,10 +1,11 @@
 import { beforeEach, describe, expect, test } from "vitest";
 import { api } from "../../../convex/_generated/api";
+import { HOUR_MS, MINUTE_MS } from "../../../convex/shared/time";
 import { claimRefusals } from "../../../convex/waivers/waiverClaims";
-import { WAIVER_MS } from "../../../convex/waivers/waiverLimits";
+import { CLAIMS_PER_TEAM_MOST, WAIVER_MS } from "../../../convex/waivers/waiverLimits";
 import { playerLeaves } from "../../support/convex/draftLists.harness";
 import { setUsed } from "../../support/convex/leagueRules.harness";
-import { actingAs, COMMISSIONER } from "../../support/convex/leagues.harness";
+import { actingAs, addManager, COMMISSIONER, MANAGERS } from "../../support/convex/leagues.harness";
 import { nameOf, passNextDeadline } from "../../support/convex/lineupSquad.harness";
 import { expectRefused } from "../../support/convex/test.harness";
 import { ANN, ANNS_FIRST_DROP, ANNS_SECOND_DROP, BOB, NEXT, PALMER, SAKA, waiverLeague, type WaiverLeague } from "../../support/convex/waivers.harness";
@@ -44,6 +45,22 @@ describe("a manager's claims", () => {
     await w.claim(ANN, SAKA, ANNS_FIRST_DROP);
     await expectRefused(w.claim(ANN, SAKA, ANNS_FIRST_DROP), claimRefusals.twice);
     await w.claim(ANN, SAKA, ANNS_SECOND_DROP);
+  });
+
+  test(`are refused while his team has ${CLAIMS_PER_TEAM_MOST} in, until he withdraws one (S08.16)`, async () => {
+    await w.onWaivers([SAKA, PALMER]);
+    // Ann's team holds one short of the ceiling.
+    await w.t.run(async (ctx) => {
+      for (let rank = 0; rank < CLAIMS_PER_TEAM_MOST - 1; rank++) {
+        await ctx.db.insert("waiverClaims", { leagueId: w.leagueId, teamId: w.annsTeam, playerCode: SAKA, dropCode: 900_000 + rank, rank, by: ANN });
+      }
+    });
+    const palmerClaim = await w.claim(ANN, PALMER);
+    await expectRefused(w.claim(ANN, SAKA), claimRefusals.tooMany);
+    // The ceiling is each team's own: Bob still claims.
+    await w.claim(BOB, SAKA);
+    await (await actingAs(w.t, ANN)).mutation(api.waivers.waiverClaims.withdraw, { leagueId: w.leagueId, claimId: palmerClaim });
+    await w.claim(ANN, SAKA);
   });
 
   test("aren't put in for a player who has left the Premier League", async () => {
@@ -103,7 +120,42 @@ describe("a manager's claims", () => {
     const [pending] = await w.pending(ANN);
 
     expect(pending.claim).toMatchObject({ positions: expect.any(Array), club: { shortName: expect.any(String) } });
-    expect(pending.runAt).toBeGreaterThanOrEqual(Date.now());
+    expect(pending.run?.at).toBeGreaterThanOrEqual(Date.now());
+  });
+
+  test("name a run still to come: once the run that could first take him has gone by, the next (#1467)", async () => {
+    await w.onWaivers([SAKA]);
+    await w.claim(ANN, SAKA);
+    const first = (await w.pending(ANN))[0].run!.at;
+
+    expect((await w.pending(ANN, first + MINUTE_MS))[0].run!.at).toBeGreaterThan(first);
+  });
+
+  test("whose first run may fall in a gameweek's lock wait on its last match, so one run's claims share it (#1467)", async () => {
+    const ofLeague = async (now: number) => (await actingAs(w.t, ANN)).query(api.waivers.waiverOrder.ofLeague, { leagueId: w.leagueId, now });
+    const nextDeadline = (await ofLeague(Date.now())).windowShuts!.at;
+    // Wednesday's and Thursday's runs both fall after NEXT's deadline; Palmer can't be taken until Thursday's.
+    const [wednesday, thursday] = (await ofLeague(nextDeadline - HOUR_MS)).runs.map(({ at }) => at);
+    await w.onWaivers([SAKA]);
+    await w.onWaivers([PALMER], wednesday + MINUTE_MS);
+    await w.claim(ANN, SAKA);
+    await w.claim(ANN, PALMER);
+    const runsAt = async (now: number) => (await w.pending(ANN, now)).map(({ run }) => run);
+
+    expect(await runsAt(nextDeadline - HOUR_MS)).toEqual([
+      { at: wednesday, skippedIf: NEXT },
+      { at: thursday, skippedIf: NEXT },
+    ]);
+    // Wednesday's run has gone by in the lock, skipped: Saka's first run is Thursday's now.
+    expect(await runsAt(wednesday + HOUR_MS)).toEqual([
+      { at: thursday, skippedIf: NEXT },
+      { at: thursday, skippedIf: NEXT },
+    ]);
+    await w.matchIs(NEXT, "fullTime");
+    expect(await runsAt(wednesday + HOUR_MS)).toEqual([
+      { at: thursday, skippedIf: null },
+      { at: thursday, skippedIf: null },
+    ]);
   });
 
   test("a manager sees only his own pending claims; the commissioner sees everyone's", async () => {
@@ -119,11 +171,31 @@ describe("a manager's claims", () => {
         yours: true,
         claim: expect.objectContaining({ playerCode: SAKA, playerName: nameOf(SAKA) }),
         drop: expect.objectContaining({ playerCode: ANNS_FIRST_DROP, playerName: nameOf(ANNS_FIRST_DROP) }),
-        runAt: expect.any(Number),
+        run: { at: expect.any(Number), skippedIf: null },
       },
     ]);
     expect((await w.pending(BOB)).map(({ teamId }) => teamId)).toEqual([w.bobsTeam]);
     expect((await w.pending(COMMISSIONER)).map(({ teamId }) => teamId)).toEqual([w.annsTeam, w.bobsTeam]);
+  });
+
+  // Craig, 11 Nov 2026, on #1464: withdrawn when the manager goes; the next manager starts with none.
+  test.each(["removed", "leaves"])("are withdrawn when their manager is %s: none is tried, and whoever takes the team on starts with none", async (how) => {
+    await w.onWaivers([SAKA, PALMER]);
+    await w.claim(ANN, SAKA, ANNS_FIRST_DROP);
+    await w.claim(ANN, PALMER, ANNS_SECOND_DROP);
+    await w.claim(BOB, PALMER);
+    const leagueId = w.leagueId;
+    if (how === "removed") await (await actingAs(w.t, COMMISSIONER)).mutation(api.leagues.teams.removeManager, { leagueId, teamId: w.annsTeam });
+    else await (await actingAs(w.t, ANN)).mutation(api.leagues.teams.leave, { leagueId });
+
+    expect((await w.pending(COMMISSIONER)).map(({ teamId }) => teamId)).toEqual([w.bobsTeam]);
+    const dan = MANAGERS[3];
+    await addManager(w.t, leagueId, dan, w.annsTeam);
+    expect(await w.pending(dan)).toEqual([]);
+    await w.runWaivers();
+    expect(await w.stateOf(SAKA)).toEqual({ kind: "freeAgent" });
+    expect(await w.squadCodes(w.annsTeam)).toEqual(expect.arrayContaining([ANNS_FIRST_DROP, ANNS_SECOND_DROP]));
+    expect(await w.stateOf(PALMER)).toMatchObject({ kind: "owned", teamId: w.bobsTeam });
   });
 });
 
@@ -141,6 +213,21 @@ describe("the lock", () => {
     await w.matchIs(NEXT, "fullTime");
     await w.runWaivers();
     expect(await w.stateOf(SAKA)).toMatchObject({ kind: "owned", teamId: w.bobsTeam });
+  });
+
+  test("shuts new claims and a change of drop, but a claim in can still be ranked again or withdrawn (S08.14)", async () => {
+    await w.onWaivers([SAKA, PALMER]);
+    const sakaClaim = await w.claim(ANN, SAKA, ANNS_FIRST_DROP);
+    const palmerClaim = await w.claim(ANN, PALMER);
+    await passNextDeadline(w.t);
+    const ann = await actingAs(w.t, ANN);
+    const leagueId = w.leagueId;
+    await expectRefused(ann.mutation(api.waivers.waiverClaims.changeDrop, { leagueId, claimId: sakaClaim, dropCode: ANNS_SECOND_DROP }), claimRefusals.locked);
+
+    await ann.mutation(api.waivers.waiverClaims.rank, { leagueId, claimIds: [palmerClaim, sakaClaim] });
+    expect((await w.pending(ANN)).map(({ claim }) => claim.playerCode)).toEqual([PALMER, SAKA]);
+    await ann.mutation(api.waivers.waiverClaims.withdraw, { leagueId, claimId: palmerClaim });
+    expect((await w.pending(ANN)).map(({ claim }) => claim.playerCode)).toEqual([SAKA]);
   });
 
   test("holds through a gameweek the league doesn't play, claims and the run alike (spec/13)", async () => {

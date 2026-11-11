@@ -1,9 +1,12 @@
 // What every screen says alike, in one place for Craig to change in the pull request.
 
 import type { PlayingState } from "../../convex/football/matchScores";
+import { AREA_WORDS } from "../../convex/lineup/pitchWords";
 import type { Position } from "../../convex/positions/positionTables";
+import type { TradedSide } from "../../convex/schema/squads";
 import { LOCALE } from "../../convex/shared/moments";
 import { countInWords, figureWords } from "../../convex/shared/numberWords";
+import type { SquadWarning } from "../../convex/squads/squads";
 import { FEWEST_TO_DRAW } from "../../convex/table/roundRobin";
 import type { Result } from "../../convex/table/standings";
 
@@ -14,7 +17,7 @@ export { unheldPlayerWords } from "../../convex/shared/players";
 export const unheldNoticeWords = "Some football data is missing: a player's row says so in place of his name. Tell the admin.";
 
 /** The pitch's areas, as the rules screens name them: the server's refusals name them too. */
-export { AREA_WORDS } from "../../convex/lineup/pitchWords";
+export { AREA_WORDS };
 
 /** Each position by name, for a short code's hover (positionTables.ts has the codes). */
 export const POSITION_NAMES: Record<Position, string> = {
@@ -161,6 +164,9 @@ export const noHeadToHeadsTotalPointsWords = "The league plays total points, so 
 const weekdayTimeFormat = new Intl.DateTimeFormat(LOCALE, { weekday: "short", hour: "2-digit", minute: "2-digit" });
 /** A time within the week, in the viewer's own zone: "Thu 18:00", a kickoff or a waiver run. */
 export const weekdayTimeWords = (at: number) => weekdayTimeFormat.format(at);
+const weekdayFormat = new Intl.DateTimeFormat(LOCALE, { weekday: "short" });
+/** The day alone, in the viewer's own zone: "Sun", as a matchup tile's badge says a kickoff. */
+export const weekdayWords = (at: number) => weekdayFormat.format(at);
 
 const ordinals = new Intl.PluralRules(LOCALE, { type: "ordinal" });
 const ORDINAL_ENDS: Record<Intl.LDMLPluralRule, string> = { zero: "th", one: "st", two: "nd", few: "rd", many: "th", other: "th" };
@@ -183,3 +189,85 @@ export const foundListLabel = "Players found";
 export const autoTeamWords = "Auto team";
 /** What the auto team does (spec/09), as its chip's hover and My team's switch say it. */
 export const autoTeamWhatWords = "Keeps your last lineup, swapping a starter who is out for the first bench player who fits. No claims, drops or trades.";
+
+/** A traded draft pick, named by the team whose pick it is: "Pickford Pirates' round 4 pick"
+ *  (docs/design/approved/team-transactions/). */
+export const tradedPickWords = (round: number, teamName: string) => `${possessive(teamName)} round ${round} pick`;
+/** A team's name owning something: "Hull Hearts'", "Lions'", "Bob's" as it is, "Ann's XI's". */
+const possessive = (name: string) => (name.endsWith("'s") ? name : name.endsWith("s") ? `${name}'` : `${name}'s`);
+/** One side of a trade that went through, each of its players and picks by name (#1491). */
+export const tradedNames = ({ players, picks }: TradedSide): string[] => [
+  ...players.map(({ playerName }) => playerName),
+  ...picks.map(({ round, teamName }) => tradedPickWords(round, teamName)),
+];
+/** The other side of a trade: "With Hull Hearts". */
+export const withTeamWords = (teamName: string) => `With ${teamName}`;
+/** A traded pick made by the team it was traded to: "via Bale Out" (the draft and the trades). */
+export const viaWords = (team: string) => `via ${team}`;
+
+/** The top menu's sections and Home's, My team's and Trades' tabs (src/frame/menu.ts), and the
+ *  titles of the pages other screens name: the table, Mail and the draft. */
+export const menuWords = {
+  home: "Home",
+  overview: "Overview",
+  news: "News",
+  myTeam: "My team",
+  tactics: "Tactics",
+  squad: "Squad",
+  fixtures: "Fixtures",
+  transactions: "Transactions",
+  matchup: "Matchup",
+  table: "Table",
+  scouting: "Scouting",
+  trades: "Trades",
+  offers: "Offers",
+  newOffer: "New offer",
+  premierLeague: "Premier League",
+  mail: "Mail",
+  draft: "Draft",
+} as const;
+export const TABLE_TITLE = menuWords.table;
+export const MAIL_TITLE = menuWords.mail;
+export const DRAFT_TITLE = menuWords.draft;
+
+/** The league's table, on the table screen, league home, My team and the matchup alike: said
+ *  while every team has played nothing, the row of the viewer's team, and the league average. */
+export const noResultsWords = "No results yet.";
+export const yourTeamWords = "Your team";
+export const leagueAverageWords = "League average";
+/** A gameweek that can't be scored (the table and My team). */
+export const unscoredWords = (gameweek: number, reason: string) =>
+  `${gameweekWords(gameweek)} can't be scored, so it counts for nothing in the table: ${reason}.`;
+
+/** A season, short: "25/26" (the draft's list, Scouting, the player card, patch notes, a role card). */
+export const seasonShortWords = (startYear: number) => `${String(startYear % 100).padStart(2, "0")}/${String((startYear + 1) % 100).padStart(2, "0")}`;
+
+/** A matchup's score head, and a player whose points don't count (the matchup and the Premier
+ *  League's match page). */
+export const SCORE_LABEL = "Score";
+export const notCountingLabel = "not counting";
+/** The vidiprinter (the matchup, league home, the Premier League's pages): its title, and when the
+ *  stream falls behind or stops; points carry on from FPL (spec/10, The commentary). */
+export const VIDIPRINTER_TITLE = "Vidiprinter";
+export const commentaryDelayedWords = "Commentary delayed";
+export const noCommentaryWords = "No lines yet.";
+
+/** A player who has left the Premier League: on a squad (Squads, My team's Squad tab), and on his
+ *  card and a shortlist. */
+export const leftLeagueWords = "Not available: he has left the Premier League.";
+export const noLongerInLeagueWords = "No longer in the Premier League.";
+
+/** Each squad limit the league's rules set that a squad breaks: they warn, never block (spec/15),
+ *  on Squads and the trades alike. */
+export function warningWords(warning: SquadWarning): string {
+  switch (warning.kind) {
+    case "overMaximum":
+      return `${warning.players} players, over the league's most of ${warning.maximum}.`;
+    case "underMinimum":
+      return `${warning.players} players, under the league's least of ${warning.minimum}.`;
+    case "overClubMaximum":
+      return `${warning.players} from ${warning.clubShortName}, over the league's most of ${warning.maximum} from one club.`;
+    case "underAreaMinimum":
+      return `${AREA_WORDS[warning.area]}: ${warning.minimum - warning.players} short of the league's least of ${warning.minimum}.`;
+  }
+}

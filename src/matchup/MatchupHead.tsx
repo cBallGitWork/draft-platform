@@ -10,6 +10,7 @@ import {
   finalWords,
   GAME_SWITCH_LABEL,
   gameSwitchWords,
+  gameweekShort,
   gameweekWords,
   leagueAverageWords,
   nextGlyph,
@@ -75,7 +76,10 @@ export function Stepper({ matchup: { teamId, gameweeks }, gameweek }: { matchup:
   return (
     <nav aria-label={gameweekWords(gameweek)} className="flex min-h-tap shrink-0 items-stretch bg-stepper">
       {step(index > 0 ? gameweeks[index - 1] : undefined, previousLabel, previousGlyph)}
-      <h2 className="flex grow items-center justify-center px-3 text-lead font-bold">{gameweekWords(gameweek)}</h2>
+      <h2 className="flex grow items-center justify-center px-3 text-lead font-bold">
+        <span aria-hidden="true">{gameweekShort(gameweek)}</span>
+        <span className="sr-only">{gameweekWords(gameweek)}</span>
+      </h2>
       {step(index !== -1 && index < gameweeks.length - 1 ? gameweeks[index + 1] : undefined, nextLabel, nextGlyph)}
     </nav>
   );
@@ -106,10 +110,11 @@ function Standing({ side }: { side: MatchupSide }) {
   );
 }
 
-/** A team's name over its standing, and its override control, if any. */
-function TeamHead({ side, control, align }: { side: MatchupSide; control: ReactNode; align: string }) {
+/** A team's name over its standing, and its override control, if any, centred in its outer half of
+ *  the band (the approved picture). */
+function TeamHead({ side, control }: { side: MatchupSide; control: ReactNode }) {
   return (
-    <div className={`flex min-w-0 flex-col gap-1 ${align}`}>
+    <div className="flex min-w-0 flex-col items-center gap-1 text-center">
       <p className="text-lead wrap-break-word display-face lg:text-title">{sideName(side)}</p>
       <Standing side={side} />
       {control}
@@ -138,7 +143,7 @@ export function ScoredHead({
   const provisional = team.provisional || opponent.provisional;
   const middle = (controlOf: (side: MatchupSide) => ReactNode) => (
     <div className="grid grid-cols-sides items-start gap-x-2 px-2 py-2 lg:gap-x-6 lg:px-4">
-      <TeamHead side={team} control={controlOf(team)} align="items-end text-right" />
+      <TeamHead side={team} control={controlOf(team)} />
       <div className="flex flex-col items-center gap-1">
         <p className="flex gap-2">
           <span className="sr-only">{scoreWords(team.points, opponent.points)}</span>
@@ -152,7 +157,7 @@ export function ScoredHead({
         </p>
         {gameSwitch}
       </div>
-      <TeamHead side={opponent} control={controlOf(opponent)} align="items-start" />
+      <TeamHead side={opponent} control={controlOf(opponent)} />
     </div>
   );
   return (

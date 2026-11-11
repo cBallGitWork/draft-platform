@@ -52,6 +52,10 @@ export const LAB_REPORT: LabReport = {
     { role: "shotStopper", slot: "GK", target: 0.9, starts: 80, average: 1.67, offTarget: true },
     { role: "numberTen", slot: "CAM", target: 0.6, missing: ["big_chance_created"] },
   ],
+  instructions: [
+    { instruction: "gungHo", missing: [] },
+    { instruction: "shootOnSight", missing: ["att_obox_goal"] },
+  ],
 };
 
 /** The view the fake server gives by default: the first set, as the admin reads it, with no

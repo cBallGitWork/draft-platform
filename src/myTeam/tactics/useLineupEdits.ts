@@ -58,16 +58,18 @@ export function useLineupEdits({
     // Saved, the lineup stands as it is: the shape's slots are no longer asked for.
     if (made) setShape("");
   };
-  /** The lineup shown from now on, saved as it is: the saved line or refusal of the one before no
-   *  longer stands, so both go (#622). */
+  /** The lineup shown from now on, saved as the pitch shows it, read against the squad as it is now,
+   *  so an Undo back past a squad change never sends a player the squad no longer holds (#1562):
+   *  the saved line or refusal of the one before no longer stands, so both go (#622). */
   const show = (next: EditedLineup) => {
-    setEdited(next);
+    const shown = shownLineup(next, opening, squadCodes);
+    setEdited(shown);
     onShown();
     setSavedAt(null);
     setRefused(null);
     setSwitchedNote(null);
     clear();
-    void save(next);
+    void save(shown);
   };
   /** A drop refused, in words: the lineup stays as it is, and the line under the toolbar says why. */
   const refuse = (words: string) => {

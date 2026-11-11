@@ -18,6 +18,12 @@
           "player": { "id": 37292381, "name": "Kasper Schmeichel", "common_name": "K. Schmeichel", "display_name": "Kasper Schmeichel", "firstname": "Kasper", "lastname": "Schmeichel" } },
         { "id": 2, "transfer_id": null, "player_id": 37306481, "team_id": 53, "position_id": 27, "jersey_number": 8, "captain": false,
           "player": { "id": 37306481, "name": "Kyogo Furuhashi", "common_name": "Kyogo", "display_name": null, "firstname": "Kyogo", "lastname": "Furuhashi" } }
+      ],
+      "sidelined": [
+        { "id": 901, "player_id": 37292381, "type_id": 547, "category": "injury", "team_id": 53, "season_id": 25598, "start_date": "2026-11-03", "end_date": "2026-11-22", "games_missed": 1, "completed": false,
+          "type": { "id": 547, "name": "Hamstring Injury", "code": "hamstring-injury", "developer_name": "HAMSTRING_INJURY", "model_type": "injury" } },
+        { "id": 902, "player_id": 37306481, "type_id": 554, "category": "injury", "team_id": 53, "season_id": 25598, "start_date": "2026-10-04", "end_date": "2026-10-25", "games_missed": 3, "completed": true,
+          "type": { "id": 554, "name": "Ankle Injury", "code": "ankle-injury", "developer_name": "ANKLE_INJURY", "model_type": "injury" } }
       ]
     },
     {
@@ -25,6 +31,10 @@
       "players": [
         { "id": 3, "transfer_id": null, "player_id": 31739, "team_id": 62, "position_id": 25, "jersey_number": 2, "captain": true,
           "player": { "id": 31739, "name": "James Tavernier", "common_name": "J. Tavernier", "display_name": "James Tavernier", "firstname": "James", "lastname": "Tavernier" } }
+      ],
+      "sidelined": [
+        { "id": 903, "player_id": 31739, "type_id": 1708, "category": "suspension", "team_id": 62, "season_id": 25598, "start_date": "2026-11-08", "end_date": null, "games_missed": 0, "completed": false,
+          "type": { "id": 1708, "name": "Red Card Suspension", "code": "red-card-suspension", "developer_name": "RED_CARD_SUSPENSION", "model_type": "suspension" } }
       ]
     },
     { "id": 273, "sport_id": 1, "country_id": 1161, "venue_id": 8912, "gender": "male", "name": "Heart of Midlothian", "short_code": null, "founded": 1874, "type": "domestic", "players": [] }

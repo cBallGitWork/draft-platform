@@ -4,7 +4,7 @@ import type { Doc } from "../_generated/dataModel";
 import { internalMutation, type MutationCtx } from "../_generated/server";
 import { matchRecordsOf } from "../gameweekScorer/heldMatches";
 import { logFailure } from "../shared/errors";
-import { heldSeason } from "../shared/fixtures";
+import { heldFixturesSeason } from "../shared/fixtures";
 import { seasonStartYear } from "../shared/time";
 import { queueRefresh } from "./seasonPointsQueue";
 import { POINTS_REBUILD_COMMAND } from "./seasonRebuilds";
@@ -17,7 +17,7 @@ import { POINTS_REBUILD_COMMAND } from "./seasonRebuilds";
  *  season's row: so a rollover dropping last season's matches queues nothing. */
 export async function repriceMatches(ctx: MutationCtx, fixtures: readonly Pick<Doc<"fixtures">, "code" | "kickoff">[]): Promise<void> {
   if (fixtures.length === 0) return;
-  const season = await heldSeason(ctx);
+  const season = await heldFixturesSeason(ctx);
   for (const { code, kickoff } of fixtures) {
     if (kickoff === null || seasonStartYear(kickoff) !== season) continue;
     await ctx.scheduler.runAfter(0, internal.stats.seasonPointsMoves.repriceMatch, { fixtureCode: code });

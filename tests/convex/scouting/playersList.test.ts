@@ -8,19 +8,21 @@ import {
   type PlayersFilters,
   type PlayersSort,
 } from "../../../convex/scouting/playersList";
+import { ALL, BY_NAME, playersListed, serverList } from "../../support/convex/playersList.harness";
 import { listOf, NO_FIGURES } from "../../../convex/scouting/playersOrder";
 import { FPL_SEASON } from "../../support/recorded/plSeasons.payloads";
 import { refusals } from "../../../convex/shared/leagueAccess";
 import { SEASON_PLAYERS_MOST } from "../../../convex/stats/matchRecords";
+import { seasonTotals } from "../../../convex/stats/seasonStats";
 import { CLUB_PLAYERS_MOST } from "../../../convex/shared/players";
 import { COMMISSIONER, MANAGERS, actingAs, addManagers, adminCreatesLeague, teamName, type TestConvex } from "../../support/convex/leagues.harness";
 import { ARSENAL, CHELSEA, GONE, SAKA, insertClubs, insertDroppedPlayer, insertPlayers } from "../../support/convex/footballRows.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
-import { expectRefused } from "../../support/convex/test.harness";
+import { expectRefused, ROWS_TO_THE_CAP } from "../../support/convex/test.harness";
 
 // Scouting's players list (#373, spec/19 The players list): every Premier League player now, for
-// anyone in the league, filtered by who holds him, his position and his club, and sorted, on the
-// server. Season points are "—" (null) here, with no match priced; what they add up to is
+// anyone in the league, filtered by who holds him, his position and his club, and sorted, as the
+// screen shows it (the server reads the club's; the browser filters and sorts, #1552). Season points are "—" (null) here, with no match priced; what they add up to is
 // tests/convex/stats/seasonPoints.test.ts's.
 
 const [ANN, BOB] = MANAGERS;
@@ -30,8 +32,6 @@ const RICE = { code: 1002, name: "Rice", fullName: "Declan Rice", clubCode: ARSE
 const MBEUMO = { code: 1003, name: "Mbeumo", fullName: "Bryan Mbeumo", clubCode: BRENTFORD.code, positions: ["W", "ST"] as Position[] };
 const PALMER = { code: 1004, name: "Palmer", fullName: "Cole Palmer", clubCode: CHELSEA.code, positions: ["CAM"] as Position[] };
 
-const ALL: PlayersFilters = { availability: "all", position: null, clubCode: null };
-const BY_NAME: PlayersSort = { by: "name", descending: false };
 
 let t: TestConvex;
 let leagueId: Id<"leagues">;
@@ -52,7 +52,7 @@ beforeEach(async () => {
 });
 
 const listAs = async (email: string, filters: Partial<PlayersFilters> = {}, sort: PlayersSort = BY_NAME, stat: string | null = null) =>
-  (await actingAs(t, email)).query(api.scouting.playersList.list, { leagueId, filters: { ...ALL, ...filters }, sort, stat });
+  playersListed(await actingAs(t, email), leagueId, { filters: { ...ALL, ...filters }, sort, stat });
 const namesListed = async (filters: Partial<PlayersFilters> = {}, sort: PlayersSort = BY_NAME) =>
   (await listAs(ANN, filters, sort)).players.map((player) => player.name);
 
@@ -99,7 +99,15 @@ describe("the filters", () => {
     expect(await namesListed({ availability: "onWaivers" })).toEqual(["Mbeumo"]);
     expect(await namesListed({ availability: "freeAgents" })).toEqual(["Rice"]);
     const mbeumo = (await listAs(ANN)).players.find((player) => player.code === MBEUMO.code);
-    expect(mbeumo?.onWaivers).toEqual({ firstRunAt: Date.UTC(2027, 0, 14, 18, 0) });
+    expect(mbeumo?.onWaivers).toEqual({ firstRun: { at: Date.UTC(2027, 0, 14, 18, 0), skippedIf: null } });
+  });
+
+  test("the run that can first take him is asked apart, at the minute, so the list never reads it (#1467)", async () => {
+    await t.run((ctx) => ctx.db.insert("waiverPlayers", { leagueId, playerCode: MBEUMO.code, claimableFrom: Date.UTC(2027, 0, 13, 19, 0) }));
+    const runs = await (await actingAs(t, ANN)).query(api.scouting.playersList.firstRuns, { leagueId, now: Date.UTC(2027, 0, 15, 12, 0) });
+    // By Friday noon, Thursday's run has gone without taking him, so the next is Wednesday's.
+    expect(runs).toEqual([{ playerCode: MBEUMO.code, firstRun: { at: Date.UTC(2027, 0, 20, 18, 0), skippedIf: null } }]);
+    expect((await serverList(await actingAs(t, ANN), { leagueId, clubCode: null, stat: null })).players.find(({ code }) => code === MBEUMO.code)?.onWaivers).toEqual({ claimableFrom: Date.UTC(2027, 0, 13, 19, 0) });
   });
 
   test("by position: a player with it among his positions", async () => {
@@ -235,17 +243,26 @@ describe("any stat, as a season total (spec/19, sortable by any stat)", () => {
     await expect(listAs(ANN, {}, BY_NAME, "not_a_stat")).rejects.toThrow("No stat not_a_stat is in the catalogue");
   });
 
-  test("a sort by the stat with none shown is refused", async () => {
-    await expect(listAs(ANN, {}, { by: "stat", descending: true })).rejects.toThrow("with none shown");
-  });
-
-  test(`more than ${SEASON_PLAYERS_MOST} players with totals in a season throws, never a silent cut`, async () => {
-    await t.run(async (ctx) => {
+  // The list reads each player's totals from his Scouting row (#1559); per 90 and the draft's
+  // players still read the season's totals whole, and hit this cap.
+  const holdTotalsPastTheCap = () =>
+    t.run(async (ctx) => {
       for (let code = 0; code < SEASON_PLAYERS_MOST; code += 1) {
         await ctx.db.insert("playerSeasonStats", { season: THIS_SEASON, playerCode: 50_000 + code, stats: {} });
       }
     });
-    await expect(listAs(ANN, {}, BY_NAME, "goals_scored")).rejects.toThrow(`More than ${SEASON_PLAYERS_MOST} players have totals`);
+
+  test(`more than ${SEASON_PLAYERS_MOST} players with totals in a season throws, never a silent cut`, async () => {
+    await holdTotalsPastTheCap();
+    await expect(t.run((ctx) => seasonTotals(ctx, THIS_SEASON))).rejects.toThrow(`More than ${SEASON_PLAYERS_MOST} players have totals`);
+  });
+
+  test("the list reads each player's totals from his own row, never the season's every total (#1559)", async () => {
+    await holdTotalsPastTheCap();
+    expect(await totalsListed("goals_scored", BY_NAME, { clubCode: ARSENAL.code })).toEqual([
+      ["Rice", 0],
+      ["Saka", 3],
+    ]);
   });
 });
 
@@ -259,7 +276,7 @@ describe("who may read it", () => {
   });
 });
 
-test(`more than ${LISTED_PLAYERS_MOST} current players throws, never a silent cut`, async () => {
+test(`more than ${LISTED_PLAYERS_MOST} current players throws, never a silent cut`, ROWS_TO_THE_CAP, async () => {
   const clubsNeeded = Math.ceil((LISTED_PLAYERS_MOST + 1) / CLUB_PLAYERS_MOST);
   await t.run(async (ctx) => {
     let code = 10_000;

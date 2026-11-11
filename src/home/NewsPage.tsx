@@ -7,6 +7,7 @@ import { cellClassOf, ColumnHeads } from "../ui/ColumnHeads";
 import { Loading, PageSection, Panel, PANEL_LIST_ROW, PanelNote } from "../ui/Panel";
 import type { HomeSeam, LeagueNews, NewsAsked, NewsMove } from "./seam";
 import {
+  andListWords,
   everyKindWords,
   everyTeamWords,
   fromTeamWords,
@@ -24,7 +25,9 @@ import {
   noNewsWords,
   olderMovesWords,
   teamFilterLabel,
+  tradedNames,
   whenWords,
+  withTeamWords,
 } from "./words";
 
 type Filter = Pick<NewsAsked, "teamId" | "kind">;
@@ -195,17 +198,50 @@ function MoveRow({ move, shared }: { move: NewsMove; shared: Shared }) {
           {move.teamName}
         </button>
       </th>
-      <td className={CELL}>{move.joined?.playerName}</td>
-      <td className={CELL}>{move.left?.playerName}</td>
-      <td className={`${cellClasses("note")} text-soft`}>{move.fromTeamName !== null && fromTeamWords(move.fromTeamName)}</td>
+      {move.kind === "tradeMade" ? (
+        <>
+          <td className={CELL}>
+            <Lines names={tradedNames(move.gets)} />
+          </td>
+          <td className={CELL}>
+            <Lines names={tradedNames(move.gives)} />
+          </td>
+          <td className={`${cellClasses("note")} text-soft`}>{withTeamWords(move.otherTeamName)}</td>
+        </>
+      ) : (
+        <>
+          <td className={CELL}>{move.joined?.playerName}</td>
+          <td className={CELL}>{move.left?.playerName}</td>
+          <td className={`${cellClasses("note")} text-soft`}>{move.fromTeamName !== null && fromTeamWords(move.fromTeamName)}</td>
+        </>
+      )}
     </tr>
   );
 }
 
-/** The selected move: who joined the team, who left it and where he went, and who made it. */
+/** A trade's players and picks in a cell, one line each. */
+function Lines({ names }: { names: readonly string[] }) {
+  return names.map((name) => (
+    <span key={name} className="block">
+      {name}
+    </span>
+  ));
+}
+
+/** The selected move: who joined the team, who left it and where he went, and who made it; for a
+ *  trade, what each side got. */
 function Detail({ move }: { move: NewsMove }) {
+  const frame = { title: newsKindWords[move.kind], aside: <span>{whenWords(move.at)}</span>, className: "lg:col-start-2 lg:row-span-2 lg:row-start-1" };
+  if (move.kind === "tradeMade") {
+    return (
+      <Panel {...frame}>
+        <DetailLine label={gotWords(move.teamName)}>{andListWords(tradedNames(move.gets))}</DetailLine>
+        <DetailLine label={gotWords(move.otherTeamName)}>{andListWords(tradedNames(move.gives))}</DetailLine>
+      </Panel>
+    );
+  }
   return (
-    <Panel title={newsKindWords[move.kind]} aside={<span>{whenWords(move.at)}</span>} className="lg:col-start-2 lg:row-span-2 lg:row-start-1">
+    <Panel {...frame}>
       {move.joined !== null && (
         <DetailLine label={gotWords(move.teamName)}>
           {move.joined.playerName}

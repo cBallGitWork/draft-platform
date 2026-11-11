@@ -1,6 +1,6 @@
 import { v, type Infer } from "convex/values";
 import { internal } from "../_generated/api";
-import { internalAction, internalMutation, internalQuery } from "../_generated/server";
+import { internalAction, internalMutation } from "../_generated/server";
 import { namedMen } from "./feedIds";
 import { fplPlayerCount, fplSeason, readFplBootstrap } from "./fpl/fpl";
 import { readPlSeasons } from "./premierLeague/plSeasons";
@@ -13,7 +13,7 @@ import {
   readPlTeamStats,
 } from "./premierLeague/premierLeague";
 import { feedCheckFields, feedCheckTrigger, feedOutcome } from "../schema";
-import { LATEST_RUNS } from "../shared/syncRuns";
+import { latestRuns } from "../shared/syncRuns";
 import { MINUTE_MS } from "../shared/time";
 
 // Two one-off probes of the feeds, not the admin's feeds page (spec/15): `check` and `checkLater`
@@ -67,11 +67,7 @@ export const record = internalMutation({
   },
 });
 
-export const latest = internalQuery({
-  args: {},
-  returns: v.array(v.object({ _id: v.id("feedChecks"), _creationTime: v.number(), ...feedCheckFields })),
-  handler: async (ctx) => ctx.db.query("feedChecks").order("desc").take(LATEST_RUNS),
-});
+export const latest = latestRuns("feedChecks", feedCheckFields);
 
 // Issue #37: does the commentary stream answer Convex's servers during a live match, and move?
 // It did for Ipswich v Nott'm Forest on 23 Oct 2026 (ARCHITECTURE.md, the #37 note). To check a
