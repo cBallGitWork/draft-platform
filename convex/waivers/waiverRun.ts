@@ -122,11 +122,10 @@ async function tryClaim(ctx: MutationCtx, run: Run, claim: Doc<"waiverClaims">):
 /** Files what a tried claim did: the drop and the claim as squad moves, the league's letter for
  *  one that won, and its manager's alone for one that failed, unless it failed quietly. */
 async function report(ctx: MutationCtx, league: Doc<"leagues">, claim: Doc<"waiverClaims">, tried: Tried): Promise<void> {
-  if (!tried.won && tried.why === null) return;
   const playerName = await claimedName(ctx, claim.playerCode);
   const dropName = claim.dropCode === null ? null : await claimedName(ctx, claim.dropCode);
   if (!tried.won) {
-    await fileLetter(ctx, league, [claim.by], claimFailedLetter({ playerName, dropName, why: tried.why }));
+    if (tried.why !== null) await fileLetter(ctx, league, [claim.by], claimFailedLetter({ playerName, dropName, why: tried.why }));
     return;
   }
   const team = await teamIn(ctx, league._id, claim.teamId);

@@ -92,7 +92,7 @@ describe("the letters", () => {
   const assignSaka = async (teamId: Id<"teams">) =>
     (await actingAs(w.t, ADMIN)).mutation(api.squads.squads.assign, { leagueId: w.leagueId, playerCode: SAKA, teamId });
 
-  test("a claim for a player his own earlier claim won goes quietly, with no letter (#1465)", async () => {
+  test("a claim for a player his own earlier claim won goes quietly, with no letter (#1465, S08.5)", async () => {
     await w.onWaivers([SAKA]);
     await w.claim(ANN, SAKA, ANNS_FIRST_DROP);
     await w.claim(ANN, SAKA, ANNS_SECOND_DROP);
