@@ -14,6 +14,7 @@ names the [plate.md](../../docs/design/plate.md) section it draws; the values ar
 - `Panel.tsx`, `Loading`, `PanelNote`, `LiveNote`: a muted line: loading, a hint, live points (Colour roles: muted).
 - `Panel.tsx`, `PANEL_BODY`, `PANEL_LIST_ROW`, `PAGE_STACK`, `PANEL_COLUMNS`: panels' insides and their 8px gaps (Shape).
 - `Panel.tsx`, `TOP_BAR`, `TOP_BAR_ROW`: the top bar's plate and row (Colour roles: bar; Shape).
+- `FindPlayerPanel.tsx`: the "Find a player" panel, a name box and the players found, each its caller's row (Shape; Controls), on the admin's dashboard and Squads.
 - `ColumnHeads.tsx`: a data table's head band, short words with long ones as tooltips (Colour roles: column head).
 - `TickBox.tsx`: a tick box, the sunken well and drawn tick (Controls: Tick box).
 - `Choice.tsx`: one of a few options, butted keys (Controls: Keys).
