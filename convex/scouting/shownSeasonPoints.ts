@@ -1,7 +1,7 @@
 import type { Id } from "../_generated/dataModel";
 import type { QueryCtx } from "../_generated/server";
 import { lastPricedSeason, lastSeasonRows, pointsAtMain } from "../draft/lastSeasonPoints";
-import { heldSeason } from "../shared/fixtures";
+import { heldFixturesSeason } from "../shared/fixtures";
 import { seasonPointsIn, seasonPriced, type SeasonPointsOf } from "../stats/seasonPoints";
 
 // The season points Scouting shows (spec/19, The players list), on the list and in compare alike.
@@ -22,7 +22,7 @@ interface ShownSeasonPoints {
  *  it, every player's, as the list needs. Last season's are shown while the held season (the one
  *  the feed's matches are in) has no player priced and an earlier season is. */
 export async function shownSeasonPoints(ctx: QueryCtx, leagueId: Id<"leagues">, only?: readonly number[]): Promise<ShownSeasonPoints> {
-  const held = await heldSeason(ctx);
+  const held = await heldFixturesSeason(ctx);
   if (held === null || !(await seasonPriced(ctx, held))) {
     const last = await lastPricedSeason(ctx);
     if (last !== null && (held === null || last < held)) {

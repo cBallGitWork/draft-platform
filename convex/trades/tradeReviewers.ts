@@ -7,7 +7,8 @@ import { tradeRulesOf } from "../rules/firstRules";
 import { rulesSinceBegun } from "../rules/rulesHistory";
 import { teamsOf } from "../shared/leagueAccess";
 import { latestBegun } from "../waivers/waiverLock";
-import { leagueOffers, leagueOf, managersOf, tradeWordsOf } from "./tradeClose";
+import { leagueOffers } from "./tradeClose";
+import { leagueOf, managersOf, tradeWordsOf } from "./tradeWords";
 import { onAutoTeam } from "./tradeShut";
 
 // Who reviews an accepted trade (spec/08 Trades; #383): under a commissioner veto, the

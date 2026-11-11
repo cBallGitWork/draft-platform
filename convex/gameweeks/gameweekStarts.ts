@@ -1,4 +1,5 @@
 import type { MutationCtx, QueryCtx } from "../_generated/server";
+import { seasonOfMatches } from "../shared/fixtures";
 import { seasonStartYear } from "../shared/time";
 import type { ScheduledMatch } from "./deadline";
 import { GAMEWEEKS_MOST } from "./usedGameweeks";
@@ -18,14 +19,6 @@ export function firstKickoffs(matches: readonly ScheduledMatch[]): Map<number, n
     first.set(gameweek, Math.min(kickoff, first.get(gameweek) ?? kickoff));
   }
   return first;
-}
-
-/** The season these matches are for: the one their latest kickoff falls in. Null with none. The
- *  same count as convex/shared/fixtures.ts's exported `heldSeason`, which reads the held matches'
- *  latest from the database; this one counts a list already read. */
-function seasonOfMatches(matches: readonly ScheduledMatch[]): number | null {
-  const kickoffs = matches.flatMap(({ kickoff }) => (kickoff === null ? [] : [kickoff]));
-  return kickoffs.length === 0 ? null : seasonStartYear(Math.max(...kickoffs));
 }
 
 /** Records the first kickoff of each gameweek that has kicked off by `now` and has none recorded

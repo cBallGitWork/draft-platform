@@ -19,20 +19,21 @@ function ukMoment(day: number, hour: number, minute: number): number {
   return wall - londonOffset(first);
 }
 
+/** Each of the league's run times on the UK day `moment` falls in and the 7 days back from it
+ *  (`way` -1) or on (`way` 1): every weekday's latest before it, or first after, is among them. */
+function* runsAround(runs: readonly WaiverRun[], moment: number, way: -1 | 1): Generator<number> {
+  const today = Math.floor((moment + londonOffset(moment)) / DAY_MS) * DAY_MS;
+  for (let step = 0; step <= 7; step += 1) {
+    const day = today + way * step * DAY_MS;
+    const weekday = DATE_DAYS[new Date(day).getUTCDay()];
+    for (const run of runs) if (run.day === weekday) yield ukMoment(day, run.hour, run.minute);
+  }
+}
+
 /** The latest of the league's waiver runs at or before `now`, or null with no runs. */
 export function latestRunAt(runs: readonly WaiverRun[], now: number): number | null {
-  const today = Math.floor((now + londonOffset(now)) / DAY_MS) * DAY_MS;
   let latest: number | null = null;
-  // A week back from today, and today, holds every weekday's latest.
-  for (let back = 0; back <= 7; back += 1) {
-    const day = today - back * DAY_MS;
-    const weekday = DATE_DAYS[new Date(day).getUTCDay()];
-    for (const run of runs) {
-      if (run.day !== weekday) continue;
-      const at = ukMoment(day, run.hour, run.minute);
-      if (at <= now && (latest === null || at > latest)) latest = at;
-    }
-  }
+  for (const at of runsAround(runs, now, -1)) if (at <= now && (latest === null || at > latest)) latest = at;
   return latest;
 }
 
@@ -48,17 +49,7 @@ export function wasRunTime(history: readonly RulesRow[], at: number): boolean {
  *  run may take from `from` on, the run that can first take him (Craig, 6 Nov 2026, on #1200: "Show
  *  the run's day and time"). */
 export function firstRunFrom(runs: readonly WaiverRun[], from: number): number | null {
-  const today = Math.floor((from + londonOffset(from)) / DAY_MS) * DAY_MS;
   let first: number | null = null;
-  // Today, and a week on from it, holds every weekday's first.
-  for (let on = 0; on <= 7; on += 1) {
-    const day = today + on * DAY_MS;
-    const weekday = DATE_DAYS[new Date(day).getUTCDay()];
-    for (const run of runs) {
-      if (run.day !== weekday) continue;
-      const at = ukMoment(day, run.hour, run.minute);
-      if (at >= from && (first === null || at < first)) first = at;
-    }
-  }
+  for (const at of runsAround(runs, from, 1)) if (at >= from && (first === null || at < first)) first = at;
   return first;
 }

@@ -1,9 +1,12 @@
 import type { Doc, Id } from "../_generated/dataModel";
 import type { MutationCtx, QueryCtx } from "../_generated/server";
 import { draftIsLive } from "../draft/draftRow";
+import { fileEvent, recordEvent } from "../mail/letters";
+import { tellShortlisters } from "../scouting/shortlist";
 import { LEAGUES_READ_MOST, takeAllOrThrow } from "../shared/cappedRead";
 import { placeOf } from "../squads/squadPlace";
 import type { LeagueDeadlines } from "../gameweeks/deadline";
+import { closeOffersHolding } from "../trades/tradeClose";
 import { WAIVER_MS } from "./waiverLimits";
 import { deadlinePassedSince } from "./waiverLock";
 
@@ -59,6 +62,32 @@ export async function dropFromSquad(
   await ctx.db.delete("squadPlayers", place._id);
   if (!churned) await putOnWaivers(ctx, place.leagueId, place.playerCode, waiversFrom + WAIVER_MS);
   return !churned;
+}
+
+/** How a drop is told: `letter` when the drop is the whole move, so it gets its own Mail letter,
+ *  not a pickup's or claim's; `unread` when a run made it for the manager, so the shortlisters'
+ *  copy to him is filed unread. */
+type DropTold = { deadlines: LeagueDeadlines; now: number; waiversFrom?: number; letter: boolean; unread?: boolean };
+
+/** The team drops the player, by itself, for a pickup or for a claim (spec/08): out of the squad
+ *  (`dropFromSquad`), the drop filed, each open offer holding him closed, and each manager whose
+ *  shortlist holds him told. Whether he went on waivers. */
+export async function dropAndTell(
+  ctx: MutationCtx,
+  league: Doc<"leagues">,
+  team: Doc<"teams">,
+  place: Doc<"squadPlayers">,
+  player: { code: number; name: string },
+  by: string,
+  { deadlines, now, waiversFrom = now, letter, unread = false }: DropTold,
+): Promise<boolean> {
+  const toWaivers = await dropFromSquad(ctx, place, deadlines, now, waiversFrom);
+  const event = { kind: "playerDropped", playerCode: player.code, playerName: player.name, teamId: team._id, teamName: team.name, toWaivers } as const;
+  if (letter) await recordEvent(ctx, league._id, by, event);
+  else await fileEvent(ctx, league._id, by, event);
+  await closeOffersHolding(ctx, league._id, team._id, [player.code]);
+  await tellShortlisters(ctx, league, player, team, by, { released: false, toWaivers }, { unread });
+  return toWaivers;
 }
 
 /** Takes the player off the league's waivers as he joins a team, so a row is only ever for a

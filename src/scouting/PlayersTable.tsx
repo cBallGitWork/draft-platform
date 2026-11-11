@@ -157,7 +157,7 @@ function PlayerCell({
     case "owner":
       return (
         <td className={className}>
-          {player.onWaivers === null ? <OwnerName teamName={player.ownerTeamName} /> : onWaiversWords(player.onWaivers.firstRunAt)}
+          {player.onWaivers === null ? <OwnerName teamName={player.ownerTeamName} /> : onWaiversWords(player.onWaivers.firstRun)}
         </td>
       );
     case "points":

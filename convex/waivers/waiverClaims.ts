@@ -4,7 +4,6 @@ import { mutation, query, type MutationCtx, type QueryCtx } from "../_generated/
 import { draftIsOver } from "../draft/draftRow";
 import { leagueDeadlines } from "../gameweeks/leagueDeadlines";
 import { positionsNow } from "../positions/playerPositions";
-import { latestRules } from "../rules/rulesHistory";
 import { clubRecord, position } from "../schema";
 import { takeAllOrThrow } from "../shared/cappedRead";
 import { leagueOpens } from "../leagues/leagueOpens";
@@ -13,9 +12,8 @@ import { clubByCode, clubOf, heldPlayerByCode, playerByCode } from "../shared/pl
 import { placeOf } from "../squads/squadPlace";
 import { squadRefusals } from "../squads/squads";
 import { seasonPointsIn } from "../stats/seasonPoints";
-import { inWaiverLock } from "./waiverLock";
+import { firstRunsIn, inWaiverLock, runAhead } from "./waiverLock";
 import { waiverRowOf } from "./waiverPlayers";
-import { firstRunFrom } from "./waiverTimes";
 import { dropRefusals } from "./waivers";
 
 // A manager's waiver claims (#1198, spec/08 Waivers and free agency): as many as he likes, ranked,
@@ -185,18 +183,19 @@ const pendingClaim = v.object({
   claim: claimedPlayer,
   /** Who goes if it succeeds, or null for nobody. */
   drop: v.union(claimedPlayer, v.null()),
-  /** The run that can first take the player (waiverTimes.ts): null with no run times set, or once he
-   *  is no longer on waivers, when the next run fails the claim. */
-  runAt: v.union(v.number(), v.null()),
+  /** The run that can first take the player, still to come, and the gameweek whose lock it may fall
+   *  in (waiverLock.ts `firstRunTaking`): null with no run times set, or once he is no longer on
+   *  waivers, when the next run fails the claim. */
+  run: v.union(runAhead, v.null()),
 });
 export type PendingClaim = Infer<typeof pendingClaim>;
 
-/** Pending claims, team by team in the order the teams were made, each team's first first: the
- *  caller's own team's, or every team's for whoever runs the league. */
+/** Pending claims at `now`, team by team in the order the teams were made, each team's first
+ *  first: the caller's own team's, or every team's for whoever runs the league. */
 export const pending = query({
-  args: { leagueId: v.id("leagues") },
+  args: { leagueId: v.id("leagues"), now: v.number() },
   returns: v.array(pendingClaim),
-  handler: async (ctx, { leagueId }): Promise<PendingClaim[]> => {
+  handler: async (ctx, { leagueId, now }): Promise<PendingClaim[]> => {
     const { email, league, team } = await memberOf(ctx, leagueId);
     const teams = await teamsOf(ctx, leagueId);
     const shown = powersIn(league, email).runs ? teams : teams.filter(({ _id }) => _id === team?._id);
@@ -204,7 +203,7 @@ export const pending = query({
     const codes = [...new Set(claims.flatMap(({ claim }) => (claim.dropCode === null ? [claim.playerCode] : [claim.playerCode, claim.dropCode])))];
     const positionsOf = await positionsNow(ctx, leagueId);
     const seasonPointsOf = await seasonPointsIn(ctx, leagueId, codes);
-    const runs = (await latestRules(ctx, leagueId)).waivers.runs;
+    const firstRunOf = await firstRunsIn(ctx, leagueId, now);
     const described = async (playerCode: number) => {
       const player = await heldPlayerByCode(ctx, playerCode, unheldClaimWords(playerCode));
       const positions = await positionsOf(playerCode);
@@ -220,7 +219,7 @@ export const pending = query({
           yours: owner._id === team?._id,
           claim: await described(claim.playerCode),
           drop: claim.dropCode === null ? null : await described(claim.dropCode),
-          runAt: onWaivers === null ? null : firstRunFrom(runs, onWaivers.claimableFrom),
+          run: onWaivers === null ? null : firstRunOf(onWaivers.claimableFrom),
         };
       }),
     );

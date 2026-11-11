@@ -2,6 +2,7 @@ import { useMutation, useQuery } from "convex/react";
 import { useCallback, useMemo } from "react";
 import { api } from "../../convex/_generated/api";
 import { refusalOf } from "../shared/refusal";
+import { useMinute } from "../shared/useMinute";
 import { liveScouts } from "../scouting/scouts/liveScouts";
 import { liveShortlist } from "../scouting/shortlist/liveShortlist";
 import type { PlayerCardSeam, WaiverChanges } from "./seam";
@@ -14,7 +15,8 @@ export const livePlayerCard: PlayerCardSeam = {
   ...liveShortlist,
   ...liveScouts,
   usePlayerCard: (leagueId, playerCode, now) => useQuery(api.playerCard.playerCard.card, { leagueId, playerCode, now }),
-  useCardAction: (leagueId, playerCode) => useQuery(api.waivers.waivers.cardActionOn, { leagueId, playerCode }),
+  // At the minute, as a query may not read the clock: the run that can first take him moves on with it.
+  useCardAction: (leagueId, playerCode) => useQuery(api.waivers.waivers.cardActionOn, { leagueId, playerCode, now: useMinute() }),
   usePositionRank: (leagueId, playerCode, position) =>
     useQuery(api.playerCard.positionRank.atPosition, position === null ? "skip" : { leagueId, playerCode, position }),
   useWaiverChanges: function useWaiverChanges() {

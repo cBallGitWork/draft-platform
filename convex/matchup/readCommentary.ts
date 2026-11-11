@@ -21,15 +21,19 @@ type TeamId = Id<"teams">;
 type PlayerCode = number;
 
 export interface CommentaryReads {
+  /** His row, or null for one the football sync doesn't hold. */
+  player(playerCode: PlayerCode): Promise<Doc<"players"> | null>;
   /** His name, or the words for one the football sync doesn't hold. */
   name(playerCode: PlayerCode): Promise<string>;
   score(fixtureCode: number): Promise<Doc<"matchScores"> | null>;
 }
 
-/** Each man's name and each match's score, each read once however many lines ask. */
+/** Each man and each match's score, each read once however many lines ask. */
 export function commentaryReads(ctx: QueryCtx): CommentaryReads {
+  const player = readOnce((playerCode: PlayerCode) => playerByCode(ctx, playerCode));
   return {
-    name: readOnce((playerCode: PlayerCode) => playerByCode(ctx, playerCode).then((player) => player?.name ?? unheldPlayerWords(playerCode))),
+    player,
+    name: (playerCode) => player(playerCode).then((held) => held?.name ?? unheldPlayerWords(playerCode)),
     score: readOnce((fixtureCode: number) => scoreOf(ctx, fixtureCode)),
   };
 }

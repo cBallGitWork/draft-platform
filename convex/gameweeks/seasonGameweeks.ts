@@ -6,8 +6,10 @@ import { seasonStartYear } from "../shared/time";
 // kept beside this one's, never overwritten (#66). A row written before #66 has no season.
 
 /** The season of the newest gameweeks held: the newest FPL sent. Absent while only rows from
- *  before #66 are held, which name none. */
-export async function heldSeason(ctx: QueryCtx): Promise<number | undefined> {
+ *  before #66 are held, which name none. shared/fixtures.ts's `heldFixturesSeason` reads the
+ *  held matches' season instead, which can differ while a new season's gameweeks or matches arrive
+ *  before the other. */
+export async function heldGameweeksSeason(ctx: QueryCtx): Promise<number | undefined> {
   return (await newestGameweek(ctx))?.season;
 }
 

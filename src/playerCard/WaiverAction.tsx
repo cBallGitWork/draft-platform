@@ -91,7 +91,7 @@ export function WaiverAction({
           <div className="flex flex-wrap items-center gap-2">
             {fixed === undefined && (
               <>
-                {action.kind === "claim" && <span className="text-soft">{onWaiversUntilWords(action.firstRunAt)}</span>}
+                {action.kind === "claim" && <span className="text-soft">{onWaiversUntilWords(action.firstRun)}</span>}
                 <WhoGoes squad={action.squad} whoGoes={whoGoes} choose={setWhoGoes} />
               </>
             )}
