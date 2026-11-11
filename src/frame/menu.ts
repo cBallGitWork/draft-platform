@@ -72,6 +72,13 @@ const draftSection: Section = { label: DRAFT_TITLE, path: DRAFT_PATH, tabs: [] }
 export const sectionsWith = (draftInMenu: boolean): readonly Section[] =>
   draftInMenu ? [sections[0], sections[1], draftSection, ...sections.slice(2)] : sections;
 
+/** A player's card (`/leagues/$leagueId/players/$playerCode`, src/playerCard/paths.ts). */
+const PLAYER_CARD_AT = /^\/leagues\/[^/]+\/players\/[^/]+\/?$/;
+
+/** The menu's section a page outside every section's path belongs to, marked active on the top
+ *  bar: a player's card is Scouting's (its approved picture). */
+export const menuPathBesides = (pathname: string): string | undefined => (PLAYER_CARD_AT.test(pathname) ? SCOUTING_PATH : undefined);
+
 export function sectionAt(pathname: string): Section | undefined {
   return sections.find((section) => pathname === section.path || pathname.startsWith(`${section.path}/`));
 }

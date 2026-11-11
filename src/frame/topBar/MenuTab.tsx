@@ -11,11 +11,17 @@ const menuTabClasses =
   "flex min-h-tap items-center border-l border-bar-rule px-4 text-lead font-semibold text-soft no-underline hover:text-fact " +
   "data-[status=active]:text-fact data-[status=active]:shadow-tab-active";
 
-/** A tab on the top bar; Mail's carries its unread count (spec/12). */
-export function MenuTab({ path, label, unreadMail = 0 }: { path: string; label: string; unreadMail?: number }) {
+/** A tab on the top bar; Mail's carries its unread count (spec/12). `current` marks it active on a
+ *  page of its section outside its path, as Scouting is on a player's card. */
+export function MenuTab({ path, label, unreadMail = 0, current = false }: { path: string; label: string; unreadMail?: number; current?: boolean }) {
   const unread = unreadMail > 0 ? unreadFigure(unreadMail) : null;
   return (
-    <Link to={path} className={menuTabClasses} aria-label={unread ? unreadTabLabel(label, unreadMail) : undefined}>
+    <Link
+      to={path}
+      className={current ? `${menuTabClasses} text-fact shadow-tab-active` : menuTabClasses}
+      aria-current={current ? "page" : undefined}
+      aria-label={unread ? unreadTabLabel(label, unreadMail) : undefined}
+    >
       {label}
       {unread && (
         <span aria-hidden="true" className="ml-1 bg-event px-1 font-bold text-ground">

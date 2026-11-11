@@ -26,47 +26,47 @@ const inDefence = (why: Why): Why => ({ ...why, pricedBy: { by: "area", area: "d
 
 describe("each line says why", () => {
   it("a per-action rule priced by area: how many, at how much each, and for which area", async () => {
-    expect(await linesOf(cardWith([category("goals_scored", "Goals scored", 12, inDefence(perAction(2, 6)))]))).toContain("Goals scored 12 (2 at 6 each for Defence)");
+    expect(await linesOf(cardWith([category("goals_scored", "Goals scored", 12, inDefence(perAction(2, 6)))]))).toContain("Goals scored 2 at 6 each for Defence 12");
   });
 
   it("a per-count rule: how many, and the points for each whole number of them", async () => {
     const saves: Why = { actions: 7, value: { shape: "perCount", every: 3, points: 1 }, pricedBy: { by: "all" }, cut: null };
-    expect(await linesOf(cardWith([category("saves", "Saves", 2, saves)]))).toContain("Saves 2 (7, 1 for every 3)");
+    expect(await linesOf(cardWith([category("saves", "Saves", 2, saves)]))).toContain("Saves 7, 1 for every 3 2");
   });
 
   it("stacked bands: each band he reached", async () => {
     const bands: Why = { actions: 14, value: { shape: "bands", earned: [{ atLeast: 10, points: 2 }, { atLeast: 12, points: 1 }] }, pricedBy: { by: "all" }, cut: null };
-    expect(await linesOf(cardWith([category("defensive_contribution", "Defensive contribution", 3, bands)]))).toContain("Defensive contribution 3 (14, 2 for 10+ and 1 for 12+)");
+    expect(await linesOf(cardWith([category("defensive_contribution", "Defensive contribution", 3, bands)]))).toContain("Defensive contribution 14, 2 for 10 or more and 1 for 12 or more 3");
   });
 
   it("a points limit that held his points says so", async () => {
     const held: Why = { actions: 14, value: { shape: "bands", earned: [{ atLeast: 10, points: 2 }, { atLeast: 12, points: 2 }] }, pricedBy: { by: "all" }, cut: { by: "max", limit: 2 } };
     expect(await linesOf(cardWith([category("defensive_contribution", "Defensive contribution", 2, held)]))).toContain(
-      "Defensive contribution 2 (14, 2 for 10+ and 2 for 12+, held to at most 2)",
+      "Defensive contribution 14, 2 for 10 or more and 2 for 12 or more, held to at most 2 2",
     );
   });
 
   it("a least limit says so, with the true minus", async () => {
     const floor: Why = { ...perAction(3, -2), cut: { by: "min", limit: -4 } };
-    expect(await linesOf(cardWith([category("own_goals", "Own goals", -4, floor)]))).toContain("Own goals −4 (3 at −2 each, held to at least −4)");
+    expect(await linesOf(cardWith([category("own_goals", "Own goals", -4, floor)]))).toContain("Own goals 3 at −2 each, held to at least −4 −4");
   });
 
   it("landing exactly on a limit says he reached it, though it cost him nothing (#863)", async () => {
     const atMost: Why = { ...perAction(2, 1), cut: { by: "atMax", limit: 2 } };
     const atLeast: Why = { ...perAction(2, -2), cut: { by: "atMin", limit: -4 } };
     const lines = await linesOf(cardWith([category("won_tackle", "Tackles won", 2, atMost), category("own_goals", "Own goals", -4, atLeast)]));
-    expect(lines).toContain("Tackles won 2 (2 at 1 each, reaching its limit of at most 2)");
-    expect(lines).toContain("Own goals −4 (2 at −2 each, reaching its limit of at least −4)");
+    expect(lines).toContain("Tackles won 2 at 1 each, reaching its limit of at most 2 2");
+    expect(lines).toContain("Own goals 2 at −2 each, reaching its limit of at least −4 −4");
   });
 
   it("a minutes rule that took his points away shows its line at 0, though it earned nothing", async () => {
     const short: Why = { ...inDefence(perAction(1, 4)), cut: { by: "minutes", atLeast: 60 } };
-    expect(await linesOf(cardWith([category("clean_sheets", "Clean sheets", 0, short)]))).toContain("Clean sheets 0 (1 at 4 each for Defence, but none under 60 minutes)");
+    expect(await linesOf(cardWith([category("clean_sheets", "Clean sheets", 0, short)]))).toContain("Clean sheets 1 at 4 each for Defence, but none under 60 minutes 0");
   });
 
   it("a rule priced by position names the position", async () => {
     const atCb: Why = { ...perAction(1, 3), pricedBy: { by: "position", position: "CB" } };
-    expect(await linesOf(cardWith([category("assists", "Assists", 3, atCb)]))).toContain("Assists 3 (1 at 3 each for CB)");
+    expect(await linesOf(cardWith([category("assists", "Assists", 3, atCb)]))).toContain("Assists 1 at 3 each for CB 3");
   });
 });
 

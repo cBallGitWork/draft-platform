@@ -37,23 +37,15 @@ export const scoreOf = (match: Pick<PlayedMatch, "score">) => (match.score === n
  *  null while his record hasn't arrived. */
 export const pointsOf = (match: PlayedMatch, shown: number) => match.override?.points ?? match.points[shown].total;
 
-/** His minutes over the matches whose record has arrived, as his points skip the rest (the game log
- *  shows those matches' minutes as no figure); null while none has. */
-function minutesOf(matches: readonly PlayedMatch[]) {
-  const known = matches.flatMap((match) => (match.minutes === null ? [] : [match.minutes]));
-  return known.length === 0 ? null : known.reduce((sum, minutes) => sum + minutes, 0);
-}
-
 /** His figures beside his name (spec/12 S12.1; #1027), at the `shown`th position: his base points
- *  this season, overrides in, as Scouting totals them; his points a match and his minutes over the
- *  matches priced; his last five matches' points, newest first. */
+ *  this season, overrides in, as Scouting totals them; his points a match over the matches priced;
+ *  his last five matches' points, newest first. */
 export function seasonFigures(matches: readonly PlayedMatch[], shown: number) {
   const priced = matches.map((match) => ({ match, points: pointsOf(match, shown) })).filter((each): each is { match: PlayedMatch; points: number } => each.points !== null);
   const total = inTenths(priced.reduce((sum, { points }) => sum + points, 0));
   return {
     seasonPoints: priced.length === 0 ? null : total,
     aMatch: priced.length === 0 ? null : inTenths(total / priced.length),
-    minutes: minutesOf(matches),
     lastFive: priced.slice(0, 5).map(({ match, points }) => ({ fixtureCode: match.fixtureCode, points })),
   };
 }
