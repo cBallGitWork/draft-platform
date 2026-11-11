@@ -78,6 +78,7 @@ function TransactionsBody({ league, teamName, seam }: { league: LeagueSummary; t
             selected={selected?.claimId ?? null}
             onSelect={select}
             onReorder={(ids) => void change.run(() => changes.rank(leagueId, ids))}
+            busy={change.busy}
           />
         )}
         <Panel title={HISTORY_TITLE} aside={<span className="text-soft">{newestFirstWords}</span>}>
