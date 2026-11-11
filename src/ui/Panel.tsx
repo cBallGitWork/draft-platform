@@ -94,24 +94,28 @@ export function Status({ words, className }: { words: string | null; className: 
 
 /** A panel, labelled by its title plate; `aside`, such as how many are starting, sits at the plate's
  *  far end, `className` is the caller's own, such as its share of a row, and `namesTeam` sets a
- *  title that is a team's name in the second face (plate.md, Type). */
+ *  title that is a team's name in the second face (plate.md, Type). `pageTitle` makes its title the
+ *  page's heading, on a page whose approved picture draws its title in a panel's plate (Create a
+ *  league's). */
 export function Panel({
   title,
   aside,
   className,
   children,
   namesTeam = false,
+  pageTitle = false,
 }: {
   title: ReactNode;
   aside?: ReactNode;
   className?: string;
   children?: ReactNode;
   namesTeam?: boolean;
+  pageTitle?: boolean;
 }) {
   const titleId = useId();
   return (
     <section aria-labelledby={titleId} className={className ? `bg-panel ${className}` : "bg-panel"}>
-      <PanelTitle id={titleId} aside={aside} titleClasses={namesTeam ? "display-face" : "font-bold"}>
+      <PanelTitle id={titleId} aside={aside} titleClasses={namesTeam ? "display-face" : "font-bold"} pageTitle={pageTitle}>
         {title}
       </PanelTitle>
       {children}
@@ -119,20 +123,33 @@ export function Panel({
   );
 }
 
-/** A panel's title plate (plate.md, Shape). */
-function PanelTitle({ id, aside, titleClasses, children }: { id: string; aside?: ReactNode; titleClasses: string; children: ReactNode }) {
+/** A panel's title plate (plate.md, Shape): the page's heading when `pageTitle`, else the panel's. */
+function PanelTitle({
+  id,
+  aside,
+  titleClasses,
+  pageTitle,
+  children,
+}: {
+  id: string;
+  aside?: ReactNode;
+  titleClasses: string;
+  pageTitle: boolean;
+  children: ReactNode;
+}) {
+  const Heading = pageTitle ? "h1" : "h2";
   if (aside === undefined) {
     return (
-      <h2 id={id} className={`${PANEL_PLATE} text-lead ${titleClasses}`}>
+      <Heading id={id} className={`${PANEL_PLATE} text-lead ${titleClasses}`}>
         {children}
-      </h2>
+      </Heading>
     );
   }
   return (
     <div className={`flex items-baseline justify-between ${PANEL_PLATE}`}>
-      <h2 id={id} className={`text-lead ${titleClasses}`}>
+      <Heading id={id} className={`text-lead ${titleClasses}`}>
         {children}
-      </h2>
+      </Heading>
       {aside}
     </div>
   );
