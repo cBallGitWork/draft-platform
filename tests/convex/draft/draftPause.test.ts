@@ -29,7 +29,7 @@ const [ANN, BOB] = MANAGERS;
 const setPickSeconds = (pickSeconds: number) => setPickSecondsOf(t, leagueId, pickSeconds);
 
 const as = (email: string) => actingAs(t, email);
-const read = async () => (await as(COMMISSIONER)).query(api.draft.draftStart.ofLeague, { leagueId, now: Date.now() });
+const read = async () => (await as(COMMISSIONER)).query(api.draft.draftStart.ofLeague, { leagueId });
 const start = async () => (await as(COMMISSIONER)).mutation(api.draft.draftStart.start, { leagueId });
 const pause = async (email = COMMISSIONER) => (await as(email)).mutation(api.draft.draftPause.pause, { leagueId });
 const resume = async (email = COMMISSIONER) => (await as(email)).mutation(api.draft.draftPause.resume, { leagueId });

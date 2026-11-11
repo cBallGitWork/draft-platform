@@ -4,6 +4,7 @@ import { toSeconds, type PickClockUnit } from "../leagueSettings/pickClock";
 import type { ListedPlayer } from "../scouting/seam";
 import type { Change } from "../shared/refusal";
 import { useChange } from "../shared/useChange";
+import { useLastLoaded } from "../shared/useLastLoaded";
 import { Loading, PANEL_BODY, Panel, Problem } from "../ui/Panel";
 import { pickInRoundOf, roundOf } from "./board";
 import { whyNotWords } from "./DraftPlayers";
@@ -60,7 +61,9 @@ export function CommissionerPanel({
   selected: ListedPlayer | null;
   unselect: () => void;
 }) {
-  const view = seam.useCommissioner(leagueId, now);
+  // Its read takes the minute, so the last answer stays up while the next loads and a half-typed
+  // pick time survives the minute turning (#1531).
+  const view = useLastLoaded(seam.useCommissioner(leagueId, now), leagueId);
   const changes = seam.useCommissionerChanges();
   const changing = useChange();
   const aside = <span className="text-soft">{onlyYouWords}</span>;
