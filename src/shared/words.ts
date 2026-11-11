@@ -190,7 +190,9 @@ export const autoTeamWhatWords = "Keeps your last lineup, swapping a starter who
 
 /** A traded draft pick, named by the team whose pick it is: "Pickford Pirates' round 4 pick"
  *  (docs/design/approved/team-transactions/). */
-export const tradedPickWords = (round: number, teamName: string) => `${teamName}${teamName.endsWith("s") ? "'" : "'s"} round ${round} pick`;
+export const tradedPickWords = (round: number, teamName: string) => `${possessive(teamName)} round ${round} pick`;
+/** A team's name owning something: "Hull Hearts'", "Lions'", "Bob's" as it is, "Ann's XI's". */
+const possessive = (name: string) => (name.endsWith("'s") ? name : name.endsWith("s") ? `${name}'` : `${name}'s`);
 /** One side of a trade that went through, each of its players and picks by name (#1491). */
 export const tradedNames = ({ players, picks }: TradedSide): string[] => [
   ...players.map(({ playerName }) => playerName),

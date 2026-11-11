@@ -17,8 +17,12 @@ import {
   transactionsLoadingWords,
   transactionsTableLabel,
   TRANSACTIONS_TITLE,
+  tradedInWords,
+  tradedOutWords,
   whenWords,
+  withTeamWords,
 } from "../../../src/myTeam/words";
+import type { Id } from "../../../convex/_generated/dataModel";
 import { claimsLoadingWords, waiverOrderLoadingWords } from "../../../src/myTeam/claims/words";
 import { expectColumnHeads } from "../../support/src/columnHeads";
 import type { MyTeamData } from "../../support/src/myTeam.harness";
@@ -79,6 +83,26 @@ describe("the transactions", () => {
       [whenWords(AT), "Saka", "Moved out to Team 3", "commish@example.com"],
       [whenWords(AT), "Saka", "Assigned to the team", "commish@example.com"],
     ]);
+  });
+
+  it("shows a trade as one row: each player or pick in, then each out, one line each, and the other team in By (#1491)", async () => {
+    const trade: Transaction = {
+      at: AT,
+      kind: "traded",
+      in: { players: [{ playerCode: SAKA, playerName: "Saka" }], picks: [] },
+      out: { players: [{ playerCode: 1002, playerName: "Rice" }], picks: [{ round: 4, teamId: "team-1" as Id<"teams">, teamName: "Pickford Pirates" }] },
+      otherTeamName: "Hull Hearts",
+      by: "bob@example.com",
+    };
+    const app = openTransactions({ transactions: { transactions: [trade], cut: false } });
+    await screen.findByRole("table");
+
+    const [row] = rows();
+    expect(cells(row)).toEqual([whenWords(AT), "SakaRicePickford Pirates' round 4 pick", `${tradedInWords}${tradedOutWords}${tradedOutWords}`, withTeamWords("Hull Hearts")]);
+    expect(Array.from(row.cells[1].children, (line) => line.textContent)).toEqual(["Saka", "Rice", "Pickford Pirates' round 4 pick"]);
+    expect(screen.queryByRole("link", { name: "Pickford Pirates' round 4 pick" })).toBeNull();
+    await userEvent.click(screen.getByRole("link", { name: "Rice" }));
+    expect(app.path()).toBe(playerCardPath(league.leagueId, 1002));
   });
 
   it("heads each column with its short word, named by its long one", async () => {
