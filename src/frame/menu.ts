@@ -6,6 +6,7 @@
 
 import { DRAFT_TITLE } from "../draft/words";
 import { MAIL_TITLE } from "../mail/words";
+import { PLAYER_CARD_ROUTE } from "../playerCard/paths";
 import { menuWords } from "./words";
 
 type Page = { label: string; path: string };
@@ -72,8 +73,8 @@ const draftSection: Section = { label: DRAFT_TITLE, path: DRAFT_PATH, tabs: [] }
 export const sectionsWith = (draftInMenu: boolean): readonly Section[] =>
   draftInMenu ? [sections[0], sections[1], draftSection, ...sections.slice(2)] : sections;
 
-/** A player's card (`/leagues/$leagueId/players/$playerCode`, src/playerCard/paths.ts). */
-const PLAYER_CARD_AT = /^\/leagues\/[^/]+\/players\/[^/]+\/?$/;
+/** A player's card, its route's `$` parts matching any one segment. */
+const PLAYER_CARD_AT = new RegExp(`^${PLAYER_CARD_ROUTE.replace(/\$\w+/g, "[^/]+")}/?$`);
 
 /** The menu's section a page outside every section's path belongs to, marked active on the top
  *  bar: a player's card is Scouting's (its approved picture). */

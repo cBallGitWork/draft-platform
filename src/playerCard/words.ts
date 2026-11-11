@@ -1,7 +1,6 @@
 // What the player card says, in one place for Craig to change in the pull request.
 
 import type { CategoryWhy, Cut, PricedBy, SlotValue } from "../../convex/scoring/scoring";
-import { seasonShortWords } from "../draft/words";
 import { AREA_WORDS, figureWords, gameweekShort, gameweekWords, signedWords, versusWords, whenWords } from "../shared/words";
 
 export { figureWords, freeAgentWords, noFigureWords } from "../shared/words";
@@ -121,7 +120,7 @@ export const scoredUnderWords = (version: string | null) => `Scored under ${vers
  *  has it: "2025/26: 36 matches, 3,012 min," then his points, picked out, then "pts". */
 export const LAST_SEASON_TITLE = "Last season, under today's scoring";
 export const lastSeasonWords = (season: number, { appearances, minutes }: { appearances: number; minutes: number }) =>
-  `${season}/${seasonShortWords(season).slice(-2)}: ${countWords(appearances)} ${appearances === 1 ? "match" : "matches"}, ${countWords(minutes)} min,`;
+  `${season}/${String((season + 1) % 100).padStart(2, "0")}: ${countWords(appearances)} ${appearances === 1 ? "match" : "matches"}, ${countWords(minutes)} min,`;
 export const pointsShortWords = "pts";
 /** A count with its thousands marked: "3,012". */
 const countWords = (count: number) => count.toLocaleString("en-GB");
