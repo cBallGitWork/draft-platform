@@ -5,6 +5,7 @@
 import type { BackLineScoring } from "../lineup/presets";
 import type { Area, SlotPosition } from "../lineup/pitch";
 import type { ScoringRule, ScoringSet } from "./scoringSet";
+import { CLEAN_SHEETS, GOALS_CONCEDED } from "./statKeys";
 import { statIn, weighedCount, type MatchStats } from "./values";
 
 /** One instruction's points in a match: each of its lines that moved him, added up. */
@@ -29,10 +30,6 @@ export interface TeamScoring {
  *  keeper and defence slots"). */
 const BACK_LINE_AREAS: ReadonlySet<Area> = new Set(["goalkeeper", "defence"]);
 
-/** FPL's stats a back line prices: the feed's fixed names (spec/14's catalogue). */
-const CLEAN_SHEETS_STAT = "clean_sheets";
-const GOALS_CONCEDED_STAT = "goals_conceded";
-
 /** The back line that prices a man at a slot in `area`: the team's, in its keeper and defence
  *  slots; else null. */
 export function backLineAt(team: TeamScoring | undefined, area: Area): TeamScoring["backLine"] {
@@ -43,8 +40,8 @@ export function backLineAt(team: TeamScoring | undefined, area: Area): TeamScori
  *  values, the rule's minimum minutes and points limit kept; any other rule as it is. */
 export function withBackLine(rule: ScoringRule, scoring: BackLineScoring): ScoringRule {
   const { shape: _shape, values: _values, ...kept } = rule;
-  if (rule.stat === CLEAN_SHEETS_STAT) return { ...kept, shape: "perAction", values: { all: scoring.cleanSheet } };
-  if (rule.stat === GOALS_CONCEDED_STAT) return { ...kept, shape: "perCount", values: { all: { every: 1, points: scoring.goalConceded } } };
+  if (rule.stat === CLEAN_SHEETS) return { ...kept, shape: "perAction", values: { all: scoring.cleanSheet } };
+  if (rule.stat === GOALS_CONCEDED) return { ...kept, shape: "perCount", values: { all: { every: 1, points: scoring.goalConceded } } };
   return rule;
 }
 
