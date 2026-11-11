@@ -8,7 +8,7 @@ import { fileLetter, recordEvent, wholeLeague } from "../mail/letters";
 import { seasonRules } from "../rules/rulesHistory";
 import { logFailure } from "../shared/errors";
 import { callerEmail, getLeague, managerOf, powersIn, refuse, teamIn, teamsOf } from "../shared/leagueAccess";
-import { starsOfPlayers } from "../stars/playerStars";
+import { starsLookup } from "../stars/playerStars";
 import { closeOffersOfTeam } from "../trades/tradeClose";
 import { onAutoTeam } from "../trades/tradeShut";
 import type { RoleStars } from "../stars/starsShape";
@@ -103,8 +103,8 @@ async function runTeam(ctx: MutationCtx, league: Doc<"leagues">, team: Doc<"team
   if (byPerson || noManager || illegal) {
     const outs = new Set<number>();
     for (const playerCode of squad) if ((await availabilityOf(ctx, playerCode)).availability === "out") outs.add(playerCode);
-    const stars = await starsOfPlayers(ctx, squad);
-    const set = autoTeamLineup(held, positions, (playerCode) => outs.has(playerCode), rules, (playerCode) => stars.get(playerCode) ?? []);
+    const starsOf = await starsLookup(ctx, squad);
+    const set = autoTeamLineup(held, positions, (playerCode) => outs.has(playerCode), rules, starsOf);
     if (!sameLineup(set, held)) lineup = set;
   }
 

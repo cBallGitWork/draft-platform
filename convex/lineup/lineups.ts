@@ -15,7 +15,7 @@ import { positionsNow } from "../positions/playerPositions";
 import { placementShape } from "../schema";
 import { lineupProblems, namedCodes, reconciled, withUnmovedSetAside, type PlayerPositions } from "./lineup";
 import { firstLineup, keptOnBenchOf, withDroppedRoles } from "./firstLineup";
-import { starsOfPlayers } from "../stars/playerStars";
+import { starsLookup } from "../stars/playerStars";
 import type { Area, Lane } from "./pitch";
 import { roleIn } from "./roles";
 import { inClassicFormationShape } from "./classics";
@@ -250,8 +250,8 @@ export async function pickFirstLineupAgain(ctx: MutationCtx, leagueId: Id<"leagu
   const squad = await squadCodes(ctx, teamId);
   const positions = await heldPositionsOf(ctx, leagueId, squad);
   const keptOnBench = row === null ? new Set<number>() : keptOnBenchOf(row, squad, positions);
-  const stars = await starsOfPlayers(ctx, squad);
-  const picked = withDroppedRoles(firstLineup(squad, positions, season.inGameweek(fromGameweek), keptOnBench), (playerCode) => stars.get(playerCode)!, positions, row?.starters);
+  const starsOf = await starsLookup(ctx, squad);
+  const picked = withDroppedRoles(firstLineup(squad, positions, season.inGameweek(fromGameweek), keptOnBench), starsOf, positions, row?.starters);
   if (row?.fromGameweek === fromGameweek) await ctx.db.patch("lineups", row._id, picked);
   else await ctx.db.insert("lineups", { leagueId, teamId, fromGameweek, ...picked, firstLineup: true });
 }
