@@ -146,8 +146,7 @@
   --grid-template-columns-dated-row: auto minmax(0, 1fr);
   --grid-template-columns-home: minmax(0, 1fr) minmax(0, 2.1fr) minmax(0, 1fr);
   --grid-template-columns-card: 18.75rem minmax(0, 1fr) 21.25rem;
-  /* Sign in beside its Invite only panel (approved/sign-in/1440.png), and Join beside its Joining
-     panel, the same 340px (approved/join/1440.png) */
+  /* Sign in beside its Invite only panel (approved/sign-in/1440.png) */
   --grid-template-columns-sign-in: minmax(0, 1fr) 21.25rem;
   /* The table beside its fixtures, as the approved table picture splits them (about 5 to 2) */
   --grid-template-columns-table: minmax(0, 5fr) minmax(0, 2fr);
