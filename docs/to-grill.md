@@ -260,16 +260,6 @@ ai-carling-premiership match logs; the numbers there come from FotMob and Sofasc
   - The rates checked again against Sportmonks' stats, and whether it sends recoveries and
     blocked shots in all five leagues.
 
-**Wanted ads**: trades (`spec/08`).
-- A manager posts what he's after ("a defensive midfielder who starts") and other managers offer
-  players to fill it (Craig, 1 Nov 2026: "ads we do need at some point"; picked 11 Nov 2026;
-  https://trello.com/c/3ICri3eQ). From FM27's TransferRoom.
-- What an ad holds: free words, or picks (a position, a role, a starter).
-- Where ads show, and whether a new one sends Mail.
-- How an offer answers an ad: a normal trade offer, or its own reply.
-- How it sits with the trade block (SPEC.md, *Later*).
-- When an ad ends: by hand, when filled, at a date.
-
 ## Suggested, not yet picked
 
 | What | Why |
