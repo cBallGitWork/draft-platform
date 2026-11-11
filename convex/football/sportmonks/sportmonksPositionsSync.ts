@@ -5,6 +5,7 @@ import { outcomeOf } from "../../shared/errors";
 import { emailIfFailed } from "../../admin/feedFailureEmails";
 import { CRON_TRIGGER, scheduleHeartbeat } from "../../heartbeats/heartbeat";
 import { londonHour } from "../../shared/moments";
+import { DAY_MS } from "../../shared/time";
 import { BATCH_SIZE, LATEST_RUNS } from "../../shared/syncRuns";
 import { DAILY_RUN_UK_HOUR } from "../../positions/positionsSync";
 import { positionsFromStarts, START_WINDOW } from "../../positions/positions";
@@ -42,6 +43,14 @@ export const SPORTMONKS_POSITIONS_FAILED_LOG = "Sportmonks positions read failed
 
 /** What the log says, before the matches' ids, when played matches came back with no starters. */
 export const NO_STARTERS_LOG = "Sportmonks positions: played matches with no starters yet, left to read again";
+
+/** Days after kickoff a played match with no starters is still read again: by then Sportmonks has
+ *  filed what it will, and an awarded or walkover match never has lineups (#1564). */
+export const LINEUPS_WAIT_DAYS = 7;
+
+/** What the log says, once, before the matches' ids, when played matches past `LINEUPS_WAIT_DAYS`
+ *  with no starters are marked read with none. */
+export const NO_STARTERS_GIVEN_UP_LOG = `Sportmonks positions: played matches with no starters ${LINEUPS_WAIT_DAYS} days after kickoff, marked read with none`;
 
 type Synced = Omit<Extract<Infer<typeof sportmonksPositionsSyncFields.outcome>, { ok: true }>, "ok">;
 const filedMatch = v.object({ fixtureCode: v.number(), starts: v.array(v.object({ playerCode: v.number(), start: sportmonksStart })) });
@@ -214,16 +223,22 @@ async function readPositions(ctx: ActionCtx, token: string): Promise<Synced> {
   const unread = new Set(await ctx.runQuery(internal.football.sportmonks.sportmonksPositionsSync.unreadMatches, { fixtureCodes: played.map((match) => match.id) }));
   const toRead = played.filter((match) => unread.has(match.id)).sort((a, b) => a.kickoff - b.kickoff);
   const reading = toRead.slice(0, MATCHES_PER_RUN).map((match) => match.id);
+  const kickoffs = new Map(played.map((match) => [match.id, match.kickoff]));
+  const waitedUntil = Date.now() - LINEUPS_WAIT_DAYS * DAY_MS;
   const unknownFormations = new Set<string>();
   let startsAdded = 0;
   for (let at = 0; at < reading.length; at += MULTI_FIXTURES_MAX) {
     const { data: matches } = await getData<RawFixture[]>(lineupsUrl(reading.slice(at, at + MULTI_FIXTURES_MAX)), token);
     const read = matches.map((match) => ({ fixtureCode: match.id, starts: matchStarts(match, seasonOf.get(match.id)!) }));
     // A played match with no starters is Sportmonks not yet filing its lineups: left unread, so a
-    // later run reads it again, and logged.
+    // later run reads it again, and logged. Past `LINEUPS_WAIT_DAYS` it never will (an awarded
+    // match, or one Sportmonks holds none for): marked read with no starts, and logged that once.
     const empty = read.filter(({ starts }) => starts.length === 0).map(({ fixtureCode }) => fixtureCode);
-    if (empty.length > 0) console.error(`${NO_STARTERS_LOG}: ${empty.join(", ")}`);
-    const filed = read.filter(({ starts }) => starts.length > 0);
+    const givenUp = new Set(empty.filter((fixtureCode) => (kickoffs.get(fixtureCode) ?? 0) < waitedUntil));
+    const waiting = empty.filter((fixtureCode) => !givenUp.has(fixtureCode));
+    if (waiting.length > 0) console.error(`${NO_STARTERS_LOG}: ${waiting.join(", ")}`);
+    if (givenUp.size > 0) console.error(`${NO_STARTERS_GIVEN_UP_LOG}: ${[...givenUp].join(", ")}`);
+    const filed = read.filter(({ fixtureCode, starts }) => starts.length > 0 || givenUp.has(fixtureCode));
     for (const { starts } of filed) positionsFromStarts(starts.map((each) => each.start)).unknownFormations.forEach((formation) => unknownFormations.add(formation));
     startsAdded += await ctx.runMutation(internal.football.sportmonks.sportmonksPositionsSync.recordStarts, { matches: filed });
   }
