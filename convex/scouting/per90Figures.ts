@@ -4,6 +4,7 @@
 
 import { AREAS, areasOf, cellsOf, LANES, positionOfSlot, SLOT_POSITIONS, type Area } from "../lineup/pitch";
 import { cardOpensAt } from "../playerCard/cardPoints";
+import { mostFirst } from "./raceOrder";
 import type { Position } from "../positions/positionTables";
 import {
   ASSISTS,
@@ -96,7 +97,7 @@ export function per90FiguresIn(area: Area, totals: Stats, everyone: Iterable<Wei
   return per90Stats(area, stat).map((each) => {
     const value = perNinety(totals, each);
     const others = peers.map((peer) => perNinety(peer, each)!);
-    return { stat: each, total: totalOf(totals, each), perNinety: value, percentile: ranked && value !== null ? percentileOf(value, others) : null };
+    return { stat: each, total: totalOf(totals, each), perNinety: value, percentile: ranked && value !== null ? percentileOf(value, others, mostFirst(each)) : null };
   });
 }
 
@@ -104,8 +105,11 @@ export function per90FiguresIn(area: Area, totals: Stats, everyone: Iterable<Wei
 const PERCENTILE_TOP = 100;
 
 /** Where `value` stands among `peers`' figures, as a percentile from 0 to 100: the share of them at
- *  or below it, rounded, so the best of them is 100. Null with no peers. */
-export function percentileOf(value: number, peers: readonly number[]): number | null {
+ *  or below it, rounded, so the best of them is 100. With `mostIsBest` false (a stat where fewer is
+ *  better, raceOrder.ts's FEWEST_FIRST: Craig, 11 Nov 2026, on #1787), the share at or above it, so
+ *  the fewest stands at 100. Null with no peers. */
+export function percentileOf(value: number, peers: readonly number[], mostIsBest = true): number | null {
   if (peers.length === 0) return null;
-  return Math.round((PERCENTILE_TOP * peers.filter((peer) => peer <= value).length) / peers.length);
+  const atOrWorse = peers.filter((peer) => (mostIsBest ? peer <= value : peer >= value));
+  return Math.round((PERCENTILE_TOP * atOrWorse.length) / peers.length);
 }
