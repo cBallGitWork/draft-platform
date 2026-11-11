@@ -1,6 +1,7 @@
 // Which of Scouting's players the filters keep, and in what order (#373): the list's rule, apart
 // from playersList.ts so the preview and the tests share it without the server's imports.
 
+import { SHOTS_ON_TARGET } from "../scoring/statKeys";
 import { EVENT_STATS, MINUTES_STAT } from "../stats/matchRecords";
 import type { Stats } from "../stats/statTotals";
 import type { Availability, ListedPlayer, ListFigure, PlayersFilters, PlayersSort } from "./playersList";
@@ -12,7 +13,7 @@ export const LIST_FIGURES = {
   minutes: MINUTES_STAT,
   goals: EVENT_STATS.goals,
   assists: EVENT_STATS.assists,
-  shotsOnTarget: "ontarget_scoring_att",
+  shotsOnTarget: SHOTS_ON_TARGET,
 } as const satisfies Record<ListFigure, string>;
 
 /** His list figures from his season totals: 0 for each he hasn't, all 0 if he hasn't played. */

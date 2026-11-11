@@ -44,6 +44,6 @@ export type ScoutingSeam = ShortlistSeam & QueueFromShortlist & ScoutsSeam & Wai
   usePlayersList(leagueId: Id<"leagues">, filters: PlayersFilters, sort: PlayersSort, stat: string | null, period?: Period, keep?: number): PlayersList | undefined;
   /** The stat race (#800): every team's season totals, most of `stat` (a catalogue key) first, the
    *  scoring categories and where a mid-season league's totals start, live (a hook): undefined
-   *  while it loads. */
-  useStatRace(leagueId: Id<"leagues">, stat: string): StatRace | undefined;
+   *  while it loads. With `stat` null, ranked by the first category. */
+  useStatRace(leagueId: Id<"leagues">, stat: string | null): StatRace | undefined;
 };

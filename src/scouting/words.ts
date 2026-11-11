@@ -3,6 +3,20 @@
 import type { Area } from "../../convex/lineup/pitch";
 import { RANKED_MINUTES } from "../../convex/scouting/per90Figures";
 import { PERIOD_GAMEWEEKS } from "../../convex/scouting/periods";
+import {
+  ASSISTS,
+  BIG_CHANCES_CREATED,
+  CLEAN_SHEETS,
+  CLEARANCES,
+  GOALS,
+  GOALS_CONCEDED,
+  INTERCEPTIONS,
+  KEY_PASSES,
+  PASSES,
+  SAVES,
+  SHOTS_ON_TARGET,
+  TACKLES_WON,
+} from "../../convex/scoring/statKeys";
 import { lastSeasonPointsColumn, seasonShortWords } from "../draft/words";
 import { noRunWords, runDayWords } from "../myTeam/claims/words";
 import { STAT_WORD, weekdayTimeWords } from "../shared/words";
@@ -128,18 +142,18 @@ export const AREA_PLAYERS: Record<Area, string> = {
 /** The panel's own names for the stats it lists per 90, as the picture names them; a stat not here
  *  goes by its catalogue name. */
 export const PER90_STAT_NAMES: Readonly<Record<string, string>> = {
-  goals_scored: "Goals",
-  assists: "Assists",
-  total_att_assist: "Key passes",
-  ontarget_scoring_att: "Shots on target",
-  big_chance_created: "Big chances created",
-  won_tackle: "Tackles won",
-  saves: "Saves",
-  goals_conceded: "Goals conceded",
-  clean_sheets: "Clean sheets",
-  total_pass: "Passes",
-  interception: "Interceptions",
-  total_clearance: "Clearances",
+  [GOALS]: "Goals",
+  [ASSISTS]: "Assists",
+  [KEY_PASSES]: "Key passes",
+  [SHOTS_ON_TARGET]: "Shots on target",
+  [BIG_CHANCES_CREATED]: "Big chances created",
+  [TACKLES_WON]: "Tackles won",
+  [SAVES]: "Saves",
+  [GOALS_CONCEDED]: "Goals conceded",
+  [CLEAN_SHEETS]: "Clean sheets",
+  [PASSES]: "Passes",
+  [INTERCEPTIONS]: "Interceptions",
+  [CLEARANCES]: "Clearances",
 };
 export const versusWords = (area: Area) => `vs ${AREA_PLAYERS[area]}`;
 /** A percentile bar's hover and name: the figure it draws. */

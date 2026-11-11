@@ -20,7 +20,7 @@ async function withTotals(league: ScoresLeague) {
   });
 }
 
-const raceOf = async ({ t, leagueId }: ScoresLeague, stat: string, descending = true, email = ANN) =>
+const raceOf = async ({ t, leagueId }: ScoresLeague, stat: string | null, descending = true, email = ANN) =>
   (await actingAs(t, email)).query(api.scouting.statRace.teams, { leagueId, stat, descending });
 const race = async (league: ScoresLeague, stat: string, descending = true, email = ANN) => (await raceOf(league, stat, descending, email)).teams;
 
@@ -35,6 +35,19 @@ test("every team is ranked by the stat picked, most first, a team with none of i
     [CATS_TEAM, 0],
   ]);
   expect(ranked.find((team) => team.name === CATS_TEAM)!.stats).toEqual({});
+});
+
+test("with no stat asked, the teams are ranked by the first category", async () => {
+  const league = await scoresLeague({ catToo: true });
+  await withTotals(league);
+
+  const { categories, teams } = await raceOf(league, null);
+  expect(categories[0]).toBe("goals_scored");
+  expect(teams.map(({ name, stat }) => [name, stat])).toEqual([
+    [BOBS_TEAM, 5],
+    [ANNS_TEAM, 3],
+    [CATS_TEAM, 0],
+  ]);
 });
 
 test("fewest first when asked, and ties fall back to the team's name", async () => {

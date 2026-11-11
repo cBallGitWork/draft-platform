@@ -23,8 +23,6 @@ import {
   STAT_RACE_TITLE,
 } from "../words";
 
-/** The race opens on goals, the first category the site's scoring has always scored. */
-const OPENING_STAT = "goals_scored";
 const RANK_BY_ID = "stat-race-rank-by";
 
 /** Scouting's Stat race tab (#800, spec/19 The stat race; docs/design/approved/scouting/
@@ -38,9 +36,11 @@ export function StatRaceTab({
   league: LeagueSummary;
   seam: ScoutingSeam;
 }) {
-  const [stat, setStat] = useState(OPENING_STAT);
+  // The race opens on the first category (none picked yet), as the server ranks it.
+  const [picked, setStat] = useState<string | null>(null);
   // While a new ranking loads, the last one stays up.
-  const race = useLastLoaded(seam.useStatRace(league.leagueId, stat));
+  const race = useLastLoaded(seam.useStatRace(league.leagueId, picked));
+  const stat = picked ?? race?.categories[0] ?? "";
   const [selectedId, select] = useState<Id<"teams"> | null>(null);
   const selected =
     race &&

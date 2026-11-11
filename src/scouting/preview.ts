@@ -115,13 +115,13 @@ const addToQueue = async (_leagueId: unknown, playerCode: number) => {
 const RACE_CATEGORIES = ["goals_scored", "assists", "clean_sheets", "goals_conceded", "saves", "penalties_saved", "penalties_missed", "yellow_cards", "red_cards", "own_goals"];
 const raceTotals = (teamIndex: number): Stats =>
   Object.fromEntries(RACE_CATEGORIES.map((stat, index) => [stat, (teamIndex * 7 + index * 5) % 23]));
-const previewRace = (stat: string): StatRace => ({
+const previewRace = (stat: string | null): StatRace => ({
   categories: RACE_CATEGORIES,
   since: null,
   teams: raceOrder(
     previewTeams.map((name, index) => {
       const stats = raceTotals(index);
-      return { teamId: previewIdOf(name), name, stats, stat: stats[stat] ?? 0 };
+      return { teamId: previewIdOf(name), name, stats, stat: stats[stat ?? RACE_CATEGORIES[0]] ?? 0 };
     }),
     true,
   ),

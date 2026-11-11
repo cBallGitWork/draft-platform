@@ -44,7 +44,14 @@ it("the Stat race tab ranks every team by goals at first, raw counts in every ca
   expect(cellsOf("Rovers XI")).toEqual(["2", "3", "0", "0"]);
   expect(cellsOf(league.teamName!)).toEqual(["2", "3", "7", "0"]);
   expect(within(racePanel()).getByText(countsWhatCountedWords)).toBeTruthy();
-  expect(app.scouting.useStatRace.mock.lastCall!.slice(0, 2)).toEqual([league.leagueId, "goals_scored"]);
+  expect(app.scouting.useStatRace.mock.lastCall!.slice(0, 2)).toEqual([league.leagueId, null]);
+  expect(within(racePanel()).getByLabelText<HTMLSelectElement>(rankByLabel).value).toBe("goals_scored");
+});
+
+it("opens on whatever category comes first, so a renamed goals stat never breaks the tab", async () => {
+  await openRace({ ...RACE, categories: ["clean_sheets", "goals_scored", "red_cards"] });
+  expect(teamsShown()).toEqual([league.teamName, "Kroos Control", "Rovers XI"]);
+  expect(within(racePanel()).getByLabelText<HTMLSelectElement>(rankByLabel).value).toBe("clean_sheets");
 });
 
 it("Rank by, or a category's head, ranks the teams by that category", async () => {
