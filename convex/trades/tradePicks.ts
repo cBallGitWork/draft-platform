@@ -118,16 +118,16 @@ function withTrade(traded: readonly TradedPick<Id<"teams">>[], { fromTeamId, toT
 
 /** Why a pick trade is undone when the draft starts: one of its picks is in a round past the
  *  draft's last, or a trade undone before it gave back a pick it traded on. */
-export type UndoneWhy = { why: "roundCut"; pick: TradePick } | { why: "pickBack"; pick: TradePick };
+type UndoneWhy = { why: "roundCut"; pick: TradePick } | { why: "pickBack"; pick: TradePick };
 
 /** The league's pick trades, first made first, played again over a draft of `rounds` rounds
  *  (#1457): a trade with a pick in a round past the last is undone, both its picks back with their
  *  old owners (Craig, 11 Nov 2026), and so is a later one trading on a pick no longer its team's,
  *  so every pick trade stays one pick for one pick. Who holds each pick after the rest. Pure. */
-export function tradesStanding(trades: readonly PickTrade[], rounds: number) {
+function tradesStanding(trades: readonly PickTrade[], rounds: number) {
   let tradedPicks: TradedPick<Id<"teams">>[] = [];
   const standing: PickTrade[] = [];
-  const undone: { trade: PickTrade; undone: UndoneWhy }[] = [];
+  const undone: { trade: PickTrade; because: UndoneWhy }[] = [];
   for (const trade of trades) {
     const { gives, gets } = trade.picks;
     const cut = [gives, gets].find(({ round }) => round > rounds);
@@ -135,8 +135,8 @@ export function tradesStanding(trades: readonly PickTrade[], rounds: number) {
       { pick: gives, holder: trade.fromTeamId },
       { pick: gets, holder: trade.toTeamId },
     ].find(({ pick, holder }) => pickOwner(tradedPicks, pick.round, pick.teamId) !== holder)?.pick;
-    if (cut !== undefined) undone.push({ trade, undone: { why: "roundCut", pick: cut } });
-    else if (back !== undefined) undone.push({ trade, undone: { why: "pickBack", pick: back } });
+    if (cut !== undefined) undone.push({ trade, because: { why: "roundCut", pick: cut } });
+    else if (back !== undefined) undone.push({ trade, because: { why: "pickBack", pick: back } });
     else {
       tradedPicks = withTrade(tradedPicks, trade);
       standing.push(trade);
@@ -170,9 +170,9 @@ export async function undoCutTrades(ctx: MutationCtx, league: Doc<"leagues">, ro
   const { tradedPicks, standing, undone } = tradesStanding(draft.pickTrades, rounds);
   if (undone.length === 0) return;
   await ctx.db.patch("drafts", draft._id, { tradedPicks, pickTrades: standing });
-  for (const { trade, undone: why } of undone) {
+  for (const { trade, because } of undone) {
     const offer = { ...trade, gives: [], gets: [] };
-    const letter = pickTradeUndoneLetter(await tradeWordsOf(ctx, offer), await pickName(ctx, why.pick), why, rounds);
+    const letter = pickTradeUndoneLetter(await tradeWordsOf(ctx, offer), await pickName(ctx, because.pick), because, rounds);
     await fileLetter(ctx, league, await managersOf(ctx, offer), letter);
   }
 }
