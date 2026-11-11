@@ -54,6 +54,7 @@ export function ClaimsPanel({
   selected,
   onSelect,
   onReorder,
+  busy,
 }: {
   /** The claims the caller sees: his own, or every team's for whoever runs the league. */
   claims: readonly PendingClaim[];
@@ -62,6 +63,9 @@ export function ClaimsPanel({
   selected: Id<"waiverClaims"> | null;
   onSelect(claimId: Id<"waiverClaims">): void;
   onReorder(claimIds: Id<"waiverClaims">[]): void;
+  /** A change is saving: a drag waits for it, as the Move buttons do, since an order built from
+   *  the claims drawn before the first save landed would undo it (#1490). */
+  busy: boolean;
 }) {
   const [view, setView] = useState<ClaimsView>("mine");
   const mine = claims.filter(({ yours }) => yours);
@@ -86,7 +90,7 @@ export function ClaimsPanel({
       ) : mine.length === 0 ? (
         <PanelNote>{noClaimsWords}</PanelNote>
       ) : (
-        <MineTable claims={mine} open={closed === null} selected={selected} onSelect={onSelect} onReorder={onReorder} />
+        <MineTable claims={mine} open={closed === null} busy={busy} selected={selected} onSelect={onSelect} onReorder={onReorder} />
       )}
       <p className="px-3 py-2">
         <Link to={SCOUTING_PATH} className="inline-flex min-h-tap items-center lg:min-h-0">
@@ -100,12 +104,14 @@ export function ClaimsPanel({
 function MineTable({
   claims,
   open,
+  busy,
   selected,
   onSelect,
   onReorder,
 }: {
   claims: readonly PendingClaim[];
   open: boolean;
+  busy: boolean;
   selected: Id<"waiverClaims"> | null;
   onSelect(claimId: Id<"waiverClaims">): void;
   onReorder(claimIds: Id<"waiverClaims">[]): void;
@@ -113,7 +119,7 @@ function MineTable({
   const [dragging, setDragging] = useState<Id<"waiverClaims"> | null>(null);
   const shown = open ? MINE_COLUMNS : MINE_COLUMNS.filter((column) => column !== "handle");
   function dropOnto(targetId: Id<"waiverClaims">) {
-    const ids = dragging === null ? null : movedOnto(claims, dragging, targetId);
+    const ids = dragging === null || busy ? null : movedOnto(claims, dragging, targetId);
     setDragging(null);
     if (ids !== null) onReorder(ids);
   }
@@ -139,12 +145,12 @@ function MineTable({
               {open && (
                 <td className={claimCellClass("handle")}>
                   <span
-                    draggable
+                    draggable={!busy}
                     role="img"
                     aria-label={dragHandleLabel(claim.claim.playerName)}
-                    onDragStart={() => setDragging(claim.claimId)}
+                    onDragStart={() => setDragging(busy ? null : claim.claimId)}
                     onDragEnd={() => setDragging(null)}
-                    className="cursor-grab text-muted"
+                    className={busy ? "text-muted" : "cursor-grab text-muted"}
                   >
                     {dragGlyph}
                   </span>

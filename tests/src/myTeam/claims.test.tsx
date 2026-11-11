@@ -3,7 +3,7 @@
 // drop, move it or withdraw it; claims closed in a word; the commissioner's Every team view; and the
 // whole waiver order and the runs beside them.
 
-import { fireEvent, screen, within } from "@testing-library/react";
+import { fireEvent, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
 import type { Id } from "../../../convex/_generated/dataModel";
@@ -109,6 +109,28 @@ describe("the pending claims", () => {
     fireEvent.dragStart(handle);
     fireEvent.drop(rowOf("Semenyo"));
     expect(app.myTeam.claimChanges.rank).toHaveBeenCalledWith(league.leagueId, ["c2", "c1", "c3"]);
+  });
+
+  it("waits for a drag's order to save before taking another, as the Move buttons do (#1490)", async () => {
+    const app = open();
+    let saved: (answer: null) => void = () => undefined;
+    app.myTeam.claimChanges.rank.mockImplementationOnce(() => new Promise((resolve) => (saved = resolve)));
+    const handleOf = (name: string) => screen.findByRole("img", { name: dragHandleLabel(name) });
+    const rowOf = (name: string) => screen.getByRole("button", { name: selectClaimLabel(name) }).closest("tr")!;
+    fireEvent.dragStart(await handleOf("Eze"));
+    fireEvent.drop(rowOf("Semenyo"));
+    expect(app.myTeam.claimChanges.rank).toHaveBeenCalledTimes(1);
+
+    expect((await handleOf("Semenyo")).getAttribute("draggable")).toBe("false");
+    fireEvent.dragStart(await handleOf("Semenyo"));
+    fireEvent.drop(rowOf("Eze"));
+    expect(app.myTeam.claimChanges.rank).toHaveBeenCalledTimes(1);
+
+    saved(null);
+    await waitFor(async () => expect((await handleOf("Semenyo")).getAttribute("draggable")).toBe("true"));
+    fireEvent.dragStart(await handleOf("Semenyo"));
+    fireEvent.drop(rowOf("Eze"));
+    expect(app.myTeam.claimChanges.rank).toHaveBeenCalledTimes(2);
   });
 
   it("while claims are closed, says so in a word, with no handles or buttons", async () => {
