@@ -1,6 +1,6 @@
 // My team's tabs in the preview (src/app/preview.ts): the preview manager's team in the table
 // preview's league, so the Fixtures tab and the table and fixtures screen show the same draw and
-// scores, a few of the commissioner's squad changes on its Transactions tab, and on its Squad tab
+// scores, the approved picture's history on its Transactions tab, and on its Squad tab
 // the Tactics tab's squad, with made-up seasons, and Mail's preview letters.
 
 import { CLUB_COLOURS } from "../../convex/football/clubColours";
