@@ -6,7 +6,7 @@ import { HELD_FIRST_RULES } from "../../support/convex/leagueRules.harness";
 import { COMMISSIONER, MANAGERS, actingAs, addManagers, adminCreatesLeague, type TestConvex } from "../../support/convex/leagues.harness";
 import { ARSENAL, UNHELD, insertClubs } from "../../support/convex/footballRows.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
-import { squadMoves } from "../../support/convex/lineupSquad.harness";
+import { SAKA, squadMoves } from "../../support/convex/lineupSquad.harness";
 import { expectRefused } from "../../support/convex/test.harness";
 
 // A squad row whose player the football sync doesn't hold (#323). Players are never deleted, only
@@ -15,7 +15,6 @@ import { expectRefused } from "../../support/convex/test.harness";
 // row, mabe an error message. easier to spot/debug"). Moving or releasing him is refused.
 
 const [ANN, BOB] = MANAGERS;
-const SAKA = 1001;
 const PALMER = 1002;
 
 let t: TestConvex;

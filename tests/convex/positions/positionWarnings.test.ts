@@ -16,10 +16,9 @@ import { asAdmin } from "../../support/convex/positionsSync.harness";
 import { CENTRE_BACK, movedToFullBack, played, RIGHT_BACK, startsFrom, times } from "../../support/convex/positionStarts.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
 import { elapse, pendingJobs } from "../../support/convex/test.harness";
+import { NEXT } from "../../support/convex/lineupSquad.harness";
 
 const [ANN, BOB] = MANAGERS;
-/** The gameweek a lineup saved now is from: every one before it has begun. */
-const NEXT = 9;
 const BARNES = { code: 1, name: "Barnes", fullName: "Harvey Barnes", clubCode: 4 };
 
 let t: TestConvex;
