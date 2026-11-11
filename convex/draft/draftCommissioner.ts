@@ -50,7 +50,7 @@ export const undoPick = mutation({
     const last = (await lastPickIn(ctx, leagueId)) ?? refuse(commissionerRefusals.noPick);
     const { team, player } = await takeBackPick(ctx, leagueId, last, email);
     if (last.timeout !== undefined) {
-      await ctx.db.patch("drafts", draft._id, { timeouts: afterUndoneTimeout(draft.timeouts, team._id, last.timeout.putOnAutoPick) });
+      await ctx.db.patch("drafts", draft._id, { timeouts: afterUndoneTimeout(draft.timeouts, team._id, last.timeout) });
     }
     if (clock.job !== undefined) await ctx.scheduler.cancel(clock.job);
     const now = Date.now();
