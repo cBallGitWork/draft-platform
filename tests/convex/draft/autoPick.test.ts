@@ -9,7 +9,6 @@ import { ARSENAL, CHELSEA, insertClubs, insertPlayers, type HeldPlayer } from ".
 import { changeEveryRules, HELD_FIRST_RULES } from "../../support/convex/leagueRules.harness";
 import { draftSteps } from "../../support/convex/draft.harness";
 import { addManager, addManagers, adminCreatesLeague, COMMISSIONER, MANAGERS, OUTSIDER, type TestConvex } from "../../support/convex/leagues.harness";
-import { pickGapPasses } from "../../support/convex/pickWindow.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
 
 // Auto-pick (spec/04, Auto-pick and The queue and the ranking; #1094): when a clock runs out the
@@ -49,9 +48,8 @@ const setRules = (squad: Partial<LeagueRules["squad"]>, timeouts = 2) =>
     squad: { size: { minimum: 1, maximum: 2 }, minimumByArea: null, maxPerClub: null, ...squad },
     draft: { ...HELD_FIRST_RULES.draft!, timeoutsBeforeAutoPick: timeouts },
   }));
-const { as, start, pick: pickNow, pass } = draftSteps(() => ({ t, leagueId }));
+const { as, start, pick: pickNow, pickAndWait: pick, pass } = draftSteps(() => ({ t, leagueId }));
 /** `email` picks, and the pick's 10 seconds to undo it pass. */
-const pick = (email: string, playerCode: number) => pickNow(email, playerCode).then(() => pickGapPasses(t));
 const takeBack = async (email: string) => (await as(email)).mutation(api.draft.autoPickSwitch.takeControlBack, { leagueId });
 const picked = () => t.run(async (ctx) => (await ctx.db.query("draftPicks").collect()).map(({ playerCode }) => playerCode));
 const timeouts = () => t.run(async (ctx) => (await ctx.db.query("drafts").unique())?.timeouts);
