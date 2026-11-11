@@ -14,7 +14,7 @@ import { PL_FULL_TIME, readPlFixture, readPlFixtures, readPlSquad, type RawPlFix
 import { positionsSyncFields, startRecord, syncTrigger } from "../schema";
 import { BATCH_SIZE, LATEST_RUNS } from "../shared/syncRuns";
 import { emailIfFailed } from "../admin/feedFailureEmails";
-import { CRON_TRIGGER } from "../heartbeats/heartbeat";
+import { CRON_TRIGGER, scheduleHeartbeat } from "../heartbeats/heartbeat";
 import { londonHour } from "../shared/moments";
 
 // Issue #22: each player's starts, from the Premier League's team sheets for last season and this
@@ -69,9 +69,13 @@ export const run = internalAction({
       return { ok: true as const, ...synced };
     });
     await ctx.runMutation(internal.positions.positionsSync.record, { trigger, ranAt, outcome });
+    if (trigger !== CRON_TRIGGER) return null;
     // A run that filed nothing new (every match it read refused) would only read the same again.
-    if (trigger === CRON_TRIGGER && outcome.ok && outcome.matchesLeft > 0 && outcome.matchesRead > outcome.matchesRefused.length) {
+    if (outcome.ok && outcome.matchesLeft > 0 && outcome.matchesRead > outcome.matchesRefused.length) {
       await ctx.scheduler.runAfter(0, internal.positions.positionsSync.run, { trigger });
+    } else {
+      // The cron's last run: the daily sync's heartbeat.
+      await scheduleHeartbeat(ctx, "positionsSync");
     }
     return null;
   },
