@@ -12,6 +12,15 @@ import { ADMIN, COMMISSIONER, MANAGERS, actingAs, addManager, addManagers, admin
 import { FIRST_SUB } from "../../support/convex/lineup.harness";
 import { FOUR_FOUR_TWO, holdSquad, NEXT, passNextDeadline, squadMoves } from "../../support/convex/lineupSquad.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
+import { silenceConsoleError } from "../../support/convex/test.harness";
+import { autoTeamFailedLog } from "../../../convex/lineup/autoTeam";
+import { fileLetter } from "../../../convex/mail/letters";
+
+// Letters filed as they are, but a test can make one throw.
+vi.mock("../../../convex/mail/letters", async (actual) => {
+  const letters = await actual<typeof import("../../../convex/mail/letters")>();
+  return { ...letters, fileLetter: vi.fn(letters.fileLetter) };
+});
 
 // The auto team (spec/09, The auto team; #1207): at each deadline it keeps the team's last lineup
 // and brings the first bench player who fits on for a starter who is out, never one who is only
@@ -27,12 +36,13 @@ const [OUT_MIDFIELDER, DOUBTFUL_MIDFIELDER] = FOUR_FOUR_TWO.starters.filter(({ a
 let t: TestConvex;
 let leagueId: Id<"leagues">;
 let annsTeam: Id<"teams">;
+let bobsTeam: Id<"teams">;
 beforeEach(async () => {
   t = await signInDeployment();
   fakeResend();
   await holdGameweeks(t, { next: NEXT });
   leagueId = await adminCreatesLeague(t);
-  [annsTeam] = await addManagers(t, leagueId, [ANN, BOB]);
+  [annsTeam, bobsTeam] = await addManagers(t, leagueId, [ANN, BOB]);
   await holdSquad(t, leagueId, annsTeam);
   await (await actingAs(t, ANN)).mutation(api.lineup.lineups.save, { leagueId, lineup: { starters: [...FOUR_FOUR_TWO.starters], bench: [...FOUR_FOUR_TWO.bench] } });
 });
@@ -177,6 +187,36 @@ describe("an illegal lineup", () => {
     await setAvailability(DOUBTFUL_MIDFIELDER, "out");
     await passWeekOn();
     expect(await startersIn(NEXT + 1)).toContain(DOUBTFUL_MIDFIELDER);
+  });
+
+  test("a letter that fails after the lineup is set is logged as part-way, the new lineup kept, and the other teams carry on (#1760)", async () => {
+    const error = silenceConsoleError();
+    const LETTER_FAILED = "the letter can't be filed";
+    const name = await teamNameOf();
+    const filed = vi.mocked(fileLetter);
+    const real = filed.getMockImplementation()!;
+    filed.mockImplementation(async (ctx, league, to, letter, by) => {
+      if (typeof letter !== "function" && letter.subject === autoTeamLetters.fixed(name, NEXT).subject) throw new Error(LETTER_FAILED);
+      return real(ctx, league, to, letter, by);
+    });
+    try {
+      // Bob's holiday ends after NEXT: his step, run after or before Ann's, still switches it off.
+      await (await actingAs(t, BOB)).mutation(api.lineup.autoTeam.set, { leagueId, teamId: bobsTeam, on: true, endsAfter: NEXT });
+      await (await squadMoves(t, leagueId, COMMISSIONER)).release(OUT_MIDFIELDER);
+      await passDeadline();
+    } finally {
+      filed.mockImplementation(real);
+    }
+
+    // The log says what is true: the step stopped part-way, so its lineup is the new one.
+    expect(error).toHaveBeenCalledWith(`${autoTeamFailedLog(name, annsTeam, NEXT)}: ${LETTER_FAILED}`);
+    const starters = await startersIn(NEXT);
+    expect(starters).toHaveLength(11);
+    expect(starters).toContain(FIRST_SUB);
+    expect(await subjectsTo(ANN)).not.toContain(autoTeamLetters.fixed(name, NEXT).subject);
+
+    expect(await t.run(async (ctx) => (await ctx.db.get("teams", bobsTeam))!.autoTeam ?? null)).toBeNull();
+    expect(await subjectsTo(ANN)).toContain(autoTeamLetters.ended(await teamName(t, bobsTeam), NEXT).subject);
   });
 });
 
