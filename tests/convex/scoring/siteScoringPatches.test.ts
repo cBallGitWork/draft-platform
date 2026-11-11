@@ -7,7 +7,8 @@ import { PATCH_NOTICE_DAYS, siteScoringRefusals } from "../../../convex/scoring/
 import { versionName } from "../../../convex/scoring/siteVersions";
 import { refusals } from "../../../convex/shared/leagueAccess";
 import { HOUR_MS, MINUTE_MS, seasonStartYear } from "../../../convex/shared/time";
-import { SEASON_GAMEWEEKS } from "../../../convex/gameweeks/usedGameweeks";
+import { seasonGameweeks } from "../../../convex/gameweeks/usedGameweeks";
+import { PL_GAMEWEEKS } from "../../support/convex/footballRows.harness";
 import { changeRules, holdGameweeks, rulesInGameweek, rulesWith, TOTAL_POINTS } from "../../support/convex/leagueRules.harness";
 import { expectRefused, pendingJobs } from "../../support/convex/test.harness";
 import { ADMIN, addManagers, adminCreatesLeague, COMMISSIONER, eventsIn, MANAGERS } from "../../support/convex/leagues.harness";
@@ -46,7 +47,7 @@ describe("a draft patch", () => {
     await holdGameweeks(t, { next: 9 });
 
     expect(await saveDraftAs(ADMIN, EDITED)).toBe(TODAY);
-    for (const gameweek of SEASON_GAMEWEEKS) expect(await inGameweek(gameweek)).toEqual(FIRST_SCORING);
+    for (const gameweek of seasonGameweeks(PL_GAMEWEEKS)) expect(await inGameweek(gameweek)).toEqual(FIRST_SCORING);
     expect(await versions()).toBe(0);
     expect(await viewAs(ADMIN)).toMatchObject({ part: FIRST_SCORING, revision: null, draft: { part: EDITED, savedAt: TODAY } });
     expect(await viewAs(COMMISSIONER)).toMatchObject({ draft: null });

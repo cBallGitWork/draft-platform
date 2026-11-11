@@ -1,6 +1,7 @@
 import { v, type Infer } from "convex/values";
 import type { Doc, Id } from "../_generated/dataModel";
 import type { QueryCtx } from "../_generated/server";
+import { seasonGameweekCount } from "../gameweeks/seasonGameweeks";
 import { usedGameweeksOf } from "../gameweeks/usedGameweeks";
 import { saveGameweekOf } from "../lineup/lineups";
 import { clubRecord } from "../schema";
@@ -10,8 +11,8 @@ import type { Clubs } from "../shared/players";
 // The Squad tab's Schedule view (#1006; spec/12, My team's tabs: "his next 6 fixtures"): the next
 // 6 gameweeks, from the one a lineup is being set for, because lineups are set per gameweek (Craig,
 // 6 Nov 2026). A blank week's cell is empty and a double week's holds both matches. Only gameweeks
-// the league plays are shown, so they skip one it unticked and stop at its last (spec/13,
-// Gameweeks; #1561).
+// the league plays of its season's own count are shown, so they skip one it unticked and stop at
+// its last (spec/13, Gameweeks; #1561, #1618).
 
 /** How many gameweeks the view holds. */
 export const SCHEDULE_GAMEWEEKS = 6;
@@ -39,7 +40,7 @@ export async function squadSchedule(
   const save = await saveGameweekOf(ctx, leagueId, now);
   const league = await ctx.db.get("leagues", leagueId);
   if (save.kind !== "open" || league === null) return { gameweeks: [], byClub };
-  const gameweeks = usedGameweeksOf(league)
+  const gameweeks = usedGameweeksOf(league, await seasonGameweekCount(ctx))
     .filter((gameweek) => gameweek >= save.gameweek)
     .slice(0, SCHEDULE_GAMEWEEKS);
   for (const gameweek of gameweeks) {
