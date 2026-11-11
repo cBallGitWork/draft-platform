@@ -1,6 +1,6 @@
 import type { Doc, Id } from "../_generated/dataModel";
 import type { MutationCtx, QueryCtx } from "../_generated/server";
-import { draftIsLive } from "../draft/draftRow";
+import { draftIsOver } from "../draft/draftRow";
 import { fileEvent, recordEvent } from "../mail/letters";
 import { tellShortlisters } from "../scouting/shortlist";
 import { LEAGUES_READ_MOST, takeAllOrThrow } from "../shared/cappedRead";
@@ -104,7 +104,7 @@ async function leaguesDrafted(ctx: QueryCtx): Promise<Id<"leagues">[]> {
     LEAGUES_READ_MOST,
     `More than ${LEAGUES_READ_MOST} drafts are held, so a new Premier League player can't be put on waivers in every league`,
   );
-  const over = await Promise.all(drafts.map(async ({ leagueId, started }) => started !== undefined && !(await draftIsLive(ctx, leagueId))));
+  const over = await Promise.all(drafts.map(({ leagueId }) => draftIsOver(ctx, leagueId)));
   return drafts.filter((_, index) => over[index]).map(({ leagueId }) => leagueId);
 }
 

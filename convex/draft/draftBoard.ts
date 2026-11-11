@@ -8,7 +8,7 @@ import { memberOf } from "../shared/leagueAccess";
 import { clubsByCode, playerByCode } from "../shared/players";
 import { pickSecondsOf } from "./draftPickTime";
 import { squadRulesOf } from "./draftPicks";
-import { draftIsLive, draftOf } from "./draftRow";
+import { draftIsOver, draftOf } from "./draftRow";
 import { isOnAutoPick } from "./draftTimeouts";
 
 // The draft room's reads (spec/04, The draft room; #1098), beside the draft's own (draftStart.ts
@@ -99,6 +99,6 @@ export const inMenu = query({
   returns: v.boolean(),
   handler: async (ctx, { leagueId }) => {
     await memberOf(ctx, leagueId);
-    return (await draftOf(ctx, leagueId))?.started === undefined || (await draftIsLive(ctx, leagueId));
+    return !(await draftIsOver(ctx, leagueId));
   },
 });
