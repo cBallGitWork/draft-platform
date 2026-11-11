@@ -38,7 +38,7 @@ beforeEach(async () => {
     await insertClubs(ctx, [ARSENAL, CHELSEA]);
     await insertPlayers(ctx, [SAKA, PALMER]);
     for (const row of await ctx.db.query("leagueRules").withIndex("by_leagueId_and_fromGameweek", (q) => q.eq("leagueId", leagueId)).collect()) {
-      await ctx.db.patch("leagueRules", row._id, { rules: { ...row.rules, squad: { size: { minimum: 1, maximum: 1 }, minimumByArea: null, maxPerClub: null } } });
+      await ctx.db.patch("leagueRules", row._id, { rules: { ...row.rules!, squad: { size: { minimum: 1, maximum: 1 }, minimumByArea: null, maxPerClub: null } } });
     }
   });
 });

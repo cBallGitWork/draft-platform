@@ -160,7 +160,7 @@ test("a total-points league has each team's gameweek in its results, and ranks b
   const league = await scoresLeague();
   await league.t.run(async (ctx) => {
     for (const row of await ctx.db.query("leagueRules").withIndex("by_leagueId_and_fromGameweek", (q) => q.eq("leagueId", league.leagueId)).collect()) {
-      await ctx.db.patch("leagueRules", row._id, { rules: { ...row.rules, format: "totalPoints" } });
+      await ctx.db.patch("leagueRules", row._id, { rules: { ...row.rules!, format: "totalPoints" } });
     }
   });
   await fullTimeRecords(league);

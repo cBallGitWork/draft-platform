@@ -65,7 +65,7 @@ test("mid-season, go where the last setting typed says, a change waiting for the
   await holdGameweeks(t, { next: 5 });
   await draftLeaving("waivers", async () => {
     const [newest] = await t.run((ctx) => ctx.db.query("leagueRules").withIndex("by_leagueId_and_fromGameweek", (q) => q.eq("leagueId", leagueId)).order("desc").take(1));
-    const rules = { ...newest.rules, draft: { ...newest.rules.draft!, undrafted: "freeAgents" as const } };
+    const rules = { ...newest.rules!, draft: { ...newest.rules!.draft!, undrafted: "freeAgents" as const } };
     await t.run((ctx) => ctx.db.insert("leagueRules", { leagueId, fromGameweek: 5, rules }));
   });
   expect(await stateOf(LEFT)).toEqual({ kind: "freeAgent" });
