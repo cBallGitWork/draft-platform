@@ -6,7 +6,7 @@ import type { LeagueRules } from "../../../convex/rules/leagueRulesShape";
 import { squadRefusals } from "../../../convex/squads/squads";
 import { refusals } from "../../../convex/shared/leagueAccess";
 import { ARSENAL, CHELSEA, GONE, insertClubs, insertDroppedPlayer, insertPlayers, UNHELD, type HeldPlayer } from "../../support/convex/footballRows.harness";
-import { changeEveryRules, NO_AREA_MINIMUMS } from "../../support/convex/leagueRules.harness";
+import { changeEveryRules, holdGameweeks, NO_AREA_MINIMUMS } from "../../support/convex/leagueRules.harness";
 import { expectRefused } from "../../support/convex/test.harness";
 import { actingAs, addManagers, ADMIN, adminCreatesLeague, COMMISSIONER, eventsIn, MANAGERS, type TestConvex } from "../../support/convex/leagues.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
@@ -86,6 +86,8 @@ describe("a full draft", () => {
 
   test("saves each team's lineup as its picks left it once the last pick is made, so a later squad change only joins the bench (#1040)", async () => {
     const lineupRows = () => t.run((ctx) => ctx.db.query("lineups").collect());
+    // A season to come, so there is a gameweek for the lineups to be saved from (#1618).
+    await holdGameweeks(t, { next: 1 });
     await start();
     const picks = [[ANN, A1], [BOB, A2], [CAT, A3], [CAT, A4], [BOB, A5]] as const;
     for (const [email, code] of picks) await pick(email, code);

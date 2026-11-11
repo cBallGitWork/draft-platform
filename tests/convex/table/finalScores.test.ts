@@ -103,8 +103,6 @@ test("a gameweek with no match held is never final, so a match moved into it lat
   const league = await scoresLeague();
   await league.t.run(async (ctx) => {
     for (const row of await ctx.db.query("fixtures").collect()) await ctx.db.delete("fixtures", row._id);
-    // The gameweek stays one of the season's (#1618): a gameweek row outlives its matches (#202).
-    await ctx.db.insert("gameweeks", { number: GAMEWEEK, deadline: 0 });
   });
 
   expect(await storeLeague(league)).toEqual([]);

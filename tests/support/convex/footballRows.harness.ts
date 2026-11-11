@@ -13,6 +13,13 @@ export type Club = WithoutSystemFields<Doc<"clubs">>;
  *  its gameweek rows (seasonGameweeks.ts's `seasonGameweekCount`; #1618), never a constant. */
 export const PL_GAMEWEEKS = 38;
 
+/** The season's gameweek rows, 1 to `count`, as the football sync holds them, for a test that holds
+ *  only a few matches: the season has however many gameweeks it holds (#1618). Their FPL deadlines
+ *  are feed data no league reads, so they are left at 0. */
+export const insertSeasonGameweeks = async (ctx: MutationCtx, count = PL_GAMEWEEKS) => {
+  for (let number = 1; number <= count; number += 1) await ctx.db.insert("gameweeks", { number, deadline: 0 });
+};
+
 export const ARSENAL: Club = { code: 3, name: "Arsenal", shortName: "ARS" };
 export const CHELSEA: Club = { code: 8, name: "Chelsea", shortName: "CHE" };
 export const COVENTRY: Club = { code: 9, name: "Coventry", shortName: "COV" };
