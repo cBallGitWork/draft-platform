@@ -10,7 +10,7 @@ import { ARSENAL, insertClubs, insertPlayers, type HeldPlayer } from "../../supp
 import { changeEveryRules, HELD_FIRST_RULES, setPickSeconds as setPickSecondsOf } from "../../support/convex/leagueRules.harness";
 import { actingAs, addManagers, adminCreatesLeague, COMMISSIONER, MANAGERS, type TestConvex } from "../../support/convex/leagues.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
-import { elapse } from "../../support/convex/test.harness";
+import { clockRunsTo } from "../../support/convex/test.harness";
 
 // Pausing and resuming the draft (spec/04, The commissioner; #1135): a pause keeps the time left,
 // the 10 seconds before the next clock freeze too, a paused clock never fires, and a pick time
@@ -36,7 +36,7 @@ const resume = async (email = COMMISSIONER) => (await as(email)).mutation(api.dr
 const pick = async (email: string, playerCode: number) => (await as(email)).mutation(api.draft.draftPicks.makePick, { leagueId, playerCode });
 const pickCount = () => t.run(async (ctx) => (await ctx.db.query("draftPicks").collect()).length);
 /** The clock moves on `ms`, and every pick scheduled by then is made. */
-const pass = (ms: number) => elapse(t, ms);
+const pass = (ms: number) => clockRunsTo(t, Date.now() + ms);
 
 beforeEach(async () => {
   t = await signInDeployment();
@@ -89,6 +89,7 @@ describe("a pause", () => {
     await expect(pause()).rejects.toThrow(pauseRefusals.alreadyPaused);
     await resume();
     for (let made = 0; made < 4; made++) await pass(PICK_MS + PICK_GAP_MS);
+    await pass(PICK_GAP_MS);
     await expect(pause()).rejects.toThrow(pauseRefusals.over);
   });
 });
@@ -226,6 +227,7 @@ describe("when its league is deleted", () => {
     await undo();
     await start();
     for (let made = 0; made < 4; made++) await pass(PICK_MS + PICK_GAP_MS);
+    await pass(PICK_GAP_MS);
     await deleteLeague();
     await undo();
 

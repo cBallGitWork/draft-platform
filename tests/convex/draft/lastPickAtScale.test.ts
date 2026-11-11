@@ -6,7 +6,7 @@ import { insertClubs, insertPlayers, type Club, type HeldPlayer } from "../../su
 import { changeEveryRules, HELD_FIRST_RULES } from "../../support/convex/leagueRules.harness";
 import { actingAs, addManagers, adminCreatesLeague, COMMISSIONER, MANAGERS } from "../../support/convex/leagues.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
-import { clockRunsTo, elapse, ROWS_TO_THE_CAP } from "../../support/convex/test.harness";
+import { clockRunsTo, ROWS_TO_THE_CAP } from "../../support/convex/test.harness";
 
 // A draft's last pick, auto-picked from a full-size player pool, held to Convex's own limits
 // (#1532): each player read once, not once per lookup, so the pick stays clear of the 4,096 index
@@ -47,8 +47,9 @@ test(
     await (await actingAs(t, COMMISSIONER)).mutation(api.draft.draftStart.start, { leagueId });
     const [first] = players;
     await (await actingAs(t, ANN)).mutation(api.draft.draftPicks.makePick, { leagueId, playerCode: first.code });
-    await elapse(t, PICK_GAP_MS + HELD_FIRST_RULES.draft!.pickSeconds * SECOND_MS);
-    await clockRunsTo(t, Date.now());
+    await clockRunsTo(t, Date.now() + PICK_GAP_MS + HELD_FIRST_RULES.draft!.pickSeconds * SECOND_MS);
+    // The draft ends the last pick's 10 seconds later (#1458).
+    await clockRunsTo(t, Date.now() + PICK_GAP_MS);
 
     const { picks, onWaivers } = await t.run(async (ctx) => ({
       picks: await ctx.db.query("draftPicks").collect(),

@@ -79,6 +79,7 @@ export const gates: Record<string, Gate> = {
   "draft/draftPause:resume": "runner",
   "draft/draftPicks:makePick": "manager",
   "draft/draftPicks:pickFor": "runner",
+  "draft/pickWindow:undoMyPick": "manager",
   "draft/draftPlayers:figures": "member",
   "draft/draftPlayers:greyedOnTheClock": "runner",
   "draft/draftPlayers:greyedOut": "member",

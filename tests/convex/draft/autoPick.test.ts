@@ -8,8 +8,9 @@ import { SECOND_MS } from "../../../convex/shared/time";
 import { ARSENAL, CHELSEA, insertClubs, insertPlayers, type HeldPlayer } from "../../support/convex/footballRows.harness";
 import { changeEveryRules, HELD_FIRST_RULES } from "../../support/convex/leagueRules.harness";
 import { actingAs, addManager, addManagers, adminCreatesLeague, COMMISSIONER, MANAGERS, OUTSIDER, type TestConvex } from "../../support/convex/leagues.harness";
+import { pickGapPasses } from "../../support/convex/pickWindow.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
-import { elapse } from "../../support/convex/test.harness";
+import { clockRunsTo } from "../../support/convex/test.harness";
 
 // Auto-pick (spec/04, Auto-pick and The queue and the ranking; #1094): when a clock runs out the
 // draft takes the best legal player left in the team's queue, then the admin's ranking, then by
@@ -50,7 +51,9 @@ const setRules = (squad: Partial<LeagueRules["squad"]>, timeouts = 2) =>
   }));
 const as = (email: string) => actingAs(t, email);
 const start = async () => (await as(COMMISSIONER)).mutation(api.draft.draftStart.start, { leagueId });
-const pick = async (email: string, playerCode: number) => (await as(email)).mutation(api.draft.draftPicks.makePick, { leagueId, playerCode });
+const pickNow = async (email: string, playerCode: number) => (await as(email)).mutation(api.draft.draftPicks.makePick, { leagueId, playerCode });
+/** `email` picks, and the pick's 10 seconds to undo it pass. */
+const pick = (email: string, playerCode: number) => pickNow(email, playerCode).then(() => pickGapPasses(t));
 const takeBack = async (email: string) => (await as(email)).mutation(api.draft.autoPickSwitch.takeControlBack, { leagueId });
 const picked = () => t.run(async (ctx) => (await ctx.db.query("draftPicks").collect()).map(({ playerCode }) => playerCode));
 const timeouts = () => t.run(async (ctx) => (await ctx.db.query("drafts").unique())?.timeouts);
@@ -58,7 +61,7 @@ const lists = (team: Id<"teams">, queue: number[], doNotDraft: number[] = []) =>
 const ranking = (codes: number[]) =>
   t.run((ctx) => ctx.db.insert("draftRanking", { players: codes.map((code, index) => ({ code, rank: index + 1 })), uploadedAt: Date.now() }));
 /** The clock moves on `ms`, and every pick scheduled by then is made. */
-const pass = (ms: number) => elapse(t, ms);
+const pass = (ms: number) => clockRunsTo(t, Date.now() + ms);
 
 beforeEach(async () => {
   t = await signInDeployment();
@@ -229,7 +232,7 @@ describe("turning auto-pick on himself", () => {
     await start();
     await pick(ANN, TOP);
     await pick(BOB, SECOND);
-    await pick(BOB, THIRD);
+    await pickNow(BOB, THIRD);
     await turnOn(ANN);
     await pass(PICK_GAP_MS - 1);
     expect(await picked()).toHaveLength(3);
@@ -282,7 +285,7 @@ describe("a team with no manager", () => {
     await t.run((ctx) => ctx.db.patch("teams", teams[1], { managerEmail: undefined }));
     await setRules({ size: { minimum: 1, maximum: 3 } });
     await start();
-    await pick(ANN, TOP);
+    await pickNow(ANN, TOP);
     await pass(PICK_GAP_MS);
     expect(await picked()).toHaveLength(2);
 
