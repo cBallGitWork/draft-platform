@@ -1,6 +1,9 @@
 // What the formation window says (the approved formation window), in one place for Craig to change
 // in the pull request.
 
+export { cancelWords } from "../../../shared/words";
+export { inUseWords, savePresetWords } from "../words";
+
 export const WINDOW_TITLE = "Formation and presets";
 export const inUseNowWords = "In use now";
 export const closeWindowLabel = "Close the formation window";
@@ -14,13 +17,10 @@ export const classicFormationsLine = "famous sides, formation and roles";
 /** The marks on a group's heading, saying what in it is sample (the approved formation window). */
 /** The classic formations' text, Claude's until Craig rewrites it (spec/05, The pitch). */
 export const sampleTextWords = "text: sample";
-export const savePresetName = "Save preset…";
 export const savePresetLine = "Saves the formation and roles in use now";
 export const MODERN = "Modern";
 export const toComeWords = "to come";
-export const inUseWords = "In use";
 export const applyWords = "Use this";
-export const cancelWords = "Cancel";
 export const appliesHead = "Applies";
 export const gainsHead = "Gains";
 export const losesHead = "Loses";

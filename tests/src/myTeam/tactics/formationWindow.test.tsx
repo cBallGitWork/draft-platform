@@ -14,7 +14,7 @@ import {
   losesPlaceholder,
   sampleTextWords,
   savePresetLine,
-  savePresetName,
+  savePresetWords,
   subtitlePlaceholder,
   WINDOW_TITLE,
   YOUR_PRESETS,
@@ -45,7 +45,7 @@ describe("the formation window", () => {
   it("shows the Save preset… tile on Your presets, in place, its line under its name", async () => {
     await opened();
     await userEvent.click(screen.getByRole("button", { name: `${YOUR_PRESETS}0` }));
-    expect(screen.getByRole("button", { name: `${savePresetName}${savePresetLine}` })).toBeTruthy();
+    expect(screen.getByRole("button", { name: `${savePresetWords}${savePresetLine}` })).toBeTruthy();
   });
 
   it("gives each tile its name, its formation's tag, a subtitle and a description waiting on Craig's words, and In use", async () => {
