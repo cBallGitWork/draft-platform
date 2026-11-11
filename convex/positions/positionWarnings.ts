@@ -9,7 +9,7 @@ import { fileLetter } from "../mail/letters";
 import { MOST_IN_SQUAD } from "../leagues/leagueLimits";
 import { everyLeague, scheduleEveryLeague, takeAllOrThrow } from "../shared/cappedRead";
 import { teamsOf } from "../shared/leagueAccess";
-import { playerByCode, unheldPlayerWords } from "../shared/players";
+import { lostPlayerName, playerByCode } from "../shared/players";
 import { placeOf, squadOf } from "../squads/squadPlace";
 import { workedOutNow } from "./playerPositions";
 import { howPositionsCount, type HowPositionsCount } from "./positionSettings";
@@ -206,5 +206,5 @@ const isTold = (told: Doc<"positionWarnings">[], playerCode: number, position: P
   told.some((each) => key(each.playerCode, each.position, each.step) === key(playerCode, position, step));
 
 async function nameOf(ctx: MutationCtx, playerCode: number): Promise<string> {
-  return (await playerByCode(ctx, playerCode))?.name ?? unheldPlayerWords(playerCode);
+  return (await playerByCode(ctx, playerCode))?.name ?? lostPlayerName(playerCode);
 }
