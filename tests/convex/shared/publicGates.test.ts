@@ -50,6 +50,9 @@ beforeEach(async () => {
     return {
       ...changesTo({ admin: caller, ann: caller, commissioner: caller }, rows),
       "admin/feeds:feeds": () => caller.query(api.admin.feeds.feeds, { now }),
+      "admin/platformSettings:save": () =>
+        caller.mutation(api.admin.platformSettings.save, { statCorrectionWindowMinutes: 60, scoutsPerTeam: 3, matchdayHoursBefore: 3, matchdayHoursAfter: 2 }),
+      "admin/platformSettings:settings": () => caller.query(api.admin.platformSettings.settings, {}),
       "auth:isAuthenticated": () => caller.query(api.auth.isAuthenticated, {}),
       "availability/availability:forAdmin": () => caller.query(api.availability.availability.forAdmin, { code: SOME_CODE }),
       "availability/availability:ofPlayer": () => caller.query(api.availability.availability.ofPlayer, { code: SOME_CODE }),
