@@ -156,7 +156,7 @@ const waiversView = v.object({
   /** Whether the league's draft is over: before it, claims, drops and pickups are refused (S08.1). */
   drafted: v.boolean(),
   /** The next time each of the league's runs is made, soonest first, UK time as the rules set it,
-   *  with the gameweek whose lock it may fall in, so be skipped, or null when it surely won't. */
+   *  with the gameweek whose lock it may fall in, so may be skipped, or null when it surely won't. */
   runs: v.array(runAhead),
   /** Whether it is in the lock, from a deadline until the gameweek's last match is over. */
   locked: v.boolean(),
