@@ -11,6 +11,7 @@ import { scoreMatch, type MatchPoints } from "../scoring/scoring";
 import type { MatchStats } from "../scoring/values";
 import { categoryName, categoryShortCode } from "../scoring/categories";
 import { priceFor } from "../scoring/priced";
+import { rankAmong } from "../shared/ranks";
 import { MINUTES_STAT } from "../stats/matchRecords";
 import type { ScoringRule, ScoringSet } from "../scoring/scoringSet";
 
@@ -128,10 +129,10 @@ function slotsFor(positions: readonly Position[]): Cell[] {
 }
 
 /** His place among these players' season points, for the card's rank at a position
- *  (positionRank.ts; #1027): one more than how many have more, so ties share the higher place. Null
- *  when he isn't among them or has no points. */
-export function placeOf(players: readonly { code: number; points: number | null }[], playerCode: number): number | null {
+ *  (positionRank.ts; #1027): ties share the higher place (rankAmong). Null when he isn't among them
+ *  or has no points. */
+export function rankOfPlayer(players: readonly { code: number; points: number | null }[], playerCode: number): number | null {
   const his = players.find(({ code }) => code === playerCode)?.points ?? null;
   if (his === null) return null;
-  return 1 + players.filter(({ points }) => points !== null && points > his).length;
+  return rankAmong(his, players.flatMap(({ points }) => (points === null ? [] : [points])));
 }

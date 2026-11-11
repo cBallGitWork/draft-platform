@@ -5,7 +5,7 @@ import {
   categoryName,
   categoryShortCode,
 } from "../../../convex/scoring/categories";
-import { rankAmong } from "../../../convex/scouting/raceOrder";
+import { rankAmong } from "../../../convex/shared/ranks";
 import { cellClassOf, ColumnHeads } from "../../ui/ColumnHeads";
 import { Loading, Panel } from "../../ui/Panel";
 import { useLastLoaded } from "../../shared/useLastLoaded";

@@ -279,6 +279,7 @@ import type * as shared_moments from "../shared/moments.js";
 import type * as shared_numberWords from "../shared/numberWords.js";
 import type * as shared_players from "../shared/players.js";
 import type * as shared_product from "../shared/product.js";
+import type * as shared_ranks from "../shared/ranks.js";
 import type * as shared_readOnce from "../shared/readOnce.js";
 import type * as shared_shuffle from "../shared/shuffle.js";
 import type * as shared_sortedJson from "../shared/sortedJson.js";
@@ -640,6 +641,7 @@ declare const fullApi: ApiFromModules<{
   "shared/numberWords": typeof shared_numberWords;
   "shared/players": typeof shared_players;
   "shared/product": typeof shared_product;
+  "shared/ranks": typeof shared_ranks;
   "shared/readOnce": typeof shared_readOnce;
   "shared/shuffle": typeof shared_shuffle;
   "shared/sortedJson": typeof shared_sortedJson;
