@@ -175,6 +175,7 @@ import type * as outbound_email from "../outbound/email.js";
 import type * as outbound_emailLimit from "../outbound/emailLimit.js";
 import type * as outbound_resend from "../outbound/resend.js";
 import type * as outbound_sender from "../outbound/sender.js";
+import type * as outbound_timeouts from "../outbound/timeouts.js";
 import type * as pastSeasons_pastSeasonLimits from "../pastSeasons/pastSeasonLimits.js";
 import type * as pastSeasons_pastSeasonLoad from "../pastSeasons/pastSeasonLoad.js";
 import type * as pastSeasons_pastSeasonPoints from "../pastSeasons/pastSeasonPoints.js";
@@ -539,6 +540,7 @@ declare const fullApi: ApiFromModules<{
   "outbound/emailLimit": typeof outbound_emailLimit;
   "outbound/resend": typeof outbound_resend;
   "outbound/sender": typeof outbound_sender;
+  "outbound/timeouts": typeof outbound_timeouts;
   "pastSeasons/pastSeasonLimits": typeof pastSeasons_pastSeasonLimits;
   "pastSeasons/pastSeasonLoad": typeof pastSeasons_pastSeasonLoad;
   "pastSeasons/pastSeasonPoints": typeof pastSeasons_pastSeasonPoints;

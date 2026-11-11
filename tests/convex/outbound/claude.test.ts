@@ -3,6 +3,7 @@
 import { afterEach, expect, test, vi } from "vitest";
 import { ANTHROPIC_MESSAGES_URL, WRITING_MODEL, writeWithClaude } from "../../../convex/outbound/claude";
 import { ANTHROPIC_KEY_SETTING } from "../../../convex/outbound/deploymentSettings";
+import { CLAUDE_TIMEOUT_MS } from "../../../convex/outbound/timeouts";
 
 const ASK = { system: "Be a scout.", prompt: "Player: Scorer.", maxTokens: 400 };
 
@@ -44,6 +45,14 @@ test("throws without a key on the deployment, and never calls the API", async ()
 test("throws with the status and body when the API refuses", async () => {
   fakeApi(new Response("overloaded", { status: 529 }));
   await expect(writeWithClaude(ASK)).rejects.toThrow("refused the request (529): overloaded");
+});
+
+test("gives up after its own time limit, so an API that never answers fails the write promptly", async () => {
+  const fetchMock = fakeApi(Response.json({ content: [{ type: "text", text: "A fine fit." }] }));
+  const timeout = vi.spyOn(AbortSignal, "timeout");
+  await writeWithClaude(ASK);
+  expect(timeout).toHaveBeenCalledWith(CLAUDE_TIMEOUT_MS);
+  expect(fetchMock.mock.calls[0]![1].signal).toBe(timeout.mock.results[0]!.value);
 });
 
 test("throws when the reply holds no text", async () => {
