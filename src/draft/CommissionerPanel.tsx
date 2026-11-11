@@ -1,5 +1,7 @@
+import { Link } from "@tanstack/react-router";
 import { useId, useState, type FormEvent } from "react";
 import type { Id } from "../../convex/_generated/dataModel";
+import { SETTINGS_DRAFT_HASH, settingsPath } from "../leagueSettings/paths";
 import { toSeconds, type PickClockUnit } from "../leagueSettings/pickClock";
 import type { ListedPlayer } from "../scouting/seam";
 import type { Change } from "../shared/refusal";
@@ -11,6 +13,7 @@ import { whyNotWords } from "./DraftPlayers";
 import type { DraftBoard, DraftSeam, DraftState } from "./seam";
 import {
   badPickTimeWords,
+  changeStartWords,
   COMMISSIONER_TITLE,
   lastPickWords,
   loadingWords,
@@ -34,11 +37,12 @@ import {
 
 // The draft room's commissioner panel (spec/04, Starting it and The commissioner; #1101), built to
 // the approved pictures (docs/design/approved/draft-room/), seen only by whoever runs the league.
-// Before the start: start the draft now, "I'll pick for" each team with no manager, and the pick
-// time, which changes League settings' (Craig, 5 Nov 2026, on #1101). While it runs: pause or
-// resume, undo the last pick, "Pick for <team>", which takes the player selected in the players
-// list for the team on the clock, managed or not (#1475), and the pick time, changed only while
-// paused. "Change the start" waits for a home for the start date.
+// Before the start: start the draft now, "Change the start", which opens League settings' draft
+// panel, the start date's one home (Craig, 11 Nov 2026, on #1476), "I'll pick for" each team with
+// no manager, and the pick time, which changes League settings' (Craig, 5 Nov 2026, on #1101).
+// While it runs: pause or resume, undo the last pick, "Pick for <team>", which takes the player
+// selected in the players list for the team on the clock, managed or not (#1475), and the pick
+// time, changed only while paused.
 
 type Waiting = Extract<DraftState, { status: "waiting" }>;
 type Live = Extract<DraftState, { status: "live" }>;
@@ -85,6 +89,9 @@ export function CommissionerPanel({
               <Action disabled={changing.busy} onClick={() => run(() => changes.start(leagueId))}>
                 {startNowWords}
               </Action>
+              <Link to={settingsPath(leagueId)} hash={SETTINGS_DRAFT_HASH} className="secondary-action">
+                {changeStartWords}
+              </Link>
               {view.unmanaged.map(({ teamId, name, marked }) => (
                 <Action key={teamId} disabled={changing.busy} onClick={() => run(() => changes.markForCommissioner(leagueId, teamId, !marked))}>
                   {marked ? stopPickingForWords(name) : pickForTeamWords(name)}

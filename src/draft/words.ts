@@ -191,6 +191,8 @@ export const noRoundsWords = "The draft's rounds are its squads' most players, a
 export const COMMISSIONER_TITLE = "Commissioner";
 export const onlyYouWords = "only you see this";
 export const startNowWords = "Start the draft now";
+/** Opens League settings' draft panel, where the start date is set or cleared (#1476). */
+export const changeStartWords = "Change the start";
 export const pauseWords = "Pause the draft";
 export const resumeWords = "Resume the draft";
 export const undoLastWords = "Undo last pick";

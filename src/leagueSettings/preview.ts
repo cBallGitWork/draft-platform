@@ -9,7 +9,7 @@ import { PREVIEW_CHANGES_FROM, PREVIEW_REVISION } from "../rules/preview";
 import { previewIdOf, previewTeams } from "../table/preview";
 import type { LeagueSettingsSeam } from "./seam";
 import { previewClaims, previewWaivers } from "../myTeam/claims/preview";
-import { unchangedStartOutcome, unmovedOutcome, unsavedOutcome } from "./words";
+import { unchangedDraftStartOutcome, unchangedStartOutcome, unmovedOutcome, unsavedOutcome } from "./words";
 
 const view = { part: leagueSettingsOf(FIRST_RULES), revision: PREVIEW_REVISION, changesFrom: PREVIEW_CHANGES_FROM };
 const teamOrder = { teams: previewTeams.map((name) => ({ teamId: previewIdOf(name), name })), started: false };
@@ -20,6 +20,9 @@ const scoringStart = {
   seasonBegun: false,
 };
 
+/** The draft waiting for the commissioner, with no date set. */
+const draftStart = { startsAt: null, started: false };
+
 export const previewLeagueSettings: LeagueSettingsSeam = {
   useSettings: () => view,
   save: previewSays(unsavedOutcome),
@@ -28,6 +31,8 @@ export const previewLeagueSettings: LeagueSettingsSeam = {
   drawTeamOrder: previewSays(unmovedOutcome),
   useScoringStart: () => scoringStart,
   setScoringStart: previewSays(unchangedStartOutcome),
+  useDraftStart: () => draftStart,
+  setDraftStart: previewSays(unchangedDraftStartOutcome),
   useWaivers: () => previewWaivers,
   usePendingClaims: previewClaims.usePendingClaims,
 };
