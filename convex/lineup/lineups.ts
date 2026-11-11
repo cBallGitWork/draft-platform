@@ -13,7 +13,7 @@ import { squadAt, squadMovesSince, squadOf, type MovesSinceOf, type SquadMovesSi
 import { lostPlayerName, playerByCode } from "../shared/players";
 import { positionsNow } from "../positions/playerPositions";
 import { placementShape } from "../schema";
-import { lineupProblems, namedCodes, reconciled, withUnmovedSetAside, type PlayerPositions } from "./lineup";
+import { lineupProblems, namedCodes, reconciled, stillKept, withUnmovedSetAside, type PlayerPositions } from "./lineup";
 import { firstLineup, keptOnBenchOf, withDroppedRoles } from "./firstLineup";
 import { starsLookup } from "../stars/playerStars";
 import type { Area, Lane } from "./pitch";
@@ -267,8 +267,13 @@ export async function storeAutoTeamLineup(
 ): Promise<void> {
   const existing = await rowInForce(ctx, leagueId, teamId, fromGameweek);
   if (existing?.fromGameweek === fromGameweek) await ctx.db.patch("lineups", existing._id, { ...lineup, firstLineup: undefined, classic: undefined });
-  // A new row carries the team's instructions on: the auto team only ever touches the lineup (spec/09).
-  else await ctx.db.insert("lineups", { leagueId, teamId, fromGameweek, ...lineup, instructions: existing?.instructions });
+  else {
+    // A new row carries the team's instructions on: the auto team only ever touches the lineup
+    // (spec/09). Who the row in force kept out of position stays kept while he stands where he
+    // was: his one gameweek's grace is used (`S06.7`; #1789).
+    const kept = existing === null ? [] : stillKept(existing, lineup.starters);
+    await ctx.db.insert("lineups", { leagueId, teamId, fromGameweek, ...lineup, instructions: existing?.instructions, keptOutOfPosition: kept.length > 0 ? kept : undefined });
+  }
 }
 
 /** When the draft ends (#1040): the team's first lineup, as its picks left it, becomes its saved

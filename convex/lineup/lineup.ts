@@ -157,13 +157,25 @@ export function withUnmovedSetAside(
     if (!OUT_OF_POSITION.includes(problem.kind) || !("playerCode" in problem) || inForce === null) return true;
     const { playerCode } = problem;
     if (inForce.fromGameweek < gameweek && inForce.keptOutOfPosition?.includes(playerCode)) return true;
-    const now = starters.find((starter) => starter.playerCode === playerCode);
-    const before = inForce.starters.find((starter) => starter.playerCode === playerCode);
-    if (now === undefined || before === undefined || !sameSlot(now, before)) return true;
+    if (!standsWhereHeWas(playerCode, starters, inForce.starters)) return true;
     kept.push(playerCode);
     return false;
   });
   return { problems: left, kept };
+}
+
+/** Who `inForce` kept out of position and `starters` still has in the same slot: a lineup the auto
+ *  team sets carries them on, so its gameweek gives him no second gameweek's grace (#1789; Craig,
+ *  11 Nov 2026). */
+export function stillKept(inForce: LineupInForce, starters: readonly Placement[]): PlayerCode[] {
+  return (inForce.keptOutOfPosition ?? []).filter((playerCode) => standsWhereHeWas(playerCode, starters, inForce.starters));
+}
+
+/** He starts in both lineups, in the same slot. */
+function standsWhereHeWas(playerCode: PlayerCode, starters: readonly Placement[], before: readonly Placement[]): boolean {
+  const nowAt = starters.find((starter) => starter.playerCode === playerCode);
+  const beforeAt = before.find((starter) => starter.playerCode === playerCode);
+  return nowAt !== undefined && beforeAt !== undefined && sameSlot(nowAt, beforeAt);
 }
 
 /** The same cell and the same role in it: a role removed from the set reads as the slot's first. */
