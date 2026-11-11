@@ -8,8 +8,9 @@
 # on its own once lane-auto.yml (or Code Owners) has approved it.
 # Bills to Craig's Claude subscription only (the CLAUDE_CODE_OAUTH_TOKEN secret, made with `claude setup-token`).
 # The metered API key is out of builds (dev studio safety basics, 11 Nov 2026): a build that never started (a rejected
-# or expired token) goes red and costs nothing, and one that hit the subscription's usage limit pauses every build
-# (PAUSED_LABEL) until the limit resets, rather than spending on a key. The `verify` job fails any workflow that reads
+# or expired token) goes red and costs nothing, and one that hit the subscription's usage limit opens a pause
+# (PAUSED_LABEL) until the limit resets, rather than spending on a key: the lead starts nothing while it holds, and
+# Craig's own `build` label or button still starts one, as a deliberate choice (11 Nov 2026). The `verify` job fails any workflow that reads
 # that key again. One that ran out of turns or was cut off leaves what it wrote as a draft pull request, which the next
 # build of the issue carries on from.
 # Craig's stop switch: the repository variable PIPELINE_STOP (only the owner of a personal repository can set one),
@@ -232,7 +233,8 @@ jobs:
           if [ -z "$open" ]; then gh issue create --title "Paused: the subscription's usage limit" --label "$PAUSED_LABEL" --body "$body"
           else
             was=$(gh issue view "$open" --json body --jq '.body | capture("(?m)^Until: (?<t>\\S+)").t // ""')
-            [[ "$UNTIL" > "$was" ]] && gh issue edit "$open" --body "$body" || true
+            if [[ "$UNTIL" > "$was" ]]; then gh issue edit "$open" --body "$body"
+            else echo "#$open already pauses builds until $was, no earlier than this run's $UNTIL: left as it is."; fi
           fi
       # The step, not the agent, turns on auto-merge for the pull request the build opened (Craig, 4 Nov 2026: green
       # builder pull requests merge on their own, with no label and nobody running the merge). The merge itself still

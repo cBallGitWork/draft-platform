@@ -456,7 +456,7 @@ jobs:
           echo "Builds started in the last day: $builds (most allowed $MAX_BUILDS_A_DAY)"
           if [ "$builds" -gt "$MAX_BUILDS_A_DAY" ]; then
             trips+=("$builds builds started in a day, more than $MAX_BUILDS_A_DAY: builds are paused")
-            if [ -z "$(gh issue list --state open --label "$PAUSED_LABEL" --json number,body --jq'.[] | select(.body | test("(?m)^Until: ") | not) | .number')" ]; then
+            if [ -z "$(gh issue list --state open --label "$PAUSED_LABEL" --json number,body --jq '.[] | select(.body | test("(?m)^Until: ") | not) | .number')" ]; then
               gh label create "$PAUSED_LABEL" --color B60205 --description "Builds wait: the subscription's usage limit, or the lead's tripwire" --force
               gh issue create --title "Paused by the tripwire: $builds builds in a day" --label "$PAUSED_LABEL" \
                 --body "The lead's tripwire saw $builds builds start in a day, more than $MAX_BUILDS_A_DAY, so no build starts until this issue is closed. Close it to start builds again." > /dev/null
