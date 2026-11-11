@@ -56,7 +56,7 @@ export async function underWayIn(ctx: QueryCtx, deadlines: LeagueDeadlines, now:
   return (await inWaiverLock(ctx, deadlines, now)) ? latestBegun(deadlines, now) : null;
 }
 
-/** A waiver run still to come, with the gameweek whose lock it may fall in, so be skipped, or null
+/** A waiver run still to come, with the gameweek whose lock it may fall in, and so may be skipped, or null
  *  when it surely won't. */
 export const runAhead = v.object({ at: v.number(), skippedIf: v.union(v.number(), v.null()) });
 export type RunAhead = Infer<typeof runAhead>;

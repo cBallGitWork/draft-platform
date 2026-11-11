@@ -33,7 +33,8 @@ function glossaryRows(markdown: string): string[][] {
 function avoidedWords(markdown: string): string[] {
   const rows = glossaryRows(markdown);
   const terms = new Set(rows.flatMap(([term = ""]) => term.split(",").map((word) => word.trim().toLowerCase())));
-  const avoid = rows.flatMap(([, , words = ""]) => words.split(/[,;]/).map((word) => word.trim()));
+  // A comma inside a bracket ("classic alone (…, Craig, 11 Nov 2026)") is the bracket's, not a list's.
+  const avoid = rows.flatMap(([, , words = ""]) => words.split(/[,;](?![^(]*\))/).map((word) => word.trim()));
   return [...new Set(avoid.filter((word) => word !== "" && !word.includes("(") && !terms.has(word.toLowerCase())))];
 }
 
@@ -65,6 +66,7 @@ describe("the Glossary's Avoid column", () => {
     expect(words).toContain("paid");
     expect(words).toContain("watchlist");
     expect(words).not.toContain("team");
+    expect(words).not.toContain("Craig");
     expect(words.some((word) => word.includes("("))).toBe(false);
   });
 
