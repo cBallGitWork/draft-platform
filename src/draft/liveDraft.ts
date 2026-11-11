@@ -61,7 +61,7 @@ export const liveDraft: DraftSeam = {
         undo: (leagueId) => refusalOf(() => undo({ leagueId }), "Undoing the last pick", commissionerFailedWords),
         setPickTime: (leagueId, pickSeconds) => refusalOf(() => setPickTime({ leagueId, pickSeconds }), "Setting the pick time", commissionerFailedWords),
         markForCommissioner: (leagueId, teamId, marked) => refusalOf(() => mark({ leagueId, teamId, marked }), "Marking a team to pick for", commissionerFailedWords),
-        pickFor: (leagueId, playerCode) => refusalOf(() => pickFor({ leagueId, playerCode }), "Picking for the team on the clock", pickFailedWords),
+        pickFor: (leagueId, teamId, playerCode) => refusalOf(() => pickFor({ leagueId, teamId, playerCode }), "Picking for the team on the clock", pickFailedWords),
       }),
       [start, pause, resume, undo, setPickTime, mark, pickFor],
     );

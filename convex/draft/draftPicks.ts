@@ -48,6 +48,7 @@ export const pickRefusals = {
   over: "The draft is over.",
   paused: "The draft is paused.",
   notYourTurn: (teamName: string) => `It isn't your pick: ${teamName} is on the clock.`,
+  alreadyPicked: (teamName: string) => `${teamName} has already picked.`,
   taken: (name: string, teamName: string) => `${name} is already on ${teamName}.`,
   breaksSquadRules: (name: string) => `${name} would leave your squad unable to meet the league's squad rules.`,
   notOnAutoPick: "You aren't on auto-pick.",
@@ -197,15 +198,18 @@ async function legalPick(ctx: QueryCtx, leagueId: Id<"leagues">, draft: Doc<"dra
  *  a manger hops on a flight or something" (Craig, 5 Nov 2026; #1095). It is filed as his, never
  *  counts as that team's timeout, and the whole league is told (draftLetters.ts). While the draft is
  *  paused it stays paused, and the next pick's clock starts when he resumes (Craig, 5 Nov 2026).
- *  Refused to anyone who doesn't run the league, before the draft starts, once it is over, and for a
- *  player who isn't there to take or would break the team's squad rules. */
+ *  Refused to anyone who doesn't run the league, before the draft starts, once it is over, for a
+ *  player who isn't there to take or would break the team's squad rules, and when the team he picks
+ *  for is no longer on the clock: it picked, or was picked for, before his pick arrived, so his pick
+ *  never lands on the next team (Craig, 11 Nov 2026, on #1477). */
 export const pickFor = mutation({
-  args: { leagueId: v.id("leagues"), playerCode: v.number() },
+  args: { leagueId: v.id("leagues"), teamId: v.id("teams"), playerCode: v.number() },
   returns: v.null(),
-  handler: async (ctx, { leagueId, playerCode }) => {
+  handler: async (ctx, { leagueId, teamId, playerCode }) => {
     const { email, league } = await runnerOf(ctx, leagueId);
     const { draft, started, turn } = await liveTurn(ctx, leagueId);
-    const team = await teamIn(ctx, leagueId, turn.team);
+    const team = await teamIn(ctx, leagueId, teamId);
+    if (turn.team !== team._id) refuse(pickRefusals.alreadyPicked(team.name));
     const player = await legalPick(ctx, leagueId, draft, started, turn, playerCode);
     if (draft.clock?.job !== undefined) await ctx.scheduler.cancel(draft.clock.job);
     await placePick(ctx, league, turn, team, player, email, { pausedAt: draft.clock?.paused === undefined ? undefined : Date.now() });
