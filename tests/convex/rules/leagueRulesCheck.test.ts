@@ -40,7 +40,7 @@ test("no squad limits, no club limit, no presets and no tie-breaks are all sound
 
 test("a club maximum of 1 with a squad maximum of 20, one from each club, is sound (#1462)", () => {
   const oneEach = rulesWith({ squad: { ...FIRST_RULES.squad, size: { minimum: 11, maximum: 20 }, maxPerClub: 1 } });
-  expect(() => checkLeagueRules(oneEach)).not.toThrow();
+  expect(() => check(oneEach)).not.toThrow();
 });
 
 test.each(ODD_TEAM_OUTS)("the team left over playing %s is sound", (oddTeamOut) => {
