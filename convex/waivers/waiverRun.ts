@@ -246,7 +246,11 @@ async function runWaivers(ctx: MutationCtx, leagueId: Id<"leagues">, at: number)
     if (!order.includes(teamId)) for (const claim of queue) await ctx.db.delete("waiverClaims", claim._id);
   }
   for (const row of run.claimable.values()) await ctx.db.delete("waiverPlayers", row._id);
-  await tellShortlistersCleared(ctx, league, [...run.claimable.keys()]);
+  // A player who has left the Premier League comes off waivers too, but is never called a free
+  // agent: the cleared letter leaves him out (Craig, 11 Nov 2026, #1469).
+  const freeAgents: number[] = [];
+  for (const code of run.claimable.keys()) if ((await run.playerOf(code))?.droppedAt === undefined) freeAgents.push(code);
+  await tellShortlistersCleared(ctx, league, freeAgents);
   await save(at);
 }
 

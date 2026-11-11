@@ -102,13 +102,15 @@ export const cardActionOn = query({
   returns: cardAction,
   handler: async (ctx, { leagueId, playerCode, now }): Promise<CardAction> => {
     const { team } = await memberOf(ctx, leagueId);
-    if (!team || (await playerByCode(ctx, playerCode)) === null) return { kind: "none" };
+    const player = await playerByCode(ctx, playerCode);
+    if (!team || player === null) return { kind: "none" };
     const place = await placeOf(ctx, leagueId, playerCode);
     if (place !== null) return { kind: place.teamId === team._id ? "drop" : "none" };
     const { held } = await heldOrNot(ctx, await squadOf(ctx, team._id));
     const squad = held.map(({ player }) => ({ playerCode: player.code, playerName: player.name })).sort((one, other) => one.playerName.localeCompare(other.playerName));
     const onWaivers = await waiverRowOf(ctx, leagueId, playerCode);
-    if (onWaivers === null) return { kind: "pickUp", squad };
+    // One who has left the Premier League is no free agent: nothing to pick up (#1469).
+    if (onWaivers === null) return player.droppedAt === undefined ? { kind: "pickUp", squad } : { kind: "none" };
     return { kind: "claim", firstRun: (await firstRunsIn(ctx, leagueId, now))(onWaivers.claimableFrom), squad };
   },
 });

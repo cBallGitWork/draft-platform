@@ -4,6 +4,7 @@ import { shortlistedClearedLetter, shortlistedDroppedLetter } from "../../../con
 import { DAY_MS } from "../../../convex/shared/time";
 import { MOST_TEAMS } from "../../../convex/leagues/leagueLimits";
 import { CLEARED_READ_ONE_BY_ONE_MOST, SHORTLIST_MOST } from "../../../convex/scouting/shortlist";
+import { playerLeaves } from "../../support/convex/draftLists.harness";
 import { actingAs } from "../../support/convex/leagues.harness";
 import { nameOf } from "../../support/convex/lineupSquad.harness";
 import { ANN, ANNS_FIRST_DROP, BOB, CAT, PALMER, RICE, SAKA, waiverLeague, type WaiverLeague } from "../../support/convex/waivers.harness";
@@ -97,6 +98,26 @@ describe("shortlisted players clearing waivers", () => {
         body: `Nobody claimed ${nameOf(SAKA)} at the waiver run. He is a free agent, first come first served, and on your shortlist.`,
       },
     ]);
+  });
+
+  test("a player who has left the Premier League comes off waivers but isn't named a free agent (#1469)", async () => {
+    await w.onWaivers([SAKA, PALMER]);
+    await shortlist(BOB, [SAKA, PALMER]);
+    await w.claim(CAT, SAKA);
+    await playerLeaves(w.t, SAKA);
+    await w.runWaivers();
+
+    expect(await shortlistLettersTo(BOB)).toEqual([shortlistedClearedLetter([nameOf(PALMER)])]);
+    expect(await w.stateOf(SAKA)).not.toMatchObject({ kind: "onWaivers" });
+  });
+
+  test("a shortlist holding only players who have left gets no cleared letter (#1469)", async () => {
+    await w.onWaivers([SAKA]);
+    await shortlist(BOB, [SAKA]);
+    await playerLeaves(w.t, SAKA);
+    await w.runWaivers();
+
+    expect(await shortlistLettersTo(BOB)).toEqual([]);
   });
 
   // Codes no real player has, for shortlist rows and waiver rows beside the ones a test names.
