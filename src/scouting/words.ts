@@ -3,7 +3,7 @@
 import type { Area } from "../../convex/lineup/pitch";
 import { RANKED_MINUTES } from "../../convex/scouting/per90Figures";
 import { PERIOD_GAMEWEEKS } from "../../convex/scouting/periods";
-import { lastSeasonPointsColumn } from "../draft/words";
+import { lastSeasonPointsColumn, seasonShortWords } from "../draft/words";
 import { afterLastMatchWords, runNameWords, type FirstRun } from "../myTeam/claims/words";
 import { STAT_WORD, weekdayTimeWords } from "../shared/words";
 import type { Availability, Period } from "./seam";
@@ -112,7 +112,8 @@ export const selectPlayerLabel = (name: string) => `Show ${name}'s panel`;
 /** The selected player's panel at the top of the right column (the approved picture). */
 export const panelSeasonPointsWords = "Season points";
 /** His minutes over the period (the approved picture: "Minutes, last 6"). */
-export const panelMinutesWords = (period: Period) => (period === "season" ? "Minutes this season" : `Minutes, last ${PERIOD_GAMEWEEKS[period]}`);
+export const panelMinutesWords = (period: Period, lastSeason: number | null) =>
+  period !== "season" ? `Minutes, last ${PERIOD_GAMEWEEKS[period]}` : lastSeason === null ? columns.minutes.long : `Minutes in ${seasonShortWords(lastSeason)}`;
 export const closePanelLabel = "Close his panel";
 /** His figures per 90 over the period, ranked against the players of his area (the approved
  *  picture: "Per 90, last 6 gameweeks", "vs attacking mids"). */
@@ -161,6 +162,20 @@ export const playerCardLinkWords = "Player card ›";
  *  before the new season's first match (spec/19; Craig, 6 Nov 2026, on #956: "Pts 25/26"). */
 export const seasonPointsColumn = (lastSeason: number | null) =>
   lastSeason === null ? columns.seasonPoints : lastSeasonPointsColumn(lastSeason);
+
+/** The season figures' heads: as `columns` says them, the points' named by the season and the
+ *  others' hovers too ("Goals in 25/26") while the totals are last season's (spec/19; #1566). */
+export function seasonColumns(lastSeason: number | null) {
+  const figure = (column: "minutes" | "goals" | "assists" | "shotsOnTarget", name: string) =>
+    lastSeason === null ? columns[column] : { short: columns[column].short, long: `${name} in ${seasonShortWords(lastSeason)}` };
+  return {
+    minutes: figure("minutes", "Minutes"),
+    points: seasonPointsColumn(lastSeason),
+    goals: figure("goals", "Goals"),
+    assists: figure("assists", "Assists"),
+    shotsOnTarget: figure("shotsOnTarget", "Shots on target"),
+  };
+}
 
 /** Why a figure isn't there yet: none of his matches is priced, or, before the first match, he
  *  wasn't in last season's data; and role fit waits on role stars and scouts (spec/19, Role stars). */

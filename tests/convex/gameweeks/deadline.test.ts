@@ -3,7 +3,7 @@ import { DEFAULT_DEADLINE_RULE, isLocked, leagueDeadline, type DeadlineRule } fr
 import { mapFpl } from "../../../convex/football/fpl/fpl";
 import { recordedSeason } from "../../support/recorded/fpl.payloads";
 import { DAY_MS, HOUR_MS, MINUTE_MS } from "../../../convex/shared/time";
-import { GAMEWEEKS } from "../../../convex/gameweeks/usedGameweeks";
+import { PL_GAMEWEEKS } from "../../support/convex/footballRows.harness";
 
 const { bootstrap, fixtures } = recordedSeason();
 const season = mapFpl(bootstrap, fixtures);
@@ -38,7 +38,7 @@ describe("from the recorded 2026/27 season", () => {
     }));
 
   test("FPL's 90 minutes give FPL's own deadline for every gameweek", () => {
-    expect(season.gameweeks).toHaveLength(GAMEWEEKS);
+    expect(season.gameweeks).toHaveLength(PL_GAMEWEEKS);
 
     expect(deadlinesUnder(FPL_TIMING)).toEqual(season.gameweeks.map(({ number, deadline }) => ({ number, deadline })));
   });

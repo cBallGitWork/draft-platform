@@ -4,6 +4,7 @@ import type { QueryCtx } from "../_generated/server";
 import { scoreOf } from "../football/matchScores";
 import { isLocked, type LeagueDeadlines } from "../gameweeks/deadline";
 import { leagueDeadlines } from "../gameweeks/leagueDeadlines";
+import { seasonGameweekCount } from "../gameweeks/seasonGameweeks";
 import { isGameweekUsed, type WithUnusedGameweeks } from "../gameweeks/usedGameweeks";
 import type { LeagueRules } from "../rules/leagueRulesShape";
 import { latestRules } from "../rules/rulesHistory";
@@ -86,15 +87,36 @@ export async function firstRunsIn(ctx: QueryCtx, leagueId: Id<"leagues">, now: n
  *  (../trades/tradeShut.ts) and lineup saves (../lineup/lineups.ts) read this. */
 export async function inUnplayedGameweek(ctx: QueryCtx, league: WithUnusedGameweeks, deadlines: LeagueDeadlines, now: number): Promise<boolean> {
   const gameweek = latestBegun(deadlines, now);
-  return gameweek !== null && !isGameweekUsed(league, gameweek) && (await gameweekUnderWay(ctx, gameweek));
+  return gameweek !== null && !isGameweekUsed(league, gameweek, await seasonGameweekCount(ctx)) && (await gameweekUnderWay(ctx, gameweek));
+}
+
+/** Whether the run at `at`, made at `now`, falls in the lock (Craig, 11 Nov 2026, #1470: "A run
+ *  made late keeps its own check on now, and is skipped if its time fell in the lock"): the league
+ *  is in the lock now, or the latest gameweek begun by `at` had a match not yet over at `at`. A
+ *  gameweek whose last match was at full time before when it ended was kept is taken as over. */
+export async function runInWaiverLock(ctx: QueryCtx, deadlines: LeagueDeadlines, now: number, at: number): Promise<boolean> {
+  if (await inWaiverLock(ctx, deadlines, now)) return true;
+  const gameweek = latestBegun(deadlines, at);
+  if (gameweek === null) return false;
+  const end = await gameweekEnd(ctx, gameweek);
+  return end.underWay || (end.endedAt !== null && end.endedAt > at);
 }
 
 /** Whether a gameweek has a match not yet at full time, or with no score read yet: it is under way
  *  once begun, until its last match is over. Trades read it too (../trades/tradeShut.ts). */
 export async function gameweekUnderWay(ctx: QueryCtx, gameweek: number): Promise<boolean> {
+  return (await gameweekEnd(ctx, gameweek)).underWay;
+}
+
+/** Whether the gameweek is under way, and once it isn't, when its last match was first read at
+ *  full time: null when one was there before that moment was kept (../football/matchScores.ts). */
+async function gameweekEnd(ctx: QueryCtx, gameweek: number): Promise<{ underWay: true } | { underWay: false; endedAt: number | null }> {
   const matches = await gameweekFixtures(ctx, gameweek, "the waiver lock can't tell whether its last match is over");
   const scores = await Promise.all(matches.map(({ code }) => scoreOf(ctx, code)));
-  return scores.some((score) => score?.state !== "fullTime");
+  const over = scores.flatMap((score) => (score?.state === "fullTime" ? [score.fullTimeAt ?? null] : []));
+  if (over.length < scores.length) return { underWay: true };
+  const kept = over.filter((at): at is number => at !== null);
+  return { underWay: false, endedAt: kept.length < over.length ? null : latestOf(kept) };
 }
 
 /** Whether a deadline of the league's passed after `from` and by `now`: once one has, a free agent

@@ -24,6 +24,7 @@ import {
   onWaiversWords,
   positionLabel,
   SCOUTING_TITLE,
+  seasonColumns,
   seasonPointsColumn,
 } from "../../../src/scouting/words";
 import { columnHeadName, POSITION_NAMES } from "../../../src/shared/words";
@@ -108,6 +109,18 @@ describe("the list", () => {
     expect(head.textContent).toContain("Pts 25/26");
     expect(within(rowOf("Rice")).getAllByRole("cell").at(-4)!.textContent).toBe("180");
     expect(within(rowOf("Saka")).getAllByRole("cell").at(-4)!.getAttribute("title")).toBe(notLastSeasonWords);
+  });
+
+  it("before the new season's first match, the figures' hovers name last season too, not 'this season' (#1566)", async () => {
+    await openOnAll({ ...HELD, pointsSeason: 2025 });
+    const heads = seasonColumns(2025);
+    expect([heads.minutes.long, heads.goals.long, heads.assists.long, heads.shotsOnTarget.long]).toEqual([
+      "Minutes in 25/26",
+      "Goals in 25/26",
+      "Assists in 25/26",
+      "Shots on target in 25/26",
+    ]);
+    for (const head of [heads.minutes, heads.goals, heads.assists, heads.shotsOnTarget]) expect(columnHeadIn(table(), head)).toBeTruthy();
   });
 
   it("heads each column with a short code, named by it and its full name, which shows on hover", async () => {

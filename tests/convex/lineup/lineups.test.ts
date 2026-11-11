@@ -5,7 +5,8 @@ import type { Lineup } from "../../../convex/lineup/lineup";
 import { lineupRefusals } from "../../../convex/lineup/lineupWords";
 import { DEFAULT_ROLES } from "../../../convex/lineup/roles";
 import { refusals } from "../../../convex/shared/leagueAccess";
-import { FIRST_GAMEWEEK, GAMEWEEKS } from "../../../convex/gameweeks/usedGameweeks";
+import { FIRST_GAMEWEEK } from "../../../convex/gameweeks/usedGameweeks";
+import { PL_GAMEWEEKS } from "../../support/convex/footballRows.harness";
 import { MINUTE_MS, WEEK_MS } from "../../../convex/shared/time";
 import { DEFAULT_DEADLINE_RULE } from "../../../convex/gameweeks/deadline";
 import { holdGameweeks, holdGameweeksPastTheSeason, holdMatchState, KICKS_OFF_IN, rulesWith, setUsed } from "../../support/convex/leagueRules.harness";
@@ -129,20 +130,20 @@ describe("a saved lineup", () => {
     expect(await (await as(ANN)).save(FOUR_FOUR_TWO)).toBe(FIRST_GAMEWEEK);
   });
 
-  test(`is saved from the next gameweek not begun with ${GAMEWEEKS + 1} gameweeks held (#872)`, async () => {
+  test(`is saved from the next gameweek not begun with ${PL_GAMEWEEKS + 1} gameweeks held (#872)`, async () => {
     await holdGameweeksPastTheSeason(t, 1);
     expect(await (await as(ANN)).save(FOUR_FOUR_TWO)).toBe(NEXT);
   });
 
   test("is refused once every gameweek has begun", async () => {
-    vi.advanceTimersByTime((GAMEWEEKS - NEXT + 1) * WEEK_MS);
+    vi.advanceTimersByTime((PL_GAMEWEEKS - NEXT + 1) * WEEK_MS);
     await expectRefused((await as(ANN)).save(FOUR_FOUR_TWO), lineupRefusals.seasonOver);
   });
 
   test("is refused once the last gameweek of a league that ends early has begun (spec/13)", async () => {
-    const last = GAMEWEEKS - 2;
-    await setUsed(t, leagueId, GAMEWEEKS - 1, false);
-    await setUsed(t, leagueId, GAMEWEEKS, false);
+    const last = PL_GAMEWEEKS - 2;
+    await setUsed(t, leagueId, PL_GAMEWEEKS - 1, false);
+    await setUsed(t, leagueId, PL_GAMEWEEKS, false);
     vi.advanceTimersByTime((last - NEXT) * WEEK_MS);
     expect(await (await as(ANN)).save(FOUR_FOUR_TWO)).toBe(last);
 

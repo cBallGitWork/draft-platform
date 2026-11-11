@@ -4,12 +4,12 @@
 
 import type { LeagueGameweek } from "../../convex/gameweeks/leagueGameweeks";
 import { WEEK_MS } from "../../convex/shared/time";
-import { GAMEWEEKS } from "../../convex/gameweeks/usedGameweeks";
+import { previewSeasonGameweeks } from "../shared/preview";
 
 /** The season as the server sends it: gameweek 1's deadline at `firstDeadline`, each next a week
- *  on, and `unused` unticked. */
-export function weeklySeason(firstDeadline: number, unused: readonly number[] = []): LeagueGameweek[] {
-  return Array.from({ length: GAMEWEEKS }, (_, index) => ({
+ *  on, `count` of them, and `unused` unticked. */
+export function weeklySeason(firstDeadline: number, unused: readonly number[] = [], count = previewSeasonGameweeks): LeagueGameweek[] {
+  return Array.from({ length: count }, (_, index) => ({
     gameweek: index + 1,
     used: !unused.includes(index + 1),
     deadline: firstDeadline + index * WEEK_MS,

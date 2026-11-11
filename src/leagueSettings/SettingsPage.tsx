@@ -116,7 +116,7 @@ function Editor({ league, seam, view }: { league: LeagueSummary; seam: LeagueSet
         </Panel>
         <SquadPanel draft={draft} edit={edit} />
         <DraftPanel draft={draft.draft} edit={(draftRules) => edit({ ...draft, draft: draftRules })} start={start} />
-        <TradesPanel trades={draft.trades} edit={(trades) => edit({ ...draft, trades })} />
+        <TradesPanel trades={draft.trades} seasonGameweeks={view.seasonGameweeks} edit={(trades) => edit({ ...draft, trades })} />
         <WaiversPanel waivers={draft.waivers} edit={(waivers) => edit({ ...draft, waivers })} />
         <WaiverOrderBeside league={league} seam={seam} type={draft.waivers.order} />
         <SaveBar draft={bar} savedWords={savedWords} />

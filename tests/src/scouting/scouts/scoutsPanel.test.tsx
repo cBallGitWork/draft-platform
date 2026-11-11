@@ -3,9 +3,9 @@
 // then the team's other reports; Read › opens one above the shortlist, where Scout him again sends a
 // scout to him and Player card › opens his card. Someone who runs no team has no scouts.
 
-import { screen, within } from "@testing-library/react";
+import { act, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { HOUR_MS, DAY_MS, MINUTE_MS } from "../../../../convex/shared/time";
 import { SCOUTING_PATH } from "../../../../src/frame/menu";
 import { playerCardPath } from "../../../../src/playerCard/paths";
@@ -30,7 +30,8 @@ import { league, manager, openApp } from "../../../support/src/shell.harness";
 const PALMER = 4;
 const WOOD = 7;
 const SAKA = 9;
-const now = Date.now();
+// The start of a minute, so the panel's minute clock (useMinute) reads it exactly.
+const now = Date.UTC(2026, 10, 11, 9, 30);
 const WOOD_REPORT = { playerCode: WOOD, name: "Wood", sentAt: now - 2 * DAY_MS, writtenAt: now - DAY_MS, text: "A natural target man." };
 const SAKA_REPORT = { playerCode: SAKA, name: "Saka", sentAt: now - 9 * DAY_MS, writtenAt: now - 8 * DAY_MS, text: "Starts every week." };
 const MINE: MyScouts = {
@@ -43,6 +44,10 @@ const openScouting = (scouts: ScoutsData, session = manager) => openApp(SCOUTING
 const scoutsPanel = () => screen.findByRole("region", { name: SCOUTS_TITLE });
 
 describe("the Scouts panel", () => {
+  beforeEach(() => {
+    vi.useFakeTimers({ now, shouldAdvanceTime: true });
+  });
+
   it("shows each scout: out with the time left, back with the newest report in, or free", async () => {
     const app = openScouting({ mine: MINE });
     const panel = await scoutsPanel();
@@ -50,10 +55,18 @@ describe("the Scouts panel", () => {
     const rows = within(within(panel).getByRole("list", { name: SCOUTS_TITLE })).getAllByRole("listitem");
     expect(rows).toHaveLength(3);
     expect(rows[0].textContent).toContain(outOnWords("Palmer"));
-    expect(rows[0].textContent).toContain("report in 14h 29m");
+    expect(rows[0].textContent).toContain("report in 14h 30m");
     expect(rows[1].textContent).toContain(reportInOnWords("Wood"));
     expect(rows[2].textContent).toContain(reportInOnWords("Saka"));
     expect(app.scouting.useMyScouts.mock.lastCall).toEqual([league.leagueId]);
+  });
+
+  it("counts a scout's time left down each minute, in minutes in his last hour", async () => {
+    openScouting({ mine: { ...MINE, out: [{ ...MINE.out[0], dueAt: now + 34 * MINUTE_MS + 59_000 }] } });
+    const [row] = within(await scoutsPanel()).getAllByRole("listitem");
+    expect(row.textContent).toContain("report in 35m");
+    await act(() => vi.advanceTimersByTimeAsync(MINUTE_MS));
+    expect(row.textContent).toContain("report in 34m");
   });
 
   it("says a scout with nothing to do is free", async () => {

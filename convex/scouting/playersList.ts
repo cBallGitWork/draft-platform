@@ -20,7 +20,7 @@ import type { StoredScoringSet } from "../scoring/scoringSetShape";
 import { setOf, siteVersions } from "../scoring/siteVersions";
 import { CATALOGUE_STATS } from "../scoring/statCatalogue";
 import { firstRunsIn, runAhead, type RunAhead } from "../waivers/waiverLock";
-import { WAIVER_PLAYERS_READ_MOST } from "../waivers/waiverRun";
+import { WAIVER_PLAYERS_READ_MOST } from "../waivers/waiverPlayers";
 
 // Scouting's players list (spec/19, The players list; #373): every Premier League player now, for
 // anyone in the league, whole, so the screen never holds a cut list; the browser filters and sorts

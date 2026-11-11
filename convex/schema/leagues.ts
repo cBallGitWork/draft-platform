@@ -54,7 +54,7 @@ const leagueFields = {
   /** Present while the league is being deleted (#75). */
   deletion: v.optional(leagueDeletion),
   /** The gameweeks its commissioner unticked, in order (#74, convex/gameweeks/usedGameweeks.ts). Absent while
-   *  it plays all 38, the default, so a league needs no write to have it. */
+   *  it plays every gameweek its season has (#1618), the default, so a league needs no write to have it. */
   unusedGameweeks: v.optional(v.array(v.number())),
   /** The gameweek its scoring starts in (spec/04, After the draft; convex/gameweeks/scoringStart.ts):
    *  those before it score nothing and have no head-to-head. Absent while it scores every ticked

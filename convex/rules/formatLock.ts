@@ -1,6 +1,7 @@
 import type { Doc } from "../_generated/dataModel";
 import type { QueryCtx } from "../_generated/server";
 import { deadlineOf, leagueDeadlines } from "../gameweeks/leagueDeadlines";
+import { seasonGameweekCount } from "../gameweeks/seasonGameweeks";
 import { scoredGameweeksOf } from "../gameweeks/usedGameweeks";
 import { refuse } from "../shared/leagueAccess";
 import type { LeagueRules } from "./leagueRulesShape";
@@ -23,7 +24,7 @@ export const formatLocked = (format: LeagueRules["format"]) =>
  *  scoring from a later start, begins at its own first gameweek, not FPL's. */
 async function seasonBegun(ctx: QueryCtx, league: Doc<"leagues">, fromGameweek: number): Promise<boolean> {
   const deadlineIn = deadlineOf(await leagueDeadlines(ctx, league._id));
-  return scoredGameweeksOf(league).some((gameweek) => {
+  return scoredGameweeksOf(league, await seasonGameweekCount(ctx)).some((gameweek) => {
     const deadline = deadlineIn(gameweek);
     return gameweek < fromGameweek && deadline !== null && deadline >= league._creationTime;
   });

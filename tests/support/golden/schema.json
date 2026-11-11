@@ -1528,6 +1528,12 @@
               "type": "number"
             },
             "optional": false
+          },
+          "fullTimeAt": {
+            "fieldType": {
+              "type": "number"
+            },
+            "optional": true
           }
         }
       }
@@ -25275,6 +25281,13 @@
                     "type": "boolean"
                   },
                   "optional": false
+                },
+                "movedToAtOnce": {
+                  "fieldType": {
+                    "type": "literal",
+                    "value": true
+                  },
+                  "optional": true
                 }
               }
             },
@@ -25730,6 +25743,12 @@
             "optional": false
           },
           "madeAt": {
+            "fieldType": {
+              "type": "number"
+            },
+            "optional": true
+          },
+          "backOnWaivers": {
             "fieldType": {
               "type": "number"
             },
