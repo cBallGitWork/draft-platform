@@ -18,7 +18,7 @@ beforeEach(async () => {
 
 const waiverOrder = () => w.t.run((ctx) => ctx.db.query("waiverOrders").unique());
 
-describe("a run whose time fell in the lock (#1470, S08.10)", () => {
+describe("a run whose time fell in the lock (#1470, S08.11)", () => {
   // The league's first run is made before NEXT's deadline, then the deadline passes and the
   // gameweek's last match ends an hour after the first run time inside its lock.
   let inLock: number;
