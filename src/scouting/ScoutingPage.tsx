@@ -46,8 +46,8 @@ export function ScoutingPage({ league, seam }: { league: LeagueSummary; seam: Sc
 
 /** The Players tab, as the approved picture lays it out: every Premier League player, filtered by
  *  who holds him, his position and his club, its figures and any stat shown over the season or the
- *  last 4 or 6 gameweeks, and sorted by a
- *  column's head, all on the server, and found by name here. A row selects him: his panel opens at
+ *  last 4 or 6 gameweeks, sorted by a column's head and found by name. Only a club, a stat or a
+ *  period chosen reads the list again (#1552). A row selects him: his panel opens at
  *  the top of the right column, over the manager's shortlist and his team's scouts, whose reports
  *  open there too. Compare with another… then a second row puts the two side by side. */
 function PlayersTab({ league, seam }: { league: LeagueSummary; seam: ScoutingSeam }) {
@@ -55,7 +55,7 @@ function PlayersTab({ league, seam }: { league: LeagueSummary; seam: ScoutingSea
   const [sort, setSort] = useState<ListSort>(OPENING_SORT);
   const [stat, setStat] = useState<CatalogueStat | null>(null);
   const [name, find] = useState("");
-  // While a changed filter or sort loads, the last list stays up, so the club filter keeps its clubs.
+  // While a changed club, stat or period loads, the last list stays up, so the club filter keeps its clubs.
   const [period, choosePeriod] = useState<Period>(OPENING_PERIOD);
   const list = useLastLoaded(seam.usePlayersList(league.leagueId, filters, sort, stat?.stat ?? null, period));
   const shortlist = seam.useShortlist(league.leagueId);
