@@ -240,11 +240,11 @@ describe("the draft (#1087)", () => {
     await expectRefused(change({ ...FIRST, draft: { ...DRAFT, pickSeconds: 60 } }, MANAGERS[0]), refusals.notRunner);
   });
 
-  describe("on rules saved before the draft was a rule", () => {
+  describe("on rules saved before the draft and the trades were rules", () => {
     beforeEach(() =>
       t.run(async (ctx) => {
         for (const row of await ctx.db.query("leagueRules").collect()) {
-          const { draft: _draft, ...older } = row.rules!;
+          const { draft: _draft, trades: _trades, ...older } = row.rules!;
           await ctx.db.patch("leagueRules", row._id, { rules: older });
         }
       }),
@@ -254,10 +254,11 @@ describe("the draft (#1087)", () => {
       expect((await read())?.part.draft).toEqual(DRAFT);
     });
 
-    test("a change to another setting writes no draft settings and names none in its letter", async () => {
+    test("a change to another setting writes no draft or trades settings and names neither in its letter", async () => {
       await change({ ...FIRST, gamesPerGameweek: 2 });
 
       expect((await rulesIn(t, leagueId, NEXT)).draft).toBeUndefined();
+      expect((await rulesIn(t, leagueId, NEXT)).trades).toBeUndefined();
       expect((await eventsIn(t, leagueId)).at(-1)).toMatchObject({ kind: "rulesChanged", changed: ["gamesPerGameweek"] });
     });
 

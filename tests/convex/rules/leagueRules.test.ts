@@ -116,6 +116,22 @@ describe("a commissioner's change", () => {
     expect(filed.map((event) => event.kind === "rulesChanged" && event.changed)).toEqual([["format"], ["format", "tieBreaks"]]);
   });
 
+  test.each(["draft", "trades", "instructions", "classics"] as const)(
+    "on rules saved without their %s, a save with the first rules' value names only what else changed (#1742)",
+    async (part) => {
+      const leagueId = await adminCreatesLeague(t);
+      await t.run(async (ctx) => {
+        for (const row of await ctx.db.query("leagueRules").collect()) {
+          const { [part]: _part, ...older } = row.rules!;
+          await ctx.db.patch("leagueRules", row._id, { rules: older });
+        }
+      });
+      await change(leagueId, rulesWith({ format: "totalPoints" }));
+
+      expect((await eventsIn(t, leagueId)).at(-1)).toMatchObject({ kind: "rulesChanged", changed: ["format"] });
+    },
+  );
+
   test("the odd team out is changed like any other rule, and only to a bye or the league's average", async () => {
     const leagueId = await adminCreatesLeague(t);
     await change(leagueId, rulesWith({ oddTeamOut: "bye" }));
