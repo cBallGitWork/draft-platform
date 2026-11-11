@@ -7,6 +7,7 @@ import { listChangeFailedWords } from "../draft/words";
 import { liveClaims } from "../myTeam/claims/liveClaims";
 import { livePlayerCard } from "../playerCard/livePlayerCard";
 import { refusalOf } from "../shared/refusal";
+import { useLastLoaded } from "../shared/useLastLoaded";
 import { useMinute } from "../shared/useMinute";
 import { liveScouts } from "./scouts/liveScouts";
 import { liveShortlist } from "./shortlist/liveShortlist";
@@ -27,7 +28,9 @@ export const liveScouting: ScoutingSeam = {
     );
   },
   useComparison: (leagueId, codes, stat, period) => useQuery(api.scouting.compare.players, codes === null ? "skip" : { leagueId, codes: [...codes], stat, period }),
-  useYourPlayer: (leagueId, playerCode, now) => useQuery(api.scouting.yourPlayer.at, { leagueId, playerCode, now }),
+  // Held across the minute's turn, so Compare doesn't vanish while the next answer loads (#1747).
+  useYourPlayer: (leagueId, playerCode, now) =>
+    useLastLoaded(useQuery(api.scouting.yourPlayer.at, { leagueId, playerCode, now }), `${leagueId}/${playerCode}`),
   usePer90: (leagueId, playerCode, stat, period) => useQuery(api.scouting.per90.figures, { leagueId, playerCode, stat, period }),
   // Only the club and the period and stat are asked of the server; who holds him, his position and
   // the order are worked here on the one list loaded, so they never read it again (#1552). The kept
