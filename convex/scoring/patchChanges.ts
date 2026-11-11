@@ -5,7 +5,7 @@ import type { StoredScoringSet } from "./scoringSetShape";
 import { categoryName } from "./categories";
 import { priceFor, type Priced } from "./priced";
 import type { Band, InstructionLine, PointsLimit, RoleSide } from "./scoringSet";
-import { groupedBy } from "../shared/groupedBy";
+import { groupedBy, keyedByCount } from "../shared/groupedBy";
 import { figureWords, MINUS_SIGN, signedWords } from "../shared/numberWords";
 
 // What changed between two versions of the site's scoring set (spec/14, Changes and corrections:
@@ -119,16 +119,7 @@ function ownStatChanges(before: readonly OwnStat[], after: readonly OwnStat[]): 
 }
 
 /** Each rule by its category, a second rule for one category told apart by its count. */
-function rulesByKey(rules: readonly Rule[]): Map<string, Rule> {
-  const seen = new Map<string, number>();
-  return new Map(
-    rules.map((rule) => {
-      const count = (seen.get(rule.stat) ?? 0) + 1;
-      seen.set(rule.stat, count);
-      return [count === 1 ? rule.stat : `${rule.stat}#${count}`, rule] as const;
-    }),
-  );
-}
+const rulesByKey = (rules: readonly Rule[]) => keyedByCount(rules, (rule) => rule.stat);
 
 /** Every change from `before` to `after`, one line each: the rules in the new set's order, those
  *  no longer scored, whole points, own stats, roles, then team instructions. None when the two

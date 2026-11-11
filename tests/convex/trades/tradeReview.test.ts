@@ -196,6 +196,18 @@ describe("under a league vote", () => {
     expect(await squadOf(w.bobsTeam)).toContain(SAKA);
   });
 
+  test("with nobody able to vote, an accepted trade goes through at once (Craig, 11 Nov 2026, on #1607; S08.15)", async () => {
+    for (const [email, teamId] of [[CAT, w.catsTeam], [DAN, fourthTeam]] as const) {
+      await (await actingAs(w.t, email)).mutation(api.lineup.autoTeam.set, { leagueId: w.leagueId, teamId, on: true });
+    }
+    await annTradesForSaka();
+
+    expect(await squadOf(w.annsTeam)).toContain(SAKA);
+    expect(await w.offers()).toEqual([]);
+    expect(await pendingJobs(w.t, internal.trades.tradeReview.finish)).toEqual([]);
+    expect(await w.subjectsTo(ANN)).toContain("Team 1 and Team 2 traded");
+  });
+
   test("most is more than half of those who may vote", () => {
     expect(mostAgainst(["a", "b"], ["a"])).toBe(false);
     expect(mostAgainst(["a", "b", "c"], ["a", "b"])).toBe(true);

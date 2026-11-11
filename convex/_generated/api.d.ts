@@ -11,6 +11,7 @@
 import type * as admin_feedFailureEmails from "../admin/feedFailureEmails.js";
 import type * as admin_feedState from "../admin/feedState.js";
 import type * as admin_feeds from "../admin/feeds.js";
+import type * as admin_platformSettingDefaults from "../admin/platformSettingDefaults.js";
 import type * as admin_platformSettings from "../admin/platformSettings.js";
 import type * as admin_runLogs from "../admin/runLogs.js";
 import type * as admin_sideRuns from "../admin/sideRuns.js";
@@ -375,6 +376,7 @@ declare const fullApi: ApiFromModules<{
   "admin/feedFailureEmails": typeof admin_feedFailureEmails;
   "admin/feedState": typeof admin_feedState;
   "admin/feeds": typeof admin_feeds;
+  "admin/platformSettingDefaults": typeof admin_platformSettingDefaults;
   "admin/platformSettings": typeof admin_platformSettings;
   "admin/runLogs": typeof admin_runLogs;
   "admin/sideRuns": typeof admin_sideRuns;
