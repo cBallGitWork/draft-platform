@@ -27,6 +27,11 @@ test("no squad limits, no club limit, no presets and no tie-breaks are all sound
   expect(() => checkLeagueRules(free)).not.toThrow();
 });
 
+test("a club maximum of 1 with a squad maximum of 20, one from each club, is sound (#1462)", () => {
+  const oneEach = rulesWith({ squad: { ...FIRST_RULES.squad, size: { minimum: 11, maximum: 20 }, maxPerClub: 1 } });
+  expect(() => checkLeagueRules(oneEach)).not.toThrow();
+});
+
 test.each(ODD_TEAM_OUTS)("the team left over playing %s is sound", (oddTeamOut) => {
   expect(() => checkLeagueRules(rulesWith({ oddTeamOut }))).not.toThrow();
 });
@@ -67,6 +72,11 @@ describe.each<[string, Partial<LeagueRules>, string]>([
     "a club limit of 0",
     { squad: { ...FIRST_RULES.squad, maxPerClub: 0 } },
     "The most players from one club must be a whole number, 1 or more, not 0.",
+  ],
+  [
+    "a squad the club maximum can't fill (#1462)",
+    { squad: { ...FIRST_RULES.squad, size: { minimum: 11, maximum: 21 }, maxPerClub: 1 } },
+    "The squad's maximum, 21, is more than 1 from each of the 20 clubs can fill, 20.",
   ],
   [
     "an area whose minimum on the pitch is above its maximum",
