@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, test, vi } from "vitest";
 import { internal } from "../../../convex/_generated/api";
 import { FIRST_RULES } from "../../../convex/rules/firstRules";
 import { HOUR_MS, MINUTE_MS, WEEK_MS } from "../../../convex/shared/time";
-import { latestRunAt } from "../../../convex/waivers/waiverTimes";
+import { DATE_DAYS, latestRunAt } from "../../../convex/waivers/waiverTimes";
 import { changeRules, HELD_FIRST_RULES, rulesWith } from "../../support/convex/leagueRules.harness";
 import { BOB, NEXT, PALMER, SAKA, waiverLeague, type WaiverLeague } from "../../support/convex/waivers.harness";
 
@@ -49,7 +49,7 @@ describe("the cron", () => {
     await w.onWaivers([PALMER], runTime);
     await w.claim(BOB, PALMER);
     vi.setSystemTime(runTime + 2 * HOUR_MS);
-    const day = (["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"] as const)[new Date(runTime).getUTCDay()];
+    const day = DATE_DAYS[new Date(runTime).getUTCDay()];
     const runs = [...FIRST_RULES.waivers.runs, { day, hour: 19, minute: 0 }, { day, hour: 21, minute: 0 }];
     await changeRules(w.t, w.leagueId, rulesWith({ waivers: { ...HELD_FIRST_RULES.waivers, runs } }));
     vi.setSystemTime(runTime + 2 * HOUR_MS + 2 * MINUTE_MS);

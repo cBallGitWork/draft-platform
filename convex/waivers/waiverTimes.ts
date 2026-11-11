@@ -10,7 +10,7 @@ import { DAY_MS, HOUR_MS, MINUTE_MS } from "../shared/time";
 type WaiverRun = LeagueRules["waivers"]["runs"][number];
 
 /** The weekdays in Date's own order, Sunday first. */
-const DATE_DAYS: readonly WaiverRun["day"][] = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"];
+export const DATE_DAYS: readonly WaiverRun["day"][] = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"];
 
 /** The moment it is `hour`:`minute` in the UK on the UK day whose midnight, read as UTC, is `day`. */
 function ukMoment(day: number, hour: number, minute: number): number {
