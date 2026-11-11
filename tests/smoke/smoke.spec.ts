@@ -104,8 +104,10 @@ test.describe("dev server, signed out of Convex", { tag: "@dev" }, () => {
     await expect(moves.getByRole("row").nth(1)).toContainText("Kudus");
 
     await page.getByRole("combobox", { name: teamFilterLabel }).selectOption({ label: "Lingard Franca" });
-    await expect(moves.getByRole("row")).toHaveCount(3);
-    await expect(moves.getByRole("row").nth(1)).toContainText("Calvert-Lewin");
+    // The preview's trade (#1491) names Lingard Franca too, and is its newest move: one row.
+    await expect(moves.getByRole("row")).toHaveCount(4);
+    await expect(moves.getByRole("row").nth(1)).toContainText("Watkins");
+    await expect(moves.getByRole("row").nth(2)).toContainText("Calvert-Lewin");
 
     await page.getByRole("combobox", { name: teamFilterLabel }).selectOption({ label: everyTeamWords });
     await moves.getByRole("button", { name: "Haaland Oates" }).click();

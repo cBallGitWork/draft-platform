@@ -1,5 +1,5 @@
 import { defineTable } from "convex/server";
-import { v } from "convex/values";
+import { v, type Infer } from "convex/values";
 
 // Squads (#31, spec/15 Assigning players): which team in a league owns each player, by FPL's
 // season-stable code. A player is on one team in a league at most; any other is a free agent.
@@ -9,6 +9,14 @@ const playerOnTeam = { playerCode: v.number(), playerName: v.string(), teamId: v
 
 /** Who went for a player joining a team, if anyone: onto waivers, or back to the free agents. */
 const droppedFor = v.union(v.object({ playerCode: v.number(), playerName: v.string(), toWaivers: v.boolean() }), v.null());
+
+/** One side of a trade that went through: its players, and its draft pick, each named by the team
+ *  whose pick in the round it is, even once another team holds it (#1096). */
+export const tradedSide = v.object({
+  players: v.array(v.object({ playerCode: v.number(), playerName: v.string() })),
+  picks: v.array(v.object({ round: v.number(), teamId: v.id("teams"), teamName: v.string() })),
+});
+export type TradedSide = Infer<typeof tradedSide>;
 
 /** What assigning players files for Mail. */
 export const squadEvents = [
@@ -24,6 +32,24 @@ export const squadEvents = [
   /** His manager picked him up as a free agent (spec/08, #1199), and who went for him, if anyone:
    *  that drop is filed as its own `playerDropped` too, with no letter of its own. */
   v.object({ kind: v.literal("playerPickedUp"), ...playerOnTeam, dropped: droppedFor }),
+  /** A trade that went through moved him (spec/08 Trades): one for each player, which the squads'
+   *  history reads, with no letter or listed row of its own. The trade's own `tradeMade` is the row
+   *  (#1491). Trades made before it filed `playerMoved` instead. */
+  v.object({ kind: v.literal("playerTraded"), ...playerOnTeam, fromTeamId: v.id("teams"), fromTeamName: v.string() }),
+  /** A trade that went through (spec/08 Trades; #1491), one event for the whole trade, filed with
+   *  no letter of its own (the trade letter says it): the offering team, the team it went to, and
+   *  what each side gave, players or draft picks, as named then. */
+  v.object({
+    kind: v.literal("tradeMade"),
+    fromTeamId: v.id("teams"),
+    fromTeamName: v.string(),
+    toTeamId: v.id("teams"),
+    toTeamName: v.string(),
+    /** What went from the offering team to the other. */
+    gives: tradedSide,
+    /** What came back from the other team to the offering one. */
+    gets: tradedSide,
+  }),
 ] as const;
 
 export const squadTables = {

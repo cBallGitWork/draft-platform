@@ -103,6 +103,8 @@ function takenOut(event: LeagueEvent): string[] {
     case "playerDropped":
     case "playerClaimed":
     case "playerPickedUp":
+    case "playerTraded":
+    case "tradeMade":
     case "pointsOverridden":
     case "pointsOverrideRemoved":
     case "teamPointsOverridden":

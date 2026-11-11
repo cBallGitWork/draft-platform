@@ -2,15 +2,16 @@ import { v, type Infer } from "convex/values";
 import type { Doc, Id } from "../_generated/dataModel";
 import { query } from "../_generated/server";
 import { bylineOf } from "../mail/letters";
+import { tradedSide } from "../schema/squads";
 import { takeShown } from "../shared/cappedRead";
 import { managerOf } from "../shared/leagueAccess";
-import { isSquadMove, newestFirst, SQUAD_MOVES } from "./squadPlace";
+import { isListedMove, LISTED_MOVES, newestFirst } from "./squadPlace";
 
 // My team's Transactions tab (#366; spec/12, My team's tabs: "the team's claims, drops, trades and
-// commissioner assignments, newest first, from the same events Mail files"). Trades come with
-// spec/08, so for now it is the commissioner's assignments, moves and releases (#31), the
-// manager's drops (#1197) and free agent pickups (#1199), and the claims a waiver run gives the
-// team (#1198).
+// commissioner assignments, newest first, from the same events Mail files"): the commissioner's
+// assignments, moves and releases (#31), the manager's drops (#1197) and free agent pickups
+// (#1199), the claims a waiver run gives the team (#1198), and each trade that went through as one
+// (#383, #1491). Trades made before #1491 filed their players as moves, and still show as moves.
 
 /** How many of the league's latest squad moves of each kind are read for the team's: each kind's
  *  read is league-wide, and a query's reads are bounded. Older ones are left out, and `cut` says so. */
@@ -28,16 +29,31 @@ const transactionKind = v.union(
 
 const kindOf = { playerAssigned: "assigned", playerReleased: "released", playerDropped: "dropped", playerClaimed: "claimed", playerPickedUp: "pickedUp" } as const;
 
-const transaction = v.object({
+/** Who did it: an email, or the admin's byline, as Mail's letter names them. */
+const by = v.string();
+
+const playerTransaction = v.object({
   at: v.number(),
   kind: transactionKind,
   playerCode: v.number(),
   playerName: v.string(),
   /** The team a move came from or went to, as it was named then; null for any other kind. */
   otherTeamName: v.union(v.string(), v.null()),
-  /** Who did it: an email, or the admin's byline, as Mail's letter names them. */
-  by: v.string(),
+  by,
 });
+
+/** A trade that went through, as one (#1491): what it brought the team and what it sent, and the
+ *  team on the other side, as named then. `by` is whoever accepted it. */
+const tradeTransaction = v.object({
+  at: v.number(),
+  kind: v.literal("traded"),
+  in: tradedSide,
+  out: tradedSide,
+  otherTeamName: v.string(),
+  by,
+});
+
+const transaction = v.union(playerTransaction, tradeTransaction);
 
 export const teamTransactions = v.object({
   transactions: v.array(transaction),
@@ -49,15 +65,21 @@ type Transaction = Infer<typeof transaction>;
 
 /** The team's transaction in a league event, if it is one. */
 function transactionOf({ at, by, event }: Doc<"leagueEvents">, teamId: Id<"teams">): Transaction | null {
-  if (!isSquadMove(event)) return null;
-  const done = { at, by: bylineOf(by), playerCode: event.playerCode, playerName: event.playerName };
+  if (!isListedMove(event)) return null;
+  const done = { at, by: bylineOf(by) };
+  if (event.kind === "tradeMade") {
+    if (event.fromTeamId === teamId) return { ...done, kind: "traded", in: event.gets, out: event.gives, otherTeamName: event.toTeamName };
+    if (event.toTeamId === teamId) return { ...done, kind: "traded", in: event.gives, out: event.gets, otherTeamName: event.fromTeamName };
+    return null;
+  }
+  const player = { ...done, playerCode: event.playerCode, playerName: event.playerName };
   if (event.kind === "playerMoved") {
-    if (event.teamId === teamId) return { ...done, kind: "movedIn", otherTeamName: event.fromTeamName };
-    if (event.fromTeamId === teamId) return { ...done, kind: "movedOut", otherTeamName: event.teamName };
+    if (event.teamId === teamId) return { ...player, kind: "movedIn", otherTeamName: event.fromTeamName };
+    if (event.fromTeamId === teamId) return { ...player, kind: "movedOut", otherTeamName: event.teamName };
     return null;
   }
   if (event.teamId !== teamId) return null;
-  return { ...done, kind: kindOf[event.kind], otherTeamName: null };
+  return { ...player, kind: kindOf[event.kind], otherTeamName: null };
 }
 
 /** The caller's team's transactions in the league, newest first. Refused for anyone who runs no
@@ -68,7 +90,7 @@ export const ofMyTeam = query({
   handler: async (ctx, { leagueId }) => {
     const { team } = await managerOf(ctx, leagueId);
     const ofEachKind = await Promise.all(
-      SQUAD_MOVES.map((kind) =>
+      LISTED_MOVES.map((kind) =>
         takeShown(
           ctx.db
             .query("leagueEvents")

@@ -37,8 +37,15 @@ export async function ownerOf(ctx: QueryCtx, leagueId: Id<"leagues">): Promise<(
 
 /** The league events that change a squad. A commissioner assigns, moves and releases players
  *  (#31), a manager drops them (#1197) and picks up free agents (#1199), and a waiver run gives
- *  them for a claim (#1198); trades join them when built. */
-export const SQUAD_MOVES = ["playerAssigned", "playerMoved", "playerReleased", "playerDropped", "playerClaimed", "playerPickedUp"] as const;
+ *  them for a claim (#1198), and a trade moves them (#383). */
+export const SQUAD_MOVES = ["playerAssigned", "playerMoved", "playerReleased", "playerDropped", "playerClaimed", "playerPickedUp", "playerTraded"] as const;
+
+/** The league events the screens list a team's moves from (My team's Transactions, League home,
+ *  its News tab): every squad move but a trade's players, and each trade as one (#1491). */
+export const LISTED_MOVES = ["playerAssigned", "playerMoved", "playerReleased", "playerDropped", "playerClaimed", "playerPickedUp", "tradeMade"] as const;
+export type ListedKind = (typeof LISTED_MOVES)[number];
+/** A listed move of one player: any but a trade, which the screens list with both its sides. */
+export const playerMoveKind = v.union(...LISTED_MOVES.flatMap((kind) => (kind === "tradeMade" ? [] : [v.literal(kind)])));
 
 /** Whether the move took a player off his team for no other: a release or a drop. */
 const isLeaving = (kind: (typeof SQUAD_MOVES)[number]) => kind === "playerReleased" || kind === "playerDropped";
@@ -78,6 +85,10 @@ export async function heldOrNot(ctx: QueryCtx, rows: readonly Doc<"squadPlayers"
 type LeagueEvent = Infer<typeof leagueEvent>;
 type SquadMove = Extract<LeagueEvent, { kind: (typeof SQUAD_MOVES)[number] }>;
 export const isSquadMove = (event: LeagueEvent): event is SquadMove => (SQUAD_MOVES as readonly string[]).includes(event.kind);
+export type ListedMove = Extract<LeagueEvent, { kind: ListedKind }>;
+export const isListedMove = (event: LeagueEvent): event is ListedMove => (LISTED_MOVES as readonly string[]).includes(event.kind);
+/** Whether the squad move took its player off `teamId` for another team: a move or a trade. */
+export const movedOff = (event: SquadMove, teamId: Id<"teams">) => (event.kind === "playerMoved" || event.kind === "playerTraded") && event.fromTeamId === teamId;
 
 /** A league's squad moves filed at `at` or after, newest first: what `squadAt` undoes. */
 export type SquadMovesSince = Doc<"leagueEvents">[];
@@ -115,7 +126,7 @@ export async function squadAt(ctx: QueryCtx, teamId: Id<"teams">, movesSince: Sq
       stayed = stayed.filter((code) => code !== playerCode);
       leftSince = leftSince.filter((code) => code !== playerCode);
     }
-    const leftHere = isLeaving(event.kind) ? event.teamId === teamId : event.kind === "playerMoved" && event.fromTeamId === teamId;
+    const leftHere = isLeaving(event.kind) ? event.teamId === teamId : movedOff(event, teamId);
     if (leftHere) {
       if (held) throw new Error(`League event ${_id} took player ${playerCode} off team ${teamId}, but he is in its squad after it`);
       leftSince = [playerCode, ...leftSince];

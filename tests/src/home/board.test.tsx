@@ -106,6 +106,35 @@ describe("News", () => {
     expect(app.path()).toBe(HOME_NEWS_PATH);
   });
 
+  it("lists a trade as one line naming both sides, a pick by the team whose pick it is (#1491)", async () => {
+    withHome({
+      squadMoves: [
+        {
+          at: Date.now(),
+          kind: "tradeMade",
+          fromTeamName: "Ann's",
+          toTeamName: "Bob's",
+          gives: { players: [{ playerCode: 1, playerName: "Saka" }], picks: [] },
+          gets: { players: [{ playerCode: 2, playerName: "Palmer" }, { playerCode: 3, playerName: "Rice" }], picks: [] },
+        },
+        {
+          at: Date.now() - 1,
+          kind: "tradeMade",
+          fromTeamName: "Ann's",
+          toTeamName: "Bob's",
+          gives: { players: [], picks: [{ round: 4, teamId: "team-1" as Id<"teams">, teamName: "Pickford Pirates" }] },
+          gets: { players: [], picks: [{ round: 2, teamId: "team-2" as Id<"teams">, teamName: "Bob's" }] },
+        },
+      ],
+    });
+    const rows = within(await panel(NEWS_PANEL_TITLE)).getAllByRole("listitem");
+    expect(rows.map((row) => row.firstChild?.firstChild?.textContent)).toEqual(["Trade", "Trade"]);
+    expect(rows.map((row) => row.lastChild?.textContent)).toEqual([
+      "Ann's traded Saka to Bob's for Palmer and Rice",
+      "Ann's traded Pickford Pirates' round 4 pick to Bob's for Bob's round 2 pick",
+    ]);
+  });
+
   it("says so when there are no moves, and no letter is pinned", async () => {
     openHome();
     const news = await panel(NEWS_PANEL_TITLE);

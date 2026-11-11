@@ -2,6 +2,7 @@
 
 import type { PlayingState } from "../../convex/football/matchScores";
 import type { Position } from "../../convex/positions/positionTables";
+import type { TradedSide } from "../../convex/schema/squads";
 import { LOCALE } from "../../convex/shared/moments";
 import { countInWords, figureWords } from "../../convex/shared/numberWords";
 import { FEWEST_TO_DRAW } from "../../convex/table/roundRobin";
@@ -186,3 +187,16 @@ export const foundListLabel = "Players found";
 export const autoTeamWords = "Auto team";
 /** What the auto team does (spec/09), as its chip's hover and My team's switch say it. */
 export const autoTeamWhatWords = "Keeps your last lineup, swapping a starter who is out for the first bench player who fits. No claims, drops or trades.";
+
+/** A traded draft pick, named by the team whose pick it is: "Pickford Pirates' round 4 pick"
+ *  (docs/design/approved/team-transactions/). */
+export const tradedPickWords = (round: number, teamName: string) => `${possessive(teamName)} round ${round} pick`;
+/** A team's name owning something: "Hull Hearts'", "Lions'", "Bob's" as it is, "Ann's XI's". */
+const possessive = (name: string) => (name.endsWith("'s") ? name : name.endsWith("s") ? `${name}'` : `${name}'s`);
+/** One side of a trade that went through, each of its players and picks by name (#1491). */
+export const tradedNames = ({ players, picks }: TradedSide): string[] => [
+  ...players.map(({ playerName }) => playerName),
+  ...picks.map(({ round, teamName }) => tradedPickWords(round, teamName)),
+];
+/** The other side of a trade: "With Hull Hearts". */
+export const withTeamWords = (teamName: string) => `With ${teamName}`;
