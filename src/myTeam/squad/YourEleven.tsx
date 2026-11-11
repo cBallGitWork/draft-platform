@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { cellKey, LANES, sameCell } from "../../../convex/lineup/pitch";
+import { cellKey, GOALKEEPER_AREA, LANES, sameCell } from "../../../convex/lineup/pitch";
 import { presetNameOf } from "../../../convex/lineup/presets";
 import { MY_TEAM_PATH } from "../../frame/menu";
 import { Panel, PanelNote } from "../../ui/Panel";
@@ -84,7 +84,7 @@ function ElevenPitch({ tactics, players, selected }: { tactics: OpenTactics; pla
               {/* His tile: the shirt over the name plate, outlined in white while his panel is open
                   (the approved picture), his status mark at its corner. */}
               <span className="relative flex max-w-full flex-col items-center p-0.5 group-aria-current:outline-2 group-aria-current:outline-solid group-aria-current:outline-fact">
-                <Shirt number={member.number} clubCode={member.clubCode} goalkeeper={area === "goalkeeper"} />
+                <Shirt number={member.number} clubCode={member.clubCode} goalkeeper={area === GOALKEEPER_AREA} />
                 <span aria-hidden="true" className="flex max-w-full flex-col items-center bg-name-plate px-1">
                   <span className="max-w-full truncate font-semibold">{member.name}</span>
                   <span className="font-bold text-figure">{points}</span>

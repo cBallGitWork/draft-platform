@@ -2,7 +2,7 @@
 // lineupEdits.ts, which makes the moves; this judges them. Whether a lineup may stand is still the
 // server's (convex/lineup/lineup.ts), told as each move saves.
 
-import { AREAS, playsCell, type Cell } from "../../../convex/lineup/pitch";
+import { AREAS, GOALKEEPER_AREA, KEEPER_POSITION, playsCell, type Cell } from "../../../convex/lineup/pitch";
 import { namedCodes, type LineupRules } from "../../../convex/lineup/lineup";
 import type { Position } from "../../../convex/positions/positionTables";
 import { standingIn, starts, swapped, type EditedLineup, type MoveRules, type RatingsOf } from "./lineupEdits";
@@ -34,7 +34,7 @@ export type MoveRefusal =
   | { kind: "doesNotPlay"; playerCode: number; cell: Cell }
   | { kind: "areaLimits" };
 
-const isKeeper = (positions: readonly Position[]) => positions.includes("GK");
+const isKeeper = (positions: readonly Position[]) => positions.includes(KEEPER_POSITION);
 
 /** Why the two may not swap, null where they may: each plays the cell he lands in, and the limits
  *  hold. Two on the bench, or a player and himself, are no swap: the screen never asks. */
@@ -43,7 +43,7 @@ function swapRefusal(draft: EditedLineup, one: number, other: number, rules: Mov
   for (const starter of after.starters.filter(({ playerCode }) => playerCode === one || playerCode === other)) {
     const positions = rules.positionsOf(starter.playerCode);
     if (playsCell(positions, starter)) continue;
-    if (starter.area === "goalkeeper" || isKeeper(positions)) return { kind: "goal" };
+    if (starter.area === GOALKEEPER_AREA || isKeeper(positions)) return { kind: "goal" };
     return { kind: "doesNotPlay", playerCode: starter.playerCode, cell: { area: starter.area, lane: starter.lane } };
   }
   return keepsLimits(draft, after, rules) ? null : { kind: "areaLimits" };

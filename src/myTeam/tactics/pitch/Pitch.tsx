@@ -1,5 +1,5 @@
 import { useId, type CSSProperties, type DragEvent } from "react";
-import { cellKey, LANES, positionOfSlot, sameCell, type Cell } from "../../../../convex/lineup/pitch";
+import { cellKey, GOALKEEPER_AREA, LANES, positionOfSlot, sameCell, type Cell } from "../../../../convex/lineup/pitch";
 import { kitOf, type Ink } from "../../../../convex/football/clubColours";
 import { useClubColours } from "../../../shared/clubColours";
 import { chipColoursOf } from "../../../ui/PositionChip";
@@ -165,7 +165,7 @@ function PlayerBlock({ player, cell, chip, landing, moving }: { player: SquadMem
       onDragEnd={moving.onDragEnd}
       className={`flex w-full min-w-0 cursor-grab flex-col items-center ${swapsWith ? "outline-2 outline-dashed outline-pitch-line" : isSelected ? "outline-2 outline-pitch-line" : ""}`}
     >
-      <Shirt number={player.number} clubCode={player.clubCode} goalkeeper={cell.area === "goalkeeper"} size="size-pitch-shirt" />
+      <Shirt number={player.number} clubCode={player.clubCode} goalkeeper={cell.area === GOALKEEPER_AREA} size="size-pitch-shirt" />
       <RoleChip chip={chip} />
       <span className={`max-w-full truncate px-1 text-lead font-semibold ${plate}`}>
         <span data-slot-label>{positionOfSlot(cell)}</span> {player.name}

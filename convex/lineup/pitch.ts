@@ -25,7 +25,12 @@ export interface Cell {
   lane: Lane;
 }
 
-const WIDE_LANES: readonly Lane[] = ["left", "right"];
+/** The two flanks, in every area. */
+export const WIDE_LANES: readonly Lane[] = ["left", "right"];
+
+/** The keeper's area of the pitch, and the position that plays it. */
+export const GOALKEEPER_AREA = "goalkeeper" satisfies Area;
+export const KEEPER_POSITION = "GK" satisfies Position;
 
 /** The area's cells in these lanes. */
 export const cellsOf = (area: Area, lanes: readonly Lane[]): Cell[] => lanes.map((lane) => ({ area, lane }));
