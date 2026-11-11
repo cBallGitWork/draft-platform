@@ -6,6 +6,7 @@ import type { LeagueRules } from "../../../convex/rules/leagueRulesShape";
 import { SECOND_MS } from "../../../convex/shared/time";
 import { draftSteps, midfielder } from "../../support/convex/draft.harness";
 import { ARSENAL, CHELSEA, insertClubs, insertPlayers } from "../../support/convex/footballRows.harness";
+import { historyOf } from "../../../convex/rules/rulesHistory";
 import { changeEveryRules, HELD_FIRST_RULES } from "../../support/convex/leagueRules.harness";
 import { addManagers, adminCreatesLeague, COMMISSIONER, eventsIn, MANAGERS, type TestConvex } from "../../support/convex/leagues.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
@@ -87,6 +88,17 @@ describe("the clock", () => {
     const at = Date.now();
 
     expect(await read()).toMatchObject({ clock: { startsAt: at + PICK_GAP_MS, endsAt: at + PICK_GAP_MS + 20 * SECOND_MS } });
+  });
+
+  test("a test's pick time change keeps the league's other draft rules (#1782)", async () => {
+    const timeoutsBeforeAutoPick = 5;
+    const undrafted = "freeAgents";
+    await changeEveryRules(t, leagueId, (rules) => ({ ...rules, draft: { ...rules.draft!, timeoutsBeforeAutoPick, undrafted } }));
+    await setPickSeconds(30);
+
+    const draftRules = await t.run(async (ctx) => (await historyOf(ctx, leagueId)).map(({ rules }) => rules!.draft));
+    expect(draftRules).not.toEqual([]);
+    for (const draft of draftRules) expect(draft).toEqual({ pickSeconds: 30, timeoutsBeforeAutoPick, undrafted });
   });
 
   test("stops once the last pick is made", async () => {
