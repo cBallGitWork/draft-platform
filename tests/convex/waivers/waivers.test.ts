@@ -4,13 +4,14 @@ import type { Id } from "../../../convex/_generated/dataModel";
 import { DAY_MS } from "../../../convex/shared/time";
 import { dropRefusals } from "../../../convex/waivers/waivers";
 import { WAIVER_MS } from "../../../convex/waivers/waiverLimits";
+import { draftStarted } from "../../support/convex/draft.harness";
 import { playerLeaves } from "../../support/convex/draftLists.harness";
 import { holdGameweeks, holdMatchState } from "../../support/convex/leagueRules.harness";
 import { actingAs, addManagers, adminCreatesLeague, COMMISSIONER, eventsIn, lettersTo as lettersToOf, MANAGERS, type TestConvex } from "../../support/convex/leagues.harness";
 import { holdPlayers, holdSquad, nameOf, passNextDeadline, SQUAD, squadMoves } from "../../support/convex/lineupSquad.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
 import { expectRefused } from "../../support/convex/test.harness";
-import { draftOver, dropPlayer, waiverStateOf } from "../../support/convex/waivers.harness";
+import { dropPlayer, waiverStateOf } from "../../support/convex/waivers.harness";
 
 // A manager's drop and a player's waiver state (#1197, spec/08 Waivers and free agency): a drop
 // goes on waivers for at least 24 hours; a free agent picked up and dropped before the next
@@ -45,7 +46,7 @@ beforeEach(async () => {
   await holdGameweeks(t, { next: NEXT });
   await matchIs(NEXT - 1, "fullTime");
   await holdSquad(t, leagueId, annsTeam);
-  await draftOver(t, leagueId, [annsTeam, bobsTeam]);
+  await draftStarted(t, leagueId, [annsTeam, bobsTeam]);
 });
 
 describe("a drop", () => {

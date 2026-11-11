@@ -4,6 +4,7 @@ import { DRAFT_LIST_MOST } from "../../../convex/draft/draftLimits";
 import { api } from "../../../convex/_generated/api";
 import { draftListRefusals, listsOf } from "../../../convex/draft/draftLists";
 import { refusals } from "../../../convex/shared/leagueAccess";
+import { draftStarted, LIVE_DRAFT_ROUNDS } from "../../support/convex/draft.harness";
 import { ANN, BOB, ODEGAARD, PALMER, SAKA, listsAs, listsLeague, manyPlayers, namesOn as namesIn, playerLeaves } from "../../support/convex/draftLists.harness";
 import { ARSENAL, CHELSEA, GONE, UNHELD } from "../../support/convex/footballRows.harness";
 import { ADMIN, COMMISSIONER, MANAGERS, actingAs, addManager, addManagers, adminCreatesLeague, type TestConvex } from "../../support/convex/leagues.harness";
@@ -104,10 +105,8 @@ describe("both lists", () => {
   test("can be changed between picks once the draft has started, and a drafted player stays listed", async () => {
     const ann = await as(ANN);
     await ann.queue(SAKA.code);
-    await t.run(async (ctx) => {
-      await ctx.db.insert("drafts", { leagueId, started: { at: Date.now(), teamIds: teams, rounds: 15 } });
-      await ctx.db.insert("squadPlayers", { leagueId, teamId: teams[1], playerCode: SAKA.code });
-    });
+    await draftStarted(t, leagueId, teams, LIVE_DRAFT_ROUNDS);
+    await t.run((ctx) => ctx.db.insert("squadPlayers", { leagueId, teamId: teams[1], playerCode: SAKA.code }));
     await ann.queue(PALMER.code);
     await ann.queue(ODEGAARD.code);
     await ann.move(ODEGAARD.code, 1);
