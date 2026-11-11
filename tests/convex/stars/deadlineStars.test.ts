@@ -1,7 +1,7 @@
 import { beforeEach, expect, test, vi } from "vitest";
 import { api, internal } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
-import { keptAtDeadline } from "../../../convex/stars/deadlineStars";
+import { keptAtDeadline, keptBench } from "../../../convex/stars/deadlineStars";
 import { UNSURE, type Stars } from "../../../convex/stars/starsShape";
 import { holdGameweeks } from "../../support/convex/leagueRules.harness";
 import { MANAGERS, actingAs, addManagers, adminCreatesLeague, type TestConvex } from "../../support/convex/leagues.harness";
@@ -131,4 +131,12 @@ test("not asked for again once one of the gameweek's matches has locked, after w
   await t.mutation(internal.stars.deadlineStars.keepMissing, {});
 
   expect(await askedForNext()).toBe(before);
+});
+
+// What a league plays (#1582): every league shows stars today, so this is reached only by forcing
+// the answer.
+test("a bench is kept with its rated stars, and with none where the league shows no stars", () => {
+  const stars = new Map([[FIRST_ON, [RATED, UNSURE_RATING]]]);
+  expect(keptBench([FIRST_ON], stars, { showsStars: true })).toEqual([{ playerCode: FIRST_ON, stars: [RATED] }]);
+  expect(keptBench([FIRST_ON], new Map(), { showsStars: false })).toEqual([{ playerCode: FIRST_ON, stars: [] }]);
 });
