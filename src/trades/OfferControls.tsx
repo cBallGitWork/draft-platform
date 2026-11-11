@@ -25,7 +25,7 @@ export function PartnerPicker({
 }) {
   if (partners.length === 0) return undefined;
   return (
-    <span className="flex items-center gap-3">
+    <span className="flex items-baseline gap-3">
       <span className="relative flex items-center lg:-my-1">
         <select
           aria-label={partnerLabel}
