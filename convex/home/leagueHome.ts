@@ -17,7 +17,8 @@ import { commentaryReads, readCommentary } from "../matchup/readCommentary";
 import { shownLine } from "../matchup/vidiprinter";
 import { leagueRulesShape } from "../rules/leagueRulesShape";
 import { pinnedLetter } from "../schema";
-import { isSquadMove, newestFirst, SQUAD_MOVES } from "../squads/squadPlace";
+import { tradedSide } from "../schema/squads";
+import { isListedMove, LISTED_MOVES, newestFirst } from "../squads/squadPlace";
 import { statusOf } from "../stats/matchStats";
 import { logFailure } from "../shared/errors";
 import { memberOf } from "../shared/leagueAccess";
@@ -53,14 +54,27 @@ const homeRow = v.object({
   mine: v.boolean(),
 });
 
-const squadMove = v.object({
+const playerMove = v.object({
   at: v.number(),
-  kind: v.union(...SQUAD_MOVES.map((kind) => v.literal(kind))),
+  kind: v.union(...LISTED_MOVES.flatMap((kind) => (kind === "tradeMade" ? [] : [v.literal(kind)]))),
   playerName: v.string(),
   teamName: v.string(),
   /** The team he left, on a move; null otherwise. */
   fromTeamName: v.union(v.string(), v.null()),
 });
+
+/** A trade that went through, as one line (#1491): the offering team and what it gave, the team it
+ *  went to and what came back. */
+const tradeMove = v.object({
+  at: v.number(),
+  kind: v.literal("tradeMade"),
+  fromTeamName: v.string(),
+  toTeamName: v.string(),
+  gives: tradedSide,
+  gets: tradedSide,
+});
+
+const squadMove = v.union(playerMove, tradeMove);
 
 export const leagueHome = v.object({
   format: leagueRulesShape.fields.format,
@@ -88,7 +102,7 @@ export type LeagueHome = Infer<typeof leagueHome>;
  *  index, so no other event is read. */
 async function latestSquadMoves(ctx: QueryCtx, leagueId: Id<"leagues">): Promise<Infer<typeof squadMove>[]> {
   const ofEachKind = await Promise.all(
-    SQUAD_MOVES.map((kind) =>
+    LISTED_MOVES.map((kind) =>
       ctx.db
         .query("leagueEvents")
         .withIndex("by_leagueId_and_kind_and_at", (q) => q.eq("leagueId", leagueId).eq("event.kind", kind))
@@ -102,7 +116,11 @@ async function latestSquadMoves(ctx: QueryCtx, leagueId: Id<"leagues">): Promise
     .slice(0, TICKER_MOST)
     .map(({ _id, at, event }) => {
       // The index read only these kinds; any other is a bug in it.
-      if (!isSquadMove(event)) throw new Error(`League event ${_id} is a ${event.kind}, not a squad move`);
+      if (!isListedMove(event)) throw new Error(`League event ${_id} is a ${event.kind}, not a listed squad move`);
+      if (event.kind === "tradeMade") {
+        const { kind, fromTeamName, toTeamName, gives, gets } = event;
+        return { at, kind, fromTeamName, toTeamName, gives, gets };
+      }
       const fromTeamName = event.kind === "playerMoved" ? event.fromTeamName : null;
       return { at, kind: event.kind, playerName: event.playerName, teamName: event.teamName, fromTeamName };
     });

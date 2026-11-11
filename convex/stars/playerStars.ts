@@ -6,7 +6,7 @@ import type { Doc, Id } from "../_generated/dataModel";
 import { scoutedThisSeason } from "../scouting/scouts";
 import { memberOf, refuse } from "../shared/leagueAccess";
 import { seasonStartAt } from "../shared/time";
-import { isSquadMove, squadMovesSince, squadOf } from "../squads/squadPlace";
+import { isSquadMove, movedOff, squadMovesSince, squadOf } from "../squads/squadPlace";
 import { ratedRoles } from "./stars";
 import { NO_DATA, roleStarsShape, type RoleStars } from "./starsShape";
 
@@ -60,7 +60,7 @@ export async function starsShownTo(ctx: QueryCtx, leagueId: Id<"leagues">, team:
   for (const { playerCode } of await squadOf(ctx, team._id)) shown.add(playerCode);
   for (const { event } of await squadMovesSince(ctx, leagueId, seasonStartAt(now))) {
     if (!isSquadMove(event)) continue;
-    if (event.teamId === team._id || (event.kind === "playerMoved" && event.fromTeamId === team._id)) shown.add(event.playerCode);
+    if (event.teamId === team._id || movedOff(event, team._id)) shown.add(event.playerCode);
   }
   return shown;
 }

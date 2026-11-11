@@ -115,6 +115,10 @@ export function eventLetter(event: LeagueEvent, who: string, tell: TellMoment): 
       return { subject: `${event.teamName} claimed ${event.playerName}`, body: claimedBody(event, who) };
     case "playerPickedUp":
       return { subject: `${event.teamName} picked up ${event.playerName}`, body: pickedUpBody(event, who) };
+    case "playerTraded":
+    case "tradeMade":
+      // A trade's letters are its own (tradeLetterWords.ts), so its events are filed with none.
+      throw new Error(`A ${event.kind} event files no letter: the trade letter says it`);
     case "rulesChanged":
       return {
         subject: `The league's rules change from gameweek ${event.fromGameweek}`,

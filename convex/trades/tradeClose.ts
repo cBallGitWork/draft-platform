@@ -1,4 +1,5 @@
 import { v, type Infer } from "convex/values";
+import type { TradedSide } from "../schema/squads";
 import type { closedWhy } from "../schema/trades";
 import type { Doc, Id } from "../_generated/dataModel";
 import { internalMutation, type MutationCtx, type QueryCtx } from "../_generated/server";
@@ -71,9 +72,23 @@ export async function tradeWordsOf(ctx: QueryCtx, offer: TradeTerms): Promise<Tr
 
 /** A draft pick in a trade (#1096), as its letters name it: by the team whose pick it is. */
 export async function pickName(ctx: QueryCtx, pick: TradePick): Promise<string> {
+  const { round, teamName } = await namedPick(ctx, pick);
+  return pickWords(round, teamName);
+}
+
+/** A draft pick in a trade with the name of the team whose pick it is. */
+async function namedPick(ctx: QueryCtx, pick: TradePick) {
   const team = await ctx.db.get("teams", pick.teamId);
   if (team === null) throw new Error(`A trade offer names a pick of team ${pick.teamId}, which no longer exists`);
-  return pickWords(pick.round, team.name);
+  return { round: pick.round, teamId: pick.teamId, teamName: team.name };
+}
+
+/** One side of a trade as its `tradeMade` event names it (#1491): its players, and its pick, if any. */
+export async function tradedSideOf(ctx: QueryCtx, playerCodes: readonly number[], pick: TradePick | undefined): Promise<TradedSide> {
+  return {
+    players: await Promise.all(playerCodes.map(async (playerCode) => ({ playerCode, playerName: await tradedName(ctx, playerCode) }))),
+    picks: pick === undefined ? [] : [await namedPick(ctx, pick)],
+  };
 }
 
 /** Both teams' managers, by email: those a trade's own letters go to. */
