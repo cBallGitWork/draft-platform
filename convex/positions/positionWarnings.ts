@@ -110,8 +110,9 @@ export const warnOfAdminRemovalNow = internalMutation({
 
 /** Each team's players flagged or lost at a position, as the league's own deadlines judge them,
  *  and not yet told to his manager, are told now (those standing as he joined were kept as told
- *  then: `knownOnJoining`); a step that no longer stands, or a player gone from the team, is forgotten, so it is told again if it comes back. A league with no gameweek
- *  left to set a lineup for tells nothing. */
+ *  then: `knownOnJoining`); a step that no longer stands, or a player gone from the team, is
+ *  forgotten, so it is told again if it comes back. A league with no gameweek left to set a lineup
+ *  for tells nothing. */
 async function warnLeague(ctx: MutationCtx, league: Doc<"leagues">): Promise<void> {
   const schedule = await heldSchedule(ctx);
   const next = await saveGameweekOf(ctx, league._id, Date.now(), schedule);
