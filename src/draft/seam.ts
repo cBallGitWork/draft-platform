@@ -83,6 +83,7 @@ export type CommissionerChanges = {
   setPickTime(leagueId: Id<"leagues">, pickSeconds: number): Change;
   /** "I'll pick for" a team with no manager, or, with `marked` false, stop. */
   markForCommissioner(leagueId: Id<"leagues">, teamId: Id<"teams">, marked: boolean): Change;
-  /** The team on the clock, managed or not, takes the player with this code, filed as his. */
-  pickFor(leagueId: Id<"leagues">, playerCode: number): Change;
+  /** The team on the clock, managed or not, takes the player with this code, filed as his; refused
+   *  once `teamId` is no longer on the clock, so it never lands on the next team (#1477). */
+  pickFor(leagueId: Id<"leagues">, teamId: Id<"teams">, playerCode: number): Change;
 };

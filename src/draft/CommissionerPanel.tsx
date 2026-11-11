@@ -105,7 +105,7 @@ export function CommissionerPanel({
             paused={paused}
             pause={() => run(() => (paused ? changes.resume(leagueId) : changes.pause(leagueId)))}
             undo={() => run(() => changes.undo(leagueId))}
-            pickFor={(code) => void changing.run(() => changes.pickFor(leagueId, code)).then((made) => made && unselect())}
+            pickFor={(code) => void changing.run(() => changes.pickFor(leagueId, draft.onTheClock.teamId, code)).then((made) => made && unselect())}
           />
         )}
         <PickTime

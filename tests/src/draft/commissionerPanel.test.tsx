@@ -164,7 +164,7 @@ describe("while it runs", () => {
       const app = openAs(commissioner, { draft: liveDraft(), board: oneTaken, players: [RICE] });
       await select("Rice");
       await userEvent.click(await pickFor());
-      expect(app.draft.changes.pickFor).toHaveBeenCalledWith(league.leagueId, RICE.code);
+      expect(app.draft.changes.pickFor).toHaveBeenCalledWith(league.leagueId, draftOrder[1].teamId, RICE.code);
       expect(app.draft.changes.makePick).not.toHaveBeenCalled();
       expect(screen.queryByRole("button", { name: draftPlayerWords("Rice") })).toBeNull();
     });
@@ -173,7 +173,7 @@ describe("while it runs", () => {
       const app = openAs(commissioner, { draft: liveDraft(true), board: oneTaken, players: [RICE] });
       await select("Rice");
       await userEvent.click(await pickFor());
-      expect(app.draft.changes.pickFor).toHaveBeenCalledWith(league.leagueId, RICE.code);
+      expect(app.draft.changes.pickFor).toHaveBeenCalledWith(league.leagueId, draftOrder[1].teamId, RICE.code);
     });
 
     it("is greyed by the team on the clock's squad rules, not his own, saying why", async () => {

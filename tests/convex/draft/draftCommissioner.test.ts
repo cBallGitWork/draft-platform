@@ -4,6 +4,7 @@ import type { Id } from "../../../convex/_generated/dataModel";
 import { PICK_GAP_MS } from "../../../convex/draft/draftClock";
 import { commissionerRefusals } from "../../../convex/draft/draftCommissioner";
 import { pickTimeRefusals } from "../../../convex/draft/draftPickTime";
+import { pickRefusals } from "../../../convex/draft/draftPicks";
 import { refusals } from "../../../convex/shared/leagueAccess";
 import { SECOND_MS } from "../../../convex/shared/time";
 import { ARSENAL, insertClubs, insertPlayers, type HeldPlayer } from "../../support/convex/footballRows.harness";
@@ -34,7 +35,14 @@ const start = async () => (await as(COMMISSIONER)).mutation(api.draft.draftStart
 const pause = async () => (await as(COMMISSIONER)).mutation(api.draft.draftPause.pause, { leagueId });
 const resume = async () => (await as(COMMISSIONER)).mutation(api.draft.draftPause.resume, { leagueId });
 const pick = async (email: string, playerCode: number) => (await as(email)).mutation(api.draft.draftPicks.makePick, { leagueId, playerCode });
-const pickFor = async (playerCode: number, email = COMMISSIONER) => (await as(email)).mutation(api.draft.draftPicks.pickFor, { leagueId, playerCode });
+/** The commissioner picks for `teamId`, by default the team on the clock as the draft room shows it. */
+const pickFor = async (playerCode: number, email = COMMISSIONER, teamId?: Id<"teams">) =>
+  (await as(email)).mutation(api.draft.draftPicks.pickFor, { leagueId, teamId: teamId ?? (await onTheClock()), playerCode });
+const onTheClock = async () => {
+  const draft = await read();
+  if (draft?.status !== "live") throw new Error("No team is on the clock");
+  return draft.onTheClock.teamId;
+};
 const undo = async (email = COMMISSIONER) => (await as(email)).mutation(api.draft.draftCommissioner.undoPick, { leagueId });
 const setPickTime = async (pickSeconds: number, email = COMMISSIONER) =>
   (await as(email)).mutation(api.draft.draftCommissioner.setPickTime, { leagueId, pickSeconds });
@@ -216,6 +224,16 @@ describe("the commissioner's pick for a team", () => {
   test("is refused to anyone who doesn't run the league", async () => {
     await start();
     await expect(pickFor(P1, ANN)).rejects.toThrow(refusals.notRunner);
+  });
+
+  test("is refused, changing nothing, once the team he picks for has picked: it never lands on the next team (#1477)", async () => {
+    await start();
+    await pass(PICK_GAP_MS + PICK_MS);
+    const made = await picked();
+    expect(made).toHaveLength(1);
+    await expect(pickFor(P1, COMMISSIONER, teams[0])).rejects.toThrow(pickRefusals.alreadyPicked((await read())!.order![0].name));
+    expect(await picked()).toEqual(made);
+    expect(await read()).toMatchObject({ onTheClock: { pick: 2, teamId: teams[1] } });
   });
 });
 
