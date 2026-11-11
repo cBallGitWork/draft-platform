@@ -5,6 +5,7 @@ import { nextDeadline, type LeagueDeadlines } from "../gameweeks/deadline";
 import { tradeRulesOf } from "../rules/firstRules";
 import { rulesSinceBegun } from "../rules/rulesHistory";
 import { gameweekUnderWay, inUnplayedGameweek, latestBegun } from "../waivers/waiverLock";
+import type { TradesShut } from "./tradeShutWords";
 
 // When no trade is offered or accepted (spec/08 Trades; #383): while the league's draft is live,
 // when only its picks change squads (S08.7, Craig, 11 Nov 2026, #1482); once its trade deadline,
@@ -14,9 +15,6 @@ import { gameweekUnderWay, inUnplayedGameweek, latestBegun } from "../waivers/wa
 // "when its international break, we lock everything"). And no offer goes to or from a team on
 // the auto team (spec/09). The deadline is the one in force in the gameweek begun, never a change
 // still waiting for the next (#1473).
-
-/** Why trades are shut, or null while they are open. */
-export type TradesShut = "draftLive" | "tradeDeadline" | "unusedGameweek" | null;
 
 /** Why the league's trades are shut at `now`, if they are. */
 export async function tradesShut(ctx: QueryCtx, league: Doc<"leagues">, deadlines: LeagueDeadlines, now: number): Promise<TradesShut> {

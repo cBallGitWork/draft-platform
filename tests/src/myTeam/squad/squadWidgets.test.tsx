@@ -38,14 +38,14 @@ import { starsLabel } from "../../../../src/ui/StarRating";
 import { closeSelectedLabel as closeTacticsPanelLabel, ROLE_FIT_SUBJECT } from "../../../../src/myTeam/tactics/words";
 import { league } from "../../../support/src/shell.harness";
 import { openSquad, PALMER, RAYA, SAKA, squadOf, tacticsWith } from "../../../support/src/squadTab.harness";
+import { KEEPER_CELL } from "../../../support/convex/lineup.harness";
 
 const WINGER = { area: "attackingMidfield", lane: "right" } as const;
-const KEEPER = { area: "goalkeeper", lane: "centre" } as const;
 const players = [SAKA, PALMER, RAYA];
 /** Saka on the right wing and Raya in goal; Palmer on the bench. */
 const lineup = tacticsWith(players, [
   [SAKA, WINGER],
-  [RAYA, KEEPER],
+  [RAYA, KEEPER_CELL],
 ]);
 const openPanel = (name: string) => userEvent.click(screen.getByRole("button", { name: openPanelLabel(name) }));
 const panelOf = (name: string) => screen.getByRole("region", { name });
@@ -232,16 +232,16 @@ describe("Your eleven", () => {
   });
 
   it("names the formation when the eleven stand in one of the league's presets", async () => {
-    const preset = { name: "1-0-0-0-0-1", cells: [WINGER, KEEPER] };
+    const preset = { name: "1-0-0-0-0-1", cells: [WINGER, KEEPER_CELL] };
     openSquad({ squad: squadOf(players), tactics: { ...lineup, presets: [preset] } });
     const eleven = await screen.findByRole("region", { name: YOUR_ELEVEN_TITLE });
     expect(within(eleven).getByText(/^1-0-0-0-0-1, /)).toBeTruthy();
   });
 
   it("still names it with a starter gone from the squad, his slot left empty, as the matchup does (#1019)", async () => {
-    const preset = { name: "1-0-0-0-0-1", cells: [WINGER, KEEPER] };
+    const preset = { name: "1-0-0-0-0-1", cells: [WINGER, KEEPER_CELL] };
     const keeperGone = tacticsWith([SAKA, PALMER], [[SAKA, WINGER]]);
-    const tactics = { ...keeperGone, presets: [preset], lineup: { ...keeperGone.lineup, vacated: [{ playerCode: RAYA.code, ...KEEPER }] } };
+    const tactics = { ...keeperGone, presets: [preset], lineup: { ...keeperGone.lineup, vacated: [{ playerCode: RAYA.code, ...KEEPER_CELL }] } };
     openSquad({ squad: squadOf([SAKA, PALMER]), tactics });
     const eleven = await screen.findByRole("region", { name: YOUR_ELEVEN_TITLE });
     expect(within(eleven).getByText(/^1-0-0-0-0-1, /)).toBeTruthy();

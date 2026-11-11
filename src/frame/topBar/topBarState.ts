@@ -1,6 +1,6 @@
 import { unreadCount } from "../../mail/words";
 import { MAIL_PATH, MY_TEAM_PATH, TRADES_PATH } from "../menu";
-import { menuWords } from "../words";
+import { menuWords } from "../../shared/words";
 
 // What the top bar tells a signed-in manager: Mail's unread count, and where Continue goes.
 // Mail (#26) feeds the count (src/mail/liveMail.ts); the server says whether his lineup is due

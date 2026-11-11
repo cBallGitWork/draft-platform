@@ -35,6 +35,7 @@ import {
   rankHead,
   selectLabel,
   statsLabel,
+  takenWords,
   yourSquadHead,
   yourSquadWords,
 } from "../../../src/draft/words";
@@ -275,6 +276,15 @@ describe("the Draft button", () => {
     await open(SAKA.name);
     expect(draftButton(SAKA.name)).toHaveProperty("disabled", true);
     expect(screen.getByText(pausedPickWords)).toBeTruthy();
+  });
+
+  it("can't be pressed for a selected player another team has since drafted, saying which (#1560)", async () => {
+    // The list still holds the row Saka was selected from; the board has Team 1 taking him since.
+    const board = { ...emptyBoard, picks: [{ pick: 1, teamId: draftOrder[0].teamId, auto: false, player: { code: SAKA.code, name: SAKA.name, clubShortName: "ARS", position: "W" as const } }] };
+    openDraft({ draft: liveDraft(true), board });
+    await open(SAKA.name);
+    expect(draftButton(SAKA.name)).toHaveProperty("disabled", true);
+    expect(within(draftButton(SAKA.name)).getByText(takenWords(draftOrder[0].name))).toBeTruthy();
   });
 
   it("says why the server refused the pick", async () => {

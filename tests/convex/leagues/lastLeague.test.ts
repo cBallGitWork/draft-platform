@@ -4,7 +4,7 @@ import type { Id } from "../../../convex/_generated/dataModel";
 import { switchableLeagues } from "../../../convex/leagues/lastLeague";
 import { LEAGUES_SHOWN } from "../../../convex/leagues/leagueLimits";
 import { refusals } from "../../../convex/shared/leagueAccess";
-import { ADMIN, actingAs, CO_COMMISSIONER, COMMISSIONER, MANAGERS, addManagers, adminCreatesLeague, type TestConvex } from "../../support/convex/leagues.harness";
+import { ADMIN, accountOf, actingAs, CO_COMMISSIONER, COMMISSIONER, MANAGERS, addManagers, adminCreatesLeague, type TestConvex } from "../../support/convex/leagues.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
 import { expectRefused } from "../../support/convex/test.harness";
 
@@ -19,8 +19,7 @@ beforeEach(async () => {
   fakeResend();
 });
 
-const accountOf = async (email: string) => (await (await actingAs(t, email)).query(api.signIn.account.signedInAs, {}))!;
-const currentLeagueOf = async (email: string) => (await accountOf(email)).currentLeagueId;
+const currentLeagueOf = async (email: string) => (await accountOf(t, email)).currentLeagueId;
 const switchTo = async (email: string, leagueId: Id<"leagues">) =>
   (await actingAs(t, email)).mutation(api.leagues.lastLeague.switchTo, { leagueId });
 
@@ -149,7 +148,7 @@ test("the admin with no part in a league being deleted, which he sees, is told h
   const { first } = await annInTwoLeagues();
   await (await actingAs(t, COMMISSIONER)).mutation(api.leagues.leagueDeletion.deleteLeague, { leagueId: first });
 
-  expect((await accountOf(ADMIN)).leagues.map((league) => league.leagueId)).toContain(first);
+  expect((await accountOf(t, ADMIN)).leagues.map((league) => league.leagueId)).toContain(first);
   await expectRefused(switchTo(ADMIN, first), refusals.notInLeague);
 });
 
@@ -178,7 +177,7 @@ test("#207: the switcher's list is the server's, by the one rule that picks the 
     [ADMIN, [first, second, third], [second]],
   ];
   for (const [email, sees, switchable] of cases) {
-    const account = await accountOf(email);
+    const account = await accountOf(t, email);
     expect(account.leagues.map((league) => league.leagueId)).toEqual(sees);
     expect(account.switchableLeagueIds).toEqual(switchable);
     expect(account.switchableLeagueIds).toEqual(switchableLeagues(account.leagues).map((league) => league.leagueId));
@@ -195,7 +194,7 @@ test("#488: only a league the switcher lists is one to switch to, so one past th
     for (let copy = 1; copy <= LEAGUES_SHOWN; copy++) last = await ctx.db.insert("leagues", { ...row, name: `League ${copy}` });
     return last;
   });
-  const { leaguesCut, switchableLeagueIds, currentLeagueId } = await accountOf(COMMISSIONER);
+  const { leaguesCut, switchableLeagueIds, currentLeagueId } = await accountOf(t, COMMISSIONER);
   expect(leaguesCut).toBe(true);
   expect(switchableLeagueIds).toHaveLength(LEAGUES_SHOWN);
   expect(switchableLeagueIds).not.toContain(pastTheEnd);

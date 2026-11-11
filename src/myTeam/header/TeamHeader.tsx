@@ -102,7 +102,7 @@ function TeamMeters({ league, teamName, seam }: { league: LeagueSummary; teamNam
         </Meter>
       )}
       <Meter head={autoTeamHead}>
-        <AutoTeamSwitch league={league} seam={seam} firstGameweek={open?.gameweek ?? null} />
+        <AutoTeamSwitch league={league} seam={seam} />
       </Meter>
     </dl>
   );

@@ -3,7 +3,7 @@ import { v } from "convex/values";
 
 // Waivers (#1197, #1198; spec/08 Waivers and free agency): the players on waivers in a league, by
 // FPL's season-stable code, one row each at most. A player no team holds and with no row is a free
-// agent. The run (../waivers/waiverRun.ts) takes a row's player for his winning claim, or frees him.
+// agent. At each deadline every free agent goes back on waivers for the next run (#1478). The run (../waivers/waiverRun.ts) takes a row's player for his winning claim, or frees him.
 
 export const waiverTables = {
   waiverPlayers: defineTable({
@@ -40,6 +40,9 @@ export const waiverTables = {
     /** The scheduled moment of the league's last run made, never skipped: free agents are picked up
      *  only once one is made after the latest begun gameweek's deadline (#1199, the window). */
     madeAt: v.optional(v.number()),
+    /** The deadline whose free agents were last put back on waivers as the window shut (#1478),
+     *  so each deadline does it once. */
+    backOnWaivers: v.optional(v.number()),
   }).index("by_leagueId", ["leagueId"]),
   /** The order a league's waivers start from after its commissioner changed the order type, one row
    *  at most (#1200; Craig, 6 Nov 2026: "At once, from today's order"): the order that day, first

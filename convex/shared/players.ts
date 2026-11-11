@@ -74,6 +74,10 @@ export function playerByCode(ctx: QueryCtx, code: number): Promise<Doc<"players"
  *  (Craig, 31 Oct 2026, #323; spec/15 Assigning players). */
 export const unheldPlayerWords = (code: number) => `Error: player ${code} isn't in the football data.`;
 
+/** How a letter, a recap or a lineup's refusal names a man the football data has lost, who has no
+ *  name left to give. A screen's row for him shows `unheldPlayerWords` instead. */
+export const lostPlayerName = (code: number) => `Player ${code}`;
+
 /** The player with `code`. One the football sync doesn't hold is data gone wrong, and throws
  *  `missing`, which each caller words to say where the fault was met (the match, the shortlist).
  *  It goes to the log, never to a manager: a failed read shows the screen's own words

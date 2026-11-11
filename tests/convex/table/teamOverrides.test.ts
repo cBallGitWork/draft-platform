@@ -18,7 +18,7 @@ import {
   type ScoresLeague,
 } from "../../support/convex/gameweekScores.harness";
 import { fullTimeRecords, lockMatch, storeLeague } from "../../support/convex/gameweekScoresMatch.harness";
-import { actingAs, ADMIN, COMMISSIONER } from "../../support/convex/leagues.harness";
+import { actingAs, ADMIN, COMMISSIONER, teamName } from "../../support/convex/leagues.harness";
 import { HULL_EVERTON } from "../../support/convex/matchStats.harness";
 import { expectRefused } from "../../support/convex/test.harness";
 
@@ -60,7 +60,7 @@ async function everywhere(league: ScoresLeague) {
     matchup: [team.points, opponent.points],
   };
 }
-const teamNameOf = async ({ t, annsTeam }: ScoresLeague) => (await t.run((ctx) => ctx.db.get("teams", annsTeam)))!.name;
+const teamNameOf = ({ t, annsTeam }: ScoresLeague) => teamName(t, annsTeam);
 const lastLetter = async ({ t }: ScoresLeague) => (await t.run((ctx) => ctx.db.query("letters").collect())).at(-1)!;
 
 test("a team's override sets its gameweek total: the head-to-head, the table and the stored score follow, and the league is told why (S14.3)", async () => {

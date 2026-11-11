@@ -25,9 +25,8 @@ const draftIs = async (state: "notStarted" | "live") => {
   if (state === "live") await w.t.run((ctx) => ctx.db.insert("drafts", { leagueId: w.leagueId, started: { at: Date.now(), teamIds: w.teams, rounds: 15 } }));
 };
 
-const pickUp = async (email: string, playerCode: number) =>
-  (await actingAs(w.t, email)).mutation(api.waivers.freeAgents.pickUp, { leagueId: w.leagueId, playerCode, dropCode: null });
-const drop = async (email: string, playerCode: number) => (await actingAs(w.t, email)).mutation(api.waivers.waivers.drop, { leagueId: w.leagueId, playerCode });
+const pickUp = (email: string, playerCode: number) => w.pickUp(email, playerCode);
+const drop = (email: string, playerCode: number) => w.drop(email, playerCode);
 
 describe.each(["notStarted", "live"] as const)("with the draft %s", (state) => {
   beforeEach(() => draftIs(state));

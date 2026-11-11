@@ -2,14 +2,15 @@ import { beforeEach, describe, expect, test, vi } from "vitest";
 import { api } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
 import { recordPassedDeadlines } from "../../../convex/gameweeks/deadlineRecorder";
+import { seasonGameweeks } from "../../../convex/gameweeks/usedGameweeks";
 import { autoTeamLetters, autoTeamRefusals } from "../../../convex/lineup/autoTeamWords";
 import { lineupInGameweek } from "../../../convex/lineup/lineups";
 import type { Availability } from "../../../convex/availability/availability";
 import { WEEK_MS } from "../../../convex/shared/time";
 import { holdGameweeks } from "../../support/convex/leagueRules.harness";
-import { ADMIN, COMMISSIONER, MANAGERS, actingAs, addManager, addManagers, adminCreatesLeague, type TestConvex } from "../../support/convex/leagues.harness";
+import { ADMIN, COMMISSIONER, MANAGERS, actingAs, addManager, addManagers, adminCreatesLeague, lettersTo, teamName, type TestConvex } from "../../support/convex/leagues.harness";
 import { FIRST_SUB } from "../../support/convex/lineup.harness";
-import { FOUR_FOUR_TWO, holdSquad, passNextDeadline, squadMoves } from "../../support/convex/lineupSquad.harness";
+import { FOUR_FOUR_TWO, holdSquad, NEXT, passNextDeadline, squadMoves } from "../../support/convex/lineupSquad.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
 
 // The auto team (spec/09, The auto team; #1207): at each deadline it keeps the team's last lineup
@@ -19,7 +20,6 @@ import { fakeResend, signInDeployment } from "../../support/convex/signIn.harnes
 // handed on. Switching it files a letter (spec/16).
 
 const [ANN, BOB] = MANAGERS;
-const NEXT = 9;
 
 /** The 4-4-2's midfielders, each of whom the first bench player, a CM, can stand in for. */
 const [OUT_MIDFIELDER, DOUBTFUL_MIDFIELDER] = FOUR_FOUR_TWO.starters.filter(({ area }) => area === "midfield").map(({ playerCode }) => playerCode);
@@ -66,8 +66,7 @@ const passWeekOn = async () => {
 const startersIn = async (gameweek: number) => (await t.run((ctx) => lineupInGameweek(ctx, leagueId, annsTeam, gameweek))).starters.map(({ playerCode }) => playerCode);
 const benchIn = async (gameweek: number) => (await t.run((ctx) => lineupInGameweek(ctx, leagueId, annsTeam, gameweek))).bench;
 const switchOf = () => t.run(async (ctx) => (await ctx.db.get("teams", annsTeam))!.autoTeam ?? null);
-const lettersTo = (email: string) => t.run((ctx) => ctx.db.query("letters").withIndex("by_to_and_at", (q) => q.eq("to", email)).collect());
-const subjectsTo = async (email: string) => (await lettersTo(email)).map((letter) => letter.subject);
+const subjectsTo = async (email: string) => (await lettersTo(t, email)).map((letter) => letter.subject);
 
 describe("switched on by a person", () => {
   test("an out starter is swapped for the first bench player who fits, and a doubtful one is kept", async () => {
@@ -119,7 +118,7 @@ describe("switched on by a person", () => {
     const subjects = await subjectsTo(BOB);
     expect(subjects).toContain(`${name} is on the auto team`);
     expect(subjects).toContain(`${name} is off the auto team`);
-    const on = (await lettersTo(BOB)).find((letter) => letter.subject === `${name} is on the auto team`)!;
+    const on = (await lettersTo(t, BOB)).find((letter) => letter.subject === `${name} is on the auto team`)!;
     expect(on.body).toContain(`until after gameweek ${NEXT + 2}`);
   });
 });
@@ -137,11 +136,23 @@ describe("who may switch it", () => {
     await expect(switches(ANN, true, NEXT - 1)).rejects.toThrow(autoTeamRefusals.endsAfterOutOfRange(NEXT, 38));
   });
 
+  test("in a league that ends early, or unticked a gameweek, it ends after one the league plays (#1561)", async () => {
+    await t.run((ctx) => ctx.db.patch("leagues", leagueId, { unusedGameweeks: [NEXT + 1, 31, 32, 33, 34, 35, 36, 37, 38] }));
+    const outOfRange = autoTeamRefusals.endsAfterOutOfRange(NEXT, 30);
+    await expect(switches(ANN, true, 31)).rejects.toThrow(outOfRange);
+    await expect(switches(ANN, true, NEXT + 1)).rejects.toThrow(outOfRange);
+    await switches(ANN, true, 30);
+    expect(await switchOf()).toEqual({ by: ANN, endsAfter: 30 });
+  });
+
   test("its manager reads it on My team: off, then on until the gameweek named", async () => {
+    // With the gameweeks it may end after: those the league plays (#1561).
+    await t.run((ctx) => ctx.db.patch("leagues", leagueId, { unusedGameweeks: [NEXT + 1, 37, 38] }));
+    const endGameweeks = seasonGameweeks(38).filter((gameweek) => gameweek >= NEXT && gameweek !== NEXT + 1 && gameweek <= 36);
     const read = async () => (await actingAs(t, ANN)).query(api.lineup.autoTeam.ofMyTeam, { leagueId });
-    expect(await read()).toEqual({ teamId: annsTeam, on: false, endsAfter: null });
+    expect(await read()).toEqual({ teamId: annsTeam, on: false, endsAfter: null, endGameweeks });
     await switches(ANN, true, NEXT + 2);
-    expect(await read()).toEqual({ teamId: annsTeam, on: true, endsAfter: NEXT + 2 });
+    expect(await read()).toEqual({ teamId: annsTeam, on: true, endsAfter: NEXT + 2, endGameweeks });
   });
 
   test("it can't be switched on twice, nor off while off", async () => {
@@ -190,7 +201,7 @@ describe("a team with no manager", () => {
   });
 });
 
-const teamNameOf = () => t.run(async (ctx) => (await ctx.db.get("teams", annsTeam))!.name);
+const teamNameOf = () => teamName(t, annsTeam);
 
 describe("the team's instructions", () => {
   test("carry on into the lineup the auto team saves for a later gameweek: it only touches the lineup", async () => {

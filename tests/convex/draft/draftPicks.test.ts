@@ -6,9 +6,10 @@ import type { LeagueRules } from "../../../convex/rules/leagueRulesShape";
 import { squadRefusals } from "../../../convex/squads/squads";
 import { refusals } from "../../../convex/shared/leagueAccess";
 import { ARSENAL, CHELSEA, GONE, insertClubs, insertDroppedPlayer, insertPlayers, UNHELD, type HeldPlayer } from "../../support/convex/footballRows.harness";
-import { changeEveryRules, NO_AREA_MINIMUMS } from "../../support/convex/leagueRules.harness";
+import { changeEveryRules, holdGameweeks, NO_AREA_MINIMUMS } from "../../support/convex/leagueRules.harness";
 import { expectRefused } from "../../support/convex/test.harness";
-import { actingAs, addManagers, ADMIN, adminCreatesLeague, COMMISSIONER, eventsIn, MANAGERS, type TestConvex } from "../../support/convex/leagues.harness";
+import { draftSteps } from "../../support/convex/draft.harness";
+import { addManagers, ADMIN, adminCreatesLeague, COMMISSIONER, eventsIn, MANAGERS, type TestConvex } from "../../support/convex/leagues.harness";
 import { pickGapPasses } from "../../support/convex/pickWindow.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
 
@@ -39,14 +40,12 @@ const [A1, A2, A3, A4, A5, A6] = ARSENAL_MIDS.map(({ code }) => code);
 const setSquadRules = (squad: Partial<LeagueRules["squad"]>) =>
   changeEveryRules(t, leagueId, (rules) => ({ ...rules, squad: { size: { minimum: 1, maximum: 2 }, minimumByArea: null, maxPerClub: null, ...squad } }));
 
-const as = (email: string) => actingAs(t, email);
+const { as, read, start, pick: pickNow } = draftSteps(() => ({ t, leagueId }));
 /** `email` picks, and the pick's 10 seconds to undo it pass. */
 const pick = async (email: string, playerCode: number) => {
-  await (await as(email)).mutation(api.draft.draftPicks.makePick, { leagueId, playerCode });
+  await pickNow(email, playerCode);
   await pickGapPasses(t);
 };
-const read = async () => (await as(COMMISSIONER)).query(api.draft.draftStart.ofLeague, { leagueId });
-const start = async () => (await as(COMMISSIONER)).mutation(api.draft.draftStart.start, { leagueId });
 const squadsNow = async () =>
   (await (await as(COMMISSIONER)).query(api.squads.squads.squads, { leagueId })).map(({ teamId, players }) => ({ teamId, players: players.map(({ code, gone }) => ({ code, gone })) }));
 const [ANN, BOB, CAT] = MANAGERS;
@@ -91,6 +90,8 @@ describe("a full draft", () => {
 
   test("saves each team's lineup as its picks left it once the last pick is made, so a later squad change only joins the bench (#1040)", async () => {
     const lineupRows = () => t.run((ctx) => ctx.db.query("lineups").collect());
+    // A season to come, so there is a gameweek for the lineups to be saved from (#1618).
+    await holdGameweeks(t, { next: 1 });
     await start();
     const picks = [[ANN, A1], [BOB, A2], [CAT, A3], [CAT, A4], [BOB, A5]] as const;
     for (const [email, code] of picks) await pick(email, code);

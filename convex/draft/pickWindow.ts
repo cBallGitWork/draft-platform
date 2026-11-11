@@ -10,7 +10,8 @@ import { heldPlayerByCode } from "../shared/players";
 import { placeOf } from "../squads/squadPlace";
 import { clockedOf, scheduleAutoPick, startClock } from "./draftClock";
 import { tellDraftOver, tellScoringStartMoved, tellUpNext } from "./draftLetters";
-import { draftRulesNow, pickRefusals, pickSecondsNow } from "./draftPicks";
+import { draftRulesNow, pickSecondsNow } from "./draftPickTime";
+import { pickRefusals } from "./draftPicks";
 import { draftOf, lastPickIn, undoWindowOpen } from "./draftRow";
 
 // The 10 seconds after each pick (spec/04, The draft room; #1458). Every pick's next clock waits 10

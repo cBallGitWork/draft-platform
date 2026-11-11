@@ -85,5 +85,29 @@ export interface SportmonksPayloads {
   schedule: RawStage[];
 }
 
+/** How Sportmonks names a match's sides: a participant's `meta.location`, and a score's `participant`. */
+export const HOME = "home";
+export const AWAY = "away";
+
+/** Sportmonks' match state ids (a fixture's `state_id`), by their v3 names. */
+export const SM_STATE = {
+  notStarted: 1, // NS
+  firstHalf: 2, // INPLAY_1ST_HALF
+  halfTime: 3, // HT
+  breakBeforeExtraTime: 4, // BREAK
+  fullTime: 5, // FT
+  extraTime: 6, // INPLAY_ET
+  afterExtraTime: 7, // AET
+  afterPenalties: 8, // FT_PEN
+  penalties: 9, // INPLAY_PENALTIES
+  postponed: 10, // POSTPONED
+  toBeAnnounced: 13, // TBA
+  delayed: 16, // DELAYED
+  awarded: 17, // AWARDED
+  extraTimeBreak: 21, // EXTRA_TIME_BREAK
+  secondHalf: 22, // INPLAY_2ND_HALF
+  penaltyBreak: 25, // PEN_BREAK
+} as const;
+
 /** What a problem names the feed as. */
 export const SPORTMONKS = "Sportmonks";

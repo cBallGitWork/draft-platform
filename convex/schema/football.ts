@@ -170,6 +170,11 @@ export const footballTables = {
    *  sets them on his dashboard (spec/15). No row while none are set: the club's shirt and mark
    *  are white, and it waits in the dashboard's queue. */
   clubColours: defineTable(clubColoursRecord.extend({ code: v.number() })).index("by_code", ["code"]),
-  /** Each match's newest score, which feed gave it and when that read was made. */
-  matchScores: defineTable(scoreRead.extend({ feed: scoreFeed, readAt: v.number() })).index("by_fixtureCode", ["fixtureCode"]),
+  /** Each match's newest score, which feed gave it and when that read was made. `fullTimeAt`: when it
+   *  was first read at full time, kept while it stays there, so when a gameweek's last match ended
+   *  can be told afterwards (#1470); none for a match not at full time, or one already there before
+   *  it was kept. */
+  matchScores: defineTable(scoreRead.extend({ feed: scoreFeed, readAt: v.number(), fullTimeAt: v.optional(v.number()) })).index("by_fixtureCode", [
+    "fixtureCode",
+  ]),
 };

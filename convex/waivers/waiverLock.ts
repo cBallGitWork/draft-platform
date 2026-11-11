@@ -1,8 +1,15 @@
+import { v, type Infer } from "convex/values";
+import type { Id } from "../_generated/dataModel";
 import type { QueryCtx } from "../_generated/server";
 import { scoreOf } from "../football/matchScores";
 import { isLocked, type LeagueDeadlines } from "../gameweeks/deadline";
+import { leagueDeadlines } from "../gameweeks/leagueDeadlines";
+import { seasonGameweekCount } from "../gameweeks/seasonGameweeks";
 import { isGameweekUsed, type WithUnusedGameweeks } from "../gameweeks/usedGameweeks";
+import type { LeagueRules } from "../rules/leagueRulesShape";
+import { latestRules } from "../rules/rulesHistory";
 import { gameweekFixtures } from "../shared/fixtures";
+import { firstRunFrom } from "./waiverTimes";
 
 // The waiver lock (#1197, spec/08: "From the deadline until the gameweek's last match is over,
 // there are no claims, drops or free agent pickups"): from the league's own deadline for a
@@ -45,21 +52,71 @@ export function mayFallInLock(deadlines: LeagueDeadlines, underWay: number | nul
   return isLocked(deadlines.get(gameweek) ?? null, now) && gameweek !== underWay ? null : gameweek;
 }
 
+/** The gameweek under way at `now`, in the lock, or null outside it: `mayFallInLock`'s `underWay`. */
+export async function underWayIn(ctx: QueryCtx, deadlines: LeagueDeadlines, now: number): Promise<number | null> {
+  return (await inWaiverLock(ctx, deadlines, now)) ? latestBegun(deadlines, now) : null;
+}
+
+/** A waiver run still to come, with the gameweek whose lock it may fall in, and so may be skipped, or null
+ *  when it surely won't. */
+export const runAhead = v.object({ at: v.number(), skippedIf: v.union(v.number(), v.null()) });
+export type RunAhead = Infer<typeof runAhead>;
+
+/** The run that can first take a player a run may take from `claimableFrom` on, seen from `now`
+ *  (#1467): never one already gone, as a run that passed him by was skipped; null with no runs.
+ *  Where it may fall in a gameweek's lock, `skippedIf` names that gameweek: the run that takes him
+ *  is then the first after its last match, which isn't known ahead (Craig, 11 Nov 2026: "after
+ *  GW12's last match"), and every later run up to the next deadline is "may" too, so the claims
+ *  one run will try together share it. Pure. */
+export function firstRunTaking(runs: LeagueRules["waivers"]["runs"], deadlines: LeagueDeadlines, underWay: number | null, claimableFrom: number, now: number): RunAhead | null {
+  const at = firstRunFrom(runs, Math.max(claimableFrom, now));
+  return at === null ? null : { at, skippedIf: mayFallInLock(deadlines, underWay, now, at) };
+}
+
+/** `firstRunTaking` in the league at `now`, its runs, deadlines and lock read once. */
+export async function firstRunsIn(ctx: QueryCtx, leagueId: Id<"leagues">, now: number): Promise<(claimableFrom: number) => RunAhead | null> {
+  const runs = (await latestRules(ctx, leagueId)).waivers.runs;
+  const deadlines = await leagueDeadlines(ctx, leagueId);
+  const underWay = await underWayIn(ctx, deadlines, now);
+  return (claimableFrom) => firstRunTaking(runs, deadlines, underWay, claimableFrom, now);
+}
+
 /** Whether the league is at `now` in a gameweek it doesn't play, from that gameweek's deadline
  *  until its last match is over: spec/13, "Lineups, waivers, free agency and trades are locked
  *  through it". The waiver lock already covers that span for waivers and free agency; trades
  *  (../trades/tradeShut.ts) and lineup saves (../lineup/lineups.ts) read this. */
 export async function inUnplayedGameweek(ctx: QueryCtx, league: WithUnusedGameweeks, deadlines: LeagueDeadlines, now: number): Promise<boolean> {
   const gameweek = latestBegun(deadlines, now);
-  return gameweek !== null && !isGameweekUsed(league, gameweek) && (await gameweekUnderWay(ctx, gameweek));
+  return gameweek !== null && !isGameweekUsed(league, gameweek, await seasonGameweekCount(ctx)) && (await gameweekUnderWay(ctx, gameweek));
+}
+
+/** Whether the run at `at`, made at `now`, falls in the lock (Craig, 11 Nov 2026, #1470: "A run
+ *  made late keeps its own check on now, and is skipped if its time fell in the lock"): the league
+ *  is in the lock now, or the latest gameweek begun by `at` had a match not yet over at `at`. A
+ *  gameweek whose last match was at full time before when it ended was kept is taken as over. */
+export async function runInWaiverLock(ctx: QueryCtx, deadlines: LeagueDeadlines, now: number, at: number): Promise<boolean> {
+  if (await inWaiverLock(ctx, deadlines, now)) return true;
+  const gameweek = latestBegun(deadlines, at);
+  if (gameweek === null) return false;
+  const end = await gameweekEnd(ctx, gameweek);
+  return end.underWay || (end.endedAt !== null && end.endedAt > at);
 }
 
 /** Whether a gameweek has a match not yet at full time, or with no score read yet: it is under way
  *  once begun, until its last match is over. Trades read it too (../trades/tradeShut.ts). */
 export async function gameweekUnderWay(ctx: QueryCtx, gameweek: number): Promise<boolean> {
+  return (await gameweekEnd(ctx, gameweek)).underWay;
+}
+
+/** Whether the gameweek is under way, and once it isn't, when its last match was first read at
+ *  full time: null when one was there before that moment was kept (../football/matchScores.ts). */
+async function gameweekEnd(ctx: QueryCtx, gameweek: number): Promise<{ underWay: true } | { underWay: false; endedAt: number | null }> {
   const matches = await gameweekFixtures(ctx, gameweek, "the waiver lock can't tell whether its last match is over");
   const scores = await Promise.all(matches.map(({ code }) => scoreOf(ctx, code)));
-  return scores.some((score) => score?.state !== "fullTime");
+  const over = scores.flatMap((score) => (score?.state === "fullTime" ? [score.fullTimeAt ?? null] : []));
+  if (over.length < scores.length) return { underWay: true };
+  const kept = over.filter((at): at is number => at !== null);
+  return { underWay: false, endedAt: kept.length < over.length ? null : latestOf(kept) };
 }
 
 /** Whether a deadline of the league's passed after `from` and by `now`: once one has, a free agent

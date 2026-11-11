@@ -3,7 +3,7 @@ import { ColumnHeads } from "../../ui/ColumnHeads";
 import { byRun, clashOf } from "./claimGroups";
 import { Chip, claimCellClass, DropCell, GROUP_ROW, PlayerName } from "./ClaimCells";
 import type { PendingClaim, WaiversView } from "./seam";
-import { claimColumns, everyTeamTableLabel, noRunWords, runShort, teamGroupWords } from "./words";
+import { claimColumns, everyTeamTableLabel, firstRunShort, teamGroupWords } from "./words";
 
 // The commissioner's Every team view of the pending claims (#1200; 1440-commissioner.png): each
 // team with claims, in the waiver order, its claims by run and ranked in each, read-only (Craig,
@@ -40,7 +40,7 @@ export function EveryTeamTable({ claims, waivers }: { claims: readonly PendingCl
                   <th scope="row" className={claimCellClass("claim")}>
                     <PlayerName player={claim.claim} />
                   </th>
-                  <td className={claimCellClass("run")}>{claim.runAt === null ? noRunWords : runShort(claim.runAt)}</td>
+                  <td className={claimCellClass("run")}>{firstRunShort(claim.run)}</td>
                   <td className={claimCellClass("drop")}>
                     <DropCell drop={claim.drop} clash={clashOf(group, index)} />
                   </td>

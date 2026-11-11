@@ -148,6 +148,9 @@ Feature 4 of [SPEC.md](../SPEC.md). Only Craig's answers.
 - The queue and do-not-draft list are the team's, not one draft's: "teams" (Craig, 4 Nov 2026, on
   #1092). No player is on both: adding him to one takes him off the other ("ok"). Each holds at
   most 250 players: "250 limit for bigger drafts".
+- When a manager leaves or is removed, auto-pick keeps using both lists while the team has no
+  manager; a new manager taking the team starts with both empty and never sees the old ones
+  (Craig, 11 Nov 2026, on #1606: "Auto-pick only, then wiped"). `S04.15`
 - A manager can change his queue and do-not-draft list between picks once the draft has started. A
   drafted player stays listed but is skipped (Craig, 4 Nov 2026, on #1092).
 - The shortlist feeds the queue both ways: a shortlisted player added one at a time, and an "add my
@@ -201,6 +204,9 @@ Feature 4 of [SPEC.md](../SPEC.md). Only Craig's answers.
   - "The commissioner's pause, undo and pick-for each send a letter to the whole league. Resume
     sends none."
   - "When a start date comes and the draft can't start, the commissioner gets a letter."
+  - An undo or pick-for while the draft is paused sends the next manager's "you're up next" at
+    once, with no deadline: "You're up next. The draft is paused; your clock starts when it
+    resumes." Resume still sends none (Craig, 11 Nov 2026, on #1461: "Accept all"). `S04.14`
 
 ## The commissioner
 

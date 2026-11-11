@@ -5,14 +5,14 @@ import { errorMessage, outcomeOf } from "../shared/errors";
 import { codesByOpta, namedMen } from "../football/feedIds";
 import { fplSeason, readFplBootstrap } from "../football/fpl/fpl";
 import { readPlSeasons } from "../football/premierLeague/plSeasons";
-import { heldRow } from "./playerPositions";
+import { heldRow, patchRow } from "./playerPositions";
 import { warnEveryLeague } from "./positionWarnings";
 import { matchSlots, requireFixtureCode, type MatchSlot } from "../football/premierLeague/plMatch";
 import { START_WINDOW, type Start } from "./positions";
 import { labelPositions, placePosition } from "./positionTables";
 import { PL_FULL_TIME, readPlFixture, readPlFixtures, readPlSquad, type RawPlFixture, type RawPlSquadPlayer } from "../football/premierLeague/premierLeague";
 import { positionsSyncFields, startRecord, syncTrigger } from "../schema";
-import { BATCH_SIZE, LATEST_RUNS } from "../shared/syncRuns";
+import { BATCH_SIZE, latestRuns } from "../shared/syncRuns";
 import { emailIfFailed } from "../admin/feedFailureEmails";
 import { CRON_TRIGGER, scheduleHeartbeat } from "../heartbeats/heartbeat";
 import { londonHour } from "../shared/moments";
@@ -105,7 +105,7 @@ export const recordStarts = internalMutation({
     if (read !== null) return 0;
     for (const { playerCode, start } of starts) {
       const row = await heldRow(ctx, playerCode);
-      await ctx.db.patch("playerPositions", row._id, { starts: withStart(row.starts, start) });
+      await patchRow(ctx, row, { starts: withStart(row.starts, start) });
     }
     await ctx.db.insert("positionSheets", { fixtureCode });
     return starts.length;
@@ -140,7 +140,7 @@ export const recordLabels = internalMutation({
     for (const { code, plLabel } of labels) {
       const row = await heldRow(ctx, code);
       if (row.plLabel === plLabel) continue;
-      await ctx.db.patch("playerPositions", row._id, { plLabel });
+      await patchRow(ctx, row, { plLabel });
       changed += 1;
     }
     return changed;
@@ -159,11 +159,7 @@ export const record = internalMutation({
   },
 });
 
-export const latest = internalQuery({
-  args: {},
-  returns: v.array(v.object({ _id: v.id("positionsSyncs"), _creationTime: v.number(), ...positionsSyncFields })),
-  handler: async (ctx) => ctx.db.query("positionsSyncs").order("desc").take(LATEST_RUNS),
-});
+export const latest = latestRuns("positionsSyncs", positionsSyncFields);
 
 /** His newest `START_WINDOW` starts with `start` among them, newest first. */
 function withStart(starts: Start[], start: Start): Start[] {

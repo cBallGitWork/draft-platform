@@ -40,7 +40,7 @@ const player = (code: number, name: string, fullName: string, club: ListedPlayer
 
 /** One player on waivers, so the filter and the player card's claim show: a run two days off first
  *  takes him. */
-const onWaivers = (listed: ListedPlayer): ListedPlayer => ({ ...listed, onWaivers: { firstRunAt: Date.now() + 2 * DAY_MS } });
+const onWaivers = (listed: ListedPlayer): ListedPlayer => ({ ...listed, onWaivers: { firstRun: { at: Date.now() + 2 * DAY_MS, skippedIf: null } } });
 
 export const previewPlayers: readonly ListedPlayer[] = [
   player(1, "Saka", "Bukayo Saka", ARSENAL, ["W"], "Saka Potatoes"),

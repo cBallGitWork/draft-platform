@@ -52,8 +52,15 @@ describe("selecting a player", () => {
     const panel = panelOf("CDM");
     expect(within(panel).getByText("Rice")).toBeTruthy();
     expect(factIn(panel, panelSeasonPointsWords).textContent).toBe("42");
-    expect(factIn(panel, panelMinutesWords("season")).textContent).toBe("540");
+    expect(factIn(panel, panelMinutesWords("season", null)).textContent).toBe("540");
     expect(rowOf("Rice").getAttribute("aria-current")).toBe("true");
+  });
+
+  it("before the new season's first match, names his minutes by last season, as the list does (#1566)", async () => {
+    openScouting({ ...WITH_FIGURES, pointsSeason: 2025 });
+    await userEvent.click(await screen.findByRole("button", { name: selectPlayerLabel("Rice") }));
+    expect(panelMinutesWords("season", 2025)).toBe("Minutes in 25/26");
+    expect(factIn(panelOf("CDM"), panelMinutesWords("season", 2025)).textContent).toBe("540");
   });
 
   it("a player with no points yet reads '—', saying why", async () => {
@@ -99,7 +106,7 @@ describe("selecting a player", () => {
     const panel = panelOf("CDM");
     expect(within(panel).getByText("Saka Potatoes")).toBeTruthy();
     expect(within(panel).queryByText(freeAgentWords)).toBeNull();
-    expect(factIn(panel, panelMinutesWords("last4")).textContent).toBe("90");
+    expect(factIn(panel, panelMinutesWords("last4", null)).textContent).toBe("90");
   });
 
   it("after one who has left, the next selected shows while his list loads", async () => {
@@ -168,24 +175,25 @@ describe("his figures per 90", () => {
 describe("a pending claim on him", () => {
   const WED = Date.parse("2026-11-11T18:00:00Z");
   const THU = WED + 24 * 60 * 60 * 1000;
-  const claimOn = (id: string, { code, name, positions, club }: ListedPlayer, runAt: number, yours = true): PendingClaim => ({
+  const claimOn = (id: string, { code, name, positions, club }: ListedPlayer, at: number, yours = true): PendingClaim => ({
     claimId: id as Id<"waiverClaims">,
     teamId: id as unknown as Id<"teams">,
     teamName: yours ? "Kroos Control" : "Saka Potatoes",
     yours,
     claim: { playerCode: code, playerName: name, positions, club, seasonPoints: null },
     drop: null,
-    runAt,
+    run: { at, skippedIf: null },
   });
 
   it("says where it stands in its run, linking to My team's Transactions; another team's claim says nothing", async () => {
     const claims = [claimOn("c1", SAKA, THU), claimOn("c2", PALMER, WED), claimOn("c3", RICE, WED), claimOn("c4", SAKA, WED, false)];
     const app = await openOnAll({ ...HELD, claims });
     await userEvent.click(rowOf("Rice"));
-    expect(within(panelOf("CDM")).getByRole("link", { name: yourClaimWords(2, WED) })).toBeTruthy();
-    expect(yourClaimWords(2, WED)).toBe("Your claim 2, Wed run");
+    expect(within(panelOf("CDM")).getByRole("link", { name: yourClaimWords(2, { at: WED, skippedIf: null }) })).toBeTruthy();
+    expect(yourClaimWords(2, { at: WED, skippedIf: null })).toBe("Your claim 2, Wed run");
+    expect(yourClaimWords(2, { at: WED, skippedIf: 12 })).toBe("Your claim 2, run after GW12's last match");
     await userEvent.click(rowOf("Saka"));
-    await userEvent.click(within(panelOf("W")).getByRole("link", { name: yourClaimWords(1, THU) }));
+    await userEvent.click(within(panelOf("W")).getByRole("link", { name: yourClaimWords(1, { at: THU, skippedIf: null }) }));
     expect(app.path()).toBe(MY_TEAM_TRANSACTIONS_PATH);
   });
 

@@ -187,7 +187,7 @@ function teamScoring(held: HeldLineup, { set, rules }: Pick<GameweekInputs, "set
 /** One of his matches as his slot scored it: its points by category, and whether his slot's points
  *  count it, not his other match in a double gameweek that counts only his best (scoring.ts's
  *  countedMatches). */
-export interface ScoredInMatch {
+interface ScoredInMatch {
   match: HeldMatch;
   points: MatchPoints;
   counted: boolean;

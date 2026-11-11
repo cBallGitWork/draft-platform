@@ -44,8 +44,14 @@ agent: "keep waivers since its known for draft" (Craig asked; yes).
   deadline.
 - From the deadline until the gameweek's last match is over, there are no claims, drops or free
   agent pickups. A run that falls in that time is skipped.
+  - Only new claims are shut: a claim already in can still be withdrawn or re-ranked in that time
+    (Craig, 11 Nov 2026, #1590). `S08.14`
+- A run made late keeps its own check on now, and is skipped if its time fell in the lock (Craig,
+  11 Nov 2026, #1470). `S08.11`
 - A player nobody claims at a run is a free agent straight after it, first come first served, through
   the window.
+- A free agent nobody picks up goes back on waivers at the deadline, so the next run hands him out
+  by the waiver order like any dropped player (Craig, 11 Nov 2026, #1478). `S08.13`
 - Picking up a free agent with a full squad names who goes, and both happen at once: "think of it
   like a trade with the waiver bin" (being dropped).
 - Churning is stopped: a free agent picked up and dropped before the next deadline goes straight
@@ -101,6 +107,9 @@ From `/grill trades` (25 Oct 2026).
   the whole league; one that clears review files the usual trade letter (`spec/16`; 31 Oct 2026).
 - Under a veto, a trade the commissioner is in goes to the co-commissioner, or to a league vote
   if there is none (31 Oct 2026).
+- When the commissioner or co-commissioner changes during a review, whoever holds the role now
+  reviews the trade: he gets the review letter with Block in it and sees it in To review, the one
+  who left can't block it, and the 24 hours don't restart (Craig, 11 Nov 2026, #1472). `S08.12`
 - While a team is on the auto team (`spec/09`), no offer goes to or from it, and its open offers
   close when the auto team switches on; a trade already accepted and in review finishes it. Its
   manager doesn't vote: "most of them" is most of the managers still playing (31 Oct 2026).

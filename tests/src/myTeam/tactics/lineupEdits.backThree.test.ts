@@ -3,12 +3,12 @@
 // in his new slot, and a back three keeps him on it.
 
 import { describe, expect, it } from "vitest";
-import { DEFAULT_PRESETS } from "../../../../convex/lineup/presets";
 import { positionOfSlot } from "../../../../convex/lineup/pitch";
 import type { RatingsOf } from "../../../../src/myTeam/tactics/lineupEdits";
 import { reshaped } from "../../../../src/myTeam/tactics/reshape";
+import { presetNamed } from "../../../support/convex/lineup.harness";
 
-const cellsOf = (name: string) => DEFAULT_PRESETS.find((preset) => preset.name === name)!.cells;
+const cellsOf = (name: string) => presetNamed(name).cells;
 const PLAYS = { positionsOf: (playerCode: number) => (playerCode === 1 ? (["GK"] as const) : (["CB"] as const)) };
 const LIBERO_BEST: RatingsOf = () => [
   { area: "defence", role: "libero", stars: 5 },

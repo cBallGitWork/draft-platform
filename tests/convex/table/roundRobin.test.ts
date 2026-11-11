@@ -1,6 +1,7 @@
 import { describe, expect, test } from "vitest";
 import { gamesInAGameweek, LEAGUE_AVERAGE, ODD_TEAM_OUTS, roundOrder, roundsInARoundRobin, roundsOf, seededRandom } from "../../../convex/table/roundRobin";
-import { SEASON_GAMEWEEKS } from "../../../convex/gameweeks/usedGameweeks";
+import { seasonGameweeks } from "../../../convex/gameweeks/usedGameweeks";
+import { PL_GAMEWEEKS } from "../../support/convex/footballRows.harness";
 import {
   drawn,
   leftOverIn,
@@ -59,7 +60,7 @@ test.each(TEAM_COUNTS)("%i teams: one round robin, a game a gameweek, has every 
   const teams = teamsOf(count);
   const rounds = roundsOf(teams).length;
   expect(rounds).toBe(count % 2 === 0 ? count - 1 : count);
-  const schedule = drawn(teams, SEASON_GAMEWEEKS.slice(0, rounds), options({ oddTeamOut: "bye" }));
+  const schedule = drawn(teams, seasonGameweeks(PL_GAMEWEEKS).slice(0, rounds), options({ oddTeamOut: "bye" }));
   const meetings = schedule.flatMap(({ fixtures }) => fixtures.map(({ team, opponent }) => pairKey(team, opponent as string)));
   expect(meetings).toHaveLength(new Set(meetings).size);
   expect(meetings).toHaveLength((count * (count - 1)) / 2);
@@ -83,7 +84,7 @@ describe("games a gameweek", () => {
   });
 
   test("with two, each team meets two different opponents every gameweek", () => {
-    for (const gameweek of drawn(teamsOf(6), SEASON_GAMEWEEKS, options({ gamesPerGameweek: 2 }))) {
+    for (const gameweek of drawn(teamsOf(6), seasonGameweeks(PL_GAMEWEEKS), options({ gamesPerGameweek: 2 }))) {
       for (const opponents of opponentsIn(gameweek).values()) expect(new Set(opponents).size).toBe(2);
     }
   });
@@ -129,7 +130,7 @@ describe("the order", () => {
   });
 
   test("is the same from the same seed, and differs from another", () => {
-    const draw = (seed: string) => drawn(teamsOf(8), SEASON_GAMEWEEKS, options({ seed }));
+    const draw = (seed: string) => drawn(teamsOf(8), seasonGameweeks(PL_GAMEWEEKS), options({ seed }));
     expect(draw("league-a")).toEqual(draw("league-a"));
     expect(draw("league-a")).not.toEqual(draw("league-b"));
   });
@@ -144,7 +145,7 @@ describe("the order", () => {
 
 test("an unplayed gameweek has no fixtures, and the rounds it would have had move on to the next one played", () => {
   const withBreak = drawn(teamsOf(4), WITH_GAPS, options());
-  const straight = drawn(teamsOf(4), SEASON_GAMEWEEKS, options());
+  const straight = drawn(teamsOf(4), seasonGameweeks(PL_GAMEWEEKS), options());
   expect(withBreak.map((each) => each.gameweek)).toEqual(WITH_GAPS);
   expect(withBreak.find((each) => each.gameweek === 20)?.fixtures).toEqual(straight[16].fixtures);
 });
@@ -158,5 +159,5 @@ test("the team left over has a bye, or plays the league's average, as the league
 });
 
 test.each([0, 1])("%i teams have no one to play, so no fixtures", (count) => {
-  expect(drawn(teamsOf(count), SEASON_GAMEWEEKS, options())).toEqual([]);
+  expect(drawn(teamsOf(count), seasonGameweeks(PL_GAMEWEEKS), options())).toEqual([]);
 });

@@ -6,7 +6,7 @@ import { Choice } from "../../ui/Choice";
 import { ColumnHeads } from "../../ui/ColumnHeads";
 import { Panel, PanelNote } from "../../ui/Panel";
 import { figureWords, noFigureWords } from "../words";
-import { byRun, clashOf, movedOnto } from "./claimGroups";
+import { byRun, clashOf, groupOf, movedOnto } from "./claimGroups";
 import { Chip, claimCellClass, DropCell, GROUP_ROW, PlayerName } from "./ClaimCells";
 import { EveryTeamTable } from "./EveryTeamTable";
 import type { PendingClaim, WaiversView } from "./seam";
@@ -35,8 +35,9 @@ import {
 // The Transactions tab's pending claims (#1200; the waivers picture, 1440.png): the manager's own,
 // grouped by run and ranked within each, a row's handle dragging it within its run; a click on a
 // row selects it, its panel opening on the right (ClaimPanel.tsx). The commissioner switches to
-// every team's (EveryTeamTable.tsx). While claims are closed, the panel says so in a word and the
-// handles go (the README's Not drawn).
+// every team's (EveryTeamTable.tsx). While claims are closed, the panel says so in a word; in the
+// lock the handles stay, since a claim in can still be ranked or withdrawn, only new ones shut
+// (Craig, 11 Nov 2026, on #1590), and before the draft is over they go (the README's Not drawn).
 
 const MINE_COLUMNS = ["handle", "rank", "positions", "claim", "points", "drop"] as const;
 
@@ -45,6 +46,12 @@ export function closedWords(waivers: WaiversView | undefined): string | null {
   if (!waivers) return null;
   if (!waivers.drafted) return claimsNotOpenWords;
   return waivers.locked ? claimsClosedWords : null;
+}
+
+/** Whether a claim in can be ranked again or withdrawn: in the lock too, only new claims and a
+ *  change of drop being shut (Craig, 11 Nov 2026, on #1590). */
+export function canRank(waivers: WaiversView | undefined): boolean {
+  return waivers?.drafted !== false;
 }
 
 export function ClaimsPanel({
@@ -90,7 +97,7 @@ export function ClaimsPanel({
       ) : mine.length === 0 ? (
         <PanelNote>{noClaimsWords}</PanelNote>
       ) : (
-        <MineTable claims={mine} open={closed === null} busy={busy} selected={selected} onSelect={onSelect} onReorder={onReorder} />
+        <MineTable claims={mine} rankable={canRank(waivers)} busy={busy} selected={selected} onSelect={onSelect} onReorder={onReorder} />
       )}
       <p className="px-3 py-2">
         <Link to={SCOUTING_PATH} className="inline-flex min-h-tap items-center lg:min-h-0">
@@ -103,21 +110,21 @@ export function ClaimsPanel({
 
 function MineTable({
   claims,
-  open,
+  rankable,
   busy,
   selected,
   onSelect,
   onReorder,
 }: {
   claims: readonly PendingClaim[];
-  open: boolean;
+  rankable: boolean;
   busy: boolean;
   selected: Id<"waiverClaims"> | null;
   onSelect(claimId: Id<"waiverClaims">): void;
   onReorder(claimIds: Id<"waiverClaims">[]): void;
 }) {
   const [dragging, setDragging] = useState<Id<"waiverClaims"> | null>(null);
-  const shown = open ? MINE_COLUMNS : MINE_COLUMNS.filter((column) => column !== "handle");
+  const shown = rankable ? MINE_COLUMNS : MINE_COLUMNS.filter((column) => column !== "handle");
   function dropOnto(targetId: Id<"waiverClaims">) {
     const ids = dragging === null || busy ? null : movedOnto(claims, dragging, targetId);
     setDragging(null);
@@ -127,10 +134,10 @@ function MineTable({
     <table aria-label={claimsTableLabel} className="w-full border-collapse">
       <ColumnHeads columns={claimColumns} shown={shown} classOf={claimCellClass} />
       {byRun(claims).map((group) => (
-        <tbody key={group.runAt ?? "none"}>
+        <tbody key={groupOf(group)}>
           <tr className={GROUP_ROW}>
             <th scope="rowgroup" colSpan={shown.length} className="px-3 py-1 text-left">
-              <span className="font-semibold text-lead">{runGroupWords(group.runAt)}</span> <span className="text-soft">{claimsInWords(group.claims.length)}</span>
+              <span className="font-semibold text-lead">{runGroupWords(group.run)}</span> <span className="text-soft">{claimsInWords(group.claims.length)}</span>
             </th>
           </tr>
           {group.claims.map((claim, index) => (
@@ -138,11 +145,11 @@ function MineTable({
               key={claim.claimId}
               aria-current={selected === claim.claimId || undefined}
               onClick={() => onSelect(claim.claimId)}
-              onDragOver={open ? (event) => event.preventDefault() : undefined}
-              onDrop={open ? () => dropOnto(claim.claimId) : undefined}
+              onDragOver={rankable ? (event) => event.preventDefault() : undefined}
+              onDrop={rankable ? () => dropOnto(claim.claimId) : undefined}
               className="cursor-pointer border-t border-panel-rule aria-current:bg-name-plate aria-current:shadow-current-edge"
             >
-              {open && (
+              {rankable && (
                 <td className={claimCellClass("handle")}>
                   <span
                     draggable={!busy}

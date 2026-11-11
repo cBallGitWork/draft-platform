@@ -21,8 +21,9 @@ import { pickOnTheClock } from "./snakeOrder";
 export const PICK_GAP_MS = 10 * SECOND_MS;
 
 /** The pick a clock was started for: its number and round, its team, when its clock starts and
- *  runs out, and `atOnce` when the draft picks for the team as it starts (`picksAtClockStart`). */
-export type Clocked = { pick: number; round: number; team: Doc<"teams">; startsAt: number; endsAt: number; atOnce: boolean };
+ *  runs out, `atOnce` when the draft picks for the team as it starts (`picksAtClockStart`), and
+ *  `paused` when the draft is paused, so the clock waits for the commissioner to resume. */
+export type Clocked = { pick: number; round: number; team: Doc<"teams">; startsAt: number; endsAt: number; atOnce: boolean; paused: boolean };
 
 /** How a clock starts besides its time: `fullClock` for a pick the commissioner's undo put back,
  *  which the draft makes only when its clock runs out; `pausedAt` for one put on the clock while
@@ -65,7 +66,7 @@ export async function startClock(
   } else {
     await scheduleAutoPick(ctx, draft, clock, team);
   }
-  return { pick: turn.pick, round: turn.round, team, startsAt, endsAt, atOnce: picksAtClockStart(draft, clock, team) };
+  return { pick: turn.pick, round: turn.round, team, startsAt, endsAt, atOnce: picksAtClockStart(draft, clock, team), paused: paused !== undefined };
 }
 
 /** A draft's pick clock, as its row holds it. */
@@ -78,7 +79,8 @@ export async function clockedOf(ctx: MutationCtx, draft: Doc<"drafts">, clock: C
   if (!turn) throw new Error(`League ${draft.leagueId}'s clock holds pick ${clock.pick}, which its draft doesn't have`);
   const team = await ctx.db.get("teams", turn.team);
   if (team === null) throw new Error(`League ${draft.leagueId}'s draft names team ${turn.team}, which doesn't exist`);
-  return { pick: turn.pick, round: turn.round, team, startsAt: clock.startsAt, endsAt: clock.endsAt, atOnce: picksAtClockStart(draft, clock, team) };
+  const { startsAt, endsAt } = clock;
+  return { pick: turn.pick, round: turn.round, team, startsAt, endsAt, atOnce: picksAtClockStart(draft, clock, team), paused: clock.paused !== undefined };
 }
 
 /** When the draft picks for `team`, whose pick is `clock`'s: as the clock starts for a team it picks

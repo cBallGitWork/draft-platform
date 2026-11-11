@@ -1,5 +1,5 @@
 import { v, type Infer } from "convex/values";
-import { clubRecord } from "../schema/football";
+import { clubRecord } from "../schema";
 import { roleLine, roleLineOf } from "../scoring/breakdownShape";
 import { categoryName } from "../scoring/categories";
 import { scoreMatch } from "../scoring/scoring";

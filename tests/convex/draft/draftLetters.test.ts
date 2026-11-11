@@ -9,11 +9,11 @@ import { dayOf, EMAILS_PER_DAY } from "../../../convex/outbound/emailLimit";
 import { momentIn } from "../../../convex/shared/moments";
 import { letterAsRead } from "../../../convex/mail/letterMoments";
 import { DAY_MS, SECOND_MS } from "../../../convex/shared/time";
-import { ARSENAL, insertClubs, insertPlayers, type HeldPlayer } from "../../support/convex/footballRows.harness";
-import { changeEveryRules, HELD_FIRST_RULES, holdGameweeks, setPickSeconds as setPickSecondsOf } from "../../support/convex/leagueRules.harness";
-import { actingAs, addManagers, adminCreatesLeague, COMMISSIONER, MANAGERS, type TestConvex } from "../../support/convex/leagues.harness";
+import { draftSteps, midfielder } from "../../support/convex/draft.harness";
+import { ARSENAL, insertClubs, insertPlayers } from "../../support/convex/footballRows.harness";
+import { changeEveryRules, HELD_FIRST_RULES, holdGameweeks } from "../../support/convex/leagueRules.harness";
+import { addManagers, adminCreatesLeague, COMMISSIONER, MANAGERS, type TestConvex } from "../../support/convex/leagues.harness";
 import { fakeResend, signInDeployment, type SentEmail } from "../../support/convex/signIn.harness";
-import { clockRunsTo } from "../../support/convex/test.harness";
 
 // The draft's letters (spec/04, Mail; #1102), Craig's "Up next + draft over" (4 Nov 2026): the
 // manager whose pick's clock starts is told he is up next, by email too when the clock is over 10
@@ -25,18 +25,13 @@ let leagueId: Id<"leagues">;
 let teams: Id<"teams">[];
 let sent: SentEmail[];
 
-const player = (code: number): HeldPlayer => ({ code, name: `Player ${code}`, fullName: `Player ${code}`, clubCode: ARSENAL.code, positions: ["CM"] });
-const MIDS = [101, 102, 103, 104].map(player);
+const MIDS = [101, 102, 103, 104].map((code) => midfielder(code));
 const [A1, A2, A3, A4] = MIDS.map(({ code }) => code);
 const PICK_MS = HELD_FIRST_RULES.draft!.pickSeconds * SECOND_MS;
 const [ANN, BOB] = MANAGERS;
 const UP_NEXT = "You're up next in the draft";
 
-const as = (email: string) => actingAs(t, email);
-const start = async () => (await as(COMMISSIONER)).mutation(api.draft.draftStart.start, { leagueId });
-const pick = async (email: string, playerCode: number) => (await as(email)).mutation(api.draft.draftPicks.makePick, { leagueId, playerCode });
-const pause = async () => (await as(COMMISSIONER)).mutation(api.draft.draftPause.pause, { leagueId });
-const resume = async () => (await as(COMMISSIONER)).mutation(api.draft.draftPause.resume, { leagueId });
+const { as, start, pick, pause, resume, pass, setPickSeconds, setSquadSize } = draftSteps(() => ({ t, leagueId }));
 const letters = () =>
   t.run(async (ctx) =>
     (await ctx.db.query("letters").collect()).map((row) => ({ to: row.to, ...letterAsRead(row, undefined), read: row.readAt !== undefined })),
@@ -45,8 +40,6 @@ const letters = () =>
 const lettersSince = async (before: number) => (await letters()).slice(before);
 /** The up-next emails sent, leaving out the harness's sign-in links. */
 const upNextEmails = () => sent.filter(({ subject }) => subject === UP_NEXT);
-/** The clock moves on `ms`, and every job scheduled by then runs. */
-const pass = (ms: number) => clockRunsTo(t, Date.now() + ms);
 
 beforeEach(async () => {
   t = await signInDeployment();
@@ -57,7 +50,7 @@ beforeEach(async () => {
     await insertClubs(ctx, [ARSENAL]);
     await insertPlayers(ctx, MIDS);
   });
-  await changeEveryRules(t, leagueId, (rules) => ({ ...rules, squad: { size: { minimum: 1, maximum: 2 }, minimumByArea: null, maxPerClub: null } }));
+  await setSquadSize(2);
 });
 
 describe("you're up next", () => {
@@ -114,7 +107,7 @@ describe("you're up next", () => {
 
   // Craig, 11 Nov 2026, on #1485: when the draft picks for him at once there is nothing for him to do.
   test("goes to no one, by letter or email, whose manager chose auto-pick, as his pick is made at once", async () => {
-    await setPickSecondsOf(t, leagueId, UP_NEXT_EMAIL_OVER_MS / SECOND_MS + 1);
+    await setPickSeconds(UP_NEXT_EMAIL_OVER_MS / SECOND_MS + 1);
     await (await as(ANN)).mutation(api.draft.autoPickSwitch.turnOn, { leagueId });
     await start();
     await pass(0);
@@ -138,7 +131,7 @@ describe("you're up next", () => {
 
 describe("the email", () => {
   test("isn't sent for a clock of 10 minutes or less", async () => {
-    await setPickSecondsOf(t, leagueId, UP_NEXT_EMAIL_OVER_MS / SECOND_MS);
+    await setPickSeconds(UP_NEXT_EMAIL_OVER_MS / SECOND_MS);
     await start();
     await pass(0);
 
@@ -147,7 +140,7 @@ describe("the email", () => {
 
   test("goes with the letter's words for a clock over 10 minutes", async () => {
     const pickSeconds = UP_NEXT_EMAIL_OVER_MS / SECOND_MS + 1;
-    await setPickSecondsOf(t, leagueId, pickSeconds);
+    await setPickSeconds(pickSeconds);
     const now = Date.now();
     await start();
     await pass(0);
@@ -162,7 +155,7 @@ describe("the email", () => {
   });
 
   test("isn't sent once the day's emails are gone, and is logged; the letter still goes", async () => {
-    await setPickSecondsOf(t, leagueId, UP_NEXT_EMAIL_OVER_MS / SECOND_MS + 1);
+    await setPickSeconds(UP_NEXT_EMAIL_OVER_MS / SECOND_MS + 1);
     await as(COMMISSIONER);
     await t.run(async (ctx) => {
       const today = await ctx.db.query("emailSends").withIndex("by_day", (q) => q.eq("day", dayOf(Date.now()))).unique();
@@ -235,6 +228,45 @@ describe("a pause", () => {
     const afterPause = (await letters()).length;
     await resume();
     expect(await lettersSince(afterPause)).toEqual([]);
+  });
+});
+
+// Craig, 11 Nov 2026, on #1461: told at once, with no deadline, as his clock starts on resume.
+describe("you're up next while the draft is paused (Craig, 11 Nov 2026, on #1461, S04.14)", () => {
+  const PAUSED_ANN = "Team 1 is up next: round 1, pick 1. The draft is paused; your clock starts when it resumes.";
+  const undo = async () => (await as(COMMISSIONER)).mutation(api.draft.draftCommissioner.undoPick, { leagueId });
+  const pickFor = async (teamId: Id<"teams">, playerCode: number) =>
+    (await as(COMMISSIONER)).mutation(api.draft.draftPicks.pickFor, { leagueId, teamId, playerCode });
+
+  test("after the commissioner's undo, goes by letter and email with no deadline, and resuming sends no other", async () => {
+    await setPickSeconds(UP_NEXT_EMAIL_OVER_MS / SECOND_MS + 1);
+    await start();
+    await pick(ANN, A1);
+    await pass(PICK_GAP_MS);
+    await pause();
+    const [before, emailsBefore] = [(await letters()).length, upNextEmails().length];
+    await undo();
+    await pass(0);
+
+    expect((await lettersSince(before)).filter(({ subject }) => subject === UP_NEXT)).toEqual([{ to: ANN, subject: UP_NEXT, body: PAUSED_ANN, read: false }]);
+    expect(upNextEmails().slice(emailsBefore)).toMatchObject([{ to: ANN, subject: UP_NEXT, text: PAUSED_ANN }]);
+
+    const afterUndo = (await letters()).length;
+    await resume();
+    await pass(0);
+    expect(await lettersSince(afterUndo)).toEqual([]);
+    expect(upNextEmails().slice(emailsBefore)).toHaveLength(1);
+  });
+
+  test("after the commissioner's pick for a team, goes to the next manager with no deadline", async () => {
+    await start();
+    await pause();
+    const before = (await letters()).length;
+    await pickFor(teams[0], A1);
+
+    expect((await lettersSince(before)).filter(({ subject }) => subject === UP_NEXT)).toEqual([
+      { to: BOB, subject: UP_NEXT, body: "Team 2 is up next: round 1, pick 2. The draft is paused; your clock starts when it resumes.", read: false },
+    ]);
   });
 });
 

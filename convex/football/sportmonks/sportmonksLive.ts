@@ -4,7 +4,7 @@ import { internalAction, internalMutation, internalQuery, type ActionCtx, type Q
 import { errorMessage, logFailure } from "../../shared/errors";
 import { withHeartbeat } from "../../heartbeats/heartbeat";
 import { emailIfFailed } from "../../admin/feedFailureEmails";
-import { LIVE_WINDOW_MS } from "../../stats/liveStats";
+import { LIVE_WINDOW_MS } from "../../shared/dueMatches";
 import { scoreRead, sideRunFields, sportmonksEvent, sportmonksLineupMan, sportmonksTickFields, type sideMatchOutcome } from "../../schema";
 import { getData, liveFixturesUrl, MULTI_FIXTURES_MAX, sportmonksToken } from "./sportmonks";
 import { mapSportmonksMatch } from "./sportmonksMatch";

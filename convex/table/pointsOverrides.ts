@@ -7,7 +7,7 @@ import { seasonRules } from "../rules/rulesHistory";
 import { inTenths } from "../scoring/values";
 import { fixtureByCode } from "../shared/fixtures";
 import { refuse, refusals, runnerOf, teamsOf } from "../shared/leagueAccess";
-import { clubByCode, playerByCode } from "../shared/players";
+import { clubByCode, lostPlayerName, playerByCode } from "../shared/players";
 import { figureWords } from "../shared/numberWords";
 import { typedText } from "../shared/typedText";
 import { rescoreGameweek } from "./finalScores";
@@ -56,9 +56,6 @@ export function checkPoints(points: number, most: number, outOfRange: string, wh
   if (Math.abs(points) > most) refuse(outOfRange);
   if (wholePointsOnly && !Number.isInteger(points)) refuse(overrideRefusals.notWhole);
 }
-
-/** How a letter names a man the football data has lost, who has no name left to give. */
-export const lostPlayerName = (code: number) => `Player ${code}`;
 
 /** The league's commissioner, co-commissioner or the admin sets the player's points in the match. */
 export const override = mutation({

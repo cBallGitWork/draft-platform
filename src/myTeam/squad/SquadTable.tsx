@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import type { Position } from "../../../convex/positions/positionTables";
+import { KEEPER_POSITION } from "../../../convex/lineup/pitch";
 import type { SeasonStats } from "../../../convex/squads/teamSquad";
 import { ClubMark, ClubShort } from "../../ui/ClubName";
 import { cellClassOf, ColumnHeads } from "../../ui/ColumnHeads";
@@ -20,8 +20,6 @@ const STATS: readonly Stat[] = ["appearances", "minutes", "goals", "assists", "c
 const COLUMNS: readonly Column[] = ["number", "positions", "player", "season", "last", ...STATS, "next"];
 /** Words on the left; every other column on the right, Next 3 too, as the picture has it. */
 const WORDS: readonly Column[] = ["positions", "player"];
-/** Saves are a keeper's: an outfield player's cell stays empty. */
-const KEEPER = "GK" satisfies Position;
 
 /** The squad's cells: the data's 20px line with 4px above and below, a 28px row on the desk
  *  (plate.md, Decided). */
@@ -164,7 +162,8 @@ export function PlayerCell({ className, player, starts, marks, isSelected, onSel
 }
 
 function StatCell({ className, stat, player }: { className: string; stat: Stat; player: Row }) {
-  if (stat === "saves" && !player.positions.includes(KEEPER)) return <td className={className} />;
+  // Saves are a keeper's: an outfield player's cell stays empty.
+  if (stat === "saves" && !player.positions.includes(KEEPER_POSITION)) return <td className={className} />;
   if (player.stats === null) {
     return (
       <td className={className}>
