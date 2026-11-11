@@ -146,7 +146,7 @@ export function OfferPanel({
                 {acceptWords}
               </button>
             )}
-            {open && offer.picks === null && (
+            {open && (
               <Link
                 {...counterLink(offer.offerId)}
                 className="secondary-action"

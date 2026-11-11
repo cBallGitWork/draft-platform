@@ -108,6 +108,9 @@ describe("a pick swap", () => {
       { round: 2, teamId: ann, held: false },
     ]);
     const { offerId } = await offerPicks(ANN, bob, pickOf(ann, 1), pickOf(bob, 2));
+    // The open offer carries its picks for a counter to start with (#1471).
+    const open = await (await as(BOB)).query(api.trades.tradeScreen.ofMyTeam, { leagueId, now: Date.now() });
+    expect(open.offers[0].pickTerms).toEqual({ gives: pickOf(ann, 1), gets: pickOf(bob, 2) });
     await accept(BOB, offerId);
     const inReview = await picksOn(CAT);
     expect(inReview.get(ann)?.[0]).toEqual({ round: 1, teamId: ann, held: true });

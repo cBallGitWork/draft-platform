@@ -119,10 +119,7 @@ function NewOffer({
   const [partnerId, setPartnerId] = useState<Id<"teams"> | null>(
     start?.teamId ?? partners[0]?.teamId ?? null,
   );
-  const ticks = useOfferTicks({
-    gives: start?.gives ?? [],
-    gets: start?.gets ?? [],
-  });
+  const ticks = useOfferTicks(start ?? { gives: [], gets: [] });
   const [note, setNote] = useState("");
   const [busy, setBusy] = useState(false);
   const [problem, setProblem] = useState<string | null>(null);

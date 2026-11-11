@@ -176,6 +176,20 @@ describe("an offer to you", () => {
     expect(app.search()).toContain("counter=offer-1");
   });
 
+  it("is countered when it is a pick offer too (#1471)", async () => {
+    openOffers(
+      withOffers(
+        screenOffer({
+          gives: [],
+          gets: [],
+          picks: { gives: "Team 2's round 2 pick", gets: "Team 1's round 3 pick" },
+          pickTerms: { gives: { round: 2, teamId: THEIR_TEAM }, gets: { round: 3, teamId: MY_TEAM } },
+        }),
+      ),
+    );
+    expect(await screen.findByRole("link", { name: counterWords })).toBeTruthy();
+  });
+
   it("warns of a limit it would push your squad past", async () => {
     openOffers(
       withOffers(
