@@ -15,7 +15,20 @@ export interface RawPlayer {
   detailedposition?: RawPosition | null;
 }
 export interface RawSquadMan { player_id: number; player?: RawPlayer | null }
-export interface RawTeam { id: number; name: string; short_code: string | null; players?: RawSquadMan[] }
+/** What keeps a man out (#1420): an injury or a suspension, its `type` naming it ("Hamstring
+ *  Injury", "Red Card Suspension"). `end_date` is the expected return where Sportmonks sends one;
+ *  `completed` is true once he is back. */
+export interface RawSideline {
+  id: number;
+  player_id: number;
+  /** "injury" or "suspension", as Sportmonks' docs give it. */
+  category?: string | null;
+  /** "2026-11-22". */
+  end_date?: string | null;
+  completed?: boolean | null;
+  type?: { id: number; name: string } | null;
+}
+export interface RawTeam { id: number; name: string; short_code: string | null; players?: RawSquadMan[]; sidelined?: RawSideline[] }
 export interface RawParticipant { id: number; meta?: { location?: string } }
 export interface RawScore { description: string; score: { goals: number; participant: string } }
 export interface RawPeriod { ticking?: boolean; minutes?: number | null }

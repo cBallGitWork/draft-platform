@@ -12,7 +12,7 @@ import { readEach } from "../scoreReads";
 import type { gameweekRecord, sportmonksCompetition } from "../../schema";
 import { SECOND_MS } from "../../shared/time";
 import { smScoreRead } from "./sportmonksMatch";
-import { SPORTMONKS, type RawFixture, type RawLeague, type RawRound, type RawSeason, type RawStage, type RawTeam, type SportmonksPayloads } from "./sportmonksRaw";
+import { SPORTMONKS, type RawFixture, type RawLeague, type RawRound, type RawSeason, type RawSideline, type RawStage, type RawTeam, type SportmonksPayloads } from "./sportmonksRaw";
 
 /** The deployment's setting holding Sportmonks' API token. Unset, nothing reads Sportmonks. */
 export const SPORTMONKS_TOKEN_ENV = "SPORTMONKS_API_TOKEN";
@@ -33,8 +33,9 @@ export const MULTI_FIXTURES_MAX = 50;
 /** What a live read asks for with each match: its score, clock, lineups, each man's stats and the
  *  events timeline, all in one call. */
 const LIVE_INCLUDES = "participants;scores;periods;lineups.details;events";
-/** What a squad read asks for with each man: himself. */
-const SQUAD_INCLUDES = "players.player";
+/** What a squad read asks for: each man himself, and the club's men out injured or suspended,
+ *  each named by its type (#1420). */
+const SQUAD_INCLUDES = "players.player;sidelined.type";
 /** What the positions read asks for with each squad man: himself, with Sportmonks' positions for him. */
 export const POSITIONS_SQUAD_INCLUDES = "players.player.position;players.player.detailedPosition";
 /** What the positions read asks for with each played match: each side's formation and where each
@@ -139,11 +140,12 @@ export function mapSportmonks({ league, teams, schedule }: SportmonksPayloads): 
   if (teams.length === 0) throw new Error(`${SPORTMONKS} sent no clubs`);
   const clubs = teams.map((team) => ({ code: team.id, name: team.name, shortName: shortNameOf(team) }));
   const players = new Map<number, Football["players"][number]>();
+  const out = openSidelines(teams);
   for (const team of teams) {
     for (const man of team.players ?? []) {
       if (!man.player) throw new Error(`${SPORTMONKS} sent squad man ${man.player_id} of club ${team.id} with no player`);
       const { id, name, display_name, common_name } = man.player;
-      players.set(id, { code: id, name: display_name ?? common_name ?? name, fullName: name, clubCode: team.id });
+      players.set(id, { code: id, name: display_name ?? common_name ?? name, fullName: name, clubCode: team.id, ...availabilityOf(out.get(id)) });
     }
   }
   // By round number: after the Scottish split two stages each hold a round 34, one gameweek here.
@@ -170,6 +172,46 @@ export function mapSportmonks({ league, teams, schedule }: SportmonksPayloads): 
     betweenSeasons: fixtures.length === 0,
     scores: readEach(matches, (match) => match.id, smScoreRead),
   };
+}
+
+/** Each man's open injury or suspension, by his Sportmonks id: of two, the one ending last, one
+ *  with no return date counting as last. A finished one (`completed`) keeps no one out, and one
+ *  with `completed` unsent counts as open. One for a man in no club's squad is kept here but never
+ *  read, since only squad men become players: he has no row for it to mark. */
+function openSidelines(teams: RawTeam[]): Map<number, RawSideline> {
+  const open = new Map<number, RawSideline>();
+  for (const sideline of teams.flatMap((team) => team.sidelined ?? [])) {
+    if (sideline.completed === true) continue;
+    const held = open.get(sideline.player_id);
+    if (held === undefined || endsLater(sideline, held)) open.set(sideline.player_id, sideline);
+  }
+  return open;
+}
+
+function endsLater(one: RawSideline, other: RawSideline): boolean {
+  if (!other.end_date) return false;
+  return !one.end_date || one.end_date > other.end_date;
+}
+
+const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+
+/** A man's availability from his open injury or suspension: out, its name and his expected return
+ *  where Sportmonks sends one in `news`, "Hamstring Injury - Expected back 22 Nov" as FPL words
+ *  it; with none, available. Nothing is doubtful: Sportmonks sends no doubts (Craig, 10 Nov 2026,
+ *  on #1420: "Injured or banned = out"). The admin's setting over it is read apart (spec/06). */
+function availabilityOf(sideline: RawSideline | undefined): Pick<Football["players"][number], "availability" | "news"> {
+  if (sideline === undefined) return { availability: "available", news: "" };
+  const reason = sideline.type?.name ?? sideline.category;
+  if (!reason) throw new Error(`${SPORTMONKS} sent sideline ${sideline.id} of player ${sideline.player_id} with no type or category`);
+  return { availability: "out", news: sideline.end_date ? `${reason} - Expected back ${dayMonth(sideline.end_date)}` : reason };
+}
+
+/** "2026-11-22" as "22 Nov". */
+function dayMonth(date: string): string {
+  const [, monthText, dayText] = /^\d{4}-(\d{2})-(\d{2})/.exec(date) ?? [];
+  const month = MONTHS[Number(monthText) - 1];
+  if (month === undefined || dayText === undefined) throw new Error(`${SPORTMONKS} sent sideline end date ${JSON.stringify(date)}`);
+  return `${Number(dayText)} ${month}`;
 }
 
 function roundNumber(round: RawRound): number {
