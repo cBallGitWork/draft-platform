@@ -1,7 +1,7 @@
 // Trades' New offer tab (#383; docs/design/approved/trades/1440-new.png): both squads with ticks,
 // the team to trade with picked in Their squad's plate (no team on the auto team), a player held in
 // a trade under review greyed and not tickable, the offer summed up with a one-line note, and Send
-// offer, which goes back to Offers once made. Counter opens it filled with the offer it answers.
+// offer, which goes back to Offers once made. A counter's start is in counter.test.tsx.
 
 import { screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
@@ -17,7 +17,6 @@ import {
   pickTickLabel,
   pickWords,
   viaWords,
-  sendCounterWords,
   sendOfferWords,
   squadTableLabel,
   tickLabel,
@@ -31,7 +30,6 @@ import {
   quietTrades,
   RICE,
   SAKA,
-  screenOffer,
   screenTeam,
   THEIR_TEAM,
   type TradesData,
@@ -259,32 +257,5 @@ describe("from a player card's Offer a trade (#1027)", () => {
     fromCard("team-gone", WISSA.code);
     expect((await screen.findByRole<HTMLSelectElement>("combobox", { name: partnerLabel })).value).toBe(THEIR_TEAM);
     expect(screen.getAllByRole<HTMLInputElement>("checkbox").every((box) => !box.checked)).toBe(true);
-  });
-});
-
-describe("a counter", () => {
-  it("is filled with the offer it answers, its team fixed, and sent as a counter", async () => {
-    const app = openNewOffer(
-      { view: { ...quietTrades, offers: [screenOffer()] } },
-      `${TRADES_NEW_PATH}?counter=offer-1`,
-    );
-    const picker = await screen.findByRole<HTMLSelectElement>("combobox", {
-      name: partnerLabel,
-    });
-    expect(picker.disabled).toBe(true);
-    expect(
-      screen.getByRole<HTMLInputElement>("checkbox", {
-        name: tickLabel(SAKA.name),
-      }).checked,
-    ).toBe(true);
-    await tick("Team 2", JAMES.name);
-    await userEvent.click(
-      screen.getByRole("button", { name: sendCounterWords }),
-    );
-    expect(app.trades.counter).toHaveBeenCalledWith(
-      league.leagueId,
-      "offer-1",
-      { gives: [SAKA.code], gets: [PALMER.code, JAMES.code], note: null },
-    );
   });
 });
