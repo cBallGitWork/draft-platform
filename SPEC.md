@@ -82,6 +82,9 @@ One file per feature in [spec/](spec/); this page is the index. A feature's stat
   rankings, title race and season phases, lineups in, Manager of the Month, rivalries, records
   board, honours board, the season's end book, AI voices (spec/12).
 - **A trade block**: players a manager will listen to offers for, shown to the league (spec/08).
+- **Wanted ads**: a manager posts what he's after ("a defensive midfielder who starts") and other
+  managers offer players to fill it (Craig, 1 Nov 2026: "ads we do need at some point"; 11 Nov
+  2026: "wanted can be later, a nice to have"; spec/08; https://trello.com/c/3ICri3eQ).
 - **Scouting searches**: a scout sent to find a kind of player ("a CAM under 25"), not only one
   player (spec/19).
 - **Saved views** on Scouting's players list (spec/19).
