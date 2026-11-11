@@ -55,7 +55,7 @@ agent: "keep waivers since its known for draft" (Craig asked; yes).
 - A player new to the Premier League mid-season goes on waivers for the next run, as players nobody
   drafts do by default (`spec/04`). A player who comes back to the Premier League mid-season counts
   as new, whenever he left, so every league's managers get the same fair chance at him (Craig,
-  11 Nov 2026, #1489). `S08.7`
+  11 Nov 2026, #1489). `S08.8`
 - A claim that would break the squad's limits is refused at the run.
 - A manager sees only his own pending claims; the commissioner sees everyone's. The league gets a
   Mail letter for each claim that succeeds, who came in and who went; a failed claim's letter goes
@@ -84,6 +84,10 @@ From `/grill trades` (25 Oct 2026).
   points with the old team.
 - A trade deadline is a league setting, off by default: no trades after a gameweek the
   commissioner picks.
+- An offer made during the trade deadline's gameweek closes once that gameweek's last match is
+  over, when trades stop (Craig, 6 Nov 2026, #383). That time isn't known ahead, so the screen and
+  the offer's letter say it in words, such as "After GW20's last match" (Craig, 11 Nov 2026,
+  #1492). `S08.9`
 - No player trades until the draft is over: while it is live, mid-season drafts included, no offer
   is made or accepted, as free agency and the commissioner's moves wait for it (Craig, 11 Nov
   2026, #1482). `S08.7`

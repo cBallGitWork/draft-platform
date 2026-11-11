@@ -2,7 +2,6 @@ import { v, type Infer } from "convex/values";
 import type { Doc, Id } from "../_generated/dataModel";
 import { query, type QueryCtx } from "../_generated/server";
 import { leagueDeadlines } from "../gameweeks/leagueDeadlines";
-import { nextDeadline, type LeagueDeadlines } from "../gameweeks/deadline";
 import { positionsNow, type PositionsNow } from "../positions/playerPositions";
 import { positionRank } from "../positions/positionTables";
 import { latestRules } from "../rules/rulesHistory";
@@ -16,7 +15,7 @@ import { newlyBroken } from "../waivers/waiverRun";
 import { leagueOffers, pickName } from "./tradeClose";
 import { pickHolders, tradablePick } from "./tradePicks";
 import { reviewerOf } from "./tradeReview";
-import { onAutoTeam, tradeDeadlineInForce, tradesShut } from "./tradeShut";
+import { offerCloses, onAutoTeam, tradeDeadlineInForce, tradesShut } from "./tradeShut";
 import { tradePick } from "../schema/trades";
 
 // The Trades screen's read (#383; spec/12 Trades, its approved picture docs/design/approved/trades):
@@ -132,20 +131,6 @@ export async function termsShown(
             gets: await pickName(ctx, offer.picks.gets),
           },
   };
-}
-
-/** When an open offer made at `madeAt` closes unanswered: at the next deadline (spec/08), unless
- *  trades shut first, once the trade deadline's gameweek's last match is over (Craig, 6 Nov 2026,
- *  on #383), which has no time known ahead (Craig, 11 Nov 2026, on #1492). Pure. */
-export function offerCloses(
-  deadlines: LeagueDeadlines,
-  madeAt: number,
-  tradeDeadline: number | null,
-): { gameweek: number; at: number | null } | null {
-  const next = nextDeadline(deadlines, madeAt);
-  if (next === null || tradeDeadline === null || next.gameweek <= tradeDeadline)
-    return next;
-  return { gameweek: tradeDeadline, at: null };
 }
 
 /** Who reviews the offer under `review`, as the screen names them. */

@@ -14,7 +14,7 @@ import { startReview } from "./tradeReview";
 import { tradeWarnings } from "./tradeSquads";
 import { NOTE_MOST } from "./tradeLimits";
 import { checkPicks, checkPicksFree, type TradePicks } from "./tradePicks";
-import { onAutoTeam, tradesShut } from "./tradeShut";
+import { offerCloses, onAutoTeam, tradeDeadlineInForce, tradesShut } from "./tradeShut";
 
 // A trade's offer (spec/08 Trades; #383): a manager offers another any mix of players on either
 // side, in any numbers, with a one-line note. The other manager accepts, rejects or counters with
@@ -123,7 +123,10 @@ async function makeOffer(
   const warnings = await tradeWarnings(ctx, league._id, offer);
   const offerId = await ctx.db.insert("tradeOffers", offer);
   const words = await tradeWordsOf(ctx, offer);
-  await fileLetter(ctx, league, [to.managerEmail, by].filter((email) => email !== undefined), offerLetter(words, by, countered), by);
+  const deadlines = await leagueDeadlines(ctx, league._id);
+  const closes = offerCloses(deadlines, now, await tradeDeadlineInForce(ctx, league._id, deadlines, now));
+  const lastMatchOf = closes !== null && closes.at === null ? closes.gameweek : null;
+  await fileLetter(ctx, league, [to.managerEmail, by].filter((email) => email !== undefined), offerLetter(words, by, countered, lastMatchOf), by);
   return { offerId, warnings };
 }
 
