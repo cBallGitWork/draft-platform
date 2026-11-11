@@ -40,7 +40,7 @@ export type MyTeamData = TacticsData & {
 };
 
 /** A league's waivers with nobody's claims open to doubt: drafted, out of the lock, no runs. */
-export const NO_WAIVERS: WaiversView = { type: "reverseStandings", teams: [], drafted: true, runs: [], locked: false, windowOpen: false, nextDeadline: null };
+export const NO_WAIVERS: WaiversView = { type: "reverseStandings", teams: [], drafted: true, runs: [], locked: false, windowOpen: false, nextDeadline: null, resetsAfter: null };
 
 export function fakeMyTeam({
   fixtures = { teamId: MY_TEAM_ID, teamName: "Team 1", format: "headToHead", games: [], unscored: [] },

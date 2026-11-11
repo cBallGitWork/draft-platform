@@ -80,11 +80,12 @@ export const WAIVER_ORDER_TITLE = "Waiver order";
 export const waiverOrderWords: Record<WaiverOrderType, string> = { reverseStandings: "Reverse table order", rotating: "Rotating" };
 /** A team's line in the waiver order: "8th in the table," then its points. */
 export const tablePlaceWords = (place: number) => `${placeWords(place)} in the table, `;
-/** Under the waiver order: how it works now, the next deadline's gameweek naming when it resets. */
-export const waiverOrderNote = (type: WaiverOrderType, nextGameweek: number | null) =>
+/** Under the waiver order: how it works now, naming the gameweek whose end resets it (the one under
+ *  way in the lock, else the next deadline's). */
+export const waiverOrderNote = (type: WaiverOrderType, resetsAfter: number | null) =>
   type === "rotating"
     ? "Whoever last won a claim drops to the bottom, and it never resets."
-    : `The bottom of the table claims first. A team that wins a claim drops to the bottom until ${nextGameweek === null ? "the gameweek" : `GW${nextGameweek}`} ends, when the order is worked out again. Teams level on points go by the table's tie-breaks.`;
+    : `The bottom of the table claims first. A team that wins a claim drops to the bottom until ${resetsAfter === null ? "the gameweek" : `GW${resetsAfter}`} ends, when the order is worked out again. Teams level on points go by the table's tie-breaks.`;
 export const waiverOrderLoadingWords = "Loading the waiver order…";
 
 export const RUNS_TITLE = "Runs";

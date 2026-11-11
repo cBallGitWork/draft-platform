@@ -5,6 +5,7 @@ import { refusals } from "../../../convex/shared/leagueAccess";
 import { changeEveryRules, HELD_FIRST_RULES, rulesInGameweek, rulesRevision } from "../../support/convex/leagueRules.harness";
 import { actingAs, COMMISSIONER, eventsIn } from "../../support/convex/leagues.harness";
 import { expectRefused } from "../../support/convex/test.harness";
+import { passNextDeadline } from "../../support/convex/lineupSquad.harness";
 import { ANN, BOB, NEXT, SAKA, waiverLeague, type WaiverLeague } from "../../support/convex/waivers.harness";
 
 // League settings' Waivers tab (#1200; spec/03, spec/08): the waiver order's type and the runs,
@@ -78,7 +79,34 @@ describe("the waiver order", () => {
     expect(view?.runs[0]).toBeLessThan(view!.runs[1]);
   });
 
-  test("a change of type applies at once, from today's order, and under reverse table order the table orders it again once a gameweek begins", async () => {
+  test("from the deadline until the gameweek's last match is over, a winner stays at the bottom and the table is the one the last gameweek ended on (#1480)", async () => {
+    await w.onWaivers([SAKA]);
+    await w.claim(BOB, SAKA);
+    await w.runWaivers();
+    const bobLast = [...w.teams.toReversed().filter((team) => team !== w.bobsTeam), w.bobsTeam];
+    expect(await order()).toEqual(bobLast);
+
+    // Gameweek NEXT begins with Cat bottom of it so far: neither the scores nor the deadline move
+    // the order while it is under way.
+    await passNextDeadline(w.t);
+    await w.t.run(async (ctx) => {
+      for (const teamId of w.teams) {
+        const points = teamId === w.catsTeam ? 10 : 50;
+        await ctx.db.insert("finalScores", { leagueId: w.leagueId, gameweek: NEXT, teamId, points, fixtureCodes: [NEXT], storedAt: Date.now() });
+      }
+    });
+    const view = await (await actingAs(w.t, BOB)).query(api.waivers.waiverOrder.ofLeague, { leagueId: w.leagueId, now: Date.now() });
+    expect(view?.locked).toBe(true);
+    expect(view?.resetsAfter).toBe(NEXT);
+    expect(view?.teams.map(({ teamId }) => teamId)).toEqual(bobLast);
+    expect(view?.teams.every(({ points }) => points === 0)).toBe(true);
+
+    // Its last match over, the order is worked out again from the table it ended on: Cat first.
+    await w.matchIs(NEXT, "fullTime");
+    expect(await order()).toEqual([w.catsTeam, ...w.teams.toReversed().filter((team) => team !== w.catsTeam)]);
+  });
+
+  test("a change of type applies at once, from today's order, and under reverse table order the table orders it again once a gameweek ends", async () => {
     await changeEveryRules(w.t, w.leagueId, (rules) => ({ ...rules, waivers: { ...rules.waivers, order: "rotating" } }));
     await w.onWaivers([SAKA]);
     await w.claim(BOB, SAKA);
@@ -89,7 +117,7 @@ describe("the waiver order", () => {
     expect(await order()).toEqual(bobLast);
 
     await changeWaivers({ ...HELD_FIRST_RULES.waivers, order: "reverseStandings" });
-    // Reverse table order would put Bob back above Ann, as a gameweek has begun since he won.
+    // Reverse table order would put Bob back above Ann, as a gameweek has ended since he won.
     expect(await order()).toEqual(bobLast);
 
     await w.gameweekEnds(NEXT + 1);

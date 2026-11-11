@@ -6,12 +6,25 @@ import { gameweekFixtures } from "../shared/fixtures";
 
 // The waiver lock (#1197, spec/08: "From the deadline until the gameweek's last match is over,
 // there are no claims, drops or free agent pickups"): from the league's own deadline for a
-// gameweek until every match the feed still sends in it is at full time.
+// gameweek until every match the feed still sends in it is at full time. And when a gameweek ends,
+// which the waiver order reads.
 
 /** The latest gameweek the league has begun by `now`, or null before its first deadline. */
 export function latestBegun(deadlines: LeagueDeadlines, now: number): number | null {
-  const begun = [...deadlines].flatMap(([gameweek, deadline]) => (isLocked(deadline, now) ? [gameweek] : []));
-  return begun.length === 0 ? null : Math.max(...begun);
+  return latestOf(begunBy(deadlines, now));
+}
+
+const begunBy = (deadlines: LeagueDeadlines, now: number) => [...deadlines].flatMap(([gameweek, deadline]) => (isLocked(deadline, now) ? [gameweek] : []));
+const latestOf = (gameweeks: readonly number[]) => (gameweeks.length === 0 ? null : Math.max(...gameweeks));
+
+/** The latest gameweek the league has seen end by `now`: the latest begun once its last match is
+ *  over, and the one begun before it while it is under way; null before any has. Reverse table
+ *  order's waiver order is worked out again only then (spec/08, ./waiverOrder.ts). */
+export async function latestEnded(ctx: QueryCtx, deadlines: LeagueDeadlines, now: number): Promise<number | null> {
+  const begun = begunBy(deadlines, now);
+  const latest = latestOf(begun);
+  if (latest === null || !(await gameweekUnderWay(ctx, latest))) return latest;
+  return latestOf(begun.filter((gameweek) => gameweek < latest));
 }
 
 /** Whether the league is in the waiver lock at `now`: its latest begun gameweek has a match not yet
