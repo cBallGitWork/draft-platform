@@ -7,7 +7,7 @@ import { beforeEach, describe, expect, test, vi } from "vitest";
 import { api, internal } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
 import { pickFirstLineupAgain, lineupInGameweek } from "../../../convex/lineup/lineups";
-import { positionLetter } from "../../../convex/positions/positionWarnings";
+import { MOST_WARNINGS_A_TEAM, positionLetter } from "../../../convex/positions/positionWarnings";
 import type { Start } from "../../../convex/positions/positions";
 import { DAY_MS, HOUR_MS, WEEK_MS } from "../../../convex/shared/time";
 import { holdGameweeks } from "../../support/convex/leagueRules.harness";
@@ -201,6 +201,20 @@ describe("each league warned in a step of its own (#1545)", () => {
 
     await elapse(t, 0);
 
+    expect(await lettersTo(ANN)).toEqual([]);
+  });
+
+  test("a team holding more warnings than any squad can throws rather than tell its manager twice (#1761)", async () => {
+    await barnesOn(annsTeam, movedToFullBack(3));
+    await t.run(async (ctx) => {
+      for (let n = 0; n <= MOST_WARNINGS_A_TEAM; n++) {
+        await ctx.db.insert("positionWarnings", { teamId: annsTeam, playerCode: BARNES.code + 1 + n, position: "ST", step: "flagged" });
+      }
+    });
+
+    await expect(t.mutation(internal.positions.positionWarnings.warnLeagueSoon, { leagueId })).rejects.toThrow(
+      `more than ${MOST_WARNINGS_A_TEAM} position warnings`,
+    );
     expect(await lettersTo(ANN)).toEqual([]);
   });
 });
