@@ -18,6 +18,7 @@ names the [plate.md](../../docs/design/plate.md) section it draws; the values ar
 - `ColumnHeads.tsx`: a data table's head band, short words with long ones as tooltips (Colour roles: column head).
 - `TickBox.tsx`: a tick box, the sunken well and drawn tick (Controls: Tick box).
 - `Choice.tsx`: one of a few options, butted keys (Controls: Keys).
+- `SectionTabs.tsx`: a section's butted tabs under the top bar, on the frame, the admin's dashboard and Scoring (`sectionTabClasses`, `SectionTab`), and the count after a tab's name (`CountBadge`), on Mail and Transactions (Shape; Colour roles: event).
 - `PlateTabs.tsx`: a page's tabs on its title plate after the title, the chosen one pressed (Shape), on Table and Scouting.
 - `Confirm.tsx`: a confirm whose yes is the danger action (Colour roles: danger action; Decided: Destructive confirms).
 - `GameweekStepper.tsx`: CM's `◄ GW ►` stepper (Colour roles: stepper).

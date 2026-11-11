@@ -1,6 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import type { ReactNode } from "react";
 import { unreadFigure, unreadTabLabel } from "../../mail/words";
+import { CountBadge } from "../../ui/SectionTabs";
 import { mainMenuLabel } from "../words";
 
 // On a phone the menu takes its own row under the name and Sign out (and Continue, in a league).
@@ -17,11 +18,7 @@ export function MenuTab({ path, label, unreadMail = 0 }: { path: string; label: 
   return (
     <Link to={path} className={menuTabClasses} aria-label={unread ? unreadTabLabel(label, unreadMail) : undefined}>
       {label}
-      {unread && (
-        <span aria-hidden="true" className="ml-1 bg-event px-1 font-bold text-ground">
-          {unread}
-        </span>
-      )}
+      {unread && <CountBadge>{unread}</CountBadge>}
     </Link>
   );
 }
