@@ -69,12 +69,19 @@ export function scoreOf(ctx: QueryCtx, fixtureCode: number): Promise<Doc<"matchS
 async function upsertScore(ctx: MutationCtx, sent: HeldScore): Promise<boolean> {
   const held = await scoreOf(ctx, sent.fixtureCode);
   if (held === null) {
-    await ctx.db.insert("matchScores", sent);
+    await ctx.db.insert("matchScores", { ...sent, fullTimeAt: sent.state === "fullTime" ? sent.readAt : undefined });
     return true;
   }
   if (!wins(sent, held) || sameScore(sent, held)) return false;
-  await ctx.db.patch("matchScores", held._id, sent);
+  await ctx.db.patch("matchScores", held._id, { ...sent, fullTimeAt: fullTimeAt(sent, held) });
   return true;
+}
+
+/** When the match was first read at full time, the read `sent` written over `held`: kept while it
+ *  stays there, and gone once a feed moves it back (#1470). Pure. */
+function fullTimeAt(sent: HeldScore, held: HeldScore): number | undefined {
+  if (sent.state !== "fullTime") return undefined;
+  return held.state === "fullTime" ? held.fullTimeAt : sent.readAt;
 }
 
 /** A read of a match's state, when, and by which feed; none for a score held before its feed was kept. */
@@ -133,7 +140,7 @@ export const ofGameweek = query({
 });
 
 /** The held row less which feed gave it, when, and Convex's own fields: as a screen shows it. */
-export function scoreOnly({ _id, _creationTime, fixtureCode, feed, readAt, ...score }: Doc<"matchScores">) {
+export function scoreOnly({ _id, _creationTime, fixtureCode, feed, readAt, fullTimeAt, ...score }: Doc<"matchScores">) {
   return score;
 }
 

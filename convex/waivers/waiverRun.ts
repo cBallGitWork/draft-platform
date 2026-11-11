@@ -23,7 +23,7 @@ import { placeOf, squadOf } from "../squads/squadPlace";
 import { limitsReader, type LimitsBroken, type SquadWarning } from "../squads/squads";
 import { closeOffersHolding, heldInReview } from "../trades/tradeClose";
 import { claimedName, leagueClaims } from "./waiverClaims";
-import { inWaiverLock, latestEnded } from "./waiverLock";
+import { latestEnded, runInWaiverLock } from "./waiverLock";
 import { waiverOrderOf, waiverOrderRow, winnersNow, withWinnersLast, wonBy } from "./waiverOrder";
 import { dropFromSquad } from "./waiverPlayers";
 import { latestRunAt, wasRunTime } from "./waiverTimes";
@@ -189,7 +189,7 @@ async function runWaivers(ctx: MutationCtx, leagueId: Id<"leagues">, at: number)
     held === null
       ? ctx.db.insert("waiverOrders", { leagueId, winners, gameweek, ranAt: at, madeAt })
       : ctx.db.patch("waiverOrders", held._id, { winners, gameweek, ranAt: at, madeAt });
-  if (!(await draftIsOver(ctx, leagueId)) || (await inWaiverLock(ctx, deadlines, now))) {
+  if (!(await draftIsOver(ctx, leagueId)) || (await runInWaiverLock(ctx, deadlines, now, at))) {
     await save();
     return;
   }
