@@ -1,4 +1,5 @@
 import type { LeagueRules } from "../rules/leagueRulesShape";
+import type { RulesRow } from "../rules/rulesHistory";
 import { londonOffset } from "../shared/moments";
 import { DAY_MS, HOUR_MS, MINUTE_MS } from "../shared/time";
 
@@ -9,7 +10,7 @@ import { DAY_MS, HOUR_MS, MINUTE_MS } from "../shared/time";
 type WaiverRun = LeagueRules["waivers"]["runs"][number];
 
 /** The weekdays in Date's own order, Sunday first. */
-const DATE_DAYS: readonly WaiverRun["day"][] = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"];
+export const DATE_DAYS: readonly WaiverRun["day"][] = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"];
 
 /** The moment it is `hour`:`minute` in the UK on the UK day whose midnight, read as UTC, is `day`. */
 function ukMoment(day: number, hour: number, minute: number): number {
@@ -33,6 +34,14 @@ export function latestRunAt(runs: readonly WaiverRun[], now: number): number | n
     }
   }
   return latest;
+}
+
+/** Whether `at` was one of the league's run times when it came, under the rules saved by then: a
+ *  run time the commissioner adds or moves to once it has gone never runs, as runs only happen at
+ *  times managers were shown (Craig, 11 Nov 2026, #1468; spec/08). */
+export function wasRunTime(history: readonly RulesRow[], at: number): boolean {
+  const runs = history.findLast((row) => row._creationTime <= at)?.rules.waivers.runs;
+  return runs !== undefined && latestRunAt(runs, at) === at;
 }
 
 /** The first of the league's waiver runs at or after `from`, or null with no runs: for a player a
