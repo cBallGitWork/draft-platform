@@ -1,6 +1,6 @@
 import { v } from "convex/values";
 import type { Doc, Id } from "../_generated/dataModel";
-import { mutation, type QueryCtx } from "../_generated/server";
+import { mutation, type MutationCtx, type QueryCtx } from "../_generated/server";
 import { refuse, runnerOf } from "../shared/leagueAccess";
 import { SECOND_MS } from "../shared/time";
 import { startClock } from "./draftClock";
@@ -15,7 +15,9 @@ import { draftOf, draftIsLive } from "./draftRow";
 // league's pick time has changed while it was paused, the pick on the clock restarts on the full
 // new time when it resumes (Craig, 4 Nov 2026, on #1135: "90s with 30s left, changed to 60s: it
 // resumes on 60s"). A pause sends the whole league a letter, a resume none (Craig, 4 Nov 2026, on
-// #1102; draftLetters.ts).
+// #1102; draftLetters.ts). Deleting the league pauses its live draft too, with no letter, and
+// undoing the deletion leaves it paused for the commissioner to resume (Craig, 11 Nov 2026, on
+// #1486: "Accept all"; leagueDeletion.ts).
 
 /** Why a pause or a resume is refused, in the words the commissioner is shown. */
 export const pauseRefusals = {
@@ -36,6 +38,22 @@ export async function liveClock(ctx: QueryCtx, leagueId: Id<"leagues">): Promise
   return { draft, clock: draft.clock };
 }
 
+/** Stops `clock`: its job cancelled, the time it has left kept until a resume. */
+async function stopClock(ctx: MutationCtx, leagueId: Id<"leagues">, draft: Doc<"drafts">, clock: Clock): Promise<void> {
+  if (clock.job !== undefined) await ctx.scheduler.cancel(clock.job);
+  const paused = { at: Date.now(), pickSeconds: await pickSecondsNow(ctx, leagueId) };
+  await ctx.db.patch("drafts", draft._id, { clock: { ...clock, job: undefined, paused } });
+}
+
+/** The league's draft paused as the league is deleted, if it is live and running, telling no one:
+ *  nothing is picked, by a manager or the draft, while the league is frozen (#1486). */
+export async function pauseForDeletion(ctx: MutationCtx, leagueId: Id<"leagues">): Promise<void> {
+  const draft = await draftOf(ctx, leagueId);
+  const clock = draft?.clock;
+  if (draft === null || clock === undefined || clock.paused !== undefined || !(await draftIsLive(ctx, leagueId))) return;
+  await stopClock(ctx, leagueId, draft, clock);
+}
+
 /** The commissioner pauses the draft: the pick on the clock keeps its time left, and nothing is
  *  picked until he resumes. Refused to anyone who doesn't run the league, before the draft starts,
  *  once it is over and while it is already paused. */
@@ -46,9 +64,7 @@ export const pause = mutation({
     const { email, league } = await runnerOf(ctx, leagueId);
     const { draft, clock } = await liveClock(ctx, leagueId);
     if (clock.paused !== undefined) refuse(pauseRefusals.alreadyPaused);
-    if (clock.job !== undefined) await ctx.scheduler.cancel(clock.job);
-    const paused = { at: Date.now(), pickSeconds: await pickSecondsNow(ctx, leagueId) };
-    await ctx.db.patch("drafts", draft._id, { clock: { ...clock, job: undefined, paused } });
+    await stopClock(ctx, leagueId, draft, clock);
     await tellPaused(ctx, league, email);
     return null;
   },
