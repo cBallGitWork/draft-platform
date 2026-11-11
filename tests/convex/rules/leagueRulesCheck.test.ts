@@ -100,6 +100,11 @@ describe.each<[string, Partial<LeagueRules>, string]>([
     "On the pitch, midfield's minimum must be a whole number, 0 or more, not -1.",
   ],
   [
+    "an area of two words, named as the screens name it (#1785)",
+    { areaLimits: { ...limits, defensiveMidfield: { minimum: 2, maximum: 1 } } },
+    "On the pitch, defensive midfield's minimum, 2, is above its maximum, 1.",
+  ],
+  [
     "minimums on the pitch adding up to more than eleven",
     { areaLimits: { ...limits, defence: { minimum: 6, maximum: 6 }, midfield: { minimum: 5, maximum: 5 } }, presets: [] },
     "The areas' minimums on the pitch add up to 12, more than the 11 who start.",
@@ -161,7 +166,7 @@ describe.each<[string, Partial<LeagueRules>, string]>([
   [
     "a classic formation giving a sweeper to a back four",
     { classics: [{ ...keegans, cells: [keegans.cells[0], { ...keegans.cells[1] }, { ...keegans.cells[2], role: "sweeper" }, ...keegans.cells.slice(3)] }] },
-    "The classic formation Keegan's Newcastle gives its defence leftCentre slot the role sweeper, which that slot doesn't offer.",
+    "The classic formation Keegan's Newcastle gives its defence left-centre slot the role sweeper, which that slot doesn't offer.",
   ],
   [
     "a classic formation whose defensive instruction is an attacking one",

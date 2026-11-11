@@ -1,5 +1,6 @@
 import { STARTER_COUNT, type AreaLimit } from "../lineup/lineup";
-import { AREAS, type Area } from "../lineup/pitch";
+import { AREAS, type Area, type Cell } from "../lineup/pitch";
+import { AREA_WORDS, LANE_WORDS } from "../lineup/pitchWords";
 import { inClassicFormationShape } from "../lineup/classics";
 import { pairRefusal, SIDES, type Instruction } from "../lineup/instructions";
 import { offersRole } from "../lineup/roles";
@@ -88,11 +89,17 @@ function checkLimit({ minimum, maximum }: AreaLimit, what: string): void {
   if (minimum > maximum) throw new UnsoundRules(`${what}'s minimum, ${minimum}, is above its maximum, ${maximum}.`);
 }
 
+/** An area mid-sentence, in the screens' words (pitchWords.ts), never its key: "defensive midfield". */
+const areaWords = (area: Area) => AREA_WORDS[area].toLowerCase();
+
+/** A cell mid-sentence: its area then its lane, "midfield right-centre". */
+const cellWords = ({ area, lane }: Cell) => `${areaWords(area)} ${LANE_WORDS[lane]}`;
+
 const sumOf = (limits: Record<Area, AreaLimit>, end: keyof AreaLimit) =>
   AREAS.reduce((total, area) => total + limits[area][end], 0);
 
 function checkAreaLimits(limits: Record<Area, AreaLimit>): void {
-  for (const area of AREAS) checkLimit(limits[area], `On the pitch, ${area}`);
+  for (const area of AREAS) checkLimit(limits[area], `On the pitch, ${areaWords(area)}`);
   const minimums = sumOf(limits, "minimum");
   const maximums = sumOf(limits, "maximum");
   if (minimums > STARTER_COUNT) {
@@ -114,7 +121,7 @@ function checkSquad({ size, minimumByArea, maxPerClub }: LeagueRules["squad"]): 
     }
   }
   if (minimumByArea !== null) {
-    for (const area of AREAS) checkWholeNumber(minimumByArea[area], `The squad's minimum in ${area}`, 0);
+    for (const area of AREAS) checkWholeNumber(minimumByArea[area], `The squad's minimum in ${areaWords(area)}`, 0);
     const minimums = AREAS.reduce((total, area) => total + minimumByArea[area], 0);
     if (size !== null && minimums > size.maximum) {
       throw new UnsoundRules(`The squad's minimums by area add up to ${minimums}, more than its maximum size, ${size.maximum}.`);
@@ -151,14 +158,14 @@ function checkPresets(presets: LeagueRules["presets"], limits: Record<Area, Area
       throw new UnsoundRules(`The preset ${name} places ${cells.length} players, not the ${STARTER_COUNT} who start.`);
     }
     checkNoneTwice(
-      cells.map((cell) => `${cell.area} ${cell.lane}`),
+      cells.map(cellWords),
       (cell) => `The preset ${name} puts two players in ${cell}.`,
     );
     for (const area of AREAS) {
       const standing = cells.filter((cell) => cell.area === area).length;
       const { minimum, maximum } = limits[area];
       if (standing < minimum || standing > maximum) {
-        throw new UnsoundRules(`The preset ${name} puts ${standing} in ${area}, outside its limits of ${minimum} to ${maximum}.`);
+        throw new UnsoundRules(`The preset ${name} puts ${standing} in ${areaWords(area)}, outside its limits of ${minimum} to ${maximum}.`);
       }
     }
   }
@@ -198,7 +205,7 @@ function checkClassicFormations(classicFormations: NonNullable<LeagueRules["clas
       throw new UnsoundRules(`The classic formation ${name} stands in no formation of the league's.`);
     }
     for (const cell of cells) {
-      if (!offersRole(cell, cell.role, cells)) throw new UnsoundRules(`The classic formation ${name} gives its ${cell.area} ${cell.lane} slot the role ${cell.role}, which that slot doesn't offer.`);
+      if (!offersRole(cell, cell.role, cells)) throw new UnsoundRules(`The classic formation ${name} gives its ${cellWords(cell)} slot the role ${cell.role}, which that slot doesn't offer.`);
     }
     const refusal = pairRefusal(instructions, cells, set);
     if (refusal !== null) throw new UnsoundRules(`The classic formation ${name}'s ${refusal.side} instruction, ${refusal.key}, isn't one its shape offers.`);
