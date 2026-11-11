@@ -4,7 +4,7 @@ import { FIRST_RULES } from "../../../convex/rules/firstRules";
 import { actingAs, COMMISSIONER, TEST_LEAGUE_TEAMS, type TestConvex } from "./leagues.harness";
 import { api } from "../../../convex/_generated/api";
 import type { QueryCtx } from "../../../convex/_generated/server";
-import { seasonRules } from "../../../convex/rules/rulesHistory";
+import { historyOf, seasonRules } from "../../../convex/rules/rulesHistory";
 import { squadMaximumFor, STARTING_SQUAD_MAXIMUMS, withSquadMaximum } from "../../../convex/rules/squadMaximums";
 import type { LeagueRules } from "../../../convex/rules/leagueRulesShape";
 import type { Area } from "../../../convex/lineup/pitch";
@@ -41,8 +41,8 @@ export const changeRules = async (t: TestConvex, leagueId: Id<"leagues">, rules:
  *  draft's tests, whose rules a save would only change from a later gameweek. */
 export const changeEveryRules = (t: TestConvex, leagueId: Id<"leagues">, change: (rules: LeagueRules) => LeagueRules) =>
   t.run(async (ctx) => {
-    for (const row of await ctx.db.query("leagueRules").withIndex("by_leagueId_and_fromGameweek", (q) => q.eq("leagueId", leagueId)).collect()) {
-      await ctx.db.patch("leagueRules", row._id, { rules: change(row.rules) });
+    for (const row of await historyOf(ctx, leagueId)) {
+      await ctx.db.patch("leagueRules", row._id, { rules: change(row.rules), changes: undefined });
     }
   });
 

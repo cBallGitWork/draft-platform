@@ -19,8 +19,9 @@ import { RULES_CHANGES_MOST } from "./rulesHistory";
 /** The old default: FPL's own timing, which leagues were made with before #1412. */
 const OLD_DEFAULT_MINUTES = 90;
 
-const holdsOldDefault = (rules: { deadline: { minutesBeforeFirstKickoff: number } }) =>
-  rules.deadline.minutesBeforeFirstKickoff === OLD_DEFAULT_MINUTES;
+/** Whether rules, or a row's changes (#1617), hold the old default; changes leaving the deadline as it was don't. */
+const holdsOldDefault = (rules: { deadline?: { minutesBeforeFirstKickoff: number } }) =>
+  rules.deadline?.minutesBeforeFirstKickoff === OLD_DEFAULT_MINUTES;
 
 /** Records every league's passed deadlines, then moves each rules row, and the admin's default
  *  rules, holding 90 minutes to the default; returns how many rules rows it moved and whether the
@@ -40,8 +41,9 @@ export const moveDeadlinesToDefault = internalMutation({
         `League ${league._id} holds more than ${RULES_CHANGES_MOST} rules rows, so some would keep FPL's deadline`,
       );
       for (const row of rows) {
-        if (!holdsOldDefault(row.rules)) continue;
-        await ctx.db.patch("leagueRules", row._id, { rules: { ...row.rules, deadline } });
+        if (row.rules !== undefined && holdsOldDefault(row.rules)) await ctx.db.patch("leagueRules", row._id, { rules: { ...row.rules, deadline } });
+        else if (row.changes !== undefined && holdsOldDefault(row.changes)) await ctx.db.patch("leagueRules", row._id, { changes: { ...row.changes, deadline } });
+        else continue;
         rowsMoved += 1;
       }
     }

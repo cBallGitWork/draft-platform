@@ -91,7 +91,7 @@ describe("changing them", () => {
     await addManagers(t, leagueId, MANAGERS.slice(0, 4));
     await t.run(async (ctx) => {
       const [row] = await ctx.db.query("leagueRules").collect();
-      await ctx.db.patch("leagueRules", row._id, { rules: { ...row.rules, gamesPerGameweek: 10 } });
+      await ctx.db.patch("leagueRules", row._id, { rules: { ...row.rules!, gamesPerGameweek: 10 } });
     });
     const table = await (await actingAs(t, COMMISSIONER)).query(api.table.leagueTable.ofLeague, { leagueId });
 
@@ -173,7 +173,7 @@ describe("the squad's make-up (#341)", () => {
     beforeEach(() =>
       t.run(async (ctx) => {
         const [row] = await ctx.db.query("leagueRules").collect();
-        await ctx.db.patch("leagueRules", row._id, { rules: { ...row.rules, squad: { ...row.rules.squad, size: null } } });
+        await ctx.db.patch("leagueRules", row._id, { rules: { ...row.rules!, squad: { ...row.rules!.squad, size: null } } });
       }),
     );
 
@@ -244,7 +244,7 @@ describe("the draft (#1087)", () => {
     beforeEach(() =>
       t.run(async (ctx) => {
         for (const row of await ctx.db.query("leagueRules").collect()) {
-          const { draft: _draft, ...older } = row.rules;
+          const { draft: _draft, ...older } = row.rules!;
           await ctx.db.patch("leagueRules", row._id, { rules: older });
         }
       }),

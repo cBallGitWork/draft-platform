@@ -49,7 +49,7 @@ async function leagueOfOne() {
 const dropSquadSize = () =>
   t.run(async (ctx) => {
     const row = (await ctx.db.query("leagueRules").withIndex("by_leagueId_and_fromGameweek", (q) => q.eq("leagueId", leagueId)).order("desc").first())!;
-    await ctx.db.patch("leagueRules", row._id, { rules: { ...row.rules, squad: { ...row.rules.squad, size: null } } });
+    await ctx.db.patch("leagueRules", row._id, { rules: { ...row.rules!, squad: { ...row.rules!.squad, size: null } } });
   });
 
 describe("before it starts", () => {
