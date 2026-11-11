@@ -1,7 +1,8 @@
-// League home in the preview (src/app/preview.ts): the Pro League's nine teams, six gameweeks scored so
-// the form shows, the server's own rules picking this gameweek (nextGameweek.ts) and the rows
-// (glance.ts), its head-to-heads scored, a matchday open with a few Vidiprinter lines, a pinned
-// letter, a few squad moves, the News tab's two pages of them and the last gameweek's recap. Made up.
+// League home in the preview (src/app/preview.ts): the Pro League's nine teams, scored up to the
+// preview's gameweek so the form shows, the server's own rules picking this gameweek (nextGameweek.ts)
+// and the rows (glance.ts), its head-to-heads scored, a matchday open with a few Vidiprinter lines, a
+// pinned letter, a few squad moves, the News tab's two pages of them and the last gameweek's recap.
+// Made up.
 
 import { shownRows } from "../../convex/home/glance";
 import { thisGameweekOf } from "../../convex/gameweeks/nextGameweek";
@@ -11,7 +12,7 @@ import { drawFixtures, namedFixture } from "../../convex/table/roundRobin";
 import { formOf, headToHeadTable, teamsInGameweek } from "../../convex/table/standings";
 import { gameNumberAt, gameScore } from "../../convex/table/teamGames";
 import { previewLatestMail } from "../mail/preview";
-import { previewSeasonGameweeks } from "../shared/preview";
+import { previewGameweek, previewSeasonGameweeks, previewTeamNames } from "../shared/preview";
 import { previewIdOf } from "../table/preview";
 import type { Id } from "../../convex/_generated/dataModel";
 import type { HomeSeam, LeagueHome, LeagueNews, NewsAsked, NewsMove } from "./seam";
@@ -33,19 +34,18 @@ const TRADED = {
   },
 } as const satisfies LeagueHome["squadMoves"][number];
 
-const TEAMS = ["Saka Potatoes", "Kroos Control", "Lingard Franca", "Neville Wears Prada", "Team 5", "Murder on Zidane's Floor", "Dinamo Kiev Leave", "Haaland Oates", "Expected Toulouse"];
-const MINE = "Saka Potatoes";
-const SCORED = 6;
+const [MINE] = previewTeamNames;
+const SCORED = previewGameweek;
 /** The gameweek whose recap the preview has: the last one scored. */
 export const PREVIEW_RECAP_GAMEWEEK = SCORED;
 const firstDeadline = Date.now() - SCORED * WEEK_MS + DAY_MS;
 
-const schedule = drawFixtures(TEAMS, seasonGameweeks(previewSeasonGameweeks), () => ({ oddTeamOut: "leagueAverage", gamesPerGameweek: 1 }), "preview-home");
-/** Made-up scores: each team's points a gameweek, from its place in TEAMS and the gameweek. */
+const schedule = drawFixtures(previewTeamNames, seasonGameweeks(previewSeasonGameweeks), () => ({ oddTeamOut: "leagueAverage", gamesPerGameweek: 1 }), "preview-home");
+/** Made-up scores: each team's points a gameweek, from its place in the league and the gameweek. */
 const scores = new Map(
-  Array.from({ length: SCORED }, (_, i) => [i + 1, new Map(TEAMS.map((team, place) => [team, 30 + ((place * 7 + (i + 1) * 13) % 40)]))]),
+  Array.from({ length: SCORED }, (_, i) => [i + 1, new Map(previewTeamNames.map((team, place) => [team, 30 + ((place * 7 + (i + 1) * 13) % 40)]))]),
 );
-const form = formOf(TEAMS, schedule, scores);
+const form = formOf(previewTeamNames, schedule, scores);
 /** The same scores, each final, as the head-to-heads read them. */
 const sides = new Map([...scores].map(([gameweek, teams]) => [gameweek, new Map([...teams].map(([team, points]) => [team, { points, provisional: false }]))]));
 const current = thisGameweekOf(schedule, (gameweek) => firstDeadline + (gameweek - 1) * WEEK_MS, Date.now())!;
@@ -75,7 +75,7 @@ const home: LeagueHome = {
     },
   },
   table: shownRows(
-    headToHeadTable(TEAMS, schedule, scores, []).map(({ team, ...row }) => ({ ...row, teamId: team })),
+    headToHeadTable(previewTeamNames, schedule, scores, []).map(({ team, ...row }) => ({ ...row, teamId: team })),
     MINE,
   ).map(({ teamId, position, played, won, drawn, lost, points }) => ({
     position,
@@ -89,7 +89,7 @@ const home: LeagueHome = {
     form: form.get(teamId)!,
     mine: teamId === MINE,
   })),
-  teams: TEAMS.length,
+  teams: previewTeamNames.length,
   squadMoves: [
     { at: Date.now() - 2 * HOUR_MS, kind: "playerAssigned", playerName: "Saka", teamName: MINE, fromTeamName: null },
     TRADED,
@@ -145,7 +145,7 @@ const news = (before: NewsAsked["before"]): LeagueNews => {
   return {
     moves,
     older: before === null ? { at: last.at, filed: last.filed } : null,
-    teams: TEAMS.map((team) => ({ teamId: previewIdOf(team), teamName: team })),
+    teams: previewTeamNames.map((team) => ({ teamId: previewIdOf(team), teamName: team })),
     pinnedLetter: home.pinnedLetter,
   };
 };

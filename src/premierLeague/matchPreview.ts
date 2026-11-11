@@ -6,7 +6,7 @@
 
 import { bySheetOrder } from "../../convex/match/sheetOrder";
 import type { Position } from "../../convex/positions/positionTables";
-import { previewTeams } from "../table/preview";
+import { previewTeamNames } from "../shared/preview";
 import type { MatchMan, MatchPageData } from "./seam";
 
 /** FPL's code for the recorded match. */
@@ -25,7 +25,7 @@ function man(
   points: number | null,
   counts = owner !== null,
 ): MatchMan {
-  return { playerCode, name, position, side, started, played, ownerTeamName: owner === null ? null : previewTeams[owner], points, counts };
+  return { playerCode, name, position, side, started, played, ownerTeamName: owner === null ? null : previewTeamNames[owner], points, counts };
 }
 
 /** The sheets in the recording's order. */
