@@ -25275,6 +25275,13 @@
                     "type": "boolean"
                   },
                   "optional": false
+                },
+                "movedToAtOnce": {
+                  "fieldType": {
+                    "type": "literal",
+                    "value": true
+                  },
+                  "optional": true
                 }
               }
             },
