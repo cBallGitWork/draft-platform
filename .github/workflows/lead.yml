@@ -105,6 +105,20 @@ env:
   # a builder pull request is any not opened by Craig, as lane-auto.yml has it: builds open theirs as CBHelper180, a user
   # account, since 5 Nov 2026, and an `is_bot` test gave none of them a fix round or a stuck close (7 Nov 2026: 11 sat red)
   OWNER: ${{ github.repository_owner }}
+  # The safety basics (dev studio, 11 Nov 2026). Craig's stop switch (the PIPELINE_STOP repository variable,
+  # claude-build.yml's header) and an open PAUSED_LABEL issue start nothing: no build, fix round, review or sweep.
+  # The board still gets written and says why.
+  PIPELINE_STOP: ${{ vars.PIPELINE_STOP }}
+  PAUSED_LABEL: "pipeline:paused"
+  # The tripwire: a check each pass on main that pings Healthchecks' TRIP_CHECK as failed, which emails Craig, when in
+  # the last TRIP_WINDOW_MINUTES a workflow ran for someone not in KNOWN_ACTORS, a commit reached main with no pull
+  # request, or a pull request not opened by Craig touched TRIP_PATHS; or more than MAX_BUILDS_A_DAY builds started in
+  # a day (it ran 38 to 70 a day, 6-11 Nov 2026), which also pauses builds until Craig closes the pause issue.
+  TRIP_CHECK: "tripwire"
+  TRIP_WINDOW_MINUTES: 90  # past one missed half-hourly pass; Healthchecks emails once when it goes down
+  MAX_BUILDS_A_DAY: 120
+  KNOWN_ACTORS: "CBHelper180 claude[bot] github-actions[bot] vercel[bot]"  # and OWNER
+  TRIP_PATHS: "^(\\.github/|\\.claude/|CLAUDE\\.md$)"
 
 jobs:
   lead:
@@ -171,6 +185,23 @@ jobs:
           busy_specs=$(for n in $busy_issues; do spec_files "$n"; done | sort -u)
           slots=$((MAX_IN_FLIGHT - in_flight))
           echo "In flight: $in_flight build(s) (${busy_issues//$'\n'/ }); free: $slots"
+          # halted: Craig's stop switch, or a pause (a usage limit until its `Until:` time, or the tripwire's until closed)
+          halt=""
+          [ -z "$PIPELINE_STOP" ] || halt="Craig's stop switch is on ($PIPELINE_STOP): delete the PIPELINE_STOP variable to start again"
+          for p in $(gh issue list --state open --label "$PAUSED_LABEL" --json number --jq '.[].number'); do
+            pause_end=$(gh issue view "$p" --json body --jq '.body | capture("(?m)^Until: (?<t>\\S+)").t // ""')
+            if [ -n "$pause_end" ] && [ "$(date -u -d "$pause_end" +%s)" -le "$(date -u +%s)" ]; then
+              echo "#$p's pause ended at $pause_end: closing it"
+              [ "$DRY_RUN" = true ] || gh issue close "$p" --comment "The pause ended at $pause_end: builds start again." > /dev/null
+            else
+              halt="${halt:+$halt; }paused by #$p${pause_end:+ until $pause_end}"
+            fi
+          done
+          halt_line=""
+          if [ -n "$halt" ]; then
+            echo "::warning::Nothing starts: $halt."; slots=0; SWEEP=false
+            halt_line="**Nothing starts**: $halt."$'\n\n'
+          fi
           take() { # issue: true if it can start now; holds its spec files
             local n=$1 files
             grep -qx "$n" <<<"$busy_issues" && return 1
@@ -270,6 +301,7 @@ jobs:
               | select(any(.statusCheckRollup[]?; .context == "review-landed" and .state == "PENDING"))
               | select((.createdAt | fromdateiso8601) < (now - (env.REVIEW_WAIT_MINUTES | tonumber) * 60))
               | .number' <<<"$prs"); do
+            [ -z "$halt" ] || break
             # pending can also mean a "look at these first" waiting on its fix round: only a pull request with no review
             comments=$(gh pr view "$pr" --json comments --jq '.comments[].body')
             grep -qF '*Reviewer: pr-reviewer' <<<"$comments" && continue
@@ -378,13 +410,66 @@ jobs:
           today=$(date -u +%Y-%m-%d)
           merged=$(gh pr list --state merged --search "merged:>=$today" --limit 100 --json number,title --jq '.[] | "- #\(.number) \(.title)"')
           red=$(jq -r '.[] | select(.isDraft | not) | select(any(.statusCheckRollup[]?; .conclusion == "FAILURE")) | "- #\(.number) \(.headRefName)"' <<<"$prs")  # look-approved holds no merge since 7 Nov 2026, so its failure is red too
-          body=$(printf '## %s, %s UTC\n\n**Next up** (build order; label an issue `next` to put it first)\n%s\n\n**In flight**\n%s\n\n**Blocked, and on what**\n%s\n\n**Stuck** (take `%s` off an issue to build it again)\n%s\n\n**Not yet checked for open rules** (the 01:37 sweep)\n%s\n\n**Merged today**\n%s\n\n**Red**\n%s\n\n*Written by the lead; it rewrites this every pass. Healthchecks emails Craig if no pass comes for 3 hours, or nothing merges for a day.*\n' \
-            "$today" "$(date -u +%H:%M)" "${next_up:-- nothing ready: answer the blocked ones, or file an issue}" "${running:-- nothing}" "${blocked:-- nothing}" "$STUCK_LABEL" "${stuck:-- nothing}" "${unchecked:-- none}" "${merged:-- nothing}" "${red:-- nothing}")
+          # shellcheck disable=SC2016  # the backticks are the board's markdown, not the shell's
+          body=$(printf '%s## %s, %s UTC\n\n**Next up** (build order; label an issue `next` to put it first)\n%s\n\n**In flight**\n%s\n\n**Blocked, and on what**\n%s\n\n**Stuck** (take `%s` off an issue to build it again)\n%s\n\n**Not yet checked for open rules** (the 01:37 sweep)\n%s\n\n**Merged today**\n%s\n\n**Red**\n%s\n\n*Written by the lead; it rewrites this every pass. Healthchecks emails Craig if no pass comes for 3 hours, or nothing merges for a day.*\n' \
+            "$halt_line" "$today" "$(date -u +%H:%M)" "${next_up:-- nothing ready: answer the blocked ones, or file an issue}" "${running:-- nothing}" "${blocked:-- nothing}" "$STUCK_LABEL" "${stuck:-- nothing}" "${unchecked:-- none}" "${merged:-- nothing}" "${red:-- nothing}")
           board=$(gh issue list --state open --label "$BOARD_LABEL" --limit 1 --json number --jq '.[0].number // empty')
           if [ "$DRY_RUN" = true ]; then echo "$body"
           elif [ -n "$board" ]; then gh issue edit "$board" --title "$BOARD_TITLE" --body "$body" > /dev/null
           else gh issue create --title "$BOARD_TITLE" --label "$BOARD_LABEL" --body "$body" > /dev/null; fi
           echo "Board written."
+      # The tripwire (the env block says what trips it). It runs even when the pass above failed, and on main only, as
+      # the heartbeat. A trip pings TRIP_CHECK as failed with the reasons, so Healthchecks emails them to Craig; a clean
+      # pass pings it as fine, so the check comes back up on its own once the window has passed.
+      - name: The tripwire
+        if: always() && github.ref_name == github.event.repository.default_branch && inputs.dry_run != true
+        env:
+          PING_URL: ${{ secrets.HEALTHCHECKS_PING_URL }}
+        run: |
+          set -euo pipefail
+          [ -n "$PING_URL" ] || { echo "::error::No HEALTHCHECKS_PING_URL secret: the tripwire can't tell Craig."; exit 1; }
+          since=$(date -u -d "$TRIP_WINDOW_MINUTES minutes ago" +%FT%TZ)
+          trips=()
+          # a workflow run for an actor the pipeline doesn't know (a stranger's pull request from a fork included)
+          known=" $OWNER $KNOWN_ACTORS "
+          while read -r who what; do
+            [ -n "$who" ] || continue
+            [[ "$known" == *" $who "* ]] || trips+=("$what ran for $who, not a known account")
+          done < <(gh api --paginate "repos/$GH_REPO/actions/runs?created=>=$since&per_page=100" \
+                     --jq '.workflow_runs[] | "\(.triggering_actor.login // "?") \(.name) run \(.html_url)"')
+          # a commit on main that no pull request merged
+          while read -r sha; do
+            [ -n "$sha" ] || continue
+            [ "$(gh api "repos/$GH_REPO/commits/$sha/pulls" --jq length)" != 0 ] || trips+=("commit $sha reached main with no pull request")
+          done < <(gh api "repos/$GH_REPO/commits?sha=main&since=$since&per_page=100" --jq '.[].sha')
+          # a pull request not opened by Craig that touches the pipeline's own files
+          while read -r pr who; do
+            [ -n "$pr" ] || continue
+            files=$(gh pr view "$pr" --json files --jq '.files[].path' | grep -E "$TRIP_PATHS" || true)
+            [ -z "$files" ] || trips+=("#$pr by $who touches $(tr '\n' ' ' <<<"$files")")
+          done < <(gh pr list --state all --search "created:>=$since" --limit 100 --json number,author \
+                     --jq '.[] | select(.author.login != env.OWNER) | "\(.number) \(.author.login)"')
+          # a runaway: more builds started in a day than it has ever needed; this one also pauses builds
+          day=$(date -u -d '24 hours ago' +%FT%TZ)
+          builds=$(gh api --paginate "repos/$GH_REPO/actions/workflows/claude-build.yml/runs?created=>=$day&per_page=100" \
+                     --jq '.workflow_runs[] | select(.conclusion != "skipped") | .id' | wc -l | tr -d ' ')
+          echo "Builds started in the last day: $builds (most allowed $MAX_BUILDS_A_DAY)"
+          if [ "$builds" -gt "$MAX_BUILDS_A_DAY" ]; then
+            trips+=("$builds builds started in a day, more than $MAX_BUILDS_A_DAY: builds are paused")
+            if [ -z "$(gh issue list --state open --label "$PAUSED_LABEL" --json number,body --jq'.[] | select(.body | test("(?m)^Until: ") | not) | .number')" ]; then
+              gh label create "$PAUSED_LABEL" --color B60205 --description "Builds wait: the subscription's usage limit, or the lead's tripwire" --force
+              gh issue create --title "Paused by the tripwire: $builds builds in a day" --label "$PAUSED_LABEL" \
+                --body "The lead's tripwire saw $builds builds start in a day, more than $MAX_BUILDS_A_DAY, so no build starts until this issue is closed. Close it to start builds again." > /dev/null
+            fi
+          fi
+          if [ ${#trips[@]} -eq 0 ]; then
+            curl -fsS -m 10 --retry 2 -o /dev/null "$PING_URL/$TRIP_CHECK?create=1" || echo "::warning::The tripwire's ping didn't reach Healthchecks."
+            echo "Nothing tripped."; exit 0
+          fi
+          report=$(printf -- '- %s\n' "${trips[@]}")
+          echo "::error::The tripwire tripped:"; echo "$report"
+          curl -fsS -m 10 --retry 2 -o /dev/null --data-raw "$report" "$PING_URL/$TRIP_CHECK/fail?create=1" \
+            || { echo "::error::The tripwire tripped and couldn't reach Healthchecks."; exit 1; }
       # The heartbeat: nothing watched the lead, and on 5 Nov 2026 it never ran on GitHub's schedule for hours
       # unnoticed (CTO review). Each pass on main pings Healthchecks (the app's own project, as convex/heartbeats does);
       # a missing ping emails Craig. A second check hears only when something merged in the last day.
