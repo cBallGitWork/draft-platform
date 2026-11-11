@@ -142,6 +142,16 @@ describe("while it runs", () => {
     expect(app.draft.changes.undo).toHaveBeenCalledWith(league.leagueId);
   });
 
+  // The 10 seconds after the last pick, before the draft ends (#1458): no team is on the clock.
+  it("still pauses and undoes the last pick while the draft is ending, with no one to pick for", async () => {
+    const ending: DraftState = { status: "ending", startedAt: Date.now() - MINUTE_MS, rounds: 1, order: draftOrder, picksMade: 1, endsAt: Date.now() + 5 * SECOND_MS };
+    const app = openAs(commissioner, { draft: ending, board: oneTaken });
+    await userEvent.click(await button(undoLastWords));
+    expect(app.draft.changes.undo).toHaveBeenCalledWith(league.leagueId);
+    expect(within(await panel()).getByRole("button", { name: pauseWords })).toBeTruthy();
+    expect(within(await panel()).queryByRole("button", { name: /^Pick for/ })).toBeNull();
+  });
+
   it("offers no undo before any pick is made", async () => {
     openAs(commissioner, { draft: { ...liveDraft(), picksMade: 0 } });
     expect((await button(undoLastWords)).hasAttribute("disabled")).toBe(true);

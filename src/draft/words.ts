@@ -7,7 +7,7 @@ import { failedWords, placeWords } from "../shared/words";
 
 /** The page's title, its menu tab's too, and the state beside it. */
 export const DRAFT_TITLE = "Draft";
-export const stateWords = { waiting: "Not started", live: "Live", paused: "Paused", over: "Over" } as const;
+export const stateWords = { waiting: "Not started", live: "Live", paused: "Paused", ending: "Ending", over: "Over" } as const;
 export const loadingWords = "Loading the draft…";
 
 /** The header's heads and readings, before the start. */

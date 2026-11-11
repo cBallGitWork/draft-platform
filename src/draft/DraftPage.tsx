@@ -65,7 +65,8 @@ export function DraftPage({ league, seam }: { league: LeagueSummary; seam: Draft
     draft.status === "live"
       ? { pick: draft.onTheClock.pick, clock: draft.clock, pickSeconds: draft.clock === null ? board.pickSeconds : (draft.clock.endsAt - draft.clock.startsAt) / SECOND_MS }
       : null;
-  const state = draft.status === "live" && draft.clock?.pausedAt !== undefined ? stateWords.paused : stateWords[draft.status];
+  const pausedAt = draft.status === "live" ? draft.clock?.pausedAt : draft.status === "ending" ? draft.pausedAt : undefined;
+  const state = pausedAt !== undefined ? stateWords.paused : stateWords[draft.status];
   const title = (
     <>
       {DRAFT_TITLE} <span className="ml-2 align-middle text-lead font-semibold">{state}</span>

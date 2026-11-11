@@ -45,7 +45,8 @@ import {
 // time, changed only while paused.
 
 type Waiting = Extract<DraftState, { status: "waiting" }>;
-type Live = Extract<DraftState, { status: "live" }>;
+/** A draft running, or in the 10 seconds after its last pick, when nothing is on the clock (#1458). */
+type Live = Extract<DraftState, { status: "live" | "ending" }>;
 
 export function CommissionerPanel({
   leagueId,
@@ -79,7 +80,7 @@ export function CommissionerPanel({
     );
   }
   const run = (change: () => Change) => void changing.run(change);
-  const paused = draft.status === "live" && draft.clock?.pausedAt !== undefined;
+  const paused = (draft.status === "live" ? draft.clock?.pausedAt : draft.status === "ending" ? draft.pausedAt : undefined) !== undefined;
   return (
     <Panel title={COMMISSIONER_TITLE} aside={aside}>
       <div className={PANEL_BODY}>
@@ -115,7 +116,7 @@ export function CommissionerPanel({
             paused={paused}
             pause={() => run(() => (paused ? changes.resume(leagueId) : changes.pause(leagueId)))}
             undo={() => run(() => changes.undo(leagueId))}
-            pickFor={(code) => void changing.run(() => changes.pickFor(leagueId, draft.onTheClock.teamId, code)).then((made) => made && unselect())}
+            pickFor={(code) => draft.status === "live" && void changing.run(() => changes.pickFor(leagueId, draft.onTheClock.teamId, code)).then((made) => made && unselect())}
           />
         )}
         <PickTime
@@ -157,7 +158,8 @@ function LiveActions({
   pickFor: (playerCode: number) => void;
 }) {
   const greyed = seam.useGreyedOnTheClock(leagueId);
-  const team = draft.onTheClock.name;
+  // No team is on the clock in the 10 seconds after the last pick, so there is no one to pick for.
+  const team = draft.status === "live" ? draft.onTheClock.name : null;
   const whyNot = selected === null ? null : whyNotWords(selected, greyed?.find(({ code }) => code === selected.code)?.reason);
   return (
     <>
@@ -168,11 +170,13 @@ function LiveActions({
         <Action disabled={busy || board.picks.length === 0} onClick={undo}>
           {undoLastWords}
         </Action>
-        <Action disabled={busy || selected === null || greyed === undefined || whyNot !== null} onClick={() => selected !== null && pickFor(selected.code)}>
-          {pickForWords(team)}
-        </Action>
+        {team !== null && (
+          <Action disabled={busy || selected === null || greyed === undefined || whyNot !== null} onClick={() => selected !== null && pickFor(selected.code)}>
+            {pickForWords(team)}
+          </Action>
+        )}
       </div>
-      {selected !== null && whyNot !== null && <p className="text-soft">{pickForWhyNotWords(selected.name, team, whyNot)}</p>}
+      {team !== null && selected !== null && whyNot !== null && <p className="text-soft">{pickForWhyNotWords(selected.name, team, whyNot)}</p>}
       <LastPick draft={draft} board={board} />
     </>
   );
