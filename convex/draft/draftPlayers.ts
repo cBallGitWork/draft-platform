@@ -1,15 +1,14 @@
 import { v, type Infer } from "convex/values";
-import type { Doc, Id } from "../_generated/dataModel";
+import type { Id } from "../_generated/dataModel";
 import { query, type QueryCtx } from "../_generated/server";
 import { positionsNow } from "../positions/playerPositions";
 import { latestRules } from "../rules/rulesHistory";
 import { memberOf, runnerOf } from "../shared/leagueAccess";
-import { currentClubs, currentPlayersAt } from "../shared/players";
 import { newestSeasonWithTotals, seasonTotals } from "../stats/seasonStats";
 import type { Stats } from "../stats/statTotals";
 import { autoPickOrder } from "./autoPickOrder";
 import { squadRulesOf, whyNotLegalFor } from "./draftPicks";
-import { undraftedIn } from "./undrafted";
+import { everyPlayerNow, undraftedIn } from "./undrafted";
 import { draftRanking } from "./draftRanking";
 import { draftOf, picksLeftOf, turnNow, type Turn } from "./draftRow";
 import { lastPricedSeason, lastSeasonPoints } from "./lastSeasonPoints";
@@ -28,11 +27,6 @@ const notLegal = v.union(v.literal("squadFull"), v.literal("clubFull"), v.litera
 
 const greyedPlayer = v.object({ code: v.number(), reason: notLegal });
 export type GreyedPlayer = Infer<typeof greyedPlayer>;
-
-/** Every Premier League player now. */
-async function everyPlayerNow(ctx: QueryCtx): Promise<Doc<"players">[]> {
-  return (await Promise.all((await currentClubs(ctx)).map(({ code }) => currentPlayersAt(ctx, code)))).flat();
-}
 
 /** Every Premier League player now whom the caller's team may not take as its next pick, with why,
  *  while the draft is live. None before it starts, once it is over, or for a commissioner who runs

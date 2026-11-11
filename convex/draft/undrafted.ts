@@ -9,12 +9,16 @@ import { putOnWaivers } from "../waivers/waiverPlayers";
 // room greys out against (draftPlayers.ts), and, once the draft is over, those who go on waivers
 // when its setting says so (#1197).
 
+/** Every Premier League player now. */
+export async function everyPlayerNow(ctx: QueryCtx): Promise<Doc<"players">[]> {
+  return (await Promise.all((await currentClubs(ctx)).map(({ code }) => currentPlayersAt(ctx, code)))).flat();
+}
+
 /** The players still undrafted in the league: in the Premier League now and held by no team. The
  *  league's squads are read once, never a read per player (#1532). */
 export async function undraftedIn(ctx: QueryCtx, leagueId: Id<"leagues">): Promise<Doc<"players">[]> {
-  const players = (await Promise.all((await currentClubs(ctx)).map(({ code }) => currentPlayersAt(ctx, code)))).flat();
   const held = await heldCodesIn(ctx, leagueId);
-  return players.filter(({ code }) => !held.has(code));
+  return (await everyPlayerNow(ctx)).filter(({ code }) => !held.has(code));
 }
 
 /** The players nobody drafted go on the league's waivers, a run taking them from `claimableFrom`:
