@@ -39,7 +39,7 @@ describe("in the window", () => {
       body: `${BOB} picked up ${nameOf(SAKA)} for Team 2 as a free agent.`,
     });
     const { transactions } = await (await actingAs(w.t, BOB)).query(api.squads.teamTransactions.ofMyTeam, { leagueId: w.leagueId });
-    expect(transactions.map(({ kind, playerCode }) => [kind, playerCode])).toContainEqual(["pickedUp", SAKA]);
+    expect(transactions).toContainEqual(expect.objectContaining({ kind: "pickedUp", playerCode: SAKA }));
   });
 
   test("two managers picking up the same free agent: the first wins", async () => {

@@ -8,7 +8,7 @@ import { pickRefusals } from "../../../convex/trades/tradePicks";
 import { REVIEW_MS } from "../../../convex/trades/tradeLimits";
 import { ARSENAL, insertClubs, insertPlayers, type HeldPlayer } from "../../support/convex/footballRows.harness";
 import { changeEveryRules } from "../../support/convex/leagueRules.harness";
-import { actingAs, addManagers, adminCreatesLeague, COMMISSIONER, MANAGERS, type TestConvex } from "../../support/convex/leagues.harness";
+import { actingAs, addManagers, adminCreatesLeague, COMMISSIONER, eventsIn, MANAGERS, type TestConvex } from "../../support/convex/leagues.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
 import { expectRefused } from "../../support/convex/test.harness";
 import { lettersTo } from "../../support/convex/waivers.harness";
@@ -152,6 +152,20 @@ describe("a pick swap", () => {
       subject: `${annsTeam} and ${bobsTeam} traded`,
       body: `the ${annsTeam} round 1 pick to ${bobsTeam}; the ${bobsTeam} round 2 pick to ${annsTeam}.`,
     });
+  });
+
+  test("is filed as one trade, each pick named by the team whose pick it is, so the screens list it (#1491)", async () => {
+    const { offerId } = await offerPicks(ANN, bob, pickOf(ann, 1), pickOf(bob, 2));
+    await accept(BOB, offerId);
+    expect((await eventsIn(t, leagueId)).filter((event) => event.kind === "tradeMade")).toEqual([
+      expect.objectContaining({
+        by: BOB,
+        fromTeamId: ann,
+        toTeamId: bob,
+        gives: { players: [], picks: [{ round: 1, teamId: ann, teamName: await teamName(ann) }] },
+        gets: { players: [], picks: [{ round: 2, teamId: bob, teamName: await teamName(bob) }] },
+      }),
+    ]);
   });
 
   test("can be traded on, and a pick back with its own team is its own again", async () => {

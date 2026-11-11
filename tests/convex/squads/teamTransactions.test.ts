@@ -37,7 +37,7 @@ beforeEach(async () => {
 /** `email` runs the league's squads: each change a minute after the last, so their order is plain. */
 const squadsAs = (email: string) => squadMoves(t, leagueId, email, { minuteApart: true });
 const read = async (email = ANN) => (await actingAs(t, email)).query(api.squads.teamTransactions.ofMyTeam, { leagueId });
-const kindsOf = async (email = ANN) => (await read(email)).transactions.map(({ kind, playerName, otherTeamName }) => [kind, playerName, otherTeamName]);
+const kindsOf = async (email = ANN) => (await read(email)).transactions.map((move) => [move.kind, move.kind === "traded" ? null : move.playerName, move.otherTeamName]);
 
 describe("who may read it", () => {
   test.each([COMMISSIONER, OUTSIDER])("%s, running no team in it, is refused", async (email) => {
@@ -70,6 +70,30 @@ describe("the transactions", () => {
       ["released", "Rice", null],
       ["assigned", "Rice", null],
     ]);
+  });
+
+  test("list a trade that went through as one, for each side: what it brought in, what it sent, and the other team (#1491)", async () => {
+    // As a trade files them: the trade, then each of its players.
+    const picks = [{ round: 3, teamId: bobTeam, teamName: "Team 2" }];
+    await t.run(async (ctx) => {
+      const filed = (event: Doc<"leagueEvents">["event"]) => ctx.db.insert("leagueEvents", { leagueId, at: Date.now(), by: BOB, event });
+      await filed({
+        kind: "tradeMade",
+        fromTeamId: annTeam,
+        fromTeamName: "Team 1",
+        toTeamId: bobTeam,
+        toTeamName: "Team 2",
+        gives: { players: [{ playerCode: SAKA, playerName: "Saka" }], picks: [] },
+        gets: { players: [{ playerCode: RICE, playerName: "Rice" }], picks },
+      });
+      await filed({ kind: "playerTraded", playerCode: SAKA, playerName: "Saka", teamId: bobTeam, teamName: "Team 2", fromTeamId: annTeam, fromTeamName: "Team 1" });
+      await filed({ kind: "playerTraded", playerCode: RICE, playerName: "Rice", teamId: annTeam, teamName: "Team 1", fromTeamId: bobTeam, fromTeamName: "Team 2" });
+    });
+
+    const saka = { players: [{ playerCode: SAKA, playerName: "Saka" }], picks: [] };
+    const riceAndPick = { players: [{ playerCode: RICE, playerName: "Rice" }], picks };
+    expect((await read()).transactions).toEqual([{ at: expect.any(Number), kind: "traded", in: riceAndPick, out: saka, otherTeamName: "Team 2", by: BOB }]);
+    expect((await read(BOB)).transactions).toEqual([{ at: expect.any(Number), kind: "traded", in: saka, out: riceAndPick, otherTeamName: "Team 1", by: BOB }]);
   });
 
   test("say when and by whom, the admin by his byline as Mail's letter names him", async () => {

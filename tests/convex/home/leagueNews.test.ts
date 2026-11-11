@@ -35,7 +35,13 @@ const read = async ({ before = null, teamId = null, kind = null }: Asked = {}, e
 const file = (at: number, event: Infer<typeof leagueEvent>, by = ANN) => t.run((ctx) => ctx.db.insert("leagueEvents", { leagueId, at, by, event }));
 const onTeam = (team: number, player = SAKA) => ({ ...player, teamId: teams[team].teamId, teamName: teams[team].teamName });
 
-const summary = (news: LeagueNews) => news.moves.map(({ kind, teamName, joined, left, fromTeamName }) => ({ kind, teamName, joined: joined?.playerName ?? null, left: left?.playerName ?? null, fromTeamName }));
+/** Each move's kind, team, who joined, who left and where from; a trade's sides and other team. */
+const summary = (news: LeagueNews) =>
+  news.moves.map((move) =>
+    move.kind === "tradeMade"
+      ? { kind: move.kind, teamName: move.teamName, gets: move.gets, gives: move.gives, otherTeamName: move.otherTeamName }
+      : { kind: move.kind, teamName: move.teamName, joined: move.joined?.playerName ?? null, left: move.left?.playerName ?? null, fromTeamName: move.fromTeamName },
+  );
 
 test("anyone without a part in the league is refused", async () => {
   await expectRefused(read({}, OUTSIDER), refusals.notInLeague);
@@ -65,7 +71,7 @@ describe("the moves", () => {
       { kind: "playerMoved", teamName: "Team 2", joined: "Saka", left: null, fromTeamName: "Team 1" },
       { kind: "playerAssigned", teamName: "Team 1", joined: "Saka", left: null, fromTeamName: null },
     ]);
-    expect(news.moves[0].toWaivers).toBe(true);
+    expect(news.moves[0]).toMatchObject({ toWaivers: true });
     expect(news.older).toBeNull();
   });
 
@@ -76,7 +82,7 @@ describe("the moves", () => {
 
     const news = await read();
     expect(summary(news)).toEqual([{ kind: "playerClaimed", teamName: "Team 1", joined: "Saka", left: "Rice", fromTeamName: null }]);
-    expect(news.moves[0].toWaivers).toBe(false);
+    expect(news.moves[0]).toMatchObject({ toWaivers: false });
   });
 
   test("the Team filter finds a move by either team, and the Kind filter only its kind", async () => {
@@ -88,6 +94,21 @@ describe("the moves", () => {
     expect(summary(await read({ teamId: teams[2].teamId })).map((move) => move.joined)).toEqual(["Rice"]);
     expect(summary(await read({ kind: "playerAssigned" })).map((move) => move.joined)).toEqual(["Rice", "Saka"]);
     expect((await read({ teamId: teams[1].teamId, kind: "playerAssigned" })).moves).toEqual([]);
+  });
+
+  test("a trade that went through is one row, never its players' moves, found by either team and by its kind (#1491)", async () => {
+    const gives = { players: [SAKA], picks: [] };
+    const gets = { players: [RICE], picks: [{ round: 2, teamId: teams[1].teamId, teamName: teams[1].teamName }] };
+    const between = { fromTeamId: teams[0].teamId, fromTeamName: teams[0].teamName, toTeamId: teams[1].teamId, toTeamName: teams[1].teamName };
+    await file(4, { kind: "tradeMade", ...between, gives, gets });
+    await file(4, { kind: "playerTraded", ...onTeam(1), fromTeamId: teams[0].teamId, fromTeamName: teams[0].teamName });
+    await file(4, { kind: "playerTraded", ...onTeam(0, RICE), fromTeamId: teams[1].teamId, fromTeamName: teams[1].teamName });
+
+    const row = { kind: "tradeMade", teamName: "Team 1", gets, gives, otherTeamName: "Team 2" };
+    expect(summary(await read())).toEqual([row]);
+    expect(summary(await read({ teamId: teams[1].teamId }))).toEqual([row]);
+    expect(summary(await read({ kind: "tradeMade" }))).toEqual([row]);
+    expect((await read({ teamId: teams[2].teamId })).moves).toEqual([]);
   });
 });
 

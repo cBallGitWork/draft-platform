@@ -35,7 +35,7 @@ const cells = (row: HTMLTableRowElement) => Array.from(row.cells, (cell) => cell
 
 const AT = Date.parse("2026-10-20T18:00:00Z");
 const SAKA = 1001;
-const transaction = (kind: Transaction["kind"], otherTeamName: string | null = null): Transaction => ({
+const transaction = (kind: Exclude<Transaction["kind"], "traded">, otherTeamName: string | null = null): Transaction => ({
   at: AT,
   kind,
   playerCode: SAKA,
