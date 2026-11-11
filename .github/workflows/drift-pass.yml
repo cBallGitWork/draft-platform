@@ -21,7 +21,15 @@ env:
   GH_REPO: ${{ github.repository }}
   DRIFT_LABEL: drift-pass  # finds the one issue, open or closed
   TITLE: "Weekly drift pass"
-  PASS_MARK: "^refactor: drift pass"  # how a drift pass's pull request title starts (docs/REFACTORING.md, Record)
+  # The record line every drift pass's commit carries, whatever its title (docs/REFACTORING.md, Record): the newest
+  # commit on main holding it is the last pass. A title start found only some passes (#1369 was missed, #1753).
+  PASS_MARK: "^Self-review:"
+  PASS_BRANCH: "refactor/drift-pass"  # the branch a pass's fixes go on
+  # An open pull request that is still a pass: on a pass branch, or naming the drift-pass issue as the build's and its
+  # unfinished draft's bodies do ("Closes #N", "Part of #N"). Reads `gh pr list --json number,headRefName,body`.
+  OPEN_PASS: >-
+    .[] | select((.headRefName | startswith($branch))
+      or ($issue != "" and (.body // "" | test("(Closes|Part of) #" + $issue + "\\b")))) | .number
 
 jobs:
   open:
@@ -37,8 +45,13 @@ jobs:
           range="${last:+$last..}origin/main"
           count=$(git rev-list --count "$range")
           if [ "$count" = 0 ]; then echo "Nothing merged since the last drift pass ($last)."; exit 0; fi
-          if [ -n "$(gh pr list --state open --search "\"refactor: drift pass\" in:title" --json number --jq '.[].number')" ]; then
-            echo "::notice::A drift pass's pull request is still open: no new pass this week."; exit 0
+          gh label create "$DRIFT_LABEL" --color 5319E7 --description 'The weekly drift pass' --force
+          gh label create build --color 1D76DB --description 'Build this issue' --force
+          issue=$(gh issue list --state all --label "$DRIFT_LABEL" --limit 1 --json number --jq '.[0].number // empty')
+          open=$(gh pr list --state open --limit 200 --json number,headRefName,body \
+            | jq -r --arg branch "$PASS_BRANCH" --arg issue "$issue" "$OPEN_PASS")
+          if [ -n "$open" ]; then
+            echo "::notice::A drift pass's pull request is still open (#${open//$'\n'/, #}): no new pass this week."; exit 0
           fi
           merges=$(git log --format='- %s' "$range" | head -60)
           body=$(cat <<EOF
@@ -50,15 +63,12 @@ jobs:
           3. SPEC.md's status rows brought up to what merged in the range.
           4. ARCHITECTURE.md brought up to what merged in the range.
 
-          Fixes go on a \`refactor/\` branch; the pull request title starts \`refactor: drift pass\`. Record the \`Self-review:\` line in a commit message (docs/REFACTORING.md, Record). Never change scoring, the draft or saved data here (docs/REFACTORING.md, "What is never a refactor").
+          Fixes go on a branch starting \`$PASS_BRANCH\`; the pull request title starts \`refactor: drift pass\`. Record the \`Self-review:\` line at the start of a line in a commit message, which is how the next pass finds this one (docs/REFACTORING.md, Record). Never change scoring, the draft or saved data here (docs/REFACTORING.md, "What is never a refactor").
 
           Merged since the last pass:
           $merges
           EOF
           )
-          gh label create "$DRIFT_LABEL" --color 5319E7 --description 'The weekly drift pass' --force
-          gh label create build --color 1D76DB --description 'Build this issue' --force
-          issue=$(gh issue list --state all --label "$DRIFT_LABEL" --limit 1 --json number --jq '.[0].number // empty')
           if [ -z "$issue" ]; then
             url=$(gh issue create --title "$TITLE" --label "$DRIFT_LABEL" --label build --body "$body")
             issue=${url##*/}

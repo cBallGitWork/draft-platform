@@ -76,15 +76,15 @@ The drift pass is a task of its own, so fixing older files there keeps `CLAUDE.m
 tidying stays inside the files a task touches.
 
 **How:** the build works the checklist over the range; `review.yml` gives its pull request fresh
-eyes, as every other. Fixes go in on a `refactor/` branch, and its pull request title starts `refactor: drift pass`.
+eyes, as every other. Fixes go in on a `refactor/drift-pass` branch, and its pull request title starts `refactor: drift pass`.
 
 **Record**, in a commit message on the drift pass's branch. The repo's squash merge keeps every
 commit's message, so the line reaches `main`:
 `Self-review: <range>: <what was checked>; <what changed, or "clean, no changes">`, with the
 counts, including what was declined ("3 things written three times: 2 lifted, 1 only similar").
-`git log --grep '^refactor: drift pass' main` lists the passes. Each merged pull request is one
-commit on `main`, so the count since the last pass is
-`git rev-list --count $(git log -1 --format=%H --grep '^refactor: drift pass' main)..main`.
+The line is how a pass is found, whatever its title: `git log --grep '^Self-review:' main` lists
+the passes (`drift-pass.yml`'s `PASS_MARK`). Each merged pull request is one commit on `main`, so the
+count since the last pass is `git rev-list --count $(git log -1 --format=%H --grep '^Self-review:' main)..main`.
 `Self-review:` is the drift pass's record line only; a feature branch records /refactor in its
 PR's checks box.
 
