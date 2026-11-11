@@ -91,7 +91,7 @@ function slotAt([area, name, match, finalPoints]: Man, minute: number, onBench: 
         ? { kind: "playing", fixtureCode, state: "live", minute: Math.min(played, MATCH_MINUTES), clockLabel: null }
         : { kind: "finished", fixtureCode };
   const points = played < 0 ? null : Math.floor((finalPoints * Math.min(played, MATCH_MINUTES)) / MATCH_MINUTES);
-  const autoSub = name === UNUSED_KEEPER && status.kind === "finished" ? { kind: "off" as const, playerName: BENCH_KEEPER } : null;
+  const autoSub = name === UNUSED_KEEPER && status.kind === "finished" ? { kind: "off" as const, playerCode: codeOf(BENCH_KEEPER), playerName: BENCH_KEEPER } : null;
   // His shirt is the side's to dress (sideAt).
   return { playerCode: codeOf(name), name, area, clubCode: null, number: null, points, counts: !onBench, provisional: true, status, autoSub, breakdown: [breakdownOf(fixtureCode, kickoff, points, namedAt(match, played))] };
 }
@@ -166,7 +166,7 @@ function sideAt(teamName: string, men: typeof SAKA_POTATOES, minute: number): Ma
   if (off !== undefined) {
     off.counts = false;
     const on = bench.find((slot) => slot.name === BENCH_KEEPER)!;
-    Object.assign(on, { counts: true, autoSub: { kind: "on", playerName: off.name }, ...slotOf({ area: off.area, lane: off.place.lane }) });
+    Object.assign(on, { counts: true, autoSub: { kind: "on", playerCode: off.playerCode, playerName: off.name }, ...slotOf({ area: off.area, lane: off.place.lane }) });
   }
   const final = minute >= FINAL_MINUTE;
   const counting = slots.filter((slot) => slot.counts);
