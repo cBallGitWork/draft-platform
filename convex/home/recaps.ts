@@ -9,6 +9,7 @@ import { seasonGameweekCount } from "../gameweeks/seasonGameweeks";
 import { leagueAverageWords } from "../mail/letterWords";
 import { fileLetter, wholeLeague } from "../mail/letters";
 import { CLAUDE_RETRY_MS, writeWithClaude } from "../outbound/claude";
+import { gameModeOf } from "../rules/gameMode";
 import { seasonRules } from "../rules/rulesHistory";
 import { recapTeamPoints } from "../schema/recaps";
 import { takeAllOrThrow } from "../shared/cappedRead";
@@ -65,7 +66,7 @@ export const brief = internalQuery({
     const { rules, teamIds, schedule, results, named } = await standingsOf(ctx, league, season);
     const scored = results.get(gameweek);
     if (scored === undefined) throw new Error(`League ${league._id} has no score for gameweek ${gameweek}`);
-    const drawn = rules.format === "headToHead" ? schedule.find((each) => each.gameweek === gameweek) : undefined;
+    const drawn = gameModeOf(rules).hasMatchups ? schedule.find((each) => each.gameweek === gameweek) : undefined;
     const headToHeads = drawn === undefined ? [] : scoredFixtures(drawn, results, named);
 
     const inGameweek = await tableGameweek(ctx, await leagueReads(ctx, league, season), gameweek, teamIds);

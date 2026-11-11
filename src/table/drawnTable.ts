@@ -6,6 +6,7 @@
 import type { Id } from "../../convex/_generated/dataModel";
 import { drawFixtures, type DrawRules } from "../../convex/table/roundRobin";
 import { FIRST_RULES } from "../../convex/rules/firstRules";
+import { gameModeOf } from "../../convex/rules/gameMode";
 import type { GameweekScores, TieBreak } from "../../convex/table/standings";
 import type { DeadlineOf } from "../../convex/gameweeks/deadline";
 import { seasonGameweeks } from "../../convex/gameweeks/usedGameweeks";
@@ -49,7 +50,7 @@ function inputsOf(teamNames: string[], drawn: Drawn) {
   const { oddTeamOut, gamesPerGameweek, seed, gameweeks } = { ...DRAW_DEFAULTS, ...drawn };
   const { format = "headToHead", deadlineOf = () => null, scores = new Map(), provisional = [], unscored = [] } = drawn;
   const teamIds = teamNames.map(idOf);
-  const schedule = format === "headToHead" ? drawFixtures(teamIds, gameweeks, () => ({ oddTeamOut, gamesPerGameweek }), seed) : [];
+  const schedule = gameModeOf({ format }).hasMatchups ? drawFixtures(teamIds, gameweeks, () => ({ oddTeamOut, gamesPerGameweek }), seed) : [];
   const results: Results = new Map(
     [...scores].map(([gameweek, scored]) => [
       gameweek,

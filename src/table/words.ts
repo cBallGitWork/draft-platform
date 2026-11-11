@@ -37,6 +37,11 @@ export const columns = {
   points: { short: "Pts", long: "Points" },
   form: { short: "Form", long: `Form, the latest ${FORM_RESULTS} results, oldest first` },
 } as const;
+
+/** A total-points table's columns, on the Table page and League home alike: total points has no
+ *  matchups to win, draw or lose. */
+export const TOTAL_POINTS_COLUMNS = ["position", "team", "played", "points"] as const satisfies readonly (keyof typeof columns)[];
+
 /** Before the reader's own team's name, for screen readers: the cyan edge says it on screen. */
 export const yourTeamWords = "Your team";
 

@@ -3,6 +3,7 @@ import type { Id } from "../_generated/dataModel";
 import { query, type QueryCtx } from "../_generated/server";
 import { deadlineOf, leagueDeadlines } from "../gameweeks/leagueDeadlines";
 import { thisGameweekOf } from "../gameweeks/nextGameweek";
+import { gameModeOf } from "../rules/gameMode";
 import { seasonRules } from "../rules/rulesHistory";
 import { memberOf, teamIn } from "../shared/leagueAccess";
 import { scheduleOf } from "../table/playedFixtures";
@@ -32,7 +33,7 @@ export const thisGameweek = query({
 export async function matchupTeam(ctx: QueryCtx, leagueId: Id<"leagues">, teamId: Id<"teams"> | undefined) {
   const { league, team: own } = await memberOf(ctx, leagueId);
   const season = await seasonRules(ctx, leagueId);
-  if (season.latest.format === "totalPoints") return { kind: "totalPoints" as const };
+  if (!gameModeOf(season.latest).hasMatchups) return { kind: "totalPoints" as const };
   const team = teamId === undefined ? own : await teamIn(ctx, leagueId, teamId);
   if (team === undefined) return { kind: "noTeam" as const };
   return { kind: "team" as const, league, season, team };
