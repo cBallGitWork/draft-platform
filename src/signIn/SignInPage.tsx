@@ -35,8 +35,8 @@ export function SignInPage({
         <h1 className="px-4 py-1 text-title display-face">{PRODUCT_NAME}</h1>
         <p className="flex items-center border-l border-bar-rule px-4 text-lead font-semibold">{signInWords.inviteOnly}</p>
       </header>
-      <main className="p-2">
-        <Panel title={signInWords.title} className="max-w-md">
+      <main className="grid items-start gap-2 p-4 lg:grid-cols-sign-in">
+        <Panel title={signInWords.title}>
           <Problem problem={linkProblem && !outcome ? linkProblemWords[linkProblem] : null} />
           {intro && <p className="px-3 pt-2">{intro}</p>}
           <form onSubmit={sendLink} className={PANEL_BODY}>
@@ -61,6 +61,12 @@ export function SignInPage({
             </button>
           </form>
           <Status words={outcome} className="alert-strip" />
+        </Panel>
+        <Panel title={signInWords.inviteOnly}>
+          <div className={PANEL_BODY}>
+            <p className="font-semibold">{signInWords.inviteOnlyWhy}</p>
+            <p>{signInWords.noInvite}</p>
+          </div>
         </Panel>
       </main>
     </>

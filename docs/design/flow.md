@@ -26,7 +26,7 @@ flowchart TD
   ROOT -.->|"in a league"| TEAM
   SIGNIN -.->|"signed in, with ?join"| JOIN
   SIGNIN -.->|"signed in"| ROOT
-  SIGNIN -- "Send the link, then the emailed link" --> ROOT
+  SIGNIN -- "Email me a link, then the emailed link" --> ROOT
 
   subgraph LP["League pages: anyone signed in"]
     LEAGUES["Your leagues<br/>/leagues<br/>manager, commissioner, admin"]
