@@ -2,6 +2,8 @@
 // server refused a scout is in convex/scouting/scoutWords.ts (`scoutRefusals`), and reaches the
 // screen as is.
 
+import { HOUR_MS, MINUTE_MS } from "../../../convex/shared/time";
+import { hoursLeftWords } from "../../draft/words";
 import { dayWords, whenWords } from "../../shared/words";
 
 /** The card's action, and how many of the team's scouts are free (the approved card: "Send a scout
@@ -28,6 +30,12 @@ export const scoutsOutWords = (out: number, scouts: number) => `${out} of ${scou
 export const scoutNumberWords = (number: number) => `Scout ${number}`;
 export const outOnWords = (name: string) => `Out on ${name}`;
 export const reportInSoonWords = (left: string) => `report in ${left}`;
+/** A scout's time left, to the minute (#1567): "35m" under an hour, then "5h 12m", then "1d 4h". */
+export function minutesLeftWords(left: number): string {
+  const ms = Math.max(0, left);
+  if (ms < HOUR_MS) return `${Math.ceil(ms / MINUTE_MS)}m`;
+  return hoursLeftWords(ms);
+}
 export const reportInOnWords = (name: string) => `Report in on ${name}`;
 export const freeScoutWords = "Free: send him from a player's panel";
 export const readWords = "Read ›";
