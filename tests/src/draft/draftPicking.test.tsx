@@ -16,6 +16,8 @@ import { MINUTE_MS, SECOND_MS } from "../../../convex/shared/time";
 import { DRAFT_PATH } from "../../../src/frame/menu";
 import type { DraftState, RoomFigures } from "../../../src/draft/seam";
 import {
+  addToQueueWords,
+  DO_NOT_DRAFT_TITLE,
   draftColumns,
   draftPlayerWords,
   everyPositionTabWords,
@@ -195,6 +197,43 @@ describe("the selected player's panel", () => {
     openDraft({ draft: liveDraft(true), figures: FIGURES });
     await open(RICE.name);
     expect(screen.getByText(newcomerWords)).toBeTruthy();
+  });
+});
+
+describe("the panel's Add to queue and Do not draft (#1474)", () => {
+  const listButton = (words: string) => screen.queryByRole("button", { name: words });
+
+  it("puts him on the reader's queue, or his do-not-draft list, out of turn too", async () => {
+    const app = openDraft({ draft: liveDraft(false) });
+    await open(SAKA.name);
+    await userEvent.click(listButton(addToQueueWords)!);
+    expect(app.draft.listChanges.add).toHaveBeenCalledWith(expect.anything(), SAKA.code, "queue");
+    await userEvent.click(listButton(DO_NOT_DRAFT_TITLE)!);
+    expect(app.draft.listChanges.add).toHaveBeenCalledWith(expect.anything(), SAKA.code, "doNotDraft");
+  });
+
+  it("can't be pressed for the list he is already on", async () => {
+    openDraft({ draft: liveDraft(true), queue: [SAKA.code] });
+    await open(SAKA.name);
+    expect(listButton(addToQueueWords)).toHaveProperty("disabled", true);
+    expect(listButton(DO_NOT_DRAFT_TITLE)).toHaveProperty("disabled", false);
+  });
+
+  it("says why the server refused", async () => {
+    openDraft({ draft: liveDraft(true), refusal: "A do-not-draft list holds at most 50 players. Take one off first." });
+    await open(SAKA.name);
+    await userEvent.click(listButton(DO_NOT_DRAFT_TITLE)!);
+    expect((await screen.findByRole("alert")).textContent).toBe("A do-not-draft list holds at most 50 players. Take one off first.");
+  });
+
+  it("shows neither to a reader who runs no team, nor once the draft is over", async () => {
+    openDraft({ draft: liveDraft(true), lists: null });
+    await open(SAKA.name);
+    expect(listButton(addToQueueWords)).toBeNull();
+
+    openDraft({ draft: { status: "over", startedAt: 0, rounds: 2, order: draftOrder, picksMade: 6 } });
+    await open(SAKA.name);
+    expect(listButton(DO_NOT_DRAFT_TITLE)).toBeNull();
   });
 });
 

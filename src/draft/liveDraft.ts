@@ -25,6 +25,7 @@ export const liveDraft: DraftSeam = {
     );
   },
   useListChanges: () => {
+    const add = useMutation(api.draft.draftLists.add);
     const remove = useMutation(api.draft.draftLists.remove);
     const move = useMutation(api.draft.draftLists.move);
     const addShortlist = useMutation(api.draft.draftLists.addShortlist);
@@ -32,13 +33,14 @@ export const liveDraft: DraftSeam = {
     const takeControlBack = useMutation(api.draft.autoPickSwitch.takeControlBack);
     return useMemo<DraftListChanges>(
       () => ({
+        add: (leagueId, playerCode, list) => refusalOf(() => add({ leagueId, playerCode, list }), "Putting a player on a draft list", listChangeFailedWords),
         remove: (leagueId, playerCode, list) => refusalOf(() => remove({ leagueId, playerCode, list }), "Taking a player off a draft list", listChangeFailedWords),
         move: (leagueId, playerCode, place) => refusalOf(() => move({ leagueId, playerCode, place }), "Moving a player in the draft queue", listChangeFailedWords),
         addShortlist: (leagueId) => answerOf(() => addShortlist({ leagueId }), "Adding the shortlist to the draft queue", listChangeFailedWords),
         turnOnAutoPick: (leagueId) => refusalOf(() => turnOn({ leagueId }), "Turning auto-pick on", listChangeFailedWords),
         takeControlBack: (leagueId) => refusalOf(() => takeControlBack({ leagueId }), "Taking control back from auto-pick", listChangeFailedWords),
       }),
-      [remove, move, addShortlist, turnOn, takeControlBack],
+      [add, remove, move, addShortlist, turnOn, takeControlBack],
     );
   },
   useCommissioner: (leagueId, now) => useQuery(api.draft.draftCommissioner.panel, { leagueId, now }),

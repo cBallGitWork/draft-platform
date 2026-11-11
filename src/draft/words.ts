@@ -92,6 +92,8 @@ export function shortlistAddedWords(added: number, leftOut: number): string {
   return leftOut === 0 ? put : `${put} ${leftOut} left out: a queue holds at most ${DRAFT_LIST_MOST}.`;
 }
 export const DO_NOT_DRAFT_TITLE = "Do not draft";
+/** In the selected player's panel, beside "Do not draft" (the approved draft room picture). */
+export const addToQueueWords = "Add to queue";
 export const doNotDraftAside = (count: number) => `${count}, auto-pick skips them`;
 /** The lists, for screen readers. */
 export const queueListLabel = "Your queue, first choice first";

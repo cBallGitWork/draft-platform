@@ -28,7 +28,7 @@ import {
 // to reorder it (or moved a place with the arrow keys on its handle), the cross taking a player
 // off; the shortlist feeding it, a link to Scouting's shortlist and "Add my whole shortlist" (Craig,
 // 5 Nov 2026, on #1100); and under it the do-not-draft list, the cross taking a player off. A
-// player is put on either list from his panel (#1099). Private to the manager: nothing shows for
+// player is put on either list from his panel (PickPanel.tsx; #1474). Private to the manager: nothing shows for
 // someone who runs no team.
 
 type Listed = DraftLists["queue"][number];

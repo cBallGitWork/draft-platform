@@ -58,6 +58,9 @@ export type DraftList = "queue" | "doNotDraft";
 export type ShortlistAdded = FunctionReturnType<typeof api.draft.draftLists.addShortlist>;
 
 export type DraftListChanges = {
+  /** Puts a player at the bottom of the queue, or on the do-not-draft list, taking him off the
+   *  other; one already on it keeps his place. */
+  add(leagueId: Id<"leagues">, playerCode: number, list: DraftList): Change;
   remove(leagueId: Id<"leagues">, playerCode: number, list: DraftList): Change;
   /** Moves a queued player to `place`, 1 the top. */
   move(leagueId: Id<"leagues">, playerCode: number, place: number): Change;
