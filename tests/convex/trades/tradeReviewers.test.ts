@@ -8,7 +8,7 @@ import { ANN, ANNS_FIRST_DROP, BOB, CAT, SAKA, tradeLeague, type TradeLeague } f
 import { draftOver, noDraft } from "../../support/convex/waivers.harness";
 
 // A trade in review under a commissioner veto follows the role, not the person (#1472; Craig,
-// 11 Nov 2026): when the commissioner or co-commissioner changes, whoever reviews it now gets the
+// 11 Nov 2026; S08.12): when the commissioner or co-commissioner changes, whoever reviews it now gets the
 // review letter, sees it in To review and may Block it; the one who left may not; the 24 hours
 // don't restart. With nobody left who may block it, it goes to a league vote.
 
