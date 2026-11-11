@@ -4,7 +4,7 @@ import { leagueDeadline, type DeadlineOf, type LeagueDeadlines, type ScheduledMa
 import { fixedDeadlinesOf } from "./passedDeadlines";
 import { FIRST_GAMEWEEK, GAMEWEEKS_MOST, seasonGameweeks } from "./usedGameweeks";
 import { takeAllOrThrow } from "../shared/cappedRead";
-import { heldSeason, seasonGameweekCount } from "./seasonGameweeks";
+import { heldGameweeksSeason, seasonGameweekCount } from "./seasonGameweeks";
 import { currentFixtures } from "../shared/fixtures";
 import { historyOf, inForce } from "../rules/rulesHistory";
 
@@ -20,7 +20,7 @@ export async function heldSchedule(ctx: QueryCtx): Promise<HeldSchedule> {
   // Only this season's: each season's gameweeks are kept, last season's beside it (#66). At most
   // one row a gameweek number in a season: the football sync keeps one (footballSync.ts's
   // upsertGameweeks), so more is a bug.
-  const season = await heldSeason(ctx);
+  const season = await heldGameweeksSeason(ctx);
   const seasonRows = await takeAllOrThrow(
     ctx.db.query("gameweeks").withIndex("by_season_and_number", (q) => q.eq("season", season).gte("number", FIRST_GAMEWEEK)),
     GAMEWEEKS_MOST,

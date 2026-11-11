@@ -15,7 +15,7 @@ import { takeAllOrThrow } from "../shared/cappedRead";
 import { logFailure } from "../shared/errors";
 import { GAMEWEEK_MATCHES_MOST } from "../shared/fixtures";
 import { memberOf, teamsOf } from "../shared/leagueAccess";
-import { playerByCode } from "../shared/players";
+import { lostPlayerName, playerByCode } from "../shared/players";
 import { MINUTE_MS } from "../shared/time";
 import { standingsOf } from "../table/leagueTable";
 import { scoredFixtures } from "../table/sentTables";
@@ -78,7 +78,7 @@ export const brief = internalQuery({
       for (const slot of team.starters) {
         if (!slot.counts || slot.points === null) continue;
         const player = await playerByCode(ctx, slot.playerCode);
-        starters.push({ player: player?.name ?? `Player ${slot.playerCode}`, team: named(teamId), points: slot.points });
+        starters.push({ player: player?.name ?? lostPlayerName(slot.playerCode), team: named(teamId), points: slot.points });
       }
     }
     const { topPerformers, letdowns } = performersOf(starters);

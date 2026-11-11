@@ -1,7 +1,7 @@
 import { internal } from "../_generated/api";
 import type { MutationCtx, QueryCtx } from "../_generated/server";
 import { logFailure } from "../shared/errors";
-import { fixtureByCode, heldSeason } from "../shared/fixtures";
+import { fixtureByCode, heldFixturesSeason } from "../shared/fixtures";
 import { seasonStartYear } from "../shared/time";
 
 // The season rows' self-starts (#525, #959): a deployment holding match records from before the
@@ -57,7 +57,7 @@ async function wholeRecordsIn(ctx: QueryCtx, season: number, writing: number | n
 /** Runs one self-start check: true when it started a rebuild. A failure is logged, naming `repair`. */
 async function checked(ctx: MutationCtx, repair: string, check: (season: number) => Promise<boolean>): Promise<boolean> {
   try {
-    const season = await heldSeason(ctx);
+    const season = await heldFixturesSeason(ctx);
     return season !== null && (await check(season));
   } catch (error) {
     logFailure(`the season rows weren't checked for a rebuild; run ${repair}`, error);

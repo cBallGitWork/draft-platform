@@ -41,6 +41,15 @@ export const noSuchGameweek = (gameweek: number, count: number) =>
     ? `There's no gameweek ${gameweek} yet: this season's gameweeks haven't arrived from the feed.`
     : `There's no gameweek ${gameweek}: this season has gameweeks ${FIRST_GAMEWEEK} to ${count}.`;
 
+/** A change to the league's gameweeks refused because the gameweek has begun, `so` saying what
+ *  that stops. */
+export const begunRefusal = (gameweek: number, so: string) => `Gameweek ${gameweek} has begun, so ${so}.`;
+
+/** A change refused because no match of the gameweek has a kickoff time yet, so the app `cantTell`
+ *  what it needs to. */
+export const noKickoffRefusal = (gameweek: number, cantTell: string) =>
+  `The app doesn't have a kickoff time for gameweek ${gameweek} yet, so it can't tell ${cantTell}. Try again once the season's matches have arrived.`;
+
 /** Whether the league plays this gameweek of its season of `count`. Asking of a gameweek the
  *  season doesn't have is a bug in the caller, so it throws. */
 export function isGameweekUsed(league: WithUnusedGameweeks, gameweek: number, count: number): boolean {
