@@ -11,7 +11,7 @@ import { whyNotLegalFor } from "./draftPicks";
 import { everyPlayerNow, undraftedIn } from "./undrafted";
 import { draftRanking } from "./draftRanking";
 import { draftOf, picksLeftOf, turnNow, type Turn } from "./draftRow";
-import { lastPricedSeason, lastSeasonPoints } from "./lastSeasonPoints";
+import { lastPricedSeason, lastSeasonPoints } from "../pastSeasons/lastSeasonPoints";
 
 // The draft room's players list's figures (spec/04, The draft room; #1099). The list itself is
 // Scouting's (../scouting/playersList.ts); beside it:

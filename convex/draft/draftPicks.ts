@@ -20,7 +20,7 @@ import { draftRanking } from "./draftRanking";
 import type { Position } from "../positions/positionTables";
 import { draftedPositionsIn, draftOf, lastPickIn, liveClockOf, picksLeftOf, turnNow, undoWindowOpen, type StartedDraft, type Turn } from "./draftRow";
 import { afterTimeout, choseAutoPick, timeoutEffect } from "./draftTimeouts";
-import { lastSeasonPoints } from "./lastSeasonPoints";
+import { lastSeasonPoints } from "../pastSeasons/lastSeasonPoints";
 import { whyNotLegal, type DraftPlayer, type NotLegal } from "./legalPlayers";
 import { offWaivers } from "../waivers/waiverPlayers";
 import { undraftedIn } from "./undrafted";
