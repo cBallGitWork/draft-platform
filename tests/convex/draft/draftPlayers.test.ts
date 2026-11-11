@@ -128,7 +128,7 @@ describe("the draft room's figures", () => {
   const figuresOf = async (email: string) => (await as(email)).query(api.draft.draftPlayers.figures, { leagueId });
   /** The club maximum is the board's, which already reads the draft's row, so a pick never reruns
    *  the figures (#1537). */
-  const clubMaximumOf = async (email: string) => (await (await as(email)).query(api.draft.draftBoard.ofLeague, { leagueId, now: Date.now() })).maxPerClub;
+  const clubMaximumOf = async (email: string) => (await (await as(email)).query(api.draft.draftBoard.ofLeague, { leagueId })).maxPerClub;
   const byCodeOf = <Figure extends { code: number }>(figures: { players: Figure[] }) => new Map(figures.players.map((each) => [each.code, each]));
 
   test("rank the admin's ranking first, then last season's points, newcomers last, with each one's overview", async () => {

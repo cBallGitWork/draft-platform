@@ -20,7 +20,7 @@ const SAKA: HeldPlayer = { code: 101, name: "Saka", fullName: "Bukayo Saka", clu
 const PALMER: HeldPlayer = { code: 201, name: "Palmer", fullName: "Cole Palmer", clubCode: CHELSEA.code, positions: ["CAM"] };
 
 const as = (email: string) => actingAs(t, email);
-const board = async (email: string) => (await as(email)).query(api.draft.draftBoard.ofLeague, { leagueId, now: Date.now() });
+const board = async (email: string) => (await as(email)).query(api.draft.draftBoard.ofLeague, { leagueId });
 const inMenu = async (email: string) => (await as(email)).query(api.draft.draftBoard.inMenu, { leagueId });
 const pick = async (email: string, playerCode: number) => (await as(email)).mutation(api.draft.draftPicks.makePick, { leagueId, playerCode });
 

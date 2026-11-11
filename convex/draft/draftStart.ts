@@ -171,10 +171,10 @@ const pickClock = v.object({ startsAt: v.number(), endsAt: v.number(), pausedAt:
  *  draft order now; live, with when it started, its rounds, its order, fixed at the start, how many
  *  picks are made, the pick on the clock and its clock (null in a draft started before #1091, until
  *  its next pick); or over, once every pick is made (draftPicks.ts). A waiting draft's rounds are
- *  those it would start with now. `now`, the screen's minute, no longer moves anything here: it
- *  stays until the draft room's seam drops it, as that screen's change. */
+ *  those it would start with now. It takes no minute: one would change its args as the
+ *  minute turns and blank the draft room while the new answer loads (#1531). */
 export const ofLeague = query({
-  args: { leagueId: v.id("leagues"), now: v.number() },
+  args: { leagueId: v.id("leagues") },
   returns: v.union(
     v.object({ status: v.literal("waiting"), startsAt: v.union(v.number(), v.null()), rounds: v.union(v.number(), v.null()), order: v.array(teamInOrder) }),
     v.object({ status: v.literal("live"), startedAt: v.number(), rounds: v.number(), order: v.array(teamInOrder), picksMade: v.number(), onTheClock, clock: v.union(pickClock, v.null()) }),

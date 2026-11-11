@@ -48,9 +48,11 @@ type Live = Extract<DraftState, { status: "live" }>;
 type Waiting = Extract<DraftState, { status: "waiting" }>;
 
 export function DraftPage({ league, seam }: { league: LeagueSummary; seam: DraftSeam }) {
+  // The minute is for the waiting countdown and the commissioner panel only: the room's own reads
+  // take none, so the page doesn't blank to Loading as it turns (#1531).
   const now = useMinute();
-  const draft = seam.useDraft(league.leagueId, now);
-  const board = seam.useBoard(league.leagueId, now);
+  const draft = seam.useDraft(league.leagueId);
+  const board = seam.useBoard(league.leagueId);
   if (draft === undefined || board === undefined) {
     return (
       <PageSection title={DRAFT_TITLE}>

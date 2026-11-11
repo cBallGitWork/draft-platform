@@ -11,8 +11,8 @@ import { listChangeFailedWords, pickFailedWords } from "./words";
  *  (convex/draft/); any other failure is logged and said plainly. */
 export const liveDraft: DraftSeam = {
   usePlayersList: liveScouting.usePlayersList,
-  useDraft: (leagueId, now) => useQuery(api.draft.draftStart.ofLeague, { leagueId, now }),
-  useBoard: (leagueId, now) => useQuery(api.draft.draftBoard.ofLeague, { leagueId, now }),
+  useDraft: (leagueId) => useQuery(api.draft.draftStart.ofLeague, { leagueId }),
+  useBoard: (leagueId) => useQuery(api.draft.draftBoard.ofLeague, { leagueId }),
   useInMenu: (leagueId) => useQuery(api.draft.draftBoard.inMenu, { leagueId }),
   useGreyedOut: (leagueId) => useQuery(api.draft.draftPlayers.greyedOut, { leagueId }),
   useFigures: (leagueId) => useQuery(api.draft.draftPlayers.figures, { leagueId }),

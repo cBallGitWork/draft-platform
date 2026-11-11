@@ -55,10 +55,9 @@ export type DraftBoard = Infer<typeof draftBoard>;
 /** The board as everyone in the league reads it: every pick made, first first, the caller's team,
  *  the draft's pick time and timeout limit, the league's latest (#1439), the picks traded, and the
  *  club maximum.
- *  `now`, the screen's minute, no longer moves anything here: it stays until the draft room's seam
- *  drops it. */
+ *  It takes no minute, so the draft room doesn't blank as the minute turns (#1531). */
 export const ofLeague = query({
-  args: { leagueId: v.id("leagues"), now: v.number() },
+  args: { leagueId: v.id("leagues") },
   returns: draftBoard,
   handler: async (ctx, { leagueId }) => {
     const { team } = await memberOf(ctx, leagueId);
