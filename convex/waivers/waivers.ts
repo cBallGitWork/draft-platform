@@ -1,17 +1,16 @@
 import { v, type Infer } from "convex/values";
-import { mutation, query } from "../_generated/server";
+import type { Doc, Id } from "../_generated/dataModel";
+import { mutation, query, type QueryCtx } from "../_generated/server";
 import { draftIsOver } from "../draft/draftRow";
 import { leagueDeadlines } from "../gameweeks/leagueDeadlines";
 import { pickFirstLineupAgain } from "../lineup/lineups";
-import { recordEvent } from "../mail/letters";
 import { managerOf, memberOf, refuse, refusals, teamIn } from "../shared/leagueAccess";
 import { playerByCode } from "../shared/players";
-import { tellShortlisters } from "../scouting/shortlist";
 import { latestRules } from "../rules/rulesHistory";
 import { heldOrNot, placeOf, squadOf } from "../squads/squadPlace";
-import { closeOffersHolding, heldInReview } from "../trades/tradeClose";
+import { heldInReview } from "../trades/tradeClose";
 import { inWaiverLock } from "./waiverLock";
-import { dropFromSquad, waiverRowOf } from "./waiverPlayers";
+import { dropAndTell, waiverRowOf } from "./waiverPlayers";
 import { firstRunFrom } from "./waiverTimes";
 
 // A manager's drop, and a player's waiver state (#1197, spec/08 Waivers and free agency). A drop
@@ -44,24 +43,21 @@ export const drop = mutation({
     const deadlines = await leagueDeadlines(ctx, leagueId);
     if (await inWaiverLock(ctx, deadlines, now)) refuse(dropRefusals.locked);
     const player = (await playerByCode(ctx, playerCode)) ?? refuse(refusals.noPlayer);
-    const place = await placeOf(ctx, leagueId, playerCode);
-    if (place === null || place.teamId !== team._id) refuse(dropRefusals.notYours(player.name));
-    if ((await heldInReview(ctx, leagueId)).has(playerCode)) refuse(dropRefusals.held(player.name));
-    const toWaivers = await dropFromSquad(ctx, place, deadlines, now);
-    await closeOffersHolding(ctx, leagueId, team._id, [playerCode]);
-    await recordEvent(ctx, leagueId, email, {
-      kind: "playerDropped",
-      playerCode,
-      playerName: player.name,
-      teamId: team._id,
-      teamName: team.name,
-      toWaivers,
-    });
-    await tellShortlisters(ctx, league, player, team, email, { released: false, toWaivers });
+    const place = await placeToDrop(ctx, leagueId, team._id, player);
+    await dropAndTell(ctx, league, team, place, player, email, { deadlines, now, letter: true });
     await pickFirstLineupAgain(ctx, leagueId, team._id);
     return null;
   },
 });
+
+/** The squad place of the player the manager's team drops, by itself or for a pickup: refused
+ *  unless he is in its squad and not held in a trade under review. */
+export async function placeToDrop(ctx: QueryCtx, leagueId: Id<"leagues">, teamId: Id<"teams">, player: { code: number; name: string }): Promise<Doc<"squadPlayers">> {
+  const place = await placeOf(ctx, leagueId, player.code);
+  if (place === null || place.teamId !== teamId) refuse(dropRefusals.notYours(player.name));
+  if ((await heldInReview(ctx, leagueId)).has(player.code)) refuse(dropRefusals.held(player.name));
+  return place;
+}
 
 const waiverState = v.union(
   v.object({ kind: v.literal("owned"), teamId: v.id("teams"), teamName: v.string() }),
