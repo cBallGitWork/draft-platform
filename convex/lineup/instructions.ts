@@ -7,7 +7,16 @@
 // defence, and Press high's three are counted one row at a time. Pure: the server's save and the
 // Tactics screen both read it, so the two never differ. Scoring an instruction is not here.
 
-import { AREAS, sameShape, WIDE_LANES, type Area, type Cell } from "./pitch";
+import {
+  AREAS,
+  backOf,
+  FIVE_AT_THE_BACK_COUNT,
+  sameShape,
+  TWO_AT_THE_BACK_COUNT,
+  WIDE_LANES,
+  type Area,
+  type Cell,
+} from "./pitch";
 
 export const SIDES = ["attacking", "defensive"] as const;
 export type Side = (typeof SIDES)[number];
@@ -75,10 +84,10 @@ export const instructionName = (key: string): string => FIRST_INSTRUCTIONS.find(
  *  at the back on Gung-ho, and every other shape on Play out from the back and Keep it tight early.
  *  A league's presets hold their own pair (presets.ts), which it edits. */
 export function firstPairFor(cells: readonly Cell[]): InstructionPair {
-  const back = inArea(cells, "defence").length;
+  const back = backOf(cells);
   return {
-    attacking: back === 2 ? "gungHo" : "playOutFromTheBack",
-    defensive: back === 5 ? "parkTheBus" : "keepItTightEarly",
+    attacking: back === TWO_AT_THE_BACK_COUNT ? "gungHo" : "playOutFromTheBack",
+    defensive: back === FIVE_AT_THE_BACK_COUNT ? "parkTheBus" : "keepItTightEarly",
   };
 }
 
@@ -89,7 +98,7 @@ const WINGER_ROWS: readonly Area[] = ["attackingMidfield", "attack"];
 
 /** Whether a formation, the cells its eleven stand in, has what an instruction needs. */
 export function shapeAllows(needs: ShapeNeed, cells: readonly Cell[]): boolean {
-  const back = inArea(cells, "defence").length;
+  const back = backOf(cells);
   switch (needs) {
     case "anyShape":
       return true;
@@ -100,13 +109,13 @@ export function shapeAllows(needs: ShapeNeed, cells: readonly Cell[]): boolean {
       return WIDE_LANES.every((lane) => above.some((cell) => cell.lane === lane));
     }
     case "twoAtTheBack":
-      return back === 2;
+      return back === TWO_AT_THE_BACK_COUNT;
     case "threeInARow":
       return PRESSING_ROWS.some((area) => inArea(cells, area).length >= 3);
     case "backThreeOrFour":
       return back === 3 || back === 4;
     case "fiveAtTheBack":
-      return back === 5;
+      return back === FIVE_AT_THE_BACK_COUNT;
   }
 }
 

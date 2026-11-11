@@ -2,6 +2,7 @@ import { expect, test } from "vitest";
 import {
   ALL_CELLS,
   AREAS,
+  backOf,
   byPitchOrder,
   cellKey,
   isOnPitch,
@@ -125,4 +126,16 @@ test("two sets of cells make the same shape when they hold the same cells in any
   expect(sameShape(shape, shape.toReversed())).toBe(true);
   expect(sameShape(shape, shape.slice(1))).toBe(false);
   expect(sameShape(shape, [...shape.slice(1), { area: "midfield", lane: "centre" }])).toBe(false);
+});
+
+test("the back counts the defence row's cells only: a wing back in a midfield row isn't one", () => {
+  const shape: Cell[] = [
+    { area: "goalkeeper", lane: "centre" },
+    { area: "defence", lane: "leftCentre" },
+    { area: "defence", lane: "rightCentre" },
+    { area: "defensiveMidfield", lane: "left" },
+    { area: "midfield", lane: "right" },
+  ];
+  expect(backOf(shape)).toBe(2);
+  expect(backOf([])).toBe(0);
 });
