@@ -117,7 +117,7 @@ describe("the waiver order", () => {
     expect(await order()).toEqual(bobLast);
 
     await changeWaivers({ ...HELD_FIRST_RULES.waivers, order: "reverseStandings" });
-    // Reverse table order would put Bob back above Ann, as a gameweek has begun since he won.
+    // Reverse table order would put Bob back above Ann, as a gameweek has ended since he won.
     expect(await order()).toEqual(bobLast);
 
     await w.gameweekEnds(NEXT + 1);
