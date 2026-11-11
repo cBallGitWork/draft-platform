@@ -12,6 +12,7 @@ import { siteScoringInGameweek } from "../scoring/siteVersions";
 import { takeAllOrThrow } from "../shared/cappedRead";
 import { logFailure } from "../shared/errors";
 import { fixtureByCode } from "../shared/fixtures";
+import type { PlayerCode } from "../shared/players";
 import { EVENT_STATS, isWhole, MINUTES_STAT, type PlayerMatchRecord } from "./matchRecords";
 
 // The threshold lines' moments (spec/10, The commentary; #44, #835): "~58' Rice: 3 key passes,
@@ -28,7 +29,6 @@ import { EVENT_STATS, isWhole, MINUTES_STAT, type PlayerMatchRecord } from "./ma
 // or his team's instructions move it is the matchup's to work out too (#868, #990). A read at full time stores none: its records are the sync's
 // (matchStats.ts), and the live reads have shown the match by then.
 
-type PlayerCode = number;
 
 /** One man's total of one stat moving his points under some slot's pricing, as a read showed it.
  *  `from` and `to` are equal where only his minutes moved: they passed a rule's minimum, as a

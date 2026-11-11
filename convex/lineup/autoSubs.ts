@@ -17,9 +17,8 @@ import { ALL_CELLS, AREAS, byPitchOrder, cellKey, GOALKEEPER_AREA, LANES, playsC
 import { roleIn, takesRole } from "./roles";
 import { droppedStarter } from "../stars/bestRole";
 import type { RoleStars } from "../stars/starsShape";
+import type { PlayerCode } from "../shared/players";
 
-/** Players are FPL's season-stable `code`. */
-type PlayerCode = number;
 
 /** Whether a player played in the gameweek. Known only once he has: until his last match ends on
  *  0 minutes, he is still to play. */
@@ -42,7 +41,7 @@ export function gameweekPlay(matches: readonly MatchPlayed[]): GameweekPlay {
   return matches.every((match) => match.finished || match.postponed) ? "didNotPlay" : "stillToPlay";
 }
 
-export interface AutoSub {
+interface AutoSub {
   /** The starter who didn't play, or who left the squad and left his slot empty. */
   off: PlayerCode;
   on: PlayerCode;

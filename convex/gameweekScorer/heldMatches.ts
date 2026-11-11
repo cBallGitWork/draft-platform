@@ -3,13 +3,13 @@ import type { QueryCtx } from "../_generated/server";
 import { takeAllOrThrow } from "../shared/cappedRead";
 import { MOST_TEAMS } from "../leagues/leagueLimits";
 import { gameweekFixtures } from "../shared/fixtures";
+import type { PlayerCode } from "../shared/players";
 import { statusOf } from "../stats/matchStats";
 
 // The gameweek's matches as held, for the scorer (teamGameweek.ts) and the screens that read them:
 // each match's state, its records and the league's overrides in it, and the predicates on them.
 // Plain helpers: no Convex function lives here.
 
-type PlayerCode = number;
 
 /** The most records one match holds: one for each man two team sheets name, about forty. More
  *  throws, never a silent cut. */

@@ -1,5 +1,6 @@
 import type { Doc, Id } from "../_generated/dataModel";
 import type { QueryCtx } from "../_generated/server";
+import type { PlayerCode } from "../shared/players";
 import { autoSubs, gameweekPlay, type AutoSubs, type GameweekPlay } from "../lineup/autoSubs";
 import { namedCodes } from "../lineup/lineup";
 import { lineupsInGameweek, type HeldLineup } from "../lineup/lineups";
@@ -29,7 +30,6 @@ import { keptAtDeadline, playerReader, type KeptAtDeadline, type LineupPlayer } 
 // Squad tab (#577), so none of them disagree.
 
 type TeamId = Id<"teams">;
-type PlayerCode = number;
 
 /** What every gameweek's scoring reads, read once for the league. */
 export interface LeagueReads {

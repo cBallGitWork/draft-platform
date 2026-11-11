@@ -35,7 +35,7 @@ import { autoTeamLetters, autoTeamRefusals } from "./autoTeamWords";
 /** The auto team's lineup for the gameweek: `held` with each starter who is out, and each slot
  *  `vacated` by one who left the squad, filled as auto-subs fill them; and when that still can't
  *  stand, the squad's first lineup with anyone out kept on the bench. Pure. */
-export function autoTeamLineup(
+function autoTeamLineup(
   held: Pick<HeldLineup, "starters" | "bench" | "vacated">,
   positions: PlayerPositions,
   isOut: (playerCode: number) => boolean,
@@ -158,7 +158,7 @@ export const set = mutation({
 
 /** A team's auto team as its switch shows it: on or off, and the gameweek it ends after, if its
  *  manager named one. */
-export const autoTeamSwitch = v.object({ on: v.boolean(), endsAfter: v.union(v.number(), v.null()) });
+const autoTeamSwitch = v.object({ on: v.boolean(), endsAfter: v.union(v.number(), v.null()) });
 export type AutoTeamSwitch = Infer<typeof autoTeamSwitch>;
 
 /** A team's switch: on while a person switched it on or it has no manager (trades/tradeShut.ts). */

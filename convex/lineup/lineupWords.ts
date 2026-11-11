@@ -7,7 +7,7 @@ import { AREA_WORDS, LANE_WORDS } from "./pitchWords";
 import { BACK_THREE, roleName } from "./roles";
 
 /** A player's name, by his code. */
-export type NameOf = (playerCode: number) => string;
+type NameOf = (playerCode: number) => string;
 
 const isNot = (names: readonly string[]) => (names.length === 1 ? "isn't" : "aren't");
 

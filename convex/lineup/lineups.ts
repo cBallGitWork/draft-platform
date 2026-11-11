@@ -151,7 +151,7 @@ export async function nextOpenGameweek(ctx: QueryCtx, leagueId: Id<"leagues">, s
 /** The gameweek a save now goes to, or why there is none: once every gameweek the league plays
  *  has begun its season is over, so one that ends early is over after its last (spec/13,
  *  Gameweeks). Each caller says what that means for it. */
-export type SaveGameweek =
+type SaveGameweek =
   | { kind: "seasonOver" }
   | { kind: "open"; season: SeasonRules; gameweek: number };
 
