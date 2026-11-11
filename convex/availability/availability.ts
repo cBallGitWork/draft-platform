@@ -1,7 +1,6 @@
 import { v, type Infer } from "convex/values";
 import type { Doc } from "../_generated/dataModel";
 import { mutation, query, type QueryCtx } from "../_generated/server";
-import { takeAllOrThrow } from "../shared/cappedRead";
 import { adminOf } from "../shared/leagueAccess";
 import { clubByCode, heldPlayerByCode } from "../shared/players";
 import { positionsNow, type PositionsNow } from "../positions/playerPositions";
@@ -28,11 +27,6 @@ const playerAvailability = v.object({
   set: v.union(availability, v.null()),
 });
 export type PlayerAvailability = Infer<typeof playerAvailability>;
-
-/** The most players the admin has set by hand at once that the Availability tab reads: a handful
- *  a season, with room, each costing a few reads. More throws, never a silent cut. Claude's choice,
- *  not yet Craig's. */
-const SET_BY_HAND_MOST = 500;
 
 /** His availability now. A player the football sync doesn't hold is data gone wrong, so it throws. */
 export async function availabilityOf(ctx: QueryCtx, code: number): Promise<PlayerAvailability> {
@@ -88,11 +82,7 @@ export const setByHand = query({
   handler: async (ctx) => {
     await adminOf(ctx);
     const positionsOf = await positionsNow(ctx, EVERY_LEAGUE);
-    const settings = await takeAllOrThrow(
-      ctx.db.query("availabilitySettings"),
-      SET_BY_HAND_MOST,
-      `More than ${SET_BY_HAND_MOST} players are set by hand, so the Availability tab would cut them short`,
-    );
+    const settings = await ctx.db.query("availabilitySettings").collect();
     const rows = await Promise.all(settings.map((setting) => adminRowOf(ctx, setting.code, setting, positionsOf)));
     return rows.sort((one, other) => one.name.localeCompare(other.name));
   },
