@@ -4,6 +4,7 @@ import { feedCheckTables, feedFailureEmailTables } from "./schema/feeds";
 import { footballTables } from "./schema/football";
 import { signInTables } from "./schema/signIn";
 import { matchStatsTables } from "./schema/matchStats";
+import { platformTables } from "./schema/platform";
 import { positionsTables } from "./schema/positions";
 import { liveStatsTables, sideRunTables, commentaryTables, thresholdStepTables, teamStatsTables, teamSheetTables } from "./schema/live";
 import { leagueTables } from "./schema/leagues";
@@ -12,7 +13,6 @@ import { squadTables, shortlistTables } from "./schema/squads";
 import { mailTables } from "./schema/mail";
 import { feedbackTables } from "./schema/feedback";
 import { outboundTables } from "./schema/outbound";
-import { platformSettingsTables } from "./schema/platformSettings";
 import { leagueRulesTables, squadMaximumTables } from "./schema/rules";
 import { siteScoringTables } from "./schema/scoring";
 import { gameweekTables } from "./schema/gameweeks";
@@ -37,15 +37,16 @@ export { position, startRecord, approveMode, changeThresholds, positionsSyncFiel
 export { liveStatsTickFields, sideMatchOutcome, sideRunFields, commentaryLine, sideTeamStats, teamSheetMan } from "./schema/live";
 export { leagueDeletion, pinnedLetter, leagueEvent } from "./schema/leagues";
 export { delivery } from "./schema/joining";
-export { namedPlayer, tradedSide, type TradedSide } from "./schema/squads";
-export { tradePick, closedWhy } from "./schema/trades";
-export { recapTeamPoints } from "./schema/recaps";
-export { scoutState } from "./schema/scouting";
-export { platformSettingName } from "./schema/platformSettings";
+export { namedPlayer, tradedSide } from "./schema/squads";
+export type { TradedSide } from "./schema/squads";
 export { siteScoringKind } from "./schema/scoring";
 export { placementShape, planSlotShape } from "./schema/lineup";
 export { rankedPlayer } from "./schema/draft";
 export { pastSeasonRow } from "./schema/pastSeasons";
+export { platformSettingName } from "./schema/platform";
+export { recapTeamPoints } from "./schema/recaps";
+export { scoutState } from "./schema/scouting";
+export { tradePick, closedWhy } from "./schema/trades";
 export { sportmonksCompetition, sportmonksLineupMan, sportmonksEvent, sportmonksSyncFields, sportmonksTickFields, sportmonksStart, sportmonksPositionsSyncFields, sportmonksReader } from "./schema/sportmonks";
 
 export default defineSchema({
@@ -58,7 +59,7 @@ export default defineSchema({
   ...squadTables,
   ...shortlistTables,
   ...matchStatsTables,
-  ...platformSettingsTables,
+  ...platformTables,
   ...liveStatsTables,
   ...sideRunTables,
   ...commentaryTables,

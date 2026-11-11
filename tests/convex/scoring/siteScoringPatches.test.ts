@@ -118,10 +118,24 @@ describe("announcing a patch", () => {
     expect(await inGameweek(38)).toEqual(EDITED);
     expect(await draftSavedAt()).toBeNull();
     expect(await viewAs(COMMISSIONER)).toMatchObject({
-      part: EDITED,
+      part: FIRST_SCORING,
       revision: await siteRevision(),
       versions: [{ name: "26_27.1", kind: "patch", takesEffectAt: deadline }],
     });
+  });
+
+  test("#1591 Done: while it waits, Player scoring shows a manager the values in force, and the admin the patch; once in effect, everyone the patch", async () => {
+    const takesEffectAt = TODAY + NOTICE;
+    await patch(EDITED, takesEffectAt);
+
+    expect(await viewAs(COMMISSIONER)).toMatchObject({ part: FIRST_SCORING, canEdit: false });
+    expect(await viewAs(MANAGERS[0])).toMatchObject({ part: FIRST_SCORING, canEdit: false });
+    expect(await viewAs(ADMIN)).toMatchObject({ part: EDITED, canEdit: true });
+
+    vi.setSystemTime(takesEffectAt - 1);
+    expect((await viewAs(COMMISSIONER)).part).toEqual(FIRST_SCORING);
+    vi.setSystemTime(takesEffectAt);
+    expect((await viewAs(COMMISSIONER)).part).toEqual(EDITED);
   });
 
   test("rates every player's stars again the moment it takes effect, as stars price under today's scoring (#11)", async () => {

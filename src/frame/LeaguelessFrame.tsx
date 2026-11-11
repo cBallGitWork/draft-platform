@@ -7,7 +7,7 @@ import { MainMenu, MenuTab } from "./topBar/MenuTab";
 import { TOP_BAR, TOP_BAR_ROW } from "../ui/Panel";
 import { ProductName } from "./topBar/ProductName";
 import { SignOut } from "./topBar/SignOut";
-import { MAIL_TITLE } from "../mail/words";
+import { MAIL_TITLE } from "../shared/words";
 import { LEAGUES_PATH } from "../leagues/paths";
 import { LEAGUES_TITLE } from "../leagues/words";
 

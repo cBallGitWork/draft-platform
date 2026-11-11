@@ -216,6 +216,7 @@ import type * as schema_matchStats from "../schema/matchStats.js";
 import type * as schema_outbound from "../schema/outbound.js";
 import type * as schema_pastSeasons from "../schema/pastSeasons.js";
 import type * as schema_people from "../schema/people.js";
+import type * as schema_platform from "../schema/platform.js";
 import type * as schema_platformSettings from "../schema/platformSettings.js";
 import type * as schema_positions from "../schema/positions.js";
 import type * as schema_recaps from "../schema/recaps.js";
@@ -583,6 +584,7 @@ declare const fullApi: ApiFromModules<{
   "schema/outbound": typeof schema_outbound;
   "schema/pastSeasons": typeof schema_pastSeasons;
   "schema/people": typeof schema_people;
+  "schema/platform": typeof schema_platform;
   "schema/platformSettings": typeof schema_platformSettings;
   "schema/positions": typeof schema_positions;
   "schema/recaps": typeof schema_recaps;

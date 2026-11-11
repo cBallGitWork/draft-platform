@@ -6,7 +6,7 @@ import { CLAUDE_RETRY_MS, WRITING_MODEL } from "../../../convex/outbound/claude"
 import { HOUR_MS, MINUTE_MS, WEEK_MS } from "../../../convex/shared/time";
 import { ANN, BOB, EVERTON_POINTS, GAMEWEEK, HULL_POINTS, LEAGUE_FULL_TIME_READ, scoresLeague, type ScoresLeague } from "../../support/convex/gameweekScores.harness";
 import { fullTimeRecords, lockMatch, storeLeague, WRITTEN_OVER, writeOverAnns } from "../../support/convex/gameweekScoresMatch.harness";
-import { actingAs } from "../../support/convex/leagues.harness";
+import { actingAs, lettersTo } from "../../support/convex/leagues.harness";
 import { leagueHomeOf } from "../../support/convex/screenReads.harness";
 import { fakeClaude, fakeReport } from "../../support/convex/scouts.harness";
 import { elapse, pendingJobs, silenceConsoleError } from "../../support/convex/test.harness";
@@ -30,7 +30,6 @@ async function finalLeague() {
 
 const homeAt = async ({ t, leagueId }: ScoresLeague, now: number) => leagueHomeOf(await actingAs(t, ANN), leagueId, now);
 const recapOf = async ({ t, leagueId }: ScoresLeague, gameweek = GAMEWEEK) => (await actingAs(t, BOB)).query(api.home.recaps.ofGameweek, { leagueId, gameweek });
-const lettersTo = ({ t }: ScoresLeague, email: string) => t.run((ctx) => ctx.db.query("letters").withIndex("by_to_and_at", (q) => q.eq("to", email)).collect());
 const AFTER = LEAGUE_FULL_TIME_READ + 3 * HOUR_MS;
 
 test("once the gameweek is final, Claude writes the recap from its facts, and Mail tells the whole league it is up", async () => {
@@ -50,7 +49,7 @@ test("once the gameweek is final, Claude writes the recap from its facts, and Ma
   const recap = { gameweek: GAMEWEEK, text: fakeReport(prompt), changedTeamId: null };
   expect(await recapOf(league)).toMatchObject(recap);
   expect((await homeAt(league, AFTER))!.recap).toMatchObject(recap);
-  for (const email of [ANN, BOB]) expect((await lettersTo(league, email)).map(({ subject, body }) => ({ subject, body }))).toContainEqual(recapUpLetter(GAMEWEEK));
+  for (const email of [ANN, BOB]) expect(await lettersTo(league.t, email)).toContainEqual(recapUpLetter(GAMEWEEK));
 });
 
 test("it is written once: the gameweek stored again writes no second recap", async () => {

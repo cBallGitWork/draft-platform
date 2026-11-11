@@ -4,7 +4,8 @@ import type { Id } from "../../../convex/_generated/dataModel";
 import { refusals } from "../../../convex/shared/leagueAccess";
 import { SECOND_MS } from "../../../convex/shared/time";
 import { changeEveryRules, changeRules, HELD_FIRST_RULES, holdGameweeks, rulesWith } from "../../support/convex/leagueRules.harness";
-import { actingAs, addManagers, adminCreatesLeague, COMMISSIONER, MANAGERS, type TestConvex } from "../../support/convex/leagues.harness";
+import { draftSteps } from "../../support/convex/draft.harness";
+import { addManagers, adminCreatesLeague, COMMISSIONER, MANAGERS, type TestConvex } from "../../support/convex/leagues.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
 
 // The draft room's commissioner panel (#1101; spec/04, The commissioner): what it reads, the pick
@@ -17,11 +18,8 @@ let teams: Id<"teams">[];
 const [ANN, BOB] = MANAGERS;
 const PICK_SECONDS = 30;
 
-const as = (email: string) => actingAs(t, email);
+const { as, read, start, pause } = draftSteps(() => ({ t, leagueId }));
 const panel = async (email = COMMISSIONER) => (await as(email)).query(api.draft.draftCommissioner.panel, { leagueId, now: Date.now() });
-const read = async () => (await as(COMMISSIONER)).query(api.draft.draftStart.ofLeague, { leagueId });
-const start = async () => (await as(COMMISSIONER)).mutation(api.draft.draftStart.start, { leagueId });
-const pause = async () => (await as(COMMISSIONER)).mutation(api.draft.draftPause.pause, { leagueId });
 const setPickTime = async (pickSeconds: number) => (await as(COMMISSIONER)).mutation(api.draft.draftCommissioner.setPickTime, { leagueId, pickSeconds });
 const mark = async (teamId: Id<"teams">) => (await as(COMMISSIONER)).mutation(api.draft.draftCommissioner.markForCommissioner, { leagueId, teamId, marked: true });
 const leaveTeam = (teamId: Id<"teams">) => t.run((ctx) => ctx.db.patch("teams", teamId, { managerEmail: undefined }));

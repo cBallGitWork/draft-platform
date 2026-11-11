@@ -118,8 +118,11 @@ const versionSummary = v.object({
 const patchGameweek = v.object({ gameweek: v.number(), takesEffectAt: v.number() });
 const draftShape = v.object({ part: scoringSetShape, savedAt: v.number() });
 
-/** Player scoring's read: the site's latest set, a waiting patch's among them; the version it is
- *  (for a change to carry); the gameweek a fix made at `now` would first reach; whether the reader
+/** Player scoring's read: the set it shows, for the admin the site's latest, a waiting patch's
+ *  among them, as the Live tab edits it, and for everyone else the set in force at `now`, so a
+ *  manager never reads a waiting patch's values as if they scored (Craig, 11 Nov 2026, on #1591:
+ *  "dont confuse player, just show the values that are live"; the coming values are in the patch
+ *  notes); the site's latest version (for a change to carry); the gameweek a fix made at `now` would first reach; whether the reader
  *  may change it, which only the admin may; every version, oldest first, with the first gameweek
  *  each reaches; and, for the admin alone, the draft patch and the gameweeks a patch announced at
  *  `now` can take effect from (siteVersions.ts's `patchGameweeks`). `now` is the screen's, moved on each minute, as a query must not read the clock
@@ -142,7 +145,7 @@ export const view = query({
     const draft = canEdit ? await ctx.db.query("siteScoringDraft").unique() : null;
     const reachedFrom = await firstGameweekFromAny(ctx);
     return {
-      part: setOf(latest),
+      part: setOf(canEdit ? latest : history.findLast((row) => row.takesEffectAt <= now)),
       revision: latest?._id ?? null,
       changesFrom: reachedFrom(now),
       canEdit,
