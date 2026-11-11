@@ -148,6 +148,25 @@ describe("the commissioner's undo", () => {
     expect(await timeouts()).toEqual([{ teamId: teams[0], count: 0 }]);
   });
 
+  test("of a pick made at once leaves the count alone, and the full clock it puts back counts when it runs out", async () => {
+    await start();
+    await pass(PICK_MS);
+    await pick(BOB, P2);
+    await pick(BOB, P3);
+    await pass(PICK_GAP_MS + PICK_MS);
+    await pass(PICK_GAP_MS);
+    expect(await picked()).toHaveLength(5);
+    expect(await timeouts()).toEqual([{ teamId: teams[0], count: 2, autoPick: "atOnce" }]);
+
+    await undo();
+    expect(await timeouts()).toEqual([{ teamId: teams[0], count: 2, autoPick: "atOnce" }]);
+    await pass(PICK_MS - 1);
+    expect(await picked()).toHaveLength(4);
+    await pass(1);
+    expect(await picked()).toHaveLength(5);
+    expect(await timeouts()).toEqual([{ teamId: teams[0], count: 3, autoPick: "atOnce" }]);
+  });
+
   test("tells the whole league", async () => {
     await start();
     await pick(ANN, P1);

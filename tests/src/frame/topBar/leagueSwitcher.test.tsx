@@ -10,6 +10,7 @@ import { LEAGUES_PATH } from "../../../../src/leagues/paths";
 import { LEAGUES_TITLE } from "../../../../src/leagues/words";
 import { READ_FAILED_LOG } from "../../../../src/frame/ReadFailed";
 import { SIGN_IN_PATH } from "../../../../src/signIn/paths";
+import { signInWords } from "../../../../src/signIn/words";
 import { silenceConsoleError } from "../../../support/console.setup";
 import {
   adminSeeing,
@@ -193,7 +194,7 @@ describe("the leagues to switch between (#207)", () => {
       expect(app.auth.signOut).toHaveBeenCalledOnce();
 
       app.becomes(visitor);
-      expect(await screen.findByRole("textbox", { name: "Email" })).toBeTruthy();
+      expect(await screen.findByRole("textbox", { name: signInWords.emailLabel })).toBeTruthy();
       expect(app.path()).toBe(SIGN_IN_PATH);
     },
   );

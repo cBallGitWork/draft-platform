@@ -44,16 +44,17 @@ export function WaiverOrderPanel({ waivers, type = waivers.type }: { waivers: Wa
   );
 }
 
-/** The next runs, soonest first, the first marked Next, and when free agency opens. */
+/** The next runs, soonest first, the first marked Next, and when free agency opens; before the
+ *  league's draft is over every run is skipped (S08.1), so none is marked Next. */
 export function RunsPanel({ waivers }: { waivers: WaiversView }) {
-  const window = windowWords({ open: waivers.windowOpen, locked: waivers.locked, firstRun: waivers.runs[0] ?? null, gameweek: waivers.nextDeadline?.gameweek ?? null });
+  const window = windowWords({ drafted: waivers.drafted, open: waivers.windowOpen, locked: waivers.locked, firstRun: waivers.runs[0] ?? null, gameweek: waivers.nextDeadline?.gameweek ?? null });
   return (
     <Panel title={RUNS_TITLE} aside={<span className="text-soft">{ukTimeWords}</span>}>
       <ul>
         {waivers.runs.map((at, index) => (
           <li key={at} className={ROW}>
             <span className="grow">{runWords(at)}</span>
-            {index === 0 && <span className="text-soft">{nextRunWords}</span>}
+            {index === 0 && waivers.drafted && <span className="text-soft">{nextRunWords}</span>}
           </li>
         ))}
         <li className={ROW}>
