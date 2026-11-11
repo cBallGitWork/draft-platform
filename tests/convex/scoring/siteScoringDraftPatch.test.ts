@@ -141,17 +141,6 @@ describe("withdrawing an announced patch", () => {
     expect(await (await as(COMMISSIONER)).query(api.scoring.patchNotes.banner, { now: Date.now() })).toBeNull();
   });
 
-  test("deletes its banner's dismissals with it", async () => {
-    await holdGameweeks(t, { next: 9 });
-    await patch(EDITED, kickoffOf(10));
-    const versionId = await latestId();
-    await (await as(COMMISSIONER)).mutation(api.scoring.patchNotes.dismissBanner, { versionId });
-
-    await withdrawAs(ADMIN, versionId);
-
-    expect(await t.run((ctx) => ctx.db.query("patchBannerDismissals").collect())).toEqual([]);
-  });
-
   test("tells every manager by a Mail letter", async () => {
     await holdGameweeks(t, { next: 9 });
     const leagueId = await adminCreatesLeague(t);

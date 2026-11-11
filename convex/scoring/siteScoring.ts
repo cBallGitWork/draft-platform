@@ -267,10 +267,6 @@ export const withdraw = mutation({
     if (held) await ctx.db.replace("siteScoringDraft", held._id, draft);
     else await ctx.db.insert("siteScoringDraft", draft);
     await ctx.db.delete("siteScoring", patch._id);
-    // Its banner's dismissals: one a person at most, so the site's managers, never past a mutation's limits.
-    for (const { _id } of await ctx.db.query("patchBannerDismissals").withIndex("by_versionId", (q) => q.eq("versionId", patch._id)).collect()) {
-      await ctx.db.delete("patchBannerDismissals", _id);
-    }
     const news = { name: versionName(patch), takesEffectAt: patch.takesEffectAt };
     await fileSiteLetter(ctx, (tell) => withdrawnLetter(news, tell), admin);
     return savedAt;
