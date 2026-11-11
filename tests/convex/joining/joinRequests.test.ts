@@ -116,6 +116,26 @@ describe("a join request", () => {
     expect(logged).toHaveBeenCalledWith(expect.stringContaining(`The email telling ${ANN} they're in ${LEAGUE_NAME} wasn't sent`));
   });
 
+  test("approved, an email that went is never kept or logged as not sent when saving that it went fails", async () => {
+    const requestId = await askToJoin(t, leagueId, token, ANN);
+    const resend = vi.mocked(fetch);
+    const send = resend.getMockImplementation()!;
+    // the email service takes it, then the request is gone, so saving "sent" fails
+    resend.mockImplementationOnce(async (...call) => {
+      const response = await send(...call);
+      await t.run((ctx) => ctx.db.delete("joinRequests", requestId));
+      return response;
+    });
+    const logged = silenceConsoleError();
+    await (await asCommissioner(t)).mutation(api.joining.joinRequests.approve, { requestId });
+    await t.finishAllScheduledFunctions(vi.runAllTimers);
+
+    expect(emailsTo(sent, ANN)).toHaveLength(1);
+    expect(logged).not.toHaveBeenCalledWith(expect.stringContaining("wasn't sent"));
+    const jobs = await t.run((ctx) => ctx.db.system.query("_scheduled_functions").collect());
+    expect(jobs.find((job) => job.name.includes("sendApprovedEmail"))?.state.kind).toBe("failed");
+  });
+
   test("approved past the day's emails, its email waits for tomorrow and goes then", async () => {
     const requestId = await askToJoin(t, leagueId, token, ANN);
     await spendTodaysEmails(t);
