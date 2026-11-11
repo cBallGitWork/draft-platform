@@ -175,7 +175,7 @@ describe("compare with your player (Craig, 9 Nov 2026, on #1028, answers 1 and 4
   });
 
   it("a player on waivers is claimed the same way", async () => {
-    const app = await open({ yours: { ...YOURS, squadFull: true }, actions: new Map([[RICE.code, { kind: "claim", firstRunAt: null, squad: SQUAD }]]) });
+    const app = await open({ yours: { ...YOURS, squadFull: true }, actions: new Map([[RICE.code, { kind: "claim", firstRun: null, squad: SQUAD }]]) });
     await compareWithYours();
     await userEvent.click(screen.getByRole("button", { name: compareTakeWords("claim", "Rice", "Saka") }));
     expect(app.scouting.waiverChanges.claim).toHaveBeenCalledWith(league.leagueId, RICE.code, SAKA.code);

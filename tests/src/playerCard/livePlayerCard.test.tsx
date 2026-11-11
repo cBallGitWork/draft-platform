@@ -69,10 +69,10 @@ test("any other failure is logged and said plainly", async () => {
   expect(consoleError).toHaveBeenCalledWith("Overriding a player's points failed:", expect.any(Error));
 });
 
-test("the waiver action is read from waivers/waivers:cardActionOn with the league and the player", () => {
+test("the waiver action is read from waivers/waivers:cardActionOn with the league, the player and the minute", () => {
   convex.action.mockReturnValue({ kind: "drop" });
   expect(renderHook(() => livePlayerCard.useCardAction(A_LEAGUE_ID, PLAYER_CODE)).result.current).toEqual({ kind: "drop" });
-  expect(convex.action).toHaveBeenLastCalledWith({ leagueId: A_LEAGUE_ID, playerCode: PLAYER_CODE });
+  expect(convex.action).toHaveBeenLastCalledWith({ leagueId: A_LEAGUE_ID, playerCode: PLAYER_CODE, now: expect.any(Number) });
 });
 
 test("his rank is read from playerCard/positionRank:atPosition at the position asked, and skipped with none", () => {

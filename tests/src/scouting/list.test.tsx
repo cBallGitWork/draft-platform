@@ -151,14 +151,16 @@ describe("the filters ask the server", () => {
   });
 
   it("on waivers keeps those on waivers, All's Status saying the run that can first take him, and free agents leaves them out (#1200)", async () => {
-    const firstRunAt = Date.parse("2026-11-12T18:00:00Z");
-    const james = { ...RICE, code: 9, name: "James", onWaivers: { firstRunAt } };
+    const firstRun = { at: Date.parse("2026-11-12T18:00:00Z"), skippedIf: null };
+    const james = { ...RICE, code: 9, name: "James", onWaivers: { firstRun } };
     openScouting({ ...HELD, players: [...HELD.players!, james] });
     await userEvent.click(await screen.findByRole("radio", { name: availabilityWords.onWaivers }));
     expect(namesShown()).toEqual(["James"]);
     await userEvent.click(screen.getByRole("radio", { name: availabilityWords.all }));
-    expect(rowOf("James").textContent).toContain(onWaiversWords(firstRunAt));
-    expect(onWaiversWords(firstRunAt)).toMatch(/^Waivers, Thu \d\d:\d\d$/);
+    expect(rowOf("James").textContent).toContain(onWaiversWords(firstRun));
+    expect(onWaiversWords(firstRun)).toMatch(/^Waivers, Thu \d\d:\d\d$/);
+    // One that may fall in a gameweek's lock waits on its last match (#1467).
+    expect(onWaiversWords({ ...firstRun, skippedIf: 12 })).toBe("Waivers, after GW12's last match");
 
     await userEvent.click(screen.getByRole("radio", { name: availabilityWords.freeAgents }));
     expect(namesShown()).toEqual(["Rice"]);
