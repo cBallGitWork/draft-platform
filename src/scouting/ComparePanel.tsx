@@ -153,7 +153,7 @@ function SideBySide({
         <tbody>
           {row(columns.roleFit.long, noRoleFitYetWords, (_player, at) => totalOnly(<span className="text-muted">{noFigureWords}</span>, at))}
           {row(pointsHead.short, pointsHead.long, (player, at) => totalOnly(<PointsCell points={player.seasonPoints} pointsSeason={pointsSeason} />, at))}
-          {row(panelMinutesWords(period, pointsSeason),undefined, (player, at) => totalOnly(<span className="font-bold text-figure">{figureWords(player.minutes)}</span>, at))}
+          {row(panelMinutesWords(period, pointsSeason), undefined, (player, at) => totalOnly(<span className="font-bold text-figure">{figureWords(player.minutes)}</span>, at))}
           {area !== null &&
             comparison[0].figures.map(({ stat: each }, index) =>
               row(nameOf(each), undefined, (player) => {
