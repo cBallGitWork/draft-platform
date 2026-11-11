@@ -139,7 +139,7 @@ describe("players no team holds", () => {
     expect(elsewhere).toBeNull();
   });
 
-  describe("a player coming back to the Premier League (#1489)", () => {
+  describe("a player coming back to the Premier League (#1489, S08.7)", () => {
     const row = (code: number) => ({ code, name: "Back", fullName: "Back Again", clubCode: 1 });
     /** The feed stops sending the player, then sends him again. */
     const leavesAndComesBack = async (code: number) => {

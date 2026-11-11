@@ -2,6 +2,8 @@
 
 Feature 8 of [SPEC.md](../SPEC.md). Only Craig's answers.
 
+**Contents:** [Waivers and free agency](#waivers-and-free-agency) · [Trades](#trades)
+
 - Waivers in the league's waiver order, then free agents, first come first served, until the deadline.
 - Trades between managers: players and picks in the current draft, plus next season's picks in
   keeper and dynasty leagues.
@@ -51,7 +53,9 @@ agent: "keep waivers since its known for draft" (Craig asked; yes).
   trade or commissioner move goes onto waivers for 24 hours when that team drops him, like any
   other drop (Craig, 11 Nov 2026, #1479). `S08.6`
 - A player new to the Premier League mid-season goes on waivers for the next run, as players nobody
-  drafts do by default (`spec/04`).
+  drafts do by default (`spec/04`). A player who comes back to the Premier League mid-season counts
+  as new, whenever he left, so every league's managers get the same fair chance at him (Craig,
+  11 Nov 2026, #1489). `S08.7`
 - A claim that would break the squad's limits is refused at the run.
 - A manager sees only his own pending claims; the commissioner sees everyone's. The league gets a
   Mail letter for each claim that succeeds, who came in and who went; a failed claim's letter goes
