@@ -10,22 +10,22 @@ import { leagueOpens } from "../leagues/leagueOpens";
 import { MOST_IN_SQUAD } from "../leagues/leagueLimits";
 import { pickFirstLineupAgain } from "../lineup/lineups";
 import { claimFailedLetter, type ClaimFailure } from "../mail/waiverLetterWords";
-import { fileEvent, fileLetter, recordEvent } from "../mail/letters";
+import { fileLetter, recordEvent } from "../mail/letters";
 import type { LeagueRules } from "../rules/leagueRulesShape";
 import { historyOf, newestRow, seasonRules } from "../rules/rulesHistory";
 import { everyLeague } from "../shared/cappedRead";
-import { tellShortlisters, tellShortlistersCleared } from "../scouting/shortlist";
+import { tellShortlistersCleared } from "../scouting/shortlist";
 import { teamIn } from "../shared/leagueAccess";
 import { playerByCode } from "../shared/players";
 import { readOnce } from "../shared/readOnce";
 import { MINUTE_MS } from "../shared/time";
 import { placeOf, squadOf } from "../squads/squadPlace";
 import { limitsReader, type LimitsBroken, type SquadWarning } from "../squads/squads";
-import { closeOffersHolding, heldInReview } from "../trades/tradeClose";
+import { heldInReview } from "../trades/tradeClose";
 import { claimedName, leagueClaims } from "./waiverClaims";
 import { latestEnded, runInWaiverLock } from "./waiverLock";
 import { waiverOrderOf, waiverOrderRow, windowShutSince, winnersNow, withWinnersLast, wonBy } from "./waiverOrder";
-import { dropFromSquad, waiverRowsIn } from "./waiverPlayers";
+import { dropAndTell, waiverRowsIn } from "./waiverPlayers";
 import { latestRunAt, wasRunTime } from "./waiverTimes";
 
 // The waiver run (#1198, spec/08 Waivers and free agency). At each of the league's run times
@@ -143,14 +143,19 @@ async function tryClaim(ctx: MutationCtx, run: Run, claim: Doc<"waiverClaims">):
   await ctx.db.delete("waiverPlayers", onWaivers._id);
   const drop = claim.dropCode === null ? null : await placeOf(ctx, league._id, claim.dropCode);
   if (claim.dropCode !== null && drop?.teamId !== claim.teamId) throw new Error(`The run has ${claim.dropCode} in team ${claim.teamId}'s squad, but he isn't there`);
-  const toWaivers = drop === null ? null : await dropFromSquad(ctx, drop, deadlines, now, at);
+  // The claim's own letter, from `report`, carries the drop: the run made it, so its copies go unread.
+  const told = { deadlines, now, waiversFrom: at, letter: false, unread: true };
+  const toWaivers =
+    drop === null
+      ? null
+      : await dropAndTell(ctx, league, await teamIn(ctx, league._id, claim.teamId), drop, { code: drop.playerCode, name: await run.nameOf(drop.playerCode) }, claim.by, told);
   await ctx.db.insert("squadPlayers", { leagueId: league._id, teamId: claim.teamId, playerCode: claim.playerCode });
   run.squads.set(claim.teamId, [...squad.filter((code) => code !== claim.dropCode), claim.playerCode]);
   return { won: true, toWaivers };
 }
 
-/** Files what a tried claim did: the drop and the claim as squad moves, the league's letter for
- *  one that won, and its manager's alone for one that failed, unless it failed quietly. */
+/** Files what a tried claim did, its drop told already (`tryClaim`): the claim as a squad move, the
+ *  league's letter for one that won, and its manager's alone for one that failed, unless it failed quietly. */
 async function report(ctx: MutationCtx, { league, nameOf }: Run, claim: Doc<"waiverClaims">, tried: Tried): Promise<void> {
   const playerName = await nameOf(claim.playerCode);
   const dropName = claim.dropCode === null ? null : await nameOf(claim.dropCode);
@@ -164,12 +169,6 @@ async function report(ctx: MutationCtx, { league, nameOf }: Run, claim: Doc<"wai
     claim.dropCode === null || dropName === null || tried.toWaivers === null
       ? null
       : { playerCode: claim.dropCode, playerName: dropName, toWaivers: tried.toWaivers };
-  if (dropped !== null) {
-    await fileEvent(ctx, league._id, claim.by, { kind: "playerDropped", ...dropped, ...onTeam });
-    await closeOffersHolding(ctx, league._id, team._id, [dropped.playerCode]);
-    const player = { code: dropped.playerCode, name: dropped.playerName };
-    await tellShortlisters(ctx, league, player, team, claim.by, { released: false, toWaivers: dropped.toWaivers }, { unread: true });
-  }
   await recordEvent(ctx, league._id, claim.by, { kind: "playerClaimed", playerCode: claim.playerCode, playerName, ...onTeam, dropped }, { unread: true });
 }
 

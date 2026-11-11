@@ -36,6 +36,18 @@ export const noDraft = (t: TestConvex, leagueId: Id<"leagues">) =>
     if (draft !== null) await ctx.db.delete("drafts", draft._id);
   });
 
+/** `email` drops `playerCode` from his squad (../../../convex/waivers/waivers.ts). */
+export const dropPlayer = async (t: TestConvex, leagueId: Id<"leagues">, email: string, playerCode: number) =>
+  (await actingAs(t, email)).mutation(api.waivers.waivers.drop, { leagueId, playerCode });
+
+/** `email` picks up the free agent `playerCode`, `dropCode` going for him if anyone. */
+export const pickUpPlayer = async (t: TestConvex, leagueId: Id<"leagues">, email: string, playerCode: number, dropCode: number | null = null) =>
+  (await actingAs(t, email)).mutation(api.waivers.freeAgents.pickUp, { leagueId, playerCode, dropCode });
+
+/** The player's waiver state in the league, as `email` reads it. */
+export const waiverStateOf = async (t: TestConvex, leagueId: Id<"leagues">, playerCode: number, email = BOB) =>
+  (await actingAs(t, email)).query(api.waivers.waivers.stateOf, { leagueId, playerCode });
+
 export async function waiverLeague() {
   const t: TestConvex = await signInDeployment();
   fakeResend();
@@ -72,7 +84,9 @@ export async function waiverLeague() {
       (await actingAs(t, email)).mutation(api.waivers.waiverClaims.putIn, { leagueId, playerCode, dropCode }),
     /** `email`'s pending claims, as at `now` (the test's clock unless given). */
     pending: async (email: string, now = Date.now()) => (await actingAs(t, email)).query(api.waivers.waiverClaims.pending, { leagueId, now }),
-    stateOf: async (playerCode: number) => (await actingAs(t, BOB)).query(api.waivers.waivers.stateOf, { leagueId, playerCode }),
+    stateOf: (playerCode: number) => waiverStateOf(t, leagueId, playerCode),
+    drop: (email: string, playerCode: number) => dropPlayer(t, leagueId, email, playerCode),
+    pickUp: (email: string, playerCode: number, dropCode: number | null = null) => pickUpPlayer(t, leagueId, email, playerCode, dropCode),
     squadCodes: (teamId: Id<"teams">) =>
       t.run(async (ctx) => (await ctx.db.query("squadPlayers").withIndex("by_teamId", (q) => q.eq("teamId", teamId)).collect()).map(({ playerCode }) => playerCode)),
     lettersTo: (email: string) => lettersTo(t, email),

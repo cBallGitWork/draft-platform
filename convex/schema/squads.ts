@@ -10,10 +10,13 @@ const playerOnTeam = { playerCode: v.number(), playerName: v.string(), teamId: v
 /** Who went for a player joining a team, if anyone: onto waivers, or back to the free agents. */
 const droppedFor = v.union(v.object({ playerCode: v.number(), playerName: v.string(), toWaivers: v.boolean() }), v.null());
 
+/** A player by code and name, as a letter, a claim or a screen names him. */
+export const namedPlayer = v.object({ playerCode: v.number(), playerName: v.string() });
+
 /** One side of a trade that went through: its players, and its draft pick, each named by the team
  *  whose pick in the round it is, even once another team holds it (#1096). */
 export const tradedSide = v.object({
-  players: v.array(v.object({ playerCode: v.number(), playerName: v.string() })),
+  players: v.array(namedPlayer),
   picks: v.array(v.object({ round: v.number(), teamId: v.id("teams"), teamName: v.string() })),
 });
 export type TradedSide = Infer<typeof tradedSide>;

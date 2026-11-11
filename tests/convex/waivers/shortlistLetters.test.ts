@@ -21,7 +21,7 @@ const shortlist = async (email: string, codes: readonly number[]) => {
   const manager = await actingAs(w.t, email);
   for (const playerCode of codes) await manager.mutation(api.scouting.shortlist.add, { leagueId: w.leagueId, playerCode });
 };
-const drop = async (email: string, playerCode: number) => (await actingAs(w.t, email)).mutation(api.waivers.waivers.drop, { leagueId: w.leagueId, playerCode });
+const drop = (email: string, playerCode: number) => w.drop(email, playerCode);
 const dropped = (toWaivers: boolean, who: string, playerCode = ANNS_FIRST_DROP, teamName = "Team 1") =>
   shortlistedDroppedLetter({ playerName: nameOf(playerCode), teamName, toWaivers }, who);
 const shortlistLettersTo = async (email: string) => (await w.lettersTo(email)).filter(({ subject }) => subject.includes("on your shortlist"));
@@ -66,7 +66,7 @@ describe("a shortlisted player dropped for a free agent", () => {
   test("the shortlisting manager is told, as for any drop", async () => {
     await w.runWaivers();
     await shortlist(BOB, [ANNS_FIRST_DROP]);
-    await (await actingAs(w.t, ANN)).mutation(api.waivers.freeAgents.pickUp, { leagueId: w.leagueId, playerCode: SAKA, dropCode: ANNS_FIRST_DROP });
+    await w.pickUp(ANN, SAKA, ANNS_FIRST_DROP);
 
     expect(await shortlistLettersTo(BOB)).toEqual([dropped(true, ANN)]);
   });
