@@ -1,6 +1,7 @@
 import { v, type Infer } from "convex/values";
 import type { TradedSide } from "../schema/squads";
 import type { closedWhy } from "../schema/trades";
+import { internal } from "../_generated/api";
 import type { Doc, Id } from "../_generated/dataModel";
 import { internalMutation, type MutationCtx, type QueryCtx } from "../_generated/server";
 import { leagueDeadlines } from "../gameweeks/leagueDeadlines";
@@ -8,7 +9,7 @@ import { scheduleHeartbeat } from "../heartbeats/heartbeat";
 import { fileLetter } from "../mail/letters";
 import { offerClosedLetter, pickWords, type OfferClosed, type TradeWords } from "../mail/tradeLetterWords";
 import type { TradePick } from "./tradePicks";
-import { LEAGUES_READ_MOST, takeAllOrThrow } from "../shared/cappedRead";
+import { scheduleEveryLeague, takeAllOrThrow } from "../shared/cappedRead";
 import type { LeagueDeadlines } from "../gameweeks/deadline";
 import { heldPlayerByCode } from "../shared/players";
 import { deadlinePassedSince } from "../waivers/waiverLock";
@@ -180,31 +181,45 @@ async function closingReason(
   return null;
 }
 
-/** The cron's: closes every open offer whose time is up, league by league, each league's offers
- *  read on their own, so the offers cap is each league's, never the platform's (#1539). */
+/** A league frozen for deletion closes nothing: its offers due wait for an undo (#1493). */
+const closesOffers = (league: Doc<"leagues">) => league.deletion === undefined;
+
+/** The cron's: asks each league holding an offer to close those whose time is up, each league in
+ *  its own transaction (#1558), so the offers cap is each league's, never the platform's (#1539),
+ *  and an offer one league can't close never holds up another's. */
 export const closeDue = internalMutation({
   args: {},
   returns: v.null(),
   handler: async (ctx) => {
-    const now = Date.now();
-    const leagues = await takeAllOrThrow(
-      ctx.db.query("leagues"),
-      LEAGUES_READ_MOST,
-      `More than ${LEAGUES_READ_MOST} leagues are held, so their trade offers due can't all be closed`,
+    await scheduleEveryLeague(
+      ctx,
+      internal.trades.tradeClose.closeLeagueDue,
+      "so their trade offers due can't all be closed",
+      async (league) =>
+        closesOffers(league) && (await ctx.db.query("tradeOffers").withIndex("by_leagueId", (q) => q.eq("leagueId", league._id)).first()) !== null,
     );
-    for (const league of leagues) {
-      // A league frozen for deletion closes nothing: its offers due wait for an undo (#1493).
-      if (league.deletion !== undefined) continue;
-      const open = (await leagueOffers(ctx, league._id)).filter((offer) => offer.review === undefined);
-      if (open.length === 0) continue;
-      const deadlines = await leagueDeadlines(ctx, league._id);
-      const shut = await tradesShut(ctx, league, deadlines, now);
-      for (const offer of open) {
-        const closed = await closingReason(ctx, offer, shut, deadlines, now);
-        if (closed !== null) await closeOffer(ctx, offer, closed);
-      }
-    }
     await scheduleHeartbeat(ctx, "tradeOffers");
+    return null;
+  },
+});
+
+/** Closes each open offer of the league whose time is up, as `closeDue` asks; a league gone or
+ *  frozen since closes nothing. */
+export const closeLeagueDue = internalMutation({
+  args: { leagueId: v.id("leagues") },
+  returns: v.null(),
+  handler: async (ctx, { leagueId }) => {
+    const league = await ctx.db.get("leagues", leagueId);
+    if (league === null || !closesOffers(league)) return null;
+    const open = (await leagueOffers(ctx, leagueId)).filter((offer) => offer.review === undefined);
+    if (open.length === 0) return null;
+    const now = Date.now();
+    const deadlines = await leagueDeadlines(ctx, leagueId);
+    const shut = await tradesShut(ctx, league, deadlines, now);
+    for (const offer of open) {
+      const closed = await closingReason(ctx, offer, shut, deadlines, now);
+      if (closed !== null) await closeOffer(ctx, offer, closed);
+    }
     return null;
   },
 });
