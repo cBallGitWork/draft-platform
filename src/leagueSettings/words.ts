@@ -5,7 +5,7 @@
 import { DRAFT_FEWEST_TEAMS, PICK_SECONDS_FEWEST, PICK_SECONDS_MOST, TIMEOUTS_FEWEST, TIMEOUTS_MOST } from "../../convex/draft/draftLimits";
 import type { UndraftedGoTo } from "../../convex/draft/draftRules";
 import { FIRST_GAMEWEEK } from "../../convex/gameweeks/usedGameweeks";
-import { MOST_IN_SQUAD } from "../../convex/leagues/leagueLimits";
+import { GAMES_FEWEST, MAX_PER_CLUB_FEWEST, MOST_IN_SQUAD } from "../../convex/leagues/leagueLimits";
 import { STARTER_COUNT } from "../../convex/lineup/lineup";
 import type { Area } from "../../convex/lineup/pitch";
 import type { TradeReview, WEEKDAYS } from "../../convex/rules/leagueRulesShape";
@@ -23,7 +23,7 @@ export const fixturesTitle = "Fixtures";
 export const oddTeamOutLabel = "With an odd number of teams, the team left over plays";
 export const oddTeamOutWords: Record<OddTeamOut, string> = { leagueAverage: "The league's average", bye: "No one (a bye)" };
 export const gamesLabel = "Head-to-head games each team plays a gameweek";
-export const gamesHint = "A whole number, 1 or more. With fewer other teams than that, each team plays every other once a gameweek.";
+export const gamesHint = `A whole number, ${GAMES_FEWEST} or more. With fewer other teams than that, each team plays every other once a gameweek.`;
 /** Craig, 22 Oct 2026 (#266): "games played in past are done". */
 export const redrawWords = "Saving either redraws the fixtures from the gameweek it applies from. Gameweeks already played keep theirs.";
 export const blankGamesWords = noNumberWords("Games a gameweek");
@@ -42,7 +42,7 @@ export const areaMinimumsHint = "Whole numbers, 0 for none, adding up to no more
 export const blankAreaMinimumWords = (area: Area) => noNumberWords(areaMinimumLabel(area), "put 0");
 export const clubMaximumWords = "A limit on players from one club";
 export const clubMaximumLabel = "Most players from one club";
-export const clubMaximumHint = "A whole number, 1 or more.";
+export const clubMaximumHint = `A whole number, ${MAX_PER_CLUB_FEWEST} or more.`;
 export const blankClubMaximumWords = noNumberWords(clubMaximumLabel, "turn the limit off");
 
 export const draftTitle = "Draft";

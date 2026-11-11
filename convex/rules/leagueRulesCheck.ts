@@ -7,7 +7,7 @@ import { instructionsOf } from "./firstRules";
 import type { DraftRules, LeagueRules, TradeRules } from "./leagueRulesShape";
 import { FIRST_GAMEWEEK } from "../gameweeks/usedGameweeks";
 import { PICK_SECONDS_FEWEST, PICK_SECONDS_MOST, TIMEOUTS_FEWEST, TIMEOUTS_MOST } from "../draft/draftLimits";
-import { MOST_IN_SQUAD, PREMIER_LEAGUE_CLUBS } from "../leagues/leagueLimits";
+import { GAMES_FEWEST, MAX_PER_CLUB_FEWEST, MOST_IN_SQUAD, PREMIER_LEAGUE_CLUBS } from "../leagues/leagueLimits";
 import { roundsInARoundRobin } from "../table/roundRobin";
 
 // What makes a league's rules sound beyond their stored shape (spec/03; #25): each check throws an
@@ -29,7 +29,7 @@ export function checkLeagueRules(rules: LeagueRules, seasonGameweeks: number, ma
   if (rules.classics !== undefined) checkClassicFormations(rules.classics, rules.presets, instructionsOf(rules));
   checkWholeNumber(rules.deadline.minutesBeforeFirstKickoff, "The deadline's minutes before the first kickoff", 0);
   checkNoneTwice(rules.tieBreaks, (tieBreak) => `The tie-break ${tieBreak} is listed twice.`);
-  checkWholeNumber(rules.gamesPerGameweek, "The head-to-head games each team plays a gameweek", 1);
+  checkWholeNumber(rules.gamesPerGameweek, "The head-to-head games each team plays a gameweek", GAMES_FEWEST);
   if (maxTeams !== undefined) checkGamesFor(rules.gamesPerGameweek, maxTeams);
   checkWaivers(rules.waivers);
   if (rules.draft !== undefined) checkDraft(rules.draft);
@@ -121,7 +121,7 @@ function checkSquad({ size, minimumByArea, maxPerClub }: LeagueRules["squad"]): 
     }
   }
   if (maxPerClub !== null) {
-    checkWholeNumber(maxPerClub, "The most players from one club", 1);
+    checkWholeNumber(maxPerClub, "The most players from one club", MAX_PER_CLUB_FEWEST);
     // A squad the club maximum can't fill would freeze its draft at the pick with no legal player
     // left: refused when saved, as a squad above 25 is (Craig, 11 Nov 2026, on #1462).
     const room = maxPerClub * PREMIER_LEAGUE_CLUBS;
