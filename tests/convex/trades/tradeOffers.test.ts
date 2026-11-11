@@ -105,7 +105,7 @@ describe("an offer", () => {
     expect(await w.offers()).toHaveLength(1);
   });
 
-  test(`is refused while his team has ${OFFERS_PER_TEAM_MOST} open, until he withdraws one or a deadline closes them (S08.15)`, async () => {
+  test(`is refused while his team has ${OFFERS_PER_TEAM_MOST} open, until he withdraws one or a deadline closes them (S08.16)`, async () => {
     // Ann's team holds one short of the ceiling, each offering Cat's team the same trade.
     await w.t.run(async (ctx) => {
       for (let each = 1; each < OFFERS_PER_TEAM_MOST; each++) {

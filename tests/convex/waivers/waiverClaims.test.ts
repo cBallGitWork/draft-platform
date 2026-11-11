@@ -47,7 +47,7 @@ describe("a manager's claims", () => {
     await w.claim(ANN, SAKA, ANNS_SECOND_DROP);
   });
 
-  test(`are refused while his team has ${CLAIMS_PER_TEAM_MOST} in, until he withdraws one (S08.15)`, async () => {
+  test(`are refused while his team has ${CLAIMS_PER_TEAM_MOST} in, until he withdraws one (S08.16)`, async () => {
     await w.onWaivers([SAKA, PALMER]);
     // Ann's team holds one short of the ceiling.
     await w.t.run(async (ctx) => {
