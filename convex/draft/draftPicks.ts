@@ -5,9 +5,7 @@ import { areasOf } from "../lineup/pitch";
 import { pickFirstLineupAgain } from "../lineup/lineups";
 import { fileEvent } from "../mail/letters";
 import { positionsNow, type PositionsNow } from "../positions/playerPositions";
-import { draftRulesOf } from "../rules/firstRules";
 import type { LeagueRules } from "../rules/leagueRulesShape";
-import { latestRules } from "../rules/rulesHistory";
 import { managerOf, refuse, refusals, runnerOf, teamIn } from "../shared/leagueAccess";
 import { heldPlayerByCode, playerByCode } from "../shared/players";
 import { SECOND_MS } from "../shared/time";
@@ -17,6 +15,7 @@ import { autoPickOrder } from "./autoPickOrder";
 import { autoPickAt, PICK_GAP_MS, picksAtClockStart, scheduleAutoPick, startClock } from "./draftClock";
 import { tellPickedFor, tellUpNext } from "./draftLetters";
 import { listsOf } from "./draftLists";
+import { draftRulesNow, pickSecondsNow } from "./draftPickTime";
 import { draftRanking } from "./draftRanking";
 import type { Position } from "../positions/positionTables";
 import { draftedPositionsIn, draftOf, lastPickIn, picksLeftOf, turnNow, undoWindowOpen, type StartedDraft, type Turn } from "./draftRow";
@@ -120,18 +119,6 @@ async function pickable(ctx: QueryCtx, leagueId: Id<"leagues">, playerCode: numb
   const place = await placeOf(ctx, leagueId, playerCode);
   if (place !== null) refuse(pickRefusals.taken(player.name, (await teamIn(ctx, leagueId, place.teamId)).name));
   return player;
-}
-
-/** The league's draft rules now, its latest, a change waiting for a later gameweek among them: a
- *  change the commissioner makes reaches the next clock, and a mid-season draft runs on the timeout
- *  limit and undrafted-players setting last typed (Craig, 10 Nov 2026, on #1439: "Last typed"). */
-export const draftRulesNow = async (ctx: QueryCtx, leagueId: Id<"leagues">) => draftRulesOf(await latestRules(ctx, leagueId));
-
-/** The draft's pick time now, in seconds: the one it started on, or the commissioner set since while
- *  it was paused, which reaches it at once (draftCommissioner.ts; #1095); for a draft started before
- *  #1439 with neither, the league's latest. */
-export async function pickSecondsNow(ctx: QueryCtx, leagueId: Id<"leagues">): Promise<number> {
-  return (await draftOf(ctx, leagueId))?.pickSeconds ?? (await draftRulesNow(ctx, leagueId)).pickSeconds;
 }
 
 /** How a pick was made, besides who by: `auto` for one the draft made, `timeout` for one it made

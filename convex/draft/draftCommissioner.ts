@@ -7,10 +7,8 @@ import { refuse, runnerOf, teamIn, teamsOf } from "../shared/leagueAccess";
 import { startClock } from "./draftClock";
 import { tellUndone, tellUpNext } from "./draftLetters";
 import { liveClock, pauseRefusals } from "./draftPause";
-import { pickSecondsNow } from "./draftPicks";
-import { draftIsPaused, pickTimeRefusals } from "./draftPickTime";
+import { draftIsPaused, pickSecondsNow, pickSecondsOf, pickTimeRefusals } from "./draftPickTime";
 import { draftHasStarted, draftIsLive, draftOf, lastPickIn } from "./draftRow";
-import { rulesInForceAt } from "./draftStart";
 import { afterUndoneTimeout } from "./draftTimeouts";
 import { takeBackPick } from "./pickWindow";
 
@@ -112,17 +110,17 @@ const commissionerView = v.object({
 export type CommissionerView = Infer<typeof commissionerView>;
 
 /** What the draft room's commissioner panel reads (#1101), for whoever runs the league: the pick
- *  time its box shows and the teams with no manager. `now` is the screen's minute, as a query must
- *  not read the clock. */
+ *  time its box shows and the teams with no manager. `now`, the screen's minute, is no longer read
+ *  since the box shows the draft's own pick time (#1572); the screen still sends it. */
 export const panel = query({
   args: { leagueId: v.id("leagues"), now: v.number() },
   returns: commissionerView,
-  handler: async (ctx, { leagueId, now }) => {
+  handler: async (ctx, { leagueId }) => {
     await runnerOf(ctx, leagueId);
     const [draft, teams, history] = await Promise.all([draftOf(ctx, leagueId), teamsOf(ctx, leagueId), historyOf(ctx, leagueId)]);
-    const started = draft?.started !== undefined;
-    const rules = started ? await rulesInForceAt(ctx, leagueId, now) : newestRow(history, leagueId).rules;
-    const pickSeconds = (started ? draft.pickSeconds : undefined) ?? draftRulesOf(rules).pickSeconds;
+    // The draft's pick time once it has started, as its clock runs on (draftPickTime.ts; #1572).
+    const started = draft?.started !== undefined ? draft : null;
+    const pickSeconds = pickSecondsOf(started, draftRulesOf(newestRow(history, leagueId).rules));
     const unmanaged = teams
       .filter((team) => team.managerEmail === undefined)
       .map((team) => ({ teamId: team._id, name: team.name, marked: team.commissionerPicks === true }))
