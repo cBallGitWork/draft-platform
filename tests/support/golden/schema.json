@@ -4490,6 +4490,30 @@
             "event.kind",
             "at"
           ]
+        },
+        {
+          "indexDescriptor": "by_teamId_and_kind_and_at",
+          "fields": [
+            "event.teamId",
+            "event.kind",
+            "at"
+          ]
+        },
+        {
+          "indexDescriptor": "by_fromTeamId_and_kind_and_at",
+          "fields": [
+            "event.fromTeamId",
+            "event.kind",
+            "at"
+          ]
+        },
+        {
+          "indexDescriptor": "by_toTeamId_and_kind_and_at",
+          "fields": [
+            "event.toTeamId",
+            "event.kind",
+            "at"
+          ]
         }
       ],
       "stagedDbIndexes": [],
