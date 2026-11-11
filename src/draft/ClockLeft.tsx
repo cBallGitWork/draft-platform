@@ -19,13 +19,35 @@ export function leftAt({ startsAt, endsAt, pausedAt }: PickClock, now: number): 
 /** The time the pick on the clock has left, counted down each second, standing still while the
  *  draft is paused; with no clock, its full pick time; with neither, nothing. */
 export function ClockLeft({ onTheClock: { clock, pickSeconds } }: { onTheClock: OnTheClock }) {
-  const [now, setNow] = useState(() => Date.now());
-  const ticking = clock !== null && clock.pausedAt === undefined;
-  useEffect(() => {
-    if (!ticking) return;
-    const timer = setInterval(() => setNow(Date.now()), SECOND_MS);
-    return () => clearInterval(timer);
-  }, [ticking]);
+  const now = useNowWhile(clock !== null && clock.pausedAt === undefined);
   const left = clock === null ? (pickSeconds === null ? null : pickSeconds * SECOND_MS) : leftAt(clock, now);
   return left === null ? null : <span className="tabular-nums">{timeLeftWords(left)}</span>;
+}
+
+/** The 10 seconds the reader has to undo his own pick (#1458): they run until `until`, the next
+ *  clock's start or the draft's end, frozen at `pausedAt` while the draft is paused. */
+export type UndoWindow = { until: number; pausedAt?: number };
+
+/** How long is left to undo the reader's pick, counted down each second; null with none, or once
+ *  they are up. */
+export function useUndoLeft(window: UndoWindow | null): number | null {
+  const now = useNowWhile(window !== null && window.pausedAt === undefined);
+  const left = window === null ? 0 : window.until - (window.pausedAt ?? now);
+  return left > 0 ? left : null;
+}
+
+/** The time now, read again each second while `ticking`, and as it starts. */
+function useNowWhile(ticking: boolean): number {
+  const [now, setNow] = useState(() => Date.now());
+  useEffect(() => {
+    if (!ticking) return;
+    const tick = () => setNow(Date.now());
+    const first = setTimeout(tick, 0);
+    const timer = setInterval(tick, SECOND_MS);
+    return () => {
+      clearTimeout(first);
+      clearInterval(timer);
+    };
+  }, [ticking]);
+  return now;
 }

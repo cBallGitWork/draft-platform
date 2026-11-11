@@ -94,6 +94,7 @@ describe("pressing start", () => {
       picksMade: 0,
       onTheClock: { pick: 1, round: 1, teamId: teams[0], name: "Team 1" },
       clock: { startsAt: now, endsAt: now + HELD_FIRST_RULES.draft!.pickSeconds * SECOND_MS },
+      ownPickBy: null,
     });
   });
 

@@ -25077,6 +25077,20 @@
                     "value": true
                   },
                   "optional": true
+                },
+                "upNext": {
+                  "fieldType": {
+                    "type": "literal",
+                    "value": true
+                  },
+                  "optional": true
+                },
+                "closing": {
+                  "fieldType": {
+                    "type": "literal",
+                    "value": true
+                  },
+                  "optional": true
                 }
               }
             },
@@ -25317,6 +25331,20 @@
                     "value": "ST"
                   }
                 ]
+              }
+            },
+            "optional": true
+          },
+          "own": {
+            "fieldType": {
+              "type": "object",
+              "value": {
+                "leftMs": {
+                  "fieldType": {
+                    "type": "number"
+                  },
+                  "optional": false
+                }
               }
             },
             "optional": true

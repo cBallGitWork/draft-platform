@@ -19,6 +19,8 @@ export type DraftState = FunctionReturnType<typeof api.draft.draftStart.ofLeague
 export type DraftChanges = {
   /** His team, on the clock, takes the player with this code. */
   makePick(leagueId: Id<"leagues">, playerCode: number): Change;
+  /** His team's last pick, which he made himself, taken back in its 10 seconds (#1458). */
+  undoMyPick(leagueId: Id<"leagues">): Change;
 };
 
 /** The players list is Scouting's (spec/04, The draft room), read the same way. */
