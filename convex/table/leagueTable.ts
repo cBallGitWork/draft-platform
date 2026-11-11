@@ -35,8 +35,10 @@ export const fixture = v.object({
 /** A fixture on the table's screen and league home, with its score. */
 export const scoredFixture = v.object({
   ...fixture.fields,
-  /** Each side's points, the average's for the league's average; null until the gameweek is scored. */
-  points: v.union(v.object({ team: v.number(), opponent: v.number() }), v.null()),
+  /** Each side's points, the average's for the league's average, and whether either may still move
+   *  (teamGames.ts's gameScore: the average while any team drawn in the gameweek may); null until
+   *  the gameweek is scored. */
+  points: v.union(v.object({ team: v.number(), opponent: v.number(), provisional: v.boolean() }), v.null()),
 });
 export type ScoredFixture = Infer<typeof scoredFixture>;
 

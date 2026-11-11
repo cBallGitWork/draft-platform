@@ -23,7 +23,7 @@ test("a team that joins after a gameweek began is no part of its league average,
 
   const table = (await readTable(league))!;
   const catsFixture = table.gameweeks.find((each) => each.gameweek === GAMEWEEK)!.fixtures.find((each) => each.teamId === league.catsTeam)!;
-  expect(catsFixture.points).toEqual({ team: 0, opponent: average });
+  expect(catsFixture.points).toEqual({ team: 0, opponent: average, provisional: false });
   expect(table.table.find((row) => row.teamId === league.catsTeam)).toMatchObject({ played: 1, lost: 1, pointsAgainst: average });
 
   const catsGames = (await (await actingAs(league.t, CAT)).query(api.table.teamFixtures.ofMyTeam, { leagueId: league.leagueId }))!.games;
