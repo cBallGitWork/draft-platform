@@ -8,10 +8,10 @@ import { liveScouting } from "../../../src/scouting/liveScouting";
 import { A_LEAGUE_ID } from "../../support/src/convexReact.harness";
 import { PALMER, RICE, SAKA } from "../../support/src/scoutingScreen.harness";
 
-const convex = vi.hoisted(() => ({ list: vi.fn(), compare: vi.fn() }));
+const convex = vi.hoisted(() => ({ list: vi.fn(), runs: vi.fn(), compare: vi.fn() }));
 vi.mock("convex/react", async () =>
   (await import("../../support/src/convexReact.harness")).fakeConvexReact({
-    queries: { "scouting/playersList:list": convex.list, "scouting/compare:players": convex.compare },
+    queries: { "scouting/playersList:list": convex.list, "scouting/playersList:firstRuns": convex.runs, "scouting/compare:players": convex.compare },
   }),
 );
 
@@ -42,6 +42,15 @@ test("it keeps the players the filters keep, in the sort's order, and a new sort
   rerender({ filters: { availability: "owned", position: null, clubCode: null }, sort: { by: "club", descending: true } });
   expect(result.current!.players.map(({ name }) => name)).toEqual(["Palmer", "Saka"]);
   for (const [asked] of convex.list.mock.calls) expect(asked).toEqual(ask);
+});
+
+test("a player on waivers gets the run that can first take him from scouting/playersList:firstRuns, asked at the minute, so the list isn't asked again (#1467)", () => {
+  const run = { at: Date.UTC(2027, 0, 14, 18, 0), skippedIf: 12 };
+  convex.list.mockClear().mockReturnValue({ clubs: [], players: [SAKA, { ...RICE, onWaivers: { claimableFrom: 0 } }, PALMER] });
+  convex.runs.mockClear().mockReturnValue([{ playerCode: RICE.code, firstRun: run }]);
+  const { result } = renderHook(() => liveScouting.usePlayersList(A_LEAGUE_ID, { availability: "onWaivers", position: null, clubCode: null }, { by: "name", descending: false }, null));
+  expect(result.current!.players).toEqual([{ ...RICE, onWaivers: { firstRun: run } }]);
+  expect(convex.runs).toHaveBeenCalledWith({ leagueId: A_LEAGUE_ID, now: expect.any(Number) });
 });
 
 test("it asks scouting/compare:players for the two codes, and hands on what comes back", () => {
