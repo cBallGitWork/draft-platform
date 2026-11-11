@@ -12,9 +12,8 @@ import { startClock } from "./draftClock";
 import { tellNotStarted, tellUpNext } from "./draftLetters";
 import { DRAFT_FEWEST_TEAMS } from "./draftLimits";
 import { draftOrderOf, teamInOrder, teamOrderOf } from "./draftOrder";
-import { draftOf, lastPickIn, liveClockOf } from "./draftRow";
+import { draftOf, lastPickIn, liveClockOf, turnAfter } from "./draftRow";
 import { roundsOf } from "./draftRules";
-import { pickOnTheClock } from "./snakeOrder";
 
 // Starting the draft (spec/04, Starting it; #1089). It starts on a date the commissioner sets or
 // when he presses start; with no date set, it waits for him (Craig, 4 Nov 2026). It runs with the
@@ -214,7 +213,7 @@ export const ofLeague = query({
     });
     const last = await lastPickIn(ctx, leagueId);
     const picksMade = last?.pick ?? 0;
-    const turn = pickOnTheClock(teamIds, rounds, picksMade, draft.tradedPicks);
+    const turn = turnAfter(draft, picksMade);
     const started = { startedAt: at, rounds, order, picksMade };
     const ownPickBy = last?.own === undefined ? null : last.teamId;
     if (turn === null && draft.clock?.closing) return { status: "ending" as const, ...started, endsAt: draft.clock.startsAt, pausedAt: draft.clock.paused?.at, ownPickBy };
