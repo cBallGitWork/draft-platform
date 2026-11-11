@@ -120,7 +120,7 @@ test("each match is priced under the site's set in force in its gameweek: a patc
     ...EXAMPLE_SET,
     rules: EXAMPLE_SET.rules.map((rule) => (rule.stat === "goals_scored" ? { ...rule, values: { all: 9 } } : rule)),
   } as ScoringSet;
-  await league.t.run((ctx) => holdSiteScoring(ctx, { scoring: structuredClone(PATCHED) as StoredScoringSet, kind: "fix", season: 2026, number: 1, at: siteDeadline(GW2.kickoff) }));
+  await league.t.run((ctx) => holdSiteScoring(ctx, { scoring: structuredClone(PATCHED) as StoredScoringSet, kind: "fix", at: siteDeadline(GW2.kickoff) }));
   await refresh(league);
 
   expect(at(SAKA_GW2, "W", PATCHED)).not.toBe(at(SAKA_GW2, "W"));
