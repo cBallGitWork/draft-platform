@@ -2828,6 +2828,13 @@
             "season",
             "playerCode"
           ]
+        },
+        {
+          "indexDescriptor": "by_playerCode_and_season",
+          "fields": [
+            "playerCode",
+            "season"
+          ]
         }
       ],
       "stagedDbIndexes": [],
@@ -25904,6 +25911,343 @@
           "lastFailure": {
             "fieldType": {
               "type": "string"
+            },
+            "optional": true
+          }
+        }
+      }
+    },
+    {
+      "tableName": "scoutingPlayers",
+      "indexes": [
+        {
+          "indexDescriptor": "by_code",
+          "fields": [
+            "code"
+          ]
+        },
+        {
+          "indexDescriptor": "by_clubCode_and_droppedAt",
+          "fields": [
+            "clubCode",
+            "droppedAt"
+          ]
+        }
+      ],
+      "stagedDbIndexes": [],
+      "searchIndexes": [],
+      "stagedSearchIndexes": [],
+      "vectorIndexes": [],
+      "stagedVectorIndexes": [],
+      "documentType": {
+        "type": "object",
+        "value": {
+          "code": {
+            "fieldType": {
+              "type": "number"
+            },
+            "optional": false
+          },
+          "name": {
+            "fieldType": {
+              "type": "string"
+            },
+            "optional": false
+          },
+          "fullName": {
+            "fieldType": {
+              "type": "string"
+            },
+            "optional": false
+          },
+          "clubCode": {
+            "fieldType": {
+              "type": "number"
+            },
+            "optional": false
+          },
+          "droppedAt": {
+            "fieldType": {
+              "type": "number"
+            },
+            "optional": true
+          },
+          "positions": {
+            "fieldType": {
+              "type": "object",
+              "value": {
+                "plLabel": {
+                  "fieldType": {
+                    "type": "string"
+                  },
+                  "optional": true
+                },
+                "starts": {
+                  "fieldType": {
+                    "type": "array",
+                    "value": {
+                      "type": "object",
+                      "value": {
+                        "fixtureCode": {
+                          "fieldType": {
+                            "type": "number"
+                          },
+                          "optional": false
+                        },
+                        "kickoff": {
+                          "fieldType": {
+                            "type": "number"
+                          },
+                          "optional": false
+                        },
+                        "formation": {
+                          "fieldType": {
+                            "type": "union",
+                            "value": [
+                              {
+                                "type": "string"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "optional": false
+                        },
+                        "line": {
+                          "fieldType": {
+                            "type": "union",
+                            "value": [
+                              {
+                                "type": "number"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "optional": false
+                        },
+                        "place": {
+                          "fieldType": {
+                            "type": "union",
+                            "value": [
+                              {
+                                "type": "number"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "optional": false
+                        }
+                      }
+                    }
+                  },
+                  "optional": false
+                },
+                "approved": {
+                  "fieldType": {
+                    "type": "array",
+                    "value": {
+                      "type": "union",
+                      "value": [
+                        {
+                          "type": "literal",
+                          "value": "GK"
+                        },
+                        {
+                          "type": "literal",
+                          "value": "CB"
+                        },
+                        {
+                          "type": "literal",
+                          "value": "FB"
+                        },
+                        {
+                          "type": "literal",
+                          "value": "WB"
+                        },
+                        {
+                          "type": "literal",
+                          "value": "CDM"
+                        },
+                        {
+                          "type": "literal",
+                          "value": "CM"
+                        },
+                        {
+                          "type": "literal",
+                          "value": "WM"
+                        },
+                        {
+                          "type": "literal",
+                          "value": "CAM"
+                        },
+                        {
+                          "type": "literal",
+                          "value": "W"
+                        },
+                        {
+                          "type": "literal",
+                          "value": "SS"
+                        },
+                        {
+                          "type": "literal",
+                          "value": "ST"
+                        }
+                      ]
+                    }
+                  },
+                  "optional": false
+                },
+                "confirmedLabel": {
+                  "fieldType": {
+                    "type": "string"
+                  },
+                  "optional": true
+                },
+                "set": {
+                  "fieldType": {
+                    "type": "array",
+                    "value": {
+                      "type": "union",
+                      "value": [
+                        {
+                          "type": "literal",
+                          "value": "GK"
+                        },
+                        {
+                          "type": "literal",
+                          "value": "CB"
+                        },
+                        {
+                          "type": "literal",
+                          "value": "FB"
+                        },
+                        {
+                          "type": "literal",
+                          "value": "WB"
+                        },
+                        {
+                          "type": "literal",
+                          "value": "CDM"
+                        },
+                        {
+                          "type": "literal",
+                          "value": "CM"
+                        },
+                        {
+                          "type": "literal",
+                          "value": "WM"
+                        },
+                        {
+                          "type": "literal",
+                          "value": "CAM"
+                        },
+                        {
+                          "type": "literal",
+                          "value": "W"
+                        },
+                        {
+                          "type": "literal",
+                          "value": "SS"
+                        },
+                        {
+                          "type": "literal",
+                          "value": "ST"
+                        }
+                      ]
+                    }
+                  },
+                  "optional": false
+                },
+                "removed": {
+                  "fieldType": {
+                    "type": "array",
+                    "value": {
+                      "type": "union",
+                      "value": [
+                        {
+                          "type": "literal",
+                          "value": "GK"
+                        },
+                        {
+                          "type": "literal",
+                          "value": "CB"
+                        },
+                        {
+                          "type": "literal",
+                          "value": "FB"
+                        },
+                        {
+                          "type": "literal",
+                          "value": "WB"
+                        },
+                        {
+                          "type": "literal",
+                          "value": "CDM"
+                        },
+                        {
+                          "type": "literal",
+                          "value": "CM"
+                        },
+                        {
+                          "type": "literal",
+                          "value": "WM"
+                        },
+                        {
+                          "type": "literal",
+                          "value": "CAM"
+                        },
+                        {
+                          "type": "literal",
+                          "value": "W"
+                        },
+                        {
+                          "type": "literal",
+                          "value": "SS"
+                        },
+                        {
+                          "type": "literal",
+                          "value": "ST"
+                        }
+                      ]
+                    }
+                  },
+                  "optional": false
+                }
+              }
+            },
+            "optional": false
+          },
+          "totals": {
+            "fieldType": {
+              "type": "object",
+              "value": {
+                "season": {
+                  "fieldType": {
+                    "type": "number"
+                  },
+                  "optional": false
+                },
+                "stats": {
+                  "fieldType": {
+                    "type": "record",
+                    "keys": {
+                      "type": "string"
+                    },
+                    "values": {
+                      "fieldType": {
+                        "type": "number"
+                      },
+                      "optional": false
+                    }
+                  },
+                  "optional": false
+                }
+              }
             },
             "optional": true
           }

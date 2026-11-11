@@ -17,8 +17,9 @@ export const startRecord = v.object({
   place: v.union(v.number(), v.null()),
 });
 
-const playerPositionFields = {
-  code: v.number(),
+/** What a player's positions are worked out from (`positionsOf` in positions.ts): his row without
+ *  the code it is keyed on. Scouting keeps a copy on his list row (schema/scouting.ts, #1559). */
+export const positionInputs = v.object({
   /** The Premier League's `positionInfo` for him, his squad's or else his newest sheet's; absent
    *  until one names him. */
   plLabel: v.optional(v.string()),
@@ -29,7 +30,9 @@ const playerPositionFields = {
   confirmedLabel: v.optional(v.string()),
   set: v.array(position),
   removed: v.array(position),
-};
+});
+
+const playerPositionFields = { code: v.number(), ...positionInputs.fields };
 
 export const approveMode = v.union(v.literal("proposals"), v.literal("countAtOnce"));
 
