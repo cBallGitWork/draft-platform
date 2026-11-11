@@ -5,6 +5,7 @@ import type { CatalogueStat } from "../../convex/scoring/statCatalogueList";
 import { ShortlistAction } from "../playerCard/ShortlistAction";
 import { MY_TEAM_TRANSACTIONS_PATH } from "../frame/menu";
 import { byRun } from "../myTeam/claims/claimGroups";
+import { useLastLoaded } from "../shared/useLastLoaded";
 import { useMinute } from "../shared/useMinute";
 import { Per90Figures } from "./Per90Figures";
 import { CloseButton, PointsFigure } from "./PointsFigure";
@@ -48,7 +49,8 @@ function YourClaim({ leagueId, playerCode, seam }: { leagueId: Id<"leagues">; pl
 }
 
 /** Compare with your [position], [player]: the manager's own player at his main position (Craig,
- *  9 Nov 2026, on #1028, answer 1); nothing with none, nor while it loads. */
+ *  9 Nov 2026, on #1028, answer 1); nothing with none, nor while it first loads. The last answer
+ *  holds as the minute turns, so the button doesn't blink out (#1777). */
 function CompareWithYours({
   leagueId,
   playerCode,
@@ -60,7 +62,7 @@ function CompareWithYours({
   seam: ScoutingSeam;
   compareWith: (playerCode: number) => void;
 }) {
-  const yours = seam.useYourPlayer(leagueId, playerCode, useMinute())?.player;
+  const yours = useLastLoaded(seam.useYourPlayer(leagueId, playerCode, useMinute()), `${leagueId}/${playerCode}`)?.player;
   if (yours === undefined || yours === null) return null;
   return (
     <button type="button" onClick={() => compareWith(yours.code)} className="secondary-action">
