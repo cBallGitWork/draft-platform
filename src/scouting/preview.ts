@@ -13,7 +13,7 @@ import { withOwnStats } from "../../convex/scoring/ownStats";
 import { OWN_STAT_PREFIX } from "../../convex/scoring/statCatalogue";
 import type { Stats } from "../../convex/stats/statTotals";
 import { DAY_MS } from "../../convex/shared/time";
-import { listedFromScouting, queueInPreview, setPreviewShortlisted } from "../draft/previewLists";
+import { listedFromScouting, listInPreview, setPreviewPlayers, setPreviewShortlisted } from "../draft/previewLists";
 import { previewClaims } from "../myTeam/claims/preview";
 import { previewScouts } from "./scouts/preview";
 import { previewShortlistOf } from "./shortlist/preview";
@@ -102,10 +102,11 @@ const weigher = (period: Period) => (player: ListedPlayer) => ({ area: mainArea(
 const SHORTLISTED = [2, 6];
 export const previewShortlist = previewShortlistOf(previewPlayers, SHORTLISTED);
 setPreviewShortlisted(previewPlayers.filter(({ code }) => SHORTLISTED.includes(code)));
+setPreviewPlayers(previewPlayers);
 
 /** "Add to queue" on a shortlisted player: into the preview's draft queue (../draft/previewLists.ts). */
 const addToQueue = async (_leagueId: unknown, playerCode: number) => {
-  queueInPreview([listedFromScouting(previewPlayers.find(({ code }) => code === playerCode)!)]);
+  listInPreview([listedFromScouting(previewPlayers.find(({ code }) => code === playerCode)!)]);
   return null;
 };
 

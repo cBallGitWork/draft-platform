@@ -11,9 +11,11 @@ import { PANEL_BODY, Panel, Problem } from "../ui/Panel";
 import { PositionChip } from "../ui/PositionChip";
 import { ClockLeft, type OnTheClock } from "./ClockLeft";
 import { whyNotWords } from "./DraftPlayers";
-import type { DraftChanges, GreyedPlayer, RoomFigure } from "./seam";
+import type { DraftChanges, DraftList, DraftListChanges, DraftLists, GreyedPlayer, RoomFigure } from "./seam";
 import {
+  addToQueueWords,
   closePanelLabel,
+  DO_NOT_DRAFT_TITLE,
   draftPlayerWords,
   inGamesWords,
   lastSeasonPointsColumn,
@@ -34,8 +36,10 @@ import {
 // The selected player's panel on the draft room (the approved picture's right column, on top;
 // #1099): the big Draft button, only while the reader is on the clock and may take him, where he
 // plays, his place on the site's ranking, last season's points, how many of his position and his
-// club the reader's squad holds, and his card a link away. The queue's and do-not-draft's buttons
-// are #1100's.
+// club the reader's squad holds, and his card a link away. "Add to queue" and "Do not draft" put him
+// on either of the reader's lists, taking him off the other (spec/04, The queue and the ranking;
+// #1474), while the draft isn't over and only for a reader who runs a team; the one for the list he
+// is already on is off.
 
 /** Where the reader's pick stands: his, on the clock at `slot`; another team's; paused; or not yet
  *  started (or over). */
@@ -47,6 +51,11 @@ export type YourSquad = { atPosition: number; atClub: number; maxPerClub: number
 
 const NOT_NOW_WORDS = { notYours: notYourPickWords, paused: pausedPickWords, notStarted: notStartedPickWords } as const;
 
+const LIST_BUTTONS: readonly { list: DraftList; words: string }[] = [
+  { list: "queue", words: addToQueueWords },
+  { list: "doNotDraft", words: DO_NOT_DRAFT_TITLE },
+];
+
 export function PickPanel({
   leagueId,
   player,
@@ -57,6 +66,8 @@ export function PickPanel({
   whyNot,
   turn,
   changes,
+  lists,
+  listChanges,
   close,
 }: {
   leagueId: Id<"leagues">;
@@ -68,6 +79,10 @@ export function PickPanel({
   whyNot: GreyedPlayer["reason"] | undefined;
   turn: YourTurn;
   changes: DraftChanges;
+  /** The reader's queue and do-not-draft list; null for no buttons (no team, or the draft over),
+   *  undefined while they load. */
+  lists: DraftLists | null | undefined;
+  listChanges: DraftListChanges;
   close: () => void;
 }) {
   const change = useChange();
@@ -151,9 +166,27 @@ export function PickPanel({
             </>
           )}
         </dl>
-        <Link to={playerCardPath(leagueId, player.code)} className="inline-flex min-h-tap items-center self-end font-semibold">
-          {playerCardWords} ▸
-        </Link>
+        <div className="flex flex-wrap items-center gap-2">
+          {lists !== null &&
+            LIST_BUTTONS.map(({ list, words }) => {
+              // On it already: the action with nothing to do, outlined grey (plate.md, Colour roles).
+              const on = lists?.[list].some(({ code }) => code === player.code) ?? false;
+              return (
+                <button
+                  key={list}
+                  type="button"
+                  disabled={lists === undefined || change.busy || on}
+                  onClick={() => void change.run(() => listChanges.add(leagueId, player.code, list))}
+                  className={on ? "action-idle" : "secondary-action"}
+                >
+                  {words}
+                </button>
+              );
+            })}
+          <Link to={playerCardPath(leagueId, player.code)} className="ml-auto inline-flex min-h-tap items-center font-semibold">
+            {playerCardWords} ▸
+          </Link>
+        </div>
       </div>
     </Panel>
   );

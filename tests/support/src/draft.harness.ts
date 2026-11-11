@@ -85,6 +85,7 @@ export function fakeDraft({
   };
   const changes = { ...draftChanges, ...commissionerChanges };
   const listChanges = {
+    add: vi.fn<DraftListChanges["add"]>(answer),
     remove: vi.fn<DraftListChanges["remove"]>(answer),
     move: vi.fn<DraftListChanges["move"]>(answer),
     addShortlist: vi.fn<DraftListChanges["addShortlist"]>(async () => refusal ?? shortlistAdded),

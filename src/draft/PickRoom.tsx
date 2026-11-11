@@ -57,6 +57,7 @@ export function PickRoom({
   const figures = seam.useFigures(leagueId, now);
   const lists = seam.useLists(leagueId);
   const changes = seam.useDraftChanges();
+  const listChanges = seam.useListChanges();
   const [selected, setSelected] = useState<ListedPlayer | null>(null);
   const whyNot: WhyNot = useMemo(() => new Map((greyed ?? []).map(({ code, reason }) => [code, reason])), [greyed]);
   const queue = useMemo(() => (lists?.queue ?? []).map(({ code }) => code), [lists]);
@@ -85,6 +86,8 @@ export function PickRoom({
             whyNot={whyNot.get(selected.code)}
             turn={yourTurn(draft, board, onTheClock)}
             changes={changes}
+            lists={draft.status === "over" ? null : lists}
+            listChanges={listChanges}
             close={() => setSelected(null)}
           />
         )}
