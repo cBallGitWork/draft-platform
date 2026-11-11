@@ -1,7 +1,8 @@
 import { v } from "convex/values";
 import { internalMutation, internalQuery, type QueryCtx } from "../_generated/server";
 import { dueMatch, LIVE_WINDOW_MS, type DueMatch } from "../shared/dueMatches";
-import { matchWrites, recordsOf, statusOf, writeRecords } from "./matchStats";
+import { matchWrites, statusOf, writeRecords } from "./matchStats";
+import { matchRecordsOf } from "../gameweekScorer/heldMatches";
 import { liveStatsTickFields, playerMatchRecord, sideMatchOutcome } from "../schema";
 import { latestRuns } from "../shared/syncRuns";
 import { emailIfFailed } from "../admin/feedFailureEmails";
@@ -60,7 +61,7 @@ export const upsertLive = internalMutation({
   handler: async (ctx, { fixtureCode, minute, records }) => {
     const status = await statusOf(ctx, fixtureCode);
     if (status !== null) return { state: status.state, inserted: 0, updated: 0, changed: [], lateCorrections: 0, thresholdSteps: null };
-    const held = new Map((await recordsOf(ctx, fixtureCode)).map((row) => [row.playerCode, row]));
+    const held = new Map((await matchRecordsOf(ctx, fixtureCode, "its live records' write")).map((row) => [row.playerCode, row]));
     const thresholdSteps = await storeThresholdSteps(ctx, fixtureCode, minute, records, held);
     const state = "provisional" as const;
     return { state, ...(await writeRecords(ctx, records, held, state)), lateCorrections: 0, thresholdSteps };

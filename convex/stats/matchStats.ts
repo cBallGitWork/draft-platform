@@ -12,6 +12,7 @@ import { repriceChanged } from "./seasonPointsQueue";
 import { rebuildTotalsIfNoneKept } from "./seasonRebuilds";
 import { playerByCode } from "../shared/players";
 import { fixtureByCode, gameweekFixtures } from "../shared/fixtures";
+import { matchRecordsOf } from "../gameweekScorer/heldMatches";
 
 // Issue #27: the stored side of match stats. `matchStatsSync.run` reads the feeds and hands each
 // match's records to `upsertMatch`; `lock` closes the window; each run is a row in matchStatsSyncs.
@@ -35,7 +36,7 @@ export const upsertMatch = internalMutation({
   returns: matchWrites,
   handler: async (ctx, { fixtureCode, readAt, records }) => {
     const status = await statusOf(ctx, fixtureCode);
-    const held = new Map((await recordsOf(ctx, fixtureCode)).map((row) => [row.playerCode, row]));
+    const held = new Map((await matchRecordsOf(ctx, fixtureCode, "its records' write")).map((row) => [row.playerCode, row]));
     if (status?.state === "locked") {
       await ctx.db.patch("matchStatsStatus", status._id, { lastReadAt: readAt });
       // A man held not whole at the lock (a live tick's record the full-time read left out) whose
@@ -84,7 +85,7 @@ export const lock = internalMutation({
       return null;
     }
     await ctx.db.patch("matchStatsStatus", status._id, { state: "locked", lockedAt: now });
-    for (const row of await recordsOf(ctx, fixtureCode)) {
+    for (const row of await matchRecordsOf(ctx, fixtureCode, "its lock")) {
       await ctx.db.patch("playerMatchStats", row._id, { state: "locked" });
     }
     await askToStoreFinal(ctx, fixtureCode, { onlyIfGameweekFinal: true });
@@ -166,14 +167,6 @@ export function triedOf(ctx: QueryCtx, fixtureCode: number) {
     .query("matchStatsTries")
     .withIndex("by_fixtureCode", (q) => q.eq("fixtureCode", fixtureCode))
     .unique();
-}
-
-/** A match's held records: one per man named, so a few dozen. */
-export function recordsOf(ctx: MutationCtx, fixtureCode: number) {
-  return ctx.db
-    .query("playerMatchStats")
-    .withIndex("by_fixtureCode_and_playerCode", (q) => q.eq("fixtureCode", fixtureCode))
-    .collect();
 }
 
 /** Each record as sent, in the match's state: a new man inserted, a changed one replaced whole,
