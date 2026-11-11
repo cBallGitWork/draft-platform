@@ -2,6 +2,7 @@ import type { Doc, Id } from "../_generated/dataModel";
 import type { MutationCtx, QueryCtx } from "../_generated/server";
 import { draftIsLive } from "../draft/draftRow";
 import { LEAGUES_READ_MOST, takeAllOrThrow } from "../shared/cappedRead";
+import { placeOf } from "../squads/squadPlace";
 import type { LeagueDeadlines } from "../gameweeks/deadline";
 import { WAIVER_MS } from "./waiverLimits";
 import { deadlinePassedSince } from "./waiverLock";
@@ -65,10 +66,16 @@ async function leaguesDrafted(ctx: QueryCtx): Promise<Id<"leagues">[]> {
 
 /** Puts players new to the Premier League on waivers for the next run in every league whose
  *  draft is over (spec/08: "A player new to the Premier League mid-season goes on waivers for the
- *  next run"). A league still to draft, or drafting, takes them in its draft. */
+ *  next run"), one coming back after leaving included, whenever he left (Craig, 11 Nov 2026,
+ *  #1489). A league still to draft, or drafting, takes them in its draft. One coming back stays
+ *  with a team still holding him, and a later waiver time he already has is kept. */
 export async function putNewPlayersOnWaivers(ctx: MutationCtx, playerCodes: readonly number[], now: number): Promise<void> {
   if (playerCodes.length === 0) return;
   for (const leagueId of await leaguesDrafted(ctx)) {
-    for (const playerCode of playerCodes) await putOnWaivers(ctx, leagueId, playerCode, now);
+    for (const playerCode of playerCodes) {
+      if ((await placeOf(ctx, leagueId, playerCode)) !== null) continue;
+      const held = await waiverRowOf(ctx, leagueId, playerCode);
+      if (held === null || held.claimableFrom < now) await putOnWaivers(ctx, leagueId, playerCode, now);
+    }
   }
 }
