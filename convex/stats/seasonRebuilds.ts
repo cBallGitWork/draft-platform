@@ -13,6 +13,8 @@ import { PLAYERS_PAGE } from "./matchRecords";
 // run it. Totals come first: season points start once totals show someone played, and a totals
 // rebuild starts the points rebuild when it finishes. Each check starts one rebuild at most, and
 // a check that can't be read is logged, naming the repair, and never stops the write it runs in.
+// The season rows' one-row lookup and paged rebuild live here too, shared with last season's
+// points (pastSeasons/pastSeasonPoints.ts).
 
 /** How season totals are put right by hand: its last page puts season points right too. */
 export const TOTALS_REBUILD_COMMAND = `npx convex run stats/seasonStats:rebuild '{"cursor":null}'`;
