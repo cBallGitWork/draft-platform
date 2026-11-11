@@ -112,10 +112,10 @@ export const upsertPlayers = internalMutation({
     const newcomers: number[] = [];
     const upserted = await upsertEach(ctx, "players", rows, async (row) => {
       const held = await playerByCode(ctx, row.code);
-      if (held === null) newcomers.push(row.code);
+      if (held === null || held.droppedAt !== undefined) newcomers.push(row.code);
       return held;
     });
-    // In the same transaction as his row, so no league sees him as a free agent first (#1197).
+    // New, or sent again after a gap (#1489), in his row's transaction: no league sees a free agent first (#1197).
     await putNewPlayersOnWaivers(ctx, newcomers, Date.now());
     return upserted;
   },
