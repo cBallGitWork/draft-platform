@@ -110,7 +110,7 @@ test("drawing the draft order calls draft/draftOrder:drawTeamOrder, and resolves
 });
 
 test("the scoring start is read from gameweeks/scoringStart:ofLeague", () => {
-  const view = { start: 8, ticked: [{ gameweek: 8, deadline: null }] };
+  const view = { start: 8, ticked: [{ gameweek: 8, deadline: null }], seasonBegun: false };
   convex.scoringStart.mockReturnValue(view);
 
   expect(renderHook(() => useLiveLeagueSettings().useScoringStart(A_LEAGUE_ID)).result.current).toBe(view);

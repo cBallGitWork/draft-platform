@@ -51,17 +51,19 @@ describe("the gameweeks before it", () => {
     expect(after.map(({ gameweek }) => gameweek)).toEqual(Array.from({ length: 34 }, (_, index) => index + 5));
   });
 
+  // The commissioner can no longer set a start once gameweeks are scored (#1588), so the draft's end
+  // sets it here.
   test("score nothing, even once begun and stored before the start was set", async () => {
     playUpTo(2);
     await t.run((ctx) => recordPassedDeadlines(ctx));
     expect((await table())!.results.map(({ gameweek }) => gameweek)).toEqual([1, 2]);
 
-    await setStart(4);
-    playUpTo(4);
+    await draftEnds();
+    playUpTo(3);
     await t.run((ctx) => recordPassedDeadlines(ctx));
     const read = (await table())!;
-    expect(read.results.map(({ gameweek }) => gameweek)).toEqual([4]);
-    expect(read.gameweeks[0]!.gameweek).toBe(4);
+    expect(read.results.map(({ gameweek }) => gameweek)).toEqual([3]);
+    expect(read.gameweeks[0]!.gameweek).toBe(3);
   });
 
   test("a league with none set scores every ticked gameweek, as before", async () => {
@@ -93,6 +95,26 @@ describe("the commissioner sets it", () => {
     await setStart(3);
     playUpTo(3);
     await expectRefused(setStart(5), scoringStartRefusals.fixed(3));
+  });
+
+  test("never once the league, with none set, has scored a gameweek: its earlier results stay (#1588)", async () => {
+    playUpTo(2);
+    await t.run((ctx) => recordPassedDeadlines(ctx));
+
+    await expectRefused(setStart(5), scoringStartRefusals.seasonBegun);
+    expect(await scoringStart()).toBeUndefined();
+    expect((await table())!.results.map(({ gameweek }) => gameweek)).toEqual([1, 2]);
+    expect((await (await actingAs(t, COMMISSIONER)).query(api.gameweeks.scoringStart.ofLeague, { leagueId })).seasonBegun).toBe(true);
+  });
+
+  test("a gameweek whose deadline passed before the league was made doesn't fix it", async () => {
+    playUpTo(2);
+    await t.run((ctx) => recordPassedDeadlines(ctx));
+    const later = await adminCreatesLeague(t);
+    await t.run((ctx) => recordPassedDeadlines(ctx));
+
+    await (await actingAs(t, COMMISSIONER)).mutation(api.gameweeks.scoringStart.setScoringStart, { leagueId: later, gameweek: 5 });
+    expect((await leagueRow(t, later))!.scoringStart).toBe(5);
   });
 
   test("a manager can't set it", async () => {
