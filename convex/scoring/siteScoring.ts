@@ -16,7 +16,7 @@ import { repriceAt } from "./patchKickoffs";
 import { scoringChanges } from "./patchChanges";
 import { checkOwnStatsAgainstCatalogue } from "./ownStats";
 import { validateScoringSet } from "./scoringSet";
-import { firstGameweekFrom, firstGameweekFromAny, patchGameweeks, setOf, SITE_SCORING_VERSIONS_MOST, siteVersions, versionName } from "./siteVersions";
+import { firstGameweekFrom, firstGameweekFromAny, inForceAt, isWaiting, patchGameweeks, setOf, SITE_SCORING_VERSIONS_MOST, siteVersions, versionName } from "./siteVersions";
 import { UnsoundScoring } from "./values";
 
 // The site's scoring set (spec/14, Who owns it, and Changes and corrections; #354, #355): one set
@@ -145,7 +145,7 @@ export const view = query({
     const draft = canEdit ? await ctx.db.query("siteScoringDraft").unique() : null;
     const reachedFrom = await firstGameweekFromAny(ctx);
     return {
-      part: setOf(canEdit ? latest : history.findLast((row) => row.takesEffectAt <= now)),
+      part: setOf(canEdit ? latest : inForceAt(history, now)),
       revision: latest?._id ?? null,
       changesFrom: reachedFrom(now),
       canEdit,
@@ -234,7 +234,7 @@ export const fix = mutation({
     checkScoringSet(scoring);
     const now = Date.now();
     if (sortedJson(setOf(latest)) === sortedJson(scoring)) return firstGameweekFrom(ctx, now);
-    if (latest !== undefined && latest.takesEffectAt > now) refuse(siteScoringRefusals.fixWhileWaiting(versionName(latest), latest.takesEffectAt, zone));
+    if (latest !== undefined && isWaiting(latest, now)) refuse(siteScoringRefusals.fixWhileWaiting(versionName(latest), latest.takesEffectAt, zone));
     // A draft made from an older version is refused when announced anyway (`draftOvertaken`).
     const draft = await ctx.db.query("siteScoringDraft").unique();
     const carrying = draft !== null && draft.madeFrom === (latest?._id ?? null) ? draft : null;
@@ -262,7 +262,7 @@ export const withdraw = mutation({
     const admin = await adminOf(ctx);
     const history = await siteVersions(ctx);
     const patch = history.at(-1);
-    if (patch === undefined || patch._id !== versionId || patch.kind !== "patch" || patch.takesEffectAt <= Date.now()) refuse(siteScoringRefusals.notWaiting);
+    if (patch === undefined || patch._id !== versionId || patch.kind !== "patch" || !isWaiting(patch, Date.now())) refuse(siteScoringRefusals.notWaiting);
     const madeFrom = history.at(-2)?._id ?? null;
     const held = await ctx.db.query("siteScoringDraft").unique();
     const savedAt = Date.now();
