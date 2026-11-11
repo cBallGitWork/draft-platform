@@ -6,6 +6,7 @@ import type { StoredScoringSet } from "../scoring/scoringSetShape";
 import type { SeasonRules } from "../rules/rulesHistory";
 import { logFailure } from "../shared/errors";
 import { readOnce } from "../shared/readOnce";
+import type { SquadMovesSince } from "../squads/squadPlace";
 import { heldFixtures, isMatchFinal } from "./heldMatches";
 import { squadInputs, type PlayerRows } from "./squadInputs";
 import { sameCodes, storedFinalScores, storedScoresIn } from "./storedScores";
@@ -180,16 +181,18 @@ export async function workedOutGameweek(
 }
 
 /** One team's gameweek worked out from reads the size of its squad (squadInputs.ts), for a
- *  player's card and the Squad tab (#577): his rows are `rowsOf` his code. */
+ *  player's card and the Squad tab (#577): his rows are `rowsOf` his code, and the league's squad
+ *  moves since a deadline `movesSinceOf` it, where many gameweeks share one read (#1542). */
 export async function squadGameweek(
   ctx: QueryCtx,
   reads: LeagueReads,
   gameweek: number,
   teamId: TeamId,
   rowsOf: (code: number) => Promise<PlayerRows>,
+  movesSinceOf?: (at: number) => Promise<SquadMovesSince>,
 ): Promise<GameweekTeams> {
   const fixtures = await heldFixtures(ctx, gameweek);
-  return teamsFrom(reads, await squadInputs(ctx, reads, gameweek, fixtures, teamId, rowsOf), new Map());
+  return teamsFrom(reads, await squadInputs(ctx, reads, gameweek, fixtures, teamId, rowsOf, movesSinceOf), new Map());
 }
 
 /** The gameweek team by team from its inputs. A team's points are the league's override of its

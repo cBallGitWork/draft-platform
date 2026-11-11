@@ -123,6 +123,19 @@ export async function squadMovesSince(ctx: QueryCtx, leagueId: Id<"leagues">, at
   return movesOfEachKind.flat().toSorted(newestFirst);
 }
 
+/** The league's squad moves since any moment from `earliest` on, the league's read once, from
+ *  `earliest`, and each ask handed its newest-first slice (#1542): a season of gameweeks reads one
+ *  list rather than one for each deadline. A moment before `earliest` throws: it wasn't read. */
+export function squadMovesFrom(ctx: QueryCtx, leagueId: Id<"leagues">, earliest: number): (at: number) => Promise<SquadMovesSince> {
+  let read: Promise<SquadMovesSince> | undefined;
+  return async (at) => {
+    if (at < earliest) throw new Error(`League ${leagueId}'s squad moves were read from ${earliest}, not from ${at}`);
+    const moves = await (read ??= squadMovesSince(ctx, leagueId, earliest));
+    const end = moves.findIndex((move) => move.at < at);
+    return end === -1 ? moves : moves.slice(0, end);
+  };
+}
+
 /** The team's player codes as its squad stood before `movesSince`: today's squad with each of them
  *  undone, newest first. Those still in it keep the order they joined; those who have left since
  *  follow, in the order they left. A move that doesn't fit the squad it undoes (one who joined but

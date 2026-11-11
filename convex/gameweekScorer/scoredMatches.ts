@@ -8,6 +8,8 @@ import { seasonRules } from "../rules/rulesHistory";
 import { siteScoringByGameweek } from "../scoring/siteVersions";
 import { takeAllOrThrow } from "../shared/cappedRead";
 import { readOnce } from "../shared/readOnce";
+import { passedDeadlinesOf } from "../gameweeks/passedDeadlines";
+import { squadMovesFrom } from "../squads/squadPlace";
 import { isWhole, PLAYER_RECORDS_MOST, statsIfWhole } from "../stats/matchRecords";
 import { playerRecords, seasonRecordsOf, type SeasonRecord } from "../stats/seasonRecords";
 import { statusOf } from "../stats/matchStats";
@@ -99,6 +101,10 @@ async function teamGameweeks(ctx: QueryCtx, league: Doc<"leagues">, teamId: Id<"
   const season = await seasonRules(ctx, league._id);
   const reads = await leagueReads(ctx, league, season, setIn);
   const begun = new Set(await begunGameweeks(ctx, league));
+  // The league's squad moves read once from the earliest begun deadline, each gameweek its slice
+  // since its own (#1542), rather than read again for each gameweek.
+  const deadlines = await passedDeadlinesOf(ctx, league._id);
+  const movesSinceOf = squadMovesFrom(ctx, league._id, Math.min(...[...begun].map((gameweek) => deadlines.get(gameweek)!)));
   const rowsByMatch = async (code: number): Promise<PlayerRows> => {
     const { records, overrides } = await heldRowsOf(code);
     return {
@@ -106,7 +112,7 @@ async function teamGameweeks(ctx: QueryCtx, league: Doc<"leagues">, teamId: Id<"
       overrides: new Map([...overrides].map(([fixtureCode, override]) => [fixtureCode, override.points])),
     };
   };
-  const scoredIn = readOnce((gameweek: number) => squadGameweek(ctx, reads, gameweek, teamId, rowsByMatch).then(({ slotsOf }) => slotsOf(teamId)));
+  const scoredIn = readOnce((gameweek: number) => squadGameweek(ctx, reads, gameweek, teamId, rowsByMatch, movesSinceOf).then(({ slotsOf }) => slotsOf(teamId)));
   return (gameweek: number) => (begun.has(gameweek) ? scoredIn(gameweek) : null);
 }
 

@@ -90,13 +90,16 @@ function rowInForce(ctx: QueryCtx, leagueId: Id<"leagues">, teamId: Id<"teams">,
 /** Each team's lineup in the gameweek, as `heldLineupShape` says: for its screen, auto-subs and
  *  scoring. Begun means its deadline is recorded (deadlineRecorder.ts), as it passes; until it is
  *  recorded, the squad now is read, and a move made in between leaves the lineup once it does.
- *  The league's moves since the deadline are read once for every team. Positions aren't checked
- *  again: a starter who has lost one since stays in his cell (spec/06, When positions change). */
+ *  The league's moves since the deadline are read once for every team, from `movesSinceOf` where a
+ *  caller reading many gameweeks shares one read (squadPlace.ts's `squadMovesFrom`; #1542).
+ *  Positions aren't checked again: a starter who has lost one since stays in his cell (spec/06,
+ *  When positions change). */
 export async function lineupsInGameweek(
   ctx: QueryCtx,
   leagueId: Id<"leagues">,
   teamIds: readonly Id<"teams">[],
   gameweek: number,
+  movesSinceOf: (at: number) => Promise<SquadMovesSince> = (at) => squadMovesSince(ctx, leagueId, at),
 ): Promise<Map<Id<"teams">, HeldLineup>> {
   const deadline = await passedDeadlineOf(ctx, leagueId, gameweek);
   let movesSince: Promise<SquadMovesSince> | undefined;
@@ -106,7 +109,7 @@ export async function lineupsInGameweek(
     let squad: number[];
     if (deadline === null) squad = await squadCodes(ctx, teamId);
     else {
-      movesSince ??= squadMovesSince(ctx, leagueId, deadline);
+      movesSince ??= movesSinceOf(deadline);
       squad = await squadAt(ctx, teamId, await movesSince);
     }
     if (row === null) {
