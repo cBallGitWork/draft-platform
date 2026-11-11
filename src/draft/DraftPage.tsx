@@ -4,7 +4,7 @@ import { screenMoment } from "../../convex/shared/moments";
 import { SECOND_MS } from "../../convex/shared/time";
 import type { LeagueSummary } from "../../convex/leagues/myLeagues";
 import { useMinute } from "../shared/useMinute";
-import { Loading, PageSection } from "../ui/Panel";
+import { Loading, PAGE_STACK, PageSection } from "../ui/Panel";
 import { Placeholder } from "../ui/Placeholder";
 import { pickMakers, picksOf, pickInRoundOf, roundOf } from "./board";
 import { ClockLeft, type OnTheClock } from "./ClockLeft";
@@ -65,7 +65,8 @@ export function DraftPage({ league, seam }: { league: LeagueSummary; seam: Draft
     draft.status === "live"
       ? { pick: draft.onTheClock.pick, clock: draft.clock, pickSeconds: draft.clock === null ? board.pickSeconds : (draft.clock.endsAt - draft.clock.startsAt) / SECOND_MS }
       : null;
-  const state = draft.status === "live" && draft.clock?.pausedAt !== undefined ? stateWords.paused : stateWords[draft.status];
+  const pausedAt = draft.status === "live" ? draft.clock?.pausedAt : draft.status === "ending" ? draft.pausedAt : undefined;
+  const state = pausedAt !== undefined ? stateWords.paused : stateWords[draft.status];
   const title = (
     <>
       {DRAFT_TITLE} <span className="ml-2 align-middle text-lead font-semibold">{state}</span>
@@ -78,8 +79,7 @@ export function DraftPage({ league, seam }: { league: LeagueSummary; seam: Draft
       <WaitingFacts draft={draft} board={board} now={now} />
     ) : undefined;
   return (
-    // Full width, unlike PAGE_STACK: the approved picture runs the board across the page.
-    <PageSection title={title} aside={facts} className="flex flex-col gap-2">
+    <PageSection title={title} aside={facts} className={PAGE_STACK}>
       <DraftBoard draft={draft} picks={board.picks} tradedPicks={board.tradedPicks} yourTeamId={board.yourTeamId} onTheClock={onTheClock} />
       <PickRoom leagueId={league.leagueId} seam={seam} draft={draft} board={board} onTheClock={onTheClock}>
         {(selected, unselect) =>

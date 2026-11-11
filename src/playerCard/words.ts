@@ -1,15 +1,15 @@
 // What the player card says, in one place for Craig to change in the pull request.
 
 import type { CategoryWhy, Cut, PricedBy, SlotValue } from "../../convex/scoring/scoring";
-import { seasonShortWords } from "../draft/words";
-import { AREA_WORDS, figureWords, gameweekShort, gameweekWords, signedWords, versusWords, whenWords } from "../shared/words";
+import { afterLastMatchWords, type FirstRun } from "../myTeam/claims/words";
+import { AREA_WORDS, figureWords, gameweekShort, gameweekWords, seasonShortWords, signedWords, versusWords, whenWords } from "../shared/words";
 
 export { figureWords, freeAgentWords, noFigureWords } from "../shared/words";
 
 export const backWords = "Back";
 export const loadingWords = "Loading the player…";
 export const noSuchPlayerWords = "No player with that code is held: the link may be wrong.";
-export const goneWords = "No longer in the Premier League.";
+export { noLongerInLeagueWords as goneWords } from "../shared/words";
 
 /** The card's head (the approved picture): his name, his positions, club and owner, his figures
  *  beside them, and his actions. */
@@ -155,7 +155,8 @@ export const pickUpWords = "Pick up";
 export const whoGoesLabel = "Who goes";
 export const dropNobodyWords = "Nobody";
 /** The run that can first take him (Craig, 6 Nov 2026, on #1200: "Show the run's day and time"). */
-export const onWaiversUntilWords = (firstRunAt: number | null) => (firstRunAt === null ? "On waivers" : `On waivers: first run ${whenWords(firstRunAt)}`);
+export const onWaiversUntilWords = (firstRun: FirstRun) =>
+  firstRun === null ? "On waivers" : `On waivers: first run ${firstRun.skippedIf !== null ? afterLastMatchWords(firstRun.skippedIf) : whenWords(firstRun.at)}`;
 export const claimedDoneWords = "Claim put in, last of your claims.";
 export const waiverFailedWords = "That couldn't be done. Try again.";
 

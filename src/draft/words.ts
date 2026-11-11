@@ -3,11 +3,11 @@
 
 import { DRAFT_LIST_MOST } from "../../convex/draft/draftLimits";
 import { DAY_MS, HOUR_MS, MINUTE_MS, SECOND_MS } from "../../convex/shared/time";
-import { failedWords, placeWords } from "../shared/words";
+import { failedWords, placeWords, seasonShortWords, viaWords } from "../shared/words";
 
 /** The page's title, its menu tab's too, and the state beside it. */
-export const DRAFT_TITLE = "Draft";
-export const stateWords = { waiting: "Not started", live: "Live", paused: "Paused", over: "Over" } as const;
+export { DRAFT_TITLE } from "../shared/words";
+export const stateWords = { waiting: "Not started", live: "Live", paused: "Paused", ending: "Ending", over: "Over" } as const;
 export const loadingWords = "Loading the draft…";
 
 /** The header's heads and readings, before the start. */
@@ -38,6 +38,11 @@ export function timeLeftWords(left: number): string {
     const seconds = Math.ceil(ms / SECOND_MS);
     return `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, "0")}`;
   }
+  return hoursLeftWords(ms);
+}
+
+/** Time left of an hour or more: "5h 12m", then "1d 4h". */
+export function hoursLeftWords(ms: number): string {
   const days = Math.floor(ms / DAY_MS);
   const hours = Math.floor((ms % DAY_MS) / HOUR_MS);
   if (days > 0) return `${days}d ${hours}h`;
@@ -74,7 +79,7 @@ export const pickedWords = (clubShortName: string, slot: string, auto: boolean) 
 export const autoWords = "auto";
 /** A traded pick (#1096): "via" the team it came from, whose turn it falls on, under the team that
  *  holds it now (spec/04, The picks; the approved draft room picture): "via Bale Out". */
-export const viaWords = (team: string) => `via ${team}`;
+export { viaWords } from "../shared/words";
 /** A traded pick made or on the clock, whose first lines are taken: "Rovers XI via Bale Out". */
 export const heldViaWords = (owner: string, team: string) => `${owner} ${viaWords(team)}`;
 /** A pick whose player the football data no longer holds (#323). */
@@ -143,7 +148,7 @@ export const statsLabel = "Stats:";
 /** The stats the list opens on (spec/04, The draft room: "a easy to see view first"). */
 export const overviewWords = "Overview";
 /** A season by the years it spans: 2025's is "25/26". */
-export const seasonShortWords = (startYear: number) => `${String(startYear % 100).padStart(2, "0")}/${String((startYear + 1) % 100).padStart(2, "0")}`;
+export { seasonShortWords } from "../shared/words";
 /** The list's own columns besides Scouting's Pos and Player: a short head, and what it stands for. */
 export const draftColumns = {
   rank: { short: "Rank", long: "Place on the site's ranking" },
@@ -165,8 +170,12 @@ export const draftPlayerWords = (name: string) => `Draft ${name}`;
 /** Under the Draft button while the reader is on the clock: "Pick 4.03, 0:48 left". */
 export const pickLeftWords = (slot: string) => `Pick ${slot}, `;
 export const leftSuffixWords = " left";
+/** The Draft button for the 10 seconds after the reader's own pick (spec/04, The draft room;
+ *  #1458): "Undo", and under it "0:07 left". */
+export const undoMyPickWords = "Undo";
 export const notYourPickWords = "Not your pick";
 export const pausedPickWords = "The draft is paused";
+export const allPickedWords = "Every pick is made";
 export const notStartedPickWords = "The draft hasn't started";
 export const takenWords = (teamName: string) => `On ${teamName}`;
 export const playsHead = "Plays";
@@ -183,6 +192,7 @@ export const yourSquadWords = (position: string, atPosition: number, club: strin
   `${position} ${atPosition}, ${club} ${atClub}${maxPerClub === null ? "" : ` of ${maxPerClub}`}`;
 export { playerCardWords } from "../shared/words";
 export const pickFailedWords = "The pick couldn't be made. Try again.";
+export const undoFailedWords = "The pick couldn't be undone. Try again.";
 
 export const noRoundsWords = "The draft's rounds are its squads' most players, and this league's squads have no size limit yet.";
 

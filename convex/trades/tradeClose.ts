@@ -1,18 +1,19 @@
 import { v, type Infer } from "convex/values";
-import type { TradedSide } from "../schema/squads";
-import type { closedWhy } from "../schema/trades";
+import type { closedWhy } from "../schema";
+import { internal } from "../_generated/api";
 import type { Doc, Id } from "../_generated/dataModel";
 import { internalMutation, type MutationCtx, type QueryCtx } from "../_generated/server";
 import { leagueDeadlines } from "../gameweeks/leagueDeadlines";
 import { scheduleHeartbeat } from "../heartbeats/heartbeat";
 import { fileLetter } from "../mail/letters";
-import { offerClosedLetter, pickWords, type OfferClosed, type TradeWords } from "../mail/tradeLetterWords";
-import type { TradePick } from "./tradePicks";
-import { LEAGUES_READ_MOST, takeAllOrThrow } from "../shared/cappedRead";
+import { offerClosedLetter, type OfferClosed } from "../mail/tradeLetterWords";
+import { scheduleEveryLeague, takeAllOrThrow } from "../shared/cappedRead";
 import type { LeagueDeadlines } from "../gameweeks/deadline";
-import { heldPlayerByCode } from "../shared/players";
+import { teamIn } from "../shared/leagueAccess";
 import { deadlinePassedSince } from "../waivers/waiverLock";
-import { onAutoTeam, tradesShut, type TradesShut } from "./tradeShut";
+import { onAutoTeam, tradesShut } from "./tradeShut";
+import type { TradesShut } from "./tradeShutWords";
+import { leagueOf, managersOf, tradedName, tradeWordsOf } from "./tradeWords";
 
 // Closing trade offers (spec/08 Trades; #383). An open offer closes, with a letter to both
 // managers saying why, when it is withdrawn, rejected or countered; at the next deadline if nobody
@@ -37,70 +38,6 @@ export function leagueOffers(ctx: QueryCtx, leagueId: Id<"leagues">): Promise<Do
     OFFERS_READ_MOST,
     `League ${leagueId} has more than ${OFFERS_READ_MOST} trade offers, so they can't all be read`,
   );
-}
-
-/** The log line for an offer naming a player the football sync doesn't hold. */
-export const unheldTradedWords = (playerCode: number) => `A trade offer names player ${playerCode}, whom the football sync doesn't hold`;
-
-/** A player's name, as a trade's letters name him: an offer names only players the football sync
- *  holds, and it never deletes one. */
-export async function tradedName(ctx: QueryCtx, playerCode: number): Promise<string> {
-  return (await heldPlayerByCode(ctx, playerCode, unheldTradedWords(playerCode))).name;
-}
-
-/** A trade as its letters read it: an offer, or a pick trade that went through (tradePicks.ts). */
-type TradeTerms = Pick<Doc<"tradeOffers">, "fromTeamId" | "toTeamId" | "gives" | "gets" | "picks" | "note">;
-
-/** The offer as its letters name it. */
-export async function tradeWordsOf(ctx: QueryCtx, offer: TradeTerms): Promise<TradeWords> {
-  const [from, to] = await Promise.all([ctx.db.get("teams", offer.fromTeamId), ctx.db.get("teams", offer.toTeamId)]);
-  if (from === null || to === null) throw new Error(`A trade between teams ${offer.fromTeamId} and ${offer.toTeamId} names a team that no longer exists`);
-  const { picks } = offer;
-  if (picks !== undefined) {
-    const [gives, gets] = await Promise.all([pickName(ctx, picks.gives), pickName(ctx, picks.gets)]);
-    return { fromTeamName: from.name, toTeamName: to.name, gives: [gives], gets: [gets], note: offer.note ?? null };
-  }
-  return {
-    fromTeamName: from.name,
-    toTeamName: to.name,
-    gives: await Promise.all(offer.gives.map((code) => tradedName(ctx, code))),
-    gets: await Promise.all(offer.gets.map((code) => tradedName(ctx, code))),
-    note: offer.note ?? null,
-  };
-}
-
-/** A draft pick in a trade (#1096), as its letters name it: by the team whose pick it is. */
-export async function pickName(ctx: QueryCtx, pick: TradePick): Promise<string> {
-  const { round, teamName } = await namedPick(ctx, pick);
-  return pickWords(round, teamName);
-}
-
-/** A draft pick in a trade with the name of the team whose pick it is. */
-async function namedPick(ctx: QueryCtx, pick: TradePick) {
-  const team = await ctx.db.get("teams", pick.teamId);
-  if (team === null) throw new Error(`A trade offer names a pick of team ${pick.teamId}, which no longer exists`);
-  return { round: pick.round, teamId: pick.teamId, teamName: team.name };
-}
-
-/** One side of a trade as its `tradeMade` event names it (#1491): its players, and its pick, if any. */
-export async function tradedSideOf(ctx: QueryCtx, playerCodes: readonly number[], pick: TradePick | undefined): Promise<TradedSide> {
-  return {
-    players: await Promise.all(playerCodes.map(async (playerCode) => ({ playerCode, playerName: await tradedName(ctx, playerCode) }))),
-    picks: pick === undefined ? [] : [await namedPick(ctx, pick)],
-  };
-}
-
-/** Both teams' managers, by email: those a trade's own letters go to. */
-export async function managersOf(ctx: QueryCtx, offer: Pick<TradeTerms, "fromTeamId" | "toTeamId">): Promise<string[]> {
-  const teams = await Promise.all([ctx.db.get("teams", offer.fromTeamId), ctx.db.get("teams", offer.toTeamId)]);
-  return teams.flatMap((team) => team?.managerEmail ?? []);
-}
-
-/** The league, which a trade's letters are filed in the name of. */
-export async function leagueOf(ctx: QueryCtx, leagueId: Id<"leagues">): Promise<Doc<"leagues">> {
-  const league = await ctx.db.get("leagues", leagueId);
-  if (league === null) throw new Error(`League ${leagueId} doesn't exist, so its trade letters can't be filed`);
-  return league;
 }
 
 /** Ends an offer that didn't go through: it leaves the open offers and is kept, with why, for the
@@ -137,12 +74,12 @@ export const deadlinePassed = (offer: Doc<"tradeOffers">, deadlines: LeagueDeadl
 /** Closes each open offer holding a player who just left `teamId`'s squad. */
 export async function closeOffersHolding(ctx: MutationCtx, leagueId: Id<"leagues">, teamId: Id<"teams">, playerCodes: readonly number[]): Promise<void> {
   const left = new Set(playerCodes);
+  const { name: teamName } = await teamIn(ctx, leagueId, teamId);
   for (const offer of await leagueOffers(ctx, leagueId)) {
     if (offer.review !== undefined) continue;
     const gone = [...offer.gives, ...offer.gets].find((code) => left.has(code));
     if (gone === undefined) continue;
-    const team = await ctx.db.get("teams", teamId);
-    await closeOffer(ctx, offer, { why: "playerLeft", playerName: await tradedName(ctx, gone), teamName: team?.name ?? "his team" });
+    await closeOffer(ctx, offer, { why: "playerLeft", playerName: await tradedName(ctx, gone), teamName });
   }
 }
 
@@ -180,31 +117,45 @@ async function closingReason(
   return null;
 }
 
-/** The cron's: closes every open offer whose time is up, league by league, each league's offers
- *  read on their own, so the offers cap is each league's, never the platform's (#1539). */
+/** A league frozen for deletion closes nothing: its offers due wait for an undo (#1493). */
+const closesOffers = (league: Doc<"leagues">) => league.deletion === undefined;
+
+/** The cron's: asks each league holding an offer to close those whose time is up, each league in
+ *  its own transaction (#1558), so the offers cap is each league's, never the platform's (#1539),
+ *  and an offer one league can't close never holds up another's. */
 export const closeDue = internalMutation({
   args: {},
   returns: v.null(),
   handler: async (ctx) => {
-    const now = Date.now();
-    const leagues = await takeAllOrThrow(
-      ctx.db.query("leagues"),
-      LEAGUES_READ_MOST,
-      `More than ${LEAGUES_READ_MOST} leagues are held, so their trade offers due can't all be closed`,
+    await scheduleEveryLeague(
+      ctx,
+      internal.trades.tradeClose.closeLeagueDue,
+      "so their trade offers due can't all be closed",
+      async (league) =>
+        closesOffers(league) && (await ctx.db.query("tradeOffers").withIndex("by_leagueId", (q) => q.eq("leagueId", league._id)).first()) !== null,
     );
-    for (const league of leagues) {
-      // A league frozen for deletion closes nothing: its offers due wait for an undo (#1493).
-      if (league.deletion !== undefined) continue;
-      const open = (await leagueOffers(ctx, league._id)).filter((offer) => offer.review === undefined);
-      if (open.length === 0) continue;
-      const deadlines = await leagueDeadlines(ctx, league._id);
-      const shut = await tradesShut(ctx, league, deadlines, now);
-      for (const offer of open) {
-        const closed = await closingReason(ctx, offer, shut, deadlines, now);
-        if (closed !== null) await closeOffer(ctx, offer, closed);
-      }
-    }
     await scheduleHeartbeat(ctx, "tradeOffers");
+    return null;
+  },
+});
+
+/** Closes each open offer of the league whose time is up, as `closeDue` asks; a league gone or
+ *  frozen since closes nothing. */
+export const closeLeagueDue = internalMutation({
+  args: { leagueId: v.id("leagues") },
+  returns: v.null(),
+  handler: async (ctx, { leagueId }) => {
+    const league = await ctx.db.get("leagues", leagueId);
+    if (league === null || !closesOffers(league)) return null;
+    const open = (await leagueOffers(ctx, leagueId)).filter((offer) => offer.review === undefined);
+    if (open.length === 0) return null;
+    const now = Date.now();
+    const deadlines = await leagueDeadlines(ctx, leagueId);
+    const shut = await tradesShut(ctx, league, deadlines, now);
+    for (const offer of open) {
+      const closed = await closingReason(ctx, offer, shut, deadlines, now);
+      if (closed !== null) await closeOffer(ctx, offer, closed);
+    }
     return null;
   },
 });

@@ -1,22 +1,27 @@
 // The top bar's live wiring (#526), with Convex faked by name: Continue in spec/12's order, an
-// unread letter first, then a lineup the server says is due, else nowhere; and the minute it is
+// unread letter first, then a lineup the server says is due, then a trade offer waiting for his
+// answer, else nowhere; and the minute it is
 // asked at held by its watch alone, so the shell doesn't re-render each minute.
 
 import { act, render } from "@testing-library/react";
 import { afterEach, beforeEach, expect, test, vi } from "vitest";
 import type { Id } from "../../../../convex/_generated/dataModel";
 import { MINUTE_MS } from "../../../../convex/shared/time";
-import { MAIL_PATH, MY_TEAM_PATH } from "../../../../src/frame/menu";
+import { MAIL_PATH, MY_TEAM_PATH, TRADES_PATH } from "../../../../src/frame/menu";
 import { useLiveTopBar } from "../../../../src/frame/topBar/liveTopBar";
 import type { TopBarState } from "../../../../src/frame/topBar/topBarState";
 import { menuWords } from "../../../../src/frame/words";
 import { unreadCount } from "../../../../src/mail/words";
 import { A_LEAGUE_ID } from "../../../support/src/convexReact.harness";
 
-const convex = vi.hoisted(() => ({ isDue: vi.fn(), countMine: vi.fn() }));
+const convex = vi.hoisted(() => ({ isDue: vi.fn(), countMine: vi.fn(), offersWaiting: vi.fn() }));
 vi.mock("convex/react", async () =>
   (await import("../../../support/src/convexReact.harness")).fakeConvexReact({
-    queries: { "lineup/lineupDue:isDue": convex.isDue, "waivers/waiverClaims:countMine": convex.countMine },
+    queries: {
+      "lineup/lineupDue:isDue": convex.isDue,
+      "waivers/waiverClaims:countMine": convex.countMine,
+      "trades/tradeOffers:countWaitingForMe": convex.offersWaiting,
+    },
   }),
 );
 
@@ -25,6 +30,8 @@ beforeEach(() => {
   convex.isDue.mockReturnValue(false);
   convex.countMine.mockReset();
   convex.countMine.mockReturnValue(0);
+  convex.offersWaiting.mockReset();
+  convex.offersWaiting.mockReturnValue(0);
 });
 afterEach(() => {
   vi.useRealTimers();
@@ -122,4 +129,17 @@ test("the manager's pending claims in the league the app is in are the Transacti
   expect(convex.countMine).toHaveBeenCalledWith({ leagueId: A_LEAGUE_ID });
   convex.countMine.mockReturnValue(undefined);
   expect(live(0)?.pendingClaims).toBe(0);
+});
+
+test("a trade offer waiting for his answer is Continue's after a letter and a lineup: the Offers tab (#1553)", () => {
+  const TO_OFFERS = { path: TRADES_PATH, reason: menuWords.offers };
+  convex.offersWaiting.mockReturnValue(1);
+  expect(live(0)?.next).toEqual(TO_OFFERS);
+  expect(convex.offersWaiting).toHaveBeenCalledWith({ leagueId: A_LEAGUE_ID });
+  expect(live(UNREAD)?.next).toEqual(TO_MAIL);
+  convex.isDue.mockReturnValue(true);
+  expect(live(0)?.next).toEqual(TO_TACTICS);
+  convex.isDue.mockReturnValue(false);
+  convex.offersWaiting.mockReturnValue(undefined);
+  expect(live(0)?.next).toBeNull();
 });

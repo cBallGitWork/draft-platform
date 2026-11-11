@@ -6,7 +6,7 @@ import { heldSchedule, type HeldSchedule } from "../gameweeks/leagueDeadlines";
 import { saveGameweekOf } from "../lineup/lineups";
 import { adminByline } from "../mail/letterWords";
 import { fileLetter } from "../mail/letters";
-import { LEAGUES_READ_MOST, takeAllOrThrow } from "../shared/cappedRead";
+import { everyLeague, scheduleEveryLeague } from "../shared/cappedRead";
 import { teamsOf } from "../shared/leagueAccess";
 import { playerByCode, unheldPlayerWords } from "../shared/players";
 import { placeOf, squadOf } from "../squads/squadPlace";
@@ -62,15 +62,16 @@ type Step = Doc<"positionWarnings">["step"];
 /** A step a run of starts elsewhere has taken one of a player's positions to. */
 type PositionChange = { position: Position; step: "flagged"; startsElsewhere: number } | { position: Position; step: "lost" };
 
+/** Why a read of every league that stops short matters here. */
+const UNWARNED = "so some managers would go unwarned of a position change";
+
 /** Warns every league's managers of what has changed in their players' positions since they were
  *  last told: after a positions sync, and after the admin changes how positions count. Each league
  *  is warned in its own mutation, run once the caller's has saved (#1545): no one step reads every
  *  squad in every league, and a league whose warning throws leaves the caller's own writes, the
  *  sync's log row among them, and every other league's warning standing. */
 export async function warnEveryLeague(ctx: MutationCtx): Promise<void> {
-  for (const { _id } of await everyLeague(ctx)) {
-    await ctx.scheduler.runAfter(0, internal.positions.positionWarnings.warnLeagueSoon, { leagueId: _id });
-  }
+  await scheduleEveryLeague(ctx, internal.positions.positionWarnings.warnLeagueSoon, UNWARNED);
 }
 
 // The admin's mutations in playerPositions.ts and positionSettings.ts run these two through
@@ -153,7 +154,7 @@ async function warnLeague(ctx: MutationCtx, league: Doc<"leagues">): Promise<voi
 export async function warnOfAdminRemoval(ctx: MutationCtx, playerCode: number, position: Position): Promise<void> {
   // Read once, and only once a league has him: most leagues don't.
   let schedule: HeldSchedule | undefined;
-  for (const league of await everyLeague(ctx)) {
+  for (const league of await everyLeague(ctx, UNWARNED)) {
     const place = await placeOf(ctx, league._id, playerCode);
     if (place === null) continue;
     const team = await ctx.db.get("teams", place.teamId);
@@ -175,8 +176,4 @@ const key = (playerCode: number, position: Position, step: Step) => `${playerCod
 
 async function nameOf(ctx: MutationCtx, playerCode: number): Promise<string> {
   return (await playerByCode(ctx, playerCode))?.name ?? unheldPlayerWords(playerCode);
-}
-
-function everyLeague(ctx: MutationCtx): Promise<Doc<"leagues">[]> {
-  return takeAllOrThrow(ctx.db.query("leagues"), LEAGUES_READ_MOST, `More than ${LEAGUES_READ_MOST} leagues are held, so some managers would go unwarned of a position change`);
 }

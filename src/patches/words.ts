@@ -4,8 +4,7 @@
 
 import { screenMoment } from "../../convex/shared/moments";
 import { ROLE_TARGET_MARGIN } from "../../convex/balanceLab/balanceLabLimits";
-import { seasonShortWords } from "../draft/words";
-import { failedWords } from "../shared/words";
+import { failedWords, seasonShortWords } from "../shared/words";
 import type { VersionNotes } from "./seam";
 
 export const PATCH_NOTES_TITLE = "Patch notes";

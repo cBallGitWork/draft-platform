@@ -15,7 +15,7 @@ export const autoTeamRefusals = {
   noManager: "A team with no manager is on the auto team until it is handed on.",
   endsAfterOnlyManager: "Only the team's own manager can name a gameweek its auto team ends after.",
   noGameweekToEnd: "There is no gameweek left to come for the auto team to end after.",
-  endsAfterOutOfRange: (first: number, last: number) => `Name a gameweek from ${first} to ${last} for the auto team to end after.`,
+  endsAfterOutOfRange: (first: number, last: number) => `Name a gameweek your league plays, from ${first} to ${last}, for the auto team to end after.`,
 } as const;
 
 /** What the auto team does, as its letters say. */

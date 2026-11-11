@@ -3,9 +3,9 @@ import { api } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
 import { ARSENAL, insertClubs, insertPlayers, type HeldPlayer } from "../../support/convex/footballRows.harness";
 import { changeEveryRules } from "../../support/convex/leagueRules.harness";
-import { actingAs, addManagers, adminCreatesLeague, COMMISSIONER, MANAGERS, type TestConvex } from "../../support/convex/leagues.harness";
+import { addManagers, adminCreatesLeague, lettersTo, MANAGERS, type TestConvex } from "../../support/convex/leagues.harness";
+import { pickOf, pickTradeSteps } from "../../support/convex/trades.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
-import { lettersTo } from "../../support/convex/waivers.harness";
 
 // A pick trade with a pick in a round a squad-size cut removed (#1457): when the draft starts, the
 // trade is undone, both picks back with the teams that held them before, and both managers are
@@ -25,8 +25,7 @@ const PLAYERS: HeldPlayer[] = [101, 102, 103].map((code) => ({
   positions: ["CM"],
 }));
 
-const as = (email: string) => actingAs(t, email);
-const pickOf = (teamId: Id<"teams">, round: number) => ({ round, teamId });
+const { as, start, onTheClock, makePick, teamName } = pickTradeSteps(() => ({ t, leagueId }));
 /** `email`'s team trades its `gives` pick to `toTeamId` for `gets`, accepted at once. */
 const tradePicks = async (email: string, toEmail: string, toTeamId: Id<"teams">, gives: { round: number; teamId: Id<"teams"> }, gets: { round: number; teamId: Id<"teams"> }) => {
   const { offerId } = await (await as(email)).mutation(api.trades.tradeOffers.offer, { leagueId, toTeamId, gives: [], gets: [], picks: { gives, gets }, note: null });
@@ -34,14 +33,7 @@ const tradePicks = async (email: string, toEmail: string, toTeamId: Id<"teams">,
 };
 // Squads cut from 2 to 1 after the trades: the draft runs 1 round, so round 2 isn't in it.
 const cutToOne = () => changeEveryRules(t, leagueId, (rules) => ({ ...rules, squad: { ...rules.squad, size: { minimum: 1, maximum: 1 } } }));
-const start = async () => (await as(COMMISSIONER)).mutation(api.draft.draftStart.start, { leagueId });
-const onTheClock = async () => {
-  const draft = await (await as(COMMISSIONER)).query(api.draft.draftStart.ofLeague, { leagueId });
-  return draft.status === "live" ? { pick: draft.onTheClock.pick, teamId: draft.onTheClock.teamId } : null;
-};
-const makePick = async (email: string, playerCode: number) => (await as(email)).mutation(api.draft.draftPicks.makePick, { leagueId, playerCode });
 const tradedPicks = async () => (await t.run((ctx) => ctx.db.query("drafts").first()))?.tradedPicks;
-const teamName = async (teamId: Id<"teams">) => (await t.run((ctx) => ctx.db.get("teams", teamId)))!.name;
 const undoneSubjects = async (email: string) => (await lettersTo(t, email)).map(({ subject }) => subject).filter((subject) => subject.endsWith("is undone"));
 
 beforeEach(async () => {

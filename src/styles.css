@@ -93,6 +93,8 @@
   /* A control in a panel's title bar on the desk, as the approved draft room picture draws its
      players list's tabs, Find and stats; a phone keeps the 44px tap size */
   --spacing-bar-control: 26px;
+  /* New offer's team picker in Their squad's title bar, as the approved trades picture draws it */
+  --spacing-partner-picker: 170px;
   /* A tick box's well (plate.md, Controls) */
   --spacing-tick: 22px;
   --spacing-vidiprinter: 480px; /* the matchup's commentary, scrolled past it */

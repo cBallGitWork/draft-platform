@@ -58,7 +58,11 @@ export const draftTables = {
      *  ../draft/draftClock.ts writes it. While the commissioner has the draft paused (#1135), `paused`
      *  holds when he paused it and the league's pick time then, and the job is cancelled, so absent.
      *  `fullClock` marks a pick the commissioner's undo put back (#1095): the draft picks for its team
-     *  only when its clock runs out, even for a team it would pick for at once (Craig, 5 Nov 2026). */
+     *  only when its clock runs out, even for a team it would pick for at once (Craig, 5 Nov 2026).
+     *  `upNext` marks a clock after a manager's own pick, whose job tells its manager he is up next
+     *  as it starts, once the 10 seconds to undo are up (Craig, 11 Nov 2026, on #1458), and then
+     *  schedules the pick the draft makes. `closing` marks the 10 seconds after the last pick: its
+     *  `pick` is one past the last, it starts and runs out as the draft ends, and its job ends it. */
     clock: v.optional(
       v.object({
         pick: v.number(),
@@ -67,6 +71,8 @@ export const draftTables = {
         job: v.optional(v.id("_scheduled_functions")),
         paused: v.optional(v.object({ at: v.number(), pickSeconds: v.number() })),
         fullClock: v.optional(v.literal(true)),
+        upNext: v.optional(v.literal(true)),
+        closing: v.optional(v.literal(true)),
       }),
     ),
     /** The pick time this draft runs on, in seconds: the league's latest when it started (#1439), or
@@ -105,21 +111,25 @@ export const draftTables = {
     .index("by_leagueId", ["leagueId"]),
   /** A pick made in a league's draft (spec/04, The picks; #1090): its number, from 1, the team that
    *  made it and the player it took. ../draft/draftPicks.ts writes it, with his squad row. `timeout`
-   *  marks a pick the draft made when a managed team's clock ran out, and whether that timeout put
-   *  the team on auto-pick, so the commissioner's undo (#1095) can take the timeout back off. `auto`
+   *  marks a pick the draft made when a managed team's clock ran out, whether that timeout put the
+   *  team on auto-pick, and `movedToAtOnce` when it moved the team from its full-clock pick there to
+   *  "at once" (#1463), so the commissioner's undo (#1095) can put both back. `auto`
    *  marks every pick the draft made for a team (#1100), which the board shows; picks made before
    *  #1100 lack it, and there `timeout` alone marks one. `positions` are the player's when he was
    *  drafted, which the rest of the draft counts him at, a change since showing only after it
    *  (Craig, 11 Nov 2026, on #1484); picks made before #1484 lack them, and there his positions now
-   *  count. */
+   *  count. `own` marks a pick its manager made himself, which he can undo for 10 seconds, with the
+   *  time his clock had left when he made it, which his undo gives back (Craig, 11 Nov 2026, on
+   *  #1458). */
   draftPicks: defineTable({
     leagueId: v.id("leagues"),
     pick: v.number(),
     teamId: v.id("teams"),
     playerCode: v.number(),
     at: v.number(),
-    timeout: v.optional(v.object({ putOnAutoPick: v.boolean() })),
+    timeout: v.optional(v.object({ putOnAutoPick: v.boolean(), movedToAtOnce: v.optional(v.literal(true)) })),
     auto: v.optional(v.literal(true)),
     positions: v.optional(v.array(position)),
+    own: v.optional(v.object({ leftMs: v.number() })),
   }).index("by_leagueId_and_pick", ["leagueId", "pick"]),
 };

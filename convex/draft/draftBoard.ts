@@ -3,9 +3,10 @@ import { query } from "../_generated/server";
 import { positionsNow } from "../positions/playerPositions";
 import { draftRulesOf } from "../rules/firstRules";
 import { latestRules } from "../rules/rulesHistory";
-import { position } from "../schema/positions";
+import { position } from "../schema";
 import { memberOf } from "../shared/leagueAccess";
 import { clubsByCode, playerByCode } from "../shared/players";
+import { pickSecondsOf } from "./draftPickTime";
 import { squadRulesOf } from "./draftPicks";
 import { draftIsLive, draftOf } from "./draftRow";
 import { isOnAutoPick } from "./draftTimeouts";
@@ -89,7 +90,7 @@ export const ofLeague = query({
       const count = timeouts?.find(({ teamId }) => teamId === team._id)?.count ?? 0;
       yourAutoPick = { on: isOnAutoPick(timeouts, team._id), timeouts: count, limit: draftRules.timeoutsBeforeAutoPick };
     }
-    return { picks, yourTeamId: team?._id ?? null, pickSeconds: draft?.pickSeconds ?? draftRules.pickSeconds, yourAutoPick, tradedPicks: draft?.tradedPicks ?? [], maxPerClub: squad?.maxPerClub ?? null };
+    return { picks, yourTeamId: team?._id ?? null, pickSeconds: pickSecondsOf(draft, draftRules), yourAutoPick, tradedPicks: draft?.tradedPicks ?? [], maxPerClub: squad?.maxPerClub ?? null };
   },
 });
 

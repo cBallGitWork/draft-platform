@@ -87,7 +87,7 @@ describe("the commissioner sets it", () => {
     await expectRefused(setStart(2), scoringStartRefusals.begun(2));
     await setUsed(t, leagueId, 6, false);
     await expectRefused(setStart(6), scoringStartRefusals.unticked(6));
-    await expectRefused(setStart(39), scoringStartRefusals.notAGameweek(39));
+    await expectRefused(setStart(39), scoringStartRefusals.notAGameweek(39, 38));
     expect(await scoringStart()).toBeUndefined();
   });
 

@@ -84,6 +84,7 @@ describe("comparing two players", () => {
     await compare("Saka", "Palmer");
     expect(cellsOf(seasonPointsColumn(2025).short)).toEqual([noFigureWords, noFigureWords]);
     expect(seasonPointsColumn(2025).short).toBe("Pts 25/26");
+    expect(cellsOf(panelMinutesWords("season", 2025))).toEqual(["720", "765"]);
   });
 
   it("the two are asked for and shown side by side: points, minutes, and the first's area's stats, each one's total, per 90 and bar", async () => {
@@ -94,7 +95,7 @@ describe("comparing two players", () => {
     expect(playerHeads()).toEqual(["Saka (Saka Potatoes)", "Palmer (Kroos Control)"]);
     expect(cellsOf(columns.roleFit.long)).toEqual([noFigureWords, noFigureWords]);
     expect(cellsOf(columns.seasonPoints.short)).toEqual([noFigureWords, noFigureWords]);
-    expect(cellsOf(panelMinutesWords("season"))).toEqual(["720", "765"]);
+    expect(cellsOf(panelMinutesWords("season", null))).toEqual(["720", "765"]);
     const rows = within(comparisonTable()).getAllByRole("rowheader").slice(3).map((head) => head.textContent);
     expect(rows).toEqual(per90Stats("attackingMidfield", null).map((stat) => PER90_STAT_NAMES[stat]));
     // Saka's 4 in 720 is 0.5 a match, below Palmer's 6 in 765, so half the ranked are at or below him.
@@ -175,7 +176,7 @@ describe("compare with your player (Craig, 9 Nov 2026, on #1028, answers 1 and 4
   });
 
   it("a player on waivers is claimed the same way", async () => {
-    const app = await open({ yours: { ...YOURS, squadFull: true }, actions: new Map([[RICE.code, { kind: "claim", firstRunAt: null, squad: SQUAD }]]) });
+    const app = await open({ yours: { ...YOURS, squadFull: true }, actions: new Map([[RICE.code, { kind: "claim", firstRun: null, squad: SQUAD }]]) });
     await compareWithYours();
     await userEvent.click(screen.getByRole("button", { name: compareTakeWords("claim", "Rice", "Saka") }));
     expect(app.scouting.waiverChanges.claim).toHaveBeenCalledWith(league.leagueId, RICE.code, SAKA.code);

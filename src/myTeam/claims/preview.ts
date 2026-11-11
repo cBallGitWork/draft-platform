@@ -45,7 +45,7 @@ const claimOf = (id: number, team: string, claim: ReturnType<typeof player>, dro
   yours: team === yourTeam,
   claim,
   drop,
-  runAt,
+  run: { at: runAt, skippedIf: null },
 });
 
 const claims: PendingClaim[] = [

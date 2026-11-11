@@ -10,6 +10,7 @@ import { leagueScores } from "../gameweekScorer/gameweekScores";
 import { leagueTableFrom, pointsOf, tableOf } from "./sentTables";
 import { shownDeadline } from "../gameweeks/usedGameweeks";
 import { onAutoTeam } from "../trades/tradeShut";
+import { heldFixturesSeason } from "../shared/fixtures";
 
 // The league's fixtures and table (#33; spec/09, spec/12 "table and fixtures"), for anyone with a
 // part in it. Each gameweek the league has begun has its fixtures as stored once it began, none in
@@ -75,6 +76,10 @@ const tableRow = v.object({
 
 export const leagueTable = v.object({
   format: leagueRulesShape.fields.format,
+  /** The year the season the table's matches belong to starts (shared/fixtures.ts's heldFixturesSeason):
+   *  it follows FPL's season, not the clock (Craig, 6 Nov 2026, plSeasons.ts). Null while no match
+   *  is held with a kickoff time. */
+  season: v.union(v.number(), v.null()),
   /** Each gameweek the league plays head-to-head, with its fixtures: none in total points, with
    *  fewer than two teams, nor one begun with no head-to-head (playedFixtures.ts). */
   gameweeks: v.array(gameweekFixtures),
@@ -116,6 +121,6 @@ export const ofLeague = query({
     const season = await seasonRules(ctx, leagueId);
     const { rules, schedule, results, unscored, table, named, autoTeams } = await standingsOf(ctx, league, season);
     const deadlineIn = deadlineOf(await leagueDeadlines(ctx, leagueId));
-    return leagueTableFrom({ format: rules.format, schedule, results, unscored, table, deadlineOf: deadlineIn, named, autoTeams });
+    return leagueTableFrom({ format: rules.format, season: await heldFixturesSeason(ctx), schedule, results, unscored, table, deadlineOf: deadlineIn, named, autoTeams });
   },
 });

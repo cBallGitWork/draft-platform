@@ -8,14 +8,13 @@ import { holdGameweeks } from "../../support/convex/leagueRules.harness";
 import { expectRefused } from "../../support/convex/test.harness";
 import { MANAGERS, actingAs, addManagers, adminCreatesLeague, type TestConvex } from "../../support/convex/leagues.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
-import { BENCH_POSITION, FOUR_FOUR_TWO, holdSquad, nameOf, passNextDeadline, STARTERS } from "../../support/convex/lineupSquad.harness";
+import { BENCH_POSITION, FOUR_FOUR_TWO, holdSquad, nameOf, NEXT, passNextDeadline, STARTERS } from "../../support/convex/lineupSquad.harness";
 
 // A starter who loses a position stays where he stands (spec/06, When positions change), and the
 // rest of his manager's lineup still saves for that gameweek; after its deadline he must be moved
 // (Craig, 11 Nov 2026, on #1589).
 
 const [ANN] = MANAGERS;
-const NEXT = 9;
 /** The 4-4-2's first striker, who loses ST and plays only the bench's position. */
 const STRIKER = STARTERS[9];
 const OTHER_STRIKER = STARTERS[10];

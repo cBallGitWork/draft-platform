@@ -3,7 +3,7 @@
 
 import { FIRST_RULES } from "../../convex/rules/firstRules";
 import { leagueSettingsOf } from "../../convex/rules/leagueSettingsPart";
-import { previewChristmasBreak, previewSays } from "../shared/preview";
+import { previewChristmasBreak, previewSays, previewSeasonGameweeks } from "../shared/preview";
 import { previewSeason } from "../gameweeks/preview";
 import { PREVIEW_CHANGES_FROM, PREVIEW_REVISION } from "../rules/preview";
 import { previewIdOf, previewTeams } from "../table/preview";
@@ -11,7 +11,7 @@ import type { LeagueSettingsSeam } from "./seam";
 import { previewClaims, previewWaivers } from "../myTeam/claims/preview";
 import { unchangedDraftStartOutcome, unchangedStartOutcome, unmovedOutcome, unsavedOutcome } from "./words";
 
-const view = { part: leagueSettingsOf(FIRST_RULES), revision: PREVIEW_REVISION, changesFrom: PREVIEW_CHANGES_FROM };
+const view = { part: leagueSettingsOf(FIRST_RULES), revision: PREVIEW_REVISION, changesFrom: PREVIEW_CHANGES_FROM, seasonGameweeks: previewSeasonGameweeks };
 const teamOrder = { teams: previewTeams.map((name) => ({ teamId: previewIdOf(name), name })), started: false };
 /** The gameweeks screen's made-up season, scoring from just after its Christmas break. */
 const scoringStart = {

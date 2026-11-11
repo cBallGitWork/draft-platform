@@ -8,10 +8,8 @@ import { droppedStarter } from "../stars/bestRole";
 import { starsOfPlayers } from "../stars/playerStars";
 import { sortedJson } from "../shared/sortedJson";
 import { FIRST_ROLE_OWN_STATS, FIRST_ROLES } from "./draftedRoleAdjustments";
-import { checkOwnStatsAgainstCatalogue } from "./ownStats";
-import { validateScoringSet } from "./scoringSet";
 import type { StoredScoringSet } from "./scoringSetShape";
-import { addVersion } from "./siteScoring";
+import { addVersion, checkScoringSet } from "./siteScoring";
 import { setOf, siteVersions, versionName } from "./siteVersions";
 
 // The one-offs that put the roles' values (draftedRoleAdjustments.ts) into the site's scoring set.
@@ -60,8 +58,8 @@ export const addRedrawnRoles = internalMutation({
 });
 
 /** The site's versions and its latest, which must have taken effect: one waiting was made without
- *  `what`, and would drop them when it did. */
-async function latestInForce(ctx: MutationCtx, what: string) {
+ *  `what`, and would drop them when it did. firstInstructionsVersion.ts's one-off reads it too. */
+export async function latestInForce(ctx: MutationCtx, what: string) {
   const history = await siteVersions(ctx);
   const version = history.at(-1);
   if (version !== undefined && version.takesEffectAt > Date.now()) {
@@ -75,13 +73,16 @@ const missingOwnStats = (set: StoredScoringSet) => {
   return FIRST_ROLE_OWN_STATS.filter(({ stat }) => !held.has(stat));
 };
 
+/** The set's own stats with each of the roles' first own stats it doesn't hold yet added: failed
+ *  long balls and crosses, which the instructions count too. */
+export const withFirstOwnStats = (set: StoredScoringSet) => [...(set.ownStats ?? []), ...missingOwnStats(set)];
+
 /** The set as it stands with FIRST_ROLES as its roles, and the own stats they count, as a version
  *  taking effect now. */
 async function addRoles(ctx: MutationCtx, { history, version }: { history: Doc<"siteScoring">[]; version: Doc<"siteScoring"> | undefined }) {
   const set = setOf(version);
-  const scoring = { ...set, ownStats: [...(set.ownStats ?? []), ...missingOwnStats(set)], roles: [...FIRST_ROLES] };
-  validateScoringSet(scoring);
-  checkOwnStatsAgainstCatalogue(scoring.ownStats);
+  const scoring = { ...set, ownStats: withFirstOwnStats(set), roles: [...FIRST_ROLES] };
+  checkScoringSet(scoring);
   return addVersion(ctx, history, { scoring, kind: "fix", takesEffectAt: Date.now() }, null);
 }
 

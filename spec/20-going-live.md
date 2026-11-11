@@ -44,7 +44,7 @@ Feature 20 of [SPEC.md](../SPEC.md). Only Craig's answers, from `/grill #203 dep
 
 ## Timed jobs
 
-The same seven run on the live site and on development:
+These run the same on the live site and on development:
 
 - the football sync, every six hours;
 - live stats, every minute;

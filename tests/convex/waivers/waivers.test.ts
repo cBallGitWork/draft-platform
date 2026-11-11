@@ -4,12 +4,13 @@ import type { Id } from "../../../convex/_generated/dataModel";
 import { DAY_MS } from "../../../convex/shared/time";
 import { dropRefusals } from "../../../convex/waivers/waivers";
 import { WAIVER_MS } from "../../../convex/waivers/waiverLimits";
-import { holdGameweeks } from "../../support/convex/leagueRules.harness";
-import { actingAs, addManagers, adminCreatesLeague, COMMISSIONER, eventsIn, MANAGERS, type TestConvex } from "../../support/convex/leagues.harness";
+import { playerLeaves } from "../../support/convex/draftLists.harness";
+import { holdGameweeks, holdMatchState } from "../../support/convex/leagueRules.harness";
+import { actingAs, addManagers, adminCreatesLeague, COMMISSIONER, eventsIn, lettersTo as lettersToOf, MANAGERS, type TestConvex } from "../../support/convex/leagues.harness";
 import { holdPlayers, holdSquad, nameOf, passNextDeadline, SQUAD, squadMoves } from "../../support/convex/lineupSquad.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
 import { expectRefused } from "../../support/convex/test.harness";
-import { draftOver, lettersTo as lettersToOf } from "../../support/convex/waivers.harness";
+import { draftOver, dropPlayer, waiverStateOf } from "../../support/convex/waivers.harness";
 
 // A manager's drop and a player's waiver state (#1197, spec/08 Waivers and free agency): a drop
 // goes on waivers for at least 24 hours; a free agent picked up and dropped before the next
@@ -29,15 +30,10 @@ let annsTeam: Id<"teams">;
 let bobsTeam: Id<"teams">;
 
 /** The gameweek's one match (holdGameweeks gives each gameweek one, coded by its number) at `state`. */
-const matchIs = (gameweek: number, state: "live" | "fullTime") =>
-  t.run(async (ctx) => {
-    const held = await ctx.db.query("matchScores").withIndex("by_fixtureCode", (q) => q.eq("fixtureCode", gameweek)).unique();
-    if (held !== null) await ctx.db.delete("matchScores", held._id);
-    await ctx.db.insert("matchScores", { fixtureCode: gameweek, state, homeGoals: 1, awayGoals: 0, minutes: 90, clockLabel: null, feed: "fpl", readAt: Date.now() });
-  });
+const matchIs = (gameweek: number, state: "live" | "fullTime") => holdMatchState(t, gameweek, state);
 
-const drop = async (email: string, playerCode: number) => (await actingAs(t, email)).mutation(api.waivers.waivers.drop, { leagueId, playerCode });
-const stateOf = async (playerCode: number) => (await actingAs(t, BOB)).query(api.waivers.waivers.stateOf, { leagueId, playerCode });
+const drop = (email: string, playerCode: number) => dropPlayer(t, leagueId, email, playerCode);
+const stateOf = (playerCode: number) => waiverStateOf(t, leagueId, playerCode);
 const lastEvent = async () => (await eventsIn(t, leagueId)).at(-1);
 const lettersTo = (email: string) => lettersToOf(t, email);
 
@@ -191,7 +187,8 @@ describe("players no team holds", () => {
 });
 
 describe("the player card's action (#1200)", () => {
-  const actionOn = async (email: string, playerCode: number) => (await actingAs(t, email)).query(api.waivers.waivers.cardActionOn, { leagueId, playerCode });
+  const actionOn = async (email: string, playerCode: number, now = Date.now()) =>
+    (await actingAs(t, email)).query(api.waivers.waivers.cardActionOn, { leagueId, playerCode, now });
   const annsSquad = () => [...SQUAD].map((playerCode) => ({ playerCode, playerName: nameOf(playerCode) })).sort((one, other) => one.playerName.localeCompare(other.playerName));
 
   test("is a drop for the manager's own player, and nothing for another team's", async () => {
@@ -205,14 +202,23 @@ describe("the player card's action (#1200)", () => {
     expect(await actionOn(BOB, FREE_AGENT)).toEqual({ kind: "pickUp", squad: [] });
   });
 
+  test("is nothing for an unowned player who has left the Premier League: he is no free agent (#1469)", async () => {
+    await holdPlayers(t, [FREE_AGENT]);
+    await playerLeaves(t, FREE_AGENT);
+    expect(await actionOn(ANN, FREE_AGENT)).toEqual({ kind: "none" });
+  });
+
   test("is a claim for a player on waivers, saying the run that can first take him", async () => {
     await drop(ANN, DROPPED);
     const action = await actionOn(BOB, DROPPED);
     const { claimableFrom } = (await stateOf(DROPPED)) as { claimableFrom: number };
-    expect(action).toEqual({ kind: "claim", firstRunAt: expect.any(Number), squad: [] });
-    const firstRunAt = (action as { firstRunAt: number }).firstRunAt;
+    expect(action).toEqual({ kind: "claim", firstRun: expect.objectContaining({ at: expect.any(Number) }), squad: [] });
+    const firstRunAt = (action as { firstRun: { at: number } }).firstRun.at;
     expect(firstRunAt).toBeGreaterThanOrEqual(claimableFrom);
     expect(firstRunAt).toBeLessThan(claimableFrom + 7 * DAY_MS);
+    // Once that run has gone by without taking him, the card names the next (#1467).
+    const later = (await actionOn(BOB, DROPPED, firstRunAt + 1)) as { firstRun: { at: number } };
+    expect(later.firstRun.at).toBeGreaterThan(firstRunAt);
   });
 
   test("is nothing for the commissioner, who runs no team", async () => {

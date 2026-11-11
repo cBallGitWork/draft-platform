@@ -3,7 +3,7 @@ import { internal } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
 import { leagueDeadlines } from "../../../convex/gameweeks/leagueDeadlines";
 import { HOUR_MS, MINUTE_MS, WEEK_MS } from "../../../convex/shared/time";
-import { changeEveryRules, giveDeadlineRule, holdGameweeks, KICKS_OFF_IN, rulesInGameweek } from "../../support/convex/leagueRules.harness";
+import { changeEveryRules, giveDeadlineRule, holdGameweeks, KICKS_OFF_IN, NEXT, rulesInGameweek } from "../../support/convex/leagueRules.harness";
 import { adminCreatesLeague, type TestConvex } from "../../support/convex/leagues.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
 
@@ -11,7 +11,6 @@ import { fakeResend, signInDeployment } from "../../support/convex/signIn.harnes
 // not FPL's 90, and the migration moves the alpha leagues made with 90 to 15, keeping a deadline
 // already passed where it fell (S05.25).
 
-const NEXT = 9;
 /** When gameweek NEXT's one match kicks off: KICKS_OFF_IN from the deployment's morning. */
 let kickoff: number;
 let t: TestConvex;

@@ -33,8 +33,15 @@ export async function actingAs(t: TestConvex, email: string) {
   return t.withIdentity({ subject: `${userId}|session` });
 }
 
+/** What signIn/account:signedInAs tells the screens for `email`. */
+export const accountOf = async (t: TestConvex, email: string) => (await (await actingAs(t, email)).query(api.signIn.account.signedInAs, {}))!;
+
 /** What the team `teamId` is called now. */
 export const teamName = (t: TestConvex, teamId: Id<"teams">) => t.run(async (ctx) => (await ctx.db.get("teams", teamId))!.name);
+
+/** The letters `email` has been sent, oldest first, as their subjects and bodies. */
+export const lettersTo = (t: TestConvex, email: string) =>
+  t.run(async (ctx) => (await ctx.db.query("letters").withIndex("by_to_and_at", (q) => q.eq("to", email)).collect()).map(({ subject, body }) => ({ subject, body })));
 
 /** How many teams a league `adminCreatesLeague` makes may hold, unless a test says. */
 export const TEST_LEAGUE_TEAMS = 4;

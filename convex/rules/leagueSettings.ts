@@ -1,5 +1,6 @@
 import { v } from "convex/values";
 import { mutation, query } from "../_generated/server";
+import { seasonGameweekCount } from "../gameweeks/seasonGameweeks";
 import { refuse } from "../shared/leagueAccess";
 import { draftRulesOf, tradeRulesOf } from "./firstRules";
 import { sortedJson } from "../shared/sortedJson";
@@ -16,11 +17,15 @@ export const settingsRefusals = {
   squadSizeFixed: "League settings changes the squad's maximum size; it can't add a squad size limit or take one away.",
 };
 
-/** The league's settings as League settings edits them, as `editorView` reads them. */
+/** The league's settings as League settings edits them, as `editorView` reads them, with how many
+ *  gameweeks the season has, the latest a trade deadline can be (#1618). */
 export const settings = query({
   args: { leagueId: v.id("leagues"), now: v.number() },
-  returns: editorViewOf(leagueSettingsShape),
-  handler: (ctx, { leagueId, now }) => editorView(ctx, leagueId, now, leagueSettingsOf),
+  returns: v.object({ ...editorViewOf(leagueSettingsShape).fields, seasonGameweeks: v.number() }),
+  handler: async (ctx, { leagueId, now }) => ({
+    ...(await editorView(ctx, leagueId, now, leagueSettingsOf)),
+    seasonGameweeks: await seasonGameweekCount(ctx),
+  }),
 });
 
 /** League settings' change: the latest rules with these settings, as `changeLatest` saves them.

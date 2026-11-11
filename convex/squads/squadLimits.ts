@@ -3,7 +3,7 @@ import { AREAS, areasOf, type Area } from "../lineup/pitch";
 import { areaShape } from "../lineup/pitchShape";
 import type { Position } from "../positions/positionTables";
 import type { LeagueRules } from "../rules/leagueRulesShape";
-import { clubRecord } from "../schema/football";
+import { clubRecord } from "../schema";
 import { minimumsFilled } from "./areaMinimums";
 
 // The Squad tab's Rules view (#1006; spec/12, My team's tabs: "your squad against the league's
@@ -63,7 +63,7 @@ function areaLimits(players: readonly LimitPlayer[], minimums: Readonly<Record<A
   }));
 }
 
-/** One row for each club the squad holds a player from, most players first, then by club code. */
+/** One row for each club the squad holds a player from, most players first, then by club short name. */
 function clubLimits(players: readonly LimitPlayer[], maximum: number): SquadLimit[] {
   const byClub = new Map<number, { club: Club; players: number[] }>();
   for (const { code, club } of players) {

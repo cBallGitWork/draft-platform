@@ -4,7 +4,7 @@
 import { screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
-import { FIRST_PLATFORM_SETTINGS, settingRefusals } from "../../../convex/admin/platformSettings";
+import { FIRST_PLATFORM_SETTINGS, settingRefusals } from "../../../convex/admin/platformSettingDefaults";
 import { ADMIN_PATH } from "../../../src/admin/paths";
 import { saveSiteSettingsWords, siteSettingLabels, siteSettingsLoadingWords, siteSettingsTitle } from "../../../src/admin/words";
 import type { AdminData } from "../../support/src/admin.harness";

@@ -4,26 +4,21 @@
 import { pickWords } from "../../convex/mail/tradeLetterWords";
 import { NOTE_MOST, REVIEW_MS } from "../../convex/trades/tradeLimits";
 import { HOUR_MS } from "../../convex/shared/time";
-import type { TradesView } from "../../convex/trades/tradeScreen";
 import { changeFailedWords } from "../shared/words";
 import type { ClosedOffer, Reviewer } from "./seam";
 
-export { dayWords, noTeamWords, whenWords } from "../shared/words";
-export { warningWords } from "../squads/words";
+export { dateWords, noTeamWords, whenWords } from "../shared/words";
+export { warningWords } from "../shared/words";
 export { NOTE_MOST, pickWords };
-export { viaWords } from "../draft/words";
+export { viaWords } from "../shared/words";
 
 export const TRADES_TITLE = "Trades";
 export const tradesLoadingWords = "Loading your trades…";
 export const tradeFailedWords = changeFailedWords;
 
-/** Why no trade can be offered or accepted now (convex/trades/tradeShut.ts). */
-export const shutWords: Record<NonNullable<TradesView["shut"]>, string> = {
-  draftLive: "Trades are shut while the draft is live.",
-  tradeDeadline: "The league's trade deadline has passed.",
-  unusedGameweek:
-    "Trades are locked through a gameweek the league doesn't play.",
-};
+/** Why no trade can be offered or accepted now, the same sentence the refusal gives
+ *  (convex/trades/tradeShutWords.ts). */
+export { shutWords } from "../../convex/trades/tradeShutWords";
 
 // The Offers tab.
 export const OFFERS_TITLE = "Offers";
@@ -208,9 +203,10 @@ export const pickTickLabel = (round: number, teamName: string) =>
   `Trade ${pickWords(round, teamName)}`;
 /** One pick ticked, and none on the other side yet: a pick trade is one pick each way. */
 export const onePickEachWords = "Tick a pick on the other side too.";
-export const noteLabel = "Note";
+/** The picture says "Note, one line"; the Glossary avoids "line" (it means an area of the pitch),
+ *  so the label takes spec/08's own "one-line note". */
+export const noteLabel = "One-line note";
 export const sendOfferWords = "Send offer";
 export const sendCounterWords = "Send counter";
 export const clearWords = "Clear";
 export const noPartnerWords = "No other team can trade now.";
-export const noneTickedWords = "Tick a player on either side.";

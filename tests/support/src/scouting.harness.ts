@@ -61,17 +61,19 @@ export function fakeScouting({ clubs = [], ownStats = [], players = [], totals =
     useAddToQueue: () => addToQueue,
     addToQueue,
     // The totals are the same over every period; a test of the period reads what the screen asks.
-    usePlayersList: vi.fn<ScoutingSeam["usePlayersList"]>((_leagueId, filters, sort, stat, period) =>
-      loading
-        ? undefined
-        : {
-            clubs,
-            ownStats,
-            players: listOf(players.map((player) => ({ ...player, stat: shownStat(totals[player.code], stat) })), filters, sort),
-            pointsSeason,
-            periodGameweeks: period === undefined || period === "season" ? [] : PERIOD_GAMEWEEKS_SHOWN[period],
-          },
-    ),
+    // With a `keep` code, his row whatever the filters keep, as the server answers it.
+    usePlayersList: vi.fn<ScoutingSeam["usePlayersList"]>((_leagueId, filters, sort, stat, period, keep) => {
+      if (loading) return undefined;
+      const rows = players.map((player) => ({ ...player, stat: shownStat(totals[player.code], stat) }));
+      return {
+        clubs,
+        ownStats,
+        players: listOf(rows, filters, sort),
+        pointsSeason,
+        periodGameweeks: period === undefined || period === "season" ? [] : PERIOD_GAMEWEEKS_SHOWN[period],
+        ...(keep === undefined ? {} : { kept: rows.find(({ code }) => code === keep) ?? null }),
+      };
+    }),
     // Both players' per-90 figures by the first's area, as the server weighs them (per90FiguresIn).
     useComparison: vi.fn<ScoutingSeam["useComparison"]>((_leagueId, codes, stat) => {
       if (codes === null || comparing) return undefined;

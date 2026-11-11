@@ -4,7 +4,7 @@
 // failing, a match behind and a correction after the lock. On the Availability tab, three players
 // set by hand over the feed, and the one a search finds, set by none (the approved auto-team picture).
 
-import { FIRST_PLATFORM_SETTINGS } from "../../convex/admin/platformSettings";
+import { FIRST_PLATFORM_SETTINGS } from "../../convex/admin/platformSettingDefaults";
 import { FIRST_THRESHOLDS } from "../../convex/positions/positionChanges";
 import { HOUR_MS, MINUTE_MS } from "../../convex/shared/time";
 import { previewSays } from "../shared/preview";

@@ -76,7 +76,8 @@ describe("the table", () => {
     openTable({ leagueTable: leagueTableOf(FIVE) });
     await screen.findByText(noResultsWords);
     const rows = within(screen.getByRole("table")).getAllByRole("row").slice(1).map((row) => [within(row).getByRole("rowheader").textContent, within(row).getAllByRole("cell").map((cell) => cell.textContent)]);
-    expect(rows).toEqual(FIVE.map((name, index) => [name, [String(index + 1), "0", "0", "0", "0", "0", "0", "0", "0", noFigureWords]]));
+    // F and A in tenths, always (the approved picture): 0.0, not 0.
+    expect(rows).toEqual(FIVE.map((name, index) => [name, [String(index + 1), "0", "0", "0", "0", "0.0", "0.0", "0", "0", noFigureWords]]));
   });
 
   it("heads a head-to-head table with played, won, drawn, lost, for, against, the difference and points", async () => {

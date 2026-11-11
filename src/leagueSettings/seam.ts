@@ -8,7 +8,8 @@ import type { Revision, RulesView } from "../rules/rulesEdits";
 import type { Change } from "../shared/refusal";
 import type { ClaimsSeam } from "../myTeam/claims/seam";
 
-export type SettingsView = RulesView<LeagueSettings>;
+/** The settings, and how many gameweeks the season has, the latest a trade deadline can be. */
+export type SettingsView = RulesView<LeagueSettings> & { seasonGameweeks: number };
 
 export type LeagueSettingsSeam = {
   /** Live (a hook): undefined while it loads. */

@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, test, vi } from "vitest";
 import { api } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
 import { DEFAULT_DEADLINE_RULE } from "../../../convex/gameweeks/deadline";
-import { GAMEWEEKS } from "../../../convex/gameweeks/usedGameweeks";
+import { PL_GAMEWEEKS } from "../../support/convex/footballRows.harness";
 import { pickFirstLineupAgain } from "../../../convex/lineup/lineups";
 import { refusals } from "../../../convex/shared/leagueAccess";
 import { unheldPlayerWords } from "../../../convex/shared/players";
@@ -12,7 +12,7 @@ import { expectRefused } from "../../support/convex/test.harness";
 import { COMMISSIONER, MANAGERS, actingAs, addManagers, adminCreatesLeague, type TestConvex } from "../../support/convex/leagues.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
 import { UNHELD } from "../../support/convex/footballRows.harness";
-import { BENCH_POSITION, FOUR_FOUR_TWO, holdSquad, nameOf, SQUAD, STARTER_POSITIONS } from "../../support/convex/lineupSquad.harness";
+import { BENCH_POSITION, FOUR_FOUR_TWO, holdSquad, nameOf, NEXT, SQUAD, STARTER_POSITIONS } from "../../support/convex/lineupSquad.harness";
 import { ratedRoles } from "../../../convex/stars/stars";
 import { NO_DATA } from "../../../convex/stars/starsShape";
 import type { Position } from "../../../convex/positions/positionTables";
@@ -25,7 +25,6 @@ import { movedToFullBack } from "../../support/convex/positionStarts.harness";
 const [ANN] = MANAGERS;
 /** A player with no counted match yet: "—" for every role his positions play (#11). */
 const noStarsYet = (positions: readonly Position[]) => ratedRoles(positions).map(({ area, role }) => ({ area, role, stars: NO_DATA }));
-const NEXT = 9;
 const CLUB = { code: 1, name: "Arsenal", shortName: "ARS" };
 
 let t: TestConvex;
@@ -144,7 +143,7 @@ describe("the lineup to set", () => {
 
 describe("no lineup to set", () => {
   test("once every gameweek has begun", async () => {
-    vi.advanceTimersByTime((GAMEWEEKS - NEXT + 1) * WEEK_MS);
+    vi.advanceTimersByTime((PL_GAMEWEEKS - NEXT + 1) * WEEK_MS);
     expect(await tacticsOf(ANN)).toEqual({ kind: "seasonOver" });
   });
 

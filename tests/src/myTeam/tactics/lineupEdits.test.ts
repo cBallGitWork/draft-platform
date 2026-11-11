@@ -16,8 +16,9 @@ import {
 } from "../../../../src/myTeam/tactics/lineupEdits";
 import { reshaped } from "../../../../src/myTeam/tactics/reshape";
 import type { RoleStars } from "../../../../convex/stars/starsShape";
+import { KEEPER_CELL } from "../../../support/convex/lineup.harness";
 
-const KEEPER = { playerCode: 1, area: "goalkeeper", lane: "centre" } as const;
+const KEEPER = { playerCode: 1, ...KEEPER_CELL } as const;
 const BACK = { playerCode: 2, area: "defence", lane: "left" } as const;
 const DRAFT = { starters: [KEEPER, BACK], bench: [3, 4] };
 /** No stars: everyone dropped starts on the slot's first role. */

@@ -166,12 +166,14 @@ function swappedBody(event: Extract<LeagueEvent, { kind: "fixturesSwapped" }>, w
 export const matchWords = (home: string, away: string) => `${home} v ${away}`;
 
 /** The draft's letters (spec/04, Mail; #1102). "You're up next" to the manager whose pick's clock
- *  starts, its deadline told with `tell`, in the reader's zone; it is also the email when the clock is long. */
-export function upNextLetter({ round, pick, teamName, endsAt }: { round: number; pick: number; teamName: string; endsAt: number }, tell: TellMoment): Words {
-  return {
-    subject: "You're up next in the draft",
-    body: `${teamName} is on the clock: round ${round}, pick ${pick}. Make your pick by ${tell(endsAt)}, or the draft picks for you.`,
-  };
+ *  starts, its deadline told with `tell`, in the reader's zone; it is also the email when the clock is
+ *  long. `endsAt` is null while the draft is paused: his clock starts when it resumes (#1461). */
+export function upNextLetter({ round, pick, teamName, endsAt }: { round: number; pick: number; teamName: string; endsAt: number | null }, tell: TellMoment): Words {
+  const subject = "You're up next in the draft";
+  if (endsAt === null) {
+    return { subject, body: `${teamName} is up next: round ${round}, pick ${pick}. The draft is paused; your clock starts when it resumes.` };
+  }
+  return { subject, body: `${teamName} is on the clock: round ${round}, pick ${pick}. Make your pick by ${tell(endsAt)}, or the draft picks for you.` };
 }
 
 /** To the whole league once the last pick is made. */

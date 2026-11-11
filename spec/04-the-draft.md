@@ -60,7 +60,10 @@ Feature 4 of [SPEC.md](../SPEC.md). Only Craig's answers.
   why: "Can't start without a max" (Craig, 5 Nov 2026, on #1088).
 - A team left with no legal pick is an error, not the end of that team's draft: greying out always
   leaves a legal pick (Craig, 4 Nov 2026, on #1090: "ok").
-- The draft can't start until every squad is empty (Craig, 4 Nov 2026, on #1090: "ok").
+- The draft can't start until every squad is empty (Craig, 4 Nov 2026, on #1090: "ok"). A start
+  date can still be set while squads hold players; if they still do when it comes, the draft
+  doesn't start, its date is cleared and the commissioner gets the letter, as with too few teams
+  (Craig, 11 Nov 2026, on #1459: "Accept all"). `S04.13`
 - The rounds are the squad maximum in the latest rules, counting a change waiting for next
   gameweek: "the squad size is what indicates the draft size" (Craig, 7 Nov 2026, on #1130,
   replacing his 4 Nov answer on #1090). The squad rules the draft starts under are that waiting
@@ -145,6 +148,9 @@ Feature 4 of [SPEC.md](../SPEC.md). Only Craig's answers.
 - The queue and do-not-draft list are the team's, not one draft's: "teams" (Craig, 4 Nov 2026, on
   #1092). No player is on both: adding him to one takes him off the other ("ok"). Each holds at
   most 250 players: "250 limit for bigger drafts".
+- When a manager leaves or is removed, auto-pick keeps using both lists while the team has no
+  manager; a new manager taking the team starts with both empty and never sees the old ones
+  (Craig, 11 Nov 2026, on #1606: "Auto-pick only, then wiped"). `S04.15`
 - A manager can change his queue and do-not-draft list between picks once the draft has started. A
   drafted player stays listed but is skipped (Craig, 4 Nov 2026, on #1092).
 - The shortlist feeds the queue both ways: a shortlisted player added one at a time, and an "add my
@@ -198,6 +204,9 @@ Feature 4 of [SPEC.md](../SPEC.md). Only Craig's answers.
   - "The commissioner's pause, undo and pick-for each send a letter to the whole league. Resume
     sends none."
   - "When a start date comes and the draft can't start, the commissioner gets a letter."
+  - An undo or pick-for while the draft is paused sends the next manager's "you're up next" at
+    once, with no deadline: "You're up next. The draft is paused; your clock starts when it
+    resumes." Resume still sends none (Craig, 11 Nov 2026, on #1461: "Accept all"). `S04.14`
 
 ## The commissioner
 

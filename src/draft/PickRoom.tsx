@@ -3,7 +3,7 @@ import type { Id } from "../../convex/_generated/dataModel";
 import type { ListedPlayer } from "../scouting/seam";
 import { AutoPickPanel } from "./AutoPickPanel";
 import { pickInRoundOf } from "./board";
-import type { OnTheClock } from "./ClockLeft";
+import type { OnTheClock, UndoWindow } from "./ClockLeft";
 import { DraftPlayers, type WhyNot } from "./DraftPlayers";
 import { PickPanel, type YourSquad, type YourTurn } from "./PickPanel";
 import { QueuePanel } from "./QueuePanel";
@@ -19,10 +19,19 @@ import { slotWords } from "./words";
 
 /** Where the reader's pick stands in the draft. */
 function yourTurn(draft: DraftState, board: DraftBoard, onTheClock: OnTheClock | null): YourTurn {
+  if (draft.status === "ending") return { kind: "allPicked" };
   if (draft.status !== "live" || onTheClock === null) return { kind: "notStarted" };
   if (draft.clock?.pausedAt !== undefined) return { kind: "paused" };
   if (board.yourTeamId === null || draft.onTheClock.teamId !== board.yourTeamId) return { kind: "notYours" };
   return { kind: "yours", slot: slotWords(draft.onTheClock.round, pickInRoundOf(draft.onTheClock.pick, draft.order.length)), onTheClock };
+}
+
+/** The 10 seconds the reader has to undo the last pick, made by him himself (#1458): until the
+ *  next clock starts or, after the last pick, the draft ends; null for no such pick. */
+function yourUndo(draft: DraftState, board: DraftBoard): UndoWindow | null {
+  if (board.yourTeamId === null || (draft.status !== "live" && draft.status !== "ending") || draft.ownPickBy !== board.yourTeamId) return null;
+  if (draft.status === "ending") return { until: draft.endsAt, pausedAt: draft.pausedAt };
+  return draft.clock === null ? null : { until: draft.clock.startsAt, pausedAt: draft.clock.pausedAt };
 }
 
 /** How many players of `player`'s main position and of his club the reader's picks so far hold. */
@@ -34,6 +43,17 @@ function yourSquad(board: DraftBoard, player: ListedPlayer): YourSquad {
     atClub: yours.filter(({ clubShortName }) => clubShortName === player.club.shortName).length,
     maxPerClub: board.maxPerClub,
   };
+}
+
+/** The selected player as he stands now: the row he was selected from, on the team that has since
+ *  drafted him, so his panel and Pick for say "On <team>" and refuse him rather than offer a pick
+ *  the server turns down (#1560). His row leaves the list once he is drafted, but his panel stays
+ *  up, for the Undo after the reader's own pick (#1458). */
+export function selectedNow(selected: ListedPlayer, draft: DraftState, board: DraftBoard): ListedPlayer {
+  if (selected.ownerTeamName !== null) return selected;
+  const teamId = board.picks.find(({ player }) => player?.code === selected.code)?.teamId;
+  const team = draft.order.find((each) => each.teamId === teamId);
+  return team === undefined ? selected : { ...selected, ownerTeamName: team.name };
 }
 
 export function PickRoom({
@@ -58,7 +78,8 @@ export function PickRoom({
   const lists = seam.useLists(leagueId);
   const changes = seam.useDraftChanges();
   const listChanges = seam.useListChanges();
-  const [selected, setSelected] = useState<ListedPlayer | null>(null);
+  const [chosen, setSelected] = useState<ListedPlayer | null>(null);
+  const selected = chosen === null ? null : selectedNow(chosen, draft, board);
   const whyNot: WhyNot = useMemo(() => new Map((greyed ?? []).map(({ code, reason }) => [code, reason])), [greyed]);
   const queue = useMemo(() => (lists?.queue ?? []).map(({ code }) => code), [lists]);
   const figureOf = useMemo(() => new Map((figures?.players ?? []).map((figure) => [figure.code, figure])), [figures]);
@@ -85,6 +106,7 @@ export function PickRoom({
             squad={yourSquad(board, selected)}
             whyNot={whyNot.get(selected.code)}
             turn={yourTurn(draft, board, onTheClock)}
+            undo={yourUndo(draft, board)}
             changes={changes}
             lists={draft.status === "over" ? null : lists}
             listChanges={listChanges}

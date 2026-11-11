@@ -3,7 +3,8 @@
 
 import { expect, test, vi } from "vitest";
 import { api, internal } from "../../../convex/_generated/api";
-import { matchdayMargins, scoutsPerTeam, settingRefusals, statCorrectionWindowMs } from "../../../convex/admin/platformSettings";
+import { settingRefusals } from "../../../convex/admin/platformSettingDefaults";
+import { matchdayMargins, scoutsPerTeam, statCorrectionWindowMs } from "../../../convex/admin/platformSettings";
 import { refusals } from "../../../convex/shared/leagueAccess";
 import { HOUR_MS, MINUTE_MS } from "../../../convex/shared/time";
 import { ADMIN, COMMISSIONER, actingAs } from "../../support/convex/leagues.harness";

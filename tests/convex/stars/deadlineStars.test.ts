@@ -1,7 +1,7 @@
 import { beforeEach, expect, test, vi } from "vitest";
 import { api, internal } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
-import { deadlineStarsIn } from "../../../convex/stars/deadlineStars";
+import { keptAtDeadline } from "../../../convex/stars/deadlineStars";
 import { UNSURE, type Stars } from "../../../convex/stars/starsShape";
 import { holdGameweeks } from "../../support/convex/leagueRules.harness";
 import { MANAGERS, actingAs, addManagers, adminCreatesLeague, type TestConvex } from "../../support/convex/leagues.harness";
@@ -36,7 +36,7 @@ beforeEach(async () => {
 
 /** What auto-subs read for gameweek NEXT: each team's bench players' kept stars. */
 async function kept() {
-  const teams = await t.run(async (ctx) => [...(await deadlineStarsIn(ctx, leagueId, NEXT))].map(([teamId, bench]) => ({ teamId, bench: [...bench] })));
+  const teams = await t.run(async (ctx) => [...(await keptAtDeadline(ctx, leagueId, NEXT))].map(([teamId, { stars }]) => ({ teamId, bench: [...stars] })));
   return new Map(teams.map(({ teamId, bench }) => [teamId, new Map(bench)]));
 }
 
@@ -52,6 +52,17 @@ test("each bench player is kept with his rated roles; “?” and “—” pick
   const bench = (await kept()).get(annsTeam)!;
   expect([...bench.keys()]).toEqual(FOUR_FOUR_TWO.bench);
   expect(bench.get(FIRST_ON)).toEqual([RATED]);
+});
+
+test("each man the lineup names is kept with his club and positions at the deadline (#1540)", async () => {
+  await passNextDeadline(t);
+  await t.mutation(internal.stars.deadlineStars.storeLeague, { leagueId, gameweek: NEXT });
+
+  const players = new Map(await t.run(async (ctx) => [...(await keptAtDeadline(ctx, leagueId, NEXT, annsTeam)).get(annsTeam)!.players]));
+  expect([...players.keys()]).toEqual([...FOUR_FOUR_TWO.starters.map(({ playerCode }) => playerCode), ...FOUR_FOUR_TWO.bench]);
+  const firstOn = await t.run(async (ctx) => (await ctx.db.query("players").collect()).find((each) => each.code === FIRST_ON) ?? null);
+  expect(players.get(FIRST_ON)).toMatchObject({ clubCode: firstOn?.clubCode ?? null });
+  expect(players.get(FIRST_ON)!.positions).not.toHaveLength(0);
 });
 
 test("kept once: stars changed after the deadline don't reach a second keeping", async () => {

@@ -1,7 +1,6 @@
 // What the matchup says, in one place for Craig to change in the pull request.
 
 import type { MatchBreakdown, SlotStatus } from "../../convex/matchup/matchupShape";
-import { leagueAverageWords } from "../table/words";
 import { overrideLabels, removeOverrideWords } from "../playerCard/words";
 import {
   clockWords,
@@ -9,6 +8,7 @@ import {
   fullTime,
   gameweekWords,
   halfTime,
+  leagueAverageWords,
   noHeadToHeadsTotalPointsWords,
   scoreWords,
   versusWords,
@@ -18,12 +18,12 @@ import {
 } from "../shared/words";
 
 export { figureWords, gameweekShort, gameweekWords, noFigureWords, versusWords } from "../shared/words";
-export { leagueAverageWords, scoreWords } from "../table/words";
+export { leagueAverageWords, scoreWords } from "../shared/words";
 export { nextGameweekLabel as nextLabel, nextGlyph, previousGameweekLabel as previousLabel, previousGlyph } from "../shared/words";
 
 export const MATCHUP_TITLE = "Matchup";
 /** The totals at the top, the score of the matchup (spec/10). */
-export const SCORE_LABEL = "Score";
+export { SCORE_LABEL } from "../shared/words";
 export const loadingWords = "Loading the matchup…";
 export const totalPointsWords = noHeadToHeadsTotalPointsWords;
 export const noTeamWords = "You run no team in this league.";
@@ -118,7 +118,7 @@ export const autoSubWords = {
 } as const;
 
 /** Read out for a bench player whose points don't count, greyed on screen (spec/14, On screen). */
-export const notCountingLabel = "not counting";
+export { notCountingLabel } from "../shared/words";
 
 /** A player's breakdown for the gameweek, opened by tapping his name (spec/10; #798). */
 export const openBreakdownLabel = (name: string) => `${name}: why his points`;
@@ -156,11 +156,9 @@ export {
   removeOverrideWords,
 } from "../playerCard/words";
 
-/** The matchup's commentary (spec/10): every line of every match either team's men play in. */
-export const VIDIPRINTER_TITLE = "Vidiprinter";
-/** When the stream falls behind or stops; points carry on from FPL (spec/10, The commentary). */
-export const commentaryDelayedWords = "Commentary delayed";
-export const noCommentaryWords = "No lines yet.";
+/** The matchup's commentary (spec/10): every line of every match either team's men play in; when
+ *  the stream falls behind or stops; points carry on from FPL (spec/10, The commentary). */
+export { commentaryDelayedWords, noCommentaryWords, VIDIPRINTER_TITLE } from "../shared/words";
 export const unreadCommentaryWords = (reason: string) => `The commentary can't be shown: ${reason}.`;
 /** Its head row over the lines, and each team's column of what a line moves its score by (the
  *  approved picture's "Commentary", "Saka P", "Kroos C"): a team's first word and the first

@@ -41,6 +41,7 @@ async function heldScore(t: TestConvex) {
 
 test("each tick writes the match's state, score and clock as the Premier League lists it, to full time", async () => {
   const t = await withHullEverton();
+  let fullTimeAt: number | undefined;
   for (const stage of Object.values(LIVE_SCORE)) {
     const readAt = stageTime(SERVED_AT[stage]);
     const { latest } = await tickAt(t, readAt, withLiveScore(stage));
@@ -48,8 +49,11 @@ test("each tick writes the match's state, score and clock as the Premier League 
     expect(latest.outcome).toMatchObject({ ok: true, scores: { received: 1, written: 1, problems: [] } });
     // The read's values are pinned in tests/convex/football/scoreReads.test.ts.
     const read = plScoreRead(recordedLiveScore(stage).fixture, HULL_EVERTON);
-    expect(await heldScore(t)).toEqual({ ...read, feed: "pl", readAt });
+    // Kept from the first read at full time (#1470).
+    if (read.state === "fullTime") fullTimeAt ??= readAt;
+    expect(await heldScore(t)).toEqual({ ...read, feed: "pl", readAt, fullTimeAt });
   }
+  expect(fullTimeAt).toBeDefined();
 });
 
 test("a live match listed with no score is on the tick's row, its stats still read, the score held stands, and its commentary is delayed", async () => {

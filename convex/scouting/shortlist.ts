@@ -154,25 +154,44 @@ export async function tellShortlisters(
   const letter = how.released
     ? shortlistedReleasedLetter(player.name, from.name, who)
     : shortlistedDroppedLetter({ playerName: player.name, teamName: from.name, toWaivers: how.toWaivers }, who);
-  const entries = await takeAllOrThrow(
-    ctx.db.query("shortlistPlayers").withIndex("by_leagueId_and_playerCode", (q) => q.eq("leagueId", league._id).eq("playerCode", player.code)),
-    MOST_TEAMS,
-    `More than ${MOST_TEAMS} shortlists in league ${league._id} hold player ${player.code}, one a team at most`,
-  );
+  const entries = await shortlistersOf(ctx, league._id, player.code);
   await fileLetter(ctx, league, [...(await managersHolding(ctx, league._id, entries)).keys()], letter, unread ? undefined : by);
+}
+
+/** The league's shortlist rows holding player `code`: one a team at most. */
+function shortlistersOf(ctx: QueryCtx, leagueId: Id<"leagues">, code: number): Promise<Doc<"shortlistPlayers">[]> {
+  return takeAllOrThrow(
+    ctx.db.query("shortlistPlayers").withIndex("by_leagueId_and_playerCode", (q) => q.eq("leagueId", leagueId).eq("playerCode", code)),
+    MOST_TEAMS,
+    `More than ${MOST_TEAMS} shortlists in league ${leagueId} hold player ${code}, one a team at most`,
+  );
+}
+
+/** Cleared players read one by one up to this many, each a query of at most MOST_TEAMS rows; past
+ *  it, one read of the whole league's shortlists, at most MOST_TEAMS * SHORTLIST_MOST rows, so a
+ *  run clearing a big pool (up to waiverPlayers.ts's WAIVER_PLAYERS_READ_MOST) stays inside Convex's
+ *  queries a transaction (#1568). */
+export const CLEARED_READ_ONE_BY_ONE_MOST = SHORTLIST_MOST;
+
+/** Every shortlist row in the league, in player code order. */
+function everyShortlisted(ctx: QueryCtx, leagueId: Id<"leagues">): Promise<Doc<"shortlistPlayers">[]> {
+  return takeAllOrThrow(
+    ctx.db.query("shortlistPlayers").withIndex("by_leagueId_and_playerCode", (q) => q.eq("leagueId", leagueId)),
+    MOST_TEAMS * SHORTLIST_MOST,
+    `More than ${MOST_TEAMS * SHORTLIST_MOST} players are on league ${leagueId}'s shortlists, ${SHORTLIST_MOST} a team at most`,
+  );
 }
 
 /** Files, after a waiver run, one letter to each manager whose shortlist holds players nobody
  *  claimed at it (`codes`), naming them: each is a free agent now (spec/08). */
 export async function tellShortlistersCleared(ctx: MutationCtx, league: Doc<"leagues">, codes: readonly number[]): Promise<void> {
   if (codes.length === 0) return;
-  const cleared = new Set(codes);
-  const entries = await takeAllOrThrow(
-    ctx.db.query("shortlistPlayers").withIndex("by_leagueId_and_playerCode", (q) => q.eq("leagueId", league._id)),
-    MOST_TEAMS * SHORTLIST_MOST,
-    `More than ${MOST_TEAMS * SHORTLIST_MOST} players are on league ${league._id}'s shortlists, ${SHORTLIST_MOST} a team at most`,
-  );
-  const shortlisted = entries.filter(({ playerCode }) => cleared.has(playerCode));
+  // In code order, as the league-wide read walks the index, so either read files the same letters.
+  const unique = new Set(codes);
+  const shortlisted =
+    unique.size <= CLEARED_READ_ONE_BY_ONE_MOST
+      ? (await Promise.all([...unique].sort((one, other) => one - other).map((code) => shortlistersOf(ctx, league._id, code)))).flat()
+      : (await everyShortlisted(ctx, league._id)).filter(({ playerCode }) => unique.has(playerCode));
   for (const [email, held] of await managersHolding(ctx, league._id, shortlisted)) {
     const players = await Promise.all(held.map((code) => heldPlayerByCode(ctx, code, `Shortlisted player ${code}, cleared from waivers, isn't held`)));
     const names = players.map(({ name }) => name).sort((one, other) => one.localeCompare(other));

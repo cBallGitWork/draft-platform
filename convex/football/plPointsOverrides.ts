@@ -1,7 +1,7 @@
 import { v } from "convex/values";
 import { mutation, type QueryCtx } from "../_generated/server";
 import { takeAllOrThrow } from "../shared/cappedRead";
-import { heldSeason } from "../shared/fixtures";
+import { heldFixturesSeason } from "../shared/fixtures";
 import { adminOf, refuse } from "../shared/leagueAccess";
 import { CURRENT_CLUBS_MOST, findClubByCode } from "../shared/players";
 
@@ -24,7 +24,7 @@ export const set = mutation({
   returns: v.null(),
   handler: async (ctx, { clubCode, points }) => {
     await adminOf(ctx);
-    const season = (await heldSeason(ctx)) ?? refuse(pointsOverrideRefusals.noSeason);
+    const season = (await heldFixturesSeason(ctx)) ?? refuse(pointsOverrideRefusals.noSeason);
     const club = await findClubByCode(ctx, clubCode);
     if (club === null || club.droppedAt !== undefined) refuse(pointsOverrideRefusals.notCurrent);
     if (points !== null && !Number.isInteger(points)) refuse(pointsOverrideRefusals.notWhole);

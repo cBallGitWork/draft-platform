@@ -6,7 +6,7 @@ import type { StoredScoringSet } from "../scoring/scoringSetShape";
 import { setOf, siteScoringByGameweek, siteVersions } from "../scoring/siteVersions";
 import { inTenths } from "../scoring/values";
 import { takeAllOrThrow } from "../shared/cappedRead";
-import { CURRENT_FIXTURES_MOST, heldSeason } from "../shared/fixtures";
+import { CURRENT_FIXTURES_MOST, heldFixturesSeason } from "../shared/fixtures";
 import { groupedBy } from "../shared/groupedBy";
 import { JULY } from "../shared/time";
 import { statusOf } from "../stats/matchStats";
@@ -88,7 +88,7 @@ async function seasonFixtures(ctx: QueryCtx, season: number): Promise<Doc<"fixtu
     CURRENT_FIXTURES_MOST,
     `More than ${CURRENT_FIXTURES_MOST} matches are held for the ${season} season, so the period would be cut short`,
   );
-  const sent = season === (await heldSeason(ctx));
+  const sent = season === (await heldFixturesSeason(ctx));
   return held.filter((fixture) => fixture.gameweek !== null && (!sent || fixture.droppedAt === undefined));
 }
 
@@ -98,7 +98,7 @@ async function seasonFixtures(ctx: QueryCtx, season: number): Promise<Doc<"fixtu
  *  override of a match counts in its place (seasonPoints.ts); in an earlier season, under the site's
  *  set as it stands, with no overrides, as last season's points are (shownSeasonPoints.ts). */
 export async function periodPointsIn(ctx: QueryCtx, leagueId: Id<"leagues">, { season, matches }: PeriodTotals): Promise<SeasonPointsOf> {
-  const thisSeason = season !== null && season === (await heldSeason(ctx));
+  const thisSeason = season !== null && season === (await heldFixturesSeason(ctx));
   let setIn: (gameweek: number) => StoredScoringSet;
   if (thisSeason) setIn = await siteScoringByGameweek(ctx);
   else {

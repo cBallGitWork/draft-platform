@@ -82,7 +82,7 @@ export function WaiverAction({
         <>
           <Status words={claimed ? claimedDoneWords : null} className="text-derived" />
           <div className="flex flex-wrap items-center gap-2">
-            {action.kind === "claim" && <span className="text-soft">{onWaiversUntilWords(action.firstRunAt)}</span>}
+            {action.kind === "claim" && <span className="text-soft">{onWaiversUntilWords(action.firstRun)}</span>}
             <WhoGoes squad={action.squad} whoGoes={whoGoes} choose={setWhoGoes} />
             <button type="button" disabled={change.busy} onClick={() => void claimOrPickUp(action.kind)} className="action">
               {action.kind === "claim" ? claimWords : pickUpWords}

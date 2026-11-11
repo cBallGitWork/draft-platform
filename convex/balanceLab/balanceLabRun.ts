@@ -16,7 +16,7 @@ import { labReportShape, type LabReport } from "./labReportShape";
 
 /** The past seasons' rows one page reads: at most about 910 bytes each with the roles' stats (#10),
  *  so about 1.8 MB, well inside a query's reads. */
-export const PAST_ROWS_PAGE = 2000;
+const PAST_ROWS_PAGE = 2000;
 
 const pastStart = v.object({ season: v.number(), startingPosition: v.string(), stats: v.record(v.string(), v.number()) });
 

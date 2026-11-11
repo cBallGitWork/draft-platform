@@ -1,7 +1,7 @@
 // The admin dashboard's tests' fake seam (shell.harness.tsx hands it to the app).
 
 import { vi } from "vitest";
-import { FIRST_PLATFORM_SETTINGS } from "../../../convex/admin/platformSettings";
+import { FIRST_PLATFORM_SETTINGS } from "../../../convex/admin/platformSettingDefaults";
 import { FIRST_THRESHOLDS } from "../../../convex/positions/positionChanges";
 import type { AdminSeam, AvailabilityRow, FeedsReport, FoundPlayerPositions, PlatformSettings, PositionsQueue } from "../../../src/admin/seam";
 

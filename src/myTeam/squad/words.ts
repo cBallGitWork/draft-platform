@@ -3,12 +3,11 @@
 
 import { LANE_WORDS } from "../../../convex/lineup/pitchWords";
 import type { Lane } from "../../../convex/lineup/pitch";
-import { menuWords } from "../../frame/words";
-import { failedWords } from "../../shared/words";
+import { failedWords, menuWords } from "../../shared/words";
 import { benchShort, nextMatchesLong, nextMatchesShort } from "../words";
 
 export { figureWords, signedWords, gameweekWords, noFigureWords, shortThenLongName, whenWords, nextGlyph, closeGlyph, playerCardWords } from "../../shared/words";
-export { goneWords } from "../../squads/words";
+export { leftLeagueWords as goneWords } from "../../shared/words";
 export {
   awayWords,
   benchShort,

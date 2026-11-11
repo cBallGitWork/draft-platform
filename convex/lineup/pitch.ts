@@ -25,7 +25,12 @@ export interface Cell {
   lane: Lane;
 }
 
-const WIDE_LANES: readonly Lane[] = ["left", "right"];
+/** The two flanks, in every area. */
+export const WIDE_LANES: readonly Lane[] = ["left", "right"];
+
+/** The keeper's area of the pitch, and the position that plays it. */
+export const GOALKEEPER_AREA = "goalkeeper" satisfies Area;
+export const KEEPER_POSITION = "GK" satisfies Position;
 
 /** The area's cells in these lanes. */
 export const cellsOf = (area: Area, lanes: readonly Lane[]): Cell[] => lanes.map((lane) => ({ area, lane }));
@@ -39,6 +44,12 @@ export const cellKey = ({ area, lane }: Cell): string => `${area}/${lane}`;
 /** Whether two cells, or two placements, name the same area and lane. */
 export const sameCell = (one: { area: string; lane: string }, other: { area: string; lane: string }): boolean =>
   one.area === other.area && one.lane === other.lane;
+
+/** Whether two sets of cells make the same formation: as many cells, each of one in the other, in
+ *  any order. The one test a preset's name, its default instructions, a classic's shape and the
+ *  Formation key all read. */
+export const sameShape = (one: readonly Cell[], other: readonly Cell[]): boolean =>
+  one.length === other.length && one.every((cell) => other.some((each) => sameCell(each, cell)));
 
 /** The pitch's order for a sort, ALL_CELLS's: back to front, then left to right. */
 export const byPitchOrder = (one: Cell, other: Cell): number =>
@@ -92,6 +103,11 @@ const SLOT_POSITION_BY_AREA: Record<Area, { wide: SlotPosition; centre: SlotPosi
 export function positionOfSlot({ area, lane }: Cell): SlotPosition {
   return SLOT_POSITION_BY_AREA[area][WIDE_LANES.includes(lane) ? "wide" : "centre"];
 }
+
+/** The area each slot position plays in: each is in exactly one (spec/14's table). */
+export const AREA_OF_POSITION: Readonly<Record<SlotPosition, Area>> = Object.fromEntries(
+  AREAS.flatMap((area) => Object.values(SLOT_POSITION_BY_AREA[area]).map((position) => [position, area])),
+) as Record<SlotPosition, Area>;
 
 /** The areas a player with these positions plays any cell of, back to front: a wing back's are
  *  defence and both midfield rows his wide lanes reach. */

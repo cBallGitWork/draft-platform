@@ -1,5 +1,4 @@
 import { expect, test } from "vitest";
-import { api } from "../../../convex/_generated/api";
 import { HOUR_MS, MINUTE_MS } from "../../../convex/shared/time";
 import {
   ANN,
@@ -17,6 +16,7 @@ import {
 import { fullTimeRecords } from "../../support/convex/gameweekScoresMatch.harness";
 import { MIDFIELD_GOAL } from "../../support/convex/gameweekScoresFixes.harness";
 import { actingAs } from "../../support/convex/leagues.harness";
+import { leagueHomeOf } from "../../support/convex/screenReads.harness";
 import { holdLines, notYetBegun, storedLine } from "../../support/convex/matchPage.harness";
 import { HULL_EVERTON } from "../../support/convex/matchStats.harness";
 
@@ -24,7 +24,7 @@ import { HULL_EVERTON } from "../../support/convex/matchStats.harness";
 // gameweek has begun, and while a matchday is open, the Vidiprinter of the lines that move one of
 // them. Ann fields Hull and Bob Everton, playing each other in gameweek 6's one match.
 
-const homeAt = async ({ t, leagueId }: ScoresLeague, now: number) => (await actingAs(t, ANN)).query(api.home.leagueHome.ofLeague, { leagueId, now });
+const homeAt = async ({ t, leagueId }: ScoresLeague, now: number) => leagueHomeOf(await actingAs(t, ANN), leagueId, now);
 
 /** The scores league at full time, holding a goal by Hull's scorer, a booking for a Hull bench man
  *  who never came on, kick-off and full time. */

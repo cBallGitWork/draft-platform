@@ -53,6 +53,10 @@ export const manager = {
   currentLeagueId: proLeague.leagueId,
 } as const;
 
+/** How many gameweeks the preview's season has: a made-up Premier League season's. The real count
+ *  is the season's own, from the server (#1618). */
+export const previewSeasonGameweeks = 38;
+
 /** The gameweeks the preview's league leaves unticked: a Christmas break. */
 export const previewChristmasBreak: readonly number[] = [17, 18, 19];
 

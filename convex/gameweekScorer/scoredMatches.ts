@@ -37,7 +37,7 @@ import { leagueReads, slotInMatch, type TeamInGameweek } from "./teamGameweek";
 const PLAYER_OVERRIDES_MOST = PLAYER_RECORDS_MOST;
 
 /** One of his matches as his team scored it. */
-export interface ScoredMatch extends SeasonRecord {
+interface ScoredMatch extends SeasonRecord {
   /** Its total is the league's override where it holds one. */
   points: CardPoints;
   /** Whether his team got these points: his slot's, and counted there. */
@@ -54,7 +54,7 @@ export interface ScoredMatch extends SeasonRecord {
 
 /** A player's season's matches, in the order his records were filed, with the site's scoring set
  *  in force each gameweek, which they were priced under. */
-export interface ScoredMatches {
+interface ScoredMatches {
   setIn: (gameweek: number) => StoredScoringSet;
   of: (player: { code: number; positions: readonly Position[] }) => Promise<ScoredMatch[]>;
 }

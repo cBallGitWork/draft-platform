@@ -15,17 +15,14 @@ import {
   type TradeFailed,
   type TradeWords,
 } from "../mail/tradeLetterWords";
-import type { LeagueDeadlines } from "../gameweeks/deadline";
 import { leagueDeadlines } from "../gameweeks/leagueDeadlines";
-import { tradeRulesOf } from "../rules/firstRules";
-import { rulesSinceBegun } from "../rules/rulesHistory";
-import { latestBegun } from "../waivers/waiverLock";
-import { managerOf, memberOf, refuse, teamsOf } from "../shared/leagueAccess";
+import { managerOf, memberOf, refuse, teamIn } from "../shared/leagueAccess";
 import { placeOf } from "../squads/squadPlace";
-import { closeOffersHolding, endOffer, leagueOf, managersOf, tradedName, tradedSideOf, tradeWordsOf } from "./tradeClose";
+import { closeOffersHolding, endOffer } from "./tradeClose";
+import { leagueOf, managersOf, tradedName, tradedSideOf, tradeWordsOf } from "./tradeWords";
 import { REVIEW_MS } from "./tradeLimits";
 import { movePicks } from "./tradePicks";
-import { onAutoTeam } from "./tradeShut";
+import { reviewerOf, votersOn } from "./tradeReviewers";
 import { squadFullRefusal, squadsAfter, tradeWarnings } from "./tradeSquads";
 
 // A trade's review and its move (spec/08 Trades; #383). Accepted, a trade goes through at once in
@@ -49,24 +46,6 @@ export const reviewRefusals = {
   notVoted: "You haven't voted against that trade.",
   squadFull: squadFullRefusal,
 };
-
-/** The managers who vote on a trade: those of the other teams, but not one on the auto team. */
-export async function votersOn(ctx: QueryCtx, offer: Doc<"tradeOffers">): Promise<string[]> {
-  return (await teamsOf(ctx, offer.leagueId)).flatMap((team) =>
-    team._id === offer.fromTeamId || team._id === offer.toTeamId || onAutoTeam(team) || team.managerEmail === undefined ? [] : [team.managerEmail],
-  );
-}
-
-/** Who reviews the trade under the league's rules in force at `now`, not a change waiting for the
- *  next gameweek (#1473), or null for nobody: the commissioner under a veto, the co-commissioner
- *  when he is in it, or a vote when there is none (or the co-commissioner is in it too). */
-export async function reviewerOf(ctx: QueryCtx, league: Doc<"leagues">, offer: Doc<"tradeOffers">, deadlines: LeagueDeadlines, now: number): Promise<ReviewWords | null> {
-  const { review } = tradeRulesOf(await rulesSinceBegun(ctx, league._id, latestBegun(deadlines, now)));
-  if (review !== "veto") return review === "vote" ? { kind: "vote" } : null;
-  const inIt = new Set(await managersOf(ctx, offer));
-  const by = [league.commissionerEmail, league.coCommissionerEmail].find((email) => email !== undefined && !inIt.has(email));
-  return by === undefined ? { kind: "vote" } : { kind: "veto", by };
-}
 
 /** The accepted offer goes into review, or through at once with none. */
 export async function startReview(ctx: MutationCtx, offer: Doc<"tradeOffers">, acceptedBy: string): Promise<void> {
@@ -102,12 +81,12 @@ async function playerGone(ctx: QueryCtx, offer: Doc<"tradeOffers">) {
 async function cantMake(ctx: QueryCtx, offer: Doc<"tradeOffers">, watched: boolean): Promise<TradeFailed | null> {
   const gone = await playerGone(ctx, offer);
   if (gone !== null) {
-    const team = await ctx.db.get("teams", gone.teamId);
-    return { why: "playerGone", playerName: await tradedName(ctx, gone.playerCode), teamName: team?.name ?? "his team" };
+    const team = await teamIn(ctx, offer.leagueId, gone.teamId);
+    return { why: "playerGone", playerName: await tradedName(ctx, gone.playerCode), teamName: team.name };
   }
   if (watched || offer.picks !== undefined) return null;
   for (const { teamId, codes } of await squadsAfter(ctx, offer)) {
-    if (codes.length > MOST_IN_SQUAD) return { why: "squadFull", teamName: (await ctx.db.get("teams", teamId))?.name ?? "A team" };
+    if (codes.length > MOST_IN_SQUAD) return { why: "squadFull", teamName: (await teamIn(ctx, offer.leagueId, teamId)).name };
   }
   return null;
 }

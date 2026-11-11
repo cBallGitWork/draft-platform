@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, test, vi } from "vitest";
 import { api } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
 import { DEFAULT_DEADLINE_RULE } from "../../../convex/gameweeks/deadline";
-import { GAMEWEEKS } from "../../../convex/gameweeks/usedGameweeks";
+import { PL_GAMEWEEKS } from "../../support/convex/footballRows.harness";
 import { LINEUP_DUE_BEFORE_DEADLINE_MS } from "../../../convex/lineup/lineupLimits";
 import { refusals } from "../../../convex/shared/leagueAccess";
 import { MINUTE_MS, WEEK_MS } from "../../../convex/shared/time";
@@ -10,13 +10,13 @@ import { KICKS_OFF_IN, holdGameweeks, setUsed } from "../../support/convex/leagu
 import { expectRefused } from "../../support/convex/test.harness";
 import { ADMIN, COMMISSIONER, MANAGERS, actingAs, addManager, addManagers, adminCreatesLeague, type TestConvex } from "../../support/convex/leagues.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
+import { NEXT } from "../../support/convex/lineupSquad.harness";
 
 // Continue's lineup step (#526; spec/12, The frame): "from 24 hours before each gameweek's deadline
 // until the deadline, Continue takes him to his Tactics tab, ... until he opens Tactics that
 // gameweek. A manager with no team in the league has no lineup step" (Craig, 1 Nov 2026).
 
 const [ANN, BOB] = MANAGERS;
-const NEXT = 9;
 
 let t: TestConvex;
 let leagueId: Id<"leagues">;
@@ -112,15 +112,15 @@ describe("opening Tactics", () => {
   });
 
   test("keeps nothing once the season is over", async () => {
-    clockTo(nextDeadline() + (GAMEWEEKS - NEXT) * WEEK_MS);
-    await opensTactics(ANN, GAMEWEEKS + 1);
+    clockTo(nextDeadline() + (PL_GAMEWEEKS - NEXT) * WEEK_MS);
+    await opensTactics(ANN, PL_GAMEWEEKS + 1);
     expect(await openedIn()).toBeNull();
   });
 
   test("keeps nothing once the last gameweek of a league that ends early has begun (spec/13)", async () => {
-    await setUsed(t, leagueId, GAMEWEEKS, false);
-    clockTo(nextDeadline() + (GAMEWEEKS - 1 - NEXT) * WEEK_MS);
-    await opensTactics(ANN, GAMEWEEKS);
+    await setUsed(t, leagueId, PL_GAMEWEEKS, false);
+    clockTo(nextDeadline() + (PL_GAMEWEEKS - 1 - NEXT) * WEEK_MS);
+    await opensTactics(ANN, PL_GAMEWEEKS);
     expect(await openedIn()).toBeNull();
   });
 

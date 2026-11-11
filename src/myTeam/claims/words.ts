@@ -4,6 +4,7 @@
 
 import type { WaiverOrderType } from "../../../convex/rules/leagueRulesShape";
 import { LOCALE, LONDON_ZONE } from "../../../convex/shared/moments";
+import type { RunAhead } from "../../../convex/waivers/waiverLock";
 import { placeWords, pointsShort } from "../header/words";
 
 export { placeWords, pointsShort };
@@ -18,7 +19,7 @@ export const noClaimsWords = "No pending claims.";
 export const claimsLoadingWords = "Loading your claims…";
 /** While League settings' Claims panel loads every team's, for a commissioner with no team (#1487). */
 export const everyTeamClaimsLoadingWords = "Loading every team's claims…";
-export const claimsClosedWords = "Claims are closed until the gameweek's last match is over.";
+export const claimsClosedWords = "New claims are closed until the gameweek's last match is over.";
 export const claimsNotOpenWords = "Claims open once the league's draft is over.";
 export const playersOnWaiversWords = "Players on waivers, in Scouting ›";
 
@@ -45,16 +46,29 @@ export const runShort = (at: number) => ukDayTime.format(at).replace(",", "");
 export const runDayWords = (at: number) => ukDay.format(at);
 /** A claim whose player is no longer on waivers, or a league with no run times: no run takes it. */
 export const noRunWords = "No run";
+/** The run that can first take a player, as a claim, the player card or Scouting has it. */
+export type FirstRun = RunAhead | null;
+/** When the run that takes him comes, where his first run may fall in `gameweek`'s lock: after its
+ *  last match, whose time isn't known ahead (Craig, 11 Nov 2026, on #1467: "after GW12's last
+ *  match"). */
+export const afterLastMatchWords = (gameweek: number) => `after GW${gameweek}'s last match`;
+/** A run, whole: "Wed 11 Nov, 18:00", or "After GW12's last match". */
+export const firstRunWords = (run: FirstRun) =>
+  run === null ? noRunWords : run.skippedIf !== null ? `After GW${run.skippedIf}'s last match` : runWords(run.at);
+/** A run, short: "Wed 18:00", or "After GW12's last match". */
+export const firstRunShort = (run: FirstRun) => (run === null || run.skippedIf !== null ? firstRunWords(run) : runShort(run.at));
+/** A run by its day: "Wed run", or "Run after GW12's last match". */
+export const runNameWords = (run: FirstRun) =>
+  run === null ? noRunWords : run.skippedIf !== null ? `Run ${afterLastMatchWords(run.skippedIf)}` : `${runDayWords(run.at)} run`;
 /** A run's group in the pending claims: "Wed 11 Nov, 18:00 run", and how many it holds. */
-export const runGroupWords = (at: number | null) => (at === null ? noRunWords : `${runWords(at)} run`);
+export const runGroupWords = (run: FirstRun) => (run === null || run.skippedIf !== null ? runNameWords(run) : `${runWords(run.at)} run`);
 export const claimsInWords = (claims: number) => `${claims} ${claims === 1 ? "claim" : "claims"}`;
 /** Who goes when a claim names nobody. */
 export const freePlaceWords = "Free place";
 /** A claim whose drop an earlier claim in its run names too. */
 export const failsIfWords = (rank: number) => `Fails if claim ${rank} wins`;
 /** The selected claim's panel title: "Wed run, claim 2: Eze". */
-export const claimPanelTitle = (runAt: number | null, rank: number, playerName: string) =>
-  `${runAt === null ? noRunWords : `${runDayWords(runAt)} run`}, claim ${rank}: ${playerName}`;
+export const claimPanelTitle = (run: FirstRun, rank: number, playerName: string) => `${runNameWords(run)}, claim ${rank}: ${playerName}`;
 export const runLabel = "Run";
 export const clashWords = (rank: number, dropName: string) => `Claim ${rank} also drops ${dropName}.`;
 export const dropLabel = "Drop";

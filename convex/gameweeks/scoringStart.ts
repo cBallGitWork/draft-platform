@@ -7,7 +7,8 @@ import { refuse, runnerOf } from "../shared/leagueAccess";
 import { isLocked, type DeadlineOf } from "./deadline";
 import { deadlineOf, leagueDeadlines } from "./leagueDeadlines";
 import { nextByDeadlines } from "./nextGameweek";
-import { isGameweek, isGameweekUsed, noSuchGameweek, shownDeadline, usedGameweeksOf } from "./usedGameweeks";
+import { seasonGameweekCount } from "./seasonGameweeks";
+import { begunRefusal, isGameweek, isGameweekUsed, noKickoffRefusal, noSuchGameweek, shownDeadline, usedGameweeksOf } from "./usedGameweeks";
 
 // The league's scoring start (spec/04, After the draft; #1097): "scoring starts in gameweek N", set
 // by the commissioner, defaulting to the next gameweek after the draft ends; squads and lineups
@@ -25,11 +26,10 @@ import { isGameweek, isGameweekUsed, noSuchGameweek, shownDeadline, usedGameweek
 export const scoringStartRefusals = {
   notAGameweek: noSuchGameweek,
   unticked: (gameweek: number) => `Gameweek ${gameweek} isn't one the league plays, so scoring can't start in it. Tick it first.`,
-  begun: (gameweek: number) => `Gameweek ${gameweek} has begun, so scoring can't start in it.`,
+  begun: (gameweek: number) => begunRefusal(gameweek, "scoring can't start in it"),
   fixed: (gameweek: number) => `Scoring started in gameweek ${gameweek}, whose deadline has passed, so it can't move.`,
   seasonBegun: "The league has already scored a gameweek, so its season has started and every ticked gameweek scores: scoring can't start later now.",
-  noDeadline: (gameweek: number) =>
-    `The app doesn't have a kickoff time for gameweek ${gameweek} yet, so it can't tell whether it has begun. Try again once the season's matches have arrived.`,
+  noDeadline: (gameweek: number) => noKickoffRefusal(gameweek, "whether it has begun"),
 } as const;
 
 /** Whether the league's scoring start has passed its deadline, so it's fixed. */
@@ -62,7 +62,7 @@ export const ofLeague = query({
     const deadlineIn = deadlineOf(await leagueDeadlines(ctx, leagueId));
     return {
       start: league.scoringStart ?? null,
-      ticked: usedGameweeksOf(league).map((gameweek) => ({ gameweek, deadline: deadlineIn(gameweek) })),
+      ticked: usedGameweeksOf(league, await seasonGameweekCount(ctx)).map((gameweek) => ({ gameweek, deadline: deadlineIn(gameweek) })),
       seasonBegun: await scoredWithNone(ctx, league),
     };
   },
@@ -75,12 +75,13 @@ export const setScoringStart = mutation({
   returns: v.null(),
   handler: async (ctx, { leagueId, gameweek }) => {
     const { email, league } = await runnerOf(ctx, leagueId);
-    if (!isGameweek(gameweek)) refuse(scoringStartRefusals.notAGameweek(gameweek));
+    const count = await seasonGameweekCount(ctx);
+    if (!isGameweek(gameweek, count)) refuse(scoringStartRefusals.notAGameweek(gameweek, count));
     const deadlineIn = deadlineOf(await leagueDeadlines(ctx, leagueId));
     const now = Date.now();
     if (isFixed(league, deadlineIn, now)) refuse(scoringStartRefusals.fixed(league.scoringStart!));
     if (await scoredWithNone(ctx, league)) refuse(scoringStartRefusals.seasonBegun);
-    if (!isGameweekUsed(league, gameweek)) refuse(scoringStartRefusals.unticked(gameweek));
+    if (!isGameweekUsed(league, gameweek, count)) refuse(scoringStartRefusals.unticked(gameweek));
     const deadline = deadlineIn(gameweek);
     if (deadline === null) refuse(scoringStartRefusals.noDeadline(gameweek));
     if (isLocked(deadline, now)) refuse(scoringStartRefusals.begun(gameweek));
@@ -91,11 +92,12 @@ export const setScoringStart = mutation({
   },
 });
 
-/** The scoring start once `gameweek` is unticked: the next ticked gameweek when it was the start,
- *  else the start as it is. With no ticked gameweek after it, it stays: nothing is scored either way. */
-export function startAfterUntick(league: Pick<Doc<"leagues">, "unusedGameweeks" | "scoringStart">, gameweek: number): number | undefined {
+/** The scoring start once `gameweek` is unticked, in a season of `count`: the next ticked gameweek
+ *  when it was the start, else the start as it is. With no ticked gameweek after it, it stays:
+ *  nothing is scored either way. */
+export function startAfterUntick(league: Pick<Doc<"leagues">, "unusedGameweeks" | "scoringStart">, gameweek: number, count: number): number | undefined {
   if (league.scoringStart !== gameweek) return league.scoringStart;
-  return usedGameweeksOf(league).find((each) => each > gameweek) ?? gameweek;
+  return usedGameweeksOf(league, count).find((each) => each > gameweek) ?? gameweek;
 }
 
 /** A scoring start the draft's end moved, because the draft was still running at its deadline. */
@@ -107,7 +109,7 @@ export type MovedStart = { from: number; to: number };
 export async function startAfterDraft(ctx: MutationCtx, league: Doc<"leagues">, now: number): Promise<MovedStart | null> {
   const deadlineIn = deadlineOf(await leagueDeadlines(ctx, league._id));
   if (league.scoringStart !== undefined && !isFixed(league, deadlineIn, now)) return null;
-  const next = nextByDeadlines(usedGameweeksOf(league), deadlineIn, now);
+  const next = nextByDeadlines(usedGameweeksOf(league, await seasonGameweekCount(ctx)), deadlineIn, now);
   if (next === undefined) return null;
   await ctx.db.patch("leagues", league._id, { scoringStart: next });
   return league.scoringStart === undefined ? null : { from: league.scoringStart, to: next };

@@ -1,42 +1,16 @@
-import { v, type Infer } from "convex/values";
+import { v } from "convex/values";
 import { internalMutation, mutation, query, type MutationCtx, type QueryCtx } from "../_generated/server";
-import type { platformSettingName } from "../schema/matchStats";
 import { adminOf, refuse } from "../shared/leagueAccess";
 import { HOUR_MS, MINUTE_MS } from "../shared/time";
+import { FIRST_PLATFORM_SETTINGS, settingRefusals, type PlatformSettings, type SettingName } from "./platformSettingDefaults";
 
 // The platform's own settings, one row each, the admin's to change on his dashboard (spec/15,
 // #1555). The internal setters below set one or two at a time, for tests and the command line.
+// The defaults and refusals live in platformSettingDefaults.ts, which the browser's preview reads.
 
-type SettingName = Infer<typeof platformSettingName>;
-
-/** Every platform setting, as the admin's dashboard shows and saves them. */
-export type PlatformSettings = Record<SettingName, number>;
-
-/** How long after full time a match's stats stay open to corrections (spec/07), until set. */
-const DEFAULT_STAT_CORRECTION_WINDOW_MINUTES = 60;
-
-/** How many scouts each team has (spec/19, Scouts: "3 scouts, a number the site sets"), until set. */
-export const DEFAULT_SCOUTS_PER_TEAM = 3;
-
-/** Each setting until the admin sets it. League home's matchday mode (spec/12, League home) runs
- *  from this many hours before a matchday's first kickoff to this many after its last final
- *  whistle ("hours the site can tune"). */
-export const FIRST_PLATFORM_SETTINGS: PlatformSettings = {
-  statCorrectionWindowMinutes: DEFAULT_STAT_CORRECTION_WINDOW_MINUTES,
-  scoutsPerTeam: DEFAULT_SCOUTS_PER_TEAM,
-  matchdayHoursBefore: 3,
-  matchdayHoursAfter: 2,
-};
+export type { PlatformSettings };
 
 const NAMES = Object.keys(FIRST_PLATFORM_SETTINGS) as SettingName[];
-
-/** Why a setting is refused, as the admin is told it. */
-export const settingRefusals: Record<SettingName, (value: number) => string> = {
-  statCorrectionWindowMinutes: (value) => `The stat-correction window is a whole number of minutes, 0 or more, not ${value}.`,
-  scoutsPerTeam: (value) => `A team's scouts are a whole number, 0 or more, not ${value}.`,
-  matchdayHoursBefore: (value) => `Matchday mode's hours before are a whole number, 0 or more, not ${value}.`,
-  matchdayHoursAfter: (value) => `Matchday mode's hours after are a whole number, 0 or more, not ${value}.`,
-};
 
 const platformSettings = v.object({
   statCorrectionWindowMinutes: v.number(),

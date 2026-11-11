@@ -10,6 +10,7 @@ import type { Revision } from "../../../src/rules/rulesEdits";
 import { CHANGES_FROM } from "./scoring.harness";
 import type { PendingClaim, WaiversView } from "../../../src/myTeam/claims/seam";
 import { NO_WAIVERS } from "./myTeam.harness";
+import { PL_GAMEWEEKS } from "../convex/footballRows.harness";
 
 /** The rules row the fake server's settings are from. */
 export const REVISION = "rules-1" as Revision;
@@ -23,7 +24,8 @@ export const TEAMS_IN_ORDER: TeamInOrder[] = ["Saka Potatoes", "Kroos Control", 
 /** What the fake server holds: the settings as `view` says, the first rules' by default; `loading`
  *  keeps them on their way (undefined). `teamOrder` is the draft order, TEAMS_IN_ORDER by default; `draftStarted` fixes it. */
 export type LeagueSettingsData = {
-  view?: SettingsView;
+  /** The settings; the season always has PL_GAMEWEEKS gameweeks. */
+  view?: Omit<SettingsView, "seasonGameweeks">;
   loading?: boolean;
   teamOrder?: TeamInOrder[];
   draftStarted?: boolean;
@@ -51,7 +53,7 @@ export function fakeLeagueSettings({
   draftStart = { startsAt: null, started: false },
 }: LeagueSettingsData = {}) {
   return {
-    useSettings: vi.fn<LeagueSettingsSeam["useSettings"]>(() => (loading ? undefined : view)),
+    useSettings: vi.fn<LeagueSettingsSeam["useSettings"]>(() => (loading ? undefined : { ...view, seasonGameweeks: PL_GAMEWEEKS })),
     save: vi.fn<LeagueSettingsSeam["save"]>(async () => CHANGES_FROM),
     useTeamOrder: vi.fn<LeagueSettingsSeam["useTeamOrder"]>(() => ({ teams: teamOrder, started: draftStarted })),
     saveTeamOrder: vi.fn<LeagueSettingsSeam["saveTeamOrder"]>(async () => null),
