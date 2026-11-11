@@ -7,7 +7,7 @@ import { pickOwner, type TradedPick } from "../draft/snakeOrder";
 import { fileLetter } from "../mail/letters";
 import { pickTradeUndoneLetter } from "../mail/tradeLetterWords";
 import { latestRules } from "../rules/rulesHistory";
-import type { tradePick } from "../schema/trades";
+import type { tradePick } from "../schema";
 import { refuse, teamIn } from "../shared/leagueAccess";
 import { closeOffer, leagueOffers, managersOf, pickName, tradeWordsOf } from "./tradeClose";
 

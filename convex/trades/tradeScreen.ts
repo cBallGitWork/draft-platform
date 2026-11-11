@@ -16,7 +16,7 @@ import { leagueOffers, pickName } from "./tradeClose";
 import { pickHolders, tradablePick } from "./tradePicks";
 import { reviewerOf } from "./tradeReviewers";
 import { offerCloses, onAutoTeam, tradeDeadlineInForce, tradesShut } from "./tradeShut";
-import { tradePick } from "../schema/trades";
+import { tradePick } from "../schema";
 
 // The Trades screen's read (#383; spec/12 Trades, its approved picture docs/design/approved/trades):
 // the offers to and from the manager's team, open or in review, each with when it closes, who it

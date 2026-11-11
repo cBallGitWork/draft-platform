@@ -1,6 +1,5 @@
 import { v, type Infer } from "convex/values";
-import type { TradedSide } from "../schema/squads";
-import type { closedWhy } from "../schema/trades";
+import type { TradedSide, closedWhy } from "../schema";
 import { internal } from "../_generated/api";
 import type { Doc, Id } from "../_generated/dataModel";
 import { internalMutation, type MutationCtx, type QueryCtx } from "../_generated/server";

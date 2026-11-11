@@ -2,7 +2,7 @@ import { v, type Infer } from "convex/values";
 import type { Doc, Id } from "../_generated/dataModel";
 import { query } from "../_generated/server";
 import { bylineOf } from "../mail/letters";
-import { tradedSide } from "../schema/squads";
+import { tradedSide } from "../schema";
 import { takeShown } from "../shared/cappedRead";
 import { managerOf } from "../shared/leagueAccess";
 import { isListedMove, type ListedKind, newestFirst } from "./squadPlace";

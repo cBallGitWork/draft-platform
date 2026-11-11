@@ -4,7 +4,7 @@ import { mutation, query, type MutationCtx, type QueryCtx } from "../_generated/
 import { leagueDeadlines } from "../gameweeks/leagueDeadlines";
 import { fileLetter } from "../mail/letters";
 import { offerLetter } from "../mail/tradeLetterWords";
-import { tradePick } from "../schema/trades";
+import { tradePick } from "../schema";
 import { leagueOpens } from "../leagues/leagueOpens";
 import { managerOf, refuse, refusals, signedInEmail, teamIn, teamOf } from "../shared/leagueAccess";
 import { playerByCode } from "../shared/players";

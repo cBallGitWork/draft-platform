@@ -9,7 +9,10 @@ import { liveStatsTables, sideRunTables, commentaryTables, thresholdStepTables, 
 import { leagueTables } from "./schema/leagues";
 import { joiningTables } from "./schema/joining";
 import { squadTables, shortlistTables } from "./schema/squads";
-import { mailTables, feedbackTables } from "./schema/mail";
+import { mailTables } from "./schema/mail";
+import { feedbackTables } from "./schema/feedback";
+import { outboundTables } from "./schema/outbound";
+import { platformSettingsTables } from "./schema/platformSettings";
 import { leagueRulesTables, squadMaximumTables } from "./schema/rules";
 import { siteScoringTables } from "./schema/scoring";
 import { gameweekTables } from "./schema/gameweeks";
@@ -34,8 +37,13 @@ export { position, startRecord, approveMode, changeThresholds, positionsSyncFiel
 export { liveStatsTickFields, sideMatchOutcome, sideRunFields, commentaryLine, sideTeamStats, teamSheetMan } from "./schema/live";
 export { leagueDeletion, pinnedLetter, leagueEvent } from "./schema/leagues";
 export { delivery } from "./schema/joining";
+export { tradedSide, type TradedSide } from "./schema/squads";
+export { tradePick, closedWhy } from "./schema/trades";
+export { recapTeamPoints } from "./schema/recaps";
+export { scoutState } from "./schema/scouting";
+export { platformSettingName } from "./schema/platformSettings";
 export { siteScoringKind } from "./schema/scoring";
-export { placementShape } from "./schema/lineup";
+export { placementShape, planSlotShape } from "./schema/lineup";
 export { rankedPlayer } from "./schema/draft";
 export { pastSeasonRow } from "./schema/pastSeasons";
 export { sportmonksCompetition, sportmonksLineupMan, sportmonksEvent, sportmonksSyncFields, sportmonksTickFields, sportmonksStart, sportmonksPositionsSyncFields, sportmonksReader } from "./schema/sportmonks";
@@ -43,12 +51,14 @@ export { sportmonksCompetition, sportmonksLineupMan, sportmonksEvent, sportmonks
 export default defineSchema({
   ...authTables,
   ...signInTables,
+  ...outboundTables,
   ...feedCheckTables,
   ...footballTables,
   ...positionsTables,
   ...squadTables,
   ...shortlistTables,
   ...matchStatsTables,
+  ...platformSettingsTables,
   ...liveStatsTables,
   ...sideRunTables,
   ...commentaryTables,

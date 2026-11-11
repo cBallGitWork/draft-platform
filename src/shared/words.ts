@@ -2,7 +2,7 @@
 
 import type { PlayingState } from "../../convex/football/matchScores";
 import type { Position } from "../../convex/positions/positionTables";
-import type { TradedSide } from "../../convex/schema/squads";
+import type { TradedSide } from "../../convex/schema";
 import { LOCALE } from "../../convex/shared/moments";
 import { countInWords, figureWords } from "../../convex/shared/numberWords";
 import { FEWEST_TO_DRAW } from "../../convex/table/roundRobin";
