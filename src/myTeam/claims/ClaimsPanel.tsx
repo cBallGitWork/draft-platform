@@ -97,7 +97,7 @@ export function ClaimsPanel({
       ) : mine.length === 0 ? (
         <PanelNote>{noClaimsWords}</PanelNote>
       ) : (
-        <MineTable claims={mine} open={canRank(waivers)} busy={busy} selected={selected} onSelect={onSelect} onReorder={onReorder} />
+        <MineTable claims={mine} rankable={canRank(waivers)} busy={busy} selected={selected} onSelect={onSelect} onReorder={onReorder} />
       )}
       <p className="px-3 py-2">
         <Link to={SCOUTING_PATH} className="inline-flex min-h-tap items-center lg:min-h-0">
@@ -110,21 +110,21 @@ export function ClaimsPanel({
 
 function MineTable({
   claims,
-  open,
+  rankable,
   busy,
   selected,
   onSelect,
   onReorder,
 }: {
   claims: readonly PendingClaim[];
-  open: boolean;
+  rankable: boolean;
   busy: boolean;
   selected: Id<"waiverClaims"> | null;
   onSelect(claimId: Id<"waiverClaims">): void;
   onReorder(claimIds: Id<"waiverClaims">[]): void;
 }) {
   const [dragging, setDragging] = useState<Id<"waiverClaims"> | null>(null);
-  const shown = open ? MINE_COLUMNS : MINE_COLUMNS.filter((column) => column !== "handle");
+  const shown = rankable ? MINE_COLUMNS : MINE_COLUMNS.filter((column) => column !== "handle");
   function dropOnto(targetId: Id<"waiverClaims">) {
     const ids = dragging === null || busy ? null : movedOnto(claims, dragging, targetId);
     setDragging(null);
@@ -145,11 +145,11 @@ function MineTable({
               key={claim.claimId}
               aria-current={selected === claim.claimId || undefined}
               onClick={() => onSelect(claim.claimId)}
-              onDragOver={open ? (event) => event.preventDefault() : undefined}
-              onDrop={open ? () => dropOnto(claim.claimId) : undefined}
+              onDragOver={rankable ? (event) => event.preventDefault() : undefined}
+              onDrop={rankable ? () => dropOnto(claim.claimId) : undefined}
               className="cursor-pointer border-t border-panel-rule aria-current:bg-name-plate aria-current:shadow-current-edge"
             >
-              {open && (
+              {rankable && (
                 <td className={claimCellClass("handle")}>
                   <span
                     draggable={!busy}
