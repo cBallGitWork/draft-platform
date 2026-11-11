@@ -3,7 +3,7 @@ import type { Doc, Id } from "../_generated/dataModel";
 import { mutation, type MutationCtx, type QueryCtx } from "../_generated/server";
 import { managerOf, refuse } from "../shared/leagueAccess";
 import { seasonRules, type SeasonRules } from "../rules/rulesHistory";
-import { heldSchedule, leagueDeadlines } from "../gameweeks/leagueDeadlines";
+import { heldSchedule, leagueDeadlines, type HeldSchedule } from "../gameweeks/leagueDeadlines";
 import { nextGameweek } from "../gameweeks/nextGameweek";
 import { fixedDeadlinesOf, passedDeadlineOf } from "../gameweeks/passedDeadlines";
 import { GAMEWEEKS, lastPlayedGameweek } from "../gameweeks/usedGameweeks";
@@ -140,9 +140,9 @@ async function squadCodes(ctx: QueryCtx, teamId: Id<"teams">): Promise<number[]>
 }
 
 /** The first gameweek whose league deadline, under the rule in force in it, hasn't passed: the one
- *  a save now is from. */
-export async function nextOpenGameweek(ctx: QueryCtx, leagueId: Id<"leagues">, season: SeasonRules, now: number): Promise<number> {
-  const { gameweeks, matches } = await heldSchedule(ctx);
+ *  a save now is from. A caller asking for many leagues hands in the `schedule` it read once. */
+export async function nextOpenGameweek(ctx: QueryCtx, leagueId: Id<"leagues">, season: SeasonRules, now: number, schedule?: HeldSchedule): Promise<number> {
+  const { gameweeks, matches } = schedule ?? (await heldSchedule(ctx));
   return nextGameweek(gameweeks, matches, (gameweek) => season.inGameweek(gameweek).deadline, await fixedDeadlinesOf(ctx, leagueId), now);
 }
 
@@ -155,9 +155,9 @@ export type SaveGameweek =
 
 /** The gameweek a save at `now` goes to (`nextOpenGameweek`), with the league's rules it was
  *  dated by. */
-export async function saveGameweekOf(ctx: QueryCtx, leagueId: Id<"leagues">, now: number): Promise<SaveGameweek> {
+export async function saveGameweekOf(ctx: QueryCtx, leagueId: Id<"leagues">, now: number, schedule?: HeldSchedule): Promise<SaveGameweek> {
   const season = await seasonRules(ctx, leagueId);
-  const gameweek = await nextOpenGameweek(ctx, leagueId, season, now);
+  const gameweek = await nextOpenGameweek(ctx, leagueId, season, now, schedule);
   const league = await ctx.db.get("leagues", leagueId);
   if (league === null || gameweek > lastPlayedGameweek(league)) return { kind: "seasonOver" };
   return { kind: "open", season, gameweek };

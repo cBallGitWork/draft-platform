@@ -1,6 +1,8 @@
 import { v } from "convex/values";
 import type { Doc } from "../_generated/dataModel";
+import { internal } from "../_generated/api";
 import { internalMutation, type MutationCtx } from "../_generated/server";
+import { heldSchedule, type HeldSchedule } from "../gameweeks/leagueDeadlines";
 import { saveGameweekOf } from "../lineup/lineups";
 import { adminByline } from "../mail/letterWords";
 import { fileLetter } from "../mail/letters";
@@ -61,20 +63,36 @@ type Step = Doc<"positionWarnings">["step"];
 type PositionChange = { position: Position; step: "flagged"; startsElsewhere: number } | { position: Position; step: "lost" };
 
 /** Warns every league's managers of what has changed in their players' positions since they were
- *  last told: after a positions sync, and after the admin changes how positions count. */
+ *  last told: after a positions sync, and after the admin changes how positions count. Each league
+ *  is warned in its own mutation, run once the caller's has saved (#1545): no one step reads every
+ *  squad in every league, and a league whose warning throws leaves the caller's own writes, the
+ *  sync's log row among them, and every other league's warning standing. */
 export async function warnEveryLeague(ctx: MutationCtx): Promise<void> {
-  for (const league of await everyLeague(ctx)) await warnLeague(ctx, league);
+  for (const { _id } of await everyLeague(ctx)) {
+    await ctx.scheduler.runAfter(0, internal.positions.positionWarnings.warnLeagueSoon, { leagueId: _id });
+  }
 }
 
 // The admin's mutations in playerPositions.ts and positionSettings.ts run these two through
 // `internal`, never by import: this file reads both, so importing it back would be a cycle.
 
 /** `warnEveryLeague`, for the admin's mutations to run inside their own. */
-export const warnEveryLeagueNow = internalMutation({
+export const warnEveryLeagueSoon = internalMutation({
   args: {},
   returns: v.null(),
   handler: async (ctx) => {
     await warnEveryLeague(ctx);
+    return null;
+  },
+});
+
+/** One league's warnings, as `warnEveryLeague` schedules them; a league gone since tells nothing. */
+export const warnLeagueSoon = internalMutation({
+  args: { leagueId: v.id("leagues") },
+  returns: v.null(),
+  handler: async (ctx, { leagueId }) => {
+    const league = await ctx.db.get("leagues", leagueId);
+    if (league !== null) await warnLeague(ctx, league);
     return null;
   },
 });
@@ -94,9 +112,10 @@ export const warnOfAdminRemovalNow = internalMutation({
  *  from the team, is forgotten, so it is told again if it comes back. A league with no gameweek
  *  left to set a lineup for tells nothing. */
 async function warnLeague(ctx: MutationCtx, league: Doc<"leagues">): Promise<void> {
-  const next = await saveGameweekOf(ctx, league._id, Date.now());
+  const schedule = await heldSchedule(ctx);
+  const next = await saveGameweekOf(ctx, league._id, Date.now(), schedule);
   if (next.kind !== "open") return;
-  const how = await howPositionsCount(ctx, league._id);
+  const how = await howPositionsCount(ctx, league._id, schedule.matches);
   for (const team of await teamsOf(ctx, league._id)) {
     const told = await ctx.db
       .query("positionWarnings")
@@ -132,14 +151,17 @@ async function warnLeague(ctx: MutationCtx, league: Doc<"leagues">): Promise<voi
  *  on #23: the same letter, and he keeps his slot that gameweek): only where he held it, as the
  *  league's own deadlines judge it. Call before the removal is saved. */
 export async function warnOfAdminRemoval(ctx: MutationCtx, playerCode: number, position: Position): Promise<void> {
+  // Read once, and only once a league has him: most leagues don't.
+  let schedule: HeldSchedule | undefined;
   for (const league of await everyLeague(ctx)) {
     const place = await placeOf(ctx, league._id, playerCode);
     if (place === null) continue;
     const team = await ctx.db.get("teams", place.teamId);
     if (team?.managerEmail === undefined) continue;
-    const held = (await workedOutNow(ctx, playerCode, await howPositionsCount(ctx, league._id))).positions;
+    schedule ??= await heldSchedule(ctx);
+    const held = (await workedOutNow(ctx, playerCode, await howPositionsCount(ctx, league._id, schedule.matches))).positions;
     if (!held.some((each) => each.position === position)) continue;
-    const next = await saveGameweekOf(ctx, league._id, Date.now());
+    const next = await saveGameweekOf(ctx, league._id, Date.now(), schedule);
     if (next.kind !== "open") continue;
     const letter = positionLetter({ step: "takenByAdmin", playerName: await nameOf(ctx, playerCode), position, fromGameweek: next.gameweek });
     await fileLetter(ctx, league, [team.managerEmail], letter);

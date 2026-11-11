@@ -10,11 +10,14 @@ import { historyOf, inForce } from "../rules/rulesHistory";
 
 // The season's schedule as held, and each league's deadlines over it under its rules in force.
 
+/** What `heldSchedule` reads, for a caller that reads it once and hands it on. */
+export type HeldSchedule = { gameweeks: { number: number }[]; matches: ScheduledMatch[] };
+
 /** The season's gameweeks and matches as held. A gameweek the football layer no longer sends stays,
  *  keeping its last deadline (spec/05, #202); a match it no longer sends goes. Only gameweeks 1 to
  *  38 are read: a row past FPL's 38 can only be written by hand, and a lineup save
  *  or a rules change must not stop on one (#872). */
-export async function heldSchedule(ctx: QueryCtx) {
+export async function heldSchedule(ctx: QueryCtx): Promise<HeldSchedule> {
   // Only this season's: each season's gameweeks are kept, last season's beside it (#66). At most
   // one row a gameweek number in a season: the football sync keeps one (footballSync.ts's
   // upsertGameweeks), so more is a bug.
