@@ -51,6 +51,14 @@ describe("the draft settings (#1087)", () => {
     expect(radio(undraftedWords.waivers).checked).toBe(true);
   });
 
+  it("offers waivers or free agents for undrafted players, with no line saying waivers aren't built (#1748)", async () => {
+    await openedSettings();
+
+    expect(radio(undraftedWords.waivers)).toBeTruthy();
+    expect(radio(undraftedWords.freeAgents)).toBeTruthy();
+    expect(screen.queryByText(/until waivers are built/i)).toBeNull();
+  });
+
   it("saves each one changed with the rest of the settings", async () => {
     const app = await openedSettings();
     await fill(pickClockLabel, "8");
