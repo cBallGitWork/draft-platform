@@ -9,7 +9,7 @@ import { playerByCode } from "../shared/players";
 import { tellShortlisters } from "../scouting/shortlist";
 import { latestRules } from "../rules/rulesHistory";
 import { heldOrNot, placeOf, squadOf } from "../squads/squadPlace";
-import { closeOffersHolding, reviewHolding } from "../trades/tradeClose";
+import { closeOffersHolding, heldInReview } from "../trades/tradeClose";
 import { inWaiverLock } from "./waiverLock";
 import { dropFromSquad, waiverRowOf } from "./waiverPlayers";
 import { firstRunFrom } from "./waiverTimes";
@@ -46,7 +46,7 @@ export const drop = mutation({
     const player = (await playerByCode(ctx, playerCode)) ?? refuse(refusals.noPlayer);
     const place = await placeOf(ctx, leagueId, playerCode);
     if (place === null || place.teamId !== team._id) refuse(dropRefusals.notYours(player.name));
-    if ((await reviewHolding(ctx, leagueId, playerCode)) !== null) refuse(dropRefusals.held(player.name));
+    if ((await heldInReview(ctx, leagueId)).has(playerCode)) refuse(dropRefusals.held(player.name));
     const toWaivers = await dropFromSquad(ctx, place, deadlines, now);
     await closeOffersHolding(ctx, leagueId, team._id, [playerCode]);
     await recordEvent(ctx, leagueId, email, {

@@ -15,7 +15,7 @@ import { dropFromSquad, waiverRowOf } from "./waiverPlayers";
 import { joiningBreaksLimits } from "./waiverRun";
 import { claimRefusals } from "./waiverClaims";
 import { dropRefusals } from "./waivers";
-import { closeOffersHolding, reviewHolding } from "../trades/tradeClose";
+import { closeOffersHolding, heldInReview } from "../trades/tradeClose";
 
 // A manager's free agent pickup (#1199, spec/08 Waivers and free agency): first come first served,
 // in the window, from the first waiver run made after a gameweek until the next deadline. With a
@@ -53,7 +53,7 @@ export const pickUp = mutation({
     if (player.droppedAt !== undefined) refuse(pickUpRefusals.playerGone(player.name));
     const drop = dropCode === null ? null : { player: (await playerByCode(ctx, dropCode)) ?? refuse(refusals.noPlayer), place: await placeOf(ctx, leagueId, dropCode) };
     if (drop !== null && drop.place?.teamId !== team._id) refuse(pickUpRefusals.dropNotYours(drop.player.name));
-    if (drop !== null && (await reviewHolding(ctx, leagueId, drop.player.code)) !== null) refuse(pickUpRefusals.dropHeld(drop.player.name));
+    if (drop !== null && (await heldInReview(ctx, leagueId)).has(drop.player.code)) refuse(pickUpRefusals.dropHeld(drop.player.name));
     const squadRules = (await latestRules(ctx, leagueId)).squad;
     if (await joiningBreaksLimits(ctx, leagueId, team._id, playerCode, dropCode, squadRules)) refuse(pickUpRefusals.limits(player.name));
 
