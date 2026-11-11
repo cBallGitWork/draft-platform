@@ -13,7 +13,7 @@ import { currentClubs, currentPlayersAt, heldPlayerByCode, playerByCode } from "
 import { placeOf, squadOf } from "../squads/squadPlace";
 import { squadRefusals } from "../squads/squads";
 import { autoPickOrder } from "./autoPickOrder";
-import { autoPickAt, PICK_GAP_MS, scheduleAutoPick, startClock } from "./draftClock";
+import { autoPickAt, PICK_GAP_MS, picksAtClockStart, scheduleAutoPick, startClock } from "./draftClock";
 import { tellDraftOver, tellPickedFor, tellScoringStartMoved, tellUpNext } from "./draftLetters";
 import { startAfterDraft } from "../gameweeks/scoringStart";
 import { listsOf } from "./draftLists";
@@ -238,7 +238,8 @@ async function autoPickFor(ctx: QueryCtx, leagueId: Id<"leagues">, draft: Doc<"d
 /** The draft picks for the team on the clock: when its clock runs out, whether or not its manager is
  *  online (Craig, 4 Nov 2026, on #1091), or as its clock starts for a team with no manager. The
  *  pick is filed as its manager's, or the commissioner's for a team with none. For a team with a
- *  manager it is one of its timeouts, against the league's limit now (draftTimeouts.ts). Does nothing once
+ *  manager whose clock ran out it is one of its timeouts, against the league's limit now
+ *  (draftTimeouts.ts); one made as its clock starts isn't. Does nothing once
  *  `pick` is no longer on the clock: its team picked, or the league is gone. Scheduled at once for a
  *  team that has since gained a manager or taken control back, it waits for the clock's end. */
 export const autoPick = internalMutation({
@@ -260,8 +261,9 @@ export const autoPick = internalMutation({
     }
     const player = await autoPickFor(ctx, leagueId, draft, started, turn);
     let timeout: Placed["timeout"];
-    // A manager who chose auto-pick keeps his count as it is (Craig, 5 Nov 2026, on #1100).
-    if (team.managerEmail !== undefined && !choseAutoPick(draft.timeouts, team._id)) {
+    // Only a clock that ran out is a timeout: a pick made as its clock starts isn't (#1460), and a
+    // manager who chose auto-pick keeps his count as it is (Craig, 5 Nov 2026, on #1100).
+    if (team.managerEmail !== undefined && !choseAutoPick(draft.timeouts, team._id) && !picksAtClockStart(draft, draft.clock, team)) {
       const limit = (await draftRulesNow(ctx, leagueId)).timeoutsBeforeAutoPick;
       const timeouts = afterTimeout(draft.timeouts, team._id, limit);
       timeout = { putOnAutoPick: !isOnAutoPick(draft.timeouts, team._id) && isOnAutoPick(timeouts, team._id) };

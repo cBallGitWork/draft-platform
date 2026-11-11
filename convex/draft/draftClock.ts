@@ -66,7 +66,14 @@ type Clock = NonNullable<Doc<"drafts">["clock"]>;
  *  for at once (draftTimeouts.ts `picksAtOnce`), unless the commissioner's undo put the pick back on
  *  its full clock, and when the clock runs out otherwise. */
 export function autoPickAt(draft: Doc<"drafts">, clock: Clock, team: Doc<"teams">): number {
-  return picksAtOnce(draft.timeouts, team) && !clock.fullClock ? clock.startsAt : clock.endsAt;
+  return picksAtClockStart(draft, clock, team) ? clock.startsAt : clock.endsAt;
+}
+
+/** Whether the draft picks for `team` as `clock` starts rather than when it runs out: such a pick
+ *  is no timeout. Claude's reading of spec/04-the-draft.md, Auto-pick: a timeout is "when his
+ *  clock runs out", and a pick made at once has no clock run out (#1460). */
+export function picksAtClockStart(draft: Doc<"drafts">, clock: Clock, team: Doc<"teams">): boolean {
+  return picksAtOnce(draft.timeouts, team) && !clock.fullClock;
 }
 
 /** Schedules the pick the draft makes for `team`, whose pick is `clock`'s, at `autoPickAt`, and

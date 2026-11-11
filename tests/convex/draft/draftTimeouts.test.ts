@@ -115,6 +115,8 @@ describe("the league's limit", () => {
     const at = Date.now();
     await pass(PICK_GAP_MS);
     expect((await picked()).at(-1)).toEqual({ pick: 8, teamId: teams[0], at: at + PICK_GAP_MS });
+    // A pick made at once is no timeout: his clock never ran out (#1460).
+    expect(await timeouts()).toEqual([{ teamId: teams[0], count: 3, autoPick: "atOnce" }]);
   });
 
   test("of 1 puts the team on auto-pick at its first timeout", async () => {
