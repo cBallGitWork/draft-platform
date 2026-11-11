@@ -4,16 +4,23 @@
 // one of the roles' own stats (FIRST_ROLE_OWN_STATS). A rule's stat is data: these only name the
 // ones the code starts from.
 
-export { MINUTES_STAT } from "../stats/matchRecords";
+// The stats both feeds send are named where the record is merged.
+export {
+  ASSISTS,
+  CLEAN_SHEETS,
+  GOALS,
+  GOALS_CONCEDED,
+  MINUTES_STAT,
+  PENALTIES_SAVED,
+  RED_CARDS,
+  SAVES,
+  YELLOW_CARDS,
+} from "../stats/matchRecords";
 
 /** FPL's 60 minutes: playing them is worth 2, and a clean sheet counts only for a player on that
  *  long, in base scoring and in Park the bus alike. */
 export const CLEAN_SHEET_MINUTES = 60;
 
-export const GOALS = "goals_scored";
-export const ASSISTS = "assists";
-export const CLEAN_SHEETS = "clean_sheets";
-export const GOALS_CONCEDED = "goals_conceded";
 export const SHOTS = "total_scoring_att";
 export const SHOTS_ON_TARGET = "ontarget_scoring_att";
 export const BIG_CHANCES_MISSED = "big_chance_missed";
@@ -40,15 +47,11 @@ export const INTERCEPTIONS = "interception";
 export const RECOVERIES = "ball_recovery";
 export const CLEARANCES = "total_clearance";
 export const BLOCKS = "outfielder_block";
-export const SAVES = "saves";
 export const SAVES_INSIDE_THE_BOX = "saved_ibox";
-export const PENALTIES_SAVED = "penalties_saved";
 export const HIGH_CLAIMS = "good_high_claim";
 export const PUNCHES = "punches";
 export const OFFSIDES = "total_offside";
 export const FOULS = "fouls";
-export const YELLOW_CARDS = "yellow_cards";
-export const RED_CARDS = "red_cards";
 export const DISPOSSESSED = "dispossessed";
 export const POSSESSION_LOST = "poss_lost_all";
 export const DRIBBLED_PAST = "challenge_lost";
