@@ -1,7 +1,7 @@
-import type { Doc } from "../_generated/dataModel";
+import type { Doc, Id } from "../_generated/dataModel";
 import type { QueryCtx } from "../_generated/server";
 import { draftIsLive } from "../draft/draftRow";
-import type { LeagueDeadlines } from "../gameweeks/deadline";
+import { nextDeadline, type LeagueDeadlines } from "../gameweeks/deadline";
 import { tradeRulesOf } from "../rules/firstRules";
 import { rulesSinceBegun } from "../rules/rulesHistory";
 import { gameweekUnderWay, inUnplayedGameweek, latestBegun } from "../waivers/waiverLock";
@@ -23,13 +23,34 @@ export async function tradesShut(ctx: QueryCtx, league: Doc<"leagues">, deadline
   if (await draftIsLive(ctx, league._id)) return "draftLive";
   const begun = latestBegun(deadlines, now);
   if (begun === null) return null;
-  const rules = await rulesSinceBegun(ctx, league._id, begun);
-  const tradeDeadline = tradeRulesOf(rules).deadline;
+  const tradeDeadline = await tradeDeadlineInForce(ctx, league._id, deadlines, now);
   if (tradeDeadline !== null && begun >= tradeDeadline) {
     if (begun > tradeDeadline || !(await gameweekUnderWay(ctx, begun))) return "tradeDeadline";
   }
   if (await inUnplayedGameweek(ctx, league, deadlines, now)) return "unusedGameweek";
   return null;
+}
+
+/** The league's trade deadline gameweek in force at `now`, the one in the gameweek begun (#1473);
+ *  null with none set, or before any gameweek has begun. */
+export async function tradeDeadlineInForce(ctx: QueryCtx, leagueId: Id<"leagues">, deadlines: LeagueDeadlines, now: number): Promise<number | null> {
+  const begun = latestBegun(deadlines, now);
+  if (begun === null) return null;
+  return tradeRulesOf(await rulesSinceBegun(ctx, leagueId, begun)).deadline;
+}
+
+/** When an open offer made at `madeAt` closes unanswered: at the next deadline (spec/08), unless
+ *  trades shut first, once the trade deadline's gameweek's last match is over (Craig, 6 Nov 2026,
+ *  on #383), which has no time known ahead, so `at` is null (S08.9, Craig, 11 Nov 2026, on #1492).
+ *  Pure. */
+export function offerCloses(
+  deadlines: LeagueDeadlines,
+  madeAt: number,
+  tradeDeadline: number | null,
+): { gameweek: number; at: number | null } | null {
+  const next = nextDeadline(deadlines, madeAt);
+  if (next === null || tradeDeadline === null || next.gameweek <= tradeDeadline) return next;
+  return { gameweek: tradeDeadline, at: null };
 }
 
 /** Whether the team is on the auto team: switched on by a person, or with no manager (spec/09). */

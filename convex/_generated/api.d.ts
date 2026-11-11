@@ -331,6 +331,7 @@ import type * as table_teamFixtures from "../table/teamFixtures.js";
 import type * as table_teamGames from "../table/teamGames.js";
 import type * as table_teamOverrides from "../table/teamOverrides.js";
 import type * as trades_closedOffers from "../trades/closedOffers.js";
+import type * as trades_reviewPause from "../trades/reviewPause.js";
 import type * as trades_reviewScreen from "../trades/reviewScreen.js";
 import type * as trades_tradeClose from "../trades/tradeClose.js";
 import type * as trades_tradeLimits from "../trades/tradeLimits.js";
@@ -681,6 +682,7 @@ declare const fullApi: ApiFromModules<{
   "table/teamGames": typeof table_teamGames;
   "table/teamOverrides": typeof table_teamOverrides;
   "trades/closedOffers": typeof trades_closedOffers;
+  "trades/reviewPause": typeof trades_reviewPause;
   "trades/reviewScreen": typeof trades_reviewScreen;
   "trades/tradeClose": typeof trades_tradeClose;
   "trades/tradeLimits": typeof trades_tradeLimits;
