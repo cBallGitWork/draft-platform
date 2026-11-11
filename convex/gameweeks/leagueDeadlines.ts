@@ -10,7 +10,9 @@ import { historyOf, inForce } from "../rules/rulesHistory";
 
 // The season's schedule as held, and each league's deadlines over it under its rules in force.
 
-/** What `heldSchedule` reads, for a caller that reads it once and hands it on. */
+/** What `heldSchedule` reads. No caller in the app reads the gameweek rows any more: deadlines and
+ *  the save's gameweek walk the season's count (`leagueDeadlinesIn`, #1764), and a caller asking
+ *  for many leagues hands on `scheduledMatches`. */
 export type HeldSchedule = { gameweeks: { number: number }[]; matches: ScheduledMatch[] };
 
 /** The season's gameweeks and matches as held. A gameweek the football layer no longer sends stays,
@@ -29,8 +31,8 @@ export async function heldSchedule(ctx: QueryCtx): Promise<HeldSchedule> {
   return { gameweeks: seasonRows.map(({ number }) => ({ number })), matches: await scheduledMatches(ctx) };
 }
 
-/** The season's matches as held, less those the football layer no longer sends: all of
- *  `heldSchedule` a deadline reads. */
+/** The season's matches as held, less those the football layer no longer sends: what a deadline
+ *  reads, read once by a caller asking for many leagues and handed to `leagueDeadlinesIn`. */
 export async function scheduledMatches(ctx: QueryCtx): Promise<ScheduledMatch[]> {
   return (await currentFixtures(ctx)).map(({ gameweek, kickoff }) => ({ gameweek, kickoff }));
 }

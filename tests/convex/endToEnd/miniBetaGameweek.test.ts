@@ -1,4 +1,5 @@
 import { expect, test, vi } from "vitest";
+import { FIRST_GAMEWEEK } from "../../../convex/gameweeks/usedGameweeks";
 import { FIRST_SCORING } from "../../../convex/scoring/firstScoring";
 import { scoreMatch } from "../../../convex/scoring/scoring";
 import { inTenths } from "../../../convex/scoring/values";
@@ -58,7 +59,10 @@ test("the four-team league plays gameweek 6 end to end: live, provisional, then 
   const league = await miniBetaLeague(beforeKickoff());
   const { t, teams } = league;
   const emailOf = new Map([...teams].map(([email, teamId]) => [teamId, email]));
-  expect(league.savedFrom).toEqual([GAMEWEEK, GAMEWEEK, GAMEWEEK, GAMEWEEK]);
+  // Each save goes to the gameweek the league's deadlines mark as next (#1764). This world holds no
+  // match before gameweek 6, so gameweeks 1 to 5 have no deadline and none has begun: that is
+  // gameweek 1, and each lineup holds from there into gameweek 6.
+  expect(league.savedFrom).toEqual([FIRST_GAMEWEEK, FIRST_GAMEWEEK, FIRST_GAMEWEEK, FIRST_GAMEWEEK]);
 
   // The deadline passes, and the football sync's next run records it and fixes the fixtures.
   const passed = await footballSyncAt(t, DEADLINE + MINUTE_MS, beforeKickoff());
