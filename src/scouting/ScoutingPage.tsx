@@ -9,7 +9,7 @@ import { ComparePanel } from "./ComparePanel";
 import { Filters } from "./Filters";
 import { PlayersTable, type ListSort, type ListSortColumn } from "./PlayersTable";
 import { SelectedPlayer } from "./SelectedPlayer";
-import type { ListedPlayer, Period, PlayersFilters, ScoutingSeam } from "./seam";
+import type { ListedPlayer, Period, PlayersFilters, PlayersList, ScoutingSeam } from "./seam";
 import { OpenReport, ScoutsPanel, type TeamReport } from "./scouts/ScoutsPanel";
 import { ShortlistPanel } from "./shortlist/ShortlistPanel";
 import { StatRaceTab } from "./statRace/StatRaceTab";
@@ -31,6 +31,17 @@ const FIRST_DESCENDING: Record<ListSortColumn, boolean> = {
   assists: true,
   shotsOnTarget: true,
 };
+
+/** The selected player as the server now has him, whatever the filters keep (#1551), so a pickup,
+ *  claim or drop that moves him out of the list still shows on his panel, with the list's period
+ *  figures: the list's kept row, or his row in the list while the kept one is still another's. The
+ *  row clicked stands in only until either loads; none once he has left the Premier League. */
+function liveSelected(selected: ListedPlayer | null, list: PlayersList | undefined): ListedPlayer | null {
+  if (selected === null) return null;
+  if (list?.kept === null) return null;
+  if (list?.kept?.code === selected.code) return list.kept;
+  return list?.players.find(({ code }) => code === selected.code) ?? selected;
+}
 
 /** Scouting (spec/19), for anyone in the league, under Players and Stat race tabs on its title
  *  plate (the approved picture): the players, or every team's season totals in the stat race. */
@@ -57,10 +68,11 @@ function PlayersTab({ league, seam }: { league: LeagueSummary; seam: ScoutingSea
   const [name, find] = useState("");
   // While a changed filter or sort loads, the last list stays up, so the club filter keeps its clubs.
   const [period, choosePeriod] = useState<Period>(OPENING_PERIOD);
-  const list = useLastLoaded(seam.usePlayersList(league.leagueId, filters, sort, stat?.stat ?? null, period));
+  // The player clicked, as his row read then; his panel draws him live (`shownSelected`).
+  const [selected, setSelected] = useState<ListedPlayer | null>(null);
+  const list = useLastLoaded(seam.usePlayersList(league.leagueId, filters, sort, stat?.stat ?? null, period, selected?.code));
   const shortlist = seam.useShortlist(league.leagueId);
   const shortlisted = new Set((shortlist ?? []).map(({ code }) => code));
-  const [selected, setSelected] = useState<ListedPlayer | null>(null);
   const [comparing, setComparing] = useState(false);
   const [compared, setCompared] = useState<readonly [number, number] | null>(null);
   // Whether the second compared is the manager's own player, from Compare with your [position].
@@ -73,8 +85,7 @@ function PlayersTab({ league, seam }: { league: LeagueSummary; seam: ScoutingSea
     setWithYours(yours);
     setComparing(false);
   };
-  // The selected player as the list now holds him, so a pickup or a claim shows on his panel.
-  const shownSelected = selected === null ? null : (list?.players.find(({ code }) => code === selected.code) ?? selected);
+  const shownSelected = liveSelected(selected, list);
   const players = list === undefined ? undefined : namedPlayers(list.players, name);
 
   const select = (player: ListedPlayer) => {

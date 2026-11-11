@@ -26,6 +26,6 @@ export const liveScouting: ScoutingSeam = {
   useComparison: (leagueId, codes, stat, period) => useQuery(api.scouting.compare.players, codes === null ? "skip" : { leagueId, codes: [...codes], stat, period }),
   useYourPlayer: (leagueId, playerCode, now) => useQuery(api.scouting.yourPlayer.at, { leagueId, playerCode, now }),
   usePer90: (leagueId, playerCode, stat, period) => useQuery(api.scouting.per90.figures, { leagueId, playerCode, stat, period }),
-  usePlayersList: (leagueId, filters, sort, stat, period) => useQuery(api.scouting.playersList.list, { leagueId, filters, sort, stat, period }),
+  usePlayersList: (leagueId, filters, sort, stat, period, keep) => useQuery(api.scouting.playersList.list, { leagueId, filters, sort, stat, period, keep }),
   useStatRace: (leagueId, stat) => useQuery(api.scouting.statRace.teams, { leagueId, stat, descending: true }),
 };
