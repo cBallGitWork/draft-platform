@@ -9,6 +9,7 @@ import type { Id } from "../../../convex/_generated/dataModel";
 import type { TradeRules } from "../../../convex/rules/leagueRulesShape";
 import { REVIEW_MS } from "../../../convex/trades/tradeLimits";
 import { changeEveryRules, rulesRevision } from "./leagueRules.harness";
+import { pendingJobs } from "./test.harness";
 import { actingAs, COMMISSIONER } from "./leagues.harness";
 import { ANN, BOB, CAT, PALMER, RICE, SAKA, waiverLeague } from "./waivers.harness";
 
@@ -55,8 +56,16 @@ export async function tradeLeague() {
       vi.setSystemTime(Date.now() + REVIEW_MS);
       await t.mutation(internal.trades.tradeReview.finish, { offerId });
     },
-    /** The cron's check of open offers, now. */
-    closeDue: () => t.mutation(internal.trades.tradeClose.closeDue, {}),
+    /** The cron's check of open offers, now, and each league's closing it asks for, run as the
+     *  scheduler runs them. The clock is set, never advanced, so no other timer fires. */
+    closeDue: async () => {
+      const asked = new Set((await pendingJobs(t, internal.trades.tradeClose.closeLeagueDue)).map(({ _id }) => _id));
+      await t.mutation(internal.trades.tradeClose.closeDue, {});
+      for (const job of await pendingJobs(t, internal.trades.tradeClose.closeLeagueDue)) {
+        if (asked.has(job._id)) continue;
+        await t.mutation(internal.trades.tradeClose.closeLeagueDue, job.args[0] as { leagueId: Id<"leagues"> });
+      }
+    },
     subjectsTo: async (email: string) => (await w.lettersTo(email)).map(({ subject }) => subject),
   };
 }

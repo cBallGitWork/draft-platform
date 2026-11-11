@@ -13,7 +13,7 @@ import { claimFailedLetter, type ClaimFailure } from "../mail/waiverLetterWords"
 import { fileEvent, fileLetter, recordEvent } from "../mail/letters";
 import type { LeagueRules } from "../rules/leagueRulesShape";
 import { latestRules, seasonRules } from "../rules/rulesHistory";
-import { LEAGUES_READ_MOST, takeAllOrThrow } from "../shared/cappedRead";
+import { everyLeague, takeAllOrThrow } from "../shared/cappedRead";
 import { tellShortlisters, tellShortlistersCleared } from "../scouting/shortlist";
 import { teamIn } from "../shared/leagueAccess";
 import { playerByCode } from "../shared/players";
@@ -271,11 +271,7 @@ export const runDue = internalMutation({
   returns: v.null(),
   handler: async (ctx) => {
     const now = Date.now();
-    const leagues = await takeAllOrThrow(
-      ctx.db.query("leagues"),
-      LEAGUES_READ_MOST,
-      `More than ${LEAGUES_READ_MOST} leagues are held, so waivers can't be run in every one`,
-    );
+    const leagues = await everyLeague(ctx, "so waivers can't be run in every one");
     for (const league of leagues) {
       if (!leagueOpens(league)) continue;
       const rules = await latestRules(ctx, league._id);

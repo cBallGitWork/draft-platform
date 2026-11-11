@@ -2,7 +2,7 @@ import { v } from "convex/values";
 import { internalMutation } from "../_generated/server";
 import { DEFAULT_DEADLINE_RULE } from "../gameweeks/deadline";
 import { recordPassedDeadlines } from "../gameweeks/deadlineRecorder";
-import { LEAGUES_READ_MOST, takeAllOrThrow } from "../shared/cappedRead";
+import { everyLeague, takeAllOrThrow } from "../shared/cappedRead";
 import { RULES_CHANGES_MOST } from "./rulesHistory";
 
 // The one-off migration for #1412: leagues made with the old default deadline, FPL's 90 minutes
@@ -31,11 +31,7 @@ export const moveDeadlinesToDefault = internalMutation({
   handler: async (ctx) => {
     await recordPassedDeadlines(ctx);
     const deadline = { ...DEFAULT_DEADLINE_RULE };
-    const leagues = await takeAllOrThrow(
-      ctx.db.query("leagues"),
-      LEAGUES_READ_MOST,
-      `More than ${LEAGUES_READ_MOST} leagues are held, so some would keep FPL's deadline`,
-    );
+    const leagues = await everyLeague(ctx, "so some would keep FPL's deadline");
     let rowsMoved = 0;
     for (const league of leagues) {
       const rows = await takeAllOrThrow(

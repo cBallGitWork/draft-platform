@@ -3,7 +3,7 @@ import { internal } from "../_generated/api";
 import type { Doc, Id } from "../_generated/dataModel";
 import { internalMutation, type MutationCtx } from "../_generated/server";
 import { seasonRules } from "../rules/rulesHistory";
-import { LEAGUES_READ_MOST, takeAllOrThrow } from "../shared/cappedRead";
+import { scheduleEveryLeague } from "../shared/cappedRead";
 import { teamsOf } from "../shared/leagueAccess";
 import { leagueScores } from "../gameweekScorer/gameweekScores";
 import { startRecap } from "../home/recaps";
@@ -27,12 +27,7 @@ export const storeEveryLeague = internalMutation({
   args: {},
   returns: v.null(),
   handler: async (ctx) => {
-    const leagues = await takeAllOrThrow(
-      ctx.db.query("leagues"),
-      LEAGUES_READ_MOST,
-      `More than ${LEAGUES_READ_MOST} leagues are held, so some would have their final scores unstored`,
-    );
-    for (const league of leagues) await ctx.scheduler.runAfter(0, internal.table.finalScores.storeLeague, { leagueId: league._id });
+    await scheduleEveryLeague(ctx, internal.table.finalScores.storeLeague, "so some would have their final scores unstored");
     return null;
   },
 });

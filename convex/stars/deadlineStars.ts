@@ -7,7 +7,7 @@ import { namedCodes } from "../lineup/lineup";
 import { lineupsInGameweek } from "../lineup/lineups";
 import { positionsNow, type PositionsNow } from "../positions/playerPositions";
 import type { Position } from "../positions/positionTables";
-import { LEAGUES_READ_MOST, takeAllOrThrow } from "../shared/cappedRead";
+import { everyLeague, takeAllOrThrow } from "../shared/cappedRead";
 import { logFailure } from "../shared/errors";
 import { teamsOf } from "../shared/leagueAccess";
 import { playerByCode } from "../shared/players";
@@ -73,7 +73,7 @@ export const keepMissing = internalMutation({
   args: {},
   returns: v.null(),
   handler: async (ctx) => {
-    const leagues = await takeAllOrThrow(ctx.db.query("leagues"), LEAGUES_READ_MOST, `More than ${LEAGUES_READ_MOST} leagues are held, so some would keep no stars`);
+    const leagues = await everyLeague(ctx, "so some would keep no stars");
     for (const league of leagues) {
       const latest = await ctx.db
         .query("passedDeadlines")
