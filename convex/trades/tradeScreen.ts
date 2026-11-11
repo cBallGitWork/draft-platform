@@ -17,6 +17,7 @@ import { leagueOffers, pickName } from "./tradeClose";
 import { pickHolders, tradablePick } from "./tradePicks";
 import { reviewerOf } from "./tradeReview";
 import { onAutoTeam, tradesShut } from "./tradeShut";
+import { tradePick } from "../schema/trades";
 
 // The Trades screen's read (#383; spec/12 Trades, its approved picture docs/design/approved/trades):
 // the offers to and from the manager's team, open or in review, each with when it closes, who it
@@ -44,6 +45,9 @@ const screenOffer = v.object({
   gets: v.array(tradedPlayer),
   /** A pick trade's picks, each as its letters name it; null for a players' trade. */
   picks: v.union(v.object({ gives: v.string(), gets: v.string() }), v.null()),
+  /** The same picks as offered, `teamId`'s pick in `round`, for a counter to start with (#1471);
+   *  null for a players' trade. */
+  pickTerms: v.union(v.object({ gives: tradePick, gets: tradePick }), v.null()),
   note: v.union(v.string(), v.null()),
   madeAt: v.number(),
   /** While open, the deadline it closes at unanswered; null while none is known. */
@@ -226,6 +230,7 @@ export const ofMyTeam = query({
           toTeamId: offer.toTeamId,
           toTeamName: nameOf(offer.toTeamId),
           ...(await termsShown(ctx, offer, positionsOf, clubOf)),
+          pickTerms: offer.picks ?? null,
           note: offer.note ?? null,
           madeAt: offer.madeAt,
           closes:
