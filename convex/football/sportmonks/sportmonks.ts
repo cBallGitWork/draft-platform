@@ -175,7 +175,9 @@ export function mapSportmonks({ league, teams, schedule }: SportmonksPayloads): 
 }
 
 /** Each man's open injury or suspension, by his Sportmonks id: of two, the one ending last, one
- *  with no return date counting as last. A finished one (`completed`) keeps no one out. */
+ *  with no return date counting as last. A finished one (`completed`) keeps no one out, and one
+ *  with `completed` unsent counts as open. One for a man in no club's squad is kept here but never
+ *  read, since only squad men become players: he has no row for it to mark. */
 function openSidelines(teams: RawTeam[]): Map<number, RawSideline> {
   const open = new Map<number, RawSideline>();
   for (const sideline of teams.flatMap((team) => team.sidelined ?? [])) {
