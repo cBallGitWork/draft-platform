@@ -217,9 +217,9 @@ function fullTimePoints(fixtureCode: number, players: ReadonlyMap<PlayerCode, Vi
 }
 
 /** Each step a man it is priced for made, priced at his cell, by his team's back line and in his
- *  role: a line where it
- *  moves his points, up or down. A step the same as the last shown for him and its stat (a feed's
- *  count put back and sent again, stored before falling steps were) is not shown twice. */
+ *  role: a line where it moves his points, up or down. A step the same as the last shown for him
+ *  and its stat (a feed's count put back and sent again, stored before falling steps were) is not
+ *  shown twice. */
 function thresholdLines(match: VidiprinterMatch, players: ReadonlyMap<PlayerCode, VidiprinterPlayer>, set: ScoringSet) {
   const lastShown = new Map<string, StoredStep>();
   return match.steps.flatMap((step, index) => {
