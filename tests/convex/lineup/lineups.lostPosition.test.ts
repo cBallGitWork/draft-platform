@@ -70,6 +70,14 @@ describe("a starter who lost a position, left where he stands", () => {
     await expectRefused(save(SWAPPED), outOfPosition(SWAPPED));
   });
 
+  test("is refused in words once moved with no positions row at all (#1757)", async () => {
+    await t.run(async (ctx) => {
+      const row = (await ctx.db.query("playerPositions").collect()).find(({ code }) => code === STRIKER)!;
+      await ctx.db.delete("playerPositions", row._id);
+    });
+    await expectRefused(save(SWAPPED), `${nameOf(STRIKER)} has no positions, so he can't stand in the right-centre cell in Attack.`);
+  });
+
   test("must be moved once the deadline has passed, and the lineup saves once he is", async () => {
     await save(REVERSED_BENCH);
     await passNextDeadline(t);
