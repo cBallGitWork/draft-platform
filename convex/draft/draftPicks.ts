@@ -21,7 +21,7 @@ import { draftRanking } from "./draftRanking";
 import type { Position } from "../positions/positionTables";
 import { draftedPositionsIn, draftOf, lastPickIn, picksLeftOf, turnNow, undoWindowOpen, type StartedDraft, type Turn } from "./draftRow";
 import { rulesInForceAt } from "./draftStart";
-import { afterTimeout, choseAutoPick, isOnAutoPick } from "./draftTimeouts";
+import { afterTimeout, choseAutoPick, timeoutEffect } from "./draftTimeouts";
 import { lastSeasonPoints } from "./lastSeasonPoints";
 import { whyNotLegal, type DraftPlayer, type NotLegal } from "./legalPlayers";
 import { offWaivers } from "../waivers/waiverPlayers";
@@ -283,7 +283,7 @@ export const autoPick = internalMutation({
     if (team.managerEmail !== undefined && !choseAutoPick(draft.timeouts, team._id) && !picksAtClockStart(draft, draft.clock, team)) {
       const limit = (await draftRulesNow(ctx, leagueId)).timeoutsBeforeAutoPick;
       const timeouts = afterTimeout(draft.timeouts, team._id, limit);
-      timeout = { putOnAutoPick: !isOnAutoPick(draft.timeouts, team._id) && isOnAutoPick(timeouts, team._id) };
+      timeout = timeoutEffect(draft.timeouts, timeouts, team._id);
       await ctx.db.patch("drafts", draft._id, { timeouts });
     }
     await placePick(ctx, league, turn, team, player, team.managerEmail ?? league.commissionerEmail, { auto: true, timeout });

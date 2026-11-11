@@ -38,6 +38,11 @@ export function timeLeftWords(left: number): string {
     const seconds = Math.ceil(ms / SECOND_MS);
     return `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, "0")}`;
   }
+  return hoursLeftWords(ms);
+}
+
+/** Time left of an hour or more: "5h 12m", then "1d 4h". */
+export function hoursLeftWords(ms: number): string {
   const days = Math.floor(ms / DAY_MS);
   const hours = Math.floor((ms % DAY_MS) / HOUR_MS);
   if (days > 0) return `${days}d ${hours}h`;
