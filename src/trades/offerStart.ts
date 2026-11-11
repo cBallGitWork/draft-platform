@@ -14,18 +14,16 @@ export type Start = { teamId: Id<"teams">; gives: number[]; gets: number[] };
 /** The offer to the manager that a counter answers, from his side, as the offer starts. */
 export type Countered = Start & { offerId: Id<"tradeOffers"> };
 
-/** The offer `offerId` as a counter starts, or null for a new offer, or one he can't counter. */
+/** The offer `offerId` as a counter starts, or null for a new offer, or one he can't counter. A
+ *  player held in a trade under review is left out, as from a card (#1483). */
 export function counterOf(view: TradesView, offerId: Id<"tradeOffers"> | undefined): Countered | null {
   const offer = view.offers.find((each) => each.offerId === offerId);
   if (offer === undefined) return null;
   const sides = sidesOf(offer, view.myTeamId);
   if (sides.group !== "toYou" || offer.picks !== null) return null;
-  return {
-    offerId: offer.offerId,
-    teamId: sides.otherTeamId,
-    gives: sides.youGive.map(({ code }) => code),
-    gets: sides.youGet.map(({ code }) => code),
-  };
+  const held = new Set(view.teams.flatMap((team) => team.players.filter((each) => each.held).map(({ code }) => code)));
+  const free = (players: { code: number }[]) => players.map(({ code }) => code).filter((code) => !held.has(code));
+  return { offerId: offer.offerId, teamId: sides.otherTeamId, gives: free(sides.youGive), gets: free(sides.youGet) };
 }
 
 /** A card's Offer a trade as the offer starts: the team, when it can be traded with, and their
