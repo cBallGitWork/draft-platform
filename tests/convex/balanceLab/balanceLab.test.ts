@@ -61,6 +61,34 @@ describe("roles on the past seasons", () => {
   });
 });
 
+describe("team instructions on the past seasons (#1541)", () => {
+  type InstructionScoring = NonNullable<ScoringSet["instructions"]>[number];
+  const line = (...stats: string[]) => ({ stats: stats.map((stat) => ({ stat, weight: 1 })), every: 1, points: 1 });
+  const gungHo: InstructionScoring = { instruction: "gungHo", lines: [line("goals_scored", "assists"), line("goals_conceded")] };
+  const shootOnSight: InstructionScoring = { instruction: "shootOnSight", lines: [line("att_obox_goal"), line("att_obox_miss", "ontarget_scoring_att")] };
+
+  test("each instruction the set scores is listed in its order, not tested, naming the stats the past seasons lack", () => {
+    const report = balanceLab({ ...EXAMPLE_SET, instructions: [shootOnSight, gungHo] }, KEEPERS);
+    expect(report.instructions).toEqual([
+      { instruction: "shootOnSight", missing: ["att_obox_goal", "att_obox_miss"] },
+      { instruction: "gungHo", missing: [] },
+    ]);
+  });
+
+  test("an own stat in a line counts as the stats it adds up", () => {
+    const set: ScoringSet = {
+      ...EXAMPLE_SET,
+      ownStats: [{ stat: "league:failed_crosses", name: "Failed crosses", shortCode: "FCR", parts: [{ stat: "total_cross", weight: 1 }, { stat: "accurate_cross", weight: -1 }] }],
+      instructions: [{ instruction: "getItWide", lines: [line("league:failed_crosses")] }],
+    };
+    expect(balanceLab(set, []).instructions).toEqual([{ instruction: "getItWide", missing: [] }]);
+  });
+
+  test("a set scoring no instruction lists none", () => {
+    expect(balanceLab(EXAMPLE_SET, KEEPERS).instructions).toEqual([]);
+  });
+});
+
 test("the log's starting positions map to slots, left and right alike", () => {
   expect(["GK", "DR", "DL", "DC", "WBL", "DM", "MR", "MC", "AML", "AMC", "ST"].map(slotOfStart)).toEqual(["GK", "FB", "FB", "CB", "WB", "CDM", "WM", "CM", "W", "CAM", "ST"]);
   expect(slotOfStart("SW")).toBeNull();

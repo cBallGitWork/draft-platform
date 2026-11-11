@@ -5,7 +5,7 @@ import type { Id } from "../../../convex/_generated/dataModel";
 import type { ScoringStartView } from "../../../convex/gameweeks/scoringStart";
 import { FIRST_RULES } from "../../../convex/rules/firstRules";
 import { leagueSettingsOf } from "../../../convex/rules/leagueSettingsPart";
-import type { LeagueSettingsSeam, SettingsView, TeamInOrder } from "../../../src/leagueSettings/seam";
+import type { DraftStart, LeagueSettingsSeam, SettingsView, TeamInOrder } from "../../../src/leagueSettings/seam";
 import type { Revision } from "../../../src/rules/rulesEdits";
 import { CHANGES_FROM } from "./scoring.harness";
 import type { PendingClaim, WaiversView } from "../../../src/myTeam/claims/seam";
@@ -34,6 +34,8 @@ export type LeagueSettingsData = {
   claimsLoading?: boolean;
   /** The scoring start and the ticked gameweeks: none set and none ticked unless a test says. */
   scoringStart?: ScoringStartView;
+  /** The draft's start: no date and not started unless a test says. */
+  draftStart?: DraftStart;
 };
 
 /** Saving succeeds from CHANGES_FROM, and a draft order at once, unless a test says otherwise. */
@@ -46,6 +48,7 @@ export function fakeLeagueSettings({
   claims = [],
   claimsLoading = false,
   scoringStart = { start: null, ticked: [], seasonBegun: false },
+  draftStart = { startsAt: null, started: false },
 }: LeagueSettingsData = {}) {
   return {
     useSettings: vi.fn<LeagueSettingsSeam["useSettings"]>(() => (loading ? undefined : view)),
@@ -55,6 +58,8 @@ export function fakeLeagueSettings({
     drawTeamOrder: vi.fn<LeagueSettingsSeam["drawTeamOrder"]>(async () => null),
     useScoringStart: vi.fn<LeagueSettingsSeam["useScoringStart"]>(() => scoringStart),
     setScoringStart: vi.fn<LeagueSettingsSeam["setScoringStart"]>(async () => null),
+    useDraftStart: vi.fn<LeagueSettingsSeam["useDraftStart"]>(() => draftStart),
+    setDraftStart: vi.fn<LeagueSettingsSeam["setDraftStart"]>(async () => null),
     useWaivers: vi.fn<LeagueSettingsSeam["useWaivers"]>(() => waivers),
     usePendingClaims: vi.fn<LeagueSettingsSeam["usePendingClaims"]>(() => (claimsLoading ? undefined : claims)),
   };

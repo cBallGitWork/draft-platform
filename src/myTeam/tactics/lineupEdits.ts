@@ -51,6 +51,12 @@ const ANY_ROLE: PositionsOf = () => [];
 export const droppedInto = (playerCode: number, cell: Cell, formation: Formation, ratingsOf: RatingsOf, positionsOf: PositionsOf): Starter =>
   droppedStarter(playerCode, cell, formation, ratingsOf(playerCode), positionsOf(playerCode));
 
+/** A starter put on the role a classic or a saved plan sets for his slot of `formation`, where he
+ *  may take it (spec/05 `S05.29`), else dropped into the slot on his best-star role, as one with no
+ *  role set there is. */
+export const onSetRole = (starter: Starter, role: string | undefined, formation: Formation, ratingsOf: RatingsOf, positionsOf: PositionsOf): Starter =>
+  role !== undefined && takesRole(positionsOf(starter.playerCode), role) ? { ...starter, role } : droppedInto(starter.playerCode, starter, formation, ratingsOf, positionsOf);
+
 /** The lineup the screen opens on: the one held for the gameweek, its first until the manager
  *  saves one (spec/05), with its instructions in force, on its classic while the league still
  *  holds it, so a classic the league has since dropped or renamed never refuses his next save

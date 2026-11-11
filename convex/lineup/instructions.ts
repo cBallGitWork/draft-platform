@@ -68,6 +68,9 @@ export const FIRST_INSTRUCTIONS: readonly Instruction[] = [
     description: "Rewards the keeper's and defenders' clean sheets; costs goals and assists." },
 ];
 
+/** An instruction's name as managers say it, by its key; the key itself for one not in the set. */
+export const instructionName = (key: string): string => FIRST_INSTRUCTIONS.find((each) => each.key === key)?.name ?? key;
+
 /** The first defaults (Craig, 6 Nov 2026, on #990): five at the back starts on Park the bus, two
  *  at the back on Gung-ho, and every other shape on Play out from the back and Keep it tight early.
  *  A league's presets hold their own pair (presets.ts), which it edits. */

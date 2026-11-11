@@ -1,4 +1,4 @@
-import { FIRST_INSTRUCTIONS } from "../lineup/instructions";
+import { instructionName } from "../lineup/instructions";
 import { roleName } from "../lineup/roles";
 import { ALL_CELLS, positionOfSlot, SLOT_POSITIONS, type Area, type SlotPosition } from "../lineup/pitch";
 import type { StoredScoringSet } from "./scoringSetShape";
@@ -181,9 +181,6 @@ function roleChanges(before: StoredScoringSet, after: StoredScoringSet): string[
   }
   return lines;
 }
-
-/** An instruction's name as managers say it, by its key; the key itself for one not in the set. */
-const instructionName = (key: string) => FIRST_INSTRUCTIONS.find((each) => each.key === key)?.name ?? key;
 
 /** One line for each team instruction whose scoring changed, each of its lines in words (spec/05
  *  Team instructions): "Park the bus: now +1 per 1 of Clean sheets (GK, FB, CB, WB), after 60

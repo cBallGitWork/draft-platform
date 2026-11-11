@@ -4,7 +4,7 @@ import { PAST_STAT_COLUMNS } from "../pastSeasons/pastStatColumns";
 import { roleTotal } from "../scoring/scoring";
 import type { ScoringSet } from "../scoring/scoringSet";
 import { ROLE_TARGET_MARGIN } from "./balanceLabLimits";
-import type { LabReport, LabRole } from "./labReportShape";
+import type { LabInstruction, LabReport, LabRole } from "./labReportShape";
 
 // The rule balance lab (spec/14, The rule balance lab; #843): a backtest of a patch draft on the
 // past seasons' real starts, "just to make sure a change is good". Pure: it saves nothing, so
@@ -18,7 +18,9 @@ import type { LabReport, LabRole } from "./labReportShape";
 // - a copied stat blank in one match leaves that match out of the role's average only (Craig,
 //   6 Nov 2026, on #842), and the starts it was tested on are shown;
 // - no biggest movers and no what-ifs on this season's results ("Drop what ifs").
-// Team instructions are checked here once the site's set holds them: today it holds none.
+// Each team instruction the set scores is listed "not tested" for now (#1541): S14.9 takes its
+// average on each club's real XI in each past match, and the past seasons' rows don't hold his
+// club, so no XI can be formed yet. One scoring a stat that wasn't copied names it (S14.13).
 
 /** Each slot's target role bonus a start (spec/05 Roles: half its gap in base points to strikers,
  *  plus 0.5 for every slot; Craig, 4 Nov 2026). */
@@ -78,23 +80,40 @@ export interface PastStart {
   stats: Readonly<Record<string, number>>;
 }
 
-/** The catalogue stats a role's bonus and cost count, an own stat taken as its parts, A to Z. */
-export function roleStats(set: ScoringSet, role: string): string[] {
-  const scoring = set.roles?.find((each) => each.role === role);
-  if (scoring === undefined) return [];
+/** The catalogue stats `counted` stands for, an own stat taken as its parts, A to Z. */
+function catalogueStats(set: ScoringSet, counted: readonly { stat: string }[]): string[] {
   const stats = new Set<string>();
-  for (const { stat } of [...scoring.bonus.parts, ...scoring.cost.parts]) {
+  for (const { stat } of counted) {
     const own = set.ownStats?.find((each) => each.stat === stat);
     for (const part of own?.parts ?? [{ stat }]) stats.add(part.stat);
   }
   return [...stats].sort();
 }
 
+/** The catalogue stats a role's bonus and cost count, an own stat taken as its parts, A to Z. */
+export function roleStats(set: ScoringSet, role: string): string[] {
+  const scoring = set.roles?.find((each) => each.role === role);
+  return scoring === undefined ? [] : catalogueStats(set, [...scoring.bonus.parts, ...scoring.cost.parts]);
+}
+
+/** Those of `stats` the past seasons weren't copied with. */
+const notCopied = (stats: readonly string[]): string[] => stats.filter((stat) => !(stat in PAST_STAT_COLUMNS));
+
+/** Each team instruction the set scores, in its order, not tested: the stats of its lines the past
+ *  seasons lack, A to Z, none where every one was copied. */
+export function labInstructions(set: ScoringSet): LabInstruction[] {
+  return (set.instructions ?? []).map(({ instruction, lines }) => ({
+    instruction,
+    missing: notCopied(catalogueStats(set, lines.flatMap((line) => line.stats))),
+  }));
+}
+
 /** In hundredths, so a flag is never one floating point's noise. */
 const hundredths = (points: number): number => Math.round(points * 100);
 
 /** The lab's report on `set` from the past seasons' real starts: each role the set scores, slot by
- *  slot in SLOT_POSITIONS' order (DEFAULT_ROLES'), tested or not. */
+ *  slot in SLOT_POSITIONS' order (DEFAULT_ROLES'), tested or not, and each team instruction it
+ *  scores. */
 export function balanceLab(set: ScoringSet, starts: readonly PastStart[]): LabReport {
   const bySlot = new Map<SlotPosition, PastStart[]>();
   let skipped = 0;
@@ -114,7 +133,7 @@ export function balanceLab(set: ScoringSet, starts: readonly PastStart[]): LabRe
     for (const { key: role } of offered) {
       if (set.roles?.some((each) => each.role === role) !== true) continue;
       const stats = roleStats(set, role);
-      const missing = stats.filter((stat) => !(stat in PAST_STAT_COLUMNS));
+      const missing = notCopied(stats);
       if (missing.length > 0) {
         roles.push({ role, slot, target, missing });
         continue;
@@ -131,5 +150,6 @@ export function balanceLab(set: ScoringSet, starts: readonly PastStart[]): LabRe
     starts: starts.length - skipped,
     startsSkipped: skipped,
     roles,
+    instructions: labInstructions(set),
   };
 }

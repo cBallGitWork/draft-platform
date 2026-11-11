@@ -43,7 +43,7 @@ describe("the admin's button on the draft patch", () => {
     const report = await runAs(ADMIN, (await draftSavedAt())!);
 
     // +1 and +3 over the two keepers' starts; the sub's match isn't a start.
-    expect(report).toEqual({ seasons: [2024], starts: 2, startsSkipped: 1, roles: [{ role: "shotStopper", slot: "GK", target: 0.9, starts: 2, average: 2, offTarget: true }] });
+    expect(report).toEqual({ seasons: [2024], starts: 2, startsSkipped: 1, roles: [{ role: "shotStopper", slot: "GK", target: 0.9, starts: 2, average: 2, offTarget: true }], instructions: [] });
     expect(await everything()).toEqual(before);
   });
 
@@ -72,5 +72,5 @@ test("an announced patch's lab runs by itself on exactly its set, and its report
 
   const [notes] = await (await as(ADMIN)).query(api.scoring.patchNotes.notes, {});
   // 0 and +2 over the two keepers' starts.
-  expect(notes.lab).toEqual({ seasons: [2024], starts: 2, startsSkipped: 1, roles: [{ role: "shotStopper", slot: "GK", target: 0.9, starts: 2, average: 1, offTarget: false }] });
+  expect(notes.lab).toEqual({ seasons: [2024], starts: 2, startsSkipped: 1, roles: [{ role: "shotStopper", slot: "GK", target: 0.9, starts: 2, average: 1, offTarget: false }], instructions: [] });
 });

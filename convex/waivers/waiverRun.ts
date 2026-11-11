@@ -17,9 +17,10 @@ import { LEAGUES_READ_MOST, takeAllOrThrow } from "../shared/cappedRead";
 import { tellShortlisters, tellShortlistersCleared } from "../scouting/shortlist";
 import { teamIn } from "../shared/leagueAccess";
 import { playerByCode } from "../shared/players";
+import { readOnce } from "../shared/readOnce";
 import { MINUTE_MS } from "../shared/time";
 import { placeOf, squadOf } from "../squads/squadPlace";
-import { limitsBroken, type SquadWarning } from "../squads/squads";
+import { limitsReader, type LimitsBroken, type SquadWarning } from "../squads/squads";
 import { closeOffersHolding, heldInReview } from "../trades/tradeClose";
 import { claimedName, leagueClaims } from "./waiverClaims";
 import { inWaiverLock, latestEnded } from "./waiverLock";
@@ -80,9 +81,14 @@ export async function joiningBreaksLimits(
   squadRules: LeagueRules["squad"] | null,
 ): Promise<boolean> {
   const squad = (await squadOf(ctx, teamId)).map((row) => row.playerCode);
+  return joinBreaks(squad, playerCode, dropCode, await limitsReader(ctx, leagueId, squadRules));
+}
+
+/** `joiningBreaksLimits` for the squad `squad`, its limits read by `limits`. */
+async function joinBreaks(squad: readonly number[], playerCode: number, dropCode: number | null, limits: LimitsBroken): Promise<boolean> {
   const after = [...squad.filter((code) => code !== dropCode), playerCode];
   if (after.length > MOST_IN_SQUAD) return true;
-  const [before, broken] = await Promise.all([limitsBroken(ctx, leagueId, squad, squadRules), limitsBroken(ctx, leagueId, after, squadRules)]);
+  const [before, broken] = await Promise.all([limits(squad), limits(after)]);
   return breaksLimits(before, broken);
 }
 
@@ -94,7 +100,8 @@ type Tried = { won: true; toWaivers: boolean | null } | { won: false; why: Claim
 /** Everything a claim at the run is tried against. */
 type Run = {
   league: Doc<"leagues">;
-  squadRules: LeagueRules["squad"];
+  /** The league's squad limits, each player's club and positions read once for the run (#1538). */
+  limits: LimitsBroken;
   deadlines: LeagueDeadlines;
   now: number;
   /** The run's own time, which a claim's drop starts its 24 hours from (#1481). */
@@ -103,31 +110,49 @@ type Run = {
   claimable: Map<number, Doc<"waiverPlayers">>;
   /** The players in a trade in review, by code, read once for the run: none can be dropped. */
   held: Set<number>;
+  /** Each team's squad by code, read once for the run at its first claim and kept up as its claims
+   *  win (#1538): nothing else in a run changes a squad. */
+  squads: Map<Id<"teams">, number[]>;
+  /** Each player's row and name, read once for the run however many claims name him (#1538). */
+  playerOf: (code: number) => Promise<Doc<"players"> | null>;
+  nameOf: (code: number) => Promise<string>;
 };
+
+/** The team's squad by code, as the run has it. */
+async function squadInRun(ctx: QueryCtx, run: Run, teamId: Id<"teams">): Promise<number[]> {
+  const kept = run.squads.get(teamId);
+  if (kept !== undefined) return kept;
+  const squad = (await squadOf(ctx, teamId)).map((row) => row.playerCode);
+  run.squads.set(teamId, squad);
+  return squad;
+}
 
 /** Tries the claim for its team, making it if it stands. */
 async function tryClaim(ctx: MutationCtx, run: Run, claim: Doc<"waiverClaims">): Promise<Tried> {
-  const { league, squadRules, deadlines, now, at, claimable, held } = run;
+  const { league, limits, deadlines, now, at, claimable, held } = run;
+  const squad = await squadInRun(ctx, run, claim.teamId);
   const onWaivers = claimable.get(claim.playerCode);
-  if (onWaivers === undefined) return { won: false, why: (await placeOf(ctx, league._id, claim.playerCode))?.teamId === claim.teamId ? null : "ahead" };
-  if ((await playerByCode(ctx, claim.playerCode))?.droppedAt !== undefined) return { won: false, why: "playerGone" };
-  const drop = claim.dropCode === null ? null : await placeOf(ctx, league._id, claim.dropCode);
-  if (claim.dropCode !== null && drop?.teamId !== claim.teamId) return { won: false, why: "dropGone" };
+  if (onWaivers === undefined) return { won: false, why: squad.includes(claim.playerCode) ? null : "ahead" };
+  if ((await run.playerOf(claim.playerCode))?.droppedAt !== undefined) return { won: false, why: "playerGone" };
+  if (claim.dropCode !== null && !squad.includes(claim.dropCode)) return { won: false, why: "dropGone" };
   if (claim.dropCode !== null && held.has(claim.dropCode)) return { won: false, why: "dropHeld" };
-  if (await joiningBreaksLimits(ctx, league._id, claim.teamId, claim.playerCode, claim.dropCode, squadRules)) return { won: false, why: "limits" };
+  if (await joinBreaks(squad, claim.playerCode, claim.dropCode, limits)) return { won: false, why: "limits" };
 
   claimable.delete(claim.playerCode);
   await ctx.db.delete("waiverPlayers", onWaivers._id);
+  const drop = claim.dropCode === null ? null : await placeOf(ctx, league._id, claim.dropCode);
+  if (claim.dropCode !== null && drop?.teamId !== claim.teamId) throw new Error(`The run has ${claim.dropCode} in team ${claim.teamId}'s squad, but he isn't there`);
   const toWaivers = drop === null ? null : await dropFromSquad(ctx, drop, deadlines, now, at);
   await ctx.db.insert("squadPlayers", { leagueId: league._id, teamId: claim.teamId, playerCode: claim.playerCode });
+  run.squads.set(claim.teamId, [...squad.filter((code) => code !== claim.dropCode), claim.playerCode]);
   return { won: true, toWaivers };
 }
 
 /** Files what a tried claim did: the drop and the claim as squad moves, the league's letter for
  *  one that won, and its manager's alone for one that failed, unless it failed quietly. */
-async function report(ctx: MutationCtx, league: Doc<"leagues">, claim: Doc<"waiverClaims">, tried: Tried): Promise<void> {
-  const playerName = await claimedName(ctx, claim.playerCode);
-  const dropName = claim.dropCode === null ? null : await claimedName(ctx, claim.dropCode);
+async function report(ctx: MutationCtx, { league, nameOf }: Run, claim: Doc<"waiverClaims">, tried: Tried): Promise<void> {
+  const playerName = await nameOf(claim.playerCode);
+  const dropName = claim.dropCode === null ? null : await nameOf(claim.dropCode);
   if (!tried.won) {
     if (tried.why !== null) await fileLetter(ctx, league, [claim.by], claimFailedLetter({ playerName, dropName, why: tried.why }));
     return;
@@ -145,7 +170,6 @@ async function report(ctx: MutationCtx, league: Doc<"leagues">, claim: Doc<"waiv
     await tellShortlisters(ctx, league, player, team, claim.by, { released: false, toWaivers: dropped.toWaivers }, { unread: true });
   }
   await recordEvent(ctx, league._id, claim.by, { kind: "playerClaimed", playerCode: claim.playerCode, playerName, ...onTeam, dropped }, { unread: true });
-  await pickFirstLineupAgain(ctx, league._id, team._id);
 }
 
 /** Runs the league's waivers for its run time `at`, once: skipped in the lock or until the draft
@@ -180,12 +204,15 @@ async function runWaivers(ctx: MutationCtx, leagueId: Id<"leagues">, at: number)
   const due = onWaivers.filter(({ claimableFrom }) => claimableFrom <= at);
   const run: Run = {
     league,
-    squadRules: season.latest.squad,
+    limits: await limitsReader(ctx, league._id, season.latest.squad),
     deadlines,
     now,
     at,
     claimable: new Map(due.map((row) => [row.playerCode, row])),
     held: await heldInReview(ctx, league._id),
+    squads: new Map(),
+    playerOf: readOnce((code: number) => playerByCode(ctx, code)),
+    nameOf: readOnce((code: number) => claimedName(ctx, code)),
   };
   // A run tries every claim but those for a player whose 24 hours aren't up: one for a player no
   // longer on waivers at all, taken by the commissioner say, fails as another team's, or quietly
@@ -197,6 +224,7 @@ async function runWaivers(ctx: MutationCtx, leagueId: Id<"leagues">, at: number)
   }
 
   let order = await waiverOrderOf(ctx, league, season, winners, gameweek);
+  const wonNow = new Set<Id<"teams">>();
   for (;;) {
     const team = order.find((teamId) => (queues.get(teamId)?.length ?? 0) > 0);
     if (team === undefined) break;
@@ -204,14 +232,19 @@ async function runWaivers(ctx: MutationCtx, leagueId: Id<"leagues">, at: number)
     for (let claim = queue.shift(); claim !== undefined; claim = queue.shift()) {
       const tried = await tryClaim(ctx, run, claim);
       await ctx.db.delete("waiverClaims", claim._id);
-      await report(ctx, league, claim, tried);
+      await report(ctx, run, claim, tried);
       if (tried.won) {
         winners = wonBy(winners, team);
         order = withWinnersLast(order, [team]);
+        wonNow.add(team);
         break;
       }
     }
   }
+  // Each team that won picks its first lineup again once, from its squad after all its claims: the
+  // run is one transaction, so nobody sees a lineup between them, and once per claim won read
+  // too much for a busy run (#1538).
+  for (const teamId of wonNow) await pickFirstLineupAgain(ctx, leagueId, teamId);
   // A claim for a team no longer in the league is never tried: it goes with its team.
   for (const [teamId, queue] of queues) {
     if (!order.includes(teamId)) for (const claim of queue) await ctx.db.delete("waiverClaims", claim._id);

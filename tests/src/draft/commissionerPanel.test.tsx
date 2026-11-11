@@ -11,6 +11,7 @@ import { MINUTE_MS, SECOND_MS } from "../../../convex/shared/time";
 import type { DraftState } from "../../../src/draft/seam";
 import {
   badPickTimeWords,
+  changeStartWords,
   COMMISSIONER_TITLE,
   draftPlayerWords,
   notLegalWords,
@@ -29,6 +30,7 @@ import {
   youPickForWords,
 } from "../../../src/draft/words";
 import { DRAFT_PATH } from "../../../src/frame/menu";
+import { SETTINGS_DRAFT_HASH, settingsPath } from "../../../src/leagueSettings/paths";
 import { commissionerView, draftOrder, emptyBoard, type DraftData } from "../../support/src/draft.harness";
 import { RICE } from "../../support/src/scoutingScreen.harness";
 import { coCommissioned, commissioner, league, manager, managerIn, openApp } from "../../support/src/shell.harness";
@@ -84,6 +86,17 @@ describe("before the start", () => {
     const app = openAs(commissioner);
     await userEvent.click(await button(startNowWords));
     expect(app.draft.changes.start).toHaveBeenCalledWith(league.leagueId);
+  });
+
+  it("Change the start opens League settings' draft panel, the start date's home (#1476)", async () => {
+    openAs(commissioner);
+    const link = within(await panel()).getByRole("link", { name: changeStartWords });
+    expect(link.getAttribute("href")).toBe(`${settingsPath(league.leagueId)}#${SETTINGS_DRAFT_HASH}`);
+  });
+
+  it("offers no Change the start once the draft runs", async () => {
+    openAs(commissioner, { draft: liveDraft() });
+    expect(within(await panel()).queryByRole("link", { name: changeStartWords })).toBeNull();
   });
 
   it("offers I'll pick for each team with no manager, saying it is on auto-pick until then", async () => {

@@ -29,6 +29,11 @@ export type LeagueSettingsSeam = {
   /** Sets the gameweek scoring starts in: resolves with null once saved, or the words saying why
    *  not. It never rejects. */
   setScoringStart(leagueId: Id<"leagues">, gameweek: number): Change;
+  /** Live (a hook): the draft's start date and whether it has started; undefined while it loads. */
+  useDraftStart(leagueId: Id<"leagues">): DraftStart | undefined;
+  /** Sets the date the draft starts, or with null clears it, so it waits for the commissioner to
+   *  press start: resolves with null once saved, or the words saying why not. It never rejects. */
+  setDraftStart(leagueId: Id<"leagues">, startsAt: number | null): Change;
   /** The waiver order and the runs, as My team's Transactions tab reads them (#1200). */
   useWaivers: ClaimsSeam["useWaivers"];
   /** Every team's pending claims, as My team's Transactions tab reads them, for a commissioner
@@ -41,3 +46,7 @@ export type TeamInOrder = { teamId: Id<"teams">; name: string };
 
 /** The draft order, first pick first, and whether the draft has started, which fixes it. */
 export type TeamOrder = { teams: TeamInOrder[]; started: boolean };
+
+/** The draft's start date (null: none, so it waits for the commissioner to press start), and
+ *  whether it has started, which ends the date's use (convex/draft/draftStart.ts). */
+export type DraftStart = { startsAt: number | null; started: boolean };
