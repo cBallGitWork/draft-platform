@@ -7,9 +7,10 @@ import { WAIVER_MS } from "../../../convex/waivers/waiverLimits";
 import { latestRunAt } from "../../../convex/waivers/waiverTimes";
 import { changeRules, HELD_FIRST_RULES, rulesWith, TOTAL_POINTS } from "../../support/convex/leagueRules.harness";
 import { playerLeaves } from "../../support/convex/draftLists.harness";
-import { actingAs, eventsIn } from "../../support/convex/leagues.harness";
+import type { Id } from "../../../convex/_generated/dataModel";
+import { actingAs, ADMIN, eventsIn } from "../../support/convex/leagues.harness";
 import { nameOf, SQUAD } from "../../support/convex/lineupSquad.harness";
-import { ANN, ANNS_FIRST_DROP, BOB, CAT, NEXT, PALMER, RICE, SAKA, waiverLeague, type WaiverLeague } from "../../support/convex/waivers.harness";
+import { ANN, ANNS_FIRST_DROP, ANNS_SECOND_DROP, BOB, CAT, NEXT, PALMER, RICE, SAKA, waiverLeague, type WaiverLeague } from "../../support/convex/waivers.harness";
 
 // The waiver run (#1198, spec/08 Waivers and free agency): at the league's run times it takes
 // every player whose 24 hours are up in the waiver order, a winner going to the bottom; a claim
@@ -86,6 +87,41 @@ describe("the letters", () => {
     expect(await w.lettersTo(CAT)).not.toContainEqual(ahead);
     expect(ahead.body).toBe(`Another team was ahead of you in the waiver order for ${nameOf(SAKA)}. Your claim is gone; nobody joined or left your squad for it.`);
     expect(dropGone.body).toContain(`${nameOf(ANNS_FIRST_DROP)} was no longer in your squad to drop.`);
+  });
+
+  const assignSaka = async (teamId: Id<"teams">) =>
+    (await actingAs(w.t, ADMIN)).mutation(api.squads.squads.assign, { leagueId: w.leagueId, playerCode: SAKA, teamId });
+
+  test("a claim for a player his own earlier claim won goes quietly, with no letter (#1465, S08.5)", async () => {
+    await w.onWaivers([SAKA]);
+    await w.claim(ANN, SAKA, ANNS_FIRST_DROP);
+    await w.claim(ANN, SAKA, ANNS_SECOND_DROP);
+    await w.runWaivers();
+
+    const squad = await w.squadCodes(w.annsTeam);
+    expect(squad).toEqual(expect.arrayContaining([SAKA, ANNS_SECOND_DROP]));
+    expect(squad).not.toContain(ANNS_FIRST_DROP);
+    expect(await w.pending(ANN)).toEqual([]);
+    expect((await w.lettersTo(ANN)).map(({ body }) => body).join(" ")).not.toContain("ahead of you");
+  });
+
+  test("a claim for a player the commissioner has put in his squad goes quietly, with no letter (#1465)", async () => {
+    await w.onWaivers([SAKA]);
+    await w.claim(BOB, SAKA);
+    await assignSaka(w.bobsTeam);
+    await w.runWaivers();
+
+    expect(await w.pending(BOB)).toEqual([]);
+    expect(await w.lettersTo(BOB)).not.toContainEqual(claimFailedLetter({ playerName: nameOf(SAKA), dropName: null, why: "ahead" }));
+  });
+
+  test("a claim for a player the commissioner has put in another team's squad still fails as another team's", async () => {
+    await w.onWaivers([SAKA]);
+    await w.claim(BOB, SAKA);
+    await assignSaka(w.catsTeam);
+    await w.runWaivers();
+
+    expect(await w.lettersTo(BOB)).toContainEqual(claimFailedLetter({ playerName: nameOf(SAKA), dropName: null, why: "ahead" }));
   });
 
   test("a claim with a drop names who went, and files both as squad moves", async () => {
