@@ -1,7 +1,8 @@
 import { expect, test } from "vitest";
 import { api } from "../../../convex/_generated/api";
 import { FIRST_SCORING } from "../../../convex/scoring/firstScoring";
-import { mostFirst, rankAmong } from "../../../convex/scouting/raceOrder";
+import { mostFirst } from "../../../convex/scouting/raceOrder";
+import { rankAmong } from "../../../convex/shared/ranks";
 import { refusals } from "../../../convex/shared/leagueAccess";
 import { actingAs, OUTSIDER } from "../../support/convex/leagues.harness";
 import { expectRefused } from "../../support/convex/test.harness";
@@ -53,10 +54,10 @@ test("the stats where fewer is better rank the team with fewest 1st, the rest th
   const totals = [3, 0, 0, 1];
   for (const stat of ["red_cards", "yellow_cards", "own_goals", "goals_conceded", "penalties_missed"]) {
     expect(mostFirst(stat)).toBe(false);
-    expect(totals.map((total) => rankAmong(stat, total, totals))).toEqual([4, 1, 1, 3]);
+    expect(totals.map((total) => rankAmong(total, totals, mostFirst(stat)))).toEqual([4, 1, 1, 3]);
   }
   expect(mostFirst("goals_scored")).toBe(true);
-  expect(totals.map((total) => rankAmong("goals_scored", total, totals))).toEqual([1, 3, 3, 2]);
+  expect(totals.map((total) => rankAmong(total, totals, mostFirst("goals_scored")))).toEqual([1, 3, 3, 2]);
 });
 
 test("only the catalogue's stats are shown: FPL's own bonus never is", async () => {

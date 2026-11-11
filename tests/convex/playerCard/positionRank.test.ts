@@ -1,7 +1,7 @@
 import { beforeEach, expect, test } from "vitest";
 import { api } from "../../../convex/_generated/api";
 import type { SlotPosition } from "../../../convex/lineup/pitch";
-import { placeOf } from "../../../convex/playerCard/cardPoints";
+import { rankOfPlayer } from "../../../convex/playerCard/cardPoints";
 import { POSITIONS, type Position } from "../../../convex/positions/positionTables";
 import { CHELSEA, insertPlayers } from "../../support/convex/footballRows.harness";
 import { actingAs, OUTSIDER } from "../../support/convex/leagues.harness";
@@ -69,5 +69,5 @@ test("a place is one more than how many have more points", () => {
     { code: 4, points: 10 },
     { code: 5, points: null },
   ];
-  expect([1, 2, 3, 4, 5, 6].map((code) => placeOf(players, code))).toEqual([2, 1, 2, 4, null, null]);
+  expect([1, 2, 3, 4, 5, 6].map((code) => rankOfPlayer(players, code))).toEqual([2, 1, 2, 4, null, null]);
 });

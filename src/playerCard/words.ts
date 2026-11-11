@@ -2,9 +2,10 @@
 
 import type { CategoryWhy, Cut, PricedBy, SlotValue } from "../../convex/scoring/scoring";
 import { afterLastMatchWords, type FirstRun } from "../myTeam/claims/words";
+import { LAST_MATCHES_SHOWN } from "./gameLog";
 import { AREA_WORDS, figureWords, gameweekShort, gameweekWords, seasonShortWords, signedWords, versusWords, whenWords } from "../shared/words";
 
-export { figureWords, freeAgentWords, noFigureWords } from "../shared/words";
+export { figureWords, noFigureWords } from "../shared/words";
 
 export const backWords = "Back";
 export const loadingWords = "Loading the player…";
@@ -18,7 +19,7 @@ export const noPositionsWords = "No position yet";
 export const ownedByWords = "Owned by";
 export const chanceWords = (percent: number) => `${percent}% chance of playing next round`;
 /** His figures beside his name, at the position the switch is on (spec/12 S12.1; #1027). */
-export const figureLabels = { seasonPoints: "Base points", aMatch: "A match", minutes: "Minutes", lastFive: "Last 5" } as const;
+export const figureLabels = { seasonPoints: "Base points", aMatch: "A match", minutes: "Minutes", lastFive: `Last ${LAST_MATCHES_SHOWN}` } as const;
 /** His rank among every player holding the position the switch is on (Craig, 9 Nov 2026, on
  *  #1027): "Rank at CAM", "4th of 38". */
 export const rankLabel = (position: string | null) => (position === null ? "Rank" : `Rank at ${position}`);

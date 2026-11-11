@@ -5,7 +5,9 @@ import {
   categoryName,
   categoryShortCode,
 } from "../../../convex/scoring/categories";
-import { mostFirst, rankAmong } from "../../../convex/scouting/raceOrder";
+import { GOALS } from "../../../convex/scoring/statKeys";
+import { mostFirst } from "../../../convex/scouting/raceOrder";
+import { rankAmong } from "../../../convex/shared/ranks";
 import { cellClassOf, ColumnHeads } from "../../ui/ColumnHeads";
 import { Loading, Panel } from "../../ui/Panel";
 import { useLastLoaded } from "../../shared/useLastLoaded";
@@ -24,7 +26,7 @@ import {
 } from "../words";
 
 /** The race opens on goals, the first category the site's scoring has always scored. */
-const OPENING_STAT = "goals_scored";
+const OPENING_STAT = GOALS;
 const RANK_BY_ID = "stat-race-rank-by";
 
 /** Scouting's Stat race tab (#800, spec/19 The stat race; docs/design/approved/scouting/
@@ -168,7 +170,7 @@ function RaceTable({
                 className="border-t border-panel-rule aria-current:shadow-current-edge"
               >
                 <td className={`${cellClasses("rank")} text-soft`}>
-                  {rankAmong(stat, team.stat, totals)}
+                  {rankAmong(team.stat, totals, mostFirst(stat))}
                 </td>
                 <th scope="row" className={cellClasses("team")}>
                   <button
@@ -214,9 +216,9 @@ function TeamPanel({ team, race }: { team: RacingTeam; race: StatRace }) {
           {race.categories.map((category) => {
             const total = team.stats[category] ?? 0;
             const rank = rankAmong(
-              category,
               total,
               race.teams.map((each) => each.stats[category] ?? 0),
+              mostFirst(category),
             );
             return (
               <tr key={category} className="border-t border-panel-rule">

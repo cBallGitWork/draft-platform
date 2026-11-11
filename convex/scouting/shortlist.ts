@@ -3,11 +3,11 @@ import type { Doc, Id } from "../_generated/dataModel";
 import { mutation, query, type MutationCtx, type QueryCtx } from "../_generated/server";
 import { MOST_TEAMS } from "../leagues/leagueLimits";
 import { bylineOf, fileLetter } from "../mail/letters";
-import { shortlistedClearedLetter, shortlistedDroppedLetter, shortlistedReleasedLetter } from "./shortlistWords";
+import { shortlistedClearedLetter, shortlistedDroppedLetter, shortlistedReleasedLetter, shortlistRefusals } from "./shortlistWords";
 import { clubRecord } from "../schema";
 import { takeAllOrThrow } from "../shared/cappedRead";
 import { memberOf, refuse, refusals, teamsOf } from "../shared/leagueAccess";
-import { clubByCode, clubOf, heldPlayerByCode, playerByCode } from "../shared/players";
+import { clubByCode, clubOf, hasLeft, heldPlayerByCode, playerByCode } from "../shared/players";
 import { ownerOf } from "../squads/squadPlace";
 
 // The shortlist (spec/19, The shortlist; #374): a manager's own list of players for the season, in
@@ -19,11 +19,6 @@ import { ownerOf } from "../squads/squadPlace";
 /** The most players one shortlist holds: room to follow a fifth of the Premier League. A bound for
  *  reading it, as MOST_IN_SQUAD is a squad's. Claude's choice, not yet Craig's. */
 export const SHORTLIST_MOST = 100;
-
-export const shortlistRefusals = {
-  playerGone: (name: string) => `${name} has left the Premier League, so he can't be shortlisted.`,
-  full: `A shortlist holds at most ${SHORTLIST_MOST} players. Take one off first.`,
-};
 
 /** A player on a manager's own list: the shortlist, or the draft queue or do-not-draft list. */
 export const listedPlayer = v.object({
@@ -78,7 +73,7 @@ export async function listedPlayers(ctx: QueryCtx, leagueId: Id<"leagues">, code
         fullName: player.fullName,
         club: clubOf(club),
         ownerTeamName: (await owner(playerCode))?.name ?? null,
-        gone: player.droppedAt !== undefined,
+        gone: hasLeft(player),
       };
     }),
   );
@@ -107,9 +102,9 @@ export const add = mutation({
   handler: async (ctx, { leagueId, playerCode }) => {
     const team = await ownTeam(ctx, leagueId);
     const player = (await playerByCode(ctx, playerCode)) ?? refuse(refusals.noPlayer);
-    if (player.droppedAt !== undefined) refuse(shortlistRefusals.playerGone(player.name));
+    if (hasLeft(player)) refuse(shortlistRefusals.playerGone(player.name));
     if ((await entryOf(ctx, team._id, playerCode)) !== null) return null;
-    if ((await shortlistOf(ctx, team._id)).length >= SHORTLIST_MOST) refuse(shortlistRefusals.full);
+    if ((await shortlistOf(ctx, team._id)).length >= SHORTLIST_MOST) refuse(shortlistRefusals.full(SHORTLIST_MOST));
     await ctx.db.insert("shortlistPlayers", { leagueId, teamId: team._id, playerCode });
     return null;
   },

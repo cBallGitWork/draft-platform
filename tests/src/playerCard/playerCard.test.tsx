@@ -21,7 +21,6 @@ import {
   chanceWords,
   dropWords,
   figureLabels,
-  freeAgentWords,
   goneWords,
   LAST_SEASON_TITLE,
   lastSeasonNotHeldWords,
@@ -45,7 +44,7 @@ import { freeScoutsWords, sendScoutWords } from "../../../src/scouting/scouts/wo
 import { addToShortlistWords } from "../../../src/scouting/shortlist/words";
 import { squadsPath } from "../../../src/squads/paths";
 import { crestUrl } from "../../../src/ui/ClubName";
-import { difficultyNotRatedWords, gameweekShort } from "../../../src/shared/words";
+import { difficultyNotRatedWords, freeAgentWords, gameweekShort } from "../../../src/shared/words";
 import { ARSENAL, COVENTRY } from "../../support/convex/footballRows.harness";
 import { HELD, NOT_ARRIVED, openCard, PRICED, RICE, SAKA, SAKA_POTATOES } from "../../support/src/playerCardScreen.harness";
 import { commissioned, league, manager, managerIn, miniBeta, openApp } from "../../support/src/shell.harness";

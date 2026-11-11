@@ -20,6 +20,9 @@ export const CLUB_PLAYERS_MOST = 100;
 /** The most players a search returns: enough to pick from, few enough to read. */
 const FOUND_MOST = 20;
 
+/** Whether the player has left the Premier League: the feed no longer sends him. */
+export const hasLeft = (player: Pick<Doc<"players">, "droppedAt">) => player.droppedAt !== undefined;
+
 /** The clubs in the Premier League now, the ones the feed has dropped left out. */
 export function currentClubs(ctx: QueryCtx): Promise<Doc<"clubs">[]> {
   return takeAllOrThrow(
