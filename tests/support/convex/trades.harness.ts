@@ -10,7 +10,8 @@ import type { TradeRules } from "../../../convex/rules/leagueRulesShape";
 import { REVIEW_MS } from "../../../convex/trades/tradeLimits";
 import { changeEveryRules, rulesRevision } from "./leagueRules.harness";
 import { pendingJobs } from "./test.harness";
-import { actingAs, COMMISSIONER, type TestConvex } from "./leagues.harness";
+import { draftSteps } from "./draft.harness";
+import { actingAs, COMMISSIONER, teamName, type TestConvex } from "./leagues.harness";
 import { pickGapPasses } from "./pickWindow.harness";
 import { ANN, ANNS_FIRST_DROP, BOB, CAT, PALMER, RICE, SAKA, waiverLeague } from "./waivers.harness";
 
@@ -22,23 +23,21 @@ export const pickOf = (teamId: Id<"teams">, round: number) => ({ round, teamId }
 /** The pick trade tests' steps (#1096, #1457) in the league `current` gives, read at each call, as
  *  each test makes its own in `beforeEach`. */
 export function pickTradeSteps(current: () => { t: TestConvex; leagueId: Id<"leagues"> }) {
-  const as = (email: string) => actingAs(current().t, email);
+  const { as, read, start, pick } = draftSteps(current);
   return {
     as,
-    /** The commissioner starts the league's draft. */
-    start: async () => (await as(COMMISSIONER)).mutation(api.draft.draftStart.start, { leagueId: current().leagueId }),
+    start,
     /** The pick on the clock and the team making it, or null once the draft isn't live. */
     onTheClock: async () => {
-      const draft = await (await as(COMMISSIONER)).query(api.draft.draftStart.ofLeague, { leagueId: current().leagueId });
+      const draft = await read();
       return draft.status === "live" ? { pick: draft.onTheClock.pick, teamId: draft.onTheClock.teamId } : null;
     },
     /** `email` picks, and the pick's 10 seconds to undo it pass. */
     makePick: async (email: string, playerCode: number) => {
-      const { t, leagueId } = current();
-      await (await as(email)).mutation(api.draft.draftPicks.makePick, { leagueId, playerCode });
-      await pickGapPasses(t);
+      await pick(email, playerCode);
+      await pickGapPasses(current().t);
     },
-    teamName: async (teamId: Id<"teams">) => (await current().t.run((ctx) => ctx.db.get("teams", teamId)))!.name,
+    teamName: (teamId: Id<"teams">) => teamName(current().t, teamId),
   };
 }
 
