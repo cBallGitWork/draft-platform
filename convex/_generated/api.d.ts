@@ -259,6 +259,7 @@ import type * as scouting_playersOrder from "../scouting/playersOrder.js";
 import type * as scouting_raceOrder from "../scouting/raceOrder.js";
 import type * as scouting_scoutReports from "../scouting/scoutReports.js";
 import type * as scouting_scoutWords from "../scouting/scoutWords.js";
+import type * as scouting_scoutingPlayers from "../scouting/scoutingPlayers.js";
 import type * as scouting_scouts from "../scouting/scouts.js";
 import type * as scouting_shortlist from "../scouting/shortlist.js";
 import type * as scouting_shortlistWords from "../scouting/shortlistWords.js";
@@ -615,6 +616,7 @@ declare const fullApi: ApiFromModules<{
   "scouting/raceOrder": typeof scouting_raceOrder;
   "scouting/scoutReports": typeof scouting_scoutReports;
   "scouting/scoutWords": typeof scouting_scoutWords;
+  "scouting/scoutingPlayers": typeof scouting_scoutingPlayers;
   "scouting/scouts": typeof scouting_scouts;
   "scouting/shortlist": typeof scouting_shortlist;
   "scouting/shortlistWords": typeof scouting_shortlistWords;

@@ -110,10 +110,10 @@ export const matchStatsTables = {
    *  player by any stat without reading a season of records: one row a player and season, kept
    *  in step as each record is written. `season` is the year it starts (shared/time.ts's
    *  `seasonStartYear` of the match's kickoff). */
-  playerSeasonStats: defineTable({ season: v.number(), playerCode: v.number(), stats: v.record(v.string(), v.number()) }).index(
-    "by_season_and_playerCode",
-    ["season", "playerCode"],
-  ),
+  playerSeasonStats: defineTable({ season: v.number(), playerCode: v.number(), stats: v.record(v.string(), v.number()) })
+    .index("by_season_and_playerCode", ["season", "playerCode"])
+    // His newest season's, for his Scouting row (scouting/scoutingPlayers.ts, #1559).
+    .index("by_playerCode_and_season", ["playerCode", "season"]),
   /** Each player's base points this season (#525, seasonPoints.ts), so Scouting lists every
    *  player's season points without pricing a season of records: one row a player and season,
    *  set afresh from his records whenever one is written. `points` holds the season's sum at each

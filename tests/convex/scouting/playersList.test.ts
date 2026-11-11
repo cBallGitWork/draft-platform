@@ -12,11 +12,12 @@ import { listOf, NO_FIGURES } from "../../../convex/scouting/playersOrder";
 import { FPL_SEASON } from "../../support/recorded/plSeasons.payloads";
 import { refusals } from "../../../convex/shared/leagueAccess";
 import { SEASON_PLAYERS_MOST } from "../../../convex/stats/matchRecords";
+import { seasonTotals } from "../../../convex/stats/seasonStats";
 import { CLUB_PLAYERS_MOST } from "../../../convex/shared/players";
 import { COMMISSIONER, MANAGERS, actingAs, addManagers, adminCreatesLeague, teamName, type TestConvex } from "../../support/convex/leagues.harness";
 import { ARSENAL, CHELSEA, GONE, SAKA, insertClubs, insertDroppedPlayer, insertPlayers } from "../../support/convex/footballRows.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
-import { expectRefused } from "../../support/convex/test.harness";
+import { expectRefused, ROWS_TO_THE_CAP } from "../../support/convex/test.harness";
 
 // Scouting's players list (#373, spec/19 The players list): every Premier League player now, for
 // anyone in the league, filtered by who holds him, his position and his club, and sorted, as the
@@ -233,13 +234,26 @@ describe("any stat, as a season total (spec/19, sortable by any stat)", () => {
     await expect(listAs(ANN, {}, BY_NAME, "not_a_stat")).rejects.toThrow("No stat not_a_stat is in the catalogue");
   });
 
-  test(`more than ${SEASON_PLAYERS_MOST} players with totals in a season throws, never a silent cut`, async () => {
-    await t.run(async (ctx) => {
+  // The list reads each player's totals from his Scouting row (#1559); per 90 and the draft's
+  // players still read the season's totals whole, and hit this cap.
+  const holdTotalsPastTheCap = () =>
+    t.run(async (ctx) => {
       for (let code = 0; code < SEASON_PLAYERS_MOST; code += 1) {
         await ctx.db.insert("playerSeasonStats", { season: THIS_SEASON, playerCode: 50_000 + code, stats: {} });
       }
     });
-    await expect(listAs(ANN, {}, BY_NAME, "goals_scored")).rejects.toThrow(`More than ${SEASON_PLAYERS_MOST} players have totals`);
+
+  test(`more than ${SEASON_PLAYERS_MOST} players with totals in a season throws, never a silent cut`, async () => {
+    await holdTotalsPastTheCap();
+    await expect(t.run((ctx) => seasonTotals(ctx, THIS_SEASON))).rejects.toThrow(`More than ${SEASON_PLAYERS_MOST} players have totals`);
+  });
+
+  test("the list reads each player's totals from his own row, never the season's every total (#1559)", async () => {
+    await holdTotalsPastTheCap();
+    expect(await totalsListed("goals_scored", BY_NAME, { clubCode: ARSENAL.code })).toEqual([
+      ["Rice", 0],
+      ["Saka", 3],
+    ]);
   });
 });
 
@@ -253,7 +267,7 @@ describe("who may read it", () => {
   });
 });
 
-test(`more than ${LISTED_PLAYERS_MOST} current players throws, never a silent cut`, async () => {
+test(`more than ${LISTED_PLAYERS_MOST} current players throws, never a silent cut`, ROWS_TO_THE_CAP, async () => {
   const clubsNeeded = Math.ceil((LISTED_PLAYERS_MOST + 1) / CLUB_PLAYERS_MOST);
   await t.run(async (ctx) => {
     let code = 10_000;

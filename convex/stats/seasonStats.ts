@@ -10,6 +10,7 @@ import { playerRecords } from "./seasonRecords";
 import { addStats, sumStats, type Stats } from "./statTotals";
 import { readOnce } from "../shared/readOnce";
 import { groupedBy } from "../shared/groupedBy";
+import { keepScoutingPlayer, keepScoutingPlayers } from "../scouting/scoutingPlayers";
 
 // Each player's season totals (#373, the playerSeasonStats table): his match records added up, so
 // Scouting can sort every player by any stat with one small row a player, where adding up a
@@ -17,6 +18,7 @@ import { groupedBy } from "../shared/groupedBy";
 // whole (both feeds in, or an unused substitute), as the player card prices it. `writeRecords`
 // (matchStats.ts) keeps them in step, taking a changed record's old stats away and adding its new
 // ones; `rebuild` adds every record up afresh, for the records written before the table existed.
+// Each write keeps the player's Scouting row's copy of his newest season's in step (#1559).
 
 /** One player's record in a match: its counted stats as held before a write (undefined for a new
  *  one) and as written. */
@@ -62,6 +64,7 @@ export async function moveSeasonTotals(ctx: MutationCtx, changes: readonly Recor
     if (row !== null) await ctx.db.patch("playerSeasonStats", row._id, { stats });
     else if (Object.keys(stats).length > 0) await ctx.db.insert("playerSeasonStats", { season, playerCode, stats });
   }
+  await keepScoutingPlayers(ctx, changes.map(({ playerCode }) => playerCode));
 }
 
 /** Every player's totals for `season`, by his code. One with none held has nothing counted in it:
@@ -124,4 +127,5 @@ async function rebuildPlayer(ctx: MutationCtx, playerCode: number, seasonOf: (fi
     if (row !== null) await ctx.db.replace("playerSeasonStats", row._id, { season, playerCode, stats });
     else if (Object.keys(stats).length > 0) await ctx.db.insert("playerSeasonStats", { season, playerCode, stats });
   }
+  await keepScoutingPlayer(ctx, playerCode);
 }
