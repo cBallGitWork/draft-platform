@@ -51,13 +51,13 @@ const openNotesWith = async (lab: LabReport) => {
   await screen.findByRole("heading", { name: labTitle });
 };
 
-describe("an announced patch's notes", () => {
-  it("carry its lab report", async () => {
-    await openNotesWith(LAB_REPORT);
-    expect(screen.getByText(offTargetWords)).toBeTruthy();
-  });
+it("an announced patch's notes carry its lab report", async () => {
+  await openNotesWith(LAB_REPORT);
+  expect(screen.getByText(offTargetWords)).toBeTruthy();
+});
 
-  it("list each team instruction the set scores as not tested, naming any stat the past seasons lack (#1541)", async () => {
+describe("an announced patch's notes", () => {
+  it("list each team instruction the set scores as not tested, naming any stat the past seasons lack (S14.13; #1541)", async () => {
     await openNotesWith(LAB_REPORT);
     expect(screen.getByText(instructionsHint)).toBeTruthy();
     expect(screen.getByRole("rowheader", { name: "Gung-ho" }).closest("tr")?.textContent).toContain(notTestedYetWords);
