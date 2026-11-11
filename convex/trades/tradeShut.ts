@@ -7,7 +7,7 @@ import { latestRules } from "../rules/rulesHistory";
 import { gameweekUnderWay, inUnplayedGameweek, latestBegun } from "../waivers/waiverLock";
 
 // When no trade is offered or accepted (spec/08 Trades; #383): while the league's draft is live,
-// when only its picks change squads; once its trade deadline, a league setting off by default, has
+// when only its picks change squads (S08.7, Craig, 11 Nov 2026, #1482); once its trade deadline, a league setting off by default, has
 // passed, which is when that gameweek's last match is over (Craig, 6 Nov 2026); and through a
 // gameweek the league doesn't play, from its deadline until its last match is over (spec/13:
 // "when its international break, we lock everything"). And no offer goes to or from a team on

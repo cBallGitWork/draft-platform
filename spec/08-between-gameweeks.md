@@ -80,6 +80,9 @@ From `/grill trades` (25 Oct 2026).
   points with the old team.
 - A trade deadline is a league setting, off by default: no trades after a gameweek the
   commissioner picks.
+- No player trades until the draft is over: while it is live, mid-season drafts included, no offer
+  is made or accepted, as free agency and the commissioner's moves wait for it (Craig, 11 Nov
+  2026, #1482). `S08.7`
 - Trades come after the mini beta, by August, with the veto and the league vote (`spec/15`;
   the vote, Craig, 31 Oct 2026).
 - Under a veto, the commissioner gets a Mail letter for each accepted trade, with Block in it;
