@@ -14,15 +14,7 @@ import { CRON_TRIGGER, withHeartbeat } from "../heartbeats/heartbeat";
 import { fixtureByCode } from "../shared/fixtures";
 import { findClubByCode, playerByCode } from "../shared/players";
 import { readFpl } from "./fpl/fpl";
-import {
-  clubRecord,
-  fixtureRecord,
-  footballSyncFields,
-  syncTrigger,
-  gameweekRecord,
-  playerRecord,
-  tableWrites,
-} from "../schema";
+import { clubRecord, fixtureRecord, footballSyncFields, syncTrigger, gameweekRecord, playerRecord, tableWrites } from "../schema";
 import { BATCH_SIZE, LATEST_RUNS } from "../shared/syncRuns";
 import { keepDroppedDeadlines, recordPassedDeadlines } from "../gameweeks/deadlineRecorder";
 import { emailIfFailed } from "../admin/feedFailureEmails";
@@ -31,6 +23,7 @@ import { seedColours } from "./clubKits";
 import { repriceMatches } from "../stats/seasonPointsMoves";
 import { rebuildIfNoneKept } from "../stats/seasonRebuilds";
 import { putNewPlayersOnWaivers } from "../waivers/waiverPlayers";
+import { keepScoutingPlayers } from "../scouting/scoutingPlayers";
 import { heldGameweek, heldSeason } from "../gameweeks/seasonGameweeks";
 import { followKickoffs } from "../scoring/patchKickoffs";
 import { inKickoffOrder, placeInWindows } from "../gameweeks/roundStarts";
@@ -117,6 +110,8 @@ export const upsertPlayers = internalMutation({
     });
     // New, or sent again after a gap (#1489), in his row's transaction: no league sees a free agent first (#1197).
     await putNewPlayersOnWaivers(ctx, newcomers, Date.now());
+    // Every one sent, changed or not, so a player held from before Scouting's rows gets his (#1559).
+    await keepScoutingPlayers(ctx, rows.map(({ code }) => code));
     return upserted;
   },
 });
@@ -173,6 +168,8 @@ export const markDropped = internalMutation({
       await keepDroppedDeadlines(ctx, thisSeason.map(({ number }) => number));
     }
     await Promise.all(dropped.map((held) => ctx.db.patch(table, held._id, { droppedAt })));
+    // On the players table, its page holds players: each leaves Scouting's list with his row (#1559).
+    if (table === "players") await keepScoutingPlayers(ctx, (dropped as Doc<"players">[]).map(({ code }) => code));
     // On the fixtures table, its page holds fixtures.
     if (table === "fixtures") {
       await repriceMatches(ctx, dropped as Doc<"fixtures">[]);

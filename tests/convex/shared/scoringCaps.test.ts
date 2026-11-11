@@ -17,6 +17,7 @@ import { FINAL_SCORES_MOST } from "../../../convex/gameweekScorer/storedScores";
 import { gameweekInputs, leagueReads } from "../../../convex/gameweekScorer/teamGameweek";
 import { ANN, GAMEWEEK, holdHullAndEverton, PHILLIPS, scoresLeague, type ScoresLeague } from "../../support/convex/gameweekScores.harness";
 import { actingAs } from "../../support/convex/leagues.harness";
+import { serverList } from "../../support/convex/playersList.harness";
 import { EVERTON, HULL, HULL_EVERTON } from "../../support/convex/matchStats.harness";
 import { ROWS_TO_THE_CAP } from "../../support/convex/test.harness";
 
@@ -202,7 +203,7 @@ test(`a league's overrides for Scouting's season points: ${LEAGUE_OVERRIDES_MOST
       (ctx, index) =>
         ctx.db.insert("pointsOverrides", { leagueId, gameweek: GAMEWEEK, fixtureCode: HULL_EVERTON, playerCode: MADE_UP_CODES + index, points: 0, reason: "", by: ANN, at: 0 }),
     ),
-    () => ann.query(api.scouting.playersList.list, { leagueId, ...everyClub }),
+    () => serverList(ann, { leagueId, ...everyClub }),
     `League ${leagueId} holds more than ${LEAGUE_OVERRIDES_MOST} overrides, so season points would be cut short`,
   );
 });
@@ -256,7 +257,7 @@ test(`the players owned in a league for the players list: ${OWNED_IN_LEAGUE_MOST
       async (ctx) => (await ctx.db.query("squadPlayers").collect()).length,
       (ctx, index) => ctx.db.insert("squadPlayers", { leagueId, teamId: annsTeam, playerCode: MADE_UP_CODES + index }),
     ),
-    () => ann.query(api.scouting.playersList.list, { leagueId, ...everyClub }),
+    () => serverList(ann, { leagueId, ...everyClub }),
     `More than ${OWNED_IN_LEAGUE_MOST} players are owned in league ${leagueId}, so the list would be cut short`,
   );
 });

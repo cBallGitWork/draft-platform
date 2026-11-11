@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, test } from "vitest";
 import type { Id } from "../../../convex/_generated/dataModel";
+import { SEASON_GAMEWEEKS } from "../../../convex/gameweeks/usedGameweeks";
 import { DAY_MS, WEEK_MS } from "../../../convex/shared/time";
 import { clubsByCode } from "../../../convex/shared/players";
 import { squadSchedule } from "../../../convex/squads/squadSchedule";
@@ -9,8 +10,8 @@ import { ARSENAL, CHELSEA, insertClubs } from "../../support/convex/footballRows
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
 
 // The Squad tab's Schedule view (#1006): his club's matches in the next six gameweeks, from the one
-// a lineup is being set for; a blank week has none, a double two, and the gameweeks stop at 38
-// (Craig, 6 Nov 2026).
+// a lineup is being set for; a blank week has none, a double two, and the gameweeks are those the
+// league plays, so they stop at 38 or at its last (Craig, 6 Nov 2026; #1561).
 
 let t: TestConvex;
 let leagueId: Id<"leagues">;
@@ -63,6 +64,17 @@ describe("the schedule", () => {
   test("stops at gameweek 38 near the season's end", async () => {
     await holdSeason(35);
     expect((await scheduleOf()).gameweeks).toEqual([35, 36, 37, 38]);
+  });
+
+  test("holds only the gameweeks the league plays: one it unticked is skipped, and they stop at its last (#1561)", async () => {
+    await holdSeason(10);
+    await t.run((ctx) => ctx.db.patch("leagues", leagueId, { unusedGameweeks: [11] }));
+    const { gameweeks, byClub } = await scheduleOf();
+    expect(gameweeks).toEqual([10, 12, 13, 14, 15, 16]);
+    expect(byClub.get(ARSENAL.code)!.map(({ gameweek }) => gameweek)).toEqual([10, 12, 12]);
+
+    await t.run((ctx) => ctx.db.patch("leagues", leagueId, { unusedGameweeks: SEASON_GAMEWEEKS.filter((gameweek) => gameweek > 12) }));
+    expect((await scheduleOf()).gameweeks).toEqual([10, 11, 12]);
   });
 
   test("holds no gameweeks once every gameweek has begun", async () => {

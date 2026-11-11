@@ -2,12 +2,15 @@ import { v, type Infer } from "convex/values";
 import type { Doc, Id } from "../_generated/dataModel";
 import { query, type QueryCtx } from "../_generated/server";
 import { MOST_IN_SQUAD, MOST_TEAMS } from "../leagues/leagueLimits";
-import { positionsNow } from "../positions/playerPositions";
+import { positionsFrom } from "../positions/playerPositions";
+import { howPositionsCount } from "../positions/positionSettings";
 import { clubRecord, position } from "../schema";
 import { takeAllOrThrow } from "../shared/cappedRead";
 import { memberOf, teamsOf } from "../shared/leagueAccess";
-import { clubOf, currentClubs, currentPlayersAt, playerByCode } from "../shared/players";
+import { clubOf, currentClubs, currentPlayersAt } from "../shared/players";
+import { newestSeasonWithTotals } from "../stats/seasonStats";
 import type { Stats } from "../stats/statTotals";
+import { checkScoutingPlayersHeld, currentScoutingPlayersAt, scoutingPlayerByCode, type ScoutingPlayer } from "./scoutingPlayers";
 import { periodPointsIn, periodTotals } from "./period";
 import { period } from "./periods";
 import { listFigures, shownStat } from "./playersOrder";
@@ -34,9 +37,11 @@ import { WAIVER_PLAYERS_READ_MOST } from "../waivers/waiverRun";
 // The figures, the shown stat and the Pts column follow the list's period (period.ts; #1028, story
 // 3): the season, or the last 4 or 6 finished gameweeks. His season points stay beside them, for
 // his panel.
+// Each player is read from his one Scouting row (scoutingPlayers.ts, #1559): his name, club,
+// what his positions are worked out from by the league's settings, and his season's totals.
 
 /** The most players the list reads: the Premier League's 20 squads as FPL lists them, a few dozen
- *  a club, with room. Each costs one read of his positions row, so a full list stays far inside a
+ *  a club, with room. Each costs one read of his Scouting row, so a full list stays far inside a
  *  query's read limits. More throws, never a silent cut. */
 export const LISTED_PLAYERS_MOST = 1200;
 
@@ -144,18 +149,23 @@ export const list = query({
     if (stat !== null) checkShownStat(stat, ownStats);
     const clubs = (await currentClubs(ctx)).sort((one, other) => one.name.localeCompare(other.name));
     const listedClubs = clubCode === null ? clubs : clubs.filter((each) => each.code === clubCode);
-    const players = await currentPlayersOf(ctx, listedClubs);
+    const players = await currentScoutingPlayersOf(ctx, listedClubs);
+    if (players.length === 0) await checkScoutingPlayersHeld(ctx);
     const ownerOf = await ownersIn(ctx, leagueId);
     const onWaiversOf = await onWaiversIn(ctx, leagueId);
-    const positionsOfNow = await positionsNow(ctx, leagueId);
+    const how = await howPositionsCount(ctx, leagueId);
     const { lastSeason, pointsOf } = await shownSeasonPoints(ctx, leagueId);
-    const over = await periodTotals(ctx, period);
-    const { totals } = over;
-    const periodPointsOf = period === "season" ? pointsOf : await periodPointsIn(ctx, leagueId, over);
+    // The season's totals are on each player's row; a few gameweeks' are added up from their matches.
+    const over = period === "season" ? null : await periodTotals(ctx, period);
+    const season = over === null ? await newestSeasonWithTotals(ctx) : null;
+    const totalsOf = (player: ScoutingPlayer): Stats | undefined =>
+      over === null ? (player.totals?.season === season ? player.totals.stats : undefined) : over.totals.get(player.code);
+    const periodPointsOf = over === null ? pointsOf : await periodPointsIn(ctx, leagueId, over);
     const listedClubOf = new Map(clubs.map((each) => [each.code, clubOf(each)]));
 
-    const rowOf = async (player: Doc<"players">): Promise<ListedRow> => {
-      const positions = await positionsOfNow(player.code);
+    const rowOf = (player: ScoutingPlayer): ListedRow => {
+      const positions = positionsFrom(player.positions, how).positions.map(({ position }) => position);
+      const totals = totalsOf(player);
       return {
         code: player.code,
         name: player.name,
@@ -166,12 +176,12 @@ export const list = query({
         onWaivers: onWaiversOf.get(player.code) ?? null,
         seasonPoints: pointsOf(player.code, positions),
         points: periodPointsOf(player.code, positions),
-        figures: listFigures(totals.get(player.code)),
-        stat: shownStat(withOwnTotals(totals.get(player.code), stat, set), stat),
+        figures: listFigures(totals),
+        stat: shownStat(withOwnTotals(totals, stat, set), stat),
       };
     };
-    const rows = await Promise.all(players.map(rowOf));
-    const listed = { clubs: [...listedClubOf.values()], ownStats, players: rows, pointsSeason: lastSeason, periodGameweeks: over.gameweeks };
+    const rows = players.map(rowOf);
+    const listed = { clubs: [...listedClubOf.values()], ownStats, players: rows, pointsSeason: lastSeason, periodGameweeks: over?.gameweeks ?? [] };
     if (keep === undefined) return listed;
     const kept = rows.find(({ code }) => code === keep) ?? (await keptOutside(ctx, keep, listedClubOf, rowOf));
     return { ...listed, kept };
@@ -184,9 +194,9 @@ async function keptOutside(
   ctx: QueryCtx,
   code: number,
   clubs: ReadonlyMap<number, unknown>,
-  rowOf: (player: Doc<"players">) => Promise<ListedRow>,
+  rowOf: (player: ScoutingPlayer) => ListedRow,
 ): Promise<ListedRow | null> {
-  const player = await playerByCode(ctx, code);
+  const player = await scoutingPlayerByCode(ctx, code);
   if (player === null || player.droppedAt !== undefined || !clubs.has(player.clubCode)) return null;
   return rowOf(player);
 }
@@ -207,7 +217,15 @@ export function withOwnTotals(totals: Stats | undefined, stat: string | null, se
 
 /** The current players at these clubs, at most LISTED_PLAYERS_MOST of them. */
 export async function currentPlayersOf(ctx: QueryCtx, clubs: readonly Doc<"clubs">[]): Promise<Doc<"players">[]> {
-  const players = (await Promise.all(clubs.map((each) => currentPlayersAt(ctx, each.code)))).flat();
+  return listedAtMost((await Promise.all(clubs.map((each) => currentPlayersAt(ctx, each.code)))).flat());
+}
+
+/** The Scouting rows of the current players at these clubs, at most LISTED_PLAYERS_MOST of them. */
+async function currentScoutingPlayersOf(ctx: QueryCtx, clubs: readonly Doc<"clubs">[]): Promise<ScoutingPlayer[]> {
+  return listedAtMost((await Promise.all(clubs.map((each) => currentScoutingPlayersAt(ctx, each.code)))).flat());
+}
+
+function listedAtMost<Player>(players: Player[]): Player[] {
   if (players.length > LISTED_PLAYERS_MOST) {
     throw new Error(`More than ${LISTED_PLAYERS_MOST} players are held as current, so the list would be cut short`);
   }
