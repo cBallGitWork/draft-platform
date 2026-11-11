@@ -47,7 +47,7 @@ export const liveDraft: DraftSeam = {
       [add, remove, move, addShortlist, turnOn, takeControlBack],
     );
   },
-  useCommissioner: (leagueId, now) => useQuery(api.draft.draftCommissioner.panel, { leagueId, now }),
+  useCommissioner: (leagueId) => useQuery(api.draft.draftCommissioner.panel, { leagueId }),
   useGreyedOnTheClock: (leagueId) => useQuery(api.draft.draftPlayers.greyedOnTheClock, { leagueId }),
   useCommissionerChanges: function useCommissionerChanges() {
     const start = useMutation(api.draft.draftStart.start);

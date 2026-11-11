@@ -5,7 +5,8 @@ import type { LeagueRules } from "../rules/leagueRulesShape";
 // himself or draws them at random (draftOrder.ts; Craig, 4 Nov 2026, on #1089). Pure: no I/O.
 
 /** Where the players nobody drafts go (spec/04, The picks): on waivers for the next run, or
- *  straight to the free agents (draftPicks.ts, at the last pick; #1197). */
+ *  straight to the free agents (pickWindow.ts `endDraft`, once the last pick's 10 seconds are
+ *  up; #1197). */
 export const UNDRAFTED_GO_TO = ["waivers", "freeAgents"] as const;
 export type UndraftedGoTo = (typeof UNDRAFTED_GO_TO)[number];
 
