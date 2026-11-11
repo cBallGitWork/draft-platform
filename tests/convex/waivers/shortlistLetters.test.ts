@@ -2,6 +2,8 @@ import { beforeEach, describe, expect, test } from "vitest";
 import { api } from "../../../convex/_generated/api";
 import { shortlistedClearedLetter, shortlistedDroppedLetter } from "../../../convex/scouting/shortlistWords";
 import { DAY_MS } from "../../../convex/shared/time";
+import { MOST_TEAMS } from "../../../convex/leagues/leagueLimits";
+import { CLEARED_READ_ONE_BY_ONE_MOST, SHORTLIST_MOST } from "../../../convex/scouting/shortlist";
 import { actingAs } from "../../support/convex/leagues.harness";
 import { nameOf } from "../../support/convex/lineupSquad.harness";
 import { ANN, ANNS_FIRST_DROP, BOB, CAT, PALMER, RICE, SAKA, waiverLeague, type WaiverLeague } from "../../support/convex/waivers.harness";
@@ -95,6 +97,31 @@ describe("shortlisted players clearing waivers", () => {
         body: `Nobody claimed ${nameOf(SAKA)} at the waiver run. He is a free agent, first come first served, and on your shortlist.`,
       },
     ]);
+  });
+
+  // Codes no real player has, for shortlist rows and waiver rows beside the ones a test names.
+  const otherCodes = (count: number) => Array.from({ length: count }, (_, index) => 900_000 + index);
+
+  test("only the cleared players' shortlist rows are read, however many the league holds (#1568)", async () => {
+    // More rows than the league-wide read may take, so reading them all would throw.
+    const rows = otherCodes(MOST_TEAMS * SHORTLIST_MOST + 1);
+    await w.t.run(async (ctx) => {
+      for (const playerCode of rows) await ctx.db.insert("shortlistPlayers", { leagueId: w.leagueId, teamId: w.bobsTeam, playerCode });
+    });
+    await w.onWaivers([SAKA]);
+    await shortlist(CAT, [SAKA]);
+    await w.runWaivers();
+
+    expect(await shortlistLettersTo(CAT)).toEqual([shortlistedClearedLetter([nameOf(SAKA)])]);
+  });
+
+  test("a run clearing more players than are read one by one files the same letters (#1568)", async () => {
+    await w.onWaivers([SAKA, PALMER, ...otherCodes(CLEARED_READ_ONE_BY_ONE_MOST)]);
+    await shortlist(BOB, [SAKA, PALMER]);
+    await w.runWaivers();
+
+    const names = [nameOf(SAKA), nameOf(PALMER)].sort((one, other) => one.localeCompare(other));
+    expect(await shortlistLettersTo(BOB)).toEqual([shortlistedClearedLetter(names)]);
   });
 
   test("a player whose 24 hours aren't up hasn't cleared: no letter", async () => {
