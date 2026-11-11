@@ -64,7 +64,7 @@ describe("this season", () => {
     expectColumnHeads(panel, [columns.gameweek, columns.opponent, columns.score, columns.minutes, ...SCORING_HEADS, columns.points]);
     // His goal, his assist, no yellow card, then his points.
     expect(cellsOf(season)).toEqual(["2", "2–1", "90", "1", "1", "0", "11"]);
-    expect(breakdownLines(2)).toEqual(["Goals scored 5 (1 at 5 each)", "Assists 4 (1 at 4 each for W)", "Minutes 2 (90, 2 for 60+)", scoredUnderWords(PRICED_VERSION)]);
+    expect(breakdownLines(2)).toEqual(["Goals scored 1 at 5 each 5", "Assists 1 at 4 each for W 4", "Minutes 90, 2 for 60 or more 2", scoredUnderWords(PRICED_VERSION)]);
   });
 
   it("a player priced at one position has no switch", async () => {
@@ -82,7 +82,7 @@ describe("this season", () => {
     expect(keys.map((key) => (key as HTMLInputElement).checked)).toEqual([true, false]);
     expect(cellsOf(season, 1)).toEqual(["2", "2–1", "90", "1", "1", "0", "12"]);
     await selectMatch(PRICED_OPPONENT, 1);
-    expect(breakdownLines(2)).toEqual(["Goals scored 5 (1 at 5 each)", "Assists 5 (1 at 5 each for CAM)", "Minutes 2 (90, 2 for 60+)", scoredUnderWords(PRICED_VERSION)]);
+    expect(breakdownLines(2)).toEqual(["Goals scored 1 at 5 each 5", "Assists 1 at 5 each for CAM 5", "Minutes 90, 2 for 60 or more 2", scoredUnderWords(PRICED_VERSION)]);
   });
 
   it("choosing another position re-prices every match there", async () => {
@@ -93,7 +93,7 @@ describe("this season", () => {
     expect((season.getByRole("radio", { name: "W" }) as HTMLInputElement).checked).toBe(true);
     expect(cellsOf(season, 1)).toEqual(["2", "2–1", "90", "1", "1", "0", "11"]);
     await selectMatch(PRICED_OPPONENT, 1);
-    expect(breakdownLines(2)).toEqual(["Goals scored 5 (1 at 5 each)", "Assists 4 (1 at 4 each for W)", "Minutes 2 (90, 2 for 60+)", scoredUnderWords(PRICED_VERSION)]);
+    expect(breakdownLines(2)).toEqual(["Goals scored 1 at 5 each 5", "Assists 1 at 4 each for W 4", "Minutes 90, 2 for 60 or more 2", scoredUnderWords(PRICED_VERSION)]);
   });
 
   it("the arrow keys move the switch, as a radio group", async () => {
@@ -151,15 +151,15 @@ describe("this season", () => {
     const { season } = await seasonOf();
 
     expect(cellsOf(season).at(-1)).toBe("−2");
-    expect(breakdownLines(2).slice(0, 2)).toEqual(["Minutes 1 (1 at 1 each)", "Yellow cards −3 (3 at −1 each)"]);
+    expect(breakdownLines(2).slice(0, 2)).toEqual(["Minutes 1 at 1 each 1", "Yellow cards 3 at −1 each −3"]);
     expect(screen.getByLabelText(roleLineLabel("Inside forward")).textContent).toBe("Inside forward: −1 (−1: 1 big chance missed)");
   });
 
   it("a match whose points may still move is marked live, and the card says why (#577)", async () => {
     openCard(AT_ONE, { cards: [{ ...AT_ONE, matches: [{ ...AT_W, provisional: true }] }] });
     const { season } = await seasonOf();
-    expect(cellsOf(season).at(-1)).toBe(`11${liveWords}`);
-    // "Live" after the points, in the log and the breakdown alike, says why on hover.
+    expect(cellsOf(season).at(-1)).toBe(`${liveWords}11`);
+    // "Live" before the points, in the log and the breakdown alike, says why on hover.
     expect(screen.getAllByText(liveWords).map((live) => live.title)).toEqual([provisionalWords, provisionalWords]);
   });
 

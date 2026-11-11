@@ -11,8 +11,8 @@ type Category = NamedCategories[number];
 const isShownLine = (category: Category): category is Extract<Category, { points: number }> =>
   category.points !== null && (category.points !== 0 || category.why.cut !== null);
 
-/** A line for each category he earned or lost points in, saying why, then the version of the
- *  site's scoring it was scored under. */
+/** A line for each category he earned or lost points in, saying why, its points at the line's end
+ *  (the player card's approved picture), then the version of the site's scoring it was scored under. */
 export function CategoryLines({ categories, version }: { categories: NamedCategories; version: string | null }) {
   const shownLines = categories.filter(isShownLine);
   return (
@@ -21,8 +21,11 @@ export function CategoryLines({ categories, version }: { categories: NamedCatego
         <li>{nothingEarnedWords}</li>
       ) : (
         shownLines.map((category) => (
-          <li key={category.stat}>
-            {category.name} <span className="text-figure">{figureWords(category.points)}</span> <span className="text-muted">{whyWords(category.why)}</span>
+          <li key={category.stat} className="flex items-baseline justify-between gap-3">
+            <span>
+              {category.name} <span className="text-muted">{whyWords(category.why)}</span>
+            </span>{" "}
+            <span className="font-bold text-figure">{figureWords(category.points)}</span>
           </li>
         ))
       )}

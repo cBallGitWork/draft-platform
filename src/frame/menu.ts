@@ -4,6 +4,7 @@
 // My team's tabs are R3·1's; a section gets tabs when its screen is grilled, and until then has no
 // second row.
 
+import { PLAYER_CARD_ROUTE } from "../playerCard/paths";
 import { DRAFT_TITLE, MAIL_TITLE, menuWords } from "../shared/words";
 
 type Page = { label: string; path: string };
@@ -69,6 +70,13 @@ const draftSection: Section = { label: DRAFT_TITLE, path: DRAFT_PATH, tabs: [] }
 /** The menu's sections, with the draft room's while it is in the menu. */
 export const sectionsWith = (draftInMenu: boolean): readonly Section[] =>
   draftInMenu ? [sections[0], sections[1], draftSection, ...sections.slice(2)] : sections;
+
+/** A player's card, its route's `$` parts matching any one segment. */
+const PLAYER_CARD_AT = new RegExp(`^${PLAYER_CARD_ROUTE.replace(/\$\w+/g, "[^/]+")}/?$`);
+
+/** The menu's section a page outside every section's path belongs to, marked active on the top
+ *  bar: a player's card is Scouting's (its approved picture). */
+export const menuPathBesides = (pathname: string): string | undefined => (PLAYER_CARD_AT.test(pathname) ? SCOUTING_PATH : undefined);
 
 export function sectionAt(pathname: string): Section | undefined {
   return sections.find((section) => pathname === section.path || pathname.startsWith(`${section.path}/`));

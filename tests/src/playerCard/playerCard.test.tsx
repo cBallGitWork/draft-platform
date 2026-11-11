@@ -11,6 +11,7 @@ import { describe, expect, it } from "vitest";
 import type { ListedPlayer } from "../../../convex/scouting/playersList";
 import { NO_FIGURES } from "../../../convex/scouting/playersOrder";
 import { SCOUTING_PATH, TRADES_NEW_PATH } from "../../../src/frame/menu";
+import { mainMenuLabel, menuWords } from "../../../src/frame/words";
 import { LEAGUES_PATH } from "../../../src/leagues/paths";
 import { playerCardPath } from "../../../src/playerCard/paths";
 import type { PlayerCard } from "../../../src/playerCard/seam";
@@ -117,7 +118,7 @@ describe("the card", () => {
     openCard();
     const head = await headOf();
 
-    expect(head.getByText(ARSENAL.name).firstElementChild!.getAttribute("src")).toBe(crestUrl(ARSENAL.code));
+    expect(head.getByText(ARSENAL.name).querySelector("img")!.getAttribute("src")).toBe(crestUrl(ARSENAL.code));
     expect(head.getByTitle("Winger").textContent).toBe("W");
     expect(head.getByTitle("Attacking midfielder").textContent).toBe("CAM");
     expect(head.getByText("Saka Potatoes")).toBeTruthy();
@@ -151,10 +152,10 @@ describe("the card", () => {
   it("last season's line holds his appearances, minutes and points at the position the switch picks (Craig, 6 Nov 2026)", async () => {
     openCard();
     const lastSeason = await screen.findByLabelText(LAST_SEASON_TITLE);
-    expect(lastSeason.textContent).toContain("25/26: 34 apps, 2810 min, 212 pts");
+    expect(lastSeason.textContent).toContain("2025/26: 34 matches, 2,810 min, 212 pts");
 
     await userEvent.click(within(screen.getByRole("region", { name: SEASON_TITLE })).getByRole("radio", { name: "W" }));
-    expect(lastSeason.textContent).toContain("25/26: 34 apps, 2810 min, 198 pts");
+    expect(lastSeason.textContent).toContain("2025/26: 34 matches, 2,810 min, 198 pts");
   });
 
   it("a player not in last season's data is not in the Premier League last season", async () => {
@@ -253,6 +254,18 @@ describe("the card's head (#1027)", () => {
     openCard(SAKA, { cards: [{ ...SAKA, matches: [NOT_ARRIVED] }] });
     const head = await headOf();
     expect(head.getByText(figureLabels.minutes).nextElementSibling!.textContent).toBe(noFigureWords);
+  });
+
+  it("marks Scouting the top bar's active tab, as the approved picture has it", async () => {
+    openCard();
+    await headOf();
+    const scouting = within(screen.getByRole("navigation", { name: mainMenuLabel })).getByRole("link", { name: menuWords.scouting });
+    expect(scouting.getAttribute("aria-current")).toBe("page");
+  });
+
+  it("names his club after his shirt in its colours, as the approved picture has it", async () => {
+    openCard();
+    expect((await headOf()).getByText(ARSENAL.name).querySelector("svg")).toBeTruthy();
   });
 
   it("keeps the portrait, a news note, role fit and the club captain hint (S17.7) in their places as placeholders", async () => {
