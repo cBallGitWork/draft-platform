@@ -52,8 +52,15 @@ describe("selecting a player", () => {
     const panel = panelOf("CDM");
     expect(within(panel).getByText("Rice")).toBeTruthy();
     expect(factIn(panel, panelSeasonPointsWords).textContent).toBe("42");
-    expect(factIn(panel, panelMinutesWords("season")).textContent).toBe("540");
+    expect(factIn(panel, panelMinutesWords("season", null)).textContent).toBe("540");
     expect(rowOf("Rice").getAttribute("aria-current")).toBe("true");
+  });
+
+  it("before the new season's first match, names his minutes by last season, as the list does (#1566)", async () => {
+    openScouting({ ...WITH_FIGURES, pointsSeason: 2025 });
+    await userEvent.click(await screen.findByRole("button", { name: selectPlayerLabel("Rice") }));
+    expect(panelMinutesWords("season", 2025)).toBe("Minutes in 25/26");
+    expect(factIn(panelOf("CDM"), panelMinutesWords("season", 2025)).textContent).toBe("540");
   });
 
   it("a player with no points yet reads '—', saying why", async () => {
@@ -99,7 +106,7 @@ describe("selecting a player", () => {
     const panel = panelOf("CDM");
     expect(within(panel).getByText("Saka Potatoes")).toBeTruthy();
     expect(within(panel).queryByText(freeAgentWords)).toBeNull();
-    expect(factIn(panel, panelMinutesWords("last4")).textContent).toBe("90");
+    expect(factIn(panel, panelMinutesWords("last4", null)).textContent).toBe("90");
   });
 
   it("after one who has left, the next selected shows while his list loads", async () => {
