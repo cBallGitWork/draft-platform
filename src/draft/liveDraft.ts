@@ -44,6 +44,7 @@ export const liveDraft: DraftSeam = {
     );
   },
   useCommissioner: (leagueId, now) => useQuery(api.draft.draftCommissioner.panel, { leagueId, now }),
+  useGreyedOnTheClock: (leagueId) => useQuery(api.draft.draftPlayers.greyedOnTheClock, { leagueId }),
   useCommissionerChanges: function useCommissionerChanges() {
     const start = useMutation(api.draft.draftStart.start);
     const pause = useMutation(api.draft.draftPause.pause);
@@ -51,6 +52,7 @@ export const liveDraft: DraftSeam = {
     const undo = useMutation(api.draft.draftCommissioner.undoPick);
     const setPickTime = useMutation(api.draft.draftCommissioner.setPickTime);
     const mark = useMutation(api.draft.draftCommissioner.markForCommissioner);
+    const pickFor = useMutation(api.draft.draftPicks.pickFor);
     return useMemo<CommissionerChanges>(
       () => ({
         start: (leagueId) => refusalOf(() => start({ leagueId }), "Starting the draft", commissionerFailedWords),
@@ -59,8 +61,9 @@ export const liveDraft: DraftSeam = {
         undo: (leagueId) => refusalOf(() => undo({ leagueId }), "Undoing the last pick", commissionerFailedWords),
         setPickTime: (leagueId, pickSeconds) => refusalOf(() => setPickTime({ leagueId, pickSeconds }), "Setting the pick time", commissionerFailedWords),
         markForCommissioner: (leagueId, teamId, marked) => refusalOf(() => mark({ leagueId, teamId, marked }), "Marking a team to pick for", commissionerFailedWords),
+        pickFor: (leagueId, playerCode) => refusalOf(() => pickFor({ leagueId, playerCode }), "Picking for the team on the clock", pickFailedWords),
       }),
-      [start, pause, resume, undo, setPickTime, mark],
+      [start, pause, resume, undo, setPickTime, mark, pickFor],
     );
   },
 };

@@ -198,6 +198,10 @@ export const resumeWords = "Resume the draft";
 export const undoLastWords = "Undo last pick";
 export const pickForTeamWords = (team: string) => `I'll pick for ${team}`;
 export const stopPickingForWords = (team: string) => `Stop picking for ${team}`;
+/** While the draft runs: he makes the pick for the team on the clock, with the selected player. */
+export const pickForWords = (team: string) => `Pick for ${team}`;
+/** Why the team on the clock can't take the selected player: "Rice for Saka Potatoes: Club full". */
+export const pickForWhyNotWords = (player: string, team: string, why: string) => `${player} for ${team}: ${why}`;
 export const unmanagedWords = (team: string) => `${team} has no manager, so it is on auto-pick unless you pick for it`;
 export const youPickForWords = (team: string) => `You pick for ${team}: its clock runs, and if it runs out the draft picks for it`;
 export const lastPickWords = (team: string, player: string, slot: string) => `Last pick: ${team} took ${player}, ${slot}`;

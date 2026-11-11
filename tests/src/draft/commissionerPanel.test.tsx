@@ -1,7 +1,8 @@
 // The draft room's commissioner panel (#1101; spec/04, Starting it and The commissioner): only whoever
 // runs the league sees it. Before the start he starts the draft, says "I'll pick for" a team with no
-// manager, and sets the pick time; while it runs he pauses or resumes it, undoes the last pick, and
-// sets the pick time only while paused (Craig, 5 Nov 2026, on #1101).
+// manager, and sets the pick time; while it runs he pauses or resumes it, undoes the last pick, picks
+// the selected player for the team on the clock (#1475), and sets the pick time only while paused
+// (Craig, 5 Nov 2026, on #1101).
 
 import { screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
@@ -12,10 +13,15 @@ import {
   badPickTimeWords,
   changeStartWords,
   COMMISSIONER_TITLE,
+  draftPlayerWords,
+  notLegalWords,
   pauseWords,
   pickForTeamWords,
+  pickForWhyNotWords,
+  pickForWords,
   pickTimeLabel,
   resumeWords,
+  selectLabel,
   startNowWords,
   stopPickingForWords,
   undoLastWords,
@@ -26,6 +32,7 @@ import {
 import { DRAFT_PATH } from "../../../src/frame/menu";
 import { SETTINGS_DRAFT_HASH, settingsPath } from "../../../src/leagueSettings/paths";
 import { commissionerView, draftOrder, emptyBoard, type DraftData } from "../../support/src/draft.harness";
+import { RICE } from "../../support/src/scoutingScreen.harness";
 import { coCommissioned, commissioner, league, manager, managerIn, openApp } from "../../support/src/shell.harness";
 
 const openAs = (session: typeof manager, draft: DraftData = {}) => openApp(DRAFT_PATH, session, { draft });
@@ -155,6 +162,52 @@ describe("while it runs", () => {
     expect(app.draft.changes.setPickTime).toHaveBeenCalledWith(league.leagueId, 60);
     await userEvent.click(await button(resumeWords));
     expect(app.draft.changes.resume).toHaveBeenCalledWith(league.leagueId);
+  });
+
+  describe("Pick for the team on the clock (#1475)", () => {
+    const pickFor = () => button(pickForWords("Team 2"));
+    const select = async (name: string) => userEvent.click(await screen.findByRole("button", { name: selectLabel(name) }));
+
+    it("is greyed until a player is selected", async () => {
+      openAs(commissioner, { draft: liveDraft(), board: oneTaken, players: [RICE] });
+      expect((await pickFor()).hasAttribute("disabled")).toBe(true);
+    });
+
+    it("picks the selected player for the team on the clock, and lets him go", async () => {
+      const app = openAs(commissioner, { draft: liveDraft(), board: oneTaken, players: [RICE] });
+      await select("Rice");
+      await userEvent.click(await pickFor());
+      expect(app.draft.changes.pickFor).toHaveBeenCalledWith(league.leagueId, RICE.code);
+      expect(app.draft.changes.makePick).not.toHaveBeenCalled();
+      expect(screen.queryByRole("button", { name: draftPlayerWords("Rice") })).toBeNull();
+    });
+
+    it("works while paused too", async () => {
+      const app = openAs(commissioner, { draft: liveDraft(true), board: oneTaken, players: [RICE] });
+      await select("Rice");
+      await userEvent.click(await pickFor());
+      expect(app.draft.changes.pickFor).toHaveBeenCalledWith(league.leagueId, RICE.code);
+    });
+
+    it("is greyed by the team on the clock's squad rules, not his own, saying why", async () => {
+      const app = openAs(commissioner, { draft: liveDraft(), board: oneTaken, players: [RICE], greyed: [], greyedOnTheClock: [{ code: RICE.code, reason: "clubFull" }] });
+      await select("Rice");
+      expect((await pickFor()).hasAttribute("disabled")).toBe(true);
+      expect(within(await panel()).getByText(pickForWhyNotWords("Rice", "Team 2", notLegalWords.clubFull))).toBeTruthy();
+      expect(app.draft.useGreyedOnTheClock).toHaveBeenCalledWith(league.leagueId);
+    });
+
+    it("says why the pick is refused", async () => {
+      openAs(commissioner, { draft: liveDraft(), board: oneTaken, players: [RICE], refusal: "The draft is over." });
+      await select("Rice");
+      await userEvent.click(await pickFor());
+      expect((await within(await panel()).findByRole("alert")).textContent).toBe("The draft is over.");
+    });
+
+    it("isn't offered before the start", async () => {
+      openAs(commissioner);
+      expect(within(await panel()).queryByRole("button", { name: pickForWords("Team 2") })).toBeNull();
+    });
   });
 
   it("says why a change is refused", async () => {

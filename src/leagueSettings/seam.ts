@@ -36,6 +36,9 @@ export type LeagueSettingsSeam = {
   setDraftStart(leagueId: Id<"leagues">, startsAt: number | null): Change;
   /** The waiver order and the runs, as My team's Transactions tab reads them (#1200). */
   useWaivers: ClaimsSeam["useWaivers"];
+  /** Every team's pending claims, as My team's Transactions tab reads them, for a commissioner
+   *  with no team and so no Transactions tab (#1487). */
+  usePendingClaims: ClaimsSeam["usePendingClaims"];
 };
 
 /** A team in the draft order (convex/draft/draftOrder.ts). */

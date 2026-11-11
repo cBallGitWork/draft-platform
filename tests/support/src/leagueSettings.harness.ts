@@ -8,7 +8,7 @@ import { leagueSettingsOf } from "../../../convex/rules/leagueSettingsPart";
 import type { DraftStart, LeagueSettingsSeam, SettingsView, TeamInOrder } from "../../../src/leagueSettings/seam";
 import type { Revision } from "../../../src/rules/rulesEdits";
 import { CHANGES_FROM } from "./scoring.harness";
-import type { WaiversView } from "../../../src/myTeam/claims/seam";
+import type { PendingClaim, WaiversView } from "../../../src/myTeam/claims/seam";
 import { NO_WAIVERS } from "./myTeam.harness";
 
 /** The rules row the fake server's settings are from. */
@@ -28,6 +28,10 @@ export type LeagueSettingsData = {
   teamOrder?: TeamInOrder[];
   draftStarted?: boolean;
   waivers?: WaiversView;
+  /** Every team's pending claims, which a commissioner with no team sees: none by default. */
+  claims?: PendingClaim[];
+  /** Keeps the claims on their way (undefined). */
+  claimsLoading?: boolean;
   /** The scoring start and the ticked gameweeks: none set and none ticked unless a test says. */
   scoringStart?: ScoringStartView;
   /** The draft's start: no date and not started unless a test says. */
@@ -41,6 +45,8 @@ export function fakeLeagueSettings({
   teamOrder = TEAMS_IN_ORDER,
   draftStarted = false,
   waivers = NO_WAIVERS,
+  claims = [],
+  claimsLoading = false,
   scoringStart = { start: null, ticked: [] },
   draftStart = { startsAt: null, started: false },
 }: LeagueSettingsData = {}) {
@@ -55,5 +61,6 @@ export function fakeLeagueSettings({
     useDraftStart: vi.fn<LeagueSettingsSeam["useDraftStart"]>(() => draftStart),
     setDraftStart: vi.fn<LeagueSettingsSeam["setDraftStart"]>(async () => null),
     useWaivers: vi.fn<LeagueSettingsSeam["useWaivers"]>(() => waivers),
+    usePendingClaims: vi.fn<LeagueSettingsSeam["usePendingClaims"]>(() => (claimsLoading ? undefined : claims)),
   };
 }

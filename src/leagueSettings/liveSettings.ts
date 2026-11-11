@@ -43,6 +43,7 @@ export function useLiveLeagueSettings(): LeagueSettingsSeam {
       useDraftStart,
       setDraftStart: (leagueId, startsAt) => refusalOf(() => setStart({ leagueId, startsAt }), "Setting the draft's start", draftStartFailedWords),
       useWaivers: liveClaims.useWaivers,
+      usePendingClaims: liveClaims.usePendingClaims,
     }),
     [changeSettings, setTeamOrder, drawTeamOrder, setScoringStart, setStart],
   );
