@@ -45,9 +45,12 @@ export function statIn(record: MatchStats, stat: string): number {
 /** What a weighed count is rounded to: a millionth, far finer than any weight. */
 const COUNT_PRECISION = 1e6;
 
+/** A stat with its weight: one part of a weighed count (2 × goals is { stat: "goals_scored", weight: 2 }). */
+export type WeighedStat = { stat: string; weight: number };
+
 /** His stats, each weighed and added up: what a role's side and an instruction's line count by.
  *  Floating point's noise goes first, so 10 × 0.1 reaches a bar at 1, never just under it. */
-export function weighedCount(record: MatchStats, parts: readonly { stat: string; weight: number }[]): number {
+export function weighedCount(record: MatchStats, parts: readonly WeighedStat[]): number {
   const count = parts.reduce((total, { stat, weight }) => total + weight * statIn(record, stat), 0);
   return Math.round(count * COUNT_PRECISION) / COUNT_PRECISION;
 }

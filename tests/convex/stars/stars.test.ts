@@ -5,9 +5,9 @@ import { scoreMatch } from "../../../convex/scoring/scoring";
 import type { ScoringSet } from "../../../convex/scoring/scoringSet";
 import { pricedRole } from "../../support/convex/scoring.example";
 import {
-  countedMatches,
   LOWEST_STARS,
   perMatchUnder,
+  ratedMatches,
   ratedRoles,
   STAR_CUTS,
   STARS_WINDOW,
@@ -122,18 +122,18 @@ describe("the matches he is rated on", () => {
   });
 
   test("each final match he got on the pitch for, a cameo included, newest first", () => {
-    const counted = countedMatches([record(90, 1), record(3, 2), record(0, 3, { played: false })]);
+    const counted = ratedMatches([record(90, 1), record(3, 2), record(0, 3, { played: false })]);
     expect(counted.map((stats) => stats.goals_scored)).toEqual([2, 1]);
   });
 
   test("not one still open to correction, nor one whose record hasn't wholly arrived", () => {
-    expect(countedMatches([record(90, 1, { state: "complete" }), record(90, 2, { state: "provisional" })])).toEqual([]);
-    expect(countedMatches([record(90, 1, { arrived: { fpl: true, pl: false } })])).toEqual([]);
+    expect(ratedMatches([record(90, 1, { state: "complete" }), record(90, 2, { state: "provisional" })])).toEqual([]);
+    expect(ratedMatches([record(90, 1, { arrived: { fpl: true, pl: false } })])).toEqual([]);
   });
 
   test(`only his newest ${STARS_WINDOW}`, () => {
     const many = Array.from({ length: STARS_WINDOW + 2 }, (_, index) => record(90, index));
-    const counted = countedMatches(many.toReversed());
+    const counted = ratedMatches(many.toReversed());
     expect(counted).toHaveLength(STARS_WINDOW);
     expect(counted.at(-1)?.goals_scored).toBe(2);
   });

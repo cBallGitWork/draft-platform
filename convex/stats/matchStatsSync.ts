@@ -64,7 +64,7 @@ export const run = internalAction({
 
 /** What a read does with a match the Premier League does not yet call full time: the sync leaves
  *  it "waiting" for a later run; the live tick (#28) writes it, provisional. */
-export type BeforeFullTime = "wait" | "live";
+type BeforeFullTime = "wait" | "live";
 
 /** Each due match a gameweek at a time, since FPL's live stats and the Premier League's list come
  *  by gameweek. A gameweek whose reads fail fails each of its matches; a match that fails fails alone.
