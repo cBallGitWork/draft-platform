@@ -5,7 +5,7 @@ import { bylineOf } from "../mail/letters";
 import { tradedSide } from "../schema/squads";
 import { takeShown } from "../shared/cappedRead";
 import { managerOf } from "../shared/leagueAccess";
-import { isListedMove, LISTED_MOVES, newestFirst } from "./squadPlace";
+import { isListedMove, type ListedKind, newestFirst } from "./squadPlace";
 
 // My team's Transactions tab (#366; spec/12, My team's tabs: "the team's claims, drops, trades and
 // commissioner assignments, newest first, from the same events Mail files"): the commissioner's
@@ -13,9 +13,23 @@ import { isListedMove, LISTED_MOVES, newestFirst } from "./squadPlace";
 // (#1199), the claims a waiver run gives the team (#1198), and each trade that went through as one
 // (#383, #1491). Trades made before #1491 filed their players as moves, and still show as moves.
 
-/** How many of the league's latest squad moves of each kind are read for the team's: each kind's
- *  read is league-wide, and a query's reads are bounded. Older ones are left out, and `cut` says so. */
+/** How many of the team's latest moves of each kind, by each field naming it, are read: a query's
+ *  reads are bounded. Older ones are left out, and `cut` says so. Each read is the team's own
+ *  (#1544), so another team's moves never push the team's out. */
 export const TRANSACTIONS_READ_OF_EACH_KIND = 1000;
+
+/** Where a listed move names a team: the index reading that field, and the kinds naming a team in
+ *  it. A move names the team it went to as `teamId` and the one it came from as `fromTeamId`; a
+ *  trade names its two sides as `fromTeamId` and `toTeamId`. */
+const TEAM_FIELDS = [
+  {
+    index: "by_teamId_and_kind_and_at",
+    field: "event.teamId",
+    kinds: ["playerAssigned", "playerMoved", "playerReleased", "playerDropped", "playerClaimed", "playerPickedUp"],
+  },
+  { index: "by_fromTeamId_and_kind_and_at", field: "event.fromTeamId", kinds: ["playerMoved", "tradeMade"] },
+  { index: "by_toTeamId_and_kind_and_at", field: "event.toTeamId", kinds: ["tradeMade"] },
+] as const satisfies readonly { index: string; field: string; kinds: readonly ListedKind[] }[];
 
 const transactionKind = v.union(
   v.literal("assigned"),
@@ -57,7 +71,7 @@ const transaction = v.union(playerTransaction, tradeTransaction);
 
 export const teamTransactions = v.object({
   transactions: v.array(transaction),
-  /** Whether the league has squad moves older than those read, which may hold more of the team's. */
+  /** Whether the team has squad moves older than those read. */
   cut: v.boolean(),
 });
 export type TeamTransactions = Infer<typeof teamTransactions>;
@@ -90,13 +104,15 @@ export const ofMyTeam = query({
   handler: async (ctx, { leagueId }) => {
     const { team } = await managerOf(ctx, leagueId);
     const ofEachKind = await Promise.all(
-      LISTED_MOVES.map((kind) =>
-        takeShown(
-          ctx.db
-            .query("leagueEvents")
-            .withIndex("by_leagueId_and_kind_and_at", (q) => q.eq("leagueId", leagueId).eq("event.kind", kind))
-            .order("desc"),
-          TRANSACTIONS_READ_OF_EACH_KIND,
+      TEAM_FIELDS.flatMap(({ index, field, kinds }) =>
+        kinds.map((kind) =>
+          takeShown(
+            ctx.db
+              .query("leagueEvents")
+              .withIndex(index, (q) => q.eq(field, team._id).eq("event.kind", kind))
+              .order("desc"),
+            TRANSACTIONS_READ_OF_EACH_KIND,
+          ),
         ),
       ),
     );

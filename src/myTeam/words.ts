@@ -86,5 +86,5 @@ export function transactionWords({ kind, otherTeamName }: Pick<PlayerTransaction
 export const tradedInWords = "Traded in";
 export const tradedOutWords = "Traded out";
 export const noTransactionsWords = "No transactions yet.";
-/** Said when the league holds more squad moves than the tab reads (convex/squads/teamTransactions.ts). */
+/** Said when the team has more squad moves than the tab reads (convex/squads/teamTransactions.ts). */
 export const transactionsCutWords = "Only the most recent transactions are shown.";

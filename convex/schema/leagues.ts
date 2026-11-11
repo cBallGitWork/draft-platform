@@ -198,7 +198,12 @@ export const leagueTables = {
   leagueEvents: defineTable(leagueEventFields)
     .index("by_leagueId_and_at", ["leagueId", "at"])
     // League home's latest squad moves of each kind (spec/12), without reading every other event.
-    .index("by_leagueId_and_kind_and_at", ["leagueId", "event.kind", "at"]),
+    .index("by_leagueId_and_kind_and_at", ["leagueId", "event.kind", "at"])
+    // One team's moves of each kind (My team's Transactions, #1544), by each field a move names a
+    // team in, without reading every other team's: teamIds are unique across leagues.
+    .index("by_teamId_and_kind_and_at", ["event.teamId", "event.kind", "at"])
+    .index("by_fromTeamId_and_kind_and_at", ["event.fromTeamId", "event.kind", "at"])
+    .index("by_toTeamId_and_kind_and_at", ["event.toTeamId", "event.kind", "at"]),
   lastLeagues: defineTable(lastLeagueFields).index("by_email", ["email"]).index("by_leagueId", ["leagueId"]),
   unemailedDeletions: defineTable(unemailedDeletionFields).index("by_at", ["at"]),
 };

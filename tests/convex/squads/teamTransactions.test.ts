@@ -121,12 +121,27 @@ describe("what is read", () => {
     expect(await read()).toEqual({ transactions: [expect.objectContaining({ kind: "assigned", playerName: "Saka" })], cut: false });
   });
 
-  test(`the latest ${TRANSACTIONS_READ_OF_EACH_KIND} of each kind, and says when a kind has older ones left out`, async () => {
-    await (await squadsAs(COMMISSIONER)).assign(SAKA, annTeam);
+  test(`only the team's own (#1544): another team's ${TRANSACTIONS_READ_OF_EACH_KIND}+ newer moves of a kind neither hide the team's nor cut them`, async () => {
     const bobsRelease = { kind: "playerReleased", playerCode: RICE, playerName: "Rice", teamId: bobTeam, teamName: "Team 2" } as const;
-    await file(TRANSACTIONS_READ_OF_EACH_KIND, bobsRelease);
+    const annsRelease = { ...bobsRelease, teamId: annTeam, teamName: "Team 1" } as const;
+    await file(1, annsRelease);
+    await file(TRANSACTIONS_READ_OF_EACH_KIND + 1, bobsRelease);
+    expect(await read()).toEqual({ transactions: [expect.objectContaining({ kind: "released", playerName: "Rice" })], cut: false });
+  });
+
+  test(`the team's latest ${TRANSACTIONS_READ_OF_EACH_KIND} of each kind, and says when a kind has older ones left out`, async () => {
+    const annsRelease = { kind: "playerReleased", playerCode: RICE, playerName: "Rice", teamId: annTeam, teamName: "Team 1" } as const;
+    await file(TRANSACTIONS_READ_OF_EACH_KIND, annsRelease);
     expect((await read()).cut).toBe(false);
-    await file(1, bobsRelease);
-    expect(await read()).toEqual({ transactions: [expect.objectContaining({ kind: "assigned", playerName: "Saka" })], cut: true });
+    await file(1, annsRelease);
+    const { transactions, cut } = await read();
+    expect([transactions.length, cut]).toEqual([TRANSACTIONS_READ_OF_EACH_KIND, true]);
+  });
+
+  test("a move is read by both its sides: the team it came from and the one it went to", async () => {
+    const moved = { kind: "playerMoved", playerCode: SAKA, playerName: "Saka", teamId: bobTeam, teamName: "Team 2", fromTeamId: annTeam, fromTeamName: "Team 1" } as const;
+    await file(1, moved);
+    expect(await kindsOf()).toEqual([["movedOut", "Saka", "Team 2"]]);
+    expect(await kindsOf(BOB)).toEqual([["movedIn", "Saka", "Team 1"]]);
   });
 });
