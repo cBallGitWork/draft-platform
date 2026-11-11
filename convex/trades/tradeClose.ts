@@ -11,9 +11,11 @@ import { offerClosedLetter, pickWords, type OfferClosed, type TradeWords } from 
 import type { TradePick } from "./tradePicks";
 import { scheduleEveryLeague, takeAllOrThrow } from "../shared/cappedRead";
 import type { LeagueDeadlines } from "../gameweeks/deadline";
+import { teamIn } from "../shared/leagueAccess";
 import { heldPlayerByCode } from "../shared/players";
 import { deadlinePassedSince } from "../waivers/waiverLock";
-import { onAutoTeam, tradesShut, type TradesShut } from "./tradeShut";
+import { onAutoTeam, tradesShut } from "./tradeShut";
+import type { TradesShut } from "./tradeShutWords";
 
 // Closing trade offers (spec/08 Trades; #383). An open offer closes, with a letter to both
 // managers saying why, when it is withdrawn, rejected or countered; at the next deadline if nobody
@@ -138,12 +140,12 @@ export const deadlinePassed = (offer: Doc<"tradeOffers">, deadlines: LeagueDeadl
 /** Closes each open offer holding a player who just left `teamId`'s squad. */
 export async function closeOffersHolding(ctx: MutationCtx, leagueId: Id<"leagues">, teamId: Id<"teams">, playerCodes: readonly number[]): Promise<void> {
   const left = new Set(playerCodes);
+  const { name: teamName } = await teamIn(ctx, leagueId, teamId);
   for (const offer of await leagueOffers(ctx, leagueId)) {
     if (offer.review !== undefined) continue;
     const gone = [...offer.gives, ...offer.gets].find((code) => left.has(code));
     if (gone === undefined) continue;
-    const team = await ctx.db.get("teams", teamId);
-    await closeOffer(ctx, offer, { why: "playerLeft", playerName: await tradedName(ctx, gone), teamName: team?.name ?? "his team" });
+    await closeOffer(ctx, offer, { why: "playerLeft", playerName: await tradedName(ctx, gone), teamName });
   }
 }
 

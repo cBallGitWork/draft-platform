@@ -7,6 +7,7 @@ import { pickFirstLineupAgain } from "../lineup/lineups";
 import { managerOf, memberOf, refuse, refusals, teamIn } from "../shared/leagueAccess";
 import { playerByCode } from "../shared/players";
 import { latestRules } from "../rules/rulesHistory";
+import { namedPlayer } from "../schema";
 import { heldOrNot, placeOf, squadOf } from "../squads/squadPlace";
 import { heldInReview } from "../trades/tradeClose";
 import { inWaiverLock } from "./waiverLock";
@@ -81,9 +82,6 @@ export const stateOf = query({
     return onWaivers === null ? { kind: "freeAgent" } : { kind: "onWaivers", claimableFrom: onWaivers.claimableFrom };
   },
 });
-
-/** A player a claim or the card names, by code and name. */
-export const namedPlayer = v.object({ playerCode: v.number(), playerName: v.string() });
 
 const cardAction = v.union(
   /** Nothing to do: he is on another team, or the caller runs no team in the league. */
