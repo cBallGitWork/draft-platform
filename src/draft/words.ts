@@ -18,6 +18,7 @@ export const youPickHead = "You pick";
 export const clockHead = "Clock";
 export const startsHead = (at: string | null) => (at === null ? "Starts" : `Starts ${at}`);
 export const noStartWords = "When the commissioner starts it";
+export const noClockWords = "No pick time set";
 
 /** Where a team picks in the first two rounds: "8th, then 13th". */
 export const youPickWords = (first: number, second: number | null) => (second === null ? placeWords(first) : `${placeWords(first)}, then ${placeWords(second)}`);
