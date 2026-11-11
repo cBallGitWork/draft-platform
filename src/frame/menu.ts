@@ -1,8 +1,8 @@
 // The top menu and each section's second row of tabs (spec/12-screens.md, "The frame").
 // The sections are the screens spec/12 lists, in R3·1's order (docs/design/mockups/PlateOne.dc.html),
 // with the Premier League as its own section (spec/18) and Scouting in place of Players (spec/19).
-// A section's second row of tabs is its approved pictures' (My team's are R3·1's); a section
-// with no tabs has no second row.
+// My team's tabs are R3·1's; a section gets tabs when its screen is grilled, and until then has no
+// second row.
 
 import { DRAFT_TITLE } from "../draft/words";
 import { MAIL_TITLE } from "../mail/words";
@@ -75,3 +75,9 @@ export const sectionsWith = (draftInMenu: boolean): readonly Section[] =>
 export function sectionAt(pathname: string): Section | undefined {
   return sections.find((section) => pathname === section.path || pathname.startsWith(`${section.path}/`));
 }
+
+/** Every page the menu reaches: each section, and each tab that isn't its section's own page. */
+export const pages: readonly Page[] = sections.flatMap((section) => [
+  { label: section.label, path: section.path },
+  ...section.tabs.filter((tab) => tab.path !== section.path),
+]);
