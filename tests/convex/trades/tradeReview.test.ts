@@ -80,7 +80,7 @@ describe("under a commissioner veto, a new league's", () => {
     const offerId = await annTradesForSaka();
 
     expect(await squadOf(w.annsTeam)).not.toContain(SAKA);
-    expect((await w.mine(ANN))[0].review).toEqual({ kind: "veto", endsAt: Date.now() + REVIEW_MS });
+    expect((await w.mine(ANN))[0]).toMatchObject({ reviewer: "commissioner", reviewEndsAt: Date.now() + REVIEW_MS });
     expect(REVIEW_MS).toBe(DAY_MS);
     expect(await w.subjectsTo(COMMISSIONER)).toContain("Block the trade between Team 1 and Team 2?");
     expect(await w.subjectsTo(CAT)).not.toContain("Block the trade between Team 1 and Team 2?");
@@ -125,7 +125,7 @@ describe("under a commissioner veto, a new league's", () => {
     const { offerId } = await w.offer(COMMISSIONER, w.bobsTeam, [], [SAKA]);
     await w.accept(BOB, offerId);
 
-    expect((await w.mine(BOB))[0].review?.kind).toBe("vote");
+    expect((await w.mine(BOB))[0].reviewer).toBe("vote");
     expect(await w.subjectsTo(ANN)).toContain("Vote on the trade between Team 4 and Team 2");
   });
 });

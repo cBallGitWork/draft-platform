@@ -4,7 +4,7 @@ import { mutation, query, type MutationCtx, type QueryCtx } from "../_generated/
 import { leagueDeadlines } from "../gameweeks/leagueDeadlines";
 import { fileLetter } from "../mail/letters";
 import { offerLetter } from "../mail/tradeLetterWords";
-import { namedPlayer, tradePick } from "../schema";
+import { tradePick } from "../schema";
 import { managerOf, ownTeamOrNone, refuse, refusals, teamIn } from "../shared/leagueAccess";
 import { playerByCode } from "../shared/players";
 import { placeOf } from "../squads/squadPlace";
@@ -232,51 +232,6 @@ export const withdraw = mutation({
     if (offer.fromTeamId !== team._id) refuse(offerRefusals.notYoursToWithdraw);
     await closeOffer(ctx, offer, { why: "withdrawn" }, email);
     return null;
-  },
-});
-
-const shownOffer = v.object({
-  offerId: v.id("tradeOffers"),
-  fromTeamId: v.id("teams"),
-  fromTeamName: v.string(),
-  toTeamId: v.id("teams"),
-  toTeamName: v.string(),
-  gives: v.array(namedPlayer),
-  gets: v.array(namedPlayer),
-  /** A pick trade's picks, each named as its letters name it; null for a players' trade. */
-  picks: v.union(v.object({ gives: v.object({ ...tradePick.fields, name: v.string() }), gets: v.object({ ...tradePick.fields, name: v.string() }) }), v.null()),
-  note: v.union(v.string(), v.null()),
-  madeAt: v.number(),
-  /** Null while it is open; once accepted, how it is reviewed and when the review ends. */
-  review: v.union(v.object({ kind: v.union(v.literal("veto"), v.literal("vote")), endsAt: v.number() }), v.null()),
-});
-
-/** The offers to and from the caller's team, open or in review, oldest first. */
-export const mine = query({
-  args: { leagueId: v.id("leagues") },
-  returns: v.array(shownOffer),
-  handler: async (ctx, { leagueId }) => {
-    const { team } = await managerOf(ctx, leagueId);
-    const offers = (await leagueOffers(ctx, leagueId)).filter((offer) => offer.fromTeamId === team._id || offer.toTeamId === team._id);
-    return Promise.all(
-      offers.map(async (offer) => {
-        const words = await tradeWordsOf(ctx, offer);
-        const named = (codes: number[], names: readonly string[]) => codes.map((playerCode, index) => ({ playerCode, playerName: names[index] }));
-        return {
-          offerId: offer._id,
-          fromTeamId: offer.fromTeamId,
-          fromTeamName: words.fromTeamName,
-          toTeamId: offer.toTeamId,
-          toTeamName: words.toTeamName,
-          gives: named(offer.gives, words.gives),
-          gets: named(offer.gets, words.gets),
-          picks: offer.picks === undefined ? null : { gives: { ...offer.picks.gives, name: words.gives[0] }, gets: { ...offer.picks.gets, name: words.gets[0] } },
-          note: words.note,
-          madeAt: offer.madeAt,
-          review: offer.review === undefined ? null : { kind: offer.review.reviewer.kind, endsAt: offer.review.endsAt },
-        };
-      }),
-    );
   },
 });
 

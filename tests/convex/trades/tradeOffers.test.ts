@@ -33,13 +33,13 @@ describe("an offer", () => {
           offerId,
           fromTeamId: w.annsTeam,
           toTeamId: w.bobsTeam,
-          gives: [{ playerCode: ANNS_FIRST_DROP, playerName: nameOf(ANNS_FIRST_DROP) }],
+          gives: [expect.objectContaining({ code: ANNS_FIRST_DROP, name: nameOf(ANNS_FIRST_DROP) })],
           gets: [
-            { playerCode: SAKA, playerName: nameOf(SAKA) },
-            { playerCode: PALMER, playerName: nameOf(PALMER) },
+            expect.objectContaining({ code: SAKA, name: nameOf(SAKA) }),
+            expect.objectContaining({ code: PALMER, name: nameOf(PALMER) }),
           ],
           note: "Fancy a swap?",
-          review: null,
+          reviewEndsAt: null,
         }),
       ]);
     }
