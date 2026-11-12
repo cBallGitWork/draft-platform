@@ -5,7 +5,7 @@ import { latestRules } from "../rules/rulesHistory";
 import { refuse, teamIn } from "../shared/leagueAccess";
 import { squadOf } from "../squads/squadPlace";
 import { limitsBroken } from "../squads/squads";
-import { newlyBroken } from "../waivers/waiverRun";
+import { newlyBroken } from "../squads/limitsCompare";
 
 // Each team's squad once a trade is made (spec/08 Trades; #383): the limits it would break, which
 // warn, and the platform's most in a squad, which refuses. Split from tradeReview.ts.

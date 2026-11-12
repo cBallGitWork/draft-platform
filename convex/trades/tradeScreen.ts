@@ -21,7 +21,7 @@ import {
 import { tradesShutReason } from "./tradeShutWords";
 import { squadOf } from "../squads/squadPlace";
 import { limitsBroken, squadWarning } from "../squads/squads";
-import { newlyBroken } from "../waivers/waiverRun";
+import { newlyBroken } from "../squads/limitsCompare";
 import { leagueOffers } from "./tradeClose";
 import { pickName } from "./tradeWords";
 import { pickHolders, tradablePick } from "./tradePicks";
