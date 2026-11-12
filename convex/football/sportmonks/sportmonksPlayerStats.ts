@@ -9,6 +9,7 @@
 import type { Infer } from "convex/values";
 import type { ScoreRead } from "../scoreReads";
 import type { sportmonksPlayerMatchRecord } from "../../schema";
+import { HALF_TIME_STATS } from "../premierLeague/plMatch";
 import { SM_EVENT_TYPE } from "../sportmonksCommentary";
 import { SPORTMONKS_STAT_IDS } from "./sportmonksStats";
 import type { SportmonksEvent, SportmonksMan } from "./sportmonksMatch";
@@ -26,8 +27,8 @@ export const WORKED_OUT = {
   draws: "draws",
   losses: "losses",
   winningGoal: "winning_goal",
-  cleanSheetHalfTime: "clean_sheet_half_time",
-  goalsConcededHalfTime: "goals_conceded_half_time",
+  cleanSheetHalfTime: HALF_TIME_STATS.cleanSheet,
+  goalsConcededHalfTime: HALF_TIME_STATS.goalsConceded,
 } as const;
 
 /** The last minute of the first half: a goal in its added time (45+2') is before half-time
