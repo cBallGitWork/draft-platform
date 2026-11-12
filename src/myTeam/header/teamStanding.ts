@@ -65,17 +65,23 @@ function scoreOf(table: LeagueTable, teamName: string, gameweek: number, against
 export const gamesIn = (table: LeagueTable, teamName: string, gameweek: number): TeamGame[] =>
   gamesOfTeam(table, teamName).filter((game) => game.gameweek === gameweek);
 
+/** The team's place in the table, 1 for the top, or null for one the table doesn't hold. */
+export function placeIn(table: LeagueTable, teamName: string): number | null {
+  const index = table.table.findIndex((row) => row.teamName === teamName);
+  return index === -1 ? null : index + 1;
+}
+
 /** Where the team stands, or null for one the table doesn't hold. */
 export function standingOf(table: LeagueTable, teamName: string): Standing | null {
-  const index = table.table.findIndex((row) => row.teamName === teamName);
-  if (index === -1) return null;
-  const row = table.table[index];
+  const place = placeIn(table, teamName);
+  if (place === null) return null;
+  const row = table.table[place - 1];
   const scored = gamesOfTeam(table, teamName).filter((game): game is TeamGame & { score: NonNullable<TeamGame["score"]> } => game.score !== null);
   const latest = table.results.findLast((result) => result.teams.some((side) => side.teamName === teamName));
   const own = latest?.teams.find((side) => side.teamName === teamName);
   return {
     teamId: row.teamId,
-    place: index + 1,
+    place,
     points: row.points,
     last: scored.at(-1) ?? null,
     lastPoints: latest === undefined || own === undefined ? null : { gameweek: latest.gameweek, points: own.points, provisional: own.provisional },

@@ -5,7 +5,7 @@ import { SCOUTING_PATH } from "../../frame/menu";
 import { Choice } from "../../ui/Choice";
 import { ColumnHeads } from "../../ui/ColumnHeads";
 import { Panel, PanelNote } from "../../ui/Panel";
-import { figureWords, noFigureWords } from "../words";
+import { figureOrNone } from "../words";
 import { byRun, clashOf, groupOf, movedOnto } from "./claimGroups";
 import { Chip, claimCellClass, DropCell, GROUP_ROW, PlayerName } from "./ClaimCells";
 import { EveryTeamTable } from "./EveryTeamTable";
@@ -181,7 +181,7 @@ function MineTable({
                   <PlayerName player={claim.claim} />
                 </button>
               </th>
-              <td className={`${claimCellClass("points")} text-figure`}>{claim.claim.seasonPoints === null ? noFigureWords : figureWords(claim.claim.seasonPoints)}</td>
+              <td className={`${claimCellClass("points")} text-figure`}>{figureOrNone(claim.claim.seasonPoints)}</td>
               <td className={claimCellClass("out")}>
                 <DropCell drop={claim.drop} clash={clashOf(group, index)} />
               </td>

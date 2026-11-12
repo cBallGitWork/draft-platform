@@ -5,6 +5,7 @@ import { OVERRIDE_POINTS_STEP, OVERRIDE_REASON_MAX, TEAM_OVERRIDE_POINTS_MOST } 
 import { PANEL_BODY, Problem, Status } from "../ui/Panel";
 import { useChange } from "../shared/useChange";
 import type { MatchupSeam } from "./seam";
+import type { TeamSide } from "./SidePitch";
 import {
   cancelOverrideWords,
   OVERRIDE_TOTAL_TITLE,
@@ -23,7 +24,6 @@ const REASON_ID = "team-override-reason";
 /** The hint, what an override does, describes the points box. */
 const HINT_ID = "team-override-hint";
 
-type TeamSide = Extract<MatchupSide, { kind: "team" }>;
 
 /** The team override (spec/14 S14.3 to S14.6; #903), for whoever runs the league: under each team's
  *  name, "Override total" opens a form for its total in the gameweek and why; once its total is

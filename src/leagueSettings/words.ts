@@ -14,7 +14,7 @@ import type { OddTeamOut } from "../../convex/table/roundRobin";
 import { REVIEW_MS } from "../../convex/trades/tradeLimits";
 import { WAIVER_MS } from "../../convex/waivers/waiverLimits";
 import { noNumberWords, savedFromWords } from "../rules/words";
-import { AREA_WORDS, failedWords } from "../shared/words";
+import { AREA_WORDS, commissionerVetoWords, failedWords, leagueVoteWords } from "../shared/words";
 import { inUnit, type PickClockUnit } from "./pickClock";
 
 export const SETTINGS_TITLE = "League settings";
@@ -79,8 +79,8 @@ export const tradesTitle = "Trades";
 export const tradeReviewLabel = "An accepted trade is reviewed by";
 export const tradeReviewWords: Record<TradeReview, string> = {
   none: "No one",
-  veto: "Commissioner veto",
-  vote: "League vote",
+  veto: commissionerVetoWords,
+  vote: leagueVoteWords,
 };
 /** spec/08, Trades, and Craig's answers on #383 (31 Oct and 6 Nov 2026). */
 export const tradeReviewHint =

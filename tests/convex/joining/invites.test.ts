@@ -23,6 +23,7 @@ import {
   adminCreatesLeague,
   eventsIn,
   onTheList,
+  managersOf,
   teamsIn,
   type TestConvex,
 } from "../../support/convex/leagues.harness";
@@ -51,7 +52,6 @@ beforeEach(async () => {
   leagueId = await adminCreatesLeague(t);
 });
 
-const managers = async () => (await teamsIn(t, leagueId)).map(({ name, managerEmail }) => ({ name, managerEmail }));
 const inviteRow = async (inviteId: Id<"invites">) => (await invitesPage(t, leagueId))?.invites.find((row) => row.inviteId === inviteId);
 
 describe("an invite", () => {
@@ -65,7 +65,7 @@ describe("an invite", () => {
     expect(email.text).toContain(`${SITE_URL}${invitedPath(inviteId)}?code=`);
     expect(await openLastLinkTo(t, sent, ANN)).not.toBeNull();
 
-    expect(await managers()).toEqual([{ name: teamNumbered(1), managerEmail: ANN }]);
+    expect(await managersOf(t, leagueId)).toEqual([{ name: teamNumbered(1), managerEmail: ANN }]);
     expect((await inviteRow(inviteId))?.joinedTeamName).toBe(teamNumbered(1));
   });
 
@@ -77,7 +77,7 @@ describe("an invite", () => {
     expect(lastEmailTo(sent, CAT).text).toContain(`has invited you to run Team 1 in ${LEAGUE_NAME}`);
     await openLastLinkTo(t, sent, CAT);
 
-    expect(await managers()).toEqual([
+    expect(await managersOf(t, leagueId)).toEqual([
       { name: teamNumbered(1), managerEmail: CAT },
       { name: teamNumbered(2), managerEmail: BOB },
     ]);
@@ -90,7 +90,7 @@ describe("an invite", () => {
     vi.advanceTimersByTime(2 * DAY_MS);
     expect(await ask(t, ANN)).toBe("checkYourEmail");
     await openLastLinkTo(t, sent, ANN);
-    expect(await managers()).toEqual([{ name: teamNumbered(1), managerEmail: ANN }]);
+    expect(await managersOf(t, leagueId)).toEqual([{ name: teamNumbered(1), managerEmail: ANN }]);
   });
 
   test("is taken up once: removed later, signing in again doesn't bring them back", async () => {
@@ -101,7 +101,7 @@ describe("an invite", () => {
     await ask(t, ANN);
     await openLastLinkTo(t, sent, ANN);
 
-    expect(await managers()).toEqual([{ name: teamNumbered(1), managerEmail: undefined }]);
+    expect(await managersOf(t, leagueId)).toEqual([{ name: teamNumbered(1), managerEmail: undefined }]);
     expect(await inviteRow(inviteId)).toMatchObject({ joinedTeamName: teamNumbered(1), couldNotJoin: null });
   });
 
@@ -126,7 +126,7 @@ describe("how long an invite lasts", () => {
     vi.advanceTimersByTime(INVITE_LIFETIME_MS + 1);
     await ask(t, ANN);
     expect(await openLastLinkTo(t, sent, ANN)).not.toBeNull();
-    expect(await managers()).toEqual([]);
+    expect(await managersOf(t, leagueId)).toEqual([]);
   });
 
   test("resending sends it again, for seven more days from then", async () => {
@@ -138,7 +138,7 @@ describe("how long an invite lasts", () => {
     expect(emailsTo(sent, ANN)).toHaveLength(2);
     expect((await inviteRow(inviteId))?.expiresAt).toBe(Date.now() + INVITE_LIFETIME_MS);
     await openLastLinkTo(t, sent, ANN);
-    expect(await managers()).toEqual([{ name: teamNumbered(1), managerEmail: ANN }]);
+    expect(await managersOf(t, leagueId)).toEqual([{ name: teamNumbered(1), managerEmail: ANN }]);
   });
 
   test("cancelled, it lets no one in, is filed for Mail, and leaves the page", async () => {
@@ -146,7 +146,7 @@ describe("how long an invite lasts", () => {
     await (await asCommissioner(t)).mutation(api.joining.invites.cancel, { inviteId });
     await openLastLinkTo(t, sent, ANN);
 
-    expect(await managers()).toEqual([]);
+    expect(await managersOf(t, leagueId)).toEqual([]);
     expect((await eventsIn(t, leagueId)).at(-1)).toEqual({ by: COMMISSIONER, kind: "inviteCancelled", email: ANN, teamId: null, teamName: null });
     expect(await inviteRow(inviteId)).toBeUndefined();
     await expectRefused((await asCommissioner(t)).mutation(api.joining.invites.resend, { inviteId }), joiningRefusals.inviteEnded);

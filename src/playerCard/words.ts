@@ -3,7 +3,7 @@
 import type { CategoryWhy, Cut, PricedBy, SlotValue } from "../../convex/scoring/scoring";
 import { afterLastMatchWords, type FirstRun } from "../myTeam/claims/words";
 import { LAST_MATCHES_SHOWN } from "./gameLog";
-import { AREA_WORDS, figureWords, gameweekShort, gameweekWords, signedWords, thousandsWords, versusWords, whenWords } from "../shared/words";
+import { AREA_WORDS, figureWords, gameweekShort, gameweekWords, signedWords, thousandsWords, underSiteScoringWords, versusWords, whenWords } from "../shared/words";
 
 export { figureWords, noFigureWords } from "../shared/words";
 
@@ -58,9 +58,9 @@ export const columns = {
   opponent: { short: "Opp", long: "Opponent, at home (H) or away (A)" },
   score: { short: "Score", long: "The match's score, home side first" },
   minutes: { short: "Min", long: "Minutes played" },
-  points: { short: "Pts", long: "Points under the site's scoring" },
+  points: { short: "Pts", long: `Points ${underSiteScoringWords}` },
 } as const;
-export const notArrivedWords = "His record for this match hasn't fully arrived yet.";
+export { notArrivedWords } from "../shared/words";
 /** A match his club's postponement took out, kept as its row. */
 export const postponedWords = "Postponed";
 /** Before a match's points, the league's override, its reason on hover. */
@@ -129,24 +129,26 @@ export const lastSeasonNotHeldWords = "Last season isn't held yet.";
 
 /** His club's next fixtures, in a single row (Craig, 7 Nov 2026). */
 export const nextFixturesTitle = (club: string) => `${club}'s next fixtures`;
-export { difficultyNotRatedWords, nextFixtureShort, statusNotSettledLabel } from "../shared/words";
+export { difficultyNotRatedWords, statusNotSettledLabel } from "../shared/words";
 export const noFixturesWords = "No fixtures ahead with a date.";
 
 /** A commissioner's override of his points in a match (#32, spec/14). */
-export const overriddenWords = (points: number, reason: string) => `Overridden to ${figureWords(points)} in this league: ${reason}`;
+export {
+  cancelWords as cancelOverrideWords,
+  overriddenDoneWords,
+  overriddenWords,
+  overrideFailedWords,
+  overrideHint,
+  overrideLabels,
+  overrideWords,
+  removeOverrideFailedWords,
+  removeOverrideWords,
+} from "../shared/words";
 export const OVERRIDE_TITLE = "Override points";
-export const overrideHint = "The whole league gets a letter saying what changed and why.";
-export const overrideLabels = { match: "Match", points: "Points", reason: "Why" } as const;
 export const overrideMatchWords = (gameweek: number | null, home: string, away: string) =>
   `${gameweek === null ? "" : `${gameweekWords(gameweek)}: `}${home} ${versusWords} ${away}`;
-export const overrideWords = "Override";
-export const cancelOverrideWords = "Cancel";
-export const overriddenDoneWords = "Overridden: the league has a letter saying why.";
-export const overrideFailedWords = "The override couldn't be saved. Try again.";
-/** Taking the override off the match picked (#903, spec/14 S14.5): "remove override button". */
-export const removeOverrideWords = "Remove override";
+/** Taking the override off the match picked (#903, spec/14 S14.5). */
 export const overrideRemovedWords = "Override removed: his scored points are back, and the league has a letter.";
-export const removeOverrideFailedWords = "The override couldn't be removed. Try again.";
 
 /** The card's waiver action (#1200, spec/08): the words stay waivers, claim, drop and free agent. */
 export const dropWords = "Drop";

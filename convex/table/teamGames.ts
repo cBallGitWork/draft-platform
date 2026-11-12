@@ -1,5 +1,5 @@
 import { LEAGUE_AVERAGE, type Fixture, type GameweekFixtures } from "./roundRobin";
-import { averageOf } from "./standings";
+import { averageOf, fixtureScores } from "./standings";
 
 // One team's games in a league's head-to-head schedule (#365; spec/12, My team's tabs: "the team's
 // head-to-head fixtures and results for the season"), and each game's score once its gameweek is
@@ -65,13 +65,10 @@ export function gameScore<Team>(
     if (score === undefined) throw new Error(`Gameweek ${gameweek} is scored, but not for team ${String(side)}`);
     return score;
   };
-  const own = sideOf(team);
-  if (opponent !== LEAGUE_AVERAGE) {
-    const other = sideOf(opponent);
-    return { team: own.points, opponent: other.points, provisional: own.provisional || other.provisional };
-  }
-  const average = averageScore(teams, new Map(teams.map((each) => [each, sideOf(each)])), gameweek);
-  return { team: own.points, opponent: average.points, provisional: average.provisional };
+  const counted = opponent === LEAGUE_AVERAGE ? teams : [team, opponent];
+  const sides = new Map([team, ...counted].map((each) => [each, sideOf(each)]));
+  const points = fixtureScores(teams, new Map([...sides].map(([each, side]) => [each, side.points])), gameweek, team, opponent);
+  return { ...points, provisional: counted.some((each) => sides.get(each)?.provisional === true) };
 }
 
 /** The league's average over `teams` in a gameweek scored, `sides` holding each: their points'

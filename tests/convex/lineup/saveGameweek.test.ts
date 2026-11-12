@@ -2,7 +2,7 @@ import { beforeEach, expect, test } from "vitest";
 import type { Id } from "../../../convex/_generated/dataModel";
 import { deadlineOf, leagueDeadlines } from "../../../convex/gameweeks/leagueDeadlines";
 import { nextByDeadlines } from "../../../convex/gameweeks/nextGameweek";
-import { saveGameweekOf } from "../../../convex/lineup/lineups";
+import { saveGameweekOf } from "../../../convex/gameweeks/saveGameweek";
 import { DAY_MS, WEEK_MS } from "../../../convex/shared/time";
 import { changeRules, holdGameweeks, NEXT, rulesWith } from "../../support/convex/leagueRules.harness";
 import { adminCreatesLeague, type TestConvex } from "../../support/convex/leagues.harness";

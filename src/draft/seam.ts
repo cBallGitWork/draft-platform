@@ -60,7 +60,7 @@ export type DraftLists = NonNullable<FunctionReturnType<typeof api.draft.draftLi
 export type DraftList = "queue" | "doNotDraft";
 
 /** What adding the whole shortlist did (draft/draftLists:addShortlist). */
-export type ShortlistAdded = FunctionReturnType<typeof api.draft.draftLists.addShortlist>;
+type ShortlistAdded = FunctionReturnType<typeof api.draft.draftLists.addShortlist>;
 
 export type DraftListChanges = {
   /** Puts a player at the bottom of the queue, or on the do-not-draft list, taking him off the
