@@ -5,10 +5,27 @@
 import { api } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
 import { ARSENAL, type Club, type HeldPlayer } from "./footballRows.harness";
-import { changeEveryRules, setPickSeconds } from "./leagueRules.harness";
+import { changeEveryRules, HELD_FIRST_RULES, setPickSeconds } from "./leagueRules.harness";
 import { actingAs, COMMISSIONER, type TestConvex } from "./leagues.harness";
 import { pickGapPasses } from "./pickWindow.harness";
 import { clockRunsTo } from "./test.harness";
+import { SECOND_MS } from "../../../convex/shared/time";
+
+/** The pick clock the held first rules give, in milliseconds. */
+export const FIRST_PICK_MS = HELD_FIRST_RULES.draft!.pickSeconds * SECOND_MS;
+/** A short pick clock a test sets in place of the first rules' own, and it in milliseconds. */
+export const SHORT_PICK_SECONDS = 30;
+export const SHORT_PICK_MS = SHORT_PICK_SECONDS * SECOND_MS;
+
+/** A live draft's rounds: more than any test picks, so the draft is still on the clock. */
+export const LIVE_DRAFT_ROUNDS = 15;
+
+/** The league's draft row, started now over `rounds` rounds. With none it is over, as no pick is
+ *  left on the clock: free agency and waivers wait for that (#1326). */
+export const draftStarted = (t: TestConvex, leagueId: Id<"leagues">, teamIds: Id<"teams">[], rounds = 0) =>
+  t.run(async (ctx) => {
+    await ctx.db.insert("drafts", { leagueId, started: { at: Date.now(), teamIds, rounds } });
+  });
 
 /** A central midfielder named for his code, at Arsenal unless a test says. */
 export const midfielder = (code: number, club: Club = ARSENAL): HeldPlayer => ({

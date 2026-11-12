@@ -5,7 +5,7 @@ import { begunGameweeks } from "../gameweekScorer/gameweekScores";
 import { recordEvent } from "../mail/letters";
 import { refuse, runnerOf } from "../shared/leagueAccess";
 import { isLocked, type DeadlineOf } from "./deadline";
-import { deadlineOf, leagueDeadlines } from "./leagueDeadlines";
+import { leagueDeadlineOf } from "./leagueDeadlines";
 import { nextByDeadlines } from "./nextGameweek";
 import { seasonGameweekCount } from "./seasonGameweeks";
 import { begunRefusal, isGameweek, isGameweekUsed, noKickoffRefusal, noSuchGameweek, shownDeadline, usedGameweeksOf } from "./usedGameweeks";
@@ -59,7 +59,7 @@ export const ofLeague = query({
   returns: scoringStartView,
   handler: async (ctx, { leagueId }) => {
     const { league } = await runnerOf(ctx, leagueId);
-    const deadlineIn = deadlineOf(await leagueDeadlines(ctx, leagueId));
+    const deadlineIn = await leagueDeadlineOf(ctx, leagueId);
     return {
       start: league.scoringStart ?? null,
       ticked: usedGameweeksOf(league, await seasonGameweekCount(ctx)).map((gameweek) => ({ gameweek, deadline: deadlineIn(gameweek) })),
@@ -77,7 +77,7 @@ export const setScoringStart = mutation({
     const { email, league } = await runnerOf(ctx, leagueId);
     const count = await seasonGameweekCount(ctx);
     if (!isGameweek(gameweek, count)) refuse(scoringStartRefusals.notAGameweek(gameweek, count));
-    const deadlineIn = deadlineOf(await leagueDeadlines(ctx, leagueId));
+    const deadlineIn = await leagueDeadlineOf(ctx, leagueId);
     const now = Date.now();
     if (isFixed(league, deadlineIn, now)) refuse(scoringStartRefusals.fixed(league.scoringStart!));
     if (await scoredWithNone(ctx, league)) refuse(scoringStartRefusals.seasonBegun);
@@ -107,7 +107,7 @@ export type MovedStart = { from: number; to: number };
  *  else the next ticked gameweek after the draft, as is one never set. Says when it moved one set,
  *  so the commissioner can be told; nothing moves once every ticked gameweek has begun. */
 export async function startAfterDraft(ctx: MutationCtx, league: Doc<"leagues">, now: number): Promise<MovedStart | null> {
-  const deadlineIn = deadlineOf(await leagueDeadlines(ctx, league._id));
+  const deadlineIn = await leagueDeadlineOf(ctx, league._id);
   if (league.scoringStart !== undefined && !isFixed(league, deadlineIn, now)) return null;
   const next = nextByDeadlines(usedGameweeksOf(league, await seasonGameweekCount(ctx)), deadlineIn, now);
   if (next === undefined) return null;

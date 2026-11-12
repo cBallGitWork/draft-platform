@@ -15,6 +15,7 @@ import {
 } from "../../support/convex/trades.harness";
 import { NEXT } from "../../support/convex/waivers.harness";
 import { silenceConsoleWarn } from "../../support/convex/test.harness";
+import { teamNumbered } from "../../../convex/leagues/teams";
 
 // The Trades screen's read (#383; docs/design/approved/trades): the offers to and from the
 // manager's team, each with when it closes, who it waits on and the limits it breaks for him, and
@@ -51,7 +52,7 @@ describe("the Trades screen", () => {
     expect(view.myTeamId).toBe(w.bobsTeam);
     expect(view.teams[0]).toMatchObject({
       teamId: w.bobsTeam,
-      teamName: "Team 2",
+      teamName: teamNumbered(2),
       onAutoTeam: false,
     });
     expect(view.teams[0].players.map(({ code }) => code).sort()).toEqual(
@@ -72,7 +73,7 @@ describe("the Trades screen", () => {
     const warn = silenceConsoleWarn();
     const view = await viewOf(BOB);
     expect(view.teams[0].players.map(({ code }) => code)).toEqual([SAKA]);
-    expect(warn).toHaveBeenCalledWith(missingPlayerLog("Team 2", 9002));
+    expect(warn).toHaveBeenCalledWith(missingPlayerLog(teamNumbered(2), 9002));
   });
 
   test("shows an open offer to both managers, closing at the next deadline, reviewed by the commissioner once accepted", async () => {
@@ -87,8 +88,8 @@ describe("the Trades screen", () => {
       const [offer] = (await viewOf(email)).offers;
       expect(offer).toMatchObject({
         offerId,
-        fromTeamName: "Team 1",
-        toTeamName: "Team 2",
+        fromTeamName: teamNumbered(1),
+        toTeamName: teamNumbered(2),
         gives: [
           expect.objectContaining({
             code: ANNS_FIRST_DROP,

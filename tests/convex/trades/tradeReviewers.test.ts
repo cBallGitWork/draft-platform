@@ -2,10 +2,11 @@ import { beforeEach, describe, expect, test } from "vitest";
 import { api } from "../../../convex/_generated/api";
 import { REVIEW_MS } from "../../../convex/trades/tradeLimits";
 import { reviewRefusals } from "../../../convex/trades/tradeReview";
+import { draftStarted } from "../../support/convex/draft.harness";
 import { actingAs, addManager, COMMISSIONER, CO_COMMISSIONER } from "../../support/convex/leagues.harness";
 import { expectRefused } from "../../support/convex/test.harness";
 import { ANN, BOB, CAT, tradeLeague, type TradeLeague } from "../../support/convex/trades.harness";
-import { draftOver, noDraft } from "../../support/convex/waivers.harness";
+import { noDraft } from "../../support/convex/waivers.harness";
 
 // A trade in review under a commissioner veto follows the role, not the person (#1472; Craig,
 // 11 Nov 2026; S08.12): when the commissioner or co-commissioner changes, whoever reviews it now gets the
@@ -45,7 +46,7 @@ describe("when the league is handed to a new commissioner during a review", () =
   test("the old commissioner, still a manager, may no longer Block it", async () => {
     await noDraft(w.t, w.leagueId);
     await addManager(w.t, w.leagueId, COMMISSIONER);
-    await draftOver(w.t, w.leagueId, w.teams);
+    await draftStarted(w.t, w.leagueId, w.teams);
     const offerId = await w.annTradesForSaka();
     await nameCommissioner(NEW_COMMISSIONER);
 

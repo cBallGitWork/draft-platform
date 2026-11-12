@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, test } from "vitest";
 import { api } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
 import type { Lineup } from "../../../convex/lineup/lineup";
+import { insertPlayers } from "../../support/convex/footballRows.harness";
 import { holdGameweeks } from "../../support/convex/leagueRules.harness";
 import { COMMISSIONER, MANAGERS, actingAs, addManagers, adminCreatesLeague, type TestConvex } from "../../support/convex/leagues.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
@@ -95,10 +96,9 @@ describe("a team's first lineup, stored as its squad is made (#637)", () => {
     const by = await buildAnnsSquad();
     const [keeper, ...outfield] = FOUR_FOUR_TWO.starters;
     // A second keeper joins: the bench is the only place for him while the first plays.
-    await t.run(async (ctx) => {
-      await ctx.db.insert("players", { code: SECOND_KEEPER, name: nameOf(SECOND_KEEPER), fullName: nameOf(SECOND_KEEPER), clubCode: 1 });
-      await ctx.db.insert("playerPositions", { code: SECOND_KEEPER, starts: [], approved: [], set: ["GK"], removed: [] });
-    });
+    await t.run((ctx) =>
+      insertPlayers(ctx, [{ code: SECOND_KEEPER, name: nameOf(SECOND_KEEPER), fullName: nameOf(SECOND_KEEPER), clubCode: 1, positions: ["GK"] }]),
+    );
     await by.assign(SECOND_KEEPER, annsTeam);
     expect((await (await as(ANN)).mine(NEXT)).bench).toEqual([...FOUR_FOUR_TWO.bench, SECOND_KEEPER]);
     await by.release(keeper.playerCode);

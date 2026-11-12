@@ -2,7 +2,7 @@ import { v, type Infer } from "convex/values";
 import { query } from "../_generated/server";
 import { classicFormationShape, leagueRulesShape } from "../rules/leagueRulesShape";
 import { classicFormationsOf, instructionsOf } from "../rules/firstRules";
-import { deadlineOf, leagueDeadlines } from "../gameweeks/leagueDeadlines";
+import { leagueDeadlineOf } from "../gameweeks/leagueDeadlines";
 import { shownDeadline } from "../gameweeks/usedGameweeks";
 import { clubByCode, playerByCode, unheldPlayerWords } from "../shared/players";
 import { workedOutNow } from "../positions/playerPositions";
@@ -118,7 +118,7 @@ export const ofMyTeam = query({
     return {
       kind: "open" as const,
       gameweek,
-      deadline: deadlineOf(await leagueDeadlines(ctx, leagueId))(gameweek),
+      deadline: (await leagueDeadlineOf(ctx, leagueId))(gameweek),
       areaLimits,
       presets,
       classicFormations: classicFormationsOf(rules),

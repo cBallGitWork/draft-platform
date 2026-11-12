@@ -2,7 +2,7 @@ import { v } from "convex/values";
 import type { Doc } from "../_generated/dataModel";
 import { query, type QueryCtx } from "../_generated/server";
 import { matchdayMargins } from "../admin/platformSettings";
-import { deadlineOf, leagueDeadlines } from "../gameweeks/leagueDeadlines";
+import { leagueDeadlineOf } from "../gameweeks/leagueDeadlines";
 import { thisGameweekOf } from "../gameweeks/nextGameweek";
 import { gameModeOf } from "../rules/gameMode";
 import { seasonRules } from "../rules/rulesHistory";
@@ -40,7 +40,7 @@ export const clockOf = query({
     const season = await seasonRules(ctx, leagueId);
     const schedule = gameModeOf(season.latest).hasMatchups ? await scheduleOf(ctx, league, season) : [];
     return {
-      gameweek: thisGameweekOf(schedule, deadlineOf(await leagueDeadlines(ctx, leagueId)), now)?.gameweek ?? null,
+      gameweek: thisGameweekOf(schedule, await leagueDeadlineOf(ctx, leagueId), now)?.gameweek ?? null,
       matchday: await matchdayOpen(ctx, now),
     };
   },

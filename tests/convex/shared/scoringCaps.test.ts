@@ -19,7 +19,7 @@ import { ANN, GAMEWEEK, holdHullAndEverton, PHILLIPS, scoresLeague, type ScoresL
 import { actingAs } from "../../support/convex/leagues.harness";
 import { serverList } from "../../support/convex/playersList.harness";
 import { EVERTON, HULL, HULL_EVERTON } from "../../support/convex/matchStats.harness";
-import { ROWS_TO_THE_CAP } from "../../support/convex/test.harness";
+import { MADE_UP_CODES, ROWS_TO_THE_CAP } from "../../support/convex/test.harness";
 
 // The scoring path's reads each have a named cap (#214): at the cap they read every row, and past
 // it they throw, never cut short. Each cap is driven through the read it guards, in scoresLeague's
@@ -43,8 +43,6 @@ const everyClub = { clubCode: null, stat: null };
 
 /** A gameweek scoresLeague holds no matches in, for counting from none. */
 const EMPTY_GAMEWEEK = GAMEWEEK + 1;
-/** Where codes this file makes up start, clear of the recorded ones. */
-const MADE_UP_CODES = 900_000;
 
 /** A row for each count from `held` up to `count`, `insert` writing the one at that index. */
 const holdRows =

@@ -8,7 +8,7 @@ import { placeOf as squadPlaceOf } from "../squads/squadPlace";
 import type { MatchBreakdown, MatchupPlace, MatchupSlot } from "./matchupShape";
 
 // The parts of a matchup slot that matchup.ts reads beside the scorer's points: his role, his
-// place, his shirt, how his breakdown names each match, and his matches in kickoff order.
+// place, his shirt and how his breakdown names each match.
 
 /** The role the scorer priced him in at his cell, so the matchup and the table never disagree. Its
  *  run is read from the role set at his place (spec/05 Runs), so only its key is sent. */
@@ -64,12 +64,3 @@ export async function namedMatch(
         : { state: read.state, homeGoals: read.homeGoals, awayGoals: read.awayGoals, minutes: read.minutes, clockLabel: read.clockLabel },
   };
 }
-
-type KicksOff = { kickoff: number | null };
-
-/** Two matches in kickoff order, any with no time yet last. */
-export const byKickoffOrder = (one: KicksOff, other: KicksOff) =>
-  (one.kickoff === null ? 1 : 0) - (other.kickoff === null ? 1 : 0) || (one.kickoff ?? 0) - (other.kickoff ?? 0);
-
-/** Matches by kickoff, any with no time yet last. */
-export const byKickoff = <Fixture extends KicksOff>(fixtures: readonly Fixture[]): Fixture[] => fixtures.toSorted(byKickoffOrder);

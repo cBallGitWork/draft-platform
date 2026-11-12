@@ -19,7 +19,7 @@ import { logFailure } from "../shared/errors";
 import { GAMEWEEK_MATCHES_MOST } from "../shared/fixtures";
 import { memberOf, teamsOf } from "../shared/leagueAccess";
 import { lostPlayerName, playerByCode } from "../shared/players";
-import { MINUTE_MS } from "../shared/time";
+import { DAY_MS, MINUTE_MS } from "../shared/time";
 import { standingsOf } from "../table/leagueTable";
 import { scoredFixtures } from "../table/sentTables";
 import { RECAP_MAX_TOKENS, RECAP_PLAYERS, RECAP_SYSTEM, recapPrompt, recapUpLetter, type RecapPlayer } from "./recapWords";
@@ -34,7 +34,7 @@ import { RECAP_MAX_TOKENS, RECAP_PLAYERS, RECAP_SYSTEM, recapPrompt, recapUpLett
 
 /** The most tries at writing a recap, a day's worth at CLAUDE_RETRY_MS apart: each failure is
  *  logged and kept on the recap's row, so a lasting one (no API key, say) shows. */
-export const RECAP_TRIES_MOST = 48;
+export const RECAP_TRIES_MOST = Math.ceil(DAY_MS / CLAUDE_RETRY_MS);
 
 type TeamId = Id<"teams">;
 

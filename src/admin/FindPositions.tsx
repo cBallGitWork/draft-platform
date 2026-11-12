@@ -1,29 +1,22 @@
 import { useState } from "react";
 import { POSITIONS, type Position } from "../../convex/positions/positionTables";
-import { Loading, PANEL_BODY, PANEL_LIST_ROW, Panel, PanelNote } from "../ui/Panel";
+import { FindPlayerPanel } from "../ui/FindPlayerPanel";
+import { PANEL_LIST_ROW } from "../ui/Panel";
 import type { Changing } from "../shared/useChange";
 import { useChoiceAmong } from "../shared/useChoiceAmong";
 import type { AdminSeam, FoundPlayerPositions } from "./seam";
 import {
   findHint,
   flaggedNote,
-  foundListLabel,
   positionsListLabel,
   removeWords,
-  findLabel,
-  findTitle,
-  noneFoundWords,
   noPositionsWords,
   removeLabel,
-  searchingWords,
   setLabel,
   setWords,
   sourceWords,
   unconfirmedNote,
 } from "./words";
-
-const FIND_NAME_ID = "admin-find-name";
-const FIND_HINT_ID = "admin-find-hint";
 
 // Correcting any player's positions (spec/06): find him, then remove a position or set one, SS among them.
 
@@ -31,36 +24,9 @@ export function FindPlayer({ seam, change }: { seam: AdminSeam; change: Changing
   const [text, setText] = useState("");
   const found = seam.useFoundPlayers(text);
   return (
-    <Panel title={findTitle}>
-      <div className={PANEL_BODY}>
-        <label htmlFor={FIND_NAME_ID} className="font-semibold">
-          {findLabel}
-        </label>
-        <input
-          id={FIND_NAME_ID}
-          type="search"
-          value={text}
-          onChange={(event) => setText(event.target.value)}
-          aria-describedby={FIND_HINT_ID}
-          className="text-box"
-        />
-        <p id={FIND_HINT_ID} className="text-muted">
-          {findHint}
-        </p>
-      </div>
-      {text.trim() !== "" &&
-        (found === undefined ? (
-          <Loading className="px-3 pb-2">{searchingWords}</Loading>
-        ) : found.length === 0 ? (
-          <PanelNote edge="b">{noneFoundWords}</PanelNote>
-        ) : (
-          <ul aria-label={foundListLabel} className="border-t border-panel-rule">
-            {found.map((player) => (
-              <PlayerPositions key={player.code} player={player} seam={seam} change={change} />
-            ))}
-          </ul>
-        ))}
-    </Panel>
+    <FindPlayerPanel text={text} onText={setText} found={found} hint={findHint}>
+      {(player) => <PlayerPositions key={player.code} player={player} seam={seam} change={change} />}
+    </FindPlayerPanel>
   );
 }
 
