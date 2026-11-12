@@ -4,7 +4,8 @@
 
 import { screen, within } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
-import { formLabel, deadlineHead, meterListLabel, formHead, gameweekShort, placeWords, pointsShort, tableHead, versusWords } from "../../../../src/myTeam/header/words";
+import { deadlineHead, meterListLabel, formHead, gameweekShort, placeWords, pointsShort, tableHead, versusWords } from "../../../../src/myTeam/header/words";
+import { formLabel } from "../../../../src/shared/words";
 import { opponentTitle } from "../../../../src/myTeam/tactics/words";
 import { byeWords, leagueAverageWords, noFigureWords } from "../../../../src/myTeam/words";
 import { gamesIn } from "../../../../src/myTeam/header/teamStanding";

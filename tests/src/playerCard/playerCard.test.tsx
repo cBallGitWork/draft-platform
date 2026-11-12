@@ -46,6 +46,7 @@ import { freeScoutsWords, sendScoutWords } from "../../../src/scouting/scouts/wo
 import { addToShortlistWords } from "../../../src/scouting/shortlist/words";
 import { squadsPath } from "../../../src/squads/paths";
 import { crestUrl } from "../../../src/ui/ClubName";
+import { clubPath } from "../../../src/premierLeague/paths";
 import { difficultyNotRatedWords, freeAgentWords, gameweekShort, menuWords } from "../../../src/shared/words";
 import { ARSENAL, COVENTRY } from "../../support/convex/footballRows.harness";
 import { HELD, NOT_ARRIVED, openCard, PRICED, RICE, SAKA, SAKA_POTATOES } from "../../support/src/playerCardScreen.harness";
@@ -119,7 +120,8 @@ describe("the card", () => {
     openCard();
     const head = await headOf();
 
-    expect(head.getByText(ARSENAL.name).querySelector("img")!.getAttribute("src")).toBe(crestUrl(ARSENAL.code));
+    const club = head.getByRole("link", { name: ARSENAL.name }); // His club's page; the mark before it isn't a link (S18.6).
+    expect([club.getAttribute("href"), club.querySelector("img"), club.parentElement!.querySelector("img")!.getAttribute("src")]).toEqual([clubPath(ARSENAL.code), null, crestUrl(ARSENAL.code)]);
     expect(head.getByTitle("Winger").textContent).toBe("W");
     expect(head.getByTitle("Attacking midfielder").textContent).toBe("CAM");
     expect(head.getByText("Saka Potatoes")).toBeTruthy();
@@ -276,7 +278,7 @@ describe("the card's head (#1027)", () => {
 
   it("names his club after his shirt in its colours, as the approved picture has it", async () => {
     openCard();
-    expect((await headOf()).getByText(ARSENAL.name).querySelector("svg")).toBeTruthy();
+    expect((await headOf()).getByRole("link", { name: ARSENAL.name }).parentElement!.querySelector("svg")).toBeTruthy();
   });
 
   it("keeps the portrait, a news note, role fit and the club captain hint (S17.7) in their places as placeholders", async () => {

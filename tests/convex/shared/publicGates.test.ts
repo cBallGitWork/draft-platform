@@ -75,6 +75,7 @@ beforeEach(async () => {
       "feedback/feedback:send": () => caller.mutation(api.feedback.feedback.send, { message: "Love it" }),
       "football/clubKits:all": () => caller.query(api.football.clubKits.all, {}),
       "football/clubKits:set": () => caller.mutation(api.football.clubKits.set, { code: SOME_CODE, primary: "#000000", secondary: "#FFFFFF", pattern: "plain" }),
+      "football/clubPage:ofClub": () => caller.query(api.football.clubPage.ofClub, { leagueId, clubCode: SOME_CODE }),
       "football/matchScores:ofGameweek": () => caller.query(api.football.matchScores.ofGameweek, { gameweek: SOME_CODE }),
       "football/plGameweeks:firstKickoffs": () => caller.query(api.football.plGameweeks.firstKickoffs, {}),
       "football/plPointsOverrides:set": () => caller.mutation(api.football.plPointsOverrides.set, { clubCode: SOME_CODE, points: null }),
