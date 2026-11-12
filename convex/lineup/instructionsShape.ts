@@ -5,7 +5,7 @@ import { SHAPE_NEEDS, SIDES } from "./instructions";
 // and each preset's default pair, and a lineup row its two picks, so they live beside the module.
 
 /** instructions.ts's Side. */
-export const sideShape = v.union(...SIDES.map((side) => v.literal(side)));
+const sideShape = v.union(...SIDES.map((side) => v.literal(side)));
 
 /** instructions.ts's Instruction. */
 export const instructionShape = v.object({

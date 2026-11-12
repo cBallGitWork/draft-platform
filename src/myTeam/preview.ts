@@ -9,15 +9,15 @@ import { adminByline } from "../../convex/mail/letterWords";
 import { DAY_MS, HOUR_MS, WEEK_MS } from "../../convex/shared/time";
 import { squadLimits } from "../../convex/squads/squadLimits";
 import { previewLatestMail } from "../mail/preview";
-import { previewSeasonGameweeks } from "../shared/preview";
+import { previewSeasonGameweeks, previewTeamNames } from "../shared/preview";
 import { teamFixturesOf } from "../table/drawnTable";
-import { previewIdOf, previewScored, previewTable, previewTeams } from "../table/preview";
+import { previewIdOf, previewScored, previewTable } from "../table/preview";
 import { previewSquad, previewTactics } from "./tactics/preview";
 import { previewClaims } from "./claims/preview";
 import type { MyAutoTeam, MyTeamSeam, TeamSquad, TeamTransactions } from "./seam";
 
-const [previewTeam, otherTeam] = previewTeams;
-const fixtures = teamFixturesOf(previewTeams, previewTeam, previewScored);
+const [previewTeam, otherTeam] = previewTeamNames;
+const fixtures = teamFixturesOf(previewTeamNames, previewTeam, previewScored);
 
 const commissioner = "commish@example.com";
 const transactions: TeamTransactions = {
@@ -147,7 +147,7 @@ export const previewMyTeam: MyTeamSeam = {
   useTeamSquad: () => squad,
   // Any team's squad, read-only, is the preview manager's own players under the asked team's name.
   useOtherSquad: (_leagueId, teamId) => ({
-    teamName: previewTeams.find((team) => previewIdOf(team) === teamId) ?? otherTeam,
+    teamName: previewTeamNames.find((team) => previewIdOf(team) === teamId) ?? otherTeam,
     players: players.map(({ code, name, fullName, positions, club, gone, seasonPoints }) => ({ code, name, fullName, positions, club, gone, seasonPoints })),
   }),
   useSquadNumbers: () => previewNumbers,

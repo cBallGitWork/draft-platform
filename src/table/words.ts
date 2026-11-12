@@ -30,6 +30,10 @@ export const columns = {
   form: { short: "Form", long: `Form, the latest ${FORM_RESULTS} results, oldest first` },
 } as const;
 
+/** A total-points table's columns, on the Table page and League home alike: total points has no
+ *  matchups to win, draw or lose. */
+export const TOTAL_POINTS_COLUMNS = ["position", "team", "played", "points"] as const satisfies readonly (keyof typeof columns)[];
+
 /** The page's title plate: the head-to-head page's tabs, and a total-points league's title, which
  *  has no fixtures (the approved total-points picture). */
 export const COMPETITIONS = ["league", "cup"] as const;

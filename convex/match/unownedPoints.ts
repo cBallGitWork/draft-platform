@@ -15,9 +15,9 @@ import type { Cell } from "../lineup/pitch";
 import { basePoints, cellAt } from "../playerCard/cardPoints";
 import type { Position } from "../positions/positionTables";
 import type { ScoringSet } from "../scoring/scoringSet";
+import type { PlayerCode } from "../shared/players";
 import { statsIfWhole } from "../stats/matchRecords";
 
-type PlayerCode = number;
 
 /** A man's points in the match from his positions, null while they can't be priced; and where his
  *  commentary lines are priced, null while no position of his has a price and his record hasn't

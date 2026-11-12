@@ -5,8 +5,8 @@ import type { RoleCard as RoleCardData } from "../../../../convex/lineup/roleCar
 import { roleIn, type Formation } from "../../../../convex/lineup/roles";
 import { starsIn } from "../../../../convex/stars/bestRole";
 import { NO_DATA, UNSURE } from "../../../../convex/stars/starsShape";
-import { closeGlyph, POSITION_NAMES } from "../../../shared/words";
-import { Loading } from "../../../ui/Panel";
+import { POSITION_NAMES } from "../../../shared/words";
+import { CloseButton, Loading } from "../../../ui/Panel";
 import { Placeholder } from "../../../ui/Placeholder";
 import { PositionChip } from "../../../ui/PositionChip";
 import { StarRating } from "../../../ui/StarRating";
@@ -81,9 +81,7 @@ export function RoleCard({ player, starter, card, onPlay, onClose }: Shown & { c
         </h2>
         <PositionChip label={position} />
         <span className="text-soft">{POSITION_NAMES[position]}</span>
-        <button type="button" aria-label={closeCardLabel(player.name)} onClick={onClose} className="ml-auto flex min-h-tap min-w-tap items-center justify-center text-lead font-bold">
-          <span aria-hidden="true">{closeGlyph}</span>
-        </button>
+        <CloseButton label={closeCardLabel(player.name)} close={onClose} className="ml-auto flex items-center justify-center text-lead font-bold" />
       </div>
       {card === undefined || role === undefined ? (
         <Loading className="px-3 py-2">{loadingCardWords}</Loading>

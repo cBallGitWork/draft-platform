@@ -9,7 +9,7 @@ import { changesTo, mutationsGivenALeague, rowsToChange } from "../../support/co
 import { ADMIN, COMMISSIONER, CO_COMMISSIONER, LEAGUE_NAME, accountOf, actingAs, eventsIn, leagueRow, teamsIn, type TestConvex } from "../../support/convex/leagues.harness";
 import schema from "../../../convex/schema";
 import { fakeResend, signInDeployment, type SentEmail } from "../../support/convex/signIn.harness";
-import { elapse, expectRefused } from "../../support/convex/test.harness";
+import { elapse, expectRefused, everyJobRuns } from "../../support/convex/test.harness";
 
 // Deleting a league (#75, spec/13, Deleting): who may, the day it can be undone, and gone after.
 
@@ -127,7 +127,7 @@ describe("while it can be undone", () => {
     const { scheduledId } = (await leagueRow(t, leagueId))!.deletion!;
     await elapse(t, deletesAt - 1 - Date.now());
     await (await actingAs(t, COMMISSIONER)).mutation(api.leagues.leagueDeletion.undo, { leagueId });
-    await t.finishAllScheduledFunctions(vi.runAllTimers);
+    await everyJobRuns(t);
 
     const deletion = await t.run((ctx) => ctx.db.system.get("_scheduled_functions", scheduledId));
     expect(deletion?.state.kind).toBe("canceled");
@@ -208,7 +208,7 @@ describe("after the day", () => {
     await elapse(t, deletesAt - 1 - Date.now());
     expect(await leagueRow(t, leagueId)).not.toBeNull();
 
-    await t.finishAllScheduledFunctions(vi.runAllTimers);
+    await everyJobRuns(t);
     expect(await everythingOf(leagueId)).toEqual(GONE);
     expect(await everythingOf(other)).toEqual(othersBefore);
     expect((await accountOf(t, COMMISSIONER)).leagues.map((league) => league.name)).toEqual(["Another league"]);
@@ -217,7 +217,7 @@ describe("after the day", () => {
   test("a league with more events than one run deletes is gone all the same", async () => {
     await moreEventsThanOneRun(t, leagueId);
     await deletes(t, COMMISSIONER, leagueId);
-    await t.finishAllScheduledFunctions(vi.runAllTimers);
+    await everyJobRuns(t);
     expect(await everythingOf(leagueId)).toEqual(GONE);
   });
 
@@ -229,7 +229,7 @@ describe("after the day", () => {
     for (const table of tablesKeyedToLeague) expect(before[table], `${table} has a row of the league`).toBeGreaterThan(0);
 
     await deletes(t, COMMISSIONER, leagueId);
-    await t.finishAllScheduledFunctions(vi.runAllTimers);
+    await everyJobRuns(t);
     expect(await rowsKeyedTo(t, leagueId)).toEqual(Object.fromEntries(tablesKeyedToLeague.map((table) => [table, 0])));
     expect(await rowsKeyedTo(t, other)).toEqual(othersBefore);
   });

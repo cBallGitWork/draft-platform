@@ -2,6 +2,7 @@ import { Link } from "@tanstack/react-router";
 import type { ReactNode } from "react";
 import type { LeagueSummary } from "../../convex/leagues/myLeagues";
 import { nextByDeadlines } from "../../convex/gameweeks/nextGameweek";
+import { gameModeOf } from "../../convex/rules/gameMode";
 import { resultOf } from "../../convex/table/standings";
 import { cellClassOf, ColumnHeads } from "../ui/ColumnHeads";
 import { LiveNote, Loading, PageSection, Panel, PanelNote } from "../ui/Panel";
@@ -67,7 +68,7 @@ function TeamFixturesBody({ league, seam }: { league: LeagueSummary; seam: MyTea
   const table = seam.useLeagueTable(league.leagueId);
   const now = useMinute();
   if (fixtures === undefined) return <Note><Loading className="px-3 py-2">{fixturesLoadingWords}</Loading></Note>;
-  if (fixtures.format === "totalPoints") return <Note><PanelNote>{totalPointsWords}</PanelNote></Note>;
+  if (!gameModeOf(fixtures).hasMatchups) return <Note><PanelNote>{totalPointsWords}</PanelNote></Note>;
   if (fixtures.games.length === 0) return <Note><PanelNote>{noFixturesWords}</PanelNote></Note>;
   // Played: begun, by the server's rule (the next to play is the one after the last begun), or
   // scored. To play: the rest, the next first.

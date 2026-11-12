@@ -1,7 +1,8 @@
 import { describe, expect, test } from "vitest";
 import { everyArea, EXAMPLE_SET, MINUTES_BANDS, TACKLES_AND_CLEARANCES } from "../../support/convex/scoring.example";
+import { setOf } from "../../support/convex/siteScoring.harness";
 import { checkOwnStatsAgainstCatalogue } from "../../../convex/scoring/ownStats";
-import { validateScoringSet } from "../../../convex/scoring/scoringSet";
+import { checkedOnce, validateScoringSet } from "../../../convex/scoring/scoringSet";
 import { inTenths, UnsoundScoring } from "../../../convex/scoring/values";
 import { FIRST_SCORING } from "../../../convex/scoring/firstScoring";
 import ownStatsSource from "../../../convex/scoring/ownStats.ts?raw";
@@ -16,8 +17,18 @@ test("a good set passes, an area with no bands among it", () => {
   expect(() => validateScoringSet(EXAMPLE_SET)).not.toThrow();
 });
 
-/** A set of these rules, fractions allowed. */
-const setOf = (...rules: unknown[]) => ({ rules, wholePointsOnly: false });
+test("scoring checks a set once per set read: a bad one throws every time, a good one is remembered (#1756)", () => {
+  const bad = setOf(null);
+  expect(() => checkedOnce(bad)).toThrow("rule 1 of the scoring set is not a rule");
+  expect(() => checkedOnce(bad)).toThrow("rule 1 of the scoring set is not a rule");
+  const good = structuredClone(EXAMPLE_SET);
+  checkedOnce(good);
+  // Spoilt after its check, the very object read is not checked again; a write's check still sees it.
+  (good.rules as unknown[]).push(null);
+  expect(() => checkedOnce(good)).not.toThrow();
+  expect(() => validateScoringSet(good)).toThrow(UnsoundScoring);
+});
+
 const goals = (byArea: unknown) => setOf({ shape: "perAction", stat: "goals_scored", values: { byArea } });
 const saves = (byArea: unknown) => setOf({ shape: "perCount", stat: "saves", values: { byArea } });
 const minutes = (bands: unknown, stacking: object = { stack: false }) =>
@@ -29,7 +40,7 @@ test.each([
   ["a rule that is not a rule", setOf(null), "rule 1 of the scoring set is not a rule"],
   [
     "a rule naming no stat",
-    setOf(...goals(everyArea(5)).rules, { shape: "perAction", values: { all: 1 } }),
+    setOf<unknown>(...goals(everyArea(5)).rules, { shape: "perAction", values: { all: 1 } }),
     "rule 2 of the scoring set names no stat",
   ],
   [

@@ -2,12 +2,11 @@
 // matches each, one with too few matches, one who never came on, and a centre-back alone in the
 // defence, with their matches and the refresh run to its end.
 
-import { vi } from "vitest";
 import { internal } from "../../../convex/_generated/api";
 import type { MutationCtx } from "../../../convex/_generated/server";
 import { HOUR_MS } from "../../../convex/shared/time";
 import { ARSENAL, CHELSEA, completeRecord, insertClubs, insertPlayers, type HeldPlayer } from "./footballRows.harness";
-import type { TestConvex } from "./test.harness";
+import { everyJobRuns, type TestConvex } from "./test.harness";
 
 const striker = (code: number, name: string): HeldPlayer => ({ code, name, fullName: name, clubCode: ARSENAL.code, positions: ["ST"] });
 
@@ -57,13 +56,10 @@ export async function holdStarsPlayers(t: TestConvex): Promise<void> {
   });
 }
 
-/** Runs every scheduled refresh to its end. */
-export const refreshesRun = (t: TestConvex) => t.finishAllScheduledFunctions(() => vi.runAllTimers());
-
 /** Every player's stars refreshed, page by page, and ranked. */
 export async function refreshEveryone(t: TestConvex): Promise<void> {
   await t.mutation(internal.stars.starsRefresh.refreshAll, { cursor: null });
-  await refreshesRun(t);
+  await everyJobRuns(t);
 }
 
 /** Each player's held row, by his code. */

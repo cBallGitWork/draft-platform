@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, test, vi } from "vitest";
+import { beforeEach, describe, expect, test } from "vitest";
 import { api } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
 import { draftOrderRefusals } from "../../../convex/draft/draftOrder";
@@ -7,10 +7,11 @@ import { refusals } from "../../../convex/shared/leagueAccess";
 import { DAY_MS, HOUR_MS, MINUTE_MS, SECOND_MS } from "../../../convex/shared/time";
 import { SAKA } from "../../support/convex/footballRows.harness";
 import { changeRules, HELD_FIRST_RULES, holdGameweeks, rulesWith } from "../../support/convex/leagueRules.harness";
-import { elapse, expectRefused } from "../../support/convex/test.harness";
+import { elapse, expectRefused, everyJobRuns, silenceConsoleWarn } from "../../support/convex/test.harness";
 import { invitesPage } from "../../support/convex/joining.harness";
-import { actingAs, addManager, addManagers, adminCreatesLeague, COMMISSIONER, MANAGERS, OUTSIDER, type TestConvex } from "../../support/convex/leagues.harness";
+import { actingAs, addManager, addManagers, adminCreatesLeague, COMMISSIONER, MANAGERS, OUTSIDER, TEST_LEAGUE_TEAMS, type TestConvex } from "../../support/convex/leagues.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
+import { teamNumbered } from "../../../convex/leagues/teams";
 
 // Starting the draft (spec/04, Starting it; #1089): on the commissioner's date or when he presses
 // start, with the teams there, at least 2, in a league with a squad size limit; in the draft order
@@ -41,7 +42,7 @@ const status = async () => (await read()).status;
 const pass = (ms: number) => elapse(t, ms);
 /** A league of its own with one team. */
 async function leagueOfOne() {
-  const lonely = await adminCreatesLeague(t, 4, "Lonely League");
+  const lonely = await adminCreatesLeague(t, TEST_LEAGUE_TEAMS, "Lonely League");
   await addManager(t, lonely, MANAGERS[4]);
   return lonely;
 }
@@ -59,9 +60,9 @@ describe("before it starts", () => {
       startsAt: null,
       rounds: ROUNDS,
       order: [
-        { teamId: teams[0], name: "Team 1" },
-        { teamId: teams[1], name: "Team 2" },
-        { teamId: teams[2], name: "Team 3" },
+        { teamId: teams[0], name: teamNumbered(1) },
+        { teamId: teams[1], name: teamNumbered(2) },
+        { teamId: teams[2], name: teamNumbered(3) },
       ],
     });
   });
@@ -87,12 +88,12 @@ describe("pressing start", () => {
       startedAt: now,
       rounds: ROUNDS,
       order: [
-        { teamId: teams[0], name: "Team 1" },
-        { teamId: teams[1], name: "Team 2" },
-        { teamId: teams[2], name: "Team 3" },
+        { teamId: teams[0], name: teamNumbered(1) },
+        { teamId: teams[1], name: teamNumbered(2) },
+        { teamId: teams[2], name: teamNumbered(3) },
       ],
       picksMade: 0,
-      onTheClock: { pick: 1, round: 1, teamId: teams[0], name: "Team 1" },
+      onTheClock: { pick: 1, round: 1, teamId: teams[0], name: teamNumbered(1) },
       clock: { startsAt: now, endsAt: now + HELD_FIRST_RULES.draft!.pickSeconds * SECOND_MS },
       ownPickBy: null,
     });
@@ -226,7 +227,7 @@ describe("a start date", () => {
     test("leaves the draft waiting, its date cleared, if a squad still holds one when it comes", async () => {
       await holdSaka();
       await setStart(Date.now() + DAY_MS);
-      const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+      const warn = silenceConsoleWarn();
 
       await pass(DAY_MS);
       expect(await read()).toMatchObject({ status: "waiting", startsAt: null });
@@ -252,7 +253,7 @@ describe("a start date", () => {
   test("set in a league that is then deleted for good starts nothing", async () => {
     await setStart(Date.now() + 2 * DAY_MS);
     await (await as()).mutation(api.leagues.leagueDeletion.deleteLeague, { leagueId });
-    await t.finishAllScheduledFunctions(vi.runAllTimers);
+    await everyJobRuns(t);
 
     expect(await t.run((ctx) => ctx.db.query("drafts").collect())).toEqual([]);
   });

@@ -2,7 +2,7 @@ import { v, type Infer } from "convex/values";
 import { query } from "../_generated/server";
 import { classicFormationShape, leagueRulesShape } from "../rules/leagueRulesShape";
 import { classicFormationsOf, instructionsOf } from "../rules/firstRules";
-import { deadlineOf, leagueDeadlines } from "../gameweeks/leagueDeadlines";
+import { leagueDeadlineOf } from "../gameweeks/leagueDeadlines";
 import { shownDeadline } from "../gameweeks/usedGameweeks";
 import { clubByCode, playerByCode, unheldPlayerWords } from "../shared/players";
 import { workedOutNow } from "../positions/playerPositions";
@@ -13,7 +13,7 @@ import { managerOf } from "../shared/leagueAccess";
 import { squadOf } from "../squads/squadPlace";
 import { shirtNumber } from "../squads/squadNumbers";
 import { heldLineupShape, lineupInGameweek, saveGameweekOf } from "./lineups";
-import { starsOfPlayers } from "../stars/playerStars";
+import { starsLookup } from "../stars/playerStars";
 import { keptOrSwitched } from "./instructions";
 import { instructionPairShape, instructionShape } from "./instructionsShape";
 import { roleStarsShape } from "../stars/starsShape";
@@ -87,7 +87,7 @@ export const ofMyTeam = query({
 
     const how = await howPositionsCount(ctx, leagueId);
     const members = await squadOf(ctx, team._id);
-    const starsOf = await starsOfPlayers(
+    const starsOf = await starsLookup(
       ctx,
       members.map(({ playerCode }) => playerCode),
     );
@@ -106,7 +106,7 @@ export const ofMyTeam = query({
           positions: positions.map(({ position }) => position),
           flagged: positions.flatMap(({ position, flaggedElsewhere }) => (flaggedElsewhere === null ? [] : [{ position, startsElsewhere: flaggedElsewhere }])),
           number: await shirtNumber(ctx, member),
-          stars: starsOf.get(playerCode)!,
+          stars: starsOf(playerCode),
           availability: player === null ? null : (await availabilityOf(ctx, playerCode)).availability,
         };
       }),
@@ -118,7 +118,7 @@ export const ofMyTeam = query({
     return {
       kind: "open" as const,
       gameweek,
-      deadline: deadlineOf(await leagueDeadlines(ctx, leagueId))(gameweek),
+      deadline: (await leagueDeadlineOf(ctx, leagueId))(gameweek),
       areaLimits,
       presets,
       classicFormations: classicFormationsOf(rules),

@@ -3,7 +3,8 @@ import { writeCommentary } from "../../../convex/football/commentary";
 import { codesByOpta } from "../../../convex/football/feedIds";
 import { commentaryLines } from "../../../convex/football/premierLeague/plCommentary";
 import type { Cell } from "../../../convex/lineup/pitch";
-import { vidiprinter, type StoredStep, type VidiprinterMatch, type VidiprinterPlayer } from "../../../convex/matchup/vidiprinter";
+import { vidiprinter, type StoredStep, type VidiprinterMatch, type VidiprinterPlayer, type VidiprinterTeam } from "../../../convex/matchup/vidiprinter";
+import { TWO_AT_THE_BACK } from "../../../convex/lineup/presets";
 import { FIRST_SCORING } from "../../../convex/scoring/firstScoring";
 import type { ScoringSet } from "../../../convex/scoring/scoringSet";
 import { pricedRole } from "../../support/convex/scoring.example";
@@ -181,6 +182,27 @@ test("a defender's clean sheet shows +4 at the read that shows it and −4 when 
 
 test("a clean sheet he now has the minutes for, its count already 1, shows +4", () => {
   expect(murillosLines([murillo("clean_sheets", 1, 1, 60)])).toEqual(["~60' Murillo: 1 clean sheets | +4"]);
+});
+
+test("a two-at-the-back side's defender's lines show its back line's points: a clean sheet +3, every goal conceded −1 (#1754)", () => {
+  const twoAtTheBack: VidiprinterTeam = { scoring: { instructions: [], backLine: { formation: "2-3-5", scoring: TWO_AT_THE_BACK } }, instructions: [] };
+  const players = new Map(PLAYERS);
+  players.set(CODE.murillo, { ...PLAYERS.get(CODE.murillo)!, team: twoAtTheBack });
+  const steps = [
+    murillo("clean_sheets", 0, 1, 61),
+    murillo("clean_sheets", 1, 0, 70),
+    murillo("goals_conceded", 0, 1, 70),
+    murillo("goals_conceded", 1, 2, 80),
+    murillo("goals_conceded", 2, 3, 85),
+  ];
+  const lines = vidiprinter([{ ...MATCH, steps }], players, FIRST_SCORING as ScoringSet).filter((line) => line.text.includes("Murillo:"));
+  expect(lines.map((line) => `${line.text} | ${line.points}`)).toEqual([
+    "~85' Murillo: 3 goals conceded | −1",
+    "~80' Murillo: 2 goals conceded | −1",
+    "~70' Murillo: 0 clean sheets | −3",
+    "~70' Murillo: 1 goals conceded | −1",
+    "~61' Murillo: 1 clean sheets | +3",
+  ]);
 });
 
 test("his minutes past 60 show a line, past 1 none: his kick-off line says he played", () => {

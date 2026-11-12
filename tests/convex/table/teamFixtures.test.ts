@@ -6,8 +6,9 @@ import { refusals } from "../../../convex/shared/leagueAccess";
 import { HOUR_MS, WEEK_MS } from "../../../convex/shared/time";
 import { changeRules, holdGameweeks, rulesWith } from "../../support/convex/leagueRules.harness";
 import { expectRefused } from "../../support/convex/test.harness";
-import { actingAs, addManagers, adminCreatesLeague, COMMISSIONER, MANAGERS, OUTSIDER, type TestConvex } from "../../support/convex/leagues.harness";
+import { actingAs, addManagers, adminCreatesLeague, COMMISSIONER, MANAGERS, OUTSIDER, TEST_LEAGUE_TEAMS, type TestConvex } from "../../support/convex/leagues.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
+import { teamNumbered } from "../../../convex/leagues/teams";
 
 // My team's Fixtures tab (#365): the caller's team's head-to-head games for the season, in
 // gameweek order, from the schedule the table and fixtures screen reads. No gameweek has begun
@@ -37,8 +38,8 @@ describe("who may read it", () => {
   beforeEach(() => addManagers(t, leagueId, [ANN, BOB]));
 
   test("a manager reads his own team's", async () => {
-    expect((await read())?.teamName).toBe("Team 1");
-    expect((await read(BOB))?.teamName).toBe("Team 2");
+    expect((await read())?.teamName).toBe(teamNumbered(1));
+    expect((await read(BOB))?.teamName).toBe(teamNumbered(2));
   });
 
   test.each([COMMISSIONER, OUTSIDER])("%s, running no team in it, is refused", async (email) => {
@@ -55,14 +56,14 @@ describe("the games", () => {
     expect(format).toBe("headToHead");
     expect(games.map(({ gameweek }) => gameweek)).toEqual(Array.from({ length: PL_GAMEWEEKS }, (_, index) => index + 1));
     // Three teams' round robin has three rounds: Ann meets Bob, Cat and the league's average once each.
-    expect(games.slice(0, 3).map(opponentOf).toSorted()).toEqual(["Team 2", "Team 3", "leagueAverage"]);
+    expect(games.slice(0, 3).map(opponentOf).toSorted()).toEqual([teamNumbered(2), teamNumbered(3), "leagueAverage"]);
   });
 
   test("are the table's fixtures that hold the team, and none of another team's", async () => {
     await addManagers(t, leagueId, [ANN, BOB, CAT, DAN]);
     const table = (await readTable())!;
     const fromTable = table.gameweeks.flatMap(({ gameweek, fixtures }) =>
-      fixtures.flatMap(({ team, opponent }) => (team === "Team 1" ? [`${gameweek} ${opponent}`] : opponent === "Team 1" ? [`${gameweek} ${team}`] : [])),
+      fixtures.flatMap(({ team, opponent }) => (team === teamNumbered(1) ? [`${gameweek} ${opponent}`] : opponent === teamNumbered(1) ? [`${gameweek} ${team}`] : [])),
     );
     expect(lines((await read())!.games)).toEqual(fromTable);
   });
@@ -129,7 +130,7 @@ describe("the games", () => {
     const seasonStart = Date.now();
     await holdGameweeks(t, { next: 1, kicksOffIn });
     vi.setSystemTime(seasonStart + (played - 1) * WEEK_MS + kicksOffIn);
-    const later = await adminCreatesLeague(t, 4, "Later");
+    const later = await adminCreatesLeague(t, TEST_LEAGUE_TEAMS, "Later");
     await addManagers(t, later, [ANN, BOB]);
     expect((await readOf(later))!.games[0].gameweek).toBe(played + 1);
   });
@@ -139,7 +140,7 @@ describe("the games", () => {
     expect((await read())!.games).toEqual([]);
     await addManagers(t, leagueId, [BOB]);
     await changeRulesTo({ format: "totalPoints" });
-    expect(await read()).toMatchObject({ teamName: "Team 1", format: "totalPoints", games: [], unscored: [] });
+    expect(await read()).toMatchObject({ teamName: teamNumbered(1), format: "totalPoints", games: [], unscored: [] });
   });
 });
 

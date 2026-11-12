@@ -3,19 +3,20 @@ import type { Doc, Id } from "../_generated/dataModel";
 import { mutation, type MutationCtx, type QueryCtx } from "../_generated/server";
 import { managerOf, refuse } from "../shared/leagueAccess";
 import { seasonRules, type SeasonRules } from "../rules/rulesHistory";
-import { heldSchedule, leagueDeadlines, type HeldSchedule } from "../gameweeks/leagueDeadlines";
-import { nextGameweek } from "../gameweeks/nextGameweek";
-import { fixedDeadlinesOf, passedDeadlineOf } from "../gameweeks/passedDeadlines";
+import { deadlineOf, leagueDeadlines, leagueDeadlinesIn } from "../gameweeks/leagueDeadlines";
+import type { ScheduledMatch } from "../gameweeks/deadline";
+import { nextByDeadlines } from "../gameweeks/nextGameweek";
+import { passedDeadlineOf } from "../gameweeks/passedDeadlines";
 import { seasonGameweekCount } from "../gameweeks/seasonGameweeks";
 import { GAMEWEEKS_MOST, lastPlayedGameweek } from "../gameweeks/usedGameweeks";
-import { inUnplayedGameweek } from "../waivers/waiverLock";
-import { squadAt, squadMovesSince, squadOf, type MovesSinceOf, type SquadMovesSince } from "../squads/squadPlace";
+import { inUnplayedGameweek } from "../gameweeks/gameweekEnd";
+import { squadAt, squadCodes, squadMovesSince, type MovesSinceOf, type SquadMovesSince } from "../squads/squadPlace";
 import { lostPlayerName, playerByCode } from "../shared/players";
 import { positionsNow } from "../positions/playerPositions";
 import { placementShape } from "../schema";
-import { lineupProblems, namedCodes, reconciled, withUnmovedSetAside, type PlayerPositions } from "./lineup";
+import { lineupProblems, namedCodes, reconciled, stillKept, withUnmovedSetAside, type PlayerPositions } from "./lineup";
 import { firstLineup, keptOnBenchOf, withDroppedRoles } from "./firstLineup";
-import { starsOfPlayers } from "../stars/playerStars";
+import { starsLookup } from "../stars/playerStars";
 import type { Area, Lane } from "./pitch";
 import { roleIn } from "./roles";
 import { inClassicFormationShape } from "./classics";
@@ -136,30 +137,29 @@ export async function lineupInGameweek(ctx: QueryCtx, leagueId: Id<"leagues">, t
   return (await lineupsInGameweek(ctx, leagueId, [teamId], gameweek)).get(teamId)!;
 }
 
-/** The squad's player codes, in the order they joined it. */
-async function squadCodes(ctx: QueryCtx, teamId: Id<"teams">): Promise<number[]> {
-  return (await squadOf(ctx, teamId)).map(({ playerCode }) => playerCode);
-}
-
-/** The first gameweek whose league deadline, under the rule in force in it, hasn't passed: the one
- *  a save now is from. A caller asking for many leagues hands in the `schedule` it read once. */
-export async function nextOpenGameweek(ctx: QueryCtx, leagueId: Id<"leagues">, season: SeasonRules, now: number, schedule?: HeldSchedule): Promise<number> {
-  const { gameweeks, matches } = schedule ?? (await heldSchedule(ctx));
-  return nextGameweek(gameweeks, matches, (gameweek) => season.inGameweek(gameweek).deadline, await fixedDeadlinesOf(ctx, leagueId), now);
+/** The first gameweek after the last begun by the league's own deadlines (`leagueDeadlines`, the
+ *  ones its screens and refusals read), so a save lands in the gameweek the screens mark as next
+ *  (#1764): the one a save now is from. Once every gameweek of the season has begun, the one after
+ *  its last. A caller asking for many leagues hands in the `matches` it read once
+ *  (`scheduledMatches`). */
+export async function nextOpenGameweek(ctx: QueryCtx, leagueId: Id<"leagues">, now: number, matches?: readonly ScheduledMatch[]): Promise<number> {
+  const deadlines = matches === undefined ? await leagueDeadlines(ctx, leagueId) : await leagueDeadlinesIn(ctx, leagueId, matches);
+  const gameweeks = [...deadlines.keys()];
+  return nextByDeadlines(gameweeks, deadlineOf(deadlines), now) ?? (gameweeks.at(-1) ?? 0) + 1;
 }
 
 /** The gameweek a save now goes to, or why there is none: once every gameweek the league plays
  *  has begun its season is over, so one that ends early is over after its last (spec/13,
  *  Gameweeks). Each caller says what that means for it. */
-export type SaveGameweek =
+type SaveGameweek =
   | { kind: "seasonOver" }
   | { kind: "open"; season: SeasonRules; gameweek: number };
 
 /** The gameweek a save at `now` goes to (`nextOpenGameweek`), with the league's rules it was
  *  dated by. */
-export async function saveGameweekOf(ctx: QueryCtx, leagueId: Id<"leagues">, now: number, schedule?: HeldSchedule): Promise<SaveGameweek> {
+export async function saveGameweekOf(ctx: QueryCtx, leagueId: Id<"leagues">, now: number, matches?: readonly ScheduledMatch[]): Promise<SaveGameweek> {
   const season = await seasonRules(ctx, leagueId);
-  const gameweek = await nextOpenGameweek(ctx, leagueId, season, now, schedule);
+  const gameweek = await nextOpenGameweek(ctx, leagueId, now, matches);
   const league = await ctx.db.get("leagues", leagueId);
   if (league === null || gameweek > lastPlayedGameweek(league, await seasonGameweekCount(ctx))) return { kind: "seasonOver" };
   return { kind: "open", season, gameweek };
@@ -250,8 +250,8 @@ export async function pickFirstLineupAgain(ctx: MutationCtx, leagueId: Id<"leagu
   const squad = await squadCodes(ctx, teamId);
   const positions = await heldPositionsOf(ctx, leagueId, squad);
   const keptOnBench = row === null ? new Set<number>() : keptOnBenchOf(row, squad, positions);
-  const stars = await starsOfPlayers(ctx, squad);
-  const picked = withDroppedRoles(firstLineup(squad, positions, season.inGameweek(fromGameweek), keptOnBench), (playerCode) => stars.get(playerCode)!, positions, row?.starters);
+  const starsOf = await starsLookup(ctx, squad);
+  const picked = withDroppedRoles(firstLineup(squad, positions, season.inGameweek(fromGameweek), keptOnBench), starsOf, positions, row?.starters);
   if (row?.fromGameweek === fromGameweek) await ctx.db.patch("lineups", row._id, picked);
   else await ctx.db.insert("lineups", { leagueId, teamId, fromGameweek, ...picked, firstLineup: true });
 }
@@ -267,8 +267,13 @@ export async function storeAutoTeamLineup(
 ): Promise<void> {
   const existing = await rowInForce(ctx, leagueId, teamId, fromGameweek);
   if (existing?.fromGameweek === fromGameweek) await ctx.db.patch("lineups", existing._id, { ...lineup, firstLineup: undefined, classic: undefined });
-  // A new row carries the team's instructions on: the auto team only ever touches the lineup (spec/09).
-  else await ctx.db.insert("lineups", { leagueId, teamId, fromGameweek, ...lineup, instructions: existing?.instructions });
+  else {
+    // A new row carries the team's instructions on: the auto team only ever touches the lineup
+    // (spec/09). Who the row in force kept out of position stays kept while he stands where he
+    // was: his one gameweek's grace is used (`S06.7`; #1789).
+    const kept = existing === null ? [] : stillKept(existing, lineup.starters);
+    await ctx.db.insert("lineups", { leagueId, teamId, fromGameweek, ...lineup, instructions: existing?.instructions, keptOutOfPosition: kept.length > 0 ? kept : undefined });
+  }
 }
 
 /** When the draft ends (#1040): the team's first lineup, as its picks left it, becomes its saved

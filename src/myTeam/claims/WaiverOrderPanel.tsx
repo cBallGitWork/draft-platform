@@ -8,7 +8,6 @@ import {
   runWords,
   RUNS_TITLE,
   tablePlaceWords,
-  ukTimeWords,
   WAIVER_ORDER_TITLE,
   waiverOrderNote,
   waiverOrderWords,
@@ -18,7 +17,7 @@ import {
 // The waiver order and the runs (#1200; the waivers pictures' right-hand column), on My team's
 // Transactions tab and League settings' Waivers tab: every team in the order with its table place
 // and points (Craig, 6 Nov 2026: "Everyone sees the whole order"), the caller's own marked; then
-// the next runs, UK time, and when free agency opens.
+// the next runs, in the viewer's own zone, and when free agency opens.
 
 const ROW = "flex items-baseline gap-3 border-t border-panel-rule px-3 py-1 first:border-t-0";
 
@@ -60,7 +59,7 @@ export function RunsPanel({ waivers, claims = [] }: { waivers: WaiversView; clai
     gameweek: waivers.windowShuts?.gameweek ?? null,
   });
   return (
-    <Panel title={RUNS_TITLE} aside={<span className="text-soft">{ukTimeWords}</span>}>
+    <Panel title={RUNS_TITLE}>
       <ul>
         {waivers.runs.map(({ at, skippedIf }, index) => {
           const note = runNoteWords({

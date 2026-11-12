@@ -1,6 +1,17 @@
 import type { Area } from "../lineup/pitch";
 import type { StoredScoringSet } from "./scoringSetShape";
-import { ASSISTS, CLEAN_SHEET_MINUTES, CLEAN_SHEETS, GOALS, GOALS_CONCEDED, MINUTES_STAT } from "./statKeys";
+import {
+  ASSISTS,
+  CLEAN_SHEET_MINUTES,
+  CLEAN_SHEETS,
+  GOALS,
+  GOALS_CONCEDED,
+  MINUTES_STAT,
+  PENALTIES_SAVED,
+  RED_CARDS,
+  SAVES,
+  YELLOW_CARDS,
+} from "./statKeys";
 
 // The site's first scoring set (spec/14, Who owns it, and The first scoring set; #354): what every
 // league plays on until the admin first saves the site's set (siteScoring.ts), and what the
@@ -30,7 +41,7 @@ function fplPositions<Value>(goalkeeper: Value, defender: Value, midfielder: Val
 const CONCEDED = { every: 2, points: -1 };
 const NOT_CONCEDED = { every: 2, points: 0 };
 /** 1 for every three saves, for the keeper. */
-const SAVES = { every: 3, points: 1 };
+const SAVES_VALUE = { every: 3, points: 1 };
 const NO_SAVES = { every: 3, points: 0 };
 
 export const FIRST_SCORING: StoredScoringSet = {
@@ -42,11 +53,11 @@ export const FIRST_SCORING: StoredScoringSet = {
     // FPL counts a clean sheet only for a player on for 60 minutes or more.
     { shape: "perAction", stat: CLEAN_SHEETS, values: { byArea: fplPositions(4, 4, 1, 0) }, minMinutes: { all: CLEAN_SHEET_MINUTES } },
     { shape: "perCount", stat: GOALS_CONCEDED, values: { byArea: fplPositions(CONCEDED, CONCEDED, NOT_CONCEDED, NOT_CONCEDED) } },
-    { shape: "perCount", stat: "saves", values: { byArea: fplPositions(SAVES, NO_SAVES, NO_SAVES, NO_SAVES) } },
-    { shape: "perAction", stat: "penalties_saved", values: { all: 5 } },
+    { shape: "perCount", stat: SAVES, values: { byArea: fplPositions(SAVES_VALUE, NO_SAVES, NO_SAVES, NO_SAVES) } },
+    { shape: "perAction", stat: PENALTIES_SAVED, values: { all: 5 } },
     { shape: "perAction", stat: "penalties_missed", values: { all: -2 } },
-    { shape: "perAction", stat: "yellow_cards", values: { all: -1 } },
-    { shape: "perAction", stat: "red_cards", values: { all: -3 } },
+    { shape: "perAction", stat: YELLOW_CARDS, values: { all: -1 } },
+    { shape: "perAction", stat: RED_CARDS, values: { all: -3 } },
     { shape: "perAction", stat: "own_goals", values: { all: -2 } },
   ],
   wholePointsOnly: false,

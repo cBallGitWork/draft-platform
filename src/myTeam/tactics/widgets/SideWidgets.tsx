@@ -11,6 +11,7 @@ import { positionMarksOf } from "../positionMarks";
 import { instructionsTitle, LINEUP_CHECK_TITLE, lineupCheckPlaceholder, opponentTitle, outOfPositionLineWords, pickedWords, SIDE_WORDS } from "../words";
 import { offeredOn, SIDES, type Instruction, type InstructionPair } from "../../../../convex/lineup/instructions";
 import type { Cell } from "../../../../convex/lineup/pitch";
+import { gameModeOf } from "../../../../convex/rules/gameMode";
 
 // The Tactics tab's widgets, each a panel with its title plate (plate.md, Tables and panels): the
 // lineup check under the pitch, and the team instructions and the gameweek's opponent down the right.
@@ -87,7 +88,7 @@ export function TeamInstructionsWidget({
  *  games, and "—" where the team has none, before the fixtures are drawn (#849; Craig, 6 Nov
  *  2026). None in total points, or before the league's table has loaded. */
 export function OpponentWidget({ table, teamName, gameweek }: { table: LeagueTable | undefined; teamName: string; gameweek: number }) {
-  if (!table || table.format !== "headToHead") return null;
+  if (!table || !gameModeOf(table).hasMatchups) return null;
   const own = standingOf(table, teamName);
   if (own === null) return null;
   const games = gamesIn(table, teamName, gameweek);

@@ -13,7 +13,7 @@ export const TYPO_STAT = "goals_scroed";
 
 /** The site's set from now on, a fix in force from the start: `scoring` in place of the first. */
 const holdFix = ({ t }: Pick<ScoresLeague, "t">, scoring: StoredScoringSet) =>
-  t.run((ctx) => holdSiteScoring(ctx, { scoring, kind: "fix", season: 2026, number: 1, at: 0 }));
+  t.run((ctx) => holdSiteScoring(ctx, { scoring, kind: "fix" }));
 
 /** The site's set from now on holds a rule on TYPO_STAT, as a set written by hand could (#287). */
 export async function holdTypoRule(league: Pick<ScoresLeague, "t">) {

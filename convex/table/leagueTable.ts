@@ -2,14 +2,15 @@ import { v, type Infer } from "convex/values";
 import type { Doc, Id } from "../_generated/dataModel";
 import { query, type QueryCtx } from "../_generated/server";
 import { memberOf, teamsOf } from "../shared/leagueAccess";
+import { gameModeOf } from "../rules/gameMode";
 import { seasonRules, type SeasonRules } from "../rules/rulesHistory";
-import { deadlineOf, leagueDeadlines } from "../gameweeks/leagueDeadlines";
+import { leagueDeadlineOf } from "../gameweeks/leagueDeadlines";
 import { leagueRulesShape } from "../rules/leagueRulesShape";
 import { scheduleOf } from "./playedFixtures";
 import { leagueScores } from "../gameweekScorer/gameweekScores";
 import { leagueTableFrom, pointsOf, tableOf } from "./sentTables";
 import { shownDeadline } from "../gameweeks/usedGameweeks";
-import { onAutoTeam } from "../trades/tradeShut";
+import { onAutoTeam } from "../lineup/autoTeamSwitch";
 import { heldFixturesSeason } from "../shared/fixtures";
 
 // The league's fixtures and table (#33; spec/09, spec/12 "table and fixtures"), for anyone with a
@@ -103,7 +104,7 @@ export async function standingsOf(ctx: QueryCtx, league: Doc<"leagues">, season:
   const nameOf = new Map(teams.map((team) => [team._id, team.name]));
   const named = (teamId: Id<"teams">) => nameOf.get(teamId)!;
 
-  const headToHead = rules.format === "headToHead";
+  const headToHead = gameModeOf(rules).hasMatchups;
   const schedule = headToHead ? await scheduleOf(ctx, league, season) : [];
   const { scores: results, unscored } = await leagueScores(ctx, league, season, teamIds);
   const scores = pointsOf(results);
@@ -120,7 +121,7 @@ export const ofLeague = query({
     const { league } = await memberOf(ctx, leagueId);
     const season = await seasonRules(ctx, leagueId);
     const { rules, schedule, results, unscored, table, named, autoTeams } = await standingsOf(ctx, league, season);
-    const deadlineIn = deadlineOf(await leagueDeadlines(ctx, leagueId));
+    const deadlineIn = await leagueDeadlineOf(ctx, leagueId);
     return leagueTableFrom({ format: rules.format, season: await heldFixturesSeason(ctx), schedule, results, unscored, table, deadlineOf: deadlineIn, named, autoTeams });
   },
 });

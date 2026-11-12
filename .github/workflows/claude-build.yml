@@ -6,11 +6,15 @@
 # opens the pull request and stops. review.yml
 # reviews it, CI checks it, and a step here (never the agent) turns on auto-merge, so a green pull request merges
 # on its own once lane-auto.yml (or Code Owners) has approved it.
-# Bills to Craig's Claude subscription first (the CLAUDE_CODE_OAUTH_TOKEN secret, made with `claude setup-token`).
-# Only when that build never started (no model answered: a rejected or expired token, no credits) or the secret is
-# not set does it run once more on ANTHROPIC_API_KEY, so the spend cap in Anthropic's console is the limit. A build
-# that started and then failed goes red instead of being paid for twice. One that ran out of turns or was cut off
-# leaves what it wrote as a draft pull request, which the next build of the issue carries on from.
+# Bills to Craig's Claude subscription only (the CLAUDE_CODE_OAUTH_TOKEN secret, made with `claude setup-token`).
+# The metered API key is out of builds (dev studio safety basics, 11 Nov 2026): a build that never started (a rejected
+# or expired token) goes red and costs nothing, and one that hit the subscription's usage limit opens a pause
+# (PAUSED_LABEL) until the limit resets, rather than spending on a key: the lead starts nothing while it holds, and
+# Craig's own `build` label or button still starts one, as a deliberate choice (11 Nov 2026). The `verify` job fails any workflow that reads
+# that key again. One that ran out of turns or was cut off leaves what it wrote as a draft pull request, which the next
+# build of the issue carries on from.
+# Craig's stop switch: the repository variable PIPELINE_STOP (only the owner of a personal repository can set one),
+# set to a reason, starts no build and no review; delete it to start again. lead.yml says so on its board.
 # Every action is pinned to a full commit SHA, its tag in a comment: a moved tag cannot change what runs here.
 name: claude-build
 # "<mode> #<issue>": lead.yml reads which issues are in flight from it
@@ -45,12 +49,14 @@ jobs:
   build:
     # a build starts from Craig's `build` label, from a dispatch (the nightly job, the weekly drift pass, or Craig's
     # button), or from Craig's comment on an issue labelled `rules:open`, never on a pull request's comments
+    # Nothing starts while Craig's stop switch is set (the header).
     if: >-
-      github.event_name == 'workflow_dispatch'
-      || (github.event_name == 'issues' && github.event.label.name == 'build' && github.event.sender.login == github.repository_owner)
-      || (github.event_name == 'issue_comment' && !github.event.issue.pull_request
-          && github.event.comment.user.login == github.repository_owner
-          && contains(github.event.issue.labels.*.name, 'rules:open'))
+      vars.PIPELINE_STOP == ''
+      && (github.event_name == 'workflow_dispatch'
+          || (github.event_name == 'issues' && github.event.label.name == 'build' && github.event.sender.login == github.repository_owner)
+          || (github.event_name == 'issue_comment' && !github.event.issue.pull_request
+              && github.event.comment.user.login == github.repository_owner
+              && contains(github.event.issue.labels.*.name, 'rules:open')))
     # one build per issue, so a manual run and the nightly run never build it twice; different issues build side by
     # side. At job level, so a run for any other label (skipped by the `if` above) never joins the group and never
     # replaces a build waiting in it.
@@ -62,7 +68,8 @@ jobs:
     env:
       ISSUE: ${{ inputs.issue || github.event.issue.number }}
       MODE: ${{ inputs.mode || 'build' }}
-      HAS_SUBSCRIPTION: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN != '' }}  # a step's `if` cannot read secrets, so this carries it
+      PAUSED_LABEL: "pipeline:paused"  # an open issue with it holds every build until the time on its `Until:` line (lead.yml)
+      PAUSE_HOURS: 5  # how long a usage limit pauses builds when its message gives no reset time: the subscription's window
       # lead.yml dispatches each build as CBHelper180 (BUILD_TOKEN) since 6 Nov 2026, falling back to the job's token,
       # whose actor is the github-actions bot; claude-code-action refuses any bot not named here (the 5 Nov 2026
       # nightly: #989, #990 and #991 all failed with "Workflow initiated by non-human actor: github-actions").
@@ -147,7 +154,7 @@ jobs:
       - if: steps.gate.outputs.go == 'true'
         run: npm ci
       - id: subscription
-        if: steps.gate.outputs.go == 'true' && env.HAS_SUBSCRIPTION == 'true'
+        if: steps.gate.outputs.go == 'true'
         continue-on-error: true
         uses: anthropics/claude-code-action@c0949c50a78c1ec8ce2647db36629b870e715d0c  # v1.0.268
         with:
@@ -160,76 +167,86 @@ jobs:
           github_token: ${{ github.ref != 'refs/heads/main' && (secrets.BUILD_TOKEN || github.token) || '' }}
           claude_args: ${{ env.CLAUDE_ARGS }}
           prompt: ${{ env.BUILD_PROMPT }}
-      # Whether the subscription build ever started, read from the action's execution file (the run's messages).
-      # It never started when there is no result, no turn, no model usage (on 3 Nov 2026 both failed builds had
-      # `"modelUsage": {}` and $0 after about 0.5 s), or the result is an error naming authentication
-      # (only an error result counts, since a finished build's summary may well mention sign-in or keys).
+      # Why a failed build failed, read from the action's execution file (the run's messages), so the run says it in one
+      # line and a usage limit pauses the pipeline. Nothing is run again: the metered key is out of builds.
+      # A usage limit is an error result whose text names the limit; the rest is as before: it never started (no result,
+      # no turn, no model usage: on 3 Nov 2026 both failed builds had `"modelUsage": {}` after about 0.5 s, or an error
+      # naming authentication), it finished past --max-turns, or it started and failed.
       - id: decide
+        name: Say why a failed build failed
         if: steps.gate.outputs.go == 'true'
         env:
           OUTCOME: ${{ steps.subscription.outcome }}
           EXECUTION_FILE: ${{ steps.subscription.outputs.execution_file }}
           DEFAULT_EXECUTION_FILE: ${{ runner.temp }}/claude-execution-output.json  # where the action writes it
           AUTH_ERROR: 'authenticat|oauth|api key|unauthori[sz]ed|\b401\b|/login|credit balance'
+          LIMIT_ERROR: 'usage limit|limit reached|hit your limit|limit will reset|out of (extra )?usage'
         run: |
-          start_over() { echo "fall_back=true" >> "$GITHUB_OUTPUT"; echo "::warning::Building on the API key: $1."; }
-          case "$OUTCOME" in
-            success) echo "fall_back=false" >> "$GITHUB_OUTPUT"; exit 0 ;;
-            skipped) start_over "no subscription token is set"; exit 0 ;;
-          esac
+          never_started() { echo "::error::The build never started: $1. Nothing ran, so nothing was spent (is the CLAUDE_CODE_OAUTH_TOKEN secret set and current?)."; }
+          [ "$OUTCOME" = success ] && exit 0
           file="${EXECUTION_FILE:-$DEFAULT_EXECUTION_FILE}"
-          if [ ! -s "$file" ]; then
-            start_over "the subscription step wrote no execution file, so Claude never ran"; exit 0
-          fi
-          summary=$(jq -c --arg auth "$AUTH_ERROR" '
+          if [ ! -s "$file" ]; then never_started "the subscription step wrote no execution file"; exit 0; fi
+          summary=$(jq -c --arg auth "$AUTH_ERROR" --arg limit "$LIMIT_ERROR" '
             [ (if type == "array" then .[] else . end) ] as $all
             | [ $all[] | select(.type? == "result") ] | last
             | if . == null then {result: false, started: ([$all[] | select(.type? == "assistant")] | length > 0)}
-              else {result: true, turns: (.num_turns // 0), models: ((.modelUsage // {}) | length),
-                    auth: ((.is_error // false) and ((.result // "") | tostring | test($auth; "i"))), subtype: (.subtype // ""), error: (.is_error // false)} end' "$file")
+              else ((.result // "") | tostring) as $text | (.is_error // false) as $error
+                | {result: true, turns: (.num_turns // 0), models: ((.modelUsage // {}) | length),
+                   auth: ($error and ($text | test($auth; "i"))), limit: ($error and ($text | test($limit; "i"))),
+                   reset: (([$text | capture("\\|(?<t>[0-9]{10})")] | first | .t?) // ""), subtype: (.subtype // ""), error: $error} end' "$file")
           echo "subscription result: $summary"
-          if [ "$(jq -r '.result' <<<"$summary")" != true ] && [ "$(jq -r '.started' <<<"$summary")" = true ]; then
-            # killed part-way (a crash, the timeout): it may have pushed a branch, so it is not built twice
-            echo "fall_back=false" >> "$GITHUB_OUTPUT"
-            echo "::error::The subscription build started and stopped with no result, so it is not run again on the API key."
-          elif [ "$(jq -r '.result' <<<"$summary")" != true ]; then
-            start_over "the subscription run ended with no result"
-          elif [ "$(jq -r '.turns' <<<"$summary")" = 0 ]; then
-            start_over "the subscription run took no turns"
-          elif [ "$(jq -r '.models' <<<"$summary")" = 0 ]; then
-            start_over "no model answered the subscription run"
-          elif [ "$(jq -r '.auth' <<<"$summary")" = true ]; then
-            start_over "the subscription run failed to authenticate"
-          elif [ "$(jq -r '.subtype' <<<"$summary")" = success ] && [ "$(jq -r '.error' <<<"$summary")" = false ]; then
+          field() { jq -r ".$1" <<<"$summary"; }
+          if [ "$(field result)" != true ] && [ "$(field started)" = true ]; then
+            echo "::error::The build started and stopped with no result (a crash or the timeout)."
+          elif [ "$(field result)" != true ]; then never_started "it ended with no result"
+          elif [ "$(field limit)" = true ]; then
+            # the reset time when the message carries one ("Claude AI usage limit reached|1731000000"), else PAUSE_HOURS on
+            reset=$(field reset)
+            pause_end=$(if [ -n "$reset" ]; then date -u -d "@$reset" +%FT%TZ; else date -u -d "$PAUSE_HOURS hours" +%FT%TZ; fi)
+            echo "limit=true" >> "$GITHUB_OUTPUT"; echo "until=$pause_end" >> "$GITHUB_OUTPUT"
+            echo "::error::The subscription's usage limit was reached: builds pause until $pause_end."
+          elif [ "$(field turns)" = 0 ]; then never_started "it took no turns"
+          elif [ "$(field models)" = 0 ]; then never_started "no model answered"
+          elif [ "$(field auth)" = true ]; then never_started "it failed to authenticate"
+          elif [ "$(field subtype)" = success ] && [ "$(field error)" = false ]; then
             # the action fails a finished build whose turns, subagents' included, pass --max-turns ("Claude reported a
             # successful result after 191 turns, exceeding the configured maximum of 150", #383, 8 Nov 2026): the
             # build is done, so the run is green, not a stop on the lead's board
-            echo "fall_back=false" >> "$GITHUB_OUTPUT"
             echo "finished=true" >> "$GITHUB_OUTPUT"
-            echo "::notice::The build finished ($(jq -r '.turns' <<<"$summary") turns); the action's turn count failed the step, not the build."
+            echo "::notice::The build finished ($(field turns) turns); the action's turn count failed the step, not the build."
           else
-            echo "fall_back=false" >> "$GITHUB_OUTPUT"
-            echo "::error::The subscription build started and then failed ($(jq -r '.subtype' <<<"$summary"), $(jq -r '.turns' <<<"$summary") turns), so it is not run again on the API key."
+            echo "::error::The build started and then failed ($(field subtype), $(field turns) turns)."
           fi
-      - id: fall_back
-        if: steps.decide.outputs.fall_back == 'true'
-        run: git checkout -f main && git clean -fd  # start the second run from a clean tree
-      - id: api_key
-        if: steps.decide.outputs.fall_back == 'true'
-        uses: anthropics/claude-code-action@c0949c50a78c1ec8ce2647db36629b870e715d0c  # v1.0.268
-        with:
-          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
-          allowed_bots: ${{ env.BUILD_STARTER_BOTS }}
-          github_token: ${{ github.ref != 'refs/heads/main' && (secrets.BUILD_TOKEN || github.token) || '' }}  # as the subscription step
-          claude_args: ${{ env.CLAUDE_ARGS }}
-          prompt: ${{ env.BUILD_PROMPT }}
+      # The limit-reached pause: one open PAUSED_LABEL issue, its `Until:` line the latest reset any build has seen.
+      # lead.yml starts no build while it holds and closes it once the time has passed.
+      - name: Pause builds until the usage limit resets
+        if: steps.decide.outputs.limit == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          UNTIL: ${{ steps.decide.outputs.until }}
+        run: |
+          gh label create "$PAUSED_LABEL" --color B60205 --description "Builds wait: the subscription's usage limit, or the lead's tripwire" --force
+          body=$(printf 'Builds are paused: the Claude subscription hit its usage limit in run %s.\n\nUntil: %s\n\nThe lead starts no build until then, and closes this issue when the time has passed. Close it sooner to start builds now.\n' \
+            "$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID" "$UNTIL")
+          open=$(gh issue list --state open --label "$PAUSED_LABEL" --json number,body --jq '.[] | select(.body | test("(?m)^Until: ")) | .number' | head -n1)
+          if [ -z "$open" ]; then gh issue create --title "Paused: the subscription's usage limit" --label "$PAUSED_LABEL" --body "$body"
+          else
+            was=$(gh issue view "$open" --json body --jq '.body | capture("(?m)^Until: (?<t>\\S+)").t // ""')
+            if [[ "$UNTIL" > "$was" ]]; then gh issue edit "$open" --body "$body"
+            else echo "#$open already pauses builds until $was, no earlier than this run's $UNTIL: left as it is."; fi
+          fi
       # The step, not the agent, turns on auto-merge for the pull request the build opened (Craig, 4 Nov 2026: green
       # builder pull requests merge on their own, with no label and nobody running the merge). The merge itself still
       # waits for the required checks and an approval: lane-auto.yml's, or Craig's through Code Owners.
+      # Turned on as the pipeline's own account (BUILD_TOKEN, CBHelper180), so the merge is credited to it: a merge
+      # credited to github-actions left its `Closes #N` issue open (23 of 23 on 11 Nov 2026, #1643), and the one Craig's
+      # account merged closed its issue.
       - name: Turn on auto-merge for the build's pull request
         if: always() && steps.decide.outcome != 'skipped' && env.MODE != 'rules-only'  # a build that opened its pull request and then ran out of turns ends red, and its pull request still merges
         env:
-          GH_TOKEN: ${{ github.token }}
+          GH_TOKEN: ${{ secrets.BUILD_TOKEN || github.token }}
+          JOB_TOKEN: ${{ github.token }}  # if the account can't turn it on, the job's token still can, as before
         run: |
           branch=$(git rev-parse --abbrev-ref HEAD)
           # GITHUB_REF_NAME is the branch the run started on: main, or a pipeline branch under test, whose own pull request
@@ -239,6 +256,8 @@ jobs:
           [ -n "$pr" ] || { echo "No open, ready pull request from $branch: nothing to merge."; exit 0; }
           if gh pr merge "$pr" --auto --squash; then
             echo "::notice::Auto-merge is on for #$pr: it merges once its checks pass and it is approved."
+          elif GH_TOKEN="$JOB_TOKEN" gh pr merge "$pr" --auto --squash; then
+            echo "::warning::Auto-merge is on for #$pr with the job's token, not the pipeline's account: its issue may stay open after the merge (#1643)."
           else  # the pull request is open and fine; only the merge waits for a hand
             echo "::warning::Couldn't turn on auto-merge for #$pr (is the repo's \"Allow auto-merge\" setting on?): it waits to be merged by hand."
           fi
@@ -316,8 +335,8 @@ jobs:
               "Last message: \(($r.result // "none") | tostring | split("\n")[0] | .[0:300])"
           ' "$file" | tee -a "$GITHUB_STEP_SUMMARY"
       # continue-on-error keeps the subscription step's failure off the job, so a real failure is turned red here
-      - name: Fail when the subscription build failed and was not run again
-        if: steps.subscription.outcome == 'failure' && steps.decide.outputs.fall_back != 'true' && steps.decide.outputs.finished != 'true'
+      - name: Fail when the build failed
+        if: steps.subscription.outcome == 'failure' && steps.decide.outputs.finished != 'true'
         run: |
-          echo "::error::The subscription build failed after it started; see the subscription step's log."
+          echo "::error::The build failed; the decide step says why."
           exit 1

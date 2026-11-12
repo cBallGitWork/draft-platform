@@ -1,6 +1,6 @@
-import { v, type Infer } from "convex/values";
+import { v } from "convex/values";
 import { query } from "../_generated/server";
-import { clubRecord, matchState } from "../schema";
+import { clubRecord } from "../schema";
 import { currentFixtures, heldFixturesSeason } from "../shared/fixtures";
 import { callerEmail } from "../shared/leagueAccess";
 import { clubOf, currentClubs, type Club } from "../shared/players";
@@ -13,10 +13,6 @@ import { COMPETITION_TIE_BREAKS } from "./tieBreaks";
 // out from the results. Live during matches, provisional until they are final"). The results are
 // the held scores (matchScores.ts) of the matches the feed still sends: those at full time, and
 // those being played, as they stand.
-
-/** A match's states that count in the table, and which of them are still being played. */
-type State = Infer<typeof matchState>;
-const COUNTED_STATES: ReadonlySet<State> = new Set(["live", "halfTime", "fullTime"]);
 
 const tableRow = v.object({
   club: clubRecord,
@@ -60,7 +56,8 @@ export const ofSeason = query({
     for (const [index, { code, homeClubCode, awayClubCode }] of fixtures.entries()) {
       const score = scores[index];
       const match = { home: currentClubOf(homeClubCode, code), away: currentClubOf(awayClubCode, code) };
-      if (score === null || !COUNTED_STATES.has(score.state)) {
+      // A match counts once it is being played or at full time.
+      if (score === null || !(isPlaying(score.state) || score.state === "fullTime")) {
         unplayed.push(match);
         continue;
       }

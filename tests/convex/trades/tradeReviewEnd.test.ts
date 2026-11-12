@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, test } from "vitest";
 import { api } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
 import { MOST_IN_SQUAD } from "../../../convex/leagues/leagueLimits";
-import { reviewRefusals } from "../../../convex/trades/tradeReview";
+import { squadFullRefusal } from "../../../convex/trades/tradeSquads";
 import { actingAs, eventsIn } from "../../support/convex/leagues.harness";
 import { holdPlayers, nameOf } from "../../support/convex/lineupSquad.harness";
 import { expectRefused, silenceConsoleError } from "../../support/convex/test.harness";
@@ -84,7 +84,7 @@ test("with no review, accepting a trade a squad filled meanwhile can't take is s
   const first = await w.offer(BOB, w.annsTeam, [PALMER], []);
   const second = await w.offer(CAT, w.annsTeam, [RICE], []);
   await w.accept(ANN, first.offerId);
-  await expectRefused(w.accept(ANN, second.offerId), reviewRefusals.squadFull);
+  await expectRefused(w.accept(ANN, second.offerId), squadFullRefusal);
 
   expect((await w.offers()).map(({ _id }) => _id)).toContain(second.offerId);
   expect(await squadOf(w.catsTeam)).toContain(RICE);

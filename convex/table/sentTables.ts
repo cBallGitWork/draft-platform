@@ -1,5 +1,6 @@
 import type { Id } from "../_generated/dataModel";
 import type { DeadlineOf } from "../gameweeks/deadline";
+import { gameModeOf } from "../rules/gameMode";
 import type { LeagueRules } from "../rules/leagueRulesShape";
 import type { TeamGameweekTotal } from "../gameweekScorer/gameweekScores";
 import type { LeagueTable, ScoredFixture } from "./leagueTable";
@@ -33,7 +34,7 @@ export function tableOf(
   scores: GameweekScores<TeamId>,
   tieBreaks: readonly TieBreak[],
 ): TableRow<TeamId>[] {
-  return format === "headToHead" ? headToHeadTable(teamIds, schedule, scores, tieBreaks) : totalPointsTable(teamIds, scores);
+  return gameModeOf({ format }).hasMatchups ? headToHeadTable(teamIds, schedule, scores, tieBreaks) : totalPointsTable(teamIds, scores);
 }
 
 /** The league's fixtures by gameweek, each scored once its gameweek is, and its table, as

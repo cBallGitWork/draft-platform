@@ -29,13 +29,3 @@ export const mailTables = {
     .index("by_to_and_at", ["to", "at"])
     .index("by_leagueId", ["leagueId"]),
 };
-
-// Feedback to the admin (#357, spec/15): one row a message, kept for him to read on his dashboard.
-export const feedbackTables = {
-  feedback: defineTable({
-    /** Who sent it, by email. */
-    from: v.string(),
-    at: v.number(),
-    message: v.string(),
-  }).index("by_at", ["at"]),
-};

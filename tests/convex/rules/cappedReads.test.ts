@@ -6,6 +6,12 @@ import { RULES_CHANGES_MOST } from "../../../convex/rules/rulesHistory";
 import { heldSchedule } from "../../../convex/gameweeks/leagueDeadlines";
 import { CURRENT_FIXTURES_MOST } from "../../../convex/shared/fixtures";
 import { FIRST_GAMEWEEK, GAMEWEEKS_MOST, seasonGameweeks } from "../../../convex/gameweeks/usedGameweeks";
+import { gameweekStartsOf } from "../../../convex/gameweeks/gameweekStarts";
+import { fixedDeadlinesOf, passedDeadlinesOf } from "../../../convex/gameweeks/passedDeadlines";
+import { roundStartsOf } from "../../../convex/gameweeks/roundStarts";
+import { seasonRules } from "../../../convex/rules/rulesHistory";
+import { seasonStartYear } from "../../../convex/shared/time";
+import { scheduleOf } from "../../../convex/table/playedFixtures";
 import { PL_GAMEWEEKS } from "../../support/convex/footballRows.harness";
 import { changeRules, holdGameweeks, holdGameweeksPastTheSeason, latestRules, rulesWith, TOTAL_POINTS } from "../../support/convex/leagueRules.harness";
 import { expectRefused, ROWS_TO_THE_CAP } from "../../support/convex/test.harness";
@@ -102,5 +108,72 @@ describe("the held schedule", () => {
     await holdMoreFixtures(CURRENT_FIXTURES_MOST, 1000, DROPPED_AT);
 
     expect((await schedule()).matches).toHaveLength(PL_GAMEWEEKS);
+  });
+});
+
+describe("a read of one row a gameweek throws past its cap rather than drop the latest gameweeks (#1739)", () => {
+  const OVER_THE_CAP = GAMEWEEKS_MOST + 1;
+  /** The numbers 1 to `count`: one row each, as a bug writing rows by hand might leave them. */
+  const numbersTo = (count: number) => Array.from({ length: count }, (_, index) => FIRST_GAMEWEEK + index);
+  const NO_GAMES = { fixtures: [], byes: [] };
+  const KICKOFF = 0;
+  const SEASON = seasonStartYear(KICKOFF);
+
+  const schedule = () =>
+    t.run(async (ctx) => {
+      await scheduleOf(ctx, (await ctx.db.get("leagues", leagueId))!, await seasonRules(ctx, leagueId));
+    });
+
+  test(`the stored fixtures: past ${GAMEWEEKS_MOST} gameweeks`, async () => {
+    await t.run(async (ctx) => {
+      for (const gameweek of numbersTo(OVER_THE_CAP)) await ctx.db.insert("playedFixtures", { leagueId, gameweek, ...NO_GAMES, storedAt: 0 });
+    });
+    await expect(schedule()).rejects.toThrow(`More than ${GAMEWEEKS_MOST} stored gameweeks are held for one league`);
+  });
+
+  test(`the fixture edits: past ${GAMEWEEKS_MOST} gameweeks`, async () => {
+    await t.run(async (ctx) => {
+      for (const gameweek of numbersTo(OVER_THE_CAP)) {
+        await ctx.db.insert("fixtureEdits", { leagueId, gameweek, ...NO_GAMES, drawn: NO_GAMES, editedAt: 0 });
+      }
+    });
+    await expect(schedule()).rejects.toThrow(`More than ${GAMEWEEKS_MOST} fixture edit rows are held for one league`);
+  });
+
+  test(`the passed deadlines: past ${GAMEWEEKS_MOST} gameweeks`, async () => {
+    await t.run(async (ctx) => {
+      for (const gameweek of numbersTo(OVER_THE_CAP)) await ctx.db.insert("passedDeadlines", { leagueId, gameweek, deadline: 0, recordedAt: 0 });
+    });
+    await expect(t.run((ctx) => passedDeadlinesOf(ctx, leagueId).then(() => undefined))).rejects.toThrow(
+      `More than ${GAMEWEEKS_MOST} passed deadlines are held for one league`,
+    );
+  });
+
+  test(`the kept deadlines: past ${GAMEWEEKS_MOST} gameweeks`, async () => {
+    await t.run(async (ctx) => {
+      for (const gameweek of numbersTo(OVER_THE_CAP)) await ctx.db.insert("keptDeadlines", { leagueId, gameweek, deadline: 0, keptAt: 0 });
+    });
+    await expect(t.run((ctx) => fixedDeadlinesOf(ctx, leagueId).then(() => undefined))).rejects.toThrow(
+      `More than ${GAMEWEEKS_MOST} kept deadlines are held for one league`,
+    );
+  });
+
+  test(`the gameweek starts: past ${GAMEWEEKS_MOST} gameweeks`, async () => {
+    await t.run(async (ctx) => {
+      for (const gameweek of numbersTo(OVER_THE_CAP)) await ctx.db.insert("gameweekStarts", { season: SEASON, gameweek, firstKickoff: KICKOFF, recordedAt: 0 });
+    });
+    const matches = [{ gameweek: FIRST_GAMEWEEK, kickoff: KICKOFF }];
+    await expect(t.run((ctx) => gameweekStartsOf(ctx, matches).then(() => undefined))).rejects.toThrow(
+      `More than ${GAMEWEEKS_MOST} gameweek starts are held for one season`,
+    );
+  });
+
+  test(`the round starts: past ${GAMEWEEKS_MOST} rounds`, async () => {
+    await t.run(async (ctx) => {
+      for (const round of numbersTo(GAMEWEEKS_MOST + 1)) await ctx.db.insert("roundStarts", { season: SEASON, round, firstKickoff: KICKOFF, recordedAt: 0 });
+    });
+    await expect(t.run((ctx) => roundStartsOf(ctx, SEASON).then(() => undefined))).rejects.toThrow(
+      `More than ${GAMEWEEKS_MOST} round starts are held for one season`,
+    );
   });
 });

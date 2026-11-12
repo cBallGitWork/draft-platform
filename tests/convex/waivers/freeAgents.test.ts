@@ -3,11 +3,13 @@ import { api, internal } from "../../../convex/_generated/api";
 import { leagueDeadlines } from "../../../convex/gameweeks/leagueDeadlines";
 import { pickUpRefusals } from "../../../convex/waivers/freeAgents";
 import { WAIVER_MS } from "../../../convex/waivers/waiverLimits";
+import { dropRefusals } from "../../../convex/waivers/waivers";
 import { changeRules, HELD_FIRST_RULES, rulesWith, setUsed } from "../../support/convex/leagueRules.harness";
 import { actingAs, eventsIn } from "../../support/convex/leagues.harness";
 import { nameOf, passNextDeadline, SQUAD } from "../../support/convex/lineupSquad.harness";
 import { expectRefused } from "../../support/convex/test.harness";
 import { ANN, ANNS_FIRST_DROP, BOB, CAT, NEXT, PALMER, RICE, SAKA, waiverLeague, type WaiverLeague } from "../../support/convex/waivers.harness";
+import { teamNumbered } from "../../../convex/leagues/teams";
 
 // A free agent pickup (#1199, spec/08 Waivers and free agency): first come first served, from the
 // first waiver run after a gameweek until the next deadline; with a full squad the manager names
@@ -24,8 +26,11 @@ const pickUp = (email: string, playerCode: number, dropCode: number | null = nul
 /** The waiver cron's check, and what it starts now: never a later timer, so the clock stays put. */
 const cronRuns = async () => {
   await w.t.mutation(internal.waivers.waiverRun.runDue, {});
-  vi.advanceTimersByTime(0);
-  await w.t.finishInProgressScheduledFunctions();
+  // Two hops: the cron asks each league (#1762), and the league starts what is due in it.
+  for (const _hop of [1, 2]) {
+    vi.advanceTimersByTime(0);
+    await w.t.finishInProgressScheduledFunctions();
+  }
 };
 
 /** Gameweek NEXT's deadline, once it has passed. */
@@ -42,7 +47,7 @@ describe("in the window", () => {
   test("a manager picks up a free agent, and the league gets a letter", async () => {
     await pickUp(BOB, SAKA);
 
-    expect(await w.stateOf(SAKA)).toEqual({ kind: "owned", teamId: w.bobsTeam, teamName: "Team 2" });
+    expect(await w.stateOf(SAKA)).toEqual({ kind: "owned", teamId: w.bobsTeam, teamName: teamNumbered(2) });
     expect((await eventsIn(w.t, w.leagueId)).at(-1)).toMatchObject({ kind: "playerPickedUp", playerCode: SAKA, teamId: w.bobsTeam, dropped: null, by: BOB });
     expect(await w.lettersTo(CAT)).toContainEqual({
       subject: `Team 2 picked up ${nameOf(SAKA)}`,
@@ -92,7 +97,7 @@ describe("in the window", () => {
     await w.onWaivers([PALMER]);
     await expectRefused(pickUp(BOB, PALMER), pickUpRefusals.notFreeAgent(nameOf(PALMER)), "on waivers");
     await expectRefused(pickUp(BOB, ANNS_FIRST_DROP), pickUpRefusals.notFreeAgent(nameOf(ANNS_FIRST_DROP)), "on a team");
-    await expectRefused(pickUp(BOB, SAKA, ANNS_FIRST_DROP), pickUpRefusals.dropNotYours(nameOf(ANNS_FIRST_DROP)), "another's drop");
+    await expectRefused(pickUp(BOB, SAKA, ANNS_FIRST_DROP), dropRefusals.notYours(nameOf(ANNS_FIRST_DROP)), "another's drop");
   });
 });
 

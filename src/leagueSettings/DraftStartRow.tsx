@@ -22,10 +22,12 @@ const startOf = (value: string): number | null => (value === NO_DATE ? null : ne
 
 /** The commissioner's edit of the draft's start date (spec/04, Starting it), saved with the rest of
  *  the settings (Craig, 11 Nov 2026, on #1476): until he types, the live date as it arrives. Once
- *  the draft has started there is nothing to change. `save` resolves with whether it was made. */
+ *  the draft has started there is nothing to change. `save` resolves with whether it was made;
+ *  `saved` says one was, until the commissioner types or drops again (#1780). */
 export function useDraftStartEdit(leagueId: Id<"leagues">, seam: LeagueSettingsSeam) {
   const view = seam.useDraftStart(leagueId);
   const [typed, setTyped] = useState<string | null>(null);
+  const [saved, setSaved] = useState(false);
   const saving = useChange();
   const startsAt = view?.startsAt ?? null;
   const chosen = typed === null ? startsAt : startOf(typed);
@@ -35,15 +37,26 @@ export function useDraftStartEdit(leagueId: Id<"leagues">, seam: LeagueSettingsS
     unchanged: view === undefined || view.started || chosen === startsAt,
     busy: saving.busy,
     problem: saving.problem,
-    type: setTyped,
+    /** A date was just saved, and nothing typed or dropped since. */
+    saved,
+    type(value: string) {
+      setTyped(value);
+      setSaved(false);
+    },
     drop() {
       setTyped(null);
+      setSaved(false);
       saving.clear();
     },
     async save(): Promise<boolean> {
       const made = await saving.run(() => seam.setDraftStart(leagueId, chosen));
       if (made) setTyped(null);
+      setSaved(made);
       return made;
+    },
+    /** Lets a saved date go unsaid, once the settings' own save says how the bar's save went. */
+    forgetSaved() {
+      setSaved(false);
     },
   };
 }

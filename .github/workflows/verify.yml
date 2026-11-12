@@ -89,7 +89,19 @@ jobs:
       - run: node scripts/tests-kept.mjs
       - run: node scripts/spec-ids.mjs
       - run: node scripts/contents-lists.mjs
+      # the studio kit's copies match .studio/kit.json (change them in the studio repo)
+      - run: node scripts/studio-kit.mjs
       - run: .claude/hooks/test.sh
+      # the tests that read a doc (spec/07's example tables, SPEC.md's Avoid column, plate.md, flow.md, the ui rules):
+      # `unit` is skipped on a docs-only change, so a doc edit that breaks one would merge green and turn every later
+      # pull request's unit job red (#1556)
+      - run: npm run test:docs
+      # the metered API key is out of builds (dev studio safety basics, 11 Nov 2026): builds bill to the subscription only
+      - name: No workflow reads the metered API key
+        run: |
+          if grep -rnE --exclude=verify.yml 'secrets\.ANTHROPIC_API_KEY|anthropic_api_key:' .github/workflows; then  # not this line
+            echo "::error::A workflow reads the metered API key; builds bill to the subscription only (claude-build.yml's header)."; exit 1
+          fi
       - name: actionlint
         run: |
           tarball="actionlint_${ACTIONLINT_VERSION}_linux_amd64.tar.gz"

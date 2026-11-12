@@ -1,11 +1,11 @@
 import { Fragment, type ReactNode } from "react";
 import type { Id } from "../../convex/_generated/dataModel";
 import { cellClassOf, ColumnHeads } from "../ui/ColumnHeads";
-import { OFFER_GROUPS, type OfferSides } from "./offerSides";
+import { noTimeYet } from "./OfferParts";
+import { closesOf, OFFER_GROUPS, type OfferSides } from "./offerSides";
 import type { ScreenOffer, TradeToReview } from "./seam";
 import { TradedSide } from "./TradedPlayer";
 import {
-  afterLastMatchWords,
   betweenWords,
   groupWords,
   offersColumns,
@@ -185,14 +185,7 @@ function OfferRow({
         : offer.reviewer === null
           ? null
           : reviewerWords[offer.reviewer];
-  const closes =
-    offer.reviewEndsAt !== null
-      ? whenWords(offer.reviewEndsAt)
-      : offer.closes === null
-        ? null
-        : offer.closes.at === null
-          ? afterLastMatchWords(offer.closes.gameweek)
-          : whenWords(offer.closes.at);
+  const closes = closesOf(offer);
   return (
     <OffersRow
       offerId={offer.offerId}
@@ -208,7 +201,7 @@ function OfferRow({
       </td>
       <td className={CELL}>{waitingOn}</td>
       <td className={`${CELL} text-derived`}>
-        {closes}
+        {closes === null ? noTimeYet : closes.row}
       </td>
     </OffersRow>
   );

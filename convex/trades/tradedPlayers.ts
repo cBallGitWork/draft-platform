@@ -47,7 +47,7 @@ export async function shownPlayer(
   };
 }
 
-/** A traded player as the screen shows him: an offer names only players the sync holds (tradeClose.ts). */
+/** A traded player as the screen shows him: an offer names only players the sync holds (tradeWords.ts). */
 export async function tradedShown(
   ctx: QueryCtx,
   code: number,

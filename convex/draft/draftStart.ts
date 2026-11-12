@@ -4,7 +4,7 @@ import type { Doc, Id } from "../_generated/dataModel";
 import { internalMutation, mutation, query, type MutationCtx, type QueryCtx } from "../_generated/server";
 import { nextOpenGameweek } from "../lineup/lineups";
 import { draftRulesOf } from "../rules/firstRules";
-import { historyOf, inForce, latestRules, seasonRules } from "../rules/rulesHistory";
+import { historyOf, inForce, latestRules } from "../rules/rulesHistory";
 import type { LeagueRules } from "../rules/leagueRulesShape";
 import { memberOf, refuse, runnerOf, teamsOf } from "../shared/leagueAccess";
 import { closePickTrades, undoCutTrades } from "../trades/tradePicks";
@@ -12,9 +12,8 @@ import { startClock } from "./draftClock";
 import { tellNotStarted, tellUpNext } from "./draftLetters";
 import { DRAFT_FEWEST_TEAMS } from "./draftLimits";
 import { draftOrderOf, teamInOrder, teamOrderOf } from "./draftOrder";
-import { draftOf, lastPickIn, liveClockOf } from "./draftRow";
+import { draftOf, lastPickIn, liveClockOf, turnAfter } from "./draftRow";
 import { roundsOf } from "./draftRules";
-import { pickOnTheClock } from "./snakeOrder";
 
 // Starting the draft (spec/04, Starting it; #1089). It starts on a date the commissioner sets or
 // when he presses start; with no date set, it waits for him (Craig, 4 Nov 2026). It runs with the
@@ -44,8 +43,8 @@ export const draftStartRefusals = {
  *  first gameweek begins, that gameweek's; a change waiting for a later gameweek isn't among them.
  *  What the draft's pick clock runs by. */
 export async function rulesInForceAt(ctx: QueryCtx, leagueId: Id<"leagues">, now: number): Promise<LeagueRules> {
-  const [history, season] = await Promise.all([historyOf(ctx, leagueId), seasonRules(ctx, leagueId)]);
-  const underWay = (await nextOpenGameweek(ctx, leagueId, season, now)) - 1;
+  const history = await historyOf(ctx, leagueId);
+  const underWay = (await nextOpenGameweek(ctx, leagueId, now)) - 1;
   return inForce(history, Math.max(underWay, history[0].fromGameweek))!.rules;
 }
 
@@ -165,7 +164,6 @@ async function waitWithNoDate(ctx: MutationCtx, draft: Doc<"drafts">, refusal: s
 }
 
 const onTheClock = v.object({ pick: v.number(), round: v.number(), teamId: v.id("teams"), name: v.string() });
-/** When the clock of the pick on the clock starts and runs out (draftClock.ts). */
 /** A pick's clock: when it starts and runs out, and, while the draft is paused (draftPause.ts),
  *  when it was paused, its time left counted from then. */
 const pickClock = v.object({ startsAt: v.number(), endsAt: v.number(), pausedAt: v.optional(v.number()) });
@@ -214,7 +212,7 @@ export const ofLeague = query({
     });
     const last = await lastPickIn(ctx, leagueId);
     const picksMade = last?.pick ?? 0;
-    const turn = pickOnTheClock(teamIds, rounds, picksMade, draft.tradedPicks);
+    const turn = turnAfter(draft, picksMade);
     const started = { startedAt: at, rounds, order, picksMade };
     const ownPickBy = last?.own === undefined ? null : last.teamId;
     if (turn === null && draft.clock?.closing) return { status: "ending" as const, ...started, endsAt: draft.clock.startsAt, pausedAt: draft.clock.paused?.at, ownPickBy };

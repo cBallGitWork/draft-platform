@@ -14,6 +14,10 @@ export type Against<Team> = { kind: "team"; team: Team } | { kind: typeof LEAGUE
  *  more than one in a league playing two a gameweek; #913), and who it meets. */
 export type TeamGame<Team> = { gameweek: number; game: number; against: Against<Team> };
 
+/** The first of a team's games in a gameweek, as `gamesOf`, the matchup's address and its switch
+ *  number them. */
+export const FIRST_GAME = 1;
+
 /** Every game `team` plays in `schedule`, in gameweek order: in a gameweek, its fixtures as drawn
  *  (on either side), then its byes, numbered from 1 in that order. A gameweek it has no part in,
  *  such as one stored before it joined, gives none. */
@@ -25,7 +29,7 @@ export function gamesOf<Team>(schedule: readonly GameweekFixtures<Team>[], team:
       return [];
     });
     const sittingOut = byes.filter((each) => each === team).map((): Against<Team> => ({ kind: BYE }));
-    return [...met, ...sittingOut].map((against, index) => ({ gameweek, game: index + 1, against }));
+    return [...met, ...sittingOut].map((against, index) => ({ gameweek, game: index + FIRST_GAME, against }));
   });
 }
 
@@ -34,7 +38,7 @@ export function gamesOf<Team>(schedule: readonly GameweekFixtures<Team>[], team:
  *  games a gameweek (spec/10; #913). */
 export function gameNumberAt<Team>(fixtures: readonly Fixture<Team>[], index: number): number {
   const { team } = fixtures[index];
-  return fixtures.slice(0, index).filter((each) => each.team === team || each.opponent === team).length + 1;
+  return fixtures.slice(0, index).filter((each) => each.team === team || each.opponent === team).length + FIRST_GAME;
 }
 
 /** A team's points in a gameweek scored, and whether they may still move (gameweekScores.ts's

@@ -19,7 +19,7 @@ drafted, for the basics. It needs:
 features 1, 2, 3, 5, 6, 7, 10, 12, 14, 16 and 18, and the admin tools listed in
 [spec/15's The mini beta](spec/15-admin-tools.md#the-mini-beta). Live commentary and the match
 page (10) are in it if the live stream is proven, and among the first things dropped if late.
-The draft (4) waits for the summer.
+The draft (4) waits for the summer. Since built: the draft room (row 4).
 
 The football data comes from Sportmonks, a paid feed, in place of FPL's and the Premier League's
 public APIs: "stop with fpl and prem, thats not scalable" (Craig, 9 Nov 2026, on #1196). Its
