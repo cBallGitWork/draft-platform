@@ -4,13 +4,10 @@
 //
 // Usage: npm run setup:live [-- --admin-email someone@example.com]
 
-import { dirname } from "node:path";
-import { fileURLToPath } from "node:url";
 import { parseArgs } from "node:util";
 import { setUpLive } from "./live-setup/steps.mjs";
 import { realTools } from "./live-setup/tools.mjs";
-
-const CHECKOUT = dirname(dirname(fileURLToPath(import.meta.url)));
+import { CHECKOUT } from "./thisScript.mjs";
 const ADMIN_EMAIL_OPTION = "admin-email";
 
 const { values } = parseArgs({ options: { [ADMIN_EMAIL_OPTION]: { type: "string" } } });
