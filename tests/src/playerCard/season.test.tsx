@@ -229,6 +229,16 @@ describe("the game log (#1027)", () => {
     expect(rows).toHaveLength(3);
   });
 
+  it("a postponed match from before he moved, his club on neither side, says only that it was postponed (#1496)", async () => {
+    const postponed = { fixtureCode: 70, gameweek: 3, kickoff: null, home: CHELSEA, away: COVENTRY };
+    openCard(AT_ONE, { cards: [{ ...AT_ONE, matches: [AT_W], postponed: [postponed] }] });
+    const { season } = await seasonOf();
+
+    const row = season.getAllByRole("rowheader").map((head) => head.closest("tr")!.textContent).find((text) => text!.startsWith("3"));
+    expect(row!.endsWith(postponedWords)).toBe(true);
+    expect(row).not.toContain(`${postponedWords}:`);
+  });
+
   it("the newest match is selected as the card opens, and selecting another shows its breakdown instead", async () => {
     const newest = { ...PRICED, fixtureCode: 8, gameweek: 3, home: CHELSEA, away: ARSENAL };
     openCard(AT_ONE, { cards: [{ ...AT_ONE, matches: [newest, AT_W] }] });

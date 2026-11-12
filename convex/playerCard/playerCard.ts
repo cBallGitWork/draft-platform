@@ -10,8 +10,7 @@ import { namedCategories, namedCategoriesOf, roleLine, roleLineOf } from "../sco
 import { siteScoringAt, siteVersionByGameweek } from "../scoring/siteVersions";
 import { takeAllOrThrow } from "../shared/cappedRead";
 import { memberOf } from "../shared/leagueAccess";
-import { clubsByCode, hasLeft, playerByCode, type Clubs } from "../shared/players";
-import { clubNumberOf } from "../squads/squadNumbers";
+import { clubNumberOf, clubsByCode, hasLeft, playerByCode, type Clubs } from "../shared/players";
 import { ownerOf, placeOf } from "../squads/squadPlace";
 import { MINUTES_STAT, statsIfWhole, statValue } from "../stats/matchRecords";
 import { playsIn } from "../gameweekScorer/heldMatches";
