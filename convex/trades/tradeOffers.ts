@@ -5,8 +5,7 @@ import { leagueDeadlines } from "../gameweeks/leagueDeadlines";
 import { fileLetter } from "../mail/letters";
 import { offerLetter } from "../mail/tradeLetterWords";
 import { tradePick } from "../schema";
-import { managerOf, ownTeamOrNone, refuse, refusals, teamIn } from "../shared/leagueAccess";
-import { playerByCode } from "../shared/players";
+import { managerOf, ownTeamOrNone, playerOrRefuse, refuse, teamIn } from "../shared/leagueAccess";
 import { placeOf } from "../squads/squadPlace";
 import { squadWarning } from "../squads/squads";
 import { closeOffer, deadlinePassed, endOffer, heldInReview, leagueOffers } from "./tradeClose";
@@ -78,7 +77,7 @@ async function checkPlayers(ctx: QueryCtx, leagueId: Id<"leagues">, sides: reado
   if (new Set(codes).size !== codes.length) refuse(offerRefusals.twice);
   for (const { team, codes } of sides) {
     for (const code of codes) {
-      const player = (await playerByCode(ctx, code)) ?? refuse(refusals.noPlayer);
+      const player = await playerOrRefuse(ctx, code);
       if ((await placeOf(ctx, leagueId, code))?.teamId !== team._id) refuse(offerRefusals.notOnTeam(player.name, team.name));
     }
   }

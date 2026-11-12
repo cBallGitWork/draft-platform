@@ -19,7 +19,7 @@ let teams: Id<"teams">[];
 const [ANN, BOB] = MANAGERS;
 
 const { as, read, start, pause } = draftSteps(() => ({ t, leagueId }));
-const panel = async (email = COMMISSIONER) => (await as(email)).query(api.draft.draftCommissioner.panel, { leagueId, now: Date.now() });
+const panel = async (email = COMMISSIONER) => (await as(email)).query(api.draft.draftCommissioner.panel, { leagueId });
 const setPickTime = async (pickSeconds: number) => (await as(COMMISSIONER)).mutation(api.draft.draftCommissioner.setPickTime, { leagueId, pickSeconds });
 const mark = async (teamId: Id<"teams">) => (await as(COMMISSIONER)).mutation(api.draft.draftCommissioner.markForCommissioner, { leagueId, teamId, marked: true });
 const leaveTeam = (teamId: Id<"teams">) => t.run((ctx) => ctx.db.patch("teams", teamId, { managerEmail: undefined }));

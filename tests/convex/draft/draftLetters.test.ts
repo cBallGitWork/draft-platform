@@ -7,6 +7,7 @@ import { draftOf } from "../../../convex/draft/draftRow";
 import { draftStartRefusals } from "../../../convex/draft/draftStart";
 import { momentIn } from "../../../convex/shared/moments";
 import { letterAsRead } from "../../../convex/mail/letterMoments";
+import { UP_NEXT_SUBJECT as UP_NEXT } from "../../../convex/mail/draftLetterWords";
 import { DAY_MS, SECOND_MS } from "../../../convex/shared/time";
 import { draftSteps, FIRST_PICK_MS, midfielder } from "../../support/convex/draft.harness";
 import { ARSENAL, insertClubs, insertPlayers } from "../../support/convex/footballRows.harness";
@@ -28,7 +29,6 @@ let sent: SentEmail[];
 const MIDS = [101, 102, 103, 104].map((code) => midfielder(code));
 const [A1, A2, A3, A4] = MIDS.map(({ code }) => code);
 const [ANN, BOB] = MANAGERS;
-const UP_NEXT = "You're up next in the draft";
 
 const { as, start, pick, pause, resume, pass, setPickSeconds, setSquadSize } = draftSteps(() => ({ t, leagueId }));
 const letters = () =>
@@ -61,7 +61,8 @@ describe("you're up next", () => {
     expect(await lettersSince(before)).toEqual([
       {
         to: ANN,
-        subject: UP_NEXT,
+        // Written out here, as in the draft-over letter below, so the subject's wording stays pinned.
+        subject: "You're up next in the draft",
         body: `Team 1 is on the clock: round 1, pick 1. Make your pick by ${momentIn(now + FIRST_PICK_MS, undefined)}, or the draft picks for you.`,
         read: false,
       },

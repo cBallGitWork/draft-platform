@@ -4,8 +4,8 @@ import { mutation, query, type MutationCtx, type QueryCtx } from "../_generated/
 import { positionsNow } from "../positions/playerPositions";
 import { position } from "../schema";
 import { listedPlayers, ownListPlayer, shortlistOf } from "../scouting/shortlist";
-import { memberOf, ownTeam, refuse, refusals, teamIn } from "../shared/leagueAccess";
-import { heldPlayerByCode, playerByCode } from "../shared/players";
+import { memberOf, ownTeam, playerOrRefuse, refuse, teamIn } from "../shared/leagueAccess";
+import { heldPlayerByCode } from "../shared/players";
 import { placeOf } from "../squads/squadPlace";
 import { DRAFT_LIST_MOST } from "./draftLimits";
 
@@ -98,7 +98,7 @@ export const add = mutation({
   returns: v.null(),
   handler: async (ctx, { leagueId, playerCode, list }) => {
     const team = await ownTeam(ctx, leagueId);
-    const player = (await playerByCode(ctx, playerCode)) ?? refuse(refusals.noPlayer);
+    const player = await playerOrRefuse(ctx, playerCode);
     if (player.droppedAt !== undefined) refuse(draftListRefusals.playerGone(player.name));
     await putOn(ctx, team, list, [playerCode]);
     return null;
@@ -146,7 +146,7 @@ export const addFromShortlist = mutation({
   returns: v.null(),
   handler: async (ctx, { leagueId, playerCode }) => {
     const team = await ownTeam(ctx, leagueId);
-    const player = (await playerByCode(ctx, playerCode)) ?? refuse(refusals.noPlayer);
+    const player = await playerOrRefuse(ctx, playerCode);
     if (!(await shortlistOf(ctx, team._id)).some((entry) => entry.playerCode === playerCode)) {
       refuse(draftListRefusals.notShortlisted(player.name));
     }
@@ -197,7 +197,7 @@ export const move = mutation({
     const team = await ownTeam(ctx, leagueId);
     const lists = await listsOf(ctx, team._id);
     if (!lists?.queue.includes(playerCode)) {
-      const player = (await playerByCode(ctx, playerCode)) ?? refuse(refusals.noPlayer);
+      const player = await playerOrRefuse(ctx, playerCode);
       return refuse(draftListRefusals.notQueued(player.name));
     }
     const count = lists.queue.length;

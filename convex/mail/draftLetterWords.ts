@@ -4,11 +4,17 @@ import type { Words } from "./letterShape";
 // What the draft's Mail letters say (spec/04, Mail; #1102): split from letterWords.ts, as waivers'
 // and trades' are. ../draft/draftLetters.ts files them.
 
+/** The subject of the draft's "You're up next" letter. */
+export const UP_NEXT_SUBJECT = "You're up next in the draft";
+
+/** The subject of the draft's letter once it is over. */
+export const DRAFT_OVER_SUBJECT = "The draft is over";
+
 /** "You're up next" to the manager whose pick's clock starts, its deadline told with `tell`, in the
  *  reader's zone; it is also the email when the clock is long. `endsAt` is null while the draft is
  *  paused: his clock starts when it resumes (#1461). */
 export function upNextLetter({ round, pick, teamName, endsAt }: { round: number; pick: number; teamName: string; endsAt: number | null }, tell: TellMoment): Words {
-  const subject = "You're up next in the draft";
+  const subject = UP_NEXT_SUBJECT;
   if (endsAt === null) {
     return { subject, body: `${teamName} is up next: round ${round}, pick ${pick}. The draft is paused; your clock starts when it resumes.` };
   }
@@ -17,7 +23,7 @@ export function upNextLetter({ round, pick, teamName, endsAt }: { round: number;
 
 /** To the whole league once the last pick is made. */
 export function draftOverLetter(picks: number): Words {
-  return { subject: "The draft is over", body: `All ${picks} picks are made, and every squad is drafted.` };
+  return { subject: DRAFT_OVER_SUBJECT, body: `All ${picks} picks are made, and every squad is drafted.` };
 }
 
 /** To the commissioner when the draft ends after the deadline of the gameweek scoring was to start

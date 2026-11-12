@@ -41,7 +41,7 @@ export const draftStartRefusals = {
 
 /** The league's rules in force at `now`: those of the gameweek under way, or before the league's
  *  first gameweek begins, that gameweek's; a change waiting for a later gameweek isn't among them.
- *  What the draft's pick clock runs by. */
+ *  The squad rules of a draft started before #1090 kept none, so oldDraftsBackfill.ts saves these. */
 export async function rulesInForceAt(ctx: QueryCtx, leagueId: Id<"leagues">, now: number): Promise<LeagueRules> {
   const history = await historyOf(ctx, leagueId);
   const underWay = (await nextOpenGameweek(ctx, leagueId, now)) - 1;

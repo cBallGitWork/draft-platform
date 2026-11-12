@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, test } from "vitest";
 import { api } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
 import { PICK_GAP_MS } from "../../../convex/draft/draftClock";
+import { UP_NEXT_SUBJECT } from "../../../convex/mail/draftLetterWords";
 import type { LeagueRules } from "../../../convex/rules/leagueRulesShape";
 import { SECOND_MS } from "../../../convex/shared/time";
 import { draftSteps, FIRST_PICK_MS, midfielder } from "../../support/convex/draft.harness";
@@ -157,7 +158,7 @@ describe("Mail", () => {
     await pass(PICK_GAP_MS + FIRST_PICK_MS);
 
     expect((await picks()).map(({ playerCode }) => playerCode)).toEqual([A1, A2]);
-    expect(await newLetterSubjects(before)).toEqual(["You're up next in the draft", "You're up next in the draft"]);
+    expect(await newLetterSubjects(before)).toEqual([UP_NEXT_SUBJECT, UP_NEXT_SUBJECT]);
   });
 });
 
