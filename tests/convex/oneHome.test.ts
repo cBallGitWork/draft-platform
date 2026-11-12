@@ -33,11 +33,6 @@ const ALLOWED: Record<string, string> = {
 /** The copies in convex/ when this test was added (12 Nov 2026), each one's name to its files. Each
  *  goes when its copies move to one home: never add to it. */
 const STILL_DUPLICATED: Record<string, string[]> = {
-  "type Availability = Infer<typeof availability>": [
-    "convex/availability/availability.ts",
-    "convex/football/fpl/fpl.ts",
-    "convex/scouting/playersList.ts",
-  ],
   'type TeamId = Id<"teams">': [
     "convex/gameweekScorer/gameweekScores.ts",
     "convex/gameweekScorer/storedScores.ts",
