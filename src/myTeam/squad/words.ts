@@ -3,7 +3,7 @@
 
 import { LANE_WORDS } from "../../../convex/lineup/pitchWords";
 import type { Lane } from "../../../convex/lineup/pitch";
-import { failedWords, menuWords } from "../../shared/words";
+import { failedWords, menuWords, statColumns } from "../../shared/words";
 import { benchShort, nextMatchesLong, nextMatchesShort } from "../words";
 
 export { figureWords, signedWords, gameweekWords, noFigureWords, shortThenLongName, whenWords, nextGlyph, playerCardWords } from "../../shared/words";
@@ -69,18 +69,18 @@ export const shortWords = (by: number) => `${by} short`;
 export const unnamedWords = (count: number) => `and ${count} not held`;
 export const noLimitsWords = "The league sets no squad limits.";
 
-export const squadTableLabel = (teamName: string) => `${teamName}'s squad`;
+export { squadTableLabel } from "../../shared/words";
 export const squadColumns = {
   number: { short: "No", long: "Squad number" },
   positions: { short: "Pos", long: "Positions, his main first" },
   player: { short: "Player", long: "Player and club" },
   season: { short: "Pts", long: "Points this season" },
   last: { short: "Last", long: "Points last gameweek" },
-  appearances: { short: "MP", long: "Matches played" },
+  appearances: statColumns.appearances,
   minutes: { short: "Mins", long: "Minutes played" },
-  goals: { short: "G", long: "Goals" },
-  assists: { short: "A", long: "Assists" },
-  cleanSheets: { short: "CS", long: "Clean sheets" },
+  goals: statColumns.goals,
+  assists: statColumns.assists,
+  cleanSheets: statColumns.cleanSheets,
   saves: { short: "Sv", long: "Saves, keepers only" },
   yellowCards: { short: "YC", long: "Yellow cards" },
   redCards: { short: "RC", long: "Red cards" },
