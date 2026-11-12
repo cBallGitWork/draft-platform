@@ -33,7 +33,7 @@ import {
   withdrawWords,
   yourOfferToTitle,
 } from "../../../src/trades/words";
-import { league, manager, openApp } from "../../support/src/shell.harness";
+import { league, manager, openApp, panel } from "../../support/src/shell.harness";
 import {
   MY_TEAM,
   quietTrades,
@@ -47,7 +47,6 @@ const openOffers = (trades: TradesData = {}) =>
 const withOffers = (
   ...offers: ReturnType<typeof screenOffer>[]
 ): TradesData => ({ view: { ...quietTrades, offers } });
-const panel = (title: string) => screen.findByRole("region", { name: title });
 
 describe("reaching it", () => {
   it("a manager opens it from the menu's Trades, for the league the app is in", async () => {

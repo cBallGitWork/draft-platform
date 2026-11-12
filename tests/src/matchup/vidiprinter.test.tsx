@@ -8,7 +8,6 @@ import { screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
 import type { TeamsCommentary } from "../../../convex/matchup/matchupShape";
-import { MATCHUP_PATH } from "../../../src/frame/menu";
 import {
   closeBreakdownLabel,
   commentaryColumnWords,
@@ -22,10 +21,8 @@ import {
   unreadCommentaryWords,
   VIDIPRINTER_TITLE,
 } from "../../../src/matchup/words";
-import { commentaryLine, headToHead, liveMatchup, slot, teamSide, type MatchupData } from "../../support/src/matchup.harness";
-import { manager, openApp } from "../../support/src/shell.harness";
-
-const openMatchup = (matchup: MatchupData = {}) => openApp(MATCHUP_PATH, manager, { matchup });
+import { commentaryLine, headToHead, liveMatchup, slot, teamSide } from "../../support/src/matchup.harness";
+import { openMatchup } from "../../support/src/matchupScreen.harness";
 
 describe("the vidiprinter", () => {
   const COYLE = slot("Coyle", { area: "attack" });

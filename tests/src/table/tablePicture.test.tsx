@@ -4,13 +4,9 @@
 
 import { screen, within } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { TABLE_PATH } from "../../../src/frame/menu";
 import { leagueTableOf } from "../../../src/table/drawnTable";
 import { FIXTURES_TITLE, leagueGamesHead, seasonLineWords } from "../../../src/table/words";
-import { manager, openApp } from "../../support/src/shell.harness";
-import type { TableData } from "../../support/src/table.harness";
-
-const openTable = (table: TableData) => openApp(TABLE_PATH, manager, { table });
+import { openTable } from "../../support/src/tableScreen.harness";
 const scored = (scores: [string, number][]) => ({ scores: new Map([[1, new Map(scores)]]) });
 
 afterEach(() => vi.useRealTimers());

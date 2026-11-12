@@ -11,7 +11,7 @@ import { namedRole, roleIn } from "../../convex/lineup/roles";
 import type { MatchBreakdown, TeamsCommentary, MatchupSide, MatchupBenchSlot, MatchupSlot, MatchupStarter } from "../../convex/matchup/matchupShape";
 import { MINUTE_MS } from "../../convex/shared/time";
 import { previewFixtureCode } from "../premierLeague/preview";
-import { previewGameweek, previewTeamNames } from "../shared/preview";
+import { previewClub, previewGameweek, previewTeamNames } from "../shared/preview";
 import { previewIdOf, previewSeason } from "../table/preview";
 import type { Matchup, MatchupSeam } from "./seam";
 
@@ -70,8 +70,9 @@ const KROOS_CONTROL: { starters: Man[]; bench: Man[] } = {
     ["attack", "Thiago", 1, 2],
   ],
 };
-/** Each side's clubs by match, as the made-up lines name them: ARS v LIV, then CHE v MCI. */
-const CLUBS: Record<string, readonly [number, number]> = { [MINE]: [3, 8], [OPPONENT]: [14, 43] };
+/** A side's club in match `match`, as the made-up lines name it (MATCHES): mine at home, the
+ *  opponent away. */
+const clubCodeOf = (teamName: string, match: 0 | 1) => previewClub(MATCHES[match][teamName === MINE ? "home" : "away"]).code;
 
 /** Saka Potatoes' keeper and the bench keeper who comes on for him. */
 const [UNUSED_KEEPER, BENCH_KEEPER] = ["Raya", "Pickford"];
@@ -161,7 +162,7 @@ function sideAt(teamName: string, men: typeof SAKA_POTATOES, minute: number): Ma
   const bench: MatchupBenchSlot[] = men.bench.map((man) => ({ ...slotAt(man, minute, true), role: null, place: null }));
   const slots = [...starters, ...bench];
   // Each man in his match's club's shirt, numbered in squad order.
-  [...men.starters, ...men.bench].forEach(([, , match], index) => Object.assign(slots[index], { clubCode: CLUBS[teamName][match], number: index + 1 }));
+  [...men.starters, ...men.bench].forEach(([, , match], index) => Object.assign(slots[index], { clubCode: clubCodeOf(teamName, match), number: index + 1 }));
   const off = starters.find((slot) => slot.autoSub?.kind === "off");
   if (off !== undefined) {
     off.counts = false;

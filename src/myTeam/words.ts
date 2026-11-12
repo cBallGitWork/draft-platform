@@ -2,7 +2,7 @@
 
 import { countInWords } from "../../convex/shared/numberWords";
 import { NEXT_MATCHES_SHOWN } from "../../convex/squads/squadLimits";
-import { fewestTeamsWords, gameweekShort, menuWords, versusWords, withTeamWords } from "../shared/words";
+import { fewestTeamsWords, gameweekColumn, gameweekShort, menuWords, versusWords, withTeamWords } from "../shared/words";
 import type { TeamTransactions } from "./seam";
 
 export { dateWords, figureOrNone, figureWords, liveWords, noFigureWords, noTeamWords, placeWords, shortThenLongName, tradedPickWords, versusWords, whenWords, withTeamWords } from "../shared/words";
@@ -29,7 +29,7 @@ export const fixturesLoadingWords = "Loading your fixtures…";
 export const fixturesTableLabel = (teamName: string) => `${teamName}'s fixtures`;
 export const resultsTableLabel = (teamName: string) => `${teamName}'s results`;
 export const fixtureColumns = {
-  gameweek: { short: "GW", long: "Gameweek" },
+  gameweek: gameweekColumn,
   date: { short: "Date", long: "The day of the league's deadline" },
   opponent: { short: "Opponent", long: "Opponent" },
   now: { short: "Now", long: "The opponent's place in the table now" },

@@ -58,7 +58,7 @@ export const seasonLineWords = (seasonStartYear: number, latest: { gameweek: num
 export const leagueGamesHead = competitionWords.league;
 
 /** The Cup tab until cups are grilled and built (SPEC.md, Later): an empty eight-team bracket. */
-export const CUP_TITLE = "Cup";
+export const CUP_TITLE = competitionWords.cup;
 export const cupTeamsWords = "Eight teams";
 export const cupRounds = ["Quarter-finals", "Semi-finals", "Final"] as const;
 /** On a placeholder tie's hover: what will show there. */
@@ -79,8 +79,9 @@ export const pickAnotherWords = "Pick a team in another game. Only this gameweek
 export const saveSwapWords = "Save swap";
 export { cancelWords } from "../shared/words";
 export const pickSideLabel = (side: string) => `Swap ${side}`;
-/** When a swap failed before the server could say why. */
-export const swapFailedWords = failedWords("the fixtures didn't change");
+/** What a failed swap leaves, live or in the preview. */
+export const swapUnsavedOutcome = "the fixtures didn't change";
+export const swapFailedWords = failedWords(swapUnsavedOutcome);
 
 /** Points for less against, signed: "+4.5", "−3", "0". */
 export const differenceWords = signedWords;
