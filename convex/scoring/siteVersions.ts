@@ -77,6 +77,13 @@ export function setOf(version: Doc<"siteScoring"> | undefined): StoredScoringSet
   return version?.scoring ?? FIRST_SCORING;
 }
 
+/** The site's latest scoring set: the newest version announced, in force or still waiting, the first
+ *  set before any. What Player scoring shows and Scouting ranks by; `siteScoringAt` is the one in
+ *  force. */
+export async function latestSiteScoring(ctx: QueryCtx): Promise<StoredScoringSet> {
+  return setOf((await siteVersions(ctx)).at(-1));
+}
+
 /** The site's scoring set in force at `at`: the newest version to take effect by then, the first
  *  set before any. What stars price every match under, whichever gameweek it was (Craig, 1 Nov
  *  2026: today's scoring, so a patch re-rates everyone). */
