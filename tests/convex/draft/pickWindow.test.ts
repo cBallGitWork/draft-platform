@@ -3,11 +3,10 @@ import { api } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
 import { PICK_GAP_MS } from "../../../convex/draft/draftClock";
 import { pickRefusals } from "../../../convex/draft/draftPicks";
-import { DRAFT_OVER_SUBJECT as OVER, UP_NEXT_SUBJECT as UP_NEXT } from "../../../convex/mail/letterWords";
+import { DRAFT_OVER_SUBJECT as OVER, UP_NEXT_SUBJECT as UP_NEXT } from "../../../convex/mail/draftLetterWords";
 import { SECOND_MS } from "../../../convex/shared/time";
-import { draftSteps, midfielder } from "../../support/convex/draft.harness";
+import { draftSteps, FIRST_PICK_MS, midfielder } from "../../support/convex/draft.harness";
 import { ARSENAL, insertClubs, insertPlayers } from "../../support/convex/footballRows.harness";
-import { HELD_FIRST_RULES } from "../../support/convex/leagueRules.harness";
 import { addManagers, adminCreatesLeague, COMMISSIONER, eventsIn, MANAGERS, type TestConvex } from "../../support/convex/leagues.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
 import { expectRefused } from "../../support/convex/test.harness";
@@ -23,7 +22,6 @@ let teams: Id<"teams">[];
 
 const MIDS = [101, 102, 103, 104, 105].map((code) => midfielder(code));
 const [A1, A2, A3, A4, A5] = MIDS.map(({ code }) => code);
-const PICK_MS = HELD_FIRST_RULES.draft!.pickSeconds * SECOND_MS;
 const [ANN, BOB] = MANAGERS;
 
 const { as, read, start, pick, pause, resume, pass, setSquadSize } = draftSteps(() => ({ t, leagueId }));
@@ -52,7 +50,7 @@ beforeEach(async () => {
 describe("a manager's undo of his own pick", () => {
   test("frees the player and puts his pick back on the clock at once, with the time it had left", async () => {
     await start();
-    await pass(PICK_MS / 4);
+    await pass(FIRST_PICK_MS / 4);
     await pick(ANN, A1);
     await pass(PICK_GAP_MS - 1);
     await undo(ANN);
@@ -60,7 +58,7 @@ describe("a manager's undo of his own pick", () => {
 
     expect(await picked()).toEqual([]);
     expect(await squadOf(teams[0])).toEqual([]);
-    expect(await read()).toMatchObject({ onTheClock: { pick: 1, teamId: teams[0] }, clock: { startsAt: now, endsAt: now + (PICK_MS * 3) / 4 } });
+    expect(await read()).toMatchObject({ onTheClock: { pick: 1, teamId: teams[0] }, clock: { startsAt: now, endsAt: now + (FIRST_PICK_MS * 3) / 4 } });
     expect((await eventsIn(t, leagueId)).filter(({ kind }) => kind === "playerReleased")).toMatchObject([{ by: ANN, playerCode: A1, teamId: teams[0] }]);
     // He picks again, and the draft runs on.
     await pick(ANN, A2);
@@ -87,7 +85,7 @@ describe("a manager's undo of his own pick", () => {
     await pick(ANN, A1);
     expect(await read()).toMatchObject({ status: "live", ownPickBy: teams[0], clock: { startsAt: Date.now() + PICK_GAP_MS } });
     // Bob's clock runs out, and the draft picks for him.
-    await pass(PICK_GAP_MS + PICK_MS);
+    await pass(PICK_GAP_MS + FIRST_PICK_MS);
     expect(await read()).toMatchObject({ status: "live", picksMade: 2, ownPickBy: null });
   });
 
@@ -101,7 +99,7 @@ describe("a manager's undo of his own pick", () => {
     await expectRefused(undo(ANN), pickRefusals.undoOver);
 
     // Bob's clock runs out: the draft's pick is no undo of his.
-    await pass(PICK_MS);
+    await pass(FIRST_PICK_MS);
     expect(await picked()).toHaveLength(2);
     await expectRefused(undo(BOB), pickRefusals.noOwnPick);
     // Nor is the commissioner's pick for him.
@@ -125,22 +123,22 @@ describe("while a pick can be undone", () => {
 
   test("a pause freezes the 10 seconds, and his undo while paused leaves the draft paused, his clock on the time it had left from the resume", async () => {
     await start();
-    await pass(PICK_MS / 2);
+    await pass(FIRST_PICK_MS / 2);
     await pick(ANN, A1);
     await pass(5 * SECOND_MS);
     await pause();
-    await pass(PICK_MS * 10);
+    await pass(FIRST_PICK_MS * 10);
     // The pause stopped the 10 seconds 5 into them: nothing ran out or was told.
     expect(await picked()).toEqual([A1]);
 
     await undo(ANN);
     expect(await read()).toMatchObject({ onTheClock: { pick: 1, teamId: teams[0] }, clock: { pausedAt: Date.now() } });
-    await pass(PICK_MS);
+    await pass(FIRST_PICK_MS);
     expect(await picked()).toEqual([]);
 
     await resume();
     const now = Date.now();
-    expect(await read()).toMatchObject({ onTheClock: { pick: 1 }, clock: { startsAt: now, endsAt: now + PICK_MS / 2 } });
+    expect(await read()).toMatchObject({ onTheClock: { pick: 1 }, clock: { startsAt: now, endsAt: now + FIRST_PICK_MS / 2 } });
   });
 
   test("his 10 seconds left at the pause run on from the resume, then the next clock starts", async () => {
@@ -148,7 +146,7 @@ describe("while a pick can be undone", () => {
     await pick(ANN, A1);
     await pass(4 * SECOND_MS);
     await pause();
-    await pass(PICK_MS);
+    await pass(FIRST_PICK_MS);
     await resume();
 
     await pass(PICK_GAP_MS - 4 * SECOND_MS - 1);
@@ -191,7 +189,7 @@ describe("the last pick", () => {
 
   test("can be undone by the commissioner in its 10 seconds, an auto-pick too, but not once the draft has ended", async () => {
     await firstThree();
-    await pass(PICK_MS);
+    await pass(FIRST_PICK_MS);
     expect(await picked()).toHaveLength(4);
 
     await commissionerUndo();

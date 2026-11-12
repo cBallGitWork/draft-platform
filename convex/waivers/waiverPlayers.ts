@@ -5,10 +5,9 @@ import { fileEvent, recordEvent } from "../mail/letters";
 import { tellShortlisters } from "../scouting/shortlist";
 import { LEAGUES_READ_MOST, takeAllOrThrow } from "../shared/cappedRead";
 import { placeOf } from "../squads/squadPlace";
-import type { LeagueDeadlines } from "../gameweeks/deadline";
+import { deadlinePassedSince, type LeagueDeadlines } from "../gameweeks/deadline";
 import { closeOffersHolding } from "../trades/tradeClose";
 import { WAIVER_MS } from "./waiverLimits";
-import { deadlinePassedSince } from "./waiverLock";
 
 // Who is on waivers in a league (#1197, spec/08 Waivers and free agency): a row in waiverPlayers
 // (../schema/waivers.ts) each, only while no team holds him. A drop puts him there for at least 24
@@ -51,7 +50,7 @@ export async function putOnWaivers(ctx: MutationCtx, leagueId: Id<"leagues">, pl
  *  free agents, picked up as one with no deadline passed since (spec/08). A claim's drop counts
  *  from its run's own time, not the moment the run executes, so a late run's drop still makes the
  *  next run (Craig, 11 Nov 2026, #1481). Whether he went on waivers. */
-export async function dropFromSquad(
+async function dropFromSquad(
   ctx: MutationCtx,
   place: Doc<"squadPlayers">,
   deadlines: LeagueDeadlines,

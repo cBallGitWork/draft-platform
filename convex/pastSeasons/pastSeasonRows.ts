@@ -21,16 +21,24 @@ export const STAT_COLUMNS: Readonly<Record<string, string>> = Object.fromEntries
 /** When the match kicked off. The column's name is read from the log's own FPL columns, not yet
  *  checked against the file: a missing one stops the read, naming it. */
 export const KICKOFF_COLUMN = "kickoff_utc";
+/** The competition the match was in (PREMIER_LEAGUE for ours). */
+const COMPETITION_COLUMN = "competition";
+/** The person's root id, which his FPL `code` is found by (`fplCodesByRoot`). */
+const PERSON_COLUMN = "person_root_id";
+/** FPL's per-season fixture id. */
+const FIXTURE_COLUMN = "fpl_fixture_id";
+/** Where he started the match, if he did. */
+const STARTING_POSITION_COLUMN = "starting_position";
 
 /** Every column the copy reads. FPL's fixture id is read only to count the season's matches, and
  *  never kept; FPL's own points are read only by the re-score test; a feed's minutes only say
  *  whether it covered the match (ZERO_LEFT_OUT_BY). */
 export const SOURCE_COLUMNS = [
-  "competition",
-  "person_root_id",
-  "fpl_fixture_id",
+  COMPETITION_COLUMN,
+  PERSON_COLUMN,
+  FIXTURE_COLUMN,
   KICKOFF_COLUMN,
-  "starting_position",
+  STARTING_POSITION_COLUMN,
   ...Object.values(STAT_COLUMNS),
   ...Object.values(ZERO_LEFT_OUT_BY),
   "fpl_total_points",
@@ -121,7 +129,7 @@ export function fplPositionsByCode(bootstrap: unknown): Map<number, FplPosition>
 }
 
 /** The log's Premier League rows. */
-export const premierLeagueRows = (rows: readonly LogRow[]): LogRow[] => rows.filter((row) => row.competition === PREMIER_LEAGUE);
+export const premierLeagueRows = (rows: readonly LogRow[]): LogRow[] => rows.filter((row) => row[COMPETITION_COLUMN] === PREMIER_LEAGUE);
 
 /** A person the season's Premier League rows name who has no FPL code: his person root id, his
  *  rows and the matches he played in them. */
@@ -138,7 +146,7 @@ export function withoutFplCode(log: readonly LogRow[], codes: ReadonlyMap<string
   const kept: LogRow[] = [];
   const skipped = new Map<string, SkippedPerson>();
   for (const row of premierLeagueRows(log)) {
-    const root = row.person_root_id;
+    const root = row[PERSON_COLUMN];
     if (typeof root !== "string" || codes.has(root)) {
       kept.push(row);
       continue;
@@ -155,7 +163,7 @@ export function withoutFplCode(log: readonly LogRow[], codes: ReadonlyMap<string
 function numberIn(row: LogRow, column: string): number | null {
   const value = row[column];
   if (value === null || value === undefined) return null;
-  if (typeof value !== "number" || !Number.isFinite(value)) throw new Error(`${String(row.person_root_id)}'s ${column} is ${String(value)}, not a number`);
+  if (typeof value !== "number" || !Number.isFinite(value)) throw new Error(`${String(row[PERSON_COLUMN])}'s ${column} is ${String(value)}, not a number`);
   return value;
 }
 
@@ -185,7 +193,7 @@ function kickoffIn(row: LogRow): number {
   const value = row[KICKOFF_COLUMN];
   const text = typeof value === "string" && !/(Z|[+-]\d\d:?\d\d)$/.test(value) && value.includes("T") ? `${value}Z` : value;
   const kickoff = typeof text === "string" ? Date.parse(text) : typeof text === "number" ? text : NaN;
-  if (!Number.isFinite(kickoff)) throw new Error(`${String(row.person_root_id)}'s ${KICKOFF_COLUMN} is ${String(value)}, not a time`);
+  if (!Number.isFinite(kickoff)) throw new Error(`${String(row[PERSON_COLUMN])}'s ${KICKOFF_COLUMN} is ${String(value)}, not a time`);
   return kickoff;
 }
 
@@ -205,8 +213,8 @@ export function pastSeasonRows(
   const played = new Set<number>();
   const seen = new Set<string>();
   for (const row of premierLeagueRows(log)) {
-    const root = row.person_root_id;
-    if (typeof root !== "string") throw new Error(`A Premier League row has person_root_id ${String(root)}`);
+    const root = row[PERSON_COLUMN];
+    if (typeof root !== "string") throw new Error(`A Premier League row has ${PERSON_COLUMN} ${String(root)}`);
     const playerCode = codes.get(root);
     if (playerCode === undefined) throw new Error(`Person ${root} has no FPL code in data/identity/persons/root/`);
     const fplPosition = positions.get(playerCode);
@@ -223,7 +231,8 @@ export function pastSeasonRows(
     if (seen.has(key)) throw new Error(`Person ${root} (FPL code ${playerCode}) plays twice at kickoff ${new Date(kickoff).toISOString()}`);
     seen.add(key);
     played.add(playerCode);
-    const startingPosition = row.starting_position === null || row.starting_position === undefined ? null : String(row.starting_position);
+    const started = row[STARTING_POSITION_COLUMN];
+    const startingPosition = started === null || started === undefined ? null : String(started);
     rows.push({ season, playerCode, fplPosition, match: { kickoff, startingPosition, stats: statsIn(row) } });
   }
   for (const [playerCode, fplPosition] of named) {
@@ -238,9 +247,9 @@ export function seasonCounts(log: readonly LogRow[]): SeasonCounts {
   const league = premierLeagueRows(log);
   const playedRows = league.filter(playedIn);
   return {
-    matches: new Set(playedRows.map((row) => row.fpl_fixture_id)).size,
+    matches: new Set(playedRows.map((row) => row[FIXTURE_COLUMN])).size,
     playedRows: playedRows.length,
-    played: new Set(playedRows.map((row) => row.person_root_id)).size,
-    named: new Set(league.map((row) => row.person_root_id)).size,
+    played: new Set(playedRows.map((row) => row[PERSON_COLUMN])).size,
+    named: new Set(league.map((row) => row[PERSON_COLUMN])).size,
   };
 }

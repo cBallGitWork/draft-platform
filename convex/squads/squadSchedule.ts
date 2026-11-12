@@ -5,7 +5,7 @@ import { seasonGameweekCount } from "../gameweeks/seasonGameweeks";
 import { usedGameweeksOf } from "../gameweeks/usedGameweeks";
 import { saveGameweekOf } from "../lineup/lineups";
 import { clubRecord } from "../schema";
-import { gameweekFixtures } from "../shared/fixtures";
+import { byKickoffOrder, gameweekFixtures } from "../shared/fixtures";
 import type { Clubs } from "../shared/players";
 
 // The Squad tab's Schedule view (#1006; spec/12, My team's tabs: "his next 6 fixtures"): the next
@@ -51,7 +51,7 @@ export async function squadSchedule(
       }
     }
   }
-  for (const matches of byClub.values()) matches.sort((one, other) => one.gameweek - other.gameweek || (one.kickoff ?? Infinity) - (other.kickoff ?? Infinity));
+  for (const matches of byClub.values()) matches.sort((one, other) => one.gameweek - other.gameweek || byKickoffOrder(one, other));
   return { gameweeks, byClub };
 }
 

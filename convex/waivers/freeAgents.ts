@@ -14,7 +14,7 @@ import { windowOpen } from "./waiverOrder";
 import { dropAndTell, waiverRowOf } from "./waiverPlayers";
 import { joiningBreaksLimits } from "./waiverRun";
 import { claimRefusals } from "./waiverClaims";
-import { dropRefusals, placeToDrop } from "./waivers";
+import { placeToDrop } from "./waivers";
 
 // A manager's free agent pickup (#1199, spec/08 Waivers and free agency): first come first served,
 // in the window, from the first waiver run made after a gameweek until the next deadline. With a
@@ -29,8 +29,6 @@ export const pickUpRefusals = {
   notOpen: "Free agents can be picked up from the first waiver run after a gameweek until the next deadline.",
   notFreeAgent: (name: string) => `${name} isn't a free agent.`,
   playerGone: claimRefusals.playerGone,
-  dropNotYours: claimRefusals.dropNotYours,
-  dropHeld: dropRefusals.held,
   limits: (name: string) => `Picking up ${name} would break your squad's limits.`,
 };
 

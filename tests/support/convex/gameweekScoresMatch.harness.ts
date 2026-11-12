@@ -9,6 +9,7 @@ import type { PlayerMatchRecord } from "../../../convex/stats/matchRecords";
 import type { matchState } from "../../../convex/schema";
 import { HOUR_MS } from "../../../convex/shared/time";
 import { GAMEWEEK, LEAGUE_FULL_TIME_READ, LEAGUE_KICKOFF, type ScoresLeague } from "./gameweekScores.harness";
+import { insertLockedStatus } from "./footballRows.harness";
 import { HULL_EVERTON, mergedHullEverton } from "./matchStats.harness";
 import { elapse } from "./test.harness";
 
@@ -62,4 +63,4 @@ export const holdMovedIn = ({ t }: ScoresLeague) =>
   );
 /** The moved-in match read at full time, its window passed and locked. */
 export const lockMovedIn = ({ t }: ScoresLeague) =>
-  t.run((ctx) => ctx.db.insert("matchStatsStatus", { fixtureCode: MOVED_IN, state: "locked", fullTimeAt: Date.now(), lockedAt: Date.now(), lastReadAt: Date.now() }));
+  t.run((ctx) => insertLockedStatus(ctx, MOVED_IN, Date.now()));

@@ -1,6 +1,7 @@
 import { expect, test } from "vitest";
 import { api } from "../../../convex/_generated/api";
 import type { MatchPageData } from "../../../convex/match/matchPage";
+import { matchPageAt } from "../../../convex/matchup/commentaryAt";
 import { inTenths } from "../../../convex/scoring/values";
 import { LINEUPS_OUT_BEFORE_KICKOFF_MS, MINUTE_MS } from "../../../convex/shared/time";
 import { recordedGw6 } from "../../support/recorded/gw6.payloads";
@@ -19,9 +20,9 @@ const HALF_AN_HOUR_BEFORE = KICKOFF - LINEUPS_OUT_BEFORE_KICKOFF_MS / 2;
 const FIRST_HALF = 30;
 
 async function pageAs(league: MiniBeta, email: string): Promise<MatchPageData> {
-  const page = await (await actingAs(league.t, email)).query(api.match.matchPage.ofMatch, { leagueId: league.leagueId, now: Date.now(), fixtureCode: HULL_EVERTON });
+  const page = await (await actingAs(league.t, email)).query(api.match.matchPage.ofMatch, { leagueId: league.leagueId, fixtureCode: HULL_EVERTON });
   if (page === null) throw new Error("the match page found no match");
-  return page;
+  return matchPageAt(page, Date.now());
 }
 
 /** Ann's eleven as the page has them: each with her team's name, and the points that count. */

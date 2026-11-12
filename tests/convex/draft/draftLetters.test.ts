@@ -7,11 +7,11 @@ import { draftOf } from "../../../convex/draft/draftRow";
 import { draftStartRefusals } from "../../../convex/draft/draftStart";
 import { momentIn } from "../../../convex/shared/moments";
 import { letterAsRead } from "../../../convex/mail/letterMoments";
-import { UP_NEXT_SUBJECT as UP_NEXT } from "../../../convex/mail/letterWords";
+import { UP_NEXT_SUBJECT as UP_NEXT } from "../../../convex/mail/draftLetterWords";
 import { DAY_MS, SECOND_MS } from "../../../convex/shared/time";
-import { draftSteps, midfielder } from "../../support/convex/draft.harness";
+import { draftSteps, FIRST_PICK_MS, midfielder } from "../../support/convex/draft.harness";
 import { ARSENAL, insertClubs, insertPlayers } from "../../support/convex/footballRows.harness";
-import { changeEveryRules, HELD_FIRST_RULES, holdGameweeks } from "../../support/convex/leagueRules.harness";
+import { changeEveryRules, holdGameweeks } from "../../support/convex/leagueRules.harness";
 import { addManagers, adminCreatesLeague, COMMISSIONER, MANAGERS, type TestConvex } from "../../support/convex/leagues.harness";
 import { fakeResend, signInDeployment, spendTodaysEmails, type SentEmail } from "../../support/convex/signIn.harness";
 import { silenceConsoleWarn } from "../../support/convex/test.harness";
@@ -28,7 +28,6 @@ let sent: SentEmail[];
 
 const MIDS = [101, 102, 103, 104].map((code) => midfielder(code));
 const [A1, A2, A3, A4] = MIDS.map(({ code }) => code);
-const PICK_MS = HELD_FIRST_RULES.draft!.pickSeconds * SECOND_MS;
 const [ANN, BOB] = MANAGERS;
 
 const { as, start, pick, pause, resume, pass, setPickSeconds, setSquadSize } = draftSteps(() => ({ t, leagueId }));
@@ -64,7 +63,7 @@ describe("you're up next", () => {
         to: ANN,
         // Written out here, as in the draft-over letter below, so the subject's wording stays pinned.
         subject: "You're up next in the draft",
-        body: `Team 1 is on the clock: round 1, pick 1. Make your pick by ${momentIn(now + PICK_MS, undefined)}, or the draft picks for you.`,
+        body: `Team 1 is on the clock: round 1, pick 1. Make your pick by ${momentIn(now + FIRST_PICK_MS, undefined)}, or the draft picks for you.`,
         read: false,
       },
     ]);
@@ -84,7 +83,7 @@ describe("you're up next", () => {
       {
         to: BOB,
         subject: UP_NEXT,
-        body: `Team 2 is on the clock: round 1, pick 2. Make your pick by ${momentIn(at + PICK_GAP_MS + PICK_MS, undefined)}, or the draft picks for you.`,
+        body: `Team 2 is on the clock: round 1, pick 2. Make your pick by ${momentIn(at + PICK_GAP_MS + FIRST_PICK_MS, undefined)}, or the draft picks for you.`,
         read: false,
       },
     ]);
@@ -93,7 +92,7 @@ describe("you're up next", () => {
   test("goes after a pick the draft made when the clock ran out too", async () => {
     await start();
     const before = (await letters()).length;
-    await pass(PICK_MS);
+    await pass(FIRST_PICK_MS);
 
     expect((await lettersSince(before)).map(({ to, subject }) => ({ to, subject }))).toEqual([{ to: BOB, subject: UP_NEXT }]);
   });

@@ -10,6 +10,7 @@ import type { Lineup } from "../../../convex/lineup/lineup";
 import { pickFirstLineupAgain } from "../../../convex/lineup/lineups";
 import type { Position } from "../../../convex/positions/positionTables";
 import { MINUTE_MS } from "../../../convex/shared/time";
+import { insertPlayers } from "./footballRows.harness";
 import { KICKS_OFF_IN } from "./leagueRules.harness";
 import { actingAs, type TestConvex } from "./leagues.harness";
 import { filledLineup, presetNamed } from "./lineup.harness";
@@ -50,12 +51,12 @@ export const nameOf = (code: number) => `Player ${code}`;
 
 /** Player and position rows for `codes`: a starter plays his slot's positions, anyone else the bench's. */
 export const holdPlayers = (t: TestConvex, codes: readonly number[]) =>
-  t.run(async (ctx) => {
-    for (const code of codes) {
-      await ctx.db.insert("players", { code, name: nameOf(code), fullName: nameOf(code), clubCode: CLUB_CODE });
-      await ctx.db.insert("playerPositions", { code, starts: [], approved: [], set: [...(STARTER_POSITIONS.get(code) ?? [BENCH_POSITION])], removed: [] });
-    }
-  });
+  t.run((ctx) =>
+    insertPlayers(
+      ctx,
+      codes.map((code) => ({ code, name: nameOf(code), fullName: nameOf(code), clubCode: CLUB_CODE, positions: [...(STARTER_POSITIONS.get(code) ?? [BENCH_POSITION])] })),
+    ),
+  );
 
 /**
  * `codes` (SQUAD unless given) held on the team, written straight into the tables, never through

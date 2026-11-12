@@ -1,7 +1,7 @@
-import { v, type Infer } from "convex/values";
+import { v } from "convex/values";
 import type { Doc, Id } from "../_generated/dataModel";
 import type { QueryCtx } from "../_generated/server";
-import type { leagueEvent } from "../schema";
+import type { LeagueEvent } from "../schema";
 import { MOST_IN_SQUAD, MOST_TEAMS } from "../leagues/leagueLimits";
 import { takeAllOrThrow } from "../shared/cappedRead";
 import { teamsOf } from "../shared/leagueAccess";
@@ -86,6 +86,11 @@ export function squadOf(ctx: QueryCtx, teamId: Id<"teams">) {
     .take(MOST_IN_SQUAD);
 }
 
+/** The squad's player codes, in the order they joined it. */
+export async function squadCodes(ctx: QueryCtx, teamId: Id<"teams">): Promise<number[]> {
+  return (await squadOf(ctx, teamId)).map(({ playerCode }) => playerCode);
+}
+
 /** The codes of a squad's players the football sync doesn't hold: data gone wrong, which a screen
  *  shows as rows of their own after the others, never hiding them (Craig, 31 Oct 2026, #323). */
 export const unheldCodes = v.array(v.number());
@@ -100,7 +105,6 @@ export async function heldOrNot(ctx: QueryCtx, rows: readonly Doc<"squadPlayers"
   };
 }
 
-type LeagueEvent = Infer<typeof leagueEvent>;
 type SquadMove = Extract<LeagueEvent, { kind: (typeof SQUAD_MOVES)[number] }>;
 export const isSquadMove = (event: LeagueEvent): event is SquadMove => (SQUAD_MOVES as readonly string[]).includes(event.kind);
 type ListedMove = Extract<LeagueEvent, { kind: ListedKind }>;
@@ -147,7 +151,7 @@ export function squadMovesFrom(ctx: QueryCtx, leagueId: Id<"leagues">, earliest:
  *  follow, in the order they left. A move that doesn't fit the squad it undoes (one who joined but
  *  isn't there, one who left but is) throws: the history is broken. */
 export async function squadAt(ctx: QueryCtx, teamId: Id<"teams">, movesSince: SquadMovesSince): Promise<number[]> {
-  let stayed = (await squadOf(ctx, teamId)).map(({ playerCode }) => playerCode);
+  let stayed = await squadCodes(ctx, teamId);
   let leftSince: number[] = [];
   for (const { _id, event } of movesSince) {
     // Only these kinds were read; any other is a bug in the read.

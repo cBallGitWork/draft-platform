@@ -10,7 +10,7 @@ import { zoneOf } from "../signIn/timeZone";
 import { sortedJson } from "../shared/sortedJson";
 import { DAY_MS, seasonStartYear } from "../shared/time";
 import { fileSiteLetter } from "../mail/letters";
-import { versionLetter, withdrawnLetter } from "../mail/letterWords";
+import { versionLetter, withdrawnLetter } from "../mail/scoringLetterWords";
 import { carryFix } from "./carryFix";
 import { repriceAt } from "./patchKickoffs";
 import { scoringChanges } from "./patchChanges";
@@ -251,7 +251,8 @@ export const fix = mutation({
  *  so"; announced again, it has a fresh 7 days). Its set becomes the draft patch, made from the
  *  version before it; a draft already made from the patch holds it, so is kept, made from that
  *  version too; one made before the patch could never be announced (`draftOvertaken`), so the patch
- *  replaces it. The banner goes with the version (patchNotes.ts reads the versions); the stars and
+ *  replaces it. The banner goes with the version (patchNotes.ts reads the versions), and who
+ *  dismissed it goes too (#1574): announced again it is a new version, its banner shown afresh. The stars and
  *  last season's prices it scheduled are worked out again under the set then in force, which is no
  *  harm. Returns when the draft was saved. Refused, with the reason, for anyone but the admin, or
  *  for a version that isn't a patch still waiting. */
@@ -270,6 +271,10 @@ export const withdraw = mutation({
     if (held) await ctx.db.replace("siteScoringDraft", held._id, draft);
     else await ctx.db.insert("siteScoringDraft", draft);
     await ctx.db.delete("siteScoring", patch._id);
+    // One row a person at most, the same reach as the letter filed below.
+    for await (const row of ctx.db.query("patchBannerDismissals").withIndex("by_versionId", (q) => q.eq("versionId", patch._id))) {
+      await ctx.db.delete("patchBannerDismissals", row._id);
+    }
     const news = { name: versionName(patch), takesEffectAt: patch.takesEffectAt };
     await fileSiteLetter(ctx, (tell) => withdrawnLetter(news, tell), admin);
     return savedAt;

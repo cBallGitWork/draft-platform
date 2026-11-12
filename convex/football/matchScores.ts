@@ -3,7 +3,7 @@ import { internal } from "../_generated/api";
 import type { Doc } from "../_generated/dataModel";
 import { internalMutation, query, type ActionCtx, type MutationCtx, type QueryCtx } from "../_generated/server";
 import { clubRecord, scoreFeed, scoreRead, type matchState, type scoreWrites } from "../schema";
-import { gameweekFixtures } from "../shared/fixtures";
+import { byKickoff, gameweekFixtures } from "../shared/fixtures";
 import { callerEmail } from "../shared/leagueAccess";
 import { clubByCode, clubOf } from "../shared/players";
 import { inBatches } from "../shared/syncRuns";
@@ -119,7 +119,7 @@ export const ofGameweek = query({
   handler: async (ctx, { gameweek }) => {
     await callerEmail(ctx);
     const fixtures = await gameweekFixtures(ctx, gameweek, "they would be cut short");
-    const inOrder = fixtures.toSorted((a, b) => (a.kickoff ?? Infinity) - (b.kickoff ?? Infinity));
+    const inOrder = byKickoff(fixtures);
     return Promise.all(
       inOrder.map(async ({ code, kickoff, homeClubCode, awayClubCode }) => {
         const held = await scoreOf(ctx, code);

@@ -7,9 +7,8 @@ import { positionsNow } from "../positions/playerPositions";
 import { clubRecord, position } from "../schema";
 import { takeAllOrThrow } from "../shared/cappedRead";
 import { MOST_TEAMS } from "../leagues/leagueLimits";
-import { leagueOpens } from "../leagues/leagueOpens";
-import { managerOf, memberOf, powersIn, refuse, signedInEmail, teamOf, teamsOf } from "../shared/leagueAccess";
-import { clubByCode, clubOf, heldPlayerByCode, playerOrRefuse } from "../shared/players";
+import { managerOf, memberOf, ownTeamOrNone, playerOrRefuse, powersIn, refuse, teamsOf } from "../shared/leagueAccess";
+import { clubByCode, clubOf, heldPlayerByCode } from "../shared/players";
 import { placeOf } from "../squads/squadPlace";
 import { squadRefusals } from "../squads/squads";
 import { seasonPointsIn } from "../stats/seasonPoints";
@@ -39,7 +38,7 @@ export const claimRefusals = {
 
 /** The most claims a league holds that one read takes: every team at its ceiling (#1609), so the
  *  run never meets it. Past it a read throws rather than leave claims out. */
-export const CLAIMS_READ_MOST = MOST_TEAMS * CLAIMS_PER_TEAM_MOST;
+const CLAIMS_READ_MOST = MOST_TEAMS * CLAIMS_PER_TEAM_MOST;
 
 /** The team's pending claims, first first. */
 export function claimsOf(ctx: QueryCtx, leagueId: Id<"leagues">, teamId: Id<"teams">): Promise<Doc<"waiverClaims">[]> {
@@ -161,11 +160,8 @@ export const countMine = query({
   args: { leagueId: v.id("leagues") },
   returns: v.number(),
   handler: async (ctx, { leagueId }) => {
-    const email = await signedInEmail(ctx);
-    const league = await ctx.db.get("leagues", leagueId);
-    if (email === null || league === null || !leagueOpens(league)) return 0;
-    const team = await teamOf(ctx, leagueId, email);
-    return team === undefined ? 0 : (await claimsOf(ctx, leagueId, team._id)).length;
+    const own = await ownTeamOrNone(ctx, leagueId);
+    return own === null ? 0 : (await claimsOf(ctx, leagueId, own.team._id)).length;
   },
 });
 

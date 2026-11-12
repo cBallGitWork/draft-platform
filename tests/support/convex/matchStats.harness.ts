@@ -18,6 +18,7 @@ import {
 import { fplStatLines } from "../../../convex/football/fpl/fplLive";
 import { matchRecords } from "../../../convex/stats/matchRecords";
 import { matchSlots, plStatLines } from "../../../convex/football/premierLeague/plMatch";
+import { PL_IN_PLAY } from "../../../convex/football/premierLeague/premierLeague";
 import type { RawPlCompSeason } from "../../../convex/football/premierLeague/plSeasons";
 import { FULL_STATS, hullEvertonReads, MATCH, recordedGw6, type Gw6Payloads } from "../recorded/gw6.payloads";
 import { recordedCommentary, recordedTeamStats } from "../recorded/commentary.payloads";
@@ -129,12 +130,9 @@ export function withPlReadEmpty(payloads: Gw6Payloads, plPlayerId: number): Gw6P
   return withPlRead(payloads, plPlayerId, {});
 }
 
-/** The Premier League's status for a match being played: not `PL_FULL_TIME`. */
-const PL_LIVE = "L";
-
 /** `payloads` with the Premier League's list calling Hull v Everton still being played. */
 export function withHullEvertonLive(payloads: Gw6Payloads): Gw6Payloads {
-  payloads.pl.round.content.find((fixture) => fixture.id === MATCH.hullEverton.pl)!.status = PL_LIVE;
+  payloads.pl.round.content.find((fixture) => fixture.id === MATCH.hullEverton.pl)!.status = PL_IN_PLAY;
   return payloads;
 }
 
