@@ -3,7 +3,7 @@ import type { QueryCtx } from "../_generated/server";
 import { matchRecordsOf, overridesIn } from "../gameweekScorer/heldMatches";
 import { cardOpensAt } from "../playerCard/cardPoints";
 import type { StoredScoringSet } from "../scoring/scoringSetShape";
-import { setOf, siteScoringByGameweek, siteVersions } from "../scoring/siteVersions";
+import { latestSiteScoring, siteScoringByGameweek } from "../scoring/siteVersions";
 import { inTenths } from "../scoring/values";
 import { takeAllOrThrow } from "../shared/cappedRead";
 import { CURRENT_FIXTURES_MOST, heldFixturesSeason } from "../shared/fixtures";
@@ -31,7 +31,7 @@ type PeriodMatch = { fixture: Doc<"fixtures">; gameweek: number; records: Doc<"p
 /** Every player's totals over the period, by his code, and the gameweeks it counts (none for the
  *  season, in order otherwise); `matches` are the period's matches, for its points, empty for the
  *  season. `season` is the season the totals are from, null with none held. */
-export interface PeriodTotals {
+interface PeriodTotals {
   season: number | null;
   gameweeks: number[];
   totals: Map<number, Stats>;
@@ -102,7 +102,7 @@ export async function periodPointsIn(ctx: QueryCtx, leagueId: Id<"leagues">, { s
   let setIn: (gameweek: number) => StoredScoringSet;
   if (thisSeason) setIn = await siteScoringByGameweek(ctx);
   else {
-    const latest = setOf((await siteVersions(ctx)).at(-1));
+    const latest = await latestSiteScoring(ctx);
     setIn = () => latest;
   }
   const played = await Promise.all(

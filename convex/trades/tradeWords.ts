@@ -20,10 +20,19 @@ export async function tradedName(ctx: QueryCtx, playerCode: number): Promise<str
 /** A trade as its letters read it: an offer, or a pick trade that went through (tradePicks.ts). */
 type TradeTerms = Pick<Doc<"tradeOffers">, "fromTeamId" | "toTeamId" | "gives" | "gets" | "picks" | "note">;
 
-/** The offer as its letters name it. */
-export async function tradeWordsOf(ctx: QueryCtx, offer: TradeTerms): Promise<TradeWords> {
+/** A trade's two teams, which must both still exist. */
+export async function teamsOfTrade(
+  ctx: QueryCtx,
+  offer: Pick<TradeTerms, "fromTeamId" | "toTeamId">,
+): Promise<{ from: Doc<"teams">; to: Doc<"teams"> }> {
   const [from, to] = await Promise.all([ctx.db.get("teams", offer.fromTeamId), ctx.db.get("teams", offer.toTeamId)]);
   if (from === null || to === null) throw new Error(`A trade between teams ${offer.fromTeamId} and ${offer.toTeamId} names a team that no longer exists`);
+  return { from, to };
+}
+
+/** The offer as its letters name it. */
+export async function tradeWordsOf(ctx: QueryCtx, offer: TradeTerms): Promise<TradeWords> {
+  const { from, to } = await teamsOfTrade(ctx, offer);
   const { picks } = offer;
   if (picks !== undefined) {
     const [gives, gets] = await Promise.all([pickName(ctx, picks.gives), pickName(ctx, picks.gets)]);
@@ -61,8 +70,8 @@ export async function tradedSideOf(ctx: QueryCtx, playerCodes: readonly number[]
 
 /** Both teams' managers, by email: those a trade's own letters go to. */
 export async function managersOf(ctx: QueryCtx, offer: Pick<TradeTerms, "fromTeamId" | "toTeamId">): Promise<string[]> {
-  const teams = await Promise.all([ctx.db.get("teams", offer.fromTeamId), ctx.db.get("teams", offer.toTeamId)]);
-  return teams.flatMap((team) => team?.managerEmail ?? []);
+  const { from, to } = await teamsOfTrade(ctx, offer);
+  return [from, to].flatMap((team) => team.managerEmail ?? []);
 }
 
 /** The league, which a trade's letters are filed in the name of. */

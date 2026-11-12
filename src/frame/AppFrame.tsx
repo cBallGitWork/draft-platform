@@ -3,7 +3,7 @@ import type { ReactNode } from "react";
 import type { AuthActions } from "../signIn/seam";
 import { FeedbackLink } from "../feedback/FeedbackPage";
 import { Continue } from "./topBar/Continue";
-import { MAIL_PATH, MY_TEAM_TRANSACTIONS_PATH, sectionAt, sectionsWith } from "./menu";
+import { MAIL_PATH, menuPathBesides, MY_TEAM_TRANSACTIONS_PATH, sectionAt, sectionsWith } from "./menu";
 import { figureWords } from "../shared/words";
 import { MainMenu, MenuTab } from "./topBar/MenuTab";
 import { TOP_BAR, TOP_BAR_ROW } from "../ui/Panel";
@@ -45,6 +45,7 @@ export function AppFrame({
                 path={section.path}
                 label={section.label}
                 unreadMail={section.path === MAIL_PATH ? topBar.unreadMail : 0}
+                current={section.path === menuPathBesides(pathname)}
               />
             ))}
           </MainMenu>

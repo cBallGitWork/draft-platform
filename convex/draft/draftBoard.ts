@@ -8,7 +8,7 @@ import { memberOf } from "../shared/leagueAccess";
 import { clubsByCode, playerByCode } from "../shared/players";
 import { pickSecondsOf } from "./draftPickTime";
 import { squadRulesOf } from "./draftPicks";
-import { draftIsLive, draftOf } from "./draftRow";
+import { draftIsOver, draftOf } from "./draftRow";
 import { isOnAutoPick } from "./draftTimeouts";
 
 // The draft room's reads (spec/04, The draft room; #1098), beside the draft's own (draftStart.ts
@@ -69,9 +69,8 @@ export const ofLeague = query({
     const positionsOf = await positionsNow(ctx, leagueId);
     const clubs = clubsByCode(ctx);
     const picks = await Promise.all(
-      rows.map(async ({ pick, teamId, playerCode, auto, timeout }) => {
-        // A pick made before #1100 has no `auto`, and only its `timeout` says the draft made it.
-        const made = { pick, teamId, auto: auto === true || timeout !== undefined };
+      rows.map(async ({ pick, teamId, playerCode, auto }) => {
+        const made = { pick, teamId, auto: auto === true };
         const player = await playerByCode(ctx, playerCode);
         if (player === null) return { ...made, player: null };
         const [club, positions] = await Promise.all([clubs(player.clubCode), positionsOf(player.code)]);
@@ -83,7 +82,7 @@ export const ofLeague = query({
     const draftRules = draftRulesOf(latest);
     const draft = await draftOf(ctx, leagueId);
     const started = draft?.started;
-    const squad = started === undefined ? latest.squad : await squadRulesOf(ctx, leagueId, started);
+    const squad = started === undefined ? latest.squad : squadRulesOf(leagueId, started);
     let yourAutoPick: DraftBoard["yourAutoPick"] = null;
     if (team) {
       const timeouts = draft?.timeouts;
@@ -100,6 +99,6 @@ export const inMenu = query({
   returns: v.boolean(),
   handler: async (ctx, { leagueId }) => {
     await memberOf(ctx, leagueId);
-    return (await draftOf(ctx, leagueId))?.started === undefined || (await draftIsLive(ctx, leagueId));
+    return !(await draftIsOver(ctx, leagueId));
   },
 });

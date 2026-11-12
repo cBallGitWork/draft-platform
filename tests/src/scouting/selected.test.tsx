@@ -4,14 +4,15 @@
 
 import { screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { NO_FIGURES } from "../../../convex/scouting/playersOrder";
 import type { Stats } from "../../../convex/stats/statTotals";
 import { pickUpWords } from "../../../src/playerCard/words";
 import { playerCardPath } from "../../../src/playerCard/paths";
+import { freeAgentWords } from "../../../src/shared/words";
 import {
   closePanelLabel,
-  freeAgentWords,
+  compareWithYourWords,
   noFigureWords,
   noPointsYetWords,
   notRankedWords,
@@ -36,7 +37,7 @@ import { MY_TEAM_TRANSACTIONS_PATH } from "../../../src/frame/menu";
 import type { PendingClaim } from "../../../src/myTeam/claims/seam";
 import { addToShortlistWords } from "../../../src/scouting/shortlist/words";
 import { fakeScouting } from "../../support/src/scouting.harness";
-import { HELD, lastAsk, openOnAll, openScouting, PALMER, RICE, rowOf, SAKA } from "../../support/src/scoutingScreen.harness";
+import { HELD, lastAsk, openOnAll, openScouting, PALMER, RICE, rowOf, SAKA, turnTheMinute } from "../../support/src/scoutingScreen.harness";
 import { shortlisted } from "../../support/src/shortlist.harness";
 import { league } from "../../support/src/shell.harness";
 
@@ -122,6 +123,14 @@ describe("selecting a player", () => {
     app.scouting.usePlayersList.mockImplementation((...args) => (args[5] === SAKA.code ? undefined : gone(...args)));
     await userEvent.click(screen.getByRole("button", { name: selectPlayerLabel("Saka") }));
     expect(panelOf("W")).toBeTruthy();
+  });
+
+  it("Compare with your player stays as the minute turns and his answer reloads (#1777)", async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    const app = await openOnAll({ ...HELD, yours: { player: { position: "CM", code: SAKA.code, name: "Saka" }, squadFull: false } });
+    await userEvent.click(rowOf("Rice"));
+    turnTheMinute(app);
+    expect(screen.getByRole("button", { name: compareWithYourWords("CM", "Saka") })).toBeTruthy();
   });
 
   it("his name in the list opens his card, not his panel", async () => {

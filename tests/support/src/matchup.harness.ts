@@ -74,9 +74,16 @@ export const playing = (minute: number | null, clockLabel: string | null = null,
   clockLabel,
 });
 
+/** A made-up man's code, from his name. */
+const codeOf = (name: string) => [...name].reduce((code, letter) => code * 31 + letter.charCodeAt(0), 7);
+
+/** A made-up man's auto-sub: off for, or on for, the man named `name`, or the man `code` when two
+ *  share that name. */
+export const subbed = <Kind extends "off" | "on">(kind: Kind, name: string, code = codeOf(name)) => ({ kind, playerCode: code, playerName: name });
+
 /** A man in a lineup, yet to play and counting unless `rest` says. */
 export const slot = (name: string, rest: Partial<Slot> = {}): Slot => ({
-  playerCode: [...name].reduce((code, letter) => code * 31 + letter.charCodeAt(0), 7),
+  playerCode: codeOf(name),
   name,
   area: "midfield",
   clubCode: null,

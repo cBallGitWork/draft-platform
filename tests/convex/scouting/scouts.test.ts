@@ -27,7 +27,7 @@ beforeEach(async () => {
   t = await signInDeployment();
   fakeResend();
   claude = fakeClaude();
-  leagueId = await adminCreatesLeague(t, 4);
+  leagueId = await adminCreatesLeague(t);
   [, bobsTeam] = await addManagers(t, leagueId, [ANN, BOB]);
   await holdStarsPlayers(t);
 });
@@ -77,7 +77,7 @@ describe("sending a scout", () => {
     await t.run((ctx) => insertDroppedPlayer(ctx, GONE, Date.now()));
     const ann = await as(ANN);
     await expectRefused(ann.send(GONE.code), scoutRefusals.playerGone(GONE.name));
-    await expectRefused(ann.send(9999), scoutRefusals.noSuchPlayer);
+    await expectRefused(ann.send(9999), refusals.noPlayer);
   });
 
   test("another team's player can be scouted", async () => {

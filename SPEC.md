@@ -19,7 +19,7 @@ drafted, for the basics. It needs:
 features 1, 2, 3, 5, 6, 7, 10, 12, 14, 16 and 18, and the admin tools listed in
 [spec/15's The mini beta](spec/15-admin-tools.md#the-mini-beta). Live commentary and the match
 page (10) are in it if the live stream is proven, and among the first things dropped if late.
-The draft (4) waits for the summer.
+The draft (4) waits for the summer. Since built: the draft room (row 4).
 
 The football data comes from Sportmonks, a paid feed, in place of FPL's and the Premier League's
 public APIs: "stop with fpl and prem, thats not scalable" (Craig, 9 Nov 2026, on #1196). Its
@@ -82,6 +82,9 @@ One file per feature in [spec/](spec/); this page is the index. A feature's stat
   rankings, title race and season phases, lineups in, Manager of the Month, rivalries, records
   board, honours board, the season's end book, AI voices (spec/12).
 - **A trade block**: players a manager will listen to offers for, shown to the league (spec/08).
+- **Wanted ads**: a manager posts what he's after ("a defensive midfielder who starts") and other
+  managers offer players to fill it (Craig, 1 Nov 2026: "ads we do need at some point"; 11 Nov
+  2026: "wanted can be later, a nice to have"; spec/08; https://trello.com/c/3ICri3eQ).
 - **Scouting searches**: a scout sent to find a kind of player ("a CAM under 25"), not only one
   player (spec/19).
 - **Saved views** on Scouting's players list (spec/19).

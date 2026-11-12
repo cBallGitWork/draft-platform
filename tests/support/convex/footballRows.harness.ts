@@ -1,6 +1,7 @@
 // The football rows the Convex tests hold: clubs, players with the positions set for them, a player
 // who has left the Premier League, and a whole match record, written once here so a new required field on clubs, players,
-// playerPositions or playerMatchStats is added in one place, not in each test.
+// playerPositions or playerMatchStats is added in one place, not in each test. Only a positions
+// test, whose row's starts, approvals or PL label are what it tests, writes that row in full.
 
 import type { WithoutSystemFields } from "convex/server";
 import type { Doc } from "../../../convex/_generated/dataModel";
@@ -33,11 +34,16 @@ export const insertClubs = async (ctx: MutationCtx, clubs: readonly Club[]) => {
   for (const club of clubs) await ctx.db.insert("clubs", club);
 };
 
+/** A player's positions as the admin set them, with no starts counted, for a test whose players
+ *  row is written already or not needed. */
+export const insertSetPositions = (ctx: MutationCtx, code: number, positions: Position[]) =>
+  ctx.db.insert("playerPositions", { code, starts: [], approved: [], set: positions, removed: [] });
+
 /** Each player's row, and his positions as the admin set them, with no starts counted. */
 export const insertPlayers = async (ctx: MutationCtx, players: readonly HeldPlayer[]) => {
   for (const { positions, ...player } of players) {
     await ctx.db.insert("players", player);
-    await ctx.db.insert("playerPositions", { code: player.code, starts: [], approved: [], set: positions, removed: [] });
+    await insertSetPositions(ctx, player.code, positions);
   }
 };
 

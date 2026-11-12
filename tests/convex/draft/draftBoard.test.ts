@@ -4,8 +4,8 @@ import type { Id } from "../../../convex/_generated/dataModel";
 import { refusals } from "../../../convex/shared/leagueAccess";
 import { ARSENAL, CHELSEA, insertClubs, insertPlayers, type HeldPlayer } from "../../support/convex/footballRows.harness";
 import { expectRefused } from "../../support/convex/test.harness";
-import { actingAs, addManagers, adminCreatesLeague, COMMISSIONER, MANAGERS, OUTSIDER, type TestConvex } from "../../support/convex/leagues.harness";
-import { pickGapPasses } from "../../support/convex/pickWindow.harness";
+import { addManagers, adminCreatesLeague, COMMISSIONER, MANAGERS, OUTSIDER, type TestConvex } from "../../support/convex/leagues.harness";
+import { draftSteps } from "../../support/convex/draft.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
 
 // The draft room's reads (spec/04, The draft room; #1098): the board's picks, each with its
@@ -20,14 +20,9 @@ const [ANN, BOB] = MANAGERS;
 const SAKA: HeldPlayer = { code: 101, name: "Saka", fullName: "Bukayo Saka", clubCode: ARSENAL.code, positions: ["W"] };
 const PALMER: HeldPlayer = { code: 201, name: "Palmer", fullName: "Cole Palmer", clubCode: CHELSEA.code, positions: ["CAM"] };
 
-const as = (email: string) => actingAs(t, email);
+const { as, pickAndWait: pick } = draftSteps(() => ({ t, leagueId }));
 const board = async (email: string) => (await as(email)).query(api.draft.draftBoard.ofLeague, { leagueId });
 const inMenu = async (email: string) => (await as(email)).query(api.draft.draftBoard.inMenu, { leagueId });
-/** `email` picks, and the pick's 10 seconds to undo it pass. */
-const pick = async (email: string, playerCode: number) => {
-  await (await as(email)).mutation(api.draft.draftPicks.makePick, { leagueId, playerCode });
-  await pickGapPasses(t);
-};
 
 beforeEach(async () => {
   t = await signInDeployment();
@@ -38,7 +33,7 @@ beforeEach(async () => {
     await insertClubs(ctx, [ARSENAL, CHELSEA]);
     await insertPlayers(ctx, [SAKA, PALMER]);
     for (const row of await ctx.db.query("leagueRules").withIndex("by_leagueId_and_fromGameweek", (q) => q.eq("leagueId", leagueId)).collect()) {
-      await ctx.db.patch("leagueRules", row._id, { rules: { ...row.rules, squad: { size: { minimum: 1, maximum: 1 }, minimumByArea: null, maxPerClub: null } } });
+      await ctx.db.patch("leagueRules", row._id, { rules: { ...row.rules!, squad: { size: { minimum: 1, maximum: 1 }, minimumByArea: null, maxPerClub: null } } });
     }
   });
 });

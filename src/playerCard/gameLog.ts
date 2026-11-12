@@ -7,6 +7,9 @@ import type { PlayedMatch, PlayerCard } from "./seam";
 
 type Fixture = PlayerCard["postponed"][number];
 
+/** How many of his latest priced matches the card's Last 5 shows. */
+export const LAST_MATCHES_SHOWN = 5;
+
 /** A row of the game log: a match he was in, or one of his club's postponed with no new date. */
 export type LogRow = (Fixture & { kind: "postponed" }) | (PlayedMatch & { kind: "played"; match: PlayedMatch });
 
@@ -54,6 +57,6 @@ export function seasonFigures(matches: readonly PlayedMatch[], shown: number) {
     seasonPoints: priced.length === 0 ? null : total,
     aMatch: priced.length === 0 ? null : inTenths(total / priced.length),
     minutes: minutesOf(matches),
-    lastFive: priced.slice(0, 5).map(({ match, points }) => ({ fixtureCode: match.fixtureCode, points })),
+    lastFive: priced.slice(0, LAST_MATCHES_SHOWN).map(({ match, points }) => ({ fixtureCode: match.fixtureCode, points })),
   };
 }

@@ -7,6 +7,9 @@ import { v, type Infer } from "convex/values";
 export const period = v.union(v.literal("season"), v.literal("last4"), v.literal("last6"));
 export type Period = Infer<typeof period>;
 
+/** The period a figure is over when none is asked for, and the one Scouting opens on: the season. */
+export const DEFAULT_PERIOD: Period = "season";
+
 /** How many finished gameweeks each period other than the season counts. */
 export const PERIOD_GAMEWEEKS = { last4: 4, last6: 6 } as const satisfies Record<Exclude<Period, "season">, number>;
 

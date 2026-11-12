@@ -1,19 +1,28 @@
 // The stats the site's starting values name (firstScoring.ts, draftedRoleAdjustments.ts,
 // draftedInstructionScoring.ts) and the back line reprices (teamScoring.ts), each typed once (#1574).
-// A catalogue key is the name the feed fills (statCatalogueList.ts); a key starting `league:` is
-// one of the roles' own stats (FIRST_ROLE_OWN_STATS). A rule's stat is data: these only name the
-// ones the code starts from.
+// A catalogue key is the name the feed fills (statCatalogueList.ts); a key starting
+// OWN_STAT_PREFIX is one of the roles' own stats (FIRST_ROLE_OWN_STATS). A rule's stat is data:
+// these only name the ones the code starts from.
 
-export { MINUTES_STAT } from "../stats/matchRecords";
+import { OWN_STAT_PREFIX } from "./statCatalogue";
+
+// The stats both feeds send are named where the record is merged.
+export {
+  ASSISTS,
+  CLEAN_SHEETS,
+  GOALS,
+  GOALS_CONCEDED,
+  MINUTES_STAT,
+  PENALTIES_SAVED,
+  RED_CARDS,
+  SAVES,
+  YELLOW_CARDS,
+} from "../stats/matchRecords";
 
 /** FPL's 60 minutes: playing them is worth 2, and a clean sheet counts only for a player on that
  *  long, in base scoring and in Park the bus alike. */
 export const CLEAN_SHEET_MINUTES = 60;
 
-export const GOALS = "goals_scored";
-export const ASSISTS = "assists";
-export const CLEAN_SHEETS = "clean_sheets";
-export const GOALS_CONCEDED = "goals_conceded";
 export const SHOTS = "total_scoring_att";
 export const SHOTS_ON_TARGET = "ontarget_scoring_att";
 export const BIG_CHANCES_MISSED = "big_chance_missed";
@@ -40,15 +49,11 @@ export const INTERCEPTIONS = "interception";
 export const RECOVERIES = "ball_recovery";
 export const CLEARANCES = "total_clearance";
 export const BLOCKS = "outfielder_block";
-export const SAVES = "saves";
 export const SAVES_INSIDE_THE_BOX = "saved_ibox";
-export const PENALTIES_SAVED = "penalties_saved";
 export const HIGH_CLAIMS = "good_high_claim";
 export const PUNCHES = "punches";
 export const OFFSIDES = "total_offside";
 export const FOULS = "fouls";
-export const YELLOW_CARDS = "yellow_cards";
-export const RED_CARDS = "red_cards";
 export const DISPOSSESSED = "dispossessed";
 export const POSSESSION_LOST = "poss_lost_all";
 export const DRIBBLED_PAST = "challenge_lost";
@@ -57,8 +62,8 @@ export const ERRORS_TO_A_SHOT = "error_lead_to_shot";
 export const ERRORS_TO_A_GOAL = "error_lead_to_goal";
 
 // The roles' own stats.
-export const FAILED_LONG_BALLS = "league:failed_long_balls";
-export const FAILED_CROSSES = "league:failed_crosses";
-export const MISPLACED_PASSES = "league:misplaced_passes";
-export const FAILED_LAUNCHES = "league:failed_launches";
-export const GROUND_DUELS_WON = "league:ground_duels_won";
+export const FAILED_LONG_BALLS = `${OWN_STAT_PREFIX}failed_long_balls` as const;
+export const FAILED_CROSSES = `${OWN_STAT_PREFIX}failed_crosses` as const;
+export const MISPLACED_PASSES = `${OWN_STAT_PREFIX}misplaced_passes` as const;
+export const FAILED_LAUNCHES = `${OWN_STAT_PREFIX}failed_launches` as const;
+export const GROUND_DUELS_WON = `${OWN_STAT_PREFIX}ground_duels_won` as const;

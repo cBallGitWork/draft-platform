@@ -12,9 +12,8 @@ import { startClock } from "./draftClock";
 import { tellNotStarted, tellUpNext } from "./draftLetters";
 import { DRAFT_FEWEST_TEAMS } from "./draftLimits";
 import { draftOrderOf, teamInOrder, teamOrderOf } from "./draftOrder";
-import { draftOf, lastPickIn } from "./draftRow";
+import { draftOf, lastPickIn, liveClockOf, turnAfter } from "./draftRow";
 import { roundsOf } from "./draftRules";
-import { pickOnTheClock } from "./snakeOrder";
 
 // Starting the draft (spec/04, Starting it; #1089). It starts on a date the commissioner sets or
 // when he presses start; with no date set, it waits for him (Craig, 4 Nov 2026). It runs with the
@@ -165,7 +164,6 @@ async function waitWithNoDate(ctx: MutationCtx, draft: Doc<"drafts">, refusal: s
 }
 
 const onTheClock = v.object({ pick: v.number(), round: v.number(), teamId: v.id("teams"), name: v.string() });
-/** When the clock of the pick on the clock starts and runs out (draftClock.ts). */
 /** A pick's clock: when it starts and runs out, and, while the draft is paused (draftPause.ts),
  *  when it was paused, its time left counted from then. */
 const pickClock = v.object({ startsAt: v.number(), endsAt: v.number(), pausedAt: v.optional(v.number()) });
@@ -175,9 +173,8 @@ const ownPickBy = v.union(v.id("teams"), v.null());
 /** The league's draft as everyone in the league reads it: waiting, with its date (null: until the
  *  commissioner presses start), its rounds (null: the league has no squad size limit) and the
  *  draft order now; live, with when it started, its rounds, its order, fixed at the start, how many
- *  picks are made, the pick on the clock and its clock (null in a draft started before #1091, until
- *  its next pick); ending, for the 10 seconds after its last pick, with when it ends and, while the
- *  commissioner has it paused, when he paused it (pickWindow.ts; #1458); or over, once those are up.
+ *  picks are made, the pick on the clock and its clock; ending, for the 10 seconds after its last
+ *  pick, with when it ends and, while the commissioner has it paused, when he paused it (pickWindow.ts; #1458); or over, once those are up.
  *  Live or ending, `ownPickBy` is the team whose manager made the last pick himself, which he can
  *  undo until the next clock starts or the draft ends (null: an auto-pick, the commissioner's, or
  *  no pick yet). A waiting draft's rounds are those it would start with now. It takes no minute: one would change its args as the
@@ -186,7 +183,7 @@ export const ofLeague = query({
   args: { leagueId: v.id("leagues") },
   returns: v.union(
     v.object({ status: v.literal("waiting"), startsAt: v.union(v.number(), v.null()), rounds: v.union(v.number(), v.null()), order: v.array(teamInOrder) }),
-    v.object({ status: v.literal("live"), startedAt: v.number(), rounds: v.number(), order: v.array(teamInOrder), picksMade: v.number(), onTheClock, clock: v.union(pickClock, v.null()), ownPickBy }),
+    v.object({ status: v.literal("live"), startedAt: v.number(), rounds: v.number(), order: v.array(teamInOrder), picksMade: v.number(), onTheClock, clock: pickClock, ownPickBy }),
     v.object({
       status: v.literal("ending"),
       startedAt: v.number(),
@@ -215,12 +212,13 @@ export const ofLeague = query({
     });
     const last = await lastPickIn(ctx, leagueId);
     const picksMade = last?.pick ?? 0;
-    const turn = pickOnTheClock(teamIds, rounds, picksMade, draft.tradedPicks);
+    const turn = turnAfter(draft, picksMade);
     const started = { startedAt: at, rounds, order, picksMade };
     const ownPickBy = last?.own === undefined ? null : last.teamId;
     if (turn === null && draft.clock?.closing) return { status: "ending" as const, ...started, endsAt: draft.clock.startsAt, pausedAt: draft.clock.paused?.at, ownPickBy };
     if (turn === null) return { status: "over" as const, ...started };
-    const clock = draft.clock === undefined ? null : { startsAt: draft.clock.startsAt, endsAt: draft.clock.endsAt, pausedAt: draft.clock.paused?.at };
+    const { startsAt, endsAt, paused } = liveClockOf(draft);
+    const clock = { startsAt, endsAt, pausedAt: paused?.at };
     // A traded pick's owner is one of the draft's teams, each named in `order` above.
     const { name } = order.find(({ teamId }) => teamId === turn.team)!;
     return { status: "live" as const, ...started, onTheClock: { pick: turn.pick, round: turn.round, teamId: turn.team, name }, clock, ownPickBy };

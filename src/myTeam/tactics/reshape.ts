@@ -1,6 +1,6 @@
 // The lineup reshaped to a preset's cells (spec/05; Craig, 26 Oct, 1 Nov and 10 Nov 2026; #1025):
 // own area first, and best fit where that leaves a starter out or a slot empty. Pure; a preset,
-// a classic and a saved plan all reshape the pitch through it.
+// a classic formation and a saved plan all reshape the pitch through it.
 
 import { AREAS, byPitchOrder, LANES, playsCell, type Cell } from "../../../convex/lineup/pitch";
 import { offersRole, roleIn, rolesOfSlot, takesRole } from "../../../convex/lineup/roles";

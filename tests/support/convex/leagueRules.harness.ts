@@ -1,10 +1,10 @@
 // League rules' tests' shared setup (#25).
 
-import { FIRST_RULES } from "../../../convex/rules/firstRules";
+import { draftRulesOf, FIRST_RULES } from "../../../convex/rules/firstRules";
 import { actingAs, COMMISSIONER, TEST_LEAGUE_TEAMS, type TestConvex } from "./leagues.harness";
 import { api } from "../../../convex/_generated/api";
 import type { QueryCtx } from "../../../convex/_generated/server";
-import { seasonRules } from "../../../convex/rules/rulesHistory";
+import { historyOf, seasonRules } from "../../../convex/rules/rulesHistory";
 import { squadMaximumFor, STARTING_SQUAD_MAXIMUMS, withSquadMaximum } from "../../../convex/rules/squadMaximums";
 import type { LeagueRules } from "../../../convex/rules/leagueRulesShape";
 import type { Area } from "../../../convex/lineup/pitch";
@@ -41,15 +41,16 @@ export const changeRules = async (t: TestConvex, leagueId: Id<"leagues">, rules:
  *  draft's tests, whose rules a save would only change from a later gameweek. */
 export const changeEveryRules = (t: TestConvex, leagueId: Id<"leagues">, change: (rules: LeagueRules) => LeagueRules) =>
   t.run(async (ctx) => {
-    for (const row of await ctx.db.query("leagueRules").withIndex("by_leagueId_and_fromGameweek", (q) => q.eq("leagueId", leagueId)).collect()) {
-      await ctx.db.patch("leagueRules", row._id, { rules: change(row.rules) });
+    for (const row of await historyOf(ctx, leagueId)) {
+      await ctx.db.patch("leagueRules", row._id, { rules: change(row.rules), changes: undefined });
     }
   });
 
-/** The league's pick clock set to `pickSeconds` at once (changeEveryRules), and a started draft's
- *  own too, as a change reaching a live draft writes it (draftPickTime.ts; #1439). */
+/** The league's pick clock set to `pickSeconds` at once (changeEveryRules), its other draft rules
+ *  kept (#1782), and a started draft's own too, as a change reaching a live draft writes it
+ *  (draftPickTime.ts; #1439). */
 export async function setPickSeconds(t: TestConvex, leagueId: Id<"leagues">, pickSeconds: number): Promise<void> {
-  await changeEveryRules(t, leagueId, (rules) => ({ ...rules, draft: { ...HELD_FIRST_RULES.draft!, pickSeconds } }));
+  await changeEveryRules(t, leagueId, (rules) => ({ ...rules, draft: { ...draftRulesOf(rules), pickSeconds } }));
   await t.run(async (ctx) => {
     const draft = await ctx.db.query("drafts").withIndex("by_leagueId", (q) => q.eq("leagueId", leagueId)).unique();
     if (draft?.started !== undefined) await ctx.db.patch("drafts", draft._id, { pickSeconds });

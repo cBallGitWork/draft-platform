@@ -2,7 +2,7 @@ import { expect, test } from "vitest";
 import { FIRST_SCORING } from "../../../convex/scoring/firstScoring";
 import type { ScoringSet } from "../../../convex/scoring/scoringSet";
 import { pricedRole } from "../../support/convex/scoring.example";
-import { THRESHOLD_STEP_READS_MOST, THRESHOLD_STEPS_A_ROW, THRESHOLD_STEPS_MOST, thresholdSteps, thresholdStepsOf } from "../../../convex/stats/thresholdSteps";
+import { THRESHOLD_STEP_READS_MOST, THRESHOLD_STEPS_A_ROW, thresholdSteps, thresholdStepsOf } from "../../../convex/stats/thresholdSteps";
 import { LIVE_WINDOW_MS } from "../../../convex/shared/dueMatches";
 import { MINUTE_MS } from "../../../convex/shared/time";
 import { FIRST_ROLE_OWN_STATS, FIRST_ROLES } from "../../../convex/scoring/draftedRoleAdjustments";
@@ -42,6 +42,8 @@ test("a clean sheet is a step when he has it with the minutes for it, and again 
   expect(thresholdSteps({ minutes: 59, clean_sheets: 0 }, { minutes: 61, clean_sheets: 1 }, SET)).toContainEqual({ stat: "clean_sheets", from: 0, to: 1 });
   expect(thresholdSteps({ minutes: 70, clean_sheets: 1, goals_conceded: 0 }, { minutes: 71, clean_sheets: 0, goals_conceded: 1 }, SET)).toEqual([
     { stat: "clean_sheets", from: 1, to: 0 },
+    // The goal itself is one too, for a back line's −1 (#1754).
+    { stat: "goals_conceded", from: 0, to: 1 },
   ]);
   // Before his minutes reach the rule's, a clean sheet's count moves no points.
   expect(thresholdSteps({ minutes: 30, clean_sheets: 0 }, { minutes: 31, clean_sheets: 1 }, SET)).toEqual([]);
@@ -69,6 +71,11 @@ test("a goal, an assist, a card or an own goal is never a step: its own line pri
 test("a point only one slot's pricing scores is a step, for the matchup to price for whoever stands there", () => {
   // Goals conceded take a point off only the keeper and the defence: still a step for every man.
   expect(thresholdSteps({ goals_conceded: 1 }, { goals_conceded: 2 }, SET)).toEqual([{ stat: "goals_conceded", from: 1, to: 2 }]);
+});
+
+test("every goal conceded is a step, though the set's own rule prices only every second: a back line prices each (#1754)", () => {
+  expect(thresholdSteps({ minutes: 70, goals_conceded: 0 }, { minutes: 71, goals_conceded: 1 }, SET)).toEqual([{ stat: "goals_conceded", from: 0, to: 1 }]);
+  expect(thresholdSteps({ minutes: 80, goals_conceded: 2 }, { minutes: 81, goals_conceded: 3 }, SET)).toEqual([{ stat: "goals_conceded", from: 2, to: 3 }]);
 });
 
 test("an own stat is stepped by its own total", () => {
@@ -114,7 +121,11 @@ test("a stat some team instruction scores is a step each time its count moves, t
 // match's team stats count every action both sides made. At worst each live read shows one more
 // action, and a read stores at most one step a stat, so a stat that is a step at all stores at most
 // one for each of its actions. Per-man lines (his minutes, his clean sheet, the goals he was on for)
-// aren't in a team's count: THRESHOLD_STEPS_MOST's note counts those by hand.
+// aren't in a team's count: PER_MAN_LINES counts those by hand.
+
+/** The most steps one match could hold when each step was its own row, before #871: the cap these
+ *  measures were taken against, and why steps are now stored a row a read. */
+const ROW_A_STEP_CAP = 1000;
 
 /** Both sides' count of every stat at `plId`'s full time, own stats worked out as `set` has them. */
 function matchTotals(plId: number, set: ScoringSet): MatchStats {
@@ -140,7 +151,7 @@ function mostSteps(totals: MatchStats, set: ScoringSet): number {
 const BUSY_MATCHES = [COMMENTARY_MATCH.hullEverton, COMMENTARY_MATCH.brentfordLiverpool];
 
 /** By count of the first set's rules, never measured: about 8 a man for his minutes, his clean
- *  sheet, goals conceded and saves, over about 32 men who play (THRESHOLD_STEPS_MOST's note). */
+ *  sheet, goals conceded and saves, over about 32 men who play. */
 const PER_MAN_LINES = 250;
 
 /** The worst match's most steps under `set`, its per-man lines added. */
@@ -157,19 +168,19 @@ const EVERY_STAT_PER_ACTION: ScoringSet = {
 
 test("under the first set, a busy match stays far under the cap", () => {
   // About 260 (6 Nov 2026): 10 from the team counts (saves, goals conceded), the rest per man.
-  expect(busiest(SET)).toBeLessThan(THRESHOLD_STEPS_MOST / 2);
+  expect(busiest(SET)).toBeLessThan(ROW_A_STEP_CAP / 2);
 });
 
 test("the roles' first values could take a busy match past the cap: its commentary would throw, never be cut", () => {
   // About 3,550 at Hull v Everton (6 Nov 2026): they adjust every accurate, forward and misplaced
   // pass, every possession lost and more. Past the cap a row a step held, so since #871 a match's
   // steps are stored a row a read (THRESHOLD_STEP_READS_MOST), below.
-  expect(busiest(WITH_FIRST_ROLES)).toBeGreaterThan(THRESHOLD_STEPS_MOST);
+  expect(busiest(WITH_FIRST_ROLES)).toBeGreaterThan(ROW_A_STEP_CAP);
 });
 
 test("a set pricing every catalogue stat per action would store over ten times the cap", () => {
   // About 11,970 at Hull v Everton (6 Nov 2026), mostly passes and touches.
-  expect(busiest(EVERY_STAT_PER_ACTION)).toBeGreaterThan(10 * THRESHOLD_STEPS_MOST);
+  expect(busiest(EVERY_STAT_PER_ACTION)).toBeGreaterThan(10 * ROW_A_STEP_CAP);
 });
 
 // Stored a row a read (#871): a match's rows are as many as its live reads that showed a step, and
@@ -234,18 +245,6 @@ test("a read's steps are stored in one row, and a read that showed none stores n
   // The minute-31 read moved nothing, so only the minute-61 read added a row.
   expect(rows.map(({ minute }) => minute)).toEqual([...first.map(({ minute }) => minute), 61]);
   expect(rows.at(-1)?.steps).toContainEqual({ playerCode: HULL_SCORER, stat: "minutes", from: 30, to: 61, minutes: 61 });
-});
-
-test("steps stored a row a step before #871 are still read, ahead of the reads' rows", async () => {
-  const league = await scoresLeague();
-  await league.t.run(async (ctx) => {
-    await ctx.db.insert("thresholdStepReads", { fixtureCode: HULL_EVERTON, minute: 70, steps: [{ playerCode: HULL_SCORER, stat: "saves", from: 2, to: 3, minutes: 70 }] });
-    await ctx.db.insert("thresholdSteps", { fixtureCode: HULL_EVERTON, playerCode: HULL_SCORER, stat: "minutes", from: 59, to: 61, minutes: 61, minute: 61 });
-  });
-  expect(await league.t.run((ctx) => thresholdStepsOf(ctx, HULL_EVERTON))).toEqual([
-    expect.objectContaining({ playerCode: HULL_SCORER, stat: "minutes", from: 59, to: 61, minutes: 61, minute: 61 }),
-    { playerCode: HULL_SCORER, stat: "saves", from: 2, to: 3, minutes: 70, minute: 70 },
-  ]);
 });
 
 test("a site set that can't be read stores no steps, logs why, and the records are still written", async () => {

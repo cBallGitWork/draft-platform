@@ -16,8 +16,9 @@ import { DRAFT_LIST_MOST } from "./draftLimits";
 // nor the commissioner, can tell who is on them. No player is on both: adding him to one takes him
 // off the other. They can be changed at any time, between picks once the draft has started too,
 // and a drafted player stays listed (Craig, 4 Nov 2026); auto-pick skips him (draftPicks.ts; #1094).
-// The shortlist feeds the queue, a player at a time or the whole of it (#1137). Not built yet:
-// emptying them when a draft ends (no draft ends yet).
+// The shortlist feeds the queue, a player at a time or the whole of it (#1137). When a manager goes,
+// auto-pick keeps using both while the team has none; a new manager taking it starts with them
+// empty and never sees the old ones (S04.15; Craig, 11 Nov 2026, on #1606).
 
 const draftList = v.union(v.literal("queue"), v.literal("doNotDraft"));
 type DraftList = "queue" | "doNotDraft";
@@ -42,6 +43,26 @@ export function listsOf(ctx: QueryCtx, teamId: Id<"teams">): Promise<Doc<"draftL
     .unique();
 }
 
+/** The queue and do-not-draft list `row` holds, both empty for a team with no row. A fresh object
+ *  each time, so a caller may reassign either list. */
+type HeldLists = Pick<Doc<"draftLists">, DraftList>;
+const heldOf = (row: Doc<"draftLists"> | null): HeldLists => ({
+  queue: row?.queue ?? [],
+  doNotDraft: row?.doNotDraft ?? [],
+});
+
+/** The team's queue, first choice first, and do-not-draft list, both empty while its manager has
+ *  added to neither. */
+export async function heldListsOf(ctx: QueryCtx, teamId: Id<"teams">): Promise<HeldLists> {
+  return heldOf(await listsOf(ctx, teamId));
+}
+
+/** Empties the team's queue and do-not-draft list, for a new manager taking it over (S04.15). */
+export async function clearDraftLists(ctx: MutationCtx, teamId: Id<"teams">): Promise<void> {
+  const lists = await listsOf(ctx, teamId);
+  if (lists) await ctx.db.delete("draftLists", lists._id);
+}
+
 /** A player on the queue or do-not-draft list: as the shortlist lists him, with his first position
  *  now, for the draft room's chip (#1100), null for none. */
 const draftListed = v.object({ ...listedPlayer.fields, position: v.union(position, v.null()) });
@@ -55,13 +76,13 @@ export const mine = query({
   handler: async (ctx, { leagueId }) => {
     const { team } = await memberOf(ctx, leagueId);
     if (!team) return null;
-    const lists = await listsOf(ctx, team._id);
+    const lists = await heldListsOf(ctx, team._id);
     const positionsOf = await positionsNow(ctx, leagueId);
     const withPositions = async (codes: readonly number[]) =>
       Promise.all((await listedPlayers(ctx, leagueId, codes)).map(async (player) => ({ ...player, position: (await positionsOf(player.code))[0] ?? null })));
-    const doNotDraft = await withPositions(lists?.doNotDraft ?? []);
+    const doNotDraft = await withPositions(lists.doNotDraft);
     return {
-      queue: await withPositions(lists?.queue ?? []),
+      queue: await withPositions(lists.queue),
       doNotDraft: doNotDraft.sort((one, another) => one.name.localeCompare(another.name)),
     };
   },
@@ -89,7 +110,7 @@ export const add = mutation({
  *  DRAFT_LIST_MOST. */
 async function putOn(ctx: MutationCtx, team: Doc<"teams">, list: DraftList, codes: readonly number[]): Promise<void> {
   const lists = await listsOf(ctx, team._id);
-  const held = { queue: lists?.queue ?? [], doNotDraft: lists?.doNotDraft ?? [] };
+  const held = heldOf(lists);
   const adding = codes.filter((code) => !held[list].includes(code));
   if (adding.length === 0) return;
   if (held[list].length + adding.length > DRAFT_LIST_MOST) refuse(draftListRefusals.full(list));
@@ -146,7 +167,7 @@ export const addShortlist = mutation({
   returns: v.object({ added: v.number(), leftOut: v.number() }),
   handler: async (ctx, { leagueId }) => {
     const team = await ownTeam(ctx, leagueId);
-    const queued = new Set((await listsOf(ctx, team._id))?.queue ?? []);
+    const queued = new Set((await heldListsOf(ctx, team._id)).queue);
     const adding = (await shortlistedToQueue(ctx, team)).map(({ code }) => code).filter((code) => !queued.has(code));
     const fitting = adding.slice(0, Math.max(0, DRAFT_LIST_MOST - queued.size));
     await putOn(ctx, team, "queue", fitting);

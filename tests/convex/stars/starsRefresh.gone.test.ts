@@ -5,8 +5,8 @@ import { MANAGERS, addManagers, adminCreatesLeague, type TestConvex } from "../.
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
 import { PLAYERS_PAGE } from "../../../convex/stats/matchRecords";
 import { ARSENAL, insertPlayers } from "../../support/convex/footballRows.harness";
-import { BLANK, CAMEO, MATCHES, holdStarsPlayers, lockedRecord, refreshesRun, refreshEveryone, starsRows } from "../../support/convex/stars.harness";
-import { pendingJobs, ROWS_TO_THE_CAP } from "../../support/convex/test.harness";
+import { BLANK, CAMEO, MATCHES, holdStarsPlayers, lockedRecord, refreshEveryone, starsRows } from "../../support/convex/stars.harness";
+import { everyJobRuns, pendingJobs, ROWS_TO_THE_CAP } from "../../support/convex/test.harness";
 
 // A player gone from the Premier League keeps his stars while a squad in any league holds him, so
 // his manager still sees them, and loses them once none does (#11, starsRefresh.ts).
@@ -48,7 +48,7 @@ test("gone and on no squad, he loses his row, and a match locking after doesn't 
   expect((await starsRows(t)).has(CAMEO.code)).toBe(false);
 
   await t.mutation(internal.stars.starsRefresh.refreshMatch, { fixtureCode: MATCHES[0] });
-  await refreshesRun(t);
+  await everyJobRuns(t);
 
   expect((await starsRows(t)).has(CAMEO.code)).toBe(false);
 });
@@ -57,7 +57,7 @@ test("gone but on a squad, a match locking keeps his row", async () => {
   await annHolds(CAMEO.code);
 
   await t.mutation(internal.stars.starsRefresh.refreshMatch, { fixtureCode: MATCHES[0] });
-  await refreshesRun(t);
+  await everyJobRuns(t);
 
   expect((await starsRows(t)).get(CAMEO.code)).toMatchObject({ matches: MATCHES.length });
 });
@@ -78,7 +78,7 @@ test(`more gone players than a page, ${PLAYERS_PAGE + 1}, are worked through a p
   });
 
   await t.mutation(internal.stars.starsRefresh.refreshAll, { cursor: null });
-  await refreshesRun(t);
+  await everyJobRuns(t);
 
   const rows = await starsRows(t);
   expect(many.filter(({ code }) => rows.has(code)).map(({ code }) => code)).toEqual([many[0].code]);

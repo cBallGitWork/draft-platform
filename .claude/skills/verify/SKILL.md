@@ -11,6 +11,7 @@ npm run verify   # install check, vitest run, tsc on convex/ and on the app, the
                  # scripts/tests-kept.mjs (no test origin/main has is cut),
                  # scripts/spec-ids.mjs (spec answer IDs and tests' citations),
                  # scripts/contents-lists.mjs (a doc over 100 lines opens with a contents list),
+                 # scripts/studio-kit.mjs (the studio kit's copies match .studio/kit.json),
                  # .claude/hooks/test.sh
 npm test -- <file>   # one test file
 ```

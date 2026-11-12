@@ -17,8 +17,8 @@ export const draftRankingTables = {
 /** A started draft: when it started, its teams in the draft order then, first pick first, its
  *  rounds, the league's squad maximum then, and the squad rules every pick is checked against, the
  *  league's then (spec/04, Starting it and The picks; Craig, 4 Nov 2026, on #1090). `squad` is
- *  absent only from drafts started before #1090, whose picks read the rules in force at `at`
- *  (../draft/draftPicks.ts): optional, so those rows need no migration. */
+ *  absent only from drafts started before #1090, which ../draft/oldDraftsBackfill.ts fills once
+ *  (#1610); it stays optional until that has run on every deployment. */
 const startedDraft = v.object({
   at: v.number(),
   teamIds: v.array(v.id("teams")),
@@ -29,8 +29,8 @@ const startedDraft = v.object({
 export const draftTables = {
   /** A league's draft (spec/04, Starting it; #1089), one row at most, made the first time its
    *  commissioner sets a start or starts it, a manager chooses auto-pick or a pick is traded: a
-   *  league with none waits for him to press start.
-   *  ../draft/draftStart.ts writes it. */
+   *  league with none waits for him to press start. Several files write it: ../draft/draftStart.ts
+   *  starts it, and a field's note names the file that writes that field where one does. */
   drafts: defineTable({
     leagueId: v.id("leagues"),
     /** When it starts, the commissioner's date; absent while it waits for him to press start. */
@@ -54,8 +54,8 @@ export const draftTables = {
     /** The pick on the clock (spec/04, The picks; #1091): its number, when its clock starts, 10
      *  seconds after the pick before it, and when it runs out, and the scheduled job that makes the
      *  pick for its team then, or as its clock starts for a team with no manager. Absent before the
-     *  draft starts and once it is over, and from a draft started before #1091 until its next pick.
-     *  ../draft/draftClock.ts writes it. While the commissioner has the draft paused (#1135), `paused`
+     *  draft starts and once it is over (a live draft started before #1091 gets one from
+     *  ../draft/oldDraftsBackfill.ts; #1610). ../draft/draftClock.ts writes it. While the commissioner has the draft paused (#1135), `paused`
      *  holds when he paused it and the league's pick time then, and the job is cancelled, so absent.
      *  `fullClock` marks a pick the commissioner's undo put back (#1095): the draft picks for its team
      *  only when its clock runs out, even for a team it would pick for at once (Craig, 5 Nov 2026).
@@ -78,7 +78,7 @@ export const draftTables = {
     /** The pick time this draft runs on, in seconds: the league's latest when it started (#1439), or
      *  the one the commissioner set since while it was paused (#1095), which it runs on at once, not
      *  waiting for the league's rules change to reach a gameweek (Craig, 5 Nov 2026). Absent before
-     *  the start, and from a draft started before #1439 until he sets one. ../draft/draftStart.ts
+     *  the start (a draft started before #1439 gets one from ../draft/oldDraftsBackfill.ts; #1610). ../draft/draftStart.ts
      *  and ../draft/draftPickTime.ts write it. */
     pickSeconds: v.optional(v.number()),
     /** Each team whose clock has run out (spec/04, Auto-pick; #1136): its timeouts across the whole
@@ -114,11 +114,10 @@ export const draftTables = {
    *  marks a pick the draft made when a managed team's clock ran out, whether that timeout put the
    *  team on auto-pick, and `movedToAtOnce` when it moved the team from its full-clock pick there to
    *  "at once" (#1463), so the commissioner's undo (#1095) can put both back. `auto`
-   *  marks every pick the draft made for a team (#1100), which the board shows; picks made before
-   *  #1100 lack it, and there `timeout` alone marks one. `positions` are the player's when he was
-   *  drafted, which the rest of the draft counts him at, a change since showing only after it
-   *  (Craig, 11 Nov 2026, on #1484); picks made before #1484 lack them, and there his positions now
-   *  count. `own` marks a pick its manager made himself, which he can undo for 10 seconds, with the
+   *  marks every pick the draft made for a team (#1100), which the board shows. `positions` are the
+   *  player's when he was drafted, which the rest of the draft counts him at, a change since showing
+   *  only after it (Craig, 11 Nov 2026, on #1484): optional only until ../draft/oldDraftsBackfill.ts
+   *  has filled picks made before #1484 on every deployment (#1610). `own` marks a pick its manager made himself, which he can undo for 10 seconds, with the
    *  time his clock had left when he made it, which his undo gives back (Craig, 11 Nov 2026, on
    *  #1458). */
   draftPicks: defineTable({

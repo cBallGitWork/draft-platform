@@ -9,7 +9,10 @@ import { seasonGameweekCount } from "../gameweeks/seasonGameweeks";
 import { leagueAverageWords } from "../mail/letterWords";
 import { fileLetter, wholeLeague } from "../mail/letters";
 import { CLAUDE_RETRY_MS, writeWithClaude } from "../outbound/claude";
+import { gameModeOf } from "../rules/gameMode";
 import { seasonRules } from "../rules/rulesHistory";
+import type { SlotPoints } from "../scoring/teamPoints";
+import { inTenths } from "../scoring/values";
 import { recapTeamPoints } from "../schema";
 import { takeAllOrThrow } from "../shared/cappedRead";
 import { logFailure } from "../shared/errors";
@@ -65,7 +68,7 @@ export const brief = internalQuery({
     const { rules, teamIds, schedule, results, named } = await standingsOf(ctx, league, season);
     const scored = results.get(gameweek);
     if (scored === undefined) throw new Error(`League ${league._id} has no score for gameweek ${gameweek}`);
-    const drawn = rules.format === "headToHead" ? schedule.find((each) => each.gameweek === gameweek) : undefined;
+    const drawn = gameModeOf(rules).hasMatchups ? schedule.find((each) => each.gameweek === gameweek) : undefined;
     const headToHeads = drawn === undefined ? [] : scoredFixtures(drawn, results, named);
 
     const inGameweek = await tableGameweek(ctx, await leagueReads(ctx, league, season), gameweek, teamIds);
@@ -73,8 +76,7 @@ export const brief = internalQuery({
     const teams = [];
     for (const teamId of teamIds) {
       const { team } = await inGameweek.slotsOf(teamId);
-      const benchPoints = team.bench.filter((slot) => !slot.counts).reduce((sum, slot) => sum + (slot.points ?? 0), 0);
-      teams.push({ team: named(teamId), points: scored.get(teamId)!.points, benchPoints });
+      teams.push({ team: named(teamId), points: scored.get(teamId)!.points, benchPoints: benchPointsOf(team.bench) });
       for (const slot of team.starters) {
         if (!slot.counts || slot.points === null) continue;
         const player = await playerByCode(ctx, slot.playerCode);
@@ -94,6 +96,11 @@ export const brief = internalQuery({
     return { prompt, teamPoints: teamIds.map((teamId) => ({ teamId, points: scored.get(teamId)!.points })) };
   },
 });
+
+/** The points a team left on its bench: its bench men who didn't come on, added up in tenths, so
+ *  floating point's noise (4.2 and 0.1 adding to 4.300000000000001) never reaches the brief. */
+export const benchPointsOf = (bench: readonly Pick<SlotPoints, "counts" | "points">[]): number =>
+  inTenths(bench.filter((slot) => !slot.counts).reduce((sum, slot) => sum + (slot.points ?? 0), 0));
 
 /** The RECAP_PLAYERS starters who scored most for their team, and the RECAP_PLAYERS who scored least
  *  among the rest; ties by name, so the same facts always pick the same men. */

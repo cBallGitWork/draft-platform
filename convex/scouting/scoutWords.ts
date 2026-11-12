@@ -10,7 +10,6 @@ export const scoutRefusals = {
     scouts === 0 ? "Your team has no scouts." : `All ${scouts} of your scouts are out. One is free again when his report is in.`,
   alreadyOut: (name: string) => `One of your scouts is already watching ${name}.`,
   playerGone: (name: string) => `${name} has left the Premier League, so he can't be scouted.`,
-  noSuchPlayer: "That player isn't in the Premier League.",
 };
 
 /** To the manager, once a scout's report is written: that it is in, and nothing more (spec/19). */

@@ -7,6 +7,8 @@ import { namedCodes } from "../lineup/lineup";
 import { lineupsInGameweek } from "../lineup/lineups";
 import { positionsNow, type PositionsNow } from "../positions/playerPositions";
 import type { Position } from "../positions/positionTables";
+import { gameModeOf, type GameMode } from "../rules/gameMode";
+import { seasonRules } from "../rules/rulesHistory";
 import { everyLeague, takeAllOrThrow } from "../shared/cappedRead";
 import { logFailure } from "../shared/errors";
 import { teamsOf } from "../shared/leagueAccess";
@@ -52,9 +54,9 @@ export const storeLeague = internalMutation({
       rows = [];
       const teamIds = (await teamsOf(ctx, leagueId)).map((team) => team._id);
       const playerNow = playerReader(ctx, await positionsNow(ctx, leagueId));
+      const mode = gameModeOf((await seasonRules(ctx, leagueId)).inGameweek(gameweek));
       for (const [teamId, held] of await lineupsInGameweek(ctx, leagueId, teamIds, gameweek)) {
-        const stars = await starsOfPlayers(ctx, held.bench);
-        const bench = held.bench.map((playerCode) => ({ playerCode, stars: stars.get(playerCode)!.filter((rating) => typeof rating.stars === "number") }));
+        const bench = keptBench(held.bench, mode.showsStars ? await starsOfPlayers(ctx, held.bench) : new Map(), mode);
         const players = await Promise.all(namedCodes(held).map(async (playerCode) => ({ playerCode, ...(await playerNow(playerCode)) })));
         rows.push({ leagueId, gameweek, teamId, bench, players });
       }
@@ -66,6 +68,19 @@ export const storeLeague = internalMutation({
     return null;
   },
 });
+
+/** Each bench player as the deadline keeps him: with his rated roles' stars, or with none in a
+ *  league that shows no stars (`showsStars`), so his auto-sub plays the slot's first role. */
+export function keptBench(
+  bench: readonly number[],
+  stars: ReadonlyMap<number, RoleStars[]>,
+  mode: Pick<GameMode, "showsStars">,
+): Doc<"deadlineStars">["bench"] {
+  return bench.map((playerCode) => ({
+    playerCode,
+    stars: mode.showsStars ? stars.get(playerCode)!.filter((rating) => typeof rating.stars === "number") : [],
+  }));
+}
 
 /** Asks again for each league's latest begun gameweek with no stars kept, while none of its matches
  *  has locked. Run by each recording of deadlines. */

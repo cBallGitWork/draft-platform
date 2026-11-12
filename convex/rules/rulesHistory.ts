@@ -1,30 +1,60 @@
 import type { Doc, Id } from "../_generated/dataModel";
 import type { QueryCtx } from "../_generated/server";
 import { takeAllOrThrow } from "../shared/cappedRead";
-import { heldRules, type LeagueRules } from "./leagueRulesShape";
+import { heldRules, type LeagueRules, type RulesChanges } from "./leagueRulesShape";
 
 // A league's rules history (spec/03; #25), read: its rows, and the rules in force in a gameweek.
-// leagueRules.ts saves the changes.
+// leagueRules.ts saves the changes, each in the form `savedForm` gives.
 
 /** The most rules rows a league holds: one per change saved, and a save made again before the same
  *  deadline is a row too, so five every gameweek of a season; rows are kept across seasons. A change
  *  past it is refused, and a read of more throws, never a silent cut, as the rules in force are the
  *  newest row (#214). Craig asked for "much higher" than the first 200 (1 Nov 2026; #894); 1,000 is
  *  Claude's number: five seasons at five a gameweek, and every rules read is still one league's rows,
- *  so its cost grows with that league's changes, not with teams. */
+ *  so its cost grows with that league's changes, not with teams. Craig kept it once a save stored
+ *  only what it changed (11 Nov 2026, on #1617), so a thousand rows fit in one read. */
 export const RULES_CHANGES_MOST = 1_000;
 
-/** A rules row with its rules as `heldRules` reads them. */
-export type RulesRow = Omit<Doc<"leagueRules">, "rules"> & { rules: LeagueRules };
+/** A rules row with its whole rules: its own as `heldRules` reads them, or the row before's with its
+ *  changes. */
+export type RulesRow = Omit<Doc<"leagueRules">, "rules" | "changes"> & { rules: LeagueRules };
 
-/** Every rules row the league has, oldest first: one per change, at most RULES_CHANGES_MOST. */
+/** Every rules row the league has, oldest first: one per change, at most RULES_CHANGES_MOST. A row
+ *  holding only its changes (#1617) takes the rest from the row before it, so a read of the most
+ *  rows is one league's first rules and its changes, never a thousand copies of the formations. */
 export async function historyOf(ctx: QueryCtx, leagueId: Id<"leagues">): Promise<RulesRow[]> {
   const rows = await takeAllOrThrow(
     ctx.db.query("leagueRules").withIndex("by_leagueId_and_fromGameweek", (q) => q.eq("leagueId", leagueId)),
     RULES_CHANGES_MOST,
     `League ${leagueId} holds more than ${RULES_CHANGES_MOST} rules rows, so its rules in force can't be known`,
   );
-  return rows.map((row) => ({ ...row, rules: heldRules(row.rules) }));
+  let before: LeagueRules | undefined;
+  return rows.map(({ rules: whole, changes, ...row }) => {
+    before = rulesOfRow(before, whole, changes, row._id);
+    return { ...row, rules: before };
+  });
+}
+
+/** What a save of `rules` stores (#1617): only its `changed` parts on top of the row before, so a
+ *  change of a waiver time doesn't copy the formations and classics again (Craig, 11 Nov 2026); the
+ *  whole rules for a league with no row before (`changed` undefined), or when a changed part is
+ *  left out, as a part a row lacks reads as the row before's. */
+export function savedForm(rules: LeagueRules, changed: readonly (keyof LeagueRules)[] | undefined): { rules: LeagueRules } | { changes: RulesChanges } {
+  if (changed === undefined || changed.some((part) => rules[part] === undefined)) return { rules };
+  return { changes: Object.fromEntries(changed.map((part) => [part, rules[part]])) as RulesChanges };
+}
+
+/** A row's whole rules: its own, or `before` with its changes. Throws for a row holding only
+ *  changes with no rules before it, which `changeRules` never writes. */
+function rulesOfRow(
+  before: LeagueRules | undefined,
+  whole: Doc<"leagueRules">["rules"],
+  changes: RulesChanges | undefined,
+  rowId: Id<"leagueRules">,
+): LeagueRules {
+  if (whole !== undefined) return heldRules(whole);
+  if (changes === undefined || before === undefined) throw new Error(`Rules row ${rowId} holds changes with no rules before them`);
+  return { ...before, ...changes };
 }
 
 /** The row in force in this gameweek: the latest to take effect at or before it, and of two from

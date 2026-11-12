@@ -84,8 +84,8 @@ test("a replayed gameweek plays out on the matchup: yet to play, live with the m
   await scoreRead(league, "fullTime", 90);
   const fullTime = await annsScoredGame(league, GAMEWEEK);
   expect(slotOf(fullTime.team, HULL_SCORER).status).toEqual({ kind: "finished", fixtureCode: HULL_EVERTON });
-  expect(slotOf(fullTime.team, PHILLIPS)).toMatchObject({ counts: false, autoSub: { kind: "off", playerName: await nameOf(league, HULL_KEEPER) } });
-  expect(slotOf(fullTime.team, HULL_KEEPER)).toMatchObject({ counts: true, area: "goalkeeper", autoSub: { kind: "on", playerName: await nameOf(league, PHILLIPS) } });
+  expect(slotOf(fullTime.team, PHILLIPS)).toMatchObject({ counts: false, autoSub: { kind: "off", playerCode: HULL_KEEPER, playerName: await nameOf(league, HULL_KEEPER) } });
+  expect(slotOf(fullTime.team, HULL_KEEPER)).toMatchObject({ counts: true, area: "goalkeeper", autoSub: { kind: "on", playerCode: PHILLIPS, playerName: await nameOf(league, PHILLIPS) } });
   expect(fullTime.team).toMatchObject({ points: HULL_POINTS, provisional: true });
 
   // Locked: the result is final, Everton's side the winner.
@@ -242,7 +242,7 @@ test("a total-points league has no head-to-heads", async () => {
   const league = await scoresLeague();
   await league.t.run(async (ctx) => {
     for (const row of await ctx.db.query("leagueRules").withIndex("by_leagueId_and_fromGameweek", (q) => q.eq("leagueId", league.leagueId)).collect()) {
-      await ctx.db.patch("leagueRules", row._id, { rules: { ...row.rules, format: "totalPoints" } });
+      await ctx.db.patch("leagueRules", row._id, { rules: { ...row.rules!, format: "totalPoints" } });
     }
   });
   expect(await matchupAs(league, ANN)).toEqual({ kind: "totalPoints" });

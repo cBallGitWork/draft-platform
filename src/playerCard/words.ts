@@ -2,9 +2,10 @@
 
 import type { CategoryWhy, Cut, PricedBy, SlotValue } from "../../convex/scoring/scoring";
 import { afterLastMatchWords, type FirstRun } from "../myTeam/claims/words";
-import { AREA_WORDS, figureWords, gameweekShort, gameweekWords, seasonShortWords, signedWords, versusWords, whenWords } from "../shared/words";
+import { LAST_MATCHES_SHOWN } from "./gameLog";
+import { AREA_WORDS, figureWords, gameweekShort, gameweekWords, signedWords, versusWords, whenWords } from "../shared/words";
 
-export { figureWords, freeAgentWords, noFigureWords } from "../shared/words";
+export { figureWords, noFigureWords } from "../shared/words";
 
 export const backWords = "Back";
 export const loadingWords = "Loading the player…";
@@ -18,7 +19,7 @@ export const noPositionsWords = "No position yet";
 export const ownedByWords = "Owned by";
 export const chanceWords = (percent: number) => `${percent}% chance of playing next round`;
 /** His figures beside his name, at the position the switch is on (spec/12 S12.1; #1027). */
-export const figureLabels = { seasonPoints: "Base points", aMatch: "A match", minutes: "Minutes", lastFive: "Last 5" } as const;
+export const figureLabels = { seasonPoints: "Base points", aMatch: "A match", minutes: "Minutes", lastFive: `Last ${LAST_MATCHES_SHOWN}` } as const;
 /** His rank among every player holding the position the switch is on (Craig, 9 Nov 2026, on
  *  #1027): "Rank at CAM", "4th of 38". */
 export const rankLabel = (position: string | null) => (position === null ? "Rank" : `Rank at ${position}`);
@@ -71,11 +72,12 @@ export const matchTitle = (gameweek: number | null, opponent: string, score: str
  *  5", and why. */
 export const breakdownLabel = (gameweek: number | null) => (gameweek === null ? "Points by category" : `${gameweekWords(gameweek)} points by category`);
 export const nothingEarnedWords = "No category earned him points.";
-/** Why a category's points are what they are (spec/14, On screen), in brackets after them: "(1 at
- *  5 each for Midfield)", "(4, 1 for every 3)", "(14, 2 for 10+ and 2 for 12+, held to at most 2)",
- *  "(1 at 4 each for Defence, but none under 60 minutes)", "(2 at 1 each, reaching its limit of at
- *  most 2)": the last cost him nothing (#863). */
-export const whyWords = ({ actions, value, pricedBy, cut }: CategoryWhy) => `(${valueWords(value, actions)}${pricedByWords(pricedBy)}${cutWords(cut)})`;
+/** Why a category's points are what they are (spec/14, On screen), after its name, with its points
+ *  apart at the line's end (the approved picture): "1 at 5 each for Midfield", "4, 1 for every 3",
+ *  "14, 2 for 10 or more and 2 for 12 or more, held to at most 2", "1 at 4 each for Defence, but
+ *  none under 60 minutes", "2 at 1 each, reaching its limit of at most 2": the last cost him
+ *  nothing (#863). */
+export const whyWords = ({ actions, value, pricedBy, cut }: CategoryWhy) => `${valueWords(value, actions)}${pricedByWords(pricedBy)}${cutWords(cut)}`;
 const valueWords = (value: SlotValue, actions: number) => {
   switch (value.shape) {
     case "perAction":
@@ -83,7 +85,7 @@ const valueWords = (value: SlotValue, actions: number) => {
     case "perCount":
       return `${figureWords(actions)}, ${figureWords(value.points)} for every ${figureWords(value.every)}`;
     case "bands":
-      return `${figureWords(actions)}, ${value.earned.length === 0 ? "no band reached" : value.earned.map(({ atLeast, points }) => `${figureWords(points)} for ${figureWords(atLeast)}+`).join(" and ")}`;
+      return `${figureWords(actions)}, ${value.earned.length === 0 ? "no band reached" : value.earned.map(({ atLeast, points }) => `${figureWords(points)} for ${figureWords(atLeast)} or more`).join(" and ")}`;
   }
 };
 const pricedByWords = (pricedBy: PricedBy) => {
@@ -116,11 +118,14 @@ const cutWords = (cut: Cut | null) => {
 /** The breakdown's last line: the version of the site's scoring the match was scored under. */
 export const scoredUnderWords = (version: string | null) => `Scored under ${version === null ? "the first scoring set" : `version ${version}`}`;
 
-/** Last season's one line under the game log (spec/12; Craig, 6 Nov 2026): "25/26: 34 apps, 2810
- *  min, 212 pts". */
+/** Last season's one line under the game log (spec/12; Craig, 6 Nov 2026), as the approved picture
+ *  has it: "2025/26: 36 matches, 3,012 min," then his points, picked out, then "pts". */
 export const LAST_SEASON_TITLE = "Last season, under today's scoring";
-export const lastSeasonWords = (season: number, { appearances, minutes, points }: { appearances: number; minutes: number; points: number }) =>
-  `${seasonShortWords(season)}: ${figureWords(appearances)} apps, ${figureWords(minutes)} min, ${figureWords(points)} pts`;
+export const lastSeasonWords = (season: number, { appearances, minutes }: { appearances: number; minutes: number }) =>
+  `${season}/${String((season + 1) % 100).padStart(2, "0")}: ${countWords(appearances)} ${appearances === 1 ? "match" : "matches"}, ${countWords(minutes)} min,`;
+export const pointsShortWords = "pts";
+/** A count with its thousands marked: "3,012". */
+const countWords = (count: number) => count.toLocaleString("en-GB");
 export const notInLastSeasonWords = "Not in the Premier League last season.";
 export const lastSeasonNotHeldWords = "Last season isn't held yet.";
 

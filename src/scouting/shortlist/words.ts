@@ -3,7 +3,7 @@
 
 import { failedWords } from "../../shared/words";
 
-export { freeAgentWords, noLongerInLeagueWords as goneWords } from "../../shared/words";
+export { noLongerInLeagueWords as goneWords } from "../../shared/words";
 
 export const SHORTLIST_TITLE = "Shortlist";
 export const loadingShortlistWords = "Loading your shortlist…";

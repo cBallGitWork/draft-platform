@@ -74,6 +74,8 @@ agent: "keep waivers since its known for draft" (Craig asked; yes).
 - A claim for a player his team already has, won by his own earlier claim in the same run or put
   there by the commissioner, goes quietly, with no letter (Craig, 11 Nov 2026, #1465). `S08.5`
 - No claim limits per season, week or team ("no limit"), and no can't-drop list.
+- A team holds at most 300 pending claims and 50 open offers at once; a team at the ceiling is told
+  to withdraw one first (Craig, 11 Nov 2026, #1609). `S08.16`
 - Free agency and waivers open only once the league's draft is over: before it, pickups, drops and
   claims are refused and waiver runs are skipped ("refused until drafted"; Craig, 8 Nov 2026, #1326). `S08.1`
 
@@ -89,6 +91,8 @@ From `/grill trades` (25 Oct 2026).
 - Review: under a commissioner veto, the commissioner has 24 hours to block an accepted trade, or
   it goes through. Under a league vote, the other managers have 24 hours, and it is blocked only if
   most of them vote against.
+- A trade under a league vote with no other manager able to vote, such as a two-team league or one
+  whose other teams are all on the auto team, goes through at once (Craig, 11 Nov 2026, #1607). `S08.15`
 - Once a trade is through, its players move at once. A gameweek already under way keeps their
   points with the old team.
 - A trade deadline is a league setting, off by default: no trades after a gameweek the
@@ -101,7 +105,8 @@ From `/grill trades` (25 Oct 2026).
   is made or accepted, as free agency and the commissioner's moves wait for it (Craig, 11 Nov
   2026, #1482). `S08.7`
 - Trades come after the mini beta, by August, with the veto and the league vote (`spec/15`;
-  the vote, Craig, 31 Oct 2026).
+  the vote, Craig, 31 Oct 2026). Replaced: trades are in the beta (Craig, 2 Nov 2026; docs/PLAN.md,
+  The beta), and are built (#383). `S08.17 withdrawn`
 - Under a veto, the commissioner gets a Mail letter for each accepted trade, with Block in it;
   under a vote, each other manager gets one with Against in it. A blocked trade files a letter to
   the whole league; one that clears review files the usual trade letter (`spec/16`; 31 Oct 2026).

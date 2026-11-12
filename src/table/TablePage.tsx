@@ -1,5 +1,6 @@
 import { useState } from "react";
 import type { LeagueSummary } from "../../convex/leagues/myLeagues";
+import { gameModeOf } from "../../convex/rules/gameMode";
 import { FormChips } from "../myTeam/header/FormChips";
 import { standingOf } from "../myTeam/header/teamStanding";
 import { tenthsFigure } from "../shared/figures";
@@ -24,6 +25,7 @@ import {
   seasonLineWords,
   TABLE_PAGE_TITLE,
   TABLE_TITLE,
+  TOTAL_POINTS_COLUMNS,
   TOTAL_POINTS_PAGE_TITLE,
   unscoredWords,
   yourTeamWords,
@@ -33,10 +35,10 @@ import {
 type Column = keyof typeof columns;
 type Row = LeagueTable["table"][number];
 
-/** The columns of each format's table: total points has no matchups to win, draw or lose. */
+/** The columns of each format's table (`TOTAL_POINTS_COLUMNS` says why total points has fewer). */
 const COLUMNS_OF: Record<LeagueTable["format"], readonly Column[]> = {
   headToHead: ["position", "team", "played", "won", "drawn", "lost", "pointsFor", "pointsAgainst", "difference", "points", "form"],
-  totalPoints: ["position", "team", "played", "points"],
+  totalPoints: TOTAL_POINTS_COLUMNS,
 };
 
 /** Columns a phone leaves out, for room beside the form: the difference and points say what
@@ -54,7 +56,7 @@ const cellClasses = (column: Column) => cellClassOf(column === "team" || column 
 export function TablePage({ league, seam }: { league: LeagueSummary; seam: TableScreenSeam }) {
   const leagueTable = seam.useLeagueTable(league.leagueId);
   const [competition, choose] = useState<Competition>("league");
-  const totalPoints = leagueTable?.format === "totalPoints";
+  const totalPoints = leagueTable !== undefined && !gameModeOf(leagueTable).hasMatchups;
   const aside = leagueTable && (
     <>
       {!totalPoints && <CompetitionTabs chosen={competition} choose={choose} />}

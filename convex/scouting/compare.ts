@@ -8,7 +8,7 @@ import { ownerOf } from "../squads/squadPlace";
 import { MINUTES_STAT } from "../stats/matchRecords";
 import { COMPARED_PLAYERS } from "./comparedPlayers";
 import { per90Figure, weigher } from "./per90";
-import { period } from "./periods";
+import { DEFAULT_PERIOD, period } from "./periods";
 import { per90FiguresIn, totalOf } from "./per90Figures";
 import { shownSeasonPoints } from "./shownSeasonPoints";
 
@@ -48,7 +48,7 @@ export type Comparison = Infer<typeof comparison>;
 export const players = query({
   args: { leagueId: v.id("leagues"), codes: v.array(v.number()), stat: v.union(v.string(), v.null()), period: v.optional(period) },
   returns: comparison,
-  handler: async (ctx, { leagueId, codes, stat, period = "season" }): Promise<Comparison> => {
+  handler: async (ctx, { leagueId, codes, stat, period = DEFAULT_PERIOD }): Promise<Comparison> => {
     await memberOf(ctx, leagueId);
     if (codes.length !== COMPARED_PLAYERS || new Set(codes).size !== COMPARED_PLAYERS) {
       throw new Error(`Compare ${COMPARED_PLAYERS} different players, not ${codes.join(", ")}`);

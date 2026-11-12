@@ -116,6 +116,8 @@
      tile: "Our shirt too small", Craig, 8 Nov 2026) */
   --spacing-tile: 84px;
   --spacing-shirt-tile: 44px;
+  /* the small shirt in the player card's club line, as its approved picture draws it */
+  --spacing-shirt-inline: 20px;
   /* a club's mark before its code or name: its crest, or its two colours (plate.md, Marks) */
   --spacing-club-mark: 16px;
   /* a position chip's least width, so GK and CDM line up down the Tactics Selection table */

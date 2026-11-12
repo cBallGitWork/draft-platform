@@ -30,7 +30,7 @@ const mostFilled = (cells: readonly Cell[], players: readonly PickedFrom[]): num
 /** The lineup with the shape's cells filled by the best eleven by stars (spec/05): the best player
  *  and slot first, each pick only where the slots left can still all be filled, each landing on his
  *  best-star role there. A starter kept in his own cell keeps his role. Starters left out go to the
- *  front of the bench, back to front, then the bench as it was. The classic and instructions stay,
+ *  front of the bench, back to front, then the bench as it was. The classic formation and instructions stay,
  *  as the shape does. */
 export function quickPick(draft: EditedLineup, shape: readonly Cell[], squad: readonly PickedFrom[]): EditedLineup {
   const benchIndex = (playerCode: number) => draft.bench.indexOf(playerCode);

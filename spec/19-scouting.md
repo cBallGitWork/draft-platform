@@ -34,6 +34,8 @@ players. A scout's report judges a player; Mail only reports (`spec/16`).
   the one the manager picks to sort by (Craig, 31 Oct 2026: "yeah that's fine in stats").
 - It counts only what counted: a team's starters, and the bench players who came on.
 - Raw stats ("7 clean sheets"), not points. A table only, with no trophy.
+- Fewest is 1st for red cards, yellow cards, own goals, goals conceded and penalties missed (Craig,
+  11 Nov 2026, on #1608). `S19.1`
 
 ## The shortlist
 
@@ -49,7 +51,7 @@ players. A scout's report judges a player; Mail only reports (`spec/16`).
   24 hours after the scout is sent.
 - Who a manager scouts is hidden from the other teams.
 - Mail says when a report is in, and nothing more.
-- After the mini beta.
+- After the mini beta. Since built (#375). `S19.2 withdrawn`
 
 ## The report
 

@@ -5,6 +5,7 @@ import type { ChangeThresholds } from "../../convex/positions/positionChanges";
 import type { ApproveMode, PositionSource } from "../../convex/positions/positions";
 import type { Availability } from "../../convex/availability/availability";
 import type { FeedState } from "../../convex/admin/feedState";
+import type { PlatformSettings } from "../../convex/admin/platformSettings";
 import type { Pattern } from "../../convex/football/clubColours";
 import { FEED_NAMES, feedNameOf } from "../../convex/shared/feedSchedule";
 import { FEEDBACK_TITLE } from "../feedback/words";
@@ -81,6 +82,16 @@ export const thresholdsTitle = "When positions change";
 export const flagAfterLabel = `Flag after this many ${IN_A_ROW_ELSEWHERE}`;
 export const removeAfterLabel = `Remove after this many ${IN_A_ROW_ELSEWHERE}`;
 export const saveThresholdsWords = "Save";
+
+export const siteSettingsTitle = "Site settings";
+export const siteSettingLabels: Record<keyof PlatformSettings, string> = {
+  statCorrectionWindowMinutes: "Minutes after full time a match's stats take corrections",
+  scoutsPerTeam: "Scouts each team has",
+  matchdayHoursBefore: "Hours matchday mode starts before the first kickoff",
+  matchdayHoursAfter: "Hours it runs on after the last final whistle",
+};
+export const saveSiteSettingsWords = "Save the settings";
+export const siteSettingsLoadingWords = "Loading the settings…";
 
 export const findHint = "Set or remove any player's positions. What you set stays until you remove it, and a position you remove stays off.";
 export const noPositionsWords = "No positions yet.";

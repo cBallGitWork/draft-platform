@@ -2,9 +2,10 @@ import { beforeEach, describe, expect, test } from "vitest";
 import { api } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
 import { shortlistedReleasedLetter } from "../../../convex/scouting/shortlistWords";
-import { SHORTLIST_MOST, shortlistRefusals } from "../../../convex/scouting/shortlist";
+import { SHORTLIST_MOST } from "../../../convex/scouting/shortlist";
+import { shortlistRefusals } from "../../../convex/scouting/shortlistWords";
 import { refusals } from "../../../convex/shared/leagueAccess";
-import { ADMIN, COMMISSIONER, MANAGERS, actingAs, addManagers, adminCreatesLeague, type TestConvex } from "../../support/convex/leagues.harness";
+import { ADMIN, COMMISSIONER, MANAGERS, actingAs, addManagers, adminCreatesLeague, TEST_LEAGUE_TEAMS, type TestConvex } from "../../support/convex/leagues.harness";
 import { ARSENAL, CHELSEA, GONE, insertClubs, insertDroppedPlayer } from "../../support/convex/footballRows.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
 import { expectRefused } from "../../support/convex/test.harness";
@@ -24,7 +25,7 @@ let teams: Id<"teams">[];
 beforeEach(async () => {
   t = await signInDeployment();
   fakeResend();
-  leagueId = await adminCreatesLeague(t, 4);
+  leagueId = await adminCreatesLeague(t);
   teams = await addManagers(t, leagueId, [ANN, BOB, CAT]);
   await t.run(async (ctx) => {
     await insertClubs(ctx, [ARSENAL, CHELSEA]);
@@ -95,7 +96,7 @@ describe("a manager's own shortlist", () => {
         await ctx.db.insert("shortlistPlayers", { leagueId, teamId: teams[0], playerCode: code });
       }
     });
-    await expectRefused((await as(ANN)).add(SAKA.code), shortlistRefusals.full);
+    await expectRefused((await as(ANN)).add(SAKA.code), shortlistRefusals.full(SHORTLIST_MOST));
   });
 
   test.each([
@@ -124,7 +125,7 @@ describe("private to the team", () => {
   });
 
   test("it is per league: Ann's in another league is a different list", async () => {
-    const otherLeague = await adminCreatesLeague(t, 4, "Another League");
+    const otherLeague = await adminCreatesLeague(t, TEST_LEAGUE_TEAMS, "Another League");
     await addManagers(t, otherLeague, [ANN]);
     await (await as(ANN)).add(SAKA.code);
     expect(await namesOn(ANN, otherLeague)).toEqual([]);

@@ -1,11 +1,12 @@
 import { beforeEach, describe, expect, test } from "vitest";
 import type { Id } from "../../../convex/_generated/dataModel";
 import { DRAFT_LIST_MOST } from "../../../convex/draft/draftLimits";
-import { draftListRefusals } from "../../../convex/draft/draftLists";
+import { api } from "../../../convex/_generated/api";
+import { draftListRefusals, listsOf } from "../../../convex/draft/draftLists";
 import { refusals } from "../../../convex/shared/leagueAccess";
 import { ANN, BOB, NO_SUCH_PLAYER, ODEGAARD, PALMER, SAKA, listsAs, listsLeague, manyPlayers, namesOn as namesIn, playerLeaves } from "../../support/convex/draftLists.harness";
 import { ARSENAL, CHELSEA, GONE } from "../../support/convex/footballRows.harness";
-import { ADMIN, COMMISSIONER, MANAGERS, addManagers, adminCreatesLeague, type TestConvex } from "../../support/convex/leagues.harness";
+import { ADMIN, COMMISSIONER, MANAGERS, actingAs, addManager, addManagers, adminCreatesLeague, TEST_LEAGUE_TEAMS, type TestConvex } from "../../support/convex/leagues.harness";
 import { expectRefused } from "../../support/convex/test.harness";
 
 // A manager's draft queue and do-not-draft list (#1092, spec/04 The queue and the ranking): the
@@ -155,8 +156,19 @@ describe("private to the team", () => {
     expect(await namesOn(ANN)).toEqual({ queue: ["Saka"], doNotDraft: ["Palmer"] });
   });
 
+  test("a manager who leaves keeps them for auto-pick while the team is vacated; whoever takes it next starts empty (S04.15)", async () => {
+    await (await as(ANN)).queue(SAKA.code);
+    await (await as(ANN)).rule(PALMER.code);
+    await (await actingAs(t, ANN)).mutation(api.leagues.teams.leave, { leagueId });
+    const vacatedLists = await t.run((ctx) => listsOf(ctx, teams[0]));
+    expect(vacatedLists).toMatchObject({ queue: [SAKA.code], doNotDraft: [PALMER.code] });
+    await addManager(t, leagueId, MANAGERS[2], teams[0]);
+    expect(await namesOn(MANAGERS[2])).toEqual({ queue: [], doNotDraft: [] });
+    expect(await t.run((ctx) => listsOf(ctx, teams[0]))).toBeNull();
+  });
+
   test("they are per league: Ann's in another league are different lists", async () => {
-    const otherLeague = await adminCreatesLeague(t, 4, "Another League");
+    const otherLeague = await adminCreatesLeague(t, TEST_LEAGUE_TEAMS, "Another League");
     await addManagers(t, otherLeague, [ANN]);
     await (await as(ANN)).queue(SAKA.code);
     expect(await namesOn(ANN, otherLeague)).toEqual({ queue: [], doNotDraft: [] });

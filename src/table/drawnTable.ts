@@ -6,6 +6,7 @@
 import type { Id } from "../../convex/_generated/dataModel";
 import { drawFixtures, type DrawRules } from "../../convex/table/roundRobin";
 import { FIRST_RULES } from "../../convex/rules/firstRules";
+import { gameModeOf } from "../../convex/rules/gameMode";
 import type { GameweekScores, TieBreak } from "../../convex/table/standings";
 import type { DeadlineOf } from "../../convex/gameweeks/deadline";
 import { seasonGameweeks } from "../../convex/gameweeks/usedGameweeks";
@@ -45,11 +46,11 @@ const DRAW_DEFAULTS = { oddTeamOut: "leagueAverage", gamesPerGameweek: 1, seed: 
 /** What the server reads for teams with these names, made in this order, as `drawn` says: the
  *  format, the teams, the head-to-head schedule (none in total points), each team's points in each
  *  gameweek scored, those unscored and the deadlines. */
-function inputsOf(teamNames: string[], drawn: Drawn) {
+function inputsOf(teamNames: readonly string[], drawn: Drawn) {
   const { oddTeamOut, gamesPerGameweek, seed, gameweeks } = { ...DRAW_DEFAULTS, ...drawn };
   const { format = "headToHead", deadlineOf = () => null, scores = new Map(), provisional = [], unscored = [] } = drawn;
   const teamIds = teamNames.map(idOf);
-  const schedule = format === "headToHead" ? drawFixtures(teamIds, gameweeks, () => ({ oddTeamOut, gamesPerGameweek }), seed) : [];
+  const schedule = gameModeOf({ format }).hasMatchups ? drawFixtures(teamIds, gameweeks, () => ({ oddTeamOut, gamesPerGameweek }), seed) : [];
   const results: Results = new Map(
     [...scores].map(([gameweek, scored]) => [
       gameweek,
@@ -60,7 +61,7 @@ function inputsOf(teamNames: string[], drawn: Drawn) {
 }
 
 /** The league's table and fixtures for teams with these names, made in this order. */
-export function leagueTableOf(teamNames: string[], drawn: Drawn = {}): LeagueTable {
+export function leagueTableOf(teamNames: readonly string[], drawn: Drawn = {}): LeagueTable {
   const inputs = inputsOf(teamNames, drawn);
   const { format, teamIds, schedule, results } = inputs;
   const table = tableOf(format, teamIds, schedule, pointsOf(results), drawn.tieBreaks ?? FIRST_RULES.tieBreaks);
@@ -68,6 +69,6 @@ export function leagueTableOf(teamNames: string[], drawn: Drawn = {}): LeagueTab
 }
 
 /** My team's fixtures for `teamName`, one of `teamNames`, in the same draw and scores as `leagueTableOf`'s. */
-export function teamFixturesOf(teamNames: string[], teamName: string, drawn: Drawn = {}): TeamFixtures {
+export function teamFixturesOf(teamNames: readonly string[], teamName: string, drawn: Drawn = {}): TeamFixtures {
   return teamFixturesFrom({ ...inputsOf(teamNames, drawn), team: { id: idOf(teamName), name: teamName } });
 }

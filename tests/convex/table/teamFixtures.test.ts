@@ -6,7 +6,7 @@ import { refusals } from "../../../convex/shared/leagueAccess";
 import { HOUR_MS, WEEK_MS } from "../../../convex/shared/time";
 import { changeRules, holdGameweeks, rulesWith } from "../../support/convex/leagueRules.harness";
 import { expectRefused } from "../../support/convex/test.harness";
-import { actingAs, addManagers, adminCreatesLeague, COMMISSIONER, MANAGERS, OUTSIDER, type TestConvex } from "../../support/convex/leagues.harness";
+import { actingAs, addManagers, adminCreatesLeague, COMMISSIONER, MANAGERS, OUTSIDER, TEST_LEAGUE_TEAMS, type TestConvex } from "../../support/convex/leagues.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
 
 // My team's Fixtures tab (#365): the caller's team's head-to-head games for the season, in
@@ -129,7 +129,7 @@ describe("the games", () => {
     const seasonStart = Date.now();
     await holdGameweeks(t, { next: 1, kicksOffIn });
     vi.setSystemTime(seasonStart + (played - 1) * WEEK_MS + kicksOffIn);
-    const later = await adminCreatesLeague(t, 4, "Later");
+    const later = await adminCreatesLeague(t, TEST_LEAGUE_TEAMS, "Later");
     await addManagers(t, later, [ANN, BOB]);
     expect((await readOf(later))!.games[0].gameweek).toBe(played + 1);
   });

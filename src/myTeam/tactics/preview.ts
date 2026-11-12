@@ -13,7 +13,7 @@ import { areasOf, cellsOf, LANES, type Cell } from "../../../convex/lineup/pitch
 import { everyRoleOf } from "../../../convex/lineup/roles";
 import { NO_DATA, UNSURE, type RoleStars } from "../../../convex/stars/starsShape";
 import type { Position } from "../../../convex/positions/positionTables";
-import { classicsOf, FIRST_RULES, instructionsOf } from "../../../convex/rules/firstRules";
+import { classicFormationsOf, FIRST_RULES, instructionsOf } from "../../../convex/rules/firstRules";
 import { keptOrSwitched } from "../../../convex/lineup/instructions";
 import { DAY_MS, HOUR_MS } from "../../../convex/shared/time";
 import type { EditedLineup } from "./lineupEdits";
@@ -76,13 +76,13 @@ const nameOf = (playerCode: number) => squad.find((member) => member.playerCode 
 
 const instructions = [...instructionsOf(FIRST_RULES)];
 
-const tacticsWith = ({ starters, bench, classic, instructions: picked }: EditedLineup): Tactics => ({
+const tacticsWith = ({ starters, bench, classicFormation, instructions: picked }: EditedLineup): Tactics => ({
   kind: "open",
   gameweek: PREVIEW_GAMEWEEK,
   deadline: PREVIEW_DEADLINE,
   areaLimits: FIRST_RULES.areaLimits,
   presets: FIRST_RULES.presets,
-  classics: classicsOf(FIRST_RULES),
+  classicFormations: classicFormationsOf(FIRST_RULES),
   instructions,
   picked: keptOrSwitched(picked, starters, FIRST_RULES.presets, instructions).pair,
   squad,
@@ -93,7 +93,7 @@ const tacticsWith = ({ starters, bench, classic, instructions: picked }: EditedL
     leftSquad: [],
     joinedBench: [],
     vacated: [],
-    ...(classic && { classic }),
+    ...(classicFormation && { classic: classicFormation }),
     ...(picked && { instructions: picked }),
   },
 });
@@ -122,10 +122,11 @@ const changes = {
 /** The preview's saved plans, kept as the server would: up to 5, a name it has replaced. */
 let plans: readonly Plan[] = [];
 const planChanges: PlanChanges = {
-  save: async (_leagueId, name, slots) => {
+  save: async (_leagueId, name, slots, instructions) => {
     const kept = plans.some((plan) => plan.name === name);
     if (!kept && plans.length >= PLANS_KEPT) return planRefusals.full;
-    plans = kept ? plans.map((plan) => (plan.name === name ? { name, slots } : plan)) : [...plans, { name, slots }];
+    const saved = { name, slots, instructions };
+    plans = kept ? plans.map((plan) => (plan.name === name ? saved : plan)) : [...plans, saved];
     for (const listener of listeners) listener();
     return null;
   },

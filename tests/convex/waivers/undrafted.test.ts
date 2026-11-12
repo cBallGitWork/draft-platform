@@ -1,12 +1,10 @@
 import { beforeEach, expect, test } from "vitest";
-import { api } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
 import type { UndraftedGoTo } from "../../../convex/draft/draftRules";
-import { midfielder } from "../../support/convex/draft.harness";
+import { draftSteps, midfielder } from "../../support/convex/draft.harness";
 import { ARSENAL, insertClubs, insertPlayers } from "../../support/convex/footballRows.harness";
 import { changeEveryRules, holdGameweeks } from "../../support/convex/leagueRules.harness";
-import { actingAs, addManagers, adminCreatesLeague, COMMISSIONER, MANAGERS, type TestConvex } from "../../support/convex/leagues.harness";
-import { pickGapPasses } from "../../support/convex/pickWindow.harness";
+import { addManagers, adminCreatesLeague, MANAGERS, type TestConvex } from "../../support/convex/leagues.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
 import { waiverStateOf } from "../../support/convex/waivers.harness";
 
@@ -19,6 +17,7 @@ const [A1, A2, LEFT] = [101, 102, 103];
 
 let t: TestConvex;
 let leagueId: Id<"leagues">;
+const { start, pickAndWait } = draftSteps(() => ({ t, leagueId }));
 
 beforeEach(async () => {
   t = await signInDeployment();
@@ -40,12 +39,10 @@ async function draftLeaving(goTo: UndraftedGoTo, beforeStart?: () => Promise<voi
     draft: { ...rules.draft!, undrafted: goTo },
   }));
   await beforeStart?.();
-  await (await actingAs(t, COMMISSIONER)).mutation(api.draft.draftStart.start, { leagueId });
-  await (await actingAs(t, ANN)).mutation(api.draft.draftPicks.makePick, { leagueId, playerCode: A1 });
-  await pickGapPasses(t);
-  await (await actingAs(t, BOB)).mutation(api.draft.draftPicks.makePick, { leagueId, playerCode: A2 });
+  await start();
+  await pickAndWait(ANN, A1);
   // The draft ends 10 seconds after the last pick, and puts them on waivers in a job of its own (#1532, #1458).
-  await pickGapPasses(t);
+  await pickAndWait(BOB, A2);
 }
 
 const stateOf = (playerCode: number) => waiverStateOf(t, leagueId, playerCode, ANN);
@@ -65,7 +62,7 @@ test("mid-season, go where the last setting typed says, a change waiting for the
   await holdGameweeks(t, { next: 5 });
   await draftLeaving("waivers", async () => {
     const [newest] = await t.run((ctx) => ctx.db.query("leagueRules").withIndex("by_leagueId_and_fromGameweek", (q) => q.eq("leagueId", leagueId)).order("desc").take(1));
-    const rules = { ...newest.rules, draft: { ...newest.rules.draft!, undrafted: "freeAgents" as const } };
+    const rules = { ...newest.rules!, draft: { ...newest.rules!.draft!, undrafted: "freeAgents" as const } };
     await t.run((ctx) => ctx.db.insert("leagueRules", { leagueId, fromGameweek: 5, rules }));
   });
   expect(await stateOf(LEFT)).toEqual({ kind: "freeAgent" });

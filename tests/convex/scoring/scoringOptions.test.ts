@@ -2,30 +2,29 @@ import { describe, expect, test } from "vitest";
 import type { Cell } from "../../../convex/lineup/pitch";
 import { scoreMatch } from "../../../convex/scoring/scoring";
 import { centreOf, everyArea, everyPosition } from "../../support/convex/scoring.example";
+import { setOf } from "../../support/convex/siteScoring.harness";
+import { LEFT_BACK, LEFT_CENTRE_BACK } from "../../support/convex/teamPoints.harness";
 import { validateScoringSet, type ScoringRule, type ScoringSet } from "../../../convex/scoring/scoringSet";
 
 // What a rule may say beyond its values (spec/14, How a rule scores; #111): priced the same for
 // all, by area or by position; held to a points limit; scored only after so many minutes; kept in
 // tenths, or in whole points only.
 
-const LEFT_BACK: Cell = { area: "defence", lane: "left" };
-const CENTRE_BACK: Cell = { area: "defence", lane: "leftCentre" };
 const LEFT_WINGER: Cell = { area: "attackingMidfield", lane: "left" };
 
-const setOf = (...rules: ScoringRule[]): ScoringSet => ({ rules, wholePointsOnly: false });
 const pointsFor = (rule: ScoringRule, stats: Record<string, number>, cell: Cell) => scoreMatch({ minutes: 90, ...stats }, setOf(rule), cell).total;
 
 describe("how finely a rule is priced", () => {
   test("by position: a full back and a centre back in one area are scored apart", () => {
     const tackles: ScoringRule = { shape: "perAction", stat: "won_tackle", values: { byPosition: { ...everyPosition(1), FB: 2 } } };
     expect(pointsFor(tackles, { won_tackle: 3 }, LEFT_BACK)).toBe(6);
-    expect(pointsFor(tackles, { won_tackle: 3 }, CENTRE_BACK)).toBe(3);
+    expect(pointsFor(tackles, { won_tackle: 3 }, LEFT_CENTRE_BACK)).toBe(3);
   });
 
   test("by area: the same two are scored alike", () => {
     const tackles: ScoringRule = { shape: "perAction", stat: "won_tackle", values: { byArea: { ...everyArea(1), defence: 2 } } };
     expect(pointsFor(tackles, { won_tackle: 3 }, LEFT_BACK)).toBe(6);
-    expect(pointsFor(tackles, { won_tackle: 3 }, CENTRE_BACK)).toBe(6);
+    expect(pointsFor(tackles, { won_tackle: 3 }, LEFT_CENTRE_BACK)).toBe(6);
   });
 
   test("the same for all: every slot is scored alike", () => {
@@ -46,14 +45,14 @@ describe("how finely a rule is priced", () => {
 describe("a points limit", () => {
   test("holds a rule to its most: 12 defensive actions at 0.5 each earn 2, not 6", () => {
     const rule: ScoringRule = { shape: "perAction", stat: "defensive_contribution", values: { all: 0.5 }, limit: { all: { max: 2, min: null } } };
-    expect(pointsFor(rule, { defensive_contribution: 12 }, CENTRE_BACK)).toBe(2);
-    expect(pointsFor(rule, { defensive_contribution: 3 }, CENTRE_BACK)).toBe(1.5);
+    expect(pointsFor(rule, { defensive_contribution: 12 }, LEFT_CENTRE_BACK)).toBe(2);
+    expect(pointsFor(rule, { defensive_contribution: 3 }, LEFT_CENTRE_BACK)).toBe(1.5);
   });
 
   test("holds a rule to its least: 5 conceded at -1 each take only 3", () => {
     const rule: ScoringRule = { shape: "perAction", stat: "goals_conceded", values: { all: -1 }, limit: { all: { max: null, min: -3 } } };
-    expect(pointsFor(rule, { goals_conceded: 5 }, CENTRE_BACK)).toBe(-3);
-    expect(pointsFor(rule, { goals_conceded: 2 }, CENTRE_BACK)).toBe(-2);
+    expect(pointsFor(rule, { goals_conceded: 5 }, LEFT_CENTRE_BACK)).toBe(-3);
+    expect(pointsFor(rule, { goals_conceded: 2 }, LEFT_CENTRE_BACK)).toBe(-2);
   });
 
   test("is priced like values: a keeper's saves held to a points limit of 3, nobody else's", () => {
@@ -64,15 +63,15 @@ describe("a points limit", () => {
       limit: { byArea: { ...everyArea({ max: null, min: null }), goalkeeper: { max: 3, min: null } } },
     };
     expect(pointsFor(rule, { saves: 8 }, centreOf("goalkeeper"))).toBe(3);
-    expect(pointsFor(rule, { saves: 8 }, CENTRE_BACK)).toBe(8);
+    expect(pointsFor(rule, { saves: 8 }, LEFT_CENTRE_BACK)).toBe(8);
   });
 
   test("holds only the rule's own points: the rest of the match is untouched", () => {
-    const set = setOf(
+    const set = setOf<ScoringRule>(
       { shape: "perAction", stat: "defensive_contribution", values: { all: 1 }, limit: { all: { max: 2, min: null } } },
       { shape: "perAction", stat: "goals_scored", values: { all: 6 } },
     );
-    expect(scoreMatch({ defensive_contribution: 10, goals_scored: 1 }, set, CENTRE_BACK).total).toBe(8);
+    expect(scoreMatch({ defensive_contribution: 10, goals_scored: 1 }, set, LEFT_CENTRE_BACK).total).toBe(8);
   });
 
   // 0.1 three times is a hair over 0.3 in floating point. Points are rounded to tenths before the
@@ -83,13 +82,13 @@ describe("a points limit", () => {
     ["its least: three tenths off held to -0.3", -0.1, { max: null, min: -0.3 }, -0.3, "atMin"],
   ])("reached exactly, %s, scores the limit and says he reached it", (_what, value, limit, edge, by) => {
     const rule: ScoringRule = { shape: "perAction", stat: "won_tackle", values: { all: value }, limit: { all: limit } };
-    const [category] = scoreMatch({ minutes: 90, won_tackle: 3 }, setOf(rule), CENTRE_BACK).categories;
+    const [category] = scoreMatch({ minutes: 90, won_tackle: 3 }, setOf(rule), LEFT_CENTRE_BACK).categories;
     expect(category).toMatchObject({ points: edge, why: { cut: { by, limit: edge } } });
   });
 
   test("points too large to be a number still say which rule, when the limit has no most", () => {
     const rule: ScoringRule = { shape: "perAction", stat: "goals_scored", values: { all: 6 }, limit: { all: { max: null, min: -3 } } };
-    expect(() => pointsFor(rule, { goals_scored: 1e308 }, CENTRE_BACK)).toThrow("the goals_scored rule gives Infinity points as CB");
+    expect(() => pointsFor(rule, { goals_scored: 1e308 }, LEFT_CENTRE_BACK)).toThrow("the goals_scored rule gives Infinity points as CB");
   });
 });
 
@@ -101,11 +100,11 @@ describe("a minimum of minutes", () => {
     [60, 4],
     [90, 4],
   ])("a clean sheet at %i minutes earns %i", (minutes, points) => {
-    expect(scoreMatch({ minutes, clean_sheets: 1 }, setOf(cleanSheet), CENTRE_BACK).total).toBe(points);
+    expect(scoreMatch({ minutes, clean_sheets: 1 }, setOf(cleanSheet), LEFT_CENTRE_BACK).total).toBe(points);
   });
 
   test("a record with no minutes in it is 0 minutes, so a rule behind a minimum earns nothing", () => {
-    expect(scoreMatch({ clean_sheets: 1 }, setOf(cleanSheet), CENTRE_BACK).total).toBe(0);
+    expect(scoreMatch({ clean_sheets: 1 }, setOf(cleanSheet), LEFT_CENTRE_BACK).total).toBe(0);
   });
 
   test("is priced like values: 45 for a forward, 60 for the rest", () => {
@@ -124,22 +123,22 @@ describe("points in tenths", () => {
   test("0.1 a pass three times is 0.3, and two tenths' rules add to 0.3, never floating point's noise", () => {
     const passes: ScoringRule = { shape: "perAction", stat: "accurate_pass", values: { all: 0.1 } };
     const touches: ScoringRule = { shape: "perAction", stat: "touches", values: { all: 0.2 } };
-    expect(scoreMatch({ accurate_pass: 3 }, setOf(passes), CENTRE_BACK).categories).toMatchObject([{ stat: "accurate_pass", points: 0.3 }]);
-    expect(scoreMatch({ accurate_pass: 1, touches: 1 }, setOf(passes, touches), CENTRE_BACK).total).toBe(0.3);
+    expect(scoreMatch({ accurate_pass: 3 }, setOf(passes), LEFT_CENTRE_BACK).categories).toMatchObject([{ stat: "accurate_pass", points: 0.3 }]);
+    expect(scoreMatch({ accurate_pass: 1, touches: 1 }, setOf(passes, touches), LEFT_CENTRE_BACK).total).toBe(0.3);
   });
 
   test("tenths that cancel out total 0, never -0", () => {
-    const set = setOf(
+    const set = setOf<ScoringRule>(
       { shape: "perAction", stat: "accurate_pass", values: { all: 0.3 } },
       { shape: "perAction", stat: "fouls", values: { all: -0.1 } },
       { shape: "perAction", stat: "dispossessed", values: { all: -0.2 } },
     );
-    expect(Object.is(scoreMatch({ accurate_pass: 1, fouls: 1, dispossessed: 1 }, set, CENTRE_BACK).total, 0)).toBe(true);
+    expect(Object.is(scoreMatch({ accurate_pass: 1, fouls: 1, dispossessed: 1 }, set, LEFT_CENTRE_BACK).total, 0)).toBe(true);
   });
 
   test("a league counting whole points only scores as any other", () => {
     const set: ScoringSet = { rules: [{ shape: "perAction", stat: "assists", values: { all: 3 } }], wholePointsOnly: true };
-    expect(scoreMatch({ assists: 2 }, set, CENTRE_BACK).total).toBe(6);
+    expect(scoreMatch({ assists: 2 }, set, LEFT_CENTRE_BACK).total).toBe(6);
   });
 });
 

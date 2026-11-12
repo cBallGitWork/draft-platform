@@ -1,3 +1,4 @@
+import type { FirstInstructionKey } from "../lineup/instructions";
 import type { SlotPosition } from "../lineup/pitch";
 import type { StoredScoringSet } from "./scoringSetShape";
 import {
@@ -50,7 +51,7 @@ function line(every: number, points: number, stats: string[], options: Pick<Inst
   return { ...options, stats: stats.map((stat) => ({ stat, weight: 1 })), every, points };
 }
 
-const instruction = (key: string, ...lines: InstructionLine[]): InstructionScoring => ({ instruction: key, lines });
+const instruction = (key: FirstInstructionKey,...lines: InstructionLine[]): InstructionScoring => ({ instruction: key, lines });
 
 /** Every instruction the page fits, in spec/05's order. */
 export const FIRST_INSTRUCTION_SCORING: readonly InstructionScoring[] = [

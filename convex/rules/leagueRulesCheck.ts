@@ -1,13 +1,14 @@
 import { STARTER_COUNT, type AreaLimit } from "../lineup/lineup";
-import { AREAS, type Area } from "../lineup/pitch";
-import { inClassicShape } from "../lineup/classics";
+import { AREAS, type Area, type Cell } from "../lineup/pitch";
+import { AREA_WORDS, LANE_WORDS } from "../lineup/pitchWords";
+import { inClassicFormationShape } from "../lineup/classics";
 import { pairRefusal, SIDES, type Instruction } from "../lineup/instructions";
 import { offersRole } from "../lineup/roles";
 import { instructionsOf } from "./firstRules";
 import type { DraftRules, LeagueRules, TradeRules } from "./leagueRulesShape";
 import { FIRST_GAMEWEEK } from "../gameweeks/usedGameweeks";
 import { PICK_SECONDS_FEWEST, PICK_SECONDS_MOST, TIMEOUTS_FEWEST, TIMEOUTS_MOST } from "../draft/draftLimits";
-import { MOST_IN_SQUAD, PREMIER_LEAGUE_CLUBS } from "../leagues/leagueLimits";
+import { GAMES_FEWEST, MAX_PER_CLUB_FEWEST, MOST_IN_SQUAD, PREMIER_LEAGUE_CLUBS } from "../leagues/leagueLimits";
 import { roundsInARoundRobin } from "../table/roundRobin";
 
 // What makes a league's rules sound beyond their stored shape (spec/03; #25): each check throws an
@@ -26,10 +27,10 @@ export function checkLeagueRules(rules: LeagueRules, seasonGameweeks: number, ma
   checkAreaLimits(rules.areaLimits);
   checkPresets(rules.presets, rules.areaLimits);
   checkInstructions(instructionsOf(rules), rules.presets);
-  if (rules.classics !== undefined) checkClassics(rules.classics, rules.presets, instructionsOf(rules));
+  if (rules.classics !== undefined) checkClassicFormations(rules.classics, rules.presets, instructionsOf(rules));
   checkWholeNumber(rules.deadline.minutesBeforeFirstKickoff, "The deadline's minutes before the first kickoff", 0);
   checkNoneTwice(rules.tieBreaks, (tieBreak) => `The tie-break ${tieBreak} is listed twice.`);
-  checkWholeNumber(rules.gamesPerGameweek, "The head-to-head games each team plays a gameweek", 1);
+  checkWholeNumber(rules.gamesPerGameweek, "The head-to-head games each team plays a gameweek", GAMES_FEWEST);
   if (maxTeams !== undefined) checkGamesFor(rules.gamesPerGameweek, maxTeams);
   checkWaivers(rules.waivers);
   if (rules.draft !== undefined) checkDraft(rules.draft);
@@ -88,11 +89,17 @@ function checkLimit({ minimum, maximum }: AreaLimit, what: string): void {
   if (minimum > maximum) throw new UnsoundRules(`${what}'s minimum, ${minimum}, is above its maximum, ${maximum}.`);
 }
 
+/** An area mid-sentence, in the screens' words (pitchWords.ts), never its key: "defensive midfield". */
+const areaWords = (area: Area) => AREA_WORDS[area].toLowerCase();
+
+/** A cell mid-sentence: its area then its lane, "midfield right-centre". */
+const cellWords = ({ area, lane }: Cell) => `${areaWords(area)} ${LANE_WORDS[lane]}`;
+
 const sumOf = (limits: Record<Area, AreaLimit>, end: keyof AreaLimit) =>
   AREAS.reduce((total, area) => total + limits[area][end], 0);
 
 function checkAreaLimits(limits: Record<Area, AreaLimit>): void {
-  for (const area of AREAS) checkLimit(limits[area], `On the pitch, ${area}`);
+  for (const area of AREAS) checkLimit(limits[area], `On the pitch, ${areaWords(area)}`);
   const minimums = sumOf(limits, "minimum");
   const maximums = sumOf(limits, "maximum");
   if (minimums > STARTER_COUNT) {
@@ -114,14 +121,14 @@ function checkSquad({ size, minimumByArea, maxPerClub }: LeagueRules["squad"]): 
     }
   }
   if (minimumByArea !== null) {
-    for (const area of AREAS) checkWholeNumber(minimumByArea[area], `The squad's minimum in ${area}`, 0);
+    for (const area of AREAS) checkWholeNumber(minimumByArea[area], `The squad's minimum in ${areaWords(area)}`, 0);
     const minimums = AREAS.reduce((total, area) => total + minimumByArea[area], 0);
     if (size !== null && minimums > size.maximum) {
       throw new UnsoundRules(`The squad's minimums by area add up to ${minimums}, more than its maximum size, ${size.maximum}.`);
     }
   }
   if (maxPerClub !== null) {
-    checkWholeNumber(maxPerClub, "The most players from one club", 1);
+    checkWholeNumber(maxPerClub, "The most players from one club", MAX_PER_CLUB_FEWEST);
     // A squad the club maximum can't fill would freeze its draft at the pick with no legal player
     // left: refused when saved, as a squad above 25 is (Craig, 11 Nov 2026, on #1462).
     const room = maxPerClub * PREMIER_LEAGUE_CLUBS;
@@ -151,14 +158,14 @@ function checkPresets(presets: LeagueRules["presets"], limits: Record<Area, Area
       throw new UnsoundRules(`The preset ${name} places ${cells.length} players, not the ${STARTER_COUNT} who start.`);
     }
     checkNoneTwice(
-      cells.map((cell) => `${cell.area} ${cell.lane}`),
+      cells.map(cellWords),
       (cell) => `The preset ${name} puts two players in ${cell}.`,
     );
     for (const area of AREAS) {
       const standing = cells.filter((cell) => cell.area === area).length;
       const { minimum, maximum } = limits[area];
       if (standing < minimum || standing > maximum) {
-        throw new UnsoundRules(`The preset ${name} puts ${standing} in ${area}, outside its limits of ${minimum} to ${maximum}.`);
+        throw new UnsoundRules(`The preset ${name} puts ${standing} in ${areaWords(area)}, outside its limits of ${minimum} to ${maximum}.`);
       }
     }
   }
@@ -183,25 +190,25 @@ function checkInstructions(set: readonly Instruction[], presets: LeagueRules["pr
   }
 }
 
-/** Each classic named once, standing in one of the league's presets (Craig, 6 Nov 2026: "Yes, one
- *  of ours"), with a role its slot offers in it and one instruction a side its shape offers
- *  (spec/05). */
-function checkClassics(classics: NonNullable<LeagueRules["classics"]>, presets: LeagueRules["presets"], set: readonly Instruction[]): void {
+/** Each classic formation named once, standing in one of the league's presets (Craig, 6 Nov 2026:
+ *  "Yes, one of ours"), with a role its slot offers in it and one instruction a side its shape
+ *  offers (spec/05). */
+function checkClassicFormations(classicFormations: NonNullable<LeagueRules["classics"]>, presets: LeagueRules["presets"], set: readonly Instruction[]): void {
   checkNoneTwice(
-    classics.map((classic) => classic.name.trim()),
-    (name) => `Two classics are called "${name}".`,
+    classicFormations.map((classicFormation) => classicFormation.name.trim()),
+    (name) => `Two classic formations are called "${name}".`,
   );
-  for (const classic of classics) {
-    const { name, cells, instructions } = classic;
-    if (name.trim() === "") throw new UnsoundRules("A classic needs a name.");
-    if (!presets.some((preset) => inClassicShape(preset.cells, classic))) {
-      throw new UnsoundRules(`The classic ${name} stands in no formation of the league's.`);
+  for (const classicFormation of classicFormations) {
+    const { name, cells, instructions } = classicFormation;
+    if (name.trim() === "") throw new UnsoundRules("A classic formation needs a name.");
+    if (!presets.some((preset) => inClassicFormationShape(preset.cells, classicFormation))) {
+      throw new UnsoundRules(`The classic formation ${name} stands in no formation of the league's.`);
     }
     for (const cell of cells) {
-      if (!offersRole(cell, cell.role, cells)) throw new UnsoundRules(`The classic ${name} gives its ${cell.area} ${cell.lane} slot the role ${cell.role}, which that slot doesn't offer.`);
+      if (!offersRole(cell, cell.role, cells)) throw new UnsoundRules(`The classic formation ${name} gives its ${cellWords(cell)} slot the role ${cell.role}, which that slot doesn't offer.`);
     }
     const refusal = pairRefusal(instructions, cells, set);
-    if (refusal !== null) throw new UnsoundRules(`The classic ${name}'s ${refusal.side} instruction, ${refusal.key}, isn't one its shape offers.`);
+    if (refusal !== null) throw new UnsoundRules(`The classic formation ${name}'s ${refusal.side} instruction, ${refusal.key}, isn't one its shape offers.`);
   }
 }
 
@@ -211,12 +218,8 @@ const LAST_MINUTE = 59;
 function checkWaivers({ runs }: LeagueRules["waivers"]): void {
   if (runs.length === 0) throw new UnsoundRules("Waivers need a time to run, once a week or more.");
   for (const { hour, minute } of runs) {
-    if (!Number.isInteger(hour) || hour < 0 || hour > LAST_HOUR) {
-      throw new UnsoundRules(`A waiver run's hour is a whole number from 0 to ${LAST_HOUR}, not ${hour}.`);
-    }
-    if (!Number.isInteger(minute) || minute < 0 || minute > LAST_MINUTE) {
-      throw new UnsoundRules(`A waiver run's minute is a whole number from 0 to ${LAST_MINUTE}, not ${minute}.`);
-    }
+    checkWholeNumberWithin(hour, "A waiver run's hour", 0, LAST_HOUR);
+    checkWholeNumberWithin(minute, "A waiver run's minute", 0, LAST_MINUTE);
   }
   checkNoneTwice(
     runs.map(({ day, hour, minute }) => `${day} at ${hour}:${String(minute).padStart(2, "0")}`),

@@ -15,6 +15,12 @@ export function silenceConsoleError(): MockInstance<typeof console.error> {
   return consoleError.mockImplementation(() => {});
 }
 
+/** Keeps console.warn quiet for the test, where a warning (a capped read, a skipped row) is what it
+ *  causes. The spy is returned to check what was warned; imported as silenceConsoleError is. */
+export function silenceConsoleWarn(): MockInstance<typeof console.warn> {
+  return vi.spyOn(console, "warn").mockImplementation(() => {});
+}
+
 beforeEach(() => {
   // Records each call and still prints it, so a stray one is seen as well as failed.
   consoleError = vi.spyOn(console, "error");

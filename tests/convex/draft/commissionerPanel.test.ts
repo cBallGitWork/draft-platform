@@ -7,6 +7,7 @@ import { changeEveryRules, changeRules, HELD_FIRST_RULES, holdGameweeks, rulesWi
 import { draftSteps } from "../../support/convex/draft.harness";
 import { addManagers, adminCreatesLeague, COMMISSIONER, MANAGERS, type TestConvex } from "../../support/convex/leagues.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
+import { expectRefused } from "../../support/convex/test.harness";
 
 // The draft room's commissioner panel (#1101; spec/04, The commissioner): what it reads, the pick
 // time its box shows and the teams with no manager, and its box before the start, which changes
@@ -54,7 +55,7 @@ describe("the commissioner panel's read", () => {
   });
 
   test("is refused to anyone who doesn't run the league", async () => {
-    await expect(panel(ANN)).rejects.toThrow(refusals.notRunner);
+    await expectRefused(panel(ANN), refusals.notRunner);
   });
 });
 
@@ -79,18 +80,5 @@ describe("the pick time before the start", () => {
     expect(await read()).toMatchObject({ clock: { startsAt: startedAt, endsAt: startedAt + 60 * SECOND_MS } });
     expect(await panel()).toMatchObject({ pickSeconds: 60 });
     expect(await (await as(ANN)).query(api.draft.draftBoard.ofLeague, { leagueId })).toMatchObject({ pickSeconds: 60, yourAutoPick: { limit: 1 } });
-  });
-
-  test("for a draft started before #1439 with no pick time of its own, shows the latest the clock runs on, as the board does (#1572)", async () => {
-    await start();
-    await pause();
-    await holdGameweeks(t, { next: 5 });
-    const squad = { size: { minimum: 11, maximum: 11 }, minimumByArea: null, maxPerClub: null };
-    expect(await changeRules(t, leagueId, rulesWith({ squad, draft: { ...HELD_FIRST_RULES.draft!, pickSeconds: 45 } }))).toBe(5);
-    const draftId = (await t.run((ctx) => ctx.db.query("drafts").withIndex("by_leagueId", (q) => q.eq("leagueId", leagueId)).unique()))!._id;
-    await t.run((ctx) => ctx.db.patch("drafts", draftId, { pickSeconds: undefined }));
-
-    expect(await panel()).toMatchObject({ pickSeconds: 45 });
-    expect(await (await as(ANN)).query(api.draft.draftBoard.ofLeague, { leagueId })).toMatchObject({ pickSeconds: 45 });
   });
 });

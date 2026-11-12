@@ -8,7 +8,7 @@ import { fileLetter, recordEvent, wholeLeague } from "../mail/letters";
 import { seasonRules } from "../rules/rulesHistory";
 import { logFailure } from "../shared/errors";
 import { callerEmail, getLeague, managerOf, powersIn, refuse, teamIn, teamsOf } from "../shared/leagueAccess";
-import { starsOfPlayers } from "../stars/playerStars";
+import { starsLookup } from "../stars/playerStars";
 import { closeOffersOfTeam } from "../trades/tradeClose";
 import { onAutoTeam } from "../trades/tradeShut";
 import type { RoleStars } from "../stars/starsShape";
@@ -35,7 +35,7 @@ import { autoTeamLetters, autoTeamRefusals } from "./autoTeamWords";
 /** The auto team's lineup for the gameweek: `held` with each starter who is out, and each slot
  *  `vacated` by one who left the squad, filled as auto-subs fill them; and when that still can't
  *  stand, the squad's first lineup with anyone out kept on the bench. Pure. */
-export function autoTeamLineup(
+function autoTeamLineup(
   held: Pick<HeldLineup, "starters" | "bench" | "vacated">,
   positions: PlayerPositions,
   isOut: (playerCode: number) => boolean,
@@ -103,8 +103,8 @@ async function runTeam(ctx: MutationCtx, league: Doc<"leagues">, team: Doc<"team
   if (byPerson || noManager || illegal) {
     const outs = new Set<number>();
     for (const playerCode of squad) if ((await availabilityOf(ctx, playerCode)).availability === "out") outs.add(playerCode);
-    const stars = await starsOfPlayers(ctx, squad);
-    const set = autoTeamLineup(held, positions, (playerCode) => outs.has(playerCode), rules, (playerCode) => stars.get(playerCode) ?? []);
+    const starsOf = await starsLookup(ctx, squad);
+    const set = autoTeamLineup(held, positions, (playerCode) => outs.has(playerCode), rules, starsOf);
     if (!sameLineup(set, held)) lineup = set;
   }
 
@@ -158,7 +158,7 @@ export const set = mutation({
 
 /** A team's auto team as its switch shows it: on or off, and the gameweek it ends after, if its
  *  manager named one. */
-export const autoTeamSwitch = v.object({ on: v.boolean(), endsAfter: v.union(v.number(), v.null()) });
+const autoTeamSwitch = v.object({ on: v.boolean(), endsAfter: v.union(v.number(), v.null()) });
 export type AutoTeamSwitch = Infer<typeof autoTeamSwitch>;
 
 /** A team's switch: on while a person switched it on or it has no manager (trades/tradeShut.ts). */
