@@ -1,7 +1,7 @@
 import { spawnSync } from "node:child_process";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
-import { afterAll, describe, expect, test } from "vitest";
+import { describe, expect, test } from "vitest";
 import { scratchRepo } from "../support/scripts/gitRepo.harness.mjs";
 import { REPO_ROOT } from "../support/scripts/repoRoot.mjs";
 
@@ -37,23 +37,22 @@ const PASS_MARK = envValue("PASS_MARK");
 const PASS_BRANCH = envValue("PASS_BRANCH");
 
 describe("the last drift pass", () => {
-  const repo = scratchRepo("drift-pass-");
-  afterAll(() => repo.remove());
-  const commit = (...paragraphs) =>
-    repo.git("commit", "-q", "--allow-empty", ...paragraphs.flatMap((paragraph) => ["-m", paragraph]));
-  commit("feat: a feature (#1)");
-  commit("refactor: drift pass 29 (#1142)", "Self-review: a..main (40 merges): clean, no changes");
-  commit("feat: another feature (#2)");
-  // a squash merge: the pull request's title, then each kept commit's message, the record line among them
-  commit(
-    "refactor: the weekly drift pass: twins kept once (#1369)",
-    "* refactor: drift pass: twins kept once",
-    "Self-review: 6e6db66f..main (190 merges): 22 findings, 17 fixed, 5 left.",
-  );
-  commit("fix: names Self-review: mid-line, so it is no pass (#3)");
-  commit("feat: merged since the pass (#4)");
-
   test("is the newest commit carrying the record line, whatever its title", () => {
+    const repo = scratchRepo("drift-pass-");
+    const commit = (...paragraphs) =>
+      repo.git("commit", "-q", "--allow-empty", ...paragraphs.flatMap((paragraph) => ["-m", paragraph]));
+    commit("feat: a feature (#1)");
+    commit("refactor: drift pass 29 (#1142)", "Self-review: a..main (40 merges): clean, no changes");
+    commit("feat: another feature (#2)");
+    // a squash merge: the pull request's title, then each kept commit's message, the record line among them
+    commit(
+      "refactor: the weekly drift pass: twins kept once (#1369)",
+      "* refactor: drift pass: twins kept once",
+      "Self-review: 6e6db66f..main (190 merges): 22 findings, 17 fixed, 5 left.",
+    );
+    commit("fix: names Self-review: mid-line, so it is no pass (#3)");
+    commit("feat: merged since the pass (#4)");
+
     const lastPass = repo.git("log", "-1", "--format=%s", `--grep=${PASS_MARK}`).trim();
     expect(lastPass).toBe("refactor: the weekly drift pass: twins kept once (#1369)");
   });
