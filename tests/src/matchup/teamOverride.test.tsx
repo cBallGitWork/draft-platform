@@ -32,13 +32,13 @@ const TEAM_2 = teamSide("Team 2", [], [], 57, false);
 const matchupOf = (team: MatchupSide = TEAM_1, opponent: MatchupSide = TEAM_2): Matchup =>
   headToHead({ kind: "scored", team, opponent }, { gameweek: GAMEWEEK });
 
-const openMatchup = (session: Session, data: MatchupData = { matchup: matchupOf() }) => openApp(MATCHUP_PATH, session, { matchup: data });
+const openMatchupAs =(session: Session, data: MatchupData = { matchup: matchupOf() }) => openApp(MATCHUP_PATH, session, { matchup: data });
 const score = () => within(screen.getByRole("region", { name: SCORE_LABEL }));
 const overrideButton = (teamName: string) => score().getByRole("button", { name: overrideTotalLabel(teamName) });
 
 describe("Override total", () => {
   it("isn't offered to a manager who doesn't run the league", async () => {
-    openMatchup(manager);
+    openMatchupAs(manager);
     await screen.findByRole("region", { name: SCORE_LABEL });
     expect(screen.queryByRole("button", { name: overrideTotalLabel("Team 1") })).toBeNull();
     expect(screen.queryByRole("button", { name: overrideTotalLabel("Team 2") })).toBeNull();
@@ -49,20 +49,20 @@ describe("Override total", () => {
     ["the commissioner", managerIn(commissioned)],
     ["the co-commissioner", managerIn(coCommissioned)],
   ])("is offered to %s under each team's name", async (_who, session) => {
-    openMatchup(session);
+    openMatchupAs(session);
     await screen.findByRole("button", { name: overrideTotalLabel("Team 1") });
     overrideButton("Team 2");
   });
 
   it("isn't offered for the league's average", async () => {
-    openMatchup(managerIn(commissioned), { matchup: matchupOf(TEAM_1, { kind: LEAGUE_AVERAGE, points: 50, provisional: false }) });
+    openMatchupAs(managerIn(commissioned), { matchup: matchupOf(TEAM_1, { kind: LEAGUE_AVERAGE, points: 50, provisional: false }) });
     await screen.findByRole("button", { name: overrideTotalLabel("Team 1") });
     expect(score().getAllByRole("button")).toHaveLength(1);
   });
 
   it("opens a form for the team picked, which waits for the total and why, describes the box by the hint, and Cancel shuts it", async () => {
     const user = userEvent.setup();
-    openMatchup(managerIn(commissioned));
+    openMatchupAs(managerIn(commissioned));
     await user.click(await screen.findByRole("button", { name: overrideTotalLabel("Team 2") }));
     const form = screen.getByRole("form", { name: overrideTotalLabel("Team 2") });
     expect((within(form).getByRole("button", { name: overrideWords }) as HTMLButtonElement).disabled).toBe(true);
@@ -77,7 +77,7 @@ describe("Override total", () => {
 
   it("sends the gameweek, the team, its total and why, then says it is done and shuts the form", async () => {
     const user = userEvent.setup();
-    const app = openMatchup(managerIn(commissioned));
+    const app = openMatchupAs(managerIn(commissioned));
     await user.click(await screen.findByRole("button", { name: overrideTotalLabel("Team 1") }));
     await user.type(screen.getByLabelText(overrideTotalLabels.points), "60.5");
     await user.type(screen.getByLabelText(overrideTotalLabels.reason), "Two subs the auto-subs missed");
@@ -91,7 +91,7 @@ describe("Override total", () => {
   it("says why the server refused, and keeps what was typed", async () => {
     const user = userEvent.setup();
     const refusal = "A team's override is from minus 1000 to 1000 points.";
-    openMatchup(managerIn(commissioned), { matchup: matchupOf(), overrideRefusal: refusal });
+    openMatchupAs(managerIn(commissioned), { matchup: matchupOf(), overrideRefusal: refusal });
     await user.click(await screen.findByRole("button", { name: overrideTotalLabel("Team 1") }));
     await user.type(screen.getByLabelText(overrideTotalLabels.points), "999");
     await user.type(screen.getByLabelText(overrideTotalLabels.reason), "Typo");
@@ -108,7 +108,7 @@ describe("Remove override", () => {
 
   it("takes Override total's place under an overridden team, and removes that team's override, then says so", async () => {
     const user = userEvent.setup();
-    const app = openMatchup(managerIn(commissioned), { matchup: overridden });
+    const app = openMatchupAs(managerIn(commissioned), { matchup: overridden });
     await user.click(await screen.findByRole("button", { name: removeTotalOverrideLabel("Team 1") }));
 
     expect(screen.queryByRole("button", { name: overrideTotalLabel("Team 1") })).toBeNull();
@@ -120,14 +120,14 @@ describe("Remove override", () => {
   it("says why the server refused", async () => {
     const user = userEvent.setup();
     const refusal = "Team 1's total in gameweek 6 isn't overridden.";
-    openMatchup(managerIn(commissioned), { matchup: overridden, overrideRefusal: refusal });
+    openMatchupAs(managerIn(commissioned), { matchup: overridden, overrideRefusal: refusal });
     await user.click(await screen.findByRole("button", { name: removeTotalOverrideLabel("Team 1") }));
     await screen.findByText(refusal);
     expect(screen.queryByText(totalOverrideRemovedWords)).toBeNull();
   });
 
   it("isn't shown to a manager who doesn't run the league", async () => {
-    openMatchup(manager, { matchup: overridden });
+    openMatchupAs(manager, { matchup: overridden });
     await screen.findByRole("region", { name: SCORE_LABEL });
     expect(screen.queryByRole("button", { name: removeTotalOverrideLabel("Team 1") })).toBeNull();
   });

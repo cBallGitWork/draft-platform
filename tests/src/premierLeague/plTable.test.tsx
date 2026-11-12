@@ -1,18 +1,16 @@
 // The Premier League table on the section (#50; spec/18, The table): P W D L GF GA GD Pts, worked
 // out from the results on the server; live during matches, marked provisional until they are final.
 
-import { screen, within } from "@testing-library/react";
+import { within } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
-import { PREMIER_LEAGUE_PATH } from "../../../src/frame/menu";
 import { crestUrl } from "../../../src/ui/ClubName";
 import type { PlStandings } from "../../../src/premierLeague/seam";
 import { loadingTableWords, noClubsWords, provisionalWords, TABLE_TITLE, tableColumns } from "../../../src/premierLeague/words";
 import { expectColumnHeads } from "../../support/src/columnHeads";
-import { ARSENAL, CHELSEA, FOREST, SPURS, standingsRow, type PremierLeagueData } from "../../support/src/premierLeague.harness";
-import { manager, openApp } from "../../support/src/shell.harness";
-
-const openSection = (premierLeague: PremierLeagueData = {}) => openApp(PREMIER_LEAGUE_PATH, manager, { premierLeague });
-const panel = () => screen.findByRole("region", { name: TABLE_TITLE });
+import { ARSENAL, CHELSEA, FOREST, SPURS, standingsRow } from "../../support/src/premierLeague.harness";
+import { openSection } from "../../support/src/premierLeagueScreen.harness";
+import { panel } from "../../support/src/shell.harness";
+const tablePanel = () => panel(TABLE_TITLE);
 
 const standings: PlStandings = {
   rows: [
@@ -26,7 +24,7 @@ const standings: PlStandings = {
 
 /** Each body row's cells, the club by its full name (the desk's). */
 async function tableLines() {
-  const rows = within(await panel()).getAllByRole("row").slice(1);
+  const rows = within(await tablePanel()).getAllByRole("row").slice(1);
   return rows.map((row) => [...row.children].map((cell, index) => (index === 1 ? cell.querySelector(".sm\\:inline")!.textContent : cell.textContent)));
 }
 
@@ -36,18 +34,18 @@ const markOf = (row: HTMLElement) => row.querySelector<HTMLImageElement>("[data-
 describe("the Premier League table", () => {
   it("says so while it loads", async () => {
     openSection({ loading: true });
-    expect(within(await panel()).getByRole("status").textContent).toBe(loadingTableWords);
+    expect(within(await tablePanel()).getByRole("status").textContent).toBe(loadingTableWords);
   });
 
   it("says why it has no table before any club is held", async () => {
     openSection({ standings: { rows: [], provisional: false } });
-    expect(within(await panel()).getByText(noClubsWords)).toBeTruthy();
-    expect(within(await panel()).queryByRole("table")).toBeNull();
+    expect(within(await tablePanel()).getByText(noClubsWords)).toBeTruthy();
+    expect(within(await tablePanel()).queryByRole("table")).toBeNull();
   });
 
   it("heads its columns P W D L GF GA GD Pts, each named in full for a screen reader", async () => {
     openSection({ standings });
-    expectColumnHeads(await panel(), Object.values(tableColumns));
+    expectColumnHeads(await tablePanel(), Object.values(tableColumns));
     expect(Object.values(tableColumns).map(({ short }) => short)).toEqual(["Pos", "Club", "P", "W", "D", "L", "GF", "GA", "GD", "Pts"]);
   });
 
@@ -63,7 +61,7 @@ describe("the Premier League table", () => {
 
   it("puts each club's crest before its name, fetched by the club's code", async () => {
     openSection({ standings });
-    const clubs = within(await panel()).getAllByRole("rowheader");
+    const clubs = within(await tablePanel()).getAllByRole("rowheader");
     expect(clubs.map((club) => markOf(club)?.getAttribute("src"))).toEqual(
       [ARSENAL, CHELSEA, SPURS, FOREST].map(({ code }) => crestUrl(code)),
     );
@@ -72,20 +70,20 @@ describe("the Premier League table", () => {
 
   it("leaves goals for and against off a phone, and names a club by its three letters there", async () => {
     openSection({ standings });
-    const [heads] = within(await panel()).getAllByRole("row");
+    const [heads] = within(await tablePanel()).getAllByRole("row");
     const deskOnly = [...heads.children].filter((cell) => cell.className.includes("hidden sm:table-cell")).map((cell) => cell.textContent);
     expect(deskOnly).toEqual(["GF", "GA"]);
     // The name is a link to the club's page, after the mark (#1936).
-    const club = within(within(await panel()).getAllByRole("rowheader")[0]).getByRole("link");
+    const club = within(within(await tablePanel()).getAllByRole("rowheader")[0]).getByRole("link");
     expect(club.lastElementChild!.textContent).toBe("ARS");
     expect(club.lastElementChild!.className).toContain("sm:hidden");
   });
 
   it("is marked provisional while a match in it is being played, and not once they are final", async () => {
     const app = openSection({ standings: { ...standings, provisional: true } });
-    expect(within(await panel()).getByText(provisionalWords)).toBeTruthy();
+    expect(within(await tablePanel()).getByText(provisionalWords)).toBeTruthy();
 
     app.premierLeague.sendStandings(standings);
-    expect(within(await panel()).queryByText(provisionalWords)).toBeNull();
+    expect(within(await tablePanel()).queryByText(provisionalWords)).toBeNull();
   });
 });

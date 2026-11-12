@@ -3,7 +3,7 @@
 // asked of them.
 
 import { createMemoryHistory } from "@tanstack/react-router";
-import { render } from "@testing-library/react";
+import { render, screen } from "@testing-library/react";
 import { vi } from "vitest";
 import type { Id } from "../../../convex/_generated/dataModel";
 import type { LetterSummary } from "../../../convex/mail/mail";
@@ -217,3 +217,6 @@ export function openApp(path: string, session: Session, setUp: AppSetUp = {}) {
     becomes: (next: Session) => view.rerender(app(next)),
   };
 }
+
+/** A panel on the open screen, found by its title. */
+export const panel = (title: string | RegExp) => screen.findByRole("region", { name: title });

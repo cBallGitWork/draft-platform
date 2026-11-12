@@ -2,7 +2,7 @@
 // server refused a change is in convex/gameweeks/leagueGameweeks.ts (`gameweekRefusals`), and reaches the
 // screen as is.
 
-import { failedWords } from "../shared/words";
+import { failedWords, gameweekColumn } from "../shared/words";
 
 export const GAMEWEEKS_TITLE = "Gameweeks";
 
@@ -14,7 +14,7 @@ export const howTickingWorks =
 export const playsWords = (name: string, seasonGameweeks: number) => ({ before: `${name} plays `, after: ` of ${seasonGameweeks} gameweeks.` });
 
 export const gameweekColumns = {
-  gameweek: { short: "GW", long: "Gameweek" },
+  gameweek: gameweekColumn,
   deadline: { short: "Deadline", long: "When it begins: its deadline" },
   plays: { short: "Plays", long: "Whether the league plays it" },
 } as const;

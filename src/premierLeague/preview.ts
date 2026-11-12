@@ -6,37 +6,13 @@
 import { plTable } from "../../convex/football/plTable";
 import { COMPETITION_TIE_BREAKS } from "../../convex/football/tieBreaks";
 import { seasonGameweeks } from "../../convex/gameweeks/usedGameweeks";
-import { previewGameweek, previewSeasonGameweeks } from "../shared/preview";
+import { previewClubs, previewGameweek, previewSeasonGameweeks } from "../shared/preview";
 import { DAY_MS, HOUR_MS, WEEK_MS } from "../../convex/shared/time";
 import { previewMatch, previewMatchBeforeKickoff } from "./matchPreview";
 import type { ClubPageData, FirstKickoff, GameweekMatch, PremierLeagueSeam } from "./seam";
 import { clubPageOf, type HeldMatch } from "../../convex/football/clubFixtures";
 
-/** Each club by its real FPL `code`, so its crest and colours are its own (#840). */
-const CLUBS = (
-  [
-    [3, "Arsenal", "ARS"],
-    [7, "Aston Villa", "AVL"],
-    [91, "Bournemouth", "BOU"],
-    [94, "Brentford", "BRE"],
-    [36, "Brighton", "BHA"],
-    [8, "Chelsea", "CHE"],
-    [9, "Coventry City", "COV"],
-    [31, "Crystal Palace", "CRY"],
-    [11, "Everton", "EVE"],
-    [54, "Fulham", "FUL"],
-    [40, "Ipswich Town", "IPS"],
-    [2, "Leeds United", "LEE"],
-    [14, "Liverpool", "LIV"],
-    [43, "Man City", "MCI"],
-    [1, "Man Utd", "MUN"],
-    [4, "Newcastle", "NEW"],
-    [17, "Nottingham Forest", "NFO"],
-    [6, "Spurs", "TOT"],
-    [21, "West Ham", "WHU"],
-    [39, "Wolves", "WOL"],
-  ] as const
-).map(([code, name, shortName]) => ({ code, name, shortName }));
+const CLUBS = previewClubs;
 
 const CURRENT = previewGameweek;
 /** The current gameweek's first kickoff: 12:30 today, or yesterday before 14:30, so its first

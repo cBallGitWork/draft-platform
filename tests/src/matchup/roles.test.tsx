@@ -6,15 +6,11 @@
 import { screen, within } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import { namedRole, roleIn } from "../../../convex/lineup/roles";
-import { MATCHUP_PATH } from "../../../src/frame/menu";
 import { autoSubWords, notCountingLabel, sidePitchLabel, statusLabels, statusWords } from "../../../src/matchup/words";
-import { headToHead, lineupRows, roleOf, slot, SLOT_MATCH, subbed, teamSide } from "../../support/src/matchup.harness";
-import { manager, openApp } from "../../support/src/shell.harness";
+import { finished as FINISHED, headToHead, lineupRows, poacher as POACHER, roleOf, slot, STRIKER_SLOT, subbed, teamSide } from "../../support/src/matchup.harness";
+import { openMatchup } from "../../support/src/matchupScreen.harness";
 
-const FINISHED = { kind: "finished", fixtureCode: SLOT_MATCH } as const;
-/** A striker's slot, and two of its roles. */
-const STRIKER_SLOT = { area: "attack", lane: "centre" } as const;
-const POACHER = namedRole(roleIn(STRIKER_SLOT, "poacher"));
+/** A striker's other role. */
 const TARGET_MAN = namedRole(roleIn(STRIKER_SLOT, "targetMan"));
 
 /** Team 1: a keeper who didn't play and the bench keeper on for him, a poacher, a midfielder, and a
@@ -36,7 +32,7 @@ const team2 = teamSide("Team 2", [{ ...slot("Beto", { area: "attack" }), role: T
 
 describe("each man's role", () => {
   it("shows under each starter's name and a sub's once he has come on, never a bench player's not on", async () => {
-    openApp(MATCHUP_PATH, manager, { matchup: { matchup: headToHead({ kind: "scored", team: team1, opponent: team2 }) } });
+    openMatchup({ matchup: headToHead({ kind: "scored", team: team1, opponent: team2 }) });
     await screen.findByRole("region", { name: "Team 1" });
     const finished = `${statusLabels.finished} ${statusWords.finished}`;
     // The pitch top to bottom, Pandur on in Phillips' slot; then the bench, Phillips in Pandur's place.

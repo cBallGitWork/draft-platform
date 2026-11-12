@@ -26,10 +26,9 @@ import {
   versusWords,
 } from "../../../src/premierLeague/words";
 import { gameweekShort, menuWords, nextGameweekLabel, previousGameweekLabel } from "../../../src/shared/words";
-import { ARSENAL, CHELSEA, FOREST, plMatch, SPURS, type PremierLeagueData } from "../../support/src/premierLeague.harness";
+import { ARSENAL, CHELSEA, FOREST, plMatch, SPURS } from "../../support/src/premierLeague.harness";
+import { openSection } from "../../support/src/premierLeagueScreen.harness";
 import { manager, openApp } from "../../support/src/shell.harness";
-
-const openSection = (premierLeague: PremierLeagueData = {}) => openApp(PREMIER_LEAGUE_PATH, manager, { premierLeague });
 
 /** Gameweeks 8 and 9 kicked off (9 an hour ago); 10 kicks off in a week. */
 const begun = Date.now() - HOUR_MS;

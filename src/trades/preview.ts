@@ -8,6 +8,7 @@ import type { Id } from "../../convex/_generated/dataModel";
 import type { Position } from "../../convex/positions/positionTables";
 import { DAY_MS, HOUR_MS } from "../../convex/shared/time";
 import { ARSENAL, CHELSEA, LIVERPOOL } from "../scouting/preview";
+import { previewClub } from "../shared/preview";
 import { previewIdOf } from "../table/preview";
 import type {
   ClosedOffer,
@@ -21,12 +22,13 @@ import type {
 
 const CLUBS = {
   ARS: ARSENAL,
-  AVL: { code: 7, name: "Aston Villa", shortName: "AVL" },
+  AVL: previewClub("AVL"),
   CHE: CHELSEA,
   LIV: LIVERPOOL,
-  NEW: { code: 4, name: "Newcastle", shortName: "NEW" },
-  NFO: { code: 17, name: "Nottingham Forest", shortName: "NFO" },
-  MCI: { code: 43, name: "Manchester City", shortName: "MCI" },
+  NEW: previewClub("NEW"),
+  NFO: previewClub("NFO"),
+  // Trades has always named code 43 in full; the shared list's "Man City" would change its screen.
+  MCI: { ...previewClub("MCI"), name: "Manchester City" },
 } as const;
 
 let nextCode = 1;

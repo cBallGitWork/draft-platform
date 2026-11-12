@@ -13,7 +13,7 @@ import { MY_TEAM_PATH, TABLE_PATH } from "../../../src/frame/menu";
 import { expectColumnHeads } from "../../support/src/columnHeads";
 import { commissioner, league, manager, openApp } from "../../support/src/shell.harness";
 import { leagueTableOf } from "../../../src/table/drawnTable";
-import type { TableData } from "../../support/src/table.harness";
+import { openTable } from "../../support/src/tableScreen.harness";
 import {
   byeWords,
   columns,
@@ -40,7 +40,6 @@ import {
 import { autoTeamWhatWords, autoTeamWords, formLabel, liveFormLabel, noFigureWords } from "../../../src/shared/words";
 
 const FIVE = ["Ann's", "Bob's", "Cat's", "Dan's", "Eve's"];
-const openTable = (table: TableData = {}) => openApp(TABLE_PATH, manager, { table });
 const fixtureLines = (gameweek: number) =>
   within(screen.getByRole("list", { name: fixturesListLabel(gameweek) }))
     .getAllByRole("listitem")
