@@ -6,7 +6,7 @@
 // as illegal. It is reported alone, so a caller can set it aside. A save sets it aside for a
 // starter left where he stood, until the next deadline (`withUnmovedSetAside`; spec/06 `S06.7`).
 
-import { AREAS, cellKey, LANES, playsCell, type Area, type Cell, type Lane } from "./pitch";
+import { AREAS, cellKey, cellOf, playsCell, sameCell, type Area, type Cell, type Lane } from "./pitch";
 import { BACK_THREE, centreBacksIn, everyRoleOf, isRole, needsBackThree, roleIn, takesRole } from "./roles";
 import type { Position } from "../positions/positionTables";
 import type { PlayerCode } from "../shared/players";
@@ -65,9 +65,6 @@ export type LineupProblem =
   /** A role his positions can't take, such as a striker's for a CAM up front (spec/05 `S05.29`). */
   | { kind: "roleNotHis"; playerCode: PlayerCode; role: string; positions: readonly Position[] };
 
-const isArea = (area: string): area is Area => (AREAS as readonly string[]).includes(area);
-const isLane = (lane: string): lane is Lane => (LANES as readonly string[]).includes(lane);
-
 /** Every player the lineup names: the starters' codes in order, then the bench. */
 export function namedCodes(lineup: { starters: readonly Pick<Placement, "playerCode">[]; bench: readonly PlayerCode[] }): PlayerCode[] {
   return [...lineup.starters.map(({ playerCode }) => playerCode), ...lineup.bench];
@@ -87,31 +84,34 @@ export function lineupProblems(lineup: Lineup, positions: PlayerPositions, rules
     named.add(playerCode);
   }
 
-  const centreBacks = centreBacksIn(lineup.starters.flatMap(({ area, lane }) => (isArea(area) && isLane(lane) ? [{ area, lane }] : [])));
+  const centreBacks = centreBacksIn(lineup.starters.flatMap((starter) => cellOf(starter) ?? []));
   const standing = new Map<string, CellStanding>();
-  for (const { playerCode, area, lane, role } of lineup.starters) {
-    if (!isArea(area) || !isLane(lane)) {
-      problems.push({ kind: "noSuchCell", playerCode, area, lane });
+  for (const starter of lineup.starters) {
+    const { playerCode, role } = starter;
+    const cell = cellOf(starter);
+    if (cell === null) {
+      problems.push({ kind: "noSuchCell", playerCode, area: starter.area, lane: starter.lane });
       continue;
     }
+    const { area, lane } = cell;
     // A role no slot offers was removed from the set: he plays the slot's first and is never
     // refused for it (spec/05 Roles; #841). One another slot offers is the manager's mistake.
-    if (role !== undefined && isRole(role) && !everyRoleOf({ area, lane }).some(({ key }) => key === role)) {
+    if (role !== undefined && isRole(role) && !everyRoleOf(cell).some(({ key }) => key === role)) {
       problems.push({ kind: "roleNotOffered", playerCode, area, lane, role });
     } else if (role !== undefined && needsBackThree(role) && centreBacks < BACK_THREE) {
       problems.push({ kind: "noBackThree", playerCode, role, centreBacks });
     }
-    const key = cellKey({ area, lane });
-    const cell = standing.get(key) ?? { area, lane, playerCodes: [] };
-    cell.playerCodes.push(playerCode);
-    standing.set(key, cell);
+    const key = cellKey(cell);
+    const stood = standing.get(key) ?? { area, lane, playerCodes: [] };
+    stood.playerCodes.push(playerCode);
+    standing.set(key, stood);
 
     const playerPositions = positions.get(playerCode);
     if (playerPositions === undefined) problems.push({ kind: "positionsUnknown", playerCode });
-    else if (!playsCell(playerPositions, { area, lane })) {
+    else if (!playsCell(playerPositions, cell)) {
       problems.push({ kind: "outsideHisAreas", playerCode, area, lane, positions: playerPositions });
-    } else if (!takesRole(playerPositions, roleIn({ area, lane }, role).key)) {
-      problems.push({ kind: "roleNotHis", playerCode, role: roleIn({ area, lane }, role).key, positions: playerPositions });
+    } else if (!takesRole(playerPositions, roleIn(cell, role).key)) {
+      problems.push({ kind: "roleNotHis", playerCode, role: roleIn(cell, role).key, positions: playerPositions });
     }
   }
   for (const cell of standing.values()) {
@@ -180,8 +180,8 @@ function standsWhereHeWas(playerCode: PlayerCode, starters: readonly Placement[]
 
 /** The same cell and the same role in it: a role removed from the set reads as the slot's first. */
 function sameSlot(now: Placement, before: Placement): boolean {
-  if (now.area !== before.area || now.lane !== before.lane || !isArea(now.area) || !isLane(now.lane)) return false;
-  const cell = { area: now.area, lane: now.lane };
+  const cell = cellOf(now);
+  if (cell === null || !sameCell(now, before)) return false;
   return roleIn(cell, now.role).key === roleIn(cell, before.role).key;
 }
 

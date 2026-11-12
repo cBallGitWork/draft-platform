@@ -1,6 +1,7 @@
 import { v, type Infer } from "convex/values";
 import type { Doc, Id } from "../_generated/dataModel";
 import { mutation, query, type MutationCtx, type QueryCtx } from "../_generated/server";
+import { cardOpensAt } from "../playerCard/cardPoints";
 import { positionsNow } from "../positions/playerPositions";
 import { position } from "../schema";
 import { listedPlayers, ownListPlayer, shortlistOf } from "../scouting/shortlist";
@@ -63,8 +64,8 @@ export async function clearDraftLists(ctx: MutationCtx, teamId: Id<"teams">): Pr
   if (lists) await ctx.db.delete("draftLists", lists._id);
 }
 
-/** A player on the queue or do-not-draft list: as the shortlist lists him, with his first position
- *  now, for the draft room's chip (#1100), null for none. */
+/** A player on the queue or do-not-draft list: as the shortlist lists him, with his main position
+ *  now (cardOpensAt), for the draft room's chip (#1100), null for none. */
 const draftListed = v.object({ ...ownListPlayer.fields, position: v.union(position, v.null()) });
 export type DraftListed = Infer<typeof draftListed>;
 
@@ -79,7 +80,7 @@ export const mine = query({
     const lists = await heldListsOf(ctx, team._id);
     const positionsOf = await positionsNow(ctx, leagueId);
     const withPositions = async (codes: readonly number[]) =>
-      Promise.all((await listedPlayers(ctx, leagueId, codes)).map(async (player) => ({ ...player, position: (await positionsOf(player.code))[0] ?? null })));
+      Promise.all((await listedPlayers(ctx, leagueId, codes)).map(async (player) => ({ ...player, position: cardOpensAt(await positionsOf(player.code)) })));
     const doNotDraft = await withPositions(lists.doNotDraft);
     return {
       queue: await withPositions(lists.queue),

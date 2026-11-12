@@ -9,7 +9,7 @@ import { draftSteps, FIRST_PICK_MS, midfielder } from "../../support/convex/draf
 import { ARSENAL, CHELSEA, insertClubs, insertPlayers } from "../../support/convex/footballRows.harness";
 import { historyOf } from "../../../convex/rules/rulesHistory";
 import { changeEveryRules } from "../../support/convex/leagueRules.harness";
-import { addManagers, adminCreatesLeague, COMMISSIONER, eventsIn, MANAGERS, type TestConvex } from "../../support/convex/leagues.harness";
+import { addManagers, adminCreatesLeague, COMMISSIONER, eventsIn, lettersCount, MANAGERS, type TestConvex } from "../../support/convex/leagues.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
 import { teamNumbered } from "../../../convex/leagues/teams";
 
@@ -33,7 +33,7 @@ const setSquadRules = (squad: Partial<LeagueRules["squad"]>) =>
 
 const { as, read, start, pause, resume, pick, pass, setPickSeconds } = draftSteps(() => ({ t, leagueId }));
 const picks = () => t.run(async (ctx) => (await ctx.db.query("draftPicks").collect()).map(({ pick, teamId, playerCode, at }) => ({ pick, teamId, playerCode, at })));
-const letterCount = () => t.run(async (ctx) => (await ctx.db.query("letters").collect()).length);
+const letterCount = () => lettersCount(t);
 const newLetterSubjects = (after: number) => t.run(async (ctx) => (await ctx.db.query("letters").collect()).slice(after).map(({ subject }) => subject));
 
 beforeEach(async () => {

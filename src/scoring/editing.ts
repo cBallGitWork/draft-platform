@@ -6,7 +6,7 @@ import { AREA_OF_POSITION, AREAS, LANES, positionOfSlot, SLOT_POSITIONS, type Ar
 import type { StoredScoringSet } from "../../convex/scoring/scoringSetShape";
 import { priceFor, pricingOf, type Priced, type Pricing } from "../../convex/scoring/priced";
 import type { Band, OwnStat, PointsLimit } from "../../convex/scoring/scoringSet";
-import { OWN_STAT_PREFIX } from "../../convex/scoring/statCatalogue";
+import { OWN_STAT_PREFIX } from "../../convex/scoring/statKeys";
 import { holdsBlank } from "../rules/blank";
 
 export type Scoring = StoredScoringSet;

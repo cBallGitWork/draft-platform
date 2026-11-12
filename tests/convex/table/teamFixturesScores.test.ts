@@ -25,7 +25,7 @@ test("a game played and final has the table's score, each team's own points firs
   expect(gameIn(await readFixtures(league, BOB)).score).toEqual({ team: EVERTON_POINTS, opponent: HULL_POINTS, provisional: false });
 
   const tableFixture = (await readTable(league))!.gameweeks.find((each) => each.gameweek === GAMEWEEK)!.fixtures[0];
-  expect(tableFixture.points).toEqual({ team: gameIn(ann).score!.team, opponent: gameIn(ann).score!.opponent });
+  expect(tableFixture.points).toEqual(gameIn(ann).score);
   expect(ann.unscored).toEqual([]);
 });
 

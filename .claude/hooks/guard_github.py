@@ -11,10 +11,10 @@ check nothing. Stdlib only, Python 3.9+.
 
 from __future__ import annotations
 
-import json
 import sys
 
 from approval_gate import mcp_approval_problem
+from guard_run import run_guard
 from hook_payload import project_dir
 from private_words import NO_LIST, has_list, text_problem
 
@@ -58,26 +58,8 @@ def decide(payload):
 
 
 def main():
-    reason = advice = None
-    try:
-        payload = json.load(sys.stdin)
-        if isinstance(payload, dict):
-            reason, advice = decide(payload)
-        else:
-            reason = (f"The GitHub guard couldn't read the hook payload (a JSON {type(payload).__name__}, "
-                      "not an object), so nothing was checked.")
-    except Exception as error:  # a guard that crashes prints nothing, which would allow
-        reason = f"The GitHub guard failed ({type(error).__name__}: {error}), so nothing was checked."
-    if reason:
-        print(json.dumps({"hookSpecificOutput": {
-            "hookEventName": "PreToolUse",
-            "permissionDecision": "deny",
-            "permissionDecisionReason": reason,
-        }}))
-    elif advice:  # additionalContext reaches Claude; systemMessage shows it to Craig
-        print(json.dumps({"systemMessage": advice,
-                          "hookSpecificOutput": {"hookEventName": "PreToolUse", "additionalContext": advice}}))
+    return run_guard("GitHub", decide)
 
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main())
