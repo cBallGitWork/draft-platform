@@ -33,10 +33,10 @@ beforeEach(async () => {
   t = await signInDeployment(ROUND_12 - DAY_MS);
   // A league made here sends its commissioner a sign-in link.
   fakeResend();
-  await sync();
+  await upsertSent();
 });
 
-const sync = () => t.mutation(internal.football.footballSync.upsertFixtures, { rows: SENT });
+const upsertSent = () => t.mutation(internal.football.footballSync.upsertFixtures, { rows: SENT });
 const move = async (fixtureCode: number, gameweek: number | null) =>
   (await asAdmin(t)).mutation(api.gameweeks.matchMoves.move, { fixtureCode, gameweek });
 const gameweekOf = async (code: number) =>
@@ -53,11 +53,11 @@ test("a match moved from gameweek 14 to 15 is in 15, and back in 14 once the mov
 test("the window rule yields to a move: the next sync leaves the match where the admin put it, until he clears it", async () => {
   await move(LATER_14, 15);
 
-  await sync();
+  await upsertSent();
   expect(await gameweekOf(LATER_14)).toBe(15);
 
   await move(LATER_14, null);
-  await sync();
+  await upsertSent();
   expect(await gameweekOf(LATER_14)).toBe(14);
 });
 
