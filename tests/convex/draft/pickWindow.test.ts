@@ -7,7 +7,7 @@ import { DRAFT_OVER_SUBJECT as OVER, UP_NEXT_SUBJECT as UP_NEXT } from "../../..
 import { SECOND_MS } from "../../../convex/shared/time";
 import { draftSteps, FIRST_PICK_MS, midfielder } from "../../support/convex/draft.harness";
 import { ARSENAL, insertClubs, insertPlayers } from "../../support/convex/footballRows.harness";
-import { addManagers, adminCreatesLeague, COMMISSIONER, eventsIn, MANAGERS, type TestConvex } from "../../support/convex/leagues.harness";
+import { addManagers, adminCreatesLeague, COMMISSIONER, eventsIn, lettersCount, MANAGERS, type TestConvex } from "../../support/convex/leagues.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
 import { expectRefused } from "../../support/convex/test.harness";
 
@@ -32,7 +32,7 @@ const picked = () => t.run(async (ctx) => (await ctx.db.query("draftPicks").coll
 const squadOf = (teamId: Id<"teams">) =>
   t.run(async (ctx) => (await ctx.db.query("squadPlayers").collect()).filter((row) => row.teamId === teamId).map(({ playerCode }) => playerCode));
 const subjectsSince = async (before: number) => (await t.run((ctx) => ctx.db.query("letters").collect())).slice(before).map(({ to, subject }) => ({ to, subject }));
-const letterCount = async () => (await t.run((ctx) => ctx.db.query("letters").collect())).length;
+const letterCount = () => lettersCount(t);
 
 beforeEach(async () => {
   t = await signInDeployment();

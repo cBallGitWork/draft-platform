@@ -49,5 +49,4 @@ check allow guard_github.py "$(gh_call update_ref '{"ref":"refs/heads/main","sha
 unset DRAFT_PRIVATE_WORDS_LIST
 
 # a payload it can't read is denied, never let through unchecked
-check deny guard_github.py 'not json'
-check deny guard_github.py '[]'
+denies_unreadable guard_github.py

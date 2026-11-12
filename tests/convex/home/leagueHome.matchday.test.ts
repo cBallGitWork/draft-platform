@@ -43,7 +43,7 @@ test("once the gameweek has begun, each head-to-head carries both sides' points,
   const { team, opponent } = await annsScoredGame(league, GAMEWEEK);
   const home = (await homeAt(league, LEAGUE_FULL_TIME_READ))!;
   expect(home.thisGameweek?.fixtures).toEqual([
-    { teamId: league.annsTeam, game: 1, team: teamNumbered(1), opponent: teamNumbered(2), points: { team: team.points, opponent: opponent.points } },
+    { teamId: league.annsTeam, game: 1, team: teamNumbered(1), opponent: teamNumbered(2), points: { team: team.points, opponent: opponent.points, provisional: team.provisional || opponent.provisional } },
   ]);
 });
 

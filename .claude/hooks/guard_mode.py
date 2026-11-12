@@ -9,16 +9,16 @@ a message opening with "yes" or with "file" and an object ("file answers"), one 
 ("1 a\n2 b"), or a slash command, which is an instruction by itself.
 Without his message on record (a cloud builder, whose whole run is a build Craig or the lead started)
 nothing is gated. Reads and git are never gated: a branch, a commit and a push are the session's own
-and publish nothing. Stdlib only, Python 3.9+.
+and publish nothing. A payload it can't read is denied (guard_run.run_guard). Stdlib only, Python 3.9+.
 """
 
 from __future__ import annotations
 
-import json
 import re
 import sys
 
-from hook_payload import BadPayload, field, project_dir, read_payload, report
+from guard_run import run_guard
+from hook_payload import field, project_dir
 from last_prompt import state_file
 
 GO_WORDS = re.compile(
@@ -106,17 +106,7 @@ def decide(payload):
 
 
 def main():
-    try:
-        reason = decide(read_payload())
-    except BadPayload as error:
-        return report(error, "the call wasn't checked against Craig's latest message")
-    if reason:
-        print(json.dumps({"hookSpecificOutput": {
-            "hookEventName": "PreToolUse",
-            "permissionDecision": "deny",
-            "permissionDecisionReason": reason,
-        }}))
-    return 0
+    return run_guard("talk-is-talk", lambda payload: (decide(payload), None))
 
 
 if __name__ == "__main__":

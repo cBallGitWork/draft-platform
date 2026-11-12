@@ -60,7 +60,7 @@ const home: LeagueHome = {
     fixtures: current.fixtures.map((each, index) => {
       const scored = sides.get(current.gameweek);
       const score = scored === undefined ? null : gameScore(teamsInGameweek(current), scored, current.gameweek, each.team, each.opponent);
-      return { teamId: previewIdOf(each.team), game: gameNumberAt(current.fixtures, index), ...namedFixture(each, (name) => name), points: score && { team: score.team, opponent: score.opponent } };
+      return { teamId: previewIdOf(each.team), game: gameNumberAt(current.fixtures, index), ...namedFixture(each, (name) => name), points: score };
     }),
     byes: current.byes,
   },

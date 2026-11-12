@@ -83,14 +83,14 @@ export function leagueTableFrom({
   };
 }
 
-/** The gameweek's fixtures, each with both sides' points once the gameweek is scored, live until
- *  final: the table's and league home's. */
+/** The gameweek's fixtures, each with both sides' points once the gameweek is scored and whether
+ *  either may still move (teamGames.ts's gameScore, the rule's one home): the table's and league
+ *  home's. */
 export function scoredFixtures(drawn: GameweekFixtures<TeamId>, results: Results, named: (teamId: TeamId) => string): ScoredFixture[] {
   const scored = results.get(drawn.gameweek);
   return drawn.fixtures.map((each, index) => {
     const score = scored === undefined ? null : gameScore(teamsInGameweek(drawn), scored, drawn.gameweek, each.team, each.opponent);
-    const points = score === null ? null : { team: score.team, opponent: score.opponent };
-    return { teamId: each.team, game: gameNumberAt(drawn.fixtures, index), ...namedFixture(each, named), points };
+    return { teamId: each.team, game: gameNumberAt(drawn.fixtures, index), ...namedFixture(each, named), points: score };
   });
 }
 

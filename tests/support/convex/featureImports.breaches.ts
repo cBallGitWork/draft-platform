@@ -141,6 +141,7 @@ export const STILL_USED_BY_THREE: string[] = [
   "convex/scoring/scoringSet",
   "convex/scoring/scoringSetShape",
   "convex/scoring/siteVersions",
+  "convex/scoring/statKeys",
   "convex/scoring/teamPoints",
   "convex/scoring/values",
   "convex/scouting/scoutingPlayers",
