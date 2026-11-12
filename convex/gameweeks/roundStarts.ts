@@ -63,11 +63,27 @@ export function windowGameweek(kickoff: number | null, starts: ReadonlyMap<numbe
   return found?.round ?? null;
 }
 
+/** The gameweek a kickoff's window makes in its own season, from the rounds recorded so far: null
+ *  with no kickoff time. */
+export async function windowGameweekOf(ctx: QueryCtx, kickoff: number | null): Promise<number | null> {
+  return kickoff === null ? null : windowGameweek(kickoff, await roundStartsOf(ctx, seasonStartYear(kickoff)));
+}
+
+/** The gameweek the admin has moved the match to (matchMoves.ts, #1417), or null while he hasn't. */
+export async function movedGameweek(ctx: QueryCtx, fixtureCode: number): Promise<number | null> {
+  const move = await ctx.db
+    .query("matchMoves")
+    .withIndex("by_fixtureCode", (q) => q.eq("fixtureCode", fixtureCode))
+    .unique();
+  return move?.gameweek ?? null;
+}
+
 /** `matches` with each one's `gameweek` the window its kickoff falls in, in place of the feed's
  *  round, once each round new to the record has its start recorded. A match with no kickoff time
  *  is in no gameweek until it gets one, nor is one the feed puts in no round: its way of saying a
- *  postponed match waits for a new date, whatever kickoff it still names. */
-export async function placeInWindows<Match extends ScheduledMatch>(
+ *  postponed match waits for a new date, whatever kickoff it still names. A match the admin has
+ *  moved stays in the gameweek he moved it to: the window rule yields to him (#1417). */
+export async function placeInWindows<Match extends ScheduledMatch & { code: number }>(
   ctx: MutationCtx,
   matches: readonly Match[],
   now: number,
@@ -75,10 +91,14 @@ export async function placeInWindows<Match extends ScheduledMatch>(
   await recordRoundStarts(ctx, matches, now);
   const starts = new Map<number, Map<number, number>>();
   for (const season of bySeason(matches).keys()) starts.set(season, await roundStartsOf(ctx, season));
-  return matches.map((match) => ({
-    ...match,
-    gameweek: match.kickoff === null || match.gameweek === null ? null : windowGameweek(match.kickoff, starts.get(seasonStartYear(match.kickoff))!),
-  }));
+  return Promise.all(
+    matches.map(async (match) => ({
+      ...match,
+      gameweek:
+        (await movedGameweek(ctx, match.code)) ??
+        (match.kickoff === null || match.gameweek === null ? null : windowGameweek(match.kickoff, starts.get(seasonStartYear(match.kickoff))!)),
+    })),
+  );
 }
 
 /** `matches` earliest kickoff first, those with no kickoff time last, so each round's first
