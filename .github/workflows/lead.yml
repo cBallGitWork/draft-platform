@@ -113,8 +113,8 @@ env:
   # The tripwire: a check each pass on main that pings Healthchecks' TRIP_CHECK as failed, which emails Craig, when in
   # the last TRIP_WINDOW_MINUTES a workflow ran for someone not in KNOWN_ACTORS, a commit reached main with no pull
   # request, or a pull request not opened by Craig touched TRIP_PATHS; or more than MAX_BUILDS_A_DAY builds started in
-  # a day (38 to 70 a day, 6-10 Nov 2026; 307 on 11 Nov clearing a backlog, Craig: "we had loads of prs to do"), which
-  # also pauses builds until Craig closes the pause issue.
+  # a day (38 to 70 a day, 6-10 Nov 2026; 307 on 11 Nov building the second refactor pass, Craig: "we were doing a
+  # refactor"), which also pauses builds until Craig closes the pause issue.
   TRIP_CHECK: "tripwire"
   TRIP_WINDOW_MINUTES: 90  # past one missed half-hourly pass; Healthchecks emails once when it goes down
   MAX_BUILDS_A_DAY: 400
