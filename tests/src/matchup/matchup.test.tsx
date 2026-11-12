@@ -43,9 +43,8 @@ import {
 import { leagueTableOf } from "../../../src/table/drawnTable";
 import { homeFixture, quietHome } from "../../support/src/home.harness";
 import { headToHead, lineupRows, liveMatchup, playing, roleOf, slot, SLOT_MATCH, subbed, teamSide, type MatchupData } from "../../support/src/matchup.harness";
+import { openMatchup } from "../../support/src/matchupScreen.harness";
 import { league, manager, openApp } from "../../support/src/shell.harness";
-
-const openMatchup = (matchup: MatchupData = {}, path = MATCHUP_PATH) => openApp(path, manager, { matchup });
 
 const KICKOFF = Date.parse("2026-10-27T15:00:00Z");
 

@@ -5,15 +5,13 @@
 import { screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
-import { MATCHUP_PATH } from "../../../src/frame/menu";
 import type { Matchup } from "../../../src/matchup/seam";
 import { GAME_SWITCH_LABEL, gameSwitchWords, SCORE_LABEL } from "../../../src/matchup/words";
-import { headToHead, teamSide, type MatchupData } from "../../support/src/matchup.harness";
-import { league, manager, openApp } from "../../support/src/shell.harness";
+import { headToHead, teamSide } from "../../support/src/matchup.harness";
+import { openMatchup } from "../../support/src/matchupScreen.harness";
+import { league } from "../../support/src/shell.harness";
 
 type HeadToHead = Extract<Matchup, { kind: "headToHead" }>;
-
-const openMatchup = (matchup: MatchupData) => openApp(MATCHUP_PATH, manager, { matchup });
 
 const TWO_GAMES: HeadToHead["games"] = [
   { kind: "team", teamName: "Team 2" },
