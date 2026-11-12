@@ -40,12 +40,16 @@ export const WHITE = member(6, "White", ["FB", "WB"]);
 export const SQUAD = [RAYA, SALIBA, RICE, HAVERTZ, ARRIZABALAGA, WHITE];
 
 export const at = (player: Member, cell: Cell) => ({ playerCode: player.playerCode, ...cell });
+/** Saliba's cell in the saved lineup, left-centre of defence. */
+export const SALIBAS_CELL = { area: "defence", lane: "leftCentre" } as const satisfies Cell;
+/** Havertz's cell in the saved lineup, centre of attack. */
+export const HAVERTZS_CELL = { area: "attack", lane: "centre" } as const satisfies Cell;
 /** Four starters and two on the bench: the screen never judges whether eleven stand. */
 export const STARTERS = [
   at(RAYA, { area: "goalkeeper", lane: "centre" }),
-  at(SALIBA, { area: "defence", lane: "leftCentre" }),
+  at(SALIBA, SALIBAS_CELL),
   at(RICE, { area: "midfield", lane: "centre" }),
-  at(HAVERTZ, { area: "attack", lane: "centre" }),
+  at(HAVERTZ, HAVERTZS_CELL),
 ];
 export const SAVED = openTactics({
   squad: SQUAD,

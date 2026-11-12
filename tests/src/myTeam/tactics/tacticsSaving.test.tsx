@@ -15,6 +15,7 @@ import {
   ARRIZABALAGA,
   RAYA,
   SALIBA,
+  SALIBAS_CELL,
   SAVED,
   SAVED_LINE,
   SQUAD,
@@ -34,8 +35,6 @@ import {
 } from "../../../support/src/tacticsScreen.harness";
 
 const REFUSAL = "A lineup starts 11 players; this one starts 5.";
-/** Saliba's cell, left-centre of defence, which White swaps into. */
-const SALIBAS_CELL = { area: "defence", lane: "leftCentre" } as const;
 
 /** White, on the bench, swapped in for Saliba, once the tab is up. */
 const whiteForSaliba = () => swap(WHITE, SALIBA);

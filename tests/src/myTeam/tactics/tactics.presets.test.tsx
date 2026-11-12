@@ -21,6 +21,7 @@ import {
   RAYA,
   RICE,
   SALIBA,
+  SALIBAS_CELL,
   SAVED,
   SAVED_LINE,
   STARTERS,
@@ -105,8 +106,6 @@ describe("a preset (spec/05; Craig, 26 Oct 2026)", () => {
 });
 
 describe("roles (spec/05 Roles; #10; Craig, 26 Oct 2026)", () => {
-  const SALIBAS_CELL = { area: "defence", lane: "leftCentre" } as const;
-
   it("each starter has a picker of his slot's roles, on its first until he is given one; the bench has none", async () => {
     await openedPitch();
     expect(roleShown(SALIBA.name)).toBe("Stopper");
