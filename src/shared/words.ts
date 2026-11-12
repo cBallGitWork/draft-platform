@@ -174,7 +174,7 @@ const ORDINAL_ENDS: Record<Intl.LDMLPluralRule, string> = { zero: "th", one: "st
 export const placeWords = (place: number) => `${place}${ORDINAL_ENDS[ordinals.select(place)]}`;
 
 /** Said to someone who runs no team in the league, such as a commissioner who doesn't play, on
- *  My team's tabs and the trade pages alike. */
+ *  My team's tabs, the trade pages and the matchup alike. */
 export const noTeamWords = "You don't run a team in this league.";
 
 /** The "Find a player" panel, on the admin's dashboard and the squads page alike; each says its own hint. */

@@ -12,6 +12,7 @@ import {
   TRADES_PATH,
 } from "../../../src/frame/menu";
 import { mainMenuLabel } from "../../../src/frame/words";
+import { noFigureWords } from "../../../src/shared/words";
 import {
   acceptWords,
   afterLastMatchWords,
@@ -152,6 +153,18 @@ describe("an offer to you", () => {
     expect((await panel(offerToYouTitle("Team 2"))).textContent).toContain(
       words,
     );
+  });
+
+  it("with no deadline left, closes as a greyed dash in its row and its panel alike (#1788)", async () => {
+    openOffers(withOffers(screenOffer({ closes: null })));
+    const table = await screen.findByRole("table", { name: offersTableLabel });
+    const cells = within(within(table).getAllByRole("row")[2]).getAllByRole(
+      "cell",
+    );
+    expect(cells[cells.length - 1].textContent).toBe(noFigureWords);
+    const text = (await panel(offerToYouTitle("Team 2"))).textContent ?? "";
+    expect(text).toContain(noFigureWords);
+    expect(text).not.toContain("At the next deadline");
   });
 
   it("is accepted, and a refusal says why", async () => {

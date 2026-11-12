@@ -3,14 +3,13 @@ import { Link } from "@tanstack/react-router";
 import type { Id } from "../../convex/_generated/dataModel";
 import { Confirm } from "../ui/Confirm";
 import { Notice, Panel, Problem } from "../ui/Panel";
-import { Fact, OfferSide } from "./OfferParts";
-import type { OfferSides } from "./offerSides";
+import { Fact, noTimeYet, OfferSide } from "./OfferParts";
+import { closesOf, type OfferSides } from "./offerSides";
 import { counterLink } from "./paths";
 import type { ScreenOffer, TradeChanges } from "./seam";
 import {
   acceptWords,
   afterItWords,
-  closesAtWords,
   closesWords,
   counterWords,
   noteWords,
@@ -71,6 +70,7 @@ export function OfferPanel({
     setBusy(false);
   };
   const after = squadCount - sides.youGive.length + sides.youGet.length;
+  const closes = closesOf(offer);
   return (
     <Panel
       title={TITLES[sides.group](sides.otherTeamName)}
@@ -106,9 +106,7 @@ export function OfferPanel({
               {offer.reviewer === null ? null : reviewerWords[offer.reviewer]}
             </Fact>
             <Fact label={reviewEndsWords} derived>
-              {offer.reviewEndsAt === null
-                ? null
-                : whenWords(offer.reviewEndsAt)}
+              {closes === null ? noTimeYet : closes.panel}
             </Fact>
           </>
         ) : (
@@ -117,12 +115,7 @@ export function OfferPanel({
               {reviewRuleWords(offer.reviewer, sides.group === "toYou")}
             </Fact>
             <Fact label={closesWords} derived>
-              {closesAtWords(
-                offer.closes,
-                offer.closes === null || offer.closes.at === null
-                  ? null
-                  : whenWords(offer.closes.at),
-              )}
+              {closes === null ? noTimeYet : closes.panel}
             </Fact>
           </>
         )}

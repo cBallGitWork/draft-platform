@@ -16,7 +16,7 @@ export const ODEGAARD = { code: 1003, name: "Ødegaard", fullName: "Martin Ødeg
 export async function listsLeague(): Promise<{ t: TestConvex; leagueId: Id<"leagues">; teams: Id<"teams">[] }> {
   const t = await signInDeployment();
   fakeResend();
-  const leagueId = await adminCreatesLeague(t, 4);
+  const leagueId = await adminCreatesLeague(t);
   const teams = await addManagers(t, leagueId, [ANN, BOB]);
   await t.run(async (ctx) => {
     await insertClubs(ctx, [ARSENAL, CHELSEA]);

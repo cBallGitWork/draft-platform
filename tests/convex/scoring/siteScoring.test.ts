@@ -62,7 +62,7 @@ describe("reading it", () => {
   test(`a gameweek's set reads only the held matches, so more than ${PL_GAMEWEEKS} gameweeks held never stops it`, async () => {
     await holdGameweeks(t, { next: 9 });
     await holdGameweeksPastTheSeason(t, 2);
-    await t.run((ctx) => holdSiteScoring(ctx, { scoring: EDITED, kind: "fix", season: 2026, number: 1, at: TODAY }));
+    await t.run((ctx) => holdSiteScoring(ctx, { scoring: EDITED, kind: "fix", at: TODAY }));
 
     expect(await inGameweek(8)).toEqual(FIRST_SCORING);
     expect(await inGameweek(9)).toEqual(EDITED);

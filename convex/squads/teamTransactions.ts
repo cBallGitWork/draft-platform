@@ -5,7 +5,7 @@ import { bylineOf } from "../mail/letters";
 import { tradedSide } from "../schema";
 import { takeShown } from "../shared/cappedRead";
 import { managerOf } from "../shared/leagueAccess";
-import { isListedMove, type ListedKind, newestFirst } from "./squadPlace";
+import { isListedMove, type ListedKind, newestFirst, PLAYER_MOVES } from "./squadPlace";
 
 // My team's Transactions tab (#366; spec/12, My team's tabs: "the team's claims, drops, trades and
 // commissioner assignments, newest first, from the same events Mail files"): the commissioner's
@@ -25,7 +25,7 @@ const TEAM_FIELDS = [
   {
     index: "by_teamId_and_kind_and_at",
     field: "event.teamId",
-    kinds: ["playerAssigned", "playerMoved", "playerReleased", "playerDropped", "playerClaimed", "playerPickedUp"],
+    kinds: PLAYER_MOVES,
   },
   { index: "by_fromTeamId_and_kind_and_at", field: "event.fromTeamId", kinds: ["playerMoved", "tradeMade"] },
   { index: "by_toTeamId_and_kind_and_at", field: "event.toTeamId", kinds: ["tradeMade"] },

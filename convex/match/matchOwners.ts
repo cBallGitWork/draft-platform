@@ -9,9 +9,9 @@ import type { QueryCtx } from "../_generated/server";
 import { namedCodes } from "../lineup/lineup";
 import { lineupsInGameweek, type HeldLineup } from "../lineup/lineups";
 import { teamsOf } from "../shared/leagueAccess";
+import type { PlayerCode } from "../shared/players";
 import { ownerOf } from "../squads/squadPlace";
 
-type PlayerCode = number;
 
 /** The league's teams and their lineups in a begun gameweek, read once for the page: the owners
  *  named here and the points its scorer works out from the same lineups (#770). */

@@ -16,7 +16,7 @@ import {
 import { ASKS_PER_HOUR, SIGN_IN_ASKS_KEPT_MS } from "../../../convex/signIn/signInLinks";
 import { EMAIL_MAX } from "../../../convex/signIn/allowedEmails";
 import { BATCH_SIZE } from "../../../convex/shared/syncRuns";
-import { silenceConsoleError, type TestConvex } from "../../support/convex/test.harness";
+import { silenceConsoleError, type TestConvex, everyJobRuns } from "../../support/convex/test.harness";
 import { HOUR_MS, MINUTE_MS } from "../../../convex/shared/time";
 
 let t: TestConvex;
@@ -275,7 +275,7 @@ describe("clearing old asks", () => {
     await storeAsk(HOUR_MS);
 
     await t.mutation(internal.signIn.signInLinks.pruneSignInAsks, {});
-    await t.finishAllScheduledFunctions(vi.runAllTimers);
+    await everyJobRuns(t);
 
     expect((await asksLeft()).sort((a, b) => a - b)).toEqual([HOUR_MS, SIGN_IN_ASKS_KEPT_MS]);
   });
@@ -285,7 +285,7 @@ describe("clearing old asks", () => {
     await storeAsk(HOUR_MS);
 
     await t.mutation(internal.admin.runLogs.prune, {});
-    await t.finishAllScheduledFunctions(vi.runAllTimers);
+    await everyJobRuns(t);
 
     expect(await asksLeft()).toEqual([HOUR_MS]);
   });

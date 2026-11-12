@@ -9,10 +9,8 @@ import { autoTeamHead, switchOnWords, untilSwitchedOffWords } from "../../src/my
 import { autoTeamWords } from "../../src/shared/words";
 import { editingWords, FIXTURES_TITLE, saveSwapWords, TABLE_TITLE } from "../../src/table/words";
 import { DESK } from "../../scripts/viewports.mjs";
+import { previewAutoTeam } from "../../src/table/preview";
 import { test } from "../support/smoke/errorsTest";
-
-/** The preview's team on the auto team (src/table/preview.ts). */
-const ON_AUTO_TEAM = "Team 2";
 
 test.describe("the auto team, on the dev server's preview", { tag: "@dev" }, () => {
   test.use({ viewport: DESK });
@@ -29,7 +27,7 @@ test.describe("the auto team, on the dev server's preview", { tag: "@dev" }, () 
 
   test("the table marks a team on the auto team", async ({ page }) => {
     await page.goto(`${TABLE_PATH}?preview=manager`);
-    const row = page.getByRole("region", { name: TABLE_TITLE, exact: true }).getByRole("row").filter({ hasText: ON_AUTO_TEAM });
+    const row = page.getByRole("region", { name: TABLE_TITLE, exact: true }).getByRole("row").filter({ hasText: previewAutoTeam });
     await expect(row.getByText(autoTeamWords, { exact: true })).toBeVisible();
   });
 

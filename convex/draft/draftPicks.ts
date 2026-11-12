@@ -14,13 +14,13 @@ import { squadRefusals } from "../squads/squads";
 import { autoPickOrder } from "./autoPickOrder";
 import { autoPickAt, PICK_GAP_MS, picksAtClockStart, scheduleAutoPick, startClock } from "./draftClock";
 import { tellPickedFor, tellUpNext } from "./draftLetters";
-import { listsOf } from "./draftLists";
+import { heldListsOf } from "./draftLists";
 import { draftRulesNow, pickSecondsNow } from "./draftPickTime";
 import { draftRanking } from "./draftRanking";
 import type { Position } from "../positions/positionTables";
 import { draftedPositionsIn, draftOf, lastPickIn, liveClockOf, picksLeftOf, turnNow, undoWindowOpen, type StartedDraft, type Turn } from "./draftRow";
 import { afterTimeout, choseAutoPick, timeoutEffect } from "./draftTimeouts";
-import { lastSeasonPoints } from "./lastSeasonPoints";
+import { lastSeasonPoints } from "../pastSeasons/lastSeasonPoints";
 import { whyNotLegal, type DraftPlayer, type NotLegal } from "./legalPlayers";
 import { offWaivers } from "../waivers/waiverPlayers";
 import { undraftedIn } from "./undrafted";
@@ -222,10 +222,9 @@ async function autoPickFor(ctx: QueryCtx, leagueId: Id<"leagues">, draft: Doc<"d
   const players = await undraftedIn(ctx, leagueId);
   const positionsOf = await positionsNow(ctx, leagueId);
   const legal = await legalForTurn(ctx, leagueId, draft, started, turn, players, positionsOf);
-  const lists = await listsOf(ctx, turn.team);
   const order = autoPickOrder(
     players,
-    { queue: lists?.queue ?? [], doNotDraft: lists?.doNotDraft ?? [] },
+    await heldListsOf(ctx, turn.team),
     (await draftRanking(ctx))?.players.map(({ code }) => code) ?? [],
     await lastSeasonPoints(ctx, positionsOf),
   );

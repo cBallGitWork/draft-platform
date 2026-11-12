@@ -11,7 +11,7 @@ import { positionsNow } from "../positions/playerPositions";
 import { logFailure } from "../shared/errors";
 import { clubsByCode, hasLeft, playerByCode } from "../shared/players";
 import { MINUTE_MS } from "../shared/time";
-import { starsOfPlayers } from "../stars/playerStars";
+import { starsLookup } from "../stars/playerStars";
 import { playerLeftLetter, REPORT_MAX_TOKENS, REPORT_SYSTEM, reportInLetter, reportPrompt, type ScoutBrief } from "./scoutWords";
 
 // A scout's report (spec/19, The report; #375), written when his 24 hours are up: a few plain
@@ -41,7 +41,7 @@ export const brief = internalQuery({
     const positions = await (await positionsNow(ctx, league._id))(player.code);
     const clubs = clubsByCode(ctx);
     const club = await clubs(player.clubCode);
-    const stars = (await starsOfPlayers(ctx, [player.code])).get(player.code)!;
+    const stars = (await starsLookup(ctx, [player.code]))(player.code);
     const lineup = await ctx.db
       .query("lineups")
       .withIndex("by_leagueId_and_teamId_and_fromGameweek", (q) => q.eq("leagueId", league._id).eq("teamId", scout.teamId))

@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, test, vi } from "vitest";
+import { beforeEach, describe, expect, test } from "vitest";
 import { api } from "../../../convex/_generated/api";
 import { nextDeadline } from "../../../convex/gameweeks/deadline";
 import { missingPlayerLog } from "../../../convex/trades/tradeScreen";
@@ -14,6 +14,7 @@ import {
   type TradeLeague,
 } from "../../support/convex/trades.harness";
 import { NEXT } from "../../support/convex/waivers.harness";
+import { silenceConsoleWarn } from "../../support/convex/test.harness";
 import { teamNumbered } from "../../../convex/leagues/teams";
 
 // The Trades screen's read (#383; docs/design/approved/trades): the offers to and from the
@@ -69,11 +70,10 @@ describe("the Trades screen", () => {
         .unique();
       await ctx.db.delete(player!._id);
     });
-    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+    const warn = silenceConsoleWarn();
     const view = await viewOf(BOB);
     expect(view.teams[0].players.map(({ code }) => code)).toEqual([SAKA]);
     expect(warn).toHaveBeenCalledWith(missingPlayerLog(teamNumbered(2), 9002));
-    warn.mockRestore();
   });
 
   test("shows an open offer to both managers, closing at the next deadline, reviewed by the commissioner once accepted", async () => {

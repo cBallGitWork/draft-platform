@@ -1,10 +1,11 @@
 import { beforeEach, describe, expect, test, vi } from "vitest";
 import { api } from "../../../convex/_generated/api";
 import { CLOSED_READ_MOST } from "../../../convex/trades/closedOffers";
-import { seasonStartAt } from "../../../convex/shared/time";
+import { MINUTE_MS, seasonStartAt } from "../../../convex/shared/time";
 import { actingAs, COMMISSIONER } from "../../support/convex/leagues.harness";
 import { nameOf } from "../../support/convex/lineupSquad.harness";
 import { ANN, ANNS_FIRST_DROP, BOB, CAT, PALMER, RICE, SAKA, tradeLeague, type TradeLeague } from "../../support/convex/trades.harness";
+import { silenceConsoleWarn } from "../../support/convex/test.harness";
 import { teamNumbered } from "../../../convex/leagues/teams";
 
 // The Trades screen's Closed offers (#383; docs/design/approved/trades): each offer that ended this
@@ -20,7 +21,7 @@ const closedFor = async (email: string) =>
   (await (await actingAs(w.t, email)).query(api.trades.tradeScreen.ofMyTeam, { leagueId: w.leagueId, now: Date.now() })).closed;
 
 /** A minute on, so each close has its own moment. */
-const aMinuteOn = () => vi.setSystemTime(Date.now() + 60_000);
+const aMinuteOn = () => vi.setSystemTime(Date.now() + MINUTE_MS);
 
 describe("closed offers", () => {
   test("keeps a rejected, a countered and a withdrawn offer, newest first, for both teams", async () => {
@@ -82,7 +83,7 @@ describe("closed offers", () => {
   });
 
   test("shows only this season's, at most the read's most, and logs the ones left out", async () => {
-    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+    const warn = silenceConsoleWarn();
     await w.t.run(async (ctx) => {
       const kept = { leagueId: w.leagueId, fromTeamId: w.annsTeam, toTeamId: w.bobsTeam, gives: [], gets: [SAKA], by: ANN, madeAt: 0, why: "rejected" as const };
       await ctx.db.insert("closedTradeOffers", { ...kept, closedAt: seasonStartAt(Date.now()) - 1 });
@@ -94,6 +95,5 @@ describe("closed offers", () => {
     expect(closed).toHaveLength(CLOSED_READ_MOST);
     expect(closed.every(({ closedAt }) => closedAt >= seasonStartAt(Date.now()))).toBe(true);
     expect(warn).toHaveBeenCalledWith(expect.stringContaining(`over ${CLOSED_READ_MOST} closed trade offers`));
-    warn.mockRestore();
   });
 });

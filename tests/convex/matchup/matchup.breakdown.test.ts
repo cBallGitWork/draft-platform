@@ -18,7 +18,7 @@ test("a starter with a role, scored in a recorded gameweek, gets breakdown lines
   const [role] = everyRoleOf(scorersSlot);
   // His role earns a point a goal, so its line is in his points.
   await league.t.run((ctx) =>
-    holdSiteScoring(ctx, { scoring: { ...FIRST_SCORING, roles: [pricedRole(role.key, "goals_scored", 1)] }, kind: "patch", season: 2026, number: 1, at: Date.now() - 365 * DAY_MS }),
+    holdSiteScoring(ctx, { scoring: { ...FIRST_SCORING, roles: [pricedRole(role.key, "goals_scored", 1)] }, kind: "patch", at: Date.now() - 365 * DAY_MS }),
   );
   await giveAnnsStarterRole(league, HULL_SCORER, role.key);
   await fullTimeRecords(league);
@@ -67,7 +67,7 @@ test("his team's picked instructions each get a line under his role's, named as 
 test("a team that hasn't picked plays its formation's default pair", async () => {
   const league = await scoresLeague();
   await league.t.run((ctx) =>
-    holdSiteScoring(ctx, { scoring: { ...FIRST_SCORING, instructions: [GOAL_A_POINT("playOutFromTheBack")] }, kind: "patch", season: 2026, number: 1, at: Date.now() - 365 * DAY_MS }),
+    holdSiteScoring(ctx, { scoring: { ...FIRST_SCORING, instructions: [GOAL_A_POINT("playOutFromTheBack")] }, kind: "patch", at: Date.now() - 365 * DAY_MS }),
   );
   await fullTimeRecords(league);
 
@@ -92,7 +92,7 @@ test("two at the back reprices its centre back's goals conceded only once the si
     const league = await scoresLeague();
     if (scoresInstructions) {
       await league.t.run((ctx) =>
-        holdSiteScoring(ctx, { scoring: { ...FIRST_SCORING, instructions: [GOAL_A_POINT("playOutFromTheBack")] }, kind: "patch", season: 2026, number: 1, at: Date.now() - 365 * DAY_MS }),
+        holdSiteScoring(ctx, { scoring: { ...FIRST_SCORING, instructions: [GOAL_A_POINT("playOutFromTheBack")] }, kind: "patch", at: Date.now() - 365 * DAY_MS }),
       );
     }
     await standsAnnInTwoThreeFive(league);

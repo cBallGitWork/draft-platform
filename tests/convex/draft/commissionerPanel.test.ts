@@ -7,6 +7,7 @@ import { changeEveryRules, changeRules, HELD_FIRST_RULES, holdGameweeks, rulesWi
 import { draftSteps, SHORT_PICK_SECONDS } from "../../support/convex/draft.harness";
 import { addManagers, adminCreatesLeague, COMMISSIONER, MANAGERS, type TestConvex } from "../../support/convex/leagues.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
+import { expectRefused } from "../../support/convex/test.harness";
 
 // The draft room's commissioner panel (#1101; spec/04, The commissioner): what it reads, the pick
 // time its box shows and the teams with no manager, and its box before the start, which changes
@@ -53,7 +54,7 @@ describe("the commissioner panel's read", () => {
   });
 
   test("is refused to anyone who doesn't run the league", async () => {
-    await expect(panel(ANN)).rejects.toThrow(refusals.notRunner);
+    await expectRefused(panel(ANN), refusals.notRunner);
   });
 });
 

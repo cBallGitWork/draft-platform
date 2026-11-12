@@ -16,7 +16,7 @@ import { siteScoringInGameweek } from "../scoring/siteVersions";
 import { logFailure } from "../shared/errors";
 import { fixtureByCode } from "../shared/fixtures";
 import { memberOf } from "../shared/leagueAccess";
-import { clubByCode, clubOf, playerByCode, unheldPlayerWords } from "../shared/players";
+import { clubByCode, clubOf, playerByCode, unheldPlayerWords, type PlayerCode } from "../shared/players";
 import { thresholdStepsOf } from "../stats/thresholdSteps";
 import { begunGameweeks, workedOutGameweek } from "../gameweekScorer/gameweekScores";
 import { matchRecordsOf } from "../gameweekScorer/heldMatches";
@@ -39,7 +39,6 @@ import { unownedPointsOf, type UnownedPricer } from "./unownedPoints";
 // any, from the team sheets it reads in the hour before kickoff (football/matchTeamSheets.ts). The
 // five team stats are as the live poller last read them (football/matchTeamStats.ts).
 
-type PlayerCode = number;
 
 /** A man the match names: from his record, or before any, from the sheets, not yet played. */
 type NamedMan = Pick<Doc<"playerMatchStats">, "playerCode" | "started" | "played" | "clubCode">;

@@ -5,8 +5,8 @@ import { FIRST_RULES } from "../../../convex/rules/firstRules";
 import { refusals } from "../../../convex/shared/leagueAccess";
 import { MOST_IN_SQUAD } from "../../../convex/leagues/leagueLimits";
 import { NO_AREA_MINIMUMS, rulesWith } from "../../support/convex/leagueRules.harness";
-import { ADMIN, COMMISSIONER, CO_COMMISSIONER, MANAGERS, actingAs, addManager, addManagers, adminCreatesLeague, eventsIn, type TestConvex } from "../../support/convex/leagues.harness";
-import { ARSENAL, CHELSEA, GONE, UNHELD, insertClubs, insertDroppedPlayer } from "../../support/convex/footballRows.harness";
+import { ADMIN, COMMISSIONER, CO_COMMISSIONER, MANAGERS, actingAs, addManager, addManagers, adminCreatesLeague, eventsIn, TEST_LEAGUE_TEAMS, type TestConvex } from "../../support/convex/leagues.harness";
+import { ARSENAL, CHELSEA, GONE, UNHELD, insertClubs, insertDroppedPlayer, insertSetPositions } from "../../support/convex/footballRows.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
 import { squadRefusals } from "../../../convex/squads/squads";
 import { CURRENT_CLUBS_MOST } from "../../../convex/shared/players";
@@ -33,7 +33,7 @@ let teams: Id<"teams">[];
 beforeEach(async () => {
   t = await signInDeployment();
   fakeResend();
-  leagueId = await adminCreatesLeague(t, 4);
+  leagueId = await adminCreatesLeague(t);
   teams = await addManagers(t, leagueId, [ANN, BOB, CAT, DAN]);
   await t.run(async (ctx) => {
     await insertClubs(ctx, CLUBS);
@@ -121,7 +121,7 @@ describe("a player is on one team in a league at most", () => {
   });
 
   test("another league can have him too", async () => {
-    const other = await adminCreatesLeague(t, 4, "Another league");
+    const other = await adminCreatesLeague(t, TEST_LEAGUE_TEAMS, "Another league");
     const [othersTeam] = await addManagers(t, other, [ANN]);
     await (await as(COMMISSIONER)).assign(SAKA, teams[0]);
     await (await actingAs(t, COMMISSIONER)).mutation(api.squads.squads.assign, { leagueId: other, playerCode: SAKA, teamId: othersTeam });
@@ -187,7 +187,7 @@ describe("refused, saying why, and nothing changes", () => {
   });
 
   test("a team from another league", async () => {
-    const other = await adminCreatesLeague(t, 4, "Another league");
+    const other = await adminCreatesLeague(t, TEST_LEAGUE_TEAMS, "Another league");
     const [othersTeam] = await addManagers(t, other, [ANN]);
     await expectRefused((await as(COMMISSIONER)).assign(SAKA, othersTeam), refusals.noTeam);
   });
@@ -216,9 +216,7 @@ describe("squad limits warn, never block", () => {
 
   test("short of an area's minimum, with a wing back filling only one of defence and midfield (#317)", async () => {
     await setSquadRules({ size: null, minimumByArea: { ...NO_AREA_MINIMUMS, defence: 1, midfield: 1 }, maxPerClub: null });
-    await t.run(async (ctx) => {
-      await ctx.db.insert("playerPositions", { code: SAKA, starts: [], approved: [], set: ["WB"], removed: [] });
-    });
+    await t.run((ctx) => insertSetPositions(ctx, SAKA, ["WB"]));
     await (await as(COMMISSIONER)).assign(SAKA, teams[0]);
 
     expect((await (await as(COMMISSIONER)).squads())[0].warnings).toEqual([{ kind: "underAreaMinimum", area: "midfield", players: 0, minimum: 1 }]);
@@ -241,7 +239,7 @@ describe("finding a player", () => {
   });
 
   test("a squad row naming a team outside the league is an error, never a free agent", async () => {
-    const otherLeague = await adminCreatesLeague(t, 4, "Another league");
+    const otherLeague = await adminCreatesLeague(t, TEST_LEAGUE_TEAMS, "Another league");
     const outsider = await addManager(t, otherLeague, ANN);
     await t.run(async (ctx) => {
       await ctx.db.insert("squadPlayers", { leagueId, teamId: outsider, playerCode: SAKA });

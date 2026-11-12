@@ -15,9 +15,9 @@ import { joiningRefusals } from "../../../convex/joining/joining";
 import { ROWS_SHOWN } from "../../../convex/joining/joiningShared";
 import { refusals } from "../../../convex/shared/leagueAccess";
 import { deletes } from "../../support/convex/leagueDeletion.harness";
-import { COMMISSIONER, LEAGUE_NAME, MANAGERS, actingAs, addManagers, adminCreatesLeague, eventsIn, teamsIn, type TestConvex } from "../../support/convex/leagues.harness";
+import { COMMISSIONER, LEAGUE_NAME, MANAGERS, actingAs, addManagers, adminCreatesLeague, eventsIn, teamsIn, TEST_LEAGUE_TEAMS, type TestConvex } from "../../support/convex/leagues.harness";
 import { fakeResend, signInDeployment, spendTodaysEmails, type SentEmail } from "../../support/convex/signIn.harness";
-import { expectRefused, silenceConsoleError } from "../../support/convex/test.harness";
+import { expectRefused, silenceConsoleError, everyJobRuns } from "../../support/convex/test.harness";
 import { teamNumbered } from "../../../convex/leagues/teams";
 
 // Join requests and the commissioner's page of them (#73 stories 3 and 4; spec/13 Joining,
@@ -32,7 +32,7 @@ let token: string;
 beforeEach(async () => {
   t = await signInDeployment();
   sent = fakeResend();
-  leagueId = await adminCreatesLeague(t, 4, LEAGUE_NAME);
+  leagueId = await adminCreatesLeague(t, TEST_LEAGUE_TEAMS, LEAGUE_NAME);
   token = await makeLink(t, leagueId);
 });
 
@@ -62,7 +62,7 @@ describe("a join request", () => {
     vi.setSystemTime(Date.UTC(2026, 10, 1, 14, 32));
     const requestId = await askToJoin(t, leagueId, token, ANN);
     await (await asCommissioner(t)).mutation(api.joining.joinRequests.approve, { requestId });
-    await t.finishAllScheduledFunctions(vi.runAllTimers);
+    await everyJobRuns(t);
 
     const [team] = await teamsIn(t, leagueId);
     expect(team).toMatchObject({ name: teamNumbered(1), managerEmail: ANN });
@@ -87,7 +87,7 @@ describe("a join request", () => {
     const eventsBefore = await eventsIn(t, leagueId);
     const emailsBefore = sent.length;
     await (await asCommissioner(t)).mutation(api.joining.joinRequests.refuseRequest, { requestId });
-    await t.finishAllScheduledFunctions(vi.runAllTimers);
+    await everyJobRuns(t);
 
     expect(await teamsIn(t, leagueId)).toEqual([]);
     expect(await eventsIn(t, leagueId)).toEqual(eventsBefore);
@@ -110,11 +110,31 @@ describe("a join request", () => {
     fakeResend(500);
     const logged = silenceConsoleError();
     await (await asCommissioner(t)).mutation(api.joining.joinRequests.approve, { requestId });
-    await t.finishAllScheduledFunctions(vi.runAllTimers);
+    await everyJobRuns(t);
 
     const request = await t.run((ctx) => ctx.db.get("joinRequests", requestId));
     expect(request).toMatchObject({ approvedEmail: "notSent", approvedEmailError: "Resend refused the email (500): refused" });
     expect(logged).toHaveBeenCalledWith(expect.stringContaining(`The email telling ${ANN} they're in ${LEAGUE_NAME} wasn't sent`));
+  });
+
+  test("approved, an email that went is never kept or logged as not sent when saving that it went fails", async () => {
+    const requestId = await askToJoin(t, leagueId, token, ANN);
+    const resend = vi.mocked(fetch);
+    const send = resend.getMockImplementation()!;
+    // the email service takes it, then the request is gone, so saving "sent" fails
+    resend.mockImplementationOnce(async (...call) => {
+      const response = await send(...call);
+      await t.run((ctx) => ctx.db.delete("joinRequests", requestId));
+      return response;
+    });
+    const logged = silenceConsoleError();
+    await (await asCommissioner(t)).mutation(api.joining.joinRequests.approve, { requestId });
+    await t.finishAllScheduledFunctions(vi.runAllTimers);
+
+    expect(emailsTo(sent, ANN)).toHaveLength(1);
+    expect(logged).not.toHaveBeenCalledWith(expect.stringContaining("wasn't sent"));
+    const jobs = await t.run((ctx) => ctx.db.system.query("_scheduled_functions").collect());
+    expect(jobs.find((job) => job.name.includes("sendApprovedEmail"))?.state.kind).toBe("failed");
   });
 
   test("approved past the day's emails, its email waits for tomorrow and goes then", async () => {
@@ -124,7 +144,7 @@ describe("a join request", () => {
     await finishWhatIsDueNow(t);
     expect(emailsTo(sent, ANN)).toEqual([]);
 
-    await t.finishAllScheduledFunctions(vi.runAllTimers);
+    await everyJobRuns(t);
     expect(emailsTo(sent, ANN)).toHaveLength(1);
   });
 });

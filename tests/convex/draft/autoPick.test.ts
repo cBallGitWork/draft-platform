@@ -9,8 +9,8 @@ import { ARSENAL, CHELSEA, insertClubs, insertPlayers, type HeldPlayer } from ".
 import { changeEveryRules, HELD_FIRST_RULES } from "../../support/convex/leagueRules.harness";
 import { draftSteps, FIRST_PICK_MS } from "../../support/convex/draft.harness";
 import { addManager, addManagers, adminCreatesLeague, COMMISSIONER, MANAGERS, OUTSIDER, type TestConvex } from "../../support/convex/leagues.harness";
-import { pickGapPasses } from "../../support/convex/pickWindow.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
+import { expectRefused } from "../../support/convex/test.harness";
 
 // Auto-pick (spec/04, Auto-pick and The queue and the ranking; #1094): when a clock runs out the
 // draft takes the best legal player left in the team's queue, then the admin's ranking, then by
@@ -48,9 +48,8 @@ const setRules = (squad: Partial<LeagueRules["squad"]>, timeouts = 2) =>
     squad: { size: { minimum: 1, maximum: 2 }, minimumByArea: null, maxPerClub: null, ...squad },
     draft: { ...HELD_FIRST_RULES.draft!, timeoutsBeforeAutoPick: timeouts },
   }));
-const { as, start, pick: pickNow, pass } = draftSteps(() => ({ t, leagueId }));
+const { as, start, pick: pickNow, pickAndWait: pick, pass } = draftSteps(() => ({ t, leagueId }));
 /** `email` picks, and the pick's 10 seconds to undo it pass. */
-const pick = (email: string, playerCode: number) => pickNow(email, playerCode).then(() => pickGapPasses(t));
 const takeBack = async (email: string) => (await as(email)).mutation(api.draft.autoPickSwitch.takeControlBack, { leagueId });
 const picked = () => t.run(async (ctx) => (await ctx.db.query("draftPicks").collect()).map(({ playerCode }) => playerCode));
 const timeouts = () => t.run(async (ctx) => (await ctx.db.query("drafts").unique())?.timeouts);
@@ -182,9 +181,9 @@ describe("taking control back", () => {
 
   test("is refused to a manager who isn't on auto-pick", async () => {
     await start();
-    await expect(takeBack(ANN)).rejects.toThrow(pickRefusals.notOnAutoPick);
+    await expectRefused(takeBack(ANN), pickRefusals.notOnAutoPick);
     await pass(FIRST_PICK_MS);
-    await expect(takeBack(ANN)).rejects.toThrow(pickRefusals.notOnAutoPick);
+    await expectRefused(takeBack(ANN), pickRefusals.notOnAutoPick);
   });
 });
 
@@ -245,12 +244,12 @@ describe("turning auto-pick on himself", () => {
 
   test("is refused to a manager already on auto-pick, and once the draft is over", async () => {
     await turnOn(ANN);
-    await expect(turnOn(ANN)).rejects.toThrow(pickRefusals.onAutoPick);
+    await expectRefused(turnOn(ANN), pickRefusals.onAutoPick);
     await setRules({ size: { minimum: 1, maximum: 1 } });
     await start();
     await pass(0);
     await pick(BOB, SECOND);
-    await expect(turnOn(BOB)).rejects.toThrow(pickRefusals.over);
+    await expectRefused(turnOn(BOB), pickRefusals.over);
   });
 
   test("the board marks every pick the draft made 'auto' for the whole league, and tells him he is on it", async () => {

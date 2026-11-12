@@ -1,4 +1,4 @@
-import { expect, test, vi } from "vitest";
+import { expect, test } from "vitest";
 import { internal } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
 import type { PlayerMatchRecord } from "../../../convex/stats/matchRecords";
@@ -20,6 +20,7 @@ import { fullTimeRecords, holdMovedIn, liveRecords, lockMatch, lockMovedIn, MOVE
 import { BELLOUMI } from "../../support/convex/teamPoints.harness";
 // A gameweek stored final starts its recap (home/recaps.ts), which the tests running every job write.
 import { fakeClaude } from "../../support/convex/scouts.harness";
+import { everyJobRuns } from "../../support/convex/test.harness";
 
 // The stat race's totals (#800, spec/19 The stat race): each team's season stats, counting only its
 // starters and the bench players who came on, added in once a gameweek is final and moved when a
@@ -92,7 +93,7 @@ test("the lock itself asks every league to store its teams' stats", async () => 
   fakeClaude();
   await fullTimeRecords(league);
   await lockMatch(league);
-  await league.t.finishAllScheduledFunctions(vi.runAllTimers);
+  await everyJobRuns(league.t);
 
   expect(await totalsOf(league, league.annsTeam)).toEqual(statsOf(RECORDS, codesOf(HULL_AFTER_SUB)));
 });
@@ -143,7 +144,7 @@ test("rebuild sets every total afresh from the gameweeks, whatever was held", as
   });
 
   await league.t.mutation(internal.stats.teamSeasonStats.rebuild, { leagueId: league.leagueId });
-  await league.t.finishAllScheduledFunctions(vi.runAllTimers);
+  await everyJobRuns(league.t);
   expect(await totalsOf(league, league.annsTeam)).toEqual(statsOf(RECORDS, codesOf(HULL_AFTER_SUB)));
   expect(await totalsOf(league, league.bobsTeam)).toEqual(statsOf(RECORDS, codesOf(EVERTON_STARTERS)));
   expect(await shares(league)).toHaveLength(2);
@@ -199,7 +200,7 @@ test("a live tick's record the full-time read left out stays not whole after the
   expect(await storeLeague(league)).toEqual([]);
   await league.t.mutation(internal.stats.teamSeasonStats.rebuild, { leagueId: league.leagueId });
   expect(await league.t.mutation(internal.table.finalScores.rescore, { leagueId: league.leagueId, gameweek: GAMEWEEK })).toBe(false);
-  await league.t.finishAllScheduledFunctions(vi.runAllTimers);
+  await everyJobRuns(league.t);
   expect(await shares(league)).toEqual([]);
   expect(await totalsOf(league, league.annsTeam)).toBeUndefined();
   expect(await league.t.run((ctx) => ctx.db.query("finalScores").collect())).toEqual([]);
@@ -211,7 +212,7 @@ test("a read after the lock sending that record whole fills the gap: it is writt
 
   const writes = await league.t.mutation(internal.stats.matchStats.upsertMatch, { fixtureCode: HULL_EVERTON, readAt: Date.now(), records: RECORDS });
   expect(writes).toMatchObject({ state: "locked", inserted: 0, changed: [HULL_SCORER], lateCorrections: 0 });
-  await league.t.finishAllScheduledFunctions(vi.runAllTimers);
+  await everyJobRuns(league.t);
 
   const scorer = await league.t.run(async (ctx) => (await ctx.db.query("playerMatchStats").collect()).find((row) => row.playerCode === HULL_SCORER)!);
   expect(scorer).toMatchObject({ state: "locked", arrived: { fpl: true, pl: true } });

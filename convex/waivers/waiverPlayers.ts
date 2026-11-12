@@ -1,6 +1,6 @@
 import type { Doc, Id } from "../_generated/dataModel";
 import type { MutationCtx, QueryCtx } from "../_generated/server";
-import { draftIsLive } from "../draft/draftRow";
+import { draftIsOver } from "../draft/draftRow";
 import { fileEvent, recordEvent } from "../mail/letters";
 import { tellShortlisters } from "../scouting/shortlist";
 import { LEAGUES_READ_MOST, takeAllOrThrow } from "../shared/cappedRead";
@@ -51,7 +51,7 @@ export async function putOnWaivers(ctx: MutationCtx, leagueId: Id<"leagues">, pl
  *  free agents, picked up as one with no deadline passed since (spec/08). A claim's drop counts
  *  from its run's own time, not the moment the run executes, so a late run's drop still makes the
  *  next run (Craig, 11 Nov 2026, #1481). Whether he went on waivers. */
-export async function dropFromSquad(
+async function dropFromSquad(
   ctx: MutationCtx,
   place: Doc<"squadPlayers">,
   deadlines: LeagueDeadlines,
@@ -104,7 +104,7 @@ async function leaguesDrafted(ctx: QueryCtx): Promise<Id<"leagues">[]> {
     LEAGUES_READ_MOST,
     `More than ${LEAGUES_READ_MOST} drafts are held, so a new Premier League player can't be put on waivers in every league`,
   );
-  const over = await Promise.all(drafts.map(async ({ leagueId, started }) => started !== undefined && !(await draftIsLive(ctx, leagueId))));
+  const over = await Promise.all(drafts.map(({ leagueId }) => draftIsOver(ctx, leagueId)));
   return drafts.filter((_, index) => over[index]).map(({ leagueId }) => leagueId);
 }
 

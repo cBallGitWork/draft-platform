@@ -30,13 +30,14 @@ import { CATALOGUE_STATS } from "../scoring/statCatalogue";
 import { EVENT_STATS } from "../stats/matchRecords";
 import { stepPoints } from "../stats/thresholdSteps";
 import { signedWords } from "../shared/numberWords";
+import type { PlayerCode } from "../shared/players";
 import { LINEUPS_OUT_BEFORE_KICKOFF_MS, MINUTE_MS } from "../shared/time";
 import type { commentaryLine } from "../schema";
 
-type PlayerCode = number;
 
 type StoredLine = Infer<typeof commentaryLine>;
-export type StoredStep = Pick<Doc<"thresholdSteps">, "playerCode" | "stat" | "from" | "to" | "minutes" | "minute">;
+/** One step as a live read stored it, with that read's clock. */
+export type StoredStep = Doc<"thresholdStepReads">["steps"][number] & Pick<Doc<"thresholdStepReads">, "minute">;
 
 export interface VidiprinterMatch {
   fixtureCode: number;

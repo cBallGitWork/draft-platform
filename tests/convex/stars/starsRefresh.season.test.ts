@@ -4,8 +4,8 @@ import type { Position } from "../../../convex/positions/positionTables";
 import { ratedRoles, STARS_WINDOW } from "../../../convex/stars/stars";
 import { PLAYERS_PAGE } from "../../../convex/stats/matchRecords";
 import { ARSENAL, CHELSEA, insertClubs, insertPlayers } from "../../support/convex/footballRows.harness";
-import { insertMatch, lockedRecord, refreshesRun, starsRows } from "../../support/convex/stars.harness";
-import { freshConvex, ROWS_TO_THE_CAP } from "../../support/convex/test.harness";
+import { insertMatch, lockedRecord, starsRows } from "../../support/convex/stars.harness";
+import { everyJobRuns, freshConvex, ROWS_TO_THE_CAP } from "../../support/convex/test.harness";
 
 // Stars refreshed at a season's size (#11, starsRefresh.ts): a full page of players and a match's
 // 40 players, each with a season of final matches and every outfield role, so a blow-up in time
@@ -41,9 +41,9 @@ test(
     });
 
     await t.mutation(internal.stars.starsRefresh.refreshAll, { cursor: null });
-    await refreshesRun(t);
+    await everyJobRuns(t);
     await t.mutation(internal.stars.starsRefresh.refreshMatch, { fixtureCode: 600 });
-    await refreshesRun(t);
+    await everyJobRuns(t);
 
     const rows = await starsRows(t);
     expect(rows.size).toBe(MATCH_PLAYERS);
