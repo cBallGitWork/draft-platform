@@ -122,10 +122,11 @@ const changes = {
 /** The preview's saved plans, kept as the server would: up to 5, a name it has replaced. */
 let plans: readonly Plan[] = [];
 const planChanges: PlanChanges = {
-  save: async (_leagueId, name, slots) => {
+  save: async (_leagueId, name, slots, instructions) => {
     const kept = plans.some((plan) => plan.name === name);
     if (!kept && plans.length >= PLANS_KEPT) return planRefusals.full;
-    plans = kept ? plans.map((plan) => (plan.name === name ? { name, slots } : plan)) : [...plans, { name, slots }];
+    const saved = { name, slots, instructions };
+    plans = kept ? plans.map((plan) => (plan.name === name ? saved : plan)) : [...plans, saved];
     for (const listener of listeners) listener();
     return null;
   },

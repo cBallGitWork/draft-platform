@@ -1,5 +1,6 @@
 import type { Doc, Id } from "../_generated/dataModel";
 import type { QueryCtx } from "../_generated/server";
+import type { PlayerCode } from "../shared/players";
 import { autoSubs, gameweekPlay, type AutoSubs, type GameweekPlay } from "../lineup/autoSubs";
 import { namedCodes } from "../lineup/lineup";
 import { lineupsInGameweek, type HeldLineup } from "../lineup/lineups";
@@ -16,7 +17,7 @@ import type { SeasonRules } from "../rules/rulesHistory";
 import type { MatchPoints } from "../scoring/scoring";
 import type { MatchStats } from "../scoring/values";
 import { siteScoringByGameweek } from "../scoring/siteVersions";
-import { validateScoringSet } from "../scoring/scoringSet";
+import { checkedOnce } from "../scoring/scoringSet";
 import { scoreTeam, type PlayerMatch, type SlotPoints, type TeamPoints } from "../scoring/teamPoints";
 import { MINUTES_STAT, statsIfWhole } from "../stats/matchRecords";
 import { heldMatches, isFinished, isMatchFinal, isPostponed, playsIn, teamOverridesIn, type HeldMatch } from "./heldMatches";
@@ -29,7 +30,6 @@ import { keptAtDeadline, playerReader, type KeptAtDeadline, type LineupPlayer } 
 // Squad tab (#577), so none of them disagree.
 
 type TeamId = Id<"teams">;
-type PlayerCode = number;
 
 /** What every gameweek's scoring reads, read once for the league. */
 export interface LeagueReads {
@@ -94,7 +94,7 @@ export async function gameweekInputs(
  *  league's rules then. */
 export function rulesIn(reads: LeagueReads, gameweek: number) {
   const set = reads.setIn(gameweek);
-  validateScoringSet(set);
+  checkedOnce(set);
   const rules = reads.season.inGameweek(gameweek);
   return { set: playedSet(set, gameModeOf(rules)), rules };
 }

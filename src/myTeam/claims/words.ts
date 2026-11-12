@@ -3,9 +3,9 @@
 // and the runs' the same way.
 
 import type { WaiverOrderType } from "../../../convex/rules/leagueRulesShape";
-import { LOCALE, LONDON_ZONE } from "../../../convex/shared/moments";
 import type { RunAhead } from "../../../convex/waivers/waiverLock";
 import { placeWords, pointsShort } from "../header/words";
+import { weekdayTimeWords, weekdayWords, whenWords } from "../../shared/words";
 
 export { placeWords, pointsShort };
 
@@ -35,15 +35,12 @@ export const claimColumns = {
 export const claimsTableLabel = "Your pending claims";
 export const everyTeamTableLabel = "Every team's pending claims";
 
-const ukWhen = new Intl.DateTimeFormat(LOCALE, { weekday: "short", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit", timeZone: LONDON_ZONE });
-const ukDayTime = new Intl.DateTimeFormat(LOCALE, { weekday: "short", hour: "2-digit", minute: "2-digit", timeZone: LONDON_ZONE });
-const ukDay = new Intl.DateTimeFormat(LOCALE, { weekday: "short", timeZone: LONDON_ZONE });
-/** A run, UK time: "Wed 11 Nov, 18:00". */
-export const runWords = (at: number) => ukWhen.format(at);
+/** A run, in the viewer's own zone like every time on a screen (spec/12, Times): "Wed 11 Nov, 18:00". */
+export const runWords = whenWords;
 /** A run, short: "Wed 18:00". */
-export const runShort = (at: number) => ukDayTime.format(at).replace(",", "");
+export const runShort = weekdayTimeWords;
 /** A run's day alone: "Wed". */
-export const runDayWords = (at: number) => ukDay.format(at);
+export const runDayWords = weekdayWords;
 /** A claim whose player is no longer on waivers, or a league with no run times: no run takes it. */
 export const noRunWords = "No run";
 /** The run that can first take a player, as a claim, the player card or Scouting has it. */
@@ -105,7 +102,6 @@ export const waiverOrderNote = (type: WaiverOrderType, resetsAfter: number | nul
 export const waiverOrderLoadingWords = "Loading the waiver order…";
 
 export const RUNS_TITLE = "Runs";
-export const ukTimeWords = "UK time";
 export const nextRunWords = "Next";
 export const freeAgentsWords = "Free agents";
 /** Free agents before the league's draft is over (S08.1), matching `claimsNotOpenWords`. */

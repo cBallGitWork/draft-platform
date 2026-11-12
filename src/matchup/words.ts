@@ -26,7 +26,7 @@ export const MATCHUP_TITLE = "Matchup";
 export { SCORE_LABEL } from "../shared/words";
 export const loadingWords = "Loading the matchup…";
 export const totalPointsWords = noHeadToHeadsTotalPointsWords;
-export const noTeamWords = "You run no team in this league.";
+export { noTeamWords } from "../shared/words";
 export const noGamesWords = (teamName: string) => `${teamName} has no head-to-heads: fixtures are drawn once the league has ${fewestTeamsWords}.`;
 export const noGameWords = (teamName: string, gameweek: number) => `${teamName} plays no head-to-head in ${gameweekWords(gameweek)}.`;
 export const byeWords = (teamName: string) => `${teamName} has a bye this gameweek.`;
@@ -122,7 +122,7 @@ export { notCountingLabel } from "../shared/words";
 
 /** A player's breakdown for the gameweek, opened by tapping his name (spec/10; #798). */
 export const openBreakdownLabel = (name: string) => `${name}: why his points`;
-export { closeGlyph, playerCardWords } from "../shared/words";
+export { playerCardWords } from "../shared/words";
 export const closeBreakdownLabel = "Close";
 /** One of his matches, opening its page, named by its clubs and score with its clock (the approved
  *  picture's "NFO 1–0 BRE 67'", "NFO 1–0 BRE FT"); before kickoff, "NFO v BRE Sat 15:00". With a

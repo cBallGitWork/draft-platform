@@ -6,7 +6,7 @@
 import { plTable } from "../../convex/football/plTable";
 import { COMPETITION_TIE_BREAKS } from "../../convex/football/tieBreaks";
 import { seasonGameweeks } from "../../convex/gameweeks/usedGameweeks";
-import { previewSeasonGameweeks } from "../shared/preview";
+import { previewGameweek, previewSeasonGameweeks } from "../shared/preview";
 import { DAY_MS, HOUR_MS, WEEK_MS } from "../../convex/shared/time";
 import { previewMatch, previewMatchBeforeKickoff } from "./matchPreview";
 import type { FirstKickoff, GameweekMatch, PremierLeagueSeam } from "./seam";
@@ -37,7 +37,7 @@ const CLUBS = (
   ] as const
 ).map(([code, name, shortName]) => ({ code, name, shortName }));
 
-const CURRENT = 9;
+const CURRENT = previewGameweek;
 /** The current gameweek's first kickoff: 12:30 today, or yesterday before 14:30, so its first
  *  match is always under way or over; each gameweek a week apart. */
 const today = new Date();

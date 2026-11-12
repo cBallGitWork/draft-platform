@@ -5,6 +5,7 @@ import { positionOfSlot, type Cell } from "../../../convex/lineup/pitch";
 import type { Position } from "../../../convex/positions/positionTables";
 import { refusals } from "../../../convex/shared/leagueAccess";
 import { insertSetPositions } from "../../support/convex/footballRows.harness";
+import { losePlayer } from "../../support/convex/gameweekScores.harness";
 import { changeEveryRules, holdGameweeks } from "../../support/convex/leagueRules.harness";
 import { COMMISSIONER, MANAGERS, actingAs, addManagers, adminCreatesLeague, type TestConvex } from "../../support/convex/leagues.harness";
 import { FOUR_FOUR_TWO, holdSquad, nameOf, SQUAD } from "../../support/convex/lineupSquad.harness";
@@ -75,6 +76,12 @@ test("your own player is never compared with himself", async () => {
 
 test("the squad is full at the league's maximum", async () => {
   await changeEveryRules(t, leagueId, (rules) => ({ ...rules, squad: { ...rules.squad, size: { minimum: 1, maximum: SQUAD.length } } }));
+  expect((await yoursAs(ANN))?.squadFull).toBe(true);
+});
+
+test("a squad at its maximum is full though the football sync has lost one of its players (#1737)", async () => {
+  await changeEveryRules(t, leagueId, (rules) => ({ ...rules, squad: { ...rules.squad, size: { minimum: 1, maximum: SQUAD.length } } }));
+  await losePlayer({ t }, FOUR_FOUR_TWO.bench[0]);
   expect((await yoursAs(ANN))?.squadFull).toBe(true);
 });
 

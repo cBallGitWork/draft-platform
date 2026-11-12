@@ -7,10 +7,10 @@ import { expect } from "@playwright/test";
 import { MATCHUP_PATH } from "../../src/frame/menu";
 import { closeBreakdownLabel, gameweekWords, nextLabel, openBreakdownLabel, VIDIPRINTER_TITLE } from "../../src/matchup/words";
 import { DESK } from "../../scripts/viewports.mjs";
+import { previewGameweek } from "../../src/shared/preview";
 import { test } from "../support/smoke/errorsTest";
 
-/** The preview's gameweek (src/matchup/preview.ts), and a starter of its opponent's. */
-const GAMEWEEK = 8;
+/** A starter of the preview opponent's. */
 const OPPONENTS_STRIKER = "Haaland";
 const ELEVEN = 11;
 
@@ -33,7 +33,7 @@ test.describe("the matchup, on the dev server's preview", { tag: "@dev" }, () =>
     await breakdown.getByRole("button", { name: closeBreakdownLabel }).click();
     await expect(breakdown).toHaveCount(0);
 
-    await page.getByRole("navigation", { name: gameweekWords(GAMEWEEK) }).getByRole("link", { name: nextLabel }).click();
-    await expect(page.getByRole("navigation", { name: gameweekWords(GAMEWEEK + 1) })).toBeVisible();
+    await page.getByRole("navigation", { name: gameweekWords(previewGameweek) }).getByRole("link", { name: nextLabel }).click();
+    await expect(page.getByRole("navigation", { name: gameweekWords(previewGameweek + 1) })).toBeVisible();
   });
 });

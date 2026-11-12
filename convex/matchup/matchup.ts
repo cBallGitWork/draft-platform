@@ -222,9 +222,9 @@ class SideScorer {
     const cameOn = autoSubs.substitutions.find((each) => each.on === playerCode);
     const autoSub =
       wentOff !== undefined
-        ? { kind: "off" as const, playerName: await this.name(wentOff.on) }
+        ? { kind: "off" as const, playerCode: wentOff.on, playerName: await this.name(wentOff.on) }
         : cameOn !== undefined
-          ? { kind: "on" as const, playerName: await this.name(cameOn.off) }
+          ? { kind: "on" as const, playerCode: cameOn.off, playerName: await this.name(cameOn.off) }
           : autoSubs.unfilled.includes(playerCode)
             ? { kind: "unreplaced" as const }
             : null;

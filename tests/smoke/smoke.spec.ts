@@ -2,7 +2,7 @@
 // error or uncaught page error it didn't expect, so a boot crash can't pass (errorsTest.ts).
 
 import { expect, type Page } from "@playwright/test";
-import { DEFAULT_PRESETS } from "../../convex/lineup/presets";
+import { FIRST_PRESETS } from "../../convex/lineup/presets";
 import { ADMIN_AVAILABILITY_PATH, ADMIN_FEEDBACK_PATH, ADMIN_FEEDS_PATH, ADMIN_PATH } from "../../src/admin/paths";
 import { miniBeta } from "../../src/shared/preview";
 import { HOME_NEWS_PATH, MY_TEAM_PATH, SCOUTING_PATH } from "../../src/frame/menu";
@@ -141,7 +141,7 @@ test.describe("dev server, signed out of Convex", { tag: "@dev" }, () => {
 
       test("in every preset, each player stands inside his own cell, apart from the rest", async ({ page }) => {
         await page.goto(`${MY_TEAM_PATH}?preview=manager`);
-        for (const { name } of DEFAULT_PRESETS) {
+        for (const { name } of FIRST_PRESETS) {
           await pickFormation(page, name);
           await expectPlayersApart(page, viewport === PHONE, name);
         }

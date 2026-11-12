@@ -1,6 +1,6 @@
 // League rules' tests' shared setup (#25).
 
-import { FIRST_RULES } from "../../../convex/rules/firstRules";
+import { draftRulesOf, FIRST_RULES } from "../../../convex/rules/firstRules";
 import { actingAs, COMMISSIONER, TEST_LEAGUE_TEAMS, type TestConvex } from "./leagues.harness";
 import { api } from "../../../convex/_generated/api";
 import type { QueryCtx } from "../../../convex/_generated/server";
@@ -46,10 +46,11 @@ export const changeEveryRules = (t: TestConvex, leagueId: Id<"leagues">, change:
     }
   });
 
-/** The league's pick clock set to `pickSeconds` at once (changeEveryRules), and a started draft's
- *  own too, as a change reaching a live draft writes it (draftPickTime.ts; #1439). */
+/** The league's pick clock set to `pickSeconds` at once (changeEveryRules), its other draft rules
+ *  kept (#1782), and a started draft's own too, as a change reaching a live draft writes it
+ *  (draftPickTime.ts; #1439). */
 export async function setPickSeconds(t: TestConvex, leagueId: Id<"leagues">, pickSeconds: number): Promise<void> {
-  await changeEveryRules(t, leagueId, (rules) => ({ ...rules, draft: { ...HELD_FIRST_RULES.draft!, pickSeconds } }));
+  await changeEveryRules(t, leagueId, (rules) => ({ ...rules, draft: { ...draftRulesOf(rules), pickSeconds } }));
   await t.run(async (ctx) => {
     const draft = await ctx.db.query("drafts").withIndex("by_leagueId", (q) => q.eq("leagueId", leagueId)).unique();
     if (draft?.started !== undefined) await ctx.db.patch("drafts", draft._id, { pickSeconds });

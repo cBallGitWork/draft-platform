@@ -73,11 +73,19 @@ export type StartedDraft = NonNullable<Doc<"drafts">["started"]>;
 /** A pick on a draft's clock (snakeOrder.ts). */
 export type Turn = NonNullable<ReturnType<typeof pickOnTheClock<Id<"teams">>>>;
 
-/** The pick on the draft's clock now, after any trade, or null before it starts and once it is over. */
-export async function turnNow(ctx: QueryCtx, draft: Doc<"drafts">): Promise<Turn | null> {
+/** The pick on the draft's clock once `picksMade` picks are made, after any trade (snakeOrder.ts),
+ *  or null before it starts and once every pick is made: the one place that works out whose pick
+ *  it is from the draft's row (#1735). Pure. */
+export function turnAfter(draft: Doc<"drafts">, picksMade: number): Turn | null {
   const started = draft.started;
   if (started === undefined) return null;
-  return pickOnTheClock(started.teamIds, started.rounds, await picksMadeIn(ctx, draft.leagueId), draft.tradedPicks);
+  return pickOnTheClock(started.teamIds, started.rounds, picksMade, draft.tradedPicks);
+}
+
+/** The pick on the draft's clock now, after any trade, or null before it starts and once it is over. */
+export async function turnNow(ctx: QueryCtx, draft: Doc<"drafts">): Promise<Turn | null> {
+  if (draft.started === undefined) return null;
+  return turnAfter(draft, await picksMadeIn(ctx, draft.leagueId));
 }
 
 /** How many picks `teamId` has left in the started draft, counting one on the clock (snakeOrder.ts's

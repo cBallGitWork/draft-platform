@@ -4,7 +4,7 @@ import type { Id } from "../../../convex/_generated/dataModel";
 import { positionOfSlot } from "../../../convex/lineup/pitch";
 import { playerCardPath } from "../../playerCard/paths";
 import { useChange } from "../../shared/useChange";
-import { Panel, Problem } from "../../ui/Panel";
+import { CloseButton, Panel, Problem } from "../../ui/Panel";
 import { Placeholder } from "../../ui/Placeholder";
 import type { SquadNumberChanges } from "../seam";
 import { StarRating } from "../../ui/StarRating";
@@ -20,7 +20,6 @@ import type { Row } from "./SquadTable";
 import {
   benchedInWords,
   bestRoleNotRatedLabel,
-  closeGlyph,
   closePanelLabel,
   figureWords,
   formLabel,
@@ -68,9 +67,7 @@ export function PlayerPanel({
       aside={
         <span className="flex items-center gap-2">
           <span className="text-soft">{panelPlateWords(player.club.shortName, player.number)}</span>
-          <button type="button" aria-label={closePanelLabel(player.name)} onClick={onClose} className="min-h-tap min-w-tap text-lead font-bold lg:min-h-0 lg:min-w-0">
-            <span aria-hidden="true">{closeGlyph}</span>
-          </button>
+          <CloseButton label={closePanelLabel(player.name)} close={onClose} className="text-lead font-bold lg:min-h-0 lg:min-w-0" />
         </span>
       }
     >

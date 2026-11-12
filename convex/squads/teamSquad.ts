@@ -15,6 +15,7 @@ import type { Stats } from "../stats/statTotals";
 import { heldOrNot, squadOf, unheldCodes } from "./squadPlace";
 import { shirtNumber } from "./squadNumbers";
 import { latestRules } from "../rules/rulesHistory";
+import { squadMaximumOf } from "../rules/squadMaximums";
 import { NEXT_MATCHES_SHOWN, squadLimit, squadLimits } from "./squadLimits";
 import { scheduledMatch, sidesOf, squadSchedule } from "./squadSchedule";
 
@@ -125,12 +126,12 @@ export type TeamSquad = Infer<typeof teamSquad>;
 
 /** One priced match: its gameweek, its points (null while his whole record hasn't arrived), and
  *  whether his team got them: scored at his slot, not left out or priced at his best position. */
-export type PricedMatch = { gameweek: number; points: number | null; counted: boolean };
+type PricedMatch = { gameweek: number; points: number | null; counted: boolean };
 
 /** One of his matches for his panel's Started and Role points: whether he stood in his team's
  *  scoring eleven, whether his team got its points, and his role's points in it, null with no role
  *  line (none scored, or an override in its place). */
-export type ElevenMatch = Pick<PricedMatch, "points" | "counted"> & { inEleven: boolean; rolePoints: number | null };
+type ElevenMatch = Pick<PricedMatch, "points" | "counted"> & { inEleven: boolean; rolePoints: number | null };
 
 /** His panel's Started and Role points (spec/12 Squad; Craig, 6 Nov 2026, #1005): the matches he
  *  stood in his team's scoring eleven for, auto-subs in, so a sub who came on gets the start and
@@ -220,7 +221,7 @@ export const ofMyTeam = query({
       lastGameweek,
       players: rows,
       unheld,
-      squadMaximum: rules?.squad.size?.maximum ?? null,
+      squadMaximum: squadMaximumOf(rules),
       scheduleGameweeks: schedule.gameweeks,
       limits: squadLimits(rows, unheld.length, rules?.squad ?? null),
     };

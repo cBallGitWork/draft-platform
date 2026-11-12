@@ -1,7 +1,7 @@
 import { expect, test } from "vitest";
 import { api, internal } from "../../../convex/_generated/api";
-import { performersOf, RECAP_TRIES_MOST } from "../../../convex/home/recaps";
-import { RECAP_SYSTEM, recapUpLetter } from "../../../convex/home/recapWords";
+import { benchPointsOf, performersOf, RECAP_TRIES_MOST } from "../../../convex/home/recaps";
+import { RECAP_SYSTEM, recapPrompt, recapUpLetter } from "../../../convex/home/recapWords";
 import { CLAUDE_RETRY_MS, WRITING_MODEL } from "../../../convex/outbound/claude";
 import { HOUR_MS, MINUTE_MS, WEEK_MS } from "../../../convex/shared/time";
 import { ANN, BOB, EVERTON_POINTS, GAMEWEEK, HULL_POINTS, LEAGUE_FULL_TIME_READ, scoresLeague, type ScoresLeague } from "../../support/convex/gameweekScores.harness";
@@ -149,4 +149,13 @@ test("the top performers are the three starters who scored most for their team; 
   });
   // With fewer than six, no man is both.
   expect(performersOf(starters.slice(0, 4))).toEqual({ topPerformers: [man("B", 12), man("C", 9), man("A", 2)], letdowns: [man("D", -1)] });
+});
+
+test("the bench is added up in tenths: 4.2 and 0.1 left on it give a brief line ending bench 4.3", () => {
+  // A bench man who came on counts for the team, so isn't left on the bench; one with no points yet adds none.
+  const bench = [{ counts: false, points: 4.2 }, { counts: true, points: 6 }, { counts: false, points: 0.1 }, { counts: false, points: null }];
+  expect(benchPointsOf(bench)).toBe(4.3);
+  expect(benchPointsOf([{ counts: false, points: 0.1 }, { counts: false, points: 0.2 }])).toBe(0.3);
+  const prompt = recapPrompt({ gameweek: GAMEWEEK, results: [], teams: [{ team: "Team 1", points: 30, benchPoints: benchPointsOf(bench) }], topPerformers: [], letdowns: [] });
+  expect(prompt.split("\n")).toContain("Team 1: 30, bench 4.3");
 });

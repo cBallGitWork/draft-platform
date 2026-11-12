@@ -11,7 +11,7 @@ import { seasonGameweeks } from "../../../convex/gameweeks/usedGameweeks";
 import { PL_GAMEWEEKS } from "../../support/convex/footballRows.harness";
 import { changeRules, holdGameweeks, rulesInGameweek, rulesWith, TOTAL_POINTS } from "../../support/convex/leagueRules.harness";
 import { expectRefused, pendingJobs } from "../../support/convex/test.harness";
-import { ADMIN, addManagers, adminCreatesLeague, COMMISSIONER, eventsIn, MANAGERS } from "../../support/convex/leagues.harness";
+import { ADMIN, addManagers, adminCreatesLeague, COMMISSIONER, eventsIn, MANAGERS, TEST_LEAGUE_TEAMS } from "../../support/convex/leagues.harness";
 import { centreOf } from "../../support/convex/scoring.example";
 import {
   announceAs,
@@ -171,7 +171,7 @@ describe("announcing a patch", () => {
 
   test("#902 Done: one site deadline, whatever a league's: a patch in by it reaches the gameweek in a league that locks earlier too (S14.18)", async () => {
     await holdGameweeks(t, { next: 9 });
-    const leagueId = await adminCreatesLeague(t, 4, "Early");
+    const leagueId = await adminCreatesLeague(t, TEST_LEAGUE_TEAMS, "Early");
     await changeRules(t, leagueId, rulesWith({ deadline: { minutesBeforeFirstKickoff: 90 } }));
 
     expect(await patch(EDITED, kickoffOf(10) - 60 * MINUTE_MS)).toMatchObject({ fromGameweek: 10 });
@@ -189,8 +189,8 @@ describe("announcing a patch", () => {
 
   test("two leagues with their own rules hold no scoring set, so a match is priced by the site's version in force in that gameweek (their tables: twoLeagues.test.ts)", async () => {
     await holdGameweeks(t, { next: 9 });
-    const first = await adminCreatesLeague(t, 4, "First");
-    const second = await adminCreatesLeague(t, 4, "Second");
+    const first = await adminCreatesLeague(t, TEST_LEAGUE_TEAMS, "First");
+    const second = await adminCreatesLeague(t, TEST_LEAGUE_TEAMS, "Second");
     await changeRules(t, second, TOTAL_POINTS);
     await patch(EDITED, TODAY + NOTICE);
     const assistIn = (gameweek: number) => async (leagueId: Id<"leagues">) => {

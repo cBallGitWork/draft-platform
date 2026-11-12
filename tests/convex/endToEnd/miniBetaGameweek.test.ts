@@ -1,4 +1,4 @@
-import { expect, test, vi } from "vitest";
+import { expect, test } from "vitest";
 import { FIRST_SCORING } from "../../../convex/scoring/firstScoring";
 import { scoreMatch } from "../../../convex/scoring/scoring";
 import { inTenths } from "../../../convex/scoring/values";
@@ -7,7 +7,7 @@ import { HOUR_MS, MINUTE_MS } from "../../../convex/shared/time";
 import { recordedGw6 } from "../../support/recorded/gw6.payloads";
 import { EVERTON_POINTS, HULL_POINTS } from "../../support/convex/gameweekScores.harness";
 import { FULL_TIME_READ, GAMEWEEK, heldMatch, HULL_EVERTON } from "../../support/convex/matchStats.harness";
-import { elapse } from "../../support/convex/test.harness";
+import { elapse, everyJobRuns } from "../../support/convex/test.harness";
 import { REPLAY_MINUTES, stagedGw6, stageTime } from "../../support/convex/liveStats.harness";
 import {
   ANN,
@@ -104,7 +104,7 @@ test("the four-team league plays gameweek 6 end to end: live, provisional, then 
 
   // The hour is up: the match locks, and the lock stores each team's final score.
   await elapse(t, MINUTE_MS);
-  await t.finishAllScheduledFunctions(vi.runAllTimers);
+  await everyJobRuns(t);
   expect((await heldMatch(t)).status?.state).toBe("locked");
   const stored = await t.run((ctx) => ctx.db.query("finalScores").collect());
   expect(new Map(stored.map((row) => [emailOf.get(row.teamId)!, row.points]))).toEqual(expected);

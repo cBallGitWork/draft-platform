@@ -6,6 +6,7 @@ import { positionOfSlot, type Area, type Lane } from "../lineup/pitch";
 import { cardOpensAt } from "../playerCard/cardPoints";
 import { positionsNow } from "../positions/playerPositions";
 import { latestRules } from "../rules/rulesHistory";
+import { squadMaximumOf } from "../rules/squadMaximums";
 import { position } from "../schema";
 import { memberOf } from "../shared/leagueAccess";
 import { heldOrNot, squadOf } from "../squads/squadPlace";
@@ -46,9 +47,10 @@ export const at = query({
   handler: async (ctx, { leagueId, playerCode, now }): Promise<YourPlayer> => {
     const { team } = await memberOf(ctx, leagueId);
     if (team === undefined) return null;
-    const { held } = await heldOrNot(ctx, await squadOf(ctx, team._id));
-    const maximum = (await latestRules(ctx, leagueId)).squad.size?.maximum ?? MOST_IN_SQUAD;
-    const squadFull = held.length >= maximum;
+    const squad = await squadOf(ctx, team._id);
+    const { held } = await heldOrNot(ctx, squad);
+    // Every row counts, a player the football sync no longer holds too, as the Squad page does (#1737).
+    const squadFull = squad.length >= (squadMaximumOf(await latestRules(ctx, leagueId)) ?? MOST_IN_SQUAD);
     const positionsOf = await positionsNow(ctx, leagueId);
     const main = cardOpensAt(await positionsOf(playerCode));
     if (main === null) return { player: null, squadFull };

@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, test } from "vitest";
 import { api } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
 import { asCommissioner, invite, openLastLinkTo } from "../../support/convex/joining.harness";
-import { MANAGERS, actingAs, addManager, addManagers, adminCreatesLeague, teamsIn, type TestConvex } from "../../support/convex/leagues.harness";
+import { MANAGERS, actingAs, addManager, addManagers, adminCreatesLeague, teamsIn, TEST_LEAGUE_TEAMS, type TestConvex } from "../../support/convex/leagues.harness";
 import { ask, fakeResend, signInDeployment, type SentEmail } from "../../support/convex/signIn.harness";
 
 // A manager who is removed or leaves loses the league at once (spec/13, Leaving), so an older
@@ -16,7 +16,7 @@ let leagueId: Id<"leagues">;
 beforeEach(async () => {
   t = await signInDeployment();
   sent = fakeResend();
-  leagueId = await adminCreatesLeague(t, 4);
+  leagueId = await adminCreatesLeague(t);
 });
 
 const managers = async () => (await teamsIn(t, leagueId)).map(({ name, managerEmail }) => ({ name, managerEmail }));
@@ -60,7 +60,7 @@ describe("a manager who is removed or leaves (#133)", () => {
   });
 
   test("their live invite to another league is left alone", async () => {
-    const otherLeague = await adminCreatesLeague(t, 4, "Another League");
+    const otherLeague = await adminCreatesLeague(t, TEST_LEAGUE_TEAMS, "Another League");
     const otherInvite = await invite(t, otherLeague, ANN);
     const [annsTeam] = await addManagers(t, leagueId, [ANN]);
     await commissionerRemoves(annsTeam);
