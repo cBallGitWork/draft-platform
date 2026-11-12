@@ -367,7 +367,7 @@ The homes the folder pass set (29 Oct 2026), so new code has one place to go:
 - `src/app/`: how the app starts. `src/routes/`: the routes and the router. `src/`'s top level
   keeps only `main.tsx` and `styles.css`. The tokens stay in `styles.css`; a screen's own long
   utilities sit beside it and `styles.css` imports them (`src/myTeam/tactics/pitch/pitch.css`, 31 Oct 2026),
-  as it does the controls' shared styles (`src/ui/controls.css`: the action, keys, boxes, the tick well).
+  as it does the controls' shared styles (`src/ui/controls.css`: the action, keys, boxes, the tick well, the radio well).
 - `convex/schema/`: the schema's tables, one file per feature, imported only by `convex/schema.ts`.
   `convex/stars/`: stars, which role suits a player (#11): the rating, its stored rows and their
   refresh, the reads, the role a player dropped into a slot starts on, and each
@@ -387,17 +387,22 @@ The homes the folder pass set (29 Oct 2026), so new code has one place to go:
   (the rule balance lab, #843), `feedback`, `football` (the feeds and what they fill), `gameweeks`
   (deadlines, a league's gameweeks, the scoring start), `heartbeats` (Healthchecks pings and the
   lead's wake-up), `home` (League home: the glance, matchday, news and recaps), `joining`, `leagues`,
-  `mail`, `match` (one Premier League match's page), `matchup`, `outbound` (what leaves the app:
-  email through Resend, Claude, the deployment's settings), `pastSeasons` (past seasons' copy and
-  points, #1113), `playerCard`, `positions`, `scouting` (the players list, compare, shortlist,
-  scouts and the stat race), `shared` (helpers every feature uses), `signIn`, `stats` (match records
-  and their totals), `trades` (#383) and `waivers` (waivers and free agents, #1197). Screens
+  `lineup` (a team's lineup: its pitch, roles, instructions, saved plans and auto-subs), `mail`,
+  `match` (one Premier League match's page), `matchup`, `outbound` (what leaves the app: email
+  through Resend, Claude, the deployment's settings), `pastSeasons` (past seasons' copy and points,
+  #1113), `playerCard`, `positions`, `rules` (a league's rules: its settings, their checks, history
+  and locks), `scoring` (the site's scoring set, its versions and patches, and a team's points),
+  `scouting` (the players list, compare, shortlist, scouts and the stat race), `shared` (helpers
+  every feature uses), `signIn`, `squads` (a team's squad: its limits, numbers and transactions),
+  `stats` (match records and their totals), `table` (the table, its fixtures, final scores and
+  points overrides), `trades` (#383) and `waivers` (waivers and free agents, #1197). Screens
   (`src/`): `admin` (the admin's dashboard), `draft` (the draft room), `feedback`, `gameweeks` (the
-  commissioner's gameweeks, #74), `home` (League home and its news), `joining`, `leagues`, `mail`,
-  `matchup`, `myTeam` (squad, tactics and waiver claims in `claims/`), `patches` (patch notes, the
-  banner, the lab's report), `playerCard`, `premierLeague`, `scouting` (with `shortlist/`,
-  `scouts/` and `statRace/`), `signIn`, `squads` (a league's squads, #31), `table` (the table, fixtures and cup) and
-  `trades` (offers, #383).
+  commissioner's gameweeks, #74), `home` (League home and its news), `joining`, `leagues`,
+  `leagueSettings` (League settings), `mail`, `matchup`, `myTeam` (squad, tactics and waiver claims
+  in `claims/`), `patches` (patch notes, the banner, the lab's report), `playerCard`,
+  `premierLeague`, `scoring` (Player scoring), `scouting` (with `shortlist/` and `scouts/`),
+  `signIn`, `squads` (a league's squads, #31), `table` (the table, fixtures and cup) and `trades`
+  (offers, #383).
 - `convex/table/` keeps its name, because the browser and the scheduler call its functions.
 - Where a screen's feature and its server split their jobs differently, they have different names
   (rule 1 holds for every other feature):
@@ -412,8 +417,8 @@ The homes the folder pass set (29 Oct 2026), so new code has one place to go:
   | `src/premierLeague` | `convex/football` and `convex/match` |
 - Sub-folders: past about 12 files, a job with its own files and name gets a sub-folder
   (`src/frame/topBar/`, `src/myTeam/header/`, `src/myTeam/squad/`, `src/myTeam/tactics/`,
-  `src/scouting/shortlist/`, `src/scouting/scouts/`, `src/scouting/statRace/`, `src/myTeam/claims/`, and inside Tactics the pitch's drawing in `pitch/`, the formation window
-  in `formationWindow/` and its panels in `widgets/`, 1 Nov 2026). A folder over 12 that is one job, or whose
+  `src/scouting/shortlist/`, `src/scouting/scouts/`, `src/myTeam/claims/`, and inside Tactics the pitch's drawing in `pitch/`, the formation window
+  in `formationWindow/` and its panels in `widgets/`, 1 Nov 2026, and the role card in `roleCard/`). A folder over 12 that is one job, or whose
   tests mirror its sources, stays flat.
 
 **The rules**, from how the folder pass left the code (29 Oct 2026, counts from `find src convex`):

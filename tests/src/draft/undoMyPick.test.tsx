@@ -13,6 +13,7 @@ import { MINUTE_MS, SECOND_MS } from "../../../convex/shared/time";
 import { DRAFT_PATH } from "../../../src/frame/menu";
 import type { DraftState } from "../../../src/draft/seam";
 import { allPickedWords, draftPlayerWords, PLAYERS_TITLE, selectLabel, undoMyPickWords } from "../../../src/draft/words";
+import { ARSENAL } from "../../support/convex/footballRows.harness";
 import { draftOrder, YOUR_TEAM, type DraftData } from "../../support/src/draft.harness";
 import { manager, openApp } from "../../support/src/shell.harness";
 
@@ -20,7 +21,7 @@ const SAKA: ListedPlayer = {
   code: 1,
   name: "Saka",
   fullName: "Saka",
-  club: { code: 3, name: "Arsenal", shortName: "ARS" },
+  club: ARSENAL,
   positions: ["W"],
   ownerTeamName: null,
   onWaivers: null,

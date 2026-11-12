@@ -8,6 +8,9 @@ import { previousGameweekLabel } from "../../src/shared/words";
 import { competitionsLabel, competitionWords, CUP_TITLE, cupRounds, FIXTURES_TITLE, TABLE_PAGE_TITLE, TABLE_TITLE, type Competition } from "../../src/table/words";
 import { test } from "../support/smoke/errorsTest";
 
+/** A knockout's ties: one fewer than its teams, two to the power of its rounds (7 for eight teams). */
+const CUP_TIES = 2 ** cupRounds.length - 1;
+
 test.describe("the table and fixtures, on the dev server's preview", { tag: "@dev" }, () => {
   test("shows the League tab's table, opens a score's matchup, and shows the Cup tab's empty bracket", async ({ page }) => {
     const tab = (competition: Competition) =>
@@ -21,7 +24,7 @@ test.describe("the table and fixtures, on the dev server's preview", { tag: "@de
 
     await tab("cup").click();
     const cup = region(CUP_TITLE);
-    await expect(cup.getByRole("img")).toHaveCount(7);
+    await expect(cup.getByRole("img")).toHaveCount(CUP_TIES);
     for (const round of cupRounds) await expect(cup.getByRole("heading", { name: round, exact: true })).toBeVisible();
     await expect(region(TABLE_TITLE)).toHaveCount(0);
 

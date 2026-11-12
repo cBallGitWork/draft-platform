@@ -7,6 +7,7 @@
 import { expect } from "@playwright/test";
 import { MY_TEAM_PATH } from "../../src/frame/menu";
 import { moveLabel, pitchLabel, playerOnPitchLabel, savedWords, selectionTableLabel, swapLabel } from "../../src/myTeam/tactics/words";
+import { DESK } from "../../scripts/viewports.mjs";
 import { test } from "../support/smoke/errorsTest";
 
 /** The preview's striker and the striker on its bench. */
@@ -18,7 +19,7 @@ const UP_FRONT = { area: "attack", lane: "centre" } as const;
 const NOW = new Date("2026-11-11T14:02:00").getTime();
 
 test.describe("the lineup, on the dev server's preview", { tag: "@dev" }, () => {
-  test.use({ viewport: { width: 1440, height: 900 } });
+  test.use({ viewport: DESK });
 
   test("swaps a starter with a bench player, saves, and the pitch shows it", async ({ page }) => {
     await page.clock.setFixedTime(NOW);

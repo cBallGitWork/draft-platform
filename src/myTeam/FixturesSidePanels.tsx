@@ -1,18 +1,18 @@
 import { Link } from "@tanstack/react-router";
-import type { Id } from "../../../convex/_generated/dataModel";
-import { BYE } from "../../../convex/table/teamGames";
-import { TABLE_PATH } from "../../frame/menu";
-import { matchupLink } from "../../matchup/paths";
-import { nextGlyph } from "../../shared/words";
-import type { LeagueTable } from "../../table/seam";
-import { columns as tableColumns } from "../../table/words";
-import { Fact } from "../../trades/OfferParts";
-import { cellClassOf, ColumnHeads } from "../../ui/ColumnHeads";
-import { Panel } from "../../ui/Panel";
-import { FormChips } from "../header/FormChips";
-import { placeIn, standingOf } from "../header/teamStanding";
-import { countdownWords, pointsShort } from "../header/words";
-import type { Game } from "../FixturesPage";
+import type { Id } from "../../convex/_generated/dataModel";
+import { BYE } from "../../convex/table/teamGames";
+import { TABLE_PATH } from "../frame/menu";
+import { matchupLink } from "../matchup/paths";
+import { nextGlyph } from "../shared/words";
+import type { LeagueTable } from "../table/seam";
+import { columns as tableColumns } from "../table/words";
+import { Fact } from "../trades/OfferParts";
+import { cellClassOf, ColumnHeads } from "../ui/ColumnHeads";
+import { Panel } from "../ui/Panel";
+import { FormChips } from "./header/FormChips";
+import { placeIn, standingOf } from "./header/teamStanding";
+import { countdownWords, pointsShort } from "./header/words";
+import type { Game } from "./FixturesPage";
 import {
   deadlineWords,
   figureWords,
@@ -25,7 +25,7 @@ import {
   tableMoreWords,
   theirFormWords,
   whenWords,
-} from "../words";
+} from "./words";
 
 // The right-hand column of My team's Fixtures tab (docs/design/approved/team-fixtures): the next
 // game, and the season so far.

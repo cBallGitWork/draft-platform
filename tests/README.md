@@ -47,7 +47,7 @@ Nothing in it is a test. Each kind of file:
   for the screens' (`shell.harness.tsx` opens the app at an address with its actions faked), and
   `scripts/` for the scripts' (`liveSetup.harness.mjs` fakes Convex, Vercel and Resend for the
   live-setup command, and `gitRepo.harness.mjs` is a scratch git repo with an origin/main for the
-  checks that compare with it). `scripts/aiCarling/` is a hand-made sample of ai-carling-premiership's
+  checks that compare with it, built on `scratchDir.mjs`, a temp folder removed when its test ends). `scripts/aiCarling/` is a hand-made sample of ai-carling-premiership's
   files, laid out as that repository lays them out, for the past-season copy
   (`scripts/past-season.mjs`; `convex/pastSeason.harness.ts` reads it for the Convex tests).
 - **`importLines.ts`**, how the import checks (`tests/convex/importCycles.test.ts`,
