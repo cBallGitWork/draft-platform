@@ -3,15 +3,18 @@
 // its form. Pure, so the tests can pin it. Form and a result are League home's own (convex/table/
 // standings.ts), so the two screens never tell a team's form apart.
 
+import { gameModeOf } from "../../../convex/rules/gameMode";
 import { LEAGUE_AVERAGE } from "../../../convex/table/roundRobin";
 import { BYE, gamesOf, type Against } from "../../../convex/table/teamGames";
 import { formOf, type Result } from "../../../convex/table/standings";
 import type { LeagueTable } from "../../table/seam";
 
-/** A team's game in a gameweek: who it meets, and its score once the gameweek is scored, its own
- *  side first, and whether either side may still move. */
+/** A team's game in a gameweek: which of its games there it is (from 1, as teamGames.ts's `gamesOf`
+ *  numbers them), who it meets, and its score once the gameweek is scored, its own side first, and
+ *  whether either side may still move. */
 export type TeamGame = {
   gameweek: number;
+  game: number;
   against: Against<string>;
   score: { team: number; opponent: number; provisional: boolean } | null;
 };
@@ -32,7 +35,7 @@ export type Standing = {
 /** The team's games in the league's head-to-head schedule, in gameweek order, each with its score
  *  once scored: none in total points. */
 export function gamesOfTeam(table: LeagueTable, teamName: string): TeamGame[] {
-  return gamesOf(scheduleOf(table), teamName).map(({ gameweek, against }) => ({ gameweek, against, score: scoreOf(table, teamName, gameweek, against) }));
+  return gamesOf(scheduleOf(table), teamName).map(({ gameweek, game, against }) => ({ gameweek, game, against, score: scoreOf(table, teamName, gameweek, against) }));
 }
 
 /** The league's head-to-head schedule by team name, the league's average as the server draws it. */
@@ -62,21 +65,28 @@ function scoreOf(table: LeagueTable, teamName: string, gameweek: number, against
 export const gamesIn = (table: LeagueTable, teamName: string, gameweek: number): TeamGame[] =>
   gamesOfTeam(table, teamName).filter((game) => game.gameweek === gameweek);
 
+/** The team's place in the table, 1 for the top, or null for one the table doesn't hold. */
+export function placeIn(table: LeagueTable, teamName: string): number | null {
+  const index = table.table.findIndex((row) => row.teamName === teamName);
+  return index === -1 ? null : index + 1;
+}
+
 /** Where the team stands, or null for one the table doesn't hold. */
 export function standingOf(table: LeagueTable, teamName: string): Standing | null {
-  const index = table.table.findIndex((row) => row.teamName === teamName);
-  if (index === -1) return null;
-  const row = table.table[index];
+  const place = placeIn(table, teamName);
+  if (place === null) return null;
+  const row = table.table[place - 1];
   const scored = gamesOfTeam(table, teamName).filter((game): game is TeamGame & { score: NonNullable<TeamGame["score"]> } => game.score !== null);
   const latest = table.results.findLast((result) => result.teams.some((side) => side.teamName === teamName));
   const own = latest?.teams.find((side) => side.teamName === teamName);
   return {
     teamId: row.teamId,
-    place: index + 1,
+    place,
     points: row.points,
     last: scored.at(-1) ?? null,
     lastPoints: latest === undefined || own === undefined ? null : { gameweek: latest.gameweek, points: own.points, provisional: own.provisional },
     form: formOf(
+      gameModeOf(table),
       table.table.map(({ teamName: name }) => name),
       scheduleOf(table),
       new Map(table.results.map(({ gameweek, teams }) => [gameweek, new Map(teams.map((side) => [side.teamName, side.points]))])),

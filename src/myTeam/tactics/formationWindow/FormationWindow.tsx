@@ -1,12 +1,11 @@
 import { useEffect, useId, useRef, useState, type ReactNode } from "react";
-import { closeGlyph } from "../../../shared/words";
-import { Loading } from "../../../ui/Panel";
+import { CloseButton, Loading } from "../../../ui/Panel";
 import { Placeholder } from "../../../ui/Placeholder";
 import type { ClassicFormation } from "../../../../convex/lineup/classics";
 import { presetNameOf } from "../../../../convex/lineup/presets";
 import { classicFormationInUse, onClassicFormation } from "../classicLineup";
-import type { EditedLineup, MoveRules, RatingsOf } from "../lineupEdits";
-import { backGroups, type Shape } from "./formationGroups";
+import type { EditedLineup, MoveRules, PresetShape as Shape, RatingsOf } from "../lineupEdits";
+import { backGroups } from "./formationGroups";
 import { FormationPreview } from "./FormationPreview";
 import { FormationTile } from "./FormationTile";
 import {
@@ -134,9 +133,7 @@ export function FormationWindow({
             <span className="text-soft">{inUseNowWords}</span> <span className="font-bold text-derived">{inUse}</span>
           </span>
         )}
-        <button type="button" aria-label={closeWindowLabel} onClick={onClose} className="ml-auto flex min-h-tap min-w-tap items-center justify-center text-lead font-bold">
-          <span aria-hidden="true">{closeGlyph}</span>
-        </button>
+        <CloseButton label={closeWindowLabel} close={onClose} className="ml-auto flex items-center justify-center text-lead font-bold" />
       </div>
       <div className="grid min-h-0 flex-1 gap-2 p-2 lg:grid-cols-formation-window">
         <nav aria-label={groupsLabel} className="flex flex-col">

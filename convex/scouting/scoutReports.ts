@@ -8,10 +8,12 @@ import { fileLetter } from "../mail/letters";
 import { CLAUDE_RETRY_MS, writeWithClaude } from "../outbound/claude";
 import { nextFixtures, seasonMatches } from "../playerCard/playerCard";
 import { positionsNow } from "../positions/playerPositions";
+import { gameModeOf } from "../rules/gameMode";
+import { seasonRules } from "../rules/rulesHistory";
 import { logFailure } from "../shared/errors";
 import { clubsByCode, hasLeft, playerByCode } from "../shared/players";
 import { MINUTE_MS } from "../shared/time";
-import { starsOfPlayers } from "../stars/playerStars";
+import { starsLookup } from "../stars/playerStars";
 import { playerLeftLetter, REPORT_MAX_TOKENS, REPORT_SYSTEM, reportInLetter, reportPrompt, type ScoutBrief } from "./scoutWords";
 
 // A scout's report (spec/19, The report; #375), written when his 24 hours are up: a few plain
@@ -41,7 +43,8 @@ export const brief = internalQuery({
     const positions = await (await positionsNow(ctx, league._id))(player.code);
     const clubs = clubsByCode(ctx);
     const club = await clubs(player.clubCode);
-    const stars = (await starsOfPlayers(ctx, [player.code])).get(player.code)!;
+    const mode = gameModeOf((await seasonRules(ctx, league._id)).latest);
+    const stars = mode.showsStars ? (await starsLookup(ctx, [player.code]))(player.code) : [];
     const lineup = await ctx.db
       .query("lineups")
       .withIndex("by_leagueId_and_teamId_and_fromGameweek", (q) => q.eq("leagueId", league._id).eq("teamId", scout.teamId))
@@ -66,7 +69,7 @@ export const brief = internalQuery({
       })),
       fixtures: (await nextFixtures(ctx, player.clubCode, now, clubs)).map((fixture) => ({ ...opponentOf(fixture), gameweek: fixture.gameweek })),
     };
-    return { kind: "brief" as const, prompt: reportPrompt(facts) };
+    return { kind: "brief" as const, prompt: reportPrompt(facts, mode) };
   },
 });
 

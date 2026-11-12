@@ -5,7 +5,7 @@ import { recordEvent } from "../mail/letters";
 import { seasonRules } from "../rules/rulesHistory";
 import { refuse, runnerOf, teamIn } from "../shared/leagueAccess";
 import { figureWords } from "../shared/numberWords";
-import { begunGameweeks, workedOutGameweek } from "../gameweekScorer/gameweekScores";
+import { hasBegun, workedOutGameweek } from "../gameweekScorer/gameweekScores";
 import { leagueReads } from "../gameweekScorer/teamGameweek";
 import { rescoreGameweek } from "./finalScores";
 import { TEAM_OVERRIDE_POINTS_MOST } from "./overrideLimits";
@@ -75,7 +75,7 @@ async function overridableTeam(ctx: MutationCtx, leagueId: Id<"leagues">, gamewe
   const { email: by, league } = await runnerOf(ctx, leagueId);
   const team = await teamIn(ctx, leagueId, teamId);
   const season = await seasonRules(ctx, leagueId);
-  if (!(await begunGameweeks(ctx, league)).includes(gameweek)) refuse(overrideRefusals.notBegun(gameweek));
+  if (!(await hasBegun(ctx, league, gameweek))) refuse(overrideRefusals.notBegun(gameweek));
   const reads = await leagueReads(ctx, league, season);
   const total = async () => (await (await workedOutGameweek(ctx, reads, gameweek, [teamId])).pointsOf(teamId)).points;
   return { by, league, team, gameweek, wholePointsOnly: reads.setIn(gameweek).wholePointsOnly, total };

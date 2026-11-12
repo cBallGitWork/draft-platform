@@ -85,8 +85,7 @@ counts, including what was declined ("3 things written three times: 2 lifted, 1 
 `git log --grep '^refactor: drift pass' main` lists the passes. Each merged pull request is one
 commit on `main`, so the count since the last pass is
 `git rev-list --count $(git log -1 --format=%H --grep '^refactor: drift pass' main)..main`.
-`Self-review:` is the drift pass's record line only; a feature branch records /refactor in its
-PR's checks box.
+`Self-review:` is the drift pass's record line only.
 
 ## The architecture pass
 

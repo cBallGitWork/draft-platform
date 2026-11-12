@@ -4,7 +4,7 @@ import type { Id } from "../../../convex/_generated/dataModel";
 import { FIRST_INSTRUCTIONS, type InstructionPair } from "../../../convex/lineup/instructions";
 import { pairRefusalWords } from "../../../convex/lineup/instructionsWords";
 import { PLAN_NAME_MOST, PLANS_KEPT, planRefusals } from "../../../convex/lineup/lineupWords";
-import { DEFAULT_PRESETS } from "../../../convex/lineup/presets";
+import { FIRST_PRESETS } from "../../../convex/lineup/presets";
 import { DEFAULT_ROLES } from "../../../convex/lineup/roles";
 import { positionOfSlot } from "../../../convex/lineup/pitch";
 import { refusals } from "../../../convex/shared/leagueAccess";
@@ -17,7 +17,7 @@ import { fakeResend, signInDeployment } from "../../support/convex/signIn.harnes
 // (Craig, 6 Nov 2026).
 
 const [ANN, BOB, , , EVE] = MANAGERS;
-const [FOUR_FOUR_TWO, FOUR_THREE_THREE] = DEFAULT_PRESETS;
+const [FOUR_FOUR_TWO, FOUR_THREE_THREE] = FIRST_PRESETS;
 /** The 4-4-2's slots, each on its position's last role: a role other than the slot's first. */
 const PRESS = FOUR_FOUR_TWO.cells.map((cell) => ({ ...cell, role: DEFAULT_ROLES[positionOfSlot(cell)].at(-1)!.key }));
 

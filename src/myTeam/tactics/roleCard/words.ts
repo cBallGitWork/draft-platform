@@ -1,11 +1,13 @@
 // What the role card says (the approved role card, Role card B1; spec/05 Roles; #848), in one place
 // for Craig to change in the pull request.
 
+import { ROLE_BARS_MOST } from "../../../../convex/scoring/scoringSet";
 import { listSeparator, seasonShortWords, signedWords } from "../../../shared/words";
 import { gameweekShort } from "../../header/words";
+import { ROLE_FIT_SUBJECT } from "../words";
 
-export { cancelWords } from "../formationWindow/words";
-export { figureWords, nextFixtureShort, noFigureWords, signedWords } from "../../../shared/words";
+export { inUseWords, pointsHead } from "../words";
+export { cancelWords, figureWords, nextFixtureShort, noFigureWords, signedWords } from "../../../shared/words";
 
 /** The card's plate: "Caicedo CHE, his role", then his slot's chip and its position in words. */
 export const cardTitle = (name: string) => `${name}, his role`;
@@ -14,13 +16,14 @@ export const closeCardLabel = (name: string) => `Close ${name}'s role card`;
 export const ROLES_TITLE = "Roles for this slot";
 /** The left panel's plate aside: his base points over the matches the card prices. */
 export const basePointsHead = (matches: number) => `Base points, his last ${matches} played`;
-export const ROLE_COLUMNS = { role: "Role", fit: "Role fit", rewards: "Rewards", punishes: "Punishes", fromRole: "+/− from role", total: "Total" } as const;
-export const inUseWords = "In use";
+/** Two heads the roles table and the matches table both carry. */
+const fromRoleHead = "+/− from role";
+const totalHead = "Total";
+export const ROLE_COLUMNS = { role: "Role", fit: ROLE_FIT_SUBJECT, rewards: "Rewards", punishes: "Punishes", fromRole: fromRoleHead, total: totalHead } as const;
 /** A role no real Sportmonks read has shown the stats of yet (spec/05 `S05.30`). */
 export const notTestedWords = "Not tested";
-export const pointsHead = "Points";
 /** spec/05 Roles: a role moves a match by at most 3 either way (Craig, 5 Nov 2026). */
-export const roleLimitWords = "±3 a match at most";
+export const roleLimitWords = `±${ROLE_BARS_MOST} a match at most`;
 export const rewardsWords = (stats: readonly string[]) => stats.join(listSeparator);
 
 /** What a role's stars mean in a word (the approved role card: "a word beside the stars"; Craig,
@@ -39,7 +42,7 @@ export const whereHeMovesWords = "Where he moves";
 /** His matches under the previewed role. */
 export const matchesTitle = (matches: number, role: string) => `His last ${matches} matches played, as ${role.toLowerCase()}`;
 export const noMatchesWords = "No matches yet";
-export const MATCH_COLUMNS = { gameweek: "GW", opponent: "Opponent", minutes: "Mins", base: "Base", fromRole: "+/− from role", total: "Total" } as const;
+export const MATCH_COLUMNS = { gameweek: "GW", opponent: "Opponent", minutes: "Mins", base: "Base", fromRole: fromRoleHead, total: totalHead } as const;
 export const lastNWords = (matches: number) => `Last ${matches}`;
 export { gameweekShort, seasonShortWords };
 /** One of last season's matches, whose copy holds no opponent. */

@@ -17,7 +17,7 @@ import {
   scoresLeague,
   type ScoresLeague,
 } from "../../support/convex/gameweekScores.harness";
-import { fullTimeRecords, lockMatch, storeLeague } from "../../support/convex/gameweekScoresMatch.harness";
+import { fullTimeRecords, lockMatch, storedLeague, storeLeague } from "../../support/convex/gameweekScoresMatch.harness";
 import { actingAs, ADMIN, COMMISSIONER, teamName } from "../../support/convex/leagues.harness";
 import { HULL_EVERTON } from "../../support/convex/matchStats.harness";
 import { expectRefused } from "../../support/convex/test.harness";
@@ -31,15 +31,6 @@ import { expectRefused } from "../../support/convex/test.harness";
 /** Enough to turn Ann's loss into a win. */
 const SET = 40;
 const REASON = "Two subs the auto-subs missed";
-
-async function storedLeague(): Promise<ScoresLeague> {
-  const league = await scoresLeague();
-  await holdHullAndEverton(league);
-  await fullTimeRecords(league);
-  await lockMatch(league);
-  await storeLeague(league);
-  return league;
-}
 
 type TeamOverride = { gameweek?: number; teamId?: Id<"teams">; points?: number; reason?: string };
 const overridesTeam = async (league: ScoresLeague, by: string, { gameweek = GAMEWEEK, teamId = league.annsTeam, points = SET, reason = REASON }: TeamOverride = {}) =>

@@ -113,13 +113,17 @@ export const sendApprovedEmail = internalAction({
   handler: async (ctx, args) => {
     const to: { email: string; leagueName: string } | null = await ctx.runMutation(internal.joining.joinRequests.takeEmailFor, args);
     if (to === null) return null;
+    let sendError: string | null = null;
     try {
       await sendEmail(to.email, approvedEmail({ leagueName: to.leagueName, teamName: args.teamName }, Date.now()));
-      await ctx.runMutation(internal.joining.joinRequests.recordApprovedEmail, { requestId: args.requestId, delivery: "sent" });
     } catch (error) {
-      const sendError = logFailure(`The email telling ${to.email} they're in ${to.leagueName} wasn't sent`, error);
-      await ctx.runMutation(internal.joining.joinRequests.recordApprovedEmail, { requestId: args.requestId, delivery: "notSent", sendError });
+      sendError = logFailure(`The email telling ${to.email} they're in ${to.leagueName} wasn't sent`, error);
     }
+    // outside the try: a failure to save the outcome fails the action, never reads as "not sent"
+    await ctx.runMutation(
+      internal.joining.joinRequests.recordApprovedEmail,
+      sendError === null ? { requestId: args.requestId, delivery: "sent" } : { requestId: args.requestId, delivery: "notSent", sendError },
+    );
     return null;
   },
 });

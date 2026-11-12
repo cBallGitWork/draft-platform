@@ -35,7 +35,7 @@ export function gameModeOf(rules: Pick<LeagueRules, "format">): GameMode {
 /** The site's scoring set as a league in `mode` scores it: without its roles' scoring if it plays
  *  no roles, and without its instructions' (the back line among them) if it plays no team
  *  instructions. A league that plays both gets the very set read, so it is checked once
- *  (scoring.ts's `checkedOnce`). The scorer's one seam (teamGameweek.ts's `rulesIn`). */
+ *  (scoringSet.ts's `checkedOnce`). The scorer's one seam (teamGameweek.ts's `rulesIn`). */
 export function playedSet<Set extends Pick<ScoringSet, "roles" | "instructions">>(
   set: Set,
   mode: Pick<GameMode, "scoresRoles" | "scoresInstructions">,

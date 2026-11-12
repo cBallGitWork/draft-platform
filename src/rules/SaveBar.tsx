@@ -8,20 +8,24 @@ import { appliesFromWords, discardWords, gameweekWords, loadLatestWords, overtak
  *  saved the rules over the draft, it says its save will be refused, unless a refusal already says
  *  so, and offers the latest in place of Discard. `savedWords` says a save was made, from when;
  *  `saveLabel` names the save; a save that applies to no gameweek, such as a draft patch's, passes
- *  `appliesFrom` false. */
+ *  `appliesFrom` false. `savedNote`, when set, says a save that applies from no gameweek was made,
+ *  in place of the unchanged note (League settings' draft start date alone, #1780). */
 export function SaveBar<Part>({
   draft,
   savedWords,
   saveLabel = saveWords,
   appliesFrom = true,
+  savedNote = null,
   children,
 }: {
   draft: RulesEdits<Part>;
   savedWords: (gameweek: number) => string;
   saveLabel?: string;
   appliesFrom?: boolean;
+  savedNote?: string | null;
   children?: ReactNode;
 }) {
+  const said = draft.savedFrom === null ? savedNote : savedWords(draft.savedFrom);
   return (
     <div className="bg-panel">
       <div className="flex flex-wrap items-center gap-x-4 gap-y-2 px-3 py-2">
@@ -42,8 +46,8 @@ export function SaveBar<Part>({
           </button>
         </span>
       </div>
-      {draft.unchanged && draft.savedFrom === null && <PanelNote edge="b">{unchangedWords}</PanelNote>}
-      <Status words={draft.savedFrom === null ? null : savedWords(draft.savedFrom)} className="px-3 pb-2" />
+      {draft.unchanged && said === null && <PanelNote edge="b">{unchangedWords}</PanelNote>}
+      <Status words={said} className="px-3 pb-2" />
       <Problem problem={draft.problem} />
       {draft.overtaken && (
         <>

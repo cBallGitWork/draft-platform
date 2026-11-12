@@ -3,7 +3,7 @@ import type { Doc, Id } from "../_generated/dataModel";
 import type { MutationCtx, QueryCtx } from "../_generated/server";
 import { draftHasStarted, draftOf } from "../draft/draftRow";
 import { roundsOf } from "../draft/draftRules";
-import { pickOwner, type TradedPick } from "../draft/snakeOrder";
+import { pickOwner, samePick, type TradedPick } from "../draft/snakeOrder";
 import { fileLetter } from "../mail/letters";
 import { pickTradeUndoneLetter } from "../mail/tradeLetterWords";
 import { latestRules } from "../rules/rulesHistory";
@@ -28,7 +28,7 @@ export type TradePick = Infer<typeof tradePick>;
 /** A pick trade's two picks: the one going from the offering team, and the one coming back. */
 export type TradePicks = { gives: TradePick; gets: TradePick };
 
-export const pickRefusals = {
+export const pickTradeRefusals = {
   started: "Picks are traded only before the draft starts.",
   pickAndMore: "A trade with a pick in it is one pick for one pick, and nothing else.",
   noRounds: "This league's squads have no size limit, so its draft has no rounds to trade picks in.",
@@ -38,12 +38,9 @@ export const pickRefusals = {
 };
 
 /** The picks that have changed hands in the league's draft, none before any has. */
-export async function tradedPicksIn(ctx: QueryCtx, leagueId: Id<"leagues">) {
+async function tradedPicksIn(ctx: QueryCtx, leagueId: Id<"leagues">) {
   return (await draftOf(ctx, leagueId))?.tradedPicks ?? [];
 }
-
-/** Whether two picks are one: the same round of the same team's. */
-export const samePick = (one: TradePick, other: TradePick) => one.round === other.round && one.teamId === other.teamId;
 
 /** The offer's picks, both of them. */
 const picksIn = (offer: Doc<"tradeOffers">): TradePick[] => (offer.picks === undefined ? [] : [offer.picks.gives, offer.picks.gets]);
@@ -56,24 +53,24 @@ export async function checkPicks(
   picks: TradePicks,
   sides: { from: Doc<"teams">; to: Doc<"teams">; players: number },
 ): Promise<void> {
-  if (sides.players > 0) refuse(pickRefusals.pickAndMore);
-  if (await draftHasStarted(ctx, leagueId)) refuse(pickRefusals.started);
-  const rounds = roundsOf(await latestRules(ctx, leagueId)) ?? refuse(pickRefusals.noRounds);
+  if (sides.players > 0) refuse(pickTradeRefusals.pickAndMore);
+  if (await draftHasStarted(ctx, leagueId)) refuse(pickTradeRefusals.started);
+  const rounds = roundsOf(await latestRules(ctx, leagueId)) ?? refuse(pickTradeRefusals.noRounds);
   const traded = await tradedPicksIn(ctx, leagueId);
   for (const [pick, holder] of [
     [picks.gives, sides.from],
     [picks.gets, sides.to],
   ] as const) {
-    if (!Number.isInteger(pick.round) || pick.round < 1 || pick.round > rounds) refuse(pickRefusals.noRound(rounds));
+    if (!Number.isInteger(pick.round) || pick.round < 1 || pick.round > rounds) refuse(pickTradeRefusals.noRound(rounds));
     await teamIn(ctx, leagueId, pick.teamId);
-    if (pickOwner(traded, pick.round, pick.teamId) !== holder._id) refuse(pickRefusals.notHeld(await pickName(ctx, pick), holder.name));
+    if (pickOwner(traded, pick.round, pick.teamId) !== holder._id) refuse(pickTradeRefusals.notHeld(await pickName(ctx, pick), holder.name));
   }
 }
 
 /** A pick as the New offer tab offers it: `teamId`'s pick in `round`, `teamName` its team, and
  *  `held` while it is in a trade under review. */
 export const tradablePick = v.object({ round: v.number(), teamId: v.id("teams"), teamName: v.string(), held: v.boolean() });
-export type TradablePick = Infer<typeof tradablePick>;
+type TradablePick = Infer<typeof tradablePick>;
 
 /** Who holds each pick of the league's draft now: a team's picks, round by round. None once the
  *  draft has started, or in a league with no rounds. */
@@ -100,12 +97,12 @@ export async function pickHolders(
 export async function checkPicksFree(ctx: QueryCtx, offer: Doc<"tradeOffers">): Promise<void> {
   const reviewed = (await leagueOffers(ctx, offer.leagueId)).filter((each) => each.review !== undefined && each._id !== offer._id);
   for (const pick of picksIn(offer)) {
-    if (reviewed.some((each) => picksIn(each).some((other) => samePick(pick, other)))) refuse(pickRefusals.held(await pickName(ctx, pick)));
+    if (reviewed.some((each) => picksIn(each).some((other) => samePick(pick, other)))) refuse(pickTradeRefusals.held(await pickName(ctx, pick)));
   }
 }
 
 /** A pick trade that went through: the team that offered it, the team it was to, and its picks. */
-export type PickTrade = { fromTeamId: Id<"teams">; toTeamId: Id<"teams">; picks: TradePicks };
+type PickTrade = {fromTeamId: Id<"teams">; toTeamId: Id<"teams">; picks: TradePicks };
 
 /** `traded` once `trade` goes through: each pick is its new owner's, a pick back with its own team
  *  losing its entry. */

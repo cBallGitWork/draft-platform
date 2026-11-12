@@ -1,17 +1,14 @@
 // The frame's league pages (src/routes/frame.tsx): each is for the league the app is in, and a
-// switch to another league starts it afresh rather than keeping the last league's state; and a
-// placeholder stands only at a menu page with no screen built yet.
+// switch to another league starts it afresh rather than keeping the last league's state. That every
+// menu page has a route is menuRoutes.test.ts's.
 
 import { screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
-import { HOME_PATH, MAIL_PATH, MATCHUP_PATH, MY_TEAM_PATH, pages, SCOUTING_PATH, TABLE_PATH } from "../../../src/frame/menu";
-import { notBuiltWords } from "../../../src/frame/words";
+import { HOME_PATH, MATCHUP_PATH, MY_TEAM_PATH, SCOUTING_PATH, TABLE_PATH } from "../../../src/frame/menu";
 import { matchPath } from "../../../src/premierLeague/paths";
-import { createShellRouter, type ShellContext } from "../../../src/routes/router";
-import { frameChildren } from "../../../src/routes/frame";
 import { leagueTableOf } from "../../../src/table/drawnTable";
-import { gameweekWords, TABLE_PAGE_TITLE } from "../../../src/table/words";
+import { gameweekWords } from "../../../src/table/words";
 import { nextGameweekLabel } from "../../../src/shared/words";
 import { league, managerIn, miniBeta, openApp } from "../../support/src/shell.harness";
 
@@ -38,24 +35,5 @@ describe("a switch to another league", () => {
 
     app.becomes(inMiniBeta);
     expect(await screen.findByRole("heading", { level: 3, name: gameweekWords(1) })).toBeTruthy();
-  });
-});
-
-describe("the placeholders for pages not built", () => {
-  createShellRouter({} as ShellContext); // which fills in each route's path
-  const paths: readonly string[] = frameChildren.map((route) => route.fullPath);
-
-  it("give no address two routes", () => {
-    expect(paths.filter((path, index) => paths.indexOf(path) !== index)).toEqual([]);
-  });
-
-  it("give every menu page a route here but Mail, whose route is with the league pages", () => {
-    expect(pages.map((page) => page.path).filter((path) => !paths.includes(path))).toEqual([MAIL_PATH]);
-  });
-
-  it("don't stand at a built page", async () => {
-    openApp(TABLE_PATH, inTwo);
-    await screen.findByRole("heading", { level: 1, name: TABLE_PAGE_TITLE });
-    expect(screen.queryByText(notBuiltWords)).toBeNull();
   });
 });

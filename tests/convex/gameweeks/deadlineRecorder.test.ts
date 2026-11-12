@@ -5,7 +5,7 @@ import { LEAGUES_READ_MOST } from "../../../convex/shared/cappedRead";
 import { FIRST_RULES } from "../../../convex/rules/firstRules";
 import { FIRST_GAMEWEEK } from "../../../convex/gameweeks/usedGameweeks";
 import { HOUR_MS, MINUTE_MS } from "../../../convex/shared/time";
-import { adminCreatesLeague, COMMISSIONER } from "../../support/convex/leagues.harness";
+import { adminCreatesLeague, COMMISSIONER, TEST_LEAGUE_TEAMS } from "../../support/convex/leagues.harness";
 import { changeRules, giveDeadlineRule } from "../../support/convex/leagueRules.harness";
 import { syncWith } from "../../support/convex/footballSync.harness";
 import { fakeResend } from "../../support/convex/signIn.harness";
@@ -41,7 +41,7 @@ useDeadlineRecorderDeployment();
 describe("recording", () => {
   test("records each league's deadline once it has passed, under its own rule, and not before", async () => {
     fakeResend();
-    const other = await adminCreatesLeague(t, 4, "Other");
+    const other = await adminCreatesLeague(t, TEST_LEAGUE_TEAMS, "Other");
     await giveDeadlineRule(t, other, THREE_HOURS);
     vi.setSystemTime(deadlineBefore(OPENER) - 1);
     await recordPassed();
