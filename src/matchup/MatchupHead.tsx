@@ -3,7 +3,6 @@ import type { ReactNode } from "react";
 import type { MatchupSide } from "../../convex/matchup/matchupShape";
 import type { Matchup } from "./seam";
 import { matchupLink } from "./paths";
-import { sideName } from "./SidePanel";
 import { onPitch } from "./SidePitch";
 import {
   figureWords,
@@ -12,7 +11,6 @@ import {
   gameSwitchWords,
   gameweekShort,
   gameweekWords,
-  leagueAverageWords,
   nextGlyph,
   nextLabel,
   previousGlyph,
@@ -20,6 +18,7 @@ import {
   provisionalWords,
   SCORE_LABEL,
   scoreWords,
+  sideName,
   standingWords,
   versusWords,
 } from "./words";
@@ -43,7 +42,7 @@ export function GameSwitch({ matchup: { teamId, games, gameNumber }, gameweek }:
     <nav aria-label={GAME_SWITCH_LABEL} className="flex flex-wrap justify-center">
       {games.map((against, index) => {
         const number = index + 1;
-        const words = gameSwitchWords(number, against.kind === "bye" ? null : against.kind === "team" ? against.teamName : leagueAverageWords);
+        const words = gameSwitchWords(number, against.kind === "bye" ? null : sideName(against));
         return number === gameNumber ? (
           <span key={number} aria-current="page" className={`${switchClasses} bg-name-plate text-fact shadow-subtab-active`}>
             {words}
