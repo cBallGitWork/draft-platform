@@ -1,5 +1,6 @@
 // Throwaway: shoots #1618's screens at 1440 for ui-verifier. Not committed.
 import { test } from "@playwright/test";
+import { previewUrl } from "../support/smoke/previewUrl";
 
 const OUT = "/tmp/b1618/shots";
 
@@ -16,20 +17,20 @@ test.describe("shoot", { tag: "@dev" }, () => {
       await page.waitForTimeout(500);
       await page.screenshot({ path: `${OUT}/${name}.png`, fullPage: true });
     };
-    await shot("/premier-league?preview=manager", "premier-league");
-    await shot("/leagues/preview-pro-league/settings?preview=commissioner", "settings");
-    await shot("/team?preview=manager", "team");
+    await shot(previewUrl("/premier-league", "manager"), "premier-league");
+    await shot(previewUrl("/leagues/preview-pro-league/settings", "commissioner"), "settings");
+    await shot(previewUrl("/team", "manager"), "team");
     await page.getByRole("button", { expanded: false, name: /^Off/ }).click();
     await page.screenshot({ path: `${OUT}/team-panel.png`, fullPage: true });
     const options = await page.locator("select").first().locator("option").allTextContents();
     console.log("AUTO TEAM OPTIONS:", options[0], "…", options.at(-1), options.length);
-    await page.goto("/leagues/preview-pro-league/settings?preview=commissioner");
+    await page.goto(previewUrl("/leagues/preview-pro-league/settings", "commissioner"));
     await page.getByRole("checkbox", { name: "A trade deadline" }).check();
     await page.getByText(/^A gameweek, 1 to/).waitFor();
     console.log("HINT:", await page.getByText(/^A gameweek, 1 to/).textContent());
     await page.getByText(/^A gameweek, 1 to/).scrollIntoViewIfNeeded();
     await page.screenshot({ path: `${OUT}/settings-trade-deadline.png` });
-    await page.goto("/premier-league?preview=manager");
+    await page.goto(previewUrl("/premier-league", "manager"));
     const next = page.getByRole("button", { name: /next gameweek/i });
     await next.waitFor();
     while (await next.isEnabled()) await next.click();
