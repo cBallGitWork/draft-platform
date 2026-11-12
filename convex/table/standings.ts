@@ -90,6 +90,38 @@ export function averageOf<Team>(teams: readonly Team[], scores: ReadonlyMap<Team
   return inTenths(total / teams.length);
 }
 
+/** Both sides' scores in a fixture of a gameweek scored: `team`'s, and its opponent's or, against
+ *  the league's average, the average over `teams` (the gameweek's own, `teamsInGameweek`). The one
+ *  score step the table, the form chips and the fixtures list (teamGames.ts's `gameScore`) share. */
+export function fixtureScores<Team>(
+  teams: readonly Team[],
+  scored: ReadonlyMap<Team, number>,
+  gameweek: number,
+  team: Team,
+  opponent: Team | typeof LEAGUE_AVERAGE,
+): { team: number; opponent: number } {
+  const own = scoreIn(scored, team, gameweek);
+  return { team: own, opponent: opponent === LEAGUE_AVERAGE ? averageOf(teams, scored, gameweek) : scoreIn(scored, opponent, gameweek) };
+}
+
+/** A fixture of a gameweek scored, with both sides' scores. */
+type ScoredMeeting<Team> = { team: Team; opponent: Team | typeof LEAGUE_AVERAGE; teamScore: number; opponentScore: number };
+
+/** Each fixture of every gameweek scored in `schedule`, in order, with both sides' scores: what
+ *  `headToHeadTable` and `formOf` both count. A gameweek with no scores yet gives none. */
+function* scoredMeetings<Team>(schedule: readonly GameweekFixtures<Team>[], scores: GameweekScores<Team>): Generator<ScoredMeeting<Team>> {
+  for (const drawn of schedule) {
+    const { gameweek, fixtures } = drawn;
+    const scored = scores.get(gameweek);
+    if (scored === undefined) continue;
+    const teams = teamsInGameweek(drawn);
+    for (const { team, opponent } of fixtures) {
+      const both = fixtureScores(teams, scored, gameweek, team, opponent);
+      yield { team, opponent, teamScore: both.team, opponentScore: both.opponent };
+    }
+  }
+}
+
 /** The head-to-head table: each fixture of a gameweek scored counts once for each team in it; the
  *  team left over plays the league's average of the gameweek's teams (`teamsInGameweek`), or, on a
  *  bye, nothing. */
@@ -106,21 +138,11 @@ export function headToHeadTable<Team>(
     return row;
   };
   const meetings: Meeting<Team>[] = [];
-  for (const drawn of schedule) {
-    const { gameweek, fixtures } = drawn;
-    const scored = scores.get(gameweek);
-    if (scored === undefined) continue;
-    for (const { team, opponent } of fixtures) {
-      const teamScore = scoreIn(scored, team, gameweek);
-      if (opponent === LEAGUE_AVERAGE) {
-        addResult(rowOf(team), teamScore, averageOf(teamsInGameweek(drawn), scored, gameweek));
-        continue;
-      }
-      const opponentScore = scoreIn(scored, opponent, gameweek);
-      addResult(rowOf(team), teamScore, opponentScore);
-      addResult(rowOf(opponent), opponentScore, teamScore);
-      meetings.push({ team, opponent, teamScore, opponentScore });
-    }
+  for (const { team, opponent, teamScore, opponentScore } of scoredMeetings(schedule, scores)) {
+    addResult(rowOf(team), teamScore, opponentScore);
+    if (opponent === LEAGUE_AVERAGE) continue;
+    addResult(rowOf(opponent), opponentScore, teamScore);
+    meetings.push({ team, opponent, teamScore, opponentScore });
   }
   const byPoints = rankedGroups([...rows.values()], (row) => row.points);
   return byPoints.flatMap((level) => brokenTies(level, tieBreaks, meetings));
@@ -154,16 +176,9 @@ export function formOf<Team>(
     if (results === undefined) throw new Error(`${String(team)} has a fixture but isn't one of the league's teams`);
     results.push(result);
   };
-  for (const drawn of schedule) {
-    const { gameweek, fixtures } = drawn;
-    const scored = scores.get(gameweek);
-    if (scored === undefined) continue;
-    for (const { team, opponent } of fixtures) {
-      const teamScore = scoreIn(scored, team, gameweek);
-      const opponentScore = opponent === LEAGUE_AVERAGE ? averageOf(teamsInGameweek(drawn), scored, gameweek) : scoreIn(scored, opponent, gameweek);
-      add(team, resultOf(teamScore, opponentScore));
-      if (opponent !== LEAGUE_AVERAGE) add(opponent, resultOf(opponentScore, teamScore));
-    }
+  for (const { team, opponent, teamScore, opponentScore } of scoredMeetings(schedule, scores)) {
+    add(team, resultOf(teamScore, opponentScore));
+    if (opponent !== LEAGUE_AVERAGE) add(opponent, resultOf(opponentScore, teamScore));
   }
   return new Map([...form].map(([team, results]) => [team, results.slice(-FORM_RESULTS)]));
 }
