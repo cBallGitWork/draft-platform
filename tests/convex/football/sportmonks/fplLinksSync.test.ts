@@ -1,6 +1,7 @@
 // The links to FPL's codes stored (#1421): the link run after the Premier League's read, its counts,
 // the admin's list of what is unlinked (a man only once he has played; Craig, 12 Nov 2026: "Once
-// he plays") and the admin's link by hand, which stands. The linking itself: fplLinks.test.ts.
+// he plays") and the admin's link by hand, which stands (S14.16). The linking itself:
+// fplLinks.test.ts.
 
 import { expect, test } from "vitest";
 import { internal } from "../../../../convex/_generated/api";

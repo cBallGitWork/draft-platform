@@ -1,6 +1,6 @@
 // Sportmonks' Premier League clubs, men and matches linked to FPL's codes (#1421): by name, by
-// clubs and kickoff, by date of birth where both send it, and nothing guessed. Stored and run:
-// fplLinksSync.test.ts.
+// clubs and kickoff, by date of birth where both send it, and nothing guessed: what past seasons
+// are matched to Sportmonks' players through (S14.16). Stored and run: fplLinksSync.test.ts.
 
 import { expect, test } from "vitest";
 import { linkAll, linkPlayers, nameWords, type HeldLinks } from "../../../../convex/football/sportmonks/fplLinks";
