@@ -22,17 +22,21 @@ export function placeOf(ctx: QueryCtx, leagueId: Id<"leagues">, playerCode: numb
 }
 
 /** The most squad rows one league holds: every team's squad full. */
-const LEAGUE_SQUAD_ROWS_MOST = MOST_TEAMS * MOST_IN_SQUAD;
+export const LEAGUE_SQUAD_ROWS_MOST = MOST_TEAMS * MOST_IN_SQUAD;
 
-/** The codes of every player a team in this league holds, its squad rows read in one range rather
- *  than a `placeOf` per player (#1532): what the draft reads its undrafted players from. */
-export async function heldCodesIn(ctx: QueryCtx, leagueId: Id<"leagues">): Promise<Set<number>> {
-  const rows = await takeAllOrThrow(
+/** Every squad row in the league, read in one range rather than a `placeOf` per player (#1532). */
+export function squadRowsIn(ctx: QueryCtx, leagueId: Id<"leagues">): Promise<Doc<"squadPlayers">[]> {
+  return takeAllOrThrow(
     ctx.db.query("squadPlayers").withIndex("by_leagueId_and_playerCode", (q) => q.eq("leagueId", leagueId)),
     LEAGUE_SQUAD_ROWS_MOST,
     `League ${leagueId} holds more than ${LEAGUE_SQUAD_ROWS_MOST} squad rows, so who is held can't be read`,
   );
-  return new Set(rows.map(({ playerCode }) => playerCode));
+}
+
+/** The codes of every player a team in this league holds: what the draft reads its undrafted
+ *  players from. */
+export async function heldCodesIn(ctx: QueryCtx, leagueId: Id<"leagues">): Promise<Set<number>> {
+  return new Set((await squadRowsIn(ctx, leagueId)).map(({ playerCode }) => playerCode));
 }
 
 /** Who owns a player in this league: the league's teams read once, then a lookup per player giving

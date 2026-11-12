@@ -76,6 +76,17 @@ export const shortThenLongName = ({ short, long }: { short: string; long: string
 export const columnHeadName = shortThenLongName;
 /** A stat, as a column of stats or the choice of one is headed. */
 export const STAT_WORD = "Stat";
+/** The season stats' column heads the draft list and My team's squad table both show. */
+export const statColumns = {
+  appearances: { short: "MP", long: "Matches played" },
+  goals: { short: "G", long: "Goals" },
+  assists: { short: "A", long: "Assists" },
+  cleanSheets: { short: "CS", long: "Clean sheets" },
+} as const;
+/** A squad table's name, as My team's and a trade's say it. */
+export const squadTableLabel = (teamName: string) => `${teamName}'s squad`;
+/** A count of players: "1 player", "12 players". */
+export const playersCount = (count: number) => (count === 1 ? "1 player" : `${count} players`);
 /** The stat box's two groups (src/ui/StatBox.tsx), once the site's set has own stats of its own
  *  (spec/14, Own stats; #910). */
 export const ownStatsGroupWords = "The site's own stats";

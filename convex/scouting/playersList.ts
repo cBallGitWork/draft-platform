@@ -1,11 +1,9 @@
 import { v, type Infer } from "convex/values";
 import type { Doc, Id } from "../_generated/dataModel";
 import { query, type QueryCtx } from "../_generated/server";
-import { MOST_IN_SQUAD, MOST_TEAMS } from "../leagues/leagueLimits";
 import { positionListFrom } from "../positions/playerPositions";
 import { howPositionsCount } from "../positions/positionSettings";
 import { clubRecord, position } from "../schema";
-import { takeAllOrThrow } from "../shared/cappedRead";
 import { memberOf, teamsOf } from "../shared/leagueAccess";
 import { clubOf, currentClubs } from "../shared/players";
 import { newestSeasonWithTotals } from "../stats/seasonStats";
@@ -20,7 +18,8 @@ import type { StoredScoringSet } from "../scoring/scoringSetShape";
 import { latestSiteScoring } from "../scoring/siteVersions";
 import { CATALOGUE_STATS } from "../scoring/statCatalogue";
 import { firstRunsIn, runAhead, type RunAhead } from "../waivers/waiverLock";
-import { WAIVER_PLAYERS_READ_MOST } from "../waivers/waiverPlayers";
+import { squadRowsIn } from "../squads/squadPlace";
+import { waiverRowsIn } from "../waivers/waiverPlayers";
 
 // Scouting's players list (spec/19, The players list; #373): every Premier League player now, for
 // anyone in the league, whole, so the screen never holds a cut list; the browser filters and sorts
@@ -44,9 +43,6 @@ import { WAIVER_PLAYERS_READ_MOST } from "../waivers/waiverPlayers";
  *  a club, with room. Each costs one read of his Scouting row, so a full list stays far inside a
  *  query's read limits. More throws, never a silent cut. */
 export const LISTED_PLAYERS_MOST = 1200;
-
-/** The most players a league can own: every team's squad full. */
-export const OWNED_IN_LEAGUE_MOST = MOST_TEAMS * MOST_IN_SQUAD;
 
 /** Which players by who holds them in this league: all, the unowned (free agents), those on
  *  waivers, or those on a team. */
@@ -227,21 +223,13 @@ export async function currentScoutingPlayersOf(ctx: QueryCtx, clubs: readonly Do
 /** Each owned player's team name in the league, by his code. */
 async function ownersIn(ctx: QueryCtx, leagueId: Id<"leagues">): Promise<Map<number, string>> {
   const teamName = new Map((await teamsOf(ctx, leagueId)).map((team) => [team._id, team.name]));
-  const owned = await takeAllOrThrow(
-    ctx.db.query("squadPlayers").withIndex("by_leagueId_and_playerCode", (q) => q.eq("leagueId", leagueId)),
-    OWNED_IN_LEAGUE_MOST,
-    `More than ${OWNED_IN_LEAGUE_MOST} players are owned in league ${leagueId}, so the list would be cut short`,
-  );
+  const owned = await squadRowsIn(ctx, leagueId);
   return new Map(owned.map((row) => [row.playerCode, teamName.get(row.teamId)!]));
 }
 
 /** Each player on the league's waivers, by his code, with from when a run may take him. */
 async function onWaiversIn(ctx: QueryCtx, leagueId: Id<"leagues">): Promise<Map<number, { claimableFrom: number }>> {
-  const onWaivers = await takeAllOrThrow(
-    ctx.db.query("waiverPlayers").withIndex("by_leagueId_and_playerCode", (q) => q.eq("leagueId", leagueId)),
-    WAIVER_PLAYERS_READ_MOST,
-    `More than ${WAIVER_PLAYERS_READ_MOST} players are on waivers in league ${leagueId}, so the list would be cut short`,
-  );
+  const onWaivers = await waiverRowsIn(ctx, leagueId);
   return new Map(onWaivers.map((row) => [row.playerCode, { claimableFrom: row.claimableFrom }]));
 }
 
