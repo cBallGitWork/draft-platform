@@ -22,7 +22,7 @@ import { commentaryReads, readCommentary, type CommentaryReads } from "./readCom
 import { byKickoff, byKickoffOrder, namedMatch, placeOf, pricedRole, shirtOf } from "./slotParts";
 import { findClubByCode } from "../shared/players";
 import { readOnce } from "../shared/readOnce";
-import { onAutoTeam } from "../trades/tradeShut";
+import { onAutoTeam } from "../lineup/autoTeam";
 
 // One head-to-head in one gameweek (#34; spec/10, The matchup, as a live match; spec/14, On
 // screen): both lineups slot by slot, each player's points and whether his match is yet to come,

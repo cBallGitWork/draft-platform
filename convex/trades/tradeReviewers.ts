@@ -11,7 +11,7 @@ import { teamsOf } from "../shared/leagueAccess";
 import { latestBegun } from "../waivers/waiverLock";
 import { leagueOffers } from "./tradeClose";
 import { leagueOf, managersOf, tradeWordsOf } from "./tradeWords";
-import { onAutoTeam } from "./tradeShut";
+import { onAutoTeam } from "../lineup/autoTeam";
 
 // Who reviews an accepted trade (spec/08 Trades; #383): under a commissioner veto, the
 // commissioner, or the co-commissioner when he is in it, or a league vote when there is none;

@@ -26,7 +26,8 @@ import { leagueOffers } from "./tradeClose";
 import { pickName } from "./tradeWords";
 import { pickHolders, tradablePick } from "./tradePicks";
 import { reviewerOf } from "./tradeReviewers";
-import { offerCloses, onAutoTeam, tradeDeadlineInForce, tradesShut } from "./tradeShut";
+import { onAutoTeam } from "../lineup/autoTeam";
+import { offerCloses, tradeDeadlineInForce, tradesShut } from "./tradeShut";
 import { tradePick } from "../schema";
 
 // The Trades screen's read (#383; spec/12 Trades, its approved picture docs/design/approved/trades):

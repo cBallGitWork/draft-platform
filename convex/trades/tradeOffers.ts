@@ -16,7 +16,8 @@ import { startReview } from "./tradeReview";
 import { tradeWarnings } from "./tradeSquads";
 import { NOTE_MOST, OFFERS_PER_TEAM_MOST } from "./tradeLimits";
 import { checkPicks, checkPicksFree, samePick, type TradePicks } from "./tradePicks";
-import { offerCloses, onAutoTeam, tradeDeadlineInForce, tradesShut } from "./tradeShut";
+import { onAutoTeam } from "../lineup/autoTeam";
+import { offerCloses, tradeDeadlineInForce, tradesShut } from "./tradeShut";
 import { shutWords } from "./tradeShutWords";
 
 // A trade's offer (spec/08 Trades; #383): a manager offers another any mix of players on either

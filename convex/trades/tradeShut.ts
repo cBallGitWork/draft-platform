@@ -50,6 +50,3 @@ export function offerCloses(
   if (next === null || tradeDeadline === null || next.gameweek <= tradeDeadline) return next;
   return { gameweek: tradeDeadline, at: null };
 }
-
-/** Whether the team is on the auto team: switched on by a person, or with no manager (spec/09). */
-export const onAutoTeam = (team: Doc<"teams">) => team.autoTeam !== undefined || team.managerEmail === undefined;

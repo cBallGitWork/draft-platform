@@ -10,7 +10,6 @@ import { logFailure } from "../shared/errors";
 import { callerEmail, getLeague, managerOf, powersIn, refuse, teamIn, teamsOf } from "../shared/leagueAccess";
 import { starsLookup } from "../stars/playerStars";
 import { closeOffersOfTeam } from "../trades/tradeClose";
-import { onAutoTeam } from "../trades/tradeShut";
 import type { RoleStars } from "../stars/starsShape";
 import { autoSubs, standingProblems, type GameweekPlay } from "./autoSubs";
 import { firstLineup, withDroppedRoles, type FirstLineup, type FirstLineupRules } from "./firstLineup";
@@ -161,7 +160,10 @@ export const set = mutation({
 const autoTeamSwitch = v.object({ on: v.boolean(), endsAfter: v.union(v.number(), v.null()) });
 export type AutoTeamSwitch = Infer<typeof autoTeamSwitch>;
 
-/** A team's switch: on while a person switched it on or it has no manager (trades/tradeShut.ts). */
+/** Whether the team is on the auto team: switched on by a person, or with no manager (spec/09). */
+export const onAutoTeam = (team: Doc<"teams">) => team.autoTeam !== undefined || team.managerEmail === undefined;
+
+/** A team's switch: on while a person switched it on or it has no manager (`onAutoTeam`). */
 export const switchOf = (team: Doc<"teams">): AutoTeamSwitch => ({ on: onAutoTeam(team), endsAfter: team.autoTeam?.endsAfter ?? null });
 
 /** The gameweeks an auto team may end after: each the league plays of its season's own count

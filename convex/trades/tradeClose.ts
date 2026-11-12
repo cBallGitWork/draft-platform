@@ -14,7 +14,8 @@ import { leagueOpens } from "../leagues/leagueOpens";
 import { teamIn } from "../shared/leagueAccess";
 import { OFFERS_PER_TEAM_MOST } from "./tradeLimits";
 import { deadlinePassedSince } from "../waivers/waiverLock";
-import { onAutoTeam, tradesShut } from "./tradeShut";
+import { onAutoTeam } from "../lineup/autoTeam";
+import { tradesShut } from "./tradeShut";
 import type { TradesShut } from "./tradeShutWords";
 import { leagueOf, managersOf, tradedName, tradeWordsOf } from "./tradeWords";
 
