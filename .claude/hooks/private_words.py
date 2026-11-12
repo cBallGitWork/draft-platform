@@ -88,7 +88,8 @@ def files_read(words, cwd):
 
 
 def committed_paths(args):
-    """The paths a git commit names: their working copy is committed, staged or not."""
+    """The paths a git commit names: their working copy is committed, staged or not. git commit -a
+    would commit every tracked file's, but guard_bash.py denies it before this check runs."""
     return arguments(args, TEXT_FILE_OPTS | GIT_VALUE_OPTS)[1]
 
 

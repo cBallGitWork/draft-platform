@@ -62,6 +62,7 @@ printf 'clean\n' > "$tmp/named.md" && git -C "$tmp" add named.md && printf 'acme
 check deny guard_bash.py "$(bash_cmd 'git commit -m "clean" named.md')"
 check deny guard_bash.py "$(bash_cmd 'git commit -m "clean" -- named.md')"
 check allow guard_bash.py "$(bash_cmd 'git commit -m "clean"')"
+check allow guard_bash.py "$(bash_cmd 'git commit -m "clean" missing.md')"  # a path git can't find adds no lines
 git -C "$tmp" rm -qf --cached named.md && rm "$tmp/named.md"
 mkdir "$tmp/sub" && git -C "$tmp/sub" init -q -b chore/x && printf 'acmecorp\n' > "$tmp/sub/s.md" && git -C "$tmp/sub" add s.md
 check deny guard_bash.py "$(bash_cmd 'git -C sub commit -m "clean"')"
