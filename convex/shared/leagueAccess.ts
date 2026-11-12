@@ -176,6 +176,13 @@ export async function managerOf(ctx: QueryCtx, leagueId: Id<"leagues">) {
   return { email, league, team };
 }
 
+/** The caller's team in the league, or the refusal that they run none. Unlike `managerOf`, a
+ *  stranger is told they aren't in the league (memberOf), and only a member who runs no team (its
+ *  commissioner, say) is told they run none: the refusals a manager's own lists have always given. */
+export async function ownTeam(ctx: QueryCtx, leagueId: Id<"leagues">): Promise<Doc<"teams">> {
+  return (await memberOf(ctx, leagueId)).team ?? refuse(refusals.runsNoTeam);
+}
+
 /** `managerOf`'s quiet twin, for what the frame asks on every page: the caller, the league and
  *  his team, or null, never a refusal, when he is signed out, the league is gone or frozen for
  *  deletion, or he runs no team in it. */

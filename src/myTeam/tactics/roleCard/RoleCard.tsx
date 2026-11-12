@@ -16,7 +16,7 @@ import { PITCH_SIZE } from "../pitch/pitchMarkings";
 import { RoleRuns } from "../pitch/RoleRuns";
 import { EVEN_ROWS } from "../pitch/rowLayout";
 import type { TacticsSeam } from "../seam";
-import { baseOf, signedOrNothing, sumsOf } from "./cardSums";
+import { baseOf, sumsOf } from "./cardSums";
 import { RoleMatches } from "./RoleMatches";
 import {
   againstInUseWords,
@@ -36,6 +36,7 @@ import {
   roleLimitWords,
   ROLES_TITLE,
   seasonStatsPlaceholder,
+  signedWords,
   starWords,
   whereHeMovesWords,
 } from "./words";
@@ -180,7 +181,7 @@ function RolesTable({
                 </td>
                 <td className="px-2">{rewardsWords(role.rewards)}</td>
                 <td className="px-2">{rewardsWords(role.punishes)}</td>
-                <td className="px-2 text-right font-bold text-figure">{sums === null ? noFigureWords : signedOrNothing(sums.points)}</td>
+                <td className="px-2 text-right font-bold text-figure">{sums === null ? noFigureWords : signedWords(sums.points)}</td>
                 <td className="px-2 text-right font-bold text-figure">{sums === null ? noFigureWords : figureWords(sums.total)}</td>
               </tr>
             );

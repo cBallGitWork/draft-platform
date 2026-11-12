@@ -54,8 +54,7 @@ export const endGameweekLabel = "The gameweek it ends after";
 export const untilSwitchedOffWords = "Until I switch it off";
 export const switchOnWords = "Switch on";
 export const switchOffWords = "Switch off";
-/** When a switch failed before the server could say why. */
-export { cancelWords, changeFailedWords as switchFailedWords } from "../../shared/words";
+export { cancelWords } from "../../shared/words";
 
 /** Points, short as the band says them: "18 pts". */
 export const pointsShort = (points: number) => `${figureWords(points)} pts`;

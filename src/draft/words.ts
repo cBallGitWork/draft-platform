@@ -3,7 +3,7 @@
 
 import { DRAFT_LIST_MOST } from "../../convex/draft/draftLimits";
 import { DAY_MS, HOUR_MS, MINUTE_MS, SECOND_MS } from "../../convex/shared/time";
-import { failedWords, placeWords, seasonShortWords, viaWords } from "../shared/words";
+import { failedWords, placeWords, playersCount, seasonShortWords, statColumns, viaWords } from "../shared/words";
 
 /** The page's title, its menu tab's too, and the state beside it. */
 export { DRAFT_TITLE } from "../shared/words";
@@ -92,7 +92,7 @@ export const fromShortlistWords = "Add from your Scouting shortlist";
 export const addWholeShortlistWords = "Add my whole shortlist";
 /** What "Add my whole shortlist" did, as the queue's limit left it (Craig, 4 Nov 2026, on #1137). */
 export function shortlistAddedWords(added: number, leftOut: number): string {
-  const put = `${added === 1 ? "1 player" : `${added} players`} added to your queue.`;
+  const put = `${playersCount(added)} added to your queue.`;
   return leftOut === 0 ? put : `${put} ${leftOut} left out: a queue holds at most ${DRAFT_LIST_MOST}.`;
 }
 export const DO_NOT_DRAFT_TITLE = "Do not draft";
@@ -151,10 +151,7 @@ export { seasonShortWords } from "../shared/words";
 /** The list's own columns besides Scouting's Pos and Player: a short head, and what it stands for. */
 export const draftColumns = {
   rank: { short: "Rank", long: "Place on the site's ranking" },
-  appearances: { short: "MP", long: "Matches played" },
-  goals: { short: "G", long: "Goals" },
-  assists: { short: "A", long: "Assists" },
-  cleanSheets: { short: "CS", long: "Clean sheets" },
+  ...statColumns,
 } as const;
 /** Last season's points' head, named by the season they are from; with none priced, "last season". */
 export const lastSeasonPointsColumn = (season: number | null) =>

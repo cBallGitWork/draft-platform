@@ -178,7 +178,7 @@ export const squadCountWords = (count: number, maximum: number | null) =>
   maximum === null ? `${count}` : `${count} of ${maximum}`;
 export const partnerLabel = "Team to trade with";
 export const toTeamWords = (teamName: string) => `To ${teamName}`;
-export const squadTableLabel = (teamName: string) => `${teamName}'s squad`;
+export { squadTableLabel } from "../shared/words";
 export const squadColumns = {
   tick: { short: "Tick", long: "In the offer" },
   position: { short: "Pos", long: "Position" },

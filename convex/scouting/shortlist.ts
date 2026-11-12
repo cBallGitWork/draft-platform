@@ -6,7 +6,7 @@ import { bylineOf, fileLetter } from "../mail/letters";
 import { shortlistedClearedLetter, shortlistedDroppedLetter, shortlistedReleasedLetter, shortlistRefusals } from "./shortlistWords";
 import { clubRecord } from "../schema";
 import { takeAllOrThrow } from "../shared/cappedRead";
-import { memberOf, playerOrRefuse, refuse, refusals, teamsOf } from "../shared/leagueAccess";
+import { memberOf, ownTeam, playerOrRefuse, refuse, teamsOf } from "../shared/leagueAccess";
 import { clubByCode, clubOf, hasLeft, heldPlayerByCode } from "../shared/players";
 import { ownerOf } from "../squads/squadPlace";
 
@@ -21,7 +21,7 @@ import { ownerOf } from "../squads/squadPlace";
 export const SHORTLIST_MOST = 100;
 
 /** A player on a manager's own list: the shortlist, or the draft queue or do-not-draft list. */
-export const listedPlayer = v.object({
+export const ownListPlayer = v.object({
   code: v.number(),
   name: v.string(),
   fullName: v.string(),
@@ -31,14 +31,7 @@ export const listedPlayer = v.object({
   /** The feed no longer sends him: he has left the Premier League since he was listed. */
   gone: v.boolean(),
 });
-export type ShortlistedPlayer = Infer<typeof listedPlayer>;
-
-/** The caller's team in the league, or the refusal that they run none. Unlike `managerOf`, a
- *  stranger is told they aren't in the league (memberOf), and only a member who runs no team (its
- *  commissioner, say) is told they run none: the refusals the shortlist has always given. */
-export async function ownTeam(ctx: QueryCtx, leagueId: Id<"leagues">): Promise<Doc<"teams">> {
-  return (await memberOf(ctx, leagueId)).team ?? refuse(refusals.runsNoTeam);
-}
+export type OwnListPlayer = Infer<typeof ownListPlayer>;
 
 /** The team's shortlist rows, at most SHORTLIST_MOST; the draft queue it feeds reads it too
  *  (../draft/draftLists.ts). */
@@ -60,7 +53,7 @@ function entryOf(ctx: QueryCtx, teamId: Id<"teams">, playerCode: number) {
 /** Each player, by FPL code, as a manager's own list shows him: his club, who in the league owns
  *  him, and whether he has left the Premier League. The shortlist's, and the draft queue's and
  *  do-not-draft list's (../draft/draftLists.ts). */
-export async function listedPlayers(ctx: QueryCtx, leagueId: Id<"leagues">, codes: readonly number[]): Promise<ShortlistedPlayer[]> {
+export async function listedPlayers(ctx: QueryCtx, leagueId: Id<"leagues">, codes: readonly number[]): Promise<OwnListPlayer[]> {
   const owner = await ownerOf(ctx, leagueId);
   return Promise.all(
     codes.map(async (playerCode) => {
@@ -83,7 +76,7 @@ export async function listedPlayers(ctx: QueryCtx, leagueId: Id<"leagues">, code
  *  commissioner or the admin only), who has none. */
 export const mine = query({
   args: { leagueId: v.id("leagues") },
-  returns: v.union(v.array(listedPlayer), v.null()),
+  returns: v.union(v.array(ownListPlayer), v.null()),
   handler: async (ctx, { leagueId }) => {
     const { team } = await memberOf(ctx, leagueId);
     if (!team) return null;

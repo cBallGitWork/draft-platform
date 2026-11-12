@@ -5,10 +5,9 @@ import { mutation, query, type QueryCtx } from "../_generated/server";
 import { scoutsPerTeam } from "../admin/platformSettings";
 import { scoutState } from "../schema";
 import { takeAllOrThrow } from "../shared/cappedRead";
-import { memberOf, playerOrRefuse, refuse } from "../shared/leagueAccess";
+import { memberOf, ownTeam, playerOrRefuse, refuse } from "../shared/leagueAccess";
 import { hasLeft, playerByCode, unheldPlayerWords } from "../shared/players";
 import { DAY_MS, seasonStartAt } from "../shared/time";
-import { ownTeam } from "./shortlist";
 import { scoutRefusals } from "./scoutWords";
 
 // Scouts (spec/19, Scouts; #375): each team has the site's number of them (3). A manager sends one

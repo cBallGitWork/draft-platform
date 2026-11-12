@@ -1,11 +1,10 @@
-import { positionOfSlot, sameCell } from "../../../../convex/lineup/pitch";
+import { cellKey, positionOfSlot, sameCell } from "../../../../convex/lineup/pitch";
 import { roleIn } from "../../../../convex/lineup/roles";
 import { Placeholder } from "../../../ui/Placeholder";
 import { PositionChip } from "../../../ui/PositionChip";
-import { standingIn, type EditedLineup, type MoveRules, type RatingsOf } from "../lineupEdits";
+import { standingIn, type EditedLineup, type MoveRules, type PresetShape as Shape, type RatingsOf } from "../lineupEdits";
 import { reshaped } from "../reshape";
 import { cellGridOf, rowLayoutOf } from "../pitch/rowLayout";
-import type { Shape } from "./formationGroups";
 import { cellsDrawn } from "./FormationTile";
 import {
   appliesHead,
@@ -69,7 +68,7 @@ export function FormationPreview({
             const inShape = shape.cells.some((each) => sameCell(each, cell));
             const standing = standingIn(after, cell);
             return (
-              <span key={`${cell.area}-${cell.lane}`} className="flex min-w-0 flex-col items-center justify-center">
+              <span key={cellKey(cell)} className="flex min-w-0 flex-col items-center justify-center">
                 {inShape && (
                   <>
                     <PositionChip label={positionOfSlot(cell)} />
