@@ -1,6 +1,6 @@
 import { useState, type FormEvent } from "react";
 import type { Id } from "../../convex/_generated/dataModel";
-import { OVERRIDE_POINTS_MOST, OVERRIDE_REASON_MAX } from "../../convex/table/overrideLimits";
+import { OVERRIDE_POINTS_MOST, OVERRIDE_POINTS_STEP, OVERRIDE_REASON_MAX } from "../../convex/table/overrideLimits";
 import { PANEL_BODY, Problem, Status } from "../ui/Panel";
 import { useChange } from "../shared/useChange";
 import { useChoiceAmong } from "../shared/useChoiceAmong";
@@ -22,8 +22,6 @@ const POINTS_ID = "override-points";
 const REASON_ID = "override-reason";
 /** The hint, what an override does, describes the points box. */
 const HINT_ID = "override-hint";
-/** Points are kept to a tenth (spec/14). */
-const POINTS_STEP = 0.1;
 
 /** The card's override (spec/14, Changes and corrections; #32), for whoever runs the league: one of
  *  his matches this season, his points there and why. Shut until asked for, and again on Cancel;
@@ -104,7 +102,7 @@ export function OverridePoints({ leagueId, card, selected, seam }: { leagueId: I
               id={POINTS_ID}
               type="number"
               required
-              step={POINTS_STEP}
+              step={OVERRIDE_POINTS_STEP}
               min={-OVERRIDE_POINTS_MOST}
               max={OVERRIDE_POINTS_MOST}
               value={points}

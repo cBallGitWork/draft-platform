@@ -51,6 +51,10 @@ export const draftRulesOf = (rules: LeagueRules): DraftRules => rules.draft ?? F
  *  it has no trade deadline until its commissioner sets one. */
 const FIRST_TRADE_RULES: TradeRules = { review: "veto", deadline: null };
 
+/** Craig's (spec/03, spec/08; 5 Nov 2026): the time of day of each of the first waiver runs, 18:00
+ *  UK time, and of a run the settings add. */
+export const FIRST_RUN_TIME = { hour: 18, minute: 0 } as const;
+
 /** How the league's trades run: the first rules' for rules saved before #383 made it a rule. */
 export const tradeRulesOf = (rules: LeagueRules): TradeRules => rules.trades ?? FIRST_TRADE_RULES;
 
@@ -90,8 +94,8 @@ export const FIRST_RULES: LeagueRules = {
   // and reverse table order. The 24 hours on waivers is a constant (../waivers/waiverLimits.ts).
   waivers: {
     runs: [
-      { day: "wednesday", hour: 18, minute: 0 },
-      { day: "thursday", hour: 18, minute: 0 },
+      { day: "wednesday", ...FIRST_RUN_TIME },
+      { day: "thursday", ...FIRST_RUN_TIME },
     ],
     order: "reverseStandings",
   },
