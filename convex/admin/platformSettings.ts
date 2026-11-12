@@ -55,12 +55,7 @@ export function scoutsPerTeam(ctx: QueryCtx): Promise<number> {
 /** Sets any of the settings, as `save` does without the admin, for tests and the command line
  *  (`npx convex run admin/platformSettings:setSettings '{"scoutsPerTeam": 2}'`). */
 export const setSettings = internalMutation({
-  args: {
-    statCorrectionWindowMinutes: v.optional(v.number()),
-    scoutsPerTeam: v.optional(v.number()),
-    matchdayHoursBefore: v.optional(v.number()),
-    matchdayHoursAfter: v.optional(v.number()),
-  },
+  args: platformSettings.partial().fields,
   returns: v.null(),
   handler: async (ctx, values) => {
     await saveAll(ctx, values);
