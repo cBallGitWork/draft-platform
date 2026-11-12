@@ -31,7 +31,7 @@ import {
 
 /** The preset the eleven stand in, read as the matchup reads it (presets.ts `presetNameOf`; #1019):
  *  the starters' cells and any slot left empty by a man gone from the squad. */
-export function formationOf({ lineup: { starters, vacated }, presets }: Pick<OpenTactics, "lineup" | "presets">): string | null {
+function formationOf({ lineup: { starters, vacated }, presets }: Pick<OpenTactics, "lineup" | "presets">): string | null {
   return presetNameOf([...starters, ...vacated], presets);
 }
 
