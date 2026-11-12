@@ -5,7 +5,7 @@ import { seasonName } from "../../convex/shared/time";
 import { FORM_RESULTS } from "../../convex/table/standings";
 import { failedWords, fewestTeamsWords, gameweekShort, gameweekWords, signedWords, TABLE_TITLE } from "../shared/words";
 
-export { figureWords, gameweekWords, liveWords, scoreWords, versusWords } from "../shared/words";
+export { figureWords, gameweekWords, liveWords, scoreWords } from "../shared/words";
 /** The table's title, said while every team has played nothing, beside points a live match still
  *  moves (spec/07), a gameweek begun that couldn't be scored (#287), the reader's own team for
  *  screen readers, and the league average: src/shared/words.ts, as other screens say them too. */
@@ -29,6 +29,10 @@ export const columns = {
   points: { short: "Pts", long: "Points" },
   form: { short: "Form", long: `Form, the latest ${FORM_RESULTS} results, oldest first` },
 } as const;
+
+/** A total-points table's columns, on the Table page and League home alike: total points has no
+ *  matchups to win, draw or lose. */
+export const TOTAL_POINTS_COLUMNS = ["position", "team", "played", "points"] as const satisfies readonly (keyof typeof columns)[];
 
 /** The page's title plate: the head-to-head page's tabs, and a total-points league's title, which
  *  has no fixtures (the approved total-points picture). */

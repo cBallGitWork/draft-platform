@@ -8,6 +8,7 @@ import { ClubMark } from "../ui/ClubName";
 import { OwnerName } from "../ui/OwnerName";
 import { Placeholder } from "../ui/Placeholder";
 import { PositionChip } from "../ui/PositionChip";
+import { Shirt } from "../myTeam/tactics/pitch/Pitch";
 import { seasonFigures } from "./gameLog";
 import type { PlayerCard, PlayerCardSeam } from "./seam";
 import { ScoutAction } from "./ScoutAction";
@@ -50,7 +51,8 @@ export function CardHead({ league, card, shown, seam }: { league: LeagueSummary;
           <span className="flex gap-px">
             {card.positions.length === 0 ? <span className="text-muted">{noPositionsWords}</span> : card.positions.map((position) => <PositionChip key={position} label={position} />)}
           </span>
-          <span>
+          <span className="flex items-center gap-1">
+            <Shirt number={null} clubCode={card.club.code} goalkeeper={card.positions.includes("GK")} size="size-shirt-inline" />
             <ClubMark code={card.club.code} />
             {card.club.name}
           </span>
@@ -83,7 +85,10 @@ function Back() {
   const canGoBack = useCanGoBack();
   const goBack = () => (canGoBack ? router.history.back() : void router.navigate({ to: SCOUTING_PATH }));
   return (
-    <button type="button" onClick={goBack} className="secondary-action">
+    <button type="button" onClick={goBack} className="flex min-h-tap min-w-tap items-center gap-1 text-soft hover:text-fact lg:min-h-0 lg:min-w-0">
+      <svg viewBox="0 0 6 10" aria-hidden="true" className="h-2.5 w-1.5 fill-current">
+        <path d="M6 0 L0 5 L6 10 Z" />
+      </svg>
       {backWords}
     </button>
   );

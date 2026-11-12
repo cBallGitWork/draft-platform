@@ -8,7 +8,7 @@ import { validateOwnStats, type OwnStat } from "./ownStats";
 import type { Priced } from "./priced";
 import { validateRule } from "./ruleChecks";
 import { CATALOGUE_STATS } from "./statCatalogue";
-import { isObject, requireNumber, showValue, UnsoundScoring } from "./values";
+import { isObject, requireNumber, showValue, UnsoundScoring, type WeighedStat } from "./values";
 
 export type { OwnStat };
 
@@ -37,14 +37,14 @@ interface RuleOptions {
 }
 
 /** +3 per assist: the action's points, times how many he made. */
-export interface PerActionRule extends RuleOptions {
+interface PerActionRule extends RuleOptions {
   shape: "perAction";
   stat: string;
   values: Priced<number>;
 }
 
 /** +1 per 3 saves: the points for each whole `every` actions he made. */
-export interface PerCountRule extends RuleOptions {
+interface PerCountRule extends RuleOptions {
   shape: "perCount";
   stat: string;
   values: Priced<{ every: number; points: number }>;
@@ -52,7 +52,7 @@ export interface PerCountRule extends RuleOptions {
 
 /** 2 for 60+ minutes, +2 for 10+ defensive actions: he earns each band he reaches when the rule
  *  stacks, or only the highest he reaches when it doesn't. A slot with no bands earns nothing. */
-export interface BandsRule extends RuleOptions {
+interface BandsRule extends RuleOptions {
   shape: "bands";
   stat: string;
   stack: boolean;
@@ -94,7 +94,7 @@ export interface InstructionLine {
   /** The slots it scores, by the position each stands for (Craig, 9 Nov 2026, on #990: "keeper,
    *  full-back, centre-back and wing-back slots are GK/DEF"); absent for every slot. */
   positions?: readonly SlotPosition[];
-  stats: readonly { stat: string; weight: number }[];
+  stats: readonly WeighedStat[];
   every: number;
   points: number;
   /** The most points it gives either way in a match, as Hold a high line's "up to 3". */
@@ -110,7 +110,7 @@ export const ROLE_BARS_MOST = 3;
 /** One side of a role: its stats, each weighed (2 × goals, ½ recoveries, accurate passes ÷ 10),
  *  added up into a count, and its bars, rising: the count gives a point at each it reaches. */
 export interface RoleSide {
-  parts: readonly { stat: string; weight: number }[];
+  parts: readonly WeighedStat[];
   bars: readonly number[];
 }
 
@@ -123,9 +123,22 @@ export interface RoleScoring {
   cost: RoleSide;
 }
 
+/** Sets already checked, by the object read: a page of players scores every match under one set,
+ *  and a season's table every gameweek under one, and checking it was nine tenths of the time
+ *  (#1574, #1756). A set read is never changed after. Only a sound set is remembered, so a bad one
+ *  throws every time. A write checks with `validateScoringSet` itself, every time. */
+const CHECKED_SETS = new WeakSet<object>();
+
+/** `validateScoringSet`, once per set object read: for scoring with a set, never saving one. */
+export function checkedOnce(set: unknown): asserts set is ScoringSet {
+  if (isObject(set) && CHECKED_SETS.has(set)) return;
+  validateScoringSet(set);
+  CHECKED_SETS.add(set);
+}
+
 /**
  * Refuses, with the reason, a scoring set that would score wrong: #25 calls it before saving a
- * set, and `scoreMatch` before scoring with one. Every rule is checked in every area or position
+ * set, and the scorers before scoring with one, through `checkedOnce`. Every rule is checked in every area or position
  * it is priced by, not only the one being scored, so a set missing a value can't save and then
  * fail mid-gameweek. Every number must be a number, never text JavaScript would quietly coerce.
  */

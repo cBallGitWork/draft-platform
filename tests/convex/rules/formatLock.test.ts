@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, test, vi } from "vitest";
 import type { Id } from "../../../convex/_generated/dataModel";
+import { scoredSinceMade } from "../../../convex/gameweekScorer/gameweekScores";
 import { formatLocked } from "../../../convex/rules/formatLock";
 import { HOUR_MS } from "../../../convex/shared/time";
 import { changeRules, HELD_FIRST_RULES, holdGameweeks, latestRules, rulesIn, TOTAL_POINTS } from "../../support/convex/leagueRules.harness";
@@ -65,5 +66,26 @@ describe("a format change", () => {
     gameweekOneBegins();
 
     expect(await change(leagueId)).toBe(2);
+  });
+});
+
+// The one test the format lock shares with scoring (#1766), so the two never drift apart.
+describe("a gameweek the league scores, begun since it was made", () => {
+  const MADE = 1_000_000;
+  const SEASON = 38;
+  const league = { _creationTime: MADE };
+
+  test("counts with its deadline on or after the league was made", () => {
+    expect(scoredSinceMade(league, 5, MADE, SEASON)).toBe(true);
+    expect(scoredSinceMade(league, 5, MADE + HOUR_MS, SEASON)).toBe(true);
+  });
+
+  test("doesn't count with its deadline before the league was made", () => {
+    expect(scoredSinceMade(league, 5, MADE - HOUR_MS, SEASON)).toBe(false);
+  });
+
+  test("doesn't count when the league doesn't score it", () => {
+    expect(scoredSinceMade({ ...league, scoringStart: 6 }, 5, MADE + HOUR_MS, SEASON)).toBe(false);
+    expect(scoredSinceMade({ ...league, unusedGameweeks: [5] }, 5, MADE + HOUR_MS, SEASON)).toBe(false);
   });
 });

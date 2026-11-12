@@ -9,7 +9,7 @@ import { idOf, wholeNumber } from "../shared/search";
 
 /** The address's search: the offer a counter answers, or the team to trade with and the player of
  *  theirs asked for. */
-export type NewOfferSearch = { counter?: Id<"tradeOffers">; team?: Id<"teams">; player?: number };
+type NewOfferSearch= { counter?: Id<"tradeOffers">; team?: Id<"teams">; player?: number };
 
 /** A link's `to` and `search` for countering the offer. */
 export const counterLink = (offerId: Id<"tradeOffers">) => ({
@@ -19,7 +19,7 @@ export const counterLink = (offerId: Id<"tradeOffers">) => ({
 
 /** The Offers tab's search: the offer or trade in review it opens with selected, as a Mail
  *  letter's one link names it (docs/design/approved/mail, The one link). */
-export type OffersSearch = { offer?: Id<"tradeOffers"> };
+type OffersSearch= { offer?: Id<"tradeOffers"> };
 
 /** A link's `to` and `search` for the Offers tab with `offerId` selected. */
 export const offerLink = (offerId: Id<"tradeOffers">) => ({

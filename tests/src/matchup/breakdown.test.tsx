@@ -43,7 +43,7 @@ describe("a player's breakdown", () => {
     fireEvent.click(await screen.findByRole("button", { name: openBreakdownLabel("Delap") }));
 
     const panel = screen.getByRole("region", { name: BREAKDOWN_NAME });
-    expect(within(panel).getAllByText(/Goals scored/).map((line) => line.textContent)).toEqual(["Goals scored 8 (2 at 4 each)", "Goals scored 4 (1 at 4 each)"]);
+    expect(within(panel).getAllByText(/Goals scored/).map((line) => line.closest("li")!.textContent)).toEqual(["Goals scored 2 at 4 each 8", "Goals scored 1 at 4 each 4"]);
     expect(within(panel).getAllByText(/^Poacher:/).map((line) => line.textContent)).toEqual(["Poacher: +1 (+1: 2 goals scored)", "Poacher: +1 (+1: 1 goals scored)"]);
     expect(within(panel).getByText("9")).toBeTruthy();
     expect(within(panel).getAllByText(notCountedWords)).toHaveLength(1);

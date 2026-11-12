@@ -1,9 +1,8 @@
 import type { Id } from "../../../convex/_generated/dataModel";
 import { keptOrSwitched, type InstructionPair, type Side } from "../../../convex/lineup/instructions";
 import { switchedWords } from "../../../convex/lineup/instructionsWords";
-import type { Cell } from "../../../convex/lineup/pitch";
 import { onClassicFormation } from "./classicLineup";
-import { withInstruction, type EditedLineup, type MoveRules, type RatingsOf } from "./lineupEdits";
+import { withInstruction, type EditedLineup, type MoveRules, type PresetShape, type RatingsOf } from "./lineupEdits";
 import { reshaped } from "./reshape";
 import type { OpenTactics, TacticsSeam } from "./seam";
 import type { useLineupEdits } from "./useLineupEdits";
@@ -38,7 +37,7 @@ export function useFormationPicks({
   const { draft } = edits;
   /** The pitch reshaped to a preset, or a plan loaded on its own pair (spec/05; #990): an instruction
    *  the new shape offers stays, one it blocks switches to its default. */
-  const reshapeTo = (preset: { name: string; cells: readonly Cell[] }, next: EditedLineup, said: string | null = null) => {
+  const reshapeTo = (preset: PresetShape, next: EditedLineup, said: string | null = null) => {
     putDown();
     const { pair, switched } = keptOrSwitched(next.instructions ?? instructions, preset.cells, tactics.presets, tactics.instructions);
     edits.reshape(preset.name, { ...next, instructions: pair }, switchedWords(switched), said);

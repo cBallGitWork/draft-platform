@@ -30,13 +30,14 @@ import { CATALOGUE_STATS } from "../scoring/statCatalogue";
 import { EVENT_STATS } from "../stats/matchRecords";
 import { stepPoints } from "../stats/thresholdSteps";
 import { signedWords } from "../shared/numberWords";
+import type { PlayerCode } from "../shared/players";
 import { LINEUPS_OUT_BEFORE_KICKOFF_MS, MINUTE_MS } from "../shared/time";
 import type { commentaryLine } from "../schema";
 
-type PlayerCode = number;
 
 type StoredLine = Infer<typeof commentaryLine>;
-export type StoredStep = Pick<Doc<"thresholdSteps">, "playerCode" | "stat" | "from" | "to" | "minutes" | "minute">;
+/** One step as a live read stored it, with that read's clock. */
+export type StoredStep = Doc<"thresholdStepReads">["steps"][number] & Pick<Doc<"thresholdStepReads">, "minute">;
 
 export interface VidiprinterMatch {
   fixtureCode: number;
@@ -136,6 +137,9 @@ export function vidiprinter(
   return placed.toSorted((one, other) => other.at - one.at || other.kickoff - one.kickoff || one.order - other.order).map(({ line }) => line);
 }
 
+/** A stored commentary line's key, the one the screens key its row on, priced or not. */
+export const storedLineKey = (fixtureCode: number, sourceId: number) => `${fixtureCode}:${sourceId}`;
+
 function placedOf(match: VidiprinterMatch, players: ReadonlyMap<PlayerCode, VidiprinterPlayer>, set: ScoringSet): Placed[] {
   const kickoff = match.kickoff ?? 0;
   const placed: Placed[] = [];
@@ -146,7 +150,7 @@ function placedOf(match: VidiprinterMatch, players: ReadonlyMap<PlayerCode, Vidi
   let at = kickoff - LINEUPS_OUT_BEFORE_KICKOFF_MS;
   match.lines.toReversed().forEach((stored, index) => {
     at = Math.max(at, atMinute(kickoff, stored.minute ?? null, stored.addedMinute ?? null));
-    const key = `${match.fixtureCode}:${stored.sourceId}`;
+    const key = storedLineKey(match.fixtureCode, stored.sourceId);
     const instructed: PricedLine[] = [];
     const line = { key, ...priced(stored, match.fixtureCode, players, set, counted, instructed) };
     const order = match.lines.length - index;
@@ -216,9 +220,10 @@ function fullTimePoints(fixtureCode: number, players: ReadonlyMap<PlayerCode, Vi
     .sort((one, other) => other.points - one.points || one.name.localeCompare(other.name));
 }
 
-/** Each step a man it is priced for made, priced at his cell and in his role: a line where it
- *  moves his points, up or down. A step the same as the last shown for him and its stat (a feed's
- *  count put back and sent again, stored before falling steps were) is not shown twice. */
+/** Each step a man it is priced for made, priced at his cell, by his team's back line and in his
+ *  role: a line where it moves his points, up or down. A step the same as the last shown for him
+ *  and its stat (a feed's count put back and sent again, stored before falling steps were) is not
+ *  shown twice. */
 function thresholdLines(match: VidiprinterMatch, players: ReadonlyMap<PlayerCode, VidiprinterPlayer>, set: ScoringSet) {
   const lastShown = new Map<string, StoredStep>();
   return match.steps.flatMap((step, index) => {
@@ -226,7 +231,7 @@ function thresholdLines(match: VidiprinterMatch, players: ReadonlyMap<PlayerCode
     const key = tallyKey(step.playerCode, step.stat);
     const last = lastShown.get(key);
     if (player === undefined || (last !== undefined && last.from === step.from && last.to === step.to)) return [];
-    const points = inTenths(stepPoints(step, set, player.cell) + roleStep(step, match.fixtureCode, player, set));
+    const points = inTenths(stepPoints(step, set, player.cell, player.team?.scoring) + roleStep(step, match.fixtureCode, player, set));
     const when = step.minute === null ? "" : `~${step.minute}' `;
     const lineKey = `${match.fixtureCode}:step:${index}`;
     const instructed = instructionStep(step, { key: lineKey, when, fixtureCode: match.fixtureCode, playerCode: step.playerCode }, player, set);

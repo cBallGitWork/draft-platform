@@ -2,7 +2,7 @@ import { v, type Validator } from "convex/values";
 import type { Id } from "../_generated/dataModel";
 import { internalMutation, mutation, query, type MutationCtx, type QueryCtx } from "../_generated/server";
 import type { DeadlineRule } from "../gameweeks/deadline";
-import { draftRulesOf, FIRST_RULES } from "./firstRules";
+import { classicFormationsOf, draftRulesOf, FIRST_RULES, instructionsOf, tradeRulesOf } from "./firstRules";
 import { getLeague, memberOf, refuse, runnerOf } from "../shared/leagueAccess";
 import { bylineOf, recordEvent } from "../mail/letters";
 import { checkGamesFor, checkLeagueRules, gamesWords, UnsoundRules, whyMostGames } from "./leagueRulesCheck";
@@ -11,14 +11,14 @@ import { heldRules, leagueRulesShape, type LeagueRules } from "./leagueRulesShap
 import { sortedJson } from "../shared/sortedJson";
 import { nextGameweek } from "../gameweeks/nextGameweek";
 import { fixedDeadlinesOf } from "../gameweeks/passedDeadlines";
-import { FIRST_GAMEWEEK } from "../gameweeks/usedGameweeks";
+import { FIRST_GAMEWEEK, seasonGameweeks } from "../gameweeks/usedGameweeks";
 import { refuseFormatChange } from "./formatLock";
 import { momentIn } from "../shared/moments";
 import { zoneOf } from "../signIn/timeZone";
 import { checkSquadMaximums, squadMaximumBandShape, squadMaximumFor, STARTING_SQUAD_MAXIMUMS, withSquadMaximum, type SquadMaximumBand } from "./squadMaximums";
 import { historyOf, inForce, latestRules, newestRow, RULES_CHANGES_MOST, savedForm, seasonRules, type RulesRow } from "./rulesHistory";
 import { switchWaiverOrder } from "../waivers/waiverOrder";
-import { heldSchedule } from "../gameweeks/leagueDeadlines";
+import { scheduledMatches } from "../gameweeks/leagueDeadlines";
 import { seasonGameweekCount } from "../gameweeks/seasonGameweeks";
 import { pickTimeChanging } from "../draft/draftPickTime";
 
@@ -139,12 +139,19 @@ export function refuseTooFewForGames(rules: LeagueRules, maxTeams: number): void
 }
 
 /** The parts of the rules that differ, by name: all of them, from a league that had none. Each
- *  side is read as it plays (`draftRulesOf`), so rules saved before the draft was a rule differ
- *  from the first rules' values in none (#147). */
+ *  side is read as it plays (firstRules.ts's fallbacks), so rules saved before the draft, the
+ *  trades, the team instructions or the classic formations were rules differ from the first rules'
+ *  values in none (#147, #1742). */
 function changedParts(from: LeagueRules | undefined, to: LeagueRules): (keyof LeagueRules)[] {
   const parts = Object.keys(leagueRulesShape.fields) as (keyof LeagueRules)[];
   if (from === undefined) return parts;
-  const asPlayed = (rules: LeagueRules): LeagueRules => ({ ...rules, draft: draftRulesOf(rules) });
+  const asPlayed = (rules: LeagueRules): LeagueRules => ({
+    ...rules,
+    draft: draftRulesOf(rules),
+    trades: tradeRulesOf(rules),
+    instructions: [...instructionsOf(rules)],
+    classics: classicFormationsOf(rules),
+  });
   const [before, after] = [asPlayed(from), asPlayed(to)];
   return parts.filter((part) => sortedJson(before[part]) !== sortedJson(after[part]));
 }
@@ -172,7 +179,9 @@ async function takesEffectFrom(
   rules: LeagueRules,
   now: number,
 ): Promise<number> {
-  const { gameweeks, matches } = await heldSchedule(ctx);
+  // The season's gameweeks by count, as leagueDeadlines and siteVersions walk them (#1764).
+  const gameweeks = seasonGameweeks(await seasonGameweekCount(ctx)).map((number) => ({ number }));
+  const matches = await scheduledMatches(ctx);
   const passed = await fixedDeadlinesOf(ctx, leagueId);
   const nextUnder = (deadlineFor: (gameweek: number) => DeadlineRule) => nextGameweek(gameweeks, matches, deadlineFor, passed, now);
   return Math.max(

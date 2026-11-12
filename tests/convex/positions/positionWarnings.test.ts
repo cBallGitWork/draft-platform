@@ -7,11 +7,12 @@ import { beforeEach, describe, expect, test, vi } from "vitest";
 import { api, internal } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
 import { pickFirstLineupAgain, lineupInGameweek } from "../../../convex/lineup/lineups";
-import { positionLetter } from "../../../convex/positions/positionWarnings";
+import { MOST_WARNINGS_A_TEAM, positionLetter } from "../../../convex/positions/positionWarnings";
 import type { Start } from "../../../convex/positions/positions";
+import { lostPlayerName } from "../../../convex/shared/players";
 import { DAY_MS, HOUR_MS, WEEK_MS } from "../../../convex/shared/time";
 import { holdGameweeks } from "../../support/convex/leagueRules.harness";
-import { addManager, addManagers, adminCreatesLeague, MANAGERS, type TestConvex } from "../../support/convex/leagues.harness";
+import { addManager, addManagers, adminCreatesLeague, MANAGERS, TEST_LEAGUE_TEAMS, type TestConvex } from "../../support/convex/leagues.harness";
 import { asAdmin } from "../../support/convex/positionsSync.harness";
 import { CENTRE_BACK, movedToFullBack, played, RIGHT_BACK, startsFrom, times } from "../../support/convex/positionStarts.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
@@ -85,16 +86,16 @@ const recordSync = () =>
   });
 
 /** Each letter to `email` about Barnes's positions, oldest first, as subject, body and league: not
- *  the league's letters of his moves. */
-const lettersTo = (email: string) =>
+ *  the league's letters of his moves. The letters name him `name`. */
+const lettersTo = (email: string, name = BARNES.name) =>
   t.run(async (ctx) =>
     (await ctx.db.query("letters").withIndex("by_to_and_at", (q) => q.eq("to", email)).collect())
-      .filter(({ subject }) => /^Barnes (may lose|has lost) /.test(subject))
+      .filter(({ subject }) => [`${name} may lose `, `${name} has lost `].some((start) => subject.startsWith(start)))
       .map(({ subject, body, leagueId: from }) => ({ subject, body, leagueId: from })),
   );
 
-const flagged = (startsElsewhere: number, fromGameweek = NEXT) =>
-  positionLetter({ step: "flagged", playerName: "Barnes", position: "CB", fromGameweek, startsElsewhere, removeAfter: 6 });
+const flagged = (startsElsewhere: number, fromGameweek = NEXT, playerName = BARNES.name) =>
+  positionLetter({ step: "flagged", playerName, position: "CB", fromGameweek, startsElsewhere, removeAfter: 6 });
 const lost = (fromGameweek = NEXT) => positionLetter({ step: "lost", playerName: "Barnes", position: "CB", fromGameweek, removeAfter: 6 });
 
 describe("the letters", () => {
@@ -125,6 +126,17 @@ describe("a run elsewhere", () => {
     expect(await lettersTo(ANN)).toEqual([{ ...flagged(3), leagueId }]);
   });
 
+  test("names a man the football data has lost as a letter does, never in a screen's error words (#1758)", async () => {
+    await barnesOn(annsTeam, movedToFullBack(3));
+    await t.run(async (ctx) => ctx.db.delete("players", (await ctx.db.query("players").first())!._id));
+
+    await syncRecorded();
+
+    const lostName = lostPlayerName(BARNES.code);
+    expect(await lettersTo(ANN, lostName)).toEqual([{ ...flagged(3, NEXT, lostName), leagueId }]);
+    expect(flagged(3, NEXT, lostName).subject).toBe("Player 1 may lose CB");
+  });
+
   test("lost after 6 sends a second letter, and a start back at the position lets both be told again", async () => {
     await barnesOn(annsTeam, movedToFullBack(4));
     await syncRecorded();
@@ -141,9 +153,9 @@ describe("a run elsewhere", () => {
   });
 
   test("is told to whoever owns him in each league, and to nobody for a free agent or a team with no manager", async () => {
-    const otherLeague = await adminCreatesLeague(t, 4, "Other League");
+    const otherLeague = await adminCreatesLeague(t, TEST_LEAGUE_TEAMS, "Other League");
     const [bobsTeam] = await addManagers(t, otherLeague, [BOB]);
-    const thirdLeague = await adminCreatesLeague(t, 4, "Third League");
+    const thirdLeague = await adminCreatesLeague(t, TEST_LEAGUE_TEAMS, "Third League");
     const managerless = await t.run((ctx) => ctx.db.insert("teams", { leagueId: thirdLeague, number: 1, name: "Vacated" }));
     await barnesOn(annsTeam, movedToFullBack(3));
     await barnesOn(bobsTeam, movedToFullBack(3));
@@ -180,7 +192,7 @@ describe("a run elsewhere", () => {
 
 describe("each league warned in a step of its own (#1545)", () => {
   test("the sync keeps its log row and schedules one warning a league, which tell once they run", async () => {
-    const otherLeague = await adminCreatesLeague(t, 4, "Other League");
+    const otherLeague = await adminCreatesLeague(t, TEST_LEAGUE_TEAMS, "Other League");
     await barnesOn(annsTeam, movedToFullBack(3));
 
     await recordSync();
@@ -201,6 +213,20 @@ describe("each league warned in a step of its own (#1545)", () => {
 
     await elapse(t, 0);
 
+    expect(await lettersTo(ANN)).toEqual([]);
+  });
+
+  test("a team holding more warnings than any squad can throws rather than tell its manager twice (#1761)", async () => {
+    await barnesOn(annsTeam, movedToFullBack(3));
+    await t.run(async (ctx) => {
+      for (let n = 0; n <= MOST_WARNINGS_A_TEAM; n++) {
+        await ctx.db.insert("positionWarnings", { teamId: annsTeam, playerCode: BARNES.code + 1 + n, position: "ST", step: "flagged" });
+      }
+    });
+
+    await expect(t.mutation(internal.positions.positionWarnings.warnLeagueSoon, { leagueId })).rejects.toThrow(
+      `more than ${MOST_WARNINGS_A_TEAM} position warnings`,
+    );
     expect(await lettersTo(ANN)).toEqual([]);
   });
 });
@@ -246,6 +272,7 @@ describe("the admin removing a position by hand", () => {
 
     expect(await lettersTo(ANN)).toEqual([]);
   });
+
 });
 
 describe("a player joining a team (#1615; Craig, 11 Nov 2026: no letter for what stood before he joined)", () => {

@@ -1,8 +1,7 @@
 import { useState } from "react";
 import type { Id } from "../../../convex/_generated/dataModel";
 import type { InstructionPair } from "../../../convex/lineup/instructions";
-import type { Cell } from "../../../convex/lineup/pitch";
-import type { EditedLineup, MoveRules, RatingsOf } from "./lineupEdits";
+import type { EditedLineup, MoveRules, PresetShape, RatingsOf } from "./lineupEdits";
 import { loadedPlan, planSlotsOf, presetOfPlan } from "./savedPlans";
 import type { OpenTactics, TacticsSeam } from "./seam";
 import { rolesLostWords } from "./words";
@@ -32,7 +31,7 @@ export function useSavedPlans({
   inUse: string | null;
   rules: MoveRules;
   ratingsOf: RatingsOf;
-  onLoad(preset: { name: string; cells: readonly Cell[] }, lineup: EditedLineup, said: string | null): void;
+  onLoad(preset: PresetShape, lineup: EditedLineup, said: string | null): void;
 }) {
   const read = seam.usePlans(leagueId);
   const plans = read ?? [];

@@ -6,29 +6,28 @@
 import { fireEvent, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
-import type { Id } from "../../../convex/_generated/dataModel";
-import { DAY_MS } from "../../../convex/shared/time";
-import { MY_TEAM_TRANSACTIONS_PATH } from "../../../src/frame/menu";
-import { pendingClaimsTabLabel, sectionTabsLabel } from "../../../src/frame/words";
-import { TRANSACTIONS_TITLE } from "../../../src/myTeam/words";
-import type { PendingClaim, WaiversView } from "../../../src/myTeam/claims/seam";
+import type { Id } from "../../../../convex/_generated/dataModel";
+import { DAY_MS } from "../../../../convex/shared/time";
+import { MY_TEAM_TRANSACTIONS_PATH } from "../../../../src/frame/menu";
+import { pendingClaimsTabLabel, sectionTabsLabel } from "../../../../src/frame/words";
+import { TRANSACTIONS_TITLE } from "../../../../src/myTeam/words";
+import type { PendingClaim, WaiversView } from "../../../../src/myTeam/claims/seam";
 import {
   claimPanelTitle,
   claimsClosedWords,
   claimsNotOpenWords,
   claimsTableLabel,
   claimsViewWords,
-  clashWords,
   dragHandleLabel,
   everyTeamTableLabel,
   failsIfWords,
-  firstRunWords,
   freePlaceWords,
   freeAgentsNotOpenWords,
   freeAgentsWords,
   moveDownWords,
   moveUpWords,
   nextRunWords,
+  playerCardWords,
   runGroupWords,
   runWords,
   RUNS_TITLE,
@@ -36,11 +35,11 @@ import {
   WAIVER_ORDER_TITLE,
   skippedIfWords,
   withdrawWords,
-} from "../../../src/myTeam/claims/words";
-import type { TeamSquad } from "../../../src/myTeam/seam";
-import { idOf } from "../../../src/table/drawnTable";
-import { MY_TEAM_ID, NO_WAIVERS, type MyTeamData } from "../../support/src/myTeam.harness";
-import { league, manager, managerIn, openApp } from "../../support/src/shell.harness";
+} from "../../../../src/myTeam/claims/words";
+import type { TeamSquad } from "../../../../src/myTeam/seam";
+import { idOf } from "../../../../src/table/drawnTable";
+import { MY_TEAM_ID, NO_WAIVERS, type MyTeamData } from "../../../support/src/myTeam.harness";
+import { league, manager, managerIn, openApp } from "../../../support/src/shell.harness";
 
 const WED = Date.parse("2026-11-11T18:00:00Z");
 const THU = WED + DAY_MS;
@@ -83,12 +82,21 @@ describe("the pending claims", () => {
     ]);
   });
 
+  it("heads the claimed player In and the drop Out, as the claim panel does (#1031)", async () => {
+    open();
+    const heads = within(await screen.findByRole("table", { name: claimsTableLabel })).getAllByRole("columnheader");
+    expect(heads.map((head) => head.textContent)).toEqual(["", "Rank", "Pos", "In", "Pts", "Out"]);
+  });
+
   it("opens a claim's panel, which changes its drop, keeping its rank, moves it within its run and withdraws it", async () => {
     const app = open();
     await userEvent.click(await screen.findByRole("button", { name: selectClaimLabel("Eze") }));
-    const panel = screen.getByRole("region", { name: claimPanelTitle(made(WED), 2, "Eze") });
+    const panel = screen.getByRole("region", { name: claimPanelTitle(2) });
 
-    expect(within(panel).getByText(clashWords(1, "Calvert-Lewin"))).toBeTruthy();
+    expect(within(panel).getByText(runGroupWords(made(WED)))).toBeTruthy();
+    expect(within(panel).getByText(failsIfWords(1))).toBeTruthy();
+    expect(within(panel).getByRole("combobox", { name: "Out" })).toBeTruthy();
+    expect(within(panel).getByRole("link", { name: playerCardWords })).toBeTruthy();
     expect((within(panel).getByRole("button", { name: moveDownWords }) as HTMLButtonElement).disabled).toBe(true);
     await userEvent.selectOptions(within(panel).getByRole("combobox"), "Mbeumo");
     expect(app.myTeam.claimChanges.changeDrop).toHaveBeenCalledWith(league.leagueId, "c2", 5);
@@ -153,8 +161,8 @@ describe("the pending claims", () => {
     ]);
     expect(runGroupWords(mayBeSkipped(WED, 12))).toBe("Run after GW12's last match");
     await userEvent.click(screen.getByRole("button", { name: selectClaimLabel("Kudus") }));
-    const panel = screen.getByRole("region", { name: claimPanelTitle(mayBeSkipped(THU, 12), 2, "Kudus") });
-    expect(within(panel).getByText(firstRunWords(mayBeSkipped(THU, 12)))).toBeTruthy();
+    const panel = screen.getByRole("region", { name: claimPanelTitle(2) });
+    expect(within(panel).getByText(runGroupWords(mayBeSkipped(THU, 12)))).toBeTruthy();
     await userEvent.click(within(panel).getByRole("button", { name: moveUpWords }));
     expect(app.myTeam.claimChanges.rank).toHaveBeenCalledWith(league.leagueId, ["c2", "c1", "c3"]);
   });
@@ -164,12 +172,28 @@ describe("the pending claims", () => {
     expect(await screen.findByText(claimsClosedWords)).toBeTruthy();
     expect(screen.getByRole("img", { name: dragHandleLabel("Eze") })).toBeTruthy();
     await userEvent.click(screen.getByRole("button", { name: selectClaimLabel("Eze") }));
-    const panel = screen.getByRole("region", { name: claimPanelTitle(made(WED), 2, "Eze") });
+    const panel = screen.getByRole("region", { name: claimPanelTitle(2) });
     expect((within(panel).getByRole("combobox") as HTMLSelectElement).disabled).toBe(true);
     await userEvent.click(within(panel).getByRole("button", { name: moveUpWords }));
     expect(app.myTeam.claimChanges.rank).toHaveBeenCalledWith(league.leagueId, ["c2", "c1", "c3"]);
     await userEvent.click(within(panel).getByRole("button", { name: withdrawWords }));
     expect(app.myTeam.claimChanges.withdraw).toHaveBeenCalledWith(league.leagueId, "c2");
+  });
+});
+
+/** The runs panel's rows, with the manager's `claims` in them (none unless given). */
+const runs = async (waivers: WaiversView, claims: PendingClaim[] = []) => {
+  open({ waivers, claims });
+  return within(await screen.findByRole("region", { name: RUNS_TITLE })).getAllByRole("listitem").map((row) => row.textContent);
+};
+
+describe("the runs (#1031)", () => {
+  it("count the manager's claims in each", async () => {
+    expect(await runs({ ...NO_WAIVERS, runs: [made(WED), mayBeSkipped(THU, 12)], windowShuts: { gameweek: 12, at: THU } }, CLAIMS)).toEqual([
+      `${runWords(WED)}2 claims, next`,
+      `${runWords(THU)}1 claim, skipped if GW12 is still on`,
+      `${freeAgentsWords}From Wed 18:00 to the GW12 deadline`,
+    ]);
   });
 });
 
@@ -179,14 +203,9 @@ describe("before the league's draft is over (S08.1)", () => {
     expect(await screen.findByText(claimsNotOpenWords)).toBeTruthy();
     expect(screen.queryByRole("img", { name: dragHandleLabel("Eze") })).toBeNull();
     await userEvent.click(screen.getByRole("button", { name: selectClaimLabel("Eze") }));
-    expect(await screen.findByRole("region", { name: claimPanelTitle(made(WED), 2, "Eze") })).toBeTruthy();
+    expect(await screen.findByRole("region", { name: claimPanelTitle(2) })).toBeTruthy();
     expect([moveUpWords, withdrawWords].map((name) => screen.queryByRole("button", { name }))).toEqual([null, null]);
   });
-
-  const runs = async (waivers: WaiversView) => {
-    open({ waivers });
-    return within(await screen.findByRole("region", { name: RUNS_TITLE })).getAllByRole("listitem").map((row) => row.textContent);
-  };
 
   it("before the season, says free agency opens once it is, marking no run Next", async () => {
     expect(await runs({ ...NO_WAIVERS, drafted: false, windowOpen: true, runs: [made(WED)], windowShuts: { gameweek: 1, at: THU } })).toEqual([
@@ -212,11 +231,6 @@ describe("before the league's draft is over (S08.1)", () => {
 });
 
 describe("a midweek gameweek, its deadline before both runs (#1488)", () => {
-  const runs = async (waivers: WaiversView) => {
-    open({ waivers });
-    return within(await screen.findByRole("region", { name: RUNS_TITLE })).getAllByRole("listitem").map((row) => row.textContent);
-  };
-
   it("marks each run that may fall in its lock, none Next, and free agency from after its last match to the deadline after", async () => {
     expect(await runs({ ...NO_WAIVERS, runs: [mayBeSkipped(WED, 12), mayBeSkipped(THU, 12)], windowShuts: { gameweek: 13, at: THU + 2 * DAY_MS } })).toEqual([
       `${runWords(WED)}${skippedIfWords(12)}`,
@@ -294,7 +308,7 @@ describe("the waiver order", () => {
     });
     const order = within(await screen.findByRole("region", { name: WAIVER_ORDER_TITLE })).getAllByRole("listitem");
 
-    expect(order.map((team) => team.textContent)).toEqual(["1Team 22nd in the table, 3 pts", "2Team 11st in the table, 6 pts"]);
+    expect(order.map((team) => team.textContent)).toEqual(["1Team 22nd, 3 pts", "2Team 11st, 6 pts"]);
     expect(order[1].getAttribute("aria-current")).toBe("true");
   });
 });

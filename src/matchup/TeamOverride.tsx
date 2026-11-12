@@ -1,10 +1,11 @@
 import { useState, type FormEvent, type ReactNode } from "react";
 import type { Id } from "../../convex/_generated/dataModel";
 import type { MatchupSide } from "../../convex/matchup/matchupShape";
-import { OVERRIDE_REASON_MAX, TEAM_OVERRIDE_POINTS_MOST } from "../../convex/table/overrideLimits";
+import { OVERRIDE_POINTS_STEP, OVERRIDE_REASON_MAX, TEAM_OVERRIDE_POINTS_MOST } from "../../convex/table/overrideLimits";
 import { PANEL_BODY, Problem, Status } from "../ui/Panel";
 import { useChange } from "../shared/useChange";
 import type { MatchupSeam } from "./seam";
+import type { TeamSide } from "./SidePitch";
 import {
   cancelOverrideWords,
   OVERRIDE_TOTAL_TITLE,
@@ -22,10 +23,7 @@ const POINTS_ID = "team-override-points";
 const REASON_ID = "team-override-reason";
 /** The hint, what an override does, describes the points box. */
 const HINT_ID = "team-override-hint";
-/** Points are kept to a tenth (spec/14). */
-const POINTS_STEP = 0.1;
 
-type TeamSide = Extract<MatchupSide, { kind: "team" }>;
 
 /** The team override (spec/14 S14.3 to S14.6; #903), for whoever runs the league: under each team's
  *  name, "Override total" opens a form for its total in the gameweek and why; once its total is
@@ -118,7 +116,7 @@ export function TeamOverrides({
             id={POINTS_ID}
             type="number"
             required
-            step={POINTS_STEP}
+            step={OVERRIDE_POINTS_STEP}
             min={-TEAM_OVERRIDE_POINTS_MOST}
             max={TEAM_OVERRIDE_POINTS_MOST}
             value={points}

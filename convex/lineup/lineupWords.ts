@@ -7,7 +7,7 @@ import { AREA_WORDS, LANE_WORDS } from "./pitchWords";
 import { BACK_THREE, roleName } from "./roles";
 
 /** A player's name, by his code. */
-export type NameOf = (playerCode: number) => string;
+type NameOf = (playerCode: number) => string;
 
 const isNot = (names: readonly string[]) => (names.length === 1 ? "isn't" : "aren't");
 
@@ -47,8 +47,11 @@ export function problemWords(problem: LineupProblem, nameOf: NameOf): string {
       return `${andListWords(problem.playerCodes.map(nameOf))} share the ${LANE_WORDS[problem.lane]} cell in ${AREA_WORDS[problem.area]}: one player a cell.`;
     case "positionsUnknown":
       return `${nameOf(problem.playerCode)} has no positions yet, so he can't start.`;
-    case "outsideHisAreas":
-      return `${nameOf(problem.playerCode)} plays ${problem.positions.join(", ")}, so he can't stand in the ${LANE_WORDS[problem.lane]} cell in ${AREA_WORDS[problem.area]}.`;
+    case "outsideHisAreas": {
+      // A starter with no positions row is held with none (heldPositionsOf), so he is refused here.
+      const plays = problem.positions.length === 0 ? "has no positions" : `plays ${problem.positions.join(", ")}`;
+      return `${nameOf(problem.playerCode)} ${plays}, so he can't stand in the ${LANE_WORDS[problem.lane]} cell in ${AREA_WORDS[problem.area]}.`;
+    }
     case "aboveMaximum":
       return `The league starts at most ${problem.maximum} in ${AREA_WORDS[problem.area]}; this lineup starts ${problem.starterCount} there.`;
     case "roleNotOffered":

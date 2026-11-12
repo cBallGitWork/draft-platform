@@ -4,7 +4,7 @@
 import type { ScoringSet } from "./scoringSet";
 import { CATALOGUE_STATS, OWN_STAT_PREFIX } from "./statCatalogue";
 import { STAT_CATALOGUE } from "./statCatalogueList";
-import { isObject, requireNumber, showValue, UnsoundScoring, weighedCount, type MatchStats } from "./values";
+import { isObject, requireNumber, showValue, UnsoundScoring, weighedCount, type MatchStats, type WeighedStat } from "./values";
 
 /** A stat of the site's own (spec/14, Own stats): catalogue stats added up, each with a weight,
  *  which can be negative: tackles + 0.5 × clearances. A rule scores it by `stat`, as any category. */
@@ -12,7 +12,7 @@ export interface OwnStat {
   stat: string;
   name: string;
   shortCode: string;
-  parts: readonly { stat: string; weight: number }[];
+  parts: readonly WeighedStat[];
 }
 
 /** How a reason names an own stat's name and short code. */

@@ -25,8 +25,11 @@ const ruleOptions = {
   minMinutes: v.optional(priced(v.number())),
 };
 
+/** values.ts's WeighedStat, a list of them. */
+const weighedStats = v.array(v.object({ stat: v.string(), weight: v.number() }));
+
 /** scoringSet.ts's RoleSide. */
-const roleSideShape = v.object({ parts: v.array(v.object({ stat: v.string(), weight: v.number() })), bars: v.array(v.number()) });
+const roleSideShape = v.object({ parts: weighedStats, bars: v.array(v.number()) });
 
 /** scoringSet.ts's ScoringSet. */
 export const scoringSetShape = v.object({
@@ -50,7 +53,7 @@ export const scoringSetShape = v.object({
         stat: v.string(),
         name: v.string(),
         shortCode: v.string(),
-        parts: v.array(v.object({ stat: v.string(), weight: v.number() })),
+        parts: weighedStats,
       }),
     ),
   ),
@@ -64,7 +67,7 @@ export const scoringSetShape = v.object({
         lines: v.array(
           v.object({
             positions: v.optional(v.array(slotPosition)),
-            stats: v.array(v.object({ stat: v.string(), weight: v.number() })),
+            stats: weighedStats,
             every: v.number(),
             points: v.number(),
             most: v.optional(v.number()),

@@ -28,8 +28,9 @@ function waitingRequestOf(ctx: QueryCtx, leagueId: Id<"leagues">, email: string)
 }
 
 /** The league the invite link's page names, with who runs it and how full it is, as its approved
- *  picture shows (#1497). */
-const joinPageLeague = { leagueName: v.string(), commissionerEmail: v.string(), teams: v.number(), maxTeams: v.number() };
+ *  picture shows (#1497). The commissioner's email goes only to a signed-in caller: the page is
+ *  drawn signed in, and a link passed around reaches people who never sign in. */
+const joinPageLeague = { leagueName: v.string(), commissionerEmail: v.union(v.string(), v.null()), teams: v.number(), maxTeams: v.number() };
 
 /** What the invite link's page shows: the league, and whether the person may ask, has asked and
  *  waits, or runs a team in the league already; null once the link no longer works, or while the
@@ -53,7 +54,7 @@ export const joinPage = query({
     const teams = await teamsOf(ctx, league._id);
     const shown = { leagueName: league.name, commissionerEmail: league.commissionerEmail, teams: teams.length, maxTeams: league.maxTeams };
     const email = await signedInEmail(ctx);
-    if (email === null) return { ...shown, standing: "mayAsk" as const };
+    if (email === null) return { ...shown, commissionerEmail: null, standing: "mayAsk" as const };
     const team = teams.find((each) => each.managerEmail === email);
     if (team) return { ...shown, standing: "inLeague" as const, teamName: team.name };
     const waiting = await waitingRequestOf(ctx, league._id, email);
@@ -119,13 +120,17 @@ export const sendApprovedEmail = internalAction({
   handler: async (ctx, args) => {
     const to: { email: string; leagueName: string } | null = await ctx.runMutation(internal.joining.joinRequests.takeEmailFor, args);
     if (to === null) return null;
+    let sendError: string | null = null;
     try {
       await sendEmail(to.email, approvedEmail({ leagueName: to.leagueName, teamName: args.teamName }, Date.now()));
-      await ctx.runMutation(internal.joining.joinRequests.recordApprovedEmail, { requestId: args.requestId, delivery: "sent" });
     } catch (error) {
-      const sendError = logFailure(`The email telling ${to.email} they're in ${to.leagueName} wasn't sent`, error);
-      await ctx.runMutation(internal.joining.joinRequests.recordApprovedEmail, { requestId: args.requestId, delivery: "notSent", sendError });
+      sendError = logFailure(`The email telling ${to.email} they're in ${to.leagueName} wasn't sent`, error);
     }
+    // outside the try: a failure to save the outcome fails the action, never reads as "not sent"
+    await ctx.runMutation(
+      internal.joining.joinRequests.recordApprovedEmail,
+      sendError === null ? { requestId: args.requestId, delivery: "sent" } : { requestId: args.requestId, delivery: "notSent", sendError },
+    );
     return null;
   },
 });

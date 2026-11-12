@@ -1,10 +1,12 @@
 import { Link } from "@tanstack/react-router";
 import type { ReactNode } from "react";
 import type { LeagueSummary } from "../../../convex/leagues/myLeagues";
+import { gameModeOf } from "../../../convex/rules/gameMode";
+import { BYE } from "../../../convex/table/teamGames";
 import { matchupLink } from "../../matchup/paths";
 import { useMinute } from "../../shared/useMinute";
 import { nextGlyph } from "../../shared/words";
-import { PageSection } from "../../ui/Panel";
+import { PageSection, PanelNote } from "../../ui/Panel";
 import type { MyTeamSeam } from "../seam";
 import { AutoTeamSwitch } from "./AutoTeamSwitch";
 import { FormChips } from "./FormChips";
@@ -21,6 +23,7 @@ import {
   meterListLabel,
   noDeadlineWords,
   noFigureWords,
+  noTeamWords,
   placeWords,
   pointsShort,
   tableHead,
@@ -52,6 +55,15 @@ export function TeamPage({ league, teamName, seam, children }: { league: LeagueS
   );
 }
 
+/** A tab's page for a viewer who runs no team in the league: its title, and saying so. */
+export function NoTeam({ title }: { title: string }) {
+  return (
+    <PageSection title={title} className="bg-panel">
+      <PanelNote>{noTeamWords}</PanelNote>
+    </PageSection>
+  );
+}
+
 /** One reading: its head over its value, ruled off from the one before. */
 function Meter({ head, children }: { head: string; children: ReactNode }) {
   return (
@@ -69,7 +81,7 @@ function TeamMeters({ league, teamName, seam }: { league: LeagueSummary; teamNam
   const open = tactics?.kind === "open" ? tactics : null;
   const standing = table ? standingOf(table, teamName) : null;
   const next = open !== null && table ? gamesIn(table, teamName, open.gameweek) : [];
-  const headToHead = table?.format === "headToHead";
+  const headToHead = table ? gameModeOf(table).hasMatchups : false;
   return (
     <dl className="flex flex-wrap items-stretch">
       {open !== null && (
@@ -125,9 +137,9 @@ function Opponents({ games, teamId }: { games: readonly TeamGame[]; teamId: Stan
  *  Type); a bye has none. The band's and the Tactics tab's GW opponent widget's. */
 export function OpponentLink({ game, teamId }: { game: TeamGame; teamId: Standing["teamId"] }) {
   const name = againstWords(game.against);
-  if (game.against.kind === "bye") return <span className="text-muted">{name}</span>;
+  if (game.against.kind === BYE) return <span className="text-muted">{name}</span>;
   return (
-    <Link {...matchupLink(teamId, game.gameweek)} className="inline-flex min-h-tap items-center gap-1 display-face lg:min-h-0">
+    <Link {...matchupLink(teamId, game.gameweek, game.game === 1 ? undefined : game.game)} className="inline-flex min-h-tap items-center gap-1 display-face lg:min-h-0">
       {name} <span aria-hidden="true">{nextGlyph}</span>
     </Link>
   );

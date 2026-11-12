@@ -40,7 +40,7 @@ export const matchPointsAt = (record: Doc<"playerMatchStats">, set: StoredScorin
  *  records, each match read once: a row while any of his records there is whole, none before. Only
  *  that season's row is read, so a match that left the feed or moved comes off at the next refresh,
  *  and last season's rows are left as they were. */
-export async function refreshSeasonPoints(ctx: MutationCtx, playerCodes: Iterable<number>): Promise<void> {
+async function refreshSeasonPoints(ctx: MutationCtx, playerCodes: Iterable<number>): Promise<void> {
   const codes = [...new Set(playerCodes)];
   const season = await heldFixturesSeason(ctx);
   if (codes.length === 0 || season === null) return;

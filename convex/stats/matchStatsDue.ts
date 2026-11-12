@@ -2,7 +2,7 @@ import { v, type Infer } from "convex/values";
 import type { Doc } from "../_generated/dataModel";
 import { internalQuery, type QueryCtx } from "../_generated/server";
 import { matchStatsState } from "../schema";
-import { DAY_MS, HOUR_MS, JULY, MINUTE_MS, seasonStartYear, WEEK_MS } from "../shared/time";
+import { DAY_MS, HOUR_MS, MINUTE_MS, seasonStartAt, WEEK_MS } from "../shared/time";
 import { CURRENT_FIXTURES_MOST, currentFixtures, fixtureByCode } from "../shared/fixtures";
 import { takeAllOrThrow } from "../shared/cappedRead";
 import { dueMatch, type DueMatch } from "../shared/dueMatches";
@@ -28,11 +28,11 @@ export const MATCHES_PER_RUN = 10;
 export const UNSEEN_LOOKBACK_MS = WEEK_MS;
 /** The most status rows read in one state at once: a season's matches, with room. More throws,
  *  never a silent cut. */
-export const STATUS_ROWS_MOST = CURRENT_FIXTURES_MOST;
+const STATUS_ROWS_MOST = CURRENT_FIXTURES_MOST;
 
 /** What `due` found: the matches to read now, and the kickoff `record` stores for the next run to
  *  read the fixtures from. */
-export const dueRead = v.object({ matches: v.array(dueMatch), unseenFrom: v.number() });
+const dueRead = v.object({ matches: v.array(dueMatch), unseenFrom: v.number() });
 
 /** The held matches to read now: each past full time and not locked, or locked within the watch
  *  and not read for an hour. Those never tried come first, then the least lately tried, oldest
@@ -75,7 +75,7 @@ export const due = internalQuery({
 /** The status rows that can be due: provisional or complete since the season began, and locked
  *  within the watch and not read for an hour. */
 async function statusesDue(ctx: QueryCtx, now: number): Promise<Doc<"matchStatsStatus">[]> {
-  const seasonStart = Date.UTC(seasonStartYear(now), JULY, 1);
+  const seasonStart = seasonStartAt(now);
   const tooMany = (state: State) => `More than ${STATUS_ROWS_MOST} matches are held ${state}, so they would be cut short`;
   const unlocked = (state: Exclude<State, "locked">) =>
     takeAllOrThrow(

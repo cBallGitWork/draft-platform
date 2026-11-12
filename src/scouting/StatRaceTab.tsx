@@ -1,18 +1,18 @@
 import { useState } from "react";
-import type { Id } from "../../../convex/_generated/dataModel";
-import type { LeagueSummary } from "../../../convex/leagues/myLeagues";
+import type { Id } from "../../convex/_generated/dataModel";
+import type { LeagueSummary } from "../../convex/leagues/myLeagues";
 import {
   categoryName,
   categoryShortCode,
-} from "../../../convex/scoring/categories";
-import { GOALS } from "../../../convex/scoring/statKeys";
-import { mostFirst } from "../../../convex/scouting/raceOrder";
-import { rankAmong } from "../../../convex/shared/ranks";
-import { cellClassOf, ColumnHeads } from "../../ui/ColumnHeads";
-import { Loading, Panel } from "../../ui/Panel";
-import { useLastLoaded } from "../../shared/useLastLoaded";
-import { statFigure } from "../../shared/figures";
-import type { RacingTeam, ScoutingSeam, StatRace } from "../seam";
+} from "../../convex/scoring/categories";
+import { GOALS } from "../../convex/scoring/statKeys";
+import { mostFirst } from "../../convex/scouting/raceOrder";
+import { rankAmong } from "../../convex/shared/ranks";
+import { cellClassOf, ColumnHeads } from "../ui/ColumnHeads";
+import { Loading, Panel } from "../ui/Panel";
+import { useLastLoaded } from "../shared/useLastLoaded";
+import { statFigure } from "../shared/figures";
+import type { RacingTeam, ScoutingSeam, StatRace } from "./seam";
 import {
   categoryColumns,
   countsWhatCountedWords,
@@ -23,7 +23,7 @@ import {
   rankWords,
   sinceWords,
   STAT_RACE_TITLE,
-} from "../words";
+} from "./words";
 
 /** The race opens on goals, the first category the site's scoring has always scored. */
 const OPENING_STAT = GOALS;

@@ -36,10 +36,12 @@ concurrency:
 
 jobs:
   review:
+    # nothing runs while Craig's stop switch (the PIPELINE_STOP variable, claude-build.yml's header) is set
     if: >-
-      github.event_name == 'workflow_dispatch'
-      || (github.event.pull_request.head.repo.full_name == github.repository
-          && !github.event.pull_request.draft)
+      vars.PIPELINE_STOP == ''
+      && (github.event_name == 'workflow_dispatch'
+          || (github.event.pull_request.head.repo.full_name == github.repository
+              && !github.event.pull_request.draft))
     runs-on: ubuntu-latest
     timeout-minutes: 20
     env:

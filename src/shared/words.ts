@@ -3,7 +3,7 @@
 import type { PlayingState } from "../../convex/football/matchScores";
 import { AREA_WORDS } from "../../convex/lineup/pitchWords";
 import type { Position } from "../../convex/positions/positionTables";
-import type { TradedSide } from "../../convex/schema/squads";
+import type { TradedSide } from "../../convex/schema";
 import { LOCALE } from "../../convex/shared/moments";
 import { countInWords, figureWords } from "../../convex/shared/numberWords";
 import type { SquadWarning } from "../../convex/squads/squads";
@@ -76,6 +76,17 @@ export const shortThenLongName = ({ short, long }: { short: string; long: string
 export const columnHeadName = shortThenLongName;
 /** A stat, as a column of stats or the choice of one is headed. */
 export const STAT_WORD = "Stat";
+/** The season stats' column heads the draft list and My team's squad table both show. */
+export const statColumns = {
+  appearances: { short: "MP", long: "Matches played" },
+  goals: { short: "G", long: "Goals" },
+  assists: { short: "A", long: "Assists" },
+  cleanSheets: { short: "CS", long: "Clean sheets" },
+} as const;
+/** A squad table's name, as My team's and a trade's say it. */
+export const squadTableLabel = (teamName: string) => `${teamName}'s squad`;
+/** A count of players: "1 player", "12 players". */
+export const playersCount = (count: number) => (count === 1 ? "1 player" : `${count} players`);
 /** The stat box's two groups (src/ui/StatBox.tsx), once the site's set has own stats of its own
  *  (spec/14, Own stats; #910). */
 export const ownStatsGroupWords = "The site's own stats";
@@ -100,6 +111,8 @@ export { figureWords, signedWords } from "../../convex/shared/numberWords";
 
 /** A figure not there yet, such as points before a match's record has arrived. */
 export const noFigureWords = "—";
+/** A figure, or the dash while there is none. */
+export const figureOrNone = (points: number | null) => (points === null ? noFigureWords : figureWords(points));
 /** A player no team in the league owns. */
 export const freeAgentWords = "Free agent";
 /** Between the items of a short list in a line: a player's positions, "CDM, CM". */
@@ -174,7 +187,7 @@ const ORDINAL_ENDS: Record<Intl.LDMLPluralRule, string> = { zero: "th", one: "st
 export const placeWords = (place: number) => `${place}${ORDINAL_ENDS[ordinals.select(place)]}`;
 
 /** Said to someone who runs no team in the league, such as a commissioner who doesn't play, on
- *  My team's tabs and the trade pages alike. */
+ *  My team's tabs, the trade pages and the matchup alike. */
 export const noTeamWords = "You don't run a team in this league.";
 
 /** The "Find a player" panel, on the admin's dashboard and the squads page alike; each says its own hint. */
@@ -239,6 +252,14 @@ export const leagueAverageWords = "League average";
 export const unscoredWords = (gameweek: number, reason: string) =>
   `${gameweekWords(gameweek)} can't be scored, so it counts for nothing in the table: ${reason}.`;
 
+/** After a points column's hover: whose scoring adds them up (Scouting, the draft's list, the
+ *  player card). */
+export const underSiteScoringWords = "under the site's scoring";
+
+/** A trade review rule by name, as League settings offers it and a trade's Review fact says it. */
+export const commissionerVetoWords = "Commissioner veto";
+export const leagueVoteWords = "League vote";
+
 /** A season, short: "25/26" (the draft's list, Scouting, the player card, patch notes, a role card). */
 export const seasonShortWords = (startYear: number) => `${String(startYear % 100).padStart(2, "0")}/${String((startYear + 1) % 100).padStart(2, "0")}`;
 
@@ -251,6 +272,20 @@ export const notCountingLabel = "not counting";
 export const VIDIPRINTER_TITLE = "Vidiprinter";
 export const commentaryDelayedWords = "Commentary delayed";
 export const noCommentaryWords = "No lines yet.";
+
+/** A commissioner's override (spec/14 S14.3 to S14.6; #32, #903), of a player's points on his card
+ *  and of a team's total on the matchup alike. */
+export const overriddenWords = (points: number, reason: string) => `Overridden to ${figureWords(points)} in this league: ${reason}`;
+export const overrideHint = "The whole league gets a letter saying what changed and why.";
+export const overrideLabels = { match: "Match", points: "Points", reason: "Why" } as const;
+export const overrideWords = "Override";
+export const overriddenDoneWords = "Overridden: the league has a letter saying why.";
+export const overrideFailedWords = "The override couldn't be saved. Try again.";
+/** Taking an override off (#903, spec/14 S14.5): "remove override button". */
+export const removeOverrideWords = "Remove override";
+export const removeOverrideFailedWords = "The override couldn't be removed. Try again.";
+/** A player's points for a match whose record hasn't fully arrived, on hover. */
+export const notArrivedWords = "His record for this match hasn't fully arrived yet.";
 
 /** A player who has left the Premier League: on a squad (Squads, My team's Squad tab), and on his
  *  card and a shortlist. */

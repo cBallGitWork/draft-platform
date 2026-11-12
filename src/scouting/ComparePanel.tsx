@@ -4,11 +4,12 @@ import { mainArea } from "../../convex/scouting/per90Figures";
 import type { CatalogueStat } from "../../convex/scoring/statCatalogueList";
 import { WaiverAction } from "../playerCard/WaiverAction";
 import { statFigure } from "../shared/figures";
+import { useLastLoaded } from "../shared/useLastLoaded";
 import { useMinute } from "../shared/useMinute";
 import { OwnerName } from "../ui/OwnerName";
-import { Loading, Panel, PanelNote } from "../ui/Panel";
+import { CloseButton, Loading, Panel, PanelNote } from "../ui/Panel";
 import { PercentileBar, per90StatName } from "./Per90Figures";
-import { CloseButton, PointsFigure } from "./PointsFigure";
+import { PointsFigure } from "./PointsFigure";
 import type { ComparedPlayer, Comparison, Period, ScoutingSeam } from "./seam";
 import {
   clearComparisonWords,
@@ -60,7 +61,7 @@ export function ComparePanel({
   clear: () => void;
 }) {
   return (
-    <Panel title={yours ? COMPARE_YOURS_TITLE : COMPARE_TITLE} aside={<CloseButton label={clearComparisonWords} close={clear} />}>
+    <Panel title={yours ? COMPARE_YOURS_TITLE : COMPARE_TITLE} aside={<CloseButton label={clearComparisonWords} close={clear} className="font-bold lg:min-h-0" />}>
       {comparison === undefined ? (
         <Loading className="px-3 py-2">{comparingWords}</Loading>
       ) : (
@@ -164,7 +165,8 @@ function SideBySide({
  *  dropping the second ("Pick up X, drop Y") only when he is in the manager's squad and the squad is
  *  full (Craig, 9 Nov 2026, on #1028, answer 4). Nothing when the first is no one's to take. */
 function TakeFirst({ leagueId, first, second, seam }: { leagueId: Id<"leagues">; first: ComparedPlayer; second: ComparedPlayer; seam: ScoutingSeam }) {
-  const squadFull = seam.useYourPlayer(leagueId, first.code, useMinute())?.squadFull ?? false;
+  // Held as the minute turns, so "drop Y" never falls off the button for a moment (#1777).
+  const squadFull = useLastLoaded(seam.useYourPlayer(leagueId, first.code, useMinute()), `${leagueId}/${first.code}`)?.squadFull ?? false;
   return (
     <WaiverAction
       leagueId={leagueId}

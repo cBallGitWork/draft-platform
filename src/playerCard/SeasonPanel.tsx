@@ -7,7 +7,7 @@ import { cellClassOf, ColumnHeads, type ColumnWords } from "../ui/ColumnHeads";
 import { Panel, PanelNote } from "../ui/Panel";
 import type { PlayedMatch, PlayerCard } from "./seam";
 import { MatchName } from "./MatchName";
-import { opponentWords, type LogRow, logRowsOf, scoreOf } from "./gameLog";
+import { opponentWords, type LogRow, logRowsOf, pointsOf, scoreOf } from "./gameLog";
 import {
   columns,
   figureWords,
@@ -22,6 +22,7 @@ import {
   notArrivedWords,
   notInLastSeasonWords,
   overriddenWasWords,
+  pointsShortWords,
   postponedWords,
   pricedAtLabel,
   provisionalWords,
@@ -183,7 +184,7 @@ function LogLine({
 function PointsCell({ match, shown }: { match: PlayedMatch; shown: number }) {
   const base = match.points[shown].total;
   const { override } = match;
-  const total = override?.points ?? base;
+  const total = pointsOf(match, shown);
   if (total === null) {
     return (
       <td title={notArrivedWords} className={`${cellClasses(false)} text-muted`}>
@@ -198,12 +199,12 @@ function PointsCell({ match, shown }: { match: PlayedMatch; shown: number }) {
           {overriddenWasWords(base)}
         </span>
       )}
-      <span className="font-bold text-figure">{figureWords(total)}</span>
       {match.provisional && (
-        <span title={provisionalWords} className="ml-1 text-derived">
+        <span title={provisionalWords} className="mr-1 text-derived">
           {liveWords}
         </span>
       )}
+      <span className="font-bold text-figure">{figureWords(total)}</span>
     </td>
   );
 }
@@ -218,7 +219,9 @@ function LastSeason({ lastSeason, shown }: { lastSeason: PlayerCard["lastSeason"
       ) : lastSeason.played === null ? (
         <span className="text-muted">{notInLastSeasonWords}</span>
       ) : (
-        lastSeasonWords(lastSeason.season, { ...lastSeason.played, points: lastSeason.played.points[shown] ?? 0 })
+        <>
+          {lastSeasonWords(lastSeason.season, lastSeason.played)} <span className="font-bold text-figure">{figureWords(lastSeason.played.points[shown] ?? 0)}</span> {pointsShortWords}
+        </>
       )}
     </p>
   );

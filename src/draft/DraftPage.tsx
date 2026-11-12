@@ -24,7 +24,6 @@ import {
   loadingWords,
   nextHead,
   nextWords,
-  noClockWords,
   noStartWords,
   onTheClockHead,
   pickOfHead,
@@ -48,8 +47,8 @@ type Live = Extract<DraftState, { status: "live" }>;
 type Waiting = Extract<DraftState, { status: "waiting" }>;
 
 export function DraftPage({ league, seam }: { league: LeagueSummary; seam: DraftSeam }) {
-  // The minute is for the waiting countdown and the commissioner panel only: the room's own reads
-  // take none, so the page doesn't blank to Loading as it turns (#1531).
+  // The minute is for the waiting countdown only: the room's reads take none, so the page doesn't
+  // blank to Loading as it turns (#1531).
   const now = useMinute();
   const draft = seam.useDraft(league.leagueId);
   const board = seam.useBoard(league.leagueId);
@@ -84,7 +83,7 @@ export function DraftPage({ league, seam }: { league: LeagueSummary; seam: Draft
       <PickRoom leagueId={league.leagueId} seam={seam} draft={draft} board={board} onTheClock={onTheClock}>
         {(selected, unselect) =>
           league.powers.runs &&
-          draft.status !== "over" && <CommissionerPanel leagueId={league.leagueId} seam={seam} draft={draft} board={board} now={now} selected={selected} unselect={unselect} />
+          draft.status !== "over" && <CommissionerPanel leagueId={league.leagueId} seam={seam} draft={draft} board={board} selected={selected} unselect={unselect} />
         }
       </PickRoom>
     </PageSection>
@@ -153,7 +152,7 @@ function WaitingFacts({ draft, board, now }: { draft: Waiting; board: Board; now
         <Placeholder label={draftOrderPlaceholder} className="h-5 w-40 align-middle" />
       </Fact>
       {first !== undefined && <Fact head={youPickHead}>{youPickWords(first, second ?? null)}</Fact>}
-      <Fact head={clockHead}>{board.pickSeconds === null ? noClockWords : aPickWords(board.pickSeconds)}</Fact>
+      <Fact head={clockHead}>{aPickWords(board.pickSeconds)}</Fact>
       <Fact head={startsHead(draft.startsAt === null ? null : screenMoment(draft.startsAt))}>
         {draft.startsAt === null ? noStartWords : <span className="text-title text-derived">{inWords(draft.startsAt - now)}</span>}
       </Fact>
