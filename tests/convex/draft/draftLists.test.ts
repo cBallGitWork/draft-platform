@@ -6,7 +6,7 @@ import { draftListRefusals, listsOf } from "../../../convex/draft/draftLists";
 import { refusals } from "../../../convex/shared/leagueAccess";
 import { ANN, BOB, NO_SUCH_PLAYER, ODEGAARD, PALMER, SAKA, listsAs, listsLeague, manyPlayers, namesOn as namesIn, playerLeaves } from "../../support/convex/draftLists.harness";
 import { ARSENAL, CHELSEA, GONE } from "../../support/convex/footballRows.harness";
-import { ADMIN, COMMISSIONER, MANAGERS, actingAs, addManager, addManagers, adminCreatesLeague, type TestConvex } from "../../support/convex/leagues.harness";
+import { ADMIN, COMMISSIONER, MANAGERS, actingAs, addManager, addManagers, adminCreatesLeague, TEST_LEAGUE_TEAMS, type TestConvex } from "../../support/convex/leagues.harness";
 import { expectRefused } from "../../support/convex/test.harness";
 
 // A manager's draft queue and do-not-draft list (#1092, spec/04 The queue and the ranking): the
@@ -168,7 +168,7 @@ describe("private to the team", () => {
   });
 
   test("they are per league: Ann's in another league are different lists", async () => {
-    const otherLeague = await adminCreatesLeague(t, 4, "Another League");
+    const otherLeague = await adminCreatesLeague(t, TEST_LEAGUE_TEAMS, "Another League");
     await addManagers(t, otherLeague, [ANN]);
     await (await as(ANN)).queue(SAKA.code);
     expect(await namesOn(ANN, otherLeague)).toEqual({ queue: [], doNotDraft: [] });

@@ -4,7 +4,7 @@ import type { Id } from "../../../convex/_generated/dataModel";
 import { recordPassedDeadlines } from "../../../convex/gameweeks/deadlineRecorder";
 import { HOUR_MS, WEEK_MS } from "../../../convex/shared/time";
 import { changeRules, holdGameweeks, rulesWith, setUsed } from "../../support/convex/leagueRules.harness";
-import { actingAs, addManager, addManagers, adminCreatesLeague, MANAGERS, type TestConvex } from "../../support/convex/leagues.harness";
+import { actingAs, addManager, addManagers, adminCreatesLeague, MANAGERS, TEST_LEAGUE_TEAMS, type TestConvex } from "../../support/convex/leagues.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
 
 // A gameweek's fixtures are stored once it begins, and read as stored ever after (#137; spec/13,
@@ -100,7 +100,7 @@ describe("a gameweek begun with no head-to-head never gets fixtures (#282)", () 
 
   test("a league made mid-season has none in the gameweeks begun before it, and starts its round robin at the next", async () => {
     playUpTo(PLAYED);
-    const later = await adminCreatesLeague(t, 4, "Later");
+    const later = await adminCreatesLeague(t, TEST_LEAGUE_TEAMS, "Later");
     await addManagers(t, later, [ANN, BOB, CAT, DAN]);
     const before = await readOf(later);
     expect(before[0].gameweek).toBe(PLAYED + 1);
@@ -116,7 +116,7 @@ describe("a gameweek begun with no head-to-head never gets fixtures (#282)", () 
   });
 
   test("a gameweek begun with one team has none when a second joins", async () => {
-    const lonely = await adminCreatesLeague(t, 4, "Lonely");
+    const lonely = await adminCreatesLeague(t, TEST_LEAGUE_TEAMS, "Lonely");
     await addManager(t, lonely, ANN);
     playUpTo(PLAYED);
     await recordPassed();

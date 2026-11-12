@@ -8,14 +8,16 @@ import { describe, expect, it } from "vitest";
 import {
   CLASSIC_FORMATIONS,
   classicFormationsLine,
+  costsPlaceholder,
   descriptionPlaceholder,
   gainsPlaceholder,
   inUseWords,
   losesPlaceholder,
   sampleTextWords,
   savePresetLine,
-  savePresetName,
+  savePresetWords,
   subtitlePlaceholder,
+  unlocksPlaceholder,
   WINDOW_TITLE,
   YOUR_PRESETS,
   yourPresetsLine,
@@ -45,7 +47,7 @@ describe("the formation window", () => {
   it("shows the Save preset… tile on Your presets, in place, its line under its name", async () => {
     await opened();
     await userEvent.click(screen.getByRole("button", { name: `${YOUR_PRESETS}0` }));
-    expect(screen.getByRole("button", { name: `${savePresetName}${savePresetLine}` })).toBeTruthy();
+    expect(screen.getByRole("button", { name: `${savePresetWords}${savePresetLine}` })).toBeTruthy();
   });
 
   it("gives each tile its name, its formation's tag, a subtitle and a description waiting on Craig's words, and In use", async () => {
@@ -63,5 +65,14 @@ describe("the formation window", () => {
     expect(window.getAllByRole("term").map((term) => term.textContent)).toEqual(["Applies", "Gains", "Loses", "Unlocks", "Costs"]);
     expect(window.getByRole("img", { name: gainsPlaceholder })).toBeTruthy();
     expect(window.getByRole("img", { name: losesPlaceholder })).toBeTruthy();
+  });
+
+  it("shows Unlocks and Costs as placeholders that never say team instructions are still to be built (#1776)", async () => {
+    const window = await opened();
+    for (const words of [unlocksPlaceholder, costsPlaceholder]) {
+      const mark = window.getByRole("img", { name: words });
+      expect(mark.getAttribute("title")).toBe(words);
+      expect(words).not.toMatch(/built/);
+    }
   });
 });

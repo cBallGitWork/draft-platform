@@ -4,7 +4,7 @@ import type { Id } from "../../../convex/_generated/dataModel";
 import { switchableLeagues } from "../../../convex/leagues/lastLeague";
 import { LEAGUES_SHOWN } from "../../../convex/leagues/leagueLimits";
 import { refusals } from "../../../convex/shared/leagueAccess";
-import { ADMIN, accountOf, actingAs, CO_COMMISSIONER, COMMISSIONER, MANAGERS, addManagers, adminCreatesLeague, type TestConvex } from "../../support/convex/leagues.harness";
+import { ADMIN, accountOf, actingAs, CO_COMMISSIONER, COMMISSIONER, MANAGERS, addManagers, adminCreatesLeague, TEST_LEAGUE_TEAMS, type TestConvex } from "../../support/convex/leagues.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
 import { expectRefused } from "../../support/convex/test.harness";
 
@@ -25,8 +25,8 @@ const switchTo = async (email: string, leagueId: Id<"leagues">) =>
 
 /** Two leagues, "First" and "Second", both run by COMMISSIONER, with Ann managing a team in each. */
 async function annInTwoLeagues() {
-  const second = await adminCreatesLeague(t, 4, "Second");
-  const first = await adminCreatesLeague(t, 4, "First");
+  const second = await adminCreatesLeague(t, TEST_LEAGUE_TEAMS, "Second");
+  const first = await adminCreatesLeague(t, TEST_LEAGUE_TEAMS, "First");
   await addManagers(t, first, [ANN]);
   const [annsSecondTeam] = await addManagers(t, second, [ANN]);
   return { first, second, annsSecondTeam };
@@ -83,7 +83,7 @@ test("a co-commissioner with no team in a league they help run switches into it"
 
 test("switching to a league they have no part in is refused, and they stay where they were", async () => {
   const { first, second } = await annInTwoLeagues();
-  const strangers = await adminCreatesLeague(t, 4, "Strangers");
+  const strangers = await adminCreatesLeague(t, TEST_LEAGUE_TEAMS, "Strangers");
   await switchTo(ANN, second);
 
   await expectRefused(switchTo(ANN, strangers), refusals.notInLeague);
@@ -154,7 +154,7 @@ test("the admin with no part in a league being deleted, which he sees, is told h
 
 test("switching to a league that doesn't exist is refused as one they have no part in", async () => {
   const { second } = await annInTwoLeagues();
-  const gone = await adminCreatesLeague(t, 4, "Gone");
+  const gone = await adminCreatesLeague(t, TEST_LEAGUE_TEAMS, "Gone");
   await t.run((ctx) => ctx.db.delete("leagues", gone));
   await switchTo(ANN, second);
 
@@ -165,7 +165,7 @@ test("switching to a league that doesn't exist is refused as one they have no pa
 
 test("#207: the switcher's list is the server's, by the one rule that picks the league the app is in", async () => {
   const { first, second } = await annInTwoLeagues();
-  const third = await adminCreatesLeague(t, 4, "Third");
+  const third = await adminCreatesLeague(t, TEST_LEAGUE_TEAMS, "Third");
   await addManagers(t, second, [ADMIN]);
   await (await actingAs(t, COMMISSIONER)).mutation(api.leagues.leagueDeletion.deleteLeague, { leagueId: first });
 
@@ -187,7 +187,7 @@ test("#207: the switcher's list is the server's, by the one rule that picks the 
 
 test("#488: only a league the switcher lists is one to switch to, so one past the end of its list is refused", async () => {
   // LEAGUES_SHOWN + 1 leagues the commissioner runs: the list keeps the first LEAGUES_SHOWN made.
-  const made = await adminCreatesLeague(t, 4, "League 0");
+  const made = await adminCreatesLeague(t, TEST_LEAGUE_TEAMS, "League 0");
   const pastTheEnd = await t.run(async (ctx) => {
     const { _id, _creationTime, ...row } = (await ctx.db.get("leagues", made))!;
     let last = made;

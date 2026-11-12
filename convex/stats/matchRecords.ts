@@ -33,32 +33,38 @@ const MINUTES: StatInBothFeeds = { fpl: "minutes", pl: "mins_played", kept: "fpl
 /** A record's minutes, under the name it is kept by. */
 export const MINUTES_STAT = MINUTES.fpl;
 
-const GOALS: StatInBothFeeds = { fpl: "goals_scored", pl: "goals", kept: "fpl" };
-const ASSISTS: StatInBothFeeds = { fpl: "assists", pl: "goal_assist", kept: "fpl" };
-const YELLOW_CARDS: StatInBothFeeds = { fpl: "yellow_cards", pl: "yellow_card", kept: "fpl" };
-const RED_CARDS: StatInBothFeeds = { fpl: "red_cards", pl: "red_card", kept: "fpl" }; // Opta's name, not yet seen
-const OWN_GOALS: StatInBothFeeds = { fpl: "own_goals", pl: "own_goals", kept: "pl" };
+// The names a record keeps stats both feeds send under, each typed once here (statKeys.ts
+// re-exports them for the scoring).
+export const GOALS = "goals_scored";
+export const ASSISTS = "assists";
+export const YELLOW_CARDS = "yellow_cards";
+export const RED_CARDS = "red_cards";
+export const SAVES = "saves";
+export const CLEAN_SHEETS = "clean_sheets";
+export const GOALS_CONCEDED = "goals_conceded";
+export const PENALTIES_SAVED = "penalties_saved";
+const OWN_GOALS = "own_goals";
 
 /** The stats a goal, an assist, a card or an own goal moves, under the names they are kept by:
  *  what the matchup's commentary prices them by (#44, #835). */
-export const EVENT_STATS = { goals: GOALS.fpl, assists: ASSISTS.fpl, yellowCards: YELLOW_CARDS.fpl, redCards: RED_CARDS.fpl, ownGoals: OWN_GOALS.pl } as const;
+export const EVENT_STATS = { goals: GOALS, assists: ASSISTS, yellowCards: YELLOW_CARDS, redCards: RED_CARDS, ownGoals: OWN_GOALS } as const;
 
 /** Whose count is kept where both feeds send a stat (spec/07: FPL's for goals, assists, minutes,
  *  cards, saves, clean sheets, goals conceded and penalties; the Premier League's for the rest).
  *  Those marked are Opta's usual names, not yet seen in a recording: a wrong one only leaves both
  *  feeds' counts stored. */
 const STATS_IN_BOTH_FEEDS: StatInBothFeeds[] = [
-  GOALS,
-  ASSISTS,
+  { fpl: GOALS, pl: "goals", kept: "fpl" },
+  { fpl: ASSISTS, pl: "goal_assist", kept: "fpl" },
   MINUTES,
-  YELLOW_CARDS,
-  RED_CARDS,
-  { fpl: "saves", pl: "saves", kept: "fpl" },
-  { fpl: "clean_sheets", pl: "clean_sheet", kept: "fpl" },
-  { fpl: "goals_conceded", pl: "goals_conceded", kept: "fpl" },
-  { fpl: "penalties_saved", pl: "penalty_save", kept: "fpl" }, // Opta's name, not yet seen
+  { fpl: YELLOW_CARDS, pl: "yellow_card", kept: "fpl" },
+  { fpl: RED_CARDS, pl: "red_card", kept: "fpl" }, // Opta's name, not yet seen
+  { fpl: SAVES, pl: "saves", kept: "fpl" },
+  { fpl: CLEAN_SHEETS, pl: "clean_sheet", kept: "fpl" },
+  { fpl: GOALS_CONCEDED, pl: "goals_conceded", kept: "fpl" },
+  { fpl: PENALTIES_SAVED, pl: "penalty_save", kept: "fpl" }, // Opta's name, not yet seen
   { fpl: "penalties_missed", pl: "att_pen_miss", kept: "fpl" }, // Opta's name, not yet seen
-  OWN_GOALS,
+  { fpl: OWN_GOALS, pl: OWN_GOALS, kept: "pl" },
   { fpl: "starts", pl: "game_started", kept: "pl" },
 ];
 

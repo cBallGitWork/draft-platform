@@ -39,7 +39,7 @@ export const claimRefusals = {
 
 /** The most claims a league holds that one read takes: every team at its ceiling (#1609), so the
  *  run never meets it. Past it a read throws rather than leave claims out. */
-export const CLAIMS_READ_MOST = MOST_TEAMS * CLAIMS_PER_TEAM_MOST;
+const CLAIMS_READ_MOST = MOST_TEAMS * CLAIMS_PER_TEAM_MOST;
 
 /** The team's pending claims, first first. */
 export function claimsOf(ctx: QueryCtx, leagueId: Id<"leagues">, teamId: Id<"teams">): Promise<Doc<"waiverClaims">[]> {

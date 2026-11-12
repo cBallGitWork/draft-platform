@@ -11,6 +11,7 @@ import { ARSENAL, insertClubs, insertPlayers } from "../../support/convex/footba
 import { HELD_FIRST_RULES } from "../../support/convex/leagueRules.harness";
 import { addManagers, adminCreatesLeague, COMMISSIONER, MANAGERS, type TestConvex } from "../../support/convex/leagues.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
+import { expectRefused } from "../../support/convex/test.harness";
 
 // Pausing and resuming the draft (spec/04, The commissioner; #1135): a pause keeps the time left,
 // the 10 seconds before the next clock freeze too, a paused clock never fires, and a pick time
@@ -57,7 +58,7 @@ describe("a pause", () => {
     await start();
     await pause();
 
-    await expect(pick(ANN, A1)).rejects.toThrow(pickRefusals.paused);
+    await expectRefused(pick(ANN, A1), pickRefusals.paused);
     await resume();
     await pick(ANN, A1);
     expect(await pickCount()).toBe(1);
@@ -66,21 +67,21 @@ describe("a pause", () => {
   test("can be made only by someone who runs the league", async () => {
     await start();
 
-    await expect(pause(ANN)).rejects.toThrow(refusals.notRunner);
+    await expectRefused(pause(ANN), refusals.notRunner);
     await pause();
-    await expect(resume(ANN)).rejects.toThrow(refusals.notRunner);
+    await expectRefused(resume(ANN), refusals.notRunner);
   });
 
   test("is refused before the draft starts, twice over, and once it is over", async () => {
-    await expect(pause()).rejects.toThrow(pauseRefusals.notStarted);
+    await expectRefused(pause(), pauseRefusals.notStarted);
     await start();
-    await expect(resume()).rejects.toThrow(pauseRefusals.notPaused);
+    await expectRefused(resume(), pauseRefusals.notPaused);
     await pause();
-    await expect(pause()).rejects.toThrow(pauseRefusals.alreadyPaused);
+    await expectRefused(pause(), pauseRefusals.alreadyPaused);
     await resume();
     for (let made = 0; made < 4; made++) await pass(PICK_MS + PICK_GAP_MS);
     await pass(PICK_GAP_MS);
-    await expect(pause()).rejects.toThrow(pauseRefusals.over);
+    await expectRefused(pause(), pauseRefusals.over);
   });
 });
 

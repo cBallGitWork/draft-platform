@@ -3,15 +3,13 @@ import { api } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
 import type { MutationCtx } from "../../../convex/_generated/server";
 import type { Period } from "../../../convex/scouting/periods";
-import type { StoredScoringSet } from "../../../convex/scoring/scoringSetShape";
 import { inTenths } from "../../../convex/scoring/values";
 import { WEEK_MS } from "../../../convex/shared/time";
 import { COMMISSIONER, MANAGERS, actingAs, addManagers, adminCreatesLeague, type TestConvex } from "../../support/convex/leagues.harness";
 import { ARSENAL, CHELSEA, SAKA, completeRecord, insertClubs, insertPlayers } from "../../support/convex/footballRows.harness";
 import { playersListed } from "../../support/convex/playersList.harness";
 import { at } from "../../support/convex/seasonPoints.harness";
-import { EXAMPLE_SET } from "../../support/convex/scoring.example";
-import { holdSiteScoring } from "../../support/convex/siteScoring.harness";
+import { holdExampleScoring } from "../../support/convex/siteScoring.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
 
 // Scouting's period (#1028, story 3; Craig, 9 Nov 2026, on #1028, answer 5): the list, his per-90
@@ -41,12 +39,12 @@ let leagueId: Id<"leagues">;
 beforeEach(async () => {
   t = await signInDeployment();
   fakeResend();
-  leagueId = await adminCreatesLeague(t, 4);
+  leagueId = await adminCreatesLeague(t);
   await addManagers(t, leagueId, [ANN]);
   await t.run(async (ctx) => {
     await insertClubs(ctx, [ARSENAL, CHELSEA]);
     await insertPlayers(ctx, [SAKA, PALMER]);
-    await holdSiteScoring(ctx, { scoring: structuredClone(EXAMPLE_SET) as StoredScoringSet, kind: "fix", season: 2025, number: 1, at: 0 });
+    await holdExampleScoring(ctx);
   });
 });
 

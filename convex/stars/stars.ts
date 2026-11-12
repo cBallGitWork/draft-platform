@@ -63,7 +63,7 @@ export type RatedRecord = Pick<Doc<"playerMatchStats">, "state" | "played" | "ar
 
 /** The matches he is rated on (Craig, 1 Nov 2026): each final one he got on the pitch for, cameos
  *  included, his newest STARS_WINDOW, newest first. */
-export function countedMatches(records: readonly RatedRecord[]): MatchStats[] {
+export function ratedMatches(records: readonly RatedRecord[]): MatchStats[] {
   return records
     .filter((record) => record.state === "locked" && isWhole(record) && statIn(record.stats, MINUTES_STAT) > 0)
     .toSorted((one, other) => other.kickoff - one.kickoff)

@@ -7,6 +7,7 @@ import type { StoredScoringSet } from "../../../convex/scoring/scoringSetShape";
 import { holdGameweeks } from "../../support/convex/leagueRules.harness";
 import { addManagers, adminCreatesLeague, MANAGERS } from "../../support/convex/leagues.harness";
 import { EDITED, holdSiteScoring, inGameweek, NOTICE, patch, t, TODAY, useSiteScoringDeployment, versions } from "../../support/convex/siteScoring.harness";
+import { ATTACK, LEFT_BACK } from "../../support/convex/teamPoints.harness";
 
 // The redrawn roles go into the site's set (#1445; spec/05 `S05.27`, `S05.3`): from the next
 // gameweek not begun, and every starter on a role cut on #1196 moves to the role he'd get dropped
@@ -22,8 +23,6 @@ const OLD_SET: StoredScoringSet = {
   roles: [{ role: "lateRunner", bonus: { parts: [{ stat: "goals_scored", weight: 2 }], bars: [1, 2, 3] }, cost: { parts: [{ stat: "big_chance_missed", weight: 1 }], bars: [2, 3, 4] } }],
 };
 const CENTRE_MIDFIELD = { area: "midfield", lane: "centre" } as const;
-const STRIKER = { area: "attack", lane: "centre" } as const;
-const LEFT_BACK = { area: "defence", lane: "left" } as const;
 
 const addRedrawnRoles = () => t.mutation(internal.scoring.firstRolesVersion.addRedrawnRoles, {});
 const rowsOf = (teamId: Id<"teams">) =>
@@ -31,7 +30,7 @@ const rowsOf = (teamId: Id<"teams">) =>
 
 async function holdLeague() {
   await holdGameweeks(t, { next: NEXT });
-  await t.run((ctx) => holdSiteScoring(ctx, { scoring: OLD_SET, kind: "fix", season: 2026, number: 1, at: TODAY - 1 }));
+  await t.run((ctx) => holdSiteScoring(ctx, { scoring: OLD_SET, kind: "fix", at: TODAY - 1 }));
   const leagueId = await adminCreatesLeague(t);
   const [annsTeam, bobsTeam] = await addManagers(t, leagueId, MANAGERS.slice(0, 2));
   // Ann's lineup in force since gameweek 5; Bob saved one for gameweek 10.
@@ -41,7 +40,7 @@ async function holdLeague() {
       await ctx.db.insert("lineups", { leagueId, teamId, fromGameweek, starters, bench: [] });
     });
   await lineup(annsTeam, 5, [{ playerCode: 1, ...CENTRE_MIDFIELD, role: "lateRunner" }, { playerCode: 2, ...LEFT_BACK, role: "invertedFullBack" }]);
-  await lineup(bobsTeam, 10, [{ playerCode: 3, ...STRIKER, role: "shadowStriker" }]);
+  await lineup(bobsTeam, 10, [{ playerCode: 3, ...ATTACK, role: "shadowStriker" }]);
   return { annsTeam, bobsTeam };
 }
 
@@ -66,7 +65,7 @@ test("a starter on a cut role moves to the role he'd be dropped on from that gam
     { fromGameweek: 5, starters: [{ playerCode: 1, ...CENTRE_MIDFIELD, role: "lateRunner" }, { playerCode: 2, ...LEFT_BACK, role: "invertedFullBack" }] },
     { fromGameweek: NEXT, starters: [{ playerCode: 1, ...CENTRE_MIDFIELD }, { playerCode: 2, ...LEFT_BACK, role: "invertedFullBack" }] },
   ]);
-  expect(await rowsOf(bobsTeam)).toEqual([{ fromGameweek: 10, starters: [{ playerCode: 3, ...STRIKER }] }]);
+  expect(await rowsOf(bobsTeam)).toEqual([{ fromGameweek: 10, starters: [{ playerCode: 3, ...ATTACK }] }]);
 });
 
 test("while a patch made without them waits to take effect, they aren't added", async () => {

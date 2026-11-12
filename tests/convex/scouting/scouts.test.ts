@@ -27,7 +27,7 @@ beforeEach(async () => {
   t = await signInDeployment();
   fakeResend();
   claude = fakeClaude();
-  leagueId = await adminCreatesLeague(t, 4);
+  leagueId = await adminCreatesLeague(t);
   [, bobsTeam] = await addManagers(t, leagueId, [ANN, BOB]);
   await holdStarsPlayers(t);
 });

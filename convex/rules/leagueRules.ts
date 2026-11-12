@@ -2,7 +2,7 @@ import { v, type Validator } from "convex/values";
 import type { Id } from "../_generated/dataModel";
 import { internalMutation, mutation, query, type MutationCtx, type QueryCtx } from "../_generated/server";
 import type { DeadlineRule } from "../gameweeks/deadline";
-import { draftRulesOf, FIRST_RULES } from "./firstRules";
+import { classicFormationsOf, draftRulesOf, FIRST_RULES, instructionsOf, tradeRulesOf } from "./firstRules";
 import { getLeague, memberOf, refuse, runnerOf } from "../shared/leagueAccess";
 import { bylineOf, recordEvent } from "../mail/letters";
 import { checkGamesFor, checkLeagueRules, gamesWords, UnsoundRules, whyMostGames } from "./leagueRulesCheck";
@@ -139,12 +139,19 @@ export function refuseTooFewForGames(rules: LeagueRules, maxTeams: number): void
 }
 
 /** The parts of the rules that differ, by name: all of them, from a league that had none. Each
- *  side is read as it plays (`draftRulesOf`), so rules saved before the draft was a rule differ
- *  from the first rules' values in none (#147). */
+ *  side is read as it plays (firstRules.ts's fallbacks), so rules saved before the draft, the
+ *  trades, the team instructions or the classic formations were rules differ from the first rules'
+ *  values in none (#147, #1742). */
 function changedParts(from: LeagueRules | undefined, to: LeagueRules): (keyof LeagueRules)[] {
   const parts = Object.keys(leagueRulesShape.fields) as (keyof LeagueRules)[];
   if (from === undefined) return parts;
-  const asPlayed = (rules: LeagueRules): LeagueRules => ({ ...rules, draft: draftRulesOf(rules) });
+  const asPlayed = (rules: LeagueRules): LeagueRules => ({
+    ...rules,
+    draft: draftRulesOf(rules),
+    trades: tradeRulesOf(rules),
+    instructions: [...instructionsOf(rules)],
+    classics: classicFormationsOf(rules),
+  });
   const [before, after] = [asPlayed(from), asPlayed(to)];
   return parts.filter((part) => sortedJson(before[part]) !== sortedJson(after[part]));
 }

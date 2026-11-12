@@ -2,6 +2,7 @@ import { useMutation, useQuery } from "convex/react";
 import { useMemo } from "react";
 import { api } from "../../convex/_generated/api";
 import { refusalOf } from "../shared/refusal";
+import { useLastLoaded } from "../shared/useLastLoaded";
 import { useMinute } from "../shared/useMinute";
 import type { TradeChanges, TradesSeam } from "./seam";
 import { tradeFailedWords } from "./words";
@@ -9,8 +10,9 @@ import { tradeFailedWords } from "./words";
 /** Trades' seam filled in by Convex. */
 export const liveTrades: TradesSeam = {
   // Asked at the screen's minute, as a query may not read the clock: whether trades are shut moves on with it.
+  // The last answer is held while the next minute's loads, so a half-made offer survives the clock (#1747).
   useTrades: (leagueId) =>
-    useQuery(api.trades.tradeScreen.ofMyTeam, { leagueId, now: useMinute() }),
+    useLastLoaded(useQuery(api.trades.tradeScreen.ofMyTeam, { leagueId, now: useMinute() }), leagueId),
   useReviews: (leagueId) =>
     useQuery(api.trades.reviewScreen.toReview, { leagueId }),
   useTradeChanges: function useTradeChanges() {

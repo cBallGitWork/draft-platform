@@ -8,10 +8,12 @@ import { BYE, gamesOf, type Against } from "../../../convex/table/teamGames";
 import { formOf, type Result } from "../../../convex/table/standings";
 import type { LeagueTable } from "../../table/seam";
 
-/** A team's game in a gameweek: who it meets, and its score once the gameweek is scored, its own
- *  side first, and whether either side may still move. */
+/** A team's game in a gameweek: which of its games there it is (from 1, as teamGames.ts's `gamesOf`
+ *  numbers them), who it meets, and its score once the gameweek is scored, its own side first, and
+ *  whether either side may still move. */
 export type TeamGame = {
   gameweek: number;
+  game: number;
   against: Against<string>;
   score: { team: number; opponent: number; provisional: boolean } | null;
 };
@@ -32,7 +34,7 @@ export type Standing = {
 /** The team's games in the league's head-to-head schedule, in gameweek order, each with its score
  *  once scored: none in total points. */
 export function gamesOfTeam(table: LeagueTable, teamName: string): TeamGame[] {
-  return gamesOf(scheduleOf(table), teamName).map(({ gameweek, against }) => ({ gameweek, against, score: scoreOf(table, teamName, gameweek, against) }));
+  return gamesOf(scheduleOf(table), teamName).map(({ gameweek, game, against }) => ({ gameweek, game, against, score: scoreOf(table, teamName, gameweek, against) }));
 }
 
 /** The league's head-to-head schedule by team name, the league's average as the server draws it. */

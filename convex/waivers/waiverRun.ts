@@ -14,13 +14,13 @@ import { claimFailedLetter, type ClaimFailure } from "../mail/waiverLetterWords"
 import { fileLetter, recordEvent } from "../mail/letters";
 import type { LeagueRules } from "../rules/leagueRulesShape";
 import { historyOf, newestRow, seasonRules } from "../rules/rulesHistory";
-import { everyLeague } from "../shared/cappedRead";
+import { scheduleEveryLeague } from "../shared/cappedRead";
 import { tellShortlistersCleared } from "../scouting/shortlist";
 import { teamIn } from "../shared/leagueAccess";
 import { playerByCode } from "../shared/players";
 import { readOnce } from "../shared/readOnce";
 import { MINUTE_MS } from "../shared/time";
-import { placeOf, squadOf } from "../squads/squadPlace";
+import { placeOf, squadCodes } from "../squads/squadPlace";
 import { limitsReader, type LimitsBroken, type SquadWarning } from "../squads/squads";
 import { heldInReview } from "../trades/tradeClose";
 import { claimedName, leagueClaims } from "./waiverClaims";
@@ -82,7 +82,7 @@ export async function joiningBreaksLimits(
   dropCode: number | null,
   squadRules: LeagueRules["squad"] | null,
 ): Promise<boolean> {
-  const squad = (await squadOf(ctx, teamId)).map((row) => row.playerCode);
+  const squad = await squadCodes(ctx, teamId);
   return joinBreaks(squad, playerCode, dropCode, await limitsReader(ctx, leagueId, squadRules));
 }
 
@@ -124,7 +124,7 @@ type Run = {
 async function squadInRun(ctx: QueryCtx, run: Run, teamId: Id<"teams">): Promise<number[]> {
   const kept = run.squads.get(teamId);
   if (kept !== undefined) return kept;
-  const squad = (await squadOf(ctx, teamId)).map((row) => row.playerCode);
+  const squad = await squadCodes(ctx, teamId);
   run.squads.set(teamId, squad);
   return squad;
 }
@@ -266,34 +266,35 @@ export const run = internalMutation({
   },
 });
 
-/** The cron's: starts the run of each league whose latest run time has come and not been run, if
- *  it was a run time when it came (`wasRunTime`). A league that has never run waivers runs one
- *  only if its time came since the last check or so. */
+/** The cron's: asks each open league to start what is due in it (`runLeagueDue`) in its own transaction, so one league's fault stops no other's (#1558, #1762). */
 export const runDue = internalMutation({
   args: {},
   returns: v.null(),
   handler: async (ctx) => {
-    const now = Date.now();
-    const leagues = await everyLeague(ctx, "so waivers can't be run in every one");
-    for (const league of leagues) {
-      if (!leagueOpens(league)) continue;
-      await scheduleBackOnWaivers(ctx, league._id, now);
-      const history = await historyOf(ctx, league._id);
-      const at = latestRunAt(newestRow(history, league._id).rules.waivers.runs, now);
-      if (at === null || !wasRunTime(history, at)) continue;
-      const held = await waiverOrderRow(ctx, league._id);
-      if (held === null ? at <= now - FIRST_RUN_WITHIN_MS : at <= held.ranAt) continue;
-      await ctx.scheduler.runAfter(0, internal.waivers.waiverRun.run, { leagueId: league._id, at });
-    }
+    await scheduleEveryLeague(ctx, internal.waivers.waiverRun.runLeagueDue, "so waivers can't be run in every one", leagueOpens);
     await scheduleHeartbeat(ctx, "waiverRuns");
     return null;
   },
 });
 
-/** Starts putting the league's free agents back on waivers if its window has shut since a deadline
- *  they weren't yet put back for, once its draft is over. */
-async function scheduleBackOnWaivers(ctx: MutationCtx, leagueId: Id<"leagues">, now: number): Promise<void> {
-  const shut = await windowShutSince(ctx, leagueId, await leagueDeadlines(ctx, leagueId), now);
-  if (shut === null || (await waiverOrderRow(ctx, leagueId))?.backOnWaivers === shut || !(await draftIsOver(ctx, leagueId))) return;
-  await ctx.scheduler.runAfter(0, internal.waivers.backOnWaivers.putBackOnWaivers, { leagueId, deadline: shut });
-}
+/** Puts the league's free agents back on waivers once its window has shut since a deadline they
+ *  weren't yet, its draft over; then starts its run if its latest run time has come unrun and was a
+ *  run time when it came (`wasRunTime`), a league never run only if it came since the last check. */
+export const runLeagueDue = internalMutation({
+  args: { leagueId: v.id("leagues") },
+  returns: v.null(),
+  handler: async (ctx, { leagueId }) => {
+    const league = await ctx.db.get("leagues", leagueId);
+    if (league === null || !leagueOpens(league)) return null;
+    const now = Date.now();
+    const held = await waiverOrderRow(ctx, leagueId);
+    const shut = await windowShutSince(ctx, leagueId, await leagueDeadlines(ctx, leagueId), now);
+    if (shut !== null && held?.backOnWaivers !== shut && (await draftIsOver(ctx, leagueId)))
+      await ctx.scheduler.runAfter(0, internal.waivers.backOnWaivers.putBackOnWaivers, { leagueId, deadline: shut });
+    const history = await historyOf(ctx, leagueId);
+    const at = latestRunAt(newestRow(history, leagueId).rules.waivers.runs, now);
+    if (at === null || !wasRunTime(history, at) || (held === null ? at <= now - FIRST_RUN_WITHIN_MS : at <= held.ranAt)) return null;
+    await ctx.scheduler.runAfter(0, internal.waivers.waiverRun.run, { leagueId, at });
+    return null;
+  },
+});

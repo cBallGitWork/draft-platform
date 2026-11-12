@@ -105,7 +105,8 @@ From `/grill trades` (25 Oct 2026).
   is made or accepted, as free agency and the commissioner's moves wait for it (Craig, 11 Nov
   2026, #1482). `S08.7`
 - Trades come after the mini beta, by August, with the veto and the league vote (`spec/15`;
-  the vote, Craig, 31 Oct 2026).
+  the vote, Craig, 31 Oct 2026). Replaced: trades are in the beta (Craig, 2 Nov 2026; docs/PLAN.md,
+  The beta), and are built (#383). `S08.17 withdrawn`
 - Under a veto, the commissioner gets a Mail letter for each accepted trade, with Block in it;
   under a vote, each other manager gets one with Against in it. A blocked trade files a letter to
   the whole league; one that clears review files the usual trade letter (`spec/16`; 31 Oct 2026).

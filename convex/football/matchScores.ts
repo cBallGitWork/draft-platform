@@ -6,7 +6,7 @@ import { clubRecord, scoreFeed, scoreRead, type matchState, type scoreWrites } f
 import { gameweekFixtures } from "../shared/fixtures";
 import { callerEmail } from "../shared/leagueAccess";
 import { clubByCode, clubOf } from "../shared/players";
-import { BATCH_SIZE } from "../shared/syncRuns";
+import { inBatches } from "../shared/syncRuns";
 import type { ScoreRead, ScoreReads } from "./scoreReads";
 
 // Each match's score and clock, stored (#49, #50; spec/18). Two feeds write it: the football sync
@@ -35,12 +35,8 @@ const STATE_ORDER: Record<State, number> = { upcoming: 0, live: 1, halfTime: 1, 
 /** One read's scores written in batches of `BATCH_SIZE`, and its problems kept for the run row. */
 export async function writeScores(ctx: ActionCtx, feed: ScoreFeed, readAt: number, { reads, problems }: ScoreReads): Promise<ScoreWrites> {
   let written = 0;
-  for (let start = 0; start < reads.length; start += BATCH_SIZE) {
-    written += await ctx.runMutation(internal.football.matchScores.upsertScores, {
-      feed,
-      readAt,
-      reads: reads.slice(start, start + BATCH_SIZE),
-    });
+  for (const batch of inBatches(reads)) {
+    written += await ctx.runMutation(internal.football.matchScores.upsertScores, { feed, readAt, reads: batch });
   }
   return { received: reads.length + problems.length, written, problems };
 }

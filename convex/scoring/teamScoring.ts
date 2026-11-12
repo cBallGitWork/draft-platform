@@ -36,6 +36,18 @@ export function backLineAt(team: TeamScoring | undefined, area: Area): TeamScori
   return team?.backLine != null && BACK_LINE_AREAS.has(area) ? team.backLine : null;
 }
 
+/** Some back line's values, for a caller asking only whether any back line would move his points:
+ *  each prices every clean sheet and every goal conceded, so one at 1 and -1 moves them wherever any
+ *  with points does (thresholdSteps.ts). Never a league's values. */
+export const ANY_BACK_LINE: BackLineScoring = { cleanSheet: 1, goalConceded: -1 };
+
+/** The rules as `team` prices them at a slot in `area`: through its back line in its keeper and
+ *  defence slots (withBackLine), else as they are. */
+export function rulesAt(rules: readonly ScoringRule[], team: TeamScoring | undefined, area: Area): readonly ScoringRule[] {
+  const backLine = backLineAt(team, area);
+  return backLine === null ? rules : rules.map((rule) => withBackLine(rule, backLine.scoring));
+}
+
 /** The rule as a back line prices it: a clean sheet and each goal conceded at the formation's
  *  values, the rule's minimum minutes and points limit kept; any other rule as it is. */
 export function withBackLine(rule: ScoringRule, scoring: BackLineScoring): ScoringRule {
