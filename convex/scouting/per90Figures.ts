@@ -2,7 +2,7 @@
 // player's panel lists for his area, and how he ranks against the players of it. Pure, apart from
 // per90.ts, so the preview and the tests share it without the server's imports.
 
-import { AREAS, areasOf, cellsOf, LANES, positionOfSlot, SLOT_POSITIONS, type Area } from "../lineup/pitch";
+import { AREAS, areasOf, cellsOf, GOALKEEPER_AREA, LANES, positionOfSlot, SLOT_POSITIONS, type Area } from "../lineup/pitch";
 import { cardOpensAt } from "../playerCard/cardPoints";
 import { mostFirst } from "./raceOrder";
 import type { Position } from "../positions/positionTables";
@@ -40,7 +40,7 @@ const MIDFIELD_AND_ATTACK_STATS = [GOALS, ASSISTS, KEY_PASSES, SHOTS_ON_TARGET, 
 /** The stats a player of `area` is shown per 90, then `picked` (the list's stat) as a seventh when
  *  it isn't among them already. */
 export function per90Stats(area: Area, picked: string | null): string[] {
-  const set: readonly string[] = area === "goalkeeper" ? GOALKEEPER_STATS : area === "defence" ? DEFENCE_STATS : MIDFIELD_AND_ATTACK_STATS;
+  const set: readonly string[] = area === GOALKEEPER_AREA ? GOALKEEPER_STATS : area === "defence" ? DEFENCE_STATS : MIDFIELD_AND_ATTACK_STATS;
   return picked === null || set.includes(picked) ? [...set] : [...set, picked];
 }
 

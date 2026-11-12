@@ -8,7 +8,7 @@ import { refusals } from "../../../convex/shared/leagueAccess";
 import { SECOND_MS } from "../../../convex/shared/time";
 import { draftSteps, FIRST_PICK_MS, midfielder } from "../../support/convex/draft.harness";
 import { ARSENAL, insertClubs, insertPlayers } from "../../support/convex/footballRows.harness";
-import { addManagers, adminCreatesLeague, COMMISSIONER, MANAGERS, type TestConvex } from "../../support/convex/leagues.harness";
+import { addManagers, adminCreatesLeague, COMMISSIONER, lettersTo, MANAGERS, type TestConvex } from "../../support/convex/leagues.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
 import { expectRefused } from "../../support/convex/test.harness";
 
@@ -171,13 +171,13 @@ describe("resuming", () => {
 describe("when its league is deleted", () => {
   const deleteLeague = async () => (await as(COMMISSIONER)).mutation(api.leagues.leagueDeletion.deleteLeague, { leagueId });
   const undo = async () => (await as(COMMISSIONER)).mutation(api.leagues.leagueDeletion.undo, { leagueId });
-  const lettersTo = (email: string) => t.run(async (ctx) => (await ctx.db.query("letters").collect()).filter((row) => row.to === email).length);
+  const lettersCountTo = async (email: string) => (await lettersTo(t, email)).length;
 
   test("the draft pauses, keeps its time left, picks nothing and tells no manager", async () => {
     const startedAt = Date.now();
     await start();
     await pass(FIRST_PICK_MS - 30 * SECOND_MS);
-    const [annLetters, bobLetters] = [await lettersTo(ANN), await lettersTo(BOB)];
+    const [annLetters, bobLetters] = [await lettersCountTo(ANN), await lettersCountTo(BOB)];
     await deleteLeague();
     await pass(FIRST_PICK_MS * 100);
 
@@ -185,7 +185,7 @@ describe("when its league is deleted", () => {
     await undo();
     expect(await read()).toMatchObject({ onTheClock: { pick: 1 }, clock: { startsAt: startedAt, endsAt: startedAt + FIRST_PICK_MS } });
     expect(await read()).toHaveProperty("clock.pausedAt");
-    expect([await lettersTo(ANN), await lettersTo(BOB)]).toEqual([annLetters, bobLetters]);
+    expect([await lettersCountTo(ANN), await lettersCountTo(BOB)]).toEqual([annLetters, bobLetters]);
   });
 
   test("an undo leaves it paused until the commissioner resumes, on the time it had left", async () => {
