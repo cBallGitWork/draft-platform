@@ -1,9 +1,15 @@
-// A box left without a number hands up NaN (NumberBox.tsx), at any depth of a rules draft. The
-// server never holds one, so a draft with one in it is never the saved part, though JSON writes
+// A box left without a number hands up BLANK_NUMBER, NaN (NumberBox.tsx), at any depth of a
+// rules draft. The server never holds one, so a draft with one in it is never the saved part, though JSON writes
 // NaN as null (#623); and it is refused before it is sent, the refusal said beside the box and
 // the cursor put in it (#645).
 
 import { createContext, useEffect, useLayoutEffect, useRef, useState } from "react";
+
+/** What a box left without a number hands up. */
+export const BLANK_NUMBER = NaN;
+
+/** A setting a tick box turns on or off: ticked on, its box opens blank; off, it is null. */
+export const blankOrOff = (on: boolean) => (on ? BLANK_NUMBER : null);
 
 /** Whether `value`, or anything inside it, is a box left without a number. */
 export function holdsBlank(value: unknown): boolean {

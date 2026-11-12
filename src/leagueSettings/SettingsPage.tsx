@@ -9,7 +9,7 @@ import { useRulesEdits, type RulesEdits } from "../rules/rulesEdits";
 import { useDraftStartEdit, type DraftStartEdit } from "./DraftStartRow";
 import { useLastLoaded } from "../shared/useLastLoaded";
 import { SaveBar } from "../rules/SaveBar";
-import { BoxRefusalContext } from "../rules/blank";
+import { BoxRefusalContext, blankOrOff } from "../rules/blank";
 import { TickBox } from "../ui/TickBox";
 import { AREA_WORDS } from "../shared/words";
 import { DraftPanel } from "./DraftPanel";
@@ -47,6 +47,7 @@ import {
   oddTeamOutWords,
   redrawWords,
   runTwiceWords,
+  draftStartSavedWords,
   savedWords,
   SETTINGS_TITLE,
   squadMaximumHint,
@@ -119,7 +120,7 @@ function Editor({ league, seam, view }: { league: LeagueSummary; seam: LeagueSet
         <TradesPanel trades={draft.trades} seasonGameweeks={view.seasonGameweeks} edit={(trades) => edit({ ...draft, trades })} />
         <WaiversPanel waivers={draft.waivers} edit={(waivers) => edit({ ...draft, waivers })} />
         <WaiverOrderBeside league={league} seam={seam} type={draft.waivers.order} />
-        <SaveBar draft={bar} savedWords={savedWords} />
+        <SaveBar draft={bar} savedWords={savedWords} savedNote={start.saved && bar.unchanged ? draftStartSavedWords : null} />
       </BoxRefusalContext>
       <TeamOrderPanel leagueId={league.leagueId} seam={seam} />
     </div>
@@ -128,11 +129,13 @@ function Editor({ league, seam, view }: { league: LeagueSummary; seam: LeagueSet
 
 /** The bar's edits: the settings and the draft's start date, saved together (Craig, 11 Nov 2026, on
  *  #1476). The date goes first, as its own change, not a rules row: a refused date, said beside its
- *  box, stops the save; a refused settings save, said in the bar, leaves the date saved. */
+ *  box, stops the save; a refused settings save, said in the bar, leaves the date saved. A date
+ *  saved alone is said in the bar, not an earlier settings save's gameweek (#1780). */
 function withDraftStart(rulesEdits: RulesEdits<LeagueSettings>, start: DraftStartEdit): RulesEdits<LeagueSettings> {
   return {
     ...rulesEdits,
     unchanged: rulesEdits.unchanged && start.unchanged,
+    savedFrom: start.saved ? null : rulesEdits.savedFrom,
     busy: rulesEdits.busy || start.busy,
     drop() {
       rulesEdits.drop();
@@ -140,7 +143,9 @@ function withDraftStart(rulesEdits: RulesEdits<LeagueSettings>, start: DraftStar
     },
     async saveDraft() {
       if (!start.unchanged && !(await start.save())) return;
-      if (!rulesEdits.unchanged) await rulesEdits.saveDraft();
+      if (rulesEdits.unchanged) return;
+      await rulesEdits.saveDraft();
+      start.forgetSaved();
     },
   };
 }
@@ -210,7 +215,7 @@ function SquadPanel({ draft, edit }: { draft: LeagueSettings; edit: (settings: L
             {areaMinimumsHint}
           </p>
         </div>
-        <TickBox checked={draft.maxPerClub !== null} onChange={(on) => edit({ ...draft, maxPerClub: on ? NaN : null })}>
+        <TickBox checked={draft.maxPerClub !== null} onChange={(on) => edit({ ...draft, maxPerClub: blankOrOff(on) })}>
           {clubMaximumWords}
         </TickBox>
         {draft.maxPerClub !== null && (

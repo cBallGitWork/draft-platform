@@ -7,7 +7,7 @@ import { internal } from "../../../../convex/_generated/api";
 import { scheduleUrl, SPORTMONKS_TOKEN_ENV } from "../../../../convex/football/sportmonks/sportmonks";
 import { writeScore } from "../../../../convex/football/sportmonks/sportmonksSync";
 import type { ScoreRead } from "../../../../convex/football/scoreReads";
-import { freshConvex, silenceConsoleError } from "../../../support/convex/test.harness";
+import { freshConvex, silenceConsoleError, everyJobRuns } from "../../../support/convex/test.harness";
 import { SM, sportmonksLiveRead, sportmonksSeason } from "../../../support/recorded/sportmonks.payloads";
 import { fakeSportmonks, LIVE_NOW, REFUSED, SEASON_ID, sync, syncs, ticks, useSportmonks, WRITES } from "../../../support/convex/sportmonks.harness";
 
@@ -53,7 +53,7 @@ test("a refused read is a failed run's row with Sportmonks' own words, and no ta
   const t = freshConvex();
   await sync(t, { refuse: scheduleUrl(SEASON_ID) });
   // The admin's failure email, which this deployment can't send.
-  await t.finishAllScheduledFunctions(vi.runAllTimers);
+  await everyJobRuns(t);
 
   const [row] = await syncs(t);
   expect(row.outcome).toEqual({ ok: false, error: `${scheduleUrl(SEASON_ID)} answered 403: ${REFUSED}` });
@@ -115,7 +115,7 @@ test("a match the live read leaves out fails on its own in the tick's row", asyn
   await sync(t);
   vi.stubGlobal("fetch", vi.fn(async () => Response.json({ data: [] })));
   await t.action(internal.football.sportmonks.sportmonksLive.tick, {});
-  await t.finishAllScheduledFunctions(vi.runAllTimers);
+  await everyJobRuns(t);
 
   const [row] = await ticks(t);
   expect(row.outcome).toEqual({ ok: true, matches: [{ fixtureCode: SM.oldFirm, ok: false, error: `Sportmonks sent no match ${SM.oldFirm}` }] });

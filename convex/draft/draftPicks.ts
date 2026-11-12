@@ -7,20 +7,21 @@ import { fileEvent } from "../mail/letters";
 import { positionsNow, type PositionsNow } from "../positions/playerPositions";
 import { knownOnJoining } from "../positions/positionWarnings";
 import type { LeagueRules } from "../rules/leagueRulesShape";
-import { managerOf, refuse, refusals, runnerOf, teamIn } from "../shared/leagueAccess";
-import { heldPlayerByCode, playerByCode } from "../shared/players";
+import { managerOf, playerOrRefuse, refuse, runnerOf, teamIn } from "../shared/leagueAccess";
+import { heldPlayerByCode } from "../shared/players";
+import { SECOND_MS } from "../shared/time";
 import { placeOf, squadOf } from "../squads/squadPlace";
 import { squadRefusals } from "../squads/squads";
 import { autoPickOrder } from "./autoPickOrder";
-import { autoPickAt, PICK_GAP_MS, picksAtClockStart, scheduleAutoPick, startClock } from "./draftClock";
+import { autoPickAt, cancelClockJob, PICK_GAP_MS, picksAtClockStart, scheduleAutoPick, startClock } from "./draftClock";
 import { tellPickedFor, tellUpNext } from "./draftLetters";
-import { listsOf } from "./draftLists";
+import { heldListsOf } from "./draftLists";
 import { draftRulesNow, pickSecondsNow } from "./draftPickTime";
 import { draftRanking } from "./draftRanking";
 import type { Position } from "../positions/positionTables";
 import { draftedPositionsIn, draftOf, lastPickIn, liveClockOf, picksLeftOf, turnNow, undoWindowOpen, type StartedDraft, type Turn } from "./draftRow";
 import { afterTimeout, choseAutoPick, timeoutEffect } from "./draftTimeouts";
-import { lastSeasonPoints } from "./lastSeasonPoints";
+import { lastSeasonPoints } from "../pastSeasons/lastSeasonPoints";
 import { whyNotLegal, type DraftPlayer, type NotLegal } from "./legalPlayers";
 import { offWaivers } from "../waivers/waiverPlayers";
 import { undraftedIn } from "./undrafted";
@@ -32,8 +33,8 @@ import { undraftedIn } from "./undrafted";
 // team's first lineup picked again; but with no Mail letter, for any pick (Craig, 4 Nov 2026, on
 // #1091: "we dont need mail for that and each pick"). The turn moves on by the snake
 // (snakeOrder.ts), the next pick's clock starting 10 seconds later (draftClock.ts), its manager
-// told he is up next, and once the last pick is made the draft is over (draftStart.ts `ofLeague`),
-// which the whole league is told (draftLetters.ts; #1102). When a clock runs out, or at once
+// told he is up next, and once the last pick's 10 seconds are up the draft is over (pickWindow.ts
+// `endDraft`), which the whole league is told (draftLetters.ts; #1102). When a clock runs out, or at once
 // for a team with no manager, the draft picks for the team (`autoPick`; #1091).
 // Greying out always leaves a legal pick, so a team with none is an error, not the end of its draft
 // (Craig, 4 Nov 2026, on #1090). Auto-pick takes by the team's queue, the admin's ranking and last
@@ -41,6 +42,9 @@ import { undraftedIn } from "./undrafted";
 // clock (`pickFor`) and undo the last pick (draftCommissioner.ts; #1095). A manager can undo his
 // own pick for 10 seconds after making it, and nobody picks until they are up; the draft ends only
 // after its last pick's 10 seconds (pickWindow.ts; Craig, 4 Nov 2026, on #1090; #1458).
+
+/** The seconds a pick can be undone in, before the next clock starts. */
+const undoSeconds = PICK_GAP_MS / SECOND_MS;
 
 /** Why a pick is refused, in the words the manager is shown. */
 export const pickRefusals = {
@@ -51,10 +55,10 @@ export const pickRefusals = {
   alreadyPicked: (teamName: string) => `${teamName} has already picked.`,
   taken: (name: string, teamName: string) => `${name} is already on ${teamName}.`,
   breaksSquadRules: (name: string) => `${name} would leave your squad unable to meet the league's squad rules.`,
-  undoing: "The last pick can still be undone: the next clock starts once its 10 seconds are up.",
+  undoing: `The last pick can still be undone: the next clock starts once its ${undoSeconds} seconds are up.`,
   allPicked: "Every pick is made: the draft ends in a few seconds.",
   noOwnPick: "You have no pick of your own to undo.",
-  undoOver: "Your 10 seconds to undo that pick are up.",
+  undoOver: `Your ${undoSeconds} seconds to undo that pick are up.`,
   notOnAutoPick: "You aren't on auto-pick.",
   onAutoPick: "You're already on auto-pick.",
 };
@@ -112,7 +116,7 @@ async function legalForTurn(
 /** The player the manager picks, or the refusal: there is no such player, he has left the Premier
  *  League, or a team in the league already holds him. */
 async function pickable(ctx: QueryCtx, leagueId: Id<"leagues">, playerCode: number): Promise<Doc<"players">> {
-  const player = (await playerByCode(ctx, playerCode)) ?? refuse(refusals.noPlayer);
+  const player = await playerOrRefuse(ctx, playerCode);
   if (player.droppedAt !== undefined) refuse(squadRefusals.playerGone(player.name));
   const place = await placeOf(ctx, leagueId, playerCode);
   if (place !== null) refuse(pickRefusals.taken(player.name, (await teamIn(ctx, leagueId, place.teamId)).name));
@@ -166,7 +170,7 @@ export const makePick = mutation({
     if (undoWindowOpen(draft, await lastPickIn(ctx, leagueId), now)) refuse(pickRefusals.undoing);
     const player = await legalPick(ctx, leagueId, draft, started, turn, playerCode);
     const own = { leftMs: leftOnTheClock(draft, now) };
-    if (draft.clock?.job !== undefined) await ctx.scheduler.cancel(draft.clock.job);
+    await cancelClockJob(ctx, draft.clock);
     await placePick(ctx, league, turn, team, player, email, { own });
     return null;
   },
@@ -208,7 +212,7 @@ export const pickFor = mutation({
     if (turn.team !== team._id) refuse(pickRefusals.alreadyPicked(team.name));
     if (undoWindowOpen(draft, await lastPickIn(ctx, leagueId), Date.now())) refuse(pickRefusals.undoing);
     const player = await legalPick(ctx, leagueId, draft, started, turn, playerCode);
-    if (draft.clock?.job !== undefined) await ctx.scheduler.cancel(draft.clock.job);
+    await cancelClockJob(ctx, draft.clock);
     await placePick(ctx, league, turn, team, player, email, { pausedAt: draft.clock?.paused === undefined ? undefined : Date.now() });
     await tellPickedFor(ctx, league, email, { pick: turn.pick, playerName: player.name, teamName: team.name });
     return null;
@@ -222,10 +226,9 @@ async function autoPickFor(ctx: QueryCtx, leagueId: Id<"leagues">, draft: Doc<"d
   const players = await undraftedIn(ctx, leagueId);
   const positionsOf = await positionsNow(ctx, leagueId);
   const legal = await legalForTurn(ctx, leagueId, draft, started, turn, players, positionsOf);
-  const lists = await listsOf(ctx, turn.team);
   const order = autoPickOrder(
     players,
-    { queue: lists?.queue ?? [], doNotDraft: lists?.doNotDraft ?? [] },
+    await heldListsOf(ctx, turn.team),
     (await draftRanking(ctx))?.players.map(({ code }) => code) ?? [],
     await lastSeasonPoints(ctx, positionsOf),
   );

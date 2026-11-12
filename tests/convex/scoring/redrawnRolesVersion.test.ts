@@ -30,7 +30,7 @@ const rowsOf = (teamId: Id<"teams">) =>
 
 async function holdLeague() {
   await holdGameweeks(t, { next: NEXT });
-  await t.run((ctx) => holdSiteScoring(ctx, { scoring: OLD_SET, kind: "fix", season: 2026, number: 1, at: TODAY - 1 }));
+  await t.run((ctx) => holdSiteScoring(ctx, { scoring: OLD_SET, kind: "fix", at: TODAY - 1 }));
   const leagueId = await adminCreatesLeague(t);
   const [annsTeam, bobsTeam] = await addManagers(t, leagueId, MANAGERS.slice(0, 2));
   // Ann's lineup in force since gameweek 5; Bob saved one for gameweek 10.

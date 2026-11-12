@@ -2,13 +2,14 @@ import { beforeEach, describe, expect, test } from "vitest";
 import { api } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
 import { refusals } from "../../../convex/shared/leagueAccess";
-import { changeRules, giveDeadlineRule, holdGameweeks, KICKS_OFF_IN, moveFplDeadline, rulesWith } from "../../support/convex/leagueRules.harness";
+import { changeRulesTo, giveDeadlineRule, holdGameweeks, KICKS_OFF_IN, moveFplDeadline } from "../../support/convex/leagueRules.harness";
 import { expectRefused } from "../../support/convex/test.harness";
 import { MINUTE_MS, WEEK_MS } from "../../../convex/shared/time";
-import { ADMIN, actingAs, addManagers, adminCreatesLeague, COMMISSIONER, MANAGERS, OUTSIDER, type TestConvex } from "../../support/convex/leagues.harness";
+import { ADMIN, actingAs, addManagers, adminCreatesLeague, COMMISSIONER, MANAGERS, OUTSIDER, TEST_LEAGUE_TEAMS, type TestConvex } from "../../support/convex/leagues.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
 import { PL_GAMEWEEKS } from "../../support/convex/footballRows.harness";
 import { FIRST_RULES } from "../../../convex/rules/firstRules";
+import { teamNumbered } from "../../../convex/leagues/teams";
 
 // The league's fixtures and table (#33), read from its teams, the gameweeks it plays and its
 // rules, by anyone with a part in it. No gameweek has begun in these, so the table is all noughts;
@@ -27,7 +28,6 @@ beforeEach(async () => {
 });
 
 const read = async (email = ANN) => (await actingAs(t, email)).query(api.table.leagueTable.ofLeague, { leagueId });
-const changeRulesTo = (change: Parameters<typeof rulesWith>[0]) => changeRules(t, leagueId, rulesWith(change));
 
 describe("who may read it", () => {
   beforeEach(() => addManagers(t, leagueId, [ANN, BOB]));
@@ -59,29 +59,29 @@ describe("the fixtures", () => {
   test("with byes, the team left over plays nobody", async () => {
     await holdSeasonToCome();
     await addManagers(t, leagueId, [ANN, BOB, CAT]);
-    await changeRulesTo({ oddTeamOut: "bye" });
+    await changeRulesTo(t, leagueId, { oddTeamOut: "bye" });
     const [first] = (await read())!.gameweeks;
     expect(first.fixtures).toHaveLength(1);
     expect(first.byes).toHaveLength(1);
-    expect([first.fixtures[0].team, first.fixtures[0].opponent, first.byes[0]].toSorted()).toEqual(["Team 1", "Team 2", "Team 3"]);
+    expect([first.fixtures[0].team, first.fixtures[0].opponent, first.byes[0]].toSorted()).toEqual([teamNumbered(1), teamNumbered(2), teamNumbered(3)]);
   });
 
   test("with two games a gameweek, each team plays two every gameweek", async () => {
     await holdSeasonToCome();
     await addManagers(t, leagueId, [ANN, BOB, CAT, DAN]);
-    await changeRulesTo({ gamesPerGameweek: 2 });
+    await changeRulesTo(t, leagueId, { gamesPerGameweek: 2 });
     const { gameweeks } = (await read())!;
     expect(gameweeks).toHaveLength(PL_GAMEWEEKS);
     for (const { fixtures } of gameweeks) {
       const named = fixtures.flatMap(({ team, opponent }) => [team, opponent]);
-      expect(["Team 1", "Team 2", "Team 3", "Team 4"].map((team) => named.filter((each) => each === team).length)).toEqual([2, 2, 2, 2]);
+      expect([teamNumbered(1), teamNumbered(2), teamNumbered(3), teamNumbered(4)].map((team) => named.filter((each) => each === team).length)).toEqual([2, 2, 2, 2]);
     }
   });
 
   test("are the same on every read, drawn from the league's own seed", async () => {
     await holdSeasonToCome();
     await addManagers(t, leagueId, [ANN, BOB, CAT]);
-    const otherLeague = await adminCreatesLeague(t, 4, "Other");
+    const otherLeague = await adminCreatesLeague(t, TEST_LEAGUE_TEAMS, "Other");
     await addManagers(t, otherLeague, [ANN, BOB, CAT]);
     const readOther = async () => (await actingAs(t, ANN)).query(api.table.leagueTable.ofLeague, { leagueId: otherLeague });
 
@@ -103,7 +103,7 @@ describe("the fixtures", () => {
     await addManagers(t, leagueId, [ANN, BOB, CAT]);
     await holdGameweeks(t, { next: CHANGE_FROM });
     const before = (await read())!.gameweeks;
-    expect(await changeRulesTo({ oddTeamOut: "bye", gamesPerGameweek: 2 })).toBe(CHANGE_FROM);
+    expect(await changeRulesTo(t, leagueId, { oddTeamOut: "bye", gamesPerGameweek: 2 })).toBe(CHANGE_FROM);
     const after = (await read())!.gameweeks;
 
     const played = ({ gameweek }: { gameweek: number }) => gameweek < CHANGE_FROM;
@@ -123,7 +123,7 @@ describe("the fixtures", () => {
 
   test("a total-points league has none", async () => {
     await addManagers(t, leagueId, [ANN, BOB]);
-    await changeRulesTo({ format: "totalPoints" });
+    await changeRulesTo(t, leagueId, { format: "totalPoints" });
     expect(await read()).toMatchObject({ format: "totalPoints", gameweeks: [] });
   });
 });
@@ -173,8 +173,8 @@ test("the table has every team on nothing, in the order they were made, until ma
   const [annTeam, bobTeam] = await addManagers(t, leagueId, [ANN, BOB]);
   const nothing = { played: 0, won: 0, drawn: 0, lost: 0, pointsFor: 0, pointsAgainst: 0, difference: 0, points: 0, onAutoTeam: false };
   expect((await read())?.table).toEqual([
-    { teamId: annTeam, teamName: "Team 1", ...nothing },
-    { teamId: bobTeam, teamName: "Team 2", ...nothing },
+    { teamId: annTeam, teamName: teamNumbered(1), ...nothing },
+    { teamId: bobTeam, teamName: teamNumbered(2), ...nothing },
   ]);
 });
 
@@ -201,15 +201,15 @@ test("before any gameweek begins, each fixture has its teams and no points, and 
   const [annTeam, bobTeam, catTeam] = await addManagers(t, leagueId, [ANN, BOB, CAT]);
   const league = (await read())!;
   const idOf = new Map([
-    ["Team 1", annTeam],
-    ["Team 2", bobTeam],
-    ["Team 3", catTeam],
+    [teamNumbered(1), annTeam],
+    [teamNumbered(2), bobTeam],
+    [teamNumbered(3), catTeam],
   ]);
   const [first] = league.gameweeks;
   expect(first.fixtures).toEqual(
     first.fixtures.map(({ team, opponent }) => ({ teamId: idOf.get(team), game: 1, team, opponent, opponentId: opponent === null ? null : idOf.get(opponent), points: null })),
   );
-  expect(first.fixtures.flatMap(({ team, opponent }) => [team, opponent]).toSorted()).toEqual(["Team 1", "Team 2", "Team 3", null]);
+  expect(first.fixtures.flatMap(({ team, opponent }) => [team, opponent]).toSorted()).toEqual([teamNumbered(1), teamNumbered(2), teamNumbered(3), null]);
   expect(league.results).toEqual([]);
   expect(league.unscored).toEqual([]);
 });

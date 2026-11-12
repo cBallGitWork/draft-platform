@@ -5,9 +5,11 @@ import { rankOfPlayer } from "../../../convex/playerCard/cardPoints";
 import { POSITIONS, type Position } from "../../../convex/positions/positionTables";
 import { CHELSEA, insertPlayers } from "../../support/convex/footballRows.harness";
 import { actingAs, OUTSIDER } from "../../support/convex/leagues.harness";
+import { keepEveryScoutingPlayer } from "../../support/convex/playersList.harness";
 import { ANN, PALMER, RICE, SAKA, seasonPointsLeague, type PointsLeague } from "../../support/convex/seasonPoints.harness";
 import { expectRefused } from "../../support/convex/test.harness";
 import { refusals } from "../../../convex/shared/leagueAccess";
+import { SCOUTING_REBUILD_COMMAND } from "../../../convex/scouting/scoutingPlayers";
 
 // His rank at the position the card's switch is on (spec/12 S12.1; Craig, 9 Nov 2026, on #1027):
 // by base points this season against every player holding that position, owned or free, as
@@ -36,8 +38,10 @@ beforeEach(async () => {
   });
 });
 
-const rank = async (playerCode: number, position: SlotPosition) =>
-  (await actingAs(league.t, ANN)).query(api.playerCard.positionRank.atPosition, { leagueId: league.leagueId, playerCode, position });
+const rank = async (playerCode: number, position: SlotPosition) => {
+  await keepEveryScoutingPlayer(league.t);
+  return (await actingAs(league.t, ANN)).query(api.playerCard.positionRank.atPosition, { leagueId: league.leagueId, playerCode, position });
+};
 
 test("he is ranked among every player holding the position, owned or free, ties sharing the higher place", async () => {
   expect(await rank(PALMER.code, "CAM")).toEqual({ place: 1, of: 3 });
@@ -55,6 +59,13 @@ test("a two-position player is ranked on his points at the position asked", asyn
   expect(await rank(RICE.code, "CM")).toEqual({ place: 2, of: 2 });
   // At a position he doesn't hold, he isn't ranked.
   expect(await rank(RICE.code, "CAM")).toEqual({ place: null, of: 3 });
+});
+
+test("with no Scouting row held, the rank says to copy them rather than show none of a position", async () => {
+  const asAnn = await actingAs(league.t, ANN);
+  await expect(asAnn.query(api.playerCard.positionRank.atPosition, { leagueId: league.leagueId, playerCode: PALMER.code, position: "CAM" })).rejects.toThrow(
+    SCOUTING_REBUILD_COMMAND,
+  );
 });
 
 test("anyone not in the league is refused", async () => {

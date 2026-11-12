@@ -60,7 +60,10 @@ function keptByAvailability(chosen: Availability, { ownerTeamName, onWaivers }: 
   }
 }
 
-const byName = (one: OrderedRow, other: OrderedRow) => one.name.localeCompare(other.name) || one.code - other.code;
+type Named = Pick<OrderedRow, "name" | "code">;
+/** Two players by name, then code, so two of one name never swap between reads: every players
+ *  list's tie-break, the draft room's too. */
+export const byName = (one: Named, other: Named) => one.name.localeCompare(other.name) || one.code - other.code;
 
 /** The players in the sort's order. A null figure sorts last whichever way, and ties fall back to
  *  the name, so the order never shifts between reads. */
@@ -90,8 +93,8 @@ export function withFirstRuns(rows: readonly ListedRow[], runs: readonly FirstRu
   return rows.map((row) => ({ ...row, onWaivers: row.onWaivers === null ? null : { firstRun: runOf.get(row.code) ?? null } }));
 }
 
-/** Two figures in `direction`, a null one after any number. */
-function compareFigures(one: number | null, other: number | null, direction: number): number {
+/** Two figures in `direction`, a null one after any number whichever way. */
+export function compareFigures(one: number | null, other: number | null, direction: number): number {
   if (one === null || other === null) return (one === null ? 1 : 0) - (other === null ? 1 : 0);
   return direction * (one - other);
 }

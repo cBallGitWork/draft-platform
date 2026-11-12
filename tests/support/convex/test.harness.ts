@@ -45,6 +45,10 @@ export function freshConvex(atConvexLimits = false): TestConvex {
  *  on CI's runner, so the margin is wide; it stays under npm test's whole-run deadline. */
 export const ROWS_TO_THE_CAP = { timeout: 120_000 };
 
+/** Where a cap-walking test's made-up player and match codes start: codes no recorded player or
+ *  match uses, so `MADE_UP_CODES + i` never meets a real one. */
+export const MADE_UP_CODES = 900_000;
+
 /** A test that runs a whole sync or a replay through convex-test: a few seconds alone, too near
  *  vitest's 5s default on a busy core, so it gets 30s. */
 export const SLOW_TEST = { timeout: 30_000 };
@@ -64,6 +68,9 @@ export async function elapse(t: TestConvex, ms: number): Promise<void> {
   vi.advanceTimersByTime(ms);
   await t.finishInProgressScheduledFunctions();
 }
+
+/** Runs every scheduled function, and those they schedule, however far off, the clock jumping to each. */
+export const everyJobRuns = (t: TestConvex) => t.finishAllScheduledFunctions(vi.runAllTimers);
 
 /** The scheduled functions still waiting to run, in the order they were scheduled; only those of
  *  `fn` when it is given. */
@@ -110,4 +117,4 @@ export async function expectRefused(attempt: Promise<unknown>, reason: string, l
 
 // Vitest loads the setup file and this import as one module, so the flag this sets reaches the
 // guard. Were they ever two copies, every silenced test would fail loudly, not pass quietly.
-export { silenceConsoleError } from "../console.setup";
+export { silenceConsoleError, silenceConsoleWarn } from "../console.setup";

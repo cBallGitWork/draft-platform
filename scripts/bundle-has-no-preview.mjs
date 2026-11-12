@@ -12,15 +12,14 @@
 
 import { readdirSync, readFileSync, statSync } from "node:fs";
 import { basename, join } from "node:path";
+import { PREVIEW_FILE } from "./previewFile.mjs";
 
 const DIST = process.argv[2] ?? "dist";
 const SOURCES = (process.env.PREVIEW_CHECK_SOURCES ?? "src,convex").split(",");
-/** A preview module's file name: preview.ts, matchPreview.ts; not previewApp.tsx. */
-const PREVIEW_FILE = /^preview\w*\.ts$|Preview\.ts$/;
 
 /** A string only that preview module holds, by its path; null for one that holds no data of its
- *  own (its words are the app's, its rules row src/rules/preview.ts's, its teams the table's, its
- *  players Scouting's). */
+ *  own (its words are the app's, its rules row src/rules/preview.ts's, its teams
+ *  src/shared/preview.ts's, its players Scouting's). */
 const NEEDLES = {
   "src/app/preview.ts": "preview-sunday-league",
   "src/admin/preview.ts": "Nick Woltemade",
@@ -32,7 +31,7 @@ const NEEDLES = {
   "src/leagueSettings/preview.ts": null,
   "src/mail/preview.ts": "Draft night is Friday at eight",
   "src/matchup/preview.ts": "Mac Allister",
-  "src/home/preview.ts": "Expected Toulouse",
+  "src/home/preview.ts": "The trophy is up for grabs",
   "src/myTeam/preview.ts": "Martinelli",
   "src/myTeam/claims/preview.ts": "preview-claim-",
   "src/myTeam/tactics/preview.ts": "Henderson",
@@ -47,7 +46,7 @@ const NEEDLES = {
   "src/scouting/shortlist/preview.ts": null,
   "src/shared/preview.ts": "preview-pro-league",
   "src/squads/preview.ts": "preview-team-1",
-  "src/table/preview.ts": "Ctrl Alt Defeat",
+  "src/table/preview.ts": null,
   "src/trades/preview.ts": "Rogers is a better fit",
 };
 

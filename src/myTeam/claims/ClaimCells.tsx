@@ -8,7 +8,7 @@ import { failsIfWords, freePlaceWords } from "./words";
 
 type Player = PendingClaim["claim"];
 
-const LEFT: readonly string[] = ["handle", "rank", "positions", "claim", "run", "drop"];
+const LEFT: readonly string[] = ["handle", "rank", "positions", "claim", "run", "drop", "in", "out"];
 /** Columns the phone leaves out, so a row fits its width; the player card holds both. */
 const DESK_ONLY: readonly string[] = ["positions", "points"];
 /** A claims table's cell classes, a head lining up with the cells under it. */
@@ -40,7 +40,12 @@ export function DropCell({ drop, clash }: { drop: Player | null; clash: number |
     <span className="inline-flex flex-wrap items-center gap-2">
       <Chip player={drop} />
       <PlayerName player={drop} />
-      {clash !== null && <span className="bg-event px-1 text-ground">{failsIfWords(clash)}</span>}
+      {clash !== null && <FailsChip clash={clash} />}
     </span>
   );
+}
+
+/** "Fails if claim 1 wins": an earlier claim in the run drops the same player. */
+export function FailsChip({ clash }: { clash: number }) {
+  return <span className="bg-event px-1 text-ground">{failsIfWords(clash)}</span>;
 }

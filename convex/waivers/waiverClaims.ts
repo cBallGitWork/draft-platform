@@ -1,19 +1,16 @@
 import { v, type Infer } from "convex/values";
 import type { Doc, Id } from "../_generated/dataModel";
 import { mutation, query, type MutationCtx, type QueryCtx } from "../_generated/server";
-import { draftIsOver } from "../draft/draftRow";
-import { leagueDeadlines } from "../gameweeks/leagueDeadlines";
 import { positionsNow } from "../positions/playerPositions";
 import { clubRecord, position } from "../schema";
 import { takeAllOrThrow } from "../shared/cappedRead";
 import { MOST_TEAMS } from "../leagues/leagueLimits";
-import { leagueOpens } from "../leagues/leagueOpens";
-import { managerOf, memberOf, powersIn, refuse, refusals, signedInEmail, teamOf, teamsOf } from "../shared/leagueAccess";
-import { clubByCode, clubOf, heldPlayerByCode, playerByCode } from "../shared/players";
+import { managerOf, memberOf, ownTeamOrNone, playerOrRefuse, powersIn, refuse, teamsOf } from "../shared/leagueAccess";
+import { clubByCode, clubOf, heldPlayerByCode } from "../shared/players";
 import { placeOf } from "../squads/squadPlace";
 import { squadRefusals } from "../squads/squads";
 import { seasonPointsIn } from "../stats/seasonPoints";
-import { firstRunsIn, inWaiverLock, runAhead } from "./waiverLock";
+import { firstRunsIn, outOfLockFor, runAhead, waiversOpenFor } from "./waiverLock";
 import { CLAIMS_PER_TEAM_MOST } from "./waiverLimits";
 import { waiverRowOf } from "./waiverPlayers";
 import { dropRefusals } from "./waivers";
@@ -39,7 +36,7 @@ export const claimRefusals = {
 
 /** The most claims a league holds that one read takes: every team at its ceiling (#1609), so the
  *  run never meets it. Past it a read throws rather than leave claims out. */
-export const CLAIMS_READ_MOST = MOST_TEAMS * CLAIMS_PER_TEAM_MOST;
+const CLAIMS_READ_MOST = MOST_TEAMS * CLAIMS_PER_TEAM_MOST;
 
 /** The team's pending claims, first first. */
 export function claimsOf(ctx: QueryCtx, leagueId: Id<"leagues">, teamId: Id<"teams">): Promise<Doc<"waiverClaims">[]> {
@@ -81,9 +78,8 @@ export const putIn = mutation({
   returns: v.id("waiverClaims"),
   handler: async (ctx, { leagueId, playerCode, dropCode }) => {
     const { email, team } = await managerOf(ctx, leagueId);
-    if (!(await draftIsOver(ctx, leagueId))) refuse(claimRefusals.notDrafted);
-    if (await inWaiverLock(ctx, await leagueDeadlines(ctx, leagueId), Date.now())) refuse(claimRefusals.locked);
-    const player = (await playerByCode(ctx, playerCode)) ?? refuse(refusals.noPlayer);
+    await waiversOpenFor(ctx, leagueId, claimRefusals);
+    const player = await playerOrRefuse(ctx, playerCode);
     if ((await waiverRowOf(ctx, leagueId, playerCode)) === null) refuse(claimRefusals.notOnWaivers(player.name));
     if (player.droppedAt !== undefined) refuse(claimRefusals.playerGone(player.name));
     await checkDrop(ctx, leagueId, team._id, dropCode);
@@ -98,7 +94,7 @@ export const putIn = mutation({
 /** Refused unless a claim's drop, if anyone, is in the team's squad. */
 async function checkDrop(ctx: QueryCtx, leagueId: Id<"leagues">, teamId: Id<"teams">, dropCode: number | null): Promise<void> {
   if (dropCode === null) return;
-  const drop = (await playerByCode(ctx, dropCode)) ?? refuse(refusals.noPlayer);
+  const drop = await playerOrRefuse(ctx, dropCode);
   if ((await placeOf(ctx, leagueId, dropCode))?.teamId !== teamId) refuse(claimRefusals.dropNotYours(drop.name));
 }
 
@@ -129,7 +125,7 @@ export const changeDrop = mutation({
   returns: v.null(),
   handler: async (ctx, { leagueId, claimId, dropCode }) => {
     const claim = await ownClaim(ctx, leagueId, claimId);
-    if (await inWaiverLock(ctx, await leagueDeadlines(ctx, leagueId), Date.now())) refuse(claimRefusals.locked);
+    await outOfLockFor(ctx, leagueId, claimRefusals.locked);
     await checkDrop(ctx, leagueId, claim.teamId, dropCode);
     const others = (await claimsOf(ctx, leagueId, claim.teamId)).filter(({ _id }) => _id !== claimId);
     if (others.some((other) => other.playerCode === claim.playerCode && other.dropCode === dropCode)) refuse(claimRefusals.twice);
@@ -161,11 +157,8 @@ export const countMine = query({
   args: { leagueId: v.id("leagues") },
   returns: v.number(),
   handler: async (ctx, { leagueId }) => {
-    const email = await signedInEmail(ctx);
-    const league = await ctx.db.get("leagues", leagueId);
-    if (email === null || league === null || !leagueOpens(league)) return 0;
-    const team = await teamOf(ctx, leagueId, email);
-    return team === undefined ? 0 : (await claimsOf(ctx, leagueId, team._id)).length;
+    const own = await ownTeamOrNone(ctx, leagueId);
+    return own === null ? 0 : (await claimsOf(ctx, leagueId, own.team._id)).length;
   },
 });
 

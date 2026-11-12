@@ -3,6 +3,7 @@ import { api, internal } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
 import { keptAtDeadline, keptBench } from "../../../convex/stars/deadlineStars";
 import { UNSURE, type Stars } from "../../../convex/stars/starsShape";
+import { insertLockedStatus } from "../../support/convex/footballRows.harness";
 import { holdGameweeks } from "../../support/convex/leagueRules.harness";
 import { MANAGERS, actingAs, addManagers, adminCreatesLeague, type TestConvex } from "../../support/convex/leagues.harness";
 import { FOUR_FOUR_TWO, holdSquad, passNextDeadline } from "../../support/convex/lineupSquad.harness";
@@ -125,7 +126,7 @@ test("not asked for again once one of the gameweek's matches has locked, after w
   const before = await askedForNext();
   await t.run(async (ctx) => {
     const [fixture] = await ctx.db.query("fixtures").withIndex("by_gameweek_and_droppedAt", (q) => q.eq("gameweek", NEXT)).collect();
-    await ctx.db.insert("matchStatsStatus", { fixtureCode: fixture.code, state: "locked", fullTimeAt: Date.now(), lastReadAt: Date.now(), lockedAt: Date.now() });
+    await insertLockedStatus(ctx, fixture.code, Date.now());
   });
 
   await t.mutation(internal.stars.deadlineStars.keepMissing, {});

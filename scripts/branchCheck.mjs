@@ -1,10 +1,16 @@
 // What verify's checks that compare the branch with origin/main share (scripts/recorded-add-only.mjs,
-// scripts/tests-kept.mjs): the base they compare with, git run with a failure said plainly, and the
-// trailers a branch's commits carry to let a change through on purpose.
+// scripts/tests-kept.mjs, scripts/spec-ids.mjs): the base they compare with, what a test file is,
+// git run with a failure said plainly, and the trailers a branch's commits carry to let a change
+// through on purpose.
 
 import { execFileSync } from "node:child_process";
 
 export const BASE = "origin/main";
+
+export const TESTS_ROOT = "tests/";
+/** Every Vitest and Playwright test file's name (tests/README.md, The five roots); files in
+ *  tests/support/ only help. */
+export const TEST_FILE = /\.(test|spec)\.(ts|tsx|mjs)$/;
 
 /** Where a refusal says its trailer goes: git reads trailers only from a commit message's last
  *  paragraph, so one above a blank line, such as one above Co-Authored-By, goes unread (#930). */

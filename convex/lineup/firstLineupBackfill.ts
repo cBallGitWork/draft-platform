@@ -1,7 +1,7 @@
 import { v } from "convex/values";
 import type { Id } from "../_generated/dataModel";
 import { internalMutation, type QueryCtx } from "../_generated/server";
-import { draftIsLive, draftOf } from "../draft/draftRow";
+import { draftIsOver, draftOf } from "../draft/draftRow";
 import { FINAL_SCORES_MOST } from "../gameweekScorer/storedScores";
 import { everyLeague, takeAllOrThrow } from "../shared/cappedRead";
 import { teamsOf } from "../shared/leagueAccess";
@@ -34,7 +34,7 @@ async function hasLineupRow(ctx: QueryCtx, leagueId: Id<"leagues">, teamId: Id<"
 /** Whether the league's draft is still to come or under way: one set to start, or live. */
 async function draftAhead(ctx: QueryCtx, leagueId: Id<"leagues">): Promise<boolean> {
   const draft = await draftOf(ctx, leagueId);
-  return draft !== null && (draft.started === undefined || (await draftIsLive(ctx, leagueId)));
+  return draft !== null && !(await draftIsOver(ctx, leagueId));
 }
 
 /** Gives every team with players and no lineup row its first lineup and saves each first lineup

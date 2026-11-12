@@ -1,11 +1,13 @@
 import { LEAGUE_AVERAGE, type GameweekFixtures } from "./roundRobin";
 import { inTenths } from "../scoring/values";
 import { rankedGroups } from "../shared/groupedBy";
+import type { GameMode } from "../rules/gameMode";
 
 // The league's table (#33; spec/09, spec/03). A head-to-head table is a real football table: 3
 // points for a win, 1 for a draw, none for a loss, equal scores a draw; teams level on points are
 // told apart by the league's tie-breaks, in the league's order. A total-points table ranks by
-// points for. It takes the teams' scores as given: nothing here reads where they come from.
+// points for. It takes the teams' scores as given: nothing here reads where they come from. Which
+// score wins is the league's (gameMode.ts's `higherWins`, #1582): the higher in every league today.
 // Pure: no I/O.
 
 /** The standings' tie-breaks a league lists, in its own order (spec/03): a league's rule. */
@@ -47,14 +49,17 @@ const emptyRow = <Team>(team: Team): TableRow<Team> => ({
   points: 0,
 });
 
-/** The points a score earns against another. */
-function matchupPoints(score: number, against: number): number {
-  if (score > against) return MATCHUP_POINTS.win;
+/** Which score wins in a league: gameMode.ts's answer, the one thing the table asks of it. */
+export type Winner = Pick<GameMode, "higherWins">;
+
+/** The points a score earns against another, in a league where `mode` says which score wins. */
+function matchupPoints(mode: Winner, score: number, against: number): number {
+  if (mode.higherWins ? score > against : score < against) return MATCHUP_POINTS.win;
   return score === against ? MATCHUP_POINTS.draw : MATCHUP_POINTS.loss;
 }
 
-function addResult<Team>(row: TableRow<Team>, score: number, against: number): void {
-  const earned = matchupPoints(score, against);
+function addResult<Team>(mode: Winner, row: TableRow<Team>, score: number, against: number): void {
+  const earned = matchupPoints(mode, score, against);
   row.played += 1;
   if (earned === MATCHUP_POINTS.win) row.won += 1;
   else if (earned === MATCHUP_POINTS.draw) row.drawn += 1;
@@ -90,10 +95,43 @@ export function averageOf<Team>(teams: readonly Team[], scores: ReadonlyMap<Team
   return inTenths(total / teams.length);
 }
 
+/** Both sides' scores in a fixture of a gameweek scored: `team`'s, and its opponent's or, against
+ *  the league's average, the average over `teams` (the gameweek's own, `teamsInGameweek`). The one
+ *  score step the table, the form chips and the fixtures list (teamGames.ts's `gameScore`) share. */
+export function fixtureScores<Team>(
+  teams: readonly Team[],
+  scored: ReadonlyMap<Team, number>,
+  gameweek: number,
+  team: Team,
+  opponent: Team | typeof LEAGUE_AVERAGE,
+): { team: number; opponent: number } {
+  const own = scoreIn(scored, team, gameweek);
+  return { team: own, opponent: opponent === LEAGUE_AVERAGE ? averageOf(teams, scored, gameweek) : scoreIn(scored, opponent, gameweek) };
+}
+
+/** A fixture of a gameweek scored, with both sides' scores. */
+type ScoredMeeting<Team> = { team: Team; opponent: Team | typeof LEAGUE_AVERAGE; teamScore: number; opponentScore: number };
+
+/** Each fixture of every gameweek scored in `schedule`, in order, with both sides' scores: what
+ *  `headToHeadTable` and `formOf` both count. A gameweek with no scores yet gives none. */
+function* scoredMeetings<Team>(schedule: readonly GameweekFixtures<Team>[], scores: GameweekScores<Team>): Generator<ScoredMeeting<Team>> {
+  for (const drawn of schedule) {
+    const { gameweek, fixtures } = drawn;
+    const scored = scores.get(gameweek);
+    if (scored === undefined) continue;
+    const teams = teamsInGameweek(drawn);
+    for (const { team, opponent } of fixtures) {
+      const both = fixtureScores(teams, scored, gameweek, team, opponent);
+      yield { team, opponent, teamScore: both.team, opponentScore: both.opponent };
+    }
+  }
+}
+
 /** The head-to-head table: each fixture of a gameweek scored counts once for each team in it; the
  *  team left over plays the league's average of the gameweek's teams (`teamsInGameweek`), or, on a
  *  bye, nothing. */
 export function headToHeadTable<Team>(
+  mode: Winner,
   teams: readonly Team[],
   schedule: readonly GameweekFixtures<Team>[],
   scores: GameweekScores<Team>,
@@ -106,24 +144,14 @@ export function headToHeadTable<Team>(
     return row;
   };
   const meetings: Meeting<Team>[] = [];
-  for (const drawn of schedule) {
-    const { gameweek, fixtures } = drawn;
-    const scored = scores.get(gameweek);
-    if (scored === undefined) continue;
-    for (const { team, opponent } of fixtures) {
-      const teamScore = scoreIn(scored, team, gameweek);
-      if (opponent === LEAGUE_AVERAGE) {
-        addResult(rowOf(team), teamScore, averageOf(teamsInGameweek(drawn), scored, gameweek));
-        continue;
-      }
-      const opponentScore = scoreIn(scored, opponent, gameweek);
-      addResult(rowOf(team), teamScore, opponentScore);
-      addResult(rowOf(opponent), opponentScore, teamScore);
-      meetings.push({ team, opponent, teamScore, opponentScore });
-    }
+  for (const { team, opponent, teamScore, opponentScore } of scoredMeetings(schedule, scores)) {
+    addResult(mode, rowOf(team), teamScore, opponentScore);
+    if (opponent === LEAGUE_AVERAGE) continue;
+    addResult(mode, rowOf(opponent), opponentScore, teamScore);
+    meetings.push({ team, opponent, teamScore, opponentScore });
   }
   const byPoints = rankedGroups([...rows.values()], (row) => row.points);
-  return byPoints.flatMap((level) => brokenTies(level, tieBreaks, meetings));
+  return byPoints.flatMap((level) => brokenTies(mode, level, tieBreaks, meetings));
 }
 
 /** How many results a team's form shows, its latest (spec/12, League home: "each team's form"). */
@@ -134,8 +162,8 @@ export const RESULTS = ["won", "drawn", "lost"] as const;
 export type Result = (typeof RESULTS)[number];
 
 /** A matchup's result for the team that scored `score` against `against`: by the points it earns. */
-export function resultOf(score: number, against: number): Result {
-  const earned = matchupPoints(score, against);
+export function resultOf(mode: Winner, score: number, against: number): Result {
+  const earned = matchupPoints(mode, score, against);
   if (earned === MATCHUP_POINTS.win) return "won";
   return earned === MATCHUP_POINTS.draw ? "drawn" : "lost";
 }
@@ -144,6 +172,7 @@ export function resultOf(score: number, against: number): Result {
  *  the same fixtures `headToHeadTable` counts (the league's average a matchup, a bye none). A team
  *  with two games in a gameweek has two results in it, in the fixtures' order. */
 export function formOf<Team>(
+  mode: Winner,
   teams: readonly Team[],
   schedule: readonly GameweekFixtures<Team>[],
   scores: GameweekScores<Team>,
@@ -154,22 +183,16 @@ export function formOf<Team>(
     if (results === undefined) throw new Error(`${String(team)} has a fixture but isn't one of the league's teams`);
     results.push(result);
   };
-  for (const drawn of schedule) {
-    const { gameweek, fixtures } = drawn;
-    const scored = scores.get(gameweek);
-    if (scored === undefined) continue;
-    for (const { team, opponent } of fixtures) {
-      const teamScore = scoreIn(scored, team, gameweek);
-      const opponentScore = opponent === LEAGUE_AVERAGE ? averageOf(teamsInGameweek(drawn), scored, gameweek) : scoreIn(scored, opponent, gameweek);
-      add(team, resultOf(teamScore, opponentScore));
-      if (opponent !== LEAGUE_AVERAGE) add(opponent, resultOf(opponentScore, teamScore));
-    }
+  for (const { team, opponent, teamScore, opponentScore } of scoredMeetings(schedule, scores)) {
+    add(team, resultOf(mode, teamScore, opponentScore));
+    if (opponent !== LEAGUE_AVERAGE) add(opponent, resultOf(mode, opponentScore, teamScore));
   }
   return new Map([...form].map(([team, results]) => [team, results.slice(-FORM_RESULTS)]));
 }
 
-/** The total-points table: each team's points for, over the gameweeks scored, highest first. */
-export function totalPointsTable<Team>(teams: readonly Team[], scores: GameweekScores<Team>): TableRow<Team>[] {
+/** The total-points table: each team's points for, over the gameweeks scored, the winning score
+ *  (the highest, `higherWins`) first. */
+export function totalPointsTable<Team>(mode: Winner, teams: readonly Team[], scores: GameweekScores<Team>): TableRow<Team>[] {
   const rows = teams.map((team) => {
     const row = emptyRow(team);
     for (const [gameweek, scored] of scores) {
@@ -180,25 +203,28 @@ export function totalPointsTable<Team>(teams: readonly Team[], scores: GameweekS
     row.points = row.pointsFor;
     return row;
   });
-  return rankedGroups(rows, (row) => row.points).flat();
+  return rankedGroups(rows, (row) => (mode.higherWins ? row.points : -row.points)).flat();
 }
 
 /** Teams level on points, ordered by the first tie-break, those still level by the next, and so
- *  on; any still level after the last stay in the order they were made. */
+ *  on; any still level after the last stay in the order they were made. The tie-breaks' points for
+ *  and against rank as they do whichever score wins: the modes' grill settles those. */
 function brokenTies<Team>(
+  mode: Winner,
   level: TableRow<Team>[],
   tieBreaks: readonly TieBreak[],
   meetings: readonly Meeting<Team>[],
 ): TableRow<Team>[] {
   const [first, ...rest] = tieBreaks;
   if (level.length < 2 || first === undefined) return level;
-  const key = tieBreakKey(first, level, meetings);
-  return rankedGroups(level, key).flatMap((stillLevel) => brokenTies(stillLevel, rest, meetings));
+  const key = tieBreakKey(mode, first, level, meetings);
+  return rankedGroups(level, key).flatMap((stillLevel) => brokenTies(mode, stillLevel, rest, meetings));
 }
 
 /** What a tie-break ranks by, higher first: the most points for, the fewest points against, or
  *  the most points in the matchups between the teams level. */
 function tieBreakKey<Team>(
+  mode: Winner,
   tieBreak: TieBreak,
   level: readonly TableRow<Team>[],
   meetings: readonly Meeting<Team>[],
@@ -213,8 +239,8 @@ function tieBreakKey<Team>(
       const among = meetings.filter(({ team, opponent }) => levelTeams.has(team) && levelTeams.has(opponent));
       return (row) =>
         among.reduce((sum, meeting) => {
-          if (meeting.team === row.team) return sum + matchupPoints(meeting.teamScore, meeting.opponentScore);
-          if (meeting.opponent === row.team) return sum + matchupPoints(meeting.opponentScore, meeting.teamScore);
+          if (meeting.team === row.team) return sum + matchupPoints(mode, meeting.teamScore, meeting.opponentScore);
+          if (meeting.opponent === row.team) return sum + matchupPoints(mode, meeting.opponentScore, meeting.teamScore);
           return sum;
         }, 0);
     }

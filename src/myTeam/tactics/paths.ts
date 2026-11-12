@@ -5,7 +5,7 @@ import { MY_TEAM_PATH } from "../../frame/menu";
 import { wholeNumber } from "../../shared/search";
 
 /** The address's search: the squad player whose panel opens. Left out, none does. */
-export type TacticsSearch = { player?: number };
+type TacticsSearch = { player?: number };
 
 /** A link's `to` and `search` for Tactics with a player selected, by his season-stable code. */
 export const tacticsLink = (playerCode: number) => ({ to: MY_TEAM_PATH, search: { player: playerCode } satisfies TacticsSearch });

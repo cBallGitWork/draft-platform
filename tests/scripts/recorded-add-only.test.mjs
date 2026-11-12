@@ -4,7 +4,7 @@
 // carries "Re-record: <file>: <why>" for it.
 
 import { join } from "node:path";
-import { afterEach, beforeEach, expect, test } from "vitest";
+import { beforeEach, expect, test } from "vitest";
 import { TRAILER_PLACE } from "../../scripts/branchCheck.mjs";
 import { REPO_ROOT } from "../support/scripts/repoRoot.mjs";
 import { scratchRepo } from "../support/scripts/gitRepo.harness.mjs";
@@ -50,8 +50,6 @@ beforeEach(() => {
   repo.commitAll("base");
   repo.branchOffOriginMain();
 });
-
-afterEach(() => repo.remove());
 
 test("nothing changed passes", () => {
   passes();

@@ -7,6 +7,7 @@ import { GAMEWEEKS_MOST, isGameweekScored, scoredGameweeksOf } from "../gameweek
 import { drawRulesOf } from "../rules/firstRules";
 import { gameModeOf } from "../rules/gameMode";
 import type { SeasonRules } from "../rules/rulesHistory";
+import { takeAllOrThrow } from "../shared/cappedRead";
 import { teamsOf } from "../shared/leagueAccess";
 import { drawFixtures, type GameweekFixtures } from "./roundRobin";
 
@@ -53,10 +54,11 @@ const hasNoHeadToHead = ({ fixtures, byes }: TeamsGameweek) => fixtures.length =
 /** The league's stored gameweeks, by number: each it has begun, one row each at most
  *  (`storeBegunFixtures` skips one stored), so a season's gameweeks are all there are. */
 async function storedFixturesOf(ctx: QueryCtx, leagueId: Id<"leagues">): Promise<Stored> {
-  const rows = await ctx.db
-    .query("playedFixtures")
-    .withIndex("by_leagueId_and_gameweek", (q) => q.eq("leagueId", leagueId))
-    .take(GAMEWEEKS_MOST);
+  const rows = await takeAllOrThrow(
+    ctx.db.query("playedFixtures").withIndex("by_leagueId_and_gameweek", (q) => q.eq("leagueId", leagueId)),
+    GAMEWEEKS_MOST,
+    `More than ${GAMEWEEKS_MOST} stored gameweeks are held for one league, so its latest begun gameweeks would read as not begun`,
+  );
   return new Map(rows.map(({ gameweek, fixtures, byes }) => [gameweek, { gameweek, fixtures, byes }]));
 }
 
@@ -68,10 +70,11 @@ type Edits = ReadonlyMap<number, Doc<"fixtureEdits">>;
 
 /** The league's edits, one row a gameweek at most (fixtureEdits.ts replaces one). */
 async function editsOf(ctx: QueryCtx, leagueId: Id<"leagues">): Promise<Edits> {
-  const rows = await ctx.db
-    .query("fixtureEdits")
-    .withIndex("by_leagueId_and_gameweek", (q) => q.eq("leagueId", leagueId))
-    .take(GAMEWEEKS_MOST);
+  const rows = await takeAllOrThrow(
+    ctx.db.query("fixtureEdits").withIndex("by_leagueId_and_gameweek", (q) => q.eq("leagueId", leagueId)),
+    GAMEWEEKS_MOST,
+    `More than ${GAMEWEEKS_MOST} fixture edit rows are held for one league, so its latest edits would be lost`,
+  );
   return new Map(rows.map((row) => [row.gameweek, row]));
 }
 

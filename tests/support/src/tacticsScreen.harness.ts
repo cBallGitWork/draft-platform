@@ -9,7 +9,7 @@ import type { Position } from "../../../convex/positions/positionTables";
 import { MY_TEAM_PATH } from "../../../src/frame/menu";
 import type { OpenTactics } from "../../../src/myTeam/tactics/seam";
 import { allFormationsWords, BENCH_TITLE, moveLabel, pitchLabel, playerOnPitchLabel, roleLabel, selectionTableLabel, swapLabel, undoWords } from "../../../src/myTeam/tactics/words";
-import { applyWords } from "../../../src/myTeam/tactics/formationWindow/words";
+import { applyWords, backGroupPattern } from "../../../src/myTeam/tactics/formationWindow/words";
 import { playAsWords } from "../../../src/myTeam/tactics/roleCard/words";
 import { FIRST_RULES } from "../../../convex/rules/firstRules";
 import { ARSENAL } from "../convex/footballRows.harness";
@@ -87,7 +87,7 @@ export async function pickFormation(name: string) {
   const key = screen.queryByRole("radio", { name });
   if (key !== null) return userEvent.click(key);
   await userEvent.click(screen.getByRole("button", { name: allFormationsWords }));
-  for (const group of screen.getAllByRole("button", { name: /^Back \d/ })) {
+  for (const group of screen.getAllByRole("button", { name: backGroupPattern() })) {
     await userEvent.click(group);
     const tile = screen.queryByRole("radio", { name });
     if (tile === null) continue;

@@ -15,16 +15,17 @@ export async function everyPlayerNow(ctx: QueryCtx): Promise<Doc<"players">[]> {
 }
 
 /** The players still undrafted in the league: in the Premier League now and held by no team. The
- *  league's squads are read once, never a read per player (#1532). */
-export async function undraftedIn(ctx: QueryCtx, leagueId: Id<"leagues">): Promise<Doc<"players">[]> {
+ *  league's squads are read once, never a read per player (#1532). A caller that has already read
+ *  `everyPlayerNow` passes them in, so one function never reads them twice. */
+export async function undraftedIn(ctx: QueryCtx, leagueId: Id<"leagues">, players?: Doc<"players">[]): Promise<Doc<"players">[]> {
   const held = await heldCodesIn(ctx, leagueId);
-  return (await everyPlayerNow(ctx)).filter(({ code }) => !held.has(code));
+  return (players ?? (await everyPlayerNow(ctx))).filter(({ code }) => !held.has(code));
 }
 
 /** The players nobody drafted go on the league's waivers, a run taking them from `claimableFrom`:
- *  the draft's last pick schedules it (#1197), in a transaction of its own so the last pick stays
- *  clear of Convex's read limit (#1532). The last pick can't be undone (draftCommissioner.ts), so
- *  the draft is still over when it runs. */
+ *  the draft's end schedules it (pickWindow.ts `endDraft`; #1197) once the last pick's 10 seconds
+ *  are up, after which no undo is possible, in a transaction of its own so the last pick stays clear
+ *  of Convex's read limit (#1532). The draft is still over when it runs. */
 export const putUndraftedOnWaivers = internalMutation({
   args: { leagueId: v.id("leagues"), claimableFrom: v.number() },
   returns: v.null(),

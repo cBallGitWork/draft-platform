@@ -67,20 +67,24 @@ export function captured(command, args, { cwd, input = "" } = {}) {
   });
 }
 
+/** The path of a CLI the checkout at `cwd` installs, such as convex. */
+export const bin = (cwd, name) => join(cwd, "node_modules", ".bin", name);
+
+/** Runs a CLI through `exec` from `cwd`, resolving with its stdout, or throwing with what it said,
+ *  as `name`, when it fails. */
+export async function cli(exec, name, command, args, { cwd, input } = {}) {
+  const { code, stdout, stderr } = await exec(command, args, { cwd, input });
+  if (code !== 0) throw new Error(`\`${name} ${args[0]}\` failed (exit ${code}): ${(stderr || stdout).trim()}`);
+  return stdout;
+}
+
 /** The real tools, run from the checkout at `cwd`; `exec` and `fetch` are swapped in tests. */
 export function realTools({ cwd, exec = captured, fetchImpl = fetch, print = console.log } = {}) {
-  const bin = (name) => join(cwd, "node_modules", ".bin", name);
-
-  /** Runs a CLI, resolving with its stdout, or throwing with what it said when it fails. */
-  async function cli(name, command, args, input) {
-    const { code, stdout, stderr } = await exec(command, args, { cwd, input });
-    if (code !== 0) throw new Error(`\`${name} ${args[0]}\` failed (exit ${code}): ${(stderr || stdout).trim()}`);
-    return stdout;
-  }
-  const convexCli = (args, input) => cli("convex", bin("convex"), args, input);
-  const vercelCli = (args, input) => cli("vercel", bin("vercel"), args, input);
+  const cliOf = (name, command) => (args, input) => cli(exec, name, command, args, { cwd, input });
+  const convexCli = cliOf("convex", bin(cwd, "convex"));
+  const vercelCli = cliOf("vercel", bin(cwd, "vercel"));
   // gh is the machine's own, signed in to the repository (docs/setup.md, Start).
-  const ghCli = (args, input) => cli("gh", "gh", args, input);
+  const ghCli = cliOf("gh", "gh");
   const settingNameList = () => convexCli(["env", "list", PROD, "--names-only"]);
 
   async function linkedProject() {
