@@ -1,6 +1,7 @@
 import { v } from "convex/values";
 import { internal } from "../_generated/api";
 import { internalAction, type MutationCtx } from "../_generated/server";
+import { OUTBOUND_TIMEOUT_MS } from "../outbound/timeouts";
 
 // Each timed job in crons.ts pings Healthchecks.io when it finishes (docs/PLAN.md, "No
 // monitoring": a dead scheduled job would otherwise go unseen). The ping is a heartbeat, not the
@@ -12,8 +13,6 @@ import { internalAction, type MutationCtx } from "../_generated/server";
 export const PING_URL_ENV = "HEALTHCHECKS_PING_URL";
 /** What Healthchecks adds to a check's ping address to hear that a run failed. */
 export const FAIL_SUFFIX = "/fail";
-/** How long a ping may take before it's given up on, so a slow Healthchecks never holds a job. */
-export const PING_TIMEOUT_MS = 10_000;
 /** What the log says, before the error, when a ping didn't reach Healthchecks. */
 export const PING_FAILED_LOG = "Healthchecks ping failed";
 
@@ -48,7 +47,7 @@ async function ping(check: Check, failed: boolean): Promise<void> {
   const url = pingUrl(check, failed);
   if (url === null) return;
   try {
-    const response = await fetch(url, { signal: AbortSignal.timeout(PING_TIMEOUT_MS) });
+    const response = await fetch(url, { signal: AbortSignal.timeout(OUTBOUND_TIMEOUT_MS) });
     if (!response.ok) console.error(PING_FAILED_LOG, check, response.status);
   } catch (error) {
     console.error(PING_FAILED_LOG, check, error);

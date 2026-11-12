@@ -1,7 +1,7 @@
 import { useState } from "react";
 import type { LeagueSummary } from "../../convex/leagues/myLeagues";
 import type { CatalogueStat } from "../../convex/scoring/statCatalogueList";
-import { namedPlayers } from "../draft/playersView";
+import { namedPlayers } from "./findPlayers";
 import { Loading, PAGE_STACK, PageSection, PanelNote } from "../ui/Panel";
 import { PlateTabs } from "../ui/PlateTabs";
 import { useLastLoaded } from "../shared/useLastLoaded";

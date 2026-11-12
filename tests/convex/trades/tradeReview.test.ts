@@ -7,11 +7,12 @@ import { REVIEW_MS } from "../../../convex/trades/tradeLimits";
 import { mostAgainst, reviewRefusals } from "../../../convex/trades/tradeReview";
 import { dropRefusals } from "../../../convex/waivers/waivers";
 import { DAY_MS } from "../../../convex/shared/time";
+import { draftStarted } from "../../support/convex/draft.harness";
 import { actingAs, addManager, COMMISSIONER, CO_COMMISSIONER, eventsIn, MANAGERS } from "../../support/convex/leagues.harness";
 import { holdPlayers, nameOf } from "../../support/convex/lineupSquad.harness";
 import { expectRefused, pendingJobs } from "../../support/convex/test.harness";
 import { ANN, ANNS_FIRST_DROP, BOB, CAT, PALMER, RICE, SAKA, tradeLeague, type TradeLeague } from "../../support/convex/trades.harness";
-import { draftOver, noDraft } from "../../support/convex/waivers.harness";
+import { noDraft } from "../../support/convex/waivers.harness";
 
 // A trade's review and move (#383, spec/08 Trades): accepted, it goes through at once with no
 // review; under a commissioner veto he has 24 hours to block it, and a trade he is in goes to the
@@ -28,7 +29,7 @@ let fourthTeam: Id<"teams">;
 const fourthTeamTo = async (email: string) => {
   await noDraft(w.t, w.leagueId);
   fourthTeam = await addManager(w.t, w.leagueId, email);
-  await draftOver(w.t, w.leagueId, w.teams);
+  await draftStarted(w.t, w.leagueId, w.teams);
 };
 beforeEach(async () => {
   w = await tradeLeague();
@@ -80,7 +81,7 @@ describe("under a commissioner veto, a new league's", () => {
     const offerId = await annTradesForSaka();
 
     expect(await squadOf(w.annsTeam)).not.toContain(SAKA);
-    expect((await w.mine(ANN))[0].review).toEqual({ kind: "veto", endsAt: Date.now() + REVIEW_MS });
+    expect((await w.mine(ANN))[0]).toMatchObject({ reviewer: "commissioner", reviewEndsAt: Date.now() + REVIEW_MS });
     expect(REVIEW_MS).toBe(DAY_MS);
     expect(await w.subjectsTo(COMMISSIONER)).toContain("Block the trade between Team 1 and Team 2?");
     expect(await w.subjectsTo(CAT)).not.toContain("Block the trade between Team 1 and Team 2?");
@@ -125,7 +126,7 @@ describe("under a commissioner veto, a new league's", () => {
     const { offerId } = await w.offer(COMMISSIONER, w.bobsTeam, [], [SAKA]);
     await w.accept(BOB, offerId);
 
-    expect((await w.mine(BOB))[0].review?.kind).toBe("vote");
+    expect((await w.mine(BOB))[0].reviewer).toBe("vote");
     expect(await w.subjectsTo(ANN)).toContain("Vote on the trade between Team 4 and Team 2");
   });
 });

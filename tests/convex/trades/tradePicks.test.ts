@@ -177,11 +177,9 @@ describe("a pick swap", () => {
     await offerPicks(ANN, bob, pickOf(ann, 1), pickOf(bob, 2));
     const annsTeam = await teamName(ann);
     const bobsTeam = await teamName(bob);
-    const [shown] = await (await as(BOB)).query(api.trades.tradeOffers.mine, { leagueId });
-    expect(shown.picks).toEqual({
-      gives: { round: 1, teamId: ann, name: `the ${annsTeam} round 1 pick` },
-      gets: { round: 2, teamId: bob, name: `the ${bobsTeam} round 2 pick` },
-    });
+    const { offers: [shown] } = await (await as(BOB)).query(api.trades.tradeScreen.ofMyTeam, { leagueId, now: Date.now() });
+    expect(shown.picks).toEqual({ gives: `the ${annsTeam} round 1 pick`, gets: `the ${bobsTeam} round 2 pick` });
+    expect(shown.pickTerms).toEqual({ gives: { round: 1, teamId: ann }, gets: { round: 2, teamId: bob } });
     expect(shown.gives).toEqual([]);
   });
 });

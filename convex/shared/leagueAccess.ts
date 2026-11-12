@@ -175,6 +175,17 @@ export async function ownTeam(ctx: QueryCtx, leagueId: Id<"leagues">): Promise<D
   return (await memberOf(ctx, leagueId)).team ?? refuse(refusals.runsNoTeam);
 }
 
+/** `managerOf`'s quiet twin, for what the frame asks on every page: the caller, the league and
+ *  his team, or null, never a refusal, when he is signed out, the league is gone or frozen for
+ *  deletion, or he runs no team in it. */
+export async function ownTeamOrNone(ctx: QueryCtx, leagueId: Id<"leagues">) {
+  const email = await signedInEmail(ctx);
+  const league = await ctx.db.get("leagues", leagueId);
+  if (email === null || league === null || !leagueOpens(league)) return null;
+  const team = await teamOf(ctx, leagueId, email);
+  return team === undefined ? null : { email, league, team };
+}
+
 /** The caller and the league, if the caller may delete it (spec/13, Deleting). */
 export function deleterOf(ctx: QueryCtx, leagueId: Id<"leagues">) {
   return callerWith(ctx, leagueId, "names", refusals.notDeleter);

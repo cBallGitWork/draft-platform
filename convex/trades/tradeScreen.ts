@@ -21,12 +21,13 @@ import {
 import { tradesShutReason } from "./tradeShutWords";
 import { squadCodes } from "../squads/squadPlace";
 import { limitsBroken, squadWarning } from "../squads/squads";
-import { newlyBroken } from "../waivers/waiverRun";
+import { newlyBroken } from "../squads/limitsCompare";
 import { leagueOffers } from "./tradeClose";
 import { pickName } from "./tradeWords";
 import { pickHolders, tradablePick } from "./tradePicks";
 import { managersAmong, reviewUnder, tradeRulesAt } from "./tradeReviewers";
-import { offerCloses, onAutoTeam, tradeDeadlineInForce, tradesShut } from "./tradeShut";
+import { onAutoTeam } from "../lineup/autoTeamSwitch";
+import { offerCloses, tradeDeadlineInForce, tradesShut } from "./tradeShut";
 import { tradePick } from "../schema";
 
 // The Trades screen's read (#383; spec/12 Trades, its approved picture docs/design/approved/trades):

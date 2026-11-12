@@ -176,15 +176,3 @@ export function whyNotLegal(
     return anyFinish ? "noFinish" : null;
   };
 }
-
-/** Whether the team holding `squad`, with `picksLeft` picks still to make counting this one, may
- *  pick a player, under the league's squad rules and from the players still `undrafted`. */
-export function legalPlayers(
-  squad: readonly DraftPlayer[],
-  picksLeft: number,
-  rules: SquadRules,
-  undrafted: readonly DraftPlayer[],
-): (player: DraftPlayer) => boolean {
-  const why = whyNotLegal(squad, picksLeft, rules, undrafted);
-  return (player) => why(player) === null;
-}
