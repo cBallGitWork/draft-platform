@@ -1,6 +1,6 @@
 // What the matchup says, in one place for Craig to change in the pull request.
 
-import type { MatchBreakdown, SlotStatus } from "../../convex/matchup/matchupShape";
+import type { MatchBreakdown, MatchupSide, SlotStatus } from "../../convex/matchup/matchupShape";
 import {
   clockWords,
   fewestTeamsWords,
@@ -36,6 +36,9 @@ export const notBegunWords = (deadline: number | null) =>
   `Lineups show at the deadline${deadline === null ? "" : `, ${whenWords(deadline)}`}.`;
 export const unscoredWords = (reason: string) => `This matchup can't be scored, so it counts for nothing in the table: ${reason}.`;
 export const averageWords = "Every team counted once.";
+/** A side's or an opponent's name: its team's, or the league's average. */
+export const sideName = (side: { kind: "team"; teamName: string } | { kind: Exclude<MatchupSide["kind"], "team"> }) =>
+  side.kind === "team" ? side.teamName : leagueAverageWords;
 
 /** Under the score: live and moving, or settled. */
 export { provisionalWords } from "../shared/words";

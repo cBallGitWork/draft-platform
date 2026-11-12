@@ -23,12 +23,11 @@ import {
   whenWords,
   yourReviewWords,
 } from "../../../src/trades/words";
-import { commissioner, league, manager, openApp } from "../../support/src/shell.harness";
+import { commissioner, league, manager, openApp, panel } from "../../support/src/shell.harness";
 import { quietTrades, screenOffer, tradeToReview, type TradesData } from "../../support/src/trades.harness";
 
 const ENDS = Date.parse("2026-11-11T09:40:00Z");
 const openOffers = (trades: TradesData, path = TRADES_PATH, session = manager) => openApp(path, session, { trades });
-const panel = (title: string) => screen.findByRole("region", { name: title });
 
 describe("the To review group", () => {
   it("sits above the manager's own offers, the two teams' sides each read as what that team gets", async () => {

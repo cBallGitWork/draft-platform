@@ -3,15 +3,12 @@
 
 import { screen, within } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
-import { PREMIER_LEAGUE_PATH } from "../../../src/frame/menu";
 import { crestUrl } from "../../../src/ui/ClubName";
 import type { PlStandings } from "../../../src/premierLeague/seam";
 import { loadingTableWords, noClubsWords, provisionalWords, TABLE_TITLE, tableColumns } from "../../../src/premierLeague/words";
 import { expectColumnHeads } from "../../support/src/columnHeads";
-import { ARSENAL, CHELSEA, FOREST, SPURS, standingsRow, type PremierLeagueData } from "../../support/src/premierLeague.harness";
-import { manager, openApp } from "../../support/src/shell.harness";
-
-const openSection = (premierLeague: PremierLeagueData = {}) => openApp(PREMIER_LEAGUE_PATH, manager, { premierLeague });
+import { ARSENAL, CHELSEA, FOREST, SPURS, standingsRow } from "../../support/src/premierLeague.harness";
+import { openSection } from "../../support/src/premierLeagueScreen.harness";
 const panel = () => screen.findByRole("region", { name: TABLE_TITLE });
 
 const standings: PlStandings = {

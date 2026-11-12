@@ -20,11 +20,10 @@ import {
   SQUAD_NEWS_TITLE,
 } from "../../../src/home/words";
 import { gameweekOneRecap, quietHome, type HomeData } from "../../support/src/home.harness";
-import { league, manager, openApp } from "../../support/src/shell.harness";
+import { openHome } from "../../support/src/homeScreen.harness";
+import { league, manager, openApp, panel } from "../../support/src/shell.harness";
 
 const TITLE = recapTitle(gameweekOneRecap.gameweek);
-const panel = (title: string) => screen.findByRole("region", { name: title });
-const openHome = (home: HomeData) => openApp(HOME_PATH, manager, { home });
 const openRecap = (gameweek: number, home: HomeData = {}) => openApp(`${RECAP_PATH}?gameweek=${gameweek}`, manager, { home });
 const changed = { ...gameweekOneRecap, changedTeamId: "team-2" as Id<"teams"> };
 

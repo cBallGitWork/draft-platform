@@ -5,6 +5,7 @@ import { vi } from "vitest";
 import type { Id } from "../../../convex/_generated/dataModel";
 import type { PlayingState } from "../../../convex/football/matchScores";
 import type { Area } from "../../../convex/lineup/pitch";
+import { namedRole, roleIn } from "../../../convex/lineup/roles";
 import { centreSlotOf } from "../../../src/matchup/preview";
 import type { TeamsCommentary, MatchupSide, MatchupBenchSlot, MatchupSlot, MatchupStarter } from "../../../convex/matchup/matchupShape";
 import type { Matchup, MatchupSeam } from "../../../src/matchup/seam";
@@ -62,6 +63,8 @@ export const playing = (minute: number | null, clockLabel: string | null = null,
   minute,
   clockLabel,
 });
+/** A man's match over. */
+export const finished = { kind: "finished", fixtureCode: SLOT_MATCH } as const;
 
 /** A made-up man's code, from his name. */
 const codeOf = (name: string) => [...name].reduce((code, letter) => code * 31 + letter.charCodeAt(0), 7);
@@ -89,6 +92,9 @@ export const slot = (name: string, rest: Partial<Slot> = {}): Slot => ({
 /** The role a made-up starter plays unless his test gives one: his area's centre slot's first, as
  *  made-up men stand in areas, not cells. */
 export const roleOf = (area: Area) => centreSlotOf(area).role;
+/** A striker's slot, and its poacher role as a lineup names it. */
+export const STRIKER_SLOT = { area: "attack", lane: "centre" } as const;
+export const poacher = namedRole(roleIn(STRIKER_SLOT, "poacher"));
 
 /** A team's side: its starters, each in his area's centre slot and role (roleOf) unless he has
  *  one, and bench, none with a role or place unless he has one, its total and whether that is

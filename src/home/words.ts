@@ -2,11 +2,11 @@
 
 import { TOP_ROWS } from "../../convex/home/glance";
 import { andListWords } from "../../convex/shared/moments";
-import { fewestTeamsWords, gameweekShort, noHeadToHeadsTotalPointsWords, placeWords, tradedNames } from "../shared/words";
+import { fewestTeamsWords, foldedGlyph, gameweekShort, noHeadToHeadsTotalPointsWords, placeWords, tradedNames } from "../shared/words";
 import { columns as tableColumns } from "../table/words";
 import type { LeagueHome, NewsMove } from "./seam";
 
-export { figureWords, gameweekShort, scoreWords, tradedNames, whenWords, withTeamWords } from "../shared/words";
+export { figureWords, foldedGlyph, gameweekShort, openGlyph, scoreWords, tradedNames, whenWords, withTeamWords } from "../shared/words";
 export { andListWords };
 export { leagueAverageWords, noResultsWords, TABLE_TITLE } from "../shared/words";
 
@@ -43,7 +43,7 @@ export const premierLeagueTitle = (gameweek: number) => `Premier League, ${gamew
 export const SQUAD_NEWS_TITLE = "Your squad news";
 export const RUN_LEAGUE_TITLE = "Run the league";
 export const runLeagueAside = "commissioner";
-export const runLeagueLink = "Run the league ▸";
+export const runLeagueLink = `${RUN_LEAGUE_TITLE} ${foldedGlyph}`;
 /** The recap's panel before the gameweek is final. */
 export const recapToComeWords = (gameweek: number) => `Lands once every ${gameweekShort(gameweek)} match is final.`;
 /** The ▾ on a right-hand panel: it folds the panel away, and opens it again. */

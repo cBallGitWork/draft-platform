@@ -9,7 +9,6 @@ import { describe, expect, it } from "vitest";
 import type { Id } from "../../../convex/_generated/dataModel";
 import type { LetterSummary } from "../../../convex/mail/mail";
 import { HOME_NEWS_PATH, HOME_PATH, MAIL_PATH, MATCHUP_PATH, MY_TEAM_PATH } from "../../../src/frame/menu";
-import type { LeagueHome } from "../../../src/home/seam";
 import {
   foldLabel,
   LETTER_TITLE,
@@ -37,12 +36,9 @@ import {
 } from "../../../src/home/words";
 import { scoreWords } from "../../../src/matchup/words";
 import { formLabel } from "../../../src/shared/words";
-import { gameweekOneRecap, homeFixture, homeRow, quietHome, type HomeData } from "../../support/src/home.harness";
-import { commissioner, league, manager, openApp } from "../../support/src/shell.harness";
-
-const openHome = (home: HomeData = {}) => openApp(HOME_PATH, manager, { home });
-const withHome = (change: Partial<LeagueHome>, rest: HomeData = {}) => openHome({ ...rest, leagueHome: { ...quietHome, ...change } });
-const panel = (title: string | RegExp) => screen.findByRole("region", { name: title });
+import { gameweekOneRecap, homeFixture, homeRow } from "../../support/src/home.harness";
+import { openHome, withHome } from "../../support/src/homeScreen.harness";
+import { commissioner, league, manager, openApp, panel } from "../../support/src/shell.harness";
 const follows = (first: Element, second: Element) => Boolean(first.compareDocumentPosition(second) & Node.DOCUMENT_POSITION_FOLLOWING);
 
 describe("the title plate and the deadline strip", () => {

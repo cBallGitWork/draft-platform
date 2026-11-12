@@ -8,6 +8,7 @@ import { previewChristmasBreak, previewGameweek, previewSays, previewSeasonGamew
 import type { Id } from "../../convex/_generated/dataModel";
 import type { TableScreenSeam } from "./seam";
 import { leagueTableOf, type Drawn } from "./drawnTable";
+import { swapUnsavedOutcome } from "./words";
 
 /** The gameweeks begun, scored with made-up points: up to the preview's own, the last still live. */
 const BEGUN = previewGameweek;
@@ -33,8 +34,6 @@ const scores = new Map(
 export const previewScored = { ...previewSeason, scores, provisional: previewTeamNames } satisfies Drawn;
 const table = leagueTableOf(previewTeamNames, { ...previewScored, autoTeams: [previewAutoTeam] });
 
-/** What the preview's fixture swap left, since it saves nothing. */
-export const previewUnswapped = "the fixtures didn't change";
-const previewSwap = { swap: previewSays(previewUnswapped) };
+const previewSwap = { swap: previewSays(swapUnsavedOutcome) };
 
 export const previewTable: TableScreenSeam = { useLeagueTable: () => table, useFixtureSwap: () => previewSwap };

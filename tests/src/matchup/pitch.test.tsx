@@ -9,7 +9,6 @@ import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
 import { positionOfSlot } from "../../../convex/lineup/pitch";
 import { namedRole, roleIn } from "../../../convex/lineup/roles";
-import { MATCHUP_PATH } from "../../../src/frame/menu";
 import { RUN_MARK } from "../../../src/myTeam/tactics/pitch/runs";
 import { runsWords } from "../../../src/myTeam/tactics/words";
 import {
@@ -24,13 +23,11 @@ import {
   statusLabels,
   statusWords,
 } from "../../../src/matchup/words";
-import { headToHead, roleOf, slot, SLOT_MATCH, subbed, teamSide } from "../../support/src/matchup.harness";
-import { manager, openApp } from "../../support/src/shell.harness";
+import { finished as FINISHED, headToHead, poacher as POACHER, roleOf, slot, subbed, teamSide } from "../../support/src/matchup.harness";
+import { openMatchup } from "../../support/src/matchupScreen.harness";
 
-const FINISHED = { kind: "finished", fixtureCode: SLOT_MATCH } as const;
 /** A finished man's match, as his tile reads it out. */
 const FINISHED_WORDS = `${statusLabels.finished} ${statusWords.finished}`;
-const POACHER = namedRole(roleIn({ area: "attack", lane: "centre" }, "poacher"));
 const RIGHT_MIDFIELD = { area: "midfield", lane: "right" } as const;
 const WIDE_LABEL = positionOfSlot(RIGHT_MIDFIELD);
 const WIDE_ROLE = namedRole(roleIn(RIGHT_MIDFIELD, undefined));
@@ -52,7 +49,7 @@ const team1 = teamSide("Team 1", [keeper, centre, striker, off], [sub, benched])
 const team2 = teamSide("Team 2", [{ ...slot("Beto", { area: "attack" }), role: POACHER }], []);
 
 async function opened(team = team1) {
-  openApp(MATCHUP_PATH, manager, { matchup: { matchup: headToHead({ kind: "scored", team, opponent: team2 }) } });
+  openMatchup({ matchup: headToHead({ kind: "scored", team, opponent: team2 }) });
   return screen.findByRole("list", { name: sidePitchLabel("Team 1") });
 }
 

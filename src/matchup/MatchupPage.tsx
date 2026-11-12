@@ -9,12 +9,11 @@ import { Loading, PageSection, PanelNote } from "../ui/Panel";
 import { useLastLoaded } from "../shared/useLastLoaded";
 import { useMinute } from "../shared/useMinute";
 import { Fixture, GameSwitch, ScoredHead, Stepper, type HeadToHead } from "./MatchupHead";
-import { sideName, SidePanel } from "./SidePanel";
+import { SidePanel } from "./SidePanel";
 import { Vidiprinter } from "./Vidiprinter";
 import type { MatchupAsked, MatchupSeam } from "./seam";
 import {
   byeWords,
-  leagueAverageWords,
   loadingWords,
   MATCHUP_TITLE,
   noCommentaryWords,
@@ -22,6 +21,7 @@ import {
   noGameWords,
   notBegunWords,
   noTeamWords,
+  sideName,
   totalPointsWords,
   unscoredWords,
   VIDIPRINTER_TITLE,
@@ -81,7 +81,7 @@ function HeadToHeadMatchup({ league, seam, matchup }: { league: LeagueSummary; s
           </>
         ) : (
           <>
-            <Fixture teamName={teamName} opponent={game.opponent.kind === "team" ? game.opponent.teamName : leagueAverageWords} />
+            <Fixture teamName={teamName} opponent={sideName(game.opponent)} />
             {gameSwitch}
             <PanelNote>{game.kind === "notBegun" ? notBegunWords(deadline) : unscoredWords(game.reason)}</PanelNote>
           </>

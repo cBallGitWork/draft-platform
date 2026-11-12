@@ -40,7 +40,9 @@ export const ownStatShortCodeLabel = "Short code";
 export const partStatLabel = (part: number) => `Stat ${part}`;
 export const partWeightLabel = (part: number) => `Weight of stat ${part}`;
 export const removePartLabel = (part: number) => `Remove stat ${part}`;
-export const removePartWords = "×";
+/** The mark on a remove button: an own stat's part, and a band. */
+const removeGlyph = "×";
+export const removePartWords = removeGlyph;
 export const addPartWords = "Add a stat";
 export const makeWords = "Make it";
 export { cancelWords } from "../shared/words";
@@ -86,7 +88,7 @@ export const bandEarnsWords = "earns";
 export const addBandWords = "Add a band";
 /** A band's row, for its boxes' names: "Goalkeeper, band 2". */
 export const bandRowWords = (row: string, band: number) => `${row}, band ${band}`;
-export const removeBandWords = "×";
+export const removeBandWords = removeGlyph;
 export const removeBandLabel = (bandRow: string) => `Remove ${bandRow}`;
 export const noBandsWords = "No bands: earns nothing.";
 

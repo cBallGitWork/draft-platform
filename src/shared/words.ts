@@ -49,6 +49,8 @@ export const NO_CONVEX_URL = "VITE_CONVEX_URL isn't set, so the app can't reach 
 export const gameweekWords = (gameweek: number) => `Gameweek ${gameweek}`;
 /** A gameweek, short, as a head says it: "GW9" (My team's header band, the player card). */
 export const gameweekShort = (gameweek: number) => `GW${gameweek}`;
+/** A table's Gameweek column head (the player card, My team's fixtures, Gameweeks). */
+export const gameweekColumn = { short: "GW", long: "Gameweek" } as const;
 /** When a waiver run or an offer's close falls in `gameweek`'s lock: after its last match, whose
  *  time isn't known ahead (Craig, 11 Nov 2026, on #1467 and #1492): "after GW12's last match". A
  *  line starting with it takes `firstUpper`. */
@@ -65,6 +67,10 @@ export const nextGlyph = "►";
 export const closeGlyph = "✕";
 /** A control drawn as a button that opens a list of choices, decoration, as its label says it. */
 export const menuGlyph = "▾";
+/** A folding panel's mark, open or folded, decoration, as its button carries its label; the folded
+ *  one also ends a link onwards ("Run the league ▸"). */
+export const openGlyph = menuGlyph;
+export const foldedGlyph = "▸";
 /** The link from a player's panel to his card (Squad and Tactics). */
 export const playerCardWords = "Player card";
 /** A sortable table's heads (src/ui/ColumnHeads.tsx): beside the column sorted by, which way, as

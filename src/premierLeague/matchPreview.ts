@@ -6,7 +6,7 @@
 
 import { bySheetOrder } from "../../convex/match/sheetOrder";
 import type { Position } from "../../convex/positions/positionTables";
-import { previewTeamNames } from "../shared/preview";
+import { previewClub, previewTeamNames } from "../shared/preview";
 import type { MatchMan, MatchPageData } from "./seam";
 
 /** FPL's code for the recorded match. */
@@ -176,8 +176,8 @@ export const previewMatch: MatchPageData = {
   fixtureCode: RECORDED_MATCH,
   gameweek: 8,
   kickoff: KICKOFF,
-  home: { code: 40, name: "Ipswich Town", shortName: "IPS" },
-  away: { code: 17, name: "Nottingham Forest", shortName: "NFO" },
+  home: previewClub("IPS"),
+  away: previewClub("NFO"),
   score: { state: "fullTime", homeGoals: 1, awayGoals: 1, minutes: 90, clockLabel: null },
   men: MEN,
   pointsProblem: null,
