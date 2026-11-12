@@ -273,6 +273,20 @@ export const VIDIPRINTER_TITLE = "Vidiprinter";
 export const commentaryDelayedWords = "Commentary delayed";
 export const noCommentaryWords = "No lines yet.";
 
+/** A commissioner's override (spec/14 S14.3 to S14.6; #32, #903), of a player's points on his card
+ *  and of a team's total on the matchup alike. */
+export const overriddenWords = (points: number, reason: string) => `Overridden to ${figureWords(points)} in this league: ${reason}`;
+export const overrideHint = "The whole league gets a letter saying what changed and why.";
+export const overrideLabels = { match: "Match", points: "Points", reason: "Why" } as const;
+export const overrideWords = "Override";
+export const overriddenDoneWords = "Overridden: the league has a letter saying why.";
+export const overrideFailedWords = "The override couldn't be saved. Try again.";
+/** Taking an override off (#903, spec/14 S14.5): "remove override button". */
+export const removeOverrideWords = "Remove override";
+export const removeOverrideFailedWords = "The override couldn't be removed. Try again.";
+/** A player's points for a match whose record hasn't fully arrived, on hover. */
+export const notArrivedWords = "His record for this match hasn't fully arrived yet.";
+
 /** A player who has left the Premier League: on a squad (Squads, My team's Squad tab), and on his
  *  card and a shortlist. */
 export const leftLeagueWords = "Not available: he has left the Premier League.";

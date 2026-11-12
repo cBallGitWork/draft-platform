@@ -1,7 +1,6 @@
 // What the matchup says, in one place for Craig to change in the pull request.
 
 import type { MatchBreakdown, SlotStatus } from "../../convex/matchup/matchupShape";
-import { overrideLabels, removeOverrideWords } from "../playerCard/words";
 import {
   clockWords,
   fewestTeamsWords,
@@ -10,6 +9,8 @@ import {
   halfTime,
   leagueAverageWords,
   noHeadToHeadsTotalPointsWords,
+  overrideLabels,
+  removeOverrideWords,
   scoreWords,
   versusWords,
   weekdayTimeWords,
@@ -138,14 +139,14 @@ export const breakdownMatchWords = ({ home, away, kickoff, score }: Pick<MatchBr
 export const notCountedWords = "Not counted: best match";
 export const noMatchBreakdownWords = "No match this gameweek.";
 /** The team override under each team's name, for whoever runs the league (spec/14 S14.3 to S14.6;
- *  #903): "set the total". The rest of its words are the player card's override's. */
+ *  #903): "set the total". The rest of its words are the player card's override's, in shared. */
 export const OVERRIDE_TOTAL_TITLE = "Override total";
 export const overrideTotalLabel = (teamName: string) => `${OVERRIDE_TOTAL_TITLE}: ${teamName}`;
 export const removeTotalOverrideLabel = (teamName: string) => `${removeOverrideWords}: ${teamName}`;
 export const overrideTotalLabels = { points: "Total", reason: overrideLabels.reason } as const;
 export const totalOverrideRemovedWords = "Override removed: the scored total is back, and the league has a letter.";
 export {
-  cancelOverrideWords,
+  cancelWords as cancelOverrideWords,
   notArrivedWords,
   overriddenDoneWords,
   overriddenWords,
@@ -154,7 +155,7 @@ export {
   overrideWords,
   removeOverrideFailedWords,
   removeOverrideWords,
-} from "../playerCard/words";
+} from "../shared/words";
 
 /** The matchup's commentary (spec/10): every line of every match either team's men play in; when
  *  the stream falls behind or stops; points carry on from FPL (spec/10, The commentary). */

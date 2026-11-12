@@ -12,7 +12,7 @@ const SOURCE_PREFIX = "../../";
 const EXPORT_FROM = /^export\s+(?:type\s+)?\{[^}]*\}\s*from\s*["']([^"']+)["']/gm;
 
 /** Re-exports of another feature's words still to move to src/shared/words.ts: "from -> to". */
-const STILL_REEXPORTED = ["src/matchup/words.ts -> src/playerCard/words"];
+const STILL_REEXPORTED: string[] = [];
 
 /** The feature a path under src/ belongs to: its first folder. */
 const featureOf = (path: string) => path.split("/")[1];
