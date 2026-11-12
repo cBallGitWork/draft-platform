@@ -1,10 +1,9 @@
 import { describe, expect, test, vi } from "vitest";
 import { api } from "../../../convex/_generated/api";
-import { FIRST_SCORING } from "../../../convex/scoring/firstScoring";
-import type { StoredScoringSet } from "../../../convex/scoring/scoringSetShape";
 import { siteScoringRefusals } from "../../../convex/scoring/siteScoring";
 import { ADMIN } from "../../support/convex/leagues.harness";
 import { holdGameweeks } from "../../support/convex/leagueRules.harness";
+import { withShotStopper } from "../../support/convex/scoring.example";
 import { expectRefused } from "../../support/convex/test.harness";
 import { announceAs, as, draftSavedAt, kickoffOf, saveDraftAs, t, useSiteScoringDeployment } from "../../support/convex/siteScoring.harness";
 
@@ -12,12 +11,6 @@ import { announceAs, as, draftSavedAt, kickoffOf, saveDraftAs, t, useSiteScoring
 // nothing, and the run by itself on Announce, kept with the patch for its notes.
 
 useSiteScoringDeployment();
-
-const side = (bars: number[], stat: string) => ({ bars, parts: [{ stat, weight: 1 }] });
-const withShotStopper = (bars: number[]): StoredScoringSet => ({
-  ...structuredClone(FIRST_SCORING),
-  roles: [{ role: "shotStopper", bonus: side(bars, "saves"), cost: side([3, 4, 5], "goals_conceded") }],
-});
 
 /** Two keepers' starts in 2024/25, a sub's match, and a start at a position that maps to no slot. */
 const holdPastSeason = () =>
