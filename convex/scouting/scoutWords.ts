@@ -27,6 +27,12 @@ export function playerLeftLetter(playerName: string): Words {
   };
 }
 
+/** One starter's slot in the brief: its position and role. */
+interface BriefSlot {
+  position: string;
+  role: string;
+}
+
 /** What the report is written from: the player's own figures, and the team's shape. */
 export interface ScoutBrief {
   playerName: string;
@@ -38,7 +44,7 @@ export interface ScoutBrief {
   /** His stars for each role in each area he plays (spec/05). */
   stars: readonly { area: string; role: string; stars: Stars }[];
   /** The team's starters as its lineup stands: each slot's position and role. Empty with none. */
-  shape: readonly { position: string; role: string }[];
+  shape: readonly BriefSlot[];
   /** This season's matches he was in, newest first, with his base points at each position. */
   matches: readonly { opponent: string; home: boolean; minutes: number | null; points: readonly { position: string | null; total: number | null }[] }[];
   /** His club's next matches, soonest first. */
@@ -63,7 +69,7 @@ const venue = (home: boolean) => (home ? "home" : "away");
  *  its role stars only where the league shows stars, and its slots' roles only where it scores them
  *  (gameMode.ts, #1582; every league does both today). */
 export function reportPrompt(brief: ScoutBrief, mode: Pick<GameMode, "showsStars" | "scoresRoles">): string {
-  const slotWords = (slot: ScoutBrief["shape"][number]) => (mode.scoresRoles ? `${slot.position} as ${slot.role}` : slot.position);
+  const slotWords = (slot: BriefSlot) => (mode.scoresRoles ? `${slot.position} as ${slot.role}` : slot.position);
   const lines = [
     `Player: ${brief.playerName}, ${brief.clubName}. Positions: ${brief.positions.join(", ") || "none yet"}.`,
     `News: ${brief.news ?? "none"}.${brief.chanceOfPlaying === null ? "" : ` Chance of playing next round: ${brief.chanceOfPlaying}%.`}`,
