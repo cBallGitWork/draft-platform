@@ -46,10 +46,10 @@ fixtures are a different screen (`spec/12`, "table and fixtures").
 - A club's name opens its page wherever it shows, as a link; its mark doesn't: "click the name
   anywhere, not the crest, like a hyperlink" (Craig, 12 Nov 2026). It sits under Football. `S18.6`
 - The header: the club's mark and name, its table place, its last five results, and its next match
-  as an opponent card (their table place, their form, how many days away). Under them, who owns
-  the club's players in the league ("Owned 6 of 25: you 2, Dave 3, Sam 1 · 19 free"), the club's
+  as an opponent card (their table place, their form, how many days away). Under them, the club's
   top three scorers in the league's points, and the club's stadium, capacity and manager (Craig,
-  12 Nov 2026). `S18.7`
+  12 Nov 2026). No ownership line: "you already have that info in table", the Squad tab's team
+  column (Craig, 12 Nov 2026). `S18.7`
 - A Squad tab, players grouped GK, DEF, MID, FWD, each with his positions, his team in the league
   or Free agent or Waivers, his season points, his points in each of his last five gameweeks, his
   starts and minutes, and a doubt chip, a greyed placeholder until the status chips are settled
