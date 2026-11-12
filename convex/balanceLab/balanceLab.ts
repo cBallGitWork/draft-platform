@@ -3,11 +3,8 @@ import { STARTER_COUNT } from "../lineup/lineup";
 import { positionOfSlot, type Cell, type SlotPosition } from "../lineup/pitch";
 import { DEFAULT_ROLES } from "../lineup/roles";
 import { PAST_STAT_COLUMNS } from "../pastSeasons/pastStatColumns";
-import { roleTotal } from "../scoring/scoring";
+import { instructionTotal, roleTotal } from "../scoring/scoring";
 import type { ScoringSet } from "../scoring/scoringSet";
-import { MINUTES_STAT } from "../scoring/statKeys";
-import { instructionPoints } from "../scoring/teamScoring";
-import { statIn } from "../scoring/values";
 import { ROLE_TARGET_MARGIN } from "./balanceLabLimits";
 import type { LabInstruction, LabReport, LabRole } from "./labReportShape";
 
@@ -148,7 +145,7 @@ function clubXis(starts: readonly PastStart[]): XiStarter[][] {
 
 /** A whole XI's points from an instruction: each starter's, at his slot, on his full match. */
 const xiPoints = (xi: readonly XiStarter[], set: ScoringSet, key: string): number =>
-  xi.reduce((total, { at, stats }) => total + (instructionPoints(stats, set, key, positionOfSlot(at), statIn(stats, MINUTES_STAT))?.points ?? 0), 0);
+  xi.reduce((total, { at, stats }) => total + instructionTotal(stats, set, key, positionOfSlot(at)), 0);
 
 /** Each team instruction the set scores, in its order: its average for a whole XI over the clubs'
  *  real XIs in a shape that allows it, or, where it scores a stat the past seasons lack, not tested,

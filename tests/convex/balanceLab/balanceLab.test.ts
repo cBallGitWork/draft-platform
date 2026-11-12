@@ -125,6 +125,9 @@ describe("team instructions on the past seasons (#1541)", () => {
       instructions: [{ instruction: "getItWide", lines: [line("league:failed_crosses")] }],
     };
     expect(balanceLab(set, []).instructions).toEqual([{ instruction: "getItWide", xis: 0, average: null }]);
+    // Five crosses, two found: three failed, worked out before the line scores them.
+    const leeds = xiOf("Leeds", FOUR_FOUR_TWO, 0).map((each, index) => (index === 5 ? { ...each, stats: { total_cross: 5, accurate_cross: 2 } } : each));
+    expect(balanceLab(set, leeds).instructions).toEqual([{ instruction: "getItWide", xis: 1, average: 3 }]);
   });
 
   test("a set scoring no instruction lists none", () => {

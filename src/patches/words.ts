@@ -50,7 +50,7 @@ export const noTeamInstructionsWords = "The set scores no team instructions.";
  *  real XIs, "XIs short of a starter" where one starter's position maps to no slot or his row
  *  wasn't copied. */
 export const instructionsHint = (xis: number, short: number) =>
-  `Team instructions: each one's average for a whole XI, the 11 starters on their whole match, over each club's real XIs in a shape that allows it. XIs: ${xis.toLocaleString(LOCALE)}. Short of a starter, scored on the ones they have: ${short.toLocaleString(LOCALE)}.`;
+  `Team instructions: each one's average for a whole XI, the 11 starters on their whole match, over each club's real XIs in a formation that allows it. XIs: ${xis.toLocaleString(LOCALE)}. Short of a starter, scored on the ones they have: ${short.toLocaleString(LOCALE)}.`;
 /** A report kept before the averages (#1541): its instructions are each "not tested". */
 export const instructionsUntestedHint = "Team instructions: none was tested when this report was kept.";
 export const instructionColumns = {
