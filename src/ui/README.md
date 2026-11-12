@@ -42,6 +42,7 @@ names the [plate.md](../../docs/design/plate.md) section it draws; the values ar
 - `text-box`: a box to type in (Controls).
 - `number-box`: a box for one number of a rule, in the figure colour (Colour roles: figure).
 - `tick-well`: the tick box's well (Controls: Tick box).
+- `radio-well`: a radio whose lines each hold more than a word, the tick well round (the auto team's switch).
 - `key`: one of a row of butted keys, the chosen one pressed in (Controls: Keys).
 - `text-align-inherit`: a button's words keep its cell's side (Tables and panels).
 

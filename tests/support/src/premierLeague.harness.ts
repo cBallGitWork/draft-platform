@@ -1,11 +1,10 @@
 // The Premier League section's tests' fake seam (shell.harness.tsx hands it to the app).
 
-import { act } from "@testing-library/react";
-import { useSyncExternalStore } from "react";
 import { vi } from "vitest";
 import type { FirstKickoff, GameweekMatch, MatchPageData, PlStandings, PremierLeagueSeam } from "../../../src/premierLeague/seam";
 
 import { PL_GAMEWEEKS } from "../convex/footballRows.harness";
+import { serverStore } from "./serverStore";
 
 export { ARSENAL, CHELSEA } from "../convex/footballRows.harness";
 export const FOREST = { code: 17, name: "Nottingham Forest", shortName: "NFO" };
@@ -44,33 +43,19 @@ export type PremierLeagueData = {
 /** The fake seam, whose matches and table a test can change as a live query would (`send`,
  *  `sendStandings`): each screen reading them draws again. */
 export function fakePremierLeague({ seasonGameweeks = PL_GAMEWEEKS, firstKickoffs = [], matches = {}, standings = NO_STANDINGS, match = null, loading = false }: PremierLeagueData = {}) {
-  let held: Record<number, GameweekMatch[] | undefined> = { ...matches };
-  let heldStandings = standings;
-  const listeners = new Set<() => void>();
-  const subscribe = (listener: () => void) => {
-    listeners.add(listener);
-    return () => listeners.delete(listener);
-  };
-  const heldOf = (gameweek: number) => (loading ? undefined : gameweek in held ? held[gameweek] : NO_MATCHES);
+  const held = serverStore<Record<number, GameweekMatch[] | undefined>>({ ...matches });
+  const heldStandings = serverStore(standings);
   return {
     useGameweeks: vi.fn<PremierLeagueSeam["useGameweeks"]>(() => (loading ? undefined : { seasonGameweeks, firstKickoffs })),
     useGameweekMatches: vi.fn<PremierLeagueSeam["useGameweekMatches"]>((gameweek) =>
-      useSyncExternalStore(subscribe, () => heldOf(gameweek)),
+      held.use((byGameweek) => (loading ? undefined : gameweek in byGameweek ? byGameweek[gameweek] : NO_MATCHES)),
     ),
-    useStandings: vi.fn<PremierLeagueSeam["useStandings"]>(() =>
-      useSyncExternalStore(subscribe, () => (loading ? undefined : heldStandings)),
-    ),
+    useStandings: vi.fn<PremierLeagueSeam["useStandings"]>(() => heldStandings.use((table) => (loading ? undefined : table))),
     useMatch: vi.fn<PremierLeagueSeam["useMatch"]>(() => (loading ? undefined : match)),
     /** The server's new read of a gameweek's matches; undefined puts them back to loading. */
-    send(gameweek: number, sent: GameweekMatch[] | undefined) {
-      held = { ...held, [gameweek]: sent };
-      act(() => listeners.forEach((listener) => listener()));
-    },
+    send: (gameweek: number, sent: GameweekMatch[] | undefined) => held.set({ ...held.get(), [gameweek]: sent }),
     /** The server's new read of the table. */
-    sendStandings(sent: PlStandings) {
-      heldStandings = sent;
-      act(() => listeners.forEach((listener) => listener()));
-    },
+    sendStandings: heldStandings.set,
   };
 }
 

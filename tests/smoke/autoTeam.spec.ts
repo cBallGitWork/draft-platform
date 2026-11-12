@@ -9,7 +9,8 @@ import { autoTeamHead, switchOnWords, untilSwitchedOffWords } from "../../src/my
 import { autoTeamWords } from "../../src/shared/words";
 import { editingWords, FIXTURES_TITLE, saveSwapWords, TABLE_TITLE } from "../../src/table/words";
 import { DESK } from "../../scripts/viewports.mjs";
-import { previewAutoTeam } from "../../src/table/preview";
+import { previewSaid } from "../../src/shared/preview";
+import { previewAutoTeam, previewUnswapped } from "../../src/table/preview";
 import { test } from "../support/smoke/errorsTest";
 
 test.describe("the auto team, on the dev server's preview", { tag: "@dev" }, () => {
@@ -43,6 +44,6 @@ test.describe("the auto team, on the dev server's preview", { tag: "@dev" }, () 
     await expect(games.nth(1).getByRole("button", { pressed: true })).toHaveCount(1);
     await save.click();
     // The preview holds no server, so it says the fixtures didn't change.
-    await expect(fixtures.getByRole("alert")).toContainText("the fixtures didn't change");
+    await expect(fixtures.getByRole("alert")).toContainText(previewSaid(previewUnswapped));
   });
 });

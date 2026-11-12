@@ -32,7 +32,7 @@ export { playersCount } from "../shared/words";
 export { autoTeamWords as autoTeamLabel } from "../shared/words";
 export const AUTO_TEAM_STATES = ["off", "on"] as const;
 export const autoTeamStateWords: Record<(typeof AUTO_TEAM_STATES)[number], string> = { off: "Off", on: "On" };
-export const noManagerWords = "No manager";
+export { noManagerWords } from "../shared/words";
 export const untilHandedOnWords = "Until the team is handed on";
 export const managersSwitchWords = (endsAfter: number | null) => (endsAfter === null ? "Its manager's" : `Its manager's, until ${gameweekShort(endsAfter)}`);
 

@@ -207,6 +207,9 @@ export const placeWords = (place: number) => `${place}${ORDINAL_ENDS[ordinals.se
  *  My team's tabs, the trade pages and the matchup alike. */
 export const noTeamWords = "You don't run a team in this league.";
 
+/** Where a team has no manager, on the squads page and the commissioner's teams panel alike. */
+export const noManagerWords = "No manager";
+
 /** The "Find a player" panel, on the admin's dashboard and the squads page alike; each says its own hint. */
 export const findTitle = "Find a player";
 export const findLabel = "Name";

@@ -29,9 +29,8 @@ import type { PlayerCardSeam } from "../playerCard/seam";
 import type { PremierLeagueSeam } from "../premierLeague/seam";
 import type { ScoringSeam } from "../scoring/seam";
 import type { ScoutingSeam } from "../scouting/seam";
-import { SIGN_IN_PATH } from "../signIn/paths";
+import { SIGN_IN_PATH, signInSearchOf, type SignInSearch } from "../signIn/paths";
 import { SignInPage } from "../signIn/SignInPage";
-import { linkProblemWords, type LinkProblem } from "../signIn/words";
 import type { SquadsSeam } from "../squads/seam";
 import type { TableScreenSeam } from "../table/seam";
 import type { TradesSeam } from "../trades/seam";
@@ -122,18 +121,10 @@ export const membersOnly = ({ context, params }: { context: ShellContext; params
   if (!leagueIn(context.session, params.leagueId)) throw redirect({ to: LEAGUES_PATH });
 };
 
-const isLinkProblem = (value: unknown): value is LinkProblem =>
-  typeof value === "string" && Object.hasOwn(linkProblemWords, value);
-
 export const signInRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: SIGN_IN_PATH,
-  // Each always set, if only to undefined: a route's search is laid over the address's own. `join`
-  // is the invite link a signed-out visitor opened, which their sign-in link leads back to (#73).
-  validateSearch: (search): { link?: LinkProblem; join?: string } => ({
-    link: isLinkProblem(search.link) ? search.link : undefined,
-    join: typeof search.join === "string" && search.join ? search.join : undefined,
-  }),
+  validateSearch: signInSearchOf,
   beforeLoad: ({ context, search }) => {
     if (context.session.signedIn) throw redirect(search.join ? { to: JOIN_ROUTE, params: { token: search.join } } : { to: LANDING_PATH });
   },
@@ -152,7 +143,7 @@ export const leaguePagesRoute = createRoute({
   getParentRoute: () => rootRoute,
   id: "leaguePages",
   beforeLoad: ({ context, location }) => {
-    if (!context.session.signedIn) throw redirect({ to: SIGN_IN_PATH, search: { join: joinTokenAt(location.pathname) ?? undefined } });
+    if (!context.session.signedIn) throw redirect({ to: SIGN_IN_PATH, search: { join: joinTokenAt(location.pathname) ?? undefined } satisfies SignInSearch });
   },
   component: function LeaguePages() {
     const context = leaguePagesRoute.useRouteContext();
