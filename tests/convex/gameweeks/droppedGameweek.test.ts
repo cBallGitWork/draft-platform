@@ -1,14 +1,13 @@
 import { beforeEach, expect, test } from "vitest";
 import { api, internal } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
-import type { Lineup } from "../../../convex/lineup/lineup";
 import { leagueDeadlines } from "../../../convex/gameweeks/leagueDeadlines";
 import { seasonGameweeks } from "../../../convex/gameweeks/usedGameweeks";
 import { PL_GAMEWEEKS } from "../../support/convex/footballRows.harness";
 import { BATCH_SIZE } from "../../../convex/shared/syncRuns";
 import { holdGameweeks } from "../../support/convex/leagueRules.harness";
 import { actingAs, addManagers, adminCreatesLeague, MANAGERS, type TestConvex } from "../../support/convex/leagues.harness";
-import { FOUR_FOUR_TWO, holdSquad } from "../../support/convex/lineupSquad.harness";
+import { FOUR_FOUR_TWO, holdSquad, sent } from "../../support/convex/lineupSquad.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
 
 // A gameweek FPL stops sending keeps its last deadline (spec/05, The deadline; Craig, 1 Nov 2026:
@@ -64,7 +63,6 @@ test("a lineup saved now still goes to the gameweek FPL stopped sending", async 
   await holdSquad(t, leagueId, annsTeam);
   await fplStopsSending(DROPPED);
   const ann = await actingAs(t, ANN);
-  const sent = (lineup: Lineup) => ({ starters: [...lineup.starters], bench: [...lineup.bench] });
 
   expect(await ann.mutation(api.lineup.lineups.save, { leagueId, lineup: sent(FOUR_FOUR_TWO) })).toBe(DROPPED);
 });

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { positionOfSlot, sameCell, type Cell } from "../../../../convex/lineup/pitch";
-import { DEFAULT_PRESETS } from "../../../../convex/lineup/presets";
+import { FIRST_PRESETS } from "../../../../convex/lineup/presets";
 import { DEFAULT_ROLES, rolesOfSlot } from "../../../../convex/lineup/roles";
 import type { Position } from "../../../../convex/positions/positionTables";
 import { swapped, type EditedLineup } from "../../../../src/myTeam/tactics/lineupEdits";
@@ -11,7 +11,7 @@ import { loadedPlan, planSlotsOf, presetOfPlan, type Plan } from "../../../../sr
 // players; loading reshapes keeping the players, as a preset does, each slot on the plan's role;
 // under the league's rules as they are now (Craig, 6 Nov 2026).
 
-const [FOUR_FOUR_TWO, FOUR_THREE_THREE] = DEFAULT_PRESETS;
+const [FOUR_FOUR_TWO, FOUR_THREE_THREE] = FIRST_PRESETS;
 const positionsByArea: Record<Cell["area"], Position[]> = {
   goalkeeper: ["GK"],
   defence: ["CB", "FB"],
@@ -39,7 +39,7 @@ describe("saving a plan", () => {
 
 describe("loading a plan", () => {
   it("reshapes the pitch keeping the players, as the preset does, each slot on the plan's role", () => {
-    const loaded = loadedPlan(IN_A_442, PRESS, DEFAULT_PRESETS, rules, noStars)!;
+    const loaded = loadedPlan(IN_A_442, PRESS, FIRST_PRESETS, rules, noStars)!;
     const asThePreset = reshaped(IN_A_442, FOUR_THREE_THREE.cells, rules, noStars);
     expect(loaded.preset.name).toBe(FOUR_THREE_THREE.name);
     expect(loaded.lineup.starters.map(({ playerCode, area, lane }) => ({ playerCode, area, lane }))).toEqual(
@@ -52,7 +52,7 @@ describe("loading a plan", () => {
 
   it("a move after loading changes only the lineup: the plan stays as saved", () => {
     const saved = structuredClone(PRESS);
-    const loaded = loadedPlan(IN_A_442, PRESS, DEFAULT_PRESETS, rules, noStars)!;
+    const loaded = loadedPlan(IN_A_442, PRESS, FIRST_PRESETS, rules, noStars)!;
     swapped(loaded.lineup, loaded.lineup.starters[1].playerCode, loaded.lineup.bench[0] ?? loaded.lineup.starters[2].playerCode, noStars);
     expect(PRESS).toEqual(saved);
   });
@@ -62,14 +62,14 @@ describe("loading a plan", () => {
     const centreBack = FOUR_FOUR_TWO.cells.find((cell) => positionOfSlot(cell) === "CB")!;
     // A sweeper needs a back three: in a back four the slot no longer offers it.
     const plan: Plan = { name: "Sweeper", slots: FOUR_FOUR_TWO.cells.map((cell) => ({ ...cell, role: sameCell(cell, centreBack) ? "sweeper" : DEFAULT_ROLES[positionOfSlot(cell)][0].key })) };
-    const loaded = loadedPlan(IN_A_442, plan, DEFAULT_PRESETS, rules, noStars)!;
+    const loaded = loadedPlan(IN_A_442, plan, FIRST_PRESETS, rules, noStars)!;
     expect(loaded.rolesLost).toBe(1);
     expect(roleAt(loaded.lineup, centreBack)).not.toBe("sweeper");
     expect(roleAt(loaded.lineup, keeper)).toBe(DEFAULT_ROLES.GK[0].key);
   });
 
   it("a plan whose formation the league no longer has can't be loaded", () => {
-    const without433 = DEFAULT_PRESETS.filter(({ name }) => name !== FOUR_THREE_THREE.name);
+    const without433 = FIRST_PRESETS.filter(({ name }) => name !== FOUR_THREE_THREE.name);
     expect(presetOfPlan(PRESS, without433)).toBeUndefined();
     expect(loadedPlan(IN_A_442, PRESS, without433, rules, noStars)).toBeNull();
   });

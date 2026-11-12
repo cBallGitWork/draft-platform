@@ -2,7 +2,7 @@
 // server refused a change reaches the screen as is.
 
 import type { ChangeThresholds } from "../../convex/positions/positionChanges";
-import type { ApproveMode, PositionSource } from "../../convex/positions/positions";
+import { STARTS_FOR_A_POSITION, type ApproveMode, type PositionSource } from "../../convex/positions/positions";
 import type { Availability } from "../../convex/availability/availability";
 import type { FeedState } from "../../convex/admin/feedState";
 import type { PlatformSettings } from "../../convex/admin/platformSettings";
@@ -10,6 +10,7 @@ import type { Pattern } from "../../convex/football/clubColours";
 import { FEED_NAMES, feedNameOf } from "../../convex/shared/feedSchedule";
 import { FEEDBACK_TITLE } from "../feedback/words";
 import { LOCALE } from "../../convex/shared/moments";
+import { countInWords } from "../../convex/shared/numberWords";
 import { DAY_MS, HOUR_MS, MINUTE_MS } from "../../convex/shared/time";
 import { versusWords, whenWords } from "../shared/words";
 import { READING_SITES, siteSearchUrl } from "./paths";
@@ -34,7 +35,7 @@ export const confirmWords = "Confirm";
 export const confirmLabel = (name: string) => `Confirm ${name}'s label`;
 
 export const waitingTitle = "Starts waiting for you";
-export const waitingHint = "Positions his starts give him, three at a place, which count once you approve them.";
+export const waitingHint = `Positions his starts give him, ${countInWords(STARTS_FOR_A_POSITION)} at a place, which count once you approve them.`;
 export const noWaitingWords = "No starts wait for you.";
 export const proposalsWords = (positions: readonly string[]) => `From his starts: ${positions.join(", ")}`;
 export const approveWords = "Approve";
@@ -186,10 +187,11 @@ export const moreFeedbackWords = moreCorrectionsWords;
 export const availabilityLoadingWords = "Loading who is set by hand…";
 export const setByHandTitle = "Set by hand";
 export const noneSetByHandWords = "No player is set by hand.";
+export const feedSaysWords = "The feed says";
 export const availabilityColumns = {
   position: { short: "Pos", long: "Positions" },
   player: { short: "Player", long: "Player" },
-  feed: { short: "The feed says", long: "The feed says" },
+  feed: { short: feedSaysWords, long: feedSaysWords },
   set: { short: "Set to", long: "Set to" },
 } as const;
 export const AVAILABILITY_WORDS: Record<Availability, string> = { out: "Out", doubtful: "Doubtful", available: "Available" };
@@ -197,7 +199,6 @@ export const AVAILABILITY_WORDS: Record<Availability, string> = { out: "Out", do
 export const FEED_CHOICE = "feed";
 export const availabilityChoiceLabel = "Availability";
 export const availabilityChoiceWords = (choice: Availability | typeof FEED_CHOICE) => (choice === FEED_CHOICE ? "The feed" : AVAILABILITY_WORDS[choice]);
-export const feedSaysWords = "The feed says";
 /** What it changes (spec/06, spec/09): our own availability, the same in every league. */
 export const autoTeamReadsWords = "The auto team reads this in every league.";
 export const pickPlayerLabel = (name: string) => `Open ${name}'s availability`;

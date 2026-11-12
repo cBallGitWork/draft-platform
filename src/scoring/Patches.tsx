@@ -1,7 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { screenMoment } from "../../convex/shared/moments";
-import { PATCH_NOTES_PATH } from "../patches/paths";
+import { PATCH_NOTES_PATH, versionAnchor } from "../patches/paths";
 import { KIND_WORDS } from "../patches/words";
 import { gameweekWords } from "../rules/words";
 import { useChange } from "../shared/useChange";
@@ -161,7 +161,7 @@ export function VersionsPanel({ versions, withdraw }: { versions: readonly Scori
                 <td className={cellClasses("announcedAt")}>{screenMoment(version.announcedAt)}</td>
                 <td className={`${cellClasses("fromGameweek")} text-figure`}>{gameweekWords(version.fromGameweek)}</td>
                 <td className={cellClasses("notes")}>
-                  <Link to={PATCH_NOTES_PATH} hash={`version-${version.name}`} className="link-look">
+                  <Link to={PATCH_NOTES_PATH} hash={versionAnchor(version.name)} className="link-look">
                     {notesLinkWords}
                   </Link>
                   {version === coming && !asking && (

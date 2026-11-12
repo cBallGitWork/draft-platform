@@ -3,6 +3,7 @@ import { internal } from "../../../convex/_generated/api";
 import { UNSEEN_LOOKBACK_MS } from "../../../convex/stats/matchStatsDue";
 import { FULL_TIME_READ, GAMEWEEK, HULL_EVERTON, heldMatch, KICKOFF, syncAt, withHullEverton, withHullEvertonLive, withPlReadEmpty } from "../../support/convex/matchStats.harness";
 import { FULL_STATS, recordedGw6 } from "../../support/recorded/gw6.payloads";
+import { insertLockedStatus } from "../../support/convex/footballRows.harness";
 import { freshConvex, type TestConvex } from "../../support/convex/test.harness";
 import { WEEK_MS } from "../../../convex/shared/time";
 import { CURRENT_FIXTURES_MOST } from "../../../convex/shared/fixtures";
@@ -20,7 +21,7 @@ test("matches locked past their watch are not read again: past a season's cap of
     t.run(async (ctx) => {
       for (let code = firstCode; code < firstCode + count; code += 1) {
         await ctx.db.insert("fixtures", { code, gameweek: GAMEWEEK, homeClubCode: 1, awayClubCode: 2, kickoff: KICKOFF });
-        await ctx.db.insert("matchStatsStatus", { fixtureCode: code, state: "locked", fullTimeAt: FULL_TIME_READ, lockedAt: FULL_TIME_READ, lastReadAt: FULL_TIME_READ });
+        await insertLockedStatus(ctx, code, FULL_TIME_READ);
       }
     });
   const later = FULL_TIME_READ + 2 * WEEK_MS;

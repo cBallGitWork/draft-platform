@@ -3,8 +3,8 @@ import type { Id } from "../../../convex/_generated/dataModel";
 import { playerCardPath } from "../../playerCard/paths";
 import { ScoutAction } from "../../playerCard/ScoutAction";
 import { useMinute } from "../../shared/useMinute";
-import { closeGlyph, playerCardWords } from "../../shared/words";
-import { Loading, Panel, PANEL_BODY } from "../../ui/Panel";
+import { playerCardWords } from "../../shared/words";
+import { CloseButton, Loading, Panel, PANEL_BODY } from "../../ui/Panel";
 import type { MyScouts, ScoutsSeam } from "./seam";
 import {
   closeReportLabel,
@@ -105,11 +105,7 @@ export function OpenReport({ leagueId, report, seam, close }: { leagueId: Id<"le
   return (
     <Panel
       title={reportTitle(report.name)}
-      aside={
-        <button type="button" onClick={close} aria-label={closeReportLabel} className="min-h-tap min-w-tap">
-          {closeGlyph}
-        </button>
-      }
+      aside={<CloseButton label={closeReportLabel} close={close} />}
     >
       <div className={PANEL_BODY}>
         <p className="text-soft">{writtenWords(report.writtenAt)}</p>

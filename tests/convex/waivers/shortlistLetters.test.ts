@@ -8,6 +8,7 @@ import { playerLeaves } from "../../support/convex/draftLists.harness";
 import { actingAs } from "../../support/convex/leagues.harness";
 import { nameOf } from "../../support/convex/lineupSquad.harness";
 import { ANN, ANNS_FIRST_DROP, BOB, CAT, PALMER, RICE, SAKA, waiverLeague, type WaiverLeague } from "../../support/convex/waivers.harness";
+import { teamNumbered } from "../../../convex/leagues/teams";
 
 // The shortlist's waiver letters (#374, spec/19 The shortlist, spec/16): Mail tells each manager
 // whose shortlist holds a player when he is dropped, by a manager or for a claim, and when he
@@ -23,7 +24,7 @@ const shortlist = async (email: string, codes: readonly number[]) => {
   for (const playerCode of codes) await manager.mutation(api.scouting.shortlist.add, { leagueId: w.leagueId, playerCode });
 };
 const drop = (email: string, playerCode: number) => w.drop(email, playerCode);
-const dropped = (toWaivers: boolean, who: string, playerCode = ANNS_FIRST_DROP, teamName = "Team 1") =>
+const dropped = (toWaivers: boolean, who: string, playerCode = ANNS_FIRST_DROP, teamName = teamNumbered(1)) =>
   shortlistedDroppedLetter({ playerName: nameOf(playerCode), teamName, toWaivers }, who);
 const shortlistLettersTo = async (email: string) => (await w.lettersTo(email)).filter(({ subject }) => subject.includes("on your shortlist"));
 
@@ -48,7 +49,7 @@ describe("a shortlisted player dropped", () => {
     await shortlist(CAT, [SAKA]);
     await drop(BOB, SAKA);
 
-    const letter = dropped(false, BOB, SAKA, "Team 2");
+    const letter = dropped(false, BOB, SAKA, teamNumbered(2));
     expect(letter.body).toBe(`${BOB} dropped ${nameOf(SAKA)} from Team 2. He is a free agent again, not on waivers, and on your shortlist.`);
     expect(await shortlistLettersTo(CAT)).toEqual([letter]);
   });

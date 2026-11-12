@@ -53,10 +53,25 @@ export async function starsOfPlayers(ctx: QueryCtx, playerCodes: readonly number
   return stars;
 }
 
+export const starsLookupErrors = {
+  notAsked: (playerCode: number) => `Stars were not read for player ${playerCode}: ask starsLookup for him first.`,
+};
+
+/** starsOfPlayers as a lookup: each asked player's stars by his code. Asking after a player it was
+ *  not given throws, never a silent "no stars" (#1732). */
+export async function starsLookup(ctx: QueryCtx, playerCodes: readonly number[]): Promise<(playerCode: number) => RoleStars[]> {
+  const stars = await starsOfPlayers(ctx, playerCodes);
+  return (playerCode) => {
+    const his = stars.get(playerCode);
+    if (his === undefined) throw new Error(starsLookupErrors.notAsked(playerCode));
+    return his;
+  };
+}
+
 /** The players whose stars the team is shown in the season `now` falls in: its squad, every player
  *  a squad move put on or took off it this season, and every player its scouts reported on this
  *  season. None for no team (a commissioner who runs none), who has no squad or scouts. */
-export async function starsShownTo(ctx: QueryCtx, leagueId: Id<"leagues">, team: Doc<"teams"> | undefined, now: number): Promise<Set<number>> {
+async function starsShownTo(ctx: QueryCtx, leagueId: Id<"leagues">, team: Doc<"teams"> | undefined, now: number): Promise<Set<number>> {
   if (team === undefined) return new Set();
   const shown = await scoutedThisSeason(ctx, team._id, now);
   for (const { playerCode } of await squadOf(ctx, team._id)) shown.add(playerCode);
@@ -75,7 +90,7 @@ export const ofPlayer = query({
   handler: async (ctx, { leagueId, playerCode, now }) => {
     const { team } = await memberOf(ctx, leagueId);
     if (!(await starsShownTo(ctx, leagueId, team, now)).has(playerCode)) return null;
-    return (await starsOfPlayers(ctx, [playerCode])).get(playerCode)!;
+    return (await starsLookup(ctx, [playerCode]))(playerCode);
   },
 });
 

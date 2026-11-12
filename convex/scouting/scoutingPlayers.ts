@@ -5,7 +5,7 @@ import type { Doc } from "../_generated/dataModel";
 import { internalMutation, type MutationCtx, type QueryCtx } from "../_generated/server";
 import { takeAllOrThrow } from "../shared/cappedRead";
 import { CLUB_PLAYERS_MOST } from "../shared/players";
-import { PLAYERS_PAGE } from "../stats/matchRecords";
+import { eachPlayerPage } from "../stats/seasonRebuilds";
 
 // Scouting's row a player (#1559, the scoutingPlayers table): his name and club, what his
 // positions are worked out from, and his newest season's totals, copied onto one row, so the
@@ -123,9 +123,7 @@ export const rebuild = internalMutation({
   args: { cursor: v.union(v.string(), v.null()) },
   returns: v.null(),
   handler: async (ctx, { cursor }) => {
-    const page = await ctx.db.query("players").paginate({ numItems: PLAYERS_PAGE, cursor });
-    await keepScoutingPlayers(ctx, page.page.map(({ code }) => code));
-    if (!page.isDone) await ctx.scheduler.runAfter(0, internal.scouting.scoutingPlayers.rebuild, { cursor: page.continueCursor });
+    await eachPlayerPage(ctx, cursor, (codes) => keepScoutingPlayers(ctx, codes), internal.scouting.scoutingPlayers.rebuild);
     return null;
   },
 });

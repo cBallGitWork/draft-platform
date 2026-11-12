@@ -7,13 +7,12 @@ import { ROLE_BARS_MOST, validateScoringSet, type RoleScoring, type ScoringSet }
 import type { StoredScoringSet } from "../../../convex/scoring/scoringSetShape";
 import { FIRST_SCORING } from "../../../convex/scoring/firstScoring";
 import { scoreTeam } from "../../../convex/scoring/teamPoints";
+import { ATTACK, LEFT_BACK } from "../../support/convex/teamPoints.harness";
 
 // A role's scoring (#10, spec/05 Roles): whole points by bars, +1 at each of up to three bars of its
 // bonus mix and −1 at each of up to three of its cost, so ±3 at most, added to base points on top
 // of every rule and its points limit (spec/14), whatever his minutes (Craig, 5 Nov 2026).
 
-const STRIKER = { area: "attack", lane: "centre" } as const;
-const FULL_BACK = { area: "defence", lane: "left" } as const;
 const POACHER: RoleScoring = {
   role: "poacher",
   bonus: { parts: [{ stat: "att_ibox_goal", weight: 2 }, { stat: "att_ibox_target", weight: 1 }], bars: [2, 3, 4] },
@@ -31,8 +30,8 @@ const RECORD = { minutes: 90, goals_scored: 1, att_ibox_goal: 1, att_ibox_target
 
 describe("a starter's role", () => {
   test("adds +1 at each bonus bar and −1 at each cost bar to his base points", () => {
-    const base = scoreMatch(RECORD, SET, STRIKER);
-    const poacher = scoreMatch(RECORD, SET, STRIKER, "poacher");
+    const base = scoreMatch(RECORD, SET, ATTACK);
+    const poacher = scoreMatch(RECORD, SET, ATTACK, "poacher");
     expect(poacher.total).toBe(base.total! + 1);
     expect(poacher.role).toEqual({
       role: "poacher",
@@ -46,19 +45,19 @@ describe("a starter's role", () => {
   });
 
   test("scores the same player and match differently in two roles", () => {
-    expect(scoreMatch(RECORD, SET, STRIKER, "poacher").total).not.toBe(scoreMatch(RECORD, SET, STRIKER, "targetMan").total);
-    expect(scoreMatch(RECORD, SET, STRIKER, "targetMan").role).toEqual({ role: "targetMan", points: 0, sides: [] });
+    expect(scoreMatch(RECORD, SET, ATTACK, "poacher").total).not.toBe(scoreMatch(RECORD, SET, ATTACK, "targetMan").total);
+    expect(scoreMatch(RECORD, SET, ATTACK, "targetMan").role).toEqual({ role: "targetMan", points: 0, sides: [] });
   });
 
   test("never moves a match by more than 3 either way", () => {
     const huge = { minutes: 90, att_ibox_goal: 20, att_ibox_target: 20, aerial_won: 0 };
-    expect(scoreMatch(huge, SET, STRIKER, "poacher").role?.points).toBe(ROLE_BARS_MOST);
-    expect(scoreMatch({ minutes: 90, big_chance_missed: 50 }, SET, STRIKER, "poacher").role?.points).toBe(-ROLE_BARS_MOST);
+    expect(scoreMatch(huge, SET, ATTACK, "poacher").role?.points).toBe(ROLE_BARS_MOST);
+    expect(scoreMatch({ minutes: 90, big_chance_missed: 50 }, SET, ATTACK, "poacher").role?.points).toBe(-ROLE_BARS_MOST);
   });
 
   // S05.1
   test("counts for a cameo as for 90 minutes: 4 minutes and a big chance missed is −1", () => {
-    expect(scoreMatch({ minutes: 4, big_chance_missed: 1 }, SET, STRIKER, "poacher").role?.points).toBe(-1);
+    expect(scoreMatch({ minutes: 4, big_chance_missed: 1 }, SET, ATTACK, "poacher").role?.points).toBe(-1);
   });
 
   test("weighs each stat: 70 accurate passes at ÷ 10 reach a bar at 7, 69 don't", () => {
@@ -72,22 +71,22 @@ describe("a starter's role", () => {
   });
 
   test("scores nothing for a role the set doesn't name, or for no role", () => {
-    expect(scoreMatch(RECORD, SET, STRIKER, "falseNine")).toEqual(scoreMatch(RECORD, SET, STRIKER));
-    expect(scoreMatch(RECORD, FIRST_SCORING, STRIKER, "poacher")).toEqual(scoreMatch(RECORD, FIRST_SCORING, STRIKER));
+    expect(scoreMatch(RECORD, SET, ATTACK, "falseNine")).toEqual(scoreMatch(RECORD, SET, ATTACK));
+    expect(scoreMatch(RECORD, FIRST_SCORING, ATTACK, "poacher")).toEqual(scoreMatch(RECORD, FIRST_SCORING, ATTACK));
   });
 
   test("a record not yet arrived scores null, with no role line", () => {
-    const pending = scoreMatch(null, SET, STRIKER, "poacher");
+    const pending = scoreMatch(null, SET, ATTACK, "poacher");
     expect(pending.total).toBeNull();
     expect(pending.role).toBeUndefined();
   });
 
   test("counts in a team's total, a starter with no role given playing the slot's first", () => {
     const full: ScoringSet = { ...FIRST_SCORING, roles: [{ ...POACHER, role: "overlappingFullBack" }] };
-    const lineup = { starters: [{ playerCode: 1, ...FULL_BACK }], bench: [] };
+    const lineup = { starters: [{ playerCode: 1, ...LEFT_BACK }], bench: [] };
     const matches = new Map([[1, [{ record: RECORD, final: true }]]]);
     const team = scoreTeam({ lineup, matches, set: full, doubleGameweekRule: "bothMatches", substitutions: [], benchCells: new Map() });
-    expect(team.total).toBe(scoreMatch(RECORD, FIRST_SCORING, FULL_BACK).total! + 1);
+    expect(team.total).toBe(scoreMatch(RECORD, FIRST_SCORING, LEFT_BACK).total! + 1);
     // The slot says the role it was priced in, so the commentary can price his lines in it too.
     expect(team.starters[0].role).toBe("overlappingFullBack");
   });
@@ -155,8 +154,8 @@ test("two roles of one name are told apart in patch notes by their position", ()
 describe("a role, at the edges of a team", () => {
   const BACK: ScoringSet = { ...FIRST_SCORING, roles: [{ ...TARGET_MAN, role: "defensiveFullBack" }] };
   const AERIAL = { minutes: 90, aerial_won: 5 };
-  const lineup = { starters: [{ playerCode: 1, ...FULL_BACK, role: "defensiveFullBack" }], bench: [2] };
-  const team = (override?: number, substitutions: { off: number; on: number; cell: typeof FULL_BACK; role?: string }[] = []) =>
+  const lineup = { starters: [{ playerCode: 1, ...LEFT_BACK, role: "defensiveFullBack" }], bench: [2] };
+  const team = (override?: number, substitutions: { off: number; on: number; cell: typeof LEFT_BACK; role?: string }[] = []) =>
     scoreTeam({
       lineup,
       matches: new Map([
@@ -166,7 +165,7 @@ describe("a role, at the edges of a team", () => {
       set: BACK,
       doubleGameweekRule: "bothMatches",
       substitutions,
-      benchCells: new Map([[2, FULL_BACK]]),
+      benchCells: new Map([[2, LEFT_BACK]]),
     });
 
   test("an overridden match keeps the override as its whole score, with no role line", () => {
@@ -176,7 +175,7 @@ describe("a role, at the edges of a team", () => {
   });
 
   test("a sub into the empty slot plays the role he's given there", () => {
-    const subbed = team(undefined, [{ off: 1, on: 2, cell: FULL_BACK, role: "defensiveFullBack" }]);
+    const subbed = team(undefined, [{ off: 1, on: 2, cell: LEFT_BACK, role: "defensiveFullBack" }]);
     expect(subbed.bench[0].matches[0].role?.role).toBe("defensiveFullBack");
     expect(subbed.bench[0].role).toBe("defensiveFullBack");
   });

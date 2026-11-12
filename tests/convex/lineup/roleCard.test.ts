@@ -14,6 +14,7 @@ import { MANAGERS, OUTSIDER, actingAs, addManagers, adminCreatesLeague, type Tes
 import { EXAMPLE_SET, GOAL_AND_ASSIST, pricedRole } from "../../support/convex/scoring.example";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
 import { holdSiteScoring } from "../../support/convex/siteScoring.harness";
+import { ATTACK } from "../../support/convex/teamPoints.harness";
 import { expectRefused } from "../../support/convex/test.harness";
 
 // A player's role card for a slot (#848; spec/05 Roles): the slot's roles, what each scores more
@@ -22,11 +23,10 @@ import { expectRefused } from "../../support/convex/test.harness";
 
 const [ANN] = MANAGERS;
 const NOW = Date.parse("2026-10-01T12:00:00Z");
-const STRIKER: Cell = { area: "attack", lane: "centre" };
 const CENTRE_BACK: Cell = { area: "defence", lane: "centre" };
 /** A back four's two centre-backs, then a back three's three. */
-const BACK_FOUR: Cell[] = [STRIKER, { area: "defence", lane: "leftCentre" }, { area: "defence", lane: "rightCentre" }];
-const BACK_THREE: Cell[] = [STRIKER, { area: "defence", lane: "leftCentre" }, CENTRE_BACK, { area: "defence", lane: "rightCentre" }];
+const BACK_FOUR: Cell[] = [ATTACK, { area: "defence", lane: "leftCentre" }, { area: "defence", lane: "rightCentre" }];
+const BACK_THREE: Cell[] = [ATTACK, { area: "defence", lane: "leftCentre" }, CENTRE_BACK, { area: "defence", lane: "rightCentre" }];
 
 /** A poacher earns +1 a goal, a false 9 +2 an assist. */
 const SET = { ...structuredClone(EXAMPLE_SET), roles: [pricedRole("poacher", "goals_scored", 1), pricedRole("falseNine", "assists", 2)] } as StoredScoringSet;
@@ -55,7 +55,7 @@ beforeEach(async () => {
     await insertClubs(ctx, [ARSENAL, CHELSEA, COVENTRY]);
     await insertPlayers(ctx, [FORWARD]);
     for (const each of MATCHES) await ctx.db.insert("fixtures", each);
-    await holdSiteScoring(ctx, { scoring: SET, kind: "fix", season: 2026, number: 1, at: 0 });
+    await holdSiteScoring(ctx, { scoring: SET, kind: "fix" });
   });
 });
 
@@ -64,13 +64,13 @@ const hold = (...records: (Omit<ReturnType<typeof completeRecord>, "state"> & { 
     for (const record of records) await ctx.db.insert("playerMatchStats", record);
   });
 
-const cardAs = async (email: string, cell = STRIKER, formation = BACK_FOUR) =>
+const cardAs = async (email: string, cell = ATTACK, formation = BACK_FOUR) =>
   (await actingAs(t, email)).query(api.lineup.roleCard.forSlot, { leagueId, playerCode: FORWARD.code, cell, formation, now: NOW });
 
 test("the card lists exactly the slot's roles, in its order, with their descriptions", async () => {
   const { roles } = await cardAs(ANN);
-  expect(roles.map(({ key }) => key)).toEqual(rolesOfSlot(STRIKER, BACK_FOUR).map(({ key }) => key));
-  expect(roles[0].description).toBe(roleIn(STRIKER, roles[0].key).description);
+  expect(roles.map(({ key }) => key)).toEqual(rolesOfSlot(ATTACK, BACK_FOUR).map(({ key }) => key));
+  expect(roles[0].description).toBe(roleIn(ATTACK, roles[0].key).description);
 });
 
 test("a centre-back's card offers sweeper and libero only in a back three", async () => {
@@ -84,7 +84,7 @@ test("each role's more and less come from its adjustments in the site's set, els
   expect(role("poacher")).toMatchObject({ rewards: [categoryName("goals_scored")], punishes: [categoryName("hand_ball")] });
   expect(role("falseNine")).toMatchObject({ rewards: [categoryName("assists")], punishes: [categoryName("hand_ball")] });
   // The set scores no target man: his own words.
-  expect(role("targetMan")).toMatchObject({ rewards: roleIn(STRIKER, "targetMan").rewards, punishes: roleIn(STRIKER, "targetMan").costs });
+  expect(role("targetMan")).toMatchObject({ rewards: roleIn(ATTACK, "targetMan").rewards, punishes: roleIn(ATTACK, "targetMan").costs });
 });
 
 test("with no match played the card has none", async () => {
@@ -96,9 +96,9 @@ test("a match priced under two roles gives the two totals the scoring gives, aga
   const [match] = (await cardAs(ANN)).matches;
   const under = (role: string) => match.roles.find((each) => each.role === role)!;
 
-  expect(match).toMatchObject({ gameweek: 7, pastSeason: null, opponent: { club: COVENTRY, home: true }, minutes: 90, base: scoreMatch(GOAL_AND_ASSIST, SET, STRIKER).total });
-  expect(under("poacher")).toMatchObject({ points: 1, total: scoreMatch(GOAL_AND_ASSIST, SET, STRIKER, "poacher").total });
-  expect(under("falseNine")).toMatchObject({ points: 2, total: scoreMatch(GOAL_AND_ASSIST, SET, STRIKER, "falseNine").total });
+  expect(match).toMatchObject({ gameweek: 7, pastSeason: null, opponent: { club: COVENTRY, home: true }, minutes: 90, base: scoreMatch(GOAL_AND_ASSIST, SET, ATTACK).total });
+  expect(under("poacher")).toMatchObject({ points: 1, total: scoreMatch(GOAL_AND_ASSIST, SET, ATTACK, "poacher").total });
+  expect(under("falseNine")).toMatchObject({ points: 2, total: scoreMatch(GOAL_AND_ASSIST, SET, ATTACK, "falseNine").total });
   expect(under("poacher").line).toMatchObject({ name: "Poacher", points: 1 });
   // A role the set doesn't score adds nothing and has no line.
   expect(under("targetMan")).toEqual({ role: "targetMan", points: 0, total: match.base, line: null });
@@ -145,7 +145,7 @@ test("last season's matches played fill in behind this season's", async () => {
     { gameweek: null, pastSeason: 2025, minutes: 20 },
     { gameweek: null, pastSeason: 2025, minutes: 90 },
   ]);
-  expect(matches[2]).toMatchObject({ opponent: null, base: scoreMatch({ minutes: 90, goals_scored: 2 }, SET, STRIKER).total });
+  expect(matches[2]).toMatchObject({ opponent: null, base: scoreMatch({ minutes: 90, goals_scored: 2 }, SET, ATTACK).total });
 });
 
 test("someone with no team in the league is refused", async () => {

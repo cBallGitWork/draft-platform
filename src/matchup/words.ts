@@ -1,7 +1,6 @@
 // What the matchup says, in one place for Craig to change in the pull request.
 
 import type { MatchBreakdown, SlotStatus } from "../../convex/matchup/matchupShape";
-import { overrideLabels, removeOverrideWords } from "../playerCard/words";
 import {
   clockWords,
   fewestTeamsWords,
@@ -10,6 +9,8 @@ import {
   halfTime,
   leagueAverageWords,
   noHeadToHeadsTotalPointsWords,
+  overrideLabels,
+  removeOverrideWords,
   scoreWords,
   versusWords,
   weekdayTimeWords,
@@ -26,7 +27,7 @@ export const MATCHUP_TITLE = "Matchup";
 export { SCORE_LABEL } from "../shared/words";
 export const loadingWords = "Loading the matchup…";
 export const totalPointsWords = noHeadToHeadsTotalPointsWords;
-export const noTeamWords = "You run no team in this league.";
+export { noTeamWords } from "../shared/words";
 export const noGamesWords = (teamName: string) => `${teamName} has no head-to-heads: fixtures are drawn once the league has ${fewestTeamsWords}.`;
 export const noGameWords = (teamName: string, gameweek: number) => `${teamName} plays no head-to-head in ${gameweekWords(gameweek)}.`;
 export const byeWords = (teamName: string) => `${teamName} has a bye this gameweek.`;
@@ -122,7 +123,7 @@ export { notCountingLabel } from "../shared/words";
 
 /** A player's breakdown for the gameweek, opened by tapping his name (spec/10; #798). */
 export const openBreakdownLabel = (name: string) => `${name}: why his points`;
-export { closeGlyph, playerCardWords } from "../shared/words";
+export { playerCardWords } from "../shared/words";
 export const closeBreakdownLabel = "Close";
 /** One of his matches, opening its page, named by its clubs and score with its clock (the approved
  *  picture's "NFO 1–0 BRE 67'", "NFO 1–0 BRE FT"); before kickoff, "NFO v BRE Sat 15:00". With a
@@ -138,14 +139,14 @@ export const breakdownMatchWords = ({ home, away, kickoff, score }: Pick<MatchBr
 export const notCountedWords = "Not counted: best match";
 export const noMatchBreakdownWords = "No match this gameweek.";
 /** The team override under each team's name, for whoever runs the league (spec/14 S14.3 to S14.6;
- *  #903): "set the total". The rest of its words are the player card's override's. */
+ *  #903): "set the total". The rest of its words are the player card's override's, in shared. */
 export const OVERRIDE_TOTAL_TITLE = "Override total";
 export const overrideTotalLabel = (teamName: string) => `${OVERRIDE_TOTAL_TITLE}: ${teamName}`;
 export const removeTotalOverrideLabel = (teamName: string) => `${removeOverrideWords}: ${teamName}`;
 export const overrideTotalLabels = { points: "Total", reason: overrideLabels.reason } as const;
 export const totalOverrideRemovedWords = "Override removed: the scored total is back, and the league has a letter.";
 export {
-  cancelOverrideWords,
+  cancelWords as cancelOverrideWords,
   notArrivedWords,
   overriddenDoneWords,
   overriddenWords,
@@ -154,7 +155,7 @@ export {
   overrideWords,
   removeOverrideFailedWords,
   removeOverrideWords,
-} from "../playerCard/words";
+} from "../shared/words";
 
 /** The matchup's commentary (spec/10): every line of every match either team's men play in; when
  *  the stream falls behind or stops; points carry on from FPL (spec/10, The commentary). */

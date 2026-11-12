@@ -1,16 +1,17 @@
 import { v, type Infer } from "convex/values";
 import type { Doc, Id } from "../_generated/dataModel";
 import { query, type QueryCtx } from "../_generated/server";
-import { begunGameweeks, tableGameweek } from "../gameweekScorer/gameweekScores";
+import { hasBegun, tableGameweek } from "../gameweekScorer/gameweekScores";
 import { leagueReads } from "../gameweekScorer/teamGameweek";
 import { seasonRules, type SeasonRules } from "../rules/rulesHistory";
 import { commentary, heldCommentary, type HeldCommentary } from "../matchup/matchupShape";
 import { commentaryReads, readCommentary } from "../matchup/readCommentary";
 import { shownLine } from "../matchup/vidiprinter";
+import { gameModeOf } from "../rules/gameMode";
 import { leagueRulesShape } from "../rules/leagueRulesShape";
 import { pinnedLetter, tradedSide } from "../schema";
 import { isListedMove, LISTED_MOVES, newestFirst, playerMoveKind } from "../squads/squadPlace";
-import { logFailure } from "../shared/errors";
+import { leagueLabel, logFailure } from "../shared/errors";
 import { memberOf, teamsOf } from "../shared/leagueAccess";
 import { scoredFixture, standingsOf } from "../table/leagueTable";
 import { scoredFixtures } from "../table/sentTables";
@@ -20,7 +21,7 @@ import { heldRecap, homeRecap, shownRecap } from "./recaps";
 
 // League home (spec/12, League home; #387): the glance (this gameweek's head-to-heads, scored once
 // begun, the table and each team's form), the league's latest squad moves from its events (Mail's,
-// #26), the commissioner's latest letter, pinned, the latest weekly recap (recaps.ts), and matchday mode (matchday.ts): while a matchday
+// #26), the commissioner's latest letter, pinned, the latest weekly recap (recaps.ts), and matchday mode (homeClock.ts): while a matchday
 // is open, the Vidiprinter of its matches' lines that move one of the league's head-to-heads. Its
 // lines leave with the window; each stays on its matchup (Craig, 6 Nov 2026). For anyone with a
 // part in the league.
@@ -131,7 +132,7 @@ export const ofLeague = query({
     const season = await seasonRules(ctx, leagueId);
     const { rules, teamIds, schedule, results, scores, table, named } = await standingsOf(ctx, league, season);
     const current = gameweek === null ? undefined : schedule.find((each) => each.gameweek === gameweek);
-    const form = formOf(teamIds, schedule, scores);
+    const form = formOf(gameModeOf(rules), teamIds, schedule, scores);
     const mine = team?._id ?? null;
     return {
       format: rules.format,
@@ -186,12 +187,12 @@ async function vidiprinterOf(
   fixtureCodes: ReadonlySet<number>,
 ): Promise<HeldCommentary> {
   // Before the deadline no lineup is locked, so no line moves a head-to-head yet.
-  if (!(await begunGameweeks(ctx, league)).includes(gameweek)) return { kind: "read", lines: [], delayedFrom: null };
+  if (!(await hasBegun(ctx, league, gameweek))) return { kind: "read", lines: [], delayedFrom: null };
   try {
     const inGameweek = await tableGameweek(ctx, await leagueReads(ctx, league, season), gameweek, teamIds);
     const { lines, delayedFrom } = await readCommentary(ctx, inGameweek, teamIds, commentaryReads(ctx), { countingOnly: true, fixtureCodes });
     return { kind: "read", lines: lines.filter((line) => line.points !== null).map(shownLine), delayedFrom };
   } catch (error) {
-    return { kind: "unread", reason: logFailure(`League ${league._id} (${league.name}) can't read gameweek ${gameweek}'s Vidiprinter`, error) };
+    return { kind: "unread", reason: logFailure(`${leagueLabel(league)} can't read gameweek ${gameweek}'s Vidiprinter`, error) };
   }
 }

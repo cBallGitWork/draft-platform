@@ -32,6 +32,10 @@ export function squadMaximumFor(bands: readonly SquadMaximumBand[], maxTeams: nu
   return band.maximum;
 }
 
+/** The league's squad maximum under `rules`: the one read of it, or null with no squad size limit
+ *  or no rules. */
+export const squadMaximumOf = (rules: LeagueRules | null): number | null => rules?.squad.size?.maximum ?? null;
+
 /** The rules with their squad maximum set to `maximum`. Rules with no squad size limit keep none. */
 export function withSquadMaximum(rules: LeagueRules, maximum: number): LeagueRules {
   const { size } = rules.squad;

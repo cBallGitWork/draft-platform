@@ -1,11 +1,10 @@
 import type { LeagueSummary } from "../../../convex/leagues/myLeagues";
-import { Loading, PageSection, PanelNote } from "../../ui/Panel";
+import { Loading, PanelNote } from "../../ui/Panel";
 import { useMinute } from "../../shared/useMinute";
-import { TeamPage } from "../header/TeamHeader";
+import { NoTeam, TeamPage } from "../header/TeamHeader";
 import { LineupEditor } from "./LineupEditor";
 import type { MyTeamSeam } from "../seam";
 import { seasonOverWords, TACTICS_TITLE, tacticsLoadingWords } from "./words";
-import { noTeamWords } from "../words";
 
 /** My team's Tactics tab (#14; spec/12, My team; spec/05; the approved Tactics picture): under My
  *  team's header band, the lineup to set (LineupEditor.tsx). Each move saves itself, and Undo walks
@@ -13,13 +12,7 @@ import { noTeamWords } from "../words";
  *  dropped into a slot starts on his best-star role (#11). `selected`, from the address, opens that
  *  player's panel (#1008). */
 export function TacticsPage({ league, seam, selected }: { league: LeagueSummary; seam: MyTeamSeam; selected?: number }) {
-  if (league.teamName === null) {
-    return (
-      <PageSection title={TACTICS_TITLE} className="bg-panel">
-        <PanelNote>{noTeamWords}</PanelNote>
-      </PageSection>
-    );
-  }
+  if (league.teamName === null) return <NoTeam title={TACTICS_TITLE} />;
   return <TacticsBody league={league} teamName={league.teamName} seam={seam} selected={selected} />;
 }
 

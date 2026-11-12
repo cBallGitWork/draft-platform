@@ -9,6 +9,7 @@ import { actingAs, addManager, COMMISSIONER, MANAGERS } from "../../support/conv
 import { nameOf, passNextDeadline } from "../../support/convex/lineupSquad.harness";
 import { expectRefused } from "../../support/convex/test.harness";
 import { ANN, ANNS_FIRST_DROP, ANNS_SECOND_DROP, BOB, NEXT, PALMER, SAKA, waiverLeague, type WaiverLeague } from "../../support/convex/waivers.harness";
+import { teamNumbered } from "../../../convex/leagues/teams";
 
 // A manager's waiver claims (#1198, spec/08 Waivers and free agency): as many as he likes, ranked,
 // each naming who he drops with a full squad, that drop happening only if the claim succeeds; none
@@ -167,7 +168,7 @@ describe("a manager's claims", () => {
       {
         claimId: expect.any(String),
         teamId: w.annsTeam,
-        teamName: "Team 1",
+        teamName: teamNumbered(1),
         yours: true,
         claim: expect.objectContaining({ playerCode: SAKA, playerName: nameOf(SAKA) }),
         drop: expect.objectContaining({ playerCode: ANNS_FIRST_DROP, playerName: nameOf(ANNS_FIRST_DROP) }),

@@ -1,3 +1,4 @@
+import { samePick } from "../../convex/draft/snakeOrder";
 import { TickBox } from "../ui/TickBox";
 import type { ScreenTeam, TradePick } from "./seam";
 import {
@@ -37,8 +38,7 @@ export function PicksTable({
       </thead>
       <tbody>
         {team.picks.map((pick) => {
-          const on =
-            ticked?.round === pick.round && ticked.teamId === pick.teamId;
+          const on = ticked !== null && samePick(ticked, pick);
           return (
             <tr
               key={`${pick.round}-${pick.teamId}`}

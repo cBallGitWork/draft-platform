@@ -3,7 +3,7 @@ import { mutation } from "../_generated/server";
 import { managerOf, refuse } from "../shared/leagueAccess";
 import { rescheduleIfOnTheClock } from "./draftClock";
 import { pickRefusals } from "./draftPicks";
-import { draftIsLive, draftOf } from "./draftRow";
+import { draftIsOver, draftOf } from "./draftRow";
 import { afterChoosing, afterTakeBack, isOnAutoPick } from "./draftTimeouts";
 
 // A manager's own auto-pick switch (spec/04, Auto-pick): he turns it on himself (#1100), or takes
@@ -21,7 +21,7 @@ export const turnOn = mutation({
   handler: async (ctx, { leagueId }) => {
     const { team } = await managerOf(ctx, leagueId);
     const draft = await draftOf(ctx, leagueId);
-    if (draft?.started !== undefined && !(await draftIsLive(ctx, leagueId))) refuse(pickRefusals.over);
+    if (await draftIsOver(ctx, leagueId)) refuse(pickRefusals.over);
     if (draft !== null && isOnAutoPick(draft.timeouts, team._id)) refuse(pickRefusals.onAutoPick);
     const timeouts = afterChoosing(draft?.timeouts, team._id);
     if (draft === null) {

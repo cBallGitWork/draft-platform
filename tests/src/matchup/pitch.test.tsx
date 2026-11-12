@@ -24,7 +24,7 @@ import {
   statusLabels,
   statusWords,
 } from "../../../src/matchup/words";
-import { headToHead, roleOf, slot, SLOT_MATCH, teamSide } from "../../support/src/matchup.harness";
+import { headToHead, roleOf, slot, SLOT_MATCH, subbed, teamSide } from "../../support/src/matchup.harness";
 import { manager, openApp } from "../../support/src/shell.harness";
 
 const FINISHED = { kind: "finished", fixtureCode: SLOT_MATCH } as const;
@@ -41,9 +41,9 @@ const WIDE_ROLE = namedRole(roleIn(RIGHT_MIDFIELD, undefined));
 const keeper = slot("Raya", { area: "goalkeeper", status: FINISHED, points: 6 });
 const centre = slot("Coyle", { status: FINISHED, points: 2 });
 const striker = { ...slot("Delap", { area: "attack", status: FINISHED, points: 5 }), role: POACHER };
-const off = { ...slot("Saka", { points: 0, counts: false, status: FINISHED, autoSub: { kind: "off", playerName: "Rice" } }), place: { lane: "right", label: WIDE_LABEL } } as const;
+const off = { ...slot("Saka", { points: 0, counts: false, status: FINISHED, autoSub: subbed("off", "Rice") }), place: { lane: "right", label: WIDE_LABEL } } as const;
 const sub = {
-  ...slot("Rice", { status: FINISHED, points: 3, autoSub: { kind: "on", playerName: "Saka" } }),
+  ...slot("Rice", { status: FINISHED, points: 3, autoSub: subbed("on", "Saka") }),
   role: WIDE_ROLE,
   place: { lane: "right", label: WIDE_LABEL },
 } as const;
@@ -82,6 +82,20 @@ describe("each side's pitch", () => {
     expect(tilesOn(screen.getByRole("list", { name: benchLabel("Team 1") }))).toEqual([
       `${pitchPlayerLabel("Saka", WIDE_LABEL, roleOf("midfield").name, figureWords(0))}, ${FINISHED_WORDS}, ${notCountingLabel}, ${autoSubWords.off("Rice")}`,
       `Singh, ${figureWords(1)}, ${FINISHED_WORDS}, ${notCountingLabel}`,
+    ]);
+  });
+
+  it("puts each replaced starter on the bench once, in his sub's place, when two share a name (#1778)", async () => {
+    // Two men called Martinez, neither playing: Rice on for the striker, then Singh for the wide man.
+    const [wideCode, strikerCode] = [1, 2];
+    const wide = { ...off, playerCode: wideCode, name: "Martinez", autoSub: subbed("off", "Singh") };
+    const upFront = { ...slot("Martinez", { area: "attack", points: 0, counts: false, status: FINISHED, autoSub: subbed("off", "Rice") }), playerCode: strikerCode };
+    const riceOn = { ...sub, area: "attack", role: POACHER, place: { lane: "centre", label: "ST" }, autoSub: subbed("on", "Martinez", strikerCode) } as const;
+    const singhOn = { ...benched, counts: true, role: WIDE_ROLE, place: { lane: "right", label: WIDE_LABEL }, autoSub: subbed("on", "Martinez", wideCode) } as const;
+    await opened(teamSide("Team 1", [keeper, wide, upFront], [riceOn, singhOn]));
+    expect(tilesOn(screen.getByRole("list", { name: benchLabel("Team 1") }))).toEqual([
+      `${pitchPlayerLabel("Martinez", "ST", roleOf("attack").name, figureWords(0))}, ${FINISHED_WORDS}, ${notCountingLabel}, ${autoSubWords.off("Rice")}`,
+      `${pitchPlayerLabel("Martinez", WIDE_LABEL, roleOf("midfield").name, figureWords(0))}, ${FINISHED_WORDS}, ${notCountingLabel}, ${autoSubWords.off("Singh")}`,
     ]);
   });
 

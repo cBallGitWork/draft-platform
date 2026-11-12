@@ -1,9 +1,8 @@
-import type { Infer } from "convex/values";
 import { expect, test } from "vitest";
 import type { Id } from "../../../convex/_generated/dataModel";
 import { eventLetter } from "../../../convex/mail/letterWords";
 import { tellIn } from "../../../convex/mail/letterMoments";
-import type { leagueEvent } from "../../../convex/schema";
+import type { LeagueEvent } from "../../../convex/schema";
 
 // The letters for the league events joining, gameweeks, deletion and rules file (#73, #74, #75,
 // #25): each says who did what, and the facts the event carries.
@@ -15,7 +14,7 @@ const TEAM = "team-1" as Id<"teams">;
 const ANN = "ann@example.com";
 const IN_JANUARY = Date.parse("2027-01-15T12:00:00Z");
 
-const LETTERS: [Infer<typeof leagueEvent>, string, string][] = [
+const LETTERS: [LeagueEvent, string, string][] = [
   [{ kind: "deletionStarted", name: "Sunday League", deletesAt: IN_JANUARY }, "Sunday League is being deleted", "Friday 15 January"],
   [{ kind: "deletionUndone", name: "Sunday League" }, "Sunday League is no longer being deleted", "undid deleting"],
   [{ kind: "gameweekUsed", gameweek: 12, used: false }, "Gameweek 12 won't count", "took gameweek 12 out"],

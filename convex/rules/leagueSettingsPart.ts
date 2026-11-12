@@ -1,5 +1,6 @@
 import { v, type Infer } from "convex/values";
 import { draftRulesOf, drawRulesOf, tradeRulesOf } from "./firstRules";
+import { squadMaximumOf } from "./squadMaximums";
 import { draftRulesShape, leagueRulesShape, oddTeamOutShape, tradeRulesShape, waiverRulesShape, type LeagueRules } from "./leagueRulesShape";
 
 // The part of a league's rules League settings edits (Craig, 22 Oct 2026): those that build the
@@ -29,7 +30,7 @@ export type LeagueSettings = Infer<typeof leagueSettingsShape>;
  *  and the trades' likewise (`draftRulesOf`, `tradeRulesOf`). */
 export const leagueSettingsOf = (rules: LeagueRules): LeagueSettings => ({
   ...drawRulesOf(rules),
-  squadMaximum: rules.squad.size?.maximum ?? null,
+  squadMaximum: squadMaximumOf(rules),
   minimumByArea: rules.squad.minimumByArea,
   maxPerClub: rules.squad.maxPerClub,
   draft: draftRulesOf(rules),

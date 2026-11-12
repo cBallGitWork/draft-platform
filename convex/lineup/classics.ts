@@ -8,11 +8,11 @@
 // (leagueRulesCheck.ts).
 
 import { sameCell, sameShape, type Cell } from "./pitch";
-import { DEFAULT_PRESETS } from "./presets";
-import type { InstructionPair } from "./instructions";
+import { FIRST_PRESETS } from "./presets";
+import type { FirstInstructionKey, InstructionPair, Side } from "./instructions";
 
 /** One of a classic formation's slots and the role it sets there (roles.ts). */
-export type ClassicFormationSlot = Cell & { role: string };
+type ClassicFormationSlot = Cell & { role: string };
 
 export interface ClassicFormation {
   /** As managers say it, such as "Keegan's Newcastle": a lineup is saved with it. */
@@ -35,9 +35,9 @@ function classicFormation(
   description: string,
   formation: string,
   roles: readonly string[],
-  instructions: InstructionPair,
+  instructions: Record<Side, FirstInstructionKey>,
 ): ClassicFormation {
-  const preset = DEFAULT_PRESETS.find((each) => each.name === formation);
+  const preset = FIRST_PRESETS.find((each) => each.name === formation);
   if (preset === undefined) throw new Error(`The classic formation ${name} stands in ${formation}, which isn't a preset`);
   if (roles.length !== preset.cells.length) throw new Error(`The classic formation ${name} gives ${roles.length} roles for ${preset.cells.length} slots`);
   return { name, subtitle, description, cells: preset.cells.map((cell, index) => ({ ...cell, role: roles[index] })), instructions };
@@ -45,7 +45,7 @@ function classicFormation(
 
 /** Sample text throughout, for Craig to rewrite (spec/05, The pitch). Hungary's MM stands on 4-2-4,
  *  Hidegkuti a false 9 (Craig, 6 Nov 2026). */
-export const DEFAULT_CLASSIC_FORMATIONS: readonly ClassicFormation[] = [
+export const FIRST_CLASSIC_FORMATIONS: readonly ClassicFormation[] = [
   classicFormation(
     "Keegan's Newcastle",
     "1995-96, Keegan",
