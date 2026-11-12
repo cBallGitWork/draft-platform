@@ -19,6 +19,7 @@ import {
   ARRIZABALAGA,
   HAVERTZ,
   RAYA,
+  REFUSAL,
   RICE,
   SALIBA,
   SAVED,
@@ -75,7 +76,7 @@ describe("a preset (spec/05; Craig, 26 Oct 2026)", () => {
   });
 
   it("marks the shape's empty slots while the lineup can't stand and isn't saved", async () => {
-    await openedPitch({ tactics: SAVED, saveAnswer: "A lineup starts 11 players; this one starts 5." });
+    await openedPitch({ tactics: SAVED, saveAnswer: REFUSAL });
     await pickFormation("4-4-2");
     const slots = within(pitch()).getAllByRole("img", { name: /^Empty slot/ }).map((slot) => slot.getAttribute("aria-label"));
     // White, off the bench, fills its left back (Craig, 1 Nov 2026; #1025); the rest stay empty.

@@ -74,6 +74,9 @@ json.dump([{key: clean(value) for key, value in row.items()} for row in rows], s
 `;
 
 const LOAD = "pastSeasons/pastSeasonLoad";
+/** The load's two writes: a page of a season's old rows cleared, then a batch of its rows added. */
+export const CLEAR_SEASON = `${LOAD}:clearSeason`;
+export const ADD_ROWS = `${LOAD}:addRows`;
 /** The job that prices last season under today's set, started once the rows are in. */
 export const REPRICE = "pastSeasons/pastSeasonPoints:reprice";
 
@@ -132,15 +135,15 @@ export async function loadPastSeason({ season, from, players, prod = false, cwd 
 
   const convex = bin(cwd, "convex");
   const target = prod ? ["--prod"] : [];
-  const call = async (fn, args) => JSON.parse(await run(exec, convex, ["run", `${LOAD}:${fn}`, JSON.stringify(args), ...target], cwd));
+  const call = async (fn, args) => JSON.parse(await run(exec, convex, ["run", fn, JSON.stringify(args), ...target], cwd));
   let cleared = 0;
   for (let more = true; more; ) {
-    const page = await call("clearSeason", { season });
+    const page = await call(CLEAR_SEASON, { season });
     cleared += page.deleted;
     more = page.more;
   }
   let added = 0;
-  for (const batch of batches(rows, PAST_ROWS_ADDED_MOST)) added += await call("addRows", { rows: batch });
+  for (const batch of batches(rows, PAST_ROWS_ADDED_MOST)) added += await call(ADD_ROWS, { rows: batch });
   await run(exec, convex, ["run", REPRICE, JSON.stringify({ cursor: null }), ...target], cwd);
   print(
     `${season}: ${counts.matches} matches, ${counts.playedRows} played rows, ${counts.played} who played and ${counts.named} named; ` +
