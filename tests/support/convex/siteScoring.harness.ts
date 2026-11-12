@@ -58,8 +58,7 @@ export const patch = async (scoring: StoredScoringSet, takesEffectAt: number) =>
 export const inGameweek = (gameweek: number) => t.run((ctx) => siteScoringInGameweek(ctx, gameweek));
 export const versions = () => t.run(async (ctx) => (await ctx.db.query("siteScoring").collect()).length);
 export const names = async () => (await viewAs(ADMIN)).versions.map((version) => version.name);
-/** How many letters the deployment holds. */
-export const lettersCount = (convex: TestConvex) => convex.run(async (ctx) => (await ctx.db.query("letters").collect()).length);
+export { lettersCount } from "./leagues.harness";
 
 /** A bare scoring set of `rules`, counting tenths. */
 export const setOf = <Rule = never>(...rules: Rule[]) => ({ rules, wholePointsOnly: false });

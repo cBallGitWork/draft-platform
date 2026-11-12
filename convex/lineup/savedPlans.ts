@@ -10,7 +10,7 @@ import { instructionPairShape } from "./instructionsShape";
 import { pairRefusalWords } from "./instructionsWords";
 import { STARTER_COUNT } from "./lineup";
 import { PLAN_NAME_MOST, PLANS_KEPT, planRefusals } from "./lineupWords";
-import { cellKey, isOnPitch, type Area, type Lane } from "./pitch";
+import { cellKey, cellOf, type Cell } from "./pitch";
 import { roleIn } from "./roles";
 
 // A manager's saved plans (spec/05, Saved plans; #992): a formation, every slot's role and both
@@ -54,9 +54,9 @@ export const save = mutation({
     const { team } = await managerOf(ctx, leagueId);
     const name = typed.trim();
     if (name.length === 0 || name.length > PLAN_NAME_MOST) refuse(planRefusals.nameLength);
-    const cells = sent.map(({ area, lane }) => ({ area: area as Area, lane: lane as Lane }));
+    const cells = sent.map(cellOf).filter((cell): cell is Cell => cell !== null);
     const eleven = cells.length === STARTER_COUNT && new Set(cells.map(cellKey)).size === STARTER_COUNT;
-    if (!eleven || !cells.every(isOnPitch)) refuse(planRefusals.notEleven);
+    if (!eleven || cells.length !== sent.length) refuse(planRefusals.notEleven);
     const slots = cells.map((cell, index) => ({ ...cell, role: roleIn(cell, sent[index].role).key }));
     if (instructions !== undefined) {
       const set = instructionsOf(await latestRules(ctx, leagueId));

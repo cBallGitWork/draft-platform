@@ -6,12 +6,10 @@
 // Usage: npx vite --port "$(node scripts/port.mjs)" --strictPort
 
 import { createHash } from "node:crypto";
-import { dirname } from "node:path";
-import { fileURLToPath, pathToFileURL } from "node:url";
+import { CHECKOUT, ranDirectly } from "./thisScript.mjs";
 
 const PORT_RANGE_START = 5200;
 export const PORT_RANGE_SIZE = 700;
-const CHECKOUT = dirname(dirname(fileURLToPath(import.meta.url)));
 
 // The ports browsers refuse to open (`net::ERR_UNSAFE_PORT` in Chrome), kept to the three ranges
 // this script hands out (5200-7299). From Chromium's kRestrictedPorts in net/base/port_util.cc
@@ -53,6 +51,6 @@ export function smokePorts() {
   };
 }
 
-if (process.argv[1] !== undefined && import.meta.url === pathToFileURL(process.argv[1]).href) {
+if (ranDirectly(import.meta.url)) {
   console.log(appPort());
 }

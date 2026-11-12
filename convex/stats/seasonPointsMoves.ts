@@ -2,7 +2,7 @@ import { v } from "convex/values";
 import { internal } from "../_generated/api";
 import type { Doc } from "../_generated/dataModel";
 import { internalMutation, type MutationCtx } from "../_generated/server";
-import { matchRecordsOf } from "../gameweekScorer/heldMatches";
+import { matchRecordsOf } from "./matchRecordReads";
 import { logFailure } from "../shared/errors";
 import { heldFixturesSeason } from "../shared/fixtures";
 import { seasonStartYear } from "../shared/time";

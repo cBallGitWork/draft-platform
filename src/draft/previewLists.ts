@@ -3,6 +3,7 @@
 // session, and Scouting's shortlist (../scouting/preview.ts) adds to the same queue.
 
 import { useSyncExternalStore } from "react";
+import { cardOpensAt } from "../../convex/playerCard/cardPoints";
 import type { Position } from "../../convex/positions/positionTables";
 import type { ListedPlayer } from "../../convex/scouting/playersList";
 import type { DraftBoard, DraftList, DraftListChanges, DraftLists, DraftSeam } from "./seam";
@@ -75,7 +76,7 @@ export const listedFromScouting = ({ code, name, fullName, club: playerClub, own
   club: playerClub,
   ownerTeamName,
   gone: false,
-  position: positions[0] ?? null,
+  position: cardOpensAt(positions),
 });
 
 /** The players "Add my whole shortlist" adds in the preview, which Scouting's preview sets: its

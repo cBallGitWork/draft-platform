@@ -129,7 +129,7 @@ describe("a join request", () => {
     });
     const logged = silenceConsoleError();
     await (await asCommissioner(t)).mutation(api.joining.joinRequests.approve, { requestId });
-    await t.finishAllScheduledFunctions(vi.runAllTimers);
+    await everyJobRuns(t);
 
     expect(emailsTo(sent, ANN)).toHaveLength(1);
     expect(logged).not.toHaveBeenCalledWith(expect.stringContaining("wasn't sent"));

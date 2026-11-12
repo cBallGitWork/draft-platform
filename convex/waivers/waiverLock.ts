@@ -1,11 +1,13 @@
 import { v, type Infer } from "convex/values";
 import type { Id } from "../_generated/dataModel";
 import type { QueryCtx } from "../_generated/server";
+import { draftIsOver } from "../draft/draftRow";
 import { begunBy, isLocked, latestBegun, latestOf, type LeagueDeadlines } from "../gameweeks/deadline";
 import { gameweekEnd, gameweekUnderWay } from "../gameweeks/gameweekEnd";
 import { leagueDeadlines } from "../gameweeks/leagueDeadlines";
 import type { LeagueRules } from "../rules/leagueRulesShape";
 import { latestRules } from "../rules/rulesHistory";
+import { refuse } from "../shared/leagueAccess";
 import { firstRunFrom } from "./waiverTimes";
 
 // The waiver lock (#1197, spec/08: "From the deadline until the gameweek's last match is over,
@@ -28,6 +30,25 @@ export async function latestEnded(ctx: QueryCtx, deadlines: LeagueDeadlines, now
 export async function inWaiverLock(ctx: QueryCtx, deadlines: LeagueDeadlines, now: number): Promise<boolean> {
   const gameweek = latestBegun(deadlines, now);
   return gameweek !== null && (await gameweekUnderWay(ctx, gameweek));
+}
+
+/** The words a drop, pickup or claim is refused with before the draft is over and in the lock. */
+export type WaiversShutWords = { notDrafted: string; locked: string };
+
+/** Refused unless a manager may drop, pick up or claim in the league now: once the draft is over
+ *  (#1326), then outside the lock (spec/08, `S08.14`). The deadlines and time it read, for the caller. */
+export async function waiversOpenFor(ctx: QueryCtx, leagueId: Id<"leagues">, words: WaiversShutWords): Promise<{ deadlines: LeagueDeadlines; now: number }> {
+  if (!(await draftIsOver(ctx, leagueId))) refuse(words.notDrafted);
+  return await outOfLockFor(ctx, leagueId, words.locked);
+}
+
+/** `waiversOpenFor`'s lock half alone, refused with `locked`: changing a claim's drop has no
+ *  draft-over check, and withdrawing or ranking one skips the lock on purpose (#1590). */
+export async function outOfLockFor(ctx: QueryCtx, leagueId: Id<"leagues">, locked: string): Promise<{ deadlines: LeagueDeadlines; now: number }> {
+  const now = Date.now();
+  const deadlines = await leagueDeadlines(ctx, leagueId);
+  if (await inWaiverLock(ctx, deadlines, now)) refuse(locked);
+  return { deadlines, now };
 }
 
 /** The gameweek whose lock a run at `at` may fall in, seen from `now`, or null when it surely
