@@ -2,7 +2,7 @@ import { execFileSync } from "node:child_process";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { expect, test } from "vitest";
-import { BASELINE, baselineOf, literalsOf, newHits, oneHomeHits, phraseMatcher } from "../../scripts/one-home-words.mjs";
+import { BASELINE, baselineOf, isTestFile, literalsOf, newHits, oneHomeHits, phraseMatcher } from "../../scripts/one-home-words.mjs";
 import { REPO_ROOT } from "../support/scripts/repoRoot.mjs";
 
 // The one-home words check (#1812): a phrase written in two words files, or retyped in a test, is a
@@ -83,6 +83,11 @@ test("the matcher finds a phrase only as whole words, preferring the longest", (
 test("the repo's own words and tests pass", () => {
   const output = execFileSync(process.execPath, ["scripts/one-home-words.mjs"], { cwd: REPO_ROOT, encoding: "utf8" });
   expect(output).toMatch(/^one-home words: nothing written twice beyond the \d+ hits the baseline holds/);
+});
+
+test("this file's fixtures repeat phrases on purpose, so the check never reads it as a test", () => {
+  expect(isTestFile("tests/scripts/one-home-words.test.mjs")).toBe(false);
+  expect(isTestFile("tests/scripts/tests-kept.test.mjs")).toBe(true);
 });
 
 test("the baseline on file is sorted and holds each phrase once, as --write-baseline writes it", () => {

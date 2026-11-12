@@ -26,9 +26,11 @@ export const ALLOW = /\/\/ one-home-ok:\s*\S/;
 const WORDS_FILE = /^src\/.*\/words\.ts$|^convex\/.*Words\.ts$/;
 const PREVIEW_FILE = /^src\/.*\/preview\.ts$/;
 const TEST_FILE = /^tests\/.*\.(test|spec)\.(ts|tsx|mjs)$/;
+// This check's own test writes phrases twice on purpose, as fixtures, so it is never read as a test.
+const OWN_TEST = "tests/scripts/one-home-words.test.mjs";
 
 export const isHomeFile = (path) => WORDS_FILE.test(path) || PREVIEW_FILE.test(path);
-export const isTestFile = (path) => TEST_FILE.test(path);
+export const isTestFile = (path) => TEST_FILE.test(path) && path !== OWN_TEST;
 
 const wordCount = (text) => text.split(/\s+/).filter((word) => /[\p{L}\p{N}]/u.test(word)).length;
 
