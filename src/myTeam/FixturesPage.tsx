@@ -16,7 +16,7 @@ import { afterWords, noResultsWords } from "../table/words";
 import { ResultChip } from "./header/FormChips";
 import { NoTeam, TeamPage } from "./header/TeamHeader";
 import { placeIn } from "./header/teamStanding";
-import { NextGamePanel, SeasonPanel } from "./fixtures/SidePanels";
+import { NextGamePanel, SeasonPanel } from "./FixturesSidePanels";
 import { otherTeamPath } from "./paths";
 import type { MyTeamSeam, TeamFixtures } from "./seam";
 import {

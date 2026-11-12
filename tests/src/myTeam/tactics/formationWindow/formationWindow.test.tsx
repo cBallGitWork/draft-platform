@@ -21,9 +21,9 @@ import {
   WINDOW_TITLE,
   YOUR_PRESETS,
   yourPresetsLine,
-} from "../../../../src/myTeam/tactics/formationWindow/words";
-import { allFormationsWords } from "../../../../src/myTeam/tactics/words";
-import { IN_A_442, openedPitch } from "../../../support/src/tacticsScreen.harness";
+} from "../../../../../src/myTeam/tactics/formationWindow/words";
+import { allFormationsWords } from "../../../../../src/myTeam/tactics/words";
+import { IN_A_442, openedPitch } from "../../../../support/src/tacticsScreen.harness";
 
 /** The window, opened from All formations; with `in442`, over a side standing in the 4-4-2. */
 const opened = async (in442 = false) => {
