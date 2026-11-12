@@ -9,7 +9,7 @@ import { useRulesEdits, type RulesEdits } from "../rules/rulesEdits";
 import { useDraftStartEdit, type DraftStartEdit } from "./DraftStartRow";
 import { useLastLoaded } from "../shared/useLastLoaded";
 import { SaveBar } from "../rules/SaveBar";
-import { BoxRefusalContext } from "../rules/blank";
+import { BoxRefusalContext, blankOrOff } from "../rules/blank";
 import { TickBox } from "../ui/TickBox";
 import { AREA_WORDS } from "../shared/words";
 import { DraftPanel } from "./DraftPanel";
@@ -215,7 +215,7 @@ function SquadPanel({ draft, edit }: { draft: LeagueSettings; edit: (settings: L
             {areaMinimumsHint}
           </p>
         </div>
-        <TickBox checked={draft.maxPerClub !== null} onChange={(on) => edit({ ...draft, maxPerClub: on ? NaN : null })}>
+        <TickBox checked={draft.maxPerClub !== null} onChange={(on) => edit({ ...draft, maxPerClub: blankOrOff(on) })}>
           {clubMaximumWords}
         </TickBox>
         {draft.maxPerClub !== null && (
