@@ -2,12 +2,12 @@ import { v, type Infer } from "convex/values";
 import type { Doc, Id } from "../_generated/dataModel";
 import { query, type QueryCtx } from "../_generated/server";
 import { MOST_IN_SQUAD, MOST_TEAMS } from "../leagues/leagueLimits";
-import { positionsFrom } from "../positions/playerPositions";
+import { positionListFrom } from "../positions/playerPositions";
 import { howPositionsCount } from "../positions/positionSettings";
 import { clubRecord, position } from "../schema";
 import { takeAllOrThrow } from "../shared/cappedRead";
 import { memberOf, teamsOf } from "../shared/leagueAccess";
-import { clubOf, currentClubs, currentPlayersAt } from "../shared/players";
+import { clubOf, currentClubs } from "../shared/players";
 import { newestSeasonWithTotals } from "../stats/seasonStats";
 import type { Stats } from "../stats/statTotals";
 import { checkScoutingPlayersHeld, currentScoutingPlayersAt, scoutingPlayerByCode, type ScoutingPlayer } from "./scoutingPlayers";
@@ -164,7 +164,7 @@ export const list = query({
     const listedClubOf = new Map(clubs.map((each) => [each.code, clubOf(each)]));
 
     const rowOf = (player: ScoutingPlayer): ListedRow => {
-      const positions = positionsFrom(player.positions, how).positions.map(({ position }) => position);
+      const positions = positionListFrom(player.positions, how);
       const totals = totalsOf(player);
       return {
         code: player.code,
@@ -215,17 +215,9 @@ export function withOwnTotals(totals: Stats | undefined, stat: string | null, se
   return withOwnStats(totals, set);
 }
 
-/** The current players at these clubs, at most LISTED_PLAYERS_MOST of them. */
-export async function currentPlayersOf(ctx: QueryCtx, clubs: readonly Doc<"clubs">[]): Promise<Doc<"players">[]> {
-  return listedAtMost((await Promise.all(clubs.map((each) => currentPlayersAt(ctx, each.code)))).flat());
-}
-
 /** The Scouting rows of the current players at these clubs, at most LISTED_PLAYERS_MOST of them. */
-async function currentScoutingPlayersOf(ctx: QueryCtx, clubs: readonly Doc<"clubs">[]): Promise<ScoutingPlayer[]> {
-  return listedAtMost((await Promise.all(clubs.map((each) => currentScoutingPlayersAt(ctx, each.code)))).flat());
-}
-
-function listedAtMost<Player>(players: Player[]): Player[] {
+export async function currentScoutingPlayersOf(ctx: QueryCtx, clubs: readonly Doc<"clubs">[]): Promise<ScoutingPlayer[]> {
+  const players = (await Promise.all(clubs.map((each) => currentScoutingPlayersAt(ctx, each.code)))).flat();
   if (players.length > LISTED_PLAYERS_MOST) {
     throw new Error(`More than ${LISTED_PLAYERS_MOST} players are held as current, so the list would be cut short`);
   }
