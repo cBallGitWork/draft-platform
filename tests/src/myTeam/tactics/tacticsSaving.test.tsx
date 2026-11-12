@@ -14,6 +14,7 @@ import { OPEN_PICKED, TACTICS_GAMEWEEK, openTactics } from "../../../support/src
 import {
   ARRIZABALAGA,
   RAYA,
+  REFUSAL,
   SALIBA,
   SAVED,
   SAVED_LINE,
@@ -33,7 +34,6 @@ import {
   undo,
 } from "../../../support/src/tacticsScreen.harness";
 
-const REFUSAL = "A lineup starts 11 players; this one starts 5.";
 /** Saliba's cell, left-centre of defence, which White swaps into. */
 const SALIBAS_CELL = { area: "defence", lane: "leftCentre" } as const;
 
