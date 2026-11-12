@@ -40,6 +40,10 @@ import { NO_CONVEX_URL } from "../shared/words";
 
 /** The search param a sign-in link carries its code in (Convex Auth's). */
 export const LINK_CODE_PARAM = "code";
+/** What the log says, before the error, when the browser's time zone couldn't be kept (#442). */
+export const ZONE_FAILED_LOG = "Keeping this browser's time zone failed:";
+/** What the log says, before the error, when a sign-in link's code couldn't be checked. */
+export const LINK_CHECK_FAILED_LOG = "Checking a sign-in link failed:";
 
 /** The code a sign-in link opened the app with, taken out of the address so a reload or a
  *  bookmark can't carry it. */
@@ -136,7 +140,7 @@ function LiveShell({ linkCode }: { linkCode: string | null }) {
   useEffect(() => {
     // Each time the app opens signed in, so the zone follows a manager who travels (#442).
     if (email === undefined) return;
-    recordZone({ zone: browserZone() }).catch((error: unknown) => console.error("Keeping this browser's time zone failed", error));
+    recordZone({ zone: browserZone() }).catch((error: unknown) => console.error(ZONE_FAILED_LOG, error));
   }, [email, recordZone]);
 
   useEffect(() => {
@@ -196,7 +200,7 @@ async function redeemLink(
     const { signingIn } = await redeem(undefined, { code });
     return signingIn ? null : "expired";
   } catch (error) {
-    console.error("Checking a sign-in link failed:", error);
+    console.error(LINK_CHECK_FAILED_LOG, error);
     return "unchecked";
   }
 }
