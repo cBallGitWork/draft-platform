@@ -1,6 +1,7 @@
 import { useState, type ReactNode } from "react";
 import type { LeagueSummary } from "../../convex/leagues/myLeagues";
 import type { MatchupSide } from "../../convex/matchup/matchupShape";
+import { BYE } from "../../convex/table/teamGames";
 import { runs } from "../leagues/access";
 import { PlayerBreakdown } from "./PlayerBreakdown";
 import { TeamOverrides } from "./TeamOverride";
@@ -73,7 +74,7 @@ function HeadToHeadMatchup({ league, seam, matchup }: { league: LeagueSummary; s
       <div className="bg-panel">
         {game.kind === "none" ? (
           <PanelNote>{noGameWords(teamName, gameweek)}</PanelNote>
-        ) : game.kind === "bye" ? (
+        ) : game.kind === BYE ? (
           <>
             {gameSwitch}
             <PanelNote>{byeWords(teamName)}</PanelNote>

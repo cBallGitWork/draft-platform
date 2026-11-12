@@ -7,7 +7,7 @@ import { cellClassOf, ColumnHeads, type ColumnWords } from "../ui/ColumnHeads";
 import { Panel, PanelNote } from "../ui/Panel";
 import type { PlayedMatch, PlayerCard } from "./seam";
 import { MatchName } from "./MatchName";
-import { opponentWords, type LogRow, logRowsOf, scoreOf } from "./gameLog";
+import { opponentWords, type LogRow, logRowsOf, pointsOf, scoreOf } from "./gameLog";
 import {
   columns,
   figureWords,
@@ -184,7 +184,7 @@ function LogLine({
 function PointsCell({ match, shown }: { match: PlayedMatch; shown: number }) {
   const base = match.points[shown].total;
   const { override } = match;
-  const total = override?.points ?? base;
+  const total = pointsOf(match, shown);
   if (total === null) {
     return (
       <td title={notArrivedWords} className={`${cellClasses(false)} text-muted`}>

@@ -3,10 +3,11 @@ import type { Doc, Id } from "../_generated/dataModel";
 import type { QueryCtx } from "../_generated/server";
 import { seasonGameweekCount } from "../gameweeks/seasonGameweeks";
 import { usedGameweeksOf } from "../gameweeks/usedGameweeks";
-import { saveGameweekOf } from "../lineup/lineups";
+import { saveGameweekOf } from "../gameweeks/saveGameweek";
 import { clubRecord } from "../schema";
 import { byKickoffOrder, gameweekFixtures } from "../shared/fixtures";
 import type { Clubs } from "../shared/players";
+import { SCHEDULE_GAMEWEEKS } from "./squadLimits";
 
 // The Squad tab's Schedule view (#1006; spec/12, My team's tabs: "his next 6 fixtures"): the next
 // 6 gameweeks, from the one a lineup is being set for, because lineups are set per gameweek (Craig,
@@ -14,8 +15,6 @@ import type { Clubs } from "../shared/players";
 // the league plays of its season's own count are shown, so they skip one it unticked and stop at
 // its last (spec/13, Gameweeks; #1561, #1618).
 
-/** How many gameweeks the view holds. */
-export const SCHEDULE_GAMEWEEKS = 6;
 
 export const scheduledMatch = v.object({
   gameweek: v.number(),

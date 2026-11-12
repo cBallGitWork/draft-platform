@@ -4,7 +4,7 @@ import { internal } from "../_generated/api";
 import { internalMutation, type MutationCtx, type QueryCtx } from "../_generated/server";
 import { scheduledMatches } from "../gameweeks/leagueDeadlines";
 import type { ScheduledMatch } from "../gameweeks/deadline";
-import { saveGameweekOf } from "../lineup/lineups";
+import { saveGameweekOf } from "../gameweeks/saveGameweek";
 import { adminByline } from "../mail/letterWords";
 import { fileLetter } from "../mail/letters";
 import { MOST_IN_SQUAD } from "../leagues/leagueLimits";

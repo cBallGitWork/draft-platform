@@ -1,7 +1,8 @@
 import { v, type Infer } from "convex/values";
 import { query } from "../_generated/server";
 import { MOST_IN_SQUAD } from "../leagues/leagueLimits";
-import { lineupInGameweek, saveGameweekOf } from "../lineup/lineups";
+import { lineupInGameweek } from "../lineup/lineups";
+import { saveGameweekOf } from "../gameweeks/saveGameweek";
 import { positionOfSlot, type Area, type Lane } from "../lineup/pitch";
 import { cardOpensAt } from "../playerCard/cardPoints";
 import { positionsNow } from "../positions/playerPositions";

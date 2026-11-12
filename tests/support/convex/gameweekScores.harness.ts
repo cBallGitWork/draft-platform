@@ -21,7 +21,7 @@ import { leagueReads } from "../../../convex/gameweekScorer/teamGameweek";
 import { seasonRules } from "../../../convex/rules/rulesHistory";
 import { HOUR_MS, MINUTE_MS } from "../../../convex/shared/time";
 import { actingAs, addManagers, adminCreatesLeague, MANAGERS, type TestConvex } from "./leagues.harness";
-import { matchupOf } from "./screenReads.harness";
+import { leagueHomeOf, matchupOf } from "./screenReads.harness";
 import { EVERTON, EVERTON_CLUB, GAMEWEEK, HULL, HULL_CITY, HULL_EVERTON } from "./matchStats.harness";
 import { insertClubs, insertPlayers, insertSeasonGameweeks } from "./footballRows.harness";
 import { BELLOUMI, DEWSBURY_HALL, GELHARDT, PHILLIPS, TZOLAKIS } from "./teamPoints.harness";
@@ -156,6 +156,9 @@ export async function scoresLeague({ bobSaves = true, catToo = false } = {}): Pr
 
 /** Hull's and Everton's club rows, which scoresLeague doesn't hold, as the football sync holds them. */
 export const holdHullAndEverton = ({ t }: ScoresLeague) => t.run((ctx) => insertClubs(ctx, [HULL_CITY, EVERTON_CLUB]));
+
+/** League home at `now`, as Ann reads it. */
+export const homeAt = async ({ t, leagueId }: ScoresLeague, now: number) => leagueHomeOf(await actingAs(t, ANN), leagueId, now);
 
 export const readTable = ({ t, leagueId }: ScoresLeague) => actingAs(t, ANN).then((ann) => ann.query(api.table.leagueTable.ofLeague, { leagueId }));
 

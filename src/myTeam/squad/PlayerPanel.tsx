@@ -15,19 +15,17 @@ import { tacticsLink } from "../tactics/paths";
 import type { Tactics } from "../tactics/seam";
 import { SquadNumberBox } from "./SquadNumberBox";
 import { PositionCodes } from "../../ui/PositionCodes";
-import { inDoubt, NextMatches, StatusMark } from "../SquadCells";
+import { Figure, inDoubt, NextMatches, StatusMark } from "../SquadCells";
 import type { Row } from "./SquadTable";
 import {
   benchedInWords,
   bestRoleNotRatedLabel,
   closePanelLabel,
-  figureWords,
   formLabel,
+  gameweekShort,
   gameweekWords,
-  gameweekRowWords,
   lastWords,
   nextGlyph,
-  noFigureWords,
   panelPlateWords,
   panelRows,
   playerCardWords,
@@ -138,11 +136,6 @@ function Fact({ term, children }: { term: string; children: ReactNode }) {
   );
 }
 
-/** A figure, "—" while there is none; `words` writes it, signed for an adjustment. */
-function Figure({ points, words = figureWords }: { points: number | null; words?: (value: number) => string }) {
-  return points === null ? <span className="text-muted">{noFigureWords}</span> : <span className="font-bold text-figure">{words(points)}</span>;
-}
-
 /** The role he has the most stars for at his main position's slot, with his stars for it, as the
  *  Tactics bench's Best role (spec/05 Roles). His stars come with the lineup being set, so with
  *  none open to set (the season over) it stays the placeholder. */
@@ -169,7 +162,7 @@ function GameweekPlace({ tactics, code }: { tactics: Tactics | undefined; code: 
     <>
       <dt className="text-soft">
         <abbr title={gameweekWords(tactics.gameweek)} className="no-underline">
-          {gameweekRowWords(tactics.gameweek)}
+          {gameweekShort(tactics.gameweek)}
         </abbr>
       </dt>
       <dd>{where}</dd>
