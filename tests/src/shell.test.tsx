@@ -10,12 +10,12 @@ import {
   continueLabel,
   continueWords,
   mainMenuLabel,
-  menuWords,
   nothingNeedsYouWords,
   sectionTabsLabel,
   signOutWords,
 } from "../../src/frame/words";
 import { MAIL_TITLE, unreadTabLabel } from "../../src/mail/words";
+import { menuWords } from "../../src/shared/words";
 import { MATCHUP_TITLE } from "../../src/matchup/words";
 import { SIGN_IN_PATH } from "../../src/signIn/paths";
 import { descriptionOf } from "../support/src/describedBy";

@@ -7,7 +7,8 @@ import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
 import { MINUTE_MS, SECOND_MS } from "../../../convex/shared/time";
 import { DRAFT_PATH, MY_TEAM_PATH } from "../../../src/frame/menu";
-import { mainMenuLabel, menuWords } from "../../../src/frame/words";
+import { mainMenuLabel } from "../../../src/frame/words";
+import { menuWords } from "../../../src/shared/words";
 import type { BoardPick, DraftState } from "../../../src/draft/seam";
 import {
   aPickWords,

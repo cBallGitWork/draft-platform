@@ -6,7 +6,7 @@ import { screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
 import { ALWAYS_OWED, judgeFeed } from "../../../convex/admin/feedState";
-import { FEED_SCHEDULES, lateAfterMs } from "../../../convex/shared/feedSchedule";
+import { FEED_NAMES, FEED_SCHEDULES, lateAfterMs } from "../../../convex/shared/feedSchedule";
 import { DAY_MS, HOUR_MS, MINUTE_MS } from "../../../convex/shared/time";
 import { ADMIN_FEEDS_PATH, ADMIN_PATH } from "../../../src/admin/paths";
 import type { FeedsReport } from "../../../src/admin/seam";
@@ -17,7 +17,6 @@ import {
   correctionsTitle,
   moreCorrectionsWords,
   feedColumns,
-  feedNames,
   feedsLoadingWords,
   feedStateWords,
   feedsTabWords,
@@ -102,7 +101,7 @@ describe("the feeds", () => {
     const state = judgeFeed(runs, FEED_SCHEDULES.football, ALWAYS_OWED, NOW);
     openFeeds(withFeed(QUIET, { feed: "football", state, lastRunAt: stoppedAt, lastSuccessAt: stoppedAt, lastError: null }));
 
-    const rows = await feedRows(feedNames.football.name);
+    const rows = await feedRows(FEED_NAMES.football.name);
     const late = within(rows).getByText(feedStateWords.late);
     expect(late.className).toContain("text-event");
     expect(within(rows).getAllByRole("row")[0].className).toContain("shadow-event-edge");
@@ -114,7 +113,7 @@ describe("the feeds", () => {
     const lastError = { at: NOW - 10 * MINUTE_MS, error: "FPL answered 503" };
     openFeeds(withFeed(QUIET, { feed: "matchStats", state: "failing", lastRunAt: lastError.at, lastSuccessAt: NOW - 3 * HOUR_MS, lastError }));
 
-    const rows = await feedRows(feedNames.matchStats.name);
+    const rows = await feedRows(FEED_NAMES.matchStats.name);
     expect(within(rows).getByText(feedStateWords.failing).className).toContain("text-event");
     expect(within(rows).getByText("3 hours ago")).toBeTruthy();
     expect(within(rows).getAllByRole("row")[1].textContent).toBe(`${lastErrorWords(lastError.at)} FPL answered 503`);
@@ -130,12 +129,12 @@ describe("the feeds", () => {
     });
     openFeeds(report);
 
-    const live = await feedRows(feedNames.liveStats.name);
+    const live = await feedRows(FEED_NAMES.liveStats.name);
     expect(within(live).getByText(feedStateWords.fine).className).not.toMatch(/text-event|text-muted/);
     expect(within(live).getByText("2 minutes ago")).toBeTruthy();
-    expect(within(await feedRows(feedNames.positions.name)).getByText(feedStateWords.notScheduled).className).toContain("text-muted");
-    expect(within(await feedRows(feedNames.positions.name)).getByText("3 days ago")).toBeTruthy();
-    const football = await feedRows(feedNames.football.name);
+    expect(within(await feedRows(FEED_NAMES.positions.name)).getByText(feedStateWords.notScheduled).className).toContain("text-muted");
+    expect(within(await feedRows(FEED_NAMES.positions.name)).getByText("3 days ago")).toBeTruthy();
+    const football = await feedRows(FEED_NAMES.football.name);
     expect(within(football).getByText(neverWords)).toBeTruthy();
     expect(within(football).getByText(feedStateWords.notRunningYet).className).toContain("text-muted");
   });
@@ -150,9 +149,9 @@ describe("the feeds", () => {
       ],
     });
 
-    const scottish = await feedRows(`${feedNames.sportmonks.name}: Scottish Premiership`);
+    const scottish = await feedRows(`${FEED_NAMES.sportmonks.name}: Scottish Premiership`);
     expect(within(scottish).getByText(feedStateWords.fine)).toBeTruthy();
-    const premierLeague = await feedRows(`${feedNames.sportmonks.name}: Premier League`);
+    const premierLeague = await feedRows(`${FEED_NAMES.sportmonks.name}: Premier League`);
     expect(within(premierLeague).getByText(feedStateWords.failing).className).toContain("text-event");
   });
 });

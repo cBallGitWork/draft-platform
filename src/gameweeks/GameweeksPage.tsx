@@ -7,7 +7,7 @@ import { Loading, PageSection, Problem } from "../ui/Panel";
 import { BackToLeagues } from "../leagues/LeagueLinks";
 import { TickBox } from "../ui/TickBox";
 import { useChange } from "../shared/useChange";
-import { useMinute } from "../shared/useMinute";
+import { useNowEachMinute } from "../shared/useMinute";
 import { gameweekWords, whenWords } from "../shared/words";
 import type { LeagueGameweeksView } from "./seam";
 import {
@@ -79,10 +79,8 @@ function GameweekTable({
   sending: number | null;
   onTick: (gameweek: LeagueGameweek) => void;
 }) {
-  // Redrawn each minute so a gameweek that begins while the page is open stops taking ticks; judged
-  // against the moment itself, not the minute's start, which would leave it tickable up to 59s past.
-  useMinute();
-  const now = Date.now();
+  // A gameweek that begins while the page is open stops taking ticks.
+  const now = useNowEachMinute();
   return (
     <table className="w-full self-start border-collapse">
       <ColumnHeads columns={gameweekColumns} classOf={() => cellClasses} />

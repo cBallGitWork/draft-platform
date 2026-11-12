@@ -5,6 +5,7 @@ import { categoryName } from "../../convex/scoring/categories";
 import { signedWords } from "../../convex/shared/numberWords";
 import { cellClassOf, ColumnHeads } from "../ui/ColumnHeads";
 import { PanelNote } from "../ui/Panel";
+import { thousandsWords } from "../shared/words";
 import {
   instructionColumns,
   instructionsHint,
@@ -75,7 +76,7 @@ function LabRow({ role }: { role: LabRole }) {
             {role.average === null ? noStartsWords : signedWords(role.average)}
             {role.offTarget && <span className="ml-2 font-semibold text-event">{offTargetWords}</span>}
           </td>
-          <td className={`${cellClasses("starts")} text-figure`}>{role.starts.toLocaleString("en-GB")}</td>
+          <td className={`${cellClasses("starts")} text-figure`}>{thousandsWords(role.starts)}</td>
         </>
       )}
     </tr>

@@ -7,10 +7,9 @@
 import { screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
-import { nextGameweekLabel, previousGameweekLabel } from "../../../src/shared/words";
+import { menuWords, nextGameweekLabel, previousGameweekLabel } from "../../../src/shared/words";
 import { HOUR_MS, WEEK_MS } from "../../../convex/shared/time";
 import { MY_TEAM_PATH, TABLE_PATH } from "../../../src/frame/menu";
-import { menuWords } from "../../../src/frame/words";
 import { expectColumnHeads } from "../../support/src/columnHeads";
 import { commissioner, league, manager, openApp } from "../../support/src/shell.harness";
 import { leagueTableOf } from "../../../src/table/drawnTable";

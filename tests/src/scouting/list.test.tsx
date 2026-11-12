@@ -6,7 +6,7 @@ import { screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
 import { MY_TEAM_PATH, SCOUTING_PATH } from "../../../src/frame/menu";
-import { mainMenuLabel, menuWords } from "../../../src/frame/words";
+import { mainMenuLabel } from "../../../src/frame/words";
 import {
   availabilityWords,
   clubLabel,
@@ -26,7 +26,7 @@ import {
   seasonColumns,
   seasonPointsColumn,
 } from "../../../src/scouting/words";
-import { columnHeadName, freeAgentWords, POSITION_NAMES } from "../../../src/shared/words";
+import { columnHeadName, freeAgentWords, menuWords, POSITION_NAMES } from "../../../src/shared/words";
 import { crestUrl } from "../../../src/ui/ClubName";
 import { ARSENAL } from "../../support/convex/footballRows.harness";
 import { columnHeadIn } from "../../support/src/columnHeads";

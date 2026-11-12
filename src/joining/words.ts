@@ -18,16 +18,13 @@ export const forTeamWords = (teamName: string | null) => `For ${teamName ?? aNew
 
 export const inviteHint = `No approval needed. An invite lasts ${INVITE_DAYS} days.`;
 
-/** A day, as the page shows when an invite ends or a request was made: "Tue 27 Oct". */
-export const dayWords = dateWords;
-
 /** Why an invite waits for tomorrow (spec/13). */
 const dayIsSpent = "today's emails have all gone";
 
 /** Where a live invite's email stands. */
 export const deliveryWords: Record<Delivery, (expiresAt: number) => string> = {
   sending: () => "Sending…",
-  sent: (expiresAt) => `Sent. It lasts until ${dayWords(expiresAt)}.`,
+  sent: (expiresAt) => `Sent. It lasts until ${dateWords(expiresAt)}.`,
   waiting: () => `Waits for tomorrow: ${dayIsSpent}. It goes by itself.`,
   tryLater: () => `Not sent: ${unsentLinkWords.tryLater}. Resend it later.`,
   notSent: () => `Not sent: ${unsentLinkWords.notSent}. Resend it.`,
@@ -82,7 +79,7 @@ export const linkHint = "Opening it only asks to join: you approve each request.
 /** The join requests the link made, each approved to a team or refused. */
 export const requestsWords = {
   title: "Join requests",
-  asked: (askedAt: number) => `Asked ${dayWords(askedAt)}`,
+  asked: (askedAt: number) => `Asked ${dateWords(askedAt)}`,
   teamLabel: (email: string) => `Team for ${email}`,
   approve: "Approve",
   approveLabel: (email: string) => `Approve ${email}`,
