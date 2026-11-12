@@ -5,8 +5,8 @@ import { liveWords } from "../shared/words";
 import { matchupLinkLabel, scoreWords, versusWords } from "./words";
 
 /** A fixture's middle cell, its score or "v", as a link to the team's matchup in the gameweek, that
- *  game's own where the team plays two (`game`, from 1, left out of the address for the first, so a
- *  league playing one a gameweek keeps its addresses; #913): from
+ *  game's own where the team plays two (`game`, from 1; `matchupLink` leaves the first out of the
+ *  address; #913): from
  *  the table's fixtures, league home's head-to-heads and My team's fixtures. A full tap target on the
  *  phone. Points of null draw "v". Passing `live` (My team's fixtures) wraps the score with room for
  *  the Live tag, shown while `live` is true; without it the score is a single span. */
@@ -28,7 +28,7 @@ export function MatchupLink({
   live?: boolean;
 }) {
   return (
-    <Link {...matchupLink(teamId, gameweek, game === 1 ? undefined : game)} aria-label={matchupLinkLabel(team, opponent, gameweek)} className="flex min-h-tap min-w-tap items-center justify-center lg:min-h-0 lg:min-w-0">
+    <Link {...matchupLink(teamId, gameweek, game)} aria-label={matchupLinkLabel(team, opponent, gameweek)} className="flex min-h-tap min-w-tap items-center justify-center lg:min-h-0 lg:min-w-0">
       {points === null ? (
         <span>{versusWords}</span>
       ) : live === undefined ? (
