@@ -45,6 +45,19 @@ describe("a team's games", () => {
     // The average of 60, 50 and 40.
     expect(average?.score).toEqual({ team: 40, opponent: 50, provisional: false });
   });
+
+  it("is live or final as its fixture was sent, whatever the gameweek's other results say (#1745)", () => {
+    const table = leagueTableOf(TEAMS.slice(0, 3), { gameweeks: GAMEWEEKS, scores, oddTeamOut: "leagueAverage" });
+    const averageGame = (each: (typeof table.gameweeks)[number]["fixtures"][number]) => each.team === "Cal" && each.opponent === null;
+    const gameweek = table.gameweeks.find((each) => each.fixtures.some(averageGame))!;
+    const fixture = gameweek.fixtures.find(averageGame)!;
+    // A team that joined after the gameweek began, live in its results but no part of its draw.
+    table.results.find((each) => each.gameweek === gameweek.gameweek)!.teams.push({ teamId: idOf("Dee"), teamName: "Dee", points: 0, provisional: true });
+    const score = () => gamesIn(table, "Cal", gameweek.gameweek)[0].score;
+    expect(score()?.provisional).toBe(false);
+    fixture.points = { ...fixture.points!, provisional: true };
+    expect(score()?.provisional).toBe(true);
+  });
 });
 
 describe("where a team stands", () => {

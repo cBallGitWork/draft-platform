@@ -48,7 +48,9 @@ A build gives its own diff one quick pass before its final verify: code written 
 don't match their neighbours, a helper or fixture that already exists elsewhere, fixed in place
 (Craig, 4 Nov 2026: "a little refactor is always good"; the prompt is in `claude-build.yml`).
 No skill and no subagent: the full `/refactor` (`.claude/skills/refactor/`) runs in the weekly
-drift pass, or in a session when Craig asks. `pr-reviewer` reviews every pull request as its own
+drift pass, or in a session when Craig asks. `tests/convex/oneHome.test.ts` fails when a type, a
+function body or a literal object is written in three files of `convex/`, or a test restates a
+harness's export, past its shrink-only lists (#1813). `pr-reviewer` reviews every pull request as its own
 job (`.github/workflows/review.yml`), posting its verdict as a comment; the merge waits for it to land (`review-landed`, `.github/workflows/review-gate.yml`).
 
 ## The drift pass

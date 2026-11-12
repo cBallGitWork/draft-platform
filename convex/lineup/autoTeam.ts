@@ -16,7 +16,7 @@ import { firstLineup, withDroppedRoles, type FirstLineup, type FirstLineupRules 
 import { namedCodes, type Placement, type PlayerPositions } from "./lineup";
 import { heldPositionsOf, lineupsInGameweek, storeAutoTeamLineup, type HeldLineup } from "./lineups";
 import { saveGameweekOf } from "../gameweeks/saveGameweek";
-import type { Area, Lane } from "./pitch";
+import { heldCell } from "./pitch";
 import { autoTeamLetters, autoTeamRefusals } from "./autoTeamWords";
 import { onAutoTeam } from "./autoTeamSwitch";
 
@@ -55,8 +55,7 @@ function autoTeamLineup(
  *  any other before a sub). */
 const onThePitch = ({ playerCode, area, lane, role }: Placement) => ({
   playerCode,
-  area: area as Area,
-  lane: lane as Lane,
+  ...heldCell({ area, lane }),
   ...(role === undefined ? {} : { role }),
 });
 

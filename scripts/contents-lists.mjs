@@ -6,7 +6,7 @@
 
 import { execFileSync } from "node:child_process";
 import { readFileSync } from "node:fs";
-import { pathToFileURL } from "node:url";
+import { ranDirectly } from "./thisScript.mjs";
 
 export const MAX_LINES = 100;
 /** How far down the contents list may start: past a skill's or agent's front matter and a title's
@@ -27,7 +27,7 @@ export function docsWithoutContents(docs) {
     .map(([path]) => path);
 }
 
-if (process.argv[1] !== undefined && import.meta.url === pathToFileURL(process.argv[1]).href) {
+if (ranDirectly(import.meta.url)) {
   const tracked = execFileSync("git", ["ls-files", "-z", "*.md"], { encoding: "utf8" }).split("\0").filter(Boolean);
   const missing = docsWithoutContents(tracked.map((path) => [path, readFileSync(path, "utf8")]));
   for (const path of missing) {

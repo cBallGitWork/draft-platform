@@ -67,6 +67,20 @@ test("a goalkeeper gets the goalkeeper's set; the list's stat joins as a seventh
   expect((await figuresOf(PALMER.code, "assists")).figures).toHaveLength(6);
 });
 
+test("goals conceded ranks the keeper who lets in fewest highest, as every fewer-is-better stat does (#1787, S19.3)", async () => {
+  const sanchez = { code: 1007, name: "Sánchez", fullName: "Robert Sánchez", clubCode: CHELSEA.code, positions: ["GK" as const] };
+  await t.run(async (ctx) => {
+    await insertPlayers(ctx, [sanchez]);
+    await ctx.db.insert("playerSeasonStats", { season: FPL_SEASON, playerCode: sanchez.code, stats: { minutes: 900, goals_conceded: 21, saves: 40 } });
+    const raya = (await ctx.db.query("playerSeasonStats").collect()).find((row) => row.playerCode === RAYA.code)!;
+    await ctx.db.patch("playerSeasonStats", raya._id, { stats: { ...raya.stats, goals_conceded: 7 } });
+  });
+  // Raya concedes 0.7 a match, Sánchez 2.1: Raya is 100, Sánchez 50; saves still rank most highest.
+  expect(await figureOf(RAYA.code, "goals_conceded")).toMatchObject({ perNinety: 0.7, percentile: 100 });
+  expect(await figureOf(sanchez.code, "goals_conceded")).toMatchObject({ perNinety: 2.1, percentile: 50 });
+  expect(await figureOf(sanchez.code, "saves")).toMatchObject({ percentile: 100 });
+});
+
 test("a player with no minutes has no figures per 90", async () => {
   await t.run(async (ctx) => {
     for (const row of await ctx.db.query("playerSeasonStats").collect()) await ctx.db.delete("playerSeasonStats", row._id);
@@ -106,5 +120,10 @@ describe("the rules apart", () => {
     expect(percentileOf(3, [1, 2, 3, 4])).toBe(75);
     expect(percentileOf(4, [1, 2, 3, 4])).toBe(100);
     expect(percentileOf(1, [])).toBeNull();
+  });
+
+  test("where fewer is better, the share at or above, so the fewest is 100", () => {
+    expect(percentileOf(1, [1, 2, 3, 4], false)).toBe(100);
+    expect(percentileOf(4, [1, 2, 3, 4], false)).toBe(25);
   });
 });

@@ -17,13 +17,13 @@ Reads the hook payload (JSON) on stdin; prints a deny, a note, or nothing. Stdli
 
 from __future__ import annotations
 
-import json
 import re
 import sys
 
 from approval_gate import approval_problem
 from commands import XARGS, Unbalanced, Unreadable, UnreadableStdin, commands, runs_unknown, short_flags
-from hook_payload import project_dir
+from guard_run import run_guard
+from hook_payload import field, project_dir
 from pr_body import pr_body_problem, pr_title_note
 from private_words import list_missing_note, private_word_problem
 from read_only import agent_type_note, read_only_problem
@@ -204,30 +204,17 @@ def note(cmd, cwd, payload):
     return "\n".join(notes) or None
 
 
+def check(payload):
+    """(deny reason, advice) for a payload: run_guard's decide."""
+    cmd = field(field(payload, "tool_input", dict, {}), "command", str, "")
+    cwd = project_dir(field(payload, "cwd", str, ""))
+    reason = decide(cmd, cwd, payload.get("agent_type"))
+    return reason, None if reason else note(cmd, cwd, payload)
+
+
 def main():
-    advice = None
-    try:  # a payload it can't read is denied too: allowing it would check nothing
-        payload = json.load(sys.stdin)
-        if isinstance(payload, dict):
-            cmd = (payload.get("tool_input") or {}).get("command") or ""
-            cwd = project_dir(payload.get("cwd"))
-            reason = decide(cmd, cwd, payload.get("agent_type"))
-            advice = None if reason else note(cmd, cwd, payload)
-        else:
-            reason = (f"The Bash guard couldn't read the hook payload (a JSON {type(payload).__name__}, "
-                      "not an object), so nothing was checked.")
-    except Exception as error:  # a guard that crashes prints nothing, which would allow
-        reason = f"The Bash guard failed ({type(error).__name__}: {error}), so nothing was checked."
-    if reason:
-        print(json.dumps({"hookSpecificOutput": {
-            "hookEventName": "PreToolUse",
-            "permissionDecision": "deny",
-            "permissionDecisionReason": reason,
-        }}))
-    elif advice:  # additionalContext reaches Claude; systemMessage shows it to Craig
-        print(json.dumps({"systemMessage": advice,
-                          "hookSpecificOutput": {"hookEventName": "PreToolUse", "additionalContext": advice}}))
+    return run_guard("Bash", check)
 
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main())
