@@ -9,7 +9,7 @@ import { Placeholder } from "../../ui/Placeholder";
 import type { SquadNumberChanges } from "../seam";
 import { StarRating } from "../../ui/StarRating";
 import { starsIn } from "../../../convex/stars/bestRole";
-import { benchBestRole } from "../tactics/lineupEdits";
+import { benchBestRole, placeOf } from "../tactics/lineupEdits";
 import { ROLE_FIT_SUBJECT } from "../tactics/words";
 import { tacticsLink } from "../tactics/paths";
 import type { Tactics } from "../tactics/seam";
@@ -163,11 +163,9 @@ function BestRole({ tactics, code }: { tactics: Tactics | undefined; code: numbe
  *  no lineup is open to set. */
 function GameweekPlace({ tactics, code }: { tactics: Tactics | undefined; code: number }) {
   if (tactics?.kind !== "open") return null;
-  const { starters, bench } = tactics.lineup;
-  const starter = starters.find((each) => each.playerCode === code);
-  const benchIndex = bench.indexOf(code);
-  const where = starter !== undefined ? startingInWords(positionOfSlot(starter), starter.lane) : benchIndex >= 0 ? benchedInWords(benchIndex + 1) : null;
-  if (where === null) return null;
+  const place = placeOf(tactics.lineup, code);
+  if (place === null) return null;
+  const where = "starter" in place ? startingInWords(positionOfSlot(place.starter), place.starter.lane) : benchedInWords(place.benchIndex + 1);
   return (
     <>
       <dt className="text-soft">

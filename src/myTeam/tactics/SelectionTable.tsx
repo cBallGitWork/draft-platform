@@ -12,7 +12,7 @@ import { NextMatches } from "../SquadCells";
 import { statusNotSettledLabel } from "../words";
 import { markOf } from "./focusMarks";
 import { PositionMarks, positionMarksOf } from "./positionMarks";
-import { benchBestRole, landingOf, positionsIn, startersInOrder, type EditedLineup, type Landing, type RatingsOf, type SquadMember, type Starter } from "./lineupEdits";
+import { benchBestRole, landingOf, positionsIn, starts, startersInOrder, type EditedLineup, type Landing, type RatingsOf, type SquadMember, type Starter } from "./lineupEdits";
 import { startDrag, type Moving } from "./pitch/Pitch";
 import {
   BEST_ROLE_HEAD,
@@ -73,7 +73,7 @@ export function SelectionTable({
   ratingsOf: RatingsOf;
 }) {
   const { picked } = moving;
-  const pickedStarts = picked !== null && draft.starters.some((starter) => starter.playerCode === picked.playerCode);
+  const pickedStarts = picked !== null && starts(draft, picked.playerCode);
   const allowDrop = (event: DragEvent) => {
     if (pickedStarts) event.preventDefault();
   };
