@@ -8,6 +8,8 @@
 // on #1196). Clearances off the line have two types (582, 2271) and no match sent either, so the
 // stat waits for one that does.
 
+import { ACCURATE_LAUNCHES, LAUNCHES } from "../../scoring/statKeys";
+
 /** A catalogue stat Sportmonks doesn't send. */
 export const MISSING = "missing";
 
@@ -83,7 +85,7 @@ export const NOT_IN_SPORTMONKS: readonly string[] = [
   "clean_sheet_half_time", "goals_conceded_half_time",
   "accurate_back_zone_pass", "accurate_chipped_pass", "accurate_corners_intobox", "accurate_cross_nocorner", "accurate_flick_on",
   "accurate_freekick_cross", "accurate_fwd_zone_pass", "accurate_goal_kicks", "accurate_keeper_sweeper",
-  "accurate_keeper_throws", "accurate_launches", "accurate_layoffs", "accurate_pull_back", "accurate_throws", "appearances",
+  "accurate_keeper_throws", ACCURATE_LAUNCHES, "accurate_layoffs", "accurate_pull_back", "accurate_throws", "appearances",
   "assist_attempt_saved", "assist_blocked_shot", "assist_free_kick_won", "assist_handball_won", "assist_own_goal",
   "assist_pass_lost", "assist_penalty_won", "assist_post", "att_assist_openplay", "att_assist_setplay", "att_bx_centre",
   "att_bx_left", "att_bx_right", "att_cmiss_high", "att_cmiss_high_left", "att_cmiss_high_right", "att_cmiss_left",
@@ -115,7 +117,7 @@ export const NOT_IN_SPORTMONKS: readonly string[] = [
   "successful_final_third_passes", "successful_open_play_pass", "successful_pen_area_entries",
   "successful_pen_area_entries_open_play", "successful_put_through", "threat", "times_tackled", "total_back_zone_pass",
   "total_chipped_pass", "total_corners_intobox", "total_cross_nocorner", "total_fastbreak", "total_final_third_passes",
-  "total_flick_on", "total_fwd_zone_pass", "total_high_claim", "total_keeper_sweeper", "total_launches", "total_layoffs",
+  "total_flick_on", "total_fwd_zone_pass", "total_high_claim", "total_keeper_sweeper", LAUNCHES, "total_layoffs",
   "total_pull_back", "total_sub_off", "total_sub_on", "total_throws", "touches_in_final_third", "touches_in_opp_box", "turnover",
   "unsuccessful_touch", "winning_goal", "wins", "won_corners",
 ];

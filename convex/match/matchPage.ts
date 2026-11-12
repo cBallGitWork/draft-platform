@@ -19,7 +19,7 @@ import { memberOf } from "../shared/leagueAccess";
 import { clubByCode, clubOf, playerByCode, unheldPlayerWords, type PlayerCode } from "../shared/players";
 import { thresholdStepsOf } from "../stats/thresholdSteps";
 import { hasBegun, workedOutGameweek } from "../gameweekScorer/gameweekScores";
-import { matchRecordsOf } from "../gameweekScorer/heldMatches";
+import { matchRecordsOf } from "../stats/matchRecordReads";
 import { inMatchOf, leagueReads, pointsInMatch } from "../gameweekScorer/teamGameweek";
 import { deadlineLineupsOf, matchOwnersOf, type DeadlineLineups } from "./matchOwners";
 import { bySheetOrder } from "./sheetOrder";
