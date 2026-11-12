@@ -5,7 +5,8 @@ import {
   backOf,
   byPitchOrder,
   cellKey,
-  isOnPitch,
+  cellOf,
+  heldCell,
   LANES,
   playsCell,
   positionOfSlot,
@@ -100,9 +101,14 @@ test("a cell's key is its area and lane, so a message naming it reads the same a
 });
 
 test("a cell is on the pitch only when both its area and its lane are", () => {
-  expect(isOnPitch({ area: "midfield", lane: "centre" })).toBe(true);
-  expect(isOnPitch({ area: "wingBack", lane: "centre" } as unknown as Cell)).toBe(false);
-  expect(isOnPitch({ area: "midfield", lane: "middle" } as unknown as Cell)).toBe(false);
+  expect(cellOf({ area: "midfield", lane: "centre" })).toEqual({ area: "midfield", lane: "centre" });
+  expect(cellOf({ area: "wingBack", lane: "centre" })).toBeNull();
+  expect(cellOf({ area: "midfield", lane: "middle" })).toBeNull();
+});
+
+test("a placement already checked gives its cell, and one off the pitch is a bug that throws, naming it", () => {
+  expect(heldCell({ area: "attack", lane: "left" })).toEqual({ area: "attack", lane: "left" });
+  expect(() => heldCell({ area: "wingBack", lane: "left" })).toThrow("No cell wingBack, left");
 });
 
 test("two cells are the same only when both their area and their lane are, and a placement compares too", () => {

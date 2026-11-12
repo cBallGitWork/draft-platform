@@ -1,9 +1,10 @@
 import { expect, test } from "vitest";
 import type { MatchMan } from "../../../convex/match/matchPage";
 import { unheldPlayerWords } from "../../../convex/shared/players";
-import { ANN, ANNS_TEAM, annsScoredGame, BOB, HULL_SCORER, lineupOf, losePlayer } from "../../support/convex/gameweekScores.harness";
+import { ANNS_TEAM, annsScoredGame, HULL_SCORER, lineupOf, losePlayer } from "../../support/convex/gameweekScores.harness";
 import { fullTimeRecords } from "../../support/convex/gameweekScoresMatch.harness";
 import { holdLines, manOf, matchAs, matchLeague, scorerFreeLeague, storedLine } from "../../support/convex/matchPage.harness";
+import { ANN, BOB } from "../../support/convex/leagues.harness";
 
 // A match naming a man the football data no longer holds (#1765): his saved record stays (spec/14
 // S14.5), so the match still names him. The page loads for everyone, his row says what's wrong where

@@ -16,7 +16,7 @@ import type { QueueFromShortlist, ShortlistSeam } from "./shortlist/seam";
 export type { Comparison, Per90Panel, Period, PlayersFilters, PlayersList, PlayersSort, StatRace, YourPlayer };
 export type { RacingTeam } from "../../convex/scouting/statRace";
 export type { ComparedPlayer } from "../../convex/scouting/compare";
-export type { Availability, ListedPlayer, SortColumn } from "../../convex/scouting/playersList";
+export type { HeldByFilter, ListedPlayer, SortColumn } from "../../convex/scouting/playersList";
 
 /** The player card's pickup, claim and drop, which the selected player's panel offers too. */
 export type WaiverActionSeam = Pick<PlayerCardSeam, "useCardAction" | "useWaiverChanges">;

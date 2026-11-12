@@ -3,10 +3,10 @@ import { api } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
 import { MOST_IN_SQUAD } from "../../../convex/leagues/leagueLimits";
 import { squadFullRefusal } from "../../../convex/trades/tradeSquads";
-import { actingAs, eventsIn } from "../../support/convex/leagues.harness";
+import { actingAs, eventsIn, ANN, BOB, CAT } from "../../support/convex/leagues.harness";
 import { holdPlayers, nameOf } from "../../support/convex/lineupSquad.harness";
 import { expectRefused, silenceConsoleError } from "../../support/convex/test.harness";
-import { ANN, ANNS_FIRST_DROP, BOB, CAT, PALMER, RICE, SAKA, tradeLeague, type TradeLeague } from "../../support/convex/trades.harness";
+import { ANNS_FIRST_DROP, PALMER, RICE, SAKA, tradeLeague, type TradeLeague } from "../../support/convex/trades.harness";
 
 // A trade that can't be made at its review's end closes, with a letter to both managers, rather
 // than throw and hold its players for good (#1325): nothing retries a review's end.

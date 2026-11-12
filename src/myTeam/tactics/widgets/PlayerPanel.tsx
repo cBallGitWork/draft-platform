@@ -1,10 +1,10 @@
-import { Link } from "@tanstack/react-router";
 import { useId } from "react";
 import type { Id } from "../../../../convex/_generated/dataModel";
 import { positionOfSlot } from "../../../../convex/lineup/pitch";
 import { everyRoleOf, roleIn, rolesFor, takesRole } from "../../../../convex/lineup/roles";
 import { playerCardPath } from "../../../playerCard/paths";
-import { nextGlyph, playerCardWords } from "../../../shared/words";
+import { playerCardWords } from "../../../shared/words";
+import { MoreLink } from "../../../ui/MoreLink";
 import { CloseButton } from "../../../ui/Panel";
 import { Placeholder } from "../../../ui/Placeholder";
 import { PositionChip } from "../../../ui/PositionChip";
@@ -186,9 +186,9 @@ export function PlayerPanel({
         )}
         {/* One the football sync doesn't hold has no card to open (#323). */}
         {!player.unheld && (
-          <Link to={playerCardPath(leagueId, player.playerCode)} aria-label={playerCardLabel(player.name)} className="ml-auto flex min-h-tap items-center gap-1 font-semibold lg:min-h-0">
-            {playerCardWords} <span aria-hidden="true">{nextGlyph}</span>
-          </Link>
+          <MoreLink to={playerCardPath(leagueId, player.playerCode)} aria-label={playerCardLabel(player.name)} className="ml-auto lg:min-h-0">
+            {playerCardWords}
+          </MoreLink>
         )}
       </div>
     </section>

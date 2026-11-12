@@ -3,6 +3,7 @@ import type { Id } from "../../../convex/_generated/dataModel";
 import { eventLetter } from "../../../convex/mail/letterWords";
 import { tellIn } from "../../../convex/mail/letterMoments";
 import type { LeagueEvent } from "../../../convex/schema";
+import { ANN } from "../../support/convex/leagues.harness";
 
 // The letters for the league events joining, gameweeks, deletion and rules file (#73, #74, #75,
 // #25): each says who did what, and the facts the event carries.
@@ -11,7 +12,6 @@ const WHO = "commish@example.com";
 /** Times told in London's zone, as for a reader whose own isn't known. */
 const LONDON = tellIn(undefined);
 const TEAM = "team-1" as Id<"teams">;
-const ANN = "ann@example.com";
 const IN_JANUARY = Date.parse("2027-01-15T12:00:00Z");
 
 const LETTERS: [LeagueEvent, string, string][] = [

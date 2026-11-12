@@ -4,14 +4,12 @@ import type { Id } from "../../../convex/_generated/dataModel";
 import { switchableLeagues } from "../../../convex/leagues/lastLeague";
 import { LEAGUES_SHOWN } from "../../../convex/leagues/leagueLimits";
 import { refusals } from "../../../convex/shared/leagueAccess";
-import { ADMIN, accountOf, actingAs, CO_COMMISSIONER, COMMISSIONER, MANAGERS, addManagers, adminCreatesLeague, TEST_LEAGUE_TEAMS, type TestConvex } from "../../support/convex/leagues.harness";
+import { ADMIN, accountOf, actingAs, CO_COMMISSIONER, COMMISSIONER, addManagers, adminCreatesLeague, TEST_LEAGUE_TEAMS, type TestConvex, ANN, BOB } from "../../support/convex/leagues.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
 import { expectRefused } from "../../support/convex/test.harness";
 
 // The league switcher (#76, spec/13, Several leagues): which league signIn/account:signedInAs says the
 // app is in, and switching to another.
-
-const [ANN, BOB] = MANAGERS;
 
 let t: TestConvex;
 beforeEach(async () => {

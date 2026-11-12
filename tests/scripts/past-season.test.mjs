@@ -2,7 +2,7 @@ import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 import { expect, test } from "vitest";
 import { PAST_ROWS_ADDED_MOST } from "../../convex/pastSeasons/pastSeasonLimits.ts";
-import { PYTHON, READ_LOG, REPRICE, SEASONS, loadPastSeason, parseJson } from "../../scripts/past-season.mjs";
+import { ADD_ROWS, CLEAR_SEASON, PYTHON, READ_LOG, REPRICE, SEASONS, loadPastSeason, parseJson } from "../../scripts/past-season.mjs";
 import { REPO_ROOT } from "../support/scripts/repoRoot.mjs";
 
 // The copy run on the sample in tests/support/scripts/aiCarling/ (laid out as ai-carling is), with
@@ -17,25 +17,27 @@ const SAMPLE = {
   },
 };
 const CONVEX = join(REPO_ROOT, "node_modules", ".bin", "convex");
+/** The sample's log, as READ_LOG prints it. */
+const SAMPLE_LOG = await readFile(join(FROM, "playerMatchLog.sample.json"), "utf8");
+/** The rows the load adds from the sample's log. */
+const SAMPLE_ROWS_ADDED = 9;
 
 /** A faked exec: Python prints the sample's log; `convex run` answers as the deployment would,
  *  `clearing` old rows over pages of `page`. Every call is kept. */
 async function fakeTools({ clearing = 0, page = 1000 } = {}) {
-  const log = await readFile(join(FROM, "playerMatchLog.sample.json"), "utf8");
   const calls = [];
   let left = clearing;
   const exec = async (command, args) => {
     calls.push({ command, args });
-    if (command === join(FROM, PYTHON)) return { code: 0, stdout: log, stderr: "" };
+    if (command === join(FROM, PYTHON)) return { code: 0, stdout: SAMPLE_LOG, stderr: "" };
     if (command !== CONVEX) return { code: 1, stdout: "", stderr: `no ${command}` };
-    const fn = args[1].split(":")[1];
     const body = JSON.parse(args[2]);
-    if (fn === "clearSeason") {
+    if (args[1] === CLEAR_SEASON) {
       const deleted = Math.min(left, page);
       left -= deleted;
       return { code: 0, stdout: JSON.stringify({ deleted, more: left > 0 }), stderr: "" };
     }
-    if (fn === "reprice") return { code: 0, stdout: "null", stderr: "" };
+    if (args[1] === REPRICE) return { code: 0, stdout: "null", stderr: "" };
     return { code: 0, stdout: String(body.rows.length), stderr: "" };
   };
   return { exec, calls };
@@ -59,15 +61,9 @@ test("the log is read by ai-carling's own Python, the columns the copy keeps and
 
 test("the season's old rows are cleared page by page, then its rows added and last season re-priced, on dev", async () => {
   const { exec, calls } = await fakeTools({ clearing: 2500 });
-  expect(await run(exec)).toEqual({ counts: SAMPLE[2025].counts, cleared: 2500, added: 9, skipped: [] });
+  expect(await run(exec)).toEqual({ counts: SAMPLE[2025].counts, cleared: 2500, added: SAMPLE_ROWS_ADDED, skipped: [] });
   const convexCalls = calls.filter((call) => call.command === CONVEX).map((call) => call.args);
-  expect(convexCalls.map((args) => args[1])).toEqual([
-    "pastSeasons/pastSeasonLoad:clearSeason",
-    "pastSeasons/pastSeasonLoad:clearSeason",
-    "pastSeasons/pastSeasonLoad:clearSeason",
-    "pastSeasons/pastSeasonLoad:addRows",
-    REPRICE,
-  ]);
+  expect(convexCalls.map((args) => args[1])).toEqual([CLEAR_SEASON, CLEAR_SEASON, CLEAR_SEASON, ADD_ROWS, REPRICE]);
   expect(JSON.parse(convexCalls.at(-1)[2])).toEqual({ cursor: null });
   expect(convexCalls.every((args) => !args.includes("--prod"))).toBe(true);
 });
@@ -81,9 +77,9 @@ test("with --prod every write goes to the live deployment", async () => {
 test("rows go in batches no bigger than one call adds", async () => {
   const { exec, calls } = await fakeTools();
   await run(exec);
-  const sizes = calls.filter((call) => call.args[1]?.endsWith(":addRows")).map((call) => JSON.parse(call.args[2]).rows.length);
+  const sizes = calls.filter((call) => call.args[1] === ADD_ROWS).map((call) => JSON.parse(call.args[2]).rows.length);
   expect(sizes.every((size) => size <= PAST_ROWS_ADDED_MOST)).toBe(true);
-  expect(sizes.reduce((sum, size) => sum + size, 0)).toBe(9);
+  expect(sizes.reduce((sum, size) => sum + size, 0)).toBe(SAMPLE_ROWS_ADDED);
 });
 
 test("a log whose sizes aren't the planned ones stops the run before anything is written", async () => {
@@ -107,20 +103,20 @@ test("an older season loads from the FPL list named with --players, checked only
   await expect(run(exec, { season: 2021, seasons: older })).rejects.toThrow("2021 needs its FPL player list: name it with --players");
   expect(calls).toEqual([]);
   const result = await run(exec, { season: 2021, seasons: older, players: SAMPLE[2025].players });
-  expect(result.added).toBe(9);
-  const added = calls.filter((call) => call.args[1]?.endsWith(":addRows")).flatMap((call) => JSON.parse(call.args[2]).rows);
+  expect(result.added).toBe(SAMPLE_ROWS_ADDED);
+  const added = calls.filter((call) => call.args[1] === ADD_ROWS).flatMap((call) => JSON.parse(call.args[2]).rows);
   expect(added.every((row) => row.season === 2021)).toBe(true);
 });
 
 test("a player with no FPL code is skipped and named, and the rest of the season still loads", async () => {
-  const sample = JSON.parse(await readFile(join(FROM, "playerMatchLog.sample.json"), "utf8"));
+  const sample = JSON.parse(SAMPLE_LOG);
   const unmatched = sample.filter((row) => row.person_root_id === "keeper-one").map((row) => ({ ...row, person_root_id: "no-fpl-seven" }));
   const { exec } = await fakeTools();
   const withUnmatched = async (command, args) => (command === join(FROM, PYTHON) ? { code: 0, stdout: JSON.stringify([...sample, ...unmatched]), stderr: "" } : exec(command, args));
   const printed = [];
   const counts = { 2025: { ...SAMPLE[2025], counts: { matches: 2 } } };
   const result = await run(withUnmatched, { seasons: counts, print: (line) => printed.push(line) });
-  expect(result.added).toBe(9);
+  expect(result.added).toBe(SAMPLE_ROWS_ADDED);
   expect(result.skipped.map(({ root }) => root)).toEqual(["no-fpl-seven"]);
   expect(printed[0]).toMatch(/^2025: skipped 1 with no FPL code, \d+ played matches in all: no-fpl-seven \(\d+ played\)$/);
 });
@@ -132,7 +128,7 @@ test("a season the copy doesn't know is refused", async () => {
 
 test("a failed write stops the run with what the CLI said", async () => {
   const exec = async (command) =>
-    command === CONVEX ? { code: 1, stdout: "", stderr: "not signed in" } : { code: 0, stdout: await readFile(join(FROM, "playerMatchLog.sample.json"), "utf8"), stderr: "" };
+    command === CONVEX ? { code: 1, stdout: "", stderr: "not signed in" } : { code: 0, stdout: SAMPLE_LOG, stderr: "" };
   await expect(run(exec)).rejects.toThrow("failed (exit 1): not signed in");
 });
 

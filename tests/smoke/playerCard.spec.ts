@@ -11,6 +11,7 @@ import { SCOUTING_PATH } from "../../src/frame/menu";
 import { availabilityWords } from "../../src/scouting/words";
 import { breakdownLabel, claimWords, confirmDropWords, dropWords, logViews, pickUpWords, postponedWords, SEASON_TITLE, whoGoesLabel } from "../../src/playerCard/words";
 import { test } from "../support/smoke/errorsTest";
+import { previewUrl } from "../support/smoke/previewUrl";
 
 /** Scouting's preview players (src/scouting/preview.ts): the preview manager's own Saka, Rice a free
  *  agent and James on waivers. */
@@ -20,7 +21,7 @@ const JAMES = 5;
 
 test.describe("the player card, on the dev server's preview", { tag: "@dev" }, () => {
   test("opens from Scouting, switches its game log to every stat and shows a match's breakdown (#1027)", async ({ page }) => {
-    await page.goto(`${SCOUTING_PATH}?preview=manager`);
+    await page.goto(previewUrl(SCOUTING_PATH, "manager"));
     // Scouting opens on free agents (#1028); Palmer is owned.
     await page.getByText(availabilityWords.all, { exact: true }).click();
     await page.getByRole("link", { name: "Palmer" }).click();
@@ -40,7 +41,7 @@ test.describe("the player card, on the dev server's preview", { tag: "@dev" }, (
   });
 
   test("drops, claims and picks up", async ({ page }) => {
-    const card = (code: number) => page.goto(`${playerCardPath(proLeague.leagueId, code)}?preview=manager`);
+    const card = (code: number) => page.goto(previewUrl(playerCardPath(proLeague.leagueId, code), "manager"));
     const said = (outcome: string) => expect(page.getByRole("alert")).toHaveText(previewSaid(outcome));
 
     await card(SAKA);

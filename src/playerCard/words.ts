@@ -1,6 +1,7 @@
 // What the player card says, in one place for Craig to change in the pull request.
 
 import type { CategoryWhy, Cut, PricedBy, SlotValue } from "../../convex/scoring/scoring";
+import { LOCALE } from "../../convex/shared/moments";
 import type { FirstRun } from "../myTeam/claims/words";
 import { LAST_MATCHES_SHOWN } from "./gameLog";
 import { afterLastMatchWords, AREA_WORDS, figureWords, gameweekShort, gameweekWords, signedWords, underSiteScoringWords, versusWords, whenWords } from "../shared/words";
@@ -125,7 +126,7 @@ export const lastSeasonWords = (season: number, { appearances, minutes }: { appe
   `${season}/${String((season + 1) % 100).padStart(2, "0")}: ${countWords(appearances)} ${appearances === 1 ? "match" : "matches"}, ${countWords(minutes)} min,`;
 export const pointsShortWords = "pts";
 /** A count with its thousands marked: "3,012". */
-const countWords = (count: number) => count.toLocaleString("en-GB");
+const countWords = (count: number) => count.toLocaleString(LOCALE);
 export const notInLastSeasonWords = "Not in the Premier League last season.";
 export const lastSeasonNotHeldWords = "Last season isn't held yet.";
 

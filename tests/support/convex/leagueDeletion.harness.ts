@@ -5,9 +5,7 @@ import type { Id, TableNames } from "../../../convex/_generated/dataModel";
 import { UNDO_MS, tablesKeyedToLeague } from "../../../convex/leagues/leagueDeletion";
 import { askToJoin, invite, makeLink } from "./joining.harness";
 import { elapse } from "./test.harness";
-import { ADMIN, COMMISSIONER, CO_COMMISSIONER, MANAGERS, actingAs, addManagers, adminCreatesLeague, teamsIn, TEST_LEAGUE_TEAMS, type TestConvex } from "./leagues.harness";
-
-export const [ANN, BOB, CAT, DAN] = MANAGERS;
+import { ADMIN, COMMISSIONER, CO_COMMISSIONER, actingAs, addManagers, adminCreatesLeague, teamsIn, TEST_LEAGUE_TEAMS, type TestConvex, ANN, BOB, CAT, DAN } from "./leagues.harness";
 
 /** A league with a commissioner who runs no team, a co-commissioner, and ANN and BOB managing. */
 export async function leagueWithPeople(t: TestConvex, name?: string): Promise<Id<"leagues">> {

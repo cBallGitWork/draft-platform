@@ -12,7 +12,7 @@ import { DAY_MS, SECOND_MS } from "../../../convex/shared/time";
 import { draftSteps, FIRST_PICK_MS, midfielder } from "../../support/convex/draft.harness";
 import { ARSENAL, insertClubs, insertPlayers } from "../../support/convex/footballRows.harness";
 import { changeEveryRules, holdGameweeks } from "../../support/convex/leagueRules.harness";
-import { addManagers, adminCreatesLeague, COMMISSIONER, MANAGERS, type TestConvex } from "../../support/convex/leagues.harness";
+import { addManagers, adminCreatesLeague, COMMISSIONER, type TestConvex, ANN, BOB } from "../../support/convex/leagues.harness";
 import { fakeResend, signInDeployment, spendTodaysEmails, type SentEmail } from "../../support/convex/signIn.harness";
 import { silenceConsoleWarn } from "../../support/convex/test.harness";
 
@@ -28,7 +28,6 @@ let sent: SentEmail[];
 
 const MIDS = [101, 102, 103, 104].map((code) => midfielder(code));
 const [A1, A2, A3, A4] = MIDS.map(({ code }) => code);
-const [ANN, BOB] = MANAGERS;
 
 const { as, start, pick, pause, resume, pass, setPickSeconds, setSquadSize } = draftSteps(() => ({ t, leagueId }));
 const letters = () =>

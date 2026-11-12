@@ -5,9 +5,9 @@ import { api } from "../../../convex/_generated/api";
 import { draftListRefusals, listsOf } from "../../../convex/draft/draftLists";
 import { refusals } from "../../../convex/shared/leagueAccess";
 import { draftStarted, LIVE_DRAFT_ROUNDS } from "../../support/convex/draft.harness";
-import { ANN, BOB, ODEGAARD, PALMER, SAKA, listsAs, listsLeague, manyPlayers, namesOn as namesIn, playerLeaves } from "../../support/convex/draftLists.harness";
+import { ODEGAARD, PALMER, SAKA, listsAs, listsLeague, manyPlayers, namesOn as namesIn, playerLeaves } from "../../support/convex/draftLists.harness";
 import { ARSENAL, CHELSEA, GONE, UNHELD } from "../../support/convex/footballRows.harness";
-import { ADMIN, COMMISSIONER, MANAGERS, actingAs, addManager, addManagers, adminCreatesLeague, TEST_LEAGUE_TEAMS, type TestConvex } from "../../support/convex/leagues.harness";
+import { ADMIN, COMMISSIONER, MANAGERS, actingAs, addManager, addManagers, adminCreatesLeague, TEST_LEAGUE_TEAMS, type TestConvex, ANN, BOB } from "../../support/convex/leagues.harness";
 import { expectRefused } from "../../support/convex/test.harness";
 import { teamNumbered } from "../../../convex/leagues/teams";
 

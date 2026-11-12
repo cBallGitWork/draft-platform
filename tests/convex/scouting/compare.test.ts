@@ -5,7 +5,7 @@ import type { Position } from "../../../convex/positions/positionTables";
 import { per90Stats } from "../../../convex/scouting/per90Figures";
 import { refusals } from "../../../convex/shared/leagueAccess";
 import { FPL_SEASON } from "../../support/recorded/plSeasons.payloads";
-import { MANAGERS, actingAs, addManagers, adminCreatesLeague, teamName, type TestConvex } from "../../support/convex/leagues.harness";
+import { MANAGERS, actingAs, addManagers, adminCreatesLeague, teamName, type TestConvex, ANN, BOB } from "../../support/convex/leagues.harness";
 import { ARSENAL, CHELSEA, SAKA, insertClubs, insertPlayers } from "../../support/convex/footballRows.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
 import { expectRefused } from "../../support/convex/test.harness";
@@ -16,7 +16,6 @@ import { expectRefused } from "../../support/convex/test.harness";
 // are "—" (null) here, with none priced; that they match the list's is
 // tests/convex/stats/seasonPoints.test.ts's.
 
-const [ANN, BOB] = MANAGERS;
 const PALMER = { code: 1004, name: "Palmer", fullName: "Cole Palmer", clubCode: CHELSEA.code, positions: ["CAM", "W"] as Position[] };
 /** Held by the football sync, with no match yet. */
 const NEW_BOY = { code: 1005, name: "New", fullName: "New Boy", clubCode: CHELSEA.code, positions: [] as Position[] };

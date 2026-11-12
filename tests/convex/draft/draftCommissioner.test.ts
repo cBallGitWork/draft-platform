@@ -10,7 +10,7 @@ import { SECOND_MS } from "../../../convex/shared/time";
 import { draftSteps, midfielder, SHORT_PICK_MS, SHORT_PICK_SECONDS } from "../../support/convex/draft.harness";
 import { ARSENAL, insertClubs, insertPlayers } from "../../support/convex/footballRows.harness";
 import { changeEveryRules, changeRules, HELD_FIRST_RULES, rulesWith } from "../../support/convex/leagueRules.harness";
-import { addManager, addManagers, adminCreatesLeague, COMMISSIONER, eventsIn, MANAGERS, teamName, type TestConvex } from "../../support/convex/leagues.harness";
+import { addManager, addManagers, adminCreatesLeague, COMMISSIONER, eventsIn, teamName, type TestConvex, ANN, BOB, CAT } from "../../support/convex/leagues.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
 import { expectRefused } from "../../support/convex/test.harness";
 
@@ -25,7 +25,6 @@ let teams: Id<"teams">[];
 
 const MIDS = [101, 102, 103, 104, 105, 106].map((code) => midfielder(code));
 const [P1, P2, P3] = MIDS.map(({ code }) => code);
-const [ANN, BOB, CAT] = MANAGERS;
 
 const { as, read, start, pause, resume, pick, pass, setSquadSize } = draftSteps(() => ({ t, leagueId }));
 /** The commissioner picks for `teamId`, by default the team on the clock as the draft room shows it. */

@@ -4,9 +4,9 @@ import { benchPointsOf, performersOf, RECAP_TRIES_MOST } from "../../../convex/h
 import { RECAP_SYSTEM, recapPrompt, recapUpLetter } from "../../../convex/home/recapWords";
 import { CLAUDE_RETRY_MS, WRITING_MODEL } from "../../../convex/outbound/claude";
 import { HOUR_MS, MINUTE_MS, WEEK_MS } from "../../../convex/shared/time";
-import { ANN, BOB, EVERTON_POINTS, GAMEWEEK, homeAt, HULL_POINTS, LEAGUE_FULL_TIME_READ, scoresLeague, type ScoresLeague } from "../../support/convex/gameweekScores.harness";
+import { EVERTON_POINTS, GAMEWEEK, homeAt, HULL_POINTS, LEAGUE_FULL_TIME_READ, scoresLeague, type ScoresLeague } from "../../support/convex/gameweekScores.harness";
 import { fullTimeRecords, lockMatch, storeLeague, WRITTEN_OVER, writeOverAnns } from "../../support/convex/gameweekScoresMatch.harness";
-import { actingAs, lettersTo } from "../../support/convex/leagues.harness";
+import { actingAs, lettersTo, ANN, BOB } from "../../support/convex/leagues.harness";
 import { fakeClaude, fakeReport } from "../../support/convex/scouts.harness";
 import { elapse, pendingJobs, silenceConsoleError } from "../../support/convex/test.harness";
 import { teamNumbered } from "../../../convex/leagues/teams";

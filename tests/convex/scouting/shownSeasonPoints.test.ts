@@ -1,9 +1,8 @@
 import { beforeEach, expect, test } from "vitest";
 import { api } from "../../../convex/_generated/api";
 import { POSITIONS } from "../../../convex/positions/positionTables";
-import { COMMISSIONER, actingAs } from "../../support/convex/leagues.harness";
+import { COMMISSIONER, actingAs, ANN } from "../../support/convex/leagues.harness";
 import {
-  ANN,
   GW1,
   KICKOFF,
   PALMER,

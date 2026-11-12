@@ -6,7 +6,7 @@ import type { Position } from "../../../convex/positions/positionTables";
 import type { PlayersSort } from "../../../convex/scouting/playersList";
 import type { ScoringSet } from "../../../convex/scoring/scoringSet";
 import { WEEK_MS } from "../../../convex/shared/time";
-import { MANAGERS, actingAs, addManagers, adminCreatesLeague, type TestConvex } from "./leagues.harness";
+import { actingAs, addManagers, adminCreatesLeague, type TestConvex, ANN } from "./leagues.harness";
 import { ARSENAL, CHELSEA, SAKA, completeRecord, insertClubs, insertPlayers } from "./footballRows.harness";
 import { BY_NAME, playersListed } from "./playersList.harness";
 import { EXAMPLE_SET } from "./scoring.example";
@@ -17,7 +17,6 @@ import { fakeResend, signInDeployment } from "./signIn.harness";
 // agents. Saka has two whole records this season, one last season's and one only FPL's part of;
 // Rice and Palmer one each. The site plays EXAMPLE_SET, and nothing is priced until a test says.
 
-export const [ANN] = MANAGERS;
 export { SAKA };
 /** Two positions in different areas, so they price a goal differently: his card opens on CB. */
 export const RICE = { code: 1002, name: "Rice", fullName: "Declan Rice", clubCode: ARSENAL.code, positions: ["CM", "CB"] as Position[] };

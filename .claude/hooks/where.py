@@ -176,6 +176,35 @@ def options(words, i, takes_value):
     return found, i
 
 
+def arguments(args, takes_value):
+    """Every option in args, as (option, value), and the words that aren't one or an option's value
+    (the operands, everything after a -- among them), in order. Options may follow operands, as gh
+    and git allow."""
+    found, operands, i = [], [], 0
+    while i < len(args):
+        more, end = options(args, i, takes_value)
+        found += more
+        if end > i and args[end - 1] == "--":
+            return found, operands + args[end:]
+        if end < len(args):
+            operands.append(args[end])
+        i = end + 1
+    return found, operands
+
+
+# options whose value is a file a commit, tag, pull request, issue or release takes its text from:
+# git commit/tag -F and --file, gh's -F and --body-file, gh release's --notes-file
+TEXT_FILE_OPTS = {"-F", "--file", "--body-file", "--notes-file"}
+
+
+def text_files(args, takes_value=frozenset()):
+    """The path each TEXT_FILE_OPTS option in these git or gh args names (- for stdin), split
+    (-F b.md), attached (-Fb.md) or after = (--file=b.md). takes_value is the command's other
+    options that take a value, so a value is never read as an option."""
+    found, _ = arguments(args, TEXT_FILE_OPTS | set(takes_value))
+    return [value for opt, value in found if opt in TEXT_FILE_OPTS]
+
+
 def program_name(words):
     """The program this simple command runs, as a file name (git for /usr/bin/git), or ""."""
     i = program_index(words)

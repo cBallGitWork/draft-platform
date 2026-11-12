@@ -10,7 +10,7 @@ import type { StoredScoringSet } from "../../../convex/scoring/scoringSetShape";
 import { refusals } from "../../../convex/shared/leagueAccess";
 import { DAY_MS } from "../../../convex/shared/time";
 import { ARSENAL, CHELSEA, COVENTRY, completeRecord, insertClubs, insertPlayers } from "../../support/convex/footballRows.harness";
-import { MANAGERS, OUTSIDER, actingAs, addManagers, adminCreatesLeague, type TestConvex } from "../../support/convex/leagues.harness";
+import { OUTSIDER, actingAs, addManagers, adminCreatesLeague, type TestConvex, ANN } from "../../support/convex/leagues.harness";
 import { EXAMPLE_SET, GOAL_AND_ASSIST, pricedRole } from "../../support/convex/scoring.example";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
 import { holdSiteScoring } from "../../support/convex/siteScoring.harness";
@@ -21,7 +21,6 @@ import { expectRefused } from "../../support/convex/test.harness";
 // and less for in the site's set, and his last 5 matches played priced under each, against his
 // base points (Craig, 6 Nov 2026, on #848). The site plays EXAMPLE_SET with two roles scored.
 
-const [ANN] = MANAGERS;
 const NOW = Date.parse("2026-10-01T12:00:00Z");
 const CENTRE_BACK: Cell = { area: "defence", lane: "centre" };
 /** A back four's two centre-backs, then a back three's three. */

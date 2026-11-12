@@ -7,11 +7,10 @@ import { siteDeadline } from "../../../convex/scoring/siteVersions";
 import { inTenths } from "../../../convex/scoring/values";
 import { WEEK_MS } from "../../../convex/shared/time";
 import { PLAYERS_PAGE } from "../../../convex/stats/matchRecords";
-import { COMMISSIONER, actingAs, adminCreatesLeague } from "../../support/convex/leagues.harness";
+import { COMMISSIONER, actingAs, adminCreatesLeague, ANN } from "../../support/convex/leagues.harness";
 import { CHELSEA } from "../../support/convex/footballRows.harness";
 import { EXAMPLE_SET } from "../../support/convex/scoring.example";
 import {
-  ANN,
   GW1,
   GW2,
   KICKOFF,

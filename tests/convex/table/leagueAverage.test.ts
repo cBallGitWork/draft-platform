@@ -1,8 +1,8 @@
 import { expect, test } from "vitest";
 import { api } from "../../../convex/_generated/api";
 import { inTenths } from "../../../convex/scoring/values";
-import { actingAs } from "../../support/convex/leagues.harness";
-import { CAT, EVERTON_POINTS, GAMEWEEK, HULL_POINTS, matchupAs, readTable, scoresLeague } from "../../support/convex/gameweekScores.harness";
+import { actingAs, CAT } from "../../support/convex/leagues.harness";
+import { EVERTON_POINTS, GAMEWEEK, HULL_POINTS, matchupAs, readTable, scoresLeague } from "../../support/convex/gameweekScores.harness";
 import { fullTimeRecords, lockMatch } from "../../support/convex/gameweekScoresMatch.harness";
 import { teamNumbered } from "../../../convex/leagues/teams";
 
@@ -24,7 +24,7 @@ test("a team that joins after a gameweek began is no part of its league average,
 
   const table = (await readTable(league))!;
   const catsFixture = table.gameweeks.find((each) => each.gameweek === GAMEWEEK)!.fixtures.find((each) => each.teamId === league.catsTeam)!;
-  expect(catsFixture.points).toEqual({ team: 0, opponent: average });
+  expect(catsFixture.points).toEqual({ team: 0, opponent: average, provisional: false });
   expect(table.table.find((row) => row.teamId === league.catsTeam)).toMatchObject({ played: 1, lost: 1, pointsAgainst: average });
 
   const catsGames = (await (await actingAs(league.t, CAT)).query(api.table.teamFixtures.ofMyTeam, { leagueId: league.leagueId }))!.games;

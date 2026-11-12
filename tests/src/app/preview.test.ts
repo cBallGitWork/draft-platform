@@ -2,6 +2,7 @@ import { expect, test, vi } from "vitest";
 import { switchableLeagues } from "../../../convex/leagues/lastLeague";
 import { leaguesToWriteFrom } from "../../../src/mail/MailPage";
 import { previewNames, previewSession } from "../../../src/app/preview";
+import { previewUrl } from "../../support/smoke/previewUrl";
 
 /** The preview session the app reads on load, with the address bar at `search`. */
 function previewOnLoad(search: string) {
@@ -55,3 +56,11 @@ test.each(["", "?preview=toString", "?preview=nobody"])(
     expect(previewOnLoad(search)).toBeNull();
   },
 );
+
+test("the smoke specs' previewUrl names the session after any search the path carries, and the app reads it back", () => {
+  vi.stubEnv("DEV", true);
+  expect(previewUrl("/table", "manager")).toBe("/table?preview=manager");
+  expect(previewUrl("/matchup?minute=60", "commissioner")).toBe("/matchup?minute=60&preview=commissioner");
+  window.history.replaceState(null, "", previewUrl("/matchup?minute=60", "visitor"));
+  expect(previewSession()).toEqual({ signedIn: false });
+});

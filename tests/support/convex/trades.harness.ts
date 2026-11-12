@@ -11,10 +11,10 @@ import { REVIEW_MS } from "../../../convex/trades/tradeLimits";
 import { changeEveryRules, rulesRevision } from "./leagueRules.harness";
 import { pendingJobs } from "./test.harness";
 import { draftSteps } from "./draft.harness";
-import { actingAs, COMMISSIONER, teamName, type TestConvex } from "./leagues.harness";
-import { ANN, ANNS_FIRST_DROP, BOB, CAT, PALMER, RICE, SAKA, waiverLeague } from "./waivers.harness";
+import { actingAs, COMMISSIONER, teamName, type TestConvex, ANN, BOB } from "./leagues.harness";
+import { ANNS_FIRST_DROP, PALMER, RICE, SAKA, waiverLeague } from "./waivers.harness";
 
-export { ANN, ANNS_FIRST_DROP, BOB, CAT, PALMER, RICE, SAKA };
+export { ANNS_FIRST_DROP, PALMER, RICE, SAKA };
 
 /** `teamId`'s pick in `round`, as a pick trade names it. */
 export const pickOf = (teamId: Id<"teams">, round: number) => ({ round, teamId });

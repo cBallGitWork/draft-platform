@@ -3,7 +3,7 @@ import { internal } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
 import { lineupInGameweek } from "../../../convex/lineup/lineups";
 import { holdGameweeks } from "../../support/convex/leagueRules.harness";
-import { addManagers, adminCreatesLeague, MANAGERS, type TestConvex } from "../../support/convex/leagues.harness";
+import { addManagers, adminCreatesLeague, type TestConvex, ANN, BOB, CAT, DAN } from "../../support/convex/leagues.harness";
 import { BOBS, FOUR_FOUR_TWO, holdSquad, NEXT, passNextDeadline, SQUAD } from "../../support/convex/lineupSquad.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
 
@@ -12,7 +12,6 @@ import { fakeResend, signInDeployment } from "../../support/convex/signIn.harnes
 // begun, a gameweek already begun stays as it was scored, and a first lineup becomes saved unless
 // the league's draft is still to come.
 
-const [ANN, BOB, CAT, DAN] = MANAGERS;
 /** Cat's one player, held on her first lineup. */
 const CATS = 997;
 

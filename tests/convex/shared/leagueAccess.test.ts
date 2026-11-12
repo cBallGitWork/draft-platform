@@ -6,9 +6,9 @@ import { autoTeamRefusals } from "../../../convex/lineup/autoTeamWords";
 import { mailRefusals } from "../../../convex/mail/mail";
 import schema from "../../../convex/schema";
 import { refusals } from "../../../convex/shared/leagueAccess";
-import { ANN, deletes, leagueWithPeople } from "../../support/convex/leagueDeletion.harness";
+import { deletes, leagueWithPeople } from "../../support/convex/leagueDeletion.harness";
 import { changesTo, mutationsGivenALeague, rowsToChange, type Caller } from "../../support/convex/leagueMutations.harness";
-import { COMMISSIONER, OUTSIDER, actingAs, type TestConvex } from "../../support/convex/leagues.harness";
+import { COMMISSIONER, OUTSIDER, actingAs, type TestConvex, ANN } from "../../support/convex/leagues.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
 import { everyJobRuns } from "../../support/convex/test.harness";
 

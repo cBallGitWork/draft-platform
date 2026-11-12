@@ -64,8 +64,20 @@ export const backOf = (cells: readonly Cell[]): number => cells.filter((cell) =>
 export const TWO_AT_THE_BACK_COUNT = 2;
 export const FIVE_AT_THE_BACK_COUNT = 5;
 
-/** Whether a cell held as data names one of the pitch's areas and one of its lanes. */
-export const isOnPitch = ({ area, lane }: Cell): boolean => AREAS.includes(area) && LANES.includes(lane);
+/** The cell a placement held as data names, or null when its area or its lane isn't one of the
+ *  pitch's: the one check every saved or sent spot goes through. */
+export function cellOf(placement: { area: string; lane: string }): Cell | null {
+  const area = AREAS.find((known) => known === placement.area);
+  const lane = LANES.find((known) => known === placement.lane);
+  return area === undefined || lane === undefined ? null : { area, lane };
+}
+
+/** The cell of a placement an earlier check has already found on the pitch; one that isn't is a bug. */
+export function heldCell(placement: { area: string; lane: string }): Cell {
+  const cell = cellOf(placement);
+  if (cell === null) throw new Error(`No cell ${placement.area}, ${placement.lane}`);
+  return cell;
+}
 
 /** The usual case: anyone who plays an area fills any of its cells. */
 const wholeArea = (area: Area): Cell[] => cellsOf(area, LANES);

@@ -3,9 +3,9 @@ import type { Id } from "../../../convex/_generated/dataModel";
 import { DRAFT_LIST_MOST } from "../../../convex/draft/draftLimits";
 import { draftListRefusals } from "../../../convex/draft/draftLists";
 import { refusals } from "../../../convex/shared/leagueAccess";
-import { ANN, BOB, ODEGAARD, PALMER, SAKA, listsAs, listsLeague, manyPlayers, namesOn as namesIn, playerLeaves } from "../../support/convex/draftLists.harness";
+import { ODEGAARD, PALMER, SAKA, listsAs, listsLeague, manyPlayers, namesOn as namesIn, playerLeaves } from "../../support/convex/draftLists.harness";
 import { UNHELD } from "../../support/convex/footballRows.harness";
-import { ADMIN, COMMISSIONER, type TestConvex } from "../../support/convex/leagues.harness";
+import { ADMIN, COMMISSIONER, type TestConvex, ANN, BOB } from "../../support/convex/leagues.harness";
 import { expectRefused } from "../../support/convex/test.harness";
 import { teamNumbered } from "../../../convex/leagues/teams";
 

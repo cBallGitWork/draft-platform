@@ -6,9 +6,9 @@ import { WAIVER_MS } from "../../../convex/waivers/waiverLimits";
 import { changeRules, HELD_FIRST_RULES, rulesWith, TOTAL_POINTS } from "../../support/convex/leagueRules.harness";
 import { playerLeaves } from "../../support/convex/draftLists.harness";
 import type { Id } from "../../../convex/_generated/dataModel";
-import { actingAs, ADMIN, eventsIn } from "../../support/convex/leagues.harness";
+import { actingAs, ADMIN, eventsIn, ANN, BOB, CAT } from "../../support/convex/leagues.harness";
 import { nameOf, SQUAD } from "../../support/convex/lineupSquad.harness";
-import { ANN, ANNS_FIRST_DROP, ANNS_SECOND_DROP, BOB, CAT, NEXT, PALMER, RICE, SAKA, waiverLeague, type WaiverLeague } from "../../support/convex/waivers.harness";
+import { ANNS_FIRST_DROP, ANNS_SECOND_DROP, NEXT, PALMER, RICE, SAKA, waiverLeague, type WaiverLeague } from "../../support/convex/waivers.harness";
 
 // The waiver run (#1198, spec/08 Waivers and free agency): at the league's run times it takes
 // every player whose 24 hours are up in the waiver order, a winner going to the bottom; a claim

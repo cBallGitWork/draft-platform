@@ -2,10 +2,9 @@ import { expect, test } from "vitest";
 import { api, internal } from "../../../convex/_generated/api";
 import { silenceConsoleError, everyJobRuns } from "../../support/convex/test.harness";
 import { fakeClaude } from "../../support/convex/scouts.harness";
-import { actingAs, addManagers, COMMISSIONER } from "../../support/convex/leagues.harness";
+import { actingAs, addManagers, COMMISSIONER, CAT } from "../../support/convex/leagues.harness";
 import { HULL_EVERTON } from "../../support/convex/matchStats.harness";
 import {
-  CAT,
   EVERTON_POINTS,
   GAMEWEEK,
   HULL_POINTS,

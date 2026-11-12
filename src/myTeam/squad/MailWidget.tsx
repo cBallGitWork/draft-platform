@@ -4,9 +4,10 @@ import type { LetterSummary } from "../../../convex/mail/mail";
 import { MAIL_PATH } from "../../frame/menu";
 import { letterLink } from "../../mail/paths";
 import { letterDay, unreadCount, unreadWords } from "../../mail/words";
+import { MoreLink } from "../../ui/MoreLink";
 import { Loading, Panel, PanelNote } from "../../ui/Panel";
 import type { LatestMail } from "./seam";
-import { allMailWords, MAIL_WIDGET_TITLE, mailLoadingWords, nextGlyph, noMailWords } from "./words";
+import { allMailWords, MAIL_WIDGET_TITLE, mailLoadingWords, noMailWords } from "./words";
 
 // The Squad tab's Mail and news (its approved picture): the newest letters, unread ones with
 // Mail's orange edge (plate.md, Marks: Unread); a letter opens it in Mail, and All mail opens Mail.
@@ -41,9 +42,9 @@ export function MailWidget({
           ))}
         </ol>
       )}
-      <Link to={MAIL_PATH} className="flex min-h-tap items-center px-3 font-semibold lg:min-h-0 lg:py-1">
-        {allMailWords} <span aria-hidden="true">&nbsp;{nextGlyph}</span>
-      </Link>
+      <MoreLink to={MAIL_PATH} className="px-3 lg:min-h-0 lg:py-1">
+        {allMailWords}
+      </MoreLink>
     </Panel>
   );
 }
