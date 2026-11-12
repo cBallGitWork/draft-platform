@@ -3,7 +3,7 @@ import type { Doc, Id } from "../_generated/dataModel";
 import { mutation, query, type MutationCtx, type QueryCtx } from "../_generated/server";
 import { positionsNow } from "../positions/playerPositions";
 import { position } from "../schema";
-import { listedPlayer, listedPlayers, ownTeam, shortlistOf } from "../scouting/shortlist";
+import { listedPlayers, ownListPlayer, ownTeam, shortlistOf } from "../scouting/shortlist";
 import { memberOf, refuse, refusals, teamIn } from "../shared/leagueAccess";
 import { heldPlayerByCode, playerByCode } from "../shared/players";
 import { placeOf } from "../squads/squadPlace";
@@ -65,7 +65,7 @@ export async function clearDraftLists(ctx: MutationCtx, teamId: Id<"teams">): Pr
 
 /** A player on the queue or do-not-draft list: as the shortlist lists him, with his first position
  *  now, for the draft room's chip (#1100), null for none. */
-const draftListed = v.object({ ...listedPlayer.fields, position: v.union(position, v.null()) });
+const draftListed = v.object({ ...ownListPlayer.fields, position: v.union(position, v.null()) });
 export type DraftListed = Infer<typeof draftListed>;
 
 /** The caller's queue, first choice first, and do-not-draft list, by name; or null for someone in

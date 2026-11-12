@@ -5,7 +5,7 @@ import { Choice } from "../ui/Choice";
 import { StatBox } from "../ui/StatBox";
 import { POSITION_NAMES } from "../shared/words";
 import { PERIODS } from "../../convex/scouting/periods";
-import type { Availability, Period, PlayersFilters, PlayersList } from "./seam";
+import type { HeldByFilter, Period, PlayersFilters, PlayersList } from "./seam";
 import {
   availabilityLabel,
   availabilityWords,
@@ -30,7 +30,7 @@ const PERIOD_ID = "players-period";
 /** A select's value for "every one": no position or club code is empty. */
 const EVERY = "";
 
-const AVAILABILITIES: readonly Availability[] = ["all", "freeAgents", "onWaivers", "owned"];
+const AVAILABILITIES: readonly HeldByFilter[] = ["all", "freeAgents", "onWaivers", "owned"];
 
 /** The players list's filters, as the approved picture lays them out: who holds him, how many the
  *  view keeps and the name box on the first row; his position, his club, the stat shown and the

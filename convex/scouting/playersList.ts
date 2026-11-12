@@ -12,12 +12,12 @@ import { newestSeasonWithTotals } from "../stats/seasonStats";
 import type { Stats } from "../stats/statTotals";
 import { checkScoutingPlayersHeld, currentScoutingPlayersAt, scoutingPlayerByCode, type ScoutingPlayer } from "./scoutingPlayers";
 import { periodPointsIn, periodTotals } from "./period";
-import { period } from "./periods";
+import { DEFAULT_PERIOD, period } from "./periods";
 import { listFigures, shownStat } from "./playersOrder";
 import { shownSeasonPoints } from "./shownSeasonPoints";
 import { withOwnStats } from "../scoring/ownStats";
 import type { StoredScoringSet } from "../scoring/scoringSetShape";
-import { setOf, siteVersions } from "../scoring/siteVersions";
+import { latestSiteScoring } from "../scoring/siteVersions";
 import { CATALOGUE_STATS } from "../scoring/statCatalogue";
 import { firstRunsIn, runAhead, type RunAhead } from "../waivers/waiverLock";
 import { WAIVER_PLAYERS_READ_MOST } from "../waivers/waiverPlayers";
@@ -50,8 +50,8 @@ export const OWNED_IN_LEAGUE_MOST = MOST_TEAMS * MOST_IN_SQUAD;
 
 /** Which players by who holds them in this league: all, the unowned (free agents), those on
  *  waivers, or those on a team. */
-export const availability = v.union(v.literal("all"), v.literal("freeAgents"), v.literal("onWaivers"), v.literal("owned"));
-export type Availability = Infer<typeof availability>;
+export const heldBy = v.union(v.literal("all"), v.literal("freeAgents"), v.literal("onWaivers"), v.literal("owned"));
+export type HeldByFilter = Infer<typeof heldBy>;
 
 /** The season totals every row shows (playersOrder.ts's LIST_FIGURES). */
 const listFigure = v.union(v.literal("minutes"), v.literal("goals"), v.literal("assists"), v.literal("shotsOnTarget"));
@@ -63,7 +63,7 @@ const sortColumn = v.union(v.literal("name"), v.literal("club"), v.literal("poin
 export type SortColumn = Infer<typeof sortColumn>;
 
 const filters = v.object({
-  availability,
+  availability: heldBy,
   /** Only players with this position among theirs; null for every position. */
   position: v.union(position, v.null()),
   /** Only this club's players, by its code; null for every club. */
@@ -142,9 +142,9 @@ export type PlayersList = Omit<ListedRows, "players" | "kept"> & { players: List
 export const list = query({
   args: { leagueId: v.id("leagues"), clubCode: v.union(v.number(), v.null()), stat: v.union(v.string(), v.null()), period: v.optional(period), keep: v.optional(v.number()) },
   returns: playersList,
-  handler: async (ctx, { leagueId, clubCode, stat, period = "season", keep }): Promise<ListedRows> => {
+  handler: async (ctx, { leagueId, clubCode, stat, period = DEFAULT_PERIOD, keep }): Promise<ListedRows> => {
     await memberOf(ctx, leagueId);
-    const set = setOf((await siteVersions(ctx)).at(-1));
+    const set = await latestSiteScoring(ctx);
     const ownStats = (set.ownStats ?? []).map(({ stat, name, shortCode }) => ({ stat, name, shortCode }));
     if (stat !== null) checkShownStat(stat, ownStats);
     const clubs = (await currentClubs(ctx)).sort((one, other) => one.name.localeCompare(other.name));

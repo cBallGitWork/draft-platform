@@ -4,7 +4,7 @@
 import { SHOTS_ON_TARGET } from "../scoring/statKeys";
 import { EVENT_STATS, MINUTES_STAT } from "../stats/matchRecords";
 import type { Stats } from "../stats/statTotals";
-import type { Availability, FirstRunOfPlayer, ListedPlayer, ListedRow, ListFigure, PlayersFilters, PlayersSort } from "./playersList";
+import type { FirstRunOfPlayer, HeldByFilter, ListedPlayer, ListedRow, ListFigure, PlayersFilters, PlayersSort } from "./playersList";
 
 /** The figures every row of the list shows as season totals (the approved picture: Mins, G, A and
  *  SOT), by the stat each is kept under. Shots on target are Sportmonks' SHOTS_ON_TARGET, kept
@@ -38,16 +38,16 @@ type OrderedRow = Omit<ListedRow, "onWaivers"> & { onWaivers: object | null };
 export function listOf<Row extends OrderedRow>(players: readonly Row[], filters: PlayersFilters, sort: PlayersSort): Row[] {
   const kept = players.filter(
     (player) =>
-      keptByAvailability(filters.availability, player) &&
+      keptByHolder(filters.availability, player) &&
       (filters.position === null || player.positions.includes(filters.position)) &&
       (filters.clubCode === null || player.club.code === filters.clubCode),
   );
   return sortedPlayers(kept, sort);
 }
 
-/** Whether the availability keeps the player: a free agent is on no team and not on waivers
- *  (spec/08). */
-function keptByAvailability(chosen: Availability, { ownerTeamName, onWaivers }: Pick<OrderedRow, "ownerTeamName" | "onWaivers">): boolean {
+/** Whether the who-holds-him filter keeps the player: a free agent is on no team and not on
+ *  waivers (spec/08). */
+function keptByHolder(chosen: HeldByFilter, { ownerTeamName, onWaivers }: Pick<OrderedRow, "ownerTeamName" | "onWaivers">): boolean {
   switch (chosen) {
     case "all":
       return true;
