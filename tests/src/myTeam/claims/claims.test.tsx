@@ -38,6 +38,7 @@ import {
 } from "../../../../src/myTeam/claims/words";
 import type { TeamSquad } from "../../../../src/myTeam/seam";
 import { idOf } from "../../../../src/table/drawnTable";
+import { ARSENAL } from "../../../support/convex/footballRows.harness";
 import { MY_TEAM_ID, NO_WAIVERS, type MyTeamData } from "../../../support/src/myTeam.harness";
 import { league, manager, managerIn, openApp } from "../../../support/src/shell.harness";
 
@@ -46,8 +47,7 @@ const THU = WED + DAY_MS;
 /** A run that is surely made, and one that is skipped if `gameweek` is still on at it. */
 const made = (at: number) => ({ at, skippedIf: null });
 const mayBeSkipped = (at: number, gameweek: number) => ({ at, skippedIf: gameweek });
-const club = { code: 1, name: "Arsenal", shortName: "ARS" };
-const player = (playerCode: number, playerName: string) => ({ playerCode, playerName, positions: ["W" as const], club, seasonPoints: 20 });
+const player = (playerCode: number, playerName: string) => ({ playerCode, playerName, positions: ["W" as const], club: ARSENAL, seasonPoints: 20 });
 const [SEMENYO, EZE, KUDUS, CALVERT_LEWIN, MBEUMO] = [player(1, "Semenyo"), player(2, "Eze"), player(3, "Kudus"), player(4, "Calvert-Lewin"), player(5, "Mbeumo")];
 
 const claim = (id: string, claimed: PendingClaim["claim"], drop: PendingClaim["drop"], run: number | PendingClaim["run"], team = "Team 1"): PendingClaim => ({
