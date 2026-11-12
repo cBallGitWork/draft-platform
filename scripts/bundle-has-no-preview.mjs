@@ -12,11 +12,10 @@
 
 import { readdirSync, readFileSync, statSync } from "node:fs";
 import { basename, join } from "node:path";
+import { PREVIEW_FILE } from "./previewFile.mjs";
 
 const DIST = process.argv[2] ?? "dist";
 const SOURCES = (process.env.PREVIEW_CHECK_SOURCES ?? "src,convex").split(",");
-/** A preview module's file name: preview.ts, matchPreview.ts; not previewApp.tsx. */
-const PREVIEW_FILE = /^preview\w*\.ts$|Preview\.ts$/;
 
 /** A string only that preview module holds, by its path; null for one that holds no data of its
  *  own (its words are the app's, its rules row src/rules/preview.ts's, its teams

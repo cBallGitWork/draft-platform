@@ -109,7 +109,7 @@ test("a final gameweek's stored scores are its totals, as the table reads them, 
   const table = await readTable(league);
   const fixtures = table!.gameweeks.find((each) => each.gameweek === GAMEWEEK)!.fixtures;
   expect(game.team).toMatchObject({ points: WRITTEN_OVER, provisional: false });
-  expect(fixtures.find((each) => each.teamId === league.annsTeam)!.points).toEqual({ team: game.team.points, opponent: game.opponent.points });
+  expect(fixtures.find((each) => each.teamId === league.annsTeam)!.points).toEqual({ team: game.team.points, opponent: game.opponent.points, provisional: game.team.provisional || game.opponent.provisional });
   expect(lineupOf(game.team).starters).toHaveLength(HULL_STARTERS.length);
   // The league's average counts the stored total too.
   const cats = await matchupAs(league, CAT, { gameweek: GAMEWEEK });
@@ -163,7 +163,7 @@ test("each side's total is the same as the table's for the gameweek", async () =
   await lockMatch(league);
   const table = await readTable(league);
   const game = await annsScoredGame(league, GAMEWEEK);
-  expect(table!.gameweeks.find((each) => each.gameweek === GAMEWEEK)!.fixtures[0].points).toEqual({ team: game.team.points, opponent: game.opponent.points });
+  expect(table!.gameweeks.find((each) => each.gameweek === GAMEWEEK)!.fixtures[0].points).toEqual({ team: game.team.points, opponent: game.opponent.points, provisional: game.team.provisional || game.opponent.provisional });
 });
 
 test("with no team or gameweek named, it opens on the caller's own team in the latest gameweek begun", async () => {

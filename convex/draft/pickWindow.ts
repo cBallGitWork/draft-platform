@@ -8,7 +8,7 @@ import { fileEvent } from "../mail/letters";
 import { refuse, managerOf, teamIn, teamsOf } from "../shared/leagueAccess";
 import { heldPlayerByCode } from "../shared/players";
 import { placeOf } from "../squads/squadPlace";
-import { clockedOf, scheduleAutoPick, startClock } from "./draftClock";
+import { cancelClockJob, type Clocked, type ClockStart, clockedOf, scheduleAutoPick, startClock } from "./draftClock";
 import { tellDraftOver, tellScoringStartMoved, tellUpNext } from "./draftLetters";
 import { draftRulesNow, pickSecondsNow } from "./draftPickTime";
 import { pickRefusals } from "./draftPicks";
@@ -38,6 +38,25 @@ export async function takeBackPick(ctx: MutationCtx, leagueId: Id<"leagues">, la
   return { team, player };
 }
 
+/** An undone `last` pick back on the clock from `now`, for the draft's pick time now or as `how`
+ *  says: the job waiting on the draft's `clock` cancelled, and, while the draft is paused, the
+ *  clock paused too, starting when the commissioner resumes. Both undos run it, the commissioner's
+ *  (draftCommissioner.ts) and the manager's own; returns the pick back on the clock. */
+export async function putBackOnClock(
+  ctx: MutationCtx,
+  leagueId: Id<"leagues">,
+  clock: Doc<"drafts">["clock"],
+  last: Doc<"draftPicks">,
+  now: number,
+  how: Omit<ClockStart, "pausedAt">,
+): Promise<Clocked> {
+  await cancelClockJob(ctx, clock);
+  const pausedAt = clock?.paused === undefined ? undefined : now;
+  const clocked = await startClock(ctx, leagueId, last.pick - 1, now, await pickSecondsNow(ctx, leagueId), { ...how, pausedAt });
+  if (clocked === null) throw new Error(`League ${leagueId}'s pick ${last.pick} was undone, but it can't be put back on the clock`);
+  return clocked;
+}
+
 /** The manager undoes his own pick in its 10 seconds: its player leaves his squad, and his pick is
  *  back on the clock at once with the time it had left when he made it, telling no one. While the
  *  draft is paused it stays paused, his clock starting when the commissioner resumes. Refused
@@ -55,11 +74,7 @@ export const undoMyPick = mutation({
     const now = Date.now();
     if (!undoWindowOpen(draft, last, now)) refuse(pickRefusals.undoOver);
     await takeBackPick(ctx, leagueId, last, email);
-    const clock = draft.clock;
-    if (clock?.job !== undefined) await ctx.scheduler.cancel(clock.job);
-    const pausedAt = clock?.paused === undefined ? undefined : now;
-    const clocked = await startClock(ctx, leagueId, last.pick - 1, now, await pickSecondsNow(ctx, leagueId), { pausedAt, leftMs: last.own.leftMs });
-    if (clocked === null) throw new Error(`League ${leagueId}'s pick ${last.pick} was undone, but it can't be put back on the clock`);
+    await putBackOnClock(ctx, leagueId, draft.clock, last, now, { leftMs: last.own.leftMs });
     return null;
   },
 });

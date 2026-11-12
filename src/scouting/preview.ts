@@ -10,7 +10,7 @@ import { previewTeamNames, proLeague } from "../shared/preview";
 import { listFigures, listOf, NO_FIGURES, shownStat } from "../../convex/scouting/playersOrder";
 import { mostFirst, raceOrder } from "../../convex/scouting/raceOrder";
 import { withOwnStats } from "../../convex/scoring/ownStats";
-import { OWN_STAT_PREFIX } from "../../convex/scoring/statCatalogue";
+import { OWN_STAT_PREFIX } from "../../convex/scoring/statKeys";
 import type { Stats } from "../../convex/stats/statTotals";
 import { DAY_MS } from "../../convex/shared/time";
 import { listedFromScouting, listInPreview, setPreviewPlayers, setPreviewShortlisted } from "../draft/previewLists";

@@ -53,11 +53,10 @@ function scoreOf(table: LeagueTable, teamName: string, gameweek: number, against
   const opponent = against.kind === "team" ? against.team : null;
   const fixture = fixtures.find((each) => (each.team === teamName && each.opponent === opponent) || (each.team === opponent && each.opponent === teamName));
   if (fixture?.points == null) return null;
-  const sides = table.results.find((each) => each.gameweek === gameweek)?.teams ?? [];
-  // Live while either side may still move; against the average, while any team's may (spec/07).
-  const provisional = sides.some((side) => side.provisional && (opponent === null || side.teamName === teamName || side.teamName === opponent));
+  // Live as the server sent it (teamGames.ts's gameScore), never worked out again here.
+  const { team, opponent: other, provisional } = fixture.points;
   const ownSide = fixture.team === teamName;
-  return { team: ownSide ? fixture.points.team : fixture.points.opponent, opponent: ownSide ? fixture.points.opponent : fixture.points.team, provisional };
+  return { team: ownSide ? team : other, opponent: ownSide ? other : team, provisional };
 }
 
 /** The team's games in the gameweek, as drawn: more than one where the league plays more than one

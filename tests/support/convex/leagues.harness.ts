@@ -42,6 +42,8 @@ export const teamName = (t: TestConvex, teamId: Id<"teams">) => t.run(async (ctx
 /** The letters `email` has been sent, oldest first, as their subjects and bodies. */
 export const lettersTo = (t: TestConvex, email: string) =>
   t.run(async (ctx) => (await ctx.db.query("letters").withIndex("by_to_and_at", (q) => q.eq("to", email)).collect()).map(({ subject, body }) => ({ subject, body })));
+/** How many letters the deployment holds. */
+export const lettersCount = (t: TestConvex) => t.run(async (ctx) => (await ctx.db.query("letters").collect()).length);
 
 /** How many teams a league `adminCreatesLeague` makes may hold, unless a test says. */
 export const TEST_LEAGUE_TEAMS = 4;

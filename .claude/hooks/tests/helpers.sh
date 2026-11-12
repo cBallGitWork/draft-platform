@@ -43,6 +43,13 @@ fails_loudly() { # text hook payload [env...]: the hook exits 1, prints nothing 
 bad_payloads=( # each with what the hook says of it
   '' 'is empty'  'not json' "isn't JSON"  '[]' 'is JSON but not an object'  '"x"' 'is JSON but not an object'
 )
+denies_unreadable() { # hook: a guard denies each payload it can't read, saying what came, never lets it through
+  local i
+  for ((i = 0; i < ${#bad_payloads[@]}; i += 2)); do
+    check deny "$1" "${bad_payloads[i]}"
+    says "${bad_payloads[i + 1]}" "$1" "${bad_payloads[i]}"
+  done
+}
 blocks() { says '"decision": "block"' "$@"; }  # hook payload [env...]: it blocks the stop
 silent() { # hook payload [env...]: the hook exits 0 and prints nothing
   local hook=$1 payload=$2 out code; shift 2
