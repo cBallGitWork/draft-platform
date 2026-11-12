@@ -9,11 +9,11 @@ import type { ScoringSet } from "../scoring/scoringSet";
 import { instructionPoints } from "../scoring/teamScoring";
 import { inTenths, statIn, type MatchStats } from "../scoring/values";
 import { signedWords } from "../shared/numberWords";
+import type { PlayerCode } from "../shared/players";
 import { MINUTES_STAT } from "../stats/matchRecords";
 import type { TeamInGameweek } from "../gameweekScorer/teamGameweek";
 import type { PricedLine, StoredStep, VidiprinterPlayer, VidiprinterTeam } from "./vidiprinter";
 
-type PlayerCode = number;
 
 /** A lineup's instructions as its men's lines price them: undefined for a team with none. */
 export function vidiprinterTeam({ scoring, instructions }: Pick<TeamInGameweek, "scoring" | "instructions">): VidiprinterTeam | undefined {

@@ -1,10 +1,10 @@
 import type { Doc, Id } from "../_generated/dataModel";
 import type { QueryCtx } from "../_generated/server";
 import { draftIsLive } from "../draft/draftRow";
-import { nextDeadline, type LeagueDeadlines } from "../gameweeks/deadline";
+import { latestBegun, nextDeadline, type LeagueDeadlines } from "../gameweeks/deadline";
+import { gameweekUnderWay, inUnplayedGameweek } from "../gameweeks/gameweekEnd";
 import { tradeRulesOf } from "../rules/firstRules";
 import { rulesSinceBegun } from "../rules/rulesHistory";
-import { gameweekUnderWay, inUnplayedGameweek, latestBegun } from "../waivers/waiverLock";
 import type { TradesShut } from "./tradeShutWords";
 
 // When no trade is offered or accepted (spec/08 Trades; #383): while the league's draft is live,
@@ -50,6 +50,3 @@ export function offerCloses(
   if (next === null || tradeDeadline === null || next.gameweek <= tradeDeadline) return next;
   return { gameweek: tradeDeadline, at: null };
 }
-
-/** Whether the team is on the auto team: switched on by a person, or with no manager (spec/09). */
-export const onAutoTeam = (team: Doc<"teams">) => team.autoTeam !== undefined || team.managerEmail === undefined;

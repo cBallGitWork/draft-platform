@@ -5,7 +5,7 @@
 
 import { screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { per90Stats } from "../../../convex/scouting/per90Figures";
 import { statFigure } from "../../../src/shared/figures";
 import { freeAgentWords } from "../../../src/shared/words";
@@ -29,7 +29,7 @@ import {
   yoursWords,
 } from "../../../src/scouting/words";
 import type { ScoutingData } from "../../support/src/scouting.harness";
-import { HELD, openOnAll, PALMER, RICE, rowOf, SAKA } from "../../support/src/scoutingScreen.harness";
+import { HELD, openOnAll, PALMER, RICE, rowOf, SAKA, turnTheMinute } from "../../support/src/scoutingScreen.harness";
 import { league } from "../../support/src/shell.harness";
 
 describe("comparing two players", () => {
@@ -171,6 +171,15 @@ describe("compare with your player (Craig, 9 Nov 2026, on #1028, answers 1 and 4
   it("with the squad full, it drops your player", async () => {
     const app = await open({ yours: { ...YOURS, squadFull: true } });
     await compareWithYours();
+    await userEvent.click(screen.getByRole("button", { name: compareTakeWords("pickUp", "Rice", "Saka") }));
+    expect(app.scouting.waiverChanges.pickUp).toHaveBeenCalledWith(league.leagueId, RICE.code, SAKA.code);
+  });
+
+  it("with the squad full, the drop stays on the button as the minute turns and his answer reloads (#1777)", async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    const app = await open({ yours: { ...YOURS, squadFull: true } });
+    await compareWithYours();
+    turnTheMinute(app);
     await userEvent.click(screen.getByRole("button", { name: compareTakeWords("pickUp", "Rice", "Saka") }));
     expect(app.scouting.waiverChanges.pickUp).toHaveBeenCalledWith(league.leagueId, RICE.code, SAKA.code);
   });

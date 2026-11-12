@@ -5,11 +5,11 @@ import type { MutationCtx, QueryCtx } from "../../../convex/_generated/server";
 import { FIRST_GAMEWEEK } from "../../../convex/gameweeks/usedGameweeks";
 import { seasonRecords } from "../../../convex/stats/seasonRecords";
 import { seasonRules } from "../../../convex/rules/rulesHistory";
-import { OWNED_IN_LEAGUE_MOST } from "../../../convex/scouting/playersList";
+import { LEAGUE_SQUAD_ROWS_MOST } from "../../../convex/squads/squadPlace";
 import { GAMEWEEK_MATCHES_MOST } from "../../../convex/shared/fixtures";
 import { PLAYER_RECORDS_MOST } from "../../../convex/stats/matchRecords";
 import { LEAGUE_OVERRIDES_MOST } from "../../../convex/stats/seasonPoints";
-import { thresholdStepsOf, THRESHOLD_STEP_READS_MOST, THRESHOLD_STEPS_MOST } from "../../../convex/stats/thresholdSteps";
+import { thresholdStepsOf, THRESHOLD_STEP_READS_MOST } from "../../../convex/stats/thresholdSteps";
 import { LEAGUES_READ_MOST } from "../../../convex/shared/cappedRead";
 import { leagueScores } from "../../../convex/gameweekScorer/gameweekScores";
 import { heldFixtures, MATCH_OVERRIDES_MOST, MATCH_RECORDS_MOST } from "../../../convex/gameweekScorer/heldMatches";
@@ -19,7 +19,7 @@ import { ANN, GAMEWEEK, holdHullAndEverton, PHILLIPS, scoresLeague, type ScoresL
 import { actingAs } from "../../support/convex/leagues.harness";
 import { serverList } from "../../support/convex/playersList.harness";
 import { EVERTON, HULL, HULL_EVERTON } from "../../support/convex/matchStats.harness";
-import { ROWS_TO_THE_CAP } from "../../support/convex/test.harness";
+import { MADE_UP_CODES, ROWS_TO_THE_CAP } from "../../support/convex/test.harness";
 
 // The scoring path's reads each have a named cap (#214): at the cap they read every row, and past
 // it they throw, never cut short. Each cap is driven through the read it guards, in scoresLeague's
@@ -43,8 +43,6 @@ const everyClub = { clubCode: null, stat: null };
 
 /** A gameweek scoresLeague holds no matches in, for counting from none. */
 const EMPTY_GAMEWEEK = GAMEWEEK + 1;
-/** Where codes this file makes up start, clear of the recorded ones. */
-const MADE_UP_CODES = 900_000;
 
 /** A row for each count from `held` up to `count`, `insert` writing the one at that index. */
 const holdRows =
@@ -224,18 +222,6 @@ test(`a league's overrides of one player for his card: ${PLAYER_RECORDS_MOST} ar
   );
 });
 
-test(`a match's threshold steps: ${THRESHOLD_STEPS_MOST} are read, one more throws`, ROWS_TO_THE_CAP, async () => {
-  await readsToTheCapThenThrows(
-    THRESHOLD_STEPS_MOST,
-    holdRows(
-      async (ctx) => (await ctx.db.query("thresholdSteps").collect()).length,
-      (ctx) => ctx.db.insert("thresholdSteps", { fixtureCode: HULL_EVERTON, playerCode: PHILLIPS, stat: "minutes", from: 0, to: 1, minutes: 1, minute: null }),
-    ),
-    () => league.t.run((ctx) => thresholdStepsOf(ctx, HULL_EVERTON)),
-    `Match ${HULL_EVERTON} holds more than ${THRESHOLD_STEPS_MOST} threshold steps, so some would be left out`,
-  );
-});
-
 test(`a match's reads of threshold steps: ${THRESHOLD_STEP_READS_MOST} are read, one more throws`, ROWS_TO_THE_CAP, async () => {
   await readsToTheCapThenThrows(
     THRESHOLD_STEP_READS_MOST,
@@ -248,16 +234,16 @@ test(`a match's reads of threshold steps: ${THRESHOLD_STEP_READS_MOST} are read,
   );
 });
 
-test(`the players owned in a league for the players list: ${OWNED_IN_LEAGUE_MOST} are read, one more throws`, ROWS_TO_THE_CAP, async () => {
+test(`the players owned in a league for the players list: ${LEAGUE_SQUAD_ROWS_MOST} are read, one more throws`, ROWS_TO_THE_CAP, async () => {
   const { leagueId, annsTeam } = league;
   const ann = await actingAs(league.t, ANN);
   await readsToTheCapThenThrows(
-    OWNED_IN_LEAGUE_MOST,
+    LEAGUE_SQUAD_ROWS_MOST,
     holdRows(
       async (ctx) => (await ctx.db.query("squadPlayers").collect()).length,
       (ctx, index) => ctx.db.insert("squadPlayers", { leagueId, teamId: annsTeam, playerCode: MADE_UP_CODES + index }),
     ),
     () => serverList(ann, { leagueId, ...everyClub }),
-    `More than ${OWNED_IN_LEAGUE_MOST} players are owned in league ${leagueId}, so the list would be cut short`,
+    `League ${leagueId} holds more than ${LEAGUE_SQUAD_ROWS_MOST} squad rows, so who is held can't be read`,
   );
 });

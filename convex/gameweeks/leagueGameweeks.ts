@@ -3,7 +3,7 @@ import { mutation, query } from "../_generated/server";
 import { isLocked } from "./deadline";
 import { refuse, runnerOf } from "../shared/leagueAccess";
 import { recordEvent } from "../mail/letters";
-import { deadlineOf, leagueDeadlines } from "./leagueDeadlines";
+import { leagueDeadlineOf } from "./leagueDeadlines";
 import { startAfterUntick } from "./scoringStart";
 import { seasonGameweekCount } from "./seasonGameweeks";
 import {
@@ -45,7 +45,7 @@ export const ofLeague = query({
   returns: v.array(leagueGameweek),
   handler: async (ctx, { leagueId }) => {
     const { league } = await runnerOf(ctx, leagueId);
-    const deadlineIn = deadlineOf(await leagueDeadlines(ctx, leagueId));
+    const deadlineIn = await leagueDeadlineOf(ctx, leagueId);
     const count = await seasonGameweekCount(ctx);
     return seasonGameweeks(count).map((gameweek) => ({
       gameweek,
@@ -63,7 +63,7 @@ export const setUsed = mutation({
     const { email, league } = await runnerOf(ctx, leagueId);
     const count = await seasonGameweekCount(ctx);
     if (!isGameweek(gameweek, count)) refuse(gameweekRefusals.notAGameweek(gameweek, count));
-    const deadline = deadlineOf(await leagueDeadlines(ctx, leagueId))(gameweek);
+    const deadline = (await leagueDeadlineOf(ctx, leagueId))(gameweek);
     if (deadline === null) refuse(gameweekRefusals.noDeadline(gameweek));
     if (isLocked(deadline, Date.now())) refuse(gameweekRefusals.begun(gameweek));
     if (isGameweekUsed(league, gameweek, count) === used) return null;

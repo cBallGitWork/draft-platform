@@ -8,7 +8,7 @@ import { FEED_RUN_TABLES, FEEDS, type Feed } from "../../../convex/shared/feedSc
 import { BATCH_SIZE, FAILURE_KEPT_MS, LATEST_RUNS, SUCCESS_KEPT_MS } from "../../../convex/shared/syncRuns";
 import { DAY_MS, HOUR_MS, MINUTE_MS } from "../../../convex/shared/time";
 import { recordRun, T0, type Ran } from "../../support/convex/feeds.harness";
-import { freshConvex, type TestConvex } from "../../support/convex/test.harness";
+import { freshConvex, type TestConvex, everyJobRuns } from "../../support/convex/test.harness";
 
 const NOW = T0;
 
@@ -21,7 +21,7 @@ async function recentRuns(t: TestConvex, feed: Feed, ran: Ran = "ok") {
 async function prune(t: TestConvex) {
   vi.useFakeTimers({ now: NOW });
   await t.mutation(internal.admin.runLogs.prune, { startedAt: NOW });
-  await t.finishAllScheduledFunctions(vi.runAllTimers);
+  await everyJobRuns(t);
 }
 
 /** When each of `feed`'s runs still held started, oldest first. */

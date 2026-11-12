@@ -11,7 +11,7 @@ import { whyNotLegalFor } from "./draftPicks";
 import { everyPlayerNow, undraftedIn } from "./undrafted";
 import { draftRanking } from "./draftRanking";
 import { draftOf, picksLeftOf, turnNow, type Turn } from "./draftRow";
-import { lastPricedSeason, lastSeasonPoints } from "./lastSeasonPoints";
+import { lastPricedSeason, lastSeasonPoints } from "../pastSeasons/lastSeasonPoints";
 
 // The draft room's players list's figures (spec/04, The draft room; #1099). The list itself is
 // Scouting's (../scouting/playersList.ts); beside it:
@@ -63,15 +63,15 @@ async function greyedFor(ctx: QueryCtx, leagueId: Id<"leagues">, teamOf: (turn: 
   if (draft === null || started === undefined || turn === null) return [];
   const teamId = teamOf(turn);
   const picksLeft = await picksLeftOf(ctx, draft, started, teamId);
-  const why = await whyNotLegalFor(ctx, leagueId, started, teamId, picksLeft, await undraftedIn(ctx, leagueId), await positionsNow(ctx, leagueId));
   const players = await everyPlayerNow(ctx);
+  const why = await whyNotLegalFor(ctx, leagueId, started, teamId, picksLeft, await undraftedIn(ctx, leagueId, players), await positionsNow(ctx, leagueId));
   const greyed = await Promise.all(players.map(async (player) => ({ code: player.code, reason: await why(player) })));
   return greyed.flatMap(({ code, reason }) => (reason === null ? [] : [{ code, reason }]));
 }
 
 /** The draft room's overview (spec/04, The draft room: "a easy to see view first"; the approved
  *  picture's MP, G, A and CS): each by the catalogue stat's key whose season total it shows. */
-export const OVERVIEW_STATS = { appearances: "appearances", goals: GOALS, assists: ASSISTS, cleanSheets: CLEAN_SHEETS } as const;
+const OVERVIEW_STATS = { appearances: "appearances", goals: GOALS, assists: ASSISTS, cleanSheets: CLEAN_SHEETS } as const;
 export type OverviewStat = keyof typeof OVERVIEW_STATS;
 
 const overview = v.object({ appearances: v.number(), goals: v.number(), assists: v.number(), cleanSheets: v.number() });

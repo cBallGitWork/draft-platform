@@ -86,7 +86,7 @@ export const cameOnWords = "On";
 export const unusedLabel = "unused substitute";
 
 export const COMMENTARY_TITLE = "Commentary";
-export const noLinesWords = "No lines yet.";
+export { noCommentaryWords as noLinesWords } from "../shared/words";
 
 export const TEAM_STATS_TITLE = "Team stats";
 export const teamStatsLabel = (home: string, away: string) => `${home} ${versusWords} ${away}: team stats`;

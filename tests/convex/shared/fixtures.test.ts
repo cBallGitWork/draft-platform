@@ -2,12 +2,11 @@ import { expect, test } from "vitest";
 import type { MutationCtx } from "../../../convex/_generated/server";
 import { fixtureByCode, gameweekFixtures, GAMEWEEK_MATCHES_MOST } from "../../../convex/shared/fixtures";
 import { EVERTON, GAMEWEEK, HULL, HULL_EVERTON, KICKOFF, withHullEverton } from "../../support/convex/matchStats.harness";
+import { MADE_UP_CODES } from "../../support/convex/test.harness";
 
 // The two fixture reads every module shares (shared/fixtures.ts): one match by its code, and a
 // gameweek's current matches under a named cap, each caller saying what an overflow would cut short.
 
-/** Where codes this file makes up start, clear of the recorded ones. */
-const MADE_UP_CODES = 900_000;
 /** The message's ending a caller passes, as the fixtures screen does. */
 const WHY = "they would be cut short";
 

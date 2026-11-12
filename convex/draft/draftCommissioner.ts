@@ -7,7 +7,7 @@ import { refuse, runnerOf, teamIn, teamsOf } from "../shared/leagueAccess";
 import { tellUndone, tellUpNext } from "./draftLetters";
 import { liveClock, pauseRefusals } from "./draftPause";
 import { draftIsPaused, pickSecondsOf, pickTimeRefusals } from "./draftPickTime";
-import { draftHasStarted, draftIsLive, draftOf, lastPickIn } from "./draftRow";
+import { draftHasStarted, draftIsLive, draftIsOver, draftOf, lastPickIn } from "./draftRow";
 import { afterUndoneTimeout } from "./draftTimeouts";
 import { putBackOnClock, takeBackPick } from "./pickWindow";
 
@@ -68,7 +68,7 @@ export const setPickTime = mutation({
     await runnerOf(ctx, leagueId);
     const live = await draftIsLive(ctx, leagueId);
     if (live && !(await draftIsPaused(ctx, leagueId))) refuse(pickTimeRefusals.notPaused);
-    if (!live && (await draftHasStarted(ctx, leagueId))) refuse(commissionerRefusals.over);
+    if (await draftIsOver(ctx, leagueId)) refuse(commissionerRefusals.over);
     const revision = (await historyOf(ctx, leagueId)).at(-1)?._id ?? null;
     await changeLatest(ctx, leagueId, revision, (rules) => ({ ...rules, draft: { ...draftRulesOf(rules), pickSeconds } }));
     // League settings may already hold this time, waiting for a gameweek: the draft takes it anyway.
@@ -96,19 +96,18 @@ export const markForCommissioner = mutation({
 
 const commissionerView = v.object({
   /** The pick time the room's box shows, in seconds: once the draft has started, the draft's own;
-   *  before the start, League settings' latest, a change waiting for a gameweek among it; null for
-   *  a league with no rules (before #25). */
-  pickSeconds: v.union(v.number(), v.null()),
+   *  before the start, League settings' latest, a change waiting for a gameweek among it. */
+  pickSeconds: v.number(),
   /** The teams with no manager, by name, each with whether the commissioner picks for it. */
   unmanaged: v.array(v.object({ teamId: v.id("teams"), name: v.string(), marked: v.boolean() })),
 });
 export type CommissionerView = Infer<typeof commissionerView>;
 
 /** What the draft room's commissioner panel reads (#1101), for whoever runs the league: the pick
- *  time its box shows and the teams with no manager. `now`, the screen's minute, is no longer read
- *  since the box shows the draft's own pick time (#1572); the screen still sends it. */
+ *  time its box shows and the teams with no manager. It takes no minute, as the box shows the
+ *  draft's own pick time (#1572), so the panel doesn't reload as the minute turns (#1531). */
 export const panel = query({
-  args: { leagueId: v.id("leagues"), now: v.number() },
+  args: { leagueId: v.id("leagues") },
   returns: commissionerView,
   handler: async (ctx, { leagueId }) => {
     await runnerOf(ctx, leagueId);

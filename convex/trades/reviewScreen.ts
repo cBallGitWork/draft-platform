@@ -1,12 +1,12 @@
 import { v, type Infer } from "convex/values";
 import type { Doc, Id } from "../_generated/dataModel";
-import { query, type QueryCtx } from "../_generated/server";
+import { query } from "../_generated/server";
 import { positionsNow } from "../positions/playerPositions";
 import { memberOf, teamsOf } from "../shared/leagueAccess";
 import { clubsByCode } from "../shared/players";
 import { leagueOffers } from "./tradeClose";
 import { namedPicks, teamNameIn, tradedPlayer } from "./tradedPlayers";
-import { votersOn } from "./tradeReviewers";
+import { votersAmong } from "./tradeReviewers";
 import { termsShown } from "./tradeScreen";
 
 // The trades the caller reviews, for the Offers tab's To review group (#383; Craig, 10 Nov 2026):
@@ -37,16 +37,17 @@ const tradeToReview = v.object({
 });
 export type TradeToReview = Infer<typeof tradeToReview>;
 
-/** What `email` may do to the trade in review, or null if he doesn't review it. */
-async function yoursOn(
-  ctx: QueryCtx,
+/** What `email` may do to the trade in review, or null if he doesn't review it: `teams` are the
+ *  league's. */
+function yoursOn(
+  teams: readonly Doc<"teams">[],
   offer: Doc<"tradeOffers">,
   email: string,
-): Promise<YourReview | null> {
+): YourReview | null {
   if (offer.review === undefined) return null;
   const { reviewer } = offer.review;
   if (reviewer.kind === "veto") return reviewer.by === email ? "block" : null;
-  if (!(await votersOn(ctx, offer)).includes(email)) return null;
+  if (!votersAmong(teams, offer).includes(email)) return null;
   return reviewer.against.includes(email) ? "takeBack" : "against";
 }
 
@@ -62,7 +63,7 @@ export const toReview = query({
     const clubOf = clubsByCode(ctx);
     const shown: TradeToReview[] = [];
     for (const offer of await leagueOffers(ctx, leagueId)) {
-      const yours = await yoursOn(ctx, offer, email);
+      const yours = yoursOn(teams, offer, email);
       if (yours === null || offer.review === undefined) continue;
       shown.push({
         offerId: offer._id,

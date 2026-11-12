@@ -100,6 +100,11 @@ describe.each<[string, Partial<LeagueRules>, string]>([
     "On the pitch, midfield's minimum must be a whole number, 0 or more, not -1.",
   ],
   [
+    "an area of two words, named as the screens name it (#1785)",
+    { areaLimits: { ...limits, defensiveMidfield: { minimum: 2, maximum: 1 } } },
+    "On the pitch, defensive midfield's minimum, 2, is above its maximum, 1.",
+  ],
+  [
     "minimums on the pitch adding up to more than eleven",
     { areaLimits: { ...limits, defence: { minimum: 6, maximum: 6 }, midfield: { minimum: 5, maximum: 5 } }, presets: [] },
     "The areas' minimums on the pitch add up to 12, more than the 11 who start.",
@@ -161,7 +166,7 @@ describe.each<[string, Partial<LeagueRules>, string]>([
   [
     "a classic formation giving a sweeper to a back four",
     { classics: [{ ...keegans, cells: [keegans.cells[0], { ...keegans.cells[1] }, { ...keegans.cells[2], role: "sweeper" }, ...keegans.cells.slice(3)] }] },
-    "The classic formation Keegan's Newcastle gives its defence leftCentre slot the role sweeper, which that slot doesn't offer.",
+    "The classic formation Keegan's Newcastle gives its defence left-centre slot the role sweeper, which that slot doesn't offer.",
   ],
   [
     "a classic formation whose defensive instruction is an attacking one",
@@ -203,12 +208,17 @@ describe.each<[string, Partial<LeagueRules>, string]>([
   [
     "a waiver run at hour 24",
     { waivers: { ...FIRST_RULES.waivers, runs: [{ day: "monday", hour: 24, minute: 0 }] } },
-    "A waiver run's hour is a whole number from 0 to 23, not 24.",
+    "A waiver run's hour must be a whole number from 0 to 23, not 24.",
+  ],
+  [
+    "a waiver run at hour 1.5 (#1743)",
+    { waivers: { ...FIRST_RULES.waivers, runs: [{ day: "monday", hour: 1.5, minute: 0 }] } },
+    "A waiver run's hour must be a whole number from 0 to 23, not 1.5.",
   ],
   [
     "a waiver run at minute 60",
     { waivers: { ...FIRST_RULES.waivers, runs: [{ day: "monday", hour: 9, minute: 60 }] } },
-    "A waiver run's minute is a whole number from 0 to 59, not 60.",
+    "A waiver run's minute must be a whole number from 0 to 59, not 60.",
   ],
   [
     "two waiver runs at one time",
@@ -224,6 +234,10 @@ describe.each<[string, Partial<LeagueRules>, string]>([
   test("is refused with the reason", () => {
     expect(() => check(rulesWith(change))).toThrow(new Error(reason));
   });
+});
+
+test("a waiver run at 23:59 is sound (#1743)", () => {
+  expect(() => check(rulesWith({ waivers: { ...FIRST_RULES.waivers, runs: [{ day: "monday", hour: 23, minute: 59 }] } }))).not.toThrow();
 });
 
 test("a squad maximum of 25, a Premier League squad, is sound (spec/03)", () => {

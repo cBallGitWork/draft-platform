@@ -1,7 +1,7 @@
 import { v } from "convex/values";
 import type { Id } from "../_generated/dataModel";
 import { query, type QueryCtx } from "../_generated/server";
-import { deadlineOf, leagueDeadlines } from "../gameweeks/leagueDeadlines";
+import { leagueDeadlineOf } from "../gameweeks/leagueDeadlines";
 import { thisGameweekOf } from "../gameweeks/nextGameweek";
 import { gameModeOf } from "../rules/gameMode";
 import { seasonRules } from "../rules/rulesHistory";
@@ -24,7 +24,7 @@ export const thisGameweek = query({
     const opened = await matchupTeam(ctx, leagueId, teamId);
     if (opened.kind !== "team") return null;
     const games = gamesOf(await scheduleOf(ctx, opened.league, opened.season), opened.team._id);
-    return thisGameweekOf(games, deadlineOf(await leagueDeadlines(ctx, leagueId)), now)?.gameweek ?? null;
+    return thisGameweekOf(games, await leagueDeadlineOf(ctx, leagueId), now)?.gameweek ?? null;
   },
 });
 

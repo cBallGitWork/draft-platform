@@ -29,8 +29,8 @@ const startedDraft = v.object({
 export const draftTables = {
   /** A league's draft (spec/04, Starting it; #1089), one row at most, made the first time its
    *  commissioner sets a start or starts it, a manager chooses auto-pick or a pick is traded: a
-   *  league with none waits for him to press start.
-   *  ../draft/draftStart.ts writes it. */
+   *  league with none waits for him to press start. Several files write it: ../draft/draftStart.ts
+   *  starts it, and a field's note names the file that writes that field where one does. */
   drafts: defineTable({
     leagueId: v.id("leagues"),
     /** When it starts, the commissioner's date; absent while it waits for him to press start. */

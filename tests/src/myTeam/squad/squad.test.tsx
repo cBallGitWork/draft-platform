@@ -5,7 +5,7 @@
 // why it's empty; and his squad number, changed in his season panel (#13). The panel, Your eleven,
 // Mail and the views: squadWidgets.test.tsx.
 
-import { act, screen, within } from "@testing-library/react";
+import { screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
 import { MY_TEAM_PATH, MY_TEAM_SQUAD_PATH } from "../../../../src/frame/menu";
@@ -220,7 +220,7 @@ describe("squad numbers (#13)", () => {
     const app = openSquad({ squad: squadOf([SAKA, PALMER]) });
     await screen.findByRole("table");
     await openPanel("Saka");
-    act(() => app.myTeam.serverHoldsSquad(squadOf([{ ...SAKA, number: 9 }, { ...PALMER, number: 4 }])));
+    app.myTeam.serverHoldsSquad(squadOf([{ ...SAKA, number: 9 }, { ...PALMER, number: 4 }]));
     expect(box("Saka").value).toBe("9");
     expect(cells(rows()[1])[0]).toBe("9");
   });
@@ -259,11 +259,11 @@ describe("squad numbers (#13)", () => {
     await openPanel("Saka");
     await retype("Saka", "");
     await userEvent.tab();
-    act(() => app.myTeam.serverHoldsSquad(squadOf([{ ...SAKA, number: 23 }, PALMER])));
+    app.myTeam.serverHoldsSquad(squadOf([{ ...SAKA, number: 23 }, PALMER]));
     expect(box("Saka").value).toBe("23");
     await retype("Saka", "");
     await userEvent.tab();
-    act(() => app.myTeam.serverHoldsSquad(squadOf([{ ...SAKA, number: null }, PALMER])));
+    app.myTeam.serverHoldsSquad(squadOf([{ ...SAKA, number: null }, PALMER]));
     expect(box("Saka").value).toBe("");
   });
 

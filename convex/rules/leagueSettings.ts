@@ -2,8 +2,6 @@ import { v } from "convex/values";
 import { mutation, query } from "../_generated/server";
 import { seasonGameweekCount } from "../gameweeks/seasonGameweeks";
 import { refuse } from "../shared/leagueAccess";
-import { draftRulesOf, tradeRulesOf } from "./firstRules";
-import { sortedJson } from "../shared/sortedJson";
 import { changeLatest, editorView, editorViewOf, revisionShape } from "./leagueRules";
 import type { LeagueRules } from "./leagueRulesShape";
 import { leagueSettingsOf, leagueSettingsShape, type LeagueSettings } from "./leagueSettingsPart";
@@ -40,9 +38,9 @@ export const changeSettings = mutation({
   handler: (ctx, { leagueId, settings, revision }) => changeLatest(ctx, leagueId, revision, (latest) => withLeagueSettings(latest, settings)),
 });
 
-/** The rules with these settings. The draft's or the trades' is written only if it differs from
- *  what the league plays by, so rules saved before it was a rule don't read as changing it.
- *  Refused if the settings would add or take away the squad size limit. */
+/** The rules with these settings. Rules saved before the draft or the trades were rules don't read
+ *  as changing them, as `changeRules` reads each side as it plays. Refused if the settings would
+ *  add or take away the squad size limit. */
 function withLeagueSettings(rules: LeagueRules, settings: LeagueSettings): LeagueRules {
   const { size } = rules.squad;
   if ((size === null) !== (settings.squadMaximum === null)) refuse(settingsRefusals.squadSizeFixed);
@@ -50,8 +48,8 @@ function withLeagueSettings(rules: LeagueRules, settings: LeagueSettings): Leagu
     ...rules,
     oddTeamOut: settings.oddTeamOut,
     gamesPerGameweek: settings.gamesPerGameweek,
-    ...(sortedJson(settings.draft) !== sortedJson(draftRulesOf(rules)) && { draft: settings.draft }),
-    ...(sortedJson(settings.trades) !== sortedJson(tradeRulesOf(rules)) && { trades: settings.trades }),
+    draft: settings.draft,
+    trades: settings.trades,
     waivers: settings.waivers,
     squad: {
       size: size === null || settings.squadMaximum === null ? null : { ...size, maximum: settings.squadMaximum },

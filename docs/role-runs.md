@@ -7,7 +7,7 @@ is why each one goes where it does, for Craig to refine by patch.
 
 Superseded in part by the roles redrawn around Sportmonks' stats (#1445, spec/05 S05.35): the
 underlapping full-back, the wide-midfield touchline winger, the late runner, the wide forward and
-the shadow striker were cut, and the half-back renamed. Their rows below are kept as the research
+the attack's shadow striker were cut, and the half-back renamed. Their rows below are kept as the research
 behind them; `convex/lineup/roles.ts` holds the roles that are offered.
 
 How it was done: for each role, what the role is in FM's role guides (its duty and its "moves into
