@@ -15,7 +15,8 @@ import { managersOf, tradedName, tradeWordsOf } from "./tradeWords";
 import { startReview } from "./tradeReview";
 import { tradeWarnings } from "./tradeSquads";
 import { NOTE_MOST, OFFERS_PER_TEAM_MOST } from "./tradeLimits";
-import { checkPicks, checkPicksFree, samePick, type TradePicks } from "./tradePicks";
+import { samePick } from "../draft/snakeOrder";
+import { checkPicks, checkPicksFree, type TradePicks } from "./tradePicks";
 import { offerCloses, onAutoTeam, tradeDeadlineInForce, tradesShut } from "./tradeShut";
 import { shutWords } from "./tradeShutWords";
 
