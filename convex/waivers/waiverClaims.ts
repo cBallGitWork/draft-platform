@@ -1,8 +1,6 @@
 import { v, type Infer } from "convex/values";
 import type { Doc, Id } from "../_generated/dataModel";
 import { mutation, query, type MutationCtx, type QueryCtx } from "../_generated/server";
-import { draftIsOver } from "../draft/draftRow";
-import { leagueDeadlines } from "../gameweeks/leagueDeadlines";
 import { positionsNow } from "../positions/playerPositions";
 import { clubRecord, position } from "../schema";
 import { takeAllOrThrow } from "../shared/cappedRead";
@@ -12,7 +10,7 @@ import { clubByCode, clubOf, heldPlayerByCode } from "../shared/players";
 import { placeOf } from "../squads/squadPlace";
 import { squadRefusals } from "../squads/squads";
 import { seasonPointsIn } from "../stats/seasonPoints";
-import { firstRunsIn, inWaiverLock, runAhead } from "./waiverLock";
+import { firstRunsIn, outOfLockFor, runAhead, waiversOpenFor } from "./waiverLock";
 import { CLAIMS_PER_TEAM_MOST } from "./waiverLimits";
 import { waiverRowOf } from "./waiverPlayers";
 import { dropRefusals } from "./waivers";
@@ -80,8 +78,7 @@ export const putIn = mutation({
   returns: v.id("waiverClaims"),
   handler: async (ctx, { leagueId, playerCode, dropCode }) => {
     const { email, team } = await managerOf(ctx, leagueId);
-    if (!(await draftIsOver(ctx, leagueId))) refuse(claimRefusals.notDrafted);
-    if (await inWaiverLock(ctx, await leagueDeadlines(ctx, leagueId), Date.now())) refuse(claimRefusals.locked);
+    await waiversOpenFor(ctx, leagueId, claimRefusals);
     const player = await playerOrRefuse(ctx, playerCode);
     if ((await waiverRowOf(ctx, leagueId, playerCode)) === null) refuse(claimRefusals.notOnWaivers(player.name));
     if (player.droppedAt !== undefined) refuse(claimRefusals.playerGone(player.name));
@@ -128,7 +125,7 @@ export const changeDrop = mutation({
   returns: v.null(),
   handler: async (ctx, { leagueId, claimId, dropCode }) => {
     const claim = await ownClaim(ctx, leagueId, claimId);
-    if (await inWaiverLock(ctx, await leagueDeadlines(ctx, leagueId), Date.now())) refuse(claimRefusals.locked);
+    await outOfLockFor(ctx, leagueId, claimRefusals.locked);
     await checkDrop(ctx, leagueId, claim.teamId, dropCode);
     const others = (await claimsOf(ctx, leagueId, claim.teamId)).filter(({ _id }) => _id !== claimId);
     if (others.some((other) => other.playerCode === claim.playerCode && other.dropCode === dropCode)) refuse(claimRefusals.twice);
