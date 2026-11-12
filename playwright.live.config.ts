@@ -1,13 +1,18 @@
 // The after-release check (spec/20, Every release): tests/live/ opened against the live site, no
 // local server. `npx playwright test -c playwright.live.config.ts`; .github/workflows/release-check.yml
-// runs it after each production deployment. What it points at: tests/live/releaseCheck.ts.
+// runs it after each production deployment. What it points at: tests/live/releaseCheck.ts. The test
+// account's sign-in, in the same folder, is run by hand only (playwright.testAccount.config.ts).
 
 import { defineConfig } from "@playwright/test";
 import { checkSite } from "./tests/live/releaseCheck";
 
+/** The test account's sign-in: never part of the release check. */
+export const TEST_ACCOUNT_SPEC = "testAccount.live.spec.ts";
+
 export default defineConfig({
   testDir: "tests/live",
   testMatch: "*.live.spec.ts",
+  testIgnore: TEST_ACCOUNT_SPEC,
   forbidOnly: !!process.env.CI,
   // One sign-in, which waits up to two minutes for its email: no retry, since a second ask could
   // run into the hour's limit on links for the address.
