@@ -13,13 +13,10 @@
 // Run from the repo: `node scripts/tests-kept.mjs`; `npm run verify` runs it, so CI does.
 
 import { existsSync, readFileSync } from "node:fs";
-import { pathToFileURL } from "node:url";
 import ts from "typescript";
-import { BASE, branchCheck, TRAILER_PLACE } from "./branchCheck.mjs";
+import { BASE, branchCheck, TEST_FILE, TESTS_ROOT, TRAILER_PLACE } from "./branchCheck.mjs";
+import { ranDirectly } from "./thisScript.mjs";
 
-const TESTS_ROOT = "tests/";
-/** Every Vitest and Playwright test file's name (tests/README.md, The five roots). */
-const TEST_FILE = /\.(test|spec)\.(ts|tsx|mjs)$/;
 const TRAILER = "Test-removed";
 /** Between the describe() titles and the test's own in a test's name. */
 export const NAME_JOIN = " > ";
@@ -142,4 +139,4 @@ function main() {
   }
 }
 
-if (process.argv[1] !== undefined && import.meta.url === pathToFileURL(process.argv[1]).href) main();
+if (ranDirectly(import.meta.url)) main();
