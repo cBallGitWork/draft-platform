@@ -49,12 +49,21 @@ fixtures are a different screen (`spec/12`, "table and fixtures").
   as an opponent card (their table place, their form, how many days away). Under them, the club's
   top three scorers in the league's points, and the club's stadium, capacity and manager (Craig,
   12 Nov 2026). No ownership line: "you already have that info in table", the Squad tab's team
-  column (Craig, 12 Nov 2026). `S18.7`
-- A Squad tab, players grouped GK, DEF, MID, FWD, each with his positions, his team in the league
+  column (Craig, 12 Nov 2026). The top three are the club's three with the most season points;
+  a tie goes to points per game (Craig, 12 Nov 2026). `S18.7`
+- A Squad tab, players grouped GK, DEF, MID, AM, FWD (Craig, 12 Nov 2026: "GK DEF MID AM FWD"):
+  DEF is CB, FB, WB; MID is CDM, CM, WM; AM is CAM, W; FWD is SS, ST; a player goes by his first
+  position. Each with his positions, his team in the league
   or Free agent or Waivers, his season points, his points in each of his last five gameweeks, his
   starts and minutes, and a doubt chip, a greyed placeholder until the status chips are settled
   (`docs/to-grill.md`) (Craig, 12 Nov 2026). A row opens the player card, where claims and pick-ups
-  live; the club page has no buttons of its own (Craig, 12 Nov 2026). `S18.8`
+  live; the club page has no buttons of its own (Craig, 12 Nov 2026). The last five gameweeks are
+  the last five finished Premier League gameweeks, the same for every row, as Scouting's are: a
+  double gameweek adds its matches up, a gameweek he didn't play shows "—", and before the
+  season's first match they are last season's final five, with last season's starts and minutes.
+  The squad is the club's current players: one sold mid-season shows at his new club with his
+  whole season's points, and one who left the Premier League isn't listed (Craig, 12 Nov 2026).
+  `S18.8`
 - A Fixtures tab: the club's matches this season in the competitions the league plays, each with
   its gameweek, home or away, and its result or kick-off, opening its match page. No difficulty
   colours, as on the Football page (Craig, 12 Nov 2026). `S18.9`
