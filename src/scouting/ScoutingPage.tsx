@@ -1,10 +1,10 @@
 import { useState } from "react";
 import type { LeagueSummary } from "../../convex/leagues/myLeagues";
-import type { CatalogueStat } from "../../convex/scoring/statCatalogueList";
 import { namedPlayers } from "../draft/playersView";
 import { Loading, PAGE_STACK, PageSection, PanelNote } from "../ui/Panel";
 import { PlateTabs } from "../ui/PlateTabs";
 import { useLastLoaded } from "../shared/useLastLoaded";
+import { useListSort } from "../shared/useListSort";
 import { ComparePanel } from "./ComparePanel";
 import { Filters } from "./Filters";
 import { PlayersTable, type ListSort, type ListSortColumn } from "./PlayersTable";
@@ -66,8 +66,7 @@ export function ScoutingPage({ league, seam }: { league: LeagueSummary; seam: Sc
  *  open there too. Compare with another… then a second row puts the two side by side. */
 function PlayersTab({ league, seam }: { league: LeagueSummary; seam: ScoutingSeam }) {
   const [filters, setFilters] = useState(OPENING_FILTERS);
-  const [sort, setSort] = useState<ListSort>(OPENING_SORT);
-  const [stat, setStat] = useState<CatalogueStat | null>(null);
+  const { sort, sortBy, stat, show } = useListSort<ListSortColumn>(OPENING_SORT, FIRST_DESCENDING);
   const [name, find] = useState("");
   // While a changed club, stat or period loads, the last list stays up, so the club filter keeps its clubs.
   const [period, choosePeriod] = useState<Period>(OPENING_PERIOD);
@@ -100,13 +99,6 @@ function PlayersTab({ league, seam }: { league: LeagueSummary; seam: ScoutingSea
     setComparing(false);
   };
   const filterBy = (change: Partial<PlayersFilters>) => setFilters({ ...filters, ...change });
-  const sortBy = (by: ListSortColumn) => setSort(by === sort.by ? { by, descending: !sort.descending } : { by, descending: FIRST_DESCENDING[by] });
-  // A stat chosen is sorted by, most first; with none, a sort by the stat goes back to the opening one.
-  const show = (chosen: CatalogueStat | null) => {
-    setStat(chosen);
-    if (chosen !== null) setSort({ by: "stat", descending: FIRST_DESCENDING.stat });
-    else if (sort.by === "stat") setSort(OPENING_SORT);
-  };
   return (
     <div className="grid items-start gap-2 lg:grid-cols-scouting">
       <section aria-label={PLAYERS_TITLE} className="min-w-0 bg-panel">

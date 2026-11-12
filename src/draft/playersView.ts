@@ -4,6 +4,7 @@
 // column head pressed, opening on the site's ranking. Pure, so the tests and the screen share it.
 
 import type { Position } from "../../convex/positions/positionTables";
+import { byName, compareFigures } from "../../convex/scouting/playersOrder";
 import type { OverviewStat } from "../../convex/draft/draftPlayers";
 import type { ListedPlayer } from "../scouting/seam";
 import type { RoomFigure } from "./seam";
@@ -77,14 +78,8 @@ function figureOf(player: RoomPlayer, by: Exclude<RoomSortColumn, "name">): numb
 /** The players in the sort's order. A missing figure sorts last whichever way, and ties fall back
  *  to the name, so the order never shifts between reads. */
 export function sortedPlayers(players: readonly RoomPlayer[], { by, descending }: RoomSort): RoomPlayer[] {
-  const byName = (one: RoomPlayer, other: RoomPlayer) => one.name.localeCompare(other.name) || one.code - other.code;
   const direction = descending ? -1 : 1;
-  return [...players].sort((one, other) => {
-    if (by === "name") return direction * byName(one, other);
-    const [mine, theirs] = [figureOf(one, by), figureOf(other, by)];
-    if (mine === theirs) return byName(one, other);
-    if (mine === null) return 1;
-    if (theirs === null) return -1;
-    return direction * (mine - theirs) || byName(one, other);
-  });
+  return [...players].sort((one, other) =>
+    by === "name" ? direction * byName(one, other) : compareFigures(figureOf(one, by), figureOf(other, by), direction) || byName(one, other),
+  );
 }
