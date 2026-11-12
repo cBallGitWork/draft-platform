@@ -90,7 +90,7 @@ const screenTeam = v.object({
 });
 export type ScreenTeam = Infer<typeof screenTeam>;
 
-export const tradesView = v.object({
+const tradesView =v.object({
   myTeamId: v.id("teams"),
   /** Why no trade can be offered or accepted now, or null while trades are open (tradeShut.ts). */
   shut: tradesShutReason,

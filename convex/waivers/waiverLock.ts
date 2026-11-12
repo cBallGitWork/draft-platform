@@ -111,7 +111,7 @@ export async function gameweekUnderWay(ctx: QueryCtx, gameweek: number): Promise
 /** Whether the gameweek is under way, and once it isn't, when its last match was first read at
  *  full time: null when one was there before that moment was kept (../football/matchScores.ts). */
 async function gameweekEnd(ctx: QueryCtx, gameweek: number): Promise<{ underWay: true } | { underWay: false; endedAt: number | null }> {
-  const matches = await gameweekFixtures(ctx, gameweek, "the waiver lock can't tell whether its last match is over");
+  const matches = await gameweekFixtures(ctx, gameweek, "whether its last match is over can't be told");
   const scores = await Promise.all(matches.map(({ code }) => scoreOf(ctx, code)));
   const over = scores.flatMap((score) => (score?.state === "fullTime" ? [score.fullTimeAt ?? null] : []));
   if (over.length < scores.length) return { underWay: true };
