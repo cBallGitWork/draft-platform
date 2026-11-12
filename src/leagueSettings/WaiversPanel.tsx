@@ -1,3 +1,4 @@
+import { FIRST_RUN_TIME } from "../../convex/rules/firstRules";
 import { WAIVER_ORDERS, WEEKDAYS, type WaiverRules } from "../../convex/rules/leagueRulesShape";
 import { waiverOrderWords } from "../myTeam/claims/words";
 import { Choice } from "../ui/Choice";
@@ -28,12 +29,11 @@ type Run = WaiverRules["runs"][number];
 /** The times a run is offered at, each half hour: Claude's choice, as fine as a weekly run needs. */
 const HALF_HOURS = Array.from({ length: 48 }, (_, half) => ({ hour: Math.floor(half / 2), minute: (half % 2) * 30 }));
 const timeKey = ({ hour, minute }: { hour: number; minute: number }) => `${hour}:${minute}`;
-const DEFAULT_RUN_TIME = { hour: 18, minute: 0 };
 
-/** A new run: the first day of the week with no run yet, at 18:00 as the league's first runs are. */
+/** A new run: the first day of the week with no run yet, at the time the league's first runs are. */
 function newRun(runs: readonly Run[]): Run {
   const day = WEEKDAYS.find((each) => !runs.some((run) => run.day === each)) ?? WEEKDAYS[0];
-  return { day, ...DEFAULT_RUN_TIME };
+  return { day, ...FIRST_RUN_TIME };
 }
 
 export function WaiversPanel({ waivers, edit }: { waivers: WaiverRules; edit: (waivers: WaiverRules) => void }) {

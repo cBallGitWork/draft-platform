@@ -95,7 +95,7 @@ test("a sub coming on in his own area plays his best-star role at the deadline: 
   const league = await scoresLeague();
   const { t, leagueId, annsTeam } = league;
   await t.run(async (ctx) => {
-    await holdSiteScoring(ctx, { scoring: ROLES_PRICED_APART, kind: "patch", season: 2026, number: 1, at: Date.now() - 365 * DAY_MS });
+    await holdSiteScoring(ctx, { scoring: ROLES_PRICED_APART, kind: "patch", at: Date.now() - 365 * DAY_MS });
     // At the deadline he was a 4-star attacking 8 and a 2-star ball-winner.
     await ctx.db.insert("deadlineStars", {
       leagueId,

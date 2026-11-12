@@ -5,12 +5,14 @@ import type { MutationCtx, QueryCtx } from "../_generated/server";
 import { ALL_CELLS, type Cell } from "../lineup/pitch";
 import { withOwnStats } from "../scoring/ownStats";
 import { rulePointsIn } from "../scoring/scoring";
+import { ANY_BACK_LINE, rulesAt, withBackLine, type TeamScoring } from "../scoring/teamScoring";
 import { inTenths, statIn, type MatchStats } from "../scoring/values";
-import { validateScoringSet, type ScoringRule, type ScoringSet } from "../scoring/scoringSet";
+import { checkedOnce, type ScoringRule, type ScoringSet } from "../scoring/scoringSet";
 import { siteScoringInGameweek } from "../scoring/siteVersions";
 import { takeAllOrThrow } from "../shared/cappedRead";
 import { logFailure } from "../shared/errors";
 import { fixtureByCode } from "../shared/fixtures";
+import type { PlayerCode } from "../shared/players";
 import { EVENT_STATS, isWhole, MINUTES_STAT, type PlayerMatchRecord } from "./matchRecords";
 
 // The threshold lines' moments (spec/10, The commentary; #44, #835): "~58' Rice: 3 key passes,
@@ -27,7 +29,6 @@ import { EVENT_STATS, isWhole, MINUTES_STAT, type PlayerMatchRecord } from "./ma
 // or his team's instructions move it is the matchup's to work out too (#868, #990). A read at full time stores none: its records are the sync's
 // (matchStats.ts), and the live reads have shown the match by then.
 
-type PlayerCode = number;
 
 /** One man's total of one stat moving his points under some slot's pricing, as a read showed it.
  *  `from` and `to` are equal where only his minutes moved: they passed a rule's minimum, as a
@@ -37,11 +38,6 @@ interface ThresholdStep {
   from: number;
   to: number;
 }
-
-/** The most steps one match held a row a step, as stored before #871 (thresholdSteps): enough for
- *  the first set, about 260 a busy match measured (thresholdSteps.test.ts). Those rows are only
- *  read now. More throws, never a silent cut. Claude's choice. */
-export const THRESHOLD_STEPS_MOST = 1000;
 
 /** The most steps one row holds: well under Convex's 8192 values an array, which a read pricing
  *  every catalogue stat for 40 men would pass. A read showing more takes more rows. */
@@ -100,7 +96,11 @@ export function thresholdSteps(before: MatchStats, after: MatchStats, set: Scori
     const to = statIn(now, stat);
     if (from === to && minutesNow < minutesWere) continue;
     const adjustedMoves = from !== to && adjusted.has(stat);
-    if (adjustedMoves || ALL_CELLS.some((cell) => statPoints(rules, cell, from, minutesWere) !== statPoints(rules, cell, to, minutesNow))) {
+    // A back line reprices a clean sheet and each goal conceded (teamScoring.ts), so a goal
+    // conceded the set's own rule leaves unpriced is a step too (#1754).
+    const pricings = [rules, rules.map((rule) => withBackLine(rule, ANY_BACK_LINE))];
+    const moves = (priced: readonly ScoringRule[]) => ALL_CELLS.some((cell) => statPoints(priced, cell, from, minutesWere) !== statPoints(priced, cell, to, minutesNow));
+    if (adjustedMoves || pricings.some(moves)) {
       steps.push({ stat, from, to });
     }
   }
@@ -115,11 +115,17 @@ function adjustedStats(set: ScoringSet): Set<string> {
   return new Set([...roleStats, ...instructionStats]);
 }
 
-/** What a stored step is worth at `cell` under the rules for its stat, before any role: what its
- *  line shows (vidiprinter.ts). Both totals are priced at his minutes then, but the before of one
- *  whose total didn't move, which was stored because his minutes passed a rule's minimum. */
-export function stepPoints(step: Pick<Doc<"thresholdSteps">, "stat" | "from" | "to" | "minutes">, set: ScoringSet, cell: Cell): number {
-  const rules = set.rules.filter((rule) => rule.stat === step.stat);
+/** What a stored step is worth at `cell` under the rules for its stat, as `team`'s back line
+ *  prices them there, before any role: what its line shows (vidiprinter.ts). Both totals are priced
+ *  at his minutes then, but the before of one whose total didn't move, which was stored because his
+ *  minutes passed a rule's minimum. `team` is undefined for a man in no lineup. */
+export function stepPoints(
+  step: Pick<StoredStep, "stat" | "from" | "to" | "minutes">,
+  set: ScoringSet,
+  cell: Cell,
+  team: TeamScoring | undefined,
+): number {
+  const rules = rulesAt(set.rules, team, cell.area).filter((rule) => rule.stat === step.stat);
   const minutesBefore = step.from === step.to ? NO_MINUTES : step.minutes;
   return inTenths(statPoints(rules, cell, step.to, step.minutes) - statPoints(rules, cell, step.from, minutesBefore));
 }
@@ -149,7 +155,7 @@ export async function storeThresholdSteps(
     // A match not held, or with no gameweek, has no set to price by; the records' own write says so.
     if (fixture === null || fixture.gameweek === null) return { fixtureCode, ok: true };
     const set = await siteScoringInGameweek(ctx, fixture.gameweek);
-    validateScoringSet(set);
+    checkedOnce(set);
     steps = records
       .filter((record) => isWhole(record))
       .flatMap((record) =>
@@ -168,17 +174,12 @@ export async function storeThresholdSteps(
   return { fixtureCode, ok: true };
 }
 
-/** One match's stored steps, oldest first: those stored a row a step before #871, then the reads'. */
+/** One match's stored steps, oldest first. */
 export async function thresholdStepsOf(ctx: QueryCtx, fixtureCode: number): Promise<StoredStep[]> {
-  const before = await takeAllOrThrow(
-    ctx.db.query("thresholdSteps").withIndex("by_fixtureCode", (q) => q.eq("fixtureCode", fixtureCode)),
-    THRESHOLD_STEPS_MOST,
-    `Match ${fixtureCode} holds more than ${THRESHOLD_STEPS_MOST} threshold steps, so some would be left out`,
-  );
   const reads = await takeAllOrThrow(
     ctx.db.query("thresholdStepReads").withIndex("by_fixtureCode", (q) => q.eq("fixtureCode", fixtureCode)),
     THRESHOLD_STEP_READS_MOST,
     `Match ${fixtureCode} holds more than ${THRESHOLD_STEP_READS_MOST} reads' threshold steps, so some would be left out`,
   );
-  return [...before, ...reads.flatMap(({ minute, steps }) => steps.map((step) => ({ ...step, minute })))];
+  return reads.flatMap(({ minute, steps }) => steps.map((step) => ({ ...step, minute })));
 }

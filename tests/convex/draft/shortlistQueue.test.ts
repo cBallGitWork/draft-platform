@@ -3,9 +3,11 @@ import type { Id } from "../../../convex/_generated/dataModel";
 import { DRAFT_LIST_MOST } from "../../../convex/draft/draftLimits";
 import { draftListRefusals } from "../../../convex/draft/draftLists";
 import { refusals } from "../../../convex/shared/leagueAccess";
-import { ANN, BOB, NO_SUCH_PLAYER, ODEGAARD, PALMER, SAKA, listsAs, listsLeague, manyPlayers, namesOn as namesIn, playerLeaves } from "../../support/convex/draftLists.harness";
+import { ANN, BOB, ODEGAARD, PALMER, SAKA, listsAs, listsLeague, manyPlayers, namesOn as namesIn, playerLeaves } from "../../support/convex/draftLists.harness";
+import { UNHELD } from "../../support/convex/footballRows.harness";
 import { ADMIN, COMMISSIONER, type TestConvex } from "../../support/convex/leagues.harness";
 import { expectRefused } from "../../support/convex/test.harness";
+import { teamNumbered } from "../../../convex/leagues/teams";
 
 // The shortlist feeding the draft queue (#1137, spec/04 line 46, spec/19 The shortlist): a player
 // at a time, or the whole shortlist at the bottom in name order, as many as fit (Craig, 4 Nov 2026).
@@ -46,7 +48,7 @@ describe("one shortlisted player at a time", () => {
   test("refuses a player not on the shortlist, or no such player", async () => {
     const ann = await annShortlisting([SAKA.code]);
     await expectRefused(ann.queueFromShortlist(PALMER.code), draftListRefusals.notShortlisted("Palmer"));
-    await expectRefused(ann.queueFromShortlist(NO_SUCH_PLAYER), refusals.noPlayer);
+    await expectRefused(ann.queueFromShortlist(UNHELD), refusals.noPlayer);
     expect((await namesOn(ANN))?.queue).toEqual([]);
   });
 });
@@ -87,7 +89,7 @@ describe("either way", () => {
   test("a player already on a team never goes in: one at a time says he's taken, the whole list skips him", async () => {
     const ann = await annShortlisting([SAKA.code, PALMER.code]);
     await t.run((ctx) => ctx.db.insert("squadPlayers", { leagueId, teamId: teams[1], playerCode: SAKA.code }));
-    await expectRefused(ann.queueFromShortlist(SAKA.code), draftListRefusals.taken("Saka", "Team 2"));
+    await expectRefused(ann.queueFromShortlist(SAKA.code), draftListRefusals.taken("Saka", teamNumbered(2)));
     expect(await ann.queueShortlist()).toEqual({ added: 1, leftOut: 0 });
     expect((await namesOn(ANN))?.queue).toEqual(["Palmer"]);
   });

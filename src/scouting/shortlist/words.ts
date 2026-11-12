@@ -20,7 +20,7 @@ export const takeOffWords = "Take off";
 /** On the shortlist's Take off button, for screen readers: whom it takes off. */
 export const removeNamedLabel = (name: string) => `Take ${name} off your shortlist`;
 /** Feeding the draft queue from a row (spec/04; #1100), its label for screen readers, and what it did. */
-export const addToQueueWords = "Add to queue";
+export { addToQueueWords } from "../../shared/words";
 export const addToQueueNamedLabel = (name: string) => `Add ${name} to your draft queue`;
 export const queuedWords = (name: string) => `${name} is in your draft queue.`;
 /** On the player card, beside the action: whether he is on it now. */

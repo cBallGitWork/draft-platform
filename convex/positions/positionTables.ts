@@ -51,6 +51,25 @@ export function placePosition(formation: string, line: number, place: number): P
   return FORMATION_PLACES[formation][line - 1]?.[place] ?? null;
 }
 
+/** Where a starter lined up: his side's formation, his line and his place, each null on a sheet
+ *  that drew none. */
+export interface FormationPlace {
+  formation: string | null;
+  line: number | null;
+  place: number | null;
+}
+
+/** True when the sheet drew him: a formation, a line and a place, all three. */
+export function isDrawn<P extends FormationPlace>(start: P): start is P & { formation: string; line: number; place: number } {
+  return start.formation !== null && start.line !== null && start.place !== null;
+}
+
+/** Where a start's formation place puts him: null for a sheet that drew none and, as
+ *  `placePosition`, for a formation or a place the table does not know. */
+export function formationPosition(start: FormationPlace): Position | null {
+  return isDrawn(start) ? placePosition(start.formation, start.line, start.place) : null;
+}
+
 /** The Premier League's roles, the part of its `positionInfo` after the sides ("Left/Right Full
  *  Back" is sides "Left/Right", role "Full Back"). A clear role maps straight across; a vague one
  *  gives every position it could mean (spec/06: "Defender" is CB and FB). An attacking midfielder

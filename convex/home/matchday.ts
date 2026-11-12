@@ -2,7 +2,7 @@
 // first kickoff to `afterMs` after its last final whistle (platformSettings.ts's hours), the home is
 // live. A matchday is one UK calendar day with Premier League matches, so a gameweek from Saturday
 // to Monday has three; where two overlap, a late kickoff and the next day's early one, they join
-// into one (Craig, 6 Nov 2026, #387). Pure: leagueHome.ts reads what it needs.
+// into one (Craig, 6 Nov 2026, #387). Pure: homeClock.ts reads what it needs.
 
 import { LIVE_WINDOW_MS } from "../shared/dueMatches";
 import { groupedBy } from "../shared/groupedBy";

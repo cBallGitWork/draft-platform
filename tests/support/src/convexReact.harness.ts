@@ -12,7 +12,19 @@ import type { Id } from "../../../convex/_generated/dataModel";
 /** The made-up league every live-wiring test reads and writes in. */
 export const A_LEAGUE_ID = "league-1" as Id<"leagues">;
 
-type Fakes = Record<string, (...args: never[]) => unknown>;
+/** A query's fake for a read asked at the minute: it answers `answer` at the first minute it is
+ *  asked at and is loading (`undefined`) at any later one, as when the clock moves on and the next
+ *  answer isn't in yet. */
+export function answeredAtFirstMinute<T>(answer: T) {
+  let first: number | undefined;
+  return (args: "skip" | { now: number }) => {
+    if (args === "skip") return undefined;
+    first ??= args.now;
+    return args.now === first ? answer : undefined;
+  };
+}
+
+type Fakes =Record<string, (...args: never[]) => unknown>;
 
 export interface ConvexReactFakes {
   /** Each is called with the query's args (or "skip"), and its return is what useQuery gives. */

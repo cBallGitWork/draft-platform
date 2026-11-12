@@ -12,6 +12,11 @@ export function logFailure(what: string, error: unknown): string {
   return message;
 }
 
+/** How a failure line names a league: "League <id> (<name>)". */
+export function leagueLabel(league: { _id: string; name: string }): string {
+  return `League ${league._id} (${league.name})`;
+}
+
 /** A run's outcome: what `work` returns, or `{ ok: false, error }` with the failure logged under
  *  `failureWords` when it throws. Each feed wraps its run in it before recording the run's row. */
 export async function outcomeOf<Ok extends { ok: true }>(

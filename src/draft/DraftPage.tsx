@@ -7,7 +7,7 @@ import { useMinute } from "../shared/useMinute";
 import { Loading, PAGE_STACK, PageSection } from "../ui/Panel";
 import { Placeholder } from "../ui/Placeholder";
 import { pickMakers, picksOf, pickInRoundOf, roundOf } from "./board";
-import { ClockLeft, type OnTheClock } from "./ClockLeft";
+import { ClockLeft, pausedAtOf, type OnTheClock } from "./ClockLeft";
 import { CommissionerPanel } from "./CommissionerPanel";
 import { DraftBoard } from "./DraftBoard";
 import { PickRoom } from "./PickRoom";
@@ -24,7 +24,6 @@ import {
   loadingWords,
   nextHead,
   nextWords,
-  noClockWords,
   noStartWords,
   onTheClockHead,
   pickOfHead,
@@ -48,8 +47,8 @@ type Live = Extract<DraftState, { status: "live" }>;
 type Waiting = Extract<DraftState, { status: "waiting" }>;
 
 export function DraftPage({ league, seam }: { league: LeagueSummary; seam: DraftSeam }) {
-  // The minute is for the waiting countdown and the commissioner panel only: the room's own reads
-  // take none, so the page doesn't blank to Loading as it turns (#1531).
+  // The minute is for the waiting countdown only: the room's reads take none, so the page doesn't
+  // blank to Loading as it turns (#1531).
   const now = useMinute();
   const draft = seam.useDraft(league.leagueId);
   const board = seam.useBoard(league.leagueId);
@@ -65,8 +64,8 @@ export function DraftPage({ league, seam }: { league: LeagueSummary; seam: Draft
     draft.status === "live"
       ? { pick: draft.onTheClock.pick, clock: draft.clock, pickSeconds: (draft.clock.endsAt - draft.clock.startsAt) / SECOND_MS }
       : null;
-  const pausedAt = draft.status === "live" ? draft.clock.pausedAt : draft.status === "ending" ? draft.pausedAt : undefined;
-  const state = pausedAt !== undefined ? stateWords.paused : stateWords[draft.status];
+  const paused = pausedAtOf(draft) !== undefined;
+  const state = paused ? stateWords.paused : stateWords[draft.status];
   const title = (
     <>
       {DRAFT_TITLE} <span className="ml-2 align-middle text-lead font-semibold">{state}</span>
@@ -84,7 +83,7 @@ export function DraftPage({ league, seam }: { league: LeagueSummary; seam: Draft
       <PickRoom leagueId={league.leagueId} seam={seam} draft={draft} board={board} onTheClock={onTheClock}>
         {(selected, unselect) =>
           league.powers.runs &&
-          draft.status !== "over" && <CommissionerPanel leagueId={league.leagueId} seam={seam} draft={draft} board={board} now={now} selected={selected} unselect={unselect} />
+          draft.status !== "over" && <CommissionerPanel leagueId={league.leagueId} seam={seam} draft={draft} paused={paused} board={board} selected={selected} unselect={unselect} />
         }
       </PickRoom>
     </PageSection>
@@ -153,7 +152,7 @@ function WaitingFacts({ draft, board, now }: { draft: Waiting; board: Board; now
         <Placeholder label={draftOrderPlaceholder} className="h-5 w-40 align-middle" />
       </Fact>
       {first !== undefined && <Fact head={youPickHead}>{youPickWords(first, second ?? null)}</Fact>}
-      <Fact head={clockHead}>{board.pickSeconds === null ? noClockWords : aPickWords(board.pickSeconds)}</Fact>
+      <Fact head={clockHead}>{aPickWords(board.pickSeconds)}</Fact>
       <Fact head={startsHead(draft.startsAt === null ? null : screenMoment(draft.startsAt))}>
         {draft.startsAt === null ? noStartWords : <span className="text-title text-derived">{inWords(draft.startsAt - now)}</span>}
       </Fact>

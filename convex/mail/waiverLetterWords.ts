@@ -1,13 +1,10 @@
-import type { Infer } from "convex/values";
-import type { leagueEvent } from "../schema";
+import type { LeagueEvent } from "../schema";
 import { hoursWords } from "../shared/time";
 import { WAIVER_MS } from "../waivers/waiverLimits";
 import type { Words } from "./letterShape";
 
 // What waivers' and free agency's Mail letters say (spec/08, spec/16): split from letterWords.ts,
 // which writes the rest and calls these for a claim's and a pickup's letter.
-
-type LeagueEvent = Infer<typeof leagueEvent>;
 
 /** How long a dropped player is on waivers, as a letter says it: "at least 24 hours" (spec/08). */
 export const onWaiversWords = `at least ${hoursWords(WAIVER_MS)}`;

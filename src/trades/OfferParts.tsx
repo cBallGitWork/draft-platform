@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { noFigureWords } from "../shared/words";
 import type { TradedPlayer as Player } from "./seam";
 import { TradedPlayer } from "./TradedPlayer";
 import { nobodyWords } from "./words";
@@ -56,3 +57,7 @@ export function Fact({
     </>
   );
 }
+
+/** A time not known, such as when an offer with no deadline left closes: a greyed dash in its
+ *  place (plate.md, Marks: A placeholder). */
+export const noTimeYet = <span className="text-muted">{noFigureWords}</span>;

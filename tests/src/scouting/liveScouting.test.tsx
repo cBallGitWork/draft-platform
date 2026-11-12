@@ -1,8 +1,9 @@
 // The Scouting seam's live wiring, with Convex's query faked by name: what it asks the server, and
 // that it hands on what comes back as it comes, the players list filtered and sorted here (#1552).
 
-import { renderHook } from "@testing-library/react";
+import { act, renderHook } from "@testing-library/react";
 import { expect, test, vi } from "vitest";
+import { MINUTE_MS } from "../../../convex/shared/time";
 import type { PlayersFilters, PlayersSort } from "../../../convex/scouting/playersList";
 import { liveScouting } from "../../../src/scouting/liveScouting";
 import { A_LEAGUE_ID } from "../../support/src/convexReact.harness";
@@ -51,6 +52,21 @@ test("a player on waivers gets the run that can first take him from scouting/pla
   const { result } = renderHook(() => liveScouting.usePlayersList(A_LEAGUE_ID, { availability: "onWaivers", position: null, clubCode: null }, { by: "name", descending: false }, null));
   expect(result.current!.players).toEqual([{ ...RICE, onWaivers: { firstRun: run } }]);
   expect(convex.runs).toHaveBeenCalledWith({ leagueId: A_LEAGUE_ID, now: expect.any(Number) });
+});
+
+test("a waiver player keeps his run as the minute turns, while firstRuns answers nothing yet for the new minute (#1777)", () => {
+  vi.useFakeTimers();
+  const run = { at: Date.UTC(2027, 0, 14, 18, 0), skippedIf: 12 };
+  convex.list.mockClear().mockReturnValue({ clubs: [], players: [{ ...RICE, onWaivers: { claimableFrom: 0 } }] });
+  let answered: number | undefined;
+  convex.runs.mockClear().mockImplementation(({ now }: { now: number }) => {
+    answered ??= now;
+    return now === answered ? [{ playerCode: RICE.code, firstRun: run }] : undefined;
+  });
+  const { result } = renderHook(() => liveScouting.usePlayersList(A_LEAGUE_ID, { availability: "onWaivers", position: null, clubCode: null }, { by: "name", descending: false }, null));
+  act(() => vi.advanceTimersByTime(MINUTE_MS));
+  expect(convex.runs.mock.lastCall![0].now).not.toBe(answered);
+  expect(result.current!.players).toEqual([{ ...RICE, onWaivers: { firstRun: run } }]);
 });
 
 test("it asks scouting/compare:players for the two codes, and hands on what comes back", () => {

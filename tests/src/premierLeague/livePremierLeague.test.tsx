@@ -35,11 +35,21 @@ test("it asks football/matchScores:ofGameweek with the gameweek, and hands on wh
   expect(convex.ofGameweek).toHaveBeenCalledWith({ gameweek: 9 });
 });
 
-test("it asks match/matchPage:ofMatch with the league, the screen's minute and the fixture code, and hands on what comes back", () => {
-  const page = { fixtureCode: 7 };
+// The page is asked without the minute, so it isn't read again every minute (#1550): its
+// commentary's delay is judged here, at the screen's minute.
+test("it asks match/matchPage:ofMatch with the league and the fixture code, and hands on the page, its commentary delayed once the screen's minute reaches the moment", () => {
+  const page = { fixtureCode: 7, commentary: { kind: "read", lines: [], delayedFrom: NOW + 1 } };
   convex.ofMatch.mockReturnValue(page);
-  expect(renderHook(() => livePremierLeague.useMatch(A_LEAGUE_ID, NOW, 7)).result.current).toBe(page);
-  expect(convex.ofMatch).toHaveBeenCalledWith({ leagueId: A_LEAGUE_ID, now: NOW, fixtureCode: 7 });
+  const { result, rerender } = renderHook(({ minute }) => livePremierLeague.useMatch(A_LEAGUE_ID, minute, 7), { initialProps: { minute: NOW } });
+  expect(result.current).toEqual({ fixtureCode: 7, commentary: { kind: "read", lines: [], delayed: false } });
+  rerender({ minute: NOW + 1 });
+  expect(result.current).toEqual({ fixtureCode: 7, commentary: { kind: "read", lines: [], delayed: true } });
+  expect(convex.ofMatch).toHaveBeenCalledWith({ leagueId: A_LEAGUE_ID, fixtureCode: 7 });
+});
+
+test("the match page is null while no match with its code is held", () => {
+  convex.ofMatch.mockReturnValue(null);
+  expect(renderHook(() => livePremierLeague.useMatch(A_LEAGUE_ID, NOW, 7)).result.current).toBeNull();
 });
 
 test("each is undefined while loading", () => {

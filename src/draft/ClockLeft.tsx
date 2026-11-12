@@ -22,6 +22,13 @@ export function ClockLeft({ onTheClock: { clock } }: { onTheClock: OnTheClock })
   return <span className="tabular-nums">{timeLeftWords(leftAt(clock, now))}</span>;
 }
 
+/** When the commissioner paused the draft, on a pick's clock or after the last pick; undefined
+ *  while it runs, or before it starts and once it is over. */
+export function pausedAtOf(draft: DraftState): number | undefined {
+  if (draft.status === "live") return draft.clock?.pausedAt;
+  return draft.status === "ending" ? draft.pausedAt : undefined;
+}
+
 /** The 10 seconds the reader has to undo his own pick (#1458): they run until `until`, the next
  *  clock's start or the draft's end, frozen at `pausedAt` while the draft is paused. */
 export type UndoWindow = { until: number; pausedAt?: number };

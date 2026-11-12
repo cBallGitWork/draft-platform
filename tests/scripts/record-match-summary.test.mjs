@@ -1,7 +1,6 @@
 // The recorder's summary: the one line each saved poll sums up as, and `--summary` over a folder of
 // them. Running the recorder itself is tested in record-match.test.mjs.
-import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
-import { tmpdir } from "node:os";
+import { writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { expect, test, vi } from "vitest";
 import {
@@ -14,6 +13,7 @@ import { recordedLiveCommentary } from "../support/recorded/live.payloads.ts";
 import { summarise } from "../../scripts/record-match.mjs";
 import { commentaryChanges, summaryLine } from "../../scripts/record-match-summary.mjs";
 import { IPSWICH_FOREST, KICKOFF } from "../support/scripts/recordMatch.harness.mjs";
+import { scratchDir } from "../support/scripts/scratchDir.mjs";
 
 const BRENTFORD_LIVERPOOL = COMMENTARY_MATCH.brentfordLiverpool;
 const POLLED_AT_KICKOFF = new Date(KICKOFF).toISOString();
@@ -79,24 +79,20 @@ test("a failed read saved with no cause, as older polls were, still sums up", ()
 });
 
 test("a summary names a cut-off poll file and goes on to the next", () => {
-  const dir = mkdtempSync(join(tmpdir(), "record-match-summary-"));
+  const dir = scratchDir("record-match-summary-");
   const lines = [];
   vi.spyOn(console, "log").mockImplementation((line) => lines.push(line));
   const fixturePoll = (polledAt) => JSON.stringify({ polledAt, reads: [{ kind: "fixture", body: { status: "U" } }] });
-  try {
-    writeFileSync(join(dir, "2026-10-23T19-00-00.000Z.json"), fixturePoll(POLLED_AT_KICKOFF));
-    writeFileSync(join(dir, "2026-10-23T19-00-30.000Z.json"), fixturePoll("2026-10-23T19:00:30.000Z").slice(0, 20));
-    writeFileSync(join(dir, "2026-10-23T19-01-00.000Z.json"), fixturePoll("2026-10-23T19:01:00.000Z"));
+  writeFileSync(join(dir, "2026-10-23T19-00-00.000Z.json"), fixturePoll(POLLED_AT_KICKOFF));
+  writeFileSync(join(dir, "2026-10-23T19-00-30.000Z.json"), fixturePoll("2026-10-23T19:00:30.000Z").slice(0, 20));
+  writeFileSync(join(dir, "2026-10-23T19-01-00.000Z.json"), fixturePoll("2026-10-23T19:01:00.000Z"));
 
-    summarise(dir);
+  summarise(dir);
 
-    expect(lines).toHaveLength(3);
-    expect(lines[0]).toBe("19:00:00 UTC  |  status U, clock -, named -");
-    expect(lines[1]).toMatch(/^2026-10-23T19-00-30\.000Z\.json UNREADABLE: .+/);
-    expect(lines[2]).toBe("19:01:00 UTC  |  status U, clock -, named -");
-  } finally {
-    rmSync(dir, { recursive: true, force: true });
-  }
+  expect(lines).toHaveLength(3);
+  expect(lines[0]).toBe("19:00:00 UTC  |  status U, clock -, named -");
+  expect(lines[1]).toMatch(/^2026-10-23T19-00-30\.000Z\.json UNREADABLE: .+/);
+  expect(lines[2]).toBe("19:01:00 UTC  |  status U, clock -, named -");
 });
 
 /** A commentary body holding `lines`, newest first, as the stream sends them. */
@@ -151,26 +147,22 @@ test("a side the team stats hold nothing for is named, not shown as noughts alon
 });
 
 test("a summary says how the commentary changed from one poll to the next, past a poll whose read failed", () => {
-  const dir = mkdtempSync(join(tmpdir(), "record-match-summary-"));
+  const dir = scratchDir("record-match-summary-");
   const lines = [];
   vi.spyOn(console, "log").mockImplementation((logged) => lines.push(logged));
   const commentaryPoll = (polledAt, read) => JSON.stringify({ polledAt, reads: [{ kind: "commentary", ...read }] });
-  try {
-    writeFileSync(join(dir, "2026-10-23T19-00-00.000Z.json"), commentaryPoll(POLLED_AT_KICKOFF, { body: commentaryOf(line(1, "Kick off.")) }));
-    writeFileSync(join(dir, "2026-10-23T19-00-30.000Z.json"), commentaryPoll("2026-10-23T19:00:30.000Z", { error: "fetch failed" }));
-    writeFileSync(
-      join(dir, "2026-10-23T19-01-00.000Z.json"),
-      commentaryPoll("2026-10-23T19:01:00.000Z", { body: commentaryOf(line(2, "Corner."), line(1, "Kick-off.")) }),
-    );
+  writeFileSync(join(dir, "2026-10-23T19-00-00.000Z.json"), commentaryPoll(POLLED_AT_KICKOFF, { body: commentaryOf(line(1, "Kick off.")) }));
+  writeFileSync(join(dir, "2026-10-23T19-00-30.000Z.json"), commentaryPoll("2026-10-23T19:00:30.000Z", { error: "fetch failed" }));
+  writeFileSync(
+    join(dir, "2026-10-23T19-01-00.000Z.json"),
+    commentaryPoll("2026-10-23T19:01:00.000Z", { body: commentaryOf(line(2, "Corner."), line(1, "Kick-off.")) }),
+  );
 
-    summarise(dir);
+  summarise(dir);
 
-    expect(lines).toEqual([
-      "19:00:00 UTC  |  commentary: 1, newest -' comment (1)",
-      "19:00:30 UTC  |  commentary FAILED: fetch failed",
-      "19:01:00 UTC  |  commentary: 2, newest -' comment (2), +1 -0 ~1",
-    ]);
-  } finally {
-    rmSync(dir, { recursive: true, force: true });
-  }
+  expect(lines).toEqual([
+    "19:00:00 UTC  |  commentary: 1, newest -' comment (1)",
+    "19:00:30 UTC  |  commentary FAILED: fetch failed",
+    "19:01:00 UTC  |  commentary: 2, newest -' comment (2), +1 -0 ~1",
+  ]);
 });

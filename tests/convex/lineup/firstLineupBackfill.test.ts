@@ -4,7 +4,7 @@ import type { Id } from "../../../convex/_generated/dataModel";
 import { lineupInGameweek } from "../../../convex/lineup/lineups";
 import { holdGameweeks } from "../../support/convex/leagueRules.harness";
 import { addManagers, adminCreatesLeague, MANAGERS, type TestConvex } from "../../support/convex/leagues.harness";
-import { FOUR_FOUR_TWO, holdSquad, NEXT, passNextDeadline, SQUAD } from "../../support/convex/lineupSquad.harness";
+import { BOBS, FOUR_FOUR_TWO, holdSquad, NEXT, passNextDeadline, SQUAD } from "../../support/convex/lineupSquad.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
 
 // The #637 and #1040 migration: every team with players gets a saved lineup and no score moves. A
@@ -13,8 +13,6 @@ import { fakeResend, signInDeployment } from "../../support/convex/signIn.harnes
 // the league's draft is still to come.
 
 const [ANN, BOB, CAT, DAN] = MANAGERS;
-/** Bob's one player, whose lineup he saved. */
-const BOBS = 998;
 /** Cat's one player, held on her first lineup. */
 const CATS = 997;
 

@@ -4,7 +4,7 @@
 import type { Instruction, ShapeNeed, Side, Switched } from "./instructions";
 
 /** What each need asks of a formation, as "Park the bus needs …" ends. */
-export const NEEDS_WORDS: Record<ShapeNeed, string> = {
+const NEEDS_WORDS: Record<ShapeNeed, string> = {
   anyShape: "any formation",
   oneUpTopNoWingers: "one up top and no wingers",
   wideOnBothFlanks: "wide players on both flanks",

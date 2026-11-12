@@ -7,7 +7,7 @@ import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
 import { draftOrderRefusals } from "../../../convex/draft/draftOrder";
 import { draftStartRefusals } from "../../../convex/draft/draftStart";
-import { discardWords } from "../../../src/rules/words";
+import { discardWords, unchangedWords } from "../../../src/rules/words";
 import {
   autoPickWords,
   blankPickClockWords,
@@ -15,6 +15,7 @@ import {
   clearDraftStartWords,
   draftStartedFixedWords,
   draftStartLabel,
+  draftStartSavedWords,
   draftStartedWords,
   drawOrderWords,
   moveDownLabel,
@@ -146,6 +147,28 @@ describe("the draft's start date (#1476)", () => {
 
     expect(app.leagueSettings.setDraftStart).toHaveBeenCalledExactlyOnceWith(league.leagueId, new Date(SUNDAY).getTime());
     expect(app.leagueSettings.save).not.toHaveBeenCalled();
+    await waitFor(() => expect(screen.getByRole("status").textContent).toBe(draftStartSavedWords));
+    expect(screen.queryByText(unchangedWords)).toBeNull();
+  });
+
+  it("says a date saved alone was saved, not an earlier settings save's gameweek (#1780)", async () => {
+    await openedSettings(setFor(SATURDAY));
+    await userEvent.click(radio(undraftedWords.freeAgents));
+    await save();
+    await waitFor(() => expect(screen.getByRole("status").textContent).toBe(savedWords(CHANGES_FROM)));
+    typeDate(SUNDAY);
+    await save();
+
+    await waitFor(() => expect(screen.getByRole("status").textContent).toBe(draftStartSavedWords));
+  });
+
+  it("says a date saved with the settings in the settings' words", async () => {
+    await openedSettings();
+    typeDate(SUNDAY);
+    await userEvent.click(radio(undraftedWords.freeAgents));
+    await save();
+
+    await waitFor(() => expect(screen.getByRole("status").textContent).toBe(savedWords(CHANGES_FROM)));
   });
 
   it("clears the date, so the draft waits for the commissioner to press start", async () => {

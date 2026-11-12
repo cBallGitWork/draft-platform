@@ -1,9 +1,8 @@
 import { internal } from "../_generated/api";
 import type { ActionCtx } from "../_generated/server";
-import { sendEmail } from "../outbound/email";
+import { datedSubject, sendEmail } from "../outbound/email";
 import { inviteIdIn } from "../joining/joiningShared";
 import { PRODUCT_NAME } from "../shared/product";
-import { momentIn } from "../shared/moments";
 import { hoursWords } from "../shared/time";
 import { LINK_LIFETIME_MS } from "./signInLimits";
 
@@ -13,17 +12,19 @@ import { LINK_LIFETIME_MS } from "./signInLimits";
 /** How every sign-in email's subject starts: the release check finds its email by it. */
 export const SIGN_IN_SUBJECT_START = `Your link to sign in to ${PRODUCT_NAME}`;
 
-/** Wording for Craig to change in the pull request (spec/02). The subject ends with when it was
- *  sent, so Gmail never folds a new link into the conversation of an earlier one. */
+/** What a sign-in link does, as its email and an invite's say it after "It" or "The link". */
+export const LINK_WORKS_WORDS = `works once, within ${hoursWords(LINK_LIFETIME_MS)}, on any device`;
+
+/** Wording for Craig to change in the pull request (spec/02). */
 export function signInEmail(url: string, sentAt = Date.now()) {
   return {
-    subject: `${SIGN_IN_SUBJECT_START}, ${momentIn(sentAt, undefined)}`,
+    subject: datedSubject(SIGN_IN_SUBJECT_START, sentAt),
     text: [
       `Here is your link to sign in to ${PRODUCT_NAME}:`,
       "",
       url,
       "",
-      `It works once, within ${hoursWords(LINK_LIFETIME_MS)}, on any device. If you didn't ask for it, you can ignore this email.`,
+      `It ${LINK_WORKS_WORDS}. If you didn't ask for it, you can ignore this email.`,
     ].join("\n"),
   };
 }

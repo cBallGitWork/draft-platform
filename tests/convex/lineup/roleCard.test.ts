@@ -55,7 +55,7 @@ beforeEach(async () => {
     await insertClubs(ctx, [ARSENAL, CHELSEA, COVENTRY]);
     await insertPlayers(ctx, [FORWARD]);
     for (const each of MATCHES) await ctx.db.insert("fixtures", each);
-    await holdSiteScoring(ctx, { scoring: SET, kind: "fix", season: 2026, number: 1, at: 0 });
+    await holdSiteScoring(ctx, { scoring: SET, kind: "fix" });
   });
 });
 
