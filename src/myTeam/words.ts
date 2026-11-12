@@ -2,7 +2,7 @@
 
 import { countInWords } from "../../convex/shared/numberWords";
 import { NEXT_MATCHES_SHOWN } from "../../convex/squads/squadLimits";
-import { fewestTeamsWords, menuWords } from "../shared/words";
+import { fewestTeamsWords, gameweekShort, menuWords, versusWords } from "../shared/words";
 import type { TeamTransactions } from "./seam";
 
 export { figureWords, liveWords, noFigureWords, noTeamWords, placeWords, shortThenLongName, tradedPickWords, versusWords, whenWords, withTeamWords } from "../shared/words";
@@ -40,7 +40,7 @@ export const fixtureColumns = {
 export const RESULTS_TITLE = "Results";
 export const toPlayWords = (count: number) => `${count} to play`;
 export const nextGameWords = "Next";
-export const nextGameTitle = (gameweek: number, opponent: string) => `GW${gameweek} v ${opponent}`;
+export const nextGameTitle = (gameweek: number, opponent: string) => `${gameweekShort(gameweek)} ${versusWords} ${opponent}`;
 export const deadlineWords = "Deadline";
 export const theirFormWords = "Their form";
 export const matchupMoreWords = "Matchup";

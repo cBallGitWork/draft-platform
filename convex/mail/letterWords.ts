@@ -1,6 +1,6 @@
 import type { Infer } from "convex/values";
 import { aNewTeamWords } from "../joining/joiningShared";
-import { andListWords } from "../shared/moments";
+import { andListWords, capitalised } from "../shared/moments";
 import type { LeagueRules } from "../rules/leagueRulesShape";
 import { NOTHING_SCORES_DIFFERENTLY } from "../scoring/patchChanges";
 import { autoTeamSwitchedWords } from "../lineup/autoTeamWords";
@@ -253,8 +253,6 @@ function rulesChangedBody(event: Extract<LeagueEvent, { kind: "rulesChanged" }>,
   ];
   return details.length === 0 ? changed : `${changed} ${capitalised(details.join(", and "))}.`;
 }
-
-const capitalised = (words: string) => words.charAt(0).toUpperCase() + words.slice(1);
 
 /** A new version of the site's scoring, as its letter to every manager reports it (spec/14, Changes
  *  and corrections; #356). */

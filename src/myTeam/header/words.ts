@@ -5,9 +5,10 @@ import { DAY_MS, HOUR_MS, MINUTE_MS } from "../../../convex/shared/time";
 import { figureWords, gameweekShort, gameweekWords, scoreWords } from "../../shared/words";
 import { byeWords, leagueAverageWords } from "../words";
 import { resultOf, type Result } from "../../../convex/table/standings";
+import { BYE } from "../../../convex/table/teamGames";
 import type { TeamGame } from "./teamStanding";
 
-export { liveWords, noFigureWords, versusWords, whenWords } from "../words";
+export { liveWords, noFigureWords, noTeamWords, versusWords, whenWords } from "../words";
 export { gameweekShort, placeWords } from "../../shared/words";
 
 /** The band's heads over each reading. */
@@ -37,7 +38,7 @@ const LAST_RESULT_WORDS: Record<Result, string> = { won: "Won", drawn: "Drew", l
 
 /** Who a game is against, as the band names it. */
 export const againstWords = (against: TeamGame["against"]) =>
-  against.kind === "team" ? against.team : against.kind === "bye" ? byeWords : leagueAverageWords;
+  against.kind === "team" ? against.team : against.kind === BYE ? byeWords : leagueAverageWords;
 
 /** The last game: "Won 54–41 v Rovers XI", or its score alone while live. */
 export const lastGameWords = ({ against, score }: TeamGame & { score: NonNullable<TeamGame["score"]> }) => {

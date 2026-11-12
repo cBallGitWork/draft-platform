@@ -5,7 +5,8 @@
 import type { WaiverOrderType } from "../../../convex/rules/leagueRulesShape";
 import type { RunAhead } from "../../../convex/waivers/waiverLock";
 import { placeWords, pointsShort } from "../header/words";
-import { weekdayTimeWords, weekdayWords, whenWords } from "../../shared/words";
+import { capitalised } from "../../../convex/shared/moments";
+import { gameweekShort, weekdayTimeWords, weekdayWords, whenWords } from "../../shared/words";
 
 export { placeWords, pointsShort };
 
@@ -48,10 +49,10 @@ export type FirstRun = RunAhead | null;
 /** When the run that takes him comes, where his first run may fall in `gameweek`'s lock: after its
  *  last match, whose time isn't known ahead (Craig, 11 Nov 2026, on #1467: "after GW12's last
  *  match"). */
-export const afterLastMatchWords = (gameweek: number) => `after GW${gameweek}'s last match`;
+export const afterLastMatchWords = (gameweek: number) => `after ${gameweekShort(gameweek)}'s last match`;
 /** A run, whole: "Wed 11 Nov, 18:00", or "After GW12's last match". */
 export const firstRunWords = (run: FirstRun) =>
-  run === null ? noRunWords : run.skippedIf !== null ? `After GW${run.skippedIf}'s last match` : runWords(run.at);
+  run === null ? noRunWords : run.skippedIf !== null ? capitalised(afterLastMatchWords(run.skippedIf)) : runWords(run.at);
 /** A run, short: "Wed 18:00", or "After GW12's last match". */
 export const firstRunShort = (run: FirstRun) => (run === null || run.skippedIf !== null ? firstRunWords(run) : runShort(run.at));
 /** A run by its day: "Wed run", or "Run after GW12's last match". */
@@ -98,7 +99,7 @@ export const tablePlaceWords = (place: number) => `${placeWords(place)} in the t
 export const waiverOrderNote = (type: WaiverOrderType, resetsAfter: number | null) =>
   type === "rotating"
     ? "Whoever last won a claim drops to the bottom, and it never resets."
-    : `The bottom of the table claims first. A team that wins a claim drops to the bottom until ${resetsAfter === null ? "the gameweek" : `GW${resetsAfter}`} ends, when the order is worked out again. Teams level on points go by the table's tie-breaks.`;
+    : `The bottom of the table claims first. A team that wins a claim drops to the bottom until ${resetsAfter === null ? "the gameweek" : gameweekShort(resetsAfter)} ends, when the order is worked out again. Teams level on points go by the table's tie-breaks.`;
 export const waiverOrderLoadingWords = "Loading the waiver order…";
 
 export const RUNS_TITLE = "Runs";
@@ -108,14 +109,14 @@ export const freeAgentsWords = "Free agents";
 export const freeAgentsNotOpenWords = "Open once the league's draft is over";
 /** A run that falls after a gameweek's deadline: it is skipped if that gameweek's last match isn't
  *  over by then, which isn't known ahead (Craig, 11 Nov 2026, on #1488). */
-export const skippedIfWords = (gameweek: number) => `Skipped if GW${gameweek} is still on`;
+export const skippedIfWords = (gameweek: number) => `Skipped if ${gameweekShort(gameweek)} is still on`;
 /** When free agents can be picked up: never before the league's draft is over (S08.1). In the lock,
  *  or shut with its first run after the next deadline, it waits on `waitsOn`'s last match, whose
  *  time isn't known ahead, so it says so in words (Craig, 11 Nov 2026: "after GW12's last match"). */
 export const windowWords = ({ drafted, open, locked, firstRun, waitsOn, gameweek }: { drafted: boolean; open: boolean; locked: boolean; firstRun: number | null; waitsOn: number | null; gameweek: number | null }) => {
   if (!drafted) return freeAgentsNotOpenWords;
-  const to = gameweek === null ? "" : ` to the GW${gameweek} deadline`;
+  const to = gameweek === null ? "" : ` to the ${gameweekShort(gameweek)} deadline`;
   if (open && !locked) return `Open${to}`;
-  if (locked || waitsOn !== null) return `From the first run after ${waitsOn === null ? "the gameweek" : `GW${waitsOn}`}'s last match${to}`;
+  if (locked || waitsOn !== null) return `From the first run after ${waitsOn === null ? "the gameweek" : gameweekShort(waitsOn)}'s last match${to}`;
   return firstRun === null ? "Closed" : `From ${runShort(firstRun)}${to}`;
 };

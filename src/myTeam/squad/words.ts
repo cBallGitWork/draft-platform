@@ -3,10 +3,10 @@
 
 import { LANE_WORDS } from "../../../convex/lineup/pitchWords";
 import type { Lane } from "../../../convex/lineup/pitch";
-import { failedWords, menuWords } from "../../shared/words";
+import { failedWords, gameweekShort, gameweekWords, menuWords } from "../../shared/words";
 import { benchShort, nextMatchesLong, nextMatchesShort } from "../words";
 
-export { figureWords, signedWords, gameweekWords, noFigureWords, shortThenLongName, whenWords, nextGlyph, playerCardWords } from "../../shared/words";
+export { figureWords, signedWords, gameweekShort, gameweekWords, noFigureWords, shortThenLongName, whenWords, nextGlyph, playerCardWords } from "../../shared/words";
 export { leftLeagueWords as goneWords } from "../../shared/words";
 export {
   awayWords,
@@ -43,7 +43,7 @@ export function squadCountWords(players: number, maximum: number | null): string
 /** The Schedule view (#1006): his club's matches in each of the next six gameweeks. */
 export const scheduleTableLabel = (teamName: string) => `${teamName}'s schedule`;
 /** A gameweek's head: "GW10", named in full in its tooltip. */
-export const scheduleGameweekWords = (gameweek: number) => ({ short: `GW${gameweek}`, long: `Gameweek ${gameweek}` });
+export const scheduleGameweekWords = (gameweek: number) => ({ short: gameweekShort(gameweek), long: gameweekWords(gameweek) });
 /** A blank week's cell: his club has no match in it. */
 export const blankWeekWords = "No match this gameweek";
 export const noScheduleWords = "No gameweek left to set: the season is over.";
@@ -119,8 +119,7 @@ export const bestRoleNotRatedLabel = "Best role: not rated yet";
 export const roleLastGameweekNotSettledLabel = "Role last gameweek: what it counts isn't settled yet";
 /** The panel's link to Tactics, with him selected there (#1008). */
 export const setRoleWords = "Set his role";
-/** Where he stands in the gameweek being set: "Starting, W right"; "Bench, S3". */
-export const gameweekRowWords = (gameweek: number) => `GW${gameweek}`;
+/** Where he stands in the gameweek being set, under its gameweekShort: "Starting, W right"; "Bench, S3". */
 export const startingInWords = (slot: string, lane: Lane) => `Starting, ${slot} ${LANE_WORDS[lane]}`;
 export const benchedInWords = (place: number) => `Bench, ${benchShort(place)}`;
 

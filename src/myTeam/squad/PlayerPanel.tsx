@@ -23,8 +23,8 @@ import {
   closePanelLabel,
   figureWords,
   formLabel,
+  gameweekShort,
   gameweekWords,
-  gameweekRowWords,
   lastWords,
   nextGlyph,
   noFigureWords,
@@ -172,7 +172,7 @@ function GameweekPlace({ tactics, code }: { tactics: Tactics | undefined; code: 
     <>
       <dt className="text-soft">
         <abbr title={gameweekWords(tactics.gameweek)} className="no-underline">
-          {gameweekRowWords(tactics.gameweek)}
+          {gameweekShort(tactics.gameweek)}
         </abbr>
       </dt>
       <dd>{where}</dd>
