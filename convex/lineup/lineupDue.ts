@@ -1,10 +1,9 @@
 import { v } from "convex/values";
 import { mutation, query } from "../_generated/server";
-import { leagueOpens } from "../leagues/leagueOpens";
 import { deadlineOf, leagueDeadlines } from "../gameweeks/leagueDeadlines";
 import { seasonGameweekCount } from "../gameweeks/seasonGameweeks";
 import { lastPlayedGameweek } from "../gameweeks/usedGameweeks";
-import { managerOf, signedInEmail, teamOf } from "../shared/leagueAccess";
+import { managerOf, ownTeamOrNone } from "../shared/leagueAccess";
 import { saveGameweekOf } from "./lineups";
 import { LINEUP_DUE_BEFORE_DEADLINE_MS } from "./lineupLimits";
 
@@ -22,11 +21,9 @@ export const isDue = query({
   args: { leagueId: v.id("leagues"), now: v.number() },
   returns: v.boolean(),
   handler: async (ctx, { leagueId, now }) => {
-    const email = await signedInEmail(ctx);
-    const league = await ctx.db.get("leagues", leagueId);
-    if (email === null || league === null || !leagueOpens(league)) return false;
-    const team = await teamOf(ctx, leagueId, email);
-    if (team === undefined) return false;
+    const own = await ownTeamOrNone(ctx, leagueId);
+    if (own === null) return false;
+    const { team } = own;
     const next = await saveGameweekOf(ctx, leagueId, now);
     if (next.kind !== "open" || team.tacticsOpenedInGameweek === next.gameweek) return false;
     const { gameweek } = next;

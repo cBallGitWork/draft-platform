@@ -7,8 +7,7 @@ import { positionsNow } from "../positions/playerPositions";
 import { clubRecord, position } from "../schema";
 import { takeAllOrThrow } from "../shared/cappedRead";
 import { MOST_TEAMS } from "../leagues/leagueLimits";
-import { leagueOpens } from "../leagues/leagueOpens";
-import { managerOf, memberOf, powersIn, refuse, refusals, signedInEmail, teamOf, teamsOf } from "../shared/leagueAccess";
+import { managerOf, memberOf, ownTeamOrNone, powersIn, refuse, refusals, teamsOf } from "../shared/leagueAccess";
 import { clubByCode, clubOf, heldPlayerByCode, playerByCode } from "../shared/players";
 import { placeOf } from "../squads/squadPlace";
 import { squadRefusals } from "../squads/squads";
@@ -161,11 +160,8 @@ export const countMine = query({
   args: { leagueId: v.id("leagues") },
   returns: v.number(),
   handler: async (ctx, { leagueId }) => {
-    const email = await signedInEmail(ctx);
-    const league = await ctx.db.get("leagues", leagueId);
-    if (email === null || league === null || !leagueOpens(league)) return 0;
-    const team = await teamOf(ctx, leagueId, email);
-    return team === undefined ? 0 : (await claimsOf(ctx, leagueId, team._id)).length;
+    const own = await ownTeamOrNone(ctx, leagueId);
+    return own === null ? 0 : (await claimsOf(ctx, leagueId, own.team._id)).length;
   },
 });
 
