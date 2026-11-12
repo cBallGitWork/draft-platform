@@ -8,6 +8,7 @@ import { screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
 import type { RoomFigure } from "../../../convex/draft/draftPlayers";
+import { cardOpensAt } from "../../../convex/playerCard/cardPoints";
 import { POSITIONS } from "../../../convex/positions/positionTables";
 import type { ListedPlayer } from "../../../convex/scouting/playersList";
 import { NO_FIGURES } from "../../../convex/scouting/playersOrder";
@@ -39,7 +40,7 @@ import {
   yourSquadWords,
 } from "../../../src/draft/words";
 import { columns } from "../../../src/scouting/words";
-import { columnHeadName, sortByLabel } from "../../../src/shared/words";
+import { columnHeadName, POSITION_NAMES, sortByLabel } from "../../../src/shared/words";
 import { ARSENAL, CHELSEA } from "../../support/convex/footballRows.harness";
 import { draftOrder, emptyBoard, liveDraft, YOUR_TEAM, type DraftData } from "../../support/src/draft.harness";
 import { manager, openApp } from "../../support/src/shell.harness";
@@ -60,6 +61,8 @@ const SAKA = listed(1, "Saka");
 const RICE = listed(2, "Rice", null, ARSENAL, ["CDM"]);
 const ODEGAARD = listed(3, "Ødegaard", "Team 1");
 const PALMER = listed(4, "Palmer", null, CHELSEA, ["CAM"]);
+/** A striker the admin has also given support striker, SS first (#1790). */
+const JACKSON = listed(5, "Jackson", null, CHELSEA, ["SS", "ST"]);
 const players = [SAKA, RICE, ODEGAARD, PALMER];
 
 const figure = (code: number, rank: number, lastSeasonPoints: number | null, appearances = 30): RoomFigure => ({
@@ -176,6 +179,18 @@ describe("the selected player's panel", () => {
     expect(fact(rankHead)).toBe(`2${onTheRankingWords}`);
     expect(fact(lastSeasonPointsColumn(2025).short)).toBe(`180${inGamesWords(36)}`);
     expect(fact(yourSquadHead)).toBe(yourSquadWords("W", 0, "ARS", 1, 2));
+  });
+
+  it("names an SS and ST player's main position as Scouting does, ST, on his chip and in the squad count (#1790)", async () => {
+    const board = { ...emptyBoard, maxPerClub: 2, picks: [{ pick: 1, teamId: YOUR_TEAM, auto: false, player: { code: 99, name: "Watkins", clubShortName: "AVL", position: "ST" as const } }] };
+    openDraft({ draft: draftAt(true), board, figures: FIGURES, players: [...players, JACKSON] });
+    expect(cardOpensAt(JACKSON.positions)).toBe("ST");
+    const row = within(await list()).getByRole("button", { name: selectLabel(JACKSON.name) }).closest("tr")!;
+    expect(within(row).getByTitle(POSITION_NAMES.ST)).toBeTruthy();
+    expect(within(row).queryByTitle(POSITION_NAMES.SS)).toBeNull();
+    await open(JACKSON.name);
+    const panel = screen.getByRole("region", { name: `${JACKSON.name}${CHELSEA.shortName}` });
+    expect(within(panel).getByText(yourSquadHead).nextElementSibling?.textContent).toBe(yourSquadWords("ST", 1, "CHE", 0, 2));
   });
 
   it("calls a player not in last season's data a newcomer", async () => {

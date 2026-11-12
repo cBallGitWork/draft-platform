@@ -2,8 +2,9 @@
 // and how one is worked out from a player's record before the site's scoring set scores it.
 
 import type { ScoringSet } from "./scoringSet";
-import { CATALOGUE_STATS, OWN_STAT_PREFIX } from "./statCatalogue";
+import { CATALOGUE_STATS } from "./statCatalogue";
 import { STAT_CATALOGUE } from "./statCatalogueList";
+import { OWN_STAT_PREFIX } from "./statKeys";
 import { isObject, requireNumber, showValue, UnsoundScoring, weighedCount, type MatchStats, type WeighedStat } from "./values";
 
 /** A stat of the site's own (spec/14, Own stats): catalogue stats added up, each with a weight,

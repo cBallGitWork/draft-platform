@@ -9,6 +9,8 @@ import { ADMIN, actingAs, addManagers, adminCreatesLeague, COMMISSIONER, OUTSIDE
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
 import { PL_GAMEWEEKS } from "../../support/convex/footballRows.harness";
 import { FIRST_RULES } from "../../../convex/rules/firstRules";
+import { LEAGUE_AVERAGE, type GameweekFixtures } from "../../../convex/table/roundRobin";
+import { scoredFixtures } from "../../../convex/table/sentTables";
 import { teamNumbered } from "../../../convex/leagues/teams";
 
 // The league's fixtures and table (#33), read from its teams, the gameweeks it plays and its
@@ -211,4 +213,23 @@ test("before any gameweek begins, each fixture has its teams and no points, and 
   expect(first.fixtures.flatMap(({ team, opponent }) => [team, opponent]).toSorted()).toEqual([teamNumbered(1), teamNumbered(2), teamNumbered(3), null]);
   expect(league.results).toEqual([]);
   expect(league.unscored).toEqual([]);
+});
+
+test("a league-average game is sent final once its gameweek's drawn teams are, though a team that joined after is still live (#1745)", () => {
+  const [ann, bob, cat, dan] = ["ann", "bob", "cat", "dan"] as Id<"teams">[];
+  const drawn: GameweekFixtures<Id<"teams">> = { gameweek: 5, fixtures: [{ team: ann, opponent: bob }, { team: cat, opponent: LEAGUE_AVERAGE }], byes: [] };
+  // Dan's team joined after gameweek 5 began: scored, and live, but no part of its draw.
+  const results = new Map([
+    [
+      5,
+      new Map([
+        [ann, { points: 40, provisional: false }],
+        [bob, { points: 30, provisional: false }],
+        [cat, { points: 20, provisional: false }],
+        [dan, { points: 0, provisional: true }],
+      ]),
+    ],
+  ]);
+  const [, catsGame] = scoredFixtures(drawn, results, String);
+  expect(catsGame.points).toEqual({ team: 20, opponent: 30, provisional: false });
 });

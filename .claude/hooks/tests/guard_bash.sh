@@ -39,6 +39,8 @@ private_deny=(
   'gh pr create --title x --body "acmecorp idea"' 'gh issue create --title x --body-file body.md'
   'gh pr edit 3 --body-file body.md' 'git add a.md && git commit -m "x" -m "acmecorp"'
   'gh pr create --title x --body-file=body.md' 'git commit --file=body.md' 'gh pr review 3 --body "acmecorp"'
+  'gh issue create --title x -Fbody.md' 'git commit -Fbody.md' 'git commit -sFbody.md'  # attached, as gh and git allow
+  'gh release create v1 --notes-file body.md' 'gh release edit v1 --notes-file=body.md'
   'git tag -a v1 -m "acmecorp"' 'gh release create v1 --notes acmecorp' 'gh api repos/x/y/issues -f body=acmecorp'
   'env gh pr create --title x --body "acmecorp"' 'command gh issue comment 3 --body acmecorp'
   '(true);gh pr create --title x --body acmecorp'
@@ -55,6 +57,13 @@ for c in "${private_allow[@]}"; do check allow guard_bash.py "$(bash_in "$tmp" "
 printf 'see acmecorp\n' > "$tmp/staged.md" && git -C "$tmp" add staged.md
 check deny guard_bash.py "$(bash_cmd 'git commit -m "clean message"')"
 git -C "$tmp" rm -q --cached staged.md
+# a commit naming a path commits its working copy, so its unstaged lines are read too, and only that path's
+printf 'clean\n' > "$tmp/named.md" && git -C "$tmp" add named.md && printf 'acmecorp\n' >> "$tmp/named.md"
+check deny guard_bash.py "$(bash_cmd 'git commit -m "clean" named.md')"
+check deny guard_bash.py "$(bash_cmd 'git commit -m "clean" -- named.md')"
+check allow guard_bash.py "$(bash_cmd 'git commit -m "clean"')"
+check allow guard_bash.py "$(bash_cmd 'git commit -m "clean" missing.md')"  # a path git can't find adds no lines
+git -C "$tmp" rm -qf --cached named.md && rm "$tmp/named.md"
 mkdir "$tmp/sub" && git -C "$tmp/sub" init -q -b chore/x && printf 'acmecorp\n' > "$tmp/sub/s.md" && git -C "$tmp/sub" add s.md
 check deny guard_bash.py "$(bash_cmd 'git -C sub commit -m "clean"')"
 check deny guard_bash.py "$(bash_cmd 'cd sub && git commit -m "clean"')"  # a worktree's staged lines, not the project's
@@ -233,6 +242,5 @@ check deny guard_bash.py "$(bash_in "$tmp/sub" 'git push --repo=origin +x')"
 for o in '-o +x' '--push-option +x' '--push-option=+x' '--receive-pack +x' '--exec +x'; do
   check allow guard_bash.py "$(bash_cmd "git push $o origin chore/x")"  # +x is the option's value, no refspec
 done
-for payload in 'not json' '' '[]'; do  # a payload it can't read is denied, never let through unchecked
-  check deny guard_bash.py "$payload"
-done
+denies_unreadable guard_bash.py  # a payload it can't read is denied, never let through unchecked
+says "command is int where str was expected" guard_bash.py '{"tool_name":"Bash","tool_input":{"command":7}}'

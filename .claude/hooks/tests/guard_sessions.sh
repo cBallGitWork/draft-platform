@@ -1,6 +1,6 @@
 #!/bin/bash
 # guard_sessions.py's checks: a message to another session, or starting one, is denied; a message to
-# a subagent goes through; an unreadable payload is reported, never a denial.
+# a subagent goes through; an unreadable payload is denied, never let through.
 . "$(dirname "$0")/helpers.sh"
 
 call() { "$jq" -nc --arg t "$1" --argjson i "$2" '{tool_name:$t,tool_input:$i}'; }
@@ -16,6 +16,5 @@ check allow guard_sessions.py "$(call mcp__ccd_session__mark_chapter '{"title":"
 check allow guard_sessions.py "$(call mcp__ccd_session_mgmt__list_sessions '{}')"
 silent guard_sessions.py "$(call SendMessage '{"to":"researcher","message":"x"}')"
 
-for ((i = 0; i < ${#bad_payloads[@]}; i += 2)); do
-  fails_loudly "${bad_payloads[i + 1]}" guard_sessions.py "${bad_payloads[i]}"
-done
+denies_unreadable guard_sessions.py
+says "tool_name is int where str was expected" guard_sessions.py '{"tool_name":5}'

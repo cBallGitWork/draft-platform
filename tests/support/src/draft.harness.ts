@@ -2,6 +2,7 @@
 
 import { vi } from "vitest";
 import type { Id } from "../../../convex/_generated/dataModel";
+import { cardOpensAt } from "../../../convex/playerCard/cardPoints";
 import type { ListedPlayer } from "../../../convex/scouting/playersList";
 import { MINUTE_MS, SECOND_MS } from "../../../convex/shared/time";
 import type { CommissionerChanges, CommissionerView, DraftBoard, DraftChanges, DraftListChanges, DraftLists, DraftSeam, DraftState, GreyedPlayer, RoomFigures } from "../../../src/draft/seam";
@@ -123,7 +124,7 @@ export function fakeDraft({
       : {
           queue: queue.map((code) => {
             const player = players.find((each) => each.code === code)!;
-            return { ...player, gone: false, position: player.positions[0] ?? null };
+            return { ...player, gone: false, position: cardOpensAt(player.positions) };
           }),
           doNotDraft: [],
         };

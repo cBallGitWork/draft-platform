@@ -1,5 +1,6 @@
 import { v, type Infer } from "convex/values";
 import { query } from "../_generated/server";
+import { cardOpensAt } from "../playerCard/cardPoints";
 import { positionsNow } from "../positions/playerPositions";
 import { draftRulesOf } from "../rules/firstRules";
 import { latestRules } from "../rules/rulesHistory";
@@ -19,7 +20,7 @@ import { isOnAutoPick, timeoutCountOf } from "./draftTimeouts";
 
 /** A pick on the board: its number, the team that made it, whether the draft made it (auto-pick,
  *  marked "auto" for the whole league; Craig, 5 Nov 2026, on #1100), and the player it took, with
- *  his club's short name and his first position now; `player` is null for one the football data no
+ *  his club's short name and his main position now (cardOpensAt); `player` is null for one the football data no
  *  longer holds (#323). */
 const boardPick = v.object({
   pick: v.number(),
@@ -73,7 +74,7 @@ export const ofLeague = query({
         const player = await playerByCode(ctx, playerCode);
         if (player === null) return { ...made, player: null };
         const [club, positions] = await Promise.all([clubs(player.clubCode), positionsOf(player.code)]);
-        return { ...made, player: { code: player.code, name: player.name, clubShortName: club.shortName, position: positions[0] ?? null } };
+        return { ...made, player: { code: player.code, name: player.name, clubShortName: club.shortName, position: cardOpensAt(positions) } };
       }),
     );
     // The draft's rules, the league's latest (#1439), and its own pick time once it has one.
