@@ -34,6 +34,7 @@ import { fakeTrades } from "./trades.harness";
 import { fakeHome } from "./home.harness";
 import { fakePremierLeague } from "./premierLeague.harness";
 import { fakeTable } from "./table.harness";
+import { MY_TEAM_NAME } from "./teams.harness";
 
 export const visitor: Session = { signedIn: false };
 
@@ -54,7 +55,7 @@ export const league: LeagueSummary = {
   commissionerEmail: "commish@example.com",
   roles: ["manager"],
   powers: powersOf(["manager"], false),
-  teamName: "Team 1",
+  teamName: MY_TEAM_NAME,
   teams: 3,
   maxTeams: 4,
   unsentCommissionerLink: null,

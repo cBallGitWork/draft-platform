@@ -6,6 +6,7 @@ import { idOf } from "../../../src/table/drawnTable";
 import type { LeagueTable } from "../../../src/table/seam";
 import { serverStore } from "./serverStore";
 import { fakeTactics, type TacticsData } from "./tactics.harness";
+import { MY_TEAM_NAME, THEIR_TEAM_NAME } from "./teams.harness";
 import type { LatestMail } from "../../../src/myTeam/squad/seam";
 import type { ClaimChanges, PendingClaim, WaiversView } from "../../../src/myTeam/claims/seam";
 
@@ -13,7 +14,7 @@ import type { ClaimChanges, PendingClaim, WaiversView } from "../../../src/myTea
  *  transactions and squad, and its tactics (tactics.harness.ts), or nothing yet while they load. A
  *  team with no games, transactions or players by default. */
 /** The fake server's team for the manager, as src/table/drawnTable.ts names Team 1's. */
-export const MY_TEAM_ID = idOf("Team 1");
+export const MY_TEAM_ID = idOf(MY_TEAM_NAME);
 
 export type MyTeamData = TacticsData & {
   fixtures?: TeamFixtures;
@@ -43,10 +44,10 @@ export type MyTeamData = TacticsData & {
 export const NO_WAIVERS: WaiversView = { type: "reverseStandings", teams: [], drafted: true, runs: [], locked: false, windowOpen: false, windowShuts: null, resetsAfter: null };
 
 export function fakeMyTeam({
-  fixtures = { teamId: MY_TEAM_ID, teamName: "Team 1", format: "headToHead", games: [], unscored: [] },
+  fixtures = { teamId: MY_TEAM_ID, teamName: MY_TEAM_NAME, format: "headToHead", games: [], unscored: [] },
   transactions = { transactions: [], cut: false },
-  squad = { teamName: "Team 1", lastGameweek: null, players: [], unheld: [], squadMaximum: null, scheduleGameweeks: [], limits: [] },
-  otherSquad = { teamName: "Team 2", players: [] },
+  squad = { teamName: MY_TEAM_NAME, lastGameweek: null, players: [], unheld: [], squadMaximum: null, scheduleGameweeks: [], limits: [] },
+  otherSquad = { teamName: THEIR_TEAM_NAME, players: [] },
   numberAnswer = null,
   mail = { letters: [], unread: 0 },
   leagueTable = undefined,

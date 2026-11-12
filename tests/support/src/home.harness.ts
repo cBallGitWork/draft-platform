@@ -4,6 +4,7 @@ import { vi } from "vitest";
 import type { Id } from "../../../convex/_generated/dataModel";
 import type { HomeSeam, LeagueHome, LeagueNews, NewsAsked, NewsMove, Recap } from "../../../src/home/seam";
 import type { LatestMail } from "../../../src/myTeam/squad/seam";
+import { MY_TEAM_NAME, THEIR_TEAM_NAME } from "./teams.harness";
 
 type Row = LeagueHome["table"][number];
 
@@ -36,9 +37,9 @@ export const homeFixture = (team: string, opponent: string | null, points: { tea
  *  holds by default. */
 export const quietHome: LeagueHome = {
   format: "headToHead",
-  thisGameweek: { gameweek: 1, fixtures: [homeFixture("Team 1", "Team 2")], byes: [] },
+  thisGameweek: { gameweek: 1, fixtures: [homeFixture(MY_TEAM_NAME, THEIR_TEAM_NAME)], byes: [] },
   matchday: null,
-  table: [homeRow(1, "Team 1", { mine: true }), homeRow(2, "Team 2")],
+  table: [homeRow(1, MY_TEAM_NAME, { mine: true }), homeRow(2, THEIR_TEAM_NAME)],
   teams: 2,
   squadMoves: [],
   pinnedLetter: null,
@@ -46,7 +47,7 @@ export const quietHome: LeagueHome = {
 };
 
 /** Gameweek 1's recap, written, no score changed since. */
-export const gameweekOneRecap: Recap = { gameweek: 1, text: "Team 1 beat Team 2.\nSaka scored 15.", writtenAt: Date.parse("2026-10-27T09:00:00Z"), changedTeamId: null };
+export const gameweekOneRecap: Recap = { gameweek: 1, text: `${MY_TEAM_NAME} beat ${THEIR_TEAM_NAME}.\nSaka scored 15.`, writtenAt: Date.parse("2026-10-27T09:00:00Z"), changedTeamId: null };
 
 /** A move on the News tab, at `at`, of `team`: Saka joining it unless `rest` says otherwise. */
 export const newsMove = (at: number, teamName: string, rest: Partial<Exclude<NewsMove, { kind: "tradeMade" }>> = {}): NewsMove => ({
@@ -67,10 +68,7 @@ export const newsMove = (at: number, teamName: string, rest: Partial<Exclude<New
 export const quietNews: LeagueNews = {
   moves: [],
   older: null,
-  teams: [
-    { teamId: "team-Team 1" as Id<"teams">, teamName: "Team 1" },
-    { teamId: "team-Team 2" as Id<"teams">, teamName: "Team 2" },
-  ],
+  teams: [MY_TEAM_NAME, THEIR_TEAM_NAME].map((teamName) => ({ teamId: `team-${teamName}` as Id<"teams">, teamName })),
   pinnedLetter: null,
 };
 
