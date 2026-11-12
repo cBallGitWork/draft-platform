@@ -4,6 +4,7 @@
 
 import type { ListedPlayer } from "../../convex/scouting/playersList";
 import { mainArea, per90FiguresIn, per90PanelOf, totalOf } from "../../convex/scouting/per90Figures";
+import { DEFAULT_PERIOD } from "../../convex/scouting/periods";
 import { cardOpensAt } from "../../convex/playerCard/cardPoints";
 import { MINUTES_STAT } from "../../convex/stats/matchRecords";
 import { previewTeamNames, proLeague } from "../shared/preview";
@@ -84,7 +85,7 @@ const previewRecentTotals: Record<Exclude<Period, "season">, Record<number, Stat
   },
 };
 /** The preview's totals over `period`. */
-const totalsOver = (period: Period = "season") => (period === "season" ? previewTotals : previewRecentTotals[period]);
+const totalsOver = (period: Period = DEFAULT_PERIOD) => (period === "season" ? previewTotals : previewRecentTotals[period]);
 /** The gameweeks each period counts in the preview: 9 have finished. */
 const PREVIEW_PERIOD_GAMEWEEKS: Record<Period, number[]> = { season: [], last4: [6, 7, 8, 9], last6: [4, 5, 6, 7, 8, 9] };
 
@@ -151,7 +152,7 @@ export const previewScouting: Omit<ScoutingSeam, keyof WaiverActionSeam> = {
     const yours = previewPlayers.find((each) => each.ownerTeamName === proLeague.teamName && each.code !== playerCode && main !== null && cardOpensAt(each.positions) === main);
     return { player: yours === undefined || main === null ? null : { position: main, code: yours.code, name: yours.name }, squadFull: false };
   },
-  usePlayersList: (_leagueId, filters, sort, stat, period = "season", keep) => {
+  usePlayersList: (_leagueId, filters, sort, stat, period = DEFAULT_PERIOD, keep) => {
     const rows = previewPlayers.map((player) => {
       const totals = totalsOver(period)[player.code];
       return { ...player, figures: listFigures(totals), stat: shownStat(withOwnStats(totals ?? {}, PREVIEW_SET), stat) };
