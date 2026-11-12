@@ -6,6 +6,11 @@ files (`tests/src/flow.test.ts`). The Convex tests that play the whole product t
 `tests/convex/endToEnd/`: `miniBetaGameweek.test.ts`, from a league made to a gameweek's scores
 stored, and `matchPageReplay.test.ts`, a replayed match on its page from the team sheets to full
 time.
+
+**Contents:** [The five roots](#the-five-roots) ·
+[What `tests/support/` holds](#what-testssupport-holds) · [Never cut a test](#never-cut-a-test) ·
+[The scoring proof](#the-scoring-proof) · [Citing the spec](#citing-the-spec)
+
 `tests/convex/generatedApi.test.ts` fails when `convex/_generated/api.d.ts` leaves out a module
 Convex deploys, or lists one it doesn't: after adding, moving or deleting a file in `convex/`, run
 `npx convex codegen` with a deployment selected.
