@@ -7,7 +7,7 @@ import { cellClassOf, ColumnHeads, type ColumnWords } from "../ui/ColumnHeads";
 import { Panel, PanelNote } from "../ui/Panel";
 import type { PlayedMatch, PlayerCard } from "./seam";
 import { MatchName } from "./MatchName";
-import { opponentWords, type LogRow, logRowsOf, pointsOf, scoreOf } from "./gameLog";
+import { opponentOf, opponentWords, type LogRow, logRowsOf, pointsOf, scoreOf } from "./gameLog";
 import {
   columns,
   figureWords,
@@ -23,7 +23,7 @@ import {
   notInLastSeasonWords,
   overriddenWasWords,
   pointsShortWords,
-  postponedWords,
+  postponedRowWords,
   pricedAtLabel,
   provisionalWords,
   SEASON_TITLE,
@@ -161,7 +161,7 @@ function LogLine({
       </th>
       {row.kind === "postponed" ? (
         <td colSpan={FIXED_RIGHT.length + statColumns.length + 1} className={`${cellClasses(true)} text-event`}>
-          {postponedWords}
+          {postponedRowWords(opponentOf(row, card.club.code)?.name ?? null)}
         </td>
       ) : (
         <>

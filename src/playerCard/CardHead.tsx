@@ -16,6 +16,7 @@ import { ShortlistAction } from "./ShortlistAction";
 import { WaiverAction } from "./WaiverAction";
 import {
   backWords,
+  clubNumberLabel,
   figureLabels,
   figureWords,
   goneWords,
@@ -52,7 +53,7 @@ export function CardHead({ league, card, shown, seam }: { league: LeagueSummary;
             {card.positions.length === 0 ? <span className="text-muted">{noPositionsWords}</span> : card.positions.map((position) => <PositionChip key={position} label={position} />)}
           </span>
           <span className="flex items-center gap-1">
-            <Shirt number={null} clubCode={card.club.code} goalkeeper={card.positions.includes("GK")} size="size-shirt-inline" />
+            <ClubShirt card={card} />
             <ClubMark code={card.club.code} />
             {card.club.name}
           </span>
@@ -66,6 +67,19 @@ export function CardHead({ league, card, shown, seam }: { league: LeagueSummary;
         <Actions league={league} card={card} seam={seam} />
       </div>
     </section>
+  );
+}
+
+/** His shirt with his club number on it, named as his club's so a rival never takes it for his
+ *  owner's squad number (Craig, 12 Nov 2026, on #1496); a blank shirt while no number is held. */
+function ClubShirt({ card }: { card: PlayerCard }) {
+  const shirt = <Shirt number={card.clubNumber} clubCode={card.club.code} goalkeeper={card.positions.includes("GK")} size="size-shirt-inline" />;
+  if (card.clubNumber === null) return shirt;
+  const label = clubNumberLabel(card.clubNumber);
+  return (
+    <span role="img" aria-label={label} title={label} className="flex">
+      {shirt}
+    </span>
   );
 }
 

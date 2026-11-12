@@ -68,7 +68,8 @@ beforeEach(async () => {
     await insertDroppedPlayer(ctx, GONE, NOW);
     for (const each of [ARS_COV, CHE_ARS, LAST_SEASON, COV_CHE, ...ARSENAL_AHEAD, NO_KICKOFF_YET]) await ctx.db.insert("fixtures", each);
     await holdExampleScoring(ctx);
-    await ctx.db.insert("squadPlayers", { leagueId, teamId: teams[0], playerCode: SAKA.code });
+    await ctx.db.insert("squadPlayers", { leagueId, teamId: teams[0], playerCode: SAKA.code, number: 4 });
+    await ctx.db.insert("clubNumbers", { code: SAKA.code, number: 7 });
     for (const each of [
       completeRecord(SAKA.code, ARS_COV.code, GOAL_AND_ASSIST),
       completeRecord(FORWARD.code, ARS_COV.code, GOAL_AND_ASSIST),
@@ -87,12 +88,13 @@ beforeEach(async () => {
 
 const cardAs = async (email: string, playerCode: number) => (await actingAs(t, email)).query(api.playerCard.playerCard.card, { leagueId, playerCode, now: NOW });
 
-test("the card names him, his club, his positions, his owner in the league and FPL's news", async () => {
+test("the card names him, his club, his club number (never his owner's squad number, #1496), his positions, his owner in the league and FPL's news", async () => {
   expect(await cardAs(BOB, SAKA.code)).toMatchObject({
     code: SAKA.code,
     name: "Saka",
     fullName: "Bukayo Saka",
     club: ARSENAL,
+    clubNumber: 7,
     gone: false,
     positions: ["W"],
     ownerTeamName: await teamName(t, teams[0]),
@@ -101,8 +103,8 @@ test("the card names him, his club, his positions, his owner in the league and F
   });
 });
 
-test("a free agent with no news has no owner, no news and no chance of playing", async () => {
-  expect(await cardAs(ANN, MOVER.code)).toMatchObject({ ownerTeamName: null, news: null, chanceOfPlaying: null });
+test("a free agent with no news or club number has no owner, no news, no chance of playing and no number", async () => {
+  expect(await cardAs(ANN, MOVER.code)).toMatchObject({ ownerTeamName: null, news: null, chanceOfPlaying: null, clubNumber: null });
 });
 
 test("this season's matches are newest first, at his base points, by category", async () => {

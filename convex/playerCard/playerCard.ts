@@ -10,7 +10,7 @@ import { namedCategories, namedCategoriesOf, roleLine, roleLineOf } from "../sco
 import { siteScoringAt, siteVersionByGameweek } from "../scoring/siteVersions";
 import { takeAllOrThrow } from "../shared/cappedRead";
 import { memberOf } from "../shared/leagueAccess";
-import { clubsByCode, hasLeft, playerByCode, type Clubs } from "../shared/players";
+import { clubNumberOf, clubsByCode, hasLeft, playerByCode, type Clubs } from "../shared/players";
 import { ownerOf, placeOf } from "../squads/squadPlace";
 import { MINUTES_STAT, statsIfWhole, statValue } from "../stats/matchRecords";
 import { playsIn } from "../gameweekScorer/heldMatches";
@@ -99,6 +99,10 @@ const playerCard = v.object({
   name: v.string(),
   fullName: v.string(),
   club: clubRecord,
+  /** His number at his club, which his shirt on the card carries, or null while no squad list gives
+   *  him one: the card shows his club's number, never his owner's squad number (Craig, 12 Nov 2026,
+   *  on #1496). */
+  clubNumber: v.union(v.number(), v.null()),
   /** The feed no longer sends him: he has left the Premier League. */
   gone: v.boolean(),
   positions: v.array(position),
@@ -147,6 +151,7 @@ export const card = query({
       name: player.name,
       fullName: player.fullName,
       club: await clubs(player.clubCode),
+      clubNumber: await clubNumberOf(ctx, player.code),
       gone: hasLeft(player),
       positions,
       pricedAt,
