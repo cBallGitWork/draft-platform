@@ -5,7 +5,7 @@ import type { MutationCtx, QueryCtx } from "../../../convex/_generated/server";
 import { FIRST_GAMEWEEK } from "../../../convex/gameweeks/usedGameweeks";
 import { seasonRecords } from "../../../convex/stats/seasonRecords";
 import { seasonRules } from "../../../convex/rules/rulesHistory";
-import { OWNED_IN_LEAGUE_MOST } from "../../../convex/scouting/playersList";
+import { LEAGUE_SQUAD_ROWS_MOST } from "../../../convex/squads/squadPlace";
 import { GAMEWEEK_MATCHES_MOST } from "../../../convex/shared/fixtures";
 import { PLAYER_RECORDS_MOST } from "../../../convex/stats/matchRecords";
 import { LEAGUE_OVERRIDES_MOST } from "../../../convex/stats/seasonPoints";
@@ -236,16 +236,16 @@ test(`a match's reads of threshold steps: ${THRESHOLD_STEP_READS_MOST} are read,
   );
 });
 
-test(`the players owned in a league for the players list: ${OWNED_IN_LEAGUE_MOST} are read, one more throws`, ROWS_TO_THE_CAP, async () => {
+test(`the players owned in a league for the players list: ${LEAGUE_SQUAD_ROWS_MOST} are read, one more throws`, ROWS_TO_THE_CAP, async () => {
   const { leagueId, annsTeam } = league;
   const ann = await actingAs(league.t, ANN);
   await readsToTheCapThenThrows(
-    OWNED_IN_LEAGUE_MOST,
+    LEAGUE_SQUAD_ROWS_MOST,
     holdRows(
       async (ctx) => (await ctx.db.query("squadPlayers").collect()).length,
       (ctx, index) => ctx.db.insert("squadPlayers", { leagueId, teamId: annsTeam, playerCode: MADE_UP_CODES + index }),
     ),
     () => serverList(ann, { leagueId, ...everyClub }),
-    `More than ${OWNED_IN_LEAGUE_MOST} players are owned in league ${leagueId}, so the list would be cut short`,
+    `League ${leagueId} holds more than ${LEAGUE_SQUAD_ROWS_MOST} squad rows, so who is held can't be read`,
   );
 });
