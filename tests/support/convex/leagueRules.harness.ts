@@ -1,5 +1,6 @@
 // League rules' tests' shared setup (#25).
 
+import { vi } from "vitest";
 import { draftRulesOf, FIRST_RULES } from "../../../convex/rules/firstRules";
 import { actingAs, COMMISSIONER, TEST_LEAGUE_TEAMS, type TestConvex } from "./leagues.harness";
 import { api } from "../../../convex/_generated/api";
@@ -36,6 +37,9 @@ export const rulesRevision = (t: TestConvex, leagueId: Id<"leagues">) =>
  *  for a test to await, keep or expect refused. */
 export const changeRules = async (t: TestConvex, leagueId: Id<"leagues">, rules: LeagueRules, by = COMMISSIONER) =>
   (await actingAs(t, by)).mutation(api.rules.leagueRules.change, { leagueId, rules, revision: await rulesRevision(t, leagueId) });
+
+/** The commissioner saves the first rules with `change` made (rulesWith) as the league's. */
+export const changeRulesTo = (t: TestConvex, leagueId: Id<"leagues">, change: Partial<LeagueRules>) => changeRules(t, leagueId, rulesWith(change));
 
 /** Every rules row of the league changed by `change`, so the rules in force are, at once: for the
  *  draft's tests, whose rules a save would only change from a later gameweek. */
@@ -107,6 +111,10 @@ export async function holdGameweeks(
     }
   });
 }
+
+/** Moves the clock on to just after `gameweek` kicks off, holdGameweeks' gameweek 1 kicking off at
+ *  `firstKickoff` and each next a week on: it and every one before have begun, and the next hasn't. */
+export const playUpTo = (firstKickoff: number, gameweek: number) => vi.setSystemTime(firstKickoff + (gameweek - 1) * WEEK_MS);
 
 /** Holds holdGameweeks' one match in the gameweek (coded by its number) at `state`, replacing any
  *  score held for it. */
