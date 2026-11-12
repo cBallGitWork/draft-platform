@@ -3,7 +3,7 @@
 // a lineup against it. A league's copy is held with its rules (#25, leagueRules.ts).
 
 import { firstPairFor, type InstructionPair } from "./instructions";
-import { cellsOf, LANES, sameShape, type Area, type Cell, type Lane } from "./pitch";
+import { backOf, cellsOf, LANES, sameShape, TWO_AT_THE_BACK_COUNT, type Area, type Cell, type Lane } from "./pitch";
 
 export interface Preset {
   /** As managers say it, such as "4-2-3-1". */
@@ -35,7 +35,7 @@ export const TWO_AT_THE_BACK: BackLineScoring = { cleanSheet: 3, goalConceded: -
 
 /** The first back line a shape gets: two at the back's, for a defence row of two; else none. */
 function firstBackLineFor(cells: readonly Cell[]): BackLineScoring | null {
-  return cells.filter((cell) => cell.area === "defence").length === 2 ? { ...TWO_AT_THE_BACK } : null;
+  return backOf(cells) === TWO_AT_THE_BACK_COUNT ? { ...TWO_AT_THE_BACK } : null;
 }
 
 /** The back line of the preset a side stands in: its own, or for one held before #990 the first

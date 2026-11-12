@@ -55,6 +55,15 @@ export const sameShape = (one: readonly Cell[], other: readonly Cell[]): boolean
 export const byPitchOrder = (one: Cell, other: Cell): number =>
   AREAS.indexOf(one.area) - AREAS.indexOf(other.area) || LANES.indexOf(one.lane) - LANES.indexOf(other.lane);
 
+/** How many of these cells stand in the defence row: the back, as the team instructions and a
+ *  shape's back line count it (Craig, 6 Nov 2026, on #990). A wing back in a midfield row isn't one. */
+export const backOf = (cells: readonly Cell[]): number => cells.filter((cell) => cell.area === "defence").length;
+
+/** The backs two at the back and five at the back stand: Gung-ho's and two at the back's back line,
+ *  and Park the bus's (spec/05, Team instructions). */
+export const TWO_AT_THE_BACK_COUNT = 2;
+export const FIVE_AT_THE_BACK_COUNT = 5;
+
 /** The cell a placement held as data names, or null when its area or its lane isn't one of the
  *  pitch's: the one check every saved or sent spot goes through. */
 export function cellOf(placement: { area: string; lane: string }): Cell | null {
