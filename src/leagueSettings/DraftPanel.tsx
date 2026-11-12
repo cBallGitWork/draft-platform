@@ -19,7 +19,6 @@ import {
   pickClockUnitWords,
   timeoutsHint,
   timeoutsLabel,
-  undraftedHint,
   undraftedLabel,
   undraftedWords,
 } from "./words";
@@ -60,7 +59,6 @@ export function DraftPanel({ draft, edit, start }: { draft: Draft; edit: (draft:
             </>
           )}
           <Choice label={undraftedLabel} name={UNDRAFTED_CHOICE} options={UNDRAFTED_GO_TO} words={undraftedWords} chosen={draft.undrafted} onChoose={(undrafted) => edit({ ...draft, undrafted })} />
-          <p className="text-muted">{undraftedHint}</p>
         </div>
       </Panel>
     </div>
