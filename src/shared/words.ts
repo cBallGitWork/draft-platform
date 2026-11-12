@@ -250,6 +250,14 @@ export const leagueAverageWords = "League average";
 export const unscoredWords = (gameweek: number, reason: string) =>
   `${gameweekWords(gameweek)} can't be scored, so it counts for nothing in the table: ${reason}.`;
 
+/** After a points column's hover: whose scoring adds them up (Scouting, the draft's list, the
+ *  player card). */
+export const underSiteScoringWords = "under the site's scoring";
+
+/** A trade review rule by name, as League settings offers it and a trade's Review fact says it. */
+export const commissionerVetoWords = "Commissioner veto";
+export const leagueVoteWords = "League vote";
+
 /** A season, short: "25/26" (the draft's list, Scouting, the player card, patch notes, a role card). */
 export const seasonShortWords = (startYear: number) => `${String(startYear % 100).padStart(2, "0")}/${String((startYear + 1) % 100).padStart(2, "0")}`;
 

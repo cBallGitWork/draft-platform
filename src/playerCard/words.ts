@@ -3,7 +3,7 @@
 import type { CategoryWhy, Cut, PricedBy, SlotValue } from "../../convex/scoring/scoring";
 import { afterLastMatchWords, type FirstRun } from "../myTeam/claims/words";
 import { LAST_MATCHES_SHOWN } from "./gameLog";
-import { AREA_WORDS, figureWords, gameweekShort, gameweekWords, signedWords, versusWords, whenWords } from "../shared/words";
+import { AREA_WORDS, figureWords, gameweekShort, gameweekWords, signedWords, underSiteScoringWords, versusWords, whenWords } from "../shared/words";
 
 export { figureWords, noFigureWords } from "../shared/words";
 
@@ -58,7 +58,7 @@ export const columns = {
   opponent: { short: "Opp", long: "Opponent, at home (H) or away (A)" },
   score: { short: "Score", long: "The match's score, home side first" },
   minutes: { short: "Min", long: "Minutes played" },
-  points: { short: "Pts", long: "Points under the site's scoring" },
+  points: { short: "Pts", long: `Points ${underSiteScoringWords}` },
 } as const;
 export const notArrivedWords = "His record for this match hasn't fully arrived yet.";
 /** A match his club's postponement took out, kept as its row. */

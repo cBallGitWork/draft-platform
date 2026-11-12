@@ -49,7 +49,7 @@ function yourSquad(board: DraftBoard, player: ListedPlayer): YourSquad {
  *  drafted him, so his panel and Pick for say "On <team>" and refuse him rather than offer a pick
  *  the server turns down (#1560). His row leaves the list once he is drafted, but his panel stays
  *  up, for the Undo after the reader's own pick (#1458). */
-export function selectedNow(selected: ListedPlayer, draft: DraftState, board: DraftBoard): ListedPlayer {
+function selectedNow(selected: ListedPlayer, draft: DraftState, board: DraftBoard): ListedPlayer {
   if (selected.ownerTeamName !== null) return selected;
   const teamId = board.picks.find(({ player }) => player?.code === selected.code)?.teamId;
   const team = draft.order.find((each) => each.teamId === teamId);

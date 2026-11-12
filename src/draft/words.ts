@@ -3,7 +3,7 @@
 
 import { DRAFT_LIST_MOST } from "../../convex/draft/draftLimits";
 import { DAY_MS, HOUR_MS, MINUTE_MS, SECOND_MS } from "../../convex/shared/time";
-import { failedWords, placeWords, playersCount, seasonShortWords, statColumns, viaWords } from "../shared/words";
+import { failedWords, placeWords, playersCount, seasonShortWords, statColumns, underSiteScoringWords, viaWords } from "../shared/words";
 
 /** The page's title, its menu tab's too, and the state beside it. */
 export { DRAFT_TITLE } from "../shared/words";
@@ -146,8 +146,6 @@ export const findPlaceholder = "Player or club";
 export const statsLabel = "Stats:";
 /** The stats the list opens on (spec/04, The draft room: "a easy to see view first"). */
 export const overviewWords = "Overview";
-/** A season by the years it spans: 2025's is "25/26". */
-export { seasonShortWords } from "../shared/words";
 /** The list's own columns besides Scouting's Pos and Player: a short head, and what it stands for. */
 export const draftColumns = {
   rank: { short: "Rank", long: "Place on the site's ranking" },
@@ -156,8 +154,8 @@ export const draftColumns = {
 /** Last season's points' head, named by the season they are from; with none priced, "last season". */
 export const lastSeasonPointsColumn = (season: number | null) =>
   season === null
-    ? { short: "Pts last season", long: "Points last season under the site's scoring" }
-    : { short: `Pts ${seasonShortWords(season)}`, long: `Points in ${seasonShortWords(season)} under the site's scoring` };
+    ? { short: "Pts last season", long: `Points last season ${underSiteScoringWords}` }
+    : { short: `Pts ${seasonShortWords(season)}`, long: `Points in ${seasonShortWords(season)} ${underSiteScoringWords}` };
 /** A row's mark for a player in the reader's queue, by his place in it. */
 export const queueMarkWords = (place: number) => `Queue ${place}`;
 

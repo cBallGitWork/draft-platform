@@ -19,7 +19,7 @@ import {
 } from "../../convex/scoring/statKeys";
 import { lastSeasonPointsColumn } from "../draft/words";
 import { afterLastMatchWords, runNameWords, type FirstRun } from "../myTeam/claims/words";
-import { seasonShortWords, STAT_WORD, weekdayTimeWords } from "../shared/words";
+import { seasonShortWords, STAT_WORD, underSiteScoringWords, weekdayTimeWords } from "../shared/words";
 import type { Availability, Period } from "./seam";
 
 export { figureWords, noFigureWords } from "../shared/words";
@@ -89,6 +89,11 @@ export const noneMatchWords = "No player matches these filters.";
 export const onWaiversWords = (firstRun: FirstRun) =>
   firstRun === null ? "Waivers" : `Waivers, ${firstRun.skippedIf !== null ? afterLastMatchWords(firstRun.skippedIf) : weekdayTimeWords(firstRun.at)}`;
 
+/** The figures by name, from which each one's hover is built ("Goals this season", "Goals over
+ *  gameweeks 4 to 9", "Goals in 25/26"). */
+const FIGURE_NAMES = { minutes: "Minutes", goals: "Goals", assists: "Assists", shotsOnTarget: "Shots on target" } as const;
+type Figure = keyof typeof FIGURE_NAMES;
+
 /** The list's columns: a short head, and what it stands for (spec/14: dense tables use short codes,
  *  the full name on hover). */
 export const columns = {
@@ -96,11 +101,11 @@ export const columns = {
   club: { short: "Club", long: "Club" },
   positions: { short: "Pos", long: "Positions" },
   owner: { short: "Status", long: "The team that owns him in this league, or when he clears waivers" },
-  minutes: { short: "Mins", long: "Minutes this season" },
-  seasonPoints: { short: "Pts", long: "Season points under the site's scoring" },
-  goals: { short: "G", long: "Goals this season" },
-  assists: { short: "A", long: "Assists this season" },
-  shotsOnTarget: { short: "SOT", long: "Shots on target this season" },
+  minutes: { short: "Mins", long: `${FIGURE_NAMES.minutes} this season` },
+  seasonPoints: { short: "Pts", long: `Season points ${underSiteScoringWords}` },
+  goals: { short: "G", long: `${FIGURE_NAMES.goals} this season` },
+  assists: { short: "A", long: `${FIGURE_NAMES.assists} this season` },
+  shotsOnTarget: { short: "SOT", long: `${FIGURE_NAMES.shotsOnTarget} this season` },
   roleFit: { short: "Fit", long: "Role fit" },
 } as const;
 
@@ -109,12 +114,13 @@ export const columns = {
 export function periodColumns(period: Period, gameweeks: readonly number[]) {
   if (period === "season") return {};
   const over = gameweeks.length === 0 ? overWords(period) : `over gameweeks ${gameweeks[0]} to ${gameweeks.at(-1)}`;
+  const figure = (column: Figure) => ({ short: columns[column].short, long: `${FIGURE_NAMES[column]} ${over}` });
   return {
-    minutes: { short: columns.minutes.short, long: `Minutes ${over}` },
-    goals: { short: columns.goals.short, long: `Goals ${over}` },
-    assists: { short: columns.assists.short, long: `Assists ${over}` },
-    shotsOnTarget: { short: columns.shotsOnTarget.short, long: `Shots on target ${over}` },
-    points: { short: columns.seasonPoints.short, long: `Points ${over} under the site's scoring` },
+    minutes: figure("minutes"),
+    goals: figure("goals"),
+    assists: figure("assists"),
+    shotsOnTarget: figure("shotsOnTarget"),
+    points: { short: columns.seasonPoints.short, long: `Points ${over} ${underSiteScoringWords}` },
   };
 }
 
@@ -180,14 +186,14 @@ export const seasonPointsColumn = (lastSeason: number | null) =>
 /** The season figures' heads: as `columns` says them, the points' named by the season and the
  *  others' hovers too ("Goals in 25/26") while the totals are last season's (spec/19; #1566). */
 export function seasonColumns(lastSeason: number | null) {
-  const figure = (column: "minutes" | "goals" | "assists" | "shotsOnTarget", name: string) =>
-    lastSeason === null ? columns[column] : { short: columns[column].short, long: `${name} in ${seasonShortWords(lastSeason)}` };
+  const figure = (column: Figure) =>
+    lastSeason === null ? columns[column] : { short: columns[column].short, long: `${FIGURE_NAMES[column]} in ${seasonShortWords(lastSeason)}` };
   return {
-    minutes: figure("minutes", "Minutes"),
+    minutes: figure("minutes"),
     points: seasonPointsColumn(lastSeason),
-    goals: figure("goals", "Goals"),
-    assists: figure("assists", "Assists"),
-    shotsOnTarget: figure("shotsOnTarget", "Shots on target"),
+    goals: figure("goals"),
+    assists: figure("assists"),
+    shotsOnTarget: figure("shotsOnTarget"),
   };
 }
 
