@@ -49,6 +49,12 @@ export const NO_CONVEX_URL = "VITE_CONVEX_URL isn't set, so the app can't reach 
 export const gameweekWords = (gameweek: number) => `Gameweek ${gameweek}`;
 /** A gameweek, short, as a head says it: "GW9" (My team's header band, the player card). */
 export const gameweekShort = (gameweek: number) => `GW${gameweek}`;
+/** When a waiver run or an offer's close falls in `gameweek`'s lock: after its last match, whose
+ *  time isn't known ahead (Craig, 11 Nov 2026, on #1467 and #1492): "after GW12's last match". A
+ *  line starting with it takes `firstUpper`. */
+export const afterLastMatchWords = (gameweek: number) => `after ${gameweekShort(gameweek)}'s last match`;
+/** Words that start a line, their first letter a capital. */
+export const firstUpper = (words: string) => words.charAt(0).toUpperCase() + words.slice(1);
 /** The fixtures' stepper (src/ui/GameweekStepper.tsx): each arrow's label, and CM's arrows,
  *  decoration, as each button carries its label. */
 export const previousGameweekLabel = "Previous gameweek";
@@ -87,6 +93,17 @@ export const statColumns = {
 export const squadTableLabel = (teamName: string) => `${teamName}'s squad`;
 /** A count of players: "1 player", "12 players". */
 export const playersCount = (count: number) => (count === 1 ? "1 player" : `${count} players`);
+/** The players list, as Scouting and the draft room both title it and say it loading. */
+export const PLAYERS_TITLE = "Players";
+export const loadingPlayersWords = "Loading the players…";
+/** The button that puts a player in the draft queue, in Scouting's shortlist and the draft room. */
+export const addToQueueWords = "Add to queue";
+/** Last season's points' head, named by the season they are from; with none priced, "last season"
+ *  (the draft list and Scouting). */
+export const lastSeasonPointsColumn = (season: number | null) =>
+  season === null
+    ? { short: "Pts last season", long: `Points last season ${underSiteScoringWords}` }
+    : { short: `Pts ${seasonShortWords(season)}`, long: `Points in ${seasonShortWords(season)} ${underSiteScoringWords}` };
 /** The stat box's two groups (src/ui/StatBox.tsx), once the site's set has own stats of its own
  *  (spec/14, Own stats; #910). */
 export const ownStatsGroupWords = "The site's own stats";

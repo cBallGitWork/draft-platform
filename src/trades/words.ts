@@ -4,7 +4,8 @@
 import { pickWords } from "../../convex/mail/tradeLetterWords";
 import { NOTE_MOST, REVIEW_MS } from "../../convex/trades/tradeLimits";
 import { HOUR_MS } from "../../convex/shared/time";
-import { changeFailedWords, commissionerVetoWords, leagueVoteWords } from "../shared/words";
+import { capitalised } from "../../convex/shared/moments";
+import { afterLastMatchWords, changeFailedWords, commissionerVetoWords, gameweekShort, leagueVoteWords } from "../shared/words";
 import type { ClosedOffer, Reviewer } from "./seam";
 
 export { dateWords, noTeamWords, whenWords } from "../shared/words";
@@ -70,7 +71,7 @@ export const olderWords = "Older ›";
 
 /** Why an offer closed, from the manager's side: `you` when his team is the one that acted. */
 export function closedWhyWords(why: ClosedOffer["why"], you: boolean): string {
-  const who = you ? "You" : "They";
+  const who = you ? youWords : "They";
   switch (why) {
     case "withdrawn":
       return `${who} withdrew it`;
@@ -133,13 +134,13 @@ export function reviewRuleWords(
 
 /** When an offer made in the trade deadline's gameweek closes: its last match has no time known
  *  ahead, so it shows in words (Craig, 11 Nov 2026, on #1492). */
-export const afterLastMatchWords = (gameweek: number) =>
-  `After GW${gameweek}'s last match`;
+export const closesAfterLastMatchWords = (gameweek: number) =>
+  capitalised(afterLastMatchWords(gameweek));
 
 /** When an open offer closes unanswered at a known deadline, in its panel; its row shows the time
  *  alone. */
 export const closesAtWords = (gameweek: number, when: string) =>
-  `At the GW${gameweek} deadline, ${when}`;
+  `At the ${gameweekShort(gameweek)} deadline, ${when}`;
 
 export const acceptWords = "Accept";
 export const counterWords = "Counter";

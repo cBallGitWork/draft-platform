@@ -15,7 +15,7 @@ import { mainMenuLabel } from "../../../src/frame/words";
 import { noFigureWords } from "../../../src/shared/words";
 import {
   acceptWords,
-  afterLastMatchWords,
+  closesAfterLastMatchWords,
   counterWords,
   groupWords,
   noOffersWords,
@@ -146,7 +146,7 @@ describe("an offer to you", () => {
 
   it("made in the trade deadline's gameweek, closes after its last match, in its row and its panel (#1492)", async () => {
     openOffers(withOffers(screenOffer({ closes: { gameweek: 20, at: null } })));
-    const words = afterLastMatchWords(20);
+    const words = closesAfterLastMatchWords(20);
     expect(words).toBe("After GW20's last match");
     const table = await screen.findByRole("table", { name: offersTableLabel });
     expect(within(table).getAllByRole("row")[2].textContent).toContain(words);
