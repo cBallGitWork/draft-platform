@@ -7,6 +7,7 @@ import { lineupProblems, type LineupRules, type PlayerPositions } from "./lineup
 import { isRole, offersRole } from "./roles";
 import { droppedStarter } from "../stars/bestRole";
 import type { RoleStars } from "../stars/starsShape";
+import { matched } from "../shared/matching";
 
 /** The formation spec/05 gives every first lineup, whatever presets the league has. */
 const FIRST_FORMATION = "4-4-2";
@@ -135,21 +136,9 @@ function placedInPickOrder(
 }
 
 /** Whether these players can fill every one of these cells, one player a cell, each in a cell he
- *  plays: a bipartite matching, grown one cell at a time by augmenting paths. */
+ *  plays (shared/matching.ts). */
 function canFill(cells: readonly Cell[], players: readonly number[], positions: PlayerPositions): boolean {
   if (cells.length > players.length) return false;
-  const cellOf = new Map<number, number>();
-  const augment = (cellIndex: number, seen: Set<number>): boolean => {
-    for (const playerCode of players) {
-      if (seen.has(playerCode) || !playsCell(positions.get(playerCode) ?? [], cells[cellIndex])) continue;
-      seen.add(playerCode);
-      const taken = cellOf.get(playerCode);
-      if (taken === undefined || augment(taken, seen)) {
-        cellOf.set(playerCode, cellIndex);
-        return true;
-      }
-    }
-    return false;
-  };
-  return cells.every((_, cellIndex) => augment(cellIndex, new Set()));
+  const playersFor = (cellIndex: number) => players.filter((playerCode) => playsCell(positions.get(playerCode) ?? [], cells[cellIndex]));
+  return matched(cells.map((_, cellIndex) => cellIndex),playersFor, (playerCode) => playerCode).size === cells.length;
 }

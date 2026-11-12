@@ -8,7 +8,7 @@ import { byPitchOrder, playsCell, type Cell } from "../../../convex/lineup/pitch
 import { rolesFor } from "../../../convex/lineup/roles";
 import { bestRoleIn, droppedStarter, starsIn } from "../../../convex/stars/bestRole";
 import { standingIn, startersInOrder, type EditedLineup, type SquadMember, type Starter } from "./lineupEdits";
-import { matched } from "./matching";
+import { matchedCells } from "./matching";
 
 /** What Quick Pick reads of each squad player. */
 export type PickedFrom = Pick<SquadMember, "playerCode" | "positions" | "stars" | "availability" | "unheld">;
@@ -25,7 +25,7 @@ function starsThere(member: PickedFrom, cell: Cell, shape: readonly Cell[]): num
 
 /** The most slots the players can fill between them, each in a cell he plays. */
 const mostFilled = (cells: readonly Cell[], players: readonly PickedFrom[]): number =>
-  matched(players, (player) => cells.filter((cell) => playsCell(player.positions, cell))).size;
+  matchedCells(players, (player) => cells.filter((cell) => playsCell(player.positions, cell))).size;
 
 /** The lineup with the shape's cells filled by the best eleven by stars (spec/05): the best player
  *  and slot first, each pick only where the slots left can still all be filled, each landing on his
