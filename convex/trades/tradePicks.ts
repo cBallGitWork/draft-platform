@@ -73,7 +73,7 @@ export async function checkPicks(
 /** A pick as the New offer tab offers it: `teamId`'s pick in `round`, `teamName` its team, and
  *  `held` while it is in a trade under review. */
 export const tradablePick = v.object({ round: v.number(), teamId: v.id("teams"), teamName: v.string(), held: v.boolean() });
-type TradablePick =Infer<typeof tradablePick>;
+type TradablePick = Infer<typeof tradablePick>;
 
 /** Who holds each pick of the league's draft now: a team's picks, round by round. None once the
  *  draft has started, or in a league with no rounds. */
@@ -105,7 +105,7 @@ export async function checkPicksFree(ctx: QueryCtx, offer: Doc<"tradeOffers">): 
 }
 
 /** A pick trade that went through: the team that offered it, the team it was to, and its picks. */
-type PickTrade ={ fromTeamId: Id<"teams">; toTeamId: Id<"teams">; picks: TradePicks };
+type PickTrade = {fromTeamId: Id<"teams">; toTeamId: Id<"teams">; picks: TradePicks };
 
 /** `traded` once `trade` goes through: each pick is its new owner's, a pick back with its own team
  *  losing its entry. */
