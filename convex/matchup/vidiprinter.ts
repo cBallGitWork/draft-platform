@@ -30,13 +30,14 @@ import { CATALOGUE_STATS } from "../scoring/statCatalogue";
 import { EVENT_STATS } from "../stats/matchRecords";
 import { stepPoints } from "../stats/thresholdSteps";
 import { signedWords } from "../shared/numberWords";
+import type { PlayerCode } from "../shared/players";
 import { LINEUPS_OUT_BEFORE_KICKOFF_MS, MINUTE_MS } from "../shared/time";
 import type { commentaryLine } from "../schema";
 
-type PlayerCode = number;
 
 type StoredLine = Infer<typeof commentaryLine>;
-export type StoredStep = Pick<Doc<"thresholdSteps">, "playerCode" | "stat" | "from" | "to" | "minutes" | "minute">;
+/** One step as a live read stored it, with that read's clock. */
+export type StoredStep = Doc<"thresholdStepReads">["steps"][number] & Pick<Doc<"thresholdStepReads">, "minute">;
 
 export interface VidiprinterMatch {
   fixtureCode: number;
@@ -136,6 +137,9 @@ export function vidiprinter(
   return placed.toSorted((one, other) => other.at - one.at || other.kickoff - one.kickoff || one.order - other.order).map(({ line }) => line);
 }
 
+/** A stored commentary line's key, the one the screens key its row on, priced or not. */
+export const storedLineKey = (fixtureCode: number, sourceId: number) => `${fixtureCode}:${sourceId}`;
+
 function placedOf(match: VidiprinterMatch, players: ReadonlyMap<PlayerCode, VidiprinterPlayer>, set: ScoringSet): Placed[] {
   const kickoff = match.kickoff ?? 0;
   const placed: Placed[] = [];
@@ -146,7 +150,7 @@ function placedOf(match: VidiprinterMatch, players: ReadonlyMap<PlayerCode, Vidi
   let at = kickoff - LINEUPS_OUT_BEFORE_KICKOFF_MS;
   match.lines.toReversed().forEach((stored, index) => {
     at = Math.max(at, atMinute(kickoff, stored.minute ?? null, stored.addedMinute ?? null));
-    const key = `${match.fixtureCode}:${stored.sourceId}`;
+    const key = storedLineKey(match.fixtureCode, stored.sourceId);
     const instructed: PricedLine[] = [];
     const line = { key, ...priced(stored, match.fixtureCode, players, set, counted, instructed) };
     const order = match.lines.length - index;

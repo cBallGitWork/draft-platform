@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { UNDRAFTED_GO_TO } from "../../convex/draft/draftRules";
 import type { LeagueSettings } from "../../convex/rules/leagueSettingsPart";
+import { blankOrOff } from "../rules/blank";
 import { Choice } from "../ui/Choice";
 import { PANEL_BODY, Panel } from "../ui/Panel";
 import { TickBox } from "../ui/TickBox";
@@ -40,7 +41,7 @@ export function DraftPanel({ draft, edit, start }: { draft: Draft; edit: (draft:
         <div className={PANEL_BODY}>
           <DraftStartRow start={start} />
           <PickClock seconds={draft.pickSeconds} onChange={(pickSeconds) => edit({ ...draft, pickSeconds })} />
-          <TickBox checked={draft.timeoutsBeforeAutoPick !== null} onChange={(on) => edit({ ...draft, timeoutsBeforeAutoPick: on ? NaN : null })}>
+          <TickBox checked={draft.timeoutsBeforeAutoPick !== null} onChange={(on) => edit({ ...draft, timeoutsBeforeAutoPick: blankOrOff(on) })}>
             {autoPickWords}
           </TickBox>
           {draft.timeoutsBeforeAutoPick === null ? (

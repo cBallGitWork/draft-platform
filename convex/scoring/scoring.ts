@@ -5,7 +5,7 @@ import { MINUTES_STAT } from "../stats/matchRecords";
 import { withOwnStats } from "./ownStats";
 import { AREAS, LANES, positionOfSlot, type Cell, type SlotPosition } from "../lineup/pitch";
 import { priceFor, pricingOf, type Priced } from "./priced";
-import { validateScoringSet, type Area, type Band, type RoleSide, type ScoringRule, type ScoringSet } from "./scoringSet";
+import { checkedOnce, type Area, type Band, type RoleSide, type ScoringRule, type ScoringSet } from "./scoringSet";
 import { backLineAt, instructionPoints, withBackLine, type InstructionPoints, type TeamScoring } from "./teamScoring";
 import { DOUBLE_GAMEWEEK_RULES, inTenths, showValue, statIn, weighedCount, type DoubleGameweekRule, type MatchStats } from "./values";
 
@@ -108,16 +108,6 @@ export function scoreMatch(record: MatchStats | null, set: ScoringSet, cell: Cel
   const instructed = (team?.instructions ?? []).flatMap((key) => instructionPoints(record, set, key, slot.position, minutes) ?? []);
   const total = inTenths(base + (adjusted?.points ?? 0) + sum(instructed.map(({ points }) => points)));
   return { total, categories, ...(adjusted !== undefined && { role: adjusted }), ...(instructed.length > 0 && { instructions: instructed }) };
-}
-
-/** Sets already checked, by the object read: a page of players scores every match under one set,
- *  and checking it was nine tenths of the time (#1574). A set read is never changed after. */
-const CHECKED_SETS = new WeakSet<ScoringSet>();
-
-function checkedOnce(set: ScoringSet): void {
-  if (CHECKED_SETS.has(set)) return;
-  validateScoringSet(set);
-  CHECKED_SETS.add(set);
 }
 
 /** What `role` gives a man with this record under `set`, own stats worked out: 0 for no role, or

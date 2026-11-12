@@ -1,5 +1,5 @@
 import { LEAGUE_AVERAGE, type Fixture, type GameweekFixtures } from "./roundRobin";
-import { averageOf } from "./standings";
+import { averageOf, fixtureScores } from "./standings";
 
 // One team's games in a league's head-to-head schedule (#365; spec/12, My team's tabs: "the team's
 // head-to-head fixtures and results for the season"), and each game's score once its gameweek is
@@ -14,6 +14,10 @@ export type Against<Team> = { kind: "team"; team: Team } | { kind: typeof LEAGUE
  *  more than one in a league playing two a gameweek; #913), and who it meets. */
 export type TeamGame<Team> = { gameweek: number; game: number; against: Against<Team> };
 
+/** The first of a team's games in a gameweek, as `gamesOf`, the matchup's address and its switch
+ *  number them. */
+export const FIRST_GAME = 1;
+
 /** Every game `team` plays in `schedule`, in gameweek order: in a gameweek, its fixtures as drawn
  *  (on either side), then its byes, numbered from 1 in that order. A gameweek it has no part in,
  *  such as one stored before it joined, gives none. */
@@ -25,7 +29,7 @@ export function gamesOf<Team>(schedule: readonly GameweekFixtures<Team>[], team:
       return [];
     });
     const sittingOut = byes.filter((each) => each === team).map((): Against<Team> => ({ kind: BYE }));
-    return [...met, ...sittingOut].map((against, index) => ({ gameweek, game: index + 1, against }));
+    return [...met, ...sittingOut].map((against, index) => ({ gameweek, game: index + FIRST_GAME, against }));
   });
 }
 
@@ -34,7 +38,7 @@ export function gamesOf<Team>(schedule: readonly GameweekFixtures<Team>[], team:
  *  games a gameweek (spec/10; #913). */
 export function gameNumberAt<Team>(fixtures: readonly Fixture<Team>[], index: number): number {
   const { team } = fixtures[index];
-  return fixtures.slice(0, index).filter((each) => each.team === team || each.opponent === team).length + 1;
+  return fixtures.slice(0, index).filter((each) => each.team === team || each.opponent === team).length + FIRST_GAME;
 }
 
 /** A team's points in a gameweek scored, and whether they may still move (gameweekScores.ts's
@@ -61,13 +65,10 @@ export function gameScore<Team>(
     if (score === undefined) throw new Error(`Gameweek ${gameweek} is scored, but not for team ${String(side)}`);
     return score;
   };
-  const own = sideOf(team);
-  if (opponent !== LEAGUE_AVERAGE) {
-    const other = sideOf(opponent);
-    return { team: own.points, opponent: other.points, provisional: own.provisional || other.provisional };
-  }
-  const average = averageScore(teams, new Map(teams.map((each) => [each, sideOf(each)])), gameweek);
-  return { team: own.points, opponent: average.points, provisional: average.provisional };
+  const counted = opponent === LEAGUE_AVERAGE ? teams : [team, opponent];
+  const sides = new Map([team, ...counted].map((each) => [each, sideOf(each)]));
+  const points = fixtureScores(teams, new Map([...sides].map(([each, side]) => [each, side.points])), gameweek, team, opponent);
+  return { ...points, provisional: counted.some((each) => sides.get(each)?.provisional === true) };
 }
 
 /** The league's average over `teams` in a gameweek scored, `sides` holding each: their points'

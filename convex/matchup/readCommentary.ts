@@ -2,7 +2,7 @@ import type { Doc, Id } from "../_generated/dataModel";
 import type { QueryCtx } from "../_generated/server";
 import { delayedFrom, earliestDelay, heldOf } from "../football/matchCommentary";
 import { scoreOf } from "../football/matchScores";
-import { playerByCode, unheldPlayerWords } from "../shared/players";
+import { playerByCode, unheldPlayerWords, type PlayerCode } from "../shared/players";
 import { readOnce } from "../shared/readOnce";
 import type { GameweekTeams } from "../gameweekScorer/gameweekScores";
 import type { HeldMatch } from "../gameweekScorer/heldMatches";
@@ -18,7 +18,6 @@ import { shownLine, vidiprinter, type PricedLine, type VidiprinterLine, type Vid
 // lineup's men whose points count, in the matchday's matches (home/leagueHome.ts; spec/12).
 
 type TeamId = Id<"teams">;
-type PlayerCode = number;
 
 export interface CommentaryReads {
   /** His row, or null for one the football sync doesn't hold. */

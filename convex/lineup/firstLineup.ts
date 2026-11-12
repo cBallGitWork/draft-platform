@@ -1,7 +1,7 @@
 // The lineup a team holds before its manager saves one (spec/05, The pitch; #637, #836): "you
 // don't save to create, you save to edit". Pure functions; lineups.ts stores what they pick.
 
-import { DEFAULT_PRESETS, type Preset } from "./presets";
+import { FIRST_PRESETS, type Preset } from "./presets";
 import { byPitchOrder, cellKey, playsCell, sameCell, type Cell } from "./pitch";
 import { lineupProblems, type LineupRules, type PlayerPositions } from "./lineup";
 import { isRole, offersRole } from "./roles";
@@ -11,7 +11,7 @@ import type { RoleStars } from "../stars/starsShape";
 /** The formation spec/05 gives every first lineup, whatever presets the league has. */
 const FIRST_FORMATION = "4-4-2";
 
-const FIRST_CELLS = DEFAULT_PRESETS.find((preset) => preset.name === FIRST_FORMATION)!.cells;
+const FIRST_CELLS = FIRST_PRESETS.find((preset) => preset.name === FIRST_FORMATION)!.cells;
 
 /** A starter as a stored row holds him: his cell, and the role he was given, none meaning the
  *  slot's first. */

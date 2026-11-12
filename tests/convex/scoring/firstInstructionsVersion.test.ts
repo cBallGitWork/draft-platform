@@ -27,7 +27,7 @@ test("they score from the next gameweek not begun, the gameweeks before keeping 
 test("they are added to the set as it stands, its roles and own stats kept and none held twice, and only once", async () => {
   await holdGameweeks(t, { next: 9 });
   const withRoles = { ...EDITED, ownStats: [...(EDITED.ownStats ?? []), ...FIRST_ROLE_OWN_STATS], roles: [...FIRST_ROLES] };
-  await t.run((ctx) => holdSiteScoring(ctx, { scoring: withRoles, kind: "fix", season: 2026, number: 1, at: TODAY - 1 }));
+  await t.run((ctx) => holdSiteScoring(ctx, { scoring: withRoles, kind: "fix", at: TODAY - 1 }));
 
   expect((await addFirstInstructions())?.name).toBe("26_27.2");
   expect(await inGameweek(9)).toEqual({ ...withRoles, instructions: FIRST_INSTRUCTION_SCORING });
@@ -40,7 +40,7 @@ test("run again on a set that scores some of them, it adds only those it lacks, 
   const [edited, ...others] = FIRST_INSTRUCTION_SCORING.filter(({ instruction }) => instruction !== "keepItTightEarly");
   const held = [{ ...edited, lines: edited.lines.map((line) => ({ ...line, points: line.points * 2 })) }, ...others];
   const before = { ...FIRST_SCORING, ownStats: [...FIRST_ROLE_OWN_STATS], instructions: held };
-  await t.run((ctx) => holdSiteScoring(ctx, { scoring: before, kind: "fix", season: 2026, number: 1, at: TODAY - 1 }));
+  await t.run((ctx) => holdSiteScoring(ctx, { scoring: before, kind: "fix", at: TODAY - 1 }));
 
   expect((await addFirstInstructions())?.name).toBe("26_27.2");
   const tight = FIRST_INSTRUCTION_SCORING.find(({ instruction }) => instruction === "keepItTightEarly");

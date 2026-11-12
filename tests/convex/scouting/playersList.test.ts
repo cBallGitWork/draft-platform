@@ -15,7 +15,7 @@ import { refusals } from "../../../convex/shared/leagueAccess";
 import { SEASON_PLAYERS_MOST } from "../../../convex/stats/matchRecords";
 import { seasonTotals } from "../../../convex/stats/seasonStats";
 import { CLUB_PLAYERS_MOST } from "../../../convex/shared/players";
-import { COMMISSIONER, MANAGERS, actingAs, addManagers, adminCreatesLeague, teamName, type TestConvex } from "../../support/convex/leagues.harness";
+import { COMMISSIONER, MANAGERS, actingAs, addManagers, adminCreatesLeague, teamName, TEST_LEAGUE_TEAMS, type TestConvex } from "../../support/convex/leagues.harness";
 import { ARSENAL, CHELSEA, GONE, SAKA, insertClubs, insertDroppedPlayer, insertPlayers } from "../../support/convex/footballRows.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
 import { expectRefused, ROWS_TO_THE_CAP } from "../../support/convex/test.harness";
@@ -39,7 +39,7 @@ let teams: Id<"teams">[];
 beforeEach(async () => {
   t = await signInDeployment();
   fakeResend();
-  leagueId = await adminCreatesLeague(t, 4);
+  leagueId = await adminCreatesLeague(t);
   teams = await addManagers(t, leagueId, [ANN, BOB]);
   await t.run(async (ctx) => {
     await insertClubs(ctx, [CHELSEA, ARSENAL, BRENTFORD]);
@@ -126,7 +126,7 @@ describe("the filters", () => {
   });
 
   test("a player owned in another league is a free agent in this one", async () => {
-    const otherLeague = await adminCreatesLeague(t, 4, "Another league");
+    const otherLeague = await adminCreatesLeague(t, TEST_LEAGUE_TEAMS, "Another league");
     const [otherTeam] = await addManagers(t, otherLeague, [MANAGERS[2]]);
     await t.run((ctx) => ctx.db.insert("squadPlayers", { leagueId: otherLeague, teamId: otherTeam, playerCode: RICE.code }));
     expect(await namesListed({ availability: "freeAgents" })).toEqual(["Mbeumo", "Rice"]);

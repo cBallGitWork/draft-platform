@@ -24,6 +24,7 @@ import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { pathToFileURL } from "node:url";
+import { ranDirectly } from "./thisScript.mjs";
 
 /** The live deployment's environment variable holding the last release's schema fingerprint. */
 export const FINGERPRINT_ENV = "LIVE_SCHEMA_FINGERPRINT";
@@ -181,4 +182,4 @@ async function main() {
   }
 }
 
-if (import.meta.url === pathToFileURL(process.argv[1] ?? "").href) process.exit(await main());
+if (ranDirectly(import.meta.url)) process.exit(await main());

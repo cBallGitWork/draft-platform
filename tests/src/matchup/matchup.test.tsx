@@ -42,7 +42,7 @@ import {
 } from "../../../src/matchup/words";
 import { leagueTableOf } from "../../../src/table/drawnTable";
 import { homeFixture, quietHome } from "../../support/src/home.harness";
-import { headToHead, lineupRows, liveMatchup, playing, roleOf, slot, SLOT_MATCH, teamSide, type MatchupData } from "../../support/src/matchup.harness";
+import { headToHead, lineupRows, liveMatchup, playing, roleOf, slot, SLOT_MATCH, subbed, teamSide, type MatchupData } from "../../support/src/matchup.harness";
 import { league, manager, openApp } from "../../support/src/shell.harness";
 
 const openMatchup = (matchup: MatchupData = {}, path = MATCHUP_PATH) => openApp(path, manager, { matchup });
@@ -65,8 +65,8 @@ const stages = {
     kind: "scored",
     team: teamSide(
       "Team 1",
-      [slot("Phillips", { area: "goalkeeper", points: 0, counts: false, status: { kind: "finished", fixtureCode: SLOT_MATCH }, autoSub: { kind: "off", playerName: "Pandur" } }), slot("Coyle", { points: 6, status: { kind: "finished", fixtureCode: SLOT_MATCH } })],
-      [slot("Pandur", { area: "goalkeeper", points: 3, status: { kind: "finished", fixtureCode: SLOT_MATCH }, autoSub: { kind: "on", playerName: "Phillips" } })],
+      [slot("Phillips", { area: "goalkeeper", points: 0, counts: false, status: { kind: "finished", fixtureCode: SLOT_MATCH }, autoSub: subbed("off", "Pandur") }), slot("Coyle", { points: 6, status: { kind: "finished", fixtureCode: SLOT_MATCH } })],
+      [slot("Pandur", { area: "goalkeeper", points: 3, status: { kind: "finished", fixtureCode: SLOT_MATCH }, autoSub: subbed("on", "Phillips") })],
       9,
     ),
     opponent: teamSide("Team 2", [slot("Pickford", { area: "goalkeeper", points: 7, status: { kind: "finished", fixtureCode: SLOT_MATCH } })], [], 7),

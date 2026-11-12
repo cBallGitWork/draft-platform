@@ -8,8 +8,8 @@
 
 import type { Infer } from "convex/values";
 import type { sportmonksStart } from "../../schema";
-import { placeOf, positionsFromStarts, type HeldPosition } from "../../positions/positions";
-import type { Position } from "../../positions/positionTables";
+import { positionsFromStarts, type HeldPosition } from "../../positions/positions";
+import { formationPosition, type Position } from "../../positions/positionTables";
 import { kickoffOf } from "./sportmonks";
 import { LINEUP_STARTER } from "./sportmonksMatch";
 import { SPORTMONKS, type RawFixture, type RawPlayer } from "./sportmonksRaw";
@@ -53,7 +53,7 @@ export function labelOf(player: RawPlayer): string | null {
 /** Where a start puts him: his formation place, or else his detailed position where it names one
  *  position; null where neither does. */
 export function startPosition(start: SportmonksStart): Position | null {
-  const placed = placeOf(start);
+  const placed = formationPosition(start);
   if (placed !== null) return placed;
   const named = start.detailedPosition === null ? null : labelPositions(start.detailedPosition);
   return named?.length === 1 ? named[0] : null;

@@ -207,7 +207,6 @@ export const gates: Record<string, Gate> = {
   "trades/tradeOffers:accept": "manager",
   "trades/tradeOffers:counter": "manager",
   "trades/tradeOffers:countWaitingForMe": "managerOrNothing",
-  "trades/tradeOffers:mine": "manager",
   "trades/tradeOffers:offer": "manager",
   "trades/tradeOffers:reject": "manager",
   "trades/tradeOffers:withdraw": "manager",

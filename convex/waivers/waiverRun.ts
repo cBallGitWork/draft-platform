@@ -20,8 +20,9 @@ import { teamIn } from "../shared/leagueAccess";
 import { playerByCode } from "../shared/players";
 import { readOnce } from "../shared/readOnce";
 import { MINUTE_MS } from "../shared/time";
-import { placeOf, squadOf } from "../squads/squadPlace";
-import { limitsReader, type LimitsBroken, type SquadWarning } from "../squads/squads";
+import { placeOf, squadCodes } from "../squads/squadPlace";
+import { breaksLimits } from "../squads/limitsCompare";
+import { limitsReader, type LimitsBroken } from "../squads/squads";
 import { heldInReview } from "../trades/tradeClose";
 import { claimedName, leagueClaims } from "./waiverClaims";
 import { latestEnded, runInWaiverLock } from "./waiverLock";
@@ -51,28 +52,8 @@ const CHECK_MS = WAIVER_CHECK_EVERY.minutes * MINUTE_MS;
 /** A league that has never run waivers runs one only if its time came within this of now. */
 export const FIRST_RUN_WITHIN_MS = 2 * CHECK_MS;
 
-/** Whether the claim's squad breaks a limit the squad before it didn't, or breaks one further:
- *  more over the squad's or a club's maximum, or fewer filling an area's minimum. A claim never
- *  shrinks a squad, so being under its minimum size is never the claim's doing. Pure. */
-export function breaksLimits(before: readonly SquadWarning[], after: readonly SquadWarning[]): boolean {
-  return newlyBroken(before, after).some((warning) => warning.kind !== "underMinimum");
-}
-
-/** The limits the squad after a change breaks that the squad before didn't, or breaks further:
- *  more over a maximum, or fewer filling a minimum. A trade's warnings (../trades/tradeReview.ts). Pure. */
-export function newlyBroken(before: readonly SquadWarning[], after: readonly SquadWarning[]): SquadWarning[] {
-  const keyOf = (warning: SquadWarning) =>
-    warning.kind === "overClubMaximum" ? `club ${warning.clubShortName}` : warning.kind === "underAreaMinimum" ? `area ${warning.area}` : warning.kind;
-  const was = new Map(before.map((warning) => [keyOf(warning), warning.players]));
-  return after.filter((warning) => {
-    const players = was.get(keyOf(warning));
-    if (players === undefined) return true;
-    return warning.kind === "underAreaMinimum" || warning.kind === "underMinimum" ? warning.players < players : warning.players > players;
-  });
-}
-
 /** Whether the player joining the team, `dropCode` going for him if anyone, would break the
- *  squad's limits (`breaksLimits`) or the platform's most in a squad: a claim at the run, or a
+ *  squad's limits (`breaksLimits`, ../squads/limitsCompare.ts) or the platform's most in a squad: a claim at the run, or a
  *  free agent pickup (freeAgents.ts). */
 export async function joiningBreaksLimits(
   ctx: QueryCtx,
@@ -82,7 +63,7 @@ export async function joiningBreaksLimits(
   dropCode: number | null,
   squadRules: LeagueRules["squad"] | null,
 ): Promise<boolean> {
-  const squad = (await squadOf(ctx, teamId)).map((row) => row.playerCode);
+  const squad = await squadCodes(ctx, teamId);
   return joinBreaks(squad, playerCode, dropCode, await limitsReader(ctx, leagueId, squadRules));
 }
 
@@ -124,7 +105,7 @@ type Run = {
 async function squadInRun(ctx: QueryCtx, run: Run, teamId: Id<"teams">): Promise<number[]> {
   const kept = run.squads.get(teamId);
   if (kept !== undefined) return kept;
-  const squad = (await squadOf(ctx, teamId)).map((row) => row.playerCode);
+  const squad = await squadCodes(ctx, teamId);
   run.squads.set(teamId, squad);
   return squad;
 }

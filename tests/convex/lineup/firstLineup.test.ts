@@ -1,7 +1,7 @@
 import { describe, expect, test } from "vitest";
 import { firstLineup, keptOnBenchOf, withDroppedRoles, type FirstLineup, type FirstLineupRules } from "../../../convex/lineup/firstLineup";
 import type { RoleStars } from "../../../convex/stars/starsShape";
-import { DEFAULT_PRESETS } from "../../../convex/lineup/presets";
+import { FIRST_PRESETS } from "../../../convex/lineup/presets";
 import type { Position } from "../../../convex/positions/positionTables";
 import { KEEPER_CELL, openLimits, presetNamed } from "../../support/convex/lineup.harness";
 
@@ -16,7 +16,7 @@ const picked = (...players: [number, Position[]][]) => ({
 });
 
 /** The league's presets in spec/05's order, under limits that refuse nothing. */
-const RULES: FirstLineupRules = { ...openLimits(), presets: DEFAULT_PRESETS };
+const RULES: FirstLineupRules = { ...openLimits(), presets: FIRST_PRESETS };
 /** A league with no preset to fall back on: only the 4-4-2's own rule is in play. */
 const NO_FALLBACK: FirstLineupRules = { ...openLimits(), presets: [] };
 
@@ -141,7 +141,7 @@ describe("a squad that leaves a 4-4-2 slot empty takes the first preset it fills
   test("a preset outside the league's area limits is passed over: with none left, the 4-4-2 keeps its gaps", () => {
     const { order, positions } = BACK_THREE_SQUAD;
     // Only three centre backs: every preset the squad fills has a back three.
-    const aBackFour: FirstLineupRules = { ...openLimits({ defence: { minimum: 4, maximum: 5 } }), presets: DEFAULT_PRESETS };
+    const aBackFour: FirstLineupRules = { ...openLimits({ defence: { minimum: 4, maximum: 5 } }), presets: FIRST_PRESETS };
     expect(firstLineup(order, positions, aBackFour)).toEqual(firstLineup(order, positions, NO_FALLBACK));
     // The 4-4-2's one gap is in its back four: its midfield takes the holding men.
     expect(firstLineup(order, positions, aBackFour).starters).toHaveLength(10);

@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { defaultPairOf, FIRST_INSTRUCTIONS, keptOrSwitched, offeredOn, pairRefusal, type Instruction } from "../../../convex/lineup/instructions";
 import { switchedWords } from "../../../convex/lineup/instructionsWords";
-import { DEFAULT_PRESETS } from "../../../convex/lineup/presets";
+import { FIRST_PRESETS } from "../../../convex/lineup/presets";
 import { presetNamed } from "../../support/convex/lineup.harness";
 
 // Team instructions (spec/05, Team instructions; #990): each offered only where the formation's
@@ -11,8 +11,8 @@ import { presetNamed } from "../../support/convex/lineup.harness";
 const cellsOf = (name: string) => presetNamed(name).cells;
 const offers = (name: string, key: string) =>
   [...offeredOn("attacking", cellsOf(name), FIRST_INSTRUCTIONS), ...offeredOn("defensive", cellsOf(name), FIRST_INSTRUCTIONS)].some((each) => each.key === key);
-const offeredBy = (key: string) => DEFAULT_PRESETS.filter(({ name }) => offers(name, key)).map(({ name }) => name);
-const ALL = DEFAULT_PRESETS.map(({ name }) => name);
+const offeredBy = (key: string) => FIRST_PRESETS.filter(({ name }) => offers(name, key)).map(({ name }) => name);
+const ALL = FIRST_PRESETS.map(({ name }) => name);
 
 describe("each instruction's shape gate", () => {
   it("offers the any-shape instructions everywhere", () => {
@@ -54,9 +54,9 @@ describe("each instruction's shape gate", () => {
 
 describe("each formation's defaults", () => {
   it("start most on Play out from the back and Keep it tight early, five at the back on Park the bus, two at the back on Gung-ho", () => {
-    expect(defaultPairOf(cellsOf("4-4-2"), DEFAULT_PRESETS, FIRST_INSTRUCTIONS)).toEqual({ attacking: "playOutFromTheBack", defensive: "keepItTightEarly" });
-    expect(defaultPairOf(cellsOf("5-3-2"), DEFAULT_PRESETS, FIRST_INSTRUCTIONS)).toEqual({ attacking: "playOutFromTheBack", defensive: "parkTheBus" });
-    expect(defaultPairOf(cellsOf("2-3-5"), DEFAULT_PRESETS, FIRST_INSTRUCTIONS)).toEqual({ attacking: "gungHo", defensive: "keepItTightEarly" });
+    expect(defaultPairOf(cellsOf("4-4-2"), FIRST_PRESETS, FIRST_INSTRUCTIONS)).toEqual({ attacking: "playOutFromTheBack", defensive: "keepItTightEarly" });
+    expect(defaultPairOf(cellsOf("5-3-2"), FIRST_PRESETS, FIRST_INSTRUCTIONS)).toEqual({ attacking: "playOutFromTheBack", defensive: "parkTheBus" });
+    expect(defaultPairOf(cellsOf("2-3-5"), FIRST_PRESETS, FIRST_INSTRUCTIONS)).toEqual({ attacking: "gungHo", defensive: "keepItTightEarly" });
   });
 
   it("are the league's preset's own pair, held as a rule", () => {
@@ -65,26 +65,26 @@ describe("each formation's defaults", () => {
   });
 
   it("are each offered by the preset's own shape", () => {
-    for (const { name, cells, instructions } of DEFAULT_PRESETS) expect([name, pairRefusal(instructions!, cells, FIRST_INSTRUCTIONS)]).toEqual([name, null]);
+    for (const { name, cells, instructions } of FIRST_PRESETS) expect([name, pairRefusal(instructions!, cells, FIRST_INSTRUCTIONS)]).toEqual([name, null]);
   });
 });
 
 describe("keep or switch on a formation change", () => {
   it("keeps a pick the new shape offers", () => {
-    const { pair, switched } = keptOrSwitched({ attacking: "getItWide", defensive: "pressHigh" }, cellsOf("3-5-2"), DEFAULT_PRESETS, FIRST_INSTRUCTIONS);
+    const { pair, switched } = keptOrSwitched({ attacking: "getItWide", defensive: "pressHigh" }, cellsOf("3-5-2"), FIRST_PRESETS, FIRST_INSTRUCTIONS);
     expect(pair).toEqual({ attacking: "getItWide", defensive: "pressHigh" });
     expect(switched).toEqual([]);
   });
 
   it("switches one it blocks to the new formation's default, and says so", () => {
-    const { pair, switched } = keptOrSwitched({ attacking: "shootOnSight", defensive: "parkTheBus" }, cellsOf("4-4-2"), DEFAULT_PRESETS, FIRST_INSTRUCTIONS);
+    const { pair, switched } = keptOrSwitched({ attacking: "shootOnSight", defensive: "parkTheBus" }, cellsOf("4-4-2"), FIRST_PRESETS, FIRST_INSTRUCTIONS);
     expect(pair).toEqual({ attacking: "shootOnSight", defensive: "keepItTightEarly" });
     expect(switchedWords(switched)).toBe("Park the bus needs 5 at the back: switched to Keep it tight early");
   });
 
   it("takes the defaults without a word for no pick, or one the league no longer holds", () => {
-    expect(keptOrSwitched(undefined, cellsOf("5-4-1"), DEFAULT_PRESETS, FIRST_INSTRUCTIONS)).toEqual({ pair: { attacking: "playOutFromTheBack", defensive: "parkTheBus" }, switched: [] });
-    expect(keptOrSwitched({ attacking: "gone", defensive: "clearIt" }, cellsOf("4-4-2"), DEFAULT_PRESETS, FIRST_INSTRUCTIONS).switched).toEqual([]);
+    expect(keptOrSwitched(undefined, cellsOf("5-4-1"), FIRST_PRESETS, FIRST_INSTRUCTIONS)).toEqual({ pair: { attacking: "playOutFromTheBack", defensive: "parkTheBus" }, switched: [] });
+    expect(keptOrSwitched({ attacking: "gone", defensive: "clearIt" }, cellsOf("4-4-2"), FIRST_PRESETS, FIRST_INSTRUCTIONS).switched).toEqual([]);
   });
 });
 

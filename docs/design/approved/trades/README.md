@@ -1,6 +1,7 @@
 # Trades
 
-Route: the menu's Trades (`spec/12`), its Offers and New offer tabs. For #383.
+Route: `/trades`, the menu's Trades (`spec/12`), its Offers and New offer (`/trades/new`) tabs,
+checked on `/trades?preview=manager`. For #383.
 
 ## The pictures
 
