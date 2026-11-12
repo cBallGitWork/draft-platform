@@ -14,8 +14,8 @@ test("the season maps to the seam: clubs, each squad's men by Sportmonks' id, ro
   const football = mapSportmonks(sportmonksSeason());
 
   expect(football.clubs).toEqual([
-    { code: SM.celtic, name: "Celtic", shortName: "CEL" },
-    { code: SM.rangers, name: "Rangers", shortName: "RAN" },
+    { code: SM.celtic, name: "Celtic", shortName: "CEL", stadium: "Celtic Park", capacity: 60411, manager: "Martin O'Neill" },
+    { code: SM.rangers, name: "Rangers", shortName: "RAN", stadium: "Ibrox Stadium" },
     // Sportmonks sends no short code for Hearts: its name's first three letters stand in.
     { code: SM.hearts, name: "Heart of Midlothian", shortName: "HEA" },
   ]);
@@ -44,6 +44,26 @@ test("the season maps to the seam: clubs, each squad's men by Sportmonks' id, ro
     ],
     problems: [],
   });
+});
+
+// The club page's header names its stadium, capacity and manager (spec/18 `S18.7`).
+test("a club's stadium, capacity and manager come from its venue and active coach; one Sportmonks doesn't send is left out (#1938)", () => {
+  const byCode = new Map(mapSportmonks(sportmonksSeason()).clubs.map((club) => [club.code, club]));
+
+  // The active spell's coach, a caretaker, never the past manager.
+  expect(byCode.get(SM.celtic)).toMatchObject({ stadium: "Celtic Park", capacity: 60411, manager: "Martin O'Neill" });
+  // No capacity and no coach sent: neither is made up.
+  expect(byCode.get(SM.rangers)).not.toHaveProperty("capacity");
+  expect(byCode.get(SM.rangers)).not.toHaveProperty("manager");
+  // No venue or coaches at all.
+  expect(byCode.get(SM.hearts)).toEqual({ code: SM.hearts, name: "Heart of Midlothian", shortName: "HEA" });
+
+  // Of two active spells, the one started last names the manager.
+  const payloads = sportmonksSeason();
+  const [celtic] = payloads.teams;
+  const spell = (id: number, start: string, name: string) => ({ id, coach_id: id, active: true, start, coach: { id, name } });
+  celtic.coaches = [spell(1, "2026-11-01", "New Man"), spell(2, "2025-10-28", "Old Man")];
+  expect(mapSportmonks(payloads).clubs[0]).toMatchObject({ manager: "New Man" });
 });
 
 test("an open injury or suspension is out, with its name and expected return where sent; a finished one is not (#1420)", () => {

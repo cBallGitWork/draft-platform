@@ -6,7 +6,7 @@ import { internalAction, internalMutation, type ActionCtx, type MutationCtx, typ
 import { outcomeOf } from "../../shared/errors";
 import { CRON_TRIGGER, withHeartbeat } from "../../heartbeats/heartbeat";
 import { emailIfFailed } from "../../admin/feedFailureEmails";
-import { clubRecord, fixtureRecord, gameweekRecord, playerRecord, scoreRead, sportmonksReader, sportmonksSyncFields, syncTrigger, tableWrites } from "../../schema";
+import { clubRow, fixtureRecord, gameweekRecord, playerRecord, scoreRead, sportmonksReader, sportmonksSyncFields, syncTrigger, tableWrites } from "../../schema";
 import { isPlaying, wins } from "../matchScores";
 import { keyOf, sameFields } from "../footballSync";
 import { readSportmonks, SEEDED_COMPETITIONS, sportmonksToken, type SportmonksCompetition } from "./sportmonks";
@@ -96,7 +96,7 @@ export const competitionsOn = internalMutation({
 const syncArgs = { competition: v.number(), ranAt: v.number() };
 
 export const syncClubs = internalMutation({
-  args: { ...syncArgs, rows: v.array(clubRecord) },
+  args: { ...syncArgs, rows: v.array(clubRow) },
   returns: tableWrites,
   handler: (ctx, { rows, ...run }) => syncRows(ctx, "sportmonksClubs", rows, run),
 });

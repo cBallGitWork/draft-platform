@@ -1,7 +1,9 @@
 // Sportmonks' payloads for the Scottish Premiership (#1391). NOT YET RECORDED: no token reached
 // the build that wrote these, so both are shaped from Sportmonks' v3 docs (fixtures with
 // participants, scores, periods, lineups.details and events; teams with players.player and
-// sidelined.type, an open injury, a finished one and an open suspension (#1420); a
+// sidelined.type, an open injury, a finished one and an open suspension (#1420), venue and
+// coaches.coach, Celtic's caretaker after a past manager, Rangers' ground with no capacity and no
+// coach, Hearts' with neither (#1938); a
 // season's schedule), cut to one live Celtic v Rangers, a finished and an upcoming match, and
 // three clubs. Once SPORTMONKS_API_TOKEN reads one on the dev deployment, swap each for the read.
 // sportmonks-season.json holds the three six-hourly reads' `data`; sportmonks-fixture.json one

@@ -14,6 +14,14 @@ export const clubRecord = v.object({
   shortName: v.string(),
 });
 
+/** A club as its row holds it: with its home ground, the ground's capacity and its manager, from
+ *  Sportmonks (spec/18 `S18.7`, #1938), each absent where the feed sends none, as FPL never does. */
+export const clubRow = clubRecord.extend({
+  stadium: v.optional(v.string()),
+  capacity: v.optional(v.number()),
+  manager: v.optional(v.string()),
+});
+
 /** A club shirt's pattern (spec/12, Club colours: "plain or stripes now, more as a club needs one"). */
 export const shirtPattern = v.union(v.literal("plain"), v.literal("stripes"));
 
@@ -138,7 +146,7 @@ export const footballSyncFields = {
 };
 
 export const footballTables = {
-  clubs: defineTable(clubRecord.extend({ droppedAt })).index("by_code", ["code"]).index("by_droppedAt", ["droppedAt"]),
+  clubs: defineTable(clubRow.extend({ droppedAt })).index("by_code", ["code"]).index("by_droppedAt", ["droppedAt"]),
   players: defineTable(playerRecord.extend({ droppedAt }))
     .index("by_code", ["code"])
     .index("by_clubCode_and_droppedAt", ["clubCode", "droppedAt"])

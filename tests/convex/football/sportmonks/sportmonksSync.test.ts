@@ -24,11 +24,18 @@ test("a run fills the Scottish clubs, players, fixtures and rounds by Sportmonks
     outcome: { ok: true, clubs: WRITES(3), players: WRITES(3), fixtures: WRITES(3), rounds: WRITES(2), scores: { received: 3, written: 3, problems: [] } },
   });
   const held = await t.run(async (ctx) => ({
+    clubs: (await ctx.db.query("sportmonksClubs").collect()).map(({ code, stadium, capacity, manager }) => [code, stadium ?? null, capacity ?? null, manager ?? null]),
     players: (await ctx.db.query("sportmonksPlayers").collect()).map(({ code, clubCode }) => [code, clubCode]),
     fixtures: (await ctx.db.query("sportmonksFixtures").collect()).map(({ code, gameweek }) => [code, gameweek]),
     scores: (await ctx.db.query("sportmonksScores").collect()).map(({ fixtureCode, state }) => [fixtureCode, state]),
   }));
   expect(held).toEqual({
+    // Each club's ground, capacity and manager where sent (#1938).
+    clubs: [
+      [SM.celtic, "Celtic Park", 60411, "Martin O'Neill"],
+      [SM.rangers, "Ibrox Stadium", null, null],
+      [SM.hearts, null, null, null],
+    ],
     players: [[SM.schmeichel, SM.celtic], [SM.kyogo, SM.celtic], [SM.tavernier, SM.rangers]],
     fixtures: [[SM.rangersHearts, 11], [SM.oldFirm, 12], [SM.heartsCeltic, 12]],
     scores: [[SM.rangersHearts, "fullTime"], [SM.oldFirm, "live"], [SM.heartsCeltic, "upcoming"]],
