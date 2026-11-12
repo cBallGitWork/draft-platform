@@ -461,10 +461,13 @@ The homes the folder pass set (29 Oct 2026), so new code has one place to go:
    Link component, its seam's types, its `paths.ts`, its `live<Feature>.ts` (into another's
    `live<Feature>.ts`, or `src/app/liveApp.tsx`, which joins them) and its `preview.ts` (into
    another's `preview.ts`). A `words.ts` never re-exports another feature's words: words two
-   features say move to `src/shared/words.ts` (#1330). `tests/convex/featureImports.test.ts`
-   holds both, with the imports still to move on a list that only shrinks (#1581). No import
-   cycles (`tests/convex/importCycles.test.ts`).
+   features say move to `src/shared/words.ts` (#1330). Only `convex/schema.ts` imports a
+   `convex/schema/` file. `tests/convex/featureImports.test.ts` holds all three, with the imports
+   still to move on lists that only shrink (#1581, #1815). No import cycles
+   (`tests/convex/importCycles.test.ts`).
 5. Something two features use stays with its owner; at the third, it moves to `shared/` or `ui/`.
+   `tests/convex/featureImports.test.ts` counts the features importing each file, in `src/` and
+   in `convex/`, with the files still to move on a list that only shrinks (#1815).
    `tests/convex/oneHome.test.ts` fails a type, a function body of 3 or more lines or an object of
    only literals written in 3 or more files under `convex/`, and a test restating a value a
    `tests/support/` harness exports, with today's copies on lists that only shrink (#1813).
