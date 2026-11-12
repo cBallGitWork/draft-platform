@@ -4,7 +4,7 @@ import { FIRST_SCORING } from "../../../convex/scoring/firstScoring";
 import { OWN_STAT_PREFIX } from "../../../convex/scoring/statKeys";
 import type { PlayersSort } from "../../../convex/scouting/playersList";
 import { FPL_SEASON } from "../../support/recorded/plSeasons.payloads";
-import { MANAGERS, actingAs, addManagers, adminCreatesLeague, type TestConvex } from "../../support/convex/leagues.harness";
+import { actingAs, addManagers, adminCreatesLeague, type TestConvex, ANN } from "../../support/convex/leagues.harness";
 import { ARSENAL, CHELSEA, SAKA, insertClubs, insertPlayers } from "../../support/convex/footballRows.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
 import { holdSiteScoring } from "../../support/convex/siteScoring.harness";
@@ -15,7 +15,6 @@ import { BY_NAME, playersListed } from "../../support/convex/playersList.harness
 // his season totals as a match's own stat is from its record (spec/14, Own stats). The catalogue's
 // stats are tests/convex/scouting/playersList.test.ts's.
 
-const [ANN] = MANAGERS;
 const RICE = { code: 1002, name: "Rice", fullName: "Declan Rice", clubCode: ARSENAL.code, positions: ["CDM" as const] };
 const PALMER = { code: 1004, name: "Palmer", fullName: "Cole Palmer", clubCode: CHELSEA.code, positions: ["CAM" as const] };
 

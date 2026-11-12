@@ -6,14 +6,12 @@ import { joiningRefusals } from "../../../convex/joining/joining";
 import { joinPath } from "../../../convex/joining/joiningShared";
 import { refusals } from "../../../convex/shared/leagueAccess";
 import { EMAIL_MAX } from "../../../convex/signIn/allowedEmails";
-import { COMMISSIONER, LEAGUE_NAME, MANAGERS, actingAs, addManagers, adminCreatesLeague, eventsIn, onTheList, type TestConvex } from "../../support/convex/leagues.harness";
+import { COMMISSIONER, LEAGUE_NAME, actingAs, addManagers, adminCreatesLeague, eventsIn, onTheList, type TestConvex, ANN } from "../../support/convex/leagues.harness";
 import { SITE_URL, UNLISTED, fakeResend, signInDeployment, type SentEmail } from "../../support/convex/signIn.harness";
 import { expectRefused } from "../../support/convex/test.harness";
 
 // A league's invite link (#73 story 2; spec/02, spec/13 Joining): made, replaced and switched
 // off, and letting anyone who opens it sign in to ask to join.
-
-const [ANN] = MANAGERS;
 
 let t: TestConvex;
 let sent: SentEmail[];

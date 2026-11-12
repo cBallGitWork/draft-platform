@@ -3,7 +3,7 @@ import { api } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
 import { ARSENAL, insertClubs, insertPlayers, type HeldPlayer } from "../../support/convex/footballRows.harness";
 import { changeEveryRules } from "../../support/convex/leagueRules.harness";
-import { addManagers, adminCreatesLeague, lettersTo, MANAGERS, type TestConvex } from "../../support/convex/leagues.harness";
+import { addManagers, adminCreatesLeague, lettersTo, type TestConvex, ANN, BOB, CAT } from "../../support/convex/leagues.harness";
 import { pickOf, pickTradeSteps } from "../../support/convex/trades.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
 
@@ -15,7 +15,6 @@ import { fakeResend, signInDeployment } from "../../support/convex/signIn.harnes
 let t: TestConvex;
 let leagueId: Id<"leagues">;
 let ann: Id<"teams">, bob: Id<"teams">, cat: Id<"teams">;
-const [ANN, BOB, CAT] = MANAGERS;
 
 const PLAYERS: HeldPlayer[] = [101, 102, 103].map((code) => ({
   code,

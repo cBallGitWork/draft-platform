@@ -7,7 +7,7 @@ import { refusals } from "../../../convex/shared/leagueAccess";
 import { insertSetPositions } from "../../support/convex/footballRows.harness";
 import { losePlayer } from "../../support/convex/gameweekScores.harness";
 import { changeEveryRules, holdGameweeks } from "../../support/convex/leagueRules.harness";
-import { COMMISSIONER, MANAGERS, actingAs, addManagers, adminCreatesLeague, type TestConvex } from "../../support/convex/leagues.harness";
+import { COMMISSIONER, MANAGERS, actingAs, addManagers, adminCreatesLeague, type TestConvex, ANN } from "../../support/convex/leagues.harness";
 import { FOUR_FOUR_TWO, holdSquad, nameOf, SQUAD } from "../../support/convex/lineupSquad.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
 import { expectRefused } from "../../support/convex/test.harness";
@@ -17,7 +17,6 @@ import { expectRefused } from "../../support/convex/test.harness";
 // lineup, else the squad player whose main position it is with the most season points, else
 // nobody; and whether the squad is full.
 
-const [ANN] = MANAGERS;
 /** A free agent whose positions each test sets. */
 const SCOUTED = 999;
 

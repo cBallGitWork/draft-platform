@@ -6,15 +6,13 @@ import { refusals } from "../../../convex/shared/leagueAccess";
 import { HOUR_MS, WEEK_MS } from "../../../convex/shared/time";
 import { changeRulesTo, holdGameweeks } from "../../support/convex/leagueRules.harness";
 import { expectRefused } from "../../support/convex/test.harness";
-import { actingAs, addManagers, adminCreatesLeague, COMMISSIONER, MANAGERS, OUTSIDER, TEST_LEAGUE_TEAMS, type TestConvex } from "../../support/convex/leagues.harness";
+import { actingAs, addManagers, adminCreatesLeague, COMMISSIONER, OUTSIDER, TEST_LEAGUE_TEAMS, type TestConvex, ANN, BOB, CAT, DAN } from "../../support/convex/leagues.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
 import { teamNumbered } from "../../../convex/leagues/teams";
 
 // My team's Fixtures tab (#365): the caller's team's head-to-head games for the season, in
 // gameweek order, from the schedule the table and fixtures screen reads. No gameweek has begun
 // here, so none is scored: the results are teamFixturesScores.test.ts's (#436).
-
-const [ANN, BOB, CAT, DAN] = MANAGERS;
 
 let t: TestConvex;
 let leagueId: Id<"leagues">;

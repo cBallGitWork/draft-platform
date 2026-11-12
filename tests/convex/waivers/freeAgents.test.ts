@@ -5,10 +5,10 @@ import { pickUpRefusals } from "../../../convex/waivers/freeAgents";
 import { WAIVER_MS } from "../../../convex/waivers/waiverLimits";
 import { dropRefusals } from "../../../convex/waivers/waivers";
 import { changeRules, HELD_FIRST_RULES, rulesWith, setUsed } from "../../support/convex/leagueRules.harness";
-import { actingAs, eventsIn } from "../../support/convex/leagues.harness";
+import { actingAs, eventsIn, ANN, BOB, CAT } from "../../support/convex/leagues.harness";
 import { nameOf, passNextDeadline, SQUAD } from "../../support/convex/lineupSquad.harness";
 import { expectRefused } from "../../support/convex/test.harness";
-import { ANN, ANNS_FIRST_DROP, BOB, CAT, NEXT, PALMER, RICE, SAKA, waiverLeague, type WaiverLeague } from "../../support/convex/waivers.harness";
+import { ANNS_FIRST_DROP, NEXT, PALMER, RICE, SAKA, waiverLeague, type WaiverLeague } from "../../support/convex/waivers.harness";
 import { teamNumbered } from "../../../convex/leagues/teams";
 
 // A free agent pickup (#1199, spec/08 Waivers and free agency): first come first served, from the

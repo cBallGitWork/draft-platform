@@ -8,7 +8,7 @@ import { refusals } from "../../../convex/shared/leagueAccess";
 import { SECOND_MS } from "../../../convex/shared/time";
 import { draftSteps, FIRST_PICK_MS, midfielder } from "../../support/convex/draft.harness";
 import { ARSENAL, insertClubs, insertPlayers } from "../../support/convex/footballRows.harness";
-import { addManagers, adminCreatesLeague, COMMISSIONER, lettersTo, MANAGERS, type TestConvex } from "../../support/convex/leagues.harness";
+import { addManagers, adminCreatesLeague, COMMISSIONER, lettersTo, type TestConvex, ANN, BOB } from "../../support/convex/leagues.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
 import { expectRefused } from "../../support/convex/test.harness";
 
@@ -22,7 +22,6 @@ let teams: Id<"teams">[];
 
 const MIDS = [101, 102, 103, 104].map((code) => midfielder(code));
 const [A1] = MIDS.map(({ code }) => code);
-const [ANN, BOB] = MANAGERS;
 
 const { as, read, start, pause, resume, pick, pass, setPickSeconds, setSquadSize } = draftSteps(() => ({ t, leagueId }));
 const pickCount = () => t.run(async (ctx) => (await ctx.db.query("draftPicks").collect()).length);

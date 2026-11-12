@@ -1,9 +1,9 @@
 import { beforeEach, describe, expect, test } from "vitest";
 import { REVIEW_MS } from "../../../convex/trades/tradeLimits";
 import { draftStarted } from "../../support/convex/draft.harness";
-import { addManager, COMMISSIONER, MANAGERS } from "../../support/convex/leagues.harness";
+import { addManager, COMMISSIONER, MANAGERS, ANN, BOB, CAT } from "../../support/convex/leagues.harness";
 import { nameOf } from "../../support/convex/lineupSquad.harness";
-import { ANN, ANNS_FIRST_DROP, BOB, CAT, SAKA, tradeLeague, type TradeLeague } from "../../support/convex/trades.harness";
+import { ANNS_FIRST_DROP, SAKA, tradeLeague, type TradeLeague } from "../../support/convex/trades.harness";
 import { noDraft } from "../../support/convex/waivers.harness";
 import { teamNumbered } from "../../../convex/leagues/teams";
 

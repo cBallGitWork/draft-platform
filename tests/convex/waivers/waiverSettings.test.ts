@@ -4,10 +4,10 @@ import type { LeagueSettings } from "../../../convex/rules/leagueSettingsPart";
 import { refusals } from "../../../convex/shared/leagueAccess";
 import { HOUR_MS } from "../../../convex/shared/time";
 import { changeEveryRules, HELD_FIRST_RULES, rulesInGameweek, rulesRevision } from "../../support/convex/leagueRules.harness";
-import { actingAs, COMMISSIONER, eventsIn } from "../../support/convex/leagues.harness";
+import { actingAs, COMMISSIONER, eventsIn, ANN, BOB } from "../../support/convex/leagues.harness";
 import { expectRefused } from "../../support/convex/test.harness";
 import { passNextDeadline } from "../../support/convex/lineupSquad.harness";
-import { ANN, BOB, NEXT, SAKA, waiverLeague, type WaiverLeague } from "../../support/convex/waivers.harness";
+import { NEXT, SAKA, waiverLeague, type WaiverLeague } from "../../support/convex/waivers.harness";
 
 // League settings' Waivers tab (#1200; spec/03, spec/08): the waiver order's type and the runs,
 // saved as the rest of the settings are; a change of type applies at once, from today's order

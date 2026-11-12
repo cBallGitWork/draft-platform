@@ -5,7 +5,7 @@ import type { MutationCtx } from "../../../convex/_generated/server";
 import type { Period } from "../../../convex/scouting/periods";
 import { inTenths } from "../../../convex/scoring/values";
 import { WEEK_MS } from "../../../convex/shared/time";
-import { COMMISSIONER, MANAGERS, actingAs, addManagers, adminCreatesLeague, type TestConvex } from "../../support/convex/leagues.harness";
+import { COMMISSIONER, actingAs, addManagers, adminCreatesLeague, type TestConvex, ANN } from "../../support/convex/leagues.harness";
 import { ARSENAL, CHELSEA, SAKA, completeRecord, insertClubs, insertLockedStatus, insertPlayers } from "../../support/convex/footballRows.harness";
 import { playersListed } from "../../support/convex/playersList.harness";
 import { at } from "../../support/convex/seasonPoints.harness";
@@ -16,7 +16,6 @@ import { fakeResend, signInDeployment } from "../../support/convex/signIn.harnes
 // panel and Compare over the last 4 or 6 finished Premier League gameweeks, a match he missed
 // counting 0 minutes, and before the season's first match, last season's final 4 or 6.
 
-const [ANN] = MANAGERS;
 const PALMER = { code: 1004, name: "Palmer", fullName: "Cole Palmer", clubCode: CHELSEA.code, positions: ["CAM" as const] };
 const KICKOFF = Date.parse("2026-08-15T14:00:00Z");
 

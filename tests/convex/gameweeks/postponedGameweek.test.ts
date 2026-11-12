@@ -2,7 +2,7 @@ import { beforeEach, expect, test } from "vitest";
 import { api } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
 import { HELD_FIRST_RULES, holdGameweeks, rulesInGameweek, rulesRevision, TOTAL_POINTS } from "../../support/convex/leagueRules.harness";
-import { actingAs, addManagers, adminCreatesLeague, COMMISSIONER, MANAGERS, type TestConvex } from "../../support/convex/leagues.harness";
+import { actingAs, addManagers, adminCreatesLeague, COMMISSIONER, type TestConvex, ANN } from "../../support/convex/leagues.harness";
 import { FOUR_FOUR_TWO, holdSquad, sent } from "../../support/convex/lineupSquad.harness";
 import { lineupInGameweek } from "../../../convex/lineup/lineups";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
@@ -14,7 +14,6 @@ import { fakeResend, signInDeployment } from "../../support/convex/signIn.harnes
 // lineup"; spec/09: a change "applies from the next gameweek on"). What gameweek 7 then means for
 // its head-to-heads is not settled.
 
-const [ANN] = MANAGERS;
 const POSTPONED = 7;
 const UNDER_WAY = 8;
 /** holdGameweeks' next gameweek: every one before it has begun. */

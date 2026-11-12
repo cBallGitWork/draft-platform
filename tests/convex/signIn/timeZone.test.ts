@@ -4,8 +4,8 @@ import type { Id } from "../../../convex/_generated/dataModel";
 import { refusals } from "../../../convex/shared/leagueAccess";
 import { LONDON_ZONE, momentIn, screenMoment } from "../../../convex/shared/moments";
 import { notAZone, zoneOf } from "../../../convex/signIn/timeZone";
-import { ANN, deletes, leagueWithPeople } from "../../support/convex/leagueDeletion.harness";
-import { ADMIN, COMMISSIONER, actingAs, leagueRow, type TestConvex } from "../../support/convex/leagues.harness";
+import { deletes, leagueWithPeople } from "../../support/convex/leagueDeletion.harness";
+import { ADMIN, COMMISSIONER, actingAs, leagueRow, type TestConvex, ANN } from "../../support/convex/leagues.harness";
 import { expectRefused } from "../../support/convex/test.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
 

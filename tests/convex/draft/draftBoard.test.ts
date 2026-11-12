@@ -5,7 +5,7 @@ import { cardOpensAt } from "../../../convex/playerCard/cardPoints";
 import { refusals } from "../../../convex/shared/leagueAccess";
 import { ARSENAL, CHELSEA, insertClubs, insertPlayers, type HeldPlayer } from "../../support/convex/footballRows.harness";
 import { expectRefused } from "../../support/convex/test.harness";
-import { addManagers, adminCreatesLeague, COMMISSIONER, MANAGERS, OUTSIDER, type TestConvex } from "../../support/convex/leagues.harness";
+import { addManagers, adminCreatesLeague, COMMISSIONER, OUTSIDER, type TestConvex, ANN, BOB } from "../../support/convex/leagues.harness";
 import { draftSteps } from "../../support/convex/draft.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
 
@@ -16,7 +16,6 @@ import { fakeResend, signInDeployment } from "../../support/convex/signIn.harnes
 let t: TestConvex;
 let leagueId: Id<"leagues">;
 let teams: Id<"teams">[];
-const [ANN, BOB] = MANAGERS;
 
 const SAKA: HeldPlayer = { code: 101, name: "Saka", fullName: "Bukayo Saka", clubCode: ARSENAL.code, positions: ["W"] };
 const PALMER: HeldPlayer = { code: 201, name: "Palmer", fullName: "Cole Palmer", clubCode: CHELSEA.code, positions: ["CAM"] };

@@ -6,7 +6,7 @@ import { refusals } from "../../../convex/shared/leagueAccess";
 import { ARSENAL, CHELSEA, insertClubs, insertPlayers, type HeldPlayer } from "../../support/convex/footballRows.harness";
 import { changeRules, HELD_FIRST_RULES, holdGameweeks, NO_AREA_MINIMUMS, rulesWith } from "../../support/convex/leagueRules.harness";
 import { expectRefused } from "../../support/convex/test.harness";
-import { addManagers, adminCreatesLeague, COMMISSIONER, MANAGERS, OUTSIDER, type TestConvex } from "../../support/convex/leagues.harness";
+import { addManagers, adminCreatesLeague, COMMISSIONER, OUTSIDER, type TestConvex, ANN, BOB } from "../../support/convex/leagues.harness";
 import { draftSteps } from "../../support/convex/draft.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
 
@@ -15,7 +15,6 @@ import { fakeResend, signInDeployment } from "../../support/convex/signIn.harnes
 
 let t: TestConvex;
 let leagueId: Id<"leagues">;
-const [ANN, BOB] = MANAGERS;
 
 const player = (code: number, clubCode: number, position: HeldPlayer["positions"][number]): HeldPlayer => ({
   code,

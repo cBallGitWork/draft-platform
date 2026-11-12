@@ -5,7 +5,7 @@ import { refusals } from "../../../convex/shared/leagueAccess";
 import { changeRulesTo, giveDeadlineRule, holdGameweeks, KICKS_OFF_IN, moveFplDeadline } from "../../support/convex/leagueRules.harness";
 import { expectRefused } from "../../support/convex/test.harness";
 import { MINUTE_MS, WEEK_MS } from "../../../convex/shared/time";
-import { ADMIN, actingAs, addManagers, adminCreatesLeague, COMMISSIONER, MANAGERS, OUTSIDER, TEST_LEAGUE_TEAMS, type TestConvex } from "../../support/convex/leagues.harness";
+import { ADMIN, actingAs, addManagers, adminCreatesLeague, COMMISSIONER, OUTSIDER, TEST_LEAGUE_TEAMS, type TestConvex, ANN, BOB, CAT, DAN } from "../../support/convex/leagues.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
 import { PL_GAMEWEEKS } from "../../support/convex/footballRows.harness";
 import { FIRST_RULES } from "../../../convex/rules/firstRules";
@@ -17,7 +17,6 @@ import { teamNumbered } from "../../../convex/leagues/teams";
 // rules, by anyone with a part in it. No gameweek has begun in these, so the table is all noughts;
 // its scores are gameweekScores.test.ts's.
 
-const [ANN, BOB, CAT, DAN] = MANAGERS;
 /** The gameweek a change made in the tests that hold a season takes effect from. */
 const CHANGE_FROM = 10;
 

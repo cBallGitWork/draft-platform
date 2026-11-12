@@ -9,14 +9,13 @@ import { DEFAULT_ROLES } from "../../../convex/lineup/roles";
 import { positionOfSlot } from "../../../convex/lineup/pitch";
 import { refusals } from "../../../convex/shared/leagueAccess";
 import { expectRefused } from "../../support/convex/test.harness";
-import { MANAGERS, actingAs, addManagers, adminCreatesLeague, type TestConvex } from "../../support/convex/leagues.harness";
+import { actingAs, addManagers, adminCreatesLeague, type TestConvex, ANN, BOB, EVE } from "../../support/convex/leagues.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
 
 // A manager's saved plans (spec/05, Saved plans; #992): a formation and every slot's role by name,
 // never players; up to 5, saving under a name he has replaces it, and he deletes one to make room
 // (Craig, 6 Nov 2026).
 
-const [ANN, BOB, , , EVE] = MANAGERS;
 const [FOUR_FOUR_TWO, FOUR_THREE_THREE] = FIRST_PRESETS;
 /** The 4-4-2's slots, each on its position's last role: a role other than the slot's first. */
 const PRESS = FOUR_FOUR_TWO.cells.map((cell) => ({ ...cell, role: DEFAULT_ROLES[positionOfSlot(cell)].at(-1)!.key }));

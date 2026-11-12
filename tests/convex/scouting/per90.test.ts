@@ -3,7 +3,7 @@ import { api } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
 import { mainArea, per90Stats, percentileOf, RANKED_MINUTES } from "../../../convex/scouting/per90Figures";
 import { FPL_SEASON } from "../../support/recorded/plSeasons.payloads";
-import { MANAGERS, actingAs, addManagers, adminCreatesLeague, type TestConvex } from "../../support/convex/leagues.harness";
+import { MANAGERS, actingAs, addManagers, adminCreatesLeague, type TestConvex, ANN } from "../../support/convex/leagues.harness";
 import { ARSENAL, CHELSEA, SAKA, insertClubs, insertPlayers } from "../../support/convex/footballRows.harness";
 import { refusals } from "../../../convex/shared/leagueAccess";
 import { expectRefused } from "../../support/convex/test.harness";
@@ -13,7 +13,6 @@ import { fakeResend, signInDeployment } from "../../support/convex/signIn.harnes
 // area's stats per 90 over the season, with his percentile among his area's players of 270+
 // minutes, a winger and an attacking midfielder alike.
 
-const [ANN] = MANAGERS;
 const PALMER = { code: 1004, name: "Palmer", fullName: "Cole Palmer", clubCode: CHELSEA.code, positions: ["CAM" as const] };
 const ODEGAARD = { code: 1005, name: "Ødegaard", fullName: "Martin Ødegaard", clubCode: ARSENAL.code, positions: ["CAM" as const] };
 const RAYA = { code: 1006, name: "Raya", fullName: "David Raya", clubCode: ARSENAL.code, positions: ["GK" as const] };

@@ -4,7 +4,7 @@ import type { Doc, Id } from "../../../convex/_generated/dataModel";
 import { pickFirstLineupAgain, storeAutoTeamLineup } from "../../../convex/lineup/lineups";
 import type { Area, Lane } from "../../../convex/lineup/pitch";
 import { holdGameweeks } from "../../support/convex/leagueRules.harness";
-import { MANAGERS, actingAs, addManagers, adminCreatesLeague, type TestConvex } from "../../support/convex/leagues.harness";
+import { ANN, actingAs, addManagers, adminCreatesLeague, type TestConvex } from "../../support/convex/leagues.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
 import { FOUR_FOUR_TWO, holdSquad, NEXT, SQUAD, STARTERS } from "../../support/convex/lineupSquad.harness";
 
@@ -12,7 +12,6 @@ import { FOUR_FOUR_TWO, holdSquad, NEXT, SQUAD, STARTERS } from "../../support/c
 // whole row each leaves, adding a row from the gameweek and replacing the one already from it.
 // Each keeps or clears the rest of the row as it did before #1759.
 
-const [ANN] = MANAGERS;
 /** The gameweek before the next, from which a row rolls over into it. */
 const BEFORE = NEXT - 1;
 /** Every optional field of a row, set, as an earlier save or the auto team could leave them. */

@@ -7,7 +7,7 @@ import { ARSENAL, insertClubs, insertPlayers, type HeldPlayer } from "../../supp
 import { changeEveryRules } from "../../support/convex/leagueRules.harness";
 import { expectRefused } from "../../support/convex/test.harness";
 import { draftSteps } from "../../support/convex/draft.harness";
-import { addManagers, adminCreatesLeague, MANAGERS, type TestConvex } from "../../support/convex/leagues.harness";
+import { addManagers, adminCreatesLeague, type TestConvex, ANN, BOB, CAT } from "../../support/convex/leagues.harness";
 import { pickGapPasses } from "../../support/convex/pickWindow.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
 
@@ -20,7 +20,6 @@ let leagueId: Id<"leagues">;
 const player = (code: number): HeldPlayer => ({ code, name: `Player ${code}`, fullName: `Player ${code}`, clubCode: ARSENAL.code, positions: ["CM"] });
 const MIDS = [101, 102, 103, 104].map(player);
 const [A1, A2, A3, A4] = MIDS.map(({ code }) => code);
-const [ANN, BOB, CAT] = MANAGERS;
 
 const setSquadRules = (squad: Partial<LeagueRules["squad"]>) =>
   changeEveryRules(t, leagueId, (rules) => ({ ...rules, squad: { size: { minimum: 1, maximum: 2 }, minimumByArea: null, maxPerClub: null, ...squad } }));

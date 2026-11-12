@@ -9,11 +9,10 @@ import { recordPassedDeadlines } from "../../../convex/gameweeks/deadlineRecorde
 import { MINUTE_MS, WEEK_MS } from "../../../convex/shared/time";
 import { draftStarted } from "./draft.harness";
 import { holdGameweeks, holdMatchState } from "./leagueRules.harness";
-import { actingAs, addManagers, adminCreatesLeague, lettersTo, MANAGERS, teamsIn, type TestConvex } from "./leagues.harness";
+import { actingAs, addManagers, adminCreatesLeague, lettersTo, teamsIn, type TestConvex, ANN, BOB, CAT } from "./leagues.harness";
 import { holdPlayers, holdSquad, passNextDeadline, SQUAD, SQUAD_CLUB } from "./lineupSquad.harness";
 import { fakeResend, signInDeployment } from "./signIn.harness";
 
-export const [ANN, BOB, CAT] = MANAGERS;
 /** The gameweek holdGameweeks kicks off next: gameweek 4, a day ago, is the latest begun. */
 export const NEXT = 5;
 export const [SAKA, PALMER, RICE] = [9001, 9002, 9003];

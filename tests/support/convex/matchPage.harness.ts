@@ -6,9 +6,9 @@ import type { Doc } from "../../../convex/_generated/dataModel";
 import { STREAM_BEHIND } from "../../../convex/football/matchCommentary";
 import type { MatchMan } from "../../../convex/match/matchPage";
 import { matchPageAt } from "../../../convex/matchup/commentaryAt";
-import { ANN, holdHullAndEverton, HULL_SCORER, LEAGUE_KICKOFF, scoresLeague, type ScoresLeague } from "./gameweekScores.harness";
+import { holdHullAndEverton, HULL_SCORER, LEAGUE_KICKOFF, scoresLeague, type ScoresLeague } from "./gameweekScores.harness";
 import { fullTimeRecords } from "./gameweekScoresMatch.harness";
-import { actingAs } from "./leagues.harness";
+import { actingAs, ANN } from "./leagues.harness";
 import { HULL_EVERTON } from "./matchStats.harness";
 
 /** The scores league, with both clubs held, as the football sync holds them. */

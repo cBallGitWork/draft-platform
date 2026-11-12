@@ -6,7 +6,7 @@ import { SCOUT_TRIP_MS } from "../../../convex/scouting/scouts";
 import { JULY, seasonStartYear } from "../../../convex/shared/time";
 import { STARS_READ_MOST, starsLookup, starsLookupErrors, starsReadRefusals } from "../../../convex/stars/playerStars";
 import { NO_DATA, UNSURE, type Stars } from "../../../convex/stars/starsShape";
-import { COMMISSIONER, MANAGERS, actingAs, addManagers, adminCreatesLeague, type TestConvex } from "../../support/convex/leagues.harness";
+import { COMMISSIONER, actingAs, addManagers, adminCreatesLeague, type TestConvex, ANN, BOB } from "../../support/convex/leagues.harness";
 import { fakeClaude } from "../../support/convex/scouts.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
 import { elapse, expectRefused } from "../../support/convex/test.harness";
@@ -16,7 +16,6 @@ import { BLANK, NEWCOMER, SCORER, STEADY, UNUSED, holdStarsPlayers, refreshEvery
 // now scouts exist, only for the manager's own squad, those his team held this season, and those
 // his scouts reported on this season (spec/19, Role stars; #375).
 
-const [ANN, BOB] = MANAGERS;
 const STRIKER_ROLES = DEFAULT_ROLES.ST.map((role) => role.key);
 const everyStrikerRole = (stars: Stars) => STRIKER_ROLES.map((role) => ({ area: "attack", role, stars }));
 

@@ -5,7 +5,7 @@ import { PICK_GAP_MS } from "../../../convex/draft/draftClock";
 import { draftSteps, midfielder, SHORT_PICK_MS, SHORT_PICK_SECONDS } from "../../support/convex/draft.harness";
 import { ARSENAL, CHELSEA, insertClubs, insertPlayers } from "../../support/convex/footballRows.harness";
 import { changeEveryRules, HELD_FIRST_RULES } from "../../support/convex/leagueRules.harness";
-import { addManagers, adminCreatesLeague, COMMISSIONER, MANAGERS, type TestConvex } from "../../support/convex/leagues.harness";
+import { addManagers, adminCreatesLeague, COMMISSIONER, type TestConvex, ANN, BOB } from "../../support/convex/leagues.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
 import { clockRunsTo } from "../../support/convex/test.harness";
 
@@ -19,7 +19,6 @@ let leagueId: Id<"leagues">;
 let teams: Id<"teams">[];
 
 const PLAYERS = [101, 102, 103, 104].map((code) => midfielder(code)).concat([201, 202, 203, 204].map((code) => midfielder(code, CHELSEA)));
-const [ANN, BOB] = MANAGERS;
 const ROUNDS = 4;
 
 /** The league's squad holds `ROUNDS` players, and its manager gets `timeouts` before auto-pick. */

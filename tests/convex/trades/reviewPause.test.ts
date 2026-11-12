@@ -3,10 +3,10 @@ import { api, internal } from "../../../convex/_generated/api";
 import { REVIEW_MS } from "../../../convex/trades/tradeLimits";
 import { refusals } from "../../../convex/shared/leagueAccess";
 import { deletes } from "../../support/convex/leagueDeletion.harness";
-import { actingAs, COMMISSIONER } from "../../support/convex/leagues.harness";
+import { actingAs, COMMISSIONER, ANN, BOB, CAT } from "../../support/convex/leagues.harness";
 import { elapse, expectRefused } from "../../support/convex/test.harness";
 import { HOUR_MS } from "../../../convex/shared/time";
-import { ANN, ANNS_FIRST_DROP, BOB, CAT, RICE, SAKA, tradeLeague, type TradeLeague } from "../../support/convex/trades.harness";
+import { ANNS_FIRST_DROP, RICE, SAKA, tradeLeague, type TradeLeague } from "../../support/convex/trades.harness";
 
 // A trade's review while its league is frozen for deletion (#1493): the clock stops, and after an
 // undo the review carries on with the time that was left (Craig, 11 Nov 2026: "The clock stops").

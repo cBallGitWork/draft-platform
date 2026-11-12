@@ -13,6 +13,8 @@ export type { TestConvex };
 export const COMMISSIONER = "commish@example.com";
 export const CO_COMMISSIONER = "co@example.com";
 export const MANAGERS = ["ann@example.com", "bob@example.com", "cat@example.com", "dan@example.com", "eve@example.com"];
+/** The five managers by name, so no test picks them out of MANAGERS by place. */
+export const [ANN, BOB, CAT, DAN, EVE] = MANAGERS;
 /** Someone signed in who has no part in any league. */
 export const OUTSIDER = "outsider@example.com";
 

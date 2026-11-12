@@ -9,7 +9,7 @@ import { draftSteps, FIRST_PICK_MS, midfielder } from "../../support/convex/draf
 import { ARSENAL, CHELSEA, insertClubs, insertPlayers } from "../../support/convex/footballRows.harness";
 import { historyOf } from "../../../convex/rules/rulesHistory";
 import { changeEveryRules } from "../../support/convex/leagueRules.harness";
-import { addManagers, adminCreatesLeague, COMMISSIONER, eventsIn, lettersCount, MANAGERS, type TestConvex } from "../../support/convex/leagues.harness";
+import { addManagers, adminCreatesLeague, COMMISSIONER, eventsIn, lettersCount, type TestConvex, ANN, BOB } from "../../support/convex/leagues.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
 import { teamNumbered } from "../../../convex/leagues/teams";
 
@@ -26,7 +26,6 @@ const ARSENAL_MIDS = [101, 102, 103, 104].map((code) => midfielder(code));
 const CHELSEA_MIDS = [201, 202].map((code) => midfielder(code, CHELSEA));
 const [A1, A2] =ARSENAL_MIDS.map(({ code }) => code);
 const [C1] = CHELSEA_MIDS.map(({ code }) => code);
-const [ANN, BOB] = MANAGERS;
 
 const setSquadRules = (squad: Partial<LeagueRules["squad"]>) =>
   changeEveryRules(t, leagueId, (rules) => ({ ...rules, squad: { size: { minimum: 1, maximum: 2 }, minimumByArea: null, maxPerClub: null, ...squad } }));

@@ -10,7 +10,7 @@ import { fixtureEditRefusals, swapSides } from "../../../convex/table/fixtureEdi
 import { scheduleOf } from "../../../convex/table/playedFixtures";
 import { LEAGUE_AVERAGE, type Fixture } from "../../../convex/table/roundRobin";
 import { changeRules, rulesWith, holdGameweeks, playUpTo } from "../../support/convex/leagueRules.harness";
-import { actingAs, addManagers, ADMIN, adminCreatesLeague, COMMISSIONER, MANAGERS, teamName, type TestConvex } from "../../support/convex/leagues.harness";
+import { actingAs, addManagers, ADMIN, adminCreatesLeague, COMMISSIONER, teamName, type TestConvex, ANN, BOB, CAT, DAN } from "../../support/convex/leagues.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
 import { expectRefused } from "../../support/convex/test.harness";
 
@@ -18,7 +18,6 @@ import { expectRefused } from "../../support/convex/test.harness";
 // edits; #1208): every team still plays the same number of games, the league's average swaps like
 // a team, every other gameweek stays as drawn, and the whole league gets a letter (spec/16).
 
-const [ANN, BOB, CAT, DAN] = MANAGERS;
 /** The gameweek the tests edit, not yet begun. */
 const EDITED = 4;
 /** How long after the tests start gameweek 1 kicks off: each next gameweek kicks off a week on. */
@@ -51,7 +50,6 @@ const gamesIn = async (gameweek: number) => (await schedule()).find((each) => ea
 
 const swaps = async (by: string, one: Picked, other: Picked, gameweek = EDITED) =>
   (await actingAs(t, by)).mutation(api.table.fixtureEdits.swap, { leagueId, gameweek, one, other });
-
 
 /** How many games each side plays in `games`. */
 function gamesEach(games: readonly Game[]): Map<Side, number> {

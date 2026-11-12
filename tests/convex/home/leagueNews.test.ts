@@ -5,14 +5,13 @@ import { NEWS_PAGE, type LeagueNews } from "../../../convex/home/leagueNews";
 import type { LeagueEvent } from "../../../convex/schema";
 import { refusals } from "../../../convex/shared/leagueAccess";
 import { expectRefused } from "../../support/convex/test.harness";
-import { actingAs, addManagers, adminCreatesLeague, COMMISSIONER, MANAGERS, OUTSIDER, type TestConvex } from "../../support/convex/leagues.harness";
+import { actingAs, addManagers, adminCreatesLeague, COMMISSIONER, OUTSIDER, type TestConvex, ANN, BOB, CAT } from "../../support/convex/leagues.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
 import { teamNumbered } from "../../../convex/leagues/teams";
 
 // League home's News tab (#1356; docs/design/approved/home/, The News tab): every team's completed
 // moves, newest first, paged, with Team and Kind filters, from the league's squad events.
 
-const [ANN, BOB, CAT] = MANAGERS;
 const SAKA = { playerCode: 1001, playerName: "Saka" };
 const RICE = { playerCode: 1002, playerName: "Rice" };
 
