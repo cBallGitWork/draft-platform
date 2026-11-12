@@ -27,7 +27,7 @@ players. A scout's report judges a player; Mail only reports (`spec/16`).
   it stands now (Craig, 1 Nov 2026).
 - Two players side by side, to compare.
 - A player's percentile in red cards, yellow cards, own goals, goals conceded and penalties missed
-  is highest for the fewest, as the stat race ranks them (Craig, 11 Nov 2026, on #1787). `S19.2`
+  is highest for the fewest, as the stat race ranks them (Craig, 11 Nov 2026, on #1787). `S19.3`
 - By the mini beta.
 
 ## The stat race

@@ -67,7 +67,7 @@ test("a goalkeeper gets the goalkeeper's set; the list's stat joins as a seventh
   expect((await figuresOf(PALMER.code, "assists")).figures).toHaveLength(6);
 });
 
-test("goals conceded ranks the keeper who lets in fewest highest, as every fewer-is-better stat does (#1787, S19.2)", async () => {
+test("goals conceded ranks the keeper who lets in fewest highest, as every fewer-is-better stat does (#1787, S19.3)", async () => {
   const sanchez = { code: 1007, name: "Sánchez", fullName: "Robert Sánchez", clubCode: CHELSEA.code, positions: ["GK" as const] };
   await t.run(async (ctx) => {
     await insertPlayers(ctx, [sanchez]);
