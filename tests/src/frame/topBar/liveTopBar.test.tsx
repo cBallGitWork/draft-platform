@@ -10,7 +10,7 @@ import { MINUTE_MS } from "../../../../convex/shared/time";
 import { MAIL_PATH, MY_TEAM_PATH, TRADES_PATH } from "../../../../src/frame/menu";
 import { useLiveTopBar } from "../../../../src/frame/topBar/liveTopBar";
 import type { TopBarState } from "../../../../src/frame/topBar/topBarState";
-import { menuWords } from "../../../../src/frame/words";
+import { menuWords } from "../../../../src/shared/words";
 import { unreadCount } from "../../../../src/mail/words";
 import { A_LEAGUE_ID } from "../../../support/src/convexReact.harness";
 

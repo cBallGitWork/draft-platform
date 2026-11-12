@@ -1,5 +1,6 @@
 import { useId, useState } from "react";
 import type { Availability } from "../../convex/availability/availability";
+import { AVAILABILITIES } from "../../convex/schema/football";
 import { Choice } from "../ui/Choice";
 import { ColumnHeads } from "../ui/ColumnHeads";
 import { FindPlayerPanel } from "../ui/FindPlayerPanel";
@@ -24,7 +25,7 @@ import {
   setByHandTitle,
 } from "./words";
 
-const CHOICES = [FEED_CHOICE, "out", "doubtful", "available"] as const;
+const CHOICES = [FEED_CHOICE, ...AVAILABILITIES] as const;
 /** Every column is words, so every head sits on the left. */
 const LEFT = () => "px-2 text-left";
 

@@ -2,7 +2,7 @@
 // table, its bench and the league average each have one home, the screens re-export it.
 
 import { expect, it } from "vitest";
-import { menuWords } from "../../src/frame/words";
+import { menuWords } from "../../src/shared/words";
 import { TABLE_TITLE as homeTableTitle, leagueAverageWords as homeLeagueAverage } from "../../src/home/words";
 import { BENCH_TITLE as matchupBench, leagueAverageWords as matchupLeagueAverage } from "../../src/matchup/words";
 import { benchedInWords as squadBenchedIn } from "../../src/myTeam/squad/words";

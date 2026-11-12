@@ -126,6 +126,9 @@ export const timeOfDayWords = (at: number) => timeOfDayFormat.format(at);
 /** Every number a screen shows, with the one minus sign: "−3", and signed, "+4". */
 export { figureWords, signedWords } from "../../convex/shared/numberWords";
 
+/** A count with its thousands marked: "3,012". */
+export const thousandsWords = (count: number) => count.toLocaleString(LOCALE);
+
 /** A figure not there yet, such as points before a match's record has arrived. */
 export const noFigureWords = "—";
 /** A figure, or the dash while there is none. */
