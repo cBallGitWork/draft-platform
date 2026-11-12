@@ -20,7 +20,7 @@ import { teamIn } from "../shared/leagueAccess";
 import { playerByCode } from "../shared/players";
 import { readOnce } from "../shared/readOnce";
 import { MINUTE_MS } from "../shared/time";
-import { placeOf, squadOf } from "../squads/squadPlace";
+import { placeOf, squadCodes } from "../squads/squadPlace";
 import { limitsReader, type LimitsBroken, type SquadWarning } from "../squads/squads";
 import { heldInReview } from "../trades/tradeClose";
 import { claimedName, leagueClaims } from "./waiverClaims";
@@ -82,7 +82,7 @@ export async function joiningBreaksLimits(
   dropCode: number | null,
   squadRules: LeagueRules["squad"] | null,
 ): Promise<boolean> {
-  const squad = (await squadOf(ctx, teamId)).map((row) => row.playerCode);
+  const squad = await squadCodes(ctx, teamId);
   return joinBreaks(squad, playerCode, dropCode, await limitsReader(ctx, leagueId, squadRules));
 }
 
@@ -124,7 +124,7 @@ type Run = {
 async function squadInRun(ctx: QueryCtx, run: Run, teamId: Id<"teams">): Promise<number[]> {
   const kept = run.squads.get(teamId);
   if (kept !== undefined) return kept;
-  const squad = (await squadOf(ctx, teamId)).map((row) => row.playerCode);
+  const squad = await squadCodes(ctx, teamId);
   run.squads.set(teamId, squad);
   return squad;
 }

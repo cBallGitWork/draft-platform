@@ -3,7 +3,7 @@ import type { QueryCtx } from "../_generated/server";
 import { MOST_IN_SQUAD } from "../leagues/leagueLimits";
 import { latestRules } from "../rules/rulesHistory";
 import { refuse, teamIn } from "../shared/leagueAccess";
-import { squadOf } from "../squads/squadPlace";
+import { squadCodes } from "../squads/squadPlace";
 import { limitsBroken } from "../squads/squads";
 import { newlyBroken } from "../waivers/waiverRun";
 
@@ -15,7 +15,7 @@ export const squadFullRefusal = `A team holds at most ${MOST_IN_SQUAD} players.`
 /** Each team's squad as it would be once the trade is made, by code. */
 export async function squadsAfter(ctx: QueryCtx, offer: Pick<Doc<"tradeOffers">, "fromTeamId" | "toTeamId" | "gives" | "gets">) {
   const after = async (teamId: Id<"teams">, out: readonly number[], into: readonly number[]) => [
-    ...(await squadOf(ctx, teamId)).map((row) => row.playerCode).filter((code) => !out.includes(code)),
+    ...(await squadCodes(ctx, teamId)).filter((code) => !out.includes(code)),
     ...into,
   ];
   return [
@@ -33,7 +33,7 @@ export async function tradeWarnings(ctx: QueryCtx, leagueId: Id<"leagues">, offe
     (await squadsAfter(ctx, offer)).map(async ({ teamId, codes }) => {
       if (codes.length > MOST_IN_SQUAD) refuse(squadFullRefusal);
       const team = await teamIn(ctx, leagueId, teamId);
-      const now = (await squadOf(ctx, teamId)).map((row) => row.playerCode);
+      const now = await squadCodes(ctx, teamId);
       const [before, after] = await Promise.all([limitsBroken(ctx, leagueId, now, squad), limitsBroken(ctx, leagueId, codes, squad)]);
       return { teamId, teamName: team.name, warnings: newlyBroken(before, after) };
     }),
