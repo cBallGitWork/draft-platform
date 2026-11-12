@@ -1,7 +1,7 @@
 import { useState } from "react";
 import type { LeagueSummary } from "../../convex/leagues/myLeagues";
 import { gameModeOf } from "../../convex/rules/gameMode";
-import { FormChips } from "../myTeam/header/FormChips";
+import { FormChips } from "../ui/FormChips";
 import { standingOf } from "../myTeam/header/teamStanding";
 import { tenthsFigure } from "../shared/figures";
 import { AutoTeamChip } from "../ui/AutoTeamChip";

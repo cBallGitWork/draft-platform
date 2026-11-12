@@ -3,7 +3,7 @@ import { useState } from "react";
 import { FIRST_GAMEWEEK } from "../../convex/gameweeks/usedGameweeks";
 import { GameweekStepper } from "../ui/GameweekStepper";
 import { Loading, PAGE_STACK, PageSection, Panel, PANEL_COLUMNS, PanelNote } from "../ui/Panel";
-import { ClubName } from "../ui/ClubName";
+import { ClubLink } from "./ClubLink";
 import { openingGameweek } from "./openingGameweek";
 import { matchPath } from "./paths";
 import { TablePanel } from "./TablePanel";
@@ -101,7 +101,7 @@ function MatchRow({ match: { fixtureCode, kickoff, home, away, score } }: { matc
     <li className="grid grid-cols-match-row items-center gap-2 border-b border-panel-rule px-3 py-1 text-lead">
       <MatchState kickoff={kickoff} score={score} long={false} />
       <span className="text-right font-semibold">
-        <ClubName club={home} />
+        <ClubLink club={home} />
       </span>
       <Link
         to={matchPath(fixtureCode)}
@@ -111,7 +111,7 @@ function MatchRow({ match: { fixtureCode, kickoff, home, away, score } }: { matc
         {goals ?? versusWords}
       </Link>
       <span className="text-left font-semibold">
-        <ClubName club={away} />
+        <ClubLink club={away} />
       </span>
     </li>
   );

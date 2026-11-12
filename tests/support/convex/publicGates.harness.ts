@@ -94,6 +94,7 @@ export const gates: Record<string, Gate> = {
   "feedback/feedback:send": "signedIn",
   "football/clubKits:all": "signedInOrNothing",
   "football/clubKits:set": "admin",
+  "football/clubPage:ofClub": "member",
   "football/matchScores:ofGameweek": "signedIn",
   "football/plGameweeks:firstKickoffs": "signedIn",
   "football/plPointsOverrides:set": "admin",

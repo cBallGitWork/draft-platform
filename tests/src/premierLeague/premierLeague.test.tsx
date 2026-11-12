@@ -44,12 +44,12 @@ const stepperHeading = () => screen.findByRole("heading", { level: 3 });
 const button = (name: string) => screen.getByRole("button", { name }) as HTMLButtonElement;
 
 /** Each match row of the gameweek shown as its four cells: where it stands, the home club, the
- *  score or "v", and the away club (each club by its full name, the desk's). */
+ *  score or "v", and the away club (each club by its full name, the desk's, in its link). */
 async function matchLines(gameweek: number) {
   const group = await screen.findByRole("group", { name: matchesListLabel(gameweek) });
   return within(group)
     .getAllByRole("listitem")
-    .map((row) => [...row.children].map((cell, index) => (index === 1 || index === 3 ? cell.firstElementChild!.textContent : cell.textContent)));
+    .map((row) => [...row.children].map((cell, index) => (index === 1 || index === 3 ? cell.firstElementChild!.firstElementChild!.textContent : cell.textContent)));
 }
 
 describe("reaching it", () => {
@@ -195,7 +195,8 @@ describe("a gameweek's matches", () => {
   it("name each club in full on the desk and by its three letters on a phone", async () => {
     openSection({ firstKickoffs: kickoffsTo10, matches: { 9: [plMatch(1, FOREST, SPURS, saturday)] } });
     const [row] = within(await screen.findByRole("group", { name: matchesListLabel(9) })).getAllByRole("listitem");
-    const home = row.children[1];
+    // The name is a link to the club's page (#1936).
+    const home = row.children[1].firstElementChild!;
     expect(home.firstElementChild!.className).toContain("hidden sm:inline");
     expect(home.lastElementChild!.className).toContain("sm:hidden");
     expect(home.lastElementChild!.textContent).toBe("NFO");

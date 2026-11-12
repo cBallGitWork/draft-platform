@@ -49,7 +49,6 @@ src/premierLeague/words.ts: commentaryDelayedWords
 src/premierLeague/words.ts: freeAgentWords
 src/premierLeague/words.ts: gameweekWords
 src/premierLeague/words.ts: liveWords
-src/premierLeague/words.ts: scoreWords
 src/scoring/seam.ts: Announced
 src/scouting/seam.ts: Per90Panel
 src/scouting/seam.ts: YourPlayer

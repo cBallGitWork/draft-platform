@@ -29,6 +29,7 @@ names the [plate.md](../../docs/design/plate.md) section it draws; the values ar
 - `StarRating.tsx`: a player's stars for a role, in half-star steps, or "?" and "—" unrated (Marks: Stars).
 - `ClubName.tsx`: a club's name, or its three letters (`ClubShort`), and its mark (`ClubMark`): its crest, or its two colours where that won't load (Marks: A club's mark).
 - `StatBox.tsx`: the stat box, every stat of the catalogue and the site's own, as a box or a title-bar button (Controls), on Scouting and the draft room.
+- `FormChips.tsx`: a team's or a club's form, its last results as square chips (`FormChips`), and one result's chip (`ResultChip`) (Marks: form), on My team, League home, the table and a club's page.
 - `AutoTeamChip.tsx`: a team on the auto team, the event chip after its name, its hover saying what it does (Colour roles: event), on the table and the matchup.
 - `MoreLink.tsx`: a panel's way on, "All mail ›", "Player card ›", its words then the hidden glyph at one spacing; `NextGlyph` gives a button or other link the same glyph.
 - `OverrideFields.tsx`: an override form's points box, to a tenth, and its reason (Controls), on the player card's override and the matchup's team override.
