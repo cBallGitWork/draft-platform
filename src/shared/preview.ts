@@ -101,5 +101,7 @@ export const previewSeasonGameweeks = 38;
 /** The gameweeks the preview's league leaves unticked: a Christmas break. */
 export const previewChristmasBreak: readonly number[] = [17, 18, 19];
 
+/** What the preview says of a change it doesn't make: what that left. */
+export const previewSaid = (outcome: string) => `This is a preview: ${outcome}.`;
 /** A change the preview doesn't make, saying what that left. */
-export const previewSays = (outcome: string) => async () => `This is a preview: ${outcome}.`;
+export const previewSays = (outcome: string) => async () => previewSaid(outcome);

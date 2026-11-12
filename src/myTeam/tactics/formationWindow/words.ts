@@ -11,7 +11,9 @@ export const groupsLabel = "Groups";
 export const YOUR_PRESETS = "Your presets";
 export const yourPresetsLine = "a formation and every slot's role, never players";
 export const FORMATIONS_HEAD = "Formations";
-export const backGroupWords = (back: number) => `Back ${back}`;
+export const backGroupWords = (back: number | string) => `Back ${back}`;
+/** A back group's name as a lookup matches it: any group's, or one's ("Back 4"). */
+export const backGroupPattern = (back: number | string = String.raw`\d`) => new RegExp(`^${backGroupWords(back)}`);
 export const CLASSIC_FORMATIONS = "Classic formations";
 export const classicFormationsLine = "famous sides, formation and roles";
 /** The classic formations' text, Claude's until Craig rewrites it (spec/05, The pitch). */

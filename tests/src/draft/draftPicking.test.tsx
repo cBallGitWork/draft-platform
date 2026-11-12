@@ -41,11 +41,9 @@ import {
 } from "../../../src/draft/words";
 import { columns } from "../../../src/scouting/words";
 import { columnHeadName, sortByLabel } from "../../../src/shared/words";
+import { ARSENAL, CHELSEA } from "../../support/convex/footballRows.harness";
 import { draftOrder, emptyBoard, YOUR_TEAM, type DraftData } from "../../support/src/draft.harness";
 import { manager, openApp } from "../../support/src/shell.harness";
-
-const ARSENAL = { code: 3, name: "Arsenal", shortName: "ARS" };
-const CHELSEA = { code: 8, name: "Chelsea", shortName: "CHE" };
 const listed = (code: number, name: string, ownerTeamName: string | null = null, club = ARSENAL, positions: ListedPlayer["positions"] = ["W"]): ListedPlayer => ({
   code,
   name,

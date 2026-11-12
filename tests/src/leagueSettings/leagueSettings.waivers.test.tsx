@@ -32,6 +32,7 @@ import {
   runTwiceWords,
   SETTINGS_TITLE,
 } from "../../../src/leagueSettings/words";
+import { ARSENAL } from "../../support/convex/footballRows.harness";
 import { NO_WAIVERS } from "../../support/src/myTeam.harness";
 import { TEAMS_IN_ORDER } from "../../support/src/leagueSettings.harness";
 import {
@@ -128,12 +129,11 @@ describe("the waiver settings (#1200)", () => {
 // A commissioner with no team has no Transactions tab, so League settings shows him every team's
 // pending claims, read-only, with the waiver order and the runs (Craig, 11 Nov 2026, on #1487).
 describe("every team's pending claims, for a commissioner with no team (#1487)", () => {
-  const club = { code: 1, name: "Arsenal", shortName: "ARS" };
   const player = (playerCode: number, playerName: string) => ({
     playerCode,
     playerName,
     positions: ["W" as const],
-    club,
+    club: ARSENAL,
     seasonPoints: 20,
   });
   const WED = Date.parse("2026-11-11T18:00:00Z");
