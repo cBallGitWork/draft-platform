@@ -23,6 +23,7 @@ import {
   SAKA_GW1,
   SAKA_GW2,
   at,
+  cardTotalOf,
   fixture,
   list,
   pointsListed,
@@ -43,12 +44,7 @@ beforeEach(async () => {
   league = await seasonPointsLeague();
 });
 
-/** His card's matches added up as Scouting adds them: each at the card's first position, or the
- *  league's override. */
-async function cardTotal(playerCode: number) {
-  const card = (await (await actingAs(league.t, ANN)).query(api.playerCard.playerCard.card, { leagueId: league.leagueId, playerCode, now: KICKOFF }))!;
-  return inTenths(card.matches.reduce((total, match) => total + (match.override?.points ?? match.points[0].total ?? 0), 0));
-}
+const cardTotal = (playerCode: number) => cardTotalOf(league, playerCode);
 
 const overrides = (playerCode: number, { code: fixtureCode, gameweek }: { code: number; gameweek: number | null }, points: number, leagueId = league.leagueId) =>
   league.t.run(async (ctx) => {
