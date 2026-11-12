@@ -12,11 +12,14 @@ names the [plate.md](../../docs/design/plate.md) section it draws; the values ar
 - `Panel.tsx`, `Notice`: a standing warning in the alert strip (Colour roles: alert, event).
 - `Panel.tsx`, `Status`: a live region for a passing word (Colour roles).
 - `Panel.tsx`, `Loading`, `PanelNote`, `LiveNote`: a muted line: loading, a hint, live points (Colour roles: muted).
+- `Panel.tsx`, `CloseButton`: the cross that closes a panel, its full tap area (Shape).
 - `Panel.tsx`, `PANEL_BODY`, `PANEL_LIST_ROW`, `PAGE_STACK`, `PANEL_COLUMNS`: panels' insides and their 8px gaps (Shape).
 - `Panel.tsx`, `TOP_BAR`, `TOP_BAR_ROW`: the top bar's plate and row (Colour roles: bar; Shape).
+- `FindPlayerPanel.tsx`: the "Find a player" panel, a name box and the players found, each its caller's row (Shape; Controls), on the admin's dashboard and Squads.
 - `ColumnHeads.tsx`: a data table's head band, short words with long ones as tooltips (Colour roles: column head).
 - `TickBox.tsx`: a tick box, the sunken well and drawn tick (Controls: Tick box).
 - `Choice.tsx`: one of a few options, butted keys (Controls: Keys).
+- `SectionTabs.tsx`: a section's butted tabs under the top bar, on the frame, the admin's dashboard and Scoring (`sectionTabClasses`, `SectionTab`), and the count after a tab's name (`CountBadge`), on Mail and Transactions (Shape; Colour roles: event).
 - `PlateTabs.tsx`: a page's tabs on its title plate after the title, the chosen one pressed (Shape), on Table and Scouting.
 - `Confirm.tsx`: a confirm whose yes is the danger action (Colour roles: danger action; Decided: Destructive confirms).
 - `GameweekStepper.tsx`: CM's `◄ GW ►` stepper (Colour roles: stepper).
@@ -39,6 +42,7 @@ names the [plate.md](../../docs/design/plate.md) section it draws; the values ar
 - `text-box`: a box to type in (Controls).
 - `number-box`: a box for one number of a rule, in the figure colour (Colour roles: figure).
 - `tick-well`: the tick box's well (Controls: Tick box).
+- `radio-well`: a radio whose lines each hold more than a word, the tick well round (the auto team's switch).
 - `key`: one of a row of butted keys, the chosen one pressed in (Controls: Keys).
 - `text-align-inherit`: a button's words keep its cell's side (Tables and panels).
 

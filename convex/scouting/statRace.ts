@@ -3,7 +3,7 @@ import { query } from "../_generated/server";
 import { begunGameweeks } from "../gameweekScorer/gameweekScores";
 import { FIRST_GAMEWEEK } from "../gameweeks/usedGameweeks";
 import { CATALOGUE_STATS, checkCatalogueStat } from "../scoring/statCatalogue";
-import { setOf, siteVersions } from "../scoring/siteVersions";
+import { latestSiteScoring } from "../scoring/siteVersions";
 import { memberOf, teamsOf } from "../shared/leagueAccess";
 import { raceOrder } from "./raceOrder";
 import { MINUTES_STAT } from "../stats/matchRecords";
@@ -57,7 +57,7 @@ export const teams = query({
       return { teamId: team._id, name: team.name, stats, stat: stats[stat] ?? 0 };
     });
     const first = (await begunGameweeks(ctx, league))[0];
-    const scored = setOf((await siteVersions(ctx)).at(-1)).rules.map((rule) => rule.stat);
+    const scored = (await latestSiteScoring(ctx)).rules.map((rule) => rule.stat);
     const categories = [...new Set(scored)].filter((each) => CATALOGUE_STATS.has(each) && !NOT_RACED.has(each));
     return { categories, since: first !== undefined && first > FIRST_GAMEWEEK ? first : null, teams: raceOrder(rows, descending) };
   },

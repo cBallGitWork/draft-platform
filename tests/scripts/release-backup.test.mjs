@@ -2,10 +2,9 @@
 // takes a backup first or stops, and one that doesn't goes straight through. The Convex CLI is faked.
 
 import { spawnSync } from "node:child_process";
-import { chmodSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
-import { tmpdir } from "node:os";
+import { chmodSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
-import { afterEach, expect, test } from "vitest";
+import { expect, test } from "vitest";
 import {
   DEPLOY_ARGS,
   DEPLOY_KEY_SETTING,
@@ -18,6 +17,7 @@ import {
 } from "../../scripts/release.mjs";
 import { DEPLOY_KEY } from "../support/scripts/liveSetup.harness.mjs";
 import { REPO_ROOT } from "../support/scripts/repoRoot.mjs";
+import { scratchDir } from "../support/scripts/scratchDir.mjs";
 
 const SCRIPT = join(REPO_ROOT, "scripts/release.mjs");
 const BACKUP_PATH = "/backups/backup.zip";
@@ -135,11 +135,8 @@ test("an index or the tables' order isn't a change of shape; a dropped table or 
 
 // The script as Vercel runs it, in a production build with its deploy key, and a fake `npx` first
 // on the PATH.
-let scratch;
-afterEach(() => scratch && rmSync(scratch, { recursive: true, force: true }));
-
 function runScript(liveFingerprint) {
-  scratch = mkdtempSync(join(tmpdir(), "release-test-"));
+  const scratch = scratchDir("release-test-");
   const callLog = join(scratch, "calls");
   const npx = join(scratch, "npx");
   writeFileSync(

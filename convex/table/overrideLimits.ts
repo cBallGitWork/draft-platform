@@ -9,3 +9,6 @@ export const OVERRIDE_POINTS_MOST = 100;
 /** The most a team's override of its gameweek total sets it to either way (#903): a team's total
  *  is many men's, so its bound is wider, there only to refuse a slip of the keyboard. */
 export const TEAM_OVERRIDE_POINTS_MOST = 1000;
+/** The step of an override's points box: points are kept to a tenth (spec/14), and the server
+ *  refuses any finer (pointsOverrides.ts). */
+export const OVERRIDE_POINTS_STEP = 0.1;

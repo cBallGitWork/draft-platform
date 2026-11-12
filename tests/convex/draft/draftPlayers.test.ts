@@ -6,8 +6,8 @@ import { refusals } from "../../../convex/shared/leagueAccess";
 import { ARSENAL, CHELSEA, insertClubs, insertPlayers, type HeldPlayer } from "../../support/convex/footballRows.harness";
 import { changeRules, HELD_FIRST_RULES, holdGameweeks, NO_AREA_MINIMUMS, rulesWith } from "../../support/convex/leagueRules.harness";
 import { expectRefused } from "../../support/convex/test.harness";
-import { actingAs, addManagers, adminCreatesLeague, COMMISSIONER, MANAGERS, OUTSIDER, type TestConvex } from "../../support/convex/leagues.harness";
-import { pickGapPasses } from "../../support/convex/pickWindow.harness";
+import { addManagers, adminCreatesLeague, COMMISSIONER, MANAGERS, OUTSIDER, type TestConvex } from "../../support/convex/leagues.harness";
+import { draftSteps } from "../../support/convex/draft.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
 
 // The draft room's players list's legal flag (spec/04, The draft room; #1099): the players the
@@ -38,14 +38,8 @@ const setSquadRules = (squad: Partial<LeagueRules["squad"]>) =>
     }
   });
 
-const as = (email: string) => actingAs(t, email);
+const { as, start, pickAndWait: pick } = draftSteps(() => ({ t, leagueId }));
 const greyedOut = async (email: string) => (await as(email)).query(api.draft.draftPlayers.greyedOut, { leagueId });
-const start = async () => (await as(COMMISSIONER)).mutation(api.draft.draftStart.start, { leagueId });
-/** `email` picks, and the pick's 10 seconds to undo it pass. */
-const pick = async (email: string, playerCode: number) => {
-  await (await as(email)).mutation(api.draft.draftPicks.makePick, { leagueId, playerCode });
-  await pickGapPasses(t);
-};
 const byCode = (greyed: { code: number }[]) => [...greyed].sort((one, other) => one.code - other.code);
 
 beforeEach(async () => {

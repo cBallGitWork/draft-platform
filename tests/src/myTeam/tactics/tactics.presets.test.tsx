@@ -5,7 +5,7 @@ import { screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
 import { FORMATION_KEYS } from "../../../../src/myTeam/tactics/TacticsControls";
-import { cancelWords } from "../../../../src/myTeam/tactics/formationWindow/words";
+import { backGroupPattern, cancelWords } from "../../../../src/myTeam/tactics/formationWindow/words";
 import {
   allFormationsWords,
   BENCH_TITLE,
@@ -47,9 +47,9 @@ describe("a preset (spec/05; Craig, 26 Oct 2026)", () => {
     expect(keys().map((key) => key.parentElement!.textContent)).toEqual(SAVED.presets.slice(0, FORMATION_KEYS).map(({ name }) => name));
     await userEvent.click(screen.getByRole("button", { name: allFormationsWords }));
     const tiles: (string | null)[] = [];
-    for (const group of screen.getAllByRole("button", { name: /^Back \d/ })) {
+    for (const group of screen.getAllByRole("button", { name: backGroupPattern() })) {
       await userEvent.click(group);
-      tiles.push(...within(screen.getByRole("radiogroup", { name: /^Back/ })).getAllByRole("radio").map((tile) => tile.getAttribute("aria-label")));
+      tiles.push(...within(screen.getByRole("radiogroup", { name: backGroupPattern() })).getAllByRole("radio").map((tile) => tile.getAttribute("aria-label")));
     }
     expect(tiles.toSorted()).toEqual(SAVED.presets.map(({ name }) => name).toSorted());
     await userEvent.click(screen.getByRole("button", { name: cancelWords }));

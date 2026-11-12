@@ -4,7 +4,8 @@
 import { pickWords } from "../../convex/mail/tradeLetterWords";
 import { NOTE_MOST, REVIEW_MS } from "../../convex/trades/tradeLimits";
 import { HOUR_MS } from "../../convex/shared/time";
-import { changeFailedWords } from "../shared/words";
+import { capitalised } from "../../convex/shared/moments";
+import { afterLastMatchWords, changeFailedWords, commissionerVetoWords, gameweekShort, leagueVoteWords } from "../shared/words";
 import type { ClosedOffer, Reviewer } from "./seam";
 
 export { dateWords, noTeamWords, whenWords } from "../shared/words";
@@ -24,12 +25,18 @@ export { shutWords } from "../../convex/trades/tradeShutWords";
 export const OFFERS_TITLE = "Offers";
 export const openCountWords = (count: number) => `${count} open`;
 export const offersTableLabel = "Your trade offers";
+/** An offer's sides and facts, as the tables' heads and the selected offer's panel say them. */
+export const withWords = "With";
+export const youGetWords = "You get";
+export const youGiveWords = "You give";
+export const waitingOnWords = "Waiting on";
+export const closesWords = "Closes";
 export const offersColumns = {
-  with: { short: "With", long: "The team the offer is with" },
-  get: { short: "You get", long: "What you get" },
-  give: { short: "You give", long: "What you give" },
-  waiting: { short: "Waiting on", long: "Who the offer is waiting on" },
-  closes: { short: "Closes", long: "When it closes, or its review ends" },
+  with: { short: withWords, long: "The team the offer is with" },
+  get: { short: youGetWords, long: "What you get" },
+  give: { short: youGiveWords, long: "What you give" },
+  waiting: { short: waitingOnWords, long: "Who the offer is waiting on" },
+  closes: { short: closesWords, long: "When it closes, or its review ends" },
 } as const;
 /** The Offers table's groups; "In review" also marks a squad's player or pick held in a trade
  *  under review, on the New offer tab. */
@@ -53,9 +60,9 @@ export const CLOSED_TITLE = "Closed offers";
 export const thisSeasonWords = "This season";
 export const closedTableLabel = "Your closed trade offers";
 export const closedColumns = {
-  with: { short: "With", long: "The team the offer was with" },
-  get: { short: "You get", long: "What you would have got" },
-  give: { short: "You give", long: "What you would have given" },
+  with: { short: withWords, long: "The team the offer was with" },
+  get: { short: youGetWords, long: "What you would have got" },
+  give: { short: youGiveWords, long: "What you would have given" },
   closed: { short: "Closed", long: "Why it closed" },
   when: { short: "When", long: "When it closed" },
 } as const;
@@ -64,7 +71,7 @@ export const olderWords = "Older ›";
 
 /** Why an offer closed, from the manager's side: `you` when his team is the one that acted. */
 export function closedWhyWords(why: ClosedOffer["why"], you: boolean): string {
-  const who = you ? "You" : "They";
+  const who = you ? youWords : "They";
   switch (why) {
     case "withdrawn":
       return `${who} withdrew it`;
@@ -99,15 +106,11 @@ export const yourOfferToTitle = (teamName: string) =>
   `Your offer to ${teamName}`;
 export const tradeWithTitle = (teamName: string) =>
   `Your trade with ${teamName}`;
-export const youGetWords = "You get";
-export const youGiveWords = "You give";
 export const nobodyWords = "Nobody";
 export const noteWords = (note: string) => `“${note}”`;
 export const yourSquadWords = "Your squad";
 export const theirSquadWords = "Their squad";
-export const waitingOnWords = "Waiting on";
 export const reviewWords = "Review";
-export const closesWords = "Closes";
 export const reviewEndsWords = "Review ends";
 export const squadAfterWords = (count: number, maximum: number | null) =>
   maximum === null ? `${count} after it` : `${count} of ${maximum} after it`;
@@ -122,31 +125,22 @@ export function reviewRuleWords(
   const once = byYou ? "once you accept" : "once they accept";
   if (reviewer === null) return `None: it goes through ${once}`;
   const who = {
-    commissioner: "Commissioner veto",
+    commissioner: commissionerVetoWords,
     coCommissioner: "Co-commissioner veto",
-    vote: "League vote",
+    vote: leagueVoteWords,
   }[reviewer];
   return `${who}: ${reviewHours} hours ${once}`;
 }
 
 /** When an offer made in the trade deadline's gameweek closes: its last match has no time known
  *  ahead, so it shows in words (Craig, 11 Nov 2026, on #1492). */
-export const afterLastMatchWords = (gameweek: number) =>
-  `After GW${gameweek}'s last match`;
+export const closesAfterLastMatchWords = (gameweek: number) =>
+  capitalised(afterLastMatchWords(gameweek));
 
-/** When an open offer closes unanswered: at the next deadline, or after the trade deadline's
- *  gameweek's last match. */
-export const closesAtWords = (
-  closes: { gameweek: number; at: number | null } | null,
-  when: string | null,
-) =>
-  closes === null
-    ? "At the next deadline"
-    : closes.at === null
-      ? afterLastMatchWords(closes.gameweek)
-      : when === null
-        ? "At the next deadline"
-        : `At the GW${closes.gameweek} deadline, ${when}`;
+/** When an open offer closes unanswered at a known deadline, in its panel; its row shows the time
+ *  alone. */
+export const closesAtWords = (gameweek: number, when: string) =>
+  `At the ${gameweekShort(gameweek)} deadline, ${when}`;
 
 export const acceptWords = "Accept";
 export const counterWords = "Counter";
@@ -168,8 +162,8 @@ export const tradeBetweenTitle = (fromTeamName: string, toTeamName: string) =>
 /** How the trade is reviewed, from the reviewer's side. */
 export const yourReviewWords = {
   block: "Your veto",
-  against: "League vote",
-  takeBack: "League vote",
+  against: leagueVoteWords,
+  takeBack: leagueVoteWords,
 } as const;
 export const blockWords = "Block";
 export const blockQuestion = (fromTeamName: string, toTeamName: string) =>
@@ -187,7 +181,7 @@ export const squadCountWords = (count: number, maximum: number | null) =>
   maximum === null ? `${count}` : `${count} of ${maximum}`;
 export const partnerLabel = "Team to trade with";
 export const toTeamWords = (teamName: string) => `To ${teamName}`;
-export const squadTableLabel = (teamName: string) => `${teamName}'s squad`;
+export { squadTableLabel } from "../shared/words";
 export const squadColumns = {
   tick: { short: "Tick", long: "In the offer" },
   position: { short: "Pos", long: "Position" },

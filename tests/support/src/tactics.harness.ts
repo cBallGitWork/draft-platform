@@ -1,12 +1,12 @@
 // The Tactics tab's tests' fake seam (#14): My team's fake (myTeam.harness.ts) holds it.
 
-import { useSyncExternalStore } from "react";
 import { vi } from "vitest";
 import { classicFormationsOf, FIRST_RULES, instructionsOf } from "../../../convex/rules/firstRules";
 import { firstPairFor } from "../../../convex/lineup/instructions";
 import { cardRolesOf, pricedMatch, type MatchToPrice } from "../../../convex/lineup/roleCardShape";
 import { FIRST_SCORING_WITH_ROLES } from "../../../convex/scoring/draftedRoleAdjustments";
 import type { LineupChanges, OpenTactics, Plan, PlanChanges, Tactics, TacticsSeam } from "../../../src/myTeam/tactics/seam";
+import { serverStore } from "./serverStore";
 
 /** The gameweek the fake server sets a lineup for, unless a test says. */
 export const TACTICS_GAMEWEEK = 9;
@@ -58,39 +58,26 @@ export function fakeTactics(
       return saveAnswer;
     }),
   };
-  // A store, so a test can change what the server holds under an open screen, as Convex would.
-  let held = tactics;
+  const held = serverStore(tactics);
   // The saved plans: a save the fake doesn't refuse (`planAnswer`) adds one or replaces it by name.
-  let heldPlans = plans;
-  const listeners = new Set<() => void>();
-  const tell = () => {
-    for (const listener of listeners) listener();
-  };
+  const heldPlans = serverStore(plans);
   const planChanges = {
     save: vi.fn<PlanChanges["save"]>(async (_leagueId, name, slots) => {
       if (planAnswer !== null) return planAnswer;
-      const kept = heldPlans.some((plan) => plan.name === name);
-      heldPlans = kept ? heldPlans.map((plan) => (plan.name === name ? { name, slots } : plan)) : [...heldPlans, { name, slots }];
-      tell();
+      const saved = heldPlans.get();
+      const kept = saved.some((plan) => plan.name === name);
+      heldPlans.set(kept ? saved.map((plan) => (plan.name === name ? { name, slots } : plan)) : [...saved, { name, slots }]);
       return null;
     }),
     remove: vi.fn<PlanChanges["remove"]>(async (_leagueId, name) => {
-      heldPlans = heldPlans.filter((plan) => plan.name !== name);
-      tell();
+      heldPlans.set(heldPlans.get().filter((plan) => plan.name !== name));
       return null;
     }),
   };
-  const subscribe = (listener: () => void) => {
-    listeners.add(listener);
-    return () => void listeners.delete(listener);
-  };
   return {
-    useTactics: vi.fn<TacticsSeam["useTactics"]>(() => useSyncExternalStore(subscribe, () => (loading ? undefined : held))),
-    /** What the server holds from now on (inside act). */
-    serverHolds: (next: Tactics) => {
-      held = next;
-      tell();
-    },
+    useTactics: vi.fn<TacticsSeam["useTactics"]>(() => held.use((now) => (loading ? undefined : now))),
+    /** What the server holds from now on. */
+    serverHolds: held.set,
     /** The held save's answer lands (inside act). */
     letSaveGo: () => {
       if (letGo === null) throw new Error("No save is waiting on the fake server.");
@@ -101,11 +88,12 @@ export function fakeTactics(
     useTacticsOpened: vi.fn<TacticsSeam["useTacticsOpened"]>(),
     useRoleCard: vi.fn<TacticsSeam["useRoleCard"]>((_leagueId, playerCode, cell, formation) => {
       if (loading) return undefined;
-      const positions = (held.kind === "open" ? held.squad : []).find((member) => member.playerCode === playerCode)?.positions ?? [];
+      const now = held.get();
+      const positions = (now.kind === "open" ? now.squad : []).find((member) => member.playerCode === playerCode)?.positions ?? [];
       const roles = cardRolesOf(cell, formation, positions, FIRST_SCORING_WITH_ROLES);
       return { roles, matches: cardMatches.map((match) => pricedMatch(match, cell, roles.map(({ key }) => key))) };
     }),
-    usePlans: vi.fn<TacticsSeam["usePlans"]>(() => useSyncExternalStore(subscribe, () => (loading || plansLoading ? undefined : heldPlans))),
+    usePlans: vi.fn<TacticsSeam["usePlans"]>(() => heldPlans.use((saved) => (loading || plansLoading ? undefined : saved))),
     usePlanChanges: vi.fn<TacticsSeam["usePlanChanges"]>(() => planChanges),
     lineupChanges: changes,
     planChanges,

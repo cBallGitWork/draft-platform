@@ -51,7 +51,7 @@ players. A scout's report judges a player; Mail only reports (`spec/16`).
   24 hours after the scout is sent.
 - Who a manager scouts is hidden from the other teams.
 - Mail says when a report is in, and nothing more.
-- After the mini beta.
+- After the mini beta. Since built (#375). `S19.2 withdrawn`
 
 ## The report
 

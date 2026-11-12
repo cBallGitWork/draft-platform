@@ -1,6 +1,5 @@
-import { Link } from "@tanstack/react-router";
-import { sectionTabClasses } from "../frame/AppFrame";
 import { PageSection, Problem } from "../ui/Panel";
+import { SectionTab } from "../ui/SectionTabs";
 import { BackToLeagues } from "../leagues/LeagueLinks";
 import { ADMIN_AVAILABILITY_PATH, ADMIN_FEEDBACK_PATH, ADMIN_FEEDS_PATH, ADMIN_PATH } from "./paths";
 import { ADMIN_TITLE, adminTabsLabel, availabilityTabWords, feedbackTabWords, feedsTabWords, positionsTabWords } from "./words";
@@ -19,9 +18,9 @@ export function AdminHeader({ problem = null }: { problem?: string | null }) {
     <PageSection title={ADMIN_TITLE} className="bg-panel">
       <nav aria-label={adminTabsLabel} className="flex flex-wrap shadow-panel-top">
         {TABS.map((tab) => (
-          <Link key={tab.path} to={tab.path} activeOptions={{ exact: true, includeSearch: false }} className={sectionTabClasses}>
+          <SectionTab key={tab.path} path={tab.path}>
             {tab.label}
-          </Link>
+          </SectionTab>
         ))}
       </nav>
       <p className="px-3 py-2">

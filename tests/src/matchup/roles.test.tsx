@@ -8,7 +8,7 @@ import { describe, expect, it } from "vitest";
 import { namedRole, roleIn } from "../../../convex/lineup/roles";
 import { MATCHUP_PATH } from "../../../src/frame/menu";
 import { autoSubWords, notCountingLabel, sidePitchLabel, statusLabels, statusWords } from "../../../src/matchup/words";
-import { headToHead, lineupRows, roleOf, slot, SLOT_MATCH, teamSide } from "../../support/src/matchup.harness";
+import { headToHead, lineupRows, roleOf, slot, SLOT_MATCH, subbed, teamSide } from "../../support/src/matchup.harness";
 import { manager, openApp } from "../../support/src/shell.harness";
 
 const FINISHED = { kind: "finished", fixtureCode: SLOT_MATCH } as const;
@@ -22,12 +22,12 @@ const TARGET_MAN = namedRole(roleIn(STRIKER_SLOT, "targetMan"));
 const team1 = teamSide(
   "Team 1",
   [
-    slot("Phillips", { area: "goalkeeper", points: 0, counts: false, status: FINISHED, autoSub: { kind: "off", playerName: "Pandur" } }),
+    slot("Phillips", { area: "goalkeeper", points: 0, counts: false, status: FINISHED, autoSub: subbed("off", "Pandur") }),
     slot("Coyle", { status: FINISHED, points: 2 }),
     { ...slot("Delap", { area: "attack", status: FINISHED, points: 5 }), role: POACHER },
   ],
   [
-    { ...slot("Pandur", { area: "goalkeeper", points: 3, status: FINISHED, autoSub: { kind: "on", playerName: "Phillips" } }), role: roleOf("goalkeeper") },
+    { ...slot("Pandur", { area: "goalkeeper", points: 3, status: FINISHED, autoSub: subbed("on", "Phillips") }), role: roleOf("goalkeeper") },
     { ...slot("Singh", { area: "attack", points: 1, counts: false, status: FINISHED }), role: null },
   ],
 );

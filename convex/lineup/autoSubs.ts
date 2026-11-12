@@ -5,6 +5,7 @@
 
 import type { Position } from "../positions/positionTables";
 import {
+  OUT_OF_POSITION,
   STARTER_COUNT,
   lineupProblems,
   type Lineup,
@@ -17,9 +18,8 @@ import { ALL_CELLS, AREAS, byPitchOrder, cellKey, GOALKEEPER_AREA, heldCell, LAN
 import { roleIn, takesRole } from "./roles";
 import { droppedStarter } from "../stars/bestRole";
 import type { RoleStars } from "../stars/starsShape";
+import type { PlayerCode } from "../shared/players";
 
-/** Players are FPL's season-stable `code`. */
-type PlayerCode = number;
 
 /** Whether a player played in the gameweek. Known only once he has: until his last match ends on
  *  0 minutes, he is still to play. */
@@ -42,7 +42,7 @@ export function gameweekPlay(matches: readonly MatchPlayed[]): GameweekPlay {
   return matches.every((match) => match.finished || match.postponed) ? "didNotPlay" : "stillToPlay";
 }
 
-export interface AutoSub {
+interface AutoSub {
   /** The starter who didn't play, or who left the squad and left his slot empty. */
   off: PlayerCode;
   on: PlayerCode;
@@ -246,6 +246,13 @@ function shortfall(problem: LineupProblem): number {
   }
 }
 
+/** A sweeper or libero short of a back three: standing for auto-subs, never set aside by a save. */
+const NO_BACK_THREE: LineupProblem["kind"] = "noBackThree";
+
+/** The kinds a lineup may stand with: a starter out of position, as a save sets aside, and a back
+ *  three a sub left short. */
+const STANDING_KINDS: readonly LineupProblem["kind"][] = [...OUT_OF_POSITION, NO_BACK_THREE];
+
 /** A lineup that may stand, minus a starter outside his areas or on a role his positions no longer
  *  take: one who lost a position after he was placed stays in his slot, on his role, for the
  *  gameweek (spec/06), and lineup.ts reports it alone so a caller can set it aside. A sub is only
@@ -253,7 +260,7 @@ function shortfall(problem: LineupProblem): number {
  *  fewer than three centre-backs by a sub elsewhere keeps his role (roles.ts's roleIn): which roles
  *  a formation offers is the manager's pick, never a reason to refuse a sub. */
 export function standingProblems(lineup: Lineup, positions: PlayerPositions, rules: LineupRules) {
-  return lineupProblems(lineup, positions, rules).filter((problem) => !["outsideHisAreas", "roleNotHis", "noBackThree"].includes(problem.kind));
+  return lineupProblems(lineup, positions, rules).filter((problem) => !STANDING_KINDS.includes(problem.kind));
 }
 
 function positionsOf(positions: PlayerPositions, playerCode: PlayerCode) {

@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, test, vi } from "vitest";
+import { beforeEach, describe, expect, test } from "vitest";
 import { api, internal } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
 import type { ScoringSet } from "../../../convex/scoring/scoringSet";
@@ -32,6 +32,7 @@ import {
   type PointsLeague,
 } from "../../support/convex/seasonPoints.harness";
 import { holdSiteScoring } from "../../support/convex/siteScoring.harness";
+import { everyJobRuns } from "../../support/convex/test.harness";
 
 // Each player's season points on Scouting (#525; spec/19, The players list: "with season points
 // under the site's scoring"): his card's matches this season added up in the league, at his main
@@ -120,7 +121,7 @@ test("each match is priced under the site's set in force in its gameweek: a patc
     ...EXAMPLE_SET,
     rules: EXAMPLE_SET.rules.map((rule) => (rule.stat === "goals_scored" ? { ...rule, values: { all: 9 } } : rule)),
   } as ScoringSet;
-  await league.t.run((ctx) => holdSiteScoring(ctx, { scoring: structuredClone(PATCHED) as StoredScoringSet, kind: "fix", season: 2026, number: 1, at: siteDeadline(GW2.kickoff) }));
+  await league.t.run((ctx) => holdSiteScoring(ctx, { scoring: structuredClone(PATCHED) as StoredScoringSet, kind: "fix", at: siteDeadline(GW2.kickoff) }));
   await refresh(league);
 
   expect(at(SAKA_GW2, "W", PATCHED)).not.toBe(at(SAKA_GW2, "W"));
@@ -146,7 +147,7 @@ test("rebuild sets every player's row afresh, however wrong, paging through, and
 
   for (let run = 0; run < 2; run += 1) {
     await t.mutation(internal.stats.seasonPoints.rebuild, { cursor: null });
-    await t.finishAllScheduledFunctions(vi.runAllTimers);
+    await everyJobRuns(t);
     expect(await pointsListed(league)).toEqual(right);
   }
 });

@@ -22,7 +22,7 @@ let token: string;
 beforeEach(async () => {
   t = await signInDeployment();
   sent = fakeResend();
-  leagueId = await adminCreatesLeague(t, 4);
+  leagueId = await adminCreatesLeague(t);
   token = await makeLink(t, leagueId);
 });
 

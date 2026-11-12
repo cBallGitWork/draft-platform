@@ -12,6 +12,13 @@ export const commissionerPowers = { names: true, runs: true };
 /** The admin may do everything the commissioner may, in every league. */
 export const adminPowers = commissionerPowers;
 
+/** The Pro League's teams, the preview manager's first: every preview screen of the league draws
+ *  these nine, so one plays the league's average each gameweek. */
+export const previewTeamNames: readonly string[] = ["Saka Potatoes", "Kroos Control", "Lingard Franca", "Neville Wears Prada", "Team 5", "Murder on Zidane's Floor", "Dinamo Kiev Leave", "Haaland Oates", "Expected Toulouse"];
+
+/** The Pro League's gameweek in every preview screen: begun, its matches under way. */
+export const previewGameweek = 9;
+
 /** Made-up leagues, in the shape signIn/account:signedInAs sends. */
 const unreachedCommissioner = "first.commissioner@example.com";
 export const proLeague: LeagueSummary = {
@@ -20,8 +27,8 @@ export const proLeague: LeagueSummary = {
   commissionerEmail: "commish@example.com",
   roles: ["manager"],
   powers: managerPowers,
-  teamName: "Saka Potatoes",
-  teams: 9,
+  teamName: previewTeamNames[0],
+  teams: previewTeamNames.length,
   maxTeams: 12,
   unsentCommissionerLink: null,
 };
@@ -60,5 +67,7 @@ export const previewSeasonGameweeks = 38;
 /** The gameweeks the preview's league leaves unticked: a Christmas break. */
 export const previewChristmasBreak: readonly number[] = [17, 18, 19];
 
+/** What the preview says of a change it doesn't make: what that left. */
+export const previewSaid = (outcome: string) => `This is a preview: ${outcome}.`;
 /** A change the preview doesn't make, saying what that left. */
-export const previewSays = (outcome: string) => async () => `This is a preview: ${outcome}.`;
+export const previewSays = (outcome: string) => async () => previewSaid(outcome);

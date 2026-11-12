@@ -21,18 +21,19 @@ import { leagueReads } from "../../../convex/gameweekScorer/teamGameweek";
 import { seasonRules } from "../../../convex/rules/rulesHistory";
 import { HOUR_MS, MINUTE_MS } from "../../../convex/shared/time";
 import { actingAs, addManagers, adminCreatesLeague, MANAGERS, type TestConvex } from "./leagues.harness";
-import { matchupOf } from "./screenReads.harness";
+import { leagueHomeOf, matchupOf } from "./screenReads.harness";
 import { EVERTON, EVERTON_CLUB, GAMEWEEK, HULL, HULL_CITY, HULL_EVERTON } from "./matchStats.harness";
-import { insertClubs, insertSeasonGameweeks } from "./footballRows.harness";
+import { insertClubs, insertPlayers, insertSeasonGameweeks } from "./footballRows.harness";
 import { BELLOUMI, DEWSBURY_HALL, GELHARDT, PHILLIPS, TZOLAKIS } from "./teamPoints.harness";
 import { fakeResend, signInDeployment } from "./signIn.harness";
 import { recordedGw6 } from "../recorded/gw6.payloads";
+import { teamNumbered } from "../../../convex/leagues/teams";
 
 export { GAMEWEEK };
 export const [ANN, BOB, CAT] = MANAGERS;
 /** Ann's and Bob's teams, as the league names a new team (convex/leagues/teams.ts). */
-export const ANNS_TEAM = "Team 1";
-export const BOBS_TEAM = "Team 2";
+export const ANNS_TEAM = teamNumbered(1);
+export const BOBS_TEAM = teamNumbered(2);
 
 /** Hull v Everton's kickoff as this league replays it, not FPL's recorded KICKOFF in
  *  matchStats.harness: a week after signInDeployment's clock, so the league is made before
@@ -129,8 +130,7 @@ export async function scoresLeague({ bobSaves = true, catToo = false } = {}): Pr
       ]);
       for (const [code, position] of positionOf) {
         const name = elements.get(code)!.web_name;
-        await ctx.db.insert("players", { code, name, fullName: name, clubCode });
-        await ctx.db.insert("playerPositions", { code, starts: [], approved: [], set: [position], removed: [] });
+        await insertPlayers(ctx, [{ code, name, fullName: name, clubCode, positions: [position] }]);
         await ctx.db.insert("squadPlayers", { leagueId, teamId, playerCode: code });
       }
       const saves = teamId === annsTeam || bobSaves;
@@ -157,6 +157,9 @@ export async function scoresLeague({ bobSaves = true, catToo = false } = {}): Pr
 /** Hull's and Everton's club rows, which scoresLeague doesn't hold, as the football sync holds them. */
 export const holdHullAndEverton = ({ t }: ScoresLeague) => t.run((ctx) => insertClubs(ctx, [HULL_CITY, EVERTON_CLUB]));
 
+/** League home at `now`, as Ann reads it. */
+export const homeAt = async ({ t, leagueId }: ScoresLeague, now: number) => leagueHomeOf(await actingAs(t, ANN), leagueId, now);
+
 export const readTable = ({ t, leagueId }: ScoresLeague) => actingAs(t, ANN).then((ann) => ann.query(api.table.leagueTable.ofLeague, { leagueId }));
 
 /** The matchup `email` reads: their own team's in the current gameweek, unless `args` names others. */
@@ -176,7 +179,7 @@ export const nameOf = ({ t }: ScoresLeague, code: number) =>
   t.run(async (ctx) => (await ctx.db.query("players").withIndex("by_code", (q) => q.eq("code", code)).unique())!.name);
 
 /** The football sync loses `code`'s player row (#810), any match records of his still held. */
-export const losePlayer = ({ t }: ScoresLeague, code: number) =>
+export const losePlayer = ({ t }: Pick<ScoresLeague, "t">, code: number) =>
   t.run(async (ctx) => {
     const player = (await ctx.db.query("players").withIndex("by_code", (q) => q.eq("code", code)).unique())!;
     await ctx.db.delete("players", player._id);
