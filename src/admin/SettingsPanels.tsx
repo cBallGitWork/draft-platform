@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from "react";
 import { useChoiceAmong } from "../shared/useChoiceAmong";
 import { Loading, PANEL_BODY, Panel } from "../ui/Panel";
+import { ClubSelect, NumberField } from "./fields";
 import type { PanelProps } from "./panelProps";
 import type { PlatformSettings } from "./seam";
 import {
@@ -30,18 +31,7 @@ export function ApproveClub({ queue, seam, change }: PanelProps) {
   return (
     <Panel title={clubTitle}>
       <div className="flex flex-wrap items-end gap-2 p-3">
-        <span className="flex flex-col gap-1">
-          <label htmlFor={CLUB_ID} className="font-semibold">
-            {clubLabel}
-          </label>
-          <select id={CLUB_ID} value={clubCode} onChange={(event) => choose(Number(event.target.value))} className="text-box">
-            {queue.clubs.map((club) => (
-              <option key={club.code} value={club.code}>
-                {club.name}
-              </option>
-            ))}
-          </select>
-        </span>
+        <ClubSelect id={CLUB_ID} label={clubLabel} clubs={queue.clubs} value={clubCode} choose={choose} />
         <button
           type="button"
           disabled={change.busy || clubCode === undefined}
@@ -86,19 +76,7 @@ export function Thresholds({ queue, seam, change }: PanelProps) {
     <Panel title={thresholdsTitle}>
       <form onSubmit={save} className={PANEL_BODY}>
         {fields.map((field) => (
-          <span key={field.id} className="flex flex-col gap-1">
-            <label htmlFor={field.id} className="font-semibold">
-              {field.label}
-            </label>
-            <input
-              id={field.id}
-              type="number"
-              required
-              value={field.value}
-              onChange={(event) => field.set(event.target.value)}
-              className="text-box w-wide-number-box"
-            />
-          </span>
+          <NumberField key={field.id} id={field.id} label={field.label} value={field.value} onChange={field.set} />
         ))}
         <button type="submit" disabled={change.busy} className="secondary-action self-start">
           {saveThresholdsWords}
@@ -136,19 +114,7 @@ function SiteSettingsForm({ settings, seam, change }: { settings: PlatformSettin
   return (
     <form onSubmit={save} className={PANEL_BODY}>
       {SITE_SETTINGS.map((name) => (
-        <span key={name} className="flex flex-col gap-1">
-          <label htmlFor={name} className="font-semibold">
-            {siteSettingLabels[name]}
-          </label>
-          <input
-            id={name}
-            type="number"
-            required
-            value={typed[name]}
-            onChange={(event) => setTyped({ ...typed, [name]: event.target.value })}
-            className="text-box w-wide-number-box"
-          />
-        </span>
+        <NumberField key={name} id={name} label={siteSettingLabels[name]} value={typed[name]} onChange={(value) => setTyped({ ...typed, [name]: value })} />
       ))}
       <button type="submit" disabled={change.busy} className="secondary-action self-start">
         {saveSiteSettingsWords}

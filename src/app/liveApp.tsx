@@ -31,15 +31,17 @@ import { liveTable } from "../table/liveTable";
 import { answerOf } from "../shared/refusal";
 import { ClubColoursProvider } from "../shared/clubColours";
 import { ShellApp } from "./ShellApp";
-import { SIGN_IN_PATH } from "../signIn/paths";
+import { LINK_CODE_PARAM, signInAddress } from "../signIn/paths";
 import { askFailedWords, replyWords, waitingWords, type LinkProblem } from "../signIn/words";
 import { NO_CONVEX_URL } from "../shared/words";
 
 // The app signed in for real: Convex Auth's session (convex/auth.ts), the email links asked for
 // through signIn/signInLinks:ask, and a link's code redeemed when the app is opened from one.
 
-/** The search param a sign-in link carries its code in (Convex Auth's). */
-export const LINK_CODE_PARAM = "code";
+/** What the log says, before the error, when the browser's time zone couldn't be kept (#442). */
+export const ZONE_FAILED_LOG = "Keeping this browser's time zone failed:";
+/** What the log says, before the error, when a sign-in link's code couldn't be checked. */
+export const LINK_CHECK_FAILED_LOG = "Checking a sign-in link failed:";
 
 /** The code a sign-in link opened the app with, taken out of the address so a reload or a
  *  bookmark can't carry it. */
@@ -136,7 +138,7 @@ function LiveShell({ linkCode }: { linkCode: string | null }) {
   useEffect(() => {
     // Each time the app opens signed in, so the zone follows a manager who travels (#442).
     if (email === undefined) return;
-    recordZone({ zone: browserZone() }).catch((error: unknown) => console.error("Keeping this browser's time zone failed", error));
+    recordZone({ zone: browserZone() }).catch((error: unknown) => console.error(ZONE_FAILED_LOG, error));
   }, [email, recordZone]);
 
   useEffect(() => {
@@ -179,9 +181,7 @@ function LiveShell({ linkCode }: { linkCode: string | null }) {
 /** The sign-in page saying what was wrong with a link, and, for one that led to a league's invite
  *  link, leading back to it (#73). */
 function signInAddressAfter(problem: LinkProblem): string {
-  const join = joinTokenAt(window.location.pathname);
-  const search = new URLSearchParams({ link: problem, ...(join && { join }) });
-  return `${SIGN_IN_PATH}?${search}`;
+  return signInAddress({ link: problem, join: joinTokenAt(window.location.pathname) ?? undefined });
 }
 
 /** Redeems a link's code, and says what went wrong if it didn't sign in. Convex Auth answers a
@@ -196,7 +196,7 @@ async function redeemLink(
     const { signingIn } = await redeem(undefined, { code });
     return signingIn ? null : "expired";
   } catch (error) {
-    console.error("Checking a sign-in link failed:", error);
+    console.error(LINK_CHECK_FAILED_LOG, error);
     return "unchecked";
   }
 }

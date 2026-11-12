@@ -3,10 +3,10 @@ import { internal } from "../_generated/api";
 import type { Doc } from "../_generated/dataModel";
 import { internalMutation, query, type ActionCtx, type MutationCtx, type QueryCtx } from "../_generated/server";
 import { clubRecord, scoreFeed, scoreRead, type matchState, type scoreWrites } from "../schema";
-import { gameweekFixtures } from "../shared/fixtures";
+import { byKickoff, gameweekFixtures } from "../shared/fixtures";
 import { callerEmail } from "../shared/leagueAccess";
 import { clubByCode, clubOf } from "../shared/players";
-import { BATCH_SIZE } from "../shared/syncRuns";
+import { inBatches } from "../shared/syncRuns";
 import type { ScoreRead, ScoreReads } from "./scoreReads";
 
 // Each match's score and clock, stored (#49, #50; spec/18). Two feeds write it: the football sync
@@ -35,12 +35,8 @@ const STATE_ORDER: Record<State, number> = { upcoming: 0, live: 1, halfTime: 1, 
 /** One read's scores written in batches of `BATCH_SIZE`, and its problems kept for the run row. */
 export async function writeScores(ctx: ActionCtx, feed: ScoreFeed, readAt: number, { reads, problems }: ScoreReads): Promise<ScoreWrites> {
   let written = 0;
-  for (let start = 0; start < reads.length; start += BATCH_SIZE) {
-    written += await ctx.runMutation(internal.football.matchScores.upsertScores, {
-      feed,
-      readAt,
-      reads: reads.slice(start, start + BATCH_SIZE),
-    });
+  for (const batch of inBatches(reads)) {
+    written += await ctx.runMutation(internal.football.matchScores.upsertScores, { feed, readAt, reads: batch });
   }
   return { received: reads.length + problems.length, written, problems };
 }
@@ -123,7 +119,7 @@ export const ofGameweek = query({
   handler: async (ctx, { gameweek }) => {
     await callerEmail(ctx);
     const fixtures = await gameweekFixtures(ctx, gameweek, "they would be cut short");
-    const inOrder = fixtures.toSorted((a, b) => (a.kickoff ?? Infinity) - (b.kickoff ?? Infinity));
+    const inOrder = byKickoff(fixtures);
     return Promise.all(
       inOrder.map(async ({ code, kickoff, homeClubCode, awayClubCode }) => {
         const held = await scoreOf(ctx, code);

@@ -25,8 +25,11 @@ export function seasonStartYear(at: number): number {
 /** A season as the short labels write it: "2026/27" for 2026. */
 export const seasonName = (startYear: number): string => `${startYear}/${String(startYear + 1).slice(-2)}`;
 
+/** When the season starting in `startYear` began: 1 July of that year, UTC. */
+export const seasonStartOf = (startYear: number): number => Date.UTC(startYear, JULY, 1);
+
 /** When the season `at` falls in began: 1 July of `seasonStartYear`, UTC. */
-export const seasonStartAt = (at: number): number => Date.UTC(seasonStartYear(at), JULY, 1);
+export const seasonStartAt = (at: number): number => seasonStartOf(seasonStartYear(at));
 
 /** About when a match's lineups are out before kickoff: spec/10's "about an hour". The Premier
  *  League had them out at the first read 58 minutes before (docs/pl-commentary.md, What a live

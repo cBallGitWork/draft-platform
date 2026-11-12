@@ -2,8 +2,15 @@
 // player card's Offer a trade, with his owner chosen and him asked for (#1027).
 
 import type { Id } from "../../convex/_generated/dataModel";
+import { samePick } from "../../convex/draft/snakeOrder";
 import { sidesOf } from "./offerSides";
 import type { TradePick, TradesView } from "./seam";
+
+/** The manager's own team: the read puts it first (convex/trades/tradeScreen.ts). */
+export const myTeamOf = (view: TradesView) => view.teams[0];
+
+/** The teams he can trade with: every other team, but the one on the auto team. */
+export const partnersOf = (view: TradesView) => view.teams.slice(1).filter((team) => !team.onAutoTeam);
 
 /** From a player card: the team to trade with, and their player asked for. */
 export type Asked = { team?: Id<"teams">; player?: number };
@@ -33,7 +40,7 @@ export function counterOf(view: TradesView, offerId: Id<"tradeOffers"> | undefin
   const free = (players: { code: number }[]) => players.map(({ code }) => code).filter((code) => !held.has(code));
   const freePick = (pick: TradePick | undefined) =>
     pick !== undefined &&
-    view.teams.some((team) => team.picks.some((each) => each.round === pick.round && each.teamId === pick.teamId && !each.held))
+    view.teams.some((team) => team.picks.some((each) => samePick(each, pick) && !each.held))
       ? { round: pick.round, teamId: pick.teamId }
       : null;
   return {
@@ -49,7 +56,7 @@ export function counterOf(view: TradesView, offerId: Id<"tradeOffers"> | undefin
 /** A card's Offer a trade as the offer starts: the team, when it can be traded with, and their
  *  player ticked, when he is still theirs and not held in a trade under review. Null otherwise. */
 export function askedOf(view: TradesView, { team, player }: Asked): Start | null {
-  const partner = view.teams.slice(1).find((each) => each.teamId === team && !each.onAutoTeam);
+  const partner = partnersOf(view).find((each) => each.teamId === team);
   if (partner === undefined) return null;
   const his = partner.players.find((each) => each.code === player && !each.held);
   return { teamId: partner.teamId, gives: [], gets: his === undefined ? [] : [his.code] };

@@ -3,6 +3,7 @@
 // docs/pl-commentary.md (Team stats). Pure: `matchTeamStats.ts` reads and stores them.
 
 import type { Infer } from "convex/values";
+import { SHOTS, SHOTS_ON_TARGET } from "../../scoring/statKeys";
 import type { sideTeamStats } from "../../schema";
 import type { RawPlTeamStats } from "./premierLeague";
 
@@ -18,8 +19,8 @@ export interface TeamStats {
 
 /** Opta's name for each of the five, docs/pl-commentary.md's table. */
 export const OPTA_TEAM_STAT = {
-  shots: "total_scoring_att",
-  shotsOnTarget: "ontarget_scoring_att",
+  shots: SHOTS,
+  shotsOnTarget: SHOTS_ON_TARGET,
   possession: "possession_percentage",
   corners: "won_corners",
   yellowCards: "total_yel_card",

@@ -7,12 +7,13 @@ import { autoTeamLetters, autoTeamRefusals } from "../../../convex/lineup/autoTe
 import { lineupInGameweek } from "../../../convex/lineup/lineups";
 import type { Availability } from "../../../convex/availability/availability";
 import { WEEK_MS } from "../../../convex/shared/time";
+import { PL_GAMEWEEKS } from "../../support/convex/footballRows.harness";
 import { holdGameweeks } from "../../support/convex/leagueRules.harness";
 import { ADMIN, COMMISSIONER, MANAGERS, actingAs, addManager, addManagers, adminCreatesLeague, lettersTo, teamName, type TestConvex } from "../../support/convex/leagues.harness";
 import { FIRST_SUB } from "../../support/convex/lineup.harness";
 import { FOUR_FOUR_TWO, holdSquad, NEXT, passNextDeadline, squadMoves } from "../../support/convex/lineupSquad.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
-import { silenceConsoleError } from "../../support/convex/test.harness";
+import { expectRefused, silenceConsoleError } from "../../support/convex/test.harness";
 import { autoTeamFailedLog } from "../../../convex/lineup/autoTeam";
 import { fileLetter } from "../../../convex/mail/letters";
 
@@ -135,22 +136,22 @@ describe("switched on by a person", () => {
 
 describe("who may switch it", () => {
   test("another manager may not", async () => {
-    await expect(switches(BOB, true)).rejects.toThrow(autoTeamRefusals.notYours);
+    await expectRefused(switches(BOB, true), autoTeamRefusals.notYours);
   });
 
   test("only the team's own manager names a gameweek it ends after", async () => {
-    await expect(switches(COMMISSIONER, true, NEXT)).rejects.toThrow(autoTeamRefusals.endsAfterOnlyManager);
+    await expectRefused(switches(COMMISSIONER, true, NEXT), autoTeamRefusals.endsAfterOnlyManager);
   });
 
   test("the gameweek it ends after is one not yet begun", async () => {
-    await expect(switches(ANN, true, NEXT - 1)).rejects.toThrow(autoTeamRefusals.endsAfterOutOfRange(NEXT, 38));
+    await expectRefused(switches(ANN, true, NEXT - 1), autoTeamRefusals.endsAfterOutOfRange(NEXT, PL_GAMEWEEKS));
   });
 
   test("in a league that ends early, or unticked a gameweek, it ends after one the league plays (#1561)", async () => {
     await t.run((ctx) => ctx.db.patch("leagues", leagueId, { unusedGameweeks: [NEXT + 1, 31, 32, 33, 34, 35, 36, 37, 38] }));
     const outOfRange = autoTeamRefusals.endsAfterOutOfRange(NEXT, 30);
-    await expect(switches(ANN, true, 31)).rejects.toThrow(outOfRange);
-    await expect(switches(ANN, true, NEXT + 1)).rejects.toThrow(outOfRange);
+    await expectRefused(switches(ANN, true, 31), outOfRange);
+    await expectRefused(switches(ANN, true, NEXT + 1), outOfRange);
     await switches(ANN, true, 30);
     expect(await switchOf()).toEqual({ by: ANN, endsAfter: 30 });
   });
@@ -158,7 +159,7 @@ describe("who may switch it", () => {
   test("its manager reads it on My team: off, then on until the gameweek named", async () => {
     // With the gameweeks it may end after: those the league plays (#1561).
     await t.run((ctx) => ctx.db.patch("leagues", leagueId, { unusedGameweeks: [NEXT + 1, 37, 38] }));
-    const endGameweeks = seasonGameweeks(38).filter((gameweek) => gameweek >= NEXT && gameweek !== NEXT + 1 && gameweek <= 36);
+    const endGameweeks = seasonGameweeks(PL_GAMEWEEKS).filter((gameweek) => gameweek >= NEXT && gameweek !== NEXT + 1 && gameweek <= 36);
     const read = async () => (await actingAs(t, ANN)).query(api.lineup.autoTeam.ofMyTeam, { leagueId });
     expect(await read()).toEqual({ teamId: annsTeam, on: false, endsAfter: null, endGameweeks });
     await switches(ANN, true, NEXT + 2);
@@ -166,9 +167,9 @@ describe("who may switch it", () => {
   });
 
   test("it can't be switched on twice, nor off while off", async () => {
-    await expect(switches(ANN, false)).rejects.toThrow(autoTeamRefusals.alreadyOff);
+    await expectRefused(switches(ANN, false), autoTeamRefusals.alreadyOff);
     await switches(ANN, true);
-    await expect(switches(ADMIN, true)).rejects.toThrow(autoTeamRefusals.alreadyOn);
+    await expectRefused(switches(ADMIN, true), autoTeamRefusals.alreadyOn);
   });
 });
 
@@ -224,7 +225,7 @@ describe("a team with no manager", () => {
   test("is on it until handed on, and handing it on switches it off", async () => {
     await switches(ANN, true);
     await (await actingAs(t, COMMISSIONER)).mutation(api.leagues.teams.removeManager, { leagueId, teamId: annsTeam });
-    await expect(switches(COMMISSIONER, false)).rejects.toThrow(autoTeamRefusals.noManager);
+    await expectRefused(switches(COMMISSIONER, false), autoTeamRefusals.noManager);
     await setAvailability(OUT_MIDFIELDER, "out");
     await passDeadline();
     expect(await startersIn(NEXT)).not.toContain(OUT_MIDFIELDER);

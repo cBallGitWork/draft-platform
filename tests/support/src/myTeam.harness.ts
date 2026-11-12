@@ -1,10 +1,10 @@
 // My team's tabs' tests' fake seam (shell.harness.tsx hands it to the app).
 
-import { useSyncExternalStore } from "react";
 import { vi } from "vitest";
 import type { AutoTeamChanges, MyAutoTeam, MyTeamSeam, OtherSquad, SquadNumberChanges, TeamFixtures, TeamSquad, TeamTransactions } from "../../../src/myTeam/seam";
 import { idOf } from "../../../src/table/drawnTable";
 import type { LeagueTable } from "../../../src/table/seam";
+import { serverStore } from "./serverStore";
 import { fakeTactics, type TacticsData } from "./tactics.harness";
 import type { LatestMail } from "../../../src/myTeam/squad/seam";
 import type { ClaimChanges, PendingClaim, WaiversView } from "../../../src/myTeam/claims/seam";
@@ -65,24 +65,15 @@ export function fakeMyTeam({
     withdraw: vi.fn<ClaimChanges["withdraw"]>(async () => claimAnswer),
     changeDrop: vi.fn<ClaimChanges["changeDrop"]>(async () => claimAnswer),
   };
-  // A store, so a test can change the squad under an open screen, as Convex would.
-  let heldSquad = squad;
-  const listeners = new Set<() => void>();
-  const subscribe = (listener: () => void) => {
-    listeners.add(listener);
-    return () => void listeners.delete(listener);
-  };
+  const heldSquad = serverStore(squad);
   return {
     ...fakeTactics(tactics, loading),
     useTeamFixtures: vi.fn<MyTeamSeam["useTeamFixtures"]>(() => (loading ? undefined : fixtures)),
     useTeamTransactions: vi.fn<MyTeamSeam["useTeamTransactions"]>(() => (loading ? undefined : transactions)),
     useOtherSquad: vi.fn<MyTeamSeam["useOtherSquad"]>(() => (loading ? undefined : otherSquad)),
-    useTeamSquad: vi.fn<MyTeamSeam["useTeamSquad"]>(() => useSyncExternalStore(subscribe, () => (loading ? undefined : heldSquad))),
-    /** The squad the server holds from now on (inside act). */
-    serverHoldsSquad: (next: TeamSquad) => {
-      heldSquad = next;
-      for (const listener of listeners) listener();
-    },
+    useTeamSquad: vi.fn<MyTeamSeam["useTeamSquad"]>(() => heldSquad.use((held) => (loading ? undefined : held))),
+    /** The squad the server holds from now on. */
+    serverHoldsSquad: heldSquad.set,
     useSquadNumbers: () => numbers,
     useLatestMail: vi.fn<MyTeamSeam["useLatestMail"]>(() => (loading ? undefined : mail)),
     useLeagueTable: vi.fn<MyTeamSeam["useLeagueTable"]>(() => (loading ? undefined : leagueTable)),

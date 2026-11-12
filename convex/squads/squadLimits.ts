@@ -14,6 +14,11 @@ import { minimumsFilled } from "./areaMinimums";
 
 /** How many of his club's next matches a squad row holds (the picture's Next 3; teamSquad.ts). */
 export const NEXT_MATCHES_SHOWN = 3;
+/** How many gameweeks the Schedule view holds (squadSchedule.ts). Here, with the other counts the
+ *  Squad tab shows, so the preview reads them without loading a server file. */
+export const SCHEDULE_GAMEWEEKS = 6;
+/** How many of the league's latest begun gameweeks his form holds (teamSquad.ts). */
+export const FORM_GAMEWEEKS = 5;
 
 export const squadLimit = v.union(
   v.object({

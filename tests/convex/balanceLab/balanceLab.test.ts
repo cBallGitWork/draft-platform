@@ -1,15 +1,13 @@
 import { describe, expect, test } from "vitest";
 import { balanceLab, roleStats, slotOfStart, type PastStart } from "../../../convex/balanceLab/balanceLab";
 import type { ScoringSet } from "../../../convex/scoring/scoringSet";
-import { EXAMPLE_SET } from "../../support/convex/scoring.example";
+import { EXAMPLE_SET, shotStopper } from "../../support/convex/scoring.example";
 
 // The rule balance lab (spec/14; #843): each role's average a start over its slot's real past
 // starts against the slot's target, "not tested" where the past seasons lack a stat it scores.
 
 type RoleScoring = NonNullable<ScoringSet["roles"]>[number];
 const side = (bars: number[], ...parts: [string, number][]) => ({ bars, parts: parts.map(([stat, weight]) => ({ stat, weight })) });
-/** A shot-stopper on saves alone (copied), costing for goals conceded (copied). */
-const shotStopper = (bars: number[]): RoleScoring => ({ role: "shotStopper", bonus: side(bars, ["saves", 1]), cost: side([3, 4, 5], ["goals_conceded", 1]) });
 /** A number 10 on through balls and open-play key passes, neither copied. */
 const numberTen: RoleScoring = { role: "numberTen", bonus: side([2, 4, 6], ["accurate_through_ball", 1], ["att_assist_openplay", 1]), cost: side([1, 2, 3], ["goals_scored", 1]) };
 const setWith = (...roles: RoleScoring[]): ScoringSet => ({ ...EXAMPLE_SET, roles });

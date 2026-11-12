@@ -3,7 +3,6 @@
 // listed here, each with why.
 
 import { describe, expect, it } from "vitest";
-import { TRADES_PATH } from "../../src/frame/menu";
 import { createShellRouter, type ShellContext } from "../../src/routes/router";
 import { LANDING_PATH } from "../../src/routes/root";
 import { SIGN_IN_PATH } from "../../src/signIn/paths";
@@ -12,12 +11,10 @@ import { BUILT_SCREENS } from "../support/smoke/builtScreens";
 /** Every path the router matches, read from its route tree. Building it loads nothing. */
 const routerPaths = Object.keys(createShellRouter({} as ShellContext).routesByPath);
 
-/** Routes the phone run doesn't open, each with why. Trades is a placeholder (PageNotBuilt) until
- *  it's built: src/routes/frame.tsx. */
+/** Routes the phone run doesn't open, each with why. */
 const NOT_SMOKED: ReadonlyMap<string, string> = new Map([
   [LANDING_PATH, "it redirects to My team; smoke.spec.ts's ?preview=manager test opens it"],
   [SIGN_IN_PATH, "smoke.spec.ts's ?preview=visitor test opens it"],
-  [TRADES_PATH, "a placeholder until Trades is built"],
 ]);
 
 /** A route's path as a pattern its addresses match: each `$param` one segment, then any search. */

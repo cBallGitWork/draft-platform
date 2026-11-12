@@ -1,5 +1,5 @@
 import { defineTable } from "convex/server";
-import { v } from "convex/values";
+import { v, type Infer } from "convex/values";
 import { signInReply } from "../signIn/signInReplies";
 import { joiningEvents } from "./joining";
 import { managerOfTeam, replaced } from "./people";
@@ -182,6 +182,7 @@ export const leagueEvent = v.union(
     endsAfter: v.union(v.number(), v.null()),
   }),
 );
+export type LeagueEvent = Infer<typeof leagueEvent>;
 
 const leagueEventFields = {
   leagueId: v.id("leagues"),

@@ -6,6 +6,7 @@ import { api } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
 import { COMMISSIONER, actingAs, type TestConvex } from "./leagues.harness";
 import { linkCode, openLink, type SentEmail } from "./signIn.harness";
+import { everyJobRuns } from "./test.harness";
 
 /** The league's commissioner, signed in. */
 export const asCommissioner = (t: TestConvex) => actingAs(t, COMMISSIONER);
@@ -13,7 +14,7 @@ export const asCommissioner = (t: TestConvex) => actingAs(t, COMMISSIONER);
 /** The commissioner invites `email`, to a vacated team or a new one, and the email is sent. */
 export async function invite(t: TestConvex, leagueId: Id<"leagues">, email: string, teamId?: Id<"teams">) {
   const inviteId = await (await asCommissioner(t)).mutation(api.joining.invites.send, { leagueId, email, teamId });
-  await t.finishAllScheduledFunctions(vi.runAllTimers);
+  await everyJobRuns(t);
   return inviteId;
 }
 

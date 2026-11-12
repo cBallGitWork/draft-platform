@@ -37,6 +37,7 @@ import { holdTypoRule, TYPO_STAT } from "../../support/convex/gameweekScoresFixe
 import { ADMIN, adminCreatesLeague } from "../../support/convex/leagues.harness";
 import { HULL, HULL_EVERTON, mergedHullEverton } from "../../support/convex/matchStats.harness";
 import { expectRefused, silenceConsoleError } from "../../support/convex/test.harness";
+import { teamNumbered } from "../../../convex/leagues/teams";
 
 // The matchup (#34; spec/10, The matchup, as a live match): Hull v Everton replayed through one
 // head-to-head, Ann fielding Hull and Bob Everton. Each player's status follows his match, points
@@ -84,8 +85,8 @@ test("a replayed gameweek plays out on the matchup: yet to play, live with the m
   await scoreRead(league, "fullTime", 90);
   const fullTime = await annsScoredGame(league, GAMEWEEK);
   expect(slotOf(fullTime.team, HULL_SCORER).status).toEqual({ kind: "finished", fixtureCode: HULL_EVERTON });
-  expect(slotOf(fullTime.team, PHILLIPS)).toMatchObject({ counts: false, autoSub: { kind: "off", playerName: await nameOf(league, HULL_KEEPER) } });
-  expect(slotOf(fullTime.team, HULL_KEEPER)).toMatchObject({ counts: true, area: "goalkeeper", autoSub: { kind: "on", playerName: await nameOf(league, PHILLIPS) } });
+  expect(slotOf(fullTime.team, PHILLIPS)).toMatchObject({ counts: false, autoSub: { kind: "off", playerCode: HULL_KEEPER, playerName: await nameOf(league, HULL_KEEPER) } });
+  expect(slotOf(fullTime.team, HULL_KEEPER)).toMatchObject({ counts: true, area: "goalkeeper", autoSub: { kind: "on", playerCode: PHILLIPS, playerName: await nameOf(league, PHILLIPS) } });
   expect(fullTime.team).toMatchObject({ points: HULL_POINTS, provisional: true });
 
   // Locked: the result is final, Everton's side the winner.
@@ -204,7 +205,7 @@ test("the team left over meets the league's average, every team counted once in 
   await lockMatch(league);
   const read = await matchupAs(league, CAT, { gameweek: GAMEWEEK });
   expect(read).toMatchObject({
-    game: { kind: "scored", team: { teamName: "Team 3", lineup: { starters: [], bench: [] }, points: 0 }, opponent: { kind: "leagueAverage", points: inTenths((HULL_POINTS + EVERTON_POINTS) / 3), provisional: false } },
+    game: { kind: "scored", team: { teamName: teamNumbered(3), lineup: { starters: [], bench: [] }, points: 0 }, opponent: { kind: "leagueAverage", points: inTenths((HULL_POINTS + EVERTON_POINTS) / 3), provisional: false } },
   });
 });
 

@@ -1,4 +1,5 @@
 import { describe, expect, test } from "vitest";
+import { gameModeOf } from "../../../convex/rules/gameMode";
 import { LEAGUE_AVERAGE, type GameweekFixtures } from "../../../convex/table/roundRobin";
 import {
   FORM_RESULTS,
@@ -17,6 +18,11 @@ import {
 
 const [ANN, BOB, CAT, DAN, EVE] = ["Ann", "Bob", "Cat", "Dan", "Eve"];
 
+/** What every league plays today: the higher score wins (gameMode.ts). */
+const PLAYED = gameModeOf({ format: "headToHead" });
+/** No league plays this yet (#1582): forced, to prove the table asks which score wins. */
+const LOWER_WINS = { ...PLAYED, higherWins: false };
+
 /** Gameweek `gameweek`'s fixtures, as [team, opponent] pairs, and who has a bye. */
 const week = (gameweek: number, pairs: [string, string][], byes: string[] = []): GameweekFixtures<string> => ({
   gameweek,
@@ -34,7 +40,7 @@ const rowOf = (rows: TableRow<string>[], team: string) => rows.find((row) => row
 describe("a head-to-head table", () => {
   test("a win is 3, a draw 1 and a loss none, equal scores a draw, with for, against and the difference", () => {
     const schedule = [week(1, [[ANN, BOB], [CAT, DAN]]), week(2, [[ANN, CAT], [BOB, DAN]])];
-    const table = headToHeadTable([ANN, BOB, CAT, DAN], schedule, scores({ 1: { Ann: 50, Bob: 40.5, Cat: 30, Dan: 30 }, 2: { Ann: 20, Cat: 25, Bob: 10, Dan: 60 } }), []);
+    const table = headToHeadTable(PLAYED, [ANN, BOB, CAT, DAN], schedule, scores({ 1: { Ann: 50, Bob: 40.5, Cat: 30, Dan: 30 }, 2: { Ann: 20, Cat: 25, Bob: 10, Dan: 60 } }), []);
 
     expect(rowOf(table, ANN)).toEqual({ team: ANN, played: 2, won: 1, drawn: 0, lost: 1, pointsFor: 70, pointsAgainst: 65.5, difference: 4.5, points: 3 });
     expect(rowOf(table, CAT)).toEqual({ team: CAT, played: 2, won: 1, drawn: 1, lost: 0, pointsFor: 55, pointsAgainst: 50, difference: 5, points: 4 });
@@ -43,24 +49,24 @@ describe("a head-to-head table", () => {
   });
 
   test("ranks by the table's points", () => {
-    const table = headToHeadTable([ANN, BOB], [week(1, [[ANN, BOB]])], scores({ 1: { Ann: 1, Bob: 2 } }), []);
+    const table = headToHeadTable(PLAYED, [ANN, BOB], [week(1, [[ANN, BOB]])], scores({ 1: { Ann: 1, Bob: 2 } }), []);
     expect(order(table)).toEqual([BOB, ANN]);
   });
 
   test("before any gameweek is scored every team is on nothing, in the order they were made", () => {
-    const table = headToHeadTable([ANN, BOB, CAT, DAN], [week(1, [[ANN, BOB], [CAT, DAN]])], new Map(), ["pointsFor", "headToHead"]);
+    const table = headToHeadTable(PLAYED, [ANN, BOB, CAT, DAN], [week(1, [[ANN, BOB], [CAT, DAN]])], new Map(), ["pointsFor", "headToHead"]);
     expect(order(table)).toEqual([ANN, BOB, CAT, DAN]);
     for (const row of table) expect(row).toEqual({ team: row.team, played: 0, won: 0, drawn: 0, lost: 0, pointsFor: 0, pointsAgainst: 0, difference: 0, points: 0 });
   });
 
   test("a gameweek not yet scored counts for nothing", () => {
-    const table = headToHeadTable([ANN, BOB], [week(1, [[ANN, BOB]]), week(2, [[ANN, BOB]])], scores({ 1: { Ann: 3, Bob: 1 } }), []);
+    const table = headToHeadTable(PLAYED, [ANN, BOB], [week(1, [[ANN, BOB]]), week(2, [[ANN, BOB]])], scores({ 1: { Ann: 3, Bob: 1 } }), []);
     expect(rowOf(table, ANN)).toMatchObject({ played: 1, won: 1, pointsFor: 3 });
   });
 
   test("the team left over plays the league's average, every team's score counted, kept in tenths", () => {
     const schedule = [{ gameweek: 1, fixtures: [{ team: ANN, opponent: BOB }, { team: CAT, opponent: LEAGUE_AVERAGE }], byes: [] }];
-    const table = headToHeadTable([ANN, BOB, CAT], schedule, scores({ 1: { Ann: 10, Bob: 10, Cat: 11 } }), []);
+    const table = headToHeadTable(PLAYED, [ANN, BOB, CAT], schedule, scores({ 1: { Ann: 10, Bob: 10, Cat: 11 } }), []);
 
     // (10 + 10 + 11) / 3 is 10.333…, kept as 10.3, which Cat beats.
     expect(rowOf(table, CAT)).toMatchObject({ played: 1, won: 1, points: 3, pointsFor: 11, pointsAgainst: 10.3, difference: 0.7 });
@@ -69,25 +75,25 @@ describe("a head-to-head table", () => {
 
   test("a score equal to the league's average is a draw", () => {
     const schedule = [{ gameweek: 1, fixtures: [{ team: ANN, opponent: BOB }, { team: CAT, opponent: LEAGUE_AVERAGE }], byes: [] }];
-    const table = headToHeadTable([ANN, BOB, CAT], schedule, scores({ 1: { Ann: 0.1, Bob: 0.3, Cat: 0.2 } }), []);
+    const table = headToHeadTable(PLAYED, [ANN, BOB, CAT], schedule, scores({ 1: { Ann: 0.1, Bob: 0.3, Cat: 0.2 } }), []);
     expect(rowOf(table, CAT)).toMatchObject({ drawn: 1, points: 1, pointsAgainst: 0.2 });
   });
 
   test("the team on a bye plays nobody: it gets nothing for that gameweek, for or against", () => {
-    const table = headToHeadTable([ANN, BOB, CAT], [week(1, [[ANN, BOB]], [CAT])], scores({ 1: { Ann: 1, Bob: 2, Cat: 99 } }), []);
+    const table = headToHeadTable(PLAYED, [ANN, BOB, CAT], [week(1, [[ANN, BOB]], [CAT])], scores({ 1: { Ann: 1, Bob: 2, Cat: 99 } }), []);
     expect(rowOf(table, CAT)).toMatchObject({ played: 0, points: 0, pointsFor: 0 });
   });
 
   test("with two games a gameweek, a team's one score counts in both, and the average counts each team's score once", () => {
     // Cat plays Ann and the average: the average is (10 + 20 + 30) / 3, not weighted by games.
     const schedule = [{ gameweek: 1, fixtures: [{ team: ANN, opponent: BOB }, { team: CAT, opponent: ANN }, { team: CAT, opponent: LEAGUE_AVERAGE }], byes: [BOB] }];
-    const table = headToHeadTable([ANN, BOB, CAT], schedule, scores({ 1: { Ann: 10, Bob: 20, Cat: 30 } }), []);
+    const table = headToHeadTable(PLAYED, [ANN, BOB, CAT], schedule, scores({ 1: { Ann: 10, Bob: 20, Cat: 30 } }), []);
     expect(rowOf(table, CAT)).toMatchObject({ played: 2, won: 2, pointsFor: 60, pointsAgainst: 30 });
     expect(rowOf(table, ANN)).toMatchObject({ played: 2, lost: 2, pointsFor: 20 });
   });
 
   test("a gameweek scored without a team's score is a bug, and says whose is missing", () => {
-    expect(() => headToHeadTable([ANN, BOB], [week(1, [[ANN, BOB]])], scores({ 1: { Ann: 1 } }), [])).toThrow("Gameweek 1 has scores, but none for Bob");
+    expect(() => headToHeadTable(PLAYED, [ANN, BOB], [week(1, [[ANN, BOB]])], scores({ 1: { Ann: 1 } }), [])).toThrow("Gameweek 1 has scores, but none for Bob");
   });
 });
 
@@ -109,7 +115,7 @@ describe("a team that joins mid-season", () => {
   const teams = [ANN, BOB, CAT, DAN, EVE];
 
   test("leaves the results against the average before it joined as they were", () => {
-    const table = headToHeadTable(teams, schedule, joined, []);
+    const table = headToHeadTable(PLAYED, teams, schedule, joined, []);
     // Gameweek 1's average is (10 + 20 + 15) / 3 = 15, so Cat draws; counting Dan's and Eve's 0s
     // it would be 9, a win. Cat then loses 0 v 30 to Bob and 30 v 40 to Dan.
     expect(rowOf(table, CAT)).toEqual({ team: CAT, played: 3, won: 0, drawn: 1, lost: 2, pointsFor: 45, pointsAgainst: 85, difference: -40, points: 1 });
@@ -120,18 +126,18 @@ describe("a team that joins mid-season", () => {
 
   test("counts it in the average once it is in the gameweek's fixtures", () => {
     // Gameweek 3's average is (10 + 20 + 30 + 40 + 25) / 5 = 25: Eve draws.
-    const table = headToHeadTable(teams, schedule, joined, []);
+    const table = headToHeadTable(PLAYED, teams, schedule, joined, []);
     expect(rowOf(table, EVE)).toEqual({ team: EVE, played: 1, won: 0, drawn: 1, lost: 0, pointsFor: 25, pointsAgainst: 25, difference: 0, points: 1 });
   });
 
   test("leaves the form of the gameweeks before it joined as it was", () => {
-    const form = formOf(teams, schedule, joined);
+    const form = formOf(PLAYED, teams, schedule, joined);
     expect([form.get(ANN), form.get(CAT), form.get(EVE)]).toEqual([["lost", "lost", "lost"], ["drawn", "lost", "lost"], ["drawn"]]);
   });
 
   test("a team in the gameweek's fixtures on 0, with no lineup say, still counts in its average", () => {
     // (30 + 0 + 12) / 3 = 14, which Cat's 12 loses to; leaving out Bob's 0 would make it 21.
-    const table = headToHeadTable([ANN, BOB, CAT], [withAverage(1, [[ANN, BOB]], CAT)], scores({ 1: { Ann: 30, Bob: 0, Cat: 12 } }), []);
+    const table = headToHeadTable(PLAYED, [ANN, BOB, CAT], [withAverage(1, [[ANN, BOB]], CAT)], scores({ 1: { Ann: 30, Bob: 0, Cat: 12 } }), []);
     expect(rowOf(table, CAT)).toMatchObject({ lost: 1, pointsAgainst: 14 });
   });
 
@@ -146,10 +152,10 @@ describe("the league's tie-breaks", () => {
   // Ann and Bob are level on 3 points: Ann has more points for, but more against, and lost to Bob.
   const schedule = [week(1, [[ANN, BOB], [CAT, DAN]]), week(2, [[ANN, CAT], [BOB, DAN]])];
   const level = scores({ 1: { Ann: 40, Bob: 50, Cat: 0, Dan: 0 }, 2: { Ann: 60, Cat: 59, Bob: 20, Dan: 21 } });
-  const ranked = (tieBreaks: TieBreak[]) => order(headToHeadTable([ANN, BOB, CAT, DAN], schedule, level, tieBreaks)).slice(1, 3);
+  const ranked = (tieBreaks: TieBreak[]) => order(headToHeadTable(PLAYED, [ANN, BOB, CAT, DAN], schedule, level, tieBreaks)).slice(1, 3);
 
   test("Ann and Bob are level on points", () => {
-    const table = headToHeadTable([ANN, BOB, CAT, DAN], schedule, level, []);
+    const table = headToHeadTable(PLAYED, [ANN, BOB, CAT, DAN], schedule, level, []);
     expect([rowOf(table, ANN)?.points, rowOf(table, BOB)?.points]).toEqual([3, 3]);
   });
 
@@ -166,7 +172,7 @@ describe("the league's tie-breaks", () => {
 
   test("a tie-break that leaves them level passes to the next", () => {
     // Equal for; Ann concedes less. Ann and Bob never met, so head-to-head leaves them level.
-    const table = headToHeadTable([ANN, BOB, CAT, DAN], [week(1, [[ANN, CAT], [BOB, DAN]])], scores({ 1: { Ann: 5, Bob: 5, Cat: 1, Dan: 2 } }), ["pointsFor", "headToHead", "pointsAgainst"]);
+    const table = headToHeadTable(PLAYED, [ANN, BOB, CAT, DAN], [week(1, [[ANN, CAT], [BOB, DAN]])], scores({ 1: { Ann: 5, Bob: 5, Cat: 1, Dan: 2 } }), ["pointsFor", "headToHead", "pointsAgainst"]);
     expect(order(table)).toEqual([ANN, BOB, DAN, CAT]);
   });
 
@@ -174,16 +180,26 @@ describe("the league's tie-breaks", () => {
     // Ann, Bob and Cat are level on 3; among the three, Cat beat Ann, and nobody else met.
     // Dan's matchups don't count, though Bob beat him.
     const schedule3 = [week(1, [[CAT, ANN], [BOB, DAN]]), week(2, [[ANN, DAN], [BOB, CAT]])];
-    const table = headToHeadTable([ANN, BOB, CAT, DAN], schedule3, scores({ 1: { Cat: 2, Ann: 1, Bob: 2, Dan: 1 }, 2: { Ann: 2, Dan: 1, Bob: 1, Cat: 2 } }), ["headToHead"]);
+    const table = headToHeadTable(PLAYED, [ANN, BOB, CAT, DAN], schedule3, scores({ 1: { Cat: 2, Ann: 1, Bob: 2, Dan: 1 }, 2: { Ann: 2, Dan: 1, Bob: 1, Cat: 2 } }), ["headToHead"]);
     expect(table.slice(0, 3).map((row) => [row.team, row.points])).toEqual([[CAT, 6], [ANN, 3], [BOB, 3]]);
   });
 });
 
 describe("a total-points table", () => {
   test("ranks by points for over the gameweeks scored; teams level stay in the order they were made", () => {
-    const table = totalPointsTable([ANN, BOB, CAT], scores({ 1: { Ann: 10, Bob: 20.5, Cat: 15 }, 2: { Ann: 15, Bob: 1, Cat: 20.5 } }));
+    const table = totalPointsTable(PLAYED, [ANN, BOB, CAT], scores({ 1: { Ann: 10, Bob: 20.5, Cat: 15 }, 2: { Ann: 15, Bob: 1, Cat: 20.5 } }));
     expect(table.map((row) => [row.team, row.played, row.points])).toEqual([[CAT, 2, 35.5], [ANN, 2, 25], [BOB, 2, 21.5]]);
-    expect(order(totalPointsTable([ANN, BOB], scores({ 1: { Ann: 5, Bob: 5 } })))).toEqual([ANN, BOB]);
+    expect(order(totalPointsTable(PLAYED, [ANN, BOB], scores({ 1: { Ann: 5, Bob: 5 } })))).toEqual([ANN, BOB]);
+  });
+});
+
+describe("a league where the lower score wins (forced: none can be yet)", () => {
+  test("its matchups go to the lower score, its form follows, and total points ranks lowest first", () => {
+    const head = headToHeadTable(LOWER_WINS, [ANN, BOB], [week(1, [[ANN, BOB]])], scores({ 1: { Ann: 30, Bob: 40 } }), []);
+    expect(head.map((row) => [row.team, row.won, row.lost, row.points])).toEqual([[ANN, 1, 0, 3], [BOB, 0, 1, 0]]);
+    const form = formOf(LOWER_WINS, [ANN, BOB], [week(1, [[ANN, BOB]])], scores({ 1: { Ann: 30, Bob: 40 } }));
+    expect([form.get(ANN), form.get(BOB)]).toEqual([["won"], ["lost"]]);
+    expect(order(totalPointsTable(LOWER_WINS, [ANN, BOB], scores({ 1: { Ann: 30, Bob: 20 } })))).toEqual([BOB, ANN]);
   });
 });
 
@@ -194,7 +210,7 @@ describe("each team's form", () => {
     const byGameweek = Object.fromEntries(
       Array.from({ length: 7 }, (_, i) => [i + 1, i + 1 === 7 ? { Ann: 4, Bob: 4 } : { Ann: (i + 1) % 2 === 1 ? 5 : 1, Bob: 3 }]),
     );
-    const form = formOf([ANN, BOB], schedule, scores(byGameweek));
+    const form = formOf(PLAYED, [ANN, BOB], schedule, scores(byGameweek));
 
     expect(form.get(ANN)).toEqual(["won", "lost", "won", "lost", "drawn"]);
     expect(form.get(BOB)).toEqual(["lost", "won", "lost", "won", "drawn"]);
@@ -202,15 +218,15 @@ describe("each team's form", () => {
 
   test("counts a matchup against the league's average, and nothing for a bye", () => {
     const schedule = [{ gameweek: 1, fixtures: [{ team: ANN, opponent: BOB }, { team: CAT, opponent: LEAGUE_AVERAGE }], byes: [] }, week(2, [[ANN, BOB]], [CAT])];
-    const form = formOf([ANN, BOB, CAT], schedule, scores({ 1: { Ann: 10, Bob: 10, Cat: 11 }, 2: { Ann: 1, Bob: 2, Cat: 99 } }));
+    const form = formOf(PLAYED, [ANN, BOB, CAT], schedule, scores({ 1: { Ann: 10, Bob: 10, Cat: 11 }, 2: { Ann: 1, Bob: 2, Cat: 99 } }));
     expect([form.get(ANN), form.get(BOB), form.get(CAT)]).toEqual([["drawn", "lost"], ["drawn", "won"], ["won"]]);
   });
 
   test("is empty for every team before any gameweek is scored", () => {
-    expect([...formOf([ANN, BOB], [week(1, [[ANN, BOB]])], new Map()).values()]).toEqual([[], []]);
+    expect([...formOf(PLAYED, [ANN, BOB], [week(1, [[ANN, BOB]])], new Map()).values()]).toEqual([[], []]);
   });
 
   test("a fixture for a team not in the league is a bug, and says whose", () => {
-    expect(() => formOf([ANN], [week(1, [[ANN, BOB]])], scores({ 1: { Ann: 1, Bob: 2 } }))).toThrow(`${BOB} has a fixture but isn't one of the league's teams`);
+    expect(() => formOf(PLAYED, [ANN], [week(1, [[ANN, BOB]])], scores({ 1: { Ann: 1, Bob: 2 } }))).toThrow(`${BOB} has a fixture but isn't one of the league's teams`);
   });
 });

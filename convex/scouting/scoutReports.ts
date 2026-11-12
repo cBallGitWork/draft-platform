@@ -1,17 +1,23 @@
 import { v } from "convex/values";
 import { internal } from "../_generated/api";
 import type { Doc } from "../_generated/dataModel";
-import { internalAction, internalMutation, internalQuery, type MutationCtx } from "../_generated/server";
+import { internalAction, internalMutation, internalQuery, type MutationCtx, type QueryCtx } from "../_generated/server";
+import { saveGameweekOf } from "../gameweeks/saveGameweek";
+import { seasonGameweekCount } from "../gameweeks/seasonGameweeks";
+import { lastPlayedGameweek } from "../gameweeks/usedGameweeks";
+import { lineupInGameweek } from "../lineup/lineups";
 import { positionOfSlot } from "../lineup/pitch";
 import { roleIn, roleName } from "../lineup/roles";
 import { fileLetter } from "../mail/letters";
 import { CLAUDE_RETRY_MS, writeWithClaude } from "../outbound/claude";
 import { nextFixtures, seasonMatches } from "../playerCard/playerCard";
 import { positionsNow } from "../positions/playerPositions";
+import { gameModeOf } from "../rules/gameMode";
+import { seasonRules } from "../rules/rulesHistory";
 import { logFailure } from "../shared/errors";
 import { clubsByCode, hasLeft, playerByCode } from "../shared/players";
 import { MINUTE_MS } from "../shared/time";
-import { starsOfPlayers } from "../stars/playerStars";
+import { starsLookup } from "../stars/playerStars";
 import { playerLeftLetter, REPORT_MAX_TOKENS, REPORT_SYSTEM, reportInLetter, reportPrompt, type ScoutBrief } from "./scoutWords";
 
 // A scout's report (spec/19, The report; #375), written when his 24 hours are up: a few plain
@@ -41,12 +47,9 @@ export const brief = internalQuery({
     const positions = await (await positionsNow(ctx, league._id))(player.code);
     const clubs = clubsByCode(ctx);
     const club = await clubs(player.clubCode);
-    const stars = (await starsOfPlayers(ctx, [player.code])).get(player.code)!;
-    const lineup = await ctx.db
-      .query("lineups")
-      .withIndex("by_leagueId_and_teamId_and_fromGameweek", (q) => q.eq("leagueId", league._id).eq("teamId", scout.teamId))
-      .order("desc")
-      .first();
+    const mode = gameModeOf((await seasonRules(ctx, league._id)).latest);
+    const stars = mode.showsStars ? (await starsLookup(ctx, [player.code]))(player.code) : [];
+    const lineup = await lineupInGameweek(ctx, league._id, scout.teamId, await shapeGameweek(ctx, league, now));
     const opponentOf = (match: { home: { code: number; name: string }; away: { code: number; name: string } }) => {
       const home = match.home.code === player.clubCode;
       return { opponent: (home ? match.away : match.home).name, home };
@@ -58,7 +61,8 @@ export const brief = internalQuery({
       news: player.news || null,
       chanceOfPlaying: player.chanceOfPlaying ?? null,
       stars: stars.map(({ area, role, stars }) => ({ area, role: roleName(role), stars })),
-      shape: (lineup?.starters ?? []).map((starter) => ({ position: positionOfSlot(starter), role: roleIn(starter, starter.role).name })),
+      // A slot whose starter left is still the formation's: the bench fills it (spec/05).
+      shape: [...lineup.starters, ...lineup.vacated].map((starter) => ({ position: positionOfSlot(starter), role: roleIn(starter, starter.role).name })),
       matches: (await seasonMatches(ctx, league, player, positions, clubs)).map((match) => ({
         ...opponentOf(match),
         minutes: match.minutes,
@@ -66,9 +70,16 @@ export const brief = internalQuery({
       })),
       fixtures: (await nextFixtures(ctx, player.clubCode, now, clubs)).map((fixture) => ({ ...opponentOf(fixture), gameweek: fixture.gameweek })),
     };
-    return { kind: "brief" as const, prompt: reportPrompt(facts) };
+    return { kind: "brief" as const, prompt: reportPrompt(facts, mode) };
   },
 });
+
+/** The gameweek whose lineup gives the manager's formation: the one a save at `now` goes to, as
+ *  every other screen reads it, or the league's last played once its season is over. */
+async function shapeGameweek(ctx: QueryCtx, league: Doc<"leagues">, now: number): Promise<number> {
+  const next = await saveGameweekOf(ctx, league._id, now);
+  return next.kind === "open" ? next.gameweek : lastPlayedGameweek(league, await seasonGameweekCount(ctx));
+}
 
 /** Writes the scout's report when his 24 hours are up (scheduled by scouts.ts's `send`): Claude
  *  writes it from `brief`, and it lands; or the player has left, and the scout comes back with none.

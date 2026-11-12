@@ -48,7 +48,9 @@ A build gives its own diff one quick pass before its final verify: code written 
 don't match their neighbours, a helper or fixture that already exists elsewhere, fixed in place
 (Craig, 4 Nov 2026: "a little refactor is always good"; the prompt is in `claude-build.yml`).
 No skill and no subagent: the full `/refactor` (`.claude/skills/refactor/`) runs in the weekly
-drift pass, or in a session when Craig asks. `pr-reviewer` reviews every pull request as its own
+drift pass, or in a session when Craig asks. `tests/convex/oneHome.test.ts` fails when a type, a
+function body or a literal object is written in three files of `convex/`, or a test restates a
+harness's export, past its shrink-only lists (#1813). `pr-reviewer` reviews every pull request as its own
 job (`.github/workflows/review.yml`), posting its verdict as a comment; the merge waits for it to land (`review-landed`, `.github/workflows/review-gate.yml`).
 
 ## The drift pass
@@ -85,8 +87,7 @@ counts, including what was declined ("3 things written three times: 2 lifted, 1 
 `git log --grep '^refactor: drift pass' main` lists the passes. Each merged pull request is one
 commit on `main`, so the count since the last pass is
 `git rev-list --count $(git log -1 --format=%H --grep '^refactor: drift pass' main)..main`.
-`Self-review:` is the drift pass's record line only; a feature branch records /refactor in its
-PR's checks box.
+`Self-review:` is the drift pass's record line only.
 
 ## The architecture pass
 

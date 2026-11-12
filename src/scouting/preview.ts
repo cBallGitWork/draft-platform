@@ -6,18 +6,18 @@ import type { ListedPlayer } from "../../convex/scouting/playersList";
 import { mainArea, per90FiguresIn, per90PanelOf, totalOf } from "../../convex/scouting/per90Figures";
 import { cardOpensAt } from "../../convex/playerCard/cardPoints";
 import { MINUTES_STAT } from "../../convex/stats/matchRecords";
-import { proLeague } from "../shared/preview";
+import { previewTeamNames, proLeague } from "../shared/preview";
 import { listFigures, listOf, NO_FIGURES, shownStat } from "../../convex/scouting/playersOrder";
 import { mostFirst, raceOrder } from "../../convex/scouting/raceOrder";
 import { withOwnStats } from "../../convex/scoring/ownStats";
-import { OWN_STAT_PREFIX } from "../../convex/scoring/statCatalogue";
+import { OWN_STAT_PREFIX } from "../../convex/scoring/statKeys";
 import type { Stats } from "../../convex/stats/statTotals";
 import { DAY_MS } from "../../convex/shared/time";
 import { listedFromScouting, listInPreview, setPreviewPlayers, setPreviewShortlisted } from "../draft/previewLists";
 import { previewClaims } from "../myTeam/claims/preview";
 import { previewScouts } from "./scouts/preview";
 import { previewShortlistOf } from "./shortlist/preview";
-import { previewIdOf, previewTeams } from "../table/preview";
+import { previewIdOf } from "../table/preview";
 import type { Period, ScoutingSeam, StatRace, WaiverActionSeam } from "./seam";
 
 export const ARSENAL = { code: 3, name: "Arsenal", shortName: "ARS" };
@@ -119,7 +119,7 @@ const previewRace = (stat: string): StatRace => ({
   categories: RACE_CATEGORIES,
   since: null,
   teams: raceOrder(
-    previewTeams.map((name, index) => {
+    previewTeamNames.map((name, index) => {
       const stats = raceTotals(index);
       return { teamId: previewIdOf(name), name, stats, stat: stats[stat] ?? 0 };
     }),

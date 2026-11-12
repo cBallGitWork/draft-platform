@@ -52,23 +52,23 @@ export function CommissionerPanel({
   leagueId,
   seam,
   draft,
+  paused,
   board,
-  now,
   selected,
   unselect,
 }: {
   leagueId: Id<"leagues">;
   seam: DraftSeam;
   draft: Waiting | Live;
+  /** The commissioner has paused the draft (`pausedAtOf`, ClockLeft.tsx). */
+  paused: boolean;
   board: DraftBoard;
-  now: number;
   /** The player selected in the room's players list, whom Pick for takes. */
   selected: ListedPlayer | null;
   unselect: () => void;
 }) {
-  // Its read takes the minute, so the last answer stays up while the next loads and a half-typed
-  // pick time survives the minute turning (#1531).
-  const view = useLastLoaded(seam.useCommissioner(leagueId, now), leagueId);
+  // The last answer stays up while the next loads, so a half-typed pick time survives a reload (#1531).
+  const view = useLastLoaded(seam.useCommissioner(leagueId), leagueId);
   const changes = seam.useCommissionerChanges();
   const changing = useChange();
   const aside = <span className="text-soft">{onlyYouWords}</span>;
@@ -80,7 +80,6 @@ export function CommissionerPanel({
     );
   }
   const run = (change: () => Change) => void changing.run(change);
-  const paused = (draft.status === "live" ? draft.clock?.pausedAt : draft.status === "ending" ? draft.pausedAt : undefined) !== undefined;
   return (
     <Panel title={COMMISSIONER_TITLE} aside={aside}>
       <div className={PANEL_BODY}>
@@ -211,9 +210,9 @@ function secondsFrom(typed: string): number | null {
 
 /** The pick time's box: typed as "90s", "2m" or "8h" and saved on Enter or on leaving it, where
  *  `open`; otherwise greyed, to be changed while paused. */
-function PickTime({ seconds, open, busy, save }: { seconds: number | null; open: boolean; busy: boolean; save: (seconds: number) => Promise<boolean> }) {
+function PickTime({ seconds, open, busy, save }: { seconds: number; open: boolean; busy: boolean; save: (seconds: number) => Promise<boolean> }) {
   const id = useId();
-  const shown = seconds === null ? "" : pickTimeWords(seconds);
+  const shown = pickTimeWords(seconds);
   const [typed, setTyped] = useState(shown);
   const [held, setHeld] = useState(shown);
   const [bad, setBad] = useState(false);

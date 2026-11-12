@@ -11,7 +11,7 @@ import {
   scoringStartMovedLetter,
   upNextLetter,
   type PickNews,
-} from "../mail/letterWords";
+} from "../mail/draftLetterWords";
 import type { MovedStart } from "../gameweeks/scoringStart";
 import { bylineOf, fileLetter, wholeLeague } from "../mail/letters";
 import { tellIn } from "../mail/letterMoments";

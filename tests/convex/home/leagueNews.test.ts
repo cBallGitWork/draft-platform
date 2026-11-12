@@ -1,13 +1,13 @@
 import { beforeEach, describe, expect, test } from "vitest";
-import type { Infer } from "convex/values";
 import { api } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
 import { NEWS_PAGE, type LeagueNews } from "../../../convex/home/leagueNews";
-import type { leagueEvent } from "../../../convex/schema";
+import type { LeagueEvent } from "../../../convex/schema";
 import { refusals } from "../../../convex/shared/leagueAccess";
 import { expectRefused } from "../../support/convex/test.harness";
 import { actingAs, addManagers, adminCreatesLeague, COMMISSIONER, MANAGERS, OUTSIDER, type TestConvex } from "../../support/convex/leagues.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
+import { teamNumbered } from "../../../convex/leagues/teams";
 
 // League home's News tab (#1356; docs/design/approved/home/, The News tab): every team's completed
 // moves, newest first, paged, with Team and Kind filters, from the league's squad events.
@@ -32,7 +32,7 @@ const read = async ({ before = null, teamId = null, kind = null }: Asked = {}, e
   (await actingAs(t, email)).query(api.home.leagueNews.ofLeague, { leagueId, before, teamId, kind });
 
 /** Files the event at `at`, as the league's squad changes file theirs. */
-const file = (at: number, event: Infer<typeof leagueEvent>, by = ANN) => t.run((ctx) => ctx.db.insert("leagueEvents", { leagueId, at, by, event }));
+const file = (at: number, event: LeagueEvent, by = ANN) => t.run((ctx) => ctx.db.insert("leagueEvents", { leagueId, at, by, event }));
 const onTeam = (team: number, player = SAKA) => ({ ...player, teamId: teams[team].teamId, teamName: teams[team].teamName });
 
 /** Each move's kind, team, who joined, who left and where from; a trade's sides and other team. */
@@ -58,18 +58,18 @@ describe("the moves", () => {
   test("lists every kind of squad move, newest first, and no other event", async () => {
     await file(1, { kind: "playerAssigned", ...onTeam(0) });
     await file(2, { kind: "playerMoved", ...onTeam(1), fromTeamId: teams[0].teamId, fromTeamName: teams[0].teamName }, COMMISSIONER);
-    await file(3, { kind: "teamRenamed", teamId: teams[2].teamId, from: "Team 3", to: "Team Three" });
+    await file(3, { kind: "teamRenamed", teamId: teams[2].teamId, from: teamNumbered(3), to: "Team Three" });
     await file(4, { kind: "playerReleased", ...onTeam(1) }, COMMISSIONER);
     await file(5, { kind: "playerPickedUp", ...onTeam(2, RICE), dropped: null });
     await file(6, { kind: "playerDropped", ...onTeam(2, RICE), toWaivers: true });
 
     const news = await read();
     expect(summary(news)).toEqual([
-      { kind: "playerDropped", teamName: "Team 3", joined: null, left: "Rice", fromTeamName: null },
-      { kind: "playerPickedUp", teamName: "Team 3", joined: "Rice", left: null, fromTeamName: null },
-      { kind: "playerReleased", teamName: "Team 2", joined: null, left: "Saka", fromTeamName: null },
-      { kind: "playerMoved", teamName: "Team 2", joined: "Saka", left: null, fromTeamName: "Team 1" },
-      { kind: "playerAssigned", teamName: "Team 1", joined: "Saka", left: null, fromTeamName: null },
+      { kind: "playerDropped", teamName: teamNumbered(3), joined: null, left: "Rice", fromTeamName: null },
+      { kind: "playerPickedUp", teamName: teamNumbered(3), joined: "Rice", left: null, fromTeamName: null },
+      { kind: "playerReleased", teamName: teamNumbered(2), joined: null, left: "Saka", fromTeamName: null },
+      { kind: "playerMoved", teamName: teamNumbered(2), joined: "Saka", left: null, fromTeamName: teamNumbered(1) },
+      { kind: "playerAssigned", teamName: teamNumbered(1), joined: "Saka", left: null, fromTeamName: null },
     ]);
     expect(news.moves[0]).toMatchObject({ toWaivers: true });
     expect(news.older).toBeNull();
@@ -81,7 +81,7 @@ describe("the moves", () => {
     await file(7, { kind: "playerClaimed", ...onTeam(0), dropped: { ...RICE, toWaivers: false } });
 
     const news = await read();
-    expect(summary(news)).toEqual([{ kind: "playerClaimed", teamName: "Team 1", joined: "Saka", left: "Rice", fromTeamName: null }]);
+    expect(summary(news)).toEqual([{ kind: "playerClaimed", teamName: teamNumbered(1), joined: "Saka", left: "Rice", fromTeamName: null }]);
     expect(news.moves[0]).toMatchObject({ toWaivers: false });
   });
 
@@ -104,7 +104,7 @@ describe("the moves", () => {
     await file(4, { kind: "playerTraded", ...onTeam(1), fromTeamId: teams[0].teamId, fromTeamName: teams[0].teamName });
     await file(4, { kind: "playerTraded", ...onTeam(0, RICE), fromTeamId: teams[1].teamId, fromTeamName: teams[1].teamName });
 
-    const row = { kind: "tradeMade", teamName: "Team 1", gets, gives, otherTeamName: "Team 2" };
+    const row = { kind: "tradeMade", teamName: teamNumbered(1), gets, gives, otherTeamName: teamNumbered(2) };
     expect(summary(await read())).toEqual([row]);
     expect(summary(await read({ teamId: teams[1].teamId }))).toEqual([row]);
     expect(summary(await read({ kind: "tradeMade" }))).toEqual([row]);

@@ -1,9 +1,9 @@
 import { expect, test } from "vitest";
 import { HOUR_MS, MINUTE_MS } from "../../../convex/shared/time";
 import {
-  ANN,
   annsScoredGame,
   GAMEWEEK,
+  homeAt,
   HULL_BENCH,
   HULL_KEEPER,
   HULL_SCORER,
@@ -11,20 +11,16 @@ import {
   LEAGUE_KICKOFF,
   nameOf,
   scoresLeague,
-  type ScoresLeague,
 } from "../../support/convex/gameweekScores.harness";
 import { fullTimeRecords } from "../../support/convex/gameweekScoresMatch.harness";
 import { MIDFIELD_GOAL } from "../../support/convex/gameweekScoresFixes.harness";
-import { actingAs } from "../../support/convex/leagues.harness";
-import { leagueHomeOf } from "../../support/convex/screenReads.harness";
 import { holdLines, notYetBegun, storedLine } from "../../support/convex/matchPage.harness";
 import { HULL_EVERTON } from "../../support/convex/matchStats.harness";
+import { teamNumbered } from "../../../convex/leagues/teams";
 
 // League home's matchday mode (#387; spec/12, League home): the head-to-heads scored once the
 // gameweek has begun, and while a matchday is open, the Vidiprinter of the lines that move one of
 // them. Ann fields Hull and Bob Everton, playing each other in gameweek 6's one match.
-
-const homeAt = async ({ t, leagueId }: ScoresLeague, now: number) => leagueHomeOf(await actingAs(t, ANN), leagueId, now);
 
 /** The scores league at full time, holding a goal by Hull's scorer, a booking for a Hull bench man
  *  who never came on, kick-off and full time. */
@@ -47,7 +43,7 @@ test("once the gameweek has begun, each head-to-head carries both sides' points,
   const { team, opponent } = await annsScoredGame(league, GAMEWEEK);
   const home = (await homeAt(league, LEAGUE_FULL_TIME_READ))!;
   expect(home.thisGameweek?.fixtures).toEqual([
-    { teamId: league.annsTeam, game: 1, team: "Team 1", opponent: "Team 2", points: { team: team.points, opponent: opponent.points } },
+    { teamId: league.annsTeam, game: 1, team: teamNumbered(1), opponent: teamNumbered(2), points: { team: team.points, opponent: opponent.points } },
   ]);
 });
 

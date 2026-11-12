@@ -1,3 +1,4 @@
+import type { HeldMatchPage, MatchPageData } from "../match/matchPage";
 import type { HeldMatchup, Matchup } from "./matchupShape";
 
 // Commentary as the screen shows it at its minute (#1550). A query may not read the clock, and one
@@ -16,6 +17,11 @@ export function commentaryAt<Line>(held: Held<Line>, now: number): Shown<Line> {
   if (held.kind === "unread") return held;
   const { delayedFrom, ...read } = held;
   return { ...read, delayed: isDelayedAt(delayedFrom, now) };
+}
+
+/** The match page `ofMatch` sends, as shown at `now`. */
+export function matchPageAt(held: HeldMatchPage, now: number): MatchPageData {
+  return { ...held, commentary: commentaryAt(held.commentary, now) };
 }
 
 /** The matchup `ofTeam` sends, as shown at `now`. */

@@ -1,0 +1,13 @@
+{
+  "$schema": "https://unpkg.com/knip@6/schema.json",
+  "entry": [
+    "src/main.tsx!",
+    "convex/**/*.ts!",
+    "scripts/*.mjs!",
+    "tests/**/*.{test,spec}.{ts,tsx,mjs}"
+  ],
+  "project": ["src/**/*.{ts,tsx}!", "convex/**/*.ts!", "scripts/**/*.mjs!", "tests/**/*.{ts,tsx,mjs}"],
+  "ignore": ["convex/_generated/**"],
+  "ignoreExportsUsedInFile": false,
+  "includeEntryExports": true
+}
