@@ -7,7 +7,7 @@
 // Usage: node scripts/design/expand.mjs <board.dc.html> <out.html>
 
 import { readFileSync, writeFileSync } from "node:fs";
-import { pathToFileURL } from "node:url";
+import { ranDirectly } from "../thisScript.mjs";
 
 const DC_SCRIPT = /<script type="text\/x-dc" data-dc-script data-props='([^']*)'>([\s\S]*?)<\/script>/;
 const BODY = /<x-dc>([\s\S]*)<\/x-dc>/;
@@ -89,7 +89,7 @@ export function expandBoard(source) {
   return { html: html.replace(EDITOR_HINT, ""), imports: [...page.matchAll(DC_IMPORT)].map((match) => match[1]) };
 }
 
-if (process.argv[1] !== undefined && import.meta.url === pathToFileURL(process.argv[1]).href) {
+if (ranDirectly(import.meta.url)) {
   const [board, out] = process.argv.slice(2);
   if (!board || !out) {
     console.error("Usage: node scripts/design/expand.mjs <board.dc.html> <out.html>");

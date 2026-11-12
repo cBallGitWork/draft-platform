@@ -4,7 +4,9 @@
 // OWN_STAT_PREFIX is one of the roles' own stats (FIRST_ROLE_OWN_STATS). A rule's stat is data:
 // these only name the ones the code starts from.
 
-import { OWN_STAT_PREFIX } from "./statCatalogue";
+/** What every own stat's key starts with (#136). `own_` couldn't be it: the feed sends `own_goals`.
+ *  Kept here, not in statCatalogue.ts, so the catalogue's list can name its keys from this file. */
+export const OWN_STAT_PREFIX = "league:";
 
 // The stats both feeds send are named where the record is merged.
 export {

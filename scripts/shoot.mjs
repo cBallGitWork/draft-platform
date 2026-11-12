@@ -11,14 +11,14 @@
 
 import { mkdirSync } from "node:fs";
 import { join } from "node:path";
-import { fileURLToPath } from "node:url";
 import { chromium } from "@playwright/test";
 import { appPort, localUrl } from "./port.mjs";
 import { tapsUnderTapSize } from "./tap-targets.mjs";
+import { CHECKOUT } from "./thisScript.mjs";
 import { DESK, PHONE } from "./viewports.mjs";
 
 const PHONE_FLAG = "--phone";
-const SHOTS_DIR = fileURLToPath(new URL("../.shots/", import.meta.url));
+const SHOTS_DIR = join(CHECKOUT, ".shots");
 
 const args = process.argv.slice(2);
 const withPhone = args.includes(PHONE_FLAG);

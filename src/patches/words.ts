@@ -2,7 +2,7 @@
 // request. What each version changed is worked out on the server (convex/scoring/patchChanges.ts),
 // and reaches the screen as is.
 
-import { screenMoment } from "../../convex/shared/moments";
+import { LOCALE, screenMoment } from "../../convex/shared/moments";
 import { ROLE_TARGET_MARGIN } from "../../convex/balanceLab/balanceLabLimits";
 import { failedWords, seasonShortWords } from "../shared/words";
 import type { VersionNotes } from "./seam";
@@ -29,7 +29,7 @@ export const labSummaryWords = (seasons: readonly number[], starts: number, skip
   const last = seasons.at(-1);
   if (first === undefined || last === undefined) return "No past season is copied yet, so there are no starts to test on.";
   const on = first === last ? seasonShortWords(first) : `${seasonShortWords(first)} to ${seasonShortWords(last)}`;
-  return `On ${on}: ${starts.toLocaleString("en-GB")} real starts, each counted in the slot he started in. Starts skipped (where he started maps to no slot): ${skipped.toLocaleString("en-GB")}.`;
+  return `On ${on}: ${starts.toLocaleString(LOCALE)} real starts, each counted in the slot he started in. Starts skipped (where he started maps to no slot): ${skipped.toLocaleString(LOCALE)}.`;
 };
 export const labHint = `Each role's average a start over its slot's real starts, against the slot's target role adjustment. More than ${ROLE_TARGET_MARGIN} off it is flagged.`;
 export const labColumns = {
