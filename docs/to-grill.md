@@ -34,8 +34,6 @@ Each with the questions its grill starts from. The questions are Claude's.
 - "One booking from a ban" needs the competition's yellow-card thresholds, held per competition as
   data, and a count of each player's bookings. Wanted now, or after the beta?
 
-**Premier League club pages**: `spec/18`, *After the mini beta*.
-
 **Cups and a plate**: after the beta (SPEC, *Later*; Craig, 20 Oct 2026). The plate here is a
 competition, not the design plate (`docs/design/plate.md`).
 - Who plays the plate: everyone knocked out of the cup, or the bottom of the table.

@@ -34,8 +34,29 @@ fixtures are a different screen (`spec/12`, "table and fixtures").
   #899). Another competition (SPEC.md, Later: Other leagues) brings its own order.
   Dropped 9 Nov 2026 (#1196): the table now comes from Sportmonks' standings. `S18.1 withdrawn`
 
-## After the mini beta
+## Club pages
 
+- A page for each real club in a competition the league plays, the same in every competition
+  (Craig, 12 Nov 2026: "nah we can make a club page, no reason not to, its important"). It holds
+  the squad, who owns whom in the draft league, and doubts. `S18.11`
 - Club pages (the squad, who owns whom in the draft league, doubts) come after the mini beta. No
   set-piece takers: "we didthced set piece taker (unless its a role)" (Craig, 9 Nov 2026, on
-  #1196). `S18.3`
+  #1196). Brought forward 12 Nov 2026 (`S18.11`); set-piece takers stay out (SPEC.md, Out of
+  scope). `S18.3 withdrawn`
+- A club's name opens its page wherever it shows, as a link; its mark doesn't: "click the name
+  anywhere, not the crest, like a hyperlink" (Craig, 12 Nov 2026). It sits under Football. `S18.6`
+- The header: the club's mark and name, its table place, its last five results, and its next match
+  as an opponent card (their table place, their form, how many days away). Under them, the club's
+  top three scorers in the league's points, and the club's stadium, capacity and manager (Craig,
+  12 Nov 2026). No ownership line: "you already have that info in table", the Squad tab's team
+  column (Craig, 12 Nov 2026). `S18.7`
+- A Squad tab, players grouped GK, DEF, MID, FWD, each with his positions, his team in the league
+  or Free agent or Waivers, his season points, his points in each of his last five gameweeks, his
+  starts and minutes, and a doubt chip, a greyed placeholder until the status chips are settled
+  (`docs/to-grill.md`) (Craig, 12 Nov 2026). A row opens the player card, where claims and pick-ups
+  live; the club page has no buttons of its own (Craig, 12 Nov 2026). `S18.8`
+- A Fixtures tab: the club's matches this season in the competitions the league plays, each with
+  its gameweek, home or away, and its result or kick-off, opening its match page. No difficulty
+  colours, as on the Football page (Craig, 12 Nov 2026). `S18.9`
+- Points, form and the top scorers are in the league's own rules, the same numbers as the player
+  card and Scouting (Craig, 12 Nov 2026). `S18.10`
