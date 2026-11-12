@@ -1,12 +1,10 @@
-import type { Infer } from "convex/values";
 import { figureWords } from "../shared/numberWords";
-import type { leagueEvent } from "../schema";
+import type { LeagueEvent } from "../schema";
 import type { Words } from "./letterShape";
 
 // What a score override's Mail letters say (spec/14, Changes and corrections; #32, #903): split
 // from letterWords.ts, which writes the rest and calls this for an override's letter.
 
-type LeagueEvent = Infer<typeof leagueEvent>;
 type OverrideEvent = Extract<LeagueEvent, { kind: "pointsOverridden" | "pointsOverrideRemoved" | "teamPointsOverridden" }>;
 
 /** The letter an override, or its removal, files to the whole league, naming `who` did it. */

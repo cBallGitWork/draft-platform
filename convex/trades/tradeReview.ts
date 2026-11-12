@@ -24,7 +24,7 @@ import { leagueOf, managersOf, teamsOfTrade, tradedName, tradedSideOf, tradeWord
 import { REVIEW_MS } from "./tradeLimits";
 import { movePicks } from "./tradePicks";
 import { reviewerOf, reviewersOf, storedReviewer, votersOn } from "./tradeReviewers";
-import { squadFullRefusal, squadsAfter, tradeWarnings } from "./tradeSquads";
+import { squadsAfter, tradeWarnings } from "./tradeSquads";
 
 // A trade's review and its move (spec/08 Trades; #383). Accepted, a trade goes through at once in
 // a league with no review. Under a commissioner veto, the commissioner has 24 hours to block it;
@@ -46,7 +46,6 @@ export const reviewRefusals = {
   notYourVote: "Only the managers of the other teams still playing can vote on that trade.",
   votedAlready: "You have voted against that trade already.",
   notVoted: "You haven't voted against that trade.",
-  squadFull: squadFullRefusal,
 };
 
 /** The accepted offer goes into review, or through at once with none. */

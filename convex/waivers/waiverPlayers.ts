@@ -5,10 +5,9 @@ import { fileEvent, recordEvent } from "../mail/letters";
 import { tellShortlisters } from "../scouting/shortlist";
 import { LEAGUES_READ_MOST, takeAllOrThrow } from "../shared/cappedRead";
 import { placeOf } from "../squads/squadPlace";
-import type { LeagueDeadlines } from "../gameweeks/deadline";
+import { deadlinePassedSince, type LeagueDeadlines } from "../gameweeks/deadline";
 import { closeOffersHolding } from "../trades/tradeClose";
 import { WAIVER_MS } from "./waiverLimits";
-import { deadlinePassedSince } from "./waiverLock";
 
 // Who is on waivers in a league (#1197, spec/08 Waivers and free agency): a row in waiverPlayers
 // (../schema/waivers.ts) each, only while no team holds him. A drop puts him there for at least 24

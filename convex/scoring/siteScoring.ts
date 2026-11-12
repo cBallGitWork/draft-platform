@@ -10,7 +10,7 @@ import { zoneOf } from "../signIn/timeZone";
 import { sortedJson } from "../shared/sortedJson";
 import { DAY_MS, seasonStartYear } from "../shared/time";
 import { fileSiteLetter } from "../mail/letters";
-import { versionLetter, withdrawnLetter } from "../mail/letterWords";
+import { versionLetter, withdrawnLetter } from "../mail/scoringLetterWords";
 import { carryFix } from "./carryFix";
 import { repriceAt } from "./patchKickoffs";
 import { scoringChanges } from "./patchChanges";

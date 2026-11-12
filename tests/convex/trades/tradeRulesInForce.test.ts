@@ -20,7 +20,7 @@ test("a waiting change to no review leaves today's veto: a trade accepted now st
   const offerId = await w.annTradesForSaka();
 
   expect(await annsSquad()).not.toContain(SAKA);
-  expect((await w.mine(ANN))[0].review?.kind).toBe("veto");
+  expect((await w.mine(ANN))[0].reviewer).toBe("commissioner");
   await w.reviewEnds(offerId);
   expect(await annsSquad()).toContain(SAKA);
 });
