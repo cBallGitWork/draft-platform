@@ -3,7 +3,7 @@ import { isLocked } from "../../convex/gameweeks/deadline";
 import type { ScoringStartView } from "../../convex/gameweeks/scoringStart";
 import { Loading, Problem } from "../ui/Panel";
 import { useChange } from "../shared/useChange";
-import { useMinute } from "../shared/useMinute";
+import { useNowEachMinute } from "../shared/useMinute";
 import { gameweekShort, whenWords } from "../shared/words";
 import type { LeagueSettingsSeam } from "./seam";
 import {
@@ -30,10 +30,9 @@ const NOT_SET = "";
 export function ScoringStartRow({ leagueId, seam }: { leagueId: Id<"leagues">; seam: LeagueSettingsSeam }) {
   const view = seam.useScoringStart(leagueId);
   const saving = useChange();
-  // Redrawn each minute so a gameweek that begins while the page is open leaves the picker.
-  useMinute();
+  // A gameweek that begins while the page is open leaves the picker.
+  const now = useNowEachMinute();
   if (view === undefined) return <Loading>{scoringStartLoadingWords}</Loading>;
-  const now = Date.now();
   const startDeadline = view.ticked.find(({ gameweek }) => gameweek === view.start)?.deadline ?? null;
   const fixedAtNone = view.start === null && view.seasonBegun;
   const fixed = view.start !== null && isLocked(startDeadline, now);

@@ -12,6 +12,7 @@ import type { TradeReview, WEEKDAYS } from "../../convex/rules/leagueRulesShape"
 import { hoursWords } from "../../convex/shared/time";
 import type { OddTeamOut } from "../../convex/table/roundRobin";
 import { REVIEW_MS } from "../../convex/trades/tradeLimits";
+import { WAIVER_MS } from "../../convex/waivers/waiverLimits";
 import { noNumberWords, savedFromWords } from "../rules/words";
 import { AREA_WORDS, commissionerVetoWords, failedWords, leagueVoteWords } from "../shared/words";
 import { inUnit, type PickClockUnit } from "./pickClock";
@@ -101,9 +102,9 @@ export const runTimeLabel = (run: number) => `Run ${run}'s time`;
 export const removeRunWords = "Remove";
 export const removeRunLabel = (run: number) => `Remove run ${run}`;
 export const addRunWords = "Add a run";
-export const runsHint = "Each run takes every player whose 24 hours on waivers are up. A run between a deadline and the gameweek's last match is skipped.";
+export const runsHint = `Each run takes every player whose ${hoursWords(WAIVER_MS)} on waivers are up. A run between a deadline and the gameweek's last match is skipped.`;
 export const runTwiceWords = "Two runs are at the same time: change one or remove it.";
-export const dayWords: Record<(typeof WEEKDAYS)[number], string> = {
+export const weekdayNames: Record<(typeof WEEKDAYS)[number], string> = {
   monday: "Monday",
   tuesday: "Tuesday",
   wednesday: "Wednesday",

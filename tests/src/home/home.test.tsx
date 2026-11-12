@@ -9,7 +9,6 @@ import { describe, expect, it } from "vitest";
 import { TOP_ROWS } from "../../../convex/home/glance";
 import { MINUTE_MS } from "../../../convex/shared/time";
 import { HOME_PATH, MY_TEAM_PATH, TABLE_PATH } from "../../../src/frame/menu";
-import { menuWords } from "../../../src/frame/words";
 import type { LeagueHome } from "../../../src/home/seam";
 import {
   columns,
@@ -27,7 +26,7 @@ import {
   yourTeamWords,
 } from "../../../src/home/words";
 import { scoreWords } from "../../../src/matchup/words";
-import { formLabel } from "../../../src/shared/words";
+import { formLabel, menuWords } from "../../../src/shared/words";
 import { expectColumnHeads } from "../../support/src/columnHeads";
 import { homeFixture, homeRow, quietHome, type HomeData } from "../../support/src/home.harness";
 import { commissioner, league, manager, openApp } from "../../support/src/shell.harness";

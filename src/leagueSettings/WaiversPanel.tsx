@@ -5,7 +5,6 @@ import { Choice } from "../ui/Choice";
 import { PANEL_BODY, Panel } from "../ui/Panel";
 import {
   addRunWords,
-  dayWords,
   removeRunLabel,
   removeRunWords,
   runDayLabel,
@@ -16,6 +15,7 @@ import {
   waiverOrderHint,
   waiverOrderLabel,
   waiversTitle,
+  weekdayNames,
 } from "./words";
 
 // How waivers run (spec/03, spec/08; #1200, the waivers picture's Waivers tab): Reverse table order
@@ -53,7 +53,7 @@ export function WaiversPanel({ waivers, edit }: { waivers: WaiverRules; edit: (w
               <select aria-label={runDayLabel(number)} className="text-box" value={run.day} onChange={(event) => setRun(index, { ...run, day: event.target.value as Run["day"] })}>
                 {WEEKDAYS.map((day) => (
                   <option key={day} value={day}>
-                    {dayWords[day]}
+                    {weekdayNames[day]}
                   </option>
                 ))}
               </select>
