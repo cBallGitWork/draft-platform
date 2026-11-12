@@ -55,6 +55,21 @@ test("a run again changes nothing held, and marks a man no squad sends any more 
   expect(tavernier?.droppedAt).toBe(LIVE_NOW);
 });
 
+test("a run that no longer sends a club's ground, capacity or manager clears the held ones (#1938)", async () => {
+  const t = freshConvex();
+  await sync(t);
+  const season = sportmonksSeason();
+  const celtic = season.teams.find((team) => team.id === SM.celtic)!;
+  celtic.venue = null;
+  celtic.coaches = [];
+  await sync(t, { season });
+
+  const [, second] = await syncs(t);
+  expect(second.outcome).toMatchObject({ ok: true, clubs: { received: 3, inserted: 0, updated: 1 } });
+  const held = await t.run((ctx) => ctx.db.query("sportmonksClubs").withIndex("by_code", (q) => q.eq("code", SM.celtic)).unique());
+  expect([held?.stadium, held?.capacity, held?.manager]).toEqual([undefined, undefined, undefined]);
+});
+
 test("a refused read is a failed run's row with Sportmonks' own words, and no table is touched", async () => {
   silenceConsoleError();
   const t = freshConvex();
