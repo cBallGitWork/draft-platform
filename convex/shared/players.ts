@@ -3,7 +3,6 @@ import type { Doc } from "../_generated/dataModel";
 import type { QueryCtx } from "../_generated/server";
 import type { clubRecord } from "../schema";
 import { takeAllOrThrow } from "./cappedRead";
-import { refuse, refusals } from "./leagueAccess";
 import { readOnce } from "./readOnce";
 
 // The Premier League's clubs and players as the football sync holds them (#21): the reads that
@@ -93,12 +92,6 @@ export async function heldPlayerByCode(ctx: QueryCtx, code: number, missing: str
   const player = await playerByCode(ctx, code);
   if (player === null) throw new Error(missing);
   return player;
-}
-
-/** The player with `code` a manager or commissioner asked for, or the refusal that there is no such
- *  player: here a missing one is a request gone wrong, not data. */
-export async function playerOrRefuse(ctx: QueryCtx, code: number): Promise<Doc<"players">> {
-  return (await playerByCode(ctx, code)) ?? refuse(refusals.noPlayer);
 }
 
 /** The players at the club now, the ones the feed has dropped left out. */

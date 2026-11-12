@@ -6,8 +6,8 @@ import { bylineOf, fileLetter } from "../mail/letters";
 import { shortlistedClearedLetter, shortlistedDroppedLetter, shortlistedReleasedLetter, shortlistRefusals } from "./shortlistWords";
 import { clubRecord } from "../schema";
 import { takeAllOrThrow } from "../shared/cappedRead";
-import { memberOf, refuse, refusals, teamsOf } from "../shared/leagueAccess";
-import { clubByCode, clubOf, hasLeft, heldPlayerByCode, playerOrRefuse } from "../shared/players";
+import { memberOf, playerOrRefuse, refuse, refusals, teamsOf } from "../shared/leagueAccess";
+import { clubByCode, clubOf, hasLeft, heldPlayerByCode } from "../shared/players";
 import { ownerOf } from "../squads/squadPlace";
 
 // The shortlist (spec/19, The shortlist; #374): a manager's own list of players for the season, in
