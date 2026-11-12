@@ -479,7 +479,7 @@ The homes the folder pass set (29 Oct 2026), so new code has one place to go:
    records and their totals), the browser and the scheduler call their functions, so a move
    leaves re-exports behind (rule 8).
 7. A test mirrors its source's path; setup two test files share lives in `tests/support/convex/`
-   or `tests/support/src/`, by feature.
+   or `tests/support/src/`, by feature (`tests/convex/testTwins.test.ts`).
 8. Moving a Convex file whose functions the browser or the scheduler call keeps a thin re-export at
    the old path (`docs/REFACTORING.md`, "Function paths").
 
