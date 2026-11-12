@@ -13,11 +13,11 @@
     "test": "node scripts/with-deadline.mjs 300 vitest run",
     "test:docs": "vitest run $(grep -rlE '\\.md\\?raw' tests)",
     "typecheck": "tsc --noEmit -p convex && tsc --noEmit -p .",
-    "lint": "eslint --max-warnings 0 .",
+    "lint": "eslint --max-warnings 0 . && node scripts/named-literals.mjs",
     "smoke": "playwright test",
     "test-account": "node --env-file-if-exists=.env.local node_modules/@playwright/test/cli.js test -c playwright.live.config.ts testAccount",
     "coverage": "node scripts/with-deadline.mjs 600 vitest run --coverage --testTimeout=30000",
-    "verify": "npm ls --depth=0 >/dev/null 2>&1 || { echo 'node_modules is behind package-lock.json: run npm ci'; exit 1; } && npm test && npm run typecheck && npm run lint && node scripts/recorded-add-only.mjs && node scripts/tests-kept.mjs && node scripts/spec-ids.mjs && node scripts/contents-lists.mjs && node scripts/named-literals.mjs && node scripts/studio-kit.mjs && .claude/hooks/test.sh"
+    "verify": "npm ls --depth=0 >/dev/null 2>&1 || { echo 'node_modules is behind package-lock.json: run npm ci'; exit 1; } && npm test && npm run typecheck && npm run lint && node scripts/recorded-add-only.mjs && node scripts/tests-kept.mjs && node scripts/spec-ids.mjs && node scripts/contents-lists.mjs && node scripts/studio-kit.mjs && .claude/hooks/test.sh"
   },
   "dependencies": {
     "@auth/core": "^0.41.3",

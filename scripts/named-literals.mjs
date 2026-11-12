@@ -6,7 +6,8 @@
 // convex/ or src/ (preview data left out) that equals a registered value in another file, or starts
 // with a registered `*_PREFIX` value, is named with the constant to import. A trailing
 // `// literal-ok: <reason>` on the string's line lets it stand.
-// Run from the repo: `node scripts/named-literals.mjs`; `npm run verify` runs it, so CI does.
+// Run from the repo: `node scripts/named-literals.mjs`; `npm run lint` runs it after eslint,
+// so `npm run verify` and CI's verify job do too, with no step of their own.
 
 import { execFileSync } from "node:child_process";
 import { readFileSync } from "node:fs";
