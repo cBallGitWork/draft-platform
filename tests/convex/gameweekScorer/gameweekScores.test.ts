@@ -5,13 +5,12 @@ import { positionsNow } from "../../../convex/positions/playerPositions";
 import { DAY_MS } from "../../../convex/shared/time";
 import { positionsSyncRanOnDay } from "../../support/convex/positionsSync.harness";
 import { CENTRE_BACK, played, RIGHT_BACK, startsFrom, times } from "../../support/convex/positionStarts.harness";
-import { actingAs, COMMISSIONER } from "../../support/convex/leagues.harness";
+import { actingAs, COMMISSIONER, ANN } from "../../support/convex/leagues.harness";
 import { leagueHomeOf } from "../../support/convex/screenReads.harness";
 import { inTenths } from "../../../convex/scoring/values";
 import { mergedHullEverton } from "../../support/convex/matchStats.harness";
 import { silenceConsoleError } from "../../support/convex/test.harness";
 import {
-  ANN,
   EVERTON_POINTS,
   EVERTON_STARTERS,
   GAMEWEEK,
@@ -57,7 +56,7 @@ test("a gameweek replayed from the recorded match gives each team its points, th
   expect(read.unscored).toEqual([]);
 
   const fixtures = read.gameweeks.find((each) => each.gameweek === GAMEWEEK)!.fixtures;
-  expect(fixtures).toEqual([{ teamId: league.annsTeam, team: teamNumbered(1), opponent: teamNumbered(2), opponentId: league.bobsTeam, points: { team: HULL_POINTS, opponent: EVERTON_POINTS }, game: 1 }]);
+  expect(fixtures).toEqual([{ teamId: league.annsTeam, team: teamNumbered(1), opponent: teamNumbered(2), opponentId: league.bobsTeam, points: { team: HULL_POINTS, opponent: EVERTON_POINTS, provisional: false }, game: 1 }]);
   expect(read.table.map(({ teamName, played, won, drawn, lost, pointsFor, pointsAgainst, difference, points }) => ({
     teamName, played, won, drawn, lost, pointsFor, pointsAgainst, difference, points,
   }))).toEqual([
@@ -153,7 +152,7 @@ test("the team left over plays the league's average, every team's score counted 
   // Cat's team saved no lineup, so it scores 0 and counts in the average as 0.
   const average = inTenths((HULL_POINTS + EVERTON_POINTS + 0) / 3);
   const fixtures = read.gameweeks.find((each) => each.gameweek === GAMEWEEK)!.fixtures;
-  expect(fixtures).toContainEqual({ teamId: league.catsTeam, team: teamNumbered(3), opponent: null, opponentId: null, points: { team: 0, opponent: average }, game: 1 });
+  expect(fixtures).toContainEqual({ teamId: league.catsTeam, team: teamNumbered(3), opponent: null, opponentId: null, points: { team: 0, opponent: average, provisional: false }, game: 1 });
   expect(read.table.find((row) => row.teamName === teamNumbered(3))).toMatchObject({ played: 1, lost: 1, pointsFor: 0, pointsAgainst: average });
 });
 

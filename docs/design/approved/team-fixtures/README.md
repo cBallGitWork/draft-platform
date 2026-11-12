@@ -1,6 +1,7 @@
 # My team, Fixtures
 
-Route: My team's Fixtures tab (`/team`, checked on `/team?preview=manager`). For #1031.
+Route: `/team/fixtures`, My team's Fixtures tab, checked on `/team/fixtures?preview=manager`.
+For #1031.
 
 ## The picture
 

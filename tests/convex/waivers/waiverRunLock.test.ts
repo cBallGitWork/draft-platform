@@ -4,7 +4,8 @@ import { FIRST_RULES } from "../../../convex/rules/firstRules";
 import { DAY_MS, HOUR_MS } from "../../../convex/shared/time";
 import { firstRunFrom } from "../../../convex/waivers/waiverTimes";
 import { passNextDeadline } from "../../support/convex/lineupSquad.harness";
-import { BOB, NEXT, SAKA, waiverLeague, type WaiverLeague } from "../../support/convex/waivers.harness";
+import { NEXT, SAKA, waiverLeague, type WaiverLeague } from "../../support/convex/waivers.harness";
+import { BOB } from "../../support/convex/leagues.harness";
 
 // A waiver run in the lock (spec/08: "From the deadline until the gameweek's last match is over,
 // there are no claims, drops or free agent pickups. A run that falls in that time is skipped"):

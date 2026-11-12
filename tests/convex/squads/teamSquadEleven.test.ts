@@ -1,7 +1,6 @@
 import { expect, test } from "vitest";
 import { api } from "../../../convex/_generated/api";
 import {
-  ANN,
   HULL_KEEPER,
   HULL_SCORER,
   HULL_STARTERS,
@@ -13,7 +12,7 @@ import {
 } from "../../support/convex/gameweekScores.harness";
 import { fullTimeRecords, liveRecords } from "../../support/convex/gameweekScoresMatch.harness";
 import { adjustScorersRole } from "../../support/convex/gameweekScoresFixes.harness";
-import { actingAs } from "../../support/convex/leagues.harness";
+import { actingAs, ANN } from "../../support/convex/leagues.harness";
 import { mergedHullEverton } from "../../support/convex/matchStats.harness";
 
 // The Squad panel's Started and Role points (#1005; spec/12 Squad; Craig, 6 Nov 2026), read through

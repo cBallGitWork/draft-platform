@@ -15,7 +15,7 @@ import { refusals } from "../../../convex/shared/leagueAccess";
 import { SEASON_PLAYERS_MOST } from "../../../convex/stats/matchRecords";
 import { seasonTotals } from "../../../convex/stats/seasonStats";
 import { CLUB_PLAYERS_MOST } from "../../../convex/shared/players";
-import { COMMISSIONER, MANAGERS, actingAs, addManagers, adminCreatesLeague, teamName, TEST_LEAGUE_TEAMS, type TestConvex } from "../../support/convex/leagues.harness";
+import { COMMISSIONER, MANAGERS, actingAs, addManagers, adminCreatesLeague, teamName, TEST_LEAGUE_TEAMS, type TestConvex, ANN, BOB } from "../../support/convex/leagues.harness";
 import { ARSENAL, CHELSEA, GONE, SAKA, insertClubs, insertDroppedPlayer, insertPlayers } from "../../support/convex/footballRows.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
 import { expectRefused, ROWS_TO_THE_CAP } from "../../support/convex/test.harness";
@@ -25,13 +25,11 @@ import { expectRefused, ROWS_TO_THE_CAP } from "../../support/convex/test.harnes
 // screen shows it (the server reads the club's; the browser filters and sorts, #1552). Season points are "—" (null) here, with no match priced; what they add up to is
 // tests/convex/stats/seasonPoints.test.ts's.
 
-const [ANN, BOB] = MANAGERS;
 const BRENTFORD = { code: 94, name: "Brentford", shortName: "BRE" };
 
 const RICE = { code: 1002, name: "Rice", fullName: "Declan Rice", clubCode: ARSENAL.code, positions: ["CDM", "CM"] as Position[] };
 const MBEUMO = { code: 1003, name: "Mbeumo", fullName: "Bryan Mbeumo", clubCode: BRENTFORD.code, positions: ["W", "ST"] as Position[] };
 const PALMER = { code: 1004, name: "Palmer", fullName: "Cole Palmer", clubCode: CHELSEA.code, positions: ["CAM"] as Position[] };
-
 
 let t: TestConvex;
 let leagueId: Id<"leagues">;

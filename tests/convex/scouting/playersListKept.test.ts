@@ -1,7 +1,7 @@
 import { beforeEach, expect, test } from "vitest";
 import type { Id } from "../../../convex/_generated/dataModel";
 import type { Position } from "../../../convex/positions/positionTables";
-import { MANAGERS, actingAs, addManagers, adminCreatesLeague, teamName, type TestConvex } from "../../support/convex/leagues.harness";
+import { actingAs, addManagers, adminCreatesLeague, teamName, type TestConvex, ANN } from "../../support/convex/leagues.harness";
 import { ARSENAL, CHELSEA, GONE, SAKA, insertClubs, insertDroppedPlayer, insertPlayers } from "../../support/convex/footballRows.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
 import { serverList } from "../../support/convex/playersList.harness";
@@ -11,7 +11,6 @@ import { serverList } from "../../support/convex/playersList.harness";
 // of the list. Who holds him and his position are filtered in the browser (#1552), so only the
 // club leaves him out here. The list itself is tests/convex/scouting/playersList.test.ts's.
 
-const [ANN] = MANAGERS;
 const RICE = { code: 1002, name: "Rice", fullName: "Declan Rice", clubCode: ARSENAL.code, positions: ["CDM", "CM"] as Position[] };
 const PALMER = { code: 1004, name: "Palmer", fullName: "Cole Palmer", clubCode: CHELSEA.code, positions: ["CAM"] as Position[] };
 

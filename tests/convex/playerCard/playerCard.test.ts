@@ -6,7 +6,7 @@ import type { Position } from "../../../convex/positions/positionTables";
 import type { StoredScoringSet } from "../../../convex/scoring/scoringSetShape";
 import { refusals } from "../../../convex/shared/leagueAccess";
 import { DAY_MS, WEEK_MS } from "../../../convex/shared/time";
-import { MANAGERS, OUTSIDER, actingAs, teamName, addManagers, adminCreatesLeague, type TestConvex } from "../../support/convex/leagues.harness";
+import { OUTSIDER, actingAs, teamName, addManagers, adminCreatesLeague, type TestConvex, ANN, BOB } from "../../support/convex/leagues.harness";
 import { EXAMPLE_SET, GOAL_AND_ASSIST, pricedRole } from "../../support/convex/scoring.example";
 import { holdExampleScoring, holdSiteScoring } from "../../support/convex/siteScoring.harness";
 import { ARSENAL, CHELSEA, COVENTRY, GONE, completeRecord, insertClubs, insertDroppedPlayer, insertPlayers } from "../../support/convex/footballRows.harness";
@@ -17,8 +17,6 @@ import { expectRefused } from "../../support/convex/test.harness";
 // news, this season's matches at his base points under the site's scoring, at each position he has
 // (Craig, 31 Oct 2026), with his role's line apart where his team started him, and his club's next
 // fixtures. The site plays EXAMPLE_SET throughout.
-
-const [ANN, BOB] = MANAGERS;
 
 const SAKA = {
   code: 1001,

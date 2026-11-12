@@ -1,9 +1,9 @@
 import { expect, test } from "vitest";
 import { api } from "../../../convex/_generated/api";
 import { inTenths } from "../../../convex/scoring/values";
-import { actingAs } from "../../support/convex/leagues.harness";
+import { actingAs, ANN, BOB, CAT } from "../../support/convex/leagues.harness";
 import { silenceConsoleError } from "../../support/convex/test.harness";
-import { ANN, BOB, CAT, EVERTON_POINTS, GAMEWEEK, HULL_POINTS, readTable, scoresLeague, type ScoresLeague } from "../../support/convex/gameweekScores.harness";
+import { EVERTON_POINTS, GAMEWEEK, HULL_POINTS, readTable, scoresLeague, type ScoresLeague } from "../../support/convex/gameweekScores.harness";
 import { fullTimeRecords, lockMatch } from "../../support/convex/gameweekScoresMatch.harness";
 import { holdTypoRule, TYPO_STAT } from "../../support/convex/gameweekScoresFixes.harness";
 
@@ -25,7 +25,7 @@ test("a game played and final has the table's score, each team's own points firs
   expect(gameIn(await readFixtures(league, BOB)).score).toEqual({ team: EVERTON_POINTS, opponent: HULL_POINTS, provisional: false });
 
   const tableFixture = (await readTable(league))!.gameweeks.find((each) => each.gameweek === GAMEWEEK)!.fixtures[0];
-  expect(tableFixture.points).toEqual({ team: gameIn(ann).score!.team, opponent: gameIn(ann).score!.opponent });
+  expect(tableFixture.points).toEqual(gameIn(ann).score);
   expect(ann.unscored).toEqual([]);
 });
 

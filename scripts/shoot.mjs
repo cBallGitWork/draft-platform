@@ -7,19 +7,19 @@
 // Usage: node scripts/shoot.mjs <route> [name] [--phone]
 //   node scripts/shoot.mjs / sign-in
 //   node scripts/shoot.mjs "/team/squad?preview=manager" squad --phone
-// A preview session's address is src/app/preview.ts's previewAddress, as the smoke specs build it.
+// A preview session's address is tests/support/smoke/previewUrl.ts's previewUrl, as the smoke specs build it.
 // The app must be running on this checkout's port (scripts/port.mjs); APP_URL overrides it.
 
 import { mkdirSync } from "node:fs";
 import { join } from "node:path";
-import { fileURLToPath } from "node:url";
 import { chromium } from "@playwright/test";
 import { appPort, localUrl } from "./port.mjs";
 import { tapsUnderTapSize } from "./tap-targets.mjs";
+import { CHECKOUT } from "./thisScript.mjs";
 import { DESK, PHONE } from "./viewports.mjs";
 
 const PHONE_FLAG = "--phone";
-const SHOTS_DIR = fileURLToPath(new URL("../.shots/", import.meta.url));
+const SHOTS_DIR = join(CHECKOUT, ".shots");
 
 const args = process.argv.slice(2);
 const withPhone = args.includes(PHONE_FLAG);

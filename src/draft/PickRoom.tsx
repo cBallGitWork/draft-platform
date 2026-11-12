@@ -1,5 +1,6 @@
 import { type ReactNode, useMemo, useState } from "react";
 import type { Id } from "../../convex/_generated/dataModel";
+import { cardOpensAt } from "../../convex/playerCard/cardPoints";
 import type { ListedPlayer } from "../scouting/seam";
 import { AutoPickPanel } from "./AutoPickPanel";
 import { pickInRoundOf } from "./board";
@@ -38,8 +39,9 @@ function yourUndo(draft: DraftState, board: DraftBoard): UndoWindow | null {
 function yourSquad(board: DraftBoard, player: ListedPlayer): YourSquad {
   if (board.yourTeamId === null) return null;
   const yours = board.picks.flatMap(({ teamId, player: picked }) => (teamId === board.yourTeamId && picked !== null ? [picked] : []));
+  const main = cardOpensAt(player.positions);
   return {
-    atPosition: yours.filter(({ position }) => position === player.positions[0]).length,
+    atPosition: yours.filter(({ position }) => position === main).length,
     atClub: yours.filter(({ clubShortName }) => clubShortName === player.club.shortName).length,
     maxPerClub: board.maxPerClub,
   };

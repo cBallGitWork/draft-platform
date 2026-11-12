@@ -5,13 +5,13 @@
 
 import { expect } from "@playwright/test";
 import { SCOUTING_PATH } from "../../src/frame/menu";
-import { previewAddress } from "../../src/app/preview";
 import { COMPARE_YOURS_TITLE, compareTakeWords, compareWithYourWords, nameLabel, PLAYERS_TITLE, selectPlayerLabel } from "../../src/scouting/words";
 import { test } from "../support/smoke/errorsTest";
+import { previewUrl } from "../support/smoke/previewUrl";
 
 test.describe("Scouting's Players tab, on the dev server's preview", { tag: "@dev" }, () => {
   test("opens on free agents, finds by name, opens a player's panel and compares him with yours", async ({ page }) => {
-    await page.goto(previewAddress(SCOUTING_PATH, "manager"));
+    await page.goto(previewUrl(SCOUTING_PATH, "manager"));
     const list = page.getByRole("region", { name: PLAYERS_TITLE });
 
     // Free agents first (src/scouting/preview.ts): Salah is one; Saka is the preview manager's, James on waivers.

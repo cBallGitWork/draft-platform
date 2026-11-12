@@ -1,12 +1,11 @@
 import { expect, test } from "vitest";
 import { api } from "../../../convex/_generated/api";
 import { unheldPlayerWords } from "../../../convex/shared/players";
-import { actingAs } from "../../support/convex/leagues.harness";
+import { actingAs, ANN } from "../../support/convex/leagues.harness";
 import { HULL_EVERTON, mergedHullEverton } from "../../support/convex/matchStats.harness";
 // Belloumi, Hull's midfielder on at 64 minutes, is second on Ann's bench after Hull's keeper.
 import { BELLOUMI } from "../../support/convex/teamPoints.harness";
 import {
-  ANN,
   annsScoredGame,
   GAMEWEEK,
   holdHullAndEverton,

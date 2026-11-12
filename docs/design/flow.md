@@ -186,5 +186,3 @@ Features table (feature 12), the one home for screen status.
 
 - Your leagues has no link into a league's frame pages: the menu, or `/`, gets there.
 - An admin in no league can't open the frame, so `/table` and `/team` send him to Your leagues.
-- Continue leads to Mail for an unread letter, then to Tactics from 24 hours before the deadline
-  until he opens it that gameweek (#526); an offer to him doesn't lead there yet.

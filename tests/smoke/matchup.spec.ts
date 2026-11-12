@@ -5,11 +5,11 @@
 
 import { expect } from "@playwright/test";
 import { MATCHUP_PATH } from "../../src/frame/menu";
-import { previewAddress } from "../../src/app/preview";
 import { closeBreakdownLabel, gameweekWords, nextLabel, openBreakdownLabel, VIDIPRINTER_TITLE } from "../../src/matchup/words";
 import { DESK } from "../../scripts/viewports.mjs";
 import { previewGameweek } from "../../src/shared/preview";
 import { test } from "../support/smoke/errorsTest";
+import { previewUrl } from "../support/smoke/previewUrl";
 
 /** A starter of the preview opponent's. */
 const OPPONENTS_STRIKER = "Haaland";
@@ -19,7 +19,7 @@ test.describe("the matchup, on the dev server's preview", { tag: "@dev" }, () =>
   test.use({ viewport: DESK });
 
   test("shows both pitches, opens a man's breakdown from his tile, and steps the gameweek", async ({ page }) => {
-    await page.goto(previewAddress(`${MATCHUP_PATH}?minute=60`, "manager"));
+    await page.goto(previewUrl(`${MATCHUP_PATH}?minute=60`, "manager"));
 
     const pitches = page.getByRole("list", { name: /'s pitch$/ });
     await expect(pitches).toHaveCount(2);

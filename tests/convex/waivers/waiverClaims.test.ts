@@ -5,10 +5,10 @@ import { claimRefusals } from "../../../convex/waivers/waiverClaims";
 import { CLAIMS_PER_TEAM_MOST, WAIVER_MS } from "../../../convex/waivers/waiverLimits";
 import { playerLeaves } from "../../support/convex/draftLists.harness";
 import { setUsed } from "../../support/convex/leagueRules.harness";
-import { actingAs, addManager, COMMISSIONER, MANAGERS } from "../../support/convex/leagues.harness";
+import { actingAs, addManager, COMMISSIONER, MANAGERS, ANN, BOB } from "../../support/convex/leagues.harness";
 import { nameOf, passNextDeadline } from "../../support/convex/lineupSquad.harness";
 import { expectRefused } from "../../support/convex/test.harness";
-import { ANN, ANNS_FIRST_DROP, ANNS_SECOND_DROP, BOB, NEXT, PALMER, SAKA, waiverLeague, type WaiverLeague } from "../../support/convex/waivers.harness";
+import { ANNS_FIRST_DROP, ANNS_SECOND_DROP, NEXT, PALMER, SAKA, waiverLeague, type WaiverLeague } from "../../support/convex/waivers.harness";
 import { teamNumbered } from "../../../convex/leagues/teams";
 
 // A manager's waiver claims (#1198, spec/08 Waivers and free agency): as many as he likes, ranked,

@@ -8,7 +8,7 @@ import { pickTradeRefusals } from "../../../convex/trades/tradePicks";
 import { REVIEW_MS } from "../../../convex/trades/tradeLimits";
 import { ARSENAL, insertClubs, insertPlayers, type HeldPlayer } from "../../support/convex/footballRows.harness";
 import { changeEveryRules } from "../../support/convex/leagueRules.harness";
-import { addManagers, adminCreatesLeague, COMMISSIONER, eventsIn, lettersTo, MANAGERS, type TestConvex } from "../../support/convex/leagues.harness";
+import { addManagers, adminCreatesLeague, COMMISSIONER, eventsIn, lettersTo, type TestConvex, ANN, BOB, CAT } from "../../support/convex/leagues.harness";
 import { pickOf, pickTradeSteps } from "../../support/convex/trades.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
 import { expectRefused } from "../../support/convex/test.harness";
@@ -21,7 +21,6 @@ import { expectRefused } from "../../support/convex/test.harness";
 let t: TestConvex;
 let leagueId: Id<"leagues">;
 let ann: Id<"teams">, bob: Id<"teams">, cat: Id<"teams">;
-const [ANN, BOB, CAT] = MANAGERS;
 
 const PLAYERS: HeldPlayer[] = [101, 102, 103, 104, 105, 106].map((code) => ({
   code,

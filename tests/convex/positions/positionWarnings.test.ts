@@ -12,14 +12,13 @@ import type { Start } from "../../../convex/positions/positions";
 import { lostPlayerName } from "../../../convex/shared/players";
 import { DAY_MS, HOUR_MS, WEEK_MS } from "../../../convex/shared/time";
 import { holdGameweeks } from "../../support/convex/leagueRules.harness";
-import { addManager, addManagers, adminCreatesLeague, MANAGERS, TEST_LEAGUE_TEAMS, type TestConvex } from "../../support/convex/leagues.harness";
+import { addManager, addManagers, adminCreatesLeague, TEST_LEAGUE_TEAMS, type TestConvex, ANN, BOB } from "../../support/convex/leagues.harness";
 import { asAdmin } from "../../support/convex/positionsSync.harness";
 import { CENTRE_BACK, movedToFullBack, played, RIGHT_BACK, startsFrom, times } from "../../support/convex/positionStarts.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
 import { elapse, pendingJobs } from "../../support/convex/test.harness";
 import { NEXT } from "../../support/convex/lineupSquad.harness";
 
-const [ANN, BOB] = MANAGERS;
 const BARNES = { code: 1, name: "Barnes", fullName: "Harvey Barnes", clubCode: 4 };
 
 let t: TestConvex;

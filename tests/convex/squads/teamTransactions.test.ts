@@ -6,7 +6,7 @@ import { refusals } from "../../../convex/shared/leagueAccess";
 import { MINUTE_MS } from "../../../convex/shared/time";
 import { TRANSACTIONS_READ_OF_EACH_KIND } from "../../../convex/squads/teamTransactions";
 import { expectRefused } from "../../support/convex/test.harness";
-import { ADMIN, actingAs, addManagers, adminCreatesLeague, COMMISSIONER, MANAGERS, OUTSIDER, type TestConvex } from "../../support/convex/leagues.harness";
+import { ADMIN, actingAs, addManagers, adminCreatesLeague, COMMISSIONER, OUTSIDER, type TestConvex, ANN, BOB } from "../../support/convex/leagues.harness";
 import { ARSENAL, insertClubs } from "../../support/convex/footballRows.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
 import { SAKA, squadMoves } from "../../support/convex/lineupSquad.harness";
@@ -15,7 +15,6 @@ import { teamNumbered } from "../../../convex/leagues/teams";
 // My team's Transactions tab (#366): the manager's team's assignments, moves and releases, newest
 // first, from the league's events, which Mail files letters from.
 
-const [ANN, BOB] = MANAGERS;
 const RICE = 1002;
 
 let t: TestConvex;

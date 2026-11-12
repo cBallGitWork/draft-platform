@@ -11,7 +11,7 @@ import { DAY_MS, WEEK_MS } from "../../../convex/shared/time";
 import { squadStats } from "../../../convex/squads/teamSquad";
 import { latestRules } from "../../../convex/rules/rulesHistory";
 import { expectRefused } from "../../support/convex/test.harness";
-import { COMMISSIONER, MANAGERS, OUTSIDER, actingAs, addManagers, adminCreatesLeague, type TestConvex } from "../../support/convex/leagues.harness";
+import { COMMISSIONER, MANAGERS, OUTSIDER, actingAs, addManagers, adminCreatesLeague, type TestConvex, ANN, BOB } from "../../support/convex/leagues.harness";
 import { EXAMPLE_SET, GOAL_AND_ASSIST } from "../../support/convex/scoring.example";
 import { holdExampleScoring } from "../../support/convex/siteScoring.harness";
 import { ARSENAL, CHELSEA, COVENTRY, UNHELD, completeRecord, insertClubs, insertPlayers } from "../../support/convex/footballRows.harness";
@@ -22,8 +22,6 @@ import { teamNumbered } from "../../../convex/leagues/teams";
 // club's next match, and his season's and last gameweek's points: what his team got from him, the
 // matches his card shows at his slot, never one labelled not counted or at his best position
 // (spec/12; #595). The site plays EXAMPLE_SET throughout.
-
-const [ANN, BOB] = MANAGERS;
 
 const player = (code: number, name: string, clubCode: number, positions: Position[]) => ({ code, name, fullName: `${name} in full`, clubCode, positions });
 const SAKA = player(1001, "Saka", ARSENAL.code, ["W"]);

@@ -6,7 +6,7 @@
 // team's final score.
 
 import type { Lineup } from "../lineup/lineup";
-import { cellKey, isOnPitch, type Cell } from "../lineup/pitch";
+import { cellKey, cellOf, type Cell } from "../lineup/pitch";
 import { roleIn } from "../lineup/roles";
 import type { PlayerCode } from "../shared/players";
 import type { ScoringSet } from "./scoringSet";
@@ -127,7 +127,7 @@ export function scoreTeam(input: TeamPointsInput): TeamPoints {
  *  the team's instructions and back line, which score starters and those who come on (spec/05). */
 function slotPoints(input: TeamPointsInput, playerCode: PlayerCode, cell: Cell, counts: boolean, role?: string, team?: TeamScoring): SlotPoints {
   // A cell off the pitch has no roles: scoreMatch refuses it, with the reason.
-  const playing = isOnPitch(cell) ? roleIn(cell, role).key : undefined;
+  const playing = cellOf(cell) === null ? undefined : roleIn(cell, role).key;
   const playerMatches = input.matches.get(playerCode);
   if (playerMatches === undefined) throw new Error(`player ${playerCode} has no entry in the gameweek's matches`);
   const matches = playerMatches.map((match) => {

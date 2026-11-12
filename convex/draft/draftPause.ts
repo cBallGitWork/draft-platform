@@ -3,7 +3,7 @@ import type { Doc, Id } from "../_generated/dataModel";
 import { mutation, type MutationCtx, type QueryCtx } from "../_generated/server";
 import { refuse, runnerOf } from "../shared/leagueAccess";
 import { SECOND_MS } from "../shared/time";
-import { startClock } from "./draftClock";
+import { cancelClockJob, startClock } from "./draftClock";
 import { tellPaused } from "./draftLetters";
 import { pickSecondsNow } from "./draftPickTime";
 import { pickRefusals } from "./draftPicks";
@@ -41,7 +41,7 @@ export async function liveClock(ctx: QueryCtx, leagueId: Id<"leagues">): Promise
 
 /** Stops `clock`: its job cancelled, the time it has left kept until a resume. */
 async function stopClock(ctx: MutationCtx, leagueId: Id<"leagues">, draft: Doc<"drafts">, clock: Clock): Promise<void> {
-  if (clock.job !== undefined) await ctx.scheduler.cancel(clock.job);
+  await cancelClockJob(ctx, clock);
   const paused = { at: Date.now(), pickSeconds: await pickSecondsNow(ctx, leagueId) };
   await ctx.db.patch("drafts", draft._id, { clock: { ...clock, job: undefined, paused } });
 }

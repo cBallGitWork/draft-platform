@@ -71,6 +71,12 @@ export async function startClock(
 /** A draft's pick clock, as its row holds it. */
 type Clock = NonNullable<Doc<"drafts">["clock"]>;
 
+/** Cancels the job waiting on `clock`, if there is a clock and it has one. Never pass the clock of
+ *  the job running now: cancelling it would cancel what it schedules too. */
+export async function cancelClockJob(ctx: MutationCtx, clock: Pick<Clock, "job"> | undefined): Promise<void> {
+  if (clock?.job !== undefined) await ctx.scheduler.cancel(clock.job);
+}
+
 /** The pick `clock` holds, in the started `draft`, as `startClock` returned it. */
 export async function clockedOf(ctx: MutationCtx, draft: Doc<"drafts">, clock: Clock): Promise<Clocked> {
   const turn = turnAfter(draft, clock.pick - 1);
@@ -102,7 +108,7 @@ export function picksAtClockStart(draft: Doc<"drafts">, clock: Clock, team: Doc<
  *  paused clock schedules nothing until the commissioner resumes it. */
 export async function scheduleAutoPick(ctx: MutationCtx, draft: Doc<"drafts">, clock: Clock, team: Doc<"teams">): Promise<void> {
   if (clock.paused !== undefined) return;
-  if (clock.job !== undefined) await ctx.scheduler.cancel(clock.job);
+  await cancelClockJob(ctx, clock);
   const args = { leagueId: draft.leagueId, pick: clock.pick };
   const job = clock.upNext
     ? await ctx.scheduler.runAt(clock.startsAt, internal.draft.pickWindow.clockStarts, args)

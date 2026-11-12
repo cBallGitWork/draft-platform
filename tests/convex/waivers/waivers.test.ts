@@ -5,10 +5,10 @@ import { DAY_MS } from "../../../convex/shared/time";
 import { dropRefusals } from "../../../convex/waivers/waivers";
 import { WAIVER_MS } from "../../../convex/waivers/waiverLimits";
 import { playerLeaves } from "../../support/convex/draftLists.harness";
-import { actingAs, adminCreatesLeague, COMMISSIONER, eventsIn, TEST_LEAGUE_TEAMS, type TestConvex } from "../../support/convex/leagues.harness";
+import { actingAs, adminCreatesLeague, COMMISSIONER, eventsIn, TEST_LEAGUE_TEAMS, type TestConvex, ANN, BOB } from "../../support/convex/leagues.harness";
 import { holdPlayers, nameOf, passNextDeadline, SQUAD, squadMoves } from "../../support/convex/lineupSquad.harness";
 import { expectRefused } from "../../support/convex/test.harness";
-import { ANN, BOB, NEXT, waiverLeague, type WaiverLeague } from "../../support/convex/waivers.harness";
+import { NEXT, waiverLeague, type WaiverLeague } from "../../support/convex/waivers.harness";
 import { teamNumbered } from "../../../convex/leagues/teams";
 
 // A manager's drop and a player's waiver state (#1197, spec/08 Waivers and free agency): a drop

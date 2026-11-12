@@ -4,12 +4,9 @@ import { refusals } from "../../../convex/shared/leagueAccess";
 import { unheldPlayerWords } from "../../../convex/shared/players";
 import { DAY_MS, HOUR_MS } from "../../../convex/shared/time";
 import {
-  ANN,
   ANNS_TEAM,
   annsScoredGame,
-  BOB,
   BOBS_TEAM,
-  CAT,
   EVERTON_POINTS,
   EVERTON_STARTERS,
   GAMEWEEK,
@@ -34,7 +31,7 @@ import {
 } from "../../support/convex/gameweekScores.harness";
 import { fullTimeRecords, liveRecords, lockMatch, scoreRead, storeLeague, WRITTEN_OVER, writeOverAnns } from "../../support/convex/gameweekScoresMatch.harness";
 import { holdTypoRule, TYPO_STAT } from "../../support/convex/gameweekScoresFixes.harness";
-import { ADMIN, adminCreatesLeague } from "../../support/convex/leagues.harness";
+import { ADMIN, adminCreatesLeague, ANN, BOB, CAT } from "../../support/convex/leagues.harness";
 import { HULL, HULL_EVERTON, mergedHullEverton } from "../../support/convex/matchStats.harness";
 import { expectRefused, silenceConsoleError } from "../../support/convex/test.harness";
 import { teamNumbered } from "../../../convex/leagues/teams";
@@ -109,7 +106,7 @@ test("a final gameweek's stored scores are its totals, as the table reads them, 
   const table = await readTable(league);
   const fixtures = table!.gameweeks.find((each) => each.gameweek === GAMEWEEK)!.fixtures;
   expect(game.team).toMatchObject({ points: WRITTEN_OVER, provisional: false });
-  expect(fixtures.find((each) => each.teamId === league.annsTeam)!.points).toEqual({ team: game.team.points, opponent: game.opponent.points });
+  expect(fixtures.find((each) => each.teamId === league.annsTeam)!.points).toEqual({ team: game.team.points, opponent: game.opponent.points, provisional: game.team.provisional || game.opponent.provisional });
   expect(lineupOf(game.team).starters).toHaveLength(HULL_STARTERS.length);
   // The league's average counts the stored total too.
   const cats = await matchupAs(league, CAT, { gameweek: GAMEWEEK });
@@ -163,7 +160,7 @@ test("each side's total is the same as the table's for the gameweek", async () =
   await lockMatch(league);
   const table = await readTable(league);
   const game = await annsScoredGame(league, GAMEWEEK);
-  expect(table!.gameweeks.find((each) => each.gameweek === GAMEWEEK)!.fixtures[0].points).toEqual({ team: game.team.points, opponent: game.opponent.points });
+  expect(table!.gameweeks.find((each) => each.gameweek === GAMEWEEK)!.fixtures[0].points).toEqual({ team: game.team.points, opponent: game.opponent.points, provisional: game.team.provisional || game.opponent.provisional });
 });
 
 test("with no team or gameweek named, it opens on the caller's own team in the latest gameweek begun", async () => {

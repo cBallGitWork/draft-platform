@@ -8,6 +8,7 @@
 import { readFileSync, rmSync, writeFileSync } from "node:fs";
 import { basename, join } from "node:path";
 import { pathToFileURL } from "node:url";
+import { ranDirectly } from "../thisScript.mjs";
 import { expandBoard } from "./expand.mjs";
 
 const ROLE_CATALOGUE = "convex/lineup/roles.ts";
@@ -119,6 +120,6 @@ async function main(files) {
   return failed ? 1 : 0;
 }
 
-if (process.argv[1] !== undefined && import.meta.url === pathToFileURL(process.argv[1]).href) {
+if (ranDirectly(import.meta.url)) {
   process.exit(await main(process.argv.slice(2)));
 }

@@ -4,10 +4,10 @@
 
 import { expect } from "@playwright/test";
 import { MATCHUP_PATH, TABLE_PATH } from "../../src/frame/menu";
-import { previewAddress } from "../../src/app/preview";
 import { previousGameweekLabel } from "../../src/shared/words";
 import { competitionsLabel, competitionWords, CUP_TITLE, cupRounds, FIXTURES_TITLE, TABLE_PAGE_TITLE, TABLE_TITLE, type Competition } from "../../src/table/words";
 import { test } from "../support/smoke/errorsTest";
+import { previewUrl } from "../support/smoke/previewUrl";
 
 /** A knockout's ties: one fewer than its teams, two to the power of its rounds (7 for eight teams). */
 const CUP_TIES = 2 ** cupRounds.length - 1;
@@ -17,7 +17,7 @@ test.describe("the table and fixtures, on the dev server's preview", { tag: "@de
     const tab = (competition: Competition) =>
       page.getByRole("group", { name: competitionsLabel }).getByRole("button", { name: competitionWords[competition], exact: true });
 
-    await page.goto(previewAddress(TABLE_PATH, "manager"));
+    await page.goto(previewUrl(TABLE_PATH, "manager"));
     await expect(page.getByRole("heading", { level: 1, name: TABLE_PAGE_TITLE })).toBeVisible();
     await expect(tab("league")).toHaveAttribute("aria-pressed", "true");
     const region = (name: string) => page.getByRole("region", { name, exact: true });

@@ -13,13 +13,13 @@ import { SECOND_MS } from "../shared/time";
 import { placeOf, squadOf } from "../squads/squadPlace";
 import { squadRefusals } from "../squads/squads";
 import { autoPickOrder } from "./autoPickOrder";
-import { autoPickAt, PICK_GAP_MS, picksAtClockStart, scheduleAutoPick, startClock } from "./draftClock";
+import { autoPickAt, cancelClockJob, PICK_GAP_MS, picksAtClockStart, scheduleAutoPick, startClock } from "./draftClock";
 import { tellPickedFor, tellUpNext } from "./draftLetters";
 import { heldListsOf } from "./draftLists";
 import { draftRulesNow, pickSecondsNow } from "./draftPickTime";
 import { draftRanking } from "./draftRanking";
 import type { Position } from "../positions/positionTables";
-import { draftedPositionsIn, draftOf, lastPickIn, liveClockOf, picksLeftOf, turnNow, undoWindowOpen, type StartedDraft, type Turn } from "./draftRow";
+import { draftedPositionsIn, draftOf, lastPickIn, liveClockOf, OLD_DRAFTS_BACKFILL_HINT, picksLeftOf, turnNow, undoWindowOpen, type StartedDraft, type Turn } from "./draftRow";
 import { afterTimeout, choseAutoPick, timeoutEffect } from "./draftTimeouts";
 import { lastSeasonPoints } from "../pastSeasons/lastSeasonPoints";
 import { whyNotLegal, type DraftPlayer, type NotLegal } from "./legalPlayers";
@@ -66,7 +66,7 @@ export const pickRefusals = {
 /** The squad rules the draft picks under: those it started under, never a change made since (Craig,
  *  4 Nov 2026, on #1090: "Picks follow the squad rules the draft started under"). */
 export function squadRulesOf(leagueId: Id<"leagues">, started: StartedDraft): LeagueRules["squad"] {
-  if (started.squad === undefined) throw new Error(`League ${leagueId}'s draft kept no squad rules: run draft/oldDraftsBackfill once (#1610)`);
+  if (started.squad === undefined) throw new Error(`League ${leagueId}'s draft kept no squad rules: ${OLD_DRAFTS_BACKFILL_HINT}`);
   return started.squad;
 }
 
@@ -170,7 +170,7 @@ export const makePick = mutation({
     if (undoWindowOpen(draft, await lastPickIn(ctx, leagueId), now)) refuse(pickRefusals.undoing);
     const player = await legalPick(ctx, leagueId, draft, started, turn, playerCode);
     const own = { leftMs: leftOnTheClock(draft, now) };
-    if (draft.clock?.job !== undefined) await ctx.scheduler.cancel(draft.clock.job);
+    await cancelClockJob(ctx, draft.clock);
     await placePick(ctx, league, turn, team, player, email, { own });
     return null;
   },
@@ -212,7 +212,7 @@ export const pickFor = mutation({
     if (turn.team !== team._id) refuse(pickRefusals.alreadyPicked(team.name));
     if (undoWindowOpen(draft, await lastPickIn(ctx, leagueId), Date.now())) refuse(pickRefusals.undoing);
     const player = await legalPick(ctx, leagueId, draft, started, turn, playerCode);
-    if (draft.clock?.job !== undefined) await ctx.scheduler.cancel(draft.clock.job);
+    await cancelClockJob(ctx, draft.clock);
     await placePick(ctx, league, turn, team, player, email, { pausedAt: draft.clock?.paused === undefined ? undefined : Date.now() });
     await tellPickedFor(ctx, league, email, { pick: turn.pick, playerName: player.name, teamName: team.name });
     return null;

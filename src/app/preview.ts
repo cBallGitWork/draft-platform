@@ -60,13 +60,9 @@ const previewSessions = {
 /** A name `?preview=` takes. */
 export type PreviewName = keyof typeof previewSessions;
 
-/** The address's search key naming the preview session. */
+/** The address's search key naming the preview session; the smoke specs build an address with it
+ *  through tests/support/smoke/previewUrl.ts. */
 export const PREVIEW_KEY = "preview";
-
-/** `path` opened as the preview session `session`, after any search `path` already carries. */
-export function previewAddress(path: string, session: PreviewName): string {
-  return `${path}${path.includes("?") ? "&" : "?"}${PREVIEW_KEY}=${session}`;
-}
 
 /** Each name `?preview=` takes, so a test can check every preview person's leagues against the
  *  server's rule, which this file can't import (#488). */

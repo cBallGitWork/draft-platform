@@ -20,7 +20,7 @@ import type { PlayerRows } from "../../../convex/gameweekScorer/squadInputs";
 import { leagueReads } from "../../../convex/gameweekScorer/teamGameweek";
 import { seasonRules } from "../../../convex/rules/rulesHistory";
 import { HOUR_MS, MINUTE_MS } from "../../../convex/shared/time";
-import { actingAs, addManagers, adminCreatesLeague, MANAGERS, type TestConvex } from "./leagues.harness";
+import { actingAs, addManagers, adminCreatesLeague, type TestConvex, ANN, BOB, CAT } from "./leagues.harness";
 import { leagueHomeOf, matchupOf } from "./screenReads.harness";
 import { EVERTON, EVERTON_CLUB, GAMEWEEK, HULL, HULL_CITY, HULL_EVERTON } from "./matchStats.harness";
 import { insertClubs, insertPlayers, insertSeasonGameweeks } from "./footballRows.harness";
@@ -30,7 +30,6 @@ import { recordedGw6 } from "../recorded/gw6.payloads";
 import { teamNumbered } from "../../../convex/leagues/teams";
 
 export { GAMEWEEK };
-export const [ANN, BOB, CAT] = MANAGERS;
 /** Ann's and Bob's teams, as the league names a new team (convex/leagues/teams.ts). */
 export const ANNS_TEAM = teamNumbered(1);
 export const BOBS_TEAM = teamNumbered(2);

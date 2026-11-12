@@ -3,6 +3,7 @@
 // its form. Pure, so the tests can pin it. Form and a result are League home's own (convex/table/
 // standings.ts), so the two screens never tell a team's form apart.
 
+import { gameModeOf } from "../../../convex/rules/gameMode";
 import { LEAGUE_AVERAGE } from "../../../convex/table/roundRobin";
 import { BYE, gamesOf, type Against } from "../../../convex/table/teamGames";
 import { formOf, type Result } from "../../../convex/table/standings";
@@ -52,11 +53,10 @@ function scoreOf(table: LeagueTable, teamName: string, gameweek: number, against
   const opponent = against.kind === "team" ? against.team : null;
   const fixture = fixtures.find((each) => (each.team === teamName && each.opponent === opponent) || (each.team === opponent && each.opponent === teamName));
   if (fixture?.points == null) return null;
-  const sides = table.results.find((each) => each.gameweek === gameweek)?.teams ?? [];
-  // Live while either side may still move; against the average, while any team's may (spec/07).
-  const provisional = sides.some((side) => side.provisional && (opponent === null || side.teamName === teamName || side.teamName === opponent));
+  // Live as the server sent it (teamGames.ts's gameScore), never worked out again here.
+  const { team, opponent: other, provisional } = fixture.points;
   const ownSide = fixture.team === teamName;
-  return { team: ownSide ? fixture.points.team : fixture.points.opponent, opponent: ownSide ? fixture.points.opponent : fixture.points.team, provisional };
+  return { team: ownSide ? team : other, opponent: ownSide ? other : team, provisional };
 }
 
 /** The team's games in the gameweek, as drawn: more than one where the league plays more than one
@@ -86,6 +86,7 @@ export function standingOf(table: LeagueTable, teamName: string): Standing | nul
     last: scored.at(-1) ?? null,
     lastPoints: latest === undefined || own === undefined ? null : { gameweek: latest.gameweek, points: own.points, provisional: own.provisional },
     form: formOf(
+      gameModeOf(table),
       table.table.map(({ teamName: name }) => name),
       scheduleOf(table),
       new Map(table.results.map(({ gameweek, teams }) => [gameweek, new Map(teams.map((side) => [side.teamName, side.points]))])),

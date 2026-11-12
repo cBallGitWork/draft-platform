@@ -1,8 +1,8 @@
 import { expect, test } from "vitest";
 import { api } from "../../../convex/_generated/api";
-import { annsScoredGame, ANN, GAMEWEEK, HULL_SCORER, lineupOf, readTable, type ScoresLeague } from "../../support/convex/gameweekScores.harness";
+import { annsScoredGame, GAMEWEEK, HULL_SCORER, lineupOf, readTable, type ScoresLeague } from "../../support/convex/gameweekScores.harness";
 import { MIDFIELD_GOAL } from "../../support/convex/gameweekScoresFixes.harness";
-import { ADMIN, actingAs } from "../../support/convex/leagues.harness";
+import { ADMIN, actingAs, ANN } from "../../support/convex/leagues.harness";
 import { holdLines, manOf, matchAs, notYetBegun, pointsOnCard, scorerFreeLeague, storedLine } from "../../support/convex/matchPage.harness";
 import { HULL_EVERTON } from "../../support/convex/matchStats.harness";
 

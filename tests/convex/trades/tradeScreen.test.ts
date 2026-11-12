@@ -2,13 +2,10 @@ import { beforeEach, describe, expect, test } from "vitest";
 import { api } from "../../../convex/_generated/api";
 import { nextDeadline } from "../../../convex/gameweeks/deadline";
 import { missingPlayerLog } from "../../../convex/trades/tradeScreen";
-import { actingAs } from "../../support/convex/leagues.harness";
+import { actingAs, ANN, BOB, CAT } from "../../support/convex/leagues.harness";
 import { nameOf } from "../../support/convex/lineupSquad.harness";
 import {
-  ANN,
   ANNS_FIRST_DROP,
-  BOB,
-  CAT,
   SAKA,
   tradeLeague,
   type TradeLeague,

@@ -7,6 +7,7 @@
 import { shownRows } from "../../convex/home/glance";
 import { thisGameweekOf } from "../../convex/gameweeks/nextGameweek";
 import { seasonGameweeks } from "../../convex/gameweeks/usedGameweeks";
+import { gameModeOf } from "../../convex/rules/gameMode";
 import { DAY_MS, HOUR_MS, WEEK_MS } from "../../convex/shared/time";
 import { drawFixtures, namedFixture } from "../../convex/table/roundRobin";
 import { formOf, headToHeadTable, teamsInGameweek } from "../../convex/table/standings";
@@ -45,7 +46,9 @@ const schedule = drawFixtures(previewTeamNames, seasonGameweeks(previewSeasonGam
 const scores = new Map(
   Array.from({ length: SCORED }, (_, i) => [i + 1, new Map(previewTeamNames.map((team, place) => [team, 30 + ((place * 7 + (i + 1) * 13) % 40)]))]),
 );
-const form = formOf(previewTeamNames, schedule, scores);
+/** The preview league plays head-to-head. */
+const mode = gameModeOf({ format: "headToHead" });
+const form = formOf(mode, previewTeamNames, schedule, scores);
 /** The same scores, each final, as the head-to-heads read them. */
 const sides = new Map([...scores].map(([gameweek, teams]) => [gameweek, new Map([...teams].map(([team, points]) => [team, { points, provisional: false }]))]));
 const current = thisGameweekOf(schedule, (gameweek) => firstDeadline + (gameweek - 1) * WEEK_MS, Date.now())!;
@@ -57,7 +60,7 @@ const home: LeagueHome = {
     fixtures: current.fixtures.map((each, index) => {
       const scored = sides.get(current.gameweek);
       const score = scored === undefined ? null : gameScore(teamsInGameweek(current), scored, current.gameweek, each.team, each.opponent);
-      return { teamId: previewIdOf(each.team), game: gameNumberAt(current.fixtures, index), ...namedFixture(each, (name) => name), points: score && { team: score.team, opponent: score.opponent } };
+      return { teamId: previewIdOf(each.team), game: gameNumberAt(current.fixtures, index), ...namedFixture(each, (name) => name), points: score };
     }),
     byes: current.byes,
   },
@@ -75,7 +78,7 @@ const home: LeagueHome = {
     },
   },
   table: shownRows(
-    headToHeadTable(previewTeamNames, schedule, scores, []).map(({ team, ...row }) => ({ ...row, teamId: team })),
+    headToHeadTable(mode, previewTeamNames, schedule, scores, []).map(({ team, ...row }) => ({ ...row, teamId: team })),
     MINE,
   ).map(({ teamId, position, played, won, drawn, lost, points }) => ({
     position,
