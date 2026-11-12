@@ -2,7 +2,6 @@ import { expect, test, vi } from "vitest";
 import { RESEND_EMAILS_URL, sendEmail } from "../../../convex/outbound/email";
 import { EMAIL_FROM_SETTING } from "../../../convex/outbound/deploymentSettings";
 import { TEST_SENDER } from "../../../convex/outbound/sender";
-import { OUTBOUND_TIMEOUT_MS } from "../../../convex/outbound/timeouts";
 import { PRODUCT_NAME } from "../../../convex/shared/product";
 
 const LIVE_SENDER = "signin@example.co.uk";
@@ -21,14 +20,6 @@ async function sentFrom(): Promise<string> {
 
 test("a deployment with no sender of its own sends from Resend's test sender", async () => {
   expect(await sentFrom()).toBe(`${PRODUCT_NAME} <${TEST_SENDER}>`);
-});
-
-test("a send gives up after the outbound time limit, so a Resend that never answers fails it promptly", async () => {
-  const timeout = vi.spyOn(AbortSignal, "timeout");
-  await sentFrom();
-  expect(timeout).toHaveBeenCalledWith(OUTBOUND_TIMEOUT_MS);
-  const init = vi.mocked(fetch).mock.calls[0][1];
-  expect(init?.signal).toBe(timeout.mock.results[0].value);
 });
 
 test("a deployment with a sender sends from it (spec/20, The live site)", async () => {

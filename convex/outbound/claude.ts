@@ -1,6 +1,5 @@
 import { MINUTE_MS } from "../shared/time";
 import { ANTHROPIC_KEY_SETTING } from "./deploymentSettings";
-import { CLAUDE_TIMEOUT_MS } from "./timeouts";
 
 // What the app has AI write goes through Anthropic's Messages API, with one `fetch` and no SDK
 // (ARCHITECTURE.md, Services: AI is Claude Haiku 5.5). A scout's report is the first (spec/19).
@@ -27,7 +26,6 @@ export async function writeWithClaude({ system, prompt, maxTokens }: { system: s
     method: "POST",
     headers: { "x-api-key": apiKey, "anthropic-version": ANTHROPIC_VERSION, "content-type": "application/json" },
     body: JSON.stringify({ model: WRITING_MODEL, max_tokens: maxTokens, system, messages: [{ role: "user", content: prompt }] }),
-    signal: AbortSignal.timeout(CLAUDE_TIMEOUT_MS),
   });
   if (!response.ok) throw new Error(`Anthropic's API refused the request (${response.status}): ${await response.text()}`);
   const reply = (await response.json()) as { content?: { type: string; text?: string }[] };

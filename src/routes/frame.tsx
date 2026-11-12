@@ -26,8 +26,8 @@ import { newOfferSearchOf, offersSearchOf } from "../trades/paths";
 import { CODE_DIGITS, LANDING_PATH, frameRoute, type ShellContext } from "./root";
 
 // The pages under root.tsx's frameRoute, for anyone in a league, in its frame: every menu page but
-// Mail, whose route is with the league pages (leaguePages.tsx). Each league page is the current league's (CurrentLeague.tsx),
-// so a switch to another league starts it afresh.
+// Mail, whose route is with the league pages (leaguePages.tsx). Each league page is the current
+// league's (CurrentLeague.tsx), so a switch to another league starts it afresh.
 
 // A signed-in manager lands on My team (spec/12).
 const landingRoute = createRoute({
@@ -169,4 +169,21 @@ const newOfferRoute = createRoute({
   },
 });
 
-export const frameChildren = [landingRoute, homeRoute, homeNewsRoute, recapRoute, tableRoute, scoutingRoute, draftRoute, myTeamTacticsRoute, myTeamSquadRoute, myTeamFixturesRoute, myTeamTransactionsRoute, matchupRoute, premierLeagueRoute, matchRoute, tradesRoute, newOfferRoute];
+export const frameChildren = [
+  landingRoute,
+  homeRoute,
+  homeNewsRoute,
+  recapRoute,
+  tableRoute,
+  scoutingRoute,
+  draftRoute,
+  myTeamTacticsRoute,
+  myTeamSquadRoute,
+  myTeamFixturesRoute,
+  myTeamTransactionsRoute,
+  matchupRoute,
+  premierLeagueRoute,
+  matchRoute,
+  tradesRoute,
+  newOfferRoute,
+];

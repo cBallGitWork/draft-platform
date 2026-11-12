@@ -2,7 +2,6 @@ import { PRODUCT_NAME } from "../shared/product";
 import { RESEND_API_URL } from "./resend";
 import { EMAIL_FROM_SETTING, RESEND_KEY_SETTING } from "./deploymentSettings";
 import { TEST_SENDER } from "./sender";
-import { OUTBOUND_TIMEOUT_MS } from "./timeouts";
 
 // The app's emails go out through Resend's API (ARCHITECTURE.md, Services).
 
@@ -23,7 +22,6 @@ export async function sendEmail(to: string, words: { subject: string; text: stri
     method: "POST",
     headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
     body: JSON.stringify({ from: sender(), to, ...words }),
-    signal: AbortSignal.timeout(OUTBOUND_TIMEOUT_MS),
   });
   if (!response.ok) throw new Error(`Resend refused the email (${response.status}): ${await response.text()}`);
 }
