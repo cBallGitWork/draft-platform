@@ -7,6 +7,7 @@ import { addStats, sumStats } from "../../../convex/stats/statTotals";
 import { FULL_TIME_READ, GAMEWEEK, KICKOFF, heldMatch, syncAt, withBelloumiGoalRemoved, withHullEverton, withPlReadEmpty } from "../../support/convex/matchStats.harness";
 import type { TestConvex } from "../../support/convex/test.harness";
 import { FULL_STATS, recordedGw6 } from "../../support/recorded/gw6.payloads";
+import { everyJobRuns } from "../../support/convex/test.harness";
 
 // Each player's season totals (#373, seasonStats.ts): kept in step as his match records are
 // written, so Scouting sorts by any stat without reading a season of records, and rebuilt afresh
@@ -152,11 +153,11 @@ test("rebuild sets every player's totals to his records added up, however wrong 
   });
 
   await t.mutation(internal.stats.seasonStats.rebuild, { cursor: null });
-  await t.finishAllScheduledFunctions(vi.runAllTimers);
+  await everyJobRuns(t);
   const rebuilt = await totalsHeld(t);
   for (const [code, stats] of await recordsAddedUp(t)) expect(rebuilt.get(code)?.stats ?? {}).toEqual(stats);
 
   await t.mutation(internal.stats.seasonStats.rebuild, { cursor: null });
-  await t.finishAllScheduledFunctions(vi.runAllTimers);
+  await everyJobRuns(t);
   expect([...(await totalsHeld(t)).values()].map((row) => row.stats)).toEqual([...rebuilt.values()].map((row) => row.stats));
 });

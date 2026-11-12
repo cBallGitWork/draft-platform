@@ -6,7 +6,7 @@ import { emailIfFailed } from "../../admin/feedFailureEmails";
 import { CRON_TRIGGER, scheduleHeartbeat } from "../../heartbeats/heartbeat";
 import { londonHour } from "../../shared/moments";
 import { DAY_MS } from "../../shared/time";
-import { BATCH_SIZE, latestRuns } from "../../shared/syncRuns";
+import { inBatches, latestRuns } from "../../shared/syncRuns";
 import { DAILY_RUN_UK_HOUR } from "../../positions/positionsSync";
 import { positionsFromStarts, START_WINDOW } from "../../positions/positions";
 import { position, sportmonksPositionsSyncFields, sportmonksStart, syncTrigger } from "../../schema";
@@ -247,8 +247,8 @@ async function readPositions(ctx: ActionCtx, token: string): Promise<Synced> {
   }
   const rows = [...labels].map(([playerCode, label]) => ({ playerCode, label }));
   let labelsChanged = 0;
-  for (let at = 0; at < rows.length; at += BATCH_SIZE) {
-    labelsChanged += await ctx.runMutation(internal.football.sportmonks.sportmonksPositionsSync.recordLabels, { labels: rows.slice(at, at + BATCH_SIZE) });
+  for (const batch of inBatches(rows)) {
+    labelsChanged += await ctx.runMutation(internal.football.sportmonks.sportmonksPositionsSync.recordLabels, { labels: batch });
   }
   return {
     matchesRead: reading.length,

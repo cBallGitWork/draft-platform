@@ -1,11 +1,12 @@
-import { beforeEach, describe, expect, test, vi } from "vitest";
+import { beforeEach, describe, expect, test } from "vitest";
 import { api } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
 import { recordPassedDeadlines } from "../../../convex/gameweeks/deadlineRecorder";
-import { HOUR_MS, WEEK_MS } from "../../../convex/shared/time";
-import { changeRules, holdGameweeks, rulesWith, setUsed } from "../../support/convex/leagueRules.harness";
-import { actingAs, addManager, addManagers, adminCreatesLeague, MANAGERS, type TestConvex } from "../../support/convex/leagues.harness";
+import { HOUR_MS } from "../../../convex/shared/time";
+import { changeRulesTo, holdGameweeks, playUpTo, rulesWith, setUsed } from "../../support/convex/leagueRules.harness";
+import { actingAs, addManager, addManagers, adminCreatesLeague, MANAGERS, TEST_LEAGUE_TEAMS, type TestConvex } from "../../support/convex/leagues.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
+import { teamNumbered } from "../../../convex/leagues/teams";
 
 // A gameweek's fixtures are stored once it begins, and read as stored ever after (#137; spec/13,
 // Gameweeks: "a change reshuffles only fixtures not yet played"; Craig, 22 Oct 2026: "A played
@@ -22,19 +23,16 @@ const KICKS_OFF_IN = 2 * HOUR_MS;
 
 let t: TestConvex;
 let leagueId: Id<"leagues">;
-let seasonStart: number;
+let firstKickoff: number;
 beforeEach(async () => {
   t = await signInDeployment();
   fakeResend();
   leagueId = await adminCreatesLeague(t);
   await addManagers(t, leagueId, [ANN, BOB, CAT]);
-  seasonStart = Date.now();
+  firstKickoff = Date.now() + KICKS_OFF_IN;
   await holdGameweeks(t, { next: 1, kicksOffIn: KICKS_OFF_IN });
 });
 
-/** Moves the clock on to just after `gameweek` kicks off: it and every one before have begun, and
- *  the next hasn't. */
-const playUpTo = (gameweek: number) => vi.setSystemTime(seasonStart + (gameweek - 1) * WEEK_MS + KICKS_OFF_IN);
 const recordPassed = () => t.run((ctx) => recordPassedDeadlines(ctx));
 const storedRows = () => t.run((ctx) => ctx.db.query("playedFixtures").collect());
 const storedGameweeksOf = async (league: Id<"leagues">) =>
@@ -51,29 +49,28 @@ type Gameweeks = Awaited<ReturnType<typeof read>>;
 const played = (gameweeks: Gameweeks) => gameweeks.filter(({ gameweek }) => gameweek <= PLAYED);
 const toCome = (gameweeks: Gameweeks) => gameweeks.filter(({ gameweek }) => gameweek > PLAYED);
 const setUsedIn = (gameweek: number, used: boolean) => setUsed(t, leagueId, gameweek, used);
-const changeRulesTo = (change: Parameters<typeof rulesWith>[0]) => changeRules(t, leagueId, rulesWith(change));
 const upTo = (last: number) => Array.from({ length: last }, (_, index) => index + 1);
 
 describe("storing", () => {
   test("the football sync's recorder stores each gameweek once it has begun, and none before", async () => {
-    playUpTo(PLAYED);
+    playUpTo(firstKickoff,PLAYED);
     await recordPassed();
     expect(await storedGameweeksOf(leagueId)).toEqual(upTo(PLAYED));
 
-    playUpTo(PLAYED + 1);
+    playUpTo(firstKickoff,PLAYED + 1);
     await recordPassed();
     expect(await storedGameweeksOf(leagueId)).toEqual(upTo(PLAYED + 1));
   });
 
   test("stores what the draw gave, so the fixtures read the same before and after", async () => {
-    playUpTo(PLAYED);
+    playUpTo(firstKickoff,PLAYED);
     const drawn = await read();
     await recordPassed();
     expect(await read()).toEqual(drawn);
   });
 
   test("storing again stores nothing more and changes nothing", async () => {
-    playUpTo(PLAYED);
+    playUpTo(firstKickoff,PLAYED);
     await recordPassed();
     const first = await storedRows();
     await recordPassed();
@@ -81,7 +78,7 @@ describe("storing", () => {
   });
 
   test("a stored gameweek is read as stored, not drawn again", async () => {
-    playUpTo(PLAYED);
+    playUpTo(firstKickoff,PLAYED);
     await recordPassed();
     const [drawn] = await read();
     // Turn gameweek 1's fixtures round, as a different draw might have had them.
@@ -99,14 +96,14 @@ describe("a gameweek begun with no head-to-head never gets fixtures (#282)", () 
   const firstWithFixtures = async (league: Id<"leagues">) => (await readOf(league))[0].gameweek;
 
   test("a league made mid-season has none in the gameweeks begun before it, and starts its round robin at the next", async () => {
-    playUpTo(PLAYED);
-    const later = await adminCreatesLeague(t, 4, "Later");
+    playUpTo(firstKickoff,PLAYED);
+    const later = await adminCreatesLeague(t, TEST_LEAGUE_TEAMS, "Later");
     await addManagers(t, later, [ANN, BOB, CAT, DAN]);
     const before = await readOf(later);
     expect(before[0].gameweek).toBe(PLAYED + 1);
 
     await recordPassed();
-    playUpTo(PLAYED + 1);
+    playUpTo(firstKickoff,PLAYED + 1);
     await recordPassed();
     const after = await readOf(later);
     expect(after).toEqual(before);
@@ -116,17 +113,17 @@ describe("a gameweek begun with no head-to-head never gets fixtures (#282)", () 
   });
 
   test("a gameweek begun with one team has none when a second joins", async () => {
-    const lonely = await adminCreatesLeague(t, 4, "Lonely");
+    const lonely = await adminCreatesLeague(t, TEST_LEAGUE_TEAMS, "Lonely");
     await addManager(t, lonely, ANN);
-    playUpTo(PLAYED);
+    playUpTo(firstKickoff,PLAYED);
     await recordPassed();
     await addManager(t, lonely, BOB);
     expect(await firstWithFixtures(lonely)).toBe(PLAYED + 1);
   });
 
   test("a gameweek begun as total points has none once the league plays head-to-head", async () => {
-    await changeRulesTo({ format: "totalPoints" });
-    playUpTo(PLAYED);
+    await changeRulesTo(t, leagueId, { format: "totalPoints" });
+    playUpTo(firstKickoff,PLAYED);
     await recordPassed();
     // Written straight in: a commissioner can no longer change the format once the season has
     // begun (#275), but a league that did before then still holds such rules.
@@ -137,7 +134,7 @@ describe("a gameweek begun with no head-to-head never gets fixtures (#282)", () 
 
 describe("a gameweek played keeps its fixtures", () => {
   beforeEach(async () => {
-    playUpTo(PLAYED);
+    playUpTo(firstKickoff,PLAYED);
     await recordPassed();
   });
 
@@ -156,7 +153,7 @@ describe("a gameweek played keeps its fixtures", () => {
 
   test("a rule change leaves the stored gameweeks as they were, and draws those to come by it", async () => {
     const before = await read();
-    expect(await changeRulesTo({ oddTeamOut: "bye", gamesPerGameweek: 2 })).toBe(PLAYED + 1);
+    expect(await changeRulesTo(t, leagueId, { oddTeamOut: "bye", gamesPerGameweek: 2 })).toBe(PLAYED + 1);
     const after = await read();
 
     expect(played(after)).toEqual(played(before));
@@ -170,13 +167,13 @@ describe("a gameweek played keeps its fixtures", () => {
 
     expect(played(after)).toEqual(played(before));
     const teamsPlaying = (gameweeks: Gameweeks) => gameweeks.flatMap(({ fixtures }) => fixtures.flatMap(({ team, opponent }) => [team, opponent]));
-    expect(teamsPlaying(played(after))).not.toContain("Team 4");
-    expect(teamsPlaying(toCome(after))).toContain("Team 4");
+    expect(teamsPlaying(played(after))).not.toContain(teamNumbered(4));
+    expect(teamsPlaying(toCome(after))).toContain(teamNumbered(4));
   });
 });
 
 test("a team joining stores the gameweeks begun first, even before the football sync has", async () => {
-  playUpTo(PLAYED);
+  playUpTo(firstKickoff,PLAYED);
   const before = await read();
   expect(await storedRows()).toEqual([]);
 

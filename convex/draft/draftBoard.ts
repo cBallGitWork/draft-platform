@@ -9,8 +9,8 @@ import { memberOf } from "../shared/leagueAccess";
 import { clubsByCode, playerByCode } from "../shared/players";
 import { pickSecondsOf } from "./draftPickTime";
 import { squadRulesOf } from "./draftPicks";
-import { draftIsLive, draftOf } from "./draftRow";
-import { isOnAutoPick } from "./draftTimeouts";
+import { draftIsOver, draftOf } from "./draftRow";
+import { isOnAutoPick, timeoutCountOf } from "./draftTimeouts";
 
 // The draft room's reads (spec/04, The draft room; #1098), beside the draft's own (draftStart.ts
 // `ofLeague`): the picks made, for the board, and whether the room is in the menu. The room is in
@@ -34,9 +34,8 @@ const draftBoard = v.object({
   picks: v.array(boardPick),
   /** The caller's team, null for a commissioner who runs none. */
   yourTeamId: v.union(v.id("teams"), v.null()),
-  /** The draft's pick time, in seconds: its own once it has started, else the league's latest; null
-   *  for a league with no rules (before #25). */
-  pickSeconds: v.union(v.number(), v.null()),
+  /** The draft's pick time, in seconds: its own once it has started, else the league's latest. */
+  pickSeconds: v.number(),
   /** The caller's own team's auto-pick (#1100): whether it is on it, its timeouts so far, and how
    *  many put it on auto-pick (null: never, or a league with no rules); null for a caller who runs
    *  no team. */
@@ -87,8 +86,7 @@ export const ofLeague = query({
     let yourAutoPick: DraftBoard["yourAutoPick"] = null;
     if (team) {
       const timeouts = draft?.timeouts;
-      const count = timeouts?.find(({ teamId }) => teamId === team._id)?.count ?? 0;
-      yourAutoPick = { on: isOnAutoPick(timeouts, team._id), timeouts: count, limit: draftRules.timeoutsBeforeAutoPick };
+      yourAutoPick = { on: isOnAutoPick(timeouts, team._id), timeouts: timeoutCountOf(timeouts, team._id), limit: draftRules.timeoutsBeforeAutoPick };
     }
     return { picks, yourTeamId: team?._id ?? null, pickSeconds: pickSecondsOf(draft, draftRules), yourAutoPick, tradedPicks: draft?.tradedPicks ?? [], maxPerClub: squad?.maxPerClub ?? null };
   },
@@ -100,6 +98,6 @@ export const inMenu = query({
   returns: v.boolean(),
   handler: async (ctx, { leagueId }) => {
     await memberOf(ctx, leagueId);
-    return (await draftOf(ctx, leagueId))?.started === undefined || (await draftIsLive(ctx, leagueId));
+    return !(await draftIsOver(ctx, leagueId));
   },
 });

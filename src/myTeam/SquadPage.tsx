@@ -3,9 +3,9 @@ import type { LeagueSummary } from "../../convex/leagues/myLeagues";
 import { unheldNoticeWords } from "../shared/words";
 import { useMinute } from "../shared/useMinute";
 import { Choice } from "../ui/Choice";
-import { Loading, Notice, PageSection, PanelNote } from "../ui/Panel";
+import { Loading, Notice, PanelNote } from "../ui/Panel";
 import type { MyTeamSeam, TeamSquad } from "./seam";
-import { TeamPage } from "./header/TeamHeader";
+import { NoTeam, TeamPage } from "./header/TeamHeader";
 import { positionMarksOf, type PositionMark } from "./tactics/positionMarks";
 import type { Tactics } from "./tactics/seam";
 import { MailWidget } from "./squad/MailWidget";
@@ -17,7 +17,6 @@ import { SquadTable } from "./squad/SquadTable";
 import { YourEleven } from "./squad/YourEleven";
 import {
   noSquadWords,
-  noTeamWords,
   SQUAD_TITLE,
   squadCountWords,
   squadLoadingWords,
@@ -33,13 +32,7 @@ import {
  *  tapped, Your eleven, and Mail and news, which moves under the table while a panel is open.
  *  All of it under My team's header band (header/TeamHeader.tsx), as the Tactics tab is. */
 export function SquadPage({ league, seam }: { league: LeagueSummary; seam: MyTeamSeam }) {
-  if (league.teamName === null) {
-    return (
-      <PageSection title={SQUAD_TITLE} className="bg-panel">
-        <PanelNote>{noTeamWords}</PanelNote>
-      </PageSection>
-    );
-  }
+  if (league.teamName === null) return <NoTeam title={SQUAD_TITLE} />;
   return (
     <TeamPage league={league} teamName={league.teamName} seam={seam}>
       <SquadBody league={league} seam={seam} />

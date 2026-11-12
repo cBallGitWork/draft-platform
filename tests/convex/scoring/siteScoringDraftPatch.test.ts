@@ -44,6 +44,7 @@ const withPenaltiesSaved = (set: StoredScoringSet, points: number): StoredScorin
   rules: set.rules.map((rule): Rule => (rule.stat === "penalties_saved" ? { shape: "perAction", stat: "penalties_saved", values: { all: points } } : structuredClone(rule))),
 });
 const withdrawAs = async (email: string, versionId: Id<"siteScoring">) => (await as(email)).mutation(api.scoring.siteScoring.withdraw, { versionId });
+const dismissAs = async (email: string, versionId: Id<"siteScoring">) => (await as(email)).mutation(api.scoring.patchNotes.dismissBanner, { versionId });
 const latestId = async () => (await viewAs(ADMIN)).versions.at(-1)!.id;
 const subjects = () => t.run(async (ctx) => (await ctx.db.query("letters").collect()).map((row) => [row.to, row.subject] as const));
 
@@ -139,6 +140,19 @@ describe("withdrawing an announced patch", () => {
     expect(await inGameweek(10)).toEqual(FIRST_SCORING);
     expect(await viewAs(ADMIN)).toMatchObject({ part: FIRST_SCORING, revision: null, draft: { part: EDITED, savedAt: TODAY + DAY_MS } });
     expect(await (await as(COMMISSIONER)).query(api.scoring.patchNotes.banner, { now: Date.now() })).toBeNull();
+  });
+
+  test("deletes who dismissed its banner with it, and only its own", async () => {
+    await holdGameweeks(t, { next: 9 });
+    await fixAs(ADMIN, EDITED);
+    const kept = await latestId();
+    await patch(withAssists(EDITED, 5), kickoffOf(10));
+    const withdrawn = await latestId();
+    for (const versionId of [kept, withdrawn]) await dismissAs(COMMISSIONER, versionId);
+
+    await withdrawAs(ADMIN, withdrawn);
+
+    expect(await t.run(async (ctx) => (await ctx.db.query("patchBannerDismissals").collect()).map((row) => row.versionId))).toEqual([kept]);
   });
 
   test("tells every manager by a Mail letter", async () => {

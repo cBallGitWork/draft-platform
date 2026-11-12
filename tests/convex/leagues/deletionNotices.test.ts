@@ -10,7 +10,7 @@ import { ADMIN, COMMISSIONER, CO_COMMISSIONER, LEAGUE_NAME, actingAs, type TestC
 import { EMAILS_PER_DAY, startOfNextDay } from "../../../convex/outbound/emailLimit";
 import { finishWhatIsDueNow } from "../../support/convex/joining.harness";
 import { fakeResend, sentToday, setSentToday, signInDeployment, type SentEmail } from "../../support/convex/signIn.harness";
-import { elapse, pendingJobs, silenceConsoleError } from "../../support/convex/test.harness";
+import { elapse, pendingJobs, silenceConsoleError, everyJobRuns } from "../../support/convex/test.harness";
 
 // The email saying a league has been deleted, sent only once it is gone for good (#320, spec/13,
 // Deleting): "just delay the deletion email until its actually gone".
@@ -26,7 +26,7 @@ beforeEach(async () => {
 });
 
 /** The day runs out, the league is deleted for good, and the emails saying so are sent. */
-const goneForGood = () => t.finishAllScheduledFunctions(vi.runAllTimers);
+const goneForGood = () => everyJobRuns(t);
 
 /** The commissioner deletes the league and the clock reaches the moment before it goes: the day's
  *  emails counted from here are the day it goes, not the day it was deleted. */
@@ -115,7 +115,7 @@ describe("past the day's emails (spec/13, #837)", () => {
       { name: getFunctionName(internal.leagues.deletionNotices.send), emails: [CO_COMMISSIONER, ANN, BOB], scheduledTime: startOfNextDay(goneAt) },
     ]);
 
-    await t.finishAllScheduledFunctions(vi.runAllTimers);
+    await everyJobRuns(t);
     expect(Date.now()).toBe(startOfNextDay(goneAt));
     expect(sent.map((email) => email.to)).toEqual([CO_COMMISSIONER, ANN, BOB]);
     expect(await sentToday(t)).toBe(3);
@@ -130,7 +130,7 @@ describe("past the day's emails (spec/13, #837)", () => {
     expect((await runsToCome()).map(({ emails }) => emails)).toEqual([[ANN, BOB]]);
     expect(logged).toHaveBeenCalledWith(waitingLog(2));
 
-    await t.finishAllScheduledFunctions(vi.runAllTimers);
+    await everyJobRuns(t);
     expect(sent.map((email) => email.to)).toEqual([CO_COMMISSIONER, ANN, BOB]);
   });
 });
@@ -159,7 +159,7 @@ describe("someone the email service refuses", () => {
     await keep(UNEMAILED_KEPT_MS);
 
     await t.mutation(internal.admin.runLogs.prune, { feed: PRUNE_ORDER.at(-1) });
-    await t.finishAllScheduledFunctions(vi.runAllTimers);
+    await everyJobRuns(t);
 
     const left = await t.run((ctx) => ctx.db.query("unemailedDeletions").collect());
     expect(left.map(({ at }) => at)).toEqual([Date.now() - UNEMAILED_KEPT_MS]);

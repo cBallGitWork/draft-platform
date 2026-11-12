@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, test, vi } from "vitest";
+import { beforeEach, describe, expect, test } from "vitest";
 import { api, internal } from "../../../convex/_generated/api";
 import { LEAGUES_SHOWN } from "../../../convex/leagues/leagueLimits";
 import { refusals } from "../../../convex/shared/leagueAccess";
@@ -14,10 +14,12 @@ import {
   adminCreatesLeague,
   leagueRow,
   teamsIn,
+  TEST_LEAGUE_TEAMS,
   type TestConvex,
 } from "../../support/convex/leagues.harness";
 import { ask, fakeResend, linkCode, linkNotSentLine, openLink, signInDeployment } from "../../support/convex/signIn.harness";
-import { expectRefused, silenceConsoleError } from "../../support/convex/test.harness";
+import { expectRefused, silenceConsoleError, everyJobRuns } from "../../support/convex/test.harness";
+import { teamNumbered } from "../../../convex/leagues/teams";
 
 // "Your leagues" (spec/12): what signIn/account:signedInAs tells the screens of a person's leagues, and
 // #24's Done line end to end.
@@ -34,18 +36,18 @@ const accountOf = (email: string) => accountIn(t, email);
 
 describe("a person's leagues", () => {
   test("lists each league they have a part in, with their roles and team, and says they're in a league", async () => {
-    const leagueId = await adminCreatesLeague(t, 4);
+    const leagueId = await adminCreatesLeague(t);
     await addManagers(t, leagueId, [ANN, COMMISSIONER]);
 
     expect(await accountOf(ANN)).toMatchObject({
       inLeague: true,
-      leagues: [{ leagueId, name: LEAGUE_NAME, roles: ["manager"], teamName: "Team 1", teams: 2, maxTeams: 4 }],
+      leagues: [{ leagueId, name: LEAGUE_NAME, roles: ["manager"], teamName: teamNumbered(1), teams: 2, maxTeams: 4 }],
     });
-    expect((await accountOf(COMMISSIONER)).leagues).toMatchObject([{ roles: ["commissioner", "manager"], teamName: "Team 2" }]);
+    expect((await accountOf(COMMISSIONER)).leagues).toMatchObject([{ roles: ["commissioner", "manager"], teamName: teamNumbered(2) }]);
   });
 
   test("a commissioner with no team, and a co-commissioner, are in the league", async () => {
-    const leagueId = await adminCreatesLeague(t, 4);
+    const leagueId = await adminCreatesLeague(t);
     await (await actingAs(t, COMMISSIONER)).mutation(api.leagues.leagues.nameCoCommissioner, { leagueId, email: CO_COMMISSIONER });
 
     expect(await accountOf(COMMISSIONER)).toMatchObject({ inLeague: true, leagues: [{ roles: ["commissioner"], teamName: null }] });
@@ -53,12 +55,12 @@ describe("a person's leagues", () => {
   });
 
   test("someone with no part in any league is in none", async () => {
-    await adminCreatesLeague(t, 4);
+    await adminCreatesLeague(t);
     expect(await accountOf(ANN)).toMatchObject({ inLeague: false, leagues: [] });
   });
 
   test("the admin sees every league, by name, with no part in them, and so is in none", async () => {
-    await adminCreatesLeague(t, 4, "Second");
+    await adminCreatesLeague(t, TEST_LEAGUE_TEAMS, "Second");
     await adminCreatesLeague(t, 2, "First");
 
     const admin = await accountOf(ADMIN);
@@ -75,7 +77,7 @@ describe("a person's leagues", () => {
     ["a manager", ANN, { names: false, runs: false }],
     ["the admin", ADMIN, { names: true, runs: true }],
   ])("%s is sent the powers the server judges changes by", async (_who, email, powers) => {
-    const leagueId = await adminCreatesLeague(t, 4);
+    const leagueId = await adminCreatesLeague(t);
     await addManagers(t, leagueId, [ANN]);
     await (await actingAs(t, COMMISSIONER)).mutation(api.leagues.leagues.nameCoCommissioner, { leagueId, email: CO_COMMISSIONER });
 
@@ -86,7 +88,7 @@ describe("a person's leagues", () => {
 describe("more leagues than the list shows (#144)", () => {
   /** `count` leagues in all: one made as the admin makes them, and copies of its row. */
   async function leaguesInAll(count: number) {
-    const leagueId = await adminCreatesLeague(t, 4);
+    const leagueId = await adminCreatesLeague(t);
     await t.run(async (ctx) => {
       const { _id, _creationTime, ...row } = (await ctx.db.get("leagues", leagueId))!;
       for (let copy = 1; copy < count; copy++) await ctx.db.insert("leagues", { ...row, name: `${row.name} ${copy}` });
@@ -142,7 +144,7 @@ describe("a commissioner's sign-in link that didn't go", () => {
     const admin = await actingAs(t, ADMIN);
     const leagueId = await admin.mutation(api.leagues.leagues.create, { name: "L", maxTeams: 4, commissionerEmail: ANN });
     await admin.mutation(api.leagues.leagues.nameCommissioner, { leagueId, email: COMMISSIONER });
-    await t.finishAllScheduledFunctions(vi.runAllTimers);
+    await everyJobRuns(t);
     expect(logged).toHaveBeenCalledWith(expect.stringContaining(linkNotSentLine(ANN)));
     expect(logged).toHaveBeenCalledWith(expect.stringContaining(linkNotSentLine(COMMISSIONER)));
     // Ann's link, sent first, is the last to answer.
@@ -168,8 +170,8 @@ test("#24 Done: a league of four fills, renames, refuses a duplicate, keeps a le
 
   expect((await teamsIn(t, leagueId)).map(({ name, managerEmail }) => [name, managerEmail])).toEqual([
     ["Red Army", ANN],
-    ["Team 2", undefined],
-    ["Team 3", CAT],
-    ["Team 4", DAN],
+    [teamNumbered(2), undefined],
+    [teamNumbered(3), CAT],
+    [teamNumbered(4), DAN],
   ]);
 });

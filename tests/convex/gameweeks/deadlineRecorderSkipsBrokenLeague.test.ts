@@ -3,7 +3,7 @@ import { internal } from "../../../convex/_generated/api";
 import { LEAGUE_SKIPPED } from "../../../convex/gameweeks/deadlineRecorder";
 import { FIRST_RULES } from "../../../convex/rules/firstRules";
 import { HOUR_MS } from "../../../convex/shared/time";
-import { adminCreatesLeague } from "../../support/convex/leagues.harness";
+import { adminCreatesLeague, TEST_LEAGUE_TEAMS } from "../../support/convex/leagues.harness";
 import { syncWith } from "../../support/convex/footballSync.harness";
 import { sentToday } from "../../support/convex/signIn.harness";
 import { pendingJobs, silenceConsoleError } from "../../support/convex/test.harness";
@@ -26,7 +26,7 @@ useDeadlineRecorderDeployment();
 
 test("a league whose deadlines can't be worked out is skipped, logged and emailed once, and the healthy league's deadline is recorded as the kickoffs move", async () => {
   const error = silenceConsoleError();
-  const broken = await adminCreatesLeague(t, 4, "Broken");
+  const broken = await adminCreatesLeague(t, TEST_LEAGUE_TEAMS, "Broken");
   // Only a row written by hand can be unsound: a commissioner's change is checked.
   await t.run(async (ctx) => {
     await ctx.db.insert("leagueRules", { leagueId: broken, fromGameweek: 1, rules: { ...FIRST_RULES, deadline: { minutesBeforeFirstKickoff: -1 } } });

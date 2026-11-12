@@ -2,10 +2,10 @@
 
 import { countInWords } from "../../convex/shared/numberWords";
 import { NEXT_MATCHES_SHOWN } from "../../convex/squads/squadLimits";
-import { fewestTeamsWords, menuWords } from "../shared/words";
+import { fewestTeamsWords, gameweekShort, menuWords, versusWords, withTeamWords } from "../shared/words";
 import type { TeamTransactions } from "./seam";
 
-export { figureWords, liveWords, noFigureWords, noTeamWords, placeWords, shortThenLongName, tradedPickWords, versusWords, whenWords, withTeamWords } from "../shared/words";
+export { dateWords, figureOrNone, figureWords, liveWords, noFigureWords, noTeamWords, placeWords, shortThenLongName, tradedPickWords, versusWords, whenWords, withTeamWords } from "../shared/words";
 
 // What the Squad and Tactics tabs' tables and panels both say (#1042).
 
@@ -40,7 +40,7 @@ export const fixtureColumns = {
 export const RESULTS_TITLE = "Results";
 export const toPlayWords = (count: number) => `${count} to play`;
 export const nextGameWords = "Next";
-export const nextGameTitle = (gameweek: number, opponent: string) => `GW${gameweek} v ${opponent}`;
+export const nextGameTitle = (gameweek: number, opponent: string) => `${gameweekShort(gameweek)} ${versusWords} ${opponent}`;
 export const deadlineWords = "Deadline";
 export const theirFormWords = "Their form";
 export const matchupMoreWords = "Matchup";
@@ -55,35 +55,52 @@ export const noFixturesWords = `No fixtures yet: they're drawn once the league h
 export const TRANSACTIONS_TITLE = menuWords.transactions;
 export const transactionsLoadingWords = "Loading your transactions…";
 export const transactionsTableLabel = (teamName: string) => `${teamName}'s transactions`;
+/** History's columns (the team-transactions picture): what came in and what went out, and who. */
 export const transactionColumns = {
-  when: { short: "When", long: "When it happened" },
-  player: { short: "Player", long: "Player" },
-  move: { short: "Move", long: "What happened to him" },
-  by: { short: "By", long: "Who made the move" },
+  when: { short: "Date", long: "When it happened" },
+  kind: { short: "Kind", long: "What kind of transaction" },
+  in: { short: "In", long: "Who or what joined the team" },
+  out: { short: "Out", long: "Who or what left the team" },
+  by: { short: "By", long: "Who made it, or the team on the other side of a trade" },
 } as const;
-type PlayerTransaction = Exclude<TeamTransactions["transactions"][number], { kind: "traded" }>;
-/** What a transaction did to the team, as its Move cell says it. */
-export function transactionWords({ kind, otherTeamName }: Pick<PlayerTransaction, "kind" | "otherTeamName">): string {
-  switch (kind) {
-    case "assigned":
-      return "Assigned to the team";
+type Transaction = TeamTransactions["transactions"][number];
+/** The kinds History's Show keys pick between (#1031): a commissioner's assignments, moves and
+ *  releases are all Assigned. */
+export const historyShows = ["all", "claims", "freeAgents", "drops", "trades", "assigned"] as const;
+export type HistoryShow = (typeof historyShows)[number];
+export const historyShowWords: Record<HistoryShow, string> = { all: "All", claims: "Claims", freeAgents: "Free agents", drops: "Drops", trades: "Trades", assigned: "Assigned" };
+export const historyShowLabel = "Show";
+/** The Show key each kind is under. */
+export const showOf: Record<Transaction["kind"], Exclude<HistoryShow, "all">> = {
+  claimed: "claims",
+  pickedUp: "freeAgents",
+  dropped: "drops",
+  traded: "trades",
+  assigned: "assigned",
+  movedIn: "assigned",
+  movedOut: "assigned",
+  released: "assigned",
+};
+/** A transaction's Kind cell. */
+export const transactionKindWords: Record<Exclude<HistoryShow, "all">, string> = { claims: "Claim", freeAgents: "Free agent", drops: "Drop", trades: "Trade", assigned: "Assigned" };
+/** Who made a transaction, as By says it: "You", or whoever did, with where a commissioner's move
+ *  took him ("commish@example.com, to Hull Hearts"). A trade's By names the other team. */
+export function transactionByWords(transaction: Transaction): string {
+  if (transaction.kind === "traded") return withTeamWords(transaction.otherTeamName);
+  const by = transaction.yours ? "You" : transaction.by;
+  switch (transaction.kind) {
     case "movedIn":
-      return `Moved in from ${otherTeamName}`;
+      return `${by}, from ${transaction.otherTeamName}`;
     case "movedOut":
-      return `Moved out to ${otherTeamName}`;
+      return `${by}, to ${transaction.otherTeamName}`;
     case "released":
-      return "Released to free agency";
-    case "dropped":
-      return "Dropped";
-    case "claimed":
-      return "Claimed off waivers";
-    case "pickedUp":
-      return "Picked up as a free agent";
+      return `${by}, to free agency`;
+    default:
+      return by;
   }
 }
-/** A trade's lines in the Move cell (#1491): each player or pick it brought in, then each it sent. */
-export const tradedInWords = "Traded in";
-export const tradedOutWords = "Traded out";
 export const noTransactionsWords = "No transactions yet.";
+/** History under a Show key holding none of the team's. */
+export const noneShownWords = "None of this kind.";
 /** Said when the league holds more squad moves than the tab reads (convex/squads/teamTransactions.ts). */
 export const transactionsCutWords = "Only the most recent transactions are shown.";

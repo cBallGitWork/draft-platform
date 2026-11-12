@@ -4,8 +4,9 @@
 // picks up Rice; the preview saves nothing and says so. Fails on any console or page error (errorsTest.ts).
 
 import { expect } from "@playwright/test";
-import { proLeague } from "../../src/shared/preview";
+import { previewSaid, proLeague } from "../../src/shared/preview";
 import { playerCardPath } from "../../src/playerCard/paths";
+import { previewWaiverOutcomes } from "../../src/playerCard/preview";
 import { SCOUTING_PATH } from "../../src/frame/menu";
 import { availabilityWords } from "../../src/scouting/words";
 import { breakdownLabel, claimWords, confirmDropWords, dropWords, logViews, pickUpWords, postponedWords, SEASON_TITLE, whoGoesLabel } from "../../src/playerCard/words";
@@ -40,22 +41,22 @@ test.describe("the player card, on the dev server's preview", { tag: "@dev" }, (
 
   test("drops, claims and picks up", async ({ page }) => {
     const card = (code: number) => page.goto(`${playerCardPath(proLeague.leagueId, code)}?preview=manager`);
-    const said = (words: string) => expect(page.getByRole("alert")).toHaveText(words);
+    const said = (outcome: string) => expect(page.getByRole("alert")).toHaveText(previewSaid(outcome));
 
     await card(SAKA);
     await page.getByRole("button", { name: dropWords }).click();
     await expect(page.getByText(confirmDropWords("Saka"))).toBeVisible();
     await page.getByRole("button", { name: dropWords }).click();
-    await said("This is a preview: nobody was dropped.");
+    await said(previewWaiverOutcomes.drop);
 
     await card(JAMES);
     await expect(page.getByText(/^On waivers: first run /)).toBeVisible();
     await page.getByLabel(whoGoesLabel).selectOption({ label: "Saka" });
     await page.getByRole("button", { name: claimWords }).click();
-    await said("This is a preview: no claim was put in.");
+    await said(previewWaiverOutcomes.claim);
 
     await card(RICE);
     await page.getByRole("button", { name: pickUpWords }).click();
-    await said("This is a preview: nobody was picked up.");
+    await said(previewWaiverOutcomes.pickUp);
   });
 });

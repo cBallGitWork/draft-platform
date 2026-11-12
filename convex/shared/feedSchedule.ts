@@ -69,14 +69,18 @@ export type FeedSchedule = { readonly every: Every; readonly graceMs: number };
  *  while it runs. Its side reads run on it, so they are late by it too. */
 const LIVE_TICK = { every: { minutes: 1 }, graceMs: 4 * MINUTE_MS } as const satisfies FeedSchedule;
 
+/** The football sync's six hours (FPL's and Sportmonks'): a run reads in a minute or two. */
+const SIX_HOURLY = { every: { hours: 6 }, graceMs: 30 * MINUTE_MS } as const satisfies FeedSchedule;
+
+/** Daily at 06:00 UK time (#1194, Craig, 5 Nov 2026), the positions syncs'. crons.ts fires at 05:00
+ *  and 06:00 UTC and only the one at 06:00 UK runs, so across a clock change two runs are 23 or 25
+ *  hours apart; a run takes minutes, and one with matches left carries on at once. */
+const DAILY_AT_SIX = { every: { hours: 24 }, graceMs: 2 * HOUR_MS } as const satisfies FeedSchedule;
+
 /** Null for a feed no cron runs (ARCHITECTURE.md): it can't be late, so the page says so. */
 export const FEED_SCHEDULES = {
-  // A run reads FPL in a minute or two.
-  football: { every: { hours: 6 }, graceMs: 30 * MINUTE_MS },
-  // Daily at 06:00 UK time (#1194, Craig, 5 Nov 2026). crons.ts fires at 05:00 and 06:00 UTC and
-  // only the one at 06:00 UK runs, so across a clock change two runs are 23 or 25 hours apart; a
-  // run takes minutes, and one with matches left carries on at once.
-  positions: { every: { hours: 24 }, graceMs: 2 * HOUR_MS },
+  football: SIX_HOURLY,
+  positions: DAILY_AT_SIX,
   // Late stats, every 10 minutes (spec/20). A run of ten due matches can take most of Convex's
   // 10-minute action limit, and Convex skips the next while it runs.
   matchStats: { every: { minutes: 10 }, graceMs: 10 * MINUTE_MS },
@@ -84,11 +88,11 @@ export const FEED_SCHEDULES = {
   teamSheets: LIVE_TICK,
   teamStats: LIVE_TICK,
   thresholdSteps: LIVE_TICK,
-  // On the football sync's six hours (#1391); a run is three calls.
-  sportmonks: { every: { hours: 6 }, graceMs: 30 * MINUTE_MS },
+  // A run is three calls (#1391).
+  sportmonks: SIX_HOURLY,
   sportmonksLive: LIVE_TICK,
-  // Daily at 06:00 UK time, as the positions sync (#1419, spec/06).
-  sportmonksPositions: { every: { hours: 24 }, graceMs: 2 * HOUR_MS },
+  // As the positions sync (#1419, spec/06).
+  sportmonksPositions: DAILY_AT_SIX,
 } as const satisfies Record<Feed, FeedSchedule | null>;
 
 /** How long a scheduled feed may go without a success before it is late. */

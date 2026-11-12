@@ -3,6 +3,7 @@ import { api } from "../../../convex/_generated/api";
 import { pickUpRefusals } from "../../../convex/waivers/freeAgents";
 import { claimRefusals } from "../../../convex/waivers/waiverClaims";
 import { dropRefusals } from "../../../convex/waivers/waivers";
+import { draftStarted, LIVE_DRAFT_ROUNDS } from "../../support/convex/draft.harness";
 import { actingAs, addManagers, adminCreatesLeague, COMMISSIONER, MANAGERS } from "../../support/convex/leagues.harness";
 import { holdPlayers } from "../../support/convex/lineupSquad.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
@@ -22,7 +23,7 @@ beforeEach(async () => {
 /** The league's draft row as `started` says: none, or one started with picks still to make. */
 const draftIs = async (state: "notStarted" | "live") => {
   await noDraft(w.t, w.leagueId);
-  if (state === "live") await w.t.run((ctx) => ctx.db.insert("drafts", { leagueId: w.leagueId, started: { at: Date.now(), teamIds: w.teams, rounds: 15 } }));
+  if (state === "live") await draftStarted(w.t, w.leagueId, w.teams, LIVE_DRAFT_ROUNDS);
 };
 
 const pickUp = (email: string, playerCode: number) => w.pickUp(email, playerCode);
