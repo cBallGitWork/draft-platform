@@ -1,5 +1,6 @@
 import { TRADE_REVIEWS } from "../../convex/rules/leagueRulesShape";
 import type { LeagueSettings } from "../../convex/rules/leagueSettingsPart";
+import { blankOrOff } from "../rules/blank";
 import { Choice } from "../ui/Choice";
 import { PANEL_BODY, Panel } from "../ui/Panel";
 import { TickBox } from "../ui/TickBox";
@@ -19,7 +20,7 @@ export function TradesPanel({ trades, seasonGameweeks, edit }: { trades: Trades;
       <div className={PANEL_BODY}>
         <Choice label={tradeReviewLabel} name={TRADE_REVIEW_CHOICE} options={TRADE_REVIEWS} words={tradeReviewWords} chosen={trades.review} onChoose={(review) => edit({ ...trades, review })} />
         <p className="text-muted">{tradeReviewHint}</p>
-        <TickBox checked={trades.deadline !== null} onChange={(on) => edit({ ...trades, deadline: on ? NaN : null })}>
+        <TickBox checked={trades.deadline !== null} onChange={(on) => edit({ ...trades, deadline: blankOrOff(on) })}>
           {tradeDeadlineWords}
         </TickBox>
         {trades.deadline !== null && (

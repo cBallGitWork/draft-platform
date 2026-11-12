@@ -10,7 +10,7 @@ import { refusals } from "../../../convex/shared/leagueAccess";
 import { MINUTE_MS } from "../../../convex/shared/time";
 import { holdGameweeks } from "../../support/convex/leagueRules.harness";
 import { expectRefused } from "../../support/convex/test.harness";
-import { ADMIN, addManagers, adminCreatesLeague, COMMISSIONER, MANAGERS, OUTSIDER } from "../../support/convex/leagues.harness";
+import { ADMIN, addManagers, adminCreatesLeague, COMMISSIONER, MANAGERS, OUTSIDER, TEST_LEAGUE_TEAMS } from "../../support/convex/leagues.harness";
 import {
   announceAs,
   as,
@@ -47,7 +47,7 @@ async function twoLeagues() {
   await holdGameweeks(t, { next: 9 });
   const first = await adminCreatesLeague(t);
   await addManagers(t, first, [ANN, BOB]);
-  const second = await adminCreatesLeague(t, 4, "Mini beta");
+  const second = await adminCreatesLeague(t, TEST_LEAGUE_TEAMS, "Mini beta");
   await addManagers(t, second, [ANN, CAT]);
 }
 

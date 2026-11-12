@@ -4,7 +4,7 @@ import type { Id } from "../../../convex/_generated/dataModel";
 import { DEFAULT_ROLES } from "../../../convex/lineup/roles";
 import { SCOUT_TRIP_MS } from "../../../convex/scouting/scouts";
 import { JULY, seasonStartYear } from "../../../convex/shared/time";
-import { STARS_READ_MOST, starsReadRefusals } from "../../../convex/stars/playerStars";
+import { STARS_READ_MOST, starsLookup, starsLookupErrors, starsReadRefusals } from "../../../convex/stars/playerStars";
 import { NO_DATA, UNSURE, type Stars } from "../../../convex/stars/starsShape";
 import { COMMISSIONER, MANAGERS, actingAs, addManagers, adminCreatesLeague, type TestConvex } from "../../support/convex/leagues.harness";
 import { fakeClaude } from "../../support/convex/scouts.harness";
@@ -67,6 +67,14 @@ test("many players at once, in the order asked", async () => {
 test(`more than ${STARS_READ_MOST} at once is refused, never cut short`, async () => {
   const tooMany = Array.from({ length: STARS_READ_MOST + 1 }, (_, index) => 5000 + index);
   await expectRefused(ofPlayers(tooMany), starsReadRefusals.tooMany);
+});
+
+test("the stars lookup gives an asked player's stars and throws for one it was not asked for (#1732)", async () => {
+  await t.run(async (ctx) => {
+    const starsOf = await starsLookup(ctx, [SCORER.code]);
+    expect(starsOf(SCORER.code)).toEqual(everyStrikerRole(5));
+    expect(() => starsOf(STEADY.code)).toThrow(starsLookupErrors.notAsked(STEADY.code));
+  });
 });
 
 describe("who is shown whose stars (spec/19, Role stars)", () => {

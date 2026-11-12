@@ -27,7 +27,7 @@ import {
   sideTotal,
   type ScoresLeague,
 } from "../../support/convex/gameweekScores.harness";
-import { fullTimeRecords, lockMatch, storeLeague } from "../../support/convex/gameweekScoresMatch.harness";
+import { fullTimeRecords, lockMatch, storedLeague, storeLeague } from "../../support/convex/gameweekScoresMatch.harness";
 import { actingAs, ADMIN, COMMISSIONER } from "../../support/convex/leagues.harness";
 import { EVERTON_CLUB, HULL_CITY, HULL_EVERTON, mergedHullEverton } from "../../support/convex/matchStats.harness";
 import { EMOJI, expectRefused } from "../../support/convex/test.harness";
@@ -45,16 +45,6 @@ const MATCH_NAME = matchWords(HULL_CITY.name, EVERTON_CLUB.name);
 const ANNS_AFTER = inTenths(HULL_POINTS - SCORERS_POINTS + OVERRIDDEN);
 /** A code no feed holds. */
 const NOBODY = 999_999;
-
-/** A league whose gameweek 6 is final and stored, Hull and Everton held by name. */
-async function storedLeague(): Promise<ScoresLeague> {
-  const league = await scoresLeague();
-  await holdHullAndEverton(league);
-  await fullTimeRecords(league);
-  await lockMatch(league);
-  await storeLeague(league);
-  return league;
-}
 
 type Override = { playerCode?: number; points?: number; reason?: string; fixtureCode?: number };
 const overrides = async ({ t, leagueId }: ScoresLeague, by: string, { playerCode = HULL_SCORER, points = OVERRIDDEN, reason = REASON, fixtureCode = HULL_EVERTON }: Override = {}) =>

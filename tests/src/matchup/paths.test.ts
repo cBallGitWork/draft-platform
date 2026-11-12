@@ -3,7 +3,7 @@
 
 import { describe, expect, it } from "vitest";
 import type { Id } from "../../../convex/_generated/dataModel";
-import { FIRST_GAME } from "../../../convex/matchup/matchupShape";
+import { FIRST_GAME } from "../../../convex/table/teamGames";
 import { matchupLink } from "../../../src/matchup/paths";
 
 const team = "team-1" as Id<"teams">;

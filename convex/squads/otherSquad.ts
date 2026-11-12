@@ -23,7 +23,6 @@ const otherSquadRow = v.object({
    *  null ("—") while none of his matches has been priced. */
   seasonPoints: v.union(v.number(), v.null()),
 });
-export type OtherSquadRow = Infer<typeof otherSquadRow>;
 
 const otherSquad = v.object({ teamName: v.string(), players: v.array(otherSquadRow) });
 export type OtherSquad = Infer<typeof otherSquad>;

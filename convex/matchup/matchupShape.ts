@@ -9,10 +9,6 @@ import { BYE } from "../table/teamGames";
 
 // What the matchup query sends (matchup.ts; #34): one team's head-to-head in one gameweek.
 
-/** The first of a team's games in a gameweek, as the address and the switch number them. Kept in
- *  this pure module, not the query's, so the browser's matchup links share it (#1771). */
-export const FIRST_GAME = 1;
-
 // Each status but noMatch names the match it is about by FPL's fixture code, so it opens that
 // match's page (spec/10, The match page).
 const slotStatus = v.union(
@@ -37,10 +33,11 @@ export type SlotStatus = Infer<typeof slotStatus>;
 /** What the auto-subs did with him (spec/05, Auto-subs). */
 const autoSub = v.union(
   v.null(),
-  /** A starter who didn't play, and who came on for him. */
-  v.object({ kind: v.literal("off"), playerName: v.string() }),
-  /** A bench player who came on, and for whom. */
-  v.object({ kind: v.literal("on"), playerName: v.string() }),
+  /** A starter who didn't play, and who came on for him: that man's code, which finds him (two men
+   *  can share a name; #1778), and his name, which the words say. */
+  v.object({ kind: v.literal("off"), playerCode: v.number(), playerName: v.string() }),
+  /** A bench player who came on, and for whom, the same way. */
+  v.object({ kind: v.literal("on"), playerCode: v.number(), playerName: v.string() }),
   /** A starter who didn't play whom no one on the bench could replace: his slot scores nothing. */
   v.object({ kind: v.literal("unreplaced") }),
 );

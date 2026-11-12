@@ -2,7 +2,7 @@
 // fixture anywhere can link to it (#34).
 
 import type { Id } from "../../convex/_generated/dataModel";
-import { FIRST_GAME } from "../../convex/matchup/matchupShape";
+import { FIRST_GAME } from "../../convex/table/teamGames";
 import { MATCHUP_PATH } from "../frame/menu";
 import { idOf, wholeNumber } from "../shared/search";
 

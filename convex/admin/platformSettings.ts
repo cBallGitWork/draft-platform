@@ -25,7 +25,7 @@ export const settings = query({
   returns: platformSettings,
   handler: async (ctx): Promise<PlatformSettings> => {
     await adminOf(ctx);
-    const values = await Promise.all(NAMES.map(async (name) => (await settingRow(ctx, name))?.value ?? FIRST_PLATFORM_SETTINGS[name]));
+    const values = await Promise.all(NAMES.map((name) => valueOf(ctx, name)));
     return Object.fromEntries(NAMES.map((name, i) => [name, values[i]])) as PlatformSettings;
   },
 });

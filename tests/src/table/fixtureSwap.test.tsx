@@ -83,6 +83,17 @@ describe("the commissioner's fixture swap", () => {
     expect(fixtures().getByText(editingWords)).toBeTruthy();
   });
 
+  it("draws both games when a swap leaves a pair meeting twice in a two-game gameweek", async () => {
+    const drawn = leagueTableOf(FOUR, { deadlineOf, gamesPerGameweek: 2 });
+    const third = drawn.gameweeks[2];
+    const [first] = third.fixtures;
+    const twice = { ...drawn, gameweeks: drawn.gameweeks.map((each) => (each === third ? { ...third, fixtures: [first, { ...first, game: 2 }] } : each)) };
+    openAs(commissioner, { leagueTable: twice });
+    const list = await screen.findByRole("list", { name: fixturesListLabel(3) });
+    // The console setup fails the test on React's duplicate-key error, so a key on the pair alone fails here.
+    expect(within(list).getAllByRole("listitem")).toHaveLength(2);
+  });
+
   it("isn't offered in a gameweek begun", async () => {
     openAs(commissioner, { leagueTable: leagueTableOf(FOUR, { deadlineOf: () => Date.now() - HOUR_MS, gameweeks: [1] }) });
     await screen.findByRole("list", { name: fixturesListLabel(1) });

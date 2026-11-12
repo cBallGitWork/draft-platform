@@ -1,7 +1,6 @@
 // The matchup's tests' fake seam (shell.harness.tsx hands it to the app).
 
-import { act, screen, within } from "@testing-library/react";
-import { useSyncExternalStore } from "react";
+import { screen, within } from "@testing-library/react";
 import { vi } from "vitest";
 import type { Id } from "../../../convex/_generated/dataModel";
 import type { PlayingState } from "../../../convex/football/matchScores";
@@ -10,6 +9,7 @@ import { centreSlotOf } from "../../../src/matchup/preview";
 import type { TeamsCommentary, MatchupSide, MatchupBenchSlot, MatchupSlot, MatchupStarter } from "../../../convex/matchup/matchupShape";
 import type { Matchup, MatchupSeam } from "../../../src/matchup/seam";
 import { benchLabel, sidePitchLabel } from "../../../src/matchup/words";
+import { serverStore } from "./serverStore";
 
 /** Each tile of a team's lineup on screen, as it is read out: the pitch's top to bottom, then the
  *  bench's in order. */
@@ -22,19 +22,8 @@ export const lineupRows = (teamName: string) =>
 
 /** A matchup the test moves on, as Convex's live query would: each `play` re-renders the screen. */
 export function liveMatchup(first: Matchup | undefined) {
-  let current = first;
-  const listeners = new Set<() => void>();
-  return {
-    subscribe: (listener: () => void) => {
-      listeners.add(listener);
-      return () => listeners.delete(listener);
-    },
-    get: () => current,
-    play: (next: Matchup | undefined) => {
-      current = next;
-      act(() => listeners.forEach((listener) => listener()));
-    },
-  };
+  const store = serverStore(first);
+  return { use: () => store.use((held) => held), play: store.set };
 }
 
 /** What the fake server holds: the matchup, null for a league with no rules, nothing yet while it
@@ -52,7 +41,7 @@ export function fakeMatchup({ matchup = { kind: "totalPoints" }, loading = false
     useRemoveTeamOverride: () => removeTeamOverride,
     useMatchup: vi.fn<MatchupSeam["useMatchup"]>(() =>
       // `live` is fixed for the fake's life, so each render calls the same hooks.
-      live === undefined ? (loading ? undefined : matchup) : useSyncExternalStore(live.subscribe, live.get),
+      live === undefined ? (loading ? undefined : matchup) : live.use(),
     ),
   };
 }
@@ -74,9 +63,16 @@ export const playing = (minute: number | null, clockLabel: string | null = null,
   clockLabel,
 });
 
+/** A made-up man's code, from his name. */
+const codeOf = (name: string) => [...name].reduce((code, letter) => code * 31 + letter.charCodeAt(0), 7);
+
+/** A made-up man's auto-sub: off for, or on for, the man named `name`, or the man `code` when two
+ *  share that name. */
+export const subbed = <Kind extends "off" | "on">(kind: Kind, name: string, code = codeOf(name)) => ({ kind, playerCode: code, playerName: name });
+
 /** A man in a lineup, yet to play and counting unless `rest` says. */
 export const slot = (name: string, rest: Partial<Slot> = {}): Slot => ({
-  playerCode: [...name].reduce((code, letter) => code * 31 + letter.charCodeAt(0), 7),
+  playerCode: codeOf(name),
   name,
   area: "midfield",
   clubCode: null,

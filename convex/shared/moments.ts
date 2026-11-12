@@ -48,6 +48,9 @@ export function andListWords(items: readonly string[]): string {
   return items.length <= 1 ? items.join("") : `${items.slice(0, -1).join(", ")} and ${items.at(-1)}`;
 }
 
+/** Words with a capital first letter, as a sentence starts them. */
+export const capitalised = (words: string) => words.charAt(0).toUpperCase() + words.slice(1);
+
 const MOMENT = { weekday: "long", day: "numeric", month: "long", hour: "2-digit", minute: "2-digit", timeZoneName: "short" } as const;
 const formats = new Map<string, Intl.DateTimeFormat>();
 

@@ -1,11 +1,10 @@
-import type { Infer } from "convex/values";
 import type { Doc, Id } from "../_generated/dataModel";
 import type { MutationCtx, QueryCtx } from "../_generated/server";
 import { everyLeague } from "../shared/cappedRead";
 import { isAdmin, teamsOf } from "../shared/leagueAccess";
 import { adminByline, eventLetter } from "./letterWords";
 import { marking, type TellMoment } from "./letterMoments";
-import type { leagueEvent } from "../schema";
+import type { LeagueEvent } from "../schema";
 
 // Filing Mail's letters (#26, spec/16): the one way any feature puts a letter in someone's Mail.
 
@@ -65,8 +64,6 @@ export async function fileSiteLetter(ctx: MutationCtx, letter: Written, by: stri
     await ctx.db.insert("letters", { to: email, at, ...copy, readAt: email === by ? at : undefined });
   }
 }
-
-type LeagueEvent = Infer<typeof leagueEvent>;
 
 /** Whom the event takes out of the league, who are told too, as they no longer have a part in it. */
 function takenOut(event: LeagueEvent): string[] {
@@ -136,7 +133,7 @@ async function fileEventLetter(
 
 /** Files what happened, with no Mail letter: a draft pick, which Mail doesn't report (Craig, 4 Nov
  *  2026, on #1091: "we dont need mail for that and each pick"). */
-export async function fileEvent(ctx: MutationCtx, leagueId: Id<"leagues">, by: string, event: Infer<typeof leagueEvent>): Promise<void> {
+export async function fileEvent(ctx: MutationCtx, leagueId: Id<"leagues">, by: string, event: LeagueEvent): Promise<void> {
   await ctx.db.insert("leagueEvents", { leagueId, at: Date.now(), by, event });
 }
 
@@ -146,7 +143,7 @@ export async function recordEvent(
   ctx: MutationCtx,
   leagueId: Id<"leagues">,
   by: string,
-  event: Infer<typeof leagueEvent>,
+  event: LeagueEvent,
   { unread = false, only }: { unread?: boolean; only?: readonly string[] } = {},
 ): Promise<void> {
   await fileEvent(ctx, leagueId, by, event);

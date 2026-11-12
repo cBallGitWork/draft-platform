@@ -8,6 +8,7 @@
 import { expect } from "@playwright/test";
 import { DRAFT_PATH } from "../../src/frame/menu";
 import { BOARD_TITLE, draftPlayerWords, notLegalWords, PLAYERS_TITLE, selectLabel } from "../../src/draft/words";
+import { DESK } from "../../scripts/viewports.mjs";
 import { test } from "../support/smoke/errorsTest";
 
 /** Scouting's preview players (src/scouting/preview.ts): Salah undrafted, Rice an Arsenal player
@@ -16,7 +17,7 @@ const SALAH = "Salah";
 const RICE = "Rice";
 
 test.describe("the draft room, on the dev server's preview", { tag: "@dev" }, () => {
-  test.use({ viewport: { width: 1440, height: 900 } });
+  test.use({ viewport: DESK });
 
   test("refuses a player the squad can't hold, and drafts one it can", async ({ page }) => {
     await page.goto(`${DRAFT_PATH}?preview=manager`);

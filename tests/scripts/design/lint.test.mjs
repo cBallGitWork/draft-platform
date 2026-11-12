@@ -1,12 +1,12 @@
 import { spawnSync } from "node:child_process";
-import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
-import { tmpdir } from "node:os";
+import { writeFileSync } from "node:fs";
 import { join } from "node:path";
-import { afterAll, expect, test } from "vitest";
+import { expect, test } from "vitest";
 import { DEFAULT_ROLES } from "../../../convex/lineup/roles.ts";
 import { POSITIONS as POSITION_LABELS } from "../../../convex/positions/positionTables.ts";
 import { initialsOf, lintPage, roleCatalogue, roleInitials } from "../../../scripts/design/lint.mjs";
 import { REPO_ROOT } from "../../support/scripts/repoRoot.mjs";
+import { scratchDir } from "../../support/scripts/scratchDir.mjs";
 
 // The design lint (plate.md, Never and Decided): role initials, a key or legend, a `·` string.
 
@@ -66,13 +66,10 @@ test("a · string fails, typed or as an entity; one in the page's head or styles
   expect(lintPage(page("<p>Saka</p>"), INITIALS)).toEqual([]);
 });
 
-const scratch = mkdtempSync(join(tmpdir(), "design-lint-"));
-afterAll(() => rmSync(scratch, { recursive: true, force: true }));
-
 const runLint = (file) => spawnSync(process.execPath, ["scripts/design/lint.mjs", file], { cwd: REPO_ROOT, encoding: "utf8" });
 
 test("run on a board, it expands the board, reads the real catalogue and fails on what it draws", () => {
-  const file = join(scratch, "Bad.dc.html");
+  const file = join(scratchDir("design-lint-"), "Bad.dc.html");
   writeFileSync(file, board([{ pos: "W", role: "IF" }]));
   const { status, stderr } = runLint(file);
   expect(status).toBe(1);
@@ -80,7 +77,7 @@ test("run on a board, it expands the board, reads the real catalogue and fails o
 });
 
 test("run on a clean board, it passes", () => {
-  const file = join(scratch, "Good.dc.html");
+  const file = join(scratchDir("design-lint-"), "Good.dc.html");
   writeFileSync(file, board([{ pos: "W", role: "Inside forward" }]));
   const { status, stdout } = runLint(file);
   expect(status).toBe(0);

@@ -43,6 +43,7 @@ test("a change stored on top of another reads as the whole rules, each on the on
 });
 
 test("a change leaving a part out is stored whole, as a part a row lacks reads as the row before's", async () => {
+  await changeRules(t, leagueId, rulesWith({ classics: HELD_FIRST_RULES.classics!.slice(1) }));
   const { classics: _classics, ...withoutClassics } = rulesWith({ format: "totalPoints" });
   await changeRules(t, leagueId, withoutClassics);
 

@@ -10,7 +10,9 @@ import { liveStatsTables, sideRunTables, commentaryTables, thresholdStepTables, 
 import { leagueTables } from "./schema/leagues";
 import { joiningTables } from "./schema/joining";
 import { squadTables, shortlistTables } from "./schema/squads";
-import { mailTables, feedbackTables } from "./schema/mail";
+import { mailTables } from "./schema/mail";
+import { feedbackTables } from "./schema/feedback";
+import { outboundTables } from "./schema/outbound";
 import { leagueRulesTables, squadMaximumTables } from "./schema/rules";
 import { siteScoringTables } from "./schema/scoring";
 import { gameweekTables } from "./schema/gameweeks";
@@ -34,6 +36,7 @@ export { matchStatsState, playerMatchRecord, lateStatChange, matchSyncOutcome, m
 export { position, startRecord, approveMode, changeThresholds, positionsSyncFields } from "./schema/positions";
 export { liveStatsTickFields, sideMatchOutcome, sideRunFields, commentaryLine, sideTeamStats, teamSheetMan } from "./schema/live";
 export { leagueDeletion, pinnedLetter, leagueEvent } from "./schema/leagues";
+export type { LeagueEvent } from "./schema/leagues";
 export { delivery } from "./schema/joining";
 export { namedPlayer, tradedSide } from "./schema/squads";
 export type { TradedSide } from "./schema/squads";
@@ -50,6 +53,7 @@ export { sportmonksCompetition, sportmonksLineupMan, sportmonksEvent, sportmonks
 export default defineSchema({
   ...authTables,
   ...signInTables,
+  ...outboundTables,
   ...feedCheckTables,
   ...footballTables,
   ...positionsTables,

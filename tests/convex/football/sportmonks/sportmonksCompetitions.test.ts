@@ -5,7 +5,7 @@
 import { expect, test, vi } from "vitest";
 import { internal } from "../../../../convex/_generated/api";
 import { leagueUrl, liveFixturesUrl, SEEDED_COMPETITIONS } from "../../../../convex/football/sportmonks/sportmonks";
-import { freshConvex, silenceConsoleError } from "../../../support/convex/test.harness";
+import { freshConvex, silenceConsoleError, everyJobRuns } from "../../../support/convex/test.harness";
 import { SM, sportmonksLiveRead } from "../../../support/recorded/sportmonks.payloads";
 import {
   fakeSportmonks,
@@ -68,7 +68,7 @@ test("one competition's read the plan refuses (403) is its own failed run, and t
   await premierLeagueOn(t);
   await sync(t, { refuse: leagueUrl(PREMIER_LEAGUE) });
   // The admin's failure email, which this deployment can't send.
-  await t.finishAllScheduledFunctions(vi.runAllTimers);
+  await everyJobRuns(t);
 
   const [scottish, premierLeague] = await syncs(t);
   expect(scottish).toMatchObject({ competition: SCOTTISH, outcome: { ok: true, clubs: WRITES(3) } });
@@ -127,7 +127,7 @@ test("during matches in two competitions the tick writes a row for each, one ref
     vi.fn(async (url: string) => (url === refused ? Response.json({ message: REFUSED }, { status: 403 }) : Response.json(sportmonksLiveRead()))),
   );
   await t.action(internal.football.sportmonks.sportmonksLive.tick, {});
-  await t.finishAllScheduledFunctions(vi.runAllTimers);
+  await everyJobRuns(t);
 
   expect((await ticks(t)).map(({ competition, outcome }) => ({ competition, outcome }))).toEqual([
     { competition: SCOTTISH, outcome: { ok: true, matches: [{ fixtureCode: SM.oldFirm, ok: true }] } },

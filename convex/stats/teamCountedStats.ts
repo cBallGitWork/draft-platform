@@ -1,4 +1,4 @@
-import { slotInMatch, type TeamInGameweek } from "../gameweekScorer/teamGameweek";
+import { scoredByMatch, type TeamInGameweek } from "../gameweekScorer/teamGameweek";
 import { countedStats } from "./seasonStats";
 import { sumStats, type Stats } from "./statTotals";
 
@@ -16,10 +16,9 @@ export function countedTeamStats(scored: TeamInGameweek): Stats {
     if (!slot.counts) continue;
     const matches = scored.matchesOf.get(slot.playerCode);
     if (matches === undefined) throw new Error(`player ${slot.playerCode} has a slot but no matches in the gameweek`);
-    for (const match of matches) {
-      const inMatch = slotInMatch(scored, slot.playerCode, match.fixture.code)?.inMatch;
+    for (const { match, counted: matchCounts } of scoredByMatch(slot, matches)) {
       const record = match.records.get(slot.playerCode);
-      if (inMatch?.counted === true && record !== undefined) counted.push(countedStats(record));
+      if (matchCounts && record !== undefined) counted.push(countedStats(record));
     }
   }
   return sumStats(counted);

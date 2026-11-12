@@ -1,12 +1,12 @@
 import { Link } from "@tanstack/react-router";
 import { MY_TEAM_PATH } from "../frame/menu";
 import { matchupLink } from "../matchup/paths";
-import { matchupLinkLabel, scoreWords } from "../matchup/words";
+import { matchupLinkLabel } from "../matchup/words";
 import { FormChips } from "../myTeam/header/FormChips";
 import { Panel } from "../ui/Panel";
 import { Placeholder } from "../ui/Placeholder";
 import type { LeagueHome } from "./seam";
-import { gameweekShort, leagueAverageWords, MATCHUP_PANEL_TITLE, openMatchupLink, scoreToComeLabel, setLineupLink, standingWords } from "./words";
+import { gameweekShort, leagueAverageWords, MATCHUP_PANEL_TITLE, openMatchupLink, scoreToComeLabel, scoreWords, setLineupLink, standingWords } from "./words";
 
 type Row = LeagueHome["table"][number];
 

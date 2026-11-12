@@ -10,14 +10,12 @@ import { vi } from "vitest";
 import { internal } from "../../../convex/_generated/api";
 import { codesByOpta, namedMen } from "../../../convex/football/feedIds";
 import { fakeFeeds, heldMatch, KICKOFF, mergedHullEverton } from "./matchStats.harness";
-import type { RawPlFixture } from "../../../convex/football/premierLeague/premierLeague";
+import { PL_IN_PLAY, type RawPlFixture } from "../../../convex/football/premierLeague/premierLeague";
 import { MATCH, recordedGw6, type Gw6Payloads } from "../recorded/gw6.payloads";
 import type { matchStatsState } from "../../../convex/schema";
 import type { TestConvex } from "./test.harness";
 import { MINUTE_MS } from "../../../convex/shared/time";
 
-/** A match in play's `status`, as read live on 23 Oct 2026; anything but full time reads the same. */
-const IN_PLAY = "L";
 const SECS_PER_MINUTE = MINUTE_MS / 1000;
 /** Opta's per-man flags, sent from kickoff; and those sent once he is on. */
 const FROM_KICKOFF = new Set(["formation_place", "game_started"]);
@@ -91,7 +89,7 @@ export function stagedGw6(minute: number): Gw6Payloads {
   const payloads = recordedGw6();
   const men = menAt(payloads, minute);
   for (const fixture of [...payloads.pl.round.content, ...payloads.pl.fixtures]) {
-    if (fixture.id === MATCH.hullEverton.pl) fixture.status = IN_PLAY;
+    if (fixture.id === MATCH.hullEverton.pl) fixture.status = PL_IN_PLAY;
   }
   for (const { fixture, player, payload } of payloads.pl.playerStats) {
     const man = men.get(player);

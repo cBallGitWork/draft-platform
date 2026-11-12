@@ -3,7 +3,7 @@ import type { MutationCtx } from "../_generated/server";
 import { firstKickoffs, gameweekStartsOf } from "../gameweeks/gameweekStarts";
 import { scheduledMatches } from "../gameweeks/leagueDeadlines";
 import { seasonStartYear } from "../shared/time";
-import { siteDeadline, siteVersions } from "./siteVersions";
+import { isWaiting, siteDeadline, siteVersions } from "./siteVersions";
 
 // A waiting patch follows its gameweek's first kickoff (Craig, 1 Nov 2026, on #901: when the first
 // kickoff of the patch's gameweek moves later, "yes", the patch's start moves with it). A patch is
@@ -28,13 +28,13 @@ export async function repriceAt(ctx: MutationCtx, at: number): Promise<void> {
  *  it, so versions keep the order they were announced in. Returns how many it moved. */
 export async function followKickoffs(ctx: MutationCtx, now: number): Promise<number> {
   const history = await siteVersions(ctx);
-  if (!history.some((row) => row.gameweek !== undefined && row.takesEffectAt > now)) return 0;
+  if (!history.some((row) => row.gameweek !== undefined && isWaiting(row, now))) return 0;
   const matches = await scheduledMatches(ctx);
   const begun = await gameweekStartsOf(ctx, matches);
   const kickoffs = firstKickoffs(matches);
   let moved = 0;
   for (const [index, row] of history.entries()) {
-    if (row.gameweek === undefined || row.takesEffectAt <= now || begun.has(row.gameweek)) continue;
+    if (row.gameweek === undefined || !isWaiting(row, now) || begun.has(row.gameweek)) continue;
     const kickoff = kickoffs.get(row.gameweek);
     if (kickoff === undefined || seasonStartYear(kickoff) !== row.season) continue;
     const deadline = siteDeadline(kickoff);

@@ -3,6 +3,7 @@ import { useNavigate } from "@tanstack/react-router";
 import type { Id } from "../../convex/_generated/dataModel";
 import type { LeagueSummary } from "../../convex/leagues/myLeagues";
 import { TRADES_PATH } from "../frame/menu";
+import { useChange } from "../shared/useChange";
 import {
   Loading,
   Notice,
@@ -13,7 +14,15 @@ import {
 } from "../ui/Panel";
 import { NoteBox, PartnerPicker } from "./OfferControls";
 import { Fact, OfferSide } from "./OfferParts";
-import { askedOf, counterOf, type Asked, type Countered, type Start } from "./offerStart";
+import {
+  askedOf,
+  counterOf,
+  myTeamOf,
+  partnersOf,
+  type Asked,
+  type Countered,
+  type Start,
+} from "./offerStart";
 import { pickNamed, useOfferTicks } from "./offerTicks";
 import { PicksTable } from "./PicksTable";
 import type { ScreenTeam, TradeChanges, TradesSeam, TradesView } from "./seam";
@@ -113,15 +122,14 @@ function NewOffer({
   start: Start | null;
 }) {
   const navigate = useNavigate();
-  const [mine, ...others] = view.teams;
-  const partners = others.filter((team) => !team.onAutoTeam);
+  const mine = myTeamOf(view);
+  const partners = partnersOf(view);
   const [partnerId, setPartnerId] = useState<Id<"teams"> | null>(
     start?.teamId ?? partners[0]?.teamId ?? null,
   );
   const ticks = useOfferTicks(start ?? { gives: [], gets: [] });
   const [note, setNote] = useState("");
-  const [busy, setBusy] = useState(false);
-  const [problem, setProblem] = useState<string | null>(null);
+  const change = useChange();
   const partner = partners.find((team) => team.teamId === partnerId) ?? null;
 
   const choosePartner = (teamId: Id<"teams">) => {
@@ -131,22 +139,20 @@ function NewOffer({
   const clear = () => {
     ticks.clear();
     setNote("");
-    setProblem(null);
+    change.clear();
   };
   const send = async () => {
     if (partner === null) return;
-    setBusy(true);
     const terms = {
       ...ticks.terms,
       note: note.trim() === "" ? null : note,
     };
-    const refused =
+    const sent = await change.run(() =>
       counter === null
-        ? await changes.offer(leagueId, partner.teamId, terms)
-        : await changes.counter(leagueId, counter.offerId, terms);
-    setBusy(false);
-    setProblem(refused);
-    if (refused === null) void navigate({ to: TRADES_PATH });
+        ? changes.offer(leagueId, partner.teamId, terms)
+        : changes.counter(leagueId, counter.offerId, terms),
+    );
+    if (sent) void navigate({ to: TRADES_PATH });
   };
 
   const picked = (team: ScreenTeam | null, codes: readonly number[]) =>
@@ -236,7 +242,7 @@ function NewOffer({
             )}
           </dl>
           <div className="flex flex-col gap-2 p-3">
-            <Problem problem={problem} />
+            <Problem problem={change.problem} />
             {!ticked && ticks.onePickOnly && (
               <p className="text-muted">{onePickEachWords}</p>
             )}
@@ -244,7 +250,7 @@ function NewOffer({
               <button
                 type="button"
                 disabled={
-                  busy || !ticked || partner === null || view.shut !== null
+                  change.busy || !ticked || partner === null || view.shut !== null
                 }
                 onClick={() => void send()}
                 className={ticked ? "action" : "action-idle"}

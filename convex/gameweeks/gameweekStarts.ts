@@ -1,4 +1,5 @@
 import type { MutationCtx, QueryCtx } from "../_generated/server";
+import { takeAllOrThrow } from "../shared/cappedRead";
 import { seasonOfMatches } from "../shared/fixtures";
 import { seasonStartYear } from "../shared/time";
 import type { ScheduledMatch } from "./deadline";
@@ -39,10 +40,11 @@ export async function recordGameweekStarts(ctx: MutationCtx, matches: readonly S
 export async function gameweekStartsOf(ctx: QueryCtx, matches: readonly ScheduledMatch[]): Promise<Map<number, number>> {
   const season = seasonOfMatches(matches);
   if (season === null) return new Map();
-  const rows = await ctx.db
-    .query("gameweekStarts")
-    .withIndex("by_season_and_gameweek", (q) => q.eq("season", season))
-    // Never more: `recordGameweekStarts` writes one row a season and gameweek.
-    .take(GAMEWEEKS_MOST);
+  // Never more: `recordGameweekStarts` writes one row a season and gameweek.
+  const rows = await takeAllOrThrow(
+    ctx.db.query("gameweekStarts").withIndex("by_season_and_gameweek", (q) => q.eq("season", season)),
+    GAMEWEEKS_MOST,
+    `More than ${GAMEWEEKS_MOST} gameweek starts are held for one season, so its latest gameweeks' first kickoffs would be lost`,
+  );
   return new Map(rows.map((row) => [row.gameweek, row.firstKickoff]));
 }

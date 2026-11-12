@@ -77,6 +77,9 @@ export function teamsIn(t: TestConvex, leagueId: Id<"leagues">) {
   );
 }
 
+/** Each of the league's teams' name and manager's email, in team order. */
+export const managersOf = async (t: TestConvex, leagueId: Id<"leagues">) => (await teamsIn(t, leagueId)).map(({ name, managerEmail }) => ({ name, managerEmail }));
+
 /** What the league's events say happened, oldest first, for Mail (#26). */
 export async function eventsIn(t: TestConvex, leagueId: Id<"leagues">) {
   const rows = await t.run((ctx) =>

@@ -1,26 +1,23 @@
-import type { Infer } from "convex/values";
 import { aNewTeamWords } from "../joining/joiningShared";
-import { andListWords } from "../shared/moments";
+import { andListWords, capitalised } from "../shared/moments";
 import type { LeagueRules } from "../rules/leagueRulesShape";
-import { NOTHING_SCORES_DIFFERENTLY } from "../scoring/patchChanges";
 import { autoTeamSwitchedWords } from "../lineup/autoTeamWords";
-import type { leagueEvent, siteScoringKind } from "../schema";
+import type { LeagueEvent } from "../schema";
 import { overrideLetterWords } from "./overrideLetterWords";
 import { claimedBody, onWaiversWords, pickedUpBody } from "./waiverLetterWords";
 import type { TellMoment } from "./letterMoments";
 import type { Words } from "./letterShape";
 
 // What the letters Mail files about a league's events say (spec/15: nothing changes quietly), in
-// one place for Craig to change. Each names who did it: an email, or `adminByline`.
+// one place for Craig to change. Each names who did it: an email, or `adminByline`. The draft's
+// letters are in draftLetterWords.ts, and the site scoring's in scoringLetterWords.ts.
 
 export const adminByline = "The admin";
-
-type LeagueEvent = Infer<typeof leagueEvent>;
-type SiteScoringKind = Infer<typeof siteScoringKind>;
 
 const handOn = "The team stays, for the commissioner to hand to someone new.";
 const inPlaceOf = (replaced: string | null) => (replaced === null ? "" : ` in place of ${replaced}`);
 const forTeam = (teamName: string | null) => teamName ?? aNewTeamWords;
+const joinedSubject = ({ email, teamName }: { email: string; teamName: string }) => `${email} joined as manager of ${teamName}`;
 
 /** The letter reporting `event`, done by `who`, telling any time with `tell`, in the reader's zone. */
 export function eventLetter(event: LeagueEvent, who: string, tell: TellMoment): Words {
@@ -40,10 +37,7 @@ export function eventLetter(event: LeagueEvent, who: string, tell: TellMoment): 
     case "coCommissionerRemoved":
       return { subject: `${event.email} is no longer co-commissioner`, body: `${who} removed ${event.email} as co-commissioner.` };
     case "managerAdded":
-      return {
-        subject: `${event.email} joined as manager of ${event.teamName}`,
-        body: `${who} added ${event.email} as the manager of ${event.teamName}.`,
-      };
+      return { subject: joinedSubject(event), body: `${who} added ${event.email} as the manager of ${event.teamName}.` };
     case "managerRemoved":
       return {
         subject: `${event.email} was removed from ${event.teamName}`,
@@ -84,15 +78,9 @@ export function eventLetter(event: LeagueEvent, who: string, tell: TellMoment): 
     case "inviteCancelled":
       return { subject: `${event.email}'s invite was cancelled`, body: `${who} cancelled ${event.email}'s invite to manage ${forTeam(event.teamName)}.` };
     case "joinedByInvite":
-      return {
-        subject: `${event.email} joined as manager of ${event.teamName}`,
-        body: `${event.email} took up ${event.invitedBy}'s invite and manages ${event.teamName}.`,
-      };
+      return { subject: joinedSubject(event), body: `${event.email} took up ${event.invitedBy}'s invite and manages ${event.teamName}.` };
     case "joinRequestApproved":
-      return {
-        subject: `${event.email} joined as manager of ${event.teamName}`,
-        body: `${who} approved ${event.email}'s request to join. They manage ${event.teamName}.`,
-      };
+      return { subject: joinedSubject(event), body: `${who} approved ${event.email}'s request to join. They manage ${event.teamName}.` };
     case "inviteLinkMade":
       return {
         subject: "The league has a new invite link",
@@ -165,61 +153,6 @@ function swappedBody(event: Extract<LeagueEvent, { kind: "fixturesSwapped" }>, w
 /** A match as a letter names it: "Arsenal v Chelsea". */
 export const matchWords = (home: string, away: string) => `${home} v ${away}`;
 
-/** The draft's letters (spec/04, Mail; #1102). "You're up next" to the manager whose pick's clock
- *  starts, its deadline told with `tell`, in the reader's zone; it is also the email when the clock is
- *  long. `endsAt` is null while the draft is paused: his clock starts when it resumes (#1461). */
-export function upNextLetter({ round, pick, teamName, endsAt }: { round: number; pick: number; teamName: string; endsAt: number | null }, tell: TellMoment): Words {
-  const subject = "You're up next in the draft";
-  if (endsAt === null) {
-    return { subject, body: `${teamName} is up next: round ${round}, pick ${pick}. The draft is paused; your clock starts when it resumes.` };
-  }
-  return { subject, body: `${teamName} is on the clock: round ${round}, pick ${pick}. Make your pick by ${tell(endsAt)}, or the draft picks for you.` };
-}
-
-/** To the whole league once the last pick is made. */
-export function draftOverLetter(picks: number): Words {
-  return { subject: "The draft is over", body: `All ${picks} picks are made, and every squad is drafted.` };
-}
-
-/** To the commissioner when the draft ends after the deadline of the gameweek scoring was to start
- *  in, `from`, so it starts in `to` (spec/04, After the draft; #1097). */
-export function scoringStartMovedLetter({ from, to }: { from: number; to: number }): Words {
-  return {
-    subject: `Scoring starts in gameweek ${to}`,
-    body: `The draft ended after gameweek ${from}'s deadline, so scoring starts in gameweek ${to}, not ${from}. Squads and lineups count from gameweek ${to}'s deadline.`,
-  };
-}
-
-/** To the whole league when the commissioner, `who`, pauses the draft. Resuming files none. */
-export function draftPausedLetter(who: string): Words {
-  return { subject: "The draft is paused", body: `${who} paused the draft. No pick is made until it resumes.` };
-}
-
-/** A pick as the commissioner's letters name it: its number, the player and his team. */
-export type PickNews = { pick: number; playerName: string; teamName: string };
-
-/** To the whole league when the commissioner, `who`, makes a team's pick for it (#1095). */
-export function draftPickedForLetter(who: string, { pick, playerName, teamName }: PickNews): Words {
-  return { subject: `${playerName} was picked for ${teamName}`, body: `${who} made pick ${pick} for ${teamName}: ${playerName}.` };
-}
-
-/** To the whole league when the commissioner, `who`, undoes a pick (#1095). */
-export function draftUndoneLetter(who: string, { pick, playerName, teamName }: PickNews): Words {
-  return {
-    subject: `Pick ${pick} was undone`,
-    body: `${who} undid pick ${pick}, ${playerName} to ${teamName}. ${playerName} can be picked again, and ${teamName} is back on the clock.`,
-  };
-}
-
-/** To the commissioner when the draft's start date, `startsAt`, comes and it can't start, for
- *  `refusal` (draftStart.ts `draftStartRefusals`). */
-export function draftNotStartedLetter(startsAt: number, refusal: string, tell: TellMoment): Words {
-  return {
-    subject: "The draft didn't start",
-    body: `The draft was set to start on ${tell(startsAt)}, but couldn't. ${refusal} It waits for you to press start or set a new date.`,
-  };
-}
-
 /** Each part of a league's rules as a letter names it, and the scoring, which letters filed before
  *  it became the site's (#354) name. */
 const RULES_PART_WORDS: Record<keyof LeagueRules | "scoring", string> = {
@@ -242,7 +175,6 @@ const RULES_PART_WORDS: Record<keyof LeagueRules | "scoring", string> = {
 
 const partWords = (part: string) => (Object.hasOwn(RULES_PART_WORDS, part) ? RULES_PART_WORDS[part as keyof typeof RULES_PART_WORDS] : part);
 
-
 /** "Ann changed the league's scoring and deadline, from gameweek 9. The scoring changed for Goals
  *  scored and Assists, and points are now whole only." */
 function rulesChangedBody(event: Extract<LeagueEvent, { kind: "rulesChanged" }>, who: string): string {
@@ -252,38 +184,4 @@ function rulesChangedBody(event: Extract<LeagueEvent, { kind: "rulesChanged" }>,
     ...(event.wholePointsOnly === undefined ? [] : [event.wholePointsOnly ? "points are now whole only" : "points can now be fractions"]),
   ];
   return details.length === 0 ? changed : `${changed} ${capitalised(details.join(", and "))}.`;
-}
-
-const capitalised = (words: string) => words.charAt(0).toUpperCase() + words.slice(1);
-
-/** A new version of the site's scoring, as its letter to every manager reports it (spec/14, Changes
- *  and corrections; #356). */
-type VersionNews = { name: string; kind: SiteScoringKind; takesEffectAt: number; fromGameweek: number; changes: readonly string[] };
-
-/** The letter announcing a patch to the site's scoring, or a fix to it, with what changes. A fix
- *  takes effect as it is made, so its letter names no moment; a patch's is told with `tell`, in the reader's zone. */
-export function versionLetter({ name, kind, takesEffectAt, fromGameweek, changes }: VersionNews, tell: TellMoment): Words {
-  const kept = "Gameweeks played before it keep the scoring they had.";
-  const what = changes.length === 0 ? NOTHING_SCORES_DIFFERENTLY : `What changes:\n${changes.map((change) => `- ${change}`).join("\n")}`;
-  if (kind === "patch") {
-    return {
-      subject: `Scoring patch ${name} takes effect on ${tell(takesEffectAt)}`,
-      body:
-        `${adminByline} announced patch ${name} to the scoring every league plays on. It takes effect on ` +
-        `${tell(takesEffectAt)}, from gameweek ${fromGameweek}. ${kept}\n\n${what}`,
-    };
-  }
-  return {
-    subject: `Scoring fix ${name}`,
-    body: `${adminByline} fixed a mistake in the scoring every league plays on: version ${name}, in force from gameweek ${fromGameweek}. ${kept}\n\n${what}`,
-  };
-}
-
-/** The letter saying a patch to the site's scoring was withdrawn before it took effect (Craig, 6 Nov
- *  2026, on #368: "every manager gets a Mail letter saying so"), its moment told with `tell`. */
-export function withdrawnLetter({ name, takesEffectAt }: { name: string; takesEffectAt: number }, tell: TellMoment): Words {
-  return {
-    subject: `Scoring patch ${name} withdrawn`,
-    body: `${adminByline} withdrew patch ${name}, which was to take effect on ${tell(takesEffectAt)}. The scoring stays as it is.`,
-  };
 }

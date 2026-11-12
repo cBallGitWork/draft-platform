@@ -2,7 +2,7 @@ import { describe, expect, test } from "vitest";
 import { lineupProblems, STARTER_COUNT } from "../../../convex/lineup/lineup";
 import { filledLineup, openLimits } from "../../support/convex/lineup.harness";
 import { AREAS, LANES, type Area } from "../../../convex/lineup/pitch";
-import { backLineOf, DEFAULT_PRESETS, type Preset } from "../../../convex/lineup/presets";
+import { backLineOf, FIRST_PRESETS, type Preset } from "../../../convex/lineup/presets";
 
 /** Each preset as a pitch: attack at the top, the keeper at the bottom, a row's lanes left to
  *  right, X where a starter stands. */
@@ -208,7 +208,7 @@ const drawn = (preset: Preset): string[] =>
 
 describe("the default presets", () => {
   test("are spec/05's, in its order", () => {
-    expect(DEFAULT_PRESETS.map((preset) => preset.name)).toEqual([
+    expect(FIRST_PRESETS.map((preset) => preset.name)).toEqual([
       "4-4-2", "4-3-3", "4-2-3-1", "4-1-4-1", "4-4-1-1", "4-3-1-2",
       "3-5-2", "3-4-3", "3-4-1-2", "5-3-2", "5-4-1",
       "4-5-1", "4-2-2-2", "4-1-2-1-2", "4-3-2-1", "4-1-3-2", "4-2-4", "3-4-2-1", "3-1-4-2", "5-2-3", "5-3-1-1",
@@ -217,31 +217,31 @@ describe("the default presets", () => {
     ]);
   });
 
-  test.each(DEFAULT_PRESETS)("$name is legal under open limits, filled with players who fit", (preset) => {
+  test.each(FIRST_PRESETS)("$name is legal under open limits, filled with players who fit", (preset) => {
     const { lineup, positions } = filledLineup(preset);
 
     expect(lineupProblems(lineup, positions, openLimits())).toEqual([]);
   });
 
-  test.each(DEFAULT_PRESETS)("$name stands one keeper, its name's defenders and eleven in all", (preset) => {
+  test.each(FIRST_PRESETS)("$name stands one keeper, its name's defenders and eleven in all", (preset) => {
     const inArea = (area: Area) => preset.cells.filter((cell) => cell.area === area).length;
     const defenders = Number(preset.name.split("-")[0]);
 
     expect([preset.cells.length, inArea("goalkeeper"), inArea("defence")]).toEqual([STARTER_COUNT, 1, defenders]);
   });
 
-  test.each(DEFAULT_PRESETS)("$name stands in exactly the cells drawn for it", (preset) => {
+  test.each(FIRST_PRESETS)("$name stands in exactly the cells drawn for it", (preset) => {
     expect(drawn(preset)).toEqual(DRAWN[preset.name]);
   });
 
-  test.each(DEFAULT_PRESETS)("$name lists its cells back to front", (preset) => {
+  test.each(FIRST_PRESETS)("$name lists its cells back to front", (preset) => {
     const areaOrder = preset.cells.map((cell) => AREAS.indexOf(cell.area));
 
     expect(areaOrder).toEqual([...areaOrder].sort((before, after) => before - after));
   });
 
   test("share no cell, so editing one preset's cell leaves every other preset as it was", () => {
-    const cells = DEFAULT_PRESETS.flatMap((preset) => preset.cells);
+    const cells = FIRST_PRESETS.flatMap((preset) => preset.cells);
 
     expect(new Set(cells).size).toBe(cells.length);
   });
@@ -250,23 +250,23 @@ describe("the default presets", () => {
 // Two at the back changes base scoring for its keeper and defenders (spec/05; Craig, 4 Nov 2026:
 // "clean sheets is 3, every goal conceded -1"), held with the formation as a league rule (#990).
 describe("each preset's back line", () => {
-  const named = (name: string) => DEFAULT_PRESETS.find((preset) => preset.name === name)!;
+  const named = (name: string) => FIRST_PRESETS.find((preset) => preset.name === name)!;
 
   test("is two at the back's for 2-3-5 and 2-3-2-3, and none for every other", () => {
-    const withOne = DEFAULT_PRESETS.filter((preset) => preset.backLine !== null).map((preset) => preset.name);
+    const withOne = FIRST_PRESETS.filter((preset) => preset.backLine !== null).map((preset) => preset.name);
     expect(withOne).toEqual(["2-3-5", "2-3-2-3"]);
     expect(named("2-3-5").backLine).toEqual({ cleanSheet: 3, goalConceded: -1 });
   });
 
   test("is the league's own, whatever the first values: one it edits, or takes off", () => {
-    const edited = DEFAULT_PRESETS.map((preset) => (preset.name === "2-3-5" ? { ...preset, backLine: { cleanSheet: 2, goalConceded: -2 } } : preset));
+    const edited = FIRST_PRESETS.map((preset) => (preset.name === "2-3-5" ? { ...preset, backLine: { cleanSheet: 2, goalConceded: -2 } } : preset));
     expect(backLineOf(named("2-3-5").cells, edited)).toEqual({ cleanSheet: 2, goalConceded: -2 });
-    const dropped = DEFAULT_PRESETS.map((preset) => ({ ...preset, backLine: null }));
+    const dropped = FIRST_PRESETS.map((preset) => ({ ...preset, backLine: null }));
     expect(backLineOf(named("2-3-5").cells, dropped)).toBeNull();
   });
 
   test("of a preset held before #990 is the first for its shape, and a shape no preset is has none", () => {
-    const held = DEFAULT_PRESETS.map(({ backLine: _backLine, ...preset }) => preset);
+    const held = FIRST_PRESETS.map(({ backLine: _backLine, ...preset }) => preset);
     expect(backLineOf(named("2-3-2-3").cells, held)).toEqual({ cleanSheet: 3, goalConceded: -1 });
     expect(backLineOf(named("4-4-2").cells, held)).toBeNull();
     expect(backLineOf(named("2-3-5").cells, [])).toBeNull();

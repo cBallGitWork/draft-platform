@@ -3,17 +3,20 @@ import type { ReactNode } from "react";
 import type { LeagueSummary } from "../../convex/leagues/myLeagues";
 import { nextByDeadlines } from "../../convex/gameweeks/nextGameweek";
 import { gameModeOf } from "../../convex/rules/gameMode";
+import { LEAGUE_AVERAGE } from "../../convex/table/roundRobin";
 import { resultOf } from "../../convex/table/standings";
+import { BYE } from "../../convex/table/teamGames";
 import { cellClassOf, ColumnHeads } from "../ui/ColumnHeads";
-import { LiveNote, Loading, PageSection, Panel, PanelNote } from "../ui/Panel";
+import { LiveNote, Loading, Panel, PanelNote } from "../ui/Panel";
 import { MatchupLink } from "../matchup/MatchupLink";
 import { useMinute } from "../shared/useMinute";
 import { dateWords } from "../shared/words";
 import type { LeagueTable } from "../table/seam";
 import { afterWords, noResultsWords } from "../table/words";
 import { ResultChip } from "./header/FormChips";
-import { TeamPage } from "./header/TeamHeader";
-import { NextGamePanel, SeasonPanel } from "./fixtures/SidePanels";
+import { NoTeam, TeamPage } from "./header/TeamHeader";
+import { placeIn } from "./header/teamStanding";
+import { NextGamePanel, SeasonPanel } from "./FixturesSidePanels";
 import { otherTeamPath } from "./paths";
 import type { MyTeamSeam, TeamFixtures } from "./seam";
 import {
@@ -26,7 +29,6 @@ import {
   nextGameWords,
   noFigureWords,
   noFixturesWords,
-  noTeamWords,
   placeWords,
   provisionalWords,
   RESULTS_TITLE,
@@ -49,13 +51,7 @@ const classOf = (column: Column) => cellClassOf(column !== "gameweek");
  *  season. The picture's Competition picker and Comp column show only in a league with a cup, and
  *  no league has one yet (docs/to-grill.md, Cups), so neither is drawn. */
 export function FixturesPage({ league, seam }: { league: LeagueSummary; seam: MyTeamSeam }) {
-  if (league.teamName === null) {
-    return (
-      <PageSection title={FIXTURES_TITLE} className="bg-panel">
-        <PanelNote>{noTeamWords}</PanelNote>
-      </PageSection>
-    );
-  }
+  if (league.teamName === null) return <NoTeam title={FIXTURES_TITLE} />;
   return (
     <TeamPage league={league} teamName={league.teamName} seam={seam}>
       <TeamFixturesBody league={league} seam={seam} />
@@ -185,9 +181,9 @@ function Opponent({ against, table, leagueId }: { against: Game["against"]; tabl
         </Link>
       );
     }
-    case "leagueAverage":
+    case LEAGUE_AVERAGE:
       return <span className="text-derived">{leagueAverageWords}</span>;
-    case "bye":
+    case BYE:
       return <span className="font-normal text-muted">{byeWords}</span>;
   }
 }
@@ -196,18 +192,19 @@ function Opponent({ against, table, leagueId }: { against: Game["against"]; tabl
  *  table loads. */
 function placeOf(table: LeagueTable | undefined, against: Game["against"]) {
   if (table === undefined || against.kind !== "team") return null;
-  const index = table.table.findIndex((row) => row.teamName === against.teamName);
-  return index === -1 ? null : placeWords(index + 1);
+  const place = placeIn(table, against.teamName);
+  return place === null ? null : placeWords(place);
 }
 
 /** A game's chip and score, as a link to the matchup; "v" for one begun with no score yet, and
  *  nothing on a bye. */
-function Result({ fixtures: { teamId, teamName }, game: { gameweek, game, against, score } }: { fixtures: TeamFixtures; game: Game }) {
-  if (against.kind === "bye") return null;
+function Result({ fixtures, game: { gameweek, game, against, score } }: { fixtures: TeamFixtures; game: Game }) {
+  const { teamId, teamName } = fixtures;
+  if (against.kind === BYE) return null;
   const opponent = against.kind === "team" ? against.teamName : null;
   return (
     <span className="inline-flex items-center gap-2">
-      {score !== null && <ResultChip result={resultOf(score.team, score.opponent)} live={score.provisional} />}
+      {score !== null && <ResultChip result={resultOf(gameModeOf(fixtures), score.team, score.opponent)} live={score.provisional} />}
       <MatchupLink teamId={teamId} team={teamName} opponent={opponent} gameweek={gameweek} game={game} points={score} live={score?.provisional ?? false} />
     </span>
   );

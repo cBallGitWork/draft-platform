@@ -1,6 +1,6 @@
 import { describe, expect, test } from "vitest";
 import { FIRST_RULES } from "../../../convex/rules/firstRules";
-import { MINUTE_MS } from "../../../convex/shared/time";
+import { DAY_MS, MINUTE_MS, WEEK_MS } from "../../../convex/shared/time";
 import { firstRunFrom, latestRunAt } from "../../../convex/waivers/waiverTimes";
 
 // When waivers run (#1198; spec/03, spec/08): Wednesday and Thursday at 18:00 UK time by default,
@@ -38,7 +38,7 @@ describe("the latest run", () => {
 
   test("a league's own runs: Tuesday at 09:30 only", () => {
     const tuesday = Date.UTC(2027, 0, 12, 9, 30);
-    expect(latestRunAt([{ day: "tuesday", hour: 9, minute: 30 }], tuesday + 6 * 24 * 60 * MINUTE_MS)).toBe(tuesday);
+    expect(latestRunAt([{ day: "tuesday", hour: 9, minute: 30 }], tuesday + 6 * DAY_MS)).toBe(tuesday);
   });
 
   test("none with no runs", () => {
@@ -63,7 +63,7 @@ describe("the first run that can take a player (#1200)", () => {
 
   test("a league's one weekly run, just missed, is a week on", () => {
     const tuesday = Date.UTC(2027, 0, 12, 9, 30);
-    expect(firstRunFrom([{ day: "tuesday", hour: 9, minute: 30 }], tuesday + MINUTE_MS)).toBe(tuesday + 7 * 24 * 60 * MINUTE_MS);
+    expect(firstRunFrom([{ day: "tuesday", hour: 9, minute: 30 }], tuesday + MINUTE_MS)).toBe(tuesday + WEEK_MS);
   });
 
   test("none with no runs", () => {
