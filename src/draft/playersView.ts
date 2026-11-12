@@ -5,6 +5,7 @@
 
 import type { Position } from "../../convex/positions/positionTables";
 import type { OverviewStat } from "../../convex/draft/draftPlayers";
+import { folded } from "../scouting/findPlayers";
 import type { ListedPlayer } from "../scouting/seam";
 import type { RoomFigure } from "./seam";
 
@@ -38,16 +39,6 @@ export const FIRST_DESCENDING: Record<RoomSortColumn, boolean> = {
 export function withFigures(players: readonly ListedPlayer[], figures: readonly RoomFigure[]): RoomPlayer[] {
   const byCode = new Map(figures.map((figure) => [figure.code, figure]));
   return players.map((player) => ({ ...player, figure: byCode.get(player.code) ?? null }));
-}
-
-/** Words folded for Find: lower case with accents dropped, so "joao" finds João Pedro. */
-const folded = (words: string) => words.normalize("NFD").replace(/\p{Diacritic}/gu, "").toLowerCase();
-
-/** The players whose short or full name holds `typed`, folded as Find folds them: Scouting's name
- *  box. Every player while it is empty. */
-export function namedPlayers<Player extends ListedPlayer>(players: readonly Player[], typed: string): Player[] {
-  const text = folded(typed.trim());
-  return text === "" ? [...players] : players.filter((player) => [player.name, player.fullName].some((each) => folded(each).includes(text)));
 }
 
 /** Whether Find's `text` names the player, in his short or full name, or his club's name or code. */
