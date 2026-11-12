@@ -1,6 +1,6 @@
 // My team's tabs in the preview (src/app/preview.ts): the preview manager's team in the table
 // preview's league, so the Fixtures tab and the table and fixtures screen show the same draw and
-// scores, a few of the commissioner's squad changes on its Transactions tab, and on its Squad tab
+// scores, the approved picture's history on its Transactions tab, and on its Squad tab
 // the Tactics tab's squad, with made-up seasons, and Mail's preview letters.
 
 import { CLUB_COLOURS } from "../../convex/football/clubColours";
@@ -22,9 +22,29 @@ const fixtures = teamFixturesOf(previewTeamNames, previewTeam, previewScored);
 const commissioner = "commish@example.com";
 const transactions: TeamTransactions = {
   transactions: [
-    { at: Date.now() - 2 * HOUR_MS, kind: "released", playerCode: 3, playerName: "Martinelli", otherTeamName: null, by: commissioner },
-    { at: Date.now() - 26 * HOUR_MS, kind: "movedIn", playerCode: 2, playerName: "Gabriel", otherTeamName: otherTeam, by: commissioner },
-    { at: Date.now() - 50 * HOUR_MS, kind: "assigned", playerCode: 3, playerName: "Martinelli", otherTeamName: null, by: adminByline },
+    {
+      at: Date.now() - 2 * HOUR_MS,
+      kind: "traded",
+      in: { players: [{ playerCode: 6, playerName: "Palmer" }], picks: [] },
+      out: { players: [{ playerCode: 7, playerName: "Watkins" }, { playerCode: 8, playerName: "Gvardiol" }], picks: [] },
+      otherTeamName: otherTeam,
+      by: commissioner,
+      yours: false,
+    },
+    { at: Date.now() - 26 * HOUR_MS, kind: "movedOut", playerCode: 8, playerName: "Gvardiol", otherTeamName: otherTeam, dropped: null, by: commissioner, yours: false },
+    { at: Date.now() - 50 * HOUR_MS, kind: "claimed", playerCode: 5, playerName: "Mbeumo", otherTeamName: null, dropped: { playerCode: 9, playerName: "Livramento" }, by: commissioner, yours: true },
+    { at: Date.now() - 4 * DAY_MS, kind: "dropped", playerCode: 10, playerName: "Konsa", otherTeamName: null, dropped: null, by: commissioner, yours: true },
+    { at: Date.now() - 6 * DAY_MS, kind: "pickedUp", playerCode: 4, playerName: "Calvert-Lewin", otherTeamName: null, dropped: { playerCode: 11, playerName: "Kamara" }, by: commissioner, yours: true },
+    { at: Date.now() - 8 * DAY_MS, kind: "assigned", playerCode: 3, playerName: "Martinelli", otherTeamName: null, dropped: null, by: adminByline, yours: false },
+    {
+      at: Date.now() - 10 * DAY_MS,
+      kind: "traded",
+      in: { players: [], picks: [{ round: 4, teamId: previewIdOf(otherTeam), teamName: otherTeam }] },
+      out: { players: [], picks: [{ round: 6, teamId: previewIdOf(previewTeam), teamName: previewTeam }] },
+      otherTeamName: otherTeam,
+      by: commissioner,
+      yours: false,
+    },
   ],
   cut: false,
 };

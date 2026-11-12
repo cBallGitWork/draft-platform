@@ -39,7 +39,7 @@ import {
 // lock the handles stay, since a claim in can still be ranked or withdrawn, only new ones shut
 // (Craig, 11 Nov 2026, on #1590), and before the draft is over they go (the README's Not drawn).
 
-const MINE_COLUMNS = ["handle", "rank", "positions", "claim", "points", "drop"] as const;
+const MINE_COLUMNS = ["handle", "rank", "positions", "in", "points", "out"] as const;
 
 /** The word why claims can't be changed now, or null while they can. */
 export function closedWords(waivers: WaiversView | undefined): string | null {
@@ -167,7 +167,7 @@ function MineTable({
               <td className={claimCellClass("positions")}>
                 <Chip player={claim.claim} />
               </td>
-              <th scope="row" className={claimCellClass("claim")}>
+              <th scope="row" className={claimCellClass("in")}>
                 <button
                   type="button"
                   aria-expanded={selected === claim.claimId}
@@ -182,7 +182,7 @@ function MineTable({
                 </button>
               </th>
               <td className={`${claimCellClass("points")} text-figure`}>{claim.claim.seasonPoints === null ? noFigureWords : figureWords(claim.claim.seasonPoints)}</td>
-              <td className={claimCellClass("drop")}>
+              <td className={claimCellClass("out")}>
                 <DropCell drop={claim.drop} clash={clashOf(group, index)} />
               </td>
             </tr>
