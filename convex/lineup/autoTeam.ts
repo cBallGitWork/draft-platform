@@ -63,9 +63,15 @@ const onThePitch = ({ playerCode, area, lane, role }: Placement) => ({
 const sameLineup = (one: FirstLineup, other: Pick<HeldLineup, "starters" | "bench">) =>
   JSON.stringify([one.starters.map(onThePitch), one.bench]) === JSON.stringify([other.starters.map(onThePitch), other.bench]);
 
+/** What the log says when one team's step at the deadline throws. A throw while working it out
+ *  leaves the team as it was; one from a write (a letter's insert, say) can leave its new lineup
+ *  saved or its switch off, so the log names both to check. */
+export const autoTeamFailedLog = (teamName: string, teamId: string, gameweek: number) =>
+  `The auto team's step for ${teamName} (team ${teamId}) at gameweek ${gameweek}'s deadline failed, maybe part-way; check its lineup and switch`;
+
 /** Each team on the auto team at the league's deadline for `gameweek` has its lineup set, and a
- *  manager's switch that ends after this gameweek, or one before, goes off. One team whose lineup
- *  can't be worked out is logged and left as it was; the others carry on. */
+ *  manager's switch that ends after this gameweek, or one before, goes off. One team whose step
+ *  throws is logged and the others carry on. */
 export const atDeadline = internalMutation({
   args: { leagueId: v.id("leagues"), gameweek: v.number() },
   returns: v.null(),
@@ -80,15 +86,16 @@ export const atDeadline = internalMutation({
       try {
         await runTeam(ctx, league, team, lineups.get(team._id)!, rules, gameweek);
       } catch (error: unknown) {
-        logFailure(`The auto team couldn't set ${team.name}'s lineup (team ${team._id}) for gameweek ${gameweek}, so it stands as saved`, error);
+        logFailure(autoTeamFailedLog(team.name, team._id, gameweek), error);
       }
     }
     return null;
   },
 });
 
-/** One team's step at the deadline. Everything is worked out before the first write, so a throw
- *  leaves the team as it was. */
+/** One team's step at the deadline. Every read, the letters' readers among them, is done before
+ *  the first write, so a throw while working it out leaves the team as it was; only a write's own
+ *  throw can stop it part-way. */
 async function runTeam(ctx: MutationCtx, league: Doc<"leagues">, team: Doc<"teams">, held: HeldLineup, rules: FirstLineupRules, gameweek: number) {
   const switched = team.autoTeam;
   const endsAfter = switched?.endsAfter;
@@ -108,21 +115,18 @@ async function runTeam(ctx: MutationCtx, league: Doc<"leagues">, team: Doc<"team
     if (!sameLineup(set, held)) lineup = set;
   }
 
-  if (lineup !== null) {
-    await storeAutoTeamLineup(ctx, league._id, team._id, gameweek, lineup);
-    // Switched on by the app for this gameweek alone: it is off again once the lineup is set.
-    if (!byPerson && !noManager) await fileAutoTeamLetter(ctx, league, autoTeamLetters.fixed(team.name, gameweek));
-  }
-  if (endsAfter !== undefined && endsAfter <= gameweek) {
-    await ctx.db.patch("teams", team._id, { autoTeam: undefined });
-    // A team with no manager stays on it until handed on, so its letter waits for that.
-    if (!noManager) await fileAutoTeamLetter(ctx, league, autoTeamLetters.ended(team.name, endsAfter));
-  }
-}
+  // Switched on by the app for this gameweek alone: it is off again once the lineup is set.
+  const fixedLetter = lineup !== null && !byPerson && !noManager;
+  const ends = endsAfter !== undefined && endsAfter <= gameweek;
+  // A team with no manager stays on it until handed on, so its letter waits for that.
+  const endedLetter = ends && !noManager;
+  // The app's letters go to the whole league, with no one's name on them.
+  const readers = fixedLetter || endedLetter ? await wholeLeague(ctx, league) : [];
 
-/** A letter the app files to the whole league, with no one's name on it. */
-async function fileAutoTeamLetter(ctx: MutationCtx, league: Doc<"leagues">, letter: { subject: string; body: string }) {
-  await fileLetter(ctx, league, await wholeLeague(ctx, league), letter);
+  if (lineup !== null) await storeAutoTeamLineup(ctx, league._id, team._id, gameweek, lineup);
+  if (fixedLetter) await fileLetter(ctx, league, readers, autoTeamLetters.fixed(team.name, gameweek));
+  if (ends) await ctx.db.patch("teams", team._id, { autoTeam: undefined });
+  if (endedLetter) await fileLetter(ctx, league, readers, autoTeamLetters.ended(team.name, endsAfter));
 }
 
 /** The team's manager, the league's commissioner, its co-commissioner or the admin switches its
