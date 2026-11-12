@@ -18,7 +18,6 @@ vi.mock("convex/react", async () =>
 );
 
 beforeEach(() => {
-  convex.openedTactics.mockReset();
   convex.openedTactics.mockResolvedValue(null);
 });
 
