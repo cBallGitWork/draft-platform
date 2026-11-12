@@ -9,7 +9,7 @@ a message opening with "yes" or with "file" and an object ("file answers"), one 
 ("1 a\n2 b"), or a slash command, which is an instruction by itself.
 Without his message on record (a cloud builder, whose whole run is a build Craig or the lead started)
 nothing is gated. Reads and git are never gated: a branch, a commit and a push are the session's own
-and publish nothing. A payload it can't read is denied (hook_payload.run_guard). Stdlib only, Python 3.9+.
+and publish nothing. A payload it can't read is denied (guard_run.run_guard). Stdlib only, Python 3.9+.
 """
 
 from __future__ import annotations
@@ -17,7 +17,8 @@ from __future__ import annotations
 import re
 import sys
 
-from hook_payload import field, project_dir, run_guard
+from guard_run import run_guard
+from hook_payload import field, project_dir
 from last_prompt import state_file
 
 GO_WORDS = re.compile(

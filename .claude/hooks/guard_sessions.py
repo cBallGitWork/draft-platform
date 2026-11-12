@@ -5,14 +5,15 @@ he moved work between them himself. Denies a message to another session (SendMes
 id, or the session tools' send_message) and starting a session from this one (start_session,
 hand_off_to_session). A message to a subagent this session spawned (an agent id, a name) is the
 session's own and goes through. Builds report through GitHub and the PM dashboard, never to a
-session. A payload it can't read is denied (hook_payload.run_guard). Stdlib only, Python 3.9+.
+session. A payload it can't read is denied (guard_run.run_guard). Stdlib only, Python 3.9+.
 """
 
 from __future__ import annotations
 
 import sys
 
-from hook_payload import field, run_guard
+from guard_run import run_guard
+from hook_payload import field
 
 SESSION_ID = "local_"
 STARTS = {"mcp__ccd_session__start_session", "mcp__ccd_session__hand_off_to_session"}

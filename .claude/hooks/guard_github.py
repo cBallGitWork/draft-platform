@@ -14,7 +14,8 @@ from __future__ import annotations
 import sys
 
 from approval_gate import mcp_approval_problem
-from hook_payload import project_dir, run_guard
+from guard_run import run_guard
+from hook_payload import project_dir
 from private_words import NO_LIST, has_list, text_problem
 
 PREFIX = "mcp__github__"

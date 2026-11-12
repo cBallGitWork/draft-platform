@@ -22,7 +22,8 @@ import sys
 
 from approval_gate import approval_problem
 from commands import XARGS, Unbalanced, Unreadable, UnreadableStdin, commands, runs_unknown, short_flags
-from hook_payload import field, project_dir, run_guard
+from guard_run import run_guard
+from hook_payload import field, project_dir
 from pr_body import pr_body_problem, pr_title_note
 from private_words import list_missing_note, private_word_problem
 from read_only import agent_type_note, read_only_problem
