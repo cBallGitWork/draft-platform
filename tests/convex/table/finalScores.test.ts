@@ -1,6 +1,6 @@
-import { expect, test, vi } from "vitest";
+import { expect, test } from "vitest";
 import { api, internal } from "../../../convex/_generated/api";
-import { silenceConsoleError } from "../../support/convex/test.harness";
+import { silenceConsoleError, everyJobRuns } from "../../support/convex/test.harness";
 import { fakeClaude } from "../../support/convex/scouts.harness";
 import { actingAs, addManagers, COMMISSIONER } from "../../support/convex/leagues.harness";
 import { HULL_EVERTON } from "../../support/convex/matchStats.harness";
@@ -85,7 +85,7 @@ test("the lock itself asks every league to store what it made final", async () =
   // Storing it final starts the league's recap (home/recaps.ts), which the clock run on here writes.
   fakeClaude();
   await lockMatch(league);
-  await league.t.finishAllScheduledFunctions(vi.runAllTimers);
+  await everyJobRuns(league.t);
 
   expect((await stored(league)).map(({ points }) => points)).toEqual([HULL_POINTS, EVERTON_POINTS]);
 });

@@ -2,6 +2,7 @@
 
 import { beforeEach, describe, expect, test } from "vitest";
 import { internal } from "../../../convex/_generated/api";
+import { EMAIL_MAX } from "../../../convex/signIn/allowedEmails";
 import { LISTED, signInDeployment } from "../../support/convex/signIn.harness";
 import type { TestConvex } from "../../support/convex/test.harness";
 
@@ -21,5 +22,15 @@ describe("the allowed list", () => {
 
   test("something that isn't an email address is refused, not stored", async () => {
     await expect(t.mutation(internal.signIn.allowedEmails.add, { email: "craig" })).rejects.toThrow("isn't an email address");
+  });
+
+  test("an address one character past the longest is refused, not stored, as sign-in refuses it", async () => {
+    const domain = "@example.com";
+    const tooLong = `${"a".repeat(EMAIL_MAX + 1 - domain.length)}${domain}`;
+    expect(tooLong).toHaveLength(EMAIL_MAX + 1);
+
+    await expect(t.mutation(internal.signIn.allowedEmails.add, { email: tooLong })).rejects.toThrow("isn't an email address");
+    const rows = await t.run((ctx) => ctx.db.query("allowedEmails").collect());
+    expect(rows.map((row) => row.email)).toEqual([LISTED]);
   });
 });

@@ -1,6 +1,7 @@
 // League rules' tests' shared setup (#25).
 
-import { FIRST_RULES } from "../../../convex/rules/firstRules";
+import { vi } from "vitest";
+import { draftRulesOf, FIRST_RULES } from "../../../convex/rules/firstRules";
 import { actingAs, COMMISSIONER, TEST_LEAGUE_TEAMS, type TestConvex } from "./leagues.harness";
 import { api } from "../../../convex/_generated/api";
 import type { QueryCtx } from "../../../convex/_generated/server";
@@ -37,6 +38,9 @@ export const rulesRevision = (t: TestConvex, leagueId: Id<"leagues">) =>
 export const changeRules = async (t: TestConvex, leagueId: Id<"leagues">, rules: LeagueRules, by = COMMISSIONER) =>
   (await actingAs(t, by)).mutation(api.rules.leagueRules.change, { leagueId, rules, revision: await rulesRevision(t, leagueId) });
 
+/** The commissioner saves the first rules with `change` made (rulesWith) as the league's. */
+export const changeRulesTo = (t: TestConvex, leagueId: Id<"leagues">, change: Partial<LeagueRules>) => changeRules(t, leagueId, rulesWith(change));
+
 /** Every rules row of the league changed by `change`, so the rules in force are, at once: for the
  *  draft's tests, whose rules a save would only change from a later gameweek. */
 export const changeEveryRules = (t: TestConvex, leagueId: Id<"leagues">, change: (rules: LeagueRules) => LeagueRules) =>
@@ -46,10 +50,11 @@ export const changeEveryRules = (t: TestConvex, leagueId: Id<"leagues">, change:
     }
   });
 
-/** The league's pick clock set to `pickSeconds` at once (changeEveryRules), and a started draft's
- *  own too, as a change reaching a live draft writes it (draftPickTime.ts; #1439). */
+/** The league's pick clock set to `pickSeconds` at once (changeEveryRules), its other draft rules
+ *  kept (#1782), and a started draft's own too, as a change reaching a live draft writes it
+ *  (draftPickTime.ts; #1439). */
 export async function setPickSeconds(t: TestConvex, leagueId: Id<"leagues">, pickSeconds: number): Promise<void> {
-  await changeEveryRules(t, leagueId, (rules) => ({ ...rules, draft: { ...HELD_FIRST_RULES.draft!, pickSeconds } }));
+  await changeEveryRules(t, leagueId, (rules) => ({ ...rules, draft: { ...draftRulesOf(rules), pickSeconds } }));
   await t.run(async (ctx) => {
     const draft = await ctx.db.query("drafts").withIndex("by_leagueId", (q) => q.eq("leagueId", leagueId)).unique();
     if (draft?.started !== undefined) await ctx.db.patch("drafts", draft._id, { pickSeconds });
@@ -106,6 +111,10 @@ export async function holdGameweeks(
     }
   });
 }
+
+/** Moves the clock on to just after `gameweek` kicks off, holdGameweeks' gameweek 1 kicking off at
+ *  `firstKickoff` and each next a week on: it and every one before have begun, and the next hasn't. */
+export const playUpTo = (firstKickoff: number, gameweek: number) => vi.setSystemTime(firstKickoff + (gameweek - 1) * WEEK_MS);
 
 /** Holds holdGameweeks' one match in the gameweek (coded by its number) at `state`, replacing any
  *  score held for it. */

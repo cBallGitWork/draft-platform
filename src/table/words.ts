@@ -5,7 +5,7 @@ import { seasonName } from "../../convex/shared/time";
 import { FORM_RESULTS } from "../../convex/table/standings";
 import { failedWords, fewestTeamsWords, gameweekShort, gameweekWords, signedWords, TABLE_TITLE } from "../shared/words";
 
-export { figureWords, gameweekWords, liveWords, scoreWords, versusWords } from "../shared/words";
+export { figureWords, gameweekWords, liveWords, scoreWords } from "../shared/words";
 /** The table's title, said while every team has played nothing, beside points a live match still
  *  moves (spec/07), a gameweek begun that couldn't be scored (#287), the reader's own team for
  *  screen readers, and the league average: src/shared/words.ts, as other screens say them too. */

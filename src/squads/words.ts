@@ -24,7 +24,7 @@ export const releaseLabel = (name: string) => `Release ${name}`;
 export const assignLabel = (name: string) => `Put ${name} on the team chosen`;
 export const moveLabel = (name: string) => `Move ${name} to the team chosen`;
 export const squadListLabel = (teamName: string) => `${teamName}'s players`;
-export const playersCount = (count: number) => (count === 1 ? "1 player" : `${count} players`);
+export { playersCount } from "../shared/words";
 
 /** Each team's auto team (spec/09; the approved auto-team picture): its manager, or none, and the
  *  switch, Off or On. A team with no manager is on until handed on; a manager's own switch says so,
@@ -32,7 +32,7 @@ export const playersCount = (count: number) => (count === 1 ? "1 player" : `${co
 export { autoTeamWords as autoTeamLabel } from "../shared/words";
 export const AUTO_TEAM_STATES = ["off", "on"] as const;
 export const autoTeamStateWords: Record<(typeof AUTO_TEAM_STATES)[number], string> = { off: "Off", on: "On" };
-export const noManagerWords = "No manager";
+export { noManagerWords } from "../shared/words";
 export const untilHandedOnWords = "Until the team is handed on";
 export const managersSwitchWords = (endsAfter: number | null) => (endsAfter === null ? "Its manager's" : `Its manager's, until ${gameweekShort(endsAfter)}`);
 

@@ -4,15 +4,14 @@ import { pickFirstLineupAgain } from "../lineup/lineups";
 import { knownOnJoining } from "../positions/positionWarnings";
 import { recordEvent } from "../mail/letters";
 import { latestRules } from "../rules/rulesHistory";
-import { managerOf, refuse, refusals } from "../shared/leagueAccess";
-import { playerByCode } from "../shared/players";
+import { managerOf, playerOrRefuse, refuse } from "../shared/leagueAccess";
 import { placeOf } from "../squads/squadPlace";
 import { waiversOpenFor } from "./waiverLock";
 import { windowOpen } from "./waiverOrder";
 import { dropAndTell, waiverRowOf } from "./waiverPlayers";
 import { joiningBreaksLimits } from "./waiverRun";
 import { claimRefusals } from "./waiverClaims";
-import { dropRefusals, placeToDrop } from "./waivers";
+import { placeToDrop } from "./waivers";
 
 // A manager's free agent pickup (#1199, spec/08 Waivers and free agency): first come first served,
 // in the window, from the first waiver run made after a gameweek until the next deadline. With a
@@ -27,8 +26,6 @@ export const pickUpRefusals = {
   notOpen: "Free agents can be picked up from the first waiver run after a gameweek until the next deadline.",
   notFreeAgent: (name: string) => `${name} isn't a free agent.`,
   playerGone: claimRefusals.playerGone,
-  dropNotYours: claimRefusals.dropNotYours,
-  dropHeld: dropRefusals.held,
   limits: (name: string) => `Picking up ${name} would break your squad's limits.`,
 };
 
@@ -40,12 +37,12 @@ export const pickUp = mutation({
     const { email, league, team } = await managerOf(ctx, leagueId);
     const { deadlines, now } = await waiversOpenFor(ctx, leagueId, pickUpRefusals);
     if (!(await windowOpen(ctx, leagueId, deadlines, now))) refuse(pickUpRefusals.notOpen);
-    const player = (await playerByCode(ctx, playerCode)) ?? refuse(refusals.noPlayer);
+    const player = await playerOrRefuse(ctx, playerCode);
     if ((await placeOf(ctx, leagueId, playerCode)) !== null || (await waiverRowOf(ctx, leagueId, playerCode)) !== null) {
       refuse(pickUpRefusals.notFreeAgent(player.name));
     }
     if (player.droppedAt !== undefined) refuse(pickUpRefusals.playerGone(player.name));
-    const dropPlayer = dropCode === null ? null : ((await playerByCode(ctx, dropCode)) ?? refuse(refusals.noPlayer));
+    const dropPlayer = dropCode === null ? null : (await playerOrRefuse(ctx, dropCode));
     const dropPlace = dropPlayer === null ? null : await placeToDrop(ctx, leagueId, team._id, dropPlayer);
     const squadRules = (await latestRules(ctx, leagueId)).squad;
     if (await joiningBreaksLimits(ctx, leagueId, team._id, playerCode, dropCode, squadRules)) refuse(pickUpRefusals.limits(player.name));

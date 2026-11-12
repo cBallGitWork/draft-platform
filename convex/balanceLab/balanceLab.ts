@@ -101,7 +101,7 @@ const notCopied = (stats: readonly string[]): string[] => stats.filter((stat) =>
 
 /** Each team instruction the set scores, in its order, not tested: the stats of its lines the past
  *  seasons lack, A to Z, none where every one was copied. */
-export function labInstructions(set: ScoringSet): LabInstruction[] {
+function labInstructions(set: ScoringSet): LabInstruction[] {
   return (set.instructions ?? []).map(({ instruction, lines }) => ({
     instruction,
     missing: notCopied(catalogueStats(set, lines.flatMap((line) => line.stats))),

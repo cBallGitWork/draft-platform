@@ -14,14 +14,15 @@ import { claimFailedLetter, type ClaimFailure } from "../mail/waiverLetterWords"
 import { fileLetter, recordEvent } from "../mail/letters";
 import type { LeagueRules } from "../rules/leagueRulesShape";
 import { historyOf, newestRow, seasonRules } from "../rules/rulesHistory";
-import { everyLeague } from "../shared/cappedRead";
+import { scheduleEveryLeague } from "../shared/cappedRead";
 import { tellShortlistersCleared } from "../scouting/shortlist";
 import { teamIn } from "../shared/leagueAccess";
 import { playerByCode } from "../shared/players";
 import { readOnce } from "../shared/readOnce";
 import { MINUTE_MS } from "../shared/time";
-import { placeOf, squadOf } from "../squads/squadPlace";
-import { limitsReader, type LimitsBroken, type SquadWarning } from "../squads/squads";
+import { placeOf, squadCodes } from "../squads/squadPlace";
+import { breaksLimits } from "../squads/limitsCompare";
+import { limitsReader, type LimitsBroken } from "../squads/squads";
 import { heldInReview } from "../trades/tradeClose";
 import { claimedName, leagueClaims } from "./waiverClaims";
 import { latestEnded, runInWaiverLock } from "./waiverLock";
@@ -51,28 +52,8 @@ const CHECK_MS = WAIVER_CHECK_EVERY.minutes * MINUTE_MS;
 /** A league that has never run waivers runs one only if its time came within this of now. */
 export const FIRST_RUN_WITHIN_MS = 2 * CHECK_MS;
 
-/** Whether the claim's squad breaks a limit the squad before it didn't, or breaks one further:
- *  more over the squad's or a club's maximum, or fewer filling an area's minimum. A claim never
- *  shrinks a squad, so being under its minimum size is never the claim's doing. Pure. */
-export function breaksLimits(before: readonly SquadWarning[], after: readonly SquadWarning[]): boolean {
-  return newlyBroken(before, after).some((warning) => warning.kind !== "underMinimum");
-}
-
-/** The limits the squad after a change breaks that the squad before didn't, or breaks further:
- *  more over a maximum, or fewer filling a minimum. A trade's warnings (../trades/tradeReview.ts). Pure. */
-export function newlyBroken(before: readonly SquadWarning[], after: readonly SquadWarning[]): SquadWarning[] {
-  const keyOf = (warning: SquadWarning) =>
-    warning.kind === "overClubMaximum" ? `club ${warning.clubShortName}` : warning.kind === "underAreaMinimum" ? `area ${warning.area}` : warning.kind;
-  const was = new Map(before.map((warning) => [keyOf(warning), warning.players]));
-  return after.filter((warning) => {
-    const players = was.get(keyOf(warning));
-    if (players === undefined) return true;
-    return warning.kind === "underAreaMinimum" || warning.kind === "underMinimum" ? warning.players < players : warning.players > players;
-  });
-}
-
 /** Whether the player joining the team, `dropCode` going for him if anyone, would break the
- *  squad's limits (`breaksLimits`) or the platform's most in a squad: a claim at the run, or a
+ *  squad's limits (`breaksLimits`, ../squads/limitsCompare.ts) or the platform's most in a squad: a claim at the run, or a
  *  free agent pickup (freeAgents.ts). */
 export async function joiningBreaksLimits(
   ctx: QueryCtx,
@@ -82,7 +63,7 @@ export async function joiningBreaksLimits(
   dropCode: number | null,
   squadRules: LeagueRules["squad"] | null,
 ): Promise<boolean> {
-  const squad = (await squadOf(ctx, teamId)).map((row) => row.playerCode);
+  const squad = await squadCodes(ctx, teamId);
   return joinBreaks(squad, playerCode, dropCode, await limitsReader(ctx, leagueId, squadRules));
 }
 
@@ -124,7 +105,7 @@ type Run = {
 async function squadInRun(ctx: QueryCtx, run: Run, teamId: Id<"teams">): Promise<number[]> {
   const kept = run.squads.get(teamId);
   if (kept !== undefined) return kept;
-  const squad = (await squadOf(ctx, teamId)).map((row) => row.playerCode);
+  const squad = await squadCodes(ctx, teamId);
   run.squads.set(teamId, squad);
   return squad;
 }
@@ -266,34 +247,35 @@ export const run = internalMutation({
   },
 });
 
-/** The cron's: starts the run of each league whose latest run time has come and not been run, if
- *  it was a run time when it came (`wasRunTime`). A league that has never run waivers runs one
- *  only if its time came since the last check or so. */
+/** The cron's: asks each open league to start what is due in it (`runLeagueDue`) in its own transaction, so one league's fault stops no other's (#1558, #1762). */
 export const runDue = internalMutation({
   args: {},
   returns: v.null(),
   handler: async (ctx) => {
-    const now = Date.now();
-    const leagues = await everyLeague(ctx, "so waivers can't be run in every one");
-    for (const league of leagues) {
-      if (!leagueOpens(league)) continue;
-      await scheduleBackOnWaivers(ctx, league._id, now);
-      const history = await historyOf(ctx, league._id);
-      const at = latestRunAt(newestRow(history, league._id).rules.waivers.runs, now);
-      if (at === null || !wasRunTime(history, at)) continue;
-      const held = await waiverOrderRow(ctx, league._id);
-      if (held === null ? at <= now - FIRST_RUN_WITHIN_MS : at <= held.ranAt) continue;
-      await ctx.scheduler.runAfter(0, internal.waivers.waiverRun.run, { leagueId: league._id, at });
-    }
+    await scheduleEveryLeague(ctx, internal.waivers.waiverRun.runLeagueDue, "so waivers can't be run in every one", leagueOpens);
     await scheduleHeartbeat(ctx, "waiverRuns");
     return null;
   },
 });
 
-/** Starts putting the league's free agents back on waivers if its window has shut since a deadline
- *  they weren't yet put back for, once its draft is over. */
-async function scheduleBackOnWaivers(ctx: MutationCtx, leagueId: Id<"leagues">, now: number): Promise<void> {
-  const shut = await windowShutSince(ctx, leagueId, await leagueDeadlines(ctx, leagueId), now);
-  if (shut === null || (await waiverOrderRow(ctx, leagueId))?.backOnWaivers === shut || !(await draftIsOver(ctx, leagueId))) return;
-  await ctx.scheduler.runAfter(0, internal.waivers.backOnWaivers.putBackOnWaivers, { leagueId, deadline: shut });
-}
+/** Puts the league's free agents back on waivers once its window has shut since a deadline they
+ *  weren't yet, its draft over; then starts its run if its latest run time has come unrun and was a
+ *  run time when it came (`wasRunTime`), a league never run only if it came since the last check. */
+export const runLeagueDue = internalMutation({
+  args: { leagueId: v.id("leagues") },
+  returns: v.null(),
+  handler: async (ctx, { leagueId }) => {
+    const league = await ctx.db.get("leagues", leagueId);
+    if (league === null || !leagueOpens(league)) return null;
+    const now = Date.now();
+    const held = await waiverOrderRow(ctx, leagueId);
+    const shut = await windowShutSince(ctx, leagueId, await leagueDeadlines(ctx, leagueId), now);
+    if (shut !== null && held?.backOnWaivers !== shut && (await draftIsOver(ctx, leagueId)))
+      await ctx.scheduler.runAfter(0, internal.waivers.backOnWaivers.putBackOnWaivers, { leagueId, deadline: shut });
+    const history = await historyOf(ctx, leagueId);
+    const at = latestRunAt(newestRow(history, leagueId).rules.waivers.runs, now);
+    if (at === null || !wasRunTime(history, at) || (held === null ? at <= now - FIRST_RUN_WITHIN_MS : at <= held.ranAt)) return null;
+    await ctx.scheduler.runAfter(0, internal.waivers.waiverRun.run, { leagueId, at });
+    return null;
+  },
+});

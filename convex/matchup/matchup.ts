@@ -2,27 +2,28 @@ import { v } from "convex/values";
 import type { Doc, Id } from "../_generated/dataModel";
 import { query, type QueryCtx } from "../_generated/server";
 import { isPlaying } from "../football/matchScores";
-import { deadlineOf, leagueDeadlines } from "../gameweeks/leagueDeadlines";
+import { leagueDeadlineOf } from "../gameweeks/leagueDeadlines";
 import type { SeasonRules } from "../rules/rulesHistory";
-import { logFailure } from "../shared/errors";
+import { leagueLabel, logFailure } from "../shared/errors";
 import { teamsOf } from "../shared/leagueAccess";
-import { begunGameweeks, tableGameweek, type GameweekTeams } from "../gameweekScorer/gameweekScores";
+import { hasBegun, tableGameweek, type GameweekTeams } from "../gameweekScorer/gameweekScores";
 import { scheduleOf } from "../table/playedFixtures";
 import { isFinished, overrideOf, type HeldMatch } from "../gameweekScorer/heldMatches";
 import { leagueReads, scoredByMatch, type TeamInGameweek } from "../gameweekScorer/teamGameweek";
 import { LEAGUE_AVERAGE, type GameweekFixtures } from "../table/roundRobin";
 import { teamsInGameweek } from "../table/standings";
-import { averageScore, BYE, gamesOf, type Against } from "../table/teamGames";
+import { averageScore, BYE, FIRST_GAME, gamesOf, type Against } from "../table/teamGames";
 import type { SlotPoints } from "../scoring/teamPoints";
 import { instructionLinesOf, namedCategoriesOf, roleLineOf } from "../scoring/breakdownShape";
 import { siteVersionByGameweek } from "../scoring/siteVersions";
 import { matchupTeam } from "./matchupGameweek";
 import { heldMatchup, type HeldGame, type HeldTeamsCommentary, type MatchBreakdown, type MatchupBenchSlot, type MatchupSide, type MatchupSlot, type MatchupStarter, type SlotStatus } from "./matchupShape";
 import { commentaryReads, readCommentary, type CommentaryReads } from "./readCommentary";
-import { byKickoff, byKickoffOrder, namedMatch, placeOf, pricedRole, shirtOf } from "./slotParts";
+import { namedMatch, placeOf, pricedRole, shirtOf } from "./slotParts";
+import { byKickoff, byKickoffOrder } from "../shared/fixtures";
 import { findClubByCode } from "../shared/players";
 import { readOnce } from "../shared/readOnce";
-import { onAutoTeam } from "../trades/tradeShut";
+import { onAutoTeam } from "../lineup/autoTeamSwitch";
 
 // One head-to-head in one gameweek (#34; spec/10, The matchup, as a live match; spec/14, On
 // screen): both lineups slot by slot, each player's points and whether his match is yet to come,
@@ -63,7 +64,7 @@ export const ofTeam = query({
 
     const schedule = await scheduleOf(ctx, league, season);
     const games = gamesOf(schedule, team._id);
-    const deadlineIn = deadlineOf(await leagueDeadlines(ctx, leagueId));
+    const deadlineIn = await leagueDeadlineOf(ctx, leagueId);
     const heading = { kind: "headToHead" as const, teamId: team._id, teamName: team.name, gameweeks: [...new Set(games.map((each) => each.gameweek))] };
     if (gameweek === null) return { ...heading, gameweek, deadline: null, gameNumber: FIRST_GAME, games: [], game: { kind: "none" as const } };
     // The team's games in the gameweek, shown one at a time with a switch between them: the
@@ -100,7 +101,7 @@ async function gameOf(
   if (against.kind === BYE) return { kind: BYE };
   const nameOf = nameIn(teams, gameweek);
   const opponent = opponentOf(against, nameOf);
-  if (!(await begunGameweeks(ctx, league)).includes(gameweek)) return { kind: "notBegun", opponent };
+  if (!(await hasBegun(ctx, league, gameweek))) return { kind: "notBegun", opponent };
   try {
     const teamIds = teams.map((each) => each._id);
     const versionIn = await siteVersionByGameweek(ctx);
@@ -111,17 +112,14 @@ async function gameOf(
       kind: "scored",
       team: await scorer.team(team),
       opponent: await scorer.opponent(against),
-      commentary: await scorer.commentary(sides, `League ${league._id} (${league.name}) can't read ${team.name}'s commentary in gameweek ${gameweek}`),
+      commentary: await scorer.commentary(sides, `${leagueLabel(league)} can't read ${team.name}'s commentary in gameweek ${gameweek}`),
       version: versionIn(gameweek).name,
     };
   } catch (error) {
-    const reason = logFailure(`League ${league._id} (${league.name}) can't score ${team.name}'s matchup in gameweek ${gameweek}`, error);
+    const reason = logFailure(`${leagueLabel(league)} can't score ${team.name}'s matchup in gameweek ${gameweek}`, error);
     return { kind: "unscored", opponent, reason };
   }
 }
-
-/** The first of a team's games in a gameweek, as the address and the switch number them. */
-const FIRST_GAME = 1;
 
 /** A team `gameweek`'s fixtures name; one not in the league is a bug, so it throws. */
 const fixtureTeamIn = (teams: readonly Doc<"teams">[], gameweek: number) => (teamId: TeamId) => {
@@ -222,9 +220,9 @@ class SideScorer {
     const cameOn = autoSubs.substitutions.find((each) => each.on === playerCode);
     const autoSub =
       wentOff !== undefined
-        ? { kind: "off" as const, playerName: await this.name(wentOff.on) }
+        ? { kind: "off" as const, playerCode: wentOff.on, playerName: await this.name(wentOff.on) }
         : cameOn !== undefined
-          ? { kind: "on" as const, playerName: await this.name(cameOn.off) }
+          ? { kind: "on" as const, playerCode: cameOn.off, playerName: await this.name(cameOn.off) }
           : autoSubs.unfilled.includes(playerCode)
             ? { kind: "unreplaced" as const }
             : null;

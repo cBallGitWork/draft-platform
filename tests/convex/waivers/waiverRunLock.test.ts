@@ -46,9 +46,12 @@ describe("a run whose time fell in the lock (#1470, S08.11)", () => {
   test("the cron starting it after the lock ends, after an outage or run times moved back into the lock, skips it", async () => {
     vi.setSystemTime(endedAt + HOUR_MS);
     await w.t.mutation(internal.waivers.waiverRun.runDue, {});
-    // Only the run it starts, now: running every timer would move the clock on past later deadlines.
-    vi.advanceTimersToNextTimer();
-    await w.t.finishInProgressScheduledFunctions();
+    // Only the league's check and the run it starts, now (#1762): running every timer would move
+    // the clock on past later deadlines.
+    for (const _hop of [1, 2]) {
+      vi.advanceTimersToNextTimer();
+      await w.t.finishInProgressScheduledFunctions();
+    }
     expect(Date.now()).toBe(endedAt + HOUR_MS);
     expect((await waiverOrder())?.ranAt).toBe(inLock);
     await skipped();

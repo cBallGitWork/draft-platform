@@ -14,11 +14,12 @@ export function normaliseEmail(email: string): string {
   return email.trim().toLowerCase();
 }
 
-/** Whether a (normalised) email can be an address at all: the closed beta checks no more. */
-export const isEmailAddress = (email: string) => email.includes("@");
-
 /** The longest an email address can be (RFC 5321's path limit, less its angle brackets). */
 export const EMAIL_MAX = 254;
+
+/** Whether a (normalised) email can be an address at all: an @ and no longer than `EMAIL_MAX`.
+ *  The closed beta checks no more, and every door in (the admin's `add`, an invite, a sign-in ask) asks this. */
+export const isEmailAddress = (email: string) => email.includes("@") && email.length <= EMAIL_MAX;
 
 /** The admin's email, set on the server (spec/13#who-runs-it), never in the code. */
 export function adminEmail(): string {

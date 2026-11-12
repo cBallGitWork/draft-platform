@@ -1,7 +1,7 @@
-import { v, type Infer } from "convex/values";
+import { v } from "convex/values";
 import type { Doc, Id } from "../_generated/dataModel";
 import type { QueryCtx } from "../_generated/server";
-import type { leagueEvent } from "../schema";
+import type { LeagueEvent } from "../schema";
 import { MOST_IN_SQUAD, MOST_TEAMS } from "../leagues/leagueLimits";
 import { takeAllOrThrow } from "../shared/cappedRead";
 import { teamsOf } from "../shared/leagueAccess";
@@ -22,17 +22,21 @@ export function placeOf(ctx: QueryCtx, leagueId: Id<"leagues">, playerCode: numb
 }
 
 /** The most squad rows one league holds: every team's squad full. */
-const LEAGUE_SQUAD_ROWS_MOST = MOST_TEAMS * MOST_IN_SQUAD;
+export const LEAGUE_SQUAD_ROWS_MOST = MOST_TEAMS * MOST_IN_SQUAD;
 
-/** The codes of every player a team in this league holds, its squad rows read in one range rather
- *  than a `placeOf` per player (#1532): what the draft reads its undrafted players from. */
-export async function heldCodesIn(ctx: QueryCtx, leagueId: Id<"leagues">): Promise<Set<number>> {
-  const rows = await takeAllOrThrow(
+/** Every squad row in the league, read in one range rather than a `placeOf` per player (#1532). */
+export function squadRowsIn(ctx: QueryCtx, leagueId: Id<"leagues">): Promise<Doc<"squadPlayers">[]> {
+  return takeAllOrThrow(
     ctx.db.query("squadPlayers").withIndex("by_leagueId_and_playerCode", (q) => q.eq("leagueId", leagueId)),
     LEAGUE_SQUAD_ROWS_MOST,
     `League ${leagueId} holds more than ${LEAGUE_SQUAD_ROWS_MOST} squad rows, so who is held can't be read`,
   );
-  return new Set(rows.map(({ playerCode }) => playerCode));
+}
+
+/** The codes of every player a team in this league holds: what the draft reads its undrafted
+ *  players from. */
+export async function heldCodesIn(ctx: QueryCtx, leagueId: Id<"leagues">): Promise<Set<number>> {
+  return new Set((await squadRowsIn(ctx, leagueId)).map(({ playerCode }) => playerCode));
 }
 
 /** Who owns a player in this league: the league's teams read once, then a lookup per player giving
@@ -49,14 +53,18 @@ export async function ownerOf(ctx: QueryCtx, leagueId: Id<"leagues">): Promise<(
   };
 }
 
+/** The squad moves of one player outside a trade, which both lists below hold: a new one must be
+ *  added here, or the screens and the Transactions tab miss it. */
+export const PLAYER_MOVES = ["playerAssigned", "playerMoved", "playerReleased", "playerDropped", "playerClaimed", "playerPickedUp"] as const;
+
 /** The league events that change a squad. A commissioner assigns, moves and releases players
  *  (#31), a manager drops them (#1197) and picks up free agents (#1199), and a waiver run gives
  *  them for a claim (#1198), and a trade moves them (#383). */
-export const SQUAD_MOVES = ["playerAssigned", "playerMoved", "playerReleased", "playerDropped", "playerClaimed", "playerPickedUp", "playerTraded"] as const;
+export const SQUAD_MOVES = [...PLAYER_MOVES, "playerTraded"] as const;
 
 /** The league events the screens list a team's moves from (My team's Transactions, League home,
  *  its News tab): every squad move but a trade's players, and each trade as one (#1491). */
-export const LISTED_MOVES = ["playerAssigned", "playerMoved", "playerReleased", "playerDropped", "playerClaimed", "playerPickedUp", "tradeMade"] as const;
+export const LISTED_MOVES = [...PLAYER_MOVES, "tradeMade"] as const;
 export type ListedKind = (typeof LISTED_MOVES)[number];
 /** A listed move of one player: any but a trade, which the screens list with both its sides. */
 export const playerMoveKind = v.union(...LISTED_MOVES.flatMap((kind) => (kind === "tradeMade" ? [] : [v.literal(kind)])));
@@ -82,6 +90,11 @@ export function squadOf(ctx: QueryCtx, teamId: Id<"teams">) {
     .take(MOST_IN_SQUAD);
 }
 
+/** The squad's player codes, in the order they joined it. */
+export async function squadCodes(ctx: QueryCtx, teamId: Id<"teams">): Promise<number[]> {
+  return (await squadOf(ctx, teamId)).map(({ playerCode }) => playerCode);
+}
+
 /** The codes of a squad's players the football sync doesn't hold: data gone wrong, which a screen
  *  shows as rows of their own after the others, never hiding them (Craig, 31 Oct 2026, #323). */
 export const unheldCodes = v.array(v.number());
@@ -96,10 +109,9 @@ export async function heldOrNot(ctx: QueryCtx, rows: readonly Doc<"squadPlayers"
   };
 }
 
-type LeagueEvent = Infer<typeof leagueEvent>;
 type SquadMove = Extract<LeagueEvent, { kind: (typeof SQUAD_MOVES)[number] }>;
 export const isSquadMove = (event: LeagueEvent): event is SquadMove => (SQUAD_MOVES as readonly string[]).includes(event.kind);
-export type ListedMove = Extract<LeagueEvent, { kind: ListedKind }>;
+type ListedMove = Extract<LeagueEvent, { kind: ListedKind }>;
 export const isListedMove = (event: LeagueEvent): event is ListedMove => (LISTED_MOVES as readonly string[]).includes(event.kind);
 /** Whether the squad move took its player off `teamId` for another team: a move or a trade. */
 export const movedOff = (event: SquadMove, teamId: Id<"teams">) => (event.kind === "playerMoved" || event.kind === "playerTraded") && event.fromTeamId === teamId;
@@ -143,7 +155,7 @@ export function squadMovesFrom(ctx: QueryCtx, leagueId: Id<"leagues">, earliest:
  *  follow, in the order they left. A move that doesn't fit the squad it undoes (one who joined but
  *  isn't there, one who left but is) throws: the history is broken. */
 export async function squadAt(ctx: QueryCtx, teamId: Id<"teams">, movesSince: SquadMovesSince): Promise<number[]> {
-  let stayed = (await squadOf(ctx, teamId)).map(({ playerCode }) => playerCode);
+  let stayed = await squadCodes(ctx, teamId);
   let leftSince: number[] = [];
   for (const { _id, event } of movesSince) {
     // Only these kinds were read; any other is a bug in the read.

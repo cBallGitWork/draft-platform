@@ -1,10 +1,11 @@
-import { expect, test, vi } from "vitest";
+import { expect, test } from "vitest";
 import { missingClubLog } from "../../../convex/matchup/slotParts";
 import { annsScoredGame, GAMEWEEK, holdHullAndEverton, HULL_KEEPER, HULL_SCORER, nameOf, scoresLeague, slotOf } from "../../support/convex/gameweekScores.harness";
 import { fullTimeRecords, liveRecords, scoreRead } from "../../support/convex/gameweekScoresMatch.harness";
 import { MIDFIELD_GOAL } from "../../support/convex/gameweekScoresFixes.harness";
 import { holdLines, storedLine } from "../../support/convex/matchPage.harness";
 import { EVERTON_CLUB, HULL_CITY, mergedHullEverton } from "../../support/convex/matchStats.harness";
+import { silenceConsoleWarn } from "../../support/convex/test.harness";
 
 // The matchup's vidiprinter gives each team its own column of what a line moves its score by, and
 // each line the men it is about, whom a tapped man's cyan bar marks (the approved picture, #1026).
@@ -72,7 +73,7 @@ test("a breakdown names its match by its clubs and its score as the newest read 
 test("a breakdown's clubs the football sync doesn't hold are null and logged, and the matchup still scores", async () => {
   const league = await scoresLeague();
   await fullTimeRecords(league);
-  const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+  const warn = silenceConsoleWarn();
 
   const [match] = slotOf((await annsScoredGame(league, GAMEWEEK)).team, HULL_SCORER).breakdown;
   expect(match).toMatchObject({ home: null, away: null, score: null });

@@ -1,5 +1,5 @@
 import { beforeEach, expect, test } from "vitest";
-import { lastSeasonPoints } from "../../../convex/draft/lastSeasonPoints";
+import { lastSeasonPoints } from "../../../convex/pastSeasons/lastSeasonPoints";
 import { positionsNow } from "../../../convex/positions/playerPositions";
 import { EVERY_LEAGUE } from "../../../convex/positions/positionSettings";
 import { ARSENAL, insertClubs, insertPlayers, type HeldPlayer } from "../../support/convex/footballRows.harness";
