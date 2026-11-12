@@ -9,7 +9,7 @@ import { fixedDeadlinesOf, passedDeadlineOf } from "../gameweeks/passedDeadlines
 import { seasonGameweekCount } from "../gameweeks/seasonGameweeks";
 import { GAMEWEEKS_MOST, lastPlayedGameweek } from "../gameweeks/usedGameweeks";
 import { inUnplayedGameweek } from "../gameweeks/gameweekEnd";
-import { squadAt, squadMovesSince, squadOf, type MovesSinceOf, type SquadMovesSince } from "../squads/squadPlace";
+import { squadAt, squadCodes, squadMovesSince, type MovesSinceOf, type SquadMovesSince } from "../squads/squadPlace";
 import { lostPlayerName, playerByCode } from "../shared/players";
 import { positionsNow } from "../positions/playerPositions";
 import { placementShape } from "../schema";
@@ -134,11 +134,6 @@ export async function heldPositionsOf(ctx: QueryCtx, leagueId: Id<"leagues">, pl
 /** One team's lineup in the gameweek, as `lineupsInGameweek` gives it. */
 export async function lineupInGameweek(ctx: QueryCtx, leagueId: Id<"leagues">, teamId: Id<"teams">, gameweek: number): Promise<HeldLineup> {
   return (await lineupsInGameweek(ctx, leagueId, [teamId], gameweek)).get(teamId)!;
-}
-
-/** The squad's player codes, in the order they joined it. */
-async function squadCodes(ctx: QueryCtx, teamId: Id<"teams">): Promise<number[]> {
-  return (await squadOf(ctx, teamId)).map(({ playerCode }) => playerCode);
 }
 
 /** The first gameweek whose league deadline, under the rule in force in it, hasn't passed: the one

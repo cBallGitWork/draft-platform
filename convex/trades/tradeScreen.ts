@@ -19,13 +19,13 @@ import {
   type TradedPlayer,
 } from "./tradedPlayers";
 import { tradesShutReason } from "./tradeShutWords";
-import { squadOf } from "../squads/squadPlace";
+import { squadCodes } from "../squads/squadPlace";
 import { limitsBroken, squadWarning } from "../squads/squads";
 import { newlyBroken } from "../squads/limitsCompare";
 import { leagueOffers } from "./tradeClose";
 import { pickName } from "./tradeWords";
 import { pickHolders, tradablePick } from "./tradePicks";
-import { reviewerOf } from "./tradeReviewers";
+import { managersAmong, reviewUnder, tradeRulesAt } from "./tradeReviewers";
 import { onAutoTeam } from "../lineup/autoTeam";
 import { offerCloses, tradeDeadlineInForce, tradesShut } from "./tradeShut";
 import { tradePick } from "../schema";
@@ -91,11 +91,11 @@ const screenTeam = v.object({
 });
 export type ScreenTeam = Infer<typeof screenTeam>;
 
-export const tradesView = v.object({
+const tradesView = v.object({
   myTeamId: v.id("teams"),
   /** Why no trade can be offered or accepted now, or null while trades are open (tradeShut.ts). */
   shut: tradesShutReason,
-  /** The most players the league's rules let a squad hold; null with no limit, or no rules. */
+  /** The most players the league's rules let a squad hold; null with no limit. */
   squadMaximum: v.union(v.number(), v.null()),
   /** Every team in the league, the manager's own first. */
   teams: v.array(screenTeam),
@@ -160,6 +160,7 @@ export const ofMyTeam = query({
     const rules = await latestRules(ctx, leagueId);
     const deadlines = await leagueDeadlines(ctx, leagueId);
     const tradeDeadline = await tradeDeadlineInForce(ctx, leagueId, deadlines, now);
+    const { review } = await tradeRulesAt(ctx, leagueId, deadlines, now);
     const positionsOf = await positionsNow(ctx, leagueId);
     const clubOf = clubsByCode(ctx);
     const offers = await leagueOffers(ctx, leagueId);
@@ -171,17 +172,13 @@ export const ofMyTeam = query({
     const teams = await teamsOf(ctx, leagueId);
     const picksOf = await pickHolders(ctx, leagueId, teams, offers);
     const squads = new Map<Id<"teams">, number[]>();
-    for (const team of teams)
-      squads.set(
-        team._id,
-        (await squadOf(ctx, team._id)).map((row) => row.playerCode),
-      );
+    for (const team of teams) squads.set(team._id, await squadCodes(ctx, team._id));
     const myCodes = squads.get(mine._id) ?? [];
     const myLimitsNow = await limitsBroken(
       ctx,
       leagueId,
       myCodes,
-      rules?.squad ?? null,
+      rules.squad,
     );
 
     const shownTeams = await Promise.all(
@@ -226,7 +223,7 @@ export const ofMyTeam = query({
         ];
         const reviewNow =
           offer.review === undefined
-            ? await reviewerOf(ctx, league, offer, deadlines, now)
+            ? reviewUnder(review, league, managersAmong(teams, offer))
             : offer.review.reviewer;
         return {
           offerId: offer._id,
@@ -246,7 +243,7 @@ export const ofMyTeam = query({
           reviewEndsAt: offer.review?.endsAt ?? null,
           warnings: newlyBroken(
             myLimitsNow,
-            await limitsBroken(ctx, leagueId, after, rules?.squad ?? null),
+            await limitsBroken(ctx, leagueId, after, rules.squad),
           ),
         };
       }),

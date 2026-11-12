@@ -10,7 +10,7 @@ import { playerByCode } from "../shared/players";
 import { placeOf } from "../squads/squadPlace";
 import { squadWarning } from "../squads/squads";
 import { closeOffer, deadlinePassed, endOffer, heldInReview, leagueOffers } from "./tradeClose";
-import { tradedName, tradeWordsOf } from "./tradeWords";
+import { managersOf, tradedName, tradeWordsOf } from "./tradeWords";
 import { startReview } from "./tradeReview";
 import { tradeWarnings } from "./tradeSquads";
 import { NOTE_MOST, OFFERS_PER_TEAM_MOST } from "./tradeLimits";
@@ -142,7 +142,7 @@ async function makeOffer(
   const words = await tradeWordsOf(ctx, offer);
   const closes = offerCloses(deadlines, now, await tradeDeadlineInForce(ctx, league._id, deadlines, now));
   const lastMatchOf = closes !== null && closes.at === null ? closes.gameweek : null;
-  await fileLetter(ctx, league, [to.managerEmail, by].filter((email) => email !== undefined), offerLetter(words, by, countered, lastMatchOf), by);
+  await fileLetter(ctx, league, await managersOf(ctx, offer), offerLetter(words, by, countered, lastMatchOf), by);
   return { offerId, warnings };
 }
 

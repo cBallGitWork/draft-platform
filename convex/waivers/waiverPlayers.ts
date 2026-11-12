@@ -50,7 +50,7 @@ export async function putOnWaivers(ctx: MutationCtx, leagueId: Id<"leagues">, pl
  *  free agents, picked up as one with no deadline passed since (spec/08). A claim's drop counts
  *  from its run's own time, not the moment the run executes, so a late run's drop still makes the
  *  next run (Craig, 11 Nov 2026, #1481). Whether he went on waivers. */
-export async function dropFromSquad(
+async function dropFromSquad(
   ctx: MutationCtx,
   place: Doc<"squadPlayers">,
   deadlines: LeagueDeadlines,

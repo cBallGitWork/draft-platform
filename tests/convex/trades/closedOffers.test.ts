@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, test, vi } from "vitest";
 import { api } from "../../../convex/_generated/api";
 import { CLOSED_READ_MOST } from "../../../convex/trades/closedOffers";
-import { seasonStartAt } from "../../../convex/shared/time";
+import { MINUTE_MS, seasonStartAt } from "../../../convex/shared/time";
 import { actingAs, COMMISSIONER } from "../../support/convex/leagues.harness";
 import { nameOf } from "../../support/convex/lineupSquad.harness";
 import { ANN, ANNS_FIRST_DROP, BOB, CAT, PALMER, RICE, SAKA, tradeLeague, type TradeLeague } from "../../support/convex/trades.harness";
@@ -20,7 +20,7 @@ const closedFor = async (email: string) =>
   (await (await actingAs(w.t, email)).query(api.trades.tradeScreen.ofMyTeam, { leagueId: w.leagueId, now: Date.now() })).closed;
 
 /** A minute on, so each close has its own moment. */
-const aMinuteOn = () => vi.setSystemTime(Date.now() + 60_000);
+const aMinuteOn = () => vi.setSystemTime(Date.now() + MINUTE_MS);
 
 describe("closed offers", () => {
   test("keeps a rejected, a countered and a withdrawn offer, newest first, for both teams", async () => {
