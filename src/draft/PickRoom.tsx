@@ -3,7 +3,7 @@ import type { Id } from "../../convex/_generated/dataModel";
 import type { ListedPlayer } from "../scouting/seam";
 import { AutoPickPanel } from "./AutoPickPanel";
 import { pickInRoundOf } from "./board";
-import type { OnTheClock, UndoWindow } from "./ClockLeft";
+import { pausedAtOf, type OnTheClock, type UndoWindow } from "./ClockLeft";
 import { DraftPlayers, type WhyNot } from "./DraftPlayers";
 import { PickPanel, type YourSquad, type YourTurn } from "./PickPanel";
 import { QueuePanel } from "./QueuePanel";
@@ -21,7 +21,7 @@ import { slotWords } from "./words";
 function yourTurn(draft: DraftState, board: DraftBoard, onTheClock: OnTheClock | null): YourTurn {
   if (draft.status === "ending") return { kind: "allPicked" };
   if (draft.status !== "live" || onTheClock === null) return { kind: "notStarted" };
-  if (draft.clock?.pausedAt !== undefined) return { kind: "paused" };
+  if (pausedAtOf(draft) !== undefined) return { kind: "paused" };
   if (board.yourTeamId === null || draft.onTheClock.teamId !== board.yourTeamId) return { kind: "notYours" };
   return { kind: "yours", slot: slotWords(draft.onTheClock.round, pickInRoundOf(draft.onTheClock.pick, draft.order.length)), onTheClock };
 }

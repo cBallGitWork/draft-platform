@@ -7,7 +7,7 @@ import { useMinute } from "../shared/useMinute";
 import { Loading, PAGE_STACK, PageSection } from "../ui/Panel";
 import { Placeholder } from "../ui/Placeholder";
 import { pickMakers, picksOf, pickInRoundOf, roundOf } from "./board";
-import { ClockLeft, type OnTheClock } from "./ClockLeft";
+import { ClockLeft, pausedAtOf, type OnTheClock } from "./ClockLeft";
 import { CommissionerPanel } from "./CommissionerPanel";
 import { DraftBoard } from "./DraftBoard";
 import { PickRoom } from "./PickRoom";
@@ -65,8 +65,8 @@ export function DraftPage({ league, seam }: { league: LeagueSummary; seam: Draft
     draft.status === "live"
       ? { pick: draft.onTheClock.pick, clock: draft.clock, pickSeconds: (draft.clock.endsAt - draft.clock.startsAt) / SECOND_MS }
       : null;
-  const pausedAt = draft.status === "live" ? draft.clock.pausedAt : draft.status === "ending" ? draft.pausedAt : undefined;
-  const state = pausedAt !== undefined ? stateWords.paused : stateWords[draft.status];
+  const paused = pausedAtOf(draft) !== undefined;
+  const state = paused ? stateWords.paused : stateWords[draft.status];
   const title = (
     <>
       {DRAFT_TITLE} <span className="ml-2 align-middle text-lead font-semibold">{state}</span>
@@ -84,7 +84,7 @@ export function DraftPage({ league, seam }: { league: LeagueSummary; seam: Draft
       <PickRoom leagueId={league.leagueId} seam={seam} draft={draft} board={board} onTheClock={onTheClock}>
         {(selected, unselect) =>
           league.powers.runs &&
-          draft.status !== "over" && <CommissionerPanel leagueId={league.leagueId} seam={seam} draft={draft} board={board} now={now} selected={selected} unselect={unselect} />
+          draft.status !== "over" && <CommissionerPanel leagueId={league.leagueId} seam={seam} draft={draft} paused={paused} board={board} now={now} selected={selected} unselect={unselect} />
         }
       </PickRoom>
     </PageSection>
