@@ -1,6 +1,6 @@
 import { useId, useState } from "react";
 import type { Availability } from "../../convex/availability/availability";
-import { AVAILABILITIES } from "../../convex/schema/football";
+import { AVAILABILITIES } from "../../convex/availability/availabilities";
 import { Choice } from "../ui/Choice";
 import { ColumnHeads } from "../ui/ColumnHeads";
 import { FindPlayerPanel } from "../ui/FindPlayerPanel";

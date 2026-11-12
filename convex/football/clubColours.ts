@@ -11,6 +11,9 @@ import type { clubColoursRecord, shirtPattern } from "../schema";
 // sets them. Each shirt's pattern is spec/12's (Club colours): Newcastle, Brentford, Palace,
 // Brighton and Sunderland start striped. Kept free of the server, as the screens draw from it.
 
+/** Every shirt pattern, which the schema builds its validator from and the admin's picker offers. */
+export const SHIRT_PATTERNS = ["plain", "stripes"] as const;
+
 /** A shirt's pattern (spec/12, Club colours: "plain or stripes now, more as a club needs one"). */
 export type Pattern = Infer<typeof shirtPattern>;
 

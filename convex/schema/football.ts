@@ -1,5 +1,7 @@
 import { defineTable } from "convex/server";
 import { v } from "convex/values";
+import { AVAILABILITIES } from "../availability/availabilities";
+import { SHIRT_PATTERNS } from "../football/clubColours";
 
 // The real Premier League, as the football layer hands it over (#21). Each row is keyed on a
 // season-stable code, never FPL's per-season id, and names its clubs by their codes too, so a
@@ -23,7 +25,6 @@ export const clubRow = clubRecord.extend({
 });
 
 /** A club shirt's pattern (spec/12, Club colours: "plain or stripes now, more as a club needs one"). */
-export const SHIRT_PATTERNS = ["plain", "stripes"] as const;
 export const shirtPattern = v.union(...SHIRT_PATTERNS.map((pattern) => v.literal(pattern)));
 
 /** A club's two colours, `#rrggbb` (the shirt a fan would name first, and its trim), and its
@@ -32,7 +33,6 @@ export const clubColoursRecord = v.object({ primary: v.string(), secondary: v.st
 
 /** Whether a player can play, as the platform holds it (spec/06, Availability): the feed's, or the
  *  admin's over it (`convex/availability/`). The auto team reads only this (spec/09). */
-export const AVAILABILITIES = ["out", "doubtful", "available"] as const;
 export const availability = v.union(...AVAILABILITIES.map((name) => v.literal(name)));
 
 export const playerRecord = v.object({

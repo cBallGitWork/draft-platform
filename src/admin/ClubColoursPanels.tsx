@@ -1,6 +1,5 @@
 import { useState, type FormEvent } from "react";
-import { UNSET_COLOURS, type Colours, type Pattern } from "../../convex/football/clubColours";
-import { SHIRT_PATTERNS } from "../../convex/schema/football";
+import { SHIRT_PATTERNS, UNSET_COLOURS, type Colours, type Pattern } from "../../convex/football/clubColours";
 import { useChoiceAmong } from "../shared/useChoiceAmong";
 import { PANEL_BODY, Panel, PanelNote } from "../ui/Panel";
 import { ClubSelect, LabelledField } from "./fields";
