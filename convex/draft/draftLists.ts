@@ -1,4 +1,4 @@
-import { v, type Infer } from "convex/values";
+import { v } from "convex/values";
 import type { Doc, Id } from "../_generated/dataModel";
 import { mutation, query, type MutationCtx, type QueryCtx } from "../_generated/server";
 import { positionsNow } from "../positions/playerPositions";
@@ -66,7 +66,6 @@ export async function clearDraftLists(ctx: MutationCtx, teamId: Id<"teams">): Pr
 /** A player on the queue or do-not-draft list: as the shortlist lists him, with his first position
  *  now, for the draft room's chip (#1100), null for none. */
 const draftListed = v.object({ ...ownListPlayer.fields, position: v.union(position, v.null()) });
-export type DraftListed = Infer<typeof draftListed>;
 
 /** The caller's queue, first choice first, and do-not-draft list, by name; or null for someone in
  *  the league who runs no team (a commissioner or the admin only), who has neither. */
