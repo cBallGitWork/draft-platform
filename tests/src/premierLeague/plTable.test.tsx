@@ -73,7 +73,8 @@ describe("the Premier League table", () => {
     const [heads] = within(await tablePanel()).getAllByRole("row");
     const deskOnly = [...heads.children].filter((cell) => cell.className.includes("hidden sm:table-cell")).map((cell) => cell.textContent);
     expect(deskOnly).toEqual(["GF", "GA"]);
-    const club = within(await tablePanel()).getAllByRole("rowheader")[0];
+    // The name is a link to the club's page, after the mark (#1936).
+    const club = within(within(await tablePanel()).getAllByRole("rowheader")[0]).getByRole("link");
     expect(club.lastElementChild!.textContent).toBe("ARS");
     expect(club.lastElementChild!.className).toContain("sm:hidden");
   });

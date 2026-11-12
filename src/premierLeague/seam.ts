@@ -18,6 +18,10 @@ export type GameweekMatch = FunctionReturnType<typeof api.football.matchScores.o
 /** The Premier League table, and whether a match in it is still being played
  *  (football/plStandings:ofSeason). */
 export type PlStandings = FunctionReturnType<typeof api.football.plStandings.ofSeason>;
+/** A club's page: its place, form, next match and season's matches (football/clubPage:ofClub). */
+export type ClubPageData = NonNullable<FunctionReturnType<typeof api.football.clubPage.ofClub>>;
+/** One of a club's matches, from its side. */
+export type ClubPageFixture = ClubPageData["fixtures"][number];
 
 export type PremierLeagueSeam = {
   /** The season's gameweeks and each one's first kickoff, live (a hook): undefined while they load. */
@@ -29,4 +33,7 @@ export type PremierLeagueSeam = {
   useMatch(leagueId: Id<"leagues">, now: number, fixtureCode: number): MatchPageData | null | undefined;
   /** The table, live (a hook): undefined while it loads. */
   useStandings(): PlStandings | undefined;
+  /** One club's page as the league sees it, live (a hook): undefined while it loads, null while no
+   *  club with its code is held. */
+  useClub(leagueId: Id<"leagues">, clubCode: number): ClubPageData | null | undefined;
 };

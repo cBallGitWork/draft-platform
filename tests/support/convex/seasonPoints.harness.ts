@@ -1,4 +1,5 @@
-import { internal } from "../../../convex/_generated/api";
+import { api, internal } from "../../../convex/_generated/api";
+import { inTenths } from "../../../convex/scoring/values";
 import type { Id } from "../../../convex/_generated/dataModel";
 import { pointsAt } from "../../../convex/playerCard/cardPoints";
 import type { SlotPosition } from "../../../convex/lineup/pitch";
@@ -79,6 +80,13 @@ export const list = async ({ t, leagueId }: PointsLeague, sort: PlayersSort = BY
 
 /** Each listed player's season points, by his code. */
 export const pointsListed = async (league: PointsLeague) => new Map((await list(league)).players.map((player) => [player.code, player.seasonPoints]));
+
+/** His card's matches added up as Scouting adds them: each at the card's first position, or the
+ *  league's override. */
+export async function cardTotalOf({ t, leagueId }: PointsLeague, playerCode: number) {
+  const card = (await (await actingAs(t, ANN)).query(api.playerCard.playerCard.card, { leagueId, playerCode, now: KICKOFF }))!;
+  return inTenths(card.matches.reduce((total, match) => total + (match.override?.points ?? match.points[0].total ?? 0), 0));
+}
 
 /** His points in a match under `set` (EXAMPLE_SET unless given) at `position`. */
 export const at = (stats: Record<string, number>, position: SlotPosition, set: ScoringSet = EXAMPLE_SET) => pointsAt(stats, set, position).total!;

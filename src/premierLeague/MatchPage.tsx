@@ -2,6 +2,7 @@ import type { LeagueSummary } from "../../convex/leagues/myLeagues";
 import { inkOn, type Ink } from "../../convex/football/clubColours";
 import { useClubColours } from "../shared/clubColours";
 import { ClubMark } from "../ui/ClubName";
+import { ClubLink } from "./ClubLink";
 import { ColumnHeads } from "../ui/ColumnHeads";
 import { Loading, Notice, PAGE_STACK, PageSection, Panel, PanelNote } from "../ui/Panel";
 import { Vidiprinter } from "../matchup/Vidiprinter";
@@ -107,7 +108,9 @@ function ScoreboardSide({ club, className }: { club: Club; className: string }) 
   return (
     <span data-club-side={club.shortName} className={`display-face inline-flex items-center px-2 ${SIDE_INKS[inkOn(primary)]} ${className}`} style={{ backgroundColor: primary }}>
       <ClubMark code={club.code} />
-      {club.name}
+      <ClubLink club={club} className="text-inherit">
+        {club.name}
+      </ClubLink>
     </span>
   );
 }

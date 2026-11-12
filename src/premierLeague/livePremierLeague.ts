@@ -15,4 +15,5 @@ export const livePremierLeague: PremierLeagueSeam = {
     return useMemo(() => (held === undefined || held === null ? held : matchPageAt(held, now)), [held, now]);
   },
   useStandings: () => useQuery(api.football.plStandings.ofSeason, {}),
+  useClub: (leagueId, clubCode) => useQuery(api.football.clubPage.ofClub, { leagueId, clubCode }),
 };

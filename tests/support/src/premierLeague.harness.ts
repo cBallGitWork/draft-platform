@@ -1,7 +1,7 @@
 // The Premier League section's tests' fake seam (shell.harness.tsx hands it to the app).
 
 import { vi } from "vitest";
-import type { FirstKickoff, GameweekMatch, MatchPageData, PlStandings, PremierLeagueSeam } from "../../../src/premierLeague/seam";
+import type { ClubPageData, FirstKickoff, GameweekMatch, MatchPageData, PlStandings, PremierLeagueSeam } from "../../../src/premierLeague/seam";
 
 import { PL_GAMEWEEKS } from "../convex/footballRows.harness";
 import { serverStore } from "./serverStore";
@@ -37,12 +37,14 @@ export type PremierLeagueData = {
   standings?: PlStandings;
   /** The match page's match, whichever fixture is asked for; null for none held. */
   match?: MatchPageData | null;
+  /** The club page's club, whichever club is asked for; null for none held. */
+  club?: ClubPageData | null;
   loading?: boolean;
 };
 
 /** The fake seam, whose matches and table a test can change as a live query would (`send`,
  *  `sendStandings`): each screen reading them draws again. */
-export function fakePremierLeague({ seasonGameweeks = PL_GAMEWEEKS, firstKickoffs = [], matches = {}, standings = NO_STANDINGS, match = null, loading = false }: PremierLeagueData = {}) {
+export function fakePremierLeague({ seasonGameweeks = PL_GAMEWEEKS, firstKickoffs = [], matches = {}, standings = NO_STANDINGS, match = null, club = null, loading = false }: PremierLeagueData = {}) {
   const held = serverStore<Record<number, GameweekMatch[] | undefined>>({ ...matches });
   const heldStandings = serverStore(standings);
   return {
@@ -52,6 +54,7 @@ export function fakePremierLeague({ seasonGameweeks = PL_GAMEWEEKS, firstKickoff
     ),
     useStandings: vi.fn<PremierLeagueSeam["useStandings"]>(() => heldStandings.use((table) => (loading ? undefined : table))),
     useMatch: vi.fn<PremierLeagueSeam["useMatch"]>(() => (loading ? undefined : match)),
+    useClub: vi.fn<PremierLeagueSeam["useClub"]>(() => (loading ? undefined : club)),
     /** The server's new read of a gameweek's matches; undefined puts them back to loading. */
     send: (gameweek: number, sent: GameweekMatch[] | undefined) => held.set({ ...held.get(), [gameweek]: sent }),
     /** The server's new read of the table. */

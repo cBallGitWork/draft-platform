@@ -9,7 +9,8 @@ import { seasonGameweeks } from "../../convex/gameweeks/usedGameweeks";
 import { previewClubs, previewGameweek, previewSeasonGameweeks } from "../shared/preview";
 import { DAY_MS, HOUR_MS, WEEK_MS } from "../../convex/shared/time";
 import { previewMatch, previewMatchBeforeKickoff } from "./matchPreview";
-import type { FirstKickoff, GameweekMatch, PremierLeagueSeam } from "./seam";
+import type { ClubPageData, FirstKickoff, GameweekMatch, PremierLeagueSeam } from "./seam";
+import { clubPageOf, type HeldMatch } from "../../convex/football/clubFixtures";
 
 const CLUBS = previewClubs;
 
@@ -92,4 +93,13 @@ export const previewPremierLeague: PremierLeagueSeam = {
   // Every fixture opens the one recorded match (matchPreview.ts): one to come, as before kickoff.
   useMatch: (_leagueId, _now, fixtureCode) => upcoming.get(fixtureCode) ?? previewMatch,
   useStandings: () => standings,
+  useClub: (_leagueId, clubCode) => previewClub(clubCode),
 };
+
+/** A club's page from the made-up season, by the server's own rules (clubFixtures.ts). */
+const heldMatches: HeldMatch[] = [...matches].flatMap(([gameweek, gameweekMatches]) => gameweekMatches.map((match) => ({ ...match, gameweek })));
+const positionOf = (code: number) => standings.rows.find(({ club }) => club.code === code)?.position ?? null;
+function previewClub(clubCode: number): ClubPageData | null {
+  const club = CLUBS.find(({ code }) => code === clubCode);
+  return club === undefined ? null : clubPageOf(club, heldMatches, positionOf);
+}

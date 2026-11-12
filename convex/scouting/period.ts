@@ -41,10 +41,18 @@ interface PeriodTotals {
 
 /** Every player's totals over `period`. */
 export async function periodTotals(ctx: QueryCtx, chosen: Period): Promise<PeriodTotals> {
+  if (chosen !== "season") return lastGameweeksTotals(ctx, PERIOD_GAMEWEEKS[chosen]);
+  const season = await newestSeasonWithTotals(ctx);
+  return { season, gameweeks: [], totals: season === null ? new Map() : await seasonTotals(ctx, season), matches: [] };
+}
+
+/** Every player's totals over the last `count` finished gameweeks of the newest season with
+ *  totals, counted as a period's are: Scouting's last 4 or 6, and a club's Squad tab's last five
+ *  (clubSquad.ts). */
+export async function lastGameweeksTotals(ctx: QueryCtx, count: number): Promise<PeriodTotals> {
   const season = await newestSeasonWithTotals(ctx);
   if (season === null) return { season, gameweeks: [], totals: new Map(), matches: [] };
-  if (chosen === "season") return { season, gameweeks: [], totals: await seasonTotals(ctx, season), matches: [] };
-  const byGameweek = await finishedGameweeks(ctx, season, PERIOD_GAMEWEEKS[chosen]);
+  const byGameweek = await finishedGameweeks(ctx, season, count);
   const matches = await Promise.all(
     byGameweek.flatMap(([gameweek, fixtures]) =>
       fixtures.map(async (fixture) => ({ fixture, gameweek, records: await matchRecordsOf(ctx, fixture.code, "the period's totals") })),

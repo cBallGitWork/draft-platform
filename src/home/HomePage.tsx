@@ -7,7 +7,7 @@ import { Loading, PageSection, Panel, PanelNote } from "../ui/Panel";
 import { TABLE_PATH } from "../frame/menu";
 import { MatchupLink } from "../matchup/MatchupLink";
 import { Vidiprinter } from "../matchup/Vidiprinter";
-import { FormChips } from "../myTeam/header/FormChips";
+import { FormChips } from "../ui/FormChips";
 import { MailWidget } from "../myTeam/squad/MailWidget";
 import type { LatestMail } from "../myTeam/squad/seam";
 import { useLastLoaded } from "../shared/useLastLoaded";

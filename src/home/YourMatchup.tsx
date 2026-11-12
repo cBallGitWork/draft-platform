@@ -2,7 +2,7 @@ import { Link } from "@tanstack/react-router";
 import { MY_TEAM_PATH } from "../frame/menu";
 import { matchupLink } from "../matchup/paths";
 import { matchupLinkLabel } from "../matchup/words";
-import { FormChips } from "../myTeam/header/FormChips";
+import { FormChips } from "../ui/FormChips";
 import { Panel } from "../ui/Panel";
 import { Placeholder } from "../ui/Placeholder";
 import type { LeagueHome } from "./seam";

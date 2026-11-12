@@ -43,7 +43,7 @@ import { PATCH_NOTES_PATH } from "../../../src/patches/paths";
 import { PATCH_NOTES_TITLE } from "../../../src/patches/words";
 import { playerCardPath } from "../../../src/playerCard/paths";
 import { previewMatch } from "../../../src/premierLeague/matchPreview";
-import { matchPath } from "../../../src/premierLeague/paths";
+import { clubPath, matchPath } from "../../../src/premierLeague/paths";
 import { MATCH_TITLE, PREMIER_LEAGUE_TITLE } from "../../../src/premierLeague/words";
 import { miniBeta, previewTeamNames, proLeague } from "../../../src/shared/preview";
 import { scoringPath } from "../../../src/scoring/paths";
@@ -88,6 +88,8 @@ export const BUILT_SCREENS: readonly BuiltScreen[] = [
   ["manager", TRADES_NEW_PATH, TRADES_TITLE],
   ["manager", PREMIER_LEAGUE_PATH, PREMIER_LEAGUE_TITLE],
   ["manager", matchPath(previewMatch.fixtureCode), MATCH_TITLE],
+  // A club's page is titled with its name: the preview's Arsenal (src/premierLeague/preview.ts).
+  ["manager", clubPath(3), "Arsenal"],
   ["manager", MAIL_PATH, MAIL_TITLE],
   ["manager", LEAGUES_PATH, LEAGUES_TITLE],
   // A card is titled with the player's full name.

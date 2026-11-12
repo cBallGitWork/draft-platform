@@ -4,6 +4,7 @@ import type { LeagueSummary } from "../../convex/leagues/myLeagues";
 import { SCOUTING_PATH } from "../frame/menu";
 import { otherTeamPath } from "../myTeam/paths";
 import { offerForLink } from "../trades/paths";
+import { ClubLink } from "../premierLeague/ClubLink";
 import { ClubMark } from "../ui/ClubName";
 import { OwnerName } from "../ui/OwnerName";
 import { Placeholder } from "../ui/Placeholder";
@@ -55,7 +56,7 @@ export function CardHead({ league, card, shown, seam }: { league: LeagueSummary;
           <span className="flex items-center gap-1">
             <ClubShirt card={card} />
             <ClubMark code={card.club.code} />
-            {card.club.name}
+            <ClubLink club={card.club}>{card.club.name}</ClubLink>
           </span>
           <span>
             <span className="text-soft">{ownedByWords}</span> <Owner leagueId={league.leagueId} card={card} />

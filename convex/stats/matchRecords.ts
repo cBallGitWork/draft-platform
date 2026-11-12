@@ -33,6 +33,12 @@ const MINUTES: StatInBothFeeds = { fpl: "minutes", pl: "mins_played", kept: "fpl
 /** A record's minutes, under the name it is kept by. */
 export const MINUTES_STAT = MINUTES.fpl;
 
+/** What a match's start is read from in each feed. */
+const STARTS: StatInBothFeeds = { fpl: "starts", pl: "game_started", kept: "pl" };
+
+/** A record's start, under the name it is kept by. */
+export const STARTS_STAT = STARTS.pl;
+
 // The names a record keeps stats both feeds send under, each typed once here (statKeys.ts
 // re-exports them for the scoring).
 export const GOALS = "goals_scored";
@@ -66,7 +72,7 @@ const STATS_IN_BOTH_FEEDS: StatInBothFeeds[] = [
   { fpl: PENALTIES_SAVED, pl: "penalty_save", kept: "fpl" }, // Opta's name, not yet seen
   { fpl: PENALTIES_MISSED, pl: "att_pen_miss", kept: "fpl" }, // Opta's name, not yet seen
   { fpl: OWN_GOALS, pl: OWN_GOALS, kept: "pl" },
-  { fpl: "starts", pl: "game_started", kept: "pl" },
+  STARTS,
 ];
 
 /** FPL's own points, never stored (spec/07, spec/14): its bonus and BPS, and the two built on them. */
