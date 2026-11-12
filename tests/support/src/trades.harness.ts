@@ -13,9 +13,9 @@ import type {
   TradesView,
   TradeToReview,
 } from "../../../src/trades/seam";
+import { ARSENAL, CHELSEA } from "../convex/footballRows.harness";
 
-export const ARSENAL = { code: 3, name: "Arsenal", shortName: "ARS" };
-export const CHELSEA = { code: 8, name: "Chelsea", shortName: "CHE" };
+export { ARSENAL, CHELSEA } from "../convex/footballRows.harness";
 
 export const SAKA: TradedPlayer = {
   code: 1001,

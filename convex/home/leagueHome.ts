@@ -7,6 +7,7 @@ import { seasonRules, type SeasonRules } from "../rules/rulesHistory";
 import { commentary, heldCommentary, type HeldCommentary } from "../matchup/matchupShape";
 import { commentaryReads, readCommentary } from "../matchup/readCommentary";
 import { shownLine } from "../matchup/vidiprinter";
+import { gameModeOf } from "../rules/gameMode";
 import { leagueRulesShape } from "../rules/leagueRulesShape";
 import { pinnedLetter, tradedSide } from "../schema";
 import { isListedMove, LISTED_MOVES, newestFirst, playerMoveKind } from "../squads/squadPlace";
@@ -131,7 +132,7 @@ export const ofLeague = query({
     const season = await seasonRules(ctx, leagueId);
     const { rules, teamIds, schedule, results, scores, table, named } = await standingsOf(ctx, league, season);
     const current = gameweek === null ? undefined : schedule.find((each) => each.gameweek === gameweek);
-    const form = formOf(teamIds, schedule, scores);
+    const form = formOf(gameModeOf(rules), teamIds, schedule, scores);
     const mine = team?._id ?? null;
     return {
       format: rules.format,

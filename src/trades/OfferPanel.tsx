@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link } from "@tanstack/react-router";
 import type { Id } from "../../convex/_generated/dataModel";
+import { useChange } from "../shared/useChange";
 import { Confirm } from "../ui/Confirm";
 import { Notice, Panel, Problem } from "../ui/Panel";
 import { Fact, noTimeYet, OfferSide } from "./OfferParts";
@@ -61,14 +62,8 @@ export function OfferPanel({
   open: boolean;
   changes: TradeChanges;
 }) {
-  const [problem, setProblem] = useState<string | null>(null);
-  const [busy, setBusy] = useState(false);
+  const { busy, problem, run } = useChange();
   const [rejecting, setRejecting] = useState(false);
-  const run = async (change: () => Promise<string | null>) => {
-    setBusy(true);
-    setProblem(await change());
-    setBusy(false);
-  };
   const after = squadCount - sides.youGive.length + sides.youGet.length;
   const closes = closesOf(offer);
   return (

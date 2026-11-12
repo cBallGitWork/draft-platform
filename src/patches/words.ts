@@ -15,7 +15,7 @@ export const noVersionsWords = "No patches yet.";
 export const notesHint = "Gameweeks played before a version keep the scoring they had.";
 
 export const KIND_WORDS: Record<VersionNotes["kind"], string> = { patch: "Patch", fix: "Fix" };
-/** When a version is in force from, on the Premier League's clock (London), as its letter says it. */
+/** When a version is in force from, in the viewer's own zone (convex/shared/moments.ts, #442). */
 export const fromWords = (at: number) => `From ${screenMoment(at)}`;
 /** A version made only by reordering the categories. */
 export { NOTHING_SCORES_DIFFERENTLY as nothingScoresDifferentlyWords } from "../../convex/scoring/patchChanges";

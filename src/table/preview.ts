@@ -33,6 +33,8 @@ const scores = new Map(
 export const previewScored = { ...previewSeason, scores, provisional: previewTeamNames } satisfies Drawn;
 const table = leagueTableOf(previewTeamNames, { ...previewScored, autoTeams: [previewAutoTeam] });
 
-const previewSwap = { swap: previewSays("the fixtures didn't change") };
+/** What the preview's fixture swap left, since it saves nothing. */
+export const previewUnswapped = "the fixtures didn't change";
+const previewSwap = { swap: previewSays(previewUnswapped) };
 
 export const previewTable: TableScreenSeam = { useLeagueTable: () => table, useFixtureSwap: () => previewSwap };

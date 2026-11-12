@@ -12,7 +12,7 @@ import { SelectedPlayer } from "./SelectedPlayer";
 import type { ListedPlayer, Period, PlayersFilters, PlayersList, ScoutingSeam } from "./seam";
 import { OpenReport, ScoutsPanel, type TeamReport } from "./scouts/ScoutsPanel";
 import { ShortlistPanel } from "./shortlist/ShortlistPanel";
-import { StatRaceTab } from "./statRace/StatRaceTab";
+import { StatRaceTab } from "./StatRaceTab";
 import { loadingWords, noneMatchWords, PLAYERS_TITLE, SCOUTING_TABS, SCOUTING_TITLE, scoutingTabsLabel, scoutingTabWords, type ScoutingTab } from "./words";
 
 /** The list opens on free agents (the approved picture's README: "The list opens on free agents"). */

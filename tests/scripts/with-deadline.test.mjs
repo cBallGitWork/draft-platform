@@ -1,9 +1,9 @@
 import { spawn } from "node:child_process";
-import { existsSync, mkdtempSync, readFileSync, rmSync } from "node:fs";
-import { tmpdir } from "node:os";
+import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
-import { afterEach, expect, test } from "vitest";
+import { expect, test } from "vitest";
 import { REPO_ROOT } from "../support/scripts/repoRoot.mjs";
+import { scratchDir } from "../support/scripts/scratchDir.mjs";
 
 const WRAPPER = join(REPO_ROOT, "scripts/with-deadline.mjs");
 const DEADLINE_MESSAGE = "sh ran past the 1s deadline: likely an endless loop";
@@ -17,9 +17,6 @@ const PID_FILE_WAIT_MS = 10_000;
 // own message, not vitest's default 5s timeout.
 const WRAPPER_CLOSE_ALLOWANCE_MS = 2_500;
 const SIGNAL_TEST_TIMEOUT_MS = 2 * (PID_FILE_WAIT_MS + WRAPPER_CLOSE_ALLOWANCE_MS + DEATH_WAIT_MS);
-
-let scratch;
-afterEach(() => scratch && rmSync(scratch, { recursive: true, force: true }));
 
 // Runs the wrapper and resolves with how it ended, how long it took and what it printed.
 function run(args, { onSpawn } = {}) {
@@ -72,8 +69,7 @@ async function waitForPid(pidFile) {
 
 // A fresh scratch folder, removed after the test, and the file in it for a grandchild's pid.
 function grandchildPidFile() {
-  scratch = mkdtempSync(join(tmpdir(), "with-deadline-"));
-  return join(scratch, "grandchild.pid");
+  return join(scratchDir("with-deadline-"), "grandchild.pid");
 }
 
 // A shell that starts a grandchild sleeping for a minute, writes its pid, and waits on it.

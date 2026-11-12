@@ -6,13 +6,14 @@ import type { EndedInvite } from "../../convex/joining/endedInvite";
 import type { Delivery } from "../../convex/joining/joining";
 import { INVITE_DAYS, ROWS_SHOWN, aNewTeamWords } from "../../convex/joining/joiningShared";
 import { unsentLinkWords } from "../leagues/words";
-import { dateWords } from "../shared/words";
+import { capitalised } from "../../convex/shared/moments";
+import { dateWords, noManagerWords } from "../shared/words";
 
 /** The commissioner's page: its title, and the link to it from their leagues. */
 export const INVITES_TITLE = "Invites and join requests";
 
 /** The team an invite or an approval is for, when it isn't a vacated one. */
-export const newTeamWords = "A new team";
+export const newTeamWords = capitalised(aNewTeamWords);
 export const noTeamWords = "The league is full, with no vacated team to hand on.";
 export const forTeamWords = (teamName: string | null) => `For ${teamName ?? aNewTeamWords}`;
 
@@ -91,7 +92,7 @@ export const noRequestsWords = "No one is waiting.";
 /** The league's teams, each with its manager, who can be removed (spec/13, Leaving). */
 export const teamsWords = {
   title: "Teams",
-  noManager: "No manager",
+  noManager: noManagerWords,
   remove: "Remove",
   removeLabel: (email: string, teamName: string) => `Remove ${email} from ${teamName}`,
   confirm: (email: string, teamName: string) =>

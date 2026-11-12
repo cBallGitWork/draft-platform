@@ -141,10 +141,15 @@ function rankOf(playerCode: number, position: SlotPosition): PositionRank {
 /** The preview saves nothing: an override is taken and forgotten, and a drop, a claim or a pickup
  *  says so. */
 const overrideNothing = () => Promise.resolve(null);
+export const previewWaiverOutcomes = {
+  drop: "nobody was dropped",
+  claim: "no claim was put in",
+  pickUp: "nobody was picked up",
+} as const;
 const waiverChanges: WaiverChanges = {
-  drop: previewSays("nobody was dropped"),
-  claim: previewSays("no claim was put in"),
-  pickUp: previewSays("nobody was picked up"),
+  drop: previewSays(previewWaiverOutcomes.drop),
+  claim: previewSays(previewWaiverOutcomes.claim),
+  pickUp: previewSays(previewWaiverOutcomes.pickUp),
 };
 
 /** The preview manager's own team, which holds Saka. */
