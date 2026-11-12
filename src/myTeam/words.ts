@@ -5,7 +5,7 @@ import { NEXT_MATCHES_SHOWN } from "../../convex/squads/squadLimits";
 import { fewestTeamsWords, gameweekShort, menuWords, versusWords } from "../shared/words";
 import type { TeamTransactions } from "./seam";
 
-export { figureWords, liveWords, noFigureWords, noTeamWords, placeWords, shortThenLongName, tradedPickWords, versusWords, whenWords, withTeamWords } from "../shared/words";
+export { figureOrNone, figureWords, liveWords, noFigureWords, noTeamWords, placeWords, shortThenLongName, tradedPickWords, versusWords, whenWords, withTeamWords } from "../shared/words";
 
 // What the Squad and Tactics tabs' tables and panels both say (#1042).
 

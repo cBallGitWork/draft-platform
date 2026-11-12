@@ -10,12 +10,12 @@ import { Placeholder } from "../../../ui/Placeholder";
 import { PositionChip } from "../../../ui/PositionChip";
 import { StarRating } from "../../../ui/StarRating";
 import { starsIn } from "../../../../convex/stars/bestRole";
-import { figureWords, noFigureWords, statusNotSettledLabel } from "../../words";
+import { statusNotSettledLabel } from "../../words";
 import { markOf } from "../focusMarks";
 import { benchBestRole, placeOf, type SquadMember } from "../lineupEdits";
 import type { Moving } from "../pitch/Pitch";
 import type { SeasonOf } from "../SelectionTable";
-import { NextMatches } from "../../SquadCells";
+import { Figure, NextMatches } from "../../SquadCells";
 import {
   benchWhereWords,
   closeSelectedLabel,
@@ -196,7 +196,3 @@ export function PlayerPanel({
   );
 }
 
-function Figure({ points }: { points: number | null | undefined }) {
-  if (points === undefined) return null;
-  return points === null ? <span className="text-muted">{noFigureWords}</span> : <span className="font-bold text-figure">{figureWords(points)}</span>;
-}

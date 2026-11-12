@@ -16,9 +16,8 @@ import {
   elevenBenchLabel,
   elevenPitchLabel,
   elevenPlayerLabel,
-  figureWords,
+  figureOrNone,
   nextGlyph,
-  noFigureWords,
   noLineupWords,
   setLineupWords,
   statusNotSettledLabel,
@@ -135,7 +134,4 @@ function StatusMark({ player, className = "" }: { player: Row | undefined; class
 }
 
 /** His season points as the table shows them, "—" while none is priced. */
-const pointsOf = (players: ReadonlyMap<number, Row>, code: number) => {
-  const points = players.get(code)?.seasonPoints ?? null;
-  return points === null ? noFigureWords : figureWords(points);
-};
+const pointsOf = (players: ReadonlyMap<number, Row>, code: number) => figureOrNone(players.get(code)?.seasonPoints ?? null);

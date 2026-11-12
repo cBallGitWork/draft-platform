@@ -19,7 +19,7 @@ import { DAY_MS, HOUR_MS } from "../../../convex/shared/time";
 import type { EditedLineup } from "./lineupEdits";
 import type { Plan, PlanChanges, Tactics, TacticsSeam } from "./seam";
 
-const PREVIEW_GAMEWEEK = 9;
+export const PREVIEW_GAMEWEEK = 9;
 const PREVIEW_DEADLINE = Date.now() + DAY_MS + 17 * HOUR_MS;
 
 /** A club's FPL code by its short name, for its shirt's colours. */

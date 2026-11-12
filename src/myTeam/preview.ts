@@ -7,12 +7,14 @@ import { CLUB_COLOURS } from "../../convex/football/clubColours";
 import { seasonGameweeks } from "../../convex/gameweeks/usedGameweeks";
 import { adminByline } from "../../convex/mail/letterWords";
 import { DAY_MS, HOUR_MS, WEEK_MS } from "../../convex/shared/time";
-import { squadLimits } from "../../convex/squads/squadLimits";
+import { NEXT_MATCHES_SHOWN, squadLimits } from "../../convex/squads/squadLimits";
+import { SCHEDULE_GAMEWEEKS } from "../../convex/squads/squadSchedule";
+import { FORM_GAMEWEEKS } from "../../convex/squads/teamSquad";
 import { previewLatestMail } from "../mail/preview";
 import { previewSeasonGameweeks, previewTeamNames } from "../shared/preview";
 import { teamFixturesOf } from "../table/drawnTable";
 import { previewIdOf, previewScored, previewTable } from "../table/preview";
-import { previewSquad, previewTactics } from "./tactics/preview";
+import { PREVIEW_GAMEWEEK, previewSquad, previewTactics } from "./tactics/preview";
 import { previewClaims } from "./claims/preview";
 import type { MyAutoTeam, MyTeamSeam, TeamSquad, TeamTransactions } from "./seam";
 
@@ -35,10 +37,10 @@ const CLUBS = Object.entries(CLUB_COLOURS).map(([code, { shortName }]) => ({ cod
 const FIRST_KICKOFF = Date.now() + 2 * DAY_MS;
 /** Three matches ahead for a player's club, its opponents taken in turn from the clubs. */
 const nextMatches = (seed: number) =>
-  [0, 1, 2].map((week) => ({ gameweek: 9 + week, kickoff: FIRST_KICKOFF + week * WEEK_MS, opponent: CLUBS[(seed * 3 + week) % CLUBS.length], home: (seed + week) % 2 === 0 }));
+  Array.from({ length: NEXT_MATCHES_SHOWN }, (_, week) => ({ gameweek: PREVIEW_GAMEWEEK + week, kickoff: FIRST_KICKOFF + week * WEEK_MS, opponent: CLUBS[(seed * 3 + week) % CLUBS.length], home: (seed + week) % 2 === 0 }));
 
 /** The Schedule view's gameweeks, from the one being set (squadSchedule.ts's six). */
-const scheduleGameweeks = [9, 10, 11, 12, 13, 14];
+const scheduleGameweeks = Array.from({ length: SCHEDULE_GAMEWEEKS }, (_, week) => PREVIEW_GAMEWEEK + week);
 /** His club's matches in those gameweeks, one a week from its next three's opponents on: one in
  *  three clubs has a blank week, the gameweek after it a double. */
 const scheduleOf = (seed: number) =>
@@ -80,7 +82,7 @@ const players: TeamSquad["players"] = previewSquad.map(({ playerCode: code, name
       schedule: scheduleOf(code),
       seasonPoints: unplayed ? null : 20 + ((code * 17) % 60),
       lastGameweekPoints: unplayed ? null : (code * 7) % 14,
-      form: unplayed ? [null, null, null, null, null] : [0, 1, 2, 3, 4].map((week) => (code * 5 + week * 3) % 13),
+      form: Array.from({ length: FORM_GAMEWEEKS }, (_, week) => (unplayed ? null : (code * 5 + week * 3) % 13)),
       started: unplayed ? 0 : 3 + (code % 5),
       rolePoints: unplayed ? null : (code % 7) - 2,
       // One who hasn't played has nothing counted, as his totals row would hold (seasonStats.ts).
@@ -100,7 +102,7 @@ const players: TeamSquad["players"] = previewSquad.map(({ playerCode: code, name
   });
 const squad: TeamSquad = {
   teamName: previewTeam,
-  lastGameweek: 8,
+  lastGameweek: PREVIEW_GAMEWEEK - 1,
   unheld: [],
   squadMaximum: PREVIEW_SQUAD_RULES.size.maximum,
   players,

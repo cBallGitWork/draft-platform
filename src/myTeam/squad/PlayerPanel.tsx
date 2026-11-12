@@ -15,19 +15,17 @@ import { tacticsLink } from "../tactics/paths";
 import type { Tactics } from "../tactics/seam";
 import { SquadNumberBox } from "./SquadNumberBox";
 import { PositionCodes } from "../../ui/PositionCodes";
-import { NextMatches } from "../SquadCells";
+import { Figure, NextMatches } from "../SquadCells";
 import type { Row } from "./SquadTable";
 import {
   benchedInWords,
   bestRoleNotRatedLabel,
   closePanelLabel,
-  figureWords,
   formLabel,
   gameweekShort,
   gameweekWords,
   lastWords,
   nextGlyph,
-  noFigureWords,
   panelPlateWords,
   panelRows,
   playerCardWords,
@@ -137,11 +135,6 @@ function Fact({ term, children }: { term: string; children: ReactNode }) {
       <dd>{children}</dd>
     </>
   );
-}
-
-/** A figure, "—" while there is none; `words` writes it, signed for an adjustment. */
-function Figure({ points, words = figureWords }: { points: number | null; words?: (value: number) => string }) {
-  return points === null ? <span className="text-muted">{noFigureWords}</span> : <span className="font-bold text-figure">{words(points)}</span>;
 }
 
 /** The role he has the most stars for at his main position's slot, with his stars for it, as the
