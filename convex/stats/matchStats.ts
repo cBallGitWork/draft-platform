@@ -12,7 +12,7 @@ import { repriceChanged } from "./seasonPointsQueue";
 import { rebuildTotalsIfNoneKept } from "./seasonRebuilds";
 import { playerByCode } from "../shared/players";
 import { fixtureByCode, gameweekFixtures } from "../shared/fixtures";
-import { matchRecordsOf } from "../gameweekScorer/heldMatches";
+import { matchRecordsOf } from "./matchRecordReads";
 
 // Issue #27: the stored side of match stats. `matchStatsSync.run` reads the feeds and hands each
 // match's records to `upsertMatch`; `lock` closes the window; each run is a row in matchStatsSyncs.

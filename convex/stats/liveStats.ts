@@ -2,7 +2,7 @@ import { v } from "convex/values";
 import { internalMutation, internalQuery, type QueryCtx } from "../_generated/server";
 import { dueMatch, LIVE_WINDOW_MS, type DueMatch } from "../shared/dueMatches";
 import { matchWrites, statusOf, writeRecords } from "./matchStats";
-import { matchRecordsOf } from "../gameweekScorer/heldMatches";
+import { matchRecordsOf } from "./matchRecordReads";
 import { liveStatsTickFields, playerMatchRecord, sideMatchOutcome } from "../schema";
 import { latestRuns } from "../shared/syncRuns";
 import { emailIfFailed } from "../admin/feedFailureEmails";

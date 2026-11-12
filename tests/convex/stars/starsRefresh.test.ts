@@ -3,7 +3,7 @@ import { internal } from "../../../convex/_generated/api";
 import { DEFAULT_ROLES } from "../../../convex/lineup/roles";
 import { FIRST_SCORING } from "../../../convex/scoring/firstScoring";
 import { HOUR_MS } from "../../../convex/shared/time";
-import { MATCH_RECORDS_MOST } from "../../../convex/gameweekScorer/heldMatches";
+import { MATCH_RECORDS_MOST } from "../../../convex/stats/matchRecordReads";
 import { REFRESH_COMMAND } from "../../../convex/stars/starsRefresh";
 import { PLAYERS_PAGE } from "../../../convex/stats/matchRecords";
 import { UNSURE } from "../../../convex/stars/starsShape";

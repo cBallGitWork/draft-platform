@@ -1,6 +1,6 @@
 import { beforeEach, expect, test } from "vitest";
 import { internal } from "../../../convex/_generated/api";
-import { MATCH_RECORDS_MOST } from "../../../convex/gameweekScorer/heldMatches";
+import { MATCH_RECORDS_MOST } from "../../../convex/stats/matchRecordReads";
 import { freshConvex, ROWS_TO_THE_CAP, type TestConvex } from "../../support/convex/test.harness";
 
 // #1725: the stat writes read a match's records through matchRecordsOf, as the scorer and the
