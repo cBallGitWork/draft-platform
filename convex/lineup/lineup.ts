@@ -9,12 +9,11 @@
 import { AREAS, cellKey, LANES, playsCell, type Area, type Cell, type Lane } from "./pitch";
 import { BACK_THREE, centreBacksIn, everyRoleOf, isRole, needsBackThree, roleIn, takesRole } from "./roles";
 import type { Position } from "../positions/positionTables";
+import type { PlayerCode } from "../shared/players";
 
 /** A football side's eleven: the product's rule, not a league's. */
 export const STARTER_COUNT = 11;
 
-/** Players are FPL's season-stable `code`. */
-type PlayerCode = number;
 
 /** Where a starter stands. Area and lane are plain strings here because a lineup arrives from a
  *  manager's browser: this check is what refuses a cell that doesn't exist. */
@@ -131,11 +130,11 @@ export function lineupProblems(lineup: Lineup, positions: PlayerPositions, rules
 }
 
 /** A starter out of his positions: what losing one leaves (spec/06, When positions change). */
-const OUT_OF_POSITION: readonly LineupProblem["kind"][] = ["outsideHisAreas", "roleNotHis"];
+export const OUT_OF_POSITION: readonly LineupProblem["kind"][] = ["outsideHisAreas", "roleNotHis"];
 
 /** The lineup in force before a save: its gameweek, its starters, and who it was saved with out of
  *  position. */
-export interface LineupInForce {
+interface LineupInForce {
   fromGameweek: number;
   starters: readonly Placement[];
   keptOutOfPosition?: readonly PlayerCode[];
@@ -158,13 +157,25 @@ export function withUnmovedSetAside(
     if (!OUT_OF_POSITION.includes(problem.kind) || !("playerCode" in problem) || inForce === null) return true;
     const { playerCode } = problem;
     if (inForce.fromGameweek < gameweek && inForce.keptOutOfPosition?.includes(playerCode)) return true;
-    const now = starters.find((starter) => starter.playerCode === playerCode);
-    const before = inForce.starters.find((starter) => starter.playerCode === playerCode);
-    if (now === undefined || before === undefined || !sameSlot(now, before)) return true;
+    if (!standsWhereHeWas(playerCode, starters, inForce.starters)) return true;
     kept.push(playerCode);
     return false;
   });
   return { problems: left, kept };
+}
+
+/** Who `inForce` kept out of position and `starters` still has in the same slot: a lineup the auto
+ *  team sets carries them on, so its gameweek gives him no second gameweek's grace (#1789; Craig,
+ *  11 Nov 2026). */
+export function stillKept(inForce: LineupInForce, starters: readonly Placement[]): PlayerCode[] {
+  return (inForce.keptOutOfPosition ?? []).filter((playerCode) => standsWhereHeWas(playerCode, starters, inForce.starters));
+}
+
+/** He starts in both lineups, in the same slot. */
+function standsWhereHeWas(playerCode: PlayerCode, starters: readonly Placement[], before: readonly Placement[]): boolean {
+  const nowAt = starters.find((starter) => starter.playerCode === playerCode);
+  const beforeAt = before.find((starter) => starter.playerCode === playerCode);
+  return nowAt !== undefined && beforeAt !== undefined && sameSlot(nowAt, beforeAt);
 }
 
 /** The same cell and the same role in it: a role removed from the set reads as the slot's first. */
@@ -176,7 +187,7 @@ function sameSlot(now: Placement, before: Placement): boolean {
 
 /** A lineup read against the squad (spec/05, The deadline and Auto-subs): the server's for a saved
  *  one (lineups.ts), and the Tactics screen's for the manager's edit, so the two never differ. */
-export interface Reconciled<Starter extends Pick<Placement, "playerCode">> {
+interface Reconciled<Starter extends Pick<Placement, "playerCode">> {
   lineup: { starters: Starter[]; bench: PlayerCode[] };
   /** Who dropped out of it for leaving the squad, starters and bench alike. */
   leftSquad: PlayerCode[];

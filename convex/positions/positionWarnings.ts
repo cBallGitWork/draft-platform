@@ -6,13 +6,14 @@ import { heldSchedule, type HeldSchedule } from "../gameweeks/leagueDeadlines";
 import { saveGameweekOf } from "../lineup/lineups";
 import { adminByline } from "../mail/letterWords";
 import { fileLetter } from "../mail/letters";
-import { everyLeague, scheduleEveryLeague } from "../shared/cappedRead";
+import { MOST_IN_SQUAD } from "../leagues/leagueLimits";
+import { everyLeague, scheduleEveryLeague, takeAllOrThrow } from "../shared/cappedRead";
 import { teamsOf } from "../shared/leagueAccess";
-import { playerByCode, unheldPlayerWords } from "../shared/players";
+import { lostPlayerName, playerByCode } from "../shared/players";
 import { placeOf, squadOf } from "../squads/squadPlace";
 import { workedOutNow } from "./playerPositions";
 import { howPositionsCount, type HowPositionsCount } from "./positionSettings";
-import type { Position } from "./positionTables";
+import { POSITIONS, type Position } from "./positionTables";
 import { position as positionArg } from "../schema";
 
 // Warning a manager when one of his players is losing a position (#23; spec/06, When positions
@@ -25,7 +26,7 @@ import { position as positionArg } from "../schema";
 
 /** One of a manager's players' positions changing: flagged by a run of starts elsewhere, lost to
  *  a longer one, or taken away by the admin. */
-export type PositionNews = {
+type PositionNews = {
   playerName: string;
   position: Position;
   /** The gameweek it counts from: the next his manager can set a lineup for. */
@@ -164,7 +165,7 @@ export async function knownOnJoining(ctx: MutationCtx, leagueId: Id<"leagues">, 
 /** Tells whoever owns him in each league that the admin took `position` away (Craig, 5 Nov 2026,
  *  on #23: the same letter, and he keeps his slot that gameweek): only where he held it, as the
  *  league's own deadlines judge it. Call before the removal is saved. */
-export async function warnOfAdminRemoval(ctx: MutationCtx, playerCode: number, position: Position): Promise<void> {
+async function warnOfAdminRemoval(ctx: MutationCtx, playerCode: number, position: Position): Promise<void> {
   // Read once, and only once a league has him: most leagues don't.
   let schedule: HeldSchedule | undefined;
   for (const league of await everyLeague(ctx, UNWARNED)) {
@@ -182,22 +183,28 @@ export async function warnOfAdminRemoval(ctx: MutationCtx, playerCode: number, p
   }
 }
 
-/** Two steps for each position a player holds, for a squad at its largest: well above any team's. */
-const MOST_WARNINGS_A_TEAM = 1000;
+/** The steps a team is told of and keeps (`positionWarnings`), each once. */
+const STEPS_TOLD: readonly Step[] = ["flagged", "lost"];
+
+/** Every step at every position for a squad at its largest: no team can hold more, as each pass
+ *  forgets what no longer stands. */
+export const MOST_WARNINGS_A_TEAM = MOST_IN_SQUAD * POSITIONS.length * STEPS_TOLD.length;
 
 const key = (playerCode: number, position: Position, step: Step) => `${playerCode} ${position} ${step}`;
 
-/** The steps the team has been told of. */
+/** The steps the team has been told of. Past MOST_WARNINGS_A_TEAM it throws: a step left unread
+ *  would count as untold, and its manager be sent the same letter again (#1761). */
 function toldTo(ctx: QueryCtx, teamId: Id<"teams">): Promise<Doc<"positionWarnings">[]> {
-  return ctx.db
-    .query("positionWarnings")
-    .withIndex("by_teamId", (q) => q.eq("teamId", teamId))
-    .take(MOST_WARNINGS_A_TEAM);
+  return takeAllOrThrow(
+    ctx.db.query("positionWarnings").withIndex("by_teamId", (q) => q.eq("teamId", teamId)),
+    MOST_WARNINGS_A_TEAM,
+    `Team ${teamId} holds more than ${MOST_WARNINGS_A_TEAM} position warnings, too many to read, so its manager would be told twice`,
+  );
 }
 
 const isTold = (told: Doc<"positionWarnings">[], playerCode: number, position: Position, step: Step) =>
   told.some((each) => key(each.playerCode, each.position, each.step) === key(playerCode, position, step));
 
 async function nameOf(ctx: MutationCtx, playerCode: number): Promise<string> {
-  return (await playerByCode(ctx, playerCode))?.name ?? unheldPlayerWords(playerCode);
+  return (await playerByCode(ctx, playerCode))?.name ?? lostPlayerName(playerCode);
 }

@@ -12,7 +12,7 @@ import { positionOfSlot, type Cell, type SlotPosition } from "./pitch";
 /** A point of a run, in metres from the player's place: forward toward the goal he attacks (back
  *  is negative), and across toward the middle of the pitch (out wide is negative; in the centre
  *  lane, toward his right), so one run serves a role on either side. */
-export interface RunPoint {
+interface RunPoint {
   forward: number;
   across: number;
 }
@@ -176,8 +176,8 @@ export const rolesOfSlot = (cell: Cell, formation: Formation): readonly Role[] =
 /** Whether a player with these positions may take the role (spec/05 `S05.29`; Craig, 9 and 10 Nov
  *  2026, on #1196): the attack's roles go to an ST or SS, the false 9 to a CAM too, so a winger never
  *  takes one; the pressing winger goes to a W only. Any other role goes to whoever stands in its
- *  slot, and so does any role to one whose positions aren't known yet, whom the lineup's own check
- *  refuses (lineup.ts's positionsUnknown). */
+ *  slot, and so does any role to one with no positions, whom the lineup's own check refuses for
+ *  standing outside his areas (lineup.ts's outsideHisAreas). */
 export function takesRole(positions: readonly Position[], key: string): boolean {
   if (positions.length === 0) return true;
   if (key === "pressingWinger") return positions.includes("W");

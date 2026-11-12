@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, test, vi } from "vitest";
+import { beforeEach, describe, expect, test } from "vitest";
 import { api } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
 import { refusals } from "../../../convex/shared/leagueAccess";
@@ -16,10 +16,11 @@ import {
   eventsIn,
   leagueRow,
   onTheList,
+  TEST_LEAGUE_TEAMS,
   type TestConvex,
 } from "../../support/convex/leagues.harness";
 import { LISTED, fakeResend, linkNotSentLine, signInDeployment } from "../../support/convex/signIn.harness";
-import { expectRefused, silenceConsoleError } from "../../support/convex/test.harness";
+import { expectRefused, silenceConsoleError, everyJobRuns } from "../../support/convex/test.harness";
 
 // Creating a league and who runs it (#24 stories 1-3 and 6; spec/13).
 
@@ -63,7 +64,7 @@ describe("creating a league", () => {
   test("a commissioner whose only account is from a link that didn't go is sent one", async () => {
     fakeResend(500);
     const logged = silenceConsoleError();
-    await adminCreatesLeague(t, 4, "First");
+    await adminCreatesLeague(t, TEST_LEAGUE_TEAMS, "First");
     expect(logged).toHaveBeenCalledWith(expect.stringContaining(linkNotSentLine(COMMISSIONER)));
     const account = await t.run((ctx) =>
       ctx.db
@@ -75,7 +76,7 @@ describe("creating a league", () => {
     expect(account?.emailVerificationTime).toBeUndefined();
 
     const sent = fakeResend();
-    await adminCreatesLeague(t, 4, "Second");
+    await adminCreatesLeague(t, TEST_LEAGUE_TEAMS, "Second");
     expect(sent.map((email) => email.to)).toEqual([COMMISSIONER]);
   });
 
@@ -156,7 +157,7 @@ describe("the co-commissioner", () => {
   let leagueId: Id<"leagues">;
   beforeEach(async () => {
     fakeResend();
-    leagueId = await adminCreatesLeague(t, 4);
+    leagueId = await adminCreatesLeague(t);
   });
 
   test.each([COMMISSIONER, ADMIN])("%s names one, who is let sign in, and it's filed", async (namer) => {
@@ -239,14 +240,14 @@ describe("naming a new commissioner", () => {
   let leagueId: Id<"leagues">;
   beforeEach(async () => {
     fakeResend();
-    leagueId = await adminCreatesLeague(t, 4);
+    leagueId = await adminCreatesLeague(t);
   });
 
   test("the commissioner hands the league on; it's filed with whom it replaced, the new one is sent a link, and the old one runs it no more", async () => {
     const sent = fakeResend();
     const commissioner = await actingAs(t, COMMISSIONER);
     await commissioner.mutation(api.leagues.leagues.nameCommissioner, { leagueId, email: MANAGERS[0] });
-    await t.finishAllScheduledFunctions(vi.runAllTimers);
+    await everyJobRuns(t);
 
     expect(sent.map((email) => email.to)).toEqual([MANAGERS[0]]);
     expect((await eventsIn(t, leagueId)).at(-1)).toEqual({
@@ -273,7 +274,7 @@ describe("naming a new commissioner", () => {
     const admin = await actingAs(t, ADMIN);
     const unreached = "unreached@example.com";
     const failedLeague = await admin.mutation(api.leagues.leagues.create, { name: "Failed link", maxTeams: 4, commissionerEmail: unreached });
-    await t.finishAllScheduledFunctions(vi.runAllTimers);
+    await everyJobRuns(t);
     expect(logged).toHaveBeenCalledWith(expect.stringContaining(linkNotSentLine(unreached)));
     expect((await leagueRow(t, failedLeague))?.commissionerLink).toEqual({ email: unreached, reply: "notSent" });
 

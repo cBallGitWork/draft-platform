@@ -21,6 +21,9 @@ export const CLUB_PLAYERS_MOST = 100;
 /** The most players a search returns: enough to pick from, few enough to read. */
 const FOUND_MOST = 20;
 
+/** A player's code: the key every table holds him by, as `players.code`. */
+export type PlayerCode = number;
+
 /** Whether the player has left the Premier League: the feed no longer sends him. */
 export const hasLeft = (player: Pick<Doc<"players">, "droppedAt">) => player.droppedAt !== undefined;
 

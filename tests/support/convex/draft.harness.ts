@@ -7,6 +7,7 @@ import type { Id } from "../../../convex/_generated/dataModel";
 import { ARSENAL, type Club, type HeldPlayer } from "./footballRows.harness";
 import { changeEveryRules, setPickSeconds } from "./leagueRules.harness";
 import { actingAs, COMMISSIONER, type TestConvex } from "./leagues.harness";
+import { pickGapPasses } from "./pickWindow.harness";
 import { clockRunsTo } from "./test.harness";
 
 /** A central midfielder named for his code, at Arsenal unless a test says. */
@@ -21,6 +22,8 @@ export const midfielder = (code: number, club: Club = ARSENAL): HeldPlayer => ({
 export function draftSteps(current: () => { t: TestConvex; leagueId: Id<"leagues"> }) {
   const as = (email: string) => actingAs(current().t, email);
   const leagueId = () => current().leagueId;
+  const pick = async (email: string, playerCode: number) =>
+    (await as(email)).mutation(api.draft.draftPicks.makePick, { leagueId: leagueId(), playerCode });
   return {
     as,
     /** The draft as the commissioner's draft room reads it. */
@@ -30,7 +33,12 @@ export function draftSteps(current: () => { t: TestConvex; leagueId: Id<"leagues
     pause: async (email = COMMISSIONER) => (await as(email)).mutation(api.draft.draftPause.pause, { leagueId: leagueId() }),
     resume: async (email = COMMISSIONER) => (await as(email)).mutation(api.draft.draftPause.resume, { leagueId: leagueId() }),
     /** `email` picks; the 10 seconds to undo it are left to the test. */
-    pick: async (email: string, playerCode: number) => (await as(email)).mutation(api.draft.draftPicks.makePick, { leagueId: leagueId(), playerCode }),
+    pick,
+    /** `email` picks, and the pick's 10 seconds to undo it pass. */
+    pickAndWait: async (email: string, playerCode: number) => {
+      await pick(email, playerCode);
+      await pickGapPasses(current().t);
+    },
     /** The clock moves on `ms`, and every job scheduled by then runs. */
     pass: (ms: number) => clockRunsTo(current().t, Date.now() + ms),
     setPickSeconds: (pickSeconds: number) => setPickSeconds(current().t, leagueId(), pickSeconds),

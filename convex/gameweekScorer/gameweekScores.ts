@@ -2,7 +2,7 @@ import type { Doc, Id } from "../_generated/dataModel";
 import type { QueryCtx } from "../_generated/server";
 import { passedDeadlinesOf } from "../gameweeks/passedDeadlines";
 import { seasonGameweekCount } from "../gameweeks/seasonGameweeks";
-import { isGameweekScored } from "../gameweeks/usedGameweeks";
+import { isGameweekScored, type WithUnusedGameweeks } from "../gameweeks/usedGameweeks";
 import type { StoredScoringSet } from "../scoring/scoringSetShape";
 import type { SeasonRules } from "../rules/rulesHistory";
 import { logFailure } from "../shared/errors";
@@ -69,13 +69,25 @@ interface LeagueScores {
   finalUnstored: FinalUnstored[];
 }
 
+/** Whether the league scores `gameweek` of its season of `count` and that gameweek's `deadline`
+ *  fell on or after the league was made: the gameweek begins for the league once the deadline
+ *  passes. The one test both scoring (`begunGameweeks`) and the format lock (../rules/formatLock.ts)
+ *  ask, each reading deadlines its own way, so a league made after a gameweek's deadline neither
+ *  scores it nor locks its format by it. */
+export const scoredSinceMade = (
+  league: Pick<Doc<"leagues">, "_creationTime"> & WithUnusedGameweeks,
+  gameweek: number,
+  deadline: number,
+  count: number,
+) => deadline >= league._creationTime && isGameweekScored(league, gameweek, count);
+
 /** The gameweeks the league plays that have begun since it was made, by its recorded deadlines,
  *  from its scoring start on: the gameweeks it scores. */
 export async function begunGameweeks(ctx: QueryCtx, league: Doc<"leagues">): Promise<number[]> {
   const passed = await passedDeadlinesOf(ctx, league._id);
   const count = await seasonGameweekCount(ctx);
   return [...passed]
-    .filter(([gameweek, deadline]) => deadline >= league._creationTime && isGameweekScored(league, gameweek, count))
+    .filter(([gameweek, deadline]) => scoredSinceMade(league, gameweek, deadline, count))
     .map(([gameweek]) => gameweek)
     .sort((one, other) => one - other);
 }

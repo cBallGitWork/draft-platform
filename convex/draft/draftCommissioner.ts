@@ -8,7 +8,7 @@ import { startClock } from "./draftClock";
 import { tellUndone, tellUpNext } from "./draftLetters";
 import { liveClock, pauseRefusals } from "./draftPause";
 import { draftIsPaused, pickSecondsNow, pickSecondsOf, pickTimeRefusals } from "./draftPickTime";
-import { draftHasStarted, draftIsLive, draftOf, lastPickIn } from "./draftRow";
+import { draftHasStarted, draftIsLive, draftIsOver, draftOf, lastPickIn } from "./draftRow";
 import { afterUndoneTimeout } from "./draftTimeouts";
 import { takeBackPick } from "./pickWindow";
 
@@ -73,7 +73,7 @@ export const setPickTime = mutation({
     await runnerOf(ctx, leagueId);
     const live = await draftIsLive(ctx, leagueId);
     if (live && !(await draftIsPaused(ctx, leagueId))) refuse(pickTimeRefusals.notPaused);
-    if (!live && (await draftHasStarted(ctx, leagueId))) refuse(commissionerRefusals.over);
+    if (await draftIsOver(ctx, leagueId)) refuse(commissionerRefusals.over);
     const revision = (await historyOf(ctx, leagueId)).at(-1)?._id ?? null;
     await changeLatest(ctx, leagueId, revision, (rules) => ({ ...rules, draft: { ...draftRulesOf(rules), pickSeconds } }));
     // League settings may already hold this time, waiting for a gameweek: the draft takes it anyway.

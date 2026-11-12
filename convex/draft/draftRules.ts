@@ -1,4 +1,5 @@
 import type { LeagueRules } from "../rules/leagueRulesShape";
+import { squadMaximumOf } from "../rules/squadMaximums";
 
 // The kind a league's draft rules choose between (spec/04; #1087), as ../rules/leagueRulesShape.ts
 // stores it. How the draft order is set is no longer one: the commissioner always orders the teams
@@ -13,4 +14,4 @@ export type UndraftedGoTo = (typeof UNDRAFTED_GO_TO)[number];
 /** The draft's rounds under these rules: the squad's most players, or null with no squad size
  *  limit. draftStart.ts starts the draft with the latest
  *  rules', and a pick trade (../trades/tradePicks.ts) trades a pick in one of them. */
-export const roundsOf = (rules: LeagueRules): number | null => rules.squad.size?.maximum ?? null;
+export const roundsOf = (rules: LeagueRules): number | null => squadMaximumOf(rules);

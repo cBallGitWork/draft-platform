@@ -1,7 +1,6 @@
 import { useId, useState, type FormEvent } from "react";
 import { PLAN_NAME_MOST } from "../../../../convex/lineup/lineupWords";
-import { closeGlyph } from "../../../shared/words";
-import { Problem } from "../../../ui/Panel";
+import { CloseButton, Problem } from "../../../ui/Panel";
 import type { Plan } from "../savedPlans";
 import { FormationTile } from "./FormationTile";
 import {
@@ -12,7 +11,7 @@ import {
   replaceQuestion,
   replaceWords,
   savePresetLine,
-  savePresetName,
+  savePresetWords,
   saveWords,
 } from "./words";
 
@@ -65,14 +64,11 @@ export function PlansGroup({
               subtitle={formation ?? notAllowedWords}
             />
           </span>
-          <button
-            type="button"
-            aria-label={deletePlanLabel(plan.name)}
-            onClick={() => void answered(onDelete(plan.name))}
-            className="flex min-h-tap min-w-tap items-start justify-center p-2 text-lead font-bold shadow-bevel-panel"
-          >
-            <span aria-hidden="true">{closeGlyph}</span>
-          </button>
+          <CloseButton
+            label={deletePlanLabel(plan.name)}
+            close={() => void answered(onDelete(plan.name))}
+            className="flex items-start justify-center p-2 text-lead font-bold shadow-bevel-panel"
+          />
         </div>
       ))}
       {saving ? (
@@ -88,7 +84,7 @@ export function PlansGroup({
         />
       ) : (
         <button type="button" onClick={() => setSaving(true)} className="min-h-tile p-2 text-left shadow-bevel-panel">
-          <span className="block text-tile font-semibold">{savePresetName}</span>
+          <span className="block text-tile font-semibold">{savePresetWords}</span>
           <span className="block text-soft">{savePresetLine}</span>
         </button>
       )}

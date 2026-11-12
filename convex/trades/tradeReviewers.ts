@@ -1,3 +1,4 @@
+import type { Infer } from "convex/values";
 import type { Doc, Id } from "../_generated/dataModel";
 import type { MutationCtx, QueryCtx } from "../_generated/server";
 import type { LeagueDeadlines } from "../gameweeks/deadline";
@@ -5,6 +6,7 @@ import { fileLetter } from "../mail/letters";
 import { reviewLetter, type ReviewWords } from "../mail/tradeLetterWords";
 import { tradeRulesOf } from "../rules/firstRules";
 import { rulesSinceBegun } from "../rules/rulesHistory";
+import type { tradeReviewer } from "../schema/trades";
 import { teamsOf } from "../shared/leagueAccess";
 import { latestBegun } from "../waivers/waiverLock";
 import { leagueOffers } from "./tradeClose";
@@ -29,8 +31,22 @@ export async function votersOn(ctx: QueryCtx, offer: Doc<"tradeOffers">): Promis
 export async function reviewerOf(ctx: QueryCtx, league: Doc<"leagues">, offer: Doc<"tradeOffers">, deadlines: LeagueDeadlines, now: number): Promise<ReviewWords | null> {
   const { review } = tradeRulesOf(await rulesSinceBegun(ctx, league._id, latestBegun(deadlines, now)));
   if (review !== "veto") return review === "vote" ? { kind: "vote" } : null;
-  const by = await vetoerOf(ctx, league, offer);
+  return reviewOf(await vetoerOf(ctx, league, offer));
+}
+
+/** Under a veto, the review its vetoer gives: he blocks it, or with nobody who may, a vote. */
+function reviewOf(by: string | undefined): ReviewWords {
   return by === undefined ? { kind: "vote" } : { kind: "veto", by };
+}
+
+/** The review as the offer keeps it: a vote starts with nobody against. */
+export function storedReviewer(review: ReviewWords): Infer<typeof tradeReviewer> {
+  return review.kind === "veto" ? review : { kind: "vote", against: [] };
+}
+
+/** Who gets the review letter: the vetoer, or under a vote the managers who may vote. */
+export async function reviewersOf(ctx: QueryCtx, offer: Doc<"tradeOffers">, review: ReviewWords): Promise<string[]> {
+  return review.kind === "veto" ? [review.by] : await votersOn(ctx, offer);
 }
 
 /** Under a veto, who blocks the trade now: the commissioner, or the co-commissioner when he is in
@@ -51,11 +67,9 @@ export async function passReviews(ctx: MutationCtx, leagueId: Id<"leagues">): Pr
     if (review?.reviewer.kind !== "veto") continue;
     const by = await vetoerOf(ctx, league, offer);
     if (by === review.reviewer.by) continue;
-    const now: ReviewWords = by === undefined ? { kind: "vote" } : { kind: "veto", by };
-    const reviewer = now.kind === "veto" ? now : { kind: "vote" as const, against: [] };
-    await ctx.db.patch("tradeOffers", offer._id, { review: { ...review, reviewer } });
+    const now = reviewOf(by);
+    await ctx.db.patch("tradeOffers", offer._id, { review: { ...review, reviewer: storedReviewer(now) } });
     const words = await tradeWordsOf(ctx, offer);
-    const reviewers = by === undefined ? await votersOn(ctx, offer) : [by];
-    await fileLetter(ctx, league, reviewers, (tell) => reviewLetter(words, now, review.endsAt, tell));
+    await fileLetter(ctx, league, await reviewersOf(ctx, offer, now), (tell) => reviewLetter(words, now, review.endsAt, tell));
   }
 }

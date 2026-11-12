@@ -15,10 +15,11 @@ export async function everyPlayerNow(ctx: QueryCtx): Promise<Doc<"players">[]> {
 }
 
 /** The players still undrafted in the league: in the Premier League now and held by no team. The
- *  league's squads are read once, never a read per player (#1532). */
-export async function undraftedIn(ctx: QueryCtx, leagueId: Id<"leagues">): Promise<Doc<"players">[]> {
+ *  league's squads are read once, never a read per player (#1532). A caller that has already read
+ *  `everyPlayerNow` passes them in, so one function never reads them twice. */
+export async function undraftedIn(ctx: QueryCtx, leagueId: Id<"leagues">, players?: Doc<"players">[]): Promise<Doc<"players">[]> {
   const held = await heldCodesIn(ctx, leagueId);
-  return (await everyPlayerNow(ctx)).filter(({ code }) => !held.has(code));
+  return (players ?? (await everyPlayerNow(ctx))).filter(({ code }) => !held.has(code));
 }
 
 /** The players nobody drafted go on the league's waivers, a run taking them from `claimableFrom`:

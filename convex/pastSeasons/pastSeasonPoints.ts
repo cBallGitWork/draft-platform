@@ -10,7 +10,7 @@ import { eachPlayerPage, seasonRowOf } from "../stats/seasonRebuilds";
 // Last season's points under the site's scoring as it stands (#1114): what auto-pick falls back on
 // (spec/04, Auto-pick) and what Scouting shows before the new season's first match (spec/19, #956).
 // Each player in last season's copied matches (pastSeasonRows.ts) gets a row, his matches priced at
-// every position under today's set, so he is read at his main position now (draft/lastSeasonPoints.ts);
+// every position under today's set, so he is read at his main position now (lastSeasonPoints.ts);
 // one in the data who played none is on 0, and a newcomer, "Not in last season's data" (Craig,
 // 4 Nov 2026), has none. Last season is the newest one copied. A paged job sets the rows afresh,
 // run after the copy (scripts/past-season.mjs) and whenever a version of the site's set takes

@@ -5,7 +5,7 @@ import type { Lineup } from "../../../convex/lineup/lineup";
 import { holdGameweeks } from "../../support/convex/leagueRules.harness";
 import { COMMISSIONER, MANAGERS, actingAs, addManagers, adminCreatesLeague, type TestConvex } from "../../support/convex/leagues.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
-import { FOUR_FOUR_TWO, holdPlayers, holdSquad, nameOf, NEXT, passNextDeadline, SQUAD, squadMoves } from "../../support/convex/lineupSquad.harness";
+import { BOBS, FOUR_FOUR_TWO, FREE_AGENT, holdPlayers, holdSquad, nameOf, NEXT, passNextDeadline, REVERSED_BENCH, saved, sent, SQUAD, squadMoves } from "../../support/convex/lineupSquad.harness";
 import { lineupInGameweek } from "../../../convex/lineup/lineups";
 
 // A team's first lineup, stored as its squad is made (#637, spec/05): each squad move picks it
@@ -13,10 +13,6 @@ import { lineupInGameweek } from "../../../convex/lineup/lineups";
 // lineups.test.ts.
 
 const [ANN, BOB] = MANAGERS;
-/** A player in the Premier League on no team in the league. */
-const FREE_AGENT = 999;
-/** Bob's player. */
-const BOBS = 998;
 /** A keeper in the Premier League, held only by the test that adds him. */
 const SECOND_KEEPER = 997;
 
@@ -35,9 +31,6 @@ beforeEach(async () => {
   await holdPlayers(t, [FREE_AGENT]);
 });
 
-/** The lineup as a browser sends it. */
-const sent = (lineup: Lineup) => ({ starters: [...lineup.starters], bench: [...lineup.bench] });
-
 const as = async (email: string) => {
   const person = await actingAs(t, email);
   return {
@@ -51,16 +44,6 @@ const teamOf = (email: string): Id<"teams"> => {
   if (email === BOB) return bobsTeam;
   throw new Error(`${email} runs no team in the league`);
 };
-const saved = (lineup: Lineup, fromGameweek: number | null) => ({
-  fromGameweek,
-  starters: lineup.starters,
-  bench: lineup.bench,
-  leftSquad: [],
-  joinedBench: [],
-  vacated: [],
-});
-/** The lineup with its bench reversed: another lineup of the same squad. */
-const REVERSED_BENCH: Lineup = { ...FOUR_FOUR_TWO, bench: FOUR_FOUR_TWO.bench.toReversed() };
 const lineupRows = () => t.run((ctx) => ctx.db.query("lineups").collect());
 
 describe("a team's first lineup, stored as its squad is made (#637)", () => {

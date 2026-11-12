@@ -129,7 +129,7 @@ flowchart TD
   OTEAM -- "a player's name" --> CARD
 
   subgraph PLAN["Named in the spec, no route yet"]
-    CLUBS["Club pages<br/>spec/18:22<br/>after the mini beta"]
+    CLUBS["Club pages<br/>spec/18 S18.3<br/>after the mini beta"]
   end
   class CLUBS planned
   MATCHUP -- "a player's status" --> MATCH
@@ -180,7 +180,7 @@ Features table (feature 12), the one home for screen status.
 | Match | `/premier-league/match/$fixtureCode` | src/premierLeague/MatchPage.tsx | spec/10 The match page | built |
 | Player card | `/leagues/$leagueId/players/$playerCode` | src/playerCard/PlayerCardPage.tsx | spec/12 The player card, spec/05, spec/14, spec/19 | built |
 | Another team's squad, read-only | `/leagues/$leagueId/teams/$teamId` | src/myTeam/OtherTeamPage.tsx | spec/12 The player card | built |
-| Club pages | none | none | spec/18:22 | no route |
+| Club pages | none | none | spec/18 S18.3 | no route |
 
 ## Gaps
 

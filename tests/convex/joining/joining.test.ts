@@ -21,7 +21,7 @@ beforeEach(async () => {
 });
 
 test("a league of four fills from two invites and two approved requests, and no one else gets in", async () => {
-  const leagueId = await adminCreatesLeague(t, 4);
+  const leagueId = await adminCreatesLeague(t);
   const commissioner = await actingAs(t, COMMISSIONER);
 
   // An invite left past its seven days.

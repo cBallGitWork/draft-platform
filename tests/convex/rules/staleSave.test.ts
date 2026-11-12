@@ -4,7 +4,7 @@ import type { Id } from "../../../convex/_generated/dataModel";
 import { EVENTS_SEARCHED_FOR_SAVER, rulesRefusals } from "../../../convex/rules/leagueRules";
 import { leagueSettingsOf } from "../../../convex/rules/leagueSettingsPart";
 import { adminByline } from "../../../convex/mail/letterWords";
-import { holdGameweeks, rulesRevision, rulesWith, TOTAL_POINTS, HELD_FIRST_RULES } from "../../support/convex/leagueRules.harness";
+import { holdGameweeks, latestRules, rulesRevision, rulesWith, TOTAL_POINTS, HELD_FIRST_RULES } from "../../support/convex/leagueRules.harness";
 import { expectRefused } from "../../support/convex/test.harness";
 import { ADMIN, actingAs, adminCreatesLeague, COMMISSIONER, CO_COMMISSIONER, eventsIn, lastEventAt, type TestConvex } from "../../support/convex/leagues.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
@@ -31,7 +31,7 @@ const changeGames = async (email: string, games: number, revision: Id<"leagueRul
     settings: { ...leagueSettingsOf(HELD_FIRST_RULES), gamesPerGameweek: games },
     revision,
   });
-const latestRules = async () => (await (await actingAs(t, COMMISSIONER)).query(api.rules.leagueRules.latest, { leagueId }))?.rules;
+const rulesNow = async () => (await latestRules(t, leagueId))?.rules;
 const rulesLetters = () =>
   t.run(async (ctx) =>
     (await ctx.db.query("letters").withIndex("by_leagueId", (q) => q.eq("leagueId", leagueId)).collect()).filter(
@@ -53,7 +53,7 @@ describe("a save made from rules someone has saved over since", () => {
     const events = await eventsIn(t, leagueId);
 
     await expectRefused(changeGames(COMMISSIONER, 3, opened), refusal);
-    expect((await latestRules())?.gamesPerGameweek).toBe(2);
+    expect((await rulesNow())?.gamesPerGameweek).toBe(2);
     expect(await eventsIn(t, leagueId)).toEqual(events);
     expect(await rulesLetters()).toHaveLength(1);
   });
@@ -72,7 +72,7 @@ describe("a save made from rules someone has saved over since", () => {
       (await actingAs(t, COMMISSIONER)).mutation(api.rules.leagueRules.change, { leagueId, rules: TOTAL_POINTS, revision: opened }),
       refusal,
     );
-    expect(await latestRules()).toEqual({ ...HELD_FIRST_RULES, gamesPerGameweek: 2 });
+    expect(await rulesNow()).toEqual({ ...HELD_FIRST_RULES, gamesPerGameweek: 2 });
   });
 
   test(`is still refused, without the name, when the letter is past the newest ${EVENTS_SEARCHED_FOR_SAVER} events`, async () => {
@@ -87,7 +87,7 @@ describe("a save made from rules someone has saved over since", () => {
     });
 
     await expectRefused(changeGames(COMMISSIONER, 3, opened), rulesRefusals.changedSince(null, savedAt, undefined));
-    expect((await latestRules())?.gamesPerGameweek).toBe(2);
+    expect((await rulesNow())?.gamesPerGameweek).toBe(2);
   });
 
   test("is refused as stale, not as unsound, when its rules are unsound too", async () => {
@@ -104,6 +104,6 @@ test("a save made from the latest rules, the other's among them, goes through an
   await changeGames(CO_COMMISSIONER, 2, await rulesRevision(t, leagueId));
   await changeGames(COMMISSIONER, 3, await rulesRevision(t, leagueId));
 
-  expect((await latestRules())?.gamesPerGameweek).toBe(3);
+  expect((await rulesNow())?.gamesPerGameweek).toBe(3);
   expect(await rulesLetters()).toHaveLength(2);
 });

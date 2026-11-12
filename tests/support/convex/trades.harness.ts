@@ -12,7 +12,6 @@ import { changeEveryRules, rulesRevision } from "./leagueRules.harness";
 import { pendingJobs } from "./test.harness";
 import { draftSteps } from "./draft.harness";
 import { actingAs, COMMISSIONER, teamName, type TestConvex } from "./leagues.harness";
-import { pickGapPasses } from "./pickWindow.harness";
 import { ANN, ANNS_FIRST_DROP, BOB, CAT, PALMER, RICE, SAKA, waiverLeague } from "./waivers.harness";
 
 export { ANN, ANNS_FIRST_DROP, BOB, CAT, PALMER, RICE, SAKA };
@@ -23,7 +22,7 @@ export const pickOf = (teamId: Id<"teams">, round: number) => ({ round, teamId }
 /** The pick trade tests' steps (#1096, #1457) in the league `current` gives, read at each call, as
  *  each test makes its own in `beforeEach`. */
 export function pickTradeSteps(current: () => { t: TestConvex; leagueId: Id<"leagues"> }) {
-  const { as, read, start, pick } = draftSteps(current);
+  const { as, read, start, pickAndWait } = draftSteps(current);
   return {
     as,
     start,
@@ -32,11 +31,7 @@ export function pickTradeSteps(current: () => { t: TestConvex; leagueId: Id<"lea
       const draft = await read();
       return draft.status === "live" ? { pick: draft.onTheClock.pick, teamId: draft.onTheClock.teamId } : null;
     },
-    /** `email` picks, and the pick's 10 seconds to undo it pass. */
-    makePick: async (email: string, playerCode: number) => {
-      await pick(email, playerCode);
-      await pickGapPasses(current().t);
-    },
+    makePick: pickAndWait,
     teamName: (teamId: Id<"teams">) => teamName(current().t, teamId),
   };
 }
