@@ -2,12 +2,11 @@
 // admin alone; the queue of new signings and starts waiting; approving a club; how starts count;
 // and correcting any player's positions.
 
-import { cleanup, screen, waitFor, within } from "@testing-library/react";
+import { screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
 import { LEAGUES_PATH } from "../../../src/leagues/paths";
-import { LEAGUES_TITLE } from "../../../src/leagues/words";
-import { admin, commissioner, openApp } from "../../support/src/shell.harness";
+import { admin, commissioner, expectNotOffered, expectSentToLeagues, openApp } from "../../support/src/shell.harness";
 import type { AdminData } from "../../support/src/admin.harness";
 import { EMPTY_QUEUE } from "../../support/src/admin.harness";
 import { descriptionOf } from "../../support/src/describedBy";
@@ -86,14 +85,8 @@ describe("reaching the dashboard", () => {
   });
 
   it("anyone else isn't offered it, and is sent back to Your leagues if they go there", async () => {
-    openApp(LEAGUES_PATH, commissioner);
-    await screen.findByRole("heading", { level: 1, name: LEAGUES_TITLE });
-    expect(screen.queryByRole("link", { name: ADMIN_TITLE })).toBeNull();
-
-    cleanup();
-    const app = openApp(ADMIN_PATH, commissioner);
-    await screen.findByRole("heading", { level: 1, name: LEAGUES_TITLE });
-    expect(app.path()).toBe(LEAGUES_PATH);
+    await expectNotOffered(ADMIN_TITLE, commissioner);
+    await expectSentToLeagues(ADMIN_PATH, commissioner);
   });
 });
 

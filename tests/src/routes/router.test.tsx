@@ -2,15 +2,13 @@
 // league being deleted is frozen and hidden (spec/13, Deleting), so its squads, gameweeks and
 // invites send even its commissioner back to Your leagues.
 
-import { cleanup, screen } from "@testing-library/react";
+import { cleanup } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import type { Session } from "../../../src/signIn/seam";
 import { gameweeksPath } from "../../../src/gameweeks/paths";
 import { invitesPath } from "../../../src/joining/paths";
-import { LEAGUES_PATH } from "../../../src/leagues/paths";
-import { LEAGUES_TITLE } from "../../../src/leagues/words";
 import { squadsPath } from "../../../src/squads/paths";
-import { adminSeeing, beingDeleted, commissioned, deleterOf, league, manager, openApp, withNoPart } from "../../support/src/shell.harness";
+import { adminSeeing, beingDeleted, commissioned, deleterOf, expectSentToLeagues, league, manager, withNoPart } from "../../support/src/shell.harness";
 
 const deleting = beingDeleted(commissioned);
 
@@ -19,9 +17,7 @@ const pagesOf = (leagueId: string) => [squadsPath(leagueId), gameweeksPath(leagu
 /** Opens each page in turn and expects to land on Your leagues, its gameweeks never asked for. */
 async function expectEachSentToLeagues(pages: string[], session: Session) {
   for (const page of pages) {
-    const app = openApp(page, session);
-    expect(await screen.findByRole("heading", { level: 1, name: LEAGUES_TITLE })).toBeTruthy();
-    expect(app.path()).toBe(LEAGUES_PATH);
+    const app = await expectSentToLeagues(page, session);
     expect(app.gameweeks.useLeagueGameweeks).not.toHaveBeenCalled();
     cleanup();
   }
