@@ -168,6 +168,20 @@ test("no value-import cycle in src/ (#1330)", () => {
   expect(found, `import cycles: ${found.map((g) => g.join(" <-> ")).join("; ")}`).toEqual([]);
 });
 
+/** The browser's entry: everything it loads by a static import goes in the bundle. The preview's
+ *  modules load by a dynamic import() the build drops (scripts/bundle-has-no-preview.mjs), which
+ *  the walk doesn't follow, so they are left out. */
+const BROWSER_ENTRY = "src/main.tsx";
+const isSchema = (path: string) => path === "convex/schema.ts" || path.startsWith("convex/schema/");
+
+test("the browser's bundle loads no schema file, which carries every table and the sign-in ones (#1715)", () => {
+  const loaded = loadedBy(BROWSER_ENTRY, new Map([...files(), ...files(BROWSER_SOURCES)]));
+  // The walk reaches the screens and the pure server files they read, so it can't pass blind.
+  expect(loaded.has("src/myTeam/words.ts")).toBe(true);
+  expect(loaded.has("convex/squads/squadLimits.ts")).toBe(true);
+  expect([...loaded].filter(isSchema)).toEqual([]);
+});
+
 test("schema.ts and the rules editor load none of the scorer's files (#756)", () => {
   const known = new Map([...files(), ...files(BROWSER_SOURCES)]);
   for (const entry of ["convex/schema.ts", "src/scoring/editing.ts"]) {
