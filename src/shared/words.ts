@@ -3,7 +3,7 @@
 import type { PlayingState } from "../../convex/football/matchScores";
 import { AREA_WORDS } from "../../convex/lineup/pitchWords";
 import type { Position } from "../../convex/positions/positionTables";
-import type { TradedSide } from "../../convex/schema/squads";
+import type { TradedSide } from "../../convex/schema";
 import { LOCALE } from "../../convex/shared/moments";
 import { countInWords, figureWords } from "../../convex/shared/numberWords";
 import type { SquadWarning } from "../../convex/squads/squads";
