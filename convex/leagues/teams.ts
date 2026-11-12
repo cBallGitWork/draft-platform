@@ -64,9 +64,16 @@ export function checkCanJoin(
     if (vacated.managerEmail !== undefined) refuse(refusals.notVacated);
     return vacated;
   }
-  if (draftStarted) refuse(refusals.draftStarted);
-  if (teams.length >= league.maxTeams) refuse(refusals.full(league.maxTeams));
+  if (!hasRoomForNewTeam(teams, league, draftStarted)) {
+    refuse(draftStarted ? refusals.draftStarted : refusals.full(league.maxTeams));
+  }
   return null;
+}
+
+/** Whether a new team can be made: the league is under its maximum and its draft hasn't started
+ *  (spec/13, Teams; spec/04, Starting it). checkCanJoin refuses by it and the invites page shows it. */
+export function hasRoomForNewTeam(teams: Doc<"teams">[], league: Doc<"leagues">, draftStarted: boolean): boolean {
+  return !draftStarted && teams.length < league.maxTeams;
 }
 
 /** Makes this email a manager in the league: of the vacated team `vacatedTeamId`, or of a new
