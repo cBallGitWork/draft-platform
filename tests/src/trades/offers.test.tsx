@@ -12,9 +12,10 @@ import {
   TRADES_PATH,
 } from "../../../src/frame/menu";
 import { mainMenuLabel } from "../../../src/frame/words";
+import { noFigureWords } from "../../../src/shared/words";
 import {
   acceptWords,
-  afterLastMatchWords,
+  closesAfterLastMatchWords,
   counterWords,
   groupWords,
   noOffersWords,
@@ -145,13 +146,25 @@ describe("an offer to you", () => {
 
   it("made in the trade deadline's gameweek, closes after its last match, in its row and its panel (#1492)", async () => {
     openOffers(withOffers(screenOffer({ closes: { gameweek: 20, at: null } })));
-    const words = afterLastMatchWords(20);
+    const words = closesAfterLastMatchWords(20);
     expect(words).toBe("After GW20's last match");
     const table = await screen.findByRole("table", { name: offersTableLabel });
     expect(within(table).getAllByRole("row")[2].textContent).toContain(words);
     expect((await panel(offerToYouTitle("Team 2"))).textContent).toContain(
       words,
     );
+  });
+
+  it("with no deadline left, closes as a greyed dash in its row and its panel alike (#1788)", async () => {
+    openOffers(withOffers(screenOffer({ closes: null })));
+    const table = await screen.findByRole("table", { name: offersTableLabel });
+    const cells = within(within(table).getAllByRole("row")[2]).getAllByRole(
+      "cell",
+    );
+    expect(cells[cells.length - 1].textContent).toBe(noFigureWords);
+    const text = (await panel(offerToYouTitle("Team 2"))).textContent ?? "";
+    expect(text).toContain(noFigureWords);
+    expect(text).not.toContain("At the next deadline");
   });
 
   it("is accepted, and a refusal says why", async () => {

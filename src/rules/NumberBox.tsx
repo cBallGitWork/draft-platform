@@ -1,6 +1,6 @@
 import { useContext, useEffect, useId, useRef, useState } from "react";
 import { Problem } from "../ui/Panel";
-import { BoxRefusalContext } from "./blank";
+import { BLANK_NUMBER, BoxRefusalContext } from "./blank";
 
 /** A box's text as a number: null when blank, NaN when it isn't a finite one ("Infinity" isn't). */
 function parse(text: string): number | null {
@@ -48,7 +48,7 @@ export function NumberBox(props: NumberBoxProps) {
       setShown(read);
       props.onChange(read);
     } else {
-      const handed = read ?? NaN;
+      const handed = read ?? BLANK_NUMBER;
       setShown(handed);
       props.onChange(handed);
     }

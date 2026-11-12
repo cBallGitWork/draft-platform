@@ -25,7 +25,7 @@ test("they score from the next gameweek not begun, the gameweeks before keeping 
 
 test("they are added to the set as it stands, its rules and own stats kept, and only once", async () => {
   await holdGameweeks(t, { next: 9 });
-  await t.run((ctx) => holdSiteScoring(ctx, { scoring: EDITED, kind: "fix", season: 2026, number: 1, at: TODAY - 1 }));
+  await t.run((ctx) => holdSiteScoring(ctx, { scoring: EDITED, kind: "fix", at: TODAY - 1 }));
 
   expect((await addFirstRoles())?.name).toBe("26_27.2");
   expect(await inGameweek(9)).toEqual({ ...EDITED, ownStats: [...(EDITED.ownStats ?? []), ...FIRST_ROLE_OWN_STATS], roles: FIRST_ROLES });

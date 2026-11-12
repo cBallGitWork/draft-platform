@@ -43,7 +43,7 @@ export type InstructionPair = Record<Side, string>;
 
 /** The set every league starts with, in spec/05's order. The descriptions are Claude's draft, for
  *  Craig to edit (spec/05: "Claude drafts them and Craig edits them"). */
-export const FIRST_INSTRUCTIONS: readonly Instruction[] = [
+export const FIRST_INSTRUCTIONS = [
   { key: "playOutFromTheBack", side: "attacking", name: "Play out from the back", needs: "anyShape",
     description: "Rewards the keeper's and defenders' passing; costs errors leading to a shot or goal." },
   { key: "bootItToTheBigMan", side: "attacking", name: "Boot it to the big man", needs: "oneUpTopNoWingers",
@@ -66,7 +66,11 @@ export const FIRST_INSTRUCTIONS: readonly Instruction[] = [
     description: "Rewards a clean sheet at half-time; costs goals let in before half-time." },
   { key: "parkTheBus", side: "defensive", name: "Park the bus", needs: "fiveAtTheBack",
     description: "Rewards the keeper's and defenders' clean sheets; costs goals and assists." },
-];
+] as const satisfies readonly Instruction[];
+
+/** A key of the first set: what the first defaults, the classic formations and the drafted scoring
+ *  name, so a typo fails typecheck. Keys are saved with lineups, so none is ever renamed. */
+export type FirstInstructionKey = (typeof FIRST_INSTRUCTIONS)[number]["key"];
 
 /** An instruction's name as managers say it, by its key; the key itself for one not in the set. */
 export const instructionName = (key: string): string => FIRST_INSTRUCTIONS.find((each) => each.key === key)?.name ?? key;
@@ -74,7 +78,7 @@ export const instructionName = (key: string): string => FIRST_INSTRUCTIONS.find(
 /** The first defaults (Craig, 6 Nov 2026, on #990): five at the back starts on Park the bus, two
  *  at the back on Gung-ho, and every other shape on Play out from the back and Keep it tight early.
  *  A league's presets hold their own pair (presets.ts), which it edits. */
-export function firstPairFor(cells: readonly Cell[]): InstructionPair {
+export function firstPairFor(cells: readonly Cell[]): Record<Side, FirstInstructionKey> {
   const back = inArea(cells, "defence").length;
   return {
     attacking: back === 2 ? "gungHo" : "playOutFromTheBack",
@@ -88,7 +92,7 @@ const PRESSING_ROWS: readonly Area[] = ["midfield", "attackingMidfield", "attack
 const WINGER_ROWS: readonly Area[] = ["attackingMidfield", "attack"];
 
 /** Whether a formation, the cells its eleven stand in, has what an instruction needs. */
-export function shapeAllows(needs: ShapeNeed, cells: readonly Cell[]): boolean {
+function shapeAllows(needs: ShapeNeed, cells: readonly Cell[]): boolean {
   const back = inArea(cells, "defence").length;
   switch (needs) {
     case "anyShape":
@@ -120,7 +124,7 @@ export function offeredOn(side: Side, cells: readonly Cell[], set: readonly Inst
 }
 
 /** A preset as this module reads it: its cells and, once the league holds it, its default pair. */
-export interface PresetDefaults {
+interface PresetDefaults {
   cells: readonly Cell[];
   instructions?: InstructionPair;
 }

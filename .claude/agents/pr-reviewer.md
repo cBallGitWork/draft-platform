@@ -45,10 +45,13 @@ Then check the description's claims against what you found.
    players: walk one real case through it.
 2. **The spec.** Name the spec item each change serves. A change that serves none is OUT OF
    SCOPE. Anything SPEC.md lists under Out of scope, Second release or Later arriving early is a
-   finding, as is a feat/ branch that changes what a feature does but not its SPEC.md status row.
+   finding. SPEC.md's status rows are the drift pass's to update; a build edits them only when its
+   issue asks (claude-build.yml).
 3. **Rules are data.** A league's rule written as a constant is a RULE BROKEN; FPL's own rules may
    be constants (CLAUDE.md).
-4. **Player identity.** Anything persisted keys on FPL's season-stable `code`, never the
+4. **Player identity.** Players key on Sportmonks' player id; FPL's `code` is kept only to match
+   past seasons (CLAUDE.md). Until the move off FPL lands, the site's tables still key on FPL's
+   `code` and the `sportmonks*` tables on Sportmonks' id (docs/REFACTORING.md); never FPL's
    per-season `id`.
 5. **The stack.** A new service or library is in `ARCHITECTURE.md` with its reason, in this diff.
 6. **Tests.** A fix lands with a test that fails without it; a feature's test sits at the seam its
@@ -61,9 +64,9 @@ Then check the description's claims against what you found.
    either, it claims to be true always, goes stale unnoticed, and is a finding (UNVERIFIED) even
    when right today (Craig, 22 Oct 2026).
 8. **This diff's drift and the lines it makes stale.** Anything written twice, anything left dead,
-   a file past ~250 lines that this diff makes longer. Grep the docs, README, skills, agents and
-   hook docstrings for any path, name, count or claim this diff makes false (a renamed file, a
-   moved folder, a new or removed gate). Give each one a detail row with file:line. Fixing such a
+   a file past ~250 lines that this diff makes longer. Grep the docs, README, skills, agents,
+   hook docstrings and code comments (file headers above all) for any path, name, count or claim
+   this diff makes false (a renamed file, a moved folder, a new or removed gate). Give each one a detail row with file:line. Fixing such a
    line is part of this change, not tidying.
    - A new file sits where `ARCHITECTURE.md` "Where code lives" says; a new helper, read, hook or
      test fixture has no older twin anywhere in the codebase, `tests/support/` included (search

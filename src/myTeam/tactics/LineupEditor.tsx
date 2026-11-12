@@ -7,7 +7,7 @@ import { unheldNoticeWords } from "../../shared/words";
 import { markedBy } from "./focusMarks";
 import { FormationWindow } from "./formationWindow/FormationWindow";
 import { formationNameOf } from "./classicLineup";
-import { benchedAt, openingLineup, placeOf, presetInUse, swapped, withRole, type EditedLineup, type MoveRules, type RatingsOf } from "./lineupEdits";
+import { benchedAt, openingLineup, placeOf, positionsIn, presetInUse, swapped, withRole, type EditedLineup, type MoveRules, type RatingsOf } from "./lineupEdits";
 import { dropOutcome, reachOf } from "./swaps";
 import { quickPick } from "./quickPick";
 import { Pitch, PITCH_ROOM_STYLE, type Moving } from "./pitch/Pitch";
@@ -53,7 +53,7 @@ export function LineupEditor({ league, teamName, tactics, seam, opened, now }: E
   const { draft } = edits;
   const picked = pickedCode === null ? null : (squad.get(pickedCode) ?? null);
   const rules: MoveRules = useMemo(
-    () => ({ areaLimits: tactics.areaLimits, positionsOf: (playerCode: number) => squad.get(playerCode)?.positions ?? [] }),
+    () => ({ areaLimits: tactics.areaLimits, positionsOf: positionsIn(squad) }),
     [tactics.areaLimits, squad],
   );
   /** Each squad player's stars, which pick the role he starts on when dropped into a slot, and show on a lit player (#11). */

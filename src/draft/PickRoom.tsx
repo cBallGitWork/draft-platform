@@ -3,7 +3,7 @@ import type { Id } from "../../convex/_generated/dataModel";
 import type { ListedPlayer } from "../scouting/seam";
 import { AutoPickPanel } from "./AutoPickPanel";
 import { pickInRoundOf } from "./board";
-import type { OnTheClock, UndoWindow } from "./ClockLeft";
+import { pausedAtOf, type OnTheClock, type UndoWindow } from "./ClockLeft";
 import { DraftPlayers, type WhyNot } from "./DraftPlayers";
 import { PickPanel, type YourSquad, type YourTurn } from "./PickPanel";
 import { QueuePanel } from "./QueuePanel";
@@ -21,7 +21,7 @@ import { slotWords } from "./words";
 function yourTurn(draft: DraftState, board: DraftBoard, onTheClock: OnTheClock | null): YourTurn {
   if (draft.status === "ending") return { kind: "allPicked" };
   if (draft.status !== "live" || onTheClock === null) return { kind: "notStarted" };
-  if (draft.clock?.pausedAt !== undefined) return { kind: "paused" };
+  if (pausedAtOf(draft) !== undefined) return { kind: "paused" };
   if (board.yourTeamId === null || draft.onTheClock.teamId !== board.yourTeamId) return { kind: "notYours" };
   return { kind: "yours", slot: slotWords(draft.onTheClock.round, pickInRoundOf(draft.onTheClock.pick, draft.order.length)), onTheClock };
 }
@@ -49,7 +49,7 @@ function yourSquad(board: DraftBoard, player: ListedPlayer): YourSquad {
  *  drafted him, so his panel and Pick for say "On <team>" and refuse him rather than offer a pick
  *  the server turns down (#1560). His row leaves the list once he is drafted, but his panel stays
  *  up, for the Undo after the reader's own pick (#1458). */
-export function selectedNow(selected: ListedPlayer, draft: DraftState, board: DraftBoard): ListedPlayer {
+function selectedNow(selected: ListedPlayer, draft: DraftState, board: DraftBoard): ListedPlayer {
   if (selected.ownerTeamName !== null) return selected;
   const teamId = board.picks.find(({ player }) => player?.code === selected.code)?.teamId;
   const team = draft.order.find((each) => each.teamId === teamId);

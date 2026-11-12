@@ -1,6 +1,6 @@
 import type { Id } from "../_generated/dataModel";
 import type { QueryCtx } from "../_generated/server";
-import { lastPricedSeason, lastSeasonRows, pointsAtMain } from "../draft/lastSeasonPoints";
+import { lastPricedSeason, lastSeasonRows, pointsAtMain } from "../pastSeasons/lastSeasonPoints";
 import { heldFixturesSeason } from "../shared/fixtures";
 import { seasonPointsIn, seasonPriced, type SeasonPointsOf } from "../stats/seasonPoints";
 

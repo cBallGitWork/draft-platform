@@ -43,7 +43,7 @@ export const removePartLabel = (part: number) => `Remove stat ${part}`;
 export const removePartWords = "×";
 export const addPartWords = "Add a stat";
 export const makeWords = "Make it";
-export const cancelWords = "Cancel";
+export { cancelWords } from "../shared/words";
 /** Why an own stat as typed can't be made yet. */
 export const ownStatProblemWords = {
   name: "Give it a name.",

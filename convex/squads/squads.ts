@@ -2,7 +2,7 @@ import { v, type Infer } from "convex/values";
 import type { Doc, Id } from "../_generated/dataModel";
 import { draftIsLive } from "../draft/draftRow";
 import { mutation, query, type QueryCtx } from "../_generated/server";
-import { memberOf, powersIn, refuse, refusals, runnerOf, teamIn, teamsOf } from "../shared/leagueAccess";
+import { memberOf, playerOrRefuse, powersIn, refuse, refusals, runnerOf, teamIn, teamsOf } from "../shared/leagueAccess";
 import { recordEvent } from "../mail/letters";
 import { tellShortlisters } from "../scouting/shortlist";
 import { clubByCode, playerByCode, playersNamed } from "../shared/players";
@@ -56,11 +56,6 @@ async function squadChangerOf(ctx: QueryCtx, leagueId: Id<"leagues">) {
   return runner;
 }
 
-/** The player with `code`, or the refusal that there is none. */
-async function heldPlayer(ctx: QueryCtx, code: number): Promise<Doc<"players">> {
-  return (await playerByCode(ctx, code)) ?? refuse(squadRefusals.noPlayer);
-}
-
 
 /** Refuses a team already holding the platform's most, whatever the league's own limits say. */
 async function roomOn(ctx: QueryCtx, team: Doc<"teams">): Promise<void> {
@@ -75,7 +70,7 @@ export const assign = mutation({
   returns: v.null(),
   handler: async (ctx, { leagueId, playerCode, teamId }) => {
     const { email: by } = await squadChangerOf(ctx, leagueId);
-    const player = await heldPlayer(ctx, playerCode);
+    const player = await playerOrRefuse(ctx, playerCode);
     if (player.droppedAt !== undefined) refuse(squadRefusals.playerGone(player.name));
     const team = await teamIn(ctx, leagueId, teamId);
     const place = await placeOf(ctx, leagueId, playerCode);
@@ -96,7 +91,7 @@ export const move = mutation({
   returns: v.null(),
   handler: async (ctx, { leagueId, playerCode, teamId }) => {
     const { email: by } = await squadChangerOf(ctx, leagueId);
-    const player = await heldPlayer(ctx, playerCode);
+    const player = await playerOrRefuse(ctx, playerCode);
     const team = await teamIn(ctx, leagueId, teamId);
     const place = (await placeOf(ctx, leagueId, playerCode)) ?? refuse(squadRefusals.freeAgent(player.name));
     if (place.teamId === teamId) refuse(squadRefusals.alreadyThere(player.name, team.name));
@@ -128,7 +123,7 @@ export const release = mutation({
   returns: v.null(),
   handler: async (ctx, { leagueId, playerCode }) => {
     const { email: by, league } = await squadChangerOf(ctx, leagueId);
-    const player = await heldPlayer(ctx, playerCode);
+    const player = await playerOrRefuse(ctx, playerCode);
     const place = (await placeOf(ctx, leagueId, playerCode)) ?? refuse(squadRefusals.freeAgent(player.name));
     const team = await teamIn(ctx, leagueId, place.teamId);
     await ctx.db.delete("squadPlayers", place._id);

@@ -8,7 +8,7 @@ import { refusals } from "../../../convex/shared/leagueAccess";
 import { WEEK_MS } from "../../../convex/shared/time";
 import { HELD_FIRST_RULES, holdGameweeks, NEXT, NO_AREA_MINIMUMS, rulesIn, rulesRevision } from "../../support/convex/leagueRules.harness";
 import { expectRefused } from "../../support/convex/test.harness";
-import { actingAs, addManagers, adminCreatesLeague, COMMISSIONER, CO_COMMISSIONER, eventsIn, lastEventAt, MANAGERS, type TestConvex } from "../../support/convex/leagues.harness";
+import { actingAs, addManagers, adminCreatesLeague, COMMISSIONER, CO_COMMISSIONER, eventsIn, lastEventAt, MANAGERS, TEST_LEAGUE_TEAMS, type TestConvex } from "../../support/convex/leagues.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
 
 // League settings (Craig, 22 Oct 2026): the odd team out, games a gameweek and the squad's make-up
@@ -104,7 +104,7 @@ describe("changing them", () => {
     // none in those (#282).
     const now = Date.now();
     vi.setSystemTime(now - SEASON_SO_FAR);
-    leagueId = await adminCreatesLeague(t, 4, "Made before the season");
+    leagueId = await adminCreatesLeague(t, TEST_LEAGUE_TEAMS, "Made before the season");
     await addManagers(t, leagueId, MANAGERS.slice(0, 4));
     vi.setSystemTime(now);
     const games = 3;
@@ -240,11 +240,11 @@ describe("the draft (#1087)", () => {
     await expectRefused(change({ ...FIRST, draft: { ...DRAFT, pickSeconds: 60 } }, MANAGERS[0]), refusals.notRunner);
   });
 
-  describe("on rules saved before the draft was a rule", () => {
+  describe("on rules saved before the draft and the trades were rules", () => {
     beforeEach(() =>
       t.run(async (ctx) => {
         for (const row of await ctx.db.query("leagueRules").collect()) {
-          const { draft: _draft, ...older } = row.rules!;
+          const { draft: _draft, trades: _trades, ...older } = row.rules!;
           await ctx.db.patch("leagueRules", row._id, { rules: older });
         }
       }),
@@ -254,10 +254,11 @@ describe("the draft (#1087)", () => {
       expect((await read())?.part.draft).toEqual(DRAFT);
     });
 
-    test("a change to another setting writes no draft settings and names none in its letter", async () => {
+    test("a change to another setting writes no draft or trades settings and names neither in its letter", async () => {
       await change({ ...FIRST, gamesPerGameweek: 2 });
 
       expect((await rulesIn(t, leagueId, NEXT)).draft).toBeUndefined();
+      expect((await rulesIn(t, leagueId, NEXT)).trades).toBeUndefined();
       expect((await eventsIn(t, leagueId)).at(-1)).toMatchObject({ kind: "rulesChanged", changed: ["gamesPerGameweek"] });
     });
 

@@ -1,7 +1,7 @@
 import { expect, test } from "vitest";
 import { codesByOpta } from "../../../convex/football/feedIds";
 import { matchSlots } from "../../../convex/football/premierLeague/plMatch";
-import { FORMATION_PLACES, labelPositions, placePosition, POSITIONS, positionRank, type Position } from "../../../convex/positions/positionTables";
+import { FORMATION_PLACES, formationPosition, isDrawn, labelPositions, placePosition, POSITIONS, positionRank, type Position } from "../../../convex/positions/positionTables";
 import { PLAYER, recordedPositions, SHEET } from "../../support/recorded/positions.payloads";
 
 test("each formation draws the lines its label counts, but for Opta's 4-5-1, drawn as a 4-3-2-1", () => {
@@ -84,13 +84,24 @@ test.each([
   expect(placePosition(formation, line, place)).toBe(position);
 });
 
+test.each([
+  ["a sheet with no formation", false, null, { formation: null, line: 1, place: 0 }],
+  ["a sheet with no line", false, null, { formation: "4-3-3", line: null, place: 0 }],
+  ["a sheet with no place", false, null, { formation: "4-3-3", line: 1, place: null }],
+  ["a formation the table does not know", true, null, { formation: "2-3-5", line: 1, place: 0 }],
+  ["a 4-3-3's first midfielder", true, "CM", { formation: "4-3-3", line: 2, place: 0 }],
+] as const)("a start at %s is drawn %s and placed at %s", (_what, drawn, position, start) => {
+  expect(isDrawn(start)).toBe(drawn);
+  expect(formationPosition(start)).toBe(position);
+});
+
 test("every starter on the recorded sheets is placed, and the 4-5-1's two wide men are W", () => {
   const payloads = recordedPositions();
   const codeByOpta = codesByOpta(payloads.fplElements);
   const placed = payloads.sheets
     .filter((sheet) => sheet.id !== SHEET.cityCoventryRefused)
     .flatMap((sheet) => matchSlots(sheet, codeByOpta).slots.filter((slot) => slot.started))
-    .map((slot) => ({ ...slot, position: placePosition(slot.formation!, slot.line!, slot.place!) }));
+    .map((slot) => ({ ...slot, position: formationPosition(slot) }));
 
   expect(placed.filter((slot) => slot.position === null)).toEqual([]);
   const fourFiveOne = placed.find((slot) => slot.playerCode === PLAYER.barnes && slot.formation === "4-5-1");
