@@ -2,10 +2,10 @@ import type { LabInstruction, LabReport, LabRole } from "../../convex/balanceLab
 import { instructionName } from "../../convex/lineup/instructions";
 import { roleName } from "../../convex/lineup/roles";
 import { categoryName } from "../../convex/scoring/categories";
-import { LOCALE } from "../../convex/shared/moments";
 import { signedWords } from "../../convex/shared/numberWords";
 import { cellClassOf, ColumnHeads } from "../ui/ColumnHeads";
 import { PanelNote } from "../ui/Panel";
+import { thousandsWords } from "../shared/words";
 import {
   instructionColumns,
   instructionsHint,
@@ -76,7 +76,7 @@ function LabRow({ role }: { role: LabRole }) {
             {role.average === null ? noStartsWords : signedWords(role.average)}
             {role.offTarget && <span className="ml-2 font-semibold text-event">{offTargetWords}</span>}
           </td>
-          <td className={`${cellClasses("starts")} text-figure`}>{role.starts.toLocaleString(LOCALE)}</td>
+          <td className={`${cellClasses("starts")} text-figure`}>{thousandsWords(role.starts)}</td>
         </>
       )}
     </tr>

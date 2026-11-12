@@ -8,7 +8,6 @@ import { describe, expect, it } from "vitest";
 import { PL_GAMEWEEKS } from "../../support/convex/footballRows.harness";
 import { DAY_MS, HOUR_MS, WEEK_MS } from "../../../convex/shared/time";
 import { MY_TEAM_PATH, PREMIER_LEAGUE_PATH } from "../../../src/frame/menu";
-import { menuWords } from "../../../src/frame/words";
 import type { GameweekMatch } from "../../../src/premierLeague/seam";
 import {
   dayWords,
@@ -26,7 +25,7 @@ import {
   scoreWords,
   versusWords,
 } from "../../../src/premierLeague/words";
-import { gameweekShort, nextGameweekLabel, previousGameweekLabel } from "../../../src/shared/words";
+import { gameweekShort, menuWords, nextGameweekLabel, previousGameweekLabel } from "../../../src/shared/words";
 import { ARSENAL, CHELSEA, FOREST, plMatch, SPURS } from "../../support/src/premierLeague.harness";
 import { openSection } from "../../support/src/premierLeagueScreen.harness";
 import { manager, openApp } from "../../support/src/shell.harness";

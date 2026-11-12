@@ -1,7 +1,7 @@
 import { useState, type FormEvent } from "react";
 import { PANEL_BODY, PANEL_LIST_ROW, Panel, PanelNote, Problem } from "../ui/Panel";
 import { useChange } from "../shared/useChange";
-import { useMinute } from "../shared/useMinute";
+import { useNowEachMinute } from "../shared/useMinute";
 import type { InvitesPageData, JoiningSeam } from "./seam";
 import { TeamSelect, useTeamChoice } from "./TeamChoice";
 import {
@@ -46,10 +46,8 @@ export function EmailInvites({ page, joining }: { page: InvitesPageData; joining
     if (await run(() => joining.invite(page.leagueId, email, teamId))) setEmail("");
   }
 
-  // Redrawn each minute so an invite that lapses while the page is open shows as expired; judged
-  // against the moment itself, not the minute's start, which would keep it live up to 59s past.
-  useMinute();
-  const now = Date.now();
+  // An invite that lapses while the page is open shows as expired.
+  const now = useNowEachMinute();
   const change: InviteChange = {
     busy,
     resend: (invite) => void run(() => joining.resendInvite(invite.inviteId)),

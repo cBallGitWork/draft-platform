@@ -18,9 +18,6 @@ export const continueWords = "Continue";
 export const continueLabel = (reason: string) => `Continue: ${reason}`;
 export const signOutWords = "Sign out";
 
-/** The top menu's sections and Home's, My team's and Trades' tabs (menu.ts). */
-export { menuWords } from "../shared/words";
-
 /** The top bar's league switcher (LeagueSwitcher.tsx): the league the app is in, and the way to them all. */
 export const currentLeagueLabel = "League:";
 export const allLeaguesWords = "All your leagues";

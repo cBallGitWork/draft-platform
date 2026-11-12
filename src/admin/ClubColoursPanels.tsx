@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from "react";
-import { UNSET_COLOURS, type Colours, type Pattern } from "../../convex/football/clubColours";
+import { SHIRT_PATTERNS, UNSET_COLOURS, type Colours, type Pattern } from "../../convex/football/clubColours";
 import { useChoiceAmong } from "../shared/useChoiceAmong";
 import { PANEL_BODY, Panel, PanelNote } from "../ui/Panel";
 import { ClubSelect, LabelledField } from "./fields";
@@ -25,7 +25,6 @@ type Club = PositionsQueue["clubs"][number];
 
 const CLUB_ID = "colours-club";
 const PATTERN_ID = "colours-pattern";
-const PATTERNS: readonly Pattern[] = ["plain", "stripes"];
 
 /** The clubs with no colours held, whose shirts and marks are white until he sets them. */
 export function Uncoloured({ queue }: Pick<PanelProps, "queue">) {
@@ -98,7 +97,7 @@ function ColoursForm({ club, seam, change }: { club: Club } & Pick<PanelProps, "
             onChange={(event) => setColours({ ...colours, pattern: event.target.value as Pattern })}
             className="text-box"
           >
-            {PATTERNS.map((pattern) => (
+            {SHIRT_PATTERNS.map((pattern) => (
               <option key={pattern} value={pattern}>
                 {patternWords[pattern]}
               </option>

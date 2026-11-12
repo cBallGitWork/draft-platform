@@ -9,7 +9,6 @@ import { describe, expect, it } from "vitest";
 import { TOP_ROWS } from "../../../convex/home/glance";
 import { MINUTE_MS } from "../../../convex/shared/time";
 import { HOME_PATH, MY_TEAM_PATH, TABLE_PATH } from "../../../src/frame/menu";
-import { menuWords } from "../../../src/frame/words";
 import {
   columns,
   headToHeadsLabel,
@@ -26,7 +25,7 @@ import {
   yourTeamWords,
 } from "../../../src/home/words";
 import { scoreWords } from "../../../src/matchup/words";
-import { formLabel } from "../../../src/shared/words";
+import { formLabel, menuWords } from "../../../src/shared/words";
 import { expectColumnHeads } from "../../support/src/columnHeads";
 import { homeFixture, homeRow } from "../../support/src/home.harness";
 import { openHome, withHome } from "../../support/src/homeScreen.harness";

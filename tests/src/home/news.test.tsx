@@ -7,7 +7,7 @@ import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
 import type { Id } from "../../../convex/_generated/dataModel";
 import { HOME_NEWS_PATH, HOME_PATH, MAIL_PATH } from "../../../src/frame/menu";
-import { menuWords } from "../../../src/frame/words";
+import { menuWords } from "../../../src/shared/words";
 import type { LeagueNews } from "../../../src/home/seam";
 import {
   everyKindWords,
