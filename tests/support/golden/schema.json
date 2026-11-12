@@ -6320,6 +6320,12 @@
               "type": "string"
             },
             "optional": true
+          },
+          "joinFailedAt": {
+            "fieldType": {
+              "type": "number"
+            },
+            "optional": true
           }
         }
       }
