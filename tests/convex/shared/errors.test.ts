@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { outcomeOf } from "../../../convex/shared/errors";
+import { leagueLabel, outcomeOf } from "../../../convex/shared/errors";
 import { silenceConsoleError } from "../../support/convex/test.harness";
 
 const FAILURE_WORDS = "test feed failed";
@@ -17,5 +17,11 @@ describe("outcomeOf", () => {
     });
     expect(outcome).toEqual({ ok: false, error: "feed down" });
     expect(consoleError.mock.calls).toEqual([[`${FAILURE_WORDS}: feed down`]]);
+  });
+});
+
+describe("leagueLabel", () => {
+  it("names a league in a failure line by its id and name", () => {
+    expect(leagueLabel({ _id: "k123", name: "Sunday League" })).toBe("League k123 (Sunday League)");
   });
 });

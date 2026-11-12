@@ -7,6 +7,7 @@ import type { LeagueRules } from "../../../convex/rules/leagueRulesShape";
 import type { StoredScoringSet } from "../../../convex/scoring/scoringSetShape";
 import { siteScoringInGameweek } from "../../../convex/scoring/siteVersions";
 import { scoreMatch } from "../../../convex/scoring/scoring";
+import { PL_GAMEWEEKS } from "../../support/convex/footballRows.harness";
 import { centreOf, EXAMPLE_SET } from "../../support/convex/scoring.example";
 import { changeRules, HELD_FIRST_RULES, holdGameweeks, latestRules, rulesIn, rulesRevision, rulesWith, TOTAL_POINTS } from "../../support/convex/leagueRules.harness";
 import { expectRefused } from "../../support/convex/test.harness";
@@ -18,6 +19,7 @@ import {
   CO_COMMISSIONER,
   eventsIn,
   MANAGERS,
+  TEST_LEAGUE_TEAMS,
   type TestConvex,
 } from "../../support/convex/leagues.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
@@ -44,9 +46,9 @@ describe("a new league", () => {
   });
 
   test("starts on the admin's defaults as they are when it's made, and keeps its own after", async () => {
-    const before = await adminCreatesLeague(t, 4, "Before");
+    const before = await adminCreatesLeague(t, TEST_LEAGUE_TEAMS, "Before");
     await t.mutation(internal.rules.leagueRules.setDefaults, { rules: TOTAL_POINTS });
-    const after = await adminCreatesLeague(t, 4, "After");
+    const after = await adminCreatesLeague(t, TEST_LEAGUE_TEAMS, "After");
 
     expect((await latestRules(t, before))?.rules).toEqual(HELD_FIRST_RULES);
     expect((await latestRules(t, after))?.rules).toEqual(TOTAL_POINTS);
@@ -54,8 +56,8 @@ describe("a new league", () => {
 });
 
 test("two leagues hold different rules side by side, and neither holds a scoring set, so a match is priced by the site's (#354; their tables: twoLeagues.test.ts)", async () => {
-  const first = await adminCreatesLeague(t, 4, "First");
-  const second = await adminCreatesLeague(t, 4, "Second");
+  const first = await adminCreatesLeague(t, TEST_LEAGUE_TEAMS, "First");
+  const second = await adminCreatesLeague(t, TEST_LEAGUE_TEAMS, "Second");
   await change(second, TOTAL_POINTS);
 
   expect((await latestRules(t, first))?.rules).toEqual(HELD_FIRST_RULES);
@@ -86,7 +88,7 @@ describe("a commissioner's change", () => {
     expect(await change(leagueId)).toBe(9);
     expect(await rulesIn(t, leagueId, 8)).toEqual(HELD_FIRST_RULES);
     expect(await rulesIn(t, leagueId, 9)).toEqual(TOTAL_POINTS);
-    expect(await rulesIn(t, leagueId, 38)).toEqual(TOTAL_POINTS);
+    expect(await rulesIn(t, leagueId, PL_GAMEWEEKS)).toEqual(TOTAL_POINTS);
   });
 
   test("is filed for Mail with what changed and from when", async () => {
@@ -115,6 +117,22 @@ describe("a commissioner's change", () => {
     const filed = (await eventsIn(t, leagueId)).filter((event) => event.kind === "rulesChanged");
     expect(filed.map((event) => event.kind === "rulesChanged" && event.changed)).toEqual([["format"], ["format", "tieBreaks"]]);
   });
+
+  test.each(["draft", "trades", "instructions", "classics"] as const)(
+    "on rules saved without their %s, a save with the first rules' value names only what else changed (#1742)",
+    async (part) => {
+      const leagueId = await adminCreatesLeague(t);
+      await t.run(async (ctx) => {
+        for (const row of await ctx.db.query("leagueRules").collect()) {
+          const { [part]: _part, ...older } = row.rules!;
+          await ctx.db.patch("leagueRules", row._id, { rules: older });
+        }
+      });
+      await change(leagueId, rulesWith({ format: "totalPoints" }));
+
+      expect((await eventsIn(t, leagueId)).at(-1)).toMatchObject({ kind: "rulesChanged", changed: ["format"] });
+    },
+  );
 
   test("the odd team out is changed like any other rule, and only to a bye or the league's average", async () => {
     const leagueId = await adminCreatesLeague(t);

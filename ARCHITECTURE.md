@@ -17,7 +17,7 @@ reason, and a change to either changes this file.
 | Backend | [Convex](https://docs.convex.dev): database, live queries, timers, sign-in | a pick's timer is saved with the pick, so pause and undo cancel it; live scores reach browsers with no extra service; one vendor, hard-capped free plan |
 | Pages | Vercel, free (Hobby) plan | the companion's host |
 | Releases | a merge to `main` is a Vercel production build, whose build command (`vercel.json`) is `node scripts/release.mjs`, which runs `npx convex deploy --cmd 'npm run build'`: the server code goes live on the live Convex deployment, then the site is built against it (Craig, 22 Oct 2026). Before deploying, it backs up saved data if the release changes its shape (spec/20, Rolling back): it fingerprints `convex/schema.ts`'s tables and document types (bundled with esbuild, pinned to the version `convex` uses so there is one copy, and read through Convex's own serialised schema), and compares that with the fingerprint the last release left on the live deployment as the `LIVE_SCHEMA_FINGERPRINT` environment variable. A difference, no record yet, or a schema it can't read means `npx convex export` first, which has Convex keep a snapshot on the deployment's Backup & Restore page; if that fails, nothing deploys and the build says why. The same shape deploys with no backup. How to restore: [docs/setup.md](docs/setup.md#restoring-saved-data). Nothing else deploys: `git.deploymentEnabled` turns off every branch but `main`, and `scripts/release.mjs` refuses, before anything else and saying why in the build log, a build whose `VERCEL_ENV` is set and isn't `production`, or one without `CONVEX_DEPLOY_KEY` (Vercel holds it for production only), so a preview, from git or the CLI, can never deploy Convex. vercel.json has no `ignoreCommand` (#512) | one step ships site and server together, and reverting the merge undoes both; no preview sites for now (spec/20); the backup is automatic because the free plan allows it: "Periodic backups require a Convex Pro plan", but "On the Free/Starter plan, up to two backups can stored per deployment at a time", each "accessible for up to 7 days" (docs.convex.dev/database/backup-restore, 28 Oct 2026), and Convex keeps it, since a Vercel build's files are thrown away; Convex documents no way to read a deployment's schema back, so the release records its own |
-| The after-release check | `.github/workflows/release-check.yml`, on Vercel's `vercel.deployment.success` dispatch for production (sent only while the project's `gitProviderOptions.disableRepositoryDispatchEvents` is off, which `npm run setup:live` sees to, #512), and by hand, where `site` points it elsewhere: `tests/live/signIn.live.spec.ts` (`playwright.live.config.ts`) opens the live site in Playwright's container image, asks for a sign-in link for its own address, reads the email back through Resend's receiving API (`scripts/sign-in-inbox.mjs`), opens the link and sees Sign out; a failure turns the run red. Its two secrets: `RELEASE_CHECK_EMAIL`, an address Resend receives for the account (`<anything>@<id>.resend.app`, so no mailbox or MX record), put on the live site's allowed list; and `RELEASE_CHECK_RESEND_KEY`, a full-access Resend key, the only kind that reads received emails. While either is missing it skips and says so | it signs in exactly as a manager does, so the live site has no test-only way in; each run spends two of Resend's 3,000 a month, the link sent and then received (Resend's pricing page: "each received email counts towards your transactional emails quota", 28 Oct 2026), and one sent of its 100 a day; the address is a secret, since anyone who knew it could spend the day's emails asking for links; past the hour's three links for its address (a run of releases) it skips, saying so, rather than go red, until Craig decides |
+| The after-release check | `.github/workflows/release-check.yml`, on Vercel's `vercel.deployment.success` dispatch for production (sent only while the project's `gitProviderOptions.disableRepositoryDispatchEvents` is off, which `npm run setup:live` sees to, #512), and by hand, where `site` points it elsewhere: `tests/live/signIn.live.spec.ts` (`playwright.live.config.ts`) opens the live site in Playwright's container image, asks for a sign-in link for its own address, reads the email back through Resend's receiving API (`scripts/sign-in-inbox.mjs`), opens the link and sees Sign out; a failure turns the run red. Its two secrets: `RELEASE_CHECK_EMAIL`, an address Resend receives for the account (`<anything>@<id>.resend.app`, so no mailbox or MX record), put on the live site's allowed list; and `RELEASE_CHECK_RESEND_KEY`, a full-access Resend key, the only kind that reads received emails. While either is missing it skips and says so | it signs in exactly as a manager does, so the live site has no test-only way in; each run spends two of Resend's 3,000 a month, the link sent and then received (Resend's pricing page: "each received email counts towards your transactional emails quota", 28 Oct 2026), and one sent of its 100 a day; the address is a secret, since anyone who knew it could spend the day's emails asking for links; a release within 60 minutes of the last sign-in run (`SIGN_IN_GAP_MINUTES`) skips, saying so, and a run by hand always signs in; otherwise the hour's sign-in link limit turns it red, like any failure (spec/20, Every release; #908) |
 | Timed work | Convex scheduled functions and crons | Vercel Hobby cron runs once a day and GitHub Actions cron can't hold a minute, so every timer lives with the data |
 | The gate in CI | GitHub Actions on `ubuntu-latest`: `.github/workflows/verify.yml` runs the steps of `npm run verify` and `npm run build` in one `verify` job with one `npm ci` (types and lint first), beside `npm run smoke` (Craig, 4 Nov 2026), on every pull request to main (Craig, 20 Oct 2026), and on main once a night (03:30 UTC) and by hand from the Actions tab, not on every merge (Craig, 4 Nov 2026); a failed nightly run turns main's last commit red and opens or comments on the `nightly-ci` issue; a pull request that changes only docs, spec, `.claude/`, markdown or the agents' prompt workflows skips the unit tests, build and smoke, and the jobs `verify` and `smoke` are the results the ruleset requires (Craig, 3 Nov 2026), with `look-approved` (`.github/workflows/look-gate.yml`), the approved-picture check, the third (Craig, 5 Nov 2026), which lists layout differences for the UI reskin and holds no merge (Craig, 7 Nov 2026); the verify job checks out full history, so verify's add-only check on recorded payloads and goldens can compare with origin/main, as its tests-kept check does (`scripts/tests-kept.mjs`, #156); the smoke job runs in Playwright's own container image (`mcr.microsoft.com/playwright`), tagged with the Playwright version the changes job reads from `package-lock.json`, so Chromium and its OS packages come baked in (#281, #372) | two pull requests that pass alone can break main together (#69 and #77), which the nightly run catches once a branch need not hold all of main; Linux is the cheapest runner, and the hook checks need only bash, Python, git and jq; no secrets, since no test in it touches a deployment: the secrets in GitHub are the after-release check's (below), read only by its workflow, and `CLAUDE_CODE_OAUTH_TOKEN`, Craig's Claude subscription, read only by `.github/workflows/claude-build.yml`, which builds an issue when Craig puts the `build` label on it and opens a pull request (docs/PLAN.md, "The pipeline"; Craig, 2 Nov 2026), and by `review.yml`; no workflow reads the metered `ANTHROPIC_API_KEY` since 11 Nov 2026, which `verify` enforces |
 | Error reports | Sentry, from the browser only (`@sentry/react`, `src/app/errorReports.tsx`): on only when the build has `VITE_SENTRY_DSN`, errors only, no tracing or replays, every report scrubbed of the signed-in user, email addresses and sign-in codes before it leaves | docs/PLAN.md, "No monitoring": a breakage would otherwise reach us from players; the beta's managers are friends, so nothing personal goes to a third party |
@@ -85,7 +85,7 @@ its team stats reads are kept for the tests (`tests/support/recorded/pl-live-mat
 | Styling | Tailwind 4 with our own design values | the defaults are the generic AI look Craig wants to get far from |
 | Typeface | Archivo Narrow from Fontsource, and Archivo's variable font with its width axis (`@fontsource-variable/archivo`, `wdth.css`) | plate.md's two faces, served with the app: no call to Google from the sign-in page, and screenshots don't wait on a font server. The variable font is one file for the heavy wide titles (weight 800, width 125), where static files would need a width the package doesn't ship |
 | Tables | hand-built `<table>`s styled with Tailwind, such as Scouting's players list (`src/scouting/PlayersTable.tsx`), sorted by the server; TanStack Table and TanStack Virtual when a table needs virtualising | a plain table takes Championship Manager density with no library to learn; TanStack's are unstyled, so they would too, and its Table v9 is newer than Claude's knowledge, so read its docs first |
-| Tactics pitch | the browser's own drag and drop (`draggable`, in `src/myTeam/tactics/pitch/Pitch.tsx` and `src/myTeam/tactics/SelectionTable.tsx`), plus a tap, click or Enter to pick a player up and another to place him, both reaching one `onPlace` | a phone and a keyboard need the tap anyway, so drag is only the desk's shortcut and needs no package; Pragmatic drag and drop if drag ever needs more than the browser gives |
+| Tactics pitch | the browser's own drag and drop (`draggable`, in `src/myTeam/tactics/pitch/Pitch.tsx` and `src/myTeam/tactics/SelectionTable.tsx`), plus a tap, click or Enter to pick a player up and another to place him, both reaching one `onDrop` | a phone and a keyboard need the tap anyway, so drag is only the desk's shortcut and needs no package; Pragmatic drag and drop if drag ever needs more than the browser gives |
 | Motion | considered, not needed yet: Motion when a screen needs animating | the live points change without it |
 | Forms | React Hook Form with Zod, when a form needs them | the league-rules forms are large. The scoring editor (#30) didn't: its form is the scoring set itself, edited as data (`src/scoring/editing.ts`) and checked by the server's `validateScoringSet`, which a Zod schema would only repeat |
 | Charts | Recharts | what shadcn's charts use |
@@ -143,7 +143,9 @@ Tactics pitch are built with no package, and components, motion, forms and chart
   player and fixture codes, both feeds merged by spec/07's split
   ([docs/pl-match-stats.md](docs/pl-match-stats.md#one-record-per-player-per-match)).
   `convex/stats/matchStatsSync.ts` reads each match the Premier League calls full time; every run,
-  failed or not, is a row in `matchStatsSyncs`. A run reads ten matches at most, the least
+  failed or not, is a row in `matchStatsSyncs`. Each match's place in the window, provisional to
+  locked, is its row in `matchStatsStatus`, and a correction seen after it locked a row in
+  `lateStatCorrections` (`convex/schema/matchStats.ts`). A run reads ten matches at most, the least
   lately tried first (`matchStatsTries`), so ones that fail or wait every run hold up no newer
   match. The lock is a scheduled function, so it fires
   with no run due; the window is a row in `platformSettings`.
@@ -215,8 +217,9 @@ Tactics pitch are built with no package, and components, motion, forms and chart
   mustn't read the clock.
 - Positions (#22): each player's in `playerPositions`, keyed on FPL's `code`, apart from
   `players` so no feed read touches the admin's say; `positionsSync` files each match's starts
-  once (`positionSheets`) and is run by hand for now, each run a row in `positionsSyncs`
-  ([docs/positions.md](docs/positions.md)). Each warning Mail has sent a manager about a player's
+  once (`positionSheets`) and runs daily from a cron (#1194), each run a row in `positionsSyncs`
+  ([docs/positions.md](docs/positions.md)). How starts count, and change a position, is the one
+  row in `positionSettings`, absent until the admin first sets it. Each warning Mail has sent a manager about a player's
   position, flagged and then lost (#23), is a row in `positionWarnings` while it stands, so each
   step is told once (`convex/positions/positionWarnings.ts`).
 - League rules are rows, never constants; FPL's own rules can be constants. Each league's are rows
@@ -238,7 +241,10 @@ Tactics pitch are built with no package, and components, motion, forms and chart
   lineup's included: that one (`firstLineup: true`) is picked again on each squad change until the
   manager saves (`convex/lineup/lineups.ts`). A league's deadline for a gameweek is kept once it passes, in
   `passedDeadlines` (#150, `convex/gameweeks/deadlineRecorder.ts`), so it stays put if the first
-  match is then postponed; the one deadline alarm pending, site-wide, is the one row in
+  match is then postponed; one FPL stopped sending keeps its last deadline in `keptDeadlines`
+  (#202) until it passes. A feed's round's first kickoff, as first seen, is a row a season and
+  round in `roundStarts` (#1416, `convex/gameweeks/roundStarts.ts`), so a later move never shifts
+  a gameweek's window. The one deadline alarm pending, site-wide, is the one row in
   `deadlineAlarms` (#1329), so it is kept or cancelled by its id. The gameweek a manager last opened Tactics in is `tacticsOpenedInGameweek`
   on his team's row, so Continue stops leading him there on every device (#526,
   `convex/lineup/lineupDue.ts`); a new manager of a vacated team starts without it. Each team's
@@ -250,7 +256,9 @@ Tactics pitch are built with no package, and components, motion, forms and chart
 - Mail (#26): a letter is a row in `letters` for each person it's to, filed when it's sent, so
   someone who joins later doesn't get old ones.
 - A deleted league is gone for good 24 hours on: `deleteForGood`, a scheduled function, removes
-  it and every row keyed to it, in batches, archiving nothing (#75).
+  it and every row keyed to it, in batches, archiving nothing (#75). Each person who couldn't be
+  emailed that it was deleted is a row in `unemailedDeletions` (#320), naming the league, until
+  it ages out (`convex/leagues/deletionNotices.ts`, #897).
 - Each ask for a sign-in link that was answered "check your email" is a row in `signInAsks`, a
   failed send kept with its error, and each day's emails are counted in `emailSends` against
   Resend's 100 (#20).
@@ -262,7 +270,8 @@ Tactics pitch are built with no package, and components, motion, forms and chart
   team per player per league (index `by_leagueId_and_playerCode`). Assigning, moving and
   releasing a player are filed as `leagueEvents` for Mail, and so is a draft pick, as an
   assignment; each pick is also a `draftPicks` row (league, pick number, team, `code`), and the
-  draft's row keeps the squad rules its picks follow (#1090).
+  draft's row in `drafts` (#1089, one a league at most) keeps the squad rules its picks follow
+  (#1090). The admin's ranking that auto-pick takes from is the one row in `draftRanking` (#1093).
 - Fixtures and the table (#129, #131, #137): a gameweek's fixtures are stored in
   `playedFixtures` once it begins, at the league's own deadline, and read from there ever after;
   the gameweeks still to come are drawn on every read, seeded by the league's id. The football
@@ -281,14 +290,19 @@ Tactics pitch are built with no package, and components, motion, forms and chart
   that redraws it replaces them, and once it begins it is stored as edited
   (`convex/table/fixtureEdits.ts`).
 - Season totals: each player's stats for a season are a row in `playerSeasonStats`, kept in step as
-  each match record is written, so Scouting sorts by any stat without reading a season of records
-  (`convex/stats/seasonStats.ts`).
+  each match record is written (`convex/stats/seasonStats.ts`). Scouting's list reads
+  `scoutingPlayers` (#1559), one row a player copying his `players` row, his positions and his
+  newest season's totals, so it sorts by any stat reading one row a player
+  (`convex/scouting/scoutingPlayers.ts`).
 - Stars (#11): each player's points per match under each role he is rated for, and his stars for
   each, are a row in `playerRoleStars`, one a player with a counted match, so no read prices every
   player under every role. A match's lock sets its players' rows afresh and ranks everyone again;
   a version of the site's scoring taking effect does every player's. A player gone from the
   Premier League keeps his row while a squad in any league holds him
-  (`convex/stars/starsRefresh.ts`).
+  (`convex/stars/starsRefresh.ts`). Each bench player's stars at a league's deadline, with the
+  lineup's men, clubs and positions then, are a row a league, gameweek and team in
+  `deadlineStars`, so scoring the gameweek again never moves an auto-sub's role
+  (`convex/stars/deadlineStars.ts`).
 - Season points (#525): each player's base points this season, summed at every position, are a row
   in `playerSeasonPoints`, set afresh from his records just after a record write changes what one
   counts or a played match leaves the feed or moves gameweek, so Scouting lists every player's
@@ -310,7 +324,9 @@ Tactics pitch are built with no package, and components, motion, forms and chart
   (`convex/draft/draftLists.ts`).
 - Trades (#383): each offer still open or in review is a row in `tradeOffers`, with any draft picks
   in it (#1096) and who reviews it once accepted; one that closes, goes through or is blocked
-  leaves the table, and Mail and the squad moves it files say what happened (`convex/trades/`).
+  leaves the table, and Mail and the squad moves it files say what happened. One that ended
+  without going through is kept as it was made, with when and why, in `closedTradeOffers`
+  (`convex/trades/`).
 - Waivers (#1197, #1198): each player on waivers in a league is a row in `waiverPlayers`, by FPL's
   `code`, with when a run may first take him; a player no team holds and with no row is a free
   agent. A manager's pending claims, in his order, are rows in `waiverClaims`, gone once a run
@@ -367,7 +383,7 @@ The homes the folder pass set (29 Oct 2026), so new code has one place to go:
 - `src/app/`: how the app starts. `src/routes/`: the routes and the router. `src/`'s top level
   keeps only `main.tsx` and `styles.css`. The tokens stay in `styles.css`; a screen's own long
   utilities sit beside it and `styles.css` imports them (`src/myTeam/tactics/pitch/pitch.css`, 31 Oct 2026),
-  as it does the controls' shared styles (`src/ui/controls.css`: the action, keys, boxes, the tick well).
+  as it does the controls' shared styles (`src/ui/controls.css`: the action, keys, boxes, the tick well, the radio well).
 - `convex/schema/`: the schema's tables, one file per feature, imported only by `convex/schema.ts`.
   `convex/stars/`: stars, which role suits a player (#11): the rating, its stored rows and their
   refresh, the reads, the role a player dropped into a slot starts on, and each
@@ -387,17 +403,22 @@ The homes the folder pass set (29 Oct 2026), so new code has one place to go:
   (the rule balance lab, #843), `feedback`, `football` (the feeds and what they fill), `gameweeks`
   (deadlines, a league's gameweeks, the scoring start), `heartbeats` (Healthchecks pings and the
   lead's wake-up), `home` (League home: the glance, matchday, news and recaps), `joining`, `leagues`,
-  `mail`, `match` (one Premier League match's page), `matchup`, `outbound` (what leaves the app:
-  email through Resend, Claude, the deployment's settings), `pastSeasons` (past seasons' copy and
-  points, #1113), `playerCard`, `positions`, `scouting` (the players list, compare, shortlist,
-  scouts and the stat race), `shared` (helpers every feature uses), `signIn`, `stats` (match records
-  and their totals), `trades` (#383) and `waivers` (waivers and free agents, #1197). Screens
+  `lineup` (a team's lineup: its pitch, roles, instructions, saved plans and auto-subs), `mail`,
+  `match` (one Premier League match's page), `matchup`, `outbound` (what leaves the app: email
+  through Resend, Claude, the deployment's settings), `pastSeasons` (past seasons' copy and points,
+  #1113), `playerCard`, `positions`, `rules` (a league's rules: its settings, their checks, history
+  and locks), `scoring` (the site's scoring set, its versions and patches, and a team's points),
+  `scouting` (the players list, compare, shortlist, scouts and the stat race), `shared` (helpers
+  every feature uses), `signIn`, `squads` (a team's squad: its limits, numbers and transactions),
+  `stats` (match records and their totals), `table` (the table, its fixtures, final scores and
+  points overrides), `trades` (#383) and `waivers` (waivers and free agents, #1197). Screens
   (`src/`): `admin` (the admin's dashboard), `draft` (the draft room), `feedback`, `gameweeks` (the
-  commissioner's gameweeks, #74), `home` (League home and its news), `joining`, `leagues`, `mail`,
-  `matchup`, `myTeam` (squad, tactics and waiver claims in `claims/`), `patches` (patch notes, the
-  banner, the lab's report), `playerCard`, `premierLeague`, `scouting` (with `shortlist/` and
-  `scouts/`), `signIn`, `squads` (a league's squads, #31), `table` (the table, fixtures and cup) and
-  `trades` (offers, #383).
+  commissioner's gameweeks, #74), `home` (League home and its news), `joining`, `leagues`,
+  `leagueSettings` (League settings), `mail`, `matchup`, `myTeam` (squad, tactics and waiver claims
+  in `claims/`), `patches` (patch notes, the banner, the lab's report), `playerCard`,
+  `premierLeague`, `scoring` (Player scoring), `scouting` (with `shortlist/` and `scouts/`),
+  `signIn`, `squads` (a league's squads, #31), `table` (the table, fixtures and cup) and `trades`
+  (offers, #383).
 - `convex/table/` keeps its name, because the browser and the scheduler call its functions.
 - Where a screen's feature and its server split their jobs differently, they have different names
   (rule 1 holds for every other feature):
@@ -413,7 +434,7 @@ The homes the folder pass set (29 Oct 2026), so new code has one place to go:
 - Sub-folders: past about 12 files, a job with its own files and name gets a sub-folder
   (`src/frame/topBar/`, `src/myTeam/header/`, `src/myTeam/squad/`, `src/myTeam/tactics/`,
   `src/scouting/shortlist/`, `src/scouting/scouts/`, `src/myTeam/claims/`, and inside Tactics the pitch's drawing in `pitch/`, the formation window
-  in `formationWindow/` and its panels in `widgets/`, 1 Nov 2026). A folder over 12 that is one job, or whose
+  in `formationWindow/` and its panels in `widgets/`, 1 Nov 2026, and the role card in `roleCard/`). A folder over 12 that is one job, or whose
   tests mirror its sources, stays flat.
 
 **The rules**, from how the folder pass left the code (29 Oct 2026, counts from `find src convex`):
@@ -435,8 +456,9 @@ The homes the folder pass set (29 Oct 2026), so new code has one place to go:
    Link component, its seam's types, its `paths.ts`, its `live<Feature>.ts` (into another's
    `live<Feature>.ts`, or `src/app/liveApp.tsx`, which joins them) and its `preview.ts` (into
    another's `preview.ts`). A `words.ts` never re-exports another feature's words: words two
-   features say move to `src/shared/words.ts` (#1330). No import cycles
-   (`tests/convex/importCycles.test.ts`).
+   features say move to `src/shared/words.ts` (#1330). `tests/convex/featureImports.test.ts`
+   holds both, with the imports still to move on a list that only shrinks (#1581). No import
+   cycles (`tests/convex/importCycles.test.ts`).
 5. Something two features use stays with its owner; at the third, it moves to `shared/` or `ui/`.
 6. A file stops at 300 lines and is split along a seam; a folder past about 12 files gets a
    sub-folder (above). `convex/lineup` (21 files), `convex/scoring` (21) and `convex/stats` (17)

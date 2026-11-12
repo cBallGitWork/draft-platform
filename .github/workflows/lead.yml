@@ -113,10 +113,11 @@ env:
   # The tripwire: a check each pass on main that pings Healthchecks' TRIP_CHECK as failed, which emails Craig, when in
   # the last TRIP_WINDOW_MINUTES a workflow ran for someone not in KNOWN_ACTORS, a commit reached main with no pull
   # request, or a pull request not opened by Craig touched TRIP_PATHS; or more than MAX_BUILDS_A_DAY builds started in
-  # a day (it ran 38 to 70 a day, 6-11 Nov 2026), which also pauses builds until Craig closes the pause issue.
+  # a day (38 to 70 a day, 6-10 Nov 2026; 307 on 11 Nov building the second refactor pass, Craig: "we were doing a
+  # refactor"), which also pauses builds until Craig closes the pause issue.
   TRIP_CHECK: "tripwire"
   TRIP_WINDOW_MINUTES: 90  # past one missed half-hourly pass; Healthchecks emails once when it goes down
-  MAX_BUILDS_A_DAY: 120
+  MAX_BUILDS_A_DAY: 400
   KNOWN_ACTORS: "CBHelper180 claude[bot] github-actions[bot] vercel[bot]"  # and OWNER
   TRIP_PATHS: "^(\\.github/|\\.claude/|CLAUDE\\.md$)"
 
@@ -319,7 +320,9 @@ jobs:
               | "\(.number):\(.headRefName | capture("^wip/issue-(?<n>[0-9]+)-").n)"' <<<"$prs"); do
             [ "$slots" -gt 0 ] || break
             pr=${row%%:*} n=${row#*:}
-            gh issue view "$n" --json labels --jq '.labels[].name' | grep -qx 'rules:open' && continue
+            # read first, then test, as in 1a: a failed read in a pipe would read as "no open rules" and resume it
+            labels=$(gh issue view "$n" --json labels --jq '.labels[].name')
+            grep -qx 'rules:open' <<<"$labels" && continue
             take "$n" || continue
             dispatch "$n" build; label "$pr" "$RESUMED_LABEL"; slots=$((slots - 1))
           done

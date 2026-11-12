@@ -10,6 +10,7 @@ import { ALL_CELLS, byPitchOrder, cellKey, positionOfSlot, sameCell, sameShape, 
 import { reconciled, type LineupRules } from "../../../convex/lineup/lineup";
 import type { Position } from "../../../convex/positions/positionTables";
 import type { OpenTactics } from "../../../convex/lineup/tactics";
+import type { Preset } from "../../../convex/lineup/presets";
 import { everyRoleOf, roleIn, takesRole, type Formation, type Role } from "../../../convex/lineup/roles";
 import { bestRoleIn, droppedStarter, starsIn } from "../../../convex/stars/bestRole";
 import type { InstructionPair, Side } from "../../../convex/lineup/instructions";
@@ -165,13 +166,16 @@ export function sameLineup(one: EditedLineup, other: EditedLineup): boolean {
   return key(one) === key(other) && one.classicFormation === other.classicFormation;
 }
 
+/** A league preset as the pitch reads it, from its rules: its name and cells. */
+export type PresetShape = Pick<Preset, "name" | "cells">;
+
 /** The league's preset whose shape the eleven stand in now, cell for cell, if any: its key is the
  *  one pressed in the Formation keys, and its name heads the pitch. */
-export const presetInUse = <Shape extends { name: string; cells: readonly Cell[] }>(draft: EditedLineup, presets: readonly Shape[]): Shape | undefined =>
+export const presetInUse = <Shape extends PresetShape>(draft: EditedLineup, presets: readonly Shape[]): Shape | undefined =>
   presetOfCells(draft.starters, presets);
 
 /** The league's preset whose shape is these cells, cell for cell, if any. */
-export function presetOfCells<Shape extends { name: string; cells: readonly Cell[] }>(cells: readonly Cell[], presets: readonly Shape[]): Shape | undefined {
+export function presetOfCells<Shape extends PresetShape>(cells: readonly Cell[], presets: readonly Shape[]): Shape | undefined {
   return presets.find((preset) => sameShape(preset.cells, cells));
 }
 

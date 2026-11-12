@@ -1,7 +1,7 @@
 import { expect, test, vi } from "vitest";
 import { internal } from "../../../convex/_generated/api";
 import { PING_FAILED_LOG, PING_URL_ENV, scheduleHeartbeat, withHeartbeat } from "../../../convex/heartbeats/heartbeat";
-import { freshConvex, pendingJobs, silenceConsoleError } from "../../support/convex/test.harness";
+import { freshConvex, pendingJobs, silenceConsoleError, everyJobRuns } from "../../support/convex/test.harness";
 
 // The timed jobs' heartbeats to Healthchecks.io (docs/PLAN.md, "No monitoring"): a ping when a
 // job finishes, a failure ping when it throws, and nothing at all with no ping address set.
@@ -76,7 +76,7 @@ test("the daily clean-up pings once its last run log is pruned", async () => {
   vi.useFakeTimers();
   const t = freshConvex();
   await t.mutation(internal.admin.runLogs.prune, {});
-  await t.finishAllScheduledFunctions(vi.runAllTimers);
+  await everyJobRuns(t);
   expect(fetch.mock.calls.map(([url]) => url)).toEqual([`${BASE}/prune-run-logs`]);
 });
 
@@ -86,8 +86,8 @@ test("the waiver runs and trade offers jobs each ping their check once they fini
   vi.useFakeTimers();
   const t = freshConvex();
   await t.mutation(internal.waivers.waiverRun.runDue, {});
-  await t.finishAllScheduledFunctions(vi.runAllTimers);
+  await everyJobRuns(t);
   await t.mutation(internal.trades.tradeClose.closeDue, {});
-  await t.finishAllScheduledFunctions(vi.runAllTimers);
+  await everyJobRuns(t);
   expect(fetch.mock.calls.map(([url]) => url)).toEqual([`${BASE}/waiver-runs`, `${BASE}/trade-offers`]);
 });

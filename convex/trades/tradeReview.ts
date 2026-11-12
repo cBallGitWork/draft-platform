@@ -20,11 +20,11 @@ import { leagueDeadlines } from "../gameweeks/leagueDeadlines";
 import { managerOf, memberOf, refuse, teamIn } from "../shared/leagueAccess";
 import { placeOf } from "../squads/squadPlace";
 import { closeOffersHolding, endOffer } from "./tradeClose";
-import { leagueOf, managersOf, tradedName, tradedSideOf, tradeWordsOf } from "./tradeWords";
+import { leagueOf, managersOf, teamsOfTrade, tradedName, tradedSideOf, tradeWordsOf } from "./tradeWords";
 import { REVIEW_MS } from "./tradeLimits";
 import { movePicks } from "./tradePicks";
-import { reviewerOf, votersOn } from "./tradeReviewers";
-import { squadFullRefusal, squadsAfter, tradeWarnings } from "./tradeSquads";
+import { reviewerOf, reviewersOf, storedReviewer, votersOn } from "./tradeReviewers";
+import { squadsAfter, tradeWarnings } from "./tradeSquads";
 
 // A trade's review and its move (spec/08 Trades; #383). Accepted, a trade goes through at once in
 // a league with no review. Under a commissioner veto, the commissioner has 24 hours to block it;
@@ -46,14 +46,13 @@ export const reviewRefusals = {
   notYourVote: "Only the managers of the other teams still playing can vote on that trade.",
   votedAlready: "You have voted against that trade already.",
   notVoted: "You haven't voted against that trade.",
-  squadFull: squadFullRefusal,
 };
 
 /** The accepted offer goes into review, or through at once with none. */
 export async function startReview(ctx: MutationCtx, offer: Doc<"tradeOffers">, acceptedBy: string): Promise<void> {
   const league = await leagueOf(ctx, offer.leagueId);
   const review = await reviewerOf(ctx, league, offer, await leagueDeadlines(ctx, league._id), Date.now());
-  const reviewers = review === null ? [] : review.kind === "veto" ? [review.by] : await votersOn(ctx, offer);
+  const reviewers = review === null ? [] : await reviewersOf(ctx, offer, review);
   // A vote nobody may cast goes through at once, as with no review (Craig, 11 Nov 2026, on #1607).
   if (review === null || reviewers.length === 0) {
     await goThrough(ctx, offer, acceptedBy, true);
@@ -61,8 +60,7 @@ export async function startReview(ctx: MutationCtx, offer: Doc<"tradeOffers">, a
   }
   const endsAt = Date.now() + REVIEW_MS;
   const scheduledId = await ctx.scheduler.runAt(endsAt, internal.trades.tradeReview.finish, { offerId: offer._id });
-  const reviewer = review.kind === "veto" ? review : { kind: "vote" as const, against: [] };
-  await ctx.db.patch("tradeOffers", offer._id, { review: { acceptedBy, endsAt, scheduledId, reviewer } });
+  await ctx.db.patch("tradeOffers", offer._id, { review: { acceptedBy, endsAt, scheduledId, reviewer: storedReviewer(review) } });
   const words = await tradeWordsOf(ctx, offer);
   await fileLetter(ctx, league, await managersOf(ctx, offer), (tell) => acceptedLetter(words, review, endsAt, tell), acceptedBy);
   await fileLetter(ctx, league, reviewers, (tell) => reviewLetter(words, review, endsAt, tell));
@@ -114,8 +112,7 @@ async function goThrough(ctx: MutationCtx, offer: Doc<"tradeOffers">, by: string
     return;
   }
   await ctx.db.delete("tradeOffers", offer._id);
-  const [from, to] = await Promise.all([ctx.db.get("teams", offer.fromTeamId), ctx.db.get("teams", offer.toTeamId)]);
-  if (from === null || to === null) throw new Error(`Trade offer ${offer._id} is between teams that no longer exist`);
+  const { from, to } = await teamsOfTrade(ctx, offer);
   await fileEvent(ctx, league._id, by, {
     kind: "tradeMade",
     fromTeamId: from._id,

@@ -1,10 +1,11 @@
 import type { Id } from "../../convex/_generated/dataModel";
 import type { ScreenOffer, TradedPlayer } from "./seam";
+import { closesAfterLastMatchWords, closesAtWords, whenWords } from "./words";
 
 // An offer as the manager reads it (#383): what he gets and gives, which team it is with, and which
 // of the Offers tab's groups it sits in. Pure: no I/O.
 
-export type OfferGroup = "toYou" | "fromYou" | "inReview";
+type OfferGroup= "toYou" | "fromYou" | "inReview";
 /** The groups in the Offers tab's order. */
 export const OFFER_GROUPS: readonly OfferGroup[] = [
   "toYou",
@@ -13,7 +14,7 @@ export const OFFER_GROUPS: readonly OfferGroup[] = [
 ];
 
 /** A trade from the manager's side: who it is with, and what he gets and gives. */
-export type TradeSides = {
+type TradeSides= {
   otherTeamId: Id<"teams">;
   otherTeamName: string;
   youGet: TradedPlayer[];
@@ -68,4 +69,25 @@ export function tradeSidesOf(
           ? offer.picks.gives
           : offer.picks.gets,
   };
+}
+
+/** When an offer closes, in its row's short form and its panel's long one: when its review ends,
+ *  after the trade deadline's gameweek's last match, or at the next deadline; null when no deadline
+ *  is left, shown as a greyed dash in both (#1788). */
+export type OfferCloses = { row: string; panel: string } | null;
+
+export function closesOf(
+  offer: Pick<ScreenOffer, "reviewEndsAt" | "closes">,
+): OfferCloses {
+  if (offer.reviewEndsAt !== null) {
+    const when = whenWords(offer.reviewEndsAt);
+    return { row: when, panel: when };
+  }
+  if (offer.closes === null) return null;
+  if (offer.closes.at === null) {
+    const words = closesAfterLastMatchWords(offer.closes.gameweek);
+    return { row: words, panel: words };
+  }
+  const when = whenWords(offer.closes.at);
+  return { row: when, panel: closesAtWords(offer.closes.gameweek, when) };
 }

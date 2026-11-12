@@ -57,6 +57,11 @@ export function positionsFrom(row: RowFields, how: HowPositionsCount): WorkedOut
   });
 }
 
+/** His positions worked out from `row` (`positionsFrom`), the positions alone. */
+export function positionListFrom(row: RowFields, how: HowPositionsCount): Position[] {
+  return positionsFrom(row, how).positions.map(({ position }) => position);
+}
+
 /** Approves what his starts give him now, and his label as it stands. */
 export const approvePlayer = mutation({
   args: { code: v.number() },
@@ -221,7 +226,7 @@ export async function positionsNow(ctx: QueryCtx, positionsFor: PositionsFor): P
 }
 
 async function currentPositions(ctx: QueryCtx, code: number, how: HowPositionsCount): Promise<Position[]> {
-  return (await workedOutNow(ctx, code, how)).positions.map(({ position }) => position);
+  return positionListFrom((await findRow(ctx, code)) ?? EMPTY_ROW, how);
 }
 
 /** Everything `positionsOf` works out for him now, flags and removals with his positions. */

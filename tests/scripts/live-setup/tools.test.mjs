@@ -1,7 +1,6 @@
-import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
-import { tmpdir } from "node:os";
+import { mkdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
-import { afterEach, beforeEach, expect, test, vi } from "vitest";
+import { beforeEach, expect, test, vi } from "vitest";
 import {
   ALLOW_EMAIL,
   DEPLOYED_FUNCTION,
@@ -16,13 +15,13 @@ import {
 import { VERCEL_LINK_FILE, captured, realTools } from "../../../scripts/live-setup/tools.mjs";
 import { RESEND_API_URL } from "../../../convex/outbound/resend.ts";
 import { CHECK_EMAIL, GIT_OPTIONS_WITHOUT_DISPATCH, RESEND_KEY } from "../../support/scripts/liveSetup.harness.mjs";
+import { scratchDir } from "../../support/scripts/scratchDir.mjs";
 
 const SECRET = "a-secret-value-0123456789";
 const LINKED = { projectId: "prj_123", orgId: "team_456", projectName: VERCEL_PROJECT };
 
 let checkout;
-beforeEach(() => (checkout = mkdtempSync(join(tmpdir(), "live-setup-"))));
-afterEach(() => rmSync(checkout, { recursive: true, force: true }));
+beforeEach(() => (checkout = scratchDir("live-setup-")));
 
 function linkCheckout(project = LINKED) {
   mkdirSync(join(checkout, ".vercel"), { recursive: true });

@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { DEFAULT_CLASSIC_FORMATIONS } from "../../../../convex/lineup/classics";
+import { FIRST_CLASSIC_FORMATIONS } from "../../../../convex/lineup/classics";
 import { sameCell, type Cell } from "../../../../convex/lineup/pitch";
-import { DEFAULT_PRESETS } from "../../../../convex/lineup/presets";
+import { FIRST_PRESETS } from "../../../../convex/lineup/presets";
 import { roleIn, takesRole } from "../../../../convex/lineup/roles";
 import type { Position } from "../../../../convex/positions/positionTables";
 import { formationNameOf, onClassicFormation } from "../../../../src/myTeam/tactics/classicLineup";
@@ -12,7 +12,7 @@ import { customWords } from "../../../../src/myTeam/tactics/words";
 // only one he may take (spec/05 `S05.29`; #1543): a number 10 in a striker's slot can't be its
 // poacher.
 
-const keegans = DEFAULT_CLASSIC_FORMATIONS.find(({ name }) => name === "Keegan's Newcastle")!;
+const keegans = FIRST_CLASSIC_FORMATIONS.find(({ name }) => name === "Keegan's Newcastle")!;
 const positionsByArea: Record<Cell["area"], Position[]> = {
   goalkeeper: ["GK"],
   defence: ["CB", "FB"],
@@ -36,7 +36,7 @@ describe("picking a classic", () => {
     const strikers = { positionsOf: (playerCode: number) => (playerCode === NUMBER_TEN ? (["ST"] as Position[]) : rules.positionsOf(playerCode)) };
     const lineup = onClassicFormation(IN_KEEGANS_SHAPE, keegans, strikers, noStars);
     for (const slot of keegans.cells) expect(lineup.starters.find((starter) => sameCell(starter, slot))?.role).toBe(slot.role);
-    expect(formationNameOf(lineup, DEFAULT_PRESETS, DEFAULT_CLASSIC_FORMATIONS)).toBe(keegans.name);
+    expect(formationNameOf(lineup, FIRST_PRESETS, FIRST_CLASSIC_FORMATIONS)).toBe(keegans.name);
   });
 
   it("starts a number 10 on a striker's slot on a role he may take, never its poacher, and the formation reads custom", () => {
@@ -48,6 +48,6 @@ describe("picking a classic", () => {
     expect(role).not.toBe("poacher");
     expect(takesRole(["CAM"], role)).toBe(true);
     for (const slot of keegans.cells.slice(0, -1)) expect(lineup.starters.find((starter) => sameCell(starter, slot))?.role).toBe(slot.role);
-    expect(formationNameOf(lineup, DEFAULT_PRESETS, DEFAULT_CLASSIC_FORMATIONS)).toBe(customWords(keegans.name));
+    expect(formationNameOf(lineup, FIRST_PRESETS, FIRST_CLASSIC_FORMATIONS)).toBe(customWords(keegans.name));
   });
 });

@@ -46,8 +46,8 @@ export type DraftSeam = Pick<ScoutingSeam, "usePlayersList"> & {
   /** The changes the room's queue, do-not-draft and auto-pick panels make (a hook). */
   useListChanges(): DraftListChanges;
   /** For whoever runs the league only: the commissioner panel's pick time and the teams with no
-   *  manager at the minute `now`, live (a hook): undefined while they load. */
-  useCommissioner(leagueId: Id<"leagues">, now: number): CommissionerView | undefined;
+   *  manager, live (a hook): undefined while they load. */
+  useCommissioner(leagueId: Id<"leagues">): CommissionerView | undefined;
   /** For whoever runs the league only: the players the team on the clock can't take as its pick,
    *  and why, live (a hook): undefined while they load. */
   useGreyedOnTheClock(leagueId: Id<"leagues">): readonly GreyedPlayer[] | undefined;
@@ -60,7 +60,7 @@ export type DraftLists = NonNullable<FunctionReturnType<typeof api.draft.draftLi
 export type DraftList = "queue" | "doNotDraft";
 
 /** What adding the whole shortlist did (draft/draftLists:addShortlist). */
-export type ShortlistAdded = FunctionReturnType<typeof api.draft.draftLists.addShortlist>;
+type ShortlistAdded = FunctionReturnType<typeof api.draft.draftLists.addShortlist>;
 
 export type DraftListChanges = {
   /** Puts a player at the bottom of the queue, or on the do-not-draft list, taking him off the

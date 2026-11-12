@@ -12,14 +12,13 @@ import { commentaryLines, type CommentaryLine } from "./premierLeague/plCommenta
 import { readPlCommentary, readPlFixture, type RawPlFixture } from "./premierLeague/premierLeague";
 import { plScoreRead, type ScoreRead } from "./scoreReads";
 import { MINUTE_MS } from "../shared/time";
-import { isDelayedAt } from "../matchup/commentaryAt";
 
 // Each live match's commentary, read by the live tick (#28) with its points, written by
 // `commentary.ts` and stored one row a match (#43, spec/10, The commentary). Each read replaces the
 // lines whole, so a reworded line is rewritten and a deleted one goes; once the match is no longer
 // polled they stay as written. A failed read, a stream behind the clock or an unworded line marks
 // the commentary delayed, logged, while the points carry on; should the tick itself stop, the
-// screens judge the held lines against the clock (`delayedAt`). The full-time line carries the score
+// screens judge the held lines against the clock (`delayedFrom`). The full-time line carries the score
 // alone: each league scores its own way (#421), so its points are the matchup's to add.
 
 type CommentaryLineRow = Infer<typeof commentaryLine>;
@@ -147,18 +146,12 @@ function newestMinuteOf(lines: readonly TimedLine[]): number {
   return (newest?.minute ?? 0) + (newest?.addedMinute ?? 0);
 }
 
-/** Whether the held commentary shows as delayed at `now`, the screen's minute: the tick marked it,
- *  or the match is in play and its newest held line trails the clock, run on from the held score's
- *  read to `now`, by more than `COMMENTARY_BEHIND_MINUTES`. The second says so when the tick itself
- *  has stopped, as nothing then reads the stream to mark it (#917). */
-export function delayedAt(held: Doc<"matchCommentary">, score: Doc<"matchScores"> | null, now: number): boolean {
-  return isDelayedAt(delayedFrom(held, score), now);
-}
-
-/** The moment `delayedAt` turns true, so a query can say it without the clock (#1550): always (0)
- *  once the tick marked it or the newest held line already trails the held score's clock; else, in
- *  play, the whole minute after the read at which the run-on clock first trails; never (null) while
- *  the match isn't in play. */
+/** The moment the held commentary shows as delayed from, so a query can say it without the clock
+ *  (#1550; the screen judges it at its minute, commentaryAt.ts): always (0) once the tick marked it
+ *  or the newest held line already trails the held score's clock; else, in play, the whole minute
+ *  after the read at which the clock, run on from the read, first trails the newest held line by
+ *  more than `COMMENTARY_BEHIND_MINUTES`, which says so when the tick itself has stopped, as nothing
+ *  then reads the stream to mark it (#917); never (null) while the match isn't in play. */
 export function delayedFrom(held: Doc<"matchCommentary">, score: Doc<"matchScores"> | null): number | null {
   if (held.delayed !== null) return ALWAYS;
   if (score === null || score.state !== "live" || score.minutes === null) return null;

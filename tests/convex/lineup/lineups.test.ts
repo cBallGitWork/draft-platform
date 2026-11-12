@@ -14,7 +14,7 @@ import { expectRefused } from "../../support/convex/test.harness";
 import { COMMISSIONER, MANAGERS, actingAs, addManagers, adminCreatesLeague, type TestConvex } from "../../support/convex/leagues.harness";
 import { fakeResend, signInDeployment } from "../../support/convex/signIn.harness";
 import { FIRST_SUB, REMOVED_ROLE } from "../../support/convex/lineup.harness";
-import { FOUR_FOUR_TWO, holdPlayers, holdSquad, nameOf, NEXT, SQUAD, STARTERS } from "../../support/convex/lineupSquad.harness";
+import { BOBS, FOUR_FOUR_TWO, FREE_AGENT, holdPlayers, holdSquad, nameOf, NEXT, REVERSED_BENCH, saved, sent, SQUAD, STARTERS } from "../../support/convex/lineupSquad.harness";
 import { lineupInGameweek } from "../../../convex/lineup/lineups";
 import { openingLineup, shownLineup } from "../../../src/myTeam/tactics/lineupEdits";
 
@@ -24,10 +24,6 @@ import { openingLineup, shownLineup } from "../../../src/myTeam/tactics/lineupEd
 // begun, as it stood at the deadline for one begun (#415).
 
 const [ANN, BOB, , , EVE] = MANAGERS;
-/** A player in the Premier League on no team in the league. */
-const FREE_AGENT = 999;
-/** Bob's player. */
-const BOBS = 998;
 
 let t: TestConvex;
 let leagueId: Id<"leagues">;
@@ -44,9 +40,6 @@ beforeEach(async () => {
   await holdPlayers(t, [FREE_AGENT]);
 });
 
-/** The lineup as a browser sends it. */
-const sent = (lineup: Lineup) => ({ starters: [...lineup.starters], bench: [...lineup.bench] });
-
 const as = async (email: string) => {
   const person = await actingAs(t, email);
   return {
@@ -60,16 +53,6 @@ const teamOf = (email: string): Id<"teams"> => {
   if (email === BOB) return bobsTeam;
   throw new Error(`${email} runs no team in the league`);
 };
-const saved = (lineup: Lineup, fromGameweek: number | null) => ({
-  fromGameweek,
-  starters: lineup.starters,
-  bench: lineup.bench,
-  leftSquad: [],
-  joinedBench: [],
-  vacated: [],
-});
-/** The lineup with its bench reversed: another lineup of the same squad. */
-const REVERSED_BENCH: Lineup = { ...FOUR_FOUR_TWO, bench: FOUR_FOUR_TWO.bench.toReversed() };
 /** Ann's team's lineup rows. */
 const lineupRows = () => t.run(async (ctx) => (await ctx.db.query("lineups").collect()).filter((row) => row.teamId === annsTeam));
 
@@ -125,6 +108,9 @@ describe("a saved lineup", () => {
   test("is from gameweek 1 before the season's gameweeks have arrived", async () => {
     await t.run(async (ctx) => {
       for (const row of await ctx.db.query("gameweeks").collect()) await ctx.db.delete("gameweeks", row._id);
+      // Their matches are held, and count their gameweeks among the season's (#1618), but none has
+      // kicked off: a save follows the league's deadlines, as its screens do (#1764).
+      for (const row of await ctx.db.query("fixtures").collect()) await ctx.db.patch("fixtures", row._id, { kickoff: row.kickoff! + NEXT * WEEK_MS });
     });
     expect(await (await as(ANN)).save(FOUR_FOUR_TWO)).toBe(FIRST_GAMEWEEK);
   });

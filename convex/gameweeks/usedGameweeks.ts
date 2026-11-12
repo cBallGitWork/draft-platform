@@ -2,8 +2,8 @@
 // commissioner unticked it. An unticked gameweek scores nothing and has no head-to-head: the
 // fixtures (#33) skip it via `scoredGameweeksOf`, and scoring's `begunGameweeks`
 // (convex/gameweekScorer/gameweekScores.ts) applies `isGameweekScored`, so it is never scored; lineups,
-// waivers, free agency and trades are locked through it (spec/13; waiverLock.ts's `inUnplayedGameweek`
-// and its waiver lock), and the league's season ends at the last it plays (`lastPlayedGameweek`). A gameweek before the league's scoring start
+// waivers, free agency and trades are locked through it (spec/13; gameweekEnd.ts's `inUnplayedGameweek`
+// and the waiver lock), and the league's season ends at the last it plays (`lastPlayedGameweek`). A gameweek before the league's scoring start
 // (scoringStart.ts; spec/04, After the draft) is the same: those two leave it out too. Its only imports are a type, which compiles away, and
 // Convex's validators, which the screens already load, so the screens can read it too.
 //

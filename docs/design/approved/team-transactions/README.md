@@ -1,6 +1,7 @@
 # My team, Transactions
 
-Route: My team's Transactions tab (`/team`, checked on `/team?preview=manager`). For #1031.
+Route: `/team/transactions`, My team's Transactions tab, checked on
+`/team/transactions?preview=manager`. For #1031.
 It redraws the Transactions picture in [`waivers`](../waivers/README.md), which still holds the
 commissioner's Every team view and League settings' Waivers tab.
 

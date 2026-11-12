@@ -5,7 +5,7 @@ import { pickOwner, snakeOrder, type TradedPick } from "../../convex/draft/snake
 // only). Pure: no I/O.
 
 /** How many rounds the board shows unless the whole board is asked for (Craig, 4 Nov 2026). */
-export const BOARD_ROUNDS = 6;
+const BOARD_ROUNDS = 6;
 
 /** The rounds the board shows: every round for the whole board, otherwise BOARD_ROUNDS of them
  *  around `round`, the one on the clock, which sits as near the fourth row as the rounds allow, as
