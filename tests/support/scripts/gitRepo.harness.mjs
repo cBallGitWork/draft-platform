@@ -1,6 +1,6 @@
 // A scratch git repo for a script check that compares the branch with origin/main
-// (scripts/recorded-add-only.mjs, scripts/tests-kept.mjs): the check is run in it as verify runs
-// it, from the repo's top.
+// (scripts/recorded-add-only.mjs, scripts/tests-kept.mjs), or that reads main's log
+// (drift-pass.yml): the check is run in it as verify runs it, from the repo's top.
 
 import { spawnSync } from "node:child_process";
 import { mkdirSync, writeFileSync } from "node:fs";
@@ -18,10 +18,12 @@ export function scratchRepo(prefix) {
   const env = Object.fromEntries(Object.entries(process.env).filter(([name]) => !name.startsWith("GIT_")));
   Object.assign(env, { HOME: path, GIT_CONFIG_NOSYSTEM: "1" });
 
-  /** git in the repo; a failure throws, so a broken setup never reads as the check's answer. */
+  /** git in the repo, giving what it printed; a failure throws, so a broken setup never reads as
+   *  the check's answer. */
   function git(...args) {
     const run = spawnSync("git", [...TESTER, ...args], { cwd: path, env, encoding: "utf8" });
     if (run.status !== 0) throw new Error(`git ${args.join(" ")}: ${run.stderr}`);
+    return run.stdout;
   }
 
   const repo = {
