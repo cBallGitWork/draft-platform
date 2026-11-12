@@ -1,9 +1,9 @@
 // The after-release check (spec/20, Every release): tests/live/ opened against the live site, no
 // local server. `npx playwright test -c playwright.live.config.ts`; .github/workflows/release-check.yml
-// runs it after each production deployment. What it points at: tests/live/releaseCheck.ts.
+// runs it after each production deployment. What it points at: scripts/live-site.mjs.
 
 import { defineConfig } from "@playwright/test";
-import { checkSite } from "./tests/live/releaseCheck";
+import { checkSite } from "./scripts/live-site.mjs";
 
 export default defineConfig({
   testDir: "tests/live",
