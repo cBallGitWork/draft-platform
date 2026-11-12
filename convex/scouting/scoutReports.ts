@@ -115,8 +115,7 @@ export const comeBack = internalMutation({
   handler: async (ctx, { scoutId, text }) => {
     const scout = await ctx.db.get("scouts", scoutId);
     if (scout === null || scout.state !== "out") return null;
-    const player = await playerByCode(ctx, scout.playerCode);
-    const playerName = player?.name ?? `player ${scout.playerCode}`;
+    const playerName = await scoutedName(ctx, scout);
     if (text === null) await ctx.db.patch("scouts", scoutId, { state: "playerLeft" });
     else await ctx.db.patch("scouts", scoutId, { state: "reported", report: { text, writtenAt: Date.now() } });
     await tellManager(ctx, scout, text === null ? playerLeftLetter(playerName) : reportInLetter(playerName));
@@ -140,11 +139,15 @@ export const failed = internalMutation({
       return null;
     }
     await ctx.db.patch("scouts", scoutId, { failedTries, lastFailure: failure, state: "notFiled" });
-    const player = await playerByCode(ctx, scout.playerCode);
-    await tellManager(ctx, scout, notFiledLetter(player?.name ?? `player ${scout.playerCode}`));
+    await tellManager(ctx, scout, notFiledLetter(await scoutedName(ctx, scout)));
     return null;
   },
 });
+
+/** The scouted player's name for a letter, or his code once the football data no longer holds him. */
+async function scoutedName(ctx: QueryCtx, scout: Doc<"scouts">): Promise<string> {
+  return (await playerByCode(ctx, scout.playerCode))?.name ?? `player ${scout.playerCode}`;
+}
 
 /** Files the letter to the team's manager alone: no other team can tell whom it scouts. A team
  *  with no manager gets none. */
